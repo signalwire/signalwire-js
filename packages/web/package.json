@@ -13,10 +13,10 @@
   },
   "scripts": {
     "start": "tsdx watch",
-    "build": "tsdx build",
+    "build": "tsdx build --format cjs,esm,umd",
     "test": "tsdx test",
     "lint": "tsdx lint",
-    "prepare": "tsdx build"
+    "prepare": "tsdx build --format cjs,esm,umd"
   },
   "dependencies": {
     "@signalwire/core": "0.0.0",
