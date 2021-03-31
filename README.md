@@ -20,3 +20,11 @@ From the root folder run:
 
 1. `npm i`
 2. `npm run build`
+
+#### Development Workflow
+
+The normal flow should look to something like this:
+
+1. Make a change in one of the existing (or new) packages
+2. Run `yarn changeset`. This will ask you a set of questions about the changes you've made.
+3. Create a `Pull Request` on GitHub.
