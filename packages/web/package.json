@@ -15,8 +15,7 @@
     "start": "tsdx watch",
     "build": "tsdx build --format cjs,esm,umd",
     "test": "tsdx test",
-    "lint": "tsdx lint",
-    "prepare": "tsdx build --format cjs,esm,umd"
+    "lint": "tsdx lint"
   },
   "dependencies": {
     "@signalwire/core": "0.0.0",

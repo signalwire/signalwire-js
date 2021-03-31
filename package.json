@@ -14,9 +14,7 @@
   },
   "dependencies": {
     "@changesets/cli": "^2.14.1",
-    "@manypkg/cli": "^0.17.0"
-  },
-  "devDependencies": {
+    "@manypkg/cli": "^0.17.0",
     "prettier": "^2.2.1"
   }
 }
