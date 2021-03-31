@@ -9,7 +9,7 @@
     "postinstall": "manypkg check",
     "changeset": "changeset",
     "clean": "manypkg exec rm -rf node_modules && manypkg exec rm -rf dist && rm -rf node_modules",
-    "build": "manypkg exec npm run build"
+    "build": "manypkg run @signalwire/core build && manypkg run @signalwire/webrtc build && manypkg run @signalwire/web build && manypkg run @signalwire/node build"
   },
   "dependencies": {
     "@changesets/cli": "^2.14.1",
