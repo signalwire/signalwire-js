@@ -4,5 +4,15 @@
   "private": true,
   "workspaces": [
     "./packages/*"
-  ]
+  ],
+  "scripts": {
+    "postinstall": "manypkg check",
+    "changeset": "changeset",
+    "clean": "manypkg exec rm -rf node_modules && manypkg exec rm -rf dist && rm -rf node_modules",
+    "build": "manypkg exec npm run build"
+  },
+  "dependencies": {
+    "@changesets/cli": "^2.14.1",
+    "@manypkg/cli": "^0.17.0"
+  }
 }
