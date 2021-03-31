@@ -26,5 +26,5 @@ From the root folder run:
 The normal flow should look to something like this:
 
 1. Make a change in one of the existing (or new) packages
-2. Run `yarn changeset`. This will ask you a set of questions about the changes you've made.
+2. Run `npm run changeset`. This will ask you a set of questions about the changes you've made.
 3. Create a `Pull Request` on GitHub.
