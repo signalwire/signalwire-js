@@ -9,10 +9,14 @@
     "postinstall": "manypkg check",
     "changeset": "changeset",
     "clean": "manypkg exec rm -rf node_modules && manypkg exec rm -rf dist && rm -rf node_modules",
-    "build": "manypkg run @signalwire/core build && manypkg run @signalwire/webrtc build && manypkg run @signalwire/web build && manypkg run @signalwire/node build"
+    "build": "manypkg run @signalwire/core build && manypkg run @signalwire/webrtc build && manypkg run @signalwire/web build && manypkg run @signalwire/node build",
+    "prettier": "prettier --write ."
   },
   "dependencies": {
     "@changesets/cli": "^2.14.1",
     "@manypkg/cli": "^0.17.0"
+  },
+  "devDependencies": {
+    "prettier": "^2.2.1"
   }
 }
