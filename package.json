@@ -10,11 +10,17 @@
     "changeset": "changeset",
     "clean": "manypkg exec rm -rf node_modules && manypkg exec rm -rf dist && rm -rf node_modules",
     "build": "manypkg run @signalwire/core build && manypkg run @signalwire/webrtc build && manypkg run @signalwire/web build && manypkg run @signalwire/node build",
-    "prettier": "prettier --write ."
+    "prettier": "prettier --write .",
+    "start": "concurrently \"manypkg run @signalwire/core start\" \"manypkg run @signalwire/web start\"",
+    "example:web": "manypkg run @signalwire/web example"
   },
   "dependencies": {
     "@changesets/cli": "^2.14.1",
     "@manypkg/cli": "^0.17.0",
-    "prettier": "^2.2.1"
+    "concurrently": "^6.0.0",
+    "prettier": "^2.2.1",
+    "tsdx": "^0.14.1",
+    "tslib": "^2.1.0",
+    "typescript": "^4.2.3"
   }
 }
