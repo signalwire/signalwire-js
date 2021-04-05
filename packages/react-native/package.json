@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "main": "dist/index.js",
   "module": "dist/react-native.esm.js",
-  "typings": "dist/index.d.ts",
+  "typings": "dist/react-native/src/index.d.ts",
   "files": [
     "dist",
     "src"
