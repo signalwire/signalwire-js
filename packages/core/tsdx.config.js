@@ -1,10 +1,10 @@
-const { createRollupConfig } = require("../../tsdx.base");
+const { createRollupConfig } = require('../../tsdx.base')
 
 /**
  * List of dependencies to be included with @signalwire/core when
  * building the final bundle
  */
-const INLINED_DEPS = ["loglevel", "uuid"];
+const INLINED_DEPS = ['loglevel', 'uuid']
 
 module.exports = {
   rollup(config, options) {
@@ -14,6 +14,6 @@ module.exports = {
         swExternal: INLINED_DEPS,
       },
       options
-    );
+    )
   },
-};
+}
