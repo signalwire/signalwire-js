@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.build.json",
   "include": [
     "./src/index.ts",
-    "../core/src/index.ts",
-    "../webrtc/src/index.ts"
+    "../core/src",
+    "../webrtc/src"
   ]
 }

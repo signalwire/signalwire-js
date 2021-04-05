@@ -1,10 +1,9 @@
-import * as core from "@signalwire/core";
+import { uuid, logger } from "@signalwire/core";
 
 export const sum = (a: number, b: number) => {
   if ("development" === process.env.NODE_ENV) {
-    console.log("Core feature", core.sum(a, b));
-
-    console.log("boop");
+    logger.info("Core feature", uuid());
   }
+
   return a + b;
 };

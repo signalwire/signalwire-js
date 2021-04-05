@@ -1,6 +1,5 @@
-export const sum = (a: number, b: number) => {
-  if ("development" === process.env.NODE_ENV) {
-    console.log("boop Core");
-  }
-  return a + b;
-};
+import { v4 as uuid } from "uuid";
+
+import { logger } from "./utils/logger";
+
+export { uuid, logger };

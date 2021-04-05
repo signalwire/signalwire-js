@@ -17,5 +17,12 @@
     "test": "tsdx test",
     "lint": "tsdx lint",
     "prepare": "tsdx build"
+  },
+  "dependencies": {
+    "loglevel": "^1.7.1",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@types/uuid": "^8.3.0"
   }
 }
