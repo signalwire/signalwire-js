@@ -17,5 +17,8 @@
     "test": "tsdx test",
     "lint": "tsdx lint",
     "prepare": "tsdx build"
+  },
+  "dependencies": {
+    "@signalwire/core": "0.0.0"
   }
 }
