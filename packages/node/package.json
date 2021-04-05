@@ -1,0 +1,24 @@
+{
+  "name": "@signalwire/node",
+  "version": "0.0.0",
+  "main": "dist/index.js",
+  "module": "dist/node.esm.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "start": "tsdx watch --tsconfig tsconfig.build.json --verbose --noClean",
+    "build": "tsdx build --tsconfig tsconfig.build.json",
+    "test": "tsdx test",
+    "lint": "tsdx lint",
+    "prepare": "tsdx build"
+  },
+  "dependencies": {
+    "@signalwire/core": "0.0.0"
+  }
+}
