@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "main": "dist/index.js",
   "module": "dist/web.esm.js",
-  "typings": "dist/index.d.ts",
+  "typings": "dist/web/src/index.d.ts",
   "files": [
     "dist",
     "src"
