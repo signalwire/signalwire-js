@@ -1,5 +1,5 @@
-describe("Fake", () => {
-  it("works", () => {
-    expect(2).toEqual(2);
-  });
-});
+describe('Fake', () => {
+  it('works', () => {
+    expect(2).toEqual(2)
+  })
+})

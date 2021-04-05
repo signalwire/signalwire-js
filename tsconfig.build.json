@@ -21,7 +21,7 @@
       "@signalwire/web": ["packages/web/src"],
       "@signalwire/core": ["packages/core/src"],
       "@signalwire/webrtc": ["packages/webrtc/src"],
-      "@signalwire/node": ["packages/node/src"],
+      "@signalwire/node": ["packages/node/src"]
     },
     "composite": true,
     "declarationMap": true

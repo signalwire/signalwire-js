@@ -1,7 +1,7 @@
-const { createRollupConfig } = require("../../tsdx.base");
+const { createRollupConfig } = require('../../tsdx.base')
 
 module.exports = {
   rollup(config, options) {
-    return createRollupConfig(config, options);
+    return createRollupConfig(config, options)
   },
-};
+}
