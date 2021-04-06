@@ -25,14 +25,14 @@ import {
 
 export class Session {
   public uuid: string = uuidv4()
-  public relayProtocol: string = null
+  public relayProtocol: string = ''
   public WebSocketConstructor: typeof WebSocket
 
   protected _authorization: IBladeAuthorization
 
   private _requests = new Map<string, SessionRequestObject>()
   private _requestQueue: SessionRequestQueued[] = []
-  private _socket: WebSocket = null
+  private _socket: WebSocket
   private _idle = true
   private _host: string = DEFAULT_HOST
 
@@ -90,6 +90,10 @@ export class Session {
    * @return void
    */
   connect(): void {
+    if (!this?.WebSocketConstructor) {
+      logger.error('Missing WebSocketConstructor')
+      return
+    }
     /**
      * Return if there is already a _socket instance.
      * This prevents issues if "connect()" is called multiple times.
@@ -120,7 +124,7 @@ export class Session {
     }
 
     this._socket.close()
-    this._socket = null
+    delete this._socket
     // clearTimeout(this._reconnectTimeout)
     // this.subscriptions.clear()
     // this._autoReconnect = false
@@ -148,7 +152,7 @@ export class Session {
         this.connect()
       })
     }
-    let promise: Promise<unknown> = null
+    let promise: Promise<unknown>
     if ('params' in msg) {
       // This is a request so save the "id" to resolve the Promise later
       promise = new Promise((resolve, reject) => {
@@ -191,6 +195,7 @@ export class Session {
         params: {},
       }
       if (this._relayProtocolIsValid()) {
+        params.params = params.params || {}
         params.params.protocol = this.relayProtocol
       }
       const response = await this.execute(BladeConnect(params))
@@ -219,8 +224,9 @@ export class Session {
   protected _onSocketMessage(event: MessageEvent) {
     const payload: any = safeParseJson(event.data)
     logger.debug('RECV: \n', JSON.stringify(payload, null, 2), '\n')
-    if (this._requests.has(payload.id)) {
-      const { resolve, reject } = this._requests.get(payload.id)
+    const request = this._requests.get(payload.id)
+    if (request) {
+      const { resolve, reject } = request
       this._requests.delete(payload.id)
       const { result, error } = destructResponse(payload)
       return error ? reject(error) : resolve(result)

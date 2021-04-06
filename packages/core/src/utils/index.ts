@@ -31,7 +31,7 @@ export const checkWebSocketHost = (host: string): string => {
  */
 export const destructResponse = (
   response: any,
-  nodeId: string = null
+  nodeId?: string
 ): { [key: string]: any } => {
   const { result = {}, error } = response
   if (error) {
@@ -39,7 +39,7 @@ export const destructResponse = (
   }
   const { result: nestedResult = null } = result
   if (nestedResult === null) {
-    if (nodeId !== null) {
+    if (nodeId) {
       result.node_id = nodeId
     }
     return { result }
@@ -74,7 +74,7 @@ export const timeoutPromise = (
   time: number,
   exception: any
 ) => {
-  let timer = null
+  let timer: any = null
   return Promise.race([
     promise,
     new Promise(
