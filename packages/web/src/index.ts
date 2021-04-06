@@ -1,4 +1,4 @@
-import { uuid, logger } from '@signalwire/core'
+import { uuid, logger, JWTSession } from '@signalwire/core'
 import * as webrtc from '@signalwire/webrtc'
 
 export const sum = (a: number, b: number) => {
@@ -9,3 +9,5 @@ export const sum = (a: number, b: number) => {
 
   return a + b
 }
+
+export { JWTSession }

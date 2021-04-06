@@ -61,7 +61,7 @@ export class Session {
   }
 
   get signature() {
-    return this?._authorization.signature
+    return this?._authorization?.signature
   }
 
   get logger(): typeof logger {
