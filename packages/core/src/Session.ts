@@ -28,12 +28,13 @@ export class Session {
   public relayProtocol: string = null
   public WebSocketConstructor: typeof WebSocket
 
+  protected _authorization: IBladeAuthorization
+
   private _requests = new Map<string, SessionRequestObject>()
   private _requestQueue: SessionRequestQueued[] = []
   private _socket: WebSocket = null
   private _idle = true
   private _host: string = DEFAULT_HOST
-  private _authorization: IBladeAuthorization
 
   private _executeTimeoutMs = 10 * 1000
   private _executeTimeoutError = Symbol.for('sw-execute-timeout')
@@ -194,6 +195,7 @@ export class Session {
       }
       const response = await this.execute(BladeConnect(params))
       console.log('Response', response)
+      this._authorization = response.authorization
     } catch (error) {
       console.error('Auth Error', error)
     }
