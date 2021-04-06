@@ -1,5 +1,8 @@
 import { STORAGE_PREFIX } from './constants'
 
+export { v4 as uuid } from 'uuid'
+export { logger } from './logger'
+
 export const deepCopy = (obj: Object) => JSON.parse(JSON.stringify(obj))
 
 export const mutateStorageKey = (key: string) => `${STORAGE_PREFIX}${key}`

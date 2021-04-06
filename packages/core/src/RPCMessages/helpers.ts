@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid'
+import { uuid } from '../utils'
 
 type MakeRPCRequestParams = {
   method: string // TODO: use enum
@@ -10,7 +10,7 @@ type MakeRPCRequestParams = {
 export const makeRPCRequest = (params: MakeRPCRequestParams) => {
   return {
     jsonrpc: '2.0' as const,
-    id: uuidv4(),
+    id: uuid(),
     ...params,
   }
 }

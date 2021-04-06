@@ -1,5 +1,4 @@
-import { v4 as uuid } from 'uuid'
-import { logger } from './utils/logger'
+import { uuid, logger } from './utils'
 import { Session } from './Session'
 import { JWTSession } from './JWTSession'
 

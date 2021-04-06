@@ -1,5 +1,4 @@
-import { v4 as uuidv4 } from 'uuid'
-import { logger } from './utils/logger'
+import { uuid, logger } from './utils'
 import { BladeMethod, DEFAULT_HOST, WebSocketState } from './utils/constants'
 import {
   BladeConnect,
@@ -24,8 +23,8 @@ import {
 } from './utils'
 
 export class Session {
-  public uuid: string = uuidv4()
-  public relayProtocol: string = ''
+  public uuid = uuid()
+  public relayProtocol = ''
   public WebSocketConstructor: typeof WebSocket
 
   protected _authorization: IBladeAuthorization
