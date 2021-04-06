@@ -1,6 +1,6 @@
 import { uuid } from '../utils'
 
-type MakeRPCRequestParams = {
+interface MakeRPCRequestParams {
   method: string // TODO: use enum
   params: {
     // TODO: use list of types?
@@ -15,7 +15,7 @@ export const makeRPCRequest = (params: MakeRPCRequestParams) => {
   }
 }
 
-type MakeRPCResponseParams = {
+interface MakeRPCResponseParams {
   id: string
   result: {
     // TODO: use list of types?
