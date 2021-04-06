@@ -1,4 +1,4 @@
-import { makeRPCRequest, makeRPCResponse } from './index'
+import { makeRPCRequest, makeRPCResponse } from './helpers'
 import { BladeMethod } from '../utils/constants'
 
 export const BladePing = () => {

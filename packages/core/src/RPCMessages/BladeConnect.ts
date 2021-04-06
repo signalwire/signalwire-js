@@ -1,4 +1,4 @@
-import { makeRPCRequest } from './index'
+import { makeRPCRequest } from './helpers'
 import { BladeMethod } from '../utils/constants'
 
 const BLADE_VERSION = {
@@ -7,14 +7,14 @@ const BLADE_VERSION = {
   revision: 0,
 }
 
-let agent: string = null
+let agent: string | null = null
 export const setAgentName = (name: string) => {
   agent = name
 }
 
 type WithToken = { token: string; jwt_token?: never }
 type WithJWT = { token?: never; jwt_token: string }
-type BladeConnectAuthentication = ({ project: string } & WithToken) | WithJWT
+type BladeConnectAuthentication = { project: string } & (WithToken | WithJWT)
 export type BladeConnectParams = {
   authentication: BladeConnectAuthentication
   params?: {

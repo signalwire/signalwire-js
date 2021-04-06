@@ -1,4 +1,4 @@
-import { makeRPCRequest } from './index'
+import { makeRPCRequest } from './helpers'
 import { BladeMethod } from '../utils/constants'
 
 type BladeExecuteParams = {

@@ -1,4 +1,4 @@
-import { makeRPCResponse } from './index'
+import { makeRPCResponse } from './helpers'
 
 export const BladeDisconnectResponse = (id: string) => {
   return makeRPCResponse({
