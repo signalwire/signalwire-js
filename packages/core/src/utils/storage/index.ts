@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { mutateStorageKey, safeParseJson } from '../'
 
 const _inNode = () =>

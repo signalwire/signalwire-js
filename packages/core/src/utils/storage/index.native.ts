@@ -1,6 +1,7 @@
+// @ts-nocheck
+
 // TODO: Review ReactNative support
 
-// @ts-ignore
 import AsyncStorage from '@react-native-community/async-storage'
 import { mutateStorageKey, safeParseJson } from '../'
 
