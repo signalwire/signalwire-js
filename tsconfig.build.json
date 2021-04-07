@@ -24,7 +24,8 @@
       "@signalwire/node": ["packages/node/src"]
     },
     "composite": true,
-    "declarationMap": true
+    "declarationMap": true,
+    "strictPropertyInitialization": false
   },
   "include": ["packages"]
 }

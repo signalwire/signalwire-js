@@ -1,5 +1,11 @@
-import { v4 as uuid } from 'uuid'
+import { uuid, logger } from './utils'
+import { Session } from './Session'
+import { JWTSession } from './JWTSession'
 
-import { logger } from './utils/logger'
-
-export { uuid, logger }
+// prettier-ignore
+export {
+  uuid,
+  logger,
+  Session,
+  JWTSession,
+}

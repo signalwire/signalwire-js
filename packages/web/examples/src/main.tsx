@@ -2,6 +2,19 @@
 // `production` bundle while importing from `../../src` will
 // hot-reload as we make changes.
 
-import { sum } from '../../src'
+import { JWTSession } from '../../src'
 
-console.log(sum(1, 3))
+// @ts-ignore
+window._makeClient = ({ project, token }) => {
+  const client = new JWTSession({
+    host: 'relay.swire.io',
+    project,
+    token,
+  })
+
+  client.connect()
+
+  // @ts-ignore
+  window.__client = client
+  return client
+}
