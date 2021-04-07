@@ -38,8 +38,8 @@ export class Session {
   private _executeTimeoutMs = 10 * 1000
   private _executeTimeoutError = Symbol.for('sw-execute-timeout')
 
-  // private _pingTimeout = null
-  // private _pingDelay = 15 * 1000
+  private _checkPingDelay = 15 * 1000
+  private _checkPingTimer: any = null
 
   // validateOptions(): boolean
   // eventHandler(notification: any): void
@@ -232,15 +232,8 @@ export class Session {
     }
 
     switch (payload.method) {
-      case BladeMethod.Ping: {
-        // TODO: check missing ping within 15 seconds and close connection
-        const response = BladePingResponse(
-          payload.id,
-          payload?.params?.timestamp
-        )
-        this.execute(response)
-        break
-      }
+      case BladeMethod.Ping:
+        return this._bladePingHandler(payload)
       case BladeMethod.Disconnect: {
         /**
          * Set _idle = true because the server
@@ -275,5 +268,17 @@ export class Session {
       resolve(this.execute(msg))
     })
     this._requestQueue = []
+  }
+
+  private async _bladePingHandler(payload: JSONRPCRequest) {
+    clearTimeout(this._checkPingTimer)
+    this._checkPingTimer = setTimeout(() => {
+      logger.error('No ping from remote.')
+      // TODO: Close/Reconnect connection
+    }, this._checkPingDelay)
+
+    await this.execute(
+      BladePingResponse(payload.id, payload?.params?.timestamp)
+    )
   }
 }

@@ -17,7 +17,7 @@ export class JWTSession extends Session {
   /**
    * Check the JWT expiration every 20seconds
    */
-  private _checkTokenExpirationDelay = 20
+  private _checkTokenExpirationDelay = 20 * 1000
   private _checkTokenExpirationTimer: any = null
 
   constructor(public options: SessionOptions) {
