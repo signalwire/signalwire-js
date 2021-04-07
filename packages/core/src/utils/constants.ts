@@ -21,6 +21,29 @@ export enum BladeMethod {
   Execute = 'blade.execute',
 }
 
+export enum VertoMethod {
+  Invite = 'verto.invite',
+  Attach = 'verto.attach',
+  Answer = 'verto.answer',
+  Info = 'verto.info',
+  Display = 'verto.display',
+  Media = 'verto.media',
+  Event = 'verto.event',
+  Bye = 'verto.bye',
+  Punt = 'verto.punt',
+  Broadcast = 'verto.broadcast',
+  Subscribe = 'verto.subscribe',
+  Unsubscribe = 'verto.unsubscribe',
+  ClientReady = 'verto.clientReady',
+  Modify = 'verto.modify',
+  MediaParams = 'verto.mediaParams',
+  Prompt = 'verto.prompt',
+  JsApi = 'jsapi',
+  Stats = 'verto.stats',
+  Ping = 'verto.ping',
+  Announce = 'verto.announce',
+}
+
 // export enum SwEvent {
 //   // Socket Events
 //   SocketOpen = 'signalwire.socket.open',
