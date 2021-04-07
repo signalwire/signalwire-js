@@ -9,3 +9,5 @@ export {
   Session,
   JWTSession,
 }
+
+export * from './RPCMessages'

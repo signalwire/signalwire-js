@@ -6,6 +6,11 @@ import {
   BladePingResponse,
   BladeExecute,
   BladeDisconnectResponse,
+  VertoBye,
+  VertoAttach,
+  VertoInfo,
+  VertoInvite,
+  VertoModify,
 } from './index'
 
 jest.mock('uuid', () => {
@@ -169,6 +174,49 @@ describe('RPC Messages', () => {
         jsonrpc: '2.0',
         id: 'uuid',
         result: {},
+      })
+    })
+  })
+
+  describe('Verto RPC Messages', () => {
+    const dialogParams = {
+      id: 'uuid',
+      destinationNumber: 'roomName',
+      remoteCallerName: 'Caller Name',
+      remoteCallerNumber: 'Caller Number',
+      callerName: 'Callee Name',
+      callerNumber: 'Callee Number',
+    }
+    const vertoDialogParams = {
+      callID: 'uuid',
+      destination_number: 'roomName',
+      remote_caller_id_name: 'Caller Name',
+      remote_caller_id_number: 'Caller Number',
+      caller_id_name: 'Callee Name',
+      caller_id_number: 'Callee Number',
+    }
+
+    const allVertoMethods = [
+      VertoBye,
+      VertoAttach,
+      VertoInfo,
+      VertoInvite,
+      VertoModify,
+    ]
+
+    it('should generate the message', function () {
+      allVertoMethods.forEach((vertoFn) => {
+        const message = vertoFn({
+          dialogParams,
+        })
+        expect(message).toStrictEqual({
+          jsonrpc: '2.0',
+          id: 'mocked-uuid',
+          method: message.method,
+          params: {
+            dialogParams: vertoDialogParams,
+          },
+        })
       })
     })
   })
