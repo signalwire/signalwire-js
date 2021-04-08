@@ -31,6 +31,7 @@ export interface SessionOptions {
 }
 
 export interface SessionRequestObject {
+  rpcRequest: JSONRPCRequest
   resolve: (value: unknown) => void
   reject: (value: unknown) => void
 }

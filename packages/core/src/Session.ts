@@ -18,7 +18,7 @@ import {
 import {
   checkWebSocketHost,
   timeoutPromise,
-  destructResponse,
+  parseRPCResponse,
   safeParseJson,
 } from './utils'
 
@@ -155,7 +155,7 @@ export class Session {
     if ('params' in msg) {
       // This is a request so save the "id" to resolve the Promise later
       promise = new Promise((resolve, reject) => {
-        this._requests.set(msg.id, { resolve, reject })
+        this._requests.set(msg.id, { rpcRequest: msg, resolve, reject })
       })
     } else {
       // This is a response so don't wait for a result
@@ -225,9 +225,12 @@ export class Session {
     logger.debug('RECV: \n', JSON.stringify(payload, null, 2), '\n')
     const request = this._requests.get(payload.id)
     if (request) {
-      const { resolve, reject } = request
+      const { rpcRequest, resolve, reject } = request
       this._requests.delete(payload.id)
-      const { result, error } = destructResponse(payload)
+      const { result, error } = parseRPCResponse({
+        response: payload,
+        request: rpcRequest,
+      })
       return error ? reject(error) : resolve(result)
     }
 
