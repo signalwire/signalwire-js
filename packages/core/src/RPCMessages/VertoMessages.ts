@@ -3,7 +3,7 @@ import { makeRPCRequest } from './helpers'
 
 type VertoParams = { [key: string]: any }
 
-const tmpMap = {
+const tmpMap: VertoParams = {
   id: 'callID',
   destinationNumber: 'destination_number',
   remoteCallerName: 'remote_caller_id_name',

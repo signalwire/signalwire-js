@@ -25,6 +25,7 @@ import {
 export class Session {
   public uuid = uuid()
   public relayProtocol = ''
+  public sessionid = ''
   public WebSocketConstructor: typeof WebSocket
 
   protected _authorization: IBladeAuthorization
