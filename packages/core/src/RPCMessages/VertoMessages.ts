@@ -25,6 +25,7 @@ const filterVertoParams = (params: VertoParams) => {
     } = params.dialogParams
     for (const key in tmpMap) {
       if (key && dialogParams.hasOwnProperty(key)) {
+        // @ts-ignore
         dialogParams[tmpMap[key]] = dialogParams[key]
         delete dialogParams[key]
       }
