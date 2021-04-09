@@ -80,7 +80,9 @@ export class Session {
   }
 
   get closed() {
-    return this._socket?.readyState === WebSocketState.CLOSED
+    return this._socket
+      ? this._socket.readyState === WebSocketState.CLOSED
+      : true
   }
 
   /**
