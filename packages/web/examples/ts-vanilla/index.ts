@@ -2,7 +2,7 @@
 // `production` bundle while importing from `../../src` will
 // hot-reload as we make changes.
 
-import { JWTSession } from '../../src'
+import { JWTSession, createWebRTCCall, createMessage } from '../../src'
 
 // @ts-ignore
 window._makeClient = ({ project, token }) => {
@@ -17,4 +17,26 @@ window._makeClient = ({ project, token }) => {
   // @ts-ignore
   window.__client = client
   return client
+}
+
+// @ts-ignore
+window._createCall = ({ project, token }) => {
+  const call = createWebRTCCall({
+    host: 'relay.swire.io',
+    project,
+    token,
+  })
+
+  return call
+}
+
+// @ts-ignore
+window._createMessage = ({ project, token }) => {
+  const message = createMessage({
+    host: 'relay.swire.io',
+    project,
+    token,
+  })
+
+  return message
 }
