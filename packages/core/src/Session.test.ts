@@ -1,6 +1,6 @@
 import WS from 'jest-websocket-mock'
 
-import { JWTSession } from './JWTSession'
+import { Session } from './Session'
 import { BladeConnect } from './RPCMessages'
 
 jest.mock('uuid', () => {
@@ -9,27 +9,28 @@ jest.mock('uuid', () => {
   }
 })
 
-describe('JWTSession', () => {
+describe('Session', () => {
   const host = 'ws://localhost:8080'
   const project = '2506edbc-35c4-4d9f-a5f0-45a03d82dab1'
-  const token = '<jwt>'
+  const token = 'PT1234abc'
   const bladeConnect = BladeConnect({
     authentication: {
       project,
-      jwt_token: token,
+      token,
     },
     params: {},
   })
 
   let ws: WS
-  let client: JWTSession
+  let client: Session
   beforeEach(() => {
     ws = new WS(host)
-    client = new JWTSession({
+    client = new Session({
       host,
       project,
       token,
     })
+    client.WebSocketConstructor = WebSocket
   })
   afterEach(() => {
     WS.clean()
@@ -47,7 +48,7 @@ describe('JWTSession', () => {
     expect(client.closed).toBe(true)
   })
 
-  it('should send blade.connect with jwt_token on socket open', async () => {
+  it('should send blade.connect with normal token on socket open', async () => {
     client.connect()
     await ws.connected
 
