@@ -19,6 +19,7 @@
     "prepare": "tsdx build"
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^1.5.1",
     "loglevel": "^1.7.1",
     "uuid": "^8.3.2"
   },
