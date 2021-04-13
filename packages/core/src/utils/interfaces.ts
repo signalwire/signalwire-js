@@ -28,7 +28,7 @@ export interface SessionOptions {
   host?: string
   project: string
   token: string
-  onReady: () => Promise<void>
+  onReady?: () => Promise<void>
 }
 
 export interface SessionRequestObject {
