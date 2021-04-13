@@ -1,16 +1,15 @@
-import { Store, createStore } from 'redux'
-// import { composeWithDevTools } from 'redux-devtools-extension'
-// import createSagaMiddleware from 'redux-saga'
+import { Store, configureStore as rtConfigureStore } from '@reduxjs/toolkit'
+import createSagaMiddleware from 'redux-saga'
 import { rootReducer } from './rootReducer'
+import rootSaga from './rootSaga'
 import { SDKState } from './interfaces'
-// import rootSaga from './rootSaga'
-// import { CantinaState } from './interfaces'
 
-// const sagaMiddleware = createSagaMiddleware()
+const sagaMiddleware = createSagaMiddleware()
 
-// interface ConfigureStoreOptions {
-//   runSagaMiddleware?: boolean
-// }
+export type SDKDispatch = typeof store.dispatch
+interface ConfigureStoreOptions {
+  runSagaMiddleware?: boolean
+}
 
 let store: Store
 export const getStore = () => {
@@ -24,21 +23,26 @@ export const getStore = () => {
 }
 
 export const configureStore = (
-  preloadedState: Partial<SDKState> = {}
-  // options: ConfigureStoreOptions = {}
+  preloadedState: Partial<SDKState> = {},
+  options: ConfigureStoreOptions = {}
 ) => {
-  // const { runSagaMiddleware = true } = options
-  // const middlewares = [sagaMiddleware]
+  const { runSagaMiddleware = true } = options
 
-  const store = createStore(
-    rootReducer,
-    preloadedState
-    // composeWithDevTools(applyMiddleware(...middlewares))
-  )
+  const store = rtConfigureStore({
+    reducer: rootReducer,
+    preloadedState,
+    middleware: (getDefaultMiddleware) =>
+      // It is preferrable to use the chainable .concat(...) and
+      // .prepend(...) methods of the returned MiddlewareArray instead
+      // of the array spread operator, as the latter can lose valuable
+      // type information under some circumstances.
+      // @see https://redux-toolkit.js.org/api/getDefaultMiddleware#intended-usage
+      getDefaultMiddleware().concat(sagaMiddleware),
+  })
 
-  // if (runSagaMiddleware) {
-  //   sagaMiddleware.run(rootSaga)
-  // }
+  if (runSagaMiddleware) {
+    sagaMiddleware.run(rootSaga)
+  }
 
   return store
 }
