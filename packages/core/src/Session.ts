@@ -261,7 +261,9 @@ export class Session {
    * @return boolean
    */
   protected _relayProtocolIsValid() {
-    return this?.relayProtocol?.split('_')[1] === this.signature
+    return (
+      this.signature && this?.relayProtocol?.split('_')[1] === this.signature
+    )
   }
 
   /**
