@@ -14,7 +14,7 @@ export const getSession = async (options: SessionOptions) => {
     session = new JWTSession({
       ...options,
       onReady: async () => {
-        await options?.onReady()
+        await options?.onReady?.()
         resolve(session)
       },
     })
