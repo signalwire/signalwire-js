@@ -5,7 +5,7 @@ import {
   sdpBitrateHack,
   sdpMediaOrderHack,
 } from './utils/sdpHelpers'
-import { PeerType, CallState } from './utils/constants'
+import { PeerType } from './utils/constants'
 import { BaseCall } from './BaseCall'
 import {
   attachMediaStream,
@@ -18,13 +18,12 @@ import {
   stopTrack,
 } from './utils/webrtcHelpers'
 import { CallOptions } from './utils/interfaces'
-import { Invite, Attach, Answer, Modify } from '../messages/Verto'
 
 export default class RTCPeer {
   public instance: RTCPeerConnection
 
   private options: CallOptions
-  private _iceTimeout = null
+  private _iceTimeout: any
   private _negotiating = false
 
   constructor(public call: BaseCall, public type: PeerType) {
@@ -85,7 +84,7 @@ export default class RTCPeer {
   }
 
   get localSdp() {
-    return this.instance.localDescription.sdp
+    return this.instance?.localDescription?.sdp
   }
 
   stopTrackSender(kind: string) {
@@ -96,7 +95,7 @@ export default class RTCPeer {
       }
       if (sender.track) {
         stopTrack(sender.track)
-        this.options.localStream.removeTrack(sender.track)
+        this.options?.localStream?.removeTrack(sender.track)
       }
     } catch (error) {
       logger.error('RTCPeer stopTrackSender error', kind, error)
@@ -113,11 +112,14 @@ export default class RTCPeer {
         return logger.info(`There is already an active ${kind} track.`)
       }
       const constraints = await getMediaConstraints(this.options)
+      // @ts-ignore
       const stream = await getUserMedia({ [kind]: constraints[kind] })
-      if (streamIsValid(stream)) {
+      if (stream && streamIsValid(stream)) {
         const newTrack = stream.getTracks().find((t) => t.kind === kind)
-        await sender.replaceTrack(newTrack)
-        this.options.localStream.addTrack(newTrack)
+        if (newTrack) {
+          await sender.replaceTrack(newTrack)
+          this.options?.localStream?.addTrack(newTrack)
+        }
       }
     } catch (error) {
       logger.error('RTCPeer restoreTrackSender error', kind, error)
@@ -134,6 +136,7 @@ export default class RTCPeer {
       return deviceId
     } catch (error) {
       logger.error('RTCPeer getDeviceId error', kind, error)
+      return null
     }
   }
 
@@ -146,6 +149,7 @@ export default class RTCPeer {
       return sender.track.getSettings()
     } catch (error) {
       logger.error('RTCPeer getTrackSettings error', kind, error)
+      return null
     }
   }
 
@@ -158,6 +162,7 @@ export default class RTCPeer {
       return sender.track.label
     } catch (error) {
       logger.error('RTCPeer getDeviceLabel error', kind, error)
+      return null
     }
   }
 
@@ -292,7 +297,7 @@ export default class RTCPeer {
   private async _init() {
     this.instance = RTCPeerConnection(this.config)
 
-    this.instance.onsignalingstatechange = (event) => {
+    this.instance.onsignalingstatechange = () => {
       logger.info('signalingState:', this.instance.signalingState)
 
       switch (this.instance.signalingState) {
@@ -302,14 +307,14 @@ export default class RTCPeer {
           this._negotiating = false
           break
         case 'closed':
-          this.instance = null
+          delete this.instance
           break
         default:
           this._negotiating = true
       }
     }
 
-    this.instance.onnegotiationneeded = (event) => {
+    this.instance.onnegotiationneeded = () => {
       logger.info('Negotiation needed event')
       this.startNegotiation()
     }
@@ -328,10 +333,14 @@ export default class RTCPeer {
       this.options.remoteStream = event.streams[0]
     })
 
+    // @ts-expect-error
     this.instance.addEventListener('addstream', (event: MediaStreamEvent) => {
-      this.options.remoteStream = event.stream
+      if (event.stream) {
+        this.options.remoteStream = event.stream
+      }
     })
 
+    // @ts-ignore
     this.options.localStream = await this._retrieveLocalStream().catch(
       (error) => {
         logger.error('Error getting localStream', error)
@@ -341,7 +350,7 @@ export default class RTCPeer {
     )
 
     const { localElement, localStream = null, screenShare } = this.options
-    if (streamIsValid(localStream)) {
+    if (localStream && streamIsValid(localStream)) {
       const audioTracks = localStream.getAudioTracks()
       logger.info('Local audio tracks: ', audioTracks)
       const videoTracks = localStream.getVideoTracks()
@@ -428,6 +437,9 @@ export default class RTCPeer {
   private _sdpReady() {
     clearTimeout(this._iceTimeout)
     this._iceTimeout = null
+    if (!this.instance.localDescription) {
+      return
+    }
     const { sdp, type } = this.instance.localDescription
     if (sdp.indexOf('candidate') === -1) {
       logger.info('No candidate - retry \n')
@@ -436,73 +448,29 @@ export default class RTCPeer {
     }
     logger.info('LOCAL SDP \n', `Type: ${type}`, '\n\n', sdp)
     this.instance.removeEventListener('icecandidate', this._onIce)
-    switch (type) {
-      case PeerType.Offer:
-        if (this.call.active) {
-          this.executeUpdateMedia()
-        } else {
-          this.executeInvite()
-        }
-        break
-      case PeerType.Answer:
-        this.executeAnswer()
-        break
-      default:
-        return logger.error(
-          `Unknown SDP type: '${type}' on call ${this.options.id}`
-        )
-    }
+    this.call.onLocalSDPReady(this.instance.localDescription)
   }
 
-  executeInvite() {
-    this.call.setState(CallState.Requesting)
-    const msg = new Invite({
-      ...this.call.messagePayload,
-      sdp: this.localSdp,
-    })
-    return this._execute(msg)
-  }
-
-  executeUpdateMedia() {
-    const msg = new Modify({
-      ...this.call.messagePayload,
-      sdp: this.localSdp,
-      action: 'updateMedia',
-    })
-    return this._execute(msg)
-  }
-
-  executeAnswer() {
-    this.call.setState(CallState.Answering)
-    const params = {
-      ...this.call.messagePayload,
-      sdp: this.localSdp,
-    }
-    const msg =
-      this.options.attach === true ? new Attach(params) : new Answer(params)
-    return this._execute(msg)
-  }
-
-  private async _execute(msg: BaseMessage) {
-    try {
-      const { node_id = null, sdp = null } = await this.call._execute(msg)
-      if (node_id) {
-        this.call.nodeId = node_id
-      }
-      if (sdp !== null) {
-        await this._setRemoteDescription({ sdp, type: PeerType.Answer })
-      } else {
-        const state = this.isOffer ? CallState.Trying : CallState.Active
-        this.call.setState(state)
-      }
-    } catch (error) {
-      logger.error(
-        `Error sending ${this.type} on call ${this.options.id}:`,
-        error
-      )
-      this.call.hangup()
-    }
-  }
+  // private async _execute(msg: BaseMessage) {
+  //   try {
+  //     const { node_id = null, sdp = null } = await this.call._execute(msg)
+  //     if (node_id) {
+  //       this.call.nodeId = node_id
+  //     }
+  //     if (sdp !== null) {
+  //       await this._setRemoteDescription({ sdp, type: PeerType.Answer })
+  //     } else {
+  //       const state = this.isOffer ? CallState.Trying : CallState.Active
+  //       this.call.setState(state)
+  //     }
+  //   } catch (error) {
+  //     logger.error(
+  //       `Error sending ${this.type} on call ${this.options.id}:`,
+  //       error
+  //     )
+  //     this.call.hangup()
+  //   }
+  // }
 
   private _onIce(event: RTCPeerConnectionIceEvent) {
     if (this._iceTimeout === null) {
@@ -525,10 +493,15 @@ export default class RTCPeer {
       googleMinBitrate,
       googleStartBitrate,
     } = this.options
-    if (useStereo) {
+    if (localDescription.sdp && useStereo) {
       localDescription.sdp = sdpStereoHack(localDescription.sdp)
     }
-    if (googleMaxBitrate && googleMinBitrate && googleStartBitrate) {
+    if (
+      localDescription.sdp &&
+      googleMaxBitrate &&
+      googleMinBitrate &&
+      googleStartBitrate
+    ) {
       localDescription.sdp = sdpBitrateHack(
         localDescription.sdp,
         googleMaxBitrate,
@@ -547,10 +520,10 @@ export default class RTCPeer {
   }
 
   private _setRemoteDescription(remoteDescription: RTCSessionDescriptionInit) {
-    if (this.options.useStereo) {
+    if (remoteDescription.sdp && this.options.useStereo) {
       remoteDescription.sdp = sdpStereoHack(remoteDescription.sdp)
     }
-    if (this.instance.localDescription) {
+    if (remoteDescription.sdp && this.instance.localDescription) {
       remoteDescription.sdp = sdpMediaOrderHack(
         remoteDescription.sdp,
         this.instance.localDescription.sdp

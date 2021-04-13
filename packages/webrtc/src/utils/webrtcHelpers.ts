@@ -15,8 +15,10 @@ export const getDisplayMedia = (constraints: MediaStreamConstraints) => {
 
 export const enumerateDevices = () => navigator.mediaDevices.enumerateDevices()
 
-export const enumerateDevicesByKind = async (filterByKind: string = null) => {
-  let devices: MediaDeviceInfo[] = await enumerateDevices().catch((error) => [])
+export const enumerateDevicesByKind = async (filterByKind: string) => {
+  let devices: MediaDeviceInfo[] = await enumerateDevices().catch(
+    (_error) => []
+  )
   if (filterByKind) {
     devices = devices.filter(({ kind }) => kind === filterByKind)
   }
@@ -27,7 +29,7 @@ export const getSupportedConstraints = () => {
   return navigator.mediaDevices.getSupportedConstraints()
 }
 
-export const streamIsValid = (stream: MediaStream) =>
+export const streamIsValid = (stream?: MediaStream) =>
   stream && stream instanceof MediaStream
 
 export const attachMediaStream = (tag: any, stream: MediaStream) => {
@@ -53,7 +55,7 @@ export const detachMediaStream = (tag: any) => {
 
 export const findElementByType = (
   tag: HTMLMediaElement | string | Function
-): HTMLMediaElement => {
+): HTMLMediaElement | null => {
   if (typeof document !== 'object' || !('getElementById' in document)) {
     return null
   }
@@ -92,7 +94,7 @@ export const setMediaElementSinkId = async (
   tag: any,
   deviceId: string
 ): Promise<boolean> => {
-  const element: HTMLMediaElement = findElementByType(tag)
+  const element = findElementByType(tag)
   if (element === null) {
     logger.info('No HTMLMediaElement to attach the speakerId')
     return false
@@ -110,13 +112,12 @@ export const setMediaElementSinkId = async (
   }
 }
 
-export const sdpToJsonHack = (sdp) => sdp
+export const sdpToJsonHack = (sdp: any) => sdp
 
-export const stopStream = (stream: MediaStream) => {
+export const stopStream = (stream?: MediaStream) => {
   if (streamIsValid(stream)) {
-    stream.getTracks().forEach(stopTrack)
+    stream?.getTracks()?.forEach(stopTrack)
   }
-  stream = null
 }
 
 export const stopTrack = (track: MediaStreamTrack) => {

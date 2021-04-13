@@ -2,7 +2,7 @@ import { logger } from '@signalwire/core'
 import * as WebRTC from './webrtcHelpers'
 import { DeviceType } from './constants'
 
-export const checkPermissions = async (kind: string = null) => {
+export const checkPermissions = async (kind: string) => {
   const devices: MediaDeviceInfo[] = await WebRTC.enumerateDevicesByKind(kind)
   if (!devices.length) {
     logger.warn(`No ${kind} devices to check for permissions!`)
@@ -14,7 +14,7 @@ export const checkPermissions = async (kind: string = null) => {
 export const checkVideoPermissions = () => checkPermissions(DeviceType.Video)
 export const checkAudioPermissions = () => checkPermissions(DeviceType.AudioIn)
 
-const _constraintsByKind = (kind: string = null): MediaStreamConstraints => {
+const _constraintsByKind = (kind: string): MediaStreamConstraints => {
   return {
     audio: !kind || kind === DeviceType.AudioIn || kind === DeviceType.AudioOut,
     video: !kind || kind === DeviceType.Video,
@@ -26,7 +26,7 @@ const _constraintsByKind = (kind: string = null): MediaStreamConstraints => {
  * It checks for permission to return valid deviceId and label
  */
 export const getDevicesWithPermissions = async (
-  kind: string = null,
+  kind: string,
   fullList: boolean = false
 ): Promise<MediaDeviceInfo[]> => {
   const hasPerms = await checkPermissions(kind)
@@ -49,14 +49,14 @@ export const getAudioOutDevicesWithPermissions = () =>
   getDevicesWithPermissions(DeviceType.AudioOut)
 
 export const getDevices = async (
-  kind: string = null,
+  kind: string,
   fullList: boolean = false
 ): Promise<MediaDeviceInfo[]> => {
   const devices: MediaDeviceInfo[] = await WebRTC.enumerateDevicesByKind(kind)
   if (fullList === true) {
     return devices
   }
-  const found = []
+  const found: string[] = []
   return devices.filter(({ deviceId, label, kind, groupId }) => {
     if (!deviceId || !label) {
       return false
@@ -119,7 +119,7 @@ export const assureDeviceId = async (
   id: string,
   label: string,
   kind: MediaDeviceInfo['kind']
-): Promise<string> => {
+): Promise<string | null> => {
   const devices = await getDevices(kind, true)
   for (let i = 0; i < devices.length; i++) {
     const { deviceId, label: deviceLabel } = devices[i]
@@ -150,7 +150,7 @@ export const checkDeviceIdConstraints = async (
   const { deviceId = null } = constraints
   if (deviceId === null && (id || label)) {
     const deviceId = await assureDeviceId(id, label, kind).catch(
-      (error) => null
+      (_error) => null
     )
     if (deviceId) {
       constraints.deviceId = { exact: deviceId }

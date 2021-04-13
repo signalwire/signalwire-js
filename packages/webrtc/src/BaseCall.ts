@@ -4,7 +4,7 @@ import {
   Session,
   VertoBye,
   VertoInfo,
-  VertoModify,
+  // VertoModify,
 } from '@signalwire/core'
 import { JSONRPCRequest } from '@signalwire/core/dist/core/src/utils/interfaces'
 import RTCPeer from './RTCPeer'
@@ -12,7 +12,6 @@ import {
   CallState,
   DEFAULT_CALL_OPTIONS,
   PeerType,
-  Notification,
   Direction,
 } from './utils/constants'
 import {
@@ -26,13 +25,13 @@ import {
 import {
   CallOptions,
   IHangupParams,
-  ICallParticipant,
+  // ICallParticipant,
 } from './utils/interfaces'
 import {
   stopStream,
-  stopTrack,
+  // stopTrack,
   // setMediaElementSinkId,
-  getUserMedia,
+  // getUserMedia,
   // getHostname,
 } from './utils/webrtcHelpers'
 
@@ -56,7 +55,7 @@ export class BaseCall {
   private state = CallState.New
   private prevState = CallState.New
 
-  private _extension: string = null
+  private _extension: string
 
   constructor(public session: Session, options?: CallOptions) {
     this.options = {
@@ -65,7 +64,7 @@ export class BaseCall {
       ...options,
     }
 
-    const { userVariables, remoteCallerNumber } = this.options
+    const { remoteCallerNumber } = this.options
     // if (!userVariables || objEmpty(userVariables)) {
     //   this.options.userVariables = this.session.options.userVariables || {}
     // }
@@ -148,34 +147,34 @@ export class BaseCall {
     }
   }
 
-  get currentParticipant(): Partial<ICallParticipant> {
-    const participant = {
-      id: this.participantId,
-      role: this.participantRole,
-      layer: null,
-      layerIndex: this.participantLayerIndex,
-      isLayerBehind: false,
-    }
-    // if (this.canvasInfo && this.participantLayerIndex >= 0) {
-    //   const { layoutOverlap, canvasLayouts } = this.canvasInfo
-    //   participant.layer = canvasLayouts[this.participantLayerIndex] || null
-    //   participant.isLayerBehind =
-    //     layoutOverlap && participant.layer && participant.layer.overlap === 0
-    // }
-    return participant
-  }
+  // get currentParticipant(): Partial<ICallParticipant> {
+  //   const participant = {
+  //     id: this.participantId,
+  //     role: this.participantRole,
+  //     layer: null,
+  //     layerIndex: this.participantLayerIndex,
+  //     isLayerBehind: false,
+  //   }
+  //   // if (this.canvasInfo && this.participantLayerIndex >= 0) {
+  //   //   const { layoutOverlap, canvasLayouts } = this.canvasInfo
+  //   //   participant.layer = canvasLayouts[this.participantLayerIndex] || null
+  //   //   participant.isLayerBehind =
+  //   //     layoutOverlap && participant.layer && participant.layer.overlap === 0
+  //   // }
+  //   return participant
+  // }
 
-  get participantId() {
-    return this.pvtData ? String(this.pvtData.conferenceMemberID) : null
-  }
+  // get participantId() {
+  //   return this.pvtData ? String(this.pvtData.conferenceMemberID) : null
+  // }
 
-  get participantRole() {
-    return this.pvtData ? this.pvtData.role : null
-  }
+  // get participantRole() {
+  //   return this.pvtData ? this.pvtData.role : null
+  // }
 
-  get role() {
-    return this.participantRole
-  }
+  // get role() {
+  //   return this.participantRole
+  // }
 
   get cameraId() {
     return this.peer ? this.peer.getDeviceId('video') : null
@@ -215,110 +214,74 @@ export class BaseCall {
     return this.audioElements.length ? this.audioElements[0] : null
   }
 
-  // get conferenceChannels() {
-  //   if (!this.pvtData) {
-  //     return []
+  // async updateDevices(constraints: MediaStreamConstraints): Promise<void> {
+  //   try {
+  //     console.debug('updateDevices trying constraints', this.id, constraints)
+  //     if (!Object.keys(constraints).length) {
+  //       return console.warn('Invalid constraints:', constraints)
+  //     }
+  //     const newStream = await getUserMedia(constraints)
+  //     console.debug('updateDevices got stream', newStream)
+  //     if (!this.options.localStream) {
+  //       this.options.localStream = new MediaStream()
+  //     }
+  //     const { instance } = this.peer
+  //     const tracks = newStream.getTracks()
+  //     for (let i = 0; i < tracks.length; i++) {
+  //       const newTrack = tracks[i]
+  //       console.debug('updateDevices apply track: ', newTrack)
+  //       const transceiver = instance
+  //         .getTransceivers()
+  //         .find(({ mid, sender, receiver }) => {
+  //           if (sender.track && sender.track.kind === newTrack.kind) {
+  //             console.debug('Found transceiver by sender')
+  //             return true
+  //           }
+  //           if (receiver.track && receiver.track.kind === newTrack.kind) {
+  //             console.debug('Found transceiver by receiver')
+  //             return true
+  //           }
+  //           if (mid === null) {
+  //             console.debug('Found disassociated transceiver')
+  //             return true
+  //           }
+  //           return false
+  //         })
+  //       if (transceiver && transceiver.sender) {
+  //         console.debug(
+  //           'updateDevices FOUND - replaceTrack on it and on localStream'
+  //         )
+  //         await transceiver.sender.replaceTrack(newTrack)
+  //         this.options.localStream.addTrack(newTrack)
+  //         console.debug('updateDevices replaceTrack SUCCESS')
+  //         this.options.localStream.getTracks().forEach((track) => {
+  //           if (track.kind === newTrack.kind && track.id !== newTrack.id) {
+  //             console.debug('updateDevices stop old track and apply new one - ')
+  //             stopTrack(track)
+  //             this.options.localStream.removeTrack(track)
+  //           }
+  //         })
+  //       } else {
+  //         console.debug('updateDevices NOT FOUND - addTrack and start dancing!')
+  //         this.peer.type = PeerType.Offer
+  //         this.doReinvite = true
+  //         this.options.localStream.addTrack(newTrack)
+  //         instance.addTrack(newTrack, this.options.localStream)
+  //       }
+  //       console.debug('updateDevices Simply update mic/cam')
+  //       if (newTrack.kind === 'audio') {
+  //         this.options.micId = newTrack.getSettings().deviceId
+  //       } else if (newTrack.kind === 'video') {
+  //         this.options.camId = newTrack.getSettings().deviceId
+  //       }
+  //     }
+  //     console.debug('updateDevices done!')
+  //     this._dispatchNotification({ type: Notification.DeviceUpdated })
+  //   } catch (error) {
+  //     console.error('updateDevices', error)
+  //     throw error
   //   }
-  //   const { laChannel, chatChannel, infoChannel, modChannel } = this.pvtData
-  //   return [laChannel, chatChannel, infoChannel, modChannel].filter(Boolean)
   // }
-
-  // get conferenceName() {
-  //   if (this.pvtData) {
-  //     const { conferenceDisplayName, conferenceName } = this.pvtData
-  //     return conferenceDisplayName || conferenceName
-  //   }
-  //   return null
-  // }
-
-  // get conferenceMd5() {
-  //   return this.pvtData ? this.pvtData.conferenceMD5 : null
-  // }
-
-  // get conferenceUuid() {
-  //   if (this.pvtData) {
-  //     /**
-  //      * If conferenceDisplayName is present conferenceName is the UUID to use
-  //      * Otherwise just conferenceUUID
-  //      */
-  //     const {
-  //       conferenceDisplayName,
-  //       conferenceName,
-  //       conferenceUUID,
-  //     } = this.pvtData
-  //     return conferenceDisplayName ? conferenceName : conferenceUUID
-  //   }
-  //   return null
-  // }
-
-  async updateDevices(constraints: MediaStreamConstraints): Promise<void> {
-    try {
-      console.debug('updateDevices trying constraints', this.id, constraints)
-      if (!Object.keys(constraints).length) {
-        return console.warn('Invalid constraints:', constraints)
-      }
-      const newStream = await getUserMedia(constraints)
-      console.debug('updateDevices got stream', newStream)
-      if (!this.options.localStream) {
-        this.options.localStream = new MediaStream()
-      }
-      const { instance } = this.peer
-      const tracks = newStream.getTracks()
-      for (let i = 0; i < tracks.length; i++) {
-        const newTrack = tracks[i]
-        console.debug('updateDevices apply track: ', newTrack)
-        const transceiver = instance
-          .getTransceivers()
-          .find(({ mid, sender, receiver }) => {
-            if (sender.track && sender.track.kind === newTrack.kind) {
-              console.debug('Found transceiver by sender')
-              return true
-            }
-            if (receiver.track && receiver.track.kind === newTrack.kind) {
-              console.debug('Found transceiver by receiver')
-              return true
-            }
-            if (mid === null) {
-              console.debug('Found disassociated transceiver')
-              return true
-            }
-            return false
-          })
-        if (transceiver && transceiver.sender) {
-          console.debug(
-            'updateDevices FOUND - replaceTrack on it and on localStream'
-          )
-          await transceiver.sender.replaceTrack(newTrack)
-          this.options.localStream.addTrack(newTrack)
-          console.debug('updateDevices replaceTrack SUCCESS')
-          this.options.localStream.getTracks().forEach((track) => {
-            if (track.kind === newTrack.kind && track.id !== newTrack.id) {
-              console.debug('updateDevices stop old track and apply new one - ')
-              stopTrack(track)
-              this.options.localStream.removeTrack(track)
-            }
-          })
-        } else {
-          console.debug('updateDevices NOT FOUND - addTrack and start dancing!')
-          this.peer.type = PeerType.Offer
-          this.doReinvite = true
-          this.options.localStream.addTrack(newTrack)
-          instance.addTrack(newTrack, this.options.localStream)
-        }
-        console.debug('updateDevices Simply update mic/cam')
-        if (newTrack.kind === 'audio') {
-          this.options.micId = newTrack.getSettings().deviceId
-        } else if (newTrack.kind === 'video') {
-          this.options.camId = newTrack.getSettings().deviceId
-        }
-      }
-      console.debug('updateDevices done!')
-      this._dispatchNotification({ type: Notification.DeviceUpdated })
-    } catch (error) {
-      console.error('updateDevices', error)
-      throw error
-    }
-  }
 
   invite() {
     this.direction = Direction.Outbound
@@ -329,6 +292,56 @@ export class BaseCall {
     this.direction = Direction.Inbound
     this.peer = new RTCPeer(this, PeerType.Answer)
   }
+
+  onLocalSDPReady(localDescription: RTCSessionDescription) {
+    const { type, sdp } = localDescription
+    logger.info('SDP READY', type, sdp)
+    // switch (type) {
+    //   case PeerType.Offer:
+    //     if (this.active) {
+    //       this.executeUpdateMedia()
+    //     } else {
+    //       this.executeInvite()
+    //     }
+    //     break
+    //   case PeerType.Answer:
+    //     this.executeAnswer()
+    //     break
+    //   default:
+    //     return logger.error(
+    //       `Unknown SDP type: '${type}' on call ${this.options.id}`
+    //     )
+    // }
+  }
+
+  // executeInvite() {
+  //   this.setState(CallState.Requesting)
+  //   // const msg = new Invite({
+  //   //   ...this.messagePayload,
+  //   //   sdp: this.localSdp,
+  //   // })
+  //   // return this._execute(msg)
+  // }
+
+  // executeUpdateMedia() {
+  //   //   const msg = new Modify({
+  //   //     ...this.messagePayload,
+  //   //     sdp: this.localSdp,
+  //   //     action: 'updateMedia',
+  //   //   })
+  //   //   return this._execute(msg)
+  // }
+
+  // executeAnswer() {
+  //   this.setState(CallState.Answering)
+  //   // const params = {
+  //   //   ...this.messagePayload,
+  //   //   sdp: this.localSdp,
+  //   // }
+  //   // const msg =
+  //   //   this.options.attach === true ? new Attach(params) : new Answer(params)
+  //   // return this._execute(msg)
+  // }
 
   async hangup(params?: IHangupParams) {
     try {
@@ -346,63 +359,34 @@ export class BaseCall {
     this._execute(msg)
   }
 
-  sendCurrentMediaSettings() {
-    const params = {
-      type: 'mediaSettings',
-      audioinput: this.peer.getTrackSettings('audio'),
-      videoinput: this.peer.getTrackSettings('video'),
-      audiooutput: {
-        deviceId: this.options.speakerId,
-      },
-    }
-    return this._sendVertoInfo(params)
-  }
-
-  private _sendVertoInfo(params: object) {
-    const msg = VertoInfo({ ...this.messagePayload, ...params })
-    return this._execute(msg)
-  }
-
-  hold() {
-    return this._changeHold('hold')
-  }
-
-  unhold() {
-    return this._changeHold('unhold')
-  }
-
-  toggleHold() {
-    return this._changeHold('toggleHold')
-  }
-
   disableOutboundAudio() {
     // TODO: Use peer method
-    disableAudioTracks(this.options.localStream)
+    this.options.localStream && disableAudioTracks(this.options.localStream)
   }
 
   enableOutboundAudio() {
     // TODO: Use peer method
-    enableAudioTracks(this.options.localStream)
+    this.options.localStream && enableAudioTracks(this.options.localStream)
   }
 
   toggleOutboundAudio() {
     // TODO: Use peer method
-    toggleAudioTracks(this.options.localStream)
+    this.options.localStream && toggleAudioTracks(this.options.localStream)
   }
 
   disableOutboundVideo() {
     // TODO: Use peer method
-    disableVideoTracks(this.options.localStream)
+    this.options.localStream && disableVideoTracks(this.options.localStream)
   }
 
   enableOutboundVideo() {
     // TODO: Use peer method
-    enableVideoTracks(this.options.localStream)
+    this.options.localStream && enableVideoTracks(this.options.localStream)
   }
 
   toggleOutboundVideo() {
     // TODO: Use peer method
-    toggleVideoTracks(this.options.localStream)
+    this.options.localStream && toggleVideoTracks(this.options.localStream)
   }
 
   /**
@@ -410,7 +394,7 @@ export class BaseCall {
    */
   disableInboundAudio() {
     // TODO: Use peer method
-    disableAudioTracks(this.options.remoteStream)
+    this.options.remoteStream && disableAudioTracks(this.options.remoteStream)
   }
 
   /**
@@ -418,7 +402,7 @@ export class BaseCall {
    */
   enableInboundAudio() {
     // TODO: Use peer method
-    enableAudioTracks(this.options.remoteStream)
+    this.options.remoteStream && enableAudioTracks(this.options.remoteStream)
   }
 
   /**
@@ -426,7 +410,7 @@ export class BaseCall {
    */
   toggleInboundAudio() {
     // TODO: Use peer method
-    toggleAudioTracks(this.options.remoteStream)
+    this.options.remoteStream && toggleAudioTracks(this.options.remoteStream)
   }
 
   doReinviteWithRelayOnly() {
@@ -511,23 +495,6 @@ export class BaseCall {
   //   this._laChannelVideoMuted = vmuted
   // }
 
-  private async _changeHold(action: string) {
-    if (this.state >= CallState.Hangup) {
-      return logger.warn('This call is not active', this.id, this.state)
-    }
-    const msg = VertoModify({ ...this.messagePayload, action })
-    try {
-      const { holdState } = await this._execute(msg)
-      holdState === 'active'
-        ? this.setState(CallState.Active)
-        : this.setState(CallState.Held)
-      return true
-    } catch (error) {
-      logger.error('Error changing hold state', error)
-      return false
-    }
-  }
-
   private _hangup(params: IHangupParams = {}) {
     const {
       cause = 'NORMAL_CLEARING',
@@ -537,19 +504,11 @@ export class BaseCall {
     this.cause = cause
     this.causeCode = code
     if (redirectDestination && this.trying) {
-      return this.peer.executeInvite()
+      logger.warn('Execute invite again!')
+      // return this.peer.executeInvite()
     }
     this.setState(CallState.Hangup)
   }
-
-  // private _onMediaError(error: any) {
-  //   this._dispatchNotification({ type: Notification.UserMediaError, error })
-  //   this._hangup()
-  // }
-
-  // private _onGenericEvent(params: any) {
-  //   this._dispatchNotification({ ...params, type: Notification.Generic })
-  // }
 
   // private _onParticipantData(params: any) {
   //   // TODO: manage caller_id_name, caller_id_number, callee_id_name, callee_id_number
@@ -594,48 +553,6 @@ export class BaseCall {
   //   this.setState(CallState.Early)
   // }
 
-  // private _onVertoMediaParams(params: any) {
-  //   const { mediaParams } = params
-  //   if (this.options.autoApplyMediaParams === false) {
-  //     return this._dispatchNotification({
-  //       type: Notification.MediaParams,
-  //       mediaParams,
-  //     })
-  //   }
-  //   if (this.peer && mediaParams) {
-  //     Object.keys(mediaParams).forEach((kind) => {
-  //       this.peer.applyMediaConstraints(kind, mediaParams[kind])
-  //     })
-  //   }
-  // }
-
-  // private _onVertoPrompt(params: any) {
-  //   const notification = {
-  //     ...params,
-  //     promptType: params.type,
-  //     type: Notification.Prompt,
-  //     call: this,
-  //   }
-  //   this._dispatchNotification(notification)
-  // }
-
-  // public _dispatchNotification(notification: any) {
-  //   if (this.options.skipNotifications === true) {
-  //     return
-  //   }
-  //   notification.call = this
-  //   if (!trigger(this.id, notification, SwEvent.Notification, false)) {
-  //     trigger(SwEvent.Notification, notification, this.session.uuid)
-  //   }
-  // }
-
-  // public _dispatchConferenceUpdate(params: any) {
-  //   this._dispatchNotification({
-  //     type: Notification.ConferenceUpdate,
-  //     ...params,
-  //   })
-  // }
-
   public _execute(msg: JSONRPCRequest) {
     // if (this.nodeId) {
     //   msg.targetNodeId = this.nodeId
@@ -643,40 +560,10 @@ export class BaseCall {
     return this.session.execute(msg)
   }
 
-  // private async _onVertoAttach(params: any) {
-  //   if (this.options.simulcast === true) {
-  //     console.debug('Handle verto.attach for a simulcast call?', params)
-  //   }
-
-  //   // FIXME: need to dispatch a participantData notification??
-  //   switch (this.state) {
-  //     case CallState.New:
-  //       this.session.autoRecoverCalls
-  //         ? this.answer()
-  //         : this.setState(CallState.Recovering)
-  //       break
-  //     case CallState.Active: {
-  //       if (this.doReinvite) {
-  //         console.debug('doReinvite IS ACTIVE!', params)
-  //         return logger.warn('>>>> This leg alreay sent a reinvite??')
-  //       }
-  //       // TODO: force peer.type to be an Answer
-  //       this.peer.type = PeerType.Answer
-  //       this.options.remoteSdp = params.sdp
-  //       const stream = await getUserMedia({ video: true })
-  //       stream.getVideoTracks().forEach((t) => {
-  //         this.options.localStream.addTrack(t)
-  //         this.peer.instance.addTrack(t, this.options.localStream)
-  //       })
-  //       break
-  //     }
-  //   }
-  // }
-
   protected _finalize() {
     if (this.peer && this.peer.instance) {
       this.peer.instance.close()
-      this.peer = null
+      delete this.peer
     }
     const { remoteStream, localStream } = this.options
     stopStream(remoteStream)
