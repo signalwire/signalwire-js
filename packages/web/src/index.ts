@@ -1,4 +1,4 @@
-import { uuid, logger, connect, JWTSession } from '@signalwire/core'
+import { uuid, logger, JWTSession, connect } from '@signalwire/core'
 import * as webrtc from '@signalwire/webrtc'
 
 export const sum = (a: number, b: number) => {
@@ -10,18 +10,21 @@ export const sum = (a: number, b: number) => {
   return a + b
 }
 
-const BaseWebRTCCall = (store: any) => (userOptions: any) => {
-  console.debug('BaseWebRTCCall userOptions', store, userOptions)
-  const id = uuid()
+class BaseWebRTCCall {
+  id = uuid()
 
-  return {
-    id,
-    onStateChange: (component: any) => {
-      console.debug('Im onStateChange', component, id)
-    },
-    onRemoteSDP: (component: any) => {
-      console.debug('Im onRemoteSDP', component, id)
-    },
+  constructor(public options: any) {}
+
+  get store() {
+    return this.options.store
+  }
+
+  onStateChange(component: any) {
+    console.debug('Im onStateChange', component, this.id)
+  }
+
+  onRemoteSDP(component: any) {
+    console.debug('Im onRemoteSDP', component, this.id)
   }
 }
 

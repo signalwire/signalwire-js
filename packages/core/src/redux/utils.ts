@@ -1,12 +1,12 @@
 import { getStore } from './index'
 
-export const connect = (mapState: any, componentFn: any) => {
+export const connect = (mapState: any, componentKlass: any) => {
   const store = getStore()
   const { onStateChangeListeners = {} } = mapState
   const componentKeys = Object.keys(onStateChangeListeners)
 
   return (userOptions: any) => {
-    const instance = componentFn(store)(userOptions)
+    const instance = new componentKlass({ ...userOptions, store })
     const cacheMap = new Map<string, any>()
     // const _unsubscribe = store.subscribe(() => {
     store.subscribe(() => {
