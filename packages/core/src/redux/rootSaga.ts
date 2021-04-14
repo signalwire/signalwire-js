@@ -1,9 +1,11 @@
 import { all, spawn, call } from 'redux-saga/effects'
 import { demoSaga } from './features/demo/demoSaga'
+import { webrtcSaga } from './features/webrtc/webrtcSaga'
 
 // prettier-ignore
 const ROOT_SAGAS = [
   demoSaga,
+  webrtcSaga,
 ]
 
 export default function* root(sagas = ROOT_SAGAS) {
