@@ -10,6 +10,7 @@ export interface CallOptions {
   callerName: string
   callerNumber: string
   // Optional
+  sessionid?: string
   id?: string
   remoteSdp?: string
   localStream?: MediaStream

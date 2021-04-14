@@ -7,20 +7,19 @@ class Call extends BaseCall {
   }
 }
 
-const ReduxConnectedCall = connect(
-  {
-    onStateChangeListeners: {
-      state: 'onStateChange',
-      remoteSDP: 'onRemoteSDP',
+export const createWebRTCCall = async (userOptions: any) => {
+  const session = await createSession(userOptions)
+  console.debug('createWebRTCCall', session)
+
+  // return ReduxConnectedCall(userOptions)
+  return connect(
+    {
+      store: session.store,
+      onStateChangeListeners: {
+        state: 'onStateChange',
+        remoteSDP: 'onRemoteSDP',
+      },
     },
-  },
-  Call
-)
-
-export const createWebRTCCall = (userOptions: any) => {
-  // const session = getSession()
-  // console.debug('createWebRTCCall', session)
-  console.debug('createWebRTCCall')
-
-  return ReduxConnectedCall(userOptions)
+    Call
+  )(userOptions)
 }

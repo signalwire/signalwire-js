@@ -1,9 +1,9 @@
 import {
   uuid,
   logger,
-  Session,
   VertoBye,
   VertoInfo,
+  VertoInvite,
   // VertoModify,
 } from '@signalwire/core'
 import { JSONRPCRequest } from '@signalwire/core/dist/core/src/utils/interfaces'
@@ -57,7 +57,10 @@ export class BaseCall {
 
   private _extension: string
 
-  constructor(public session: Session, options?: CallOptions) {
+  private store: any
+
+  constructor(options: CallOptions & { store: any }) {
+    this.store = options.store
     this.options = {
       id: this.id,
       ...DEFAULT_CALL_OPTIONS,
@@ -132,7 +135,7 @@ export class BaseCall {
       screenShare,
     } = this.options
     return {
-      sessid: this.session.sessionid,
+      sessid: this.options.sessionid,
       dialogParams: {
         id,
         destinationNumber,
@@ -296,32 +299,30 @@ export class BaseCall {
   onLocalSDPReady(localDescription: RTCSessionDescription) {
     const { type, sdp } = localDescription
     logger.info('SDP READY', type, sdp)
-    // switch (type) {
-    //   case PeerType.Offer:
-    //     if (this.active) {
-    //       this.executeUpdateMedia()
-    //     } else {
-    //       this.executeInvite()
-    //     }
-    //     break
-    //   case PeerType.Answer:
-    //     this.executeAnswer()
-    //     break
-    //   default:
-    //     return logger.error(
-    //       `Unknown SDP type: '${type}' on call ${this.options.id}`
-    //     )
-    // }
+    switch (type) {
+      case PeerType.Offer:
+        // if (this.active) {
+        //   this.executeUpdateMedia()
+        // } else {
+        this.executeInvite(sdp)
+        // }
+        break
+      case PeerType.Answer:
+        logger.warn('Unhandled verto.answer')
+        // this.executeAnswer()
+        break
+      default:
+        return logger.error(
+          `Unknown SDP type: '${type}' on call ${this.options.id}`
+        )
+    }
   }
 
-  // executeInvite() {
-  //   this.setState(CallState.Requesting)
-  //   // const msg = new Invite({
-  //   //   ...this.messagePayload,
-  //   //   sdp: this.localSdp,
-  //   // })
-  //   // return this._execute(msg)
-  // }
+  executeInvite(sdp: string) {
+    this.setState(CallState.Requesting)
+    const msg = VertoInvite({ ...this.messagePayload, sdp })
+    return this._execute(msg)
+  }
 
   // executeUpdateMedia() {
   //   //   const msg = new Modify({
@@ -557,7 +558,8 @@ export class BaseCall {
     // if (this.nodeId) {
     //   msg.targetNodeId = this.nodeId
     // }
-    return this.session.execute(msg)
+    // return this.session.execute(msg)
+    this.store.dispatch({ type: 'WEBRTC', payload: msg })
   }
 
   protected _finalize() {
