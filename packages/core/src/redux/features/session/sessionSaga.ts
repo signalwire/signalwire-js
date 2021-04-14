@@ -43,7 +43,13 @@ export function* createSessionWorker(userOptions: any) {
   // TODO: invoke sessionChannel.close on session destroy
 
   function* executeWorker(payload: JSONRPCRequest | JSONRPCResponse) {
-    yield call(session.execute, payload)
+    try {
+      const response = yield call(session.execute, payload)
+      console.debug('executeWorker response', response)
+    } catch (error) {
+      // TODO: Report this error to the component
+      console.warn('executeWorker error', error)
+    }
   }
 
   function* componentListenerWorker() {
