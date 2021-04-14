@@ -55,3 +55,4 @@ class SignalWire {
 }
 
 export { connect, configureStore, SignalWire }
+export * from './actions'
