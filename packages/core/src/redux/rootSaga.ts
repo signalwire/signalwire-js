@@ -1,11 +1,13 @@
 import { Saga } from '@redux-saga/types'
 import { all, spawn, call } from 'redux-saga/effects'
-import { demoSaga } from './features/demo/demoSaga'
+// import { demoSaga } from './features/demo/demoSaga'
+import { sessionSaga } from './features/session/sessionSaga'
 import { GetDefaultSagas } from './interfaces'
 
 // prettier-ignore
 const ROOT_SAGAS = [
-  demoSaga,
+  sessionSaga,
+  // demoSaga,
 ];
 
 const getDefaultSagas = () => {
