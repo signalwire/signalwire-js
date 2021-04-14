@@ -4,6 +4,7 @@ import {
   JWTSession,
   connect,
   configureStore,
+  createSession,
 } from '@signalwire/core'
 import * as webrtc from '@signalwire/webrtc'
 
@@ -59,4 +60,4 @@ export const createWebRTCCall = (userOptions: any) => {
   })(userOptions)
 }
 
-export { JWTSession }
+export { JWTSession, createSession }
