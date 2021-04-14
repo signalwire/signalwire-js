@@ -212,6 +212,8 @@ export class Session {
     this._idle = false
     await this.authenticate()
     this._emptyRequestQueue()
+
+    this?.options?.onReady?.()
   }
 
   protected _onSocketError(event: Event) {
