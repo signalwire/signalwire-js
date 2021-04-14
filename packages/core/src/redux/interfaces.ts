@@ -1,3 +1,5 @@
+import { Saga } from "@redux-saga/types"
+
 interface SWComponent {
   id: string
 }
@@ -20,3 +22,5 @@ export interface ComponentState {
 export interface SDKState {
   components: ComponentState
 }
+
+export type GetDefaultSagas = () => Saga[]

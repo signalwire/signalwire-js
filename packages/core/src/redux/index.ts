@@ -1,14 +1,13 @@
 import { Store, configureStore as rtConfigureStore } from '@reduxjs/toolkit'
-import createSagaMiddleware from 'redux-saga'
+import createSagaMiddleware, { Saga } from 'redux-saga'
 import { rootReducer } from './rootReducer'
 import rootSaga from './rootSaga'
-import { SDKState } from './interfaces'
-
-const sagaMiddleware = createSagaMiddleware()
+import { GetDefaultSagas, SDKState } from './interfaces'
 
 export type SDKDispatch = typeof store.dispatch
 interface ConfigureStoreOptions {
   runSagaMiddleware?: boolean
+  sagas?: (fn: GetDefaultSagas) => Saga[]
 }
 
 let store: Store
@@ -26,7 +25,8 @@ export const configureStore = (
   preloadedState: Partial<SDKState> = {},
   options: ConfigureStoreOptions = {}
 ) => {
-  const { runSagaMiddleware = true } = options
+  const { runSagaMiddleware = true, sagas } = options
+  const sagaMiddleware = createSagaMiddleware()
 
   const store = rtConfigureStore({
     reducer: rootReducer,
@@ -41,7 +41,13 @@ export const configureStore = (
   })
 
   if (runSagaMiddleware) {
-    sagaMiddleware.run(rootSaga)
+    sagaMiddleware.run(
+      rootSaga({
+        // In here the consumer will have the option to setup
+        // different root sagas
+        sagas,
+      })
+    )
   }
 
   return store
