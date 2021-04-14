@@ -1,7 +1,7 @@
 import { uuid, logger } from './utils'
 import { Session } from './Session'
 import { JWTSession } from './JWTSession'
-import { connect } from './redux/utils'
+import { configureStore, connect } from './redux'
 
 // prettier-ignore
 export {
@@ -10,6 +10,7 @@ export {
   Session,
   JWTSession,
   connect,
+  configureStore
 }
 
 export * from './RPCMessages'

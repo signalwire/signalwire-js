@@ -1,27 +1,15 @@
-import { Store, configureStore as rtConfigureStore } from '@reduxjs/toolkit'
+import { configureStore as rtConfigureStore } from '@reduxjs/toolkit'
 import createSagaMiddleware, { Saga } from 'redux-saga'
 import { rootReducer } from './rootReducer'
 import rootSaga from './rootSaga'
 import { GetDefaultSagas, SDKState } from './interfaces'
-
-export type SDKDispatch = typeof store.dispatch
+import { connect } from './utils'
 interface ConfigureStoreOptions {
   runSagaMiddleware?: boolean
   sagas?: (fn: GetDefaultSagas) => Saga[]
 }
 
-let store: Store
-export const getStore = () => {
-  if (store) {
-    return store
-  }
-  store = configureStore()
-  // @ts-ignore
-  window['__store'] = store
-  return store
-}
-
-export const configureStore = (
+const configureStore = (
   preloadedState: Partial<SDKState> = {},
   options: ConfigureStoreOptions = {}
 ) => {
@@ -40,6 +28,9 @@ export const configureStore = (
       getDefaultMiddleware().concat(sagaMiddleware),
   })
 
+  // @ts-ignore
+  window['__store'] = store
+
   if (runSagaMiddleware) {
     sagaMiddleware.run(
       rootSaga({
@@ -52,3 +43,15 @@ export const configureStore = (
 
   return store
 }
+
+class SignalWire {
+  constructor(public store: any, public userOptions: any) {}
+  connect() {
+    this.store.dispatch({ type: 'INIT_SESSION', payload: this.userOptions })
+  }
+  disconnect() {
+    this.store.dispatch({ type: 'DESTROY_SESSION', payload: this.userOptions })
+  }
+}
+
+export { connect, configureStore, SignalWire }

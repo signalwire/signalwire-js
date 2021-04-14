@@ -1,4 +1,10 @@
-import { uuid, logger, JWTSession, connect } from '@signalwire/core'
+import {
+  uuid,
+  logger,
+  JWTSession,
+  connect,
+  configureStore,
+} from '@signalwire/core'
 import * as webrtc from '@signalwire/webrtc'
 
 export const sum = (a: number, b: number) => {
@@ -19,6 +25,15 @@ class BaseWebRTCCall {
     return this.options.store
   }
 
+  connect() {
+    this.store.dispatch({
+      type: 'INIT_SESSION',
+      payload: {
+        token: '<token>',
+      },
+    })
+  }
+
   onStateChange(component: any) {
     console.debug('Im onStateChange', component, this.id)
   }
@@ -28,22 +43,20 @@ class BaseWebRTCCall {
   }
 }
 
-const ConnectedWebRTCCall = connect(
-  {
-    onStateChangeListeners: {
-      state: 'onStateChange',
-      remoteSDP: 'onRemoteSDP',
-    },
-  },
-  BaseWebRTCCall
-)
-
 export const createWebRTCCall = (userOptions: any) => {
   // const session = getSession()
   // console.debug('createWebRTCCall', session)
   console.debug('createWebRTCCall')
+  const store = configureStore()
 
-  return ConnectedWebRTCCall(userOptions)
+  return connect({
+    store,
+    Component: BaseWebRTCCall,
+    onStateChangeListeners: {
+      state: 'onStateChange',
+      remoteSDP: 'onRemoteSDP',
+    },
+  })(userOptions)
 }
 
 export { JWTSession }
