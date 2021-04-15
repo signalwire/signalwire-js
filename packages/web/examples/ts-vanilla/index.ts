@@ -10,9 +10,6 @@ window._makeClient = async ({ project, token }) => {
     host: 'relay.swire.io',
     project,
     token,
-    onReady: async () => {
-      console.log('JWTSession Ready')
-    },
     autoConnect: true,
   })
 

@@ -95,6 +95,7 @@ export function* createSessionWorker(userOptions: any) {
   }
 
   function* vertoWorker(jsonrpc: JSONRPCRequest) {
+    logger.debug('vertoWorker', jsonrpc)
     // nodeId from jsonrpc
     const { id, method, params = {} } = jsonrpc
     const { callID } = params
@@ -109,7 +110,7 @@ export function* createSessionWorker(userOptions: any) {
       case VertoMethod.Media: {
         const component = {
           id: callID,
-          state: 'early',
+          state: 'early', // FIXME: Use the enum
           remoteSDP: params.sdp,
         }
         yield put(componentActions.update(component))
@@ -118,7 +119,7 @@ export function* createSessionWorker(userOptions: any) {
       case VertoMethod.Answer: {
         const component = {
           id: callID,
-          state: 'active',
+          state: 'active', // FIXME: Use the enum
         }
         if (params?.sdp) {
           // @ts-expect-error
@@ -189,7 +190,6 @@ export function* createSessionWorker(userOptions: any) {
       case 'queuing.relay.events': {
         if (event_type === 'webrtc.message') {
           params.params.nodeId = node_id
-          logger.debug('Relay WebRTC event:', params)
           yield fork(vertoWorker, params.params)
           // VertoHandler(session, params.params)
         } else {
@@ -219,9 +219,9 @@ export function* createSessionWorker(userOptions: any) {
     }
   }
 
-  function* channelWorker(action: PayloadAction<JSONRPCRequest>): SagaIterator {
-    console.debug('Inbound WS Action', action)
-    const { method, params } = action.payload
+  function* channelWorker(payload: JSONRPCRequest): SagaIterator {
+    console.debug('Inbound WebSocket Message', payload)
+    const { method, params } = payload
 
     switch (method) {
       case BladeMethod.Broadcast:
@@ -229,16 +229,9 @@ export function* createSessionWorker(userOptions: any) {
         yield fork(bladeBroadcastWorker, params)
         break
       default:
-        return logger.warn(`Unknown message: ${method}`, action.payload)
+        // yield put(action)
+        return logger.warn(`Unknown message: ${method}`, payload)
     }
-    /**
-     * Apply custom login or, by default, relay the action to redux
-     */
-
-    // action => participant.joined
-    // action => participant.left
-
-    yield put(action)
   }
 
   // Fork componentListenerWorker to handle actions from components
@@ -265,9 +258,10 @@ function createSessionChannel(session: Session) {
   return eventChannel((emit) => {
     // TODO: Replace eventHandler with .on() notation ?
     session.eventHandler = (payload: any) => {
-      console.debug('Custom eventHandler', payload)
-      // FIXME: review INBOUND_EVENT usage
-      emit({ type: 'INBOUND_EVENT', payload })
+      /**
+       * emit into the channelWorker
+       */
+      emit(payload)
     }
 
     // the subscriber must return an unsubscribe function

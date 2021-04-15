@@ -255,7 +255,6 @@ export class Session {
       }
       default:
         // If it's not a response, trigger the eventHandler.
-        logger.warn('Event', payload)
         this.eventHandler(payload)
     }
   }
