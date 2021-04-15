@@ -44,15 +44,5 @@ const configureStore = (
   return store
 }
 
-class SignalWire {
-  constructor(public store: any, public userOptions: any) {}
-  connect() {
-    this.store.dispatch({ type: 'INIT_SESSION', payload: this.userOptions })
-  }
-  disconnect() {
-    this.store.dispatch({ type: 'DESTROY_SESSION', payload: this.userOptions })
-  }
-}
-
-export { connect, configureStore, SignalWire }
+export { connect, configureStore }
 export * from './actions'
