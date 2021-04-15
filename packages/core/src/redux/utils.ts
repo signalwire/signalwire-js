@@ -10,8 +10,8 @@ export const connect = (options: any) => {
       const { components = {} } = store.getState()
       componentKeys.forEach((key) => {
         const current = cacheMap.get(key)
-        const updatedValue = components[instance.id][key]
-        if (current !== updatedValue) {
+        const updatedValue = components?.[instance.id]?.[key]
+        if (updatedValue !== undefined && current !== updatedValue) {
           cacheMap.set(key, updatedValue)
           const fnName = onStateChangeListeners[key]
           instance[fnName](components[instance.id])
