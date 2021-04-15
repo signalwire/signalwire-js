@@ -204,6 +204,7 @@ export class Session {
       const response = await this.execute(BladeConnect(params))
       console.log('Response', response)
       this._authorization = response.authorization
+      this.relayProtocol = response?.result?.protocol ?? ''
     } catch (error) {
       console.error('Auth Error', error)
     }

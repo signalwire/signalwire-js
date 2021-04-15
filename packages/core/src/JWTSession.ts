@@ -84,6 +84,7 @@ export class JWTSession extends Session {
 
       const response = await this.execute(BladeConnect(params))
       this._authorization = response.authorization
+      this.relayProtocol = response?.result?.protocol ?? ''
       this._checkTokenExpiration()
       console.log('Response', response)
       // TODO: check JWT expires_at and handle re-auth
