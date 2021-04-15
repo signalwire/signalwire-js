@@ -1,9 +1,16 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { JSONRPCResponse } from '../../utils/interfaces'
 import { ComponentState, ReduxComponent } from '../interfaces'
 
 export const initialComponentState: Readonly<ComponentState> = {}
 
 type UpdateComponent = Partial<ReduxComponent> & Pick<ReduxComponent, 'id'>
+type SuccessParams = { componentId: string; response: JSONRPCResponse }
+type FailureParams = {
+  componentId: string
+  error: JSONRPCResponse
+  action: any
+}
 
 const componentSlice = createSlice({
   name: 'components',
@@ -19,6 +26,23 @@ const componentSlice = createSlice({
       } else {
         // If not in state already, set directly using the id.
         state[payload.id] = payload
+      }
+    },
+    executeSuccess: (state, { payload }: PayloadAction<SuccessParams>) => {
+      const { componentId, response } = payload
+      if (state[componentId]) {
+        const responses = state[componentId].responses ?? {}
+        responses[response.id] = response
+      }
+    },
+    executeFailure: (state, { payload }: PayloadAction<FailureParams>) => {
+      const { componentId, error, action } = payload
+      if (state[componentId]) {
+        const errors = state[componentId].errors ?? {}
+        errors[error.id] = {
+          action,
+          jsonrpc: error,
+        }
       }
     },
   },

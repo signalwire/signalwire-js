@@ -5,6 +5,7 @@ import { Session } from '../../..'
 import { JWTSession } from '../../../JWTSession'
 import { JSONRPCRequest, JSONRPCResponse } from '../../../utils/interfaces'
 import { initSessionAction } from '../../actions'
+import { componentActions } from '../../slices'
 
 const initSession = (userOptions: any) => {
   console.debug('initSession', userOptions)
@@ -42,20 +43,27 @@ export function* createSessionWorker(userOptions: any) {
   const sessionChannel = yield call(createSessionChannel, session)
   // TODO: invoke sessionChannel.close on session destroy
 
-  function* executeWorker(payload: JSONRPCRequest | JSONRPCResponse) {
+  function* componentExecuteWorker(
+    action: PayloadAction<{
+      componentId: string
+      jsonrpc: JSONRPCRequest | JSONRPCResponse
+    }>
+  ) {
+    const { componentId, jsonrpc } = action.payload
     try {
-      const response = yield call(session.execute, payload)
-      console.debug('executeWorker response', response)
+      const response = yield call(session.execute, jsonrpc)
+      console.debug('componentExecuteWorker response', componentId, response)
+      yield put(componentActions.executeSuccess({ componentId, response }))
     } catch (error) {
-      // TODO: Report this error to the component
-      console.warn('executeWorker error', error)
+      console.warn('componentExecuteWorker error', componentId, error)
+      yield put(componentActions.executeFailure({ componentId, action, error }))
     }
   }
 
   function* componentListenerWorker() {
     while (true) {
       const action = yield take(ACTIONS)
-      yield fork(executeWorker, action.payload)
+      yield fork(componentExecuteWorker, action)
     }
   }
 
@@ -64,6 +72,10 @@ export function* createSessionWorker(userOptions: any) {
     /**
      * Apply custom login or, by default, relay the action to redux
      */
+
+    // action => participant.joined
+    // action => participant.left
+
     yield put(action)
   }
 
