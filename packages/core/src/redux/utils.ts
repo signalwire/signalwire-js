@@ -1,3 +1,5 @@
+import { componentActions } from './slices'
+
 export const connect = (options: any) => {
   const { onStateChangeListeners = {}, store, Component } = options
   const componentKeys = Object.keys(onStateChangeListeners)
@@ -18,6 +20,7 @@ export const connect = (options: any) => {
         }
       })
     })
+    store.dispatch(componentActions.update({ id: instance.id }))
 
     // TODO: automatically attach unsubscribe to the object destroy
     // TODO: remove instance.id from cacheMap
