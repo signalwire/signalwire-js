@@ -80,10 +80,23 @@ export function* createSessionWorker(userOptions: any) {
 
       const response = yield call(session.execute, message)
       console.debug('componentExecuteWorker response', componentId, response)
-      yield put(componentActions.executeSuccess({ componentId, response }))
+      yield put(
+        componentActions.executeSuccess({
+          componentId,
+          requestId: jsonrpc.id,
+          response,
+        })
+      )
     } catch (error) {
       console.warn('componentExecuteWorker error', componentId, error)
-      yield put(componentActions.executeFailure({ componentId, action, error }))
+      yield put(
+        componentActions.executeFailure({
+          componentId,
+          requestId: jsonrpc.id,
+          action,
+          error,
+        })
+      )
     }
   }
 

@@ -5,9 +5,15 @@ import { ComponentState, ReduxComponent } from '../interfaces'
 export const initialComponentState: Readonly<ComponentState> = {}
 
 type UpdateComponent = Partial<ReduxComponent> & Pick<ReduxComponent, 'id'>
-type SuccessParams = { componentId: string; response: JSONRPCResponse }
+
+type SuccessParams = {
+  componentId: string
+  requestId: string
+  response: JSONRPCResponse
+}
 type FailureParams = {
   componentId: string
+  requestId: string
   error: JSONRPCResponse
   action: any
 }
@@ -29,17 +35,19 @@ const componentSlice = createSlice({
       }
     },
     executeSuccess: (state, { payload }: PayloadAction<SuccessParams>) => {
-      const { componentId, response } = payload
+      console.debug('executeSuccess', payload)
+      const { componentId, requestId, response } = payload
       if (state[componentId]) {
-        const responses = state[componentId].responses ?? {}
-        responses[response.id] = response
+        state[componentId].responses = state[componentId].responses || {}
+        state[componentId].responses![requestId] = response
       }
     },
     executeFailure: (state, { payload }: PayloadAction<FailureParams>) => {
-      const { componentId, error, action } = payload
+      console.debug('executeFailure', payload)
+      const { componentId, requestId, error, action } = payload
       if (state[componentId]) {
-        const errors = state[componentId].errors ?? {}
-        errors[error.id] = {
+        state[componentId].errors = state[componentId].errors || {}
+        state[componentId].errors![requestId] = {
           action,
           jsonrpc: error,
         }
