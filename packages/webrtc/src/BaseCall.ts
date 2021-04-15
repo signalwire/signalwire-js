@@ -5,8 +5,8 @@ import {
   VertoInfo,
   VertoInvite,
   // VertoModify,
+  BaseComponent,
 } from '@signalwire/core'
-import { JSONRPCRequest } from '@signalwire/core/dist/core/src/utils/interfaces'
 import RTCPeer from './RTCPeer'
 import {
   CallState,
@@ -35,7 +35,7 @@ import {
   // getHostname,
 } from './utils/webrtcHelpers'
 
-export class BaseCall {
+export class BaseCall extends BaseComponent {
   public id = uuid()
   public nodeId = ''
   public direction: Direction
@@ -57,10 +57,9 @@ export class BaseCall {
 
   private _extension: string
 
-  private store: any
-
   constructor(options: CallOptions & { store: any }) {
-    this.store = options.store
+    super(options)
+
     this.options = {
       id: this.id,
       ...DEFAULT_CALL_OPTIONS,
@@ -217,6 +216,18 @@ export class BaseCall {
     return this.audioElements.length ? this.audioElements[0] : null
   }
 
+  public onStateChange(component: any) {
+    console.debug('onStateChange', component)
+    this.setState(component.state)
+  }
+
+  public onRemoteSDP(component: any) {
+    console.debug('onRemoteSDP', component)
+    if (component.remoteSDP) {
+      this.peer.onRemoteSdp(component.remoteSDP)
+    }
+  }
+
   // async updateDevices(constraints: MediaStreamConstraints): Promise<void> {
   //   try {
   //     console.debug('updateDevices trying constraints', this.id, constraints)
@@ -318,10 +329,11 @@ export class BaseCall {
     }
   }
 
-  executeInvite(sdp: string) {
+  async executeInvite(sdp: string) {
     this.setState(CallState.Requesting)
     const msg = VertoInvite({ ...this.messagePayload, sdp })
-    return this._execute(msg)
+    const response = await this.execute(msg)
+    console.debug('Invite response', response)
   }
 
   // executeUpdateMedia() {
@@ -330,7 +342,7 @@ export class BaseCall {
   //   //     sdp: this.localSdp,
   //   //     action: 'updateMedia',
   //   //   })
-  //   //   return this._execute(msg)
+  //   //   return this.execute(msg)
   // }
 
   // executeAnswer() {
@@ -341,13 +353,13 @@ export class BaseCall {
   //   // }
   //   // const msg =
   //   //   this.options.attach === true ? new Attach(params) : new Answer(params)
-  //   // return this._execute(msg)
+  //   // return this.execute(msg)
   // }
 
   async hangup(params?: IHangupParams) {
     try {
       const bye = VertoBye(this.messagePayload)
-      await this._execute(bye)
+      await this.execute(bye)
     } catch (error) {
       logger.error('Hangup error:', error)
     } finally {
@@ -357,7 +369,7 @@ export class BaseCall {
 
   dtmf(dtmf: string) {
     const msg = VertoInfo({ ...this.messagePayload, dtmf })
-    this._execute(msg)
+    this.execute(msg)
   }
 
   disableOutboundAudio() {
@@ -554,13 +566,12 @@ export class BaseCall {
   //   this.setState(CallState.Early)
   // }
 
-  public _execute(msg: JSONRPCRequest) {
-    // if (this.nodeId) {
-    //   msg.targetNodeId = this.nodeId
-    // }
-    // return this.session.execute(msg)
-    this.store.dispatch({ type: 'WEBRTC', payload: msg })
-  }
+  // public _execute(msg: JSONRPCRequest) {
+  //   // if (this.nodeId) {
+  //   //   msg.targetNodeId = this.nodeId
+  //   // }
+  //   // return this.session.execute(msg)
+  // }
 
   protected _finalize() {
     if (this.peer && this.peer.instance) {
