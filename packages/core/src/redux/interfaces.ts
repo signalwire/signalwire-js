@@ -1,5 +1,14 @@
+import { Saga } from '@redux-saga/types'
+import { PayloadAction } from '@reduxjs/toolkit'
+import { JSONRPCResponse } from '../utils/interfaces'
+
 interface SWComponent {
   id: string
+  responses?: Record<string, JSONRPCResponse>
+  errors?: Record<
+    string,
+    { action: PayloadAction<any>; jsonrpc: JSONRPCResponse }
+  >
 }
 
 export interface WebRTCCall extends SWComponent {
@@ -20,3 +29,5 @@ export interface ComponentState {
 export interface SDKState {
   components: ComponentState
 }
+
+export type GetDefaultSagas = () => Saga[]

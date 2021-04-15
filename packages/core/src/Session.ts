@@ -56,6 +56,7 @@ export class Session {
     this._onSocketError = this._onSocketError.bind(this)
     this._onSocketClose = this._onSocketClose.bind(this)
     this._onSocketMessage = this._onSocketMessage.bind(this)
+    this.execute = this.execute.bind(this)
 
     this.logger.setLevel(this.logger.levels.DEBUG)
   }
@@ -213,6 +214,8 @@ export class Session {
     this._idle = false
     await this.authenticate()
     this._emptyRequestQueue()
+
+    this?.options?.onReady?.()
   }
 
   protected _onSocketError(event: Event) {
@@ -251,9 +254,13 @@ export class Session {
       }
       default:
         // If it's not a response, trigger the eventHandler.
-        // this.eventHandler(payload)
         logger.warn('Event', payload)
+        this.eventHandler(payload)
     }
+  }
+
+  public eventHandler(payload: any) {
+    console.debug('eventHandler', payload)
   }
 
   /**

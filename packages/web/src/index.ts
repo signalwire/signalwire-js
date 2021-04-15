@@ -1,4 +1,3 @@
-import { JWTSession } from '@signalwire/core'
-import { createWebRTCCall } from '@signalwire/webrtc'
+import { JWTSession, createSession } from '@signalwire/core'
 
-export { JWTSession, createWebRTCCall }
+export { JWTSession, createSession }
