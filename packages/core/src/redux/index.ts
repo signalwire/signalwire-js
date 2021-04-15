@@ -1,32 +1,20 @@
-import { Store, configureStore as rtConfigureStore } from '@reduxjs/toolkit'
-import createSagaMiddleware from 'redux-saga'
+import { configureStore as rtConfigureStore } from '@reduxjs/toolkit'
+import createSagaMiddleware, { Saga } from 'redux-saga'
 import { rootReducer } from './rootReducer'
 import rootSaga from './rootSaga'
-import { SDKState } from './interfaces'
-
-const sagaMiddleware = createSagaMiddleware()
-
-export type SDKDispatch = typeof store.dispatch
+import { GetDefaultSagas, SDKState } from './interfaces'
+import { connect } from './utils'
 interface ConfigureStoreOptions {
   runSagaMiddleware?: boolean
+  sagas?: (fn: GetDefaultSagas) => Saga[]
 }
 
-let store: Store
-export const getStore = () => {
-  if (store) {
-    return store
-  }
-  store = configureStore()
-  // @ts-ignore
-  window['__store'] = store
-  return store
-}
-
-export const configureStore = (
+const configureStore = (
   preloadedState: Partial<SDKState> = {},
   options: ConfigureStoreOptions = {}
 ) => {
-  const { runSagaMiddleware = true } = options
+  const { runSagaMiddleware = true, sagas } = options
+  const sagaMiddleware = createSagaMiddleware()
 
   const store = rtConfigureStore({
     reducer: rootReducer,
@@ -40,9 +28,21 @@ export const configureStore = (
       getDefaultMiddleware().concat(sagaMiddleware),
   })
 
+  // @ts-ignore
+  window['__store'] = store
+
   if (runSagaMiddleware) {
-    sagaMiddleware.run(rootSaga)
+    sagaMiddleware.run(
+      rootSaga({
+        // In here the consumer will have the option to setup
+        // different root sagas
+        sagas,
+      })
+    )
   }
 
   return store
 }
+
+export { connect, configureStore }
+export * from './actions'
