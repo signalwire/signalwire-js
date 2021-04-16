@@ -24,7 +24,8 @@ export default (
   return function* root(userOptions: UserOptions) {
     /**
      * Start sessionSaga on its own since it waits
-     * for an initSessionAction to start
+     * for an initSessionAction to start so doesn't
+     * make sense to restart it in case of errors.
      */
     yield spawn(sessionSaga, userOptions)
 
