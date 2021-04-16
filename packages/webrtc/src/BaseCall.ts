@@ -1,5 +1,4 @@
 import {
-  uuid,
   logger,
   VertoBye,
   VertoInfo,
@@ -22,7 +21,6 @@ import { CallOptions, IHangupParams } from './utils/interfaces'
 import { stopStream } from './utils/webrtcHelpers'
 
 export class BaseCall extends BaseComponent {
-  public id = uuid()
   public nodeId = ''
   public direction: Direction
   public peer: RTCPeer
