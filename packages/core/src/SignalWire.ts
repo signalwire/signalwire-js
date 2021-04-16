@@ -4,7 +4,7 @@ export class SignalWire {
   constructor(public options: any, public store: any) {}
 
   connect() {
-    this.store.dispatch(initSessionAction(this.options))
+    this.store.dispatch(initSessionAction())
   }
 
   disconnect() {
