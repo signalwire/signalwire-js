@@ -1,5 +1,5 @@
 import { eventChannel, SagaIterator } from 'redux-saga'
-import { call, put, take, fork } from 'redux-saga/effects'
+import { call, put, take, fork, select } from 'redux-saga/effects'
 import { PayloadAction } from '@reduxjs/toolkit'
 import { Session } from '../../..'
 import { JWTSession } from '../../../JWTSession'
@@ -9,6 +9,7 @@ import { initSessionAction, executeAction } from '../../actions'
 import { componentActions } from '../../slices'
 import { BladeMethod, VertoMethod } from '../../../utils/constants'
 import { logger } from '../../../utils'
+import { getComponentNodeId } from '../../slices/componentSelectors'
 
 function isJSONRPCRequest(message: any): message is JSONRPCRequest {
   return message.method !== undefined
@@ -22,6 +23,7 @@ const initSession = (userOptions: any) => {
       onReady: () => {
         console.debug('JWTSession Ready', session)
         resolve(session)
+        userOptions?.onReady?.()
       },
     })
 
@@ -56,12 +58,13 @@ export function* createSessionWorker(userOptions: any) {
   ) {
     const { componentId, jsonrpc } = action.payload
     try {
+      const componentNodeId = yield select(getComponentNodeId, componentId)
       const message = BladeExecute({
         protocol: session.relayProtocol,
         method: 'video.message',
         params: {
           message: jsonrpc,
-          node_id: null,
+          node_id: componentNodeId,
         },
       })
 
@@ -109,9 +112,8 @@ export function* createSessionWorker(userOptions: any) {
 
   function* vertoWorker(jsonrpc: JSONRPCRequest) {
     logger.debug('vertoWorker', jsonrpc)
-    // nodeId from jsonrpc
     const { id, method, params = {} } = jsonrpc
-    const { callID } = params
+    const { callID, nodeId } = params
     const _executeResult = () => {
       const msg = VertoResult(id, method as VertoMethod)
       // msg.targetNodeId = nodeId
@@ -125,6 +127,7 @@ export function* createSessionWorker(userOptions: any) {
           id: callID,
           state: 'early', // FIXME: Use the enum
           remoteSDP: params.sdp,
+          nodeId,
         }
         yield put(componentActions.update(component))
         break
@@ -133,6 +136,7 @@ export function* createSessionWorker(userOptions: any) {
         const component = {
           id: callID,
           state: 'active', // FIXME: Use the enum
+          nodeId,
         }
         if (params?.sdp) {
           // @ts-expect-error
@@ -202,7 +206,7 @@ export function* createSessionWorker(userOptions: any) {
     switch (event) {
       case 'queuing.relay.events': {
         if (event_type === 'webrtc.message') {
-          params.params.nodeId = node_id
+          params.params.params.nodeId = node_id
           yield fork(vertoWorker, params.params)
           // VertoHandler(session, params.params)
         } else {
@@ -213,6 +217,7 @@ export function* createSessionWorker(userOptions: any) {
       }
       case 'conference': {
         logger.debug('Conference event:', params)
+
         // params.params.nodeId = node_id
         // return ConferencingHandler(session, params)
         break
