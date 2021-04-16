@@ -30,6 +30,8 @@ export const connect = <T extends typeof BaseComponent>(
           const fnName = onStateChangeListeners[key]
 
           if (typeof fnName === 'string') {
+            // FIXME: fixing TS error typing fnName properly
+            // @ts-ignore
             instance[fnName](components[instance.id])
           } else {
             fnName(components[instance.id])
