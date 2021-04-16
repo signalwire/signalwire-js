@@ -30,7 +30,7 @@ class Client extends SignalWire {
 
 export const createSession = (userOptions: any) => {
   return new Promise((resolve, _reject) => {
-    const store = configureStore()
+    const store = configureStore({ userOptions })
     const client = new Client(userOptions, store)
     if (userOptions.autoConnect) {
       store.subscribe(() => {
