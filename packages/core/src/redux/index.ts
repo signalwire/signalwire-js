@@ -4,19 +4,26 @@ import { rootReducer } from './rootReducer'
 import rootSaga from './rootSaga'
 import { GetDefaultSagas, SDKState } from './interfaces'
 import { connect } from './utils'
+import { UserOptions } from '../utils/interfaces'
+
 interface ConfigureStoreOptions {
+  userOptions: UserOptions
   runSagaMiddleware?: boolean
   sagas?: (fn: GetDefaultSagas) => Saga[]
+  preloadedState?: Partial<SDKState>
 }
 
-const configureStore = (
-  preloadedState: Partial<SDKState> = {},
-  options: ConfigureStoreOptions = {}
-) => {
-  const { runSagaMiddleware = true, sagas } = options
+const configureStore = (options: ConfigureStoreOptions) => {
+  const {
+    userOptions,
+    preloadedState = {},
+    runSagaMiddleware = true,
+    sagas,
+  } = options
   const sagaMiddleware = createSagaMiddleware()
 
   const store = rtConfigureStore({
+    devTools: userOptions?.devTools ?? true,
     reducer: rootReducer,
     preloadedState,
     middleware: (getDefaultMiddleware) =>
@@ -32,13 +39,12 @@ const configureStore = (
   window['__store'] = store
 
   if (runSagaMiddleware) {
-    sagaMiddleware.run(
-      rootSaga({
-        // In here the consumer will have the option to setup
-        // different root sagas
-        sagas,
-      })
-    )
+    const saga = rootSaga({
+      // In here the consumer will have the option to setup
+      // different root sagas
+      sagas,
+    })
+    sagaMiddleware.run(saga, userOptions)
   }
 
   return store

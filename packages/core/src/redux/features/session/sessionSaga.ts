@@ -38,9 +38,9 @@ const initSession = (userOptions: any) => {
   })
 }
 
-export function* sessionSaga() {
-  const action = yield take(initSessionAction.type)
-  yield call(createSessionWorker, action.payload)
+export function* sessionSaga(userOptions: any) {
+  yield take(initSessionAction.type)
+  yield call(createSessionWorker, userOptions)
 }
 
 export function* createSessionWorker(userOptions: any) {
