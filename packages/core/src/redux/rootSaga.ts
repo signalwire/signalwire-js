@@ -5,7 +5,7 @@ import { GetDefaultSagas } from './interfaces'
 import { UserOptions } from '../utils/interfaces'
 
 // prettier-ignore
-const ROOT_SAGAS = []
+const ROOT_SAGAS: Saga[] = []
 
 const getDefaultSagas = () => {
   return ROOT_SAGAS
@@ -27,7 +27,9 @@ export default (
      * for an initSessionAction to start so doesn't
      * make sense to restart it in case of errors.
      */
-    yield spawn(sessionSaga, userOptions)
+    yield spawn(sessionSaga, {
+      userOptions,
+    })
 
     yield all(
       sagas.map((saga) =>

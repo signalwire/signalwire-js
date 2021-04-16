@@ -42,7 +42,10 @@ const initSession = (userOptions: UserOptions) => {
   })
 }
 
-export function* sessionSaga(userOptions: UserOptions) {
+type SessionSagaParams = {
+  userOptions: UserOptions
+}
+export function* sessionSaga({ userOptions }: SessionSagaParams) {
   // TODO: Provide errors to the user in case this saga fails
   // since the SDK will be unusable at that point.
   yield take(initSessionAction.type)
