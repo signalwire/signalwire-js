@@ -47,21 +47,6 @@ export const DEFAULT_CALL_OPTIONS: CallOptions = {
   iceGatheringTimeout: 2 * 1000,
 }
 
-export enum CallState {
-  New = 'new',
-  Requesting = 'requesting',
-  Trying = 'trying',
-  Recovering = 'recovering',
-  Ringing = 'ringing',
-  Answering = 'answering',
-  Early = 'early',
-  Active = 'active',
-  Held = 'held',
-  Hangup = 'hangup',
-  Destroy = 'destroy',
-  Purge = 'purge',
-}
-
 export enum Role {
   Participant = 'participant',
   Moderator = 'moderator',

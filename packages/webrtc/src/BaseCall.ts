@@ -6,14 +6,10 @@ import {
   VertoInvite,
   // VertoModify,
   BaseComponent,
+  SwWebRTCCallState,
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
-import {
-  CallState,
-  DEFAULT_CALL_OPTIONS,
-  PeerType,
-  Direction,
-} from './utils/constants'
+import { DEFAULT_CALL_OPTIONS, PeerType, Direction } from './utils/constants'
 import {
   enableAudioTracks,
   disableAudioTracks,
@@ -52,8 +48,8 @@ export class BaseCall extends BaseComponent {
   public audioElements: HTMLAudioElement[] = []
   public participantLayerIndex = -1
   public participantLogo = ''
-  private state = CallState.New
-  private prevState = CallState.New
+  private state = SwWebRTCCallState.New
+  private prevState = SwWebRTCCallState.New
 
   private _extension: string
 
@@ -89,16 +85,16 @@ export class BaseCall extends BaseComponent {
     // register(this.id, this._onGenericEvent, VertoMethod.Info)
     // register(this.id, this._onGenericEvent, VertoMethod.Event)
 
-    this.setState(CallState.New)
+    this.setState(SwWebRTCCallState.New)
     logger.info('New Call with Options:', this.options)
   }
 
   get active() {
-    return this.state === CallState.Active
+    return this.state === SwWebRTCCallState.Active
   }
 
   get trying() {
-    return this.state === CallState.Trying
+    return this.state === SwWebRTCCallState.Trying
   }
 
   get extension() {
@@ -330,7 +326,7 @@ export class BaseCall extends BaseComponent {
   }
 
   async executeInvite(sdp: string) {
-    this.setState(CallState.Requesting)
+    this.setState(SwWebRTCCallState.Requesting)
     const msg = VertoInvite({ ...this.messagePayload, sdp })
     const response = await this.execute(msg)
     console.debug('Invite response', response)
@@ -346,7 +342,7 @@ export class BaseCall extends BaseComponent {
   // }
 
   // executeAnswer() {
-  //   this.setState(CallState.Answering)
+  //   this.setState(SwWebRTCCallState.Answering)
   //   // const params = {
   //   //   ...this.messagePayload,
   //   //   sdp: this.localSdp,
@@ -456,7 +452,7 @@ export class BaseCall extends BaseComponent {
     }
   }
 
-  setState(state: CallState) {
+  setState(state: SwWebRTCCallState) {
     this.prevState = this.state
     this.state = state
     logger.debug(
@@ -466,35 +462,35 @@ export class BaseCall extends BaseComponent {
     // this._dispatchNotification({ type: Notification.CallUpdate })
 
     switch (state) {
-      case CallState.Purge: {
+      case SwWebRTCCallState.Purge: {
         if (this.screenShare instanceof BaseCall) {
-          this.screenShare.setState(CallState.Purge)
+          this.screenShare.setState(SwWebRTCCallState.Purge)
         }
         if (this.secondSource instanceof BaseCall) {
-          this.secondSource.setState(CallState.Purge)
+          this.secondSource.setState(SwWebRTCCallState.Purge)
         }
         this._finalize()
         break
       }
       // TODO: Handle setMediaElementSinkId at higher level
-      // case CallState.Active: {
+      // case SwWebRTCCallState.Active: {
       //   setTimeout(() => {
       //     const { remoteElement, speakerId } = this.options
       //     setMediaElementSinkId(remoteElement, speakerId)
       //   }, 0)
       //   break
       // }
-      case CallState.Hangup: {
+      case SwWebRTCCallState.Hangup: {
         if (this.screenShare instanceof BaseCall) {
           this.screenShare.hangup()
         }
         if (this.secondSource instanceof BaseCall) {
           this.secondSource.hangup()
         }
-        this.setState(CallState.Destroy)
+        this.setState(SwWebRTCCallState.Destroy)
         break
       }
-      case CallState.Destroy:
+      case SwWebRTCCallState.Destroy:
         this._finalize()
         break
     }
@@ -520,7 +516,7 @@ export class BaseCall extends BaseComponent {
       logger.warn('Execute invite again!')
       // return this.peer.executeInvite()
     }
-    this.setState(CallState.Hangup)
+    this.setState(SwWebRTCCallState.Hangup)
   }
 
   // private _onParticipantData(params: any) {
@@ -546,24 +542,24 @@ export class BaseCall extends BaseComponent {
   // }
 
   // private async _onVertoAnswer(params: any) {
-  //   if (this.state >= CallState.Active) {
+  //   if (this.state >= SwWebRTCCallState.Active) {
   //     return
   //   }
   //   if (!this.gotEarly) {
   //     await this.peer.onRemoteSdp(params.sdp)
   //   }
   //   this.isDirect = checkIsDirectCall(params)
-  //   this.setState(CallState.Active)
+  //   this.setState(SwWebRTCCallState.Active)
   // }
 
   // private async _onVertoMedia(params: any) {
-  //   if (this.state >= CallState.Early) {
+  //   if (this.state >= SwWebRTCCallState.Early) {
   //     return
   //   }
   //   this.gotEarly = true
   //   await this.peer.onRemoteSdp(params.sdp)
   //   this.isDirect = checkIsDirectCall(params)
-  //   this.setState(CallState.Early)
+  //   this.setState(SwWebRTCCallState.Early)
   // }
 
   // public _execute(msg: JSONRPCRequest) {
