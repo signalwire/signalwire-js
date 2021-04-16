@@ -18,4 +18,4 @@ export {
 }
 
 export * from './RPCMessages'
-export { SwWebRTCCallState } from './utils/constants'
+export { SwWebRTCCallState, VertoMethod } from './utils/constants'
