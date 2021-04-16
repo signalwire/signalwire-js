@@ -6,6 +6,8 @@ import {
   // VertoModify,
   BaseComponent,
   SwWebRTCCallState,
+  VertoMethod,
+  BladeExecute,
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import { DEFAULT_CALL_OPTIONS, PeerType, Direction } from './utils/constants'
@@ -19,6 +21,17 @@ import {
 } from './utils/helpers'
 import { CallOptions, IHangupParams } from './utils/interfaces'
 import { stopStream } from './utils/webrtcHelpers'
+
+const ROOM_EVENTS = [
+  'room.started',
+  'rooms.subscribed',
+  'room.subscribed',
+  'room.updated',
+  'room.ended',
+  'member.joined',
+  'member.updated',
+  'member.left',
+]
 
 export class BaseCall extends BaseComponent {
   public nodeId = ''
@@ -159,6 +172,28 @@ export class BaseCall extends BaseComponent {
 
   get htmlAudioElement() {
     return this.audioElements.length ? this.audioElements[0] : null
+  }
+
+  /**
+   * Override the execute method to wraps every
+   * "verto" request into a "blade.execute".
+   * Note: we don't have the "protocol" here so
+   * saga will set that for us.
+   */
+  public execute(msg: any) {
+    const message = BladeExecute({
+      protocol: '', // protocol will be injected by sessionSaga
+      method: 'video.message',
+      params: {
+        message: msg,
+        node_id: this.nodeId,
+      },
+    })
+
+    if (msg.method === VertoMethod.Invite) {
+      message.params.subscribe = ROOM_EVENTS
+    }
+    return super.execute(message)
   }
 
   public onStateChange(component: any) {
