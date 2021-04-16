@@ -4,7 +4,11 @@ import { PayloadAction } from '@reduxjs/toolkit'
 import { Session } from '../../..'
 import { JWTSession } from '../../../JWTSession'
 import { BladeExecute, VertoResult } from '../../../RPCMessages'
-import { JSONRPCRequest, JSONRPCResponse } from '../../../utils/interfaces'
+import {
+  JSONRPCRequest,
+  JSONRPCResponse,
+  UserOptions,
+} from '../../../utils/interfaces'
 import { initSessionAction, executeAction } from '../../actions'
 import { componentActions } from '../../slices'
 import { BladeMethod, VertoMethod } from '../../../utils/constants'
@@ -15,12 +19,12 @@ function isJSONRPCRequest(message: any): message is JSONRPCRequest {
   return message.method !== undefined
 }
 
-const initSession = (userOptions: any) => {
+const initSession = (userOptions: UserOptions) => {
   console.debug('initSession', userOptions)
   return new Promise((resolve, _reject) => {
     const session = new JWTSession({
       ...userOptions,
-      onReady: () => {
+      onReady: async () => {
         console.debug('JWTSession Ready', session)
         resolve(session)
         userOptions?.onReady?.()
@@ -38,9 +42,14 @@ const initSession = (userOptions: any) => {
   })
 }
 
-export function* sessionSaga() {
-  const action = yield take(initSessionAction.type)
-  yield call(createSessionWorker, action.payload)
+type SessionSagaParams = {
+  userOptions: UserOptions
+}
+export function* sessionSaga({ userOptions }: SessionSagaParams) {
+  // TODO: Provide errors to the user in case this saga fails
+  // since the SDK will be unusable at that point.
+  yield take(initSessionAction.type)
+  yield call(createSessionWorker, userOptions)
 }
 
 export function* createSessionWorker(userOptions: any) {

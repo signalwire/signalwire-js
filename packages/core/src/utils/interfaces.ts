@@ -31,6 +31,10 @@ export interface SessionOptions {
   onReady?: () => Promise<void>
 }
 
+export interface UserOptions extends SessionOptions {
+  devTools?: boolean
+}
+
 export interface SessionRequestObject {
   rpcRequest: JSONRPCRequest
   resolve: (value: unknown) => void
