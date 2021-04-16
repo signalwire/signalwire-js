@@ -1,5 +1,4 @@
 export class EventPubSub {
-
   private _queue: { [key: string]: Function[] } = {}
   private _uniqueKey = Symbol.for('sw-once-key')
 
@@ -28,7 +27,7 @@ export class EventPubSub {
 
     const handlers = this._queue[eventName]
     while (handlers.includes(handler)) {
-      handlers.splice(handlers.indexOf( handler ), 1)
+      handlers.splice(handlers.indexOf(handler), 1)
     }
     if (!handlers.length) {
       delete this._queue[eventName]
@@ -48,14 +47,14 @@ export class EventPubSub {
         deleteOnceHandled.push(handler)
       }
     }
-    for(let handler of deleteOnceHandled){
+    for (let handler of deleteOnceHandled) {
       this.off(eventName, handler)
     }
     return this
   }
 
   reset() {
-    for(let eventName in this._queue){
+    for (let eventName in this._queue) {
       this.off(eventName)
     }
 

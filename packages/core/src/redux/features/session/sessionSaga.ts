@@ -1,11 +1,19 @@
 import { eventChannel, SagaIterator } from 'redux-saga'
-import { call, put, take, fork } from 'redux-saga/effects'
+import { call, put, take, fork, select } from 'redux-saga/effects'
 import { PayloadAction } from '@reduxjs/toolkit'
 import { Session } from '../../..'
 import { JWTSession } from '../../../JWTSession'
+import { BladeExecute, VertoResult } from '../../../RPCMessages'
 import { JSONRPCRequest, JSONRPCResponse } from '../../../utils/interfaces'
-import { initSessionAction } from '../../actions'
+import { initSessionAction, executeAction } from '../../actions'
 import { componentActions } from '../../slices'
+import { BladeMethod, VertoMethod } from '../../../utils/constants'
+import { logger } from '../../../utils'
+import { getComponentNodeId } from '../../slices/componentSelectors'
+
+function isJSONRPCRequest(message: any): message is JSONRPCRequest {
+  return message.method !== undefined
+}
 
 const initSession = (userOptions: any) => {
   console.debug('initSession', userOptions)
@@ -15,6 +23,7 @@ const initSession = (userOptions: any) => {
       onReady: () => {
         console.debug('JWTSession Ready', session)
         resolve(session)
+        userOptions?.onReady?.()
       },
     })
 
@@ -34,8 +43,6 @@ export function* sessionSaga() {
   yield call(createSessionWorker, action.payload)
 }
 
-const ACTIONS = ['WEBRTC', 'MESSAGES']
-
 export function* createSessionWorker(userOptions: any) {
   console.debug('Creating Session', userOptions)
   const session = yield call(initSession, userOptions)
@@ -51,32 +58,198 @@ export function* createSessionWorker(userOptions: any) {
   ) {
     const { componentId, jsonrpc } = action.payload
     try {
-      const response = yield call(session.execute, jsonrpc)
+      const componentNodeId = yield select(getComponentNodeId, componentId)
+      const message = BladeExecute({
+        protocol: session.relayProtocol,
+        method: 'video.message',
+        params: {
+          message: jsonrpc,
+          node_id: componentNodeId,
+        },
+      })
+
+      if (isJSONRPCRequest(jsonrpc) && jsonrpc.method === VertoMethod.Invite) {
+        message.params.subscribe = [
+          'room.started',
+          'rooms.subscribed',
+          'room.subscribed',
+          'room.updated',
+          'room.ended',
+          'member.joined',
+          'member.updated',
+          'member.left',
+        ]
+      }
+
+      const response = yield call(session.execute, message)
       console.debug('componentExecuteWorker response', componentId, response)
-      yield put(componentActions.executeSuccess({ componentId, response }))
+      yield put(
+        componentActions.executeSuccess({
+          componentId,
+          requestId: jsonrpc.id,
+          response,
+        })
+      )
     } catch (error) {
       console.warn('componentExecuteWorker error', componentId, error)
-      yield put(componentActions.executeFailure({ componentId, action, error }))
+      yield put(
+        componentActions.executeFailure({
+          componentId,
+          requestId: jsonrpc.id,
+          action,
+          error,
+        })
+      )
     }
   }
 
   function* componentListenerWorker() {
     while (true) {
-      const action = yield take(ACTIONS)
+      const action = yield take(executeAction.type)
       yield fork(componentExecuteWorker, action)
     }
   }
 
-  function* channelWorker(action: PayloadAction<any>): SagaIterator {
-    console.debug('Inbound WS Action', action)
-    /**
-     * Apply custom login or, by default, relay the action to redux
-     */
+  function* vertoWorker(jsonrpc: JSONRPCRequest) {
+    logger.debug('vertoWorker', jsonrpc)
+    const { id, method, params = {} } = jsonrpc
+    const { callID, nodeId } = params
+    const _executeResult = () => {
+      const msg = VertoResult(id, method as VertoMethod)
+      // msg.targetNodeId = nodeId
+      session.execute(msg)
+    }
 
-    // action => participant.joined
-    // action => participant.left
+    // const attach = method === VertoMethod.Attach
+    switch (method) {
+      case VertoMethod.Media: {
+        const component = {
+          id: callID,
+          state: 'early', // FIXME: Use the enum
+          remoteSDP: params.sdp,
+          nodeId,
+        }
+        yield put(componentActions.update(component))
+        break
+      }
+      case VertoMethod.Answer: {
+        const component = {
+          id: callID,
+          state: 'active', // FIXME: Use the enum
+          nodeId,
+        }
+        if (params?.sdp) {
+          // @ts-expect-error
+          component.remoteSDP = params.sdp
+        }
+        yield put(componentActions.update(component))
+        _executeResult()
+        break
+      }
+      case VertoMethod.Ping:
+        return _executeResult()
+      case VertoMethod.Punt:
+        // FIXME: handle session.purge
+        // session.purge()
+        return session.disconnect()
+      // case VertoMethod.Invite: {
+      //   const call = _buildCall(session, params, attach, nodeId)
+      //   call.setState(State.Ringing)
+      //   const msg = VertoResult(id, method)
+      //   // msg.targetNodeId = nodeId
+      //   return session.execute(msg)
+      // }
+      // case VertoMethod.Attach: {
+      //   const call = _buildCall(session, params, attach, nodeId)
+      //   return trigger(call.id, params, method)
+      // }
+      // case VertoMethod.Event:
+      // case 'webrtc.event': {
+      //   const { subscribedChannel } = params
+      //   if (
+      //     subscribedChannel &&
+      //     trigger(session.relayProtocol, params, subscribedChannel)
+      //   ) {
+      //     return
+      //   }
+      //   if (eventChannel) {
+      //     const channelType = eventChannel.split('.')[0]
+      //     const global = trigger(session.relayProtocol, params, channelType)
+      //     const specific = trigger(session.relayProtocol, params, eventChannel)
+      //     if (global || specific) {
+      //       return
+      //     }
+      //   }
+      //   params.type = Notification.Generic
+      //   return trigger(SwEvent.Notification, params, session.uuid)
+      // }
+      case VertoMethod.Info:
+        return logger.debug('Verto Info', params)
+      case VertoMethod.ClientReady:
+        return logger.debug('Verto ClientReady', params)
+      case VertoMethod.Announce:
+        return logger.debug('Verto Announce', params)
+      default:
+        return logger.warn(`Unknown Verto method: ${method}`, params)
+    }
+  }
 
-    yield put(action)
+  // FIXME: Add types for broadcastParams
+  function* bladeBroadcastWorker(broadcastParams: JSONRPCRequest['params']) {
+    const { protocol, event, params } = broadcastParams || {}
+    const { event_type, node_id } = params
+
+    if (protocol !== session.relayProtocol) {
+      return logger.error('Session protocol mismatch.')
+    }
+
+    switch (event) {
+      case 'queuing.relay.events': {
+        if (event_type === 'webrtc.message') {
+          params.params.params.nodeId = node_id
+          yield fork(vertoWorker, params.params)
+          // VertoHandler(session, params.params)
+        } else {
+          logger.debug('Relay Calling event:', params)
+          // session.calling.notificationHandler(params)
+        }
+        break
+      }
+      case 'conference': {
+        logger.debug('Conference event:', params)
+
+        // params.params.nodeId = node_id
+        // return ConferencingHandler(session, params)
+        break
+      }
+      case 'queuing.relay.tasks': {
+        logger.debug('Relay Task event:', params)
+        // session.tasking.notificationHandler(params)
+        break
+      }
+      case 'queuing.relay.messaging': {
+        logger.debug('Relay Task event:', params)
+        // session.messaging.notificationHandler(params)
+        break
+      }
+      default:
+        return logger.warn(`Unknown broadcast event: ${event}`, broadcastParams)
+    }
+  }
+
+  function* channelWorker(payload: JSONRPCRequest): SagaIterator {
+    console.debug('Inbound WebSocket Message', payload)
+    const { method, params } = payload
+
+    switch (method) {
+      case BladeMethod.Broadcast:
+        // TODO: try/catch ?
+        yield fork(bladeBroadcastWorker, params)
+        break
+      default:
+        // yield put(action)
+        return logger.warn(`Unknown message: ${method}`, payload)
+    }
   }
 
   // Fork componentListenerWorker to handle actions from components
@@ -103,8 +276,10 @@ function createSessionChannel(session: Session) {
   return eventChannel((emit) => {
     // TODO: Replace eventHandler with .on() notation ?
     session.eventHandler = (payload: any) => {
-      console.debug('Custom eventHandler', payload)
-      emit({ type: 'INBOUND_EVENT', payload })
+      /**
+       * emit into the channelWorker
+       */
+      emit(payload)
     }
 
     // the subscriber must return an unsubscribe function

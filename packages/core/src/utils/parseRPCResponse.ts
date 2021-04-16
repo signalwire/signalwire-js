@@ -18,7 +18,7 @@ export const parseRPCResponse = ({
 
   switch (request.method) {
     case BladeMethod.Connect:
-      return result
+      return { result }
     // case BladeMethod.Execute:
     //   return parseBladeExecuteResult(result)
     default:

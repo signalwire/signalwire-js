@@ -44,6 +44,21 @@ export enum VertoMethod {
   Announce = 'verto.announce',
 }
 
+export enum SwWebRTCCallState {
+  New = 'new',
+  Requesting = 'requesting',
+  Trying = 'trying',
+  Recovering = 'recovering',
+  Ringing = 'ringing',
+  Answering = 'answering',
+  Early = 'early',
+  Active = 'active',
+  Held = 'held',
+  Hangup = 'hangup',
+  Destroy = 'destroy',
+  Purge = 'purge',
+}
+
 // export enum SwEvent {
 //   // Socket Events
 //   SocketOpen = 'signalwire.socket.open',

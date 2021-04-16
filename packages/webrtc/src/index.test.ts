@@ -1,7 +1,5 @@
-import { sum } from '.'
-
 describe('WebRTC Entry Point', () => {
   it('should work', () => {
-    expect(sum(1, 1)).toEqual(2)
+    expect(1).toEqual(1)
   })
 })

@@ -1,13 +1,54 @@
-import { uuid, logger, JWTSession, createSession } from '@signalwire/core'
-import * as webrtc from '@signalwire/webrtc'
+import {
+  JWTSession,
+  SignalWire,
+  configureStore,
+  connect,
+} from '@signalwire/core'
+import { Call } from '@signalwire/webrtc'
 
-export const sum = (a: number, b: number) => {
-  if ('development' === process.env.NODE_ENV) {
-    logger.warn(`Core feature ${uuid()}`)
-    logger.info('WebRTC feature', webrtc.sum(a, b))
+export { JWTSession }
+
+class Client extends SignalWire {
+  get rooms() {
+    return {
+      // TODO: use CallOptions interface here
+      makeCall: (options: any) => {
+        return connect({
+          store: this.store,
+          Component: Call,
+          onStateChangeListeners: {
+            state: 'onStateChange',
+            remoteSDP: 'onRemoteSDP',
+            errors: 'onError',
+            responses: 'onSuccess',
+          },
+        })(options)
+      },
+    }
   }
-
-  return a + b
 }
 
-export { JWTSession, createSession }
+export const createSession = (userOptions: any) => {
+  return new Promise((resolve, _reject) => {
+    const store = configureStore()
+    const client = new Client(userOptions, store)
+    if (userOptions.autoConnect) {
+      store.subscribe(() => {
+        const state = store.getState()
+        // @ts-ignore
+        if (state?.STORE_READY) {
+          resolve(client)
+        }
+      })
+
+      client.connect()
+      // Fake the redux subscribe above for now
+      setTimeout(() => {
+        resolve(client)
+      }, 2000)
+      // store.dispatch(initSessionAction(userOptions))
+    } else {
+      resolve(client)
+    }
+  })
+}

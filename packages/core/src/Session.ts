@@ -25,6 +25,7 @@ import {
 export class Session {
   public uuid = uuid()
   public relayProtocol = ''
+  public sessionid = ''
   public WebSocketConstructor: typeof WebSocket
 
   protected _authorization: IBladeAuthorization
@@ -203,6 +204,7 @@ export class Session {
       const response = await this.execute(BladeConnect(params))
       console.log('Response', response)
       this._authorization = response.authorization
+      this.relayProtocol = response?.result?.protocol ?? ''
     } catch (error) {
       console.error('Auth Error', error)
     }
@@ -253,7 +255,6 @@ export class Session {
       }
       default:
         // If it's not a response, trigger the eventHandler.
-        logger.warn('Event', payload)
         this.eventHandler(payload)
     }
   }

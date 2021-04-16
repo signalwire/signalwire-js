@@ -1,15 +1,18 @@
-import { Store } from "redux";
-import { ComponentState } from "./interfaces"
-import { BaseComponent } from "../BaseComponent";
+import { Store } from 'redux'
+import { ComponentState } from './interfaces'
+import { BaseComponent } from '../BaseComponent'
+import { componentActions } from './slices'
 
-type ConnectEventHandler = (state: ComponentState) => any;
+type ConnectEventHandler = (state: ComponentState) => any
 interface Connect<T extends typeof BaseComponent> {
-  onStateChangeListeners: Record<string, string | ConnectEventHandler>;
-  store: Store;
+  onStateChangeListeners: Record<string, string | ConnectEventHandler>
+  store: Store
   Component: T
 }
 
-export const connect = <T extends typeof BaseComponent>(options: Connect<T>) => {
+export const connect = <T extends typeof BaseComponent>(
+  options: Connect<T>
+) => {
   const { onStateChangeListeners = {}, store, Component } = options
   const componentKeys = Object.keys(onStateChangeListeners)
 
@@ -26,7 +29,7 @@ export const connect = <T extends typeof BaseComponent>(options: Connect<T>) => 
           cacheMap.set(key, updatedValue)
           const fnName = onStateChangeListeners[key]
 
-          if (typeof fnName === "string") {
+          if (typeof fnName === 'string') {
             instance[fnName](components[instance.id])
           } else {
             fnName(components[instance.id])
@@ -34,9 +37,10 @@ export const connect = <T extends typeof BaseComponent>(options: Connect<T>) => 
         }
       })
     })
+    store.dispatch(componentActions.update({ id: instance.id }))
 
     instance.destroyer = () => {
-      storeUnsubscribe();
+      storeUnsubscribe()
       cacheMap.clear()
     }
 

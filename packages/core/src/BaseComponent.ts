@@ -1,4 +1,5 @@
 import { uuid } from './utils'
+import { executeAction } from './redux'
 
 export class BaseComponent {
   id = uuid()
@@ -23,13 +24,12 @@ export class BaseComponent {
     return new Promise((resolve, reject) => {
       this._requests.set(msg.id, { resolve, reject })
 
-      this.store.dispatch({
-        type: 'WEBRTC',
-        payload: {
+      this.store.dispatch(
+        executeAction({
           componentId: this.id,
           jsonrpc: msg,
-        },
-      })
+        })
+      )
     })
   }
 

@@ -1,9 +1,9 @@
 import { VertoMethod } from '../utils/constants'
-import { makeRPCRequest } from './helpers'
+import { makeRPCRequest, makeRPCResponse } from './helpers'
 
 type VertoParams = { [key: string]: any }
 
-const tmpMap = {
+const tmpMap: VertoParams = {
   id: 'callID',
   destinationNumber: 'destination_number',
   remoteCallerName: 'remote_caller_id_name',
@@ -50,3 +50,12 @@ export const VertoBye = buildVertoRPCMessage(VertoMethod.Bye)
 export const VertoAttach = buildVertoRPCMessage(VertoMethod.Attach)
 export const VertoModify = buildVertoRPCMessage(VertoMethod.Modify)
 export const VertoInfo = buildVertoRPCMessage(VertoMethod.Info)
+export const VertoAnswer = buildVertoRPCMessage(VertoMethod.Answer)
+export const VertoResult = (id: string, method: VertoMethod) => {
+  return makeRPCResponse({
+    id,
+    result: {
+      method,
+    },
+  })
+}

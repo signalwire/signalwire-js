@@ -14,6 +14,7 @@ interface SWComponent {
 export interface WebRTCCall extends SWComponent {
   state?: string
   remoteSDP?: string
+  nodeId?: string
 }
 
 export interface Message extends SWComponent {
