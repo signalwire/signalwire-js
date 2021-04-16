@@ -4,11 +4,20 @@ import { executeAction } from './redux'
 export class BaseComponent {
   id = uuid()
   _requests = new Map()
+  private _destroyer?: () => void
 
   constructor(public options: any) {}
 
+  set destroyer(d: () => void) {
+    this._destroyer = d
+  }
+
   get store() {
     return this.options.store
+  }
+
+  destroy() {
+    this._destroyer?.()
   }
 
   execute(msg: any) {
