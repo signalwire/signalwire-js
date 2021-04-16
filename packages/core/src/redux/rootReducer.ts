@@ -1,5 +1,5 @@
 import { combineReducers } from '@reduxjs/toolkit'
-import { componentReducer } from './slices'
+import { componentReducer } from './features'
 
 export const rootReducer = combineReducers({
   components: componentReducer,

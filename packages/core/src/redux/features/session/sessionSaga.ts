@@ -10,10 +10,10 @@ import {
   UserOptions,
 } from '../../../utils/interfaces'
 import { initSessionAction, executeAction } from '../../actions'
-import { componentActions } from '../../slices'
+import { componentActions } from '../'
 import { BladeMethod, VertoMethod } from '../../../utils/constants'
 import { logger } from '../../../utils'
-import { getComponentNodeId } from '../../slices/componentSelectors'
+import { getComponentNodeId } from '../component/componentSelectors'
 
 function isJSONRPCRequest(message: any): message is JSONRPCRequest {
   return message.method !== undefined

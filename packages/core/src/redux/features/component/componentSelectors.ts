@@ -1,4 +1,4 @@
-import { SDKState } from '../interfaces'
+import { SDKState } from '../../interfaces'
 
 export const getComponentNodeId = (
   { components }: SDKState,

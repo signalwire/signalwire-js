@@ -1,7 +1,7 @@
 import { Store } from 'redux'
 import { ComponentState } from './interfaces'
 import { BaseComponent } from '../BaseComponent'
-import { componentActions } from './slices'
+import { componentActions } from './features'
 
 type ConnectEventHandler = (state: ComponentState) => any
 interface Connect<T extends typeof BaseComponent> {
