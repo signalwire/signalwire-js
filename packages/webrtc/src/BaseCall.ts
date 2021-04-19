@@ -8,6 +8,7 @@ import {
   BaseComponent,
   SwWebRTCCallState,
 } from '@signalwire/core'
+import { Emitter } from '@signalwire/core/src'
 import RTCPeer from './RTCPeer'
 import { DEFAULT_CALL_OPTIONS, PeerType, Direction } from './utils/constants'
 import {
@@ -31,12 +32,12 @@ import {
   // getHostname,
 } from './utils/webrtcHelpers'
 
-export class BaseCall extends BaseComponent {
+export class BaseCall extends BaseComponent implements Emitter {
   public id = uuid()
   public nodeId = ''
   public direction: Direction
   public peer: RTCPeer
-  public options: CallOptions
+  public options: CallOptions<this>
   public cause: string
   public causeCode: string
   public gotEarly = false
@@ -53,7 +54,7 @@ export class BaseCall extends BaseComponent {
 
   private _extension: string
 
-  constructor(options: CallOptions & { store: any }) {
+  constructor(options: CallOptions<any> & { store: any }) {
     super(options)
 
     this.options = {
@@ -88,6 +89,12 @@ export class BaseCall extends BaseComponent {
     this.setState(SwWebRTCCallState.New)
     logger.info('New Call with Options:', this.options)
   }
+
+  on = this.options.emitter.on
+  off = this.options.emitter.off
+  once = this.options.emitter.once
+  removeAllListeners = this.options.emitter.removeAllListeners
+  emit = this.options.emitter.emit
 
   get active() {
     return this.state === SwWebRTCCallState.Active
