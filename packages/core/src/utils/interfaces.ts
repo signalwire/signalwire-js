@@ -1,3 +1,11 @@
+export interface Emitter {
+  on(eventName: string, handler: Function, once?: boolean): this
+  once(eventName: string, handler: Function): this
+  off(eventName: string, handler?: Function): this
+  emit(eventName: string, ...args: any[]): boolean
+  removeAllListeners(): this
+}
+
 type JSONRPCParams = {
   [key: string]: any
 }
@@ -29,10 +37,12 @@ export interface SessionOptions {
   project: string
   token: string
   onReady?: () => Promise<void>
+  autoConnect?: boolean
 }
 
 export interface UserOptions extends SessionOptions {
   devTools?: boolean
+  pubSub?: Emitter
 }
 
 export interface SessionRequestObject {
