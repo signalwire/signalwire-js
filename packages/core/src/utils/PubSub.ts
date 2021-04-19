@@ -1,9 +1,9 @@
 import { Emitter } from './interfaces'
 
-export const EventPubSub = (): Emitter => {
+export const EventPubSub = () => {
   const _queue: { [key: string]: Function[] } = {}
   const _uniqueKey = Symbol.for('sw-once-key')
-  return new (class BaseEventPubSub implements Emitter {
+  return new (class BaseEventPubSub implements Emitter<BaseEventPubSub> {
     on(eventName: string, handler: Function, once = false) {
       if (!_queue[eventName]) {
         _queue[eventName] = []
