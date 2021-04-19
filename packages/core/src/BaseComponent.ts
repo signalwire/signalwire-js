@@ -10,6 +10,7 @@ export class BaseComponent implements Emitter {
 
   constructor(public options: any) {}
 
+  // TODO: make sure emitter is defined here
   on = this.options.emitter.on
   off = this.options.emitter.off
   once = this.options.emitter.once
