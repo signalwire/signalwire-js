@@ -1,20 +1,15 @@
-export interface Emitter {
-  on(eventName: string, handler: Function, once?: boolean): this
-  once(eventName: string, handler: Function): this
-  off(eventName: string, handler?: Function): this
-  emit(eventName: string, ...args: any[]): boolean
-  removeAllListeners(): this
-}
+import { Emitter } from './interfaces'
 
-export const makeEventPubSub = () => {
+export const EventPubSub = (): Emitter => {
   const _queue: { [key: string]: Function[] } = {}
   const _uniqueKey = Symbol.for('sw-once-key')
-  return class EventPubSub implements Emitter {
+  return new (class BaseEventPubSub implements Emitter {
     on(eventName: string, handler: Function, once = false) {
       if (!_queue[eventName]) {
         _queue[eventName] = []
       }
       _queue[eventName].push(handler)
+      // @ts-ignore
       handler[_uniqueKey] = once
       return this
     }
@@ -23,7 +18,7 @@ export const makeEventPubSub = () => {
       return this.on(eventName, handler, true)
     }
 
-    off(eventName: string, handler: Function = null) {
+    off(eventName: string, handler: Function | null = null) {
       if (!_queue[eventName]) {
         return this
       }
@@ -51,6 +46,7 @@ export const makeEventPubSub = () => {
       const deleteOnceHandled = []
       for (let handler of handlers) {
         handler(...args)
+        // @ts-ignore
         if (handler[_uniqueKey]) {
           deleteOnceHandled.push(handler)
         }
@@ -69,5 +65,5 @@ export const makeEventPubSub = () => {
 
       return this
     }
-  }
+  })()
 }

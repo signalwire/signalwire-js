@@ -1,8 +1,8 @@
-import { makeEventPubSub, Emitter } from './PubSub'
+import { Emitter } from './interfaces'
+import { EventPubSub } from './PubSub'
 
 describe('EventPubSub Class', () => {
-  const EventPubSub = makeEventPubSub()
-  let instance: Emitter = new EventPubSub()
+  let instance: Emitter
   const exampleData = {
     test: 'data',
     random: 'data',
@@ -10,7 +10,7 @@ describe('EventPubSub Class', () => {
   const eventName = 'event'
 
   beforeEach(() => {
-    instance = new EventPubSub()
+    instance = EventPubSub()
   })
 
   describe('.on() method', () => {
