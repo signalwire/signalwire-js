@@ -12,12 +12,12 @@ const ROOT_SAGAS: Saga[] = []
 const getDefaultSagas = () => {
   return ROOT_SAGAS
 }
-interface RooSagasOptions {
+interface RootSagaOptions {
   sagas?: (fn: GetDefaultSagas) => Saga[]
 }
 
 export default (
-  options: RooSagasOptions = { sagas: () => getDefaultSagas() }
+  options: RootSagaOptions = { sagas: () => getDefaultSagas() }
 ) => {
   const sagas = options.sagas
     ? options.sagas(getDefaultSagas)
