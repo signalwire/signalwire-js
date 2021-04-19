@@ -30,6 +30,7 @@ export default (
 
     yield spawn(pubSubSaga, {
       pubSubChannel,
+      emitter: userOptions.emitter,
       // TODO: pass pubSubInstance
     })
 

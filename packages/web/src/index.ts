@@ -24,17 +24,20 @@ class Client extends SignalWire {
             errors: 'onError',
             responses: 'onSuccess',
           },
-        })(options)
+        })({
+          ...options,
+          emitter: this.options.emitter,
+        })
       },
     }
   }
 }
 
-export const createSession = (userOptions: UserOptions) => {
+export const createSession = (userOptions: UserOptions): Promise<Client> => {
   return new Promise((resolve, _reject) => {
     const baseUserOptions: UserOptions = {
       ...userOptions,
-      pubSub: userOptions.pubSub || EventPubSub(),
+      emitter: userOptions.emitter || EventPubSub(),
     }
     const store = configureStore({ userOptions: baseUserOptions })
     const client = new Client(baseUserOptions, store)

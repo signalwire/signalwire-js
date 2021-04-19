@@ -1,10 +1,11 @@
 import { take } from 'redux-saga/effects'
 
-export function* pubSubSaga({ pubSubChannel }: any) {
+export function* pubSubSaga({ pubSubChannel, emitter }: any) {
   while (true) {
-    const payload = yield take(pubSubChannel)
+    const { type, payload } = yield take(pubSubChannel)
 
     // TODO: Emit event to outside world
-    console.log('====> pubSubSaga', payload)
+    console.log('====> pubSubSaga', { type, payload })
+    emitter.emit(type, payload)
   }
 }
