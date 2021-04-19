@@ -24,13 +24,13 @@ import { stopStream } from './utils/webrtcHelpers'
 
 const ROOM_EVENTS = [
   'room.started',
-  'rooms.subscribed',
   'room.subscribed',
   'room.updated',
   'room.ended',
   'member.joined',
   'member.updated',
   'member.left',
+  'layout.changed',
 ]
 
 export class BaseCall extends BaseComponent {

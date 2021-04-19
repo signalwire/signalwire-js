@@ -43,15 +43,19 @@ const initSession = (userOptions: UserOptions) => {
 
 type SessionSagaParams = {
   userOptions: UserOptions
+  pubSubChannel: any
 }
-export function* sessionSaga({ userOptions }: SessionSagaParams) {
+export function* sessionSaga(options: SessionSagaParams) {
   // TODO: Provide errors to the user in case this saga fails
   // since the SDK will be unusable at that point.
   yield take(initSessionAction.type)
-  yield call(createSessionWorker, userOptions)
+  yield call(createSessionWorker, options)
 }
 
-export function* createSessionWorker(userOptions: any) {
+export function* createSessionWorker({
+  userOptions,
+  pubSubChannel,
+}: SessionSagaParams) {
   console.debug('Creating Session', userOptions)
   const session = yield call(initSession, userOptions)
   console.debug('Session:', session)
@@ -211,6 +215,11 @@ export function* createSessionWorker(userOptions: any) {
       }
       case 'conference': {
         logger.debug('Conference event:', params)
+
+        yield put(pubSubChannel, {
+          type: 'room.subscribed',
+          payload: params.params,
+        })
 
         // params.params.nodeId = node_id
         // return ConferencingHandler(session, params)

@@ -44,6 +44,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
       // different root sagas
       sagas,
     })
+    // TODO: update arguments.
     sagaMiddleware.run(saga, userOptions)
   }
 

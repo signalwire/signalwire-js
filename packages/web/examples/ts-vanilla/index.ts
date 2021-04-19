@@ -11,7 +11,7 @@ window._makeClient = async ({ project, token }) => {
     project,
     token,
     autoConnect: true,
-    onReady: () => {
+    onReady: async () => {
       console.debug('Session Ready')
     },
   })

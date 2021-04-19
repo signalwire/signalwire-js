@@ -1,15 +1,16 @@
+import { Emitter } from './interfaces'
 import { EventPubSub } from './PubSub'
 
 describe('EventPubSub Class', () => {
-  let instance: EventPubSub = null
+  let instance: Emitter
   const exampleData = {
     test: 'data',
     random: 'data',
   }
   const eventName = 'event'
 
-  beforeEach(() =>{
-    instance = new EventPubSub()
+  beforeEach(() => {
+    instance = EventPubSub()
   })
 
   describe('.on() method', () => {
@@ -117,7 +118,7 @@ describe('EventPubSub Class', () => {
       const mockCallback3 = jest.fn()
       instance.on('anotherEvent', mockCallback3)
 
-      instance.reset()
+      instance.removeAllListeners()
 
       instance.emit(eventName, 'no-op')
       instance.emit('otherEvent', 'no-op')

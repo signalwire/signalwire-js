@@ -3,6 +3,8 @@ import {
   SignalWire,
   configureStore,
   connect,
+  UserOptions,
+  EventPubSub,
 } from '@signalwire/core'
 import { Call } from '@signalwire/webrtc'
 
@@ -22,17 +24,24 @@ class Client extends SignalWire {
             errors: 'onError',
             responses: 'onSuccess',
           },
-        })(options)
+        })({
+          ...options,
+          emitter: this.options.emitter,
+        })
       },
     }
   }
 }
 
-export const createSession = (userOptions: any) => {
+export const createSession = (userOptions: UserOptions): Promise<Client> => {
   return new Promise((resolve, _reject) => {
-    const store = configureStore({ userOptions })
-    const client = new Client(userOptions, store)
-    if (userOptions.autoConnect) {
+    const baseUserOptions: UserOptions = {
+      ...userOptions,
+      emitter: userOptions.emitter || EventPubSub(),
+    }
+    const store = configureStore({ userOptions: baseUserOptions })
+    const client = new Client(baseUserOptions, store)
+    if (baseUserOptions.autoConnect) {
       store.subscribe(() => {
         const state = store.getState()
         // @ts-ignore
