@@ -1,19 +1,18 @@
 import { eventChannel, SagaIterator } from 'redux-saga'
-import { call, put, take, fork, select } from 'redux-saga/effects'
+import { call, put, take, fork } from 'redux-saga/effects'
 import { PayloadAction } from '@reduxjs/toolkit'
 import { Session } from '../../..'
 import { JWTSession } from '../../../JWTSession'
-import { BladeExecute, VertoResult } from '../../../RPCMessages'
+import { VertoResult } from '../../../RPCMessages'
 import {
   JSONRPCRequest,
   JSONRPCResponse,
   UserOptions,
 } from '../../../utils/interfaces'
 import { initSessionAction, executeAction } from '../../actions'
-import { componentActions } from '../../slices'
+import { componentActions } from '../'
 import { BladeMethod, VertoMethod } from '../../../utils/constants'
 import { logger } from '../../../utils'
-import { getComponentNodeId } from '../../slices/componentSelectors'
 
 function isJSONRPCRequest(message: any): message is JSONRPCRequest {
   return message.method !== undefined
@@ -71,30 +70,16 @@ export function* createSessionWorker({
   ) {
     const { componentId, jsonrpc } = action.payload
     try {
-      const componentNodeId = yield select(getComponentNodeId, componentId)
-      const message = BladeExecute({
-        protocol: session.relayProtocol,
-        method: 'video.message',
-        params: {
-          message: jsonrpc,
-          node_id: componentNodeId,
-        },
-      })
-
-      if (isJSONRPCRequest(jsonrpc) && jsonrpc.method === VertoMethod.Invite) {
-        message.params.subscribe = [
-          'room.started',
-          'rooms.subscribed',
-          'room.subscribed',
-          'room.updated',
-          'room.ended',
-          'member.joined',
-          'member.updated',
-          'member.left',
-        ]
+      /**
+       * Inject the protocol in case of blade.execute
+       * TODO: need a better way.
+       * Maybe store the protocol in the state and pass it
+       * down to the component on "connect"?
+       */
+      if (isJSONRPCRequest(jsonrpc) && jsonrpc.method === BladeMethod.Execute) {
+        jsonrpc.params!.protocol = session.relayProtocol
       }
-
-      const response = yield call(session.execute, message)
+      const response = yield call(session.execute, jsonrpc)
       console.debug('componentExecuteWorker response', componentId, response)
       yield put(
         componentActions.executeSuccess({

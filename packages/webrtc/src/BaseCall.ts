@@ -1,5 +1,4 @@
 import {
-  uuid,
   logger,
   VertoBye,
   VertoInfo,
@@ -7,6 +6,8 @@ import {
   // VertoModify,
   BaseComponent,
   SwWebRTCCallState,
+  VertoMethod,
+  BladeExecute,
 } from '@signalwire/core'
 import { Emitter } from '@signalwire/core/src'
 import RTCPeer from './RTCPeer'
@@ -19,21 +20,21 @@ import {
   disableVideoTracks,
   toggleVideoTracks,
 } from './utils/helpers'
-import {
-  CallOptions,
-  IHangupParams,
-  // ICallParticipant,
-} from './utils/interfaces'
-import {
-  stopStream,
-  // stopTrack,
-  // setMediaElementSinkId,
-  // getUserMedia,
-  // getHostname,
-} from './utils/webrtcHelpers'
+import { CallOptions, IHangupParams } from './utils/interfaces'
+import { stopStream } from './utils/webrtcHelpers'
+
+const ROOM_EVENTS = [
+  'room.started',
+  'rooms.subscribed',
+  'room.subscribed',
+  'room.updated',
+  'room.ended',
+  'member.joined',
+  'member.updated',
+  'member.left',
+]
 
 export class BaseCall extends BaseComponent implements Emitter {
-  public id = uuid()
   public nodeId = ''
   public direction: Direction
   public peer: RTCPeer
@@ -71,20 +72,6 @@ export class BaseCall extends BaseComponent implements Emitter {
     if (!remoteCallerNumber) {
       this.options.remoteCallerNumber = this.options.destinationNumber
     }
-
-    // if (isFunction(onNotification)) {
-    //   register(this.id, onNotification.bind(this), SwEvent.Notification)
-    // }
-    // register(this.id, this._onMediaError, SwEvent.MediaError)
-    // register(this.id, this._onVertoAnswer, VertoMethod.Answer)
-    // register(this.id, this._onVertoMedia, VertoMethod.Media)
-    // register(this.id, this._onVertoMediaParams, VertoMethod.MediaParams)
-    // register(this.id, this._onVertoPrompt, VertoMethod.Prompt)
-    // register(this.id, this._hangup, VertoMethod.Bye)
-    // register(this.id, this._onParticipantData, VertoMethod.Display)
-    // register(this.id, this._onVertoAttach, VertoMethod.Attach)
-    // register(this.id, this._onGenericEvent, VertoMethod.Info)
-    // register(this.id, this._onGenericEvent, VertoMethod.Event)
 
     this.setState(SwWebRTCCallState.New)
     logger.info('New Call with Options:', this.options)
@@ -152,33 +139,8 @@ export class BaseCall extends BaseComponent implements Emitter {
     }
   }
 
-  // get currentParticipant(): Partial<ICallParticipant> {
-  //   const participant = {
-  //     id: this.participantId,
-  //     role: this.participantRole,
-  //     layer: null,
-  //     layerIndex: this.participantLayerIndex,
-  //     isLayerBehind: false,
-  //   }
-  //   // if (this.canvasInfo && this.participantLayerIndex >= 0) {
-  //   //   const { layoutOverlap, canvasLayouts } = this.canvasInfo
-  //   //   participant.layer = canvasLayouts[this.participantLayerIndex] || null
-  //   //   participant.isLayerBehind =
-  //   //     layoutOverlap && participant.layer && participant.layer.overlap === 0
-  //   // }
-  //   return participant
-  // }
-
   // get participantId() {
   //   return this.pvtData ? String(this.pvtData.conferenceMemberID) : null
-  // }
-
-  // get participantRole() {
-  //   return this.pvtData ? this.pvtData.role : null
-  // }
-
-  // get role() {
-  //   return this.participantRole
   // }
 
   get cameraId() {
@@ -217,6 +179,28 @@ export class BaseCall extends BaseComponent implements Emitter {
 
   get htmlAudioElement() {
     return this.audioElements.length ? this.audioElements[0] : null
+  }
+
+  /**
+   * Override the execute method to wraps every
+   * "verto" request into a "blade.execute".
+   * Note: we don't have the "protocol" here so
+   * saga will set that for us.
+   */
+  public execute(msg: any) {
+    const message = BladeExecute({
+      protocol: '', // protocol will be injected by sessionSaga
+      method: 'video.message',
+      params: {
+        message: msg,
+        node_id: this.nodeId,
+      },
+    })
+
+    if (msg.method === VertoMethod.Invite) {
+      message.params.subscribe = ROOM_EVENTS
+    }
+    return super.execute(message)
   }
 
   public onStateChange(component: any) {
@@ -479,14 +463,6 @@ export class BaseCall extends BaseComponent implements Emitter {
         this._finalize()
         break
       }
-      // TODO: Handle setMediaElementSinkId at higher level
-      // case SwWebRTCCallState.Active: {
-      //   setTimeout(() => {
-      //     const { remoteElement, speakerId } = this.options
-      //     setMediaElementSinkId(remoteElement, speakerId)
-      //   }, 0)
-      //   break
-      // }
       case SwWebRTCCallState.Hangup: {
         if (this.screenShare instanceof BaseCall) {
           this.screenShare.hangup()
@@ -548,34 +524,6 @@ export class BaseCall extends BaseComponent implements Emitter {
   //   })
   // }
 
-  // private async _onVertoAnswer(params: any) {
-  //   if (this.state >= SwWebRTCCallState.Active) {
-  //     return
-  //   }
-  //   if (!this.gotEarly) {
-  //     await this.peer.onRemoteSdp(params.sdp)
-  //   }
-  //   this.isDirect = checkIsDirectCall(params)
-  //   this.setState(SwWebRTCCallState.Active)
-  // }
-
-  // private async _onVertoMedia(params: any) {
-  //   if (this.state >= SwWebRTCCallState.Early) {
-  //     return
-  //   }
-  //   this.gotEarly = true
-  //   await this.peer.onRemoteSdp(params.sdp)
-  //   this.isDirect = checkIsDirectCall(params)
-  //   this.setState(SwWebRTCCallState.Early)
-  // }
-
-  // public _execute(msg: JSONRPCRequest) {
-  //   // if (this.nodeId) {
-  //   //   msg.targetNodeId = this.nodeId
-  //   // }
-  //   // return this.session.execute(msg)
-  // }
-
   protected _finalize() {
     if (this.peer && this.peer.instance) {
       this.peer.instance.close()
@@ -584,6 +532,6 @@ export class BaseCall extends BaseComponent implements Emitter {
     const { remoteStream, localStream } = this.options
     stopStream(remoteStream)
     stopStream(localStream)
-    // deRegisterAll(this.id)
+    this.destroy()
   }
 }

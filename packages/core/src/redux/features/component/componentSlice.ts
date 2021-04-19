@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { JSONRPCResponse } from '../../utils/interfaces'
-import { ComponentState, ReduxComponent } from '../interfaces'
+import { JSONRPCResponse } from '../../../utils/interfaces'
+import { ComponentState, ReduxComponent } from '../../interfaces'
 
 export const initialComponentState: Readonly<ComponentState> = {}
 
