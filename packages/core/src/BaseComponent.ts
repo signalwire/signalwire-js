@@ -3,7 +3,8 @@ import { executeAction } from './redux'
 
 export class BaseComponent {
   id = uuid()
-  _requests = new Map()
+
+  private _requests = new Map()
   private _destroyer?: () => void
 
   constructor(public options: any) {}
