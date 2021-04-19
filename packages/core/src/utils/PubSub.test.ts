@@ -1,14 +1,15 @@
-import { EventPubSub } from './PubSub'
+import { makeEventPubSub, Emitter } from './PubSub'
 
 describe('EventPubSub Class', () => {
-  let instance: EventPubSub = null
+  const EventPubSub = makeEventPubSub()
+  let instance: Emitter = new EventPubSub()
   const exampleData = {
     test: 'data',
     random: 'data',
   }
   const eventName = 'event'
 
-  beforeEach(() =>{
+  beforeEach(() => {
     instance = new EventPubSub()
   })
 
@@ -117,7 +118,7 @@ describe('EventPubSub Class', () => {
       const mockCallback3 = jest.fn()
       instance.on('anotherEvent', mockCallback3)
 
-      instance.reset()
+      instance.removeAllListeners()
 
       instance.emit(eventName, 'no-op')
       instance.emit('otherEvent', 'no-op')
