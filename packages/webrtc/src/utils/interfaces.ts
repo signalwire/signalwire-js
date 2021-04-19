@@ -2,15 +2,13 @@
  * TODO: Audit interfaces and remove unused
  */
 
-import type { Emitter } from '@signalwire/core/src'
-export interface CallOptions<T = {}> {
+export interface CallOptions {
   // Required
   destinationNumber: string
   remoteCallerName: string
   remoteCallerNumber: string
   callerName: string
   callerNumber: string
-  emitter: Emitter<T>
   // Optional
   sessionid?: string
   id?: string

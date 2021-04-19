@@ -9,7 +9,6 @@ import {
   VertoMethod,
   BladeExecute,
 } from '@signalwire/core'
-import { Emitter } from '@signalwire/core/src'
 import RTCPeer from './RTCPeer'
 import { DEFAULT_CALL_OPTIONS, PeerType, Direction } from './utils/constants'
 import {
@@ -34,11 +33,11 @@ const ROOM_EVENTS = [
   'member.left',
 ]
 
-export class BaseCall extends BaseComponent implements Emitter {
+export class BaseCall extends BaseComponent {
   public nodeId = ''
   public direction: Direction
   public peer: RTCPeer
-  public options: CallOptions<this>
+  public options: CallOptions
   public cause: string
   public causeCode: string
   public gotEarly = false
@@ -55,7 +54,7 @@ export class BaseCall extends BaseComponent implements Emitter {
 
   private _extension: string
 
-  constructor(options: CallOptions<any> & { store: any }) {
+  constructor(options: CallOptions & { store: any }) {
     super(options)
 
     this.options = {
@@ -76,12 +75,6 @@ export class BaseCall extends BaseComponent implements Emitter {
     this.setState(SwWebRTCCallState.New)
     logger.info('New Call with Options:', this.options)
   }
-
-  on = this.options.emitter.on
-  off = this.options.emitter.off
-  once = this.options.emitter.once
-  removeAllListeners = this.options.emitter.removeAllListeners
-  emit = this.options.emitter.emit
 
   get active() {
     return this.state === SwWebRTCCallState.Active

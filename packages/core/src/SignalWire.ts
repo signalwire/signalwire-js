@@ -1,5 +1,6 @@
 import { initSessionAction, destroySessionAction } from './redux'
 import { Emitter } from './utils/interfaces'
+
 export class SignalWire implements Emitter<SignalWire> {
   constructor(public options: any, public store: any) {}
 
@@ -16,19 +17,4 @@ export class SignalWire implements Emitter<SignalWire> {
   disconnect() {
     this.store.dispatch(destroySessionAction())
   }
-
-  // get rooms() {
-  //   return {
-  //     create(options) {
-  //       return connect({
-  //         store: this.store,
-  //         componentConstructor: BaseCall,
-  //         onStateChangeListeners: {
-  //           state: 'onStateChange',
-  //           remoteSDP: 'onRemoteSDP',
-  //         },
-  //       })(options)
-  //     },
-  //   }
-  // }
 }

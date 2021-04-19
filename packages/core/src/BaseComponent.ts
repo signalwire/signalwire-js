@@ -1,13 +1,20 @@
 import { uuid } from './utils'
 import { executeAction } from './redux'
+import { Emitter } from './utils/interfaces'
 
-export class BaseComponent {
+export class BaseComponent implements Emitter {
   id = uuid()
 
   private _requests = new Map()
   private _destroyer?: () => void
 
   constructor(public options: any) {}
+
+  on = this.options.emitter.on
+  off = this.options.emitter.off
+  once = this.options.emitter.once
+  removeAllListeners = this.options.emitter.removeAllListeners
+  emit = this.options.emitter.emit
 
   set destroyer(d: () => void) {
     this._destroyer = d
