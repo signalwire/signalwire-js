@@ -7,6 +7,7 @@ import {
   BaseComponent,
   SwWebRTCCallState,
   VertoMethod,
+  ConferenceMethod,
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import { DEFAULT_CALL_OPTIONS, PeerType, Direction } from './utils/constants'
@@ -52,6 +53,8 @@ export class BaseCall extends BaseComponent {
   private prevState = SwWebRTCCallState.New
 
   private _extension: string
+  private _roomId: string
+  private _memberId: string
 
   constructor(options: CallOptions & { store: any }) {
     super(options)
@@ -466,6 +469,46 @@ export class BaseCall extends BaseComponent {
         this._finalize()
         break
     }
+  }
+
+  public bladeMute(memberId?: string) {
+    return this.execute({
+      method: ConferenceMethod.MemberAudioMute,
+      params: {
+        room_id: this._roomId,
+        member_id: memberId || this._memberId,
+      },
+    })
+  }
+
+  public bladeUnmute(memberId?: string) {
+    return this.execute({
+      method: ConferenceMethod.MemberAudioUnmute,
+      params: {
+        room_id: this._roomId,
+        member_id: memberId || this._memberId,
+      },
+    })
+  }
+
+  public bladeVideoMute(memberId?: string) {
+    return this.execute({
+      method: ConferenceMethod.MemberVideoMute,
+      params: {
+        room_id: this._roomId,
+        member_id: memberId || this._memberId,
+      },
+    })
+  }
+
+  public bladeVideoUnmute(memberId?: string) {
+    return this.execute({
+      method: ConferenceMethod.MemberVideoUnmute,
+      params: {
+        room_id: this._roomId,
+        member_id: memberId || this._memberId,
+      },
+    })
   }
 
   // updateFromLaChannel(muted: boolean, vmuted: boolean) {
