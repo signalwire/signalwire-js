@@ -180,6 +180,28 @@ export function* createSessionWorker({
     }
   }
 
+  // FIXME: add type for params
+  function* conferenceWorker(params: any) {
+    switch (params.event_type) {
+      case 'room.subscribed': {
+        yield put(
+          componentActions.update({
+            id: params.params.call_id,
+            roomId: params.params.room.id,
+            memberId: params.params.member_id,
+          })
+        )
+        break
+      }
+    }
+
+    // Emit on the pubSubChannel this "event_type"
+    yield put(pubSubChannel, {
+      type: params.event_type,
+      payload: params.params,
+    })
+  }
+
   // FIXME: Add types for broadcastParams
   function* bladeBroadcastWorker(broadcastParams: JSONRPCRequest['params']) {
     const { protocol, event, params } = broadcastParams || {}
@@ -203,14 +225,7 @@ export function* createSessionWorker({
       }
       case 'conference': {
         logger.debug('Conference event:', params)
-
-        yield put(pubSubChannel, {
-          type: 'room.subscribed',
-          payload: params.params,
-        })
-
-        // params.params.nodeId = node_id
-        // return ConferencingHandler(session, params)
+        yield fork(conferenceWorker, params)
         break
       }
       case 'queuing.relay.tasks': {
