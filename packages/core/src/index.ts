@@ -4,7 +4,7 @@ import { JWTSession } from './JWTSession'
 import { configureStore, connect } from './redux'
 import { SignalWire } from './SignalWire'
 import { BaseComponent } from './BaseComponent'
-import { EventPubSub } from './utils/PubSub'
+import { EventEmitter, getEventEmitter } from './utils/EventEmitter'
 
 // prettier-ignore
 export {
@@ -16,7 +16,8 @@ export {
   SignalWire,
   connect,
   configureStore,
-  EventPubSub
+  EventEmitter,
+  getEventEmitter
 }
 
 export * from './RPCMessages'

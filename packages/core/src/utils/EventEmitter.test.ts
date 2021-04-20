@@ -1,7 +1,7 @@
 import { Emitter } from './interfaces'
-import { EventPubSub } from './PubSub'
+import { EventEmitter } from './EventEmitter'
 
-describe('EventPubSub Class', () => {
+describe('EventEmitter Class', () => {
   let instance: Emitter
   const exampleData = {
     test: 'data',
@@ -10,7 +10,7 @@ describe('EventPubSub Class', () => {
   const eventName = 'event'
 
   beforeEach(() => {
-    instance = EventPubSub()
+    instance = EventEmitter()
   })
 
   describe('.on() method', () => {
