@@ -207,6 +207,12 @@ export class BaseCall extends BaseComponent {
     }
   }
 
+  public onRoomId(component: any) {
+    console.debug('onRoomId', component)
+    this._roomId = component.roomId
+    this._memberId = component.memberId
+  }
+
   // async updateDevices(constraints: MediaStreamConstraints): Promise<void> {
   //   try {
   //     console.debug('updateDevices trying constraints', this.id, constraints)
