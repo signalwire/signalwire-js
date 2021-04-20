@@ -23,15 +23,12 @@ export default (
     ? options.sagas(getDefaultSagas)
     : getDefaultSagas()
 
-  // TODO: update parameter: This should accept an interface similar
-  // to what we're sending to configureStore
   return function* root(userOptions: UserOptions) {
     const pubSubChannel = yield call(channel)
 
     yield spawn(pubSubSaga, {
       pubSubChannel,
       emitter: userOptions.emitter,
-      // TODO: pass pubSubInstance
     })
 
     /**

@@ -10,13 +10,6 @@ export class BaseComponent implements Emitter {
 
   constructor(public options: any) {}
 
-  // TODO: make sure emitter is defined here
-  on = this.options.emitter.on
-  off = this.options.emitter.off
-  once = this.options.emitter.once
-  removeAllListeners = this.options.emitter.removeAllListeners
-  emit = this.options.emitter.emit
-
   set destroyer(d: () => void) {
     this._destroyer = d
   }
@@ -24,6 +17,16 @@ export class BaseComponent implements Emitter {
   get store() {
     return this.options.store
   }
+
+  get emitter() {
+    return this.options.emitter
+  }
+
+  on = this.emitter.on
+  off = this.emitter.off
+  once = this.emitter.once
+  removeAllListeners = this.emitter.removeAllListeners
+  emit = this.emitter.emit
 
   destroy() {
     this._destroyer?.()

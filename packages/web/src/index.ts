@@ -4,7 +4,7 @@ import {
   configureStore,
   connect,
   UserOptions,
-  EventPubSub,
+  getEventEmitter,
 } from '@signalwire/core'
 import { Call } from '@signalwire/webrtc'
 
@@ -37,7 +37,7 @@ export const createSession = (userOptions: UserOptions): Promise<Client> => {
   return new Promise((resolve, _reject) => {
     const baseUserOptions: UserOptions = {
       ...userOptions,
-      emitter: userOptions.emitter || EventPubSub(),
+      emitter: getEventEmitter(userOptions),
     }
     const store = configureStore({ userOptions: baseUserOptions })
     const client = new Client(baseUserOptions, store)
