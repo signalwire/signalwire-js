@@ -7,7 +7,6 @@ import {
   BaseComponent,
   SwWebRTCCallState,
   VertoMethod,
-  BladeExecute,
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import { DEFAULT_CALL_OPTIONS, PeerType, Direction } from './utils/constants'
@@ -175,25 +174,22 @@ export class BaseCall extends BaseComponent {
   }
 
   /**
-   * Override the execute method to wraps every
-   * "verto" request into a "blade.execute".
-   * Note: we don't have the "protocol" here so
-   * saga will set that for us.
+   * Verto messages have to be wrapped into a blade.execute
+   * request and sent using the 'video.message' method.
    */
-  public execute(msg: any) {
-    const message = BladeExecute({
-      protocol: '', // protocol will be injected by sessionSaga
-      method: 'video.message',
-      params: {
-        message: msg,
-        node_id: this.nodeId,
-      },
-    })
-
-    if (msg.method === VertoMethod.Invite) {
-      message.params.subscribe = ROOM_EVENTS
+  public vertoExecute(vertoMessage: any) {
+    const params: any = {
+      message: vertoMessage,
+      node_id: this.nodeId,
     }
-    return super.execute(message)
+    if (vertoMessage.method === VertoMethod.Invite) {
+      params.subscribe = ROOM_EVENTS
+    }
+
+    return this.execute({
+      method: 'video.message',
+      params,
+    })
   }
 
   public onStateChange(component: any) {
@@ -312,7 +308,7 @@ export class BaseCall extends BaseComponent {
   async executeInvite(sdp: string) {
     this.setState(SwWebRTCCallState.Requesting)
     const msg = VertoInvite({ ...this.messagePayload, sdp })
-    const response = await this.execute(msg)
+    const response = await this.vertoExecute(msg)
     console.debug('Invite response', response)
   }
 
@@ -322,7 +318,7 @@ export class BaseCall extends BaseComponent {
   //   //     sdp: this.localSdp,
   //   //     action: 'updateMedia',
   //   //   })
-  //   //   return this.execute(msg)
+  //   //   return this.vertoExecute(msg)
   // }
 
   // executeAnswer() {
@@ -333,13 +329,13 @@ export class BaseCall extends BaseComponent {
   //   // }
   //   // const msg =
   //   //   this.options.attach === true ? new Attach(params) : new Answer(params)
-  //   // return this.execute(msg)
+  //   // return this.vertoExecute(msg)
   // }
 
   async hangup(params?: IHangupParams) {
     try {
       const bye = VertoBye(this.messagePayload)
-      await this.execute(bye)
+      await this.vertoExecute(bye)
     } catch (error) {
       logger.error('Hangup error:', error)
     } finally {
@@ -349,7 +345,7 @@ export class BaseCall extends BaseComponent {
 
   dtmf(dtmf: string) {
     const msg = VertoInfo({ ...this.messagePayload, dtmf })
-    this.execute(msg)
+    this.vertoExecute(msg)
   }
 
   disableOutboundAudio() {
