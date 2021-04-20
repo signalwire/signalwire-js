@@ -4,19 +4,13 @@ import { PayloadAction } from '@reduxjs/toolkit'
 import { Session } from '../../..'
 import { JWTSession } from '../../../JWTSession'
 import { VertoResult } from '../../../RPCMessages'
-import {
-  JSONRPCRequest,
-  JSONRPCResponse,
-  UserOptions,
-} from '../../../utils/interfaces'
+import { JSONRPCRequest, UserOptions } from '../../../utils/interfaces'
+import { ExecuteActionParams } from '../../interfaces'
 import { initSessionAction, executeAction } from '../../actions'
 import { componentActions } from '../'
 import { BladeMethod, VertoMethod } from '../../../utils/constants'
+import { BladeExecute } from '../../../RPCMessages'
 import { logger } from '../../../utils'
-
-function isJSONRPCRequest(message: any): message is JSONRPCRequest {
-  return message.method !== undefined
-}
 
 const initSession = (userOptions: UserOptions) => {
   console.debug('initSession', userOptions)
@@ -55,7 +49,7 @@ export function* sessionSaga(options: SessionSagaParams) {
 export function* createSessionWorker({
   userOptions,
   pubSubChannel,
-}: SessionSagaParams) {
+}: SessionSagaParams): SagaIterator {
   console.debug('Creating Session', userOptions)
   const session = yield call(initSession, userOptions)
   console.debug('Session:', session)
@@ -63,28 +57,22 @@ export function* createSessionWorker({
   // TODO: invoke sessionChannel.close on session destroy
 
   function* componentExecuteWorker(
-    action: PayloadAction<{
-      componentId: string
-      jsonrpc: JSONRPCRequest | JSONRPCResponse
-    }>
-  ) {
-    const { componentId, jsonrpc } = action.payload
+    action: PayloadAction<ExecuteActionParams>
+  ): SagaIterator {
+    const { componentId, requestId, method, params } = action.payload
     try {
-      /**
-       * Inject the protocol in case of blade.execute
-       * TODO: need a better way.
-       * Maybe store the protocol in the state and pass it
-       * down to the component on "connect"?
-       */
-      if (isJSONRPCRequest(jsonrpc) && jsonrpc.method === BladeMethod.Execute) {
-        jsonrpc.params!.protocol = session.relayProtocol
-      }
-      const response = yield call(session.execute, jsonrpc)
+      const message = BladeExecute({
+        id: requestId,
+        protocol: session.relayProtocol,
+        method,
+        params,
+      })
+      const response = yield call(session.execute, message)
       console.debug('componentExecuteWorker response', componentId, response)
       yield put(
         componentActions.executeSuccess({
           componentId,
-          requestId: jsonrpc.id,
+          requestId,
           response,
         })
       )
@@ -93,7 +81,7 @@ export function* createSessionWorker({
       yield put(
         componentActions.executeFailure({
           componentId,
-          requestId: jsonrpc.id,
+          requestId,
           action,
           error,
         })
@@ -101,7 +89,7 @@ export function* createSessionWorker({
     }
   }
 
-  function* componentListenerWorker() {
+  function* componentListenerWorker(): SagaIterator {
     while (true) {
       const action = yield take(executeAction.type)
       yield fork(componentExecuteWorker, action)

@@ -32,14 +32,17 @@ export class BaseComponent implements Emitter {
     this._destroyer?.()
   }
 
-  execute(msg: any) {
+  execute({ method, params }: { method: string; params: Record<string, any> }) {
     return new Promise((resolve, reject) => {
-      this._requests.set(msg.id, { resolve, reject })
+      const requestId = uuid()
+      this._requests.set(requestId, { resolve, reject })
 
       this.store.dispatch(
         executeAction({
+          requestId,
           componentId: this.id,
-          jsonrpc: msg,
+          method,
+          params,
         })
       )
     })
