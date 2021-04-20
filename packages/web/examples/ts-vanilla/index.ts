@@ -5,7 +5,7 @@
 import { createSession } from '../../src'
 
 // @ts-ignore
-window._makeClient = async ({ project, token }) => {
+window._makeClient = async ({ project, token, emitter }) => {
   const client = await createSession({
     host: 'relay.swire.io',
     project,
@@ -14,6 +14,7 @@ window._makeClient = async ({ project, token }) => {
     onReady: async () => {
       console.debug('Session Ready')
     },
+    emitter,
   })
 
   // @ts-ignore
