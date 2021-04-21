@@ -42,7 +42,6 @@ export const createSession = (userOptions: UserOptions): Promise<Client> => {
     }
     const store = configureStore({ userOptions: baseUserOptions })
     const client = new Client(baseUserOptions, store)
-    console.log('PD', client)
     if (baseUserOptions.autoConnect) {
       store.subscribe(() => {
         const state = store.getState()
