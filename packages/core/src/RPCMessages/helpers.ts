@@ -1,6 +1,7 @@
 import { uuid } from '../utils'
 
 interface MakeRPCRequestParams {
+  id?: string
   method: string // TODO: use enum
   params: {
     // TODO: use list of types?
@@ -10,7 +11,7 @@ interface MakeRPCRequestParams {
 export const makeRPCRequest = (params: MakeRPCRequestParams) => {
   return {
     jsonrpc: '2.0' as const,
-    id: uuid(),
+    id: params.id ?? uuid(),
     ...params,
   }
 }

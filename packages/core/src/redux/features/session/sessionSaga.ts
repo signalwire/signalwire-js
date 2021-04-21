@@ -4,40 +4,27 @@ import { PayloadAction } from '@reduxjs/toolkit'
 import { Session } from '../../..'
 import { JWTSession } from '../../../JWTSession'
 import { VertoResult } from '../../../RPCMessages'
-import {
-  JSONRPCRequest,
-  JSONRPCResponse,
-  UserOptions,
-} from '../../../utils/interfaces'
+import { JSONRPCRequest, UserOptions } from '../../../utils/interfaces'
+import { ExecuteActionParams } from '../../interfaces'
 import { initSessionAction, executeAction } from '../../actions'
 import { componentActions } from '../'
 import { BladeMethod, VertoMethod } from '../../../utils/constants'
+import { BladeExecute } from '../../../RPCMessages'
 import { logger } from '../../../utils'
 
-function isJSONRPCRequest(message: any): message is JSONRPCRequest {
-  return message.method !== undefined
-}
-
 const initSession = (userOptions: UserOptions) => {
-  console.debug('initSession', userOptions)
+  logger.debug('Init Session', userOptions)
   return new Promise((resolve, _reject) => {
     const session = new JWTSession({
       ...userOptions,
       onReady: async () => {
-        console.debug('JWTSession Ready', session)
+        logger.debug('JWTSession Ready', session)
         resolve(session)
         userOptions?.onReady?.()
       },
     })
 
     session.connect()
-
-    // s.on('ready', () => {
-    //   resolve(s)
-    // })
-    // s.on('error', () => {
-    //   reject(s)
-    // })
   })
 }
 
@@ -55,45 +42,36 @@ export function* sessionSaga(options: SessionSagaParams) {
 export function* createSessionWorker({
   userOptions,
   pubSubChannel,
-}: SessionSagaParams) {
-  console.debug('Creating Session', userOptions)
+}: SessionSagaParams): SagaIterator {
   const session = yield call(initSession, userOptions)
-  console.debug('Session:', session)
   const sessionChannel = yield call(createSessionChannel, session)
   // TODO: invoke sessionChannel.close on session destroy
 
   function* componentExecuteWorker(
-    action: PayloadAction<{
-      componentId: string
-      jsonrpc: JSONRPCRequest | JSONRPCResponse
-    }>
-  ) {
-    const { componentId, jsonrpc } = action.payload
+    action: PayloadAction<ExecuteActionParams>
+  ): SagaIterator {
+    const { componentId, requestId, method, params } = action.payload
     try {
-      /**
-       * Inject the protocol in case of blade.execute
-       * TODO: need a better way.
-       * Maybe store the protocol in the state and pass it
-       * down to the component on "connect"?
-       */
-      if (isJSONRPCRequest(jsonrpc) && jsonrpc.method === BladeMethod.Execute) {
-        jsonrpc.params!.protocol = session.relayProtocol
-      }
-      const response = yield call(session.execute, jsonrpc)
-      console.debug('componentExecuteWorker response', componentId, response)
+      const message = BladeExecute({
+        id: requestId,
+        protocol: session.relayProtocol,
+        method,
+        params,
+      })
+      const response = yield call(session.execute, message)
       yield put(
         componentActions.executeSuccess({
           componentId,
-          requestId: jsonrpc.id,
+          requestId,
           response,
         })
       )
     } catch (error) {
-      console.warn('componentExecuteWorker error', componentId, error)
+      logger.warn('componentExecuteWorker error', componentId, error)
       yield put(
         componentActions.executeFailure({
           componentId,
-          requestId: jsonrpc.id,
+          requestId,
           action,
           error,
         })
@@ -101,7 +79,7 @@ export function* createSessionWorker({
     }
   }
 
-  function* componentListenerWorker() {
+  function* componentListenerWorker(): SagaIterator {
     while (true) {
       const action = yield take(executeAction.type)
       yield fork(componentExecuteWorker, action)
@@ -192,6 +170,28 @@ export function* createSessionWorker({
     }
   }
 
+  // FIXME: add type for params
+  function* conferenceWorker(params: any) {
+    switch (params.event_type) {
+      case 'room.subscribed': {
+        yield put(
+          componentActions.update({
+            id: params.params.call_id,
+            roomId: params.params.room.id,
+            memberId: params.params.member_id,
+          })
+        )
+        break
+      }
+    }
+
+    // Emit on the pubSubChannel this "event_type"
+    yield put(pubSubChannel, {
+      type: params.event_type,
+      payload: params.params,
+    })
+  }
+
   // FIXME: Add types for broadcastParams
   function* bladeBroadcastWorker(broadcastParams: JSONRPCRequest['params']) {
     const { protocol, event, params } = broadcastParams || {}
@@ -215,14 +215,7 @@ export function* createSessionWorker({
       }
       case 'conference': {
         logger.debug('Conference event:', params)
-
-        yield put(pubSubChannel, {
-          type: 'room.subscribed',
-          payload: params.params,
-        })
-
-        // params.params.nodeId = node_id
-        // return ConferencingHandler(session, params)
+        yield fork(conferenceWorker, params)
         break
       }
       case 'queuing.relay.tasks': {

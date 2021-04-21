@@ -35,7 +35,6 @@ const componentSlice = createSlice({
       }
     },
     executeSuccess: (state, { payload }: PayloadAction<SuccessParams>) => {
-      console.debug('executeSuccess', payload)
       const { componentId, requestId, response } = payload
       if (state[componentId]) {
         state[componentId].responses = state[componentId].responses || {}
@@ -43,7 +42,6 @@ const componentSlice = createSlice({
       }
     },
     executeFailure: (state, { payload }: PayloadAction<FailureParams>) => {
-      console.debug('executeFailure', payload)
       const { componentId, requestId, error, action } = payload
       if (state[componentId]) {
         state[componentId].errors = state[componentId].errors || {}

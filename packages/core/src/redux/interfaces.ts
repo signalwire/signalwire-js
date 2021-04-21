@@ -15,6 +15,8 @@ export interface WebRTCCall extends SWComponent {
   state?: string
   remoteSDP?: string
   nodeId?: string
+  roomId?: string
+  memberId?: string
 }
 
 export interface Message extends SWComponent {
@@ -32,3 +34,10 @@ export interface SDKState {
 }
 
 export type GetDefaultSagas = () => Saga[]
+
+export interface ExecuteActionParams {
+  requestId: string
+  componentId: string
+  method: string
+  params: Record<string, any>
+}

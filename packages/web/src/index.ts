@@ -21,6 +21,7 @@ class Client extends SignalWire {
           onStateChangeListeners: {
             state: 'onStateChange',
             remoteSDP: 'onRemoteSDP',
+            roomId: 'onRoomId',
             errors: 'onError',
             responses: 'onSuccess',
           },
