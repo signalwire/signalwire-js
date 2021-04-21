@@ -1,4 +1,4 @@
-import { initSessionAction, destroySessionAction } from './redux'
+import { initAction, destroyAction } from './redux'
 import { Emitter } from './utils/interfaces'
 
 export class SignalWire implements Emitter<SignalWire> {
@@ -11,10 +11,10 @@ export class SignalWire implements Emitter<SignalWire> {
   emit = this.options.emitter.emit
 
   connect() {
-    this.store.dispatch(initSessionAction())
+    this.store.dispatch(initAction())
   }
 
   disconnect() {
-    this.store.dispatch(destroySessionAction())
+    this.store.dispatch(destroyAction())
   }
 }

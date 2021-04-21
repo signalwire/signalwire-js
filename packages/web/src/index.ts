@@ -56,7 +56,6 @@ export const createSession = (userOptions: UserOptions): Promise<Client> => {
       setTimeout(() => {
         resolve(client)
       }, 2000)
-      // store.dispatch(initSessionAction(userOptions))
     } else {
       resolve(client)
     }
