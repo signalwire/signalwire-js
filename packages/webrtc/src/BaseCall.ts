@@ -196,19 +196,19 @@ export class BaseCall extends BaseComponent {
   }
 
   public onStateChange(component: any) {
-    console.debug('onStateChange', component)
+    logger.debug('onStateChange', component)
     this.setState(component.state)
   }
 
   public onRemoteSDP(component: any) {
-    console.debug('onRemoteSDP', component)
+    logger.debug('onRemoteSDP', component)
     if (component.remoteSDP) {
       this.peer.onRemoteSdp(component.remoteSDP)
     }
   }
 
   public onRoomId(component: any) {
-    console.debug('onRoomId', component)
+    logger.debug('onRoomId', component)
     this._roomId = component.roomId
     this._memberId = component.memberId
   }
@@ -318,7 +318,7 @@ export class BaseCall extends BaseComponent {
     this.setState(SwWebRTCCallState.Requesting)
     const msg = VertoInvite({ ...this.messagePayload, sdp })
     const response = await this.vertoExecute(msg)
-    console.debug('Invite response', response)
+    logger.debug('Invite response', response)
   }
 
   // executeUpdateMedia() {

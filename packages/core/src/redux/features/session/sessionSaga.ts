@@ -13,25 +13,18 @@ import { BladeExecute } from '../../../RPCMessages'
 import { logger } from '../../../utils'
 
 const initSession = (userOptions: UserOptions) => {
-  console.debug('initSession', userOptions)
+  logger.debug('Init Session', userOptions)
   return new Promise((resolve, _reject) => {
     const session = new JWTSession({
       ...userOptions,
       onReady: async () => {
-        console.debug('JWTSession Ready', session)
+        logger.debug('JWTSession Ready', session)
         resolve(session)
         userOptions?.onReady?.()
       },
     })
 
     session.connect()
-
-    // s.on('ready', () => {
-    //   resolve(s)
-    // })
-    // s.on('error', () => {
-    //   reject(s)
-    // })
   })
 }
 
@@ -50,9 +43,7 @@ export function* createSessionWorker({
   userOptions,
   pubSubChannel,
 }: SessionSagaParams): SagaIterator {
-  console.debug('Creating Session', userOptions)
   const session = yield call(initSession, userOptions)
-  console.debug('Session:', session)
   const sessionChannel = yield call(createSessionChannel, session)
   // TODO: invoke sessionChannel.close on session destroy
 
@@ -68,7 +59,6 @@ export function* createSessionWorker({
         params,
       })
       const response = yield call(session.execute, message)
-      console.debug('componentExecuteWorker response', componentId, response)
       yield put(
         componentActions.executeSuccess({
           componentId,
@@ -77,7 +67,7 @@ export function* createSessionWorker({
         })
       )
     } catch (error) {
-      console.warn('componentExecuteWorker error', componentId, error)
+      logger.warn('componentExecuteWorker error', componentId, error)
       yield put(
         componentActions.executeFailure({
           componentId,
