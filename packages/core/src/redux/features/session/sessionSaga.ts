@@ -1,55 +1,31 @@
-import { eventChannel, SagaIterator } from 'redux-saga'
+import { SagaIterator, Channel, EventChannel } from 'redux-saga'
 import { call, put, take, fork } from 'redux-saga/effects'
 import { PayloadAction } from '@reduxjs/toolkit'
 import { Session } from '../../..'
-import { JWTSession } from '../../../JWTSession'
 import { VertoResult } from '../../../RPCMessages'
-import { JSONRPCRequest, UserOptions } from '../../../utils/interfaces'
+import { JSONRPCRequest } from '../../../utils/interfaces'
 import { ExecuteActionParams } from '../../interfaces'
-import { initSessionAction, executeAction } from '../../actions'
+import { executeAction } from '../../actions'
 import { componentActions } from '../'
 import { BladeMethod, VertoMethod } from '../../../utils/constants'
 import { BladeExecute } from '../../../RPCMessages'
 import { logger } from '../../../utils'
 
-const initSession = (userOptions: UserOptions) => {
-  logger.debug('Init Session', userOptions)
-  return new Promise((resolve, _reject) => {
-    const session = new JWTSession({
-      ...userOptions,
-      onReady: async () => {
-        logger.debug('JWTSession Ready', session)
-        resolve(session)
-        userOptions?.onReady?.()
-      },
-    })
-
-    session.connect()
-  })
-}
-
 type SessionSagaParams = {
-  userOptions: UserOptions
-  pubSubChannel: any
-}
-export function* sessionSaga(options: SessionSagaParams) {
-  // TODO: Provide errors to the user in case this saga fails
-  // since the SDK will be unusable at that point.
-  yield take(initSessionAction.type)
-  yield call(createSessionWorker, options)
+  session: Session
+  sessionChannel: EventChannel<unknown>
+  pubSubChannel: Channel<unknown>
 }
 
-export function* createSessionWorker({
-  userOptions,
-  pubSubChannel,
-}: SessionSagaParams): SagaIterator {
-  const session = yield call(initSession, userOptions)
-  const sessionChannel = yield call(createSessionChannel, session)
-  // TODO: invoke sessionChannel.close on session destroy
-
-  function* componentExecuteWorker(
-    action: PayloadAction<ExecuteActionParams>
-  ): SagaIterator {
+/**
+ * Watch every "executeAction" and fork the worker to send
+ * a BladeExecute over the wire and then update the state
+ * with "componentActions.executeSuccess" or "componentActions.executeFailure"
+ * actions if a componentId is provided.
+ */
+export function* executeActionWatcher(session: Session): SagaIterator {
+  function* worker(action: PayloadAction<ExecuteActionParams>): SagaIterator {
+    // TODO: make componentId and requestId optional to re-use this watcher/worker
     const { componentId, requestId, method, params } = action.payload
     try {
       const message = BladeExecute({
@@ -67,7 +43,7 @@ export function* createSessionWorker({
         })
       )
     } catch (error) {
-      logger.warn('componentExecuteWorker error', componentId, error)
+      logger.warn('worker error', componentId, error)
       yield put(
         componentActions.executeFailure({
           componentId,
@@ -79,22 +55,21 @@ export function* createSessionWorker({
     }
   }
 
-  function* componentListenerWorker(): SagaIterator {
-    while (true) {
-      const action = yield take(executeAction.type)
-      yield fork(componentExecuteWorker, action)
-    }
+  while (true) {
+    const action = yield take(executeAction.type)
+    yield fork(worker, action)
   }
+}
 
+export function* sessionChannelWatcher({
+  session,
+  sessionChannel,
+  pubSubChannel,
+}: SessionSagaParams): SagaIterator {
   function* vertoWorker(jsonrpc: JSONRPCRequest) {
     logger.debug('vertoWorker', jsonrpc)
     const { id, method, params = {} } = jsonrpc
     const { callID, nodeId } = params
-    const _executeResult = () => {
-      const msg = VertoResult(id, method as VertoMethod)
-      // msg.targetNodeId = nodeId
-      session.execute(msg)
-    }
 
     // const attach = method === VertoMethod.Attach
     switch (method) {
@@ -119,11 +94,32 @@ export function* createSessionWorker({
           component.remoteSDP = params.sdp
         }
         yield put(componentActions.update(component))
-        _executeResult()
+        yield put(
+          executeAction({
+            componentId: '', // FIXME: remove componentId
+            requestId: id, // FIXME: remove requestId
+            method: 'video.message',
+            params: {
+              message: VertoResult(id, method),
+              node_id: null,
+            },
+          })
+        )
         break
       }
       case VertoMethod.Ping:
-        return _executeResult()
+        yield put(
+          executeAction({
+            componentId: '', // FIXME: remove componentId
+            requestId: id, // FIXME: remove requestId
+            method: 'video.message',
+            params: {
+              message: VertoResult(id, method),
+              node_id: null,
+            },
+          })
+        )
+        break
       case VertoMethod.Punt:
         // FIXME: handle session.purge
         // session.purge()
@@ -233,13 +229,12 @@ export function* createSessionWorker({
     }
   }
 
-  function* channelWorker(payload: JSONRPCRequest): SagaIterator {
+  function* sessionChannelWorker(payload: JSONRPCRequest): SagaIterator {
     console.debug('Inbound WebSocket Message', payload)
     const { method, params } = payload
 
     switch (method) {
       case BladeMethod.Broadcast:
-        // TODO: try/catch ?
         yield fork(bladeBroadcastWorker, params)
         break
       default:
@@ -248,43 +243,19 @@ export function* createSessionWorker({
     }
   }
 
-  // Fork componentListenerWorker to handle actions from components
-  yield fork(componentListenerWorker)
-
   /**
-   * Make the sessionChannel watcher restartable
+   * Make the watcher restartable
    */
   while (true) {
     try {
       while (true) {
         const action = yield take(sessionChannel)
-        yield fork(channelWorker, action)
+        yield fork(sessionChannelWorker, action)
       }
     } catch (error) {
-      console.error('channelWorker error:', error)
+      console.error('sessionChannelWorker error:', error)
     } finally {
-      console.warn('channelWorker finally')
+      console.warn('sessionChannelWorker finally')
     }
   }
-}
-
-function createSessionChannel(session: Session) {
-  return eventChannel((emit) => {
-    // TODO: Replace eventHandler with .on() notation ?
-    session.eventHandler = (payload: any) => {
-      /**
-       * emit into the channelWorker
-       */
-      emit(payload)
-    }
-
-    // the subscriber must return an unsubscribe function
-    // this will be invoked when the saga calls `channel.close` method
-    const unsubscribe = () => {
-      console.debug('Session Channel unsubscribe')
-      session.disconnect()
-    }
-
-    return unsubscribe
-  })
 }

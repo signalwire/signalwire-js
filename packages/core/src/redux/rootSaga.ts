@@ -1,10 +1,16 @@
-import { Saga, SagaIterator } from '@redux-saga/types'
-import { channel } from 'redux-saga'
-import { all, spawn, call } from 'redux-saga/effects'
-import { sessionSaga } from './features/session/sessionSaga'
+import { Saga, Task, SagaIterator } from '@redux-saga/types'
+import { eventChannel, channel } from 'redux-saga'
+import { all, spawn, fork, call, take } from 'redux-saga/effects'
 import { GetDefaultSagas } from './interfaces'
 import { UserOptions } from '../utils/interfaces'
+import {
+  executeActionWatcher,
+  sessionChannelWatcher,
+} from './features/session/sessionSaga'
 import { pubSubSaga } from './features/pubSub/pubSubSaga'
+import { JWTSession } from '../JWTSession'
+import { logger } from '../utils'
+import { initAction, destroyAction } from './actions'
 
 // prettier-ignore
 const ROOT_SAGAS: Saga[] = []
@@ -12,6 +18,23 @@ const ROOT_SAGAS: Saga[] = []
 const getDefaultSagas = () => {
   return ROOT_SAGAS
 }
+
+const initSession = (userOptions: UserOptions) => {
+  logger.debug('Init Session', userOptions)
+  return new Promise((resolve, _reject) => {
+    const session = new JWTSession({
+      ...userOptions,
+      onReady: async () => {
+        logger.debug('JWTSession Ready', session)
+        resolve(session)
+        userOptions?.onReady?.()
+      },
+    })
+
+    session.connect()
+  })
+}
+
 interface RootSagaOptions {
   sagas?: (fn: GetDefaultSagas) => Saga[]
 }
@@ -24,22 +47,55 @@ export default (
     : getDefaultSagas()
 
   return function* root(userOptions: UserOptions): SagaIterator {
-    const pubSubChannel = yield call(channel)
+    /**
+     * Wait for an initAction to start
+     */
+    yield take(initAction.type)
 
-    yield spawn(pubSubSaga, {
+    /**
+     * Create Session and related sessionChannel to
+     * send/receive websocket messages
+     */
+    const session = yield call(initSession, userOptions)
+    const sessionChannel = eventChannel((emit) => {
+      // TODO: Replace eventHandler with .on() notation ?
+      session.eventHandler = (payload: any) => {
+        emit(payload)
+      }
+
+      // this will be invoked when the saga calls `channel.close()` method
+      const unsubscribe = () => {
+        logger.debug('sessionChannel unsubscribe')
+        session.disconnect()
+      }
+
+      return unsubscribe
+    })
+
+    /**
+     * Create a channel to communicate between sagas
+     * and emit events to the public
+     */
+    const pubSubChannel = channel()
+
+    const pubSubTask: Task = yield fork(pubSubSaga, {
       pubSubChannel,
       emitter: userOptions.emitter,
     })
 
     /**
-     * Start sessionSaga on its own since it waits
-     * for an initSessionAction to start so doesn't
-     * make sense to restart it in case of errors.
+     * Fork different sagas that require session
+     * - executeActionWatcher
+     * - sessionChannelWatcher
      */
-    yield spawn(sessionSaga, {
-      userOptions,
-      pubSubChannel,
-    })
+    const sessionTaskList: Task[] = yield all([
+      fork(executeActionWatcher, session),
+      fork(sessionChannelWatcher, {
+        session,
+        sessionChannel,
+        pubSubChannel,
+      }),
+    ])
 
     yield all(
       sagas.map((saga) =>
@@ -55,5 +111,15 @@ export default (
         })
       )
     )
+
+    /**
+     * Wait for a destroyAction to teardown all the things
+     */
+    yield take(destroyAction.type)
+
+    pubSubTask.cancel()
+    sessionTaskList.forEach((task) => task.cancel())
+    pubSubChannel.close()
+    sessionChannel.close()
   }
 }
