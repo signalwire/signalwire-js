@@ -1,4 +1,4 @@
-import { Saga } from '@redux-saga/types'
+import { Saga, SagaIterator } from '@redux-saga/types'
 import { channel } from 'redux-saga'
 import { all, spawn, call } from 'redux-saga/effects'
 import { sessionSaga } from './features/session/sessionSaga'
@@ -23,7 +23,7 @@ export default (
     ? options.sagas(getDefaultSagas)
     : getDefaultSagas()
 
-  return function* root(userOptions: UserOptions) {
+  return function* root(userOptions: UserOptions): SagaIterator {
     const pubSubChannel = yield call(channel)
 
     yield spawn(pubSubSaga, {
