@@ -1,5 +1,6 @@
 import { InputHTMLAttributes } from 'react'
 import { useForm } from 'react-hook-form'
+import { useAppDispatch } from './AppController'
 
 const InputField = (props: InputHTMLAttributes<HTMLInputElement>) => {
   const hasErrors = props['aria-invalid'] === 'true'
@@ -17,6 +18,7 @@ export const JoinWidget = () => {
     handleSubmit,
     formState: { errors },
   } = useForm()
+  const dispatch = useAppDispatch()
 
   return (
     <form
@@ -32,7 +34,7 @@ export const JoinWidget = () => {
 
         const data = await response.json()
 
-        console.log('DATA', data)
+        dispatch({ type: 'authorized', payload: data.data })
       })}
     >
       <InputField
