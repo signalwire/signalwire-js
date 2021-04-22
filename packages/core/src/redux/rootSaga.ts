@@ -1,11 +1,12 @@
 import { Saga, Task, SagaIterator } from '@redux-saga/types'
-import { eventChannel, channel } from 'redux-saga'
+import { channel, EventChannel } from 'redux-saga'
 import { all, spawn, fork, call, take } from 'redux-saga/effects'
 import { GetDefaultSagas } from './interfaces'
 import { UserOptions, SessionConstructor } from '../utils/interfaces'
 import {
   executeActionWatcher,
   sessionChannelWatcher,
+  createSessionChannel,
 } from './features/session/sessionSaga'
 import { pubSubSaga } from './features/pubSub/pubSubSaga'
 import { logger } from '../utils'
@@ -62,20 +63,10 @@ export default (options: RootSagaOptions) => {
       options.SessionConstructor,
       userOptions
     )
-    const sessionChannel = eventChannel((emit) => {
-      // TODO: Replace eventHandler with .on() notation ?
-      session.eventHandler = (payload: any) => {
-        emit(payload)
-      }
-
-      // this will be invoked when the saga calls `channel.close()` method
-      const unsubscribe = () => {
-        logger.debug('sessionChannel unsubscribe')
-        session.disconnect()
-      }
-
-      return unsubscribe
-    })
+    const sessionChannel: EventChannel<unknown> = yield call(
+      createSessionChannel,
+      session
+    )
 
     /**
      * Create a channel to communicate between sagas

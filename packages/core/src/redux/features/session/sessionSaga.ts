@@ -1,4 +1,4 @@
-import { SagaIterator, Channel, EventChannel } from 'redux-saga'
+import { SagaIterator, Channel, eventChannel, EventChannel } from 'redux-saga'
 import { call, put, take, fork } from 'redux-saga/effects'
 import { PayloadAction } from '@reduxjs/toolkit'
 import { Session } from '../../..'
@@ -258,4 +258,21 @@ export function* sessionChannelWatcher({
       console.warn('sessionChannelWorker finally')
     }
   }
+}
+
+export function createSessionChannel(session: Session) {
+  return eventChannel((emit) => {
+    // TODO: Replace eventHandler with .on() notation ?
+    session.eventHandler = (payload: any) => {
+      emit(payload)
+    }
+
+    // this will be invoked when the saga calls `channel.close()` method
+    const unsubscribe = () => {
+      logger.debug('sessionChannel unsubscribe')
+      session.disconnect()
+    }
+
+    return unsubscribe
+  })
 }
