@@ -21,7 +21,7 @@ export const JoinWidget = () => {
   return (
     <form
       onSubmit={handleSubmit(async (formData) => {
-        const response = await fetch('/api/join', {
+        const response = await fetch('/api/auth', {
           method: 'POST',
           body: JSON.stringify(formData),
         })

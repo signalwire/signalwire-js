@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 
 const assertRequiredParams = (body: NextApiRequest['body']) => {
-  if (!body.roomName || !body.userName) {
+  if (!body.room_name || !body.user_name) {
     return false
   }
 
@@ -46,7 +46,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const data = await response.json()
 
     res.status(200).json({
-      data,
+      data: {
+        ...data,
+        projectId: process.env.PROJECT_ID,
+      },
     })
   } catch (err) {
     res.status(500).json({ statusCode: 500, message: err.message })
