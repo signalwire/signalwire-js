@@ -1,4 +1,4 @@
-import { Saga, Task, SagaIterator } from '@redux-saga/types'
+import { Saga, Task, SagaIterator, Channel } from '@redux-saga/types'
 import { channel, EventChannel } from 'redux-saga'
 import { all, spawn, fork, call, take } from 'redux-saga/effects'
 import { GetDefaultSagas } from './interfaces'
@@ -72,7 +72,7 @@ export default (options: RootSagaOptions) => {
      * Create a channel to communicate between sagas
      * and emit events to the public
      */
-    const pubSubChannel = channel()
+    const pubSubChannel: Channel<unknown> = yield call(channel)
 
     const pubSubTask: Task = yield fork(pubSubSaga, {
       pubSubChannel,
