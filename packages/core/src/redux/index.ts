@@ -37,9 +37,6 @@ const configureStore = (options: ConfigureStoreOptions) => {
       getDefaultMiddleware().concat(sagaMiddleware),
   })
 
-  // @ts-ignore
-  window['__store'] = store
-
   if (runSagaMiddleware) {
     const saga = rootSaga({
       // In here the consumer will have the option to setup
