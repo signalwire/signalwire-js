@@ -4,10 +4,11 @@ import { rootReducer } from './rootReducer'
 import rootSaga from './rootSaga'
 import { GetDefaultSagas, SDKState } from './interfaces'
 import { connect } from './utils'
-import { UserOptions } from '../utils/interfaces'
+import { UserOptions, SessionConstructor } from '../utils/interfaces'
 
 interface ConfigureStoreOptions {
   userOptions: UserOptions
+  SessionConstructor: SessionConstructor
   runSagaMiddleware?: boolean
   sagas?: (fn: GetDefaultSagas) => Saga[]
   preloadedState?: Partial<SDKState>
@@ -16,6 +17,7 @@ interface ConfigureStoreOptions {
 const configureStore = (options: ConfigureStoreOptions) => {
   const {
     userOptions,
+    SessionConstructor,
     preloadedState = {},
     runSagaMiddleware = true,
     sagas,
@@ -43,6 +45,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
       // In here the consumer will have the option to setup
       // different root sagas
       sagas,
+      SessionConstructor,
     })
     sagaMiddleware.run(saga, userOptions)
   }

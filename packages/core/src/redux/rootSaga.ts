@@ -2,13 +2,12 @@ import { Saga, Task, SagaIterator } from '@redux-saga/types'
 import { eventChannel, channel } from 'redux-saga'
 import { all, spawn, fork, call, take } from 'redux-saga/effects'
 import { GetDefaultSagas } from './interfaces'
-import { UserOptions } from '../utils/interfaces'
+import { UserOptions, SessionConstructor } from '../utils/interfaces'
 import {
   executeActionWatcher,
   sessionChannelWatcher,
 } from './features/session/sessionSaga'
 import { pubSubSaga } from './features/pubSub/pubSubSaga'
-import { JWTSession } from '../JWTSession'
 import { logger } from '../utils'
 import { initAction, destroyAction } from './actions'
 
@@ -19,10 +18,13 @@ const getDefaultSagas = () => {
   return ROOT_SAGAS
 }
 
-const initSession = (userOptions: UserOptions) => {
+const initSession = (
+  SessionConstructor: SessionConstructor,
+  userOptions: UserOptions
+) => {
   logger.debug('Init Session', userOptions)
   return new Promise((resolve, _reject) => {
-    const session = new JWTSession({
+    const session = new SessionConstructor({
       ...userOptions,
       onReady: async () => {
         logger.debug('JWTSession Ready', session)
@@ -36,12 +38,11 @@ const initSession = (userOptions: UserOptions) => {
 }
 
 interface RootSagaOptions {
+  SessionConstructor: SessionConstructor
   sagas?: (fn: GetDefaultSagas) => Saga[]
 }
 
-export default (
-  options: RootSagaOptions = { sagas: () => getDefaultSagas() }
-) => {
+export default (options: RootSagaOptions) => {
   const sagas = options.sagas
     ? options.sagas(getDefaultSagas)
     : getDefaultSagas()
@@ -56,7 +57,11 @@ export default (
      * Create Session and related sessionChannel to
      * send/receive websocket messages
      */
-    const session = yield call(initSession, userOptions)
+    const session = yield call(
+      initSession,
+      options.SessionConstructor,
+      userOptions
+    )
     const sessionChannel = eventChannel((emit) => {
       // TODO: Replace eventHandler with .on() notation ?
       session.eventHandler = (payload: any) => {
