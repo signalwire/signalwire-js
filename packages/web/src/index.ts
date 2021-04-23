@@ -10,7 +10,7 @@ import { Call } from '@signalwire/webrtc'
 
 export { JWTSession }
 
-class Client extends SignalWire {
+export class Client extends SignalWire {
   get rooms() {
     return {
       // TODO: use CallOptions interface here
