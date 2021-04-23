@@ -1,5 +1,7 @@
 import React, { ReactNode } from 'react'
 import Head from 'next/head'
+import 'tailwindcss/tailwind.css'
+
 import { AppController } from './AppController'
 
 type Props = {
