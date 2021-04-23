@@ -12,7 +12,8 @@
     "clean": "manypkg exec rm -rf node_modules && manypkg exec rm -rf dist && rm -rf node_modules",
     "build": "manypkg run @signalwire/core build && manypkg run @signalwire/webrtc build && manypkg run @signalwire/web build && manypkg run @signalwire/node build",
     "prettier": "prettier --write .",
-    "start:web": "concurrently \"manypkg run @signalwire/core start\" \"manypkg run @signalwire/web start\" \"manypkg run @signalwire/webrtc start\" \"manypkg run @signalwire/web example\""
+    "start:web": "concurrently \"manypkg run @signalwire/core start\" \"manypkg run @signalwire/web start\" \"manypkg run @signalwire/webrtc start\" \"manypkg run @signalwire/web example\"",
+    "start:next": "concurrently \"manypkg run @signalwire/web start\" \"manypkg run with-next.js dev\""
   },
   "dependencies": {
     "@changesets/cli": "^2.14.1",
