@@ -29,13 +29,17 @@ const AppControllerDispatchContext = createContext<
   Dispatch<AppControllerAction>
 >(() => {})
 
-type AppControllerAction = {
-  type: 'authorized'
-  payload: {
-    projectId: string
-    token: string
-  }
-}
+type AppControllerAction =
+  | {
+      type: 'authorized'
+      payload: {
+        projectId: string
+        token: string
+      }
+    }
+  | {
+      type: 'client-ready'
+    }
 
 const reducer = (state: AppControllerState, action: AppControllerAction) => {
   switch (action.type) {
@@ -47,6 +51,19 @@ const reducer = (state: AppControllerState, action: AppControllerAction) => {
       }
 
       return newState
+    }
+
+    case 'client-ready': {
+      if (state.status === 'authorized') {
+        const newState: AppControllerState = {
+          ...state,
+          status: 'active',
+        }
+
+        return newState
+      }
+
+      return state
     }
 
     default:
