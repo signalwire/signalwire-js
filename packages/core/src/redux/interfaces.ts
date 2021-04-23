@@ -16,6 +16,7 @@ export interface WebRTCCall extends SWComponent {
   remoteSDP?: string
   nodeId?: string
   roomId?: string
+  roomSessionId?: string
   memberId?: string
 }
 

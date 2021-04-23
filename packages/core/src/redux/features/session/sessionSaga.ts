@@ -173,7 +173,8 @@ export function* sessionChannelWatcher({
         yield put(
           componentActions.update({
             id: params.params.call_id,
-            roomId: params.params.room.id,
+            roomId: params.params.room.room_id,
+            roomSessionId: params.params.room.room_session_id,
             memberId: params.params.member_id,
           })
         )
