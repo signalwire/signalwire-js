@@ -16,6 +16,8 @@ type AppControllerState =
       status: Exclude<AppStatus, 'idle'>
       projectId: string
       token: string
+      roomName: string
+      userName: string
     }
 
 const initialState: AppControllerState = {
@@ -35,6 +37,8 @@ type AppControllerAction =
       payload: {
         projectId: string
         token: string
+        roomName: string
+        userName: string
       }
     }
   | {

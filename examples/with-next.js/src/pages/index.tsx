@@ -2,6 +2,7 @@ import { Client, createSession } from '@signalwire/web'
 import { useEffect, useState } from 'react'
 import { useAppState } from '../components/AppController'
 import { JoinWidget } from '../components/JoinWidget'
+import { VideoWidget } from '../components/VideoWidget'
 import Layout from '../components/Layout'
 
 const Steps = () => {
@@ -26,10 +27,16 @@ const Steps = () => {
 
   if (state.status === 'authorized') {
     if (client) {
-      return <div>Client ready! {console.log(client)}</div>
+      return (
+        <VideoWidget
+          client={client}
+          roomName={state.roomName}
+          userName={state.userName}
+        />
+      )
     }
 
-    return <h1>💈 Connecting</h1>
+    return <h1>💈 Creating the client...</h1>
   }
 
   return <JoinWidget />
