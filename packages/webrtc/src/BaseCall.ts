@@ -53,7 +53,9 @@ export class BaseCall extends BaseComponent {
   private prevState = SwWebRTCCallState.New
 
   private _extension: string
+  // @ts-expect-error
   private _roomId: string
+  private _roomSessionId: string
   private _memberId: string
 
   constructor(options: CallOptions & { store: any }) {
@@ -210,6 +212,7 @@ export class BaseCall extends BaseComponent {
   public onRoomId(component: any) {
     logger.debug('onRoomId', component)
     this._roomId = component.roomId
+    this._roomSessionId = component.roomSessionId
     this._memberId = component.memberId
   }
 
@@ -481,7 +484,7 @@ export class BaseCall extends BaseComponent {
     return this.execute({
       method: ConferenceMethod.MemberAudioMute,
       params: {
-        room_id: this._roomId,
+        room_session_id: this._roomSessionId,
         member_id: memberId || this._memberId,
       },
     })
@@ -491,7 +494,7 @@ export class BaseCall extends BaseComponent {
     return this.execute({
       method: ConferenceMethod.MemberAudioUnmute,
       params: {
-        room_id: this._roomId,
+        room_session_id: this._roomSessionId,
         member_id: memberId || this._memberId,
       },
     })
@@ -501,7 +504,7 @@ export class BaseCall extends BaseComponent {
     return this.execute({
       method: ConferenceMethod.MemberVideoMute,
       params: {
-        room_id: this._roomId,
+        room_session_id: this._roomSessionId,
         member_id: memberId || this._memberId,
       },
     })
@@ -511,7 +514,7 @@ export class BaseCall extends BaseComponent {
     return this.execute({
       method: ConferenceMethod.MemberVideoUnmute,
       params: {
-        room_id: this._roomId,
+        room_session_id: this._roomSessionId,
         member_id: memberId || this._memberId,
       },
     })
