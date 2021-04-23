@@ -22,6 +22,8 @@ const Steps = () => {
       }).then((c) => {
         setClient(c)
       })
+    } else if (state.status === 'idle' && client) {
+      setClient(undefined)
     }
   }, [state])
 

@@ -44,6 +44,9 @@ type AppControllerAction =
   | {
       type: 'client-ready'
     }
+  | {
+      type: 'reset'
+    }
 
 const reducer = (state: AppControllerState, action: AppControllerAction) => {
   switch (action.type) {
@@ -68,6 +71,10 @@ const reducer = (state: AppControllerState, action: AppControllerAction) => {
       }
 
       return state
+    }
+
+    case 'reset': {
+      return initialState
     }
 
     default:
