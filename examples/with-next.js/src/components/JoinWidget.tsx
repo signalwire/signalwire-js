@@ -1,16 +1,19 @@
-import { InputHTMLAttributes } from 'react'
+import { forwardRef, InputHTMLAttributes } from 'react'
 import { useForm } from 'react-hook-form'
 import { useAppDispatch } from './AppController'
 
-const InputField = (props: InputHTMLAttributes<HTMLInputElement>) => {
+const InputField = forwardRef<
+  HTMLInputElement,
+  InputHTMLAttributes<HTMLInputElement>
+>((props, ref) => {
   const hasErrors = props['aria-invalid'] === 'true'
   return (
     <>
-      <input {...props} />
+      <input {...props} ref={ref} />
       {hasErrors && <span role='alert'>This is required</span>}
     </>
   )
-}
+})
 
 export const JoinWidget = () => {
   const {
