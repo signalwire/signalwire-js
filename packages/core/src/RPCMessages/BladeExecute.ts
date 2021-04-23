@@ -2,6 +2,7 @@ import { makeRPCRequest } from './helpers'
 import { BladeMethod } from '../utils/constants'
 
 type BladeExecuteParams = {
+  id?: string
   protocol: string
   method: string
   params?: {

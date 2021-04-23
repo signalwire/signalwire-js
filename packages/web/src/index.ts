@@ -21,6 +21,7 @@ export class Client extends SignalWire {
           onStateChangeListeners: {
             state: 'onStateChange',
             remoteSDP: 'onRemoteSDP',
+            roomId: 'onRoomId',
             errors: 'onError',
             responses: 'onSuccess',
           },
@@ -39,7 +40,10 @@ export const createSession = (userOptions: UserOptions): Promise<Client> => {
       ...userOptions,
       emitter: getEventEmitter(userOptions),
     }
-    const store = configureStore({ userOptions: baseUserOptions })
+    const store = configureStore({
+      userOptions: baseUserOptions,
+      SessionConstructor: JWTSession,
+    })
     const client = new Client(baseUserOptions, store)
     if (baseUserOptions.autoConnect) {
       store.subscribe(() => {
@@ -55,7 +59,6 @@ export const createSession = (userOptions: UserOptions): Promise<Client> => {
       setTimeout(() => {
         resolve(client)
       }, 2000)
-      // store.dispatch(initSessionAction(userOptions))
     } else {
       resolve(client)
     }

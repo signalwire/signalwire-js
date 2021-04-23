@@ -7,7 +7,7 @@ import {
   BaseComponent,
   SwWebRTCCallState,
   VertoMethod,
-  BladeExecute,
+  ConferenceMethod,
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import { DEFAULT_CALL_OPTIONS, PeerType, Direction } from './utils/constants'
@@ -53,6 +53,8 @@ export class BaseCall extends BaseComponent {
   private prevState = SwWebRTCCallState.New
 
   private _extension: string
+  private _roomId: string
+  private _memberId: string
 
   constructor(options: CallOptions & { store: any }) {
     super(options)
@@ -175,37 +177,40 @@ export class BaseCall extends BaseComponent {
   }
 
   /**
-   * Override the execute method to wraps every
-   * "verto" request into a "blade.execute".
-   * Note: we don't have the "protocol" here so
-   * saga will set that for us.
+   * Verto messages have to be wrapped into a blade.execute
+   * request and sent using the 'video.message' method.
    */
-  public execute(msg: any) {
-    const message = BladeExecute({
-      protocol: '', // protocol will be injected by sessionSaga
-      method: 'video.message',
-      params: {
-        message: msg,
-        node_id: this.nodeId,
-      },
-    })
-
-    if (msg.method === VertoMethod.Invite) {
-      message.params.subscribe = ROOM_EVENTS
+  public vertoExecute(vertoMessage: any) {
+    const params: any = {
+      message: vertoMessage,
+      node_id: this.nodeId,
     }
-    return super.execute(message)
+    if (vertoMessage.method === VertoMethod.Invite) {
+      params.subscribe = ROOM_EVENTS
+    }
+
+    return this.execute({
+      method: 'video.message',
+      params,
+    })
   }
 
   public onStateChange(component: any) {
-    console.debug('onStateChange', component)
+    logger.debug('onStateChange', component)
     this.setState(component.state)
   }
 
   public onRemoteSDP(component: any) {
-    console.debug('onRemoteSDP', component)
+    logger.debug('onRemoteSDP', component)
     if (component.remoteSDP) {
       this.peer.onRemoteSdp(component.remoteSDP)
     }
+  }
+
+  public onRoomId(component: any) {
+    logger.debug('onRoomId', component)
+    this._roomId = component.roomId
+    this._memberId = component.memberId
   }
 
   // async updateDevices(constraints: MediaStreamConstraints): Promise<void> {
@@ -312,8 +317,8 @@ export class BaseCall extends BaseComponent {
   async executeInvite(sdp: string) {
     this.setState(SwWebRTCCallState.Requesting)
     const msg = VertoInvite({ ...this.messagePayload, sdp })
-    const response = await this.execute(msg)
-    console.debug('Invite response', response)
+    const response = await this.vertoExecute(msg)
+    logger.debug('Invite response', response)
   }
 
   // executeUpdateMedia() {
@@ -322,7 +327,7 @@ export class BaseCall extends BaseComponent {
   //   //     sdp: this.localSdp,
   //   //     action: 'updateMedia',
   //   //   })
-  //   //   return this.execute(msg)
+  //   //   return this.vertoExecute(msg)
   // }
 
   // executeAnswer() {
@@ -333,13 +338,13 @@ export class BaseCall extends BaseComponent {
   //   // }
   //   // const msg =
   //   //   this.options.attach === true ? new Attach(params) : new Answer(params)
-  //   // return this.execute(msg)
+  //   // return this.vertoExecute(msg)
   // }
 
   async hangup(params?: IHangupParams) {
     try {
       const bye = VertoBye(this.messagePayload)
-      await this.execute(bye)
+      await this.vertoExecute(bye)
     } catch (error) {
       logger.error('Hangup error:', error)
     } finally {
@@ -349,7 +354,7 @@ export class BaseCall extends BaseComponent {
 
   dtmf(dtmf: string) {
     const msg = VertoInfo({ ...this.messagePayload, dtmf })
-    this.execute(msg)
+    this.vertoExecute(msg)
   }
 
   disableOutboundAudio() {
@@ -470,6 +475,46 @@ export class BaseCall extends BaseComponent {
         this._finalize()
         break
     }
+  }
+
+  public bladeMute(memberId?: string) {
+    return this.execute({
+      method: ConferenceMethod.MemberAudioMute,
+      params: {
+        room_id: this._roomId,
+        member_id: memberId || this._memberId,
+      },
+    })
+  }
+
+  public bladeUnmute(memberId?: string) {
+    return this.execute({
+      method: ConferenceMethod.MemberAudioUnmute,
+      params: {
+        room_id: this._roomId,
+        member_id: memberId || this._memberId,
+      },
+    })
+  }
+
+  public bladeVideoMute(memberId?: string) {
+    return this.execute({
+      method: ConferenceMethod.MemberVideoMute,
+      params: {
+        room_id: this._roomId,
+        member_id: memberId || this._memberId,
+      },
+    })
+  }
+
+  public bladeVideoUnmute(memberId?: string) {
+    return this.execute({
+      method: ConferenceMethod.MemberVideoUnmute,
+      params: {
+        room_id: this._roomId,
+        member_id: memberId || this._memberId,
+      },
+    })
   }
 
   // updateFromLaChannel(muted: boolean, vmuted: boolean) {

@@ -1,3 +1,5 @@
+import { Session } from '../Session'
+
 export interface Emitter<T = {}> {
   on(eventName: string, handler: Function, once?: boolean): T
   once(eventName: string, handler: Function): T
@@ -64,3 +66,5 @@ export interface IBladeAuthorization {
   scopes: string[]
   resource: string
 }
+
+export type SessionConstructor = typeof Session
