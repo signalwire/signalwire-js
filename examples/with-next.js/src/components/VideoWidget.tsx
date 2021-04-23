@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Client } from '@signalwire/web'
 import { useAppDispatch } from './AppController'
+import { MCU } from './MCU'
 
 interface VideoWidgetProps {
   client: Client
@@ -14,6 +15,8 @@ export const VideoWidget = ({
   userName,
 }: VideoWidgetProps) => {
   const [status, setStatus] = useState<'loading' | 'ready'>('loading')
+  const [stream, setStream] = useState<MediaStream>()
+
   const [call] = useState(() =>
     client.rooms.makeCall({
       destinationNumber: roomName,
@@ -37,10 +40,15 @@ export const VideoWidget = ({
     const roomEnded = (params: any) => {
       console.debug('room.ended', params)
     }
+    const rtcTrack = (event: RTCTrackEvent) => {
+      console.debug('RTCTrackEvent', event)
+      setStream(event.streams[0])
+    }
 
     call.on('room.started', roomStarted)
     call.on('room.subscribed', roomSubscribed)
     call.on('room.ended', roomEnded)
+    call.on('rtc.track', rtcTrack)
 
     call.invite()
 
@@ -54,8 +62,7 @@ export const VideoWidget = ({
   if (status === 'ready') {
     return (
       <div className='flex flex-col space-y-4'>
-        {/* TODO: replace with video element */}
-        <div className='w-full h-40 bg-indigo-100'></div>
+        {stream && <MCU stream={stream} />}
 
         <div className='grid grid-flow-col auto-cols-max gap-2'>
           <button
