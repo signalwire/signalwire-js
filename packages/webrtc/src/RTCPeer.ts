@@ -13,8 +13,8 @@ import {
   sdpToJsonHack,
   RTCPeerConnection,
   streamIsValid,
-  buildAudioElementByTrack,
-  buildVideoElementByTrack,
+  // buildAudioElementByTrack,
+  // buildVideoElementByTrack,
   stopTrack,
 } from './utils/webrtcHelpers'
 import { CallOptions } from './utils/interfaces'
@@ -320,8 +320,10 @@ export default class RTCPeer {
     }
 
     this.instance.addEventListener('track', (event: RTCTrackEvent) => {
+      console.debug('TRACK?', event)
+      this.call.emit('rtc.track', event)
       if (this.hasExperimentalFlag) {
-        this._buildMediaElementByTrack(event)
+        // this._buildMediaElementByTrack(event)
         // const notification = { type: 'trackAdd', event }
         // this.call._dispatchNotification(notification)
       }
@@ -547,34 +549,34 @@ export default class RTCPeer {
     return getUserMedia(constraints)
   }
 
-  private _buildMediaElementByTrack(event: RTCTrackEvent) {
-    console.debug(
-      '_buildMediaElementByTrack',
-      event.track.kind,
-      event.track.id,
-      event.streams,
-      event
-    )
-    const streamIds = event.streams.map((stream) => stream.id)
-    switch (event.track.kind) {
-      case 'audio': {
-        const audio = buildAudioElementByTrack(event.track, streamIds)
-        if (this.options.speakerId) {
-          try {
-            // @ts-ignore
-            audio.setSinkId(this.options.speakerId)
-          } catch (error) {
-            console.debug('setSinkId not supported', this.options.speakerId)
-          }
-        }
-        this.call.audioElements.push(audio)
-        break
-      }
-      case 'video':
-        this.call.videoElements.push(
-          buildVideoElementByTrack(event.track, streamIds)
-        )
-        break
-    }
-  }
+  // private _buildMediaElementByTrack(event: RTCTrackEvent) {
+  //   console.debug(
+  //     '_buildMediaElementByTrack',
+  //     event.track.kind,
+  //     event.track.id,
+  //     event.streams,
+  //     event
+  //   )
+  //   const streamIds = event.streams.map((stream) => stream.id)
+  //   switch (event.track.kind) {
+  //     case 'audio': {
+  //       const audio = buildAudioElementByTrack(event.track, streamIds)
+  //       if (this.options.speakerId) {
+  //         try {
+  //           // @ts-ignore
+  //           audio.setSinkId(this.options.speakerId)
+  //         } catch (error) {
+  //           console.debug('setSinkId not supported', this.options.speakerId)
+  //         }
+  //       }
+  //       this.call.audioElements.push(audio)
+  //       break
+  //     }
+  //     case 'video':
+  //       this.call.videoElements.push(
+  //         buildVideoElementByTrack(event.track, streamIds)
+  //       )
+  //       break
+  //   }
+  // }
 }
