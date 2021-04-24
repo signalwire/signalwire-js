@@ -320,8 +320,7 @@ export default class RTCPeer {
     }
 
     this.instance.addEventListener('track', (event: RTCTrackEvent) => {
-      console.debug('TRACK?', event)
-      this.call.emit('rtc.track', event)
+      this.call.emit('track', event)
       if (this.hasExperimentalFlag) {
         // this._buildMediaElementByTrack(event)
         // const notification = { type: 'trackAdd', event }
@@ -483,6 +482,7 @@ export default class RTCPeer {
     }
     if (event.candidate) {
       logger.debug('RTCPeer Candidate:', event.candidate)
+      this.call.emit('icecandidate', event)
     } else {
       this._sdpReady()
     }

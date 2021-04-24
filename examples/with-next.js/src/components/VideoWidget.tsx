@@ -48,7 +48,7 @@ export const VideoWidget = ({
     call.on('room.started', roomStarted)
     call.on('room.subscribed', roomSubscribed)
     call.on('room.ended', roomEnded)
-    call.on('rtc.track', rtcTrack)
+    call.on('track', rtcTrack)
 
     call.invite()
 
