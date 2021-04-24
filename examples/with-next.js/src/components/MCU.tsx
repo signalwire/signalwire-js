@@ -4,6 +4,10 @@ interface MCUProps {
   stream: MediaStream
 }
 
+const CLASS_LIST = 'w-full max-w-full h-full max-h-full object-contain'.split(
+  ' '
+)
+
 export const MCU = ({ stream }: MCUProps) => {
   const wrapperRef = useRef<HTMLDivElement>(null)
 
@@ -16,9 +20,7 @@ export const MCU = ({ stream }: MCUProps) => {
       video.autoplay = true
       video.playsInline = true
       video.srcObject = stream
-      video.classList.add(
-        ...'w-full max-w-full h-full max-h-full object-cover'.split(' ')
-      )
+      video.classList.add(...CLASS_LIST)
       // @ts-ignore
       wrapperRef.current.appendChild(video)
       video.play().catch(() => console.error('LocalVideo cannot play?'))
