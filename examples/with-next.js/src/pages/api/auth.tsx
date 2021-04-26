@@ -10,6 +10,12 @@ const assertRequiredParams = (body: NextApiRequest['body']) => {
 
 const DEFAULT_HOST = process.env.SPACE_HOST || 'dev.swire.io'
 const baseUrl = `https://${DEFAULT_HOST}`
+const SCOPES = [
+  'conference.self.audio_mute',
+  'conference.self.audio_unmute',
+  'conference.self.video_mute',
+  'conference.self.video_unmute',
+]
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
@@ -32,7 +38,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       },
       body: JSON.stringify({
         ...reqBody,
-        scopes: ['conference.self.audio_mute', 'conference.self.audio_unmute'],
+        scopes: SCOPES,
       }),
     })
 
