@@ -289,6 +289,8 @@ export class BaseCall extends BaseComponent {
   //   }
   // }
 
+  join = this.invite
+
   invite() {
     this.direction = Direction.Outbound
     this.peer = new RTCPeer(this, PeerType.Offer)
