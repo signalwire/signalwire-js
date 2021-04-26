@@ -568,6 +568,7 @@ export class BaseCall extends BaseComponent {
   protected _finalize() {
     if (this.peer && this.peer.instance) {
       this.peer.instance.close()
+      // @ts-ignore
       delete this.peer
     }
     const { remoteStream, localStream } = this.options
