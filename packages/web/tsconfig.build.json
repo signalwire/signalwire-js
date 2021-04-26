@@ -1,8 +1,4 @@
 {
   "extends": "../../tsconfig.json",
-  "include": [
-    "./src/index.ts",
-    "../core/src/index.ts",
-    "../webrtc/src/index.ts"
-  ]
+  "include": ["./src/index.ts", "../core/src/**/*.ts", "../webrtc/src/**/*.ts"]
 }
