@@ -101,7 +101,7 @@ export function* sessionChannelWatcher({
             method: 'video.message',
             params: {
               message: VertoResult(id, method),
-              node_id: null,
+              node_id: nodeId,
             },
           })
         )
@@ -115,7 +115,7 @@ export function* sessionChannelWatcher({
             method: 'video.message',
             params: {
               message: VertoResult(id, method),
-              node_id: null,
+              node_id: nodeId,
             },
           })
         )
