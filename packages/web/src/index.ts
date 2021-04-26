@@ -139,6 +139,9 @@ export const createRoom = (
       console.warn('>> layout.changed', params)
     )
 
+    // WebRTC connection left the room.
+    room.on('left', () => client.disconnect())
+
     resolve(room)
   })
 }
