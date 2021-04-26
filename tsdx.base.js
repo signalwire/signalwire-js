@@ -18,6 +18,10 @@ exports.createRollupConfig = (
     } else if (plugin.name === 'commonjs') {
       return commonjs({
         include: /\/node_modules\//,
+
+        // https://github.com/rollup/plugins/issues/304#issuecomment-619858916
+        // exclude: ['node_modules/symbol-observable/es/*.js'],
+
         ...swPlugins[plugin.name],
       })
     } else if (plugin.name in swPlugins) {
@@ -33,6 +37,10 @@ exports.createRollupConfig = (
     }
 
     return external(id)
+  }
+
+  if (config.output.format === 'umd') {
+    delete config.external
   }
 
   return config
