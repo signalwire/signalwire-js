@@ -26,7 +26,6 @@ export const MCU = ({ stream }: MCUProps) => {
       video.play().catch(() => console.error('LocalVideo cannot play?'))
     }
     return () => {
-      console.debug('clear?', video)
       if (video) {
         stream?.getTracks().forEach((track) => track.stop())
         video.srcObject = null

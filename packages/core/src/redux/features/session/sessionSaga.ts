@@ -162,7 +162,7 @@ export function* sessionChannelWatcher({
       case VertoMethod.Announce:
         return logger.debug('Verto Announce', params)
       default:
-        return logger.warn(`Unknown Verto method: ${method}`, params)
+        return logger.debug(`Unknown Verto method: ${method}`, params)
     }
   }
 
@@ -226,7 +226,10 @@ export function* sessionChannelWatcher({
         break
       }
       default:
-        return logger.warn(`Unknown broadcast event: ${event}`, broadcastParams)
+        return logger.debug(
+          `Unknown broadcast event: ${event}`,
+          broadcastParams
+        )
     }
   }
 
@@ -240,7 +243,7 @@ export function* sessionChannelWatcher({
         break
       default:
         // yield put(action)
-        return logger.warn(`Unknown message: ${method}`, payload)
+        return logger.debug(`Unknown message: ${method}`, payload)
     }
   }
 
