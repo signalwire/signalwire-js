@@ -486,7 +486,7 @@ export class BaseCall extends BaseComponent {
     }
   }
 
-  public bladeMute(memberId?: string) {
+  public audioMute(memberId?: string) {
     return this.execute({
       method: ConferenceMethod.MemberAudioMute,
       params: {
@@ -496,7 +496,7 @@ export class BaseCall extends BaseComponent {
     })
   }
 
-  public bladeUnmute(memberId?: string) {
+  public audioUnmute(memberId?: string) {
     return this.execute({
       method: ConferenceMethod.MemberAudioUnmute,
       params: {
@@ -506,7 +506,7 @@ export class BaseCall extends BaseComponent {
     })
   }
 
-  public bladeVideoMute(memberId?: string) {
+  public videoMute(memberId?: string) {
     return this.execute({
       method: ConferenceMethod.MemberVideoMute,
       params: {
@@ -516,7 +516,7 @@ export class BaseCall extends BaseComponent {
     })
   }
 
-  public bladeVideoUnmute(memberId?: string) {
+  public videoUnmute(memberId?: string) {
     return this.execute({
       method: ConferenceMethod.MemberVideoUnmute,
       params: {
