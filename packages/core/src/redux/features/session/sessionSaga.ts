@@ -234,7 +234,7 @@ export function* sessionChannelWatcher({
   }
 
   function* sessionChannelWorker(payload: JSONRPCRequest): SagaIterator {
-    console.debug('Inbound WebSocket Message', payload)
+    logger.debug('Inbound WebSocket Message', payload)
     const { method, params } = payload
 
     switch (method) {
