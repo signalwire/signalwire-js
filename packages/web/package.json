@@ -1,9 +1,10 @@
 {
   "name": "@signalwire/web",
   "version": "0.0.0",
+  "source": "src/index.ts",
   "main": "dist/index.js",
   "module": "dist/web.esm.js",
-  "typings": "dist/web/src/index.d.ts",
+  "types": "dist/web/src/index.d.ts",
   "files": [
     "dist",
     "src"
@@ -13,13 +14,14 @@
   },
   "scripts": {
     "start": "tsdx watch --tsconfig tsconfig.build.json --verbose --noClean",
-    "build": "tsdx build --tsconfig tsconfig.build.json --format cjs,esm,umd",
+    "build": "microbundle --external none --define process.env.NODE_ENV=production --name VideoSDK --tsconfig ./tsconfig.build.json",
     "test": "tsdx test",
     "lint": "tsdx lint",
     "example": "(cd examples && npm run dev)"
   },
   "dependencies": {
     "@signalwire/core": "0.0.0",
-    "@signalwire/webrtc": "0.0.0"
+    "@signalwire/webrtc": "0.0.0",
+    "regenerator-runtime": "^0.13.7"
   }
 }
