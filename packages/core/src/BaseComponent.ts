@@ -30,6 +30,7 @@ export class BaseComponent implements Emitter {
 
   destroy() {
     this._destroyer?.()
+    this.removeAllListeners()
   }
 
   execute({ method, params }: { method: string; params: Record<string, any> }) {
