@@ -58,7 +58,7 @@ export class Session {
     this._onSocketMessage = this._onSocketMessage.bind(this)
     this.execute = this.execute.bind(this)
 
-    this.logger.setLevel(this.logger.levels.DEBUG)
+    this.logger.setLevel(this.logger.levels.INFO)
   }
 
   get signature() {
