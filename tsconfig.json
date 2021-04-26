@@ -7,7 +7,7 @@
     "sourceMap": true,
     "strict": true,
     "strictNullChecks": true,
-    "target": "ES2015",
+    "target": "ESNext",
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
