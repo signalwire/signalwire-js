@@ -92,6 +92,10 @@ export class BaseCall extends BaseComponent {
     return this._extension || this.options.destinationNumber
   }
 
+  get memberId() {
+    return this._memberId
+  }
+
   set extension(extension: string) {
     this._extension = extension
   }
