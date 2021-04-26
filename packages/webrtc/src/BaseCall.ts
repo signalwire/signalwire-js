@@ -572,6 +572,7 @@ export class BaseCall extends BaseComponent {
   // }
 
   protected _finalize() {
+    this.emit('left')
     if (this.peer && this.peer.instance) {
       this.peer.instance.close()
       // @ts-ignore
