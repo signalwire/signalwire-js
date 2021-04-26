@@ -307,6 +307,7 @@ export default class RTCPeer {
           this._negotiating = false
           break
         case 'closed':
+          // @ts-ignore
           delete this.instance
           break
         default:
