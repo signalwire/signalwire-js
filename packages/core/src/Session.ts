@@ -60,6 +60,10 @@ export class Session {
     this.logger.setLevel(this.logger.levels.INFO)
   }
 
+  get bladeConnectResult() {
+    return this._bladeConnectResult
+  }
+
   get relayProtocol() {
     return this._bladeConnectResult?.result?.protocol ?? ''
   }
