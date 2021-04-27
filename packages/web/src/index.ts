@@ -70,7 +70,7 @@ export const createSession = (userOptions: UserOptions): Promise<Client> => {
 interface CreateRoomOptions extends UserOptions {
   audio: MediaStreamConstraints['audio']
   video: MediaStreamConstraints['video']
-  iceServers: RTCIceServer[]
+  iceServers?: RTCIceServer[]
   videoElementId?: string
 }
 
@@ -81,7 +81,7 @@ export const createRoom = (
     const {
       audio = true,
       video = true,
-      iceServers = [],
+      iceServers,
       videoElementId,
       ...userOptions
     } = roomOptions
@@ -92,7 +92,7 @@ export const createRoom = (
     })
 
     const room = client.rooms.makeCall({
-      destinationNumber: '',
+      destinationNumber: 'room',
       callerName: '',
       callerNumber: '',
       audio,
