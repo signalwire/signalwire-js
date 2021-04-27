@@ -10,7 +10,7 @@ import {
   SessionOptions,
   SessionRequestObject,
   SessionRequestQueued,
-  IBladeAuthorization,
+  IBladeConnectResult,
   JSONRPCRequest,
   JSONRPCResponse,
 } from './utils/interfaces'
@@ -24,11 +24,10 @@ import {
 
 export class Session {
   public uuid = uuid()
-  public relayProtocol = ''
   public sessionid = ''
   public WebSocketConstructor: typeof WebSocket
 
-  protected _authorization: IBladeAuthorization
+  protected _bladeConnectResult: IBladeConnectResult
 
   private _requests = new Map<string, SessionRequestObject>()
   private _requestQueue: SessionRequestQueued[] = []
@@ -61,8 +60,12 @@ export class Session {
     this.logger.setLevel(this.logger.levels.INFO)
   }
 
+  get relayProtocol() {
+    return this._bladeConnectResult?.result?.protocol ?? ''
+  }
+
   get signature() {
-    return this?._authorization?.signature
+    return this._bladeConnectResult?.authorization?.signature
   }
 
   get logger(): typeof logger {
@@ -201,11 +204,9 @@ export class Session {
         params.params = params.params || {}
         params.params.protocol = this.relayProtocol
       }
-      const response = await this.execute(BladeConnect(params))
-      console.log('Response', response)
-      this._authorization = response.authorization
-      this.relayProtocol = response?.result?.protocol ?? ''
+      this._bladeConnectResult = await this.execute(BladeConnect(params))
     } catch (error) {
+      // FIXME: Handle Auth Error
       console.error('Auth Error', error)
     }
   }

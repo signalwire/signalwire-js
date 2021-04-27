@@ -59,12 +59,31 @@ export interface SessionRequestQueued {
 }
 
 export interface IBladeAuthorization {
-  expires_at: number
-  signature: string
+  type: 'video'
   project: string
-  scope_id: string
   scopes: string[]
+  scope_id: string
   resource: string
+  user_name: string
+  room?: {
+    name: string
+    scopes: string[]
+  }
+  signature: string
+  expires_at?: number
+}
+
+export interface IBladeConnectResult {
+  session_restored: boolean
+  sessionid: string
+  nodeid: string
+  identity: string
+  master_nodeid: string
+  authorization: IBladeAuthorization
+  result?: {
+    protocol: string
+    iceServers?: RTCIceServer[]
+  }
 }
 
 export type SessionConstructor = typeof Session
