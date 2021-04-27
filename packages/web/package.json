@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "exports": "./dist/index.modern.js",
   "module": "dist/index.esm.js",
+  "unpkg": "dist/index.umd.js",
   "types": "dist/web/src/index.d.ts",
   "files": [
     "dist",
