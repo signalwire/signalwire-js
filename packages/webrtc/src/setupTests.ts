@@ -91,7 +91,7 @@ Object.defineProperty(navigator, 'mediaDevices', {
       }
       return stream
     }),
-    getDisplayMedia: jest.fn((constraints) => {
+    getDisplayMedia: jest.fn((_constraints) => {
       const stream = new global.MediaStream()
       stream.addTrack(_newTrack('video'))
       return stream
