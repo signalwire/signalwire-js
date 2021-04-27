@@ -16,8 +16,7 @@
   "scripts": {
     "start": "microbundle watch -f modern --tsconfig tsconfig.build.json",
     "build": "microbundle --external none -f modern,es,cjs --define process.env.NODE_ENV=production --tsconfig ./tsconfig.build.json --target node",
-    "test": "tsdx test",
-    "lint": "tsdx lint",
+    "test": "NODE_ENV=test jest",
     "prepare": "npm run build"
   },
   "dependencies": {
