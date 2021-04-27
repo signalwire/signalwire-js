@@ -1,9 +1,11 @@
 {
   "name": "@signalwire/react-native",
   "version": "0.0.0",
+  "source": "src/index.ts",
   "main": "dist/index.js",
-  "module": "dist/react-native.esm.js",
-  "typings": "dist/react-native/src/index.d.ts",
+  "exports": "./dist/index.modern.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/react-native/src/index.d.ts",
   "files": [
     "dist",
     "src"
@@ -12,11 +14,11 @@
     "node": ">=10"
   },
   "scripts": {
-    "start": "tsdx watch --tsconfig tsconfig.build.json --verbose --noClean",
-    "build": "tsdx build --tsconfig tsconfig.build.json",
+    "start": "microbundle watch -f modern --tsconfig tsconfig.build.json",
+    "build": "microbundle --external none -f modern,es,cjs --define process.env.NODE_ENV=production --tsconfig ./tsconfig.build.json --target node",
     "test": "tsdx test",
     "lint": "tsdx lint",
-    "prepare": "tsdx build"
+    "prepare": "npm run build"
   },
   "dependencies": {
     "@signalwire/core": "0.0.0",
