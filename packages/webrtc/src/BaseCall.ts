@@ -92,6 +92,10 @@ export class BaseCall extends BaseComponent {
     return this._extension || this.options.destinationNumber
   }
 
+  get memberId() {
+    return this._memberId
+  }
+
   set extension(extension: string) {
     this._extension = extension
   }
@@ -284,6 +288,8 @@ export class BaseCall extends BaseComponent {
   //     throw error
   //   }
   // }
+
+  join = this.invite
 
   invite() {
     this.direction = Direction.Outbound
@@ -480,7 +486,7 @@ export class BaseCall extends BaseComponent {
     }
   }
 
-  public bladeMute(memberId?: string) {
+  public audioMute(memberId?: string) {
     return this.execute({
       method: ConferenceMethod.MemberAudioMute,
       params: {
@@ -490,7 +496,7 @@ export class BaseCall extends BaseComponent {
     })
   }
 
-  public bladeUnmute(memberId?: string) {
+  public audioUnmute(memberId?: string) {
     return this.execute({
       method: ConferenceMethod.MemberAudioUnmute,
       params: {
@@ -500,7 +506,7 @@ export class BaseCall extends BaseComponent {
     })
   }
 
-  public bladeVideoMute(memberId?: string) {
+  public videoMute(memberId?: string) {
     return this.execute({
       method: ConferenceMethod.MemberVideoMute,
       params: {
@@ -510,7 +516,7 @@ export class BaseCall extends BaseComponent {
     })
   }
 
-  public bladeVideoUnmute(memberId?: string) {
+  public videoUnmute(memberId?: string) {
     return this.execute({
       method: ConferenceMethod.MemberVideoUnmute,
       params: {
@@ -566,8 +572,10 @@ export class BaseCall extends BaseComponent {
   // }
 
   protected _finalize() {
+    this.emit('left')
     if (this.peer && this.peer.instance) {
       this.peer.instance.close()
+      // @ts-ignore
       delete this.peer
     }
     const { remoteStream, localStream } = this.options
