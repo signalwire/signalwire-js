@@ -1,6 +1,7 @@
 import { uuid } from './utils'
 import { executeAction } from './redux'
 import { Emitter } from './utils/interfaces'
+import { SDKState } from './redux/interfaces'
 
 export class BaseComponent implements Emitter {
   id = uuid()
@@ -46,6 +47,10 @@ export class BaseComponent implements Emitter {
         })
       )
     })
+  }
+
+  select(selectorFn: (state: SDKState) => unknown) {
+    return selectorFn(this.store.getState())
   }
 
   onError(component: any) {
