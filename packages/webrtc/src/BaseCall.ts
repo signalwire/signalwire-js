@@ -8,6 +8,7 @@ import {
   SwWebRTCCallState,
   VertoMethod,
   ConferenceMethod,
+  getIceServers,
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import { DEFAULT_CALL_OPTIONS, PeerType, Direction } from './utils/constants'
@@ -61,10 +62,13 @@ export class BaseCall extends BaseComponent {
   constructor(options: CallOptions & { store: any }) {
     super(options)
 
+    const iceServers = options?.iceServers ?? this.select(getIceServers)
+
     this.options = {
       id: this.id,
       ...DEFAULT_CALL_OPTIONS,
       ...options,
+      iceServers,
     }
 
     const { remoteCallerNumber } = this.options
