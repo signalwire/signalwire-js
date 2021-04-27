@@ -49,7 +49,7 @@ export class BaseComponent implements Emitter {
     })
   }
 
-  select(selectorFn: (state: SDKState) => unknown) {
+  select <T>(selectorFn: (state: SDKState) => T) {
     return selectorFn(this.store.getState())
   }
 
