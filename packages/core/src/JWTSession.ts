@@ -44,7 +44,7 @@ export class JWTSession extends Session {
   }
 
   get expiresAt() {
-    return this?._authorization?.expires_at ?? 0
+    return this?._bladeConnectResult?.authorization?.expires_at ?? 0
   }
 
   get expiresIn() {
@@ -82,13 +82,10 @@ export class JWTSession extends Session {
         }
       }
 
-      const response = await this.execute(BladeConnect(params))
-      this._authorization = response.authorization
-      this.relayProtocol = response?.result?.protocol ?? ''
+      this._bladeConnectResult = await this.execute(BladeConnect(params))
       this._checkTokenExpiration()
-      console.log('Response', response)
-      // TODO: check JWT expires_at and handle re-auth
     } catch (error) {
+      // FIXME: Handle Auth Error
       console.error('Auth Error', error)
     }
   }
@@ -105,6 +102,7 @@ export class JWTSession extends Session {
       logger.debug(
         'Your JWT is going to expire. Please refresh it to keep the session live.'
       )
+      // TODO: check JWT expires_at and handle re-auth
       // trigger(SwEvent.Notification, { type: Notification.RefreshToken, session: this }, this.uuid, false)
     }
     clearTimeout(this._checkTokenExpirationTimer)

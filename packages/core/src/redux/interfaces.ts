@@ -30,8 +30,14 @@ export interface ComponentState {
   [key: string]: ReduxComponent
 }
 
+export interface SessionState {
+  protocol: string
+  iceServers?: RTCIceServer[]
+}
+
 export interface SDKState {
   components: ComponentState
+  session: SessionState
 }
 
 export type GetDefaultSagas = () => Saga[]

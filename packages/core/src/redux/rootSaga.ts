@@ -1,6 +1,6 @@
 import { Saga, Task, SagaIterator, Channel } from '@redux-saga/types'
 import { channel, EventChannel } from 'redux-saga'
-import { all, spawn, fork, call, take } from 'redux-saga/effects'
+import { all, spawn, fork, call, take, put } from 'redux-saga/effects'
 import { GetDefaultSagas } from './interfaces'
 import { UserOptions, SessionConstructor } from '../utils/interfaces'
 import {
@@ -11,6 +11,8 @@ import {
 import { pubSubSaga } from './features/pubSub/pubSubSaga'
 import { logger } from '../utils'
 import { initAction, destroyAction } from './actions'
+import { sessionActions } from './features'
+import { Session } from '..'
 
 // prettier-ignore
 const ROOT_SAGAS: Saga[] = []
@@ -58,7 +60,7 @@ export default (options: RootSagaOptions) => {
      * Create Session and related sessionChannel to
      * send/receive websocket messages
      */
-    const session = yield call(
+    const session: Session = yield call(
       initSession,
       options.SessionConstructor,
       userOptions
@@ -67,6 +69,7 @@ export default (options: RootSagaOptions) => {
       createSessionChannel,
       session
     )
+    yield put(sessionActions.connected(session.bladeConnectResult))
 
     /**
      * Create a channel to communicate between sagas
