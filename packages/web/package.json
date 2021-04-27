@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "source": "src/index.ts",
   "main": "dist/index.js",
-  "module": "dist/web.esm.js",
+  "exports": "./dist/index.modern.js",
+  "module": "dist/index.esm.js",
   "types": "dist/web/src/index.d.ts",
   "files": [
     "dist",
@@ -13,10 +14,11 @@
     "node": ">=10"
   },
   "scripts": {
-    "start": "tsdx watch --tsconfig tsconfig.build.json --verbose --noClean",
+    "start": "microbundle watch --external none -f modern --tsconfig tsconfig.build.json",
     "build": "microbundle --external none --define process.env.NODE_ENV=production --name VideoSDK --tsconfig ./tsconfig.build.json",
     "test": "tsdx test",
     "lint": "tsdx lint",
+    "prepare": "npm run build",
     "example": "(cd examples && npm run dev)"
   },
   "dependencies": {
