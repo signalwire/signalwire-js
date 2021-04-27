@@ -10,7 +10,7 @@ describe('SessionState Tests', () => {
     store = configureJestStore()
   })
 
-  it('should listen calls/destroy actions and save the history', () => {
+  it('should seed SessionState on sessionActions.connected action', () => {
     store.dispatch(sessionActions.connected(bladeConnectResultVRT))
 
     expect(store.getState().session).toStrictEqual({

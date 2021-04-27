@@ -134,6 +134,7 @@ export class Session {
     }
 
     this._socket.close()
+    // @ts-ignore
     delete this._socket
     // clearTimeout(this._reconnectTimeout)
     // this.subscriptions.clear()
