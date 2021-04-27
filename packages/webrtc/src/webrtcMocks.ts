@@ -1,3 +1,8 @@
+// @ts-nocheck
+
+// These are mocked objects to test WebRTC logic.
+// Ignore TS checking for now since all the methods arguments are "unused".
+
 class MediaStreamMock implements MediaStream {
   _tracks: MediaStreamTrack[] = []
   active: boolean

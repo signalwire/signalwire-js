@@ -126,7 +126,7 @@ describe('Helpers browser functions', () => {
     })
 
     it('should return the full device list', async (done) => {
-      const devices = await getDevicesWithPermissions(null, true)
+      const devices = await getDevicesWithPermissions(undefined, true)
       expect(devices).toHaveLength(7)
       done()
     })
@@ -214,7 +214,7 @@ describe('Helpers browser functions', () => {
     })
 
     it('should return the full device list', async (done) => {
-      const devices = await getDevices(null, true)
+      const devices = await getDevices(undefined, true)
       expect(devices).toHaveLength(7)
       done()
     })
