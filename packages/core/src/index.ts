@@ -5,6 +5,7 @@ import { configureStore, connect } from './redux'
 import { SignalWire } from './SignalWire'
 import { BaseComponent } from './BaseComponent'
 import { EventEmitter, getEventEmitter } from './utils/EventEmitter'
+import * as sessionSelectors from './redux/features/session/sessionSelectors'
 
 // prettier-ignore
 export {
@@ -28,3 +29,7 @@ export {
   VertoMethod,
   ConferenceMethod,
 } from './utils/constants'
+
+export const selectors = {
+  ...sessionSelectors,
+}
