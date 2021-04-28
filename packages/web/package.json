@@ -15,7 +15,7 @@
     "node": ">=10"
   },
   "scripts": {
-    "start": "microbundle watch --external none -f esm --tsconfig tsconfig.build.json",
+    "start": "microbundle watch --external none -f es --tsconfig tsconfig.build.json",
     "build": "microbundle --external none --define process.env.NODE_ENV=production --name VideoSDK --tsconfig ./tsconfig.build.json",
     "test": "NODE_ENV=test jest",
     "prepare": "npm run build",
