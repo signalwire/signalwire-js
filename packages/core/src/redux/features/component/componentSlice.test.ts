@@ -19,10 +19,19 @@ describe('SessionState Tests', () => {
   })
 
   describe('update action', () => {
+    it('should create a new entry if the id is not in the state', () => {
+      expect(getComponent(store.getState(), componentId)).toBeUndefined()
+      store.dispatch(componentActions.update(component))
+
+      expect(getComponent(store.getState(), componentId)).toStrictEqual({
+        id: '268b4cf8-a3c5-4003-8666-3b7a4f0a5af9',
+      })
+    })
+
     it('should update the state properly', () => {
       store.dispatch(componentActions.update(component))
 
-      expect(getComponent(store.getState(), component.id)).toStrictEqual({
+      expect(getComponent(store.getState(), componentId)).toStrictEqual({
         id: '268b4cf8-a3c5-4003-8666-3b7a4f0a5af9',
       })
 
@@ -32,7 +41,7 @@ describe('SessionState Tests', () => {
           state: 'active',
         })
       )
-      expect(getComponent(store.getState(), component.id)).toStrictEqual({
+      expect(getComponent(store.getState(), componentId)).toStrictEqual({
         id: '268b4cf8-a3c5-4003-8666-3b7a4f0a5af9',
         state: 'active',
       })
@@ -52,6 +61,7 @@ describe('SessionState Tests', () => {
       requestId,
       response,
     })
+
     it('should not change the state if the componentId does not exist', () => {
       store.dispatch(executeSuccessAction)
       expect(store.getState().components).toStrictEqual({})
@@ -116,6 +126,7 @@ describe('SessionState Tests', () => {
   })
 
   it('should reset to initial on destroyAction', () => {
+    // Create some components first
     store.dispatch(componentActions.update(component))
     store.dispatch(
       componentActions.update({
