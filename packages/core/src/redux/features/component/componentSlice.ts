@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { JSONRPCResponse } from '../../../utils/interfaces'
 import { ComponentState, ReduxComponent } from '../../interfaces'
+import { destroyAction } from '../../actions'
 
 export const initialComponentState: Readonly<ComponentState> = {}
 
@@ -51,6 +52,11 @@ const componentSlice = createSlice({
         }
       }
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(destroyAction.type, () => {
+      return initialComponentState
+    })
   },
 })
 
