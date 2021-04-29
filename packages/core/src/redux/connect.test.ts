@@ -8,17 +8,9 @@ import { EventEmitter } from '../utils/EventEmitter'
 describe('Connect', () => {
   let store: Store
   let instance: any
+  let updateStateAction: any
+  let updateRemoteSDPAction: any
   const mockOnRemoteSDP = jest.fn()
-
-  const updateStateAction = componentActions.update({
-    id: instance.id,
-    state: 'active',
-  })
-
-  const updateRemoteSDPAction = componentActions.update({
-    id: instance.id,
-    remoteSDP: '<SDP>',
-  })
 
   beforeEach(() => {
     store = configureJestStore()
@@ -35,6 +27,16 @@ describe('Connect', () => {
     instance.emit = jest.fn()
 
     mockOnRemoteSDP.mockClear()
+
+    updateStateAction = componentActions.update({
+      id: instance.id,
+      state: 'active',
+    })
+
+    updateRemoteSDPAction = componentActions.update({
+      id: instance.id,
+      remoteSDP: '<SDP>',
+    })
   })
 
   it('should invoke the instance method if onStateChangeListeners provided a string name', () => {
