@@ -13,7 +13,6 @@
     }
   },
   "module": "dist/index.esm.js",
-  "types": "dist/core/src/index.d.ts",
   "files": [
     "dist",
     "src"
@@ -23,7 +22,7 @@
   },
   "scripts": {
     "start": "microbundle watch -f modern --tsconfig tsconfig.build.json",
-    "build": "microbundle --external none -f modern,es,cjs --define process.env.NODE_ENV=production --tsconfig ./tsconfig.build.json --target node",
+    "build": "pkg-typings --pre-run && microbundle --external none -f modern,es,cjs --define process.env.NODE_ENV=production --tsconfig ./tsconfig.build.json --target node && pkg-typings --after-run",
     "test": "NODE_ENV=test jest",
     "prepare": "npm run build"
   },
@@ -37,5 +36,6 @@
     "@types/uuid": "^8.3.0",
     "jest-websocket-mock": "^2.2.0",
     "mock-socket": "^9.0.3"
-  }
+  },
+  "types": "dist/core/src/index.d.ts"
 }

@@ -4,7 +4,6 @@
   "source": "src/index.ts",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
-  "types": "dist/node/src/index.d.ts",
   "esmodule": "./dist/index.modern.mjs",
   "type": "commonjs",
   "exports": {
@@ -22,11 +21,12 @@
   },
   "scripts": {
     "start": "microbundle watch -f modern --tsconfig tsconfig.build.json",
-    "build": "microbundle --external none -f modern,es,cjs --define process.env.NODE_ENV=production --tsconfig ./tsconfig.build.json --target node",
+    "build": "pkg-typings --pre-run && microbundle --external none -f modern,es,cjs --define process.env.NODE_ENV=production --tsconfig ./tsconfig.build.json --target node && pkg-typings --after-run",
     "test": "NODE_ENV=test jest",
     "prepare": "npm run build"
   },
   "dependencies": {
     "@signalwire/core": "0.0.0"
-  }
+  },
+  "types": "dist/node/src/index.d.ts"
 }

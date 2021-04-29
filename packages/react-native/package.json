@@ -5,7 +5,6 @@
   "main": "dist/index.js",
   "exports": "./dist/index.modern.js",
   "module": "dist/index.esm.js",
-  "types": "dist/react-native/src/index.d.ts",
   "files": [
     "dist",
     "src"
@@ -15,7 +14,7 @@
   },
   "scripts": {
     "start": "microbundle watch -f modern --tsconfig tsconfig.build.json",
-    "build": "microbundle --external none -f modern,es,cjs --define process.env.NODE_ENV=production --tsconfig ./tsconfig.build.json --target node",
+    "build": "pkg-typings --pre-run && microbundle --external none -f modern,es,cjs --define process.env.NODE_ENV=production --tsconfig ./tsconfig.build.json --target node && pkg-typings --after-run",
     "test": "NODE_ENV=test jest",
     "prepare": "npm run build"
   },
