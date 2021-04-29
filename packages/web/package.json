@@ -6,7 +6,6 @@
   "exports": "./dist/index.modern.js",
   "module": "dist/index.esm.js",
   "unpkg": "dist/index.umd.js",
-  "types": "dist/web/src/index.d.ts",
   "files": [
     "dist",
     "src"
@@ -16,7 +15,7 @@
   },
   "scripts": {
     "start": "microbundle watch --external none -f es --tsconfig tsconfig.build.json",
-    "build": "microbundle --external none --define process.env.NODE_ENV=production --name VideoSDK --tsconfig ./tsconfig.build.json",
+    "build": "pkg-typings --pre-run && microbundle --external none --define process.env.NODE_ENV=production --name VideoSDK --tsconfig ./tsconfig.build.json && pkg-typings --after-run",
     "test": "NODE_ENV=test jest",
     "prepare": "npm run build",
     "example": "(cd examples && npm run dev)"
@@ -25,5 +24,6 @@
     "@signalwire/core": "0.0.0",
     "@signalwire/webrtc": "0.0.0",
     "regenerator-runtime": "^0.13.7"
-  }
+  },
+  "types": "dist/web/src/index.d.ts"
 }
