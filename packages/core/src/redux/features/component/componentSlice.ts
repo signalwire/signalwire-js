@@ -3,7 +3,9 @@ import { JSONRPCResponse } from '../../../utils/interfaces'
 import { ComponentState, ReduxComponent } from '../../interfaces'
 import { destroyAction } from '../../actions'
 
-export const initialComponentState: Readonly<ComponentState> = {}
+export const initialComponentState: Readonly<ComponentState> = {
+  byId: {},
+}
 
 type UpdateComponent = Partial<ReduxComponent> & Pick<ReduxComponent, 'id'>
 
@@ -24,29 +26,30 @@ const componentSlice = createSlice({
   initialState: initialComponentState,
   reducers: {
     update: (state, { payload }: PayloadAction<UpdateComponent>) => {
-      if (payload.id in state) {
+      if (payload.id in state.byId) {
         // To avoid spread operator, update only the keys passed in.
         Object.keys(payload).forEach((key) => {
           // @ts-ignore
-          state[payload.id][key] = payload[key]
+          state.byId[payload.id][key] = payload[key]
         })
       } else {
         // If not in state already, set directly using the id.
-        state[payload.id] = payload
+        state.byId[payload.id] = payload
       }
     },
     executeSuccess: (state, { payload }: PayloadAction<SuccessParams>) => {
       const { componentId, requestId, response } = payload
-      if (state[componentId]) {
-        state[componentId].responses = state[componentId].responses || {}
-        state[componentId].responses![requestId] = response
+      if (state.byId[componentId]) {
+        state.byId[componentId].responses =
+          state.byId[componentId].responses || {}
+        state.byId[componentId].responses![requestId] = response
       }
     },
     executeFailure: (state, { payload }: PayloadAction<FailureParams>) => {
       const { componentId, requestId, error, action } = payload
-      if (state[componentId]) {
-        state[componentId].errors = state[componentId].errors || {}
-        state[componentId].errors![requestId] = {
+      if (state.byId[componentId]) {
+        state.byId[componentId].errors = state.byId[componentId].errors || {}
+        state.byId[componentId].errors![requestId] = {
           action,
           jsonrpc: error,
         }

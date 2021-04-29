@@ -6,7 +6,7 @@ import { destroyAction, executeAction } from '../../actions'
 import { ReduxComponent } from '../../interfaces'
 import { JSONRPCResponse } from '../../../utils/interfaces'
 
-describe('SessionState Tests', () => {
+describe('ComponentState Tests', () => {
   let store: Store
   const requestId = 'faa63915-3a64-4c39-acbb-06dac0758f8a'
   const componentId = '268b4cf8-a3c5-4003-8666-3b7a4f0a5af9'
@@ -64,7 +64,7 @@ describe('SessionState Tests', () => {
 
     it('should not change the state if the componentId does not exist', () => {
       store.dispatch(executeSuccessAction)
-      expect(store.getState().components).toStrictEqual({})
+      expect(store.getState().components).toStrictEqual(initialComponentState)
     })
 
     it('should update the state properly including the response', () => {
@@ -105,7 +105,7 @@ describe('SessionState Tests', () => {
 
     it('should not change the state if the componentId does not exist', () => {
       store.dispatch(executeFailureAction)
-      expect(store.getState().components).toStrictEqual({})
+      expect(store.getState().components).toStrictEqual(initialComponentState)
     })
 
     it('should update the state properly including both the action request and the error response', () => {
