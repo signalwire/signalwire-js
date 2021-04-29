@@ -2,14 +2,15 @@ import { uuid } from './utils'
 import { executeAction } from './redux'
 import { Emitter } from './utils/interfaces'
 import { SDKState } from './redux/interfaces'
+import { BaseComponentOptions } from './utils/interfaces'
 
-export class BaseComponent implements Emitter {
+export class BaseComponent implements Emitter<BaseComponent> {
   id = uuid()
 
   private _requests = new Map()
   private _destroyer?: () => void
 
-  constructor(public options: any) {}
+  constructor(public options: BaseComponentOptions<BaseComponent>) {}
 
   set destroyer(d: () => void) {
     this._destroyer = d
@@ -23,11 +24,25 @@ export class BaseComponent implements Emitter {
     return this.options.emitter
   }
 
-  on = this.emitter.on
-  off = this.emitter.off
-  once = this.emitter.once
-  removeAllListeners = this.emitter.removeAllListeners
-  emit = this.emitter.emit
+  on(...params: Parameters<Emitter['on']>) {
+    return this.emitter.on(...params)
+  }
+
+  once(...params: Parameters<Emitter['once']>) {
+    return this.emitter.once(...params)
+  }
+
+  off(...params: Parameters<Emitter['off']>) {
+    return this.emitter.off(...params)
+  }
+
+  emit(...params: Parameters<Emitter['emit']>) {
+    return this.emitter.emit(...params)
+  }
+
+  removeAllListeners(...params: Parameters<Emitter['removeAllListeners']>) {
+    return this.emitter.removeAllListeners(...params)
+  }
 
   destroy() {
     this._destroyer?.()
@@ -50,7 +65,7 @@ export class BaseComponent implements Emitter {
     })
   }
 
-  select <T>(selectorFn: (state: SDKState) => T) {
+  select<T>(selectorFn: (state: SDKState) => T) {
     return selectorFn(this.store.getState())
   }
 
