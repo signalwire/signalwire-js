@@ -48,19 +48,16 @@ export const createSession = (userOptions: UserOptions): Promise<Client> => {
     })
     const client = new Client(baseUserOptions, store)
     if (baseUserOptions.autoConnect) {
-      store.subscribe(() => {
+      const unsubscribe = store.subscribe(() => {
         const state = store.getState()
-        // @ts-ignore
-        if (state?.STORE_READY) {
+
+        if (state.session.protocol) {
           resolve(client)
+          unsubscribe()
         }
       })
 
       client.connect()
-      // Fake the redux subscribe above for now
-      setTimeout(() => {
-        resolve(client)
-      }, 2000)
     } else {
       resolve(client)
     }
