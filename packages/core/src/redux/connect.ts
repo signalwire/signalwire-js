@@ -17,6 +17,7 @@ export const connect = <T extends typeof BaseComponent>(
   const componentKeys = Object.keys(onStateChangeListeners)
 
   return (userOptions: any) => {
+    console.log('userOptions ?', { ...userOptions, store })
     const instance = new Component({ ...userOptions, store })
     const cacheMap = new Map<string, any>()
 
