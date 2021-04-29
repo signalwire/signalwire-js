@@ -4,7 +4,14 @@
   "version": "0.0.0",
   "source": "src/index.ts",
   "main": "dist/index.js",
-  "exports": "./dist/index.modern.js",
+  "esmodule": "./dist/index.modern.mjs",
+  "type": "commonjs",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "default": "./dist/index.modern.mjs"
+    }
+  },
   "module": "dist/index.esm.js",
   "types": "dist/core/src/index.d.ts",
   "files": [
