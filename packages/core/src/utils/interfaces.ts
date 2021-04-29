@@ -1,3 +1,4 @@
+import { Store } from 'redux'
 import { Session } from '../Session'
 
 export interface Emitter<T = {}> {
@@ -45,6 +46,11 @@ export interface SessionOptions {
 export interface UserOptions<T = {}> extends SessionOptions {
   devTools?: boolean
   emitter?: Emitter<T>
+}
+
+export interface BaseComponentOptions<T = {}> {
+  store: Store
+  emitter: Emitter<T>
 }
 
 export interface SessionRequestObject {

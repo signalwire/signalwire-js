@@ -9,6 +9,7 @@ import {
   VertoMethod,
   ConferenceMethod,
   selectors,
+  BaseComponentOptions,
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import { DEFAULT_CALL_OPTIONS, PeerType, Direction } from './utils/constants'
@@ -34,11 +35,13 @@ const ROOM_EVENTS = [
   'layout.changed',
 ]
 
+type BaseCallOptions = CallOptions & BaseComponentOptions<BaseCall>
+
 export class BaseCall extends BaseComponent {
   public nodeId = ''
   public direction: Direction
   public peer: RTCPeer
-  public options: CallOptions
+  public options: BaseCallOptions
   public cause: string
   public causeCode: string
   public gotEarly = false
@@ -59,7 +62,7 @@ export class BaseCall extends BaseComponent {
   private _roomSessionId: string
   private _memberId: string
 
-  constructor(options: CallOptions & { store: any }) {
+  constructor(options: BaseCallOptions) {
     super(options)
 
     const iceServers =
