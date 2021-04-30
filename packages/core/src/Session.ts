@@ -7,6 +7,7 @@ import {
   BladePingResponse,
 } from './RPCMessages'
 import {
+  SessionAuthError,
   SessionAuthStatus,
   SessionOptions,
   SessionRequestObject,
@@ -14,7 +15,6 @@ import {
   IBladeConnectResult,
   JSONRPCRequest,
   JSONRPCResponse,
-  SessionAuthError,
 } from './utils/interfaces'
 
 import {
