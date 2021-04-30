@@ -22,12 +22,18 @@ import {
   safeParseJson,
 } from './utils'
 
+type SessionAuthStatus =
+  | 'unknown'
+  | 'authorizing'
+  | 'authorized'
+  | 'unauthorized'
 export class Session {
   public uuid = uuid()
   public sessionid = ''
   public WebSocketConstructor: typeof WebSocket
 
   protected _bladeConnectResult: IBladeConnectResult
+  protected _authStatus: SessionAuthStatus = 'unknown'
 
   private _requests = new Map<string, SessionRequestObject>()
   private _requestQueue: SessionRequestQueued[] = []
@@ -58,6 +64,16 @@ export class Session {
     this.execute = this.execute.bind(this)
 
     this.logger.setLevel(this.logger.levels.INFO)
+  }
+
+  get authStatus(): SessionAuthStatus {
+    if (this.bladeConnectResult) {
+      return 'authorized'
+    } else if (this._authStatus === 'authorizing' && !this.bladeConnectResult) {
+      return 'unauthorized'
+    }
+
+    return this._authStatus
   }
 
   get bladeConnectResult() {
@@ -210,15 +226,18 @@ export class Session {
         params.params.protocol = this.relayProtocol
       }
       this._bladeConnectResult = await this.execute(BladeConnect(params))
+      this._authStatus = 'authorized'
     } catch (error) {
       // FIXME: Handle Auth Error
       console.error('Auth Error', error)
+      this._authStatus = 'unauthorized'
     }
   }
 
   protected async _onSocketOpen(event: Event) {
     logger.debug('_onSocketOpen', event)
     this._idle = false
+    this._authStatus = 'authorizing'
     await this.authenticate()
     this._emptyRequestQueue()
 
