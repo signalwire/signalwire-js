@@ -29,6 +29,7 @@ export {
   VertoMethod,
   ConferenceMethod,
 } from './utils/constants'
+export * as CustomErrors from './CustomErrors'
 
 export const selectors = {
   ...sessionSelectors,
