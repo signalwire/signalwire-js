@@ -1,11 +1,15 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { SessionState } from '../../interfaces'
-import { IBladeConnectResult } from '../../../utils/interfaces'
+import {
+  IBladeConnectResult,
+  SessionAuthStatus,
+} from '../../../utils/interfaces'
 import { destroyAction } from '../../actions'
 
 export const initialSessionState: Readonly<SessionState> = {
   protocol: '',
   iceServers: [],
+  authStatus: 'unknown',
 }
 
 const sessionSlice = createSlice({
@@ -15,6 +19,9 @@ const sessionSlice = createSlice({
     connected: (state, { payload }: PayloadAction<IBladeConnectResult>) => {
       state.protocol = payload?.result?.protocol ?? ''
       state.iceServers = payload?.result?.iceServers ?? []
+    },
+    validated: (state, { payload }: PayloadAction<SessionAuthStatus>) => {
+      state.authStatus = payload
     },
   },
   extraReducers: (builder) => {

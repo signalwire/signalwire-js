@@ -7,6 +7,7 @@ import {
   BladePingResponse,
 } from './RPCMessages'
 import {
+  SessionAuthStatus,
   SessionOptions,
   SessionRequestObject,
   SessionRequestQueued,
@@ -21,12 +22,6 @@ import {
   parseRPCResponse,
   safeParseJson,
 } from './utils'
-
-type SessionAuthStatus =
-  | 'unknown'
-  | 'authorizing'
-  | 'authorized'
-  | 'unauthorized'
 export class Session {
   public uuid = uuid()
   public sessionid = ''

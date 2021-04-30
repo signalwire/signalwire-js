@@ -43,6 +43,12 @@ export interface SessionOptions {
   autoConnect?: boolean
 }
 
+export type SessionAuthStatus =
+  | 'unknown'
+  | 'authorizing'
+  | 'authorized'
+  | 'unauthorized'
+
 export interface UserOptions<T = {}> extends SessionOptions {
   devTools?: boolean
   emitter?: Emitter<T>
