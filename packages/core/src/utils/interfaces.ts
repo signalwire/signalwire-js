@@ -49,6 +49,9 @@ export type SessionAuthStatus =
   | 'authorized'
   | 'unauthorized'
 
+// FIXME: add proper type
+export type SessionAuthError = any
+
 export interface UserOptions<T = {}> extends SessionOptions {
   devTools?: boolean
   emitter?: Emitter<T>

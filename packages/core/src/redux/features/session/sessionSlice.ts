@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { SessionState } from '../../interfaces'
 import {
   IBladeConnectResult,
+  SessionAuthError,
   SessionAuthStatus,
 } from '../../../utils/interfaces'
 import { destroyAction } from '../../actions'
@@ -20,8 +21,14 @@ const sessionSlice = createSlice({
       state.protocol = payload?.result?.protocol ?? ''
       state.iceServers = payload?.result?.iceServers ?? []
     },
-    validated: (state, { payload }: PayloadAction<SessionAuthStatus>) => {
-      state.authStatus = payload
+    validated: (
+      state,
+      {
+        payload,
+      }: PayloadAction<{ status: SessionAuthStatus; error?: SessionAuthError }>
+    ) => {
+      state.authStatus = payload.status
+      state.authError = payload.error
     },
   },
   extraReducers: (builder) => {

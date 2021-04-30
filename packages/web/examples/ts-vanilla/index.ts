@@ -22,6 +22,7 @@ window._makeClient = async ({ project, token, emitter }) => {
     window.__client = client
     return client
   } catch (e) {
-    console.log('Error', e)
+    console.error('Error Code', e.code)
+    console.error('Error Message', e.message)
   }
 }

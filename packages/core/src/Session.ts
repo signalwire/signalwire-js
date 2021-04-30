@@ -14,6 +14,7 @@ import {
   IBladeConnectResult,
   JSONRPCRequest,
   JSONRPCResponse,
+  SessionAuthError,
 } from './utils/interfaces'
 
 import {
@@ -29,6 +30,7 @@ export class Session {
 
   protected _bladeConnectResult: IBladeConnectResult
   protected _authStatus: SessionAuthStatus = 'unknown'
+  protected _authError?: SessionAuthError
 
   private _requests = new Map<string, SessionRequestObject>()
   private _requestQueue: SessionRequestQueued[] = []
@@ -69,6 +71,10 @@ export class Session {
     }
 
     return this._authStatus
+  }
+
+  get authError() {
+    return this._authError
   }
 
   get bladeConnectResult() {
@@ -232,6 +238,7 @@ export class Session {
   protected async _onSocketOpen(event: Event) {
     logger.debug('_onSocketOpen', event)
     this._idle = false
+    this._authError = undefined
     this._authStatus = 'authorizing'
     await this.authenticate()
     this._emptyRequestQueue()

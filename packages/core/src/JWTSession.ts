@@ -85,8 +85,9 @@ export class JWTSession extends Session {
       this._bladeConnectResult = await this.execute(BladeConnect(params))
       this._checkTokenExpiration()
     } catch (error) {
-      // FIXME: Handle Auth Error
-      console.error('Auth Error', error)
+      // TODO: Do we want to log this?
+      // console.error('Auth Error', error)
+      this._authError = error
     }
   }
 

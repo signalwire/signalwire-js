@@ -70,7 +70,12 @@ export default (options: RootSagaOptions) => {
       session
     )
     yield put(sessionActions.connected(session.bladeConnectResult))
-    yield put(sessionActions.validated(session.authStatus))
+    yield put(
+      sessionActions.validated({
+        status: session.authStatus,
+        error: session.authError,
+      })
+    )
 
     /**
      * Create a channel to communicate between sagas

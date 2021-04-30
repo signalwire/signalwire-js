@@ -51,13 +51,18 @@ export const createSession = (userOptions: UserOptions): Promise<Client> => {
     if (baseUserOptions.autoConnect) {
       const unsubscribe = store.subscribe(() => {
         const state = store.getState()
+        const session = state.session
 
-        if (state.session.authStatus === 'authorized') {
+        if (session.authStatus === 'authorized') {
           resolve(client)
           unsubscribe()
-        } else if (state.session.authStatus === 'unauthorized') {
-          // TODO: replace with proper error obj
-          reject(new CustomErrors.AuthError(200, 'some-error'))
+        } else if (session.authStatus === 'unauthorized') {
+          const authError = session.authError
+          const error = authError
+            ? new CustomErrors.AuthError(authError.code, authError.message)
+            : new Error('Unauthorized')
+
+          reject(error)
           unsubscribe()
         }
       })
