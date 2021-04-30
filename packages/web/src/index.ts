@@ -7,6 +7,7 @@ import {
   UserOptions,
   getEventEmitter,
   BaseComponent,
+  CustomErrors,
 } from '@signalwire/core'
 import { Call } from '@signalwire/webrtc'
 
@@ -37,7 +38,7 @@ export class Client extends SignalWire {
 }
 
 export const createSession = (userOptions: UserOptions): Promise<Client> => {
-  return new Promise((resolve, _reject) => {
+  return new Promise((resolve, reject) => {
     const baseUserOptions: UserOptions = {
       ...userOptions,
       emitter: getEventEmitter(userOptions),
@@ -51,8 +52,12 @@ export const createSession = (userOptions: UserOptions): Promise<Client> => {
       const unsubscribe = store.subscribe(() => {
         const state = store.getState()
 
-        if (state.session.protocol) {
+        if (state.session.authStatus === 'authorized') {
           resolve(client)
+          unsubscribe()
+        } else if (state.session.authStatus === 'unauthorized') {
+          // TODO: replace with proper error obj
+          reject(new CustomErrors.AuthError(200, 'some-error'))
           unsubscribe()
         }
       })
