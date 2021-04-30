@@ -3,7 +3,7 @@ import createSagaMiddleware, { Saga } from 'redux-saga'
 import { rootReducer } from './rootReducer'
 import rootSaga from './rootSaga'
 import { GetDefaultSagas, SDKState } from './interfaces'
-import { connect } from './utils'
+import { connect } from './connect'
 import { UserOptions, SessionConstructor } from '../utils/interfaces'
 
 interface ConfigureStoreOptions {

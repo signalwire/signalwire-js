@@ -27,7 +27,9 @@ export interface Message extends SWComponent {
 export type ReduxComponent = WebRTCCall | Message
 
 export interface ComponentState {
-  [key: string]: ReduxComponent
+  byId: {
+    [key: string]: ReduxComponent
+  }
 }
 
 export interface SessionState {
