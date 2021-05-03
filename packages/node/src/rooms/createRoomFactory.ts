@@ -1,4 +1,5 @@
-import { HttpClient } from '../types'
+import { HttpClient, RoomResponse } from '../types'
+import { listAllRoomsFactory } from './listAllRoomsFactory'
 
 interface CreateRoomOptions {
   name: string
@@ -9,21 +10,7 @@ interface CreateRoomOptions {
   endsAt?: string
 }
 
-interface CreateRoomResponse {
-  id: string
-  name: string
-  display_name: string
-  max_participants: number
-  delete_on_end: boolean
-  starts_at: string
-  ends_at: string
-  created_at: string
-  updated_at: string
-}
-
-export type CreateRoom = (
-  options: CreateRoomOptions
-) => Promise<CreateRoomResponse>
+export type CreateRoom = (options: CreateRoomOptions) => Promise<RoomResponse>
 
 type CreateRoomFactory = (client: HttpClient) => CreateRoom
 
@@ -38,7 +25,27 @@ export const createRoomFactory: CreateRoomFactory = (client) => async (
     startsAt: starts_at,
     endsAt: ends_at,
   } = options
-  const { body } = await client.post<CreateRoomResponse>('video/rooms', {
+
+  try {
+    // TODO: Replace this once we have an API for fetching by roomName
+    const listAllRooms = listAllRoomsFactory(client)
+    const rooms = await listAllRooms()
+
+    const existingRoom = rooms.rooms.find((room) => room.name === name)
+
+    if (existingRoom) {
+      return existingRoom
+    }
+  } catch (e) {
+    console.error(
+      'Error while trying to fetch list of available rooms',
+      e.response.body
+    )
+
+    // TODO: handle error
+  }
+
+  const { body } = await client.post<RoomResponse>('video/rooms', {
     json: {
       name,
       display_name,
