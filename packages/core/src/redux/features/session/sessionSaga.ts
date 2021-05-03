@@ -237,7 +237,6 @@ export function* sessionChannelWatcher({
         yield fork(bladeBroadcastWorker, params)
         break
       default:
-        // yield put(action)
         return logger.debug(`Unknown message: ${method}`, payload)
     }
   }
@@ -261,7 +260,6 @@ export function* sessionChannelWatcher({
 
 export function createSessionChannel(session: Session) {
   return eventChannel((emit) => {
-    // TODO: Replace eventHandler with .on() notation ?
     session.eventHandler = (payload: any) => {
       emit(payload)
     }
