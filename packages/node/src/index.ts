@@ -1,6 +1,6 @@
 import got from 'got'
 import { getConfig } from './get-config'
-import { createRoomFactory } from './rooms/createFactory'
+import { createRoomFactory } from './rooms/createRoomFactory'
 import { Client } from './types'
 
 export const createClient: Client = (options) => {

@@ -1,6 +1,6 @@
 import { Got } from 'got'
 import { ConfigParamaters } from './get-config'
-import { CreateRoom } from './rooms/createFactory'
+import { CreateRoom } from './rooms/createRoomFactory'
 
 export type HttpClient = Got
 
