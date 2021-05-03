@@ -21,7 +21,7 @@ import {
   disableVideoTracks,
   toggleVideoTracks,
 } from './utils/helpers'
-import { CallOptions, IHangupParams } from './utils/interfaces'
+import { CallOptions } from './utils/interfaces'
 import { stopStream } from './utils/webrtcHelpers'
 
 const ROOM_EVENTS = [
@@ -358,14 +358,14 @@ export class BaseCall extends BaseComponent {
   //   // return this.vertoExecute(msg)
   // }
 
-  async hangup(params?: IHangupParams) {
+  async hangup() {
     try {
       const bye = VertoBye(this.messagePayload)
       await this.vertoExecute(bye)
     } catch (error) {
       logger.error('Hangup error:', error)
     } finally {
-      this._hangup(params)
+      this._hangup()
     }
   }
 
@@ -542,7 +542,7 @@ export class BaseCall extends BaseComponent {
   //   this._laChannelVideoMuted = vmuted
   // }
 
-  private _hangup(params: IHangupParams = {}) {
+  private _hangup(params: any = {}) {
     const {
       cause = 'NORMAL_CLEARING',
       code = '16',
