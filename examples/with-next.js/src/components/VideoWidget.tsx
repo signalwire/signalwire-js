@@ -19,8 +19,8 @@ export const VideoWidget = ({
   const audioMuted = useRef<boolean>(false)
   const videoMuted = useRef<boolean>(false)
 
-  const [call] = useState(() =>
-    client.rooms.makeCall({
+  const [call] = useState(() => {
+    return client.rooms.makeCall({
       destinationNumber: roomName,
       callerName: userName,
       audio: true,
@@ -28,8 +28,8 @@ export const VideoWidget = ({
       experimental: true,
       // TODO:
       callerNumber: 'john@doe.com',
-    })
-  )
+    }) as any
+  })
   const dispatch = useAppDispatch()
 
   useEffect(() => {
