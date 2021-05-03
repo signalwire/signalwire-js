@@ -1,6 +1,6 @@
 export interface ConfigParamaters {
-  projectId: string
-  projectToken: string
+  projectId?: string
+  projectToken?: string
   spaceHost?: string
 }
 
