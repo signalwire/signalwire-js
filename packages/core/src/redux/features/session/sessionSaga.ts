@@ -150,26 +150,6 @@ export function* sessionChannelWatcher({
       //   const call = _buildCall(session, params, attach, nodeId)
       //   return trigger(call.id, params, method)
       // }
-      // case VertoMethod.Event:
-      // case 'webrtc.event': {
-      //   const { subscribedChannel } = params
-      //   if (
-      //     subscribedChannel &&
-      //     trigger(session.relayProtocol, params, subscribedChannel)
-      //   ) {
-      //     return
-      //   }
-      //   if (eventChannel) {
-      //     const channelType = eventChannel.split('.')[0]
-      //     const global = trigger(session.relayProtocol, params, channelType)
-      //     const specific = trigger(session.relayProtocol, params, eventChannel)
-      //     if (global || specific) {
-      //       return
-      //     }
-      //   }
-      //   params.type = Notification.Generic
-      //   return trigger(SwEvent.Notification, params, session.uuid)
-      // }
       case VertoMethod.Info:
         return logger.debug('Verto Info', params)
       case VertoMethod.ClientReady:
