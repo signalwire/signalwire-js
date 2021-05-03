@@ -21,7 +21,7 @@ import {
   disableVideoTracks,
   toggleVideoTracks,
 } from './utils/helpers'
-import { CallOptions, IHangupParams } from './utils/interfaces'
+import { CallOptions } from './utils/interfaces'
 import { stopStream } from './utils/webrtcHelpers'
 
 const ROOM_EVENTS = [
@@ -211,7 +211,14 @@ export class BaseCall extends BaseComponent {
 
   public onStateChange(component: any) {
     logger.debug('onStateChange', component)
-    this.setState(component.state)
+    switch (component.state) {
+      case SwWebRTCCallState.Hangup:
+        this._hangup(component)
+        break
+      default:
+        this.setState(component.state)
+        break
+    }
   }
 
   public onRemoteSDP(component: any) {
@@ -333,9 +340,17 @@ export class BaseCall extends BaseComponent {
 
   async executeInvite(sdp: string) {
     this.setState(SwWebRTCCallState.Requesting)
-    const msg = VertoInvite({ ...this.messagePayload, sdp })
-    const response = await this.vertoExecute(msg)
-    logger.debug('Invite response', response)
+    try {
+      const msg = VertoInvite({ ...this.messagePayload, sdp })
+      const response = await this.vertoExecute(msg)
+      logger.debug('Invite response', response)
+    } catch (error) {
+      const { action, jsonrpc } = error
+      logger.error('Invite Error', jsonrpc, action)
+      if (jsonrpc?.code === '404') {
+        this.setState(SwWebRTCCallState.Hangup)
+      }
+    }
   }
 
   // executeUpdateMedia() {
@@ -358,14 +373,14 @@ export class BaseCall extends BaseComponent {
   //   // return this.vertoExecute(msg)
   // }
 
-  async hangup(params?: IHangupParams) {
+  async hangup() {
     try {
       const bye = VertoBye(this.messagePayload)
       await this.vertoExecute(bye)
     } catch (error) {
       logger.error('Hangup error:', error)
     } finally {
-      this._hangup(params)
+      this._hangup()
     }
   }
 
@@ -465,7 +480,7 @@ export class BaseCall extends BaseComponent {
       `Call ${this.id} state change from ${this.prevState} to ${this.state}`
     )
 
-    // this._dispatchNotification({ type: Notification.CallUpdate })
+    this.emit(this.state, this)
 
     switch (state) {
       case SwWebRTCCallState.Purge: {
@@ -542,19 +557,19 @@ export class BaseCall extends BaseComponent {
   //   this._laChannelVideoMuted = vmuted
   // }
 
-  private _hangup(params: IHangupParams = {}) {
+  private _hangup(params: any = {}) {
     const {
-      cause = 'NORMAL_CLEARING',
-      code = '16',
-      redirectDestination = null,
+      byeCause = 'NORMAL_CLEARING',
+      byeCauseCode = '16',
+      redirectDestination,
     } = params
-    this.cause = cause
-    this.causeCode = code
-    if (redirectDestination && this.trying) {
-      logger.warn('Execute invite again!')
-      // return this.peer.executeInvite()
+    this.cause = byeCause
+    this.causeCode = byeCauseCode
+    if (redirectDestination && this.trying && this.peer.localSdp) {
+      logger.warn('Execute invite again')
+      return this.executeInvite(this.peer.localSdp)
     }
-    this.setState(SwWebRTCCallState.Hangup)
+    return this.setState(SwWebRTCCallState.Hangup)
   }
 
   // private _onParticipantData(params: any) {
@@ -580,7 +595,6 @@ export class BaseCall extends BaseComponent {
   // }
 
   protected _finalize() {
-    this.emit('left')
     if (this.peer && this.peer.instance) {
       this.peer.instance.close()
       // @ts-ignore

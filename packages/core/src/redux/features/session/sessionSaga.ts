@@ -4,10 +4,14 @@ import { PayloadAction } from '@reduxjs/toolkit'
 import { Session } from '../../..'
 import { VertoResult } from '../../../RPCMessages'
 import { JSONRPCRequest } from '../../../utils/interfaces'
-import { ExecuteActionParams } from '../../interfaces'
+import { ExecuteActionParams, WebRTCCall } from '../../interfaces'
 import { executeAction } from '../../actions'
 import { componentActions } from '../'
-import { BladeMethod, VertoMethod } from '../../../utils/constants'
+import {
+  BladeMethod,
+  SwWebRTCCallState,
+  VertoMethod,
+} from '../../../utils/constants'
 import { BladeExecute } from '../../../RPCMessages'
 import { logger } from '../../../utils'
 
@@ -76,7 +80,7 @@ export function* sessionChannelWatcher({
       case VertoMethod.Media: {
         const component = {
           id: callID,
-          state: 'early', // FIXME: Use the enum
+          state: SwWebRTCCallState.Early,
           remoteSDP: params.sdp,
           nodeId,
         }
@@ -84,13 +88,12 @@ export function* sessionChannelWatcher({
         break
       }
       case VertoMethod.Answer: {
-        const component = {
+        const component: WebRTCCall = {
           id: callID,
-          state: 'active', // FIXME: Use the enum
+          state: SwWebRTCCallState.Active,
           nodeId,
         }
         if (params?.sdp) {
-          // @ts-expect-error
           component.remoteSDP = params.sdp
         }
         yield put(componentActions.upsert(component))
@@ -105,6 +108,18 @@ export function* sessionChannelWatcher({
             },
           })
         )
+        break
+      }
+      case VertoMethod.Bye: {
+        const component: WebRTCCall = {
+          id: callID,
+          state: SwWebRTCCallState.Hangup,
+          nodeId,
+          byeCause: params?.cause ?? '',
+          byeCauseCode: params?.causeCode ?? 0,
+          redirectDestination: params?.redirectDestination,
+        }
+        yield put(componentActions.update(component))
         break
       }
       case VertoMethod.Ping:

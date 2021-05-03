@@ -142,12 +142,6 @@ export interface ICanvasLayout {
   participantId: string
 }
 
-export interface IHangupParams {
-  code?: string
-  cause?: string
-  redirectDestination?: any
-}
-
 export interface ICallParticipant {
   id: string
   role: string
