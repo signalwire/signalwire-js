@@ -1,6 +1,10 @@
 import { Saga } from '@redux-saga/types'
 import { PayloadAction } from '@reduxjs/toolkit'
-import { JSONRPCResponse } from '../utils/interfaces'
+import {
+  JSONRPCResponse,
+  SessionAuthError,
+  SessionAuthStatus,
+} from '../utils/interfaces'
 
 interface SWComponent {
   id: string
@@ -35,6 +39,8 @@ export interface ComponentState {
 export interface SessionState {
   protocol: string
   iceServers?: RTCIceServer[]
+  authStatus: SessionAuthStatus
+  authError?: SessionAuthError
 }
 
 export interface SDKState {

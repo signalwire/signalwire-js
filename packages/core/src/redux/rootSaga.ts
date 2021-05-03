@@ -26,13 +26,16 @@ const initSession = (
   userOptions: UserOptions
 ) => {
   logger.debug('Init Session', userOptions)
-  return new Promise((resolve, _reject) => {
+  return new Promise((resolve, reject) => {
     const session = new SessionConstructor({
       ...userOptions,
       onReady: async () => {
-        logger.debug('JWTSession Ready', session)
         resolve(session)
         userOptions?.onReady?.()
+      },
+      onAuthError: async (error) => {
+        reject(error)
+        userOptions?.onAuthError?.(error)
       },
     })
 
@@ -60,11 +63,14 @@ export default (options: RootSagaOptions) => {
      * Create Session and related sessionChannel to
      * send/receive websocket messages
      */
-    const session: Session = yield call(
-      initSession,
-      options.SessionConstructor,
-      userOptions
-    )
+    let session: Session
+    try {
+      session = yield call(initSession, options.SessionConstructor, userOptions)
+    } catch (error) {
+      yield put(sessionActions.authError({ authError: error }))
+      return
+    }
+
     const sessionChannel: EventChannel<unknown> = yield call(
       createSessionChannel,
       session

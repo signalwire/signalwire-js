@@ -11,10 +11,9 @@ window._makeClient = async ({ project, token, emitter }) => {
     project,
     token,
     autoConnect: true,
-    onReady: async () => {
-      console.debug('Session Ready')
-    },
     emitter,
+  }).catch((error) => {
+    console.error('Error?', error)
   })
 
   // @ts-ignore
