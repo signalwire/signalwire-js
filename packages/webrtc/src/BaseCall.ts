@@ -465,7 +465,7 @@ export class BaseCall extends BaseComponent {
       `Call ${this.id} state change from ${this.prevState} to ${this.state}`
     )
 
-    // this._dispatchNotification({ type: Notification.CallUpdate })
+    this.emit(this.state, this)
 
     switch (state) {
       case SwWebRTCCallState.Purge: {
@@ -580,7 +580,6 @@ export class BaseCall extends BaseComponent {
   // }
 
   protected _finalize() {
-    this.emit('left')
     if (this.peer && this.peer.instance) {
       this.peer.instance.close()
       // @ts-ignore
