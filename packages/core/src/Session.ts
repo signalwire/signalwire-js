@@ -197,32 +197,32 @@ export class Session {
    * @return Promise<void>
    */
   async authenticate() {
-    try {
-      const params: BladeConnectParams = {
-        authentication: {
-          project: this.options.project,
-          token: this.options.token,
-        },
-        params: {},
-      }
-      if (this._relayProtocolIsValid()) {
-        params.params = params.params || {}
-        params.params.protocol = this.relayProtocol
-      }
-      this._bladeConnectResult = await this.execute(BladeConnect(params))
-    } catch (error) {
-      // FIXME: Handle Auth Error
-      console.error('Auth Error', error)
+    const params: BladeConnectParams = {
+      authentication: {
+        project: this.options.project,
+        token: this.options.token,
+      },
+      params: {},
     }
+    if (this._relayProtocolIsValid()) {
+      params.params = params.params || {}
+      params.params.protocol = this.relayProtocol
+    }
+    this._bladeConnectResult = await this.execute(BladeConnect(params))
   }
 
   protected async _onSocketOpen(event: Event) {
     logger.debug('_onSocketOpen', event)
     this._idle = false
-    await this.authenticate()
-    this._emptyRequestQueue()
+    try {
+      await this.authenticate()
+      this._emptyRequestQueue()
 
-    this?.options?.onReady?.()
+      this?.options?.onReady?.()
+    } catch (error) {
+      logger.error('Auth Error', error)
+      this?.options?.onAuthError?.(error)
+    }
   }
 
   protected _onSocketError(event: Event) {

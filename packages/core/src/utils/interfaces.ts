@@ -40,6 +40,7 @@ export interface SessionOptions {
   project: string
   token: string
   onReady?: () => Promise<void>
+  onAuthError?: (error: Error) => Promise<void>
   autoConnect?: boolean
 }
 
@@ -93,3 +94,14 @@ export interface IBladeConnectResult {
 }
 
 export type SessionConstructor = typeof Session
+
+export type SessionAuthStatus =
+  | 'unknown'
+  | 'authorizing'
+  | 'authorized'
+  | 'unauthorized'
+
+export type SessionAuthError = {
+  code: number
+  error: string
+}
