@@ -1,11 +1,23 @@
-import { uuid, logger } from '@signalwire/core'
+import got from 'got'
+import { getConfig } from './get-config'
+import { createRoomFactory } from './rooms/createFactory'
+import { Client } from './types'
 
-export * from '@signalwire/core'
+export const createClient: Client = (options) => {
+  const config = getConfig(options)
 
-export const sum = (a: number, b: number) => {
-  if ('development' === process.env.NODE_ENV) {
-    logger.info('Core feature', uuid())
+  const client = got.extend({
+    prefixUrl: config.spaceHost,
+    headers: {
+      Authorization: `Basic ${Buffer.from(config.authCreds).toString(
+        'base64'
+      )}`,
+    },
+  })
+
+  const createRoom = createRoomFactory(client)
+
+  return {
+    createRoom,
   }
-
-  return a + b
 }
