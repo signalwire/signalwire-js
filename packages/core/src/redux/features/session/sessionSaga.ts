@@ -110,6 +110,18 @@ export function* sessionChannelWatcher({
         )
         break
       }
+      case VertoMethod.Bye: {
+        const component: WebRTCCall = {
+          id: callID,
+          state: SwWebRTCCallState.Hangup,
+          nodeId,
+          byeCause: params?.cause ?? '',
+          byeCauseCode: params?.causeCode ?? 0,
+          redirectDestination: params?.redirectDestination,
+        }
+        yield put(componentActions.update(component))
+        break
+      }
       case VertoMethod.Ping:
         yield put(
           executeAction({

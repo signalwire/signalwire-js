@@ -211,7 +211,14 @@ export class BaseCall extends BaseComponent {
 
   public onStateChange(component: any) {
     logger.debug('onStateChange', component)
-    this.setState(component.state)
+    switch (component.state) {
+      case SwWebRTCCallState.Hangup:
+        this._hangup(component)
+        break
+      default:
+        this.setState(component.state)
+        break
+    }
   }
 
   public onRemoteSDP(component: any) {
@@ -333,9 +340,17 @@ export class BaseCall extends BaseComponent {
 
   async executeInvite(sdp: string) {
     this.setState(SwWebRTCCallState.Requesting)
-    const msg = VertoInvite({ ...this.messagePayload, sdp })
-    const response = await this.vertoExecute(msg)
-    logger.debug('Invite response', response)
+    try {
+      const msg = VertoInvite({ ...this.messagePayload, sdp })
+      const response = await this.vertoExecute(msg)
+      logger.debug('Invite response', response)
+    } catch (error) {
+      const { action, jsonrpc } = error
+      logger.error('Invite Error', jsonrpc, action)
+      if (jsonrpc?.code === '404') {
+        this.setState(SwWebRTCCallState.Hangup)
+      }
+    }
   }
 
   // executeUpdateMedia() {
@@ -544,17 +559,17 @@ export class BaseCall extends BaseComponent {
 
   private _hangup(params: any = {}) {
     const {
-      cause = 'NORMAL_CLEARING',
-      code = '16',
-      redirectDestination = null,
+      byeCause = 'NORMAL_CLEARING',
+      byeCauseCode = '16',
+      redirectDestination,
     } = params
-    this.cause = cause
-    this.causeCode = code
-    if (redirectDestination && this.trying) {
-      logger.warn('Execute invite again!')
-      // return this.peer.executeInvite()
+    this.cause = byeCause
+    this.causeCode = byeCauseCode
+    if (redirectDestination && this.trying && this.peer.localSdp) {
+      logger.warn('Execute invite again')
+      return this.executeInvite(this.peer.localSdp)
     }
-    this.setState(SwWebRTCCallState.Hangup)
+    return this.setState(SwWebRTCCallState.Hangup)
   }
 
   // private _onParticipantData(params: any) {
