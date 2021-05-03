@@ -46,7 +46,7 @@ export const connect = <T extends typeof BaseComponent>(
         }
       })
     })
-    store.dispatch(componentActions.update({ id: instance.id }))
+    store.dispatch(componentActions.upsert({ id: instance.id }))
 
     instance.destroyer = () => {
       storeUnsubscribe()

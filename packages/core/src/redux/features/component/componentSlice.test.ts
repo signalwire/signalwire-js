@@ -21,7 +21,7 @@ describe('ComponentState Tests', () => {
   describe('update action', () => {
     it('should create a new entry if the id is not in the state', () => {
       expect(getComponent(store.getState(), componentId)).toBeUndefined()
-      store.dispatch(componentActions.update(component))
+      store.dispatch(componentActions.upsert(component))
 
       expect(getComponent(store.getState(), componentId)).toStrictEqual({
         id: '268b4cf8-a3c5-4003-8666-3b7a4f0a5af9',
@@ -29,14 +29,14 @@ describe('ComponentState Tests', () => {
     })
 
     it('should update the state properly', () => {
-      store.dispatch(componentActions.update(component))
+      store.dispatch(componentActions.upsert(component))
 
       expect(getComponent(store.getState(), componentId)).toStrictEqual({
         id: '268b4cf8-a3c5-4003-8666-3b7a4f0a5af9',
       })
 
       store.dispatch(
-        componentActions.update({
+        componentActions.upsert({
           ...component,
           state: 'active',
         })
@@ -69,7 +69,7 @@ describe('ComponentState Tests', () => {
 
     it('should update the state properly including the response', () => {
       // Create the component first
-      store.dispatch(componentActions.update(component))
+      store.dispatch(componentActions.upsert(component))
       store.dispatch(executeSuccessAction)
 
       expect(getComponent(store.getState(), componentId)).toStrictEqual({
@@ -110,7 +110,7 @@ describe('ComponentState Tests', () => {
 
     it('should update the state properly including both the action request and the error response', () => {
       // Create the component first
-      store.dispatch(componentActions.update(component))
+      store.dispatch(componentActions.upsert(component))
       store.dispatch(executeFailureAction)
 
       expect(getComponent(store.getState(), componentId)).toStrictEqual({
@@ -127,9 +127,9 @@ describe('ComponentState Tests', () => {
 
   it('should reset to initial on destroyAction', () => {
     // Create some components first
-    store.dispatch(componentActions.update(component))
+    store.dispatch(componentActions.upsert(component))
     store.dispatch(
-      componentActions.update({
+      componentActions.upsert({
         id: 'random',
       })
     )

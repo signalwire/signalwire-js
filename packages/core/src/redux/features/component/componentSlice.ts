@@ -25,7 +25,7 @@ const componentSlice = createSlice({
   name: 'components',
   initialState: initialComponentState,
   reducers: {
-    update: (state, { payload }: PayloadAction<UpdateComponent>) => {
+    upsert: (state, { payload }: PayloadAction<UpdateComponent>) => {
       if (payload.id in state.byId) {
         // To avoid spread operator, update only the keys passed in.
         Object.keys(payload).forEach((key) => {
