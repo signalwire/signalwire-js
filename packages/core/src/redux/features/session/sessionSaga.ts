@@ -80,7 +80,7 @@ export function* sessionChannelWatcher({
           remoteSDP: params.sdp,
           nodeId,
         }
-        yield put(componentActions.update(component))
+        yield put(componentActions.upsert(component))
         break
       }
       case VertoMethod.Answer: {
@@ -93,7 +93,7 @@ export function* sessionChannelWatcher({
           // @ts-expect-error
           component.remoteSDP = params.sdp
         }
-        yield put(componentActions.update(component))
+        yield put(componentActions.upsert(component))
         yield put(
           executeAction({
             componentId: '', // FIXME: remove componentId
@@ -171,7 +171,7 @@ export function* sessionChannelWatcher({
     switch (params.event_type) {
       case 'room.subscribed': {
         yield put(
-          componentActions.update({
+          componentActions.upsert({
             id: params.params.call_id,
             roomId: params.params.room.room_id,
             roomSessionId: params.params.room.room_session_id,

@@ -28,12 +28,12 @@ describe('Connect', () => {
 
     mockOnRemoteSDP.mockClear()
 
-    updateStateAction = componentActions.update({
+    updateStateAction = componentActions.upsert({
       id: instance.id,
       state: 'active',
     })
 
-    updateRemoteSDPAction = componentActions.update({
+    updateRemoteSDPAction = componentActions.upsert({
       id: instance.id,
       remoteSDP: '<SDP>',
     })
