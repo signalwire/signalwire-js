@@ -1,6 +1,8 @@
 import got from 'got'
 import { getConfig } from './get-config'
 import { createRoomFactory } from './rooms/createRoomFactory'
+import { createVRTFactory } from './rooms/createVRTFactory'
+import { listAllRoomsFactory } from './rooms/listAllRoomsFactory'
 import { Client } from './types'
 
 export const createClient: Client = (options) => {
@@ -16,8 +18,12 @@ export const createClient: Client = (options) => {
   })
 
   const createRoom = createRoomFactory(client)
+  const createVRT = createVRTFactory(client)
+  const listAllRooms = listAllRoomsFactory(client)
 
   return {
     createRoom,
+    createVRT,
+    listAllRooms,
   }
 }
