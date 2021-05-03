@@ -1,6 +1,6 @@
 import { forwardRef, InputHTMLAttributes } from 'react'
 import { useForm } from 'react-hook-form'
-import { useAppDispatch } from './AppController'
+import { useAppDispatch, useAppState } from './AppController'
 
 const InputField = forwardRef<
   HTMLInputElement,
@@ -27,10 +27,13 @@ export const JoinWidget = () => {
     formState: { errors },
   } = useForm()
   const dispatch = useAppDispatch()
+  const state = useAppState()
 
   return (
     <form
       onSubmit={handleSubmit(async (formData) => {
+        dispatch({ type: 'authorizing' })
+
         const response = await fetch('/api/auth', {
           method: 'POST',
           body: JSON.stringify(formData),
@@ -50,6 +53,7 @@ export const JoinWidget = () => {
         id='room_name'
         label='Room Name'
         aria-invalid={errors.room_name ? 'true' : 'false'}
+        disabled={state.status !== 'idle'}
         {...register('room_name', { required: true })}
       />
 
@@ -57,14 +61,16 @@ export const JoinWidget = () => {
         id='user_name'
         label='User Name'
         aria-invalid={errors.user_name ? 'true' : 'false'}
+        disabled={state.status !== 'idle'}
         {...register('user_name', { required: true })}
       />
 
       <button
         type='submit'
         className='w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+        disabled={state.status !== 'idle'}
       >
-        Join
+        {state.status === 'idle' ? 'Join' : 'Processing...'}
       </button>
     </form>
   )

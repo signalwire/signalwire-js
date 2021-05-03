@@ -6,11 +6,11 @@ import {
   useReducer,
 } from 'react'
 
-type AppStatus = 'idle' | 'authorized' | 'active'
+type AppStatus = 'idle' | 'authorizing' | 'authorized' | 'active'
 
 type AppControllerState =
   | {
-      status: Extract<AppStatus, 'idle'>
+      status: Extract<AppStatus, 'idle' | 'authorizing'>
     }
   | {
       status: Exclude<AppStatus, 'idle'>
@@ -33,6 +33,9 @@ const AppControllerDispatchContext = createContext<
 
 type AppControllerAction =
   | {
+      type: 'authorizing'
+    }
+  | {
       type: 'authorized'
       payload: {
         projectId: string
@@ -50,6 +53,14 @@ type AppControllerAction =
 
 const reducer = (state: AppControllerState, action: AppControllerAction) => {
   switch (action.type) {
+    case 'authorizing': {
+      const newState: AppControllerState = {
+        ...state,
+        status: 'authorizing',
+      }
+
+      return newState
+    }
     case 'authorized': {
       const newState: AppControllerState = {
         ...state,

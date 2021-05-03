@@ -20,13 +20,14 @@
     "node": ">=10"
   },
   "scripts": {
-    "start": "microbundle watch -f modern --tsconfig tsconfig.build.json",
-    "build": "pkg-typings --pre-run && microbundle --external none -f modern,es,cjs --define process.env.NODE_ENV=production --tsconfig ./tsconfig.build.json --target node && pkg-typings --after-run",
+    "start": "microbundle watch -f es,modern --tsconfig tsconfig.build.json",
+    "build": "pkg-typings --pre-run && microbundle --external got -f modern,es,cjs --define process.env.NODE_ENV=production --tsconfig ./tsconfig.build.json --target node && pkg-typings --after-run",
     "test": "NODE_ENV=test jest",
     "prepare": "npm run build"
   },
   "dependencies": {
-    "@signalwire/core": "0.0.0"
+    "@signalwire/core": "0.0.0",
+    "got": "^11.8.2"
   },
   "types": "dist/node/src/index.d.ts"
 }
