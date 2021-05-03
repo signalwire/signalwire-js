@@ -34,4 +34,4 @@ export interface RoomResponse {
   updated_at: string
 }
 
-export type Client = (options: ConfigParamaters) => VideoSDKClient
+export type Client = (options?: ConfigParamaters) => VideoSDKClient

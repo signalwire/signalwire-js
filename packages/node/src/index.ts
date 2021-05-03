@@ -5,7 +5,7 @@ import { createVRTFactory } from './rooms/createVRTFactory'
 import { listAllRoomsFactory } from './rooms/listAllRoomsFactory'
 import { Client } from './types'
 
-export const createClient: Client = (options) => {
+export const createClient: Client = (options = {}) => {
   const config = getConfig(options)
 
   const client = got.extend({
