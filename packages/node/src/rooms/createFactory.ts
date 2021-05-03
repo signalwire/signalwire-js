@@ -38,7 +38,7 @@ export const createRoomFactory: CreateRoomFactory = (client) => async (
     startsAt: starts_at,
     endsAt: ends_at,
   } = options
-  const { body } = await client.post<CreateRoomResponse>('/video/rooms', {
+  const { body } = await client.post<CreateRoomResponse>('video/rooms', {
     json: {
       name,
       display_name,
