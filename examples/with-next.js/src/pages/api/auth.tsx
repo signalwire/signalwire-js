@@ -1,4 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
+import { createClient } from '@signalwire/node'
 
 const assertRequiredParams = (body: NextApiRequest['body']) => {
   if (!body.room_name || !body.user_name) {
@@ -8,8 +9,6 @@ const assertRequiredParams = (body: NextApiRequest['body']) => {
   return true
 }
 
-const DEFAULT_HOST = process.env.SPACE_HOST || 'dev.swire.io'
-const baseUrl = `https://${DEFAULT_HOST}`
 const SCOPES = [
   'conference.self.audio_mute',
   'conference.self.audio_unmute',
@@ -28,35 +27,34 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       })
     }
 
-    const authCreds = `${process.env.PROJECT_ID}:${process.env.PROJECT_TOKEN}`
+    try {
+      const client = createClient({
+        projectId: process.env.PROJECT_ID as string,
+        projectToken: process.env.PROJECT_TOKEN as string,
+      })
 
-    const response = await fetch(`${baseUrl}/api/video/room_tokens`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Basic ${Buffer.from(authCreds).toString('base64')}`,
-      },
-      body: JSON.stringify({
-        ...reqBody,
+      const roomInfo = await client.createRoom({
+        name: reqBody.room_name,
+      })
+
+      const vrt = await client.createVRT({
+        roomName: roomInfo.name,
+        userName: reqBody.user_name,
         scopes: SCOPES,
-      }),
-    })
+      })
 
-    if (!response.ok) {
+      res.status(200).json({
+        data: {
+          ...vrt,
+          projectId: process.env.PROJECT_ID,
+        },
+      })
+    } catch (e) {
       return res.status(403).json({
         statusCode: 403,
         message: 'Unauthorized',
       })
     }
-
-    const data = await response.json()
-
-    res.status(200).json({
-      data: {
-        ...data,
-        projectId: process.env.PROJECT_ID,
-      },
-    })
   } catch (err) {
     res.status(500).json({ statusCode: 500, message: err.message })
   }
