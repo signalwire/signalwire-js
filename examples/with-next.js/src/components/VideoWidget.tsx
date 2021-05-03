@@ -28,7 +28,6 @@ export const VideoWidget = ({
       experimental: true,
       // TODO:
       callerNumber: 'john@doe.com',
-      iceServers: [{ urls: ['stun:stun.l.google.com:19302'] }],
     })
   )
   const dispatch = useAppDispatch()
