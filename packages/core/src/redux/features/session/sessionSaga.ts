@@ -29,7 +29,6 @@ type SessionSagaParams = {
  */
 export function* executeActionWatcher(session: Session): SagaIterator {
   function* worker(action: PayloadAction<ExecuteActionParams>): SagaIterator {
-    // TODO: make componentId and requestId optional to re-use this watcher/worker
     const { componentId, requestId, method, params } = action.payload
     try {
       const message = BladeExecute({
@@ -39,23 +38,27 @@ export function* executeActionWatcher(session: Session): SagaIterator {
         params,
       })
       const response = yield call(session.execute, message)
-      yield put(
-        componentActions.executeSuccess({
-          componentId,
-          requestId,
-          response,
-        })
-      )
+      if (componentId && requestId) {
+        yield put(
+          componentActions.executeSuccess({
+            componentId,
+            requestId,
+            response,
+          })
+        )
+      }
     } catch (error) {
       logger.warn('worker error', componentId, error)
-      yield put(
-        componentActions.executeFailure({
-          componentId,
-          requestId,
-          action,
-          error,
-        })
-      )
+      if (componentId && requestId) {
+        yield put(
+          componentActions.executeFailure({
+            componentId,
+            requestId,
+            action,
+            error,
+          })
+        )
+      }
     }
   }
 
@@ -99,8 +102,6 @@ export function* sessionChannelWatcher({
         yield put(componentActions.upsert(component))
         yield put(
           executeAction({
-            componentId: '', // FIXME: remove componentId
-            requestId: id, // FIXME: remove requestId
             method: 'video.message',
             params: {
               message: VertoResult(id, method),
@@ -125,8 +126,6 @@ export function* sessionChannelWatcher({
       case VertoMethod.Ping:
         yield put(
           executeAction({
-            componentId: '', // FIXME: remove componentId
-            requestId: id, // FIXME: remove requestId
             method: 'video.message',
             params: {
               message: VertoResult(id, method),
