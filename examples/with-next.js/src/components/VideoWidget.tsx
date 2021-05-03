@@ -28,7 +28,6 @@ export const VideoWidget = ({
       experimental: true,
       // TODO:
       callerNumber: 'john@doe.com',
-      iceServers: [{ urls: ['stun:stun.l.google.com:19302'] }],
     })
   )
   const dispatch = useAppDispatch()
@@ -96,8 +95,8 @@ export const VideoWidget = ({
           <button
             onClick={async () => {
               const promise = audioMuted.current
-                ? call.bladeUnmute()
-                : call.bladeMute()
+                ? call.audioUnmute()
+                : call.audioMute()
               try {
                 await promise
                 audioMuted.current = !audioMuted.current
@@ -113,8 +112,8 @@ export const VideoWidget = ({
           <button
             onClick={async () => {
               const promise = videoMuted.current
-                ? call.bladeVideoUnmute()
-                : call.bladeVideoMute()
+                ? call.videoUnmute()
+                : call.videoMute()
               try {
                 await promise
                 videoMuted.current = !videoMuted.current
