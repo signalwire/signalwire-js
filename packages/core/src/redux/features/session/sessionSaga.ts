@@ -119,7 +119,7 @@ export function* sessionChannelWatcher({
           byeCauseCode: params?.causeCode ?? 0,
           redirectDestination: params?.redirectDestination,
         }
-        yield put(componentActions.update(component))
+        yield put(componentActions.upsert(component))
         break
       }
       case VertoMethod.Ping:
