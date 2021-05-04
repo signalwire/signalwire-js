@@ -4,10 +4,14 @@ import { PayloadAction } from '@reduxjs/toolkit'
 import { Session } from '../../..'
 import { VertoResult } from '../../../RPCMessages'
 import { JSONRPCRequest } from '../../../utils/interfaces'
-import { ExecuteActionParams } from '../../interfaces'
+import { ExecuteActionParams, WebRTCCall } from '../../interfaces'
 import { executeAction, socketMessage } from '../../actions'
 import { componentActions } from '../'
-import { BladeMethod, VertoMethod } from '../../../utils/constants'
+import {
+  BladeMethod,
+  SwWebRTCCallState,
+  VertoMethod,
+} from '../../../utils/constants'
 import { BladeExecute } from '../../../RPCMessages'
 import { logger } from '../../../utils'
 
@@ -25,7 +29,6 @@ type SessionSagaParams = {
  */
 export function* executeActionWatcher(session: Session): SagaIterator {
   function* worker(action: PayloadAction<ExecuteActionParams>): SagaIterator {
-    // TODO: make componentId and requestId optional to re-use this watcher/worker
     const { componentId, requestId, method, params } = action.payload
     try {
       const message = BladeExecute({
@@ -35,23 +38,27 @@ export function* executeActionWatcher(session: Session): SagaIterator {
         params,
       })
       const response = yield call(session.execute, message)
-      yield put(
-        componentActions.executeSuccess({
-          componentId,
-          requestId,
-          response,
-        })
-      )
+      if (componentId && requestId) {
+        yield put(
+          componentActions.executeSuccess({
+            componentId,
+            requestId,
+            response,
+          })
+        )
+      }
     } catch (error) {
       logger.warn('worker error', componentId, error)
-      yield put(
-        componentActions.executeFailure({
-          componentId,
-          requestId,
-          action,
-          error,
-        })
-      )
+      if (componentId && requestId) {
+        yield put(
+          componentActions.executeFailure({
+            componentId,
+            requestId,
+            action,
+            error,
+          })
+        )
+      }
     }
   }
 
@@ -76,28 +83,25 @@ export function* sessionChannelWatcher({
       case VertoMethod.Media: {
         const component = {
           id: callID,
-          state: 'early', // FIXME: Use the enum
+          state: SwWebRTCCallState.Early,
           remoteSDP: params.sdp,
           nodeId,
         }
-        yield put(componentActions.update(component))
+        yield put(componentActions.upsert(component))
         break
       }
       case VertoMethod.Answer: {
-        const component = {
+        const component: WebRTCCall = {
           id: callID,
-          state: 'active', // FIXME: Use the enum
+          state: SwWebRTCCallState.Active,
           nodeId,
         }
         if (params?.sdp) {
-          // @ts-expect-error
           component.remoteSDP = params.sdp
         }
-        yield put(componentActions.update(component))
+        yield put(componentActions.upsert(component))
         yield put(
           executeAction({
-            componentId: '', // FIXME: remove componentId
-            requestId: id, // FIXME: remove requestId
             method: 'video.message',
             params: {
               message: VertoResult(id, method),
@@ -107,11 +111,21 @@ export function* sessionChannelWatcher({
         )
         break
       }
+      case VertoMethod.Bye: {
+        const component: WebRTCCall = {
+          id: callID,
+          state: SwWebRTCCallState.Hangup,
+          nodeId,
+          byeCause: params?.cause ?? '',
+          byeCauseCode: params?.causeCode ?? 0,
+          redirectDestination: params?.redirectDestination,
+        }
+        yield put(componentActions.upsert(component))
+        break
+      }
       case VertoMethod.Ping:
         yield put(
           executeAction({
-            componentId: '', // FIXME: remove componentId
-            requestId: id, // FIXME: remove requestId
             method: 'video.message',
             params: {
               message: VertoResult(id, method),
@@ -135,26 +149,6 @@ export function* sessionChannelWatcher({
       //   const call = _buildCall(session, params, attach, nodeId)
       //   return trigger(call.id, params, method)
       // }
-      // case VertoMethod.Event:
-      // case 'webrtc.event': {
-      //   const { subscribedChannel } = params
-      //   if (
-      //     subscribedChannel &&
-      //     trigger(session.relayProtocol, params, subscribedChannel)
-      //   ) {
-      //     return
-      //   }
-      //   if (eventChannel) {
-      //     const channelType = eventChannel.split('.')[0]
-      //     const global = trigger(session.relayProtocol, params, channelType)
-      //     const specific = trigger(session.relayProtocol, params, eventChannel)
-      //     if (global || specific) {
-      //       return
-      //     }
-      //   }
-      //   params.type = Notification.Generic
-      //   return trigger(SwEvent.Notification, params, session.uuid)
-      // }
       case VertoMethod.Info:
         return logger.debug('Verto Info', params)
       case VertoMethod.ClientReady:
@@ -171,7 +165,7 @@ export function* sessionChannelWatcher({
     switch (params.event_type) {
       case 'room.subscribed': {
         yield put(
-          componentActions.update({
+          componentActions.upsert({
             id: params.params.call_id,
             roomId: params.params.room.room_id,
             roomSessionId: params.params.room.room_session_id,
@@ -271,7 +265,6 @@ export function* sessionChannelWatcher({
 
 export function createSessionChannel(session: Session) {
   return eventChannel((emit) => {
-    // TODO: Replace eventHandler with .on() notation ?
     session.dispatch = (payload: PayloadAction<any>) => {
       emit(payload)
     }

@@ -22,6 +22,9 @@ export interface WebRTCCall extends SWComponent {
   roomId?: string
   roomSessionId?: string
   memberId?: string
+  byeCause?: string
+  byeCauseCode?: number
+  redirectDestination?: string
 }
 
 export interface Message extends SWComponent {
@@ -51,8 +54,8 @@ export interface SDKState {
 export type GetDefaultSagas = () => Saga[]
 
 export interface ExecuteActionParams {
-  requestId: string
-  componentId: string
+  requestId?: string
+  componentId?: string
   method: string
   params: Record<string, any>
 }

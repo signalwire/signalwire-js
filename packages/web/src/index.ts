@@ -100,33 +100,8 @@ export const createRoom = (
       room.on('track', rtcTrack)
     }
 
-    room.on('room.started', (params: any) =>
-      console.warn('>> room.started', params)
-    )
-    room.on('room.subscribed', (params: any) =>
-      console.warn('>> room.subscribed', params)
-    )
-    room.on('room.updated', (params: any) =>
-      console.warn('>> room.updated', params)
-    )
-    room.on('room.ended', (params: any) =>
-      console.warn('>> room.ended', params)
-    )
-    room.on('member.joined', (params: any) =>
-      console.warn('>> member.joined', params)
-    )
-    room.on('member.updated', (params: any) =>
-      console.warn('>> member.updated', params)
-    )
-    room.on('member.left', (params: any) =>
-      console.warn('>> member.left', params)
-    )
-    room.on('layout.changed', (params: any) =>
-      console.warn('>> layout.changed', params)
-    )
-
     // WebRTC connection left the room.
-    room.on('left', () => client.disconnect())
+    room.on('destroy', () => client.disconnect())
 
     resolve(room)
   })

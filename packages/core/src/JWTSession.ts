@@ -4,23 +4,6 @@ import { BladeConnect, BladeConnectParams } from './RPCMessages'
 import { SessionOptions } from './utils/interfaces'
 import { Session } from './Session'
 
-let session: JWTSession
-export const getSession = async (options: SessionOptions) => {
-  if (session) {
-    return session
-  }
-
-  return new Promise((resolve, _reject) => {
-    session = new JWTSession({
-      ...options,
-      onReady: async () => {
-        await options?.onReady?.()
-        resolve(session)
-      },
-    })
-  })
-}
-
 export class JWTSession extends Session {
   public WebSocketConstructor = WebSocket
 
