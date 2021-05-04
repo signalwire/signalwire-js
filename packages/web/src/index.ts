@@ -51,10 +51,8 @@ export const createSession = async (userOptions: UserOptions) => {
   const client = new Client(baseUserOptions, store)
   if (baseUserOptions.autoConnect) {
     await client.connect()
-    return client
-  } else {
-    return client
   }
+  return client
 }
 
 interface CreateRoomOptions extends UserOptions {
