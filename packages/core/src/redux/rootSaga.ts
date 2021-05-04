@@ -1,6 +1,6 @@
 import { Saga, Task, SagaIterator, Channel } from '@redux-saga/types'
 import { channel, EventChannel } from 'redux-saga'
-import { all, spawn, fork, call, take, put } from 'redux-saga/effects'
+import { fork, call, take, put } from 'redux-saga/effects'
 import { GetDefaultSagas } from './interfaces'
 import { UserOptions, SessionConstructor } from '../utils/interfaces'
 import {
@@ -9,38 +9,137 @@ import {
   createSessionChannel,
 } from './features/session/sessionSaga'
 import { pubSubSaga } from './features/pubSub/pubSubSaga'
-import { logger } from '../utils'
 import { initAction, destroyAction } from './actions'
 import { sessionActions } from './features'
 import { Session } from '..'
+import { authError, authSuccess, socketClosed, socketError } from './actions'
 
 // prettier-ignore
-const ROOT_SAGAS: Saga[] = []
+// const ROOT_SAGAS: Saga[] = []
 
-const getDefaultSagas = () => {
-  return ROOT_SAGAS
-}
+// const getDefaultSagas = () => {
+//   return ROOT_SAGAS
+// }
 
-const initSession = (
+function* initSessionSaga(
   SessionConstructor: SessionConstructor,
   userOptions: UserOptions
-) => {
-  logger.debug('Init Session', userOptions)
-  return new Promise((resolve, reject) => {
-    const session = new SessionConstructor({
-      ...userOptions,
-      onReady: async () => {
-        resolve(session)
-        userOptions?.onReady?.()
-      },
-      onAuthError: async (error) => {
-        reject(error)
-        userOptions?.onAuthError?.(error)
-      },
-    })
+): SagaIterator {
+  const session = new SessionConstructor(userOptions)
 
-    session.connect()
+  // @ts-ignore
+  window.__session = session
+
+  const sessionChannel: EventChannel<unknown> = yield call(
+    createSessionChannel,
+    session
+  )
+
+  /**
+   * Create a channel to communicate between sagas
+   * and emit events to the public
+   */
+  const pubSubChannel: Channel<unknown> = yield call(channel)
+
+  yield fork(sessionChannelWatcher, {
+    session,
+    sessionChannel,
+    pubSubChannel,
   })
+
+  session.connect()
+
+  const action = yield take([authSuccess.type, authError.type])
+
+  if (action.type === authError.type) {
+    throw new Error('Auth Error')
+  } else {
+    yield fork(startSaga, {
+      session,
+      sessionChannel,
+      pubSubChannel,
+      userOptions,
+    })
+  }
+}
+
+function* watchSessionStatus({
+  session,
+  sessionChannel,
+  pubSubChannel,
+  userOptions,
+}: {
+  session: Session
+  sessionChannel: EventChannel<unknown>
+  pubSubChannel: Channel<unknown>
+  userOptions: UserOptions
+}): SagaIterator {
+  const action = yield take([
+    authSuccess.type,
+    socketError.type,
+    socketClosed.type,
+  ])
+
+  switch (action.type) {
+    case authSuccess.type:
+      yield fork(startSaga, {
+        session,
+        sessionChannel,
+        pubSubChannel,
+        userOptions,
+      })
+      break
+    case socketError.type:
+      yield put(pubSubChannel, {
+        type: 'socket.error',
+        payload: {},
+      })
+      break
+    case socketClosed.type:
+      yield put(pubSubChannel, {
+        type: 'socket.closed',
+        payload: {},
+      })
+      break
+  }
+}
+
+function* startSaga(options: {
+  session: Session
+  sessionChannel: EventChannel<unknown>
+  pubSubChannel: Channel<unknown>
+  userOptions: UserOptions
+}): SagaIterator {
+  const { session, sessionChannel, pubSubChannel, userOptions } = options
+  yield put(sessionActions.connected(session.bladeConnectResult))
+
+  const pubSubTask: Task = yield fork(pubSubSaga, {
+    pubSubChannel,
+    emitter: userOptions.emitter,
+  })
+
+  /**
+   * Fork different sagas that require session
+   * - executeActionWatcher
+   */
+  const executeActionTask: Task = yield fork(executeActionWatcher, session)
+
+  /**
+   * Fork the reconnect watcher
+   */
+  const reconnectTask: Task = yield fork(watchSessionStatus, options)
+
+  /**
+   * Wait for a destroyAction to teardown all the things
+   */
+  yield take(destroyAction.type)
+
+  pubSubTask.cancel()
+  reconnectTask.cancel()
+  executeActionTask.cancel()
+  // sessionTaskList.forEach((task) => task.cancel())
+  pubSubChannel.close()
+  sessionChannel.close()
 }
 
 interface RootSagaOptions {
@@ -49,9 +148,9 @@ interface RootSagaOptions {
 }
 
 export default (options: RootSagaOptions) => {
-  const sagas = options.sagas
-    ? options.sagas(getDefaultSagas)
-    : getDefaultSagas()
+  // const sagas = options.sagas
+  //   ? options.sagas(getDefaultSagas)
+  //   : getDefaultSagas()
 
   return function* root(userOptions: UserOptions): SagaIterator {
     /**
@@ -63,68 +162,10 @@ export default (options: RootSagaOptions) => {
      * Create Session and related sessionChannel to
      * send/receive websocket messages
      */
-    let session: Session
     try {
-      session = yield call(initSession, options.SessionConstructor, userOptions)
+      yield call(initSessionSaga, options.SessionConstructor, userOptions)
     } catch (error) {
-      yield put(sessionActions.authError({ authError: error }))
       return
     }
-
-    const sessionChannel: EventChannel<unknown> = yield call(
-      createSessionChannel,
-      session
-    )
-    yield put(sessionActions.connected(session.bladeConnectResult))
-
-    /**
-     * Create a channel to communicate between sagas
-     * and emit events to the public
-     */
-    const pubSubChannel: Channel<unknown> = yield call(channel)
-
-    const pubSubTask: Task = yield fork(pubSubSaga, {
-      pubSubChannel,
-      emitter: userOptions.emitter,
-    })
-
-    /**
-     * Fork different sagas that require session
-     * - executeActionWatcher
-     * - sessionChannelWatcher
-     */
-    const sessionTaskList: Task[] = yield all([
-      fork(executeActionWatcher, session),
-      fork(sessionChannelWatcher, {
-        session,
-        sessionChannel,
-        pubSubChannel,
-      }),
-    ])
-
-    yield all(
-      sagas.map((saga) =>
-        spawn(function* () {
-          while (true) {
-            try {
-              yield call(saga)
-              break
-            } catch (error) {
-              console.warn('RootSaga catch:', error)
-            }
-          }
-        })
-      )
-    )
-
-    /**
-     * Wait for a destroyAction to teardown all the things
-     */
-    yield take(destroyAction.type)
-
-    pubSubTask.cancel()
-    sessionTaskList.forEach((task) => task.cancel())
-    pubSubChannel.close()
-    sessionChannel.close()
   }
 }

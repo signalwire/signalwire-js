@@ -49,6 +49,10 @@ export interface UserOptions<T = {}> extends SessionOptions {
   emitter?: Emitter<T>
 }
 
+export interface BaseClientOptions<T = {}> extends UserOptions<T> {
+  emitter: Emitter<T>
+}
+
 export interface BaseComponentOptions<T = {}> {
   store: Store
   emitter: Emitter<T>

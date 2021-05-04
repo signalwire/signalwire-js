@@ -5,7 +5,7 @@ import { Session } from '../../..'
 import { VertoResult } from '../../../RPCMessages'
 import { JSONRPCRequest } from '../../../utils/interfaces'
 import { ExecuteActionParams } from '../../interfaces'
-import { executeAction } from '../../actions'
+import { executeAction, socketMessage } from '../../actions'
 import { componentActions } from '../'
 import { BladeMethod, VertoMethod } from '../../../utils/constants'
 import { BladeExecute } from '../../../RPCMessages'
@@ -233,17 +233,22 @@ export function* sessionChannelWatcher({
     }
   }
 
-  function* sessionChannelWorker(payload: JSONRPCRequest): SagaIterator {
-    logger.debug('Inbound WebSocket Message', payload)
-    const { method, params } = payload
+  function* sessionChannelWorker(
+    action: PayloadAction<JSONRPCRequest>
+  ): SagaIterator {
+    logger.debug('Inbound WebSocket Message', action)
+    if (action.type !== socketMessage.type) {
+      yield put(action)
+      return
+    }
+    const { method, params } = action.payload
 
     switch (method) {
       case BladeMethod.Broadcast:
         yield fork(bladeBroadcastWorker, params)
         break
       default:
-        // yield put(action)
-        return logger.debug(`Unknown message: ${method}`, payload)
+        return logger.debug(`Unknown message: ${method}`, action)
     }
   }
 
@@ -267,7 +272,7 @@ export function* sessionChannelWatcher({
 export function createSessionChannel(session: Session) {
   return eventChannel((emit) => {
     // TODO: Replace eventHandler with .on() notation ?
-    session.eventHandler = (payload: any) => {
+    session.dispatch = (payload: PayloadAction<any>) => {
       emit(payload)
     }
 

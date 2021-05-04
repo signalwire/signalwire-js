@@ -1,3 +1,4 @@
+import { PayloadAction } from '@reduxjs/toolkit'
 import { uuid, logger } from './utils'
 import { BladeMethod, DEFAULT_HOST, WebSocketState } from './utils/constants'
 import {
@@ -21,6 +22,13 @@ import {
   parseRPCResponse,
   safeParseJson,
 } from './utils'
+import {
+  authError,
+  authSuccess,
+  socketClosed,
+  socketError,
+  socketMessage,
+} from './redux/actions'
 
 export class Session {
   public uuid = uuid()
@@ -42,7 +50,7 @@ export class Session {
   private _checkPingTimer: any = null
 
   // validateOptions(): boolean
-  // eventHandler(notification: any): void
+  // dispatch(notification: any): void
 
   constructor(public options: SessionOptions) {
     // if (!this.validateOptions()) {
@@ -218,19 +226,25 @@ export class Session {
       await this.authenticate()
       this._emptyRequestQueue()
 
-      this?.options?.onReady?.()
+      this.dispatch(authSuccess())
     } catch (error) {
       logger.error('Auth Error', error)
-      this?.options?.onAuthError?.(error)
+      this.dispatch(authError())
     }
   }
 
   protected _onSocketError(event: Event) {
     logger.debug('_onSocketError', event)
+    this.dispatch(socketError())
   }
 
   protected _onSocketClose(event: CloseEvent) {
     logger.debug('_onSocketClose', event)
+    this.dispatch(socketClosed())
+    // @ts-ignore
+    delete this._socket
+
+    this.connect()
   }
 
   protected _onSocketMessage(event: MessageEvent) {
@@ -260,13 +274,13 @@ export class Session {
         break
       }
       default:
-        // If it's not a response, trigger the eventHandler.
-        this.eventHandler(payload)
+        // If it's not a response, trigger the dispatch.
+        this.dispatch(socketMessage(payload))
     }
   }
 
-  public eventHandler(payload: any) {
-    console.debug('eventHandler', payload)
+  public dispatch(_payload: PayloadAction<any>) {
+    throw new Error('Method not implemented')
   }
 
   /**

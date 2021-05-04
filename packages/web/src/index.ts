@@ -5,6 +5,8 @@ import {
   configureStore,
   connect,
   UserOptions,
+  BaseClientOptions,
+  Emitter,
   getEventEmitter,
   BaseComponent,
 } from '@signalwire/core'
@@ -37,9 +39,10 @@ export class Client extends SignalWire {
 }
 
 export const createSession = async (userOptions: UserOptions) => {
-  const baseUserOptions: UserOptions = {
+  const baseUserOptions: BaseClientOptions<Client> = {
     ...userOptions,
-    emitter: getEventEmitter(userOptions),
+    // FIXME: typing
+    emitter: getEventEmitter(userOptions) as Emitter<Client>,
   }
   const store = configureStore({
     userOptions: baseUserOptions,
