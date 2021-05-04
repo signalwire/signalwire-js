@@ -6,17 +6,22 @@ import { createSession } from '../../src'
 
 // @ts-ignore
 window._makeClient = async ({ project, token, emitter }) => {
-  const client = await createSession({
-    host: 'relay.swire.io',
-    project,
-    token,
-    autoConnect: true,
-    emitter,
-  }).catch((error) => {
-    console.error('Error?', error)
-  })
+  try {
+    const client = await createSession({
+      host: 'relay.swire.io',
+      project,
+      token,
+      autoConnect: true,
+      emitter,
+    })
+    client.on('socket.error', console.warn)
+    client.on('socket.closed', console.warn)
 
-  // @ts-ignore
-  window.__client = client
-  return client
+    // @ts-ignore
+    window.__client = client
+
+    return client
+  } catch (error) {
+    console.error('Error?', error)
+  }
 }
