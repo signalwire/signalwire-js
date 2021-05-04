@@ -16,10 +16,7 @@ const Steps = () => {
         project: state.projectId,
         token: state.token,
         autoConnect: true,
-        onReady: async () => {
-          console.debug('Session Ready')
-        },
-      }).then((c) => {
+      }).then((c: any) => {
         setClient(c)
       })
     } else if (state.status === 'idle' && client) {
