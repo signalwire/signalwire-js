@@ -11,7 +11,7 @@ window._makeClient = async ({ project, token, emitter }) => {
       host: 'relay.swire.io',
       project,
       token,
-      autoConnect: true,
+      autoConnect: false,
       emitter,
     })
     client.on('socket.error', console.warn)

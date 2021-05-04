@@ -4,7 +4,7 @@ import {
   IBladeConnectResult,
   SessionAuthError,
 } from '../../../utils/interfaces'
-import { destroyAction } from '../../actions'
+import { destroyAction, authError } from '../../actions'
 
 export const initialSessionState: Readonly<SessionState> = {
   protocol: '',
@@ -22,18 +22,18 @@ const sessionSlice = createSlice({
       state.protocol = payload?.result?.protocol ?? ''
       state.iceServers = payload?.result?.iceServers ?? []
     },
-    authError: (
-      state,
-      { payload }: PayloadAction<{ authError: SessionAuthError }>
-    ) => {
-      state.authStatus = 'unauthorized'
-      state.authError = payload.authError
-    },
   },
   extraReducers: (builder) => {
     builder.addCase(destroyAction.type, () => {
       return initialSessionState
     })
+    builder.addCase(
+      authError.type,
+      (state, { payload }: PayloadAction<{ error: SessionAuthError }>) => {
+        state.authStatus = 'unauthorized'
+        state.authError = payload.error
+      }
+    )
   },
 })
 

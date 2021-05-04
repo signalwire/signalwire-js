@@ -229,7 +229,7 @@ export class Session {
       this.dispatch(authSuccess())
     } catch (error) {
       logger.error('Auth Error', error)
-      this.dispatch(authError())
+      this.dispatch(authError({ error }))
     }
   }
 

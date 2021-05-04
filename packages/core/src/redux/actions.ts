@@ -1,5 +1,5 @@
 import { createAction } from '@reduxjs/toolkit'
-import { JSONRPCRequest } from '../utils/interfaces'
+import { JSONRPCRequest, SessionAuthError } from '../utils/interfaces'
 import { ExecuteActionParams } from './interfaces'
 
 export const initAction = createAction('swSdk/init')
@@ -12,7 +12,7 @@ export const executeAction = createAction<ExecuteActionParams>(
   'swSdk/executeRequest'
 )
 
-export const authError = createAction('auth/error')
+export const authError = createAction<{ error: SessionAuthError }>('auth/error')
 export const authSuccess = createAction('auth/success')
 
 export const socketClosed = createAction('socket/closed')
