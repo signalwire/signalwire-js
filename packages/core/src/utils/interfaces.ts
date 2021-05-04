@@ -39,8 +39,6 @@ export interface SessionOptions {
   host?: string
   project: string
   token: string
-  onReady?: () => Promise<void>
-  onAuthError?: (error: Error) => Promise<void>
   autoConnect?: boolean
 }
 
