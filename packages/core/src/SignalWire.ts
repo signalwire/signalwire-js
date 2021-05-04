@@ -2,15 +2,37 @@ import { Store } from 'redux'
 import { initAction, destroyAction } from './redux'
 import { Emitter } from './utils/interfaces'
 import { AuthError } from './CustomErrors'
+import { BaseClientOptions } from './utils/interfaces'
 
 export class SignalWire implements Emitter<SignalWire> {
-  constructor(public options: any, public store: Store) {}
+  constructor(
+    public options: BaseClientOptions<SignalWire>,
+    public store: Store
+  ) {}
 
-  on = this.options.emitter.on
-  off = this.options.emitter.off
-  once = this.options.emitter.once
-  removeAllListeners = this.options.emitter.removeAllListeners
-  emit = this.options.emitter.emit
+  get emitter() {
+    return this.options.emitter
+  }
+
+  on(...params: Parameters<Emitter['on']>) {
+    return this.emitter.on(...params)
+  }
+
+  once(...params: Parameters<Emitter['once']>) {
+    return this.emitter.once(...params)
+  }
+
+  off(...params: Parameters<Emitter['off']>) {
+    return this.emitter.off(...params)
+  }
+
+  emit(...params: Parameters<Emitter['emit']>) {
+    return this.emitter.emit(...params)
+  }
+
+  removeAllListeners(...params: Parameters<Emitter['removeAllListeners']>) {
+    return this.emitter.removeAllListeners(...params)
+  }
 
   connect() {
     return new Promise((resolve, reject) => {
