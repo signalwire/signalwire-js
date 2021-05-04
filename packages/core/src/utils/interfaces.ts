@@ -39,13 +39,16 @@ export interface SessionOptions {
   host?: string
   project: string
   token: string
-  onReady?: () => Promise<void>
   autoConnect?: boolean
 }
 
 export interface UserOptions<T = {}> extends SessionOptions {
   devTools?: boolean
   emitter?: Emitter<T>
+}
+
+export interface BaseClientOptions<T = {}> extends UserOptions<T> {
+  emitter: Emitter<T>
 }
 
 export interface BaseComponentOptions<T = {}> {
@@ -93,3 +96,14 @@ export interface IBladeConnectResult {
 }
 
 export type SessionConstructor = typeof Session
+
+export type SessionAuthStatus =
+  | 'unknown'
+  | 'authorizing'
+  | 'authorized'
+  | 'unauthorized'
+
+export type SessionAuthError = {
+  code: number
+  error: string
+}

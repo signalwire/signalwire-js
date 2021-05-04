@@ -5,6 +5,7 @@ import {
   configureStore,
   connect,
   UserOptions,
+  BaseClientOptions,
   getEventEmitter,
   BaseComponent,
 } from '@signalwire/core'
@@ -36,32 +37,20 @@ export class Client extends SignalWire {
   }
 }
 
-export const createSession = (userOptions: UserOptions): Promise<Client> => {
-  return new Promise((resolve, _reject) => {
-    const baseUserOptions: UserOptions = {
-      ...userOptions,
-      emitter: getEventEmitter(userOptions),
-    }
-    const store = configureStore({
-      userOptions: baseUserOptions,
-      SessionConstructor: JWTSession,
-    })
-    const client = new Client(baseUserOptions, store)
-    if (baseUserOptions.autoConnect) {
-      const unsubscribe = store.subscribe(() => {
-        const state = store.getState()
-
-        if (state.session.protocol) {
-          resolve(client)
-          unsubscribe()
-        }
-      })
-
-      client.connect()
-    } else {
-      resolve(client)
-    }
+export const createSession = async (userOptions: UserOptions) => {
+  const baseUserOptions: BaseClientOptions<Client> = {
+    ...userOptions,
+    emitter: getEventEmitter(userOptions),
+  }
+  const store = configureStore({
+    userOptions: baseUserOptions,
+    SessionConstructor: JWTSession,
   })
+  const client = new Client(baseUserOptions, store)
+  if (baseUserOptions.autoConnect) {
+    await client.connect()
+  }
+  return client
 }
 
 interface CreateRoomOptions extends UserOptions {

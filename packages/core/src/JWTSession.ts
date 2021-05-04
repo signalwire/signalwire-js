@@ -45,32 +45,27 @@ export class JWTSession extends Session {
    * @return Promise<void>
    */
   async authenticate() {
-    try {
-      const params: BladeConnectParams = {
-        authentication: {
-          project: this.options.project,
-          jwt_token: this.options.token,
-        },
-        params: {},
-      }
-
-      if (this._relayProtocolIsValid()) {
-        params.params = params.params || {}
-        params.params.protocol = this.relayProtocol
-      } else if (this.signature) {
-        const prevProtocol = await sessionStorage.getItem(this.signature)
-        if (prevProtocol) {
-          params.params = params.params || {}
-          params.params.protocol = prevProtocol
-        }
-      }
-
-      this._bladeConnectResult = await this.execute(BladeConnect(params))
-      this._checkTokenExpiration()
-    } catch (error) {
-      // FIXME: Handle Auth Error
-      console.error('Auth Error', error)
+    const params: BladeConnectParams = {
+      authentication: {
+        project: this.options.project,
+        jwt_token: this.options.token,
+      },
+      params: {},
     }
+
+    if (this._relayProtocolIsValid()) {
+      params.params = params.params || {}
+      params.params.protocol = this.relayProtocol
+    } else if (this.signature) {
+      const prevProtocol = await sessionStorage.getItem(this.signature)
+      if (prevProtocol) {
+        params.params = params.params || {}
+        params.params.protocol = prevProtocol
+      }
+    }
+
+    this._bladeConnectResult = await this.execute(BladeConnect(params))
+    this._checkTokenExpiration()
   }
 
   /**
