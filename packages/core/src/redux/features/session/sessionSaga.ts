@@ -29,7 +29,6 @@ type SessionSagaParams = {
  */
 export function* executeActionWatcher(session: Session): SagaIterator {
   function* worker(action: PayloadAction<ExecuteActionParams>): SagaIterator {
-    // TODO: make componentId and requestId optional to re-use this watcher/worker
     const { componentId, requestId, method, params } = action.payload
     try {
       const message = BladeExecute({
@@ -39,23 +38,27 @@ export function* executeActionWatcher(session: Session): SagaIterator {
         params,
       })
       const response = yield call(session.execute, message)
-      yield put(
-        componentActions.executeSuccess({
-          componentId,
-          requestId,
-          response,
-        })
-      )
+      if (componentId && requestId) {
+        yield put(
+          componentActions.executeSuccess({
+            componentId,
+            requestId,
+            response,
+          })
+        )
+      }
     } catch (error) {
       logger.warn('worker error', componentId, error)
-      yield put(
-        componentActions.executeFailure({
-          componentId,
-          requestId,
-          action,
-          error,
-        })
-      )
+      if (componentId && requestId) {
+        yield put(
+          componentActions.executeFailure({
+            componentId,
+            requestId,
+            action,
+            error,
+          })
+        )
+      }
     }
   }
 
@@ -99,8 +102,6 @@ export function* sessionChannelWatcher({
         yield put(componentActions.upsert(component))
         yield put(
           executeAction({
-            componentId: '', // FIXME: remove componentId
-            requestId: id, // FIXME: remove requestId
             method: 'video.message',
             params: {
               message: VertoResult(id, method),
@@ -125,8 +126,6 @@ export function* sessionChannelWatcher({
       case VertoMethod.Ping:
         yield put(
           executeAction({
-            componentId: '', // FIXME: remove componentId
-            requestId: id, // FIXME: remove requestId
             method: 'video.message',
             params: {
               message: VertoResult(id, method),
@@ -149,26 +148,6 @@ export function* sessionChannelWatcher({
       // case VertoMethod.Attach: {
       //   const call = _buildCall(session, params, attach, nodeId)
       //   return trigger(call.id, params, method)
-      // }
-      // case VertoMethod.Event:
-      // case 'webrtc.event': {
-      //   const { subscribedChannel } = params
-      //   if (
-      //     subscribedChannel &&
-      //     trigger(session.relayProtocol, params, subscribedChannel)
-      //   ) {
-      //     return
-      //   }
-      //   if (eventChannel) {
-      //     const channelType = eventChannel.split('.')[0]
-      //     const global = trigger(session.relayProtocol, params, channelType)
-      //     const specific = trigger(session.relayProtocol, params, eventChannel)
-      //     if (global || specific) {
-      //       return
-      //     }
-      //   }
-      //   params.type = Notification.Generic
-      //   return trigger(SwEvent.Notification, params, session.uuid)
       // }
       case VertoMethod.Info:
         return logger.debug('Verto Info', params)
@@ -257,7 +236,6 @@ export function* sessionChannelWatcher({
         yield fork(bladeBroadcastWorker, params)
         break
       default:
-        // yield put(action)
         return logger.debug(`Unknown message: ${method}`, payload)
     }
   }
@@ -281,7 +259,6 @@ export function* sessionChannelWatcher({
 
 export function createSessionChannel(session: Session) {
   return eventChannel((emit) => {
-    // TODO: Replace eventHandler with .on() notation ?
     session.eventHandler = (payload: any) => {
       emit(payload)
     }

@@ -48,8 +48,8 @@ export interface SDKState {
 export type GetDefaultSagas = () => Saga[]
 
 export interface ExecuteActionParams {
-  requestId: string
-  componentId: string
+  requestId?: string
+  componentId?: string
   method: string
   params: Record<string, any>
 }
