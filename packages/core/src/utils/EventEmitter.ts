@@ -92,13 +92,12 @@ export const assertEventEmitter = (emitter: unknown): emitter is Emitter => {
   return false
 }
 
-export const getEventEmitter = (userOptions: UserOptions): Emitter => {
+export const getEventEmitter = <T = {}>(userOptions: UserOptions) => {
   if (!userOptions.emitter) {
-    return EventEmitter()
+    return (EventEmitter() as unknown) as Emitter<T>
   } else if (assertEventEmitter(userOptions.emitter)) {
-    return userOptions.emitter
+    return userOptions.emitter as Emitter<T>
   }
-
   // TODO: In future versions we can narrow this error a bit more and
   // give the user more info about which method they are missing as
   // well
