@@ -40,7 +40,7 @@ export const bladeConnectResultVRT: IBladeConnectResult = {
     user_name: 'Joe',
     room: {
       name: 'lobby',
-      scopes: ['conference.self.audio_mute', 'conference.self.audio_unmute'],
+      scopes: ['room.self.audio_mute', 'room.self.audio_unmute'],
     },
     signature:
       'SGZtkRD9fvuBAOUp1UF56zESxdEvGT6qSGZtkRD9fvuBAOUp1UF56zESxdEvGT6q',
