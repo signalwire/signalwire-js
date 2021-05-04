@@ -10,10 +10,10 @@ const assertRequiredParams = (body: NextApiRequest['body']) => {
 }
 
 const SCOPES = [
-  'conference.self.audio_mute',
-  'conference.self.audio_unmute',
-  'conference.self.video_mute',
-  'conference.self.video_unmute',
+  'room.self.audio_mute',
+  'room.self.audio_unmute',
+  'room.self.video_mute',
+  'room.self.video_unmute',
 ]
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
