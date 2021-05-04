@@ -6,7 +6,6 @@ import {
   connect,
   UserOptions,
   BaseClientOptions,
-  Emitter,
   getEventEmitter,
   BaseComponent,
 } from '@signalwire/core'
