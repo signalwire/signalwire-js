@@ -6,3 +6,12 @@ export class AuthError extends Error {
     Object.setPrototypeOf(this, AuthError.prototype)
   }
 }
+
+export class HttpError extends Error {
+  name = 'HttpError'
+
+  constructor(public code: number, public message: string) {
+    super(message)
+    Object.setPrototypeOf(this, HttpError.prototype)
+  }
+}
