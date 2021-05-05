@@ -13,7 +13,7 @@ export class HttpError extends Error {
   constructor(
     public code: number,
     public message: string,
-    public response: Record<string, any>
+    public response?: Record<string, any>
   ) {
     super(message)
     Object.setPrototypeOf(this, HttpError.prototype)
