@@ -14,7 +14,6 @@ type AppControllerState =
     }
   | {
       status: Exclude<AppStatus, 'idle'>
-      projectId: string
       token: string
       roomName: string
       userName: string
@@ -38,7 +37,6 @@ type AppControllerAction =
   | {
       type: 'authorized'
       payload: {
-        projectId: string
         token: string
         roomName: string
         userName: string

@@ -11,11 +11,9 @@ jest.mock('uuid', () => {
 
 describe('JWTSession', () => {
   const host = 'ws://localhost:8080'
-  const project = '2506edbc-35c4-4d9f-a5f0-45a03d82dab1'
   const token = '<jwt>'
   const bladeConnect = BladeConnect({
     authentication: {
-      project,
       jwt_token: token,
     },
     params: {},
@@ -27,7 +25,6 @@ describe('JWTSession', () => {
     ws = new WS(host)
     session = new JWTSession({
       host,
-      project,
       token,
     })
     session.dispatch = jest.fn()

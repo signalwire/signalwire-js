@@ -13,7 +13,6 @@ const Steps = () => {
     if (state.status === 'authorized' && !client) {
       createSession({
         host: 'relay.swire.io',
-        project: state.projectId,
         token: state.token,
         autoConnect: true,
       }).then((c: any) => {
