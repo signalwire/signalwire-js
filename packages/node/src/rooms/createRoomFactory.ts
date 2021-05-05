@@ -45,17 +45,22 @@ export const createRoomFactory: CreateRoomFactory = (client) => async (
     // TODO: handle error
   }
 
-  const { body } = await client.post<RoomResponse>('video/rooms', {
-    json: {
-      name,
-      display_name,
-      max_participants,
-      delete_on_end,
-      starts_at,
-      ends_at,
-    },
-    responseType: 'json',
-  })
+  try {
+    const { body } = await client<RoomResponse>('video/rooms', {
+      method: 'POST',
+      body: {
+        name,
+        display_name,
+        max_participants,
+        delete_on_end,
+        starts_at,
+        ends_at,
+      },
+    })
 
-  return body
+    return body
+  } catch (e) {
+    console.log('------------>', e)
+    return {} as any
+  }
 }

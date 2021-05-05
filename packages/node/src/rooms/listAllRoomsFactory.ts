@@ -24,7 +24,8 @@ export const listAllRoomsFactory: ListAllRoomsFactory = (client) => async (
     pageToken: page_token,
     pageSize: page_size,
   } = options
-  const { body } = await client.get<ListAllRoomsResponse>('video/rooms', {
+  const { body } = await client<ListAllRoomsResponse>('video/rooms', {
+    method: 'GET',
     searchParams: {
       starts_at,
       starts_before,
@@ -32,7 +33,6 @@ export const listAllRoomsFactory: ListAllRoomsFactory = (client) => async (
       page_token,
       page_size,
     },
-    responseType: 'json',
   })
 
   return body
