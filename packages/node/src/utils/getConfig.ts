@@ -9,7 +9,7 @@ export type ConfigOptions = Required<ConfigParamaters> & {
 }
 
 const DEFAULT_HOST = process.env.SPACE_HOST || 'dev.swire.io'
-const baseUrl = `https://${DEFAULT_HOST}/api`
+const baseUrl = `https://${DEFAULT_HOST}/api/`
 
 type GetConfig = (options: ConfigParamaters) => ConfigOptions
 
