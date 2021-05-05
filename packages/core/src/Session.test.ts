@@ -22,34 +22,35 @@ describe('Session', () => {
   })
 
   let ws: WS
-  let client: Session
+  let session: Session
   beforeEach(() => {
     ws = new WS(host)
-    client = new Session({
+    session = new Session({
       host,
       project,
       token,
     })
-    client.WebSocketConstructor = WebSocket
+    session.WebSocketConstructor = WebSocket
+    session.dispatch = jest.fn()
   })
   afterEach(() => {
     WS.clean()
   })
 
   it('should connect connect and disconnect to/from the provided host', async () => {
-    client.connect()
+    session.connect()
     await ws.connected
 
-    expect(client.connected).toBe(true)
+    expect(session.connected).toBe(true)
 
-    client.disconnect()
+    session.disconnect()
 
-    expect(client.connected).toBe(false)
-    expect(client.closed).toBe(true)
+    expect(session.connected).toBe(false)
+    expect(session.closed).toBe(true)
   })
 
   it('should send blade.connect with normal token on socket open', async () => {
-    client.connect()
+    session.connect()
     await ws.connected
 
     await expect(ws).toReceiveMessage(JSON.stringify(bladeConnect))
