@@ -13,9 +13,16 @@ async function http<T>(
   const response: InternalHttpResponse<T> = await fetch(input, init)
 
   if (!response.ok) {
-    const data = await response.json()
+    let errorResponse
+    try {
+      errorResponse = await response.json()
+    } catch (e) {}
 
-    throw new HttpError(response.status, JSON.stringify(data.errors), data)
+    const errorMessage = errorResponse?.errors
+      ? JSON.stringify(errorResponse.errors)
+      : 'Not Found'
+
+    throw new HttpError(response.status, errorMessage, errorResponse)
   }
 
   try {

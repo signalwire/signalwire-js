@@ -8,7 +8,7 @@ export interface GetRoomByNameOptions {
   name: string
 }
 
-export type GetRoom<T> = (options: T) => Promise<RoomResponse>
+export type GetRoom<T> = (options: T) => Promise<RoomResponse | null>
 
 type getRoomFactory = (
   client: HttpClient
@@ -20,11 +20,19 @@ type getRoomFactory = (
 export const getRoomFactory: getRoomFactory = (client) => {
   const getRoomPath = 'video/rooms'
   const getRoom = async ({ id }: { id: string }) => {
-    const { body } = await client<RoomResponse>(`${getRoomPath}/${id}`, {
-      method: 'GET',
-    })
+    try {
+      const { body } = await client<RoomResponse>(`${getRoomPath}/${id}`, {
+        method: 'GET',
+      })
 
-    return body
+      return body
+    } catch (e) {
+      if (e.code === 404) {
+        return null
+      }
+
+      throw e
+    }
   }
 
   return {
