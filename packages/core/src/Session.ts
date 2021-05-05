@@ -280,7 +280,6 @@ export class Session {
   }
 
   public dispatch(_payload: PayloadAction<any>) {
-    console.log('_payload', _payload)
     throw new Error('Method not implemented')
   }
 
