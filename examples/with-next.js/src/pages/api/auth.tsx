@@ -44,10 +44,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       })
 
       res.status(200).json({
-        data: {
-          ...vrt,
-          projectId: process.env.PROJECT_ID,
-        },
+        data: vrt,
       })
     } catch (e) {
       return res.status(403).json({

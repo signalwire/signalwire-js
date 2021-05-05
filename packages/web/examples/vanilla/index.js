@@ -1,9 +1,8 @@
-import { JWTSession } from "@signalwire/web";
+import { JWTSession } from '@signalwire/web'
 
-window._makeClient = ({ project, token }) => {
+window._makeClient = ({ token }) => {
   const client = new JWTSession({
     host: 'relay.swire.io',
-    project,
     token,
   })
 
