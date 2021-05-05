@@ -33,12 +33,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         projectToken: process.env.PROJECT_TOKEN as string,
       })
 
-      const roomInfo = await client.createRoom({
+      const existingRoom = await client.getRoomByName({
         name: reqBody.room_name,
       })
 
+      if (!existingRoom) {
+        await client.createRoom({
+          name: reqBody.room_name,
+        })
+      }
+
       const vrt = await client.createVRT({
-        roomName: roomInfo.name,
+        roomName: reqBody.room_name,
         userName: reqBody.user_name,
         scopes: SCOPES,
       })
