@@ -37,7 +37,7 @@ export interface JSONRPCResponse {
 
 export interface SessionOptions {
   host?: string
-  project: string
+  project?: string
   token: string
   autoConnect?: boolean
 }

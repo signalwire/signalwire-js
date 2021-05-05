@@ -47,7 +47,6 @@ export class JWTSession extends Session {
   async authenticate() {
     const params: BladeConnectParams = {
       authentication: {
-        project: this.options.project,
         jwt_token: this.options.token,
       },
       params: {},

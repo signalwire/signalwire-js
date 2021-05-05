@@ -88,6 +88,22 @@ describe('RPC Messages', () => {
         },
       })
     })
+
+    it('should generate the message without project', function () {
+      setAgentName('Jest Random Test')
+      const authentication = { jwt_token: 'jwt' }
+      const message = BladeConnect({ authentication })
+      expect(message).toStrictEqual({
+        jsonrpc: '2.0',
+        id: 'mocked-uuid',
+        method: 'blade.connect',
+        params: {
+          authentication: { jwt_token: 'jwt' },
+          version: { major: 2, minor: 5, revision: 0 },
+          agent: 'Jest Random Test',
+        },
+      })
+    })
   })
 
   describe('BladeReauthenticate', () => {
