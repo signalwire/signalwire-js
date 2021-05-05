@@ -1,17 +1,9 @@
 import { URL } from 'url'
 import fetch, { RequestInit, Response } from 'node-fetch'
+import { HttpError } from '@signalwire/core'
 
 interface InternalHttpResponse<T> extends Response {
   parsedBody?: T
-}
-
-class HttpError extends Error {
-  name = 'HttpError'
-
-  constructor(public code: number, public message: string) {
-    super(message)
-    Object.setPrototypeOf(this, HttpError.prototype)
-  }
 }
 
 async function http<T>(
@@ -23,7 +15,7 @@ async function http<T>(
   if (!response.ok) {
     const data = await response.json()
 
-    throw new HttpError(response.status, data.message)
+    throw new HttpError(response.status, JSON.stringify(data.errors))
   }
 
   try {
