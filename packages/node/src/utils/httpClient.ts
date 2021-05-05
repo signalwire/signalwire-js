@@ -15,7 +15,7 @@ async function http<T>(
   if (!response.ok) {
     const data = await response.json()
 
-    throw new HttpError(response.status, JSON.stringify(data.errors))
+    throw new HttpError(response.status, JSON.stringify(data.errors), data)
   }
 
   try {
