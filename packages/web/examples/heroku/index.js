@@ -29,8 +29,8 @@ window.connect = () => {
     rootElementId: 'rootElement',
     audio: true,
     video: true,
-  }).then((rtcSession) => {
-    rtcSession = room
+  }).then((rtc) => {
+    rtcSession = rtc
 
     console.debug('Video SDK rtcSession', rtcSession)
 
@@ -78,7 +78,7 @@ window.connect = () => {
     )
     rtcSession.on('track', (event) => console.debug('>> DEMO track', event))
 
-    room.join()
+    rtcSession.join()
   })
 
   connectStatus.innerHTML = 'Connecting...'
