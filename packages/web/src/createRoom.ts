@@ -7,6 +7,7 @@ interface CreateRoomOptions extends UserOptions {
   video: MediaStreamConstraints['video']
   iceServers?: RTCIceServer[]
   rootElementId?: string
+  applyLocalVideoOverlay?: boolean
 }
 
 export const createRoom = (
@@ -18,6 +19,7 @@ export const createRoom = (
       video = true,
       iceServers,
       rootElementId,
+      applyLocalVideoOverlay = true,
       ...userOptions
     } = roomOptions
 
@@ -37,17 +39,21 @@ export const createRoom = (
     })
 
     if (rootElementId) {
-      const { rtcTrackHandler, destroyHandler } = videoElementFactory(
-        rootElementId
-      )
+      const {
+        rtcTrackHandler,
+        destroyHandler,
+        roomJoinedHandler,
+      } = videoElementFactory({ rootElementId, applyLocalVideoOverlay })
+      room.on('room.joined', (params: any) => {
+        // @ts-ignore
+        roomJoinedHandler(room.localVideoTrack, params)
+      })
       room.on('track', rtcTrackHandler)
       room.on('destroy', destroyHandler)
     }
 
     // WebRTC connection left the room.
     room.on('destroy', () => {
-      room.off('track')
-
       client.disconnect()
     })
 
