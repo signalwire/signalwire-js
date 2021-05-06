@@ -1,7 +1,7 @@
 import { URL } from 'url'
 import fetch, { RequestInit, Response } from 'node-fetch'
 import AbortController from 'node-abort-controller'
-import { HttpError } from '@signalwire/core'
+import { AuthError, HttpError } from '@signalwire/core'
 
 interface InternalHttpResponse<T> extends Response {
   parsedBody?: T
@@ -14,6 +14,10 @@ async function http<T>(
   const response: InternalHttpResponse<T> = await fetch(input, init)
 
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new AuthError(response.status, 'Unauthorized')
+    }
+
     let errorResponse
     try {
       errorResponse = await response.json()
@@ -55,34 +59,17 @@ export const createHttpClient = (
     path: string,
     options?: HttpClientRequestInit
   ): Promise<{ body: T }> => {
-    let reqInit
     const headers = {
       ...(options?.body ? { 'Content-Type': 'application/json' } : {}),
       ...globalOptions.headers,
       ...options?.headers,
     }
 
-    if (options?.method === 'GET') {
-      reqInit = getRequestInit({
-        ...globalOptions,
-        ...options,
-        headers,
-      })
-    } else {
-      reqInit = getRequestInit({
-        ...globalOptions,
-        ...options,
-        headers,
-        body:
-          options?.body && typeof options.body !== 'string'
-            ? JSON.stringify(options.body)
-            : options?.body,
-      })
-    }
-
-    if (!reqInit) {
-      throw new Error('Invalid method')
-    }
+    const reqInit = getRequestInit({
+      ...globalOptions,
+      ...options,
+      headers,
+    })
 
     let timerId
     if (timeout) {
@@ -96,26 +83,39 @@ export const createHttpClient = (
       }, timeout)
     }
 
-    const response = await fetcher<T>(
-      getUrl({
-        path,
-        baseUrl,
-        searchParams: options?.searchParams,
-      }),
-      reqInit
-    )
+    try {
+      const response = await fetcher<T>(
+        getUrl({
+          path,
+          baseUrl,
+          searchParams: options?.searchParams,
+        }),
+        reqInit
+      )
 
-    timerId && clearTimeout(timerId)
-
-    return { body: response.parsedBody as T }
+      return { body: response.parsedBody as T }
+    } catch (e) {
+      throw e
+    } finally {
+      timerId && clearTimeout(timerId)
+    }
   }
 
   return apiClient
 }
 
+const getBody = (body: unknown) => {
+  return typeof body === 'string' ? body : JSON.stringify(body)
+}
+
 const getRequestInit = (options: any): RequestInit => {
   return Object.entries(options).reduce((reducer, [key, value]) => {
-    if (value != undefined) {
+    if (key === 'body') {
+      return {
+        ...reducer,
+        body: getBody(value),
+      }
+    } else if (value != undefined) {
       return {
         ...reducer,
         [key]: value,

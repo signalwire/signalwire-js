@@ -25,5 +25,9 @@ try {
 
   console.log('VRT', vrt)
 } catch (error) {
-  console.error('Error', error.response)
+  if (error.name === 'AuthError') {
+    console.error(error)
+  } else if (error.response) {
+    console.error(error.response)
+  }
 }
