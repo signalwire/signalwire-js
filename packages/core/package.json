@@ -21,7 +21,7 @@
     "node": ">=10"
   },
   "scripts": {
-    "start": "microbundle watch -f modern,es --tsconfig tsconfig.build.json",
+    "start": "microbundle watch -f modern,es --external none --tsconfig tsconfig.build.json",
     "build": "pkg-typings --pre-run && microbundle --external none -f modern,es,cjs --define process.env.NODE_ENV=production --tsconfig ./tsconfig.build.json --target node && pkg-typings --after-run",
     "test": "NODE_ENV=test jest",
     "prepare": "npm run build"
