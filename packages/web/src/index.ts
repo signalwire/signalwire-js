@@ -4,3 +4,4 @@ import { JWTSession } from '@signalwire/core'
 export { JWTSession }
 export * from './createRoom'
 export * from './createClient'
+export * from './Client'
