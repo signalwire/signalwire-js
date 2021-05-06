@@ -190,6 +190,14 @@ export class BaseCall extends BaseComponent {
     return this.audioElements.length ? this.audioElements[0] : null
   }
 
+  get localVideoTrack() {
+    return this.peer.localVideoTrack
+  }
+
+  get localAudioTrack() {
+    return this.peer.localAudioTrack
+  }
+
   /**
    * Verto messages have to be wrapped into a blade.execute
    * request and sent using the 'video.message' method.
