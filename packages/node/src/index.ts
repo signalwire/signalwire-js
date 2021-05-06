@@ -4,12 +4,12 @@ import { getRoomFactory } from './rooms/getRoomFactory'
 import { listAllRoomsFactory } from './rooms/listAllRoomsFactory'
 import { Client } from './types'
 import { getConfig } from './utils/getConfig'
-import { makeApiClient } from './utils/httpClient'
+import { createHttpClient } from './utils/httpClient'
 
-export const createClient: Client = (options = {}) => {
+export const createRestClient: Client = (options = {}) => {
   const config = getConfig(options)
 
-  const client = makeApiClient({
+  const client = createHttpClient({
     baseUrl: config.spaceHost,
     headers: {
       Authorization: `Basic ${Buffer.from(config.authCreds).toString(

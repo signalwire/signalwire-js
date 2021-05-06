@@ -7,9 +7,9 @@ import {
   GetRoomByIdOptions,
   GetRoomByNameOptions,
 } from './rooms/getRoomFactory'
-import { makeApiClient } from './utils/httpClient'
+import { createHttpClient } from './utils/httpClient'
 
-export type HttpClient = ReturnType<typeof makeApiClient>
+export type HttpClient = ReturnType<typeof createHttpClient>
 
 interface VideoSDKClient {
   createRoom: CreateRoom

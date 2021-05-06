@@ -34,7 +34,7 @@ async function http<T>(
   return response
 }
 
-interface MakeApiClientOptions extends RequestInit {
+interface CreateHttpClientOptions extends RequestInit {
   baseUrl: string
   /**
    * Timeout in milliseconds
@@ -47,8 +47,8 @@ interface HttpClientRequestInit extends Omit<RequestInit, 'body'> {
   searchParams?: Record<string, any>
 }
 
-export const makeApiClient = (
-  { baseUrl, timeout = 30000, ...globalOptions }: MakeApiClientOptions,
+export const createHttpClient = (
+  { baseUrl, timeout = 30000, ...globalOptions }: CreateHttpClientOptions,
   fetcher = http
 ) => {
   const apiClient = async <T>(

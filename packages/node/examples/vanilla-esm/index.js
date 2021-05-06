@@ -1,7 +1,7 @@
-import { createClient } from '@signalwire/node'
+import { createRestClient } from '@signalwire/node'
 
 try {
-  const client = createClient({
+  const client = createRestClient({
     projectId: '<project-id>',
     projectToken: '<project-token>',
   })
