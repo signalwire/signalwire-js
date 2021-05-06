@@ -27,11 +27,20 @@ export class Client extends SignalWire {
           const {
             rtcTrackHandler,
             destroyHandler,
-            roomJoinedHandler,
+            layoutChangedHandler,
           } = videoElementFactory({ rootElementId, applyLocalVideoOverlay })
-          call.on('room.joined', (params: any) => {
+          call.on('layout.changed', (params: any) => {
+            layoutChangedHandler({
+              layout: params.layout,
+              // @ts-ignore
+              localVideoTrack: call.localVideoTrack,
+              // @ts-ignore
+              myMemberId: call.memberId,
+            })
+          })
+          call.on('layout.changed', (params: any) => {
             // @ts-ignore
-            roomJoinedHandler(call.localVideoTrack, params)
+            layoutChangedHandler(params, call.memberId)
           })
           call.on('track', rtcTrackHandler)
           call.on('destroy', destroyHandler)

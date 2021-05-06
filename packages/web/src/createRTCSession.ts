@@ -44,11 +44,16 @@ export const createRTCSession = (
       const {
         rtcTrackHandler,
         destroyHandler,
-        roomJoinedHandler,
+        layoutChangedHandler,
       } = videoElementFactory({ rootElementId, applyLocalVideoOverlay })
-      room.on('room.joined', (params: any) => {
-        // @ts-ignore
-        roomJoinedHandler(room.localVideoTrack, params)
+      room.on('layout.changed', (params: any) => {
+        layoutChangedHandler({
+          layout: params.layout,
+          // @ts-ignore
+          localVideoTrack: room.localVideoTrack,
+          // @ts-ignore
+          myMemberId: room.memberId,
+        })
       })
       room.on('track', rtcTrackHandler)
       room.on('destroy', destroyHandler)

@@ -54,6 +54,7 @@ export const videoElementFactory = ({
   let videoEl: HTMLVideoElement
   // Fallback to body
   const rootElement = document.getElementById(rootElementId) || document.body
+  const layerMap = new Map()
 
   const rtcTrackHandler = (event: RTCTrackEvent) => {
     switch (event.track.kind) {
@@ -116,33 +117,43 @@ export const videoElementFactory = ({
     })
   }
 
-  const _buildLayer = async ({ x, y, width, height }: any) => {
+  const _getLocationStyles = ({ x, y, width, height }: any) => {
+    return {
+      top: `${Math.ceil((videoEl.offsetWidth * y) / videoEl.videoWidth)}px`,
+      left: `${Math.ceil((videoEl.offsetHeight * x) / videoEl.videoHeight)}px`,
+      width: `${Math.ceil(
+        (videoEl.offsetWidth * width) / videoEl.videoWidth
+      )}px`,
+      height: `${Math.ceil(
+        (videoEl.offsetHeight * height) / videoEl.videoHeight
+      )}px`,
+    }
+  }
+
+  const _buildLayer = async (location: any) => {
     if (videoEl.readyState === HTMLMediaElement.HAVE_NOTHING) {
       await _videoReady()
     }
+    const { top, left, width, height } = _getLocationStyles(location)
+    logger.info(
+      'Info',
+      videoEl.offsetWidth,
+      videoEl.offsetHeight,
+      videoEl.videoWidth,
+      videoEl.videoHeight,
+      top,
+      left,
+      width,
+      height
+    )
     const layer = document.createElement('div')
     layer.style.position = 'absolute'
     layer.style.overflow = 'hidden'
-    layer.style.top = `${(videoEl.offsetWidth * x) / videoEl.videoWidth}px`
-    layer.style.left = `${(videoEl.offsetHeight * y) / videoEl.videoHeight}px`
-    logger.debug(
-      '_buildLayer width',
-      videoEl.offsetWidth,
-      width,
-      videoEl.videoWidth
-    )
-    layer.style.width = `${
-      (videoEl.offsetWidth * width) / videoEl.videoWidth
-    }px`
-    logger.debug(
-      '_buildLayer height',
-      videoEl.offsetHeight,
-      height,
-      videoEl.videoHeight
-    )
-    layer.style.height = `${
-      (videoEl.offsetHeight * height) / videoEl.videoHeight
-    }px`
+    layer.style.top = top
+    layer.style.left = left
+    layer.style.width = width
+    layer.style.height = height
+
     return layer
   }
 
@@ -152,44 +163,84 @@ export const videoElementFactory = ({
     }
   }
 
-  const roomJoinedHandler = async (
-    localVideoTrack: MediaStreamTrack,
-    { member_id, room }: any
-  ) => {
-    if (!applyLocalVideoOverlay || !localVideoTrack) {
-      logger.info('Do not apply local video overlay')
-      return
-    }
-    try {
-      const { members = [] } = room
-      const mySelf = members.find(({ id }: any) => member_id === id)
-      const myLayer = await _buildLayer(mySelf.location)
-      const localVideo = buildVideoElementByTrack(localVideoTrack)
-      localVideo.style.width = '100%'
-      localVideo.style.height = '100%'
-      myLayer.appendChild(localVideo)
+  // const roomJoinedHandler = async (
+  //   localVideoTrack: MediaStreamTrack,
+  //   { member_id, room }: any
+  // ) => {
+  //   if (!applyLocalVideoOverlay || !localVideoTrack) {
+  //     logger.info('Do not apply local video overlay')
+  //     return
+  //   }
+  //   try {
+  //     const { members = [] } = room
+  //     const mySelf = members.find(({ id }: any) => member_id === id)
+  //     const myLayer = await _buildLayer(mySelf.location)
+  //     const localVideo = buildVideoElementByTrack(localVideoTrack)
+  //     localVideo.style.width = '100%'
+  //     localVideo.style.height = '100%'
 
-      const mcuLayers = rootElement.querySelector('.mcuLayers')
-      if (mcuLayers) {
-        mcuLayers.appendChild(myLayer)
-      } else {
-        logger.warn('Missing mcuLayers wrapper')
-      }
-    } catch (error) {
-      logger.error('Local Overlay Error', error)
-    }
-  }
+  //     myLayer.style.display = 'none'
+  //     myLayer.appendChild(localVideo)
 
-  // const layoutChangedHandler = () => {
-  //   const video = getVideo()
-  //   if (video) {
+  //     layerMap.set(member_id, myLayer)
+
+  //     const mcuLayers = rootElement.querySelector('.mcuLayers')
+  //     if (mcuLayers) {
+  //       mcuLayers.appendChild(myLayer)
+  //     } else {
+  //       logger.warn('Missing mcuLayers wrapper')
+  //     }
+  //   } catch (error) {
+  //     logger.error('Local Overlay Error', error)
   //   }
   // }
+
+  const layoutChangedHandler = async ({
+    layout = {},
+    myMemberId,
+    localVideoTrack,
+  }: any) => {
+    try {
+      const { layers = [] } = layout
+      const layer = layers.find(({ memberID }: any) => memberID === myMemberId)
+
+      let myLayer = layerMap.get(myMemberId)
+      if (!myLayer) {
+        const myLayer = await _buildLayer(layer)
+        myLayer.id = myMemberId
+
+        const localVideo = buildVideoElementByTrack(localVideoTrack)
+        localVideo.style.width = '100%'
+        localVideo.style.height = '100%'
+
+        myLayer.appendChild(localVideo)
+
+        layerMap.set(myMemberId, myLayer)
+        const mcuLayers = rootElement.querySelector('.mcuLayers')
+        if (mcuLayers) {
+          mcuLayers.appendChild(myLayer)
+        } else {
+          logger.warn('Missing mcuLayers wrapper')
+        }
+
+        return
+      }
+
+      const { top, left, width, height } = _getLocationStyles(layer)
+      myLayer.style.top = top
+      myLayer.style.left = left
+      myLayer.style.width = width
+      myLayer.style.height = height
+      myLayer.style.display = 'block'
+    } catch (error) {
+      logger.error('Layout Changed Error', error)
+    }
+  }
 
   return {
     rtcTrackHandler,
     destroyHandler,
-    roomJoinedHandler,
-    // layoutChangedHandler,
+    // roomJoinedHandler,
+    layoutChangedHandler,
   }
 }
