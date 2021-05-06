@@ -1,11 +1,12 @@
 import { UserOptions, BaseComponent } from '@signalwire/core'
 import { createClient } from './createClient'
+import { videoElementFactory } from './utils/videoElementFactory'
 
 interface CreateRoomOptions extends UserOptions {
   audio: MediaStreamConstraints['audio']
   video: MediaStreamConstraints['video']
   iceServers?: RTCIceServer[]
-  videoElementId?: string
+  rootElementId?: string
 }
 
 export const createRoom = (
@@ -16,7 +17,7 @@ export const createRoom = (
       audio = true,
       video = true,
       iceServers,
-      videoElementId,
+      rootElementId,
       ...userOptions
     } = roomOptions
 
@@ -35,21 +36,17 @@ export const createRoom = (
       iceServers,
     })
 
-    if (videoElementId) {
-      const rtcTrack = (event: RTCTrackEvent) => {
-        console.debug('RTCTrackEvent', event)
-        const videoEl = document.getElementById(
-          videoElementId
-        ) as HTMLMediaElement
-        if (videoEl) {
-          videoEl.srcObject = event.streams[0]
-        }
-      }
-      room.on('track', rtcTrack)
+    if (rootElementId) {
+      const { rtcTrackHandler } = videoElementFactory(rootElementId)
+      room.on('track', rtcTrackHandler)
     }
 
     // WebRTC connection left the room.
-    room.on('destroy', () => client.disconnect())
+    room.on('destroy', () => {
+      room.off('track')
+
+      client.disconnect()
+    })
 
     resolve(room)
   })
