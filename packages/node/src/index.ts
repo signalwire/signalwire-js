@@ -2,6 +2,7 @@ import { createRoomFactory } from './rooms/createRoomFactory'
 import { createVRTFactory } from './rooms/createVRTFactory'
 import { getRoomFactory } from './rooms/getRoomFactory'
 import { listAllRoomsFactory } from './rooms/listAllRoomsFactory'
+import { updateRoomFactory } from './rooms/updateRoomFactory'
 import { Client } from './types'
 import { getConfig } from './utils/getConfig'
 import { createHttpClient } from './utils/httpClient'
@@ -22,11 +23,13 @@ export const createRestClient: Client = (options = {}) => {
   const createVRT = createVRTFactory(client)
   const getRoom = getRoomFactory(client)
   const listAllRooms = listAllRoomsFactory(client)
+  const updateRoom = updateRoomFactory(client)
 
   return {
     createRoom,
-    createVRT,
     ...getRoom,
     listAllRooms,
+    updateRoom,
+    createVRT,
   }
 }

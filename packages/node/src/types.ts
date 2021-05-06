@@ -1,12 +1,13 @@
-import { ConfigParamaters } from './utils/getConfig'
 import { CreateRoom } from './rooms/createRoomFactory'
 import { CreateVRT } from './rooms/createVRTFactory'
-import { ListAllRooms } from './rooms/listAllRoomsFactory'
 import {
   GetRoom,
   GetRoomByIdOptions,
   GetRoomByNameOptions,
 } from './rooms/getRoomFactory'
+import { ListAllRooms } from './rooms/listAllRoomsFactory'
+import { UpdateRoom } from './rooms/updateRoomFactory'
+import { ConfigParamaters } from './utils/getConfig'
 import { createHttpClient } from './utils/httpClient'
 
 export type HttpClient = ReturnType<typeof createHttpClient>
@@ -17,6 +18,7 @@ interface VideoSDKClient {
   listAllRooms: ListAllRooms
   getRoomByName: GetRoom<GetRoomByNameOptions>
   getRoomById: GetRoom<GetRoomByIdOptions>
+  updateRoom: UpdateRoom
 }
 
 export interface ListAllRoomsResponse {
