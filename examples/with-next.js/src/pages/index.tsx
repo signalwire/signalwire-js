@@ -1,4 +1,4 @@
-import { Client, createSession } from '@signalwire/web'
+import { Client, createClient } from '@signalwire/web'
 import { useEffect, useState } from 'react'
 import { useAppState } from '../components/AppController'
 import { JoinWidget } from '../components/JoinWidget'
@@ -11,7 +11,7 @@ const Steps = () => {
 
   useEffect(() => {
     if (state.status === 'authorized' && !client) {
-      createSession({
+      createClient({
         host: 'relay.swire.io',
         token: state.token,
         autoConnect: true,
