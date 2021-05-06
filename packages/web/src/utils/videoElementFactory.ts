@@ -52,14 +52,13 @@ export const videoElementFactory = ({
   applyLocalVideoOverlay = true,
 }: VideoElementFactoryParams) => {
   let videoEl: HTMLVideoElement
-  let audioEl: HTMLMediaElement
   // Fallback to body
   const rootElement = document.getElementById(rootElementId) || document.body
 
   const rtcTrackHandler = (event: RTCTrackEvent) => {
     switch (event.track.kind) {
       case 'audio':
-        audioEl = buildAudioElementByTrack(event.track)
+        buildAudioElementByTrack(event.track)
         break
       case 'video': {
         videoEl = buildVideoElementByTrack(event.track)
