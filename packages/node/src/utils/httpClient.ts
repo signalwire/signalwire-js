@@ -1,5 +1,6 @@
 import { URL } from 'url'
 import fetch, { RequestInit, Response } from 'node-fetch'
+import AbortController from 'node-abort-controller'
 import { HttpError } from '@signalwire/core'
 
 interface InternalHttpResponse<T> extends Response {
@@ -35,6 +36,10 @@ async function http<T>(
 
 interface MakeApiClientOptions extends RequestInit {
   baseUrl: string
+  /**
+   * Timeout in milliseconds
+   */
+  timeout?: number
 }
 
 interface HttpClientRequestInit extends Omit<RequestInit, 'body'> {
@@ -43,7 +48,7 @@ interface HttpClientRequestInit extends Omit<RequestInit, 'body'> {
 }
 
 export const makeApiClient = (
-  { baseUrl, ...globalOptions }: MakeApiClientOptions,
+  { baseUrl, timeout = 30000, ...globalOptions }: MakeApiClientOptions,
   fetcher = http
 ) => {
   const apiClient = async <T>(
@@ -79,6 +84,18 @@ export const makeApiClient = (
       throw new Error('Invalid method')
     }
 
+    let timerId
+    if (timeout) {
+      const controller = new AbortController()
+      const signal = controller.signal
+
+      reqInit.signal = signal
+
+      timerId = setTimeout(() => {
+        controller.abort()
+      }, timeout)
+    }
+
     const response = await fetcher<T>(
       getUrl({
         path,
@@ -87,6 +104,8 @@ export const makeApiClient = (
       }),
       reqInit
     )
+
+    timerId && clearTimeout(timerId)
 
     return { body: response.parsedBody as T }
   }
