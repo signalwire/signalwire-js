@@ -37,8 +37,11 @@ export const createRoom = (
     })
 
     if (rootElementId) {
-      const { rtcTrackHandler } = videoElementFactory(rootElementId)
+      const { rtcTrackHandler, destroyHandler } = videoElementFactory(
+        rootElementId
+      )
       room.on('track', rtcTrackHandler)
+      room.on('destroy', destroyHandler)
     }
 
     // WebRTC connection left the room.

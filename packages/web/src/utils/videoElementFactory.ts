@@ -92,6 +92,12 @@ export const videoElementFactory = (rootElementId: string) => {
     }
   }
 
+  const destroyHandler = () => {
+    while (rootElement.firstChild) {
+      rootElement.removeChild(rootElement.firstChild)
+    }
+  }
+
   // const roomJoinedHandler = () => {
   //   const video = getVideo()
   //   if (video) {
@@ -106,6 +112,7 @@ export const videoElementFactory = (rootElementId: string) => {
 
   return {
     rtcTrackHandler,
+    destroyHandler,
     // roomJoinedHandler,
     // layoutChangedHandler,
   }
