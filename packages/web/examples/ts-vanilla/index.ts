@@ -2,12 +2,12 @@
 // `production` bundle while importing from `../../src` will
 // hot-reload as we make changes.
 
-import { createSession } from '../../src'
+import { createClient } from '../../src'
 
 // @ts-ignore
 window._makeClient = async ({ token, emitter }) => {
   try {
-    const client = await createSession({
+    const client = await createClient({
       host: 'relay.swire.io',
       token,
       autoConnect: false,
