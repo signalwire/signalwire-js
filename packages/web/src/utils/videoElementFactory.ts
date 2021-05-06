@@ -123,7 +123,6 @@ export const videoElementFactory = ({
     const layer = document.createElement('div')
     layer.style.position = 'absolute'
     layer.style.overflow = 'hidden'
-    // TODO: scale x/y too
     layer.style.top = `${(videoEl.offsetWidth * x) / videoEl.videoWidth}px`
     layer.style.left = `${(videoEl.offsetHeight * y) / videoEl.videoHeight}px`
     logger.debug(
