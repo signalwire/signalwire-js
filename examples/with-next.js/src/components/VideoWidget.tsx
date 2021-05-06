@@ -72,6 +72,8 @@ export const VideoWidget = ({
       call.off('room.started', roomStarted)
       call.off('room.subscribed', roomSubscribed)
       call.off('room.ended', roomEnded)
+      call.off('track', rtcTrack)
+      call.off('member.updated', memberUpdated)
     }
   }, [call])
 
