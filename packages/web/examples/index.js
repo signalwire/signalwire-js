@@ -29,6 +29,10 @@ const EXAMPLES = [
         url: '/vanilla/',
         language: 'JavaScript',
       },
+      {
+        url: '/heroku/',
+        language: 'JavaScript',
+      },
     ],
   },
 ]
