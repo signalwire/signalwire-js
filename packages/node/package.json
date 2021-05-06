@@ -31,7 +31,8 @@
     "node-fetch": "^2.6.1"
   },
   "devDependencies": {
-    "@types/node-fetch": "^2.5.10"
+    "@types/node-fetch": "^2.5.10",
+    "msw": "^0.28.2"
   },
   "types": "dist/node/src/index.d.ts"
 }
