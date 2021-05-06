@@ -2,7 +2,7 @@ import { UserOptions, BaseComponent } from '@signalwire/core'
 import { createClient } from './createClient'
 import { videoElementFactory } from './utils/videoElementFactory'
 
-interface CreateRoomOptions extends UserOptions {
+interface CreateRTCSessionOptions extends UserOptions {
   audio: MediaStreamConstraints['audio']
   video: MediaStreamConstraints['video']
   iceServers?: RTCIceServer[]
@@ -10,8 +10,8 @@ interface CreateRoomOptions extends UserOptions {
   applyLocalVideoOverlay?: boolean
 }
 
-export const createRoom = (
-  roomOptions: CreateRoomOptions
+export const createRTCSession = (
+  roomOptions: CreateRTCSessionOptions
 ): Promise<BaseComponent> => {
   return new Promise(async (resolve, _reject) => {
     const {

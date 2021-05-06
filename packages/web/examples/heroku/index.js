@@ -1,12 +1,10 @@
-import { createRoom } from '../../src'
+import { createRTCSession } from '../../src'
 
-var client
-var currentCall = null
+var rtcSession = null
 
 var host = localStorage.getItem('relay.example.host') || ''
 var project = localStorage.getItem('relay.example.project') || ''
 var token = localStorage.getItem('relay.example.token') || ''
-var number = localStorage.getItem('relay.example.number') || ''
 var audio = localStorage.getItem('relay.example.audio') || '1'
 var video = localStorage.getItem('relay.example.video') || '1'
 
@@ -25,21 +23,21 @@ const muteButtons = [
  * Connect with Relay creating a client and attaching all the event handler.
  */
 window.connect = () => {
-  createRoom({
+  createRTCSession({
     host: document.getElementById('host').value,
     token: document.getElementById('token').value,
     rootElementId: 'rootElement',
     audio: true,
     video: true,
-  }).then((room) => {
-    currentCall = room
+  }).then((rtcSession) => {
+    rtcSession = room
 
-    console.debug('Video SDK room', room)
+    console.debug('Video SDK rtcSession', rtcSession)
 
-    room.on('room.started', (params) =>
+    rtcSession.on('room.started', (params) =>
       console.debug('>> DEMO room.started', params)
     )
-    room.on('room.subscribed', (params) => {
+    rtcSession.on('room.subscribed', (params) => {
       console.debug('>> DEMO room.subscribed', params)
 
       btnConnect.classList.add('d-none')
@@ -51,34 +49,34 @@ window.connect = () => {
         button.disabled = false
       })
     })
-    room.on('room.updated', (params) =>
+    rtcSession.on('room.updated', (params) =>
       console.debug('>> DEMO room.updated', params)
     )
-    room.on('room.ended', (params) => {
+    rtcSession.on('room.ended', (params) => {
       console.debug('>> DEMO room.ended', params)
       hangup()
     })
-    room.on('member.joined', (params) =>
+    rtcSession.on('member.joined', (params) =>
       console.debug('>> DEMO member.joined', params)
     )
-    room.on('member.updated', (params) =>
+    rtcSession.on('member.updated', (params) =>
       console.debug('>> DEMO member.updated', params)
     )
 
-    room.on('member.updated.audio_muted', (params) =>
+    rtcSession.on('member.updated.audio_muted', (params) =>
       console.debug('>> DEMO member.updated', params)
     )
-    room.on('member.updated.video_muted', (params) =>
+    rtcSession.on('member.updated.video_muted', (params) =>
       console.debug('>> DEMO member.updated', params)
     )
 
-    room.on('member.left', (params) =>
+    rtcSession.on('member.left', (params) =>
       console.debug('>> DEMO member.left', params)
     )
-    room.on('layout.changed', (params) =>
+    rtcSession.on('layout.changed', (params) =>
       console.debug('>> DEMO layout.changed', params)
     )
-    room.on('track', (event) => console.debug('>> DEMO track', event))
+    rtcSession.on('track', (event) => console.debug('>> DEMO track', event))
 
     room.join()
   })
@@ -87,11 +85,11 @@ window.connect = () => {
 }
 
 /**
- * Hangup the currentCall if present
+ * Hangup the rtcSession if present
  */
 window.hangup = () => {
-  if (currentCall) {
-    currentCall.hangup()
+  if (rtcSession) {
+    rtcSession.hangup()
   }
 
   btnConnect.classList.remove('d-none')
@@ -125,35 +123,35 @@ window.ready = (callback) => {
 }
 
 window.muteAll = () => {
-  currentCall.audioMute('all')
+  rtcSession.audioMute('all')
 }
 
 window.unmuteAll = () => {
-  currentCall.audioUnmute('all')
+  rtcSession.audioUnmute('all')
 }
 
 window.muteSelf = () => {
-  currentCall.audioMute(currentCall.memberId)
+  rtcSession.audioMute(rtcSession.memberId)
 }
 
 window.unmuteSelf = () => {
-  currentCall.audioUnmute(currentCall.memberId)
+  rtcSession.audioUnmute(rtcSession.memberId)
 }
 
 window.muteVideoAll = () => {
-  currentCall.videoMute('all')
+  rtcSession.videoMute('all')
 }
 
 window.unmuteVideoAll = () => {
-  currentCall.videoUnmute('all')
+  rtcSession.videoUnmute('all')
 }
 
 window.muteVideoSelf = () => {
-  currentCall.videoMute(currentCall.memberId)
+  rtcSession.videoMute(rtcSession.memberId)
 }
 
 window.unmuteVideoSelf = () => {
-  currentCall.videoUnmute(currentCall.memberId)
+  rtcSession.videoUnmute(rtcSession.memberId)
 }
 
 /**
