@@ -26,12 +26,8 @@ const muteButtons = [
  */
 window.connect = () => {
   createRoom({
-    host: document.getElementById('host').value, // Production by default
-    // project: document.getElementById('project').value, // ProjectId within VRT
+    host: document.getElementById('host').value,
     token: document.getElementById('token').value,
-    // iceServers: [
-    //   { urls: ['stun:stun.l.google.com:19302'] }
-    // ],
     rootElementId: 'rootElement',
     audio: true,
     video: true,
