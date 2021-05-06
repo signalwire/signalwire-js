@@ -157,7 +157,7 @@ export const videoElementFactory = ({
     localVideoTrack: MediaStreamTrack,
     { member_id, room }: any
   ) => {
-    if (!applyLocalVideoOverlay) {
+    if (!applyLocalVideoOverlay || !localVideoTrack) {
       logger.info('Do not apply local video overlay')
       return
     }
