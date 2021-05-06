@@ -1,6 +1,4 @@
 import { HttpClient, RoomResponse } from '../types'
-import { listAllRoomsFactory } from './listAllRoomsFactory'
-
 interface CreateRoomOptions {
   name: string
   displayName?: string
@@ -26,27 +24,9 @@ export const createRoomFactory: CreateRoomFactory = (client) => async (
     endsAt: ends_at,
   } = options
 
-  try {
-    // TODO: Replace this once we have an API for fetching by roomName
-    const listAllRooms = listAllRoomsFactory(client)
-    const rooms = await listAllRooms()
-
-    const existingRoom = rooms.rooms.find((room) => room.name === name)
-
-    if (existingRoom) {
-      return existingRoom
-    }
-  } catch (e) {
-    console.error(
-      'Error while trying to fetch list of available rooms',
-      e.response.body
-    )
-
-    // TODO: handle error
-  }
-
-  const { body } = await client.post<RoomResponse>('video/rooms', {
-    json: {
+  const { body } = await client<RoomResponse>('video/rooms', {
+    method: 'POST',
+    body: {
       name,
       display_name,
       max_participants,
@@ -54,7 +34,6 @@ export const createRoomFactory: CreateRoomFactory = (client) => async (
       starts_at,
       ends_at,
     },
-    responseType: 'json',
   })
 
   return body
