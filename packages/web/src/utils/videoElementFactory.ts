@@ -69,6 +69,7 @@ export const videoElementFactory = ({
 
         if (!applyLocalVideoOverlay) {
           rootElement.appendChild(videoEl)
+          return
         }
 
         const mcuWrapper = document.createElement('div')
