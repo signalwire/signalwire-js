@@ -11,7 +11,7 @@ export const createRestClient: Client = (options = {}) => {
   const config = getConfig(options)
 
   const client = createHttpClient({
-    baseUrl: config.spaceHost,
+    baseUrl: config.baseUrl,
     headers: {
       Authorization: `Basic ${Buffer.from(config.authCreds).toString(
         'base64'

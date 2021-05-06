@@ -4,20 +4,26 @@ export interface ConfigParamaters {
   spaceHost?: string
 }
 
-export type ConfigOptions = Required<ConfigParamaters> & {
+export type ConfigOptions = {
+  projectId: string
+  projectToken: string
   authCreds: string
+  baseUrl: string
 }
 
 const DEFAULT_HOST = process.env.SPACE_HOST || 'dev.swire.io'
-const baseUrl = `https://${DEFAULT_HOST}/api/`
 
-type GetConfig = (options: ConfigParamaters) => ConfigOptions
+type GetConfig = (options?: ConfigParamaters) => ConfigOptions
 
-export const getConfig: GetConfig = (options) => {
+const getBaseUrl = (spaceHost: string) => {
+  return `https://${spaceHost}/api/`
+}
+
+export const getConfig: GetConfig = (options = {}) => {
   const {
     projectId = process.env.PROJECT_ID,
     projectToken = process.env.PROJECT_TOKEN,
-    spaceHost = baseUrl,
+    spaceHost = DEFAULT_HOST,
   } = options
 
   if (!projectId || !projectToken) {
@@ -29,7 +35,7 @@ export const getConfig: GetConfig = (options) => {
   return {
     projectId,
     projectToken,
-    spaceHost,
+    baseUrl: getBaseUrl(spaceHost),
     authCreds,
   }
 }
