@@ -107,3 +107,50 @@ export type SessionAuthError = {
   code: number
   error: string
 }
+
+export interface RoomLayout {
+  id: string
+  name?: string
+}
+
+export interface RoomMemberLocation {
+  y: number
+  x: number
+  layer_index: number
+  z_index: number
+  height: number
+  width: number
+}
+
+export interface RoomMember {
+  id: string
+  room_session_id: string
+  room_id: string
+  type: 'member'
+  visible: boolean
+  audio_muted: boolean
+  video_muted: boolean
+  name: string
+  location: RoomMemberLocation
+}
+
+export interface Room {
+  room_id: string
+  room_session_id: string
+  name: string
+  members: RoomMember[]
+  locked: boolean
+  layouts: RoomLayout[]
+}
+
+export interface RoomSubscribedEvent {
+  event_type: 'room.subscribed'
+  params: {
+    room: Room
+    call_id: string
+    member_id: string
+  }
+  // TODO: check with backend why timestamp string
+  timestamp: string
+  event_channel: string
+}
