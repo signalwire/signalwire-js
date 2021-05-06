@@ -34,6 +34,8 @@ export const createRoom = (
       callerNumber: '',
       audio,
       video,
+      negotiateAudio: true,
+      negotiateVideo: true,
       experimental: true,
       iceServers,
     })
