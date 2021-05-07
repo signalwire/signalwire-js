@@ -12,7 +12,7 @@ const Steps = () => {
   useEffect(() => {
     if (state.status === 'authorized' && !client) {
       createClient({
-        host: 'relay.swire.io',
+        // host: 'relay.swire.io',
         token: state.token,
         autoConnect: true,
       }).then((c: any) => {

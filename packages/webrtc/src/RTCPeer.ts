@@ -54,6 +54,16 @@ export default class RTCPeer {
     return this.options.experimental === true
   }
 
+  get localVideoTrack() {
+    const videoSender = this._getSenderByKind('video')
+    return videoSender?.track || null
+  }
+
+  get localAudioTrack() {
+    const audioSender = this._getSenderByKind('audio')
+    return audioSender?.track || null
+  }
+
   get hasAudioSender() {
     return this._getSenderByKind('audio') ? true : false
   }
