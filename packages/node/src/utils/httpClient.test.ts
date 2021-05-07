@@ -1,4 +1,4 @@
-import { HttpError } from '@signalwire/core'
+import { AuthError, HttpError } from '@signalwire/core'
 import { server } from '../../mocks/server'
 import { createHttpClient } from './httpClient'
 
@@ -18,6 +18,21 @@ describe('HTTP Client', () => {
     const data = await client('video/rooms/existing-id')
 
     expect(data).toHaveProperty('body')
+  })
+
+  it('should throw an AuthError on unauthorized requests', async () => {
+    const client = createHttpClient({
+      baseUrl: 'http://localhost.io',
+      headers: {
+        Authorization: `Basic invalid`,
+      },
+    })
+
+    try {
+      await client('video/rooms/an-id')
+    } catch (e) {
+      expect(e).toBeInstanceOf(AuthError)
+    }
   })
 
   it('should throw an HttpError on non successfull requests', async () => {
