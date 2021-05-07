@@ -46,4 +46,17 @@ describe('HTTP Client', () => {
       expect(e).toBeInstanceOf(HttpError)
     }
   })
+
+  it("should timeout when the request doesn't resolve in time", async () => {
+    const client = createHttpClient({
+      baseUrl: 'http://localhost.io',
+      timeout: 10,
+    })
+
+    try {
+      await client('video/rooms/timeout')
+    } catch (e) {
+      expect(e.message).toBe('The user aborted a request.')
+    }
+  })
 })

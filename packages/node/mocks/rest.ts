@@ -2,8 +2,10 @@ import { rest } from 'msw'
 import { RoomResponse } from '../src/types'
 
 export const handlers = [
-  rest.get<RoomResponse>(`*/video/rooms/:id`, (req, res, ctx) => {
-    if (req.headers.get('authorization')?.includes('invalid')) {
+  rest.get<RoomResponse>(`*/video/rooms/:id`, async (req, res, ctx) => {
+    if (req.params.id === 'timeout') {
+      await new Promise((r) => setTimeout(r, 100000))
+    } else if (req.headers.get('authorization')?.includes('invalid')) {
       return res(ctx.status(401))
     } else if (req.params.id === 'non-existing-id') {
       return res(ctx.status(404))
