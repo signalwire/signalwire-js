@@ -35,5 +35,7 @@ try {
     console.error(error)
   } else if (error.response) {
     console.error(error.response)
+  } else {
+    console.error('Error', error)
   }
 }

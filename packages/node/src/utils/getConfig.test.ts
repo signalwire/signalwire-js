@@ -3,6 +3,24 @@ import { getConfig } from './getConfig'
 describe('getConfig', () => {
   it('should throw is required options are not defined', () => {
     expect(() => getConfig()).toThrow('Missing required options')
+    expect(() => getConfig({ projectId: '<pid>' })).toThrow(
+      'Missing required options'
+    )
+    expect(() => getConfig({ projectToken: '<pt>' })).toThrow(
+      'Missing required options'
+    )
+    expect(() => getConfig({ spaceHost: 'space.host.io' })).toThrow(
+      'Missing required options'
+    )
+    expect(() =>
+      getConfig({ projectId: '<pid>', projectToken: '<pt>' })
+    ).toThrow('Missing required options')
+    expect(() =>
+      getConfig({ spaceHost: '<pid>', projectToken: '<pt>' })
+    ).toThrow('Missing required options')
+    expect(() => getConfig({ projectId: '<pid>', spaceHost: '<pt>' })).toThrow(
+      'Missing required options'
+    )
   })
 
   it('should return baseUrl property if one is not defined', () => {

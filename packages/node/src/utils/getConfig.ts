@@ -11,8 +11,6 @@ export type ConfigOptions = {
   baseUrl: string
 }
 
-const DEFAULT_HOST = process.env.SPACE_HOST || 'dev.swire.io'
-
 type GetConfig = (options?: ConfigParamaters) => ConfigOptions
 
 const getBaseUrl = (spaceHost: string) => {
@@ -23,10 +21,10 @@ export const getConfig: GetConfig = (options = {}) => {
   const {
     projectId = process.env.PROJECT_ID,
     projectToken = process.env.PROJECT_TOKEN,
-    spaceHost = DEFAULT_HOST,
+    spaceHost = process.env.SPACE_HOST,
   } = options
 
-  if (!projectId || !projectToken) {
+  if (!projectId || !projectToken || !spaceHost) {
     throw new TypeError('Missing required options')
   }
 
