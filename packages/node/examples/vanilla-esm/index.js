@@ -8,12 +8,12 @@ try {
 
   const roomName = 'lobby'
 
-  const existingRoom = await client.getRoomByName({
+  let room = await client.getRoomByName({
     name: roomName,
   })
 
-  if (!existingRoom) {
-    await client.createRoom({
+  if (!room) {
+    room = await client.createRoom({
       name: roomName,
     })
   }
@@ -22,6 +22,12 @@ try {
     roomName: roomName,
     userName: 'Some User',
   })
+
+  setTimeout(async () => {
+    await client.deleteRoom({ id: room.id })
+
+    console.log('room deleted')
+  }, 2000)
 
   console.log('VRT', vrt)
 } catch (error) {
