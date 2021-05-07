@@ -1,5 +1,6 @@
 import { createRoomFactory } from './rooms/createRoomFactory'
 import { createVRTFactory } from './rooms/createVRTFactory'
+import { deleteRoomFactory } from './rooms/deleteRoomFactory'
 import { getRoomFactory } from './rooms/getRoomFactory'
 import { listAllRoomsFactory } from './rooms/listAllRoomsFactory'
 import { updateRoomFactory } from './rooms/updateRoomFactory'
@@ -21,12 +22,14 @@ export const createRestClient: Client = (options = {}) => {
 
   const createRoom = createRoomFactory(client)
   const createVRT = createVRTFactory(client)
+  const deleteRoom = deleteRoomFactory(client)
   const getRoom = getRoomFactory(client)
   const listAllRooms = listAllRoomsFactory(client)
   const updateRoom = updateRoomFactory(client)
 
   return {
     createRoom,
+    deleteRoom,
     ...getRoom,
     listAllRooms,
     updateRoom,

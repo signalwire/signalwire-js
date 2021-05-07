@@ -8,6 +8,7 @@ describe('createRestClient', () => {
     })
 
     expect(client).toHaveProperty('createRoom')
+    expect(client).toHaveProperty('deleteRoom')
     expect(client).toHaveProperty('getRoomById')
     expect(client).toHaveProperty('getRoomByName')
     expect(client).toHaveProperty('listAllRooms')
