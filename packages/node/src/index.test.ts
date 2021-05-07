@@ -5,6 +5,7 @@ describe('createRestClient', () => {
     const client = createRestClient({
       projectId: '<pid>',
       projectToken: '<pt>',
+      spaceHost: 'space.host.io',
     })
 
     expect(client).toHaveProperty('createRoom')

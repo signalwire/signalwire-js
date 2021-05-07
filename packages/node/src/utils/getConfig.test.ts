@@ -16,11 +16,11 @@ describe('getConfig', () => {
       getConfig({ projectId: '<pid>', projectToken: '<pt>' })
     ).toThrow('Missing required options')
     expect(() =>
-      getConfig({ spaceHost: '<pid>', projectToken: '<pt>' })
+      getConfig({ spaceHost: 'space.host.io', projectToken: '<pt>' })
     ).toThrow('Missing required options')
-    expect(() => getConfig({ projectId: '<pid>', spaceHost: '<pt>' })).toThrow(
-      'Missing required options'
-    )
+    expect(() =>
+      getConfig({ projectId: '<pid>', spaceHost: 'space.host.io' })
+    ).toThrow('Missing required options')
   })
 
   it('should return baseUrl property if one is not defined', () => {
@@ -28,6 +28,7 @@ describe('getConfig', () => {
       getConfig({
         projectId: '<pid>',
         projectToken: '<pt>',
+        spaceHost: 'space.host.io',
       })
     ).toHaveProperty('baseUrl')
   })
