@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { createClient } from '@signalwire/node'
+import { createRestClient } from '@signalwire/node'
 
 const assertRequiredParams = (body: NextApiRequest['body']) => {
   if (!body.room_name || !body.user_name) {
@@ -28,7 +28,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     try {
-      const client = createClient({
+      const client = createRestClient({
         projectId: process.env.PROJECT_ID as string,
         projectToken: process.env.PROJECT_TOKEN as string,
       })

@@ -1,6 +1,7 @@
 import { URL } from 'url'
 import fetch, { RequestInit, Response } from 'node-fetch'
-import { HttpError } from '@signalwire/core'
+import AbortController from 'node-abort-controller'
+import { AuthError, HttpError } from '@signalwire/core'
 
 interface InternalHttpResponse<T> extends Response {
   parsedBody?: T
@@ -13,6 +14,10 @@ async function http<T>(
   const response: InternalHttpResponse<T> = await fetch(input, init)
 
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new AuthError(response.status, 'Unauthorized')
+    }
+
     let errorResponse
     try {
       errorResponse = await response.json()
@@ -33,8 +38,12 @@ async function http<T>(
   return response
 }
 
-interface MakeApiClientOptions extends RequestInit {
+interface CreateHttpClientOptions extends RequestInit {
   baseUrl: string
+  /**
+   * Timeout in milliseconds
+   */
+  timeout?: number
 }
 
 interface HttpClientRequestInit extends Omit<RequestInit, 'body'> {
@@ -42,61 +51,71 @@ interface HttpClientRequestInit extends Omit<RequestInit, 'body'> {
   searchParams?: Record<string, any>
 }
 
-export const makeApiClient = (
-  { baseUrl, ...globalOptions }: MakeApiClientOptions,
+export const createHttpClient = (
+  { baseUrl, timeout = 30000, ...globalOptions }: CreateHttpClientOptions,
   fetcher = http
 ) => {
   const apiClient = async <T>(
     path: string,
     options?: HttpClientRequestInit
   ): Promise<{ body: T }> => {
-    let reqInit
     const headers = {
       ...(options?.body ? { 'Content-Type': 'application/json' } : {}),
       ...globalOptions.headers,
       ...options?.headers,
     }
 
-    if (options?.method === 'GET') {
-      reqInit = getRequestInit({
-        ...globalOptions,
-        ...options,
-        headers,
-      })
-    } else {
-      reqInit = getRequestInit({
-        ...globalOptions,
-        ...options,
-        headers,
-        body:
-          options?.body && typeof options.body !== 'string'
-            ? JSON.stringify(options.body)
-            : options?.body,
-      })
+    const reqInit = getRequestInit({
+      ...globalOptions,
+      ...options,
+      headers,
+    })
+
+    let timerId
+    if (timeout) {
+      const controller = new AbortController()
+      const signal = controller.signal
+
+      reqInit.signal = signal
+
+      timerId = setTimeout(() => {
+        controller.abort()
+      }, timeout)
     }
 
-    if (!reqInit) {
-      throw new Error('Invalid method')
+    try {
+      const response = await fetcher<T>(
+        getUrl({
+          path,
+          baseUrl,
+          searchParams: options?.searchParams,
+        }),
+        reqInit
+      )
+
+      return { body: response.parsedBody as T }
+    } catch (e) {
+      throw e
+    } finally {
+      timerId && clearTimeout(timerId)
     }
-
-    const response = await fetcher<T>(
-      getUrl({
-        path,
-        baseUrl,
-        searchParams: options?.searchParams,
-      }),
-      reqInit
-    )
-
-    return { body: response.parsedBody as T }
   }
 
   return apiClient
 }
 
-const getRequestInit = (options: any): RequestInit => {
+const getBody = (body: unknown) => {
+  return typeof body === 'string' ? body : JSON.stringify(body)
+}
+
+export const getRequestInit = (options: any): RequestInit => {
   return Object.entries(options).reduce((reducer, [key, value]) => {
-    if (value != undefined) {
+    if (key === 'body') {
+      return {
+        ...reducer,
+        body: getBody(value),
+      }
+    } else if (value != undefined) {
       return {
         ...reducer,
         [key]: value,
@@ -107,7 +126,7 @@ const getRequestInit = (options: any): RequestInit => {
   }, {} as RequestInit)
 }
 
-const getUrl = ({
+export const getUrl = ({
   path,
   baseUrl,
   searchParams,

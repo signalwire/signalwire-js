@@ -1,19 +1,19 @@
-import { createClient } from '@signalwire/node'
+import { createRestClient } from '@signalwire/node'
 
 try {
-  const client = createClient({
+  const client = createRestClient({
     projectId: '<project-id>',
     projectToken: '<project-token>',
   })
 
   const roomName = 'lobby'
 
-  const existingRoom = await client.getRoomByName({
+  let room = await client.getRoomByName({
     name: roomName,
   })
 
-  if (!existingRoom) {
-    await client.createRoom({
+  if (!room) {
+    room = await client.createRoom({
       name: roomName,
     })
   }
@@ -23,7 +23,19 @@ try {
     userName: 'Some User',
   })
 
+  setTimeout(async () => {
+    await client.deleteRoom({ id: room.id })
+
+    console.log('room deleted')
+  }, 2000)
+
   console.log('VRT', vrt)
 } catch (error) {
-  console.error('Error', error.response)
+  if (error.name === 'AuthError') {
+    console.error(error)
+  } else if (error.response) {
+    console.error(error.response)
+  } else {
+    console.error('Error', error)
+  }
 }
