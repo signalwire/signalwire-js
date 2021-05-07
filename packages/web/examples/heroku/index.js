@@ -1,12 +1,6 @@
 import { createRTCSession } from '../../src'
 
-var rtcSession = null
-
-var host = localStorage.getItem('relay.example.host') || ''
-var project = localStorage.getItem('relay.example.project') || ''
-var token = localStorage.getItem('relay.example.token') || ''
-var audio = localStorage.getItem('relay.example.audio') || '1'
-var video = localStorage.getItem('relay.example.video') || '1'
+let rtcSession = null
 
 const muteButtons = [
   muteSelfBtn,
@@ -103,7 +97,7 @@ window.hangup = () => {
 }
 
 window.saveInLocalStorage = (e) => {
-  var key = e.target.name || e.target.id
+  const key = e.target.name || e.target.id
   localStorage.setItem('relay.example.' + key, e.target.value)
 }
 
@@ -158,9 +152,12 @@ window.unmuteVideoSelf = () => {
  * On document ready auto-fill the input values from the localStorage.
  */
 window.ready(function () {
-  document.getElementById('host').value = host
-  document.getElementById('project').value = project
-  document.getElementById('token').value = token
-  document.getElementById('audio').checked = audio === '1'
-  document.getElementById('video').checked = video === '1'
+  document.getElementById('host').value =
+    localStorage.getItem('relay.example.host') || ''
+  document.getElementById('token').value =
+    localStorage.getItem('relay.example.token') || ''
+  document.getElementById('audio').checked =
+    (localStorage.getItem('relay.example.audio') || '1') === '1'
+  document.getElementById('video').checked =
+    (localStorage.getItem('relay.example.video') || '1') === '1'
 })
