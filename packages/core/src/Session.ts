@@ -240,11 +240,9 @@ export class Session {
 
   protected _onSocketClose(event: CloseEvent) {
     logger.debug('_onSocketClose', event)
-    this.dispatch(socketClosed())
+    this.dispatch(socketClosed({ code: event.code, reason: event.reason }))
     // @ts-ignore
     delete this._socket
-
-    this.connect()
   }
 
   protected _onSocketMessage(event: MessageEvent) {

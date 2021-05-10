@@ -15,7 +15,9 @@ export const executeAction = createAction<ExecuteActionParams>(
 export const authError = createAction<{ error: SessionAuthError }>('auth/error')
 export const authSuccess = createAction('auth/success')
 
-export const socketClosed = createAction('socket/closed')
+export const socketClosed = createAction<{ reason: string; code: number }>(
+  'socket/closed'
+)
 export const socketError = createAction('socket/error')
 export const socketMessage = createAction<JSONRPCRequest, string>(
   'socket/message'
