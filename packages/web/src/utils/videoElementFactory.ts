@@ -204,6 +204,10 @@ export const videoElementFactory = ({
       const { layers = [] } = layout
       const layer = layers.find(({ memberID }: any) => memberID === myMemberId)
 
+      if (!layer) {
+        return logger.debug('Current Layer Not Found', JSON.stringify(layout))
+      }
+
       let myLayer = layerMap.get(myMemberId)
       if (!myLayer) {
         const myLayer = await _buildLayer(layer)
@@ -217,10 +221,9 @@ export const videoElementFactory = ({
 
         layerMap.set(myMemberId, myLayer)
         const mcuLayers = rootElement.querySelector('.mcuLayers')
-        if (mcuLayers) {
+        const exists = document.getElementById(myMemberId)
+        if (mcuLayers && !exists) {
           mcuLayers.appendChild(myLayer)
-        } else {
-          logger.warn('Missing mcuLayers wrapper')
         }
 
         return
