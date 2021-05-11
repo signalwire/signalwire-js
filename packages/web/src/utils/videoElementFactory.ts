@@ -119,14 +119,10 @@ export const videoElementFactory = ({
 
   const _getLocationStyles = ({ x, y, width, height }: any) => {
     return {
-      top: `${Math.ceil((videoEl.offsetWidth * y) / videoEl.videoWidth)}px`,
-      left: `${Math.ceil((videoEl.offsetHeight * x) / videoEl.videoHeight)}px`,
-      width: `${Math.ceil(
-        (videoEl.offsetWidth * width) / videoEl.videoWidth
-      )}px`,
-      height: `${Math.ceil(
-        (videoEl.offsetHeight * height) / videoEl.videoHeight
-      )}px`,
+      top: `${((y * 100) / videoEl.videoHeight).toFixed(2)}%`,
+      left: `${((x * 100) / videoEl.videoWidth).toFixed(2)}%`,
+      width: `${((width * 100) / videoEl.videoWidth).toFixed(2)}%`,
+      height: `${((height * 100) / videoEl.videoHeight).toFixed(2)}%`,
     }
   }
 
