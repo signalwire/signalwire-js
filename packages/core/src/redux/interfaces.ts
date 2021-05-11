@@ -45,7 +45,7 @@ export interface SessionState {
   iceServers?: RTCIceServer[]
   authStatus: SessionAuthStatus
   authError?: SessionAuthError
-  sockerStatus: SocketStatus
+  socketStatus: SocketStatus
 }
 
 export interface SDKState {

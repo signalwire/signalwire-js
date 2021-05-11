@@ -63,6 +63,32 @@ function* initSessionSaga(
   }
 }
 
+export const makeSocketClosedWorker = ({
+  session,
+  sessionChannel,
+  pubSubChannel,
+}: {
+  session: Session
+  sessionChannel: EventChannel<unknown>
+  pubSubChannel: Channel<unknown>
+}) =>
+  function* ({ code }: { code: number; reason: string }) {
+    switch (code) {
+      case 1006:
+        yield put(sessionActions.socketStatusChange('reconnecting'))
+        yield call(session.connect)
+        break
+
+      default:
+        sessionChannel.close()
+        yield put(sessionActions.socketStatusChange('closed'))
+        yield put(pubSubChannel, {
+          type: 'socket.closed',
+          payload: {},
+        })
+    }
+  }
+
 function* watchSessionStatus({
   session,
   sessionChannel,
@@ -96,11 +122,11 @@ function* watchSessionStatus({
       })
       break
     case socketClosed.type:
-      yield put(pubSubChannel, {
-        type: 'socket.closed',
-        payload: {},
-      })
-      break
+      return makeSocketClosedWorker({
+        session,
+        sessionChannel,
+        pubSubChannel,
+      })(action.payload)
   }
 }
 
