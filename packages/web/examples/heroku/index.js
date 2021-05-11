@@ -5,10 +5,10 @@ let rtcSession = null
 const muteButtons = [
   muteSelfBtn,
   unmuteSelfBtn,
-  muteAllBtn,
-  unmuteAllBtn,
-  muteVideoAllBtn,
-  unmuteVideoAllBtn,
+  // muteAllBtn,
+  // unmuteAllBtn,
+  // muteVideoAllBtn,
+  // unmuteVideoAllBtn,
   muteVideoSelfBtn,
   unmuteVideoSelfBtn,
 ]
