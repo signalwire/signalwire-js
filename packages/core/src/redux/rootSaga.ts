@@ -13,6 +13,7 @@ import { initAction, destroyAction } from './actions'
 import { sessionActions } from './features'
 import { Session } from '..'
 import { authError, authSuccess, socketClosed, socketError } from './actions'
+import { delay } from '@redux-saga/core/effects'
 
 // prettier-ignore
 // const ROOT_SAGAS: Saga[] = []
@@ -73,19 +74,20 @@ export const makeSocketClosedWorker = ({
   pubSubChannel: Channel<unknown>
 }) =>
   function* ({ code }: { code: number; reason: string }) {
-    switch (code) {
-      case 1006:
-        yield put(sessionActions.socketStatusChange('reconnecting'))
-        yield call(session.connect)
-        break
-
-      default:
-        sessionChannel.close()
-        yield put(sessionActions.socketStatusChange('closed'))
-        yield put(pubSubChannel, {
-          type: 'socket.closed',
-          payload: {},
-        })
+    /**
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
+     */
+    if (code >= 1006 && code <= 1014) {
+      yield put(sessionActions.socketStatusChange('reconnecting'))
+      yield delay(Math.random() * 2000)
+      yield call(session.connect)
+    } else {
+      sessionChannel.close()
+      yield put(sessionActions.socketStatusChange('closed'))
+      yield put(pubSubChannel, {
+        type: 'socket.closed',
+        payload: {},
+      })
     }
   }
 
