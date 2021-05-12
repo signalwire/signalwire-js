@@ -16,8 +16,10 @@
 
     <!-- To style up the demo a little -->
     <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
-      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0"
+      crossorigin="anonymous"
     />
     <link
       rel="shortcut icon"
@@ -92,20 +94,22 @@
                   </label>
                 </div>
               </div>
-              <button
-                id="btnConnect"
-                class="btn btn-block btn-success"
-                onclick="connect()"
-              >
-                Join Room
-              </button>
-              <button
-                id="btnDisconnect"
-                class="btn btn-block btn-danger d-none"
-                onclick="hangup()"
-              >
-                Disconnect
-              </button>
+              <div class="d-grid gap-2">
+                <button
+                  id="btnConnect"
+                  class="btn btn-success"
+                  onclick="connect()"
+                >
+                  Join Room
+                </button>
+                <button
+                  id="btnDisconnect"
+                  class="btn btn-danger d-none"
+                  onclick="hangup()"
+                >
+                  Disconnect
+                </button>
+              </div>
 
               <div class="text-center mt-3 text-muted">
                 <small
@@ -116,6 +120,58 @@
           </div>
         </div>
 
+        <div class="col-12 col-md-8 mt-4 mt-md-1">
+          <div class="row py-3">
+            <div class="col-12">
+              <h5>Remote Video</h5>
+              <div id="rootElement"></div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-6">
+              <div class="btn-group w-100" role="group">
+                <button
+                  id="muteSelfBtn"
+                  class="btn btn-warning px-3 mt-2 d-none"
+                  onClick="muteSelf()"
+                  disabled="true"
+                >
+                  Mute Self
+                </button>
+                <button
+                  id="unmuteSelfBtn"
+                  class="btn btn-warning px-3 mt-2 d-none"
+                  onClick="unmuteSelf()"
+                  disabled="true"
+                >
+                  UnMute Self
+                </button>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="btn-group w-100" role="group">
+                <button
+                  id="muteVideoSelfBtn"
+                  class="btn btn-warning px-3 mt-2 d-none"
+                  onClick="muteVideoSelf()"
+                  disabled="true"
+                >
+                  Video Mute Self
+                </button>
+                <button
+                  id="unmuteVideoSelfBtn"
+                  class="btn btn-warning px-3 mt-2 d-none"
+                  onClick="unmuteVideoSelf()"
+                  disabled="true"
+                >
+                  Video UnMute Self
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!--
         <div class="col-12 col-md-8 mt-4 mt-md-1">
           <div class="row py-3">
             <div class="col-12">
@@ -202,10 +258,7 @@
             </div>
           </div>
         </div>
-      </div>
-
-      <div id="videoWrapper" class="row py-3">
-        <!-- Dynamic Content -->
+        -->
       </div>
       <hr />
     </div>

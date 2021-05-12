@@ -119,14 +119,10 @@ export const videoElementFactory = ({
 
   const _getLocationStyles = ({ x, y, width, height }: any) => {
     return {
-      top: `${Math.ceil((videoEl.offsetWidth * y) / videoEl.videoWidth)}px`,
-      left: `${Math.ceil((videoEl.offsetHeight * x) / videoEl.videoHeight)}px`,
-      width: `${Math.ceil(
-        (videoEl.offsetWidth * width) / videoEl.videoWidth
-      )}px`,
-      height: `${Math.ceil(
-        (videoEl.offsetHeight * height) / videoEl.videoHeight
-      )}px`,
+      top: `${((y * 100) / videoEl.videoHeight).toFixed(2)}%`,
+      left: `${((x * 100) / videoEl.videoWidth).toFixed(2)}%`,
+      width: `${((width * 100) / videoEl.videoWidth).toFixed(2)}%`,
+      height: `${((height * 100) / videoEl.videoHeight).toFixed(2)}%`,
     }
   }
 
@@ -204,6 +200,10 @@ export const videoElementFactory = ({
       const { layers = [] } = layout
       const layer = layers.find(({ memberID }: any) => memberID === myMemberId)
 
+      if (!layer) {
+        return logger.debug('Current Layer Not Found', JSON.stringify(layout))
+      }
+
       let myLayer = layerMap.get(myMemberId)
       if (!myLayer) {
         const myLayer = await _buildLayer(layer)
@@ -217,10 +217,9 @@ export const videoElementFactory = ({
 
         layerMap.set(myMemberId, myLayer)
         const mcuLayers = rootElement.querySelector('.mcuLayers')
-        if (mcuLayers) {
+        const exists = document.getElementById(myMemberId)
+        if (mcuLayers && !exists) {
           mcuLayers.appendChild(myLayer)
-        } else {
-          logger.warn('Missing mcuLayers wrapper')
         }
 
         return
