@@ -61,3 +61,8 @@ export interface ExecuteActionParams {
   method: string
   params: Record<string, any>
 }
+
+export interface SocketCloseParams {
+  code: number
+  reason: string
+}

@@ -1,9 +1,9 @@
 import { channel, eventChannel } from 'redux-saga'
 import { expectSaga } from 'redux-saga-test-plan'
-import { makeSocketClosedWorker } from './rootSaga'
+import { socketClosedWorker } from './rootSaga'
 import { sessionActions } from './features'
 
-describe('makeSocketClosedWorker', () => {
+describe('socketClosedWorker', () => {
   it('should try to reconnect when code >= 1006 && code <= 1014', async () => {
     const session = {
       closed: true,
@@ -13,13 +13,12 @@ describe('makeSocketClosedWorker', () => {
     const pubSubChannel = channel()
     const sessionChannel = eventChannel(() => () => {})
 
-    const handler = makeSocketClosedWorker({
+    return expectSaga(socketClosedWorker, {
       session,
       pubSubChannel,
       sessionChannel,
+      payload: { code: 1006, reason: '' },
     })
-
-    return expectSaga(handler, { code: 1006, reason: '' })
       .put(sessionActions.socketStatusChange('reconnecting'))
       .call(session.connect)
       .run(timeout)
@@ -33,28 +32,37 @@ describe('makeSocketClosedWorker', () => {
     const pubSubChannel = channel()
     const sessionChannel = eventChannel(() => () => {})
 
-    const handler = makeSocketClosedWorker({
-      session,
-      pubSubChannel,
-      sessionChannel,
-    })
-
     return Promise.all([
-      expectSaga(handler, { code: 1002, reason: '' })
+      expectSaga(socketClosedWorker, {
+        session,
+        pubSubChannel,
+        sessionChannel,
+        payload: { code: 1002, reason: '' },
+      })
         .put(sessionActions.socketStatusChange('closed'))
         .put(pubSubChannel, {
           type: 'socket.closed',
           payload: {},
         })
         .run(),
-      expectSaga(handler, { code: 1000, reason: '' })
+      expectSaga(socketClosedWorker, {
+        session,
+        pubSubChannel,
+        sessionChannel,
+        payload: { code: 1000, reason: '' },
+      })
         .put(sessionActions.socketStatusChange('closed'))
         .put(pubSubChannel, {
           type: 'socket.closed',
           payload: {},
         })
         .run(),
-      expectSaga(handler, { code: 1020, reason: '' })
+      expectSaga(socketClosedWorker, {
+        session,
+        pubSubChannel,
+        sessionChannel,
+        payload: { code: 1020, reason: '' },
+      })
         .put(sessionActions.socketStatusChange('closed'))
         .put(pubSubChannel, {
           type: 'socket.closed',
