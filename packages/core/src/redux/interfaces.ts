@@ -48,8 +48,6 @@ export interface SessionState {
   status: SessionStatus
 }
 
-export type SessionEvents = `session.${SessionStatus}`
-
 export interface SDKState {
   components: ComponentState
   session: SessionState

@@ -1,10 +1,10 @@
 import { createAction } from '@reduxjs/toolkit'
-import { JSONRPCRequest, SessionAuthError } from '../utils/interfaces'
 import {
-  ExecuteActionParams,
+  JSONRPCRequest,
+  SessionAuthError,
   SessionEvents,
-  SocketCloseParams,
-} from './interfaces'
+} from '../utils/interfaces'
+import { ExecuteActionParams, SocketCloseParams } from './interfaces'
 
 export const initAction = createAction('swSdk/init')
 export const destroyAction = createAction('swSdk/destroy')

@@ -1,12 +1,12 @@
 import { Store } from 'redux'
 import { Session } from '../Session'
 
-export interface Emitter<T = {}> {
-  on(eventName: string, handler: Function, once?: boolean): T
-  once(eventName: string, handler: Function): T
-  off(eventName: string, handler?: Function): T
-  emit(eventName: string, ...args: any[]): boolean
-  removeAllListeners(): T
+export interface Emitter<EventType, Instance = {}> {
+  on(eventName: EventType, handler: Function, once?: boolean): Instance
+  once(eventName: EventType, handler: Function): Instance
+  off(eventName: EventType, handler?: Function): Instance
+  emit(eventName: EventType, ...args: any[]): boolean
+  removeAllListeners(): Instance
 }
 
 type JSONRPCParams = {
@@ -42,18 +42,20 @@ export interface SessionOptions {
   autoConnect?: boolean
 }
 
-export interface UserOptions<T = {}> extends SessionOptions {
+export interface UserOptions<EventType = string, T = {}>
+  extends SessionOptions {
   devTools?: boolean
-  emitter?: Emitter<T>
+  emitter?: Emitter<EventType, T>
 }
 
-export interface BaseClientOptions<T = {}> extends UserOptions<T> {
-  emitter: Emitter<T>
+export interface BaseClientOptions<EventType = string, T = {}>
+  extends UserOptions<EventType, T> {
+  emitter: Emitter<EventType, T>
 }
 
-export interface BaseComponentOptions<T = {}> {
+export interface BaseComponentOptions<EventType = string, T = {}> {
   store: Store
-  emitter: Emitter<T>
+  emitter: Emitter<EventType, T>
 }
 
 export interface SessionRequestObject {
@@ -109,6 +111,10 @@ export type SessionStatus =
   | 'reconnecting'
   | 'connected'
   | 'disconnected'
+
+export type SessionEvents = `session.${SessionStatus}`
+
+export type ClientEvents = SessionEvents
 
 export type SessionAuthError = {
   code: number
