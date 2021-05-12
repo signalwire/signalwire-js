@@ -104,7 +104,11 @@ export type SessionAuthStatus =
   | 'unauthorized'
 
 // TODO: define proper list of statuses
-export type SocketStatus = 'unknown' | 'reconnecting' | 'open' | 'closed'
+export type SessionStatus =
+  | 'unknown'
+  | 'reconnecting'
+  | 'connected'
+  | 'disconnected'
 
 export type SessionAuthError = {
   code: number

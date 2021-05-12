@@ -4,7 +4,7 @@ import {
   JSONRPCResponse,
   SessionAuthError,
   SessionAuthStatus,
-  SocketStatus,
+  SessionStatus,
 } from '../utils/interfaces'
 
 interface SWComponent {
@@ -45,8 +45,10 @@ export interface SessionState {
   iceServers?: RTCIceServer[]
   authStatus: SessionAuthStatus
   authError?: SessionAuthError
-  socketStatus: SocketStatus
+  status: SessionStatus
 }
+
+export type SessionEvents = `session.${SessionStatus}`
 
 export interface SDKState {
   components: ComponentState
