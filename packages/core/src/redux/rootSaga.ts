@@ -1,7 +1,7 @@
 import { Saga, Task, SagaIterator, Channel } from '@redux-saga/types'
 import { channel, EventChannel } from 'redux-saga'
 import { fork, call, take, put } from 'redux-saga/effects'
-import { GetDefaultSagas } from './interfaces'
+import { GetDefaultSagas, SocketCloseParams } from './interfaces'
 import { UserOptions, SessionConstructor } from '../utils/interfaces'
 import {
   executeActionWatcher,
@@ -13,6 +13,7 @@ import { initAction, destroyAction } from './actions'
 import { sessionActions } from './features'
 import { Session } from '..'
 import { authError, authSuccess, socketClosed, socketError } from './actions'
+import { delay } from '@redux-saga/core/effects'
 
 // prettier-ignore
 // const ROOT_SAGAS: Saga[] = []
@@ -63,6 +64,34 @@ function* initSessionSaga(
   }
 }
 
+export function* socketClosedWorker({
+  session,
+  sessionChannel,
+  pubSubChannel,
+  payload: { code },
+}: {
+  session: Session
+  sessionChannel: EventChannel<unknown>
+  pubSubChannel: Channel<unknown>
+  payload: SocketCloseParams
+}) {
+  /**
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
+   */
+  if (code >= 1006 && code <= 1014) {
+    yield put(sessionActions.socketStatusChange('reconnecting'))
+    yield delay(Math.random() * 2000)
+    yield call(session.connect)
+  } else {
+    sessionChannel.close()
+    yield put(sessionActions.socketStatusChange('closed'))
+    yield put(pubSubChannel, {
+      type: 'socket.closed',
+      payload: {},
+    })
+  }
+}
+
 function* watchSessionStatus({
   session,
   sessionChannel,
@@ -96,11 +125,12 @@ function* watchSessionStatus({
       })
       break
     case socketClosed.type:
-      yield put(pubSubChannel, {
-        type: 'socket.closed',
-        payload: {},
+      yield fork(socketClosedWorker, {
+        session,
+        sessionChannel,
+        pubSubChannel,
+        payload: action.payload,
       })
-      break
   }
 }
 

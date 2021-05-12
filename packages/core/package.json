@@ -35,7 +35,8 @@
   "devDependencies": {
     "@types/uuid": "^8.3.0",
     "jest-websocket-mock": "^2.2.0",
-    "mock-socket": "^9.0.3"
+    "mock-socket": "^9.0.3",
+    "redux-saga-test-plan": "^4.0.1"
   },
   "types": "dist/core/src/index.d.ts"
 }
