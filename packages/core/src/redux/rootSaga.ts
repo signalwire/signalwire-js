@@ -1,6 +1,6 @@
 import { Saga, Task, SagaIterator, Channel } from '@redux-saga/types'
 import { channel, EventChannel } from 'redux-saga'
-import { fork, call, take, put } from 'redux-saga/effects'
+import { fork, call, take, put, delay } from 'redux-saga/effects'
 import { GetDefaultSagas, SocketCloseParams } from './interfaces'
 import { UserOptions, SessionConstructor } from '../utils/interfaces'
 import {
@@ -9,11 +9,16 @@ import {
   createSessionChannel,
 } from './features/session/sessionSaga'
 import { pubSubSaga } from './features/pubSub/pubSubSaga'
-import { initAction, destroyAction } from './actions'
+import {
+  initAction,
+  destroyAction,
+  sessionReconnecting,
+  sessionDisconnected,
+  sessionConnected,
+} from './actions'
 import { sessionActions } from './features'
 import { Session } from '..'
 import { authError, authSuccess, socketClosed, socketError } from './actions'
-import { delay } from '@redux-saga/core/effects'
 
 // prettier-ignore
 // const ROOT_SAGAS: Saga[] = []
@@ -80,15 +85,13 @@ export function* socketClosedWorker({
    */
   if (code >= 1006 && code <= 1014) {
     yield put(sessionActions.socketStatusChange('reconnecting'))
+    yield put(pubSubChannel, sessionReconnecting())
     yield delay(Math.random() * 2000)
     yield call(session.connect)
   } else {
     sessionChannel.close()
-    yield put(sessionActions.socketStatusChange('closed'))
-    yield put(pubSubChannel, {
-      type: 'socket.closed',
-      payload: {},
-    })
+    yield put(sessionActions.socketStatusChange('disconnected'))
+    yield put(pubSubChannel, sessionDisconnected())
   }
 }
 
@@ -119,10 +122,11 @@ function* watchSessionStatus({
       })
       break
     case socketError.type:
-      yield put(pubSubChannel, {
-        type: 'socket.error',
-        payload: {},
-      })
+      // TODO: define if we want to emit external events here.
+      // yield put(pubSubChannel, {
+      //   type: 'socket.error',
+      //   payload: {},
+      // })
       break
     case socketClosed.type:
       yield fork(socketClosedWorker, {
@@ -142,6 +146,7 @@ function* startSaga(options: {
 }): SagaIterator {
   const { session, sessionChannel, pubSubChannel, userOptions } = options
   yield put(sessionActions.connected(session.bladeConnectResult))
+  yield put(pubSubChannel, sessionConnected())
 
   const pubSubTask: Task = yield fork(pubSubSaga, {
     pubSubChannel,

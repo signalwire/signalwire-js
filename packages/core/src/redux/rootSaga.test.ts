@@ -2,6 +2,11 @@ import { channel, eventChannel } from 'redux-saga'
 import { expectSaga } from 'redux-saga-test-plan'
 import { socketClosedWorker } from './rootSaga'
 import { sessionActions } from './features'
+import {
+  sessionConnected,
+  sessionDisconnected,
+  sessionReconnecting,
+} from './actions'
 
 describe('socketClosedWorker', () => {
   it('should try to reconnect when code >= 1006 && code <= 1014', async () => {
@@ -39,11 +44,8 @@ describe('socketClosedWorker', () => {
         sessionChannel,
         payload: { code: 1002, reason: '' },
       })
-        .put(sessionActions.socketStatusChange('closed'))
-        .put(pubSubChannel, {
-          type: 'socket.closed',
-          payload: {},
-        })
+        .put(sessionActions.socketStatusChange('disconnected'))
+        .put(pubSubChannel, sessionDisconnected())
         .run(),
       expectSaga(socketClosedWorker, {
         session,
@@ -51,11 +53,8 @@ describe('socketClosedWorker', () => {
         sessionChannel,
         payload: { code: 1000, reason: '' },
       })
-        .put(sessionActions.socketStatusChange('closed'))
-        .put(pubSubChannel, {
-          type: 'socket.closed',
-          payload: {},
-        })
+        .put(sessionActions.socketStatusChange('disconnected'))
+        .put(pubSubChannel, sessionDisconnected())
         .run(),
       expectSaga(socketClosedWorker, {
         session,
@@ -63,11 +62,8 @@ describe('socketClosedWorker', () => {
         sessionChannel,
         payload: { code: 1020, reason: '' },
       })
-        .put(sessionActions.socketStatusChange('closed'))
-        .put(pubSubChannel, {
-          type: 'socket.closed',
-          payload: {},
-        })
+        .put(sessionActions.socketStatusChange('disconnected'))
+        .put(pubSubChannel, sessionDisconnected())
         .run(),
     ])
   })
