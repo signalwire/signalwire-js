@@ -7,13 +7,8 @@ import {
 } from '@signalwire/core'
 import { Client } from './Client'
 
-type ClientEvents = 'session.connected' | 'session.disconnected'
-
 export const createClient = async (userOptions: UserOptions) => {
-  const baseUserOptions: BaseClientOptions<
-    ClientEvents,
-    Client<ClientEvents>
-  > = {
+  const baseUserOptions: BaseClientOptions<Client> = {
     ...userOptions,
     emitter: getEventEmitter(userOptions),
   }

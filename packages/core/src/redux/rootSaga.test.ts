@@ -2,11 +2,7 @@ import { channel, eventChannel } from 'redux-saga'
 import { expectSaga } from 'redux-saga-test-plan'
 import { socketClosedWorker } from './rootSaga'
 import { sessionActions } from './features'
-import {
-  sessionConnected,
-  sessionDisconnected,
-  sessionReconnecting,
-} from './actions'
+import { sessionDisconnected } from './actions'
 
 describe('socketClosedWorker', () => {
   it('should try to reconnect when code >= 1006 && code <= 1014', async () => {

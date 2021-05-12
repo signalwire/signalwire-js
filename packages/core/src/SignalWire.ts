@@ -4,9 +4,9 @@ import { Emitter } from './utils/interfaces'
 import { AuthError } from './CustomErrors'
 import { BaseClientOptions } from './utils/interfaces'
 
-export class SignalWire<T = string> implements Emitter<T, SignalWire<T>> {
+export class SignalWire<T extends string> implements Emitter<T, SignalWire<T>> {
   constructor(
-    public options: BaseClientOptions<T, SignalWire<T>>,
+    public options: BaseClientOptions<SignalWire<T>, T>,
     public store: Store
   ) {}
 

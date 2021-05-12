@@ -42,18 +42,23 @@ export interface SessionOptions {
   autoConnect?: boolean
 }
 
-export interface UserOptions<EventType = string, T = {}>
+export interface UserOptions<T = {}, EventType extends string = string>
   extends SessionOptions {
   devTools?: boolean
   emitter?: Emitter<EventType, T>
 }
 
-export interface BaseClientOptions<EventType = string, T = {}>
-  extends UserOptions<EventType, T> {
+export interface BaseClientOptions<
+  T = {},
+  EventType extends string = ClientEvents
+> extends UserOptions<T, EventType> {
   emitter: Emitter<EventType, T>
 }
 
-export interface BaseComponentOptions<EventType = string, T = {}> {
+export interface BaseComponentOptions<
+  T = {},
+  EventType extends string = string
+> {
   store: Store
   emitter: Emitter<EventType, T>
 }
@@ -114,6 +119,9 @@ export type SessionStatus =
 
 export type SessionEvents = `session.${SessionStatus}`
 
+/**
+ * List of all the events the client can listen to.
+ */
 export type ClientEvents = SessionEvents
 
 export type SessionAuthError = {
