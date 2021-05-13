@@ -137,6 +137,7 @@ export type RoomEvent =
 export type MemberEvent =
   | 'joined'
   | 'left'
+  | 'updated'
 
 export type CallState =
   | 'active'
