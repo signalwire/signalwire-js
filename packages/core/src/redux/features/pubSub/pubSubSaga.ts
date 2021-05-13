@@ -1,5 +1,5 @@
-import { logger } from '../../../utils'
 import { take } from 'redux-saga/effects'
+import { logger } from '../../../utils'
 
 export function* pubSubSaga({ pubSubChannel, emitter }: any) {
   while (true) {
