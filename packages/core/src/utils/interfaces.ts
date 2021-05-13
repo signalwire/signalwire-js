@@ -124,6 +124,38 @@ export type SessionEvents = `session.${SessionStatus}`
  */
 export type ClientEvents = SessionEvents
 
+export type LayoutEvent = 'changed'
+
+// prettier-ignore
+export type RoomEvent =
+  | 'ended'
+  | 'started'
+  | 'subscribed'
+  | 'updated'
+
+export type CallEvent =
+  | 'active'
+  | 'answering'
+  | 'destroy'
+  | 'early'
+  | 'hangup'
+  | 'held'
+  | 'new'
+  | 'purge'
+  | 'recovering'
+  | 'requesting'
+  | 'ringing'
+  | 'track'
+  | 'trying'
+
+/**
+ * List of all the events the call can listen to
+ */
+export type CallEvents =
+  | `layout.${LayoutEvent}`
+  | `room.${RoomEvent}`
+  | CallEvent
+
 export type SessionAuthError = {
   code: number
   error: string
