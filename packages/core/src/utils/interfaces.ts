@@ -133,6 +133,11 @@ export type RoomEvent =
   | 'subscribed'
   | 'updated'
 
+// prettier-ignore
+export type MemberEvent =
+  | 'joined'
+  | 'left'
+
 export type CallState =
   | 'active'
   | 'answering'
@@ -153,6 +158,7 @@ export type CallState =
  */
 export type CallEvents =
   | `layout.${LayoutEvent}`
+  | `member.${MemberEvent}`
   | `room.${RoomEvent}`
   | CallState
 
