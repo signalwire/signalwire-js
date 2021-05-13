@@ -11,7 +11,7 @@ interface Connect<T> {
 }
 type ReduxComponentKeys = keyof ReduxComponent
 
-export const connect = <T extends { id: string; destroyer: any }>(
+export const connect = <T extends { id: string; destroyer: () => void }>(
   options: Connect<T>
 ) => {
   const { onStateChangeListeners = {}, store, Component } = options
