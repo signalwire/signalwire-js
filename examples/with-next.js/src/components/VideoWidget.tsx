@@ -28,7 +28,7 @@ export const VideoWidget = ({
       experimental: true,
       // TODO:
       callerNumber: 'john@doe.com',
-    }) as any
+    })
   })
   const dispatch = useAppDispatch()
 
