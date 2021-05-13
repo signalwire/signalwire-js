@@ -62,6 +62,7 @@ export const createRTCSession = (
           const {
             member: { id, video_muted = null },
           } = params
+          // @ts-ignore
           logger.info('Member updated', id, video_muted, room.memberId)
           // @ts-ignore
           if (video_muted !== null && id === room.memberId) {
