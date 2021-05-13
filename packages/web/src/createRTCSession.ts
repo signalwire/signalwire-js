@@ -1,4 +1,4 @@
-import { UserOptions, BaseComponent } from '@signalwire/core'
+import { logger, UserOptions, BaseComponent } from '@signalwire/core'
 import { createClient } from './createClient'
 import { videoElementFactory } from './utils/videoElementFactory'
 
@@ -45,6 +45,8 @@ export const createRTCSession = (
         rtcTrackHandler,
         destroyHandler,
         layoutChangedHandler,
+        showOverlay,
+        hideOverlay,
       } = videoElementFactory({ rootElementId, applyLocalVideoOverlay })
       room.on('layout.changed', (params: any) => {
         layoutChangedHandler({
@@ -54,6 +56,20 @@ export const createRTCSession = (
           // @ts-ignore
           myMemberId: room.memberId,
         })
+      })
+      room.on('member.updated', (params: any) => {
+        try {
+          const {
+            member: { id, video_muted = null },
+          } = params
+          logger.info('Member updated', id, video_muted, room.memberId)
+          // @ts-ignore
+          if (video_muted !== null && id === room.memberId) {
+            video_muted ? hideOverlay(id) : showOverlay(id)
+          }
+        } catch (error) {
+          logger.warn('Member updated error', error)
+        }
       })
       room.on('track', rtcTrackHandler)
       room.on('destroy', destroyHandler)
