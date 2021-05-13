@@ -10,6 +10,7 @@ import {
   ConferenceMethod,
   selectors,
   BaseComponentOptions,
+  CallEvents,
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import { DEFAULT_CALL_OPTIONS, PeerType, Direction } from './utils/constants'
@@ -35,18 +36,20 @@ const ROOM_EVENTS = [
   'layout.changed',
 ]
 
-type BaseCallOptions = CallOptions & BaseComponentOptions<BaseCall>
-
-export class BaseCall extends BaseComponent {
+type BaseCallOptions<T extends string> = CallOptions &
+  BaseComponentOptions<BaseCall<T>, T>
+export class BaseCall<
+  Events extends string = CallEvents
+> extends BaseComponent<Events> {
   public nodeId = ''
   public direction: Direction
-  public peer: RTCPeer
-  public options: BaseCallOptions
+  public peer: RTCPeer<Events>
+  public options: BaseCallOptions<Events>
   public cause: string
   public causeCode: string
   public gotEarly = false
-  public screenShare?: BaseCall
-  public secondSource?: BaseCall
+  public screenShare?: BaseCall<Events>
+  public secondSource?: BaseCall<Events>
   public doReinvite = false
   public isDirect = false
   public videoElements: HTMLVideoElement[] = []
@@ -62,7 +65,7 @@ export class BaseCall extends BaseComponent {
   private _roomSessionId: string
   private _memberId: string
 
-  constructor(options: BaseCallOptions) {
+  constructor(options: BaseCallOptions<Events>) {
     super(options)
 
     const iceServers =
@@ -488,7 +491,7 @@ export class BaseCall extends BaseComponent {
       `Call ${this.id} state change from ${this.prevState} to ${this.state}`
     )
 
-    this.emit(this.state, this)
+    this.emit(this.state as Events, this)
 
     switch (state) {
       case SwWebRTCCallState.Purge: {

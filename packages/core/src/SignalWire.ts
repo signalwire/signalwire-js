@@ -14,23 +14,25 @@ export class SignalWire<T extends string> implements Emitter<T, SignalWire<T>> {
     return this.options.emitter
   }
 
-  on(...params: Parameters<Emitter<T>['on']>) {
+  on(...params: Parameters<Emitter<T, this>['on']>) {
     return this.emitter.on(...params)
   }
 
-  once(...params: Parameters<Emitter<T>['once']>) {
+  once(...params: Parameters<Emitter<T, this>['once']>) {
     return this.emitter.once(...params)
   }
 
-  off(...params: Parameters<Emitter<T>['off']>) {
+  off(...params: Parameters<Emitter<T, this>['off']>) {
     return this.emitter.off(...params)
   }
 
-  emit(...params: Parameters<Emitter<T>['emit']>) {
+  emit(...params: Parameters<Emitter<T, this>['emit']>) {
     return this.emitter.emit(...params)
   }
 
-  removeAllListeners(...params: Parameters<Emitter<T>['removeAllListeners']>) {
+  removeAllListeners(
+    ...params: Parameters<Emitter<T, this>['removeAllListeners']>
+  ) {
     return this.emitter.removeAllListeners(...params)
   }
 

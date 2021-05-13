@@ -133,7 +133,7 @@ export type RoomEvent =
   | 'subscribed'
   | 'updated'
 
-export type CallEvent =
+export type CallState =
   | 'active'
   | 'answering'
   | 'destroy'
@@ -154,7 +154,7 @@ export type CallEvent =
 export type CallEvents =
   | `layout.${LayoutEvent}`
   | `room.${RoomEvent}`
-  | CallEvent
+  | CallState
 
 export type SessionAuthError = {
   code: number

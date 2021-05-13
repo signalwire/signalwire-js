@@ -44,6 +44,7 @@ export enum VertoMethod {
   Announce = 'verto.announce',
 }
 
+// TODO: do we still need these of if we can just `CallState` instead.
 export enum SwWebRTCCallState {
   New = 'new',
   Requesting = 'requesting',
