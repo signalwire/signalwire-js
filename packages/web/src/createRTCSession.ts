@@ -55,16 +55,15 @@ export const createRTCSession = (roomOptions: CreateRTCSessionOptions) => {
           myMemberId: room.memberId,
         })
       })
-      room.on('member.updated', (params: any) => {
+      room.on('member.updated.audio_muted', (params: any) => {
+        console.warn('audio_muted!!', params)
+      })
+      room.on('member.updated.video_muted', (params: any) => {
         try {
-          const {
-            member: { id, video_muted = null },
-          } = params
+          const { member } = params
           // @ts-ignore
-          logger.info('Member updated', id, video_muted, room.memberId)
-          // @ts-ignore
-          if (video_muted !== null && id === room.memberId) {
-            video_muted ? hideOverlay(id) : showOverlay(id)
+          if (member.id === room.memberId && 'video_muted' in member) {
+            member.video_muted ? hideOverlay(member.id) : showOverlay(member.id)
           }
         } catch (error) {
           logger.warn('Member updated error', error)
