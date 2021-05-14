@@ -39,17 +39,17 @@ const ROOM_EVENTS = [
 type BaseCallOptions<T extends string> = CallOptions &
   BaseComponentOptions<BaseCall<T>, T>
 export class BaseCall<
-  Events extends string = CallEvents
-> extends BaseComponent<Events> {
+  EventType extends string = CallEvents
+> extends BaseComponent<EventType> {
   public nodeId = ''
   public direction: Direction
-  public peer: RTCPeer<Events>
-  public options: BaseCallOptions<Events>
+  public peer: RTCPeer<EventType>
+  public options: BaseCallOptions<EventType>
   public cause: string
   public causeCode: string
   public gotEarly = false
-  public screenShare?: BaseCall<Events>
-  public secondSource?: BaseCall<Events>
+  public screenShare?: BaseCall<EventType>
+  public secondSource?: BaseCall<EventType>
   public doReinvite = false
   public isDirect = false
   public videoElements: HTMLVideoElement[] = []
@@ -65,7 +65,7 @@ export class BaseCall<
   private _roomSessionId: string
   private _memberId: string
 
-  constructor(options: BaseCallOptions<Events>) {
+  constructor(options: BaseCallOptions<EventType>) {
     super(options)
 
     const iceServers =
@@ -491,7 +491,7 @@ export class BaseCall<
       `Call ${this.id} state change from ${this.prevState} to ${this.state}`
     )
 
-    this.emit(this.state as Events, this)
+    this.emit(this.state as EventType, this)
 
     switch (state) {
       case SwWebRTCCallState.Purge: {
