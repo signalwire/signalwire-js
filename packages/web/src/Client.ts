@@ -1,8 +1,8 @@
-import { SignalWire, connect } from '@signalwire/core'
+import { SignalWire, ClientEvents, connect } from '@signalwire/core'
 import { Call } from '@signalwire/webrtc'
 import { videoElementFactory } from './utils/videoElementFactory'
 
-export class Client extends SignalWire {
+export class Client<EventType extends string = ClientEvents> extends SignalWire<EventType> {
   get rooms() {
     return {
       // TODO: use CallOptions interface here

@@ -1,12 +1,12 @@
 import { Store } from 'redux'
 import { Session } from '../Session'
 
-export interface Emitter<T = {}> {
-  on(eventName: string, handler: Function, once?: boolean): T
-  once(eventName: string, handler: Function): T
-  off(eventName: string, handler?: Function): T
-  emit(eventName: string, ...args: any[]): boolean
-  removeAllListeners(): T
+export interface Emitter<EventType, Instance = {}> {
+  on(eventName: EventType, handler: Function, once?: boolean): Instance
+  once(eventName: EventType, handler: Function): Instance
+  off(eventName: EventType, handler?: Function): Instance
+  emit(eventName: EventType, ...args: any[]): boolean
+  removeAllListeners(): Instance
 }
 
 type JSONRPCParams = {
@@ -42,18 +42,25 @@ export interface SessionOptions {
   autoConnect?: boolean
 }
 
-export interface UserOptions<T = {}> extends SessionOptions {
+export interface UserOptions<T = {}, EventType extends string = string>
+  extends SessionOptions {
   devTools?: boolean
-  emitter?: Emitter<T>
+  emitter?: Emitter<EventType, T>
 }
 
-export interface BaseClientOptions<T = {}> extends UserOptions<T> {
-  emitter: Emitter<T>
+export interface BaseClientOptions<
+  T = {},
+  EventType extends string = ClientEvents
+> extends UserOptions<T, EventType> {
+  emitter: Emitter<EventType, T>
 }
 
-export interface BaseComponentOptions<T = {}> {
+export interface BaseComponentOptions<
+  T = {},
+  EventType extends string = string
+> {
   store: Store
-  emitter: Emitter<T>
+  emitter: Emitter<EventType, T>
 }
 
 export interface SessionRequestObject {
@@ -104,7 +111,57 @@ export type SessionAuthStatus =
   | 'unauthorized'
 
 // TODO: define proper list of statuses
-export type SocketStatus = 'unknown' | 'reconnecting' | 'open' | 'closed'
+export type SessionStatus =
+  | 'unknown'
+  | 'reconnecting'
+  | 'connected'
+  | 'disconnected'
+
+export type SessionEvents = `session.${SessionStatus}`
+
+/**
+ * List of all the events the client can listen to.
+ */
+export type ClientEvents = SessionEvents
+
+export type LayoutEvent = 'changed'
+
+// prettier-ignore
+export type RoomEvent =
+  | 'ended'
+  | 'started'
+  | 'subscribed'
+  | 'updated'
+
+// prettier-ignore
+export type MemberEvent =
+  | 'joined'
+  | 'left'
+  | 'updated'
+
+export type CallState =
+  | 'active'
+  | 'answering'
+  | 'destroy'
+  | 'early'
+  | 'hangup'
+  | 'held'
+  | 'new'
+  | 'purge'
+  | 'recovering'
+  | 'requesting'
+  | 'ringing'
+  | 'track'
+  | 'trying'
+
+/**
+ * List of all the events the call can listen to
+ */
+export type CallEvents =
+  | `layout.${LayoutEvent}`
+  | `member.${MemberEvent}`
+  | `room.${RoomEvent}`
+  | CallState
 
 export type SessionAuthError = {
   code: number

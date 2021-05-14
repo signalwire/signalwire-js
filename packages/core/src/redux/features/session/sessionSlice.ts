@@ -3,7 +3,7 @@ import { SessionState } from '../../interfaces'
 import {
   IBladeConnectResult,
   SessionAuthError,
-  SocketStatus,
+  SessionStatus,
 } from '../../../utils/interfaces'
 import { destroyAction, authError } from '../../actions'
 
@@ -12,7 +12,7 @@ export const initialSessionState: Readonly<SessionState> = {
   iceServers: [],
   authStatus: 'unknown',
   authError: undefined,
-  socketStatus: 'unknown',
+  status: 'unknown',
 }
 
 const sessionSlice = createSlice({
@@ -21,12 +21,12 @@ const sessionSlice = createSlice({
   reducers: {
     connected: (state, { payload }: PayloadAction<IBladeConnectResult>) => {
       state.authStatus = 'authorized'
-      state.socketStatus = 'open'
+      state.status = 'connected'
       state.protocol = payload?.result?.protocol ?? ''
       state.iceServers = payload?.result?.iceServers ?? []
     },
-    socketStatusChange: (state, { payload }: PayloadAction<SocketStatus>) => {
-      state.socketStatus = payload
+    statusChange: (state, { payload }: PayloadAction<SessionStatus>) => {
+      state.status = payload
     },
   },
   extraReducers: (builder) => {

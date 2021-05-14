@@ -13,8 +13,9 @@ window._makeClient = async ({ token, emitter }) => {
       autoConnect: false,
       emitter,
     })
-    client.on('socket.error', console.warn)
-    client.on('socket.closed', console.warn)
+
+    client.on('session.disconnected', console.warn)
+    client.on('session.connected', console.warn)
 
     // @ts-ignore
     window.__client = client

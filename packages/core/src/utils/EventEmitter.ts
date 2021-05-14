@@ -3,7 +3,8 @@ import { Emitter, UserOptions } from './interfaces'
 export const EventEmitter = () => {
   const _queue: { [key: string]: Function[] } = {}
   const _uniqueKey = Symbol.for('sw-once-key')
-  return new (class BaseEventEmitter implements Emitter<BaseEventEmitter> {
+  return new (class BaseEventEmitter
+    implements Emitter<string, BaseEventEmitter> {
     on(eventName: string, handler: Function, once = false) {
       if (!_queue[eventName]) {
         _queue[eventName] = []
@@ -80,7 +81,9 @@ const REQUIRED_EMITTER_METHODS = [
  * Checks the shape of the emitter at runtime. This is useful for when
  * the user is using the SDK without TS
  */
-export const assertEventEmitter = (emitter: unknown): emitter is Emitter => {
+export const assertEventEmitter = <T>(
+  emitter: unknown
+): emitter is Emitter<T> => {
   if (
     emitter &&
     typeof emitter === 'object' &&
@@ -92,11 +95,13 @@ export const assertEventEmitter = (emitter: unknown): emitter is Emitter => {
   return false
 }
 
-export const getEventEmitter = <T = {}>(userOptions: UserOptions) => {
+export const getEventEmitter = <T = string, Instance = {}>(
+  userOptions: UserOptions
+) => {
   if (!userOptions.emitter) {
-    return (EventEmitter() as unknown) as Emitter<T>
-  } else if (assertEventEmitter(userOptions.emitter)) {
-    return userOptions.emitter as Emitter<T>
+    return (EventEmitter() as unknown) as Emitter<T, Instance>
+  } else if (assertEventEmitter<T>(userOptions.emitter)) {
+    return (userOptions.emitter as unknown) as Emitter<T, Instance>
   }
   // TODO: In future versions we can narrow this error a bit more and
   // give the user more info about which method they are missing as

@@ -4,9 +4,9 @@ import { Emitter } from './utils/interfaces'
 import { AuthError } from './CustomErrors'
 import { BaseClientOptions } from './utils/interfaces'
 
-export class SignalWire implements Emitter<SignalWire> {
+export class SignalWire<EventType extends string> implements Emitter<EventType, SignalWire<EventType>> {
   constructor(
-    public options: BaseClientOptions<SignalWire>,
+    public options: BaseClientOptions<SignalWire<EventType>, EventType>,
     public store: Store
   ) {}
 
@@ -14,23 +14,25 @@ export class SignalWire implements Emitter<SignalWire> {
     return this.options.emitter
   }
 
-  on(...params: Parameters<Emitter['on']>) {
+  on(...params: Parameters<Emitter<EventType, this>['on']>) {
     return this.emitter.on(...params)
   }
 
-  once(...params: Parameters<Emitter['once']>) {
+  once(...params: Parameters<Emitter<EventType, this>['once']>) {
     return this.emitter.once(...params)
   }
 
-  off(...params: Parameters<Emitter['off']>) {
+  off(...params: Parameters<Emitter<EventType, this>['off']>) {
     return this.emitter.off(...params)
   }
 
-  emit(...params: Parameters<Emitter['emit']>) {
+  emit(...params: Parameters<Emitter<EventType, this>['emit']>) {
     return this.emitter.emit(...params)
   }
 
-  removeAllListeners(...params: Parameters<Emitter['removeAllListeners']>) {
+  removeAllListeners(
+    ...params: Parameters<Emitter<EventType, this>['removeAllListeners']>
+  ) {
     return this.emitter.removeAllListeners(...params)
   }
 

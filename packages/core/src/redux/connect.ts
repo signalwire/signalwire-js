@@ -1,18 +1,17 @@
 import { Store } from 'redux'
 import { ReduxComponent } from './interfaces'
-import { BaseComponent } from '../BaseComponent'
 import { componentActions } from './features'
 import { getComponent } from './features/component/componentSelectors'
 
 type ConnectEventHandler = (component: ReduxComponent) => any
-interface Connect<T extends typeof BaseComponent> {
+interface Connect<T> {
   onStateChangeListeners: Record<string, string | ConnectEventHandler>
   store: Store
-  Component: T
+  Component: new (o: any) => T
 }
 type ReduxComponentKeys = keyof ReduxComponent
 
-export const connect = <T extends typeof BaseComponent>(
+export const connect = <T extends { id: string; destroyer: () => void }>(
   options: Connect<T>
 ) => {
   const { onStateChangeListeners = {}, store, Component } = options

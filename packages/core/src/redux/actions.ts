@@ -1,5 +1,9 @@
 import { createAction } from '@reduxjs/toolkit'
-import { JSONRPCRequest, SessionAuthError } from '../utils/interfaces'
+import {
+  JSONRPCRequest,
+  SessionAuthError,
+  SessionEvents,
+} from '../utils/interfaces'
 import { ExecuteActionParams, SocketCloseParams } from './interfaces'
 
 export const initAction = createAction('swSdk/init')
@@ -19,4 +23,15 @@ export const socketClosed = createAction<SocketCloseParams>('socket/closed')
 export const socketError = createAction('socket/error')
 export const socketMessage = createAction<JSONRPCRequest, string>(
   'socket/message'
+)
+
+// TODO: define if we need/want to send a payload with these events.
+export const sessionConnected = createAction<void, SessionEvents>(
+  'session.connected'
+)
+export const sessionDisconnected = createAction<void, SessionEvents>(
+  'session.disconnected'
+)
+export const sessionReconnecting = createAction<void, SessionEvents>(
+  'session.reconnecting'
 )

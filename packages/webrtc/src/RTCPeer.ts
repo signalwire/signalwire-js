@@ -19,14 +19,14 @@ import {
 } from './utils/webrtcHelpers'
 import { CallOptions } from './utils/interfaces'
 
-export default class RTCPeer {
+export default class RTCPeer<T extends string> {
   public instance: RTCPeerConnection
 
   private options: CallOptions
   private _iceTimeout: any
   private _negotiating = false
 
-  constructor(public call: BaseCall, public type: PeerType) {
+  constructor(public call: BaseCall<T>, public type: PeerType) {
     this.options = call.options
     logger.info('New Peer with type:', this.type, 'Options:', this.options)
 
@@ -331,7 +331,7 @@ export default class RTCPeer {
     }
 
     this.instance.addEventListener('track', (event: RTCTrackEvent) => {
-      this.call.emit('track', event)
+      this.call.emit('track' as T, event)
       if (this.hasExperimentalFlag) {
         // this._buildMediaElementByTrack(event)
         // const notification = { type: 'trackAdd', event }
@@ -493,7 +493,7 @@ export default class RTCPeer {
     }
     if (event.candidate) {
       logger.debug('RTCPeer Candidate:', event.candidate)
-      this.call.emit('icecandidate', event)
+      this.call.emit('icecandidate' as T, event)
     } else {
       this._sdpReady()
     }
