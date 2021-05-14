@@ -1,6 +1,5 @@
-import { SignalWire, connect } from '@signalwire/core'
+import { SignalWire, ClientEvents, connect } from '@signalwire/core'
 import { Call } from '@signalwire/webrtc'
-import { ClientEvents } from '@signalwire/core'
 import { videoElementFactory } from './utils/videoElementFactory'
 
 export class Client<EventType extends string = ClientEvents> extends SignalWire<EventType> {
