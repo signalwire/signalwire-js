@@ -25,7 +25,7 @@ const sessionSlice = createSlice({
       state.protocol = payload?.result?.protocol ?? ''
       state.iceServers = payload?.result?.iceServers ?? []
     },
-    socketStatusChange: (state, { payload }: PayloadAction<SessionStatus>) => {
+    statusChange: (state, { payload }: PayloadAction<SessionStatus>) => {
       state.status = payload
     },
   },

@@ -84,13 +84,13 @@ export function* socketClosedWorker({
    * @see https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
    */
   if (code >= 1006 && code <= 1014) {
-    yield put(sessionActions.socketStatusChange('reconnecting'))
+    yield put(sessionActions.statusChange('reconnecting'))
     yield put(pubSubChannel, sessionReconnecting())
     yield delay(Math.random() * 2000)
     yield call(session.connect)
   } else {
     sessionChannel.close()
-    yield put(sessionActions.socketStatusChange('disconnected'))
+    yield put(sessionActions.statusChange('disconnected'))
     yield put(pubSubChannel, sessionDisconnected())
   }
 }

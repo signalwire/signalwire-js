@@ -20,7 +20,7 @@ describe('socketClosedWorker', () => {
       sessionChannel,
       payload: { code: 1006, reason: '' },
     })
-      .put(sessionActions.socketStatusChange('reconnecting'))
+      .put(sessionActions.statusChange('reconnecting'))
       .call(session.connect)
       .run(timeout)
   })
@@ -40,7 +40,7 @@ describe('socketClosedWorker', () => {
         sessionChannel,
         payload: { code: 1002, reason: '' },
       })
-        .put(sessionActions.socketStatusChange('disconnected'))
+        .put(sessionActions.statusChange('disconnected'))
         .put(pubSubChannel, sessionDisconnected())
         .run(),
       expectSaga(socketClosedWorker, {
@@ -49,7 +49,7 @@ describe('socketClosedWorker', () => {
         sessionChannel,
         payload: { code: 1000, reason: '' },
       })
-        .put(sessionActions.socketStatusChange('disconnected'))
+        .put(sessionActions.statusChange('disconnected'))
         .put(pubSubChannel, sessionDisconnected())
         .run(),
       expectSaga(socketClosedWorker, {
@@ -58,7 +58,7 @@ describe('socketClosedWorker', () => {
         sessionChannel,
         payload: { code: 1020, reason: '' },
       })
-        .put(sessionActions.socketStatusChange('disconnected'))
+        .put(sessionActions.statusChange('disconnected'))
         .put(pubSubChannel, sessionDisconnected())
         .run(),
     ])
