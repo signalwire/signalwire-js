@@ -134,10 +134,14 @@ export type RoomEvent =
   | 'updated'
 
 // prettier-ignore
+export type MemberEventExpanded = `updated.${keyof RoomMember}`
+
+// prettier-ignore
 export type MemberEvent =
   | 'joined'
   | 'left'
   | 'updated'
+  | MemberEventExpanded
 
 export type CallState =
   | 'active'
@@ -203,7 +207,7 @@ export interface Room {
   layouts: RoomLayout[]
 }
 
-export interface RoomSubscribedEvent {
+interface RoomSubscribedEvent {
   event_type: 'room.subscribed'
   params: {
     room: Room
@@ -214,3 +218,22 @@ export interface RoomSubscribedEvent {
   timestamp: string
   event_channel: string
 }
+
+interface MemberUpdated {
+  event_type: 'member.updated'
+  params: {
+    member: RoomMember & {
+      updated: (keyof RoomMember)[]
+    }
+    call_id: string
+    member_id: string
+  }
+  // TODO: check with backend why timestamp string
+  timestamp: string
+  event_channel: string
+}
+
+// prettier-ignore
+export type ConferenceWorkerParams =
+  | RoomSubscribedEvent
+  | MemberUpdated

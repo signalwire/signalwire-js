@@ -3,7 +3,10 @@ import { call, put, take, fork } from 'redux-saga/effects'
 import { PayloadAction } from '@reduxjs/toolkit'
 import { Session } from '../../..'
 import { VertoResult } from '../../../RPCMessages'
-import { JSONRPCRequest, RoomSubscribedEvent } from '../../../utils/interfaces'
+import {
+  JSONRPCRequest,
+  ConferenceWorkerParams,
+} from '../../../utils/interfaces'
 import { ExecuteActionParams, WebRTCCall } from '../../interfaces'
 import { executeAction, socketMessage } from '../../actions'
 import { componentActions } from '../'
@@ -20,8 +23,6 @@ type SessionSagaParams = {
   sessionChannel: EventChannel<unknown>
   pubSubChannel: Channel<unknown>
 }
-
-type ConferenceWorkerParams = RoomSubscribedEvent
 
 /**
  * Watch every "executeAction" and fork the worker to send
@@ -178,6 +179,18 @@ export function* sessionChannelWatcher({
           type: 'room.joined',
           payload: params.params,
         })
+        break
+      }
+      case 'member.updated': {
+        const {
+          member: { updated = [] },
+        } = params.params
+        for (const key of updated) {
+          yield put(pubSubChannel, {
+            type: `member.updated.${key}`,
+            payload: params.params,
+          })
+        }
         break
       }
     }
