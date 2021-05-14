@@ -159,38 +159,6 @@ export const videoElementFactory = ({
     }
   }
 
-  // const roomJoinedHandler = async (
-  //   localVideoTrack: MediaStreamTrack,
-  //   { member_id, room }: any
-  // ) => {
-  //   if (!applyLocalVideoOverlay || !localVideoTrack) {
-  //     logger.info('Do not apply local video overlay')
-  //     return
-  //   }
-  //   try {
-  //     const { members = [] } = room
-  //     const mySelf = members.find(({ id }: any) => member_id === id)
-  //     const myLayer = await _buildLayer(mySelf.location)
-  //     const localVideo = buildVideoElementByTrack(localVideoTrack)
-  //     localVideo.style.width = '100%'
-  //     localVideo.style.height = '100%'
-
-  //     myLayer.style.display = 'none'
-  //     myLayer.appendChild(localVideo)
-
-  //     layerMap.set(member_id, myLayer)
-
-  //     const mcuLayers = rootElement.querySelector('.mcuLayers')
-  //     if (mcuLayers) {
-  //       mcuLayers.appendChild(myLayer)
-  //     } else {
-  //       logger.warn('Missing mcuLayers wrapper')
-  //     }
-  //   } catch (error) {
-  //     logger.error('Local Overlay Error', error)
-  //   }
-  // }
-
   const layoutChangedHandler = async ({
     layout = {},
     myMemberId,
@@ -230,16 +198,25 @@ export const videoElementFactory = ({
       myLayer.style.left = left
       myLayer.style.width = width
       myLayer.style.height = height
-      myLayer.style.display = 'block'
     } catch (error) {
       logger.error('Layout Changed Error', error)
+    }
+  }
+
+  const makeDisplayChangeFn = (display: 'block' | 'none') => {
+    return (domId: string) => {
+      const el = document.getElementById(domId)
+      if (el) {
+        el.style.display = display
+      }
     }
   }
 
   return {
     rtcTrackHandler,
     destroyHandler,
-    // roomJoinedHandler,
     layoutChangedHandler,
+    showOverlay: makeDisplayChangeFn('block'),
+    hideOverlay: makeDisplayChangeFn('none'),
   }
 }
