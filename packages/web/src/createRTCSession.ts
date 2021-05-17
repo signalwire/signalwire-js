@@ -55,9 +55,6 @@ export const createRTCSession = (roomOptions: CreateRTCSessionOptions) => {
           myMemberId: room.memberId,
         })
       })
-      room.on('member.updated.audio_muted', (params: any) => {
-        console.warn('audio_muted!!', params)
-      })
       room.on('member.updated.video_muted', (params: any) => {
         try {
           const { member } = params
