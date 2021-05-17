@@ -234,3 +234,49 @@ interface MemberUpdated {
 export type ConferenceWorkerParams =
   | RoomSubscribedEvent
   | MemberUpdated
+
+interface ConferenceEvent {
+  broadcaster_nodeid: string
+  protocol: string
+  channel: 'notifications'
+  event: 'conference'
+  params: ConferenceWorkerParams
+}
+
+interface VertoEvent {
+  broadcaster_nodeid: string
+  protocol: string
+  channel: 'notifications'
+  event: 'queuing.relay.events'
+  params: {
+    event_type: 'webrtc.message'
+    event_channel: string
+    timestamp: number
+    project_id: string
+    node_id: string
+    params: JSONRPCRequest
+  }
+}
+
+interface TaskEvent {
+  broadcaster_nodeid: string
+  protocol: string
+  channel: 'notifications'
+  event: 'queuing.relay.tasks'
+  params: Record<string, any>
+}
+
+interface MessagingEvent {
+  broadcaster_nodeid: string
+  protocol: string
+  channel: 'notifications'
+  event: 'queuing.relay.messaging'
+  params: Record<string, any>
+}
+
+// prettier-ignore
+export type BladeBroadcastParams =
+  | ConferenceEvent
+  | VertoEvent
+  | TaskEvent
+  | MessagingEvent
