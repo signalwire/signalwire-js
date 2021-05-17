@@ -317,14 +317,26 @@ export class BaseCall<
 
   join = this.invite
 
-  async invite() {
-    this.direction = Direction.Outbound
-    this.peer = new RTCPeer(this, PeerType.Offer)
-    try {
-      await this.peer.start()
-    } catch (error) {
-      logger.error('Join error', error)
-    }
+  invite() {
+    return new Promise(async (resolve, reject) => {
+      this.direction = Direction.Outbound
+      this.peer = new RTCPeer(this, PeerType.Offer)
+      try {
+        const _resolve = () => resolve(this)
+        // @ts-ignore
+        this.once('active', () => {
+          // @ts-ignore
+          this.off('destroy', _resolve)
+          _resolve()
+        })
+        // @ts-ignore
+        this.once('destroy', _resolve)
+        await this.peer.start()
+      } catch (error) {
+        logger.error('Join error', error)
+        reject(error)
+      }
+    })
   }
 
   async answer() {
