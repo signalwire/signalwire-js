@@ -55,27 +55,6 @@ export const findElementByType = (
   return null
 }
 
-export const muteMediaElement = (tag: any) => {
-  const element = findElementByType(tag)
-  if (element) {
-    element.muted = true
-  }
-}
-
-export const unmuteMediaElement = (tag: any) => {
-  const element = findElementByType(tag)
-  if (element) {
-    element.muted = false
-  }
-}
-
-export const toggleMuteMediaElement = (tag: any) => {
-  const element = findElementByType(tag)
-  if (element) {
-    element.muted = !element.muted
-  }
-}
-
 export const setMediaElementSinkId = async (
   tag: any,
   deviceId: string

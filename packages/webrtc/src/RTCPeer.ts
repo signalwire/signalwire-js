@@ -8,7 +8,6 @@ import {
 import { PeerType } from './utils/constants'
 import { BaseCall } from './BaseCall'
 import {
-  muteMediaElement,
   sdpToJsonHack,
   RTCPeerConnection,
   streamIsValid,
@@ -328,7 +327,7 @@ export default class RTCPeer<T extends string> {
       }
     )
 
-    const { localElement, localStream = null, screenShare } = this.options
+    const { localStream = null } = this.options
     if (localStream && streamIsValid(localStream)) {
       const audioTracks = localStream.getAudioTracks()
       logger.debug('Local audio tracks: ', audioTracks)
@@ -384,10 +383,6 @@ export default class RTCPeer<T extends string> {
         // Fallback to legacy addStream ..
         // @ts-ignore
         this.instance.addStream(localStream)
-      }
-
-      if (screenShare === false) {
-        muteMediaElement(localElement)
       }
     }
 

@@ -32,10 +32,6 @@ export const getSupportedConstraints = () => ({})
 
 export const detachMediaStream = (htmlElementId: string) => null
 
-export const muteMediaElement = (htmlElementId: string) => null
-export const unmuteMediaElement = (htmlElementId: string) => null
-export const toggleMuteMediaElement = (htmlElementId: string) => null
-
 export const setMediaElementSinkId = (
   htmlElementId: string,
   deviceId: string
