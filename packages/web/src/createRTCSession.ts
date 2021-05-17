@@ -34,7 +34,6 @@ export const createRTCSession = (roomOptions: CreateRTCSessionOptions) => {
       video,
       negotiateAudio: true,
       negotiateVideo: true,
-      experimental: true,
       iceServers,
     })
 

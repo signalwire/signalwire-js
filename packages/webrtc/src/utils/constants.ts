@@ -42,7 +42,6 @@ export const DEFAULT_CALL_OPTIONS: CallOptions = {
   secondSource: false,
   userVariables: {},
   requestTimeout: 10 * 1000,
-  experimental: false,
   autoApplyMediaParams: true,
   iceGatheringTimeout: 2 * 1000,
 }

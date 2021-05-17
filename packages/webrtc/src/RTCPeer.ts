@@ -48,10 +48,6 @@ export default class RTCPeer<T extends string> {
     return this.options.sfu === true
   }
 
-  get hasExperimentalFlag() {
-    return this.options.experimental === true
-  }
-
   get localVideoTrack() {
     const videoSender = this._getSenderByKind('video')
     return videoSender?.track || null
@@ -311,11 +307,6 @@ export default class RTCPeer<T extends string> {
 
     this.instance.addEventListener('track', (event: RTCTrackEvent) => {
       this.call.emit('track' as T, event)
-      if (this.hasExperimentalFlag) {
-        // this._buildMediaElementByTrack(event)
-        // const notification = { type: 'trackAdd', event }
-        // this.call._dispatchNotification(notification)
-      }
 
       if (this.isSfu) {
         // const notification = { type: 'trackAdd', event }
