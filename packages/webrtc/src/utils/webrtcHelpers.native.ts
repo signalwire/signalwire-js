@@ -30,10 +30,6 @@ export const streamIsValid = (stream: RNMediaStream) =>
 
 export const getSupportedConstraints = () => ({})
 
-export const attachMediaStream = (
-  htmlElementId: string,
-  stream: RNMediaStream
-) => null
 export const detachMediaStream = (htmlElementId: string) => null
 
 export const muteMediaElement = (htmlElementId: string) => null

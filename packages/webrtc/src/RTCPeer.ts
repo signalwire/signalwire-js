@@ -8,7 +8,6 @@ import {
 import { PeerType } from './utils/constants'
 import { BaseCall } from './BaseCall'
 import {
-  attachMediaStream,
   muteMediaElement,
   sdpToJsonHack,
   RTCPeerConnection,
@@ -389,7 +388,6 @@ export default class RTCPeer<T extends string> {
 
       if (screenShare === false) {
         muteMediaElement(localElement)
-        attachMediaStream(localElement, localStream)
       }
     }
 

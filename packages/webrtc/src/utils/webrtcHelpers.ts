@@ -32,20 +32,6 @@ export const getSupportedConstraints = () => {
 export const streamIsValid = (stream?: MediaStream) =>
   stream && stream instanceof MediaStream
 
-export const attachMediaStream = (tag: any, stream: MediaStream) => {
-  const element = findElementByType(tag)
-  if (element === null) {
-    return
-  }
-  if (!element.getAttribute('autoplay')) {
-    element.setAttribute('autoplay', 'autoplay')
-  }
-  if (!element.getAttribute('playsinline')) {
-    element.setAttribute('playsinline', 'playsinline')
-  }
-  element.srcObject = stream
-}
-
 export const detachMediaStream = (tag: any) => {
   const element = findElementByType(tag)
   if (element) {
