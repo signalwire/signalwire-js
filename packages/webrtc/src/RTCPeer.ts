@@ -174,9 +174,7 @@ export default class RTCPeer<T extends string> {
     try {
       const config = this.instance.getConfiguration()
       if (config.iceTransportPolicy === 'relay') {
-        return console.warn(
-          'RTCPeer already with iceTransportPolicy relay only'
-        )
+        return logger.warn('RTCPeer already with iceTransportPolicy relay only')
       }
       const newConfig: RTCConfiguration = {
         ...config,
@@ -334,9 +332,9 @@ export default class RTCPeer<T extends string> {
     const { localElement, localStream = null, screenShare } = this.options
     if (localStream && streamIsValid(localStream)) {
       const audioTracks = localStream.getAudioTracks()
-      logger.info('Local audio tracks: ', audioTracks)
+      logger.debug('Local audio tracks: ', audioTracks)
       const videoTracks = localStream.getVideoTracks()
-      logger.info('Local video tracks: ', videoTracks)
+      logger.debug('Local video tracks: ', videoTracks)
       // FIXME: use transceivers way only for offer - when answer gotta match mid from the ones from SRD
       if (this.isOffer && typeof this.instance.addTransceiver === 'function') {
         // Use addTransceiver
@@ -360,14 +358,14 @@ export default class RTCPeer<T extends string> {
             scaleResolutionDownBy: Number(rid) * 6 || 1.0,
           }))
         }
-        console.debug('Applying video transceiverParams', transceiverParams)
+        logger.debug('Applying video transceiverParams', transceiverParams)
         videoTracks.forEach((track) => {
           this.instance.addTransceiver(track, transceiverParams)
         })
 
         if (this.isSfu) {
           const { msStreamsNumber = 5 } = this.options
-          console.debug('Add ', msStreamsNumber, 'recvonly MS Streams')
+          logger.debug('Add ', msStreamsNumber, 'recvonly MS Streams')
           transceiverParams.direction = 'recvonly'
           for (let i = 0; i < Number(msStreamsNumber); i++) {
             this.instance.addTransceiver('video', transceiverParams)
@@ -412,7 +410,7 @@ export default class RTCPeer<T extends string> {
     const sender = this._getSenderByKind(kind)
     if (!sender) {
       const transceiver = this.instance.addTransceiver(kind)
-      console.debug('Add transceiver', kind, transceiver)
+      logger.debug('Add transceiver', kind, transceiver)
     }
   }
 
