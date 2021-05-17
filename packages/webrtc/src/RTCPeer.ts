@@ -27,7 +27,8 @@ export default class RTCPeer<T extends string> {
     logger.info('New Peer with type:', this.type, 'Options:', this.options)
 
     this._onIce = this._onIce.bind(this)
-    this._init()
+    this.instance = RTCPeerConnection(this.config)
+    this._attachListeners()
   }
 
   get isOffer() {
@@ -275,57 +276,8 @@ export default class RTCPeer<T extends string> {
     }
   }
 
-  private async _init() {
-    this.instance = RTCPeerConnection(this.config)
-
-    this.instance.addEventListener('signalingstatechange', () => {
-      logger.debug('signalingState:', this.instance.signalingState)
-
-      switch (this.instance.signalingState) {
-        case 'stable':
-          // Workaround to skip nested negotiations
-          // Chrome bug: https://bugs.chromium.org/p/chromium/issues/detail?id=740501
-          this._negotiating = false
-          break
-        case 'closed':
-          // @ts-ignore
-          delete this.instance
-          break
-        default:
-          this._negotiating = true
-      }
-    })
-
-    this.instance.addEventListener('negotiationneeded', () => {
-      logger.debug('Negotiation needed event')
-      this.startNegotiation()
-    })
-
-    this.instance.addEventListener('track', (event: RTCTrackEvent) => {
-      this.call.emit('track' as T, event)
-
-      if (this.isSfu) {
-        // const notification = { type: 'trackAdd', event }
-        // this.call._dispatchNotification(notification)
-      }
-      this.options.remoteStream = event.streams[0]
-    })
-
-    // @ts-expect-error
-    this.instance.addEventListener('addstream', (event: MediaStreamEvent) => {
-      if (event.stream) {
-        this.options.remoteStream = event.stream
-      }
-    })
-
-    // @ts-ignore
-    this.options.localStream = await this._retrieveLocalStream().catch(
-      (error) => {
-        logger.error('Error getting localStream', error)
-        // trigger(this.options.id, error, SwEvent.MediaError)
-        return null
-      }
-    )
+  async start() {
+    this.options.localStream = await this._retrieveLocalStream()
 
     const { localStream = null } = this.options
     if (localStream && streamIsValid(localStream)) {
@@ -498,5 +450,47 @@ export default class RTCPeer<T extends string> {
     }
     const constraints = await getMediaConstraints(this.options)
     return getUserMedia(constraints)
+  }
+
+  private _attachListeners() {
+    this.instance.addEventListener('signalingstatechange', () => {
+      logger.debug('signalingState:', this.instance.signalingState)
+
+      switch (this.instance.signalingState) {
+        case 'stable':
+          // Workaround to skip nested negotiations
+          // Chrome bug: https://bugs.chromium.org/p/chromium/issues/detail?id=740501
+          this._negotiating = false
+          break
+        case 'closed':
+          // @ts-ignore
+          delete this.instance
+          break
+        default:
+          this._negotiating = true
+      }
+    })
+
+    this.instance.addEventListener('negotiationneeded', () => {
+      logger.debug('Negotiation needed event')
+      this.startNegotiation()
+    })
+
+    this.instance.addEventListener('track', (event: RTCTrackEvent) => {
+      this.call.emit('track' as T, event)
+
+      if (this.isSfu) {
+        // const notification = { type: 'trackAdd', event }
+        // this.call._dispatchNotification(notification)
+      }
+      this.options.remoteStream = event.streams[0]
+    })
+
+    // @ts-expect-error
+    this.instance.addEventListener('addstream', (event: MediaStreamEvent) => {
+      if (event.stream) {
+        this.options.remoteStream = event.stream
+      }
+    })
   }
 }

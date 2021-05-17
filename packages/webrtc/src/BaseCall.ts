@@ -317,14 +317,24 @@ export class BaseCall<
 
   join = this.invite
 
-  invite() {
+  async invite() {
     this.direction = Direction.Outbound
     this.peer = new RTCPeer(this, PeerType.Offer)
+    try {
+      await this.peer.start()
+    } catch (error) {
+      logger.error('Join error', error)
+    }
   }
 
-  answer() {
+  async answer() {
     this.direction = Direction.Inbound
     this.peer = new RTCPeer(this, PeerType.Answer)
+    try {
+      await this.peer.start()
+    } catch (error) {
+      logger.error('Answer error', error)
+    }
   }
 
   onLocalSDPReady(localDescription: RTCSessionDescription) {
