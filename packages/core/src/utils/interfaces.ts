@@ -124,26 +124,23 @@ export type SessionEvents = `session.${SessionStatus}`
  */
 export type ClientEvents = SessionEvents
 
-export type LayoutEvent = 'changed'
+type LayoutEvent = 'changed'
 
 // prettier-ignore
-export type RoomEvent =
+type RoomEvent =
   | 'ended'
   | 'started'
   | 'subscribed'
   | 'updated'
 
 // prettier-ignore
-export type MemberEventExpanded = `updated.${keyof RoomMember}`
-
-// prettier-ignore
-export type MemberEvent =
+type RoomMemberEvent =
   | 'joined'
   | 'left'
   | 'updated'
-  | MemberEventExpanded
+  | `updated.${keyof RoomMember}`
 
-export type CallState =
+type CallState =
   | 'active'
   | 'answering'
   | 'destroy'
@@ -163,7 +160,7 @@ export type CallState =
  */
 export type CallEvents =
   | `layout.${LayoutEvent}`
-  | `member.${MemberEvent}`
+  | `member.${RoomMemberEvent}`
   | `room.${RoomEvent}`
   | CallState
 
