@@ -13,8 +13,6 @@ import {
   sdpToJsonHack,
   RTCPeerConnection,
   streamIsValid,
-  // buildAudioElementByTrack,
-  // buildVideoElementByTrack,
   stopTrack,
 } from './utils/webrtcHelpers'
 import { CallOptions } from './utils/interfaces'
@@ -285,25 +283,6 @@ export default class RTCPeer<T extends string> {
     }
   }
 
-  // private _logTransceivers() {
-  //   logger.info(
-  //     'Number of transceivers:',
-  //     this.instance.getTransceivers().length
-  //   )
-  //   this.instance.getTransceivers().forEach((tr, index) => {
-  //     logger.info(
-  //       `>> Transceiver [${index}]:`,
-  //       tr.mid,
-  //       tr.direction,
-  //       tr.stopped
-  //     )
-  //     logger.info(
-  //       `>> Sender Params [${index}]:`,
-  //       JSON.stringify(tr.sender.getParameters(), null, 2)
-  //     )
-  //   })
-  // }
-
   private async _init() {
     this.instance = RTCPeerConnection(this.config)
 
@@ -463,27 +442,6 @@ export default class RTCPeer<T extends string> {
     this.call.onLocalSDPReady(this.instance.localDescription)
   }
 
-  // private async _execute(msg: BaseMessage) {
-  //   try {
-  //     const { node_id = null, sdp = null } = await this.call._execute(msg)
-  //     if (node_id) {
-  //       this.call.nodeId = node_id
-  //     }
-  //     if (sdp !== null) {
-  //       await this._setRemoteDescription({ sdp, type: PeerType.Answer })
-  //     } else {
-  //       const state = this.isOffer ? CallState.Trying : CallState.Active
-  //       this.call.setState(state)
-  //     }
-  //   } catch (error) {
-  //     logger.error(
-  //       `Error sending ${this.type} on call ${this.options.id}:`,
-  //       error
-  //     )
-  //     this.call.hangup()
-  //   }
-  // }
-
   private _onIce(event: RTCPeerConnectionIceEvent) {
     if (this._iceTimeout === null) {
       this._iceTimeout = setTimeout(
@@ -559,35 +517,4 @@ export default class RTCPeer<T extends string> {
     const constraints = await getMediaConstraints(this.options)
     return getUserMedia(constraints)
   }
-
-  // private _buildMediaElementByTrack(event: RTCTrackEvent) {
-  //   console.debug(
-  //     '_buildMediaElementByTrack',
-  //     event.track.kind,
-  //     event.track.id,
-  //     event.streams,
-  //     event
-  //   )
-  //   const streamIds = event.streams.map((stream) => stream.id)
-  //   switch (event.track.kind) {
-  //     case 'audio': {
-  //       const audio = buildAudioElementByTrack(event.track, streamIds)
-  //       if (this.options.speakerId) {
-  //         try {
-  //           // @ts-ignore
-  //           audio.setSinkId(this.options.speakerId)
-  //         } catch (error) {
-  //           console.debug('setSinkId not supported', this.options.speakerId)
-  //         }
-  //       }
-  //       this.call.audioElements.push(audio)
-  //       break
-  //     }
-  //     case 'video':
-  //       this.call.videoElements.push(
-  //         buildVideoElementByTrack(event.track, streamIds)
-  //       )
-  //       break
-  //   }
-  // }
 }
