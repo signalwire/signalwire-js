@@ -280,8 +280,8 @@ export default class RTCPeer<T extends string> {
   private async _init() {
     this.instance = RTCPeerConnection(this.config)
 
-    this.instance.onsignalingstatechange = () => {
-      logger.info('signalingState:', this.instance.signalingState)
+    this.instance.addEventListener('signalingstatechange', () => {
+      logger.debug('signalingState:', this.instance.signalingState)
 
       switch (this.instance.signalingState) {
         case 'stable':
@@ -296,12 +296,12 @@ export default class RTCPeer<T extends string> {
         default:
           this._negotiating = true
       }
-    }
+    })
 
-    this.instance.onnegotiationneeded = () => {
-      logger.info('Negotiation needed event')
+    this.instance.addEventListener('negotiationneeded', () => {
+      logger.debug('Negotiation needed event')
       this.startNegotiation()
-    }
+    })
 
     this.instance.addEventListener('track', (event: RTCTrackEvent) => {
       this.call.emit('track' as T, event)
