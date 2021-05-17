@@ -12,13 +12,11 @@ import {
   IVertoLayout,
 } from './interfaces'
 
-export const getUserMedia = async (
-  constraints: MediaStreamConstraints
-): Promise<MediaStream | null> => {
+export const getUserMedia = async (constraints: MediaStreamConstraints) => {
   logger.info('RTCService.getUserMedia', constraints)
   const { audio, video } = constraints
   if (!audio && !video) {
-    return null
+    return
   }
   try {
     return await WebRTC.getUserMedia(constraints)
