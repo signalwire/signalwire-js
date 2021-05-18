@@ -131,15 +131,15 @@ describe('Helpers browser functions', () => {
       done()
     })
 
-    it('should return the audioIn device list with kind audioinput', async (done) => {
-      const devices = await getDevicesWithPermissions('audioinput')
+    it('should return the audioIn device list with kind microphone', async (done) => {
+      const devices = await getDevicesWithPermissions('microphone')
       expect(devices).toHaveLength(2)
       expect(devices[0].deviceId).toEqual('default')
       done()
     })
 
-    it('should return the video device list with kind videoinput', async (done) => {
-      const devices = await getDevicesWithPermissions('videoinput')
+    it('should return the video device list with kind camera', async (done) => {
+      const devices = await getDevicesWithPermissions('camera')
       expect(devices).toHaveLength(2)
       expect(devices[0].deviceId).toEqual(
         '2060bf50ab9c29c12598bf4eafeafa71d4837c667c7c172bb4407ec6c5150206'
@@ -147,8 +147,8 @@ describe('Helpers browser functions', () => {
       done()
     })
 
-    it('should return the audioOut device list with kind audiooutput', async (done) => {
-      const devices = await getDevicesWithPermissions('audiooutput')
+    it('should return the audioOut device list with kind speaker', async (done) => {
+      const devices = await getDevicesWithPermissions('speaker')
       expect(devices).toHaveLength(1)
       expect(devices[0].deviceId).toEqual('default')
       done()
@@ -219,15 +219,15 @@ describe('Helpers browser functions', () => {
       done()
     })
 
-    it('should return the audioIn device list with kind audioinput', async (done) => {
-      const devices = await getDevices('audioinput')
+    it('should return the audioIn device list with kind microphone', async (done) => {
+      const devices = await getDevices('microphone')
       expect(devices).toHaveLength(2)
       expect(devices[0].deviceId).toEqual('default')
       done()
     })
 
-    it('should return the video device list with kind videoinput', async (done) => {
-      const devices = await getDevices('videoinput')
+    it('should return the video device list with kind camera', async (done) => {
+      const devices = await getDevices('camera')
       expect(devices).toHaveLength(2)
       expect(devices[0].deviceId).toEqual(
         '2060bf50ab9c29c12598bf4eafeafa71d4837c667c7c172bb4407ec6c5150206'
@@ -235,8 +235,8 @@ describe('Helpers browser functions', () => {
       done()
     })
 
-    it('should return the audioOut device list with kind audiooutput', async (done) => {
-      const devices = await getDevices('audiooutput')
+    it('should return the audioOut device list with kind speaker', async (done) => {
+      const devices = await getDevices('speaker')
       expect(devices).toHaveLength(1)
       expect(devices[0].deviceId).toEqual('default')
       done()
@@ -284,7 +284,7 @@ describe('Helpers browser functions', () => {
       const deviceId = await assureDeviceId(
         '2060bf50ab9c29c12598bf4eafeafa71d4837c667c7c172bb4407ec6c5150206',
         'FaceTime HD Camera',
-        'videoinput'
+        'camera'
       )
       expect(deviceId).toEqual(
         '2060bf50ab9c29c12598bf4eafeafa71d4837c667c7c172bb4407ec6c5150206'
@@ -315,7 +315,7 @@ describe('Helpers browser functions', () => {
       const deviceId = await assureDeviceId(
         '2060bf50ab9c29c12598bf4eafeafa71d4837c667c7c172bb4407ec6c5150206',
         'FaceTime HD Camera',
-        'videoinput'
+        'camera'
       )
       expect(deviceId).toBeNull()
       expect(navigator.mediaDevices.enumerateDevices).toHaveBeenCalledTimes(1)
@@ -344,7 +344,7 @@ describe('Helpers browser functions', () => {
       const deviceId = await assureDeviceId(
         '2060bf50ab9c29c12598bf4eafeafa71d4837c667c7c172bb4407ec6c5150206',
         'FaceTime HD Camera',
-        'videoinput'
+        'camera'
       )
       expect(deviceId).toEqual('new-uuid')
       expect(navigator.mediaDevices.enumerateDevices).toHaveBeenCalledTimes(1)
