@@ -114,7 +114,7 @@ describe('Helpers browser functions', () => {
     },
   ]
 
-  describe.only('checkPermissions', () => {
+  describe('checkPermissions', () => {
     beforeEach(() => {
       // @ts-ignore
       navigator.permissions.query.mockClear()
@@ -152,7 +152,7 @@ describe('Helpers browser functions', () => {
         DEVICES_CAMERA_NO_LABELS
       )
 
-      expect(await checkPermissions()).toBe(true)
+      expect(await checkPermissions()).toBe(false)
     })
   })
 

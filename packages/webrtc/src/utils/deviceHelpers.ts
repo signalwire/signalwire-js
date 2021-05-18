@@ -42,8 +42,6 @@ export const checkPermissions = async (name?: DevicePermissionName) => {
     name
   ) {
     try {
-      console.log('navigator.permissions.query', navigator.permissions.query)
-
       /**
        * `navigator.permissions.query` can throw if `name` is not a
        * valid enumation value for `PermissionName`. As of today, some
