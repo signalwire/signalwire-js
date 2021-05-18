@@ -335,13 +335,23 @@ export class BaseCall extends BaseComponent<CallEvents> {
   }
 
   async answer() {
-    this.direction = Direction.Inbound
-    this.peer = new RTCPeer(this, PeerType.Answer)
-    try {
-      await this.peer.start()
-    } catch (error) {
-      logger.error('Answer error', error)
-    }
+    return new Promise(async (resolve, reject) => {
+      this.direction = Direction.Inbound
+      this.peer = new RTCPeer(this, PeerType.Answer)
+      try {
+        const _resolve = () => resolve(this)
+
+        this.once('active', () => {
+          this.off('destroy', _resolve)
+          _resolve()
+        })
+        this.once('destroy', _resolve)
+        await this.peer.start()
+      } catch (error) {
+        logger.error('Answer error', error)
+        reject(error)
+      }
+    })
   }
 
   onLocalSDPReady(localDescription: RTCSessionDescription) {
