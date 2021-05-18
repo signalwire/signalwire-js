@@ -76,6 +76,12 @@ const _newTrack = (kind: string) => {
   return track
 }
 
+Object.defineProperty(navigator, 'permissions', {
+  value: {
+    query: jest.fn(() => ({})),
+  },
+})
+
 Object.defineProperty(navigator, 'mediaDevices', {
   value: {
     enumerateDevices: jest.fn().mockResolvedValue(ENUMERATED_MEDIA_DEVICES),
