@@ -68,11 +68,11 @@ export const createRoomObject = (roomOptions: CreateRoomObjectOptions) => {
         }
       })
       room.on('track', rtcTrackHandler)
-      room.on('destroy', destroyHandler)
+      room.once('destroy', destroyHandler)
     }
 
     // WebRTC connection left the room.
-    room.on('destroy', () => {
+    room.once('destroy', () => {
       client.disconnect()
     })
 
