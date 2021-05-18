@@ -2,6 +2,7 @@ import {
   getDevices,
   getDevicesWithPermissions,
   assureDeviceId,
+  checkPermissions,
 } from './deviceHelpers'
 
 describe('Helpers browser functions', () => {
@@ -112,6 +113,48 @@ describe('Helpers browser functions', () => {
         '83ef347b97d14abd837e8c6dbb819c5be84cfe0756dd41455b375cfd4c0ddb4f',
     },
   ]
+
+  describe.only('checkPermissions', () => {
+    beforeEach(() => {
+      // @ts-ignore
+      navigator.permissions.query.mockClear()
+    })
+
+    it("should check for permissions using the Permissions API when it's available", async () => {
+      // @ts-ignore
+      navigator.permissions.query.mockImplementationOnce(() => {
+        return { state: 'granted' }
+      })
+
+      expect(await checkPermissions('camera')).toBe(true)
+      expect(navigator.permissions.query).toHaveBeenCalledTimes(1)
+      expect(navigator.mediaDevices.enumerateDevices).toHaveBeenCalledTimes(0)
+    })
+
+    it('should fallback to the legacy check for browsers not supporting the Permissions API', async () => {
+      // @ts-ignore
+      navigator.permissions.query.mockImplementationOnce(() => {
+        throw new Error('Not implemented')
+      })
+
+      expect(await checkPermissions('camera')).toBe(true)
+      expect(navigator.mediaDevices.enumerateDevices).toHaveBeenCalledTimes(1)
+    })
+
+    it('should return false if all devices have no label', async () => {
+      // @ts-ignore
+      navigator.permissions.query.mockImplementationOnce(() => {
+        throw new Error('Not implemented')
+      })
+
+      // @ts-ignore
+      navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(
+        DEVICES_CAMERA_NO_LABELS
+      )
+
+      expect(await checkPermissions()).toBe(true)
+    })
+  })
 
   describe('getDevicesWithPermissions', () => {
     beforeEach(() => {
