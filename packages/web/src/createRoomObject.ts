@@ -34,7 +34,6 @@ export const createRoomObject = (roomOptions: CreateRoomObjectOptions) => {
       video,
       negotiateAudio: true,
       negotiateVideo: true,
-      experimental: true,
       iceServers,
     })
 

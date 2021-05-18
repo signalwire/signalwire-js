@@ -45,7 +45,6 @@ export interface CallOptions {
   requestTimeout?: number
   shakenCheck?: string
   shakenResult?: string
-  experimental?: boolean
   autoApplyMediaParams?: boolean
   rtcPeerConfig?: { [key: string]: any }
   iceGatheringTimeout?: number

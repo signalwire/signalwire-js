@@ -1,4 +1,4 @@
-import { logger } from '@signalwire/core'
+import { CallEvents, logger } from '@signalwire/core'
 import { getUserMedia, getMediaConstraints } from './utils/helpers'
 import {
   sdpStereoHack,
@@ -8,30 +8,27 @@ import {
 import { PeerType } from './utils/constants'
 import { BaseCall } from './BaseCall'
 import {
-  attachMediaStream,
-  muteMediaElement,
   sdpToJsonHack,
   RTCPeerConnection,
   streamIsValid,
-  // buildAudioElementByTrack,
-  // buildVideoElementByTrack,
   stopTrack,
 } from './utils/webrtcHelpers'
 import { CallOptions } from './utils/interfaces'
 
-export default class RTCPeer<T extends string> {
+export default class RTCPeer<T extends CallEvents> {
   public instance: RTCPeerConnection
 
   private options: CallOptions
   private _iceTimeout: any
   private _negotiating = false
 
-  constructor(public call: BaseCall<T>, public type: PeerType) {
+  constructor(public call: BaseCall, public type: PeerType) {
     this.options = call.options
     logger.info('New Peer with type:', this.type, 'Options:', this.options)
 
     this._onIce = this._onIce.bind(this)
-    this._init()
+    this.instance = RTCPeerConnection(this.config)
+    this._attachListeners()
   }
 
   get isOffer() {
@@ -48,10 +45,6 @@ export default class RTCPeer<T extends string> {
 
   get isSfu() {
     return this.options.sfu === true
-  }
-
-  get hasExperimentalFlag() {
-    return this.options.experimental === true
   }
 
   get localVideoTrack() {
@@ -180,9 +173,7 @@ export default class RTCPeer<T extends string> {
     try {
       const config = this.instance.getConfiguration()
       if (config.iceTransportPolicy === 'relay') {
-        return console.warn(
-          'RTCPeer already with iceTransportPolicy relay only'
-        )
+        return logger.warn('RTCPeer already with iceTransportPolicy relay only')
       }
       const newConfig: RTCConfiguration = {
         ...config,
@@ -285,88 +276,15 @@ export default class RTCPeer<T extends string> {
     }
   }
 
-  // private _logTransceivers() {
-  //   logger.info(
-  //     'Number of transceivers:',
-  //     this.instance.getTransceivers().length
-  //   )
-  //   this.instance.getTransceivers().forEach((tr, index) => {
-  //     logger.info(
-  //       `>> Transceiver [${index}]:`,
-  //       tr.mid,
-  //       tr.direction,
-  //       tr.stopped
-  //     )
-  //     logger.info(
-  //       `>> Sender Params [${index}]:`,
-  //       JSON.stringify(tr.sender.getParameters(), null, 2)
-  //     )
-  //   })
-  // }
+  async start() {
+    this.options.localStream = await this._retrieveLocalStream()
 
-  private async _init() {
-    this.instance = RTCPeerConnection(this.config)
-
-    this.instance.onsignalingstatechange = () => {
-      logger.info('signalingState:', this.instance.signalingState)
-
-      switch (this.instance.signalingState) {
-        case 'stable':
-          // Workaround to skip nested negotiations
-          // Chrome bug: https://bugs.chromium.org/p/chromium/issues/detail?id=740501
-          this._negotiating = false
-          break
-        case 'closed':
-          // @ts-ignore
-          delete this.instance
-          break
-        default:
-          this._negotiating = true
-      }
-    }
-
-    this.instance.onnegotiationneeded = () => {
-      logger.info('Negotiation needed event')
-      this.startNegotiation()
-    }
-
-    this.instance.addEventListener('track', (event: RTCTrackEvent) => {
-      this.call.emit('track' as T, event)
-      if (this.hasExperimentalFlag) {
-        // this._buildMediaElementByTrack(event)
-        // const notification = { type: 'trackAdd', event }
-        // this.call._dispatchNotification(notification)
-      }
-
-      if (this.isSfu) {
-        // const notification = { type: 'trackAdd', event }
-        // this.call._dispatchNotification(notification)
-      }
-      this.options.remoteStream = event.streams[0]
-    })
-
-    // @ts-expect-error
-    this.instance.addEventListener('addstream', (event: MediaStreamEvent) => {
-      if (event.stream) {
-        this.options.remoteStream = event.stream
-      }
-    })
-
-    // @ts-ignore
-    this.options.localStream = await this._retrieveLocalStream().catch(
-      (error) => {
-        logger.error('Error getting localStream', error)
-        // trigger(this.options.id, error, SwEvent.MediaError)
-        return null
-      }
-    )
-
-    const { localElement, localStream = null, screenShare } = this.options
+    const { localStream = null } = this.options
     if (localStream && streamIsValid(localStream)) {
       const audioTracks = localStream.getAudioTracks()
-      logger.info('Local audio tracks: ', audioTracks)
+      logger.debug('Local audio tracks: ', audioTracks)
       const videoTracks = localStream.getVideoTracks()
-      logger.info('Local video tracks: ', videoTracks)
+      logger.debug('Local video tracks: ', videoTracks)
       // FIXME: use transceivers way only for offer - when answer gotta match mid from the ones from SRD
       if (this.isOffer && typeof this.instance.addTransceiver === 'function') {
         // Use addTransceiver
@@ -390,14 +308,14 @@ export default class RTCPeer<T extends string> {
             scaleResolutionDownBy: Number(rid) * 6 || 1.0,
           }))
         }
-        console.debug('Applying video transceiverParams', transceiverParams)
+        logger.debug('Applying video transceiverParams', transceiverParams)
         videoTracks.forEach((track) => {
           this.instance.addTransceiver(track, transceiverParams)
         })
 
         if (this.isSfu) {
           const { msStreamsNumber = 5 } = this.options
-          console.debug('Add ', msStreamsNumber, 'recvonly MS Streams')
+          logger.debug('Add ', msStreamsNumber, 'recvonly MS Streams')
           transceiverParams.direction = 'recvonly'
           for (let i = 0; i < Number(msStreamsNumber); i++) {
             this.instance.addTransceiver('video', transceiverParams)
@@ -418,11 +336,6 @@ export default class RTCPeer<T extends string> {
         // @ts-ignore
         this.instance.addStream(localStream)
       }
-
-      if (screenShare === false) {
-        muteMediaElement(localElement)
-        attachMediaStream(localElement, localStream)
-      }
     }
 
     if (this.isOffer) {
@@ -442,7 +355,7 @@ export default class RTCPeer<T extends string> {
     const sender = this._getSenderByKind(kind)
     if (!sender) {
       const transceiver = this.instance.addTransceiver(kind)
-      console.debug('Add transceiver', kind, transceiver)
+      logger.debug('Add transceiver', kind, transceiver)
     }
   }
 
@@ -462,27 +375,6 @@ export default class RTCPeer<T extends string> {
     this.instance.removeEventListener('icecandidate', this._onIce)
     this.call.onLocalSDPReady(this.instance.localDescription)
   }
-
-  // private async _execute(msg: BaseMessage) {
-  //   try {
-  //     const { node_id = null, sdp = null } = await this.call._execute(msg)
-  //     if (node_id) {
-  //       this.call.nodeId = node_id
-  //     }
-  //     if (sdp !== null) {
-  //       await this._setRemoteDescription({ sdp, type: PeerType.Answer })
-  //     } else {
-  //       const state = this.isOffer ? CallState.Trying : CallState.Active
-  //       this.call.setState(state)
-  //     }
-  //   } catch (error) {
-  //     logger.error(
-  //       `Error sending ${this.type} on call ${this.options.id}:`,
-  //       error
-  //     )
-  //     this.call.hangup()
-  //   }
-  // }
 
   private _onIce(event: RTCPeerConnectionIceEvent) {
     if (this._iceTimeout === null) {
@@ -560,34 +452,45 @@ export default class RTCPeer<T extends string> {
     return getUserMedia(constraints)
   }
 
-  // private _buildMediaElementByTrack(event: RTCTrackEvent) {
-  //   console.debug(
-  //     '_buildMediaElementByTrack',
-  //     event.track.kind,
-  //     event.track.id,
-  //     event.streams,
-  //     event
-  //   )
-  //   const streamIds = event.streams.map((stream) => stream.id)
-  //   switch (event.track.kind) {
-  //     case 'audio': {
-  //       const audio = buildAudioElementByTrack(event.track, streamIds)
-  //       if (this.options.speakerId) {
-  //         try {
-  //           // @ts-ignore
-  //           audio.setSinkId(this.options.speakerId)
-  //         } catch (error) {
-  //           console.debug('setSinkId not supported', this.options.speakerId)
-  //         }
-  //       }
-  //       this.call.audioElements.push(audio)
-  //       break
-  //     }
-  //     case 'video':
-  //       this.call.videoElements.push(
-  //         buildVideoElementByTrack(event.track, streamIds)
-  //       )
-  //       break
-  //   }
-  // }
+  private _attachListeners() {
+    this.instance.addEventListener('signalingstatechange', () => {
+      logger.debug('signalingState:', this.instance.signalingState)
+
+      switch (this.instance.signalingState) {
+        case 'stable':
+          // Workaround to skip nested negotiations
+          // Chrome bug: https://bugs.chromium.org/p/chromium/issues/detail?id=740501
+          this._negotiating = false
+          break
+        case 'closed':
+          // @ts-ignore
+          delete this.instance
+          break
+        default:
+          this._negotiating = true
+      }
+    })
+
+    this.instance.addEventListener('negotiationneeded', () => {
+      logger.debug('Negotiation needed event')
+      this.startNegotiation()
+    })
+
+    this.instance.addEventListener('track', (event: RTCTrackEvent) => {
+      this.call.emit('track' as T, event)
+
+      if (this.isSfu) {
+        // const notification = { type: 'trackAdd', event }
+        // this.call._dispatchNotification(notification)
+      }
+      this.options.remoteStream = event.streams[0]
+    })
+
+    // @ts-expect-error
+    this.instance.addEventListener('addstream', (event: MediaStreamEvent) => {
+      if (event.stream) {
+        this.options.remoteStream = event.stream
+      }
+    })
+  }
 }

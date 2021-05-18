@@ -25,7 +25,6 @@ export const VideoWidget = ({
       callerName: userName,
       audio: true,
       video: true,
-      experimental: true,
       // TODO:
       callerNumber: 'john@doe.com',
     })

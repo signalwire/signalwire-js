@@ -72,7 +72,14 @@ window.connect = () => {
     )
     rtcSession.on('track', (event) => console.debug('>> DEMO track', event))
 
-    rtcSession.join()
+    rtcSession
+      .join()
+      .then((result) => {
+        console.log('>> Room Joined', result)
+      })
+      .catch((error) => {
+        console.error('Join error?', error)
+      })
   })
 
   connectStatus.innerHTML = 'Connecting...'
