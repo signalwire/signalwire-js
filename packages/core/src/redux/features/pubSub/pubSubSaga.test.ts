@@ -4,14 +4,6 @@ import { pubSubSaga } from './pubSubSaga'
 import { logger } from '../../../utils'
 import { EventEmitter } from '../../../utils/EventEmitter'
 
-jest.mock('../../../utils', () => {
-  return {
-    logger: {
-      error: jest.fn(),
-    },
-  }
-})
-
 describe('sessionChannelWatcher', () => {
   it('should take from pubSubChannel and emit through the EventEmitter', () => {
     let runSaga = true
