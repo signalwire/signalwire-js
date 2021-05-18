@@ -69,9 +69,3 @@ export enum ConferenceAction {
   ConferenceInfo = 'conferenceInfo',
   CaptionInfo = 'captionInfo',
 }
-
-export enum DeviceType {
-  Video = 'videoinput',
-  AudioIn = 'audioinput',
-  AudioOut = 'audiooutput',
-}

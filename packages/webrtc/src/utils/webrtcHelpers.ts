@@ -15,7 +15,7 @@ export const getDisplayMedia = (constraints: MediaStreamConstraints) => {
 
 export const enumerateDevices = () => navigator.mediaDevices.enumerateDevices()
 
-export const enumerateDevicesByKind = async (filterByKind?: string) => {
+export const enumerateDevicesByKind = async (filterByKind?: MediaDeviceKind) => {
   let devices: MediaDeviceInfo[] = await enumerateDevices().catch(
     (_error) => []
   )
