@@ -84,9 +84,12 @@ export const createRoomObject = (roomOptions: CreateRoomObjectOptions) => {
     })
 
     if (autoJoin) {
-      room.once('room.subscribed', () => {
+      try {
+        await room.join()
         resolve(room)
-      })
+      } catch (error) {
+        reject(error)
+      }
     } else {
       resolve(room)
     }
