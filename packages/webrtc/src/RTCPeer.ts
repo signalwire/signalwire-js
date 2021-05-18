@@ -1,4 +1,4 @@
-import { logger } from '@signalwire/core'
+import { CallEvents, logger } from '@signalwire/core'
 import { getUserMedia, getMediaConstraints } from './utils/helpers'
 import {
   sdpStereoHack,
@@ -15,14 +15,14 @@ import {
 } from './utils/webrtcHelpers'
 import { CallOptions } from './utils/interfaces'
 
-export default class RTCPeer<T extends string> {
+export default class RTCPeer<T extends CallEvents> {
   public instance: RTCPeerConnection
 
   private options: CallOptions
   private _iceTimeout: any
   private _negotiating = false
 
-  constructor(public call: BaseCall<T>, public type: PeerType) {
+  constructor(public call: BaseCall, public type: PeerType) {
     this.options = call.options
     logger.info('New Peer with type:', this.type, 'Options:', this.options)
 

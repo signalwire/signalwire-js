@@ -36,20 +36,17 @@ const ROOM_EVENTS = [
   'layout.changed',
 ]
 
-type BaseCallOptions<T extends string> = CallOptions &
-  BaseComponentOptions<BaseCall<T>, T>
-export class BaseCall<
-  EventType extends string = CallEvents
-> extends BaseComponent<EventType> {
+type BaseCallOptions = CallOptions & BaseComponentOptions<BaseCall, CallEvents>
+export class BaseCall extends BaseComponent<CallEvents> {
   public nodeId = ''
   public direction: Direction
-  public peer: RTCPeer<EventType>
-  public options: BaseCallOptions<EventType>
+  public peer: RTCPeer<CallEvents>
+  public options: BaseCallOptions
   public cause: string
   public causeCode: string
   public gotEarly = false
-  public screenShare?: BaseCall<EventType>
-  public secondSource?: BaseCall<EventType>
+  public screenShare?: BaseCall
+  public secondSource?: BaseCall
   public doReinvite = false
   public isDirect = false
   public videoElements: HTMLVideoElement[] = []
@@ -65,7 +62,7 @@ export class BaseCall<
   private _roomSessionId: string
   private _memberId: string
 
-  constructor(options: BaseCallOptions<EventType>) {
+  constructor(options: BaseCallOptions) {
     super(options)
 
     const iceServers =
@@ -323,13 +320,11 @@ export class BaseCall<
       this.peer = new RTCPeer(this, PeerType.Offer)
       try {
         const _resolve = () => resolve(this)
-        // @ts-ignore
+
         this.once('active', () => {
-          // @ts-ignore
           this.off('destroy', _resolve)
           _resolve()
         })
-        // @ts-ignore
         this.once('destroy', _resolve)
         await this.peer.start()
       } catch (error) {
@@ -513,7 +508,7 @@ export class BaseCall<
       `Call ${this.id} state change from ${this.prevState} to ${this.state}`
     )
 
-    this.emit(this.state as EventType, this)
+    this.emit(this.state, this)
 
     switch (state) {
       case SwWebRTCCallState.Purge: {
