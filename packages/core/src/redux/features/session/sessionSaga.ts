@@ -296,9 +296,9 @@ export function* sessionChannelWatcher({
         yield fork(sessionChannelWorker, action)
       }
     } catch (error) {
-      console.error('sessionChannelWorker error:', error)
+      logger.error('sessionChannelWorker error:', error)
     } finally {
-      console.warn('sessionChannelWorker finally')
+      logger.warn('sessionChannelWorker finally')
     }
   }
 }
