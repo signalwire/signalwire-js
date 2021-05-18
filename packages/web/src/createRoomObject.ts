@@ -12,7 +12,7 @@ export interface CreateRoomObjectOptions extends UserOptions {
 }
 
 export const createRoomObject = (roomOptions: CreateRoomObjectOptions) => {
-  return new Promise(async (resolve, _reject) => {
+  return new Promise(async (resolve, reject) => {
     const {
       audio = true,
       video = true,
@@ -26,7 +26,14 @@ export const createRoomObject = (roomOptions: CreateRoomObjectOptions) => {
     const client = await createClient({
       ...userOptions,
       autoConnect: true,
+    }).catch((error) => {
+      reject(error)
+      return null
     })
+
+    if (!client) {
+      return
+    }
 
     const room = client.rooms.makeCall({
       destinationNumber: 'room',
