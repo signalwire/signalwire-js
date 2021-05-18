@@ -95,6 +95,15 @@ export function* sessionChannelWatcher({
           nodeId,
         }
         yield put(componentActions.upsert(component))
+        yield put(
+          executeAction({
+            method: 'video.message',
+            params: {
+              message: VertoResult(id, method),
+              node_id: nodeId,
+            },
+          })
+        )
         break
       }
       case VertoMethod.Answer: {
