@@ -5,3 +5,4 @@ export { JWTSession }
 export * from './createRoomObject'
 export * from './createClient'
 export * from './Client'
+export * from './joinRoom'
