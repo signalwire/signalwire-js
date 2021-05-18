@@ -1,4 +1,4 @@
-import { createRTCSession } from '../../src'
+import { createRoomObject } from '../../src'
 
 let rtcSession = null
 
@@ -17,7 +17,7 @@ const muteButtons = [
  * Connect with Relay creating a client and attaching all the event handler.
  */
 window.connect = () => {
-  createRTCSession({
+  createRoomObject({
     host: document.getElementById('host').value,
     token: document.getElementById('token').value,
     rootElementId: 'rootElement',
