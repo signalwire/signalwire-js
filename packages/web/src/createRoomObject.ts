@@ -2,12 +2,13 @@ import { logger, UserOptions } from '@signalwire/core'
 import { createClient } from './createClient'
 import { videoElementFactory } from './utils/videoElementFactory'
 
-interface CreateRoomObjectOptions extends UserOptions {
+export interface CreateRoomObjectOptions extends UserOptions {
   audio: MediaStreamConstraints['audio']
   video: MediaStreamConstraints['video']
   iceServers?: RTCIceServer[]
   rootElementId?: string
   applyLocalVideoOverlay?: boolean
+  autoJoin?: boolean
 }
 
 export const createRoomObject = (roomOptions: CreateRoomObjectOptions) => {
@@ -18,6 +19,7 @@ export const createRoomObject = (roomOptions: CreateRoomObjectOptions) => {
       iceServers,
       rootElementId,
       applyLocalVideoOverlay = true,
+      autoJoin = false,
       ...userOptions
     } = roomOptions
 
@@ -74,6 +76,12 @@ export const createRoomObject = (roomOptions: CreateRoomObjectOptions) => {
       client.disconnect()
     })
 
-    resolve(room)
+    if (autoJoin) {
+      room.once('room.subscribed', () => {
+        resolve(room)
+      })
+    } else {
+      resolve(room)
+    }
   })
 }
