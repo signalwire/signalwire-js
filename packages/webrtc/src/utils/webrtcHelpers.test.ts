@@ -8,7 +8,7 @@ describe('WebRTC Helpers', () => {
       loggerErrorSpy = jest.spyOn(logger, 'error').mockImplementation(() => {})
     })
     afterEach(() => {
-      jest.clearAllMocks()
+      loggerErrorSpy.mockClear()
     })
 
     it('should log a helpful message when no constraints have been passed', async () => {
