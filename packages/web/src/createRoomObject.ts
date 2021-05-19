@@ -2,29 +2,38 @@ import { logger, UserOptions } from '@signalwire/core'
 import { createClient } from './createClient'
 import { videoElementFactory } from './utils/videoElementFactory'
 
-interface CreateRoomObjectOptions extends UserOptions {
+export interface CreateRoomObjectOptions extends UserOptions {
   audio: MediaStreamConstraints['audio']
   video: MediaStreamConstraints['video']
   iceServers?: RTCIceServer[]
   rootElementId?: string
   applyLocalVideoOverlay?: boolean
+  autoJoin?: boolean
 }
 
 export const createRoomObject = (roomOptions: CreateRoomObjectOptions) => {
-  return new Promise(async (resolve, _reject) => {
+  return new Promise(async (resolve, reject) => {
     const {
       audio = true,
       video = true,
       iceServers,
       rootElementId,
       applyLocalVideoOverlay = true,
+      autoJoin = false,
       ...userOptions
     } = roomOptions
 
     const client = await createClient({
       ...userOptions,
       autoConnect: true,
+    }).catch((error) => {
+      reject(error)
+      return null
     })
+
+    if (!client) {
+      return
+    }
 
     const room = client.rooms.makeCall({
       destinationNumber: 'room',
@@ -66,14 +75,23 @@ export const createRoomObject = (roomOptions: CreateRoomObjectOptions) => {
         }
       })
       room.on('track', rtcTrackHandler)
-      room.on('destroy', destroyHandler)
+      room.once('destroy', destroyHandler)
     }
 
     // WebRTC connection left the room.
-    room.on('destroy', () => {
+    room.once('destroy', () => {
       client.disconnect()
     })
 
-    resolve(room)
+    if (autoJoin) {
+      try {
+        await room.join()
+        resolve(room)
+      } catch (error) {
+        reject(error)
+      }
+    } else {
+      resolve(room)
+    }
   })
 }
