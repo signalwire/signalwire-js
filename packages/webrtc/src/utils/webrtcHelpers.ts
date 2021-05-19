@@ -9,6 +9,13 @@ export const getUserMedia = (constraints: MediaStreamConstraints) => {
     return navigator.mediaDevices.getUserMedia(constraints)
   } catch (error) {
     switch (error.name) {
+      case 'Error': {
+        logger.error(
+          "navigator.mediaDevices.getUserMedia doesn't seem to be supported."
+        )
+        break
+      }
+
       case 'NotFoundError': {
         logger.error(
           'No media tracks of the type specified were found that satisfy the given constraints.'
