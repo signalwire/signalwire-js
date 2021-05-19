@@ -5,7 +5,58 @@ export const RTCPeerConnection = (config: RTCConfiguration) => {
 }
 
 export const getUserMedia = (constraints: MediaStreamConstraints) => {
-  return navigator.mediaDevices.getUserMedia(constraints)
+  try {
+    return navigator.mediaDevices.getUserMedia(constraints)
+  } catch (error) {
+    switch (error.name) {
+      case 'NotFoundError': {
+        logger.error(
+          'No media tracks of the type specified were found that satisfy the given constraints.'
+        )
+        break
+      }
+      case 'NotReadableError': {
+        logger.error(
+          'Hardware error occurred at the operating system, browser, or Web page level which prevented access to the device. This could have been caused by having the Camera or Mic being user by another application.'
+        )
+        break
+      }
+      case 'OverconstrainedError': {
+        logger.error(
+          `The constraint: ${error.constraint} cannot be met by the selected device.`
+        )
+        logger.info(`List of available constraints:`, getSupportedConstraints())
+        break
+      }
+      case 'NotAllowedError': {
+        logger.error(
+          'The user has mostly likely denied access to the device. This could also happen if the browsing context is insecure (using HTTP rather than HTTPS)'
+        )
+        break
+      }
+      case 'TypeError': {
+        if (Object.keys(constraints).length === 0) {
+          logger.error(
+            'Constraints can\'t be empty nor have "video" and "audio" set to false.'
+          )
+        } else {
+          logger.error(
+            'Please check that you are calling this method from a secure context (using HTTPS rather than HTTP).'
+          )
+        }
+
+        break
+      }
+      case 'SecurityError': {
+        logger.error(
+          'User media support is disabled on the Document on which getUserMedia() was called. The mechanism by which user media support is enabled and disabled is left up to the individual user agent.'
+        )
+        break
+      }
+    }
+
+    throw error
+  }
 }
 
 export const getDisplayMedia = (constraints: MediaStreamConstraints) => {
@@ -15,7 +66,9 @@ export const getDisplayMedia = (constraints: MediaStreamConstraints) => {
 
 export const enumerateDevices = () => navigator.mediaDevices.enumerateDevices()
 
-export const enumerateDevicesByKind = async (filterByKind?: MediaDeviceKind) => {
+export const enumerateDevicesByKind = async (
+  filterByKind?: MediaDeviceKind
+) => {
   let devices: MediaDeviceInfo[] = await enumerateDevices().catch(
     (_error) => []
   )
