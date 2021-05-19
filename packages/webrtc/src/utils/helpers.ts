@@ -1,7 +1,6 @@
 import { logger } from '@signalwire/core'
 import * as WebRTC from './webrtcHelpers'
 import { assureDeviceId } from './deviceHelpers'
-import { DeviceType } from './constants'
 import {
   CallOptions,
   IVertoCanvasInfo,
@@ -50,11 +49,9 @@ export const getMediaConstraints = async (
   let { audio = true, micId } = options
   const { micLabel = '' } = options
   if (micId) {
-    const newMicId = await assureDeviceId(
-      micId,
-      micLabel,
-      DeviceType.AudioIn
-    ).catch((_error) => null)
+    const newMicId = await assureDeviceId(micId, micLabel, 'microphone').catch(
+      (_error) => null
+    )
     if (newMicId) {
       if (typeof audio === 'boolean') {
         audio = {}
@@ -66,11 +63,9 @@ export const getMediaConstraints = async (
   let { video = false, camId } = options
   const { camLabel = '' } = options
   if (camId) {
-    const newCamId = await assureDeviceId(
-      camId,
-      camLabel,
-      DeviceType.Video
-    ).catch((_error) => null)
+    const newCamId = await assureDeviceId(camId, camLabel, 'camera').catch(
+      (_error) => null
+    )
     if (newCamId) {
       if (typeof video === 'boolean') {
         video = {}

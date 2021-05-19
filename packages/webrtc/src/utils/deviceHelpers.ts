@@ -1,8 +1,30 @@
 import { logger } from '@signalwire/core'
 import * as WebRTC from './webrtcHelpers'
-import { DeviceType } from './constants'
 
-export const checkPermissions = async (kind?: string) => {
+/**
+ * Maps permission's names from `DevicePermissionDescriptor["name"]`
+ * to `MediaDeviceKind`
+ */
+const PERMISSIONS_MAPPING: Record<DevicePermissionName, MediaDeviceKind> = {
+  camera: 'videoinput',
+  microphone: 'audioinput',
+  speaker: 'audiooutput',
+}
+
+const _getMediaDeviceKindByName = (name?: DevicePermissionName) => {
+  if (!name) {
+    return undefined
+  }
+
+  return PERMISSIONS_MAPPING[name]
+}
+
+/**
+ * For browsers not supporting the Permissions API
+ * @param {string} kind
+ * @returns
+ */
+const _legacyCheckPermissions = async (kind?: MediaDeviceKind) => {
   const devices: MediaDeviceInfo[] = await WebRTC.enumerateDevicesByKind(kind)
   if (!devices.length) {
     logger.warn(`No ${kind} devices to check for permissions!`)
@@ -11,13 +33,38 @@ export const checkPermissions = async (kind?: string) => {
   return devices.every(({ deviceId, label }) => Boolean(deviceId && label))
 }
 
-export const checkVideoPermissions = () => checkPermissions(DeviceType.Video)
-export const checkAudioPermissions = () => checkPermissions(DeviceType.AudioIn)
+type DevicePermissionName = DevicePermissionDescriptor['name']
 
-const _constraintsByKind = (kind?: string): MediaStreamConstraints => {
+export const checkPermissions = async (name?: DevicePermissionName) => {
+  if (
+    'permissions' in navigator &&
+    typeof navigator.permissions.query === 'function' &&
+    name
+  ) {
+    try {
+      /**
+       * `navigator.permissions.query` can throw if `name` is not a
+       * valid enumation value for `PermissionName`. As of today, some
+       * browsers like Fireforx will throw with `name: "camera"`
+       */
+      const status = await navigator.permissions.query({ name })
+
+      return status.state === 'granted'
+    } catch (e) {}
+  }
+
+  return _legacyCheckPermissions(_getMediaDeviceKindByName(name))
+}
+
+export const checkVideoPermissions = () => checkPermissions('camera')
+export const checkAudioPermissions = () => checkPermissions('microphone')
+
+const _constraintsByKind = (
+  kind?: DevicePermissionName
+): MediaStreamConstraints => {
   return {
-    audio: !kind || kind === DeviceType.AudioIn || kind === DeviceType.AudioOut,
-    video: !kind || kind === DeviceType.Video,
+    audio: !kind || kind === 'microphone' || kind === 'speaker',
+    video: !kind || kind === 'camera',
   }
 }
 
@@ -26,7 +73,7 @@ const _constraintsByKind = (kind?: string): MediaStreamConstraints => {
  * It checks for permission to return valid deviceId and label
  */
 export const getDevicesWithPermissions = async (
-  kind?: string,
+  kind?: DevicePermissionName,
   fullList: boolean = false
 ): Promise<MediaDeviceInfo[]> => {
   const hasPerms = await checkPermissions(kind)
@@ -42,17 +89,19 @@ export const getDevicesWithPermissions = async (
  * Helper methods to get devices by kind
  */
 export const getVideoDevicesWithPermissions = () =>
-  getDevicesWithPermissions(DeviceType.Video)
+  getDevicesWithPermissions('camera')
 export const getAudioInDevicesWithPermissions = () =>
-  getDevicesWithPermissions(DeviceType.AudioIn)
+  getDevicesWithPermissions('microphone')
 export const getAudioOutDevicesWithPermissions = () =>
-  getDevicesWithPermissions(DeviceType.AudioOut)
+  getDevicesWithPermissions('speaker')
 
 export const getDevices = async (
-  kind?: string,
+  name?: DevicePermissionName,
   fullList: boolean = false
 ): Promise<MediaDeviceInfo[]> => {
-  const devices: MediaDeviceInfo[] = await WebRTC.enumerateDevicesByKind(kind)
+  const devices: MediaDeviceInfo[] = await WebRTC.enumerateDevicesByKind(
+    _getMediaDeviceKindByName(name)
+  )
   if (fullList === true) {
     return devices
   }
@@ -76,9 +125,9 @@ export const getDevices = async (
 /**
  * Helper methods to get devices by kind
  */
-export const getVideoDevices = () => getDevices(DeviceType.Video)
-export const getAudioInDevices = () => getDevices(DeviceType.AudioIn)
-export const getAudioOutDevices = () => getDevices(DeviceType.AudioOut)
+export const getVideoDevices = () => getDevices('camera')
+export const getAudioInDevices = () => getDevices('microphone')
+export const getAudioOutDevices = () => getDevices('speaker')
 
 /**
  * Scan a video deviceId by different resolutions
@@ -118,9 +167,9 @@ export const scanResolutions = async (deviceId: string) => {
 export const assureDeviceId = async (
   id: string,
   label: string,
-  kind: MediaDeviceInfo['kind']
+  name: DevicePermissionName
 ): Promise<string | null> => {
-  const devices = await getDevices(kind, true)
+  const devices = await getDevices(name, true)
   for (let i = 0; i < devices.length; i++) {
     const { deviceId, label: deviceLabel } = devices[i]
     if (id === deviceId || label === deviceLabel) {
@@ -135,21 +184,21 @@ export const assureDeviceId = async (
  * Helper methods to assure a deviceId without asking the user the "kind"
  */
 export const validateVideoDevice = (id: string, label: string) =>
-  assureDeviceId(id, label, DeviceType.Video)
+  assureDeviceId(id, label, 'camera')
 export const validateAudioInDevice = (id: string, label: string) =>
-  assureDeviceId(id, label, DeviceType.AudioIn)
+  assureDeviceId(id, label, 'microphone')
 export const validateAudioOutDevice = (id: string, label: string) =>
-  assureDeviceId(id, label, DeviceType.AudioOut)
+  assureDeviceId(id, label, 'speaker')
 
 export const checkDeviceIdConstraints = async (
   id: string,
   label: string,
-  kind: MediaDeviceInfo['kind'],
+  name: DevicePermissionName,
   constraints: MediaTrackConstraints
 ) => {
   const { deviceId = null } = constraints
   if (deviceId === null && (id || label)) {
-    const deviceId = await assureDeviceId(id, label, kind).catch(
+    const deviceId = await assureDeviceId(id, label, name).catch(
       (_error) => null
     )
     if (deviceId) {
