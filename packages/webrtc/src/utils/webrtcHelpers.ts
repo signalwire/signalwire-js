@@ -15,7 +15,6 @@ export const getUserMedia = (constraints: MediaStreamConstraints) => {
         )
         break
       }
-
       case 'NotFoundError': {
         logger.error(
           'No media tracks of the type specified were found that satisfy the given constraints.'
