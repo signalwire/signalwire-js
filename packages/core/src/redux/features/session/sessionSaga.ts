@@ -6,6 +6,7 @@ import { VertoResult } from '../../../RPCMessages'
 import {
   JSONRPCRequest,
   ConferenceWorkerParams,
+  BladeBroadcastParams,
 } from '../../../utils/interfaces'
 import { ExecuteActionParams, WebRTCCall } from '../../interfaces'
 import { executeAction, socketMessage } from '../../actions'
@@ -22,6 +23,11 @@ type SessionSagaParams = {
   session: Session
   sessionChannel: EventChannel<unknown>
   pubSubChannel: Channel<unknown>
+}
+
+type VertoWorkerParams = {
+  jsonrpc: JSONRPCRequest
+  nodeId: string
 }
 
 /**
@@ -76,26 +82,33 @@ export function* sessionChannelWatcher({
   sessionChannel,
   pubSubChannel,
 }: SessionSagaParams): SagaIterator {
-  function* vertoWorker(jsonrpc: JSONRPCRequest) {
-    logger.debug('vertoWorker', jsonrpc)
+  function* vertoWorker({ jsonrpc, nodeId }: VertoWorkerParams) {
+    logger.debug('vertoWorker', jsonrpc, nodeId)
     const { id, method, params = {} } = jsonrpc
-    const { callID, nodeId } = params
 
-    // const attach = method === VertoMethod.Attach
     switch (method) {
       case VertoMethod.Media: {
         const component = {
-          id: callID,
+          id: params.callID,
           state: SwWebRTCCallState.Early,
           remoteSDP: params.sdp,
           nodeId,
         }
         yield put(componentActions.upsert(component))
+        yield put(
+          executeAction({
+            method: 'video.message',
+            params: {
+              message: VertoResult(id, method),
+              node_id: nodeId,
+            },
+          })
+        )
         break
       }
       case VertoMethod.Answer: {
         const component: WebRTCCall = {
-          id: callID,
+          id: params.callID,
           state: SwWebRTCCallState.Active,
           nodeId,
         }
@@ -116,7 +129,7 @@ export function* sessionChannelWatcher({
       }
       case VertoMethod.Bye: {
         const component: WebRTCCall = {
-          id: callID,
+          id: params.callID,
           state: SwWebRTCCallState.Hangup,
           nodeId,
           byeCause: params?.cause ?? '',
@@ -124,6 +137,15 @@ export function* sessionChannelWatcher({
           redirectDestination: params?.redirectDestination,
         }
         yield put(componentActions.upsert(component))
+        yield put(
+          executeAction({
+            method: 'video.message',
+            params: {
+              message: VertoResult(id, method),
+              node_id: nodeId,
+            },
+          })
+        )
         break
       }
       case VertoMethod.Ping:
@@ -202,21 +224,19 @@ export function* sessionChannelWatcher({
     })
   }
 
-  // FIXME: Add types for broadcastParams
-  function* bladeBroadcastWorker(broadcastParams: JSONRPCRequest['params']) {
-    const { protocol, event, params } = broadcastParams || {}
-    const { event_type, node_id } = params
-
-    if (protocol !== session.relayProtocol) {
+  function* bladeBroadcastWorker(broadcastParams: BladeBroadcastParams) {
+    if (broadcastParams?.protocol !== session.relayProtocol) {
       return logger.error('Session protocol mismatch.')
     }
 
-    switch (event) {
+    switch (broadcastParams.event) {
       case 'queuing.relay.events': {
-        if (event_type === 'webrtc.message') {
-          params.params.params.nodeId = node_id
-          yield fork(vertoWorker, params.params)
-          // VertoHandler(session, params.params)
+        const { params } = broadcastParams || {}
+        if (params.event_type === 'webrtc.message') {
+          yield fork(vertoWorker, {
+            jsonrpc: params.params,
+            nodeId: params.node_id,
+          })
         } else {
           logger.debug('Relay Calling event:', params)
           // session.calling.notificationHandler(params)
@@ -224,25 +244,27 @@ export function* sessionChannelWatcher({
         break
       }
       case 'conference': {
-        logger.debug('Conference event:', params)
-        yield fork(conferenceWorker, params)
+        logger.debug('Conference event:', broadcastParams.params)
+        yield fork(conferenceWorker, broadcastParams.params)
         break
       }
       case 'queuing.relay.tasks': {
-        logger.debug('Relay Task event:', params)
+        logger.debug('Relay Task event:', broadcastParams.params)
         // session.tasking.notificationHandler(params)
         break
       }
       case 'queuing.relay.messaging': {
-        logger.debug('Relay Task event:', params)
+        logger.debug('Relay Task event:', broadcastParams.params)
         // session.messaging.notificationHandler(params)
         break
       }
-      default:
-        return logger.debug(
-          `Unknown broadcast event: ${event}`,
-          broadcastParams
-        )
+      default: {
+        if ('development' === process.env.NODE_ENV) {
+          // @ts-expect-error
+          throw new Error(`Unknown broadcast event: ${broadcastParams.event}`)
+        }
+        return logger.debug('Unknown broadcast event', broadcastParams)
+      }
     }
   }
 
@@ -258,7 +280,7 @@ export function* sessionChannelWatcher({
 
     switch (method) {
       case BladeMethod.Broadcast:
-        yield fork(bladeBroadcastWorker, params)
+        yield fork(bladeBroadcastWorker, params as BladeBroadcastParams)
         break
       default:
         return logger.debug(`Unknown message: ${method}`, action)
@@ -275,9 +297,9 @@ export function* sessionChannelWatcher({
         yield fork(sessionChannelWorker, action)
       }
     } catch (error) {
-      console.error('sessionChannelWorker error:', error)
+      logger.error('sessionChannelWorker error:', error)
     } finally {
-      console.warn('sessionChannelWorker finally')
+      logger.warn('sessionChannelWorker finally')
     }
   }
 }

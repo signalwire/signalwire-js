@@ -1,8 +1,10 @@
 import { channel, eventChannel } from 'redux-saga'
 import { expectSaga } from 'redux-saga-test-plan'
-import { sessionChannelWatcher } from './sessionSaga'
-import { socketMessage } from '../../actions'
+import { VertoResult } from '../../../RPCMessages'
+import { VertoMethod } from '../../../utils/constants'
+import { socketMessage, executeAction } from '../../actions'
 import { componentActions } from '../'
+import { sessionChannelWatcher, createSessionChannel } from './sessionSaga'
 
 describe('sessionChannelWatcher', () => {
   describe('conferenceWorker', () => {
@@ -118,5 +120,351 @@ describe('sessionChannelWatcher', () => {
           expect(dispatchedActions).toHaveLength(3)
         })
     })
+  })
+
+  describe('vertoWorker', () => {
+    describe('verto.media', () => {
+      it('should handle verto.media event without SDP', () => {
+        const jsonrpc = JSON.parse(
+          '{"jsonrpc":"2.0","id":"515a2796-4020-4689-aeaf-e2d9c79e7025","method":"blade.broadcast","params":{"broadcaster_nodeid":"2286cac8-1346-474f-9913-7ca9c3df9fc8@west-us","protocol":"signalwire_19d453176877c268bcde383fed0fec20cb3f2bd39a47b4b96c54ff3ca3cd16c4_341e4715-9c98-4565-9378-789542b5896f_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"webrtc.message","event_channel":"signalwire_19d453176877c268bcde383fed0fec20cb3f2bd39a47b4b96c54ff3ca3cd16c4_341e4715-9c98-4565-9378-789542b5896f_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","timestamp":1621326334.602761,"project_id":"78429ef1-283b-4fa9-8ebc-16b59f95bb1f","node_id":"44c606b1-b951-4959-810a-ffa1ddc9ac4f@","params":{"jsonrpc":"2.0","id":"40","method":"verto.media","params":{"callID":"66e4b610-8d26-4835-8bd8-7022a42ee9bc","sdp":"MEDIA-SDP"}}}},"hops":[]}'
+        )
+        let runSaga = true
+        const session = {
+          relayProtocol: jsonrpc.params.protocol,
+        } as any
+        const pubSubChannel = channel()
+        const sessionChannel = eventChannel(() => () => {})
+        const dispatchedActions: unknown[] = []
+
+        return expectSaga(sessionChannelWatcher, {
+          session,
+          pubSubChannel,
+          sessionChannel,
+        })
+          .provide([
+            {
+              take({ channel }, next) {
+                if (runSaga && channel === sessionChannel) {
+                  runSaga = false
+                  return socketMessage(jsonrpc)
+                }
+                sessionChannel.close()
+                pubSubChannel.close()
+                return next()
+              },
+              put(action, next) {
+                dispatchedActions.push(action)
+                return next()
+              },
+            },
+          ])
+          .put(
+            componentActions.upsert({
+              id: '66e4b610-8d26-4835-8bd8-7022a42ee9bc',
+              state: 'early',
+              remoteSDP: 'MEDIA-SDP',
+              nodeId: '44c606b1-b951-4959-810a-ffa1ddc9ac4f@',
+            })
+          )
+          .put(
+            executeAction({
+              method: 'video.message',
+              params: {
+                message: VertoResult('40', VertoMethod.Media),
+                node_id: '44c606b1-b951-4959-810a-ffa1ddc9ac4f@',
+              },
+            })
+          )
+          .run()
+          .finally(() => {
+            expect(dispatchedActions).toHaveLength(2)
+          })
+      })
+    })
+
+    describe('verto.answer', () => {
+      it('should handle verto.answer event without SDP', () => {
+        const jsonrpc = JSON.parse(
+          '{"jsonrpc":"2.0","id":"6a1113a5-ad37-415a-bb82-442fe391eb71","method":"blade.broadcast","params":{"broadcaster_nodeid":"2286cac8-1346-474f-9913-7ca9c3df9fc8@west-us","protocol":"signalwire_19d453176877c268bcde383fed0fec20cb3f2bd39a47b4b96c54ff3ca3cd16c4_67cd19ab-0daf-4a94-9ec4-d794d618f424_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"webrtc.message","event_channel":"signalwire_19d453176877c268bcde383fed0fec20cb3f2bd39a47b4b96c54ff3ca3cd16c4_67cd19ab-0daf-4a94-9ec4-d794d618f424_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","timestamp":1621289013.528754,"project_id":"78429ef1-283b-4fa9-8ebc-16b59f95bb1f","node_id":"44c606b1-b951-4959-810a-ffa1ddc9ac4f@","params":{"jsonrpc":"2.0","id":"34","method":"verto.answer","params":{"callID":"2146cdbf-de67-4474-83e2-323520148d6a"}}}},"hops":[]}'
+        )
+        let runSaga = true
+        const session = {
+          relayProtocol: jsonrpc.params.protocol,
+        } as any
+        const pubSubChannel = channel()
+        const sessionChannel = eventChannel(() => () => {})
+        const dispatchedActions: unknown[] = []
+
+        return expectSaga(sessionChannelWatcher, {
+          session,
+          pubSubChannel,
+          sessionChannel,
+        })
+          .provide([
+            {
+              take({ channel }, next) {
+                if (runSaga && channel === sessionChannel) {
+                  runSaga = false
+                  return socketMessage(jsonrpc)
+                }
+                sessionChannel.close()
+                pubSubChannel.close()
+                return next()
+              },
+              put(action, next) {
+                dispatchedActions.push(action)
+                return next()
+              },
+            },
+          ])
+          .put(
+            componentActions.upsert({
+              id: '2146cdbf-de67-4474-83e2-323520148d6a',
+              state: 'active',
+              nodeId: '44c606b1-b951-4959-810a-ffa1ddc9ac4f@',
+            })
+          )
+          .put(
+            executeAction({
+              method: 'video.message',
+              params: {
+                message: VertoResult('34', VertoMethod.Answer),
+                node_id: '44c606b1-b951-4959-810a-ffa1ddc9ac4f@',
+              },
+            })
+          )
+          .run()
+          .finally(() => {
+            expect(dispatchedActions).toHaveLength(2)
+          })
+      })
+
+      it('should handle verto.answer event with SDP', () => {
+        const jsonrpc = JSON.parse(
+          '{"jsonrpc":"2.0","id":"6a1113a5-ad37-415a-bb82-442fe391eb71","method":"blade.broadcast","params":{"broadcaster_nodeid":"2286cac8-1346-474f-9913-7ca9c3df9fc8@west-us","protocol":"signalwire_19d453176877c268bcde383fed0fec20cb3f2bd39a47b4b96c54ff3ca3cd16c4_67cd19ab-0daf-4a94-9ec4-d794d618f424_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"webrtc.message","event_channel":"signalwire_19d453176877c268bcde383fed0fec20cb3f2bd39a47b4b96c54ff3ca3cd16c4_67cd19ab-0daf-4a94-9ec4-d794d618f424_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","timestamp":1621289013.528754,"project_id":"78429ef1-283b-4fa9-8ebc-16b59f95bb1f","node_id":"44c606b1-b951-4959-810a-ffa1ddc9ac4f@","params":{"jsonrpc":"2.0","id":"34","method":"verto.answer","params":{"callID":"2146cdbf-de67-4474-83e2-323520148d6a","sdp":"SDP-HERE"}}}},"hops":[]}'
+        )
+        let runSaga = true
+        const session = {
+          relayProtocol: jsonrpc.params.protocol,
+        } as any
+        const pubSubChannel = channel()
+        const sessionChannel = eventChannel(() => () => {})
+        const dispatchedActions: unknown[] = []
+
+        return expectSaga(sessionChannelWatcher, {
+          session,
+          pubSubChannel,
+          sessionChannel,
+        })
+          .provide([
+            {
+              take({ channel }, next) {
+                if (runSaga && channel === sessionChannel) {
+                  runSaga = false
+                  return socketMessage(jsonrpc)
+                }
+                sessionChannel.close()
+                pubSubChannel.close()
+                return next()
+              },
+              put(action, next) {
+                dispatchedActions.push(action)
+                return next()
+              },
+            },
+          ])
+          .put(
+            componentActions.upsert({
+              id: '2146cdbf-de67-4474-83e2-323520148d6a',
+              state: 'active',
+              remoteSDP: 'SDP-HERE',
+              nodeId: '44c606b1-b951-4959-810a-ffa1ddc9ac4f@',
+            })
+          )
+          .put(
+            executeAction({
+              method: 'video.message',
+              params: {
+                message: VertoResult('34', VertoMethod.Answer),
+                node_id: '44c606b1-b951-4959-810a-ffa1ddc9ac4f@',
+              },
+            })
+          )
+          .run()
+          .finally(() => {
+            expect(dispatchedActions).toHaveLength(2)
+          })
+      })
+    })
+
+    describe('verto.bye', () => {
+      it('should handle verto.bye event', () => {
+        const jsonrpc = JSON.parse(
+          '{"jsonrpc":"2.0","id":"515a2796-4020-4689-aeaf-e2d9c79e7025","method":"blade.broadcast","params":{"broadcaster_nodeid":"2286cac8-1346-474f-9913-7ca9c3df9fc8@west-us","protocol":"signalwire_19d453176877c268bcde383fed0fec20cb3f2bd39a47b4b96c54ff3ca3cd16c4_341e4715-9c98-4565-9378-789542b5896f_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"webrtc.message","event_channel":"signalwire_19d453176877c268bcde383fed0fec20cb3f2bd39a47b4b96c54ff3ca3cd16c4_341e4715-9c98-4565-9378-789542b5896f_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","timestamp":1621326334.602761,"project_id":"78429ef1-283b-4fa9-8ebc-16b59f95bb1f","node_id":"44c606b1-b951-4959-810a-ffa1ddc9ac4f@","params":{"jsonrpc":"2.0","id":"40","method":"verto.bye","params":{"callID":"66e4b610-8d26-4835-8bd8-7022a42ee9bc","cause":"NORMAL_CLEARING","causeCode":16}}}},"hops":[]}'
+        )
+        let runSaga = true
+        const session = {
+          relayProtocol: jsonrpc.params.protocol,
+        } as any
+        const pubSubChannel = channel()
+        const sessionChannel = eventChannel(() => () => {})
+        const dispatchedActions: unknown[] = []
+
+        return expectSaga(sessionChannelWatcher, {
+          session,
+          pubSubChannel,
+          sessionChannel,
+        })
+          .provide([
+            {
+              take({ channel }, next) {
+                if (runSaga && channel === sessionChannel) {
+                  runSaga = false
+                  return socketMessage(jsonrpc)
+                }
+                sessionChannel.close()
+                pubSubChannel.close()
+                return next()
+              },
+              put(action, next) {
+                dispatchedActions.push(action)
+                return next()
+              },
+            },
+          ])
+          .put(
+            componentActions.upsert({
+              id: '66e4b610-8d26-4835-8bd8-7022a42ee9bc',
+              state: 'hangup',
+              byeCause: 'NORMAL_CLEARING',
+              byeCauseCode: 16,
+              redirectDestination: undefined,
+              nodeId: '44c606b1-b951-4959-810a-ffa1ddc9ac4f@',
+            })
+          )
+          .put(
+            executeAction({
+              method: 'video.message',
+              params: {
+                message: VertoResult('40', VertoMethod.Bye),
+                node_id: '44c606b1-b951-4959-810a-ffa1ddc9ac4f@',
+              },
+            })
+          )
+          .run()
+          .finally(() => {
+            expect(dispatchedActions).toHaveLength(2)
+          })
+      })
+    })
+
+    describe('verto.ping', () => {
+      it('should handle verto.ping event', () => {
+        const jsonrpc = JSON.parse(
+          '{"jsonrpc":"2.0","id":"515a2796-4020-4689-aeaf-e2d9c79e7025","method":"blade.broadcast","params":{"broadcaster_nodeid":"2286cac8-1346-474f-9913-7ca9c3df9fc8@west-us","protocol":"signalwire_19d453176877c268bcde383fed0fec20cb3f2bd39a47b4b96c54ff3ca3cd16c4_341e4715-9c98-4565-9378-789542b5896f_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"webrtc.message","event_channel":"signalwire_19d453176877c268bcde383fed0fec20cb3f2bd39a47b4b96c54ff3ca3cd16c4_341e4715-9c98-4565-9378-789542b5896f_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","timestamp":1621326334.602761,"project_id":"78429ef1-283b-4fa9-8ebc-16b59f95bb1f","node_id":"44c606b1-b951-4959-810a-ffa1ddc9ac4f@","params":{"jsonrpc":"2.0","id":"40","method":"verto.ping","params":{"serno":1}}}},"hops":[]}'
+        )
+        let runSaga = true
+        const session = {
+          relayProtocol: jsonrpc.params.protocol,
+        } as any
+        const pubSubChannel = channel()
+        const sessionChannel = eventChannel(() => () => {})
+        const dispatchedActions: unknown[] = []
+
+        return expectSaga(sessionChannelWatcher, {
+          session,
+          pubSubChannel,
+          sessionChannel,
+        })
+          .provide([
+            {
+              take({ channel }, next) {
+                if (runSaga && channel === sessionChannel) {
+                  runSaga = false
+                  return socketMessage(jsonrpc)
+                }
+                sessionChannel.close()
+                pubSubChannel.close()
+                return next()
+              },
+              put(action, next) {
+                dispatchedActions.push(action)
+                return next()
+              },
+            },
+          ])
+          .put(
+            executeAction({
+              method: 'video.message',
+              params: {
+                message: VertoResult('40', VertoMethod.Ping),
+                node_id: '44c606b1-b951-4959-810a-ffa1ddc9ac4f@',
+              },
+            })
+          )
+          .run()
+          .finally(() => {
+            expect(dispatchedActions).toHaveLength(1)
+          })
+      })
+    })
+
+    describe('verto.punt', () => {
+      it('should invoke session.disconnect', () => {
+        const jsonrpc = JSON.parse(
+          '{"jsonrpc":"2.0","id":"515a2796-4020-4689-aeaf-e2d9c79e7025","method":"blade.broadcast","params":{"broadcaster_nodeid":"2286cac8-1346-474f-9913-7ca9c3df9fc8@west-us","protocol":"signalwire_19d453176877c268bcde383fed0fec20cb3f2bd39a47b4b96c54ff3ca3cd16c4_341e4715-9c98-4565-9378-789542b5896f_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"webrtc.message","event_channel":"signalwire_19d453176877c268bcde383fed0fec20cb3f2bd39a47b4b96c54ff3ca3cd16c4_341e4715-9c98-4565-9378-789542b5896f_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","timestamp":1621326334.602761,"project_id":"78429ef1-283b-4fa9-8ebc-16b59f95bb1f","node_id":"44c606b1-b951-4959-810a-ffa1ddc9ac4f@","params":{"jsonrpc":"2.0","id":"40","method":"verto.punt","params":{}}}},"hops":[]}'
+        )
+        let runSaga = true
+        const session = {
+          relayProtocol: jsonrpc.params.protocol,
+          disconnect: jest.fn(),
+        } as any
+        const pubSubChannel = channel()
+        const sessionChannel = eventChannel(() => () => {})
+        const dispatchedActions: unknown[] = []
+
+        return expectSaga(sessionChannelWatcher, {
+          session,
+          pubSubChannel,
+          sessionChannel,
+        })
+          .provide([
+            {
+              take({ channel }, next) {
+                if (runSaga && channel === sessionChannel) {
+                  runSaga = false
+                  return socketMessage(jsonrpc)
+                }
+                sessionChannel.close()
+                pubSubChannel.close()
+                return next()
+              },
+            },
+          ])
+          .run()
+          .finally(() => {
+            expect(session.disconnect).toHaveBeenCalledTimes(1)
+          })
+      })
+    })
+  })
+})
+
+describe('createSessionChannel', () => {
+  it('should override session.dispatch to pass actions and invoke session.disconnect on close', () => {
+    const session = {
+      disconnect: jest.fn(),
+    } as any
+
+    const sessionChannel = createSessionChannel(session)
+
+    expect(session.dispatch).toBeDefined()
+    sessionChannel.take((param) => {
+      expect(param).toStrictEqual('Triggered!')
+    })
+    session.dispatch('Triggered!')
+
+    sessionChannel.close()
+    expect(session.disconnect).toHaveBeenCalledTimes(1)
   })
 })
