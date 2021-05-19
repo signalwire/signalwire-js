@@ -258,12 +258,13 @@ export function* sessionChannelWatcher({
         // session.messaging.notificationHandler(params)
         break
       }
-      default:
-        return logger.debug(
+      default: {
+        if ('development' === process.env.NODE_ENV) {
           // @ts-expect-error
-          `Unknown broadcast event: ${broadcastParams.event}`,
-          broadcastParams
-        )
+          throw new Error(`Unknown broadcast event: ${broadcastParams.event}`)
+        }
+        return logger.debug('Unknown broadcast event', broadcastParams)
+      }
     }
   }
 
