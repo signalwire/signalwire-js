@@ -4,7 +4,9 @@ export const RTCPeerConnection = (config: RTCConfiguration) => {
   return new window.RTCPeerConnection(config)
 }
 
-export const getUserMedia = (constraints: MediaStreamConstraints) => {
+export const getUserMedia = (
+  constraints: MediaStreamConstraints = { audio: true, video: true }
+) => {
   try {
     return navigator.mediaDevices.getUserMedia(constraints)
   } catch (error) {

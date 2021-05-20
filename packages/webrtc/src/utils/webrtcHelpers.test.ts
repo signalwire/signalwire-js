@@ -23,20 +23,33 @@ describe('WebRTC Helpers', () => {
       })
 
       try {
-        getUserMedia({})
+        getUserMedia()
       } catch (e) {
         expect(e.name).toBe('Error')
       }
       expect(loggerErrorSpy).toHaveBeenCalledTimes(1)
     })
 
-    it('should log a helpful message when no constraints have been passed', async () => {
-      try {
-        getUserMedia({})
-      } catch (e) {
-        expect(e.name).toBe('TypeError')
-      }
-      expect(loggerErrorSpy).toHaveBeenCalledTimes(1)
+    it('should provide default contraints when no constraints have been passed', async () => {
+      const stream = getUserMedia()
+      expect(stream).toMatchInlineSnapshot(`
+        MediaStreamMock {
+          "_tracks": Array [
+            MediaStreamTrackMock {
+              "enabled": true,
+              "id": "uuid",
+              "kind": "audio",
+              "label": "Track Label",
+            },
+            MediaStreamTrackMock {
+              "enabled": true,
+              "id": "uuid",
+              "kind": "video",
+              "label": "Track Label",
+            },
+          ],
+        }
+      `)
     })
   })
 })
