@@ -2,8 +2,8 @@ module.exports = {
   mode: 'jit',
   purge: [
     'index.html',
-    './*vanilla/**/*.html',
-    './*vanilla/**/*.{js,jsx,ts,tsx,vue}',
+    './*vanilla*/**/*.html',
+    './*vanilla*/**/*.{js,jsx,ts,tsx,vue}',
     './src/**/*.{js,jsx,ts,tsx,vue}',
   ],
   darkMode: false, // or 'media' or 'class'
@@ -11,5 +11,5 @@ module.exports = {
     extend: {},
   },
   variants: {},
-  plugins: [],
+  plugins: [require('@tailwindcss/forms')],
 }

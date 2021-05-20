@@ -7,8 +7,9 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
-        tsVanilla: resolve(__dirname, 'ts-vanilla/index.html')
-      }
-    }
-  }
+        tsVanilla: resolve(__dirname, 'ts-vanilla/index.html'),
+        webrtcUtils: resolve(__dirname, 'ts-vanilla-webrtc-utils/index.html'),
+      },
+    },
+  },
 })
