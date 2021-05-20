@@ -60,13 +60,6 @@ export enum SwWebRTCCallState {
   Purge = 'purge',
 }
 
-export enum ConferenceMethod {
-  MemberAudioMute = 'conference.member.audio_mute',
-  MemberAudioUnmute = 'conference.member.audio_unmute',
-  MemberVideoMute = 'conference.member.video_mute',
-  MemberVideoUnmute = 'conference.member.video_unmute',
-}
-
 // export enum SwEvent {
 //   // Socket Events
 //   SocketOpen = 'signalwire.socket.open',

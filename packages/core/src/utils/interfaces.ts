@@ -280,3 +280,19 @@ export type BladeBroadcastParams =
   | VertoEvent
   | TaskEvent
   | MessagingEvent
+
+/**
+ * List of all conference methods
+ */
+export type ConferenceMethod =
+  | 'conference.member.audio_mute'
+  | 'conference.member.audio_unmute'
+  | 'conference.member.video_mute'
+  | 'conference.member.video_unmute'
+  | 'conference.member.deaf'
+  | 'conference.member.undeaf'
+  | 'conference.member.volume.in.set'
+  | 'conference.member.volume.out.set'
+  | 'conference.member.energy.set'
+  // TODO: check kick
+  | 'conference.member.kick'
