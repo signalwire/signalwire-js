@@ -622,7 +622,7 @@ export class BaseCall extends BaseComponent<CallEvents> {
     })
   }
 
-  public kickMember({ memberId }: Required<MemberCommandParams>) {
+  public removeMember({ memberId }: Required<MemberCommandParams>) {
     if (!memberId) {
       throw new TypeError('Invalid or missing "memberId" argument')
     }
