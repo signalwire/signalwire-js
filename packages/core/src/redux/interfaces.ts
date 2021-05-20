@@ -5,6 +5,7 @@ import {
   SessionAuthError,
   SessionAuthStatus,
   SessionStatus,
+  BladeExecuteMethod,
 } from '../utils/interfaces'
 
 interface SWComponent {
@@ -58,7 +59,7 @@ export type GetDefaultSagas = () => Saga[]
 export interface ExecuteActionParams {
   requestId?: string
   componentId?: string
-  method: string
+  method: BladeExecuteMethod
   params: Record<string, any>
 }
 

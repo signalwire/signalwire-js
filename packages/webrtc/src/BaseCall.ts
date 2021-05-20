@@ -36,6 +36,12 @@ const ROOM_EVENTS = [
   'layout.changed',
 ]
 
+interface MemberCommandParams {
+  memberId?: string
+}
+interface MemberCommandWithValueParams extends MemberCommandParams {
+  value: number
+}
 type BaseCallOptions = CallOptions & BaseComponentOptions<BaseCall, CallEvents>
 export class BaseCall extends BaseComponent<CallEvents> {
   public nodeId = ''
@@ -547,42 +553,100 @@ export class BaseCall extends BaseComponent<CallEvents> {
     }
   }
 
-  public audioMute(memberId?: string) {
-    return this.execute({
-      method: ConferenceMethod.MemberAudioMute,
-      params: {
-        room_session_id: this._roomSessionId,
-        member_id: memberId || this._memberId,
-      },
+  public audioMute({ memberId }: MemberCommandParams = {}) {
+    return this._memberCommand({
+      method: 'conference.member.audio_mute',
+      memberId,
     })
   }
 
-  public audioUnmute(memberId?: string) {
-    return this.execute({
-      method: ConferenceMethod.MemberAudioUnmute,
-      params: {
-        room_session_id: this._roomSessionId,
-        member_id: memberId || this._memberId,
-      },
+  public audioUnmute({ memberId }: MemberCommandParams = {}) {
+    return this._memberCommand({
+      method: 'conference.member.audio_unmute',
+      memberId,
     })
   }
 
-  public videoMute(memberId?: string) {
-    return this.execute({
-      method: ConferenceMethod.MemberVideoMute,
-      params: {
-        room_session_id: this._roomSessionId,
-        member_id: memberId || this._memberId,
-      },
+  public videoMute({ memberId }: MemberCommandParams = {}) {
+    return this._memberCommand({
+      method: 'conference.member.video_mute',
+      memberId,
     })
   }
 
-  public videoUnmute(memberId?: string) {
+  public videoUnmute({ memberId }: MemberCommandParams = {}) {
+    return this._memberCommand({
+      method: 'conference.member.video_unmute',
+      memberId,
+    })
+  }
+
+  public deaf({ memberId }: MemberCommandParams = {}) {
+    return this._memberCommand({
+      method: 'conference.member.deaf',
+      memberId,
+    })
+  }
+
+  public undeaf({ memberId }: MemberCommandParams = {}) {
+    return this._memberCommand({
+      method: 'conference.member.undeaf',
+      memberId,
+    })
+  }
+
+  public setSpeakerVolume({ memberId, value }: MemberCommandWithValueParams) {
+    return this._memberCommand({
+      method: 'conference.member.volume.in.set',
+      memberId,
+      value,
+    })
+  }
+
+  public setMicrophoneVolume({
+    memberId,
+    value,
+  }: MemberCommandWithValueParams) {
+    return this._memberCommand({
+      method: 'conference.member.volume.out.set',
+      memberId,
+      value,
+    })
+  }
+
+  public setNoiseGateValue({ memberId, value }: MemberCommandWithValueParams) {
+    return this._memberCommand({
+      method: 'conference.member.energy.set',
+      memberId,
+      value,
+    })
+  }
+
+  public removeMember({ memberId }: Required<MemberCommandParams>) {
+    if (!memberId) {
+      throw new TypeError('Invalid or missing "memberId" argument')
+    }
+    return this._memberCommand({
+      method: 'conference.member.kick',
+      memberId,
+    })
+  }
+
+  private _memberCommand({
+    method,
+    memberId,
+    ...rest
+  }: {
+    method: ConferenceMethod
+    memberId?: string
+    [key: string]: unknown
+  }) {
     return this.execute({
-      method: ConferenceMethod.MemberVideoUnmute,
+      method,
       params: {
         room_session_id: this._roomSessionId,
         member_id: memberId || this._memberId,
+        ...rest,
       },
     })
   }

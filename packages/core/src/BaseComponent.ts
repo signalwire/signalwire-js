@@ -1,8 +1,13 @@
 import { uuid } from './utils'
 import { executeAction } from './redux'
-import { Emitter } from './utils/interfaces'
+import { BladeExecuteMethod, Emitter } from './utils/interfaces'
 import { SDKState } from './redux/interfaces'
 import { BaseComponentOptions } from './utils/interfaces'
+
+type ExecuteParams = {
+  method: BladeExecuteMethod
+  params: Record<string, any>
+}
 
 export class BaseComponent<EventType extends string>
   implements Emitter<EventType, BaseComponent<EventType>> {
@@ -11,7 +16,9 @@ export class BaseComponent<EventType extends string>
   private _requests = new Map()
   private _destroyer?: () => void
 
-  constructor(public options: BaseComponentOptions<BaseComponent<EventType>, EventType>) {}
+  constructor(
+    public options: BaseComponentOptions<BaseComponent<EventType>, EventType>
+  ) {}
 
   set destroyer(d: () => void) {
     this._destroyer = d
@@ -52,7 +59,7 @@ export class BaseComponent<EventType extends string>
     this.removeAllListeners()
   }
 
-  execute({ method, params }: { method: string; params: Record<string, any> }) {
+  execute({ method, params }: ExecuteParams) {
     return new Promise((resolve, reject) => {
       const requestId = uuid()
       this._requests.set(requestId, { resolve, reject })
