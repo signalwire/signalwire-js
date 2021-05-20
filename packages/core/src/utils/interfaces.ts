@@ -296,3 +296,11 @@ export type ConferenceMethod =
   | 'conference.member.energy.set'
   // TODO: check kick
   | 'conference.member.kick'
+
+/**
+ * List of all available blade.execute methods
+ */
+// prettier-ignore
+export type BladeExecuteMethod =
+  | ConferenceMethod
+  | 'video.message'
