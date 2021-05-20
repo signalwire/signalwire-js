@@ -622,6 +622,16 @@ export class BaseCall extends BaseComponent<CallEvents> {
     })
   }
 
+  public kickMember({ memberId }: Required<MemberCommandParams>) {
+    if (!memberId) {
+      throw new TypeError('Invalid or missing "memberId" argument')
+    }
+    return this._memberCommand({
+      method: 'conference.member.kick',
+      memberId,
+    })
+  }
+
   private _memberCommand({
     method,
     memberId,
