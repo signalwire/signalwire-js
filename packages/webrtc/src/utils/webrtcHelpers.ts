@@ -100,6 +100,7 @@ export const detachMediaStream = (tag: any) => {
   }
 }
 
+// Candidate to be removed:
 export const findElementByType = (
   tag: HTMLMediaElement | string | Function
 ): HTMLMediaElement | null => {
@@ -151,6 +152,7 @@ export const setMediaElementSinkId = async (
   }
 }
 
+// Candidate to be removed:
 export const sdpToJsonHack = (sdp: any) => sdp
 
 export const stopStream = (stream?: MediaStream) => {
@@ -166,8 +168,10 @@ export const stopTrack = (track: MediaStreamTrack) => {
   }
 }
 
+// Candidate to be removed:
 export const getHostname = () => window.location.hostname
 
+// Candidate to be removed:
 export const buildVideoElementByTrack = (
   videoTrack: MediaStreamTrack,
   streamIds: string[] = []
@@ -198,6 +202,7 @@ export const buildVideoElementByTrack = (
   return video
 }
 
+// Candidate to be removed:
 export const buildAudioElementByTrack = (
   audioTrack: MediaStreamTrack,
   streamIds: string[] = []
