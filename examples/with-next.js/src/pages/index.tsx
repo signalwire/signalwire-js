@@ -1,4 +1,4 @@
-import { Client, createClient } from '@signalwire/web'
+import { Video } from '@signalwire/web'
 import { useEffect, useState } from 'react'
 import { useAppState } from '../components/AppController'
 import { JoinWidget } from '../components/JoinWidget'
@@ -7,11 +7,11 @@ import Layout from '../components/Layout'
 
 const Steps = () => {
   const state = useAppState()
-  const [client, setClient] = useState<Client>()
+  const [client, setClient] = useState<Video.Client>()
 
   useEffect(() => {
     if (state.status === 'authorized' && !client) {
-      createClient({
+      Video.createClient({
         // host: 'relay.swire.io',
         token: state.token,
         autoConnect: true,

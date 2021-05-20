@@ -1,8 +1,15 @@
 import 'regenerator-runtime/runtime.js'
-import { JWTSession } from '@signalwire/core'
 
-export { JWTSession }
-export * from './createRoomObject'
-export * from './createClient'
-export * from './Client'
-export * from './joinRoom'
+import { createRoomObject } from './createRoomObject'
+import { createClient } from './createClient'
+import { Client } from './Client'
+import { joinRoom } from './joinRoom'
+
+const Video = {
+  createRoomObject,
+  createClient,
+  Client,
+  joinRoom,
+}
+
+export { Video }

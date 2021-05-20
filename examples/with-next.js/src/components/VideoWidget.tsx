@@ -1,10 +1,10 @@
 import { useEffect, useState, useRef } from 'react'
-import { Client } from '@signalwire/web'
+import { Video } from '@signalwire/web'
 import { useAppDispatch } from './AppController'
 import { MCU } from './MCU'
 
 interface VideoWidgetProps {
-  client: Client
+  client: Video.Client
   roomName: string
   userName: string
 }
