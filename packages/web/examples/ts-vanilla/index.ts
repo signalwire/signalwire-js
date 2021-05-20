@@ -2,12 +2,12 @@
 // `production` bundle while importing from `../../src` will
 // hot-reload as we make changes.
 
-import { createClient } from '../../src'
+import { Video } from '../../src'
 
 // @ts-ignore
 window._makeClient = async ({ token, emitter }) => {
   try {
-    const client = await createClient({
+    const client = await Video.createClient({
       host: 'relay.swire.io',
       token,
       autoConnect: false,
