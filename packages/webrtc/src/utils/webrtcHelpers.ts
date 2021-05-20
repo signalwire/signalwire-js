@@ -114,24 +114,37 @@ export const findElementByType = (
   return null
 }
 
+export const supportsMediaOutput = () => {
+  return 'sinkId' in HTMLMediaElement.prototype
+}
+
 export const setMediaElementSinkId = async (
-  tag: any,
+  el: HTMLMediaElement | null,
   deviceId: string
 ): Promise<boolean> => {
-  const element = findElementByType(tag)
-  if (element === null) {
+  if (el === null) {
     logger.info('No HTMLMediaElement to attach the speakerId')
     return false
-  }
-  if (typeof deviceId !== 'string') {
+  } else if (typeof deviceId !== 'string') {
     logger.info(`Invalid speaker deviceId: '${deviceId}'`)
+    return false
+  } else if (!supportsMediaOutput()) {
+    logger.warn(`Browser does not support output device selection.'`)
     return false
   }
   try {
     // @ts-ignore
-    await element.setSinkId(deviceId)
+    await el.setSinkId(deviceId)
     return true
   } catch (error) {
+    if (error.name === 'SecurityError') {
+      console.error(
+        `You need to use HTTPS for selecting audio output device: ${error}`
+      )
+    } else {
+      console.error(`Error: ${error}`)
+    }
+
     return false
   }
 }
