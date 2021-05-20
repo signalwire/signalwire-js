@@ -14,8 +14,8 @@
     "node": ">=10"
   },
   "scripts": {
-    "start": "microbundle watch --external none -f es --tsconfig tsconfig.build.json",
-    "build": "pkg-typings --pre-run && microbundle --external none --define process.env.NODE_ENV=production --name VideoSDK --tsconfig ./tsconfig.build.json && pkg-typings --after-run",
+    "start": "microbundle watch --external none -f es --define process.env.NODE_ENV=development --tsconfig tsconfig.build.json",
+    "build": "pkg-typings --pre-run && microbundle --external none --define process.env.NODE_ENV=production --name SignalWire --tsconfig ./tsconfig.build.json && pkg-typings --after-run",
     "test": "NODE_ENV=test jest",
     "prepare": "npm run build",
     "example": "(cd examples && npm run dev)"
