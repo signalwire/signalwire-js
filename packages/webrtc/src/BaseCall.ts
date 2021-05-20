@@ -553,42 +553,42 @@ export class BaseCall extends BaseComponent<CallEvents> {
     }
   }
 
-  public audioMute({ memberId }: MemberCommandParams) {
+  public audioMute({ memberId }: MemberCommandParams = {}) {
     return this._memberCommand({
       method: 'conference.member.audio_mute',
       memberId,
     })
   }
 
-  public audioUnmute({ memberId }: MemberCommandParams) {
+  public audioUnmute({ memberId }: MemberCommandParams = {}) {
     return this._memberCommand({
       method: 'conference.member.audio_unmute',
       memberId,
     })
   }
 
-  public videoMute({ memberId }: MemberCommandParams) {
+  public videoMute({ memberId }: MemberCommandParams = {}) {
     return this._memberCommand({
       method: 'conference.member.video_mute',
       memberId,
     })
   }
 
-  public videoUnmute({ memberId }: MemberCommandParams) {
+  public videoUnmute({ memberId }: MemberCommandParams = {}) {
     return this._memberCommand({
       method: 'conference.member.video_unmute',
       memberId,
     })
   }
 
-  public deaf({ memberId }: MemberCommandParams) {
+  public deaf({ memberId }: MemberCommandParams = {}) {
     return this._memberCommand({
       method: 'conference.member.deaf',
       memberId,
     })
   }
 
-  public undeaf({ memberId }: MemberCommandParams) {
+  public undeaf({ memberId }: MemberCommandParams = {}) {
     return this._memberCommand({
       method: 'conference.member.undeaf',
       memberId,
