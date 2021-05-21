@@ -298,11 +298,28 @@ type RoomMemberMethod =
   | 'member.kick'
 
 /**
- * List of all room member methods
+ * List of all room layout methods
  */
 // prettier-ignore
+type RoomLayoutMethod =
+  | 'layout.list'
+  | 'layout.set'
+
+/**
+ * List of all room mode methods
+ */
+// prettier-ignore
+type RoomModeMethod =
+  | 'mode.hide_video_muted.enable'
+  | 'mode.hide_video_muted.disable'
+
+/**
+ * List of all room member methods
+ */
 export type RoomMethod =
   | `video.${RoomMemberMethod}`
+  | `video.${RoomLayoutMethod}`
+  | `video.${RoomModeMethod}`
 
 /**
  * List of all available blade.execute methods

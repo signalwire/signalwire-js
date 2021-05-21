@@ -552,6 +552,43 @@ export class BaseCall extends BaseComponent<CallEvents> {
     }
   }
 
+  public getLayoutList() {
+    return this.execute({
+      method: 'video.layout.list',
+      params: {
+        room_session_id: this._roomSessionId,
+      },
+    })
+  }
+
+  public setLayout({ name }: { name: string }) {
+    return this.execute({
+      method: 'video.layout.set',
+      params: {
+        room_session_id: this._roomSessionId,
+        name,
+      },
+    })
+  }
+
+  public hideVideoMuted() {
+    return this.execute({
+      method: 'video.mode.hide_video_muted.enable',
+      params: {
+        room_session_id: this._roomSessionId,
+      },
+    })
+  }
+
+  public showVideoMuted() {
+    return this.execute({
+      method: 'video.mode.hide_video_muted.disable',
+      params: {
+        room_session_id: this._roomSessionId,
+      },
+    })
+  }
+
   public audioMute({ memberId }: MemberCommandParams = {}) {
     return this._memberCommand({
       method: 'video.member.audio_mute',
