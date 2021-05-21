@@ -127,7 +127,7 @@
               <div id="rootElement"></div>
             </div>
           </div>
-          <div class="row">
+          <div class="row py-2">
             <div class="col-6">
               <div class="btn-group w-100" role="group">
                 <button
@@ -169,96 +169,72 @@
               </div>
             </div>
           </div>
-        </div>
+          <div class="row py-2">
+            <div class="col-6">
+              <div class="btn-group w-100" role="group">
+                <button
+                  id="deafSelfBtn"
+                  class="btn btn-warning px-3 mt-2 d-none"
+                  onClick="deafSelf()"
+                  disabled="true"
+                >
+                  Deaf Self
+                </button>
+                <button
+                  id="undeafSelfBtn"
+                  class="btn btn-warning px-3 mt-2 d-none"
+                  onClick="undeafSelf()"
+                  disabled="true"
+                >
+                  Undeaf Self
+                </button>
+              </div>
+            </div>
+          </div>
 
-        <!--
-        <div class="col-12 col-md-8 mt-4 mt-md-1">
-          <div class="row py-3">
-            <div class="col-12">
-              <h5>Remote Video</h5>
-              <div id="rootElement"></div>
+          <div class="row py-2">
+            <div class="col-4">
+              <label for="microphoneVolume" class="form-label">
+                Microphone Volume
+              </label>
+              <input
+                type="range"
+                class="form-range"
+                oninput="rangeInputHandler(this)"
+                min="-4"
+                max="4"
+                value="0"
+                id="microphoneVolume"
+              />
             </div>
-          </div>
-          <div class="row">
-            <div class="col-6">
-              <div class="btn-group w-100" role="group">
-                <button
-                  id="muteSelfBtn"
-                  class="btn btn-warning px-3 mt-2 d-none"
-                  onClick="muteSelf()"
-                  disabled="true"
-                >
-                  Mute Self
-                </button>
-                <button
-                  id="unmuteSelfBtn"
-                  class="btn btn-warning px-3 mt-2 d-none"
-                  onClick="unmuteSelf()"
-                  disabled="true"
-                >
-                  UnMute Self
-                </button>
-              </div>
-              <div class="btn-group w-100" role="group">
-                <button
-                  id="muteAllBtn"
-                  class="btn btn-warning px-3 mt-2 d-none"
-                  onClick="muteAll()"
-                  disabled="true"
-                >
-                  Mute All
-                </button>
-                <button
-                  id="unmuteAllBtn"
-                  class="btn btn-warning px-3 mt-2 d-none"
-                  onClick="unmuteAll()"
-                  disabled="true"
-                >
-                  UnMute All
-                </button>
-              </div>
+            <div class="col-4">
+              <label for="speakerVolume" class="form-label">
+                Speaker Volume
+              </label>
+              <input
+                type="range"
+                class="form-range"
+                oninput="rangeInputHandler(this)"
+                min="-4"
+                max="4"
+                value="0"
+                id="speakerVolume"
+              />
             </div>
-            <div class="col-6">
-              <div class="btn-group w-100" role="group">
-                <button
-                  id="muteVideoSelfBtn"
-                  class="btn btn-warning px-3 mt-2 d-none"
-                  onClick="muteVideoSelf()"
-                  disabled="true"
-                >
-                  Video Mute Self
-                </button>
-                <button
-                  id="unmuteVideoSelfBtn"
-                  class="btn btn-warning px-3 mt-2 d-none"
-                  onClick="unmuteVideoSelf()"
-                  disabled="true"
-                >
-                  Video UnMute Self
-                </button>
-              </div>
-              <div class="btn-group w-100" role="group">
-                <button
-                  id="muteVideoAllBtn"
-                  class="btn btn-warning px-3 mt-2 d-none"
-                  onClick="muteVideoAll()"
-                  disabled="true"
-                >
-                  Video Mute All
-                </button>
-                <button
-                  id="unmuteVideoAllBtn"
-                  class="btn btn-warning px-3 mt-2 d-none"
-                  onClick="unmuteVideoAll()"
-                  disabled="true"
-                >
-                  Video UnMute All
-                </button>
-              </div>
+            <div class="col-4">
+              <label for="noiseGate" class="form-label">Noise Gate</label>
+              <input
+                type="range"
+                class="form-range"
+                oninput="rangeInputHandler(this)"
+                min="0"
+                max="12"
+                value="4"
+                id="noiseGate"
+              />
             </div>
           </div>
         </div>
-        -->
       </div>
       <hr />
     </div>
