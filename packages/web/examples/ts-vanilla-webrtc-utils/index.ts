@@ -1,4 +1,6 @@
-import {
+import { WebRTC } from '../../src'
+
+const {
   setMediaElementSinkId,
   getAudioInDevices,
   getAudioOutDevices,
@@ -6,7 +8,7 @@ import {
   enumerateDevices,
   getUserMedia,
   stopStream,
-} from '../../../webrtc/src'
+} = WebRTC
 
 const videoElement = document.querySelector<HTMLVideoElement>('video')!
 const audioInputSelect = document.querySelector<HTMLSelectElement>(

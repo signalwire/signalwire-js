@@ -5,6 +5,7 @@ const LANGUAGES = {
     'https://raw.githubusercontent.com/gilbarbara/logos/master/logos/typescript-icon.svg',
   JavaScript:
     'https://raw.githubusercontent.com/gilbarbara/logos/master/logos/javascript.svg',
+  WebRTC: 'https://cdn.svgporn.com/logos/webrtc.svg',
 }
 
 const EXAMPLES = [
@@ -32,6 +33,10 @@ const EXAMPLES = [
       {
         url: '/heroku/',
         language: 'JavaScript',
+      },
+      {
+        url: '/ts-vanilla-webrtc-utils/',
+        language: 'WebRTC',
       },
     ],
   },
