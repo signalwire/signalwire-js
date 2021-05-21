@@ -13,3 +13,4 @@ const Video = {
 }
 
 export { Video }
+export * as WebRTC from '@signalwire/webrtc'

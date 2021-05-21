@@ -87,6 +87,14 @@ Object.defineProperty(navigator, 'mediaDevices', {
     enumerateDevices: jest.fn().mockResolvedValue(ENUMERATED_MEDIA_DEVICES),
     getSupportedConstraints: jest.fn().mockReturnValue(SUPPORTED_CONSTRAINTS),
     getUserMedia: jest.fn((constraints) => {
+      if (
+        Object.keys(constraints).length === 0 ||
+        Object.values(constraints).every((v) => v === false)
+      ) {
+        throw new TypeError(
+          "Failed to execute 'getUserMedia' on 'MediaDevices': At least one of audio and video must be requested"
+        )
+      }
       const stream = new global.MediaStream()
       const { audio = null, video = null } = constraints
       if (audio !== null) {
