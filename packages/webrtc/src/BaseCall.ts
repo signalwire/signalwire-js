@@ -7,7 +7,7 @@ import {
   BaseComponent,
   SwWebRTCCallState,
   VertoMethod,
-  ConferenceMethod,
+  RoomMethod,
   selectors,
   BaseComponentOptions,
   CallEvents,
@@ -554,49 +554,49 @@ export class BaseCall extends BaseComponent<CallEvents> {
 
   public audioMute({ memberId }: MemberCommandParams = {}) {
     return this._memberCommand({
-      method: 'conference.member.audio_mute',
+      method: 'video.member.audio_mute',
       memberId,
     })
   }
 
   public audioUnmute({ memberId }: MemberCommandParams = {}) {
     return this._memberCommand({
-      method: 'conference.member.audio_unmute',
+      method: 'video.member.audio_unmute',
       memberId,
     })
   }
 
   public videoMute({ memberId }: MemberCommandParams = {}) {
     return this._memberCommand({
-      method: 'conference.member.video_mute',
+      method: 'video.member.video_mute',
       memberId,
     })
   }
 
   public videoUnmute({ memberId }: MemberCommandParams = {}) {
     return this._memberCommand({
-      method: 'conference.member.video_unmute',
+      method: 'video.member.video_unmute',
       memberId,
     })
   }
 
   public deaf({ memberId }: MemberCommandParams = {}) {
     return this._memberCommand({
-      method: 'conference.member.deaf',
+      method: 'video.member.deaf',
       memberId,
     })
   }
 
   public undeaf({ memberId }: MemberCommandParams = {}) {
     return this._memberCommand({
-      method: 'conference.member.undeaf',
+      method: 'video.member.undeaf',
       memberId,
     })
   }
 
   public setSpeakerVolume({ memberId, value }: MemberCommandWithValueParams) {
     return this._memberCommand({
-      method: 'conference.member.volume.in.set',
+      method: 'video.member.volume.in.set',
       memberId,
       value,
     })
@@ -607,7 +607,7 @@ export class BaseCall extends BaseComponent<CallEvents> {
     value,
   }: MemberCommandWithValueParams) {
     return this._memberCommand({
-      method: 'conference.member.volume.out.set',
+      method: 'video.member.volume.out.set',
       memberId,
       value,
     })
@@ -615,7 +615,7 @@ export class BaseCall extends BaseComponent<CallEvents> {
 
   public setNoiseGateValue({ memberId, value }: MemberCommandWithValueParams) {
     return this._memberCommand({
-      method: 'conference.member.energy.set',
+      method: 'video.member.energy.set',
       memberId,
       value,
     })
@@ -626,7 +626,7 @@ export class BaseCall extends BaseComponent<CallEvents> {
       throw new TypeError('Invalid or missing "memberId" argument')
     }
     return this._memberCommand({
-      method: 'conference.member.kick',
+      method: 'video.member.kick',
       memberId,
     })
   }
@@ -636,7 +636,7 @@ export class BaseCall extends BaseComponent<CallEvents> {
     memberId,
     ...rest
   }: {
-    method: ConferenceMethod
+    method: RoomMethod
     memberId?: string
     [key: string]: unknown
   }) {
