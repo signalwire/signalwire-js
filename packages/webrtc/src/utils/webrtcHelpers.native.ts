@@ -30,8 +30,6 @@ export const streamIsValid = (stream: RNMediaStream) =>
 
 export const getSupportedConstraints = () => ({})
 
-export const detachMediaStream = (htmlElementId: string) => null
-
 export const setMediaElementSinkId = (
   htmlElementId: string,
   deviceId: string
@@ -55,15 +53,3 @@ export const stopTrack = (track: MediaStreamTrack) => {
     track.dispatchEvent(new Event('ended'))
   }
 }
-
-export const getHostname = () => null
-
-export const buildVideoElementByTrack = (
-  videoTrack: MediaStreamTrack,
-  streamIds: string[] = []
-) => null
-
-export const buildAudioElementByTrack = (
-  audioTrack: MediaStreamTrack,
-  streamIds: string[] = []
-) => null

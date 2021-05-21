@@ -79,7 +79,6 @@ export class BaseCall extends BaseComponent<CallEvents> {
     // if (!userVariables || objEmpty(userVariables)) {
     //   this.options.userVariables = this.session.options.userVariables || {}
     // }
-    // this.options.userVariables.hostname = getHostname()
     if (!remoteCallerNumber) {
       this.options.remoteCallerNumber = this.options.destinationNumber
     }
