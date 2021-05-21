@@ -282,25 +282,32 @@ export type BladeBroadcastParams =
   | MessagingEvent
 
 /**
- * List of all conference methods
+ * List of all room member methods
  */
-export type ConferenceMethod =
-  | 'conference.member.audio_mute'
-  | 'conference.member.audio_unmute'
-  | 'conference.member.video_mute'
-  | 'conference.member.video_unmute'
-  | 'conference.member.deaf'
-  | 'conference.member.undeaf'
-  | 'conference.member.volume.in.set'
-  | 'conference.member.volume.out.set'
-  | 'conference.member.energy.set'
+type RoomMemberMethod =
+  | 'member.audio_mute'
+  | 'member.audio_unmute'
+  | 'member.video_mute'
+  | 'member.video_unmute'
+  | 'member.deaf'
+  | 'member.undeaf'
+  | 'member.volume.in.set'
+  | 'member.volume.out.set'
+  | 'member.energy.set'
   // TODO: check kick
-  | 'conference.member.kick'
+  | 'member.kick'
+
+/**
+ * List of all room member methods
+ */
+// prettier-ignore
+export type RoomMethod =
+  | `video.${RoomMemberMethod}`
 
 /**
  * List of all available blade.execute methods
  */
 // prettier-ignore
 export type BladeExecuteMethod =
-  | ConferenceMethod
+  | RoomMethod
   | 'video.message'
