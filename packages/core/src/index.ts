@@ -22,13 +22,8 @@ export {
 }
 
 export * from './RPCMessages'
-// TODO: do we want to export all the interfaces ?
 export * from './utils/interfaces'
-export {
-  SwWebRTCCallState,
-  VertoMethod,
-  ConferenceMethod,
-} from './utils/constants'
+export { SwWebRTCCallState, VertoMethod } from './utils/constants'
 export * from './CustomErrors'
 
 export const selectors = {
