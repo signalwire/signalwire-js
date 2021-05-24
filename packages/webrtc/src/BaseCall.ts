@@ -39,6 +39,9 @@ const ROOM_EVENTS = [
 interface MemberCommandParams {
   memberId?: string
 }
+interface MemberCommandWithVolumeParams extends MemberCommandParams {
+  volume: number
+}
 interface MemberCommandWithValueParams extends MemberCommandParams {
   value: number
 }
@@ -552,6 +555,43 @@ export class BaseCall extends BaseComponent<CallEvents> {
     }
   }
 
+  public getLayoutList() {
+    return this.execute({
+      method: 'video.list_available_layouts',
+      params: {
+        room_session_id: this._roomSessionId,
+      },
+    })
+  }
+
+  public setLayout({ name }: { name: string }) {
+    return this.execute({
+      method: 'video.layout.set',
+      params: {
+        room_session_id: this._roomSessionId,
+        name,
+      },
+    })
+  }
+
+  public hideVideoMuted() {
+    return this.execute({
+      method: 'video.hide_video_muted',
+      params: {
+        room_session_id: this._roomSessionId,
+      },
+    })
+  }
+
+  public showVideoMuted() {
+    return this.execute({
+      method: 'video.show_video_muted',
+      params: {
+        room_session_id: this._roomSessionId,
+      },
+    })
+  }
+
   public audioMute({ memberId }: MemberCommandParams = {}) {
     return this._memberCommand({
       method: 'video.member.audio_mute',
@@ -594,30 +634,33 @@ export class BaseCall extends BaseComponent<CallEvents> {
     })
   }
 
-  public setSpeakerVolume({ memberId, value }: MemberCommandWithValueParams) {
+  public setSpeakerVolume({ memberId, volume }: MemberCommandWithVolumeParams) {
     return this._memberCommand({
-      method: 'video.member.volume.in.set',
+      method: 'video.member.set_input_volume',
       memberId,
-      value,
+      volume: +volume,
     })
   }
 
   public setMicrophoneVolume({
     memberId,
-    value,
-  }: MemberCommandWithValueParams) {
+    volume,
+  }: MemberCommandWithVolumeParams) {
     return this._memberCommand({
-      method: 'video.member.volume.out.set',
+      method: 'video.member.set_output_volume',
       memberId,
-      value,
+      volume: +volume,
     })
   }
 
-  public setNoiseGateValue({ memberId, value }: MemberCommandWithValueParams) {
+  public setInputSensitivity({
+    memberId,
+    value,
+  }: MemberCommandWithValueParams) {
     return this._memberCommand({
-      method: 'video.member.energy.set',
+      method: 'video.member.set_input_sensitivity',
       memberId,
-      value,
+      value: +value,
     })
   }
 
@@ -626,7 +669,7 @@ export class BaseCall extends BaseComponent<CallEvents> {
       throw new TypeError('Invalid or missing "memberId" argument')
     }
     return this._memberCommand({
-      method: 'video.member.kick',
+      method: 'video.member.remove',
       memberId,
     })
   }

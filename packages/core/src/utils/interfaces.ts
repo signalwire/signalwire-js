@@ -291,18 +291,27 @@ type RoomMemberMethod =
   | 'member.video_unmute'
   | 'member.deaf'
   | 'member.undeaf'
-  | 'member.volume.in.set'
-  | 'member.volume.out.set'
-  | 'member.energy.set'
-  // TODO: check kick
-  | 'member.kick'
+  | 'member.set_input_volume'
+  | 'member.set_output_volume'
+  | 'member.set_input_sensitivity'
+  | 'member.remove'
+
+/**
+ * List of all room layout methods
+ */
+// prettier-ignore
+type RoomLayoutMethod =
+  | 'layout.set'
 
 /**
  * List of all room member methods
  */
-// prettier-ignore
 export type RoomMethod =
+  | 'video.list_available_layouts'
+  | 'video.hide_video_muted'
+  | 'video.show_video_muted'
   | `video.${RoomMemberMethod}`
+  | `video.${RoomLayoutMethod}`
 
 /**
  * List of all available blade.execute methods

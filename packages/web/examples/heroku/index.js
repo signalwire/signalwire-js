@@ -1,16 +1,17 @@
 import { Video } from '../../src'
 
-let rtcSession = null
+let roomObj = null
 
-const muteButtons = [
+const inCallElements = [
   muteSelfBtn,
   unmuteSelfBtn,
-  // muteAllBtn,
-  // unmuteAllBtn,
-  // muteVideoAllBtn,
-  // unmuteVideoAllBtn,
   muteVideoSelfBtn,
   unmuteVideoSelfBtn,
+  deafSelfBtn,
+  undeafSelfBtn,
+  controlSliders,
+  hideVMutedBtn,
+  showVMutedBtn,
 ]
 
 /**
@@ -23,56 +24,57 @@ window.connect = () => {
     rootElementId: 'rootElement',
     audio: true,
     video: true,
-  }).then((rtc) => {
-    rtcSession = rtc
+  }).then((roomObject) => {
+    roomObj = roomObject
+    window._roomObj = roomObject
 
-    console.debug('Video SDK rtcSession', rtcSession)
+    console.debug('Video SDK roomObj', roomObj)
 
-    rtcSession.on('room.started', (params) =>
+    roomObj.on('room.started', (params) =>
       console.debug('>> DEMO room.started', params)
     )
-    rtcSession.on('room.subscribed', (params) => {
-      console.debug('>> DEMO room.subscribed', params)
+    roomObj.on('room.joined', (params) => {
+      console.debug('>> DEMO room.joined', params)
 
       btnConnect.classList.add('d-none')
       btnDisconnect.classList.remove('d-none')
       connectStatus.innerHTML = 'Connected'
 
-      muteButtons.forEach((button) => {
+      inCallElements.forEach((button) => {
         button.classList.remove('d-none')
         button.disabled = false
       })
     })
-    rtcSession.on('room.updated', (params) =>
+    roomObj.on('room.updated', (params) =>
       console.debug('>> DEMO room.updated', params)
     )
-    rtcSession.on('room.ended', (params) => {
+    roomObj.on('room.ended', (params) => {
       console.debug('>> DEMO room.ended', params)
       hangup()
     })
-    rtcSession.on('member.joined', (params) =>
+    roomObj.on('member.joined', (params) =>
       console.debug('>> DEMO member.joined', params)
     )
-    rtcSession.on('member.updated', (params) =>
+    roomObj.on('member.updated', (params) =>
       console.debug('>> DEMO member.updated', params)
     )
 
-    rtcSession.on('member.updated.audio_muted', (params) =>
+    roomObj.on('member.updated.audio_muted', (params) =>
       console.debug('>> DEMO member.updated', params)
     )
-    rtcSession.on('member.updated.video_muted', (params) =>
+    roomObj.on('member.updated.video_muted', (params) =>
       console.debug('>> DEMO member.updated', params)
     )
 
-    rtcSession.on('member.left', (params) =>
+    roomObj.on('member.left', (params) =>
       console.debug('>> DEMO member.left', params)
     )
-    rtcSession.on('layout.changed', (params) =>
+    roomObj.on('layout.changed', (params) =>
       console.debug('>> DEMO layout.changed', params)
     )
-    rtcSession.on('track', (event) => console.debug('>> DEMO track', event))
+    roomObj.on('track', (event) => console.debug('>> DEMO track', event))
 
-    rtcSession
+    roomObj
       .join()
       .then((result) => {
         console.log('>> Room Joined', result)
@@ -86,18 +88,18 @@ window.connect = () => {
 }
 
 /**
- * Hangup the rtcSession if present
+ * Hangup the roomObj if present
  */
 window.hangup = () => {
-  if (rtcSession) {
-    rtcSession.hangup()
+  if (roomObj) {
+    roomObj.hangup()
   }
 
   btnConnect.classList.remove('d-none')
   btnDisconnect.classList.add('d-none')
   connectStatus.innerHTML = 'Not Connected'
 
-  muteButtons.forEach((button) => {
+  inCallElements.forEach((button) => {
     button.classList.add('d-none')
     button.disabled = true
   })
@@ -124,35 +126,65 @@ window.ready = (callback) => {
 }
 
 window.muteAll = () => {
-  rtcSession.audioMute('all')
+  roomObj.audioMute('all')
 }
 
 window.unmuteAll = () => {
-  rtcSession.audioUnmute('all')
+  roomObj.audioUnmute('all')
 }
 
 window.muteSelf = () => {
-  rtcSession.audioMute(rtcSession.memberId)
+  roomObj.audioMute(roomObj.memberId)
 }
 
 window.unmuteSelf = () => {
-  rtcSession.audioUnmute(rtcSession.memberId)
+  roomObj.audioUnmute(roomObj.memberId)
 }
 
 window.muteVideoAll = () => {
-  rtcSession.videoMute('all')
+  roomObj.videoMute('all')
 }
 
 window.unmuteVideoAll = () => {
-  rtcSession.videoUnmute('all')
+  roomObj.videoUnmute('all')
 }
 
 window.muteVideoSelf = () => {
-  rtcSession.videoMute(rtcSession.memberId)
+  roomObj.videoMute(roomObj.memberId)
 }
 
 window.unmuteVideoSelf = () => {
-  rtcSession.videoUnmute(rtcSession.memberId)
+  roomObj.videoUnmute(roomObj.memberId)
+}
+
+window.deafSelf = () => {
+  roomObj.deaf(roomObj.memberId)
+}
+
+window.undeafSelf = () => {
+  roomObj.undeaf(roomObj.memberId)
+}
+
+window.hideVideoMuted = () => {
+  roomObj.hideVideoMuted()
+}
+
+window.showVideoMuted = () => {
+  roomObj.showVideoMuted()
+}
+
+window.rangeInputHandler = (range) => {
+  switch (range.id) {
+    case 'microphoneVolume':
+      roomObj.setMicrophoneVolume({ volume: range.value })
+      break
+    case 'speakerVolume':
+      roomObj.setSpeakerVolume({ volume: range.value })
+      break
+    case 'inputSensitivity':
+      roomObj.setInputSensitivity({ value: range.value })
+      break
+  }
 }
 
 /**
