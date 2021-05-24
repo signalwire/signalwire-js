@@ -9,7 +9,8 @@ import { Client } from './Client'
 
 /**
  * ## Intro
- * With VideoSDK.createClient you can establish a WebSocket connection with SignalWire and interact with the client.
+ * With VideoSDK.createClient you can establish a WebSocket connection
+ * with SignalWire and interact with the client.
  *
  * ## Examples
  * Create a client using the JWT
