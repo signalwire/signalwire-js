@@ -294,8 +294,7 @@ type RoomMemberMethod =
   | 'member.set_input_volume'
   | 'member.set_output_volume'
   | 'member.set_input_sensitivity'
-  // TODO: check kick
-  | 'member.kick'
+  | 'member.remove'
 
 /**
  * List of all room layout methods

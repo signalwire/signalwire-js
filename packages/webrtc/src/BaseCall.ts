@@ -669,7 +669,7 @@ export class BaseCall extends BaseComponent<CallEvents> {
       throw new TypeError('Invalid or missing "memberId" argument')
     }
     return this._memberCommand({
-      method: 'video.member.kick',
+      method: 'video.member.remove',
       memberId,
     })
   }
