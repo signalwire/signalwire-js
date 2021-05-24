@@ -27,6 +27,7 @@ window.connect = () => {
     video: true,
   }).then((roomObject) => {
     roomObj = roomObject
+    window._roomObj = roomObject
 
     console.debug('Video SDK roomObj', roomObj)
 
@@ -168,13 +169,13 @@ window.undeafSelf = () => {
 window.rangeInputHandler = (range) => {
   switch (range.id) {
     case 'microphoneVolume':
-      roomObj.setMicrophoneVolume(roomObj.memberId)
+      roomObj.setMicrophoneVolume({ volume: range.value })
       break
     case 'speakerVolume':
-      roomObj.setSpeakerVolume(roomObj.memberId)
+      roomObj.setSpeakerVolume({ volume: range.value })
       break
-    case 'noiseGate':
-      roomObj.setNoiseGateValue(roomObj.memberId)
+    case 'inputSensitivity':
+      roomObj.setInputSensitivity({ value: range.value })
       break
   }
 }
