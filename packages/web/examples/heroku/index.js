@@ -2,17 +2,14 @@ import { Video } from '../../src'
 
 let roomObj = null
 
-const muteButtons = [
+const inCallElements = [
   muteSelfBtn,
   unmuteSelfBtn,
-  // muteAllBtn,
-  // unmuteAllBtn,
-  // muteVideoAllBtn,
-  // unmuteVideoAllBtn,
   muteVideoSelfBtn,
   unmuteVideoSelfBtn,
   deafSelfBtn,
   undeafSelfBtn,
+  controlSliders,
 ]
 
 /**
@@ -34,14 +31,14 @@ window.connect = () => {
     roomObj.on('room.started', (params) =>
       console.debug('>> DEMO room.started', params)
     )
-    roomObj.on('room.subscribed', (params) => {
-      console.debug('>> DEMO room.subscribed', params)
+    roomObj.on('room.joined', (params) => {
+      console.debug('>> DEMO room.joined', params)
 
       btnConnect.classList.add('d-none')
       btnDisconnect.classList.remove('d-none')
       connectStatus.innerHTML = 'Connected'
 
-      muteButtons.forEach((button) => {
+      inCallElements.forEach((button) => {
         button.classList.remove('d-none')
         button.disabled = false
       })
@@ -100,7 +97,7 @@ window.hangup = () => {
   btnDisconnect.classList.add('d-none')
   connectStatus.innerHTML = 'Not Connected'
 
-  muteButtons.forEach((button) => {
+  inCallElements.forEach((button) => {
     button.classList.add('d-none')
     button.disabled = true
   })
