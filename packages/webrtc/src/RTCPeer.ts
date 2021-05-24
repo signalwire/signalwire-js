@@ -486,7 +486,7 @@ export default class RTCPeer<T extends CallEvents> {
       this.options.remoteStream = event.streams[0]
     })
 
-    // @ts-expect-error
+    // @ts-ignore
     this.instance.addEventListener('addstream', (event: MediaStreamEvent) => {
       if (event.stream) {
         this.options.remoteStream = event.stream
