@@ -301,7 +301,7 @@ type RoomMemberMethod =
  */
 // prettier-ignore
 type RoomLayoutMethod =
-  | 'layout.list'
+  | 'list_available_layouts'
   | 'layout.set'
 
 /**

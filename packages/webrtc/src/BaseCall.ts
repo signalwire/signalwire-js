@@ -557,7 +557,7 @@ export class BaseCall extends BaseComponent<CallEvents> {
 
   public getLayoutList() {
     return this.execute({
-      method: 'video.layout.list',
+      method: 'video.list_available_layouts',
       params: {
         room_session_id: this._roomSessionId,
       },
