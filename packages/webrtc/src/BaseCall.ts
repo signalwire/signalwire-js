@@ -576,7 +576,7 @@ export class BaseCall extends BaseComponent<CallEvents> {
 
   public hideVideoMuted() {
     return this.execute({
-      method: 'video.mode.hide_video_muted.enable',
+      method: 'video.hide_video_muted',
       params: {
         room_session_id: this._roomSessionId,
       },
@@ -585,7 +585,7 @@ export class BaseCall extends BaseComponent<CallEvents> {
 
   public showVideoMuted() {
     return this.execute({
-      method: 'video.mode.hide_video_muted.disable',
+      method: 'video.show_video_muted',
       params: {
         room_session_id: this._roomSessionId,
       },

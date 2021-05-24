@@ -301,24 +301,17 @@ type RoomMemberMethod =
  */
 // prettier-ignore
 type RoomLayoutMethod =
-  | 'list_available_layouts'
   | 'layout.set'
-
-/**
- * List of all room mode methods
- */
-// prettier-ignore
-type RoomModeMethod =
-  | 'mode.hide_video_muted.enable'
-  | 'mode.hide_video_muted.disable'
 
 /**
  * List of all room member methods
  */
 export type RoomMethod =
+  | 'video.list_available_layouts'
+  | 'video.hide_video_muted'
+  | 'video.show_video_muted'
   | `video.${RoomMemberMethod}`
   | `video.${RoomLayoutMethod}`
-  | `video.${RoomModeMethod}`
 
 /**
  * List of all available blade.execute methods
