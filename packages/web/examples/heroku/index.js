@@ -10,6 +10,8 @@ const inCallElements = [
   deafSelfBtn,
   undeafSelfBtn,
   controlSliders,
+  hideVMutedBtn,
+  showVMutedBtn,
 ]
 
 /**
@@ -161,6 +163,14 @@ window.deafSelf = () => {
 
 window.undeafSelf = () => {
   roomObj.undeaf(roomObj.memberId)
+}
+
+window.hideVideoMuted = () => {
+  roomObj.hideVideoMuted()
+}
+
+window.showVideoMuted = () => {
+  roomObj.showVideoMuted()
 }
 
 window.rangeInputHandler = (range) => {
