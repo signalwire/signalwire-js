@@ -39,6 +39,9 @@ const ROOM_EVENTS = [
 interface MemberCommandParams {
   memberId?: string
 }
+interface MemberCommandWithVolumeParams extends MemberCommandParams {
+  volume: number
+}
 interface MemberCommandWithValueParams extends MemberCommandParams {
   value: number
 }
@@ -631,30 +634,33 @@ export class BaseCall extends BaseComponent<CallEvents> {
     })
   }
 
-  public setSpeakerVolume({ memberId, value }: MemberCommandWithValueParams) {
+  public setSpeakerVolume({ memberId, volume }: MemberCommandWithVolumeParams) {
     return this._memberCommand({
-      method: 'video.member.volume.in.set',
+      method: 'video.member.set_input_volume',
       memberId,
-      value,
+      volume: +volume,
     })
   }
 
   public setMicrophoneVolume({
     memberId,
-    value,
-  }: MemberCommandWithValueParams) {
+    volume,
+  }: MemberCommandWithVolumeParams) {
     return this._memberCommand({
-      method: 'video.member.volume.out.set',
+      method: 'video.member.set_output_volume',
       memberId,
-      value,
+      volume: +volume,
     })
   }
 
-  public setNoiseGateValue({ memberId, value }: MemberCommandWithValueParams) {
+  public setInputSensitivity({
+    memberId,
+    value,
+  }: MemberCommandWithValueParams) {
     return this._memberCommand({
-      method: 'video.member.energy.set',
+      method: 'video.member.set_input_sensitivity',
       memberId,
-      value,
+      value: +value,
     })
   }
 

@@ -291,9 +291,9 @@ type RoomMemberMethod =
   | 'member.video_unmute'
   | 'member.deaf'
   | 'member.undeaf'
-  | 'member.volume.in.set'
-  | 'member.volume.out.set'
-  | 'member.energy.set'
+  | 'member.set_input_volume'
+  | 'member.set_output_volume'
+  | 'member.set_input_sensitivity'
   // TODO: check kick
   | 'member.kick'
 
