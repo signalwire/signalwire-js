@@ -18,7 +18,9 @@
     "build": "pkg-typings --pre-run && microbundle --external none --define process.env.NODE_ENV=production --name SignalWire --tsconfig ./tsconfig.build.json && pkg-typings --after-run",
     "test": "NODE_ENV=test jest",
     "prepare": "npm run build",
-    "example": "(cd examples && npm run dev)"
+    "example": "(cd examples && npm run dev)",
+    "docs": "typedoc --options typedoc.js",
+    "docs:watch": "typedoc --options typedoc.js --watch"
   },
   "dependencies": {
     "@signalwire/core": "0.0.0",

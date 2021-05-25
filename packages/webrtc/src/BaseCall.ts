@@ -66,7 +66,7 @@ export class BaseCall extends BaseComponent<CallEvents> {
   private prevState = SwWebRTCCallState.New
 
   private _extension: string
-  // @ts-expect-error
+  // @ts-ignore
   private _roomId: string
   private _roomSessionId: string
   private _memberId: string

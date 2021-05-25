@@ -16,7 +16,9 @@
     "start": "microbundle watch -f modern,es --define process.env.NODE_ENV=development --tsconfig tsconfig.build.json",
     "build": "pkg-typings --pre-run && microbundle --external none -f modern,es,cjs --define process.env.NODE_ENV=production --tsconfig ./tsconfig.build.json --target node && pkg-typings --after-run",
     "test": "NODE_ENV=test jest",
-    "prepare": "npm run build build"
+    "prepare": "npm run build build",
+    "docs": "typedoc --options typedoc.js",
+    "docs:watch": "typedoc --options typedoc.js --watch"
   },
   "dependencies": {
     "@signalwire/core": "0.0.0"

@@ -4,7 +4,8 @@ import { Emitter } from './utils/interfaces'
 import { AuthError } from './CustomErrors'
 import { BaseClientOptions } from './utils/interfaces'
 
-export class SignalWire<EventType extends string> implements Emitter<EventType, SignalWire<EventType>> {
+export class SignalWire<EventType extends string>
+  implements Emitter<EventType, SignalWire<EventType>> {
   constructor(
     public options: BaseClientOptions<SignalWire<EventType>, EventType>,
     public store: Store
@@ -36,7 +37,26 @@ export class SignalWire<EventType extends string> implements Emitter<EventType, 
     return this.emitter.removeAllListeners(...params)
   }
 
-  connect() {
+  /**
+   * Connect the underlay WebSocket connection to the SignalWire network.
+   *
+   * @example
+   * ```js
+   * const client = await Video.createClient({
+   *   token: '<YourJWT>',
+   *   autoConnect: false,
+   * })
+   *
+   * client.on('socket.closed', () => {
+   *   // The WebSocket connection is closed
+   * })
+   *
+   * await client.connect()
+   * ```
+   *
+   * @returns Promise that will resolve with the Client object.
+   */
+  connect(): Promise<this> {
     return new Promise((resolve, reject) => {
       const unsubscribe = this.store.subscribe(() => {
         const state = this.store.getState()
@@ -57,6 +77,20 @@ export class SignalWire<EventType extends string> implements Emitter<EventType, 
     })
   }
 
+  /**
+   * Disconnect the Client from the SignalWire network.
+   *
+   * @example
+   * ```js
+   * const client = await Video.createClient({
+   *   token: '<YourJWT>',
+   * })
+   *
+   * // .. use your client...
+   *
+   * client.disconnect()
+   * ```
+   */
   disconnect() {
     this.store.dispatch(destroyAction())
   }
