@@ -5,4 +5,6 @@ module.exports = {
   excludePrivate: true,
   hideGenerator: true,
   readme: 'none',
+  tsconfig: 'tsconfig.docs.json',
+  plugin: 'typedoc-plugin-markdown',
 }
