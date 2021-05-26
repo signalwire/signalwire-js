@@ -30,7 +30,8 @@
   "dependencies": {
     "@signalwire/core": "0.0.0",
     "node-abort-controller": "^2.0.0",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^2.6.1",
+    "swagger-typescript-api": "^9.1.0"
   },
   "devDependencies": {
     "@types/node-fetch": "^2.5.10",

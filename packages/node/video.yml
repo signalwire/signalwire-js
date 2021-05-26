@@ -1,0 +1,245 @@
+openapi: 3.0.3
+
+info:
+  version: 1.0.0
+  title: SignalWire Video API
+  description: An API to programmatically create and control your own Video Applications.
+  termsOfService: https://signalwire.com/legal/signalwire-cloud-agreement
+
+externalDocs:
+  url: https://developers.signalwire.com
+  description: Find more information about this and other SignalWire APIs.
+
+servers:
+  - url: https://{space_name}.signalwire.com.com/api/video
+    variables:
+      space_name:
+        default: demo
+        description: Your SignalWire Space's subdomain.
+
+security:
+  - basic_auth: []
+
+components:
+  securitySchemes:
+    basic_auth:
+      type: http
+      scheme: basic
+  responses:
+    204:
+      description: No Content
+    400:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+    401:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+    422:
+      description: Unprocessable Entity
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+  parameters:
+    room_name:
+      name: room_name
+      in: path
+      description: Unique name of the room
+      required: true
+      schema:
+        type: string
+    room_id:
+      name: room_id
+      in: path
+      description: ID of room to return
+      required: true
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    error:
+      type: object
+      properties:
+        type:
+          type: string
+        code:
+          type: string
+        message:
+          type: string
+        attribute:
+          type: string
+        url:
+          type: string
+          format: uri
+      required:
+        - type
+        - code
+        - message
+        - url
+      example:
+        type: validation_error
+        code: invalid_parameter
+        message: Name must be present
+        attribute: name
+        url: https://docs.signalwire.com/api/errors#invalid_parameter
+    pagination:
+      type: object
+      properties:
+        self:
+          type: string
+        first:
+          type: string
+        next:
+          type: string
+        prev:
+          type: string
+    room:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+        - $ref: '#/components/schemas/room_param_name'
+        - $ref: '#/components/schemas/room_params'
+    room_param_name:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 'A named unique identifier for the room. Allowed characters: `A-Za-z0-9_-`. Maximum of 100 characters.'
+          example: 'my_room'
+    room_params:
+      type: object
+      properties:
+        display_name:
+          type: string
+          description: 'Display name of room, no character limitations. Maxium of 200 characters. Defaults to the value of name.'
+          example: "My Room's Name"
+        max_members:
+          type: integer
+          description: 'The maximum number of members in the room at a time. Must be at least one to a maximum of 300. Defaults to 20.'
+          example: 20
+        quality:
+          type: string
+          description: "The room's resolution. Allowed values are `720p` or `1080p`. Defaults to `720p`."
+          example: '720p'
+        join_from:
+          type: string
+          format: date-time
+          description: 'Room does not accept new participants before this time. Overridable by token.'
+        join_until:
+          type: string
+          format: date-time
+          description: 'Room stops accepting new participants at this time, but keeps running until all participants leave. Overridable by token.'
+        remove_at:
+          type: string
+          format: date-time
+          description: 'Remove users from the room at this time. Overridable by token.'
+        remove_after_seconds_elapsed:
+          type: integer
+          format: int32
+          description: 'Remove users after they are in the room for N seconds. Overridable by token.'
+          example: 120
+
+paths:
+  /rooms:
+    post:
+      summary: Create a Room
+      tags:
+        - Rooms
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - type: object
+                  required:
+                    - name
+                - $ref: '#/components/schemas/room_param_name'
+                - $ref: '#/components/schemas/room_params'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/room'
+    get:
+      summary: List Rooms
+      tags:
+        - Rooms
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  links:
+                    $ref: '#/components/schemas/pagination'
+                  rooms:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/room'
+  /rooms/{room_name}:
+    parameters:
+      - $ref: '#/components/parameters/room_name'
+    get:
+      summary: Find a room by its unique room name.
+      tags:
+        - Rooms
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/room'
+  /rooms/{room_id}:
+    parameters:
+      - $ref: '#/components/parameters/room_id'
+    get:
+      summary: Find a Room by ID
+      tags:
+        - Rooms
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/room'
+    put:
+      summary: Update a Room
+      tags:
+        - Rooms
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/room_params'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/room'
+    delete:
+      summary: Delete a Room
+      tags:
+        - Rooms
+      responses:
+        204:
+          $ref: '#/components/responses/204'
