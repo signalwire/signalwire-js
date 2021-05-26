@@ -364,7 +364,6 @@ export class BaseCall extends BaseComponent<CallEvents> {
 
   onLocalSDPReady(localDescription: RTCSessionDescription) {
     const { type, sdp } = localDescription
-    logger.info('SDP READY', type, sdp)
     switch (type) {
       case PeerType.Offer:
         // if (this.active) {
