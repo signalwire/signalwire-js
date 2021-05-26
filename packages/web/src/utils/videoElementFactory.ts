@@ -131,7 +131,7 @@ export const videoElementFactory = ({
       await _videoReady()
     }
     const { top, left, width, height } = _getLocationStyles(location)
-    logger.info(
+    logger.debug(
       'Info',
       videoEl.offsetWidth,
       videoEl.offsetHeight,

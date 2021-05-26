@@ -141,6 +141,7 @@ export class Session {
       return
     }
 
+    clearTimeout(this._checkPingTimer)
     this._socket.close()
     // @ts-ignore
     delete this._socket

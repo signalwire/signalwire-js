@@ -377,14 +377,14 @@ export default class RTCPeer<T extends CallEvents> {
   }
 
   private _onIce(event: RTCPeerConnectionIceEvent) {
-    if (this._iceTimeout === null) {
+    if (!this._iceTimeout) {
       this._iceTimeout = setTimeout(
         () => this._sdpReady(),
         this.options.iceGatheringTimeout
       )
     }
     if (event.candidate) {
-      logger.debug('RTCPeer Candidate:', event.candidate)
+      logger.info('IceCandidate:', event.candidate)
       this.call.emit('icecandidate' as T, event)
     } else {
       this._sdpReady()
@@ -415,7 +415,7 @@ export default class RTCPeer<T extends CallEvents> {
       )
     }
 
-    logger.info(
+    logger.debug(
       'LOCAL SDP \n',
       `Type: ${localDescription.type}`,
       '\n\n',
@@ -435,7 +435,7 @@ export default class RTCPeer<T extends CallEvents> {
       )
     }
     const sessionDescr: RTCSessionDescription = sdpToJsonHack(remoteDescription)
-    logger.info(
+    logger.debug(
       'REMOTE SDP \n',
       `Type: ${remoteDescription.type}`,
       '\n\n',
@@ -454,7 +454,7 @@ export default class RTCPeer<T extends CallEvents> {
 
   private _attachListeners() {
     this.instance.addEventListener('signalingstatechange', () => {
-      logger.debug('signalingState:', this.instance.signalingState)
+      logger.info('signalingState:', this.instance.signalingState)
 
       switch (this.instance.signalingState) {
         case 'stable':
@@ -475,6 +475,18 @@ export default class RTCPeer<T extends CallEvents> {
       logger.debug('Negotiation needed event')
       this.startNegotiation()
     })
+
+    this.instance.addEventListener('iceconnectionstatechange', () => {
+      logger.info('iceConnectionState:', this.instance.iceConnectionState)
+    })
+
+    this.instance.addEventListener('icegatheringstatechange', () => {
+      logger.info('iceGatheringState:', this.instance.iceGatheringState)
+    })
+
+    // this.instance.addEventListener('icecandidateerror', (event) => {
+    //   logger.warn('IceCandidate Error:', event)
+    // })
 
     this.instance.addEventListener('track', (event: RTCTrackEvent) => {
       this.call.emit('track' as T, event)
