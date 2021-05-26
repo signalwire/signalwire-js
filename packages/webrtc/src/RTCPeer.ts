@@ -377,7 +377,7 @@ export default class RTCPeer<T extends CallEvents> {
   }
 
   private _onIce(event: RTCPeerConnectionIceEvent) {
-    if (this._iceTimeout === null) {
+    if (!this._iceTimeout) {
       this._iceTimeout = setTimeout(
         () => this._sdpReady(),
         this.options.iceGatheringTimeout
@@ -472,7 +472,7 @@ export default class RTCPeer<T extends CallEvents> {
     })
 
     this.instance.addEventListener('negotiationneeded', () => {
-      logger.info('Negotiation needed event')
+      logger.debug('Negotiation needed event')
       this.startNegotiation()
     })
 
@@ -484,17 +484,9 @@ export default class RTCPeer<T extends CallEvents> {
       logger.info('iceGatheringState:', this.instance.iceGatheringState)
     })
 
-    this.instance.addEventListener('icecandidateerror', (event) => {
-      logger.warn('IceCandidate Error:', event)
-      // if (event.errorCode >= 300 && event.errorCode <= 699) {
-      //   // STUN errors are in the range 300-699. See RFC 5389, section 15.6
-      //   // for a list of codes. TURN adds a few more error codes; see
-      //   // RFC 5766, section 15 for details.
-      // } else if (event.errorCode >= 700 && event.errorCode <= 799) {
-      //   // Server could not be reached; a specific error number is
-      //   // provided but these are not yet specified.
-      // }
-    })
+    // this.instance.addEventListener('icecandidateerror', (event) => {
+    //   logger.warn('IceCandidate Error:', event)
+    // })
 
     this.instance.addEventListener('track', (event: RTCTrackEvent) => {
       this.call.emit('track' as T, event)
