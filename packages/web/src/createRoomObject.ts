@@ -9,6 +9,8 @@ export interface CreateRoomObjectOptions extends UserOptions {
   rootElementId?: string
   applyLocalVideoOverlay?: boolean
   autoJoin?: boolean
+  autoManageCamera?: boolean
+  autoManageMicrophone?: boolean
 }
 
 /**
@@ -44,6 +46,8 @@ export const createRoomObject = (roomOptions: CreateRoomObjectOptions) => {
       rootElementId,
       applyLocalVideoOverlay = true,
       autoJoin = false,
+      autoManageCamera = true,
+      autoManageMicrophone = true,
       ...userOptions
     } = roomOptions
 
@@ -85,14 +89,36 @@ export const createRoomObject = (roomOptions: CreateRoomObjectOptions) => {
           myMemberId: room.memberId,
         })
       })
+
+      // Attach the listener only with autoManageMicrophone: true
+      if (autoManageMicrophone) {
+        room.on('member.updated.audio_muted', (params: any) => {
+          try {
+            const { member } = params
+            if (member.id === room.memberId && 'audio_muted' in member) {
+              member.audio_muted
+                ? room.stopOutboundAudio()
+                : room.restoreOutboundAudio()
+            }
+          } catch (error) {
+            logger.error('Error handling audio_muted', error)
+          }
+        })
+      }
+
       room.on('member.updated.video_muted', (params: any) => {
         try {
           const { member } = params
           if (member.id === room.memberId && 'video_muted' in member) {
             member.video_muted ? hideOverlay(member.id) : showOverlay(member.id)
+            if (autoManageCamera) {
+              member.video_muted
+                ? room.stopOutboundVideo()
+                : room.restoreOutboundVideo()
+            }
           }
         } catch (error) {
-          logger.warn('Member updated error', error)
+          logger.error('Error handling video_muted', error)
         }
       })
       room.on('track', rtcTrackHandler)
