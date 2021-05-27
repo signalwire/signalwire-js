@@ -81,16 +81,13 @@ export const createRoomObject = (roomOptions: CreateRoomObjectOptions) => {
       room.on('layout.changed', (params: any) => {
         layoutChangedHandler({
           layout: params.layout,
-          // @ts-ignore
           localVideoTrack: room.localVideoTrack,
-          // @ts-ignore
           myMemberId: room.memberId,
         })
       })
       room.on('member.updated.video_muted', (params: any) => {
         try {
           const { member } = params
-          // @ts-ignore
           if (member.id === room.memberId && 'video_muted' in member) {
             member.video_muted ? hideOverlay(member.id) : showOverlay(member.id)
           }
