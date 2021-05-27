@@ -1,6 +1,7 @@
 import WS from 'jest-websocket-mock'
 
 import { Session } from './Session'
+import { socketMessage } from './redux/actions'
 import {
   BladeConnect,
   BladePing,
@@ -78,6 +79,25 @@ describe('Session', () => {
     const response = BladeDisconnectResponse(request.id)
     await expect(ws).toReceiveMessage(JSON.stringify(response))
     expect(session['_idle']).toBe(true)
+  })
+
+  it('should invoke dispatch with socketMessage action for any other message', async () => {
+    session.connect()
+    await ws.connected
+
+    await expect(ws).toReceiveMessage(JSON.stringify(bladeConnect))
+    const request = {
+      jsonrpc: '2.0' as const,
+      id: 'uuid',
+      method: 'blade.something',
+      params: {
+        key: 'value',
+      },
+    }
+    ws.send(JSON.stringify(request))
+
+    expect(session.dispatch).toHaveBeenCalledTimes(1)
+    expect(session.dispatch).toHaveBeenCalledWith(socketMessage(request))
   })
 
   describe('blade.ping messages', () => {
