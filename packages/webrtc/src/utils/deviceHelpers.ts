@@ -1,4 +1,4 @@
-import { logger } from '@signalwire/core'
+import { logger, EventEmitter } from '@signalwire/core'
 import * as WebRTC from './webrtcHelpers'
 
 /**
@@ -56,8 +56,12 @@ export const checkPermissions = async (name?: DevicePermissionName) => {
   return _legacyCheckPermissions(_getMediaDeviceKindByName(name))
 }
 
+// TODO: should we rename this?
+// checkCameraPermissions
+// checkMicrophonePermissions
 export const checkVideoPermissions = () => checkPermissions('camera')
 export const checkAudioPermissions = () => checkPermissions('microphone')
+export const checkSpeakerPermissions = () => checkPermissions('speaker')
 
 const _constraintsByKind = (
   kind?: DevicePermissionName
@@ -95,6 +99,26 @@ export const getAudioInDevicesWithPermissions = () =>
 export const getAudioOutDevicesWithPermissions = () =>
   getDevicesWithPermissions('speaker')
 
+const _filterDevices = (devices: MediaDeviceInfo[], excludeDefault = false) => {
+  const found: string[] = []
+  return devices.filter(({ deviceId, label, kind, groupId }) => {
+    if (!deviceId || !label) {
+      return false
+    }
+    if (!groupId) {
+      return true
+    }
+    const key = `${kind}-${groupId}`
+    if (
+      !found.includes(key) && excludeDefault ? deviceId !== 'default' : true
+    ) {
+      found.push(key)
+      return true
+    }
+    return false
+  })
+}
+
 export const getDevices = async (
   name?: DevicePermissionName,
   fullList: boolean = false
@@ -105,21 +129,8 @@ export const getDevices = async (
   if (fullList === true) {
     return devices
   }
-  const found: string[] = []
-  return devices.filter(({ deviceId, label, kind, groupId }) => {
-    if (!deviceId || !label) {
-      return false
-    }
-    if (!groupId) {
-      return true
-    }
-    const key = `${kind}-${groupId}`
-    if (!found.includes(key)) {
-      found.push(key)
-      return true
-    }
-    return false
-  })
+
+  return _filterDevices(devices)
 }
 
 /**
@@ -217,4 +228,103 @@ export const requestPermissions = async (
   } catch (error) {
     throw error
   }
+}
+
+const _deviceInfoToMap = (devices: MediaDeviceInfo[]) => {
+  const map = new Map<string, MediaDeviceInfo>()
+
+  devices.forEach((deviceInfo) => {
+    if (deviceInfo.deviceId) {
+      map.set(deviceInfo.deviceId, deviceInfo)
+    }
+  })
+
+  return map
+}
+
+const _getDeviceListDiff = (
+  oldDevices: MediaDeviceInfo[],
+  newDevices: MediaDeviceInfo[]
+) => {
+  const current = _deviceInfoToMap(oldDevices)
+  const removals = _deviceInfoToMap(oldDevices)
+  const updates: MediaDeviceInfo[] = []
+
+  console.log('-----> knownDevices', oldDevices)
+  console.log('-----> updatedDevices', newDevices)
+
+  const additions = newDevices.filter((newDevice) => {
+    const id = newDevice.deviceId
+    const oldDevice = current.get(id)
+
+    if (oldDevice) {
+      removals.delete(id)
+
+      if (newDevice.label !== oldDevice.label) {
+        updates.push(newDevice)
+      }
+    }
+
+    return oldDevice === undefined
+  })
+
+  return [
+    ...updates.map((value) => {
+      return {
+        type: 'updated',
+        payload: value,
+      }
+    }),
+
+    // Removed devices
+    ...Array.from(removals, ([_, value]) => value).map((value) => {
+      return {
+        type: 'removed',
+        payload: value,
+      }
+    }),
+
+    ...additions.map((value) => {
+      return {
+        type: 'added',
+        payload: value,
+      }
+    }),
+  ]
+}
+
+export const createDeviceWatcher = async () => {
+  const [
+    cameraPermissions,
+    micPermissions,
+    speakerPermissions,
+  ] = await Promise.all([
+    checkVideoPermissions(),
+    checkAudioPermissions(),
+    checkSpeakerPermissions(),
+  ])
+
+  const emitter = EventEmitter()
+  const currentDevices = await WebRTC.enumerateDevices()
+  let knownDevices = _filterDevices(currentDevices, true)
+
+  navigator.mediaDevices.ondevicechange = async () => {
+    const currentDevices = await WebRTC.enumerateDevices()
+    const oldDevices = knownDevices
+    const newDevices = _filterDevices(currentDevices, true)
+
+    knownDevices = newDevices
+
+    emitter.emit('changed', {
+      changes: _getDeviceListDiff(oldDevices, newDevices),
+      devices: newDevices,
+      permissions: {
+        camera: cameraPermissions,
+        microphone: micPermissions,
+        speaker: speakerPermissions,
+      },
+    })
+  }
+
+  return emitter
 }
