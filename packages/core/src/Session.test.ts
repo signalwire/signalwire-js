@@ -1,7 +1,12 @@
 import WS from 'jest-websocket-mock'
 
 import { Session } from './Session'
-import { BladeConnect, BladePing, BladePingResponse } from './RPCMessages'
+import {
+  BladeConnect,
+  BladePing,
+  BladePingResponse,
+  BladeDisconnectResponse,
+} from './RPCMessages'
 
 jest.mock('uuid', () => {
   return {
@@ -54,6 +59,25 @@ describe('Session', () => {
     await ws.connected
 
     await expect(ws).toReceiveMessage(JSON.stringify(bladeConnect))
+  })
+
+  it('should set idle mode on blade.disconnect', async () => {
+    session.connect()
+    await ws.connected
+
+    await expect(ws).toReceiveMessage(JSON.stringify(bladeConnect))
+    const request = {
+      jsonrpc: '2.0',
+      id: 'uuid',
+      method: 'blade.disconnect',
+      params: {},
+    }
+    ws.send(JSON.stringify(request))
+
+    expect(session['_idle']).toBe(false)
+    const response = BladeDisconnectResponse(request.id)
+    await expect(ws).toReceiveMessage(JSON.stringify(response))
+    expect(session['_idle']).toBe(true)
   })
 
   describe('blade.ping messages', () => {

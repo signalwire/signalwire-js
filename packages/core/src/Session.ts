@@ -250,8 +250,13 @@ export class Session {
          * Set _idle = true because the server
          * will close the connection soon.
          */
-        this._idle = true
         this.execute(BladeDisconnectResponse(payload.id))
+          .catch((error) => {
+            logger.error('BladeDisconnect Error', error)
+          })
+          .finally(() => {
+            this._idle = true
+          })
         break
       }
       default:
