@@ -39,7 +39,7 @@ export class Session {
 
   private _requests = new Map<string, SessionRequestObject>()
   private _requestQueue: SessionRequestQueued[] = []
-  private _socket: WebSocket
+  private _socket: WebSocket | null = null
   private _idle = true
   private _host: string = DEFAULT_HOST
 
@@ -49,13 +49,7 @@ export class Session {
   private _checkPingDelay = 15 * 1000
   private _checkPingTimer: any = null
 
-  // validateOptions(): boolean
-  // dispatch(notification: any): void
-
   constructor(public options: SessionOptions) {
-    // if (!this.validateOptions()) {
-    //   throw new Error('Invalid init options')
-    // }
     if (options.host) {
       this._host = checkWebSocketHost(options.host)
     }
@@ -128,7 +122,7 @@ export class Session {
   }
 
   /**
-   * Remove subscriptions and calls, close WS connection and remove all session listeners.
+   * Clear the Session and close the WS connection.
    * @return void
    */
   async disconnect() {
@@ -142,20 +136,9 @@ export class Session {
     }
 
     clearTimeout(this._checkPingTimer)
-    this._socket.close()
-    // @ts-ignore
-    delete this._socket
-    // clearTimeout(this._reconnectTimeout)
-    // this.subscriptions.clear()
-    // this._autoReconnect = false
-    // this.relayProtocol = null
-    // this._closeConnection()
-    // await sessionStorage.removeItem(this.signature)
-    // this._executeQueue = []
-    // this._detachListeners()
-    // this.off(SwEvent.Ready)
-    // this.off(SwEvent.Notification)
-    // this.off(SwEvent.Error)
+    this._requestQueue = []
+    this._requests.clear()
+    this._closeConnection()
   }
 
   /**
@@ -184,7 +167,7 @@ export class Session {
     }
 
     logger.debug('SEND: \n', JSON.stringify(msg, null, 2), '\n')
-    this._socket.send(JSON.stringify(msg))
+    this._socket!.send(JSON.stringify(msg))
 
     return timeoutPromise(
       promise,
@@ -242,8 +225,7 @@ export class Session {
   protected _onSocketClose(event: CloseEvent) {
     logger.debug('_onSocketClose', event)
     this.dispatch(socketClosed({ code: event.code, reason: event.reason }))
-    // @ts-ignore
-    delete this._socket
+    this._socket = null
   }
 
   protected _onSocketMessage(event: MessageEvent) {
@@ -307,12 +289,19 @@ export class Session {
   private async _bladePingHandler(payload: JSONRPCRequest) {
     clearTimeout(this._checkPingTimer)
     this._checkPingTimer = setTimeout(() => {
-      logger.error('No ping from remote.')
-      // TODO: Close/Reconnect connection
+      // Possibly half-open connection so force close our side
+      this._closeConnection()
     }, this._checkPingDelay)
 
     await this.execute(
       BladePingResponse(payload.id, payload?.params?.timestamp)
     )
+  }
+
+  private _closeConnection() {
+    if (this._socket) {
+      this._socket.close()
+      this._socket = null
+    }
   }
 }

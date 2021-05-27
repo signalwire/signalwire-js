@@ -1,7 +1,7 @@
 import WS from 'jest-websocket-mock'
 
 import { Session } from './Session'
-import { BladeConnect } from './RPCMessages'
+import { BladeConnect, BladePing, BladePingResponse } from './RPCMessages'
 
 jest.mock('uuid', () => {
   return {
@@ -37,7 +37,7 @@ describe('Session', () => {
     WS.clean()
   })
 
-  it('should connect connect and disconnect to/from the provided host', async () => {
+  it('should connect and disconnect to/from the provided host', async () => {
     session.connect()
     await ws.connected
 
@@ -54,5 +54,40 @@ describe('Session', () => {
     await ws.connected
 
     await expect(ws).toReceiveMessage(JSON.stringify(bladeConnect))
+  })
+
+  describe('blade.ping messages', () => {
+    it('should response to blade.ping', async () => {
+      session.connect()
+      await ws.connected
+
+      await expect(ws).toReceiveMessage(JSON.stringify(bladeConnect))
+
+      const ping = BladePing()
+      ping.id = 'ping-uuid'
+      ws.send(JSON.stringify(ping))
+
+      const response = BladePingResponse(ping.id, ping.params.timestamp)
+      await expect(ws).toReceiveMessage(JSON.stringify(response))
+    })
+
+    it('should close the connection if no blade.ping comes within _checkPingDelay', async (done) => {
+      // Force _checkPingDelay to 5ms
+      session['_checkPingDelay'] = 5
+
+      session.connect()
+      await ws.connected
+
+      const ping = BladePing()
+      ping.id = 'ping-uuid'
+      ws.send(JSON.stringify(ping))
+
+      // Expect the session to be closed after 10ms
+      setTimeout(() => {
+        expect(session.connected).toBe(false)
+        expect(session.closed).toBe(true)
+        done()
+      }, 10)
+    })
   })
 })
