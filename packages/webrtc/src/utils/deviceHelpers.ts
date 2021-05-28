@@ -250,8 +250,8 @@ const _getDeviceListDiff = (
   const removals = _deviceInfoToMap(oldDevices)
   const updates: MediaDeviceInfo[] = []
 
-  console.log('-----> knownDevices', oldDevices)
-  console.log('-----> updatedDevices', newDevices)
+  logger.debug('[_getDeviceListDiff] <- oldDevices', oldDevices)
+  logger.debug('[_getDeviceListDiff] -> newDevices', newDevices)
 
   const additions = newDevices.filter((newDevice) => {
     const id = newDevice.deviceId
@@ -315,15 +315,19 @@ export const createDeviceWatcher = async () => {
 
     knownDevices = newDevices
 
-    emitter.emit('changed', {
-      changes: _getDeviceListDiff(oldDevices, newDevices),
-      devices: newDevices,
-      permissions: {
-        camera: cameraPermissions,
-        microphone: micPermissions,
-        speaker: speakerPermissions,
-      },
-    })
+    const changes = _getDeviceListDiff(oldDevices, newDevices)
+
+    if (changes.length > 0) {
+      emitter.emit('changed', {
+        changes,
+        devices: newDevices,
+        permissions: {
+          camera: cameraPermissions,
+          microphone: micPermissions,
+          speaker: speakerPermissions,
+        },
+      })
+    }
   }
 
   return emitter
