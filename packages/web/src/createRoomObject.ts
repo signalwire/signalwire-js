@@ -9,6 +9,8 @@ export interface CreateRoomObjectOptions extends UserOptions {
   rootElementId?: string
   applyLocalVideoOverlay?: boolean
   autoJoin?: boolean
+  stopCameraWhileMuted?: boolean
+  stopMicrophoneWhileMuted?: boolean
 }
 
 /**
@@ -44,6 +46,8 @@ export const createRoomObject = (roomOptions: CreateRoomObjectOptions) => {
       rootElementId,
       applyLocalVideoOverlay = true,
       autoJoin = false,
+      stopCameraWhileMuted = true,
+      stopMicrophoneWhileMuted = true,
       ...userOptions
     } = roomOptions
 
@@ -81,21 +85,40 @@ export const createRoomObject = (roomOptions: CreateRoomObjectOptions) => {
       room.on('layout.changed', (params: any) => {
         layoutChangedHandler({
           layout: params.layout,
-          // @ts-ignore
           localVideoTrack: room.localVideoTrack,
-          // @ts-ignore
           myMemberId: room.memberId,
         })
       })
+
+      // Attach the listener only with stopMicrophoneWhileMuted: true
+      if (stopMicrophoneWhileMuted) {
+        room.on('member.updated.audio_muted', (params: any) => {
+          try {
+            const { member } = params
+            if (member.id === room.memberId && 'audio_muted' in member) {
+              member.audio_muted
+                ? room.stopOutboundAudio()
+                : room.restoreOutboundAudio()
+            }
+          } catch (error) {
+            logger.error('Error handling audio_muted', error)
+          }
+        })
+      }
+
       room.on('member.updated.video_muted', (params: any) => {
         try {
           const { member } = params
-          // @ts-ignore
           if (member.id === room.memberId && 'video_muted' in member) {
             member.video_muted ? hideOverlay(member.id) : showOverlay(member.id)
+            if (stopCameraWhileMuted) {
+              member.video_muted
+                ? room.stopOutboundVideo()
+                : room.restoreOutboundVideo()
+            }
           }
         } catch (error) {
-          logger.warn('Member updated error', error)
+          logger.error('Error handling video_muted', error)
         }
       })
       room.on('track', rtcTrackHandler)
