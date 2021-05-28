@@ -4,6 +4,7 @@ const {
   setMediaElementSinkId,
   getAudioInDevices,
   getAudioOutDevices,
+  getVideoDevices,
   supportsMediaOutput,
   enumerateDevices,
   getUserMedia,
@@ -81,7 +82,7 @@ async function setAudioOutDevicesOptions() {
 }
 
 async function setVideoDevicesOptions() {
-  const options = await getAudioInDevices()
+  const options = await getVideoDevices()
 
   setDeviceOptions({
     deviceInfos: options,
