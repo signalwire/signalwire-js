@@ -308,7 +308,7 @@ export const createDeviceWatcher = async () => {
   const currentDevices = await WebRTC.enumerateDevices()
   let knownDevices = _filterDevices(currentDevices, true)
 
-  navigator.mediaDevices.ondevicechange = async () => {
+  WebRTC.getMediaDevicesApi().ondevicechange = async () => {
     const currentDevices = await WebRTC.enumerateDevices()
     const oldDevices = knownDevices
     const newDevices = _filterDevices(currentDevices, true)
