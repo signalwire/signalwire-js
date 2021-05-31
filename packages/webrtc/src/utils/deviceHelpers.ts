@@ -291,15 +291,7 @@ const _getDeviceListDiff = (
   ]
 }
 
-interface CreateDeviceWatcherOptions {
-  skipPermissions?: boolean
-  media?: DevicePermissionName | 'all'
-}
-
-export const createDeviceWatcher = async ({
-  skipPermissions,
-  media = 'all',
-}: CreateDeviceWatcherOptions = {}) => {
+export const createDeviceWatcher = async () => {
   const [
     cameraPermissions,
     micPermissions,
@@ -313,14 +305,10 @@ export const createDeviceWatcher = async ({
   const hasPermissions =
     cameraPermissions || micPermissions || speakerPermissions
 
-  if (skipPermissions && !hasPermissions) {
+  if (!hasPermissions) {
     throw new Error(
       'You must ask the user for permissions before being able to listen for device changes. Try calling getUserMedia() before calling `createDeviceWatcher()`.'
     )
-  } else if (!hasPermissions) {
-    const constraints = _constraintsByKind(media)
-    const stream = await WebRTC.getUserMedia(constraints)
-    WebRTC.stopStream(stream)
   }
 
   const emitter = EventEmitter()
