@@ -56,11 +56,8 @@ export const checkPermissions = async (name?: DevicePermissionName) => {
   return _legacyCheckPermissions(_getMediaDeviceKindByName(name))
 }
 
-// TODO: should we rename this?
-// checkCameraPermissions
-// checkMicrophonePermissions
-export const checkVideoPermissions = () => checkPermissions('camera')
-export const checkAudioPermissions = () => checkPermissions('microphone')
+export const checkCameraPermissions = () => checkPermissions('camera')
+export const checkMicrophonePermissions = () => checkPermissions('microphone')
 export const checkSpeakerPermissions = () => checkPermissions('speaker')
 
 const _constraintsByKind = (
@@ -308,8 +305,8 @@ export const createDeviceWatcher = async ({
     micPermissions,
     speakerPermissions,
   ] = await Promise.all([
-    checkVideoPermissions(),
-    checkAudioPermissions(),
+    checkCameraPermissions(),
+    checkMicrophonePermissions(),
     checkSpeakerPermissions(),
   ])
 
