@@ -97,10 +97,17 @@ export const getAudioInDevicesWithPermissions = () =>
 export const getAudioOutDevicesWithPermissions = () =>
   getDevicesWithPermissions('speaker')
 
-const _filterDevices = (devices: MediaDeviceInfo[], excludeDefault = false) => {
+const _filterDevices = (
+  devices: MediaDeviceInfo[],
+  options: { excludeDefault?: boolean; targets?: MediaDeviceKind[] } = {}
+) => {
   const found: string[] = []
   return devices.filter(({ deviceId, label, kind, groupId }) => {
-    if (!deviceId || !label) {
+    if (
+      !deviceId ||
+      !label ||
+      (options.targets && !options.targets?.includes(kind))
+    ) {
       return false
     }
     if (!groupId) {
@@ -108,7 +115,9 @@ const _filterDevices = (devices: MediaDeviceInfo[], excludeDefault = false) => {
     }
     const key = `${kind}-${groupId}`
     if (
-      !found.includes(key) && excludeDefault ? deviceId !== 'default' : true
+      !found.includes(key) && options.excludeDefault
+        ? deviceId !== 'default'
+        : true
     ) {
       found.push(key)
       return true
@@ -291,7 +300,13 @@ const _getDeviceListDiff = (
   ]
 }
 
-export const createDeviceWatcher = async () => {
+interface CreateDeviceWatcherOptions {
+  targets?: DevicePermissionName[]
+}
+
+export const createDeviceWatcher = async ({
+  targets,
+}: CreateDeviceWatcherOptions = {}) => {
   const [
     cameraPermissions,
     micPermissions,
@@ -313,12 +328,28 @@ export const createDeviceWatcher = async () => {
 
   const emitter = EventEmitter()
   const currentDevices = await WebRTC.enumerateDevices()
-  let knownDevices = _filterDevices(currentDevices, true)
+  const kinds = targets?.reduce((reducer, name) => {
+    const kind = _getMediaDeviceKindByName(name)
+
+    if (kind) {
+      reducer.push(kind)
+    }
+
+    return reducer
+  }, [] as MediaDeviceKind[])
+
+  let knownDevices = _filterDevices(currentDevices, {
+    excludeDefault: true,
+    targets: kinds,
+  })
 
   WebRTC.getMediaDevicesApi().ondevicechange = async () => {
     const currentDevices = await WebRTC.enumerateDevices()
     const oldDevices = knownDevices
-    const newDevices = _filterDevices(currentDevices, true)
+    const newDevices = _filterDevices(currentDevices, {
+      excludeDefault: true,
+      targets: kinds,
+    })
 
     knownDevices = newDevices
 
@@ -334,3 +365,10 @@ export const createDeviceWatcher = async () => {
 
   return emitter
 }
+
+export const createMicrophoneDeviceWatcher = () =>
+  createDeviceWatcher({ targets: ['microphone'] })
+export const createSpeakerDeviceWatcher = () =>
+  createDeviceWatcher({ targets: ['speaker'] })
+export const createCameraDeviceWatcher = () =>
+  createDeviceWatcher({ targets: ['camera'] })
