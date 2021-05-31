@@ -64,11 +64,12 @@ export const checkAudioPermissions = () => checkPermissions('microphone')
 export const checkSpeakerPermissions = () => checkPermissions('speaker')
 
 const _constraintsByKind = (
-  kind?: DevicePermissionName
+  kind?: DevicePermissionName | 'all'
 ): MediaStreamConstraints => {
   return {
-    audio: !kind || kind === 'microphone' || kind === 'speaker',
-    video: !kind || kind === 'camera',
+    audio:
+      !kind || kind === 'all' || kind === 'microphone' || kind === 'speaker',
+    video: !kind || kind === 'all' || kind === 'camera',
   }
 }
 
@@ -293,7 +294,15 @@ const _getDeviceListDiff = (
   ]
 }
 
-export const createDeviceWatcher = async () => {
+interface CreateDeviceWatcherOptions {
+  skipPermissions?: boolean
+  media?: DevicePermissionName | 'all'
+}
+
+export const createDeviceWatcher = async ({
+  skipPermissions,
+  media = 'all',
+}: CreateDeviceWatcherOptions = {}) => {
   const [
     cameraPermissions,
     micPermissions,
@@ -303,6 +312,19 @@ export const createDeviceWatcher = async () => {
     checkAudioPermissions(),
     checkSpeakerPermissions(),
   ])
+
+  const hasPermissions =
+    cameraPermissions || micPermissions || speakerPermissions
+
+  if (skipPermissions && !hasPermissions) {
+    throw new Error(
+      'You must ask the user for permissions before being able to listen for device changes. Try calling getUserMedia() before calling `createDeviceWatcher()`.'
+    )
+  } else if (!hasPermissions) {
+    const constraints = _constraintsByKind(media)
+    const stream = await WebRTC.getUserMedia(constraints)
+    WebRTC.stopStream(stream)
+  }
 
   const emitter = EventEmitter()
   const currentDevices = await WebRTC.enumerateDevices()
@@ -321,11 +343,6 @@ export const createDeviceWatcher = async () => {
       emitter.emit('changed', {
         changes,
         devices: newDevices,
-        permissions: {
-          camera: cameraPermissions,
-          microphone: micPermissions,
-          speaker: speakerPermissions,
-        },
       })
     }
   }
