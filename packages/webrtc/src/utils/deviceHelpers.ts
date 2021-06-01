@@ -300,31 +300,139 @@ const _getDeviceListDiff = (
   ]
 }
 
-interface CreateDeviceWatcherOptions {
-  targets?: DevicePermissionName[]
+const TARGET_PERMISSIONS_MAP: Record<
+  DevicePermissionName,
+  () => Promise<boolean | null>
+> = {
+  camera: checkCameraPermissions,
+  microphone: checkMicrophonePermissions,
+  speaker: checkSpeakerPermissions,
 }
 
-export const createDeviceWatcher = async ({
-  targets,
-}: CreateDeviceWatcherOptions = {}) => {
-  const [
-    cameraPermissions,
-    micPermissions,
-    speakerPermissions,
-  ] = await Promise.all([
-    checkCameraPermissions(),
-    checkMicrophonePermissions(),
-    checkSpeakerPermissions(),
-  ])
+const DEFAULT_TARGETS: DevicePermissionName[] = [
+  'camera',
+  'microphone',
+  'speaker',
+]
 
-  const hasPermissions =
-    cameraPermissions || micPermissions || speakerPermissions
+type TargetPermission = Record<
+  'supported' | 'unsupported',
+  [Partial<DevicePermissionName>, boolean][]
+>
 
-  if (!hasPermissions) {
+const CHECK_SUPPORT_MAP: Partial<
+  Record<DevicePermissionName, () => boolean>
+> = {
+  speaker: WebRTC.supportsMediaOutput,
+}
+
+const checkTargetPermissions = async (options: {
+  targets?: DevicePermissionName[]
+}): Promise<TargetPermission> => {
+  const targets = options.targets ?? DEFAULT_TARGETS
+  const permissions = await Promise.all(
+    targets.map((target) => TARGET_PERMISSIONS_MAP[target]())
+  )
+
+  return permissions.reduce(
+    (reducer, permission, index) => {
+      const target = targets[index] as DevicePermissionName
+
+      /**
+       * If we don't specify a check for the target we'll assume
+       * there's no need to check for support
+       */
+      const platformSupportStatus =
+        target in CHECK_SUPPORT_MAP ? CHECK_SUPPORT_MAP[target]?.() : true
+
+      const supportStatus: keyof TargetPermission = platformSupportStatus
+        ? 'supported'
+        : 'unsupported'
+
+      reducer[supportStatus].push([target, !!permission])
+
+      return reducer
+    },
+    { supported: [], unsupported: [] } as TargetPermission
+  )
+}
+
+const validateTargets = async (options: {
+  targets?: DevicePermissionName[]
+}): Promise<DevicePermissionName[]> => {
+  const targets = options.targets ?? DEFAULT_TARGETS
+  const permissions = await checkTargetPermissions({ targets })
+
+  if (
+    permissions.unsupported.length > 0 &&
+    targets.length === permissions.unsupported.length
+  ) {
+    throw new Error(
+      `The platform doesn't support "${targets.join(
+        ', '
+      )}" as target/s, which means it's not possible to watch for changes on those devices.`
+    )
+  } else if (permissions.supported.every(([_, status]) => !status)) {
     throw new Error(
       'You must ask the user for permissions before being able to listen for device changes. Try calling getUserMedia() before calling `createDeviceWatcher()`.'
     )
   }
+
+  let needPermissionsTarget: DevicePermissionName[] = []
+  const filteredTargets: DevicePermissionName[] = permissions.supported.reduce(
+    (reducer, [target, status]) => {
+      if (!status) {
+        needPermissionsTarget.push(target)
+      } else {
+        reducer.push(target)
+      }
+
+      return reducer
+    },
+    [] as DevicePermissionName[]
+  )
+
+  /**
+   * If the length of these two arrays is different it means whether
+   * we have unsupported devices or that the user hasn't granted the
+   * permissions for certain targets
+   */
+  if (filteredTargets.length !== targets.length) {
+    const unsupportedTargets =
+      permissions.unsupported.length > 0
+        ? `The platform doesn't support "${permissions.unsupported
+            .map(([t]) => t)
+            .join(
+              ', '
+            )}" as target/s, which means it's not possible to watch for changes on those devices. `
+        : ''
+
+    const needPermissions =
+      needPermissionsTarget.length > 0
+        ? `The user hasn't granted permissions for the following targets: ${needPermissionsTarget.join(
+            ', '
+          )}. `
+        : ''
+
+    logger.warn(
+      `${unsupportedTargets}${needPermissions}We'll be watching for the following targets instead: "${filteredTargets.join(
+        ', '
+      )}"`
+    )
+  }
+
+  return filteredTargets
+}
+
+interface CreateDeviceWatcherOptions {
+  targets?: DevicePermissionName[]
+}
+
+export const createDeviceWatcher = async (
+  options: CreateDeviceWatcherOptions = {}
+) => {
+  const targets = await validateTargets({ targets: options.targets })
+  console.log('targets', targets)
 
   const emitter = EventEmitter()
   const currentDevices = await WebRTC.enumerateDevices()
