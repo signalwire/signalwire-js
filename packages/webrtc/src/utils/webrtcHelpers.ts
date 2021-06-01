@@ -122,7 +122,7 @@ export const setMediaElementSinkId = async (
     logger.info(`Invalid speaker deviceId: '${deviceId}'`)
     return false
   } else if (!supportsMediaOutput()) {
-    logger.warn(`Browser does not support output device selection.'`)
+    logger.warn('Browser does not support output device selection.')
     return false
   }
   try {
