@@ -20,6 +20,13 @@ import { sessionActions } from './features'
 import { Session } from '..'
 import { authError, authSuccess, socketClosed, socketError } from './actions'
 
+type StartSagaOptions = {
+  session: Session
+  sessionChannel: EventChannel<unknown>
+  pubSubChannel: Channel<unknown>
+  userOptions: UserOptions
+}
+
 // prettier-ignore
 // const ROOT_SAGAS: Saga[] = []
 
@@ -95,17 +102,8 @@ export function* socketClosedWorker({
   }
 }
 
-function* watchSessionStatus({
-  session,
-  sessionChannel,
-  pubSubChannel,
-  userOptions,
-}: {
-  session: Session
-  sessionChannel: EventChannel<unknown>
-  pubSubChannel: Channel<unknown>
-  userOptions: UserOptions
-}): SagaIterator {
+export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
+  const { session, sessionChannel, pubSubChannel } = options
   const action = yield take([
     authSuccess.type,
     socketError.type,
@@ -114,12 +112,7 @@ function* watchSessionStatus({
 
   switch (action.type) {
     case authSuccess.type:
-      yield fork(startSaga, {
-        session,
-        sessionChannel,
-        pubSubChannel,
-        userOptions,
-      })
+      yield fork(startSaga, options)
       break
     case socketError.type:
       // TODO: define if we want to emit external events here.
@@ -138,12 +131,7 @@ function* watchSessionStatus({
   }
 }
 
-function* startSaga(options: {
-  session: Session
-  sessionChannel: EventChannel<unknown>
-  pubSubChannel: Channel<unknown>
-  userOptions: UserOptions
-}): SagaIterator {
+export function* startSaga(options: StartSagaOptions): SagaIterator {
   const { session, sessionChannel, pubSubChannel, userOptions } = options
   yield put(sessionActions.connected(session.bladeConnectResult))
   yield put(pubSubChannel, sessionConnected())
@@ -162,7 +150,7 @@ function* startSaga(options: {
   /**
    * Fork the reconnect watcher
    */
-  const reconnectTask: Task = yield fork(watchSessionStatus, options)
+  const sessionStatusTask: Task = yield fork(sessionStatusWatcher, options)
 
   /**
    * Wait for a destroyAction to teardown all the things
@@ -170,7 +158,7 @@ function* startSaga(options: {
   yield take(destroyAction.type)
 
   pubSubTask.cancel()
-  reconnectTask.cancel()
+  sessionStatusTask.cancel()
   executeActionTask.cancel()
   // sessionTaskList.forEach((task) => task.cancel())
   pubSubChannel.close()
