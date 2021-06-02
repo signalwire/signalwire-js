@@ -1,4 +1,4 @@
-import { logger } from '@signalwire/core'
+import { logger, EventEmitter } from '@signalwire/core'
 import * as WebRTC from './webrtcHelpers'
 
 /**
@@ -56,15 +56,17 @@ export const checkPermissions = async (name?: DevicePermissionName) => {
   return _legacyCheckPermissions(_getMediaDeviceKindByName(name))
 }
 
-export const checkVideoPermissions = () => checkPermissions('camera')
-export const checkAudioPermissions = () => checkPermissions('microphone')
+export const checkCameraPermissions = () => checkPermissions('camera')
+export const checkMicrophonePermissions = () => checkPermissions('microphone')
+export const checkSpeakerPermissions = () => checkPermissions('speaker')
 
 const _constraintsByKind = (
-  kind?: DevicePermissionName
+  kind?: DevicePermissionName | 'all'
 ): MediaStreamConstraints => {
   return {
-    audio: !kind || kind === 'microphone' || kind === 'speaker',
-    video: !kind || kind === 'camera',
+    audio:
+      !kind || kind === 'all' || kind === 'microphone' || kind === 'speaker',
+    video: !kind || kind === 'all' || kind === 'camera',
   }
 }
 
@@ -95,6 +97,35 @@ export const getAudioInDevicesWithPermissions = () =>
 export const getAudioOutDevicesWithPermissions = () =>
   getDevicesWithPermissions('speaker')
 
+const _filterDevices = (
+  devices: MediaDeviceInfo[],
+  options: { excludeDefault?: boolean; targets?: MediaDeviceKind[] } = {}
+) => {
+  const found: string[] = []
+  return devices.filter(({ deviceId, label, kind, groupId }) => {
+    if (
+      !deviceId ||
+      !label ||
+      (options.targets && !options.targets?.includes(kind))
+    ) {
+      return false
+    }
+    if (!groupId) {
+      return true
+    }
+    const key = `${kind}-${groupId}`
+    if (
+      !found.includes(key) && options.excludeDefault
+        ? deviceId !== 'default'
+        : true
+    ) {
+      found.push(key)
+      return true
+    }
+    return false
+  })
+}
+
 export const getDevices = async (
   name?: DevicePermissionName,
   fullList: boolean = false
@@ -105,21 +136,8 @@ export const getDevices = async (
   if (fullList === true) {
     return devices
   }
-  const found: string[] = []
-  return devices.filter(({ deviceId, label, kind, groupId }) => {
-    if (!deviceId || !label) {
-      return false
-    }
-    if (!groupId) {
-      return true
-    }
-    const key = `${kind}-${groupId}`
-    if (!found.includes(key)) {
-      found.push(key)
-      return true
-    }
-    return false
-  })
+
+  return _filterDevices(devices)
 }
 
 /**
@@ -218,3 +236,247 @@ export const requestPermissions = async (
     throw error
   }
 }
+
+const _deviceInfoToMap = (devices: MediaDeviceInfo[]) => {
+  const map = new Map<string, MediaDeviceInfo>()
+
+  devices.forEach((deviceInfo) => {
+    if (deviceInfo.deviceId) {
+      map.set(deviceInfo.deviceId, deviceInfo)
+    }
+  })
+
+  return map
+}
+
+const _getDeviceListDiff = (
+  oldDevices: MediaDeviceInfo[],
+  newDevices: MediaDeviceInfo[]
+) => {
+  const current = _deviceInfoToMap(oldDevices)
+  const removals = _deviceInfoToMap(oldDevices)
+  const updates: MediaDeviceInfo[] = []
+
+  logger.debug('[_getDeviceListDiff] <- oldDevices', oldDevices)
+  logger.debug('[_getDeviceListDiff] -> newDevices', newDevices)
+
+  const additions = newDevices.filter((newDevice) => {
+    const id = newDevice.deviceId
+    const oldDevice = current.get(id)
+
+    if (oldDevice) {
+      removals.delete(id)
+
+      if (newDevice.label !== oldDevice.label) {
+        updates.push(newDevice)
+      }
+    }
+
+    return oldDevice === undefined
+  })
+
+  return [
+    ...updates.map((value) => {
+      return {
+        type: 'updated',
+        payload: value,
+      }
+    }),
+
+    // Removed devices
+    ...Array.from(removals, ([_, value]) => value).map((value) => {
+      return {
+        type: 'removed',
+        payload: value,
+      }
+    }),
+
+    ...additions.map((value) => {
+      return {
+        type: 'added',
+        payload: value,
+      }
+    }),
+  ]
+}
+
+const TARGET_PERMISSIONS_MAP: Record<
+  DevicePermissionName,
+  () => Promise<boolean | null>
+> = {
+  camera: checkCameraPermissions,
+  microphone: checkMicrophonePermissions,
+  speaker: checkSpeakerPermissions,
+}
+
+const DEFAULT_TARGETS: DevicePermissionName[] = [
+  'camera',
+  'microphone',
+  'speaker',
+]
+
+type TargetPermission = Record<
+  'supported' | 'unsupported',
+  [Partial<DevicePermissionName>, boolean][]
+>
+
+const CHECK_SUPPORT_MAP: Partial<
+  Record<DevicePermissionName, () => boolean>
+> = {
+  speaker: WebRTC.supportsMediaOutput,
+}
+
+const checkTargetPermissions = async (options: {
+  targets?: DevicePermissionName[]
+}): Promise<TargetPermission> => {
+  const targets = options.targets ?? DEFAULT_TARGETS
+  const permissions = await Promise.all(
+    targets.map((target) => TARGET_PERMISSIONS_MAP[target]())
+  )
+
+  return permissions.reduce(
+    (reducer, permission, index) => {
+      const target = targets[index] as DevicePermissionName
+
+      /**
+       * If we don't specify a check for the target we'll assume
+       * there's no need to check for support
+       */
+      const platformSupportStatus =
+        target in CHECK_SUPPORT_MAP ? CHECK_SUPPORT_MAP[target]?.() : true
+
+      const supportStatus: keyof TargetPermission = platformSupportStatus
+        ? 'supported'
+        : 'unsupported'
+
+      reducer[supportStatus].push([target, !!permission])
+
+      return reducer
+    },
+    { supported: [], unsupported: [] } as TargetPermission
+  )
+}
+
+const validateTargets = async (options: {
+  targets?: DevicePermissionName[]
+}): Promise<DevicePermissionName[]> => {
+  const targets = options.targets ?? DEFAULT_TARGETS
+  const permissions = await checkTargetPermissions({ targets })
+
+  if (
+    permissions.unsupported.length > 0 &&
+    targets.length === permissions.unsupported.length
+  ) {
+    throw new Error(
+      `The platform doesn't support "${targets.join(
+        ', '
+      )}" as target/s, which means it's not possible to watch for changes on those devices.`
+    )
+  } else if (permissions.supported.every(([_, status]) => !status)) {
+    throw new Error(
+      'You must ask the user for permissions before being able to listen for device changes. Try calling getUserMedia() before calling `createDeviceWatcher()`.'
+    )
+  }
+
+  let needPermissionsTarget: DevicePermissionName[] = []
+  const filteredTargets: DevicePermissionName[] = permissions.supported.reduce(
+    (reducer, [target, status]) => {
+      if (!status) {
+        needPermissionsTarget.push(target)
+      } else {
+        reducer.push(target)
+      }
+
+      return reducer
+    },
+    [] as DevicePermissionName[]
+  )
+
+  /**
+   * If the length of these two arrays is different it means whether
+   * we have unsupported devices or that the user hasn't granted the
+   * permissions for certain targets
+   */
+  if (filteredTargets.length !== targets.length) {
+    const unsupportedTargets =
+      permissions.unsupported.length > 0
+        ? `The platform doesn't support "${permissions.unsupported
+            .map(([t]) => t)
+            .join(
+              ', '
+            )}" as target/s, which means it's not possible to watch for changes on those devices. `
+        : ''
+
+    const needPermissions =
+      needPermissionsTarget.length > 0
+        ? `The user hasn't granted permissions for the following targets: ${needPermissionsTarget.join(
+            ', '
+          )}. `
+        : ''
+
+    logger.warn(
+      `${unsupportedTargets}${needPermissions}We'll be watching for the following targets instead: "${filteredTargets.join(
+        ', '
+      )}"`
+    )
+  }
+
+  return filteredTargets
+}
+
+interface CreateDeviceWatcherOptions {
+  targets?: DevicePermissionName[]
+}
+
+export const createDeviceWatcher = async (
+  options: CreateDeviceWatcherOptions = {}
+) => {
+  const targets = await validateTargets({ targets: options.targets })
+  console.log('targets', targets)
+
+  const emitter = EventEmitter()
+  const currentDevices = await WebRTC.enumerateDevices()
+  const kinds = targets?.reduce((reducer, name) => {
+    const kind = _getMediaDeviceKindByName(name)
+
+    if (kind) {
+      reducer.push(kind)
+    }
+
+    return reducer
+  }, [] as MediaDeviceKind[])
+
+  let knownDevices = _filterDevices(currentDevices, {
+    excludeDefault: true,
+    targets: kinds,
+  })
+
+  WebRTC.getMediaDevicesApi().ondevicechange = async () => {
+    const currentDevices = await WebRTC.enumerateDevices()
+    const oldDevices = knownDevices
+    const newDevices = _filterDevices(currentDevices, {
+      excludeDefault: true,
+      targets: kinds,
+    })
+
+    knownDevices = newDevices
+
+    const changes = _getDeviceListDiff(oldDevices, newDevices)
+
+    if (changes.length > 0) {
+      emitter.emit('changed', {
+        changes,
+        devices: newDevices,
+      })
+    }
+  }
+
+  return emitter
+}
+
+export const createMicrophoneDeviceWatcher = () =>
+  createDeviceWatcher({ targets: ['microphone'] })
+export const createSpeakerDeviceWatcher = () =>
+  createDeviceWatcher({ targets: ['speaker'] })
+export const createCameraDeviceWatcher = () =>
+  createDeviceWatcher({ targets: ['camera'] })

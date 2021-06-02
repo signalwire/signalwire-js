@@ -4,11 +4,23 @@ export const RTCPeerConnection = (config: RTCConfiguration) => {
   return new window.RTCPeerConnection(config)
 }
 
+export const supportsMediaDevices = () => {
+  return typeof navigator !== 'undefined' && !!navigator.mediaDevices
+}
+
+export const getMediaDevicesApi = () => {
+  if (!supportsMediaDevices()) {
+    throw new Error("The media devices API isn't supported in this environment")
+  }
+
+  return navigator.mediaDevices
+}
+
 export const getUserMedia = (
   constraints: MediaStreamConstraints = { audio: true, video: true }
 ) => {
   try {
-    return navigator.mediaDevices.getUserMedia(constraints)
+    return getMediaDevicesApi().getUserMedia(constraints)
   } catch (error) {
     switch (error.name) {
       case 'Error': {
@@ -69,10 +81,12 @@ export const getUserMedia = (
 
 export const getDisplayMedia = (constraints: MediaStreamConstraints) => {
   // @ts-ignore
-  return navigator.mediaDevices.getDisplayMedia(constraints)
+  return getMediaDevicesApi().getDisplayMedia(constraints)
 }
 
-export const enumerateDevices = () => navigator.mediaDevices.enumerateDevices()
+export const enumerateDevices = () => {
+  return getMediaDevicesApi().enumerateDevices()
+}
 
 export const enumerateDevicesByKind = async (
   filterByKind?: MediaDeviceKind
@@ -87,7 +101,7 @@ export const enumerateDevicesByKind = async (
 }
 
 export const getSupportedConstraints = () => {
-  return navigator.mediaDevices.getSupportedConstraints()
+  return getMediaDevicesApi().getSupportedConstraints()
 }
 
 export const streamIsValid = (stream?: MediaStream) =>
@@ -108,7 +122,7 @@ export const setMediaElementSinkId = async (
     logger.info(`Invalid speaker deviceId: '${deviceId}'`)
     return false
   } else if (!supportsMediaOutput()) {
-    logger.warn(`Browser does not support output device selection.'`)
+    logger.warn('Browser does not support output device selection.')
     return false
   }
   try {

@@ -4,10 +4,12 @@ const {
   setMediaElementSinkId,
   getAudioInDevices,
   getAudioOutDevices,
+  getVideoDevices,
   supportsMediaOutput,
   enumerateDevices,
   getUserMedia,
   stopStream,
+  createDeviceWatcher,
 } = WebRTC
 
 const videoElement = document.querySelector<HTMLVideoElement>('video')!
@@ -80,7 +82,7 @@ async function setAudioOutDevicesOptions() {
 }
 
 async function setVideoDevicesOptions() {
-  const options = await getAudioInDevices()
+  const options = await getVideoDevices()
 
   setDeviceOptions({
     deviceInfos: options,
@@ -129,6 +131,13 @@ async function start() {
 
   try {
     const stream = await getUserMedia(constraints)
+
+    const deviceWatcher = await createDeviceWatcher()
+
+    deviceWatcher.on('changed', () => {
+      initDeviceOptions()
+    })
+
     initStream(stream)
     initDeviceOptions()
   } catch (e) {
