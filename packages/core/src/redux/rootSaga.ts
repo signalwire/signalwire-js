@@ -142,13 +142,12 @@ export function* startSaga(options: StartSagaOptions): SagaIterator {
   })
 
   /**
-   * Fork different sagas that require session
-   * - executeActionWatcher
+   * Fork the watcher for all the blade.execute requests
    */
   const executeActionTask: Task = yield fork(executeActionWatcher, session)
 
   /**
-   * Fork the reconnect watcher
+   * Fork the watcher for the session status
    */
   const sessionStatusTask: Task = yield fork(sessionStatusWatcher, options)
 
@@ -160,7 +159,6 @@ export function* startSaga(options: StartSagaOptions): SagaIterator {
   pubSubTask.cancel()
   sessionStatusTask.cancel()
   executeActionTask.cancel()
-  // sessionTaskList.forEach((task) => task.cancel())
   pubSubChannel.close()
   sessionChannel.close()
 }

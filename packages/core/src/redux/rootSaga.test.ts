@@ -9,14 +9,18 @@ import {
 import {
   createSessionChannel,
   sessionChannelWatcher,
+  executeActionWatcher,
 } from './features/session/sessionSaga'
+import { pubSubSaga } from './features/pubSub/pubSubSaga'
 import { sessionActions } from './features'
 import {
+  sessionConnected,
   sessionDisconnected,
   authSuccess,
   authError,
   socketError,
   socketClosed,
+  destroyAction,
 } from './actions'
 
 describe('socketClosedWorker', () => {
@@ -120,7 +124,7 @@ describe('sessionStatusWatcher', () => {
   })
 })
 
-describe.only('initSessionSaga', () => {
+describe('initSessionSaga', () => {
   const session = {
     connect: jest.fn(),
   } as any
@@ -172,5 +176,54 @@ describe.only('initSessionSaga', () => {
       saga.next(authError({ error: { code: 123, error: 'Unauthorized' } }))
     }).toThrow('Auth Error')
     saga.next().isDone()
+  })
+})
+
+describe('startSaga', () => {
+  const session = {
+    bladeConnectResult: { key: 'value' },
+    connect: jest.fn(),
+  } as any
+  const pubSubChannel = channel()
+  pubSubChannel.close = jest.fn()
+  const sessionChannel = eventChannel(() => () => {})
+  sessionChannel.close = jest.fn()
+  const userOptions = {
+    token: '',
+    emitter: jest.fn() as any,
+  }
+  const options = {
+    session,
+    pubSubChannel,
+    sessionChannel,
+    userOptions,
+  }
+
+  it('should put actions and fork watchers', () => {
+    const pubSubTask = { cancel: jest.fn() }
+    const executeActionTask = { cancel: jest.fn() }
+    const sessionStatusTask = { cancel: jest.fn() }
+
+    const saga = testSaga(startSaga, options)
+    saga.next().put(sessionActions.connected(session.bladeConnectResult))
+    saga.next().put(pubSubChannel, sessionConnected())
+
+    saga.next().fork(pubSubSaga, {
+      pubSubChannel,
+      emitter: userOptions.emitter,
+    })
+
+    saga.next(pubSubTask).fork(executeActionWatcher, session)
+
+    saga.next(executeActionTask).fork(sessionStatusWatcher, options)
+
+    saga.next(sessionStatusTask).take(destroyAction.type)
+    saga.next().isDone()
+
+    expect(pubSubTask.cancel).toHaveBeenCalledTimes(1)
+    expect(executeActionTask.cancel).toHaveBeenCalledTimes(1)
+    expect(sessionStatusTask.cancel).toHaveBeenCalledTimes(1)
+    expect(pubSubChannel.close).toHaveBeenCalledTimes(1)
+    expect(sessionChannel.close).toHaveBeenCalledTimes(1)
   })
 })
