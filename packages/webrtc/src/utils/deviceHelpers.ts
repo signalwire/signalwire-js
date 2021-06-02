@@ -114,11 +114,8 @@ const _filterDevices = (
       return true
     }
     const key = `${kind}-${groupId}`
-    if (
-      !found.includes(key) && options.excludeDefault
-        ? deviceId !== 'default'
-        : true
-    ) {
+    const checkDefault = options?.excludeDefault ? deviceId !== 'default' : true
+    if (!found.includes(key) && checkDefault) {
       found.push(key)
       return true
     }

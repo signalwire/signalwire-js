@@ -1,0 +1,13 @@
+kind: pipeline
+name: default
+
+steps:
+  - name: test
+    image: node:15-alpine
+    commands:
+      - npm install
+      - npm run build
+      - npm test
+
+trigger:
+  event: push
