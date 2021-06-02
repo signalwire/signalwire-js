@@ -1,10 +1,20 @@
 import { channel, eventChannel } from 'redux-saga'
 import { expectSaga, testSaga } from 'redux-saga-test-plan'
-import { socketClosedWorker, sessionStatusWatcher, startSaga } from './rootSaga'
+import {
+  socketClosedWorker,
+  sessionStatusWatcher,
+  startSaga,
+  initSessionSaga,
+} from './rootSaga'
+import {
+  createSessionChannel,
+  sessionChannelWatcher,
+} from './features/session/sessionSaga'
 import { sessionActions } from './features'
 import {
   sessionDisconnected,
   authSuccess,
+  authError,
   socketError,
   socketClosed,
 } from './actions'
@@ -106,6 +116,61 @@ describe('sessionStatusWatcher', () => {
       sessionChannel,
       payload,
     })
+    saga.next().isDone()
+  })
+})
+
+describe.only('initSessionSaga', () => {
+  const session = {
+    connect: jest.fn(),
+  } as any
+  const SessionConstructor = jest.fn().mockImplementation(() => {
+    return session
+  })
+  const pubSubChannel = channel()
+  const sessionChannel = eventChannel(() => () => {})
+  const userOptions = {
+    token: '',
+  }
+
+  beforeEach(() => {
+    session.connect.mockClear()
+  })
+
+  it('should create the session, fork its watcher and fork startSaga in case of authSuccess', () => {
+    const saga = testSaga(initSessionSaga, SessionConstructor, userOptions)
+    saga.next(sessionChannel).call(createSessionChannel, session)
+    saga.next(sessionChannel).call(channel)
+    saga.next(pubSubChannel).fork(sessionChannelWatcher, {
+      session,
+      sessionChannel,
+      pubSubChannel,
+    })
+    saga.next().take([authSuccess.type, authError.type])
+    expect(session.connect).toHaveBeenCalledTimes(1)
+    saga.next(authSuccess()).fork(startSaga, {
+      session,
+      pubSubChannel,
+      sessionChannel,
+      userOptions,
+    })
+    saga.next().isDone()
+  })
+
+  it('should create the session, fork its watcher and throw an error in case of authError', () => {
+    const saga = testSaga(initSessionSaga, SessionConstructor, userOptions)
+    saga.next(sessionChannel).call(createSessionChannel, session)
+    saga.next(sessionChannel).call(channel)
+    saga.next(pubSubChannel).fork(sessionChannelWatcher, {
+      session,
+      sessionChannel,
+      pubSubChannel,
+    })
+    saga.next().take([authSuccess.type, authError.type])
+    expect(session.connect).toHaveBeenCalledTimes(1)
+    expect(() => {
+      saga.next(authError({ error: { code: 123, error: 'Unauthorized' } }))
+    }).toThrow('Auth Error')
     saga.next().isDone()
   })
 })

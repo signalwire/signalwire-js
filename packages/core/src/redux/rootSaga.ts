@@ -34,7 +34,7 @@ type StartSagaOptions = {
 //   return ROOT_SAGAS
 // }
 
-function* initSessionSaga(
+export function* initSessionSaga(
   SessionConstructor: SessionConstructor,
   userOptions: UserOptions
 ): SagaIterator {
