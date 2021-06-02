@@ -1,6 +1,6 @@
 import { channel, eventChannel } from 'redux-saga'
 import { expectSaga, testSaga } from 'redux-saga-test-plan'
-import {
+import rootSaga, {
   socketClosedWorker,
   sessionStatusWatcher,
   startSaga,
@@ -21,6 +21,7 @@ import {
   socketError,
   socketClosed,
   destroyAction,
+  initAction,
 } from './actions'
 
 describe('socketClosedWorker', () => {
@@ -225,5 +226,27 @@ describe('startSaga', () => {
     expect(sessionStatusTask.cancel).toHaveBeenCalledTimes(1)
     expect(pubSubChannel.close).toHaveBeenCalledTimes(1)
     expect(sessionChannel.close).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('rootSaga', () => {
+  it('wait for initAction and fork initSessionSaga', () => {
+    const session = {
+      connect: jest.fn(),
+    } as any
+    const SessionConstructor = jest.fn().mockImplementation(() => {
+      return session
+    })
+    const userOptions = { token: '' }
+    const saga = testSaga(
+      rootSaga({
+        SessionConstructor,
+      }),
+      userOptions
+    )
+
+    saga.next().take(initAction.type)
+    saga.next().call(initSessionSaga, SessionConstructor, userOptions)
+    saga.next().isDone()
   })
 })
