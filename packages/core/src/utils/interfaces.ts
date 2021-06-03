@@ -3,7 +3,7 @@ import type { EventEmitter } from '../utils/EventEmitter'
 import { Session } from '../Session'
 
 /**
- * Minimal interface the emitter must to fulfill
+ * Minimal interface the emitter must fulfill
  */
 export type Emitter = Pick<
   EventEmitter,
