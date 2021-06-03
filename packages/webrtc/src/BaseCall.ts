@@ -10,7 +10,7 @@ import {
   RoomMethod,
   selectors,
   BaseComponentOptions,
-  CallEvents,
+  CallEventNames,
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import { DEFAULT_CALL_OPTIONS, PeerType, Direction } from './utils/constants'
@@ -49,7 +49,7 @@ type BaseCallOptions = CallOptions & BaseComponentOptions
 export class BaseCall extends BaseComponent {
   public nodeId = ''
   public direction: Direction
-  public peer: RTCPeer<CallEvents>
+  public peer: RTCPeer<CallEventNames>
   public options: BaseCallOptions
   public cause: string
   public causeCode: string

@@ -116,7 +116,7 @@ export type SessionEvents = `session.${SessionStatus}`
 /**
  * List of all the events the client can listen to.
  */
-export type ClientEvents = SessionEvents
+export type ClientEvents = Record<SessionEvents, () => void>
 
 type LayoutEvent = 'changed'
 
@@ -149,14 +149,24 @@ type CallState =
   | 'track'
   | 'trying'
 
+type LayoutEvents = `layout.${LayoutEvent}`
+type MemberEvents = `member.${RoomMemberEvent}`
 /**
  * List of all the events the call can listen to
  */
-export type CallEvents =
+export type CallEventNames =
   | `layout.${LayoutEvent}`
   | `member.${RoomMemberEvent}`
-  | `room.${RoomEvent}`
-  | CallState
+// | `room.${RoomEvent}`
+// | CallState
+
+type EventsHandlerMapping = Record<LayoutEvents, (o: Event) => void> &
+  Record<MemberEvents, () => number>
+
+export type CallEvents = {
+  [k in CallEventNames]: EventsHandlerMapping[k]
+  // done: void;
+}
 
 export type SessionAuthError = {
   code: number
