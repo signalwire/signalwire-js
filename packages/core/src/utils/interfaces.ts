@@ -151,21 +151,24 @@ type CallState =
 
 type LayoutEvents = `layout.${LayoutEvent}`
 type MemberEvents = `member.${RoomMemberEvent}`
+type RoomEvents = `room.${RoomEvent}`
 /**
  * List of all the events the call can listen to
  */
 export type CallEventNames =
-  | `layout.${LayoutEvent}`
-  | `member.${RoomMemberEvent}`
-// | `room.${RoomEvent}`
-// | CallState
+  | LayoutEvents
+  | MemberEvents
+  | RoomEvents
+  | CallState
 
-type EventsHandlerMapping = Record<LayoutEvents, (o: Event) => void> &
-  Record<MemberEvents, () => number>
+// TODO: replace all `params:any` with proper types
+type EventsHandlerMapping = Record<LayoutEvents, (params: any) => void> &
+  Record<MemberEvents, (params: any) => void> &
+  Record<RoomEvents, (params: any) => void> &
+  Record<CallState, (params: any) => void>
 
 export type CallEvents = {
   [k in CallEventNames]: EventsHandlerMapping[k]
-  // done: void;
 }
 
 export type SessionAuthError = {
