@@ -3,22 +3,20 @@ import { executeAction } from './redux'
 import { BladeExecuteMethod, Emitter } from './utils/interfaces'
 import { SDKState } from './redux/interfaces'
 import { BaseComponentOptions } from './utils/interfaces'
+import { EventEmitter } from './utils/EventEmitter'
 
 type ExecuteParams = {
   method: BladeExecuteMethod
   params: Record<string, any>
 }
 
-export class BaseComponent<EventType extends string>
-  implements Emitter<EventType, BaseComponent<EventType>> {
+export class BaseComponent implements Emitter {
   id = uuid()
 
   private _requests = new Map()
   private _destroyer?: () => void
 
-  constructor(
-    public options: BaseComponentOptions<BaseComponent<EventType>, EventType>
-  ) {}
+  constructor(public options: BaseComponentOptions) {}
 
   set destroyer(d: () => void) {
     this._destroyer = d
@@ -32,24 +30,24 @@ export class BaseComponent<EventType extends string>
     return this.options.emitter
   }
 
-  on(...params: Parameters<Emitter<EventType, this>['on']>) {
+  on(...params: Parameters<EventEmitter['on']>) {
     return this.emitter.on(...params)
   }
 
-  once(...params: Parameters<Emitter<EventType, this>['once']>) {
+  once(...params: Parameters<EventEmitter['once']>) {
     return this.emitter.once(...params)
   }
 
-  off(...params: Parameters<Emitter<EventType, this>['off']>) {
+  off(...params: Parameters<EventEmitter['off']>) {
     return this.emitter.off(...params)
   }
 
-  emit(...params: Parameters<Emitter<EventType, this>['emit']>) {
+  emit(...params: Parameters<EventEmitter['emit']>) {
     return this.emitter.emit(...params)
   }
 
   removeAllListeners(
-    ...params: Parameters<Emitter<EventType, this>['removeAllListeners']>
+    ...params: Parameters<EventEmitter['removeAllListeners']>
   ) {
     return this.emitter.removeAllListeners(...params)
   }

@@ -50,7 +50,7 @@ import { Client } from './Client'
  * ```
  */
 export const createClient = async (userOptions: UserOptions) => {
-  const baseUserOptions: BaseClientOptions<Client> = {
+  const baseUserOptions: BaseClientOptions = {
     ...userOptions,
     emitter: getEventEmitter(userOptions),
   }

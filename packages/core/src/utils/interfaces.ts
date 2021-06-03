@@ -1,13 +1,14 @@
 import { Store } from 'redux'
+import type { EventEmitter } from '../utils/EventEmitter'
 import { Session } from '../Session'
 
-export interface Emitter<EventType, Instance = {}> {
-  on(eventName: EventType, handler: Function, once?: boolean): Instance
-  once(eventName: EventType, handler: Function): Instance
-  off(eventName: EventType, handler?: Function): Instance
-  emit(eventName: EventType, ...args: any[]): boolean
-  removeAllListeners(): Instance
-}
+/**
+ * Minimal interface that the emitter needs to fulfill
+ */
+export type Emitter = Pick<
+  EventEmitter,
+  'on' | 'off' | 'once' | 'emit' | 'removeAllListeners'
+>
 
 type JSONRPCParams = {
   [key: string]: any
@@ -42,25 +43,18 @@ export interface SessionOptions {
   autoConnect?: boolean
 }
 
-export interface UserOptions<T = {}, EventType extends string = string>
-  extends SessionOptions {
+export interface UserOptions extends SessionOptions {
   devTools?: boolean
-  emitter?: Emitter<EventType, T>
+  emitter?: Emitter
 }
 
-export interface BaseClientOptions<
-  T = {},
-  EventType extends string = ClientEvents
-> extends UserOptions<T, EventType> {
-  emitter: Emitter<EventType, T>
+export interface BaseClientOptions extends UserOptions {
+  emitter: Emitter
 }
 
-export interface BaseComponentOptions<
-  T = {},
-  EventType extends string = string
-> {
+export interface BaseComponentOptions {
   store: Store
-  emitter: Emitter<EventType, T>
+  emitter: Emitter
 }
 
 export interface SessionRequestObject {

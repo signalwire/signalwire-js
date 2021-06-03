@@ -45,8 +45,8 @@ interface MemberCommandWithVolumeParams extends MemberCommandParams {
 interface MemberCommandWithValueParams extends MemberCommandParams {
   value: number
 }
-type BaseCallOptions = CallOptions & BaseComponentOptions<BaseCall, CallEvents>
-export class BaseCall extends BaseComponent<CallEvents> {
+type BaseCallOptions = CallOptions & BaseComponentOptions
+export class BaseCall extends BaseComponent {
   public nodeId = ''
   public direction: Direction
   public peer: RTCPeer<CallEvents>

@@ -429,9 +429,8 @@ export const createDeviceWatcher = async (
   options: CreateDeviceWatcherOptions = {}
 ) => {
   const targets = await validateTargets({ targets: options.targets })
-  console.log('targets', targets)
-
-  const emitter = EventEmitter()
+  // TODO: add proper types to emitter
+  const emitter = new EventEmitter()
   const currentDevices = await WebRTC.enumerateDevices()
   const kinds = targets?.reduce((reducer, name) => {
     const kind = _getMediaDeviceKindByName(name)

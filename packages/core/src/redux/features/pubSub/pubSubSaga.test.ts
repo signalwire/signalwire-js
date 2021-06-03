@@ -7,7 +7,7 @@ import { EventEmitter } from '../../../utils/EventEmitter'
 describe('sessionChannelWatcher', () => {
   it('should take from pubSubChannel and emit through the EventEmitter', () => {
     let runSaga = true
-    const emitter = EventEmitter()
+    const emitter = new EventEmitter()
     const mockFn = jest.fn()
     emitter.on('event.name', mockFn)
     const pubSubChannel = channel()
@@ -38,7 +38,7 @@ describe('sessionChannelWatcher', () => {
 
   it('should be resilient to the end-user errors', () => {
     let runSagaCounter = 0
-    const emitter = EventEmitter()
+    const emitter = new EventEmitter()
     const mockFn = jest.fn()
     emitter.on('exception', () => {
       throw 'Jest Error'

@@ -1,38 +1,33 @@
 import { Store } from 'redux'
-import { initAction, destroyAction } from './redux'
-import { Emitter } from './utils/interfaces'
 import { AuthError } from './CustomErrors'
-import { BaseClientOptions } from './utils/interfaces'
-
-export class SignalWire<EventType extends string>
-  implements Emitter<EventType, SignalWire<EventType>> {
-  constructor(
-    public options: BaseClientOptions<SignalWire<EventType>, EventType>,
-    public store: Store
-  ) {}
+import { destroyAction, initAction } from './redux'
+import { EventEmitter } from './utils/EventEmitter'
+import { BaseClientOptions, Emitter } from './utils/interfaces'
+export class SignalWire implements Emitter {
+  constructor(public options: BaseClientOptions, public store: Store) {}
 
   get emitter() {
     return this.options.emitter
   }
 
-  on(...params: Parameters<Emitter<EventType, this>['on']>) {
+  on(...params: Parameters<EventEmitter['on']>) {
     return this.emitter.on(...params)
   }
 
-  once(...params: Parameters<Emitter<EventType, this>['once']>) {
-    return this.emitter.once(...params)
-  }
-
-  off(...params: Parameters<Emitter<EventType, this>['off']>) {
+  off(...params: Parameters<EventEmitter['off']>) {
     return this.emitter.off(...params)
   }
 
-  emit(...params: Parameters<Emitter<EventType, this>['emit']>) {
+  once(...params: Parameters<EventEmitter['once']>) {
+    return this.emitter.once(...params)
+  }
+
+  emit(...params: Parameters<EventEmitter['emit']>) {
     return this.emitter.emit(...params)
   }
 
   removeAllListeners(
-    ...params: Parameters<Emitter<EventType, this>['removeAllListeners']>
+    ...params: Parameters<EventEmitter['removeAllListeners']>
   ) {
     return this.emitter.removeAllListeners(...params)
   }
