@@ -116,7 +116,7 @@ export type SessionEvents = `session.${SessionStatus}`
 /**
  * List of all the events the client can listen to.
  */
-export type ClientEvents = Record<SessionEvents, () => void>
+export type ClientEvents = Record<SessionEvents, (params: any) => void>
 
 type LayoutEvent = 'changed'
 
