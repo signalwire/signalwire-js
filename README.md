@@ -16,7 +16,7 @@ Refer to the README of each package for further details.
 #### Requirements
 
 - npm 7+ ([more info](https://docs.npmjs.com/cli/v7/using-npm/workspaces))
-- Node.js 10+
+- Node.js 14+
 
 #### Local Environment Setup
 
