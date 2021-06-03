@@ -1,7 +1,6 @@
 import { Store } from 'redux'
 import { AuthError } from './CustomErrors'
 import { destroyAction, initAction } from './redux'
-import { EventEmitter } from './utils/EventEmitter'
 import { BaseClientOptions, Emitter } from './utils/interfaces'
 export class SignalWire implements Emitter {
   constructor(public options: BaseClientOptions, public store: Store) {}
@@ -10,25 +9,23 @@ export class SignalWire implements Emitter {
     return this.options.emitter
   }
 
-  on(...params: Parameters<EventEmitter['on']>) {
+  on(...params: Parameters<Emitter['on']>) {
     return this.emitter.on(...params)
   }
 
-  off(...params: Parameters<EventEmitter['off']>) {
+  off(...params: Parameters<Emitter['off']>) {
     return this.emitter.off(...params)
   }
 
-  once(...params: Parameters<EventEmitter['once']>) {
+  once(...params: Parameters<Emitter['once']>) {
     return this.emitter.once(...params)
   }
 
-  emit(...params: Parameters<EventEmitter['emit']>) {
+  emit(...params: Parameters<Emitter['emit']>) {
     return this.emitter.emit(...params)
   }
 
-  removeAllListeners(
-    ...params: Parameters<EventEmitter['removeAllListeners']>
-  ) {
+  removeAllListeners(...params: Parameters<Emitter['removeAllListeners']>) {
     return this.emitter.removeAllListeners(...params)
   }
 
