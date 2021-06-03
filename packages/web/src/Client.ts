@@ -1,5 +1,6 @@
-import { SignalWire, connect } from '@signalwire/core'
+import { CallEvents, connect, SignalWire } from '@signalwire/core'
 import { Call } from '@signalwire/webrtc'
+import StrictEventEmitter from 'strict-event-emitter-types'
 import { videoElementFactory } from './utils/videoElementFactory'
 
 export class Client extends SignalWire {
@@ -7,7 +8,7 @@ export class Client extends SignalWire {
     return {
       // TODO: use CallOptions interface here
       makeCall: (options: any) => {
-        const call = connect({
+        const call: StrictEventEmitter<Call, CallEvents> = connect({
           store: this.store,
           Component: Call,
           onStateChangeListeners: {
@@ -38,7 +39,7 @@ export class Client extends SignalWire {
               myMemberId: call.memberId,
             })
           })
-          call.on('layout.changed', (params: any) => {
+          call.on('layout.changed', (params) => {
             // @ts-ignore
             layoutChangedHandler(params, call.memberId)
           })
