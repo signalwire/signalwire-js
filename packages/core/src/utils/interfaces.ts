@@ -127,12 +127,10 @@ type RoomEvent =
   | 'subscribed'
   | 'updated'
 
-// prettier-ignore
-type RoomMemberEvent =
-  | 'joined'
-  | 'left'
-  | 'updated'
-  | `updated.${keyof RoomMember}`
+type MemberJoinedEventName = 'member.joined'
+type MemberLeftEventName = 'member.left'
+type MemberUpdatedEventName = 'member.updated'
+type RoomMemberEventNames = `${MemberUpdatedEventName}.${keyof RoomMember}`
 
 type CallState =
   | 'active'
@@ -150,7 +148,11 @@ type CallState =
   | 'trying'
 
 type LayoutEvents = `layout.${LayoutEvent}`
-type MemberEvents = `member.${RoomMemberEvent}`
+type MemberEvents =
+  | MemberJoinedEventName
+  | MemberLeftEventName
+  | MemberUpdatedEventName
+  | RoomMemberEventNames
 type RoomEvents = `room.${RoomEvent}`
 /**
  * List of all the events the call can listen to
@@ -163,7 +165,18 @@ export type CallEventNames =
 
 // TODO: replace all `params:any` with proper types
 type EventsHandlerMapping = Record<LayoutEvents, (params: any) => void> &
-  Record<MemberEvents, (params: any) => void> &
+  Record<MemberJoinedEventName, (params: { member: RoomMember }) => void> &
+  Record<MemberLeftEventName, (params: { member: RoomMemberCommon }) => void> &
+  Record<
+    MemberUpdatedEventName | RoomMemberEventNames,
+    // TODO: we have a `MemberUpdated`. See how to normalize both.
+    (params: {
+      member: {
+        updated: Array<keyof RoomMemberProperties>
+      } & RoomMemberCommon &
+        Partial<RoomMemberProperties>
+    }) => void
+  > &
   Record<RoomEvents, (params: any) => void> &
   Record<CallState, (params: any) => void>
 
@@ -190,10 +203,18 @@ export interface RoomMemberLocation {
   width: number
 }
 
-export interface RoomMember {
+interface RoomMemberCommon {
   id: string
   room_session_id: string
   room_id: string
+}
+interface RoomMemberProperties {
+  scope_id: string
+  input_volume: number
+  input_sensitivity: number
+  output_volume: number
+  on_hold: boolean
+  deaf: boolean
   type: 'member'
   visible: boolean
   audio_muted: boolean
@@ -201,6 +222,8 @@ export interface RoomMember {
   name: string
   location: RoomMemberLocation
 }
+
+export type RoomMember = RoomMemberCommon & RoomMemberProperties
 
 export interface Room {
   room_id: string
