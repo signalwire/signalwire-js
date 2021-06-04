@@ -169,13 +169,7 @@ type EventsHandlerMapping = Record<LayoutEvents, (params: any) => void> &
   Record<MemberLeftEventName, (params: { member: RoomMemberCommon }) => void> &
   Record<
     MemberUpdatedEventName | RoomMemberEventNames,
-    // TODO: we have a `MemberUpdated`. See how to normalize both.
-    (params: {
-      member: {
-        updated: Array<keyof RoomMemberProperties>
-      } & RoomMemberCommon &
-        Partial<RoomMemberProperties>
-    }) => void
+    (params: MemberUpdated['params']) => void
   > &
   Record<RoomEvents, (params: any) => void> &
   Record<CallState, (params: any) => void>
@@ -249,11 +243,10 @@ interface RoomSubscribedEvent {
 interface MemberUpdated {
   event_type: 'member.updated'
   params: {
-    member: RoomMember & {
-      updated: (keyof RoomMember)[]
-    }
-    call_id: string
-    member_id: string
+    member: {
+      updated: Array<keyof RoomMemberProperties>
+    } & RoomMemberCommon &
+      Partial<RoomMemberProperties>
   }
   // TODO: check with backend why timestamp string
   timestamp: string
