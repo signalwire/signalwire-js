@@ -22,7 +22,7 @@ describe('Connect', () => {
       },
       Component: BaseComponent,
     })({
-      emitter: EventEmitter(),
+      emitter: new EventEmitter(),
     })
     instance.emit = jest.fn()
 

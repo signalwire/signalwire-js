@@ -1,4 +1,4 @@
-import { CallEvents, logger } from '@signalwire/core'
+import { logger } from '@signalwire/core'
 import { getUserMedia, getMediaConstraints } from './utils/helpers'
 import {
   sdpStereoHack,
@@ -15,7 +15,7 @@ import {
 } from './utils/webrtcHelpers'
 import { CallOptions } from './utils/interfaces'
 
-export default class RTCPeer<T extends CallEvents> {
+export default class RTCPeer {
   public instance: RTCPeerConnection
 
   private options: CallOptions
@@ -385,7 +385,7 @@ export default class RTCPeer<T extends CallEvents> {
     }
     if (event.candidate) {
       logger.info('IceCandidate:', event.candidate)
-      this.call.emit('icecandidate' as T, event)
+      this.call.emit('icecandidate', event)
     } else {
       this._sdpReady()
     }
@@ -489,7 +489,7 @@ export default class RTCPeer<T extends CallEvents> {
     // })
 
     this.instance.addEventListener('track', (event: RTCTrackEvent) => {
-      this.call.emit('track' as T, event)
+      this.call.emit('track', event)
 
       if (this.isSfu) {
         // const notification = { type: 'trackAdd', event }

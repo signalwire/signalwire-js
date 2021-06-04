@@ -1,8 +1,7 @@
-import { Emitter } from './interfaces'
 import { EventEmitter } from './EventEmitter'
 
 describe('EventEmitter Class', () => {
-  let instance: Emitter
+  let instance: EventEmitter
   const exampleData = {
     test: 'data',
     random: 'data',
@@ -10,7 +9,7 @@ describe('EventEmitter Class', () => {
   const eventName = 'event'
 
   beforeEach(() => {
-    instance = EventEmitter()
+    instance = new EventEmitter()
   })
 
   describe('.on() method', () => {

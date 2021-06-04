@@ -1,13 +1,14 @@
 import { Store } from 'redux'
+import type { EventEmitter } from '../utils/EventEmitter'
 import { Session } from '../Session'
 
-export interface Emitter<EventType, Instance = {}> {
-  on(eventName: EventType, handler: Function, once?: boolean): Instance
-  once(eventName: EventType, handler: Function): Instance
-  off(eventName: EventType, handler?: Function): Instance
-  emit(eventName: EventType, ...args: any[]): boolean
-  removeAllListeners(): Instance
-}
+/**
+ * Minimal interface the emitter must fulfill
+ */
+export type Emitter = Pick<
+  EventEmitter,
+  'on' | 'off' | 'once' | 'emit' | 'removeAllListeners'
+>
 
 type JSONRPCParams = {
   [key: string]: any
@@ -42,25 +43,18 @@ export interface SessionOptions {
   autoConnect?: boolean
 }
 
-export interface UserOptions<T = {}, EventType extends string = string>
-  extends SessionOptions {
+export interface UserOptions extends SessionOptions {
   devTools?: boolean
-  emitter?: Emitter<EventType, T>
+  emitter?: Emitter
 }
 
-export interface BaseClientOptions<
-  T = {},
-  EventType extends string = ClientEvents
-> extends UserOptions<T, EventType> {
-  emitter: Emitter<EventType, T>
+export interface BaseClientOptions extends UserOptions {
+  emitter: Emitter
 }
 
-export interface BaseComponentOptions<
-  T = {},
-  EventType extends string = string
-> {
+export interface BaseComponentOptions {
   store: Store
-  emitter: Emitter<EventType, T>
+  emitter: Emitter
 }
 
 export interface SessionRequestObject {
@@ -122,7 +116,7 @@ export type SessionEvents = `session.${SessionStatus}`
 /**
  * List of all the events the client can listen to.
  */
-export type ClientEvents = SessionEvents
+export type ClientEvents = Record<SessionEvents, (params: any) => void>
 
 type LayoutEvent = 'changed'
 
@@ -155,14 +149,27 @@ type CallState =
   | 'track'
   | 'trying'
 
+type LayoutEvents = `layout.${LayoutEvent}`
+type MemberEvents = `member.${RoomMemberEvent}`
+type RoomEvents = `room.${RoomEvent}`
 /**
  * List of all the events the call can listen to
  */
-export type CallEvents =
-  | `layout.${LayoutEvent}`
-  | `member.${RoomMemberEvent}`
-  | `room.${RoomEvent}`
+export type CallEventNames =
+  | LayoutEvents
+  | MemberEvents
+  | RoomEvents
   | CallState
+
+// TODO: replace all `params:any` with proper types
+type EventsHandlerMapping = Record<LayoutEvents, (params: any) => void> &
+  Record<MemberEvents, (params: any) => void> &
+  Record<RoomEvents, (params: any) => void> &
+  Record<CallState, (params: any) => void>
+
+export type CallEvents = {
+  [k in CallEventNames]: EventsHandlerMapping[k]
+}
 
 export type SessionAuthError = {
   code: number

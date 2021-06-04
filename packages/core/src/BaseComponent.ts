@@ -9,16 +9,13 @@ type ExecuteParams = {
   params: Record<string, any>
 }
 
-export class BaseComponent<EventType extends string>
-  implements Emitter<EventType, BaseComponent<EventType>> {
+export class BaseComponent implements Emitter {
   id = uuid()
 
   private _requests = new Map()
   private _destroyer?: () => void
 
-  constructor(
-    public options: BaseComponentOptions<BaseComponent<EventType>, EventType>
-  ) {}
+  constructor(public options: BaseComponentOptions) {}
 
   set destroyer(d: () => void) {
     this._destroyer = d
@@ -32,25 +29,23 @@ export class BaseComponent<EventType extends string>
     return this.options.emitter
   }
 
-  on(...params: Parameters<Emitter<EventType, this>['on']>) {
+  on(...params: Parameters<Emitter['on']>) {
     return this.emitter.on(...params)
   }
 
-  once(...params: Parameters<Emitter<EventType, this>['once']>) {
+  once(...params: Parameters<Emitter['once']>) {
     return this.emitter.once(...params)
   }
 
-  off(...params: Parameters<Emitter<EventType, this>['off']>) {
+  off(...params: Parameters<Emitter['off']>) {
     return this.emitter.off(...params)
   }
 
-  emit(...params: Parameters<Emitter<EventType, this>['emit']>) {
+  emit(...params: Parameters<Emitter['emit']>) {
     return this.emitter.emit(...params)
   }
 
-  removeAllListeners(
-    ...params: Parameters<Emitter<EventType, this>['removeAllListeners']>
-  ) {
+  removeAllListeners(...params: Parameters<Emitter['removeAllListeners']>) {
     return this.emitter.removeAllListeners(...params)
   }
 

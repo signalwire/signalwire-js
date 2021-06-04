@@ -1,73 +1,6 @@
-import { Emitter, UserOptions } from './interfaces'
-
-export const EventEmitter = () => {
-  const _queue: { [key: string]: Function[] } = {}
-  const _uniqueKey = Symbol.for('sw-once-key')
-  return new (class BaseEventEmitter
-    implements Emitter<string, BaseEventEmitter> {
-    on(eventName: string, handler: Function, once = false) {
-      if (!_queue[eventName]) {
-        _queue[eventName] = []
-      }
-      _queue[eventName].push(handler)
-      // @ts-ignore
-      handler[_uniqueKey] = once
-      return this
-    }
-
-    once(eventName: string, handler: Function) {
-      return this.on(eventName, handler, true)
-    }
-
-    off(eventName: string, handler: Function | null = null) {
-      if (!_queue[eventName]) {
-        return this
-      }
-
-      if (!handler) {
-        delete _queue[eventName]
-        return this
-      }
-
-      const handlers = _queue[eventName]
-      while (handlers.includes(handler)) {
-        handlers.splice(handlers.indexOf(handler), 1)
-      }
-      if (!handlers.length) {
-        delete _queue[eventName]
-      }
-      return this
-    }
-
-    emit(eventName: string, ...args: any[]) {
-      if (!_queue[eventName]) {
-        return false
-      }
-      const handlers = _queue[eventName]
-      const deleteOnceHandled = []
-      for (let handler of handlers) {
-        handler(...args)
-        // @ts-ignore
-        if (handler[_uniqueKey]) {
-          deleteOnceHandled.push(handler)
-        }
-      }
-      for (let handler of deleteOnceHandled) {
-        this.off(eventName, handler)
-      }
-
-      return true
-    }
-
-    removeAllListeners() {
-      for (let eventName in _queue) {
-        this.off(eventName)
-      }
-
-      return this
-    }
-  })()
-}
+import EventEmitter from 'eventemitter3'
+import StrictEventEmitter from 'strict-event-emitter-types'
+import { UserOptions } from './interfaces'
 
 const REQUIRED_EMITTER_METHODS = [
   'on',
@@ -81,9 +14,7 @@ const REQUIRED_EMITTER_METHODS = [
  * Checks the shape of the emitter at runtime. This is useful for when
  * the user is using the SDK without TS
  */
-export const assertEventEmitter = <T>(
-  emitter: unknown
-): emitter is Emitter<T> => {
+const assertEventEmitter = (emitter: unknown): emitter is EventEmitter => {
   if (
     emitter &&
     typeof emitter === 'object' &&
@@ -95,13 +26,15 @@ export const assertEventEmitter = <T>(
   return false
 }
 
-export const getEventEmitter = <T = string, Instance = {}>(
-  userOptions: UserOptions
-) => {
+const getEventEmitter = <T>(userOptions: UserOptions) => {
   if (!userOptions.emitter) {
-    return (EventEmitter() as unknown) as Emitter<T, Instance>
-  } else if (assertEventEmitter<T>(userOptions.emitter)) {
-    return (userOptions.emitter as unknown) as Emitter<T, Instance>
+    const emitter = new EventEmitter()
+    return emitter as StrictEventEmitter<EventEmitter, T>
+  } else if (assertEventEmitter(userOptions.emitter)) {
+    return (userOptions.emitter as unknown) as StrictEventEmitter<
+      EventEmitter,
+      T
+    >
   }
   // TODO: In future versions we can narrow this error a bit more and
   // give the user more info about which method they are missing as
@@ -110,3 +43,5 @@ export const getEventEmitter = <T = string, Instance = {}>(
     "The passed `emitter` doesn't expose the correct interface. Please check that your custom `emitter` comply with the `Emitter` interface."
   )
 }
+
+export { assertEventEmitter, EventEmitter, getEventEmitter }
