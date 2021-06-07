@@ -171,7 +171,7 @@ type EventsHandlerMapping = Record<LayoutEvents, (params: any) => void> &
     MemberUpdatedEventName | RoomMemberEventNames,
     (params: MemberUpdated['params']) => void
   > &
-  Record<RoomEvents, (params: any) => void> &
+  Record<RoomEvents, (params: RoomEventParams) => void> &
   Record<CallState, (params: any) => void>
 
 export type CallEvents = {
@@ -185,7 +185,8 @@ export type SessionAuthError = {
 
 export interface RoomLayout {
   id: string
-  name?: string
+  name: string
+  layers: RoomMemberLocation[]
 }
 
 export interface RoomMemberLocation {
@@ -220,21 +221,29 @@ interface RoomMemberProperties {
 export type RoomMember = RoomMemberCommon & RoomMemberProperties
 
 export interface Room {
+  blind_mode: boolean
+  current_layout: RoomLayout
+  hide_video_muted: boolean
+  locked: boolean
+  logos_visible: boolean
+  meeting_mode: boolean
+  members: RoomMember[]
+  name: string
+  recording: boolean
   room_id: string
   room_session_id: string
-  name: string
-  members: RoomMember[]
-  locked: boolean
-  layouts: RoomLayout[]
+  silent_mode: boolean
+}
+
+interface RoomEventParams {
+  room: Room
+  call_id: string
+  member_id: string
 }
 
 interface RoomSubscribedEvent {
   event_type: 'room.subscribed'
-  params: {
-    room: Room
-    call_id: string
-    member_id: string
-  }
+  params: RoomEventParams
   // TODO: check with backend why timestamp string
   timestamp: string
   event_channel: string
