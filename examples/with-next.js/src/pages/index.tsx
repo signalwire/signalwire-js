@@ -1,4 +1,4 @@
-import { Video } from '@signalwire/web'
+import { Video } from '@signalwire/js'
 import { useEffect, useState } from 'react'
 import { useAppState } from '../components/AppController'
 import { JoinWidget } from '../components/JoinWidget'
