@@ -1,18 +1,12 @@
-[@signalwire/web](../README.md) / [Video](../modules/video.md) / Client
+[@signalwire/js](../README.md) / [Video](../modules/video.md) / Client
 
-# Class: Client<EventType\>
+# Class: Client
 
 [Video](../modules/video.md).Client
 
-## Type parameters
-
-| Name | Type | Default |
-| :------ | :------ | :------ |
-| `EventType` | *string* | ClientEvents |
-
 ## Hierarchy
 
-- *SignalWire*<EventType\>
+- *SignalWire*
 
   ↳ **Client**
 
@@ -46,36 +40,30 @@
 
 ### constructor
 
-\+ **new Client**<EventType\>(`options`: *BaseClientOptions*<SignalWire<EventType\>, EventType\>, `store`: *Store*<any, AnyAction\>): [*Client*](video.client.md)<EventType\>
-
-#### Type parameters
-
-| Name | Type | Default |
-| :------ | :------ | :------ |
-| `EventType` | *string* | ``"session.unknown"`` \| ``"session.reconnecting"`` \| ``"session.connected"`` \| ``"session.disconnected"`` |
+\+ **new Client**(`options`: BaseClientOptions, `store`: *Store*<any, AnyAction\>): [*Client*](video.client.md)
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `options` | *BaseClientOptions*<SignalWire<EventType\>, EventType\> |
+| `options` | BaseClientOptions |
 | `store` | *Store*<any, AnyAction\> |
 
-**Returns:** [*Client*](video.client.md)<EventType\>
+**Returns:** [*Client*](video.client.md)
 
-Inherited from: SignalWire<EventType\>.constructor
+Inherited from: SignalWire.constructor
 
-Defined in: core/dist/core/src/SignalWire.d.ts:6
+Defined in: packages/core/dist/core/src/SignalWire.d.ts:5
 
 ## Properties
 
 ### options
 
-• **options**: *BaseClientOptions*<SignalWire<EventType\>, EventType\>
+• **options**: BaseClientOptions
 
 Inherited from: SignalWire.options
 
-Defined in: core/dist/core/src/SignalWire.d.ts:5
+Defined in: packages/core/dist/core/src/SignalWire.d.ts:4
 
 ___
 
@@ -85,17 +73,17 @@ ___
 
 Inherited from: SignalWire.store
 
-Defined in: core/dist/core/src/SignalWire.d.ts:6
+Defined in: packages/core/dist/core/src/SignalWire.d.ts:5
 
 ## Accessors
 
 ### emitter
 
-• get **emitter**(): *Emitter*<EventType, SignalWire<EventType\>\>
+• get **emitter**(): Emitter
 
-**Returns:** *Emitter*<EventType, SignalWire<EventType\>\>
+**Returns:** Emitter
 
-Defined in: core/dist/core/src/SignalWire.d.ts:8
+Defined in: packages/core/dist/core/src/SignalWire.d.ts:7
 
 ___
 
@@ -107,15 +95,15 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `makeCall` | (`options`: *any*) => [*Call*](webrtc.call.md) |
+| `makeCall` | (`options`: *any*) => *StrictEventEmitter*<[*Call*](webrtc.call.md), CallEvents, CallEvents, ``"addListener"`` \| ``"addEventListener"`` \| ``"removeListener"`` \| ``"removeEventListener"``, ``"on"`` \| ``"once"`` \| ``"emit"``\> |
 
-Defined in: [web/src/Client.ts:6](https://github.com/signalwire/video-sdk-poc/blob/880d309/packages/web/src/Client.ts#L6)
+Defined in: [packages/js/src/Client.ts:7](https://github.com/signalwire/video-sdk-poc/blob/ed1d3e8/packages/js/src/Client.ts#L7)
 
 ## Methods
 
 ### connect
 
-▸ **connect**(): *Promise*<[*Client*](video.client.md)<EventType\>\>
+▸ **connect**(): *Promise*<[*Client*](video.client.md)\>
 
 Connect the underlay WebSocket connection to the SignalWire network.
 
@@ -133,13 +121,13 @@ client.on('socket.closed', () => {
 await client.connect()
 ```
 
-**Returns:** *Promise*<[*Client*](video.client.md)<EventType\>\>
+**Returns:** *Promise*<[*Client*](video.client.md)\>
 
 Promise that will resolve with the Client object.
 
 Inherited from: SignalWire.connect
 
-Defined in: core/dist/core/src/SignalWire.d.ts:33
+Defined in: packages/core/dist/core/src/SignalWire.d.ts:32
 
 ___
 
@@ -164,94 +152,94 @@ client.disconnect()
 
 Inherited from: SignalWire.disconnect
 
-Defined in: core/dist/core/src/SignalWire.d.ts:48
+Defined in: packages/core/dist/core/src/SignalWire.d.ts:47
 
 ___
 
 ### emit
 
-▸ **emit**(...`params`: [eventName: EventType, ...args: any[]]): *boolean*
+▸ **emit**(...`params`: [event: string \| symbol, ...args: any[]]): *boolean*
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `...params` | [eventName: EventType, ...args: any[]] |
+| `...params` | [event: string \| symbol, ...args: any[]] |
 
 **Returns:** *boolean*
 
 Inherited from: SignalWire.emit
 
-Defined in: core/dist/core/src/SignalWire.d.ts:12
+Defined in: packages/core/dist/core/src/SignalWire.d.ts:11
 
 ___
 
 ### off
 
-▸ **off**(...`params`: [eventName: EventType, handler?: Function]): *SignalWire*<EventType\>
+▸ **off**(...`params`: [event: string \| symbol, fn?: function, context?: any, once?: boolean]): *EventEmitter*<string \| symbol, any\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `...params` | [eventName: EventType, handler?: Function] |
+| `...params` | [event: string \| symbol, fn?: function, context?: any, once?: boolean] |
 
-**Returns:** *SignalWire*<EventType\>
+**Returns:** *EventEmitter*<string \| symbol, any\>
 
 Inherited from: SignalWire.off
 
-Defined in: core/dist/core/src/SignalWire.d.ts:11
+Defined in: packages/core/dist/core/src/SignalWire.d.ts:9
 
 ___
 
 ### on
 
-▸ **on**(...`params`: [eventName: EventType, handler: Function, once?: boolean]): *SignalWire*<EventType\>
+▸ **on**(...`params`: [event: string \| symbol, fn: function, context?: any]): *EventEmitter*<string \| symbol, any\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `...params` | [eventName: EventType, handler: Function, once?: boolean] |
+| `...params` | [event: string \| symbol, fn: function, context?: any] |
 
-**Returns:** *SignalWire*<EventType\>
+**Returns:** *EventEmitter*<string \| symbol, any\>
 
 Inherited from: SignalWire.on
 
-Defined in: core/dist/core/src/SignalWire.d.ts:9
+Defined in: packages/core/dist/core/src/SignalWire.d.ts:8
 
 ___
 
 ### once
 
-▸ **once**(...`params`: [eventName: EventType, handler: Function]): *SignalWire*<EventType\>
+▸ **once**(...`params`: [event: string \| symbol, fn: function, context?: any]): *EventEmitter*<string \| symbol, any\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `...params` | [eventName: EventType, handler: Function] |
+| `...params` | [event: string \| symbol, fn: function, context?: any] |
 
-**Returns:** *SignalWire*<EventType\>
+**Returns:** *EventEmitter*<string \| symbol, any\>
 
 Inherited from: SignalWire.once
 
-Defined in: core/dist/core/src/SignalWire.d.ts:10
+Defined in: packages/core/dist/core/src/SignalWire.d.ts:10
 
 ___
 
 ### removeAllListeners
 
-▸ **removeAllListeners**(...`params`: []): *SignalWire*<EventType\>
+▸ **removeAllListeners**(...`params`: [event?: string \| symbol]): *EventEmitter*<string \| symbol, any\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `...params` | [] |
+| `...params` | [event?: string \| symbol] |
 
-**Returns:** *SignalWire*<EventType\>
+**Returns:** *EventEmitter*<string \| symbol, any\>
 
 Inherited from: SignalWire.removeAllListeners
 
-Defined in: core/dist/core/src/SignalWire.d.ts:13
+Defined in: packages/core/dist/core/src/SignalWire.d.ts:12

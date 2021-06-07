@@ -1,4 +1,4 @@
-[@signalwire/web](../README.md) / [WebRTC](../modules/webrtc.md) / Call
+[@signalwire/js](../README.md) / [WebRTC](../modules/webrtc.md) / Call
 
 # Class: Call
 
@@ -79,7 +79,9 @@
 - [enableOutboundVideo](webrtc.call.md#enableoutboundvideo)
 - [execute](webrtc.call.md#execute)
 - [executeInvite](webrtc.call.md#executeinvite)
+- [getLayoutList](webrtc.call.md#getlayoutlist)
 - [hangup](webrtc.call.md#hangup)
+- [hideVideoMuted](webrtc.call.md#hidevideomuted)
 - [invite](webrtc.call.md#invite)
 - [off](webrtc.call.md#off)
 - [on](webrtc.call.md#on)
@@ -95,10 +97,12 @@
 - [restoreOutboundAudio](webrtc.call.md#restoreoutboundaudio)
 - [restoreOutboundVideo](webrtc.call.md#restoreoutboundvideo)
 - [select](webrtc.call.md#select)
+- [setInputSensitivity](webrtc.call.md#setinputsensitivity)
+- [setLayout](webrtc.call.md#setlayout)
 - [setMicrophoneVolume](webrtc.call.md#setmicrophonevolume)
-- [setNoiseGateValue](webrtc.call.md#setnoisegatevalue)
 - [setSpeakerVolume](webrtc.call.md#setspeakervolume)
 - [setState](webrtc.call.md#setstate)
+- [showVideoMuted](webrtc.call.md#showvideomuted)
 - [stopOutboundAudio](webrtc.call.md#stopoutboundaudio)
 - [stopOutboundVideo](webrtc.call.md#stopoutboundvideo)
 - [toggleInboundAudio](webrtc.call.md#toggleinboundaudio)
@@ -125,7 +129,7 @@
 
 Inherited from: BaseCall.constructor
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:33
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:36
 
 ## Properties
 
@@ -135,7 +139,7 @@ Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:33
 
 Inherited from: BaseCall.audioElements
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:25
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:28
 
 ___
 
@@ -145,7 +149,7 @@ ___
 
 Inherited from: BaseCall.cause
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:17
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:20
 
 ___
 
@@ -155,7 +159,7 @@ ___
 
 Inherited from: BaseCall.causeCode
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:18
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:21
 
 ___
 
@@ -165,7 +169,7 @@ ___
 
 Inherited from: BaseCall.direction
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:14
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:17
 
 ___
 
@@ -175,7 +179,7 @@ ___
 
 Inherited from: BaseCall.doReinvite
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:22
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:25
 
 ___
 
@@ -185,7 +189,7 @@ ___
 
 Inherited from: BaseCall.gotEarly
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:19
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:22
 
 ___
 
@@ -195,7 +199,7 @@ ___
 
 Inherited from: BaseCall.id
 
-Defined in: core/dist/core/src/BaseComponent.d.ts:10
+Defined in: packages/core/dist/core/src/BaseComponent.d.ts:10
 
 ___
 
@@ -205,7 +209,7 @@ ___
 
 Inherited from: BaseCall.isDirect
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:23
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:26
 
 ___
 
@@ -221,7 +225,7 @@ ___
 
 Inherited from: BaseCall.join
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:76
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:79
 
 ___
 
@@ -231,7 +235,7 @@ ___
 
 Inherited from: BaseCall.nodeId
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:13
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:16
 
 ___
 
@@ -241,7 +245,7 @@ ___
 
 Inherited from: BaseCall.options
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:16
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:19
 
 ___
 
@@ -251,7 +255,7 @@ ___
 
 Inherited from: BaseCall.participantLayerIndex
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:26
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:29
 
 ___
 
@@ -261,17 +265,17 @@ ___
 
 Inherited from: BaseCall.participantLogo
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:27
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:30
 
 ___
 
 ### peer
 
-• **peer**: *default*<CallEvents\>
+• **peer**: *default*
 
 Inherited from: BaseCall.peer
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:15
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:18
 
 ___
 
@@ -281,7 +285,7 @@ ___
 
 Inherited from: BaseCall.screenShare
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:20
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:23
 
 ___
 
@@ -291,7 +295,7 @@ ___
 
 Inherited from: BaseCall.secondSource
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:21
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:24
 
 ___
 
@@ -301,7 +305,7 @@ ___
 
 Inherited from: BaseCall.videoElements
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:24
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:27
 
 ## Accessors
 
@@ -311,7 +315,7 @@ Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:24
 
 **Returns:** *boolean*
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:35
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:38
 
 ___
 
@@ -321,7 +325,7 @@ ___
 
 **Returns:** *string*
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:58
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:61
 
 ___
 
@@ -331,7 +335,7 @@ ___
 
 **Returns:** *string*
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:59
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:62
 
 ___
 
@@ -347,17 +351,17 @@ ___
 
 **Returns:** *any*
 
-Defined in: core/dist/core/src/BaseComponent.d.ts:14
+Defined in: packages/core/dist/core/src/BaseComponent.d.ts:14
 
 ___
 
 ### emitter
 
-• get **emitter**(): *Emitter*<EventType, BaseComponent<EventType\>\>
+• get **emitter**(): Emitter
 
-**Returns:** *Emitter*<EventType, BaseComponent<EventType\>\>
+**Returns:** Emitter
 
-Defined in: core/dist/core/src/BaseComponent.d.ts:16
+Defined in: packages/core/dist/core/src/BaseComponent.d.ts:16
 
 ___
 
@@ -367,7 +371,7 @@ ___
 
 **Returns:** *string*
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:37
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:40
 
 • set **extension**(`extension`: *string*): *any*
 
@@ -379,7 +383,7 @@ Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:37
 
 **Returns:** *any*
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:39
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:42
 
 ___
 
@@ -389,7 +393,7 @@ ___
 
 **Returns:** HTMLAudioElement
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:65
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:68
 
 ___
 
@@ -399,7 +403,7 @@ ___
 
 **Returns:** HTMLVideoElement
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:64
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:67
 
 ___
 
@@ -409,7 +413,7 @@ ___
 
 **Returns:** MediaStreamTrack
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:67
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:70
 
 ___
 
@@ -419,7 +423,7 @@ ___
 
 **Returns:** MediaStream
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:40
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:43
 
 ___
 
@@ -429,7 +433,7 @@ ___
 
 **Returns:** MediaStreamTrack
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:66
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:69
 
 ___
 
@@ -439,7 +443,7 @@ ___
 
 **Returns:** *string*
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:38
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:41
 
 ___
 
@@ -463,7 +467,7 @@ ___
 | `dialogParams.userVariables` | *object* |
 | `sessid` | *string* |
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:42
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:45
 
 ___
 
@@ -473,7 +477,7 @@ ___
 
 **Returns:** *string*
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:60
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:63
 
 ___
 
@@ -483,7 +487,7 @@ ___
 
 **Returns:** *string*
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:61
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:64
 
 ___
 
@@ -493,7 +497,7 @@ ___
 
 **Returns:** MediaStream
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:41
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:44
 
 ___
 
@@ -503,7 +507,7 @@ ___
 
 **Returns:** *Store*<any, AnyAction\>
 
-Defined in: core/dist/core/src/BaseComponent.d.ts:15
+Defined in: packages/core/dist/core/src/BaseComponent.d.ts:15
 
 ___
 
@@ -513,7 +517,7 @@ ___
 
 **Returns:** *boolean*
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:36
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:39
 
 ___
 
@@ -523,7 +527,7 @@ ___
 
 **Returns:** *boolean*
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:62
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:65
 
 ___
 
@@ -533,7 +537,7 @@ ___
 
 **Returns:** *boolean*
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:63
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:66
 
 ## Methods
 
@@ -545,7 +549,7 @@ Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:63
 
 Inherited from: BaseCall.\_finalize
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:119
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:128
 
 ___
 
@@ -557,7 +561,7 @@ ___
 
 Inherited from: BaseCall.answer
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:78
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:81
 
 ___
 
@@ -575,7 +579,7 @@ ___
 
 Inherited from: BaseCall.audioMute
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:107
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:116
 
 ___
 
@@ -593,7 +597,7 @@ ___
 
 Inherited from: BaseCall.audioUnmute
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:108
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:117
 
 ___
 
@@ -611,7 +615,7 @@ ___
 
 Inherited from: BaseCall.deaf
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:111
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:120
 
 ___
 
@@ -621,7 +625,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: webrtc/dist/webrtc/src/Call.d.ts:3
+Defined in: packages/webrtc/dist/webrtc/src/Call.d.ts:3
 
 ___
 
@@ -633,7 +637,7 @@ ___
 
 Inherited from: BaseCall.destroy
 
-Defined in: core/dist/core/src/BaseComponent.d.ts:22
+Defined in: packages/core/dist/core/src/BaseComponent.d.ts:22
 
 ___
 
@@ -647,7 +651,7 @@ Deaf
 
 Inherited from: BaseCall.disableInboundAudio
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:92
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:95
 
 ___
 
@@ -659,7 +663,7 @@ ___
 
 Inherited from: BaseCall.disableOutboundAudio
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:83
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:86
 
 ___
 
@@ -671,7 +675,7 @@ ___
 
 Inherited from: BaseCall.disableOutboundVideo
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:86
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:89
 
 ___
 
@@ -683,7 +687,7 @@ ___
 
 Inherited from: BaseCall.doReinviteWithRelayOnly
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:101
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:104
 
 ___
 
@@ -701,25 +705,25 @@ ___
 
 Inherited from: BaseCall.dtmf
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:82
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:85
 
 ___
 
 ### emit
 
-▸ **emit**(...`params`: [eventName: CallEvents, ...args: any[]]): *boolean*
+▸ **emit**(...`params`: [event: string \| symbol, ...args: any[]]): *boolean*
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `...params` | [eventName: CallEvents, ...args: any[]] |
+| `...params` | [event: string \| symbol, ...args: any[]] |
 
 **Returns:** *boolean*
 
 Inherited from: BaseCall.emit
 
-Defined in: core/dist/core/src/BaseComponent.d.ts:20
+Defined in: packages/core/dist/core/src/BaseComponent.d.ts:20
 
 ___
 
@@ -733,7 +737,7 @@ Undeaf
 
 Inherited from: BaseCall.enableInboundAudio
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:96
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:99
 
 ___
 
@@ -745,7 +749,7 @@ ___
 
 Inherited from: BaseCall.enableOutboundAudio
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:84
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:87
 
 ___
 
@@ -757,7 +761,7 @@ ___
 
 Inherited from: BaseCall.enableOutboundVideo
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:87
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:90
 
 ___
 
@@ -775,7 +779,7 @@ ___
 
 Inherited from: BaseCall.execute
 
-Defined in: core/dist/core/src/BaseComponent.d.ts:23
+Defined in: packages/core/dist/core/src/BaseComponent.d.ts:23
 
 ___
 
@@ -793,7 +797,19 @@ ___
 
 Inherited from: BaseCall.executeInvite
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:80
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:83
+
+___
+
+### getLayoutList
+
+▸ **getLayoutList**(): *Promise*<unknown\>
+
+**Returns:** *Promise*<unknown\>
+
+Inherited from: BaseCall.getLayoutList
+
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:110
 
 ___
 
@@ -805,7 +821,19 @@ ___
 
 Inherited from: BaseCall.hangup
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:81
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:84
+
+___
+
+### hideVideoMuted
+
+▸ **hideVideoMuted**(): *Promise*<unknown\>
+
+**Returns:** *Promise*<unknown\>
+
+Inherited from: BaseCall.hideVideoMuted
+
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:114
 
 ___
 
@@ -817,43 +845,43 @@ ___
 
 Inherited from: BaseCall.invite
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:77
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:80
 
 ___
 
 ### off
 
-▸ **off**(...`params`: [eventName: CallEvents, handler?: Function]): *BaseComponent*<CallEvents\>
+▸ **off**(...`params`: [event: string \| symbol, fn?: function, context?: any, once?: boolean]): *EventEmitter*<string \| symbol, any\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `...params` | [eventName: CallEvents, handler?: Function] |
+| `...params` | [event: string \| symbol, fn?: function, context?: any, once?: boolean] |
 
-**Returns:** *BaseComponent*<CallEvents\>
+**Returns:** *EventEmitter*<string \| symbol, any\>
 
 Inherited from: BaseCall.off
 
-Defined in: core/dist/core/src/BaseComponent.d.ts:19
+Defined in: packages/core/dist/core/src/BaseComponent.d.ts:19
 
 ___
 
 ### on
 
-▸ **on**(...`params`: [eventName: CallEvents, handler: Function, once?: boolean]): *BaseComponent*<CallEvents\>
+▸ **on**(...`params`: [event: string \| symbol, fn: function, context?: any]): *EventEmitter*<string \| symbol, any\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `...params` | [eventName: CallEvents, handler: Function, once?: boolean] |
+| `...params` | [event: string \| symbol, fn: function, context?: any] |
 
-**Returns:** *BaseComponent*<CallEvents\>
+**Returns:** *EventEmitter*<string \| symbol, any\>
 
 Inherited from: BaseCall.on
 
-Defined in: core/dist/core/src/BaseComponent.d.ts:17
+Defined in: packages/core/dist/core/src/BaseComponent.d.ts:17
 
 ___
 
@@ -871,7 +899,7 @@ ___
 
 Inherited from: BaseCall.onError
 
-Defined in: core/dist/core/src/BaseComponent.d.ts:25
+Defined in: packages/core/dist/core/src/BaseComponent.d.ts:25
 
 ___
 
@@ -889,7 +917,7 @@ ___
 
 Inherited from: BaseCall.onLocalSDPReady
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:79
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:82
 
 ___
 
@@ -907,7 +935,7 @@ ___
 
 Inherited from: BaseCall.onRemoteSDP
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:74
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:77
 
 ___
 
@@ -925,7 +953,7 @@ ___
 
 Inherited from: BaseCall.onRoomId
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:75
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:78
 
 ___
 
@@ -943,7 +971,7 @@ ___
 
 Inherited from: BaseCall.onStateChange
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:73
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:76
 
 ___
 
@@ -961,43 +989,43 @@ ___
 
 Inherited from: BaseCall.onSuccess
 
-Defined in: core/dist/core/src/BaseComponent.d.ts:26
+Defined in: packages/core/dist/core/src/BaseComponent.d.ts:26
 
 ___
 
 ### once
 
-▸ **once**(...`params`: [eventName: CallEvents, handler: Function]): *BaseComponent*<CallEvents\>
+▸ **once**(...`params`: [event: string \| symbol, fn: function, context?: any]): *EventEmitter*<string \| symbol, any\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `...params` | [eventName: CallEvents, handler: Function] |
+| `...params` | [event: string \| symbol, fn: function, context?: any] |
 
-**Returns:** *BaseComponent*<CallEvents\>
+**Returns:** *EventEmitter*<string \| symbol, any\>
 
 Inherited from: BaseCall.once
 
-Defined in: core/dist/core/src/BaseComponent.d.ts:18
+Defined in: packages/core/dist/core/src/BaseComponent.d.ts:18
 
 ___
 
 ### removeAllListeners
 
-▸ **removeAllListeners**(...`params`: []): *BaseComponent*<CallEvents\>
+▸ **removeAllListeners**(...`params`: [event?: string \| symbol]): *EventEmitter*<string \| symbol, any\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `...params` | [] |
+| `...params` | [event?: string \| symbol] |
 
-**Returns:** *BaseComponent*<CallEvents\>
+**Returns:** *EventEmitter*<string \| symbol, any\>
 
 Inherited from: BaseCall.removeAllListeners
 
-Defined in: core/dist/core/src/BaseComponent.d.ts:21
+Defined in: packages/core/dist/core/src/BaseComponent.d.ts:21
 
 ___
 
@@ -1015,7 +1043,7 @@ ___
 
 Inherited from: BaseCall.removeMember
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:116
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:125
 
 ___
 
@@ -1027,7 +1055,7 @@ ___
 
 Inherited from: BaseCall.restoreOutboundAudio
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:103
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:106
 
 ___
 
@@ -1039,7 +1067,7 @@ ___
 
 Inherited from: BaseCall.restoreOutboundVideo
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:105
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:108
 
 ___
 
@@ -1063,61 +1091,80 @@ ___
 
 Inherited from: BaseCall.select
 
-Defined in: core/dist/core/src/BaseComponent.d.ts:24
+Defined in: packages/core/dist/core/src/BaseComponent.d.ts:24
+
+___
+
+### setInputSensitivity
+
+▸ **setInputSensitivity**(`__namedParameters`: MemberCommandWithValueParams): *Promise*<unknown\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `__namedParameters` | MemberCommandWithValueParams |
+
+**Returns:** *Promise*<unknown\>
+
+Inherited from: BaseCall.setInputSensitivity
+
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:124
+
+___
+
+### setLayout
+
+▸ **setLayout**(`__namedParameters`: { `name`: *string*  }): *Promise*<unknown\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `__namedParameters` | *object* |
+| `__namedParameters.name` | *string* |
+
+**Returns:** *Promise*<unknown\>
+
+Inherited from: BaseCall.setLayout
+
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:111
 
 ___
 
 ### setMicrophoneVolume
 
-▸ **setMicrophoneVolume**(`__namedParameters`: MemberCommandWithValueParams): *Promise*<unknown\>
+▸ **setMicrophoneVolume**(`__namedParameters`: MemberCommandWithVolumeParams): *Promise*<unknown\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `__namedParameters` | MemberCommandWithValueParams |
+| `__namedParameters` | MemberCommandWithVolumeParams |
 
 **Returns:** *Promise*<unknown\>
 
 Inherited from: BaseCall.setMicrophoneVolume
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:114
-
-___
-
-### setNoiseGateValue
-
-▸ **setNoiseGateValue**(`__namedParameters`: MemberCommandWithValueParams): *Promise*<unknown\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `__namedParameters` | MemberCommandWithValueParams |
-
-**Returns:** *Promise*<unknown\>
-
-Inherited from: BaseCall.setNoiseGateValue
-
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:115
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:123
 
 ___
 
 ### setSpeakerVolume
 
-▸ **setSpeakerVolume**(`__namedParameters`: MemberCommandWithValueParams): *Promise*<unknown\>
+▸ **setSpeakerVolume**(`__namedParameters`: MemberCommandWithVolumeParams): *Promise*<unknown\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `__namedParameters` | MemberCommandWithValueParams |
+| `__namedParameters` | MemberCommandWithVolumeParams |
 
 **Returns:** *Promise*<unknown\>
 
 Inherited from: BaseCall.setSpeakerVolume
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:113
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:122
 
 ___
 
@@ -1135,7 +1182,19 @@ ___
 
 Inherited from: BaseCall.setState
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:106
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:109
+
+___
+
+### showVideoMuted
+
+▸ **showVideoMuted**(): *Promise*<unknown\>
+
+**Returns:** *Promise*<unknown\>
+
+Inherited from: BaseCall.showVideoMuted
+
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:115
 
 ___
 
@@ -1147,7 +1206,7 @@ ___
 
 Inherited from: BaseCall.stopOutboundAudio
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:102
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:105
 
 ___
 
@@ -1159,7 +1218,7 @@ ___
 
 Inherited from: BaseCall.stopOutboundVideo
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:104
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:107
 
 ___
 
@@ -1173,7 +1232,7 @@ Toggle Deaf
 
 Inherited from: BaseCall.toggleInboundAudio
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:100
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:103
 
 ___
 
@@ -1185,7 +1244,7 @@ ___
 
 Inherited from: BaseCall.toggleOutboundAudio
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:85
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:88
 
 ___
 
@@ -1197,7 +1256,7 @@ ___
 
 Inherited from: BaseCall.toggleOutboundVideo
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:88
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:91
 
 ___
 
@@ -1215,7 +1274,7 @@ ___
 
 Inherited from: BaseCall.undeaf
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:112
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:121
 
 ___
 
@@ -1236,7 +1295,7 @@ request and sent using the 'video.message' method.
 
 Inherited from: BaseCall.vertoExecute
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:72
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:75
 
 ___
 
@@ -1254,7 +1313,7 @@ ___
 
 Inherited from: BaseCall.videoMute
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:109
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:118
 
 ___
 
@@ -1272,4 +1331,4 @@ ___
 
 Inherited from: BaseCall.videoUnmute
 
-Defined in: webrtc/dist/webrtc/src/BaseCall.d.ts:110
+Defined in: packages/webrtc/dist/webrtc/src/BaseCall.d.ts:119

@@ -1,4 +1,4 @@
-[@signalwire/web](../README.md) / WebRTC
+[@signalwire/js](../README.md) / WebRTC
 
 # Namespace: WebRTC
 
@@ -12,10 +12,15 @@
 
 - [RTCPeerConnection](webrtc.md#rtcpeerconnection)
 - [assureDeviceId](webrtc.md#assuredeviceid)
-- [checkAudioPermissions](webrtc.md#checkaudiopermissions)
+- [checkCameraPermissions](webrtc.md#checkcamerapermissions)
 - [checkDeviceIdConstraints](webrtc.md#checkdeviceidconstraints)
+- [checkMicrophonePermissions](webrtc.md#checkmicrophonepermissions)
 - [checkPermissions](webrtc.md#checkpermissions)
-- [checkVideoPermissions](webrtc.md#checkvideopermissions)
+- [checkSpeakerPermissions](webrtc.md#checkspeakerpermissions)
+- [createCameraDeviceWatcher](webrtc.md#createcameradevicewatcher)
+- [createDeviceWatcher](webrtc.md#createdevicewatcher)
+- [createMicrophoneDeviceWatcher](webrtc.md#createmicrophonedevicewatcher)
+- [createSpeakerDeviceWatcher](webrtc.md#createspeakerdevicewatcher)
 - [enumerateDevices](webrtc.md#enumeratedevices)
 - [enumerateDevicesByKind](webrtc.md#enumeratedevicesbykind)
 - [getAudioInDevices](webrtc.md#getaudioindevices)
@@ -25,6 +30,7 @@
 - [getDevices](webrtc.md#getdevices)
 - [getDevicesWithPermissions](webrtc.md#getdeviceswithpermissions)
 - [getDisplayMedia](webrtc.md#getdisplaymedia)
+- [getMediaDevicesApi](webrtc.md#getmediadevicesapi)
 - [getSupportedConstraints](webrtc.md#getsupportedconstraints)
 - [getUserMedia](webrtc.md#getusermedia)
 - [getVideoDevices](webrtc.md#getvideodevices)
@@ -36,6 +42,7 @@
 - [stopStream](webrtc.md#stopstream)
 - [stopTrack](webrtc.md#stoptrack)
 - [streamIsValid](webrtc.md#streamisvalid)
+- [supportsMediaDevices](webrtc.md#supportsmediadevices)
 - [supportsMediaOutput](webrtc.md#supportsmediaoutput)
 - [validateAudioInDevice](webrtc.md#validateaudioindevice)
 - [validateAudioOutDevice](webrtc.md#validateaudiooutdevice)
@@ -55,7 +62,7 @@
 
 **Returns:** RTCPeerConnection
 
-Defined in: webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:1
+Defined in: packages/webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:1
 
 ___
 
@@ -76,17 +83,17 @@ It checks for deviceId or label - in case the UA changed the deviceId randomly
 
 **Returns:** *Promise*<string\>
 
-Defined in: webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:32
+Defined in: packages/webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:34
 
 ___
 
-### checkAudioPermissions
+### checkCameraPermissions
 
-▸ `Const` **checkAudioPermissions**(): *Promise*<boolean\>
+▸ `Const` **checkCameraPermissions**(): *Promise*<boolean\>
 
 **Returns:** *Promise*<boolean\>
 
-Defined in: webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:4
+Defined in: packages/webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:4
 
 ___
 
@@ -105,7 +112,17 @@ ___
 
 **Returns:** *Promise*<MediaTrackConstraints\>
 
-Defined in: webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:39
+Defined in: packages/webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:41
+
+___
+
+### checkMicrophonePermissions
+
+▸ `Const` **checkMicrophonePermissions**(): *Promise*<boolean\>
+
+**Returns:** *Promise*<boolean\>
+
+Defined in: packages/webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:5
 
 ___
 
@@ -121,17 +138,63 @@ ___
 
 **Returns:** *Promise*<boolean\>
 
-Defined in: webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:2
+Defined in: packages/webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:3
 
 ___
 
-### checkVideoPermissions
+### checkSpeakerPermissions
 
-▸ `Const` **checkVideoPermissions**(): *Promise*<boolean\>
+▸ `Const` **checkSpeakerPermissions**(): *Promise*<boolean\>
 
 **Returns:** *Promise*<boolean\>
 
-Defined in: webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:3
+Defined in: packages/webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:6
+
+___
+
+### createCameraDeviceWatcher
+
+▸ `Const` **createCameraDeviceWatcher**(): *Promise*<EventEmitter<string \| symbol, any\>\>
+
+**Returns:** *Promise*<EventEmitter<string \| symbol, any\>\>
+
+Defined in: packages/webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:49
+
+___
+
+### createDeviceWatcher
+
+▸ `Const` **createDeviceWatcher**(`options?`: CreateDeviceWatcherOptions): *Promise*<EventEmitter<string \| symbol, any\>\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `options?` | CreateDeviceWatcherOptions |
+
+**Returns:** *Promise*<EventEmitter<string \| symbol, any\>\>
+
+Defined in: packages/webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:46
+
+___
+
+### createMicrophoneDeviceWatcher
+
+▸ `Const` **createMicrophoneDeviceWatcher**(): *Promise*<EventEmitter<string \| symbol, any\>\>
+
+**Returns:** *Promise*<EventEmitter<string \| symbol, any\>\>
+
+Defined in: packages/webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:47
+
+___
+
+### createSpeakerDeviceWatcher
+
+▸ `Const` **createSpeakerDeviceWatcher**(): *Promise*<EventEmitter<string \| symbol, any\>\>
+
+**Returns:** *Promise*<EventEmitter<string \| symbol, any\>\>
+
+Defined in: packages/webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:48
 
 ___
 
@@ -141,7 +204,7 @@ ___
 
 **Returns:** *Promise*<MediaDeviceInfo[]\>
 
-Defined in: webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:4
+Defined in: packages/webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:6
 
 ___
 
@@ -157,7 +220,7 @@ ___
 
 **Returns:** *Promise*<MediaDeviceInfo[]\>
 
-Defined in: webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:5
+Defined in: packages/webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:7
 
 ___
 
@@ -167,7 +230,7 @@ ___
 
 **Returns:** *Promise*<MediaDeviceInfo[]\>
 
-Defined in: webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:21
+Defined in: packages/webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:23
 
 ___
 
@@ -177,7 +240,7 @@ ___
 
 **Returns:** *Promise*<MediaDeviceInfo[]\>
 
-Defined in: webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:14
+Defined in: packages/webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:16
 
 ___
 
@@ -187,7 +250,7 @@ ___
 
 **Returns:** *Promise*<MediaDeviceInfo[]\>
 
-Defined in: webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:22
+Defined in: packages/webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:24
 
 ___
 
@@ -197,7 +260,7 @@ ___
 
 **Returns:** *Promise*<MediaDeviceInfo[]\>
 
-Defined in: webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:15
+Defined in: packages/webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:17
 
 ___
 
@@ -214,7 +277,7 @@ ___
 
 **Returns:** *Promise*<MediaDeviceInfo[]\>
 
-Defined in: webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:16
+Defined in: packages/webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:18
 
 ___
 
@@ -234,7 +297,7 @@ It checks for permission to return valid deviceId and label
 
 **Returns:** *Promise*<MediaDeviceInfo[]\>
 
-Defined in: webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:9
+Defined in: packages/webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:11
 
 ___
 
@@ -250,7 +313,17 @@ ___
 
 **Returns:** *any*
 
-Defined in: webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:3
+Defined in: packages/webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:5
+
+___
+
+### getMediaDevicesApi
+
+▸ `Const` **getMediaDevicesApi**(): MediaDevices
+
+**Returns:** MediaDevices
+
+Defined in: packages/webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:3
 
 ___
 
@@ -260,7 +333,7 @@ ___
 
 **Returns:** MediaTrackSupportedConstraints
 
-Defined in: webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:6
+Defined in: packages/webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:8
 
 ___
 
@@ -276,7 +349,7 @@ ___
 
 **Returns:** *Promise*<MediaStream\>
 
-Defined in: webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:2
+Defined in: packages/webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:4
 
 ___
 
@@ -288,7 +361,7 @@ Helper methods to get devices by kind
 
 **Returns:** *Promise*<MediaDeviceInfo[]\>
 
-Defined in: webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:20
+Defined in: packages/webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:22
 
 ___
 
@@ -300,7 +373,7 @@ Helper methods to get devices by kind
 
 **Returns:** *Promise*<MediaDeviceInfo[]\>
 
-Defined in: webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:13
+Defined in: packages/webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:15
 
 ___
 
@@ -316,7 +389,7 @@ ___
 
 **Returns:** *Promise*<void\>
 
-Defined in: webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:40
+Defined in: packages/webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:42
 
 ___
 
@@ -332,7 +405,7 @@ ___
 
 **Returns:** *Promise*<{ `height`: *number* ; `resolution`: *string* ; `width`: *number*  }[]\>
 
-Defined in: webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:23
+Defined in: packages/webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:25
 
 ___
 
@@ -348,7 +421,7 @@ ___
 
 **Returns:** *any*
 
-Defined in: webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:10
+Defined in: packages/webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:12
 
 ___
 
@@ -365,7 +438,7 @@ ___
 
 **Returns:** *Promise*<boolean\>
 
-Defined in: webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:9
+Defined in: packages/webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:11
 
 ___
 
@@ -381,7 +454,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:11
+Defined in: packages/webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:13
 
 ___
 
@@ -397,7 +470,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:12
+Defined in: packages/webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:14
 
 ___
 
@@ -413,7 +486,17 @@ ___
 
 **Returns:** *boolean*
 
-Defined in: webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:7
+Defined in: packages/webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:9
+
+___
+
+### supportsMediaDevices
+
+▸ `Const` **supportsMediaDevices**(): *boolean*
+
+**Returns:** *boolean*
+
+Defined in: packages/webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:2
 
 ___
 
@@ -423,7 +506,7 @@ ___
 
 **Returns:** *boolean*
 
-Defined in: webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:8
+Defined in: packages/webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:10
 
 ___
 
@@ -440,7 +523,7 @@ ___
 
 **Returns:** *Promise*<string\>
 
-Defined in: webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:37
+Defined in: packages/webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:39
 
 ___
 
@@ -457,7 +540,7 @@ ___
 
 **Returns:** *Promise*<string\>
 
-Defined in: webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:38
+Defined in: packages/webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:40
 
 ___
 
@@ -476,4 +559,4 @@ Helper methods to assure a deviceId without asking the user the "kind"
 
 **Returns:** *Promise*<string\>
 
-Defined in: webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:36
+Defined in: packages/webrtc/dist/webrtc/src/utils/deviceHelpers.d.ts:38
