@@ -116,7 +116,7 @@ export type SessionEvents = `session.${SessionStatus}`
 /**
  * List of all the events the client can listen to.
  */
-export type ClientEvents = Record<SessionEvents, (params: any) => void>
+export type ClientEvents = Record<SessionEvents, () => void>
 
 type LayoutEvent = 'changed'
 
@@ -127,14 +127,14 @@ type RoomEvent =
   | 'subscribed'
   | 'updated'
 
-// prettier-ignore
-type RoomMemberEvent =
-  | 'joined'
-  | 'left'
-  | 'updated'
-  | `updated.${keyof RoomMember}`
+type MemberJoinedEventName = 'member.joined'
+type MemberLeftEventName = 'member.left'
+type MemberUpdatedEventName = 'member.updated'
+type RoomMemberEventNames = `${MemberUpdatedEventName}.${keyof RoomMember}`
 
-type CallState =
+export type RTCTrackEventName = 'track'
+
+export type CallState =
   | 'active'
   | 'answering'
   | 'destroy'
@@ -146,30 +146,37 @@ type CallState =
   | 'recovering'
   | 'requesting'
   | 'ringing'
-  | 'track'
   | 'trying'
 
 type LayoutEvents = `layout.${LayoutEvent}`
-type MemberEvents = `member.${RoomMemberEvent}`
+type MemberEvents =
+  | MemberJoinedEventName
+  | MemberLeftEventName
+  | MemberUpdatedEventName
+  | RoomMemberEventNames
 type RoomEvents = `room.${RoomEvent}`
 /**
  * List of all the events the call can listen to
  */
+// prettier-ignore
 export type CallEventNames =
   | LayoutEvents
   | MemberEvents
   | RoomEvents
-  | CallState
+  | RTCTrackEventName
 
-// TODO: replace all `params:any` with proper types
-type EventsHandlerMapping = Record<LayoutEvents, (params: any) => void> &
-  Record<MemberEvents, (params: any) => void> &
-  Record<RoomEvents, (params: any) => void> &
-  Record<CallState, (params: any) => void>
-
-export type CallEvents = {
-  [k in CallEventNames]: EventsHandlerMapping[k]
-}
+export type EventsHandlerMapping = Record<
+  LayoutEvents,
+  (params: { layout: RoomLayout }) => void
+> &
+  Record<MemberJoinedEventName, (params: { member: RoomMember }) => void> &
+  Record<MemberLeftEventName, (params: { member: RoomMemberCommon }) => void> &
+  Record<
+    MemberUpdatedEventName | RoomMemberEventNames,
+    (params: MemberUpdated['params']) => void
+  > &
+  Record<RoomEvents, (params: RoomEventParams) => void> &
+  Record<RTCTrackEventName, (event: RTCTrackEvent) => void>
 
 export type SessionAuthError = {
   code: number
@@ -178,7 +185,9 @@ export type SessionAuthError = {
 
 export interface RoomLayout {
   id: string
-  name?: string
+  name: string
+  layers: RoomMemberLocation[]
+  layer_count?: number
 }
 
 export interface RoomMemberLocation {
@@ -190,10 +199,18 @@ export interface RoomMemberLocation {
   width: number
 }
 
-export interface RoomMember {
+interface RoomMemberCommon {
   id: string
   room_session_id: string
   room_id: string
+}
+interface RoomMemberProperties {
+  scope_id: string
+  input_volume: number
+  input_sensitivity: number
+  output_volume: number
+  on_hold: boolean
+  deaf: boolean
   type: 'member'
   visible: boolean
   audio_muted: boolean
@@ -202,22 +219,32 @@ export interface RoomMember {
   location: RoomMemberLocation
 }
 
+export type RoomMember = RoomMemberCommon & RoomMemberProperties
+
 export interface Room {
+  blind_mode: boolean
+  current_layout: RoomLayout
+  hide_video_muted: boolean
+  locked: boolean
+  logos_visible: boolean
+  meeting_mode: boolean
+  members: RoomMember[]
+  name: string
+  recording: boolean
   room_id: string
   room_session_id: string
-  name: string
-  members: RoomMember[]
-  locked: boolean
-  layouts: RoomLayout[]
+  silent_mode: boolean
+}
+
+interface RoomEventParams {
+  room: Room
+  call_id: string
+  member_id: string
 }
 
 interface RoomSubscribedEvent {
   event_type: 'room.subscribed'
-  params: {
-    room: Room
-    call_id: string
-    member_id: string
-  }
+  params: RoomEventParams
   // TODO: check with backend why timestamp string
   timestamp: string
   event_channel: string
@@ -226,11 +253,10 @@ interface RoomSubscribedEvent {
 interface MemberUpdated {
   event_type: 'member.updated'
   params: {
-    member: RoomMember & {
-      updated: (keyof RoomMember)[]
-    }
-    call_id: string
-    member_id: string
+    member: {
+      updated: Array<keyof RoomMemberProperties>
+    } & RoomMemberCommon &
+      Partial<RoomMemberProperties>
   }
   // TODO: check with backend why timestamp string
   timestamp: string

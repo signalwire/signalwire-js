@@ -1,5 +1,5 @@
-import { CallEvents, connect, SignalWire } from '@signalwire/core'
-import { Call } from '@signalwire/webrtc'
+import { connect, SignalWire } from '@signalwire/core'
+import { Call, CallEvents } from '@signalwire/webrtc'
 import StrictEventEmitter from 'strict-event-emitter-types'
 import { videoElementFactory } from './utils/videoElementFactory'
 
