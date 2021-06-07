@@ -11,11 +11,7 @@ import {
 import { ExecuteActionParams, WebRTCCall } from '../../interfaces'
 import { executeAction, socketMessage } from '../../actions'
 import { componentActions } from '../'
-import {
-  BladeMethod,
-  SwWebRTCCallState,
-  VertoMethod,
-} from '../../../utils/constants'
+import { BladeMethod, VertoMethod } from '../../../utils/constants'
 import { BladeExecute } from '../../../RPCMessages'
 import { logger } from '../../../utils'
 
@@ -90,7 +86,7 @@ export function* sessionChannelWatcher({
       case VertoMethod.Media: {
         const component = {
           id: params.callID,
-          state: SwWebRTCCallState.Early,
+          state: 'early',
           remoteSDP: params.sdp,
           nodeId,
         }
@@ -109,7 +105,7 @@ export function* sessionChannelWatcher({
       case VertoMethod.Answer: {
         const component: WebRTCCall = {
           id: params.callID,
-          state: SwWebRTCCallState.Active,
+          state: 'active',
           nodeId,
         }
         if (params?.sdp) {
@@ -130,7 +126,7 @@ export function* sessionChannelWatcher({
       case VertoMethod.Bye: {
         const component: WebRTCCall = {
           id: params.callID,
-          state: SwWebRTCCallState.Hangup,
+          state: 'hangup',
           nodeId,
           byeCause: params?.cause ?? '',
           byeCauseCode: params?.causeCode ?? 0,
