@@ -1,5 +1,5 @@
 {
-  "name": "@signalwire/web",
+  "name": "@signalwire/js",
   "version": "0.0.0",
   "source": "src/index.ts",
   "main": "dist/index.js",
@@ -27,5 +27,5 @@
     "@signalwire/webrtc": "0.0.0",
     "regenerator-runtime": "^0.13.7"
   },
-  "types": "dist/web/src/index.d.ts"
+  "types": "dist/js/src/index.d.ts"
 }

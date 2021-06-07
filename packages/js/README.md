@@ -1,4 +1,4 @@
-# `@signalwire/web`
+# `@signalwire/js`
 
 ## Development
 
