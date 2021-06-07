@@ -132,6 +132,8 @@ type MemberLeftEventName = 'member.left'
 type MemberUpdatedEventName = 'member.updated'
 type RoomMemberEventNames = `${MemberUpdatedEventName}.${keyof RoomMember}`
 
+export type RTCTrackEventName = 'track'
+
 export type CallState =
   | 'active'
   | 'answering'
@@ -144,7 +146,6 @@ export type CallState =
   | 'recovering'
   | 'requesting'
   | 'ringing'
-  | 'track'
   | 'trying'
 
 type LayoutEvents = `layout.${LayoutEvent}`
@@ -162,8 +163,8 @@ export type CallEventNames =
   | LayoutEvents
   | MemberEvents
   | RoomEvents
+  | RTCTrackEventName
 
-// TODO: replace all `params:any` with proper types
 export type EventsHandlerMapping = Record<
   LayoutEvents,
   (params: { layout: RoomLayout }) => void
@@ -174,7 +175,8 @@ export type EventsHandlerMapping = Record<
     MemberUpdatedEventName | RoomMemberEventNames,
     (params: MemberUpdated['params']) => void
   > &
-  Record<RoomEvents, (params: RoomEventParams) => void>
+  Record<RoomEvents, (params: RoomEventParams) => void> &
+  Record<RTCTrackEventName, (event: RTCTrackEvent) => void>
 
 export type SessionAuthError = {
   code: number
