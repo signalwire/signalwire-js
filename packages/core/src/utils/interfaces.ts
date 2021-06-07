@@ -164,7 +164,10 @@ export type CallEventNames =
   | CallState
 
 // TODO: replace all `params:any` with proper types
-type EventsHandlerMapping = Record<LayoutEvents, (params: any) => void> &
+type EventsHandlerMapping = Record<
+  LayoutEvents,
+  (params: { layout: RoomLayout }) => void
+> &
   Record<MemberJoinedEventName, (params: { member: RoomMember }) => void> &
   Record<MemberLeftEventName, (params: { member: RoomMemberCommon }) => void> &
   Record<
@@ -187,6 +190,7 @@ export interface RoomLayout {
   id: string
   name: string
   layers: RoomMemberLocation[]
+  layer_count?: number
 }
 
 export interface RoomMemberLocation {
