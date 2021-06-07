@@ -2,6 +2,13 @@
  * TODO: Audit interfaces and remove unused
  */
 
+import {
+  CallEventNames,
+  CallState,
+  EventsHandlerMapping,
+} from '@signalwire/core'
+import { Call } from '../Call'
+
 export interface CallOptions {
   // Required
   destinationNumber: string
@@ -243,4 +250,9 @@ export interface IVertoConferenceListParams {
   showLayouts?: boolean
   showMembers?: boolean
   activeSession?: string
+}
+
+export type CallEvents = {
+  [k in CallEventNames | CallState]: EventsHandlerMapping &
+    Record<CallState, (params: Call) => void>
 }

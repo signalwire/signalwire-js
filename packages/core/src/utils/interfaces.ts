@@ -132,7 +132,7 @@ type MemberLeftEventName = 'member.left'
 type MemberUpdatedEventName = 'member.updated'
 type RoomMemberEventNames = `${MemberUpdatedEventName}.${keyof RoomMember}`
 
-type CallState =
+export type CallState =
   | 'active'
   | 'answering'
   | 'destroy'
@@ -157,14 +157,14 @@ type RoomEvents = `room.${RoomEvent}`
 /**
  * List of all the events the call can listen to
  */
+// prettier-ignore
 export type CallEventNames =
   | LayoutEvents
   | MemberEvents
   | RoomEvents
-  | CallState
 
 // TODO: replace all `params:any` with proper types
-type EventsHandlerMapping = Record<
+export type EventsHandlerMapping = Record<
   LayoutEvents,
   (params: { layout: RoomLayout }) => void
 > &
@@ -174,12 +174,7 @@ type EventsHandlerMapping = Record<
     MemberUpdatedEventName | RoomMemberEventNames,
     (params: MemberUpdated['params']) => void
   > &
-  Record<RoomEvents, (params: RoomEventParams) => void> &
-  Record<CallState, (params: any) => void>
-
-export type CallEvents = {
-  [k in CallEventNames]: EventsHandlerMapping[k]
-}
+  Record<RoomEvents, (params: RoomEventParams) => void>
 
 export type SessionAuthError = {
   code: number
