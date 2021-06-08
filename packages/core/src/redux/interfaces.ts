@@ -1,4 +1,3 @@
-import { Saga } from '@redux-saga/types'
 import { PayloadAction } from '@reduxjs/toolkit'
 import {
   JSONRPCResponse,
