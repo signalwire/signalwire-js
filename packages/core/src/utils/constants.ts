@@ -44,22 +44,6 @@ export enum VertoMethod {
   Announce = 'verto.announce',
 }
 
-// TODO: do we still need these of if we can just `CallState` instead.
-export enum SwWebRTCCallState {
-  New = 'new',
-  Requesting = 'requesting',
-  Trying = 'trying',
-  Recovering = 'recovering',
-  Ringing = 'ringing',
-  Answering = 'answering',
-  Early = 'early',
-  Active = 'active',
-  Held = 'held',
-  Hangup = 'hangup',
-  Destroy = 'destroy',
-  Purge = 'purge',
-}
-
 // export enum SwEvent {
 //   // Socket Events
 //   SocketOpen = 'signalwire.socket.open',

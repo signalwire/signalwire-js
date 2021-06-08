@@ -5,11 +5,11 @@ import {
   VertoInvite,
   // VertoModify,
   BaseComponent,
-  SwWebRTCCallState,
   VertoMethod,
   RoomMethod,
   selectors,
   BaseComponentOptions,
+  CallState,
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import { DEFAULT_CALL_OPTIONS, PeerType, Direction } from './utils/constants'
@@ -61,8 +61,8 @@ export class BaseCall extends BaseComponent {
   public audioElements: HTMLAudioElement[] = []
   public participantLayerIndex = -1
   public participantLogo = ''
-  private state = SwWebRTCCallState.New
-  private prevState = SwWebRTCCallState.New
+  private state: CallState = 'new'
+  private prevState: CallState = 'new'
 
   private _extension: string
   // @ts-ignore
@@ -91,16 +91,16 @@ export class BaseCall extends BaseComponent {
       this.options.remoteCallerNumber = this.options.destinationNumber
     }
 
-    this.setState(SwWebRTCCallState.New)
+    this.setState('new')
     logger.info('New Call with Options:', this.options)
   }
 
   get active() {
-    return this.state === SwWebRTCCallState.Active
+    return this.state === 'active'
   }
 
   get trying() {
-    return this.state === SwWebRTCCallState.Trying
+    return this.state === 'trying'
   }
 
   get extension() {
@@ -227,7 +227,7 @@ export class BaseCall extends BaseComponent {
   public onStateChange(component: any) {
     logger.debug('onStateChange', component)
     switch (component.state) {
-      case SwWebRTCCallState.Hangup:
+      case 'hangup':
         this._hangup(component)
         break
       default:
@@ -383,7 +383,7 @@ export class BaseCall extends BaseComponent {
   }
 
   async executeInvite(sdp: string) {
-    this.setState(SwWebRTCCallState.Requesting)
+    this.setState('requesting')
     try {
       const msg = VertoInvite({ ...this.messagePayload, sdp })
       const response = await this.vertoExecute(msg)
@@ -392,7 +392,7 @@ export class BaseCall extends BaseComponent {
       const { action, jsonrpc } = error
       logger.error('Invite Error', jsonrpc, action)
       if (jsonrpc?.code === '404') {
-        this.setState(SwWebRTCCallState.Hangup)
+        this.setState('hangup')
       }
     }
   }
@@ -407,7 +407,7 @@ export class BaseCall extends BaseComponent {
   // }
 
   // executeAnswer() {
-  //   this.setState(SwWebRTCCallState.Answering)
+  //   this.setState('answering')
   //   // const params = {
   //   //   ...this.messagePayload,
   //   //   sdp: this.localSdp,
@@ -517,7 +517,7 @@ export class BaseCall extends BaseComponent {
     }
   }
 
-  setState(state: SwWebRTCCallState) {
+  setState(state: CallState) {
     this.prevState = this.state
     this.state = state
     logger.debug(
@@ -527,27 +527,27 @@ export class BaseCall extends BaseComponent {
     this.emit(this.state, this)
 
     switch (state) {
-      case SwWebRTCCallState.Purge: {
+      case 'purge': {
         if (this.screenShare instanceof BaseCall) {
-          this.screenShare.setState(SwWebRTCCallState.Purge)
+          this.screenShare.setState('purge')
         }
         if (this.secondSource instanceof BaseCall) {
-          this.secondSource.setState(SwWebRTCCallState.Purge)
+          this.secondSource.setState('purge')
         }
         this._finalize()
         break
       }
-      case SwWebRTCCallState.Hangup: {
+      case 'hangup': {
         if (this.screenShare instanceof BaseCall) {
           this.screenShare.hangup()
         }
         if (this.secondSource instanceof BaseCall) {
           this.secondSource.hangup()
         }
-        this.setState(SwWebRTCCallState.Destroy)
+        this.setState('destroy')
         break
       }
-      case SwWebRTCCallState.Destroy:
+      case 'destroy':
         this._finalize()
         break
     }
@@ -711,7 +711,7 @@ export class BaseCall extends BaseComponent {
       logger.warn('Execute invite again')
       return this.executeInvite(this.peer.localSdp)
     }
-    return this.setState(SwWebRTCCallState.Hangup)
+    return this.setState('hangup')
   }
 
   // private _onParticipantData(params: any) {

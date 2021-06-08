@@ -23,7 +23,7 @@ export {
 
 export * from './RPCMessages'
 export * from './utils/interfaces'
-export { SwWebRTCCallState, VertoMethod } from './utils/constants'
+export { VertoMethod } from './utils/constants'
 export * from './CustomErrors'
 
 export const selectors = {
