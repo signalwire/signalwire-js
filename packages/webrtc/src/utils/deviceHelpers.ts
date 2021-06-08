@@ -426,12 +426,19 @@ interface CreateDeviceWatcherOptions {
   targets?: DevicePermissionName[]
 }
 
-type DeviceWatcherChangePayload<T extends string> = {
+// prettier-ignore
+type DeviceWatcherEventNames =
+  | 'added'
+  | 'changed'
+  | 'removed'
+  | 'updated'
+
+type DeviceWatcherChangePayload<T extends DeviceWatcherEventNames> = {
   type: T
   payload: MediaDeviceInfo
 }
 
-type DeviceWatcherChange<T extends string> = {
+type DeviceWatcherChange<T extends DeviceWatcherEventNames> = {
   changes: DeviceWatcherChangePayload<T>[]
   devices: MediaDeviceInfo[]
 }
@@ -454,7 +461,6 @@ export const createDeviceWatcher = async (
   options: CreateDeviceWatcherOptions = {}
 ) => {
   const targets = await validateTargets({ targets: options.targets })
-  // TODO: add proper types to emitter
   const emitter: StrictEventEmitter<
     EventEmitter,
     DeviceWatcherEvents
