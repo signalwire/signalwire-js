@@ -134,6 +134,18 @@ async function start() {
 
     const deviceWatcher = await createDeviceWatcher()
 
+    deviceWatcher.on('added', (changes) => {
+      console.log('added', changes)
+    })
+
+    deviceWatcher.on('removed', (changes) => {
+      console.log('removed', changes)
+    })
+
+    deviceWatcher.on('updated', (changes) => {
+      console.log('updated', changes)
+    })
+
     deviceWatcher.on('changed', () => {
       initDeviceOptions()
     })

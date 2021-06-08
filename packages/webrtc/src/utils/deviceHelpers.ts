@@ -1,4 +1,5 @@
 import { logger, EventEmitter } from '@signalwire/core'
+import StrictEventEmitter from 'strict-event-emitter-types'
 import * as WebRTC from './webrtcHelpers'
 
 /**
@@ -272,29 +273,29 @@ const _getDeviceListDiff = (
     return oldDevice === undefined
   })
 
-  return [
-    ...updates.map((value) => {
+  return {
+    updated: updates.map((value) => {
       return {
-        type: 'updated',
+        type: 'updated' as const,
         payload: value,
       }
     }),
 
     // Removed devices
-    ...Array.from(removals, ([_, value]) => value).map((value) => {
+    removed: Array.from(removals, ([_, value]) => value).map((value) => {
       return {
-        type: 'removed',
+        type: 'removed' as const,
         payload: value,
       }
     }),
 
-    ...additions.map((value) => {
+    added: additions.map((value) => {
       return {
-        type: 'added',
+        type: 'added' as const,
         payload: value,
       }
     }),
-  ]
+  }
 }
 
 const TARGET_PERMISSIONS_MAP: Record<
@@ -425,12 +426,45 @@ interface CreateDeviceWatcherOptions {
   targets?: DevicePermissionName[]
 }
 
+// prettier-ignore
+type DeviceWatcherEventNames =
+  | 'added'
+  | 'changed'
+  | 'removed'
+  | 'updated'
+
+type DeviceWatcherChangePayload<T extends DeviceWatcherEventNames> = {
+  type: T
+  payload: MediaDeviceInfo
+}
+
+type DeviceWatcherChange<T extends DeviceWatcherEventNames> = {
+  changes: DeviceWatcherChangePayload<T>[]
+  devices: MediaDeviceInfo[]
+}
+
+interface DeviceWatcherEvents {
+  added: DeviceWatcherChange<'added'>
+  removed: DeviceWatcherChange<'removed'>
+  updated: DeviceWatcherChange<'updated'>
+  changed: {
+    changes: {
+      added: DeviceWatcherChangePayload<'added'>[]
+      removed: DeviceWatcherChangePayload<'removed'>[]
+      updated: DeviceWatcherChangePayload<'updated'>[]
+    }
+    devices: MediaDeviceInfo[]
+  }
+}
+
 export const createDeviceWatcher = async (
   options: CreateDeviceWatcherOptions = {}
 ) => {
   const targets = await validateTargets({ targets: options.targets })
-  // TODO: add proper types to emitter
-  const emitter = new EventEmitter()
+  const emitter: StrictEventEmitter<
+    EventEmitter,
+    DeviceWatcherEvents
+  > = new EventEmitter()
   const currentDevices = await WebRTC.enumerateDevices()
   const kinds = targets?.reduce((reducer, name) => {
     const kind = _getMediaDeviceKindByName(name)
@@ -458,10 +492,29 @@ export const createDeviceWatcher = async (
     knownDevices = newDevices
 
     const changes = _getDeviceListDiff(oldDevices, newDevices)
+    const hasAddedDevices = changes.added.length > 0
+    const hasRemovedDevices = changes.removed.length > 0
+    const hasUpdatedDevices = changes.updated.length > 0
 
-    if (changes.length > 0) {
-      emitter.emit('changed', {
-        changes,
+    if (hasAddedDevices || hasRemovedDevices || hasUpdatedDevices) {
+      emitter.emit('changed', { changes: changes, devices: newDevices })
+    }
+
+    if (hasAddedDevices) {
+      emitter.emit('added', {
+        changes: changes.added,
+        devices: newDevices,
+      })
+    }
+    if (hasRemovedDevices) {
+      emitter.emit('removed', {
+        changes: changes.removed,
+        devices: newDevices,
+      })
+    }
+    if (hasUpdatedDevices) {
+      emitter.emit('updated', {
+        changes: changes.updated,
         devices: newDevices,
       })
     }
