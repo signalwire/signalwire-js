@@ -19,7 +19,7 @@ export function cli(args) {
 
       pkgJson.types = `dist/${projectName}/src/index.d.ts`
 
-      fs.writeFileSync(filePath, JSON.stringify(pkgJson, null, 2))
+      fs.writeFileSync(filePath, JSON.stringify(pkgJson, null, 2) + '\n')
 
       break
     }
