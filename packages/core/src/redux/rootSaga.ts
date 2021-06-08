@@ -1,7 +1,7 @@
-import { Saga, Task, SagaIterator, Channel } from '@redux-saga/types'
+import { Task, SagaIterator, Channel } from '@redux-saga/types'
 import { channel, EventChannel } from 'redux-saga'
 import { fork, call, take, put, delay } from 'redux-saga/effects'
-import { GetDefaultSagas, SocketCloseParams } from './interfaces'
+import { SocketCloseParams } from './interfaces'
 import { UserOptions, SessionConstructor } from '../utils/interfaces'
 import {
   executeActionWatcher,
@@ -26,13 +26,6 @@ type StartSagaOptions = {
   pubSubChannel: Channel<unknown>
   userOptions: UserOptions
 }
-
-// prettier-ignore
-// const ROOT_SAGAS: Saga[] = []
-
-// const getDefaultSagas = () => {
-//   return ROOT_SAGAS
-// }
 
 export function* initSessionSaga(
   SessionConstructor: SessionConstructor,
@@ -165,14 +158,9 @@ export function* startSaga(options: StartSagaOptions): SagaIterator {
 
 interface RootSagaOptions {
   SessionConstructor: SessionConstructor
-  sagas?: (fn: GetDefaultSagas) => Saga[]
 }
 
 export default (options: RootSagaOptions) => {
-  // const sagas = options.sagas
-  //   ? options.sagas(getDefaultSagas)
-  //   : getDefaultSagas()
-
   return function* root(userOptions: UserOptions): SagaIterator {
     /**
      * Wait for an initAction to start

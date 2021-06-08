@@ -1,4 +1,3 @@
-import { Saga } from '@redux-saga/types'
 import { PayloadAction } from '@reduxjs/toolkit'
 import {
   JSONRPCResponse,
@@ -54,8 +53,6 @@ export interface SDKState {
   components: ComponentState
   session: SessionState
 }
-
-export type GetDefaultSagas = () => Saga[]
 
 export interface ExecuteActionParams {
   requestId?: string

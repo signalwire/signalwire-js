@@ -1,8 +1,8 @@
 import { configureStore as rtConfigureStore } from '@reduxjs/toolkit'
-import createSagaMiddleware, { Saga } from 'redux-saga'
+import createSagaMiddleware from 'redux-saga'
 import { rootReducer } from './rootReducer'
 import rootSaga from './rootSaga'
-import { GetDefaultSagas, SDKState } from './interfaces'
+import { SDKState } from './interfaces'
 import { connect } from './connect'
 import { UserOptions, SessionConstructor } from '../utils/interfaces'
 
@@ -10,7 +10,6 @@ interface ConfigureStoreOptions {
   userOptions: UserOptions
   SessionConstructor: SessionConstructor
   runSagaMiddleware?: boolean
-  sagas?: (fn: GetDefaultSagas) => Saga[]
   preloadedState?: Partial<SDKState>
 }
 
@@ -20,7 +19,6 @@ const configureStore = (options: ConfigureStoreOptions) => {
     SessionConstructor,
     preloadedState = {},
     runSagaMiddleware = true,
-    sagas,
   } = options
   const sagaMiddleware = createSagaMiddleware()
 
@@ -39,9 +37,6 @@ const configureStore = (options: ConfigureStoreOptions) => {
 
   if (runSagaMiddleware) {
     const saga = rootSaga({
-      // In here the consumer will have the option to setup
-      // different root sagas
-      sagas,
       SessionConstructor,
     })
     sagaMiddleware.run(saga, userOptions)

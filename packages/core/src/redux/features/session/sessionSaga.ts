@@ -156,20 +156,11 @@ export function* sessionChannelWatcher({
         )
         break
       case VertoMethod.Punt:
-        // FIXME: handle session.purge
-        // session.purge()
         return session.disconnect()
-      // case VertoMethod.Invite: {
-      //   const call = _buildCall(session, params, attach, nodeId)
-      //   call.setState(State.Ringing)
-      //   const msg = VertoResult(id, method)
-      //   // msg.targetNodeId = nodeId
-      //   return session.execute(msg)
-      // }
-      // case VertoMethod.Attach: {
-      //   const call = _buildCall(session, params, attach, nodeId)
-      //   return trigger(call.id, params, method)
-      // }
+      // case VertoMethod.Invite:
+      //   break
+      // case VertoMethod.Attach:
+      //   break
       case VertoMethod.Info:
         return logger.debug('Verto Info', params)
       case VertoMethod.ClientReady:

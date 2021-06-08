@@ -1,13 +1,17 @@
 import { connect, SignalWire } from '@signalwire/core'
-import { Call, CallEvents } from '@signalwire/webrtc'
+import { Call, CallEvents, CallOptions } from '@signalwire/webrtc'
 import StrictEventEmitter from 'strict-event-emitter-types'
 import { videoElementFactory } from './utils/videoElementFactory'
+
+interface MakeCallOptions extends CallOptions {
+  rootElementId?: string
+  applyLocalVideoOverlay?: boolean
+}
 
 export class Client extends SignalWire {
   get rooms() {
     return {
-      // TODO: use CallOptions interface here
-      makeCall: (options: any) => {
+      makeCall: (options: MakeCallOptions) => {
         const call: StrictEventEmitter<Call, CallEvents> = connect({
           store: this.store,
           Component: Call,
@@ -30,18 +34,12 @@ export class Client extends SignalWire {
             destroyHandler,
             layoutChangedHandler,
           } = videoElementFactory({ rootElementId, applyLocalVideoOverlay })
-          call.on('layout.changed', (params: any) => {
+          call.on('layout.changed', (params) => {
             layoutChangedHandler({
               layout: params.layout,
-              // @ts-ignore
               localVideoTrack: call.localVideoTrack,
-              // @ts-ignore
               myMemberId: call.memberId,
             })
-          })
-          call.on('layout.changed', (params) => {
-            // @ts-ignore
-            layoutChangedHandler(params, call.memberId)
           })
           call.on('track', rtcTrackHandler)
           call.on('destroy', destroyHandler)
