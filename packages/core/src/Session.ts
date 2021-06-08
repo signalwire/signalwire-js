@@ -176,8 +176,8 @@ export class Session {
     ).catch((error) => {
       if (error === this._executeTimeoutError) {
         logger.error('Request Timeout', msg)
-        // FIXME: Timeout so close/reconnect
-        // this._closeConnection()
+        // Possibly half-open connection so force close our side
+        this._closeConnection()
       } else {
         throw error
       }
