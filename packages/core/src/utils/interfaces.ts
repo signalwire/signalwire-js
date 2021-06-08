@@ -104,9 +104,9 @@ export type SessionAuthStatus =
   | 'authorized'
   | 'unauthorized'
 
-// TODO: define proper list of statuses
 export type SessionStatus =
   | 'unknown'
+  | 'idle'
   | 'reconnecting'
   | 'connected'
   | 'disconnected'
@@ -245,8 +245,7 @@ interface RoomEventParams {
 interface RoomSubscribedEvent {
   event_type: 'room.subscribed'
   params: RoomEventParams
-  // TODO: check with backend why timestamp string
-  timestamp: string
+  timestamp: number
   event_channel: string
 }
 
@@ -258,8 +257,7 @@ interface MemberUpdated {
     } & RoomMemberCommon &
       Partial<RoomMemberProperties>
   }
-  // TODO: check with backend why timestamp string
-  timestamp: string
+  timestamp: number
   event_channel: string
 }
 
