@@ -35,7 +35,7 @@
   "bugs": {
     "url": "https://github.com/signalwire/signalwire-js/issues"
   },
-  "homepage": "https://github.com/signalwire/signalwire-js",
+  "homepage": "https://github.com/signalwire/signalwire-node/tree/master/packages/node",
   "scripts": {
     "start": "microbundle watch -f es,modern --define process.env.NODE_ENV=development --tsconfig ./tsconfig.build.json --target node",
     "build": "pkg-typings --pre-run && microbundle --external none -f modern,es,cjs --define process.env.NODE_ENV=production --tsconfig ./tsconfig.build.json --target node && pkg-typings --after-run",
