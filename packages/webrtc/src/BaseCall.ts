@@ -385,26 +385,6 @@ export class BaseCall extends BaseComponent {
     }
   }
 
-  // executeUpdateMedia() {
-  //   const msg = new Modify({
-  //     ...this.messagePayload,
-  //     sdp: this.localSdp,
-  //     action: 'updateMedia',
-  //   })
-  //   return this.vertoExecute(msg)
-  // }
-
-  // executeAnswer() {
-  //   this.setState('answering')
-  //   const params = {
-  //     ...this.messagePayload,
-  //     sdp: this.localSdp,
-  //   }
-  //   const msg =
-  //     this.options.attach === true ? new Attach(params) : new Answer(params)
-  //   return this.vertoExecute(msg)
-  // }
-
   async hangup() {
     try {
       const bye = VertoBye(this.messagePayload)
