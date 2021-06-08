@@ -55,8 +55,6 @@ export interface SDKState {
   session: SessionState
 }
 
-export type GetDefaultSagas = () => Saga[]
-
 export interface ExecuteActionParams {
   requestId?: string
   componentId?: string
