@@ -25,6 +25,14 @@
     "relay",
     "sip"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/signalwire/signalwire-js"
+  },
+  "bugs": {
+    "url": "https://github.com/signalwire/signalwire-js/issues"
+  },
+  "homepage": "https://github.com/signalwire/signalwire-node/tree/master/packages/js",
   "scripts": {
     "start": "microbundle watch -f modern,es --define process.env.NODE_ENV=development --tsconfig tsconfig.build.json",
     "build": "pkg-typings --pre-run && microbundle --external none --define process.env.NODE_ENV=production --name SignalWire --tsconfig ./tsconfig.build.json && pkg-typings --after-run",
