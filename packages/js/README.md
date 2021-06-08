@@ -11,7 +11,7 @@ SignalWire's simple and powerful authentication system, using JWT, allows you to
 
 ## Getting Started
 
-Read the implementation documentation, guides and API Reference at the official [SignalWire JavaScript SDK Documentation](https://docs.signalwire.com/topics/relay-sdk-js) site.
+Read the implementation documentation, guides and API Reference at the official [SignalWire JavaScript SDK Documentation](https://docs.signalwire.com/topics/api/sdk/js/#javascript-sdk) site.
 
 ---
 
