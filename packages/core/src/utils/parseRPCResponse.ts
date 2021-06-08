@@ -19,21 +19,10 @@ export const parseRPCResponse = ({
   switch (request.method) {
     case BladeMethod.Connect:
       return { result }
-    // case BladeMethod.Execute:
-    //   return parseBladeExecuteResult(result)
     default:
       return parseResponse(response)
   }
 }
-
-/**
- * Destructure blade.execute response
- *
- * @param response JSONRPCResponse
- */
-// const parseBladeExecuteResult = (response: JSONRPCResponse['result']) => {
-//   const { result = {}, error } = response
-// }
 
 /**
  * From the socket we can get:
