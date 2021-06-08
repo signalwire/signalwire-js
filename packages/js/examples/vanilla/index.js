@@ -1,4 +1,4 @@
-import { JWTSession } from '@signalwire/web'
+import { JWTSession } from '@signalwire/js'
 
 window._makeClient = ({ token }) => {
   const client = new JWTSession({

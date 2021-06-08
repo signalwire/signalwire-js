@@ -12,10 +12,10 @@
     "changeset": "changeset",
     "clean": "manypkg exec rm -rf node_modules && manypkg exec rm -rf dist && rm -rf node_modules",
     "test": "manypkg exec npm run test",
-    "build": "manypkg exec rm -rf dist && manypkg run @signalwire/core build && manypkg run @signalwire/webrtc build && manypkg run @signalwire/web build && manypkg run @signalwire/node build",
+    "build": "manypkg exec rm -rf dist && manypkg run @signalwire/core build && manypkg run @signalwire/webrtc build && manypkg run @signalwire/js build && manypkg run @signalwire/node build",
     "prettier": "prettier --write .",
-    "start:web": "concurrently \"manypkg run @signalwire/core start\" \"manypkg run @signalwire/web start\" \"manypkg run @signalwire/webrtc start\" \"manypkg run @signalwire/web example\"",
-    "start:next": "concurrently \"manypkg run @signalwire/web start\" \"manypkg run with-next.js dev\""
+    "start:web": "concurrently \"manypkg run @signalwire/core start\" \"manypkg run @signalwire/js start\" \"manypkg run @signalwire/webrtc start\" \"manypkg run @signalwire/js example\"",
+    "start:next": "concurrently \"manypkg run @signalwire/js start\" \"manypkg run with-next.js dev\""
   },
   "dependencies": {
     "@babel/core": "^7.13.16",

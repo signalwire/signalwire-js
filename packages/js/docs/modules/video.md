@@ -1,4 +1,4 @@
-[@signalwire/web](../README.md) / Video
+[@signalwire/js](../README.md) / Video
 
 # Namespace: Video
 
@@ -18,7 +18,7 @@
 
 ### createClient
 
-▸ `Const` **createClient**(`userOptions`: *UserOptions*<{}, string\>): *Promise*<[*Client*](../classes/video.client.md)<``"session.unknown"`` \| ``"session.reconnecting"`` \| ``"session.connected"`` \| ``"session.disconnected"``\>\>
+▸ `Const` **createClient**(`userOptions`: UserOptions): *Promise*<StrictEventEmitter<[*Client*](../classes/video.client.md), ClientEvents, ClientEvents, ``"addListener"`` \| ``"addEventListener"`` \| ``"removeListener"`` \| ``"removeEventListener"``, ``"on"`` \| ``"once"`` \| ``"emit"``\>\>
 
 ## Intro
 With VideoSDK.createClient you can establish a WebSocket connection
@@ -65,17 +65,17 @@ try {
 
 | Name | Type |
 | :------ | :------ |
-| `userOptions` | *UserOptions*<{}, string\> |
+| `userOptions` | UserOptions |
 
-**Returns:** *Promise*<[*Client*](../classes/video.client.md)<``"session.unknown"`` \| ``"session.reconnecting"`` \| ``"session.connected"`` \| ``"session.disconnected"``\>\>
+**Returns:** *Promise*<StrictEventEmitter<[*Client*](../classes/video.client.md), ClientEvents, ClientEvents, ``"addListener"`` \| ``"addEventListener"`` \| ``"removeListener"`` \| ``"removeEventListener"``, ``"on"`` \| ``"once"`` \| ``"emit"``\>\>
 
-Defined in: [web/src/createClient.ts:52](https://github.com/signalwire/video-sdk-poc/blob/880d309/packages/web/src/createClient.ts#L52)
+Defined in: [packages/js/src/createClient.ts:54](https://github.com/signalwire/video-sdk-poc/blob/ed1d3e8/packages/js/src/createClient.ts#L54)
 
 ___
 
 ### createRoomObject
 
-▸ `Const` **createRoomObject**(`roomOptions`: *CreateRoomObjectOptions*): *Promise*<unknown\>
+▸ `Const` **createRoomObject**(`roomOptions`: CreateRoomObjectOptions): *Promise*<unknown\>
 
 ## Intro
 Using Video.createRoomObject you can create an RTCSession to join a room.
@@ -104,24 +104,24 @@ try {
 
 | Name | Type |
 | :------ | :------ |
-| `roomOptions` | *CreateRoomObjectOptions* |
+| `roomOptions` | CreateRoomObjectOptions |
 
 **Returns:** *Promise*<unknown\>
 
-Defined in: [web/src/createRoomObject.ts:38](https://github.com/signalwire/video-sdk-poc/blob/880d309/packages/web/src/createRoomObject.ts#L38)
+Defined in: [packages/js/src/createRoomObject.ts:40](https://github.com/signalwire/video-sdk-poc/blob/ed1d3e8/packages/js/src/createRoomObject.ts#L40)
 
 ___
 
 ### joinRoom
 
-▸ `Const` **joinRoom**(`roomOptions`: *CreateRoomObjectOptions*): *Promise*<unknown\>
+▸ `Const` **joinRoom**(`roomOptions`: CreateRoomObjectOptions): *Promise*<unknown\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `roomOptions` | *CreateRoomObjectOptions* |
+| `roomOptions` | CreateRoomObjectOptions |
 
 **Returns:** *Promise*<unknown\>
 
-Defined in: [web/src/joinRoom.ts:3](https://github.com/signalwire/video-sdk-poc/blob/880d309/packages/web/src/joinRoom.ts#L3)
+Defined in: [packages/js/src/joinRoom.ts:3](https://github.com/signalwire/video-sdk-poc/blob/ed1d3e8/packages/js/src/joinRoom.ts#L3)

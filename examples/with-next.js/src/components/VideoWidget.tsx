@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { Video } from '@signalwire/web'
+import { Video } from '@signalwire/js'
 import { useAppDispatch } from './AppController'
 import { MCU } from './MCU'
 

@@ -5,7 +5,7 @@
 | Project                | Description               | README                                   | CHANGELOG                                      |
 | ---------------------- | ------------------------- | ---------------------------------------- | ---------------------------------------------- |
 | **@signalwire/core**   | TBD                       | [`README.md`](packages/node/README.md)   | [`CHANGELOG.md`](packages/node/CHANGELOG.md)   |
-| **@signalwire/web**    | SignalWire in the browser | [`README.md`](packages/web/README.md)    | [`CHANGELOG.md`](packages/web/CHANGELOG.md)    |
+| **@signalwire/js**     | SignalWire in the browser | [`README.md`](packages/js/README.md)     | [`CHANGELOG.md`](packages/js/CHANGELOG.md)     |
 | **@signalwire/node**   | SignalWire in Node.js     | [`README.md`](packages/node/README.md)   | [`CHANGELOG.md`](packages/node/CHANGELOG.md)   |
 | **@signalwire/webrtc** | SignalWire WebRTC         | [`README.md`](packages/webrtc/README.md) | [`CHANGELOG.md`](packages/webrtc/CHANGELOG.md) |
 

@@ -1,4 +1,4 @@
-// Importing directly from `@signalwire/web` will take the
+// Importing directly from `@signalwire/js` will take the
 // `production` bundle while importing from `../../src` will
 // hot-reload as we make changes.
 

@@ -1,6 +1,6 @@
-@signalwire/web
+@signalwire/js
 
-# @signalwire/web
+# @signalwire/js
 
 ## Table of contents
 

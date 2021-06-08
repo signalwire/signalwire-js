@@ -20,7 +20,7 @@
     "rootDir": "packages",
     "typeRoots": ["./node_modules/@types", "./types"],
     "paths": {
-      "@signalwire/web": ["packages/web/src"],
+      "@signalwire/js": ["packages/js/src"],
       "@signalwire/core": ["packages/core/src"],
       "@signalwire/webrtc": ["packages/webrtc/src"],
       "@signalwire/node": ["packages/node/src"]
