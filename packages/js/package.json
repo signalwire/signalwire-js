@@ -1,5 +1,8 @@
 {
   "name": "@signalwire/js",
+  "description": "SignalWire JS SDK",
+  "author": "SignalWire Team <open.source@signalwire.com>",
+  "license": "MIT",
   "version": "0.0.0",
   "source": "src/index.ts",
   "main": "dist/index.js",
@@ -13,6 +16,15 @@
   "engines": {
     "node": ">=10"
   },
+  "keywords": [
+    "signalwire",
+    "video",
+    "rtc",
+    "real time communication",
+    "webrtc",
+    "relay",
+    "sip"
+  ],
   "scripts": {
     "start": "microbundle watch -f modern,es --define process.env.NODE_ENV=development --tsconfig tsconfig.build.json",
     "build": "pkg-typings --pre-run && microbundle --external none --define process.env.NODE_ENV=production --name SignalWire --tsconfig ./tsconfig.build.json && pkg-typings --after-run",
