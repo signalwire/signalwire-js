@@ -67,6 +67,8 @@ export const createRoomObject = (roomOptions: CreateRoomObjectOptions) => {
       destinationNumber: 'room',
       callerName: '',
       callerNumber: '',
+      remoteCallerName: '',
+      remoteCallerNumber: '',
       audio,
       video,
       negotiateAudio: true,
