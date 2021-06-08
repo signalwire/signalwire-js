@@ -1,5 +1,8 @@
 {
   "name": "@signalwire/node",
+  "description": "SignalWire Node.js SDK",
+  "author": "SignalWire Team <open.source@signalwire.com>",
+  "license": "MIT",
   "version": "0.0.0",
   "source": "src/index.ts",
   "main": "dist/index.js",
@@ -19,6 +22,12 @@
   "engines": {
     "node": ">=10"
   },
+  "keywords": [
+    "signalwire",
+    "video",
+    "relay",
+    "sip"
+  ],
   "scripts": {
     "start": "microbundle watch -f es,modern --define process.env.NODE_ENV=development --tsconfig ./tsconfig.build.json --target node",
     "build": "pkg-typings --pre-run && microbundle --external none -f modern,es,cjs --define process.env.NODE_ENV=production --tsconfig ./tsconfig.build.json --target node && pkg-typings --after-run",

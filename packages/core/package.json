@@ -1,5 +1,8 @@
 {
   "name": "@signalwire/core",
+  "description": "Shared code for the SignalWire JS SDK",
+  "author": "SignalWire Team <open.source@signalwire.com>",
+  "license": "MIT",
   "private": true,
   "version": "0.0.0",
   "source": "src/index.ts",
