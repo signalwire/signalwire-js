@@ -18,6 +18,43 @@ const inCallElements = [
  * Connect with Relay creating a client and attaching all the event handler.
  */
 window.connect = () => {
+  const sfuWrapper = document.getElementById('sfuWrapper')
+  const canvasMap = new Map()
+  let _allowCanvasDraw = true
+
+  const _deleteCanvas = (memberId) => {
+    // destroy canvas and context2d
+    let { canvasEl, canvasCtx } = canvasMap.get(memberId)
+    canvasCtx = undefined
+    canvasEl.parentNode.removeChild(canvasEl)
+    canvasMap.delete(memberId)
+  }
+  const _stopDrawingCanvas = function () {
+    _allowCanvasDraw = false
+    for (const memberId of canvasMap.keys()) {
+      _deleteCanvas(memberId)
+    }
+  }
+  const _startDrawingCanvas = function () {
+    const _mcu = document.querySelector('#rootElement video')
+    console.debug('_mcu', _mcu)
+    function updateCanvas() {
+      canvasMap.forEach((mapValue) => {
+        const { canvasEl, canvasCtx, x, y, width, height } = mapValue
+        canvasEl.width = width
+        canvasEl.height = height
+        canvasCtx.drawImage(_mcu, x, y, width, height, 0, 0, width, height)
+        canvasCtx.restore()
+      })
+      if (_allowCanvasDraw) {
+        setTimeout(function () {
+          requestAnimationFrame(updateCanvas)
+        }, 1000 / 15)
+      }
+    }
+    updateCanvas()
+  }
+
   Video.createRoomObject({
     host: document.getElementById('host').value,
     token: document.getElementById('token').value,
@@ -44,6 +81,9 @@ window.connect = () => {
         button.classList.remove('d-none')
         button.disabled = false
       })
+
+      // Start watching canvas
+      _startDrawingCanvas()
     })
     roomObj.on('room.updated', (params) =>
       console.debug('>> DEMO room.updated', params)
@@ -69,10 +109,53 @@ window.connect = () => {
     roomObj.on('member.left', (params) =>
       console.debug('>> DEMO member.left', params)
     )
-    roomObj.on('layout.changed', (params) =>
+
+    roomObj.on('layout.changed', (params) => {
       console.debug('>> DEMO layout.changed', params)
-    )
+      const { layout } = params
+
+      const validMemberIds = []
+      layout.layers.forEach(({ memberID, x, y, width, height }) => {
+        if (memberID) {
+          validMemberIds.push(memberID)
+          if (!canvasMap.has(memberID)) {
+            // build canvas and context2d
+            const canvasEl = document.createElement('canvas')
+            canvasEl.id = 'canvas_' + memberID
+            canvasEl.style.maxWidth = '25%'
+            sfuWrapper.appendChild(canvasEl)
+            const canvasCtx = canvasEl.getContext('2d', { alpha: false })
+            canvasMap.set(memberID, {
+              memberID,
+              canvasEl,
+              canvasCtx,
+              x,
+              y,
+              width,
+              height,
+            })
+          } else {
+            canvasMap.set(memberID, {
+              ...canvasMap.get(memberID),
+              x,
+              y,
+              width,
+              height,
+            })
+          }
+        }
+      })
+
+      Array.from(canvasMap.keys()).forEach((memberID) => {
+        if (!validMemberIds.includes(memberID)) {
+          _deleteCanvas(memberID)
+        }
+      })
+    })
     roomObj.on('track', (event) => console.debug('>> DEMO track', event))
+    roomObj.on('destroy', () => {
+      _stopDrawingCanvas()
+    })
 
     roomObj
       .join()
