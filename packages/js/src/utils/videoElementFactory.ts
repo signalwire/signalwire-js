@@ -1,4 +1,4 @@
-import { logger, RoomLayout, RoomMemberLocation } from '@signalwire/core'
+import { logger, RoomMemberLocation } from '@signalwire/core'
 
 const buildVideoElementByTrack = (videoTrack: MediaStreamTrack) => {
   const video = document.createElement('video')
