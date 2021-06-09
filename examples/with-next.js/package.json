@@ -1,5 +1,6 @@
 {
   "name": "with-next.js",
+  "private": true,
   "version": "0.0.1-beta.0",
   "scripts": {
     "dev": "next",

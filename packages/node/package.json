@@ -1,5 +1,6 @@
 {
   "name": "@signalwire/node",
+  "private": true,
   "description": "SignalWire Node.js SDK",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
