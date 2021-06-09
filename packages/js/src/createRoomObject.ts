@@ -84,6 +84,7 @@ export const createRoomObject = (roomOptions: CreateRoomObjectOptions) => {
         showOverlay,
         hideOverlay,
       } = videoElementFactory({ rootElementId, applyLocalVideoOverlay })
+
       room.on('layout.changed', (params: any) => {
         layoutChangedHandler({
           layout: params.layout,
@@ -92,32 +93,11 @@ export const createRoomObject = (roomOptions: CreateRoomObjectOptions) => {
         })
       })
 
-      // Attach the listener only with stopMicrophoneWhileMuted: true
-      if (stopMicrophoneWhileMuted) {
-        room.on('member.updated.audio_muted', (params: any) => {
-          try {
-            const { member } = params
-            if (member.id === room.memberId && 'audio_muted' in member) {
-              member.audio_muted
-                ? room.stopOutboundAudio()
-                : room.restoreOutboundAudio()
-            }
-          } catch (error) {
-            logger.error('Error handling audio_muted', error)
-          }
-        })
-      }
-
       room.on('member.updated.video_muted', (params: any) => {
         try {
           const { member } = params
           if (member.id === room.memberId && 'video_muted' in member) {
             member.video_muted ? hideOverlay(member.id) : showOverlay(member.id)
-            if (stopCameraWhileMuted) {
-              member.video_muted
-                ? room.stopOutboundVideo()
-                : room.restoreOutboundVideo()
-            }
           }
         } catch (error) {
           logger.error('Error handling video_muted', error)
@@ -125,6 +105,40 @@ export const createRoomObject = (roomOptions: CreateRoomObjectOptions) => {
       })
       room.on('track', rtcTrackHandler)
       room.once('destroy', destroyHandler)
+    }
+
+    /**
+     * Stop and Restore outbound audio on audio_muted event
+     */
+    if (stopMicrophoneWhileMuted) {
+      room.on('member.updated.audio_muted', ({ member }) => {
+        try {
+          if (member.id === room.memberId && 'audio_muted' in member) {
+            member.audio_muted
+              ? room.stopOutboundAudio()
+              : room.restoreOutboundAudio()
+          }
+        } catch (error) {
+          logger.error('Error handling audio_muted', error)
+        }
+      })
+    }
+
+    /**
+     * Stop and Restore outbound video on video_muted event
+     */
+    if (stopCameraWhileMuted) {
+      room.on('member.updated.video_muted', ({ member }) => {
+        try {
+          if (member.id === room.memberId && 'video_muted' in member) {
+            member.video_muted
+              ? room.stopOutboundVideo()
+              : room.restoreOutboundVideo()
+          }
+        } catch (error) {
+          logger.error('Error handling video_muted', error)
+        }
+      })
     }
 
     // WebRTC connection left the room.
