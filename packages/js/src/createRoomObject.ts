@@ -11,6 +11,7 @@ export interface CreateRoomObjectOptions extends UserOptions {
   autoJoin?: boolean
   stopCameraWhileMuted?: boolean
   stopMicrophoneWhileMuted?: boolean
+  sfuMode?: boolean
 }
 
 /**
@@ -48,6 +49,7 @@ export const createRoomObject = (roomOptions: CreateRoomObjectOptions) => {
       autoJoin = false,
       stopCameraWhileMuted = true,
       stopMicrophoneWhileMuted = true,
+      sfuMode = false,
       ...userOptions
     } = roomOptions
 
@@ -85,7 +87,7 @@ export const createRoomObject = (roomOptions: CreateRoomObjectOptions) => {
         hideOverlay,
       } = videoElementFactory({ rootElementId, applyLocalVideoOverlay })
 
-      room.on('layout.changed', (params: any) => {
+      room.on('layout.changed', (params) => {
         layoutChangedHandler({
           layout: params.layout,
           localVideoTrack: room.localVideoTrack,
@@ -93,7 +95,7 @@ export const createRoomObject = (roomOptions: CreateRoomObjectOptions) => {
         })
       })
 
-      room.on('member.updated.video_muted', (params: any) => {
+      room.on('member.updated.video_muted', (params) => {
         try {
           const { member } = params
           if (member.id === room.memberId && 'video_muted' in member) {
