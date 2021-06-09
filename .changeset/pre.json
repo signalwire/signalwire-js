@@ -10,5 +10,7 @@
     "@signalwire/webrtc": "0.0.0",
     "@sw-internal/pkg-typings": "0.0.0"
   },
-  "changesets": []
+  "changesets": [
+    "fast-eggs-develop"
+  ]
 }
