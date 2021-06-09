@@ -2,4 +2,4 @@
 '@signalwire/js': patch
 ---
 
-fix stopMicrophoneWhileMuted and stopCameraWhileMuted check
+Always check stopMicrophoneWhileMuted and stopCameraWhileMuted in createRoomObject
