@@ -1,0 +1,16 @@
+{
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "with-next.js": "0.0.0",
+    "@signalwire/core": "0.0.0",
+    "@signalwire/js": "0.0.0",
+    "@signalwire/node": "0.0.0",
+    "@signalwire/react-native": "0.0.0",
+    "@signalwire/webrtc": "0.0.0",
+    "@sw-internal/pkg-typings": "0.0.0"
+  },
+  "changesets": [
+    "fast-eggs-develop"
+  ]
+}
