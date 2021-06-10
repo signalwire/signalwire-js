@@ -1,6 +1,6 @@
 import { uuid, logger } from './utils'
 import { Session } from './Session'
-import { JWTSession } from './JWTSession'
+import { BaseJWTSession } from './BaseJWTSession'
 import { configureStore, connect } from './redux'
 import { SignalWire } from './SignalWire'
 import { BaseComponent } from './BaseComponent'
@@ -12,7 +12,7 @@ export {
   uuid,
   logger,
   Session,
-  JWTSession,
+  BaseJWTSession,
   BaseComponent,
   SignalWire,
   connect,

@@ -1,7 +1,10 @@
 import WS from 'jest-websocket-mock'
-
-import { JWTSession } from './JWTSession'
+import { BaseJWTSession } from './BaseJWTSession'
 import { BladeConnect } from './RPCMessages'
+
+export class JWTSession extends BaseJWTSession {
+  public WebSocketConstructor = WebSocket
+}
 
 jest.mock('uuid', () => {
   return {

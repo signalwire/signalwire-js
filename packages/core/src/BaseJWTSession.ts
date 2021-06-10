@@ -4,9 +4,7 @@ import { BladeConnect, BladeConnectParams } from './RPCMessages'
 import { SessionOptions } from './utils/interfaces'
 import { Session } from './Session'
 
-export class JWTSession extends Session {
-  public WebSocketConstructor = WebSocket
-
+export class BaseJWTSession extends Session {
   /**
    * Can be set a value different then zero
    * to force the JWT as expired within X seconds.
