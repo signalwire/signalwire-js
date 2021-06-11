@@ -6,16 +6,20 @@
   "private": true,
   "version": "0.0.0",
   "source": "src/index.ts",
-  "main": "dist/index.js",
   "esmodule": "./dist/index.modern.mjs",
   "type": "commonjs",
+  "main": "dist/node/core.js",
   "exports": {
     ".": {
-      "require": "./dist/index.js",
-      "default": "./dist/index.modern.mjs"
-    }
+      "node": {
+        "module": "./dist/node/core.esm.js",
+        "require": "./dist/node/core.js"
+      },
+      "default": "./dist/web/core.modern.mjs"
+    },
+    "./package.json": "./package.json"
   },
-  "module": "dist/index.esm.js",
+  "module": "./dist/node/core.esm.js",
   "files": [
     "dist",
     "src"
@@ -25,7 +29,9 @@
   },
   "scripts": {
     "start": "microbundle watch -f modern,es --define process.env.NODE_ENV=development --tsconfig tsconfig.build.json",
-    "build": "pkg-typings --pre-run && microbundle --external none -f modern,es,cjs --define process.env.NODE_ENV=production --tsconfig ./tsconfig.build.json --target node && pkg-typings --after-run",
+    "build": "npm run build:node && npm run build:web",
+    "build:web": "pkg-typings --pre-run && microbundle --external none -f modern,es,cjs --define process.env.NODE_ENV=production --tsconfig ./tsconfig.build.json --output dist/web/ --target web && pkg-typings --after-run",
+    "build:node": "pkg-typings --pre-run && microbundle -f modern,es,cjs --define process.env.NODE_ENV=production --tsconfig ./tsconfig.build.json --output dist/node/ --target node && pkg-typings --after-run",
     "test": "NODE_ENV=test jest",
     "prepare": "npm run build"
   },
