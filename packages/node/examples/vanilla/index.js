@@ -1,3 +1,3 @@
-const sdkNode = require('@signalwire/node')
+const nodeSdk = require('@signalwire/node')
 
-console.log('@signalwire/node', sdkNode)
+console.log('nodeSdk', nodeSdk.uuid())

@@ -8,6 +8,10 @@ import { Client } from './types'
 import { getConfig } from './utils/getConfig'
 import { createHttpClient } from './utils/httpClient'
 
+import { uuid } from '@signalwire/core'
+console.log('HELLO 2', uuid())
+export { uuid }
+
 export const createRestClient: Client = (options = {}) => {
   const config = getConfig(options)
 
