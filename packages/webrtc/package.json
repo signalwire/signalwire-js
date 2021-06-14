@@ -3,7 +3,6 @@
   "description": "SignalWire WebRTC library",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
-  "private": true,
   "version": "0.0.0",
   "source": "src/index.ts",
   "main": "dist/index.js",
@@ -16,6 +15,23 @@
   "engines": {
     "node": ">=10"
   },
+  "keywords": [
+    "signalwire",
+    "audio",
+    "video",
+    "rtc",
+    "real time communication",
+    "webrtc",
+    "relay"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/signalwire/signalwire-js"
+  },
+  "bugs": {
+    "url": "https://github.com/signalwire/signalwire-js/issues"
+  },
+  "homepage": "https://github.com/signalwire/signalwire-js/tree/master/packages/webrtc",
   "scripts": {
     "start": "microbundle watch -f modern,es --define process.env.NODE_ENV=development --tsconfig tsconfig.build.json",
     "build": "pkg-typings --pre-run && microbundle --external none -f modern,es,cjs --define process.env.NODE_ENV=production --tsconfig ./tsconfig.build.json --target node && pkg-typings --after-run",
