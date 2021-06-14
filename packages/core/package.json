@@ -38,8 +38,8 @@
   },
   "homepage": "https://github.com/signalwire/signalwire-js/tree/master/packages/core",
   "scripts": {
-    "start": "microbundle watch -f modern,es --define process.env.NODE_ENV=development --tsconfig tsconfig.build.json",
-    "build": "pkg-typings --pre-run && microbundle --external none -f modern,es,cjs --define process.env.NODE_ENV=production --tsconfig ./tsconfig.build.json --target node && pkg-typings --after-run",
+    "start": "microbundle watch -f modern,esm --define process.env.NODE_ENV=development --tsconfig tsconfig.build.json",
+    "build": "pkg-typings --pre-run && microbundle -f modern,esm,cjs --define process.env.NODE_ENV=production --tsconfig ./tsconfig.build.json --target node && pkg-typings --after-run",
     "test": "NODE_ENV=test jest",
     "prepare": "npm run build"
   },
