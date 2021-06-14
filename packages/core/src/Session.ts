@@ -14,6 +14,8 @@ import {
   IBladeConnectResult,
   JSONRPCRequest,
   JSONRPCResponse,
+  WebSocketAdapter,
+  WebSocketClient,
 } from './utils/interfaces'
 
 import {
@@ -33,13 +35,13 @@ import {
 export class Session {
   public uuid = uuid()
   public sessionid = ''
-  public WebSocketConstructor: typeof WebSocket
+  public WebSocketConstructor: WebSocketAdapter
 
   protected _bladeConnectResult: IBladeConnectResult
 
   private _requests = new Map<string, SessionRequestObject>()
   private _requestQueue: SessionRequestQueued[] = []
-  private _socket: WebSocket | null = null
+  private _socket: WebSocketClient | null = null
   private _idle = true
   private _host: string = DEFAULT_HOST
 
@@ -114,11 +116,11 @@ export class Session {
       logger.warn('Session already connected.')
       return
     }
-    this._socket = new this.WebSocketConstructor(this._host)
-    this._socket.onopen = this._onSocketOpen
-    this._socket.onclose = this._onSocketClose
-    this._socket.onerror = this._onSocketError
-    this._socket.onmessage = this._onSocketMessage
+    this._socket = new this.WebSocketConstructor(this._host)!
+    this._socket.addEventListener('open', this._onSocketOpen)
+    this._socket.addEventListener('close', this._onSocketClose)
+    this._socket.addEventListener('error', this._onSocketError)
+    this._socket.addEventListener('message', this._onSocketMessage)
   }
 
   /**
