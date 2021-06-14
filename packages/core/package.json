@@ -3,8 +3,7 @@
   "description": "Shared code for the SignalWire JS SDK",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
-  "private": true,
-  "version": "0.0.0",
+  "version": "3.0.0-beta.0",
   "source": "src/index.ts",
   "main": "dist/index.js",
   "esmodule": "./dist/index.modern.mjs",
@@ -23,6 +22,21 @@
   "engines": {
     "node": ">=10"
   },
+  "keywords": [
+    "signalwire",
+    "audio",
+    "video",
+    "relay",
+    "sip"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/signalwire/signalwire-js"
+  },
+  "bugs": {
+    "url": "https://github.com/signalwire/signalwire-js/issues"
+  },
+  "homepage": "https://github.com/signalwire/signalwire-js/tree/master/packages/core",
   "scripts": {
     "start": "microbundle watch -f modern,es --define process.env.NODE_ENV=development --tsconfig tsconfig.build.json",
     "build": "pkg-typings --pre-run && microbundle --external none -f modern,es,cjs --define process.env.NODE_ENV=production --tsconfig ./tsconfig.build.json --target node && pkg-typings --after-run",

@@ -3,7 +3,7 @@
   "description": "SignalWire JS SDK",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
-  "version": "3.0.0-beta.0",
+  "version": "3.0.0-beta.1",
   "source": "src/index.ts",
   "main": "dist/index.js",
   "exports": "./dist/index.modern.js",
@@ -32,7 +32,7 @@
   "bugs": {
     "url": "https://github.com/signalwire/signalwire-js/issues"
   },
-  "homepage": "https://github.com/signalwire/signalwire-node/tree/master/packages/js",
+  "homepage": "https://github.com/signalwire/signalwire-js/tree/master/packages/js",
   "scripts": {
     "start": "microbundle watch -f modern,es --define process.env.NODE_ENV=development --tsconfig tsconfig.build.json",
     "build": "pkg-typings --pre-run && microbundle --external none --define process.env.NODE_ENV=production --name SignalWire --tsconfig ./tsconfig.build.json && pkg-typings --after-run",
@@ -42,8 +42,8 @@
     "docs:watch": "typedoc --options typedoc.js --watch"
   },
   "dependencies": {
-    "@signalwire/core": "0.0.0",
-    "@signalwire/webrtc": "0.0.0",
+    "@signalwire/core": "3.0.0-beta.0",
+    "@signalwire/webrtc": "3.0.0-beta.0",
     "regenerator-runtime": "^0.13.7"
   },
   "types": "dist/js/src/index.d.ts"

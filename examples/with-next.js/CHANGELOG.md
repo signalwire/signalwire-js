@@ -1,5 +1,13 @@
 # with-next.js
 
+## 0.0.1-beta.1
+
+### Patch Changes
+
+- Updated dependencies [9e3a65a]
+  - @signalwire/js@3.0.0-beta.1
+  - @signalwire/node@0.0.1-beta.0
+
 ## 0.0.1-beta.0
 
 ### Patch Changes
