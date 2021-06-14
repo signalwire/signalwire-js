@@ -351,3 +351,13 @@ export type RoomMethod =
 export type BladeExecuteMethod =
   | RoomMethod
   | 'video.message'
+
+export interface WebSocketClient {
+  addEventListener: WebSocket['addEventListener']
+  send: WebSocket['send']
+  close: WebSocket['close']
+  readyState: WebSocket['readyState']
+}
+export interface WebSocketAdapter {
+  new (url: string, protocols?: any): WebSocketClient
+}
