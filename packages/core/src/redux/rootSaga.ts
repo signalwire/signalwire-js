@@ -34,7 +34,7 @@ export function* initSessionSaga(
   const session = new SessionConstructor(userOptions)
 
   // @ts-ignore
-  window.__session = session
+  // window.__session = session
 
   const sessionChannel: EventChannel<unknown> = yield call(
     createSessionChannel,
