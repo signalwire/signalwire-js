@@ -11,6 +11,8 @@
     "@sw-internal/pkg-typings": "0.0.0"
   },
   "changesets": [
-    "fast-eggs-develop"
+    "dull-islands-unite",
+    "fast-eggs-develop",
+    "sweet-needles-pretend"
   ]
 }
