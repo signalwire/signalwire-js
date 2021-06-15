@@ -60,6 +60,7 @@ export class BaseSession {
     this._onSocketClose = this._onSocketClose.bind(this)
     this._onSocketMessage = this._onSocketMessage.bind(this)
     this.execute = this.execute.bind(this)
+    this.connect = this.connect.bind(this)
 
     this.logger.setLevel(this.logger.levels.INFO)
   }
