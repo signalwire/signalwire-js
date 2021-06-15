@@ -1,6 +1,6 @@
 import WS from 'jest-websocket-mock'
 
-import { Session } from './Session'
+import { BaseSession } from './BaseSession'
 import { socketMessage } from './redux/actions'
 import {
   BladeConnect,
@@ -15,7 +15,7 @@ jest.mock('uuid', () => {
   }
 })
 
-describe('Session', () => {
+describe('BaseSession', () => {
   const host = 'ws://localhost:8080'
   const project = '2506edbc-35c4-4d9f-a5f0-45a03d82dab1'
   const token = 'PT1234abc'
@@ -28,10 +28,10 @@ describe('Session', () => {
   })
 
   let ws: WS
-  let session: Session
+  let session: BaseSession
   beforeEach(() => {
     ws = new WS(host)
-    session = new Session({
+    session = new BaseSession({
       host,
       project,
       token,

@@ -2,11 +2,9 @@ import { logger } from './utils/logger'
 import { sessionStorage } from './utils/storage/'
 import { BladeConnect, BladeConnectParams } from './RPCMessages'
 import { SessionOptions } from './utils/interfaces'
-import { Session } from './Session'
+import { BaseSession } from './BaseSession'
 
-export class JWTSession extends Session {
-  public WebSocketConstructor = WebSocket
-
+export class BaseJWTSession extends BaseSession {
   /**
    * Can be set a value different then zero
    * to force the JWT as expired within X seconds.

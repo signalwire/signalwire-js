@@ -1,5 +1,5 @@
 import { configureStore } from './redux'
-import { Session } from './Session'
+import { BaseSession } from './BaseSession'
 import { IBladeConnectResult } from './utils/interfaces'
 
 const PROJECT_ID = '8f0a119a-cda7-4497-a47d-c81493b824d4'
@@ -18,7 +18,7 @@ export const configureJestStore = () => {
       token: TOKEN,
       devTools: false,
     },
-    SessionConstructor: Session,
+    SessionConstructor: BaseSession,
     runSagaMiddleware: false,
   })
 }

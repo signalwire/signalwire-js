@@ -17,11 +17,11 @@ import {
   sessionConnected,
 } from './actions'
 import { sessionActions } from './features'
-import { Session } from '..'
+import { BaseSession } from '..'
 import { authError, authSuccess, socketClosed, socketError } from './actions'
 
 type StartSagaOptions = {
-  session: Session
+  session: BaseSession
   sessionChannel: EventChannel<unknown>
   pubSubChannel: Channel<unknown>
   userOptions: UserOptions
@@ -32,9 +32,6 @@ export function* initSessionSaga(
   userOptions: UserOptions
 ): SagaIterator {
   const session = new SessionConstructor(userOptions)
-
-  // @ts-ignore
-  window.__session = session
 
   const sessionChannel: EventChannel<unknown> = yield call(
     createSessionChannel,
@@ -75,7 +72,7 @@ export function* socketClosedWorker({
   pubSubChannel,
   payload: { code },
 }: {
-  session: Session
+  session: BaseSession
   sessionChannel: EventChannel<unknown>
   pubSubChannel: Channel<unknown>
   payload: SocketCloseParams

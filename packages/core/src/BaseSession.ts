@@ -14,6 +14,8 @@ import {
   IBladeConnectResult,
   JSONRPCRequest,
   JSONRPCResponse,
+  WebSocketAdapter,
+  WebSocketClient,
 } from './utils/interfaces'
 
 import {
@@ -30,16 +32,16 @@ import {
   socketMessage,
 } from './redux/actions'
 
-export class Session {
+export class BaseSession {
   public uuid = uuid()
   public sessionid = ''
-  public WebSocketConstructor: typeof WebSocket
+  public WebSocketConstructor: WebSocketAdapter
 
   protected _bladeConnectResult: IBladeConnectResult
 
   private _requests = new Map<string, SessionRequestObject>()
   private _requestQueue: SessionRequestQueued[] = []
-  private _socket: WebSocket | null = null
+  private _socket: WebSocketClient | null = null
   private _idle = true
   private _host: string = DEFAULT_HOST
 
@@ -58,6 +60,7 @@ export class Session {
     this._onSocketClose = this._onSocketClose.bind(this)
     this._onSocketMessage = this._onSocketMessage.bind(this)
     this.execute = this.execute.bind(this)
+    this.connect = this.connect.bind(this)
 
     this.logger.setLevel(this.logger.levels.INFO)
   }
@@ -115,10 +118,10 @@ export class Session {
       return
     }
     this._socket = new this.WebSocketConstructor(this._host)
-    this._socket.onopen = this._onSocketOpen
-    this._socket.onclose = this._onSocketClose
-    this._socket.onerror = this._onSocketError
-    this._socket.onmessage = this._onSocketMessage
+    this._socket.addEventListener('open', this._onSocketOpen)
+    this._socket.addEventListener('close', this._onSocketClose)
+    this._socket.addEventListener('error', this._onSocketError)
+    this._socket.addEventListener('message', this._onSocketMessage)
   }
 
   /**
@@ -204,7 +207,7 @@ export class Session {
   }
 
   protected async _onSocketOpen(event: Event) {
-    logger.debug('_onSocketOpen', event)
+    logger.debug('_onSocketOpen', event.type)
     this._idle = false
     try {
       await this.authenticate()
@@ -223,7 +226,7 @@ export class Session {
   }
 
   protected _onSocketClose(event: CloseEvent) {
-    logger.debug('_onSocketClose', event)
+    logger.debug('_onSocketClose', event.type, event.code, event.reason)
     this.dispatch(socketClosed({ code: event.code, reason: event.reason }))
     this._socket = null
   }

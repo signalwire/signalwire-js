@@ -1,6 +1,6 @@
 import { Store } from 'redux'
 import type { EventEmitter } from '../utils/EventEmitter'
-import { Session } from '../Session'
+import { BaseSession } from '../BaseSession'
 
 /**
  * Minimal interface the emitter must fulfill
@@ -96,7 +96,7 @@ export interface IBladeConnectResult {
   }
 }
 
-export type SessionConstructor = typeof Session
+export type SessionConstructor = typeof BaseSession
 
 export type SessionAuthStatus =
   | 'unknown'
@@ -351,3 +351,13 @@ export type RoomMethod =
 export type BladeExecuteMethod =
   | RoomMethod
   | 'video.message'
+
+export interface WebSocketClient {
+  addEventListener: WebSocket['addEventListener']
+  send: WebSocket['send']
+  close: WebSocket['close']
+  readyState: WebSocket['readyState']
+}
+export interface WebSocketAdapter {
+  new (url: string, protocols?: string | string[]): WebSocketClient
+}
