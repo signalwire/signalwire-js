@@ -33,9 +33,6 @@ export function* initSessionSaga(
 ): SagaIterator {
   const session = new SessionConstructor(userOptions)
 
-  // @ts-ignore
-  // window.__session = session
-
   const sessionChannel: EventChannel<unknown> = yield call(
     createSessionChannel,
     session
