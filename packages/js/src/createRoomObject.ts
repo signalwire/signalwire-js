@@ -1,4 +1,5 @@
 import { logger, UserOptions } from '@signalwire/core'
+import { RoomObject } from './Client'
 import { createClient } from './createClient'
 import { videoElementFactory } from './utils/videoElementFactory'
 
@@ -37,7 +38,9 @@ export interface CreateRoomObjectOptions extends UserOptions {
  * }
  * ```
  */
-export const createRoomObject = (roomOptions: CreateRoomObjectOptions) => {
+export const createRoomObject = (
+  roomOptions: CreateRoomObjectOptions
+): Promise<RoomObject> => {
   return new Promise(async (resolve, reject) => {
     const {
       audio = true,

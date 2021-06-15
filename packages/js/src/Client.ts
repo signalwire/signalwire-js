@@ -8,11 +8,13 @@ interface MakeCallOptions extends CallOptions {
   applyLocalVideoOverlay?: boolean
 }
 
+export type RoomObject = StrictEventEmitter<Call, CallEvents>
+
 export class Client extends SignalWire {
   get rooms() {
     return {
       makeCall: (options: MakeCallOptions) => {
-        const call: StrictEventEmitter<Call, CallEvents> = connect({
+        const call: RoomObject = connect({
           store: this.store,
           Component: Call,
           onStateChangeListeners: {
