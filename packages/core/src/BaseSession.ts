@@ -32,7 +32,7 @@ import {
   socketMessage,
 } from './redux/actions'
 
-export class Session {
+export class BaseSession {
   public uuid = uuid()
   public sessionid = ''
   public WebSocketConstructor: WebSocketAdapter
@@ -116,7 +116,7 @@ export class Session {
       logger.warn('Session already connected.')
       return
     }
-    this._socket = new this.WebSocketConstructor(this._host)!
+    this._socket = new this.WebSocketConstructor(this._host)
     this._socket.addEventListener('open', this._onSocketOpen)
     this._socket.addEventListener('close', this._onSocketClose)
     this._socket.addEventListener('error', this._onSocketError)

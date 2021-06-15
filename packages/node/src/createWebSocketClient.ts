@@ -7,7 +7,7 @@ import {
 } from '@signalwire/core'
 import StrictEventEmitter from 'strict-event-emitter-types'
 import { Client } from './Client'
-import { JWTSession } from './JWTSession'
+import { Session } from './Session'
 
 /**
  * ## Intro
@@ -58,7 +58,7 @@ export const createWebSocketClient = async (userOptions: UserOptions) => {
   }
   const store = configureStore({
     userOptions: baseUserOptions,
-    SessionConstructor: JWTSession,
+    SessionConstructor: Session,
   })
   const client: StrictEventEmitter<Client, ClientEvents> = new Client(
     baseUserOptions,

@@ -1,7 +1,7 @@
 import { SagaIterator, Channel, eventChannel, EventChannel } from 'redux-saga'
 import { call, put, take, fork } from 'redux-saga/effects'
 import { PayloadAction } from '@reduxjs/toolkit'
-import { Session } from '../../..'
+import { BaseSession } from '../../../BaseSession'
 import { VertoResult } from '../../../RPCMessages'
 import {
   JSONRPCRequest,
@@ -16,7 +16,7 @@ import { BladeExecute } from '../../../RPCMessages'
 import { logger } from '../../../utils'
 
 type SessionSagaParams = {
-  session: Session
+  session: BaseSession
   sessionChannel: EventChannel<unknown>
   pubSubChannel: Channel<unknown>
 }
@@ -32,7 +32,7 @@ type VertoWorkerParams = {
  * with "componentActions.executeSuccess" or "componentActions.executeFailure"
  * actions if a componentId is provided.
  */
-export function* executeActionWatcher(session: Session): SagaIterator {
+export function* executeActionWatcher(session: BaseSession): SagaIterator {
   function* worker(action: PayloadAction<ExecuteActionParams>): SagaIterator {
     const { componentId, requestId, method, params } = action.payload
     try {
@@ -291,7 +291,7 @@ export function* sessionChannelWatcher({
   }
 }
 
-export function createSessionChannel(session: Session) {
+export function createSessionChannel(session: BaseSession) {
   return eventChannel((emit) => {
     session.dispatch = (payload: PayloadAction<any>) => {
       emit(payload)

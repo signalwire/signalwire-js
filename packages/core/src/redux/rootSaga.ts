@@ -17,11 +17,11 @@ import {
   sessionConnected,
 } from './actions'
 import { sessionActions } from './features'
-import { Session } from '..'
+import { BaseSession } from '..'
 import { authError, authSuccess, socketClosed, socketError } from './actions'
 
 type StartSagaOptions = {
-  session: Session
+  session: BaseSession
   sessionChannel: EventChannel<unknown>
   pubSubChannel: Channel<unknown>
   userOptions: UserOptions
@@ -75,7 +75,7 @@ export function* socketClosedWorker({
   pubSubChannel,
   payload: { code },
 }: {
-  session: Session
+  session: BaseSession
   sessionChannel: EventChannel<unknown>
   pubSubChannel: Channel<unknown>
   payload: SocketCloseParams

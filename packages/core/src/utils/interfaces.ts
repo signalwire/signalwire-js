@@ -1,6 +1,6 @@
 import { Store } from 'redux'
 import type { EventEmitter } from '../utils/EventEmitter'
-import { Session } from '../Session'
+import { BaseSession } from '../BaseSession'
 
 /**
  * Minimal interface the emitter must fulfill
@@ -96,7 +96,7 @@ export interface IBladeConnectResult {
   }
 }
 
-export type SessionConstructor = typeof Session
+export type SessionConstructor = typeof BaseSession
 
 export type SessionAuthStatus =
   | 'unknown'
