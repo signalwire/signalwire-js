@@ -206,7 +206,7 @@ export class BaseSession {
   }
 
   protected async _onSocketOpen(event: Event) {
-    logger.debug('_onSocketOpen', event)
+    logger.debug('_onSocketOpen', event.type)
     this._idle = false
     try {
       await this.authenticate()
@@ -225,7 +225,7 @@ export class BaseSession {
   }
 
   protected _onSocketClose(event: CloseEvent) {
-    logger.debug('_onSocketClose', event)
+    logger.debug('_onSocketClose', event.type, event.code, event.reason)
     this.dispatch(socketClosed({ code: event.code, reason: event.reason }))
     this._socket = null
   }
