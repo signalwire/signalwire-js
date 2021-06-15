@@ -359,5 +359,5 @@ export interface WebSocketClient {
   readyState: WebSocket['readyState']
 }
 export interface WebSocketAdapter {
-  new (url: string, protocols?: any): WebSocketClient
+  new (url: string, protocols?: string | string[]): WebSocketClient
 }
