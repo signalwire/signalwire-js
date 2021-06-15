@@ -2,7 +2,7 @@ import WS from 'jest-websocket-mock'
 import { BaseJWTSession } from './BaseJWTSession'
 import { BladeConnect } from './RPCMessages'
 
-export class JWTSession extends BaseJWTSession {
+class JWTSession extends BaseJWTSession {
   public WebSocketConstructor = WebSocket
 }
 
