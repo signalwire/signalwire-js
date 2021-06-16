@@ -62,7 +62,7 @@ export class BaseSession {
     this.execute = this.execute.bind(this)
     this.connect = this.connect.bind(this)
 
-    this.logger.setLevel(this.logger.levels.DEBUG)
+    this.logger.setLevel(this.logger.levels.INFO)
   }
 
   get bladeConnectResult() {
@@ -307,9 +307,7 @@ export class BaseSession {
 
   private _closeConnection() {
     if (this._socket) {
-      // @ts-ignore
-      this._socket.terminate()
-      // this._socket.close()
+      this._socket.close()
       this._socket = null
     }
   }
