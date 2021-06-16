@@ -5,7 +5,7 @@ import {
   sdpBitrateHack,
   sdpMediaOrderHack,
 } from './utils/sdpHelpers'
-import { PeerType } from './utils/constants'
+import {} from './utils/constants'
 import { BaseCall } from './BaseCall'
 import {
   sdpToJsonHack,
@@ -22,7 +22,7 @@ export default class RTCPeer {
   private _iceTimeout: any
   private _negotiating = false
 
-  constructor(public call: BaseCall, public type: PeerType) {
+  constructor(public call: BaseCall, public type: RTCSdpType) {
     this.options = call.options
     logger.info('New Peer with type:', this.type, 'Options:', this.options)
 
@@ -32,11 +32,11 @@ export default class RTCPeer {
   }
 
   get isOffer() {
-    return this.type === PeerType.Offer
+    return this.type === 'offer'
   }
 
   get isAnswer() {
-    return this.type === PeerType.Answer
+    return this.type === 'answer'
   }
 
   get isSimulcast() {
@@ -244,7 +244,7 @@ export default class RTCPeer {
         logger.info('Trying to generate answer')
         await this._setRemoteDescription({
           sdp: this.options.remoteSdp,
-          type: PeerType.Offer,
+          type: 'offer',
         })
         const answer = await this.instance.createAnswer({
           voiceActivityDetection: false,
@@ -265,7 +265,7 @@ export default class RTCPeer {
 
   async onRemoteSdp(sdp: string) {
     try {
-      const type = this.isOffer ? PeerType.Answer : PeerType.Offer
+      const type = this.isOffer ? 'answer' : 'offer'
       await this._setRemoteDescription({ sdp, type })
     } catch (error) {
       logger.error(
