@@ -5,7 +5,6 @@ import {
   sdpBitrateHack,
   sdpMediaOrderHack,
 } from './utils/sdpHelpers'
-import {} from './utils/constants'
 import { BaseCall } from './BaseCall'
 import {
   sdpToJsonHack,
