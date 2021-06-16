@@ -22,5 +22,17 @@ export {
   createSpeakerDeviceWatcher,
   createCameraDeviceWatcher,
 } from './utils/deviceHelpers'
-export * from './utils/webrtcHelpers'
+export {
+  supportsMediaDevices,
+  getUserMedia,
+  getDisplayMedia,
+  enumerateDevices,
+  enumerateDevicesByKind,
+  getSupportedConstraints,
+  streamIsValid,
+  supportsMediaOutput,
+  setMediaElementSinkId,
+  stopStream,
+  stopTrack,
+} from './utils/webrtcHelpers'
 export * from './utils/interfaces'
