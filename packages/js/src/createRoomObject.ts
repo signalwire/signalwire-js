@@ -16,10 +16,10 @@ export interface CreateRoomObjectOptions extends UserOptions {
 
 /**
  * ## Intro
- * Using Video.createRoomObject you can create an RTCSession to join a room.
+ * Using Video.createRoomObject() you can create a `RoomObject` to join a room.
  *
  * ## Examples
- * Create the rtcSession object using the JWT.
+ * Create a roomObject using the token.
  *
  * @example
  * With an HTMLDivElement with id="root" in the DOM.
@@ -27,12 +27,12 @@ export interface CreateRoomObjectOptions extends UserOptions {
  * // <div id="root"></div>
  *
  * try {
- *   const rtcSession = await VideoSDK.createRTCSession({
+ *   const roomObj = await Video.createRoomObject({
  *     token: '<YourJWT>',
  *     rootElementId: 'root',
  *   })
  *
- *   rtcSession.join()
+ *   roomObj.join()
  * } catch (error) {
  *   console.error('Error', error)
  * }
