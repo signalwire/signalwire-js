@@ -149,14 +149,8 @@ export class BaseSession {
    * @return Promise that will resolve/reject depending on the server response
    */
   execute(msg: JSONRPCRequest | JSONRPCResponse): Promise<any> {
-    if (this._idle) {
+    if (this._idle || !this.connected) {
       return new Promise((resolve) => this._requestQueue.push({ resolve, msg }))
-    }
-    if (!this.connected) {
-      return new Promise((resolve) => {
-        this._requestQueue.push({ resolve, msg })
-        this.connect()
-      })
     }
     let promise: Promise<unknown>
     if ('params' in msg) {
