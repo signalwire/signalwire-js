@@ -211,6 +211,8 @@ export class BaseSession {
 
       // Testing drop connection
       setTimeout(() => {
+        console.log('----> Calling this._closeConnection()')
+
         this._closeConnection()
       }, 5000)
     } catch (error) {
@@ -308,8 +310,8 @@ export class BaseSession {
   private _closeConnection() {
     if (this._socket) {
       // @ts-ignore
-      this._socket.terminate()
-      // this._socket.close()
+      // this._socket.terminate()
+      this._socket.close()
       this._socket = null
     }
   }
