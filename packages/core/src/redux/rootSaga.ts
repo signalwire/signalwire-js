@@ -81,7 +81,8 @@ export function* socketClosedWorker({
   /**
    * @see https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
    */
-  if (code >= 1006 && code <= 1014) {
+  // TODO: restore to original its value 1006
+  if (code >= 1000 && code <= 1014) {
     yield put(sessionActions.statusChange('reconnecting'))
     yield put(pubSubChannel, sessionReconnecting())
     yield delay(Math.random() * 2000)
@@ -95,33 +96,38 @@ export function* socketClosedWorker({
 }
 
 export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
-  const { session, sessionChannel, pubSubChannel } = options
-  const action = yield take([
-    authSuccess.type,
-    socketError.type,
-    socketClosed.type,
-  ])
+  while (true) {
+    const { session, sessionChannel, pubSubChannel } = options
+    const action = yield take([
+      // authSuccess.type,
+      socketError.type,
+      socketClosed.type,
+    ])
 
-  console.log('>>> sessionStatusWatcher <<<', action.type)
+    console.log('>>> sessionStatusWatcher <<<', action.type)
 
-  switch (action.type) {
-    case authSuccess.type:
-      yield fork(startSaga, options)
-      break
-    case socketError.type:
-      // TODO: define if we want to emit external events here.
-      // yield put(pubSubChannel, {
-      //   type: 'socket.error',
-      //   payload: {},
-      // })
-      break
-    case socketClosed.type:
-      yield fork(socketClosedWorker, {
-        session,
-        sessionChannel,
-        pubSubChannel,
-        payload: action.payload,
-      })
+    switch (action.type) {
+      // TODO: see how to handle this case without relying on `startSaga`
+      // case authSuccess.type:
+      //   yield fork(startSaga, options)
+      //   break
+      case socketError.type:
+        // TODO: define if we want to emit external events here.
+        // yield put(pubSubChannel, {
+        //   type: 'socket.error',
+        //   payload: {},
+        // })
+        break
+      case socketClosed.type:
+        console.log('----> [sessionStatusWatcher] -> socketClosed type handler')
+
+        yield fork(socketClosedWorker, {
+          session,
+          sessionChannel,
+          pubSubChannel,
+          payload: action.payload,
+        })
+    }
   }
 }
 
@@ -129,6 +135,8 @@ export function* startSaga(options: StartSagaOptions): SagaIterator {
   const { session, sessionChannel, pubSubChannel, userOptions } = options
   yield put(sessionActions.connected(session.bladeConnectResult))
   yield put(pubSubChannel, sessionConnected())
+
+  console.log('----------> Start SAGA ------------------>')
 
   const pubSubTask: Task = yield fork(pubSubSaga, {
     pubSubChannel,
