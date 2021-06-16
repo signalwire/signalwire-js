@@ -11,7 +11,7 @@ import {
   CallState,
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
-import { DEFAULT_CALL_OPTIONS, PeerType, Direction } from './utils/constants'
+import { DEFAULT_CALL_OPTIONS } from './utils/constants'
 import {
   enableAudioTracks,
   disableAudioTracks,
@@ -46,7 +46,7 @@ interface MemberCommandWithValueParams extends MemberCommandParams {
 type BaseCallOptions = CallOptions & BaseComponentOptions
 export class BaseCall extends BaseComponent {
   public nodeId = ''
-  public direction: Direction
+  public direction: 'inbound' | 'outbound'
   public peer: RTCPeer
   public options: BaseCallOptions
   public cause: string
@@ -287,7 +287,7 @@ export class BaseCall extends BaseComponent {
   //         })
   //       } else {
   //         console.debug('updateDevices NOT FOUND - addTrack and start dancing!')
-  //         this.peer.type = PeerType.Offer
+  //         this.peer.type = 'offer'
   //         this.doReinvite = true
   //         this.options.localStream.addTrack(newTrack)
   //         instance.addTrack(newTrack, this.options.localStream)
@@ -311,8 +311,8 @@ export class BaseCall extends BaseComponent {
 
   invite() {
     return new Promise(async (resolve, reject) => {
-      this.direction = Direction.Outbound
-      this.peer = new RTCPeer(this, PeerType.Offer)
+      this.direction = 'outbound'
+      this.peer = new RTCPeer(this, 'offer')
       try {
         const _resolve = () => resolve(this)
 
@@ -331,8 +331,8 @@ export class BaseCall extends BaseComponent {
 
   async answer() {
     return new Promise(async (resolve, reject) => {
-      this.direction = Direction.Inbound
-      this.peer = new RTCPeer(this, PeerType.Answer)
+      this.direction = 'inbound'
+      this.peer = new RTCPeer(this, 'answer')
       try {
         const _resolve = () => resolve(this)
 
@@ -352,14 +352,14 @@ export class BaseCall extends BaseComponent {
   onLocalSDPReady(localDescription: RTCSessionDescription) {
     const { type, sdp } = localDescription
     switch (type) {
-      case PeerType.Offer:
+      case 'offer':
         // if (this.active) {
         //   this.executeUpdateMedia()
         // } else {
         this.executeInvite(sdp)
         // }
         break
-      case PeerType.Answer:
+      case 'answer':
         logger.warn('Unhandled verto.answer')
         // this.executeAnswer()
         break
