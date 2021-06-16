@@ -50,21 +50,17 @@ export function* initSessionSaga(
     pubSubChannel,
   })
 
-  console.log('>>> initSessionSaga connect <<<')
+  /**
+   * Fork the watcher for the session status
+   */
+  yield fork(sessionStatusWatcher, {
+    session,
+    sessionChannel,
+    pubSubChannel,
+    userOptions,
+  })
+
   session.connect()
-
-  const action = yield take([authSuccess.type, authError.type])
-
-  if (action.type === authError.type) {
-    throw new Error('Auth Error')
-  } else {
-    yield fork(startSaga, {
-      session,
-      sessionChannel,
-      pubSubChannel,
-      userOptions,
-    })
-  }
 }
 
 export function* socketClosedWorker({
@@ -96,32 +92,35 @@ export function* socketClosedWorker({
 
 export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
   const { session, sessionChannel, pubSubChannel } = options
-  const action = yield take([
-    authSuccess.type,
-    socketError.type,
-    socketClosed.type,
-  ])
+  while (true) {
+    const action = yield take([
+      authSuccess.type,
+      authError.type,
+      socketError.type,
+      socketClosed.type,
+    ])
 
-  console.log('>>> sessionStatusWatcher <<<', action.type)
-
-  switch (action.type) {
-    case authSuccess.type:
-      yield fork(startSaga, options)
-      break
-    case socketError.type:
-      // TODO: define if we want to emit external events here.
-      // yield put(pubSubChannel, {
-      //   type: 'socket.error',
-      //   payload: {},
-      // })
-      break
-    case socketClosed.type:
-      yield fork(socketClosedWorker, {
-        session,
-        sessionChannel,
-        pubSubChannel,
-        payload: action.payload,
-      })
+    switch (action.type) {
+      case authSuccess.type:
+        yield fork(startSaga, options)
+        break
+      case authError.type:
+        throw new Error('Auth Error')
+      case socketError.type:
+        // TODO: define if we want to emit external events here.
+        // yield put(pubSubChannel, {
+        //   type: 'socket.error',
+        //   payload: {},
+        // })
+        break
+      case socketClosed.type:
+        yield fork(socketClosedWorker, {
+          session,
+          sessionChannel,
+          pubSubChannel,
+          payload: action.payload,
+        })
+    }
   }
 }
 
@@ -141,17 +140,11 @@ export function* startSaga(options: StartSagaOptions): SagaIterator {
   const executeActionTask: Task = yield fork(executeActionWatcher, session)
 
   /**
-   * Fork the watcher for the session status
-   */
-  const sessionStatusTask: Task = yield fork(sessionStatusWatcher, options)
-
-  /**
    * Wait for a destroyAction to teardown all the things
    */
   yield take(destroyAction.type)
 
   pubSubTask.cancel()
-  sessionStatusTask.cancel()
   executeActionTask.cancel()
   pubSubChannel.close()
   sessionChannel.close()

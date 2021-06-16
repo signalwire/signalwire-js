@@ -85,8 +85,13 @@ describe('socketClosedWorker', () => {
   })
 })
 
-describe('sessionStatusWatcher', () => {
-  const actions = [authSuccess.type, socketError.type, socketClosed.type]
+describe.only('sessionStatusWatcher', () => {
+  const actions = [
+    authSuccess.type,
+    authError.type,
+    socketError.type,
+    socketClosed.type,
+  ]
   const session = {
     closed: true,
     connect: jest.fn(),
@@ -107,6 +112,17 @@ describe('sessionStatusWatcher', () => {
     const saga = testSaga(sessionStatusWatcher, options)
     saga.next().take(actions)
     saga.next(authSuccess()).fork(startSaga, options)
+    // Saga waits again for actions due to the while loop
+    saga.next().take(actions)
+  })
+
+  it('should throw Auth Error on authError action', () => {
+    const saga = testSaga(sessionStatusWatcher, options)
+    saga.next().take(actions)
+    expect(() => {
+      saga.next(authError({ error: { code: 123, error: 'Unauthorized' } }))
+    }).toThrow('Auth Error')
+    // Saga terminated due to the error
     saga.next().isDone()
   })
 
@@ -121,7 +137,8 @@ describe('sessionStatusWatcher', () => {
       sessionChannel,
       payload,
     })
-    saga.next().isDone()
+    // Saga waits again for actions due to the while loop
+    saga.next().take(actions)
   })
 })
 
@@ -142,7 +159,7 @@ describe('initSessionSaga', () => {
     session.connect.mockClear()
   })
 
-  it('should create the session, fork its watcher and fork startSaga in case of authSuccess', () => {
+  it('should create the session, the sessionChannel and fork watchers', () => {
     const saga = testSaga(initSessionSaga, SessionConstructor, userOptions)
     saga.next(sessionChannel).call(createSessionChannel, session)
     saga.next(sessionChannel).call(channel)
@@ -151,32 +168,14 @@ describe('initSessionSaga', () => {
       sessionChannel,
       pubSubChannel,
     })
-    saga.next().take([authSuccess.type, authError.type])
-    expect(session.connect).toHaveBeenCalledTimes(1)
-    saga.next(authSuccess()).fork(startSaga, {
+    saga.next().fork(sessionStatusWatcher, {
       session,
-      pubSubChannel,
       sessionChannel,
+      pubSubChannel,
       userOptions,
     })
     saga.next().isDone()
-  })
-
-  it('should create the session, fork its watcher and throw an error in case of authError', () => {
-    const saga = testSaga(initSessionSaga, SessionConstructor, userOptions)
-    saga.next(sessionChannel).call(createSessionChannel, session)
-    saga.next(sessionChannel).call(channel)
-    saga.next(pubSubChannel).fork(sessionChannelWatcher, {
-      session,
-      sessionChannel,
-      pubSubChannel,
-    })
-    saga.next().take([authSuccess.type, authError.type])
     expect(session.connect).toHaveBeenCalledTimes(1)
-    expect(() => {
-      saga.next(authError({ error: { code: 123, error: 'Unauthorized' } }))
-    }).toThrow('Auth Error')
-    saga.next().isDone()
   })
 })
 
@@ -203,7 +202,7 @@ describe('startSaga', () => {
   it('should put actions and fork watchers', () => {
     const pubSubTask = { cancel: jest.fn() }
     const executeActionTask = { cancel: jest.fn() }
-    const sessionStatusTask = { cancel: jest.fn() }
+    // const sessionStatusTask = { cancel: jest.fn() }
 
     const saga = testSaga(startSaga, options)
     saga.next().put(sessionActions.connected(session.bladeConnectResult))
@@ -216,14 +215,15 @@ describe('startSaga', () => {
 
     saga.next(pubSubTask).fork(executeActionWatcher, session)
 
-    saga.next(executeActionTask).fork(sessionStatusWatcher, options)
+    // saga.next(executeActionTask).fork(sessionStatusWatcher, options)
 
-    saga.next(sessionStatusTask).take(destroyAction.type)
+    // saga.next(sessionStatusTask).take(destroyAction.type)
+    saga.next(executeActionTask).take(destroyAction.type)
     saga.next().isDone()
 
     expect(pubSubTask.cancel).toHaveBeenCalledTimes(1)
     expect(executeActionTask.cancel).toHaveBeenCalledTimes(1)
-    expect(sessionStatusTask.cancel).toHaveBeenCalledTimes(1)
+    // expect(sessionStatusTask.cancel).toHaveBeenCalledTimes(1)
     expect(pubSubChannel.close).toHaveBeenCalledTimes(1)
     expect(sessionChannel.close).toHaveBeenCalledTimes(1)
   })
