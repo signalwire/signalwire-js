@@ -50,6 +50,7 @@ export function* initSessionSaga(
     pubSubChannel,
   })
 
+  console.log('>>> initSessionSaga connect <<<')
   session.connect()
 
   const action = yield take([authSuccess.type, authError.type])
@@ -84,6 +85,7 @@ export function* socketClosedWorker({
     yield put(sessionActions.statusChange('reconnecting'))
     yield put(pubSubChannel, sessionReconnecting())
     yield delay(Math.random() * 2000)
+    console.log('>>> socketClosedWorker reconnecting? <<<')
     yield call(session.connect)
   } else {
     sessionChannel.close()
@@ -99,6 +101,8 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
     socketError.type,
     socketClosed.type,
   ])
+
+  console.log('>>> sessionStatusWatcher <<<', action.type)
 
   switch (action.type) {
     case authSuccess.type:

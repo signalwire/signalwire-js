@@ -62,7 +62,7 @@ export class BaseSession {
     this.execute = this.execute.bind(this)
     this.connect = this.connect.bind(this)
 
-    this.logger.setLevel(this.logger.levels.INFO)
+    this.logger.setLevel(this.logger.levels.DEBUG)
   }
 
   get bladeConnectResult() {
@@ -208,6 +208,11 @@ export class BaseSession {
       this._emptyRequestQueue()
 
       this.dispatch(authSuccess())
+
+      // Testing drop connection
+      setTimeout(() => {
+        this._closeConnection()
+      }, 5000)
     } catch (error) {
       logger.error('Auth Error', error)
       this.dispatch(authError({ error }))
@@ -302,7 +307,9 @@ export class BaseSession {
 
   private _closeConnection() {
     if (this._socket) {
-      this._socket.close()
+      // @ts-ignore
+      this._socket.terminate()
+      // this._socket.close()
       this._socket = null
     }
   }
