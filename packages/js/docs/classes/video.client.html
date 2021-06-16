@@ -70,7 +70,7 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="tsd-signature-type">SignalWire</span>
+						<span class="tsd-signature-type">BaseClient</span>
 						<ul class="tsd-hierarchy">
 							<li>
 								<span class="target">Client</span>
@@ -129,9 +129,9 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from SignalWire.constructor</p>
+								<p>Inherited from BaseClient.constructor</p>
 								<ul>
-									<li>Defined in packages/core/dist/core/src/SignalWire.d.ts:5</li>
+									<li>Defined in packages/core/dist/core/src/BaseClient.d.ts:5</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -155,9 +155,9 @@
 					<h3>options</h3>
 					<div class="tsd-signature tsd-kind-icon">options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">BaseClientOptions</span></div>
 					<aside class="tsd-sources">
-						<p>Inherited from SignalWire.options</p>
+						<p>Inherited from BaseClient.options</p>
 						<ul>
-							<li>Defined in packages/core/dist/core/src/SignalWire.d.ts:4</li>
+							<li>Defined in packages/core/dist/core/src/BaseClient.d.ts:4</li>
 						</ul>
 					</aside>
 				</section>
@@ -166,9 +166,9 @@
 					<h3>store</h3>
 					<div class="tsd-signature tsd-kind-icon">store<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Store</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">AnyAction</span><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
-						<p>Inherited from SignalWire.store</p>
+						<p>Inherited from BaseClient.store</p>
 						<ul>
-							<li>Defined in packages/core/dist/core/src/SignalWire.d.ts:5</li>
+							<li>Defined in packages/core/dist/core/src/BaseClient.d.ts:5</li>
 						</ul>
 					</aside>
 				</section>
@@ -185,7 +185,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in packages/core/dist/core/src/SignalWire.d.ts:7</li>
+									<li>Defined in packages/core/dist/core/src/BaseClient.d.ts:7</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Emitter</span></h4>
@@ -196,23 +196,23 @@
 					<a name="rooms" class="tsd-anchor"></a>
 					<h3>rooms</h3>
 					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> rooms<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>makeCall<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">MakeCallOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">StrictEventEmitter</span><span class="tsd-signature-symbol">&lt;</span><a href="webrtc.call.html" class="tsd-signature-type" data-tsd-kind="Class">Call</a><span class="tsd-signature-symbol">, </span><a href="../modules/webrtc.html#callevents" class="tsd-signature-type" data-tsd-kind="Type alias">CallEvents</a><span class="tsd-signature-symbol">, </span><a href="../modules/webrtc.html#callevents" class="tsd-signature-type" data-tsd-kind="Type alias">CallEvents</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;addListener&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;addEventListener&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;removeListener&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;removeEventListener&quot;</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;on&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;once&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;emit&quot;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span></li>
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> rooms<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>makeCall<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">MakeCallOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><a href="../modules/video.html#roomobject" class="tsd-signature-type" data-tsd-kind="Type alias">RoomObject</a><span class="tsd-signature-symbol"> }</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/signalwire/video-sdk-poc/blob/49f6840/packages/js/src/Client.ts#L12">packages/js/src/Client.ts:12</a></li>
+									<li>Defined in <a href="https://github.com/signalwire/video-sdk-poc/blob/7f8bb21/packages/js/src/Client.ts#L14">packages/js/src/Client.ts:14</a></li>
 								</ul>
 							</aside>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">{ </span>makeCall<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">MakeCallOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">StrictEventEmitter</span><span class="tsd-signature-symbol">&lt;</span><a href="webrtc.call.html" class="tsd-signature-type" data-tsd-kind="Class">Call</a><span class="tsd-signature-symbol">, </span><a href="../modules/webrtc.html#callevents" class="tsd-signature-type" data-tsd-kind="Type alias">CallEvents</a><span class="tsd-signature-symbol">, </span><a href="../modules/webrtc.html#callevents" class="tsd-signature-type" data-tsd-kind="Type alias">CallEvents</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;addListener&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;addEventListener&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;removeListener&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;removeEventListener&quot;</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;on&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;once&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;emit&quot;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">{ </span>makeCall<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">MakeCallOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><a href="../modules/video.html#roomobject" class="tsd-signature-type" data-tsd-kind="Type alias">RoomObject</a><span class="tsd-signature-symbol"> }</span></h4>
 							<ul class="tsd-parameters">
 								<li class="tsd-parameter">
-									<h5>make<wbr>Call<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">MakeCallOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">StrictEventEmitter</span><span class="tsd-signature-symbol">&lt;</span><a href="webrtc.call.html" class="tsd-signature-type" data-tsd-kind="Class">Call</a><span class="tsd-signature-symbol">, </span><a href="../modules/webrtc.html#callevents" class="tsd-signature-type" data-tsd-kind="Type alias">CallEvents</a><span class="tsd-signature-symbol">, </span><a href="../modules/webrtc.html#callevents" class="tsd-signature-type" data-tsd-kind="Type alias">CallEvents</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;addListener&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;addEventListener&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;removeListener&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;removeEventListener&quot;</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;on&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;once&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;emit&quot;</span><span class="tsd-signature-symbol">&gt;</span></h5>
+									<h5>make<wbr>Call<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">MakeCallOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><a href="../modules/video.html#roomobject" class="tsd-signature-type" data-tsd-kind="Type alias">RoomObject</a></h5>
 									<ul class="tsd-parameters">
 										<li class="tsd-parameter-signature">
 											<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-literal">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">MakeCallOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">StrictEventEmitter</span><span class="tsd-signature-symbol">&lt;</span><a href="webrtc.call.html" class="tsd-signature-type" data-tsd-kind="Class">Call</a><span class="tsd-signature-symbol">, </span><a href="../modules/webrtc.html#callevents" class="tsd-signature-type" data-tsd-kind="Type alias">CallEvents</a><span class="tsd-signature-symbol">, </span><a href="../modules/webrtc.html#callevents" class="tsd-signature-type" data-tsd-kind="Type alias">CallEvents</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;addListener&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;addEventListener&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;removeListener&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;removeEventListener&quot;</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;on&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;once&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;emit&quot;</span><span class="tsd-signature-symbol">&gt;</span></li>
+												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">MakeCallOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules/video.html#roomobject" class="tsd-signature-type" data-tsd-kind="Type alias">RoomObject</a></li>
 											</ul>
 											<ul class="tsd-descriptions">
 												<li class="tsd-description">
@@ -222,7 +222,7 @@
 															<h5>options: <span class="tsd-signature-type">MakeCallOptions</span></h5>
 														</li>
 													</ul>
-													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">StrictEventEmitter</span><span class="tsd-signature-symbol">&lt;</span><a href="webrtc.call.html" class="tsd-signature-type" data-tsd-kind="Class">Call</a><span class="tsd-signature-symbol">, </span><a href="../modules/webrtc.html#callevents" class="tsd-signature-type" data-tsd-kind="Type alias">CallEvents</a><span class="tsd-signature-symbol">, </span><a href="../modules/webrtc.html#callevents" class="tsd-signature-type" data-tsd-kind="Type alias">CallEvents</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;addListener&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;addEventListener&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;removeListener&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;removeEventListener&quot;</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;on&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;once&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;emit&quot;</span><span class="tsd-signature-symbol">&gt;</span></h4>
+													<h4 class="tsd-returns-title">Returns <a href="../modules/video.html#roomobject" class="tsd-signature-type" data-tsd-kind="Type alias">RoomObject</a></h4>
 												</li>
 											</ul>
 										</li>
@@ -244,30 +244,15 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from SignalWire.connect</p>
+								<p>Inherited from BaseClient.connect</p>
 								<ul>
-									<li>Defined in packages/core/dist/core/src/SignalWire.d.ts:32</li>
+									<li>Defined in packages/core/dist/core/src/BaseClient.d.ts:18</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
 									<p>Connect the underlay WebSocket connection to the SignalWire network.</p>
 								</div>
-								<dl class="tsd-comment-tags">
-									<dt>example</dt>
-									<dd><pre><code class="language-js"><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">client</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">Video</span><span style="color: #000000">.</span><span style="color: #795E26">createClient</span><span style="color: #000000">({</span>
-<span style="color: #000000">  </span><span style="color: #001080">token:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;&lt;YourJWT&gt;&#039;</span><span style="color: #000000">,</span>
-<span style="color: #000000">  </span><span style="color: #001080">autoConnect:</span><span style="color: #000000"> </span><span style="color: #0000FF">false</span><span style="color: #000000">,</span>
-<span style="color: #000000">})</span>
-
-<span style="color: #001080">client</span><span style="color: #000000">.</span><span style="color: #795E26">on</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;socket.closed&#039;</span><span style="color: #000000">, () </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
-<span style="color: #000000">  </span><span style="color: #008000">// The WebSocket connection is closed</span>
-<span style="color: #000000">})</span>
-
-<span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">client</span><span style="color: #000000">.</span><span style="color: #795E26">connect</span><span style="color: #000000">()</span>
-</code></pre>
-									</dd>
-								</dl>
 							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="video.client.html" class="tsd-signature-type" data-tsd-kind="Class">Client</a><span class="tsd-signature-symbol">&gt;</span></h4>
 							<p>Promise that will resolve with the Client object.</p>
@@ -283,29 +268,18 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from SignalWire.disconnect</p>
+								<p>Inherited from BaseClient.disconnect</p>
 								<ul>
-									<li>Defined in packages/core/dist/core/src/SignalWire.d.ts:47</li>
+									<li>Defined in packages/core/dist/core/src/BaseClient.d.ts:24</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
 									<p>Disconnect the Client from the SignalWire network.</p>
 								</div>
-								<dl class="tsd-comment-tags">
-									<dt>example</dt>
-									<dd><pre><code class="language-js"><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">client</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">Video</span><span style="color: #000000">.</span><span style="color: #795E26">createClient</span><span style="color: #000000">({</span>
-<span style="color: #000000">  </span><span style="color: #001080">token:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;&lt;YourJWT&gt;&#039;</span><span style="color: #000000">,</span>
-<span style="color: #000000">})</span>
-
-<span style="color: #008000">// .. use your client...</span>
-
-<span style="color: #001080">client</span><span style="color: #000000">.</span><span style="color: #795E26">disconnect</span><span style="color: #000000">()</span>
-</code></pre>
-									</dd>
-								</dl>
 							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+							<p>void</p>
 						</li>
 					</ul>
 				</section>
@@ -318,9 +292,9 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from SignalWire.emit</p>
+								<p>Inherited from BaseClient.emit</p>
 								<ul>
-									<li>Defined in packages/core/dist/core/src/SignalWire.d.ts:11</li>
+									<li>Defined in packages/core/dist/core/src/BaseClient.d.ts:11</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -342,9 +316,9 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from SignalWire.off</p>
+								<p>Inherited from BaseClient.off</p>
 								<ul>
-									<li>Defined in packages/core/dist/core/src/SignalWire.d.ts:9</li>
+									<li>Defined in packages/core/dist/core/src/BaseClient.d.ts:9</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -366,9 +340,9 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from SignalWire.on</p>
+								<p>Inherited from BaseClient.on</p>
 								<ul>
-									<li>Defined in packages/core/dist/core/src/SignalWire.d.ts:8</li>
+									<li>Defined in packages/core/dist/core/src/BaseClient.d.ts:8</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -390,9 +364,9 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from SignalWire.once</p>
+								<p>Inherited from BaseClient.once</p>
 								<ul>
-									<li>Defined in packages/core/dist/core/src/SignalWire.d.ts:10</li>
+									<li>Defined in packages/core/dist/core/src/BaseClient.d.ts:10</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -414,9 +388,9 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from SignalWire.removeAllListeners</p>
+								<p>Inherited from BaseClient.removeAllListeners</p>
 								<ul>
-									<li>Defined in packages/core/dist/core/src/SignalWire.d.ts:12</li>
+									<li>Defined in packages/core/dist/core/src/BaseClient.d.ts:12</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -492,6 +466,12 @@
 					</li>
 				</ul>
 				<ul class="after-current">
+					<li class=" tsd-kind-interface tsd-parent-kind-namespace">
+						<a href="../interfaces/video.createroomobjectoptions.html" class="tsd-kind-icon">Create<wbr>Room<wbr>Object<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-namespace">
+						<a href="../modules/video.html#roomobject" class="tsd-kind-icon">Room<wbr>Object</a>
+					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-namespace">
 						<a href="../modules/video.html#createclient" class="tsd-kind-icon">create<wbr>Client</a>
 					</li>

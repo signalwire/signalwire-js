@@ -74,6 +74,18 @@
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
+							<h3>Interfaces</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-interface tsd-parent-kind-namespace"><a href="../interfaces/video.createroomobjectoptions.html" class="tsd-kind-icon">Create<wbr>Room<wbr>Object<wbr>Options</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Type aliases</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-type-alias tsd-parent-kind-namespace"><a href="video.html#roomobject" class="tsd-kind-icon">Room<wbr>Object</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
 							<h3>Functions</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-function tsd-parent-kind-namespace"><a href="video.html#createclient" class="tsd-kind-icon">create<wbr>Client</a></li>
@@ -85,18 +97,31 @@
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Type aliases</h2>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-parent-kind-namespace">
+					<a name="roomobject" class="tsd-anchor"></a>
+					<h3>Room<wbr>Object</h3>
+					<div class="tsd-signature tsd-kind-icon">Room<wbr>Object<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">StrictEventEmitter</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/webrtc.call.html" class="tsd-signature-type" data-tsd-kind="Class">Call</a><span class="tsd-signature-symbol">, </span><a href="webrtc.html#callevents" class="tsd-signature-type" data-tsd-kind="Type alias">CallEvents</a><span class="tsd-signature-symbol">&gt;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/signalwire/video-sdk-poc/blob/7f8bb21/packages/js/src/Client.ts#L11">packages/js/src/Client.ts:11</a></li>
+						</ul>
+					</aside>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Functions</h2>
 				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-namespace">
 					<a name="createclient" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagConst">Const</span> create<wbr>Client</h3>
 					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-namespace">
-						<li class="tsd-signature tsd-kind-icon">create<wbr>Client<span class="tsd-signature-symbol">(</span>userOptions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">UserOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">StrictEventEmitter</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/video.client.html" class="tsd-signature-type" data-tsd-kind="Class">Client</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">ClientEvents</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">ClientEvents</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;addListener&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;addEventListener&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;removeListener&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;removeEventListener&quot;</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;on&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;once&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;emit&quot;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">create<wbr>Client<span class="tsd-signature-symbol">(</span>userOptions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">UserOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/video.client.html" class="tsd-signature-type" data-tsd-kind="Class">Client</a><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/signalwire/video-sdk-poc/blob/49f6840/packages/js/src/createClient.ts#L54">packages/js/src/createClient.ts:54</a></li>
+									<li>Defined in <a href="https://github.com/signalwire/video-sdk-poc/blob/7f8bb21/packages/js/src/createClient.ts#L54">packages/js/src/createClient.ts:54</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -104,22 +129,22 @@
 									<a href="#intro" id="intro" style="color: inherit; text-decoration: none;">
 										<h2>Intro</h2>
 									</a>
-									<p>With VideoSDK.createClient you can establish a WebSocket connection
+									<p>With Video.createClient() you can establish a WebSocket connection
 									with SignalWire and interact with the client.</p>
 								</div>
 								<a href="#examples" id="examples" style="color: inherit; text-decoration: none;">
 									<h2>Examples</h2>
 								</a>
-								<p>Create a client using the JWT</p>
+								<p>Create a client</p>
 								<dl class="tsd-comment-tags">
 									<dt>example</dt>
 									<dd><p>With autoConnect true the client is ready to be used.</p>
 										<pre><code class="language-js"><span style="color: #AF00DB">try</span><span style="color: #000000"> {</span>
-<span style="color: #000000">  </span><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">client</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">VideoSDK</span><span style="color: #000000">.</span><span style="color: #795E26">createClient</span><span style="color: #000000">({</span>
-<span style="color: #000000">    </span><span style="color: #001080">token:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;&lt;YourJWT&gt;&#039;</span><span style="color: #000000">,</span>
+<span style="color: #000000">  </span><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">client</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">Video</span><span style="color: #000000">.</span><span style="color: #795E26">createClient</span><span style="color: #000000">({</span>
+<span style="color: #000000">    </span><span style="color: #001080">token:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;&lt;YourToken&gt;&#039;</span><span style="color: #000000">,</span>
 <span style="color: #000000">  })</span>
 
-<span style="color: #008000">// Your client is already connected..</span>
+<span style="color: #000000">  </span><span style="color: #008000">// Your client is already connected..</span>
 <span style="color: #000000">} </span><span style="color: #AF00DB">catch</span><span style="color: #000000"> (</span><span style="color: #001080">error</span><span style="color: #000000">) {</span>
 <span style="color: #000000">  </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">error</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;Auth Error&#039;</span><span style="color: #000000">, </span><span style="color: #001080">error</span><span style="color: #000000">)</span>
 <span style="color: #000000">}</span>
@@ -128,7 +153,7 @@
 									<dt>example</dt>
 									<dd><p>With autoConnect false you can attach additional handlers.</p>
 										<pre><code class="language-js"><span style="color: #AF00DB">try</span><span style="color: #000000"> {</span>
-<span style="color: #000000">  </span><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">client</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">VideoSDK</span><span style="color: #000000">.</span><span style="color: #795E26">createClient</span><span style="color: #000000">({</span>
+<span style="color: #000000">  </span><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">client</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">Video</span><span style="color: #000000">.</span><span style="color: #795E26">createClient</span><span style="color: #000000">({</span>
 <span style="color: #000000">    </span><span style="color: #001080">token:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;&lt;YourJWT&gt;&#039;</span><span style="color: #000000">,</span>
 <span style="color: #000000">    </span><span style="color: #001080">autoConnect:</span><span style="color: #000000"> </span><span style="color: #0000FF">false</span><span style="color: #000000">,</span>
 <span style="color: #000000">  })</span>
@@ -152,7 +177,7 @@
 									<h5>userOptions: <span class="tsd-signature-type">UserOptions</span></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">StrictEventEmitter</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/video.client.html" class="tsd-signature-type" data-tsd-kind="Class">Client</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">ClientEvents</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">ClientEvents</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;addListener&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;addEventListener&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;removeListener&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;removeEventListener&quot;</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;on&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;once&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;emit&quot;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/video.client.html" class="tsd-signature-type" data-tsd-kind="Class">Client</a><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -160,13 +185,13 @@
 					<a name="createroomobject" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagConst">Const</span> create<wbr>Room<wbr>Object</h3>
 					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-namespace">
-						<li class="tsd-signature tsd-kind-icon">create<wbr>Room<wbr>Object<span class="tsd-signature-symbol">(</span>roomOptions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">CreateRoomObjectOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">create<wbr>Room<wbr>Object<span class="tsd-signature-symbol">(</span>roomOptions<span class="tsd-signature-symbol">: </span><a href="../interfaces/video.createroomobjectoptions.html" class="tsd-signature-type" data-tsd-kind="Interface">CreateRoomObjectOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="video.html#roomobject" class="tsd-signature-type" data-tsd-kind="Type alias">RoomObject</a><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/signalwire/video-sdk-poc/blob/49f6840/packages/js/src/createRoomObject.ts#L40">packages/js/src/createRoomObject.ts:40</a></li>
+									<li>Defined in <a href="https://github.com/signalwire/video-sdk-poc/blob/7f8bb21/packages/js/src/createRoomObject.ts#L41">packages/js/src/createRoomObject.ts:41</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -174,24 +199,24 @@
 									<a href="#intro" id="intro" style="color: inherit; text-decoration: none;">
 										<h2>Intro</h2>
 									</a>
-									<p>Using Video.createRoomObject you can create an RTCSession to join a room.</p>
+									<p>Using Video.createRoomObject() you can create a <code>RoomObject</code> to join a room.</p>
 								</div>
 								<a href="#examples" id="examples" style="color: inherit; text-decoration: none;">
 									<h2>Examples</h2>
 								</a>
-								<p>Create the rtcSession object using the JWT.</p>
+								<p>Create a roomObject using the token.</p>
 								<dl class="tsd-comment-tags">
 									<dt>example</dt>
 									<dd><p>With an HTMLDivElement with id=&quot;root&quot; in the DOM.</p>
 										<pre><code class="language-js"><span style="color: #008000">// &lt;div id=&quot;root&quot;&gt;&lt;/div&gt;</span>
 
 <span style="color: #AF00DB">try</span><span style="color: #000000"> {</span>
-<span style="color: #000000">  </span><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">rtcSession</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">VideoSDK</span><span style="color: #000000">.</span><span style="color: #795E26">createRTCSession</span><span style="color: #000000">({</span>
+<span style="color: #000000">  </span><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">roomObj</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">Video</span><span style="color: #000000">.</span><span style="color: #795E26">createRoomObject</span><span style="color: #000000">({</span>
 <span style="color: #000000">    </span><span style="color: #001080">token:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;&lt;YourJWT&gt;&#039;</span><span style="color: #000000">,</span>
 <span style="color: #000000">    </span><span style="color: #001080">rootElementId:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;root&#039;</span><span style="color: #000000">,</span>
 <span style="color: #000000">  })</span>
 
-<span style="color: #000000">  </span><span style="color: #001080">rtcSession</span><span style="color: #000000">.</span><span style="color: #795E26">join</span><span style="color: #000000">()</span>
+<span style="color: #000000">  </span><span style="color: #001080">roomObj</span><span style="color: #000000">.</span><span style="color: #795E26">join</span><span style="color: #000000">()</span>
 <span style="color: #000000">} </span><span style="color: #AF00DB">catch</span><span style="color: #000000"> (</span><span style="color: #001080">error</span><span style="color: #000000">) {</span>
 <span style="color: #000000">  </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">error</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;Error&#039;</span><span style="color: #000000">, </span><span style="color: #001080">error</span><span style="color: #000000">)</span>
 <span style="color: #000000">}</span>
@@ -202,10 +227,10 @@
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>roomOptions: <span class="tsd-signature-type">CreateRoomObjectOptions</span></h5>
+									<h5>roomOptions: <a href="../interfaces/video.createroomobjectoptions.html" class="tsd-signature-type" data-tsd-kind="Interface">CreateRoomObjectOptions</a></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="video.html#roomobject" class="tsd-signature-type" data-tsd-kind="Type alias">RoomObject</a><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -213,22 +238,52 @@
 					<a name="joinroom" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagConst">Const</span> join<wbr>Room</h3>
 					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-namespace">
-						<li class="tsd-signature tsd-kind-icon">join<wbr>Room<span class="tsd-signature-symbol">(</span>roomOptions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">CreateRoomObjectOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">join<wbr>Room<span class="tsd-signature-symbol">(</span>roomOptions<span class="tsd-signature-symbol">: </span><a href="../interfaces/video.createroomobjectoptions.html" class="tsd-signature-type" data-tsd-kind="Interface">CreateRoomObjectOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="video.html#roomobject" class="tsd-signature-type" data-tsd-kind="Type alias">RoomObject</a><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/signalwire/video-sdk-poc/blob/49f6840/packages/js/src/joinRoom.ts#L3">packages/js/src/joinRoom.ts:3</a></li>
+									<li>Defined in <a href="https://github.com/signalwire/video-sdk-poc/blob/7f8bb21/packages/js/src/joinRoom.ts#L27">packages/js/src/joinRoom.ts:27</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<a href="#intro" id="intro" style="color: inherit; text-decoration: none;">
+										<h2>Intro</h2>
+									</a>
+									<p>Using Video.joinRoom() you can automatically join a room.</p>
+								</div>
+								<a href="#examples" id="examples" style="color: inherit; text-decoration: none;">
+									<h2>Examples</h2>
+								</a>
+								<p>Join a room using the token.</p>
+								<dl class="tsd-comment-tags">
+									<dt>example</dt>
+									<dd><p>With an HTMLDivElement with id=&quot;root&quot; in the DOM.</p>
+										<pre><code class="language-js"><span style="color: #008000">// &lt;div id=&quot;root&quot;&gt;&lt;/div&gt;</span>
+
+<span style="color: #AF00DB">try</span><span style="color: #000000"> {</span>
+<span style="color: #000000">  </span><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">roomObj</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">Video</span><span style="color: #000000">.</span><span style="color: #795E26">joinRoom</span><span style="color: #000000">({</span>
+<span style="color: #000000">    </span><span style="color: #001080">token:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;&lt;YourJWT&gt;&#039;</span><span style="color: #000000">,</span>
+<span style="color: #000000">    </span><span style="color: #001080">rootElementId:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;root&#039;</span><span style="color: #000000">,</span>
+<span style="color: #000000">  })</span>
+
+<span style="color: #000000">  </span><span style="color: #008000">// You have joined the room..</span>
+<span style="color: #000000">} </span><span style="color: #AF00DB">catch</span><span style="color: #000000"> (</span><span style="color: #001080">error</span><span style="color: #000000">) {</span>
+<span style="color: #000000">  </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">error</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;Error&#039;</span><span style="color: #000000">, </span><span style="color: #001080">error</span><span style="color: #000000">)</span>
+<span style="color: #000000">}</span>
+</code></pre>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>roomOptions: <span class="tsd-signature-type">CreateRoomObjectOptions</span></h5>
+									<h5>roomOptions: <a href="../interfaces/video.createroomobjectoptions.html" class="tsd-signature-type" data-tsd-kind="Interface">CreateRoomObjectOptions</a></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="video.html#roomobject" class="tsd-signature-type" data-tsd-kind="Type alias">RoomObject</a><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -252,6 +307,12 @@
 				<ul class="before-current">
 					<li class=" tsd-kind-class tsd-parent-kind-namespace">
 						<a href="../classes/video.client.html" class="tsd-kind-icon">Client</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-namespace">
+						<a href="../interfaces/video.createroomobjectoptions.html" class="tsd-kind-icon">Create<wbr>Room<wbr>Object<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-namespace">
+						<a href="video.html#roomobject" class="tsd-kind-icon">Room<wbr>Object</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-namespace">
 						<a href="video.html#createclient" class="tsd-kind-icon">create<wbr>Client</a>
