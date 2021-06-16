@@ -2,7 +2,7 @@ import { uuid, logger } from './utils'
 import { BaseSession } from './BaseSession'
 import { BaseJWTSession } from './BaseJWTSession'
 import { configureStore, connect } from './redux'
-import { SignalWire } from './SignalWire'
+import { BaseClient } from './BaseClient'
 import { BaseComponent } from './BaseComponent'
 import { EventEmitter, getEventEmitter } from './utils/EventEmitter'
 import * as sessionSelectors from './redux/features/session/sessionSelectors'
@@ -14,7 +14,7 @@ export {
   BaseSession,
   BaseJWTSession,
   BaseComponent,
-  SignalWire,
+  BaseClient,
   connect,
   configureStore,
   EventEmitter,

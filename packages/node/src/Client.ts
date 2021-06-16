@@ -1,3 +1,3 @@
-import { SignalWire } from '@signalwire/core'
+import { BaseClient } from '@signalwire/core'
 
-export class Client extends SignalWire {}
+export class Client extends BaseClient {}
