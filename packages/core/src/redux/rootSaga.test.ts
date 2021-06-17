@@ -85,7 +85,7 @@ describe('socketClosedWorker', () => {
   })
 })
 
-describe.only('sessionStatusWatcher', () => {
+describe('sessionStatusWatcher', () => {
   const actions = [
     authSuccess.type,
     authError.type,
