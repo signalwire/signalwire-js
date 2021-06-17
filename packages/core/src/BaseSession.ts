@@ -309,7 +309,9 @@ export class BaseSession {
     )
   }
 
-  private _closeConnection(status: SessionStatus) {
+  private _closeConnection(
+    status: Extract<SessionStatus, 'reconnecting' | 'disconnected'>
+  ) {
     this._status = status
     if (this._socket) {
       this._socket.close()
