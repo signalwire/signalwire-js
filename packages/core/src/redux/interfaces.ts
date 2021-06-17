@@ -46,7 +46,6 @@ export interface SessionState {
   iceServers?: RTCIceServer[]
   authStatus: SessionAuthStatus
   authError?: SessionAuthError
-  status: SessionStatus
 }
 
 export interface SDKState {
@@ -59,9 +58,4 @@ export interface ExecuteActionParams {
   componentId?: string
   method: BladeExecuteMethod
   params: Record<string, any>
-}
-
-export interface SocketCloseParams {
-  code: number
-  reason: string
 }

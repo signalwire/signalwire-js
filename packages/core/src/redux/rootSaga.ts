@@ -1,7 +1,6 @@
 import { Task, SagaIterator, Channel } from '@redux-saga/types'
 import { channel, EventChannel } from 'redux-saga'
 import { fork, call, take, put, delay } from 'redux-saga/effects'
-import { SocketCloseParams } from './interfaces'
 import { UserOptions, SessionConstructor } from '../utils/interfaces'
 import {
   executeActionWatcher,
@@ -19,6 +18,7 @@ import {
 import { sessionActions } from './features'
 import { BaseSession } from '..'
 import { authError, authSuccess, socketClosed, socketError } from './actions'
+import { AuthError } from '../CustomErrors'
 
 type StartSagaOptions = {
   session: BaseSession
@@ -50,74 +50,68 @@ export function* initSessionSaga(
     pubSubChannel,
   })
 
+  /**
+   * Fork the watcher for the session status
+   */
+  yield fork(sessionStatusWatcher, {
+    session,
+    sessionChannel,
+    pubSubChannel,
+    userOptions,
+  })
+
   session.connect()
-
-  const action = yield take([authSuccess.type, authError.type])
-
-  if (action.type === authError.type) {
-    throw new Error('Auth Error')
-  } else {
-    yield fork(startSaga, {
-      session,
-      sessionChannel,
-      pubSubChannel,
-      userOptions,
-    })
-  }
 }
 
 export function* socketClosedWorker({
   session,
   sessionChannel,
   pubSubChannel,
-  payload: { code },
 }: {
   session: BaseSession
   sessionChannel: EventChannel<unknown>
   pubSubChannel: Channel<unknown>
-  payload: SocketCloseParams
 }) {
-  /**
-   * @see https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
-   */
-  if (code >= 1006 && code <= 1014) {
-    yield put(sessionActions.statusChange('reconnecting'))
+  if (session.status === 'reconnecting') {
     yield put(pubSubChannel, sessionReconnecting())
     yield delay(Math.random() * 2000)
     yield call(session.connect)
   } else {
     sessionChannel.close()
-    yield put(sessionActions.statusChange('disconnected'))
     yield put(pubSubChannel, sessionDisconnected())
   }
 }
 
 export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
-  const { session, sessionChannel, pubSubChannel } = options
-  const action = yield take([
-    authSuccess.type,
-    socketError.type,
-    socketClosed.type,
-  ])
+  while (true) {
+    const action = yield take([
+      authSuccess.type,
+      authError.type,
+      socketError.type,
+      socketClosed.type,
+    ])
 
-  switch (action.type) {
-    case authSuccess.type:
-      yield fork(startSaga, options)
-      break
-    case socketError.type:
-      // TODO: define if we want to emit external events here.
-      // yield put(pubSubChannel, {
-      //   type: 'socket.error',
-      //   payload: {},
-      // })
-      break
-    case socketClosed.type:
-      yield fork(socketClosedWorker, {
-        session,
-        sessionChannel,
-        pubSubChannel,
-        payload: action.payload,
-      })
+    switch (action.type) {
+      case authSuccess.type:
+        yield fork(startSaga, options)
+        break
+      case authError.type: {
+        const { error: authError } = action.payload
+        const error = authError
+          ? new AuthError(authError.code, authError.error)
+          : new Error('Unauthorized')
+        throw error
+      }
+      case socketError.type:
+        // TODO: define if we want to emit external events here.
+        // yield put(pubSubChannel, {
+        //   type: 'socket.error',
+        //   payload: {},
+        // })
+        break
+      case socketClosed.type:
+        yield fork(socketClosedWorker, options)
+    }
   }
 }
 
@@ -137,17 +131,11 @@ export function* startSaga(options: StartSagaOptions): SagaIterator {
   const executeActionTask: Task = yield fork(executeActionWatcher, session)
 
   /**
-   * Fork the watcher for the session status
-   */
-  const sessionStatusTask: Task = yield fork(sessionStatusWatcher, options)
-
-  /**
    * Wait for a destroyAction to teardown all the things
    */
   yield take(destroyAction.type)
 
   pubSubTask.cancel()
-  sessionStatusTask.cancel()
   executeActionTask.cancel()
   pubSubChannel.close()
   sessionChannel.close()
