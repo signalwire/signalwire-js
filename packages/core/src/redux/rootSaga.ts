@@ -67,25 +67,19 @@ export function* socketClosedWorker({
   session,
   sessionChannel,
   pubSubChannel,
-  payload: { code },
 }: {
   session: BaseSession
   sessionChannel: EventChannel<unknown>
   pubSubChannel: Channel<unknown>
-  payload: SocketCloseParams
+  payload: SocketCloseParams // TODO: remove it
 }) {
-  /**
-   * @see https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
-   */
-  if (code >= 1006 && code <= 1014) {
-    yield put(sessionActions.statusChange('reconnecting'))
+  if (session.status === 'reconnecting') {
     yield put(pubSubChannel, sessionReconnecting())
     yield delay(Math.random() * 2000)
     console.log('>>> socketClosedWorker reconnecting? <<<')
     yield call(session.connect)
   } else {
     sessionChannel.close()
-    yield put(sessionActions.statusChange('disconnected'))
     yield put(pubSubChannel, sessionDisconnected())
   }
 }

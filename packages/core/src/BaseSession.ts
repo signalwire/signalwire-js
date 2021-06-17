@@ -16,6 +16,7 @@ import {
   JSONRPCResponse,
   WebSocketAdapter,
   WebSocketClient,
+  SessionStatus,
 } from './utils/interfaces'
 
 import {
@@ -42,7 +43,6 @@ export class BaseSession {
   private _requests = new Map<string, SessionRequestObject>()
   private _requestQueue: SessionRequestQueued[] = []
   private _socket: WebSocketClient | null = null
-  private _idle = true
   private _host: string = DEFAULT_HOST
 
   private _executeTimeoutMs = 10 * 1000
@@ -50,6 +50,7 @@ export class BaseSession {
 
   private _checkPingDelay = 15 * 1000
   private _checkPingTimer: any = null
+  private _status: SessionStatus = 'unknown'
 
   constructor(public options: SessionOptions) {
     if (options.host) {
@@ -62,7 +63,7 @@ export class BaseSession {
     this.execute = this.execute.bind(this)
     this.connect = this.connect.bind(this)
 
-    this.logger.setLevel(this.logger.levels.INFO)
+    this.logger.setLevel(this.logger.levels.DEBUG)
   }
 
   get bladeConnectResult() {
@@ -97,6 +98,10 @@ export class BaseSession {
     return this._socket
       ? this._socket.readyState === WebSocketState.CLOSED
       : true
+  }
+
+  get status() {
+    return this._status
   }
 
   /**
@@ -141,7 +146,7 @@ export class BaseSession {
     clearTimeout(this._checkPingTimer)
     this._requestQueue = []
     this._requests.clear()
-    this._closeConnection()
+    this._closeConnection('disconnected')
   }
 
   /**
@@ -149,7 +154,7 @@ export class BaseSession {
    * @return Promise that will resolve/reject depending on the server response
    */
   execute(msg: JSONRPCRequest | JSONRPCResponse): Promise<any> {
-    if (this._idle || !this.connected) {
+    if (this._status === 'idle' || !this.connected) {
       return new Promise((resolve) => this._requestQueue.push({ resolve, msg }))
     }
     let promise: Promise<unknown>
@@ -174,7 +179,7 @@ export class BaseSession {
       if (error === this._executeTimeoutError) {
         logger.error('Request Timeout', msg)
         // Possibly half-open connection so force close our side
-        this._closeConnection()
+        this._closeConnection('reconnecting')
       } else {
         throw error
       }
@@ -202,16 +207,15 @@ export class BaseSession {
 
   protected async _onSocketOpen(event: Event) {
     logger.debug('_onSocketOpen', event.type)
-    this._idle = false
     try {
       await this.authenticate()
       this._emptyRequestQueue()
-
+      this._status = 'connected'
       this.dispatch(authSuccess())
 
       // Testing drop connection
       setTimeout(() => {
-        this._closeConnection()
+        this._closeConnection('reconnecting')
       }, 5000)
     } catch (error) {
       logger.error('Auth Error', error)
@@ -249,7 +253,7 @@ export class BaseSession {
         return this._bladePingHandler(payload)
       case BladeMethod.Disconnect: {
         /**
-         * Set _idle = true because the server
+         * Set this._status = 'idle' because the server
          * will close the connection soon.
          */
         this.execute(BladeDisconnectResponse(payload.id))
@@ -257,7 +261,7 @@ export class BaseSession {
             logger.error('BladeDisconnect Error', error)
           })
           .finally(() => {
-            this._idle = true
+            this._status = 'idle'
           })
         break
       }
@@ -297,7 +301,7 @@ export class BaseSession {
     clearTimeout(this._checkPingTimer)
     this._checkPingTimer = setTimeout(() => {
       // Possibly half-open connection so force close our side
-      this._closeConnection()
+      this._closeConnection('reconnecting')
     }, this._checkPingDelay)
 
     await this.execute(
@@ -305,7 +309,8 @@ export class BaseSession {
     )
   }
 
-  private _closeConnection() {
+  private _closeConnection(status: SessionStatus) {
+    this._status = status
     if (this._socket) {
       this._socket.close()
       this._socket = null
