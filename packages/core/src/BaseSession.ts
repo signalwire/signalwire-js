@@ -230,7 +230,9 @@ export class BaseSession {
 
   protected _onSocketClose(event: CloseEvent) {
     logger.debug('_onSocketClose', event.type, event.code, event.reason)
-    this.dispatch(socketClosed({ code: event.code, reason: event.reason }))
+    this._status =
+      event.code >= 1006 && event.code <= 1014 ? 'reconnecting' : 'disconnected'
+    this.dispatch(socketClosed())
     this._socket = null
   }
 

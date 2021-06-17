@@ -23,11 +23,13 @@ import {
   destroyAction,
   initAction,
 } from './actions'
+import { AuthError } from '../CustomErrors'
 
 describe('socketClosedWorker', () => {
-  it('should try to reconnect when code >= 1006 && code <= 1014', async () => {
+  it('should try to reconnect when session status is reconnecting', async () => {
     const session = {
       closed: true,
+      status: 'reconnecting',
       connect: jest.fn(),
     } as any
     const timeout = 3000
@@ -38,46 +40,27 @@ describe('socketClosedWorker', () => {
       session,
       pubSubChannel,
       sessionChannel,
-      payload: { code: 1006, reason: '' },
     })
       .call(session.connect)
       .run(timeout)
   })
 
-  it('should close the session when the code is outside the range we handle for reconnecting', async () => {
+  it('should close the session when session status is not reconnecting', async () => {
     const session = {
       closed: true,
+      status: 'disconnected',
       connect: jest.fn(),
     } as any
     const pubSubChannel = channel()
     const sessionChannel = eventChannel(() => () => {})
 
-    return Promise.all([
-      expectSaga(socketClosedWorker, {
-        session,
-        pubSubChannel,
-        sessionChannel,
-        payload: { code: 1002, reason: '' },
-      })
-        .put(pubSubChannel, sessionDisconnected())
-        .run(),
-      expectSaga(socketClosedWorker, {
-        session,
-        pubSubChannel,
-        sessionChannel,
-        payload: { code: 1000, reason: '' },
-      })
-        .put(pubSubChannel, sessionDisconnected())
-        .run(),
-      expectSaga(socketClosedWorker, {
-        session,
-        pubSubChannel,
-        sessionChannel,
-        payload: { code: 1020, reason: '' },
-      })
-        .put(pubSubChannel, sessionDisconnected())
-        .run(),
-    ])
+    return expectSaga(socketClosedWorker, {
+      session,
+      pubSubChannel,
+      sessionChannel,
+    })
+      .put(pubSubChannel, sessionDisconnected())
+      .run()
   })
 })
 
@@ -115,24 +98,21 @@ describe('sessionStatusWatcher', () => {
   it('should throw Auth Error on authError action', () => {
     const saga = testSaga(sessionStatusWatcher, options)
     saga.next().take(actions)
-    expect(() => {
-      saga.next(authError({ error: { code: 123, error: 'Unauthorized' } }))
-    }).toThrow('Auth Error')
+    try {
+      saga.next(authError({ error: { code: 123, error: 'Protocol Error' } }))
+    } catch (error) {
+      expect(error).toBeInstanceOf(AuthError)
+      expect(error.message).toEqual('Protocol Error')
+    }
     // Saga terminated due to the error
     saga.next().isDone()
   })
 
   it('should fork socketClosedWorker on socketClosed action', () => {
-    const payload = { code: 1006, reason: '' }
     const saga = testSaga(sessionStatusWatcher, options)
 
     saga.next().take(actions)
-    saga.next(socketClosed(payload)).fork(socketClosedWorker, {
-      session,
-      pubSubChannel,
-      sessionChannel,
-      payload,
-    })
+    saga.next(socketClosed()).fork(socketClosedWorker, options)
     // Saga waits again for actions due to the while loop
     saga.next().take(actions)
   })

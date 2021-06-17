@@ -59,8 +59,3 @@ export interface ExecuteActionParams {
   method: BladeExecuteMethod
   params: Record<string, any>
 }
-
-export interface SocketCloseParams {
-  code: number
-  reason: string
-}

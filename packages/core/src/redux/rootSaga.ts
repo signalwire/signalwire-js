@@ -1,7 +1,6 @@
 import { Task, SagaIterator, Channel } from '@redux-saga/types'
 import { channel, EventChannel } from 'redux-saga'
 import { fork, call, take, put, delay } from 'redux-saga/effects'
-import { SocketCloseParams } from './interfaces'
 import { UserOptions, SessionConstructor } from '../utils/interfaces'
 import {
   executeActionWatcher,
@@ -72,7 +71,6 @@ export function* socketClosedWorker({
   session: BaseSession
   sessionChannel: EventChannel<unknown>
   pubSubChannel: Channel<unknown>
-  payload: SocketCloseParams // TODO: remove it
 }) {
   if (session.status === 'reconnecting') {
     yield put(pubSubChannel, sessionReconnecting())
@@ -86,7 +84,6 @@ export function* socketClosedWorker({
 }
 
 export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
-  const { session, sessionChannel, pubSubChannel } = options
   while (true) {
     const action = yield take([
       authSuccess.type,
@@ -114,12 +111,7 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
         // })
         break
       case socketClosed.type:
-        yield fork(socketClosedWorker, {
-          session,
-          sessionChannel,
-          pubSubChannel,
-          payload: action.payload,
-        })
+        yield fork(socketClosedWorker, options)
     }
   }
 }
