@@ -198,7 +198,6 @@ describe('startSaga', () => {
   it('should put actions and fork watchers', () => {
     const pubSubTask = { cancel: jest.fn() }
     const executeActionTask = { cancel: jest.fn() }
-    // const sessionStatusTask = { cancel: jest.fn() }
 
     const saga = testSaga(startSaga, options)
     saga.next().put(sessionActions.connected(session.bladeConnectResult))
@@ -210,16 +209,11 @@ describe('startSaga', () => {
     })
 
     saga.next(pubSubTask).fork(executeActionWatcher, session)
-
-    // saga.next(executeActionTask).fork(sessionStatusWatcher, options)
-
-    // saga.next(sessionStatusTask).take(destroyAction.type)
     saga.next(executeActionTask).take(destroyAction.type)
     saga.next().isDone()
 
     expect(pubSubTask.cancel).toHaveBeenCalledTimes(1)
     expect(executeActionTask.cancel).toHaveBeenCalledTimes(1)
-    // expect(sessionStatusTask.cancel).toHaveBeenCalledTimes(1)
     expect(pubSubChannel.close).toHaveBeenCalledTimes(1)
     expect(sessionChannel.close).toHaveBeenCalledTimes(1)
   })

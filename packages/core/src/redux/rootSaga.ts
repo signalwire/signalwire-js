@@ -19,6 +19,7 @@ import {
 import { sessionActions } from './features'
 import { BaseSession } from '..'
 import { authError, authSuccess, socketClosed, socketError } from './actions'
+import { AuthError } from '../CustomErrors'
 
 type StartSagaOptions = {
   session: BaseSession
@@ -98,8 +99,13 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
       case authSuccess.type:
         yield fork(startSaga, options)
         break
-      case authError.type:
-        throw new Error('Auth Error')
+      case authError.type: {
+        const { error: authError } = action.payload
+        const error = authError
+          ? new AuthError(authError.code, authError.message)
+          : new Error('Unauthorized')
+        throw error
+      }
       case socketError.type:
         // TODO: define if we want to emit external events here.
         // yield put(pubSubChannel, {
