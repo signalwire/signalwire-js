@@ -102,7 +102,7 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
       case authError.type: {
         const { error: authError } = action.payload
         const error = authError
-          ? new AuthError(authError.code, authError.message)
+          ? new AuthError(authError.code, authError.error)
           : new Error('Unauthorized')
         throw error
       }

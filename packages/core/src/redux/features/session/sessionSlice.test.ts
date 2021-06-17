@@ -18,7 +18,6 @@ describe('SessionState Tests', () => {
       iceServers: bladeConnectResultVRT.result?.iceServers,
       authStatus: 'authorized',
       authError: undefined,
-      status: 'connected',
     })
   })
 

@@ -75,10 +75,10 @@ describe('BaseSession', () => {
     }
     ws.send(JSON.stringify(request))
 
-    expect(session['_idle']).toBe(false)
+    expect(session.status).toEqual('unknown')
     const response = BladeDisconnectResponse(request.id)
     await expect(ws).toReceiveMessage(JSON.stringify(response))
-    expect(session['_idle']).toBe(true)
+    expect(session.status).toEqual('idle')
   })
 
   it('should invoke dispatch with socketMessage action for any other message', async () => {
