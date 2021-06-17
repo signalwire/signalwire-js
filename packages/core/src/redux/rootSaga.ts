@@ -75,7 +75,6 @@ export function* socketClosedWorker({
   if (session.status === 'reconnecting') {
     yield put(pubSubChannel, sessionReconnecting())
     yield delay(Math.random() * 2000)
-    console.log('>>> socketClosedWorker reconnecting? <<<')
     yield call(session.connect)
   } else {
     sessionChannel.close()
