@@ -212,11 +212,6 @@ export class BaseSession {
       this._emptyRequestQueue()
       this._status = 'connected'
       this.dispatch(authSuccess())
-
-      // Testing drop connection
-      setTimeout(() => {
-        this._closeConnection('reconnecting')
-      }, 5000)
     } catch (error) {
       logger.error('Auth Error', error)
       this.dispatch(authError({ error }))
