@@ -28,6 +28,7 @@ import {
 import {
   authError,
   authSuccess,
+  executeAction,
   socketClosed,
   socketError,
   socketMessage,
@@ -63,7 +64,7 @@ export class BaseSession {
     this.execute = this.execute.bind(this)
     this.connect = this.connect.bind(this)
 
-    this.logger.setLevel(this.logger.levels.INFO)
+    this.logger.setLevel(this.logger.levels.DEBUG)
   }
 
   get bladeConnectResult() {
@@ -212,6 +213,18 @@ export class BaseSession {
       this._emptyRequestQueue()
       this._status = 'connected'
       this.dispatch(authSuccess())
+
+      this.dispatch(
+        executeAction({
+          // @ts-ignore
+          method: 'signalwire.subscribe',
+          params: {
+            event_channel: 'rooms',
+            get_initial_state: true,
+            events: ['room.started', 'room.ended'],
+          },
+        })
+      )
     } catch (error) {
       logger.error('Auth Error', error)
       this.dispatch(authError({ error }))
