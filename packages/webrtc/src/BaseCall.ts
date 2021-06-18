@@ -31,6 +31,7 @@ const ROOM_EVENTS = [
   'member.joined',
   'member.updated',
   'member.left',
+  'member.talking',
   'layout.changed',
 ]
 

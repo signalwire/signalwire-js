@@ -69,6 +69,9 @@ window.connect = () => {
     roomObj.on('member.left', (params) =>
       console.debug('>> DEMO member.left', params)
     )
+    roomObj.on('member.talking', (params) =>
+      console.debug('>> DEMO member.talking', params)
+    )
     roomObj.on('layout.changed', (params) =>
       console.debug('>> DEMO layout.changed', params)
     )

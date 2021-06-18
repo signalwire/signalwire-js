@@ -131,6 +131,7 @@ type MemberJoinedEventName = 'member.joined'
 type MemberLeftEventName = 'member.left'
 type MemberUpdatedEventName = 'member.updated'
 type RoomMemberEventNames = `${MemberUpdatedEventName}.${keyof RoomMember}`
+type MemberTalkingEventName = 'member.talking'
 
 export type RTCTrackEventName = 'track'
 
@@ -154,6 +155,7 @@ type MemberEvents =
   | MemberLeftEventName
   | MemberUpdatedEventName
   | RoomMemberEventNames
+  | MemberTalkingEventName
 type RoomEvents = `room.${RoomEvent}`
 /**
  * List of all the events the call can listen to
@@ -175,6 +177,7 @@ export type EventsHandlerMapping = Record<
     MemberUpdatedEventName | RoomMemberEventNames,
     (params: MemberUpdated['params']) => void
   > &
+  Record<MemberTalkingEventName, (params: MemberTalking['params']) => void> &
   Record<RoomEvents, (params: RoomEventParams) => void> &
   Record<RTCTrackEventName, (event: RTCTrackEvent) => void>
 
@@ -261,10 +264,22 @@ interface MemberUpdated {
   event_channel: string
 }
 
+interface MemberTalking {
+  event_type: MemberTalkingEventName
+  params: {
+    member: RoomMemberCommon & {
+      talking: boolean
+    }
+  }
+  timestamp: number
+  event_channel: string
+}
+
 // prettier-ignore
 export type ConferenceWorkerParams =
   | RoomSubscribedEvent
   | MemberUpdated
+  | MemberTalking
 
 interface ConferenceEvent {
   broadcaster_nodeid: string
