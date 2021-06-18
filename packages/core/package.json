@@ -7,12 +7,10 @@
   "source": "src/index.ts",
   "main": "dist/index.js",
   "esmodule": "./dist/index.modern.mjs",
-  "type": "commonjs",
   "exports": {
-    ".": {
-      "require": "./dist/index.js",
-      "default": "./dist/index.modern.mjs"
-    }
+    "require": "./dist/index.js",
+    "module": "./dist/index.modern.mjs",
+    "default": "./dist/index.modern.mjs"
   },
   "module": "dist/index.esm.js",
   "files": [
