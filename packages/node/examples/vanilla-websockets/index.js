@@ -2,8 +2,8 @@ const { createWebSocketClient } = require('@signalwire/node')
 
 const client = createWebSocketClient({
   host: 'relay.swire.io',
-  project: '<project-id>',
-  token: '<project-token>',
+  project: process.env.PROJECT,
+  token: process.env.TOKEN,
 })
   .then((c) => {
     c.on('session.connected', () => {
