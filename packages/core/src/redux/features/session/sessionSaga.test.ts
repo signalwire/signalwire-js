@@ -120,6 +120,99 @@ describe('sessionChannelWatcher', () => {
           expect(dispatchedActions).toHaveLength(3)
         })
     })
+
+    it('should handle member.talking', async () => {
+      const jsonrpc = JSON.parse(
+        '{"jsonrpc":"2.0","id":"6d0e46b2-77af-4734-8691-866f09b37ff3","method":"blade.broadcast","params":{"broadcaster_nodeid":"6a088ac7-9c9b-48c2-a5a1-92aafb70b0ab@west-us","protocol":"signalwire_519264e7f1beedc770d250eabcf50c4ae3bc197dccb6886ed1677ddb4bce8518_b0f0c4e0-e5cb-4ee8-befa-f246ea69b54e_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"conference","params":{"params":{"member":{"id":"a3693340-6f42-4cab-b18e-8e2a22695698","room_session_id":"024d3ab2-c444-4f03-8d71-9f43f6f4c78f","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","talking":true}},"timestamp":1624014381.1524,"event_type":"member.talking","event_channel":"room.b0e1b577-f5e7-4337-b7c4-06fa993b1a19"}},"hops":[]}'
+      )
+      let runSaga = true
+      const session = {
+        relayProtocol: jsonrpc.params.protocol,
+      } as any
+      const pubSubChannel = channel()
+      const sessionChannel = eventChannel(() => () => {})
+      const dispatchedActions: unknown[] = []
+      const payload = JSON.parse(
+        '{"member":{"id":"a3693340-6f42-4cab-b18e-8e2a22695698","room_session_id":"024d3ab2-c444-4f03-8d71-9f43f6f4c78f","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","talking":true}}'
+      )
+
+      return expectSaga(sessionChannelWatcher, {
+        session,
+        pubSubChannel,
+        sessionChannel,
+      })
+        .provide([
+          {
+            take({ channel }, next) {
+              if (runSaga && channel === sessionChannel) {
+                runSaga = false
+                return socketMessage(jsonrpc)
+              } else if (runSaga === false) {
+                sessionChannel.close()
+                pubSubChannel.close()
+              }
+              return next()
+            },
+            put(action, next) {
+              dispatchedActions.push(action)
+              return next()
+            },
+          },
+        ])
+        .put(pubSubChannel, {
+          type: 'member.talking',
+          payload,
+        })
+        .run()
+        .finally(() => {
+          expect(dispatchedActions).toHaveLength(1)
+        })
+    })
+
+    it('should emit event_type and nested params on the pubSubChannel', async () => {
+      const jsonrpc = JSON.parse(
+        '{"jsonrpc":"2.0","id":"6d0e46b2-77af-4734-8691-866f09b37ff3","method":"blade.broadcast","params":{"broadcaster_nodeid":"6a088ac7-9c9b-48c2-a5a1-92aafb70b0ab@west-us","protocol":"proto","channel":"notifications","event":"conference","params":{"params":"random value","timestamp":1624014381.1524,"event_type":"testing","event_channel":"room.b0e1b577-f5e7-4337-b7c4-06fa993b1a19"}},"hops":[]}'
+      )
+      let runSaga = true
+      const session = {
+        relayProtocol: jsonrpc.params.protocol,
+      } as any
+      const pubSubChannel = channel()
+      const sessionChannel = eventChannel(() => () => {})
+      const dispatchedActions: unknown[] = []
+
+      return expectSaga(sessionChannelWatcher, {
+        session,
+        pubSubChannel,
+        sessionChannel,
+      })
+        .provide([
+          {
+            take({ channel }, next) {
+              if (runSaga && channel === sessionChannel) {
+                runSaga = false
+                return socketMessage(jsonrpc)
+              } else if (runSaga === false) {
+                sessionChannel.close()
+                pubSubChannel.close()
+              }
+              return next()
+            },
+            put(action, next) {
+              dispatchedActions.push(action)
+              return next()
+            },
+          },
+        ])
+        .put(pubSubChannel, {
+          type: 'testing',
+          payload: 'random value',
+        })
+        .run()
+        .finally(() => {
+          expect(dispatchedActions).toHaveLength(1)
+        })
+    })
   })
 
   describe('vertoWorker', () => {
