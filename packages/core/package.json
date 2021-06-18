@@ -47,7 +47,7 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@reduxjs/toolkit": "^1.5.1",
+    "@reduxjs/toolkit": "^1.6.0",
     "@types/uuid": "^8.3.0",
     "eventemitter3": "4.0.7",
     "jest-websocket-mock": "^2.2.1",
