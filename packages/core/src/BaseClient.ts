@@ -2,7 +2,8 @@ import { Store } from 'redux'
 import { AuthError } from './CustomErrors'
 import { destroyAction, initAction } from './redux'
 import { BaseClientOptions, Emitter } from './utils/interfaces'
-export class SignalWire implements Emitter {
+
+export class BaseClient implements Emitter {
   constructor(public options: BaseClientOptions, public store: Store) {}
 
   get emitter() {
@@ -32,20 +33,6 @@ export class SignalWire implements Emitter {
   /**
    * Connect the underlay WebSocket connection to the SignalWire network.
    *
-   * @example
-   * ```js
-   * const client = await Video.createClient({
-   *   token: '<YourJWT>',
-   *   autoConnect: false,
-   * })
-   *
-   * client.on('socket.closed', () => {
-   *   // The WebSocket connection is closed
-   * })
-   *
-   * await client.connect()
-   * ```
-   *
    * @returns Promise that will resolve with the Client object.
    */
   connect(): Promise<this> {
@@ -72,16 +59,7 @@ export class SignalWire implements Emitter {
   /**
    * Disconnect the Client from the SignalWire network.
    *
-   * @example
-   * ```js
-   * const client = await Video.createClient({
-   *   token: '<YourJWT>',
-   * })
-   *
-   * // .. use your client...
-   *
-   * client.disconnect()
-   * ```
+   * @returns void
    */
   disconnect() {
     this.store.dispatch(destroyAction())

@@ -11,21 +11,21 @@ import { JWTSession } from './JWTSession'
 
 /**
  * ## Intro
- * With VideoSDK.createClient you can establish a WebSocket connection
+ * With Video.createClient() you can establish a WebSocket connection
  * with SignalWire and interact with the client.
  *
  * ## Examples
- * Create a client using the JWT
+ * Create a client
  *
  * @example
  * With autoConnect true the client is ready to be used.
  * ```js
  * try {
- *   const client = await VideoSDK.createClient({
- *     token: '<YourJWT>',
+ *   const client = await Video.createClient({
+ *     token: '<YourToken>',
  *   })
  *
- * // Your client is already connected..
+ *   // Your client is already connected..
  * } catch (error) {
  *   console.error('Auth Error', error)
  * }
@@ -35,7 +35,7 @@ import { JWTSession } from './JWTSession'
  * With autoConnect false you can attach additional handlers.
  * ```js
  * try {
- *   const client = await VideoSDK.createClient({
+ *   const client = await Video.createClient({
  *     token: '<YourJWT>',
  *     autoConnect: false,
  *   })
@@ -51,7 +51,9 @@ import { JWTSession } from './JWTSession'
  * }
  * ```
  */
-export const createClient = async (userOptions: UserOptions) => {
+export const createClient = async (
+  userOptions: UserOptions
+): Promise<Client> => {
   const baseUserOptions: BaseClientOptions = {
     ...userOptions,
     emitter: getEventEmitter<ClientEvents>(userOptions),
