@@ -222,7 +222,6 @@ interface RoomMemberProperties {
   audio_muted: boolean
   video_muted: boolean
   name: string
-  location: RoomMemberLocation
 }
 
 export type RoomMember = RoomMemberCommon & RoomMemberProperties
