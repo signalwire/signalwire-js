@@ -202,6 +202,17 @@ export function* sessionChannelWatcher({
         }
         break
       }
+      case 'member.talking': {
+        const { member } = params.params
+        if ('talking' in member) {
+          const suffix = member.talking ? 'start' : 'stop'
+          yield put(pubSubChannel, {
+            type: `member.talking.${suffix}`,
+            payload: params.params,
+          })
+        }
+        break
+      }
     }
 
     // Emit on the pubSubChannel this "event_type"
