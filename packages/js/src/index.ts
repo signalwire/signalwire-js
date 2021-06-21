@@ -1,6 +1,6 @@
 export * as Video from './video'
 export * as WebRTC from '@signalwire/webrtc'
-export {
+export type {
   BaseClientOptions,
   ClientEvents,
   UserOptions,

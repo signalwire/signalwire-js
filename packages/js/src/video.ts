@@ -1,13 +1,9 @@
 import { createClient } from './createClient'
-import { createRoomObject, CreateRoomObjectOptions } from './createRoomObject'
+import { createRoomObject } from './createRoomObject'
 import { joinRoom } from './joinRoom'
-import { Client, RoomObject } from './Client'
+import { Client } from './Client'
 
-export {
-  Client,
-  RoomObject,
-  createClient,
-  createRoomObject,
-  CreateRoomObjectOptions,
-  joinRoom,
-}
+export { Client, createClient, createRoomObject, joinRoom }
+
+export type { RoomObject } from './Client'
+export type { CreateRoomObjectOptions } from './createRoomObject'
