@@ -1,4 +1,4 @@
-import { logger } from '@signalwire/core'
+import { logger, RoomMemberLocation } from '@signalwire/core'
 
 const buildVideoElementByTrack = (videoTrack: MediaStreamTrack) => {
   const video = document.createElement('video')
@@ -117,16 +117,16 @@ export const videoElementFactory = ({
     })
   }
 
-  const _getLocationStyles = ({ x, y, width, height }: any) => {
+  const _getLocationStyles = ({ x, y, width, height }: RoomMemberLocation) => {
     return {
-      top: `${((y * 100) / videoEl.videoHeight).toFixed(2)}%`,
-      left: `${((x * 100) / videoEl.videoWidth).toFixed(2)}%`,
-      width: `${((width * 100) / videoEl.videoWidth).toFixed(2)}%`,
-      height: `${((height * 100) / videoEl.videoHeight).toFixed(2)}%`,
+      top: `${y.toFixed(2)}%`,
+      left: `${x.toFixed(2)}%`,
+      width: `${width.toFixed(2)}%`,
+      height: `${height.toFixed(2)}%`,
     }
   }
 
-  const _buildLayer = async (location: any) => {
+  const _buildLayer = async (location: RoomMemberLocation) => {
     if (videoEl.readyState === HTMLMediaElement.HAVE_NOTHING) {
       await _videoReady()
     }
