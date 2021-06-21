@@ -132,6 +132,8 @@ type MemberLeftEventName = 'member.left'
 type MemberUpdatedEventName = 'member.updated'
 type RoomMemberEventNames = `${MemberUpdatedEventName}.${keyof RoomMember}`
 type MemberTalkingEventName = 'member.talking'
+type MemberTalkingStartEventName = 'member.talking.start'
+type MemberTalkingStopEventName = 'member.talking.stop'
 
 export type RTCTrackEventName = 'track'
 
@@ -156,6 +158,8 @@ type MemberEvents =
   | MemberUpdatedEventName
   | RoomMemberEventNames
   | MemberTalkingEventName
+  | MemberTalkingStartEventName
+  | MemberTalkingStopEventName
 type RoomEvents = `room.${RoomEvent}`
 /**
  * List of all the events the call can listen to
@@ -167,6 +171,8 @@ export type CallEventNames =
   | RoomEvents
   | RTCTrackEventName
 
+type MemberTalkingHandler = (params: MemberTalking['params']) => void
+
 export type EventsHandlerMapping = Record<
   LayoutEvents,
   (params: { layout: RoomLayout }) => void
@@ -177,7 +183,9 @@ export type EventsHandlerMapping = Record<
     MemberUpdatedEventName | RoomMemberEventNames,
     (params: MemberUpdated['params']) => void
   > &
-  Record<MemberTalkingEventName, (params: MemberTalking['params']) => void> &
+  Record<MemberTalkingEventName, MemberTalkingHandler> &
+  Record<MemberTalkingStartEventName, MemberTalkingHandler> &
+  Record<MemberTalkingStopEventName, MemberTalkingHandler> &
   Record<RoomEvents, (params: RoomEventParams) => void> &
   Record<RTCTrackEventName, (event: RTCTrackEvent) => void>
 
