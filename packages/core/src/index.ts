@@ -6,6 +6,7 @@ import { BaseClient } from './BaseClient'
 import { BaseComponent } from './BaseComponent'
 import { EventEmitter, getEventEmitter } from './utils/EventEmitter'
 import * as sessionSelectors from './redux/features/session/sessionSelectors'
+import { executeAction } from './redux'
 
 // prettier-ignore
 export {
@@ -18,6 +19,7 @@ export {
   connect,
   configureStore,
   EventEmitter,
+  executeAction,
   getEventEmitter
 }
 

@@ -63,7 +63,7 @@ export class BaseSession {
     this.execute = this.execute.bind(this)
     this.connect = this.connect.bind(this)
 
-    this.logger.setLevel(this.logger.levels.INFO)
+    this.logger.setLevel(this.logger.levels.DEBUG)
   }
 
   get bladeConnectResult() {
