@@ -1,3 +1,38 @@
 import { BaseClient } from '@signalwire/core'
+import { executeAction } from '@signalwire/core'
 
-export class Client extends BaseClient {}
+// TODO: reuse types from @signalwire/core
+type GlobalVideoEvents = 'room.started' | 'room.ended'
+export class Client extends BaseClient {
+  get video() {
+    return {
+      createConsumer: () => {
+        let subscriptions: GlobalVideoEvents[] = []
+        const setSubscription = (event: GlobalVideoEvents) => {
+          subscriptions = Array.from(new Set(subscriptions.concat(event)))
+          return subscriptions
+        }
+
+        return {
+          subscribe: (event: GlobalVideoEvents, handler: any) => {
+            this.on(event, handler)
+            setSubscription(event)
+          },
+          run: () => {
+            this.store.dispatch(
+              executeAction({
+                // @ts-ignore
+                method: 'signalwire.subscribe',
+                params: {
+                  event_channel: 'rooms',
+                  get_initial_state: true,
+                  events: subscriptions,
+                },
+              })
+            )
+          },
+        }
+      },
+    }
+  }
+}
