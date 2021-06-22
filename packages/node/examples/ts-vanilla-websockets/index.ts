@@ -4,12 +4,20 @@ createWebSocketClient({
   host: 'relay.swire.io',
   project: '<project-id>',
   token: '<project-token>',
+  autoConnect: true,
 })
   .then((c) => {
-    c.on('session.connected', () => {
-      console.log('Connected!')
+    const consumer = c.video.createConsumer()
+
+    consumer.subscribe('room.started', () => {
+      console.log('🟢 ROOOM STARTED 🟢')
     })
-    c.connect().catch((e) => console.log('<Connect Error>', e))
+
+    consumer.subscribe('room.ended', () => {
+      console.log('🔴 ROOOM ENDED 🔴')
+    })
+
+    consumer.run()
   })
   .catch((e) => {
     console.log('<Error>', e)
