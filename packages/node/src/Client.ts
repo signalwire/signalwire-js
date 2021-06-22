@@ -1,4 +1,4 @@
-import { BaseClient } from '@signalwire/core'
+import { BaseClient, logger } from '@signalwire/core'
 import { executeAction } from '@signalwire/core'
 
 // TODO: reuse types from @signalwire/core
@@ -19,17 +19,23 @@ export class Client extends BaseClient {
             setSubscription(event)
           },
           run: () => {
-            this.store.dispatch(
-              executeAction({
-                // @ts-ignore
-                method: 'signalwire.subscribe',
-                params: {
-                  event_channel: 'rooms',
-                  get_initial_state: true,
-                  events: subscriptions,
-                },
-              })
-            )
+            if (subscriptions.length > 0) {
+              this.store.dispatch(
+                executeAction({
+                  // @ts-ignore
+                  method: 'signalwire.subscribe',
+                  params: {
+                    event_channel: 'rooms',
+                    get_initial_state: true,
+                    events: ['room.started', 'room.ended'],
+                  },
+                })
+              )
+            } else {
+              logger.warn(
+                '`consumer.run()` was called without any listeners attached.'
+              )
+            }
           },
         }
       },
