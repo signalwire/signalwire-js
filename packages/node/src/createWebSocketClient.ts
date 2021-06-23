@@ -22,9 +22,12 @@ export const createWebSocketClient = async (userOptions: UserOptions) => {
   const client: StrictEventEmitter<Client, ClientEvents> = connect({
     store,
     Component: Client,
-    onStateChangeListeners: {
+    componentListeners: {
       errors: 'onError',
       responses: 'onSuccess',
+    },
+    sessionListeners: {
+      authStatus: 'onAuth',
     },
   })(baseUserOptions)
 

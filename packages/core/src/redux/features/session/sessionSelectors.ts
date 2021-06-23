@@ -7,3 +7,7 @@ export const getIceServers = ({ session }: SDKState) => {
 export const getSession = (store: SDKState) => {
   return store.session
 }
+
+export const getAuthStatus = ({ session }: SDKState) => {
+  return session.authStatus
+}
