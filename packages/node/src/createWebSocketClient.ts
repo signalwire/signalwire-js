@@ -1,7 +1,7 @@
 import {
-  BaseClientOptions,
   ClientEvents,
   configureStore,
+  connect,
   getEventEmitter,
   UserOptions,
 } from '@signalwire/core'
@@ -10,7 +10,7 @@ import { Client } from './Client'
 import { Session } from './Session'
 
 export const createWebSocketClient = async (userOptions: UserOptions) => {
-  const baseUserOptions: BaseClientOptions = {
+  const baseUserOptions = {
     ...userOptions,
     emitter: getEventEmitter<ClientEvents>(userOptions),
   }
@@ -18,10 +18,16 @@ export const createWebSocketClient = async (userOptions: UserOptions) => {
     userOptions: baseUserOptions,
     SessionConstructor: Session,
   })
-  const client: StrictEventEmitter<Client, ClientEvents> = new Client(
-    baseUserOptions,
-    store
-  )
+
+  const client: StrictEventEmitter<Client, ClientEvents> = connect({
+    store,
+    Component: Client,
+    onStateChangeListeners: {
+      errors: 'onError',
+      responses: 'onSuccess',
+    },
+  })(baseUserOptions)
+
   if (baseUserOptions.autoConnect) {
     await client.connect()
   }
