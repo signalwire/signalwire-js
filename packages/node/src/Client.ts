@@ -25,7 +25,7 @@ export class Client extends BaseClient {
                 params: {
                   event_channel: 'rooms',
                   get_initial_state: true,
-                  events: ['room.started', 'room.ended'],
+                  events: subscriptions,
                 },
               })
             } else {
