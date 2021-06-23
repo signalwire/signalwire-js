@@ -131,17 +131,6 @@ export const videoElementFactory = ({
       await _videoReady()
     }
     const { top, left, width, height } = _getLocationStyles(location)
-    logger.debug(
-      'Info',
-      videoEl.offsetWidth,
-      videoEl.offsetHeight,
-      videoEl.videoWidth,
-      videoEl.videoHeight,
-      top,
-      left,
-      width,
-      height
-    )
     const layer = document.createElement('div')
     layer.style.position = 'absolute'
     layer.style.overflow = 'hidden'
