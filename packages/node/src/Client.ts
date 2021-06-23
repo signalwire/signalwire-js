@@ -1,5 +1,4 @@
 import { BaseClient, logger } from '@signalwire/core'
-import { executeAction } from '@signalwire/core'
 
 // TODO: reuse types from @signalwire/core
 type GlobalVideoEvents = 'room.started' | 'room.ended'
@@ -20,17 +19,15 @@ export class Client extends BaseClient {
           },
           run: () => {
             if (subscriptions.length > 0) {
-              this.store.dispatch(
-                executeAction({
-                  // @ts-ignore
-                  method: 'signalwire.subscribe',
-                  params: {
-                    event_channel: 'rooms',
-                    get_initial_state: true,
-                    events: ['room.started', 'room.ended'],
-                  },
-                })
-              )
+              this.execute({
+                // @ts-ignore
+                method: 'signalwire.subscribe',
+                params: {
+                  event_channel: 'rooms',
+                  get_initial_state: true,
+                  events: ['room.started', 'room.ended'],
+                },
+              })
             } else {
               logger.warn(
                 '`consumer.run()` was called without any listeners attached.'
