@@ -44,7 +44,7 @@ interface MemberCommandWithVolumeParams extends MemberCommandParams {
 interface MemberCommandWithValueParams extends MemberCommandParams {
   value: number
 }
-type BaseCallOptions = CallOptions & BaseComponentOptions
+export type BaseCallOptions = CallOptions & BaseComponentOptions
 export class BaseCall extends BaseComponent {
   public nodeId = ''
   public direction: 'inbound' | 'outbound'
