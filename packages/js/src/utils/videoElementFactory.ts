@@ -119,10 +119,10 @@ export const videoElementFactory = ({
 
   const _getLocationStyles = ({ x, y, width, height }: RoomMemberLocation) => {
     return {
-      top: `${y.toFixed(2)}%`,
-      left: `${x.toFixed(2)}%`,
-      width: `${width.toFixed(2)}%`,
-      height: `${height.toFixed(2)}%`,
+      top: `${y}%`,
+      left: `${x}%`,
+      width: `${width}%`,
+      height: `${height}%`,
     }
   }
 
