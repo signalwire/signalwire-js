@@ -57,6 +57,7 @@ export const connect = <T extends { id: string; destroyer: () => void }>(
         }
       })
 
+      // TODO: refactor this to avoid repetition with the above.
       const session = getSession(store.getState())
       sessionKeys.forEach((reduxKey) => {
         const cacheKey = `session.${reduxKey}`
