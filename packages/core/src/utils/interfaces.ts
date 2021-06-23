@@ -375,6 +375,7 @@ export type RoomMethod =
 export type BladeExecuteMethod =
   | RoomMethod
   | 'video.message'
+  | 'signalwire.subscribe'
 
 export interface WebSocketClient {
   addEventListener: WebSocket['addEventListener']

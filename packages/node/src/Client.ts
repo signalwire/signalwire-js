@@ -20,7 +20,6 @@ export class Client extends BaseClient {
           run: () => {
             if (subscriptions.length > 0) {
               this.execute({
-                // @ts-ignore
                 method: 'signalwire.subscribe',
                 params: {
                   event_channel: 'rooms',
