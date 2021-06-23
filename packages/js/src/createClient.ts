@@ -1,7 +1,7 @@
 import {
-  BaseClientOptions,
   ClientEvents,
   configureStore,
+  connect,
   getEventEmitter,
   UserOptions,
 } from '@signalwire/core'
@@ -51,10 +51,8 @@ import { JWTSession } from './JWTSession'
  * }
  * ```
  */
-export const createClient = async (
-  userOptions: UserOptions
-): Promise<Client> => {
-  const baseUserOptions: BaseClientOptions = {
+export const createClient = async (userOptions: UserOptions) => {
+  const baseUserOptions = {
     ...userOptions,
     emitter: getEventEmitter<ClientEvents>(userOptions),
   }
@@ -62,10 +60,14 @@ export const createClient = async (
     userOptions: baseUserOptions,
     SessionConstructor: JWTSession,
   })
-  const client: StrictEventEmitter<Client, ClientEvents> = new Client(
-    baseUserOptions,
-    store
-  )
+  const client: StrictEventEmitter<Client, ClientEvents> = connect({
+    store,
+    Component: Client,
+    onStateChangeListeners: {
+      errors: 'onError',
+      responses: 'onSuccess',
+    },
+  })(baseUserOptions)
   if (baseUserOptions.autoConnect) {
     await client.connect()
   }
