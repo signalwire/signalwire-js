@@ -192,17 +192,18 @@ export type SessionAuthError = {
 export interface RoomLayout {
   id: string
   name: string
-  layers: RoomMemberLocation[]
+  layers: RoomLayoutLayer[]
   layer_count?: number
 }
 
-export interface RoomMemberLocation {
+export interface RoomLayoutLayer {
   y: number
   x: number
   layer_index: number
   z_index: number
   height: number
   width: number
+  member_id: string
 }
 
 interface RoomMemberCommon {

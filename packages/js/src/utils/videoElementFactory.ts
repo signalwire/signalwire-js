@@ -1,4 +1,10 @@
-import { logger, RoomMemberLocation } from '@signalwire/core'
+import { logger, RoomLayout, RoomLayoutLayer } from '@signalwire/core'
+
+type LayoutChangedHandlerParams = {
+  layout: RoomLayout,
+  myMemberId: string,
+  localVideoTrack: MediaStreamTrack,
+}
 
 const buildVideoElementByTrack = (videoTrack: MediaStreamTrack) => {
   const video = document.createElement('video')
@@ -117,7 +123,7 @@ export const videoElementFactory = ({
     })
   }
 
-  const _getLocationStyles = ({ x, y, width, height }: RoomMemberLocation) => {
+  const _getLocationStyles = ({ x, y, width, height }: RoomLayoutLayer) => {
     return {
       top: `${y}%`,
       left: `${x}%`,
@@ -126,7 +132,7 @@ export const videoElementFactory = ({
     }
   }
 
-  const _buildLayer = async (location: RoomMemberLocation) => {
+  const _buildLayer = async (location: RoomLayoutLayer) => {
     if (videoEl.readyState === HTMLMediaElement.HAVE_NOTHING) {
       await _videoReady()
     }
@@ -149,13 +155,13 @@ export const videoElementFactory = ({
   }
 
   const layoutChangedHandler = async ({
-    layout = {},
+    layout,
     myMemberId,
     localVideoTrack,
-  }: any) => {
+  }: LayoutChangedHandlerParams) => {
     try {
       const { layers = [] } = layout
-      const layer = layers.find(({ memberID }: any) => memberID === myMemberId)
+      const layer = layers.find(({ member_id }) => member_id === myMemberId)
 
       if (!layer) {
         return logger.debug('Current Layer Not Found', JSON.stringify(layout))
