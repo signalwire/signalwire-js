@@ -229,7 +229,6 @@ export type RoomMember = RoomMemberCommon & RoomMemberProperties
 
 export interface Room {
   blind_mode: boolean
-  current_layout: RoomLayout
   hide_video_muted: boolean
   locked: boolean
   logos_visible: boolean
