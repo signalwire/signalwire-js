@@ -10,9 +10,38 @@ const inCallElements = [
   deafSelfBtn,
   undeafSelfBtn,
   controlSliders,
+  controlLayout,
   hideVMutedBtn,
   showVMutedBtn,
 ]
+
+async function loadLayouts(currentLayoutId) {
+  try {
+    const { layouts } = await roomObj.getLayoutList()
+
+    const layoutEl = document.getElementById('layout')
+    while (layoutEl.options.length > 0) {
+      layoutEl.remove(0)
+    }
+
+    const defOption = document.createElement('option')
+    defOption.value = ''
+    defOption.innerHTML = 'Change layout..'
+    layoutEl.appendChild(defOption)
+    for (var i = 0; i < layouts.length; i++){
+      const layout = layouts[i]
+      var opt = document.createElement('option')
+      opt.value = layout
+      opt.innerHTML = layout
+      layoutEl.appendChild(opt)
+    }
+    if (currentLayoutId) {
+      layoutEl.value = currentLayoutId
+    }
+  } catch (error) {
+    console.warn('Error listing layout', error)
+  }
+}
 
 /**
  * Connect with Relay creating a client and attaching all the event handler.
@@ -44,6 +73,8 @@ window.connect = () => {
         button.classList.remove('d-none')
         button.disabled = false
       })
+
+      loadLayouts()
     })
     roomObj.on('room.updated', (params) =>
       console.debug('>> DEMO room.updated', params)
@@ -174,6 +205,11 @@ window.hideVideoMuted = () => {
 
 window.showVideoMuted = () => {
   roomObj.showVideoMuted()
+}
+
+window.changeLayout = (select) => {
+  console.log('changeLayout', select.value)
+  roomObj.setLayout({ name: select.value })
 }
 
 window.rangeInputHandler = (range) => {
