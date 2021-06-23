@@ -34,7 +34,6 @@ export interface CallOptions {
   screenShare?: boolean
   secondSource?: boolean
   recoverCall?: boolean
-  skipNotifications?: boolean
   skipLiveArray?: boolean
   onNotification?: Function
   googleMaxBitrate?: number
