@@ -37,11 +37,13 @@ export class Client extends BaseClient {
             layoutChangedHandler,
           } = videoElementFactory({ rootElementId, applyLocalVideoOverlay })
           call.on('layout.changed', (params) => {
-            layoutChangedHandler({
-              layout: params.layout,
-              localVideoTrack: call.localVideoTrack,
-              myMemberId: call.memberId,
-            })
+            if (call.localVideoTrack) {
+              layoutChangedHandler({
+                layout: params.layout,
+                localVideoTrack: call.localVideoTrack,
+                myMemberId: call.memberId,
+              })
+            }
           })
           call.on('track', rtcTrackHandler)
           call.on('destroy', destroyHandler)
