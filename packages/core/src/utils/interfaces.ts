@@ -349,7 +349,7 @@ type RoomMemberMethod =
  */
 // prettier-ignore
 type RoomLayoutMethod =
-  | 'layout.set'
+  | 'set_layout'
 
 /**
  * List of all room member methods

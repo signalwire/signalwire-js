@@ -533,7 +533,7 @@ export class BaseCall extends BaseComponent {
 
   public setLayout({ name }: { name: string }) {
     return this.execute({
-      method: 'video.layout.set',
+      method: 'video.set_layout',
       params: {
         room_session_id: this._roomSessionId,
         name,
