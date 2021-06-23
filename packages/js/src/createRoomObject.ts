@@ -67,11 +67,6 @@ export const createRoomObject = (
     }
 
     const room = client.rooms.makeCall({
-      destinationNumber: 'room',
-      callerName: '',
-      callerNumber: '',
-      remoteCallerName: '',
-      remoteCallerNumber: '',
       audio,
       video,
       negotiateAudio: true,
