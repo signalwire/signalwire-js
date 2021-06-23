@@ -3,7 +3,6 @@ import {
   JSONRPCResponse,
   SessionAuthError,
   SessionAuthStatus,
-  SessionStatus,
   BladeExecuteMethod,
   CallState,
 } from '../utils/interfaces'

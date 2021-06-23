@@ -2,22 +2,33 @@ import { Store } from 'redux'
 import { ReduxComponent } from './interfaces'
 import { componentActions } from './features'
 import { getComponent } from './features/component/componentSelectors'
+import { getSession } from './features/session/sessionSelectors'
+import { SessionState } from '../redux/interfaces'
 
-type ConnectEventHandler = (component: ReduxComponent) => any
+type ComponentEventHandler = (component: ReduxComponent) => unknown
+type SessionEventHandler = (session: SessionState) => unknown
 interface Connect<T> {
-  onStateChangeListeners: Record<string, string | ConnectEventHandler>
+  componentListeners: Record<string, string | ComponentEventHandler>
+  sessionListeners?: Partial<
+    Record<ReduxSessionKeys, string | SessionEventHandler>
+  >
   store: Store
   Component: new (o: any) => T
 }
 type ReduxComponentKeys = keyof ReduxComponent
+type ReduxSessionKeys = keyof SessionState
 
 export const connect = <T extends { id: string; destroyer: () => void }>(
   options: Connect<T>
 ) => {
-  const { onStateChangeListeners = {}, store, Component } = options
-  const componentKeys = Object.keys(
-    onStateChangeListeners
-  ) as ReduxComponentKeys[]
+  const {
+    componentListeners = {},
+    sessionListeners = {},
+    store,
+    Component,
+  } = options
+  const componentKeys = Object.keys(componentListeners) as ReduxComponentKeys[]
+  const sessionKeys = Object.keys(sessionListeners) as ReduxSessionKeys[]
 
   return (userOptions: any) => {
     const instance = new Component({ ...userOptions, store })
@@ -28,12 +39,13 @@ export const connect = <T extends { id: string; destroyer: () => void }>(
       if (!component) {
         return
       }
-      componentKeys.forEach((key) => {
-        const current = cacheMap.get(key)
-        const updatedValue = component?.[key]
+      componentKeys.forEach((reduxKey) => {
+        const cacheKey = `${instance.id}.${reduxKey}`
+        const current = cacheMap.get(cacheKey)
+        const updatedValue = component?.[reduxKey]
         if (updatedValue !== undefined && current !== updatedValue) {
-          cacheMap.set(key, updatedValue)
-          const fnName = onStateChangeListeners[key]
+          cacheMap.set(cacheKey, updatedValue)
+          const fnName = componentListeners[reduxKey]
 
           if (typeof fnName === 'string') {
             // FIXME: proper types for fnName
@@ -41,6 +53,26 @@ export const connect = <T extends { id: string; destroyer: () => void }>(
             instance[fnName](component)
           } else {
             fnName(component)
+          }
+        }
+      })
+
+      const session = getSession(store.getState())
+      sessionKeys.forEach((reduxKey) => {
+        const cacheKey = `session.${reduxKey}`
+        const current = cacheMap.get(cacheKey)
+        const updatedValue = session[reduxKey]
+
+        if (updatedValue !== undefined && current !== updatedValue) {
+          cacheMap.set(cacheKey, updatedValue)
+          const fnName = sessionListeners[reduxKey]
+
+          if (typeof fnName === 'string') {
+            // FIXME: proper types for fnName
+            // @ts-ignore
+            instance[fnName](session)
+          } else if (typeof fnName === 'function') {
+            fnName(session)
           }
         }
       })

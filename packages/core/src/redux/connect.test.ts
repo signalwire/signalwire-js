@@ -16,7 +16,7 @@ describe('Connect', () => {
     store = configureJestStore()
     instance = connect({
       store,
-      onStateChangeListeners: {
+      componentListeners: {
         state: 'emit',
         remoteSDP: mockOnRemoteSDP,
       },
