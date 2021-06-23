@@ -1,13 +1,11 @@
 import { uuid } from './utils'
 import { executeAction } from './redux'
-import { BladeExecuteMethod, Emitter } from './utils/interfaces'
+import {
+  ExecuteParams,
+  BaseComponentOptions,
+  Emitter,
+} from './utils/interfaces'
 import { SDKState } from './redux/interfaces'
-import { BaseComponentOptions } from './utils/interfaces'
-
-type ExecuteParams = {
-  method: BladeExecuteMethod
-  params: Record<string, any>
-}
 
 export class BaseComponent implements Emitter {
   id = uuid()
