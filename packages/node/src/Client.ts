@@ -8,14 +8,28 @@ import {
 
 // TODO: reuse types from @signalwire/core
 type GlobalVideoEvents = 'room.started' | 'room.ended'
-export class Client extends BaseClient {
-  private _executionQueue = new Set<ExecuteParams>()
 
-  onAuth(session: SessionState) {
+type DeferredExecutionItem = [
+  ExecuteParams,
+  { resolve: (value: unknown) => void; reject: (reason?: any) => void }
+]
+export class Client extends BaseClient {
+  private _executionQueue: DeferredExecutionItem[] = []
+
+  async onAuth(session: SessionState) {
     if (session.authStatus === 'authorized') {
-      this._executionQueue.forEach((execParams) => {
-        this.execute(execParams)
-      })
+      for (const [execParams, { resolve, reject }] of this._executionQueue) {
+        try {
+          await this.execute(execParams)
+          resolve(undefined)
+        } catch (error) {
+          reject(error)
+        }
+      }
+    } else if (this._executionQueue.length > 0) {
+      logger.warn(
+        `The Client couldn't authenticate and some operations remain unexecuted.`
+      )
     }
   }
 
@@ -34,32 +48,43 @@ export class Client extends BaseClient {
             setSubscription(event)
           },
           run: () => {
-            if (subscriptions.length > 0) {
-              const execParams: ExecuteParams = {
-                method: 'signalwire.subscribe',
-                params: {
-                  event_channel: 'rooms',
-                  get_initial_state: true,
-                  events: subscriptions,
-                },
+            return new Promise(async (resolve, reject) => {
+              if (subscriptions.length > 0) {
+                const execParams: ExecuteParams = {
+                  method: 'signalwire.subscribe',
+                  params: {
+                    event_channel: 'rooms',
+                    get_initial_state: true,
+                    events: subscriptions,
+                  },
+                }
+
+                /**
+                 * If the user is authorized we'll execute the action
+                 * right away. Otherwise we'll put the execute in a
+                 * queue and run it as soon as we detect the
+                 * `session.authStatus === 'authorized'`
+                 */
+                if (this.select(selectors.getAuthStatus) === 'authorized') {
+                  try {
+                    await this.execute(execParams)
+                  } catch (error) {
+                    return reject(error)
+                  }
+                } else {
+                  return this._executionQueue.push([
+                    execParams,
+                    { resolve, reject },
+                  ])
+                }
+              } else {
+                logger.warn(
+                  '`consumer.run()` was called without any listeners attached.'
+                )
               }
 
-              /**
-               * If the user is authorized we'll execute the action
-               * right away. Otherwise we'll put the execute in a
-               * queue and run it as soon as we detect the
-               * `session.authStatus === 'authorized'`
-               */
-              if (this.select(selectors.getAuthStatus) === 'authorized') {
-                this.execute(execParams)
-              } else {
-                this._executionQueue.add(execParams)
-              }
-            } else {
-              logger.warn(
-                '`consumer.run()` was called without any listeners attached.'
-              )
-            }
+              return resolve(undefined)
+            })
           },
         }
       },
