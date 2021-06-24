@@ -1,4 +1,4 @@
-import { logger } from '@signalwire/core'
+import { logger, connect, getEventEmitter } from '@signalwire/core'
 import { getDisplayMedia } from '@signalwire/webrtc'
 import { BaseCall, BaseCallOptions } from './BaseCall'
 
@@ -14,16 +14,31 @@ export class Call extends BaseCall {
         }
       })
     })
+    // FIXME: Make better emitters
+    const fakeEmitter = getEventEmitter({ token: '' })
+
     const options: BaseCallOptions = {
       ...this.options,
       screenShare: true,
       recoverCall: false,
       skipLiveArray: true,
       localStream: displayStream,
+      emitter: fakeEmitter,
       ...opts,
-      destinationNumber: 'edoRoom2',
     }
-    this.screenShare = new Call(options)
+
+    this.screenShare = connect({
+      store: this.store,
+      Component: Call,
+      onStateChangeListeners: {
+        state: 'onStateChange',
+        remoteSDP: 'onRemoteSDP',
+        roomId: 'onRoomId',
+        errors: 'onError',
+        responses: 'onSuccess',
+      },
+    })(options)
+
     try {
       await this.screenShare.invite()
       return this.screenShare
