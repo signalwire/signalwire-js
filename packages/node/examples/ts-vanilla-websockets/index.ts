@@ -1,13 +1,15 @@
 import { createWebSocketClient } from '@signalwire/node'
 
-createWebSocketClient({
-  host: 'relay.swire.io',
-  project: '<project-id>',
-  token: '<project-token>',
-  autoConnect: true,
-})
-  .then((c) => {
-    const consumer = c.video.createConsumer()
+async function run() {
+  try {
+    const client = await createWebSocketClient({
+      host: 'relay.swire.io',
+      project: '<project-id>',
+      token: '<project-token>',
+      // autoConnect: true,
+    })
+
+    const consumer = client.video.createConsumer()
 
     consumer.subscribe('room.started', () => {
       console.log('🟢 ROOOM STARTED 🟢')
@@ -17,8 +19,19 @@ createWebSocketClient({
       console.log('🔴 ROOOM ENDED 🔴')
     })
 
-    consumer.run()
-  })
-  .catch((e) => {
-    console.log('<Error>', e)
-  })
+    consumer
+      .run()
+      .then(() => {
+        console.log('Consumer running!')
+      })
+      .catch((e) => {
+        console.log(`Consumer couldn't run`, e)
+      })
+
+    await client.connect()
+  } catch (error) {
+    console.log('<Error>', error)
+  }
+}
+
+run()
