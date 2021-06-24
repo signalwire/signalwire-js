@@ -17,7 +17,7 @@ export class Client extends BaseClient {
         const call: RoomObject = connect({
           store: this.store,
           Component: Call,
-          onStateChangeListeners: {
+          componentListeners: {
             state: 'onStateChange',
             remoteSDP: 'onRemoteSDP',
             roomId: 'onRoomId',

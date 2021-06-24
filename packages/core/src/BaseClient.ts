@@ -1,33 +1,11 @@
-import { Store } from 'redux'
 import { AuthError } from './CustomErrors'
 import { destroyAction, initAction } from './redux'
-import { BaseClientOptions, Emitter } from './utils/interfaces'
+import { BaseClientOptions } from './utils/interfaces'
+import { BaseComponent } from './BaseComponent'
 
-export class BaseClient implements Emitter {
-  constructor(public options: BaseClientOptions, public store: Store) {}
-
-  get emitter() {
-    return this.options.emitter
-  }
-
-  on(...params: Parameters<Emitter['on']>) {
-    return this.emitter.on(...params)
-  }
-
-  off(...params: Parameters<Emitter['off']>) {
-    return this.emitter.off(...params)
-  }
-
-  once(...params: Parameters<Emitter['once']>) {
-    return this.emitter.once(...params)
-  }
-
-  emit(...params: Parameters<Emitter['emit']>) {
-    return this.emitter.emit(...params)
-  }
-
-  removeAllListeners(...params: Parameters<Emitter['removeAllListeners']>) {
-    return this.emitter.removeAllListeners(...params)
+export class BaseClient extends BaseComponent {
+  constructor(public options: BaseClientOptions) {
+    super(options)
   }
 
   /**

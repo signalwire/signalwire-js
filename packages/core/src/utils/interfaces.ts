@@ -48,7 +48,13 @@ export interface UserOptions extends SessionOptions {
   emitter?: Emitter
 }
 
+/**
+ * `UserOptions` is exposed to the end user and `BaseClientOptions` is
+ * the interface we use internally that extends the options provided.
+ * @internal
+ */
 export interface BaseClientOptions extends UserOptions {
+  store: Store
   emitter: Emitter
 }
 
@@ -369,6 +375,7 @@ export type RoomMethod =
 export type BladeExecuteMethod =
   | RoomMethod
   | 'video.message'
+  | 'signalwire.subscribe'
 
 export interface WebSocketClient {
   addEventListener: WebSocket['addEventListener']
@@ -378,4 +385,9 @@ export interface WebSocketClient {
 }
 export interface WebSocketAdapter {
   new (url: string, protocols?: string | string[]): WebSocketClient
+}
+
+export type ExecuteParams = {
+  method: BladeExecuteMethod
+  params: Record<string, any>
 }
