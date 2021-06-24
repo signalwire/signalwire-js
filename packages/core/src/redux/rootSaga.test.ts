@@ -180,16 +180,18 @@ describe('startSaga', () => {
     const executeActionTask = { cancel: jest.fn() }
 
     const saga = testSaga(startSaga, options)
-    saga.next().put(sessionActions.connected(session.bladeConnectResult))
-    saga.next().put(pubSubChannel, sessionConnected())
-
     saga.next().fork(pubSubSaga, {
       pubSubChannel,
       emitter: userOptions.emitter,
     })
-
     saga.next(pubSubTask).fork(executeActionWatcher, session)
-    saga.next(executeActionTask).take(destroyAction.type)
+
+    saga
+      .next(executeActionTask)
+      .put(sessionActions.connected(session.bladeConnectResult))
+    saga.next().put(pubSubChannel, sessionConnected())
+
+    saga.next().take(destroyAction.type)
     saga.next().isDone()
 
     expect(pubSubTask.cancel).toHaveBeenCalledTimes(1)
