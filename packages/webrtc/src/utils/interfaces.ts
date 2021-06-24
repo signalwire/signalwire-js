@@ -6,13 +6,13 @@ import type {
 import type { Call } from '../Call'
 
 export interface CallOptions {
-  // Required
-  destinationNumber: string
-  remoteCallerName: string
-  remoteCallerNumber: string
-  callerName: string
-  callerNumber: string
-  // Optional
+  // TODO: Not used anymore but required for backend
+  destinationNumber?: string
+  remoteCallerName?: string
+  remoteCallerNumber?: string
+  callerName?: string
+  callerNumber?: string
+  // --
   sessionid?: string
   id?: string
   remoteSdp?: string
@@ -34,7 +34,6 @@ export interface CallOptions {
   screenShare?: boolean
   secondSource?: boolean
   recoverCall?: boolean
-  skipNotifications?: boolean
   skipLiveArray?: boolean
   onNotification?: Function
   googleMaxBitrate?: number

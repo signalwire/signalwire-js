@@ -11,7 +11,6 @@ import {
   CallState,
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
-import { DEFAULT_CALL_OPTIONS } from './utils/constants'
 import {
   enableAudioTracks,
   disableAudioTracks,
@@ -34,6 +33,24 @@ const ROOM_EVENTS = [
   'member.talking',
   'layout.changed',
 ]
+
+const DEFAULT_CALL_OPTIONS: CallOptions = {
+  destinationNumber: '',
+  remoteCallerName: 'Outbound Call',
+  remoteCallerNumber: '',
+  callerName: '',
+  callerNumber: '',
+  audio: true,
+  video: { aspectRatio: 16 / 9 },
+  useStereo: false,
+  attach: false,
+  screenShare: false,
+  secondSource: false,
+  userVariables: {},
+  requestTimeout: 10 * 1000,
+  autoApplyMediaParams: true,
+  iceGatheringTimeout: 2 * 1000,
+}
 
 interface MemberCommandParams {
   memberId?: string
@@ -83,11 +100,6 @@ export class BaseCall extends BaseComponent {
       iceServers,
     }
 
-    const { remoteCallerNumber } = this.options
-    if (!remoteCallerNumber) {
-      this.options.remoteCallerNumber = this.options.destinationNumber
-    }
-
     this.setState('new')
     logger.info('New Call with Options:', this.options)
   }
@@ -101,15 +113,15 @@ export class BaseCall extends BaseComponent {
   }
 
   get extension() {
-    return this._extension || this.options.destinationNumber
-  }
-
-  get memberId() {
-    return this._memberId
+    return this._extension || this.options.destinationNumber || ''
   }
 
   set extension(extension: string) {
     this._extension = extension
+  }
+
+  get memberId() {
+    return this._memberId
   }
 
   get localStream() {
