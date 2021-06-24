@@ -117,6 +117,13 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
 
 export function* startSaga(options: StartSagaOptions): SagaIterator {
   const { session, sessionChannel, pubSubChannel, userOptions } = options
+
+  // TODO: review this
+  /**
+   * Fork the watcher for all the blade.execute requests
+   */
+  const executeActionTask: Task = yield fork(executeActionWatcher, session)
+
   yield put(sessionActions.connected(session.bladeConnectResult))
   yield put(pubSubChannel, sessionConnected())
 
@@ -124,11 +131,6 @@ export function* startSaga(options: StartSagaOptions): SagaIterator {
     pubSubChannel,
     emitter: userOptions.emitter,
   })
-
-  /**
-   * Fork the watcher for all the blade.execute requests
-   */
-  const executeActionTask: Task = yield fork(executeActionWatcher, session)
 
   /**
    * Wait for a destroyAction to teardown all the things
