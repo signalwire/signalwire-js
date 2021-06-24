@@ -202,7 +202,11 @@ export class BaseCall extends BaseComponent {
       node_id: this.nodeId,
     }
     if (vertoMessage.method === VertoMethod.Invite) {
-      params.subscribe = ROOM_EVENTS
+      if (this.options.screenShare) {
+        params.subscribe = ['room.screenshare']
+      } else {
+        params.subscribe = ROOM_EVENTS
+      }
     }
 
     return this.execute({
