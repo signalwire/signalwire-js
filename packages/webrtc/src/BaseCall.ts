@@ -77,7 +77,6 @@ export class BaseCall extends BaseComponent {
       options?.iceServers ?? this.select(selectors.getIceServers)
 
     this.options = {
-      id: this.id,
       ...DEFAULT_CALL_OPTIONS,
       ...options,
       iceServers,
@@ -122,7 +121,6 @@ export class BaseCall extends BaseComponent {
 
   get messagePayload() {
     const {
-      id,
       destinationNumber,
       attach,
       callerName,
@@ -135,7 +133,7 @@ export class BaseCall extends BaseComponent {
     return {
       sessid: this.options.sessionid,
       dialogParams: {
-        id,
+        id: this.id,
         destinationNumber,
         attach,
         callerName,
@@ -366,7 +364,7 @@ export class BaseCall extends BaseComponent {
         break
       default:
         return logger.error(
-          `Unknown SDP type: '${type}' on call ${this.options.id}`
+          `Unknown SDP type: '${type}' on call ${this.id}`
         )
     }
   }
