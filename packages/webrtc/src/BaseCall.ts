@@ -53,8 +53,6 @@ export class BaseCall extends BaseComponent {
   public cause: string
   public causeCode: string
   public gotEarly = false
-  public screenShare?: BaseCall
-  public secondSource?: BaseCall
   public doReinvite = false
   public isDirect = false
   public videoElements: HTMLVideoElement[] = []
@@ -367,9 +365,7 @@ export class BaseCall extends BaseComponent {
         // this.executeAnswer()
         break
       default:
-        return logger.error(
-          `Unknown SDP type: '${type}' on call ${this.id}`
-        )
+        return logger.error(`Unknown SDP type: '${type}' on call ${this.id}`)
     }
   }
 
@@ -499,22 +495,10 @@ export class BaseCall extends BaseComponent {
 
     switch (state) {
       case 'purge': {
-        if (this.screenShare instanceof BaseCall) {
-          this.screenShare.setState('purge')
-        }
-        if (this.secondSource instanceof BaseCall) {
-          this.secondSource.setState('purge')
-        }
         this._finalize()
         break
       }
       case 'hangup': {
-        if (this.screenShare instanceof BaseCall) {
-          this.screenShare.hangup()
-        }
-        if (this.secondSource instanceof BaseCall) {
-          this.secondSource.hangup()
-        }
         this.setState('destroy')
         break
       }
