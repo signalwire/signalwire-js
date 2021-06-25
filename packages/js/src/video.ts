@@ -5,5 +5,5 @@ import { Client } from './Client'
 
 export { Client, createClient, createRoomObject, joinRoom }
 
-export type { RoomObject } from './Client'
+export type { RoomObject } from '@signalwire/webrtc'
 export type { CreateRoomObjectOptions } from './createRoomObject'

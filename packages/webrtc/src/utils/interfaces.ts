@@ -1,3 +1,4 @@
+import StrictEventEmitter from 'strict-event-emitter-types'
 import type {
   CallEventNames,
   CallState,
@@ -57,4 +58,11 @@ type CallEventsHandlerMapping = EventsHandlerMapping &
 
 export type CallEvents = {
   [k in CallEventNames | CallState]: CallEventsHandlerMapping[k]
+}
+
+export type RoomObject = StrictEventEmitter<Call, CallEvents>
+
+export type StartScreenShareOptions = {
+  audio?: MediaStreamConstraints['audio']
+  video?: MediaStreamConstraints['video']
 }

@@ -1,14 +1,11 @@
 import { connect, BaseClient } from '@signalwire/core'
-import { Call, CallEvents, CallOptions } from '@signalwire/webrtc'
-import StrictEventEmitter from 'strict-event-emitter-types'
+import { Call, CallOptions, RoomObject } from '@signalwire/webrtc'
 import { videoElementFactory } from './utils/videoElementFactory'
 
 interface MakeCallOptions extends CallOptions {
   rootElementId?: string
   applyLocalVideoOverlay?: boolean
 }
-
-export type RoomObject = StrictEventEmitter<Call, CallEvents>
 
 export class Client extends BaseClient {
   get rooms() {
