@@ -1,6 +1,6 @@
 import { logger, connect, getEventEmitter } from '@signalwire/core'
 import { getDisplayMedia } from './utils/webrtcHelpers'
-import { RoomObject, StartScreenShareOptions } from './utils/interfaces'
+import { RoomObject, CreateScreenShareObjectOptions } from './utils/interfaces'
 import { BaseCall, BaseCallOptions } from './BaseCall'
 
 export class Call extends BaseCall {
@@ -13,7 +13,7 @@ export class Call extends BaseCall {
   /**
    * Allow sharing the screen within the room.
    */
-  async startScreenShare(opts: StartScreenShareOptions = {}) {
+  async createScreenShareObject(opts: CreateScreenShareObjectOptions = {}) {
     const { audio = false, video = true } = opts
     const displayStream: MediaStream = await getDisplayMedia({ audio, video })
 
