@@ -218,6 +218,7 @@ interface RoomMemberProperties {
   output_volume: number
   on_hold: boolean
   deaf: boolean
+  // FIXME: review this for different types
   type: RoomMemberType
   visible: boolean
   audio_muted: boolean
