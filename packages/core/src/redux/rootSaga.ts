@@ -9,6 +9,10 @@ import {
 } from './features/session/sessionSaga'
 import { pubSubSaga } from './features/pubSub/pubSubSaga'
 import {
+  executeQueueCallWorker,
+  executeQueueWatcher,
+} from './features/executeQueue/executeQueueSaga'
+import {
   initAction,
   destroyAction,
   sessionReconnecting,
@@ -127,6 +131,12 @@ export function* startSaga(options: StartSagaOptions): SagaIterator {
    */
   const executeActionTask: Task = yield fork(executeActionWatcher, session)
 
+  /**
+   * Will take care of executing any pending blade.execute we have in
+   * the queue
+   */
+  const executeQueueCallTask: Task = yield fork(executeQueueCallWorker)
+
   yield put(sessionActions.connected(session.bladeConnectResult))
   yield put(pubSubChannel, sessionConnected())
 
@@ -137,6 +147,7 @@ export function* startSaga(options: StartSagaOptions): SagaIterator {
 
   pubSubTask.cancel()
   executeActionTask.cancel()
+  executeQueueCallTask.cancel()
   pubSubChannel.close()
   sessionChannel.close()
 }
@@ -147,6 +158,8 @@ interface RootSagaOptions {
 
 export default (options: RootSagaOptions) => {
   return function* root(userOptions: UserOptions): SagaIterator {
+    yield fork(executeQueueWatcher)
+
     /**
      * Wait for an initAction to start
      */
