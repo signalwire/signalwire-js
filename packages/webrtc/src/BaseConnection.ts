@@ -35,7 +35,7 @@ const ROOM_EVENTS = [
 ]
 
 const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
-  destinationNumber: '',
+  destinationNumber: 'room',
   remoteCallerName: 'Outbound Call',
   remoteCallerNumber: '',
   callerName: '',
