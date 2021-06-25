@@ -1,5 +1,5 @@
 import { connect, BaseClient } from '@signalwire/core'
-import { Call, ConnectionOptions, RoomObject } from '@signalwire/webrtc'
+import { Room, ConnectionOptions, RoomObject } from '@signalwire/webrtc'
 import { videoElementFactory } from './utils/videoElementFactory'
 
 interface MakeCallOptions extends ConnectionOptions {
@@ -11,9 +11,9 @@ export class Client extends BaseClient {
   get rooms() {
     return {
       makeCall: (options: MakeCallOptions) => {
-        const call: RoomObject = connect({
+        const room: RoomObject = connect({
           store: this.store,
-          Component: Call,
+          Component: Room,
           componentListeners: {
             state: 'onStateChange',
             remoteSDP: 'onRemoteSDP',
@@ -33,20 +33,20 @@ export class Client extends BaseClient {
             destroyHandler,
             layoutChangedHandler,
           } = videoElementFactory({ rootElementId, applyLocalVideoOverlay })
-          call.on('layout.changed', (params) => {
-            if (call.localVideoTrack) {
+          room.on('layout.changed', (params) => {
+            if (room.localVideoTrack) {
               layoutChangedHandler({
                 layout: params.layout,
-                localVideoTrack: call.localVideoTrack,
-                myMemberId: call.memberId,
+                localVideoTrack: room.localVideoTrack,
+                myMemberId: room.memberId,
               })
             }
           })
-          call.on('track', rtcTrackHandler)
-          call.on('destroy', destroyHandler)
+          room.on('track', rtcTrackHandler)
+          room.on('destroy', destroyHandler)
         }
 
-        return call
+        return room
       },
     }
   }
