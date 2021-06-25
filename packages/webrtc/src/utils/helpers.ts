@@ -1,7 +1,7 @@
 import { logger } from '@signalwire/core'
 import * as WebRTC from './webrtcHelpers'
 import { assureDeviceId } from './deviceHelpers'
-import { CallOptions } from './interfaces'
+import { ConnectionOptions } from './interfaces'
 
 export const getUserMedia = async (constraints: MediaStreamConstraints) => {
   logger.info('RTCService.getUserMedia', constraints)
@@ -36,7 +36,7 @@ export const removeUnsupportedConstraints = (
 }
 
 export const getMediaConstraints = async (
-  options: CallOptions
+  options: ConnectionOptions
 ): Promise<MediaStreamConstraints> => {
   let { audio = true, micId } = options
   const { micLabel = '' } = options

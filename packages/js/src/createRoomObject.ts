@@ -1,17 +1,10 @@
-import { logger, UserOptions } from '@signalwire/core'
+import { UserOptions } from '@signalwire/core'
 import { RoomObject } from '@signalwire/webrtc'
 import { createClient } from './createClient'
-import { videoElementFactory } from './utils/videoElementFactory'
+import { MakeRoomOptions } from './Client'
 
-export interface CreateRoomObjectOptions extends UserOptions {
-  audio: MediaStreamConstraints['audio']
-  video: MediaStreamConstraints['video']
-  iceServers?: RTCIceServer[]
-  rootElementId?: string
-  applyLocalVideoOverlay?: boolean
+export interface CreateRoomObjectOptions extends UserOptions, MakeRoomOptions {
   autoJoin?: boolean
-  stopCameraWhileMuted?: boolean
-  stopMicrophoneWhileMuted?: boolean
 }
 
 /**
@@ -66,80 +59,17 @@ export const createRoomObject = (
       return
     }
 
-    const room = client.rooms.makeCall({
+    const room = client.rooms.makeRoomObject({
       audio,
       video,
       negotiateAudio: true,
       negotiateVideo: true,
       iceServers,
+      rootElementId,
+      applyLocalVideoOverlay,
+      stopCameraWhileMuted,
+      stopMicrophoneWhileMuted,
     })
-
-    if (rootElementId) {
-      const {
-        rtcTrackHandler,
-        destroyHandler,
-        layoutChangedHandler,
-        showOverlay,
-        hideOverlay,
-      } = videoElementFactory({ rootElementId, applyLocalVideoOverlay })
-
-      room.on('layout.changed', (params: any) => {
-        if (room.localVideoTrack) {
-          layoutChangedHandler({
-            layout: params.layout,
-            localVideoTrack: room.localVideoTrack,
-            myMemberId: room.memberId,
-          })
-        }
-      })
-
-      room.on('member.updated.video_muted', (params: any) => {
-        try {
-          const { member } = params
-          if (member.id === room.memberId && 'video_muted' in member) {
-            member.video_muted ? hideOverlay(member.id) : showOverlay(member.id)
-          }
-        } catch (error) {
-          logger.error('Error handling video_muted', error)
-        }
-      })
-      room.on('track', rtcTrackHandler)
-      room.once('destroy', destroyHandler)
-    }
-
-    /**
-     * Stop and Restore outbound audio on audio_muted event
-     */
-    if (stopMicrophoneWhileMuted) {
-      room.on('member.updated.audio_muted', ({ member }) => {
-        try {
-          if (member.id === room.memberId && 'audio_muted' in member) {
-            member.audio_muted
-              ? room.stopOutboundAudio()
-              : room.restoreOutboundAudio()
-          }
-        } catch (error) {
-          logger.error('Error handling audio_muted', error)
-        }
-      })
-    }
-
-    /**
-     * Stop and Restore outbound video on video_muted event
-     */
-    if (stopCameraWhileMuted) {
-      room.on('member.updated.video_muted', ({ member }) => {
-        try {
-          if (member.id === room.memberId && 'video_muted' in member) {
-            member.video_muted
-              ? room.stopOutboundVideo()
-              : room.restoreOutboundVideo()
-          }
-        } catch (error) {
-          logger.error('Error handling video_muted', error)
-        }
-      })
-    }
 
     // WebRTC connection left the room.
     room.once('destroy', () => {

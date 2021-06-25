@@ -144,7 +144,7 @@ type MemberTalkingEventNames =
 
 export type RTCTrackEventName = 'track'
 
-export type CallState =
+export type BaseConnectionState =
   | 'active'
   | 'answering'
   | 'destroy'
@@ -169,8 +169,7 @@ type RoomEvents = `room.${RoomEvent}`
 /**
  * List of all the events the call can listen to
  */
-// prettier-ignore
-export type CallEventNames =
+export type RoomEventNames =
   | LayoutEvents
   | MemberEvents
   | RoomEvents
@@ -196,7 +195,6 @@ export type SessionAuthError = {
 }
 
 export interface RoomLayout {
-  id: string
   name: string
   layers: RoomLayoutLayer[]
   layer_count?: number

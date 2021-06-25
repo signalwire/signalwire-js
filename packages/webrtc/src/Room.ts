@@ -1,9 +1,9 @@
 import { logger, connect, getEventEmitter } from '@signalwire/core'
 import { getDisplayMedia } from './utils/webrtcHelpers'
 import { RoomObject, CreateScreenShareObjectOptions } from './utils/interfaces'
-import { BaseCall, BaseCallOptions } from './BaseCall'
+import { BaseConnection, BaseConnectionOptions } from './BaseConnection'
 
-export class Call extends BaseCall {
+export class Room extends BaseConnection {
   private _screenShareList = new Set<RoomObject>()
 
   get screenShareList() {
@@ -14,12 +14,12 @@ export class Call extends BaseCall {
    * Allow sharing the screen within the room.
    */
   async createScreenShareObject(opts: CreateScreenShareObjectOptions = {}) {
-    const { audio = false, video = true } = opts
+    const { autoJoin = true, audio = false, video = true } = opts
     const displayStream: MediaStream = await getDisplayMedia({ audio, video })
 
     // FIXME: Remove it when "scoped" emitters are in
     const fakeEmitter = getEventEmitter({ token: '' })
-    const options: BaseCallOptions = {
+    const options: BaseConnectionOptions = {
       ...this.options,
       screenShare: true,
       recoverCall: false,
@@ -30,8 +30,8 @@ export class Call extends BaseCall {
 
     const screenShare: RoomObject = connect({
       store: this.store,
-      Component: Call,
-      onStateChangeListeners: {
+      Component: Room,
+      componentListeners: {
         state: 'onStateChange',
         remoteSDP: 'onRemoteSDP',
         roomId: 'onRoomId',
@@ -58,7 +58,9 @@ export class Call extends BaseCall {
 
     try {
       this._screenShareList.add(screenShare)
-      await screenShare.join()
+      if (autoJoin) {
+        await screenShare.join()
+      }
       return screenShare
     } catch (error) {
       logger.error('ScreenShare Error', error)
@@ -66,6 +68,15 @@ export class Call extends BaseCall {
     }
   }
 
+  join() {
+    return super.invite()
+  }
+
+  leave() {
+    return super.hangup()
+  }
+
+  /** @internal */
   async hangup() {
     this._screenShareList.forEach((screenShare) => {
       screenShare.hangup()
@@ -74,6 +85,7 @@ export class Call extends BaseCall {
     return super.hangup()
   }
 
+  /** @internal */
   protected _finalize() {
     this._screenShareList.clear()
 

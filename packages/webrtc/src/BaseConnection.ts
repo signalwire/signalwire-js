@@ -8,7 +8,7 @@ import {
   RoomMethod,
   selectors,
   BaseComponentOptions,
-  CallState,
+  BaseConnectionState,
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import {
@@ -19,7 +19,7 @@ import {
   disableVideoTracks,
   toggleVideoTracks,
 } from './utils/helpers'
-import { CallOptions } from './utils/interfaces'
+import { ConnectionOptions } from './utils/interfaces'
 import { stopStream } from './utils/webrtcHelpers'
 
 const ROOM_EVENTS = [
@@ -34,8 +34,8 @@ const ROOM_EVENTS = [
   'layout.changed',
 ]
 
-const DEFAULT_CALL_OPTIONS: CallOptions = {
-  destinationNumber: '',
+const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
+  destinationNumber: 'room',
   remoteCallerName: 'Outbound Call',
   remoteCallerNumber: '',
   callerName: '',
@@ -61,23 +61,22 @@ interface MemberCommandWithVolumeParams extends MemberCommandParams {
 interface MemberCommandWithValueParams extends MemberCommandParams {
   value: number
 }
-export type BaseCallOptions = CallOptions & BaseComponentOptions
-export class BaseCall extends BaseComponent {
+export type BaseConnectionOptions = ConnectionOptions & BaseComponentOptions
+export class BaseConnection extends BaseComponent {
   public nodeId = ''
   public direction: 'inbound' | 'outbound'
   public peer: RTCPeer
-  public options: BaseCallOptions
+  public options: BaseConnectionOptions
   public cause: string
   public causeCode: string
+  /** @internal */
   public gotEarly = false
+
+  /** @internal */
   public doReinvite = false
-  public isDirect = false
-  public videoElements: HTMLVideoElement[] = []
-  public audioElements: HTMLAudioElement[] = []
-  public participantLayerIndex = -1
-  public participantLogo = ''
-  private state: CallState = 'new'
-  private prevState: CallState = 'new'
+
+  private state: BaseConnectionState = 'new'
+  private prevState: BaseConnectionState = 'new'
 
   private _extension: string
   // @ts-ignore
@@ -85,7 +84,7 @@ export class BaseCall extends BaseComponent {
   private _roomSessionId: string
   private _memberId: string
 
-  constructor(options: BaseCallOptions) {
+  constructor(options: BaseConnectionOptions) {
     super(options)
 
     const iceServers =
@@ -129,6 +128,7 @@ export class BaseCall extends BaseComponent {
     return this.options.remoteStream
   }
 
+  /** @internal */
   get messagePayload() {
     const {
       destinationNumber,
@@ -172,6 +172,7 @@ export class BaseCall extends BaseComponent {
     return this.peer ? this.peer.getDeviceLabel('audio') : null
   }
 
+  /** @internal */
   get withAudio() {
     // TODO: use peer to check audio tracks
     return this.remoteStream
@@ -179,19 +180,12 @@ export class BaseCall extends BaseComponent {
       : false
   }
 
+  /** @internal */
   get withVideo() {
     // TODO: use peer to check video tracks
     return this.remoteStream
       ? this.remoteStream.getVideoTracks().length > 0
       : false
-  }
-
-  get htmlVideoElement() {
-    return this.videoElements.length ? this.videoElements[0] : null
-  }
-
-  get htmlAudioElement() {
-    return this.audioElements.length ? this.audioElements[0] : null
   }
 
   get localVideoTrack() {
@@ -203,6 +197,7 @@ export class BaseCall extends BaseComponent {
   }
 
   /**
+   * @internal
    * Verto messages have to be wrapped into a blade.execute
    * request and sent using the 'video.message' method.
    */
@@ -225,6 +220,7 @@ export class BaseCall extends BaseComponent {
     })
   }
 
+  /** @internal */
   public onStateChange(component: any) {
     logger.debug('onStateChange', component)
     switch (component.state) {
@@ -237,6 +233,7 @@ export class BaseCall extends BaseComponent {
     }
   }
 
+  /** @internal */
   public onRemoteSDP(component: any) {
     logger.debug('onRemoteSDP', component)
     if (component.remoteSDP) {
@@ -244,6 +241,7 @@ export class BaseCall extends BaseComponent {
     }
   }
 
+  /** @internal */
   public onRoomId(component: any) {
     logger.debug('onRoomId', component)
     this._roomId = component.roomId
@@ -320,8 +318,7 @@ export class BaseCall extends BaseComponent {
   //   }
   // }
 
-  join = this.invite
-
+  /** @internal */
   invite() {
     return new Promise(async (resolve, reject) => {
       this.direction = 'outbound'
@@ -342,6 +339,7 @@ export class BaseCall extends BaseComponent {
     })
   }
 
+  /** @internal */
   async answer() {
     return new Promise(async (resolve, reject) => {
       this.direction = 'inbound'
@@ -362,6 +360,7 @@ export class BaseCall extends BaseComponent {
     })
   }
 
+  /** @internal */
   onLocalSDPReady(localDescription: RTCSessionDescription) {
     const { type, sdp } = localDescription
     switch (type) {
@@ -381,6 +380,7 @@ export class BaseCall extends BaseComponent {
     }
   }
 
+  /** @internal */
   async executeInvite(sdp: string) {
     this.setState('requesting')
     try {
@@ -407,36 +407,43 @@ export class BaseCall extends BaseComponent {
     }
   }
 
+  /** @internal */
   dtmf(dtmf: string) {
     const msg = VertoInfo({ ...this.messagePayload, dtmf })
     this.vertoExecute(msg)
   }
 
+  /** @internal */
   disableOutboundAudio() {
     // TODO: Use peer method
     this.options.localStream && disableAudioTracks(this.options.localStream)
   }
 
+  /** @internal */
   enableOutboundAudio() {
     // TODO: Use peer method
     this.options.localStream && enableAudioTracks(this.options.localStream)
   }
 
+  /** @internal */
   toggleOutboundAudio() {
     // TODO: Use peer method
     this.options.localStream && toggleAudioTracks(this.options.localStream)
   }
 
+  /** @internal */
   disableOutboundVideo() {
     // TODO: Use peer method
     this.options.localStream && disableVideoTracks(this.options.localStream)
   }
 
+  /** @internal */
   enableOutboundVideo() {
     // TODO: Use peer method
     this.options.localStream && enableVideoTracks(this.options.localStream)
   }
 
+  /** @internal */
   toggleOutboundVideo() {
     // TODO: Use peer method
     this.options.localStream && toggleVideoTracks(this.options.localStream)
@@ -444,6 +451,7 @@ export class BaseCall extends BaseComponent {
 
   /**
    * Deaf
+   * @internal
    */
   disableInboundAudio() {
     // TODO: Use peer method
@@ -452,6 +460,7 @@ export class BaseCall extends BaseComponent {
 
   /**
    * Undeaf
+   * @internal
    */
   enableInboundAudio() {
     // TODO: Use peer method
@@ -460,43 +469,50 @@ export class BaseCall extends BaseComponent {
 
   /**
    * Toggle Deaf
+   * @internal
    */
   toggleInboundAudio() {
     // TODO: Use peer method
     this.options.remoteStream && toggleAudioTracks(this.options.remoteStream)
   }
 
+  /** @internal */
   doReinviteWithRelayOnly() {
     if (this.peer && this.active) {
       this.peer.restartIceWithRelayOnly()
     }
   }
 
+  /** @internal */
   stopOutboundAudio() {
     if (this.peer && this.active) {
       this.peer.stopTrackSender('audio')
     }
   }
 
+  /** @internal */
   restoreOutboundAudio() {
     if (this.peer && this.active) {
       this.peer.restoreTrackSender('audio')
     }
   }
 
+  /** @internal */
   stopOutboundVideo() {
     if (this.peer && this.active) {
       this.peer.stopTrackSender('video')
     }
   }
 
+  /** @internal */
   restoreOutboundVideo() {
     if (this.peer && this.active) {
       this.peer.restoreTrackSender('video')
     }
   }
 
-  setState(state: CallState) {
+  /** @internal */
+  setState(state: BaseConnectionState) {
     this.prevState = this.state
     this.state = state
     logger.debug(
@@ -658,6 +674,7 @@ export class BaseCall extends BaseComponent {
     })
   }
 
+  /** @internal */
   private _hangup(params: any = {}) {
     const {
       byeCause = 'NORMAL_CLEARING',
@@ -673,6 +690,7 @@ export class BaseCall extends BaseComponent {
     return this.setState('hangup')
   }
 
+  /** @internal */
   protected _finalize() {
     if (this.peer && this.peer.instance) {
       this.peer.instance.close()

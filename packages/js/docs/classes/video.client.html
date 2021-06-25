@@ -92,14 +92,13 @@
 						<section class="tsd-index-section tsd-is-inherited">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="video.client.html#id" class="tsd-kind-icon">id</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="video.client.html#options" class="tsd-kind-icon">options</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="video.client.html#store" class="tsd-kind-icon">store</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
 							<h3>Accessors</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="video.client.html#emitter" class="tsd-kind-icon">emitter</a></li>
 								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="video.client.html#rooms" class="tsd-kind-icon">rooms</a></li>
 							</ul>
 						</section>
@@ -107,6 +106,7 @@
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="video.client.html#connect" class="tsd-kind-icon">connect</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="video.client.html#destroy" class="tsd-kind-icon">destroy</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="video.client.html#disconnect" class="tsd-kind-icon">disconnect</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="video.client.html#emit" class="tsd-kind-icon">emit</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="video.client.html#off" class="tsd-kind-icon">off</a></li>
@@ -124,23 +124,20 @@
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
 					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Client<span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><a href="../interfaces/baseclientoptions.html" class="tsd-signature-type" data-tsd-kind="Interface">BaseClientOptions</a>, store<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Store</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">AnyAction</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="video.client.html" class="tsd-signature-type" data-tsd-kind="Class">Client</a></li>
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Client<span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">BaseClientOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="video.client.html" class="tsd-signature-type" data-tsd-kind="Class">Client</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<p>Inherited from BaseClient.constructor</p>
 								<ul>
-									<li>Defined in packages/core/dist/core/src/BaseClient.d.ts:5</li>
+									<li>Defined in packages/core/dist/core/src/BaseClient.d.ts:4</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>options: <a href="../interfaces/baseclientoptions.html" class="tsd-signature-type" data-tsd-kind="Interface">BaseClientOptions</a></h5>
-								</li>
-								<li>
-									<h5>store: <span class="tsd-signature-type">Store</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">AnyAction</span><span class="tsd-signature-symbol">&gt;</span></h5>
+									<h5>options: <span class="tsd-signature-type">BaseClientOptions</span></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <a href="video.client.html" class="tsd-signature-type" data-tsd-kind="Class">Client</a></h4>
@@ -151,9 +148,20 @@
 			<section class="tsd-panel-group tsd-member-group tsd-is-inherited">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
+					<a name="id" class="tsd-anchor"></a>
+					<h3>id</h3>
+					<div class="tsd-signature tsd-kind-icon">id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from BaseClient.id</p>
+						<ul>
+							<li>Defined in packages/core/dist/core/src/BaseComponent.d.ts:5</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
 					<a name="options" class="tsd-anchor"></a>
 					<h3>options</h3>
-					<div class="tsd-signature tsd-kind-icon">options<span class="tsd-signature-symbol">:</span> <a href="../interfaces/baseclientoptions.html" class="tsd-signature-type" data-tsd-kind="Interface">BaseClientOptions</a></div>
+					<div class="tsd-signature tsd-kind-icon">options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">BaseClientOptions</span></div>
 					<aside class="tsd-sources">
 						<p>Inherited from BaseClient.options</p>
 						<ul>
@@ -161,65 +169,37 @@
 						</ul>
 					</aside>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
-					<a name="store" class="tsd-anchor"></a>
-					<h3>store</h3>
-					<div class="tsd-signature tsd-kind-icon">store<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Store</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">AnyAction</span><span class="tsd-signature-symbol">&gt;</span></div>
-					<aside class="tsd-sources">
-						<p>Inherited from BaseClient.store</p>
-						<ul>
-							<li>Defined in packages/core/dist/core/src/BaseClient.d.ts:5</li>
-						</ul>
-					</aside>
-				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Accessors</h2>
 				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
-					<a name="emitter" class="tsd-anchor"></a>
-					<h3>emitter</h3>
-					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> emitter<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../index.html#emitter" class="tsd-signature-type" data-tsd-kind="Type alias">Emitter</a></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in packages/core/dist/core/src/BaseClient.d.ts:7</li>
-								</ul>
-							</aside>
-							<h4 class="tsd-returns-title">Returns <a href="../index.html#emitter" class="tsd-signature-type" data-tsd-kind="Type alias">Emitter</a></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
 					<a name="rooms" class="tsd-anchor"></a>
 					<h3>rooms</h3>
 					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> rooms<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>makeCall<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">MakeCallOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><a href="../modules/video.html#roomobject" class="tsd-signature-type" data-tsd-kind="Type alias">RoomObject</a><span class="tsd-signature-symbol"> }</span></li>
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> rooms<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>makeRoomObject<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>makeRoomOptions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">MakeRoomOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><a href="../modules/video.html#roomobject" class="tsd-signature-type" data-tsd-kind="Type alias">RoomObject</a><span class="tsd-signature-symbol"> }</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/signalwire/video-sdk-poc/blob/40b955d/packages/js/src/Client.ts#L14">packages/js/src/Client.ts:14</a></li>
+									<li>Defined in <a href="https://github.com/signalwire/signalwire-js/blob/2270c14/packages/js/src/Client.ts#L13">packages/js/src/Client.ts:13</a></li>
 								</ul>
 							</aside>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">{ </span>makeCall<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">MakeCallOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><a href="../modules/video.html#roomobject" class="tsd-signature-type" data-tsd-kind="Type alias">RoomObject</a><span class="tsd-signature-symbol"> }</span></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">{ </span>makeRoomObject<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>makeRoomOptions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">MakeRoomOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><a href="../modules/video.html#roomobject" class="tsd-signature-type" data-tsd-kind="Type alias">RoomObject</a><span class="tsd-signature-symbol"> }</span></h4>
 							<ul class="tsd-parameters">
 								<li class="tsd-parameter">
-									<h5>make<wbr>Call<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">MakeCallOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><a href="../modules/video.html#roomobject" class="tsd-signature-type" data-tsd-kind="Type alias">RoomObject</a></h5>
+									<h5>make<wbr>Room<wbr>Object<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>makeRoomOptions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">MakeRoomOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><a href="../modules/video.html#roomobject" class="tsd-signature-type" data-tsd-kind="Type alias">RoomObject</a></h5>
 									<ul class="tsd-parameters">
 										<li class="tsd-parameter-signature">
 											<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-literal">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">MakeCallOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules/video.html#roomobject" class="tsd-signature-type" data-tsd-kind="Type alias">RoomObject</a></li>
+												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>makeRoomOptions<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">MakeRoomOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules/video.html#roomobject" class="tsd-signature-type" data-tsd-kind="Type alias">RoomObject</a></li>
 											</ul>
 											<ul class="tsd-descriptions">
 												<li class="tsd-description">
 													<h4 class="tsd-parameters-title">Parameters</h4>
 													<ul class="tsd-parameters">
 														<li>
-															<h5>options: <span class="tsd-signature-type">MakeCallOptions</span></h5>
+															<h5>makeRoomOptions: <span class="tsd-signature-type">MakeRoomOptions</span></h5>
 														</li>
 													</ul>
 													<h4 class="tsd-returns-title">Returns <a href="../modules/video.html#roomobject" class="tsd-signature-type" data-tsd-kind="Type alias">RoomObject</a></h4>
@@ -246,7 +226,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from BaseClient.connect</p>
 								<ul>
-									<li>Defined in packages/core/dist/core/src/BaseClient.d.ts:18</li>
+									<li>Defined in packages/core/dist/core/src/BaseClient.d.ts:11</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -256,6 +236,24 @@
 							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="video.client.html" class="tsd-signature-type" data-tsd-kind="Class">Client</a><span class="tsd-signature-symbol">&gt;</span></h4>
 							<p>Promise that will resolve with the Client object.</p>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<a name="destroy" class="tsd-anchor"></a>
+					<h3>destroy</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon">destroy<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from BaseClient.destroy</p>
+								<ul>
+									<li>Defined in packages/core/dist/core/src/BaseComponent.d.ts:20</li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -270,7 +268,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from BaseClient.disconnect</p>
 								<ul>
-									<li>Defined in packages/core/dist/core/src/BaseClient.d.ts:24</li>
+									<li>Defined in packages/core/dist/core/src/BaseClient.d.ts:17</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -294,7 +292,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from BaseClient.emit</p>
 								<ul>
-									<li>Defined in packages/core/dist/core/src/BaseClient.d.ts:11</li>
+									<li>Defined in packages/core/dist/core/src/BaseComponent.d.ts:18</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -318,7 +316,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from BaseClient.off</p>
 								<ul>
-									<li>Defined in packages/core/dist/core/src/BaseClient.d.ts:9</li>
+									<li>Defined in packages/core/dist/core/src/BaseComponent.d.ts:17</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -342,7 +340,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from BaseClient.on</p>
 								<ul>
-									<li>Defined in packages/core/dist/core/src/BaseClient.d.ts:8</li>
+									<li>Defined in packages/core/dist/core/src/BaseComponent.d.ts:15</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -366,7 +364,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from BaseClient.once</p>
 								<ul>
-									<li>Defined in packages/core/dist/core/src/BaseClient.d.ts:10</li>
+									<li>Defined in packages/core/dist/core/src/BaseComponent.d.ts:16</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -390,7 +388,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from BaseClient.removeAllListeners</p>
 								<ul>
-									<li>Defined in packages/core/dist/core/src/BaseClient.d.ts:12</li>
+									<li>Defined in packages/core/dist/core/src/BaseComponent.d.ts:19</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -430,19 +428,19 @@
 								<a href="video.client.html#constructor" class="tsd-kind-icon">constructor</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
-								<a href="video.client.html#options" class="tsd-kind-icon">options</a>
+								<a href="video.client.html#id" class="tsd-kind-icon">id</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
-								<a href="video.client.html#store" class="tsd-kind-icon">store</a>
-							</li>
-							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
-								<a href="video.client.html#emitter" class="tsd-kind-icon">emitter</a>
+								<a href="video.client.html#options" class="tsd-kind-icon">options</a>
 							</li>
 							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
 								<a href="video.client.html#rooms" class="tsd-kind-icon">rooms</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 								<a href="video.client.html#connect" class="tsd-kind-icon">connect</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="video.client.html#destroy" class="tsd-kind-icon">destroy</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 								<a href="video.client.html#disconnect" class="tsd-kind-icon">disconnect</a>
@@ -466,14 +464,14 @@
 					</li>
 				</ul>
 				<ul class="after-current">
+					<li class=" tsd-kind-class tsd-parent-kind-namespace">
+						<a href="video.room.html" class="tsd-kind-icon">Room</a>
+					</li>
 					<li class=" tsd-kind-interface tsd-parent-kind-namespace">
 						<a href="../interfaces/video.createroomobjectoptions.html" class="tsd-kind-icon">Create<wbr>Room<wbr>Object<wbr>Options</a>
 					</li>
 					<li class=" tsd-kind-type-alias tsd-parent-kind-namespace">
 						<a href="../modules/video.html#roomobject" class="tsd-kind-icon">Room<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-namespace">
-						<a href="../modules/video.html#createclient" class="tsd-kind-icon">create<wbr>Client</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-namespace">
 						<a href="../modules/video.html#createroomobject" class="tsd-kind-icon">create<wbr>Room<wbr>Object</a>

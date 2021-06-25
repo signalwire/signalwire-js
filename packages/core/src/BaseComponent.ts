@@ -15,14 +15,17 @@ export class BaseComponent implements Emitter {
 
   constructor(public options: BaseComponentOptions) {}
 
+  /** @internal */
   set destroyer(d: () => void) {
     this._destroyer = d
   }
 
+  /** @internal */
   get store() {
     return this.options.store
   }
 
+  /** @internal */
   get emitter() {
     return this.options.emitter
   }
@@ -52,6 +55,7 @@ export class BaseComponent implements Emitter {
     this.removeAllListeners()
   }
 
+  /** @internal */
   execute({ method, params }: ExecuteParams) {
     return new Promise((resolve, reject) => {
       const requestId = uuid()
@@ -68,10 +72,12 @@ export class BaseComponent implements Emitter {
     })
   }
 
+  /** @internal */
   select<T>(selectorFn: (state: SDKState) => T) {
     return selectorFn(this.store.getState())
   }
 
+  /** @internal */
   onError(component: any) {
     this._requests.forEach((value, key) => {
       value.reject(component.errors[key])
@@ -79,6 +85,7 @@ export class BaseComponent implements Emitter {
     })
   }
 
+  /** @internal */
   onSuccess(component: any) {
     this._requests.forEach((value, key) => {
       value.resolve(component.responses[key])

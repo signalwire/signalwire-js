@@ -71,6 +71,7 @@
 							<h3>Classes</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-class tsd-parent-kind-namespace"><a href="../classes/video.client.html" class="tsd-kind-icon">Client</a></li>
+								<li class="tsd-kind-class tsd-parent-kind-namespace"><a href="../classes/video.room.html" class="tsd-kind-icon">Room</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
@@ -88,7 +89,6 @@
 						<section class="tsd-index-section ">
 							<h3>Functions</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-function tsd-parent-kind-namespace"><a href="video.html#createclient" class="tsd-kind-icon">create<wbr>Client</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-namespace"><a href="video.html#createroomobject" class="tsd-kind-icon">create<wbr>Room<wbr>Object</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-namespace"><a href="video.html#joinroom" class="tsd-kind-icon">join<wbr>Room</a></li>
 							</ul>
@@ -101,86 +101,16 @@
 				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-parent-kind-namespace">
 					<a name="roomobject" class="tsd-anchor"></a>
 					<h3>Room<wbr>Object</h3>
-					<div class="tsd-signature tsd-kind-icon">Room<wbr>Object<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">StrictEventEmitter</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/webrtc.call.html" class="tsd-signature-type" data-tsd-kind="Class">Call</a><span class="tsd-signature-symbol">, </span><a href="webrtc.html#callevents" class="tsd-signature-type" data-tsd-kind="Type alias">CallEvents</a><span class="tsd-signature-symbol">&gt;</span></div>
+					<div class="tsd-signature tsd-kind-icon">Room<wbr>Object<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">StrictEventEmitter</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/video.room.html" class="tsd-signature-type" data-tsd-kind="Class">Room</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">RoomObjectEvents</span><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/signalwire/video-sdk-poc/blob/40b955d/packages/js/src/Client.ts#L11">packages/js/src/Client.ts:11</a></li>
+							<li>Defined in packages/webrtc/dist/webrtc/src/utils/interfaces.d.ts:55</li>
 						</ul>
 					</aside>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Functions</h2>
-				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-namespace">
-					<a name="createclient" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagConst">Const</span> create<wbr>Client</h3>
-					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-namespace">
-						<li class="tsd-signature tsd-kind-icon">create<wbr>Client<span class="tsd-signature-symbol">(</span>userOptions<span class="tsd-signature-symbol">: </span><a href="../interfaces/useroptions.html" class="tsd-signature-type" data-tsd-kind="Interface">UserOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/video.client.html" class="tsd-signature-type" data-tsd-kind="Class">Client</a><span class="tsd-signature-symbol">&gt;</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/signalwire/video-sdk-poc/blob/40b955d/packages/js/src/createClient.ts#L54">packages/js/src/createClient.ts:54</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<a href="#intro" id="intro" style="color: inherit; text-decoration: none;">
-										<h2>Intro</h2>
-									</a>
-									<p>With Video.createClient() you can establish a WebSocket connection
-									with SignalWire and interact with the client.</p>
-								</div>
-								<a href="#examples" id="examples" style="color: inherit; text-decoration: none;">
-									<h2>Examples</h2>
-								</a>
-								<p>Create a client</p>
-								<dl class="tsd-comment-tags">
-									<dt>example</dt>
-									<dd><p>With autoConnect true the client is ready to be used.</p>
-										<pre><code class="language-js"><span style="color: #AF00DB">try</span><span style="color: #000000"> {</span>
-<span style="color: #000000">  </span><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">client</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">Video</span><span style="color: #000000">.</span><span style="color: #795E26">createClient</span><span style="color: #000000">({</span>
-<span style="color: #000000">    </span><span style="color: #001080">token:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;&lt;YourToken&gt;&#039;</span><span style="color: #000000">,</span>
-<span style="color: #000000">  })</span>
-
-<span style="color: #000000">  </span><span style="color: #008000">// Your client is already connected..</span>
-<span style="color: #000000">} </span><span style="color: #AF00DB">catch</span><span style="color: #000000"> (</span><span style="color: #001080">error</span><span style="color: #000000">) {</span>
-<span style="color: #000000">  </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">error</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;Auth Error&#039;</span><span style="color: #000000">, </span><span style="color: #001080">error</span><span style="color: #000000">)</span>
-<span style="color: #000000">}</span>
-</code></pre>
-									</dd>
-									<dt>example</dt>
-									<dd><p>With autoConnect false you can attach additional handlers.</p>
-										<pre><code class="language-js"><span style="color: #AF00DB">try</span><span style="color: #000000"> {</span>
-<span style="color: #000000">  </span><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">client</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">Video</span><span style="color: #000000">.</span><span style="color: #795E26">createClient</span><span style="color: #000000">({</span>
-<span style="color: #000000">    </span><span style="color: #001080">token:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;&lt;YourJWT&gt;&#039;</span><span style="color: #000000">,</span>
-<span style="color: #000000">    </span><span style="color: #001080">autoConnect:</span><span style="color: #000000"> </span><span style="color: #0000FF">false</span><span style="color: #000000">,</span>
-<span style="color: #000000">  })</span>
-
-<span style="color: #000000">  </span><span style="color: #001080">client</span><span style="color: #000000">.</span><span style="color: #795E26">on</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;socket.closed&#039;</span><span style="color: #000000">, () </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
-<span style="color: #000000">    </span><span style="color: #008000">// The WebSocket connection is closed</span>
-<span style="color: #000000">  })</span>
-
-<span style="color: #000000">  </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">client</span><span style="color: #000000">.</span><span style="color: #795E26">connect</span><span style="color: #000000">()</span>
-<span style="color: #000000">  </span><span style="color: #008000">// Your client is ready now..</span>
-<span style="color: #000000">} </span><span style="color: #AF00DB">catch</span><span style="color: #000000"> (</span><span style="color: #001080">error</span><span style="color: #000000">) {</span>
-<span style="color: #000000">  </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">error</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;Error&#039;</span><span style="color: #000000">, </span><span style="color: #001080">error</span><span style="color: #000000">)</span>
-<span style="color: #000000">}</span>
-</code></pre>
-									</dd>
-								</dl>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>userOptions: <a href="../interfaces/useroptions.html" class="tsd-signature-type" data-tsd-kind="Interface">UserOptions</a></h5>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/video.client.html" class="tsd-signature-type" data-tsd-kind="Class">Client</a><span class="tsd-signature-symbol">&gt;</span></h4>
-						</li>
-					</ul>
-				</section>
 				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-namespace">
 					<a name="createroomobject" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagConst">Const</span> create<wbr>Room<wbr>Object</h3>
@@ -191,7 +121,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/signalwire/video-sdk-poc/blob/40b955d/packages/js/src/createRoomObject.ts#L41">packages/js/src/createRoomObject.ts:41</a></li>
+									<li>Defined in <a href="https://github.com/signalwire/signalwire-js/blob/2270c14/packages/js/src/createRoomObject.ts#L34">packages/js/src/createRoomObject.ts:34</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -244,7 +174,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/signalwire/video-sdk-poc/blob/40b955d/packages/js/src/joinRoom.ts#L27">packages/js/src/joinRoom.ts:27</a></li>
+									<li>Defined in <a href="https://github.com/signalwire/signalwire-js/blob/2270c14/packages/js/src/joinRoom.ts#L27">packages/js/src/joinRoom.ts:27</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -308,14 +238,14 @@
 					<li class=" tsd-kind-class tsd-parent-kind-namespace">
 						<a href="../classes/video.client.html" class="tsd-kind-icon">Client</a>
 					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-namespace">
+						<a href="../classes/video.room.html" class="tsd-kind-icon">Room</a>
+					</li>
 					<li class=" tsd-kind-interface tsd-parent-kind-namespace">
 						<a href="../interfaces/video.createroomobjectoptions.html" class="tsd-kind-icon">Create<wbr>Room<wbr>Object<wbr>Options</a>
 					</li>
 					<li class=" tsd-kind-type-alias tsd-parent-kind-namespace">
 						<a href="video.html#roomobject" class="tsd-kind-icon">Room<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-namespace">
-						<a href="video.html#createclient" class="tsd-kind-icon">create<wbr>Client</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-namespace">
 						<a href="video.html#createroomobject" class="tsd-kind-icon">create<wbr>Room<wbr>Object</a>

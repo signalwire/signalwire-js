@@ -1,12 +1,12 @@
 import StrictEventEmitter from 'strict-event-emitter-types'
 import type {
-  CallEventNames,
-  CallState,
+  RoomEventNames,
+  BaseConnectionState,
   EventsHandlerMapping,
 } from '@signalwire/core'
-import type { Call } from '../Call'
+import type { Room } from '../Room'
 
-export interface CallOptions {
+export interface ConnectionOptions {
   // TODO: Not used anymore but required for backend
   destinationNumber?: string
   remoteCallerName?: string
@@ -21,8 +21,8 @@ export interface CallOptions {
   localElement?: HTMLMediaElement | string | Function
   remoteElement?: HTMLMediaElement | string | Function
   iceServers?: RTCIceServer[]
-  audio?: boolean | MediaTrackConstraints
-  video?: boolean | MediaTrackConstraints
+  audio?: MediaStreamConstraints['audio']
+  video?: MediaStreamConstraints['video']
   attach?: boolean
   useStereo?: boolean
   micId?: string
@@ -52,16 +52,19 @@ export interface CallOptions {
   iceGatheringTimeout?: number
 }
 
-type CallEventsHandlerMapping = EventsHandlerMapping &
-  Record<CallState, (params: Call) => void>
+type BaseConnectionEventsHandlerMapping = EventsHandlerMapping &
+  Record<BaseConnectionState, (params: Room) => void>
 
-export type CallEvents = {
-  [k in CallEventNames | CallState]: CallEventsHandlerMapping[k]
+export type RoomObjectEvents = {
+  [k in
+    | RoomEventNames
+    | BaseConnectionState]: BaseConnectionEventsHandlerMapping[k]
 }
 
-export type RoomObject = StrictEventEmitter<Call, CallEvents>
+export type RoomObject = StrictEventEmitter<Room, RoomObjectEvents>
 
 export type CreateScreenShareObjectOptions = {
+  autoJoin?: boolean
   audio?: MediaStreamConstraints['audio']
   video?: MediaStreamConstraints['video']
 }

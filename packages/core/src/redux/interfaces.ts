@@ -4,7 +4,7 @@ import {
   SessionAuthError,
   SessionAuthStatus,
   BladeExecuteMethod,
-  CallState,
+  BaseConnectionState,
 } from '../utils/interfaces'
 
 interface SWComponent {
@@ -17,7 +17,7 @@ interface SWComponent {
 }
 
 export interface WebRTCCall extends SWComponent {
-  state?: CallState
+  state?: BaseConnectionState
   remoteSDP?: string
   nodeId?: string
   roomId?: string
