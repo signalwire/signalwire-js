@@ -65,6 +65,10 @@ export const createRoomObject = (
       negotiateAudio: true,
       negotiateVideo: true,
       iceServers,
+      rootElementId,
+      applyLocalVideoOverlay,
+      stopCameraWhileMuted,
+      stopMicrophoneWhileMuted,
     })
 
     // WebRTC connection left the room.
