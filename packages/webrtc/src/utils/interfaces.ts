@@ -1,10 +1,10 @@
 import StrictEventEmitter from 'strict-event-emitter-types'
 import type {
-  CallEventNames,
-  CallState,
+  RoomEventNames,
+  BaseConnectionState,
   EventsHandlerMapping,
 } from '@signalwire/core'
-import type { Call } from '../Call'
+import type { Room } from '../Room'
 
 export interface ConnectionOptions {
   // TODO: Not used anymore but required for backend
@@ -53,13 +53,13 @@ export interface ConnectionOptions {
 }
 
 type CallEventsHandlerMapping = EventsHandlerMapping &
-  Record<CallState, (params: Call) => void>
+  Record<BaseConnectionState, (params: Room) => void>
 
 export type CallEvents = {
-  [k in CallEventNames | CallState]: CallEventsHandlerMapping[k]
+  [k in RoomEventNames | BaseConnectionState]: CallEventsHandlerMapping[k]
 }
 
-export type RoomObject = StrictEventEmitter<Call, CallEvents>
+export type RoomObject = StrictEventEmitter<Room, CallEvents>
 
 export type CreateScreenShareObjectOptions = {
   audio?: MediaStreamConstraints['audio']

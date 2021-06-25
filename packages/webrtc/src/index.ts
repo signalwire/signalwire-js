@@ -1,4 +1,4 @@
-export { Call } from './Call'
+export { Room } from './Room'
 export {
   getDevices,
   getCameraDevices,

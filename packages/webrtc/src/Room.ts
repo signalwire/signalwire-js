@@ -3,7 +3,7 @@ import { getDisplayMedia } from './utils/webrtcHelpers'
 import { RoomObject, CreateScreenShareObjectOptions } from './utils/interfaces'
 import { BaseConnection, BaseConnectionOptions } from './BaseConnection'
 
-export class Call extends BaseConnection {
+export class Room extends BaseConnection {
   private _screenShareList = new Set<RoomObject>()
 
   get screenShareList() {
@@ -30,7 +30,7 @@ export class Call extends BaseConnection {
 
     const screenShare: RoomObject = connect({
       store: this.store,
-      Component: Call,
+      Component: Room,
       componentListeners: {
         state: 'onStateChange',
         remoteSDP: 'onRemoteSDP',

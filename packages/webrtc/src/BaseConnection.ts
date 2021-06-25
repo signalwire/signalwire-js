@@ -8,7 +8,7 @@ import {
   RoomMethod,
   selectors,
   BaseComponentOptions,
-  CallState,
+  BaseConnectionState,
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import {
@@ -76,8 +76,8 @@ export class BaseConnection extends BaseComponent {
   public audioElements: HTMLAudioElement[] = []
   public participantLayerIndex = -1
   public participantLogo = ''
-  private state: CallState = 'new'
-  private prevState: CallState = 'new'
+  private state: BaseConnectionState = 'new'
+  private prevState: BaseConnectionState = 'new'
 
   private _extension: string
   // @ts-ignore
@@ -496,7 +496,7 @@ export class BaseConnection extends BaseComponent {
     }
   }
 
-  setState(state: CallState) {
+  setState(state: BaseConnectionState) {
     this.prevState = this.state
     this.state = state
     logger.debug(
