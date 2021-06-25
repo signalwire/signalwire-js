@@ -195,7 +195,6 @@ export type SessionAuthError = {
 }
 
 export interface RoomLayout {
-  id: string
   name: string
   layers: RoomLayoutLayer[]
   layer_count?: number
