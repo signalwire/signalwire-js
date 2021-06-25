@@ -205,6 +205,7 @@ export interface RoomMemberLocation {
   width: number
 }
 
+type RoomMemberType = 'member' | 'screen'
 interface RoomMemberCommon {
   id: string
   room_session_id: string
@@ -217,7 +218,7 @@ interface RoomMemberProperties {
   output_volume: number
   on_hold: boolean
   deaf: boolean
-  type: 'member'
+  type: RoomMemberType
   visible: boolean
   audio_muted: boolean
   video_muted: boolean
@@ -225,7 +226,14 @@ interface RoomMemberProperties {
   location: RoomMemberLocation
 }
 
-export type RoomMember = RoomMemberCommon & RoomMemberProperties
+export type RoomMember = RoomMemberCommon &
+  RoomMemberProperties & {
+    type: 'member'
+  }
+export type RoomScreenShare = RoomMember & {
+  parent_id: string
+  type: 'screen'
+}
 
 export interface Room {
   blind_mode: boolean
