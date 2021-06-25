@@ -1,13 +1,12 @@
 import { logger, connect, getEventEmitter } from '@signalwire/core'
-import { getDisplayMedia } from '@signalwire/webrtc'
+import { getDisplayMedia } from './utils/webrtcHelpers'
 import { BaseCall, BaseCallOptions } from './BaseCall'
 
 export class Call extends BaseCall {
-
   async startScreenShare(opts?: BaseCallOptions) {
-    const { audio = false, video = true } = (opts || {})
+    const { audio = false, video = true } = opts || {}
     const displayStream: MediaStream = await getDisplayMedia({ audio, video })
-    displayStream.getTracks().forEach(t => {
+    displayStream.getTracks().forEach((t) => {
       t.addEventListener('ended', () => {
         if (this.screenShare) {
           this.screenShare.hangup()
