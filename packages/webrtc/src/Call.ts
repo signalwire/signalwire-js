@@ -2,20 +2,24 @@ import { logger, connect, getEventEmitter } from '@signalwire/core'
 import { getDisplayMedia } from './utils/webrtcHelpers'
 import { BaseCall, BaseCallOptions } from './BaseCall'
 
-export class Call extends BaseCall {
-  async startScreenShare(opts?: BaseCallOptions) {
-    const { audio = false, video = true } = opts || {}
-    const displayStream: MediaStream = await getDisplayMedia({ audio, video })
-    displayStream.getTracks().forEach((t) => {
-      t.addEventListener('ended', () => {
-        if (this.screenShare) {
-          this.screenShare.hangup()
-        }
-      })
-    })
-    // FIXME: Make better emitters
-    const fakeEmitter = getEventEmitter({ token: '' })
+type StartScreenShareOptions = {
+  audio?: MediaStreamConstraints['audio']
+  video?: MediaStreamConstraints['video']
+}
 
+export class Call extends BaseCall {
+  private _screenShareList = new Set<Call>()
+
+  get screenShareList() {
+    return Array.from(this._screenShareList)
+  }
+
+  async startScreenShare(opts: StartScreenShareOptions = {}) {
+    const { audio = false, video = true } = opts
+    const displayStream: MediaStream = await getDisplayMedia({ audio, video })
+
+    // FIXME: Remove it when "scoped" emitters are in
+    const fakeEmitter = getEventEmitter({ token: '' })
     const options: BaseCallOptions = {
       ...this.options,
       screenShare: true,
@@ -23,10 +27,9 @@ export class Call extends BaseCall {
       skipLiveArray: true,
       localStream: displayStream,
       emitter: fakeEmitter,
-      ...opts,
     }
 
-    this.screenShare = connect({
+    const screenShare = connect({
       store: this.store,
       Component: Call,
       onStateChangeListeners: {
@@ -38,12 +41,43 @@ export class Call extends BaseCall {
       },
     })(options)
 
+    /**
+     * Hangup if the user stop the screenShare from the
+     * native browser button or if the videoTrack ends.
+     */
+    displayStream.getVideoTracks().forEach((t) => {
+      t.addEventListener('ended', () => {
+        if (screenShare && screenShare.active) {
+          screenShare.hangup()
+        }
+      })
+    })
+
+    screenShare.on('destroy', () => {
+      this._screenShareList.delete(screenShare)
+    })
+
     try {
-      await this.screenShare.invite()
-      return this.screenShare
+      this._screenShareList.add(screenShare)
+      await screenShare.join()
+      return screenShare
     } catch (error) {
       logger.error('ScreenShare Error', error)
       throw error
     }
+  }
+
+  async hangup() {
+    this._screenShareList.forEach((screenShare) => {
+      screenShare.hangup()
+    })
+
+    return super.hangup()
+  }
+
+  protected _finalize() {
+    this._screenShareList.clear()
+
+    super._finalize()
   }
 }
