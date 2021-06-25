@@ -20,15 +20,13 @@ async function loadLayouts(currentLayoutId) {
     const { layouts } = await roomObj.getLayoutList()
 
     const layoutEl = document.getElementById('layout')
-    while (layoutEl.options.length > 0) {
-      layoutEl.remove(0)
-    }
+    layoutEl.innerHTML = ''
 
     const defOption = document.createElement('option')
     defOption.value = ''
     defOption.innerHTML = 'Change layout..'
     layoutEl.appendChild(defOption)
-    for (var i = 0; i < layouts.length; i++){
+    for (var i = 0; i < layouts.length; i++) {
       const layout = layouts[i]
       var opt = document.createElement('option')
       opt.value = layout
