@@ -14,7 +14,7 @@ export class Room extends BaseConnection {
    * Allow sharing the screen within the room.
    */
   async createScreenShareObject(opts: CreateScreenShareObjectOptions = {}) {
-    const { audio = false, video = true } = opts
+    const { autoJoin = true, audio = false, video = true } = opts
     const displayStream: MediaStream = await getDisplayMedia({ audio, video })
 
     // FIXME: Remove it when "scoped" emitters are in
@@ -58,7 +58,9 @@ export class Room extends BaseConnection {
 
     try {
       this._screenShareList.add(screenShare)
-      await screenShare.join()
+      if (autoJoin) {
+        await screenShare.join()
+      }
       return screenShare
     } catch (error) {
       logger.error('ScreenShare Error', error)

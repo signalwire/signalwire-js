@@ -62,6 +62,7 @@ export type CallEvents = {
 export type RoomObject = StrictEventEmitter<Room, CallEvents>
 
 export type CreateScreenShareObjectOptions = {
+  autoJoin?: boolean
   audio?: MediaStreamConstraints['audio']
   video?: MediaStreamConstraints['video']
 }
