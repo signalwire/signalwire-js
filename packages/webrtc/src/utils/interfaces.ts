@@ -1,3 +1,4 @@
+import StrictEventEmitter from 'strict-event-emitter-types'
 import type {
   CallEventNames,
   CallState,
@@ -14,7 +15,6 @@ export interface CallOptions {
   callerNumber?: string
   // --
   sessionid?: string
-  id?: string
   remoteSdp?: string
   localStream?: MediaStream
   remoteStream?: MediaStream
@@ -57,4 +57,11 @@ type CallEventsHandlerMapping = EventsHandlerMapping &
 
 export type CallEvents = {
   [k in CallEventNames | CallState]: CallEventsHandlerMapping[k]
+}
+
+export type RoomObject = StrictEventEmitter<Call, CallEvents>
+
+export type CreateScreenShareObjectOptions = {
+  audio?: MediaStreamConstraints['audio']
+  video?: MediaStreamConstraints['video']
 }

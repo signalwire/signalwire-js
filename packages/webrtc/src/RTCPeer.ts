@@ -196,7 +196,7 @@ export default class RTCPeer {
         return logger.info('No sender to apply constraints', kind, constraints)
       }
       if (sender.track.readyState === 'live') {
-        logger.info(`Apply ${kind} constraints`, this.options.id, constraints)
+        logger.info(`Apply ${kind} constraints`, this.call.id, constraints)
         await sender.track.applyConstraints(constraints)
       }
     } catch (error) {
@@ -268,7 +268,7 @@ export default class RTCPeer {
       await this._setRemoteDescription({ sdp, type })
     } catch (error) {
       logger.error(
-        `Error handling remote SDP on call ${this.options.id}:`,
+        `Error handling remote SDP on call ${this.call.id}:`,
         error
       )
       this.call.hangup()

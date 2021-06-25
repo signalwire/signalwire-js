@@ -1,5 +1,5 @@
 import { logger, UserOptions } from '@signalwire/core'
-import { RoomObject } from './Client'
+import { RoomObject } from '@signalwire/webrtc'
 import { createClient } from './createClient'
 import { videoElementFactory } from './utils/videoElementFactory'
 

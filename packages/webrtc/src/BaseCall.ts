@@ -61,7 +61,7 @@ interface MemberCommandWithVolumeParams extends MemberCommandParams {
 interface MemberCommandWithValueParams extends MemberCommandParams {
   value: number
 }
-type BaseCallOptions = CallOptions & BaseComponentOptions
+export type BaseCallOptions = CallOptions & BaseComponentOptions
 export class BaseCall extends BaseComponent {
   public nodeId = ''
   public direction: 'inbound' | 'outbound'
@@ -70,8 +70,6 @@ export class BaseCall extends BaseComponent {
   public cause: string
   public causeCode: string
   public gotEarly = false
-  public screenShare?: BaseCall
-  public secondSource?: BaseCall
   public doReinvite = false
   public isDirect = false
   public videoElements: HTMLVideoElement[] = []
@@ -94,7 +92,6 @@ export class BaseCall extends BaseComponent {
       options?.iceServers ?? this.select(selectors.getIceServers)
 
     this.options = {
-      id: this.id,
       ...DEFAULT_CALL_OPTIONS,
       ...options,
       iceServers,
@@ -134,7 +131,6 @@ export class BaseCall extends BaseComponent {
 
   get messagePayload() {
     const {
-      id,
       destinationNumber,
       attach,
       callerName,
@@ -147,7 +143,7 @@ export class BaseCall extends BaseComponent {
     return {
       sessid: this.options.sessionid,
       dialogParams: {
-        id,
+        id: this.id,
         destinationNumber,
         attach,
         callerName,
@@ -216,7 +212,11 @@ export class BaseCall extends BaseComponent {
       node_id: this.nodeId,
     }
     if (vertoMessage.method === VertoMethod.Invite) {
-      params.subscribe = ROOM_EVENTS
+      if (this.options.screenShare) {
+        params.subscribe = ['room.screenshare']
+      } else {
+        params.subscribe = ROOM_EVENTS
+      }
     }
 
     return this.execute({
@@ -377,9 +377,7 @@ export class BaseCall extends BaseComponent {
         // this.executeAnswer()
         break
       default:
-        return logger.error(
-          `Unknown SDP type: '${type}' on call ${this.options.id}`
-        )
+        return logger.error(`Unknown SDP type: '${type}' on call ${this.id}`)
     }
   }
 
@@ -509,22 +507,10 @@ export class BaseCall extends BaseComponent {
 
     switch (state) {
       case 'purge': {
-        if (this.screenShare instanceof BaseCall) {
-          this.screenShare.setState('purge')
-        }
-        if (this.secondSource instanceof BaseCall) {
-          this.secondSource.setState('purge')
-        }
         this._finalize()
         break
       }
       case 'hangup': {
-        if (this.screenShare instanceof BaseCall) {
-          this.screenShare.hangup()
-        }
-        if (this.secondSource instanceof BaseCall) {
-          this.secondSource.hangup()
-        }
         this.setState('destroy')
         break
       }
