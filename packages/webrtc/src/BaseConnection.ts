@@ -19,7 +19,7 @@ import {
   disableVideoTracks,
   toggleVideoTracks,
 } from './utils/helpers'
-import { CallOptions } from './utils/interfaces'
+import { ConnectionOptions } from './utils/interfaces'
 import { stopStream } from './utils/webrtcHelpers'
 
 const ROOM_EVENTS = [
@@ -34,7 +34,7 @@ const ROOM_EVENTS = [
   'layout.changed',
 ]
 
-const DEFAULT_CALL_OPTIONS: CallOptions = {
+const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   destinationNumber: '',
   remoteCallerName: 'Outbound Call',
   remoteCallerNumber: '',
@@ -61,12 +61,12 @@ interface MemberCommandWithVolumeParams extends MemberCommandParams {
 interface MemberCommandWithValueParams extends MemberCommandParams {
   value: number
 }
-export type BaseCallOptions = CallOptions & BaseComponentOptions
-export class BaseCall extends BaseComponent {
+export type BaseConnectionOptions = ConnectionOptions & BaseComponentOptions
+export class BaseConnection extends BaseComponent {
   public nodeId = ''
   public direction: 'inbound' | 'outbound'
   public peer: RTCPeer
-  public options: BaseCallOptions
+  public options: BaseConnectionOptions
   public cause: string
   public causeCode: string
   public gotEarly = false
@@ -85,7 +85,7 @@ export class BaseCall extends BaseComponent {
   private _roomSessionId: string
   private _memberId: string
 
-  constructor(options: BaseCallOptions) {
+  constructor(options: BaseConnectionOptions) {
     super(options)
 
     const iceServers =

@@ -6,7 +6,7 @@ import type {
 } from '@signalwire/core'
 import type { Call } from '../Call'
 
-export interface CallOptions {
+export interface ConnectionOptions {
   // TODO: Not used anymore but required for backend
   destinationNumber?: string
   remoteCallerName?: string

@@ -1,9 +1,9 @@
 import { logger, connect, getEventEmitter } from '@signalwire/core'
 import { getDisplayMedia } from './utils/webrtcHelpers'
 import { RoomObject, CreateScreenShareObjectOptions } from './utils/interfaces'
-import { BaseCall, BaseCallOptions } from './BaseCall'
+import { BaseConnection, BaseConnectionOptions } from './BaseConnection'
 
-export class Call extends BaseCall {
+export class Call extends BaseConnection {
   private _screenShareList = new Set<RoomObject>()
 
   get screenShareList() {
@@ -19,7 +19,7 @@ export class Call extends BaseCall {
 
     // FIXME: Remove it when "scoped" emitters are in
     const fakeEmitter = getEventEmitter({ token: '' })
-    const options: BaseCallOptions = {
+    const options: BaseConnectionOptions = {
       ...this.options,
       screenShare: true,
       recoverCall: false,
@@ -31,7 +31,7 @@ export class Call extends BaseCall {
     const screenShare: RoomObject = connect({
       store: this.store,
       Component: Call,
-      onStateChangeListeners: {
+      componentListeners: {
         state: 'onStateChange',
         remoteSDP: 'onRemoteSDP',
         roomId: 'onRoomId',

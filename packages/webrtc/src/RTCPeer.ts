@@ -5,23 +5,23 @@ import {
   sdpBitrateHack,
   sdpMediaOrderHack,
 } from './utils/sdpHelpers'
-import { BaseCall } from './BaseCall'
+import { BaseConnection } from './BaseConnection'
 import {
   sdpToJsonHack,
   RTCPeerConnection,
   streamIsValid,
   stopTrack,
 } from './utils/webrtcHelpers'
-import { CallOptions } from './utils/interfaces'
+import { ConnectionOptions } from './utils/interfaces'
 
 export default class RTCPeer {
   public instance: RTCPeerConnection
 
-  private options: CallOptions
+  private options: ConnectionOptions
   private _iceTimeout: any
   private _negotiating = false
 
-  constructor(public call: BaseCall, public type: RTCSdpType) {
+  constructor(public call: BaseConnection, public type: RTCSdpType) {
     this.options = call.options
     logger.info('New Peer with type:', this.type, 'Options:', this.options)
 
@@ -267,10 +267,7 @@ export default class RTCPeer {
       const type = this.isOffer ? 'answer' : 'offer'
       await this._setRemoteDescription({ sdp, type })
     } catch (error) {
-      logger.error(
-        `Error handling remote SDP on call ${this.call.id}:`,
-        error
-      )
+      logger.error(`Error handling remote SDP on call ${this.call.id}:`, error)
       this.call.hangup()
     }
   }

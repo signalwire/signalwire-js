@@ -1,8 +1,8 @@
 import { connect, BaseClient } from '@signalwire/core'
-import { Call, CallOptions, RoomObject } from '@signalwire/webrtc'
+import { Call, ConnectionOptions, RoomObject } from '@signalwire/webrtc'
 import { videoElementFactory } from './utils/videoElementFactory'
 
-interface MakeCallOptions extends CallOptions {
+interface MakeCallOptions extends ConnectionOptions {
   rootElementId?: string
   applyLocalVideoOverlay?: boolean
 }
