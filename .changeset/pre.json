@@ -11,8 +11,23 @@
     "@sw-internal/pkg-typings": "0.0.0"
   },
   "changesets": [
+    "chilly-cameras-warn",
+    "curly-icons-sip",
+    "dry-pans-smoke",
     "dull-islands-unite",
+    "early-melons-fix",
     "fast-eggs-develop",
-    "sweet-needles-pretend"
+    "fifty-dolphins-carry",
+    "honest-pets-destroy",
+    "little-lemons-boil",
+    "loud-chefs-poke",
+    "odd-onions-promise",
+    "polite-hornets-dress",
+    "sour-hotels-smell",
+    "strange-cups-chew",
+    "sweet-needles-pretend",
+    "weak-ads-obey",
+    "weak-lamps-happen",
+    "witty-ways-jump"
   ]
 }
