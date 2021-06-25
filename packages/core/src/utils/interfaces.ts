@@ -198,17 +198,18 @@ export type SessionAuthError = {
 export interface RoomLayout {
   id: string
   name: string
-  layers: RoomMemberLocation[]
+  layers: RoomLayoutLayer[]
   layer_count?: number
 }
 
-export interface RoomMemberLocation {
+export interface RoomLayoutLayer {
   y: number
   x: number
   layer_index: number
   z_index: number
   height: number
   width: number
+  member_id: string
 }
 
 interface RoomMemberCommon {
@@ -228,14 +229,12 @@ interface RoomMemberProperties {
   audio_muted: boolean
   video_muted: boolean
   name: string
-  location: RoomMemberLocation
 }
 
 export type RoomMember = RoomMemberCommon & RoomMemberProperties
 
 export interface Room {
   blind_mode: boolean
-  current_layout: RoomLayout
   hide_video_muted: boolean
   locked: boolean
   logos_visible: boolean
@@ -356,7 +355,7 @@ type RoomMemberMethod =
  */
 // prettier-ignore
 type RoomLayoutMethod =
-  | 'layout.set'
+  | 'set_layout'
 
 /**
  * List of all room member methods

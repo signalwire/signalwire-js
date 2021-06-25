@@ -84,11 +84,13 @@ export const createRoomObject = (
       } = videoElementFactory({ rootElementId, applyLocalVideoOverlay })
 
       room.on('layout.changed', (params: any) => {
-        layoutChangedHandler({
-          layout: params.layout,
-          localVideoTrack: room.localVideoTrack,
-          myMemberId: room.memberId,
-        })
+        if (room.localVideoTrack) {
+          layoutChangedHandler({
+            layout: params.layout,
+            localVideoTrack: room.localVideoTrack,
+            myMemberId: room.memberId,
+          })
+        }
       })
 
       room.on('member.updated.video_muted', (params: any) => {

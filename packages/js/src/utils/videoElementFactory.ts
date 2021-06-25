@@ -1,4 +1,10 @@
-import { logger } from '@signalwire/core'
+import { logger, RoomLayout, RoomLayoutLayer } from '@signalwire/core'
+
+type LayoutChangedHandlerParams = {
+  layout: RoomLayout,
+  myMemberId: string,
+  localVideoTrack: MediaStreamTrack,
+}
 
 const buildVideoElementByTrack = (videoTrack: MediaStreamTrack) => {
   const video = document.createElement('video')
@@ -117,31 +123,20 @@ export const videoElementFactory = ({
     })
   }
 
-  const _getLocationStyles = ({ x, y, width, height }: any) => {
+  const _getLocationStyles = ({ x, y, width, height }: RoomLayoutLayer) => {
     return {
-      top: `${((y * 100) / videoEl.videoHeight).toFixed(2)}%`,
-      left: `${((x * 100) / videoEl.videoWidth).toFixed(2)}%`,
-      width: `${((width * 100) / videoEl.videoWidth).toFixed(2)}%`,
-      height: `${((height * 100) / videoEl.videoHeight).toFixed(2)}%`,
+      top: `${y}%`,
+      left: `${x}%`,
+      width: `${width}%`,
+      height: `${height}%`,
     }
   }
 
-  const _buildLayer = async (location: any) => {
+  const _buildLayer = async (location: RoomLayoutLayer) => {
     if (videoEl.readyState === HTMLMediaElement.HAVE_NOTHING) {
       await _videoReady()
     }
     const { top, left, width, height } = _getLocationStyles(location)
-    logger.debug(
-      'Info',
-      videoEl.offsetWidth,
-      videoEl.offsetHeight,
-      videoEl.videoWidth,
-      videoEl.videoHeight,
-      top,
-      left,
-      width,
-      height
-    )
     const layer = document.createElement('div')
     layer.style.position = 'absolute'
     layer.style.overflow = 'hidden'
@@ -160,13 +155,13 @@ export const videoElementFactory = ({
   }
 
   const layoutChangedHandler = async ({
-    layout = {},
+    layout,
     myMemberId,
     localVideoTrack,
-  }: any) => {
+  }: LayoutChangedHandlerParams) => {
     try {
       const { layers = [] } = layout
-      const layer = layers.find(({ memberID }: any) => memberID === myMemberId)
+      const layer = layers.find(({ member_id }) => member_id === myMemberId)
 
       if (!layer) {
         return logger.debug('Current Layer Not Found', JSON.stringify(layout))
