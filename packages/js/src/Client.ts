@@ -12,7 +12,7 @@ export interface MakeRoomOptions extends ConnectionOptions {
 export class Client extends BaseClient {
   get rooms() {
     return {
-      makeRoom: (makeRoomOptions: MakeRoomOptions) => {
+      makeRoomObject: (makeRoomOptions: MakeRoomOptions) => {
         const {
           rootElementId,
           applyLocalVideoOverlay = true,

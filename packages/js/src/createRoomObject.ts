@@ -59,7 +59,7 @@ export const createRoomObject = (
       return
     }
 
-    const room = client.rooms.makeRoom({
+    const room = client.rooms.makeRoomObject({
       audio,
       video,
       negotiateAudio: true,
