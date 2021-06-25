@@ -21,8 +21,8 @@ export interface ConnectionOptions {
   localElement?: HTMLMediaElement | string | Function
   remoteElement?: HTMLMediaElement | string | Function
   iceServers?: RTCIceServer[]
-  audio?: boolean | MediaTrackConstraints
-  video?: boolean | MediaTrackConstraints
+  audio?: MediaStreamConstraints['audio']
+  video?: MediaStreamConstraints['video']
   attach?: boolean
   useStereo?: boolean
   micId?: string
