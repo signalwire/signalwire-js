@@ -68,6 +68,15 @@ export class Room extends BaseConnection {
     }
   }
 
+  join() {
+    return super.invite()
+  }
+
+  leave() {
+    return super.hangup()
+  }
+
+  /** @internal */
   async hangup() {
     this._screenShareList.forEach((screenShare) => {
       screenShare.hangup()
@@ -76,6 +85,7 @@ export class Room extends BaseConnection {
     return super.hangup()
   }
 
+  /** @internal */
   protected _finalize() {
     this._screenShareList.clear()
 

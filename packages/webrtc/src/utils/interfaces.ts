@@ -52,14 +52,16 @@ export interface ConnectionOptions {
   iceGatheringTimeout?: number
 }
 
-type CallEventsHandlerMapping = EventsHandlerMapping &
+type BaseConnectionEventsHandlerMapping = EventsHandlerMapping &
   Record<BaseConnectionState, (params: Room) => void>
 
-export type CallEvents = {
-  [k in RoomEventNames | BaseConnectionState]: CallEventsHandlerMapping[k]
+export type RoomObjectEvents = {
+  [k in
+    | RoomEventNames
+    | BaseConnectionState]: BaseConnectionEventsHandlerMapping[k]
 }
 
-export type RoomObject = StrictEventEmitter<Room, CallEvents>
+export type RoomObject = StrictEventEmitter<Room, RoomObjectEvents>
 
 export type CreateScreenShareObjectOptions = {
   autoJoin?: boolean
