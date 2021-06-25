@@ -1,5 +1,5 @@
 import { SagaIterator, Channel, eventChannel, EventChannel } from 'redux-saga'
-import { call, put, take, fork } from 'redux-saga/effects'
+import { call, put, take, fork, select } from 'redux-saga/effects'
 import { PayloadAction } from '@reduxjs/toolkit'
 import { BaseSession } from '../../../BaseSession'
 import { VertoResult } from '../../../RPCMessages'
@@ -14,6 +14,8 @@ import { componentActions } from '../'
 import { BladeMethod, VertoMethod } from '../../../utils/constants'
 import { BladeExecute } from '../../../RPCMessages'
 import { logger } from '../../../utils'
+import { getAuthStatus } from '../session/sessionSelectors'
+import { SessionAuthStatus } from '../../../utils/interfaces'
 
 type SessionSagaParams = {
   session: BaseSession
@@ -69,7 +71,11 @@ export function* executeActionWatcher(session: BaseSession): SagaIterator {
 
   while (true) {
     const action = yield take(executeAction.type)
-    yield fork(worker, action)
+    const authStatus: SessionAuthStatus = yield select(getAuthStatus)
+
+    if (authStatus === 'authorized') {
+      yield fork(worker, action)
+    }
   }
 }
 
