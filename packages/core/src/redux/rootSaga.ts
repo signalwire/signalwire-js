@@ -15,6 +15,7 @@ import {
 import {
   initAction,
   destroyAction,
+  closeConnectionAction,
   sessionReconnecting,
   sessionDisconnected,
   sessionConnected,
@@ -65,6 +66,11 @@ export function* initSessionSaga(
   })
 
   session.connect()
+
+  yield take(destroyAction.type)
+  pubSubChannel.close()
+  sessionChannel.close()
+  pubSubChannel.close()
 }
 
 export function* socketClosedWorker({
@@ -120,7 +126,7 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
 }
 
 export function* startSaga(options: StartSagaOptions): SagaIterator {
-  const { session, sessionChannel, pubSubChannel, userOptions } = options
+  const { session, pubSubChannel, userOptions } = options
 
   const pubSubTask: Task = yield fork(pubSubSaga, {
     pubSubChannel,
@@ -141,15 +147,15 @@ export function* startSaga(options: StartSagaOptions): SagaIterator {
   const executeQueueCallTask: Task = yield fork(executeQueueCallWorker)
 
   /**
-   * Wait for a destroyAction to teardown all the things
+   * When `closeConnectionAction` is dispatched we'll teardown all the
+   * tasks created by this saga since `startSaga` is meant to be
+   * re-executed every time the user reconnects.
    */
-  yield take(destroyAction.type)
+  yield take(closeConnectionAction.type)
 
   pubSubTask.cancel()
   executeActionTask.cancel()
   executeQueueCallTask.cancel()
-  pubSubChannel.close()
-  sessionChannel.close()
 }
 
 interface RootSagaOptions {
