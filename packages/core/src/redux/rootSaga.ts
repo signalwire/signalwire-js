@@ -131,14 +131,14 @@ export function* startSaga(options: StartSagaOptions): SagaIterator {
    */
   const executeActionTask: Task = yield fork(executeActionWatcher, session)
 
+  yield put(sessionActions.connected(session.bladeConnectResult))
+  yield put(pubSubChannel, sessionConnected())
+
   /**
    * Will take care of executing any pending blade.execute we have in
    * the queue
    */
   const executeQueueCallTask: Task = yield fork(executeQueueCallWorker)
-
-  yield put(sessionActions.connected(session.bladeConnectResult))
-  yield put(pubSubChannel, sessionConnected())
 
   /**
    * Wait for a destroyAction to teardown all the things
