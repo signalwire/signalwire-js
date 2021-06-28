@@ -12,6 +12,7 @@ export const initialSessionState: Readonly<SessionState> = {
   iceServers: [],
   authStatus: 'unknown',
   authError: undefined,
+  authCount: 0,
 }
 
 const sessionSlice = createSlice({
@@ -20,6 +21,7 @@ const sessionSlice = createSlice({
   reducers: {
     connected: (state, { payload }: PayloadAction<IBladeConnectResult>) => {
       state.authStatus = 'authorized'
+      state.authCount += 1
       state.protocol = payload?.result?.protocol ?? ''
       state.iceServers = payload?.result?.iceServers ?? []
     },
