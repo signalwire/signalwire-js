@@ -3,33 +3,24 @@ import {
   ExecuteParams,
   logger,
   SessionState,
-  selectors,
 } from '@signalwire/core'
 
 // TODO: reuse types from @signalwire/core
 type GlobalVideoEvents = 'room.started' | 'room.ended'
 
-type DeferredExecutionItem = [
-  ExecuteParams,
-  { resolve: (value: unknown) => void; reject: (reason?: any) => void }
-]
+interface Consumer {
+  subscribe: (event: GlobalVideoEvents, handler: any) => void
+  run: () => Promise<unknown>
+}
 export class Client extends BaseClient {
-  private _executionQueue: DeferredExecutionItem[] = []
+  private consumers: Consumer[] = []
 
   async onAuth(session: SessionState) {
-    if (session.authStatus === 'authorized') {
-      for (const [execParams, { resolve, reject }] of this._executionQueue) {
-        try {
-          await this.execute(execParams)
-          resolve(undefined)
-        } catch (error) {
-          reject(error)
-        }
-      }
-    } else if (this._executionQueue.length > 0) {
-      logger.warn(
-        `The Client couldn't authenticate and some operations remain unexecuted.`
-      )
+    console.log('=> onAuth Client', session.authStatus)
+    if (session.authStatus === 'authorized' && session.authCount > 1) {
+      this.consumers.forEach((consumer) => {
+        consumer.run()
+      })
     }
   }
 
@@ -42,7 +33,7 @@ export class Client extends BaseClient {
           return subscriptions
         }
 
-        return {
+        const consumer: Consumer = {
           subscribe: (event: GlobalVideoEvents, handler: any) => {
             this.on(event, handler)
             setSubscription(event)
@@ -59,23 +50,10 @@ export class Client extends BaseClient {
                   },
                 }
 
-                /**
-                 * If the user is authorized we'll execute the action
-                 * right away. Otherwise we'll put the execute in a
-                 * queue and run it as soon as we detect the
-                 * `session.authStatus === 'authorized'`
-                 */
-                if (this.select(selectors.getAuthStatus) === 'authorized') {
-                  try {
-                    await this.execute(execParams)
-                  } catch (error) {
-                    return reject(error)
-                  }
-                } else {
-                  return this._executionQueue.push([
-                    execParams,
-                    { resolve, reject },
-                  ])
+                try {
+                  await this.execute(execParams)
+                } catch (error) {
+                  return reject(error)
                 }
               } else {
                 logger.warn(
@@ -87,6 +65,10 @@ export class Client extends BaseClient {
             })
           },
         }
+
+        this.consumers.push(consumer)
+
+        return consumer
       },
     }
   }

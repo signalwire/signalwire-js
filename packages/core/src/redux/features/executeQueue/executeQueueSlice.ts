@@ -11,6 +11,9 @@ const executeQueueSlice = createSlice({
   initialState: initialExecuteQueueState,
   reducers: {
     add: (state, { payload }: PayloadAction<ExecuteActionParams>) => {
+      // TODO: Do we have to check for something (like an item in
+      // queue with the same `payload.method`?) before adding the
+      // payload to the queue?
       state.queue.push(payload)
     },
     clean: () => {
