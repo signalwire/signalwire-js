@@ -11,12 +11,7 @@ import { executeQueueActions } from './executeQueueSlice'
 export function* executeQueueWatcher(): SagaIterator {
   function* worker(action: PayloadAction<ExecuteActionParams>): SagaIterator {
     const authStatus: SessionAuthStatus = yield select(getAuthStatus)
-
-    console.log('authStatus', authStatus)
-
     if (authStatus !== 'authorized') {
-      console.log('METO EN LA QUEUE', action.payload)
-
       yield put(executeQueueActions.add(action.payload))
     }
   }
@@ -29,12 +24,8 @@ export function* executeQueueWatcher(): SagaIterator {
 
 export function* executeQueueCallWorker(): SagaIterator {
   const { queue } = yield select(getExecuteQueue)
-
-  console.log('-------------> queue', queue)
-
   for (const params of queue) {
     yield put(executeAction(params))
   }
-
   yield put(executeQueueActions.clean())
 }
