@@ -13,12 +13,12 @@ interface Consumer {
   run: () => Promise<unknown>
 }
 export class Client extends BaseClient {
-  private consumers: Consumer[] = []
+  private _consumers: Consumer[] = []
 
   async onAuth(session: SessionState) {
     console.log('=> onAuth Client', session.authStatus)
     if (session.authStatus === 'authorized' && session.authCount > 1) {
-      this.consumers.forEach((consumer) => {
+      this._consumers.forEach((consumer) => {
         consumer.run()
       })
     }
@@ -66,7 +66,7 @@ export class Client extends BaseClient {
           },
         }
 
-        this.consumers.push(consumer)
+        this._consumers.push(consumer)
 
         return consumer
       },

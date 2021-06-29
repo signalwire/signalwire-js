@@ -9,7 +9,7 @@ import {
 } from './features/session/sessionSaga'
 import { pubSubSaga } from './features/pubSub/pubSubSaga'
 import {
-  executeQueueCallWorker,
+  flushExecuteQueueWorker,
   executeQueueWatcher,
 } from './features/executeQueue/executeQueueSaga'
 import {
@@ -143,7 +143,7 @@ export function* startSaga(options: StartSagaOptions): SagaIterator {
    * Will take care of executing any pending blade.execute we have in
    * the queue
    */
-  const executeQueueCallTask: Task = yield fork(executeQueueCallWorker)
+  const flushExecuteQueueTask: Task = yield fork(flushExecuteQueueWorker)
 
   /**
    * When `closeConnectionAction` is dispatched we'll teardown all the
@@ -154,7 +154,7 @@ export function* startSaga(options: StartSagaOptions): SagaIterator {
 
   pubSubTask.cancel()
   executeActionTask.cancel()
-  executeQueueCallTask.cancel()
+  flushExecuteQueueTask.cancel()
 }
 
 interface RootSagaOptions {

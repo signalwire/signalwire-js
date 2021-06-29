@@ -13,7 +13,7 @@ import {
 } from './features/session/sessionSaga'
 import {
   executeQueueWatcher,
-  executeQueueCallWorker,
+  flushExecuteQueueWorker,
 } from './features/executeQueue/executeQueueSaga'
 import { pubSubSaga } from './features/pubSub/pubSubSaga'
 import { sessionActions } from './features'
@@ -203,7 +203,7 @@ describe('startSaga', () => {
       .put(sessionActions.connected(session.bladeConnectResult))
     saga.next().put(pubSubChannel, sessionConnected())
 
-    saga.next().fork(executeQueueCallWorker)
+    saga.next().fork(flushExecuteQueueWorker)
 
     saga.next(executeQueueCallTask).take(closeConnectionAction.type)
     saga.next().isDone()

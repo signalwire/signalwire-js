@@ -22,7 +22,7 @@ export function* executeQueueWatcher(): SagaIterator {
   }
 }
 
-export function* executeQueueCallWorker(): SagaIterator {
+export function* flushExecuteQueueWorker(): SagaIterator {
   const { queue } = yield select(getExecuteQueue)
   for (const params of queue) {
     yield put(executeAction(params))
