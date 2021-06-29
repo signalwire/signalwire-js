@@ -11,6 +11,10 @@ import {
   sessionChannelWatcher,
   executeActionWatcher,
 } from './features/session/sessionSaga'
+import {
+  executeQueueWatcher,
+  executeQueueCallWorker,
+} from './features/executeQueue/executeQueueSaga'
 import { pubSubSaga } from './features/pubSub/pubSubSaga'
 import { sessionActions } from './features'
 import {
@@ -22,6 +26,7 @@ import {
   socketClosed,
   destroyAction,
   initAction,
+  closeConnectionAction,
 } from './actions'
 import { AuthError } from '../CustomErrors'
 
@@ -125,8 +130,6 @@ describe('initSessionSaga', () => {
   const SessionConstructor = jest.fn().mockImplementation(() => {
     return session
   })
-  const pubSubChannel = channel()
-  const sessionChannel = eventChannel(() => () => {})
   const userOptions = {
     token: '',
   }
@@ -136,6 +139,10 @@ describe('initSessionSaga', () => {
   })
 
   it('should create the session, the sessionChannel and fork watchers', () => {
+    const pubSubChannel = channel()
+    pubSubChannel.close = jest.fn()
+    const sessionChannel = eventChannel(() => () => {})
+    sessionChannel.close = jest.fn()
     const saga = testSaga(initSessionSaga, SessionConstructor, userOptions)
     saga.next(sessionChannel).call(createSessionChannel, session)
     saga.next(sessionChannel).call(channel)
@@ -150,6 +157,10 @@ describe('initSessionSaga', () => {
       pubSubChannel,
       userOptions,
     })
+    saga.next().take(destroyAction.type)
+    saga.next().isDone()
+    expect(pubSubChannel.close).toHaveBeenCalledTimes(1)
+    expect(sessionChannel.close).toHaveBeenCalledTimes(1)
     saga.next().isDone()
     expect(session.connect).toHaveBeenCalledTimes(1)
   })
@@ -178,6 +189,7 @@ describe('startSaga', () => {
   it('should put actions and fork watchers', () => {
     const pubSubTask = { cancel: jest.fn() }
     const executeActionTask = { cancel: jest.fn() }
+    const executeQueueCallTask = { cancel: jest.fn() }
 
     const saga = testSaga(startSaga, options)
     saga.next().fork(pubSubSaga, {
@@ -191,13 +203,14 @@ describe('startSaga', () => {
       .put(sessionActions.connected(session.bladeConnectResult))
     saga.next().put(pubSubChannel, sessionConnected())
 
-    saga.next().take(destroyAction.type)
+    saga.next().fork(executeQueueCallWorker)
+
+    saga.next(executeQueueCallTask).take(closeConnectionAction.type)
     saga.next().isDone()
 
     expect(pubSubTask.cancel).toHaveBeenCalledTimes(1)
     expect(executeActionTask.cancel).toHaveBeenCalledTimes(1)
-    expect(pubSubChannel.close).toHaveBeenCalledTimes(1)
-    expect(sessionChannel.close).toHaveBeenCalledTimes(1)
+    expect(executeQueueCallTask.cancel).toHaveBeenCalledTimes(1)
   })
 })
 
@@ -217,6 +230,7 @@ describe('rootSaga', () => {
       userOptions
     )
 
+    saga.next().fork(executeQueueWatcher)
     saga.next().take(initAction.type)
     saga.next().call(initSessionSaga, SessionConstructor, userOptions)
     saga.next().isDone()

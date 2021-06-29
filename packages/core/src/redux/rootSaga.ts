@@ -70,7 +70,6 @@ export function* initSessionSaga(
   yield take(destroyAction.type)
   pubSubChannel.close()
   sessionChannel.close()
-  pubSubChannel.close()
 }
 
 export function* socketClosedWorker({
