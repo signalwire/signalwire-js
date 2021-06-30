@@ -5,6 +5,7 @@ import {
   BaseComponentOptions,
   Emitter,
 } from './utils/interfaces'
+import { getNamespacedEvent } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
 
 export class BaseComponent implements Emitter {
@@ -12,6 +13,16 @@ export class BaseComponent implements Emitter {
 
   private _requests = new Map()
   private _destroyer?: () => void
+  private _getNamespacedEvent(event: string | symbol) {
+    if (event && typeof event === 'string') {
+      return getNamespacedEvent({
+        namespace: this.id,
+        event,
+      })
+    }
+
+    return event
+  }
 
   constructor(public options: BaseComponentOptions) {}
 
@@ -30,24 +41,31 @@ export class BaseComponent implements Emitter {
     return this.options.emitter
   }
 
-  on(...params: Parameters<Emitter['on']>) {
-    return this.emitter.on(...params)
+  on(event: string | symbol, fn: (...args: any[]) => void, context?: any) {
+    return this.emitter.on(this._getNamespacedEvent(event), fn, context)
   }
 
-  once(...params: Parameters<Emitter['once']>) {
-    return this.emitter.once(...params)
+  once(event: string | symbol, fn: (...args: any[]) => void, context?: any) {
+    return this.emitter.once(this._getNamespacedEvent(event), fn, context)
   }
 
-  off(...params: Parameters<Emitter['off']>) {
-    return this.emitter.off(...params)
+  off(
+    event: string | symbol,
+    fn?: ((...args: any[]) => void) | undefined,
+    context?: any,
+    once?: boolean | undefined
+  ) {
+    return this.emitter.off(this._getNamespacedEvent(event), fn, context, once)
   }
 
-  emit(...params: Parameters<Emitter['emit']>) {
-    return this.emitter.emit(...params)
+  emit(event: string | symbol, ...args: any[]) {
+    return this.emitter.emit(this._getNamespacedEvent(event), ...args)
   }
 
-  removeAllListeners(...params: Parameters<Emitter['removeAllListeners']>) {
-    return this.emitter.removeAllListeners(...params)
+  removeAllListeners(event?: string | symbol | undefined) {
+    return this.emitter.removeAllListeners(
+      event ? this._getNamespacedEvent(event) : event
+    )
   }
 
   destroy() {
