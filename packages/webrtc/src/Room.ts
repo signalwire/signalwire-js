@@ -1,4 +1,4 @@
-import { logger, connect, getEventEmitter } from '@signalwire/core'
+import { logger, connect } from '@signalwire/core'
 import { getDisplayMedia } from './utils/webrtcHelpers'
 import { RoomObject, CreateScreenShareObjectOptions } from './utils/interfaces'
 import { BaseConnection, BaseConnectionOptions } from './BaseConnection'
@@ -16,16 +16,12 @@ export class Room extends BaseConnection {
   async createScreenShareObject(opts: CreateScreenShareObjectOptions = {}) {
     const { autoJoin = true, audio = false, video = true } = opts
     const displayStream: MediaStream = await getDisplayMedia({ audio, video })
-
-    // FIXME: Remove it when "scoped" emitters are in
-    const fakeEmitter = getEventEmitter({ token: '' })
     const options: BaseConnectionOptions = {
       ...this.options,
       screenShare: true,
       recoverCall: false,
       skipLiveArray: true,
       localStream: displayStream,
-      emitter: fakeEmitter,
     }
 
     const screenShare: RoomObject = connect({
@@ -34,7 +30,7 @@ export class Room extends BaseConnection {
       componentListeners: {
         state: 'onStateChange',
         remoteSDP: 'onRemoteSDP',
-        roomId: 'onRoomId',
+        nodeId: 'onNodeId',
         errors: 'onError',
         responses: 'onSuccess',
       },

@@ -247,6 +247,12 @@ export class BaseConnection extends BaseComponent {
     this._roomId = component.roomId
     this._roomSessionId = component.roomSessionId
     this._memberId = component.memberId
+    this.onConnect(component.roomSessionId)
+  }
+
+  /** @internal */
+  public onNodeId(component: any) {
+    this.onConnect(component.nodeId)
   }
 
   // async updateDevices(constraints: MediaStreamConstraints): Promise<void> {
