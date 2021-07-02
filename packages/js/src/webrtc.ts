@@ -20,4 +20,6 @@ export {
   getSupportedConstraints,
   supportsMediaOutput,
   setMediaElementSinkId,
+  stopStream,
+  stopTrack,
 } from '@signalwire/webrtc'
