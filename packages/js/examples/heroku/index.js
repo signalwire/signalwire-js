@@ -1,4 +1,11 @@
 import { Video } from '../../src'
+import {
+  enumerateDevices,
+  getMicrophoneDevices,
+  getCameraDevices,
+  getSpeakerDevices,
+  supportsMediaOutput,
+} from '@signalwire/webrtc'
 
 let roomObj = null
 
@@ -41,15 +48,83 @@ async function loadLayouts(currentLayoutId) {
   }
 }
 
+function setDeviceOptions({ deviceInfos, el, kind }) {
+  if (!deviceInfos || deviceInfos.length === 0) {
+    return
+  }
+
+  // Store the previously selected value so we could restore it after
+  // re-populating the list
+  const selectedValue = el.value
+
+  // Empty the Select
+  el.innerHTML = ''
+
+  deviceInfos.forEach((deviceInfo) => {
+    const option = document.createElement('option')
+
+    option.value = deviceInfo.deviceId
+    option.text = deviceInfo.label || `${kind} ${el.length + 1}`
+
+    el.appendChild(option)
+  })
+
+  el.value = selectedValue || deviceInfos[0].deviceId
+}
+
+async function setAudioInDevicesOptions() {
+  const audioInputOptions = await getMicrophoneDevices()
+
+  setDeviceOptions({
+    deviceInfos: audioInputOptions,
+    el: audioInputSelect,
+    kind: 'microphone',
+  })
+}
+
+async function setAudioOutDevicesOptions() {
+  if (supportsMediaOutput()) {
+    const options = await getSpeakerDevices()
+
+    setDeviceOptions({
+      deviceInfos: options,
+      el: audioOutputSelect,
+      kind: 'speaker',
+    })
+  }
+}
+
+async function setVideoDevicesOptions() {
+  const options = await getCameraDevices()
+
+  setDeviceOptions({
+    deviceInfos: options,
+    el: videoSelect,
+    kind: 'camera',
+  })
+}
+
+function initDeviceOptions() {
+  setAudioInDevicesOptions()
+  setAudioOutDevicesOptions()
+  setVideoDevicesOptions()
+}
+
 /**
  * Connect with Relay creating a client and attaching all the event handler.
  */
 window.connect = () => {
+  enumerateDevices()
+    .then(initDeviceOptions)
+    .catch((error) => {
+      console.error(error)
+    })
+
   Video.createRoomObject({
     host: document.getElementById('host').value,
     token: document.getElementById('token').value,
     rootElementId: 'rootElement',
-    audio: true,
+    audio: document.getElementById('audio').value,
     video: true,
   }).then((roomObject) => {
     roomObj = roomObject
@@ -208,6 +283,21 @@ window.showVideoMuted = () => {
 window.changeLayout = (select) => {
   console.log('changeLayout', select.value)
   roomObj.setLayout({ name: select.value })
+}
+
+window.changeVideoSource = (select) => {
+  console.log('changeVideoSource', select.value)
+  if (!select.value) {
+    return
+  }
+
+  const videoSource = select.value
+  const constraints = {
+    video: { deviceId: videoSource ? { exact: videoSource } : undefined },
+  }
+
+  roomObj.updateDevices(constraints)
+  // roomObj.setLayout({ name: select.value })
 }
 
 window.rangeInputHandler = (range) => {
