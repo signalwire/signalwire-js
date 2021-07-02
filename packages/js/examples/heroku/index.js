@@ -297,7 +297,6 @@ window.changeVideoSource = (select) => {
   }
 
   roomObj.updateDevices(constraints)
-  // roomObj.setLayout({ name: select.value })
 }
 
 window.rangeInputHandler = (range) => {
