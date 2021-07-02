@@ -269,6 +269,31 @@
 
           <div id="controlLayout" class="row py-2 d-none">
             <div class="col-4">
+              <label for="audioInputSelect" class="form-label">
+                Audio IN
+              </label>
+              <select
+                class="form-select"
+                value=""
+                id="audioInputSelect"
+              ></select>
+              <label for="audioOutputSelect" class="form-label">
+                Audio OUT
+              </label>
+              <select
+                class="form-select"
+                value=""
+                id="audioOutputSelect"
+              ></select>
+              <label for="videoSelect" class="form-label"> Video </label>
+              <select
+                class="form-select"
+                value=""
+                id="videoSelect"
+                onchange="changeVideoSource(this)"
+              ></select>
+            </div>
+            <div class="col-4">
               <label for="layout" class="form-label"> Change Layout </label>
               <select
                 class="form-select"
