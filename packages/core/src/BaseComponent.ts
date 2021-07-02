@@ -172,17 +172,20 @@ export class BaseComponent implements Emitter {
 
   /** @internal */
   onConnect(namespace: string) {
+    if (!namespace) {
+      logger.error('Tried to call `onConnect` without a `namespace`.')
+      return
+    }
+
     this._status = 'active'
     this._eventsNamespace = namespace
 
     this._eventsRegisterQueue.forEach((item) => {
       if (item.type === 'removeAllListeners') {
-        const { type, params } = item
-        this[type](...params)
+        this[item.type](...item.params)
       } else {
-        const { type, params } = item
         // @ts-ignore
-        this[type](...params)
+        this[item.type](...item.params)
       }
       this._eventsRegisterQueue.delete(item)
     })
