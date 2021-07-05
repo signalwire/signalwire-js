@@ -133,7 +133,7 @@ window.connect = () => {
     host: document.getElementById('host').value,
     token: document.getElementById('token').value,
     rootElementId: 'rootElement',
-    audio: document.getElementById('audio').value,
+    audio: true,
     video: true,
   }).then((roomObject) => {
     roomObj = roomObject
