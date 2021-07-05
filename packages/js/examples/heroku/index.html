@@ -269,28 +269,23 @@
 
           <div id="controlLayout" class="row py-2 d-none">
             <div class="col-4">
-              <label for="audioInputSelect" class="form-label">
-                Audio IN
+              <label for="microphoneSelect" class="form-label">
+                Microphone
               </label>
               <select
                 class="form-select"
                 value=""
-                id="audioInputSelect"
+                id="microphoneSelect"
+                onchange="changeMicrophone(this)"
               ></select>
-              <label for="audioOutputSelect" class="form-label">
-                Audio OUT
-              </label>
+              <label for="speakerSelect" class="form-label"> Audio OUT </label>
+              <select class="form-select" value="" id="speakerSelect"></select>
+              <label for="cameraSelect" class="form-label"> Video </label>
               <select
                 class="form-select"
                 value=""
-                id="audioOutputSelect"
-              ></select>
-              <label for="videoSelect" class="form-label"> Video </label>
-              <select
-                class="form-select"
-                value=""
-                id="videoSelect"
-                onchange="changeVideoSource(this)"
+                id="cameraSelect"
+                onchange="changeCamera(this)"
               ></select>
             </div>
             <div class="col-4">
