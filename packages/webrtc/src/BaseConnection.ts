@@ -271,6 +271,40 @@ export class BaseConnection extends BaseComponent {
     this._attachListeners(component.nodeId)
   }
 
+  async updateCamera(
+    constraints: boolean | MediaTrackConstraints | string
+  ): Promise<void> {
+    let c: MediaStreamConstraints
+    if (typeof constraints === 'string') {
+      c = {
+        video: { deviceId: { exact: constraints } },
+      }
+    } else {
+      c = {
+        video: constraints,
+      }
+    }
+
+    return await this.updateDevices(c)
+  }
+
+  async updateMicrophone(
+    constraints: boolean | MediaTrackConstraints | string
+  ) {
+    let c: MediaStreamConstraints
+    if (typeof constraints === 'string') {
+      c = {
+        audio: { deviceId: { exact: constraints } },
+      }
+    } else {
+      c = {
+        audio: constraints,
+      }
+    }
+
+    return await this.updateDevices(c)
+  }
+
   async updateDevices(constraints: MediaStreamConstraints): Promise<void> {
     return await new Promise(async (resolve, reject) => {
       try {
