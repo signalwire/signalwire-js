@@ -73,11 +73,11 @@ function setDeviceOptions({ deviceInfos, el, kind }) {
 }
 
 async function setAudioInDevicesOptions() {
-  const audioInputOptions = await getMicrophoneDevices()
+  const micOptions = await getMicrophoneDevices()
 
   setDeviceOptions({
-    deviceInfos: audioInputOptions,
-    el: audioInputSelect,
+    deviceInfos: micOptions,
+    el: microphoneSelect,
     kind: 'microphone',
   })
 }
@@ -88,7 +88,7 @@ async function setAudioOutDevicesOptions() {
 
     setDeviceOptions({
       deviceInfos: options,
-      el: audioOutputSelect,
+      el: speakerSelect,
       kind: 'speaker',
     })
   }
@@ -99,7 +99,7 @@ async function setVideoDevicesOptions() {
 
   setDeviceOptions({
     deviceInfos: options,
-    el: videoSelect,
+    el: cameraSelect,
     kind: 'camera',
   })
 }
@@ -285,18 +285,20 @@ window.changeLayout = (select) => {
   roomObj.setLayout({ name: select.value })
 }
 
-window.changeVideoSource = (select) => {
-  console.log('changeVideoSource', select.value)
+window.changeMicrophone = (select) => {
+  console.log('changeMicrophone', select.value)
   if (!select.value) {
     return
   }
+  roomObj.updateMicrophone(select.value)
+}
 
-  const videoSource = select.value
-  const constraints = {
-    video: { deviceId: videoSource ? { exact: videoSource } : undefined },
+window.changeCamera = (select) => {
+  console.log('changeCamera', select.value)
+  if (!select.value) {
+    return
   }
-
-  roomObj.updateDevices(constraints)
+  roomObj.updateCamera(select.value)
 }
 
 window.rangeInputHandler = (range) => {
