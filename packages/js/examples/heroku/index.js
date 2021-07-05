@@ -5,6 +5,7 @@ import {
   getCameraDevices,
   getSpeakerDevices,
   supportsMediaOutput,
+  createDeviceWatcher,
 } from '@signalwire/webrtc'
 
 let roomObj = null
@@ -121,6 +122,12 @@ window.connect = () => {
     .catch((error) => {
       console.error(error)
     })
+
+  createDeviceWatcher().then((deviceWatcher) => {
+    deviceWatcher.on('changed', () => {
+      initDeviceOptions()
+    })
+  })
 
   Video.createRoomObject({
     host: document.getElementById('host').value,
