@@ -9,6 +9,7 @@ import {
   selectors,
   BaseComponentOptions,
   BaseConnectionState,
+  RoomEventNames,
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import {
@@ -22,7 +23,7 @@ import {
 import { ConnectionOptions } from './utils/interfaces'
 import { stopStream } from './utils/webrtcHelpers'
 
-const ROOM_EVENTS = [
+const ROOM_EVENTS: RoomEventNames[] = [
   'room.started',
   'room.subscribed',
   'room.updated',
