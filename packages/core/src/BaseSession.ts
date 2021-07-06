@@ -26,12 +26,12 @@ import {
   safeParseJson,
 } from './utils'
 import {
-  authError,
-  authSuccess,
-  socketClosed,
-  socketError,
-  socketMessage,
   closeConnectionAction,
+  authErrorAction,
+  authSuccessAction,
+  socketClosedAction,
+  socketErrorAction,
+  socketMessageAction,
 } from './redux/actions'
 import { sessionActions } from './redux/features/session/sessionSlice'
 
@@ -213,23 +213,23 @@ export class BaseSession {
       await this.authenticate()
       this._emptyRequestQueue()
       this._status = 'connected'
-      this.dispatch(authSuccess())
+      this.dispatch(authSuccessAction())
     } catch (error) {
       logger.error('Auth Error', error)
-      this.dispatch(authError({ error }))
+      this.dispatch(authErrorAction({ error }))
     }
   }
 
   protected _onSocketError(event: Event) {
     logger.debug('_onSocketError', event)
-    this.dispatch(socketError())
+    this.dispatch(socketErrorAction())
   }
 
   protected _onSocketClose(event: CloseEvent) {
     logger.debug('_onSocketClose', event.type, event.code, event.reason)
     this._status =
       event.code >= 1006 && event.code <= 1014 ? 'reconnecting' : 'disconnected'
-    this.dispatch(socketClosed())
+    this.dispatch(socketClosedAction())
     this._socket = null
   }
 
@@ -266,7 +266,7 @@ export class BaseSession {
       }
       default:
         // If it's not a response, trigger the dispatch.
-        this.dispatch(socketMessage(payload))
+        this.dispatch(socketMessageAction(payload))
     }
   }
 

@@ -18,12 +18,12 @@ import {
 import { pubSubSaga } from './features/pubSub/pubSubSaga'
 import { sessionActions } from './features'
 import {
-  sessionConnected,
-  sessionDisconnected,
-  authSuccess,
-  authError,
-  socketError,
-  socketClosed,
+  sessionConnectedAction,
+  sessionDisconnectedAction,
+  authSuccessAction,
+  authErrorAction,
+  socketErrorAction,
+  socketClosedAction,
   destroyAction,
   initAction,
   closeConnectionAction,
@@ -64,17 +64,17 @@ describe('socketClosedWorker', () => {
       pubSubChannel,
       sessionChannel,
     })
-      .put(pubSubChannel, sessionDisconnected())
+      .put(pubSubChannel, sessionDisconnectedAction())
       .run()
   })
 })
 
 describe('sessionStatusWatcher', () => {
   const actions = [
-    authSuccess.type,
-    authError.type,
-    socketError.type,
-    socketClosed.type,
+    authSuccessAction.type,
+    authErrorAction.type,
+    socketErrorAction.type,
+    socketClosedAction.type,
   ]
   const session = {
     closed: true,
@@ -95,7 +95,7 @@ describe('sessionStatusWatcher', () => {
   it('should fork startSaga on authSuccess action', () => {
     const saga = testSaga(sessionStatusWatcher, options)
     saga.next().take(actions)
-    saga.next(authSuccess()).fork(startSaga, options)
+    saga.next(authSuccessAction()).fork(startSaga, options)
     // Saga waits again for actions due to the while loop
     saga.next().take(actions)
   })
@@ -104,7 +104,9 @@ describe('sessionStatusWatcher', () => {
     const saga = testSaga(sessionStatusWatcher, options)
     saga.next().take(actions)
     try {
-      saga.next(authError({ error: { code: 123, error: 'Protocol Error' } }))
+      saga.next(
+        authErrorAction({ error: { code: 123, error: 'Protocol Error' } })
+      )
     } catch (error) {
       expect(error).toBeInstanceOf(AuthError)
       expect(error.message).toEqual('Protocol Error')
@@ -117,7 +119,7 @@ describe('sessionStatusWatcher', () => {
     const saga = testSaga(sessionStatusWatcher, options)
 
     saga.next().take(actions)
-    saga.next(socketClosed()).fork(socketClosedWorker, options)
+    saga.next(socketClosedAction()).fork(socketClosedWorker, options)
     // Saga waits again for actions due to the while loop
     saga.next().take(actions)
   })
@@ -201,7 +203,7 @@ describe('startSaga', () => {
     saga
       .next(executeActionTask)
       .put(sessionActions.connected(session.bladeConnectResult))
-    saga.next().put(pubSubChannel, sessionConnected())
+    saga.next().put(pubSubChannel, sessionConnectedAction())
 
     saga.next().fork(flushExecuteQueueWorker)
 

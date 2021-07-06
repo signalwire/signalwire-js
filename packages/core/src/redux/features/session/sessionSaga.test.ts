@@ -2,7 +2,7 @@ import { channel, eventChannel } from 'redux-saga'
 import { expectSaga } from 'redux-saga-test-plan'
 import { VertoResult } from '../../../RPCMessages'
 import { VertoMethod } from '../../../utils/constants'
-import { socketMessage, executeAction } from '../../actions'
+import { socketMessageAction, executeAction } from '../../actions'
 import { componentActions } from '../'
 import { sessionChannelWatcher, createSessionChannel } from './sessionSaga'
 
@@ -30,7 +30,7 @@ describe('sessionChannelWatcher', () => {
             take({ channel }, next) {
               if (runSaga && channel === sessionChannel) {
                 runSaga = false
-                return socketMessage(jsonrpc)
+                return socketMessageAction(jsonrpc)
               } else if (runSaga === false) {
                 sessionChannel.close()
                 pubSubChannel.close()
@@ -90,7 +90,7 @@ describe('sessionChannelWatcher', () => {
             take({ channel }, next) {
               if (runSaga && channel === sessionChannel) {
                 runSaga = false
-                return socketMessage(jsonrpc)
+                return socketMessageAction(jsonrpc)
               } else if (runSaga === false) {
                 sessionChannel.close()
                 pubSubChannel.close()
@@ -146,7 +146,7 @@ describe('sessionChannelWatcher', () => {
             take({ channel }, next) {
               if (runSaga && channel === sessionChannel) {
                 runSaga = false
-                return socketMessage(jsonrpc)
+                return socketMessageAction(jsonrpc)
               } else if (runSaga === false) {
                 sessionChannel.close()
                 pubSubChannel.close()
@@ -198,7 +198,7 @@ describe('sessionChannelWatcher', () => {
             take({ channel }, next) {
               if (runSaga && channel === sessionChannel) {
                 runSaga = false
-                return socketMessage(jsonrpc)
+                return socketMessageAction(jsonrpc)
               } else if (runSaga === false) {
                 sessionChannel.close()
                 pubSubChannel.close()
@@ -247,7 +247,7 @@ describe('sessionChannelWatcher', () => {
             take({ channel }, next) {
               if (runSaga && channel === sessionChannel) {
                 runSaga = false
-                return socketMessage(jsonrpc)
+                return socketMessageAction(jsonrpc)
               } else if (runSaga === false) {
                 sessionChannel.close()
                 pubSubChannel.close()
@@ -295,7 +295,7 @@ describe('sessionChannelWatcher', () => {
               take({ channel }, next) {
                 if (runSaga && channel === sessionChannel) {
                   runSaga = false
-                  return socketMessage(jsonrpc)
+                  return socketMessageAction(jsonrpc)
                 }
                 sessionChannel.close()
                 pubSubChannel.close()
@@ -354,7 +354,7 @@ describe('sessionChannelWatcher', () => {
               take({ channel }, next) {
                 if (runSaga && channel === sessionChannel) {
                   runSaga = false
-                  return socketMessage(jsonrpc)
+                  return socketMessageAction(jsonrpc)
                 }
                 sessionChannel.close()
                 pubSubChannel.close()
@@ -410,7 +410,7 @@ describe('sessionChannelWatcher', () => {
               take({ channel }, next) {
                 if (runSaga && channel === sessionChannel) {
                   runSaga = false
-                  return socketMessage(jsonrpc)
+                  return socketMessageAction(jsonrpc)
                 }
                 sessionChannel.close()
                 pubSubChannel.close()
@@ -469,7 +469,7 @@ describe('sessionChannelWatcher', () => {
               take({ channel }, next) {
                 if (runSaga && channel === sessionChannel) {
                   runSaga = false
-                  return socketMessage(jsonrpc)
+                  return socketMessageAction(jsonrpc)
                 }
                 sessionChannel.close()
                 pubSubChannel.close()
@@ -530,7 +530,7 @@ describe('sessionChannelWatcher', () => {
               take({ channel }, next) {
                 if (runSaga && channel === sessionChannel) {
                   runSaga = false
-                  return socketMessage(jsonrpc)
+                  return socketMessageAction(jsonrpc)
                 }
                 sessionChannel.close()
                 pubSubChannel.close()
@@ -582,7 +582,7 @@ describe('sessionChannelWatcher', () => {
               take({ channel }, next) {
                 if (runSaga && channel === sessionChannel) {
                   runSaga = false
-                  return socketMessage(jsonrpc)
+                  return socketMessageAction(jsonrpc)
                 }
                 sessionChannel.close()
                 pubSubChannel.close()

@@ -9,7 +9,7 @@ import {
   BladeBroadcastParams,
 } from '../../../utils/interfaces'
 import { ExecuteActionParams, WebRTCCall } from '../../interfaces'
-import { executeAction, socketMessage } from '../../actions'
+import { executeAction, socketMessageAction } from '../../actions'
 import { componentActions } from '../'
 import { BladeMethod, VertoMethod } from '../../../utils/constants'
 import { BladeExecute } from '../../../RPCMessages'
@@ -276,7 +276,7 @@ export function* sessionChannelWatcher({
     action: PayloadAction<JSONRPCRequest>
   ): SagaIterator {
     logger.debug('Inbound WebSocket Message', action)
-    if (action.type !== socketMessage.type) {
+    if (action.type !== socketMessageAction.type) {
       yield put(action)
       return
     }

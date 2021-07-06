@@ -1,7 +1,7 @@
 import WS from 'jest-websocket-mock'
 
 import { BaseSession } from './BaseSession'
-import { socketMessage } from './redux/actions'
+import { socketMessageAction } from './redux/actions'
 import {
   BladeConnect,
   BladePing,
@@ -97,7 +97,7 @@ describe('BaseSession', () => {
     ws.send(JSON.stringify(request))
 
     expect(session.dispatch).toHaveBeenCalledTimes(1)
-    expect(session.dispatch).toHaveBeenCalledWith(socketMessage(request))
+    expect(session.dispatch).toHaveBeenCalledWith(socketMessageAction(request))
   })
 
   describe('blade.ping messages', () => {
