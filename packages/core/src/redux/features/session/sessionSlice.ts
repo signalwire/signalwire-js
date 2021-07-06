@@ -1,10 +1,11 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { PayloadAction } from '@reduxjs/toolkit'
 import { SessionState } from '../../interfaces'
 import {
   IBladeConnectResult,
   SessionAuthError,
 } from '../../../utils/interfaces'
-import { destroyAction, authError } from '../../actions'
+import { authError } from '../../actions'
+import { createDestroyableSlice } from '../../utils/createDestroyableSlice'
 
 export const initialSessionState: Readonly<SessionState> = {
   protocol: '',
@@ -13,7 +14,7 @@ export const initialSessionState: Readonly<SessionState> = {
   authError: undefined,
 }
 
-const sessionSlice = createSlice({
+const sessionSlice = createDestroyableSlice({
   name: 'session',
   initialState: initialSessionState,
   reducers: {
@@ -24,9 +25,6 @@ const sessionSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(destroyAction.type, () => {
-      return initialSessionState
-    })
     builder.addCase(
       authError.type,
       (state, { payload }: PayloadAction<{ error: SessionAuthError }>) => {
