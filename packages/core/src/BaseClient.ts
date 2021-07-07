@@ -8,6 +8,10 @@ export class BaseClient extends BaseComponent {
     super(options)
   }
 
+  onClientSubscribed() {
+    this._attachListeners('')
+  }
+
   /**
    * Connect the underlay WebSocket connection to the SignalWire network.
    *
