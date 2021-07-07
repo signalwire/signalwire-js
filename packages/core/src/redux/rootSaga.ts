@@ -9,8 +9,13 @@ import {
 } from './features/session/sessionSaga'
 import { pubSubSaga } from './features/pubSub/pubSubSaga'
 import {
+  flushExecuteQueueWorker,
+  executeQueueWatcher,
+} from './features/executeQueue/executeQueueSaga'
+import {
   initAction,
   destroyAction,
+  closeConnectionAction,
   sessionReconnecting,
   sessionDisconnected,
   sessionConnected,
@@ -61,6 +66,10 @@ export function* initSessionSaga(
   })
 
   session.connect()
+
+  yield take(destroyAction.type)
+  pubSubChannel.close()
+  sessionChannel.close()
 }
 
 export function* socketClosedWorker({
@@ -116,7 +125,7 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
 }
 
 export function* startSaga(options: StartSagaOptions): SagaIterator {
-  const { session, sessionChannel, pubSubChannel, userOptions } = options
+  const { session, pubSubChannel, userOptions } = options
 
   const pubSubTask: Task = yield fork(pubSubSaga, {
     pubSubChannel,
@@ -131,14 +140,21 @@ export function* startSaga(options: StartSagaOptions): SagaIterator {
   yield put(pubSubChannel, sessionConnected())
 
   /**
-   * Wait for a destroyAction to teardown all the things
+   * Will take care of executing any pending blade.execute we have in
+   * the queue
    */
-  yield take(destroyAction.type)
+  const flushExecuteQueueTask: Task = yield fork(flushExecuteQueueWorker)
+
+  /**
+   * When `closeConnectionAction` is dispatched we'll teardown all the
+   * tasks created by this saga since `startSaga` is meant to be
+   * re-executed every time the user reconnects.
+   */
+  yield take(closeConnectionAction.type)
 
   pubSubTask.cancel()
   executeActionTask.cancel()
-  pubSubChannel.close()
-  sessionChannel.close()
+  flushExecuteQueueTask.cancel()
 }
 
 interface RootSagaOptions {
@@ -147,6 +163,8 @@ interface RootSagaOptions {
 
 export default (options: RootSagaOptions) => {
   return function* root(userOptions: UserOptions): SagaIterator {
+    yield fork(executeQueueWatcher)
+
     /**
      * Wait for an initAction to start
      */

@@ -45,11 +45,13 @@ export interface SessionState {
   iceServers?: RTCIceServer[]
   authStatus: SessionAuthStatus
   authError?: SessionAuthError
+  authCount: number
 }
 
 export interface SDKState {
   components: ComponentState
   session: SessionState
+  executeQueue: ExecuteQueueState
 }
 
 export interface ExecuteActionParams {
@@ -57,4 +59,8 @@ export interface ExecuteActionParams {
   componentId?: string
   method: BladeExecuteMethod
   params: Record<string, any>
+}
+
+export interface ExecuteQueueState {
+  queue: ExecuteActionParams[]
 }

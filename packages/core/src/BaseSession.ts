@@ -31,7 +31,9 @@ import {
   socketClosed,
   socketError,
   socketMessage,
+  closeConnectionAction,
 } from './redux/actions'
+import { sessionActions } from './redux/features/session/sessionSlice'
 
 export class BaseSession {
   public uuid = uuid()
@@ -310,6 +312,8 @@ export class BaseSession {
     status: Extract<SessionStatus, 'reconnecting' | 'disconnected'>
   ) {
     this._status = status
+    this.dispatch(sessionActions.authStatus('unknown'))
+    this.dispatch(closeConnectionAction())
     if (this._socket) {
       this._socket.close()
       this._socket = null
