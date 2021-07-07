@@ -28,15 +28,13 @@ type EventRegisterHandlers =
 
 export class BaseComponent implements Emitter {
   id = uuid()
-
-  private _status: 'active' | 'inactive' = 'inactive'
   private _eventsRegisterQueue = new Set<EventRegisterHandlers>()
   private _eventsEmitQueue = new Set<any>()
-  private _eventsNamespace: string
+  private _eventsNamespace?: string
   private _requests = new Map()
   private _destroyer?: () => void
   private _getNamespacedEvent(event: string | symbol) {
-    if (event && typeof event === 'string') {
+    if (event && typeof event === 'string' && this._eventsNamespace) {
       return getNamespacedEvent({
         namespace: this._eventsNamespace,
         event,
@@ -83,7 +81,7 @@ export class BaseComponent implements Emitter {
 
   /** @internal */
   private shouldAddToQueue() {
-    return this._status === 'inactive'
+    return this._eventsNamespace === undefined
   }
 
   on(...params: Parameters<Emitter['on']>) {
@@ -217,13 +215,11 @@ export class BaseComponent implements Emitter {
   }
 
   /** @internal */
-  onConnect(namespace: string) {
+  protected _attachListeners(namespace: string) {
     if (!namespace) {
       logger.error('Tried to call `onConnect` without a `namespace`.')
       return
     }
-
-    this._status = 'active'
     this._eventsNamespace = namespace
     this.flushEventsQueue()
   }

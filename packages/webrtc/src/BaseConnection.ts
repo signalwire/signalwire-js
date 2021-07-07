@@ -34,6 +34,18 @@ const ROOM_EVENTS = [
   'layout.changed',
 ]
 
+/**
+ * Events to be subscribing for screen sharing during
+ * `VertoMethod.Invite`
+ */
+const SCREENSHARE_ROOM_EVENTS = [
+  /**
+   * This is not a real event, it's only being used for debugging
+   * purposes
+   */
+  'room.screenshare',
+]
+
 const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   destinationNumber: 'room',
   remoteCallerName: 'Outbound Call',
@@ -208,7 +220,7 @@ export class BaseConnection extends BaseComponent {
     }
     if (vertoMessage.method === VertoMethod.Invite) {
       if (this.options.screenShare) {
-        params.subscribe = ['room.screenshare']
+        params.subscribe = SCREENSHARE_ROOM_EVENTS
       } else {
         params.subscribe = ROOM_EVENTS
       }
@@ -242,17 +254,17 @@ export class BaseConnection extends BaseComponent {
   }
 
   /** @internal */
-  public onRoomId(component: any) {
-    logger.debug('onRoomId', component)
+  public onRoomSubscribed(component: any) {
+    logger.debug('onRoomSubscribed', component)
     this._roomId = component.roomId
     this._roomSessionId = component.roomSessionId
     this._memberId = component.memberId
-    this.onConnect(component.roomSessionId)
+    this._attachListeners(component.roomSessionId)
   }
 
   /** @internal */
   public onNodeId(component: any) {
-    this.onConnect(component.nodeId)
+    this._attachListeners(component.nodeId)
   }
 
   // async updateDevices(constraints: MediaStreamConstraints): Promise<void> {

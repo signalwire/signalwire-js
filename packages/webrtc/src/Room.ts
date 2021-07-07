@@ -30,6 +30,7 @@ export class Room extends BaseConnection {
       componentListeners: {
         state: 'onStateChange',
         remoteSDP: 'onRemoteSDP',
+        // TODO: find another way to namespace `screenShareObj`s
         nodeId: 'onNodeId',
         errors: 'onError',
         responses: 'onSuccess',
