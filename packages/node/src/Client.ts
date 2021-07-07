@@ -16,7 +16,6 @@ export class Client extends BaseClient {
   private _consumers: Consumer[] = []
 
   async onAuth(session: SessionState) {
-    console.log('=> onAuth Client', session.authStatus)
     if (session.authStatus === 'authorized' && session.authCount > 1) {
       this._consumers.forEach((consumer) => {
         consumer.run()
