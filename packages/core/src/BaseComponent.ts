@@ -34,7 +34,7 @@ export class BaseComponent implements Emitter {
   private _requests = new Map()
   private _destroyer?: () => void
   private _getNamespacedEvent(event: string | symbol) {
-    if (event && typeof event === 'string' && this._eventsNamespace) {
+    if (typeof event === 'string' && this._eventsNamespace !== undefined) {
       return getNamespacedEvent({
         namespace: this._eventsNamespace,
         event,
@@ -215,8 +215,8 @@ export class BaseComponent implements Emitter {
   }
 
   /** @internal */
-  protected _attachListeners(namespace: string) {
-    if (!namespace) {
+  protected _attachListeners(namespace?: string) {
+    if (namespace === undefined) {
       logger.error('Tried to call `onConnect` without a `namespace`.')
       return
     }
