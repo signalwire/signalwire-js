@@ -1,6 +1,7 @@
 import { Store } from 'redux'
 import type { EventEmitter } from '../utils/EventEmitter'
 import { BaseSession } from '../BaseSession'
+import { GLOBAL_VIDEO_EVENTS } from './constants'
 
 /**
  * Minimal interface the emitter must fulfill
@@ -397,3 +398,5 @@ export type ExecuteParams = {
   method: BladeExecuteMethod
   params: Record<string, any>
 }
+
+export type GlobalVideoEvents = typeof GLOBAL_VIDEO_EVENTS[number]

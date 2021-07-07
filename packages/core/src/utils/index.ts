@@ -1,4 +1,5 @@
-import { STORAGE_PREFIX } from './constants'
+import { STORAGE_PREFIX, GLOBAL_VIDEO_EVENTS } from './constants'
+import { RoomEventNames } from './interfaces'
 
 export { v4 as uuid } from 'uuid'
 export { logger } from './logger'
@@ -45,4 +46,9 @@ export const timeoutPromise = (
       (_resolve, reject) => (timer = setTimeout(reject, time, exception))
     ),
   ]).finally(() => clearTimeout(timer))
+}
+
+export const isGlobalEvent = (event: RoomEventNames) => {
+  // @ts-ignore
+  return GLOBAL_VIDEO_EVENTS.includes(event)
 }

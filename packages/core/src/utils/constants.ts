@@ -11,6 +11,8 @@ export enum WebSocketState {
   CLOSED = 3,
 }
 
+export const GLOBAL_VIDEO_EVENTS = ['room.started', 'room.ended'] as const
+
 export enum BladeMethod {
   Broadcast = 'blade.broadcast',
   Disconnect = 'blade.disconnect',
