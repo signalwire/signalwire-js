@@ -14,6 +14,8 @@ interface Connect<T> {
   >
   store: Store
   Component: new (o: any) => T
+  // FIXME: use proper type
+  customSagas?: any[]
 }
 type ReduxComponentKeys = keyof ReduxComponent
 type ReduxSessionKeys = keyof SessionState
@@ -26,6 +28,7 @@ export const connect = <T extends { id: string; destroyer: () => void }>(
     sessionListeners = {},
     store,
     Component,
+    customSagas = [],
   } = options
   const componentKeys = Object.keys(componentListeners) as ReduxComponentKeys[]
   const sessionKeys = Object.keys(sessionListeners) as ReduxSessionKeys[]
@@ -80,9 +83,20 @@ export const connect = <T extends { id: string; destroyer: () => void }>(
     })
     store.dispatch(componentActions.upsert({ id: instance.id }))
 
+    // Run all the custom sagas
+    const taskList = customSagas?.map((saga) => {
+      // @ts-ignore
+      return store.runSaga(saga, instance)
+    })
+
     instance.destroyer = () => {
       storeUnsubscribe()
       cacheMap.clear()
+
+      // Cancel all the custom sagas
+      if (taskList?.length) {
+        taskList.forEach((task) => task.cancel())
+      }
     }
 
     return instance

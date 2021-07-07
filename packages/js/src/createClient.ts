@@ -5,9 +5,23 @@ import {
   getEventEmitter,
   UserOptions,
 } from '@signalwire/core'
+import { SagaIterator } from 'redux-saga'
+import { take } from 'redux-saga/effects'
 import StrictEventEmitter from 'strict-event-emitter-types'
 import { Client } from './Client'
 import { JWTSession } from './JWTSession'
+
+function* vertoAttachSaga(instance: Client): SagaIterator {
+  while (true) {
+    // TODO: Listen only for attach action, not '*'
+    const action = yield take('*')
+    console.debug(
+      '>> vertoAttachSaga',
+      instance.id,
+      JSON.stringify(action, null, 2)
+    )
+  }
+}
 
 /**
  * ## Intro
@@ -63,6 +77,7 @@ export const createClient = async (userOptions: UserOptions) => {
   const client: StrictEventEmitter<Client, ClientEvents> = connect({
     store,
     Component: Client,
+    customSagas: [vertoAttachSaga],
     componentListeners: {
       errors: 'onError',
       responses: 'onSuccess',
