@@ -263,7 +263,7 @@ export class BaseConnection extends BaseComponent {
       }
     }
 
-    return await this.updateDevices(c)
+    return this.updateDevices(c)
   }
 
   async updateMicrophone(
@@ -280,7 +280,7 @@ export class BaseConnection extends BaseComponent {
       }
     }
 
-    return await this.updateDevices(c)
+    return this.updateDevices(c)
   }
 
   async updateDevices(constraints: MediaStreamConstraints): Promise<void> {
