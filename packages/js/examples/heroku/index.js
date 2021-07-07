@@ -115,18 +115,6 @@ function initDeviceOptions() {
  * Connect with Relay creating a client and attaching all the event handler.
  */
 window.connect = () => {
-  enumerateDevices()
-    .then(initDeviceOptions)
-    .catch((error) => {
-      console.error(error)
-    })
-
-  createDeviceWatcher().then((deviceWatcher) => {
-    deviceWatcher.on('changed', () => {
-      initDeviceOptions()
-    })
-  })
-
   Video.createRoomObject({
     host: document.getElementById('host').value,
     token: document.getElementById('token').value,
@@ -192,6 +180,18 @@ window.connect = () => {
       .join()
       .then((result) => {
         console.log('>> Room Joined', result)
+
+        enumerateDevices()
+          .then(initDeviceOptions)
+          .catch((error) => {
+            console.error(error)
+          })
+
+        createDeviceWatcher().then((deviceWatcher) => {
+          deviceWatcher.on('changed', () => {
+            initDeviceOptions()
+          })
+        })
       })
       .catch((error) => {
         console.error('Join error?', error)
