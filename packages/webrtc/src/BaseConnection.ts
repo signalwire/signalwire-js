@@ -262,7 +262,11 @@ export class BaseConnection extends BaseComponent {
     this._attachListeners(component.roomSessionId)
   }
 
-  /** @internal */
+  /**
+   * TODO: This is just needed for `screenShareObj`'s. We're using
+   * this to namespace that object with `nodeId`
+   * @internal
+   **/
   public onNodeId(component: any) {
     this._attachListeners(component.nodeId)
   }
