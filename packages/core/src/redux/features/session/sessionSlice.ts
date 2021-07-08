@@ -5,8 +5,8 @@ import {
   SessionAuthError,
   SessionAuthStatus,
 } from '../../../utils/interfaces'
-import { authError } from '../../actions'
 import { createDestroyableSlice } from '../../utils/createDestroyableSlice'
+import { authErrorAction } from '../../actions'
 
 export const initialSessionState: Readonly<SessionState> = {
   protocol: '',
@@ -32,7 +32,7 @@ const sessionSlice = createDestroyableSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(
-      authError.type,
+      authErrorAction.type,
       (state, { payload }: PayloadAction<{ error: SessionAuthError }>) => {
         state.authStatus = 'unauthorized'
         state.authError = payload.error

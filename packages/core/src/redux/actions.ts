@@ -17,22 +17,24 @@ export const executeAction = createAction<ExecuteActionParams>(
   'swSdk/executeRequest'
 )
 
-export const authError = createAction<{ error: SessionAuthError }>('auth/error')
-export const authSuccess = createAction('auth/success')
+export const authErrorAction = createAction<{ error: SessionAuthError }>(
+  'auth/error'
+)
+export const authSuccessAction = createAction('auth/success')
 
-export const socketClosed = createAction('socket/closed')
-export const socketError = createAction('socket/error')
-export const socketMessage = createAction<JSONRPCRequest, string>(
+export const socketClosedAction = createAction('socket/closed')
+export const socketErrorAction = createAction('socket/error')
+export const socketMessageAction = createAction<JSONRPCRequest, string>(
   'socket/message'
 )
 
 // TODO: define if we need/want to send a payload with these events.
-export const sessionConnected = createAction<void, SessionEvents>(
+export const sessionConnectedAction = createAction<void, SessionEvents>(
   'session.connected'
 )
-export const sessionDisconnected = createAction<void, SessionEvents>(
+export const sessionDisconnectedAction = createAction<void, SessionEvents>(
   'session.disconnected'
 )
-export const sessionReconnecting = createAction<void, SessionEvents>(
+export const sessionReconnectingAction = createAction<void, SessionEvents>(
   'session.reconnecting'
 )

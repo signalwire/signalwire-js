@@ -16,13 +16,18 @@ import {
   initAction,
   destroyAction,
   closeConnectionAction,
-  sessionReconnecting,
-  sessionDisconnected,
-  sessionConnected,
+  sessionReconnectingAction,
+  sessionDisconnectedAction,
+  sessionConnectedAction,
 } from './actions'
 import { sessionActions } from './features'
 import { BaseSession } from '..'
-import { authError, authSuccess, socketClosed, socketError } from './actions'
+import {
+  authErrorAction,
+  authSuccessAction,
+  socketClosedAction,
+  socketErrorAction,
+} from './actions'
 import { AuthError } from '../CustomErrors'
 
 type StartSagaOptions = {
@@ -82,43 +87,43 @@ export function* socketClosedWorker({
   pubSubChannel: Channel<unknown>
 }) {
   if (session.status === 'reconnecting') {
-    yield put(pubSubChannel, sessionReconnecting())
+    yield put(pubSubChannel, sessionReconnectingAction())
     yield delay(Math.random() * 2000)
     yield call(session.connect)
   } else {
     sessionChannel.close()
-    yield put(pubSubChannel, sessionDisconnected())
+    yield put(pubSubChannel, sessionDisconnectedAction())
   }
 }
 
 export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
   while (true) {
     const action = yield take([
-      authSuccess.type,
-      authError.type,
-      socketError.type,
-      socketClosed.type,
+      authSuccessAction.type,
+      authErrorAction.type,
+      socketErrorAction.type,
+      socketClosedAction.type,
     ])
 
     switch (action.type) {
-      case authSuccess.type:
+      case authSuccessAction.type:
         yield fork(startSaga, options)
         break
-      case authError.type: {
+      case authErrorAction.type: {
         const { error: authError } = action.payload
         const error = authError
           ? new AuthError(authError.code, authError.error)
           : new Error('Unauthorized')
         throw error
       }
-      case socketError.type:
+      case socketErrorAction.type:
         // TODO: define if we want to emit external events here.
         // yield put(pubSubChannel, {
         //   type: 'socket.error',
         //   payload: {},
         // })
         break
-      case socketClosed.type:
+      case socketClosedAction.type:
         yield fork(socketClosedWorker, options)
     }
   }
@@ -137,7 +142,7 @@ export function* startSaga(options: StartSagaOptions): SagaIterator {
   const executeActionTask: Task = yield fork(executeActionWatcher, session)
 
   yield put(sessionActions.connected(session.bladeConnectResult))
-  yield put(pubSubChannel, sessionConnected())
+  yield put(pubSubChannel, sessionConnectedAction())
 
   /**
    * Will take care of executing any pending blade.execute we have in
