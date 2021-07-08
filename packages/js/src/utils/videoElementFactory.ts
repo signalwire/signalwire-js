@@ -3,14 +3,20 @@ import { logger, RoomLayout, RoomLayoutLayer } from '@signalwire/core'
 type LayoutChangedHandlerParams = {
   layout: RoomLayout
   myMemberId: string
-  localVideoTrack: MediaStreamTrack
+  localStream?: MediaStream
 }
 
-const buildVideoElementByTrack = (videoTrack: MediaStreamTrack) => {
+const buildVideo = () => {
   const video = document.createElement('video')
   video.muted = true
   video.autoplay = true
   video.playsInline = true
+
+  return video
+}
+
+const buildVideoElementByTrack = (videoTrack: MediaStreamTrack) => {
+  const video = buildVideo()
   video.srcObject = new MediaStream([videoTrack])
 
   videoTrack.addEventListener('ended', () => {
@@ -143,7 +149,7 @@ export const videoElementFactory = ({
   const layoutChangedHandler = async ({
     layout,
     myMemberId,
-    localVideoTrack,
+    localStream,
   }: LayoutChangedHandlerParams) => {
     try {
       const { layers = [] } = layout
@@ -158,7 +164,8 @@ export const videoElementFactory = ({
         const myLayer = await _buildLayer(layer)
         myLayer.id = myMemberId
 
-        const localVideo = buildVideoElementByTrack(localVideoTrack)
+        const localVideo = buildVideo()
+        localVideo.srcObject = localStream as MediaStream
         localVideo.style.width = '100%'
         localVideo.style.height = '100%'
 

@@ -49,7 +49,7 @@ export class Client extends BaseClient {
             if (room.localVideoTrack) {
               layoutChangedHandler({
                 layout: params.layout,
-                localVideoTrack: room.localVideoTrack,
+                localStream: room.localStream,
                 myMemberId: room.memberId,
               })
             }
