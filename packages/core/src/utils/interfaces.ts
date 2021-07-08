@@ -1,6 +1,6 @@
-import { Store } from 'redux'
 import type { EventEmitter } from '../utils/EventEmitter'
 import { BaseSession } from '../BaseSession'
+import { SDKStore } from '../redux'
 
 /**
  * Minimal interface the emitter must fulfill
@@ -54,12 +54,12 @@ export interface UserOptions extends SessionOptions {
  * @internal
  */
 export interface BaseClientOptions extends UserOptions {
-  store: Store
+  store: SDKStore
   emitter: Emitter
 }
 
 export interface BaseComponentOptions {
-  store: Store
+  store: SDKStore
   emitter: Emitter
 }
 

@@ -1,6 +1,6 @@
 import { SagaIterator } from 'redux-saga'
 import { ReduxComponent, SessionState } from './interfaces'
-import { configureStore } from './index'
+import { SDKStore } from './'
 import { componentActions } from './features'
 import { getComponent } from './features/component/componentSelectors'
 import { getSession } from './features/session/sessionSelectors'
@@ -12,7 +12,7 @@ interface Connect<T> {
   sessionListeners?: Partial<
     Record<ReduxSessionKeys, string | SessionEventHandler>
   >
-  store: ReturnType<typeof configureStore>
+  store: SDKStore
   Component: new (o: any) => T
   customSagas?: ((params: { instance: T }) => SagaIterator<any>)[]
 }

@@ -13,6 +13,8 @@ interface ConfigureStoreOptions {
   preloadedState?: Partial<SDKState>
 }
 
+export type SDKStore = ReturnType<typeof configureStore>
+
 const configureStore = (options: ConfigureStoreOptions) => {
   const {
     userOptions,
