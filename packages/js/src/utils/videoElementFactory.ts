@@ -1,9 +1,9 @@
 import { logger, RoomLayout, RoomLayoutLayer } from '@signalwire/core'
 
 type LayoutChangedHandlerParams = {
-  layout: RoomLayout,
-  myMemberId: string,
-  localVideoTrack: MediaStreamTrack,
+  layout: RoomLayout
+  myMemberId: string
+  localVideoTrack: MediaStreamTrack
 }
 
 const buildVideoElementByTrack = (videoTrack: MediaStreamTrack) => {
@@ -15,11 +15,7 @@ const buildVideoElementByTrack = (videoTrack: MediaStreamTrack) => {
   const mediaStream = new MediaStream([videoTrack])
   video.srcObject = mediaStream
 
-  const onCanPlay = () => logger.debug('Video can play')
-  const onPlay = () => logger.debug('Video is playing')
   videoTrack.addEventListener('ended', () => {
-    video.removeEventListener('play', onPlay)
-    video.removeEventListener('canplay', onCanPlay)
     video.srcObject = null
     video.remove()
   })
@@ -35,13 +31,7 @@ const buildAudioElementByTrack = (audioTrack: MediaStreamTrack) => {
   const mediaStream = new MediaStream([audioTrack])
   audio.srcObject = mediaStream
 
-  const onCanPlay = () => logger.debug('Audio can play!')
-  const onPlay = () => logger.debug('Audio is playing')
-  audio.addEventListener('play', onPlay)
-  audio.addEventListener('canplay', onCanPlay)
   audioTrack.addEventListener('ended', () => {
-    audio.removeEventListener('play', onPlay)
-    audio.removeEventListener('canplay', onCanPlay)
     audio.srcObject = null
     audio.remove()
   })
