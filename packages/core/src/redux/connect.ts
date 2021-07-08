@@ -83,7 +83,7 @@ export const connect = <T extends { id: string; destroyer: () => void }>(
     store.dispatch(componentActions.upsert({ id: instance.id }))
 
     // Run all the custom sagas
-    const taskList = customSagas.map((saga) => {
+    const taskList = customSagas?.map((saga) => {
       return store.runSaga(saga, { instance })
     })
 
