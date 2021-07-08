@@ -1,12 +1,12 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { PayloadAction } from '@reduxjs/toolkit'
 import { ExecuteQueueState, ExecuteActionParams } from '../../interfaces'
-import { destroyAction } from '../../actions'
+import { createDestroyableSlice } from '../../utils/createDestroyableSlice'
 
 export const initialExecuteQueueState: Readonly<ExecuteQueueState> = {
   queue: [],
 }
 
-const executeQueueSlice = createSlice({
+const executeQueueSlice = createDestroyableSlice({
   name: 'executeQueue',
   initialState: initialExecuteQueueState,
   reducers: {
@@ -19,11 +19,6 @@ const executeQueueSlice = createSlice({
     clean: () => {
       return initialExecuteQueueState
     },
-  },
-  extraReducers: (builder) => {
-    builder.addCase(destroyAction.type, () => {
-      return initialExecuteQueueState
-    })
   },
 })
 
