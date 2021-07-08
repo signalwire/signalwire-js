@@ -8,7 +8,13 @@ export class BaseClient extends BaseComponent {
     super(options)
   }
 
-  onClientSubscribed() {
+  /**
+   * Starts the initialization process as soon as the Client has been
+   * registered in the Redux store.
+   *
+   * @internal
+   */
+  protected onClientSubscribed() {
     this._attachListeners('')
   }
 

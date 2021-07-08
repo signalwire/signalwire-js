@@ -189,12 +189,8 @@ export class BaseComponent implements Emitter {
   /** @internal */
   private flushEventsRegisterQueue() {
     this._eventsRegisterQueue.forEach((item) => {
-      if (item.type === 'removeAllListeners') {
-        this[item.type](...item.params)
-      } else {
-        // @ts-ignore
-        this[item.type](...item.params)
-      }
+      // @ts-ignore
+      this[item.type](...item.params)
       this._eventsRegisterQueue.delete(item)
     })
   }
@@ -215,9 +211,9 @@ export class BaseComponent implements Emitter {
   }
 
   /** @internal */
-  protected _attachListeners(namespace?: string) {
+  protected _attachListeners(namespace: string) {
     if (namespace === undefined) {
-      logger.error('Tried to call `onConnect` without a `namespace`.')
+      logger.error('Tried to call `_attachListeners` without a `namespace`.')
       return
     }
     this._eventsNamespace = namespace

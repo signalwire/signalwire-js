@@ -3,4 +3,4 @@
 '@signalwire/webrtc': patch
 ---
 
-Encapsulate each EventEmitter using the room session id as the namespace.
+Encapsulate each EventEmitter using a unique id as the namespace.
