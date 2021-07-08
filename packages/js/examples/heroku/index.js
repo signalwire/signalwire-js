@@ -1,4 +1,12 @@
 import { Video } from '../../src'
+import {
+  enumerateDevices,
+  getMicrophoneDevices,
+  getCameraDevices,
+  getSpeakerDevices,
+  supportsMediaOutput,
+  createDeviceWatcher,
+} from '@signalwire/webrtc'
 
 let roomObj = null
 
@@ -41,6 +49,68 @@ async function loadLayouts(currentLayoutId) {
   } catch (error) {
     console.warn('Error listing layout', error)
   }
+}
+
+function setDeviceOptions({ deviceInfos, el, kind }) {
+  if (!deviceInfos || deviceInfos.length === 0) {
+    return
+  }
+
+  // Store the previously selected value so we could restore it after
+  // re-populating the list
+  const selectedValue = el.value
+
+  // Empty the Select
+  el.innerHTML = ''
+
+  deviceInfos.forEach((deviceInfo) => {
+    const option = document.createElement('option')
+
+    option.value = deviceInfo.deviceId
+    option.text = deviceInfo.label || `${kind} ${el.length + 1}`
+
+    el.appendChild(option)
+  })
+
+  el.value = selectedValue || deviceInfos[0].deviceId
+}
+
+async function setAudioInDevicesOptions() {
+  const micOptions = await getMicrophoneDevices()
+
+  setDeviceOptions({
+    deviceInfos: micOptions,
+    el: microphoneSelect,
+    kind: 'microphone',
+  })
+}
+
+async function setAudioOutDevicesOptions() {
+  if (supportsMediaOutput()) {
+    const options = await getSpeakerDevices()
+
+    setDeviceOptions({
+      deviceInfos: options,
+      el: speakerSelect,
+      kind: 'speaker',
+    })
+  }
+}
+
+async function setVideoDevicesOptions() {
+  const options = await getCameraDevices()
+
+  setDeviceOptions({
+    deviceInfos: options,
+    el: cameraSelect,
+    kind: 'camera',
+  })
+}
+
+function initDeviceOptions() {
+  setAudioInDevicesOptions()
+  setAudioOutDevicesOptions()
+  setVideoDevicesOptions()
 }
 
 /**
@@ -112,6 +182,18 @@ window.connect = () => {
       .join()
       .then((result) => {
         console.log('>> Room Joined', result)
+
+        enumerateDevices()
+          .then(initDeviceOptions)
+          .catch((error) => {
+            console.error(error)
+          })
+
+        createDeviceWatcher().then((deviceWatcher) => {
+          deviceWatcher.on('changed', () => {
+            initDeviceOptions()
+          })
+        })
       })
       .catch((error) => {
         console.error('Join error?', error)
@@ -218,6 +300,22 @@ window.showVideoMuted = () => {
 window.changeLayout = (select) => {
   console.log('changeLayout', select.value)
   roomObj.setLayout({ name: select.value })
+}
+
+window.changeMicrophone = (select) => {
+  console.log('changeMicrophone', select.value)
+  if (!select.value) {
+    return
+  }
+  roomObj.updateMicrophone(select.value)
+}
+
+window.changeCamera = (select) => {
+  console.log('changeCamera', select.value)
+  if (!select.value) {
+    return
+  }
+  roomObj.updateCamera(select.value)
 }
 
 window.rangeInputHandler = (range) => {

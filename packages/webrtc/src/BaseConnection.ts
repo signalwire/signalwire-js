@@ -21,7 +21,7 @@ import {
   toggleVideoTracks,
 } from './utils/helpers'
 import { ConnectionOptions } from './utils/interfaces'
-import { stopStream } from './utils/webrtcHelpers'
+import { stopStream, stopTrack, getUserMedia } from './utils/webrtcHelpers'
 
 const ROOM_EVENTS: RoomEventNames[] = [
   'room.started',
@@ -272,74 +272,155 @@ export class BaseConnection extends BaseComponent {
     this._attachListeners(component.nodeId)
   }
 
-  // async updateDevices(constraints: MediaStreamConstraints): Promise<void> {
-  //   try {
-  //     console.debug('updateDevices trying constraints', this.id, constraints)
-  //     if (!Object.keys(constraints).length) {
-  //       return console.warn('Invalid constraints:', constraints)
-  //     }
-  //     const newStream = await getUserMedia(constraints)
-  //     console.debug('updateDevices got stream', newStream)
-  //     if (!this.options.localStream) {
-  //       this.options.localStream = new MediaStream()
-  //     }
-  //     const { instance } = this.peer
-  //     const tracks = newStream.getTracks()
-  //     for (let i = 0; i < tracks.length; i++) {
-  //       const newTrack = tracks[i]
-  //       console.debug('updateDevices apply track: ', newTrack)
-  //       const transceiver = instance
-  //         .getTransceivers()
-  //         .find(({ mid, sender, receiver }) => {
-  //           if (sender.track && sender.track.kind === newTrack.kind) {
-  //             console.debug('Found transceiver by sender')
-  //             return true
-  //           }
-  //           if (receiver.track && receiver.track.kind === newTrack.kind) {
-  //             console.debug('Found transceiver by receiver')
-  //             return true
-  //           }
-  //           if (mid === null) {
-  //             console.debug('Found disassociated transceiver')
-  //             return true
-  //           }
-  //           return false
-  //         })
-  //       if (transceiver && transceiver.sender) {
-  //         console.debug(
-  //           'updateDevices FOUND - replaceTrack on it and on localStream'
-  //         )
-  //         await transceiver.sender.replaceTrack(newTrack)
-  //         this.options.localStream.addTrack(newTrack)
-  //         console.debug('updateDevices replaceTrack SUCCESS')
-  //         this.options.localStream.getTracks().forEach((track) => {
-  //           if (track.kind === newTrack.kind && track.id !== newTrack.id) {
-  //             console.debug('updateDevices stop old track and apply new one - ')
-  //             stopTrack(track)
-  //             this.options.localStream.removeTrack(track)
-  //           }
-  //         })
-  //       } else {
-  //         console.debug('updateDevices NOT FOUND - addTrack and start dancing!')
-  //         this.peer.type = 'offer'
-  //         this.doReinvite = true
-  //         this.options.localStream.addTrack(newTrack)
-  //         instance.addTrack(newTrack, this.options.localStream)
-  //       }
-  //       console.debug('updateDevices Simply update mic/cam')
-  //       if (newTrack.kind === 'audio') {
-  //         this.options.micId = newTrack.getSettings().deviceId
-  //       } else if (newTrack.kind === 'video') {
-  //         this.options.camId = newTrack.getSettings().deviceId
-  //       }
-  //     }
-  //     console.debug('updateDevices done!')
-  //     this._dispatchNotification({ type: Notification.DeviceUpdated })
-  //   } catch (error) {
-  //     console.error('updateDevices', error)
-  //     throw error
-  //   }
-  // }
+  /** @internal */
+  updateCamera(deviceId: string): Promise<void> {
+    if (typeof deviceId !== 'string') {
+      throw new Error('Invalid deviceId')
+    }
+
+    return this.updateCameraContraints({ deviceId: { exact: deviceId } })
+  }
+
+  /** @internal */
+  updateCameraContraints(
+    constraints: boolean | MediaTrackConstraints
+  ): Promise<void> {
+    const c: MediaStreamConstraints = {
+      video: constraints,
+    }
+
+    return this.updateConstraints(c)
+  }
+
+  /** @internal */
+  updateMicrophone(deviceId: string): Promise<void> {
+    if (typeof deviceId !== 'string') {
+      throw new Error('Invalid deviceId')
+    }
+
+    return this.updateMicrophoneConstraints({ deviceId: { exact: deviceId } })
+  }
+
+  /** @internal */
+  updateMicrophoneConstraints(
+    constraints: boolean | MediaTrackConstraints
+  ): Promise<void> {
+    const c: MediaStreamConstraints = {
+      audio: constraints,
+    }
+
+    return this.updateConstraints(c)
+  }
+
+  /** @internal */
+  private manageSendersWithContraints(constraints: MediaStreamConstraints) {
+    if (constraints.audio === false) {
+      logger.info('manageSendersWithContraints Audio outbound stopped')
+      this.stopOutboundAudio()
+    }
+
+    if (constraints.video === false) {
+      logger.info('manageSendersWithContraints Video outbound stopped')
+      this.stopOutboundVideo()
+    }
+
+    return constraints.audio || constraints.video
+  }
+
+  /**
+   * TODO: Evaluate if we should make this method private.
+   * @internal
+   */
+  updateConstraints(constraints: MediaStreamConstraints): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+      try {
+        logger.debug(
+          'updateConstraints trying constraints',
+          this.id,
+          constraints
+        )
+        if (!Object.keys(constraints).length) {
+          return logger.warn('Invalid constraints:', constraints)
+        }
+
+        const shouldContinueWithUpdate = this.manageSendersWithContraints(
+          constraints
+        )
+
+        if (!shouldContinueWithUpdate) {
+          logger.debug(
+            'Either `video` and `audio` (or both) contraints were set to `false` so their corresponding senders (if any) were stopped'
+          )
+          return
+        }
+
+        const newStream = await getUserMedia(constraints)
+        logger.debug('updateConstraints got stream', newStream)
+        if (!this.options.localStream) {
+          this.options.localStream = new MediaStream()
+        }
+        const { instance } = this.peer
+        const tracks = newStream.getTracks()
+        for (let i = 0; i < tracks.length; i++) {
+          const newTrack = tracks[i]
+          logger.debug('updateConstraints apply track: ', newTrack)
+          const transceiver = instance
+            .getTransceivers()
+            .find(({ mid, sender, receiver }) => {
+              if (sender.track && sender.track.kind === newTrack.kind) {
+                logger.debug('Found transceiver by sender')
+                return true
+              }
+              if (receiver.track && receiver.track.kind === newTrack.kind) {
+                logger.debug('Found transceiver by receiver')
+                return true
+              }
+              if (mid === null) {
+                logger.debug('Found disassociated transceiver')
+                return true
+              }
+              return false
+            })
+          if (transceiver && transceiver.sender) {
+            logger.debug(
+              'updateConstraints FOUND - replaceTrack on it and on localStream'
+            )
+            await transceiver.sender.replaceTrack(newTrack)
+            this.options.localStream.addTrack(newTrack)
+            logger.debug('updateConstraints replaceTrack SUCCESS')
+            this.options.localStream.getTracks().forEach((track) => {
+              if (track.kind === newTrack.kind && track.id !== newTrack.id) {
+                logger.debug(
+                  'updateConstraints stop old track and apply new one - '
+                )
+                stopTrack(track)
+                this.options.localStream?.removeTrack(track)
+              }
+            })
+          } else {
+            logger.debug(
+              'updateConstraints NOT FOUND - addTrack and start dancing!'
+            )
+            this.peer.type = 'offer'
+            this.doReinvite = true
+            this.options.localStream.addTrack(newTrack)
+            instance.addTrack(newTrack, this.options.localStream)
+          }
+          logger.debug('updateConstraints Simply update mic/cam')
+          if (newTrack.kind === 'audio') {
+            this.options.micId = newTrack.getSettings().deviceId
+          } else if (newTrack.kind === 'video') {
+            this.options.camId = newTrack.getSettings().deviceId
+          }
+        }
+        logger.debug('updateConstraints done!')
+        resolve()
+      } catch (error) {
+        logger.error('updateConstraints', error)
+        reject(error)
+      }
+    })
+  }
 
   /** @internal */
   invite() {
