@@ -759,6 +759,15 @@ export class BaseConnection extends BaseComponent {
     })
   }
 
+  public getMemberList() {
+    return this.execute({
+      method: 'video.members.get',
+      params: {
+        room_session_id: this._roomSessionId,
+      },
+    })
+  }
+
   private _memberCommand({
     method,
     memberId,
