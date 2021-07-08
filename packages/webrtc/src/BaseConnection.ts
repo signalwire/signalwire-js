@@ -285,7 +285,7 @@ export class BaseConnection extends BaseComponent {
       }
     }
 
-    return this.updateDevices(c)
+    return this.updateConstraints(c)
   }
 
   async updateMicrophone(
@@ -302,11 +302,11 @@ export class BaseConnection extends BaseComponent {
       }
     }
 
-    return this.updateDevices(c)
+    return this.updateConstraints(c)
   }
 
-  async updateDevices(constraints: MediaStreamConstraints): Promise<void> {
-    return await new Promise(async (resolve, reject) => {
+  updateConstraints(constraints: MediaStreamConstraints): Promise<void> {
+    return new Promise(async (resolve, reject) => {
       try {
         logger.debug('updateDevices trying constraints', this.id, constraints)
         if (!Object.keys(constraints).length) {
