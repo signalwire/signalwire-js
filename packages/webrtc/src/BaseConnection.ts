@@ -272,36 +272,42 @@ export class BaseConnection extends BaseComponent {
   }
 
   /** @internal */
-  async updateCamera(
-    constraints: boolean | MediaTrackConstraints | string
+  updateCamera(deviceId: string): Promise<void> {
+    if (typeof deviceId !== 'string') {
+      throw new Error('Invalid deviceId')
+    }
+
+    return this.updateCameraContraints({ deviceId: { exact: deviceId } })
+  }
+
+  /** @internal */
+  updateCameraContraints(
+    constraints: boolean | MediaTrackConstraints
   ): Promise<void> {
-    let c: MediaStreamConstraints
-    if (typeof constraints === 'string') {
-      c = {
-        video: { deviceId: { exact: constraints } },
-      }
-    } else {
-      c = {
-        video: constraints,
-      }
+    const c: MediaStreamConstraints = {
+      video: constraints,
     }
 
     return this.updateConstraints(c)
   }
 
   /** @internal */
-  async updateMicrophone(
-    constraints: boolean | MediaTrackConstraints | string
-  ) {
-    let c: MediaStreamConstraints
-    if (typeof constraints === 'string') {
-      c = {
-        audio: { deviceId: { exact: constraints } },
-      }
-    } else {
-      c = {
-        audio: constraints,
-      }
+  updateMicrophone(
+    deviceId: boolean | MediaTrackConstraints | string
+  ): Promise<void> {
+    if (typeof deviceId !== 'string') {
+      throw new Error('Invalid deviceId')
+    }
+
+    return this.updateMicrophoneConstraints({ deviceId: { exact: deviceId } })
+  }
+
+  /** @internal */
+  updateMicrophoneConstraints(
+    constraints: boolean | MediaTrackConstraints
+  ): Promise<void> {
+    const c: MediaStreamConstraints = {
+      audio: constraints,
     }
 
     return this.updateConstraints(c)
@@ -314,12 +320,16 @@ export class BaseConnection extends BaseComponent {
   updateConstraints(constraints: MediaStreamConstraints): Promise<void> {
     return new Promise(async (resolve, reject) => {
       try {
-        logger.debug('updateDevices trying constraints', this.id, constraints)
+        logger.debug(
+          'updateConstraints trying constraints',
+          this.id,
+          constraints
+        )
         if (!Object.keys(constraints).length) {
           return logger.warn('Invalid constraints:', constraints)
         }
         const newStream = await getUserMedia(constraints)
-        logger.debug('updateDevices got stream', newStream)
+        logger.debug('updateConstraints got stream', newStream)
         if (!this.options.localStream) {
           this.options.localStream = new MediaStream()
         }
@@ -327,7 +337,7 @@ export class BaseConnection extends BaseComponent {
         const tracks = newStream.getTracks()
         for (let i = 0; i < tracks.length; i++) {
           const newTrack = tracks[i]
-          logger.debug('updateDevices apply track: ', newTrack)
+          logger.debug('updateConstraints apply track: ', newTrack)
           const transceiver = instance
             .getTransceivers()
             .find(({ mid, sender, receiver }) => {
@@ -347,15 +357,15 @@ export class BaseConnection extends BaseComponent {
             })
           if (transceiver && transceiver.sender) {
             logger.debug(
-              'updateDevices FOUND - replaceTrack on it and on localStream'
+              'updateConstraints FOUND - replaceTrack on it and on localStream'
             )
             await transceiver.sender.replaceTrack(newTrack)
             this.options.localStream.addTrack(newTrack)
-            logger.debug('updateDevices replaceTrack SUCCESS')
+            logger.debug('updateConstraints replaceTrack SUCCESS')
             this.options.localStream.getTracks().forEach((track) => {
               if (track.kind === newTrack.kind && track.id !== newTrack.id) {
                 logger.debug(
-                  'updateDevices stop old track and apply new one - '
+                  'updateConstraints stop old track and apply new one - '
                 )
                 stopTrack(track)
                 this.options.localStream?.removeTrack(track)
@@ -363,24 +373,24 @@ export class BaseConnection extends BaseComponent {
             })
           } else {
             logger.debug(
-              'updateDevices NOT FOUND - addTrack and start dancing!'
+              'updateConstraints NOT FOUND - addTrack and start dancing!'
             )
             this.peer.type = 'offer'
             this.doReinvite = true
             this.options.localStream.addTrack(newTrack)
             instance.addTrack(newTrack, this.options.localStream)
           }
-          logger.debug('updateDevices Simply update mic/cam')
+          logger.debug('updateConstraints Simply update mic/cam')
           if (newTrack.kind === 'audio') {
             this.options.micId = newTrack.getSettings().deviceId
           } else if (newTrack.kind === 'video') {
             this.options.camId = newTrack.getSettings().deviceId
           }
         }
-        logger.debug('updateDevices done!')
+        logger.debug('updateConstraints done!')
         resolve()
       } catch (error) {
-        logger.error('updateDevices', error)
+        logger.error('updateConstraints', error)
         reject(error)
       }
     })
