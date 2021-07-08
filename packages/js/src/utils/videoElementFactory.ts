@@ -11,9 +11,7 @@ const buildVideoElementByTrack = (videoTrack: MediaStreamTrack) => {
   video.muted = true
   video.autoplay = true
   video.playsInline = true
-
-  const mediaStream = new MediaStream([videoTrack])
-  video.srcObject = mediaStream
+  video.srcObject = new MediaStream([videoTrack])
 
   videoTrack.addEventListener('ended', () => {
     video.srcObject = null
@@ -27,9 +25,7 @@ const buildAudioElementByTrack = (audioTrack: MediaStreamTrack) => {
   audio.autoplay = true
   // @ts-ignore
   audio.playsinline = true
-
-  const mediaStream = new MediaStream([audioTrack])
-  audio.srcObject = mediaStream
+  audio.srcObject = new MediaStream([audioTrack])
 
   audioTrack.addEventListener('ended', () => {
     audio.srcObject = null
