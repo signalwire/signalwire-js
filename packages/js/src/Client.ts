@@ -27,7 +27,7 @@ export class Client extends BaseClient {
           componentListeners: {
             state: 'onStateChange',
             remoteSDP: 'onRemoteSDP',
-            roomId: 'onRoomId',
+            roomId: 'onRoomSubscribed',
             errors: 'onError',
             responses: 'onSuccess',
           },

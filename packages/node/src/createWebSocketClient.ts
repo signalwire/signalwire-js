@@ -25,6 +25,7 @@ export const createWebSocketClient = async (userOptions: UserOptions) => {
     componentListeners: {
       errors: 'onError',
       responses: 'onSuccess',
+      id: 'onClientSubscribed',
     },
     sessionListeners: {
       authStatus: 'onAuth',
