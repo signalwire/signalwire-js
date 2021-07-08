@@ -313,6 +313,21 @@ export class BaseConnection extends BaseComponent {
     return this.updateConstraints(c)
   }
 
+  /** @internal */
+  private manageSendersWithContraints(constraints: MediaStreamConstraints) {
+    if (constraints.audio === false) {
+      logger.info('manageSendersWithContraints Audio outbound stopped')
+      this.stopOutboundAudio()
+    }
+
+    if (constraints.video === false) {
+      logger.info('manageSendersWithContraints Video outbound stopped')
+      this.stopOutboundVideo()
+    }
+
+    return constraints.audio || constraints.video
+  }
+
   /**
    * TODO: Evaluate if we should make this method private.
    * @internal
@@ -328,6 +343,18 @@ export class BaseConnection extends BaseComponent {
         if (!Object.keys(constraints).length) {
           return logger.warn('Invalid constraints:', constraints)
         }
+
+        const shouldContinueWithUpdate = this.manageSendersWithContraints(
+          constraints
+        )
+
+        if (!shouldContinueWithUpdate) {
+          logger.debug(
+            'Either `video` and `audio` (or both) contraints were set to `false` so their corresponding senders (if any) were stopped'
+          )
+          return
+        }
+
         const newStream = await getUserMedia(constraints)
         logger.debug('updateConstraints got stream', newStream)
         if (!this.options.localStream) {
