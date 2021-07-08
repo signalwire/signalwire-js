@@ -292,9 +292,7 @@ export class BaseConnection extends BaseComponent {
   }
 
   /** @internal */
-  updateMicrophone(
-    deviceId: boolean | MediaTrackConstraints | string
-  ): Promise<void> {
+  updateMicrophone(deviceId: string): Promise<void> {
     if (typeof deviceId !== 'string') {
       throw new Error('Invalid deviceId')
     }
