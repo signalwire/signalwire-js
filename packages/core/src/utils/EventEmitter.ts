@@ -44,4 +44,18 @@ const getEventEmitter = <T>(userOptions: UserOptions) => {
   )
 }
 
-export { assertEventEmitter, EventEmitter, getEventEmitter }
+const getNamespacedEvent = ({
+  namespace,
+  event,
+}: {
+  namespace: string
+  event: string
+}) => {
+  if (!namespace) {
+    return event
+  }
+
+  return `${namespace}:${event}`
+}
+
+export { assertEventEmitter, EventEmitter, getEventEmitter, getNamespacedEvent }

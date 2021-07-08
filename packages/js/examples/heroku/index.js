@@ -13,6 +13,8 @@ const inCallElements = [
   controlLayout,
   hideVMutedBtn,
   showVMutedBtn,
+  hideScreenShareBtn,
+  showScreenShareBtn,
 ]
 
 async function loadLayouts(currentLayoutId) {
@@ -155,6 +157,14 @@ window.ready = (callback) => {
       }
     })
   }
+}
+
+let screenShareObj
+window.startScreenShare = async () => {
+  screenShareObj = await roomObj.createScreenShareObject()
+}
+window.stopScreenShare = () => {
+  screenShareObj.hangup()
 }
 
 window.muteAll = () => {

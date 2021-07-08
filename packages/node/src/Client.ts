@@ -3,10 +3,8 @@ import {
   ExecuteParams,
   logger,
   SessionState,
+  GlobalVideoEvents,
 } from '@signalwire/core'
-
-// TODO: reuse types from @signalwire/core
-type GlobalVideoEvents = 'room.started' | 'room.ended'
 
 interface Consumer {
   subscribe: (event: GlobalVideoEvents, handler: any) => void

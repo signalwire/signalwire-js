@@ -9,6 +9,16 @@ export class BaseClient extends BaseComponent {
   }
 
   /**
+   * Starts the initialization process as soon as the Client has been
+   * registered in the Redux store.
+   *
+   * @internal
+   */
+  protected onClientSubscribed() {
+    this._attachListeners('')
+  }
+
+  /**
    * Connect the underlay WebSocket connection to the SignalWire network.
    *
    * @returns Promise that will resolve with the Client object.

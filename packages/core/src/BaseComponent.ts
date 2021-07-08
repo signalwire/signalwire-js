@@ -1,17 +1,48 @@
-import { uuid } from './utils'
+import { uuid, logger } from './utils'
 import { executeAction } from './redux'
 import {
   ExecuteParams,
   BaseComponentOptions,
   Emitter,
 } from './utils/interfaces'
+import { EventEmitter, getNamespacedEvent } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
+
+type EventRegisterHandlers =
+  | {
+      type: 'on'
+      params: Parameters<Emitter['on']>
+    }
+  | {
+      type: 'off'
+      params: Parameters<Emitter['off']>
+    }
+  | {
+      type: 'once'
+      params: Parameters<Emitter['once']>
+    }
+  | {
+      type: 'removeAllListeners'
+      params: Parameters<Emitter['removeAllListeners']>
+    }
 
 export class BaseComponent implements Emitter {
   id = uuid()
-
+  private _eventsRegisterQueue = new Set<EventRegisterHandlers>()
+  private _eventsEmitQueue = new Set<any>()
+  private _eventsNamespace?: string
   private _requests = new Map()
   private _destroyer?: () => void
+  private _getNamespacedEvent(event: string | symbol) {
+    if (typeof event === 'string' && this._eventsNamespace !== undefined) {
+      return getNamespacedEvent({
+        namespace: this._eventsNamespace,
+        event,
+      })
+    }
+
+    return event
+  }
 
   constructor(public options: BaseComponentOptions) {}
 
@@ -30,24 +61,86 @@ export class BaseComponent implements Emitter {
     return this.options.emitter
   }
 
+  /** @internal */
+  private addEventToRegisterQueue(options: EventRegisterHandlers) {
+    const [event, fn, context] = options.params
+    logger.debug('Adding event to the register queue', { event, fn, context })
+    // @ts-ignore
+    this._eventsRegisterQueue.add({
+      type: options.type,
+      params: options.params,
+    })
+    return this.emitter as EventEmitter<string | symbol, any>
+  }
+
+  /** @internal */
+  private addEventToEmitQueue(event: string | symbol, args: any[]) {
+    logger.debug('Adding to the emit queue', event)
+    this._eventsEmitQueue.add({ event, args })
+  }
+
+  /** @internal */
+  private shouldAddToQueue() {
+    return this._eventsNamespace === undefined
+  }
+
   on(...params: Parameters<Emitter['on']>) {
-    return this.emitter.on(...params)
+    if (this.shouldAddToQueue()) {
+      this.addEventToRegisterQueue({ type: 'on', params })
+      return this.emitter as EventEmitter<string | symbol, any>
+    }
+
+    const [event, fn, context] = params
+    const namespacedEvent = this._getNamespacedEvent(event)
+    logger.debug('Registering event', namespacedEvent)
+    return this.emitter.on(namespacedEvent, fn, context)
   }
 
   once(...params: Parameters<Emitter['once']>) {
-    return this.emitter.once(...params)
+    if (this.shouldAddToQueue()) {
+      this.addEventToRegisterQueue({ type: 'once', params })
+      return this.emitter as EventEmitter<string | symbol, any>
+    }
+
+    const [event, fn, context] = params
+    const namespacedEvent = this._getNamespacedEvent(event)
+    logger.debug('Registering event', namespacedEvent)
+    return this.emitter.once(namespacedEvent, fn, context)
   }
 
   off(...params: Parameters<Emitter['off']>) {
-    return this.emitter.off(...params)
-  }
+    if (this.shouldAddToQueue()) {
+      this.addEventToRegisterQueue({ type: 'off', params })
+      return this.emitter as EventEmitter<string | symbol, any>
+    }
 
-  emit(...params: Parameters<Emitter['emit']>) {
-    return this.emitter.emit(...params)
+    const [event, fn, context, once] = params
+    const namespacedEvent = this._getNamespacedEvent(event)
+    logger.debug('Registering event', namespacedEvent)
+    return this.emitter.off(namespacedEvent, fn, context, once)
   }
 
   removeAllListeners(...params: Parameters<Emitter['removeAllListeners']>) {
-    return this.emitter.removeAllListeners(...params)
+    if (this.shouldAddToQueue()) {
+      this.addEventToRegisterQueue({ type: 'removeAllListeners', params })
+      return this.emitter as EventEmitter<string | symbol, any>
+    }
+
+    const [event] = params
+    return this.emitter.removeAllListeners(
+      event ? this._getNamespacedEvent(event) : event
+    )
+  }
+
+  emit(event: string | symbol, ...args: any[]) {
+    if (this.shouldAddToQueue()) {
+      this.addEventToEmitQueue(event, args)
+      return false
+    }
+
+    const namespacedEvent = this._getNamespacedEvent(event)
+    logger.debug('Adding to the emit queue', namespacedEvent)
+    return this.emitter.emit(namespacedEvent, ...args)
   }
 
   destroy() {
@@ -91,5 +184,39 @@ export class BaseComponent implements Emitter {
       value.resolve(component.responses[key])
       this._requests.delete(key)
     })
+  }
+
+  /** @internal */
+  private flushEventsRegisterQueue() {
+    this._eventsRegisterQueue.forEach((item) => {
+      // @ts-ignore
+      this[item.type](...item.params)
+      this._eventsRegisterQueue.delete(item)
+    })
+  }
+
+  /** @internal */
+  private flushEventsEmitQueue() {
+    this._eventsEmitQueue.forEach((item) => {
+      const { event, args } = item
+      this.emit(event, ...args)
+      this._eventsEmitQueue.delete(item)
+    })
+  }
+
+  /** @internal */
+  private flushEventsQueue() {
+    this.flushEventsRegisterQueue()
+    this.flushEventsEmitQueue()
+  }
+
+  /** @internal */
+  protected _attachListeners(namespace: string) {
+    if (namespace === undefined) {
+      logger.error('Tried to call `_attachListeners` without a `namespace`.')
+      return
+    }
+    this._eventsNamespace = namespace
+    this.flushEventsQueue()
   }
 }

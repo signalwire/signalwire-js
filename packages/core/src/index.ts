@@ -1,4 +1,4 @@
-import { uuid, logger } from './utils'
+import { uuid, logger, isGlobalEvent } from './utils'
 import { BaseSession } from './BaseSession'
 import { BaseJWTSession } from './BaseJWTSession'
 import { configureStore, connect } from './redux'
@@ -18,7 +18,8 @@ export {
   connect,
   configureStore,
   EventEmitter,
-  getEventEmitter
+  getEventEmitter,
+  isGlobalEvent
 }
 
 export * from './RPCMessages'

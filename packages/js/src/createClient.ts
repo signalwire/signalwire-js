@@ -81,6 +81,7 @@ export const createClient = async (userOptions: UserOptions) => {
     componentListeners: {
       errors: 'onError',
       responses: 'onSuccess',
+      id: 'onClientSubscribed',
     },
   })(baseUserOptions)
   if (baseUserOptions.autoConnect) {
