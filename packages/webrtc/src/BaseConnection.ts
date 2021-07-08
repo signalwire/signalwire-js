@@ -271,6 +271,7 @@ export class BaseConnection extends BaseComponent {
     this._attachListeners(component.nodeId)
   }
 
+  /** @internal */
   async updateCamera(
     constraints: boolean | MediaTrackConstraints | string
   ): Promise<void> {
@@ -288,6 +289,7 @@ export class BaseConnection extends BaseComponent {
     return this.updateConstraints(c)
   }
 
+  /** @internal */
   async updateMicrophone(
     constraints: boolean | MediaTrackConstraints | string
   ) {
@@ -305,6 +307,10 @@ export class BaseConnection extends BaseComponent {
     return this.updateConstraints(c)
   }
 
+  /**
+   * TODO: Evaluate if we should make this method private.
+   * @internal
+   */
   updateConstraints(constraints: MediaStreamConstraints): Promise<void> {
     return new Promise(async (resolve, reject) => {
       try {
