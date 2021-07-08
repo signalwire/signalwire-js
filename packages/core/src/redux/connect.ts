@@ -1,9 +1,9 @@
-import { Store } from 'redux'
-import { ReduxComponent } from './interfaces'
+import { SagaIterator } from 'redux-saga'
+import { ReduxComponent, SessionState } from './interfaces'
+import { configureStore } from './index'
 import { componentActions } from './features'
 import { getComponent } from './features/component/componentSelectors'
 import { getSession } from './features/session/sessionSelectors'
-import { SessionState } from '../redux/interfaces'
 
 type ComponentEventHandler = (component: ReduxComponent) => unknown
 type SessionEventHandler = (session: SessionState) => unknown
@@ -12,10 +12,9 @@ interface Connect<T> {
   sessionListeners?: Partial<
     Record<ReduxSessionKeys, string | SessionEventHandler>
   >
-  store: Store
+  store: ReturnType<typeof configureStore>
   Component: new (o: any) => T
-  // FIXME: use proper type
-  customSagas?: any[]
+  customSagas?: ((params: { instance: T }) => SagaIterator<any>)[]
 }
 type ReduxComponentKeys = keyof ReduxComponent
 type ReduxSessionKeys = keyof SessionState
@@ -84,9 +83,8 @@ export const connect = <T extends { id: string; destroyer: () => void }>(
     store.dispatch(componentActions.upsert({ id: instance.id }))
 
     // Run all the custom sagas
-    const taskList = customSagas?.map((saga) => {
-      // @ts-ignore
-      return store.runSaga(saga, instance)
+    const taskList = customSagas.map((saga) => {
+      return store.runSaga(saga, { instance })
     })
 
     instance.destroyer = () => {

@@ -42,11 +42,10 @@ const configureStore = (options: ConfigureStoreOptions) => {
     sagaMiddleware.run(saga, userOptions)
   }
 
-  // FIXME: Return { store, runSaga } instead of attach to the store obj
-  // @ts-ignore
-  store.runSaga = sagaMiddleware.run
-
-  return store
+  return {
+    ...store,
+    runSaga: sagaMiddleware.run,
+  }
 }
 
 export { connect, configureStore }

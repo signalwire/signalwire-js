@@ -11,7 +11,7 @@ import StrictEventEmitter from 'strict-event-emitter-types'
 import { Client } from './Client'
 import { JWTSession } from './JWTSession'
 
-function* vertoAttachSaga(instance: Client): SagaIterator {
+function* vertoAttachSaga({ instance }: { instance: Client }): SagaIterator {
   while (true) {
     // TODO: Listen only for attach action, not '*'
     const action = yield take('*')
