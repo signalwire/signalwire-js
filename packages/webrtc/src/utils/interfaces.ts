@@ -68,3 +68,9 @@ export type CreateScreenShareObjectOptions = {
   audio?: MediaStreamConstraints['audio']
   video?: MediaStreamConstraints['video']
 }
+
+export type CreateSecondSourceObjectOptions = {
+  autoJoin?: boolean
+  audio?: MediaStreamConstraints['audio']
+  video?: MediaStreamConstraints['video']
+}
