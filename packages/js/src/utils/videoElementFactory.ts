@@ -3,7 +3,7 @@ import { logger, RoomLayout, RoomLayoutLayer } from '@signalwire/core'
 type LayoutChangedHandlerParams = {
   layout: RoomLayout
   myMemberId: string
-  localStream?: MediaStream
+  localStream: MediaStream
 }
 
 const buildVideo = () => {
@@ -63,7 +63,6 @@ export const videoElementFactory = ({
         videoEl = buildVideoElementByTrack(event.track)
         videoEl.style.width = '100%'
         videoEl.style.height = '100%'
-        // videoEl.style.border = '2px solid yellow'
 
         if (!applyLocalVideoOverlay) {
           rootElement.appendChild(videoEl)
@@ -72,7 +71,6 @@ export const videoElementFactory = ({
 
         const mcuWrapper = document.createElement('div')
         mcuWrapper.style.position = 'absolute'
-        // inset: 0
         mcuWrapper.style.top = '0'
         mcuWrapper.style.left = '0'
         mcuWrapper.style.right = '0'
@@ -81,7 +79,6 @@ export const videoElementFactory = ({
 
         const paddingWrapper = document.createElement('div')
         paddingWrapper.style.paddingBottom = '56.25%'
-        // paddingWrapper.style.border = '2px solid green'
         paddingWrapper.appendChild(mcuWrapper)
 
         const layersWrapper = document.createElement('div')
@@ -93,7 +90,6 @@ export const videoElementFactory = ({
         relativeWrapper.style.width = '100%'
         relativeWrapper.style.height = '100%'
         relativeWrapper.style.margin = '0 auto'
-        // relativeWrapper.style.border = '2px solid red'
         relativeWrapper.appendChild(paddingWrapper)
 
         rootElement.appendChild(relativeWrapper)
@@ -165,7 +161,7 @@ export const videoElementFactory = ({
         myLayer.id = myMemberId
 
         const localVideo = buildVideo()
-        localVideo.srcObject = localStream as MediaStream
+        localVideo.srcObject = localStream
         localVideo.style.width = '100%'
         localVideo.style.height = '100%'
 
