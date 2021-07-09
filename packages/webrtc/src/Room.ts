@@ -31,6 +31,7 @@ export class Room extends BaseConnection {
       recoverCall: false,
       skipLiveArray: true,
       localStream: displayStream,
+      remoteStream: undefined,
     }
 
     const screenShare: RoomObject = connect({
