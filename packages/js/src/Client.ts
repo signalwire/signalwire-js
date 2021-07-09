@@ -1,5 +1,7 @@
-import { logger, connect, BaseClient } from '@signalwire/core'
+import { logger, connect, BaseClient, actions } from '@signalwire/core'
 import { Room, ConnectionOptions, RoomObject } from '@signalwire/webrtc'
+import { SagaIterator } from 'redux-saga'
+import { take, call } from 'redux-saga/effects'
 import { videoElementFactory } from './utils/videoElementFactory'
 
 export interface MakeRoomOptions extends ConnectionOptions {
@@ -34,6 +36,11 @@ export class Client extends BaseClient {
         })({
           ...options,
           emitter: this.options.emitter,
+        })
+
+        window.sessionStorage.setItem(room.id, JSON.stringify(makeRoomOptions))
+        room.once('destroy', () => {
+          window.sessionStorage.removeItem(room.id)
         })
 
         if (rootElementId) {
@@ -108,5 +115,38 @@ export class Client extends BaseClient {
         return room
       },
     }
+  }
+}
+
+export function* vertoAttachWatcher({
+  instance,
+}: {
+  instance: Client
+}): SagaIterator {
+  while (true) {
+    try {
+      const action = yield take(actions.vertoAttachAction.type)
+      console.debug(
+        '>> vertoAttachWatcher',
+        instance.id,
+        JSON.stringify(action, null, 2)
+      )
+      const { payload } = action
+
+      const prevOptions = JSON.parse(
+        window.sessionStorage.getItem(payload.callID) ?? '{}'
+      )
+      logger.info('>> prevOptions', prevOptions)
+      const roomObj = instance.rooms.makeRoomObject({
+        ...prevOptions,
+        remoteSdp: payload.sdp,
+        attach: true,
+      })
+
+      roomObj.id = payload.callID
+      logger.info('>> ATTACHED ROOM', roomObj)
+
+      yield call(roomObj.answer)
+    } catch (error) {}
   }
 }

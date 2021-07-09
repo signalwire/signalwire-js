@@ -6,7 +6,7 @@ import {
   UserOptions,
 } from '@signalwire/core'
 import StrictEventEmitter from 'strict-event-emitter-types'
-import { Client } from './Client'
+import { Client, vertoAttachWatcher } from './Client'
 import { JWTSession } from './JWTSession'
 
 /**
@@ -63,6 +63,7 @@ export const createClient = async (userOptions: UserOptions) => {
   const client: StrictEventEmitter<Client, ClientEvents> = connect({
     store,
     Component: Client,
+    customSagas: [vertoAttachWatcher],
     componentListeners: {
       errors: 'onError',
       responses: 'onSuccess',
