@@ -386,7 +386,6 @@ export class BaseConnection extends BaseComponent {
               'updateConstraints FOUND - replaceTrack on it and on localStream'
             )
             await transceiver.sender.replaceTrack(newTrack)
-            this.options.localStream.addTrack(newTrack)
             logger.debug('updateConstraints replaceTrack SUCCESS')
             this.options.localStream.getTracks().forEach((track) => {
               if (track.kind === newTrack.kind && track.id !== newTrack.id) {
@@ -397,6 +396,8 @@ export class BaseConnection extends BaseComponent {
                 this.options.localStream?.removeTrack(track)
               }
             })
+
+            this.options.localStream.addTrack(newTrack)
           } else {
             logger.debug(
               'updateConstraints NOT FOUND - addTrack and start dancing!'
