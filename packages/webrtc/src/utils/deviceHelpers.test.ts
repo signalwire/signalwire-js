@@ -162,43 +162,38 @@ describe('Helpers browser functions', () => {
       navigator.mediaDevices.getUserMedia.mockClear()
     })
 
-    it('should return the device list removing the duplicates', async (done) => {
+    it('should return the device list removing the duplicates', async () => {
       const devices = await getDevicesWithPermissions()
       expect(devices).toHaveLength(5)
-      done()
     })
 
-    it('should return the full device list', async (done) => {
+    it('should return the full device list', async () => {
       const devices = await getDevicesWithPermissions(undefined, true)
       expect(devices).toHaveLength(7)
-      done()
     })
 
-    it('should return the audioIn device list with kind microphone', async (done) => {
+    it('should return the audioIn device list with kind microphone', async () => {
       const devices = await getDevicesWithPermissions('microphone')
       expect(devices).toHaveLength(2)
       expect(devices[0].deviceId).toEqual('default')
-      done()
     })
 
-    it('should return the video device list with kind camera', async (done) => {
+    it('should return the video device list with kind camera', async () => {
       const devices = await getDevicesWithPermissions('camera')
       expect(devices).toHaveLength(2)
       expect(devices[0].deviceId).toEqual(
         '2060bf50ab9c29c12598bf4eafeafa71d4837c667c7c172bb4407ec6c5150206'
       )
-      done()
     })
 
-    it('should return the audioOut device list with kind speaker', async (done) => {
+    it('should return the audioOut device list with kind speaker', async () => {
       const devices = await getDevicesWithPermissions('speaker')
       expect(devices).toHaveLength(1)
       expect(devices[0].deviceId).toEqual('default')
-      done()
     })
 
     describe('without camera permissions', () => {
-      it('should invoke getUserMedia to request camera permissions and return device list removing duplicates', async (done) => {
+      it('should invoke getUserMedia to request camera permissions and return device list removing duplicates', async () => {
         // @ts-ignore
         navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(
           DEVICES_CAMERA_NO_LABELS
@@ -216,12 +211,11 @@ describe('Helpers browser functions', () => {
         expect(
           devices.every((d: MediaDeviceInfo) => d.deviceId && d.label)
         ).toBe(true)
-        done()
       })
     })
 
     describe('without microphone permissions', () => {
-      it('should invoke getUserMedia to request microphone permissions and return device list removing duplicates', async (done) => {
+      it('should invoke getUserMedia to request microphone permissions and return device list removing duplicates', async () => {
         // @ts-ignore
         navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(
           DEVICES_MICROPHONE_NO_LABELS
@@ -239,7 +233,6 @@ describe('Helpers browser functions', () => {
         expect(
           devices.every((d: MediaDeviceInfo) => d.deviceId && d.label)
         ).toBe(true)
-        done()
       })
     })
   })
@@ -250,43 +243,38 @@ describe('Helpers browser functions', () => {
       navigator.mediaDevices.getUserMedia.mockClear()
     })
 
-    it('should return the device list removing the duplicates', async (done) => {
+    it('should return the device list removing the duplicates', async () => {
       const devices = await getDevices()
       expect(devices).toHaveLength(5)
-      done()
     })
 
-    it('should return the full device list', async (done) => {
+    it('should return the full device list', async () => {
       const devices = await getDevices(undefined, true)
       expect(devices).toHaveLength(7)
-      done()
     })
 
-    it('should return the audioIn device list with kind microphone', async (done) => {
+    it('should return the audioIn device list with kind microphone', async () => {
       const devices = await getDevices('microphone')
       expect(devices).toHaveLength(2)
       expect(devices[0].deviceId).toEqual('default')
-      done()
     })
 
-    it('should return the video device list with kind camera', async (done) => {
+    it('should return the video device list with kind camera', async () => {
       const devices = await getDevices('camera')
       expect(devices).toHaveLength(2)
       expect(devices[0].deviceId).toEqual(
         '2060bf50ab9c29c12598bf4eafeafa71d4837c667c7c172bb4407ec6c5150206'
       )
-      done()
     })
 
-    it('should return the audioOut device list with kind speaker', async (done) => {
+    it('should return the audioOut device list with kind speaker', async () => {
       const devices = await getDevices('speaker')
       expect(devices).toHaveLength(1)
       expect(devices[0].deviceId).toEqual('default')
-      done()
     })
 
     describe('without camera permissions', () => {
-      it('should return device list removing devices without deviceId and label', async (done) => {
+      it('should return device list removing devices without deviceId and label', async () => {
         // @ts-ignore
         navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(
           DEVICES_CAMERA_NO_LABELS
@@ -296,12 +284,11 @@ describe('Helpers browser functions', () => {
         expect(
           devices.every((d: MediaDeviceInfo) => d.deviceId && d.label)
         ).toBe(true)
-        done()
       })
     })
 
     describe('without microphone permissions', () => {
-      it('should return device list removing devices without deviceId and label', async (done) => {
+      it('should return device list removing devices without deviceId and label', async () => {
         // @ts-ignore
         navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(
           DEVICES_MICROPHONE_NO_LABELS
@@ -311,7 +298,6 @@ describe('Helpers browser functions', () => {
         expect(
           devices.every((d: MediaDeviceInfo) => d.deviceId && d.label)
         ).toBe(true)
-        done()
       })
     })
   })
@@ -322,7 +308,7 @@ describe('Helpers browser functions', () => {
       navigator.mediaDevices.enumerateDevices.mockClear()
     })
 
-    it('should return the deviceId if the device is available', async (done) => {
+    it('should return the deviceId if the device is available', async () => {
       // See setup/browser.ts for these values.
       const deviceId = await assureDeviceId(
         '2060bf50ab9c29c12598bf4eafeafa71d4837c667c7c172bb4407ec6c5150206',
@@ -333,10 +319,9 @@ describe('Helpers browser functions', () => {
         '2060bf50ab9c29c12598bf4eafeafa71d4837c667c7c172bb4407ec6c5150206'
       )
       expect(navigator.mediaDevices.enumerateDevices).toHaveBeenCalledTimes(1)
-      done()
     })
 
-    it('should return null if the device is no longer available', async (done) => {
+    it('should return null if the device is no longer available', async () => {
       const NEW_DEVICE_LIST = [
         {
           deviceId: 'uuid',
@@ -362,10 +347,9 @@ describe('Helpers browser functions', () => {
       )
       expect(deviceId).toBeNull()
       expect(navigator.mediaDevices.enumerateDevices).toHaveBeenCalledTimes(1)
-      done()
     })
 
-    it('should recognize the device by its label', async (done) => {
+    it('should recognize the device by its label', async () => {
       const NEW_DEVICE_LIST = [
         {
           deviceId: 'uuid',
@@ -391,7 +375,6 @@ describe('Helpers browser functions', () => {
       )
       expect(deviceId).toEqual('new-uuid')
       expect(navigator.mediaDevices.enumerateDevices).toHaveBeenCalledTimes(1)
-      done()
     })
   })
 })

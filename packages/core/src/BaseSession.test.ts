@@ -8,6 +8,7 @@ import {
   BladePingResponse,
   BladeDisconnectResponse,
 } from './RPCMessages'
+import { wait } from './testUtils'
 
 jest.mock('uuid', () => {
   return {
@@ -115,7 +116,7 @@ describe('BaseSession', () => {
       await expect(ws).toReceiveMessage(JSON.stringify(response))
     })
 
-    it('should close the connection if no blade.ping comes within _checkPingDelay', async (done) => {
+    it('should close the connection if no blade.ping comes within _checkPingDelay', async () => {
       // Force _checkPingDelay to 5ms
       session['_checkPingDelay'] = 5
 
@@ -127,11 +128,9 @@ describe('BaseSession', () => {
       ws.send(JSON.stringify(ping))
 
       // Expect the session to be closed after 10ms
-      setTimeout(() => {
-        expect(session.connected).toBe(false)
-        expect(session.closed).toBe(true)
-        done()
-      }, 10)
+      await wait(10)
+      expect(session.connected).toBe(false)
+      expect(session.closed).toBe(true)
     })
   })
 })
