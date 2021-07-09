@@ -3,6 +3,8 @@ import {
   VertoBye,
   VertoInfo,
   VertoInvite,
+  VertoAttach,
+  VertoAnswer,
   BaseComponent,
   VertoMethod,
   RoomMethod,
@@ -110,6 +112,7 @@ export class BaseConnection extends BaseComponent {
     }
 
     this.setState('new')
+    this.answer = this.answer.bind(this)
     logger.info('New Call with Options:', this.options)
   }
 
@@ -477,8 +480,7 @@ export class BaseConnection extends BaseComponent {
         // }
         break
       case 'answer':
-        logger.warn('Unhandled verto.answer')
-        // this.executeAnswer()
+        this.executeAnswer(sdp)
         break
       default:
         return logger.error(`Unknown SDP type: '${type}' on call ${this.id}`)
@@ -498,6 +500,23 @@ export class BaseConnection extends BaseComponent {
       if (jsonrpc?.code === '404') {
         this.setState('hangup')
       }
+    }
+  }
+
+  /** @internal */
+  async executeAnswer(sdp: string) {
+    this.setState('answering')
+    try {
+      const params = { ...this.messagePayload, sdp }
+      const msg = this.options.attach
+        ? VertoAttach(params)
+        : VertoAnswer(params)
+      const response = await this.vertoExecute(msg)
+      logger.debug('Answer response', response)
+    } catch (error) {
+      const { action, jsonrpc } = error
+      logger.error('Answer Error', jsonrpc, action)
+      this.setState('hangup')
     }
   }
 
