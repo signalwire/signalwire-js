@@ -18,9 +18,9 @@
     "start:next": "concurrently \"manypkg run @signalwire/js start\" \"manypkg run with-next.js dev\""
   },
   "dependencies": {
-    "@babel/core": "^7.13.16",
-    "@babel/preset-env": "^7.13.15",
-    "@babel/preset-typescript": "^7.13.0",
+    "@babel/core": "^7.14.6",
+    "@babel/preset-env": "^7.14.7",
+    "@babel/preset-typescript": "^7.14.5",
     "@changesets/cli": "^2.16.0",
     "@manypkg/cli": "^0.18.0",
     "@types/jest": "^26.0.24",
