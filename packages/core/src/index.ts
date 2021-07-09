@@ -27,6 +27,7 @@ export * from './utils/interfaces'
 export { VertoMethod } from './utils/constants'
 export * from './CustomErrors'
 export type { SessionState } from './redux/interfaces'
+export * as actions from './redux/actions'
 
 export const selectors = {
   ...sessionSelectors,

@@ -9,7 +9,11 @@ import {
   BladeBroadcastParams,
 } from '../../../utils/interfaces'
 import { ExecuteActionParams, WebRTCCall } from '../../interfaces'
-import { executeAction, socketMessageAction } from '../../actions'
+import {
+  executeAction,
+  socketMessageAction,
+  vertoAttachAction,
+} from '../../actions'
 import { componentActions } from '../'
 import { BladeMethod, VertoMethod } from '../../../utils/constants'
 import { BladeExecute } from '../../../RPCMessages'
@@ -165,8 +169,11 @@ export function* sessionChannelWatcher({
         return session.disconnect()
       // case VertoMethod.Invite:
       //   break
-      // case VertoMethod.Attach:
-      //   break
+      case VertoMethod.Attach: {
+        // @ts-ignore
+        yield put(vertoAttachAction(params))
+        break
+      }
       case VertoMethod.Info:
         return logger.debug('Verto Info', params)
       case VertoMethod.ClientReady:

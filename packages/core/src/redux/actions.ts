@@ -38,3 +38,11 @@ export const sessionDisconnectedAction = createAction<void, SessionEvents>(
 export const sessionReconnectingAction = createAction<void, SessionEvents>(
   'session.reconnecting'
 )
+
+type VertoAttachActionParams = {
+  callID: string
+  sdp: string
+}
+export const vertoAttachAction = createAction<VertoAttachActionParams>(
+  'sdk/attach'
+)
