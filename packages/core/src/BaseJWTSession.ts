@@ -4,6 +4,8 @@ import { BladeConnect, BladeConnectParams } from './RPCMessages'
 import { SessionOptions } from './utils/interfaces'
 import { BaseSession } from './BaseSession'
 
+const PROTOCOL = 'protocol'
+
 export class BaseJWTSession extends BaseSession {
   /**
    * Can be set a value different then zero
@@ -53,8 +55,8 @@ export class BaseJWTSession extends BaseSession {
     if (this._relayProtocolIsValid()) {
       params.params = params.params || {}
       params.params.protocol = this.relayProtocol
-    } else if (this.signature) {
-      const prevProtocol = await sessionStorage.getItem(this.signature)
+    } else {
+      const prevProtocol = await sessionStorage.getItem(PROTOCOL)
       if (prevProtocol) {
         params.params = params.params || {}
         params.params.protocol = prevProtocol
@@ -62,6 +64,7 @@ export class BaseJWTSession extends BaseSession {
     }
 
     this._bladeConnectResult = await this.execute(BladeConnect(params))
+    await sessionStorage.setItem(PROTOCOL, this.relayProtocol)
     this._checkTokenExpiration()
   }
 
