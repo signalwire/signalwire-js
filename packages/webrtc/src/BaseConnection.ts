@@ -165,7 +165,7 @@ export class BaseConnection extends BaseComponent {
       userVariables,
       screenShare,
       // FIXME: Backend should accept secondSource
-      // secondSource,
+      secondSource,
     } = this.options
     return {
       sessid: this.options.sessionid,
@@ -179,7 +179,7 @@ export class BaseConnection extends BaseComponent {
         remoteCallerNumber,
         userVariables,
         screenShare,
-        // secondSource,
+        secondSource,
       },
     }
   }
@@ -511,7 +511,10 @@ export class BaseConnection extends BaseComponent {
     } catch (error) {
       const { action, jsonrpc } = error
       logger.error('Invite Error', jsonrpc, action)
-      if (jsonrpc?.code === '404') {
+      if (
+        jsonrpc?.code === '404' ||
+        jsonrpc?.cause === 'INVALID_MSG_UNSPECIFIED'
+      ) {
         this.setState('hangup')
       }
     }
