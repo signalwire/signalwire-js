@@ -7,6 +7,7 @@ import {
 } from './utils/interfaces'
 import { EventEmitter, getNamespacedEvent } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
+import { GLOBAL_VIDEO_EVENTS } from './utils/constants'
 
 type EventRegisterHandlers =
   | {
@@ -139,13 +140,17 @@ export class BaseComponent implements Emitter {
         ) {
           this.emitter.removeAllListeners(event)
         } else if (typeof event === 'symbol') {
-          // TODO: TBD
+          logger.warn(
+            'Remove events registered using `symbol` is not supported.'
+          )
         }
       })
     } else {
-      throw new Error(
-        'Component `removeAllListeners` invoked without "event" or "namespace" set.'
-      )
+      // TODO: Handle all the global events (not only `VIDEO`)
+      logger.debug('Removing global events only.')
+      GLOBAL_VIDEO_EVENTS.forEach((event) => {
+        this.emitter.removeAllListeners(event)
+      })
     }
 
     return this.emitter as EventEmitter<string | symbol, any>
