@@ -6,7 +6,7 @@ type LayoutChangedHandlerParams = {
   localStream: MediaStream
 }
 
-const buildVideo = () => {
+export const buildVideo = () => {
   const video = document.createElement('video')
   video.muted = true
   video.autoplay = true
@@ -15,7 +15,7 @@ const buildVideo = () => {
   return video
 }
 
-const buildVideoElementByTrack = (videoTrack: MediaStreamTrack) => {
+export const buildVideoElementByTrack = (videoTrack: MediaStreamTrack) => {
   const video = buildVideo()
   video.srcObject = new MediaStream([videoTrack])
 
@@ -26,7 +26,7 @@ const buildVideoElementByTrack = (videoTrack: MediaStreamTrack) => {
   return video
 }
 
-const buildAudioElementByTrack = (audioTrack: MediaStreamTrack) => {
+export const buildAudioElementByTrack = (audioTrack: MediaStreamTrack) => {
   const audio = new Audio()
   audio.autoplay = true
   // @ts-ignore

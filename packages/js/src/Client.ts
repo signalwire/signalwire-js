@@ -1,6 +1,7 @@
 import { logger, connect, BaseClient } from '@signalwire/core'
 import { Room, ConnectionOptions, RoomObject } from '@signalwire/webrtc'
-import { videoElementFactory } from './utils/videoElementFactory'
+// import { videoElementFactory } from './utils/videoElementFactory'
+import { mediaElementsWatcher } from './mediaElementsSagas'
 
 export interface MakeRoomOptions extends ConnectionOptions {
   rootElementId?: string
@@ -24,6 +25,7 @@ export class Client extends BaseClient {
         const room: RoomObject = connect({
           store: this.store,
           Component: Room,
+          customSagas: [mediaElementsWatcher],
           componentListeners: {
             state: 'onStateChange',
             remoteSDP: 'onRemoteSDP',
@@ -36,40 +38,40 @@ export class Client extends BaseClient {
           emitter: this.options.emitter,
         })
 
-        if (rootElementId) {
-          const {
-            rtcTrackHandler,
-            destroyHandler,
-            layoutChangedHandler,
-            showOverlay,
-            hideOverlay,
-          } = videoElementFactory({ rootElementId, applyLocalVideoOverlay })
+        // if (rootElementId) {
+        //   const {
+        //     rtcTrackHandler,
+        //     destroyHandler,
+        //     layoutChangedHandler,
+        //     showOverlay,
+        //     hideOverlay,
+        //   } = videoElementFactory({ rootElementId, applyLocalVideoOverlay })
 
-          room.on('layout.changed', (params: any) => {
-            if (room.peer.hasVideoSender && room.localStream) {
-              layoutChangedHandler({
-                layout: params.layout,
-                localStream: room.localStream,
-                myMemberId: room.memberId,
-              })
-            }
-          })
+        //   room.on('layout.changed', (params: any) => {
+        //     if (room.peer.hasVideoSender && room.localStream) {
+        //       layoutChangedHandler({
+        //         layout: params.layout,
+        //         localStream: room.localStream,
+        //         myMemberId: room.memberId,
+        //       })
+        //     }
+        //   })
 
-          room.on('member.updated.video_muted', (params: any) => {
-            try {
-              const { member } = params
-              if (member.id === room.memberId && 'video_muted' in member) {
-                member.video_muted
-                  ? hideOverlay(member.id)
-                  : showOverlay(member.id)
-              }
-            } catch (error) {
-              logger.error('Error handling video_muted', error)
-            }
-          })
-          room.on('track', rtcTrackHandler)
-          room.once('destroy', destroyHandler)
-        }
+        //   room.on('member.updated.video_muted', (params: any) => {
+        //     try {
+        //       const { member } = params
+        //       if (member.id === room.memberId && 'video_muted' in member) {
+        //         member.video_muted
+        //           ? hideOverlay(member.id)
+        //           : showOverlay(member.id)
+        //       }
+        //     } catch (error) {
+        //       logger.error('Error handling video_muted', error)
+        //     }
+        //   })
+        //   room.on('track', rtcTrackHandler)
+        //   room.once('destroy', destroyHandler)
+        // }
 
         /**
          * Stop and Restore outbound audio on audio_muted event
