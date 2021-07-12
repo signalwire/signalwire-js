@@ -46,10 +46,10 @@ export class Client extends BaseClient {
           } = videoElementFactory({ rootElementId, applyLocalVideoOverlay })
 
           room.on('layout.changed', (params: any) => {
-            if (room.localVideoTrack) {
+            if (room.peer.hasVideoSender && room.localStream) {
               layoutChangedHandler({
                 layout: params.layout,
-                localVideoTrack: room.localVideoTrack,
+                localStream: room.localStream,
                 myMemberId: room.memberId,
               })
             }

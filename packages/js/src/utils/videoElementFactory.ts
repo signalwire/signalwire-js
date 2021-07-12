@@ -1,25 +1,25 @@
 import { logger, RoomLayout, RoomLayoutLayer } from '@signalwire/core'
 
 type LayoutChangedHandlerParams = {
-  layout: RoomLayout,
-  myMemberId: string,
-  localVideoTrack: MediaStreamTrack,
+  layout: RoomLayout
+  myMemberId: string
+  localStream: MediaStream
 }
 
-const buildVideoElementByTrack = (videoTrack: MediaStreamTrack) => {
+const buildVideo = () => {
   const video = document.createElement('video')
   video.muted = true
   video.autoplay = true
   video.playsInline = true
 
-  const mediaStream = new MediaStream([videoTrack])
-  video.srcObject = mediaStream
+  return video
+}
 
-  const onCanPlay = () => logger.debug('Video can play')
-  const onPlay = () => logger.debug('Video is playing')
+const buildVideoElementByTrack = (videoTrack: MediaStreamTrack) => {
+  const video = buildVideo()
+  video.srcObject = new MediaStream([videoTrack])
+
   videoTrack.addEventListener('ended', () => {
-    video.removeEventListener('play', onPlay)
-    video.removeEventListener('canplay', onCanPlay)
     video.srcObject = null
     video.remove()
   })
@@ -31,17 +31,9 @@ const buildAudioElementByTrack = (audioTrack: MediaStreamTrack) => {
   audio.autoplay = true
   // @ts-ignore
   audio.playsinline = true
+  audio.srcObject = new MediaStream([audioTrack])
 
-  const mediaStream = new MediaStream([audioTrack])
-  audio.srcObject = mediaStream
-
-  const onCanPlay = () => logger.debug('Audio can play!')
-  const onPlay = () => logger.debug('Audio is playing')
-  audio.addEventListener('play', onPlay)
-  audio.addEventListener('canplay', onCanPlay)
   audioTrack.addEventListener('ended', () => {
-    audio.removeEventListener('play', onPlay)
-    audio.removeEventListener('canplay', onCanPlay)
     audio.srcObject = null
     audio.remove()
   })
@@ -71,7 +63,6 @@ export const videoElementFactory = ({
         videoEl = buildVideoElementByTrack(event.track)
         videoEl.style.width = '100%'
         videoEl.style.height = '100%'
-        // videoEl.style.border = '2px solid yellow'
 
         if (!applyLocalVideoOverlay) {
           rootElement.appendChild(videoEl)
@@ -80,7 +71,6 @@ export const videoElementFactory = ({
 
         const mcuWrapper = document.createElement('div')
         mcuWrapper.style.position = 'absolute'
-        // inset: 0
         mcuWrapper.style.top = '0'
         mcuWrapper.style.left = '0'
         mcuWrapper.style.right = '0'
@@ -89,7 +79,6 @@ export const videoElementFactory = ({
 
         const paddingWrapper = document.createElement('div')
         paddingWrapper.style.paddingBottom = '56.25%'
-        // paddingWrapper.style.border = '2px solid green'
         paddingWrapper.appendChild(mcuWrapper)
 
         const layersWrapper = document.createElement('div')
@@ -101,7 +90,6 @@ export const videoElementFactory = ({
         relativeWrapper.style.width = '100%'
         relativeWrapper.style.height = '100%'
         relativeWrapper.style.margin = '0 auto'
-        // relativeWrapper.style.border = '2px solid red'
         relativeWrapper.appendChild(paddingWrapper)
 
         rootElement.appendChild(relativeWrapper)
@@ -157,7 +145,7 @@ export const videoElementFactory = ({
   const layoutChangedHandler = async ({
     layout,
     myMemberId,
-    localVideoTrack,
+    localStream,
   }: LayoutChangedHandlerParams) => {
     try {
       const { layers = [] } = layout
@@ -172,7 +160,8 @@ export const videoElementFactory = ({
         const myLayer = await _buildLayer(layer)
         myLayer.id = myMemberId
 
-        const localVideo = buildVideoElementByTrack(localVideoTrack)
+        const localVideo = buildVideo()
+        localVideo.srcObject = localStream
         localVideo.style.width = '100%'
         localVideo.style.height = '100%'
 

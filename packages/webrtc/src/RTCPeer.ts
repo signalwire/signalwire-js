@@ -237,6 +237,12 @@ export default class RTCPeer {
       if (this.isOffer) {
         logger.info('Trying to generate offer')
         const offer = await this.instance.createOffer({
+          /**
+           * While this property is deprected, on Browsers where this
+           * is still supported this avoids conflicting with the VAD
+           * server-side
+           */
+          // @ts-ignore
           voiceActivityDetection: false,
         })
         await this._setLocalDescription(offer)
@@ -249,6 +255,8 @@ export default class RTCPeer {
           type: 'offer',
         })
         const answer = await this.instance.createAnswer({
+          // Same as above.
+          // @ts-ignore
           voiceActivityDetection: false,
         })
         await this._setLocalDescription(answer)
