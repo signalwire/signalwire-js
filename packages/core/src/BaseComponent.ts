@@ -142,14 +142,11 @@ export class BaseComponent implements Emitter {
           // TODO: TBD
         }
       })
+    } else {
+      throw new Error(
+        'Component `removeAllListeners` invoked without "event" or "namespace" set.'
+      )
     }
-    // // @ts-ignore
-    // logger.info('>> removeAllListeners', event, this._getNamespacedEvent(event))
-    // // @ts-ignore
-    // logger.info('>> removeAllListeners all?', this.emitter.eventNames())
-    // return this.emitter.removeAllListeners(
-    //   event ? this._getNamespacedEvent(event) : event
-    // )
 
     return this.emitter as EventEmitter<string | symbol, any>
   }
