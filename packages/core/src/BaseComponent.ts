@@ -127,9 +127,35 @@ export class BaseComponent implements Emitter {
     }
 
     const [event] = params
-    return this.emitter.removeAllListeners(
-      event ? this._getNamespacedEvent(event) : event
-    )
+    if (event) {
+      return this.emitter.removeAllListeners(this._getNamespacedEvent(event))
+    }
+
+    if (this._eventsNamespace !== undefined) {
+      this.eventNames().forEach((event) => {
+        if (
+          typeof event === 'string' &&
+          event.startsWith(this._eventsNamespace!)
+        ) {
+          this.emitter.removeAllListeners(event)
+        } else if (typeof event === 'symbol') {
+          // TODO: TBD
+        }
+      })
+    }
+    // // @ts-ignore
+    // logger.info('>> removeAllListeners', event, this._getNamespacedEvent(event))
+    // // @ts-ignore
+    // logger.info('>> removeAllListeners all?', this.emitter.eventNames())
+    // return this.emitter.removeAllListeners(
+    //   event ? this._getNamespacedEvent(event) : event
+    // )
+
+    return this.emitter as EventEmitter<string | symbol, any>
+  }
+
+  eventNames() {
+    return this.emitter.eventNames()
   }
 
   emit(event: string | symbol, ...args: any[]) {
