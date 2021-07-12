@@ -14,7 +14,7 @@ interface Connect<T> {
   >
   store: SDKStore
   Component: new (o: any) => T
-  customSagas?: ((params: { instance: T }) => SagaIterator<any>)[]
+  customSagas?: ((params: { instance: T; runSaga: any }) => SagaIterator<any>)[]
 }
 type ReduxComponentKeys = keyof ReduxComponent
 type ReduxSessionKeys = keyof SessionState
@@ -84,7 +84,7 @@ export const connect = <T extends { id: string; destroyer: () => void }>(
 
     // Run all the custom sagas
     const taskList = customSagas?.map((saga) => {
-      return store.runSaga(saga, { instance })
+      return store.runSaga(saga, { instance, runSaga: store.runSaga })
     })
 
     instance.destroyer = () => {
