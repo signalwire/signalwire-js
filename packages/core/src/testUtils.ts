@@ -23,6 +23,12 @@ export const configureJestStore = () => {
   })
 }
 
+export const wait = (ms: number) => {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms)
+  })
+}
+
 export const bladeConnectResultVRT: IBladeConnectResult = {
   session_restored: false,
   sessionid: 'd9821036-30d4-4e22-82eb-f6f1dac36d21',
