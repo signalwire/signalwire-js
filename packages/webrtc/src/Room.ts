@@ -29,7 +29,6 @@ export class Room extends BaseConnection {
       ...this.options,
       screenShare: true,
       recoverCall: false,
-      skipLiveArray: true,
       localStream: displayStream,
       remoteStream: undefined,
     }
@@ -94,7 +93,6 @@ export class Room extends BaseConnection {
       video,
       secondSource: true,
       recoverCall: false,
-      skipLiveArray: true,
     }
 
     const secondSource: RoomObject = connect({

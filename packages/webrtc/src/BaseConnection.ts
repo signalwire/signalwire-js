@@ -164,7 +164,6 @@ export class BaseConnection extends BaseComponent {
       remoteCallerNumber,
       userVariables,
       screenShare,
-      // FIXME: Backend should accept secondSource
       secondSource,
     } = this.options
     return {
@@ -360,9 +359,8 @@ export class BaseConnection extends BaseComponent {
           return logger.warn('Invalid constraints:', constraints)
         }
 
-        const shouldContinueWithUpdate = this.manageSendersWithContraints(
-          constraints
-        )
+        const shouldContinueWithUpdate =
+          this.manageSendersWithContraints(constraints)
 
         if (!shouldContinueWithUpdate) {
           logger.debug(

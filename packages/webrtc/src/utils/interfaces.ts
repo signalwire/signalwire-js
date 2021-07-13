@@ -34,7 +34,6 @@ export interface ConnectionOptions {
   screenShare?: boolean
   secondSource?: boolean
   recoverCall?: boolean
-  skipLiveArray?: boolean
   onNotification?: Function
   googleMaxBitrate?: number
   googleMinBitrate?: number
