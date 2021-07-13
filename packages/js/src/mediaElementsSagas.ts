@@ -1,9 +1,11 @@
-import { SagaIterator } from '@redux-saga/types'
-// import { call, put, take, fork } from 'redux-saga/effects'
-// import { createAction } from '@reduxjs/toolkit'
-import { buildVideo, makeLayoutChangedHandler } from './utils/videoLayout'
-
-// const initMediaElementsAction = createAction('swSdk/initMediaElements')
+import { logger } from '@signalwire/core'
+import { SagaIterator, Task } from '@redux-saga/types'
+import {
+  buildVideo,
+  makeDestroyHandler,
+  makeDisplayChangeFn,
+  makeLayoutChangedHandler,
+} from './utils/videoElement'
 
 // TODO: rename
 export function* mediaElementsWatcher({
@@ -20,17 +22,14 @@ export function* mediaElementsWatcher({
     const videoEl = buildVideo()
     const audioEl = new Audio()
 
-    const destroyHandler = () => {
-      while (rootElement.firstChild) {
-        rootElement.removeChild(rootElement.firstChild)
-      }
-    }
-
+    const destroyHandler = makeDestroyHandler(rootElement)
     const layoutChangedHandler = makeLayoutChangedHandler({
       rootElement,
       element: videoEl,
       layerMap,
     })
+    const hideOverlay = makeDisplayChangeFn('none')
+    const showOverlay = makeDisplayChangeFn('block')
 
     room.on('layout.changed', (params: any) => {
       if (room.peer.hasVideoSender && room.localStream) {
@@ -42,21 +41,19 @@ export function* mediaElementsWatcher({
       }
     })
 
-    // room.on('member.updated.video_muted', (params: any) => {
-    //   // try {
-    //   //   const { member } = params
-    //   //   if (member.id === room.memberId && 'video_muted' in member) {
-    //   //     member.video_muted
-    //   //       ? hideOverlay(member.id)
-    //   //       : showOverlay(member.id)
-    //   //   }
-    //   // } catch (error) {
-    //   //   logger.error('Error handling video_muted', error)
-    //   // }
-    // })
+    room.on('member.updated.video_muted', (params: any) => {
+      try {
+        const { member } = params
+        if (member.id === room.memberId && 'video_muted' in member) {
+          member.video_muted ? hideOverlay(member.id) : showOverlay(member.id)
+        }
+      } catch (error) {
+        logger.error('Error handling video_muted', error)
+      }
+    })
 
-    let audioTask: any
-    let videoTask: any
+    let audioTask: Task
+    let videoTask: Task
 
     room.on('track', function (event: RTCTrackEvent) {
       switch (event.track.kind) {
