@@ -1,9 +1,9 @@
 import { createRoomObject } from './createRoomObject'
 import { joinRoom } from './joinRoom'
 import { Client } from './Client'
+import { Room } from './Room'
 
-export { Room } from '@signalwire/webrtc'
-export { Client, createRoomObject, joinRoom }
+export { Client, createRoomObject, joinRoom, Room }
 
-export type { RoomObject } from '@signalwire/webrtc'
+export type { RoomObject } from './utils/interfaces'
 export type { CreateRoomObjectOptions } from './createRoomObject'
