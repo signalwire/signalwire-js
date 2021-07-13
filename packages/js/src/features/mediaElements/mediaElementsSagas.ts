@@ -69,13 +69,13 @@ export const makeMediaElementsSaga = ({
       room.on('track', function (event: RTCTrackEvent) {
         switch (event.track.kind) {
           case 'audio':
-            audioTask = runSaga(audioElementWorker, {
+            audioTask = runSaga(audioElementSetupWorker, {
               track: event.track,
               element: audioEl,
             })
             break
           case 'video': {
-            videoTask = runSaga(videoElementWorker, {
+            videoTask = runSaga(videoElementSetupWorker, {
               applyLocalVideoOverlay,
               rootElement,
               track: event.track,
@@ -116,7 +116,7 @@ function* audioElementActionsWatcher({
   }
 }
 
-function* audioElementWorker({
+function* audioElementSetupWorker({
   track,
   element,
 }: {
@@ -144,7 +144,7 @@ function* audioElementWorker({
   })
 }
 
-function* videoElementWorker({
+function* videoElementSetupWorker({
   rootElement,
   applyLocalVideoOverlay = true,
   track,
