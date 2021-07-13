@@ -25,7 +25,7 @@ export class Client extends BaseClient {
         const room: RoomObject = connect({
           store: this.store,
           Component: Room,
-          customSagas: [mediaElementsWatcher],
+          customSagas: [mediaElementsWatcher], // TODO: this should be conditional on `rootElementId`
           componentListeners: {
             state: 'onStateChange',
             remoteSDP: 'onRemoteSDP',

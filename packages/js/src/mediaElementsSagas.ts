@@ -1,19 +1,23 @@
 import { SagaIterator } from '@redux-saga/types'
 // import { call, put, take, fork } from 'redux-saga/effects'
 // import { createAction } from '@reduxjs/toolkit'
-import { buildVideo } from './utils/videoElementFactory'
+import { buildVideo, makeLayoutChangedHandler } from './utils/videoLayout'
 
 // const initMediaElementsAction = createAction('swSdk/initMediaElements')
 
+// TODO: rename
 export function* mediaElementsWatcher({
   instance: room,
   runSaga,
 }: any): SagaIterator {
-  // while (true) {
   try {
     // const action: any = yield take(initMediaElementsAction.type)
+    // TODO: empty this map once the room is destroyed
+    const layerMap = new Map()
     const rootElementId = 'rootElement'
     const rootElement = document.getElementById(rootElementId) || document.body
+    const videoEl = buildVideo()
+    const audioEl = new Audio()
 
     const destroyHandler = () => {
       while (rootElement.firstChild) {
@@ -21,15 +25,21 @@ export function* mediaElementsWatcher({
       }
     }
 
-    // room.on('layout.changed', (params: any) => {
-    //   if (room.peer.hasVideoSender && room.localStream) {
-    //     // layoutChangedHandler({
-    //     //   layout: params.layout,
-    //     //   localStream: room.localStream,
-    //     //   myMemberId: room.memberId,
-    //     // })
-    //   }
-    // })
+    const layoutChangedHandler = makeLayoutChangedHandler({
+      rootElement,
+      element: videoEl,
+      layerMap,
+    })
+
+    room.on('layout.changed', (params: any) => {
+      if (room.peer.hasVideoSender && room.localStream) {
+        layoutChangedHandler({
+          layout: params.layout,
+          localStream: room.localStream,
+          myMemberId: room.memberId,
+        })
+      }
+    })
 
     // room.on('member.updated.video_muted', (params: any) => {
     //   // try {
@@ -47,21 +57,22 @@ export function* mediaElementsWatcher({
     let audioTask: any
     let videoTask: any
 
-    // room.on('track', () => {
-    //   console.log('pppp ENTRO FRESCO TRACK')
-    // })
-
     room.on('track', function (event: RTCTrackEvent) {
       switch (event.track.kind) {
         case 'audio':
-          audioTask = runSaga(audioElementWorker, event.track)
+          audioTask = runSaga(audioElementWorker, {
+            track: event.track,
+            element: audioEl,
+          })
           console.log('pppp audioTask', audioTask)
 
           break
         case 'video': {
           videoTask = runSaga(videoElementWorker, {
+            // TODO: pass missing options
             // ...action.payload,
             track: event.track,
+            element: videoEl,
           })
           console.log('pppp videoTask', videoTask)
           break
@@ -75,27 +86,30 @@ export function* mediaElementsWatcher({
     // audioTask?.cancel()
     // videoTask?.cancel()
   } catch (error) {}
-  // }
 }
 
-function* audioElementWorker(audioTrack: MediaStreamTrack): SagaIterator {
-  const audio = new Audio()
-
-  const buildAudioElementByTrack = (audioTrack: MediaStreamTrack) => {
-    audio.autoplay = true
+function* audioElementWorker({
+  track,
+  element,
+}: {
+  track: MediaStreamTrack
+  element: HTMLAudioElement
+}): SagaIterator {
+  const setAudioMediaTrack = (audioTrack: MediaStreamTrack) => {
+    element.autoplay = true
     // @ts-ignore
-    audio.playsinline = true
-    audio.srcObject = new MediaStream([audioTrack])
+    element.playsinline = true
+    element.srcObject = new MediaStream([audioTrack])
 
     audioTrack.addEventListener('ended', () => {
-      audio.srcObject = null
-      audio.remove()
+      element.srcObject = null
+      element.remove()
     })
 
-    return audio
+    return element
   }
 
-  buildAudioElementByTrack(audioTrack)
+  setAudioMediaTrack(track)
 
   // TODO: take change sinkId
 }
@@ -104,29 +118,29 @@ function* videoElementWorker({
   rootElementId = 'rootElement',
   applyLocalVideoOverlay = true,
   track,
+  element,
 }: any): SagaIterator {
   const rootElement = document.getElementById(rootElementId) || document.body
-  const videoEl: HTMLVideoElement = buildVideo()
 
   console.log('pppp VIDEO root', rootElement)
 
   const setVideoMediaTrack = (videoTrack: MediaStreamTrack) => {
-    videoEl.srcObject = new MediaStream([videoTrack])
+    element.srcObject = new MediaStream([videoTrack])
 
-    videoEl.addEventListener('ended', () => {
-      videoEl.srcObject = null
-      videoEl.remove()
+    element.addEventListener('ended', () => {
+      element.srcObject = null
+      element.remove()
     })
   }
 
   const handleVideoTrack = (track: MediaStreamTrack) => {
     setVideoMediaTrack(track)
 
-    videoEl.style.width = '100%'
-    videoEl.style.height = '100%'
+    element.style.width = '100%'
+    element.style.height = '100%'
 
     if (!applyLocalVideoOverlay) {
-      rootElement.appendChild(videoEl)
+      rootElement.appendChild(element)
       return
     }
 
@@ -136,7 +150,7 @@ function* videoElementWorker({
     mcuWrapper.style.left = '0'
     mcuWrapper.style.right = '0'
     mcuWrapper.style.bottom = '0'
-    mcuWrapper.appendChild(videoEl)
+    mcuWrapper.appendChild(element)
 
     const paddingWrapper = document.createElement('div')
     paddingWrapper.style.paddingBottom = '56.25%'
