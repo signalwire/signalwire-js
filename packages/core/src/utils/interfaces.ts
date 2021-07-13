@@ -214,8 +214,6 @@ export interface RoomLayoutLayer {
 type RoomMemberType = 'member' | 'screen'
 interface RoomMemberCommon {
   id: string
-  room_session_id: string
-  room_id: string
 }
 interface RoomMemberProperties {
   scope_id: string

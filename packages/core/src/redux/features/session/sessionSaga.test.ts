@@ -10,7 +10,7 @@ describe('sessionChannelWatcher', () => {
   describe('conferenceWorker', () => {
     it('should handle room.subscribed dispatching componentActions.upsert and the room.joined', async () => {
       const jsonrpc = JSON.parse(
-        '{"jsonrpc":"2.0","id":"ddcd9807-0339-4a39-92b1-ab7967b84782","method":"blade.broadcast","params":{"broadcaster_nodeid":"2286cac8-1346-474f-9913-7ca9c3df9fc8@west-us","protocol":"signalwire_0d8d431757079b56923f7a2acc25ef69e3f698dd36689ca472cf6bc0fd900426_830b7622-b03b-4a11-9109-19bf2c9e27cf_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"conference","params":{"params":{"room":{"room_session_id":"6fbe4472-e6dd-431f-887f-33171cd83ccb","name":"roomName","members":[{"visible":false,"room_session_id":"6fbe4472-e6dd-431f-887f-33171cd83ccb","id":"0e5f67e0-8dbf-48dd-b920-804b97fccee6","audio_muted":false,"name":"Edo","location":{"y":0,"x":0,"layer_index":0,"height":360,"z_index":0,"width":640},"video_muted":false,"room_id":"790d6c79-f0d1-421e-b5f2-f09bd05941ce","type":"member"}],"locked":false,"layouts":[{"id":"group:grid"}],"room_id":"790d6c79-f0d1-421e-b5f2-f09bd05941ce","current_layout":{"id":"1x1","layers":[{"y":0,"x":0,"layer_index":0,"height":720,"z_index":0,"width":1280}],"name":"Full Screen"}},"call_id":"0e5f67e0-8dbf-48dd-b920-804b97fccee6","member_id":"0e5f67e0-8dbf-48dd-b920-804b97fccee6"},"timestamp":"1620991212.326279","event_type":"room.subscribed","event_channel":"room.adaacbef-3d34-4a5f-a123-d3d166515ba0"}},"hops":[]}'
+        '{"jsonrpc":"2.0","id":"ddcd9807-0339-4a39-92b1-ab7967b84782","method":"blade.broadcast","params":{"broadcaster_nodeid":"2286cac8-1346-474f-9913-7ca9c3df9fc8@west-us","protocol":"signalwire_0d8d431757079b56923f7a2acc25ef69e3f698dd36689ca472cf6bc0fd900426_830b7622-b03b-4a11-9109-19bf2c9e27cf_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"conference","params":{"params":{"room":{"room_session_id":"6fbe4472-e6dd-431f-887f-33171cd83ccb","name":"roomName","members":[{"visible":false,"id":"0e5f67e0-8dbf-48dd-b920-804b97fccee6","audio_muted":false,"name":"Edo","video_muted":false,"type":"member"}],"locked":false,"layouts":[{"id":"group:grid"}],"room_id":"790d6c79-f0d1-421e-b5f2-f09bd05941ce","current_layout":{"id":"1x1","layers":[{"y":0,"x":0,"layer_index":0,"height":720,"z_index":0,"width":1280}],"name":"Full Screen"}},"call_id":"0e5f67e0-8dbf-48dd-b920-804b97fccee6","member_id":"0e5f67e0-8dbf-48dd-b920-804b97fccee6"},"timestamp":"1620991212.326279","event_type":"room.subscribed","event_channel":"room.adaacbef-3d34-4a5f-a123-d3d166515ba0"}},"hops":[]}'
       )
       let runSaga = true
       const session = {
@@ -67,7 +67,7 @@ describe('sessionChannelWatcher', () => {
 
     it('should handle member.updated dispatching the sub-events for what is changed for the user', async () => {
       const jsonrpc = JSON.parse(
-        '{"jsonrpc":"2.0","id":"02f22650-8601-4e7d-bd1d-d084e69f22b0","method":"blade.broadcast","params":{"broadcaster_nodeid":"2286cac8-1346-474f-9913-7ca9c3df9fc8@west-us","protocol":"signalwire_0d8d431757079b56923f7a2acc25ef69e3f698dd36689ca472cf6bc0fd900426_2e393a80-fafe-4d73-9553-85bbf16b3a89_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"conference","params":{"params":{"member":{"updated":["video_muted","visible"],"room_session_id":"4bb14f10-1ed6-44a5-a286-4da86f34738d","id":"ab42641c-e784-42f1-9815-d264105bc24f","visible":true,"room_id":"790d6c79-f0d1-421e-b5f2-f09bd05941ce","video_muted":false}},"timestamp":"1620984182.577089","event_type":"member.updated","event_channel":"room.e1c5fc18-f96d-4696-bf9b-bcb2eab57906"}},"hops":[]}'
+        '{"jsonrpc":"2.0","id":"02f22650-8601-4e7d-bd1d-d084e69f22b0","method":"blade.broadcast","params":{"broadcaster_nodeid":"2286cac8-1346-474f-9913-7ca9c3df9fc8@west-us","protocol":"signalwire_0d8d431757079b56923f7a2acc25ef69e3f698dd36689ca472cf6bc0fd900426_2e393a80-fafe-4d73-9553-85bbf16b3a89_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"conference","params":{"params":{"member":{"updated":["video_muted","visible"],"id":"ab42641c-e784-42f1-9815-d264105bc24f","visible":true,"video_muted":false}},"timestamp":"1620984182.577089","event_type":"member.updated","event_channel":"room.e1c5fc18-f96d-4696-bf9b-bcb2eab57906"}},"hops":[]}'
       )
       let runSaga = true
       const session = {
@@ -77,7 +77,7 @@ describe('sessionChannelWatcher', () => {
       const sessionChannel = eventChannel(() => () => {})
       const dispatchedActions: unknown[] = []
       const payload = JSON.parse(
-        '{"member":{"updated":["video_muted","visible"],"room_session_id":"4bb14f10-1ed6-44a5-a286-4da86f34738d","id":"ab42641c-e784-42f1-9815-d264105bc24f","visible":true,"room_id":"790d6c79-f0d1-421e-b5f2-f09bd05941ce","video_muted":false}}'
+        '{"member":{"updated":["video_muted","visible"],"id":"ab42641c-e784-42f1-9815-d264105bc24f","visible":true,"video_muted":false}}'
       )
 
       return expectSaga(sessionChannelWatcher, {
@@ -123,7 +123,7 @@ describe('sessionChannelWatcher', () => {
 
     it('should handle member.talking and emit member.talking.start when talking: true', () => {
       const jsonrpc = JSON.parse(
-        '{"jsonrpc":"2.0","id":"6d0e46b2-77af-4734-8691-866f09b37ff3","method":"blade.broadcast","params":{"broadcaster_nodeid":"6a088ac7-9c9b-48c2-a5a1-92aafb70b0ab@west-us","protocol":"signalwire_519264e7f1beedc770d250eabcf50c4ae3bc197dccb6886ed1677ddb4bce8518_b0f0c4e0-e5cb-4ee8-befa-f246ea69b54e_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"conference","params":{"params":{"member":{"id":"a3693340-6f42-4cab-b18e-8e2a22695698","room_session_id":"024d3ab2-c444-4f03-8d71-9f43f6f4c78f","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","talking":true}},"timestamp":1624014381.1524,"event_type":"member.talking","event_channel":"room.b0e1b577-f5e7-4337-b7c4-06fa993b1a19"}},"hops":[]}'
+        '{"jsonrpc":"2.0","id":"6d0e46b2-77af-4734-8691-866f09b37ff3","method":"blade.broadcast","params":{"broadcaster_nodeid":"6a088ac7-9c9b-48c2-a5a1-92aafb70b0ab@west-us","protocol":"signalwire_519264e7f1beedc770d250eabcf50c4ae3bc197dccb6886ed1677ddb4bce8518_b0f0c4e0-e5cb-4ee8-befa-f246ea69b54e_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"conference","params":{"params":{"member":{"id":"a3693340-6f42-4cab-b18e-8e2a22695698","talking":true}},"timestamp":1624014381.1524,"event_type":"member.talking","event_channel":"room.b0e1b577-f5e7-4337-b7c4-06fa993b1a19"}},"hops":[]}'
       )
       let runSaga = true
       const session = {
@@ -133,7 +133,7 @@ describe('sessionChannelWatcher', () => {
       const sessionChannel = eventChannel(() => () => {})
       const dispatchedActions: unknown[] = []
       const payload = JSON.parse(
-        '{"member":{"id":"a3693340-6f42-4cab-b18e-8e2a22695698","room_session_id":"024d3ab2-c444-4f03-8d71-9f43f6f4c78f","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","talking":true}}'
+        '{"member":{"id":"a3693340-6f42-4cab-b18e-8e2a22695698","talking":true}}'
       )
 
       return expectSaga(sessionChannelWatcher, {
@@ -175,7 +175,7 @@ describe('sessionChannelWatcher', () => {
 
     it('should emit member.talking.stop on member.talking with talking: false', () => {
       const jsonrpc = JSON.parse(
-        '{"jsonrpc":"2.0","id":"6d0e46b2-77af-4734-8691-866f09b37ff3","method":"blade.broadcast","params":{"broadcaster_nodeid":"6a088ac7-9c9b-48c2-a5a1-92aafb70b0ab@west-us","protocol":"signalwire_519264e7f1beedc770d250eabcf50c4ae3bc197dccb6886ed1677ddb4bce8518_b0f0c4e0-e5cb-4ee8-befa-f246ea69b54e_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"conference","params":{"params":{"member":{"id":"a3693340-6f42-4cab-b18e-8e2a22695698","room_session_id":"024d3ab2-c444-4f03-8d71-9f43f6f4c78f","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","talking":false}},"timestamp":1624014381.1524,"event_type":"member.talking","event_channel":"room.b0e1b577-f5e7-4337-b7c4-06fa993b1a19"}},"hops":[]}'
+        '{"jsonrpc":"2.0","id":"6d0e46b2-77af-4734-8691-866f09b37ff3","method":"blade.broadcast","params":{"broadcaster_nodeid":"6a088ac7-9c9b-48c2-a5a1-92aafb70b0ab@west-us","protocol":"signalwire_519264e7f1beedc770d250eabcf50c4ae3bc197dccb6886ed1677ddb4bce8518_b0f0c4e0-e5cb-4ee8-befa-f246ea69b54e_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"conference","params":{"params":{"member":{"id":"a3693340-6f42-4cab-b18e-8e2a22695698","talking":false}},"timestamp":1624014381.1524,"event_type":"member.talking","event_channel":"room.b0e1b577-f5e7-4337-b7c4-06fa993b1a19"}},"hops":[]}'
       )
       let runSaga = true
       const session = {
@@ -185,7 +185,7 @@ describe('sessionChannelWatcher', () => {
       const sessionChannel = eventChannel(() => () => {})
       const dispatchedActions: unknown[] = []
       const payload = JSON.parse(
-        '{"member":{"id":"a3693340-6f42-4cab-b18e-8e2a22695698","room_session_id":"024d3ab2-c444-4f03-8d71-9f43f6f4c78f","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","talking":false}}'
+        '{"member":{"id":"a3693340-6f42-4cab-b18e-8e2a22695698","talking":false}}'
       )
 
       return expectSaga(sessionChannelWatcher, {
@@ -570,7 +570,6 @@ describe('sessionChannelWatcher', () => {
         } as any
         const pubSubChannel = channel()
         const sessionChannel = eventChannel(() => () => {})
-        const dispatchedActions: unknown[] = []
 
         return expectSaga(sessionChannelWatcher, {
           session,

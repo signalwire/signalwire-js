@@ -3,11 +3,12 @@ import { logger, isGlobalEvent } from '../../../utils'
 import { getNamespacedEvent } from '../../../utils/EventEmitter'
 
 const findNamespaceInPayload = (payload?: any): string => {
-  // TODO: Validate if this list is exhaustive
-  const ns =
-    payload?.room?.room_session_id ||
-    payload?.member?.room_session_id ||
-    payload?.layout?.room_session_id
+  /**
+   * TODO: We should check the event type here
+   * At the moment we handle `room_session_id` only
+   * but in the future we'll have more APIs (chat/calling/messagging etc.)
+   */
+  const ns = payload?.room?.room_session_id || payload?.room_session_id
 
   return ns || ''
 }
