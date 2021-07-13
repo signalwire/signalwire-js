@@ -103,10 +103,13 @@ function* audioElementActionsWatcher({
 }): SagaIterator {
   while (true) {
     try {
-      const action = yield take(audioSetSpeakerAction.type)
+      const action = yield take([audioSetSpeakerAction.type])
 
-      // TODO: switch action.type and fork
-      yield call(setMediaElementSinkId, element, action.payload)
+      switch (action.type) {
+        case audioSetSpeakerAction.type:
+          yield call(setMediaElementSinkId, element, action.payload)
+          break
+      }
     } catch (error) {
       logger.error(error)
     }
@@ -139,8 +142,6 @@ function* audioElementWorker({
   yield fork(audioElementActionsWatcher, {
     element,
   })
-
-  // TODO: take change sinkId
 }
 
 function* videoElementWorker({
