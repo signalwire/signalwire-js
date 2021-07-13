@@ -34,7 +34,6 @@ export interface ConnectionOptions {
   screenShare?: boolean
   secondSource?: boolean
   recoverCall?: boolean
-  skipLiveArray?: boolean
   onNotification?: Function
   googleMaxBitrate?: number
   googleMinBitrate?: number
@@ -64,6 +63,12 @@ export type RoomObjectEvents = {
 export type RoomObject = StrictEventEmitter<Room, RoomObjectEvents>
 
 export type CreateScreenShareObjectOptions = {
+  autoJoin?: boolean
+  audio?: MediaStreamConstraints['audio']
+  video?: MediaStreamConstraints['video']
+}
+
+export type CreateSecondSourceObjectOptions = {
   autoJoin?: boolean
   audio?: MediaStreamConstraints['audio']
   video?: MediaStreamConstraints['video']

@@ -1,13 +1,22 @@
 import { logger, connect } from '@signalwire/core'
 import { getDisplayMedia } from './utils/webrtcHelpers'
-import { RoomObject, CreateScreenShareObjectOptions } from './utils/interfaces'
+import {
+  RoomObject,
+  CreateScreenShareObjectOptions,
+  CreateSecondSourceObjectOptions,
+} from './utils/interfaces'
 import { BaseConnection, BaseConnectionOptions } from './BaseConnection'
 
 export class Room extends BaseConnection {
   private _screenShareList = new Set<RoomObject>()
+  private _secondSourceList = new Set<RoomObject>()
 
   get screenShareList() {
     return Array.from(this._screenShareList)
+  }
+
+  get secondSourceList() {
+    return Array.from(this._secondSourceList)
   }
 
   /**
@@ -20,8 +29,8 @@ export class Room extends BaseConnection {
       ...this.options,
       screenShare: true,
       recoverCall: false,
-      skipLiveArray: true,
       localStream: displayStream,
+      remoteStream: undefined,
     }
 
     const screenShare: RoomObject = connect({
@@ -65,6 +74,56 @@ export class Room extends BaseConnection {
     }
   }
 
+  /**
+   * Allow to attach additional media sources to the room.
+   */
+  async createSecondSourceObject(opts: CreateSecondSourceObjectOptions = {}) {
+    const { autoJoin = true, audio = false, video = false } = opts
+    if (!audio && !video) {
+      throw new TypeError(
+        'At least one of `audio` or `video` must be requested.'
+      )
+    }
+
+    const options: BaseConnectionOptions = {
+      ...this.options,
+      localStream: undefined,
+      remoteStream: undefined,
+      audio,
+      video,
+      secondSource: true,
+      recoverCall: false,
+    }
+
+    const secondSource: RoomObject = connect({
+      store: this.store,
+      Component: Room,
+      componentListeners: {
+        state: 'onStateChange',
+        remoteSDP: 'onRemoteSDP',
+        // TODO: find another way to namespace `secondSourceObj`s
+        nodeId: 'onNodeId',
+        errors: 'onError',
+        responses: 'onSuccess',
+      },
+    })(options)
+
+    secondSource.on('destroy', () => {
+      this._secondSourceList.delete(secondSource)
+    })
+
+    try {
+      this._secondSourceList.add(secondSource)
+      if (autoJoin) {
+        await secondSource.join()
+      }
+      return secondSource
+    } catch (error) {
+      logger.error('SecondSource Error', error)
+      throw error
+    }
+  }
+
   join() {
     return super.invite()
   }
@@ -78,6 +137,9 @@ export class Room extends BaseConnection {
     this._screenShareList.forEach((screenShare) => {
       screenShare.hangup()
     })
+    this._secondSourceList.forEach((secondSource) => {
+      secondSource.hangup()
+    })
 
     return super.hangup()
   }
@@ -85,6 +147,7 @@ export class Room extends BaseConnection {
   /** @internal */
   protected _finalize() {
     this._screenShareList.clear()
+    this._secondSourceList.clear()
 
     super._finalize()
   }

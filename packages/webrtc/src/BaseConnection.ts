@@ -47,6 +47,18 @@ const SCREENSHARE_ROOM_EVENTS = [
   'room.screenshare',
 ]
 
+/**
+ * Events to be subscribing for screen sharing during
+ * `VertoMethod.Invite`
+ */
+const SECONDSOURCE_ROOM_EVENTS = [
+  /**
+   * This is not a real event, it's only being used for debugging
+   * purposes
+   */
+  'room.secondsource',
+]
+
 const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   destinationNumber: 'room',
   remoteCallerName: 'Outbound Call',
@@ -152,6 +164,7 @@ export class BaseConnection extends BaseComponent {
       remoteCallerNumber,
       userVariables,
       screenShare,
+      secondSource,
     } = this.options
     return {
       sessid: this.options.sessionid,
@@ -165,6 +178,7 @@ export class BaseConnection extends BaseComponent {
         remoteCallerNumber,
         userVariables,
         screenShare,
+        secondSource,
       },
     }
   }
@@ -222,6 +236,8 @@ export class BaseConnection extends BaseComponent {
     if (vertoMessage.method === VertoMethod.Invite) {
       if (this.options.screenShare) {
         params.subscribe = SCREENSHARE_ROOM_EVENTS
+      } else if (this.options.secondSource) {
+        params.subscribe = SECONDSOURCE_ROOM_EVENTS
       } else {
         params.subscribe = ROOM_EVENTS
       }
@@ -343,9 +359,8 @@ export class BaseConnection extends BaseComponent {
           return logger.warn('Invalid constraints:', constraints)
         }
 
-        const shouldContinueWithUpdate = this.manageSendersWithContraints(
-          constraints
-        )
+        const shouldContinueWithUpdate =
+          this.manageSendersWithContraints(constraints)
 
         if (!shouldContinueWithUpdate) {
           logger.debug(
@@ -495,7 +510,10 @@ export class BaseConnection extends BaseComponent {
     } catch (error) {
       const { action, jsonrpc } = error
       logger.error('Invite Error', jsonrpc, action)
-      if (jsonrpc?.code === '404') {
+      if (
+        jsonrpc?.code === '404' ||
+        jsonrpc?.cause === 'INVALID_MSG_UNSPECIFIED'
+      ) {
         this.setState('hangup')
       }
     }
