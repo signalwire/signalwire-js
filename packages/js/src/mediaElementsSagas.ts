@@ -14,6 +14,7 @@ export function* mediaElementsWatcher({
     // const action: any = yield take(initMediaElementsAction.type)
     // TODO: empty this map once the room is destroyed
     const layerMap = new Map()
+    // TODO: this should come from options.
     const rootElementId = 'rootElement'
     const rootElement = document.getElementById(rootElementId) || document.body
     const videoEl = buildVideo()
@@ -71,6 +72,7 @@ export function* mediaElementsWatcher({
           videoTask = runSaga(videoElementWorker, {
             // TODO: pass missing options
             // ...action.payload,
+            rootElement,
             track: event.track,
             element: videoEl,
           })
@@ -115,13 +117,11 @@ function* audioElementWorker({
 }
 
 function* videoElementWorker({
-  rootElementId = 'rootElement',
+  rootElement,
   applyLocalVideoOverlay = true,
   track,
   element,
 }: any): SagaIterator {
-  const rootElement = document.getElementById(rootElementId) || document.body
-
   console.log('pppp VIDEO root', rootElement)
 
   const setVideoMediaTrack = (videoTrack: MediaStreamTrack) => {
