@@ -1,4 +1,4 @@
-import { logger } from '@signalwire/core'
+import { logger, destroyAction } from '@signalwire/core'
 import { take, call, fork } from 'redux-saga/effects'
 import { SagaIterator, Task } from '@redux-saga/types'
 import { setMediaElementSinkId } from '@signalwire/webrtc'
@@ -19,7 +19,6 @@ export const makeMediaElementsSaga = ({
 }) =>
   function* mediaElementsSaga({ instance: room, runSaga }: any): SagaIterator {
     try {
-      // TODO: empty this map once the room is destroyed
       const layerMap = new Map()
       const userRootElement = rootElementId
         ? document.getElementById(rootElementId)
@@ -28,7 +27,7 @@ export const makeMediaElementsSaga = ({
       const videoEl = buildVideo()
       const audioEl = new Audio()
 
-      const destroyHandler = makeDestroyHandler(rootElement)
+      const destroyHandler = makeDestroyHandler({ layerMap, rootElement })
       const layoutChangedHandler = makeLayoutChangedHandler({
         rootElement,
         element: videoEl,
@@ -64,8 +63,8 @@ export const makeMediaElementsSaga = ({
         }
       })
 
-      let audioTask: Task
-      let videoTask: Task
+      let audioTask: Task | undefined
+      let videoTask: Task | undefined
 
       room.on('track', function (event: RTCTrackEvent) {
         switch (event.track.kind) {
@@ -74,8 +73,6 @@ export const makeMediaElementsSaga = ({
               track: event.track,
               element: audioEl,
             })
-            console.log('pppp audioTask', audioTask)
-
             break
           case 'video': {
             videoTask = runSaga(videoElementWorker, {
@@ -84,7 +81,6 @@ export const makeMediaElementsSaga = ({
               track: event.track,
               element: videoEl,
             })
-            console.log('pppp videoTask', videoTask)
             break
           }
         }
@@ -92,10 +88,12 @@ export const makeMediaElementsSaga = ({
 
       room.once('destroy', destroyHandler)
 
-      // TODO: take destroy and cleanup
-      // audioTask?.cancel()
-      // videoTask?.cancel()
-    } catch (error) {}
+      yield take(destroyAction.type)
+      audioTask?.cancel()
+      videoTask?.cancel()
+    } catch (error) {
+      logger.error('mediaElementsSagas', error)
+    }
   }
 
 function* audioElementActionsWatcher({

@@ -6,6 +6,7 @@ import { BaseClient } from './BaseClient'
 import { BaseComponent } from './BaseComponent'
 import { EventEmitter, getEventEmitter } from './utils/EventEmitter'
 import * as sessionSelectors from './redux/features/session/sessionSelectors'
+import { destroyAction } from './redux/actions'
 
 // prettier-ignore
 export {
@@ -17,6 +18,7 @@ export {
   BaseClient,
   connect,
   configureStore,
+  destroyAction,
   EventEmitter,
   getEventEmitter,
   isGlobalEvent

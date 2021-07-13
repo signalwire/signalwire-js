@@ -121,10 +121,17 @@ const makeDisplayChangeFn = (display: 'block' | 'none') => {
   }
 }
 
-const makeDestroyHandler = (rootElement: HTMLElement) => () => {
+const makeDestroyHandler = ({
+  layerMap,
+  rootElement,
+}: {
+  layerMap: Map<string, HTMLElement>
+  rootElement: HTMLElement
+}) => () => {
   while (rootElement.firstChild) {
     rootElement.removeChild(rootElement.firstChild)
   }
+  layerMap.clear()
 }
 
 export {
