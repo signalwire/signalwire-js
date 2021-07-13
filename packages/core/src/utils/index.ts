@@ -52,3 +52,15 @@ export const isGlobalEvent = (event: RoomEventNames) => {
   // @ts-ignore
   return GLOBAL_VIDEO_EVENTS.includes(event)
 }
+
+export const getGlobalEvents = (kind: 'all' | 'video' = 'all') => {
+  switch (kind) {
+    case 'video':
+      return GLOBAL_VIDEO_EVENTS
+    default:
+      // prettier-ignore
+      return [
+        ...GLOBAL_VIDEO_EVENTS,
+      ]
+  }
+}

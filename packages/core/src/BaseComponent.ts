@@ -1,4 +1,4 @@
-import { uuid, logger } from './utils'
+import { uuid, logger, getGlobalEvents } from './utils'
 import { executeAction } from './redux'
 import {
   ExecuteParams,
@@ -7,7 +7,6 @@ import {
 } from './utils/interfaces'
 import { EventEmitter, getNamespacedEvent } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
-import { GLOBAL_VIDEO_EVENTS } from './utils/constants'
 
 type EventRegisterHandlers =
   | {
@@ -146,9 +145,8 @@ export class BaseComponent implements Emitter {
         }
       })
     } else {
-      // TODO: Handle all the global events (not only `VIDEO`)
       logger.debug('Removing global events only.')
-      GLOBAL_VIDEO_EVENTS.forEach((event) => {
+      getGlobalEvents().forEach((event) => {
         this.emitter.removeAllListeners(event)
       })
     }
