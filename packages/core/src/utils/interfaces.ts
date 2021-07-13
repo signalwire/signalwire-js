@@ -8,7 +8,7 @@ import { GLOBAL_VIDEO_EVENTS } from './constants'
  */
 export type Emitter = Pick<
   EventEmitter,
-  'on' | 'off' | 'once' | 'emit' | 'removeAllListeners'
+  'on' | 'off' | 'once' | 'emit' | 'removeAllListeners' | 'eventNames'
 >
 
 type JSONRPCParams = {
@@ -214,8 +214,6 @@ export interface RoomLayoutLayer {
 type RoomMemberType = 'member' | 'screen'
 interface RoomMemberCommon {
   id: string
-  room_session_id: string
-  room_id: string
 }
 interface RoomMemberProperties {
   scope_id: string
@@ -344,6 +342,11 @@ export type BladeBroadcastParams =
   | MessagingEvent
 
 /**
+ * List of all room members
+ */
+type RoomMembersMethod = 'members.get'
+
+/**
  * List of all room member methods
  */
 type RoomMemberMethod =
@@ -372,6 +375,7 @@ export type RoomMethod =
   | 'video.list_available_layouts'
   | 'video.hide_video_muted'
   | 'video.show_video_muted'
+  | `video.${RoomMembersMethod}`
   | `video.${RoomMemberMethod}`
   | `video.${RoomLayoutMethod}`
 

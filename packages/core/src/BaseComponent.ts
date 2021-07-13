@@ -1,4 +1,4 @@
-import { uuid, logger } from './utils'
+import { uuid, logger, getGlobalEvents } from './utils'
 import { executeAction } from './redux'
 import {
   ExecuteParams,
@@ -127,9 +127,35 @@ export class BaseComponent implements Emitter {
     }
 
     const [event] = params
-    return this.emitter.removeAllListeners(
-      event ? this._getNamespacedEvent(event) : event
-    )
+    if (event) {
+      return this.emitter.removeAllListeners(this._getNamespacedEvent(event))
+    }
+
+    if (this._eventsNamespace !== undefined) {
+      this.eventNames().forEach((event) => {
+        if (
+          typeof event === 'string' &&
+          event.startsWith(this._eventsNamespace!)
+        ) {
+          this.emitter.removeAllListeners(event)
+        } else if (typeof event === 'symbol') {
+          logger.warn(
+            'Remove events registered using `symbol` is not supported.'
+          )
+        }
+      })
+    } else {
+      logger.debug('Removing global events only.')
+      getGlobalEvents().forEach((event) => {
+        this.emitter.removeAllListeners(event)
+      })
+    }
+
+    return this.emitter as EventEmitter<string | symbol, any>
+  }
+
+  eventNames() {
+    return this.emitter.eventNames()
   }
 
   emit(event: string | symbol, ...args: any[]) {
