@@ -318,6 +318,14 @@ window.changeCamera = (select) => {
   roomObj.updateCamera(select.value)
 }
 
+window.changeSpeaker = (select) => {
+  console.log('changeSpeaker', select.value)
+  if (!select.value) {
+    return
+  }
+  roomObj.updateSpeaker(select.value)
+}
+
 window.rangeInputHandler = (range) => {
   switch (range.id) {
     case 'microphoneVolume':

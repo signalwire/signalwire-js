@@ -132,6 +132,10 @@ export class Room extends BaseConnection {
     return super.hangup()
   }
 
+  updateSpeaker(deviceId: string) {
+    this.store.dispatch({ type: 'set:sinkid', payload: deviceId })
+  }
+
   /** @internal */
   async hangup() {
     this._screenShareList.forEach((screenShare) => {

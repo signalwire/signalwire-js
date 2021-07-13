@@ -1,4 +1,5 @@
 import { logger } from '@signalwire/core'
+import { take, call, fork } from 'redux-saga/effects'
 import { SagaIterator, Task } from '@redux-saga/types'
 import {
   buildVideo,
@@ -6,6 +7,7 @@ import {
   makeDisplayChangeFn,
   makeLayoutChangedHandler,
 } from './utils/videoElement'
+import { setMediaElementSinkId } from '@signalwire/webrtc'
 
 export const makeMediaElementsSaga = ({
   rootElementId,
@@ -16,7 +18,6 @@ export const makeMediaElementsSaga = ({
 }) =>
   function* mediaElementsSaga({ instance: room, runSaga }: any): SagaIterator {
     try {
-      // const action: any = yield take(initMediaElementsAction.type)
       // TODO: empty this map once the room is destroyed
       const layerMap = new Map()
       const userRootElement = rootElementId
@@ -96,6 +97,23 @@ export const makeMediaElementsSaga = ({
     } catch (error) {}
   }
 
+function* audioElementActionsWatcher({
+  element,
+}: {
+  element: HTMLAudioElement
+}): SagaIterator {
+  while (true) {
+    try {
+      const action = yield take('set:sinkid')
+
+      // TODO: switch action.type and fork
+      yield call(setMediaElementSinkId, element, action.payload)
+    } catch (error) {
+      logger.error(error)
+    }
+  }
+}
+
 function* audioElementWorker({
   track,
   element,
@@ -118,6 +136,10 @@ function* audioElementWorker({
   }
 
   setAudioMediaTrack(track)
+
+  yield fork(audioElementActionsWatcher, {
+    element,
+  })
 
   // TODO: take change sinkId
 }
