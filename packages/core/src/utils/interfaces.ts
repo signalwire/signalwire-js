@@ -8,7 +8,7 @@ import { GLOBAL_VIDEO_EVENTS } from './constants'
  */
 export type Emitter = Pick<
   EventEmitter,
-  'on' | 'off' | 'once' | 'emit' | 'removeAllListeners'
+  'on' | 'off' | 'once' | 'emit' | 'removeAllListeners' | 'eventNames'
 >
 
 type JSONRPCParams = {
