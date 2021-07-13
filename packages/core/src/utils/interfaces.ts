@@ -211,18 +211,18 @@ export interface RoomLayoutLayer {
   member_id: string
 }
 
-type RoomMemberType = 'member' | 'screen'
+type RoomMemberType = 'member' | 'screen' | 'additional_source'
 interface RoomMemberCommon {
   id: string
 }
 interface RoomMemberProperties {
   scope_id: string
+  parent_id?: string
   input_volume: number
   input_sensitivity: number
   output_volume: number
   on_hold: boolean
   deaf: boolean
-  // FIXME: review this for different types
   type: RoomMemberType
   visible: boolean
   audio_muted: boolean
