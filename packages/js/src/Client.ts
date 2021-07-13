@@ -1,7 +1,8 @@
 import { logger, connect, BaseClient } from '@signalwire/core'
-import { Room, ConnectionOptions, RoomObject } from '@signalwire/webrtc'
-// import { videoElementFactory } from './utils/videoElementFactory'
-import { makeMediaElementsSaga } from './mediaElementsSagas'
+import { ConnectionOptions } from '@signalwire/webrtc'
+import { makeMediaElementsSaga } from './features/mediaElements/mediaElementsSagas'
+import type { RoomObject } from './utils/interfaces'
+import { Room } from './Room'
 
 export interface MakeRoomOptions extends ConnectionOptions {
   rootElementId?: string

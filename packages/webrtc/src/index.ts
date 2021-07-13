@@ -1,4 +1,3 @@
-export { Room } from './Room'
 export {
   getDevices,
   getCameraDevices,
