@@ -570,7 +570,6 @@ describe('sessionChannelWatcher', () => {
         } as any
         const pubSubChannel = channel()
         const sessionChannel = eventChannel(() => () => {})
-        const dispatchedActions: unknown[] = []
 
         return expectSaga(sessionChannelWatcher, {
           session,
