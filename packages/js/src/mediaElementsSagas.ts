@@ -7,85 +7,94 @@ import {
   makeLayoutChangedHandler,
 } from './utils/videoElement'
 
-// TODO: rename
-export function* mediaElementsWatcher({
-  instance: room,
-  runSaga,
-}: any): SagaIterator {
-  try {
-    // const action: any = yield take(initMediaElementsAction.type)
-    // TODO: empty this map once the room is destroyed
-    const layerMap = new Map()
-    // TODO: this should come from options.
-    const rootElementId = 'rootElement'
-    const rootElement = document.getElementById(rootElementId) || document.body
-    const videoEl = buildVideo()
-    const audioEl = new Audio()
+export const makeMediaElementsSaga = ({
+  rootElementId,
+  applyLocalVideoOverlay,
+}: {
+  rootElementId?: string
+  applyLocalVideoOverlay?: boolean
+}) =>
+  function* mediaElementsSaga({ instance: room, runSaga }: any): SagaIterator {
+    try {
+      // const action: any = yield take(initMediaElementsAction.type)
+      // TODO: empty this map once the room is destroyed
+      const layerMap = new Map()
+      const userRootElement = rootElementId
+        ? document.getElementById(rootElementId)
+        : undefined
+      const rootElement = userRootElement || document.body
+      const videoEl = buildVideo()
+      const audioEl = new Audio()
 
-    const destroyHandler = makeDestroyHandler(rootElement)
-    const layoutChangedHandler = makeLayoutChangedHandler({
-      rootElement,
-      element: videoEl,
-      layerMap,
-    })
-    const hideOverlay = makeDisplayChangeFn('none')
-    const showOverlay = makeDisplayChangeFn('block')
+      const destroyHandler = makeDestroyHandler(rootElement)
+      const layoutChangedHandler = makeLayoutChangedHandler({
+        rootElement,
+        element: videoEl,
+        layerMap,
+      })
+      const hideOverlay = makeDisplayChangeFn('none')
+      const showOverlay = makeDisplayChangeFn('block')
 
-    room.on('layout.changed', (params: any) => {
-      if (room.peer.hasVideoSender && room.localStream) {
-        layoutChangedHandler({
-          layout: params.layout,
-          localStream: room.localStream,
-          myMemberId: room.memberId,
-        })
+      if (!userRootElement) {
+        logger.warn(
+          `We couldn't find an element with id: ${rootElementId}: using 'document.body' instead.`
+        )
       }
-    })
 
-    room.on('member.updated.video_muted', (params: any) => {
-      try {
-        const { member } = params
-        if (member.id === room.memberId && 'video_muted' in member) {
-          member.video_muted ? hideOverlay(member.id) : showOverlay(member.id)
-        }
-      } catch (error) {
-        logger.error('Error handling video_muted', error)
-      }
-    })
-
-    let audioTask: Task
-    let videoTask: Task
-
-    room.on('track', function (event: RTCTrackEvent) {
-      switch (event.track.kind) {
-        case 'audio':
-          audioTask = runSaga(audioElementWorker, {
-            track: event.track,
-            element: audioEl,
+      room.on('layout.changed', (params: any) => {
+        if (room.peer.hasVideoSender && room.localStream) {
+          layoutChangedHandler({
+            layout: params.layout,
+            localStream: room.localStream,
+            myMemberId: room.memberId,
           })
-          console.log('pppp audioTask', audioTask)
-
-          break
-        case 'video': {
-          videoTask = runSaga(videoElementWorker, {
-            // TODO: pass missing options
-            // ...action.payload,
-            rootElement,
-            track: event.track,
-            element: videoEl,
-          })
-          console.log('pppp videoTask', videoTask)
-          break
         }
-      }
-    })
+      })
 
-    room.once('destroy', destroyHandler)
+      room.on('member.updated.video_muted', (params: any) => {
+        try {
+          const { member } = params
+          if (member.id === room.memberId && 'video_muted' in member) {
+            member.video_muted ? hideOverlay(member.id) : showOverlay(member.id)
+          }
+        } catch (error) {
+          logger.error('Error handling video_muted', error)
+        }
+      })
 
-    // TODO: take destroy and cleanup
-    // audioTask?.cancel()
-    // videoTask?.cancel()
-  } catch (error) {}
-}
+      let audioTask: Task
+      let videoTask: Task
+
+      room.on('track', function (event: RTCTrackEvent) {
+        switch (event.track.kind) {
+          case 'audio':
+            audioTask = runSaga(audioElementWorker, {
+              track: event.track,
+              element: audioEl,
+            })
+            console.log('pppp audioTask', audioTask)
+
+            break
+          case 'video': {
+            videoTask = runSaga(videoElementWorker, {
+              applyLocalVideoOverlay,
+              rootElement,
+              track: event.track,
+              element: videoEl,
+            })
+            console.log('pppp videoTask', videoTask)
+            break
+          }
+        }
+      })
+
+      room.once('destroy', destroyHandler)
+
+      // TODO: take destroy and cleanup
+      // audioTask?.cancel()
+      // videoTask?.cancel()
+    } catch (error) {}
+  }
 
 function* audioElementWorker({
   track,

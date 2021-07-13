@@ -1,7 +1,7 @@
 import { logger, connect, BaseClient } from '@signalwire/core'
 import { Room, ConnectionOptions, RoomObject } from '@signalwire/webrtc'
 // import { videoElementFactory } from './utils/videoElementFactory'
-import { mediaElementsWatcher } from './mediaElementsSagas'
+import { makeMediaElementsSaga } from './mediaElementsSagas'
 
 export interface MakeRoomOptions extends ConnectionOptions {
   rootElementId?: string
@@ -25,7 +25,14 @@ export class Client extends BaseClient {
         const room: RoomObject = connect({
           store: this.store,
           Component: Room,
-          customSagas: [mediaElementsWatcher], // TODO: this should be conditional on `rootElementId`
+          customSagas: rootElementId
+            ? [
+                makeMediaElementsSaga({
+                  rootElementId,
+                  applyLocalVideoOverlay,
+                }),
+              ]
+            : undefined,
           componentListeners: {
             state: 'onStateChange',
             remoteSDP: 'onRemoteSDP',
