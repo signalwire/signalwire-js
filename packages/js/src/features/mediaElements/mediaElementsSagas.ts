@@ -1,4 +1,4 @@
-import { logger } from '@signalwire/core'
+import { logger, CustomSagaParams } from '@signalwire/core'
 import { take, call, fork } from 'redux-saga/effects'
 import { SagaIterator, Task } from '@redux-saga/types'
 import { setMediaElementSinkId } from '@signalwire/webrtc'
@@ -9,6 +9,7 @@ import {
   makeLayoutChangedHandler,
 } from '../../utils/videoElement'
 import { audioSetSpeakerAction } from '../actions'
+import type { Room } from '../../Room'
 
 export const makeMediaElementsSaga = ({
   rootElementId,
@@ -17,7 +18,10 @@ export const makeMediaElementsSaga = ({
   rootElementId?: string
   applyLocalVideoOverlay?: boolean
 }) =>
-  function* mediaElementsSaga({ instance: room, runSaga }: any): SagaIterator {
+  function* mediaElementsSaga({
+    instance: room,
+    runSaga,
+  }: CustomSagaParams<Room>): SagaIterator {
     try {
       const layerMap = new Map()
       const userRootElement = rootElementId
@@ -149,8 +153,6 @@ function* videoElementSetupWorker({
   track,
   element,
 }: any): SagaIterator {
-  console.log('pppp VIDEO root', rootElement)
-
   const setVideoMediaTrack = (videoTrack: MediaStreamTrack) => {
     element.srcObject = new MediaStream([videoTrack])
 
