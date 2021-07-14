@@ -211,7 +211,7 @@ export interface RoomLayoutLayer {
   member_id: string
 }
 
-type RoomMemberType = 'member' | 'screen' | 'additional_source'
+type RoomMemberType = 'member' | 'screen' | 'device'
 interface RoomMemberCommon {
   id: string
 }
