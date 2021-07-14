@@ -7,20 +7,22 @@ import {
 import {
   RoomObject,
   CreateScreenShareObjectOptions,
-  CreateSecondSourceObjectOptions,
+  AddDeviceOptions,
+  AddCameraOptions,
+  AddMicrophoneOptions,
 } from './utils/interfaces'
 import { audioSetSpeakerAction } from './features/actions'
 
 export class Room extends BaseConnection {
   private _screenShareList = new Set<RoomObject>()
-  private _secondSourceList = new Set<RoomObject>()
+  private _deviceList = new Set<RoomObject>()
 
   get screenShareList() {
     return Array.from(this._screenShareList)
   }
 
-  get secondSourceList() {
-    return Array.from(this._secondSourceList)
+  get deviceList() {
+    return Array.from(this._deviceList)
   }
 
   /**
@@ -79,9 +81,31 @@ export class Room extends BaseConnection {
   }
 
   /**
-   * Allow to attach additional media sources to the room.
+   * Allow to add a camera to the room.
    */
-  async createSecondSourceObject(opts: CreateSecondSourceObjectOptions = {}) {
+  addCamera(opts: AddCameraOptions = {}) {
+    const { autoJoin = true, ...video } = opts
+    return this.addDevice({
+      autoJoin,
+      video,
+    })
+  }
+
+  /**
+   * Allow to add a microphone to the room.
+   */
+  addMicrophone(opts: AddMicrophoneOptions = {}) {
+    const { autoJoin = true, ...audio } = opts
+    return this.addDevice({
+      autoJoin,
+      audio,
+    })
+  }
+
+  /**
+   * Allow to add additional devices to the room like cameras or microphones.
+   */
+  async addDevice(opts: AddDeviceOptions = {}) {
     const { autoJoin = true, audio = false, video = false } = opts
     if (!audio && !video) {
       throw new TypeError(
@@ -99,31 +123,31 @@ export class Room extends BaseConnection {
       recoverCall: false,
     }
 
-    const secondSource: RoomObject = connect({
+    const roomDevice: RoomObject = connect({
       store: this.store,
       Component: Room,
       componentListeners: {
         state: 'onStateChange',
         remoteSDP: 'onRemoteSDP',
-        // TODO: find another way to namespace `secondSourceObj`s
+        // TODO: find another way to namespace `roomDeviceObj`s
         nodeId: 'onNodeId',
         errors: 'onError',
         responses: 'onSuccess',
       },
     })(options)
 
-    secondSource.on('destroy', () => {
-      this._secondSourceList.delete(secondSource)
+    roomDevice.on('destroy', () => {
+      this._deviceList.delete(roomDevice)
     })
 
     try {
-      this._secondSourceList.add(secondSource)
+      this._deviceList.add(roomDevice)
       if (autoJoin) {
-        await secondSource.join()
+        await roomDevice.join()
       }
-      return secondSource
+      return roomDevice
     } catch (error) {
-      logger.error('SecondSource Error', error)
+      logger.error('RoomDevice Error', error)
       throw error
     }
   }
@@ -145,8 +169,8 @@ export class Room extends BaseConnection {
     this._screenShareList.forEach((screenShare) => {
       screenShare.hangup()
     })
-    this._secondSourceList.forEach((secondSource) => {
-      secondSource.hangup()
+    this._deviceList.forEach((device) => {
+      device.hangup()
     })
 
     return super.hangup()
@@ -155,7 +179,7 @@ export class Room extends BaseConnection {
   /** @internal */
   protected _finalize() {
     this._screenShareList.clear()
-    this._secondSourceList.clear()
+    this._deviceList.clear()
 
     super._finalize()
   }
