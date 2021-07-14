@@ -50,6 +50,6 @@ export const makeCustomSagaAction = (id: string, action: Action) => {
   }
 }
 
-export const takeCustomSagaAction = (id: string, action: Action) => {
+export const getCustomSagaActionType = (id: string, action: Action) => {
   return formatCustomSagaAction(id, action)
 }

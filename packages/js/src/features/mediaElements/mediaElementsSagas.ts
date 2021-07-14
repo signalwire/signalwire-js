@@ -109,21 +109,38 @@ function* audioElementActionsWatcher({
   element: HTMLAudioElement
   room: Room
 }): SagaIterator {
+  // TODO: For now we're handling individual actions but in the future
+  // we might want to have a single action per custom saga and use it
+  // in a similar fashion to `executeAction`
+  const setSpeakerActionType = actions.getCustomSagaActionType(
+    room.id,
+    audioSetSpeakerAction
+  )
+
   while (true) {
+    const action = yield take([setSpeakerActionType])
+
     try {
-      const setSpeakerActionType = actions.takeCustomSagaAction(
-        room.id,
-        audioSetSpeakerAction
-      )
-
-      const action = yield take([setSpeakerActionType])
-
       switch (action.type) {
         case setSpeakerActionType:
-          yield call(setMediaElementSinkId, element, action.payload)
+          const response = yield call(
+            setMediaElementSinkId,
+            element,
+            action.payload
+          )
+          room.settleCustomSagaTrigger({
+            dispatchId: action.dispatchId,
+            payload: response,
+            kind: 'resolve',
+          })
           break
       }
     } catch (error) {
+      room.settleCustomSagaTrigger({
+        dispatchId: action.dispatchId,
+        payload: error,
+        kind: 'reject',
+      })
       logger.error(error)
     }
   }

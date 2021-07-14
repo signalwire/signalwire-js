@@ -34,7 +34,7 @@ export class BaseComponent implements Emitter {
   private _eventsEmitQueue = new Set<any>()
   private _eventsNamespace?: string
   private _requests = new Map()
-  private _dispatchToCustomSagas = new Map()
+  private _customSagaTriggers = new Map()
   private _destroyer?: () => void
   private _getNamespacedEvent(event: string | symbol) {
     if (typeof event === 'string' && this._eventsNamespace !== undefined) {
@@ -195,10 +195,10 @@ export class BaseComponent implements Emitter {
   }
 
   /** @internal */
-  dispatchCustomSaga<T>(action: Action<T>) {
+  triggerCustomSaga<T>(action: Action<T>) {
     return new Promise((resolve, reject) => {
       const dispatchId = uuid()
-      this._dispatchToCustomSagas.set(dispatchId, { resolve, reject })
+      this._customSagaTriggers.set(dispatchId, { resolve, reject })
 
       this.store.dispatch({
         dispatchId,
@@ -208,19 +208,19 @@ export class BaseComponent implements Emitter {
   }
 
   /** @internal */
-  settleCustomSagaDispatch<T>({
+  settleCustomSagaTrigger<T>({
     dispatchId,
-    response,
-    action,
+    payload,
+    kind,
   }: {
     dispatchId: string
-    response: T
-    action: 'resolve' | 'reject'
+    payload?: T
+    kind: 'resolve' | 'reject'
   }) {
-    const actions = this._dispatchToCustomSagas.get(dispatchId)
-
+    const actions = this._customSagaTriggers.get(dispatchId)
     if (actions) {
-      actions[action](response)
+      actions[kind](payload)
+      this._customSagaTriggers.delete(dispatchId)
     }
   }
 

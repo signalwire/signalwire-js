@@ -323,7 +323,9 @@ window.changeSpeaker = (select) => {
   if (!select.value) {
     return
   }
-  roomObj.updateSpeaker(select.value)
+  roomObj.updateSpeaker(select.value).then(() => {
+    console.log('Speaker updated!')
+  })
 }
 
 window.rangeInputHandler = (range) => {
