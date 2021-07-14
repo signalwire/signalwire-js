@@ -51,12 +51,12 @@ const SCREENSHARE_ROOM_EVENTS = [
  * Events to be subscribing for screen sharing during
  * `VertoMethod.Invite`
  */
-const SECONDSOURCE_ROOM_EVENTS = [
+const DEVICE_ROOM_EVENTS = [
   /**
    * This is not a real event, it's only being used for debugging
    * purposes
    */
-  'room.secondsource',
+  'room.additionaldevice',
 ]
 
 const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
@@ -70,7 +70,7 @@ const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   useStereo: false,
   attach: false,
   screenShare: false,
-  secondSource: false,
+  additionalDevice: false,
   userVariables: {},
   requestTimeout: 10 * 1000,
   autoApplyMediaParams: true,
@@ -164,7 +164,7 @@ export class BaseConnection extends BaseComponent {
       remoteCallerNumber,
       userVariables,
       screenShare,
-      secondSource,
+      additionalDevice,
     } = this.options
     return {
       sessid: this.options.sessionid,
@@ -178,7 +178,7 @@ export class BaseConnection extends BaseComponent {
         remoteCallerNumber,
         userVariables,
         screenShare,
-        secondSource,
+        additionalDevice,
       },
     }
   }
@@ -236,8 +236,8 @@ export class BaseConnection extends BaseComponent {
     if (vertoMessage.method === VertoMethod.Invite) {
       if (this.options.screenShare) {
         params.subscribe = SCREENSHARE_ROOM_EVENTS
-      } else if (this.options.secondSource) {
-        params.subscribe = SECONDSOURCE_ROOM_EVENTS
+      } else if (this.options.additionalDevice) {
+        params.subscribe = DEVICE_ROOM_EVENTS
       } else {
         params.subscribe = ROOM_EVENTS
       }

@@ -23,8 +23,15 @@ export type CreateScreenShareObjectOptions = {
   video?: MediaStreamConstraints['video']
 }
 
-export type CreateSecondSourceObjectOptions = {
+export type AddDeviceOptions = {
   autoJoin?: boolean
   audio?: MediaStreamConstraints['audio']
   video?: MediaStreamConstraints['video']
+}
+
+export type AddCameraOptions = MediaTrackConstraints & {
+  autoJoin?: boolean
+}
+export type AddMicrophoneOptions = MediaTrackConstraints & {
+  autoJoin?: boolean
 }
