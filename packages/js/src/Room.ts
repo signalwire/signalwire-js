@@ -1,11 +1,15 @@
 import { logger, connect } from '@signalwire/core'
-import { getDisplayMedia } from './utils/webrtcHelpers'
+import {
+  getDisplayMedia,
+  BaseConnection,
+  BaseConnectionOptions,
+} from '@signalwire/webrtc'
 import {
   RoomObject,
   CreateScreenShareObjectOptions,
   CreateSecondSourceObjectOptions,
 } from './utils/interfaces'
-import { BaseConnection, BaseConnectionOptions } from './BaseConnection'
+import { audioSetSpeakerAction } from './features/actions'
 
 export class Room extends BaseConnection {
   private _screenShareList = new Set<RoomObject>()
@@ -130,6 +134,10 @@ export class Room extends BaseConnection {
 
   leave() {
     return super.hangup()
+  }
+
+  updateSpeaker(deviceId: string) {
+    this.store.dispatch(audioSetSpeakerAction(deviceId))
   }
 
   /** @internal */

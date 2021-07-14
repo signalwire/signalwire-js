@@ -1,4 +1,3 @@
-export { Room } from './Room'
 export {
   getDevices,
   getCameraDevices,
@@ -36,3 +35,4 @@ export {
   stopTrack,
 } from './utils/webrtcHelpers'
 export * from './utils/interfaces'
+export { BaseConnection, BaseConnectionOptions } from './BaseConnection'

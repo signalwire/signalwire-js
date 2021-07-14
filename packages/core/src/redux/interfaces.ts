@@ -1,4 +1,5 @@
 import { PayloadAction } from '@reduxjs/toolkit'
+import type { Saga, Task, SagaIterator } from '@redux-saga/types'
 import {
   JSONRPCResponse,
   SessionAuthError,
@@ -64,3 +65,10 @@ export interface ExecuteActionParams {
 export interface ExecuteQueueState {
   queue: ExecuteActionParams[]
 }
+
+export interface CustomSagaParams<T> {
+  instance: T
+  runSaga: <S extends Saga>(saga: S, ...args: Parameters<S>) => Task
+}
+
+export type CustomSaga<T> = (params: CustomSagaParams<T>) => SagaIterator<any>

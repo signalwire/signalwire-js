@@ -1,5 +1,4 @@
-import { SagaIterator } from 'redux-saga'
-import { ReduxComponent, SessionState } from './interfaces'
+import { ReduxComponent, SessionState, CustomSaga } from './interfaces'
 import { SDKStore } from './'
 import { componentActions } from './features'
 import { getComponent } from './features/component/componentSelectors'
@@ -14,7 +13,7 @@ interface Connect<T> {
   >
   store: SDKStore
   Component: new (o: any) => T
-  customSagas?: ((params: { instance: T }) => SagaIterator<any>)[]
+  customSagas?: Array<CustomSaga<T>>
 }
 type ReduxComponentKeys = keyof ReduxComponent
 type ReduxSessionKeys = keyof SessionState
@@ -84,7 +83,7 @@ export const connect = <T extends { id: string; destroyer: () => void }>(
 
     // Run all the custom sagas
     const taskList = customSagas?.map((saga) => {
-      return store.runSaga(saga, { instance })
+      return store.runSaga(saga, { instance, runSaga: store.runSaga })
     })
 
     instance.destroyer = () => {

@@ -1,6 +1,9 @@
 import { logger, connect, BaseClient } from '@signalwire/core'
-import { Room, ConnectionOptions, RoomObject } from '@signalwire/webrtc'
-import { videoElementFactory } from './utils/videoElementFactory'
+import type { CustomSaga } from '@signalwire/core'
+import { ConnectionOptions } from '@signalwire/webrtc'
+import { makeMediaElementsSaga } from './features/mediaElements/mediaElementsSagas'
+import type { RoomObject } from './utils/interfaces'
+import { Room } from './Room'
 
 export interface MakeRoomOptions extends ConnectionOptions {
   rootElementId?: string
@@ -21,9 +24,25 @@ export class Client extends BaseClient {
           ...options
         } = makeRoomOptions
 
+        const customSagas: Array<CustomSaga<Room>> = []
+
+        /**
+         * If the user provides a `roomElementId` we'll automatically
+         * handle the Audio and Video elements for them
+         */
+        if (rootElementId) {
+          customSagas.push(
+            makeMediaElementsSaga({
+              rootElementId,
+              applyLocalVideoOverlay,
+            })
+          )
+        }
+
         const room: RoomObject = connect({
           store: this.store,
           Component: Room,
+          customSagas,
           componentListeners: {
             state: 'onStateChange',
             remoteSDP: 'onRemoteSDP',
@@ -35,41 +54,6 @@ export class Client extends BaseClient {
           ...options,
           emitter: this.options.emitter,
         })
-
-        if (rootElementId) {
-          const {
-            rtcTrackHandler,
-            destroyHandler,
-            layoutChangedHandler,
-            showOverlay,
-            hideOverlay,
-          } = videoElementFactory({ rootElementId, applyLocalVideoOverlay })
-
-          room.on('layout.changed', (params: any) => {
-            if (room.peer.hasVideoSender && room.localStream) {
-              layoutChangedHandler({
-                layout: params.layout,
-                localStream: room.localStream,
-                myMemberId: room.memberId,
-              })
-            }
-          })
-
-          room.on('member.updated.video_muted', (params: any) => {
-            try {
-              const { member } = params
-              if (member.id === room.memberId && 'video_muted' in member) {
-                member.video_muted
-                  ? hideOverlay(member.id)
-                  : showOverlay(member.id)
-              }
-            } catch (error) {
-              logger.error('Error handling video_muted', error)
-            }
-          })
-          room.on('track', rtcTrackHandler)
-          room.once('destroy', destroyHandler)
-        }
 
         /**
          * Stop and Restore outbound audio on audio_muted event

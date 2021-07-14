@@ -6,6 +6,7 @@ import { BaseClient } from './BaseClient'
 import { BaseComponent } from './BaseComponent'
 import { EventEmitter, getEventEmitter } from './utils/EventEmitter'
 import * as sessionSelectors from './redux/features/session/sessionSelectors'
+export * as actions from './redux/actions'
 
 // prettier-ignore
 export {
@@ -26,7 +27,11 @@ export * from './RPCMessages'
 export * from './utils/interfaces'
 export { VertoMethod } from './utils/constants'
 export * from './CustomErrors'
-export type { SessionState } from './redux/interfaces'
+export type {
+  SessionState,
+  CustomSagaParams,
+  CustomSaga,
+} from './redux/interfaces'
 
 export const selectors = {
   ...sessionSelectors,

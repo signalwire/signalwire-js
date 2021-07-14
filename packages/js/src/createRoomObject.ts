@@ -1,5 +1,5 @@
 import { UserOptions } from '@signalwire/core'
-import { RoomObject } from '@signalwire/webrtc'
+import { RoomObject } from './utils/interfaces'
 import { createClient } from './createClient'
 import { MakeRoomOptions } from './Client'
 
