@@ -59,58 +59,56 @@ interface LayoutChangedHandlerParams {
   localStream: MediaStream
 }
 
-const makeLayoutChangedHandler = ({
-  layerMap,
-  element,
-  rootElement,
-}: {
-  layerMap: Map<string, HTMLElement>
-  element: HTMLVideoElement
-  rootElement: HTMLElement
-}) => async ({
-  layout,
-  myMemberId,
-  localStream,
-}: LayoutChangedHandlerParams) => {
-  try {
-    const { layers = [] } = layout
-    const layer = layers.find(({ member_id }) => member_id === myMemberId)
+const makeLayoutChangedHandler =
+  ({
+    layerMap,
+    element,
+    rootElement,
+  }: {
+    layerMap: Map<string, HTMLElement>
+    element: HTMLVideoElement
+    rootElement: HTMLElement
+  }) =>
+  async ({ layout, myMemberId, localStream }: LayoutChangedHandlerParams) => {
+    try {
+      const { layers = [] } = layout
+      const layer = layers.find(({ member_id }) => member_id === myMemberId)
 
-    if (!layer) {
-      return logger.debug('Current Layer Not Found', JSON.stringify(layout))
-    }
-
-    let myLayer = layerMap.get(myMemberId)
-    if (!myLayer) {
-      const myLayer = await _buildLayer({ element, location: layer })
-      myLayer.id = myMemberId
-
-      const localVideo = buildVideo()
-      localVideo.srcObject = localStream
-      localVideo.style.width = '100%'
-      localVideo.style.height = '100%'
-
-      myLayer.appendChild(localVideo)
-
-      layerMap.set(myMemberId, myLayer)
-      const mcuLayers = rootElement.querySelector('.mcuLayers')
-      const exists = document.getElementById(myMemberId)
-      if (mcuLayers && !exists) {
-        mcuLayers.appendChild(myLayer)
+      if (!layer) {
+        return logger.debug('Current Layer Not Found', JSON.stringify(layout))
       }
 
-      return
-    }
+      let myLayer = layerMap.get(myMemberId)
+      if (!myLayer) {
+        const myLayer = await _buildLayer({ element, location: layer })
+        myLayer.id = myMemberId
 
-    const { top, left, width, height } = _getLocationStyles(layer)
-    myLayer.style.top = top
-    myLayer.style.left = left
-    myLayer.style.width = width
-    myLayer.style.height = height
-  } catch (error) {
-    logger.error('Layout Changed Error', error)
+        const localVideo = buildVideo()
+        localVideo.srcObject = localStream
+        localVideo.style.width = '100%'
+        localVideo.style.height = '100%'
+
+        myLayer.appendChild(localVideo)
+
+        layerMap.set(myMemberId, myLayer)
+        const mcuLayers = rootElement.querySelector('.mcuLayers')
+        const exists = document.getElementById(myMemberId)
+        if (mcuLayers && !exists) {
+          mcuLayers.appendChild(myLayer)
+        }
+
+        return
+      }
+
+      const { top, left, width, height } = _getLocationStyles(layer)
+      myLayer.style.top = top
+      myLayer.style.left = left
+      myLayer.style.width = width
+      myLayer.style.height = height
+    } catch (error) {
+      logger.error('Layout Changed Error', error)
+    }
   }
-}
 
 const makeDisplayChangeFn = (display: 'block' | 'none') => {
   return (domId: string) => {
@@ -136,7 +134,7 @@ const setVideoMediaTrack = ({
 }) => {
   element.srcObject = new MediaStream([track])
 
-  element.addEventListener('ended', () => {
+  track.addEventListener('ended', () => {
     element.srcObject = null
     element.remove()
   })
