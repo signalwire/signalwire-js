@@ -288,55 +288,27 @@ export class BaseConnection extends BaseComponent {
     this._attachListeners(component.nodeId)
   }
 
-  /** @internal */
-  updateCamera(deviceId: string): Promise<void> {
-    if (typeof deviceId !== 'string') {
-      throw new Error('Invalid deviceId')
-    }
-
-    return this.updateCameraContraints({ deviceId: { exact: deviceId } })
-  }
-
-  /** @internal */
-  updateCameraContraints(
-    constraints: boolean | MediaTrackConstraints
-  ): Promise<void> {
-    const c: MediaStreamConstraints = {
+  updateCamera(constraints: MediaTrackConstraints) {
+    return this.updateConstraints({
       video: constraints,
-    }
-
-    return this.updateConstraints(c)
+    })
   }
 
-  /** @internal */
-  updateMicrophone(deviceId: string): Promise<void> {
-    if (typeof deviceId !== 'string') {
-      throw new Error('Invalid deviceId')
-    }
-
-    return this.updateMicrophoneConstraints({ deviceId: { exact: deviceId } })
-  }
-
-  /** @internal */
-  updateMicrophoneConstraints(
-    constraints: boolean | MediaTrackConstraints
-  ): Promise<void> {
-    const c: MediaStreamConstraints = {
+  updateMicrophone(constraints: MediaTrackConstraints) {
+    return this.updateConstraints({
       audio: constraints,
-    }
-
-    return this.updateConstraints(c)
+    })
   }
 
   /** @internal */
-  private manageSendersWithContraints(constraints: MediaStreamConstraints) {
+  private manageSendersWithConstraints(constraints: MediaStreamConstraints) {
     if (constraints.audio === false) {
-      logger.info('manageSendersWithContraints Audio outbound stopped')
+      logger.info('Switching off the microphone')
       this.stopOutboundAudio()
     }
 
     if (constraints.video === false) {
-      logger.info('manageSendersWithContraints Video outbound stopped')
+      logger.info('Switching off the camera')
       this.stopOutboundVideo()
     }
 
@@ -344,10 +316,11 @@ export class BaseConnection extends BaseComponent {
   }
 
   /**
-   * TODO: Evaluate if we should make this method private.
    * @internal
    */
-  updateConstraints(constraints: MediaStreamConstraints): Promise<void> {
+  private updateConstraints(
+    constraints: MediaStreamConstraints
+  ): Promise<void> {
     return new Promise(async (resolve, reject) => {
       try {
         logger.debug(
@@ -360,11 +333,11 @@ export class BaseConnection extends BaseComponent {
         }
 
         const shouldContinueWithUpdate =
-          this.manageSendersWithContraints(constraints)
+          this.manageSendersWithConstraints(constraints)
 
         if (!shouldContinueWithUpdate) {
           logger.debug(
-            'Either `video` and `audio` (or both) contraints were set to `false` so their corresponding senders (if any) were stopped'
+            'Either `video` and `audio` (or both) constraints were set to `false` so their corresponding senders (if any) were stopped'
           )
           return
         }
