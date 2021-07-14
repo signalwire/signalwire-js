@@ -195,7 +195,7 @@ export class BaseComponent implements Emitter {
   }
 
   /** @internal */
-  triggerCustomSaga<T>(action: Action<T>) {
+  triggerCustomSaga<T>(action: Action): Promise<T> {
     return new Promise((resolve, reject) => {
       const dispatchId = uuid()
       this._customSagaTriggers.set(dispatchId, { resolve, reject })

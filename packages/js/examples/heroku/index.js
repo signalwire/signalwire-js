@@ -323,8 +323,12 @@ window.changeSpeaker = (select) => {
   if (!select.value) {
     return
   }
-  roomObj.updateSpeaker(select.value).then(() => {
-    console.log('Speaker updated!')
+  roomObj.updateSpeaker(select.value).then((response) => {
+    if (response) {
+      console.log('Speaker updated!')
+    } else {
+      console.log(`Failed to update the speaker with id: ${select.value}`)
+    }
   })
 }
 
