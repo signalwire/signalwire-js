@@ -83,9 +83,9 @@ interface MemberCommandParams {
 interface MemberCommandWithVolumeParams extends MemberCommandParams {
   volume: number
 }
-interface MemberCommandWithValueParams extends MemberCommandParams {
-  value: number
-}
+// interface MemberCommandWithValueParams extends MemberCommandParams {
+//   value: number
+// }
 export type BaseConnectionOptions = ConnectionOptions & BaseComponentOptions
 export class BaseConnection extends BaseComponent {
   public nodeId = ''
@@ -123,6 +123,10 @@ export class BaseConnection extends BaseComponent {
 
     this.setState('new')
     logger.info('New Call with Options:', this.options)
+  }
+
+  get roomSessionId() {
+    return this._roomSessionId
   }
 
   get active() {
@@ -632,24 +636,24 @@ export class BaseConnection extends BaseComponent {
     }
   }
 
-  public getLayoutList() {
-    return this.execute({
-      method: 'video.list_available_layouts',
-      params: {
-        room_session_id: this._roomSessionId,
-      },
-    })
-  }
+  // public getLayoutList() {
+  //   return this.execute({
+  //     method: 'video.list_available_layouts',
+  //     params: {
+  //       room_session_id: this._roomSessionId,
+  //     },
+  //   })
+  // }
 
-  public setLayout({ name }: { name: string }) {
-    return this.execute({
-      method: 'video.set_layout',
-      params: {
-        room_session_id: this._roomSessionId,
-        name,
-      },
-    })
-  }
+  // public setLayout({ name }: { name: string }) {
+  //   return this.execute({
+  //     method: 'video.set_layout',
+  //     params: {
+  //       room_session_id: this._roomSessionId,
+  //       name,
+  //     },
+  //   })
+  // }
 
   public hideVideoMuted() {
     return this.execute({
@@ -669,33 +673,33 @@ export class BaseConnection extends BaseComponent {
     })
   }
 
-  public audioMute({ memberId }: MemberCommandParams = {}) {
-    return this._memberCommand({
-      method: 'video.member.audio_mute',
-      memberId,
-    })
-  }
+  // public audioMute({ memberId }: MemberCommandParams = {}) {
+  //   return this._memberCommand({
+  //     method: 'video.member.audio_mute',
+  //     memberId,
+  //   })
+  // }
 
-  public audioUnmute({ memberId }: MemberCommandParams = {}) {
-    return this._memberCommand({
-      method: 'video.member.audio_unmute',
-      memberId,
-    })
-  }
+  // public audioUnmute({ memberId }: MemberCommandParams = {}) {
+  //   return this._memberCommand({
+  //     method: 'video.member.audio_unmute',
+  //     memberId,
+  //   })
+  // }
 
-  public videoMute({ memberId }: MemberCommandParams = {}) {
-    return this._memberCommand({
-      method: 'video.member.video_mute',
-      memberId,
-    })
-  }
+  // public videoMute({ memberId }: MemberCommandParams = {}) {
+  //   return this._memberCommand({
+  //     method: 'video.member.video_mute',
+  //     memberId,
+  //   })
+  // }
 
-  public videoUnmute({ memberId }: MemberCommandParams = {}) {
-    return this._memberCommand({
-      method: 'video.member.video_unmute',
-      memberId,
-    })
-  }
+  // public videoUnmute({ memberId }: MemberCommandParams = {}) {
+  //   return this._memberCommand({
+  //     method: 'video.member.video_unmute',
+  //     memberId,
+  //   })
+  // }
 
   public deaf({ memberId }: MemberCommandParams = {}) {
     return this._memberCommand({
@@ -719,27 +723,27 @@ export class BaseConnection extends BaseComponent {
     })
   }
 
-  public setMicrophoneVolume({
-    memberId,
-    volume,
-  }: MemberCommandWithVolumeParams) {
-    return this._memberCommand({
-      method: 'video.member.set_output_volume',
-      memberId,
-      volume: +volume,
-    })
-  }
+  // public setMicrophoneVolume({
+  //   memberId,
+  //   volume,
+  // }: MemberCommandWithVolumeParams) {
+  //   return this._memberCommand({
+  //     method: 'video.member.set_output_volume',
+  //     memberId,
+  //     volume: +volume,
+  //   })
+  // }
 
-  public setInputSensitivity({
-    memberId,
-    value,
-  }: MemberCommandWithValueParams) {
-    return this._memberCommand({
-      method: 'video.member.set_input_sensitivity',
-      memberId,
-      value: +value,
-    })
-  }
+  // public setInputSensitivity({
+  //   memberId,
+  //   value,
+  // }: MemberCommandWithValueParams) {
+  //   return this._memberCommand({
+  //     method: 'video.member.set_input_sensitivity',
+  //     memberId,
+  //     value: +value,
+  //   })
+  // }
 
   public removeMember({ memberId }: Required<MemberCommandParams>) {
     if (!memberId) {
@@ -751,16 +755,16 @@ export class BaseConnection extends BaseComponent {
     })
   }
 
-  public getMemberList() {
-    return this.execute({
-      method: 'video.members.get',
-      params: {
-        room_session_id: this._roomSessionId,
-      },
-    })
-  }
+  // public getMemberList() {
+  //   return this.execute({
+  //     method: 'video.members.get',
+  //     params: {
+  //       room_session_id: this._roomSessionId,
+  //     },
+  //   })
+  // }
 
-  private _memberCommand({
+  protected _memberCommand({
     method,
     memberId,
     ...rest

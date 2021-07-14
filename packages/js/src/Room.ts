@@ -1,3 +1,4 @@
+import { compose } from 'redux'
 import { logger, connect } from '@signalwire/core'
 import {
   getDisplayMedia,
@@ -5,17 +6,27 @@ import {
   BaseConnectionOptions,
 } from '@signalwire/webrtc'
 import {
-  RoomObject,
+  RoomScreenShareObject,
+  RoomDeviceObject,
   CreateScreenShareObjectOptions,
   AddDeviceOptions,
   AddCameraOptions,
   AddMicrophoneOptions,
+  MemberCommandParams,
 } from './utils/interfaces'
 import { audioSetSpeakerAction } from './features/actions'
+import {
+  withBaseRoomMethods,
+  withRoomLayoutMethods,
+  withRoomMemberMethods,
+  RoomConstructor,
+  RoomDeviceConstructor,
+  RoomScreenShareConstructor,
+} from './features/mixins'
 
-export class Room extends BaseConnection {
-  private _screenShareList = new Set<RoomObject>()
-  private _deviceList = new Set<RoomObject>()
+class BaseRoom extends BaseConnection {
+  private _screenShareList = new Set<RoomScreenShareObject>()
+  private _deviceList = new Set<RoomDeviceObject>()
 
   get screenShareList() {
     return Array.from(this._screenShareList)
@@ -23,6 +34,13 @@ export class Room extends BaseConnection {
 
   get deviceList() {
     return Array.from(this._deviceList)
+  }
+
+  getMemberList({ memberId }: MemberCommandParams = {}) {
+    return this._memberCommand({
+      method: 'video.member.video_unmute',
+      memberId,
+    })
   }
 
   /**
@@ -39,9 +57,9 @@ export class Room extends BaseConnection {
       remoteStream: undefined,
     }
 
-    const screenShare: RoomObject = connect({
+    const screenShare = connect({
       store: this.store,
-      Component: Room,
+      Component: RoomScreenShare,
       componentListeners: {
         state: 'onStateChange',
         remoteSDP: 'onRemoteSDP',
@@ -123,9 +141,9 @@ export class Room extends BaseConnection {
       recoverCall: false,
     }
 
-    const roomDevice: RoomObject = connect({
+    const roomDevice = connect({
       store: this.store,
-      Component: Room,
+      Component: RoomDevice,
       componentListeners: {
         state: 'onStateChange',
         remoteSDP: 'onRemoteSDP',
@@ -152,13 +170,13 @@ export class Room extends BaseConnection {
     }
   }
 
-  join() {
-    return super.invite()
-  }
+  // join() {
+  //   return super.invite()
+  // }
 
-  leave() {
-    return super.hangup()
-  }
+  // leave() {
+  //   return super.hangup()
+  // }
 
   updateSpeaker(deviceId: string) {
     this.store.dispatch(audioSetSpeakerAction(deviceId))
@@ -184,3 +202,22 @@ export class Room extends BaseConnection {
     super._finalize()
   }
 }
+
+export const RoomMixin = compose<RoomConstructor>(
+  withBaseRoomMethods,
+  withRoomLayoutMethods,
+  withRoomMemberMethods
+)(BaseRoom)
+export class Room extends RoomMixin {}
+
+export const RoomScreenShareMixin = compose<RoomScreenShareConstructor>(
+  withBaseRoomMethods,
+  withRoomMemberMethods
+)(BaseRoom)
+export class RoomScreenShare extends RoomScreenShareMixin {}
+
+export const RoomDeviceMixin = compose<RoomDeviceConstructor>(
+  withBaseRoomMethods,
+  withRoomMemberMethods
+)(BaseRoom)
+export class RoomDevice extends RoomDeviceMixin {}

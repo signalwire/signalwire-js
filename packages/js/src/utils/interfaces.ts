@@ -4,10 +4,11 @@ import type {
   BaseConnectionState,
   EventsHandlerMapping,
 } from '@signalwire/core'
-import type { Room } from '../Room'
+import { BaseConnection } from '@signalwire/webrtc'
+import type { Room, RoomScreenShare, RoomDevice } from '../Room'
 
 type BaseConnectionEventsHandlerMapping = EventsHandlerMapping &
-  Record<BaseConnectionState, (params: Room) => void>
+  Record<BaseConnectionState, (params: typeof Room) => void>
 
 export type RoomObjectEvents = {
   [k in
@@ -16,6 +17,11 @@ export type RoomObjectEvents = {
 }
 
 export type RoomObject = StrictEventEmitter<Room, RoomObjectEvents>
+export type RoomScreenShareObject = StrictEventEmitter<
+  RoomScreenShare,
+  RoomObjectEvents
+>
+export type RoomDeviceObject = StrictEventEmitter<RoomDevice, RoomObjectEvents>
 
 export type CreateScreenShareObjectOptions = {
   autoJoin?: boolean
@@ -34,4 +40,14 @@ export type AddCameraOptions = MediaTrackConstraints & {
 }
 export type AddMicrophoneOptions = MediaTrackConstraints & {
   autoJoin?: boolean
+}
+
+export interface MemberCommandParams {
+  memberId?: string
+}
+export interface MemberCommandWithVolumeParams extends MemberCommandParams {
+  volume: number
+}
+export interface MemberCommandWithValueParams extends MemberCommandParams {
+  value: number
 }
