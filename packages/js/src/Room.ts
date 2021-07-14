@@ -119,7 +119,7 @@ export class Room extends BaseConnection {
       remoteStream: undefined,
       audio,
       video,
-      secondSource: true,
+      additionalDevice: true,
       recoverCall: false,
     }
 

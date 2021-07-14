@@ -24,7 +24,7 @@ export interface ConnectionOptions {
   speakerId?: string
   userVariables?: { [key: string]: any }
   screenShare?: boolean
-  secondSource?: boolean
+  additionalDevice?: boolean
   recoverCall?: boolean
   onNotification?: Function
   googleMaxBitrate?: number
