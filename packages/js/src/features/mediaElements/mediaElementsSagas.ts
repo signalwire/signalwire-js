@@ -1,10 +1,10 @@
-import { logger, destroyAction } from '@signalwire/core'
+import { logger } from '@signalwire/core'
 import { take, call, fork } from 'redux-saga/effects'
 import { SagaIterator, Task } from '@redux-saga/types'
 import { setMediaElementSinkId } from '@signalwire/webrtc'
 import {
   buildVideo,
-  makeDestroyHandler,
+  cleanupElement,
   makeDisplayChangeFn,
   makeLayoutChangedHandler,
 } from '../../utils/videoElement'
@@ -26,8 +26,6 @@ export const makeMediaElementsSaga = ({
       const rootElement = userRootElement || document.body
       const videoEl = buildVideo()
       const audioEl = new Audio()
-
-      const destroyHandler = makeDestroyHandler({ layerMap, rootElement })
       const layoutChangedHandler = makeLayoutChangedHandler({
         rootElement,
         element: videoEl,
@@ -86,11 +84,12 @@ export const makeMediaElementsSaga = ({
         }
       })
 
-      room.once('destroy', destroyHandler)
-
-      yield take(destroyAction.type)
-      audioTask?.cancel()
-      videoTask?.cancel()
+      room.once('destroy', () => {
+        cleanupElement(rootElement)
+        layerMap.clear()
+        audioTask?.cancel()
+        videoTask?.cancel()
+      })
     } catch (error) {
       logger.error('mediaElementsSagas', error)
     }

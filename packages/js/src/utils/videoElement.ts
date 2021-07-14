@@ -121,22 +121,15 @@ const makeDisplayChangeFn = (display: 'block' | 'none') => {
   }
 }
 
-const makeDestroyHandler = ({
-  layerMap,
-  rootElement,
-}: {
-  layerMap: Map<string, HTMLElement>
-  rootElement: HTMLElement
-}) => () => {
+const cleanupElement = (rootElement: HTMLElement) => {
   while (rootElement.firstChild) {
     rootElement.removeChild(rootElement.firstChild)
   }
-  layerMap.clear()
 }
 
 export {
   buildVideo,
   makeLayoutChangedHandler,
-  makeDestroyHandler,
   makeDisplayChangeFn,
+  cleanupElement,
 }
