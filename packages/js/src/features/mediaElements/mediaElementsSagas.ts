@@ -44,7 +44,7 @@ export const makeMediaElementsSaga = ({
         )
       }
 
-      room.on('layout.changed', (params: any) => {
+      room.on('layout.changed', (params) => {
         if (room.peer.hasVideoSender && room.localStream) {
           layoutChangedHandler({
             layout: params.layout,
@@ -54,7 +54,7 @@ export const makeMediaElementsSaga = ({
         }
       })
 
-      room.on('member.updated.video_muted', (params: any) => {
+      room.on('member.updated.video_muted', (params) => {
         try {
           const { member } = params
           if (member.id === room.memberId && 'video_muted' in member) {
@@ -152,7 +152,14 @@ function* videoElementSetupWorker({
   applyLocalVideoOverlay = true,
   track,
   element,
-}: any): SagaIterator {
+}: {
+  // TODO: we'll move this to a separate type once we define how to
+  // dispatch action that only target unique sagas
+  rootElement: HTMLElement
+  applyLocalVideoOverlay?: boolean
+  track: MediaStreamTrack
+  element: HTMLVideoElement
+}): SagaIterator {
   const setVideoMediaTrack = (videoTrack: MediaStreamTrack) => {
     element.srcObject = new MediaStream([videoTrack])
 
