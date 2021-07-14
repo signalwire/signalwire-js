@@ -1,4 +1,5 @@
 import { logger, connect, BaseClient } from '@signalwire/core'
+import type { CustomSaga } from '@signalwire/core'
 import { ConnectionOptions } from '@signalwire/webrtc'
 import { makeMediaElementsSaga } from './features/mediaElements/mediaElementsSagas'
 import type { RoomObject } from './utils/interfaces'
@@ -23,17 +24,25 @@ export class Client extends BaseClient {
           ...options
         } = makeRoomOptions
 
+        const customSagas: Array<CustomSaga<Room>> = []
+
+        /**
+         * If the user provides a `roomElementId` we'll automatically
+         * handle the Audio and Video elements for them
+         */
+        if (rootElementId) {
+          customSagas.push(
+            makeMediaElementsSaga({
+              rootElementId,
+              applyLocalVideoOverlay,
+            })
+          )
+        }
+
         const room: RoomObject = connect({
           store: this.store,
           Component: Room,
-          customSagas: rootElementId
-            ? [
-                makeMediaElementsSaga({
-                  rootElementId,
-                  applyLocalVideoOverlay,
-                }),
-              ]
-            : undefined,
+          customSagas,
           componentListeners: {
             state: 'onStateChange',
             remoteSDP: 'onRemoteSDP',
