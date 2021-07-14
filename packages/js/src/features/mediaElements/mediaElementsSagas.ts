@@ -7,7 +7,9 @@ import {
   cleanupElement,
   makeDisplayChangeFn,
   makeLayoutChangedHandler,
+  setVideoMediaTrack,
 } from '../../utils/videoElement'
+import { setAudioMediaTrack } from '../../utils/audioElement'
 import { audioSetSpeakerAction } from '../actions'
 import type { Room } from '../../Room'
 
@@ -126,21 +128,7 @@ function* audioElementSetupWorker({
   track: MediaStreamTrack
   element: HTMLAudioElement
 }): SagaIterator {
-  const setAudioMediaTrack = (audioTrack: MediaStreamTrack) => {
-    element.autoplay = true
-    // @ts-ignore
-    element.playsinline = true
-    element.srcObject = new MediaStream([audioTrack])
-
-    audioTrack.addEventListener('ended', () => {
-      element.srcObject = null
-      element.remove()
-    })
-
-    return element
-  }
-
-  setAudioMediaTrack(track)
+  setAudioMediaTrack({ track, element })
 
   yield fork(audioElementActionsWatcher, {
     element,
@@ -160,17 +148,8 @@ function* videoElementSetupWorker({
   track: MediaStreamTrack
   element: HTMLVideoElement
 }): SagaIterator {
-  const setVideoMediaTrack = (videoTrack: MediaStreamTrack) => {
-    element.srcObject = new MediaStream([videoTrack])
-
-    element.addEventListener('ended', () => {
-      element.srcObject = null
-      element.remove()
-    })
-  }
-
   const handleVideoTrack = (track: MediaStreamTrack) => {
-    setVideoMediaTrack(track)
+    setVideoMediaTrack({ element, track })
 
     element.style.width = '100%'
     element.style.height = '100%'

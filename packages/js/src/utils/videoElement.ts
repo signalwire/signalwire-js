@@ -127,9 +127,25 @@ const cleanupElement = (rootElement: HTMLElement) => {
   }
 }
 
+const setVideoMediaTrack = ({
+  track,
+  element,
+}: {
+  track: MediaStreamTrack
+  element: HTMLVideoElement
+}) => {
+  element.srcObject = new MediaStream([track])
+
+  element.addEventListener('ended', () => {
+    element.srcObject = null
+    element.remove()
+  })
+}
+
 export {
   buildVideo,
+  cleanupElement,
   makeLayoutChangedHandler,
   makeDisplayChangeFn,
-  cleanupElement,
+  setVideoMediaTrack,
 }
