@@ -12,12 +12,14 @@ interface Instance {
 
 type RoomCommandActionParams = {
   instance: Instance
+  [key: string]: unknown
 }
 const createRoomCommandAction = (method: RoomMethod) => {
-  return ({ instance }: RoomCommandActionParams) => ({
+  return ({ instance, ...rest }: RoomCommandActionParams) => ({
     method,
     params: {
       room_session_id: instance.roomSessionId,
+      ...rest,
     },
   })
 }
