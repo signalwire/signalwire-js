@@ -95,7 +95,6 @@ export class BaseConnection extends BaseComponent {
   private state: BaseConnectionState = 'new'
   private prevState: BaseConnectionState = 'new'
 
-  private _extension: string
   // @ts-ignore
   private _roomId: string
   private _roomSessionId: string
@@ -123,14 +122,6 @@ export class BaseConnection extends BaseComponent {
 
   get trying() {
     return this.state === 'trying'
-  }
-
-  get extension() {
-    return this._extension || this.options.destinationNumber || ''
-  }
-
-  set extension(extension: string) {
-    this._extension = extension
   }
 
   get memberId() {
