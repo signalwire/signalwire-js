@@ -5,7 +5,6 @@ import {
   VertoInvite,
   BaseComponent,
   VertoMethod,
-  RoomMethod,
   selectors,
   BaseComponentOptions,
   BaseConnectionState,
@@ -69,22 +68,15 @@ const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   iceGatheringTimeout: 2 * 1000,
 }
 
-interface MemberCommandParams {
-  memberId?: string
-}
-interface MemberCommandWithVolumeParams extends MemberCommandParams {
-  volume: number
-}
-interface MemberCommandWithValueParams extends MemberCommandParams {
-  value: number
-}
 export type BaseConnectionOptions = ConnectionOptions & BaseComponentOptions
 export class BaseConnection extends BaseComponent {
   public nodeId = ''
   public direction: 'inbound' | 'outbound'
   public peer: RTCPeer
   public options: BaseConnectionOptions
+  /** @internal */
   public cause: string
+  /** @internal */
   public causeCode: string
   /** @internal */
   public gotEarly = false
@@ -558,154 +550,6 @@ export class BaseConnection extends BaseComponent {
         this._finalize()
         break
     }
-  }
-
-  public getLayoutList() {
-    return this.execute({
-      method: 'video.list_available_layouts',
-      params: {
-        room_session_id: this._roomSessionId,
-      },
-    })
-  }
-
-  public setLayout({ name }: { name: string }) {
-    return this.execute({
-      method: 'video.set_layout',
-      params: {
-        room_session_id: this._roomSessionId,
-        name,
-      },
-    })
-  }
-
-  public hideVideoMuted() {
-    return this.execute({
-      method: 'video.hide_video_muted',
-      params: {
-        room_session_id: this._roomSessionId,
-      },
-    })
-  }
-
-  public showVideoMuted() {
-    return this.execute({
-      method: 'video.show_video_muted',
-      params: {
-        room_session_id: this._roomSessionId,
-      },
-    })
-  }
-
-  public audioMute({ memberId }: MemberCommandParams = {}) {
-    return this._memberCommand({
-      method: 'video.member.audio_mute',
-      memberId,
-    })
-  }
-
-  public audioUnmute({ memberId }: MemberCommandParams = {}) {
-    return this._memberCommand({
-      method: 'video.member.audio_unmute',
-      memberId,
-    })
-  }
-
-  public videoMute({ memberId }: MemberCommandParams = {}) {
-    return this._memberCommand({
-      method: 'video.member.video_mute',
-      memberId,
-    })
-  }
-
-  public videoUnmute({ memberId }: MemberCommandParams = {}) {
-    return this._memberCommand({
-      method: 'video.member.video_unmute',
-      memberId,
-    })
-  }
-
-  public deaf({ memberId }: MemberCommandParams = {}) {
-    return this._memberCommand({
-      method: 'video.member.deaf',
-      memberId,
-    })
-  }
-
-  public undeaf({ memberId }: MemberCommandParams = {}) {
-    return this._memberCommand({
-      method: 'video.member.undeaf',
-      memberId,
-    })
-  }
-
-  public setSpeakerVolume({ memberId, volume }: MemberCommandWithVolumeParams) {
-    return this._memberCommand({
-      method: 'video.member.set_input_volume',
-      memberId,
-      volume: +volume,
-    })
-  }
-
-  public setMicrophoneVolume({
-    memberId,
-    volume,
-  }: MemberCommandWithVolumeParams) {
-    return this._memberCommand({
-      method: 'video.member.set_output_volume',
-      memberId,
-      volume: +volume,
-    })
-  }
-
-  public setInputSensitivity({
-    memberId,
-    value,
-  }: MemberCommandWithValueParams) {
-    return this._memberCommand({
-      method: 'video.member.set_input_sensitivity',
-      memberId,
-      value: +value,
-    })
-  }
-
-  public removeMember({ memberId }: Required<MemberCommandParams>) {
-    if (!memberId) {
-      throw new TypeError('Invalid or missing "memberId" argument')
-    }
-    return this._memberCommand({
-      method: 'video.member.remove',
-      memberId,
-    })
-  }
-
-  public getMemberList() {
-    return this.execute({
-      method: 'video.members.get',
-      params: {
-        room_session_id: this._roomSessionId,
-      },
-    })
-  }
-
-  /** @internal */
-  protected _memberCommand({
-    method,
-    memberId,
-    ...rest
-  }: {
-    method: RoomMethod
-    memberId?: string
-    [key: string]: unknown
-  }) {
-    return this.execute({
-      method,
-      params: {
-        room_session_id: this._roomSessionId,
-        member_id: memberId || this._memberId,
-        ...rest,
-      },
-    })
   }
 
   /** @internal */

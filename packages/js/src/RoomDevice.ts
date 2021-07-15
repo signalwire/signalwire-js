@@ -1,9 +1,5 @@
 import { BaseConnection } from '@signalwire/webrtc'
-import {
-  MemberCommandParams,
-  MemberCommandWithVolumeParams,
-  MemberCommandWithValueParams,
-} from './utils/interfaces'
+import { MemberCommandParams } from './utils/interfaces'
 import {
   audioMuteMemberAction,
   audioUnmuteMemberAction,
@@ -42,11 +38,7 @@ export class RoomDevice extends BaseConnection {
     return this.execute(action)
   }
 
-  public setMicrophoneVolume({
-    memberId,
-    volume,
-  }: MemberCommandWithVolumeParams) {
-    // TODO: Remove memberId from argument
+  public setMicrophoneVolume({ volume }: { volume: number }) {
     const action = setOutputVolumeMemberAction({
       instance: this,
       volume: +volume,
@@ -54,11 +46,7 @@ export class RoomDevice extends BaseConnection {
     return this.execute(action)
   }
 
-  public setInputSensitivity({
-    memberId,
-    value,
-  }: MemberCommandWithValueParams) {
-    // TODO: Remove memberId from argument
+  public setInputSensitivity({ value }: { value: number }) {
     const action = setInputSensitivityMemberAction({
       instance: this,
       value: +value,
