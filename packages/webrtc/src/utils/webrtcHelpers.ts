@@ -130,11 +130,11 @@ export const setMediaElementSinkId = async (
     return await el.setSinkId(deviceId)
   } catch (error) {
     if (error.name === 'SecurityError') {
-      console.error(
+      logger.error(
         `You need to use HTTPS for selecting audio output device: ${error}`
       )
     } else {
-      console.error(`Error: ${error}`)
+      logger.error(`Error: ${error}`)
     }
 
     throw error
