@@ -136,7 +136,7 @@ export class Room extends BaseConnection {
     return super.hangup()
   }
 
-  updateSpeaker(deviceId: string) {
+  updateSpeaker({ deviceId }: { deviceId: string }) {
     return this.triggerCustomSaga<boolean>(audioSetSpeakerAction(deviceId))
   }
 
