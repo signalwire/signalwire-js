@@ -6,27 +6,32 @@ import {
   BaseConnectionOptions,
 } from '@signalwire/webrtc'
 import {
-  RoomScreenShareObject,
-  RoomDeviceObject,
   CreateScreenShareObjectOptions,
   AddDeviceOptions,
   AddCameraOptions,
   AddMicrophoneOptions,
-  MemberCommandParams,
 } from './utils/interfaces'
 import { audioSetSpeakerAction } from './features/actions'
 import {
   withBaseRoomMethods,
   withRoomLayoutMethods,
   withRoomMemberMethods,
+  withRoomControlMethods,
   RoomConstructor,
-  RoomDeviceConstructor,
-  RoomScreenShareConstructor,
 } from './features/mixins'
+import { RoomScreenShare } from './RoomScreenShare'
+import { RoomDevice } from './RoomDevice'
 
-class BaseRoom extends BaseConnection {
-  private _screenShareList = new Set<RoomScreenShareObject>()
-  private _deviceList = new Set<RoomDeviceObject>()
+const RoomMixin = compose<RoomConstructor>(
+  withBaseRoomMethods,
+  withRoomLayoutMethods,
+  withRoomMemberMethods,
+  withRoomControlMethods
+)(BaseConnection)
+
+export class Room extends RoomMixin {
+  private _screenShareList = new Set<RoomScreenShare>()
+  private _deviceList = new Set<RoomDevice>()
 
   get screenShareList() {
     return Array.from(this._screenShareList)
@@ -34,13 +39,6 @@ class BaseRoom extends BaseConnection {
 
   get deviceList() {
     return Array.from(this._deviceList)
-  }
-
-  getMemberList({ memberId }: MemberCommandParams = {}) {
-    return this._memberCommand({
-      method: 'video.member.video_unmute',
-      memberId,
-    })
   }
 
   /**
@@ -170,14 +168,6 @@ class BaseRoom extends BaseConnection {
     }
   }
 
-  // join() {
-  //   return super.invite()
-  // }
-
-  // leave() {
-  //   return super.hangup()
-  // }
-
   updateSpeaker(deviceId: string) {
     this.store.dispatch(audioSetSpeakerAction(deviceId))
   }
@@ -202,22 +192,3 @@ class BaseRoom extends BaseConnection {
     super._finalize()
   }
 }
-
-export const RoomMixin = compose<RoomConstructor>(
-  withBaseRoomMethods,
-  withRoomLayoutMethods,
-  withRoomMemberMethods
-)(BaseRoom)
-export class Room extends RoomMixin {}
-
-export const RoomScreenShareMixin = compose<RoomScreenShareConstructor>(
-  withBaseRoomMethods,
-  withRoomMemberMethods
-)(BaseRoom)
-export class RoomScreenShare extends RoomScreenShareMixin {}
-
-export const RoomDeviceMixin = compose<RoomDeviceConstructor>(
-  withBaseRoomMethods,
-  withRoomMemberMethods
-)(BaseRoom)
-export class RoomDevice extends RoomDeviceMixin {}
