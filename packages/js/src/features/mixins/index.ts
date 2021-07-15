@@ -2,6 +2,7 @@ import { BaseConnection } from '@signalwire/webrtc'
 import type { BaseRoomConstructor } from './withBaseRoomMethods'
 import type { RoomLayoutConstructor } from './withRoomLayoutMethods'
 import type { RoomMemberConstructor } from './withRoomMemberMethods'
+import type { RoomControlConstructor } from './withRoomControlMethods'
 
 export type Constructor<T = {}> = new (...args: any[]) => T
 export type BCConstructor = Constructor<BaseConnection>
@@ -10,7 +11,8 @@ export type BCConstructor = Constructor<BaseConnection>
 export type RoomConstructor = typeof BaseConnection &
   BaseRoomConstructor &
   RoomLayoutConstructor &
-  RoomMemberConstructor
+  RoomMemberConstructor &
+  RoomControlConstructor
 
 // RoomDevice
 export type RoomDeviceConstructor = typeof BaseConnection &
