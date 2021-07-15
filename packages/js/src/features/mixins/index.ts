@@ -25,3 +25,4 @@ export type RoomScreenShareConstructor = typeof BaseConnection &
 export * from './withBaseRoomMethods'
 export * from './withRoomLayoutMethods'
 export * from './withRoomMemberMethods'
+export * from './withRoomControlMethods'
