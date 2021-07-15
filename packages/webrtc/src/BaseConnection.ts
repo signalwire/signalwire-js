@@ -12,14 +12,6 @@ import {
   RoomEventNames,
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
-import {
-  enableAudioTracks,
-  disableAudioTracks,
-  toggleAudioTracks,
-  enableVideoTracks,
-  disableVideoTracks,
-  toggleVideoTracks,
-} from './utils/helpers'
 import { ConnectionOptions } from './utils/interfaces'
 import { stopStream, stopTrack, getUserMedia } from './utils/webrtcHelpers'
 
@@ -143,6 +135,14 @@ export class BaseConnection extends BaseComponent {
 
   get memberId() {
     return this._memberId
+  }
+
+  get roomId() {
+    return this._roomId
+  }
+
+  get roomSessionId() {
+    return this._roomSessionId
   }
 
   get localStream() {
@@ -433,7 +433,7 @@ export class BaseConnection extends BaseComponent {
   }
 
   /** @internal */
-  async answer() {
+  answer() {
     return new Promise(async (resolve, reject) => {
       this.direction = 'inbound'
       this.peer = new RTCPeer(this, 'answer')
@@ -507,69 +507,6 @@ export class BaseConnection extends BaseComponent {
   dtmf(dtmf: string) {
     const msg = VertoInfo({ ...this.messagePayload, dtmf })
     this.vertoExecute(msg)
-  }
-
-  /** @internal */
-  disableOutboundAudio() {
-    // TODO: Use peer method
-    this.options.localStream && disableAudioTracks(this.options.localStream)
-  }
-
-  /** @internal */
-  enableOutboundAudio() {
-    // TODO: Use peer method
-    this.options.localStream && enableAudioTracks(this.options.localStream)
-  }
-
-  /** @internal */
-  toggleOutboundAudio() {
-    // TODO: Use peer method
-    this.options.localStream && toggleAudioTracks(this.options.localStream)
-  }
-
-  /** @internal */
-  disableOutboundVideo() {
-    // TODO: Use peer method
-    this.options.localStream && disableVideoTracks(this.options.localStream)
-  }
-
-  /** @internal */
-  enableOutboundVideo() {
-    // TODO: Use peer method
-    this.options.localStream && enableVideoTracks(this.options.localStream)
-  }
-
-  /** @internal */
-  toggleOutboundVideo() {
-    // TODO: Use peer method
-    this.options.localStream && toggleVideoTracks(this.options.localStream)
-  }
-
-  /**
-   * Deaf
-   * @internal
-   */
-  disableInboundAudio() {
-    // TODO: Use peer method
-    this.options.remoteStream && disableAudioTracks(this.options.remoteStream)
-  }
-
-  /**
-   * Undeaf
-   * @internal
-   */
-  enableInboundAudio() {
-    // TODO: Use peer method
-    this.options.remoteStream && enableAudioTracks(this.options.remoteStream)
-  }
-
-  /**
-   * Toggle Deaf
-   * @internal
-   */
-  toggleInboundAudio() {
-    // TODO: Use peer method
-    this.options.remoteStream && toggleAudioTracks(this.options.remoteStream)
   }
 
   /** @internal */
@@ -760,7 +697,8 @@ export class BaseConnection extends BaseComponent {
     })
   }
 
-  private _memberCommand({
+  /** @internal */
+  protected _memberCommand({
     method,
     memberId,
     ...rest
