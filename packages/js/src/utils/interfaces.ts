@@ -4,8 +4,9 @@ import type {
   BaseConnectionState,
   EventsHandlerMapping,
 } from '@signalwire/core'
-import { BaseConnection } from '@signalwire/webrtc'
-import type { Room, RoomScreenShare, RoomDevice } from '../Room'
+import type { Room } from '../Room'
+import type { RoomScreenShare } from '../RoomScreenShare'
+import type { RoomDevice } from '../RoomDevice'
 
 type BaseConnectionEventsHandlerMapping = EventsHandlerMapping &
   Record<BaseConnectionState, (params: typeof Room) => void>
