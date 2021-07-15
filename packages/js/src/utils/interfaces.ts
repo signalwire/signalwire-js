@@ -5,6 +5,8 @@ import type {
   EventsHandlerMapping,
 } from '@signalwire/core'
 import type { Room } from '../Room'
+import type { RoomScreenShare } from '../RoomScreenShare'
+import type { RoomDevice } from '../RoomDevice'
 
 type BaseConnectionEventsHandlerMapping = EventsHandlerMapping &
   Record<BaseConnectionState, (params: Room) => void>
@@ -16,6 +18,11 @@ export type RoomObjectEvents = {
 }
 
 export type RoomObject = StrictEventEmitter<Room, RoomObjectEvents>
+export type RoomScreenShareObject = StrictEventEmitter<
+  RoomScreenShare,
+  RoomObjectEvents
+>
+export type RoomDeviceObject = StrictEventEmitter<RoomDevice, RoomObjectEvents>
 
 export type CreateScreenShareObjectOptions = {
   autoJoin?: boolean
