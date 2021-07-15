@@ -160,8 +160,8 @@ export class Room extends BaseConnection {
     return super.hangup()
   }
 
-  updateSpeaker(deviceId: string) {
-    this.store.dispatch(audioSetSpeakerAction(deviceId))
+  updateSpeaker({ deviceId }: { deviceId: string }) {
+    return this.triggerCustomSaga<undefined>(audioSetSpeakerAction(deviceId))
   }
 
   /** @internal */

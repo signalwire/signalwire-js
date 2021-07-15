@@ -323,7 +323,14 @@ window.changeSpeaker = (select) => {
   if (!select.value) {
     return
   }
-  roomObj.updateSpeaker(select.value)
+  roomObj
+    .updateSpeaker({ deviceId: select.value })
+    .then(() => {
+      console.log('Speaker updated!')
+    })
+    .catch(() => {
+      console.error(`Failed to update the speaker with id: ${select.value}`)
+    })
 }
 
 window.rangeInputHandler = (range) => {

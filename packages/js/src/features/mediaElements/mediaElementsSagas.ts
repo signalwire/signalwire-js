@@ -1,4 +1,4 @@
-import { logger, CustomSagaParams } from '@signalwire/core'
+import { logger, CustomSagaParams, actions } from '@signalwire/core'
 import { take, call, fork } from 'redux-saga/effects'
 import { SagaIterator, Task } from '@redux-saga/types'
 import { setMediaElementSinkId } from '@signalwire/webrtc'
@@ -76,6 +76,7 @@ export const makeMediaElementsSaga = ({
             audioTask = runSaga(audioElementSetupWorker, {
               track: event.track,
               element: audioEl,
+              room,
             })
             break
           case 'video': {
@@ -103,19 +104,43 @@ export const makeMediaElementsSaga = ({
 
 function* audioElementActionsWatcher({
   element,
+  room,
 }: {
   element: HTMLAudioElement
+  room: Room
 }): SagaIterator {
-  while (true) {
-    try {
-      const action = yield take([audioSetSpeakerAction.type])
+  // TODO: For now we're handling individual actions but in the future
+  // we might want to have a single action per custom saga and use it
+  // in a similar fashion to `executeAction`
+  const setSpeakerActionType = actions.getCustomSagaActionType(
+    room.id,
+    audioSetSpeakerAction
+  )
 
+  while (true) {
+    const action = yield take([setSpeakerActionType])
+
+    try {
       switch (action.type) {
-        case audioSetSpeakerAction.type:
-          yield call(setMediaElementSinkId, element, action.payload)
+        case setSpeakerActionType:
+          const response = yield call(
+            setMediaElementSinkId,
+            element,
+            action.payload
+          )
+          room.settleCustomSagaTrigger({
+            dispatchId: action.dispatchId,
+            payload: response,
+            kind: 'resolve',
+          })
           break
       }
     } catch (error) {
+      room.settleCustomSagaTrigger({
+        dispatchId: action.dispatchId,
+        payload: error,
+        kind: 'reject',
+      })
       logger.error(error)
     }
   }
@@ -124,14 +149,17 @@ function* audioElementActionsWatcher({
 function* audioElementSetupWorker({
   track,
   element,
+  room,
 }: {
   track: MediaStreamTrack
   element: HTMLAudioElement
+  room: Room
 }): SagaIterator {
   setAudioMediaTrack({ track, element })
 
   yield fork(audioElementActionsWatcher, {
     element,
+    room,
   })
 }
 

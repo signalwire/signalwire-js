@@ -1,4 +1,4 @@
-import { createAction } from '@reduxjs/toolkit'
+import { createAction, Action } from '@reduxjs/toolkit'
 import {
   JSONRPCRequest,
   SessionAuthError,
@@ -38,3 +38,18 @@ export const sessionDisconnectedAction = createAction<void, SessionEvents>(
 export const sessionReconnectingAction = createAction<void, SessionEvents>(
   'session.reconnecting'
 )
+
+const formatCustomSagaAction = (id: string, action: Action) => {
+  return `${action.type}/${id}`
+}
+
+export const makeCustomSagaAction = (id: string, action: Action) => {
+  return {
+    ...action,
+    type: formatCustomSagaAction(id, action),
+  }
+}
+
+export const getCustomSagaActionType = (id: string, action: Action) => {
+  return formatCustomSagaAction(id, action)
+}

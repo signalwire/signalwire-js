@@ -1,3 +1,4 @@
+import { Action } from '@reduxjs/toolkit'
 import { uuid, logger, getGlobalEvents } from './utils'
 import { executeAction } from './redux'
 import {
@@ -7,6 +8,7 @@ import {
 } from './utils/interfaces'
 import { EventEmitter, getNamespacedEvent } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
+import { makeCustomSagaAction } from './redux/actions'
 
 type EventRegisterHandlers =
   | {
@@ -32,6 +34,7 @@ export class BaseComponent implements Emitter {
   private _eventsEmitQueue = new Set<any>()
   private _eventsNamespace?: string
   private _requests = new Map()
+  private _customSagaTriggers = new Map()
   private _destroyer?: () => void
   private _getNamespacedEvent(event: string | symbol) {
     if (typeof event === 'string' && this._eventsNamespace !== undefined) {
@@ -189,6 +192,36 @@ export class BaseComponent implements Emitter {
         })
       )
     })
+  }
+
+  /** @internal */
+  triggerCustomSaga<T>(action: Action): Promise<T> {
+    return new Promise((resolve, reject) => {
+      const dispatchId = uuid()
+      this._customSagaTriggers.set(dispatchId, { resolve, reject })
+
+      this.store.dispatch({
+        dispatchId,
+        ...makeCustomSagaAction(this.id, action),
+      })
+    })
+  }
+
+  /** @internal */
+  settleCustomSagaTrigger<T>({
+    dispatchId,
+    payload,
+    kind,
+  }: {
+    dispatchId: string
+    payload?: T
+    kind: 'resolve' | 'reject'
+  }) {
+    const actions = this._customSagaTriggers.get(dispatchId)
+    if (actions) {
+      actions[kind](payload)
+      this._customSagaTriggers.delete(dispatchId)
+    }
   }
 
   /** @internal */
