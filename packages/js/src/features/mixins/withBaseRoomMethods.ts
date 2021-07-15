@@ -1,8 +1,8 @@
 import type { Constructor, BCConstructor } from './'
 
 interface RoomMethods {
-  join: () => Promise<unknown>
-  leave: () => Promise<unknown>
+  join(): Promise<unknown>
+  leave(): Promise<unknown>
 }
 export type BaseRoomConstructor = Constructor<RoomMethods>
 

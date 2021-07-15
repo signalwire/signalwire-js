@@ -154,6 +154,7 @@ export class BaseComponent implements Emitter {
     return this.emitter as EventEmitter<string | symbol, any>
   }
 
+  /** @internal */
   eventNames() {
     return this.emitter.eventNames()
   }

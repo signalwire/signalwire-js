@@ -6,10 +6,12 @@ import type {
 } from '../../utils/interfaces'
 
 interface RoomMemberMethods {
-  audioMute: () => Promise<unknown>
-  audioUnmute: () => Promise<unknown>
-  videoMute: () => Promise<unknown>
-  videoUnmute: () => Promise<unknown>
+  audioMute(): Promise<unknown>
+  audioUnmute(): Promise<unknown>
+  videoMute(): Promise<unknown>
+  videoUnmute(): Promise<unknown>
+  setMicrophoneVolume(params: MemberCommandWithVolumeParams): Promise<unknown>
+  setInputSensitivity(params: MemberCommandWithValueParams): Promise<unknown>
 }
 export type RoomMemberConstructor = Constructor<RoomMemberMethods>
 

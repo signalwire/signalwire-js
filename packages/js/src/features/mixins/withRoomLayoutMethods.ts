@@ -1,8 +1,8 @@
 import type { Constructor, BCConstructor } from './'
 
 interface RoomLayoutMethods {
-  getLayoutList: () => Promise<unknown>
-  setLayout: (params: { name: string }) => Promise<unknown>
+  getLayoutList(): Promise<unknown>
+  setLayout(params: { name: string }): Promise<unknown>
 }
 export type RoomLayoutConstructor = Constructor<RoomLayoutMethods>
 

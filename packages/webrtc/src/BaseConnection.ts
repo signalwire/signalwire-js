@@ -474,6 +474,7 @@ export class BaseConnection extends BaseComponent {
     }
   }
 
+  /** @internal */
   async hangup() {
     try {
       const bye = VertoBye(this.messagePayload)
