@@ -137,7 +137,7 @@ export class Room extends BaseConnection {
   }
 
   updateSpeaker({ deviceId }: { deviceId: string }) {
-    return this.triggerCustomSaga<boolean>(audioSetSpeakerAction(deviceId))
+    return this.triggerCustomSaga<undefined>(audioSetSpeakerAction(deviceId))
   }
 
   /** @internal */
