@@ -18,6 +18,13 @@ const createRoomMethod = (method: RoomMethod): RoomMethodDescriptor => ({
   },
 })
 
+/**
+ * Type the params for each room member method
+ * that uses the provided memberId or fallback
+ * to the instance memberId.
+ * Additional params can be passed as `value`
+ * or `volume`.
+ */
 type RoomMemberMethodParams = {
   memberId?: string
   [key: string]: unknown

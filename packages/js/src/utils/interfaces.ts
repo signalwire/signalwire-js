@@ -67,6 +67,15 @@ interface RoomMemberMethodsInterface {
   setInputSensitivity(params: MemberCommandWithValueParams): Promise<unknown>
 }
 
+interface RoomMemberSelfMethodsInterface {
+  audioMute(): Promise<unknown>
+  audioUnmute(): Promise<unknown>
+  videoMute(): Promise<unknown>
+  videoUnmute(): Promise<unknown>
+  setMicrophoneVolume(params: { volume: number }): Promise<unknown>
+  setInputSensitivity(params: { value: number }): Promise<unknown>
+}
+
 interface RoomLayoutMethodsInterface {
   getLayoutList(): Promise<unknown>
   setLayout(params: { name: string }): Promise<unknown>
@@ -83,17 +92,20 @@ interface RoomControlMethodsInterface {
 }
 
 /**
- * FIXME: Decide if we want to update
- * the signature for Device/Screenshare
- * methods that should not update
- * other memberId.
+ * We are using these interfaces in
+ * combination of Object.defineProperties()
+ * to avoid code duplication and expose a
+ * nice documentation via TypeDoc.
+ * The interface forces TS checking
+ * while Object.defineProperties allow us
+ * flexibility across different objects.
  */
-
 export interface RoomMethods
   extends RoomMemberMethodsInterface,
     RoomLayoutMethodsInterface,
     RoomControlMethodsInterface {}
 
-export interface RoomDeviceMethods extends RoomMemberMethodsInterface {}
+export interface RoomDeviceMethods extends RoomMemberSelfMethodsInterface {}
 
-export interface RoomScreenShareMethods extends RoomMemberMethodsInterface {}
+export interface RoomScreenShareMethods
+  extends RoomMemberSelfMethodsInterface {}
