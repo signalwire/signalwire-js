@@ -43,12 +43,58 @@ export type AddMicrophoneOptions = MediaTrackConstraints & {
   autoJoin?: boolean
 }
 
-export interface MemberCommandParams {
+interface MemberCommandParams {
   memberId?: string
 }
-export interface MemberCommandWithVolumeParams extends MemberCommandParams {
+interface MemberCommandWithVolumeParams extends MemberCommandParams {
   volume: number
 }
-export interface MemberCommandWithValueParams extends MemberCommandParams {
+interface MemberCommandWithValueParams extends MemberCommandParams {
   value: number
 }
+
+export interface BaseRoomInterface {
+  join(): Promise<unknown>
+  leave(): Promise<unknown>
+}
+
+interface RoomMemberMethodsInterface {
+  audioMute(params: MemberCommandParams): Promise<unknown>
+  audioUnmute(params: MemberCommandParams): Promise<unknown>
+  videoMute(params: MemberCommandParams): Promise<unknown>
+  videoUnmute(params: MemberCommandParams): Promise<unknown>
+  setMicrophoneVolume(params: MemberCommandWithVolumeParams): Promise<unknown>
+  setInputSensitivity(params: MemberCommandWithValueParams): Promise<unknown>
+}
+
+interface RoomLayoutMethodsInterface {
+  getLayoutList(): Promise<unknown>
+  setLayout(params: { name: string }): Promise<unknown>
+}
+
+interface RoomControlMethodsInterface {
+  getMemberList(): Promise<unknown>
+  deaf(params: MemberCommandParams): Promise<unknown>
+  undeaf(params: MemberCommandParams): Promise<unknown>
+  setSpeakerVolume(params: MemberCommandWithVolumeParams): Promise<unknown>
+  removeMember(params: Required<MemberCommandParams>): Promise<unknown>
+  hideVideoMuted(): Promise<unknown>
+  showVideoMuted(): Promise<unknown>
+}
+
+/**
+ * FIXME: Decide if we want to update
+ * the signature for Device/Screenshare
+ * methods that should not update
+ * other memberId.
+ */
+
+export interface RoomForComposition
+  extends RoomMemberMethodsInterface,
+    RoomLayoutMethodsInterface,
+    RoomControlMethodsInterface {}
+
+export interface RoomDeviceForComposition extends RoomMemberMethodsInterface {}
+
+export interface RoomScreenShareForComposition
+  extends RoomMemberMethodsInterface {}

@@ -1,4 +1,4 @@
-import { logger, connect } from '@signalwire/core'
+import { logger, connect, Rooms } from '@signalwire/core'
 import {
   getDisplayMedia,
   BaseConnection,
@@ -11,32 +11,16 @@ import {
   AddDeviceOptions,
   AddCameraOptions,
   AddMicrophoneOptions,
-  MemberCommandParams,
-  MemberCommandWithValueParams,
-  MemberCommandWithVolumeParams,
+  BaseRoomInterface,
+  RoomForComposition,
 } from './utils/interfaces'
-import {
-  audioSetSpeakerAction,
-  audioMuteMemberAction,
-  audioUnmuteMemberAction,
-  videoMuteMemberAction,
-  videoUnmuteMemberAction,
-  deafMemberAction,
-  undeafMemberAction,
-  setOutputVolumeMemberAction,
-  setInputVolumeMemberAction,
-  setInputSensitivityMemberAction,
-  getMemberListAction,
-  getLayoutListAction,
-  setLayoutAction,
-  removeMemberAction,
-  hideVideoMutedAction,
-  showVideoMutedAction,
-} from './features/actions'
+import { audioSetSpeakerAction } from './features/actions'
 import { RoomScreenShare } from './RoomScreenShare'
 import { RoomDevice } from './RoomDevice'
 
-export class Room extends BaseConnection {
+interface Room extends RoomForComposition {}
+
+class Room extends BaseConnection implements BaseRoomInterface {
   private _screenShareList = new Set<RoomScreenShareObject>()
   private _deviceList = new Set<RoomDeviceObject>()
 
@@ -187,93 +171,6 @@ export class Room extends BaseConnection {
     return this.triggerCustomSaga<undefined>(audioSetSpeakerAction(deviceId))
   }
 
-  audioMute({ memberId }: MemberCommandParams = {}) {
-    const action = audioMuteMemberAction({ instance: this, memberId })
-    return this.execute(action)
-  }
-
-  audioUnmute({ memberId }: MemberCommandParams = {}) {
-    const action = audioUnmuteMemberAction({ instance: this, memberId })
-    return this.execute(action)
-  }
-
-  videoMute({ memberId }: MemberCommandParams = {}) {
-    const action = videoMuteMemberAction({ instance: this, memberId })
-    return this.execute(action)
-  }
-
-  videoUnmute({ memberId }: MemberCommandParams = {}) {
-    const action = videoUnmuteMemberAction({ instance: this, memberId })
-    return this.execute(action)
-  }
-
-  deaf({ memberId }: MemberCommandParams = {}) {
-    const action = deafMemberAction({ instance: this, memberId })
-    return this.execute(action)
-  }
-
-  undeaf({ memberId }: MemberCommandParams = {}) {
-    const action = undeafMemberAction({ instance: this, memberId })
-    return this.execute(action)
-  }
-
-  setMicrophoneVolume(params: MemberCommandWithVolumeParams) {
-    const action = setOutputVolumeMemberAction({
-      instance: this,
-      ...params,
-    })
-    return this.execute(action)
-  }
-
-  setSpeakerVolume(params: MemberCommandWithVolumeParams) {
-    const action = setInputVolumeMemberAction({
-      instance: this,
-      ...params,
-    })
-    return this.execute(action)
-  }
-
-  setInputSensitivity(params: MemberCommandWithValueParams) {
-    const action = setInputSensitivityMemberAction({
-      instance: this,
-      ...params,
-    })
-    return this.execute(action)
-  }
-
-  removeMember({ memberId }: Required<MemberCommandParams>) {
-    if (!memberId) {
-      throw new TypeError('Invalid or missing "memberId" argument')
-    }
-    const action = removeMemberAction({ instance: this, memberId })
-    return this.execute(action)
-  }
-
-  getMemberList() {
-    const action = getMemberListAction({ instance: this })
-    return this.execute(action)
-  }
-
-  getLayoutList() {
-    const action = getLayoutListAction({ instance: this })
-    return this.execute(action)
-  }
-
-  setLayout({ name }: { name: string }) {
-    const action = setLayoutAction({ instance: this, name })
-    return this.execute(action)
-  }
-
-  hideVideoMuted() {
-    const action = hideVideoMutedAction({ instance: this })
-    return this.execute(action)
-  }
-
-  showVideoMuted() {
-    const action = showVideoMutedAction({ instance: this })
-    return this.execute(action)
-  }
-
   /** @internal */
   async hangup() {
     this._screenShareList.forEach((screenShare) => {
@@ -294,3 +191,27 @@ export class Room extends BaseConnection {
     super._finalize()
   }
 }
+
+type RoomProps = {
+  [k in keyof RoomForComposition]: PropertyDescriptor
+}
+const props: RoomProps = {
+  audioMute: Rooms.audioMuteMember,
+  audioUnmute: Rooms.audioUnmuteMember,
+  videoMute: Rooms.videoMuteMember,
+  videoUnmute: Rooms.videoUnmuteMember,
+  deaf: Rooms.deafMember,
+  undeaf: Rooms.undeafMember,
+  setMicrophoneVolume: Rooms.setOutputVolumeMember,
+  setSpeakerVolume: Rooms.setInputVolumeMember,
+  setInputSensitivity: Rooms.setInputSensitivityMember,
+  removeMember: Rooms.removeMember,
+  getMemberList: Rooms.getMemberList,
+  getLayoutList: Rooms.getLayoutList,
+  setLayout: Rooms.setLayout,
+  hideVideoMuted: Rooms.hideVideoMuted,
+  showVideoMuted: Rooms.showVideoMuted,
+}
+Object.defineProperties(Room.prototype, props)
+
+export { Room }

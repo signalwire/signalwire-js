@@ -1,15 +1,10 @@
+import { Rooms } from '@signalwire/core'
 import { BaseConnection } from '@signalwire/webrtc'
-import { MemberCommandParams } from './utils/interfaces'
-import {
-  audioMuteMemberAction,
-  audioUnmuteMemberAction,
-  videoMuteMemberAction,
-  videoUnmuteMemberAction,
-  setOutputVolumeMemberAction,
-  setInputSensitivityMemberAction,
-} from './features/actions'
+import { RoomDeviceForComposition } from './utils/interfaces'
 
-export class RoomDevice extends BaseConnection {
+interface RoomDevice extends RoomDeviceForComposition {}
+
+class RoomDevice extends BaseConnection {
   join() {
     return super.invite()
   }
@@ -17,40 +12,19 @@ export class RoomDevice extends BaseConnection {
   leave() {
     return super.hangup()
   }
-
-  audioMute({ memberId }: MemberCommandParams = {}) {
-    const action = audioMuteMemberAction({ instance: this, memberId })
-    return this.execute(action)
-  }
-
-  audioUnmute({ memberId }: MemberCommandParams = {}) {
-    const action = audioUnmuteMemberAction({ instance: this, memberId })
-    return this.execute(action)
-  }
-
-  videoMute({ memberId }: MemberCommandParams = {}) {
-    const action = videoMuteMemberAction({ instance: this, memberId })
-    return this.execute(action)
-  }
-
-  videoUnmute({ memberId }: MemberCommandParams = {}) {
-    const action = videoUnmuteMemberAction({ instance: this, memberId })
-    return this.execute(action)
-  }
-
-  public setMicrophoneVolume({ volume }: { volume: number }) {
-    const action = setOutputVolumeMemberAction({
-      instance: this,
-      volume: +volume,
-    })
-    return this.execute(action)
-  }
-
-  public setInputSensitivity({ value }: { value: number }) {
-    const action = setInputSensitivityMemberAction({
-      instance: this,
-      value: +value,
-    })
-    return this.execute(action)
-  }
 }
+
+type RoomDeviceProps = {
+  [k in keyof RoomDeviceForComposition]: PropertyDescriptor
+}
+const props: RoomDeviceProps = {
+  audioMute: Rooms.audioMuteMember,
+  audioUnmute: Rooms.audioUnmuteMember,
+  videoMute: Rooms.videoMuteMember,
+  videoUnmute: Rooms.videoUnmuteMember,
+  setMicrophoneVolume: Rooms.setOutputVolumeMember,
+  setInputSensitivity: Rooms.setInputSensitivityMember,
+}
+Object.defineProperties(RoomDevice.prototype, props)
+
+export { RoomDevice }
