@@ -91,10 +91,18 @@ export class BaseConnection
   private state: BaseConnectionState = 'new'
   private prevState: BaseConnectionState = 'new'
 
-  // @ts-ignore
-  private _roomId: string
-  private _roomSessionId: string
-  private _memberId: string
+  /**
+   *  FIXME: Remove this workaround when
+   * we get room.subscribed for screenShare
+   * and device sessions.
+   */
+
+  /** @internal */
+  public _roomId: string
+  /** @internal */
+  public _roomSessionId: string
+  /** @internal */
+  public _memberId: string
 
   constructor(options: BaseConnectionOptions) {
     super(options)
