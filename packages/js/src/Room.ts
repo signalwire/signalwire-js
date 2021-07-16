@@ -60,6 +60,15 @@ class Room extends BaseConnection implements BaseRoomInterface {
     })(options)
 
     /**
+     *  FIXME: Remove this workaround when
+     * we get room.subscribed for screenShare
+     * and device sessions.
+     */
+    screenShare._memberId = screenShare.id
+    screenShare._roomId = this.roomId
+    screenShare._roomSessionId = this.roomSessionId
+
+    /**
      * Hangup if the user stop the screenShare from the
      * native browser button or if the videoTrack ends.
      */
@@ -142,6 +151,15 @@ class Room extends BaseConnection implements BaseRoomInterface {
         responses: 'onSuccess',
       },
     })(options)
+
+    /**
+     *  FIXME: Remove this workaround when
+     * we get room.subscribed for screenShare
+     * and device sessions.
+     */
+    roomDevice._memberId = roomDevice.id
+    roomDevice._roomId = this.roomId
+    roomDevice._roomSessionId = this.roomSessionId
 
     roomDevice.on('destroy', () => {
       this._deviceList.delete(roomDevice)
