@@ -89,12 +89,11 @@ interface RoomControlMethodsInterface {
  * other memberId.
  */
 
-export interface RoomForComposition
+export interface RoomMethods
   extends RoomMemberMethodsInterface,
     RoomLayoutMethodsInterface,
     RoomControlMethodsInterface {}
 
-export interface RoomDeviceForComposition extends RoomMemberMethodsInterface {}
+export interface RoomDeviceMethods extends RoomMemberMethodsInterface {}
 
-export interface RoomScreenShareForComposition
-  extends RoomMemberMethodsInterface {}
+export interface RoomScreenShareMethods extends RoomMemberMethodsInterface {}

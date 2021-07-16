@@ -1,4 +1,4 @@
-import { logger, connect, Rooms } from '@signalwire/core'
+import { logger, connect, Rooms, RoomCustomMethods } from '@signalwire/core'
 import {
   getDisplayMedia,
   BaseConnection,
@@ -12,13 +12,13 @@ import {
   AddCameraOptions,
   AddMicrophoneOptions,
   BaseRoomInterface,
-  RoomForComposition,
+  RoomMethods,
 } from './utils/interfaces'
 import { audioSetSpeakerAction } from './features/actions'
 import { RoomScreenShare } from './RoomScreenShare'
 import { RoomDevice } from './RoomDevice'
 
-interface Room extends RoomForComposition {}
+interface Room extends RoomMethods {}
 
 class Room extends BaseConnection implements BaseRoomInterface {
   private _screenShareList = new Set<RoomScreenShareObject>()
@@ -192,10 +192,7 @@ class Room extends BaseConnection implements BaseRoomInterface {
   }
 }
 
-type RoomProps = {
-  [k in keyof RoomForComposition]: PropertyDescriptor
-}
-const props: RoomProps = {
+const customMethods: RoomCustomMethods<RoomMethods> = {
   audioMute: Rooms.audioMuteMember,
   audioUnmute: Rooms.audioUnmuteMember,
   videoMute: Rooms.videoMuteMember,
@@ -212,6 +209,6 @@ const props: RoomProps = {
   hideVideoMuted: Rooms.hideVideoMuted,
   showVideoMuted: Rooms.showVideoMuted,
 }
-Object.defineProperties(Room.prototype, props)
+Object.defineProperties(Room.prototype, customMethods)
 
 export { Room }

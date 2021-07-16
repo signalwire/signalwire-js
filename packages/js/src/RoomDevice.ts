@@ -1,8 +1,8 @@
-import { Rooms } from '@signalwire/core'
+import { Rooms, RoomCustomMethods } from '@signalwire/core'
 import { BaseConnection } from '@signalwire/webrtc'
-import { RoomDeviceForComposition } from './utils/interfaces'
+import { RoomDeviceMethods } from './utils/interfaces'
 
-interface RoomDevice extends RoomDeviceForComposition {}
+interface RoomDevice extends RoomDeviceMethods {}
 
 class RoomDevice extends BaseConnection {
   join() {
@@ -14,10 +14,7 @@ class RoomDevice extends BaseConnection {
   }
 }
 
-type RoomDeviceProps = {
-  [k in keyof RoomDeviceForComposition]: PropertyDescriptor
-}
-const props: RoomDeviceProps = {
+const customMethods: RoomCustomMethods<RoomDeviceMethods> = {
   audioMute: Rooms.audioMuteMember,
   audioUnmute: Rooms.audioUnmuteMember,
   videoMute: Rooms.videoMuteMember,
@@ -25,6 +22,6 @@ const props: RoomDeviceProps = {
   setMicrophoneVolume: Rooms.setOutputVolumeMember,
   setInputSensitivity: Rooms.setInputSensitivityMember,
 }
-Object.defineProperties(RoomDevice.prototype, props)
+Object.defineProperties(RoomDevice.prototype, customMethods)
 
 export { RoomDevice }
