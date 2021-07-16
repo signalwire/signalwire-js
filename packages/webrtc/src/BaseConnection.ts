@@ -9,6 +9,7 @@ import {
   BaseComponentOptions,
   BaseConnectionState,
   RoomEventNames,
+  Rooms,
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import { ConnectionOptions } from './utils/interfaces'
@@ -69,7 +70,10 @@ const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
 }
 
 export type BaseConnectionOptions = ConnectionOptions & BaseComponentOptions
-export class BaseConnection extends BaseComponent {
+export class BaseConnection
+  extends BaseComponent
+  implements Rooms.BaseRoomInterface
+{
   public nodeId = ''
   public direction: 'inbound' | 'outbound'
   public peer: RTCPeer
