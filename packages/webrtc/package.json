@@ -3,7 +3,7 @@
   "description": "SignalWire WebRTC library",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
-  "version": "3.0.0-beta.1",
+  "version": "3.0.0-beta.2",
   "source": "src/index.ts",
   "main": "dist/index.js",
   "exports": "./dist/index.modern.js",
@@ -41,7 +41,7 @@
     "docs:watch": "typedoc --options typedoc.js --watch"
   },
   "dependencies": {
-    "@signalwire/core": "3.0.0-beta.1"
+    "@signalwire/core": "3.0.0-beta.2"
   },
   "types": "dist/webrtc/src/index.d.ts"
 }
