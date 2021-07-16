@@ -1,5 +1,17 @@
 # @signalwire/core
 
+## 3.0.0-beta.2
+
+### Patch Changes
+
+- 6995825: Standardize naming for store actions
+- 8bb4e76: Split Room objects into Room, RoomDevice and RoomScreenShare with specific methods for each use case
+- f6b8b10: Encapsulate each EventEmitter using a unique id as the namespace.
+- 12178ce: Internal refactor for creating destroyable slices without repetition.
+- b1f3d45: Add ability to queue execute actions based on the user's auth status.
+  Add ability to track how many times the user has been reconnected.
+  Improve reconnecting logic.
+
 ## 3.0.0-beta.1
 
 ### Patch Changes

@@ -1,5 +1,19 @@
 # @signalwire/js
 
+## 3.0.0-beta.3
+
+### Patch Changes
+
+- efe9bd8: Move Room to `js` package
+- 8bb4e76: Split Room objects into Room, RoomDevice and RoomScreenShare with specific methods for each use case
+- acf8082: Expose `addMicrophone`, `addCamera` and `addDevice` methods to stream from additional devices in a room.
+- 9ee753d: Expose `updateCamera` and `updateMicrophone` methods to switch devices while connected to a Room.
+- efe9bd8: Add updateSpeaker method
+- f4372cd: Fix bug with the localVideo overlay rendering
+- Updated dependencies [efe9bd8]
+  - @signalwire/core@3.0.0-beta.2
+  - @signalwire/webrtc@3.0.0-beta.2
+
 ## 3.0.0-beta.2
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # @signalwire/node
 
+## 0.0.1-beta.2
+
+### Patch Changes
+
+- b1f3d45: Remove internal queueing mechanism for executing actions.
+- Updated dependencies [efe9bd8]
+  - @signalwire/core@3.0.0-beta.2
+
 ## 0.0.1-beta.1
 
 ### Patch Changes
