@@ -6,7 +6,6 @@ import { BaseClient } from './BaseClient'
 import { BaseComponent } from './BaseComponent'
 import { EventEmitter, getEventEmitter } from './utils/EventEmitter'
 import * as sessionSelectors from './redux/features/session/sessionSelectors'
-export * as actions from './redux/actions'
 
 // prettier-ignore
 export {
@@ -32,7 +31,8 @@ export type {
   CustomSagaParams,
   CustomSaga,
 } from './redux/interfaces'
-
+export * as actions from './redux/actions'
+export * as Rooms from './rooms'
 export const selectors = {
   ...sessionSelectors,
 }
