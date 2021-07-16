@@ -1,21 +1,28 @@
-import { logger, connect } from '@signalwire/core'
+import { logger, connect, Rooms, RoomCustomMethods } from '@signalwire/core'
 import {
   getDisplayMedia,
   BaseConnection,
   BaseConnectionOptions,
 } from '@signalwire/webrtc'
 import {
-  RoomObject,
+  RoomScreenShareObject,
+  RoomDeviceObject,
   CreateScreenShareObjectOptions,
   AddDeviceOptions,
   AddCameraOptions,
   AddMicrophoneOptions,
+  BaseRoomInterface,
+  RoomMethods,
 } from './utils/interfaces'
 import { audioSetSpeakerAction } from './features/actions'
+import { RoomScreenShare } from './RoomScreenShare'
+import { RoomDevice } from './RoomDevice'
 
-export class Room extends BaseConnection {
-  private _screenShareList = new Set<RoomObject>()
-  private _deviceList = new Set<RoomObject>()
+interface Room extends RoomMethods {}
+
+class Room extends BaseConnection implements BaseRoomInterface {
+  private _screenShareList = new Set<RoomScreenShareObject>()
+  private _deviceList = new Set<RoomDeviceObject>()
 
   get screenShareList() {
     return Array.from(this._screenShareList)
@@ -39,9 +46,9 @@ export class Room extends BaseConnection {
       remoteStream: undefined,
     }
 
-    const screenShare: RoomObject = connect({
+    const screenShare: RoomScreenShareObject = connect({
       store: this.store,
-      Component: Room,
+      Component: RoomScreenShare,
       componentListeners: {
         state: 'onStateChange',
         remoteSDP: 'onRemoteSDP',
@@ -123,9 +130,9 @@ export class Room extends BaseConnection {
       recoverCall: false,
     }
 
-    const roomDevice: RoomObject = connect({
+    const roomDevice: RoomDeviceObject = connect({
       store: this.store,
-      Component: Room,
+      Component: RoomDevice,
       componentListeners: {
         state: 'onStateChange',
         remoteSDP: 'onRemoteSDP',
@@ -157,7 +164,7 @@ export class Room extends BaseConnection {
   }
 
   leave() {
-    return super.hangup()
+    return this.hangup()
   }
 
   updateSpeaker({ deviceId }: { deviceId: string }) {
@@ -184,3 +191,24 @@ export class Room extends BaseConnection {
     super._finalize()
   }
 }
+
+const customMethods: RoomCustomMethods<RoomMethods> = {
+  audioMute: Rooms.audioMuteMember,
+  audioUnmute: Rooms.audioUnmuteMember,
+  videoMute: Rooms.videoMuteMember,
+  videoUnmute: Rooms.videoUnmuteMember,
+  deaf: Rooms.deafMember,
+  undeaf: Rooms.undeafMember,
+  setMicrophoneVolume: Rooms.setOutputVolumeMember,
+  setSpeakerVolume: Rooms.setInputVolumeMember,
+  setInputSensitivity: Rooms.setInputSensitivityMember,
+  removeMember: Rooms.removeMember,
+  getMemberList: Rooms.getMemberList,
+  getLayoutList: Rooms.getLayoutList,
+  setLayout: Rooms.setLayout,
+  hideVideoMuted: Rooms.hideVideoMuted,
+  showVideoMuted: Rooms.showVideoMuted,
+}
+Object.defineProperties(Room.prototype, customMethods)
+
+export { Room }

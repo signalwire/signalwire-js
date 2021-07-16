@@ -5,21 +5,13 @@ import {
   VertoInvite,
   BaseComponent,
   VertoMethod,
-  RoomMethod,
   selectors,
   BaseComponentOptions,
   BaseConnectionState,
   RoomEventNames,
+  Rooms,
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
-import {
-  enableAudioTracks,
-  disableAudioTracks,
-  toggleAudioTracks,
-  enableVideoTracks,
-  disableVideoTracks,
-  toggleVideoTracks,
-} from './utils/helpers'
 import { ConnectionOptions } from './utils/interfaces'
 import { stopStream, stopTrack, getUserMedia } from './utils/webrtcHelpers'
 
@@ -77,22 +69,18 @@ const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   iceGatheringTimeout: 2 * 1000,
 }
 
-interface MemberCommandParams {
-  memberId?: string
-}
-interface MemberCommandWithVolumeParams extends MemberCommandParams {
-  volume: number
-}
-interface MemberCommandWithValueParams extends MemberCommandParams {
-  value: number
-}
 export type BaseConnectionOptions = ConnectionOptions & BaseComponentOptions
-export class BaseConnection extends BaseComponent {
+export class BaseConnection
+  extends BaseComponent
+  implements Rooms.BaseRoomInterface
+{
   public nodeId = ''
   public direction: 'inbound' | 'outbound'
   public peer: RTCPeer
   public options: BaseConnectionOptions
+  /** @internal */
   public cause: string
+  /** @internal */
   public causeCode: string
   /** @internal */
   public gotEarly = false
@@ -103,7 +91,6 @@ export class BaseConnection extends BaseComponent {
   private state: BaseConnectionState = 'new'
   private prevState: BaseConnectionState = 'new'
 
-  private _extension: string
   // @ts-ignore
   private _roomId: string
   private _roomSessionId: string
@@ -133,16 +120,16 @@ export class BaseConnection extends BaseComponent {
     return this.state === 'trying'
   }
 
-  get extension() {
-    return this._extension || this.options.destinationNumber || ''
-  }
-
-  set extension(extension: string) {
-    this._extension = extension
-  }
-
   get memberId() {
     return this._memberId
+  }
+
+  get roomId() {
+    return this._roomId
+  }
+
+  get roomSessionId() {
+    return this._roomSessionId
   }
 
   get localStream() {
@@ -433,7 +420,7 @@ export class BaseConnection extends BaseComponent {
   }
 
   /** @internal */
-  async answer() {
+  answer() {
     return new Promise(async (resolve, reject) => {
       this.direction = 'inbound'
       this.peer = new RTCPeer(this, 'answer')
@@ -510,69 +497,6 @@ export class BaseConnection extends BaseComponent {
   }
 
   /** @internal */
-  disableOutboundAudio() {
-    // TODO: Use peer method
-    this.options.localStream && disableAudioTracks(this.options.localStream)
-  }
-
-  /** @internal */
-  enableOutboundAudio() {
-    // TODO: Use peer method
-    this.options.localStream && enableAudioTracks(this.options.localStream)
-  }
-
-  /** @internal */
-  toggleOutboundAudio() {
-    // TODO: Use peer method
-    this.options.localStream && toggleAudioTracks(this.options.localStream)
-  }
-
-  /** @internal */
-  disableOutboundVideo() {
-    // TODO: Use peer method
-    this.options.localStream && disableVideoTracks(this.options.localStream)
-  }
-
-  /** @internal */
-  enableOutboundVideo() {
-    // TODO: Use peer method
-    this.options.localStream && enableVideoTracks(this.options.localStream)
-  }
-
-  /** @internal */
-  toggleOutboundVideo() {
-    // TODO: Use peer method
-    this.options.localStream && toggleVideoTracks(this.options.localStream)
-  }
-
-  /**
-   * Deaf
-   * @internal
-   */
-  disableInboundAudio() {
-    // TODO: Use peer method
-    this.options.remoteStream && disableAudioTracks(this.options.remoteStream)
-  }
-
-  /**
-   * Undeaf
-   * @internal
-   */
-  enableInboundAudio() {
-    // TODO: Use peer method
-    this.options.remoteStream && enableAudioTracks(this.options.remoteStream)
-  }
-
-  /**
-   * Toggle Deaf
-   * @internal
-   */
-  toggleInboundAudio() {
-    // TODO: Use peer method
-    this.options.remoteStream && toggleAudioTracks(this.options.remoteStream)
-  }
-
-  /** @internal */
   doReinviteWithRelayOnly() {
     if (this.peer && this.active) {
       this.peer.restartIceWithRelayOnly()
@@ -630,153 +554,6 @@ export class BaseConnection extends BaseComponent {
         this._finalize()
         break
     }
-  }
-
-  public getLayoutList() {
-    return this.execute({
-      method: 'video.list_available_layouts',
-      params: {
-        room_session_id: this._roomSessionId,
-      },
-    })
-  }
-
-  public setLayout({ name }: { name: string }) {
-    return this.execute({
-      method: 'video.set_layout',
-      params: {
-        room_session_id: this._roomSessionId,
-        name,
-      },
-    })
-  }
-
-  public hideVideoMuted() {
-    return this.execute({
-      method: 'video.hide_video_muted',
-      params: {
-        room_session_id: this._roomSessionId,
-      },
-    })
-  }
-
-  public showVideoMuted() {
-    return this.execute({
-      method: 'video.show_video_muted',
-      params: {
-        room_session_id: this._roomSessionId,
-      },
-    })
-  }
-
-  public audioMute({ memberId }: MemberCommandParams = {}) {
-    return this._memberCommand({
-      method: 'video.member.audio_mute',
-      memberId,
-    })
-  }
-
-  public audioUnmute({ memberId }: MemberCommandParams = {}) {
-    return this._memberCommand({
-      method: 'video.member.audio_unmute',
-      memberId,
-    })
-  }
-
-  public videoMute({ memberId }: MemberCommandParams = {}) {
-    return this._memberCommand({
-      method: 'video.member.video_mute',
-      memberId,
-    })
-  }
-
-  public videoUnmute({ memberId }: MemberCommandParams = {}) {
-    return this._memberCommand({
-      method: 'video.member.video_unmute',
-      memberId,
-    })
-  }
-
-  public deaf({ memberId }: MemberCommandParams = {}) {
-    return this._memberCommand({
-      method: 'video.member.deaf',
-      memberId,
-    })
-  }
-
-  public undeaf({ memberId }: MemberCommandParams = {}) {
-    return this._memberCommand({
-      method: 'video.member.undeaf',
-      memberId,
-    })
-  }
-
-  public setSpeakerVolume({ memberId, volume }: MemberCommandWithVolumeParams) {
-    return this._memberCommand({
-      method: 'video.member.set_input_volume',
-      memberId,
-      volume: +volume,
-    })
-  }
-
-  public setMicrophoneVolume({
-    memberId,
-    volume,
-  }: MemberCommandWithVolumeParams) {
-    return this._memberCommand({
-      method: 'video.member.set_output_volume',
-      memberId,
-      volume: +volume,
-    })
-  }
-
-  public setInputSensitivity({
-    memberId,
-    value,
-  }: MemberCommandWithValueParams) {
-    return this._memberCommand({
-      method: 'video.member.set_input_sensitivity',
-      memberId,
-      value: +value,
-    })
-  }
-
-  public removeMember({ memberId }: Required<MemberCommandParams>) {
-    if (!memberId) {
-      throw new TypeError('Invalid or missing "memberId" argument')
-    }
-    return this._memberCommand({
-      method: 'video.member.remove',
-      memberId,
-    })
-  }
-
-  public getMemberList() {
-    return this.execute({
-      method: 'video.members.get',
-      params: {
-        room_session_id: this._roomSessionId,
-      },
-    })
-  }
-
-  private _memberCommand({
-    method,
-    memberId,
-    ...rest
-  }: {
-    method: RoomMethod
-    memberId?: string
-    [key: string]: unknown
-  }) {
-    return this.execute({
-      method,
-      params: {
-        room_session_id: this._roomSessionId,
-        member_id: memberId || this._memberId,
-        ...rest,
-      },
-    })
   }
 
   /** @internal */

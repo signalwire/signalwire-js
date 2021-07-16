@@ -89,6 +89,8 @@
 								<li class="tsd-kind-function tsd-parent-kind-namespace"><a href="webrtc.html#getusermedia" class="tsd-kind-icon">get<wbr>User<wbr>Media</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-namespace"><a href="webrtc.html#requestpermissions" class="tsd-kind-icon">request<wbr>Permissions</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-namespace"><a href="webrtc.html#setmediaelementsinkid" class="tsd-kind-icon">set<wbr>Media<wbr>Element<wbr>Sink<wbr>Id</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-namespace"><a href="webrtc.html#stopstream" class="tsd-kind-icon">stop<wbr>Stream</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-namespace"><a href="webrtc.html#stoptrack" class="tsd-kind-icon">stop<wbr>Track</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-namespace"><a href="webrtc.html#supportsmediadevices" class="tsd-kind-icon">supports<wbr>Media<wbr>Devices</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-namespace"><a href="webrtc.html#supportsmediaoutput" class="tsd-kind-icon">supports<wbr>Media<wbr>Output</a></li>
 							</ul>
@@ -472,7 +474,7 @@
 					<a name="setmediaelementsinkid" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagConst">Const</span> set<wbr>Media<wbr>Element<wbr>Sink<wbr>Id</h3>
 					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-namespace">
-						<li class="tsd-signature tsd-kind-icon">set<wbr>Media<wbr>Element<wbr>Sink<wbr>Id<span class="tsd-signature-symbol">(</span>el<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">HTMLMediaElement</span>, deviceId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">set<wbr>Media<wbr>Element<wbr>Sink<wbr>Id<span class="tsd-signature-symbol">(</span>el<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">HTMLMediaElement</span>, deviceId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
@@ -490,7 +492,53 @@
 									<h5>deviceId: <span class="tsd-signature-type">string</span></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-namespace">
+					<a name="stopstream" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagConst">Const</span> stop<wbr>Stream</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-namespace">
+						<li class="tsd-signature tsd-kind-icon">stop<wbr>Stream<span class="tsd-signature-symbol">(</span>stream<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">MediaStream</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in packages/webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:13</li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> stream: <span class="tsd-signature-type">MediaStream</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-namespace">
+					<a name="stoptrack" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagConst">Const</span> stop<wbr>Track</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-namespace">
+						<li class="tsd-signature tsd-kind-icon">stop<wbr>Track<span class="tsd-signature-symbol">(</span>track<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">MediaStreamTrack</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in packages/webrtc/dist/webrtc/src/utils/webrtcHelpers.d.ts:14</li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>track: <span class="tsd-signature-type">MediaStreamTrack</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -602,6 +650,12 @@
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-namespace">
 						<a href="webrtc.html#setmediaelementsinkid" class="tsd-kind-icon">set<wbr>Media<wbr>Element<wbr>Sink<wbr>Id</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-namespace">
+						<a href="webrtc.html#stopstream" class="tsd-kind-icon">stop<wbr>Stream</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-namespace">
+						<a href="webrtc.html#stoptrack" class="tsd-kind-icon">stop<wbr>Track</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-namespace">
 						<a href="webrtc.html#supportsmediadevices" class="tsd-kind-icon">supports<wbr>Media<wbr>Devices</a>
