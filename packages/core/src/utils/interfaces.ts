@@ -404,3 +404,7 @@ export type ExecuteParams = {
 }
 
 export type GlobalVideoEvents = typeof GLOBAL_VIDEO_EVENTS[number]
+
+export type RoomCustomMethods<T> = {
+  [k in keyof T]: PropertyDescriptor
+}

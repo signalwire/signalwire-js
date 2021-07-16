@@ -1,8 +1,8 @@
-import { Rooms } from '@signalwire/core'
+import { Rooms, RoomCustomMethods } from '@signalwire/core'
 import { BaseConnection } from '@signalwire/webrtc'
-import { RoomScreenShareForComposition } from './utils/interfaces'
+import { RoomScreenShareMethods } from './utils/interfaces'
 
-interface RoomScreenShare extends RoomScreenShareForComposition {}
+interface RoomScreenShare extends RoomScreenShareMethods {}
 
 class RoomScreenShare extends BaseConnection {
   join() {
@@ -14,10 +14,7 @@ class RoomScreenShare extends BaseConnection {
   }
 }
 
-type RoomScreenShareProps = {
-  [k in keyof RoomScreenShareForComposition]: PropertyDescriptor
-}
-const props: RoomScreenShareProps = {
+const customMethods: RoomCustomMethods<RoomScreenShareMethods> = {
   audioMute: Rooms.audioMuteMember,
   audioUnmute: Rooms.audioUnmuteMember,
   videoMute: Rooms.videoMuteMember,
@@ -25,6 +22,6 @@ const props: RoomScreenShareProps = {
   setMicrophoneVolume: Rooms.setOutputVolumeMember,
   setInputSensitivity: Rooms.setInputSensitivityMember,
 }
-Object.defineProperties(RoomScreenShare.prototype, props)
+Object.defineProperties(RoomScreenShare.prototype, customMethods)
 
 export { RoomScreenShare }
