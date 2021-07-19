@@ -98,6 +98,8 @@
 								<li class="tsd-kind-type-alias"><a href="index.html#roommember" class="tsd-kind-icon">Room<wbr>Member</a></li>
 								<li class="tsd-kind-type-alias"><a href="index.html#roommembereventnames" class="tsd-kind-icon">Room<wbr>Member<wbr>Event<wbr>Names</a></li>
 								<li class="tsd-kind-type-alias"><a href="index.html#roomobjectevents" class="tsd-kind-icon">Room<wbr>Object<wbr>Events</a></li>
+								<li class="tsd-kind-type-alias"><a href="index.html#sessionevents" class="tsd-kind-icon">Session<wbr>Events</a></li>
+								<li class="tsd-kind-type-alias"><a href="index.html#sessionstatus" class="tsd-kind-icon">Session<wbr>Status</a></li>
 							</ul>
 						</section>
 					</div>
@@ -111,7 +113,7 @@
 					<div class="tsd-signature tsd-kind-icon">Base<wbr>Connection<wbr>Events<wbr>Handler<wbr>Mapping<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">EventsHandlerMapping</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><a href="index.html#baseconnectionstate" class="tsd-signature-type" data-tsd-kind="Type alias">BaseConnectionState</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">(</span>params<span class="tsd-signature-symbol">: </span><a href="classes/video.room.html" class="tsd-signature-type" data-tsd-kind="Class">Room</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/signalwire/signalwire-js/blob/ef1964c/packages/js/src/utils/interfaces.ts#L11">packages/js/src/utils/interfaces.ts:11</a></li>
+							<li>Defined in <a href="https://github.com/signalwire/signalwire-js/blob/de0bb85/packages/js/src/utils/interfaces.ts#L11">packages/js/src/utils/interfaces.ts:11</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -138,10 +140,10 @@
 				<section class="tsd-panel tsd-member tsd-kind-type-alias">
 					<a name="clientevents" class="tsd-anchor"></a>
 					<h3>Client<wbr>Events</h3>
-					<div class="tsd-signature tsd-kind-icon">Client<wbr>Events<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">SessionEvents</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></div>
+					<div class="tsd-signature tsd-kind-icon">Client<wbr>Events<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><a href="index.html#sessionevents" class="tsd-signature-type" data-tsd-kind="Type alias">SessionEvents</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in packages/core/dist/core/src/utils/interfaces.d.ts:95</li>
+							<li>Defined in packages/core/dist/core/src/utils/interfaces.d.ts:93</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -171,9 +173,14 @@
 					<div class="tsd-signature tsd-kind-icon">Layout<wbr>Event<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;changed&quot;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in packages/core/dist/core/src/utils/interfaces.d.ts:96</li>
+							<li>Defined in packages/core/dist/core/src/utils/interfaces.d.ts:95</li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>See <a href="index.html#layoutevents">LayoutEvents</a>. Prepend LayoutEvent with <code>layout.</code> prefix.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-type-alias">
 					<a name="layoutevents" class="tsd-anchor"></a>
@@ -254,6 +261,11 @@
 							<li>Defined in packages/core/dist/core/src/utils/interfaces.d.ts:97</li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>See <a href="index.html#roomevents">RoomEvents</a>. Prepend RoomEvent with <code>room.</code> prefix.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-type-alias">
 					<a name="roomeventnames" class="tsd-anchor"></a>
@@ -306,7 +318,27 @@
 					<div class="tsd-signature tsd-kind-icon">Room<wbr>Object<wbr>Events<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{</span><span class="tsd-signature-symbol">[ </span><span class="tsd-signature-type">k</span><span class="tsd-signature-symbol"> in </span><a href="index.html#roomeventnames" class="tsd-signature-type" data-tsd-kind="Type alias">RoomEventNames</a><span class="tsd-signature-symbol"> | </span><a href="index.html#baseconnectionstate" class="tsd-signature-type" data-tsd-kind="Type alias">BaseConnectionState</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">: </span><a href="index.html#baseconnectioneventshandlermapping" class="tsd-signature-type" data-tsd-kind="Type alias">BaseConnectionEventsHandlerMapping</a><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">k</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol"> }</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/signalwire/signalwire-js/blob/ef1964c/packages/js/src/utils/interfaces.ts#L14">packages/js/src/utils/interfaces.ts:14</a></li>
+							<li>Defined in <a href="https://github.com/signalwire/signalwire-js/blob/de0bb85/packages/js/src/utils/interfaces.ts#L14">packages/js/src/utils/interfaces.ts:14</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias">
+					<a name="sessionevents" class="tsd-anchor"></a>
+					<h3>Session<wbr>Events</h3>
+					<div class="tsd-signature tsd-kind-icon">Session<wbr>Events<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">`</span><span class="tsd-signature-type">session.</span><span class="tsd-signature-symbol">${</span><a href="index.html#sessionstatus" class="tsd-signature-type" data-tsd-kind="Type alias">SessionStatus</a><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">`</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in packages/core/dist/core/src/utils/interfaces.d.ts:91</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias">
+					<a name="sessionstatus" class="tsd-anchor"></a>
+					<h3>Session<wbr>Status</h3>
+					<div class="tsd-signature tsd-kind-icon">Session<wbr>Status<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;unknown&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;idle&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;reconnecting&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;connected&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;disconnected&quot;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in packages/core/dist/core/src/utils/interfaces.d.ts:90</li>
 						</ul>
 					</aside>
 				</section>
@@ -399,6 +431,12 @@
 					</li>
 					<li class=" tsd-kind-type-alias">
 						<a href="index.html#roomobjectevents" class="tsd-kind-icon">Room<wbr>Object<wbr>Events</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="index.html#sessionevents" class="tsd-kind-icon">Session<wbr>Events</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="index.html#sessionstatus" class="tsd-kind-icon">Session<wbr>Status</a>
 					</li>
 				</ul>
 			</nav>
