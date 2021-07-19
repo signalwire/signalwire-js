@@ -125,20 +125,20 @@ export type SessionEvents = `session.${SessionStatus}`
  */
 export type ClientEvents = Record<SessionEvents, () => void>
 
-type LayoutEvent = 'changed'
+export type LayoutEvent = 'changed'
 
 // prettier-ignore
-type RoomEvent =
+export type RoomEvent =
   | 'ended'
   | 'started'
   | 'subscribed'
   | 'updated'
 
-type MemberJoinedEventName = 'member.joined'
-type MemberLeftEventName = 'member.left'
-type MemberUpdatedEventName = 'member.updated'
-type RoomMemberEventNames = `${MemberUpdatedEventName}.${keyof RoomMember}`
-type MemberTalkingEventNames =
+export type MemberJoinedEventName = 'member.joined'
+export type MemberLeftEventName = 'member.left'
+export type MemberUpdatedEventName = 'member.updated'
+export type RoomMemberEventNames = `${MemberUpdatedEventName}.${keyof RoomMember}`
+export type MemberTalkingEventNames =
   | 'member.talking'
   | 'member.talking.start'
   | 'member.talking.stop'
@@ -159,14 +159,14 @@ export type BaseConnectionState =
   | 'ringing'
   | 'trying'
 
-type LayoutEvents = `layout.${LayoutEvent}`
-type MemberEvents =
+export type LayoutEvents = `layout.${LayoutEvent}`
+export type MemberEvents =
   | MemberJoinedEventName
   | MemberLeftEventName
   | MemberUpdatedEventName
   | RoomMemberEventNames
   | MemberTalkingEventNames
-type RoomEvents = `room.${RoomEvent}`
+export type RoomEvents = `room.${RoomEvent}`
 /**
  * List of all the events the call can listen to
  */
@@ -212,10 +212,10 @@ export interface RoomLayoutLayer {
 }
 
 type RoomMemberType = 'member' | 'screen' | 'device'
-interface RoomMemberCommon {
+export interface RoomMemberCommon {
   id: string
 }
-interface RoomMemberProperties {
+export interface RoomMemberProperties {
   scope_id: string
   parent_id?: string
   input_volume: number
