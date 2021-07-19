@@ -8,7 +8,7 @@ import type { Room } from '../Room'
 import type { RoomScreenShare } from '../RoomScreenShare'
 import type { RoomDevice } from '../RoomDevice'
 
-type BaseConnectionEventsHandlerMapping = EventsHandlerMapping &
+export type BaseConnectionEventsHandlerMapping = EventsHandlerMapping &
   Record<BaseConnectionState, (params: Room) => void>
 
 export type RoomObjectEvents = {
