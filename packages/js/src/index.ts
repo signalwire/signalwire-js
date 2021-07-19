@@ -21,6 +21,8 @@ export type {
   RoomMemberEventNames,
   RTCTrackEventName,
   UserOptions,
+  SessionStatus,
+  SessionEvents,
 } from '@signalwire/core'
 export type {
   BaseConnectionOptions,

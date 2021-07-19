@@ -120,13 +120,13 @@ export type SessionStatus =
 
 export type SessionEvents = `session.${SessionStatus}`
 
-/**
- * List of all the events the client can listen to.
- */
+/** List of all the events the client can listen to. */
 export type ClientEvents = Record<SessionEvents, () => void>
 
+/** See {@link LayoutEvents}. Prepend LayoutEvent with `layout.` prefix. */
 export type LayoutEvent = 'changed'
 
+/** See {@link RoomEvents}. Prepend RoomEvent with `room.` prefix. */
 // prettier-ignore
 export type RoomEvent =
   | 'ended'
@@ -137,7 +137,8 @@ export type RoomEvent =
 export type MemberJoinedEventName = 'member.joined'
 export type MemberLeftEventName = 'member.left'
 export type MemberUpdatedEventName = 'member.updated'
-export type RoomMemberEventNames = `${MemberUpdatedEventName}.${keyof RoomMember}`
+export type RoomMemberEventNames =
+  `${MemberUpdatedEventName}.${keyof RoomMember}`
 export type MemberTalkingEventNames =
   | 'member.talking'
   | 'member.talking.start'
