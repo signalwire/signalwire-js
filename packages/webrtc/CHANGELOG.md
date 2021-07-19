@@ -6,7 +6,6 @@
 
 - efe9bd8: Move Room to `js` package
 - 8bb4e76: Split Room objects into `Room`, `RoomDevice` and `RoomScreenShare` with specific methods for each use case.
-- a15b69a: Add `getMemberList` method to retrieve the member list for the current room
 - acf8082: Expose `addMicrophone`, `addCamera` and `addDevice` methods to stream from additional devices in a room.
 - f6b8b10: Encapsulate each EventEmitter using a unique id as the namespace.
 - 9ee753d: Expose `updateCamera` and `updateMicrophone` methods to switch devices while connected to a Room.
