@@ -1,5 +1,11 @@
 # @signalwire/js
 
+## 3.0.0-beta.4
+
+### Patch Changes
+
+- Fix esm bundle output for `js` package
+
 ## 3.0.0-beta.3
 
 ### Patch Changes
@@ -10,6 +16,7 @@
 - 9ee753d: Expose `updateCamera` and `updateMicrophone` methods to switch devices while connected to a Room.
 - efe9bd8: Add updateSpeaker method
 - f4372cd: Fix bug with the localVideo overlay rendering
+- a15b69a: Add `getMemberList` method to retrieve the member list for the current room
 - Updated dependencies [efe9bd8]
   - @signalwire/core@3.0.0-beta.2
   - @signalwire/webrtc@3.0.0-beta.2
