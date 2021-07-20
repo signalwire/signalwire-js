@@ -5,14 +5,9 @@
   "license": "MIT",
   "version": "3.0.0-beta.2",
   "source": "src/index.ts",
-  "main": "dist/index.js",
-  "esmodule": "./dist/index.modern.mjs",
-  "exports": {
-    "require": "./dist/index.js",
-    "module": "./dist/index.modern.mjs",
-    "default": "./dist/index.modern.mjs"
-  },
-  "module": "dist/index.esm.js",
+  "main": "lib/index-node.js",
+  "esmodule": "./lib/index.js",
+  "module": "./lib/index.js",
   "files": [
     "dist",
     "src"
@@ -39,7 +34,8 @@
     "start": "microbundle watch -f modern,esm --define process.env.NODE_ENV=development --tsconfig tsconfig.build.json",
     "build": "pkg-typings --pre-run && microbundle -f modern,esm,cjs --define process.env.NODE_ENV=production --tsconfig ./tsconfig.build.json --target node && pkg-typings --after-run",
     "test": "NODE_ENV=test jest",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "esbuild": "node ./build-web.js && node ./build-node.js"
   },
   "dependencies": {
     "uuid": "^8.3.2"
