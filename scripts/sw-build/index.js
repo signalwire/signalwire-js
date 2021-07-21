@@ -14,7 +14,6 @@ const COMMON_NODE = {
   // what to bundle and what not
   plugins: [nodeExternalsPlugin()],
 }
-
 // TODO: review options for --node and --web
 const OPTIONS_MAP = {
   '--node': [
@@ -59,18 +58,18 @@ const BUILD_MODES = ['--web', '--node']
 const isFlagMode = (flag) => {
   return BUILD_MODES.includes(flag)
 }
-
-const isFlagWatchFormat = (flag) => {
-  return flag.startsWith('--watchFormat')
-}
-
 const hasFlagMode = (flags = []) => {
   return flags.some((flag) => isFlagMode(flag))
+}
+const getFlagMode = (flags = []) => {
+  return flags.find((f) => isFlagMode(f))
+}
+const isFlagWatchFormat = (flag) => {
+  return flag.startsWith('--watchFormat')
 }
 const isDevMode = (flags = []) => {
   return flags.includes('--dev')
 }
-
 const getWatchFormat = (flags) => {
   const flagWatchFormat = flags.find((f) => isFlagWatchFormat(f))
   if (!flagWatchFormat) {
@@ -79,12 +78,11 @@ const getWatchFormat = (flags) => {
 
   return flagWatchFormat.split('=')[1]
 }
-
 const getOptionsFromFlags = (flags) => {
   const optionsFlags = flags.filter(
     (f) => !isFlagMode(f) && !isFlagWatchFormat(f)
   )
-  const modeFlag = flags.find((f) => isFlagMode(f))
+  const modeFlag = getFlagMode(flags)
   /**
    * When in dev mode, this flag will let us pick which format to
    * generate
@@ -172,6 +170,7 @@ export async function cli(args) {
     console.log('🟢 Watch mode enabled.')
   }
 
+  const modeFlag = getFlagMode(flags)
   const options = getOptionsFromFlags(flags)
 
   try {
@@ -186,7 +185,7 @@ export async function cli(args) {
 
     // `result.stop` is defined only in watch mode.
     if (!result.stop) {
-      console.log(`✅ [${pkgJson.name}] Built successfully!`)
+      console.log(`✅ [${pkgJson.name} | ${modeFlag}] Built successfully!`)
     }
   } catch (error) {
     console.log(`🔴 [${pkgJson.name}] Build failed.`, error)
