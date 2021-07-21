@@ -77,7 +77,6 @@ const getOptionsFromFlags = (flags) => {
 }
 
 export function cli(args) {
-  const mode = args[2]
   const flags = args.slice(2)
   const filePath = path.join(process.cwd(), 'build.config.json')
 
