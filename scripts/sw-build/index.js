@@ -10,6 +10,8 @@ const COMMON_NODE = {
   sourcemap: true,
   platform: 'node',
   target: 'node14',
+  // TODO: we might want to expose an option to selectively define
+  // what to bundle and what not
   plugins: [nodeExternalsPlugin()],
 }
 
