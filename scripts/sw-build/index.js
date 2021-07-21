@@ -3,40 +3,54 @@ import path from 'path'
 import esbuild from 'esbuild'
 import { nodeExternalsPlugin } from 'esbuild-node-externals'
 
+const COMMON_NODE = {
+  entryPoints: ['./src/index.ts'],
+  bundle: true,
+  minify: true,
+  sourcemap: true,
+  platform: 'node',
+  target: 'node14',
+  plugins: [
+    nodeExternalsPlugin({
+      dependencies: false,
+      devDependencies: false,
+    }),
+  ],
+}
+
 // TODO: review options for --node and --web
 const OPTIONS_MAP = {
-  '--node': {
-    entryPoints: ['./src/index.ts'],
-    outfile: 'dist/index-node.js',
-    bundle: true,
-    minify: true,
-    format: 'cjs',
-    target: 'es2017',
-    sourcemap: true,
-    platform: 'node',
-    target: 'node14',
-    plugins: [
-      nodeExternalsPlugin({
-        dependencies: false,
-        devDependencies: false,
-      }),
-    ],
-  },
-  '--web': {
-    entryPoints: ['./src/index.ts'],
-    outfile: 'dist/index.js',
-    bundle: true,
-    minify: true,
-    format: 'esm',
-    target: 'es2017',
-    sourcemap: true,
-    plugins: [
-      nodeExternalsPlugin({
-        // dependencies: false,
-        // devDependencies: false,
-      }),
-    ],
-  },
+  '--node': [
+    {
+      ...COMMON_NODE,
+      format: 'cjs',
+      target: 'es2015',
+      outfile: 'dist/index-node.js',
+    },
+    {
+      ...COMMON_NODE,
+      format: 'esm',
+      target: 'es2017',
+      outfile: 'dist/index-node.mjs',
+    },
+  ],
+  '--web': [
+    {
+      entryPoints: ['./src/index.ts'],
+      outfile: 'dist/index.js',
+      bundle: true,
+      minify: true,
+      format: 'esm',
+      target: 'es2017',
+      sourcemap: true,
+      plugins: [
+        nodeExternalsPlugin({
+          // dependencies: false,
+          // devDependencies: false,
+        }),
+      ],
+    },
+  ],
   '--dev': {
     minify: false,
     watch: {
@@ -53,6 +67,10 @@ const isFlagMode = (flag) => {
   return BUILD_MODES.includes(flag)
 }
 
+const isFlagWatchFormat = (flag) => {
+  return flag.startsWith('--watchFormat')
+}
+
 const hasFlagMode = (flags = []) => {
   return flags.some((flag) => isFlagMode(flag))
 }
@@ -60,8 +78,36 @@ const isDevMode = (flags = []) => {
   return flags.includes('--dev')
 }
 
+const getWatchFormat = (flags) => {
+  const flagWatchFormat = flags.find((f) => isFlagWatchFormat(f))
+  if (!flagWatchFormat) {
+    return 'esm'
+  }
+
+  return flagWatchFormat.split('=')[1]
+}
+
 const getOptionsFromFlags = (flags) => {
-  return flags.reduce((reducer, flag) => {
+  const optionsFlags = flags.filter(
+    (f) => !isFlagMode(f) && !isFlagWatchFormat(f)
+  )
+  const modeFlag = flags.find((f) => isFlagMode(f))
+  /**
+   * When in dev mode, this flag will let us pick which format to
+   * generate
+   */
+  const watchFormat = getWatchFormat(flags)
+
+  if (!modeFlag) {
+    console.error('Missing mode flag (--web or --node)')
+    process.exit(1)
+  }
+
+  /**
+   * Each mode (--web/--node) can have multiple outputs and these
+   * options will be applied to each of them
+   */
+  const commonOptions = optionsFlags.reduce((reducer, flag) => {
     const options = OPTIONS_MAP[flag]
 
     if (!options) {
@@ -74,9 +120,43 @@ const getOptionsFromFlags = (flags) => {
       ...options,
     }
   }, {})
+
+  const modeOptions = OPTIONS_MAP[modeFlag]
+
+  /**
+   * If we're in dev mode and the current `mode` has multiple outputs
+   * we'll have to pick one. By default we'll favour `esm` and give
+   * the user a change to overwrite this from the command line.
+   */
+  if (isDevMode(flags) && modeOptions.length > 1) {
+    const activeMode = modeOptions.find((opt) => opt.format === watchFormat)
+
+    if (!activeMode) {
+      console.error('Invalid `watchFormat` flag', watchFormat)
+      process.exit(1)
+    } else {
+      console.log(
+        `⚙️  Watch mode will be generating the format: ${watchFormat}`
+      )
+    }
+
+    return [
+      {
+        ...activeMode,
+        ...commonOptions,
+      },
+    ]
+  }
+
+  return OPTIONS_MAP[modeFlag].map((opt) => {
+    return {
+      ...opt,
+      ...commonOptions,
+    }
+  })
 }
 
-export function cli(args) {
+export async function cli(args) {
   const flags = args.slice(2)
   const filePath = path.join(process.cwd(), 'build.config.json')
   const pkgJson = JSON.parse(
@@ -101,19 +181,22 @@ export function cli(args) {
 
   const options = getOptionsFromFlags(flags)
 
-  esbuild
-    .build({
-      ...options,
-      ...setupFile,
-    })
-    .then((result) => {
-      // `result.stop` is defined only in watch mode.
-      if (!result.stop) {
-        console.log(`✅ [${pkgJson.name}] Built successfully!`)
-      }
-    })
-    .catch((error) => {
-      console.log(`🔴 [${pkgJson.name}] Build failed.`, error)
-      process.exit(1)
-    })
+  try {
+    const [result] = await Promise.all(
+      options.map((opt) =>
+        esbuild.build({
+          ...opt,
+          ...setupFile,
+        })
+      )
+    )
+
+    // `result.stop` is defined only in watch mode.
+    if (!result.stop) {
+      console.log(`✅ [${pkgJson.name}] Built successfully!`)
+    }
+  } catch (error) {
+    console.log(`🔴 [${pkgJson.name}] Build failed.`, error)
+    process.exit(1)
+  }
 }
