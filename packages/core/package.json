@@ -4,10 +4,8 @@
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
   "version": "3.0.0-beta.2",
-  "source": "src/index.ts",
-  "main": "lib/index-node.js",
-  "esmodule": "./lib/index.js",
-  "module": "./lib/index.js",
+  "main": "dist/index-node.js",
+  "module": "./dist/index.js",
   "files": [
     "dist",
     "src"
@@ -31,12 +29,10 @@
   },
   "homepage": "https://github.com/signalwire/signalwire-js/tree/master/packages/core",
   "scripts": {
-    "start": "microbundle watch -f modern,esm --define process.env.NODE_ENV=development --tsconfig tsconfig.build.json",
-    "build": "pkg-typings --pre-run && microbundle -f modern,esm,cjs --define process.env.NODE_ENV=production --tsconfig ./tsconfig.build.json --target node && pkg-typings --after-run",
+    "start": "sw-build --dev --web",
+    "build": "tsc --project tsconfig.build.json && sw-build --web && sw-build --node",
     "test": "NODE_ENV=test jest",
-    "prepare": "npm run build",
-    "esbuild": "node ./build-web.js && node ./build-node.js",
-    "ts:check": "tsc --project tsconfig.build.json"
+    "prepare": "npm run build"
   },
   "dependencies": {
     "uuid": "^8.3.2"
