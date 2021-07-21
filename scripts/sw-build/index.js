@@ -79,6 +79,9 @@ const getOptionsFromFlags = (flags) => {
 export function cli(args) {
   const flags = args.slice(2)
   const filePath = path.join(process.cwd(), 'build.config.json')
+  const pkgJson = JSON.parse(
+    fs.readFileSync(path.resolve(process.cwd(), 'package.json'), 'utf-8')
+  )
 
   let setupFile = {}
   if (fs.existsSync(filePath)) {
@@ -103,10 +106,14 @@ export function cli(args) {
       ...options,
       ...setupFile,
     })
-    .catch((result) => {
-      if (result) {
-        result.stop()
+    .then((result) => {
+      // `result.stop` is defined only in watch mode.
+      if (!result.stop) {
+        console.log(`✅ [${pkgJson.name}] Built successfully!`)
       }
+    })
+    .catch((error) => {
+      console.log(`🔴 [${pkgJson.name}] Build failed.`, error)
       process.exit(1)
     })
 }
