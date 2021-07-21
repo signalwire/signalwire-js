@@ -10,12 +10,7 @@ const COMMON_NODE = {
   sourcemap: true,
   platform: 'node',
   target: 'node14',
-  plugins: [
-    nodeExternalsPlugin({
-      dependencies: false,
-      devDependencies: false,
-    }),
-  ],
+  plugins: [nodeExternalsPlugin()],
 }
 
 // TODO: review options for --node and --web
@@ -43,12 +38,7 @@ const OPTIONS_MAP = {
       format: 'esm',
       target: 'es2017',
       sourcemap: true,
-      plugins: [
-        nodeExternalsPlugin({
-          // dependencies: false,
-          // devDependencies: false,
-        }),
-      ],
+      plugins: [nodeExternalsPlugin()],
     },
   ],
   '--dev': {
@@ -61,6 +51,7 @@ const OPTIONS_MAP = {
     },
   },
 }
+// TODO: add --umd
 const BUILD_MODES = ['--web', '--node']
 
 const isFlagMode = (flag) => {
