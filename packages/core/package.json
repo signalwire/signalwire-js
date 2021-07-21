@@ -35,7 +35,8 @@
     "build": "pkg-typings --pre-run && microbundle -f modern,esm,cjs --define process.env.NODE_ENV=production --tsconfig ./tsconfig.build.json --target node && pkg-typings --after-run",
     "test": "NODE_ENV=test jest",
     "prepare": "npm run build",
-    "esbuild": "node ./build-web.js && node ./build-node.js"
+    "esbuild": "node ./build-web.js && node ./build-node.js",
+    "ts:check": "tsc --project tsconfig.build.json"
   },
   "dependencies": {
     "uuid": "^8.3.2"

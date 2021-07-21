@@ -93,7 +93,7 @@ describe('ComponentState Tests', () => {
     const action = executeAction({
       requestId,
       componentId,
-      method: 'jest.method',
+      method: 'signalwire.subscribe',
       params: {},
     })
     const executeFailureAction = componentActions.executeFailure({
