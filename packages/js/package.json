@@ -34,8 +34,7 @@
   "homepage": "https://github.com/signalwire/signalwire-js/tree/master/packages/js",
   "scripts": {
     "start": "sw-build --dev --web",
-    "build": "tsc --project tsconfig.build.json && sw-build --web",
-    "build:umd": "microbundle -f umd --external none --define process.env.NODE_ENV=production --name SignalWire --tsconfig ./tsconfig.build.json",
+    "build": "tsc --project tsconfig.build.json && sw-build --web && sw-build --umd",
     "test": "NODE_ENV=test jest",
     "example": "(cd examples && npm run dev)",
     "docs": "typedoc --options typedoc.js",
