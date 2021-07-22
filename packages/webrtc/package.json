@@ -4,7 +4,6 @@
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
   "version": "3.0.0-beta.2",
-  "source": "dist/webrtc/src/index.js",
   "main": "dist/webrtc/src/index.js",
   "module": "dist/webrtc/src/index.js",
   "files": [

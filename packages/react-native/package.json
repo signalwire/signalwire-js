@@ -5,9 +5,7 @@
   "license": "MIT",
   "private": true,
   "version": "0.0.1-beta.2",
-  "source": "src/index.ts",
   "main": "dist/index.js",
-  "exports": "./dist/index.modern.js",
   "module": "dist/index.esm.js",
   "files": [
     "dist",
