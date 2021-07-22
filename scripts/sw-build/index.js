@@ -6,6 +6,7 @@ import { nodeExternalsPlugin } from 'esbuild-node-externals'
 import * as rollup from 'rollup'
 import typescript from 'rollup-plugin-typescript2'
 import { nodeResolve } from '@rollup/plugin-node-resolve'
+import { terser } from 'rollup-plugin-terser'
 import commonjs from '@rollup/plugin-commonjs'
 import replace from '@rollup/plugin-replace'
 
@@ -206,6 +207,18 @@ const buildUmd = async (options) => {
             emitDeclarationOnly: false,
           },
         },
+      }),
+      terser({
+        compress: {
+          keep_infinity: true,
+          pure_getters: true,
+          passes: 10,
+        },
+        format: {
+          comments: /^\s*([@#]__[A-Z]__\s*$|@cc_on)/,
+          preserve_annotations: true,
+        },
+        mangle: true,
       }),
     ],
   })
