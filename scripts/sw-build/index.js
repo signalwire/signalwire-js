@@ -22,13 +22,13 @@ const OPTIONS_MAP = {
       ...COMMON_NODE,
       format: 'cjs',
       target: 'es2015',
-      outfile: 'dist/index-node.js',
+      outfile: 'dist/index.node.js',
     },
     {
       ...COMMON_NODE,
       format: 'esm',
       target: 'es2017',
-      outfile: 'dist/index-node.mjs',
+      outfile: 'dist/index.node.mjs',
     },
   ],
   '--web': [
