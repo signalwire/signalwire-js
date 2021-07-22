@@ -4,5 +4,6 @@
     "emitDeclarationOnly": true,
     "outDir": "dist"
   },
-  "include": ["./src/**/*.ts", "./mocks/**/*.ts", "../core/src/**/*.ts"]
+  "include": ["./src/**/*.ts", "../core/src/**/*.ts"],
+  "exclude": ["**/*.test.ts"]
 }
