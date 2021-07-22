@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import esbuild from 'esbuild'
 import { nodeExternalsPlugin } from 'esbuild-node-externals'
+import * as rollup from 'rollup'
 
 const COMMON_NODE = {
   entryPoints: ['./src/index.ts'],
@@ -42,6 +43,28 @@ const OPTIONS_MAP = {
       plugins: [nodeExternalsPlugin()],
     },
   ],
+  '--umd': [
+    {
+      entryPoints: ['./src/index.ts'],
+      outfile: 'dist/index.umd.js',
+      bundle: true,
+      minify: true,
+      format: 'esm',
+      target: 'es2017',
+      sourcemap: true,
+      plugins: [
+        nodeExternalsPlugin({
+          // Bundle all deps under "dependencies"
+          dependencies: false,
+        }),
+      ],
+    },
+  ],
+  /**
+   * All the esbuild options meant for `development` mode. This
+   * options will be applied after all the others which means anything
+   * here will overwrite other options.
+   */
   '--dev': {
     minify: false,
     watch: {
@@ -52,8 +75,7 @@ const OPTIONS_MAP = {
     },
   },
 }
-// TODO: add --umd
-const BUILD_MODES = ['--web', '--node']
+const BUILD_MODES = ['--web', '--node', '--umd']
 
 const isFlagMode = (flag) => {
   return BUILD_MODES.includes(flag)
@@ -69,6 +91,9 @@ const isFlagWatchFormat = (flag) => {
 }
 const isDevMode = (flags = []) => {
   return flags.includes('--dev')
+}
+const isUmdMode = (flags = []) => {
+  return flags.includes('--umd')
 }
 const getWatchFormat = (flags) => {
   const flagWatchFormat = flags.find((f) => isFlagWatchFormat(f))
@@ -90,13 +115,13 @@ const getOptionsFromFlags = (flags) => {
   const watchFormat = getWatchFormat(flags)
 
   if (!modeFlag) {
-    console.error('Missing mode flag (--web or --node)')
+    console.error('Missing mode flag (--web, --node or --umd)')
     process.exit(1)
   }
 
   /**
-   * Each mode (--web/--node) can have multiple outputs and these
-   * options will be applied to each of them
+   * Each mode (--web/--node/--umd) can have multiple outputs and
+   * these options will be applied to each of them
    */
   const commonOptions = optionsFlags.reduce((reducer, flag) => {
     const options = OPTIONS_MAP[flag]
@@ -146,6 +171,22 @@ const getOptionsFromFlags = (flags) => {
     }
   })
 }
+const buildUmd = async (inputPath) => {
+  const input = path.join(inputPath)
+  const instance = await rollup.rollup({
+    input: [input],
+    onwarn(warning, warn) {
+      if (warning.code === 'THIS_IS_UNDEFINED') return
+      warn(warning) // this requires Rollup 0.46
+    },
+  })
+  return instance.write({
+    format: 'umd',
+    name: 'SignalWire',
+    file: input,
+    sourcemap: true,
+  })
+}
 
 export async function cli(args) {
   const flags = args.slice(2)
@@ -161,7 +202,7 @@ export async function cli(args) {
 
   if (!hasFlagMode(flags) && !setupFile) {
     console.log(
-      'You must specify a mode (--web or --node) and/or config file (build.config.json)'
+      'You must specify a mode (--web, --node or --umd) and/or config file (build.config.json)'
     )
     process.exit(1)
   }
@@ -182,6 +223,10 @@ export async function cli(args) {
         })
       )
     )
+
+    if (isUmdMode(flags)) {
+      await Promise.all(options.map((opt) => buildUmd(opt.outfile)))
+    }
 
     // `result.stop` is defined only in watch mode.
     if (!result.stop) {
