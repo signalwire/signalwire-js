@@ -77,16 +77,16 @@ const OPTIONS_MAP = {
 }
 const BUILD_MODES = ['--web', '--node', '--umd']
 
-const isFlagMode = (flag) => {
+const isBuildModeFlag = (flag) => {
   return BUILD_MODES.includes(flag)
 }
-const hasFlagMode = (flags = []) => {
-  return flags.some((flag) => isFlagMode(flag))
+const hasBuildModeFlag = (flags = []) => {
+  return flags.some((flag) => isBuildModeFlag(flag))
 }
-const getFlagMode = (flags = []) => {
-  return flags.find((f) => isFlagMode(f))
+const getBuildModeFlag = (flags = []) => {
+  return flags.find((f) => isBuildModeFlag(f))
 }
-const isFlagWatchFormat = (flag) => {
+const isWatchFormatFlag = (flag) => {
   return flag.startsWith('--watchFormat')
 }
 const isDevMode = (flags = []) => {
@@ -95,24 +95,24 @@ const isDevMode = (flags = []) => {
 const isUmdMode = (flags = []) => {
   return flags.includes('--umd')
 }
-const getWatchFormat = (flags) => {
-  const flagWatchFormat = flags.find((f) => isFlagWatchFormat(f))
+const getWatchFormatFlag = (flags) => {
+  const flagWatchFormat = flags.find((f) => isWatchFormatFlag(f))
   if (!flagWatchFormat) {
     return 'esm'
   }
 
   return flagWatchFormat.split('=')[1]
 }
-const getOptionsFromFlags = (flags) => {
+const getBuildOptionsFromFlags = (flags) => {
   const optionsFlags = flags.filter(
-    (f) => !isFlagMode(f) && !isFlagWatchFormat(f)
+    (f) => !isBuildModeFlag(f) && !isWatchFormatFlag(f)
   )
-  const modeFlag = getFlagMode(flags)
+  const modeFlag = getBuildModeFlag(flags)
   /**
    * When in dev mode, this flag will let us pick which format to
    * generate
    */
-  const watchFormat = getWatchFormat(flags)
+  const watchFormat = getWatchFormatFlag(flags)
 
   if (!modeFlag) {
     console.error('Missing mode flag (--web, --node or --umd)')
@@ -171,13 +171,17 @@ const getOptionsFromFlags = (flags) => {
     }
   })
 }
+/**
+ * `esbuild` doesn't support building `umd` so we use `rollup` to
+ * convert `esm` to `umd`
+ */
 const buildUmd = async (inputPath) => {
   const input = path.join(inputPath)
   const instance = await rollup.rollup({
     input: [input],
     onwarn(warning, warn) {
       if (warning.code === 'THIS_IS_UNDEFINED') return
-      warn(warning) // this requires Rollup 0.46
+      warn(warning)
     },
   })
   return instance.write({
@@ -190,30 +194,30 @@ const buildUmd = async (inputPath) => {
 
 export async function cli(args) {
   const flags = args.slice(2)
+  /**
+   * This (optional) file gives us the option to overwrite some of our
+   * default build settings. You can place everything that's accepted
+   * by `esbuild` (that can be serializable since it's a JSON file).
+   */
   const filePath = path.join(process.cwd(), 'build.config.json')
   const pkgJson = JSON.parse(
     fs.readFileSync(path.resolve(process.cwd(), 'package.json'), 'utf-8')
   )
-
   let setupFile = {}
   if (fs.existsSync(filePath)) {
     setupFile = JSON.parse(fs.readFileSync(filePath, 'utf-8'))
   }
-
-  if (!hasFlagMode(flags) && !setupFile) {
+  if (!hasBuildModeFlag(flags) && !setupFile) {
     console.log(
       'You must specify a mode (--web, --node or --umd) and/or config file (build.config.json)'
     )
     process.exit(1)
   }
-
   if (isDevMode(flags)) {
     console.log('🟢 Watch mode enabled.')
   }
-
-  const modeFlag = getFlagMode(flags)
-  const options = getOptionsFromFlags(flags)
-
+  const buildModeFlag = getBuildModeFlag(flags)
+  const options = getBuildOptionsFromFlags(flags)
   try {
     const [result] = await Promise.all(
       options.map((opt) =>
@@ -223,14 +227,12 @@ export async function cli(args) {
         })
       )
     )
-
     if (isUmdMode(flags)) {
       await Promise.all(options.map((opt) => buildUmd(opt.outfile)))
     }
-
     // `result.stop` is defined only in watch mode.
     if (!result.stop) {
-      console.log(`✅ [${pkgJson.name} | ${modeFlag}] Built successfully!`)
+      console.log(`✅ [${pkgJson.name} | ${buildModeFlag}] Built successfully!`)
     }
   } catch (error) {
     console.log(`🔴 [${pkgJson.name}] Build failed.`, error)
