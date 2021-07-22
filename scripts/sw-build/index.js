@@ -2,7 +2,12 @@ import fs from 'fs'
 import path from 'path'
 import esbuild from 'esbuild'
 import { nodeExternalsPlugin } from 'esbuild-node-externals'
+// UMD related deps.
 import * as rollup from 'rollup'
+import typescript from 'rollup-plugin-typescript2'
+import { nodeResolve } from '@rollup/plugin-node-resolve'
+import commonjs from '@rollup/plugin-commonjs'
+import replace from '@rollup/plugin-replace'
 
 const COMMON_NODE = {
   entryPoints: ['./src/index.ts'],
@@ -172,22 +177,42 @@ const getBuildOptionsFromFlags = (flags) => {
   })
 }
 /**
- * `esbuild` doesn't support building `umd` so we use `rollup` to
- * convert `esm` to `umd`
+ * `esbuild` doesn't support generating `umd` so we're using Rollup
+ * just for this.
  */
-const buildUmd = async (inputPath) => {
-  const input = path.join(inputPath)
+const buildUmd = async (options) => {
+  const outfile = path.join(options.outfile)
   const instance = await rollup.rollup({
-    input: [input],
+    input: options.entryPoints,
     onwarn(warning, warn) {
       if (warning.code === 'THIS_IS_UNDEFINED') return
       warn(warning)
     },
+    plugins: [
+      nodeResolve({
+        browser: true,
+      }),
+      commonjs({
+        browser: true,
+      }),
+      replace({
+        'process.env.NODE_ENV': JSON.stringify('production'),
+        preventAssignment: true,
+      }),
+      typescript({
+        tsconfig: path.resolve(process.cwd(), './tsconfig.build.json'),
+        tsconfigOverride: {
+          compilerOptions: {
+            emitDeclarationOnly: false,
+          },
+        },
+      }),
+    ],
   })
   return instance.write({
     format: 'umd',
     name: 'SignalWire',
-    file: input,
+    file: outfile,
     sourcemap: true,
   })
 }
@@ -219,19 +244,24 @@ export async function cli(args) {
   const buildModeFlag = getBuildModeFlag(flags)
   const options = getBuildOptionsFromFlags(flags)
   try {
-    const [result] = await Promise.all(
-      options.map((opt) =>
-        esbuild.build({
+    const results = await Promise.all(
+      options.map((opt) => {
+        // `esbuild` can't generate `umd` so we'll skip it here.
+        if (opt.format === 'umd') {
+          return Promise.resolve()
+        }
+
+        return esbuild.build({
           ...opt,
           ...setupFile,
         })
-      )
+      })
     )
     if (isUmdMode(flags)) {
-      await Promise.all(options.map((opt) => buildUmd(opt.outfile)))
+      await Promise.all(options.map((opt) => buildUmd(opt)))
     }
     // `result.stop` is defined only in watch mode.
-    if (!result.stop) {
+    if (!results.some((result) => result.stop)) {
       console.log(`✅ [${pkgJson.name} | ${buildModeFlag}] Built successfully!`)
     }
   } catch (error) {
