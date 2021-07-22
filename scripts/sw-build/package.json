@@ -10,5 +10,10 @@
   },
   "bin": {
     "sw-build": "bin/cli.js"
+  },
+  "dependencies": {
+    "esbuild": "^0.12.15",
+    "esbuild-node-externals": "^1.3.0",
+    "rollup": "^2.53.3"
   }
 }
