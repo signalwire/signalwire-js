@@ -9,6 +9,7 @@ import { nodeResolve } from '@rollup/plugin-node-resolve'
 import { terser } from 'rollup-plugin-terser'
 import commonjs from '@rollup/plugin-commonjs'
 import replace from '@rollup/plugin-replace'
+import json from '@rollup/plugin-json'
 
 const COMMON_NODE = {
   entryPoints: ['./src/index.ts'],
@@ -189,6 +190,7 @@ const buildUmd = async (options) => {
       warn(warning)
     },
     plugins: [
+      json(),
       nodeResolve({
         browser: true,
       }),
