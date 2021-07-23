@@ -4,6 +4,7 @@ import { BladeMethod, DEFAULT_HOST, WebSocketState } from './utils/constants'
 import {
   BladeConnect,
   BladeConnectParams,
+  DEFAULT_CONNECT_VERSION,
   BladeDisconnectResponse,
   BladePingResponse,
 } from './RPCMessages'
@@ -37,8 +38,9 @@ import { sessionActions } from './redux/features/session/sessionSlice'
 
 export class BaseSession {
   public uuid = uuid()
-  public sessionid = ''
   public WebSocketConstructor: WebSocketAdapter
+  public agent: string
+  public connectVersion = DEFAULT_CONNECT_VERSION
 
   protected _bladeConnectResult: IBladeConnectResult
 
@@ -194,6 +196,8 @@ export class BaseSession {
    */
   async authenticate() {
     const params: BladeConnectParams = {
+      agent: this.agent,
+      version: this.connectVersion,
       authentication: {
         project: this.options.project,
         token: this.options.token,

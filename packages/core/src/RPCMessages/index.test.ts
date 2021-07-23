@@ -1,6 +1,5 @@
 import {
   BladeConnect,
-  setAgentName,
   BladeReauthenticate,
   BladePing,
   BladePingResponse,
@@ -75,8 +74,11 @@ describe('RPC Messages', () => {
     })
 
     it('should generate the message using agent', function () {
-      setAgentName('Jest Random Test')
-      const authentication = { project: 'project', jwt_token: 'jwt' }
+      const authentication = {
+        project: 'project',
+        jwt_token: 'jwt',
+        agent: 'Jest Random Test',
+      }
       const message = BladeConnect({ authentication })
       expect(message).toStrictEqual({
         jsonrpc: '2.0',
@@ -91,8 +93,7 @@ describe('RPC Messages', () => {
     })
 
     it('should generate the message without project', function () {
-      setAgentName('Jest Random Test')
-      const authentication = { jwt_token: 'jwt' }
+      const authentication = { jwt_token: 'jwt', agent: 'Jest Random Test' }
       const message = BladeConnect({ authentication })
       expect(message).toStrictEqual({
         jsonrpc: '2.0',

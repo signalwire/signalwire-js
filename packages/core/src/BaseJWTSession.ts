@@ -44,6 +44,8 @@ export class BaseJWTSession extends BaseSession {
    */
   async authenticate() {
     const params: BladeConnectParams = {
+      agent: this.agent,
+      version: this.connectVersion,
       authentication: {
         jwt_token: this.options.token,
       },
