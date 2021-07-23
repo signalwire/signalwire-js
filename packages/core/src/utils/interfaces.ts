@@ -213,9 +213,12 @@ export type EventsHandlerMapping = Record<
   Record<MemberLeftEventName, (params: { member: RoomMemberCommon }) => void> &
   Record<
     MemberUpdatedEventName | RoomMemberEventNames,
-    (params: MemberUpdated['params']) => void
+    (params: MemberUpdatedEvent['params']) => void
   > &
-  Record<MemberTalkingEventNames, (params: MemberTalking['params']) => void> &
+  Record<
+    MemberTalkingEventNames,
+    (params: MemberTalkingEvent['params']) => void
+  > &
   Record<RoomEvents, (params: RoomEventParams) => void> &
   Record<RTCTrackEventName, (event: RTCTrackEvent) => void>
 
@@ -226,8 +229,9 @@ export type SessionAuthError = {
 
 export interface RoomLayout {
   name: string
+  room_session_id: string
+  room_id: string
   layers: RoomLayoutLayer[]
-  layer_count?: number
 }
 
 export interface RoomLayoutLayer {
@@ -267,6 +271,10 @@ export type RoomScreenShare = RoomMember & {
   parent_id: string
   type: 'screen'
 }
+export type RoomDevice = RoomMember & {
+  parent_id: string
+  type: 'device'
+}
 
 export interface Room {
   blind_mode: boolean
@@ -288,14 +296,19 @@ interface RoomEventParams {
   member_id: string
 }
 
-interface RoomSubscribedEvent {
-  event_type: 'room.subscribed'
-  params: RoomEventParams
-  timestamp: number
+interface SwEvent {
   event_channel: string
+  timestamp: number
+  project_id: string
+  node_id: string
 }
 
-interface MemberUpdated {
+interface RoomSubscribedEvent extends SwEvent {
+  event_type: 'room.subscribed'
+  params: RoomEventParams
+}
+
+interface MemberUpdatedEvent extends SwEvent {
   event_type: 'member.updated'
   params: {
     member: {
@@ -303,72 +316,58 @@ interface MemberUpdated {
     } & RoomMemberCommon &
       Partial<RoomMemberProperties>
   }
-  timestamp: number
-  event_channel: string
 }
 
-interface MemberTalking {
+interface MemberJoinedEvent extends SwEvent {
+  event_type: 'member.joined'
+  params: {
+    member: RoomMember | RoomScreenShare | RoomDevice
+  }
+}
+
+interface MemberLeftEvent extends SwEvent {
+  event_type: 'member.left'
+  params: {
+    member: RoomMember | RoomScreenShare | RoomDevice
+  }
+}
+
+interface MemberTalkingEvent extends SwEvent {
   event_type: Extract<'member.talking', MemberTalkingEventNames>
   params: {
     member: RoomMemberCommon & {
       talking: boolean
     }
   }
-  timestamp: number
-  event_channel: string
+}
+
+interface LayoutChangedEvent extends SwEvent {
+  event_type: 'layout.changed'
+  params: {
+    room_session_id: string
+    room_id: string
+    layout: RoomLayout
+  }
 }
 
 // prettier-ignore
 export type ConferenceWorkerParams =
   | RoomSubscribedEvent
-  | MemberUpdated
-  | MemberTalking
+  | MemberUpdatedEvent
+  | MemberJoinedEvent
+  | MemberLeftEvent
+  | MemberTalkingEvent
+  | LayoutChangedEvent
 
-interface ConferenceEvent {
-  broadcaster_nodeid: string
-  protocol: string
-  channel: 'notifications'
-  event: 'conference'
-  params: ConferenceWorkerParams
-}
-
-interface VertoEvent {
-  broadcaster_nodeid: string
-  protocol: string
-  channel: 'notifications'
-  event: 'queuing.relay.events'
-  params: {
-    event_type: 'webrtc.message'
-    event_channel: string
-    timestamp: number
-    project_id: string
-    node_id: string
-    params: JSONRPCRequest
-  }
-}
-
-interface TaskEvent {
-  broadcaster_nodeid: string
-  protocol: string
-  channel: 'notifications'
-  event: 'queuing.relay.tasks'
-  params: Record<string, any>
-}
-
-interface MessagingEvent {
-  broadcaster_nodeid: string
-  protocol: string
-  channel: 'notifications'
-  event: 'queuing.relay.messaging'
-  params: Record<string, any>
+interface WebRTCMessage extends SwEvent {
+  event_type: 'webrtc.message'
+  params: JSONRPCRequest
 }
 
 // prettier-ignore
 export type BladeBroadcastParams =
-  | ConferenceEvent
-  | VertoEvent
-  | TaskEvent
-  | MessagingEvent
+  | ConferenceWorkerParams
+  | WebRTCMessage
 
 /**
  * List of all room members

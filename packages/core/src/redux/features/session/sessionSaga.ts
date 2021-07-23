@@ -177,6 +177,7 @@ export function* sessionChannelWatcher({
   }
 
   function* conferenceWorker(params: ConferenceWorkerParams) {
+    logger.info(params.event_type, JSON.stringify(params, null, 2))
     switch (params.event_type) {
       case 'room.subscribed': {
         yield put(
@@ -227,37 +228,27 @@ export function* sessionChannelWatcher({
   }
 
   function* bladeBroadcastWorker(broadcastParams: BladeBroadcastParams) {
-    if (broadcastParams?.protocol !== session.relayProtocol) {
-      return logger.error('Session protocol mismatch.')
-    }
+    // TODO: how to check protocol for each event ?
+    // if (broadcastParams?.protocol !== session.relayProtocol) {
+    //   return logger.error('Session protocol mismatch.')
+    // }
 
-    switch (broadcastParams.event) {
-      case 'queuing.relay.events': {
-        const { params } = broadcastParams || {}
-        if (params.event_type === 'webrtc.message') {
-          yield fork(vertoWorker, {
-            jsonrpc: params.params,
-            nodeId: params.node_id,
-          })
-        } else {
-          logger.debug('Relay Calling event:', params)
-          // session.calling.notificationHandler(params)
-        }
+    switch (broadcastParams.event_type) {
+      case 'webrtc.message': {
+        yield fork(vertoWorker, {
+          jsonrpc: broadcastParams.params,
+          nodeId: broadcastParams.node_id,
+        })
         break
       }
-      case 'conference': {
-        logger.debug('Conference event:', broadcastParams.params)
-        yield fork(conferenceWorker, broadcastParams.params)
-        break
-      }
-      case 'queuing.relay.tasks': {
-        logger.debug('Relay Task event:', broadcastParams.params)
-        // session.tasking.notificationHandler(params)
-        break
-      }
-      case 'queuing.relay.messaging': {
-        logger.debug('Relay Task event:', broadcastParams.params)
-        // session.messaging.notificationHandler(params)
+      case 'room.subscribed':
+      case 'member.updated':
+      case 'member.joined':
+      case 'member.left':
+      case 'member.talking':
+      case 'layout.changed': {
+        logger.info(broadcastParams.event_type, broadcastParams.params)
+        yield fork(conferenceWorker, broadcastParams)
         break
       }
       default: {
