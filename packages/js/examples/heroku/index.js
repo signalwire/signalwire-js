@@ -130,10 +130,10 @@ window.connect = () => {
     console.debug('Video SDK roomObj', roomObj)
 
     roomObj.on('room.started', (params) =>
-      console.debug('>> DEMO room.started', params)
+      console.debug('>> room.started', params)
     )
     roomObj.on('room.joined', (params) => {
-      console.debug('>> DEMO room.joined', params)
+      console.debug('>> room.joined', params)
 
       btnConnect.classList.add('d-none')
       btnDisconnect.classList.remove('d-none')
@@ -147,34 +147,34 @@ window.connect = () => {
       loadLayouts()
     })
     roomObj.on('room.updated', (params) =>
-      console.debug('>> DEMO room.updated', params)
+      console.debug('>> room.updated', params)
     )
     roomObj.on('room.ended', (params) => {
-      console.debug('>> DEMO room.ended', params)
+      console.debug('>> room.ended', params)
       hangup()
     })
     roomObj.on('member.joined', (params) =>
-      console.debug('>> DEMO member.joined', params)
+      console.debug('>> member.joined', params)
     )
     roomObj.on('member.updated', (params) =>
-      console.debug('>> DEMO member.updated', params)
+      console.debug('>> member.updated', params)
     )
 
     roomObj.on('member.updated.audio_muted', (params) =>
-      console.debug('>> DEMO member.updated', params)
+      console.debug('>> member.updated.audio_muted', params)
     )
     roomObj.on('member.updated.video_muted', (params) =>
-      console.debug('>> DEMO member.updated', params)
+      console.debug('>> member.updated.video_muted', params)
     )
 
     roomObj.on('member.left', (params) =>
-      console.debug('>> DEMO member.left', params)
+      console.debug('>> member.left', params)
     )
     roomObj.on('member.talking', (params) =>
-      console.debug('>> DEMO member.talking', params)
+      console.debug('>> member.talking', params)
     )
     roomObj.on('layout.changed', (params) =>
-      console.debug('>> DEMO layout.changed', params)
+      console.debug('>> layout.changed', params)
     )
     roomObj.on('track', (event) => console.debug('>> DEMO track', event))
 
