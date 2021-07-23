@@ -15,7 +15,7 @@ describe('SessionState Tests', () => {
 
     expect(store.getState().session).toStrictEqual({
       protocol: bladeConnectResultVRT.protocol,
-      iceServers: bladeConnectResultVRT.iceServers,
+      iceServers: bladeConnectResultVRT.ice_servers,
       authStatus: 'authorized',
       authError: undefined,
       authCount: 1,

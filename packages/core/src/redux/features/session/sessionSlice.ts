@@ -24,7 +24,7 @@ const sessionSlice = createDestroyableSlice({
       state.authStatus = 'authorized'
       state.authCount += 1
       state.protocol = payload?.protocol ?? ''
-      state.iceServers = payload?.iceServers ?? []
+      state.iceServers = payload?.ice_servers ?? []
     },
     authStatus: (state, { payload }: PayloadAction<SessionAuthStatus>) => {
       state.authStatus = payload

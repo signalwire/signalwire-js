@@ -128,7 +128,7 @@ export interface IBladeConnectResult {
   identity: string
   authorization: IBladeAuthorization
   protocol: string
-  iceServers?: RTCIceServer[]
+  ice_servers?: RTCIceServer[]
 }
 
 export type SessionConstructor = typeof BaseSession
