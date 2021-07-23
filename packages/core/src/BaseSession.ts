@@ -75,7 +75,7 @@ export class BaseSession {
   }
 
   get relayProtocol() {
-    return this._bladeConnectResult?.result?.protocol ?? ''
+    return this._bladeConnectResult?.protocol ?? ''
   }
 
   get signature() {

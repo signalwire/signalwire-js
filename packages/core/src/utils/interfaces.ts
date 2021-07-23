@@ -91,16 +91,10 @@ export interface IBladeAuthorization {
 }
 
 export interface IBladeConnectResult {
-  session_restored: boolean
-  sessionid: string
-  nodeid: string
   identity: string
-  master_nodeid: string
   authorization: IBladeAuthorization
-  result?: {
-    protocol: string
-    iceServers?: RTCIceServer[]
-  }
+  protocol: string
+  iceServers?: RTCIceServer[]
 }
 
 export type SessionConstructor = typeof BaseSession

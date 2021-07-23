@@ -23,8 +23,8 @@ const sessionSlice = createDestroyableSlice({
     connected: (state, { payload }: PayloadAction<IBladeConnectResult>) => {
       state.authStatus = 'authorized'
       state.authCount += 1
-      state.protocol = payload?.result?.protocol ?? ''
-      state.iceServers = payload?.result?.iceServers ?? []
+      state.protocol = payload?.protocol ?? ''
+      state.iceServers = payload?.iceServers ?? []
     },
     authStatus: (state, { payload }: PayloadAction<SessionAuthStatus>) => {
       state.authStatus = payload
