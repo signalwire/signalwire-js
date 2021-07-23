@@ -1,0 +1,25 @@
+{
+  "name": "@sw-internal/build",
+  "version": "0.0.0",
+  "description": "A CLI for building packages using esbuild",
+  "main": "index.js",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": ""
+  },
+  "bin": {
+    "sw-build": "bin/cli.js"
+  },
+  "dependencies": {
+    "@rollup/plugin-commonjs": "^19.0.1",
+    "@rollup/plugin-node-resolve": "^13.0.2",
+    "@rollup/plugin-replace": "^3.0.0",
+    "esbuild": "^0.12.15",
+    "esbuild-node-externals": "^1.3.0",
+    "rollup": "^2.53.3",
+    "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-typescript2": "^0.30.0",
+    "tslib": "^2.3.0"
+  }
+}

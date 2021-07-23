@@ -4,10 +4,8 @@
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
   "version": "3.0.0-beta.4",
-  "source": "src/index.ts",
   "main": "dist/index.js",
-  "exports": "./dist/index.modern.js",
-  "module": "dist/index.esm.js",
+  "module": "dist/index.js",
   "unpkg": "dist/index.umd.js",
   "files": [
     "dist",
@@ -34,9 +32,8 @@
   },
   "homepage": "https://github.com/signalwire/signalwire-js/tree/master/packages/js",
   "scripts": {
-    "start": "microbundle watch -f modern,es --define process.env.NODE_ENV=development --tsconfig tsconfig.build.json",
-    "build": "pkg-typings --pre-run && microbundle -f modern,esm,cjs --define process.env.NODE_ENV=production --name SignalWire --target node --tsconfig ./tsconfig.build.json && npm run build:umd && pkg-typings --after-run",
-    "build:umd": "microbundle -f umd --external none --define process.env.NODE_ENV=production --name SignalWire --tsconfig ./tsconfig.build.json",
+    "start": "sw-build --dev --web",
+    "build": "tsc --project tsconfig.build.json && sw-build --web && sw-build --umd",
     "test": "NODE_ENV=test jest",
     "example": "(cd examples && npm run dev)",
     "docs": "typedoc --options typedoc.js",

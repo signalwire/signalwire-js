@@ -32,7 +32,7 @@ describe('parseRPCResponse', () => {
   describe('blade.execute', () => {
     const request = BladeExecute({
       protocol: 'proto',
-      method: 'sum',
+      method: 'signalwire.subscribe',
       params: { x: 1, y: 2 },
     })
 
