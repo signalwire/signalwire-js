@@ -40,7 +40,8 @@ describe('RPC Messages', () => {
       const authentication = { project: 'project', token: 'token' }
       const message = BladeConnect({
         authentication,
-        params: { protocol: 'old-proto', contexts: ['test'] },
+        protocol: 'old-proto',
+        contexts: ['test'],
       })
       expect(message).toStrictEqual({
         jsonrpc: '2.0',

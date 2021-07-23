@@ -17,10 +17,8 @@ type WithJWT = { token?: never; jwt_token: string }
 type BladeConnectAuthentication = { project?: string } & (WithToken | WithJWT)
 export type BladeConnectParams = {
   authentication: BladeConnectAuthentication
-  params?: {
-    protocol?: string
-    contexts?: string[]
-  }
+  protocol?: string
+  contexts?: string[]
 }
 
 export const BladeConnect = (params: BladeConnectParams) => {

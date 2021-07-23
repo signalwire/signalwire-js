@@ -19,7 +19,6 @@ describe('JWTSession', () => {
     authentication: {
       jwt_token: token,
     },
-    params: {},
   })
 
   let ws: WS

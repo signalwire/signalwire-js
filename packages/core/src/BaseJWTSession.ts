@@ -47,17 +47,14 @@ export class BaseJWTSession extends BaseSession {
       authentication: {
         jwt_token: this.options.token,
       },
-      params: {},
     }
 
     if (this._relayProtocolIsValid()) {
-      params.params = params.params || {}
-      params.params.protocol = this.relayProtocol
+      params.protocol = this.relayProtocol
     } else if (this.signature) {
       const prevProtocol = await sessionStorage.getItem(this.signature)
       if (prevProtocol) {
-        params.params = params.params || {}
-        params.params.protocol = prevProtocol
+        params.protocol = prevProtocol
       }
     }
 

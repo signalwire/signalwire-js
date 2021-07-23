@@ -198,11 +198,9 @@ export class BaseSession {
         project: this.options.project,
         token: this.options.token,
       },
-      params: {},
     }
     if (this._relayProtocolIsValid()) {
-      params.params = params.params || {}
-      params.params.protocol = this.relayProtocol
+      params.protocol = this.relayProtocol
     }
     this._bladeConnectResult = await this.execute(BladeConnect(params))
   }

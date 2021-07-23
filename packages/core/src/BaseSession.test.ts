@@ -25,7 +25,6 @@ describe('BaseSession', () => {
       project,
       token,
     },
-    params: {},
   })
 
   let ws: WS
