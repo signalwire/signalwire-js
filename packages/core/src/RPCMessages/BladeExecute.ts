@@ -1,5 +1,4 @@
 import { makeRPCRequest } from './helpers'
-import { BladeMethod } from '../utils/constants'
 import { BladeExecuteMethod } from '../utils/interfaces'
 
 type BladeExecuteParams = {
@@ -11,9 +10,11 @@ type BladeExecuteParams = {
   }
 }
 
+// FIXME: Blade execute does not exists anymore. Exposes a method to build a JSONRPC
 export const BladeExecute = (params: BladeExecuteParams) => {
   return makeRPCRequest({
-    method: BladeMethod.Execute,
+    // @ts-ignore
+    method: 'method',
     params,
   })
 }

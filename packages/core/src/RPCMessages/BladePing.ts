@@ -1,9 +1,8 @@
 import { makeRPCRequest, makeRPCResponse } from './helpers'
-import { BladeMethod } from '../utils/constants'
 
 export const BladePing = () => {
   return makeRPCRequest({
-    method: BladeMethod.Ping,
+    method: 'signalwire.ping',
     params: {
       timestamp: Date.now() / 1000,
     },

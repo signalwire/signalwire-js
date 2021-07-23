@@ -11,7 +11,6 @@ import {
 import { ExecuteActionParams, WebRTCCall } from '../../interfaces'
 import { executeAction, socketMessageAction } from '../../actions'
 import { componentActions } from '../'
-import { BladeMethod, VertoMethod } from '../../../utils/constants'
 import { BladeExecute } from '../../../RPCMessages'
 import { logger } from '../../../utils'
 import { getAuthStatus } from '../session/sessionSelectors'
@@ -89,7 +88,7 @@ export function* sessionChannelWatcher({
     const { id, method, params = {} } = jsonrpc
 
     switch (method) {
-      case VertoMethod.Media: {
+      case 'verto.media': {
         const component = {
           id: params.callID,
           state: 'early',
@@ -108,7 +107,7 @@ export function* sessionChannelWatcher({
         )
         break
       }
-      case VertoMethod.Answer: {
+      case 'verto.answer': {
         const component: WebRTCCall = {
           id: params.callID,
           state: 'active',
@@ -129,7 +128,7 @@ export function* sessionChannelWatcher({
         )
         break
       }
-      case VertoMethod.Bye: {
+      case 'verto.bye': {
         const component: WebRTCCall = {
           id: params.callID,
           state: 'hangup',
@@ -150,7 +149,7 @@ export function* sessionChannelWatcher({
         )
         break
       }
-      case VertoMethod.Ping:
+      case 'verto.ping':
         yield put(
           executeAction({
             method: 'video.message',
@@ -161,17 +160,17 @@ export function* sessionChannelWatcher({
           })
         )
         break
-      case VertoMethod.Punt:
+      case 'verto.punt':
         return session.disconnect()
-      // case VertoMethod.Invite:
+      // case 'verto.invite':
       //   break
-      // case VertoMethod.Attach:
+      // case 'verto.attach':
       //   break
-      case VertoMethod.Info:
+      case 'verto.info':
         return logger.debug('Verto Info', params)
-      case VertoMethod.ClientReady:
+      case 'verto.clientReady':
         return logger.debug('Verto ClientReady', params)
-      case VertoMethod.Announce:
+      case 'verto.announce':
         return logger.debug('Verto Announce', params)
       default:
         return logger.debug(`Unknown Verto method: ${method}`, params)
@@ -283,7 +282,7 @@ export function* sessionChannelWatcher({
     const { method, params } = action.payload
 
     switch (method) {
-      case BladeMethod.Broadcast:
+      case 'signalwire.event':
         yield fork(bladeBroadcastWorker, params as BladeBroadcastParams)
         break
       default:

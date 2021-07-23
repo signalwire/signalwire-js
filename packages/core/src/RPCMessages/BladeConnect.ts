@@ -1,5 +1,4 @@
 import { makeRPCRequest } from './helpers'
-import { BladeMethod } from '../utils/constants'
 
 type WithToken = { token: string; jwt_token?: never }
 type WithJWT = { token?: never; jwt_token: string }
@@ -13,14 +12,14 @@ export type BladeConnectParams = {
 }
 
 export const DEFAULT_CONNECT_VERSION = {
-  major: 2,
-  minor: 5,
+  major: 3,
+  minor: 0,
   revision: 0,
 }
 
 export const BladeConnect = (params: BladeConnectParams) => {
   return makeRPCRequest({
-    method: BladeMethod.Connect,
+    method: 'signalwire.connect',
     params: {
       version: DEFAULT_CONNECT_VERSION,
       ...params,

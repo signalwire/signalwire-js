@@ -23,10 +23,42 @@ type JSONRPCError = {
   [key: string]: any
 }
 
+export type VertoMethod =
+  | 'verto.invite'
+  | 'verto.attach'
+  | 'verto.answer'
+  | 'verto.info'
+  | 'verto.display'
+  | 'verto.media'
+  | 'verto.event'
+  | 'verto.bye'
+  | 'verto.punt'
+  | 'verto.broadcast'
+  | 'verto.subscribe'
+  | 'verto.unsubscribe'
+  | 'verto.clientReady'
+  | 'verto.modify'
+  | 'verto.mediaParams'
+  | 'verto.prompt'
+  | 'jsapi'
+  | 'verto.stats'
+  | 'verto.ping'
+  | 'verto.announce'
+
+export type JSONRPCMethod =
+  | 'signalwire.connect'
+  | 'signalwire.ping'
+  | 'signalwire.disconnect'
+  | 'signalwire.event'
+  | 'signalwire.reauthenticate'
+  | 'signalwire.reauthenticate'
+  | 'video.message'
+  | VertoMethod
+
 export interface JSONRPCRequest {
   jsonrpc: '2.0'
   id: string
-  method: string
+  method: JSONRPCMethod
   params?: JSONRPCParams
 }
 

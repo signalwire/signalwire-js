@@ -24,7 +24,6 @@ export {
 
 export * from './RPCMessages'
 export * from './utils/interfaces'
-export { VertoMethod } from './utils/constants'
 export * from './CustomErrors'
 export type {
   SessionState,

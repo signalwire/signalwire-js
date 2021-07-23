@@ -1,5 +1,4 @@
 import { JSONRPCRequest, JSONRPCResponse } from './interfaces'
-import { BladeMethod } from './constants'
 
 type parseRPCResponseParams = {
   response: JSONRPCResponse
@@ -17,7 +16,7 @@ export const parseRPCResponse = ({
   }
 
   switch (request.method) {
-    case BladeMethod.Connect:
+    case 'signalwire.connect':
       return { result }
     default:
       return parseResponse(response)

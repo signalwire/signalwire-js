@@ -89,7 +89,7 @@ describe('BaseSession', () => {
     const request = {
       jsonrpc: '2.0' as const,
       id: 'uuid',
-      method: 'blade.something',
+      method: 'signalwire.event' as const,
       params: {
         key: 'value',
       },

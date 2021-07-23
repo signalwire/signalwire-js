@@ -4,12 +4,12 @@ import {
   VertoInfo,
   VertoInvite,
   BaseComponent,
-  VertoMethod,
   selectors,
   BaseComponentOptions,
   BaseConnectionState,
   RoomEventNames,
   Rooms,
+  JSONRPCRequest,
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import { ConnectionOptions } from './utils/interfaces'
@@ -29,7 +29,7 @@ const ROOM_EVENTS: RoomEventNames[] = [
 
 /**
  * Events to be subscribing for screen sharing during
- * `VertoMethod.Invite`
+ * `verto.invite`
  */
 const SCREENSHARE_ROOM_EVENTS = [
   /**
@@ -41,7 +41,7 @@ const SCREENSHARE_ROOM_EVENTS = [
 
 /**
  * Events to be subscribing for screen sharing during
- * `VertoMethod.Invite`
+ * `verto.invite`
  */
 const DEVICE_ROOM_EVENTS = [
   /**
@@ -223,12 +223,12 @@ export class BaseConnection
    * Verto messages have to be wrapped into a blade.execute
    * request and sent using the 'video.message' method.
    */
-  public vertoExecute(vertoMessage: any) {
+  public vertoExecute(vertoMessage: JSONRPCRequest) {
     const params: any = {
       message: vertoMessage,
       node_id: this.nodeId,
     }
-    if (vertoMessage.method === VertoMethod.Invite) {
+    if (vertoMessage.method === 'verto.invite') {
       if (this.options.screenShare) {
         params.subscribe = SCREENSHARE_ROOM_EVENTS
       } else if (this.options.additionalDevice) {

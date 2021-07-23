@@ -1,8 +1,9 @@
 import { uuid } from '../utils'
+import { JSONRPCMethod } from '../utils/interfaces'
 
 interface MakeRPCRequestParams {
   id?: string
-  method: string // TODO: use enum
+  method: JSONRPCMethod
   params: {
     // TODO: use list of types?
     [key: string]: any

@@ -1,6 +1,6 @@
 import { PayloadAction } from '@reduxjs/toolkit'
 import { uuid, logger } from './utils'
-import { BladeMethod, DEFAULT_HOST, WebSocketState } from './utils/constants'
+import { DEFAULT_HOST, WebSocketState } from './utils/constants'
 import {
   BladeConnect,
   BladeConnectParams,
@@ -250,9 +250,9 @@ export class BaseSession {
     }
 
     switch (payload.method) {
-      case BladeMethod.Ping:
+      case 'signalwire.ping':
         return this._bladePingHandler(payload)
-      case BladeMethod.Disconnect: {
+      case 'signalwire.disconnect': {
         /**
          * Set this._status = 'idle' because the server
          * will close the connection soon.

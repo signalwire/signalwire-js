@@ -1,7 +1,6 @@
 import { channel, eventChannel } from 'redux-saga'
 import { expectSaga } from 'redux-saga-test-plan'
 import { VertoResult } from '../../../RPCMessages'
-import { VertoMethod } from '../../../utils/constants'
 import { socketMessageAction, executeAction } from '../../actions'
 import { componentActions } from '../'
 import { sessionChannelWatcher, createSessionChannel } from './sessionSaga'
@@ -319,7 +318,7 @@ describe('sessionChannelWatcher', () => {
             executeAction({
               method: 'video.message',
               params: {
-                message: VertoResult('40', VertoMethod.Media),
+                message: VertoResult('40', 'verto.media'),
                 node_id: '44c606b1-b951-4959-810a-ffa1ddc9ac4f@',
               },
             })
@@ -377,7 +376,7 @@ describe('sessionChannelWatcher', () => {
             executeAction({
               method: 'video.message',
               params: {
-                message: VertoResult('34', VertoMethod.Answer),
+                message: VertoResult('34', 'verto.answer'),
                 node_id: '44c606b1-b951-4959-810a-ffa1ddc9ac4f@',
               },
             })
@@ -434,7 +433,7 @@ describe('sessionChannelWatcher', () => {
             executeAction({
               method: 'video.message',
               params: {
-                message: VertoResult('34', VertoMethod.Answer),
+                message: VertoResult('34', 'verto.answer'),
                 node_id: '44c606b1-b951-4959-810a-ffa1ddc9ac4f@',
               },
             })
@@ -495,7 +494,7 @@ describe('sessionChannelWatcher', () => {
             executeAction({
               method: 'video.message',
               params: {
-                message: VertoResult('40', VertoMethod.Bye),
+                message: VertoResult('40', 'verto.bye'),
                 node_id: '44c606b1-b951-4959-810a-ffa1ddc9ac4f@',
               },
             })
@@ -546,7 +545,7 @@ describe('sessionChannelWatcher', () => {
             executeAction({
               method: 'video.message',
               params: {
-                message: VertoResult('40', VertoMethod.Ping),
+                message: VertoResult('40', 'verto.ping'),
                 node_id: '44c606b1-b951-4959-810a-ffa1ddc9ac4f@',
               },
             })
