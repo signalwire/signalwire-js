@@ -55,14 +55,14 @@ describe('BaseSession', () => {
     expect(session.closed).toBe(true)
   })
 
-  it('should send blade.connect with normal token on socket open', async () => {
+  it('should try to connect with normal token on socket open', async () => {
     session.connect()
     await ws.connected
 
     await expect(ws).toReceiveMessage(JSON.stringify(bladeConnect))
   })
 
-  it('should set idle mode on blade.disconnect', async () => {
+  it('should set idle mode on signalwire.disconnect', async () => {
     session.connect()
     await ws.connected
 
@@ -70,7 +70,7 @@ describe('BaseSession', () => {
     const request = {
       jsonrpc: '2.0',
       id: 'uuid',
-      method: 'blade.disconnect',
+      method: 'signalwire.disconnect',
       params: {},
     }
     ws.send(JSON.stringify(request))
@@ -100,8 +100,8 @@ describe('BaseSession', () => {
     expect(session.dispatch).toHaveBeenCalledWith(socketMessageAction(request))
   })
 
-  describe('blade.ping messages', () => {
-    it('should response to blade.ping', async () => {
+  describe('signalwire.ping messages', () => {
+    it('should response to signalwire.ping', async () => {
       session.connect()
       await ws.connected
 
@@ -115,7 +115,7 @@ describe('BaseSession', () => {
       await expect(ws).toReceiveMessage(JSON.stringify(response))
     })
 
-    it('should close the connection if no blade.ping comes within _checkPingDelay', async () => {
+    it('should close the connection if no signalwire.ping comes within _checkPingDelay', async () => {
       // Force _checkPingDelay to 5ms
       session['_checkPingDelay'] = 5
 

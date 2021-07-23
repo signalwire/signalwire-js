@@ -3,13 +3,14 @@ import {
   BladeReauthenticate,
   BladePing,
   BladePingResponse,
-  BladeExecute,
+  // BladeExecute,
   BladeDisconnectResponse,
   VertoBye,
   VertoAttach,
   VertoInfo,
   VertoInvite,
   VertoModify,
+  DEFAULT_CONNECT_VERSION,
 } from './index'
 
 jest.mock('uuid', () => {
@@ -26,11 +27,10 @@ describe('RPC Messages', () => {
       expect(message).toStrictEqual({
         jsonrpc: '2.0',
         id: 'mocked-uuid',
-        method: 'blade.connect',
+        method: 'signalwire.connect',
         params: {
           authentication: { project: 'project', token: 'token' },
-          version: { major: 2, minor: 5, revision: 0 },
-          agent: null,
+          version: DEFAULT_CONNECT_VERSION,
         },
       })
     })
@@ -45,15 +45,12 @@ describe('RPC Messages', () => {
       expect(message).toStrictEqual({
         jsonrpc: '2.0',
         id: 'mocked-uuid',
-        method: 'blade.connect',
+        method: 'signalwire.connect',
         params: {
           authentication: { project: 'project', token: 'token' },
-          version: { major: 2, minor: 5, revision: 0 },
-          agent: null,
-          params: {
-            protocol: 'old-proto',
-            contexts: ['test'],
-          },
+          version: DEFAULT_CONNECT_VERSION,
+          protocol: 'old-proto',
+          contexts: ['test'],
         },
       })
     })
@@ -64,11 +61,10 @@ describe('RPC Messages', () => {
       expect(message).toStrictEqual({
         jsonrpc: '2.0',
         id: 'mocked-uuid',
-        method: 'blade.connect',
+        method: 'signalwire.connect',
         params: {
           authentication: { project: 'project', jwt_token: 'jwt' },
-          version: { major: 2, minor: 5, revision: 0 },
-          agent: null,
+          version: DEFAULT_CONNECT_VERSION,
         },
       })
     })
@@ -77,31 +73,36 @@ describe('RPC Messages', () => {
       const authentication = {
         project: 'project',
         jwt_token: 'jwt',
-        agent: 'Jest Random Test',
       }
-      const message = BladeConnect({ authentication })
+      const message = BladeConnect({
+        authentication,
+        agent: 'Jest Random Test',
+      })
       expect(message).toStrictEqual({
         jsonrpc: '2.0',
         id: 'mocked-uuid',
-        method: 'blade.connect',
+        method: 'signalwire.connect',
         params: {
           authentication: { project: 'project', jwt_token: 'jwt' },
-          version: { major: 2, minor: 5, revision: 0 },
+          version: DEFAULT_CONNECT_VERSION,
           agent: 'Jest Random Test',
         },
       })
     })
 
     it('should generate the message without project', function () {
-      const authentication = { jwt_token: 'jwt', agent: 'Jest Random Test' }
-      const message = BladeConnect({ authentication })
+      const authentication = { jwt_token: 'jwt' }
+      const message = BladeConnect({
+        authentication,
+        agent: 'Jest Random Test',
+      })
       expect(message).toStrictEqual({
         jsonrpc: '2.0',
         id: 'mocked-uuid',
-        method: 'blade.connect',
+        method: 'signalwire.connect',
         params: {
           authentication: { jwt_token: 'jwt' },
-          version: { major: 2, minor: 5, revision: 0 },
+          version: DEFAULT_CONNECT_VERSION,
           agent: 'Jest Random Test',
         },
       })
@@ -117,7 +118,7 @@ describe('RPC Messages', () => {
       expect(message).toStrictEqual({
         jsonrpc: '2.0',
         id: 'mocked-uuid',
-        method: 'blade.reauthenticate',
+        method: 'signalwire.reauthenticate',
         params: {
           authentication: { project: 'project', jwt_token: 'jwt' },
         },
@@ -133,7 +134,7 @@ describe('RPC Messages', () => {
       expect(message).toStrictEqual({
         jsonrpc: '2.0',
         id: 'mocked-uuid',
-        method: 'blade.ping',
+        method: 'signalwire.ping',
         params: {
           timestamp: 1581442824134 / 1000,
         },
@@ -152,39 +153,39 @@ describe('RPC Messages', () => {
     })
   })
 
-  describe('BladeExecute', () => {
-    const method = 'signalwire.subscribe'
-    it('should generate the message based on protocol and method', function () {
-      const message = BladeExecute({ protocol: 'example', method })
-      expect(message).toStrictEqual({
-        jsonrpc: '2.0',
-        id: 'mocked-uuid',
-        method: 'blade.execute',
-        params: {
-          protocol: 'example',
-          method,
-        },
-      })
-    })
+  // describe('BladeExecute', () => {
+  //   const method = 'signalwire.subscribe'
+  //   it('should generate the message based on protocol and method', function () {
+  //     const message = BladeExecute({ protocol: 'example', method })
+  //     expect(message).toStrictEqual({
+  //       jsonrpc: '2.0',
+  //       id: 'mocked-uuid',
+  //       method: 'blade.execute',
+  //       params: {
+  //         protocol: 'example',
+  //         method,
+  //       },
+  //     })
+  //   })
 
-    it('should generate the message based on protocol, method and specific params', function () {
-      const message = BladeExecute({
-        protocol: 'example',
-        method,
-        params: { x: 3, y: 6 },
-      })
-      expect(message).toStrictEqual({
-        jsonrpc: '2.0',
-        id: 'mocked-uuid',
-        method: 'blade.execute',
-        params: {
-          protocol: 'example',
-          method,
-          params: { x: 3, y: 6 },
-        },
-      })
-    })
-  })
+  //   it('should generate the message based on protocol, method and specific params', function () {
+  //     const message = BladeExecute({
+  //       protocol: 'example',
+  //       method,
+  //       params: { x: 3, y: 6 },
+  //     })
+  //     expect(message).toStrictEqual({
+  //       jsonrpc: '2.0',
+  //       id: 'mocked-uuid',
+  //       method: 'blade.execute',
+  //       params: {
+  //         protocol: 'example',
+  //         method,
+  //         params: { x: 3, y: 6 },
+  //       },
+  //     })
+  //   })
+  // })
 
   describe('BladeDisconnect', () => {
     it('should generate the response', function () {
