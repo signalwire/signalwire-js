@@ -7,6 +7,7 @@ import {
   JSONRPCRequest,
   ConferenceWorkerParams,
   BladeBroadcastParams,
+  WebRTCMessage,
 } from '../../../utils/interfaces'
 import { ExecuteActionParams, WebRTCCall } from '../../interfaces'
 import { executeAction, socketMessageAction } from '../../actions'
@@ -25,6 +26,14 @@ type SessionSagaParams = {
 type VertoWorkerParams = {
   jsonrpc: JSONRPCRequest
   nodeId: string
+}
+
+// TODO: Move TypeGuards to its own module
+const isWebrtcEvent = (e: BladeBroadcastParams): e is WebRTCMessage => {
+  return e?.event_type === 'webrtc.message'
+}
+const isVideoEvent = (e: BladeBroadcastParams): e is ConferenceWorkerParams => {
+  return !!e?.event_type?.startsWith('video.')
 }
 
 /**
@@ -177,14 +186,21 @@ export function* sessionChannelWatcher({
   }
 
   function* conferenceWorker(params: ConferenceWorkerParams) {
-    logger.info(params.event_type, JSON.stringify(params, null, 2))
-    switch (params.event_type) {
+    const eventType = params.event_type?.split('.')?.splice(1)?.join('.')
+    if (!eventType) {
+      return logger.warn('Invalid video event', params)
+    }
+    switch (eventType) {
       case 'room.subscribed': {
         yield put(
           componentActions.upsert({
+            // @ts-ignore
             id: params.params.call_id,
+            // @ts-ignore
             roomId: params.params.room.room_id,
+            // @ts-ignore
             roomSessionId: params.params.room.room_session_id,
+            // @ts-ignore
             memberId: params.params.member_id,
           })
         )
@@ -197,6 +213,7 @@ export function* sessionChannelWatcher({
       }
       case 'member.updated': {
         const {
+          // @ts-ignore
           member: { updated = [] },
         } = params.params
         for (const key of updated) {
@@ -208,6 +225,7 @@ export function* sessionChannelWatcher({
         break
       }
       case 'member.talking': {
+        // @ts-ignore
         const { member } = params.params
         if ('talking' in member) {
           const suffix = member.talking ? 'start' : 'stop'
@@ -222,43 +240,29 @@ export function* sessionChannelWatcher({
 
     // Emit on the pubSubChannel this "event_type"
     yield put(pubSubChannel, {
-      type: params.event_type,
+      type: eventType,
       payload: params.params,
     })
   }
 
   function* bladeBroadcastWorker(broadcastParams: BladeBroadcastParams) {
-    // TODO: how to check protocol for each event ?
-    // if (broadcastParams?.protocol !== session.relayProtocol) {
-    //   return logger.error('Session protocol mismatch.')
-    // }
-
-    switch (broadcastParams.event_type) {
-      case 'webrtc.message': {
-        yield fork(vertoWorker, {
-          jsonrpc: broadcastParams.params,
-          nodeId: broadcastParams.node_id,
-        })
-        break
-      }
-      case 'room.subscribed':
-      case 'member.updated':
-      case 'member.joined':
-      case 'member.left':
-      case 'member.talking':
-      case 'layout.changed': {
-        logger.info(broadcastParams.event_type, broadcastParams.params)
-        yield fork(conferenceWorker, broadcastParams)
-        break
-      }
-      default: {
-        if ('development' === process.env.NODE_ENV) {
-          // @ts-expect-error
-          throw new Error(`Unknown broadcast event: ${broadcastParams.event}`)
-        }
-        return logger.debug('Unknown broadcast event', broadcastParams)
-      }
+    if (isWebrtcEvent(broadcastParams)) {
+      yield fork(vertoWorker, {
+        jsonrpc: broadcastParams.params,
+        nodeId: broadcastParams.node_id,
+      })
+      return
     }
+    if (isVideoEvent(broadcastParams)) {
+      yield fork(conferenceWorker, broadcastParams)
+      return
+    }
+
+    if ('development' === process.env.NODE_ENV) {
+      // @ts-expect-error
+      throw new Error(`Unknown broadcast event: ${broadcastParams.event}`)
+    }
+    return logger.debug('Unknown broadcast event', broadcastParams)
   }
 
   function* sessionChannelWorker(

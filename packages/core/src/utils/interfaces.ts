@@ -359,7 +359,7 @@ export type ConferenceWorkerParams =
   | MemberTalkingEvent
   | LayoutChangedEvent
 
-interface WebRTCMessage extends SwEvent {
+export interface WebRTCMessage extends SwEvent {
   event_type: 'webrtc.message'
   params: JSONRPCRequest
 }
