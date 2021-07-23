@@ -4,7 +4,7 @@ import {
   JSONRPCResponse,
   SessionAuthError,
   SessionAuthStatus,
-  BladeExecuteMethod,
+  JSONRPCMethod,
   BaseConnectionState,
 } from '../utils/interfaces'
 
@@ -58,7 +58,7 @@ export interface SDKState {
 export interface ExecuteActionParams {
   requestId?: string
   componentId?: string
-  method: BladeExecuteMethod
+  method: JSONRPCMethod
   params: Record<string, any>
 }
 

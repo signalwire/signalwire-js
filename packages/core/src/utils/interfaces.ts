@@ -52,7 +52,9 @@ export type JSONRPCMethod =
   | 'signalwire.event'
   | 'signalwire.reauthenticate'
   | 'signalwire.reauthenticate'
+  | 'signalwire.subscribe'
   | 'video.message'
+  | RoomMethod
   | VertoMethod
 
 export interface JSONRPCRequest {
@@ -406,15 +408,6 @@ export type RoomMethod =
   | `video.${RoomMemberMethod}`
   | `video.${RoomLayoutMethod}`
 
-/**
- * List of all available blade.execute methods
- */
-// prettier-ignore
-export type BladeExecuteMethod =
-  | RoomMethod
-  | 'video.message'
-  | 'signalwire.subscribe'
-
 export interface WebSocketClient {
   addEventListener: WebSocket['addEventListener']
   send: WebSocket['send']
@@ -426,7 +419,7 @@ export interface WebSocketAdapter {
 }
 
 export type ExecuteParams = {
-  method: BladeExecuteMethod
+  method: JSONRPCMethod
   params: Record<string, any>
 }
 

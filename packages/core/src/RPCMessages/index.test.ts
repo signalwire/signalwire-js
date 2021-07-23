@@ -3,7 +3,7 @@ import {
   BladeReauthenticate,
   BladePing,
   BladePingResponse,
-  // BladeExecute,
+  Execute,
   BladeDisconnectResponse,
   VertoBye,
   VertoAttach,
@@ -153,39 +153,32 @@ describe('RPC Messages', () => {
     })
   })
 
-  // describe('BladeExecute', () => {
-  //   const method = 'signalwire.subscribe'
-  //   it('should generate the message based on protocol and method', function () {
-  //     const message = BladeExecute({ protocol: 'example', method })
-  //     expect(message).toStrictEqual({
-  //       jsonrpc: '2.0',
-  //       id: 'mocked-uuid',
-  //       method: 'blade.execute',
-  //       params: {
-  //         protocol: 'example',
-  //         method,
-  //       },
-  //     })
-  //   })
+  describe('Execute', () => {
+    const method = 'signalwire.subscribe'
+    const params = { key: 'value' }
+    it('should generate the message based on protocol and method', function () {
+      const message = Execute({ method, params })
+      expect(message).toStrictEqual({
+        jsonrpc: '2.0',
+        id: 'mocked-uuid',
+        method,
+        params,
+      })
+    })
 
-  //   it('should generate the message based on protocol, method and specific params', function () {
-  //     const message = BladeExecute({
-  //       protocol: 'example',
-  //       method,
-  //       params: { x: 3, y: 6 },
-  //     })
-  //     expect(message).toStrictEqual({
-  //       jsonrpc: '2.0',
-  //       id: 'mocked-uuid',
-  //       method: 'blade.execute',
-  //       params: {
-  //         protocol: 'example',
-  //         method,
-  //         params: { x: 3, y: 6 },
-  //       },
-  //     })
-  //   })
-  // })
+    it('should generate the message based on protocol, method and specific params', function () {
+      const message = Execute({
+        method,
+        params: { x: 3, y: 6 },
+      })
+      expect(message).toStrictEqual({
+        jsonrpc: '2.0',
+        id: 'mocked-uuid',
+        method,
+        params: { x: 3, y: 6 },
+      })
+    })
+  })
 
   describe('BladeDisconnect', () => {
     it('should generate the response', function () {

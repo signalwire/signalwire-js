@@ -1,4 +1,4 @@
-import { BladeConnect, BladeExecute } from '../RPCMessages'
+import { BladeConnect, Execute } from '../RPCMessages'
 import { parseRPCResponse } from './parseRPCResponse'
 
 describe('parseRPCResponse', () => {
@@ -30,8 +30,7 @@ describe('parseRPCResponse', () => {
   })
 
   describe('blade.execute', () => {
-    const request = BladeExecute({
-      protocol: 'proto',
+    const request = Execute({
       method: 'signalwire.subscribe',
       params: { x: 1, y: 2 },
     })

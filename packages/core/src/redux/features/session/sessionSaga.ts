@@ -11,7 +11,7 @@ import {
 import { ExecuteActionParams, WebRTCCall } from '../../interfaces'
 import { executeAction, socketMessageAction } from '../../actions'
 import { componentActions } from '../'
-import { BladeExecute } from '../../../RPCMessages'
+import { Execute } from '../../../RPCMessages'
 import { logger } from '../../../utils'
 import { getAuthStatus } from '../session/sessionSelectors'
 import { SessionAuthStatus } from '../../../utils/interfaces'
@@ -29,7 +29,7 @@ type VertoWorkerParams = {
 
 /**
  * Watch every "executeAction" and fork the worker to send
- * a BladeExecute over the wire and then update the state
+ * a JSONRPC over the wire and then update the state
  * with "componentActions.executeSuccess" or "componentActions.executeFailure"
  * actions if a componentId is provided.
  */
@@ -37,9 +37,8 @@ export function* executeActionWatcher(session: BaseSession): SagaIterator {
   function* worker(action: PayloadAction<ExecuteActionParams>): SagaIterator {
     const { componentId, requestId, method, params } = action.payload
     try {
-      const message = BladeExecute({
+      const message = Execute({
         id: requestId,
-        protocol: session.relayProtocol,
         method,
         params,
       })
