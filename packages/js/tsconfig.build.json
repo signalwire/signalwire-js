@@ -4,6 +4,11 @@
     "emitDeclarationOnly": true,
     "outDir": "dist"
   },
-  "include": ["./src/**/*.ts", "../core/src/**/*.ts", "../webrtc/src/**/*.ts"],
+  "include": [
+    "./src/**/*.ts",
+    "./package.json",
+    "../core/src/**/*.ts",
+    "../webrtc/src/**/*.ts"
+  ],
   "exclude": ["**/*.test.ts"]
 }
