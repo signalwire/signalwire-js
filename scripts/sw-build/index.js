@@ -21,7 +21,6 @@ const COMMON_NODE = {
   // what to bundle and what not
   plugins: [nodeExternalsPlugin()],
 }
-// TODO: review options for --node and --web
 const OPTIONS_MAP = {
   '--node': [
     {
