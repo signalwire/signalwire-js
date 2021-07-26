@@ -1,4 +1,4 @@
-import { WebRTC } from '../../src'
+import { WebRTC } from '@signalwire/js'
 
 const {
   setMediaElementSinkId,
