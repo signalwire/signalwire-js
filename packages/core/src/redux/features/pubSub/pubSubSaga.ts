@@ -20,6 +20,16 @@ const findNamespaceInPayload = (payload?: any): string => {
   return ns || ''
 }
 
+const PREFIXES = ['video.']
+const getEventName = (type: PubSubAction['type']) => {
+  for (const prefix of PREFIXES) {
+    if (type.startsWith(prefix)) {
+      return type.replace(prefix, '')
+    }
+  }
+  return type
+}
+
 export function* pubSubSaga({
   pubSubChannel,
   emitter,
@@ -28,7 +38,7 @@ export function* pubSubSaga({
     const { type, payload }: PubSubAction = yield take(pubSubChannel)
     try {
       const namespace = findNamespaceInPayload(payload)
-
+      const event = getEventName(type)
       /**
        * There are events (like `room.started`/`room.ended`) that can
        * be consumed from different places, like from a `roomObj`
@@ -37,17 +47,11 @@ export function* pubSubSaga({
        * event twice to reach everyone.
        */
       // @ts-expect-error
-      if (isGlobalEvent(type)) {
-        emitter.emit(type, payload)
+      if (isGlobalEvent(event)) {
+        emitter.emit(event, payload)
       }
 
-      emitter.emit(
-        getNamespacedEvent({
-          namespace,
-          event: type,
-        }),
-        payload
-      )
+      emitter.emit(getNamespacedEvent({ namespace, event }), payload)
     } catch (error) {
       logger.error(error)
     }

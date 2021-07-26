@@ -212,8 +212,9 @@ export function* sessionChannelWatcher({
           member: { updated = [] },
         } = params.params
         for (const key of updated) {
+          const type = `video.member.updated.${key}` as const
           yield put(pubSubChannel, {
-            type: `video.member.updated.${key}`,
+            type,
             payload: params.params,
           })
         }
@@ -222,9 +223,10 @@ export function* sessionChannelWatcher({
       case 'video.member.talking': {
         const { member } = params.params
         if ('talking' in member) {
-          const suffix = member.talking ? 'start' : 'stop'
+          const suffix = member.talking ? 'start' : ('stop' as const)
+          const type = `video.member.talking.${suffix}` as const
           yield put(pubSubChannel, {
-            type: `video.member.talking.${suffix}`,
+            type,
             payload: params.params,
           })
         }

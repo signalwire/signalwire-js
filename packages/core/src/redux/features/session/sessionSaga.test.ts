@@ -52,11 +52,11 @@ describe('sessionChannelWatcher', () => {
           })
         )
         .put(pubSubChannel, {
-          type: 'room.joined',
+          type: 'video.room.joined',
           payload: jsonrpc.params.params.params,
         })
         .put(pubSubChannel, {
-          type: 'room.subscribed',
+          type: 'video.room.subscribed',
           payload: jsonrpc.params.params.params,
         })
         .run()
@@ -104,15 +104,15 @@ describe('sessionChannelWatcher', () => {
           },
         ])
         .put(pubSubChannel, {
-          type: 'member.updated.visible',
+          type: 'video.member.updated.visible',
           payload,
         })
         .put(pubSubChannel, {
-          type: 'member.updated.video_muted',
+          type: 'video.member.updated.video_muted',
           payload,
         })
         .put(pubSubChannel, {
-          type: 'member.updated',
+          type: 'video.member.updated',
           payload,
         })
         .run()
@@ -160,11 +160,11 @@ describe('sessionChannelWatcher', () => {
           },
         ])
         .put(pubSubChannel, {
-          type: 'member.talking.start',
+          type: 'video.member.talking.start',
           payload,
         })
         .put(pubSubChannel, {
-          type: 'member.talking',
+          type: 'video.member.talking',
           payload,
         })
         .run()
@@ -212,11 +212,11 @@ describe('sessionChannelWatcher', () => {
           },
         ])
         .put(pubSubChannel, {
-          type: 'member.talking.stop',
+          type: 'video.member.talking.stop',
           payload,
         })
         .put(pubSubChannel, {
-          type: 'member.talking',
+          type: 'video.member.talking',
           payload,
         })
         .run()
@@ -261,7 +261,7 @@ describe('sessionChannelWatcher', () => {
           },
         ])
         .put(pubSubChannel, {
-          type: 'testing',
+          type: 'video.room.joined',
           payload: 'random value',
         })
         .run()

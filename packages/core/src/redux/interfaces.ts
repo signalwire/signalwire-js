@@ -7,6 +7,7 @@ import {
   JSONRPCMethod,
   BaseConnectionState,
 } from '../utils/interfaces'
+import type { PubSubChannelEvents } from '../types'
 
 interface SWComponent {
   id: string
@@ -75,7 +76,7 @@ export type CustomSaga<T> = (params: CustomSagaParams<T>) => SagaIterator<any>
 
 export type PubSubAction = {
   // TODO: replace string with an union type with all events
-  type: string
+  type: PubSubChannelEvents
   payload?: any
 }
 export type PubSubChannel = Channel<PubSubAction>

@@ -110,16 +110,6 @@ interface RoomEventParams {
   member_id: string
 }
 
-/**
- * List of all the internal events
- * for the video sdk
- * @internal
- */
-export type InternalVideoEvent =
-  | `video.${RoomEvent}`
-  | `video.${MemberEvent}`
-  | `video.${LayoutEvent}`
-
 export type RTCTrackEventName = 'track'
 
 /**
@@ -133,6 +123,20 @@ export type RoomEventNames =
   | MemberEvent
   | MemberUpdatedEventNames
   | MemberTalkingEventNames
+
+/**
+ * List of all the internal events
+ * for the video sdk
+ * @internal
+ */
+export type InternalVideoEvent =
+  | `video.${RoomEvent}`
+  | `video.${MemberEvent}`
+  | `video.${LayoutEvent}`
+  | `video.${MemberUpdatedEventNames}`
+  | `video.${MemberTalkingEventNames}`
+  | `video.room.joined`
+  | RTCTrackEventName
 
 interface RoomSubscribedEvent extends SwEvent {
   event_type: `video.${RoomSubscribedEventName}`
