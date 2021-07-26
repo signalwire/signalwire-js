@@ -42,7 +42,7 @@ export class BaseSession {
   public agent: string
   public connectVersion = DEFAULT_CONNECT_VERSION
 
-  protected _connectResult: RPCConnectResult
+  protected _rpcConnectResult: RPCConnectResult
 
   private _requests = new Map<string, SessionRequestObject>()
   private _requestQueue: SessionRequestQueued[] = []
@@ -70,16 +70,16 @@ export class BaseSession {
     this.logger.setLevel(this.logger.levels.INFO)
   }
 
-  get connectResult() {
-    return this._connectResult
+  get rpcConnectResult() {
+    return this._rpcConnectResult
   }
 
   get relayProtocol() {
-    return this._connectResult?.protocol ?? ''
+    return this._rpcConnectResult?.protocol ?? ''
   }
 
   get signature() {
-    return this._connectResult?.authorization?.signature
+    return this._rpcConnectResult?.authorization?.signature
   }
 
   get logger(): typeof logger {
@@ -206,7 +206,7 @@ export class BaseSession {
     if (this._relayProtocolIsValid()) {
       params.protocol = this.relayProtocol
     }
-    this._connectResult = await this.execute(RPCConnect(params))
+    this._rpcConnectResult = await this.execute(RPCConnect(params))
   }
 
   protected async _onSocketOpen(event: Event) {

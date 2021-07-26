@@ -170,7 +170,7 @@ describe('initSessionSaga', () => {
 
 describe('startSaga', () => {
   const session = {
-    connectResult: { key: 'value' },
+    rpcConnectResult: { key: 'value' },
     connect: jest.fn(),
   } as any
   const pubSubChannel = channel()
@@ -202,7 +202,7 @@ describe('startSaga', () => {
 
     saga
       .next(executeActionTask)
-      .put(sessionActions.connected(session.connectResult))
+      .put(sessionActions.connected(session.rpcConnectResult))
     saga.next().put(pubSubChannel, sessionConnectedAction())
 
     saga.next().fork(flushExecuteQueueWorker)

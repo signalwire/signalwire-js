@@ -25,7 +25,7 @@ export class BaseJWTSession extends BaseSession {
   }
 
   get expiresAt() {
-    return this?._connectResult?.authorization?.expires_at ?? 0
+    return this?._rpcConnectResult?.authorization?.expires_at ?? 0
   }
 
   get expiresIn() {
@@ -60,7 +60,7 @@ export class BaseJWTSession extends BaseSession {
       }
     }
 
-    this._connectResult = await this.execute(RPCConnect(params))
+    this._rpcConnectResult = await this.execute(RPCConnect(params))
     this._checkTokenExpiration()
   }
 
