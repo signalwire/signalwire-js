@@ -208,6 +208,7 @@ const buildUmd = async (options) => {
         browser: true,
       }),
       replace({
+        ...options.define,
         'process.env.NODE_ENV': JSON.stringify('production'),
         preventAssignment: true,
       }),
