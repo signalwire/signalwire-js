@@ -6,6 +6,9 @@
     "build": "vite build",
     "serve": "vite preview"
   },
+  "dependencies": {
+    "@tailwindcss/forms": "^0.3.3"
+  },
   "devDependencies": {
     "tailwindcss": "^2.1.1",
     "typescript": "^4.2.3",
