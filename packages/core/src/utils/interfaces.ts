@@ -51,7 +51,6 @@ export type JSONRPCMethod =
   | 'signalwire.disconnect'
   | 'signalwire.event'
   | 'signalwire.reauthenticate'
-  | 'signalwire.reauthenticate'
   | 'signalwire.subscribe'
   | 'video.message'
   | RoomMethod
