@@ -1,4 +1,4 @@
-import type { VideoWorkerParams, WebRTCMessageParams } from './video'
+import type { VideoAPIEventParams, WebRTCMessageParams } from './video'
 
 export interface SwEvent {
   event_channel: string
@@ -7,7 +7,7 @@ export interface SwEvent {
 
 // prettier-ignore
 export type SwEventParams =
-  | VideoWorkerParams
+  | VideoAPIEventParams
   | WebRTCMessageParams
 
 export * from './video'

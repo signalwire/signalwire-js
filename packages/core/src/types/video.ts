@@ -135,12 +135,12 @@ export type RoomEventNames =
   | MemberTalkingEventNames
 
 interface RoomSubscribedEvent extends SwEvent {
-  event_type: RoomSubscribedEventName
+  event_type: `video.${RoomSubscribedEventName}`
   params: RoomEventParams
 }
 
 interface MemberUpdatedEvent extends SwEvent {
-  event_type: MemberUpdatedEventName
+  event_type: `video.${MemberUpdatedEventName}`
   params: {
     member: {
       updated: Array<keyof RoomMemberProperties>
@@ -150,21 +150,21 @@ interface MemberUpdatedEvent extends SwEvent {
 }
 
 interface MemberJoinedEvent extends SwEvent {
-  event_type: MemberJoinedEventName
+  event_type: `video.${MemberJoinedEventName}`
   params: {
     member: Member
   }
 }
 
 interface MemberLeftEvent extends SwEvent {
-  event_type: MemberLeftEventName
+  event_type: `video.${MemberLeftEventName}`
   params: {
     member: Member
   }
 }
 
 interface MemberTalkingEvent extends SwEvent {
-  event_type: MemberTalkingEventName
+  event_type: `video.${MemberTalkingEventName}`
   params: {
     member: RoomMemberCommon & {
       talking: boolean
@@ -173,7 +173,7 @@ interface MemberTalkingEvent extends SwEvent {
 }
 
 interface LayoutChangedEvent extends SwEvent {
-  event_type: LayoutChangedEventName
+  event_type: `video.${LayoutChangedEventName}`
   params: {
     room_session_id: string
     room_id: string
@@ -181,7 +181,7 @@ interface LayoutChangedEvent extends SwEvent {
   }
 }
 
-export type VideoWorkerParams =
+export type VideoAPIEventParams =
   | RoomSubscribedEvent
   | MemberUpdatedEvent
   | MemberJoinedEvent
