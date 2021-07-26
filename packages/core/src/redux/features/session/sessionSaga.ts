@@ -3,12 +3,12 @@ import { call, put, take, fork, select } from 'redux-saga/effects'
 import { PayloadAction } from '@reduxjs/toolkit'
 import { BaseSession } from '../../../BaseSession'
 import { VertoResult } from '../../../RPCMessages'
-import {
-  JSONRPCRequest,
+import { JSONRPCRequest } from '../../../utils/interfaces'
+import type {
   VideoWorkerParams,
   SwEventParams,
-  WebRTCMessage,
-} from '../../../utils/interfaces'
+  WebRTCMessageParams,
+} from '../../../types'
 import { ExecuteActionParams, WebRTCCall } from '../../interfaces'
 import { executeAction, socketMessageAction } from '../../actions'
 import { componentActions } from '../'
@@ -29,7 +29,7 @@ type VertoWorkerParams = {
 }
 
 // TODO: Move TypeGuards to its own module
-const isWebrtcEvent = (e: SwEventParams): e is WebRTCMessage => {
+const isWebrtcEvent = (e: SwEventParams): e is WebRTCMessageParams => {
   return e?.event_type === 'webrtc.message'
 }
 const isVideoEvent = (e: SwEventParams): e is VideoWorkerParams => {

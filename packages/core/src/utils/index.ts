@@ -1,5 +1,5 @@
 import { STORAGE_PREFIX, GLOBAL_VIDEO_EVENTS } from './constants'
-import { RoomEventNames } from './interfaces'
+import { RoomEventNames } from '../types'
 
 export { v4 as uuid } from 'uuid'
 export { logger } from './logger'

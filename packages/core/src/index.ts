@@ -23,6 +23,7 @@ export {
 
 export * from './RPCMessages'
 export * from './utils/interfaces'
+export * from './types'
 export * from './CustomErrors'
 export type {
   SessionState,
