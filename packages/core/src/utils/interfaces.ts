@@ -124,7 +124,7 @@ export interface IBladeAuthorization {
   expires_at?: number
 }
 
-export interface IBladeConnectResult {
+export interface RPCConnectResult {
   identity: string
   authorization: IBladeAuthorization
   protocol: string
@@ -350,8 +350,7 @@ interface LayoutChangedEvent extends SwEvent {
   }
 }
 
-// prettier-ignore
-export type ConferenceWorkerParams =
+export type VideoWorkerParams =
   | RoomSubscribedEvent
   | MemberUpdatedEvent
   | MemberJoinedEvent
@@ -365,8 +364,8 @@ export interface WebRTCMessage extends SwEvent {
 }
 
 // prettier-ignore
-export type BladeBroadcastParams =
-  | ConferenceWorkerParams
+export type SwEventParams =
+  | VideoWorkerParams
   | WebRTCMessage
 
 /**

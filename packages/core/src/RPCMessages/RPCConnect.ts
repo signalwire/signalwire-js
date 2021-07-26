@@ -2,9 +2,9 @@ import { makeRPCRequest } from './helpers'
 
 type WithToken = { token: string; jwt_token?: never }
 type WithJWT = { token?: never; jwt_token: string }
-type BladeConnectAuthentication = { project?: string } & (WithToken | WithJWT)
-export type BladeConnectParams = {
-  authentication: BladeConnectAuthentication
+type RPCConnectAuthentication = { project?: string } & (WithToken | WithJWT)
+export type RPCConnectParams = {
+  authentication: RPCConnectAuthentication
   version?: typeof DEFAULT_CONNECT_VERSION
   agent?: string
   protocol?: string
@@ -17,7 +17,7 @@ export const DEFAULT_CONNECT_VERSION = {
   revision: 0,
 }
 
-export const BladeConnect = (params: BladeConnectParams) => {
+export const RPCConnect = (params: RPCConnectParams) => {
   return makeRPCRequest({
     method: 'signalwire.connect',
     params: {

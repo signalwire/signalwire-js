@@ -3,10 +3,10 @@ import WS from 'jest-websocket-mock'
 import { BaseSession } from './BaseSession'
 import { socketMessageAction } from './redux/actions'
 import {
-  BladeConnect,
-  BladePing,
-  BladePingResponse,
-  BladeDisconnectResponse,
+  RPCConnect,
+  RPCPing,
+  RPCPingResponse,
+  RPCDisconnectResponse,
 } from './RPCMessages'
 import { wait } from './testUtils'
 
@@ -20,7 +20,7 @@ describe('BaseSession', () => {
   const host = 'ws://localhost:8080'
   const project = '2506edbc-35c4-4d9f-a5f0-45a03d82dab1'
   const token = 'PT1234abc'
-  const bladeConnect = BladeConnect({
+  const rpcConnect = RPCConnect({
     authentication: {
       project,
       token,
@@ -59,14 +59,14 @@ describe('BaseSession', () => {
     session.connect()
     await ws.connected
 
-    await expect(ws).toReceiveMessage(JSON.stringify(bladeConnect))
+    await expect(ws).toReceiveMessage(JSON.stringify(rpcConnect))
   })
 
   it('should set idle mode on signalwire.disconnect', async () => {
     session.connect()
     await ws.connected
 
-    await expect(ws).toReceiveMessage(JSON.stringify(bladeConnect))
+    await expect(ws).toReceiveMessage(JSON.stringify(rpcConnect))
     const request = {
       jsonrpc: '2.0',
       id: 'uuid',
@@ -76,7 +76,7 @@ describe('BaseSession', () => {
     ws.send(JSON.stringify(request))
 
     expect(session.status).toEqual('unknown')
-    const response = BladeDisconnectResponse(request.id)
+    const response = RPCDisconnectResponse(request.id)
     await expect(ws).toReceiveMessage(JSON.stringify(response))
     expect(session.status).toEqual('idle')
   })
@@ -85,7 +85,7 @@ describe('BaseSession', () => {
     session.connect()
     await ws.connected
 
-    await expect(ws).toReceiveMessage(JSON.stringify(bladeConnect))
+    await expect(ws).toReceiveMessage(JSON.stringify(rpcConnect))
     const request = {
       jsonrpc: '2.0' as const,
       id: 'uuid',
@@ -105,13 +105,13 @@ describe('BaseSession', () => {
       session.connect()
       await ws.connected
 
-      await expect(ws).toReceiveMessage(JSON.stringify(bladeConnect))
+      await expect(ws).toReceiveMessage(JSON.stringify(rpcConnect))
 
-      const ping = BladePing()
+      const ping = RPCPing()
       ping.id = 'ping-uuid'
       ws.send(JSON.stringify(ping))
 
-      const response = BladePingResponse(ping.id, ping.params.timestamp)
+      const response = RPCPingResponse(ping.id, ping.params.timestamp)
       await expect(ws).toReceiveMessage(JSON.stringify(response))
     })
 
@@ -122,7 +122,7 @@ describe('BaseSession', () => {
       session.connect()
       await ws.connected
 
-      const ping = BladePing()
+      const ping = RPCPing()
       ping.id = 'ping-uuid'
       ws.send(JSON.stringify(ping))
 

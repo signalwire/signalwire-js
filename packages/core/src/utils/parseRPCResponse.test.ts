@@ -1,4 +1,4 @@
-import { BladeConnect, Execute } from '../RPCMessages'
+import { RPCConnect, RPCExecute } from '../RPCMessages'
 import { parseRPCResponse } from './parseRPCResponse'
 
 describe('parseRPCResponse', () => {
@@ -6,7 +6,7 @@ describe('parseRPCResponse', () => {
   const token = 'token'
 
   describe('signalwire.connect', () => {
-    const request = BladeConnect({
+    const request = RPCConnect({
       authentication: { project, token },
     })
 
@@ -29,13 +29,13 @@ describe('parseRPCResponse', () => {
     })
   })
 
-  describe('blade.execute', () => {
-    const request = Execute({
+  describe('execute methods', () => {
+    const request = RPCExecute({
       method: 'signalwire.subscribe',
       params: { x: 1, y: 2 },
     })
 
-    it('should handle blade.execute result', () => {
+    it('should handle the result', () => {
       const response = JSON.parse(
         '{"jsonrpc":"2.0","id":"uuid","result":{"code":"200","message":"Playing","call_id":"call-id"}}'
       )
@@ -43,7 +43,7 @@ describe('parseRPCResponse', () => {
         result: { code: '200', message: 'Playing', call_id: 'call-id' },
       })
     })
-    it('should handle blade.execute result', () => {
+    it('should handle the error', () => {
       const response = JSON.parse(
         '{"jsonrpc":"2.0","id":"uuid","error":{"code":-32601,"message":"Error Message"}}'
       )

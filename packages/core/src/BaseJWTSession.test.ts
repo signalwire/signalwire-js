@@ -1,6 +1,6 @@
 import WS from 'jest-websocket-mock'
 import { BaseJWTSession } from './BaseJWTSession'
-import { BladeConnect } from './RPCMessages'
+import { RPCConnect } from './RPCMessages'
 
 class JWTSession extends BaseJWTSession {
   public WebSocketConstructor = WebSocket
@@ -15,7 +15,7 @@ jest.mock('uuid', () => {
 describe('JWTSession', () => {
   const host = 'ws://localhost:8080'
   const token = '<jwt>'
-  const bladeConnect = BladeConnect({
+  const rpcConnect = RPCConnect({
     authentication: {
       jwt_token: token,
     },
@@ -51,6 +51,6 @@ describe('JWTSession', () => {
     session.connect()
     await ws.connected
 
-    await expect(ws).toReceiveMessage(JSON.stringify(bladeConnect))
+    await expect(ws).toReceiveMessage(JSON.stringify(rpcConnect))
   })
 })

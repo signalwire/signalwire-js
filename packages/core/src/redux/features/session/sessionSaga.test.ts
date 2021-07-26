@@ -6,7 +6,7 @@ import { componentActions } from '../'
 import { sessionChannelWatcher, createSessionChannel } from './sessionSaga'
 
 describe('sessionChannelWatcher', () => {
-  describe('conferenceWorker', () => {
+  describe('videoAPIWorker', () => {
     it('should handle room.subscribed dispatching componentActions.upsert and the room.joined', async () => {
       const jsonrpc = JSON.parse(
         '{"jsonrpc":"2.0","id":"ddcd9807-0339-4a39-92b1-ab7967b84782","method":"signalwire.event","params":{"broadcaster_nodeid":"2286cac8-1346-474f-9913-7ca9c3df9fc8@west-us","protocol":"signalwire_0d8d431757079b56923f7a2acc25ef69e3f698dd36689ca472cf6bc0fd900426_830b7622-b03b-4a11-9109-19bf2c9e27cf_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"conference","params":{"params":{"room":{"room_session_id":"6fbe4472-e6dd-431f-887f-33171cd83ccb","name":"roomName","members":[{"visible":false,"id":"0e5f67e0-8dbf-48dd-b920-804b97fccee6","audio_muted":false,"name":"Edo","video_muted":false,"type":"member"}],"locked":false,"layouts":[{"id":"group:grid"}],"room_id":"790d6c79-f0d1-421e-b5f2-f09bd05941ce","current_layout":{"id":"1x1","layers":[{"y":0,"x":0,"layer_index":0,"height":720,"z_index":0,"width":1280}],"name":"Full Screen"}},"call_id":"0e5f67e0-8dbf-48dd-b920-804b97fccee6","member_id":"0e5f67e0-8dbf-48dd-b920-804b97fccee6"},"timestamp":"1620991212.326279","event_type":"room.subscribed","event_channel":"room.adaacbef-3d34-4a5f-a123-d3d166515ba0"}},"hops":[]}'

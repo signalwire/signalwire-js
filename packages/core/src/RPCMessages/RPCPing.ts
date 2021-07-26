@@ -1,6 +1,6 @@
 import { makeRPCRequest, makeRPCResponse } from './helpers'
 
-export const BladePing = () => {
+export const RPCPing = () => {
   return makeRPCRequest({
     method: 'signalwire.ping',
     params: {
@@ -9,7 +9,7 @@ export const BladePing = () => {
   })
 }
 
-export const BladePingResponse = (id: string, timestamp?: number) => {
+export const RPCPingResponse = (id: string, timestamp?: number) => {
   return makeRPCResponse({
     id,
     result: {

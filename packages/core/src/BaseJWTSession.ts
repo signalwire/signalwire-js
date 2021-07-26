@@ -1,6 +1,6 @@
 import { logger } from './utils/logger'
 import { sessionStorage } from './utils/storage/'
-import { BladeConnect, BladeConnectParams } from './RPCMessages'
+import { RPCConnect, RPCConnectParams } from './RPCMessages'
 import { SessionOptions } from './utils/interfaces'
 import { BaseSession } from './BaseSession'
 
@@ -25,7 +25,7 @@ export class BaseJWTSession extends BaseSession {
   }
 
   get expiresAt() {
-    return this?._bladeConnectResult?.authorization?.expires_at ?? 0
+    return this?._connectResult?.authorization?.expires_at ?? 0
   }
 
   get expiresIn() {
@@ -43,7 +43,7 @@ export class BaseJWTSession extends BaseSession {
    * @return Promise<void>
    */
   async authenticate() {
-    const params: BladeConnectParams = {
+    const params: RPCConnectParams = {
       agent: this.agent,
       version: this.connectVersion,
       authentication: {
@@ -60,7 +60,7 @@ export class BaseJWTSession extends BaseSession {
       }
     }
 
-    this._bladeConnectResult = await this.execute(BladeConnect(params))
+    this._connectResult = await this.execute(RPCConnect(params))
     this._checkTokenExpiration()
   }
 

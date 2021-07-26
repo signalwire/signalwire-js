@@ -1,10 +1,8 @@
 import { makeRPCRequest } from './helpers'
 
-type BladeReauthenticateParams = { project: string; jwt_token: string }
+type RPCReauthenticateParams = { project: string; jwt_token: string }
 
-export const BladeReauthenticate = (
-  authentication: BladeReauthenticateParams
-) => {
+export const RPCReauthenticate = (authentication: RPCReauthenticateParams) => {
   return makeRPCRequest({
     method: 'signalwire.reauthenticate',
     params: {

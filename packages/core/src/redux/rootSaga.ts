@@ -141,7 +141,7 @@ export function* startSaga(options: StartSagaOptions): SagaIterator {
    */
   const executeActionTask: Task = yield fork(executeActionWatcher, session)
 
-  yield put(sessionActions.connected(session.bladeConnectResult))
+  yield put(sessionActions.connected(session.connectResult))
   yield put(pubSubChannel, sessionConnectedAction())
 
   /**

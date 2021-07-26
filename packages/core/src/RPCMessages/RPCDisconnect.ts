@@ -1,6 +1,6 @@
 import { makeRPCResponse } from './helpers'
 
-export const BladeDisconnectResponse = (id: string) => {
+export const RPCDisconnectResponse = (id: string) => {
   return makeRPCResponse({
     id,
     result: {},

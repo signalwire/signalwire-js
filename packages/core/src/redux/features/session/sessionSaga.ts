@@ -5,14 +5,14 @@ import { BaseSession } from '../../../BaseSession'
 import { VertoResult } from '../../../RPCMessages'
 import {
   JSONRPCRequest,
-  ConferenceWorkerParams,
-  BladeBroadcastParams,
+  VideoWorkerParams,
+  SwEventParams,
   WebRTCMessage,
 } from '../../../utils/interfaces'
 import { ExecuteActionParams, WebRTCCall } from '../../interfaces'
 import { executeAction, socketMessageAction } from '../../actions'
 import { componentActions } from '../'
-import { Execute } from '../../../RPCMessages'
+import { RPCExecute } from '../../../RPCMessages'
 import { logger } from '../../../utils'
 import { getAuthStatus } from '../session/sessionSelectors'
 import { SessionAuthStatus } from '../../../utils/interfaces'
@@ -29,10 +29,10 @@ type VertoWorkerParams = {
 }
 
 // TODO: Move TypeGuards to its own module
-const isWebrtcEvent = (e: BladeBroadcastParams): e is WebRTCMessage => {
+const isWebrtcEvent = (e: SwEventParams): e is WebRTCMessage => {
   return e?.event_type === 'webrtc.message'
 }
-const isVideoEvent = (e: BladeBroadcastParams): e is ConferenceWorkerParams => {
+const isVideoEvent = (e: SwEventParams): e is VideoWorkerParams => {
   return !!e?.event_type?.startsWith('video.')
 }
 
@@ -46,7 +46,7 @@ export function* executeActionWatcher(session: BaseSession): SagaIterator {
   function* worker(action: PayloadAction<ExecuteActionParams>): SagaIterator {
     const { componentId, requestId, method, params } = action.payload
     try {
-      const message = Execute({
+      const message = RPCExecute({
         id: requestId,
         method,
         params,
@@ -185,7 +185,7 @@ export function* sessionChannelWatcher({
     }
   }
 
-  function* conferenceWorker(params: ConferenceWorkerParams) {
+  function* videoAPIWorker(params: VideoWorkerParams) {
     const eventType = params.event_type?.split('.')?.splice(1)?.join('.')
     if (!eventType) {
       return logger.warn('Invalid video event', params)
@@ -245,7 +245,7 @@ export function* sessionChannelWatcher({
     })
   }
 
-  function* bladeBroadcastWorker(broadcastParams: BladeBroadcastParams) {
+  function* swEventWorker(broadcastParams: SwEventParams) {
     if (isWebrtcEvent(broadcastParams)) {
       yield fork(vertoWorker, {
         jsonrpc: broadcastParams.params,
@@ -254,7 +254,7 @@ export function* sessionChannelWatcher({
       return
     }
     if (isVideoEvent(broadcastParams)) {
-      yield fork(conferenceWorker, broadcastParams)
+      yield fork(videoAPIWorker, broadcastParams)
       return
     }
 
@@ -277,7 +277,7 @@ export function* sessionChannelWatcher({
 
     switch (method) {
       case 'signalwire.event':
-        yield fork(bladeBroadcastWorker, params as BladeBroadcastParams)
+        yield fork(swEventWorker, params as SwEventParams)
         break
       default:
         return logger.debug(`Unknown message: ${method}`, action)

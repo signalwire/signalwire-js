@@ -2,17 +2,17 @@ import { PayloadAction } from '@reduxjs/toolkit'
 import { uuid, logger } from './utils'
 import { DEFAULT_HOST, WebSocketState } from './utils/constants'
 import {
-  BladeConnect,
-  BladeConnectParams,
+  RPCConnect,
+  RPCConnectParams,
   DEFAULT_CONNECT_VERSION,
-  BladeDisconnectResponse,
-  BladePingResponse,
+  RPCDisconnectResponse,
+  RPCPingResponse,
 } from './RPCMessages'
 import {
   SessionOptions,
   SessionRequestObject,
   SessionRequestQueued,
-  IBladeConnectResult,
+  RPCConnectResult,
   JSONRPCRequest,
   JSONRPCResponse,
   WebSocketAdapter,
@@ -42,7 +42,7 @@ export class BaseSession {
   public agent: string
   public connectVersion = DEFAULT_CONNECT_VERSION
 
-  protected _bladeConnectResult: IBladeConnectResult
+  protected _connectResult: RPCConnectResult
 
   private _requests = new Map<string, SessionRequestObject>()
   private _requestQueue: SessionRequestQueued[] = []
@@ -70,16 +70,16 @@ export class BaseSession {
     this.logger.setLevel(this.logger.levels.INFO)
   }
 
-  get bladeConnectResult() {
-    return this._bladeConnectResult
+  get connectResult() {
+    return this._connectResult
   }
 
   get relayProtocol() {
-    return this._bladeConnectResult?.protocol ?? ''
+    return this._connectResult?.protocol ?? ''
   }
 
   get signature() {
-    return this._bladeConnectResult?.authorization?.signature
+    return this._connectResult?.authorization?.signature
   }
 
   get logger(): typeof logger {
@@ -195,7 +195,7 @@ export class BaseSession {
    * @return Promise<void>
    */
   async authenticate() {
-    const params: BladeConnectParams = {
+    const params: RPCConnectParams = {
       agent: this.agent,
       version: this.connectVersion,
       authentication: {
@@ -206,7 +206,7 @@ export class BaseSession {
     if (this._relayProtocolIsValid()) {
       params.protocol = this.relayProtocol
     }
-    this._bladeConnectResult = await this.execute(BladeConnect(params))
+    this._connectResult = await this.execute(RPCConnect(params))
   }
 
   protected async _onSocketOpen(event: Event) {
@@ -257,7 +257,7 @@ export class BaseSession {
          * Set this._status = 'idle' because the server
          * will close the connection soon.
          */
-        this.execute(BladeDisconnectResponse(payload.id))
+        this.execute(RPCDisconnectResponse(payload.id))
           .catch((error) => {
             logger.error('BladeDisconnect Error', error)
           })
@@ -305,9 +305,7 @@ export class BaseSession {
       this._closeConnection('reconnecting')
     }, this._checkPingDelay)
 
-    await this.execute(
-      BladePingResponse(payload.id, payload?.params?.timestamp)
-    )
+    await this.execute(RPCPingResponse(payload.id, payload?.params?.timestamp))
   }
 
   private _closeConnection(

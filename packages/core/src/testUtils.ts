@@ -1,6 +1,6 @@
 import { configureStore } from './redux'
 import { BaseSession } from './BaseSession'
-import { IBladeConnectResult } from './utils/interfaces'
+import { RPCConnectResult } from './utils/interfaces'
 
 const PROJECT_ID = '8f0a119a-cda7-4497-a47d-c81493b824d4'
 const TOKEN = '<VRT>'
@@ -29,7 +29,7 @@ export const wait = (ms: number) => {
   })
 }
 
-export const bladeConnectResultVRT: IBladeConnectResult = {
+export const bladeConnectResultVRT: RPCConnectResult = {
   identity:
     'f3bc99df-2c3d-4fa4-b1dc-e8a8ffc579e6@e3fefa44-1bad-4be9-ad9b-1cbb9abd60c7.west-us',
   authorization: {
