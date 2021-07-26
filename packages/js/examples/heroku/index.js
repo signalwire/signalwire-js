@@ -1,4 +1,4 @@
-import { Video } from '../../src'
+import { Video } from '@signalwire/js'
 import {
   enumerateDevices,
   getMicrophoneDevices,

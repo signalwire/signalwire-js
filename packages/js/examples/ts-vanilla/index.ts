@@ -1,8 +1,4 @@
-// Importing directly from `@signalwire/js` will take the
-// `production` bundle while importing from `../../src` will
-// hot-reload as we make changes.
-
-import { Video } from '../../src'
+import { Video } from '@signalwire/js'
 
 // @ts-ignore
 window._makeClient = async ({ token, emitter }) => {
