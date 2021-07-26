@@ -29,6 +29,7 @@ import {
   closeConnectionAction,
 } from './actions'
 import { AuthError } from '../CustomErrors'
+import { createPubSubChannel } from '../testUtils'
 
 describe('socketClosedWorker', () => {
   it('should try to reconnect when session status is reconnecting', async () => {
@@ -38,7 +39,7 @@ describe('socketClosedWorker', () => {
       connect: jest.fn(),
     } as any
     const timeout = 3000
-    const pubSubChannel = channel()
+    const pubSubChannel = createPubSubChannel()
     const sessionChannel = eventChannel(() => () => {})
 
     return expectSaga(socketClosedWorker, {
@@ -56,7 +57,7 @@ describe('socketClosedWorker', () => {
       status: 'disconnected',
       connect: jest.fn(),
     } as any
-    const pubSubChannel = channel()
+    const pubSubChannel = createPubSubChannel()
     const sessionChannel = eventChannel(() => () => {})
 
     return expectSaga(socketClosedWorker, {
@@ -80,7 +81,7 @@ describe('sessionStatusWatcher', () => {
     closed: true,
     connect: jest.fn(),
   } as any
-  const pubSubChannel = channel()
+  const pubSubChannel = createPubSubChannel()
   const sessionChannel = eventChannel(() => () => {})
   const userOptions = {
     token: '',
@@ -141,7 +142,7 @@ describe('initSessionSaga', () => {
   })
 
   it('should create the session, the sessionChannel and fork watchers', () => {
-    const pubSubChannel = channel()
+    const pubSubChannel = createPubSubChannel()
     pubSubChannel.close = jest.fn()
     const sessionChannel = eventChannel(() => () => {})
     sessionChannel.close = jest.fn()
@@ -173,7 +174,7 @@ describe('startSaga', () => {
     rpcConnectResult: { key: 'value' },
     connect: jest.fn(),
   } as any
-  const pubSubChannel = channel()
+  const pubSubChannel = createPubSubChannel()
   pubSubChannel.close = jest.fn()
   const sessionChannel = eventChannel(() => () => {})
   sessionChannel.close = jest.fn()

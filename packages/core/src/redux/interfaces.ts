@@ -1,5 +1,5 @@
 import { PayloadAction } from '@reduxjs/toolkit'
-import type { Saga, Task, SagaIterator } from '@redux-saga/types'
+import type { Saga, Task, SagaIterator, Channel } from '@redux-saga/types'
 import {
   JSONRPCResponse,
   SessionAuthError,
@@ -72,3 +72,10 @@ export interface CustomSagaParams<T> {
 }
 
 export type CustomSaga<T> = (params: CustomSagaParams<T>) => SagaIterator<any>
+
+export type PubSubAction = {
+  // TODO: replace string with an union type with all events
+  type: string
+  payload?: any
+}
+export type PubSubChannel = Channel<PubSubAction>
