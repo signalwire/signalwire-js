@@ -250,43 +250,43 @@ window.stopScreenShare = () => {
 }
 
 window.muteAll = () => {
-  roomObj.audioMute('all')
+  roomObj.audioMute({ memberId: 'all' })
 }
 
 window.unmuteAll = () => {
-  roomObj.audioUnmute('all')
+  roomObj.audioUnmute({ memberId: 'all' })
 }
 
 window.muteSelf = () => {
-  roomObj.audioMute(roomObj.memberId)
+  roomObj.audioMute()
 }
 
 window.unmuteSelf = () => {
-  roomObj.audioUnmute(roomObj.memberId)
+  roomObj.audioUnmute()
 }
 
 window.muteVideoAll = () => {
-  roomObj.videoMute('all')
+  roomObj.videoMute({ memberId: 'all' })
 }
 
 window.unmuteVideoAll = () => {
-  roomObj.videoUnmute('all')
+  roomObj.videoUnmute({ memberId: 'all' })
 }
 
 window.muteVideoSelf = () => {
-  roomObj.videoMute(roomObj.memberId)
+  roomObj.videoMute()
 }
 
 window.unmuteVideoSelf = () => {
-  roomObj.videoUnmute(roomObj.memberId)
+  roomObj.videoUnmute()
 }
 
 window.deafSelf = () => {
-  roomObj.deaf(roomObj.memberId)
+  roomObj.deaf()
 }
 
 window.undeafSelf = () => {
-  roomObj.undeaf(roomObj.memberId)
+  roomObj.undeaf()
 }
 
 window.hideVideoMuted = () => {
