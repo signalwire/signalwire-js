@@ -109,6 +109,11 @@ const getWatchFormatFlag = (flags) => {
 
   return flagWatchFormat.split('=')[1]
 }
+const getPackageAgentName = (pkgJson) => {
+  const name = pkgJson.agent || pkgJson.name
+
+  return `${name}/${pkgJson.version}`
+}
 const getBuildOptions = ({ flags, pkgJson }) => {
   const optionsFlags = flags.filter(
     (f) => !isBuildModeFlag(f) && !isWatchFormatFlag(f)
@@ -128,6 +133,7 @@ const getBuildOptions = ({ flags, pkgJson }) => {
   const sdkEnvVariables = {
     'process.env.SDK_PKG_NAME': JSON.stringify(pkgJson.name),
     'process.env.SDK_PKG_DESCRIPTION': JSON.stringify(pkgJson.description),
+    'process.env.SDK_PKG_AGENT': JSON.stringify(getPackageAgentName(pkgJson)),
   }
 
   /**
