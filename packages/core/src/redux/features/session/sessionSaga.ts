@@ -223,7 +223,7 @@ export function* sessionChannelWatcher({
       case 'video.member.talking': {
         const { member } = params.params
         if ('talking' in member) {
-          const suffix = member.talking ? 'start' : ('stop' as const)
+          const suffix = member.talking ? 'start' : 'stop'
           const type = `video.member.talking.${suffix}` as const
           yield put(pubSubChannel, {
             type,
