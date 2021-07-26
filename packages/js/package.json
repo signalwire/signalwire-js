@@ -36,8 +36,8 @@
     "build": "tsc --project tsconfig.build.json && sw-build --web && sw-build --umd",
     "test": "NODE_ENV=test jest",
     "example": "(cd examples && npm run dev)",
-    "docs": "typedoc --options typedoc.js",
-    "docs:watch": "typedoc --options typedoc.js --watch"
+    "docs": "typedoc --options typedoc.js --readme README.md",
+    "docs:watch": "npm run docs -- --watch"
   },
   "dependencies": {
     "@signalwire/core": "3.0.0-beta.2",
