@@ -74,7 +74,7 @@ export interface CustomSagaParams<T> {
 
 export type CustomSaga<T> = (params: CustomSagaParams<T>) => SagaIterator<any>
 
-export type PubSubAction = {
+export interface PubSubAction {
   type: PubSubChannelEvents
   payload?: any
 }
