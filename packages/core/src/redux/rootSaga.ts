@@ -1,6 +1,6 @@
 import { Task, SagaIterator } from '@redux-saga/types'
 import { channel, EventChannel } from 'redux-saga'
-import { fork, call, take, put, delay } from 'redux-saga/effects'
+import { fork, call, take, put, delay } from '@redux-saga/core/effects'
 import { UserOptions, SessionConstructor } from '../utils/interfaces'
 import {
   executeActionWatcher,

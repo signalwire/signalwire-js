@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga'
-import { take } from 'redux-saga/effects'
+import { take } from '@redux-saga/core/effects'
 import { logger, isGlobalEvent } from '../../../utils'
 import type { Emitter } from '../../../utils/interfaces'
 import { getNamespacedEvent } from '../../../utils/EventEmitter'

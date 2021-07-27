@@ -1,5 +1,5 @@
 import { logger, CustomSagaParams, actions } from '@signalwire/core'
-import { take, call, fork } from 'redux-saga/effects'
+import { take, call, fork } from '@redux-saga/core/effects'
 import { SagaIterator, Task } from '@redux-saga/types'
 import { setMediaElementSinkId } from '@signalwire/webrtc'
 import {
