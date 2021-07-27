@@ -146,6 +146,8 @@ interface RoomSubscribedEvent extends SwEvent {
 interface MemberUpdatedEvent extends SwEvent {
   event_type: `video.${MemberUpdatedEventName}`
   params: {
+    room_session_id: string
+    room_id: string
     member: {
       updated: Array<keyof RoomMemberProperties>
     } & RoomMemberCommon &
@@ -156,6 +158,8 @@ interface MemberUpdatedEvent extends SwEvent {
 interface MemberJoinedEvent extends SwEvent {
   event_type: `video.${MemberJoinedEventName}`
   params: {
+    room_session_id: string
+    room_id: string
     member: Member
   }
 }
@@ -163,6 +167,8 @@ interface MemberJoinedEvent extends SwEvent {
 interface MemberLeftEvent extends SwEvent {
   event_type: `video.${MemberLeftEventName}`
   params: {
+    room_session_id: string
+    room_id: string
     member: Member
   }
 }
@@ -170,6 +176,8 @@ interface MemberLeftEvent extends SwEvent {
 interface MemberTalkingEvent extends SwEvent {
   event_type: `video.${MemberTalkingEventName}`
   params: {
+    room_session_id: string
+    room_id: string
     member: RoomMemberCommon & {
       talking: boolean
     }

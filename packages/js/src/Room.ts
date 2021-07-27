@@ -52,21 +52,11 @@ class Room extends BaseConnection implements BaseRoomInterface {
       componentListeners: {
         state: 'onStateChange',
         remoteSDP: 'onRemoteSDP',
-        // TODO: find another way to namespace `screenShareObj`s
-        nodeId: 'onNodeId',
+        roomId: 'onRoomSubscribed',
         errors: 'onError',
         responses: 'onSuccess',
       },
     })(options)
-
-    /**
-     *  FIXME: Remove this workaround when
-     * we get room.subscribed for screenShare
-     * and device sessions.
-     */
-    screenShare._memberId = screenShare.id
-    screenShare._roomId = this.roomId
-    screenShare._roomSessionId = this.roomSessionId
 
     /**
      * Hangup if the user stop the screenShare from the
@@ -145,21 +135,11 @@ class Room extends BaseConnection implements BaseRoomInterface {
       componentListeners: {
         state: 'onStateChange',
         remoteSDP: 'onRemoteSDP',
-        // TODO: find another way to namespace `roomDeviceObj`s
-        nodeId: 'onNodeId',
+        roomId: 'onRoomSubscribed',
         errors: 'onError',
         responses: 'onSuccess',
       },
     })(options)
-
-    /**
-     *  FIXME: Remove this workaround when
-     * we get room.subscribed for screenShare
-     * and device sessions.
-     */
-    roomDevice._memberId = roomDevice.id
-    roomDevice._roomId = this.roomId
-    roomDevice._roomSessionId = this.roomSessionId
 
     roomDevice.on('destroy', () => {
       this._deviceList.delete(roomDevice)
