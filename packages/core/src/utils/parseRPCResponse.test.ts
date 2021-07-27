@@ -43,6 +43,16 @@ describe('parseRPCResponse', () => {
         result: { code: '200', message: 'Playing', call_id: 'call-id' },
       })
     })
+
+    it('should handle the error code within result', () => {
+      const response = JSON.parse(
+        '{"jsonrpc":"2.0","id":"uuid","result":{"code":"-32001","message":"Permission Denied."}}'
+      )
+      expect(parseRPCResponse({ request, response })).toEqual({
+        error: { code: '-32001', message: 'Permission Denied.' },
+      })
+    })
+
     it('should handle the error', () => {
       const response = JSON.parse(
         '{"jsonrpc":"2.0","id":"uuid","error":{"code":-32601,"message":"Error Message"}}'
