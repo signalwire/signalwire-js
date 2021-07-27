@@ -271,16 +271,16 @@ export class BaseConnection
     this._roomId = component.roomId
     this._roomSessionId = component.roomSessionId
     this._memberId = component.memberId
-    this._attachListeners(component.roomSessionId)
-  }
 
-  /**
-   * TODO: This is just needed for `screenShareObj`'s. We're using
-   * this to namespace that object with `nodeId`
-   * @internal
-   **/
-  public onNodeId(component: any) {
-    this._attachListeners(component.nodeId)
+    /**
+     * For screenShare/additionalDevice we're using
+     * the `memberId` to namespace the object.
+     **/
+    if (this.options.additionalDevice || this.options.screenShare) {
+      this._attachListeners(component.memberId)
+    } else {
+      this._attachListeners(component.roomSessionId)
+    }
   }
 
   updateCamera(constraints: MediaTrackConstraints) {
