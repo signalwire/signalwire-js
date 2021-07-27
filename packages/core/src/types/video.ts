@@ -1,10 +1,10 @@
 import { JSONRPCRequest } from '../utils/interfaces'
 import { SwEvent } from '.'
 
-type RoomStartedEventName = 'room.started'
-type RoomEndedEventName = 'room.ended'
-type RoomSubscribedEventName = 'room.subscribed'
-type RoomUpdatedEventName = 'room.updated'
+export type RoomStartedEventName = 'room.started'
+export type RoomEndedEventName = 'room.ended'
+export type RoomSubscribedEventName = 'room.subscribed'
+export type RoomUpdatedEventName = 'room.updated'
 
 export type RoomEvent =
   | RoomStartedEventName
@@ -30,7 +30,7 @@ export interface LayoutLayer {
   reservation: string
 }
 
-type LayoutChangedEventName = 'layout.changed'
+export type LayoutChangedEventName = 'layout.changed'
 
 // prettier-ignore
 export type LayoutEvent =
@@ -55,7 +55,7 @@ export type MemberEvent =
   | MemberUpdatedEventName
   | MemberTalkingEventName
 
-type RoomMemberType = 'member' | 'screen' | 'device'
+export type RoomMemberType = 'member' | 'screen' | 'device'
 export interface RoomMemberCommon {
   id: string
   room_id: string
