@@ -272,6 +272,122 @@ describe('sessionChannelWatcher', () => {
           expect(dispatchedActions).toHaveLength(1)
         })
     })
+
+    it('should handle member.joined without parent_id', async () => {
+      const jsonrpc = JSON.parse(
+        '{"jsonrpc":"2.0","id":"8719c452-fd1d-4fc6-aea8-d517caac70ed","method":"signalwire.event","params":{"params":{"room_session_id":"313bedbe-edc9-4653-b332-34fbf43e8289","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","member":{"visible":false,"room_session_id":"313bedbe-edc9-4653-b332-34fbf43e8289","input_volume":0,"id":"b8912cc5-4248-4345-b53c-d53b2761748d","scope_id":"e85c456f-1bf6-4e4c-8e8b-ee1f004226e5","input_sensitivity":200,"output_volume":0,"audio_muted":false,"on_hold":false,"name":"Edo","deaf":false,"video_muted":false,"room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","type":"member"}},"timestamp":1627391485.1266,"event_type":"video.member.joined","event_channel":"room.ed1a0eb0-1e8e-44ca-88f9-7f89a6cfc9c7"}}'
+      )
+      let runSaga = true
+      const session = {
+        relayProtocol: jsonrpc.params.protocol,
+      } as any
+      const pubSubChannel = createPubSubChannel()
+      const sessionChannel = eventChannel(() => () => {})
+      const dispatchedActions: unknown[] = []
+
+      return expectSaga(sessionChannelWatcher, {
+        session,
+        pubSubChannel,
+        sessionChannel,
+      })
+        .provide([
+          {
+            take({ channel }, next) {
+              if (runSaga && channel === sessionChannel) {
+                runSaga = false
+                return socketMessageAction(jsonrpc)
+              } else if (runSaga === false) {
+                sessionChannel.close()
+                pubSubChannel.close()
+              }
+              return next()
+            },
+            put(action, next) {
+              dispatchedActions.push(action)
+              return next()
+            },
+          },
+        ])
+        .put(pubSubChannel, {
+          type: 'video.member.joined',
+          payload: jsonrpc.params.params,
+        })
+        .run()
+        .finally(() => {
+          expect(dispatchedActions).toHaveLength(1)
+        })
+    })
+
+    it('should handle member.joined without parent_id', async () => {
+      const parentId = 'd815d293-f8d0-49e8-aec2-3a4cc3729af8'
+      const jsonrpc = JSON.parse(
+        `{"jsonrpc":"2.0","id":"8719c452-fd1d-4fc6-aea8-d517caac70ed","method":"signalwire.event","params":{"params":{"room_session_id":"313bedbe-edc9-4653-b332-34fbf43e8289","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","member":{"visible":false,"room_session_id":"313bedbe-edc9-4653-b332-34fbf43e8289","input_volume":0,"id":"b8912cc5-4248-4345-b53c-d53b2761748d","scope_id":"e85c456f-1bf6-4e4c-8e8b-ee1f004226e5","input_sensitivity":200,"output_volume":0,"audio_muted":false,"on_hold":false,"name":"Edo","deaf":false,"video_muted":false,"parent_id":"${parentId}","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","type":"screen"}},"timestamp":1627391485.1266,"event_type":"video.member.joined","event_channel":"room.ed1a0eb0-1e8e-44ca-88f9-7f89a6cfc9c7"}}`
+      )
+      let runSaga = true
+      const session = {
+        relayProtocol: jsonrpc.params.protocol,
+      } as any
+      const pubSubChannel = createPubSubChannel()
+      const sessionChannel = eventChannel(() => () => {})
+      const dispatchedActions: unknown[] = []
+      const defaultState = {
+        components: {
+          byId: {
+            [parentId]: {
+              id: parentId,
+              responses: {},
+              state: 'active',
+              remoteSDP: 'sdp',
+              nodeId: '4959db05-3dbb-41fa-ae1d-596854b665d0@',
+              roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
+              roomSessionId: '313bedbe-edc9-4653-b332-34fbf43e8289',
+              memberId: parentId,
+            },
+          },
+        },
+      }
+
+      return expectSaga(sessionChannelWatcher, {
+        session,
+        pubSubChannel,
+        sessionChannel,
+      })
+        .withState(defaultState)
+        .provide([
+          {
+            take({ channel }, next) {
+              if (runSaga && channel === sessionChannel) {
+                runSaga = false
+                return socketMessageAction(jsonrpc)
+              } else if (runSaga === false) {
+                sessionChannel.close()
+                pubSubChannel.close()
+              }
+              return next()
+            },
+            put(action, next) {
+              dispatchedActions.push(action)
+              return next()
+            },
+          },
+        ])
+        .put(
+          componentActions.upsert({
+            id: 'b8912cc5-4248-4345-b53c-d53b2761748d',
+            roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
+            roomSessionId: '313bedbe-edc9-4653-b332-34fbf43e8289',
+            memberId: 'b8912cc5-4248-4345-b53c-d53b2761748d',
+          })
+        )
+        .put(pubSubChannel, {
+          type: 'video.member.joined',
+          payload: jsonrpc.params.params,
+        })
+        .run()
+        .finally(() => {
+          expect(dispatchedActions).toHaveLength(2)
+        })
+    })
   })
 
   describe('vertoWorker', () => {
