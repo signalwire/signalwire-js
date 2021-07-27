@@ -138,7 +138,7 @@ export function* startSaga(options: StartSagaOptions): SagaIterator {
     emitter: userOptions.emitter!,
   })
   /**
-   * Fork the watcher for all the blade.execute requests
+   * Fork the watcher for all the execute requests
    */
   const executeActionTask: Task = yield fork(executeActionWatcher, session)
 
@@ -146,7 +146,7 @@ export function* startSaga(options: StartSagaOptions): SagaIterator {
   yield put(pubSubChannel, sessionConnectedAction())
 
   /**
-   * Will take care of executing any pending blade.execute we have in
+   * Will take care of executing any pending JSONRPC we have in
    * the queue
    */
   const flushExecuteQueueTask: Task = yield fork(flushExecuteQueueWorker)

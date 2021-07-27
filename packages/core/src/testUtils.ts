@@ -31,7 +31,7 @@ export const wait = (ms: number) => {
   })
 }
 
-export const bladeConnectResultVRT: RPCConnectResult = {
+export const rpcConnectResultVRT: RPCConnectResult = {
   identity:
     'f3bc99df-2c3d-4fa4-b1dc-e8a8ffc579e6@e3fefa44-1bad-4be9-ad9b-1cbb9abd60c7.west-us',
   authorization: {

@@ -100,7 +100,7 @@ export interface SessionRequestQueued {
   msg: JSONRPCRequest | JSONRPCResponse
 }
 
-export interface IBladeAuthorization {
+interface Authorization {
   type: 'video'
   project: string
   scopes: string[]
@@ -117,7 +117,7 @@ export interface IBladeAuthorization {
 
 export interface RPCConnectResult {
   identity: string
-  authorization: IBladeAuthorization
+  authorization: Authorization
   protocol: string
   ice_servers?: RTCIceServer[]
 }

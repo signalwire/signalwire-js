@@ -62,7 +62,7 @@ describe('parseRPCResponse', () => {
       })
     })
 
-    it('should handle Verto result over Blade', () => {
+    it('should handle Verto result wrapped in JSONRPC', () => {
       const vertoResponse = JSON.parse(
         '{"jsonrpc":"2.0","id":"uuid","result":{"code":"200","node_id":"node-id","result":{"jsonrpc":"2.0","id":"verto-uuid","result":{"message":"CALL CREATED","callID":"call-id"}}}}'
       )
@@ -75,7 +75,7 @@ describe('parseRPCResponse', () => {
       })
     })
 
-    it('should handle Verto error over Blade', () => {
+    it('should handle Verto error wrapped in JSONRPC', () => {
       const response = JSON.parse(
         '{"jsonrpc":"2.0","id":"uuid","result":{"code":"200","node_id":"node-id","result":{"jsonrpc":"2.0","id":"123","error":{"message":"Random Error","callID":"call-id","code":"123"}}}}'
       )

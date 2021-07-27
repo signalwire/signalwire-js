@@ -1,5 +1,5 @@
 import { Store } from 'redux'
-import { configureJestStore, bladeConnectResultVRT } from '../../../testUtils'
+import { configureJestStore, rpcConnectResultVRT } from '../../../testUtils'
 import { sessionActions, initialSessionState } from './sessionSlice'
 import { destroyAction } from '../../actions'
 
@@ -11,11 +11,11 @@ describe('SessionState Tests', () => {
   })
 
   it('should seed SessionState on sessionActions.connected action', () => {
-    store.dispatch(sessionActions.connected(bladeConnectResultVRT))
+    store.dispatch(sessionActions.connected(rpcConnectResultVRT))
 
     expect(store.getState().session).toStrictEqual({
-      protocol: bladeConnectResultVRT.protocol,
-      iceServers: bladeConnectResultVRT.ice_servers,
+      protocol: rpcConnectResultVRT.protocol,
+      iceServers: rpcConnectResultVRT.ice_servers,
       authStatus: 'authorized',
       authError: undefined,
       authCount: 1,
@@ -23,7 +23,7 @@ describe('SessionState Tests', () => {
   })
 
   it('should reset to initial on destroyAction', () => {
-    store.dispatch(sessionActions.connected(bladeConnectResultVRT))
+    store.dispatch(sessionActions.connected(rpcConnectResultVRT))
 
     store.dispatch(destroyAction())
     expect(store.getState().session).toStrictEqual(initialSessionState)

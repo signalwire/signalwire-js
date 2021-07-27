@@ -251,7 +251,7 @@ export class BaseSession {
 
     switch (payload.method) {
       case 'signalwire.ping':
-        return this._bladePingHandler(payload)
+        return this._pingHandler(payload)
       case 'signalwire.disconnect': {
         /**
          * Set this._status = 'idle' because the server
@@ -259,7 +259,7 @@ export class BaseSession {
          */
         this.execute(RPCDisconnectResponse(payload.id))
           .catch((error) => {
-            logger.error('BladeDisconnect Error', error)
+            logger.error('SwDisconnect Error', error)
           })
           .finally(() => {
             this._status = 'idle'
@@ -298,7 +298,7 @@ export class BaseSession {
     this._requestQueue = []
   }
 
-  private async _bladePingHandler(payload: JSONRPCRequest) {
+  private async _pingHandler(payload: JSONRPCRequest) {
     clearTimeout(this._checkPingTimer)
     this._checkPingTimer = setTimeout(() => {
       // Possibly half-open connection so force close our side

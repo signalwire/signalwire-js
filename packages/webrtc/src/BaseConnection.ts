@@ -220,7 +220,7 @@ export class BaseConnection
 
   /**
    * @internal
-   * Verto messages have to be wrapped into a blade.execute
+   * Verto messages have to be wrapped into an execute
    * request and sent using the 'video.message' method.
    */
   public vertoExecute(vertoMessage: JSONRPCRequest) {
