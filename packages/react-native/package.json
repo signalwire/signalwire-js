@@ -5,8 +5,8 @@
   "license": "MIT",
   "private": true,
   "version": "0.0.1-beta.2",
-  "main": "dist/index.js",
-  "module": "dist/index.esm.js",
+  "main": "dist/index.node.js",
+  "module": "dist/index.node.mjs",
   "files": [
     "dist",
     "src"
