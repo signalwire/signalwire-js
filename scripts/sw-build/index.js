@@ -3,12 +3,13 @@ import path from 'path'
 import esbuild from 'esbuild'
 import { nodeExternalsPlugin } from 'esbuild-node-externals'
 // UMD related deps.
-import * as rollup from 'rollup'
-import typescript from 'rollup-plugin-typescript2'
 import { nodeResolve } from '@rollup/plugin-node-resolve'
 import { terser } from 'rollup-plugin-terser'
+import * as rollup from 'rollup'
 import commonjs from '@rollup/plugin-commonjs'
+import license from 'rollup-plugin-license'
 import replace from '@rollup/plugin-replace'
+import typescript from 'rollup-plugin-typescript2'
 
 const COMMON_NODE = {
   entryPoints: ['./src/index.ts'],
@@ -224,6 +225,15 @@ const buildUmd = async (options) => {
           },
         },
       }),
+      license({
+        banner: {
+          content: `
+          <%= pkg.description %> v<%= pkg.version %> (https://signalwire.com)
+          Copyright 2018-<%= new Date().getFullYear() %> SignalWire
+          Licensed under MIT(https://github.com/signalwire/signalwire-js/blob/main/LICENSE)`,
+          commentStyle: 'ignored',
+        },
+      }),
       terser({
         compress: {
           keep_infinity: true,
@@ -233,6 +243,8 @@ const buildUmd = async (options) => {
         format: {
           comments: /^\s*([@#]__[A-Z]__\s*$|@cc_on)/,
           preserve_annotations: true,
+          // This setting respects the commentStyle: 'ignored'.
+          comments: 'some',
         },
         mangle: true,
       }),
