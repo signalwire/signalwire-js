@@ -27,7 +27,6 @@
     },
     "composite": true,
     "declarationMap": true,
-    "strictPropertyInitialization": false,
-    "resolveJsonModule": true
+    "strictPropertyInitialization": false
   }
 }
