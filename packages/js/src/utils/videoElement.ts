@@ -1,4 +1,4 @@
-import { logger, RoomLayoutLayer, RoomLayout } from '@signalwire/core'
+import { logger, LayoutLayer, Layout } from '@signalwire/core'
 
 const buildVideo = () => {
   const video = document.createElement('video')
@@ -22,7 +22,7 @@ const _videoReady = ({ element }: { element: HTMLVideoElement }) => {
   })
 }
 
-const _getLocationStyles = ({ x, y, width, height }: RoomLayoutLayer) => {
+const _getLocationStyles = ({ x, y, width, height }: LayoutLayer) => {
   return {
     top: `${y}%`,
     left: `${x}%`,
@@ -35,7 +35,7 @@ const _buildLayer = async ({
   location,
   element,
 }: {
-  location: RoomLayoutLayer
+  location: LayoutLayer
   element: HTMLVideoElement
 }) => {
   if (element.readyState === HTMLMediaElement.HAVE_NOTHING) {
@@ -54,7 +54,7 @@ const _buildLayer = async ({
 }
 
 interface LayoutChangedHandlerParams {
-  layout: RoomLayout
+  layout: Layout
   myMemberId: string
   localStream: MediaStream
 }

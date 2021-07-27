@@ -1,4 +1,4 @@
-import { Task, SagaIterator, Channel } from '@redux-saga/types'
+import { Task, SagaIterator } from '@redux-saga/types'
 import { channel, EventChannel } from 'redux-saga'
 import { fork, call, take, put, delay } from 'redux-saga/effects'
 import { UserOptions, SessionConstructor } from '../utils/interfaces'
@@ -29,11 +29,12 @@ import {
   socketErrorAction,
 } from './actions'
 import { AuthError } from '../CustomErrors'
+import { PubSubChannel } from './interfaces'
 
 type StartSagaOptions = {
   session: BaseSession
   sessionChannel: EventChannel<unknown>
-  pubSubChannel: Channel<unknown>
+  pubSubChannel: PubSubChannel
   userOptions: UserOptions
 }
 
@@ -52,7 +53,7 @@ export function* initSessionSaga(
    * Create a channel to communicate between sagas
    * and emit events to the public
    */
-  const pubSubChannel: Channel<unknown> = yield call(channel)
+  const pubSubChannel: PubSubChannel = yield call(channel)
 
   yield fork(sessionChannelWatcher, {
     session,
@@ -84,7 +85,7 @@ export function* socketClosedWorker({
 }: {
   session: BaseSession
   sessionChannel: EventChannel<unknown>
-  pubSubChannel: Channel<unknown>
+  pubSubChannel: PubSubChannel
 }) {
   if (session.status === 'reconnecting') {
     yield put(pubSubChannel, sessionReconnectingAction())
@@ -134,7 +135,7 @@ export function* startSaga(options: StartSagaOptions): SagaIterator {
 
   const pubSubTask: Task = yield fork(pubSubSaga, {
     pubSubChannel,
-    emitter: userOptions.emitter,
+    emitter: userOptions.emitter!,
   })
   /**
    * Fork the watcher for all the blade.execute requests

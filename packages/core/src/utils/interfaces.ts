@@ -11,17 +11,9 @@ export type Emitter = Pick<
   'on' | 'off' | 'once' | 'emit' | 'removeAllListeners' | 'eventNames'
 >
 
-type JSONRPCParams = {
-  [key: string]: any
-}
-
-type JSONRPCResult = {
-  [key: string]: any
-}
-
-type JSONRPCError = {
-  [key: string]: any
-}
+type JSONRPCParams = Record<string, any>
+type JSONRPCResult = Record<string, any>
+type JSONRPCError = Record<string, any>
 
 export type VertoMethod =
   | 'verto.invite'
@@ -50,7 +42,6 @@ export type JSONRPCMethod =
   | 'signalwire.ping'
   | 'signalwire.disconnect'
   | 'signalwire.event'
-  | 'signalwire.reauthenticate'
   | 'signalwire.reauthenticate'
   | 'signalwire.subscribe'
   | 'video.message'
@@ -151,29 +142,6 @@ export type SessionEvents = `session.${SessionStatus}`
 /** List of all the events the client can listen to. */
 export type ClientEvents = Record<SessionEvents, () => void>
 
-/** See {@link LayoutEvents}. Prepend LayoutEvent with `layout.` prefix. */
-export type LayoutEvent = 'changed'
-
-/** See {@link RoomEvents}. Prepend RoomEvent with `room.` prefix. */
-// prettier-ignore
-export type RoomEvent =
-  | 'ended'
-  | 'started'
-  | 'subscribed'
-  | 'updated'
-
-export type MemberJoinedEventName = 'member.joined'
-export type MemberLeftEventName = 'member.left'
-export type MemberUpdatedEventName = 'member.updated'
-export type RoomMemberEventNames =
-  `${MemberUpdatedEventName}.${keyof RoomMember}`
-export type MemberTalkingEventNames =
-  | 'member.talking'
-  | 'member.talking.start'
-  | 'member.talking.stop'
-
-export type RTCTrackEventName = 'track'
-
 export type BaseConnectionState =
   | 'active'
   | 'answering'
@@ -188,223 +156,30 @@ export type BaseConnectionState =
   | 'ringing'
   | 'trying'
 
-export type LayoutEvents = `layout.${LayoutEvent}`
-export type MemberEvents =
-  | MemberJoinedEventName
-  | MemberLeftEventName
-  | MemberUpdatedEventName
-  | RoomMemberEventNames
-  | MemberTalkingEventNames
-export type RoomEvents = `room.${RoomEvent}`
-/**
- * List of all the events the call can listen to
- */
-export type RoomEventNames =
-  | LayoutEvents
-  | MemberEvents
-  | RoomEvents
-  | RTCTrackEventName
-
-export type EventsHandlerMapping = Record<
-  LayoutEvents,
-  (params: { layout: RoomLayout }) => void
-> &
-  Record<MemberJoinedEventName, (params: { member: RoomMember }) => void> &
-  Record<MemberLeftEventName, (params: { member: RoomMemberCommon }) => void> &
-  Record<
-    MemberUpdatedEventName | RoomMemberEventNames,
-    (params: MemberUpdatedEvent['params']) => void
-  > &
-  Record<
-    MemberTalkingEventNames,
-    (params: MemberTalkingEvent['params']) => void
-  > &
-  Record<RoomEvents, (params: RoomEventParams) => void> &
-  Record<RTCTrackEventName, (event: RTCTrackEvent) => void>
-
 export type SessionAuthError = {
   code: number
   error: string
 }
 
-export interface RoomLayout {
-  name: string
-  room_session_id: string
-  room_id: string
-  layers: RoomLayoutLayer[]
-}
-
-export interface RoomLayoutLayer {
-  y: number
-  x: number
-  layer_index: number
-  z_index: number
-  height: number
-  width: number
-  member_id: string
-}
-
-type RoomMemberType = 'member' | 'screen' | 'device'
-export interface RoomMemberCommon {
-  id: string
-}
-export interface RoomMemberProperties {
-  scope_id: string
-  parent_id?: string
-  input_volume: number
-  input_sensitivity: number
-  output_volume: number
-  on_hold: boolean
-  deaf: boolean
-  type: RoomMemberType
-  visible: boolean
-  audio_muted: boolean
-  video_muted: boolean
-  name: string
-}
-
-export type RoomMember = RoomMemberCommon &
-  RoomMemberProperties & {
-    type: 'member'
-  }
-export type RoomScreenShare = RoomMember & {
-  parent_id: string
-  type: 'screen'
-}
-export type RoomDevice = RoomMember & {
-  parent_id: string
-  type: 'device'
-}
-
-export interface Room {
-  blind_mode: boolean
-  hide_video_muted: boolean
-  locked: boolean
-  logos_visible: boolean
-  meeting_mode: boolean
-  members: RoomMember[]
-  name: string
-  recording: boolean
-  room_id: string
-  room_session_id: string
-  silent_mode: boolean
-}
-
-interface RoomEventParams {
-  room: Room
-  call_id: string
-  member_id: string
-}
-
-interface SwEvent {
-  event_channel: string
-  timestamp: number
-  project_id: string
-  node_id: string
-}
-
-interface RoomSubscribedEvent extends SwEvent {
-  event_type: 'room.subscribed'
-  params: RoomEventParams
-}
-
-interface MemberUpdatedEvent extends SwEvent {
-  event_type: 'member.updated'
-  params: {
-    member: {
-      updated: Array<keyof RoomMemberProperties>
-    } & RoomMemberCommon &
-      Partial<RoomMemberProperties>
-  }
-}
-
-interface MemberJoinedEvent extends SwEvent {
-  event_type: 'member.joined'
-  params: {
-    member: RoomMember | RoomScreenShare | RoomDevice
-  }
-}
-
-interface MemberLeftEvent extends SwEvent {
-  event_type: 'member.left'
-  params: {
-    member: RoomMember | RoomScreenShare | RoomDevice
-  }
-}
-
-interface MemberTalkingEvent extends SwEvent {
-  event_type: Extract<'member.talking', MemberTalkingEventNames>
-  params: {
-    member: RoomMemberCommon & {
-      talking: boolean
-    }
-  }
-}
-
-interface LayoutChangedEvent extends SwEvent {
-  event_type: 'layout.changed'
-  params: {
-    room_session_id: string
-    room_id: string
-    layout: RoomLayout
-  }
-}
-
-export type VideoWorkerParams =
-  | RoomSubscribedEvent
-  | MemberUpdatedEvent
-  | MemberJoinedEvent
-  | MemberLeftEvent
-  | MemberTalkingEvent
-  | LayoutChangedEvent
-
-export interface WebRTCMessage extends SwEvent {
-  event_type: 'webrtc.message'
-  params: JSONRPCRequest
-}
-
-// prettier-ignore
-export type SwEventParams =
-  | VideoWorkerParams
-  | WebRTCMessage
-
 /**
- * List of all room members
- */
-type RoomMembersMethod = 'members.get'
-
-/**
- * List of all room member methods
- */
-type RoomMemberMethod =
-  | 'member.audio_mute'
-  | 'member.audio_unmute'
-  | 'member.video_mute'
-  | 'member.video_unmute'
-  | 'member.deaf'
-  | 'member.undeaf'
-  | 'member.set_input_volume'
-  | 'member.set_output_volume'
-  | 'member.set_input_sensitivity'
-  | 'member.remove'
-
-/**
- * List of all room layout methods
- */
-// prettier-ignore
-type RoomLayoutMethod =
-  | 'set_layout'
-
-/**
- * List of all room member methods
+ * List of all Room methods
  */
 export type RoomMethod =
   | 'video.list_available_layouts'
   | 'video.hide_video_muted'
   | 'video.show_video_muted'
-  | `video.${RoomMembersMethod}`
-  | `video.${RoomMemberMethod}`
-  | `video.${RoomLayoutMethod}`
+  | 'video.members.get'
+  | 'video.member.audio_mute'
+  | 'video.member.audio_unmute'
+  | 'video.member.video_mute'
+  | 'video.member.video_unmute'
+  | 'video.member.deaf'
+  | 'video.member.undeaf'
+  | 'video.member.set_input_volume'
+  | 'video.member.set_output_volume'
+  | 'video.member.set_input_sensitivity'
+  | 'video.member.remove'
+  | 'video.set_layout'
 
 export interface WebSocketClient {
   addEventListener: WebSocket['addEventListener']

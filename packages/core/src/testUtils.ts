@@ -1,4 +1,6 @@
+import { channel } from 'redux-saga'
 import { configureStore } from './redux'
+import { PubSubChannel } from './redux/interfaces'
 import { BaseSession } from './BaseSession'
 import { RPCConnectResult } from './utils/interfaces'
 
@@ -57,3 +59,5 @@ export const bladeConnectResultVRT: RPCConnectResult = {
     },
   ],
 }
+
+export const createPubSubChannel = (): PubSubChannel => channel()

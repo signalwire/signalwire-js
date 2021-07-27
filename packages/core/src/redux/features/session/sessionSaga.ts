@@ -1,15 +1,19 @@
-import { SagaIterator, Channel, eventChannel, EventChannel } from 'redux-saga'
+import { SagaIterator, eventChannel, EventChannel } from 'redux-saga'
 import { call, put, take, fork, select } from 'redux-saga/effects'
 import { PayloadAction } from '@reduxjs/toolkit'
 import { BaseSession } from '../../../BaseSession'
 import { VertoResult } from '../../../RPCMessages'
-import {
-  JSONRPCRequest,
-  VideoWorkerParams,
+import { JSONRPCRequest } from '../../../utils/interfaces'
+import type {
+  VideoAPIEventParams,
   SwEventParams,
-  WebRTCMessage,
-} from '../../../utils/interfaces'
-import { ExecuteActionParams, WebRTCCall } from '../../interfaces'
+  WebRTCMessageParams,
+} from '../../../types'
+import {
+  ExecuteActionParams,
+  WebRTCCall,
+  PubSubChannel,
+} from '../../interfaces'
 import { executeAction, socketMessageAction } from '../../actions'
 import { componentActions } from '../'
 import { RPCExecute } from '../../../RPCMessages'
@@ -20,7 +24,7 @@ import { SessionAuthStatus } from '../../../utils/interfaces'
 type SessionSagaParams = {
   session: BaseSession
   sessionChannel: EventChannel<unknown>
-  pubSubChannel: Channel<unknown>
+  pubSubChannel: PubSubChannel
 }
 
 type VertoWorkerParams = {
@@ -29,10 +33,10 @@ type VertoWorkerParams = {
 }
 
 // TODO: Move TypeGuards to its own module
-const isWebrtcEvent = (e: SwEventParams): e is WebRTCMessage => {
+const isWebrtcEvent = (e: SwEventParams): e is WebRTCMessageParams => {
   return e?.event_type === 'webrtc.message'
 }
-const isVideoEvent = (e: SwEventParams): e is VideoWorkerParams => {
+const isVideoEvent = (e: SwEventParams): e is VideoAPIEventParams => {
   return !!e?.event_type?.startsWith('video.')
 }
 
@@ -185,52 +189,44 @@ export function* sessionChannelWatcher({
     }
   }
 
-  function* videoAPIWorker(params: VideoWorkerParams) {
-    const eventType = params.event_type?.split('.')?.splice(1)?.join('.')
-    if (!eventType) {
-      return logger.warn('Invalid video event', params)
-    }
-    switch (eventType) {
-      case 'room.subscribed': {
+  function* videoAPIWorker(params: VideoAPIEventParams) {
+    switch (params.event_type) {
+      case 'video.room.subscribed': {
         yield put(
           componentActions.upsert({
-            // @ts-ignore
             id: params.params.call_id,
-            // @ts-ignore
             roomId: params.params.room.room_id,
-            // @ts-ignore
             roomSessionId: params.params.room.room_session_id,
-            // @ts-ignore
             memberId: params.params.member_id,
           })
         )
         // Rename "room.subscribed" with "room.joined" for the end-user
         yield put(pubSubChannel, {
-          type: 'room.joined',
+          type: 'video.room.joined',
           payload: params.params,
         })
         break
       }
-      case 'member.updated': {
+      case 'video.member.updated': {
         const {
-          // @ts-ignore
           member: { updated = [] },
         } = params.params
         for (const key of updated) {
+          const type = `video.member.updated.${key}` as const
           yield put(pubSubChannel, {
-            type: `member.updated.${key}`,
+            type,
             payload: params.params,
           })
         }
         break
       }
-      case 'member.talking': {
-        // @ts-ignore
+      case 'video.member.talking': {
         const { member } = params.params
         if ('talking' in member) {
           const suffix = member.talking ? 'start' : 'stop'
+          const type = `video.member.talking.${suffix}` as const
           yield put(pubSubChannel, {
-            type: `member.talking.${suffix}`,
+            type,
             payload: params.params,
           })
         }
@@ -240,7 +236,7 @@ export function* sessionChannelWatcher({
 
     // Emit on the pubSubChannel this "event_type"
     yield put(pubSubChannel, {
-      type: eventType,
+      type: params.event_type,
       payload: params.params,
     })
   }
