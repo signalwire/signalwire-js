@@ -1,11 +1,8 @@
 import { uuid, logger } from '@signalwire/core'
-import * as webrtc from '@signalwire/webrtc'
 
-export const sum = (a: number, b: number) => {
-  if ('development' === process.env.NODE_ENV) {
-    logger.info('Core feature', uuid())
-    logger.info('WebRTC feature', webrtc)
-  }
-
-  return a + b
+export const RNTest = () => {
+  logger.warn('Hello from RN', uuid())
+  console.log('Hello from RN 2', uuid())
 }
+
+export * from '@signalwire/webrtc'
