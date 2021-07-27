@@ -1,6 +1,6 @@
 import { logger } from './utils/logger'
 import { sessionStorage } from './utils/storage/'
-import { BladeConnect, BladeConnectParams } from './RPCMessages'
+import { RPCConnect, RPCConnectParams } from './RPCMessages'
 import { SessionOptions } from './utils/interfaces'
 import { BaseSession } from './BaseSession'
 
@@ -25,7 +25,7 @@ export class BaseJWTSession extends BaseSession {
   }
 
   get expiresAt() {
-    return this?._bladeConnectResult?.authorization?.expires_at ?? 0
+    return this?._rpcConnectResult?.authorization?.expires_at ?? 0
   }
 
   get expiresIn() {
@@ -43,25 +43,24 @@ export class BaseJWTSession extends BaseSession {
    * @return Promise<void>
    */
   async authenticate() {
-    const params: BladeConnectParams = {
+    const params: RPCConnectParams = {
+      agent: this.agent,
+      version: this.connectVersion,
       authentication: {
         jwt_token: this.options.token,
       },
-      params: {},
     }
 
     if (this._relayProtocolIsValid()) {
-      params.params = params.params || {}
-      params.params.protocol = this.relayProtocol
+      params.protocol = this.relayProtocol
     } else if (this.signature) {
       const prevProtocol = await sessionStorage.getItem(this.signature)
       if (prevProtocol) {
-        params.params = params.params || {}
-        params.params.protocol = prevProtocol
+        params.protocol = prevProtocol
       }
     }
 
-    this._bladeConnectResult = await this.execute(BladeConnect(params))
+    this._rpcConnectResult = await this.execute(RPCConnect(params))
     this._checkTokenExpiration()
   }
 

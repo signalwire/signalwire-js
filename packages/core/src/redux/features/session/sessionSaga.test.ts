@@ -1,22 +1,22 @@
-import { channel, eventChannel } from 'redux-saga'
+import { eventChannel } from 'redux-saga'
 import { expectSaga } from 'redux-saga-test-plan'
 import { VertoResult } from '../../../RPCMessages'
-import { VertoMethod } from '../../../utils/constants'
 import { socketMessageAction, executeAction } from '../../actions'
 import { componentActions } from '../'
 import { sessionChannelWatcher, createSessionChannel } from './sessionSaga'
+import { createPubSubChannel } from '../../../testUtils'
 
 describe('sessionChannelWatcher', () => {
-  describe('conferenceWorker', () => {
+  describe('videoAPIWorker', () => {
     it('should handle room.subscribed dispatching componentActions.upsert and the room.joined', async () => {
       const jsonrpc = JSON.parse(
-        '{"jsonrpc":"2.0","id":"ddcd9807-0339-4a39-92b1-ab7967b84782","method":"blade.broadcast","params":{"broadcaster_nodeid":"2286cac8-1346-474f-9913-7ca9c3df9fc8@west-us","protocol":"signalwire_0d8d431757079b56923f7a2acc25ef69e3f698dd36689ca472cf6bc0fd900426_830b7622-b03b-4a11-9109-19bf2c9e27cf_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"conference","params":{"params":{"room":{"room_session_id":"6fbe4472-e6dd-431f-887f-33171cd83ccb","name":"roomName","members":[{"visible":false,"id":"0e5f67e0-8dbf-48dd-b920-804b97fccee6","audio_muted":false,"name":"Edo","video_muted":false,"type":"member"}],"locked":false,"layouts":[{"id":"group:grid"}],"room_id":"790d6c79-f0d1-421e-b5f2-f09bd05941ce","current_layout":{"id":"1x1","layers":[{"y":0,"x":0,"layer_index":0,"height":720,"z_index":0,"width":1280}],"name":"Full Screen"}},"call_id":"0e5f67e0-8dbf-48dd-b920-804b97fccee6","member_id":"0e5f67e0-8dbf-48dd-b920-804b97fccee6"},"timestamp":"1620991212.326279","event_type":"room.subscribed","event_channel":"room.adaacbef-3d34-4a5f-a123-d3d166515ba0"}},"hops":[]}'
+        '{"jsonrpc":"2.0","id":"83cbf7d3-4364-454e-af84-6f1f9176901b","method":"signalwire.event","params":{"params":{"room":{"room_session_id":"6fbe4472-e6dd-431f-887f-33171cd83ccb","logos_visible":true,"members":[{"visible":false,"room_session_id":"6fbe4472-e6dd-431f-887f-33171cd83ccb","input_volume":0,"id":"0e5f67e0-8dbf-48dd-b920-804b97fccee6","input_sensitivity":200,"output_volume":0,"audio_muted":false,"on_hold":false,"name":"Edo","deaf":false,"video_muted":false,"room_id":"790d6c79-f0d1-421e-b5f2-f09bd05941ce","type":"member"}],"blind_mode":false,"recording":false,"silent_mode":false,"name":"edoRoom2","hide_video_muted":false,"locked":false,"meeting_mode":false,"room_id":"790d6c79-f0d1-421e-b5f2-f09bd05941ce","event_channel":"room.649c069f-c0a1-4cc8-9d6a-be642ad68eab"},"call_id":"0e5f67e0-8dbf-48dd-b920-804b97fccee6","member_id":"0e5f67e0-8dbf-48dd-b920-804b97fccee6"},"timestamp":1627373985.2656,"event_type":"video.room.subscribed","event_channel":"room.649c069f-c0a1-4cc8-9d6a-be642ad68eab"}}'
       )
       let runSaga = true
       const session = {
         relayProtocol: jsonrpc.params.protocol,
       } as any
-      const pubSubChannel = channel()
+      const pubSubChannel = createPubSubChannel()
       const sessionChannel = eventChannel(() => () => {})
       const dispatchedActions: unknown[] = []
 
@@ -52,12 +52,12 @@ describe('sessionChannelWatcher', () => {
           })
         )
         .put(pubSubChannel, {
-          type: 'room.joined',
-          payload: jsonrpc.params.params.params,
+          type: 'video.room.joined',
+          payload: jsonrpc.params.params,
         })
         .put(pubSubChannel, {
-          type: 'room.subscribed',
-          payload: jsonrpc.params.params.params,
+          type: 'video.room.subscribed',
+          payload: jsonrpc.params.params,
         })
         .run()
         .finally(() => {
@@ -67,17 +67,17 @@ describe('sessionChannelWatcher', () => {
 
     it('should handle member.updated dispatching the sub-events for what is changed for the user', async () => {
       const jsonrpc = JSON.parse(
-        '{"jsonrpc":"2.0","id":"02f22650-8601-4e7d-bd1d-d084e69f22b0","method":"blade.broadcast","params":{"broadcaster_nodeid":"2286cac8-1346-474f-9913-7ca9c3df9fc8@west-us","protocol":"signalwire_0d8d431757079b56923f7a2acc25ef69e3f698dd36689ca472cf6bc0fd900426_2e393a80-fafe-4d73-9553-85bbf16b3a89_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"conference","params":{"params":{"member":{"updated":["video_muted","visible"],"id":"ab42641c-e784-42f1-9815-d264105bc24f","visible":true,"video_muted":false}},"timestamp":"1620984182.577089","event_type":"member.updated","event_channel":"room.e1c5fc18-f96d-4696-bf9b-bcb2eab57906"}},"hops":[]}'
+        '{"jsonrpc":"2.0","id":"90e60fd9-a353-44dd-b179-4ce8f43b0cb1","method":"signalwire.event","params":{"params":{"room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","member":{"updated":["visible","video_muted"],"room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","id":"ab42641c-e784-42f1-9815-d264105bc24f","visible":true,"room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","video_muted":false}},"timestamp":1627374437.3696,"event_type":"video.member.updated","event_channel":"room.0a324e3c-5e2f-443a-a333-10bf005f249e"}}'
       )
       let runSaga = true
       const session = {
         relayProtocol: jsonrpc.params.protocol,
       } as any
-      const pubSubChannel = channel()
+      const pubSubChannel = createPubSubChannel()
       const sessionChannel = eventChannel(() => () => {})
       const dispatchedActions: unknown[] = []
       const payload = JSON.parse(
-        '{"member":{"updated":["video_muted","visible"],"id":"ab42641c-e784-42f1-9815-d264105bc24f","visible":true,"video_muted":false}}'
+        '{"member":{"updated":["visible","video_muted"],"id":"ab42641c-e784-42f1-9815-d264105bc24f","visible":true,"video_muted":false,"room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7"},"room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7"}'
       )
 
       return expectSaga(sessionChannelWatcher, {
@@ -104,15 +104,15 @@ describe('sessionChannelWatcher', () => {
           },
         ])
         .put(pubSubChannel, {
-          type: 'member.updated.visible',
+          type: 'video.member.updated.visible',
           payload,
         })
         .put(pubSubChannel, {
-          type: 'member.updated.video_muted',
+          type: 'video.member.updated.video_muted',
           payload,
         })
         .put(pubSubChannel, {
-          type: 'member.updated',
+          type: 'video.member.updated',
           payload,
         })
         .run()
@@ -123,17 +123,17 @@ describe('sessionChannelWatcher', () => {
 
     it('should handle member.talking and emit member.talking.start when talking: true', () => {
       const jsonrpc = JSON.parse(
-        '{"jsonrpc":"2.0","id":"6d0e46b2-77af-4734-8691-866f09b37ff3","method":"blade.broadcast","params":{"broadcaster_nodeid":"6a088ac7-9c9b-48c2-a5a1-92aafb70b0ab@west-us","protocol":"signalwire_519264e7f1beedc770d250eabcf50c4ae3bc197dccb6886ed1677ddb4bce8518_b0f0c4e0-e5cb-4ee8-befa-f246ea69b54e_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"conference","params":{"params":{"member":{"id":"a3693340-6f42-4cab-b18e-8e2a22695698","talking":true}},"timestamp":1624014381.1524,"event_type":"member.talking","event_channel":"room.b0e1b577-f5e7-4337-b7c4-06fa993b1a19"}},"hops":[]}'
+        '{"jsonrpc":"2.0","id":"9050e4f8-b08e-4e39-9796-bfb6e83c2a2d","method":"signalwire.event","params":{"params":{"room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","member":{"id":"a3693340-6f42-4cab-b18e-8e2a22695698","room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","talking":true}},"timestamp":1627374612.9585,"event_type":"video.member.talking","event_channel":"room.0a324e3c-5e2f-443a-a333-10bf005f249e"}}'
       )
       let runSaga = true
       const session = {
         relayProtocol: jsonrpc.params.protocol,
       } as any
-      const pubSubChannel = channel()
+      const pubSubChannel = createPubSubChannel()
       const sessionChannel = eventChannel(() => () => {})
       const dispatchedActions: unknown[] = []
       const payload = JSON.parse(
-        '{"member":{"id":"a3693340-6f42-4cab-b18e-8e2a22695698","talking":true}}'
+        '{"member":{"id":"a3693340-6f42-4cab-b18e-8e2a22695698","talking":true,"room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426"},"room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426"}'
       )
 
       return expectSaga(sessionChannelWatcher, {
@@ -160,11 +160,11 @@ describe('sessionChannelWatcher', () => {
           },
         ])
         .put(pubSubChannel, {
-          type: 'member.talking.start',
+          type: 'video.member.talking.start',
           payload,
         })
         .put(pubSubChannel, {
-          type: 'member.talking',
+          type: 'video.member.talking',
           payload,
         })
         .run()
@@ -175,17 +175,17 @@ describe('sessionChannelWatcher', () => {
 
     it('should emit member.talking.stop on member.talking with talking: false', () => {
       const jsonrpc = JSON.parse(
-        '{"jsonrpc":"2.0","id":"6d0e46b2-77af-4734-8691-866f09b37ff3","method":"blade.broadcast","params":{"broadcaster_nodeid":"6a088ac7-9c9b-48c2-a5a1-92aafb70b0ab@west-us","protocol":"signalwire_519264e7f1beedc770d250eabcf50c4ae3bc197dccb6886ed1677ddb4bce8518_b0f0c4e0-e5cb-4ee8-befa-f246ea69b54e_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"conference","params":{"params":{"member":{"id":"a3693340-6f42-4cab-b18e-8e2a22695698","talking":false}},"timestamp":1624014381.1524,"event_type":"member.talking","event_channel":"room.b0e1b577-f5e7-4337-b7c4-06fa993b1a19"}},"hops":[]}'
+        '{"jsonrpc":"2.0","id":"9050e4f8-b08e-4e39-9796-bfb6e83c2a2d","method":"signalwire.event","params":{"params":{"room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","member":{"id":"a3693340-6f42-4cab-b18e-8e2a22695698","room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","talking":false}},"timestamp":1627374612.9585,"event_type":"video.member.talking","event_channel":"room.0a324e3c-5e2f-443a-a333-10bf005f249e"}}'
       )
       let runSaga = true
       const session = {
         relayProtocol: jsonrpc.params.protocol,
       } as any
-      const pubSubChannel = channel()
+      const pubSubChannel = createPubSubChannel()
       const sessionChannel = eventChannel(() => () => {})
       const dispatchedActions: unknown[] = []
       const payload = JSON.parse(
-        '{"member":{"id":"a3693340-6f42-4cab-b18e-8e2a22695698","talking":false}}'
+        '{"member":{"id":"a3693340-6f42-4cab-b18e-8e2a22695698","talking":false,"room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426"},"room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426"}'
       )
 
       return expectSaga(sessionChannelWatcher, {
@@ -212,11 +212,11 @@ describe('sessionChannelWatcher', () => {
           },
         ])
         .put(pubSubChannel, {
-          type: 'member.talking.stop',
+          type: 'video.member.talking.stop',
           payload,
         })
         .put(pubSubChannel, {
-          type: 'member.talking',
+          type: 'video.member.talking',
           payload,
         })
         .run()
@@ -227,15 +227,18 @@ describe('sessionChannelWatcher', () => {
 
     it('should emit event_type and nested params on the pubSubChannel', async () => {
       const jsonrpc = JSON.parse(
-        '{"jsonrpc":"2.0","id":"6d0e46b2-77af-4734-8691-866f09b37ff3","method":"blade.broadcast","params":{"broadcaster_nodeid":"6a088ac7-9c9b-48c2-a5a1-92aafb70b0ab@west-us","protocol":"proto","channel":"notifications","event":"conference","params":{"params":"random value","timestamp":1624014381.1524,"event_type":"testing","event_channel":"room.b0e1b577-f5e7-4337-b7c4-06fa993b1a19"}},"hops":[]}'
+        '{"jsonrpc":"2.0","id":"37a82bc9-27a5-4e28-a229-6d3c9420dcac","method":"signalwire.event","params":{"params":{"room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","layout":{"layers":[],"room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","name":"4x4"}},"timestamp":1627374719.3799,"event_type":"video.layout.changed","event_channel":"room.0a324e3c-5e2f-443a-a333-10bf005f249e"}}'
       )
       let runSaga = true
       const session = {
         relayProtocol: jsonrpc.params.protocol,
       } as any
-      const pubSubChannel = channel()
+      const pubSubChannel = createPubSubChannel()
       const sessionChannel = eventChannel(() => () => {})
       const dispatchedActions: unknown[] = []
+      const payload = JSON.parse(
+        '{"room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","layout":{"layers":[],"room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","name":"4x4"}}'
+      )
 
       return expectSaga(sessionChannelWatcher, {
         session,
@@ -261,8 +264,8 @@ describe('sessionChannelWatcher', () => {
           },
         ])
         .put(pubSubChannel, {
-          type: 'testing',
-          payload: 'random value',
+          type: 'video.layout.changed',
+          payload,
         })
         .run()
         .finally(() => {
@@ -273,15 +276,15 @@ describe('sessionChannelWatcher', () => {
 
   describe('vertoWorker', () => {
     describe('verto.media', () => {
-      it('should handle verto.media event without SDP', () => {
+      it('should handle verto.media event with remote SDP', () => {
         const jsonrpc = JSON.parse(
-          '{"jsonrpc":"2.0","id":"515a2796-4020-4689-aeaf-e2d9c79e7025","method":"blade.broadcast","params":{"broadcaster_nodeid":"2286cac8-1346-474f-9913-7ca9c3df9fc8@west-us","protocol":"signalwire_19d453176877c268bcde383fed0fec20cb3f2bd39a47b4b96c54ff3ca3cd16c4_341e4715-9c98-4565-9378-789542b5896f_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"webrtc.message","event_channel":"signalwire_19d453176877c268bcde383fed0fec20cb3f2bd39a47b4b96c54ff3ca3cd16c4_341e4715-9c98-4565-9378-789542b5896f_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","timestamp":1621326334.602761,"project_id":"78429ef1-283b-4fa9-8ebc-16b59f95bb1f","node_id":"44c606b1-b951-4959-810a-ffa1ddc9ac4f@","params":{"jsonrpc":"2.0","id":"40","method":"verto.media","params":{"callID":"66e4b610-8d26-4835-8bd8-7022a42ee9bc","sdp":"MEDIA-SDP"}}}},"hops":[]}'
+          '{"jsonrpc":"2.0","id":"359bd626-98b0-436d-a0e5-2fce680f0bc2","method":"signalwire.event","params":{"event_type":"webrtc.message","event_channel":"signalwire_d71f0159c3734a51cd53e2c5e56e65a0b808e3e9865e561379c3af173aad3487_b3c11bb3-5b5f-4a22-820a-c8bd6d7fb10e_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","timestamp":1627374894.010822,"project_id":"78429ef1-283b-4fa9-8ebc-16b59f95bb1f","node_id":"44c606b1-b951-4959-810a-ffa1ddc9ac4f@","params":{"jsonrpc":"2.0","id":"40","method":"verto.media","params":{"callID":"66e4b610-8d26-4835-8bd8-7022a42ee9bc","sdp":"MEDIA-SDP"}}}}'
         )
         let runSaga = true
         const session = {
           relayProtocol: jsonrpc.params.protocol,
         } as any
-        const pubSubChannel = channel()
+        const pubSubChannel = createPubSubChannel()
         const sessionChannel = eventChannel(() => () => {})
         const dispatchedActions: unknown[] = []
 
@@ -319,7 +322,7 @@ describe('sessionChannelWatcher', () => {
             executeAction({
               method: 'video.message',
               params: {
-                message: VertoResult('40', VertoMethod.Media),
+                message: VertoResult('40', 'verto.media'),
                 node_id: '44c606b1-b951-4959-810a-ffa1ddc9ac4f@',
               },
             })
@@ -334,13 +337,13 @@ describe('sessionChannelWatcher', () => {
     describe('verto.answer', () => {
       it('should handle verto.answer event without SDP', () => {
         const jsonrpc = JSON.parse(
-          '{"jsonrpc":"2.0","id":"6a1113a5-ad37-415a-bb82-442fe391eb71","method":"blade.broadcast","params":{"broadcaster_nodeid":"2286cac8-1346-474f-9913-7ca9c3df9fc8@west-us","protocol":"signalwire_19d453176877c268bcde383fed0fec20cb3f2bd39a47b4b96c54ff3ca3cd16c4_67cd19ab-0daf-4a94-9ec4-d794d618f424_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"webrtc.message","event_channel":"signalwire_19d453176877c268bcde383fed0fec20cb3f2bd39a47b4b96c54ff3ca3cd16c4_67cd19ab-0daf-4a94-9ec4-d794d618f424_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","timestamp":1621289013.528754,"project_id":"78429ef1-283b-4fa9-8ebc-16b59f95bb1f","node_id":"44c606b1-b951-4959-810a-ffa1ddc9ac4f@","params":{"jsonrpc":"2.0","id":"34","method":"verto.answer","params":{"callID":"2146cdbf-de67-4474-83e2-323520148d6a"}}}},"hops":[]}'
+          '{"jsonrpc":"2.0","id":"580a9555-ec98-4054-8288-859457da7797","method":"signalwire.event","params":{"event_type":"webrtc.message","event_channel":"signalwire_d71f0159c3734a51cd53e2c5e56e65a0b808e3e9865e561379c3af173aad3487_b3c11bb3-5b5f-4a22-820a-c8bd6d7fb10e_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","timestamp":1627374894.011822,"project_id":"78429ef1-283b-4fa9-8ebc-16b59f95bb1f","node_id":"44c606b1-b951-4959-810a-ffa1ddc9ac4f@","params":{"jsonrpc":"2.0","id":"34","method":"verto.answer","params":{"callID":"2146cdbf-de67-4474-83e2-323520148d6a"}}}}'
         )
         let runSaga = true
         const session = {
           relayProtocol: jsonrpc.params.protocol,
         } as any
-        const pubSubChannel = channel()
+        const pubSubChannel = createPubSubChannel()
         const sessionChannel = eventChannel(() => () => {})
         const dispatchedActions: unknown[] = []
 
@@ -377,7 +380,7 @@ describe('sessionChannelWatcher', () => {
             executeAction({
               method: 'video.message',
               params: {
-                message: VertoResult('34', VertoMethod.Answer),
+                message: VertoResult('34', 'verto.answer'),
                 node_id: '44c606b1-b951-4959-810a-ffa1ddc9ac4f@',
               },
             })
@@ -390,13 +393,13 @@ describe('sessionChannelWatcher', () => {
 
       it('should handle verto.answer event with SDP', () => {
         const jsonrpc = JSON.parse(
-          '{"jsonrpc":"2.0","id":"6a1113a5-ad37-415a-bb82-442fe391eb71","method":"blade.broadcast","params":{"broadcaster_nodeid":"2286cac8-1346-474f-9913-7ca9c3df9fc8@west-us","protocol":"signalwire_19d453176877c268bcde383fed0fec20cb3f2bd39a47b4b96c54ff3ca3cd16c4_67cd19ab-0daf-4a94-9ec4-d794d618f424_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"webrtc.message","event_channel":"signalwire_19d453176877c268bcde383fed0fec20cb3f2bd39a47b4b96c54ff3ca3cd16c4_67cd19ab-0daf-4a94-9ec4-d794d618f424_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","timestamp":1621289013.528754,"project_id":"78429ef1-283b-4fa9-8ebc-16b59f95bb1f","node_id":"44c606b1-b951-4959-810a-ffa1ddc9ac4f@","params":{"jsonrpc":"2.0","id":"34","method":"verto.answer","params":{"callID":"2146cdbf-de67-4474-83e2-323520148d6a","sdp":"SDP-HERE"}}}},"hops":[]}'
+          '{"jsonrpc":"2.0","id":"580a9555-ec98-4054-8288-859457da7797","method":"signalwire.event","params":{"event_type":"webrtc.message","event_channel":"signalwire_d71f0159c3734a51cd53e2c5e56e65a0b808e3e9865e561379c3af173aad3487_b3c11bb3-5b5f-4a22-820a-c8bd6d7fb10e_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","timestamp":1627374894.011822,"project_id":"78429ef1-283b-4fa9-8ebc-16b59f95bb1f","node_id":"44c606b1-b951-4959-810a-ffa1ddc9ac4f@","params":{"jsonrpc":"2.0","id":"34","method":"verto.answer","params":{"callID":"2146cdbf-de67-4474-83e2-323520148d6a","sdp":"SDP-HERE"}}}}'
         )
         let runSaga = true
         const session = {
           relayProtocol: jsonrpc.params.protocol,
         } as any
-        const pubSubChannel = channel()
+        const pubSubChannel = createPubSubChannel()
         const sessionChannel = eventChannel(() => () => {})
         const dispatchedActions: unknown[] = []
 
@@ -434,7 +437,7 @@ describe('sessionChannelWatcher', () => {
             executeAction({
               method: 'video.message',
               params: {
-                message: VertoResult('34', VertoMethod.Answer),
+                message: VertoResult('34', 'verto.answer'),
                 node_id: '44c606b1-b951-4959-810a-ffa1ddc9ac4f@',
               },
             })
@@ -449,13 +452,13 @@ describe('sessionChannelWatcher', () => {
     describe('verto.bye', () => {
       it('should handle verto.bye event', () => {
         const jsonrpc = JSON.parse(
-          '{"jsonrpc":"2.0","id":"515a2796-4020-4689-aeaf-e2d9c79e7025","method":"blade.broadcast","params":{"broadcaster_nodeid":"2286cac8-1346-474f-9913-7ca9c3df9fc8@west-us","protocol":"signalwire_19d453176877c268bcde383fed0fec20cb3f2bd39a47b4b96c54ff3ca3cd16c4_341e4715-9c98-4565-9378-789542b5896f_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"webrtc.message","event_channel":"signalwire_19d453176877c268bcde383fed0fec20cb3f2bd39a47b4b96c54ff3ca3cd16c4_341e4715-9c98-4565-9378-789542b5896f_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","timestamp":1621326334.602761,"project_id":"78429ef1-283b-4fa9-8ebc-16b59f95bb1f","node_id":"44c606b1-b951-4959-810a-ffa1ddc9ac4f@","params":{"jsonrpc":"2.0","id":"40","method":"verto.bye","params":{"callID":"66e4b610-8d26-4835-8bd8-7022a42ee9bc","cause":"NORMAL_CLEARING","causeCode":16}}}},"hops":[]}'
+          '{"jsonrpc":"2.0","id":"580a9555-ec98-4054-8288-859457da7797","method":"signalwire.event","params":{"event_type":"webrtc.message","event_channel":"signalwire_d71f0159c3734a51cd53e2c5e56e65a0b808e3e9865e561379c3af173aad3487_b3c11bb3-5b5f-4a22-820a-c8bd6d7fb10e_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","timestamp":1627374894.011822,"project_id":"78429ef1-283b-4fa9-8ebc-16b59f95bb1f","node_id":"44c606b1-b951-4959-810a-ffa1ddc9ac4f@","params":{"jsonrpc":"2.0","id":"40","method":"verto.bye","params":{"callID":"66e4b610-8d26-4835-8bd8-7022a42ee9bc","cause":"NORMAL_CLEARING","causeCode":16}}}}'
         )
         let runSaga = true
         const session = {
           relayProtocol: jsonrpc.params.protocol,
         } as any
-        const pubSubChannel = channel()
+        const pubSubChannel = createPubSubChannel()
         const sessionChannel = eventChannel(() => () => {})
         const dispatchedActions: unknown[] = []
 
@@ -495,7 +498,7 @@ describe('sessionChannelWatcher', () => {
             executeAction({
               method: 'video.message',
               params: {
-                message: VertoResult('40', VertoMethod.Bye),
+                message: VertoResult('40', 'verto.bye'),
                 node_id: '44c606b1-b951-4959-810a-ffa1ddc9ac4f@',
               },
             })
@@ -510,13 +513,13 @@ describe('sessionChannelWatcher', () => {
     describe('verto.ping', () => {
       it('should handle verto.ping event', () => {
         const jsonrpc = JSON.parse(
-          '{"jsonrpc":"2.0","id":"515a2796-4020-4689-aeaf-e2d9c79e7025","method":"blade.broadcast","params":{"broadcaster_nodeid":"2286cac8-1346-474f-9913-7ca9c3df9fc8@west-us","protocol":"signalwire_19d453176877c268bcde383fed0fec20cb3f2bd39a47b4b96c54ff3ca3cd16c4_341e4715-9c98-4565-9378-789542b5896f_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"webrtc.message","event_channel":"signalwire_19d453176877c268bcde383fed0fec20cb3f2bd39a47b4b96c54ff3ca3cd16c4_341e4715-9c98-4565-9378-789542b5896f_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","timestamp":1621326334.602761,"project_id":"78429ef1-283b-4fa9-8ebc-16b59f95bb1f","node_id":"44c606b1-b951-4959-810a-ffa1ddc9ac4f@","params":{"jsonrpc":"2.0","id":"40","method":"verto.ping","params":{"serno":1}}}},"hops":[]}'
+          '{"jsonrpc":"2.0","id":"580a9555-ec98-4054-8288-859457da7797","method":"signalwire.event","params":{"event_type":"webrtc.message","event_channel":"signalwire_d71f0159c3734a51cd53e2c5e56e65a0b808e3e9865e561379c3af173aad3487_b3c11bb3-5b5f-4a22-820a-c8bd6d7fb10e_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","timestamp":1627374894.011822,"project_id":"78429ef1-283b-4fa9-8ebc-16b59f95bb1f","node_id":"44c606b1-b951-4959-810a-ffa1ddc9ac4f@","params":{"jsonrpc":"2.0","id":"40","method":"verto.ping","params":{"serno":1}}}}'
         )
         let runSaga = true
         const session = {
           relayProtocol: jsonrpc.params.protocol,
         } as any
-        const pubSubChannel = channel()
+        const pubSubChannel = createPubSubChannel()
         const sessionChannel = eventChannel(() => () => {})
         const dispatchedActions: unknown[] = []
 
@@ -546,7 +549,7 @@ describe('sessionChannelWatcher', () => {
             executeAction({
               method: 'video.message',
               params: {
-                message: VertoResult('40', VertoMethod.Ping),
+                message: VertoResult('40', 'verto.ping'),
                 node_id: '44c606b1-b951-4959-810a-ffa1ddc9ac4f@',
               },
             })
@@ -561,14 +564,14 @@ describe('sessionChannelWatcher', () => {
     describe('verto.punt', () => {
       it('should invoke session.disconnect', () => {
         const jsonrpc = JSON.parse(
-          '{"jsonrpc":"2.0","id":"515a2796-4020-4689-aeaf-e2d9c79e7025","method":"blade.broadcast","params":{"broadcaster_nodeid":"2286cac8-1346-474f-9913-7ca9c3df9fc8@west-us","protocol":"signalwire_19d453176877c268bcde383fed0fec20cb3f2bd39a47b4b96c54ff3ca3cd16c4_341e4715-9c98-4565-9378-789542b5896f_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","channel":"notifications","event":"queuing.relay.events","params":{"event_type":"webrtc.message","event_channel":"signalwire_19d453176877c268bcde383fed0fec20cb3f2bd39a47b4b96c54ff3ca3cd16c4_341e4715-9c98-4565-9378-789542b5896f_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","timestamp":1621326334.602761,"project_id":"78429ef1-283b-4fa9-8ebc-16b59f95bb1f","node_id":"44c606b1-b951-4959-810a-ffa1ddc9ac4f@","params":{"jsonrpc":"2.0","id":"40","method":"verto.punt","params":{}}}},"hops":[]}'
+          '{"jsonrpc":"2.0","id":"580a9555-ec98-4054-8288-859457da7797","method":"signalwire.event","params":{"event_type":"webrtc.message","event_channel":"signalwire_d71f0159c3734a51cd53e2c5e56e65a0b808e3e9865e561379c3af173aad3487_b3c11bb3-5b5f-4a22-820a-c8bd6d7fb10e_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","timestamp":1627374894.011822,"project_id":"78429ef1-283b-4fa9-8ebc-16b59f95bb1f","node_id":"44c606b1-b951-4959-810a-ffa1ddc9ac4f@","params":{"jsonrpc":"2.0","id":40,"method":"verto.punt","params":{}}}}'
         )
         let runSaga = true
         const session = {
           relayProtocol: jsonrpc.params.protocol,
           disconnect: jest.fn(),
         } as any
-        const pubSubChannel = channel()
+        const pubSubChannel = createPubSubChannel()
         const sessionChannel = eventChannel(() => () => {})
 
         return expectSaga(sessionChannelWatcher, {

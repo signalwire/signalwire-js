@@ -1,5 +1,5 @@
-import { VertoMethod } from '../utils/constants'
 import { makeRPCRequest, makeRPCResponse } from './helpers'
+import { VertoMethod } from '../utils/interfaces'
 
 type VertoParams = { [key: string]: any }
 
@@ -17,6 +17,7 @@ const tmpMap: VertoParams = {
  */
 const filterVertoParams = (params: VertoParams) => {
   if (params.hasOwnProperty('dialogParams')) {
+    // prettier-ignore
     const {
       remoteSdp,
       localStream,
@@ -45,12 +46,12 @@ const buildVertoRPCMessage = (method: VertoMethod) => {
   }
 }
 
-export const VertoInvite = buildVertoRPCMessage(VertoMethod.Invite)
-export const VertoBye = buildVertoRPCMessage(VertoMethod.Bye)
-export const VertoAttach = buildVertoRPCMessage(VertoMethod.Attach)
-export const VertoModify = buildVertoRPCMessage(VertoMethod.Modify)
-export const VertoInfo = buildVertoRPCMessage(VertoMethod.Info)
-export const VertoAnswer = buildVertoRPCMessage(VertoMethod.Answer)
+export const VertoInvite = buildVertoRPCMessage('verto.invite')
+export const VertoBye = buildVertoRPCMessage('verto.bye')
+export const VertoAttach = buildVertoRPCMessage('verto.attach')
+export const VertoModify = buildVertoRPCMessage('verto.modify')
+export const VertoInfo = buildVertoRPCMessage('verto.info')
+export const VertoAnswer = buildVertoRPCMessage('verto.answer')
 export const VertoResult = (id: string, method: VertoMethod) => {
   return makeRPCResponse({
     id,

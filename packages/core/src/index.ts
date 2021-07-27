@@ -7,7 +7,6 @@ import { BaseComponent } from './BaseComponent'
 import { EventEmitter, getEventEmitter } from './utils/EventEmitter'
 import * as sessionSelectors from './redux/features/session/sessionSelectors'
 
-// prettier-ignore
 export {
   uuid,
   logger,
@@ -19,12 +18,12 @@ export {
   configureStore,
   EventEmitter,
   getEventEmitter,
-  isGlobalEvent
+  isGlobalEvent,
 }
 
 export * from './RPCMessages'
 export * from './utils/interfaces'
-export { VertoMethod } from './utils/constants'
+export * from './types'
 export * from './CustomErrors'
 export type {
   SessionState,

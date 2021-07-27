@@ -1,7 +1,7 @@
 import { PayloadAction } from '@reduxjs/toolkit'
 import { SessionState } from '../../interfaces'
 import {
-  IBladeConnectResult,
+  RPCConnectResult,
   SessionAuthError,
   SessionAuthStatus,
 } from '../../../utils/interfaces'
@@ -20,11 +20,11 @@ const sessionSlice = createDestroyableSlice({
   name: 'session',
   initialState: initialSessionState,
   reducers: {
-    connected: (state, { payload }: PayloadAction<IBladeConnectResult>) => {
+    connected: (state, { payload }: PayloadAction<RPCConnectResult>) => {
       state.authStatus = 'authorized'
       state.authCount += 1
-      state.protocol = payload?.result?.protocol ?? ''
-      state.iceServers = payload?.result?.iceServers ?? []
+      state.protocol = payload?.protocol ?? ''
+      state.iceServers = payload?.ice_servers ?? []
     },
     authStatus: (state, { payload }: PayloadAction<SessionAuthStatus>) => {
       state.authStatus = payload

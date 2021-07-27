@@ -11,15 +11,14 @@ export const destroyAction = createAction('swSdk/destroy')
 export const closeConnectionAction = createAction('swSdk/closeConnection')
 
 /**
- * Trigger saga to send a blade.execute over the wire
+ * Trigger saga to send a JSONRPC over the wire
  */
 export const executeAction = createAction<ExecuteActionParams>(
   'swSdk/executeRequest'
 )
 
-export const authErrorAction = createAction<{ error: SessionAuthError }>(
-  'auth/error'
-)
+export const authErrorAction =
+  createAction<{ error: SessionAuthError }>('auth/error')
 export const authSuccessAction = createAction('auth/success')
 
 export const socketClosedAction = createAction('socket/closed')

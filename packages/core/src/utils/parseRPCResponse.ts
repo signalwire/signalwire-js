@@ -1,5 +1,4 @@
 import { JSONRPCRequest, JSONRPCResponse } from './interfaces'
-import { BladeMethod } from './constants'
 
 type parseRPCResponseParams = {
   response: JSONRPCResponse
@@ -17,7 +16,7 @@ export const parseRPCResponse = ({
   }
 
   switch (request.method) {
-    case BladeMethod.Connect:
+    case 'signalwire.connect':
       return { result }
     default:
       return parseResponse(response)
@@ -40,23 +39,19 @@ const parseResponse = (
   if (error) {
     return { error }
   }
-  const { result: nestedResult = null } = result
-  if (nestedResult === null) {
+  const { code, node_id, result: vertoResult = null } = result
+  if (code && code !== '200') {
+    return { error: result }
+  }
+  if (vertoResult === null) {
     if (nodeId) {
+      // Attach node_id to the vertoResult
       result.node_id = nodeId
     }
     return { result }
   }
-  const {
-    code = null,
-    node_id = null,
-    result: vertoResult = null,
-  } = nestedResult
-  if (code && code !== '200') {
-    return { error: nestedResult }
-  }
   if (vertoResult) {
     return parseResponse(vertoResult, node_id)
   }
-  return { result: nestedResult }
+  return { result }
 }

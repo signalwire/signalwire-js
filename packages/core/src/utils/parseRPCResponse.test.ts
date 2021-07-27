@@ -1,27 +1,27 @@
-import { BladeConnect, BladeExecute } from '../RPCMessages'
+import { RPCConnect, RPCExecute } from '../RPCMessages'
 import { parseRPCResponse } from './parseRPCResponse'
 
 describe('parseRPCResponse', () => {
   const project = 'project'
   const token = 'token'
 
-  describe('blade.connect', () => {
-    const request = BladeConnect({
+  describe('signalwire.connect', () => {
+    const request = RPCConnect({
       authentication: { project, token },
     })
 
-    it('should handle blade.connect success', () => {
+    it('should handle signalwire.connect success', () => {
       const response = JSON.parse(
-        '{"jsonrpc":"2.0","id":"bc78ab45-a070-4e09-9b43-01f03b7c28ec","result":{"session_restored":false,"sessionid":"abc6ce66-e19f-42dd-aa9a-08ce68510273","nodeid":"4f75ff8b-08b2-448f-b28f-26bf2fb8e7c6@124f5b6d-8bae-4340-af18-16a0d85f709c.west-us","identity":"4f75ff8b-08b2-448f-b28f-26bf2fb8e7c6@124f5b6d-8bae-4340-af18-16a0d85f709c.west-us","master_nodeid":"00000000-0000-0000-0000-000000000000@","authorization":{"project":"78429ef1-283b-4fa9-8ebc-16b59f95bb1f","expires_at":1618220912,"scopes":["webrtc","test-scope","conferencing"],"scope_id":null,"resource":"edoardo","signature":"c01e2e6acb37a98e6f8363b2a7c5bc5aa90e846752d01a4f0f5a788bafa4682b"},"protocols":[],"subscriptions":[],"authorizations":[],"accesses":[],"protocols_uncertified":["signalwire"],"result":{"protocol":"signalwire_c01e2e6acb37a98e6f8363b2a7c5bc5aa90e846752d01a4f0f5a788bafa4682b_4b7c0361-918e-49c5-8da3-dfbf14563d7f_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","iceServers":[{"url":"127.0.0.1:3478","credential":"wwD1a7JVOtPXf3Hpup1JTc9IV3Q=","credentialType":"password","username":"1617803345:78429ef1-283b-4fa9-8ebc-16b59f95bb1f"}]}},"hops":[]}'
+        '{"jsonrpc":"2.0","id":"9e72bf85-6404-4c00-a04b-1d35b678fcd2","result":{"identity":"8d8bb680-a6d2-4b84-ad5f-afb43759b0dd@3af07c8b-6a2b-48b7-81b5-2cd1fd0c9254.west-us","authorization":{"type":"video","project":"34429ef1-283b-4fa9-8ebc-43b59f97bb1f","scopes":["video"],"scope_id":"e85c456f-1bf6-4e4c-8e8b-ee1f004226e5","resource":"60c4333e-d892-4542-af34-d36531299934","user_name":"Edo","join_until":null,"join_from":null,"remove_at":null,"remove_after_seconds_elapsed":null,"auto_create_room":true,"room":{"name":"edoRoom2","scopes":[]},"signature":"q71f0159c3734a51cd53e2c5e56e65a0b808e3e9865e561379c3af173aad98642"},"protocol":"signalwire_random_string","ice_servers":[{"urls":["turn:turn.example.io:443"],"credential":"secret","credentialType":"password","username":"supersecret"}]}}'
       )
       expect(parseRPCResponse({ request, response })).toStrictEqual({
         result: response.result,
       })
     })
 
-    it('should handle blade.connect failure', () => {
+    it('should handle signalwire.connect failure', () => {
       const response = JSON.parse(
-        '{"jsonrpc":"2.0","id":"387f88c9-886f-4f44-9495-fc6b393b9b73","error":{"code":-32002,"message":"Authentication service failed with status ProtocolError, 401 Unauthorized: {}"},"hops":[]}'
+        '{"jsonrpc":"2.0","id":"7b3a8c6d-49f1-4c10-81be-75f9b2295142","error":{"code":-32002,"message":"Authentication service failed with status ProtocolError, 401 Unauthorized: {}"}}'
       )
       expect(parseRPCResponse({ request, response })).toStrictEqual({
         error: response.error,
@@ -29,40 +29,42 @@ describe('parseRPCResponse', () => {
     })
   })
 
-  describe('blade.execute', () => {
-    const request = BladeExecute({
-      protocol: 'proto',
+  describe('execute methods', () => {
+    const request = RPCExecute({
       method: 'signalwire.subscribe',
       params: { x: 1, y: 2 },
     })
 
-    it('should handle blade.execute result', () => {
+    it('should handle the result', () => {
       const response = JSON.parse(
-        '{"jsonrpc":"2.0","id":"uuid","result":{"requester_nodeid":"req-id","responder_nodeid":"res-id","result":{"code":"200","message":"Playing","call_id":"call-id"}}}'
+        '{"jsonrpc":"2.0","id":"uuid","result":{"code":"200","message":"Playing","call_id":"call-id"}}'
       )
       expect(parseRPCResponse({ request, response })).toEqual({
         result: { code: '200', message: 'Playing', call_id: 'call-id' },
       })
     })
-    it('should handle blade.execute result', () => {
+
+    it('should handle the error code within result', () => {
       const response = JSON.parse(
-        '{"jsonrpc":"2.0","id":"uuid","error":{"requester_nodeid":"req-id","responder_nodeid":"res-id","code":-32601,"message":"Error Message"}}'
+        '{"jsonrpc":"2.0","id":"uuid","result":{"code":"-32001","message":"Permission Denied."}}'
+      )
+      expect(parseRPCResponse({ request, response })).toEqual({
+        error: { code: '-32001', message: 'Permission Denied.' },
+      })
+    })
+
+    it('should handle the error', () => {
+      const response = JSON.parse(
+        '{"jsonrpc":"2.0","id":"uuid","error":{"code":-32601,"message":"Error Message"}}'
       )
       expect(parseRPCResponse({ request, response })).toEqual({
         error: response.error,
       })
     })
 
-    it('should handle Verto result over Blade', () => {
-      const normalResponse = JSON.parse(
-        '{"jsonrpc":"2.0","id":"uuid","result":{"requester_nodeid":"req-id","responder_nodeid":"res-id","result":{"code":"200","node_id":"node-id","result":{}}}}'
-      )
-      expect(parseRPCResponse({ request, response: normalResponse })).toEqual({
-        result: { node_id: 'node-id' },
-      })
-
+    it('should handle Verto result wrapped in JSONRPC', () => {
       const vertoResponse = JSON.parse(
-        '{"jsonrpc":"2.0","id":"uuid","result":{"requester_nodeid":"req-id","responder_nodeid":"res-id","result":{"code":"200","node_id":"node-id","result":{"jsonrpc":"2.0","id":"verto-uuid","result":{"message":"CALL CREATED","callID":"call-id"}}}}}'
+        '{"jsonrpc":"2.0","id":"uuid","result":{"code":"200","node_id":"node-id","result":{"jsonrpc":"2.0","id":"verto-uuid","result":{"message":"CALL CREATED","callID":"call-id"}}}}'
       )
       expect(parseRPCResponse({ request, response: vertoResponse })).toEqual({
         result: {
@@ -73,9 +75,9 @@ describe('parseRPCResponse', () => {
       })
     })
 
-    it('should handle Verto error over Blade', () => {
+    it('should handle Verto error wrapped in JSONRPC', () => {
       const response = JSON.parse(
-        '{"jsonrpc":"2.0","id":"uuid","result":{"requester_nodeid":"req-id","responder_nodeid":"res-id","result":{"code":"200","node_id":"node-id","result":{"jsonrpc":"2.0","id":"123","error":{"message":"Random Error","callID":"call-id","code":"123"}}}}}'
+        '{"jsonrpc":"2.0","id":"uuid","result":{"code":"200","node_id":"node-id","result":{"jsonrpc":"2.0","id":"123","error":{"message":"Random Error","callID":"call-id","code":"123"}}}}'
       )
       expect(parseRPCResponse({ request, response })).toEqual({
         error: { code: '123', message: 'Random Error', callID: 'call-id' },

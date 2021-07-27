@@ -29,6 +29,7 @@ import {
   closeConnectionAction,
 } from './actions'
 import { AuthError } from '../CustomErrors'
+import { createPubSubChannel } from '../testUtils'
 
 describe('socketClosedWorker', () => {
   it('should try to reconnect when session status is reconnecting', async () => {
@@ -38,7 +39,7 @@ describe('socketClosedWorker', () => {
       connect: jest.fn(),
     } as any
     const timeout = 3000
-    const pubSubChannel = channel()
+    const pubSubChannel = createPubSubChannel()
     const sessionChannel = eventChannel(() => () => {})
 
     return expectSaga(socketClosedWorker, {
@@ -56,7 +57,7 @@ describe('socketClosedWorker', () => {
       status: 'disconnected',
       connect: jest.fn(),
     } as any
-    const pubSubChannel = channel()
+    const pubSubChannel = createPubSubChannel()
     const sessionChannel = eventChannel(() => () => {})
 
     return expectSaga(socketClosedWorker, {
@@ -80,7 +81,7 @@ describe('sessionStatusWatcher', () => {
     closed: true,
     connect: jest.fn(),
   } as any
-  const pubSubChannel = channel()
+  const pubSubChannel = createPubSubChannel()
   const sessionChannel = eventChannel(() => () => {})
   const userOptions = {
     token: '',
@@ -141,7 +142,7 @@ describe('initSessionSaga', () => {
   })
 
   it('should create the session, the sessionChannel and fork watchers', () => {
-    const pubSubChannel = channel()
+    const pubSubChannel = createPubSubChannel()
     pubSubChannel.close = jest.fn()
     const sessionChannel = eventChannel(() => () => {})
     sessionChannel.close = jest.fn()
@@ -170,10 +171,10 @@ describe('initSessionSaga', () => {
 
 describe('startSaga', () => {
   const session = {
-    bladeConnectResult: { key: 'value' },
+    rpcConnectResult: { key: 'value' },
     connect: jest.fn(),
   } as any
-  const pubSubChannel = channel()
+  const pubSubChannel = createPubSubChannel()
   pubSubChannel.close = jest.fn()
   const sessionChannel = eventChannel(() => () => {})
   sessionChannel.close = jest.fn()
@@ -202,7 +203,7 @@ describe('startSaga', () => {
 
     saga
       .next(executeActionTask)
-      .put(sessionActions.connected(session.bladeConnectResult))
+      .put(sessionActions.connected(session.rpcConnectResult))
     saga.next().put(pubSubChannel, sessionConnectedAction())
 
     saga.next().fork(flushExecuteQueueWorker)

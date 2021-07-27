@@ -109,7 +109,12 @@ const getWatchFormatFlag = (flags) => {
 
   return flagWatchFormat.split('=')[1]
 }
-const getBuildOptionsFromFlags = (flags) => {
+const getPackageAgentName = (pkgJson) => {
+  const name = pkgJson.agent || pkgJson.name
+
+  return `${name}/${pkgJson.version}`
+}
+const getBuildOptions = ({ flags, pkgJson }) => {
   const optionsFlags = flags.filter(
     (f) => !isBuildModeFlag(f) && !isWatchFormatFlag(f)
   )
@@ -125,23 +130,34 @@ const getBuildOptionsFromFlags = (flags) => {
     process.exit(1)
   }
 
+  const sdkEnvVariables = {
+    'process.env.SDK_PKG_NAME': JSON.stringify(pkgJson.name),
+    'process.env.SDK_PKG_DESCRIPTION': JSON.stringify(pkgJson.description),
+    'process.env.SDK_PKG_AGENT': JSON.stringify(getPackageAgentName(pkgJson)),
+  }
+
   /**
    * Each mode (--web/--node/--umd) can have multiple outputs and
    * these options will be applied to each of them
    */
-  const commonOptions = optionsFlags.reduce((reducer, flag) => {
-    const options = OPTIONS_MAP[flag]
+  const commonOptions = optionsFlags.reduce(
+    (reducer, flag) => {
+      const options = OPTIONS_MAP[flag]
 
-    if (!options) {
-      console.error('Invalid flag: ', flag)
-      process.exit(1)
-    }
+      if (!options) {
+        console.error('Invalid flag: ', flag)
+        process.exit(1)
+      }
 
-    return {
-      ...reducer,
-      ...options,
+      return {
+        ...reducer,
+        ...options,
+      }
+    },
+    {
+      define: sdkEnvVariables,
     }
-  }, {})
+  )
 
   const modeOptions = OPTIONS_MAP[modeFlag]
 
@@ -197,6 +213,7 @@ const buildUmd = async (options) => {
         browser: true,
       }),
       replace({
+        ...options.define,
         'process.env.NODE_ENV': JSON.stringify('production'),
         preventAssignment: true,
       }),
@@ -241,6 +258,26 @@ const buildUmd = async (options) => {
   })
 }
 
+/**
+ * utility for building all of our bundles (with the exception of UMD.
+ * @see buildUmd for that)
+ */
+const build = async ({ options, setupFile }) => {
+  return Promise.all(
+    options.map((opt) => {
+      // `esbuild` can't generate `umd` so we'll skip it here.
+      if (opt.format === 'umd') {
+        return Promise.resolve()
+      }
+
+      return esbuild.build({
+        ...opt,
+        ...setupFile,
+      })
+    })
+  )
+}
+
 export async function cli(args) {
   const flags = args.slice(2)
   /**
@@ -263,24 +300,12 @@ export async function cli(args) {
     process.exit(1)
   }
   if (isDevMode(flags)) {
-    console.log('🟢 Watch mode enabled.')
+    console.log(`🟢 [${pkgJson.name}] Watch mode enabled`)
   }
   const buildModeFlag = getBuildModeFlag(flags)
-  const options = getBuildOptionsFromFlags(flags)
+  const options = getBuildOptions({ flags, pkgJson })
   try {
-    const results = await Promise.all(
-      options.map((opt) => {
-        // `esbuild` can't generate `umd` so we'll skip it here.
-        if (opt.format === 'umd') {
-          return Promise.resolve()
-        }
-
-        return esbuild.build({
-          ...opt,
-          ...setupFile,
-        })
-      })
-    )
+    const results = await build({ options, setupFile })
     if (isUmdMode(flags)) {
       await Promise.all(options.map((opt) => buildUmd(opt)))
     }

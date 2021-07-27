@@ -1,8 +1,8 @@
-import { channel } from 'redux-saga'
 import { expectSaga } from 'redux-saga-test-plan'
 import { pubSubSaga } from './pubSubSaga'
 import { logger } from '../../../utils'
 import { EventEmitter } from '../../../utils/EventEmitter'
+import { createPubSubChannel } from '../../../testUtils'
 
 describe('sessionChannelWatcher', () => {
   it('should take from pubSubChannel and emit through the EventEmitter', () => {
@@ -10,7 +10,7 @@ describe('sessionChannelWatcher', () => {
     const emitter = new EventEmitter()
     const mockFn = jest.fn()
     emitter.on('event.name', mockFn)
-    const pubSubChannel = channel()
+    const pubSubChannel = createPubSubChannel()
 
     return expectSaga(pubSubSaga, {
       pubSubChannel,
@@ -44,7 +44,7 @@ describe('sessionChannelWatcher', () => {
       throw 'Jest Error'
     })
     emitter.on('event.name', mockFn)
-    const pubSubChannel = channel()
+    const pubSubChannel = createPubSubChannel()
 
     return expectSaga(pubSubSaga, {
       pubSubChannel,

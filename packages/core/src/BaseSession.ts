@@ -1,17 +1,18 @@
 import { PayloadAction } from '@reduxjs/toolkit'
 import { uuid, logger } from './utils'
-import { BladeMethod, DEFAULT_HOST, WebSocketState } from './utils/constants'
+import { DEFAULT_HOST, WebSocketState } from './utils/constants'
 import {
-  BladeConnect,
-  BladeConnectParams,
-  BladeDisconnectResponse,
-  BladePingResponse,
+  RPCConnect,
+  RPCConnectParams,
+  DEFAULT_CONNECT_VERSION,
+  RPCDisconnectResponse,
+  RPCPingResponse,
 } from './RPCMessages'
 import {
   SessionOptions,
   SessionRequestObject,
   SessionRequestQueued,
-  IBladeConnectResult,
+  RPCConnectResult,
   JSONRPCRequest,
   JSONRPCResponse,
   WebSocketAdapter,
@@ -37,10 +38,11 @@ import { sessionActions } from './redux/features/session/sessionSlice'
 
 export class BaseSession {
   public uuid = uuid()
-  public sessionid = ''
   public WebSocketConstructor: WebSocketAdapter
+  public agent: string
+  public connectVersion = DEFAULT_CONNECT_VERSION
 
-  protected _bladeConnectResult: IBladeConnectResult
+  protected _rpcConnectResult: RPCConnectResult
 
   private _requests = new Map<string, SessionRequestObject>()
   private _requestQueue: SessionRequestQueued[] = []
@@ -68,16 +70,16 @@ export class BaseSession {
     this.logger.setLevel(this.logger.levels.INFO)
   }
 
-  get bladeConnectResult() {
-    return this._bladeConnectResult
+  get rpcConnectResult() {
+    return this._rpcConnectResult
   }
 
   get relayProtocol() {
-    return this._bladeConnectResult?.result?.protocol ?? ''
+    return this._rpcConnectResult?.protocol ?? ''
   }
 
   get signature() {
-    return this._bladeConnectResult?.authorization?.signature
+    return this._rpcConnectResult?.authorization?.signature
   }
 
   get logger(): typeof logger {
@@ -193,18 +195,18 @@ export class BaseSession {
    * @return Promise<void>
    */
   async authenticate() {
-    const params: BladeConnectParams = {
+    const params: RPCConnectParams = {
+      agent: this.agent,
+      version: this.connectVersion,
       authentication: {
         project: this.options.project,
         token: this.options.token,
       },
-      params: {},
     }
     if (this._relayProtocolIsValid()) {
-      params.params = params.params || {}
-      params.params.protocol = this.relayProtocol
+      params.protocol = this.relayProtocol
     }
-    this._bladeConnectResult = await this.execute(BladeConnect(params))
+    this._rpcConnectResult = await this.execute(RPCConnect(params))
   }
 
   protected async _onSocketOpen(event: Event) {
@@ -248,16 +250,16 @@ export class BaseSession {
     }
 
     switch (payload.method) {
-      case BladeMethod.Ping:
-        return this._bladePingHandler(payload)
-      case BladeMethod.Disconnect: {
+      case 'signalwire.ping':
+        return this._pingHandler(payload)
+      case 'signalwire.disconnect': {
         /**
          * Set this._status = 'idle' because the server
          * will close the connection soon.
          */
-        this.execute(BladeDisconnectResponse(payload.id))
+        this.execute(RPCDisconnectResponse(payload.id))
           .catch((error) => {
-            logger.error('BladeDisconnect Error', error)
+            logger.error('SwDisconnect Error', error)
           })
           .finally(() => {
             this._status = 'idle'
@@ -296,16 +298,14 @@ export class BaseSession {
     this._requestQueue = []
   }
 
-  private async _bladePingHandler(payload: JSONRPCRequest) {
+  private async _pingHandler(payload: JSONRPCRequest) {
     clearTimeout(this._checkPingTimer)
     this._checkPingTimer = setTimeout(() => {
       // Possibly half-open connection so force close our side
       this._closeConnection('reconnecting')
     }, this._checkPingDelay)
 
-    await this.execute(
-      BladePingResponse(payload.id, payload?.params?.timestamp)
-    )
+    await this.execute(RPCPingResponse(payload.id, payload?.params?.timestamp))
   }
 
   private _closeConnection(

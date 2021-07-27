@@ -1,16 +1,15 @@
 import { makeRPCRequest, makeRPCResponse } from './helpers'
-import { BladeMethod } from '../utils/constants'
 
-export const BladePing = () => {
+export const RPCPing = () => {
   return makeRPCRequest({
-    method: BladeMethod.Ping,
+    method: 'signalwire.ping',
     params: {
       timestamp: Date.now() / 1000,
     },
   })
 }
 
-export const BladePingResponse = (id: string, timestamp?: number) => {
+export const RPCPingResponse = (id: string, timestamp?: number) => {
   return makeRPCResponse({
     id,
     result: {
