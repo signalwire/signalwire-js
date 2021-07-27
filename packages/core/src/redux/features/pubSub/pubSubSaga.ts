@@ -46,7 +46,6 @@ export function* pubSubSaga({
        * (non-namespaced/global Event Emitter) so we must trigger the
        * event twice to reach everyone.
        */
-      // @ts-expect-error
       if (isGlobalEvent(event)) {
         emitter.emit(event, payload)
       }
