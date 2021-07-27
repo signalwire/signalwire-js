@@ -46,8 +46,8 @@ export type MemberUpdatedEventNames =
 
 export type MemberTalkingEventNames =
   | MemberTalkingEventName
-  | `${MemberTalkingEventName}.start`
-  | `${MemberTalkingEventName}.stop`
+  | 'member.talking.start'
+  | 'member.talking.stop'
 
 export type MemberEvent =
   | MemberJoinedEventName
