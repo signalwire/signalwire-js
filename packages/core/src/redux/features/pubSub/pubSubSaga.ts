@@ -20,12 +20,11 @@ const findNamespaceInPayload = (payload?: any): string => {
   return ns || ''
 }
 
-const PREFIXES = ['video.']
+const PRODUCT_PREFIXES = ['video.']
 const getEventName = (type: PubSubAction['type']) => {
-  for (const prefix of PREFIXES) {
-    if (type.startsWith(prefix)) {
-      return type.replace(prefix, '')
-    }
+  const [eventPrefix, ...eventName] = type.split('.')
+  if (PRODUCT_PREFIXES.includes(eventPrefix)) {
+    return eventName.join('.')
   }
   return type
 }
