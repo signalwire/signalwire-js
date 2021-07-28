@@ -8,7 +8,7 @@ interface RoomMethodPropertyDescriptor<T> extends PropertyDescriptor {
 type RoomMethodDescriptor<T = unknown> = RoomMethodPropertyDescriptor<T> &
   ThisType<BaseRoomInterface>
 type RoomMethodParams = Record<string, unknown>
-interface BaseServerPayload {
+interface BaseRPCResult {
   code: string
   message: string
   [k: string]: unknown
@@ -81,11 +81,11 @@ export const getMemberList = createRoomMethod<{ members: Member[] }, Member[]>(
   (payload) => payload.members
 )
 export const setLayout = createRoomMethod('video.set_layout')
-export const hideVideoMuted = createRoomMethod<BaseServerPayload, void>(
+export const hideVideoMuted = createRoomMethod<BaseRPCResult, void>(
   'video.hide_video_muted',
   baseCodeTransform
 )
-export const showVideoMuted = createRoomMethod<BaseServerPayload, void>(
+export const showVideoMuted = createRoomMethod<BaseRPCResult, void>(
   'video.show_video_muted',
   baseCodeTransform
 )
@@ -99,40 +99,40 @@ export type ShowVideoMuted = ReturnType<typeof showVideoMuted.value>
 /**
  * Room Member Methods
  */
-export const audioMuteMember = createRoomMemberMethod<BaseServerPayload, void>(
+export const audioMuteMember = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.audio_mute',
   baseCodeTransform
 )
-export const audioUnmuteMember = createRoomMemberMethod<
-  BaseServerPayload,
-  void
->('video.member.audio_unmute', baseCodeTransform)
-export const videoMuteMember = createRoomMemberMethod<BaseServerPayload, void>(
+export const audioUnmuteMember = createRoomMemberMethod<BaseRPCResult, void>(
+  'video.member.audio_unmute',
+  baseCodeTransform
+)
+export const videoMuteMember = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.video_mute',
   baseCodeTransform
 )
-export const videoUnmuteMember = createRoomMemberMethod<
-  BaseServerPayload,
-  void
->('video.member.video_unmute', baseCodeTransform)
-export const deafMember = createRoomMemberMethod<BaseServerPayload, void>(
+export const videoUnmuteMember = createRoomMemberMethod<BaseRPCResult, void>(
+  'video.member.video_unmute',
+  baseCodeTransform
+)
+export const deafMember = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.deaf',
   baseCodeTransform
 )
-export const undeafMember = createRoomMemberMethod<BaseServerPayload, void>(
+export const undeafMember = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.undeaf',
   baseCodeTransform
 )
-export const setInputVolumeMember = createRoomMemberMethod<
-  BaseServerPayload,
-  void
->('video.member.set_input_volume', baseCodeTransform)
+export const setInputVolumeMember = createRoomMemberMethod<BaseRPCResult, void>(
+  'video.member.set_input_volume',
+  baseCodeTransform
+)
 export const setOutputVolumeMember = createRoomMemberMethod<
-  BaseServerPayload,
+  BaseRPCResult,
   void
 >('video.member.set_output_volume', baseCodeTransform)
 export const setInputSensitivityMember = createRoomMemberMethod<
-  BaseServerPayload,
+  BaseRPCResult,
   void
 >('video.member.set_input_sensitivity', baseCodeTransform)
 export const removeMember: RoomMethodDescriptor<void> = {
