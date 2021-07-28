@@ -80,7 +80,10 @@ export const getMemberList = createRoomMethod<{ members: Member[] }, Member[]>(
   'video.members.get',
   (payload) => payload.members
 )
-export const setLayout = createRoomMethod('video.set_layout')
+export const setLayout = createRoomMethod<BaseRPCResult, void>(
+  'video.set_layout',
+  baseCodeTransform
+)
 export const hideVideoMuted = createRoomMethod<BaseRPCResult, void>(
   'video.hide_video_muted',
   baseCodeTransform
@@ -160,6 +163,7 @@ export type VideoMuteMember = ReturnType<typeof videoMuteMember.value>
 export type VideoUnmuteMember = ReturnType<typeof videoUnmuteMember.value>
 export type DeafMember = ReturnType<typeof deafMember.value>
 export type UndeafMember = ReturnType<typeof undeafMember.value>
+export type SetLayout = ReturnType<typeof setLayout.value>
 export type SetInputVolumeMember = ReturnType<typeof setInputVolumeMember.value>
 export type SetOutputVolumeMember = ReturnType<
   typeof setOutputVolumeMember.value

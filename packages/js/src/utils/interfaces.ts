@@ -85,7 +85,7 @@ interface RoomMemberSelfMethodsInterface {
 
 interface RoomLayoutMethodsInterface {
   getLayoutList(): Rooms.GetLayoutList
-  setLayout(params: { name: string }): Promise<unknown>
+  setLayout(params: { name: string }): Rooms.SetLayout
 }
 
 interface RoomControlMethodsInterface {
