@@ -160,10 +160,12 @@ export class BaseComponent implements Emitter {
     return this.emitter as EventEmitter<string | symbol, any>
   }
 
+  /** @internal */
   eventNames() {
     return this.emitter.eventNames()
   }
 
+  /** @internal */
   emit(event: string | symbol, ...args: any[]) {
     if (this.shouldAddToQueue()) {
       this.addEventToEmitQueue(event, args)
