@@ -14,6 +14,12 @@ interface BaseServerPayload {
   [k: string]: unknown
 }
 
+/**
+ * Transform for returning true/false based on the response `code`
+ * from the server
+ */
+const baseCodeTransform = ({ code }: BaseServerPayload) => code === '200'
+
 const createRoomMethod = <InputType, OutputType>(
   method: RoomMethod,
   transform?: ExecuteTransform<InputType, OutputType>
@@ -73,18 +79,20 @@ export const getMemberList = createRoomMethod<{ members: Member[] }, Member[]>(
   (payload) => payload.members
 )
 export const setLayout = createRoomMethod('video.set_layout')
-export const hideVideoMuted = createRoomMethod('video.hide_video_muted')
-export const showVideoMuted = createRoomMethod('video.show_video_muted')
+export const hideVideoMuted = createRoomMethod<BaseServerPayload, boolean>(
+  'video.hide_video_muted',
+  baseCodeTransform
+)
+export const showVideoMuted = createRoomMethod<BaseServerPayload, boolean>(
+  'video.show_video_muted',
+  baseCodeTransform
+)
 
 export type GetLayoutList = ReturnType<typeof getLayoutList.value>
 export type GetMemberList = ReturnType<typeof getMemberList.value>
+export type HideVideoMuted = ReturnType<typeof hideVideoMuted.value>
+export type ShowVideoMuted = ReturnType<typeof showVideoMuted.value>
 // End Room Methods
-
-/**
- * Transform for returning true/false based on the response `code`
- * from the server
- */
-const baseCodeTransform = ({ code }: BaseServerPayload) => code === '200'
 
 /**
  * Room Member Methods

@@ -96,8 +96,8 @@ interface RoomControlMethodsInterface {
     params: MemberCommandWithVolumeParams
   ): Rooms.SetInputVolumeMember
   removeMember(params: Required<MemberCommandParams>): Rooms.RemoveMember
-  hideVideoMuted(): Promise<unknown>
-  showVideoMuted(): Promise<unknown>
+  hideVideoMuted(): Rooms.HideVideoMuted
+  showVideoMuted(): Rooms.ShowVideoMuted
 }
 
 /**
