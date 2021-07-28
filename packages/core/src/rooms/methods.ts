@@ -105,8 +105,14 @@ export const videoUnmuteMember = createRoomMemberMethod<
   BaseServerPayload,
   boolean
 >('video.member.video_unmute', baseCodeTransform)
-export const deafMember = createRoomMemberMethod('video.member.deaf')
-export const undeafMember = createRoomMemberMethod('video.member.undeaf')
+export const deafMember = createRoomMemberMethod<BaseServerPayload, boolean>(
+  'video.member.deaf',
+  baseCodeTransform
+)
+export const undeafMember = createRoomMemberMethod<BaseServerPayload, boolean>(
+  'video.member.undeaf',
+  baseCodeTransform
+)
 export const setInputVolumeMember = createRoomMemberMethod(
   'video.member.set_input_volume'
 )
@@ -136,4 +142,6 @@ export type AudioMuteMember = ReturnType<typeof audioMuteMember.value>
 export type AudioUnmuteMember = ReturnType<typeof audioUnmuteMember.value>
 export type VideoMuteMember = ReturnType<typeof videoMuteMember.value>
 export type VideoUnmuteMember = ReturnType<typeof videoUnmuteMember.value>
+export type DeafMember = ReturnType<typeof deafMember.value>
+export type UndeafMember = ReturnType<typeof undeafMember.value>
 // End Room Member Methods
