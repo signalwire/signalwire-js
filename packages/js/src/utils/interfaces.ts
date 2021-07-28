@@ -1,5 +1,6 @@
 import StrictEventEmitter from 'strict-event-emitter-types'
 import type {
+  Rooms,
   RoomEventNames,
   BaseConnectionState,
   EventsHandlerMapping,
@@ -77,12 +78,12 @@ interface RoomMemberSelfMethodsInterface {
 }
 
 interface RoomLayoutMethodsInterface {
-  getLayoutList(): Promise<unknown>
+  getLayoutList(): Rooms.GetLayoutList
   setLayout(params: { name: string }): Promise<unknown>
 }
 
 interface RoomControlMethodsInterface {
-  getMemberList(): Promise<unknown>
+  getMemberList(): Rooms.GetMemberList
   deaf(params: MemberCommandParams): Promise<unknown>
   undeaf(params: MemberCommandParams): Promise<unknown>
   setSpeakerVolume(params: MemberCommandWithVolumeParams): Promise<unknown>

@@ -74,6 +74,9 @@ export const hideVideoMuted = createRoomMethod('video.hide_video_muted')
 export const showVideoMuted = createRoomMethod('video.show_video_muted')
 // End Room Methods
 
+export type GetLayoutList = ReturnType<typeof getLayoutList.value>
+export type GetMemberList = ReturnType<typeof getMemberList.value>
+
 /**
  * Room Member Methods
  */
