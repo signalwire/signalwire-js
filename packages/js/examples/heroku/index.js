@@ -27,8 +27,7 @@ const inCallElements = [
 
 async function loadLayouts(currentLayoutId) {
   try {
-    const { layouts } = await roomObj.getLayoutList()
-
+    const layouts = await roomObj.getLayoutList()
     const layoutEl = document.getElementById('layout')
     layoutEl.innerHTML = ''
 

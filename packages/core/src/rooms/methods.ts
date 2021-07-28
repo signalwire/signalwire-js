@@ -1,34 +1,42 @@
 import { BaseRoomInterface } from '.'
-import { RoomMethod } from '../utils/interfaces'
+import { Member } from '../types'
+import { ExecuteTransform, RoomMethod } from '../utils/interfaces'
 
-type RoomMethodDescriptor = PropertyDescriptor & ThisType<BaseRoomInterface>
-
-type RoomMethodParams = {
-  [key: string]: unknown
+interface RoomMethodPropertyDescriptor<T> extends PropertyDescriptor {
+  value: (params: RoomMethodParams) => Promise<T>
 }
-const createRoomMethod = (method: RoomMethod): RoomMethodDescriptor => ({
-  value: function (params: RoomMethodParams = {}) {
-    return this.execute({
-      method,
-      params: {
-        room_session_id: this.roomSessionId,
-        ...params,
+type RoomMethodDescriptor<T = unknown> = RoomMethodPropertyDescriptor<T> &
+  ThisType<BaseRoomInterface>
+type RoomMethodParams = Record<string, unknown>
+
+const createRoomMethod = <InputType, OutputType>(
+  method: RoomMethod,
+  transform?: ExecuteTransform<InputType, OutputType>
+): RoomMethodDescriptor<OutputType> => ({
+  value: function (params: RoomMethodParams = {}): Promise<OutputType> {
+    return this.execute(
+      {
+        method,
+        params: {
+          room_session_id: this.roomSessionId,
+          ...params,
+        },
       },
-    })
+      transform
+    )
   },
 })
 
 /**
- * Type the params for each room member method
- * that uses the provided memberId or fallback
- * to the instance memberId.
- * Additional params can be passed as `value`
- * or `volume`.
+ * Type the params for each room member method that uses the provided
+ * memberId or fallback to the instance memberId. Additional params
+ * can be passed as `value` or `volume`.
  */
-type RoomMemberMethodParams = {
+interface RoomMemberMethodParams {
   memberId?: string
   [key: string]: unknown
 }
+
 const createRoomMemberMethod = (method: RoomMethod): RoomMethodDescriptor => ({
   value: function ({ memberId, ...rest }: RoomMemberMethodParams = {}) {
     return this.execute({
@@ -45,11 +53,25 @@ const createRoomMemberMethod = (method: RoomMethod): RoomMethodDescriptor => ({
 /**
  * Room Methods
  */
-export const getLayoutList = createRoomMethod('video.list_available_layouts')
+export const getLayoutList = createRoomMethod<
+  {
+    layouts: string[]
+    code: string
+    message: string
+  },
+  string[]
+>('video.list_available_layouts', (payload) => payload.layouts)
+export const getMemberList = createRoomMethod<
+  {
+    members: Member[]
+    code: string
+    message: string
+  },
+  Member[]
+>('video.members.get', (payload) => payload.members)
 export const setLayout = createRoomMethod('video.set_layout')
 export const hideVideoMuted = createRoomMethod('video.hide_video_muted')
 export const showVideoMuted = createRoomMethod('video.show_video_muted')
-export const getMemberList = createRoomMethod('video.members.get')
 // End Room Methods
 
 /**

@@ -196,6 +196,10 @@ export type ExecuteParams = {
   params: Record<string, any>
 }
 
+export type ExecuteTransform<InputType, OutputType> = (
+  payload: InputType
+) => OutputType
+
 export type GlobalVideoEvents = typeof GLOBAL_VIDEO_EVENTS[number]
 
 export type RoomCustomMethods<T> = {
