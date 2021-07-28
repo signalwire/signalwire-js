@@ -407,12 +407,12 @@ export class BaseConnection
   }
 
   /** @internal */
-  invite() {
+  invite<T>(): Promise<T> {
     return new Promise(async (resolve, reject) => {
       this.direction = 'outbound'
       this.peer = new RTCPeer(this, 'offer')
       try {
-        const _resolve = () => resolve(this)
+        const _resolve = () => resolve(this as any as T)
 
         this.once('active', () => {
           this.off('destroy', _resolve)

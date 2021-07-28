@@ -158,7 +158,7 @@ class Room extends BaseConnection implements BaseRoomInterface {
   }
 
   join() {
-    return super.invite()
+    return super.invite<Room>()
   }
 
   leave() {
