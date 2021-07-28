@@ -15,10 +15,12 @@ interface BaseServerPayload {
 }
 
 /**
- * Transform for returning true/false based on the response `code`
- * from the server
+ * Transform for returning `undefined` for `execute`s that were
+ * successully resolved. If the `execute` failed for some reason, then
+ * the promise will be rejected and this transform will never be
+ * executed.
  */
-const baseCodeTransform = ({ code }: BaseServerPayload) => code === '200'
+const baseCodeTransform = () => {}
 
 const createRoomMethod = <InputType, OutputType>(
   method: RoomMethod,
@@ -79,11 +81,11 @@ export const getMemberList = createRoomMethod<{ members: Member[] }, Member[]>(
   (payload) => payload.members
 )
 export const setLayout = createRoomMethod('video.set_layout')
-export const hideVideoMuted = createRoomMethod<BaseServerPayload, boolean>(
+export const hideVideoMuted = createRoomMethod<BaseServerPayload, void>(
   'video.hide_video_muted',
   baseCodeTransform
 )
-export const showVideoMuted = createRoomMethod<BaseServerPayload, boolean>(
+export const showVideoMuted = createRoomMethod<BaseServerPayload, void>(
   'video.show_video_muted',
   baseCodeTransform
 )
@@ -97,43 +99,43 @@ export type ShowVideoMuted = ReturnType<typeof showVideoMuted.value>
 /**
  * Room Member Methods
  */
-export const audioMuteMember = createRoomMemberMethod<
-  BaseServerPayload,
-  boolean
->('video.member.audio_mute', baseCodeTransform)
+export const audioMuteMember = createRoomMemberMethod<BaseServerPayload, void>(
+  'video.member.audio_mute',
+  baseCodeTransform
+)
 export const audioUnmuteMember = createRoomMemberMethod<
   BaseServerPayload,
-  boolean
+  void
 >('video.member.audio_unmute', baseCodeTransform)
-export const videoMuteMember = createRoomMemberMethod<
-  BaseServerPayload,
-  boolean
->('video.member.video_mute', baseCodeTransform)
+export const videoMuteMember = createRoomMemberMethod<BaseServerPayload, void>(
+  'video.member.video_mute',
+  baseCodeTransform
+)
 export const videoUnmuteMember = createRoomMemberMethod<
   BaseServerPayload,
-  boolean
+  void
 >('video.member.video_unmute', baseCodeTransform)
-export const deafMember = createRoomMemberMethod<BaseServerPayload, boolean>(
+export const deafMember = createRoomMemberMethod<BaseServerPayload, void>(
   'video.member.deaf',
   baseCodeTransform
 )
-export const undeafMember = createRoomMemberMethod<BaseServerPayload, boolean>(
+export const undeafMember = createRoomMemberMethod<BaseServerPayload, void>(
   'video.member.undeaf',
   baseCodeTransform
 )
 export const setInputVolumeMember = createRoomMemberMethod<
   BaseServerPayload,
-  boolean
+  void
 >('video.member.set_input_volume', baseCodeTransform)
 export const setOutputVolumeMember = createRoomMemberMethod<
   BaseServerPayload,
-  boolean
+  void
 >('video.member.set_output_volume', baseCodeTransform)
 export const setInputSensitivityMember = createRoomMemberMethod<
   BaseServerPayload,
-  boolean
+  void
 >('video.member.set_input_sensitivity', baseCodeTransform)
-export const removeMember: RoomMethodDescriptor<boolean> = {
+export const removeMember: RoomMethodDescriptor<void> = {
   value: function ({ memberId, ...rest }: RoomMemberMethodParams = {}) {
     if (!memberId) {
       throw new TypeError('Invalid or missing "memberId" argument')
