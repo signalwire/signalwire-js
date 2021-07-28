@@ -3,6 +3,7 @@ import { uuid, logger, getGlobalEvents } from './utils'
 import { executeAction } from './redux'
 import {
   ExecuteParams,
+  ExecuteTransform,
   BaseComponentOptions,
   Emitter,
 } from './utils/interfaces'
@@ -27,6 +28,8 @@ type EventRegisterHandlers =
       type: 'removeAllListeners'
       params: Parameters<Emitter['removeAllListeners']>
     }
+
+const identity: ExecuteTransform<any, any> = (payload) => payload
 
 export class BaseComponent implements Emitter {
   id = uuid()
@@ -178,10 +181,13 @@ export class BaseComponent implements Emitter {
   }
 
   /** @internal */
-  execute({ method, params }: ExecuteParams) {
-    return new Promise((resolve, reject) => {
+  execute<InputType = unknown, OutputType = unknown>(
+    { method, params }: ExecuteParams,
+    transform: ExecuteTransform<InputType, OutputType> = identity
+  ) {
+    return new Promise<OutputType>((resolve, reject) => {
       const requestId = uuid()
-      this._requests.set(requestId, { resolve, reject })
+      this._requests.set(requestId, { resolve, reject, transform })
 
       this.store.dispatch(
         executeAction({
@@ -240,7 +246,7 @@ export class BaseComponent implements Emitter {
   /** @internal */
   onSuccess(component: any) {
     this._requests.forEach((value, key) => {
-      value.resolve(component.responses[key])
+      value.resolve(value.transform(component.responses[key]))
       this._requests.delete(key)
     })
   }
