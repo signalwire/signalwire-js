@@ -8,6 +8,11 @@ interface RoomMethodPropertyDescriptor<T> extends PropertyDescriptor {
 type RoomMethodDescriptor<T = unknown> = RoomMethodPropertyDescriptor<T> &
   ThisType<BaseRoomInterface>
 type RoomMethodParams = Record<string, unknown>
+interface BaseServerPayload {
+  code: string
+  message: string
+  [k: string]: unknown
+}
 
 const createRoomMethod = <InputType, OutputType>(
   method: RoomMethod,
@@ -37,53 +42,61 @@ interface RoomMemberMethodParams {
   [key: string]: unknown
 }
 
-const createRoomMemberMethod = (method: RoomMethod): RoomMethodDescriptor => ({
+const createRoomMemberMethod = <InputType, OutputType>(
+  method: RoomMethod,
+  transform?: ExecuteTransform<InputType, OutputType>
+): RoomMethodDescriptor<OutputType> => ({
   value: function ({ memberId, ...rest }: RoomMemberMethodParams = {}) {
-    return this.execute({
-      method,
-      params: {
-        room_session_id: this.roomSessionId,
-        member_id: memberId || this.memberId,
-        ...rest,
+    return this.execute(
+      {
+        method,
+        params: {
+          room_session_id: this.roomSessionId,
+          member_id: memberId || this.memberId,
+          ...rest,
+        },
       },
-    })
+      transform
+    )
   },
 })
 
 /**
  * Room Methods
  */
-export const getLayoutList = createRoomMethod<
-  {
-    layouts: string[]
-    code: string
-    message: string
-  },
-  string[]
->('video.list_available_layouts', (payload) => payload.layouts)
-export const getMemberList = createRoomMethod<
-  {
-    members: Member[]
-    code: string
-    message: string
-  },
-  Member[]
->('video.members.get', (payload) => payload.members)
+export const getLayoutList = createRoomMethod<{ layouts: string[] }, string[]>(
+  'video.list_available_layouts',
+  (payload) => payload.layouts
+)
+export const getMemberList = createRoomMethod<{ members: Member[] }, Member[]>(
+  'video.members.get',
+  (payload) => payload.members
+)
 export const setLayout = createRoomMethod('video.set_layout')
 export const hideVideoMuted = createRoomMethod('video.hide_video_muted')
 export const showVideoMuted = createRoomMethod('video.show_video_muted')
-// End Room Methods
 
 export type GetLayoutList = ReturnType<typeof getLayoutList.value>
 export type GetMemberList = ReturnType<typeof getMemberList.value>
+// End Room Methods
+
+/**
+ * Transform for returning true/false based on the response `code`
+ * from the server
+ */
+const baseCodeTransform = ({ code }: BaseServerPayload) => code === '200'
 
 /**
  * Room Member Methods
  */
-export const audioMuteMember = createRoomMemberMethod('video.member.audio_mute')
-export const audioUnmuteMember = createRoomMemberMethod(
-  'video.member.audio_unmute'
-)
+export const audioMuteMember = createRoomMemberMethod<
+  BaseServerPayload,
+  boolean
+>('video.member.audio_mute', baseCodeTransform)
+export const audioUnmuteMember = createRoomMemberMethod<
+  BaseServerPayload,
+  boolean
+>('video.member.audio_unmute', baseCodeTransform)
 export const videoMuteMember = createRoomMemberMethod('video.member.video_mute')
 export const videoUnmuteMember = createRoomMemberMethod(
   'video.member.video_unmute'
@@ -114,4 +127,7 @@ export const removeMember: RoomMethodDescriptor = {
     })
   },
 }
+
+export type AudioMuteMember = ReturnType<typeof audioMuteMember.value>
+export type AudioUnmuteMember = ReturnType<typeof audioUnmuteMember.value>
 // End Room Member Methods
