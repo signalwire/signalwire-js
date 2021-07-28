@@ -113,28 +113,34 @@ export const undeafMember = createRoomMemberMethod<BaseServerPayload, boolean>(
   'video.member.undeaf',
   baseCodeTransform
 )
-export const setInputVolumeMember = createRoomMemberMethod(
-  'video.member.set_input_volume'
-)
-export const setOutputVolumeMember = createRoomMemberMethod(
-  'video.member.set_output_volume'
-)
-export const setInputSensitivityMember = createRoomMemberMethod(
-  'video.member.set_input_sensitivity'
-)
-export const removeMember: RoomMethodDescriptor = {
+export const setInputVolumeMember = createRoomMemberMethod<
+  BaseServerPayload,
+  boolean
+>('video.member.set_input_volume', baseCodeTransform)
+export const setOutputVolumeMember = createRoomMemberMethod<
+  BaseServerPayload,
+  boolean
+>('video.member.set_output_volume', baseCodeTransform)
+export const setInputSensitivityMember = createRoomMemberMethod<
+  BaseServerPayload,
+  boolean
+>('video.member.set_input_sensitivity', baseCodeTransform)
+export const removeMember: RoomMethodDescriptor<boolean> = {
   value: function ({ memberId, ...rest }: RoomMemberMethodParams = {}) {
     if (!memberId) {
       throw new TypeError('Invalid or missing "memberId" argument')
     }
-    return this.execute({
-      method: 'video.member.remove',
-      params: {
-        room_session_id: this.roomSessionId,
-        member_id: memberId,
-        ...rest,
+    return this.execute(
+      {
+        method: 'video.member.remove',
+        params: {
+          room_session_id: this.roomSessionId,
+          member_id: memberId,
+          ...rest,
+        },
       },
-    })
+      baseCodeTransform
+    )
   },
 }
 
@@ -144,4 +150,12 @@ export type VideoMuteMember = ReturnType<typeof videoMuteMember.value>
 export type VideoUnmuteMember = ReturnType<typeof videoUnmuteMember.value>
 export type DeafMember = ReturnType<typeof deafMember.value>
 export type UndeafMember = ReturnType<typeof undeafMember.value>
+export type SetInputVolumeMember = ReturnType<typeof setInputVolumeMember.value>
+export type SetOutputVolumeMember = ReturnType<
+  typeof setOutputVolumeMember.value
+>
+export type SetInputSensitivityMember = ReturnType<
+  typeof setInputSensitivityMember.value
+>
+export type RemoveMember = ReturnType<typeof removeMember.value>
 // End Room Member Methods

@@ -64,8 +64,12 @@ interface RoomMemberMethodsInterface {
   audioUnmute(params: MemberCommandParams): Rooms.AudioUnmuteMember
   videoMute(params: MemberCommandParams): Rooms.VideoMuteMember
   videoUnmute(params: MemberCommandParams): Rooms.VideoUnmuteMember
-  setMicrophoneVolume(params: MemberCommandWithVolumeParams): Promise<unknown>
-  setInputSensitivity(params: MemberCommandWithValueParams): Promise<unknown>
+  setMicrophoneVolume(
+    params: MemberCommandWithVolumeParams
+  ): Rooms.SetOutputVolumeMember
+  setInputSensitivity(
+    params: MemberCommandWithValueParams
+  ): Rooms.SetInputSensitivityMember
 }
 
 interface RoomMemberSelfMethodsInterface {
@@ -73,8 +77,10 @@ interface RoomMemberSelfMethodsInterface {
   audioUnmute(): Rooms.AudioUnmuteMember
   videoMute(): Rooms.VideoMuteMember
   videoUnmute(): Rooms.VideoUnmuteMember
-  setMicrophoneVolume(params: { volume: number }): Promise<unknown>
-  setInputSensitivity(params: { value: number }): Promise<unknown>
+  setMicrophoneVolume(params: { volume: number }): Rooms.SetOutputVolumeMember
+  setInputSensitivity(params: {
+    value: number
+  }): Rooms.SetInputSensitivityMember
 }
 
 interface RoomLayoutMethodsInterface {
@@ -86,8 +92,10 @@ interface RoomControlMethodsInterface {
   getMemberList(): Rooms.GetMemberList
   deaf(params: MemberCommandParams): Rooms.DeafMember
   undeaf(params: MemberCommandParams): Rooms.UndeafMember
-  setSpeakerVolume(params: MemberCommandWithVolumeParams): Promise<unknown>
-  removeMember(params: Required<MemberCommandParams>): Promise<unknown>
+  setSpeakerVolume(
+    params: MemberCommandWithVolumeParams
+  ): Rooms.SetInputVolumeMember
+  removeMember(params: Required<MemberCommandParams>): Rooms.RemoveMember
   hideVideoMuted(): Promise<unknown>
   showVideoMuted(): Promise<unknown>
 }
