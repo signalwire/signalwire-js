@@ -62,8 +62,8 @@ export interface BaseRoomInterface {
 interface RoomMemberMethodsInterface {
   audioMute(params: MemberCommandParams): Rooms.AudioMuteMember
   audioUnmute(params: MemberCommandParams): Rooms.AudioUnmuteMember
-  videoMute(params: MemberCommandParams): Promise<unknown>
-  videoUnmute(params: MemberCommandParams): Promise<unknown>
+  videoMute(params: MemberCommandParams): Rooms.VideoMuteMember
+  videoUnmute(params: MemberCommandParams): Rooms.VideoUnmuteMember
   setMicrophoneVolume(params: MemberCommandWithVolumeParams): Promise<unknown>
   setInputSensitivity(params: MemberCommandWithValueParams): Promise<unknown>
 }
