@@ -196,7 +196,12 @@ export type ExecuteParams = {
   params: Record<string, any>
 }
 
-export type ExecuteTransform<InputType, OutputType> = (
+export interface ExecuteExtendedOptions<InputType, OutputType> {
+  transformResolve?: ExecuteTransform<InputType, OutputType>
+  transformReject?: ExecuteTransform<InputType, OutputType>
+}
+
+export type ExecuteTransform<InputType = unknown, OutputType = unknown> = (
   payload: InputType
 ) => OutputType
 

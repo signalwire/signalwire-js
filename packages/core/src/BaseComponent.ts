@@ -6,6 +6,7 @@ import {
   ExecuteTransform,
   BaseComponentOptions,
   Emitter,
+  ExecuteExtendedOptions,
 } from './utils/interfaces'
 import { EventEmitter, getNamespacedEvent } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
@@ -185,11 +186,22 @@ export class BaseComponent implements Emitter {
   /** @internal */
   execute<InputType = unknown, OutputType = unknown>(
     { method, params }: ExecuteParams,
-    transform: ExecuteTransform<InputType, OutputType> = identity
+    {
+      transformResolve = identity,
+      transformReject = identity,
+    }: ExecuteExtendedOptions<InputType, OutputType> = {
+      transformResolve: identity,
+      transformReject: identity,
+    }
   ) {
     return new Promise<OutputType>((resolve, reject) => {
       const requestId = uuid()
-      this._requests.set(requestId, { resolve, reject, transform })
+      this._requests.set(requestId, {
+        resolve,
+        reject,
+        transformResolve,
+        transformReject,
+      })
 
       this.store.dispatch(
         executeAction({
@@ -240,7 +252,7 @@ export class BaseComponent implements Emitter {
   /** @internal */
   onError(component: any) {
     this._requests.forEach((value, key) => {
-      value.reject(component.errors[key])
+      value.reject(value.transformReject(component.errors[key]))
       this._requests.delete(key)
     })
   }
@@ -248,7 +260,7 @@ export class BaseComponent implements Emitter {
   /** @internal */
   onSuccess(component: any) {
     this._requests.forEach((value, key) => {
-      value.resolve(value.transform(component.responses[key]))
+      value.resolve(value.transformResolve(component.responses[key]))
       this._requests.delete(key)
     })
   }

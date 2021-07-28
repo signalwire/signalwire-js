@@ -1,6 +1,6 @@
 import { BaseRoomInterface } from '.'
 import { Member } from '../types'
-import { ExecuteTransform, RoomMethod } from '../utils/interfaces'
+import { ExecuteExtendedOptions, RoomMethod } from '../utils/interfaces'
 
 interface RoomMethodPropertyDescriptor<T> extends PropertyDescriptor {
   value: (params: RoomMethodParams) => Promise<T>
@@ -24,7 +24,7 @@ const baseCodeTransform = () => {}
 
 const createRoomMethod = <InputType, OutputType>(
   method: RoomMethod,
-  transform?: ExecuteTransform<InputType, OutputType>
+  options: ExecuteExtendedOptions<InputType, OutputType> = {}
 ): RoomMethodDescriptor<OutputType> => ({
   value: function (params: RoomMethodParams = {}): Promise<OutputType> {
     return this.execute(
@@ -35,7 +35,7 @@ const createRoomMethod = <InputType, OutputType>(
           ...params,
         },
       },
-      transform
+      options
     )
   },
 })
@@ -52,7 +52,7 @@ interface RoomMemberMethodParams {
 
 const createRoomMemberMethod = <InputType, OutputType>(
   method: RoomMethod,
-  transform?: ExecuteTransform<InputType, OutputType>
+  options: ExecuteExtendedOptions<InputType, OutputType> = {}
 ): RoomMethodDescriptor<OutputType> => ({
   value: function ({ memberId, ...rest }: RoomMemberMethodParams = {}) {
     return this.execute(
@@ -64,7 +64,7 @@ const createRoomMemberMethod = <InputType, OutputType>(
           ...rest,
         },
       },
-      transform
+      options
     )
   },
 })
@@ -74,23 +74,33 @@ const createRoomMemberMethod = <InputType, OutputType>(
  */
 export const getLayoutList = createRoomMethod<{ layouts: string[] }, string[]>(
   'video.list_available_layouts',
-  (payload) => payload.layouts
+  {
+    transformResolve: (payload) => payload.layouts,
+  }
 )
 export const getMemberList = createRoomMethod<{ members: Member[] }, Member[]>(
   'video.members.get',
-  (payload) => payload.members
+  {
+    transformResolve: (payload) => payload.members,
+  }
 )
 export const setLayout = createRoomMethod<BaseRPCResult, void>(
   'video.set_layout',
-  baseCodeTransform
+  {
+    transformResolve: baseCodeTransform,
+  }
 )
 export const hideVideoMuted = createRoomMethod<BaseRPCResult, void>(
   'video.hide_video_muted',
-  baseCodeTransform
+  {
+    transformResolve: baseCodeTransform,
+  }
 )
 export const showVideoMuted = createRoomMethod<BaseRPCResult, void>(
   'video.show_video_muted',
-  baseCodeTransform
+  {
+    transformResolve: baseCodeTransform,
+  }
 )
 
 export type GetLayoutList = ReturnType<typeof getLayoutList.value>
@@ -104,40 +114,58 @@ export type ShowVideoMuted = ReturnType<typeof showVideoMuted.value>
  */
 export const audioMuteMember = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.audio_mute',
-  baseCodeTransform
+  {
+    transformResolve: baseCodeTransform,
+  }
 )
 export const audioUnmuteMember = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.audio_unmute',
-  baseCodeTransform
+  {
+    transformResolve: baseCodeTransform,
+  }
 )
 export const videoMuteMember = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.video_mute',
-  baseCodeTransform
+  {
+    transformResolve: baseCodeTransform,
+  }
 )
 export const videoUnmuteMember = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.video_unmute',
-  baseCodeTransform
+  {
+    transformResolve: baseCodeTransform,
+  }
 )
 export const deafMember = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.deaf',
-  baseCodeTransform
+  {
+    transformResolve: baseCodeTransform,
+  }
 )
 export const undeafMember = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.undeaf',
-  baseCodeTransform
+  {
+    transformResolve: baseCodeTransform,
+  }
 )
 export const setInputVolumeMember = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.set_input_volume',
-  baseCodeTransform
+  {
+    transformResolve: baseCodeTransform,
+  }
 )
 export const setOutputVolumeMember = createRoomMemberMethod<
   BaseRPCResult,
   void
->('video.member.set_output_volume', baseCodeTransform)
+>('video.member.set_output_volume', {
+  transformResolve: baseCodeTransform,
+})
 export const setInputSensitivityMember = createRoomMemberMethod<
   BaseRPCResult,
   void
->('video.member.set_input_sensitivity', baseCodeTransform)
+>('video.member.set_input_sensitivity', {
+  transformResolve: baseCodeTransform,
+})
 export const removeMember: RoomMethodDescriptor<void> = {
   value: function ({ memberId, ...rest }: RoomMemberMethodParams = {}) {
     if (!memberId) {
@@ -152,7 +180,9 @@ export const removeMember: RoomMethodDescriptor<void> = {
           ...rest,
         },
       },
-      baseCodeTransform
+      {
+        transformResolve: baseCodeTransform,
+      }
     )
   },
 }
