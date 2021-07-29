@@ -196,6 +196,15 @@ export type ExecuteParams = {
   params: Record<string, any>
 }
 
+export interface ExecuteExtendedOptions<InputType, OutputType> {
+  transformResolve?: ExecuteTransform<InputType, OutputType>
+  transformReject?: ExecuteTransform<InputType, OutputType>
+}
+
+export type ExecuteTransform<InputType = unknown, OutputType = unknown> = (
+  payload: InputType
+) => OutputType
+
 export type GlobalVideoEvents = typeof GLOBAL_VIDEO_EVENTS[number]
 
 export type RoomCustomMethods<T> = {

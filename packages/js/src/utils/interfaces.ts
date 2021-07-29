@@ -1,5 +1,6 @@
 import StrictEventEmitter from 'strict-event-emitter-types'
 import type {
+  Rooms,
   RoomEventNames,
   BaseConnectionState,
   EventsHandlerMapping,
@@ -59,36 +60,44 @@ export interface BaseRoomInterface {
 }
 
 interface RoomMemberMethodsInterface {
-  audioMute(params: MemberCommandParams): Promise<unknown>
-  audioUnmute(params: MemberCommandParams): Promise<unknown>
-  videoMute(params: MemberCommandParams): Promise<unknown>
-  videoUnmute(params: MemberCommandParams): Promise<unknown>
-  setMicrophoneVolume(params: MemberCommandWithVolumeParams): Promise<unknown>
-  setInputSensitivity(params: MemberCommandWithValueParams): Promise<unknown>
+  audioMute(params: MemberCommandParams): Rooms.AudioMuteMember
+  audioUnmute(params: MemberCommandParams): Rooms.AudioUnmuteMember
+  videoMute(params: MemberCommandParams): Rooms.VideoMuteMember
+  videoUnmute(params: MemberCommandParams): Rooms.VideoUnmuteMember
+  setMicrophoneVolume(
+    params: MemberCommandWithVolumeParams
+  ): Rooms.SetOutputVolumeMember
+  setInputSensitivity(
+    params: MemberCommandWithValueParams
+  ): Rooms.SetInputSensitivityMember
 }
 
 interface RoomMemberSelfMethodsInterface {
-  audioMute(): Promise<unknown>
-  audioUnmute(): Promise<unknown>
-  videoMute(): Promise<unknown>
-  videoUnmute(): Promise<unknown>
-  setMicrophoneVolume(params: { volume: number }): Promise<unknown>
-  setInputSensitivity(params: { value: number }): Promise<unknown>
+  audioMute(): Rooms.AudioMuteMember
+  audioUnmute(): Rooms.AudioUnmuteMember
+  videoMute(): Rooms.VideoMuteMember
+  videoUnmute(): Rooms.VideoUnmuteMember
+  setMicrophoneVolume(params: { volume: number }): Rooms.SetOutputVolumeMember
+  setInputSensitivity(params: {
+    value: number
+  }): Rooms.SetInputSensitivityMember
 }
 
 interface RoomLayoutMethodsInterface {
-  getLayoutList(): Promise<unknown>
-  setLayout(params: { name: string }): Promise<unknown>
+  getLayouts(): Rooms.GetLayouts
+  setLayout(params: { name: string }): Rooms.SetLayout
 }
 
 interface RoomControlMethodsInterface {
-  getMemberList(): Promise<unknown>
-  deaf(params: MemberCommandParams): Promise<unknown>
-  undeaf(params: MemberCommandParams): Promise<unknown>
-  setSpeakerVolume(params: MemberCommandWithVolumeParams): Promise<unknown>
-  removeMember(params: Required<MemberCommandParams>): Promise<unknown>
-  hideVideoMuted(): Promise<unknown>
-  showVideoMuted(): Promise<unknown>
+  getMembers(): Rooms.GetMembers
+  deaf(params: MemberCommandParams): Rooms.DeafMember
+  undeaf(params: MemberCommandParams): Rooms.UndeafMember
+  setSpeakerVolume(
+    params: MemberCommandWithVolumeParams
+  ): Rooms.SetInputVolumeMember
+  removeMember(params: Required<MemberCommandParams>): Rooms.RemoveMember
+  hideVideoMuted(): Rooms.HideVideoMuted
+  showVideoMuted(): Rooms.ShowVideoMuted
 }
 
 /**

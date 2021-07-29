@@ -3,8 +3,10 @@ import { uuid, logger, getGlobalEvents } from './utils'
 import { executeAction } from './redux'
 import {
   ExecuteParams,
+  ExecuteTransform,
   BaseComponentOptions,
   Emitter,
+  ExecuteExtendedOptions,
 } from './utils/interfaces'
 import { EventEmitter, getNamespacedEvent } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
@@ -27,6 +29,8 @@ type EventRegisterHandlers =
       type: 'removeAllListeners'
       params: Parameters<Emitter['removeAllListeners']>
     }
+
+const identity: ExecuteTransform<any, any> = (payload) => payload
 
 export class BaseComponent implements Emitter {
   id = uuid()
@@ -157,10 +161,12 @@ export class BaseComponent implements Emitter {
     return this.emitter as EventEmitter<string | symbol, any>
   }
 
+  /** @internal */
   eventNames() {
     return this.emitter.eventNames()
   }
 
+  /** @internal */
   emit(event: string | symbol, ...args: any[]) {
     if (this.shouldAddToQueue()) {
       this.addEventToEmitQueue(event, args)
@@ -178,10 +184,24 @@ export class BaseComponent implements Emitter {
   }
 
   /** @internal */
-  execute({ method, params }: ExecuteParams) {
-    return new Promise((resolve, reject) => {
+  execute<InputType = unknown, OutputType = unknown>(
+    { method, params }: ExecuteParams,
+    {
+      transformResolve = identity,
+      transformReject = identity,
+    }: ExecuteExtendedOptions<InputType, OutputType> = {
+      transformResolve: identity,
+      transformReject: identity,
+    }
+  ) {
+    return new Promise<OutputType>((resolve, reject) => {
       const requestId = uuid()
-      this._requests.set(requestId, { resolve, reject })
+      this._requests.set(requestId, {
+        resolve,
+        reject,
+        transformResolve,
+        transformReject,
+      })
 
       this.store.dispatch(
         executeAction({
@@ -232,7 +252,7 @@ export class BaseComponent implements Emitter {
   /** @internal */
   onError(component: any) {
     this._requests.forEach((value, key) => {
-      value.reject(component.errors[key])
+      value.reject(value.transformReject(component.errors[key]))
       this._requests.delete(key)
     })
   }
@@ -240,7 +260,7 @@ export class BaseComponent implements Emitter {
   /** @internal */
   onSuccess(component: any) {
     this._requests.forEach((value, key) => {
-      value.resolve(component.responses[key])
+      value.resolve(value.transformResolve(component.responses[key]))
       this._requests.delete(key)
     })
   }
