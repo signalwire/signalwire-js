@@ -1,4 +1,5 @@
 ---
+'@signalwire/core': patch
 '@signalwire/js': patch
 ---
 
