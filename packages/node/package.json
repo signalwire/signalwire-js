@@ -4,7 +4,7 @@
   "description": "SignalWire Node.js SDK",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
-  "version": "0.0.1-beta.2",
+  "version": "0.0.1-beta.3",
   "exports": {
     "require": "./dist/index.node.js",
     "default": "./dist/index.node.mjs"
@@ -39,7 +39,7 @@
     "docs:watch": "npm run docs -- --watch"
   },
   "dependencies": {
-    "@signalwire/core": "3.0.0-beta.2",
+    "@signalwire/core": "3.0.0-beta.3",
     "node-abort-controller": "^2.0.0",
     "node-fetch": "^2.6.1",
     "ws": "^7.4.6"

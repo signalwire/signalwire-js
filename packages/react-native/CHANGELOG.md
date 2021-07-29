@@ -1,5 +1,14 @@
 # @signalwire/react-native
 
+## 0.0.1-beta.3
+
+### Patch Changes
+
+- Updated dependencies [ef1964c]
+- Updated dependencies [2c89dfb]
+  - @signalwire/core@3.0.0-beta.3
+  - @signalwire/webrtc@3.0.0-beta.3
+
 ## 0.0.1-beta.2
 
 ### Patch Changes
