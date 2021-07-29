@@ -4,8 +4,12 @@
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
   "version": "3.0.0-beta.3",
-  "main": "dist/webrtc/src/index.js",
-  "module": "dist/webrtc/src/index.js",
+  "main": "dist/cjs/webrtc/src/index.js",
+  "module": "dist/mjs/webrtc/src/index.js",
+  "exports": {
+    "require": "./dist/cjs/webrtc/src/index.js",
+    "default": "./dist/mjs/webrtc/src/index.js"
+  },
   "files": [
     "dist",
     "src"
@@ -32,7 +36,7 @@
   "homepage": "https://github.com/signalwire/signalwire-js/tree/master/packages/webrtc",
   "scripts": {
     "start": "tsc --watch --project tsconfig.build.json",
-    "build": "tsc --project tsconfig.build.json",
+    "build": "tsc --project tsconfig.build.json && tsc --project tsconfig.cjs.json",
     "test": "NODE_ENV=test jest",
     "prepare": "npm run build",
     "docs": "typedoc --options typedoc.js --readme README.md",
