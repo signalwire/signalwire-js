@@ -188,6 +188,22 @@ class Room extends BaseConnection implements BaseRoomInterface {
 
     super._finalize()
   }
+
+  /**
+   * @deprecated Use {@link getLayouts} instead. `getLayoutList` will
+   * be removed in v3.0.0
+   */
+  getLayoutList() {
+    return this.getLayouts()
+  }
+
+  /**
+   * @deprecated Use {@link getMembers} instead. `getMemberList` will
+   * be removed in v3.0.0
+   */
+  getMemberList() {
+    return this.getMembers()
+  }
 }
 
 const customMethods: RoomCustomMethods<RoomMethods> = {
@@ -201,8 +217,8 @@ const customMethods: RoomCustomMethods<RoomMethods> = {
   setSpeakerVolume: Rooms.setInputVolumeMember,
   setInputSensitivity: Rooms.setInputSensitivityMember,
   removeMember: Rooms.removeMember,
-  getMemberList: Rooms.getMemberList,
-  getLayoutList: Rooms.getLayoutList,
+  getMembers: Rooms.getMembers,
+  getLayouts: Rooms.getLayouts,
   setLayout: Rooms.setLayout,
   hideVideoMuted: Rooms.hideVideoMuted,
   showVideoMuted: Rooms.showVideoMuted,

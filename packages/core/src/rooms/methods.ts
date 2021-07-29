@@ -72,13 +72,13 @@ const createRoomMemberMethod = <InputType, OutputType>(
 /**
  * Room Methods
  */
-export const getLayoutList = createRoomMethod<{ layouts: string[] }>(
+export const getLayouts = createRoomMethod<{ layouts: string[] }>(
   'video.list_available_layouts',
   {
     transformResolve: (payload) => ({ layouts: payload.layouts }),
   }
 )
-export const getMemberList = createRoomMethod<{ members: Member[] }>(
+export const getMembers = createRoomMethod<{ members: Member[] }>(
   'video.members.get',
   {
     transformResolve: (payload) => ({ members: payload.members }),
@@ -103,8 +103,8 @@ export const showVideoMuted = createRoomMethod<BaseRPCResult, void>(
   }
 )
 
-export type GetLayoutList = ReturnType<typeof getLayoutList.value>
-export type GetMemberList = ReturnType<typeof getMemberList.value>
+export type GetLayouts = ReturnType<typeof getLayouts.value>
+export type GetMembers = ReturnType<typeof getMembers.value>
 export type HideVideoMuted = ReturnType<typeof hideVideoMuted.value>
 export type ShowVideoMuted = ReturnType<typeof showVideoMuted.value>
 // End Room Methods

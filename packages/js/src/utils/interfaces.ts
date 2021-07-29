@@ -84,12 +84,12 @@ interface RoomMemberSelfMethodsInterface {
 }
 
 interface RoomLayoutMethodsInterface {
-  getLayoutList(): Rooms.GetLayoutList
+  getLayouts(): Rooms.GetLayouts
   setLayout(params: { name: string }): Rooms.SetLayout
 }
 
 interface RoomControlMethodsInterface {
-  getMemberList(): Rooms.GetMemberList
+  getMembers(): Rooms.GetMembers
   deaf(params: MemberCommandParams): Rooms.DeafMember
   undeaf(params: MemberCommandParams): Rooms.UndeafMember
   setSpeakerVolume(
