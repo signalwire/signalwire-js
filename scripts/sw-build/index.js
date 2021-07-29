@@ -22,6 +22,14 @@ const COMMON_NODE = {
   // what to bundle and what not
   plugins: [nodeExternalsPlugin()],
 }
+
+const COMMON_WEB = {
+  entryPoints: ['./src/index.ts'],
+  bundle: true,
+  minify: true,
+  sourcemap: true,
+  plugins: [nodeExternalsPlugin()],
+}
 const OPTIONS_MAP = {
   '--node': [
     {
@@ -39,14 +47,16 @@ const OPTIONS_MAP = {
   ],
   '--web': [
     {
-      entryPoints: ['./src/index.ts'],
-      outfile: 'dist/index.js',
-      bundle: true,
-      minify: true,
+      ...COMMON_WEB,
+      format: 'cjs',
+      target: 'es2015',
+      outfile: 'dist/index.cjs',
+    },
+    {
+      ...COMMON_WEB,
       format: 'esm',
       target: 'es2017',
-      sourcemap: true,
-      plugins: [nodeExternalsPlugin()],
+      outfile: 'dist/index.mjs',
     },
   ],
   '--umd': [
