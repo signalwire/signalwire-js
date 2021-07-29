@@ -22,7 +22,7 @@ interface BaseRPCResult {
  */
 const baseCodeTransform = () => {}
 
-const createRoomMethod = <InputType, OutputType>(
+const createRoomMethod = <InputType, OutputType = InputType>(
   method: RoomMethod,
   options: ExecuteExtendedOptions<InputType, OutputType> = {}
 ): RoomMethodDescriptor<OutputType> => ({
@@ -72,16 +72,16 @@ const createRoomMemberMethod = <InputType, OutputType>(
 /**
  * Room Methods
  */
-export const getLayoutList = createRoomMethod<{ layouts: string[] }, string[]>(
+export const getLayoutList = createRoomMethod<{ layouts: string[] }>(
   'video.list_available_layouts',
   {
-    transformResolve: (payload) => payload.layouts,
+    transformResolve: (payload) => ({ layouts: payload.layouts }),
   }
 )
-export const getMemberList = createRoomMethod<{ members: Member[] }, Member[]>(
+export const getMemberList = createRoomMethod<{ members: Member[] }>(
   'video.members.get',
   {
-    transformResolve: (payload) => payload.members,
+    transformResolve: (payload) => ({ members: payload.members }),
   }
 )
 export const setLayout = createRoomMethod<BaseRPCResult, void>(
