@@ -3,7 +3,7 @@
   "description": "SignalWire JS SDK",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
-  "version": "3.0.0-beta.4",
+  "version": "3.0.0-beta.5",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "unpkg": "dist/index.umd.js",
@@ -40,8 +40,8 @@
     "docs:watch": "npm run docs -- --watch"
   },
   "dependencies": {
-    "@signalwire/core": "3.0.0-beta.2",
-    "@signalwire/webrtc": "3.0.0-beta.2"
+    "@signalwire/core": "3.0.0-beta.3",
+    "@signalwire/webrtc": "3.0.0-beta.3"
   },
   "types": "dist/js/src/index.d.ts"
 }
