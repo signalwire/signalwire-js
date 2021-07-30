@@ -6,10 +6,6 @@
   "version": "3.0.0-beta.3",
   "main": "dist/cjs/webrtc/src/index.js",
   "module": "dist/mjs/webrtc/src/index.js",
-  "exports": {
-    "require": "./dist/cjs/webrtc/src/index.js",
-    "default": "./dist/mjs/webrtc/src/index.js"
-  },
   "files": [
     "dist",
     "src"

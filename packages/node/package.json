@@ -5,6 +5,7 @@
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
   "version": "0.0.1-beta.3",
+  "main": "dist/index.node.js",
   "exports": {
     "require": "./dist/index.node.js",
     "default": "./dist/index.node.mjs"

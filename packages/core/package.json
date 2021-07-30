@@ -6,10 +6,6 @@
   "version": "3.0.0-beta.3",
   "main": "dist/index.node.js",
   "module": "dist/index.mjs",
-  "exports": {
-    "require": "./dist/index.node.js",
-    "default": "./dist/index.mjs"
-  },
   "files": [
     "dist",
     "src"

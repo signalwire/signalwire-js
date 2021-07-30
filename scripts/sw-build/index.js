@@ -50,7 +50,7 @@ const OPTIONS_MAP = {
       ...COMMON_WEB,
       format: 'cjs',
       target: 'es2015',
-      outfile: 'dist/index.cjs',
+      outfile: 'dist/index.js',
     },
     {
       ...COMMON_WEB,
