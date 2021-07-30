@@ -1,5 +1,13 @@
 # @signalwire/webrtc
 
+## 3.0.0-beta.4
+
+### Patch Changes
+
+- ec49478: Included `commonjs` versions into `js` and `webrtc` packages
+- Updated dependencies [ec49478]
+  - @signalwire/core@3.0.0-beta.4
+
 ## 3.0.0-beta.3
 
 ### Patch Changes
