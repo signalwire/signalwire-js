@@ -205,12 +205,20 @@ export default class RTCPeer {
   }
 
   private _getSenderByKind(kind: string) {
+    if (!this.instance.getSenders) {
+      logger.warn('RTCPeerConnection.getSenders() not available.')
+      return null
+    }
     return this.instance
       .getSenders()
       .find(({ track }) => track && track.kind === kind)
   }
 
   private _getReceiverByKind(kind: string) {
+    if (!this.instance.getReceivers) {
+      logger.warn('RTCPeerConnection.getReceivers() not available.')
+      return null
+    }
     return this.instance
       .getReceivers()
       .find(({ track }) => track && track.kind === kind)
