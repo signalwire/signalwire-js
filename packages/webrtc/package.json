@@ -41,5 +41,5 @@
   "dependencies": {
     "@signalwire/core": "3.0.0-beta.3"
   },
-  "types": "dist/webrtc/src/index.d.ts"
+  "types": "dist/cjs/webrtc/src/index.d.ts"
 }

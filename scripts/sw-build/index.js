@@ -56,7 +56,7 @@ const OPTIONS_MAP = {
       ...COMMON_WEB,
       format: 'esm',
       target: 'es2017',
-      outfile: 'dist/index.mjs',
+      outfile: 'dist/index.esm.js',
     },
   ],
   '--umd': [
