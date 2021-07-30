@@ -6,6 +6,9 @@ import { MakeRoomOptions } from './Client'
 export interface CreateRoomObjectOptions extends UserOptions, MakeRoomOptions {
   autoJoin?: boolean
 }
+const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
+  aspectRatio: { ideal: 16 / 9 },
+}
 
 /**
  * ## Intro
@@ -61,7 +64,7 @@ export const createRoomObject = (
 
     const room = client.rooms.makeRoomObject({
       audio,
-      video,
+      video: video === true ? VIDEO_CONSTRAINTS : video,
       negotiateAudio: true,
       negotiateVideo: true,
       iceServers,
