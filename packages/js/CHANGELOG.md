@@ -5,6 +5,7 @@
 ### Patch Changes
 
 - ec49478: Included `commonjs` versions into `js` and `webrtc` packages
+- eaad2d8: Try to use aspectRatio 16:9 as a default value for video constraints
 - Updated dependencies [ec49478]
   - @signalwire/core@3.0.0-beta.4
   - @signalwire/webrtc@3.0.0-beta.4
