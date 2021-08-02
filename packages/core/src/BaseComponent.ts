@@ -9,6 +9,7 @@ import {
   ExecuteExtendedOptions,
   EventsPrefix,
   EventTransform,
+  BaseEventHandler,
 } from './utils/interfaces'
 import { EventEmitter, getNamespacedEvent } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
@@ -33,7 +34,6 @@ type EventRegisterHandlers =
     }
 
 const identity: ExecuteTransform<any, any> = (payload) => payload
-type BaseEventHandler = (...args: any[]) => void
 
 export class BaseComponent implements Emitter {
   id = uuid()
