@@ -8,6 +8,7 @@ import {
   Emitter,
   ExecuteExtendedOptions,
   EventsPrefix,
+  EventTransform,
 } from './utils/interfaces'
 import { EventEmitter, getNamespacedEvent } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
@@ -32,6 +33,7 @@ type EventRegisterHandlers =
     }
 
 const identity: ExecuteTransform<any, any> = (payload) => payload
+type BaseEventHandler = (...args: any[]) => void
 
 export class BaseComponent implements Emitter {
   id = uuid()
@@ -61,6 +63,16 @@ export class BaseComponent implements Emitter {
 
     return event
   }
+  /**
+   * Collection of functions that will be executed before calling the
+   * event handlers registered by the end user (when using the Emitter
+   * interface).
+   */
+  protected _emitterTransforms: Map<any, EventTransform> = new Map()
+  /**
+   * Keeps track of the stable references used for registering events
+   */
+  private _emitterListenersCache = new Map<BaseEventHandler, BaseEventHandler>()
 
   constructor(public options: BaseComponentOptions) {}
 
@@ -102,6 +114,26 @@ export class BaseComponent implements Emitter {
     return this._eventsNamespace === undefined
   }
 
+  /** @internal */
+  private applyEventHandlerTransform(
+    event: string | symbol,
+    fn: (...args: any[]) => void
+  ) {
+    const transform = this._emitterTransforms.get(event)
+    const handler = transform ? transform(fn) : fn
+    this._emitterListenersCache.set(fn, handler)
+
+    return handler
+  }
+
+  private getStableEventHandler(fn?: (...args: any[]) => void) {
+    if (fn) {
+      return this._emitterListenersCache.get(fn)
+    }
+
+    return fn
+  }
+
   on(...params: Parameters<Emitter['on']>) {
     if (this.shouldAddToQueue()) {
       this.addEventToRegisterQueue({ type: 'on', params })
@@ -109,9 +141,10 @@ export class BaseComponent implements Emitter {
     }
 
     const [event, fn, context] = params
+    const handler = this.applyEventHandlerTransform(event, fn)
     const namespacedEvent = this._getNamespacedEvent(event)
     logger.debug('Registering event', namespacedEvent)
-    return this.emitter.on(namespacedEvent, fn, context)
+    return this.emitter.on(namespacedEvent, handler, context)
   }
 
   once(...params: Parameters<Emitter['once']>) {
@@ -121,9 +154,10 @@ export class BaseComponent implements Emitter {
     }
 
     const [event, fn, context] = params
+    const handler = this.applyEventHandlerTransform(event, fn)
     const namespacedEvent = this._getNamespacedEvent(event)
     logger.debug('Registering event', namespacedEvent)
-    return this.emitter.once(namespacedEvent, fn, context)
+    return this.emitter.once(namespacedEvent, handler, context)
   }
 
   off(...params: Parameters<Emitter['off']>) {
@@ -133,9 +167,10 @@ export class BaseComponent implements Emitter {
     }
 
     const [event, fn, context, once] = params
+    const handler = this.getStableEventHandler(fn)
     const namespacedEvent = this._getNamespacedEvent(event)
     logger.debug('Registering event', namespacedEvent)
-    return this.emitter.off(namespacedEvent, fn, context, once)
+    return this.emitter.off(namespacedEvent, handler, context, once)
   }
 
   removeAllListeners(...params: Parameters<Emitter['removeAllListeners']>) {

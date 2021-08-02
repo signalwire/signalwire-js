@@ -212,3 +212,7 @@ export type RoomCustomMethods<T> = {
 }
 
 export type EventsPrefix = '' | 'video.'
+
+export type EventTransform = <InputType>(
+  handler: any
+) => (payload: InputType) => ReturnType<typeof handler>
