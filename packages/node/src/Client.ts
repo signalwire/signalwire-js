@@ -4,6 +4,7 @@ import {
   logger,
   SessionState,
   GlobalVideoEvents,
+  EventTransform,
 } from '@signalwire/core'
 
 interface Consumer {
@@ -12,6 +13,23 @@ interface Consumer {
 }
 export class Client extends BaseClient {
   private _consumers: Consumer[] = []
+
+  // TODO: Remove: This is just for demo purposes. We'll remove it
+  // until we have the logic for instantiating Room objects
+  _emitterTransforms = new Map<GlobalVideoEvents, EventTransform>([
+    [
+      'room.started',
+      (handler: any) => (payload) => {
+        /**
+         * Note: `handler` is the function used by the user to register to the event.
+         * For now this transform is not doing anything with the
+         * payload, but we could do anything we want before calling
+         * the `handler`.
+         */
+        return handler(payload)
+      },
+    ],
+  ])
 
   async onAuth(session: SessionState) {
     if (session.authStatus === 'authorized' && session.authCount > 1) {
