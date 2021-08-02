@@ -36,7 +36,7 @@ export class BaseComponent implements Emitter {
   id = uuid()
 
   /** @internal */
-  protected _eventsPrefix: '' | 'video' = ''
+  protected _eventsPrefix: '' | 'video.' = ''
   private _eventsRegisterQueue = new Set<EventRegisterHandlers>()
   private _eventsEmitQueue = new Set<any>()
   private _eventsNamespace?: string
@@ -48,7 +48,7 @@ export class BaseComponent implements Emitter {
       /**
        * Add event prefix like `video.` or `chat.`
        */
-      event = `${this._eventsPrefix}.${event}`
+      event = `${this._eventsPrefix}${event}`
 
       if (this._eventsNamespace !== undefined) {
         return getNamespacedEvent({
