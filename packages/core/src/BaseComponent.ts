@@ -127,7 +127,7 @@ export class BaseComponent implements Emitter {
   }
 
   private getStableEventHandler(fn?: (...args: any[]) => void) {
-    if (fn) {
+    if (fn && this._emitterListenersCache.has(fn)) {
       return this._emitterListenersCache.get(fn)
     }
 
