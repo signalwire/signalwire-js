@@ -67,8 +67,9 @@ export class BaseComponent implements Emitter {
    * Collection of functions that will be executed before calling the
    * event handlers registered by the end user (when using the Emitter
    * interface).
+   * @internal
    */
-  protected _emitterTransforms: Map<any, EventTransform> = new Map()
+  protected _emitterTransforms: Map<string | symbol, EventTransform> = new Map()
   /**
    * Keeps track of the stable references used for registering events
    */
@@ -119,6 +120,10 @@ export class BaseComponent implements Emitter {
     event: string | symbol,
     fn: (...args: any[]) => void
   ) {
+    /**
+     * Transforms are mapped using the "raw" event name (meaning, the
+     * same event the end user will be consuming, i.e non-namespaced)
+     */
     const transform = this._emitterTransforms.get(event)
     const handler = transform ? transform(fn) : fn
     this._emitterListenersCache.set(fn, handler)
