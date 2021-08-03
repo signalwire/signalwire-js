@@ -7,6 +7,7 @@ import {
   BaseComponentOptions,
   Emitter,
   ExecuteExtendedOptions,
+  EventsPrefix,
 } from './utils/interfaces'
 import { EventEmitter, getNamespacedEvent } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
@@ -34,6 +35,9 @@ const identity: ExecuteTransform<any, any> = (payload) => payload
 
 export class BaseComponent implements Emitter {
   id = uuid()
+
+  /** @internal */
+  protected _eventsPrefix: EventsPrefix = ''
   private _eventsRegisterQueue = new Set<EventRegisterHandlers>()
   private _eventsEmitQueue = new Set<any>()
   private _eventsNamespace?: string
@@ -41,11 +45,18 @@ export class BaseComponent implements Emitter {
   private _customSagaTriggers = new Map()
   private _destroyer?: () => void
   private _getNamespacedEvent(event: string | symbol) {
-    if (typeof event === 'string' && this._eventsNamespace !== undefined) {
-      return getNamespacedEvent({
-        namespace: this._eventsNamespace,
-        event,
-      })
+    if (typeof event === 'string') {
+      /**
+       * Add event prefix like `video.` or `chat.`
+       */
+      event = `${this._eventsPrefix}${event}`
+
+      if (this._eventsNamespace !== undefined) {
+        return getNamespacedEvent({
+          namespace: this._eventsNamespace,
+          event,
+        })
+      }
     }
 
     return event

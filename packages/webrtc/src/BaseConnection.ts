@@ -88,6 +88,9 @@ export class BaseConnection
   /** @internal */
   public doReinvite = false
 
+  /** @internal */
+  protected _eventsPrefix = 'video.' as const
+
   private state: BaseConnectionState = 'new'
   private prevState: BaseConnectionState = 'new'
 
