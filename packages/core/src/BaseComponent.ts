@@ -1,5 +1,5 @@
 import { Action } from '@reduxjs/toolkit'
-import { uuid, logger, getGlobalEvents } from './utils'
+import { uuid, logger } from './utils'
 import { executeAction } from './redux'
 import {
   ExecuteParams,
@@ -71,9 +71,13 @@ export class BaseComponent implements Emitter {
    */
   protected _emitterTransforms: Map<string | symbol, EventTransform> = new Map()
   /**
-   * Keeps track of the stable references used for registering events
+   * Keeps track of the stable references used for registering events.
    */
   private _emitterListenersCache = new Map<BaseEventHandler, BaseEventHandler>()
+  /**
+   * List of events being registered through the EventEmitter instance.
+   */
+  private _trackedEvents: (string | symbol)[] = []
 
   constructor(public options: BaseComponentOptions) {}
 
@@ -141,6 +145,10 @@ export class BaseComponent implements Emitter {
     return fn
   }
 
+  private trackEvent(event: string | symbol) {
+    this._trackedEvents = Array.from(new Set(this._trackedEvents.concat(event)))
+  }
+
   on(...params: Parameters<Emitter['on']>) {
     if (this.shouldAddToQueue()) {
       this.addEventToRegisterQueue({ type: 'on', params })
@@ -151,6 +159,7 @@ export class BaseComponent implements Emitter {
     const handler = this.applyEventHandlerTransform(event, fn)
     const namespacedEvent = this._getNamespacedEvent(event)
     logger.debug('Registering event', namespacedEvent)
+    this.trackEvent(event)
     return this.emitter.on(namespacedEvent, handler, context)
   }
 
@@ -164,6 +173,7 @@ export class BaseComponent implements Emitter {
     const handler = this.applyEventHandlerTransform(event, fn)
     const namespacedEvent = this._getNamespacedEvent(event)
     logger.debug('Registering event', namespacedEvent)
+    this.trackEvent(event)
     return this.emitter.once(namespacedEvent, handler, context)
   }
 
@@ -176,7 +186,7 @@ export class BaseComponent implements Emitter {
     const [event, fn, context, once] = params
     const handler = this.getAndRemoveStableEventHandler(fn)
     const namespacedEvent = this._getNamespacedEvent(event)
-    logger.debug('Registering event', namespacedEvent)
+    logger.debug('Removing event listener', namespacedEvent)
     return this.emitter.off(namespacedEvent, handler, context, once)
   }
 
@@ -188,38 +198,19 @@ export class BaseComponent implements Emitter {
 
     const [event] = params
     if (event) {
-      return this.emitter.removeAllListeners(this._getNamespacedEvent(event))
+      return this.off(event)
     }
 
-    if (this._eventsNamespace !== undefined) {
-      this.eventNames().forEach((event) => {
-        if (
-          typeof event === 'string' &&
-          event.startsWith(this._eventsNamespace!)
-        ) {
-          this.emitter.removeAllListeners(event)
-        } else if (typeof event === 'symbol') {
-          logger.warn(
-            'Remove events registered using `symbol` is not supported.'
-          )
-        }
-      })
-    } else {
-      logger.debug('Removing global events only.')
-      getGlobalEvents().forEach((event) => {
-        this.emitter.removeAllListeners(event)
-      })
-    }
-
-    logger.debug('Removing all cached listeners.')
-    this._emitterListenersCache.clear()
+    this.eventNames().forEach((trackedEvent) => {
+      this.off(trackedEvent)
+    })
 
     return this.emitter as EventEmitter<string | symbol, any>
   }
 
   /** @internal */
   eventNames() {
-    return this.emitter.eventNames()
+    return this._trackedEvents
   }
 
   /** @internal */
