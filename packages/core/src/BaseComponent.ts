@@ -7,6 +7,7 @@ import {
   BaseComponentOptions,
   Emitter,
   ExecuteExtendedOptions,
+  EventsPrefix,
 } from './utils/interfaces'
 import { EventEmitter, getNamespacedEvent } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
@@ -36,7 +37,7 @@ export class BaseComponent implements Emitter {
   id = uuid()
 
   /** @internal */
-  protected _eventsPrefix: '' | 'video.' = ''
+  protected _eventsPrefix: EventsPrefix = ''
   private _eventsRegisterQueue = new Set<EventRegisterHandlers>()
   private _eventsEmitQueue = new Set<any>()
   private _eventsNamespace?: string
