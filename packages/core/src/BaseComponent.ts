@@ -126,9 +126,11 @@ export class BaseComponent implements Emitter {
     return handler
   }
 
-  private getStableEventHandler(fn?: (...args: any[]) => void) {
+  private getAndRemoveStableEventHandler(fn?: (...args: any[]) => void) {
     if (fn && this._emitterListenersCache.has(fn)) {
-      return this._emitterListenersCache.get(fn)
+      const handler = this._emitterListenersCache.get(fn)
+      this._emitterListenersCache.delete(fn)
+      return handler
     }
 
     return fn
@@ -167,7 +169,7 @@ export class BaseComponent implements Emitter {
     }
 
     const [event, fn, context, once] = params
-    const handler = this.getStableEventHandler(fn)
+    const handler = this.getAndRemoveStableEventHandler(fn)
     const namespacedEvent = this._getNamespacedEvent(event)
     logger.debug('Registering event', namespacedEvent)
     return this.emitter.off(namespacedEvent, handler, context, once)
@@ -203,6 +205,9 @@ export class BaseComponent implements Emitter {
         this.emitter.removeAllListeners(event)
       })
     }
+
+    logger.debug('Removing all cached listeners.')
+    this._emitterListenersCache.clear()
 
     return this.emitter as EventEmitter<string | symbol, any>
   }
