@@ -262,7 +262,8 @@ describe('Helpers browser functions', () => {
     describe('without camera permissions', () => {
       const mockedDevices = DEVICES_CAMERA_NO_LABELS.map((d) => ({
         ...d,
-        deviceId: d.label,
+        // Set deviceId empty if there's no label
+        deviceId: d.label ? d.deviceId : '',
       }))
       it('should return device list removing devices without deviceId and label', async () => {
         // @ts-ignore
@@ -278,7 +279,8 @@ describe('Helpers browser functions', () => {
     describe('without microphone permissions', () => {
       const mockedDevices = DEVICES_MICROPHONE_NO_LABELS.map((d) => ({
         ...d,
-        deviceId: d.label,
+        // Set deviceId empty if there's no label
+        deviceId: d.label ? d.deviceId : '',
       }))
       it('should return device list removing devices without deviceId and label', async () => {
         // @ts-ignore
