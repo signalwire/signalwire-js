@@ -43,7 +43,8 @@ export class Room extends BaseComponent {
     return this._subscriptions
   }
 
-  // TODO: hide .on, .off. etc
+  // TODO: hide .on, .off. etc. For this we might need to split
+  // BaseComponent to support 2 different APIs for the base Emitter
 
   // TODO: type subscribe to narrow types and handlers
   subscribe(...options: Parameters<Emitter['on']>) {
