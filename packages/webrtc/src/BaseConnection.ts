@@ -262,6 +262,7 @@ export class BaseConnection
   /** @internal */
   public onRoomSubscribed(component: any) {
     logger.debug('onRoomSubscribed', component)
+    this.nodeId = component.nodeId
     this._roomId = component.roomId
     this._roomSessionId = component.roomSessionId
     this._memberId = component.memberId
