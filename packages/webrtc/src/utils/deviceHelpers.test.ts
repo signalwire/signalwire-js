@@ -67,12 +67,6 @@ describe('Helpers browser functions', () => {
       deviceId: 'uuid',
       kind: 'audioinput',
       label: '',
-      groupId: group1,
-    },
-    {
-      deviceId: 'uuid',
-      kind: 'audioinput',
-      label: '',
       groupId: group2,
     },
 
@@ -274,6 +268,17 @@ describe('Helpers browser functions', () => {
         expect(devices).toHaveLength(3)
         expect(devices.every((d) => d.deviceId && d.label)).toBe(true)
       })
+
+      it('should return the devices with at least deviceId - even w/o label', async () => {
+        // @ts-ignore
+        navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(
+          DEVICES_CAMERA_NO_LABELS
+        )
+        const devices = await getDevices()
+        expect(devices).toHaveLength(5)
+        expect(devices.every((d) => d.deviceId)).toBe(true)
+        expect(devices.filter((d) => !d.label)).toHaveLength(2)
+      })
     })
 
     describe('without microphone permissions', () => {
@@ -290,6 +295,17 @@ describe('Helpers browser functions', () => {
         const devices = await getDevices()
         expect(devices).toHaveLength(3)
         expect(devices.every((d) => d.deviceId && d.label)).toBe(true)
+      })
+
+      it('should return the devices with at least deviceId - even w/o label', async () => {
+        // @ts-ignore
+        navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(
+          DEVICES_MICROPHONE_NO_LABELS
+        )
+        const devices = await getDevices()
+        expect(devices).toHaveLength(5)
+        expect(devices.every((d) => d.deviceId)).toBe(true)
+        expect(devices.filter((d) => !d.label)).toHaveLength(2)
       })
     })
   })
