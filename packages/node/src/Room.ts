@@ -16,10 +16,13 @@ interface RoomOptions extends BaseComponentOptions {
 type RoomEvents = any
 
 export class Room extends BaseComponent {
-  private _subscriptions = []
+  // TODO: add proper type
+  private _subscriptions: string[] = []
 
   constructor(public options: RoomOptions) {
     super(options)
+
+    this._attachListeners(options.roomSessionId)
   }
 
   get name() {
@@ -59,8 +62,11 @@ export class Room extends BaseComponent {
           method: 'signalwire.subscribe',
           params: {
             event_channel: this.eventChannel,
-            get_initial_state: true,
-            events: this._subscriptions,
+            // get_initial_state: true,
+            // events: this._subscriptions,
+            events: this._subscriptions.map((sub) => {
+              return sub.replace('video.', '')
+            }),
           },
         }
 
