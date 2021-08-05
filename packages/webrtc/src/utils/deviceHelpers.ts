@@ -103,12 +103,8 @@ const _filterDevices = (
   options: { excludeDefault?: boolean; targets?: MediaDeviceKind[] } = {}
 ) => {
   const found: string[] = []
-  return devices.filter(({ deviceId, label, kind, groupId }) => {
-    if (
-      !deviceId ||
-      !label ||
-      (options.targets && !options.targets?.includes(kind))
-    ) {
+  return devices.filter(({ deviceId, kind, groupId }) => {
+    if (!deviceId || (options.targets && !options.targets?.includes(kind))) {
       return false
     }
     if (!groupId) {
@@ -269,11 +265,10 @@ type TargetPermission = Record<
   [Partial<DevicePermissionName>, boolean][]
 >
 
-const CHECK_SUPPORT_MAP: Partial<
-  Record<DevicePermissionName, () => boolean>
-> = {
-  speaker: WebRTC.supportsMediaOutput,
-}
+const CHECK_SUPPORT_MAP: Partial<Record<DevicePermissionName, () => boolean>> =
+  {
+    speaker: WebRTC.supportsMediaOutput,
+  }
 
 const checkTargetPermissions = async (options: {
   targets?: DevicePermissionName[]
@@ -412,10 +407,8 @@ export const createDeviceWatcher = async (
   options: CreateDeviceWatcherOptions = {}
 ) => {
   const targets = await validateTargets({ targets: options.targets })
-  const emitter: StrictEventEmitter<
-    EventEmitter,
-    DeviceWatcherEvents
-  > = new EventEmitter()
+  const emitter: StrictEventEmitter<EventEmitter, DeviceWatcherEvents> =
+    new EventEmitter()
   const currentDevices = await WebRTC.enumerateDevices()
   const kinds = targets?.reduce((reducer, name) => {
     const kind = _getMediaDeviceKindByName(name)

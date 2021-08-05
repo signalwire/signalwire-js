@@ -6,27 +6,26 @@ import {
 } from './deviceHelpers'
 
 describe('Helpers browser functions', () => {
+  const group1 = 'group1'
+  const group2 = 'group2'
   const DEVICES_CAMERA_NO_LABELS = [
     {
       deviceId: 'uuid',
       kind: 'audioinput',
       label: 'mic1',
-      groupId:
-        '83ef347b97d14abd837e8c6dbb819c5be84cfe0756dd41455b375cfd4c0ddb4f',
+      groupId: group1,
     },
     {
       deviceId: 'uuid',
       kind: 'audioinput',
       label: 'mic2',
-      groupId:
-        '83ef347b97d14abd837e8c6dbb819c5be84cfe0756dd41455b375cfd4c0ddb4f',
+      groupId: group1,
     },
     {
       deviceId: 'uuid',
       kind: 'audioinput',
       label: 'mic3',
-      groupId:
-        '67a612f4ac80c6c9854b50d664348e69b5a11421a0ba8d68e2c00f3539992b4c',
+      groupId: group2,
     },
 
     {
@@ -40,23 +39,20 @@ describe('Helpers browser functions', () => {
       deviceId: 'uuid',
       kind: 'videoinput',
       label: '',
-      groupId:
-        '67a612f4ac80c6c9854b50d664348e69b5a11421a0ba8d68e2c00f3539992b4c',
+      groupId: group2,
     },
 
     {
       deviceId: 'uuid',
       kind: 'audiooutput',
       label: 'speaker1',
-      groupId:
-        '83ef347b97d14abd837e8c6dbb819c5be84cfe0756dd41455b375cfd4c0ddb4f',
+      groupId: group1,
     },
     {
       deviceId: 'uuid',
       kind: 'audiooutput',
       label: 'speaker2',
-      groupId:
-        '83ef347b97d14abd837e8c6dbb819c5be84cfe0756dd41455b375cfd4c0ddb4f',
+      groupId: group1,
     },
   ]
 
@@ -65,22 +61,13 @@ describe('Helpers browser functions', () => {
       deviceId: 'uuid',
       kind: 'audioinput',
       label: '',
-      groupId:
-        '83ef347b97d14abd837e8c6dbb819c5be84cfe0756dd41455b375cfd4c0ddb4f',
+      groupId: group1,
     },
     {
       deviceId: 'uuid',
       kind: 'audioinput',
       label: '',
-      groupId:
-        '83ef347b97d14abd837e8c6dbb819c5be84cfe0756dd41455b375cfd4c0ddb4f',
-    },
-    {
-      deviceId: 'uuid',
-      kind: 'audioinput',
-      label: '',
-      groupId:
-        '67a612f4ac80c6c9854b50d664348e69b5a11421a0ba8d68e2c00f3539992b4c',
+      groupId: group2,
     },
 
     {
@@ -94,23 +81,20 @@ describe('Helpers browser functions', () => {
       deviceId: 'uuid',
       kind: 'videoinput',
       label: 'camera2',
-      groupId:
-        '67a612f4ac80c6c9854b50d664348e69b5a11421a0ba8d68e2c00f3539992b4c',
+      groupId: group2,
     },
 
     {
       deviceId: 'uuid',
       kind: 'audiooutput',
       label: 'speaker1',
-      groupId:
-        '83ef347b97d14abd837e8c6dbb819c5be84cfe0756dd41455b375cfd4c0ddb4f',
+      groupId: group1,
     },
     {
       deviceId: 'uuid',
       kind: 'audiooutput',
       label: 'speaker2',
-      groupId:
-        '83ef347b97d14abd837e8c6dbb819c5be84cfe0756dd41455b375cfd4c0ddb4f',
+      groupId: group1,
     },
   ]
 
@@ -208,9 +192,7 @@ describe('Helpers browser functions', () => {
         expect(devices[0].label).toEqual(
           'Default - External Microphone (Built-in)'
         )
-        expect(
-          devices.every((d: MediaDeviceInfo) => d.deviceId && d.label)
-        ).toBe(true)
+        expect(devices.every((d) => d.deviceId && d.label)).toBe(true)
       })
     })
 
@@ -230,9 +212,7 @@ describe('Helpers browser functions', () => {
         expect(devices[0].label).toEqual(
           'Default - External Microphone (Built-in)'
         )
-        expect(
-          devices.every((d: MediaDeviceInfo) => d.deviceId && d.label)
-        ).toBe(true)
+        expect(devices.every((d) => d.deviceId && d.label)).toBe(true)
       })
     })
   })
@@ -274,30 +254,58 @@ describe('Helpers browser functions', () => {
     })
 
     describe('without camera permissions', () => {
+      const mockedDevices = DEVICES_CAMERA_NO_LABELS.map((d) => ({
+        ...d,
+        // Set deviceId empty if there's no label
+        deviceId: d.label ? d.deviceId : '',
+      }))
       it('should return device list removing devices without deviceId and label', async () => {
+        // @ts-ignore
+        navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(
+          mockedDevices
+        )
+        const devices = await getDevices()
+        expect(devices).toHaveLength(3)
+        expect(devices.every((d) => d.deviceId && d.label)).toBe(true)
+      })
+
+      it('should return the devices with at least deviceId - even w/o label', async () => {
         // @ts-ignore
         navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(
           DEVICES_CAMERA_NO_LABELS
         )
         const devices = await getDevices()
-        expect(devices).toHaveLength(3)
-        expect(
-          devices.every((d: MediaDeviceInfo) => d.deviceId && d.label)
-        ).toBe(true)
+        expect(devices).toHaveLength(5)
+        expect(devices.every((d) => d.deviceId)).toBe(true)
+        expect(devices.filter((d) => !d.label)).toHaveLength(2)
       })
     })
 
     describe('without microphone permissions', () => {
+      const mockedDevices = DEVICES_MICROPHONE_NO_LABELS.map((d) => ({
+        ...d,
+        // Set deviceId empty if there's no label
+        deviceId: d.label ? d.deviceId : '',
+      }))
       it('should return device list removing devices without deviceId and label', async () => {
+        // @ts-ignore
+        navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(
+          mockedDevices
+        )
+        const devices = await getDevices()
+        expect(devices).toHaveLength(3)
+        expect(devices.every((d) => d.deviceId && d.label)).toBe(true)
+      })
+
+      it('should return the devices with at least deviceId - even w/o label', async () => {
         // @ts-ignore
         navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(
           DEVICES_MICROPHONE_NO_LABELS
         )
         const devices = await getDevices()
-        expect(devices).toHaveLength(3)
-        expect(
-          devices.every((d: MediaDeviceInfo) => d.deviceId && d.label)
-        ).toBe(true)
+        expect(devices).toHaveLength(5)
+        expect(devices.every((d) => d.deviceId)).toBe(true)
+        expect(devices.filter((d) => !d.label)).toHaveLength(2)
       })
     })
   })
@@ -334,8 +342,7 @@ describe('Helpers browser functions', () => {
           deviceId: 'uuid',
           kind: 'videoinput',
           label: 'camera2',
-          groupId:
-            '67a612f4ac80c6c9854b50d664348e69b5a11421a0ba8d68e2c00f3539992b4c',
+          groupId: group2,
         },
       ]
       // @ts-ignore
@@ -362,8 +369,7 @@ describe('Helpers browser functions', () => {
           deviceId: 'new-uuid',
           kind: 'videoinput',
           label: 'FaceTime HD Camera',
-          groupId:
-            '67a612f4ac80c6c9854b50d664348e69b5a11421a0ba8d68e2c00f3539992b4c',
+          groupId: group2,
         },
       ]
       // @ts-ignore
