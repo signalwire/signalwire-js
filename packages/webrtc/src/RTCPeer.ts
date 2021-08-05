@@ -234,7 +234,7 @@ export default class RTCPeer {
        * additionalDevice and screenShare are `sendonly`
        */
       if (this.options.additionalDevice || this.options.screenShare) {
-        this.instance.getTransceivers().forEach((tr) => {
+        this.instance?.getTransceivers?.().forEach((tr) => {
           tr.direction = 'sendonly'
         })
       }
@@ -368,7 +368,7 @@ export default class RTCPeer {
   private _checkMediaToNegotiate(kind: string) {
     // addTransceiver of 'kind' if not present
     const sender = this._getSenderByKind(kind)
-    if (!sender) {
+    if (!sender && this.instance.addTransceiver) {
       const transceiver = this.instance.addTransceiver(kind)
       logger.debug('Add transceiver', kind, transceiver)
     }
