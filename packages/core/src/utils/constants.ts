@@ -11,4 +11,7 @@ export enum WebSocketState {
   CLOSED = 3,
 }
 
-export const GLOBAL_VIDEO_EVENTS = ['room.started', 'room.ended'] as const
+export const GLOBAL_VIDEO_EVENTS = [
+  'video.room.started',
+  'video.room.ended',
+] as const
