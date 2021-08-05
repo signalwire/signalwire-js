@@ -46,13 +46,12 @@ export class Room extends BaseComponent {
     return this._subscriptions
   }
 
-  // TODO: hide .on, .off. etc. For this we might need to split
-  // BaseComponent to support 2 different APIs for the base Emitter
+  // TODO: hide (at least from docs) methods like .once. etc.
 
   // TODO: type subscribe to narrow types and handlers
-  subscribe(...options: Parameters<Emitter['on']>) {
-    this.on(...options)
+  on(...options: Parameters<Emitter['on']>) {
     this.setSubscription(options[0])
+    return super.on(...options)
   }
 
   run() {
