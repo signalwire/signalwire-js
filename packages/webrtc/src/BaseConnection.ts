@@ -7,7 +7,7 @@ import {
   selectors,
   BaseComponentOptions,
   BaseConnectionState,
-  RoomEventNames,
+  InternalVideoEvent,
   Rooms,
   JSONRPCRequest,
 } from '@signalwire/core'
@@ -15,16 +15,16 @@ import RTCPeer from './RTCPeer'
 import { ConnectionOptions } from './utils/interfaces'
 import { stopStream, stopTrack, getUserMedia } from './utils/webrtcHelpers'
 
-const ROOM_EVENTS: RoomEventNames[] = [
-  'room.started',
-  'room.subscribed',
-  'room.updated',
-  'room.ended',
-  'member.joined',
-  'member.updated',
-  'member.left',
-  'member.talking',
-  'layout.changed',
+const ROOM_EVENTS: InternalVideoEvent[] = [
+  'video.room.started',
+  'video.room.subscribed',
+  'video.room.updated',
+  'video.room.ended',
+  'video.member.joined',
+  'video.member.updated',
+  'video.member.left',
+  'video.member.talking',
+  'video.layout.changed',
 ]
 
 /**
@@ -36,7 +36,7 @@ const SCREENSHARE_ROOM_EVENTS = [
    * This is not a real event, it's only being used for debugging
    * purposes
    */
-  'room.screenshare',
+  'video.room.screenshare',
 ]
 
 /**
@@ -48,7 +48,7 @@ const DEVICE_ROOM_EVENTS = [
    * This is not a real event, it's only being used for debugging
    * purposes
    */
-  'room.additionaldevice',
+  'video.room.additionaldevice',
 ]
 
 const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
