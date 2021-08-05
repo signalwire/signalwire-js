@@ -11,15 +11,15 @@ async function run() {
 
     const consumer = client.video.createConsumer()
 
-    consumer.subscribe('video.room.started', (p: any) => {
-      p.subscribe('video.member.talking', () => {
+    consumer.on('video.room.started', (p: any) => {
+      p.on('video.member.talking', () => {
         console.log('---> MEMBER TALKING!!!')
       })
       p.run()
       console.log('🟢 ROOOM STARTED 🟢')
     })
 
-    consumer.subscribe('video.room.ended', () => {
+    consumer.on('video.room.ended', () => {
       console.log('🔴 ROOOM ENDED 🔴')
     })
 

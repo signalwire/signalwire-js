@@ -8,7 +8,7 @@ import {
 } from '@signalwire/core'
 import { Room } from './Room'
 interface Consumer {
-  subscribe: (event: GlobalVideoEvents, handler: any) => void
+  on: (event: GlobalVideoEvents, handler: any) => void
   run: () => Promise<unknown>
 }
 
@@ -58,7 +58,7 @@ export class Client extends BaseClient {
         }
 
         const consumer: Consumer = {
-          subscribe: (event: GlobalVideoEvents, handler: any) => {
+          on: (event: GlobalVideoEvents, handler: any) => {
             this.on(event, handler)
             setSubscription(event)
           },
