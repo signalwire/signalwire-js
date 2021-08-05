@@ -19,7 +19,7 @@ const customMethods: RoomCustomMethods<RoomDeviceMethods> = {
   audioUnmute: Rooms.audioUnmuteMember,
   videoMute: Rooms.videoMuteMember,
   videoUnmute: Rooms.videoUnmuteMember,
-  setMicrophoneVolume: Rooms.setOutputVolumeMember,
+  setMicrophoneVolume: Rooms.setInputVolumeMember,
   setInputSensitivity: Rooms.setInputSensitivityMember,
 }
 Object.defineProperties(RoomDevice.prototype, customMethods)
