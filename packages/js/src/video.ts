@@ -8,5 +8,10 @@ import { RoomDevice } from './RoomDevice'
 export { Client, createRoomObject, joinRoom, Room, RoomScreenShare, RoomDevice }
 
 export type { MakeRoomOptions }
-export type { RoomObject } from './utils/interfaces'
+export type {
+  RoomObject,
+  MemberCommandParams,
+  MemberCommandWithVolumeParams,
+  MemberCommandWithValueParams,
+} from './utils/interfaces'
 export type { CreateRoomObjectOptions } from './createRoomObject'
