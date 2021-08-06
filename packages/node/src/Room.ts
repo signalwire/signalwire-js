@@ -8,8 +8,8 @@ import {
 
 interface RoomOptions extends BaseComponentOptions {
   name: string
-  roomId: string
-  roomSessionId: string
+  id: string
+  sessionId: string
   eventChannel: string
 }
 
@@ -22,7 +22,7 @@ export class Room extends BaseComponent {
   constructor(public options: RoomOptions) {
     super(options)
 
-    this._attachListeners(options.roomSessionId)
+    this._attachListeners(options.sessionId)
   }
 
   get name() {
@@ -30,14 +30,10 @@ export class Room extends BaseComponent {
   }
 
   get roomId() {
-    return this.options.roomId
+    return this.options.id
   }
 
-  get roomSessionId() {
-    return this.options.roomSessionId
-  }
-
-  get eventChannel() {
+  private get eventChannel() {
     return this.options.eventChannel
   }
 
@@ -61,7 +57,6 @@ export class Room extends BaseComponent {
           method: 'signalwire.subscribe',
           params: {
             event_channel: this.eventChannel,
-            // get_initial_state: true,
             events: this._subscriptions,
           },
         }

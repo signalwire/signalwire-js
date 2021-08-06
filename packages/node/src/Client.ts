@@ -28,8 +28,8 @@ export class Client extends BaseClient {
           },
         })({
           name: payload.room.name,
-          roomId: payload.room.room_id,
-          roomSessionId: payload.room.room_session_id,
+          id: payload.room.room_id,
+          sessionId: payload.room.room_session_id,
           eventChannel: payload.room.event_channel,
           store: this.store,
           emitter: this.options.emitter,
