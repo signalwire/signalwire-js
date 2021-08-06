@@ -70,11 +70,7 @@ export class Client extends BaseClient {
                   params: {
                     event_channel: 'rooms',
                     get_initial_state: true,
-                    // events: subscriptions,
-                    // TODO: remove once the API gets updated
-                    events: subscriptions.map((sub) => {
-                      return sub.replace('video.', '')
-                    }),
+                    events: subscriptions,
                   },
                 }
 

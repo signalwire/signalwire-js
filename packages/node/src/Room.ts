@@ -62,10 +62,7 @@ export class Room extends BaseComponent {
           params: {
             event_channel: this.eventChannel,
             // get_initial_state: true,
-            // events: this._subscriptions,
-            events: this._subscriptions.map((sub) => {
-              return sub.replace('video.', '')
-            }),
+            events: this._subscriptions,
           },
         }
 
