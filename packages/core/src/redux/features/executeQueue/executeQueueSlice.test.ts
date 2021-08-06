@@ -20,7 +20,7 @@ describe('ExecuteQueueState Tests', () => {
       params: {
         event_channel: 'rooms',
         get_initial_state: true,
-        events: ['room.started', 'room.ended'],
+        events: ['video.room.started', 'video.room.ended'],
       },
     }
 
@@ -37,7 +37,7 @@ describe('ExecuteQueueState Tests', () => {
       params: {
         event_channel: 'rooms',
         get_initial_state: true,
-        events: ['room.started', 'room.ended'],
+        events: ['video.room.started', 'video.room.ended'],
       },
     }
     store.dispatch(executeQueueActions.add(payload))

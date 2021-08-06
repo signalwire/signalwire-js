@@ -29,7 +29,7 @@ export function* pubSubSaga({
     try {
       const namespace = findNamespaceInPayload(payload)
       /**
-       * There are events (like `room.started`/`room.ended`) that can
+       * There are events (like `video.room.started`/`video.room.ended`) that can
        * be consumed from different places, like from a `roomObj`
        * (namespaced Event Emitter) or from a `client`
        * (non-namespaced/global Event Emitter) so we must trigger the
