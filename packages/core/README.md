@@ -6,7 +6,6 @@ The SignalWire Core package contains lower level objects and share code across d
 
 - [Get Started](https://developer.signalwire.com/)
 - [`@signalwire/js`](https://www.npmjs.com/package/@signalwire/js)
-- [`@signalwire/webrtc`](https://www.npmjs.com/package/@signalwire/webrtc)
 
 ## License
 
