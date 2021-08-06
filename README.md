@@ -1,6 +1,6 @@
 # SignalWire SDKs for JavaScript
 
-This [monorepo](https://en.wikipedia.org/wiki/Monorepo) contains different implementations of the SignalWire SDKs that allow you to build applications that can run in a variety of JavaScript environments.
+This [monorepo](https://en.wikipedia.org/wiki/Monorepo) contains different implementations of the SignalWire SDKs. These allow you to build applications that can run in a variety of JavaScript environments such as a browser, a node.js server or a smartphone.
 
 ### Packages
 
