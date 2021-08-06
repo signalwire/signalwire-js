@@ -299,16 +299,28 @@ export class BaseComponent implements Emitter {
   /** @internal */
   onError(component: any) {
     this._requests.forEach((value, key) => {
-      value.reject(value.transformReject(component.errors[key]))
-      this._requests.delete(key)
+      /**
+       * If component.errors[key] is undefined it means that the
+       * request hasn't failed
+       */
+      if (component?.errors[key] !== undefined) {
+        value.reject(value.transformReject(component.errors[key]))
+        this._requests.delete(key)
+      }
     })
   }
 
   /** @internal */
   onSuccess(component: any) {
     this._requests.forEach((value, key) => {
-      value.resolve(value.transformResolve(component.responses[key]))
-      this._requests.delete(key)
+      /**
+       * If component.responses[key] is undefined it means that the
+       * request is not ready yet.
+       */
+      if (component?.responses[key] !== undefined) {
+        value.resolve(value.transformResolve(component.responses[key]))
+        this._requests.delete(key)
+      }
     })
   }
 
