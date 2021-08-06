@@ -1,6 +1,9 @@
 {
   "$schema": "https://unpkg.com/@changesets/config@1.5.0/schema.json",
-  "changelog": "./config.js",
+  "changelog": [
+    "@changesets/changelog-github",
+    { "repo": "signalwire/signalwire-js" }
+  ],
   "commit": false,
   "linked": [],
   "access": "restricted",
