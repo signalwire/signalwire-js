@@ -29,7 +29,9 @@
   },
   "homepage": "https://github.com/signalwire/signalwire-js/tree/master/packages/core",
   "scripts": {
-    "start": "sw-build --dev --web",
+    "start": "concurrently npm:start:*",
+    "start:web": "sw-build --dev --web",
+    "start:node": "sw-build --dev --node --watchFormat=cjs",
     "build": "tsc --project tsconfig.build.json && sw-build --web && sw-build --node",
     "test": "NODE_ENV=test jest",
     "prepare": "npm run build"
