@@ -14,6 +14,10 @@ export const getUserMedia = (constraints: MediaStreamConstraints) => {
   return RNmediaDevices.getUserMedia(constraints)
 }
 
+export const getDisplayMedia = (constraints: MediaStreamConstraints) => {
+  return RNmediaDevices.getDisplayMedia(constraints)
+}
+
 export const enumerateDevices = () => RNmediaDevices.enumerateDevices()
 
 export const enumerateDevicesByKind = async (filterByKind: string) => {
