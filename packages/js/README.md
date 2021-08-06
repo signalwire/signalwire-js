@@ -1,7 +1,6 @@
-# `@signalwire/js`
+# @signalwire/js
 
 # SignalWire JavaScript SDK
-
 
 [![Build Status](https://ci.signalwire.com/api/badges/signalwire/signalwire-js/status.svg)](https://ci.signalwire.com/signalwire/signalwire-js) ![NPM](https://img.shields.io/npm/v/@signalwire/js.svg?color=brightgreen)
 
@@ -11,7 +10,7 @@ SignalWire's simple and powerful authentication system, using JWT, allows you to
 
 ## Getting Started
 
-Read the implementation documentation, guides and API Reference at the official [SignalWire JavaScript SDK Documentation](https://docs.signalwire.com/topics/api/sdk/js/#javascript-sdk) site.
+Read the implementation documentation, guides and API Reference at the official [SignalWire JavaScript SDK Documentation](https://developer.signalwire.com/client-sdk/docs/getting-started) site.
 
 ---
 
@@ -38,5 +37,4 @@ SignalWire JavaScript SDK follows Semantic Versioning 2.0 as defined at <http://
 
 ## License
 
-SignalWire JavaScript SDK is copyright © 2018-2021
-[SignalWire](http://signalwire.com). It is free software, and may be redistributed under the terms specified in the [MIT-LICENSE](https://github.com/signalwire/signalwire-js/blob/master/LICENSE) file.
+`@signalwire/js` is copyright © 2018-2021 [SignalWire](http://signalwire.com). It is free software, and may be redistributed under the terms specified in the [MIT-LICENSE](https://github.com/signalwire/signalwire-js/blob/master/LICENSE) file.
