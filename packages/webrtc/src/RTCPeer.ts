@@ -234,7 +234,7 @@ export default class RTCPeer {
        * additionalDevice and screenShare are `sendonly`
        */
       if (this.options.additionalDevice || this.options.screenShare) {
-        this.instance?.getTransceivers?.().forEach((tr) => {
+        this.instance.getTransceivers?.().forEach((tr) => {
           tr.direction = 'sendonly'
         })
       }
