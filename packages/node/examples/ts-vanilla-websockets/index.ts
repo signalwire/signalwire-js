@@ -11,8 +11,6 @@ async function run() {
 
     const consumer = client.video.createConsumer()
 
-    consumer.on('video.room.started', (p: any) => {
-      p.on('video.member.talking', () => {
     consumer.on('video.room.started', (room: any) => {
       room.on('video.member.talking', () => {
         console.log('---> MEMBER TALKING!!!')
