@@ -44,13 +44,13 @@ export type AddMicrophoneOptions = MediaTrackConstraints & {
   autoJoin?: boolean
 }
 
-interface MemberCommandParams {
+export interface MemberCommandParams {
   memberId?: string
 }
-interface MemberCommandWithVolumeParams extends MemberCommandParams {
+export interface MemberCommandWithVolumeParams extends MemberCommandParams {
   volume: number
 }
-interface MemberCommandWithValueParams extends MemberCommandParams {
+export interface MemberCommandWithValueParams extends MemberCommandParams {
   value: number
 }
 
@@ -66,7 +66,7 @@ interface RoomMemberMethodsInterface {
   videoUnmute(params: MemberCommandParams): Rooms.VideoUnmuteMember
   setMicrophoneVolume(
     params: MemberCommandWithVolumeParams
-  ): Rooms.SetOutputVolumeMember
+  ): Rooms.SetInputVolumeMember
   setInputSensitivity(
     params: MemberCommandWithValueParams
   ): Rooms.SetInputSensitivityMember
@@ -77,7 +77,7 @@ interface RoomMemberSelfMethodsInterface {
   audioUnmute(): Rooms.AudioUnmuteMember
   videoMute(): Rooms.VideoMuteMember
   videoUnmute(): Rooms.VideoUnmuteMember
-  setMicrophoneVolume(params: { volume: number }): Rooms.SetOutputVolumeMember
+  setMicrophoneVolume(params: { volume: number }): Rooms.SetInputVolumeMember
   setInputSensitivity(params: {
     value: number
   }): Rooms.SetInputSensitivityMember
@@ -94,7 +94,7 @@ interface RoomControlMethodsInterface {
   undeaf(params: MemberCommandParams): Rooms.UndeafMember
   setSpeakerVolume(
     params: MemberCommandWithVolumeParams
-  ): Rooms.SetInputVolumeMember
+  ): Rooms.SetOutputVolumeMember
   removeMember(params: Required<MemberCommandParams>): Rooms.RemoveMember
   hideVideoMuted(): Rooms.HideVideoMuted
   showVideoMuted(): Rooms.ShowVideoMuted
