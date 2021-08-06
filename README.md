@@ -1,6 +1,6 @@
 # SignalWire SDKs for JavaScript
 
-> TBD
+This [monorepo](https://en.wikipedia.org/wiki/Monorepo) contains different SDKs that runs in different JavaScript environments.
 
 ### Packages
 
