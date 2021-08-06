@@ -308,7 +308,7 @@ export class BaseComponent implements Emitter {
   onSuccess(component: any) {
     this._requests.forEach((value, key) => {
       /**
-       * If component.responses[key] undefined it means that the
+       * If component.responses[key] is undefined it means that the
        * request is not yet ready.
        */
       if (component?.responses[key] !== undefined) {
