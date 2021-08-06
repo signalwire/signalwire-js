@@ -29,7 +29,7 @@ export class Client extends BaseClient {
         })({
           name: payload.room.name,
           id: payload.room.room_id,
-          sessionId: payload.room.room_session_id,
+          namespace: payload.room.room_session_id,
           eventChannel: payload.room.event_channel,
           store: this.store,
           emitter: this.options.emitter,

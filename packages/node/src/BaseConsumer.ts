@@ -1,0 +1,69 @@
+import {
+  BaseComponent,
+  BaseComponentOptions,
+  Emitter,
+  ExecuteParams,
+  logger,
+} from '@signalwire/core'
+
+interface BaseConsumerOptions extends BaseComponentOptions {
+  name: string
+  id: string
+  namespace: string
+  eventChannel: string
+}
+
+export class BaseConsumer<T extends string> extends BaseComponent {
+  private _subscriptions: T[] = []
+  protected _namespace: string
+
+  constructor(public options: BaseConsumerOptions) {
+    super(options)
+    this._attachListeners(options.namespace)
+  }
+
+  get name() {
+    return this.options.name
+  }
+
+  private get eventChannel() {
+    return this.options.eventChannel
+  }
+
+  private setSubscription(event: T) {
+    this._subscriptions = Array.from(new Set(this._subscriptions.concat(event)))
+    return this._subscriptions
+  }
+
+  // TODO: hide (at least from docs) methods like .once. etc.
+
+  // TODO: type subscribe to narrow types and handlers
+  on(...options: Parameters<Emitter['on']>) {
+    this.setSubscription(options[0] as T)
+    return super.on(...options)
+  }
+
+  run() {
+    return new Promise(async (resolve, reject) => {
+      if (this._subscriptions.length > 0) {
+        const execParams: ExecuteParams = {
+          method: 'signalwire.subscribe',
+          params: {
+            event_channel: this.eventChannel,
+            events: this._subscriptions,
+          },
+        }
+
+        try {
+          await this.execute(execParams)
+        } catch (error) {
+          return reject(error)
+        }
+      } else {
+        logger.warn('`run()` was called without any listeners attached.')
+      }
+
+      return resolve(undefined)
+    })
+  }
+}
