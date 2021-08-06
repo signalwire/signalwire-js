@@ -13,9 +13,36 @@ async function run() {
 
     consumer.on('video.room.started', (p: any) => {
       p.on('video.member.talking', () => {
+    consumer.on('video.room.started', (room: any) => {
+      room.on('video.member.talking', () => {
         console.log('---> MEMBER TALKING!!!')
       })
-      p.run()
+
+      room.on('video.member.joined', (payload: any) => {
+        console.log('---> video.member.joined', payload)
+
+        // TODO: this is failing with the following error:
+        // { code: '-32001', message: 'Permission Denied.' }
+        // room.videoMute({
+        //   memberId: payload.member.id,
+        // })
+      })
+
+      room.run()
+
+      // TODO: remove this once we figure out why this is happening.
+      // Note: This returns empty member list
+      // room.getMembers().then((payload: any) => {
+      //   console.log('---> Members', JSON.stringify(payload, null, 2))
+      // })
+
+      // Note: This returns the proper list
+      // setTimeout(() => {
+      //   room.getMembers().then((payload: any) => {
+      //     console.log('---> Members', JSON.stringify(payload, null, 2))
+      //   })
+      // }, 3000)
+
       console.log('🟢 ROOOM STARTED 🟢')
     })
 
