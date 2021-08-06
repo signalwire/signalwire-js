@@ -288,6 +288,8 @@ const build = async ({ options, setupFile }) => {
   )
 }
 
+const getCleanFlagName = (flag) => flag.replace('--', '')
+
 export async function cli(args) {
   const flags = args.slice(2)
   /**
@@ -309,11 +311,15 @@ export async function cli(args) {
     )
     process.exit(1)
   }
-  if (isDevMode(flags)) {
-    console.log(`🟢 [${pkgJson.name}] Watch mode enabled`)
-  }
   const buildModeFlag = getBuildModeFlag(flags)
   const options = getBuildOptions({ flags, pkgJson })
+  if (isDevMode(flags)) {
+    console.log(
+      `🟢 [${pkgJson.name}] Watch mode for ${getCleanFlagName(
+        buildModeFlag
+      )} enabled`
+    )
+  }
   try {
     const results = await build({ options, setupFile })
     if (isUmdMode(flags)) {
