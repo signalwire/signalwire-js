@@ -1,15 +1,16 @@
 # SignalWire SDKs for JavaScript
 
-This [monorepo](https://en.wikipedia.org/wiki/Monorepo) contains different SDKs that runs in different JavaScript environments.
+This [monorepo](https://en.wikipedia.org/wiki/Monorepo) contains different implementations of the SignalWire SDKs that allow you to build applications that can run in a variety of JavaScript environments.
 
 ### Packages
 
-| Project                | Package                                                                  | README                                   | CHANGELOG                                      |
-| ---------------------- | ------------------------------------------------------------------------ | ---------------------------------------- | ---------------------------------------------- |
-| **@signalwire/core**   | [`@signalwire/core`](https://www.npmjs.com/package/@signalwire/core)     | [`README.md`](packages/node/README.md)   | [`CHANGELOG.md`](packages/node/CHANGELOG.md)   |
-| **@signalwire/js**     | [`@signalwire/js`](https://www.npmjs.com/package/@signalwire/js)         | [`README.md`](packages/js/README.md)     | [`CHANGELOG.md`](packages/js/CHANGELOG.md)     |
-| **@signalwire/node**   | _WIP_                                                                    | [`README.md`](packages/node/README.md)   | [`CHANGELOG.md`](packages/node/CHANGELOG.md)   |
-| **@signalwire/webrtc** | [`@signalwire/webrtc`](https://www.npmjs.com/package/@signalwire/webrtc) | [`README.md`](packages/webrtc/README.md) | [`CHANGELOG.md`](packages/webrtc/CHANGELOG.md) |
+| Project                      | Package                                                                  | README                                         | CHANGELOG                                              |
+| ---------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------- | ------------------------------------------------------ |
+| **@signalwire/core**         | [`@signalwire/core`](https://www.npmjs.com/package/@signalwire/core)     | [`README.md`](packages/node/README.md)         | [`CHANGELOG.md`](packages/node/CHANGELOG.md)           |
+| **@signalwire/js**           | [`@signalwire/js`](https://www.npmjs.com/package/@signalwire/js)         | [`README.md`](packages/js/README.md)           | [`CHANGELOG.md`](packages/js/CHANGELOG.md)             |
+| **@signalwire/node**         | _WIP_                                                                    | [`README.md`](packages/node/README.md)         | [`CHANGELOG.md`](packages/node/CHANGELOG.md)           |
+| **@signalwire/react-native** | _WIP_                                                                    | [`README.md`](packages/react-native/README.md) | [`CHANGELOG.md`](packages/react-native/CHANGELOG.md)   |
+| **@signalwire/webrtc**       | [`@signalwire/webrtc`](https://www.npmjs.com/package/@signalwire/webrtc) | [`README.md`](packages/webrtc/README.md)       | [`CHANGELOG.md`](packages/webrtc/CHANGELOG.md)         |
 
 Refer to the README of each package for further details.
 
