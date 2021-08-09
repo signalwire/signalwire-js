@@ -1,12 +1,8 @@
 # @signalwire/webrtc
 
-## 3.0.0
+## [3.0.0] - 2021-08-09
 
-### Major Changes
-
-- [#142](https://github.com/signalwire/signalwire-js/pull/142) [`fe0fe0a`](https://github.com/signalwire/signalwire-js/commit/fe0fe0a51beb1e559fb20d2e80e7854582d51ba9) - Initial beta release of SignalWire JS SDK
-
-### Patch Changes
+### Added
 
 - [#188](https://github.com/signalwire/signalwire-js/pull/188) [`efe9bd8`](https://github.com/signalwire/signalwire-js/commit/efe9bd8ff92ec4b0938ce6208c60bc5d84cd59d2) - Move Room to `js` package
 

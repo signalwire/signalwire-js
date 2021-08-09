@@ -1,12 +1,8 @@
 # @signalwire/core
 
-## 3.0.0
+## [3.0.0] - 2021-08-09
 
-### Major Changes
-
-- [#142](https://github.com/signalwire/signalwire-js/pull/142) [`fe0fe0a`](https://github.com/signalwire/signalwire-js/commit/fe0fe0a51beb1e559fb20d2e80e7854582d51ba9) - Initial beta release of SignalWire JS SDK
-
-### Patch Changes
+### Added
 
 - [#170](https://github.com/signalwire/signalwire-js/pull/170) [`6995825`](https://github.com/signalwire/signalwire-js/commit/699582576f67f12cea37c98d52fb08af01fd6c01) - Standardize naming for store actions
 

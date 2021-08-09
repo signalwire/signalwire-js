@@ -1,12 +1,8 @@
 # @signalwire/js
 
-## 3.0.0
+## [3.0.0] - 2021-08-09
 
-### Major Changes
-
-- [#137](https://github.com/signalwire/signalwire-js/pull/137) [`fb2fa66`](https://github.com/signalwire/signalwire-js/commit/fb2fa661abbf3c23d76bbe52f749e04a22ca69a4) - Initial beta release of SignalWire JS SDK
-
-### Patch Changes
+### Added
 
 - [#224](https://github.com/signalwire/signalwire-js/pull/224) [`447460c`](https://github.com/signalwire/signalwire-js/commit/447460cd4d5405e801084f2d7113e669820d5f22) - Export `createCameraDeviceWatcher`, `createMicrophoneDeviceWatcher` and `createSpeakerDeviceWatcher` helper methods
 
