@@ -21,7 +21,7 @@
     "prepare": "npm run build"
   },
   "dependencies": {
-    "@signalwire/core": "3.0.0-beta.4",
-    "@signalwire/webrtc": "3.0.0-beta.4"
+    "@signalwire/core": "3.0.0",
+    "@signalwire/webrtc": "3.0.0"
   }
 }
