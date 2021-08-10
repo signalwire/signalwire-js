@@ -280,7 +280,10 @@ export class BaseConnection
 
   updateCamera(constraints: MediaTrackConstraints) {
     return this.updateConstraints({
-      video: constraints,
+      video: {
+        aspectRatio: 16 / 9,
+        ...constraints,
+      },
     })
   }
 
