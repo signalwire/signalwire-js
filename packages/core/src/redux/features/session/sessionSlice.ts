@@ -1,40 +1,38 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { PayloadAction } from '@reduxjs/toolkit'
 import { SessionState } from '../../interfaces'
 import {
-  IBladeConnectResult,
+  RPCConnectResult,
   SessionAuthError,
-  SessionStatus,
+  SessionAuthStatus,
 } from '../../../utils/interfaces'
-import { destroyAction, authError } from '../../actions'
+import { createDestroyableSlice } from '../../utils/createDestroyableSlice'
+import { authErrorAction } from '../../actions'
 
 export const initialSessionState: Readonly<SessionState> = {
   protocol: '',
   iceServers: [],
   authStatus: 'unknown',
   authError: undefined,
-  status: 'unknown',
+  authCount: 0,
 }
 
-const sessionSlice = createSlice({
+const sessionSlice = createDestroyableSlice({
   name: 'session',
   initialState: initialSessionState,
   reducers: {
-    connected: (state, { payload }: PayloadAction<IBladeConnectResult>) => {
+    connected: (state, { payload }: PayloadAction<RPCConnectResult>) => {
       state.authStatus = 'authorized'
-      state.status = 'connected'
-      state.protocol = payload?.result?.protocol ?? ''
-      state.iceServers = payload?.result?.iceServers ?? []
+      state.authCount += 1
+      state.protocol = payload?.protocol ?? ''
+      state.iceServers = payload?.ice_servers ?? []
     },
-    statusChange: (state, { payload }: PayloadAction<SessionStatus>) => {
-      state.status = payload
+    authStatus: (state, { payload }: PayloadAction<SessionAuthStatus>) => {
+      state.authStatus = payload
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(destroyAction.type, () => {
-      return initialSessionState
-    })
     builder.addCase(
-      authError.type,
+      authErrorAction.type,
       (state, { payload }: PayloadAction<{ error: SessionAuthError }>) => {
         state.authStatus = 'unauthorized'
         state.authError = payload.error

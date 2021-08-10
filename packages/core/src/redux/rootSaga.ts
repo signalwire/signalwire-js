@@ -1,7 +1,6 @@
-import { Task, SagaIterator, Channel } from '@redux-saga/types'
+import { Task, SagaIterator } from '@redux-saga/types'
 import { channel, EventChannel } from 'redux-saga'
-import { fork, call, take, put, delay } from 'redux-saga/effects'
-import { SocketCloseParams } from './interfaces'
+import { fork, call, take, put, delay } from '@redux-saga/core/effects'
 import { UserOptions, SessionConstructor } from '../utils/interfaces'
 import {
   executeActionWatcher,
@@ -10,20 +9,32 @@ import {
 } from './features/session/sessionSaga'
 import { pubSubSaga } from './features/pubSub/pubSubSaga'
 import {
+  flushExecuteQueueWorker,
+  executeQueueWatcher,
+} from './features/executeQueue/executeQueueSaga'
+import {
   initAction,
   destroyAction,
-  sessionReconnecting,
-  sessionDisconnected,
-  sessionConnected,
+  closeConnectionAction,
+  sessionReconnectingAction,
+  sessionDisconnectedAction,
+  sessionConnectedAction,
 } from './actions'
 import { sessionActions } from './features'
-import { Session } from '..'
-import { authError, authSuccess, socketClosed, socketError } from './actions'
+import { BaseSession } from '..'
+import {
+  authErrorAction,
+  authSuccessAction,
+  socketClosedAction,
+  socketErrorAction,
+} from './actions'
+import { AuthError } from '../CustomErrors'
+import { PubSubChannel } from './interfaces'
 
 type StartSagaOptions = {
-  session: Session
+  session: BaseSession
   sessionChannel: EventChannel<unknown>
-  pubSubChannel: Channel<unknown>
+  pubSubChannel: PubSubChannel
   userOptions: UserOptions
 }
 
@@ -32,9 +43,6 @@ export function* initSessionSaga(
   userOptions: UserOptions
 ): SagaIterator {
   const session = new SessionConstructor(userOptions)
-
-  // @ts-ignore
-  window.__session = session
 
   const sessionChannel: EventChannel<unknown> = yield call(
     createSessionChannel,
@@ -45,7 +53,7 @@ export function* initSessionSaga(
    * Create a channel to communicate between sagas
    * and emit events to the public
    */
-  const pubSubChannel: Channel<unknown> = yield call(channel)
+  const pubSubChannel: PubSubChannel = yield call(channel)
 
   yield fork(sessionChannelWatcher, {
     session,
@@ -53,107 +61,106 @@ export function* initSessionSaga(
     pubSubChannel,
   })
 
+  /**
+   * Fork the watcher for the session status
+   */
+  yield fork(sessionStatusWatcher, {
+    session,
+    sessionChannel,
+    pubSubChannel,
+    userOptions,
+  })
+
   session.connect()
 
-  const action = yield take([authSuccess.type, authError.type])
-
-  if (action.type === authError.type) {
-    throw new Error('Auth Error')
-  } else {
-    yield fork(startSaga, {
-      session,
-      sessionChannel,
-      pubSubChannel,
-      userOptions,
-    })
-  }
+  yield take(destroyAction.type)
+  pubSubChannel.close()
+  sessionChannel.close()
 }
 
 export function* socketClosedWorker({
   session,
   sessionChannel,
   pubSubChannel,
-  payload: { code },
 }: {
-  session: Session
+  session: BaseSession
   sessionChannel: EventChannel<unknown>
-  pubSubChannel: Channel<unknown>
-  payload: SocketCloseParams
+  pubSubChannel: PubSubChannel
 }) {
-  /**
-   * @see https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
-   */
-  if (code >= 1006 && code <= 1014) {
-    yield put(sessionActions.statusChange('reconnecting'))
-    yield put(pubSubChannel, sessionReconnecting())
+  if (session.status === 'reconnecting') {
+    yield put(pubSubChannel, sessionReconnectingAction())
     yield delay(Math.random() * 2000)
     yield call(session.connect)
   } else {
     sessionChannel.close()
-    yield put(sessionActions.statusChange('disconnected'))
-    yield put(pubSubChannel, sessionDisconnected())
+    yield put(pubSubChannel, sessionDisconnectedAction())
   }
 }
 
 export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
-  const { session, sessionChannel, pubSubChannel } = options
-  const action = yield take([
-    authSuccess.type,
-    socketError.type,
-    socketClosed.type,
-  ])
+  while (true) {
+    const action = yield take([
+      authSuccessAction.type,
+      authErrorAction.type,
+      socketErrorAction.type,
+      socketClosedAction.type,
+    ])
 
-  switch (action.type) {
-    case authSuccess.type:
-      yield fork(startSaga, options)
-      break
-    case socketError.type:
-      // TODO: define if we want to emit external events here.
-      // yield put(pubSubChannel, {
-      //   type: 'socket.error',
-      //   payload: {},
-      // })
-      break
-    case socketClosed.type:
-      yield fork(socketClosedWorker, {
-        session,
-        sessionChannel,
-        pubSubChannel,
-        payload: action.payload,
-      })
+    switch (action.type) {
+      case authSuccessAction.type:
+        yield fork(startSaga, options)
+        break
+      case authErrorAction.type: {
+        const { error: authError } = action.payload
+        const error = authError
+          ? new AuthError(authError.code, authError.error)
+          : new Error('Unauthorized')
+        throw error
+      }
+      case socketErrorAction.type:
+        // TODO: define if we want to emit external events here.
+        // yield put(pubSubChannel, {
+        //   type: 'socket.error',
+        //   payload: {},
+        // })
+        break
+      case socketClosedAction.type:
+        yield fork(socketClosedWorker, options)
+    }
   }
 }
 
 export function* startSaga(options: StartSagaOptions): SagaIterator {
-  const { session, sessionChannel, pubSubChannel, userOptions } = options
-  yield put(sessionActions.connected(session.bladeConnectResult))
-  yield put(pubSubChannel, sessionConnected())
+  const { session, pubSubChannel, userOptions } = options
 
   const pubSubTask: Task = yield fork(pubSubSaga, {
     pubSubChannel,
-    emitter: userOptions.emitter,
+    emitter: userOptions.emitter!,
   })
-
   /**
-   * Fork the watcher for all the blade.execute requests
+   * Fork the watcher for all the execute requests
    */
   const executeActionTask: Task = yield fork(executeActionWatcher, session)
 
-  /**
-   * Fork the watcher for the session status
-   */
-  const sessionStatusTask: Task = yield fork(sessionStatusWatcher, options)
+  yield put(sessionActions.connected(session.rpcConnectResult))
+  yield put(pubSubChannel, sessionConnectedAction())
 
   /**
-   * Wait for a destroyAction to teardown all the things
+   * Will take care of executing any pending JSONRPC we have in
+   * the queue
    */
-  yield take(destroyAction.type)
+  const flushExecuteQueueTask: Task = yield fork(flushExecuteQueueWorker)
+
+  /**
+   * When `closeConnectionAction` is dispatched we'll teardown all the
+   * tasks created by this saga since `startSaga` is meant to be
+   * re-executed every time the user reconnects.
+   */
+  yield take(closeConnectionAction.type)
 
   pubSubTask.cancel()
-  sessionStatusTask.cancel()
   executeActionTask.cancel()
-  pubSubChannel.close()
-  sessionChannel.close()
+  flushExecuteQueueTask.cancel()
 }
 
 interface RootSagaOptions {
@@ -162,6 +169,8 @@ interface RootSagaOptions {
 
 export default (options: RootSagaOptions) => {
   return function* root(userOptions: UserOptions): SagaIterator {
+    yield fork(executeQueueWatcher)
+
     /**
      * Wait for an initAction to start
      */

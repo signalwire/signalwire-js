@@ -7,6 +7,7 @@ import { updateRoomFactory } from './rooms/updateRoomFactory'
 import { Client } from './types'
 import { getConfig } from './utils/getConfig'
 import { createHttpClient } from './utils/httpClient'
+import { createWebSocketClient } from './createWebSocketClient'
 
 export const createRestClient: Client = (options = {}) => {
   const config = getConfig(options)
@@ -36,3 +37,5 @@ export const createRestClient: Client = (options = {}) => {
     createVRT,
   }
 }
+
+export { createWebSocketClient }

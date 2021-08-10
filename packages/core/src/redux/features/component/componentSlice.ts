@@ -1,7 +1,7 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { PayloadAction } from '@reduxjs/toolkit'
 import { JSONRPCResponse } from '../../../utils/interfaces'
 import { ComponentState, ReduxComponent } from '../../interfaces'
-import { destroyAction } from '../../actions'
+import { createDestroyableSlice } from '../../utils/createDestroyableSlice'
 
 export const initialComponentState: Readonly<ComponentState> = {
   byId: {},
@@ -21,7 +21,7 @@ type FailureParams = {
   action: any
 }
 
-const componentSlice = createSlice({
+const componentSlice = createDestroyableSlice({
   name: 'components',
   initialState: initialComponentState,
   reducers: {
@@ -55,11 +55,6 @@ const componentSlice = createSlice({
         }
       }
     },
-  },
-  extraReducers: (builder) => {
-    builder.addCase(destroyAction.type, () => {
-      return initialComponentState
-    })
   },
 })
 

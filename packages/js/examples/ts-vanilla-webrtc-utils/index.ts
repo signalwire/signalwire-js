@@ -1,10 +1,10 @@
-import { WebRTC } from '../../src'
+import { WebRTC } from '@signalwire/js'
 
 const {
   setMediaElementSinkId,
-  getAudioInDevices,
-  getAudioOutDevices,
-  getVideoDevices,
+  getMicrophoneDevices,
+  getSpeakerDevices,
+  getCameraDevices,
   supportsMediaOutput,
   enumerateDevices,
   getUserMedia,
@@ -60,7 +60,7 @@ function setDeviceOptions({
 }
 
 async function setAudioInDevicesOptions() {
-  const audioInputOptions = await getAudioInDevices()
+  const audioInputOptions = await getMicrophoneDevices()
 
   setDeviceOptions({
     deviceInfos: audioInputOptions,
@@ -71,7 +71,7 @@ async function setAudioInDevicesOptions() {
 
 async function setAudioOutDevicesOptions() {
   if (supportsMediaOutput()) {
-    const options = await getAudioOutDevices()
+    const options = await getSpeakerDevices()
 
     setDeviceOptions({
       deviceInfos: options,
@@ -82,7 +82,7 @@ async function setAudioOutDevicesOptions() {
 }
 
 async function setVideoDevicesOptions() {
-  const options = await getVideoDevices()
+  const options = await getCameraDevices()
 
   setDeviceOptions({
     deviceInfos: options,

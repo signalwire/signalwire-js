@@ -1,12 +1,13 @@
 import { PayloadAction } from '@reduxjs/toolkit'
+import type { Saga, Task, SagaIterator, Channel } from '@redux-saga/types'
 import {
   JSONRPCResponse,
   SessionAuthError,
   SessionAuthStatus,
-  SessionStatus,
-  BladeExecuteMethod,
-  CallState,
+  JSONRPCMethod,
+  BaseConnectionState,
 } from '../utils/interfaces'
+import type { PubSubChannelEvents } from '../types'
 
 interface SWComponent {
   id: string
@@ -18,7 +19,7 @@ interface SWComponent {
 }
 
 export interface WebRTCCall extends SWComponent {
-  state?: CallState
+  state?: BaseConnectionState
   remoteSDP?: string
   nodeId?: string
   roomId?: string
@@ -46,22 +47,35 @@ export interface SessionState {
   iceServers?: RTCIceServer[]
   authStatus: SessionAuthStatus
   authError?: SessionAuthError
-  status: SessionStatus
+  authCount: number
 }
 
 export interface SDKState {
   components: ComponentState
   session: SessionState
+  executeQueue: ExecuteQueueState
 }
 
 export interface ExecuteActionParams {
   requestId?: string
   componentId?: string
-  method: BladeExecuteMethod
+  method: JSONRPCMethod
   params: Record<string, any>
 }
 
-export interface SocketCloseParams {
-  code: number
-  reason: string
+export interface ExecuteQueueState {
+  queue: ExecuteActionParams[]
 }
+
+export interface CustomSagaParams<T> {
+  instance: T
+  runSaga: <S extends Saga>(saga: S, ...args: Parameters<S>) => Task
+}
+
+export type CustomSaga<T> = (params: CustomSagaParams<T>) => SagaIterator<any>
+
+export interface PubSubAction {
+  type: PubSubChannelEvents
+  payload?: any
+}
+export type PubSubChannel = Channel<PubSubAction>

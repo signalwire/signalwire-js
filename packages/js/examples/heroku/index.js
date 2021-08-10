@@ -1,4 +1,12 @@
-import { Video } from '../../src'
+import { Video } from '@signalwire/js'
+import {
+  enumerateDevices,
+  getMicrophoneDevices,
+  getCameraDevices,
+  getSpeakerDevices,
+  supportsMediaOutput,
+  createDeviceWatcher,
+} from '@signalwire/webrtc'
 
 let roomObj = null
 
@@ -10,9 +18,99 @@ const inCallElements = [
   deafSelfBtn,
   undeafSelfBtn,
   controlSliders,
+  controlLayout,
   hideVMutedBtn,
   showVMutedBtn,
+  hideScreenShareBtn,
+  showScreenShareBtn,
 ]
+
+async function loadLayouts(currentLayoutId) {
+  try {
+    const { layouts } = await roomObj.getLayoutList()
+    const layoutEl = document.getElementById('layout')
+    layoutEl.innerHTML = ''
+
+    const defOption = document.createElement('option')
+    defOption.value = ''
+    defOption.innerHTML = 'Change layout..'
+    layoutEl.appendChild(defOption)
+    for (var i = 0; i < layouts.length; i++) {
+      const layout = layouts[i]
+      var opt = document.createElement('option')
+      opt.value = layout
+      opt.innerHTML = layout
+      layoutEl.appendChild(opt)
+    }
+    if (currentLayoutId) {
+      layoutEl.value = currentLayoutId
+    }
+  } catch (error) {
+    console.warn('Error listing layout', error)
+  }
+}
+
+function setDeviceOptions({ deviceInfos, el, kind }) {
+  if (!deviceInfos || deviceInfos.length === 0) {
+    return
+  }
+
+  // Store the previously selected value so we could restore it after
+  // re-populating the list
+  const selectedValue = el.value
+
+  // Empty the Select
+  el.innerHTML = ''
+
+  deviceInfos.forEach((deviceInfo) => {
+    const option = document.createElement('option')
+
+    option.value = deviceInfo.deviceId
+    option.text = deviceInfo.label || `${kind} ${el.length + 1}`
+
+    el.appendChild(option)
+  })
+
+  el.value = selectedValue || deviceInfos[0].deviceId
+}
+
+async function setAudioInDevicesOptions() {
+  const micOptions = await getMicrophoneDevices()
+
+  setDeviceOptions({
+    deviceInfos: micOptions,
+    el: microphoneSelect,
+    kind: 'microphone',
+  })
+}
+
+async function setAudioOutDevicesOptions() {
+  if (supportsMediaOutput()) {
+    const options = await getSpeakerDevices()
+
+    setDeviceOptions({
+      deviceInfos: options,
+      el: speakerSelect,
+      kind: 'speaker',
+    })
+  }
+}
+
+async function setVideoDevicesOptions() {
+  const options = await getCameraDevices()
+
+  setDeviceOptions({
+    deviceInfos: options,
+    el: cameraSelect,
+    kind: 'camera',
+  })
+}
+
+function initDeviceOptions() {
+  setAudioInDevicesOptions()
+  setAudioOutDevicesOptions()
+  setVideoDevicesOptions()
+}
 
 /**
  * Connect with Relay creating a client and attaching all the event handler.
@@ -31,10 +129,10 @@ window.connect = () => {
     console.debug('Video SDK roomObj', roomObj)
 
     roomObj.on('room.started', (params) =>
-      console.debug('>> DEMO room.started', params)
+      console.debug('>> room.started', params)
     )
     roomObj.on('room.joined', (params) => {
-      console.debug('>> DEMO room.joined', params)
+      console.debug('>> room.joined', params)
 
       btnConnect.classList.add('d-none')
       btnDisconnect.classList.remove('d-none')
@@ -44,33 +142,38 @@ window.connect = () => {
         button.classList.remove('d-none')
         button.disabled = false
       })
+
+      loadLayouts()
     })
     roomObj.on('room.updated', (params) =>
-      console.debug('>> DEMO room.updated', params)
+      console.debug('>> room.updated', params)
     )
     roomObj.on('room.ended', (params) => {
-      console.debug('>> DEMO room.ended', params)
+      console.debug('>> room.ended', params)
       hangup()
     })
     roomObj.on('member.joined', (params) =>
-      console.debug('>> DEMO member.joined', params)
+      console.debug('>> member.joined', params)
     )
     roomObj.on('member.updated', (params) =>
-      console.debug('>> DEMO member.updated', params)
+      console.debug('>> member.updated', params)
     )
 
     roomObj.on('member.updated.audio_muted', (params) =>
-      console.debug('>> DEMO member.updated', params)
+      console.debug('>> member.updated.audio_muted', params)
     )
     roomObj.on('member.updated.video_muted', (params) =>
-      console.debug('>> DEMO member.updated', params)
+      console.debug('>> member.updated.video_muted', params)
     )
 
     roomObj.on('member.left', (params) =>
-      console.debug('>> DEMO member.left', params)
+      console.debug('>> member.left', params)
+    )
+    roomObj.on('member.talking', (params) =>
+      console.debug('>> member.talking', params)
     )
     roomObj.on('layout.changed', (params) =>
-      console.debug('>> DEMO layout.changed', params)
+      console.debug('>> layout.changed', params)
     )
     roomObj.on('track', (event) => console.debug('>> DEMO track', event))
 
@@ -78,6 +181,18 @@ window.connect = () => {
       .join()
       .then((result) => {
         console.log('>> Room Joined', result)
+
+        enumerateDevices()
+          .then(initDeviceOptions)
+          .catch((error) => {
+            console.error(error)
+          })
+
+        createDeviceWatcher().then((deviceWatcher) => {
+          deviceWatcher.on('changed', () => {
+            initDeviceOptions()
+          })
+        })
       })
       .catch((error) => {
         console.error('Join error?', error)
@@ -125,44 +240,52 @@ window.ready = (callback) => {
   }
 }
 
+let screenShareObj
+window.startScreenShare = async () => {
+  screenShareObj = await roomObj.createScreenShareObject()
+}
+window.stopScreenShare = () => {
+  screenShareObj.hangup()
+}
+
 window.muteAll = () => {
-  roomObj.audioMute('all')
+  roomObj.audioMute({ memberId: 'all' })
 }
 
 window.unmuteAll = () => {
-  roomObj.audioUnmute('all')
+  roomObj.audioUnmute({ memberId: 'all' })
 }
 
 window.muteSelf = () => {
-  roomObj.audioMute(roomObj.memberId)
+  roomObj.audioMute()
 }
 
 window.unmuteSelf = () => {
-  roomObj.audioUnmute(roomObj.memberId)
+  roomObj.audioUnmute()
 }
 
 window.muteVideoAll = () => {
-  roomObj.videoMute('all')
+  roomObj.videoMute({ memberId: 'all' })
 }
 
 window.unmuteVideoAll = () => {
-  roomObj.videoUnmute('all')
+  roomObj.videoUnmute({ memberId: 'all' })
 }
 
 window.muteVideoSelf = () => {
-  roomObj.videoMute(roomObj.memberId)
+  roomObj.videoMute()
 }
 
 window.unmuteVideoSelf = () => {
-  roomObj.videoUnmute(roomObj.memberId)
+  roomObj.videoUnmute()
 }
 
 window.deafSelf = () => {
-  roomObj.deaf(roomObj.memberId)
+  roomObj.deaf()
 }
 
 window.undeafSelf = () => {
-  roomObj.undeaf(roomObj.memberId)
+  roomObj.undeaf()
 }
 
 window.hideVideoMuted = () => {
@@ -171,6 +294,42 @@ window.hideVideoMuted = () => {
 
 window.showVideoMuted = () => {
   roomObj.showVideoMuted()
+}
+
+window.changeLayout = (select) => {
+  console.log('changeLayout', select.value)
+  roomObj.setLayout({ name: select.value })
+}
+
+window.changeMicrophone = (select) => {
+  console.log('changeMicrophone', select.value)
+  if (!select.value) {
+    return
+  }
+  roomObj.updateMicrophone({ deviceId: select.value })
+}
+
+window.changeCamera = (select) => {
+  console.log('changeCamera', select.value)
+  if (!select.value) {
+    return
+  }
+  roomObj.updateCamera({ deviceId: select.value })
+}
+
+window.changeSpeaker = (select) => {
+  console.log('changeSpeaker', select.value)
+  if (!select.value) {
+    return
+  }
+  roomObj
+    .updateSpeaker({ deviceId: select.value })
+    .then(() => {
+      console.log('Speaker updated!')
+    })
+    .catch(() => {
+      console.error(`Failed to update the speaker with id: ${select.value}`)
+    })
 }
 
 window.rangeInputHandler = (range) => {

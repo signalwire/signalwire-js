@@ -3,10 +3,8 @@
   "description": "SignalWire JS SDK",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
-  "version": "0.0.0",
-  "source": "src/index.ts",
+  "version": "3.0.0",
   "main": "dist/index.js",
-  "exports": "./dist/index.modern.js",
   "module": "dist/index.esm.js",
   "unpkg": "dist/index.umd.js",
   "files": [
@@ -32,20 +30,18 @@
   "bugs": {
     "url": "https://github.com/signalwire/signalwire-js/issues"
   },
-  "homepage": "https://github.com/signalwire/signalwire-node/tree/master/packages/js",
+  "homepage": "https://github.com/signalwire/signalwire-js/tree/master/packages/js",
   "scripts": {
-    "start": "microbundle watch -f modern,es --define process.env.NODE_ENV=development --tsconfig tsconfig.build.json",
-    "build": "pkg-typings --pre-run && microbundle --external none --define process.env.NODE_ENV=production --name SignalWire --tsconfig ./tsconfig.build.json && pkg-typings --after-run",
+    "start": "sw-build --dev --web",
+    "build": "tsc --project tsconfig.build.json && sw-build --web && sw-build --umd",
     "test": "NODE_ENV=test jest",
-    "prepare": "npm run build",
     "example": "(cd examples && npm run dev)",
-    "docs": "typedoc --options typedoc.js",
-    "docs:watch": "typedoc --options typedoc.js --watch"
+    "docs": "typedoc --options typedoc.js --readme README.md",
+    "docs:watch": "npm run docs -- --watch"
   },
   "dependencies": {
-    "@signalwire/core": "0.0.0",
-    "@signalwire/webrtc": "0.0.0",
-    "regenerator-runtime": "^0.13.7"
+    "@signalwire/core": "3.0.0",
+    "@signalwire/webrtc": "3.0.0"
   },
   "types": "dist/js/src/index.d.ts"
 }

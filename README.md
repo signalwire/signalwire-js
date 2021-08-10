@@ -1,13 +1,16 @@
-# Video SDK
+# SignalWire SDKs for JavaScript
+
+This [monorepo](https://en.wikipedia.org/wiki/Monorepo) contains different implementations of the SignalWire SDKs. These allow you to build applications that can run in a variety of JavaScript environments such as a browser, a node.js server or a smartphone.
 
 ### Packages
 
-| Project                | Description               | README                                   | CHANGELOG                                      |
-| ---------------------- | ------------------------- | ---------------------------------------- | ---------------------------------------------- |
-| **@signalwire/core**   | TBD                       | [`README.md`](packages/node/README.md)   | [`CHANGELOG.md`](packages/node/CHANGELOG.md)   |
-| **@signalwire/js**     | SignalWire in the browser | [`README.md`](packages/js/README.md)     | [`CHANGELOG.md`](packages/js/CHANGELOG.md)     |
-| **@signalwire/node**   | SignalWire in Node.js     | [`README.md`](packages/node/README.md)   | [`CHANGELOG.md`](packages/node/CHANGELOG.md)   |
-| **@signalwire/webrtc** | SignalWire WebRTC         | [`README.md`](packages/webrtc/README.md) | [`CHANGELOG.md`](packages/webrtc/CHANGELOG.md) |
+| Project                      | Package                                                                  | README                                         | CHANGELOG                                              |
+| ---------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------- | ------------------------------------------------------ |
+| **@signalwire/core**         | [`@signalwire/core`](https://www.npmjs.com/package/@signalwire/core)     | [`README.md`](packages/node/README.md)         | [`CHANGELOG.md`](packages/node/CHANGELOG.md)           |
+| **@signalwire/js**           | [`@signalwire/js`](https://www.npmjs.com/package/@signalwire/js)         | [`README.md`](packages/js/README.md)           | [`CHANGELOG.md`](packages/js/CHANGELOG.md)             |
+| **@signalwire/node**         | _WIP_                                                                    | [`README.md`](packages/node/README.md)         | [`CHANGELOG.md`](packages/node/CHANGELOG.md)           |
+| **@signalwire/react-native** | _WIP_                                                                    | [`README.md`](packages/react-native/README.md) | [`CHANGELOG.md`](packages/react-native/CHANGELOG.md)   |
+| **@signalwire/webrtc**       | [`@signalwire/webrtc`](https://www.npmjs.com/package/@signalwire/webrtc) | [`README.md`](packages/webrtc/README.md)       | [`CHANGELOG.md`](packages/webrtc/CHANGELOG.md)         |
 
 Refer to the README of each package for further details.
 
@@ -32,3 +35,7 @@ The normal flow should look to something like this:
 1. Make a change in one of the existing (or new) packages
 2. Run `npm run changeset`. This will ask you a set of questions about the changes you've made.
 3. Create a `Pull Request` on GitHub.
+
+## License
+
+Copyright © 2018-2021 SignalWire. It is free software, and may be redistributed under the terms specified in the [MIT-LICENSE](https://github.com/signalwire/signalwire-js/blob/master/LICENSE) file.

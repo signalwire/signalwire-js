@@ -4,10 +4,9 @@ import {
   MediaStream as RNMediaStream,
   // @ts-ignore
 } from 'react-native-webrtc'
-import { objEmpty } from '../helpers'
 
 export const RTCPeerConnection = (config: RTCConfiguration) => {
-  const _config = objEmpty(config) ? null : config
+  const _config = Object.keys(config)?.length ? config : null
   return new RNRTCPeerConnection(_config)
 }
 
@@ -15,10 +14,16 @@ export const getUserMedia = (constraints: MediaStreamConstraints) => {
   return RNmediaDevices.getUserMedia(constraints)
 }
 
+export const getDisplayMedia = (constraints: MediaStreamConstraints) => {
+  return RNmediaDevices.getDisplayMedia(constraints)
+}
+
 export const enumerateDevices = () => RNmediaDevices.enumerateDevices()
 
-export const enumerateDevicesByKind = async (filterByKind: string = null) => {
-  let devices: MediaDeviceInfo[] = await enumerateDevices().catch((error) => [])
+export const enumerateDevicesByKind = async (filterByKind: string) => {
+  let devices: MediaDeviceInfo[] = await enumerateDevices().catch(
+    (_error: any) => []
+  )
   if (filterByKind) {
     devices = devices.filter(({ kind }) => kind === filterByKind)
   }
@@ -31,11 +36,11 @@ export const streamIsValid = (stream: RNMediaStream) =>
 export const getSupportedConstraints = () => ({})
 
 export const setMediaElementSinkId = (
-  htmlElementId: string,
-  deviceId: string
+  _htmlElementId: string,
+  _deviceId: string
 ): Promise<boolean> => Promise.resolve(false)
 
-export const sdpToJsonHack = (sdp) => {
+export const sdpToJsonHack = (sdp: any) => {
   Object.defineProperty(sdp, 'toJSON', { value: () => sdp })
   return sdp
 }

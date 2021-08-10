@@ -1,31 +1,31 @@
 import {
-  BaseClientOptions,
   ClientEvents,
   configureStore,
+  connect,
   getEventEmitter,
-  JWTSession,
   UserOptions,
 } from '@signalwire/core'
 import StrictEventEmitter from 'strict-event-emitter-types'
 import { Client } from './Client'
+import { JWTSession } from './JWTSession'
 
 /**
  * ## Intro
- * With VideoSDK.createClient you can establish a WebSocket connection
+ * With Video.createClient() you can establish a WebSocket connection
  * with SignalWire and interact with the client.
  *
  * ## Examples
- * Create a client using the JWT
+ * Create a client
  *
  * @example
  * With autoConnect true the client is ready to be used.
  * ```js
  * try {
- *   const client = await VideoSDK.createClient({
- *     token: '<YourJWT>',
+ *   const client = await Video.createClient({
+ *     token: '<YourToken>',
  *   })
  *
- * // Your client is already connected..
+ *   // Your client is already connected..
  * } catch (error) {
  *   console.error('Auth Error', error)
  * }
@@ -35,7 +35,7 @@ import { Client } from './Client'
  * With autoConnect false you can attach additional handlers.
  * ```js
  * try {
- *   const client = await VideoSDK.createClient({
+ *   const client = await Video.createClient({
  *     token: '<YourJWT>',
  *     autoConnect: false,
  *   })
@@ -52,7 +52,7 @@ import { Client } from './Client'
  * ```
  */
 export const createClient = async (userOptions: UserOptions) => {
-  const baseUserOptions: BaseClientOptions = {
+  const baseUserOptions = {
     ...userOptions,
     emitter: getEventEmitter<ClientEvents>(userOptions),
   }
@@ -60,10 +60,15 @@ export const createClient = async (userOptions: UserOptions) => {
     userOptions: baseUserOptions,
     SessionConstructor: JWTSession,
   })
-  const client: StrictEventEmitter<Client, ClientEvents> = new Client(
-    baseUserOptions,
-    store
-  )
+  const client: StrictEventEmitter<Client, ClientEvents> = connect({
+    store,
+    Component: Client,
+    componentListeners: {
+      errors: 'onError',
+      responses: 'onSuccess',
+      id: 'onClientSubscribed',
+    },
+  })(baseUserOptions)
   if (baseUserOptions.autoConnect) {
     await client.connect()
   }

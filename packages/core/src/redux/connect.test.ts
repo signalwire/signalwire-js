@@ -1,12 +1,12 @@
-import { Store } from 'redux'
 import { configureJestStore } from '../testUtils'
 import { BaseComponent } from '../BaseComponent'
 import { connect } from './connect'
 import { componentActions } from './features'
 import { EventEmitter } from '../utils/EventEmitter'
+import { SDKStore } from './'
 
 describe('Connect', () => {
-  let store: Store
+  let store: SDKStore
   let instance: any
   let updateStateAction: any
   let updateRemoteSDPAction: any
@@ -16,7 +16,7 @@ describe('Connect', () => {
     store = configureJestStore()
     instance = connect({
       store,
-      onStateChangeListeners: {
+      componentListeners: {
         state: 'emit',
         remoteSDP: mockOnRemoteSDP,
       },

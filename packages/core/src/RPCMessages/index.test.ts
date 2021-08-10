@@ -1,16 +1,16 @@
 import {
-  BladeConnect,
-  setAgentName,
-  BladeReauthenticate,
-  BladePing,
-  BladePingResponse,
-  BladeExecute,
-  BladeDisconnectResponse,
+  RPCConnect,
+  RPCReauthenticate,
+  RPCPing,
+  RPCPingResponse,
+  RPCExecute,
+  RPCDisconnectResponse,
   VertoBye,
   VertoAttach,
   VertoInfo,
   VertoInvite,
   VertoModify,
+  DEFAULT_CONNECT_VERSION,
 } from './index'
 
 jest.mock('uuid', () => {
@@ -20,102 +20,105 @@ jest.mock('uuid', () => {
 })
 
 describe('RPC Messages', () => {
-  describe('BladeConnect', () => {
+  describe('RPCConnect', () => {
     it('should generate the message with token', function () {
       const authentication = { project: 'project', token: 'token' }
-      const message = BladeConnect({ authentication })
+      const message = RPCConnect({ authentication })
       expect(message).toStrictEqual({
         jsonrpc: '2.0',
         id: 'mocked-uuid',
-        method: 'blade.connect',
+        method: 'signalwire.connect',
         params: {
           authentication: { project: 'project', token: 'token' },
-          version: { major: 2, minor: 5, revision: 0 },
-          agent: null,
+          version: DEFAULT_CONNECT_VERSION,
         },
       })
     })
 
     it('should generate the message using sub-params', function () {
       const authentication = { project: 'project', token: 'token' }
-      const message = BladeConnect({
+      const message = RPCConnect({
         authentication,
-        params: { protocol: 'old-proto', contexts: ['test'] },
+        protocol: 'old-proto',
+        contexts: ['test'],
       })
       expect(message).toStrictEqual({
         jsonrpc: '2.0',
         id: 'mocked-uuid',
-        method: 'blade.connect',
+        method: 'signalwire.connect',
         params: {
           authentication: { project: 'project', token: 'token' },
-          version: { major: 2, minor: 5, revision: 0 },
-          agent: null,
-          params: {
-            protocol: 'old-proto',
-            contexts: ['test'],
-          },
+          version: DEFAULT_CONNECT_VERSION,
+          protocol: 'old-proto',
+          contexts: ['test'],
         },
       })
     })
 
     it('should generate the message with jwt_token', function () {
       const authentication = { project: 'project', jwt_token: 'jwt' }
-      const message = BladeConnect({ authentication })
+      const message = RPCConnect({ authentication })
       expect(message).toStrictEqual({
         jsonrpc: '2.0',
         id: 'mocked-uuid',
-        method: 'blade.connect',
+        method: 'signalwire.connect',
         params: {
           authentication: { project: 'project', jwt_token: 'jwt' },
-          version: { major: 2, minor: 5, revision: 0 },
-          agent: null,
+          version: DEFAULT_CONNECT_VERSION,
         },
       })
     })
 
     it('should generate the message using agent', function () {
-      setAgentName('Jest Random Test')
-      const authentication = { project: 'project', jwt_token: 'jwt' }
-      const message = BladeConnect({ authentication })
+      const authentication = {
+        project: 'project',
+        jwt_token: 'jwt',
+      }
+      const message = RPCConnect({
+        authentication,
+        agent: 'Jest Random Test',
+      })
       expect(message).toStrictEqual({
         jsonrpc: '2.0',
         id: 'mocked-uuid',
-        method: 'blade.connect',
+        method: 'signalwire.connect',
         params: {
           authentication: { project: 'project', jwt_token: 'jwt' },
-          version: { major: 2, minor: 5, revision: 0 },
+          version: DEFAULT_CONNECT_VERSION,
           agent: 'Jest Random Test',
         },
       })
     })
 
     it('should generate the message without project', function () {
-      setAgentName('Jest Random Test')
       const authentication = { jwt_token: 'jwt' }
-      const message = BladeConnect({ authentication })
+      const message = RPCConnect({
+        authentication,
+        agent: 'Jest Random Test',
+      })
       expect(message).toStrictEqual({
         jsonrpc: '2.0',
         id: 'mocked-uuid',
-        method: 'blade.connect',
+        method: 'signalwire.connect',
         params: {
           authentication: { jwt_token: 'jwt' },
-          version: { major: 2, minor: 5, revision: 0 },
+          version: DEFAULT_CONNECT_VERSION,
           agent: 'Jest Random Test',
         },
       })
     })
   })
 
-  describe('BladeReauthenticate', () => {
+  describe('RPCReauthenticate', () => {
     it('should generate the message', function () {
-      const message = BladeReauthenticate({
+      const message = RPCReauthenticate({
         project: 'project',
         jwt_token: 'jwt',
       })
       expect(message).toStrictEqual({
         jsonrpc: '2.0',
         id: 'mocked-uuid',
-        method: 'blade.reauthenticate',
+        method: 'signalwire.reauthenticate',
         params: {
           authentication: { project: 'project', jwt_token: 'jwt' },
         },
@@ -123,15 +126,15 @@ describe('RPC Messages', () => {
     })
   })
 
-  describe('BladePing', () => {
+  describe('RPCPing', () => {
     it('should generate the message', function () {
       global.Date.now = jest.fn(() => 1581442824134)
 
-      const message = BladePing()
+      const message = RPCPing()
       expect(message).toStrictEqual({
         jsonrpc: '2.0',
         id: 'mocked-uuid',
-        method: 'blade.ping',
+        method: 'signalwire.ping',
         params: {
           timestamp: 1581442824134 / 1000,
         },
@@ -139,7 +142,7 @@ describe('RPC Messages', () => {
     })
 
     it('should generate the response', function () {
-      const message = BladePingResponse('uuid', 1234)
+      const message = RPCPingResponse('uuid', 1234)
       expect(message).toStrictEqual({
         jsonrpc: '2.0',
         id: 'uuid',
@@ -150,42 +153,36 @@ describe('RPC Messages', () => {
     })
   })
 
-  describe('BladeExecute', () => {
+  describe('RPCExecute', () => {
+    const method = 'signalwire.subscribe'
+    const params = { key: 'value' }
     it('should generate the message based on protocol and method', function () {
-      const message = BladeExecute({ protocol: 'example', method: 'sum' })
+      const message = RPCExecute({ method, params })
       expect(message).toStrictEqual({
         jsonrpc: '2.0',
         id: 'mocked-uuid',
-        method: 'blade.execute',
-        params: {
-          protocol: 'example',
-          method: 'sum',
-        },
+        method,
+        params,
       })
     })
 
     it('should generate the message based on protocol, method and specific params', function () {
-      const message = BladeExecute({
-        protocol: 'example',
-        method: 'sum',
+      const message = RPCExecute({
+        method,
         params: { x: 3, y: 6 },
       })
       expect(message).toStrictEqual({
         jsonrpc: '2.0',
         id: 'mocked-uuid',
-        method: 'blade.execute',
-        params: {
-          protocol: 'example',
-          method: 'sum',
-          params: { x: 3, y: 6 },
-        },
+        method,
+        params: { x: 3, y: 6 },
       })
     })
   })
 
-  describe('BladeDisconnect', () => {
+  describe('RPCDisconnect', () => {
     it('should generate the response', function () {
-      const message = BladeDisconnectResponse('uuid')
+      const message = RPCDisconnectResponse('uuid')
       expect(message).toStrictEqual({
         jsonrpc: '2.0',
         id: 'uuid',

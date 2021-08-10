@@ -28,6 +28,5 @@
     "composite": true,
     "declarationMap": true,
     "strictPropertyInitialization": false
-  },
-  "include": ["packages"]
+  }
 }

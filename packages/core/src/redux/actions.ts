@@ -1,37 +1,54 @@
-import { createAction } from '@reduxjs/toolkit'
+import { createAction, Action } from '@reduxjs/toolkit'
 import {
   JSONRPCRequest,
   SessionAuthError,
   SessionEvents,
 } from '../utils/interfaces'
-import { ExecuteActionParams, SocketCloseParams } from './interfaces'
+import { ExecuteActionParams } from './interfaces'
 
 export const initAction = createAction('swSdk/init')
 export const destroyAction = createAction('swSdk/destroy')
+export const closeConnectionAction = createAction('swSdk/closeConnection')
 
 /**
- * Trigger saga to send a blade.execute over the wire
+ * Trigger saga to send a JSONRPC over the wire
  */
 export const executeAction = createAction<ExecuteActionParams>(
   'swSdk/executeRequest'
 )
 
-export const authError = createAction<{ error: SessionAuthError }>('auth/error')
-export const authSuccess = createAction('auth/success')
+export const authErrorAction =
+  createAction<{ error: SessionAuthError }>('auth/error')
+export const authSuccessAction = createAction('auth/success')
 
-export const socketClosed = createAction<SocketCloseParams>('socket/closed')
-export const socketError = createAction('socket/error')
-export const socketMessage = createAction<JSONRPCRequest, string>(
+export const socketClosedAction = createAction('socket/closed')
+export const socketErrorAction = createAction('socket/error')
+export const socketMessageAction = createAction<JSONRPCRequest, string>(
   'socket/message'
 )
 
 // TODO: define if we need/want to send a payload with these events.
-export const sessionConnected = createAction<void, SessionEvents>(
+export const sessionConnectedAction = createAction<void, SessionEvents>(
   'session.connected'
 )
-export const sessionDisconnected = createAction<void, SessionEvents>(
+export const sessionDisconnectedAction = createAction<void, SessionEvents>(
   'session.disconnected'
 )
-export const sessionReconnecting = createAction<void, SessionEvents>(
+export const sessionReconnectingAction = createAction<void, SessionEvents>(
   'session.reconnecting'
 )
+
+const formatCustomSagaAction = (id: string, action: Action) => {
+  return `${action.type}/${id}`
+}
+
+export const makeCustomSagaAction = (id: string, action: Action) => {
+  return {
+    ...action,
+    type: formatCustomSagaAction(id, action),
+  }
+}
+
+export const getCustomSagaActionType = (id: string, action: Action) => {
+  return formatCustomSagaAction(id, action)
+}

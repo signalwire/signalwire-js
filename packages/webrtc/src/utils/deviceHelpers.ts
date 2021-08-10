@@ -91,11 +91,11 @@ export const getDevicesWithPermissions = async (
 /**
  * Helper methods to get devices by kind
  */
-export const getVideoDevicesWithPermissions = () =>
+export const getCameraDevicesWithPermissions = () =>
   getDevicesWithPermissions('camera')
-export const getAudioInDevicesWithPermissions = () =>
+export const getMicrophoneDevicesWithPermissions = () =>
   getDevicesWithPermissions('microphone')
-export const getAudioOutDevicesWithPermissions = () =>
+export const getSpeakerDevicesWithPermissions = () =>
   getDevicesWithPermissions('speaker')
 
 const _filterDevices = (
@@ -103,12 +103,8 @@ const _filterDevices = (
   options: { excludeDefault?: boolean; targets?: MediaDeviceKind[] } = {}
 ) => {
   const found: string[] = []
-  return devices.filter(({ deviceId, label, kind, groupId }) => {
-    if (
-      !deviceId ||
-      !label ||
-      (options.targets && !options.targets?.includes(kind))
-    ) {
+  return devices.filter(({ deviceId, kind, groupId }) => {
+    if (!deviceId || (options.targets && !options.targets?.includes(kind))) {
       return false
     }
     if (!groupId) {
@@ -141,40 +137,9 @@ export const getDevices = async (
 /**
  * Helper methods to get devices by kind
  */
-export const getVideoDevices = () => getDevices('camera')
-export const getAudioInDevices = () => getDevices('microphone')
-export const getAudioOutDevices = () => getDevices('speaker')
-
-/**
- * Scan a video deviceId by different resolutions
- */
-const resolutionList = [
-  [320, 240],
-  [640, 360],
-  [640, 480],
-  [1280, 720],
-  [1920, 1080],
-]
-export const scanResolutions = async (deviceId: string) => {
-  const supported = []
-  const stream = await WebRTC.getUserMedia({
-    video: { deviceId: { exact: deviceId } },
-  })
-  const videoTrack = stream.getVideoTracks()[0]
-  for (let i = 0; i < resolutionList.length; i++) {
-    const [width, height] = resolutionList[i]
-    const success = await videoTrack
-      .applyConstraints({ width: { exact: width }, height: { exact: height } })
-      .then(() => true)
-      .catch(() => false)
-    if (success) {
-      supported.push({ resolution: `${width}x${height}`, width, height })
-    }
-  }
-  WebRTC.stopStream(stream)
-
-  return supported
-}
+export const getCameraDevices = () => getDevices('camera')
+export const getMicrophoneDevices = () => getDevices('microphone')
+export const getSpeakerDevices = () => getDevices('speaker')
 
 /**
  * Assure a deviceId exists in the current device list from the browser.
@@ -199,30 +164,12 @@ export const assureDeviceId = async (
 /**
  * Helper methods to assure a deviceId without asking the user the "kind"
  */
-export const validateVideoDevice = (id: string, label: string) =>
+export const assureVideoDevice = (id: string, label: string) =>
   assureDeviceId(id, label, 'camera')
-export const validateAudioInDevice = (id: string, label: string) =>
+export const assureAudioInDevice = (id: string, label: string) =>
   assureDeviceId(id, label, 'microphone')
-export const validateAudioOutDevice = (id: string, label: string) =>
+export const assureAudioOutDevice = (id: string, label: string) =>
   assureDeviceId(id, label, 'speaker')
-
-export const checkDeviceIdConstraints = async (
-  id: string,
-  label: string,
-  name: DevicePermissionName,
-  constraints: MediaTrackConstraints
-) => {
-  const { deviceId = null } = constraints
-  if (deviceId === null && (id || label)) {
-    const deviceId = await assureDeviceId(id, label, name).catch(
-      (_error) => null
-    )
-    if (deviceId) {
-      constraints.deviceId = { exact: deviceId }
-    }
-  }
-  return constraints
-}
 
 export const requestPermissions = async (
   constraints: MediaStreamConstraints
@@ -318,11 +265,10 @@ type TargetPermission = Record<
   [Partial<DevicePermissionName>, boolean][]
 >
 
-const CHECK_SUPPORT_MAP: Partial<
-  Record<DevicePermissionName, () => boolean>
-> = {
-  speaker: WebRTC.supportsMediaOutput,
-}
+const CHECK_SUPPORT_MAP: Partial<Record<DevicePermissionName, () => boolean>> =
+  {
+    speaker: WebRTC.supportsMediaOutput,
+  }
 
 const checkTargetPermissions = async (options: {
   targets?: DevicePermissionName[]
@@ -461,10 +407,8 @@ export const createDeviceWatcher = async (
   options: CreateDeviceWatcherOptions = {}
 ) => {
   const targets = await validateTargets({ targets: options.targets })
-  const emitter: StrictEventEmitter<
-    EventEmitter,
-    DeviceWatcherEvents
-  > = new EventEmitter()
+  const emitter: StrictEventEmitter<EventEmitter, DeviceWatcherEvents> =
+    new EventEmitter()
   const currentDevices = await WebRTC.enumerateDevices()
   const kinds = targets?.reduce((reducer, name) => {
     const kind = _getMediaDeviceKindByName(name)

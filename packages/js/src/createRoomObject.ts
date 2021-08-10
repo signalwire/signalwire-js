@@ -1,24 +1,21 @@
-import { logger, UserOptions } from '@signalwire/core'
+import { UserOptions } from '@signalwire/core'
+import { RoomObject } from './utils/interfaces'
 import { createClient } from './createClient'
-import { videoElementFactory } from './utils/videoElementFactory'
+import { MakeRoomOptions } from './Client'
 
-export interface CreateRoomObjectOptions extends UserOptions {
-  audio: MediaStreamConstraints['audio']
-  video: MediaStreamConstraints['video']
-  iceServers?: RTCIceServer[]
-  rootElementId?: string
-  applyLocalVideoOverlay?: boolean
+export interface CreateRoomObjectOptions extends UserOptions, MakeRoomOptions {
   autoJoin?: boolean
-  stopCameraWhileMuted?: boolean
-  stopMicrophoneWhileMuted?: boolean
+}
+const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
+  aspectRatio: { ideal: 16 / 9 },
 }
 
 /**
  * ## Intro
- * Using Video.createRoomObject you can create an RTCSession to join a room.
+ * Using Video.createRoomObject() you can create a `RoomObject` to join a room.
  *
  * ## Examples
- * Create the rtcSession object using the JWT.
+ * Create a roomObject using the token.
  *
  * @example
  * With an HTMLDivElement with id="root" in the DOM.
@@ -26,18 +23,20 @@ export interface CreateRoomObjectOptions extends UserOptions {
  * // <div id="root"></div>
  *
  * try {
- *   const rtcSession = await VideoSDK.createRTCSession({
+ *   const roomObj = await Video.createRoomObject({
  *     token: '<YourJWT>',
  *     rootElementId: 'root',
  *   })
  *
- *   rtcSession.join()
+ *   roomObj.join()
  * } catch (error) {
  *   console.error('Error', error)
  * }
  * ```
  */
-export const createRoomObject = (roomOptions: CreateRoomObjectOptions) => {
+export const createRoomObject = (
+  roomOptions: CreateRoomObjectOptions
+): Promise<RoomObject> => {
   return new Promise(async (resolve, reject) => {
     const {
       audio = true,
@@ -63,67 +62,17 @@ export const createRoomObject = (roomOptions: CreateRoomObjectOptions) => {
       return
     }
 
-    const room = client.rooms.makeCall({
-      destinationNumber: 'room',
-      callerName: '',
-      callerNumber: '',
+    const room = client.rooms.makeRoomObject({
       audio,
-      video,
+      video: video === true ? VIDEO_CONSTRAINTS : video,
       negotiateAudio: true,
       negotiateVideo: true,
       iceServers,
+      rootElementId,
+      applyLocalVideoOverlay,
+      stopCameraWhileMuted,
+      stopMicrophoneWhileMuted,
     })
-
-    if (rootElementId) {
-      const {
-        rtcTrackHandler,
-        destroyHandler,
-        layoutChangedHandler,
-        showOverlay,
-        hideOverlay,
-      } = videoElementFactory({ rootElementId, applyLocalVideoOverlay })
-      room.on('layout.changed', (params: any) => {
-        layoutChangedHandler({
-          layout: params.layout,
-          localVideoTrack: room.localVideoTrack,
-          myMemberId: room.memberId,
-        })
-      })
-
-      // Attach the listener only with stopMicrophoneWhileMuted: true
-      if (stopMicrophoneWhileMuted) {
-        room.on('member.updated.audio_muted', (params: any) => {
-          try {
-            const { member } = params
-            if (member.id === room.memberId && 'audio_muted' in member) {
-              member.audio_muted
-                ? room.stopOutboundAudio()
-                : room.restoreOutboundAudio()
-            }
-          } catch (error) {
-            logger.error('Error handling audio_muted', error)
-          }
-        })
-      }
-
-      room.on('member.updated.video_muted', (params: any) => {
-        try {
-          const { member } = params
-          if (member.id === room.memberId && 'video_muted' in member) {
-            member.video_muted ? hideOverlay(member.id) : showOverlay(member.id)
-            if (stopCameraWhileMuted) {
-              member.video_muted
-                ? room.stopOutboundVideo()
-                : room.restoreOutboundVideo()
-            }
-          }
-        } catch (error) {
-          logger.error('Error handling video_muted', error)
-        }
-      })
-      room.on('track', rtcTrackHandler)
-      room.once('destroy', destroyHandler)
-    }
 
     // WebRTC connection left the room.
     room.once('destroy', () => {

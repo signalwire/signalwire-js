@@ -118,7 +118,7 @@
             </div>
           </div>
           <div class="row py-2">
-            <div class="col-6">
+            <div class="col-4">
               <div class="btn-group w-100" role="group">
                 <button
                   id="muteSelfBtn"
@@ -138,7 +138,7 @@
                 </button>
               </div>
             </div>
-            <div class="col-6">
+            <div class="col-4">
               <div class="btn-group w-100" role="group">
                 <button
                   id="muteVideoSelfBtn"
@@ -155,6 +155,26 @@
                   disabled="true"
                 >
                   Video UnMute Self
+                </button>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="btn-group w-100" role="group">
+                <button
+                  id="hideScreenShareBtn"
+                  class="btn btn-warning px-3 mt-2 d-none"
+                  onClick="startScreenShare()"
+                  disabled="true"
+                >
+                  Start Screenshare
+                </button>
+                <button
+                  id="showScreenShareBtn"
+                  class="btn btn-warning px-3 mt-2 d-none"
+                  onClick="stopScreenShare()"
+                  disabled="true"
+                >
+                  Stop Screenshare
                 </button>
               </div>
             </div>
@@ -244,6 +264,43 @@
                 value="4"
                 id="inputSensitivity"
               />
+            </div>
+          </div>
+
+          <div id="controlLayout" class="row py-2 d-none">
+            <div class="col-4">
+              <label for="microphoneSelect" class="form-label">
+                Microphone
+              </label>
+              <select
+                class="form-select"
+                value=""
+                id="microphoneSelect"
+                onchange="changeMicrophone(this)"
+              ></select>
+              <label for="speakerSelect" class="form-label"> Speaker </label>
+              <select
+                class="form-select"
+                value=""
+                id="speakerSelect"
+                onchange="changeSpeaker(this)"
+              ></select>
+              <label for="cameraSelect" class="form-label"> Video </label>
+              <select
+                class="form-select"
+                value=""
+                id="cameraSelect"
+                onchange="changeCamera(this)"
+              ></select>
+            </div>
+            <div class="col-4">
+              <label for="layout" class="form-label"> Change Layout </label>
+              <select
+                class="form-select"
+                onchange="changeLayout(this)"
+                value=""
+                id="layout"
+              ></select>
             </div>
           </div>
         </div>

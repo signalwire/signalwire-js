@@ -1,4 +1,9 @@
 {
   "extends": "../../tsconfig.json",
-  "include": ["./src/**/*.ts", "../core/src/index.ts"]
+  "compilerOptions": {
+    "emitDeclarationOnly": true,
+    "outDir": "dist"
+  },
+  "include": ["./src/**/*.ts", "../core/src/**/*.ts"],
+  "exclude": ["**/*.test.ts"]
 }

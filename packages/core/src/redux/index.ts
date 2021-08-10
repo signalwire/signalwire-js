@@ -13,6 +13,8 @@ interface ConfigureStoreOptions {
   preloadedState?: Partial<SDKState>
 }
 
+export type SDKStore = ReturnType<typeof configureStore>
+
 const configureStore = (options: ConfigureStoreOptions) => {
   const {
     userOptions,
@@ -42,7 +44,10 @@ const configureStore = (options: ConfigureStoreOptions) => {
     sagaMiddleware.run(saga, userOptions)
   }
 
-  return store
+  return {
+    ...store,
+    runSaga: sagaMiddleware.run,
+  }
 }
 
 export { connect, configureStore }

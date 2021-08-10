@@ -1,24 +1,31 @@
-import { SagaIterator, Channel, eventChannel, EventChannel } from 'redux-saga'
-import { call, put, take, fork } from 'redux-saga/effects'
+import { SagaIterator, eventChannel, EventChannel } from 'redux-saga'
+import { call, put, take, fork, select } from '@redux-saga/core/effects'
 import { PayloadAction } from '@reduxjs/toolkit'
-import { Session } from '../../..'
+import { BaseSession } from '../../../BaseSession'
 import { VertoResult } from '../../../RPCMessages'
+import { JSONRPCRequest } from '../../../utils/interfaces'
+import type {
+  VideoAPIEventParams,
+  SwEventParams,
+  WebRTCMessageParams,
+} from '../../../types'
 import {
-  JSONRPCRequest,
-  ConferenceWorkerParams,
-  BladeBroadcastParams,
-} from '../../../utils/interfaces'
-import { ExecuteActionParams, WebRTCCall } from '../../interfaces'
-import { executeAction, socketMessage } from '../../actions'
+  ExecuteActionParams,
+  WebRTCCall,
+  PubSubChannel,
+} from '../../interfaces'
+import { executeAction, socketMessageAction } from '../../actions'
 import { componentActions } from '../'
-import { BladeMethod, VertoMethod } from '../../../utils/constants'
-import { BladeExecute } from '../../../RPCMessages'
+import { RPCExecute } from '../../../RPCMessages'
 import { logger } from '../../../utils'
+import { getAuthStatus } from '../session/sessionSelectors'
+import { getComponent } from '../component/componentSelectors'
+import { SessionAuthStatus } from '../../../utils/interfaces'
 
 type SessionSagaParams = {
-  session: Session
+  session: BaseSession
   sessionChannel: EventChannel<unknown>
-  pubSubChannel: Channel<unknown>
+  pubSubChannel: PubSubChannel
 }
 
 type VertoWorkerParams = {
@@ -26,19 +33,26 @@ type VertoWorkerParams = {
   nodeId: string
 }
 
+// TODO: Move TypeGuards to its own module
+const isWebrtcEvent = (e: SwEventParams): e is WebRTCMessageParams => {
+  return e?.event_type === 'webrtc.message'
+}
+const isVideoEvent = (e: SwEventParams): e is VideoAPIEventParams => {
+  return !!e?.event_type?.startsWith('video.')
+}
+
 /**
  * Watch every "executeAction" and fork the worker to send
- * a BladeExecute over the wire and then update the state
+ * a JSONRPC over the wire and then update the state
  * with "componentActions.executeSuccess" or "componentActions.executeFailure"
  * actions if a componentId is provided.
  */
-export function* executeActionWatcher(session: Session): SagaIterator {
+export function* executeActionWatcher(session: BaseSession): SagaIterator {
   function* worker(action: PayloadAction<ExecuteActionParams>): SagaIterator {
     const { componentId, requestId, method, params } = action.payload
     try {
-      const message = BladeExecute({
+      const message = RPCExecute({
         id: requestId,
-        protocol: session.relayProtocol,
         method,
         params,
       })
@@ -69,7 +83,11 @@ export function* executeActionWatcher(session: Session): SagaIterator {
 
   while (true) {
     const action = yield take(executeAction.type)
-    yield fork(worker, action)
+    const authStatus: SessionAuthStatus = yield select(getAuthStatus)
+
+    if (authStatus === 'authorized') {
+      yield fork(worker, action)
+    }
   }
 }
 
@@ -83,7 +101,7 @@ export function* sessionChannelWatcher({
     const { id, method, params = {} } = jsonrpc
 
     switch (method) {
-      case VertoMethod.Media: {
+      case 'verto.media': {
         const component = {
           id: params.callID,
           state: 'early',
@@ -102,7 +120,7 @@ export function* sessionChannelWatcher({
         )
         break
       }
-      case VertoMethod.Answer: {
+      case 'verto.answer': {
         const component: WebRTCCall = {
           id: params.callID,
           state: 'active',
@@ -123,7 +141,7 @@ export function* sessionChannelWatcher({
         )
         break
       }
-      case VertoMethod.Bye: {
+      case 'verto.bye': {
         const component: WebRTCCall = {
           id: params.callID,
           state: 'hangup',
@@ -144,7 +162,7 @@ export function* sessionChannelWatcher({
         )
         break
       }
-      case VertoMethod.Ping:
+      case 'verto.ping':
         yield put(
           executeAction({
             method: 'video.message',
@@ -155,26 +173,26 @@ export function* sessionChannelWatcher({
           })
         )
         break
-      case VertoMethod.Punt:
+      case 'verto.punt':
         return session.disconnect()
-      // case VertoMethod.Invite:
+      // case 'verto.invite':
       //   break
-      // case VertoMethod.Attach:
+      // case 'verto.attach':
       //   break
-      case VertoMethod.Info:
+      case 'verto.info':
         return logger.debug('Verto Info', params)
-      case VertoMethod.ClientReady:
+      case 'verto.clientReady':
         return logger.debug('Verto ClientReady', params)
-      case VertoMethod.Announce:
+      case 'verto.announce':
         return logger.debug('Verto Announce', params)
       default:
         return logger.debug(`Unknown Verto method: ${method}`, params)
     }
   }
 
-  function* conferenceWorker(params: ConferenceWorkerParams) {
+  function* videoAPIWorker(params: VideoAPIEventParams): SagaIterator {
     switch (params.event_type) {
-      case 'room.subscribed': {
+      case 'video.room.subscribed': {
         yield put(
           componentActions.upsert({
             id: params.params.call_id,
@@ -185,18 +203,54 @@ export function* sessionChannelWatcher({
         )
         // Rename "room.subscribed" with "room.joined" for the end-user
         yield put(pubSubChannel, {
-          type: 'room.joined',
+          type: 'video.room.joined',
           payload: params.params,
         })
         break
       }
-      case 'member.updated': {
+      case 'video.member.updated': {
         const {
           member: { updated = [] },
         } = params.params
         for (const key of updated) {
+          const type = `video.member.updated.${key}` as const
           yield put(pubSubChannel, {
-            type: `member.updated.${key}`,
+            type,
+            payload: params.params,
+          })
+        }
+        break
+      }
+      case 'video.member.joined': {
+        /**
+         * On video.member.joined with a parent_id, check if we are the
+         * owner of the object comparing parent_id in the state.
+         * If so update the state with the room values to update the
+         * object (= trigger `onRoomSubscribed`).
+         */
+        const { member } = params.params
+        if (member?.parent_id) {
+          const parent = yield select(getComponent, member.parent_id)
+          if (parent) {
+            yield put(
+              componentActions.upsert({
+                id: member.id,
+                roomId: params.params.room_id,
+                roomSessionId: params.params.room_session_id,
+                memberId: member.id,
+              })
+            )
+          }
+        }
+        break
+      }
+      case 'video.member.talking': {
+        const { member } = params.params
+        if ('talking' in member) {
+          const suffix = member.talking ? 'start' : 'stop'
+          const type = `video.member.talking.${suffix}` as const
+          yield put(pubSubChannel, {
+            type,
             payload: params.params,
           })
         }
@@ -211,63 +265,39 @@ export function* sessionChannelWatcher({
     })
   }
 
-  function* bladeBroadcastWorker(broadcastParams: BladeBroadcastParams) {
-    if (broadcastParams?.protocol !== session.relayProtocol) {
-      return logger.error('Session protocol mismatch.')
+  function* swEventWorker(broadcastParams: SwEventParams) {
+    if (isWebrtcEvent(broadcastParams)) {
+      yield fork(vertoWorker, {
+        jsonrpc: broadcastParams.params,
+        nodeId: broadcastParams.node_id,
+      })
+      return
+    }
+    if (isVideoEvent(broadcastParams)) {
+      yield fork(videoAPIWorker, broadcastParams)
+      return
     }
 
-    switch (broadcastParams.event) {
-      case 'queuing.relay.events': {
-        const { params } = broadcastParams || {}
-        if (params.event_type === 'webrtc.message') {
-          yield fork(vertoWorker, {
-            jsonrpc: params.params,
-            nodeId: params.node_id,
-          })
-        } else {
-          logger.debug('Relay Calling event:', params)
-          // session.calling.notificationHandler(params)
-        }
-        break
-      }
-      case 'conference': {
-        logger.debug('Conference event:', broadcastParams.params)
-        yield fork(conferenceWorker, broadcastParams.params)
-        break
-      }
-      case 'queuing.relay.tasks': {
-        logger.debug('Relay Task event:', broadcastParams.params)
-        // session.tasking.notificationHandler(params)
-        break
-      }
-      case 'queuing.relay.messaging': {
-        logger.debug('Relay Task event:', broadcastParams.params)
-        // session.messaging.notificationHandler(params)
-        break
-      }
-      default: {
-        if ('development' === process.env.NODE_ENV) {
-          // @ts-expect-error
-          throw new Error(`Unknown broadcast event: ${broadcastParams.event}`)
-        }
-        return logger.debug('Unknown broadcast event', broadcastParams)
-      }
+    if ('development' === process.env.NODE_ENV) {
+      // @ts-expect-error
+      throw new Error(`Unknown broadcast event: ${broadcastParams.event}`)
     }
+    return logger.debug('Unknown broadcast event', broadcastParams)
   }
 
   function* sessionChannelWorker(
     action: PayloadAction<JSONRPCRequest>
   ): SagaIterator {
     logger.debug('Inbound WebSocket Message', action)
-    if (action.type !== socketMessage.type) {
+    if (action.type !== socketMessageAction.type) {
       yield put(action)
       return
     }
     const { method, params } = action.payload
 
     switch (method) {
-      case BladeMethod.Broadcast:
-        yield fork(bladeBroadcastWorker, params as BladeBroadcastParams)
+      case 'signalwire.event':
+        yield fork(swEventWorker, params as SwEventParams)
         break
       default:
         return logger.debug(`Unknown message: ${method}`, action)
@@ -291,7 +321,7 @@ export function* sessionChannelWatcher({
   }
 }
 
-export function createSessionChannel(session: Session) {
+export function createSessionChannel(session: BaseSession) {
   return eventChannel((emit) => {
     session.dispatch = (payload: PayloadAction<any>) => {
       emit(payload)

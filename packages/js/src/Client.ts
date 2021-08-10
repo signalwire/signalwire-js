@@ -1,24 +1,52 @@
-import { connect, SignalWire } from '@signalwire/core'
-import { Call, CallEvents, CallOptions } from '@signalwire/webrtc'
-import StrictEventEmitter from 'strict-event-emitter-types'
-import { videoElementFactory } from './utils/videoElementFactory'
+import { logger, connect, BaseClient } from '@signalwire/core'
+import type { CustomSaga } from '@signalwire/core'
+import { ConnectionOptions } from '@signalwire/webrtc'
+import { makeMediaElementsSaga } from './features/mediaElements/mediaElementsSagas'
+import type { RoomObject } from './utils/interfaces'
+import { Room } from './Room'
 
-interface MakeCallOptions extends CallOptions {
+export interface MakeRoomOptions extends ConnectionOptions {
   rootElementId?: string
   applyLocalVideoOverlay?: boolean
+  stopCameraWhileMuted?: boolean
+  stopMicrophoneWhileMuted?: boolean
 }
 
-export class Client extends SignalWire {
+export class Client extends BaseClient {
   get rooms() {
     return {
-      makeCall: (options: MakeCallOptions) => {
-        const call: StrictEventEmitter<Call, CallEvents> = connect({
+      makeRoomObject: (makeRoomOptions: MakeRoomOptions) => {
+        const {
+          rootElementId,
+          applyLocalVideoOverlay = true,
+          stopCameraWhileMuted = true,
+          stopMicrophoneWhileMuted = true,
+          ...options
+        } = makeRoomOptions
+
+        const customSagas: Array<CustomSaga<Room>> = []
+
+        /**
+         * If the user provides a `roomElementId` we'll automatically
+         * handle the Audio and Video elements for them
+         */
+        if (rootElementId) {
+          customSagas.push(
+            makeMediaElementsSaga({
+              rootElementId,
+              applyLocalVideoOverlay,
+            })
+          )
+        }
+
+        const room: RoomObject = connect({
           store: this.store,
-          Component: Call,
-          onStateChangeListeners: {
+          Component: Room,
+          customSagas,
+          componentListeners: {
             state: 'onStateChange',
             remoteSDP: 'onRemoteSDP',
-            roomId: 'onRoomId',
+            roomId: 'onRoomSubscribed',
             errors: 'onError',
             responses: 'onSuccess',
           },
@@ -27,25 +55,41 @@ export class Client extends SignalWire {
           emitter: this.options.emitter,
         })
 
-        const { rootElementId, applyLocalVideoOverlay } = options
-        if (rootElementId) {
-          const {
-            rtcTrackHandler,
-            destroyHandler,
-            layoutChangedHandler,
-          } = videoElementFactory({ rootElementId, applyLocalVideoOverlay })
-          call.on('layout.changed', (params) => {
-            layoutChangedHandler({
-              layout: params.layout,
-              localVideoTrack: call.localVideoTrack,
-              myMemberId: call.memberId,
-            })
+        /**
+         * Stop and Restore outbound audio on audio_muted event
+         */
+        if (stopMicrophoneWhileMuted) {
+          room.on('member.updated.audio_muted', ({ member }) => {
+            try {
+              if (member.id === room.memberId && 'audio_muted' in member) {
+                member.audio_muted
+                  ? room.stopOutboundAudio()
+                  : room.restoreOutboundAudio()
+              }
+            } catch (error) {
+              logger.error('Error handling audio_muted', error)
+            }
           })
-          call.on('track', rtcTrackHandler)
-          call.on('destroy', destroyHandler)
         }
 
-        return call
+        /**
+         * Stop and Restore outbound video on video_muted event
+         */
+        if (stopCameraWhileMuted) {
+          room.on('member.updated.video_muted', ({ member }) => {
+            try {
+              if (member.id === room.memberId && 'video_muted' in member) {
+                member.video_muted
+                  ? room.stopOutboundVideo()
+                  : room.restoreOutboundVideo()
+              }
+            } catch (error) {
+              logger.error('Error handling video_muted', error)
+            }
+          })
+        }
+
+        return room
       },
     }
   }

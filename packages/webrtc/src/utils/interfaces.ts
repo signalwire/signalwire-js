@@ -1,260 +1,75 @@
-/**
- * TODO: Audit interfaces and remove unused
- */
-
-import type {
-  CallEventNames,
-  CallState,
-  EventsHandlerMapping,
-} from '@signalwire/core'
-import type { Call } from '../Call'
-
-export interface CallOptions {
-  // Required
-  destinationNumber: string
-  remoteCallerName: string
-  remoteCallerNumber: string
-  callerName: string
-  callerNumber: string
-  // Optional
+export interface ConnectionOptions {
+  // TODO: Not used anymore but required for backend
+  /** @internal */
+  destinationNumber?: string
+  /** @internal */
+  remoteCallerName?: string
+  /** @internal */
+  remoteCallerNumber?: string
+  /** @internal */
+  callerName?: string
+  /** @internal */
+  callerNumber?: string
+  // --
+  /** @internal */
   sessionid?: string
-  id?: string
+  /** @internal */
   remoteSdp?: string
+  /** @internal */
   localStream?: MediaStream
+  /** @internal */
   remoteStream?: MediaStream
-  localElement?: HTMLMediaElement | string | Function
-  remoteElement?: HTMLMediaElement | string | Function
   iceServers?: RTCIceServer[]
-  audio?: boolean | MediaTrackConstraints
-  video?: boolean | MediaTrackConstraints
+  audio?: MediaStreamConstraints['audio']
+  video?: MediaStreamConstraints['video']
+  /** @internal */
   attach?: boolean
+  /** @internal */
   useStereo?: boolean
+  /** @internal */
   micId?: string
+  /** @internal */
   micLabel?: string
+  /** @internal */
   camId?: string
+  /** @internal */
   camLabel?: string
+  /** @internal */
   speakerId?: string
+  /** @internal */
   userVariables?: { [key: string]: any }
+  /** @internal */
   screenShare?: boolean
-  secondSource?: boolean
+  /** @internal */
+  additionalDevice?: boolean
+  /** @internal */
   recoverCall?: boolean
-  skipNotifications?: boolean
-  skipLiveArray?: boolean
-  onNotification?: Function
+  /** @internal */
   googleMaxBitrate?: number
+  /** @internal */
   googleMinBitrate?: number
+  /** @internal */
   googleStartBitrate?: number
+  /** @internal */
   negotiateAudio?: boolean
+  /** @internal */
   negotiateVideo?: boolean
+  /** @internal */
   sfu?: boolean
+  /** @internal */
   simulcast?: boolean
+  /** @internal */
   msStreamsNumber?: number
+  /** @internal */
   requestTimeout?: number
+  /** @internal */
   shakenCheck?: string
+  /** @internal */
   shakenResult?: string
+  /** @internal */
   autoApplyMediaParams?: boolean
+  /** @internal */
   rtcPeerConfig?: { [key: string]: any }
+  /** @internal */
   iceGatheringTimeout?: number
-}
-
-export interface ICantinaUser {
-  first_name: string
-  last_name: string
-  email: string
-  phone: string
-  avatar: string
-  project: string
-  jwt_token: string
-  scopes: string[]
-  config?: object
-}
-
-export interface VertoPvtData {
-  callID: string
-  nodeId?: string
-  action: string
-  laChannel: string
-  laName: string
-  role: string
-  chatID: string
-  conferenceMemberID: number
-  canvasCount: string
-  modChannel: string
-  chatChannel: string
-  infoChannel: string
-  conferenceName: string
-  conferenceDisplayName: string
-  conferenceMD5: string
-  conferenceUUID: string
-}
-
-export interface IVertoCanvasInfo {
-  canvasID: number
-  totalLayers: number
-  layersUsed: number
-  layoutFloorID: number
-  layoutName: string
-  canvasLayouts: IVertoCanvasLayout[]
-  scale: number
-}
-
-export interface IVertoCanvasLayout {
-  x: number
-  y: number
-  scale: number
-  hscale: number
-  zoom: number
-  border: number
-  floor: number
-  overlap: number
-  screenWidth: number
-  screenHeight: number
-  xPOS: number
-  yPOS: number
-  audioPOS: string
-  memberID: number
-  layerOccupied: boolean
-}
-
-export interface ICanvasInfo {
-  canvasId: number
-  totalLayers: number
-  layersUsed: number
-  layoutFloorId: number
-  layoutName: string
-  canvasLayouts: ICanvasLayout[]
-  scale: number
-  layoutOverlap: boolean
-}
-
-export interface ICanvasLayout {
-  x: number
-  y: number
-  startX: string
-  startY: string
-  percentageWidth: string
-  percentageHeight: string
-  scale: number
-  hscale: number
-  zoom: number
-  border: number
-  floor: number
-  overlap: number
-  screenWidth: number
-  screenHeight: number
-  xPos: number
-  yPos: number
-  audioPos: string
-  participantId: string
-}
-
-export interface ICallParticipant {
-  id: string
-  role: string
-  layer: ICanvasLayout
-  layerIndex: number
-  isLayerBehind: boolean
-}
-
-export interface IConferenceInfoMember {
-  participantId: string
-  callId: string
-  participantNumber: string
-  participantName: string
-}
-
-interface IConferenceZone {
-  id: string
-  name: string
-  extVol: number
-}
-
-export interface IConferenceInfo {
-  uuid: string
-  md5: string
-  domain: string
-  running: boolean
-  laChannel: string
-  infoChannel: string
-  chatChannel: string
-  modChannel: string
-  confName: string
-  numMembers: number
-  isPrivate: boolean
-  mohPlaying: boolean
-  filesPlaying: boolean
-  filesRole: string
-  filesPlayingName: string
-  filesPlayingVolume: number
-  filesPlayingPaused: boolean
-  filesSeekable: boolean
-  asyncFilesPlaying: boolean
-  asyncFilesRole: string
-  asyncFilesPlayingName: string
-  asyncFilesPlayingVolume: number
-  asyncFilesPlayingPaused: boolean
-  asyncFilesSeekable: boolean
-  performerDelay: number
-  volAudience: number
-  filesFullScreen: boolean
-  vidFloorRole: string
-  motionQuality: number
-  motionQualityInbound: number
-  videoShuffle: number | string
-  zones: IConferenceZone[]
-  // flags
-  silentMode: boolean
-  blindMode: boolean
-  meetingMode: boolean
-  locked: boolean
-  recording: boolean
-  personalCanvas: boolean
-  personalCanvasTP: number
-  liveMusic: boolean
-  vidMuteHide: boolean
-  logosVisible: boolean
-  handraiseOnscreen: boolean
-  // variables
-  publicClipeeze: boolean
-  confQuality: string
-  accessPin: string
-  moderatorPin: string
-  speakerHighlight: boolean
-  disableIntercom: boolean
-  lastSnapshot: string
-  lastLayoutGroup: string
-  lastLayout: string
-  members?: IConferenceInfoMember[]
-  layouts?: any
-  userRecordFile: string
-  podcastMode: boolean
-}
-
-export interface ILayout {
-  id: string
-  label: string
-  type: string
-  reservationIds: string[]
-  belongsToAGroup: boolean
-}
-
-export interface IVertoLayout {
-  name: string
-  displayName?: string
-  type: string
-  resIDS: string[]
-  groupLayouts?: string[]
-}
-
-export interface IVertoConferenceListParams {
-  showLayouts?: boolean
-  showMembers?: boolean
-  activeSession?: string
-}
-
-type CallEventsHandlerMapping = EventsHandlerMapping &
-  Record<CallState, (params: Call) => void>
-
-export type CallEvents = {
-  [k in CallEventNames | CallState]: CallEventsHandlerMapping[k]
 }

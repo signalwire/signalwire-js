@@ -4,10 +4,8 @@
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
   "private": true,
-  "version": "0.0.0",
-  "source": "src/index.ts",
+  "version": "0.0.1-beta.4",
   "main": "dist/index.js",
-  "exports": "./dist/index.modern.js",
   "module": "dist/index.esm.js",
   "files": [
     "dist",
@@ -17,13 +15,13 @@
     "node": ">=10"
   },
   "scripts": {
-    "start": "microbundle watch -f modern --define process.env.NODE_ENV=development --tsconfig tsconfig.build.json",
-    "build": "pkg-typings --pre-run && microbundle --external none -f modern,es,cjs --define process.env.NODE_ENV=production --tsconfig ./tsconfig.build.json --target node && pkg-typings --after-run",
+    "start": "sw-build --dev --node",
+    "build": "tsc --project tsconfig.build.json && sw-build --node",
     "test": "NODE_ENV=test jest",
     "prepare": "npm run build"
   },
   "dependencies": {
-    "@signalwire/core": "0.0.0",
-    "@signalwire/webrtc": "0.0.0"
+    "@signalwire/core": "3.0.0",
+    "@signalwire/webrtc": "3.0.0"
   }
 }

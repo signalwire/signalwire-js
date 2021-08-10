@@ -5,24 +5,23 @@ import {
   sdpBitrateHack,
   sdpMediaOrderHack,
 } from './utils/sdpHelpers'
-import { PeerType } from './utils/constants'
-import { BaseCall } from './BaseCall'
+import { BaseConnection } from './BaseConnection'
 import {
   sdpToJsonHack,
   RTCPeerConnection,
   streamIsValid,
   stopTrack,
 } from './utils/webrtcHelpers'
-import { CallOptions } from './utils/interfaces'
+import { ConnectionOptions } from './utils/interfaces'
 
 export default class RTCPeer {
   public instance: RTCPeerConnection
 
-  private options: CallOptions
+  private options: ConnectionOptions
   private _iceTimeout: any
   private _negotiating = false
 
-  constructor(public call: BaseCall, public type: PeerType) {
+  constructor(public call: BaseConnection, public type: RTCSdpType) {
     this.options = call.options
     logger.info('New Peer with type:', this.type, 'Options:', this.options)
 
@@ -32,11 +31,11 @@ export default class RTCPeer {
   }
 
   get isOffer() {
-    return this.type === PeerType.Offer
+    return this.type === 'offer'
   }
 
   get isAnswer() {
-    return this.type === PeerType.Answer
+    return this.type === 'answer'
   }
 
   get isSimulcast() {
@@ -197,7 +196,7 @@ export default class RTCPeer {
         return logger.info('No sender to apply constraints', kind, constraints)
       }
       if (sender.track.readyState === 'live') {
-        logger.info(`Apply ${kind} constraints`, this.options.id, constraints)
+        logger.info(`Apply ${kind} constraints`, this.call.id, constraints)
         await sender.track.applyConstraints(constraints)
       }
     } catch (error) {
@@ -206,12 +205,20 @@ export default class RTCPeer {
   }
 
   private _getSenderByKind(kind: string) {
+    if (!this.instance.getSenders) {
+      logger.warn('RTCPeerConnection.getSenders() not available.')
+      return null
+    }
     return this.instance
       .getSenders()
       .find(({ track }) => track && track.kind === kind)
   }
 
   private _getReceiverByKind(kind: string) {
+    if (!this.instance.getReceivers) {
+      logger.warn('RTCPeerConnection.getReceivers() not available.')
+      return null
+    }
     return this.instance
       .getReceivers()
       .find(({ track }) => track && track.kind === kind)
@@ -223,8 +230,11 @@ export default class RTCPeer {
     }
     this._negotiating = true
     try {
-      if (this.options.secondSource === true) {
-        this.instance.getTransceivers().forEach((tr) => {
+      /**
+       * additionalDevice and screenShare are `sendonly`
+       */
+      if (this.options.additionalDevice || this.options.screenShare) {
+        this.instance.getTransceivers?.().forEach((tr) => {
           tr.direction = 'sendonly'
         })
       }
@@ -235,6 +245,12 @@ export default class RTCPeer {
       if (this.isOffer) {
         logger.info('Trying to generate offer')
         const offer = await this.instance.createOffer({
+          /**
+           * While this property is deprected, on Browsers where this
+           * is still supported this avoids conflicting with the VAD
+           * server-side
+           */
+          // @ts-ignore
           voiceActivityDetection: false,
         })
         await this._setLocalDescription(offer)
@@ -244,9 +260,11 @@ export default class RTCPeer {
         logger.info('Trying to generate answer')
         await this._setRemoteDescription({
           sdp: this.options.remoteSdp,
-          type: PeerType.Offer,
+          type: 'offer',
         })
         const answer = await this.instance.createAnswer({
+          // Same as above.
+          // @ts-ignore
           voiceActivityDetection: false,
         })
         await this._setLocalDescription(answer)
@@ -265,13 +283,10 @@ export default class RTCPeer {
 
   async onRemoteSdp(sdp: string) {
     try {
-      const type = this.isOffer ? PeerType.Answer : PeerType.Offer
+      const type = this.isOffer ? 'answer' : 'offer'
       await this._setRemoteDescription({ sdp, type })
     } catch (error) {
-      logger.error(
-        `Error handling remote SDP on call ${this.options.id}:`,
-        error
-      )
+      logger.error(`Error handling remote SDP on call ${this.call.id}:`, error)
       this.call.hangup()
     }
   }
@@ -353,7 +368,7 @@ export default class RTCPeer {
   private _checkMediaToNegotiate(kind: string) {
     // addTransceiver of 'kind' if not present
     const sender = this._getSenderByKind(kind)
-    if (!sender) {
+    if (!sender && this.instance.addTransceiver) {
       const transceiver = this.instance.addTransceiver(kind)
       logger.debug('Add transceiver', kind, transceiver)
     }
