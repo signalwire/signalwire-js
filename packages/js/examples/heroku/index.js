@@ -306,7 +306,7 @@ window.changeMicrophone = (select) => {
   if (!select.value) {
     return
   }
-  roomObj.updateMicrophone(select.value)
+  roomObj.updateMicrophone({ deviceId: select.value })
 }
 
 window.changeCamera = (select) => {
@@ -314,7 +314,7 @@ window.changeCamera = (select) => {
   if (!select.value) {
     return
   }
-  roomObj.updateCamera(select.value)
+  roomObj.updateCamera({ deviceId: select.value })
 }
 
 window.changeSpeaker = (select) => {
