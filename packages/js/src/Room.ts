@@ -14,6 +14,7 @@ import {
   BaseRoomInterface,
   RoomMethods,
 } from './utils/interfaces'
+import { ROOM_COMPONENT_LISTENERS } from './utils/constants'
 import { audioSetSpeakerAction } from './features/actions'
 import { RoomScreenShare } from './RoomScreenShare'
 import { RoomDevice } from './RoomDevice'
@@ -49,13 +50,7 @@ class Room extends BaseConnection implements BaseRoomInterface {
     const screenShare: RoomScreenShareObject = connect({
       store: this.store,
       Component: RoomScreenShare,
-      componentListeners: {
-        state: 'onStateChange',
-        remoteSDP: 'onRemoteSDP',
-        roomId: 'onRoomSubscribed',
-        errors: 'onError',
-        responses: 'onSuccess',
-      },
+      componentListeners: ROOM_COMPONENT_LISTENERS,
     })(options)
 
     /**
@@ -132,13 +127,7 @@ class Room extends BaseConnection implements BaseRoomInterface {
     const roomDevice: RoomDeviceObject = connect({
       store: this.store,
       Component: RoomDevice,
-      componentListeners: {
-        state: 'onStateChange',
-        remoteSDP: 'onRemoteSDP',
-        roomId: 'onRoomSubscribed',
-        errors: 'onError',
-        responses: 'onSuccess',
-      },
+      componentListeners: ROOM_COMPONENT_LISTENERS,
     })(options)
 
     roomDevice.on('destroy', () => {
