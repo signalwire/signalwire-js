@@ -175,6 +175,22 @@ export function* sessionChannelWatcher({
         break
       case 'verto.punt':
         return session.disconnect()
+      case 'verto.mediaParams': {
+        const { callID, mediaParams = {} } = params
+        if (!callID) {
+          logger.debug(`Invalid mediaParams event`, params)
+          break
+        }
+        const component: WebRTCCall = { id: callID }
+        if (mediaParams?.video) {
+          component.videoConstraints = mediaParams.video
+        }
+        if (mediaParams?.audio) {
+          component.audioConstraints = mediaParams.audio
+        }
+        yield put(componentActions.upsert(component))
+        break
+      }
       // case 'verto.invite':
       //   break
       // case 'verto.attach':
