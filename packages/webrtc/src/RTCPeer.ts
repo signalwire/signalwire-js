@@ -200,6 +200,10 @@ export default class RTCPeer {
           ...sender.track.getConstraints(),
           ...constraints,
         }
+        const deviceId = this.getDeviceId(kind)
+        if (deviceId) {
+          newConstraints.deviceId = { exact: deviceId }
+        }
         logger.info(`Apply ${kind} constraints`, this.call.id, newConstraints)
         await sender.track.applyConstraints(newConstraints)
       }
