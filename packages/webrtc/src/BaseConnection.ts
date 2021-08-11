@@ -278,6 +278,22 @@ export class BaseConnection
     }
   }
 
+  /** @internal */
+  onVideoConstraints(component: any) {
+    logger.debug('onVideoConstraints', component)
+    if (component?.videoConstraints) {
+      this.peer.applyMediaConstraints('video', component.videoConstraints)
+    }
+  }
+
+  /** @internal */
+  onAudioConstraints(component: any) {
+    logger.debug('onAudioConstraints', component)
+    if (component?.audioConstraints) {
+      this.peer.applyMediaConstraints('audio', component.audioConstraints)
+    }
+  }
+
   updateCamera(constraints: MediaTrackConstraints) {
     return this.updateConstraints({
       video: {
