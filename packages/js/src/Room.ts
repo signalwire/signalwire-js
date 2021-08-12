@@ -45,6 +45,11 @@ class Room extends BaseConnection implements BaseRoomInterface {
       recoverCall: false,
       localStream: displayStream,
       remoteStream: undefined,
+      userVariables: {
+        ...(this.options.userVariables || {}),
+        memberCallId: this.id,
+        memberId: this.memberId,
+      },
     }
 
     const screenShare: RoomScreenShareObject = connect({
@@ -122,6 +127,11 @@ class Room extends BaseConnection implements BaseRoomInterface {
       video,
       additionalDevice: true,
       recoverCall: false,
+      userVariables: {
+        ...(this.options.userVariables || {}),
+        memberCallId: this.id,
+        memberId: this.memberId,
+      },
     }
 
     const roomDevice: RoomDeviceObject = connect({
