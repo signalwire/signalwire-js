@@ -3,6 +3,7 @@ import type { CustomSaga } from '@signalwire/core'
 import { ConnectionOptions } from '@signalwire/webrtc'
 import { makeMediaElementsSaga } from './features/mediaElements/mediaElementsSagas'
 import type { RoomObject } from './utils/interfaces'
+import { ROOM_COMPONENT_LISTENERS } from './utils/constants'
 import { Room } from './Room'
 
 export interface MakeRoomOptions extends ConnectionOptions {
@@ -43,13 +44,7 @@ export class Client extends BaseClient {
           store: this.store,
           Component: Room,
           customSagas,
-          componentListeners: {
-            state: 'onStateChange',
-            remoteSDP: 'onRemoteSDP',
-            roomId: 'onRoomSubscribed',
-            errors: 'onError',
-            responses: 'onSuccess',
-          },
+          componentListeners: ROOM_COMPONENT_LISTENERS,
         })({
           ...options,
           emitter: this.options.emitter,

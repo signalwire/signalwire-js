@@ -28,6 +28,8 @@ export interface WebRTCCall extends SWComponent {
   byeCause?: string
   byeCauseCode?: number
   redirectDestination?: string
+  audioConstraints?: MediaTrackConstraints
+  videoConstraints?: MediaTrackConstraints
 }
 
 export interface Message extends SWComponent {

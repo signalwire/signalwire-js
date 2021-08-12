@@ -714,6 +714,113 @@ describe('sessionChannelWatcher', () => {
           })
       })
     })
+
+    describe('verto.mediaParams', () => {
+      it('should handle verto.mediaParams event with audio', () => {
+        const jsonrpc = JSON.parse(
+          '{"jsonrpc":"2.0","id":"ac079c2a-8ed0-4713-b217-c1d70d90ffd9","method":"signalwire.event","params":{"event_type":"webrtc.message","event_channel":"signalwire_437fb1b7c9eee487988f50bedd42abbb132c96015a5f9d2b29834a6ed36ef4be_abeab57c-4629-49ae-848d-a12f8bd2fc58_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","timestamp":1628684202.690967,"project_id":"78429ef1-283b-4fa9-8ebc-16b59f95bb1f","node_id":"2ecd18d4-81f6-4206-817d-0f0884ec9dd3@","params":{"jsonrpc":"2.0","id":4,"method":"verto.mediaParams","params":{"callID":"05274260-163b-43b7-805e-b4b14f92baaf","mediaParams":{"audio":{"autoGainControl":false,"echoCancellation":false,"noiseSuppression":false}}}}}}'
+        )
+        let runSaga = true
+        const session = {
+          // relayProtocol: jsonrpc.params.protocol,
+        } as any
+        const pubSubChannel = createPubSubChannel()
+        const sessionChannel = eventChannel(() => () => {})
+        const dispatchedActions: unknown[] = []
+
+        return expectSaga(sessionChannelWatcher, {
+          session,
+          pubSubChannel,
+          sessionChannel,
+        })
+          .provide([
+            {
+              take({ channel }, next) {
+                if (runSaga && channel === sessionChannel) {
+                  runSaga = false
+                  return socketMessageAction(jsonrpc)
+                }
+                sessionChannel.close()
+                pubSubChannel.close()
+                return next()
+              },
+              put(action, next) {
+                dispatchedActions.push(action)
+                return next()
+              },
+            },
+          ])
+          .put(
+            componentActions.upsert({
+              id: '05274260-163b-43b7-805e-b4b14f92baaf',
+              audioConstraints: {
+                autoGainControl: false,
+                echoCancellation: false,
+                noiseSuppression: false,
+              },
+            })
+          )
+          .run()
+          .finally(() => {
+            expect(dispatchedActions).toHaveLength(1)
+          })
+      })
+
+      it('should handle verto.mediaParams event with video', () => {
+        const jsonrpc = JSON.parse(
+          '{"jsonrpc":"2.0","id":"502cbb29-a3d7-4aaf-9e5d-cb9879ea8320","method":"signalwire.event","params":{"event_type":"webrtc.message","event_channel":"signalwire_437fb1b7c9eee487988f50bedd42abbb132c96015a5f9d2b29834a6ed36ef4be_abeab57c-4629-49ae-848d-a12f8bd2fc58_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","timestamp":1628684206.549961,"project_id":"78429ef1-283b-4fa9-8ebc-16b59f95bb1f","node_id":"2ecd18d4-81f6-4206-817d-0f0884ec9dd3@","params":{"jsonrpc":"2.0","id":7,"method":"verto.mediaParams","params":{"callID":"05274260-163b-43b7-805e-b4b14f92baaf","mediaParams":{"video":{"frameRate":{"ideal":20},"aspectRatio":{"exact":1.7777777910232544},"width":644,"height":362}}}}}}'
+        )
+        let runSaga = true
+        const session = {
+          // relayProtocol: jsonrpc.params.protocol,
+        } as any
+        const pubSubChannel = createPubSubChannel()
+        const sessionChannel = eventChannel(() => () => {})
+        const dispatchedActions: unknown[] = []
+
+        return expectSaga(sessionChannelWatcher, {
+          session,
+          pubSubChannel,
+          sessionChannel,
+        })
+          .provide([
+            {
+              take({ channel }, next) {
+                if (runSaga && channel === sessionChannel) {
+                  runSaga = false
+                  return socketMessageAction(jsonrpc)
+                }
+                sessionChannel.close()
+                pubSubChannel.close()
+                return next()
+              },
+              put(action, next) {
+                dispatchedActions.push(action)
+                return next()
+              },
+            },
+          ])
+          .put(
+            componentActions.upsert({
+              id: '05274260-163b-43b7-805e-b4b14f92baaf',
+              videoConstraints: {
+                frameRate: {
+                  ideal: 20,
+                },
+                aspectRatio: {
+                  exact: 1.7777777910232544,
+                },
+                width: 644,
+                height: 362,
+              },
+            })
+          )
+          .run()
+          .finally(() => {
+            expect(dispatchedActions).toHaveLength(1)
+          })
+      })
+    })
   })
 })
 

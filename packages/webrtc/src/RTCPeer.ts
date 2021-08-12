@@ -196,8 +196,16 @@ export default class RTCPeer {
         return logger.info('No sender to apply constraints', kind, constraints)
       }
       if (sender.track.readyState === 'live') {
-        logger.info(`Apply ${kind} constraints`, this.call.id, constraints)
-        await sender.track.applyConstraints(constraints)
+        const newConstraints: MediaTrackConstraints = {
+          ...sender.track.getConstraints(),
+          ...constraints,
+        }
+        const deviceId = this.getDeviceId(kind)
+        if (deviceId) {
+          newConstraints.deviceId = { exact: deviceId }
+        }
+        logger.info(`Apply ${kind} constraints`, this.call.id, newConstraints)
+        await sender.track.applyConstraints(newConstraints)
       }
     } catch (error) {
       logger.error('Error applying constraints', kind, constraints)
