@@ -201,7 +201,7 @@ export default class RTCPeer {
           ...constraints,
         }
         const deviceId = this.getDeviceId(kind)
-        if (deviceId) {
+        if (deviceId && !this.options.screenShare) {
           newConstraints.deviceId = { exact: deviceId }
         }
         logger.info(`Apply ${kind} constraints`, this.call.id, newConstraints)
