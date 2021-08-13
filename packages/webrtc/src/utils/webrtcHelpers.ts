@@ -8,6 +8,15 @@ export const supportsMediaDevices = () => {
   return typeof navigator !== 'undefined' && !!navigator.mediaDevices
 }
 
+export const supportsGetUserMedia = () => {
+  return typeof navigator?.mediaDevices?.getUserMedia === 'function'
+}
+
+export const supportsGetDisplayMedia = () => {
+  // @ts-expect-error
+  return typeof navigator?.mediaDevices?.getDisplayMedia === 'function'
+}
+
 export const getMediaDevicesApi = () => {
   if (!supportsMediaDevices()) {
     throw new Error("The media devices API isn't supported in this environment")
@@ -80,7 +89,7 @@ export const getUserMedia = (
 }
 
 export const getDisplayMedia = (constraints: MediaStreamConstraints) => {
-  // @ts-ignore
+  // @ts-expect-error
   return getMediaDevicesApi().getDisplayMedia(constraints)
 }
 

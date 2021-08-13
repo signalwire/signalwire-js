@@ -17,6 +17,8 @@ export {
   createMicrophoneDeviceWatcher,
   createSpeakerDeviceWatcher,
   supportsMediaDevices,
+  supportsGetUserMedia,
+  supportsGetDisplayMedia,
   getUserMedia,
   getDisplayMedia,
   enumerateDevices,
