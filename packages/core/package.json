@@ -34,7 +34,7 @@
     "start:node": "sw-build --dev --node --watchFormat=cjs",
     "build": "tsc --project tsconfig.build.json && sw-build --web && sw-build --node",
     "test": "NODE_ENV=test jest",
-    "prepare": "npm run build"
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^1.6.0",
