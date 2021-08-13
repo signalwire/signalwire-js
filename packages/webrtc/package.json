@@ -3,7 +3,7 @@
   "description": "SignalWire WebRTC library",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "main": "dist/cjs/webrtc/src/index.js",
   "module": "dist/mjs/webrtc/src/index.js",
   "files": [
@@ -39,7 +39,7 @@
     "docs:watch": "npm run docs -- --watch"
   },
   "dependencies": {
-    "@signalwire/core": "3.0.0"
+    "@signalwire/core": "3.1.0"
   },
   "types": "dist/cjs/webrtc/src/index.d.ts"
 }
