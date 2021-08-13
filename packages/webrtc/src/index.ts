@@ -23,6 +23,8 @@ export {
 } from './utils/deviceHelpers'
 export {
   supportsMediaDevices,
+  supportsGetUserMedia,
+  supportsGetDisplayMedia,
   getUserMedia,
   getDisplayMedia,
   enumerateDevices,

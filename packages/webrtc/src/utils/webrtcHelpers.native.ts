@@ -18,6 +18,14 @@ export const getDisplayMedia = (constraints: MediaStreamConstraints) => {
   return RNmediaDevices.getDisplayMedia(constraints)
 }
 
+export const supportsGetUserMedia = () => {
+  return typeof RNmediaDevices?.getUserMedia === 'function'
+}
+
+export const supportsGetDisplayMedia = () => {
+  return typeof RNmediaDevices?.getDisplayMedia === 'function'
+}
+
 export const enumerateDevices = () => RNmediaDevices.enumerateDevices()
 
 export const enumerateDevicesByKind = async (filterByKind: string) => {
