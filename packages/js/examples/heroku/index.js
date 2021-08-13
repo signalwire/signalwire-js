@@ -242,7 +242,10 @@ window.ready = (callback) => {
 
 let screenShareObj
 window.startScreenShare = async () => {
-  screenShareObj = await roomObj.createScreenShareObject()
+  screenShareObj = await roomObj.createScreenShareObject({
+    audio: true,
+    video: true,
+  })
 }
 window.stopScreenShare = () => {
   screenShareObj.hangup()

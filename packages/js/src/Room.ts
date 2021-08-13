@@ -14,7 +14,10 @@ import {
   BaseRoomInterface,
   RoomMethods,
 } from './utils/interfaces'
-import { ROOM_COMPONENT_LISTENERS } from './utils/constants'
+import {
+  ROOM_COMPONENT_LISTENERS,
+  SCREENSHARE_AUDIO_CONSTRAINTS,
+} from './utils/constants'
 import { audioSetSpeakerAction } from './features/actions'
 import { RoomScreenShare } from './RoomScreenShare'
 import { RoomDevice } from './RoomDevice'
@@ -38,13 +41,21 @@ class Room extends BaseConnection implements BaseRoomInterface {
    */
   async createScreenShareObject(opts: CreateScreenShareObjectOptions = {}) {
     const { autoJoin = true, audio = false, video = true } = opts
-    const displayStream: MediaStream = await getDisplayMedia({ audio, video })
+    const displayStream: MediaStream = await getDisplayMedia({
+      audio: audio === true ? SCREENSHARE_AUDIO_CONSTRAINTS : audio,
+      video,
+    })
     const options: BaseConnectionOptions = {
       ...this.options,
       screenShare: true,
       recoverCall: false,
       localStream: displayStream,
       remoteStream: undefined,
+      userVariables: {
+        ...(this.options?.userVariables || {}),
+        memberCallId: this.id,
+        memberId: this.memberId,
+      },
     }
 
     const screenShare: RoomScreenShareObject = connect({
@@ -122,6 +133,11 @@ class Room extends BaseConnection implements BaseRoomInterface {
       video,
       additionalDevice: true,
       recoverCall: false,
+      userVariables: {
+        ...(this.options?.userVariables || {}),
+        memberCallId: this.id,
+        memberId: this.memberId,
+      },
     }
 
     const roomDevice: RoomDeviceObject = connect({
