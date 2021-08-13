@@ -34,7 +34,6 @@ export interface ConnectionOptions {
   camId?: string
   /** @internal */
   camLabel?: string
-  /** @internal */
   speakerId?: string
   /** @internal */
   userVariables?: { [key: string]: any }

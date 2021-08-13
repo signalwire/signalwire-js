@@ -16,9 +16,11 @@ import type { Room } from '../../Room'
 export const makeMediaElementsSaga = ({
   rootElementId,
   applyLocalVideoOverlay,
+  speakerId,
 }: {
   rootElementId?: string
   applyLocalVideoOverlay?: boolean
+  speakerId?: string
 }) =>
   function* mediaElementsSaga({
     instance: room,
@@ -76,6 +78,7 @@ export const makeMediaElementsSaga = ({
             audioTask = runSaga(audioElementSetupWorker, {
               track: event.track,
               element: audioEl,
+              speakerId,
               room,
             })
             break
@@ -149,13 +152,19 @@ function* audioElementActionsWatcher({
 function* audioElementSetupWorker({
   track,
   element,
+  speakerId,
   room,
 }: {
   track: MediaStreamTrack
   element: HTMLAudioElement
+  speakerId?: string
   room: Room
 }): SagaIterator {
   setAudioMediaTrack({ track, element })
+  if (speakerId) {
+    // Catch no-op since setMediaElementSinkId already provides logs
+    setMediaElementSinkId(element, speakerId).catch(() => {})
+  }
 
   yield fork(audioElementActionsWatcher, {
     element,
