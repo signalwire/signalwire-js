@@ -47,6 +47,7 @@ export const createRoomObject = (
       autoJoin = false,
       stopCameraWhileMuted = true,
       stopMicrophoneWhileMuted = true,
+      speakerId,
       ...userOptions
     } = roomOptions
 
@@ -72,6 +73,7 @@ export const createRoomObject = (
       applyLocalVideoOverlay,
       stopCameraWhileMuted,
       stopMicrophoneWhileMuted,
+      speakerId,
     })
 
     // WebRTC connection left the room.
