@@ -23,7 +23,7 @@ export const supportsGetUserMedia = () => {
 }
 
 export const supportsGetDisplayMedia = () => {
-  return typeof RNmediaDevices.getDisplayMedia === 'function'
+  return typeof RNmediaDevices?.getDisplayMedia === 'function'
 }
 
 export const enumerateDevices = () => RNmediaDevices.enumerateDevices()
