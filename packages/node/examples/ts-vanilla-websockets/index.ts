@@ -11,21 +11,13 @@ async function run() {
       // autoConnect: true,
     })
 
-    const consumer = client.video
-
-    consumer.on('video.room.started', (room: any) => {
+    client.video.on('video.room.started', (room: any) => {
       room.on('video.member.talking', () => {
         console.log('---> MEMBER TALKING!!!')
       })
 
       room.on('video.member.joined', (payload: any) => {
         console.log('---> video.member.joined', payload)
-
-        // TODO: this is failing with the following error:
-        // { code: '-32001', message: 'Permission Denied.' }
-        // room.videoMute({
-        //   memberId: payload.member.id,
-        // })
       })
 
       room.run()
@@ -46,18 +38,9 @@ async function run() {
       console.log('🟢 ROOOM STARTED 🟢')
     })
 
-    consumer.on('video.room.ended', () => {
+    client.video.on('video.room.ended', () => {
       console.log('🔴 ROOOM ENDED 🔴')
     })
-
-    consumer
-      .run()
-      .then(() => {
-        console.log('Consumer running!')
-      })
-      .catch((e) => {
-        console.log(`Consumer couldn't run`, e)
-      })
 
     await client.connect()
   } catch (error) {

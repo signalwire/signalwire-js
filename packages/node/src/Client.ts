@@ -11,19 +11,24 @@ interface Consumer {
   run: () => Promise<unknown>
 }
 
+type ClientNamespaces = 'video'
+
 export class Client extends BaseClient {
-  private _consumers: Consumer[] = []
+  private _consumers: Map<ClientNamespaces, Consumer> = new Map()
 
   async onAuth(session: SessionState) {
-    if (session.authStatus === 'authorized' && session.authCount > 1) {
+    if (session.authStatus === 'authorized') {
       this._consumers.forEach((consumer) => {
         consumer.run()
       })
     }
   }
 
-  get video() {
-    return connect({
+  get video(): Video {
+    if (this._consumers.has('video')) {
+      return this._consumers.get('video') as Video
+    }
+    const video = connect({
       store: this.store,
       Component: Video,
       componentListeners: {
@@ -36,5 +41,7 @@ export class Client extends BaseClient {
       store: this.store,
       emitter: this.options.emitter,
     })
+    this._consumers.set('video', video)
+    return video
   }
 }
