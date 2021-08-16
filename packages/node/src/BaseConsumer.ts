@@ -16,6 +16,7 @@ interface BaseConsumerOptions extends BaseComponentOptions {
 export class BaseConsumer<T extends string> extends BaseComponent {
   private _subscriptions: T[] = []
   protected _namespace: string
+  subscribeParams?: Record<string, any> = {}
 
   constructor(public options: BaseConsumerOptions) {
     super(options)
@@ -49,6 +50,7 @@ export class BaseConsumer<T extends string> extends BaseComponent {
         const execParams: ExecuteParams = {
           method: 'signalwire.subscribe',
           params: {
+            ...this.subscribeParams,
             event_channel: this.eventChannel,
             events: this._subscriptions,
           },

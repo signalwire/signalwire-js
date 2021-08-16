@@ -6,10 +6,12 @@ async function run() {
       host: 'relay.swire.io',
       project: '<project-id>',
       token: '<project-token>',
+      // TODO: this shouldn't be an option since we need to handle
+      // .on() calls
       // autoConnect: true,
     })
 
-    const consumer = client.video.createConsumer()
+    const consumer = client.video
 
     consumer.on('video.room.started', (room: any) => {
       room.on('video.member.talking', () => {
