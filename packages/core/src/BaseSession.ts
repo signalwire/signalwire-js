@@ -57,8 +57,12 @@ export class BaseSession {
   private _status: SessionStatus = 'unknown'
 
   constructor(public options: SessionOptions) {
-    if (options.host) {
-      this._host = checkWebSocketHost(options.host)
+    const { host, logLevel = 'info' } = options
+    if (host) {
+      this._host = checkWebSocketHost(host)
+    }
+    if (logLevel) {
+      this.logger.setLevel(logLevel)
     }
     this._onSocketOpen = this._onSocketOpen.bind(this)
     this._onSocketError = this._onSocketError.bind(this)
