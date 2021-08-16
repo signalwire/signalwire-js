@@ -15,6 +15,11 @@ logger.methodFactory = (methodName, logLevel, loggerName) => {
     rawMethod.apply(undefined, messages)
   }
 }
-logger.setLevel(logger.getLevel())
+
+const level =
+  'development' === process.env.NODE_ENV
+    ? logger.levels.DEBUG
+    : logger.getLevel()
+logger.setLevel(level)
 
 export { logger }
