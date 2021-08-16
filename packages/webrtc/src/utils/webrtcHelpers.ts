@@ -125,10 +125,10 @@ export const setMediaElementSinkId = async (
   deviceId: string
 ): Promise<undefined> => {
   if (el === null) {
-    logger.info('No HTMLMediaElement to attach the speakerId')
+    logger.warn('No HTMLMediaElement to attach the speakerId')
     return
   } else if (typeof deviceId !== 'string') {
-    logger.info(`Invalid speaker deviceId: '${deviceId}'`)
+    logger.warn(`Invalid speaker deviceId: '${deviceId}'`)
     return
   } else if (!supportsMediaOutput()) {
     logger.warn('Browser does not support output device selection.')
