@@ -68,7 +68,11 @@ export class BaseComponent implements Emitter {
    */
   protected _getPrefixedEvent<T>(event: T): T
   protected _getPrefixedEvent(event: string | symbol) {
-    if (typeof event === 'string' && !event.startsWith(this._eventsPrefix)) {
+    if (
+      this._eventsPrefix &&
+      typeof event === 'string' &&
+      !event.startsWith(this._eventsPrefix)
+    ) {
       return `${this._eventsPrefix}${event}`
     }
 
