@@ -3,12 +3,13 @@ import { BaseConsumer } from './BaseConsumer'
 import { Room } from './Room'
 
 class Video extends BaseConsumer {
+  /** @internal */
   protected _eventsPrefix = 'video.' as const
-
-  subscribeParams = {
+  /** @internal */
+  protected subscribeParams = {
     get_initial_state: true,
   }
-
+  /** @internal */
   protected _emitterTransforms = new Map<any, any>([
     [
       'video.room.started',

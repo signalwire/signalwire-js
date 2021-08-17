@@ -14,7 +14,7 @@ interface BaseConsumerOptions extends BaseComponentOptions {
 
 export class BaseConsumer extends BaseComponent {
   protected _namespace: string
-  subscribeParams?: Record<string, any> = {}
+  protected subscribeParams?: Record<string, any> = {}
 
   constructor(public options: BaseConsumerOptions) {
     super(options)
