@@ -13,7 +13,7 @@ interface BaseConsumerOptions extends BaseComponentOptions {
   eventChannel: string
 }
 
-export class BaseConsumer<T extends string> extends BaseComponent {
+export class BaseConsumer<T extends string = string> extends BaseComponent {
   private _subscriptions: T[] = []
   protected _namespace: string
   subscribeParams?: Record<string, any> = {}
@@ -36,12 +36,14 @@ export class BaseConsumer<T extends string> extends BaseComponent {
     return this._subscriptions
   }
 
-  // TODO: hide (at least from docs) methods like .once. etc.
-
-  // TODO: type subscribe to narrow types and handlers
   on(...options: Parameters<Emitter['on']>) {
     this.setSubscription(options[0] as T)
     return super.on(...options)
+  }
+
+  once(...options: Parameters<Emitter['once']>) {
+    this.setSubscription(options[0] as T)
+    return super.once(...options)
   }
 
   run() {
@@ -58,6 +60,7 @@ export class BaseConsumer<T extends string> extends BaseComponent {
 
         try {
           await this.execute(execParams)
+          this._subscriptions = []
         } catch (error) {
           return reject(error)
         }
