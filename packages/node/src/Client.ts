@@ -36,8 +36,12 @@ export class Client extends BaseClient {
         responses: 'onSuccess',
       },
     })({
+      /**
+       * Events at this level will always be global so there's no need
+       * for a namespace.
+       */
       namespace: '',
-      eventChannel: 'rooms',
+      eventChannel: 'video.rooms',
       store: this.store,
       emitter: this.options.emitter,
     })
