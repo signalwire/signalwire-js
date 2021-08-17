@@ -30,7 +30,7 @@ export class BaseConsumer extends BaseComponent {
   }
 
   protected getSubscriptions(): (string | symbol)[] {
-    throw new Error('getSubscriptions is not implemented')
+    return this.eventNames()
   }
 
   run() {

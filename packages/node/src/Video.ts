@@ -11,7 +11,7 @@ class Video extends BaseConsumer {
 
   protected _emitterTransforms = new Map<any, any>([
     [
-      'room.started',
+      'video.room.started',
       (handler: any) => (payload: any) => {
         const room: Room = connect({
           store: this.store,
@@ -33,10 +33,6 @@ class Video extends BaseConsumer {
       },
     ],
   ])
-
-  protected getSubscriptions(): (string | symbol)[] {
-    return this.eventNames()
-  }
 }
 
 const customMethods: RoomCustomMethods<any> = {

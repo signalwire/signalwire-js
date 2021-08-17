@@ -6,20 +6,6 @@ class Room extends BaseConsumer {
 
   // This is needed for the custom methods.
   roomSessionId = this.options.namespace
-
-  /**
-   * Converts events like `member.joined` into `video.member.joined`
-   * @internal
-   */
-  protected getSubscriptions(): (string | symbol)[] {
-    return this.originalEventNames().map((eventName) => {
-      if (typeof eventName === 'string') {
-        return this._getPrefixedEvent(eventName)
-      }
-
-      return eventName
-    })
-  }
 }
 
 const customMethods: RoomCustomMethods<any> = {

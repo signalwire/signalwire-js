@@ -31,10 +31,7 @@ const getEventEmitter = <T>(userOptions: UserOptions) => {
     const emitter = new EventEmitter()
     return emitter as StrictEventEmitter<EventEmitter, T>
   } else if (assertEventEmitter(userOptions.emitter)) {
-    return (userOptions.emitter as unknown) as StrictEventEmitter<
-      EventEmitter,
-      T
-    >
+    return userOptions.emitter as unknown as StrictEventEmitter<EventEmitter, T>
   }
   // TODO: In future versions we can narrow this error a bit more and
   // give the user more info about which method they are missing as
@@ -51,7 +48,12 @@ const getNamespacedEvent = ({
   namespace: string
   event: string
 }) => {
-  if (!namespace) {
+  /**
+   * If getNamespacedEvent is called with the `namespace` already
+   * present in the `event` or with a falsy namespace we'll return it
+   * as is
+   */
+  if (!namespace || event.includes(namespace)) {
     return event
   }
 

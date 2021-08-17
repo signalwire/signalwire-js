@@ -55,7 +55,7 @@ export class BaseComponent implements Emitter {
     if (typeof event === 'string' && this._eventsNamespace !== undefined) {
       return getNamespacedEvent({
         namespace: this._eventsNamespace,
-        event: this._getPrefixedEvent(event),
+        event,
       })
     }
 
@@ -65,8 +65,7 @@ export class BaseComponent implements Emitter {
    * A prefix is a product, like `video` or `chat`.
    * @internal
    */
-  protected _getPrefixedEvent(event: string): string
-  protected _getPrefixedEvent(event: symbol): symbol
+  protected _getPrefixedEvent<T>(event: T): T
   protected _getPrefixedEvent(event: string | symbol) {
     if (typeof event === 'string') {
       return `${this._eventsPrefix}${event}`
@@ -87,18 +86,10 @@ export class BaseComponent implements Emitter {
   private _emitterListenersCache = new Map<BaseEventHandler, BaseEventHandler>()
   /**
    * List of events being registered through the EventEmitter
-   * instance. These might include the `_eventsPrefix` and
-   * `_eventsNamespace`.
+   * instance. These events include the `_eventsPrefix` but not the
+   * `_eventsNamespace`
    */
   private _trackedEvents: (string | symbol)[] = []
-  /**
-   * List of events exactly as they were passed to this class (i.e no
-   * `_eventsPrefix` nor `_eventsNamespace`). These are helpful when
-   * calling `removeAllListeners`, allowing us to defer all the logic
-   * for removing the listener (with its correspondent Transform) to
-   * `off`.
-   */
-  private _originalEvents: (string | symbol)[] = []
 
   constructor(public options: BaseComponentOptions) {}
 
@@ -166,17 +157,14 @@ export class BaseComponent implements Emitter {
     return fn
   }
 
-  private trackEvent({
-    event,
-    originalEvent,
-  }: {
-    event: string | symbol
-    originalEvent: string | symbol
-  }) {
+  private trackEvent(event: string | symbol) {
     this._trackedEvents = Array.from(new Set(this._trackedEvents.concat(event)))
-    this._originalEvents = Array.from(
-      new Set(this._originalEvents.concat(originalEvent))
-    )
+  }
+
+  private _getOptionsFromParams<T extends any[]>(params: T): typeof params {
+    const [event, ...rest] = params
+
+    return [this._getPrefixedEvent(event), ...rest] as any as T
   }
 
   on(...params: Parameters<Emitter['on']>) {
@@ -185,11 +173,11 @@ export class BaseComponent implements Emitter {
       return this.emitter as EventEmitter<string | symbol, any>
     }
 
-    const [event, fn, context] = params
+    const [event, fn, context] = this._getOptionsFromParams(params)
     const handler = this.applyEventHandlerTransform(event, fn)
     const namespacedEvent = this._getNamespacedEvent(event)
     logger.debug('Registering event', namespacedEvent)
-    this.trackEvent({ event: namespacedEvent, originalEvent: event })
+    this.trackEvent(event)
     return this.emitter.on(namespacedEvent, handler, context)
   }
 
@@ -199,11 +187,11 @@ export class BaseComponent implements Emitter {
       return this.emitter as EventEmitter<string | symbol, any>
     }
 
-    const [event, fn, context] = params
+    const [event, fn, context] = this._getOptionsFromParams(params)
     const handler = this.applyEventHandlerTransform(event, fn)
     const namespacedEvent = this._getNamespacedEvent(event)
     logger.debug('Registering event', namespacedEvent)
-    this.trackEvent({ event: namespacedEvent, originalEvent: event })
+    this.trackEvent(event)
     return this.emitter.once(namespacedEvent, handler, context)
   }
 
@@ -213,7 +201,7 @@ export class BaseComponent implements Emitter {
       return this.emitter as EventEmitter<string | symbol, any>
     }
 
-    const [event, fn, context, once] = params
+    const [event, fn, context, once] = this._getOptionsFromParams(params)
     const handler = this.getAndRemoveStableEventHandler(fn)
     const namespacedEvent = this._getNamespacedEvent(event)
     logger.debug('Removing event listener', namespacedEvent)
@@ -232,11 +220,11 @@ export class BaseComponent implements Emitter {
     }
 
     /**
-     * Note that we're passing the non-prefixed/non-namespaced event
-     * here. `this.off` will take care of deriving the proper
-     * prefixed/namespaced event and handle transforms, etc.
+     * Note that we're passing the non-namespaced event here.
+     * `this.off` will take care of deriving the proper namespaced
+     * event and handle transforms, etc.
      */
-    this._originalEvents.forEach((eventName) => {
+    this.eventNames().forEach((eventName) => {
       this.off(eventName)
     })
 
@@ -246,11 +234,6 @@ export class BaseComponent implements Emitter {
   /** @internal */
   eventNames() {
     return this._trackedEvents
-  }
-
-  /** @internal */
-  originalEventNames() {
-    return this._originalEvents
   }
 
   /** @internal */
