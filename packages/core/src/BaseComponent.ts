@@ -64,10 +64,8 @@ export class BaseComponent implements Emitter {
   }
   /**
    * A prefix is a product, like `video` or `chat`.
-   * @internal
    */
-  protected _getPrefixedEvent<T>(event: T): T
-  protected _getPrefixedEvent(event: string | symbol) {
+  private _getPrefixedEvent(event: string | symbol) {
     if (
       this._eventsPrefix &&
       typeof event === 'string' &&
