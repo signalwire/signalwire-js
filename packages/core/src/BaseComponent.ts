@@ -46,19 +46,30 @@ export class BaseComponent implements Emitter {
   private _requests = new Map()
   private _customSagaTriggers = new Map()
   private _destroyer?: () => void
+  /**
+   * A Namespace let us scope specific instances inside of a
+   * particular product (see above). For instance, when working with a
+   * room, the namespace will let us send messages to that specific room.
+   */
   private _getNamespacedEvent(event: string | symbol) {
-    if (typeof event === 'string') {
-      /**
-       * Add event prefix like `video.` or `chat.`
-       */
-      event = `${this._eventsPrefix}${event}`
+    if (typeof event === 'string' && this._eventsNamespace !== undefined) {
+      return getNamespacedEvent({
+        namespace: this._eventsNamespace,
+        event: this._getPrefixedEvent(event),
+      })
+    }
 
-      if (this._eventsNamespace !== undefined) {
-        return getNamespacedEvent({
-          namespace: this._eventsNamespace,
-          event,
-        })
-      }
+    return event
+  }
+  /**
+   * A prefix is a product, like `video` or `chat`.
+   * @internal
+   */
+  protected _getPrefixedEvent(event: string): string
+  protected _getPrefixedEvent(event: symbol): symbol
+  protected _getPrefixedEvent(event: string | symbol) {
+    if (typeof event === 'string') {
+      return `${this._eventsPrefix}${event}`
     }
 
     return event
@@ -75,9 +86,19 @@ export class BaseComponent implements Emitter {
    */
   private _emitterListenersCache = new Map<BaseEventHandler, BaseEventHandler>()
   /**
-   * List of events being registered through the EventEmitter instance.
+   * List of events being registered through the EventEmitter
+   * instance. These might include the `_eventsPrefix` and
+   * `_eventsNamespace`.
    */
   private _trackedEvents: (string | symbol)[] = []
+  /**
+   * List of events exactly as they were passed to this class (i.e no
+   * `_eventsPrefix` nor `_eventsNamespace`). These are helpful when
+   * calling `removeAllListeners`, allowing us to defer all the logic
+   * for removing the listener (with its correspondent Transform) to
+   * `off`.
+   */
+  private _originalEvents: (string | symbol)[] = []
 
   constructor(public options: BaseComponentOptions) {}
 
@@ -145,8 +166,17 @@ export class BaseComponent implements Emitter {
     return fn
   }
 
-  private trackEvent(event: string | symbol) {
+  private trackEvent({
+    event,
+    originalEvent,
+  }: {
+    event: string | symbol
+    originalEvent: string | symbol
+  }) {
     this._trackedEvents = Array.from(new Set(this._trackedEvents.concat(event)))
+    this._originalEvents = Array.from(
+      new Set(this._originalEvents.concat(originalEvent))
+    )
   }
 
   on(...params: Parameters<Emitter['on']>) {
@@ -159,7 +189,7 @@ export class BaseComponent implements Emitter {
     const handler = this.applyEventHandlerTransform(event, fn)
     const namespacedEvent = this._getNamespacedEvent(event)
     logger.debug('Registering event', namespacedEvent)
-    this.trackEvent(event)
+    this.trackEvent({ event: namespacedEvent, originalEvent: event })
     return this.emitter.on(namespacedEvent, handler, context)
   }
 
@@ -173,7 +203,7 @@ export class BaseComponent implements Emitter {
     const handler = this.applyEventHandlerTransform(event, fn)
     const namespacedEvent = this._getNamespacedEvent(event)
     logger.debug('Registering event', namespacedEvent)
-    this.trackEvent(event)
+    this.trackEvent({ event: namespacedEvent, originalEvent: event })
     return this.emitter.once(namespacedEvent, handler, context)
   }
 
@@ -201,8 +231,13 @@ export class BaseComponent implements Emitter {
       return this.off(event)
     }
 
-    this.eventNames().forEach((trackedEvent) => {
-      this.off(trackedEvent)
+    /**
+     * Note that we're passing the non-prefixed/non-namespaced event
+     * here. `this.off` will take care of deriving the proper
+     * prefixed/namespaced event and handle transforms, etc.
+     */
+    this._originalEvents.forEach((eventName) => {
+      this.off(eventName)
     })
 
     return this.emitter as EventEmitter<string | symbol, any>
@@ -211,6 +246,11 @@ export class BaseComponent implements Emitter {
   /** @internal */
   eventNames() {
     return this._trackedEvents
+  }
+
+  /** @internal */
+  originalEventNames() {
+    return this._originalEvents
   }
 
   /** @internal */
