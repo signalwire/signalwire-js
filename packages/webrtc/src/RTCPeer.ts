@@ -23,7 +23,7 @@ export default class RTCPeer {
 
   constructor(public call: BaseConnection, public type: RTCSdpType) {
     this.options = call.options
-    logger.info('New Peer with type:', this.type, 'Options:', this.options)
+    logger.debug('New Peer with type:', this.type, 'Options:', this.options)
 
     this._onIce = this._onIce.bind(this)
     this.instance = RTCPeerConnection(this.config)
@@ -81,7 +81,7 @@ export default class RTCPeer {
       sdpSemantics: 'unified-plan',
       ...rtcPeerConfig,
     }
-    logger.info('RTC config', config)
+    logger.debug('RTC config', config)
     return config
   }
 
@@ -251,7 +251,7 @@ export default class RTCPeer {
       this.instance.addEventListener('icecandidate', this._onIce)
 
       if (this.isOffer) {
-        logger.info('Trying to generate offer')
+        logger.debug('Trying to generate offer')
         const offer = await this.instance.createOffer({
           /**
            * While this property is deprected, on Browsers where this
@@ -265,7 +265,7 @@ export default class RTCPeer {
       }
 
       if (this.isAnswer) {
-        logger.info('Trying to generate answer')
+        logger.debug('Trying to generate answer')
         await this._setRemoteDescription({
           sdp: this.options.remoteSdp,
           type: 'offer',
@@ -390,11 +390,11 @@ export default class RTCPeer {
     }
     const { sdp, type } = this.instance.localDescription
     if (sdp.indexOf('candidate') === -1) {
-      logger.info('No candidate - retry \n')
+      logger.debug('No candidate - retry \n')
       this.startNegotiation(true)
       return
     }
-    logger.info('LOCAL SDP \n', `Type: ${type}`, '\n\n', sdp)
+    logger.debug('LOCAL SDP \n', `Type: ${type}`, '\n\n', sdp)
     this.instance.removeEventListener('icecandidate', this._onIce)
     this.call.onLocalSDPReady(this.instance.localDescription)
   }
@@ -407,7 +407,7 @@ export default class RTCPeer {
       )
     }
     if (event.candidate) {
-      logger.info('IceCandidate:', event.candidate)
+      logger.debug('IceCandidate:', event.candidate)
       this.call.emit('icecandidate', event)
     } else {
       this._sdpReady()
@@ -477,7 +477,7 @@ export default class RTCPeer {
 
   private _attachListeners() {
     this.instance.addEventListener('signalingstatechange', () => {
-      logger.info('signalingState:', this.instance.signalingState)
+      logger.debug('signalingState:', this.instance.signalingState)
 
       switch (this.instance.signalingState) {
         case 'stable':
@@ -500,11 +500,11 @@ export default class RTCPeer {
     })
 
     this.instance.addEventListener('iceconnectionstatechange', () => {
-      logger.info('iceConnectionState:', this.instance.iceConnectionState)
+      logger.debug('iceConnectionState:', this.instance.iceConnectionState)
     })
 
     this.instance.addEventListener('icegatheringstatechange', () => {
-      logger.info('iceGatheringState:', this.instance.iceGatheringState)
+      logger.debug('iceGatheringState:', this.instance.iceGatheringState)
     })
 
     // this.instance.addEventListener('icecandidateerror', (event) => {

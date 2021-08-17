@@ -112,7 +112,7 @@ export class BaseComponent implements Emitter {
   /** @internal */
   private addEventToRegisterQueue(options: EventRegisterHandlers) {
     const [event, fn, context] = options.params
-    logger.debug('Adding event to the register queue', { event, fn, context })
+    logger.trace('Adding event to the register queue', { event, fn, context })
     // @ts-ignore
     this._eventsRegisterQueue.add({
       type: options.type,
@@ -123,7 +123,7 @@ export class BaseComponent implements Emitter {
 
   /** @internal */
   private addEventToEmitQueue(event: string | symbol, args: any[]) {
-    logger.debug('Adding to the emit queue', event)
+    logger.trace('Adding to the emit queue', event)
     this._eventsEmitQueue.add({ event, args })
   }
 
@@ -177,7 +177,7 @@ export class BaseComponent implements Emitter {
     const [event, fn, context] = this._getOptionsFromParams(params)
     const handler = this.applyEventHandlerTransform(event, fn)
     const namespacedEvent = this._getNamespacedEvent(event)
-    logger.debug('Registering event', namespacedEvent)
+    logger.trace('Registering event', namespacedEvent)
     this.trackEvent(event)
     return this.emitter.on(namespacedEvent, handler, context)
   }
@@ -191,7 +191,7 @@ export class BaseComponent implements Emitter {
     const [event, fn, context] = this._getOptionsFromParams(params)
     const handler = this.applyEventHandlerTransform(event, fn)
     const namespacedEvent = this._getNamespacedEvent(event)
-    logger.debug('Registering event', namespacedEvent)
+    logger.trace('Registering event', namespacedEvent)
     this.trackEvent(event)
     return this.emitter.once(namespacedEvent, handler, context)
   }
@@ -205,7 +205,7 @@ export class BaseComponent implements Emitter {
     const [event, fn, context, once] = this._getOptionsFromParams(params)
     const handler = this.getAndRemoveStableEventHandler(fn)
     const namespacedEvent = this._getNamespacedEvent(event)
-    logger.debug('Removing event listener', namespacedEvent)
+    logger.trace('Removing event listener', namespacedEvent)
     return this.emitter.off(namespacedEvent, handler, context, once)
   }
 
@@ -246,7 +246,7 @@ export class BaseComponent implements Emitter {
 
     const prefixedEvent = this._getPrefixedEvent(event)
     const namespacedEvent = this._getNamespacedEvent(prefixedEvent)
-    logger.debug('Emit on event:', namespacedEvent)
+    logger.trace('Emit on event:', namespacedEvent)
     return this.emitter.emit(namespacedEvent, ...args)
   }
 

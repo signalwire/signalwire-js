@@ -111,7 +111,7 @@ export class BaseConnection
     }
 
     this.setState('new')
-    logger.info('New Call with Options:', this.options)
+    logger.debug('New Call with Options:', this.options)
   }
 
   get active() {

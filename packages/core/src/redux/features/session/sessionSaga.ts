@@ -332,7 +332,7 @@ export function* sessionChannelWatcher({
     } catch (error) {
       logger.error('sessionChannelWorker error:', error)
     } finally {
-      logger.warn('sessionChannelWorker finally')
+      logger.debug('sessionChannelWorker finally')
     }
   }
 }

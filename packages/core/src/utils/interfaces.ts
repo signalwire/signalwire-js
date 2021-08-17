@@ -67,6 +67,8 @@ export interface SessionOptions {
   project?: string
   token: string
   autoConnect?: boolean
+  // From `LogLevelDesc` of loglevel to simplify our docs
+  logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
 }
 
 export interface UserOptions extends SessionOptions {
