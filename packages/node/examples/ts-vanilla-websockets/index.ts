@@ -11,7 +11,7 @@ async function run() {
       // autoConnect: true,
     })
 
-    client.video.on('video.room.started', (room: any) => {
+    client.video.on('video.room.started', (room) => {
       room.on('video.member.talking', () => {
         console.log('---> MEMBER TALKING!!!')
       })
