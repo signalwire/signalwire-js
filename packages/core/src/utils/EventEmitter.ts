@@ -53,7 +53,7 @@ const getNamespacedEvent = ({
    * present in the `event` or with a falsy namespace we'll return it
    * as is
    */
-  if (!namespace || event.includes(namespace)) {
+  if (!namespace || event.startsWith(namespace)) {
     return event
   }
 
