@@ -11,13 +11,14 @@ async function run() {
       // autoConnect: true,
     })
 
-    client.video.on('video.room.started', (room) => {
-      room.on('video.member.talking', () => {
+    // @ts-ignore
+    client.video.on('room.started', (room) => {
+      room.on('member.talking', () => {
         console.log('---> MEMBER TALKING!!!')
       })
 
-      room.on('video.member.joined', (payload: any) => {
-        console.log('---> video.member.joined', payload)
+      room.on('member.joined', (payload: any) => {
+        console.log('---> member.joined', payload)
       })
 
       room.run()
@@ -38,7 +39,8 @@ async function run() {
       console.log('🟢 ROOOM STARTED 🟢')
     })
 
-    client.video.on('video.room.ended', () => {
+    // @ts-ignore
+    client.video.on('room.ended', () => {
       console.log('🔴 ROOOM ENDED 🔴')
     })
 

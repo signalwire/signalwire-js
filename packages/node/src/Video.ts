@@ -3,13 +3,15 @@ import { BaseConsumer } from './BaseConsumer'
 import { Room } from './Room'
 
 class Video extends BaseConsumer {
+  protected _eventsPrefix = 'video.' as const
+
   subscribeParams = {
     get_initial_state: true,
   }
 
   protected _emitterTransforms = new Map<any, any>([
     [
-      'video.room.started',
+      'room.started',
       (handler: any) => (payload: any) => {
         const room: Room = connect({
           store: this.store,
@@ -31,6 +33,10 @@ class Video extends BaseConsumer {
       },
     ],
   ])
+
+  protected getSubscriptions(): (string | symbol)[] {
+    return this.eventNames()
+  }
 }
 
 const customMethods: RoomCustomMethods<any> = {

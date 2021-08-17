@@ -1,12 +1,25 @@
 import { Rooms, RoomCustomMethods } from '@signalwire/core'
 import { BaseConsumer } from './BaseConsumer'
 
-// TODO: add events
-type RoomEvents = any
+class Room extends BaseConsumer {
+  protected _eventsPrefix = 'video.' as const
 
-class Room extends BaseConsumer<RoomEvents> {
   // This is needed for the custom methods.
   roomSessionId = this.options.namespace
+
+  /**
+   * Converts events like `member.joined` into `video.member.joined`
+   * @internal
+   */
+  protected getSubscriptions(): (string | symbol)[] {
+    return this.originalEventNames().map((eventName) => {
+      if (typeof eventName === 'string') {
+        return this._getPrefixedEvent(eventName)
+      }
+
+      return eventName
+    })
+  }
 }
 
 const customMethods: RoomCustomMethods<any> = {
