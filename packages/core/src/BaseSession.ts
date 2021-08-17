@@ -57,8 +57,12 @@ export class BaseSession {
   private _status: SessionStatus = 'unknown'
 
   constructor(public options: SessionOptions) {
-    if (options.host) {
-      this._host = checkWebSocketHost(options.host)
+    const { host, logLevel = 'info' } = options
+    if (host) {
+      this._host = checkWebSocketHost(host)
+    }
+    if (logLevel) {
+      this.logger.setLevel(logLevel)
     }
     this._onSocketOpen = this._onSocketOpen.bind(this)
     this._onSocketError = this._onSocketError.bind(this)
@@ -66,8 +70,6 @@ export class BaseSession {
     this._onSocketMessage = this._onSocketMessage.bind(this)
     this.execute = this.execute.bind(this)
     this.connect = this.connect.bind(this)
-
-    this.logger.setLevel(this.logger.levels.INFO)
   }
 
   get rpcConnectResult() {
@@ -172,7 +174,7 @@ export class BaseSession {
       promise = Promise.resolve()
     }
 
-    logger.debug('SEND: \n', JSON.stringify(msg, null, 2), '\n')
+    logger.trace('SEND: \n', JSON.stringify(msg, null, 2), '\n')
     this._socket!.send(JSON.stringify(msg))
 
     return timeoutPromise(
@@ -237,7 +239,7 @@ export class BaseSession {
 
   protected _onSocketMessage(event: MessageEvent) {
     const payload: any = safeParseJson(event.data)
-    logger.debug('RECV: \n', JSON.stringify(payload, null, 2), '\n')
+    logger.trace('RECV: \n', JSON.stringify(payload, null, 2), '\n')
     const request = this._requests.get(payload.id)
     if (request) {
       const { rpcRequest, resolve, reject } = request
