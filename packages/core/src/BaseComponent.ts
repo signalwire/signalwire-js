@@ -48,8 +48,9 @@ export class BaseComponent implements Emitter {
   private _destroyer?: () => void
   /**
    * A Namespace let us scope specific instances inside of a
-   * particular product (see above). For instance, when working with a
-   * room, the namespace will let us send messages to that specific room.
+   * particular product (like 'video.', 'chat.', etc.). For instance,
+   * when working with a room, the namespace will let us send messages
+   * to that specific room.
    */
   private _getNamespacedEvent(event: string | symbol) {
     if (typeof event === 'string' && this._eventsNamespace !== undefined) {
