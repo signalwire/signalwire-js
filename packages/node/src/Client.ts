@@ -1,3 +1,4 @@
+import StrictEventEmitter from 'strict-event-emitter-types'
 import {
   BaseClient,
   SessionState,
@@ -5,6 +6,7 @@ import {
   connect,
 } from '@signalwire/core'
 import { Video } from './Video'
+import { RelayVideoApiEvents } from './types/video'
 
 interface Consumer {
   on: (event: GlobalVideoEvents, handler: any) => void
@@ -24,7 +26,7 @@ export class Client extends BaseClient {
     }
   }
 
-  get video(): Video {
+  get video(): StrictEventEmitter<Video, RelayVideoApiEvents> {
     if (this._consumers.has('video')) {
       return this._consumers.get('video') as Video
     }

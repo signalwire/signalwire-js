@@ -2,10 +2,7 @@ import { RoomCustomMethods, connect } from '@signalwire/core'
 import { BaseConsumer } from './BaseConsumer'
 import { Room } from './Room'
 
-// TODO: add events
-type VideoEvents = any
-
-class Video extends BaseConsumer<VideoEvents> {
+class Video extends BaseConsumer {
   subscribeParams = {
     get_initial_state: true,
   }
