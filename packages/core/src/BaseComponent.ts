@@ -68,7 +68,7 @@ export class BaseComponent implements Emitter {
    */
   protected _getPrefixedEvent<T>(event: T): T
   protected _getPrefixedEvent(event: string | symbol) {
-    if (typeof event === 'string') {
+    if (typeof event === 'string' && !event.startsWith(this._eventsPrefix)) {
       return `${this._eventsPrefix}${event}`
     }
 
@@ -244,8 +244,9 @@ export class BaseComponent implements Emitter {
       return false
     }
 
-    const namespacedEvent = this._getNamespacedEvent(event)
-    logger.debug('Adding to the emit queue', namespacedEvent)
+    const prefixedEvent = this._getPrefixedEvent(event)
+    const namespacedEvent = this._getNamespacedEvent(prefixedEvent)
+    logger.debug('Emit on event:', namespacedEvent)
     return this.emitter.emit(namespacedEvent, ...args)
   }
 
