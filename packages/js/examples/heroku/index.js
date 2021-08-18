@@ -8,7 +8,6 @@ import {
   createDeviceWatcher,
 } from '@signalwire/webrtc'
 
-window.createDeviceWatcher = createDeviceWatcher
 let roomObj = null
 
 const inCallElements = [
