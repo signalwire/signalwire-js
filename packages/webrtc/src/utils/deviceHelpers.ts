@@ -274,9 +274,9 @@ const CHECK_SUPPORT_MAP: Partial<Record<DevicePermissionName, () => boolean>> =
   }
 
 const checkTargetPermissions = async (options: {
-  targets?: DevicePermissionName[]
+  targets: DevicePermissionName[]
 }): Promise<TargetPermission> => {
-  const targets = options.targets ?? DEFAULT_TARGETS
+  const targets = options.targets
   const permissions = await Promise.all(
     targets.map((target) => TARGET_PERMISSIONS_MAP[target]())
   )
