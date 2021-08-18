@@ -6,9 +6,6 @@ async function run() {
       host: 'relay.swire.io',
       project: '<project-id>',
       token: '<project-token>',
-      // TODO: this shouldn't be an option since we need to handle
-      // .on() calls
-      // autoConnect: true,
     })
 
     // @ts-ignore
