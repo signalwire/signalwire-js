@@ -9,7 +9,11 @@ import StrictEventEmitter from 'strict-event-emitter-types'
 import { Client } from './Client'
 import { Session } from './Session'
 
-export const createWebSocketClient = async (userOptions: UserOptions) => {
+type CreateWebSocketClientOptions = Omit<UserOptions, 'autoConnect'>
+
+export const createWebSocketClient = async (
+  userOptions: CreateWebSocketClientOptions
+) => {
   const baseUserOptions = {
     ...userOptions,
     emitter: getEventEmitter<ClientEvents>(userOptions),
@@ -32,8 +36,5 @@ export const createWebSocketClient = async (userOptions: UserOptions) => {
     },
   })(baseUserOptions)
 
-  if (baseUserOptions.autoConnect) {
-    await client.connect()
-  }
   return client
 }
