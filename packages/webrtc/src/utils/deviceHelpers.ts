@@ -259,7 +259,7 @@ const DEFAULT_TARGETS: DevicePermissionName[] = [
   'microphone',
   'speaker',
 ]
-const ALLOWED_TARGETS_MSG = `The allowed targets are: '${DEFAULT_TARGETS.join(
+const ALLOWED_TARGETS_MSG = `Allowed targets are: '${DEFAULT_TARGETS.join(
   "', '"
 )}'`
 
@@ -381,7 +381,7 @@ const validateTargets = async (options: {
     )
   }
 
-  logger.info(`Watching these targets: "${filteredTargets.join(', ')}"`)
+  logger.debug(`Watching these targets: "${filteredTargets.join(', ')}"`)
   return filteredTargets
 }
 
