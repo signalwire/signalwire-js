@@ -46,19 +46,32 @@ export class BaseComponent implements Emitter {
   private _requests = new Map()
   private _customSagaTriggers = new Map()
   private _destroyer?: () => void
+  /**
+   * A Namespace let us scope specific instances inside of a
+   * particular product (like 'video.', 'chat.', etc.). For instance,
+   * when working with a room, the namespace will let us send messages
+   * to that specific room.
+   */
   private _getNamespacedEvent(event: string | symbol) {
-    if (typeof event === 'string') {
-      /**
-       * Add event prefix like `video.` or `chat.`
-       */
-      event = `${this._eventsPrefix}${event}`
+    if (typeof event === 'string' && this._eventsNamespace !== undefined) {
+      return getNamespacedEvent({
+        namespace: this._eventsNamespace,
+        event,
+      })
+    }
 
-      if (this._eventsNamespace !== undefined) {
-        return getNamespacedEvent({
-          namespace: this._eventsNamespace,
-          event,
-        })
-      }
+    return event
+  }
+  /**
+   * A prefix is a product, like `video` or `chat`.
+   */
+  private _getPrefixedEvent(event: string | symbol) {
+    if (
+      this._eventsPrefix &&
+      typeof event === 'string' &&
+      !event.startsWith(this._eventsPrefix)
+    ) {
+      return `${this._eventsPrefix}${event}`
     }
 
     return event
@@ -75,7 +88,9 @@ export class BaseComponent implements Emitter {
    */
   private _emitterListenersCache = new Map<BaseEventHandler, BaseEventHandler>()
   /**
-   * List of events being registered through the EventEmitter instance.
+   * List of events being registered through the EventEmitter
+   * instance. These events include the `_eventsPrefix` but not the
+   * `_eventsNamespace`
    */
   private _trackedEvents: (string | symbol)[] = []
 
@@ -149,13 +164,19 @@ export class BaseComponent implements Emitter {
     this._trackedEvents = Array.from(new Set(this._trackedEvents.concat(event)))
   }
 
+  private _getOptionsFromParams<T extends any[]>(params: T): typeof params {
+    const [event, ...rest] = params
+
+    return [this._getPrefixedEvent(event), ...rest] as any as T
+  }
+
   on(...params: Parameters<Emitter['on']>) {
     if (this.shouldAddToQueue()) {
       this.addEventToRegisterQueue({ type: 'on', params })
       return this.emitter as EventEmitter<string | symbol, any>
     }
 
-    const [event, fn, context] = params
+    const [event, fn, context] = this._getOptionsFromParams(params)
     const handler = this.applyEventHandlerTransform(event, fn)
     const namespacedEvent = this._getNamespacedEvent(event)
     logger.trace('Registering event', namespacedEvent)
@@ -169,7 +190,7 @@ export class BaseComponent implements Emitter {
       return this.emitter as EventEmitter<string | symbol, any>
     }
 
-    const [event, fn, context] = params
+    const [event, fn, context] = this._getOptionsFromParams(params)
     const handler = this.applyEventHandlerTransform(event, fn)
     const namespacedEvent = this._getNamespacedEvent(event)
     logger.trace('Registering event', namespacedEvent)
@@ -183,7 +204,7 @@ export class BaseComponent implements Emitter {
       return this.emitter as EventEmitter<string | symbol, any>
     }
 
-    const [event, fn, context, once] = params
+    const [event, fn, context, once] = this._getOptionsFromParams(params)
     const handler = this.getAndRemoveStableEventHandler(fn)
     const namespacedEvent = this._getNamespacedEvent(event)
     logger.trace('Removing event listener', namespacedEvent)
@@ -201,8 +222,13 @@ export class BaseComponent implements Emitter {
       return this.off(event)
     }
 
-    this.eventNames().forEach((trackedEvent) => {
-      this.off(trackedEvent)
+    /**
+     * Note that we're passing the non-namespaced event here.
+     * `this.off` will take care of deriving the proper namespaced
+     * event and handle transforms, etc.
+     */
+    this.eventNames().forEach((eventName) => {
+      this.off(eventName)
     })
 
     return this.emitter as EventEmitter<string | symbol, any>
@@ -220,7 +246,9 @@ export class BaseComponent implements Emitter {
       return false
     }
 
-    const namespacedEvent = this._getNamespacedEvent(event)
+    const prefixedEvent = this._getPrefixedEvent(event)
+    const namespacedEvent = this._getNamespacedEvent(prefixedEvent)
+    logger.trace('Emit on event:', namespacedEvent)
     return this.emitter.emit(namespacedEvent, ...args)
   }
 

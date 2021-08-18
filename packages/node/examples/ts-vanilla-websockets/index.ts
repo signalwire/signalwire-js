@@ -6,27 +6,43 @@ async function run() {
       host: 'relay.swire.io',
       project: '<project-id>',
       token: '<project-token>',
+      // TODO: this shouldn't be an option since we need to handle
+      // .on() calls
       // autoConnect: true,
     })
 
-    const consumer = client.video.createConsumer()
+    // @ts-ignore
+    client.video.on('room.started', (room) => {
+      room.on('member.talking', () => {
+        console.log('---> MEMBER TALKING!!!')
+      })
 
-    consumer.subscribe('room.started', () => {
+      room.on('member.joined', (payload: any) => {
+        console.log('---> member.joined', payload)
+      })
+
+      room.run()
+
+      // TODO: remove this once we figure out why this is happening.
+      // Note: This returns empty member list
+      // room.getMembers().then((payload: any) => {
+      //   console.log('---> Members', JSON.stringify(payload, null, 2))
+      // })
+
+      // Note: This returns the proper list
+      // setTimeout(() => {
+      //   room.getMembers().then((payload: any) => {
+      //     console.log('---> Members', JSON.stringify(payload, null, 2))
+      //   })
+      // }, 3000)
+
       console.log('🟢 ROOOM STARTED 🟢')
     })
 
-    consumer.subscribe('room.ended', () => {
+    // @ts-ignore
+    client.video.on('room.ended', () => {
       console.log('🔴 ROOOM ENDED 🔴')
     })
-
-    consumer
-      .run()
-      .then(() => {
-        console.log('Consumer running!')
-      })
-      .catch((e) => {
-        console.log(`Consumer couldn't run`, e)
-      })
 
     await client.connect()
   } catch (error) {
