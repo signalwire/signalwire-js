@@ -259,6 +259,9 @@ const DEFAULT_TARGETS: DevicePermissionName[] = [
   'microphone',
   'speaker',
 ]
+const ALLOWED_TARGETS_MSG = `Allowed targets are: '${DEFAULT_TARGETS.join(
+  "', '"
+)}'`
 
 type TargetPermission = Record<
   'supported' | 'unsupported',
@@ -271,9 +274,9 @@ const CHECK_SUPPORT_MAP: Partial<Record<DevicePermissionName, () => boolean>> =
   }
 
 const checkTargetPermissions = async (options: {
-  targets?: DevicePermissionName[]
+  targets: DevicePermissionName[]
 }): Promise<TargetPermission> => {
-  const targets = options.targets ?? DEFAULT_TARGETS
+  const targets = options.targets
   const permissions = await Promise.all(
     targets.map((target) => TARGET_PERMISSIONS_MAP[target]())
   )
@@ -304,7 +307,20 @@ const checkTargetPermissions = async (options: {
 const validateTargets = async (options: {
   targets?: DevicePermissionName[]
 }): Promise<DevicePermissionName[]> => {
-  const targets = options.targets ?? DEFAULT_TARGETS
+  const targets = (options.targets ?? DEFAULT_TARGETS).filter((target) => {
+    if (!DEFAULT_TARGETS.includes(target)) {
+      logger.warn(
+        `We'll ignore the "${target}" target as it is not allowed. ${ALLOWED_TARGETS_MSG}.`
+      )
+      return false
+    }
+    return true
+  })
+  if (!targets.length) {
+    throw new Error(
+      `At least one "target" is required for createDeviceWatcher(). ${ALLOWED_TARGETS_MSG}.`
+    )
+  }
   const permissions = await checkTargetPermissions({ targets })
 
   if (
@@ -365,6 +381,7 @@ const validateTargets = async (options: {
     )
   }
 
+  logger.debug(`Watching these targets: "${filteredTargets.join(', ')}"`)
   return filteredTargets
 }
 
