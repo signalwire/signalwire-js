@@ -9,8 +9,11 @@ import * as sessionSelectors from './redux/features/session/sessionSelectors'
 import {
   GLOBAL_VIDEO_EVENTS,
   MEMBER_EVENTS,
+  INTERNAL_MEMBER_EVENTS,
   MEMBER_UPDATED_EVENTS,
+  INTERNAL_MEMBER_UPDATED_EVENTS,
   MEMBER_TALKING_EVENTS,
+  INTERNAL_MEMBER_TALKING_EVENTS,
 } from './utils/constants'
 
 export {
@@ -27,8 +30,11 @@ export {
   isGlobalEvent,
   GLOBAL_VIDEO_EVENTS,
   MEMBER_EVENTS,
+  INTERNAL_MEMBER_EVENTS,
   MEMBER_UPDATED_EVENTS,
+  INTERNAL_MEMBER_UPDATED_EVENTS,
   MEMBER_TALKING_EVENTS,
+  INTERNAL_MEMBER_TALKING_EVENTS,
 }
 
 export * from './RPCMessages'
