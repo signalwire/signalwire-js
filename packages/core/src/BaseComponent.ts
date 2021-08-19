@@ -71,7 +71,7 @@ export class BaseComponent implements Emitter {
       typeof event === 'string' &&
       !event.startsWith(this._eventsPrefix)
     ) {
-      return `${this._eventsPrefix}${event}`
+      return `${this._eventsPrefix}.${event}`
     }
 
     return event

@@ -1,7 +1,11 @@
 import type { EventEmitter } from '../utils/EventEmitter'
 import { BaseSession } from '../BaseSession'
 import { SDKStore } from '../redux'
-import { GLOBAL_VIDEO_EVENTS } from './constants'
+import {
+  GLOBAL_VIDEO_EVENTS,
+  INTERNAL_GLOBAL_VIDEO_EVENTS,
+  PRODUCT_PREFIXES,
+} from './constants'
 
 /**
  * Minimal interface the emitter must fulfill
@@ -207,13 +211,17 @@ export type ExecuteTransform<InputType = unknown, OutputType = unknown> = (
   payload: InputType
 ) => OutputType
 
-export type GlobalVideoEvents = typeof GLOBAL_VIDEO_EVENTS[number]
-
 export type RoomCustomMethods<T> = {
   [k in keyof T]: PropertyDescriptor
 }
 
-export type EventsPrefix = '' | 'video.'
+export type EventsPrefix = '' | typeof PRODUCT_PREFIXES[number]
+/**
+ * See {@link GLOBAL_VIDEO_EVENTS} for the full list of events.
+ */
+export type GlobalVideoEvents = typeof GLOBAL_VIDEO_EVENTS[number]
+export type InternalGlobalVideoEvents =
+  typeof INTERNAL_GLOBAL_VIDEO_EVENTS[number]
 
 export type EventTransform = <InputType>(
   handler: any
