@@ -13,10 +13,6 @@ export enum WebSocketState {
 
 const PRODUCT_PREFIX_VIDEO = 'video'
 
-/**
- * Events that are consumed by the user of this library when listening
- * for global events from a client instance.
- */
 export const GLOBAL_VIDEO_EVENTS = ['room.started', 'room.ended'] as const
 
 /**
