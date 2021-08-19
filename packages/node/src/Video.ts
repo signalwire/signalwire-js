@@ -4,7 +4,7 @@ import { Room } from './Room'
 
 class Video extends BaseConsumer {
   /** @internal */
-  protected _eventsPrefix = 'video.' as const
+  protected _eventsPrefix = 'video' as const
   /** @internal */
   protected subscribeParams = {
     get_initial_state: true,

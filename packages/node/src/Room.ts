@@ -2,7 +2,7 @@ import { Rooms, RoomCustomMethods } from '@signalwire/core'
 import { BaseConsumer } from './BaseConsumer'
 
 class Room extends BaseConsumer {
-  protected _eventsPrefix = 'video.' as const
+  protected _eventsPrefix = 'video' as const
 
   // This is needed for the custom methods.
   roomSessionId = this.options.namespace
