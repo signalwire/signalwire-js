@@ -70,18 +70,21 @@ export interface RoomMemberCommon {
   room_id: string
   room_session_id: string
 }
-export interface RoomMemberProperties {
-  scope_id: string
-  parent_id?: string
-  input_volume: number
-  input_sensitivity: number
-  output_volume: number
-  on_hold: boolean
-  deaf: boolean
-  type: RoomMemberType
-  visible: boolean
+
+interface RoomMemberUpdatableProperties {
   audio_muted: boolean
   video_muted: boolean
+  deaf: boolean
+  on_hold: boolean
+  output_volume: number
+  input_sensitivity: number
+  input_volume: number
+  visible: boolean
+}
+
+export interface RoomMemberProperties extends RoomMemberUpdatableProperties {
+  parent_id?: string
+  type: RoomMemberType
   name: string
 }
 
@@ -156,7 +159,7 @@ export interface MemberUpdatedEventParams {
   room_session_id: string
   room_id: string
   member: {
-    updated: Array<keyof RoomMemberProperties>
+    updated: Array<keyof RoomMemberUpdatableProperties>
   } & RoomMemberCommon &
     Partial<RoomMemberProperties>
 }

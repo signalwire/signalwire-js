@@ -15,3 +15,8 @@ export type {
   MemberCommandWithValueParams,
 } from './utils/interfaces'
 export type { CreateRoomObjectOptions } from './createRoomObject'
+export {
+  MEMBER_EVENTS,
+  MEMBER_UPDATED_EVENTS,
+  MEMBER_TALKING_EVENTS,
+} from '@signalwire/core'
