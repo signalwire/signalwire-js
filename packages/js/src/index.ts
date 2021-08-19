@@ -9,7 +9,7 @@ export type {
   LayoutEvent,
   LayoutChangedEventName,
   Member,
-  MemberEvent,
+  MemberEventNames,
   MemberJoinedEventName,
   MemberLeftEventName,
   MemberTalkingEventName,

@@ -1,4 +1,12 @@
 import { JSONRPCRequest } from '../utils/interfaces'
+import {
+  MEMBER_EVENTS,
+  INTERNAL_MEMBER_EVENTS,
+  MEMBER_UPDATED_EVENTS,
+  INTERNAL_MEMBER_UPDATED_EVENTS,
+  MEMBER_TALKING_EVENTS,
+  INTERNAL_MEMBER_TALKING_EVENTS,
+} from '../utils/constants'
 import { SwEvent } from '.'
 
 export type RoomStartedEventName = 'room.started'
@@ -41,19 +49,20 @@ export type MemberLeftEventName = 'member.left'
 export type MemberUpdatedEventName = 'member.updated'
 export type MemberTalkingEventName = 'member.talking'
 
-export type MemberUpdatedEventNames =
-  `${MemberUpdatedEventName}.${keyof RoomMemberProperties}`
+/**
+ * See {@link MEMBER_EVENTS} for the full list of events.
+ */
+export type MemberEventNames = typeof MEMBER_EVENTS[number]
 
-export type MemberTalkingEventNames =
-  | MemberTalkingEventName
-  | 'member.talking.start'
-  | 'member.talking.stop'
+/**
+ * See {@link MEMBER_UPDATED_EVENTS} for the full list of events.
+ */
+export type MemberUpdatedEventNames = typeof MEMBER_UPDATED_EVENTS[number]
 
-export type MemberEvent =
-  | MemberJoinedEventName
-  | MemberLeftEventName
-  | MemberUpdatedEventName
-  | MemberTalkingEventName
+/**
+ * See {@link MEMBER_TALKING_EVENTS} for the full list of events.
+ */
+export type MemberTalkingEventNames = typeof MEMBER_TALKING_EVENTS[number]
 
 export type RoomMemberType = 'member' | 'screen' | 'device'
 export interface RoomMemberCommon {
@@ -120,7 +129,7 @@ export type RoomEventNames =
   | RoomEvent
   | RTCTrackEventName
   | LayoutEvent
-  | MemberEvent
+  | MemberEventNames
   | MemberUpdatedEventNames
   | MemberTalkingEventNames
 
@@ -131,10 +140,10 @@ export type RoomEventNames =
  */
 export type InternalVideoEvent =
   | `video.${RoomEvent}`
-  | `video.${MemberEvent}`
   | `video.${LayoutEvent}`
-  | `video.${MemberUpdatedEventNames}`
-  | `video.${MemberTalkingEventNames}`
+  | typeof INTERNAL_MEMBER_EVENTS[number]
+  | typeof INTERNAL_MEMBER_UPDATED_EVENTS[number]
+  | typeof INTERNAL_MEMBER_TALKING_EVENTS[number]
   | `video.room.joined`
   | RTCTrackEventName
 
@@ -143,16 +152,18 @@ interface RoomSubscribedEvent extends SwEvent {
   params: RoomEventParams
 }
 
+export interface MemberUpdatedEventParams {
+  room_session_id: string
+  room_id: string
+  member: {
+    updated: Array<keyof RoomMemberProperties>
+  } & RoomMemberCommon &
+    Partial<RoomMemberProperties>
+}
+
 interface MemberUpdatedEvent extends SwEvent {
   event_type: `video.${MemberUpdatedEventName}`
-  params: {
-    room_session_id: string
-    room_id: string
-    member: {
-      updated: Array<keyof RoomMemberProperties>
-    } & RoomMemberCommon &
-      Partial<RoomMemberProperties>
-  }
+  params: MemberUpdatedEventParams
 }
 
 interface MemberJoinedEvent extends SwEvent {
