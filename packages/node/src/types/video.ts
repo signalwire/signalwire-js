@@ -24,7 +24,7 @@ export type RealTimeVideoApiEvents = {
   [k in RealTimeVideoApiGlobalEvents]: RealTimeVideoApiEventsHandlerMapping[k]
 }
 
-// `Room` related typings
+// `Room`, `Member`, etc. related typings
 export type RealTimeRoomApiEventNames = Exclude<RoomEventNames, 'track'>
 
 // TODO: replace `any` with proper types.
