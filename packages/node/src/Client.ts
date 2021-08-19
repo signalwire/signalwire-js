@@ -4,6 +4,7 @@ import {
   SessionState,
   GlobalVideoEvents,
   connect,
+  EventsPrefix,
 } from '@signalwire/core'
 import { Video } from './Video'
 import { RealTimeVideoApiEvents } from './types/video'
@@ -13,10 +14,8 @@ interface Consumer {
   run: () => Promise<unknown>
 }
 
-type ClientNamespaces = 'video'
-
 export class Client extends BaseClient {
-  private _consumers: Map<ClientNamespaces, Consumer> = new Map()
+  private _consumers: Map<EventsPrefix, Consumer> = new Map()
 
   async onAuth(session: SessionState) {
     if (session.authStatus === 'authorized') {
