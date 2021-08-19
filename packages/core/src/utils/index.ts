@@ -1,4 +1,8 @@
-import { STORAGE_PREFIX, GLOBAL_VIDEO_EVENTS } from './constants'
+import {
+  STORAGE_PREFIX,
+  GLOBAL_VIDEO_EVENTS,
+  INTERNAL_GLOBAL_VIDEO_EVENTS,
+} from './constants'
 
 export { v4 as uuid } from 'uuid'
 export { logger } from './logger'
@@ -47,9 +51,16 @@ export const timeoutPromise = (
   ]).finally(() => clearTimeout(timer))
 }
 
+/** @internal */
 export const isGlobalEvent = (event: string) => {
   // @ts-ignore
   return GLOBAL_VIDEO_EVENTS.includes(event)
+}
+
+/** @internal */
+export const isInternalGlobalEvent = (event: string) => {
+  // @ts-ignore
+  return INTERNAL_GLOBAL_VIDEO_EVENTS.includes(event)
 }
 
 export const getGlobalEvents = (kind: 'all' | 'video' = 'all') => {

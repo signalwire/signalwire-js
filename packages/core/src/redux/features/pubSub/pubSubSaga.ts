@@ -1,6 +1,6 @@
 import { SagaIterator } from 'redux-saga'
 import { take } from '@redux-saga/core/effects'
-import { logger, isGlobalEvent } from '../../../utils'
+import { logger, isInternalGlobalEvent } from '../../../utils'
 import type { Emitter } from '../../../utils/interfaces'
 import { getNamespacedEvent } from '../../../utils/EventEmitter'
 import { PubSubChannel, PubSubAction } from '../../interfaces'
@@ -35,7 +35,7 @@ export function* pubSubSaga({
        * (non-namespaced/global Event Emitter) so we must trigger the
        * event twice to reach everyone.
        */
-      if (isGlobalEvent(type)) {
+      if (isInternalGlobalEvent(type)) {
         emitter.emit(type, payload)
       }
 

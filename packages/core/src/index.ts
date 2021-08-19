@@ -6,6 +6,7 @@ import { BaseClient } from './BaseClient'
 import { BaseComponent } from './BaseComponent'
 import { EventEmitter, getEventEmitter } from './utils/EventEmitter'
 import * as sessionSelectors from './redux/features/session/sessionSelectors'
+import { GLOBAL_VIDEO_EVENTS } from './utils/constants'
 
 export {
   uuid,
@@ -19,6 +20,7 @@ export {
   EventEmitter,
   getEventEmitter,
   isGlobalEvent,
+  GLOBAL_VIDEO_EVENTS,
 }
 
 export * from './RPCMessages'
