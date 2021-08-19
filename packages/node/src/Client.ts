@@ -6,7 +6,7 @@ import {
   connect,
 } from '@signalwire/core'
 import { Video } from './Video'
-import { RelayVideoApiEvents } from './types/video'
+import { RealTimeVideoApiEvents } from './types/video'
 
 interface Consumer {
   on: (event: GlobalVideoEvents, handler: any) => void
@@ -26,7 +26,7 @@ export class Client extends BaseClient {
     }
   }
 
-  get video(): StrictEventEmitter<Video, RelayVideoApiEvents> {
+  get video(): StrictEventEmitter<Video, RealTimeVideoApiEvents> {
     if (this._consumers.has('video')) {
       return this._consumers.get('video') as Video
     }
