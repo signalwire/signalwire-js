@@ -8,7 +8,6 @@ async function run() {
       token: '<project-token>',
     })
 
-    // @ts-ignore
     client.video.on('room.started', (room) => {
       room.on('member.talking', () => {
         console.log('---> MEMBER TALKING!!!')
