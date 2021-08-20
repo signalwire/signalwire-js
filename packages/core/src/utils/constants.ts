@@ -19,17 +19,28 @@ export const PRODUCT_PREFIXES = [PRODUCT_PREFIX_VIDEO] as const
 
 export const MEMBER_EVENTS = ['member.joined', 'member.left'] as const
 
-export const MEMBER_UPDATED_EVENTS = [
-  'member.updated',
-  'member.updated.video_muted',
-  'member.updated.audio_muted',
-  'member.updated.deaf',
-  'member.updated.on_hold',
-  'member.updated.output_volume',
-  'member.updated.input_sensitivity',
-  'member.updated.input_volume',
-  'member.updated.visible',
-] as const
+/**
+ * Used to not duplicate member fields
+ * across constants and types
+ * `key`: `type`
+ */
+const MEMBER_UPDATABLE_FIELDS = {
+  video_muted: true,
+  audio_muted: true,
+  deaf: true,
+  on_hold: true,
+  output_volume: 1,
+  input_sensitivity: true,
+  input_volume: 1,
+  visible: true,
+}
+
+type MemberUpdatableFieldsType = typeof MEMBER_UPDATABLE_FIELDS
+export const MEMBER_UPDATED_EVENTS = Object.keys(MEMBER_UPDATABLE_FIELDS).map(
+  (key) => {
+    return `member.updated.${key as keyof MemberUpdatableFieldsType}` as const
+  }
+)
 
 export const MEMBER_TALKING_EVENTS = [
   'member.talking',
