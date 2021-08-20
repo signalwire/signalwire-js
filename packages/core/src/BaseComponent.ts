@@ -36,7 +36,11 @@ type EventRegisterHandlers =
 const identity: ExecuteTransform<any, any> = (payload) => payload
 
 export class BaseComponent implements Emitter {
-  id = uuid()
+  readonly #uuid = uuid()
+
+  get __uuid() {
+    return this.#uuid
+  }
 
   /** @internal */
   protected _eventsPrefix: EventsPrefix = ''
@@ -280,7 +284,7 @@ export class BaseComponent implements Emitter {
       this.store.dispatch(
         executeAction({
           requestId,
-          componentId: this.id,
+          componentId: this.__uuid,
           method,
           params,
         })
@@ -296,7 +300,7 @@ export class BaseComponent implements Emitter {
 
       this.store.dispatch({
         dispatchId,
-        ...makeCustomSagaAction(this.id, action),
+        ...makeCustomSagaAction(this.__uuid, action),
       })
     })
   }
