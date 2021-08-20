@@ -36,8 +36,10 @@ type EventRegisterHandlers =
 const identity: ExecuteTransform<any, any> = (payload) => payload
 
 export class BaseComponent implements Emitter {
+  /** @internal */
   readonly #uuid = uuid()
 
+  /** @internal */
   get __uuid() {
     return this.#uuid
   }
