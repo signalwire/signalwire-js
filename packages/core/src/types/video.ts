@@ -136,6 +136,12 @@ export type RoomEventNames =
   | MemberUpdatedEventNames
   | MemberTalkingEventNames
 
+type InternalMemberEventNames = typeof INTERNAL_MEMBER_EVENTS[number]
+type InternalMemberUpdatedEventNames =
+  typeof INTERNAL_MEMBER_UPDATED_EVENTS[number]
+type InternalMemberTalkingEventNames =
+  typeof INTERNAL_MEMBER_TALKING_EVENTS[number]
+
 /**
  * List of all the internal events
  * for the video sdk
@@ -144,9 +150,9 @@ export type RoomEventNames =
 export type InternalVideoEvent =
   | `video.${RoomEvent}`
   | `video.${LayoutEvent}`
-  | typeof INTERNAL_MEMBER_EVENTS[number]
-  | typeof INTERNAL_MEMBER_UPDATED_EVENTS[number]
-  | typeof INTERNAL_MEMBER_TALKING_EVENTS[number]
+  | InternalMemberEventNames
+  | InternalMemberUpdatedEventNames
+  | InternalMemberTalkingEventNames
   | `video.room.joined`
   | RTCTrackEventName
 
