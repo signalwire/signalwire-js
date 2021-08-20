@@ -20,8 +20,8 @@ export const PRODUCT_PREFIXES = [PRODUCT_PREFIX_VIDEO] as const
 export const MEMBER_EVENTS = ['member.joined', 'member.left'] as const
 
 /**
- * Used to not duplicate member fields
- * across constants and types
+ * Used to not duplicate member fields across constants and types
+ * and generate `MEMBER_UPDATED_EVENTS` below.
  * `key`: `type`
  */
 const MEMBER_UPDATABLE_FIELDS = {
@@ -36,11 +36,12 @@ const MEMBER_UPDATABLE_FIELDS = {
 }
 
 type MemberUpdatableFieldsType = typeof MEMBER_UPDATABLE_FIELDS
-export const MEMBER_UPDATED_EVENTS = Object.keys(MEMBER_UPDATABLE_FIELDS).map(
-  (key) => {
+export const MEMBER_UPDATED_EVENTS = [
+  'member.updated' as const,
+  ...Object.keys(MEMBER_UPDATABLE_FIELDS).map((key) => {
     return `member.updated.${key as keyof MemberUpdatableFieldsType}` as const
-  }
-)
+  }),
+]
 
 export const MEMBER_TALKING_EVENTS = [
   'member.talking',
