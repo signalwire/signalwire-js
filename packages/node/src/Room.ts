@@ -5,6 +5,7 @@ import {
   INTERNAL_MEMBER_EVENTS,
   INTERNAL_MEMBER_UPDATED_EVENTS,
   INTERNAL_MEMBER_TALKING_EVENTS,
+  MemberEventParams,
 } from '@signalwire/core'
 import { BaseConsumer } from './BaseConsumer'
 import { Member } from './Member'
@@ -31,7 +32,7 @@ class Room extends BaseConsumer {
   ])
 
   private _memberEventsHandler() {
-    return (handler: any) => (payload: any) => {
+    return (handler: any) => (payload: MemberEventParams) => {
       try {
         const member: Member = connect({
           store: this.store,
@@ -43,8 +44,7 @@ class Room extends BaseConsumer {
         })({
           store: this.store,
           emitter: this.options.emitter,
-          // TODO: better define how we wanna pass payloads
-          ...payload,
+          params: payload,
         })
 
         return handler(member)
