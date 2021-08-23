@@ -5,12 +5,13 @@ import type {
   LayoutEvent,
   MemberJoinedEventName,
   MemberLeftEventName,
-  MemberUpdatedEventName,
   MemberUpdatedEventNames,
   MemberTalkingEventNames,
   RoomEvent,
+  Member as MemberInterface,
 } from '@signalwire/core'
-import { Room } from '../Room'
+import type { Room } from '../Room'
+import type { Member } from '../Member'
 
 // `Video` namespace related typings
 export type RealTimeVideoApiGlobalEvents = GlobalVideoEvents
@@ -27,18 +28,17 @@ export type RealTimeVideoApiEvents = {
 // `Room`, `Member`, etc. related typings
 export type RealTimeRoomApiEventNames = Exclude<RoomEventNames, 'track'>
 
+export type RealTimeRoomMember = MemberInterface & { api: Member }
+
 // TODO: replace `any` with proper types.
 export type RealTimeRoomApiEventsHandlerMapping = Record<
   LayoutEvent,
   (layout: any) => void
 > &
-  Record<MemberJoinedEventName, (member: any) => void> &
-  Record<MemberLeftEventName, (member: any) => void> &
-  Record<
-    MemberUpdatedEventName | MemberUpdatedEventNames,
-    (member: any) => void
-  > &
-  Record<MemberTalkingEventNames, (member: any) => void> &
+  Record<MemberJoinedEventName, (member: RealTimeRoomMember) => void> &
+  Record<MemberLeftEventName, (member: RealTimeRoomMember) => void> &
+  Record<MemberUpdatedEventNames, (member: RealTimeRoomMember) => void> &
+  Record<MemberTalkingEventNames, (member: RealTimeRoomMember) => void> &
   Record<
     RoomEvent,
     (room: StrictEventEmitter<Room, RealTimeRoomApiEvents>) => void

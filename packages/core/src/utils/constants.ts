@@ -35,11 +35,13 @@ const MEMBER_UPDATABLE_FIELDS = {
   visible: true,
 }
 
-type MemberUpdatableFieldsType = typeof MEMBER_UPDATABLE_FIELDS
+export type RoomMemberUpdatableProperties = typeof MEMBER_UPDATABLE_FIELDS
 export const MEMBER_UPDATED_EVENTS = [
   'member.updated' as const,
   ...Object.keys(MEMBER_UPDATABLE_FIELDS).map((key) => {
-    return `member.updated.${key as keyof MemberUpdatableFieldsType}` as const
+    return `member.updated.${
+      key as keyof RoomMemberUpdatableProperties
+    }` as const
   }),
 ]
 

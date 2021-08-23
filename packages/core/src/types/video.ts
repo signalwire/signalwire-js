@@ -6,6 +6,7 @@ import {
   INTERNAL_MEMBER_UPDATED_EVENTS,
   MEMBER_TALKING_EVENTS,
   INTERNAL_MEMBER_TALKING_EVENTS,
+  RoomMemberUpdatableProperties,
 } from '../utils/constants'
 import { SwEvent } from '.'
 
@@ -69,17 +70,6 @@ export interface RoomMemberCommon {
   id: string
   room_id: string
   room_session_id: string
-}
-
-interface RoomMemberUpdatableProperties {
-  audio_muted: boolean
-  video_muted: boolean
-  deaf: boolean
-  on_hold: boolean
-  output_volume: number
-  input_sensitivity: number
-  input_volume: number
-  visible: boolean
 }
 
 export interface RoomMemberProperties extends RoomMemberUpdatableProperties {
@@ -246,13 +236,7 @@ export type EventsHandlerMapping = Record<
 > &
   Record<MemberJoinedEventName, (params: { member: RoomMember }) => void> &
   Record<MemberLeftEventName, (params: { member: RoomMemberCommon }) => void> &
-  Record<
-    MemberUpdatedEventName | MemberUpdatedEventNames,
-    (params: MemberUpdatedEvent['params']) => void
-  > &
-  Record<
-    MemberTalkingEventNames,
-    (params: MemberTalkingEvent['params']) => void
-  > &
+  Record<MemberUpdatedEventNames, (params: MemberUpdatedEventParams) => void> &
+  Record<MemberTalkingEventNames, (params: MemberTalkingEventParams) => void> &
   Record<RoomEvent, (params: RoomEventParams) => void> &
   Record<RTCTrackEventName, (event: RTCTrackEvent) => void>
