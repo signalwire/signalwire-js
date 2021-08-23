@@ -37,11 +37,11 @@ const identity: ExecuteTransform<any, any> = (payload) => payload
 
 export class BaseComponent implements Emitter {
   /** @internal */
-  readonly #uuid = uuid()
+  private readonly uuid = uuid()
 
   /** @internal */
   get __uuid() {
-    return this.#uuid
+    return this.uuid
   }
 
   /** @internal */
