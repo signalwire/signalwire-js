@@ -30,7 +30,7 @@ const MEMBER_UPDATABLE_FIELDS = {
   deaf: true,
   on_hold: true,
   output_volume: 1,
-  input_sensitivity: true,
+  input_sensitivity: 1,
   input_volume: 1,
   visible: true,
 }

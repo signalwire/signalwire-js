@@ -1,4 +1,5 @@
 import {
+  logger,
   Rooms,
   RoomCustomMethods,
   connect,
@@ -47,9 +48,10 @@ class Room extends BaseConsumer {
           params: payload,
         })
 
-        return handler(member)
+        // TODO: snake_case to camelCase
+        return handler({ ...payload.member, api: member })
       } catch (error) {
-        console.error('>> Error', error)
+        logger.error('>> Room._memberEventsHandler Error', error)
       }
     }
   }

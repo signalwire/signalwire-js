@@ -8,7 +8,8 @@ import type {
   MemberUpdatedEventNames,
   MemberTalkingEventNames,
   RoomEvent,
-  Member as MemberInterface,
+  Member as RoomMemberType,
+  MemberUpdated as RoomMemberUpdatedType,
 } from '@signalwire/core'
 import type { Room } from '../Room'
 import type { Member } from '../Member'
@@ -28,7 +29,9 @@ export type RealTimeVideoApiEvents = {
 // `Room`, `Member`, etc. related typings
 export type RealTimeRoomApiEventNames = Exclude<RoomEventNames, 'track'>
 
-export type RealTimeRoomMember = MemberInterface & { api: Member }
+export type RealTimeRoomMember = (RoomMemberType | RoomMemberUpdatedType) & {
+  api: Member
+}
 
 // TODO: replace `any` with proper types.
 export type RealTimeRoomApiEventsHandlerMapping = Record<

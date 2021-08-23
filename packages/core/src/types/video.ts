@@ -82,15 +82,21 @@ export type RoomMember = RoomMemberCommon &
   RoomMemberProperties & {
     type: 'member'
   }
-export type RoomScreenShare = RoomMember & {
-  parent_id: string
-  type: 'screen'
-}
-export type RoomDevice = RoomMember & {
-  parent_id: string
-  type: 'device'
-}
+export type RoomScreenShare = RoomMemberCommon &
+  RoomMemberProperties & {
+    parent_id: string
+    type: 'screen'
+  }
+export type RoomDevice = RoomMemberCommon &
+  RoomMemberProperties & {
+    parent_id: string
+    type: 'device'
+  }
 export type Member = RoomMember | RoomScreenShare | RoomDevice
+
+export type MemberUpdated = Member & {
+  updated: Array<keyof RoomMemberUpdatableProperties>
+}
 
 export interface Room {
   blind_mode: boolean
@@ -154,10 +160,7 @@ interface RoomSubscribedEvent extends SwEvent {
 interface MemberUpdatedEventParams {
   room_session_id: string
   room_id: string
-  member: {
-    updated: Array<keyof RoomMemberUpdatableProperties>
-  } & RoomMemberCommon &
-    Partial<RoomMemberProperties>
+  member: MemberUpdated
 }
 
 interface MemberUpdatedEvent extends SwEvent {
