@@ -185,6 +185,11 @@ export type RoomMethod =
   | 'video.member.set_output_volume'
   | 'video.member.set_input_sensitivity'
   | 'video.member.remove'
+  | 'video.recording.list'
+  | 'video.recording.start'
+  | 'video.recording.stop'
+  | 'video.recording.pause'
+  | 'video.recording.resume'
   | 'video.set_layout'
 
 export interface WebSocketClient {

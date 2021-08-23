@@ -102,11 +102,47 @@ export const showVideoMuted = createRoomMethod<BaseRPCResult, void>(
     transformResolve: baseCodeTransform,
   }
 )
+export const getRecordings = createRoomMethod<BaseRPCResult, void>(
+  'video.recording.list',
+  {
+    transformResolve: baseCodeTransform,
+  }
+)
+export const startRecording = createRoomMethod<BaseRPCResult, void>(
+  'video.recording.start',
+  {
+    transformResolve: baseCodeTransform,
+  }
+)
+export const stopRecording = createRoomMethod<BaseRPCResult, void>(
+  'video.recording.stop',
+  {
+    transformResolve: baseCodeTransform,
+  }
+)
+export const pauseRecording = createRoomMethod<BaseRPCResult, void>(
+  'video.recording.pause',
+  {
+    transformResolve: baseCodeTransform,
+  }
+)
+export const resumeRecording = createRoomMethod<BaseRPCResult, void>(
+  'video.recording.resume',
+  {
+    transformResolve: baseCodeTransform,
+  }
+)
 
 export type GetLayouts = ReturnType<typeof getLayouts.value>
 export type GetMembers = ReturnType<typeof getMembers.value>
 export type HideVideoMuted = ReturnType<typeof hideVideoMuted.value>
 export type ShowVideoMuted = ReturnType<typeof showVideoMuted.value>
+
+export type GetRecordings = ReturnType<typeof getRecordings.value>
+export type StartRecording = ReturnType<typeof startRecording.value>
+export type StopRecording = ReturnType<typeof stopRecording.value>
+export type PauseRecording = ReturnType<typeof pauseRecording.value>
+export type ResumeRecording = ReturnType<typeof resumeRecording.value>
 // End Room Methods
 
 /**

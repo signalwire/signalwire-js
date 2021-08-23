@@ -36,6 +36,18 @@ export type LayoutChangedEventName = 'layout.changed'
 export type LayoutEvent =
   | LayoutChangedEventName
 
+export type RecordingStartedEventName = 'recording.started'
+export type RecordingStoppedEventName = 'recording.stopped'
+export type RecordingPausedEventName = 'recording.paused'
+export type RecordingResumedEventName = 'recording.resumed'
+
+// prettier-ignore
+export type RecordingEvent =
+  | RecordingStartedEventName
+  | RecordingStoppedEventName
+  | RecordingPausedEventName
+  | RecordingResumedEventName
+
 export type MemberJoinedEventName = 'member.joined'
 export type MemberLeftEventName = 'member.left'
 export type MemberUpdatedEventName = 'member.updated'
@@ -120,6 +132,7 @@ export type RoomEventNames =
   | RoomEvent
   | RTCTrackEventName
   | LayoutEvent
+  | RecordingEvent
   | MemberEvent
   | MemberUpdatedEventNames
   | MemberTalkingEventNames
@@ -133,6 +146,7 @@ export type InternalVideoEvent =
   | `video.${RoomEvent}`
   | `video.${MemberEvent}`
   | `video.${LayoutEvent}`
+  | `video.${RecordingEvent}`
   | `video.${MemberUpdatedEventNames}`
   | `video.${MemberTalkingEventNames}`
   | `video.room.joined`
@@ -193,6 +207,37 @@ interface LayoutChangedEvent extends SwEvent {
   }
 }
 
+interface Recording {
+  id: string
+  // TODO: double check the state
+  state?: 'active' | 'paused' | 'inactive'
+}
+
+interface BaseRecordingEvent extends SwEvent {
+  event_type: string
+  params: {
+    room_session_id: string
+    room_id: string
+    recording: Recording
+  }
+}
+
+interface RecordingStartedEvent extends BaseRecordingEvent {
+  event_type: `video.${RecordingStartedEventName}`
+}
+
+interface RecordingStoppedEvent extends BaseRecordingEvent {
+  event_type: `video.${RecordingStoppedEventName}`
+}
+
+interface RecordingPausedEvent extends BaseRecordingEvent {
+  event_type: `video.${RecordingPausedEventName}`
+}
+
+interface RecordingResumedEvent extends BaseRecordingEvent {
+  event_type: `video.${RecordingResumedEventName}`
+}
+
 export type VideoAPIEventParams =
   | RoomSubscribedEvent
   | MemberUpdatedEvent
@@ -200,6 +245,10 @@ export type VideoAPIEventParams =
   | MemberLeftEvent
   | MemberTalkingEvent
   | LayoutChangedEvent
+  | RecordingStartedEvent
+  | RecordingStoppedEvent
+  | RecordingPausedEvent
+  | RecordingResumedEvent
 
 export interface WebRTCMessageParams extends SwEvent {
   event_type: 'webrtc.message'
@@ -223,4 +272,5 @@ export type EventsHandlerMapping = Record<
     (params: MemberTalkingEvent['params']) => void
   > &
   Record<RoomEvent, (params: RoomEventParams) => void> &
-  Record<RTCTrackEventName, (event: RTCTrackEvent) => void>
+  Record<RTCTrackEventName, (event: RTCTrackEvent) => void> &
+  Record<RecordingEvent, (params: { recording: Recording }) => void>
