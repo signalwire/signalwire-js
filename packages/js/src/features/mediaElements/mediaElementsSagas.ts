@@ -116,7 +116,7 @@ function* audioElementActionsWatcher({
   // we might want to have a single action per custom saga and use it
   // in a similar fashion to `executeAction`
   const setSpeakerActionType = actions.getCustomSagaActionType(
-    room.id,
+    room.__uuid,
     audioSetSpeakerAction
   )
 

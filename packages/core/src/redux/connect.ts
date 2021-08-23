@@ -3,6 +3,7 @@ import { SDKStore } from './'
 import { componentActions } from './features'
 import { getComponent } from './features/component/componentSelectors'
 import { getSession } from './features/session/sessionSelectors'
+import type { BaseComponent } from '../BaseComponent'
 
 type ComponentEventHandler = (component: ReduxComponent) => unknown
 type SessionEventHandler = (session: SessionState) => unknown
@@ -18,9 +19,7 @@ interface Connect<T> {
 type ReduxComponentKeys = keyof ReduxComponent
 type ReduxSessionKeys = keyof SessionState
 
-export const connect = <T extends { id: string; destroyer: () => void }>(
-  options: Connect<T>
-) => {
+export const connect = <T extends BaseComponent>(options: Connect<T>) => {
   const {
     componentListeners = {},
     sessionListeners = {},
@@ -36,12 +35,12 @@ export const connect = <T extends { id: string; destroyer: () => void }>(
     const cacheMap = new Map<string, any>()
 
     const storeUnsubscribe = store.subscribe(() => {
-      const component = getComponent(store.getState(), instance.id)
+      const component = getComponent(store.getState(), instance.__uuid)
       if (!component) {
         return
       }
       componentKeys.forEach((reduxKey) => {
-        const cacheKey = `${instance.id}.${reduxKey}`
+        const cacheKey = `${instance.__uuid}.${reduxKey}`
         const current = cacheMap.get(cacheKey)
         const updatedValue = component?.[reduxKey]
         if (updatedValue !== undefined && current !== updatedValue) {
@@ -79,7 +78,7 @@ export const connect = <T extends { id: string; destroyer: () => void }>(
         }
       })
     })
-    store.dispatch(componentActions.upsert({ id: instance.id }))
+    store.dispatch(componentActions.upsert({ id: instance.__uuid }))
 
     // Run all the custom sagas
     const taskList = customSagas?.map((saga) => {

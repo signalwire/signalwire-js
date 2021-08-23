@@ -114,6 +114,10 @@ export class BaseConnection
     logger.debug('New Call with Options:', this.options)
   }
 
+  get id() {
+    return this.__uuid
+  }
+
   get active() {
     return this.state === 'active'
   }
@@ -158,7 +162,7 @@ export class BaseConnection
     return {
       sessid: this.options.sessionid,
       dialogParams: {
-        id: this.id,
+        id: this.__uuid,
         destinationNumber,
         attach,
         callerName,
@@ -334,7 +338,7 @@ export class BaseConnection
       try {
         logger.debug(
           'updateConstraints trying constraints',
-          this.id,
+          this.__uuid,
           constraints
         )
         if (!Object.keys(constraints).length) {

@@ -29,12 +29,12 @@ describe('Connect', () => {
     mockOnRemoteSDP.mockClear()
 
     updateStateAction = componentActions.upsert({
-      id: instance.id,
+      id: instance.__uuid,
       state: 'active',
     })
 
     updateRemoteSDPAction = componentActions.upsert({
-      id: instance.id,
+      id: instance.__uuid,
       remoteSDP: '<SDP>',
     })
   })
@@ -44,7 +44,7 @@ describe('Connect', () => {
 
     expect(instance.emit).toHaveBeenCalledTimes(1)
     expect(instance.emit).toHaveBeenCalledWith({
-      id: instance.id,
+      id: instance.__uuid,
       state: 'active',
     })
   })
@@ -70,7 +70,7 @@ describe('Connect', () => {
 
     expect(mockOnRemoteSDP).toHaveBeenCalledTimes(1)
     expect(mockOnRemoteSDP).toHaveBeenCalledWith({
-      id: instance.id,
+      id: instance.__uuid,
       remoteSDP: '<SDP>',
     })
   })
