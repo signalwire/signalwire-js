@@ -53,7 +53,7 @@ class Room extends BaseConnection implements BaseRoomInterface {
       remoteStream: undefined,
       userVariables: {
         ...(this.options?.userVariables || {}),
-        memberCallId: this.id,
+        memberCallId: this.__uuid,
         memberId: this.memberId,
       },
     }
@@ -135,7 +135,7 @@ class Room extends BaseConnection implements BaseRoomInterface {
       recoverCall: false,
       userVariables: {
         ...(this.options?.userVariables || {}),
-        memberCallId: this.id,
+        memberCallId: this.__uuid,
         memberId: this.memberId,
       },
     }
