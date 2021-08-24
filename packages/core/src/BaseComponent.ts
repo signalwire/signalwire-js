@@ -430,15 +430,19 @@ export class BaseComponent implements Emitter {
   }
 
   /**
-   * TODO: Docs
+   * Returns a structure with the emitter transforms that we want to `apply`
+   * for each BaseConsumer. This allow us to define a static structure for
+   * each class and later consume it within `applyEmitterTransforms`.
    * @internal
    */
-  protected getEmitterTransforms() {
-    return new Map<string | string[], any>()
+  protected getEmitterTransforms(): Map<string | string[], EventTransform> {
+    return new Map()
   }
 
   /**
-   * TODO: Docs
+   * Loop through the `getEmitterTransforms` Map and translate those into the
+   * internal `_emitterTransforms` Map to quickly select & use the transform starting
+   * from the server-side event.
    * @internal
    */
   protected applyEmitterTransforms() {
