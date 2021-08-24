@@ -163,6 +163,7 @@ export class BaseComponent implements Emitter {
 
       const transformedPayload = transform.payloadTransform(payload)
       const proxiedObj = new Proxy(
+        // @ts-expect-error
         this._eventsTransformsCache.get(namespacedEvent),
         {
           get(target: any, prop: any, receiver: any) {
