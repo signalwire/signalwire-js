@@ -84,13 +84,14 @@ export class BaseComponent implements Emitter {
 
     return event
   }
+
   /**
    * Collection of functions that will be executed before calling the
    * event handlers registered by the end user (when using the Emitter
    * interface).
-   * @internal
    */
-  protected _emitterTransforms: Map<string | symbol, EventTransform> = new Map()
+  private _emitterTransforms: Map<string | symbol, EventTransform> = new Map()
+
   /**
    * Keeps track of the stable references used for registering events.
    */
