@@ -167,8 +167,7 @@ export class BaseComponent implements Emitter {
         {
           get(target: any, prop: any, receiver: any) {
             if (prop in transformedPayload) {
-              console.log('--> Proxied')
-              return payload[prop]
+              return transformedPayload[prop]
             }
 
             return Reflect.get(target, prop, receiver)
