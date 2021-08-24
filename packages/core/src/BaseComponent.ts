@@ -49,8 +49,7 @@ export class BaseComponent implements Emitter {
   private _eventsRegisterQueue = new Set<EventRegisterHandlers>()
   private _eventsEmitQueue = new Set<any>()
   private _eventsNamespace?: string
-  // TODO: add proper types
-  private _eventsTransformsCache = new Map<any, any>()
+  private _eventsTransformsCache = new Map<string | symbol, BaseComponent>()
   private _requests = new Map()
   private _customSagaTriggers = new Map()
   private _destroyer?: () => void
