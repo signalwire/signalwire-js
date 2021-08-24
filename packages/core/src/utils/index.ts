@@ -74,3 +74,29 @@ export const getGlobalEvents = (kind: 'all' | 'video' = 'all') => {
       ]
   }
 }
+
+/**
+ * Converts values from snake_case to camelCase
+ * @internal
+ */
+export const fromSnakeToCamelCase = (input: string) => {
+  return input.split('_').reduce((reducer, part, index) => {
+    const fc = part.trim().charAt(0)
+    const remainingChars = part.substr(1).toLowerCase()
+
+    return `${reducer}${
+      index === 0 ? fc.toLowerCase() : fc.toUpperCase()
+    }${remainingChars}`
+  }, '')
+}
+
+/**
+ * Converts a record from snake_case to camelCase properties
+ * @internal
+ */
+export const toCamelCaseObject = (input: Record<string, unknown>) => {
+  return Object.entries(input).reduce((reducer, [key, value]) => {
+    reducer[fromSnakeToCamelCase(key)] = value
+    return reducer
+  }, {} as Record<string, unknown>)
+}

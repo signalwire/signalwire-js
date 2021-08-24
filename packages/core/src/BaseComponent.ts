@@ -49,6 +49,8 @@ export class BaseComponent implements Emitter {
   private _eventsRegisterQueue = new Set<EventRegisterHandlers>()
   private _eventsEmitQueue = new Set<any>()
   private _eventsNamespace?: string
+  // TODO: add proper types
+  private _eventsTransformsCache = new Map<any, any>()
   private _requests = new Map()
   private _customSagaTriggers = new Map()
   private _destroyer?: () => void
@@ -140,17 +142,53 @@ export class BaseComponent implements Emitter {
     return this._eventsNamespace === undefined
   }
 
+  /**
+   * Creates the event handler to be attached to the `EventEmitter`.
+   * It contains the logic for applying any custom transforms for
+   * specific events along with the logic for caching the calls to
+   * `transform.instanceFactory`
+   * @internal
+   **/
+  private eventHandlerTransformFactory(event: string | symbol, fn: any) {
+    return (payload: any) => {
+      const transform = this._emitterTransforms.get(event)
+      const namespacedEvent = this._getNamespacedEvent(event)
+
+      if (!transform) {
+        return fn(payload)
+      } else if (!this._eventsTransformsCache.has(namespacedEvent)) {
+        const h = transform.instanceFactory(payload)
+        this._eventsTransformsCache.set(namespacedEvent, h)
+      }
+
+      const transformedPayload = transform.payloadTransform(payload)
+      const proxiedObj = new Proxy(
+        this._eventsTransformsCache.get(namespacedEvent),
+        {
+          get(target: any, prop: any, receiver: any) {
+            if (prop in transformedPayload) {
+              return transformedPayload[prop]
+            }
+
+            return Reflect.get(target, prop, receiver)
+          },
+        }
+      )
+
+      return fn(proxiedObj)
+    }
+  }
+
   /** @internal */
   private applyEventHandlerTransform(
     event: string | symbol,
     fn: (...args: any[]) => void
   ) {
     /**
-     * Transforms are mapped using the "raw" event name (meaning, the
-     * same event the end user will be consuming, i.e non-namespaced)
+     * Transforms are mapped using the "raw" event name (i.e
+     * non-namespaced sent by the server)
      */
-    const transform = this._emitterTransforms.get(event)
-    const handler = transform ? transform(fn) : fn
+    const handler = this.eventHandlerTransformFactory(event, fn)
     this._emitterListenersCache.set(fn, handler)
 
     return handler

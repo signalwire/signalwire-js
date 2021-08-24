@@ -1,4 +1,9 @@
-import { RoomCustomMethods, connect, InternalRoomEvent } from '@signalwire/core'
+import {
+  RoomCustomMethods,
+  connect,
+  toCamelCaseObject,
+  InternalRoomEvent,
+} from '@signalwire/core'
 import { BaseConsumer } from './BaseConsumer'
 import { Room } from './Room'
 
@@ -19,24 +24,29 @@ class Video extends BaseConsumer {
   protected _emitterTransforms = new Map<any, any>([
     [
       'video.room.started',
-      (handler: any) => (payload: any) => {
-        const room: Room = connect({
-          store: this.store,
-          Component: Room,
-          componentListeners: {
-            errors: 'onError',
-            responses: 'onSuccess',
-          },
-        })({
-          name: payload.room.name,
-          id: payload.room.room_id,
-          namespace: payload.room.room_session_id,
-          eventChannel: payload.room.event_channel,
-          store: this.store,
-          emitter: this.options.emitter,
-        })
+      {
+        instanceFactory: (payload: any) => {
+          const room: Room = connect({
+            store: this.store,
+            Component: Room,
+            componentListeners: {
+              errors: 'onError',
+              responses: 'onSuccess',
+            },
+          })({
+            name: payload.room.name,
+            id: payload.room.room_id,
+            namespace: payload.room.room_session_id,
+            eventChannel: payload.room.event_channel,
+            store: this.store,
+            emitter: this.options.emitter,
+          })
 
-        return handler(room)
+          return room
+        },
+        payloadTransform: (payload: any) => {
+          return toCamelCaseObject(payload)
+        },
       },
     ],
   ])
