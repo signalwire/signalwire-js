@@ -142,8 +142,14 @@ export class BaseComponent implements Emitter {
     return this._eventsNamespace === undefined
   }
 
-  /** @internal */
-  private getHandlerByKey(event: string | symbol, fn: any) {
+  /**
+   * Creates the event handler to be attached to the `EventEmitter`
+   * containing the logic for applying any custom transforms for
+   * specific events along with the logic for caching the calls to
+   * `transform.instanceFactory`
+   * @internal
+   **/
+  private eventHandlerTransformFactory(event: string | symbol, fn: any) {
     return (payload: any) => {
       const transform = this._emitterTransforms.get(event)
       const namespacedEvent = this._getNamespacedEvent(event)
@@ -183,7 +189,7 @@ export class BaseComponent implements Emitter {
      * Transforms are mapped using the "raw" event name (i.e
      * non-namespaced sent by the server)
      */
-    const handler = this.getHandlerByKey(event, fn)
+    const handler = this.eventHandlerTransformFactory(event, fn)
     this._emitterListenersCache.set(fn, handler)
 
     return handler
