@@ -149,16 +149,27 @@ export class BaseComponent implements Emitter {
       const namespacedEvent = this._getNamespacedEvent(event)
 
       if (!transform) {
-        return fn
+        return fn(payload)
       } else if (!this._eventsTransformsCache.has(namespacedEvent)) {
         const h = transform(payload)
         this._eventsTransformsCache.set(namespacedEvent, h)
       }
 
-      return fn({
-        ...payload,
-        api: this._eventsTransformsCache.get(namespacedEvent),
-      })
+      const proxiedObj = new Proxy(
+        this._eventsTransformsCache.get(namespacedEvent),
+        {
+          get(target: any, prop: any, receiver: any) {
+            if (prop in payload) {
+              console.log('--> Proxied')
+              return payload[prop]
+            }
+
+            return Reflect.get(target, prop, receiver)
+          },
+        }
+      )
+
+      return fn(proxiedObj)
     }
   }
 
