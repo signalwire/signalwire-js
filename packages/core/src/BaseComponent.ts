@@ -49,6 +49,8 @@ export class BaseComponent implements Emitter {
   private _eventsRegisterQueue = new Set<EventRegisterHandlers>()
   private _eventsEmitQueue = new Set<any>()
   private _eventsNamespace?: string
+  // TODO: add proper types
+  private _eventsTransformsCache = new Map<any, any>()
   private _requests = new Map()
   private _customSagaTriggers = new Map()
   private _destroyer?: () => void
@@ -141,16 +143,35 @@ export class BaseComponent implements Emitter {
   }
 
   /** @internal */
+  private getHandlerByKey(event: string | symbol, fn: any) {
+    return (payload: any) => {
+      const transform = this._emitterTransforms.get(event)
+      const namespacedEvent = this._getNamespacedEvent(event)
+
+      if (!transform) {
+        return fn
+      } else if (!this._eventsTransformsCache.has(namespacedEvent)) {
+        const h = transform(payload)
+        this._eventsTransformsCache.set(namespacedEvent, h)
+      }
+
+      return fn({
+        ...payload,
+        api: this._eventsTransformsCache.get(namespacedEvent),
+      })
+    }
+  }
+
+  /** @internal */
   private applyEventHandlerTransform(
     event: string | symbol,
     fn: (...args: any[]) => void
   ) {
     /**
-     * Transforms are mapped using the "raw" event name (meaning, the
-     * same event the end user will be consuming, i.e non-namespaced)
+     * Transforms are mapped using the "raw" event name (i.e
+     * non-namespaced sent by the server)
      */
-    const transform = this._emitterTransforms.get(event)
-    const handler = transform ? transform(fn) : fn
+    const handler = this.getHandlerByKey(event, fn)
     this._emitterListenersCache.set(fn, handler)
 
     return handler
