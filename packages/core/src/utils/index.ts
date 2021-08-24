@@ -8,8 +8,6 @@ export { v4 as uuid } from 'uuid'
 export { logger } from './logger'
 export * from './parseRPCResponse'
 
-export const deepCopy = (obj: Object) => JSON.parse(JSON.stringify(obj))
-
 export const mutateStorageKey = (key: string) => `${STORAGE_PREFIX}${key}`
 
 export const safeParseJson = (value: string): string | Object => {
@@ -27,14 +25,6 @@ const PROTOCOL_PATTERN = /^(ws|wss):\/\//
 export const checkWebSocketHost = (host: string): string => {
   const protocol = PROTOCOL_PATTERN.test(host) ? '' : 'wss://'
   return `${protocol}${host}`
-}
-
-export const randomInt = (min: number, max: number) => {
-  return Math.floor(Math.random() * (max - min + 1) + min)
-}
-
-export const roundToFixed = (value: number, num = 2) => {
-  return Number(value.toFixed(num))
 }
 
 export const timeoutPromise = (
@@ -79,7 +69,7 @@ export const getGlobalEvents = (kind: 'all' | 'video' = 'all') => {
  * Converts values from snake_case to camelCase
  * @internal
  */
-export const fromSnakeToCamelCase = (input: string) => {
+const fromSnakeToCamelCase = (input: string) => {
   return input.split('_').reduce((reducer, part, index) => {
     const fc = part.trim().charAt(0)
     const remainingChars = part.substr(1).toLowerCase()
