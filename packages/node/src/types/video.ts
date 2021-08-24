@@ -25,7 +25,15 @@ export type RealTimeVideoApiEvents = {
 }
 
 // `Room`, `Member`, etc. related typings
-export type RealTimeRoomApiEventNames = Exclude<RoomEventNames, 'track'>
+export type RealTimeRoomApiEventNames = Exclude<
+  RoomEventNames,
+  | 'track'
+  // FIXME: support for recording events
+  | 'recording.started'
+  | 'recording.stopped'
+  | 'recording.paused'
+  | 'recording.resumed'
+>
 
 // TODO: replace `any` with proper types.
 export type RealTimeRoomApiEventsHandlerMapping = Record<
