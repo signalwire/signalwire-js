@@ -390,4 +390,26 @@ export class BaseComponent implements Emitter {
     this._eventsNamespace = namespace
     this.flushEventsQueue()
   }
+
+  /**
+   * TODO: Docs
+   * @internal
+   */
+  protected getEmitterTransforms() {
+    return new Map<string | string[], any>()
+  }
+
+  /**
+   * TODO: Docs
+   * @internal
+   */
+  protected applyEmitterTransforms() {
+    this.getEmitterTransforms().forEach((handlersObj, key) => {
+      if (Array.isArray(key)) {
+        key.forEach((k) => this._emitterTransforms.set(k, handlersObj))
+      } else {
+        this._emitterTransforms.set(key, handlersObj)
+      }
+    })
+  }
 }

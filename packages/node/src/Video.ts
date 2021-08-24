@@ -1,6 +1,12 @@
-import { RoomCustomMethods, connect } from '@signalwire/core'
+import { RoomCustomMethods, connect, InternalRoomEvent } from '@signalwire/core'
 import { BaseConsumer } from './BaseConsumer'
 import { Room } from './Room'
+
+// TODO: Replace with proper payload for each event
+type Payload = {
+  room_id: string
+  room: any
+}
 
 class Video extends BaseConsumer {
   /** @internal */
@@ -34,6 +40,38 @@ class Video extends BaseConsumer {
       },
     ],
   ])
+
+  protected getEmitterTransforms() {
+    return new Map<
+      InternalRoomEvent | InternalRoomEvent[],
+      {
+        instanceFactory: (instance: Room) => void
+        payloadTransform: (payload: Payload) => void
+      }
+    >([
+      [
+        'video.room.started',
+        {
+          instanceFactory: (instance) => {},
+          payloadTransform: (payload) => {},
+        },
+      ],
+      [
+        'video.room.subscribed',
+        {
+          instanceFactory: (instance) => {},
+          payloadTransform: (payload) => {},
+        },
+      ],
+      [
+        ['video.room.ended', 'video.room.updated'],
+        {
+          instanceFactory: (instance) => {},
+          payloadTransform: (payload) => {},
+        },
+      ],
+    ])
+  }
 }
 
 const customMethods: RoomCustomMethods<any> = {
