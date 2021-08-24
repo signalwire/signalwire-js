@@ -151,15 +151,16 @@ export class BaseComponent implements Emitter {
       if (!transform) {
         return fn(payload)
       } else if (!this._eventsTransformsCache.has(namespacedEvent)) {
-        const h = transform(payload)
+        const h = transform.instanceFactory(payload)
         this._eventsTransformsCache.set(namespacedEvent, h)
       }
 
+      const transformedPayload = transform.payloadTransform(payload)
       const proxiedObj = new Proxy(
         this._eventsTransformsCache.get(namespacedEvent),
         {
           get(target: any, prop: any, receiver: any) {
-            if (prop in payload) {
+            if (prop in transformedPayload) {
               console.log('--> Proxied')
               return payload[prop]
             }

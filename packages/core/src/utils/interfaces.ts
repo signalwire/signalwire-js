@@ -223,8 +223,9 @@ export type GlobalVideoEvents = typeof GLOBAL_VIDEO_EVENTS[number]
 export type InternalGlobalVideoEvents =
   typeof INTERNAL_GLOBAL_VIDEO_EVENTS[number]
 
-export type EventTransform = <InputType>(
-  handler: any
-) => (payload: InputType) => ReturnType<typeof handler>
+export interface EventTransform {
+  instanceFactory: (payload: any) => any
+  payloadTransform: (payload: any) => any
+}
 
 export type BaseEventHandler = (...args: any[]) => void
