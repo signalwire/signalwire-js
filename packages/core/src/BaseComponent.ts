@@ -143,8 +143,8 @@ export class BaseComponent implements Emitter {
   }
 
   /**
-   * Creates the event handler to be attached to the `EventEmitter`
-   * containing the logic for applying any custom transforms for
+   * Creates the event handler to be attached to the `EventEmitter`.
+   * It contains the logic for applying any custom transforms for
    * specific events along with the logic for caching the calls to
    * `transform.instanceFactory`
    * @internal
