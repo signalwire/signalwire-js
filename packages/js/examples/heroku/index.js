@@ -23,6 +23,11 @@ const inCallElements = [
   showVMutedBtn,
   hideScreenShareBtn,
   showScreenShareBtn,
+  controlRecording,
+  startRecordingBtn,
+  stopRecordingBtn,
+  pauseRecordingBtn,
+  resumeRecordingBtn,
 ]
 
 async function loadLayouts(currentLayoutId) {
@@ -148,6 +153,23 @@ window.connect = () => {
     roomObj.on('room.updated', (params) =>
       console.debug('>> room.updated', params)
     )
+
+    roomObj.on('recording.started', (params) => {
+      console.debug('>> recording.started', params)
+      document.getElementById('recordingState').innerText = 'active'
+    })
+    roomObj.on('recording.stopped', (params) => {
+      console.debug('>> recording.stopped', params)
+      document.getElementById('recordingState').innerText = 'inactive'
+    })
+    roomObj.on('recording.paused', (params) => {
+      console.debug('>> recording.paused', params)
+      document.getElementById('recordingState').innerText = 'paused'
+    })
+    roomObj.on('recording.resumed', (params) => {
+      console.debug('>> recording.resumed', params)
+      document.getElementById('recordingState').innerText = 'active'
+    })
     roomObj.on('room.ended', (params) => {
       console.debug('>> room.ended', params)
       hangup()
@@ -347,6 +369,59 @@ window.rangeInputHandler = (range) => {
       roomObj.setInputSensitivity({ value: range.value })
       break
   }
+}
+
+let recordingId = null
+window.startRecording = () => {
+  console.debug('>> startRecording')
+  roomObj
+    .startRecording()
+    .then((response) => {
+      console.log('Recording started!', response)
+      recordingId = response.recording_id
+    })
+    .catch((error) => {
+      console.error('Failed to start recording:', error)
+    })
+}
+
+window.stopRecording = () => {
+  console.debug('>> stopRecording')
+  roomObj
+    .stopRecording({ recording_id: recordingId })
+    .then((response) => {
+      console.log('Recording stopped!', response)
+      recordingId = null
+    })
+    .catch((error) => {
+      console.error('Failed to stop recording:', error)
+    })
+}
+
+window.pauseRecording = () => {
+  console.debug('>> pauseRecording')
+  roomObj
+    .pauseRecording({ recording_id: recordingId })
+    .then((response) => {
+      console.log('Recording paused!', response)
+      recordingId = null
+    })
+    .catch((error) => {
+      console.error('Failed to pause recording:', error)
+    })
+}
+
+window.resumeRecording = () => {
+  console.debug('>> resumeRecording')
+  roomObj
+    .resumeRecording({ recording_id: recordingId })
+    .then((response) => {
+      console.log('Recording resumed!', response)
+      recordingId = null
+    })
+    .catch((error) => {
+      console.error('Failed to resume recording:', error)
+    })
 }
 
 /**
