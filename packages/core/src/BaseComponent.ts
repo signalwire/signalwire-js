@@ -157,8 +157,8 @@ export class BaseComponent implements Emitter {
       if (!transform) {
         return fn(payload)
       } else if (!this._eventsTransformsCache.has(namespacedEvent)) {
-        const h = transform.instanceFactory(payload)
-        this._eventsTransformsCache.set(namespacedEvent, h)
+        const instance = transform.instanceFactory(payload)
+        this._eventsTransformsCache.set(namespacedEvent, instance)
       }
 
       const transformedPayload = transform.payloadTransform(payload)
