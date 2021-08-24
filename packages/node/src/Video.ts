@@ -52,22 +52,22 @@ class Video extends BaseConsumer {
       [
         'video.room.started',
         {
-          instanceFactory: (instance) => {},
-          payloadTransform: (payload) => {},
+          instanceFactory: (_instance) => {},
+          payloadTransform: (_payload) => {},
         },
       ],
       [
         'video.room.subscribed',
         {
-          instanceFactory: (instance) => {},
-          payloadTransform: (payload) => {},
+          instanceFactory: (_instance) => {},
+          payloadTransform: (_payload) => {},
         },
       ],
       [
         ['video.room.ended', 'video.room.updated'],
         {
-          instanceFactory: (instance) => {},
-          payloadTransform: (payload) => {},
+          instanceFactory: (_instance) => {},
+          payloadTransform: (_payload) => {},
         },
       ],
     ])
