@@ -3,7 +3,7 @@ import {
   RoomCustomMethods,
   EventTransform,
   connect,
-  toCamelCaseObject,
+  toExternalJSON,
   MemberEventParams,
   InternalMemberEvent,
   INTERNAL_MEMBER_UPDATED_EVENTS,
@@ -49,8 +49,7 @@ class Room extends BaseConsumer {
             return member
           },
           payloadTransform: (payload: MemberEventParams) => {
-            // @ts-expect-error
-            return toCamelCaseObject(payload.member)
+            return toExternalJSON(payload.member)
           },
         },
       ],
