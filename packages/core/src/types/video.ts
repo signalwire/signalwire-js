@@ -1,4 +1,8 @@
 import { JSONRPCRequest } from '../utils/interfaces'
+import {
+  MEMBER_UPDATED_EVENTS,
+  RoomMemberUpdatableProperties,
+} from '../utils/constants'
 import { SwEvent } from '.'
 
 export type RoomStartedEventName = 'room.started'
@@ -41,8 +45,10 @@ export type MemberLeftEventName = 'member.left'
 export type MemberUpdatedEventName = 'member.updated'
 export type MemberTalkingEventName = 'member.talking'
 
-export type MemberUpdatedEventNames =
-  `${MemberUpdatedEventName}.${keyof RoomMemberProperties}`
+/**
+ * See {@link MEMBER_UPDATED_EVENTS} for the full list of events.
+ */
+export type MemberUpdatedEventNames = typeof MEMBER_UPDATED_EVENTS[number]
 
 export type MemberTalkingEventNames =
   | MemberTalkingEventName
@@ -53,7 +59,9 @@ export type MemberEvent =
   | MemberJoinedEventName
   | MemberLeftEventName
   | MemberUpdatedEventName
+  | MemberUpdatedEventNames
   | MemberTalkingEventName
+  | MemberTalkingEventNames
 
 export type RoomMemberType = 'member' | 'screen' | 'device'
 export interface RoomMemberCommon {
@@ -90,6 +98,10 @@ export type RoomDevice = RoomMember & {
 }
 export type Member = RoomMember | RoomScreenShare | RoomDevice
 
+export type MemberUpdated = Member & {
+  updated: Array<keyof RoomMemberUpdatableProperties>
+}
+
 export interface Room {
   blind_mode: boolean
   hide_video_muted: boolean
@@ -121,10 +133,10 @@ export type RoomEventNames =
   | RTCTrackEventName
   | LayoutEvent
   | MemberEvent
-  | MemberUpdatedEventNames
-  | MemberTalkingEventNames
 
 export type InternalRoomEvent = `video.${RoomEvent}`
+export type InternalMemberEvent = `video.${MemberEvent}`
+
 /**
  * List of all the internal events
  * for the video sdk
@@ -132,10 +144,8 @@ export type InternalRoomEvent = `video.${RoomEvent}`
  */
 export type InternalVideoEvent =
   | InternalRoomEvent
-  | `video.${MemberEvent}`
+  | InternalMemberEvent
   | `video.${LayoutEvent}`
-  | `video.${MemberUpdatedEventNames}`
-  | `video.${MemberTalkingEventNames}`
   | `video.room.joined`
   | RTCTrackEventName
 
@@ -144,45 +154,50 @@ interface RoomSubscribedEvent extends SwEvent {
   params: RoomEventParams
 }
 
+interface MemberUpdatedEventParams {
+  room_session_id: string
+  room_id: string
+  member: MemberUpdated
+}
+
 interface MemberUpdatedEvent extends SwEvent {
   event_type: `video.${MemberUpdatedEventName}`
-  params: {
-    room_session_id: string
-    room_id: string
-    member: {
-      updated: Array<keyof RoomMemberProperties>
-    } & RoomMemberCommon &
-      Partial<RoomMemberProperties>
-  }
+  params: MemberUpdatedEventParams
+}
+
+interface MemberJoinedEventParams {
+  room_session_id: string
+  room_id: string
+  member: Member
 }
 
 interface MemberJoinedEvent extends SwEvent {
   event_type: `video.${MemberJoinedEventName}`
-  params: {
-    room_session_id: string
-    room_id: string
-    member: Member
-  }
+  params: MemberJoinedEventParams
+}
+
+interface MemberLeftEventParams {
+  room_session_id: string
+  room_id: string
+  member: Member
 }
 
 interface MemberLeftEvent extends SwEvent {
   event_type: `video.${MemberLeftEventName}`
-  params: {
-    room_session_id: string
-    room_id: string
-    member: Member
+  params: MemberLeftEventParams
+}
+
+interface MemberTalkingEventParams {
+  room_session_id: string
+  room_id: string
+  member: RoomMemberCommon & {
+    talking: boolean
   }
 }
 
 interface MemberTalkingEvent extends SwEvent {
   event_type: `video.${MemberTalkingEventName}`
-  params: {
-    room_session_id: string
-    room_id: string
-    member: RoomMemberCommon & {
-      talking: boolean
-    }
-  }
+  params: MemberTalkingEventParams
 }
 
 interface LayoutChangedEvent extends SwEvent {
@@ -193,6 +208,12 @@ interface LayoutChangedEvent extends SwEvent {
     layout: Layout
   }
 }
+
+export type MemberEventParams =
+  | MemberJoinedEventParams
+  | MemberLeftEventParams
+  | MemberUpdatedEventParams
+  | MemberTalkingEventParams
 
 export type VideoAPIEventParams =
   | RoomSubscribedEvent
@@ -217,11 +238,8 @@ export type EventsHandlerMapping = Record<
   Record<MemberLeftEventName, (params: { member: RoomMemberCommon }) => void> &
   Record<
     MemberUpdatedEventName | MemberUpdatedEventNames,
-    (params: MemberUpdatedEvent['params']) => void
+    (params: MemberUpdatedEventParams) => void
   > &
-  Record<
-    MemberTalkingEventNames,
-    (params: MemberTalkingEvent['params']) => void
-  > &
+  Record<MemberTalkingEventNames, (params: MemberTalkingEventParams) => void> &
   Record<RoomEvent, (params: RoomEventParams) => void> &
   Record<RTCTrackEventName, (event: RTCTrackEvent) => void>
