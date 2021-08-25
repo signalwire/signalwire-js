@@ -37,6 +37,8 @@ export class BaseConsumer extends BaseComponent {
     return new Promise(async (resolve, reject) => {
       const subscriptions = this.getSubscriptions()
       if (subscriptions.length > 0) {
+        this.applyEmitterTransforms()
+
         const execParams: ExecuteParams = {
           method: 'signalwire.subscribe',
           params: {
