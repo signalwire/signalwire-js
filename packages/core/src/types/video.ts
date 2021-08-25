@@ -37,16 +37,14 @@ export type LayoutEvent =
   | LayoutChangedEventName
 
 export type RecordingStartedEventName = 'recording.started'
+export type RecordingUpdatedEventName = 'recording.updated'
 export type RecordingStoppedEventName = 'recording.stopped'
-export type RecordingPausedEventName = 'recording.paused'
-export type RecordingResumedEventName = 'recording.resumed'
 
 // prettier-ignore
 export type RecordingEvent =
   | RecordingStartedEventName
+  | RecordingUpdatedEventName
   | RecordingStoppedEventName
-  | RecordingPausedEventName
-  | RecordingResumedEventName
 
 export type MemberJoinedEventName = 'member.joined'
 export type MemberLeftEventName = 'member.left'
@@ -209,8 +207,11 @@ interface LayoutChangedEvent extends SwEvent {
 
 interface Recording {
   id: string
-  // TODO: double check the state
-  state?: 'active' | 'paused' | 'inactive'
+  state: 'active' | 'paused' | 'completed'
+  url: string
+  duration: number
+  started_at: number
+  ended_at: number
 }
 
 interface BaseRecordingEvent extends SwEvent {

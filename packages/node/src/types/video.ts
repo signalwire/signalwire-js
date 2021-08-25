@@ -30,9 +30,8 @@ export type RealTimeRoomApiEventNames = Exclude<
   | 'track'
   // FIXME: support for recording events
   | 'recording.started'
+  | 'recording.updated'
   | 'recording.stopped'
-  | 'recording.paused'
-  | 'recording.resumed'
 >
 
 // TODO: replace `any` with proper types.

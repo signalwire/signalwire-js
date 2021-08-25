@@ -162,9 +162,10 @@ window.connect = () => {
       console.debug('>> recording.stopped', params)
       document.getElementById('recordingState').innerText = 'inactive'
     })
-    roomObj.on('recording.paused', (params) => {
-      console.debug('>> recording.paused', params)
-      document.getElementById('recordingState').innerText = 'paused'
+    roomObj.on('recording.updated', (params) => {
+      console.debug('>> recording.updated', params)
+      document.getElementById('recordingState').innerText =
+        params.recording.state
     })
     roomObj.on('recording.resumed', (params) => {
       console.debug('>> recording.resumed', params)
