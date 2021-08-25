@@ -231,12 +231,8 @@ interface RecordingStoppedEvent extends BaseRecordingEvent {
   event_type: `video.${RecordingStoppedEventName}`
 }
 
-interface RecordingPausedEvent extends BaseRecordingEvent {
-  event_type: `video.${RecordingPausedEventName}`
-}
-
-interface RecordingResumedEvent extends BaseRecordingEvent {
-  event_type: `video.${RecordingResumedEventName}`
+interface RecordingUpdatedEvent extends BaseRecordingEvent {
+  event_type: `video.${RecordingUpdatedEventName}`
 }
 
 export type VideoAPIEventParams =
@@ -247,9 +243,8 @@ export type VideoAPIEventParams =
   | MemberTalkingEvent
   | LayoutChangedEvent
   | RecordingStartedEvent
+  | RecordingUpdatedEvent
   | RecordingStoppedEvent
-  | RecordingPausedEvent
-  | RecordingResumedEvent
 
 export interface WebRTCMessageParams extends SwEvent {
   event_type: 'webrtc.message'
