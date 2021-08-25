@@ -49,8 +49,7 @@ export class BaseComponent implements Emitter {
   private _eventsRegisterQueue = new Set<EventRegisterHandlers>()
   private _eventsEmitQueue = new Set<any>()
   private _eventsNamespace?: string
-  // TODO: add proper types
-  private _eventsTransformsCache = new Map<any, any>()
+  private _eventsTransformsCache = new Map<string | symbol, BaseComponent>()
   private _requests = new Map()
   private _customSagaTriggers = new Map()
   private _destroyer?: () => void
@@ -84,13 +83,14 @@ export class BaseComponent implements Emitter {
 
     return event
   }
+
   /**
    * Collection of functions that will be executed before calling the
    * event handlers registered by the end user (when using the Emitter
    * interface).
-   * @internal
    */
-  protected _emitterTransforms: Map<string | symbol, EventTransform> = new Map()
+  private _emitterTransforms: Map<string | symbol, EventTransform> = new Map()
+
   /**
    * Keeps track of the stable references used for registering events.
    */
@@ -157,12 +157,13 @@ export class BaseComponent implements Emitter {
       if (!transform) {
         return fn(payload)
       } else if (!this._eventsTransformsCache.has(namespacedEvent)) {
-        const h = transform.instanceFactory(payload)
-        this._eventsTransformsCache.set(namespacedEvent, h)
+        const instance = transform.instanceFactory(payload)
+        this._eventsTransformsCache.set(namespacedEvent, instance)
       }
 
       const transformedPayload = transform.payloadTransform(payload)
       const proxiedObj = new Proxy(
+        // @ts-expect-error
         this._eventsTransformsCache.get(namespacedEvent),
         {
           get(target: any, prop: any, receiver: any) {
@@ -427,5 +428,31 @@ export class BaseComponent implements Emitter {
     }
     this._eventsNamespace = namespace
     this.flushEventsQueue()
+  }
+
+  /**
+   * Returns a structure with the emitter transforms that we want to `apply`
+   * for each BaseConsumer. This allow us to define a static structure for
+   * each class and later consume it within `applyEmitterTransforms`.
+   * @internal
+   */
+  protected getEmitterTransforms(): Map<string | string[], EventTransform> {
+    return new Map()
+  }
+
+  /**
+   * Loop through the `getEmitterTransforms` Map and translate those into the
+   * internal `_emitterTransforms` Map to quickly select & use the transform starting
+   * from the server-side event.
+   * @internal
+   */
+  protected applyEmitterTransforms() {
+    this.getEmitterTransforms().forEach((handlersObj, key) => {
+      if (Array.isArray(key)) {
+        key.forEach((k) => this._emitterTransforms.set(k, handlersObj))
+      } else {
+        this._emitterTransforms.set(key, handlersObj)
+      }
+    })
   }
 }

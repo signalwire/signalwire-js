@@ -124,13 +124,14 @@ export type RoomEventNames =
   | MemberUpdatedEventNames
   | MemberTalkingEventNames
 
+export type InternalRoomEvent = `video.${RoomEvent}`
 /**
  * List of all the internal events
  * for the video sdk
  * @internal
  */
 export type InternalVideoEvent =
-  | `video.${RoomEvent}`
+  | InternalRoomEvent
   | `video.${MemberEvent}`
   | `video.${LayoutEvent}`
   | `video.${MemberUpdatedEventNames}`
