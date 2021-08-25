@@ -1,5 +1,8 @@
 import { JSONRPCRequest } from '../utils/interfaces'
-import { MEMBER_UPDATED_EVENTS } from '../utils/constants'
+import {
+  MEMBER_UPDATED_EVENTS,
+  RoomMemberUpdatableProperties,
+} from '../utils/constants'
 import { SwEvent } from '.'
 
 export type RoomStartedEventName = 'room.started'
@@ -95,6 +98,10 @@ export type RoomDevice = RoomMember & {
 }
 export type Member = RoomMember | RoomScreenShare | RoomDevice
 
+export type MemberUpdated = Member & {
+  updated: Array<keyof RoomMemberUpdatableProperties>
+}
+
 export interface Room {
   blind_mode: boolean
   hide_video_muted: boolean
@@ -150,10 +157,7 @@ interface RoomSubscribedEvent extends SwEvent {
 interface MemberUpdatedEventParams {
   room_session_id: string
   room_id: string
-  member: {
-    updated: Array<keyof RoomMemberProperties>
-  } & RoomMemberCommon &
-    Partial<RoomMemberProperties>
+  member: MemberUpdated
 }
 
 interface MemberUpdatedEvent extends SwEvent {

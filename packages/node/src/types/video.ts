@@ -10,7 +10,8 @@ import type {
   MemberTalkingEventNames,
   RoomEvent,
 } from '@signalwire/core'
-import { Room } from '../Room'
+import type { Room } from '../Room'
+import type { Member } from '../Member'
 
 // `Video` namespace related typings
 export type RealTimeVideoApiGlobalEvents = GlobalVideoEvents
@@ -32,13 +33,13 @@ export type RealTimeRoomApiEventsHandlerMapping = Record<
   LayoutEvent,
   (layout: any) => void
 > &
-  Record<MemberJoinedEventName, (member: any) => void> &
-  Record<MemberLeftEventName, (member: any) => void> &
+  Record<MemberJoinedEventName, (member: Member) => void> &
+  Record<MemberLeftEventName, (member: Member) => void> &
   Record<
     MemberUpdatedEventName | MemberUpdatedEventNames,
-    (member: any) => void
+    (member: Member) => void
   > &
-  Record<MemberTalkingEventNames, (member: any) => void> &
+  Record<MemberTalkingEventNames, (member: Member) => void> &
   Record<
     RoomEvent,
     (room: StrictEventEmitter<Room, RealTimeRoomApiEvents>) => void
