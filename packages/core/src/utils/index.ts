@@ -7,6 +7,7 @@ import {
 export { v4 as uuid } from 'uuid'
 export { logger } from './logger'
 export * from './parseRPCResponse'
+export * from './toExternalJSON'
 
 export const mutateStorageKey = (key: string) => `${STORAGE_PREFIX}${key}`
 
@@ -63,30 +64,4 @@ export const getGlobalEvents = (kind: 'all' | 'video' = 'all') => {
         ...GLOBAL_VIDEO_EVENTS,
       ]
   }
-}
-
-/**
- * Converts values from snake_case to camelCase
- * @internal
- */
-const fromSnakeToCamelCase = (input: string) => {
-  return input.split('_').reduce((reducer, part, index) => {
-    const fc = part.trim().charAt(0)
-    const remainingChars = part.substr(1).toLowerCase()
-
-    return `${reducer}${
-      index === 0 ? fc.toLowerCase() : fc.toUpperCase()
-    }${remainingChars}`
-  }, '')
-}
-
-/**
- * Converts a record from snake_case to camelCase properties
- * @internal
- */
-export const toCamelCaseObject = (input: Record<string, unknown>) => {
-  return Object.entries(input).reduce((reducer, [key, value]) => {
-    reducer[fromSnakeToCamelCase(key)] = value
-    return reducer
-  }, {} as Record<string, unknown>)
 }

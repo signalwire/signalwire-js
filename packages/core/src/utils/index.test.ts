@@ -1,4 +1,4 @@
-import { checkWebSocketHost, timeoutPromise, toCamelCaseObject } from './'
+import { checkWebSocketHost, timeoutPromise } from './'
 
 describe('checkWebSocketHost', () => {
   it('should add wss protocol if not present', () => {
@@ -34,29 +34,5 @@ describe('timeoutPromise', () => {
     const promise = new Promise(() => null)
     const error = 'ERROR'
     await expect(timeoutPromise(promise, 5, error)).rejects.toEqual(error)
-  })
-})
-
-describe('toCamelCaseObject', () => {
-  it('converts all the keys from snake_case to camelCase', async () => {
-    const input = {
-      snake_case: 'test',
-      camelCase: 'test',
-      PascalCase: 'test',
-      'kebab-case': 'test',
-      flat: 'test',
-      UPPERCASE: 'test',
-      _private: 'test',
-    }
-    const output = {
-      snakeCase: 'test',
-      camelCase: 'test',
-      PascalCase: 'test',
-      'kebab-case': 'test',
-      flat: 'test',
-      UPPERCASE: 'test',
-      _private: 'test',
-    }
-    expect(toCamelCaseObject(input)).toStrictEqual(output)
   })
 })
