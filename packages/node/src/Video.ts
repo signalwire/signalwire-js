@@ -1,7 +1,7 @@
 import {
   RoomCustomMethods,
   connect,
-  toCamelCaseObject,
+  toExternalJSON,
   InternalRoomEvent,
   EventTransform,
 } from '@signalwire/core'
@@ -49,7 +49,7 @@ class Video extends BaseConsumer {
             return room
           },
           payloadTransform: (payload: any) => {
-            return toCamelCaseObject(payload)
+            return toExternalJSON(payload)
           },
         },
       ],

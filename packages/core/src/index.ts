@@ -1,4 +1,4 @@
-import { uuid, logger, isGlobalEvent, toCamelCaseObject } from './utils'
+import { uuid, logger, isGlobalEvent, toExternalJSON } from './utils'
 import { BaseSession } from './BaseSession'
 import { BaseJWTSession } from './BaseJWTSession'
 import { configureStore, connect } from './redux'
@@ -24,7 +24,7 @@ export {
   EventEmitter,
   getEventEmitter,
   isGlobalEvent,
-  toCamelCaseObject,
+  toExternalJSON,
   GLOBAL_VIDEO_EVENTS,
   MEMBER_UPDATED_EVENTS,
   INTERNAL_MEMBER_UPDATED_EVENTS,
