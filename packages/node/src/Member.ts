@@ -27,7 +27,10 @@ interface MemberMethods {
   removeMember(params: { memberId: string }): Rooms.RemoveMember
 }
 
-interface Member extends MemberMethods {}
+interface Member extends MemberMethods {
+  // TODO: expand the public interface
+  visible: boolean
+}
 
 class Member extends BaseComponent {
   constructor(public options: MemberOptions) {
