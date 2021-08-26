@@ -1,8 +1,8 @@
 import { JSONRPCRequest } from '../utils/interfaces'
 import {
   MEMBER_UPDATED_EVENTS,
-  RoomMemberUpdatableProperties,
-} from '../utils/constants'
+  VideoMemberUpdatableProperties,
+} from './videoMember'
 import { SwEvent } from '.'
 
 export type RoomStartedEventName = 'room.started'
@@ -99,7 +99,7 @@ export type RoomDevice = RoomMember & {
 export type Member = RoomMember | RoomScreenShare | RoomDevice
 
 export type MemberUpdated = Member & {
-  updated: Array<keyof RoomMemberUpdatableProperties>
+  updated: Array<keyof VideoMemberUpdatableProperties>
 }
 
 export interface Room {

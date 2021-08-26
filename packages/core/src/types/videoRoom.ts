@@ -8,7 +8,7 @@ export type CamelToSnakeCase<S extends string> =
         : ''}${Lowercase<T>}${CamelToSnakeCase<U>}`
     : S
 
-export type InternalEntityUpdated<T> = T & {
+export type EntityUpdated<T> = T & {
   // TODO: `updated` should includes only the "updatable" keys
   updated: Array<keyof T>
 }
@@ -59,7 +59,7 @@ export interface VideoRoom {
 /**
  * VideoRoom entity plus `updated` field
  */
-export type VideoRoomUpdated = InternalEntityUpdated<VideoRoom>
+export type VideoRoomUpdated = EntityUpdated<VideoRoom>
 
 /**
  * VideoRoom entity for internal usage (converted to snake_case)
@@ -74,7 +74,7 @@ export type InternalVideoRoom = {
  * for internal usage (converted to snake_case)
  * @internal
  */
-export type InternalVideoRoomUpdated = InternalEntityUpdated<InternalVideoRoom>
+export type InternalVideoRoomUpdated = EntityUpdated<InternalVideoRoom>
 
 /**
  * ==========
@@ -110,6 +110,7 @@ export interface VideoRoomSubscribedEventParams {
     members: InternalVideoMember[]
     // TODO: add recordings[] and other bootstrap things
   }
+  // FIXME: only for webrtc
   call_id: string
   member_id: string
 }
