@@ -1,9 +1,5 @@
 import { SwEvent } from '.'
-import {
-  CamelToSnakeCase,
-  EntityUpdated,
-  VideoEventToInternal,
-} from './videoRoom'
+import { CamelToSnakeCase, EntityUpdated, VideoEventToInternal } from './utils'
 
 /**
  * Used to not duplicate member fields across constants and types
