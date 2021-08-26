@@ -1,5 +1,5 @@
 ---
-'@signalwire/node': patch
+'@signalwire/realtime-api': patch
 ---
 
-Add `Member` object to the Node SDK.
+Add `Member` object to the Real-Time Node SDK.
