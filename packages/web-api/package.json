@@ -1,7 +1,7 @@
 {
   "name": "@signalwire/web-api",
   "private": true,
-  "description": "SignalWire Node.js SDK",
+  "description": "SignalWire Web-API SDK for Node.js",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
   "version": "0.0.1-beta.4",
