@@ -43,18 +43,23 @@ export type MemberTalking = 'member.talking'
 /**
  * See {@link MEMBER_UPDATED_EVENTS} for the full list of events.
  */
-export type MemberUpdatedEvents = typeof MEMBER_UPDATED_EVENTS[number]
+export type MemberUpdatedEventNames = typeof MEMBER_UPDATED_EVENTS[number]
 export type MemberTalkingStart = 'member.talking.start'
 export type MemberTalkingStop = 'member.talking.stop'
+
+export type MemberTalkingEventNames =
+  | MemberTalking
+  | MemberTalkingStart
+  | MemberTalkingStop
 
 /**
  * List of public events
  */
-export type VideoMemberEvent =
+export type VideoMemberEventNames =
   | MemberJoined
   | MemberLeft
   | MemberUpdated
-  | MemberUpdatedEvents
+  | MemberUpdatedEventNames
   | MemberTalking
   | MemberTalkingStart
   | MemberTalkingStop
@@ -63,7 +68,8 @@ export type VideoMemberEvent =
  * List of internal events
  * @internal
  */
-export type InternalVideoMemberEvent = VideoEventToInternal<VideoMemberEvent>
+export type InternalVideoMemberEventNames =
+  VideoEventToInternal<VideoMemberEventNames>
 
 /**
  * Base Interface for a VideoMember entity
@@ -129,50 +135,50 @@ export type InternalVideoMemberUpdated = EntityUpdated<InternalVideoMember>
 /**
  * 'video.member.joined'
  */
-export interface MemberJoinedEventParams {
+export interface VideoMemberJoinedEventParams {
   room_session_id: string
   room_id: string
   member: InternalVideoMember
 }
 
-export interface MemberJoinedEvent extends SwEvent {
+export interface VideoMemberJoinedEvent extends SwEvent {
   event_type: VideoEventToInternal<MemberJoined>
-  params: MemberJoinedEventParams
+  params: VideoMemberJoinedEventParams
 }
 
 /**
  * 'video.member.updated'
  */
-export interface MemberUpdatedEventParams {
+export interface VideoMemberUpdatedEventParams {
   room_session_id: string
   room_id: string
   member: InternalVideoMemberUpdated
 }
 
-export interface MemberUpdatedEvent extends SwEvent {
+export interface VideoMemberUpdatedEvent extends SwEvent {
   event_type: VideoEventToInternal<MemberUpdated>
-  params: MemberUpdatedEventParams
+  params: VideoMemberUpdatedEventParams
 }
 
 /**
  * 'video.member.left'
  */
-export interface MemberLeftEventParams {
+export interface VideoMemberLeftEventParams {
   room_session_id: string
   room_id: string
   // TODO: check if we have full object here
   member: InternalVideoMember
 }
 
-export interface MemberLeftEvent extends SwEvent {
+export interface VideoMemberLeftEvent extends SwEvent {
   event_type: VideoEventToInternal<MemberLeft>
-  params: MemberLeftEventParams
+  params: VideoMemberLeftEventParams
 }
 
 /**
  * 'video.member.talking'
  */
-export interface MemberTalkingEventParams {
+export interface VideoMemberTalkingEventParams {
   room_session_id: string
   room_id: string
   member: Pick<InternalVideoMember, 'id'> & {
@@ -180,7 +186,19 @@ export interface MemberTalkingEventParams {
   }
 }
 
-export interface MemberTalkingEvent extends SwEvent {
+export interface VideoMemberTalkingEvent extends SwEvent {
   event_type: VideoEventToInternal<MemberTalking>
-  params: MemberTalkingEventParams
+  params: VideoMemberTalkingEventParams
 }
+
+export type VideoMemberEvent =
+  | VideoMemberJoinedEvent
+  | VideoMemberLeftEvent
+  | VideoMemberUpdatedEvent
+  | VideoMemberTalkingEvent
+
+export type VideoMemberEventParams =
+  | VideoMemberJoinedEventParams
+  | VideoMemberLeftEventParams
+  | VideoMemberUpdatedEventParams
+  | VideoMemberTalkingEventParams
