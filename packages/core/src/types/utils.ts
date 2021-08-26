@@ -10,4 +10,4 @@ export type EntityUpdated<T> = T & {
   updated: Array<keyof T>
 }
 
-export type VideoEventToInternal<T extends string> = `video.${T}`
+export type ToInternalVideoEvent<T extends string> = `video.${T}`

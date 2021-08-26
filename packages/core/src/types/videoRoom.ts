@@ -2,7 +2,7 @@ import type { SwEvent } from '.'
 import type {
   CamelToSnakeCase,
   EntityUpdated,
-  VideoEventToInternal,
+  ToInternalVideoEvent,
 } from './utils'
 import type { InternalVideoMember } from './videoMember'
 
@@ -32,7 +32,7 @@ export type VideoRoomEventNames =
  * @internal
  */
 export type InternalVideoRoomEventNames =
-  VideoEventToInternal<VideoRoomEventNames>
+  ToInternalVideoEvent<VideoRoomEventNames>
 
 /**
  * Base Interface for a VideoRoom entity
@@ -94,7 +94,7 @@ export interface VideoRoomStartedEventParams {
 }
 
 export interface VideoRoomStartedEvent extends SwEvent {
-  event_type: VideoEventToInternal<RoomStarted>
+  event_type: ToInternalVideoEvent<RoomStarted>
   params: VideoRoomStartedEventParams
 }
 
@@ -112,7 +112,7 @@ export interface VideoRoomSubscribedEventParams {
 }
 
 export interface VideoRoomSubscribedEvent extends SwEvent {
-  event_type: VideoEventToInternal<RoomSubscribed>
+  event_type: ToInternalVideoEvent<RoomSubscribed>
   params: VideoRoomSubscribedEventParams
 }
 
@@ -126,7 +126,7 @@ export interface VideoRoomUpdatedEventParams {
 }
 
 export interface VideoRoomUpdatedEvent extends SwEvent {
-  event_type: VideoEventToInternal<RoomUpdated>
+  event_type: ToInternalVideoEvent<RoomUpdated>
   params: VideoRoomUpdatedEventParams
 }
 
@@ -141,7 +141,7 @@ export interface VideoRoomEndedEventParams {
 }
 
 export interface VideoRoomEndedEvent extends SwEvent {
-  event_type: VideoEventToInternal<RoomEnded>
+  event_type: ToInternalVideoEvent<RoomEnded>
   params: VideoRoomEndedEventParams
 }
 

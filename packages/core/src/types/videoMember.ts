@@ -2,7 +2,7 @@ import type { SwEvent } from '.'
 import type {
   CamelToSnakeCase,
   EntityUpdated,
-  VideoEventToInternal,
+  ToInternalVideoEvent,
 } from './utils'
 
 /**
@@ -73,7 +73,7 @@ export type VideoMemberEventNames =
  * @internal
  */
 export type InternalVideoMemberEventNames =
-  VideoEventToInternal<VideoMemberEventNames>
+  ToInternalVideoEvent<VideoMemberEventNames>
 
 /**
  * Base Interface for a VideoMember entity
@@ -146,7 +146,7 @@ export interface VideoMemberJoinedEventParams {
 }
 
 export interface VideoMemberJoinedEvent extends SwEvent {
-  event_type: VideoEventToInternal<MemberJoined>
+  event_type: ToInternalVideoEvent<MemberJoined>
   params: VideoMemberJoinedEventParams
 }
 
@@ -160,7 +160,7 @@ export interface VideoMemberUpdatedEventParams {
 }
 
 export interface VideoMemberUpdatedEvent extends SwEvent {
-  event_type: VideoEventToInternal<MemberUpdated>
+  event_type: ToInternalVideoEvent<MemberUpdated>
   params: VideoMemberUpdatedEventParams
 }
 
@@ -175,7 +175,7 @@ export interface VideoMemberLeftEventParams {
 }
 
 export interface VideoMemberLeftEvent extends SwEvent {
-  event_type: VideoEventToInternal<MemberLeft>
+  event_type: ToInternalVideoEvent<MemberLeft>
   params: VideoMemberLeftEventParams
 }
 
@@ -191,7 +191,7 @@ export interface VideoMemberTalkingEventParams {
 }
 
 export interface VideoMemberTalkingEvent extends SwEvent {
-  event_type: VideoEventToInternal<MemberTalking>
+  event_type: ToInternalVideoEvent<MemberTalking>
   params: VideoMemberTalkingEventParams
 }
 

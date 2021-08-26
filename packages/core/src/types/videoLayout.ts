@@ -1,5 +1,5 @@
 import type { SwEvent } from '.'
-import type { CamelToSnakeCase, VideoEventToInternal } from './utils'
+import type { CamelToSnakeCase, ToInternalVideoEvent } from './utils'
 
 export type LayoutChanged = 'layout.changed'
 
@@ -13,7 +13,7 @@ export type VideoLayoutEventNames = LayoutChanged
  * @internal
  */
 export type InternalVideoLayoutEventNames =
-  VideoEventToInternal<VideoLayoutEventNames>
+  ToInternalVideoEvent<VideoLayoutEventNames>
 
 /**
  * Base Interface for a VideoLayout entity
@@ -70,7 +70,7 @@ export interface VideoLayoutChangedEventParams {
 }
 
 export interface VideoLayoutChangedEvent extends SwEvent {
-  event_type: VideoEventToInternal<LayoutChanged>
+  event_type: ToInternalVideoEvent<LayoutChanged>
   params: VideoLayoutChangedEventParams
 }
 
