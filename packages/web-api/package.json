@@ -1,5 +1,5 @@
 {
-  "name": "@signalwire/node",
+  "name": "@signalwire/web-api",
   "private": true,
   "description": "SignalWire Node.js SDK",
   "author": "SignalWire Team <open.source@signalwire.com>",
@@ -30,7 +30,7 @@
   "bugs": {
     "url": "https://github.com/signalwire/signalwire-js/issues"
   },
-  "homepage": "https://github.com/signalwire/signalwire-js/tree/master/packages/node",
+  "homepage": "https://github.com/signalwire/signalwire-js/tree/master/packages/web-api",
   "scripts": {
     "start": "sw-build --dev --node",
     "build": "tsc --project tsconfig.build.json && sw-build --node",
@@ -40,8 +40,14 @@
     "docs:watch": "npm run docs -- --watch"
   },
   "dependencies": {
-    "@signalwire/realtime-api": "^0.0.1-beta.4",
-    "@signalwire/web-api": "^0.0.1-beta.4"
+    "@signalwire/core": "3.1.0",
+    "node-abort-controller": "^2.0.0",
+    "node-fetch": "^2.6.1"
   },
-  "types": "dist/node/src/index.d.ts"
+  "devDependencies": {
+    "@types/node-fetch": "^2.5.10",
+    "msw": "^0.28.2",
+    "ts-node": "^10.0.0"
+  },
+  "types": "dist/web-api/src/index.d.ts"
 }

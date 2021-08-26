@@ -1,4 +1,4 @@
-import { createWebSocketClient } from '@signalwire/node'
+import { createWebSocketClient } from '@signalwire/realtime-api'
 
 async function run() {
   try {

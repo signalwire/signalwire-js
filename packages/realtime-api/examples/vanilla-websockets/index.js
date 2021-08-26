@@ -1,4 +1,4 @@
-const { createWebSocketClient } = require('@signalwire/node')
+const { createWebSocketClient } = require('@signalwire/realtime-api')
 
 const client = createWebSocketClient({
   host: 'relay.swire.io',
