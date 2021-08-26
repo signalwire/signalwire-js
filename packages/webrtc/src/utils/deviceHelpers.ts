@@ -638,6 +638,8 @@ interface DeviceWatcherEvents {
   }
 }
 
+type DeviceWatcherEventEmitter = StrictEventEmitter<EventEmitter, DeviceWatcherEvents>
+
 /**
  * Asynchronously returns an event emitter that notifies changes in the devices.
  * The possible events are:
@@ -681,7 +683,7 @@ interface DeviceWatcherEvents {
  */
 export const createDeviceWatcher = async (
   options: CreateDeviceWatcherOptions = {}
-) => {
+): Promise<DeviceWatcherEventEmitter> => {
   const targets = await validateTargets({ targets: options.targets })
   const emitter: StrictEventEmitter<EventEmitter, DeviceWatcherEvents> =
     new EventEmitter()
