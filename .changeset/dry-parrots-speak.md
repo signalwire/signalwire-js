@@ -1,5 +1,5 @@
 ---
-'@signalwire/node': patch
+'@signalwire/realtime-api': patch
 ---
 
-Initial implementation of the Node.js SDK
+Initial implementation of the Real-Time Node.js SDK

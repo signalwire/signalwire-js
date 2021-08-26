@@ -1,6 +1,6 @@
 ---
 '@signalwire/core': patch
-'@signalwire/node': patch
+'@signalwire/realtime-api': patch
 '@signalwire/webrtc': patch
 ---
 

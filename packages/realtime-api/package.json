@@ -1,7 +1,7 @@
 {
-  "name": "@signalwire/node",
+  "name": "@signalwire/realtime-api",
   "private": true,
-  "description": "SignalWire Node.js SDK",
+  "description": "SignalWire Real-Time SDK for Node.js",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
   "version": "0.0.1-beta.4",
@@ -30,18 +30,22 @@
   "bugs": {
     "url": "https://github.com/signalwire/signalwire-js/issues"
   },
-  "homepage": "https://github.com/signalwire/signalwire-js/tree/master/packages/node",
+  "homepage": "https://github.com/signalwire/signalwire-js/tree/master/packages/realtime-api",
   "scripts": {
     "start": "sw-build --dev --node",
     "build": "tsc --project tsconfig.build.json && sw-build --node",
-    "test": "echo no-tests",
+    "test": "NODE_ENV=test jest",
     "prepublishOnly": "npm run build",
     "docs": "typedoc --options typedoc.js --readme README.md",
     "docs:watch": "npm run docs -- --watch"
   },
   "dependencies": {
-    "@signalwire/realtime-api": "^0.0.1-beta.4",
-    "@signalwire/web-api": "^0.0.1-beta.4"
+    "@signalwire/core": "3.1.0",
+    "ws": "^7.4.6"
   },
-  "types": "dist/node/src/index.d.ts"
+  "devDependencies": {
+    "@types/ws": "^7.4.4",
+    "ts-node": "^10.0.0"
+  },
+  "types": "dist/realtime-api/src/index.d.ts"
 }
