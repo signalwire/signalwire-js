@@ -1,7 +1,7 @@
 import { configureJestStore } from '../testUtils'
 import { BaseComponent } from '../BaseComponent'
 import { connect } from './connect'
-import { componentActions } from './features'
+import { componentActions, sessionActions } from './features'
 import { EventEmitter } from '../utils/EventEmitter'
 import { SDKStore } from './'
 
@@ -12,6 +12,10 @@ describe('Connect', () => {
   let updateRemoteSDPAction: any
   const mockOnRemoteSDP = jest.fn()
 
+  Object.defineProperty(BaseComponent.prototype, 'onAuth', {
+    value: jest.fn(),
+  })
+
   beforeEach(() => {
     store = configureJestStore()
     instance = connect({
@@ -20,12 +24,15 @@ describe('Connect', () => {
         state: 'emit',
         remoteSDP: mockOnRemoteSDP,
       },
+      sessionListeners: {
+        authStatus: 'onAuth',
+      },
       Component: BaseComponent,
     })({
       emitter: new EventEmitter(),
     })
+    instance.onAuth.mockClear()
     instance.emit = jest.fn()
-
     mockOnRemoteSDP.mockClear()
 
     updateStateAction = componentActions.upsert({
@@ -72,6 +79,19 @@ describe('Connect', () => {
     expect(mockOnRemoteSDP).toHaveBeenCalledWith({
       id: instance.__uuid,
       remoteSDP: '<SDP>',
+    })
+  })
+
+  it('should invoke the function within sessionListeners', () => {
+    store.dispatch(sessionActions.authStatus('authorized'))
+
+    expect(instance.onAuth).toHaveBeenCalledTimes(1)
+    expect(instance.onAuth).toHaveBeenCalledWith({
+      protocol: '',
+      iceServers: [],
+      authStatus: 'authorized',
+      authError: undefined,
+      authCount: 0,
     })
   })
 })
