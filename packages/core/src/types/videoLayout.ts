@@ -1,5 +1,5 @@
-import { SwEvent } from '.'
-import { CamelToSnakeCase, VideoEventToInternal } from './utils'
+import type { SwEvent } from '.'
+import type { CamelToSnakeCase, VideoEventToInternal } from './utils'
 
 export type LayoutChanged = 'layout.changed'
 

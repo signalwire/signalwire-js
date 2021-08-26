@@ -1,6 +1,10 @@
-import { SwEvent } from '.'
-import { CamelToSnakeCase, EntityUpdated, VideoEventToInternal } from './utils'
-import { InternalVideoMember } from './videoMember'
+import type { SwEvent } from '.'
+import type {
+  CamelToSnakeCase,
+  EntityUpdated,
+  VideoEventToInternal,
+} from './utils'
+import type { InternalVideoMember } from './videoMember'
 
 /**
  * Public event types
