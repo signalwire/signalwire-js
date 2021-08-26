@@ -7,14 +7,18 @@ import { CamelToSnakeCase, EntityUpdated, VideoEventToInternal } from './utils'
  * `key`: `type`
  */
 export const MEMBER_UPDATABLE_PROPERTIES = {
-  audioMuted: true,
-  videoMuted: true,
+  /**
+   * FIXME: Move to camelCase and handle backwards compat.
+   * with the browser package.
+   */
+  audio_muted: true,
+  video_muted: true,
   deaf: true,
-  onHold: true,
+  on_hold: true,
   visible: true,
-  inputVolume: 1,
-  outputVolume: 1,
-  inputSensitivity: 1,
+  input_volume: 1,
+  output_volume: 1,
+  input_sensitivity: 1,
 }
 
 export type VideoMemberUpdatableProperties = typeof MEMBER_UPDATABLE_PROPERTIES
