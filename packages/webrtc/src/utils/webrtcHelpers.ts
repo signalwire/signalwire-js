@@ -4,14 +4,23 @@ export const RTCPeerConnection = (config: RTCConfiguration) => {
   return new window.RTCPeerConnection(config)
 }
 
+/**
+ * Returns whether the current environment supports the media devices API.
+ */
 export const supportsMediaDevices = () => {
   return typeof navigator !== 'undefined' && !!navigator.mediaDevices
 }
 
+/**
+ * Returns whether the current environment supports `getUserMedia`.
+ */
 export const supportsGetUserMedia = () => {
   return typeof navigator?.mediaDevices?.getUserMedia === 'function'
 }
 
+/**
+ * Returns whether the current environment supports `getDisplayMedia`.
+ */
 export const supportsGetDisplayMedia = () => {
   // @ts-expect-error
   return typeof navigator?.mediaDevices?.getDisplayMedia === 'function'
@@ -25,6 +34,39 @@ export const getMediaDevicesApi = () => {
   return navigator.mediaDevices
 }
 
+/**
+ * Prompts the user to share one or more media devices and asynchronously
+ * returns an associated [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream)
+ * object.
+ *
+ * For more information, see [`MediaDevices.getUserMedia()`](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia).
+ *
+ * @param constraints an optional [MediaStreamConstraints](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamConstraints)
+ *                    object specifying requirements for the returned [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream).
+ * 
+ * @example
+ * To only request audio media:
+ * 
+ * ```typescript
+ * await SignalWire.WebRTC.getUserMedia({audio: true, video: false})
+ * // MediaStream {id: "HCXy...", active: true, ...}
+ * ```
+ * 
+ * @example
+ * To request both audio and video, specifying constraints for the video:
+ * 
+ * ```typescript
+ * const constraints = {
+ *   audio: true,
+ *   video: {
+ *     width: { min: 1024, ideal: 1280, max: 1920 },
+ *     height: { min: 576, ideal: 720, max: 1080 }
+ *   }
+ * }
+ * await SignalWire.WebRTC.getUserMedia(constraints)
+ * // MediaStream {id: "EDVk...", active: true, ...}
+ * ```
+ */
 export const getUserMedia = (
   constraints: MediaStreamConstraints = { audio: true, video: true }
 ) => {
@@ -88,11 +130,48 @@ export const getUserMedia = (
   }
 }
 
+/**
+ * Prompts the user to share the screen and asynchronously returns a
+ * [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream)
+ * object associated with a display or part of it.
+ *
+ * @param constraints an optional
+ * [MediaStreamConstraints](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamConstraints)
+ * object specifying requirements for the returned [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream).
+ * 
+ * @example 
+ *  ```typescript
+ * await SignalWire.WebRTC.getDisplayMedia()
+ * // MediaStream {id: "HCXy...", active: true, ...}
+ * ```
+ */
 export const getDisplayMedia = (constraints: MediaStreamConstraints) => {
   // @ts-expect-error
   return getMediaDevicesApi().getDisplayMedia(constraints)
 }
 
+/**
+ * Enumerates the media input and output devices available on this device.
+ * 
+ * > 📘
+ * > Depending on the browser, some information (such as the `label` and
+ * > `deviceId` attributes) could be hidden until permission is granted, for
+ * > example by calling {@link getUserMedia}.
+ * 
+ * @example
+ * ```typescript
+ * await SignalWire.WebRTC.enumerateDevices()
+ * // [
+ * //   {
+ * //     "deviceId": "Rug5Bk...4TMhY=",
+ * //     "kind": "videoinput",
+ * //     "label": "HD FaceTime Camera",
+ * //     "groupId": "EEX/N2...AjrOs="
+ * //   },
+ * //   ...
+ * // ]
+ * ``` 
+ */
 export const enumerateDevices = () => {
   return getMediaDevicesApi().enumerateDevices()
 }
@@ -109,6 +188,22 @@ export const enumerateDevicesByKind = async (
   return devices
 }
 
+/**
+ * Returns a dictionary whose fields specify the constrainable properties the user agent understands.
+ *
+ * @example
+ * ```typescript
+ * SignalWire.WebRTC.getSupportedConstraints()
+ * // {
+ * //   "aspectRatio": true,
+ * //   "autoGainControl": true,
+ * //   "brightness": true,
+ * //   "channelCount": true,
+ * //   "colorTemperature": true,
+ * //   ...
+ * // }
+ * ```
+ */
 export const getSupportedConstraints = () => {
   return getMediaDevicesApi().getSupportedConstraints()
 }
@@ -116,10 +211,34 @@ export const getSupportedConstraints = () => {
 export const streamIsValid = (stream?: MediaStream) =>
   stream && stream instanceof MediaStream
 
+/**
+ * Returns whether the current environment supports the selection of a media output device.
+ */
 export const supportsMediaOutput = () => {
   return 'sinkId' in HTMLMediaElement.prototype
 }
 
+/**
+ * Assigns the specified audio output device to the specified HTMLMediaElement.
+ * The device with id `deviceId` must be an audio output device. Asynchronously
+ * returns whether the operation had success.
+ * 
+ * > 📘
+ * > Some browsers do not support output device selection. You can check by
+ * > calling [`supportsMediaOutput`](supportsmediaoutput).
+ * 
+ * @param el target element
+ * @param deviceId id of the audio output device
+ * @returns a promise of whether the operation had success
+ * 
+ * @example
+ * ```typescript
+ * const el = document.querySelector('video')
+ * const outDevices = await SignalWire.WebRTC.getSpeakerDevicesWithPermissions()
+ * await SignalWire.WebRTC.setMediaElementSinkId(el, outDevices[0].deviceId)
+ * // true
+```
+ */
 export const setMediaElementSinkId = async (
   el: HTMLMediaElement | null,
   deviceId: string

@@ -25,6 +25,13 @@ export type RoomScreenShare = VideoMember & { type: 'screen' }
 export type RoomDevice = VideoMember & { type: 'device' }
 
 export * as Video from './video'
+
+/**
+ * The WebRTC namespace includes functions that give you access to the input and
+ * output media devices available on the user's machine. For example, you can
+ * use these functions to request permission and get access to the media stream
+ * from a webcam, from a microphone, or from a screen sharing.
+ */
 export * as WebRTC from './webrtc'
 export type {
   BaseComponentOptions,

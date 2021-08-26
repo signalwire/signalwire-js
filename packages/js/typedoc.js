@@ -7,4 +7,6 @@ module.exports = {
   hideGenerator: true,
   readme: 'none',
   tsconfig: 'tsconfig.docs.json',
+  theme: '../../node_modules/@signalwire/typedoc-readme-api-theme/dist',
+  plugin: ['typedoc-plugin-markdown']
 }
