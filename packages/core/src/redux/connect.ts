@@ -33,13 +33,19 @@ export const connect = <T extends BaseComponent>(options: Connect<T>) => {
   return (userOptions: any) => {
     const instance = new Component({ ...userOptions, store })
     const cacheMap = new Map<string, any>()
+    let run = true
 
     const storeUnsubscribe = store.subscribe(() => {
-      const component = getComponent(store.getState(), instance.__uuid)
+      const state = store.getState()
+      const component = getComponent(state, instance.__uuid)
       if (!component) {
         return
       }
-      componentKeys.forEach((reduxKey) => {
+      for (const reduxKey of componentKeys) {
+        if (run === false) {
+          return
+        }
+
         const cacheKey = `${instance.__uuid}.${reduxKey}`
         const current = cacheMap.get(cacheKey)
         const updatedValue = component?.[reduxKey]
@@ -55,11 +61,13 @@ export const connect = <T extends BaseComponent>(options: Connect<T>) => {
             fnName(component)
           }
         }
-      })
+      }
 
-      // TODO: refactor this to avoid repetition with the above.
-      const session = getSession(store.getState())
-      sessionKeys.forEach((reduxKey) => {
+      const session = getSession(state)
+      for (const reduxKey of sessionKeys) {
+        if (run === false) {
+          return
+        }
         const cacheKey = `session.${reduxKey}`
         const current = cacheMap.get(cacheKey)
         const updatedValue = session[reduxKey]
@@ -76,7 +84,7 @@ export const connect = <T extends BaseComponent>(options: Connect<T>) => {
             fnName(session)
           }
         }
-      })
+      }
     })
     store.dispatch(componentActions.upsert({ id: instance.__uuid }))
 
@@ -86,6 +94,7 @@ export const connect = <T extends BaseComponent>(options: Connect<T>) => {
     })
 
     instance.destroyer = () => {
+      run = false
       storeUnsubscribe()
       cacheMap.clear()
 
