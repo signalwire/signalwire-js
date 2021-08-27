@@ -43,7 +43,7 @@ type DevicePermissionName = DevicePermissionDescriptor['name']
  * {@link checkCameraPermissions}, {@link checkMicrophonePermissions}, and
  * {@link checkSpeakerPermissions}.
  * @param name name of the resource
- * 
+ *
  * @example
  * ```typescript
  * await SignalWire.WebRTC.checkPermissions("camera")
@@ -73,7 +73,7 @@ export const checkPermissions = async (name?: DevicePermissionName) => {
 
 /**
  * Asynchronously returns whether we have permissions to access the camera.
- * 
+ *
  * @example
  * ```typescript
  * await SignalWire.WebRTC.checkCameraPermissions()
@@ -84,7 +84,7 @@ export const checkCameraPermissions = () => checkPermissions('camera')
 
 /**
  * Asynchronously returns whether we have permissions to access the microphone.
- * 
+ *
  * @example
  * ```typescript
  * await SignalWire.WebRTC.checkMicrophonePermissions()
@@ -95,7 +95,7 @@ export const checkMicrophonePermissions = () => checkPermissions('microphone')
 
 /**
  * Asynchronously returns whether we have permissions to access the speakers.
- * 
+ *
  * @example
  * ```typescript
  * await SignalWire.WebRTC.checkSpeakerPermissions()
@@ -123,13 +123,13 @@ const _constraintsByKind = (
  * {@link getCameraDevicesWithPermissions},
  * {@link getMicrophoneDevicesWithPermissions}, and
  * {@link getSpeakerDevicesWithPermissions}.
- * 
+ *
  * @param kind filter for this device category
  * @param fullList By default, only devices for which
  * we have been granted permissions are returned. To obtain a list of devices regardless of
  * the permissions, pass `fullList=true`. Note however that some values such as
  * `name` and `deviceId` could be omitted.
- * 
+ *
  * @example
  * ```typescript
  * await SignalWire.WebRTC.getDevicesWithPermissions("camera")
@@ -156,10 +156,9 @@ export const getDevicesWithPermissions = async (
   return getDevices(kind, fullList)
 }
 
-
 /**
  * After prompting the user for permission, returns an array of camera devices.
- * 
+ *
  * @example
  * ```typescript
  * await SignalWire.WebRTC.getCameraDevicesWithPermissions()
@@ -243,13 +242,13 @@ const _filterDevices = (
  * `"speaker"`, which respectively correspond to functions
  * {@link getCameraDevices}, {@link getMicrophoneDevices}, and
  * {@link getSpeakerDevices}.
- * 
+ *
  * @param name filter for this device category
  * @param fullList By default, only devices for which
  * we have permissions are returned. To obtain a list of devices regardless of
  * the permissions, pass `fullList=true`. Note however that some values such as
  * `name` and `deviceId` could be omitted.
- * 
+ *
  * @example
  * ```typescript
  * await SignalWire.WebRTC.getDevices("camera", true)
@@ -281,7 +280,7 @@ export const getDevices = async (
 
 /**
  * Returns an array of camera devices that can be accessed on this device (for which we have permissions).
- * 
+ *
  * @example
  * ```typescript
  * await SignalWire.WebRTC.getCameraDevices()
@@ -299,7 +298,7 @@ export const getCameraDevices = () => getDevices('camera')
 
 /**
  * Returns an array of microphone devices that can be accessed on this device (for which we have permissions).
- * 
+ *
  * @example
  * ```typescript
  * await SignalWire.WebRTC.getMicrophoneDevices()
@@ -317,7 +316,7 @@ export const getMicrophoneDevices = () => getDevices('microphone')
 
 /**
  * Returns an array of speaker devices that can be accessed on this device (for which we have permissions).
- * 
+ *
  * @example
  * ```typescript
  * await SignalWire.WebRTC.getSpeakerDevices()
@@ -367,14 +366,14 @@ export const assureAudioOutDevice = (id: string, label: string) =>
  * Prompts the user to grant permissions for the devices matching the specified set of constraints.
  * @param constraints an optional [MediaStreamConstraints](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamConstraints)
  *                    object specifying requirements for the returned [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream).
- * 
+ *
  * @example
  * To only request audio permissions:
- * 
+ *
  * ```typescript
  * await SignalWire.WebRTC.requestPermissions({audio: true, video: false})
  * ```
- * 
+ *
  * @example
  * To request permissions for both audio and video, specifying constraints for the video:
  * ```typescript
@@ -637,7 +636,10 @@ interface DeviceWatcherEvents {
   }
 }
 
-type DeviceWatcherEventEmitter = StrictEventEmitter<EventEmitter, DeviceWatcherEvents>
+type DeviceWatcherEventEmitter = StrictEventEmitter<
+  EventEmitter,
+  DeviceWatcherEvents
+>
 
 /**
  * Asynchronously returns an event emitter that notifies changes in the devices.
@@ -659,7 +661,7 @@ type DeviceWatcherEventEmitter = StrictEventEmitter<EventEmitter, DeviceWatcherE
  *
  * For device-specific helpers, see {@link createCameraDeviceWatcher},
  * {@link createMicrophoneDeviceWatcher}, and {@link createSpeakerDeviceWatcher}.
- * 
+ *
  * @param options if null, the event emitter is associated to all devices for
  * which we have permission. Otherwise, you can pass an object
  * `{targets: string}`, where the value for key targets is a list of categories.
@@ -672,7 +674,7 @@ type DeviceWatcherEventEmitter = StrictEventEmitter<EventEmitter, DeviceWatcherE
  * h = await SignalWire.WebRTC.createDeviceWatcher()
  * h.on('changed', (c) => console.log(c))
  * ```
- * 
+ *
  * @example
  * Getting notified just for changes about audio input and output devices, ignoring the camera:
  * ```typescript

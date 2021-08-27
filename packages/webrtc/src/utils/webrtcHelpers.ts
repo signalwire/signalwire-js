@@ -43,18 +43,18 @@ export const getMediaDevicesApi = () => {
  *
  * @param constraints an optional [MediaStreamConstraints](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamConstraints)
  *                    object specifying requirements for the returned [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream).
- * 
+ *
  * @example
  * To only request audio media:
- * 
+ *
  * ```typescript
  * await SignalWire.WebRTC.getUserMedia({audio: true, video: false})
  * // MediaStream {id: "HCXy...", active: true, ...}
  * ```
- * 
+ *
  * @example
  * To request both audio and video, specifying constraints for the video:
- * 
+ *
  * ```typescript
  * const constraints = {
  *   audio: true,
@@ -138,8 +138,8 @@ export const getUserMedia = (
  * @param constraints an optional
  * [MediaStreamConstraints](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamConstraints)
  * object specifying requirements for the returned [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream).
- * 
- * @example 
+ *
+ * @example
  *  ```typescript
  * await SignalWire.WebRTC.getDisplayMedia()
  * // MediaStream {id: "HCXy...", active: true, ...}
@@ -152,12 +152,12 @@ export const getDisplayMedia = (constraints: MediaStreamConstraints) => {
 
 /**
  * Enumerates the media input and output devices available on this device.
- * 
+ *
  * > 📘
  * > Depending on the browser, some information (such as the `label` and
  * > `deviceId` attributes) could be hidden until permission is granted, for
  * > example by calling {@link getUserMedia}.
- * 
+ *
  * @example
  * ```typescript
  * await SignalWire.WebRTC.enumerateDevices()
@@ -170,7 +170,7 @@ export const getDisplayMedia = (constraints: MediaStreamConstraints) => {
  * //   },
  * //   ...
  * // ]
- * ``` 
+ * ```
  */
 export const enumerateDevices = () => {
   return getMediaDevicesApi().enumerateDevices()
@@ -222,15 +222,15 @@ export const supportsMediaOutput = () => {
  * Assigns the specified audio output device to the specified HTMLMediaElement.
  * The device with id `deviceId` must be an audio output device. Asynchronously
  * returns whether the operation had success.
- * 
+ *
  * > 📘
  * > Some browsers do not support output device selection. You can check by
  * > calling [`supportsMediaOutput`](supportsmediaoutput).
- * 
+ *
  * @param el target element
  * @param deviceId id of the audio output device
  * @returns a promise of whether the operation had success
- * 
+ *
  * @example
  * ```typescript
  * const el = document.querySelector('video')
