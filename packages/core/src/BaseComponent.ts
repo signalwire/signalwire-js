@@ -167,6 +167,16 @@ export class BaseComponent implements Emitter {
         this._eventsTransformsCache.get(namespacedEvent),
         {
           get(target: any, prop: any, receiver: any) {
+            if (
+              prop === '_eventsNamespace' &&
+              transform.getInstanceEventNamespace
+            ) {
+              return transform.getInstanceEventNamespace(payload)
+            }
+            if (prop === 'eventChannel' && transform.getInstanceEventChannel) {
+              return transform.getInstanceEventChannel(payload)
+            }
+
             if (prop in transformedPayload) {
               return transformedPayload[prop]
             }
@@ -224,7 +234,7 @@ export class BaseComponent implements Emitter {
     const [event, fn, context] = this._getOptionsFromParams(params)
     const handler = this.applyEventHandlerTransform(event, fn)
     const namespacedEvent = this._getNamespacedEvent(event)
-    logger.trace('Registering event', namespacedEvent)
+    // logger.debug('Registering event', event, namespacedEvent)
     this.trackEvent(event)
     return this.emitter.on(namespacedEvent, handler, context)
   }
