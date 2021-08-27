@@ -33,6 +33,10 @@ export const connect = <T extends BaseComponent>(options: Connect<T>) => {
   return (userOptions: any) => {
     const instance = new Component({ ...userOptions, store })
     const cacheMap = new Map<string, any>()
+    /**
+     * Stop the execution of the redux listeners if `destroyer`
+     * below was called in the meantime.
+     */
     let run = true
 
     const storeUnsubscribe = store.subscribe(() => {
