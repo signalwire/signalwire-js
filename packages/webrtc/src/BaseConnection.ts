@@ -25,6 +25,12 @@ const ROOM_EVENTS: InternalVideoEvent[] = [
   'video.member.left',
   'video.member.talking',
   'video.layout.changed',
+  // @ts-expect-error
+  'video.recording.started',
+  // @ts-expect-error
+  'video.recording.updated',
+  // @ts-expect-error
+  'video.recording.ended',
 ]
 
 /**
