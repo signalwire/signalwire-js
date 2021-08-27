@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.1] - 2021-08-27
+
+### Changed
+
+- [#246](https://github.com/signalwire/signalwire-js/pull/246) [`97dacbb`](https://github.com/signalwire/signalwire-js/commit/97dacbb3aaf9029a6781ac2356591f928ae40580) - Add typings for the RealTime video and room event listeners.
+
+- [#243](https://github.com/signalwire/signalwire-js/pull/243) [`e45c52c`](https://github.com/signalwire/signalwire-js/commit/e45c52cc7d3c684efd2a080e0a138d3bb82ea8f0) - Allow to set the logger level via `logLevel` argument on the `UserOptions` interface.
+
+### Fixed
+
+- [#258](https://github.com/signalwire/signalwire-js/pull/258) [`b7299f0`](https://github.com/signalwire/signalwire-js/commit/b7299f07c3583082b7d5c289fd1e1dca7936d6a4) - Fix a race condition within `connect`.
+
 ## [3.1.0] - 2021-08-13
 
 ### Added
