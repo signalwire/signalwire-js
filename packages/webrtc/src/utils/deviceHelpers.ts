@@ -120,9 +120,9 @@ const _constraintsByKind = (
  * devices of the specified kind are returned. Possible values of the `kind`
  * parameters are `"camera"`, `"microphone"`, and `"speaker"`, which
  * respectively correspond to functions
- * [`getCameraDevicesWithPermissions`](#getcameradeviceswithpermissions),
- * [`getMicrophoneDevicesWithPermissions`](#getmicrophonedeviceswithpermissions),
- * and [`getSpeakerDevicesWithPermissions`](#getspeakerdeviceswithpermissions).
+ * {@link getCameraDevicesWithPermissions},
+ * {@link getMicrophoneDevicesWithPermissions}, and
+ * {@link getSpeakerDevicesWithPermissions}.
  * 
  * @param kind filter for this device category
  * @param fullList By default, only devices for which
@@ -241,9 +241,8 @@ const _filterDevices = (
  * `name` is not null, only the devices of the specified kind are returned.
  * Possible values of the `name` parameters are `"camera"`, `"microphone"`, and
  * `"speaker"`, which respectively correspond to functions
- * [`getCameraDevices`](#getcameradevices),
- * [`getMicrophoneDevices`](#getmicrophonedevices), and
- * [`getSpeakerDevices`](#getspeakerdevices).
+ * {@link getCameraDevices}, {@link getMicrophoneDevices}, and
+ * {@link getSpeakerDevices}.
  * 
  * @param name filter for this device category
  * @param fullList By default, only devices for which
