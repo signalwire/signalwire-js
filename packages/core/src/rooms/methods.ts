@@ -111,7 +111,7 @@ export const getRecordings = createRoomMethod<BaseRPCResult, void>(
 export const startRecording = createRoomMethod<BaseRPCResult, void>(
   'video.recording.start',
   {
-    transformResolve: baseCodeTransform,
+    transformResolve: (payload) => payload,
   }
 )
 export const stopRecording = createRoomMethod<BaseRPCResult, void>(
