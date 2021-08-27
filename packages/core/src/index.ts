@@ -8,9 +8,9 @@ import { EventEmitter, getEventEmitter } from './utils/EventEmitter'
 import * as sessionSelectors from './redux/features/session/sessionSelectors'
 import {
   GLOBAL_VIDEO_EVENTS,
-  MEMBER_UPDATED_EVENTS,
   INTERNAL_MEMBER_UPDATED_EVENTS,
 } from './utils/constants'
+import { MEMBER_UPDATED_EVENTS } from './types/videoMember'
 
 export {
   uuid,
