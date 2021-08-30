@@ -35,7 +35,7 @@ export type RoomEventNames =
  * for the video sdk
  * @internal
  */
-export type InternalVideoEvent =
+export type InternalVideoEventNames =
   | InternalVideoRoomEventNames
   | InternalVideoMemberEventNames
   | InternalVideoLayoutEventNames

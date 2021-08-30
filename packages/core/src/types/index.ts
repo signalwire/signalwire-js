@@ -1,4 +1,4 @@
-import type { VideoAPIEventParams, InternalVideoEvent } from './video'
+import type { VideoAPIEventParams, InternalVideoEventNames } from './video'
 import type { SessionEvents, JSONRPCRequest } from '../utils/interfaces'
 
 export interface SwEvent {
@@ -20,7 +20,7 @@ export type SwEventParams =
 
 // prettier-ignore
 export type PubSubChannelEvents =
-  | InternalVideoEvent
+  | InternalVideoEventNames
   | SessionEvents
 
 export * from './video'
