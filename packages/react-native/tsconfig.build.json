@@ -1,5 +1,9 @@
 {
   "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "emitDeclarationOnly": true,
+    "outDir": "dist"
+  },
   "include": ["./src/**/*.ts", "../core/src/**/*.ts", "../webrtc/src/**/*.ts"],
   "exclude": ["**/*.test.ts"]
 }
