@@ -4,14 +4,16 @@ import {
   EventTransform,
   connect,
   toExternalJSON,
-  MemberEventParams,
-  InternalMemberEvent,
+  VideoMemberEventParams,
+  InternalVideoMemberEventNames,
   INTERNAL_MEMBER_UPDATED_EVENTS,
 } from '@signalwire/core'
 import { BaseConsumer } from './BaseConsumer'
 import { Member } from './Member'
 
-type MemberEventMap = InternalMemberEvent | InternalMemberEvent[]
+type MemberEventMap =
+  | InternalVideoMemberEventNames
+  | InternalVideoMemberEventNames[]
 class Room extends BaseConsumer {
   protected _eventsPrefix = 'video' as const
 
@@ -32,7 +34,7 @@ class Room extends BaseConsumer {
           ...INTERNAL_MEMBER_UPDATED_EVENTS,
         ],
         {
-          instanceFactory: (payload: MemberEventParams) => {
+          instanceFactory: (payload: VideoMemberEventParams) => {
             const member: Member = connect({
               store: this.store,
               Component: Member,
@@ -48,7 +50,7 @@ class Room extends BaseConsumer {
 
             return member
           },
-          payloadTransform: (payload: MemberEventParams) => {
+          payloadTransform: (payload: VideoMemberEventParams) => {
             return toExternalJSON(payload.member)
           },
         },

@@ -28,10 +28,10 @@ async function run() {
         console.log('---> member.updated', member.updated)
       })
 
-      room.on('member.updated.audio_muted', (member) => {
+      room.on('member.updated.audioMuted', (member) => {
         console.log('---> AUDIO MUTED', member)
       })
-      room.on('member.updated.video_muted', (member) => {
+      room.on('member.updated.videoMuted', (member) => {
         console.log('---> VIDEO MUTED', member)
       })
       room.on('member.updated.visible', (member) => {
