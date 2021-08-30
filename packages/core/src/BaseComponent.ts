@@ -167,6 +167,16 @@ export class BaseComponent implements Emitter {
         this._eventsTransformsCache.get(namespacedEvent),
         {
           get(target: any, prop: any, receiver: any) {
+            if (
+              prop === '_eventsNamespace' &&
+              transform.getInstanceEventNamespace
+            ) {
+              return transform.getInstanceEventNamespace(payload)
+            }
+            if (prop === 'eventChannel' && transform.getInstanceEventChannel) {
+              return transform.getInstanceEventChannel(payload)
+            }
+
             if (prop in transformedPayload) {
               return transformedPayload[prop]
             }
