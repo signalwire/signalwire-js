@@ -90,24 +90,7 @@ export interface VideoMemberBase {
 
 export interface VideoMember
   extends VideoMemberBase,
-    VideoMemberUpdatableProperties {
-  type: 'member'
-}
-
-export interface VideoMemberScreen
-  extends VideoMemberBase,
-    VideoMemberUpdatableProperties {
-  type: 'screen'
-  parentId: string
-}
-
-export interface VideoMemberDevice
-  extends VideoMemberBase,
-    VideoMemberUpdatableProperties {
-  type: 'device'
-  parentId: string
-}
-
+    VideoMemberUpdatableProperties {}
 /**
  * VideoMember entity plus `updated` field
  */
