@@ -234,7 +234,7 @@ export class BaseComponent implements Emitter {
     const [event, fn, context] = this._getOptionsFromParams(params)
     const handler = this.applyEventHandlerTransform(event, fn)
     const namespacedEvent = this._getNamespacedEvent(event)
-    logger.trace('Registering event', event, namespacedEvent)
+    logger.trace('Registering event', namespacedEvent)
     this.trackEvent(event)
     return this.emitter.on(namespacedEvent, handler, context)
   }
