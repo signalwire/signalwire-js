@@ -1,5 +1,5 @@
 import { BaseRoomInterface } from '.'
-import { Member } from '../types'
+import { VideoMember } from '../types'
 import { ExecuteExtendedOptions, RoomMethod } from '../utils/interfaces'
 
 interface RoomMethodPropertyDescriptor<T> extends PropertyDescriptor {
@@ -78,7 +78,7 @@ export const getLayouts = createRoomMethod<{ layouts: string[] }>(
     transformResolve: (payload) => ({ layouts: payload.layouts }),
   }
 )
-export const getMembers = createRoomMethod<{ members: Member[] }>(
+export const getMembers = createRoomMethod<{ members: VideoMember[] }>(
   'video.members.get',
   {
     transformResolve: (payload) => ({ members: payload.members }),

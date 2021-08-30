@@ -1,6 +1,7 @@
 import type { SwEvent } from '.'
 import type {
   CamelToSnakeCase,
+  SnakeToCamelCase,
   EntityUpdated,
   ToInternalVideoEvent,
 } from './utils'
@@ -10,11 +11,7 @@ import type {
  * and generate `MEMBER_UPDATED_EVENTS` below.
  * `key`: `type`
  */
-export const MEMBER_UPDATABLE_PROPERTIES = {
-  /**
-   * FIXME: Move to camelCase and handle backwards compat.
-   * with the browser package.
-   */
+export const MEMBER_UPDATABLE_PROPS = {
   audio_muted: true,
   video_muted: true,
   deaf: true,
@@ -25,14 +22,16 @@ export const MEMBER_UPDATABLE_PROPERTIES = {
   input_sensitivity: 1,
 }
 
-export type VideoMemberUpdatableProperties = typeof MEMBER_UPDATABLE_PROPERTIES
-export const MEMBER_UPDATED_EVENTS = Object.keys(
-  MEMBER_UPDATABLE_PROPERTIES
-).map((key) => {
-  return `member.updated.${
-    key as keyof VideoMemberUpdatableProperties
-  }` as const
-})
+export type VideoMemberUpdatableProps = typeof MEMBER_UPDATABLE_PROPS
+export const MEMBER_UPDATED_EVENTS = Object.keys(MEMBER_UPDATABLE_PROPS).map(
+  (key) => {
+    return `member.updated.${key as keyof VideoMemberUpdatableProps}` as const
+  }
+)
+
+export type VideoMemberUpdatablePropsCamelCase = {
+  [K in keyof VideoMemberUpdatableProps as SnakeToCamelCase<K>]: VideoMemberUpdatableProps[K]
+}
 
 /**
  * Public event types
@@ -64,9 +63,7 @@ export type VideoMemberEventNames =
   | MemberLeft
   | MemberUpdated
   | MemberUpdatedEventNames
-  | MemberTalking
-  | MemberTalkingStart
-  | MemberTalkingStop
+  | MemberTalkingEventNames
 
 /**
  * List of internal events
@@ -90,7 +87,7 @@ export interface VideoMemberBase {
 
 export interface VideoMember
   extends VideoMemberBase,
-    VideoMemberUpdatableProperties {}
+    VideoMemberUpdatablePropsCamelCase {}
 /**
  * VideoMember entity plus `updated` field
  */
