@@ -12,6 +12,6 @@
     "sw-build-all": "bin/cli.js"
   },
   "dependencies": {
-    "dependency-tree": "^8.1.1"
+    "concurrently": "^6.2.0"
   }
 }

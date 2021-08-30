@@ -1,4 +1,3 @@
-import dependencyTree from 'dependency-tree'
 import concurrently from 'concurrently'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -6,6 +5,7 @@ import fs from 'fs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+
 /**
  * Max depth level we'll navigate through folders.
  */
@@ -65,21 +65,17 @@ export async function cli(args) {
           fs.readFileSync(path.resolve(pathname, 'package.json'), 'utf-8')
         )
 
-        const filename = path.join(pathname, pkgJson.main)
+        const deps = Object.keys(pkgJson.dependencies).filter((key) =>
+          key.includes('@signalwire')
+        )
 
-        const tree = dependencyTree({
-          filename,
-          directory: pathname,
-          filter: (path) => path.includes('@signalwire'),
-        })
-
-        const deps = Object.keys(tree[filename] ?? {})
+        const pkgName = parsePackageName(pathname)
 
         if (deps.length === 0) {
-          packagesWithNoDeps.add(parsePackageName(filename))
+          packagesWithNoDeps.add(pkgName)
         } else {
           acc.set(
-            parsePackageName(filename),
+            pkgName,
             deps.map((s) => {
               return parsePackageName(s)
             })
@@ -93,7 +89,7 @@ export async function cli(args) {
     return acc
   }
 
-  console.log('🌲  Constructing the build tree...')
+  console.log('🌲 Constructing the build tree...')
   const pkgDeps = scan(path.join(__dirname, '../../packages'))
   const tree = buildTree(
     pkgDeps,
@@ -103,13 +99,13 @@ export async function cli(args) {
 
   for await (const packages of tree.values()) {
     const n = packages.map((pkg) => {
-      return `manypkg run @signalwire/${pkg} build`
+      return `npm:build:${pkg}`
     })
 
     try {
-      console.log('⚙ Building ->', packages)
+      console.log('🏃‍♂️ Running ->', n)
       await concurrently(n, {
-        // prefix: 'name',
+        prefix: 'name',
       })
     } catch (e) {
       console.error('something went wrong')
