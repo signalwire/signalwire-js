@@ -1,4 +1,8 @@
-import { logger, LayoutLayer, Layout } from '@signalwire/core'
+import {
+  logger,
+  InternalVideoLayoutLayer,
+  InternalVideoLayout,
+} from '@signalwire/core'
 
 const buildVideo = () => {
   const video = document.createElement('video')
@@ -22,7 +26,12 @@ const _videoReady = ({ element }: { element: HTMLVideoElement }) => {
   })
 }
 
-const _getLocationStyles = ({ x, y, width, height }: LayoutLayer) => {
+const _getLocationStyles = ({
+  x,
+  y,
+  width,
+  height,
+}: InternalVideoLayoutLayer) => {
   return {
     top: `${y}%`,
     left: `${x}%`,
@@ -35,7 +44,7 @@ const _buildLayer = async ({
   location,
   element,
 }: {
-  location: LayoutLayer
+  location: InternalVideoLayoutLayer
   element: HTMLVideoElement
 }) => {
   if (element.readyState === HTMLMediaElement.HAVE_NOTHING) {
@@ -54,7 +63,7 @@ const _buildLayer = async ({
 }
 
 interface LayoutChangedHandlerParams {
-  layout: Layout
+  layout: InternalVideoLayout
   myMemberId: string
   localStream: MediaStream
 }
