@@ -49,7 +49,7 @@ class Video extends BaseConsumer {
             return room
           },
           payloadTransform: (payload: any) => {
-            return toExternalJSON(payload)
+            return toExternalJSON(payload.room)
           },
           getInstanceEventNamespace: (payload: any) => {
             return payload.room_session_id

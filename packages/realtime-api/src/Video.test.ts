@@ -49,11 +49,11 @@ describe('Member Object', () => {
   describe('video.room.started event', () => {
     const eventChannelOne = 'room.<uuid-one>'
     const firstRoom = JSON.parse(
-      `{"jsonrpc":"2.0","id":"uuid1","method":"signalwire.event","params":{"params":{"room_session_id":"session-one","room_id":"room_id","room":{"room_id":"room_id","room_session_id":"session-one","name":"latest","event_channel":"${eventChannelOne}"}},"timestamp":1630004194.9456,"event_type":"video.room.started","event_channel":"video.rooms.78429ef1-283b-4fa9-8ebc-16b59f95bb1f"}}`
+      `{"jsonrpc":"2.0","id":"uuid1","method":"signalwire.event","params":{"params":{"room_session_id":"session-one","room_id":"room_id","room":{"room_id":"room_id","room_session_id":"session-one","name":"First Room","event_channel":"${eventChannelOne}"}},"timestamp":1630004194.9456,"event_type":"video.room.started","event_channel":"video.rooms.78429ef1-283b-4fa9-8ebc-16b59f95bb1f"}}`
     )
     const eventChannelTwo = 'room.<uuid-one>'
     const secondRoom = JSON.parse(
-      `{"jsonrpc":"2.0","id":"uuid1","method":"signalwire.event","params":{"params":{"room_session_id":"session-two","room_id":"room_id","room":{"room_id":"room_id","room_session_id":"session-two","name":"latest","event_channel":"${eventChannelTwo}"}},"timestamp":1630004194.9456,"event_type":"video.room.started","event_channel":"video.rooms.78429ef1-283b-4fa9-8ebc-16b59f95bb1f"}}`
+      `{"jsonrpc":"2.0","id":"uuid1","method":"signalwire.event","params":{"params":{"room_session_id":"session-two","room_id":"room_id","room":{"room_id":"room_id","room_session_id":"session-two","name":"Second Room","event_channel":"${eventChannelTwo}"}},"timestamp":1630004194.9456,"event_type":"video.room.started","event_channel":"video.rooms.78429ef1-283b-4fa9-8ebc-16b59f95bb1f"}}`
     )
 
     it('should pass a Room obj to the handler', (done) => {
@@ -71,6 +71,7 @@ describe('Member Object', () => {
 
     it('each room object should use its own payload from the Proxy', async () => {
       const mockExecute = jest.fn()
+      const mockNameCheck = jest.fn()
       const promise = new Promise((resolve) => {
         video.on('room.started', (room) => {
           expect(room.videoMute).toBeDefined()
@@ -81,6 +82,7 @@ describe('Member Object', () => {
           room.on('event.here', jest.fn)
           room.execute = mockExecute
           room.run()
+          mockNameCheck(room.name)
 
           if (room.roomSessionId === 'session-two') {
             resolve(undefined)
@@ -110,6 +112,11 @@ describe('Member Object', () => {
           events: ['video.event.here'],
         },
       })
+
+      // Check room.name exposed
+      expect(mockNameCheck).toHaveBeenCalledTimes(2)
+      expect(mockNameCheck).toHaveBeenNthCalledWith(1, 'First Room')
+      expect(mockNameCheck).toHaveBeenNthCalledWith(2, 'Second Room')
     })
   })
 })
