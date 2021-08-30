@@ -1,3 +1,5 @@
+import { PRODUCT_PREFIX_VIDEO } from '../utils/constants'
+import { toExternalJSON } from '../utils'
 import type { SwEvent } from '.'
 import type {
   CamelToSnakeCase,
@@ -11,7 +13,7 @@ import type {
  * and generate `MEMBER_UPDATED_EVENTS` below.
  * `key`: `type`
  */
-export const MEMBER_UPDATABLE_PROPS = {
+export const INTERNAL_MEMBER_UPDATABLE_PROPS = {
   audio_muted: true,
   video_muted: true,
   deaf: true,
@@ -21,17 +23,31 @@ export const MEMBER_UPDATABLE_PROPS = {
   output_volume: 1,
   input_sensitivity: 1,
 }
+export type InternalVideoMemberUpdatableProps =
+  typeof INTERNAL_MEMBER_UPDATABLE_PROPS
 
-export type VideoMemberUpdatableProps = typeof MEMBER_UPDATABLE_PROPS
+export const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
+  INTERNAL_MEMBER_UPDATABLE_PROPS
+).map((key) => {
+  return `${PRODUCT_PREFIX_VIDEO}.member.updated.${
+    key as keyof InternalVideoMemberUpdatableProps
+  }` as const
+})
+
+export type VideoMemberUpdatableProps = {
+  [K in keyof InternalVideoMemberUpdatableProps as SnakeToCamelCase<K>]: InternalVideoMemberUpdatableProps[K]
+}
+
+// @ts-expect-error
+export const MEMBER_UPDATABLE_PROPS: VideoMemberUpdatableProps = toExternalJSON(
+  INTERNAL_MEMBER_UPDATABLE_PROPS
+)
+
 export const MEMBER_UPDATED_EVENTS = Object.keys(MEMBER_UPDATABLE_PROPS).map(
   (key) => {
     return `member.updated.${key as keyof VideoMemberUpdatableProps}` as const
   }
 )
-
-export type VideoMemberUpdatablePropsCamelCase = {
-  [K in keyof VideoMemberUpdatableProps as SnakeToCamelCase<K>]: VideoMemberUpdatableProps[K]
-}
 
 /**
  * Public event types
@@ -70,7 +86,10 @@ export type VideoMemberEventNames =
  * @internal
  */
 export type InternalVideoMemberEventNames =
-  ToInternalVideoEvent<VideoMemberEventNames>
+  | ToInternalVideoEvent<
+      MemberJoined | MemberLeft | MemberUpdated | MemberTalkingEventNames
+    >
+  | typeof INTERNAL_MEMBER_UPDATED_EVENTS[number]
 
 /**
  * Base Interface for a VideoMember entity
@@ -87,7 +106,7 @@ export interface VideoMemberBase {
 
 export interface VideoMember
   extends VideoMemberBase,
-    VideoMemberUpdatablePropsCamelCase {}
+    VideoMemberUpdatableProps {}
 /**
  * VideoMember entity plus `updated` field
  */

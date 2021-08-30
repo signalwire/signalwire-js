@@ -24,3 +24,4 @@ export type PubSubChannelEvents =
   | SessionEvents
 
 export * from './video'
+export * from './utils'
