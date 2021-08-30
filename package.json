@@ -12,13 +12,6 @@
     "clean": "manypkg exec rm -rf node_modules && manypkg exec rm -rf dist && rm -rf node_modules",
     "test": "manypkg exec npm run test",
     "build": "manypkg exec rm -rf dist && sw-build-all",
-    "build:core": "manypkg run @signalwire/core build",
-    "build:webrtc": "manypkg run @signalwire/webrtc",
-    "build:js": "manypkg run @signalwire/js build",
-    "build:realtime-api": "manypkg run @signalwire/realtime-api build",
-    "build:react-native": "manypkg run @signalwire/react-native build",
-    "build:web-api": "manypkg run @signalwire/web-api build",
-    "build:node": "manypkg run @signalwire/node build",
     "prettier": "prettier --write .",
     "start:web": "concurrently \"manypkg run @signalwire/core start\" \"manypkg run @signalwire/js start\" \"manypkg run @signalwire/webrtc start\" \"manypkg run @signalwire/js example\""
   },

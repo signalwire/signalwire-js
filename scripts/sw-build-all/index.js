@@ -99,14 +99,12 @@ export async function cli(args) {
 
   for await (const packages of tree.values()) {
     const n = packages.map((pkg) => {
-      return `npm:build:${pkg}`
+      return `manypkg run @signalwire/${pkg} build`
     })
 
     try {
       console.log('🏃‍♂️ Running ->', n)
-      await concurrently(n, {
-        prefix: 'name',
-      })
+      await concurrently(n)
     } catch (e) {
       console.error('something went wrong')
     }
