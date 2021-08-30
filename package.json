@@ -11,7 +11,7 @@
     "changeset": "changeset",
     "clean": "manypkg exec rm -rf node_modules && manypkg exec rm -rf dist && rm -rf node_modules",
     "test": "manypkg exec npm run test",
-    "build": "sw-build-all",
+    "build": "manypkg exec rm -rf dist && sw-build-all",
     "build:core": "manypkg run @signalwire/core build",
     "build:webrtc": "manypkg run @signalwire/webrtc",
     "build:js": "manypkg run @signalwire/js build",
