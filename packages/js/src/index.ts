@@ -50,7 +50,6 @@ export type {
   ConnectionOptions,
 } from '@signalwire/webrtc'
 export type {
-  // TODO: merge these
-  EventsHandlerMapping,
+  RoomObjectEventsHandlerMap,
   RoomObjectEvents,
 } from './utils/interfaces'

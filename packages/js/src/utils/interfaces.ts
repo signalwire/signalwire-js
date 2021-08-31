@@ -1,7 +1,6 @@
 import StrictEventEmitter from 'strict-event-emitter-types'
 import type {
   Rooms,
-  RoomEventNames,
   BaseConnectionState,
   VideoLayout,
   VideoLayoutEventNames,
@@ -31,7 +30,7 @@ const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
 type InternalMemberUpdatableProps =
   typeof INTERNAL_MEMBER_UPDATED_EVENTS[number]
 
-export type EventsHandlerMapping = Record<
+export type RoomObjectEventsHandlerMap = Record<
   VideoLayoutEventNames,
   (params: { layout: VideoLayout }) => void
 > &
@@ -49,10 +48,7 @@ export type EventsHandlerMapping = Record<
   Record<BaseConnectionState, (params: Room) => void>
 
 export type RoomObjectEvents = {
-  [k in
-    | RoomEventNames
-    | InternalMemberUpdatableProps
-    | BaseConnectionState]: EventsHandlerMapping[k]
+  [k in keyof RoomObjectEventsHandlerMap]: RoomObjectEventsHandlerMap[k]
 }
 
 export type RoomObject = StrictEventEmitter<Room, RoomObjectEvents>
