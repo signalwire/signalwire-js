@@ -27,17 +27,20 @@ const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
   }` as const
 })
 /** @deprecated */
-type InternalMemberUpdatableProps =
+export type DeprecatedMemberUpdatableProps =
   typeof INTERNAL_MEMBER_UPDATED_EVENTS[number]
+/** @deprecated */
+export type DeprecatedVideoMemberHandlerParams = { member: InternalVideoMember }
+export type VideoMemberHandlerParams = { member: VideoMember }
 
 export type RoomObjectEventsHandlerMap = Record<
   VideoLayoutEventNames,
   (params: { layout: VideoLayout }) => void
 > &
-  Record<VideoMemberEventNames, (params: { member: VideoMember }) => void> &
+  Record<VideoMemberEventNames, (params: VideoMemberHandlerParams) => void> &
   Record<
-    InternalMemberUpdatableProps,
-    (params: { member: InternalVideoMember }) => void
+    DeprecatedMemberUpdatableProps,
+    (params: DeprecatedVideoMemberHandlerParams) => void
   > &
   Record<
     MemberTalkingEventNames,
