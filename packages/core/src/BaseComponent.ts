@@ -142,6 +142,33 @@ export class BaseComponent implements Emitter {
     return this._eventsNamespace === undefined
   }
 
+  /** @internal */
+  private getEventHandlerTransformCacheKey(event: string | symbol) {
+    return this._getNamespacedEvent(event)
+  }
+
+  /** @internal */
+  private runAndCacheEventHandlerTransform({
+    event,
+    transform,
+    payload,
+  }: {
+    event: string | symbol
+    transform: EventTransform
+    payload: unknown
+  }): BaseComponent {
+    const transformCacheKey = this.getEventHandlerTransformCacheKey(event)
+    if (!this._eventsTransformsCache.has(transformCacheKey)) {
+      const instance = transform.instanceFactory(payload)
+      this._eventsTransformsCache.set(transformCacheKey, instance)
+
+      return instance
+    }
+
+    // @ts-expect-error
+    return this._eventsTransformsCache.get(transformCacheKey)
+  }
+
   /**
    * Creates the event handler to be attached to the `EventEmitter`.
    * It contains the logic for applying any custom transforms for
@@ -150,41 +177,38 @@ export class BaseComponent implements Emitter {
    * @internal
    **/
   private eventHandlerTransformFactory(event: string | symbol, fn: any) {
-    return (payload: any) => {
+    return (payload: unknown) => {
       const transform = this._emitterTransforms.get(event)
-      const namespacedEvent = this._getNamespacedEvent(event)
-
       if (!transform) {
         return fn(payload)
-      } else if (!this._eventsTransformsCache.has(namespacedEvent)) {
-        const instance = transform.instanceFactory(payload)
-        this._eventsTransformsCache.set(namespacedEvent, instance)
       }
 
+      const cachedInstance = this.runAndCacheEventHandlerTransform({
+        event,
+        transform,
+        payload,
+      })
+
       const transformedPayload = transform.payloadTransform(payload)
-      const proxiedObj = new Proxy(
-        // @ts-expect-error
-        this._eventsTransformsCache.get(namespacedEvent),
-        {
-          get(target: any, prop: any, receiver: any) {
-            if (
-              prop === '_eventsNamespace' &&
-              transform.getInstanceEventNamespace
-            ) {
-              return transform.getInstanceEventNamespace(payload)
-            }
-            if (prop === 'eventChannel' && transform.getInstanceEventChannel) {
-              return transform.getInstanceEventChannel(payload)
-            }
+      const proxiedObj = new Proxy(cachedInstance, {
+        get(target: any, prop: any, receiver: any) {
+          if (
+            prop === '_eventsNamespace' &&
+            transform.getInstanceEventNamespace
+          ) {
+            return transform.getInstanceEventNamespace(payload)
+          }
+          if (prop === 'eventChannel' && transform.getInstanceEventChannel) {
+            return transform.getInstanceEventChannel(payload)
+          }
 
-            if (prop in transformedPayload) {
-              return transformedPayload[prop]
-            }
+          if (prop in transformedPayload) {
+            return transformedPayload[prop]
+          }
 
-            return Reflect.get(target, prop, receiver)
-          },
-        }
-      )
+          return Reflect.get(target, prop, receiver)
+        },
+      })
 
       return fn(proxiedObj)
     }
