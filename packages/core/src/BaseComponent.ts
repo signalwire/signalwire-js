@@ -428,6 +428,7 @@ export class BaseComponent implements Emitter {
     }
     this._eventsNamespace = namespace
     this.flushEventsQueue()
+    this.applyEmitterTransforms()
   }
 
   /**
