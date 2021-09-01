@@ -7,7 +7,7 @@ import {
   selectors,
   BaseComponentOptions,
   BaseConnectionState,
-  InternalVideoEvent,
+  InternalVideoEventNames,
   Rooms,
   JSONRPCRequest,
 } from '@signalwire/core'
@@ -15,7 +15,7 @@ import RTCPeer from './RTCPeer'
 import { ConnectionOptions } from './utils/interfaces'
 import { stopStream, stopTrack, getUserMedia } from './utils/webrtcHelpers'
 
-const ROOM_EVENTS: InternalVideoEvent[] = [
+const ROOM_EVENTS: InternalVideoEventNames[] = [
   'video.room.started',
   'video.room.subscribed',
   'video.room.updated',

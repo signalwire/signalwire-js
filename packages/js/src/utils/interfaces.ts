@@ -1,21 +1,57 @@
 import StrictEventEmitter from 'strict-event-emitter-types'
 import type {
   Rooms,
-  RoomEventNames,
   BaseConnectionState,
-  EventsHandlerMapping,
+  VideoLayout,
+  VideoLayoutEventNames,
+  VideoRoomEventNames,
+  VideoRoomEventParams,
+  VideoMember,
+  InternalVideoMember,
+  VideoMemberEventNames,
+  MemberTalkingEventNames,
+  VideoMemberTalkingEventParams,
+  RTCTrackEventName,
+  InternalVideoMemberUpdatableProps,
 } from '@signalwire/core'
+import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
 import type { Room } from '../Room'
 import type { RoomScreenShare } from '../RoomScreenShare'
 import type { RoomDevice } from '../RoomDevice'
 
-export type BaseConnectionEventsHandlerMapping = EventsHandlerMapping &
+const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
+  INTERNAL_MEMBER_UPDATABLE_PROPS
+).map((key) => {
+  return `member.updated.${
+    key as keyof InternalVideoMemberUpdatableProps
+  }` as const
+})
+/** @deprecated */
+export type DeprecatedMemberUpdatableProps =
+  typeof INTERNAL_MEMBER_UPDATED_EVENTS[number]
+/** @deprecated */
+export type DeprecatedVideoMemberHandlerParams = { member: InternalVideoMember }
+export type VideoMemberHandlerParams = { member: VideoMember }
+
+export type RoomObjectEventsHandlerMap = Record<
+  VideoLayoutEventNames,
+  (params: { layout: VideoLayout }) => void
+> &
+  Record<VideoMemberEventNames, (params: VideoMemberHandlerParams) => void> &
+  Record<
+    DeprecatedMemberUpdatableProps,
+    (params: DeprecatedVideoMemberHandlerParams) => void
+  > &
+  Record<
+    MemberTalkingEventNames,
+    (params: VideoMemberTalkingEventParams) => void
+  > &
+  Record<VideoRoomEventNames, (params: VideoRoomEventParams) => void> &
+  Record<RTCTrackEventName, (event: RTCTrackEvent) => void> &
   Record<BaseConnectionState, (params: Room) => void>
 
 export type RoomObjectEvents = {
-  [k in
-    | RoomEventNames
-    | BaseConnectionState]: BaseConnectionEventsHandlerMapping[k]
+  [k in keyof RoomObjectEventsHandlerMap]: RoomObjectEventsHandlerMap[k]
 }
 
 export type RoomObject = StrictEventEmitter<Room, RoomObjectEvents>

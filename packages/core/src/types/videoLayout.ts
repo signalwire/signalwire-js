@@ -40,7 +40,7 @@ export interface VideoLayoutLayer {
  * VideoLayout entity for internal usage (converted to snake_case)
  * @internal
  */
-type InternalVideoLayoutLayer = {
+export type InternalVideoLayoutLayer = {
   [K in keyof VideoLayoutLayer as CamelToSnakeCase<K>]: VideoLayoutLayer[K]
 }
 export type InternalVideoLayout = {

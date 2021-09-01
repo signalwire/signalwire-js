@@ -1,42 +1,56 @@
+import type {
+  VideoRoomEventNames,
+  RoomStarted,
+  RoomSubscribed,
+  RoomUpdated,
+  RoomEnded,
+  VideoMember,
+} from '@signalwire/core'
+
+/** @deprecated */
+export type RoomStartedEventName = RoomStarted
+/** @deprecated */
+export type RoomEndedEventName = RoomEnded
+/** @deprecated */
+export type RoomSubscribedEventName = RoomSubscribed
+/** @deprecated */
+export type RoomUpdatedEventName = RoomUpdated
+/** @deprecated */
+export type RoomEvent = VideoRoomEventNames
+/** @deprecated */
+export type RoomMember = VideoMember & { type: 'member' }
+/** @deprecated */
+export type RoomScreenShare = VideoMember & { type: 'screen' }
+/** @deprecated */
+export type RoomDevice = VideoMember & { type: 'device' }
+
 export * as Video from './video'
 export * as WebRTC from './webrtc'
 export type {
   BaseComponentOptions,
   BaseConnectionState,
   ClientEvents,
-  EventsHandlerMapping,
   Emitter,
-  LayoutEvent,
-  LayoutChangedEventName,
-  Member,
-  MemberEvent,
-  MemberJoinedEventName,
-  MemberLeftEventName,
-  MemberTalkingEventName,
-  MemberTalkingEventNames,
-  MemberUpdatedEventName,
-  RoomStartedEventName,
-  RoomEndedEventName,
-  RoomSubscribedEventName,
-  RoomUpdatedEventName,
   RoomEventNames,
-  RoomEvent,
-  RoomMember,
-  RoomScreenShare,
-  RoomDevice,
-  RoomMemberCommon,
-  RoomMemberProperties,
-  MemberUpdatedEventNames,
   RTCTrackEventName,
   UserOptions,
   SessionStatus,
   SessionEvents,
+  VideoLayout,
+  VideoLayoutEventNames,
+  VideoRoomEventNames,
+  VideoRoomEventParams,
+  VideoMember,
+  VideoMemberEventNames,
+  MemberTalkingEventNames,
+  VideoMemberTalkingEventParams,
+  InternalVideoMember,
 } from '@signalwire/core'
 export type {
   BaseConnectionOptions,
   ConnectionOptions,
 } from '@signalwire/webrtc'
 export type {
-  BaseConnectionEventsHandlerMapping,
+  RoomObjectEventsHandlerMap,
   RoomObjectEvents,
 } from './utils/interfaces'
