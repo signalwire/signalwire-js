@@ -231,6 +231,7 @@ export function* sessionChannelWatcher({
         for (const key of updated) {
           const type = `video.member.updated.${key}` as const
           yield put(pubSubChannel, {
+            // @ts-expect-error
             type,
             payload: params.params,
           })

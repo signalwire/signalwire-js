@@ -1,13 +1,16 @@
-import type {
-  VideoAPIEventParams,
-  WebRTCMessageParams,
-  InternalVideoEvent,
-} from './video'
-import type { SessionEvents } from '../utils/interfaces'
+import type { VideoAPIEventParams, InternalVideoEventNames } from './video'
+import type { SessionEvents, JSONRPCRequest } from '../utils/interfaces'
 
 export interface SwEvent {
   event_channel: string
   timestamp: number
+}
+
+export interface WebRTCMessageParams extends SwEvent {
+  event_type: 'webrtc.message'
+  project_id: string
+  node_id: string
+  params: JSONRPCRequest
 }
 
 // prettier-ignore
@@ -17,7 +20,8 @@ export type SwEventParams =
 
 // prettier-ignore
 export type PubSubChannelEvents =
-  | InternalVideoEvent
+  | InternalVideoEventNames
   | SessionEvents
 
 export * from './video'
+export * from './utils'

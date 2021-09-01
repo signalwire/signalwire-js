@@ -1,5 +1,3 @@
-import { MEMBER_UPDATED_EVENTS } from '../types/videoMember'
-
 export const STORAGE_PREFIX = '@signalwire:'
 export const ADD = 'add'
 export const REMOVE = 'remove'
@@ -25,9 +23,5 @@ export const PRODUCT_PREFIXES = [PRODUCT_PREFIX_VIDEO] as const
  * @internal
  */
 export const INTERNAL_GLOBAL_VIDEO_EVENTS = GLOBAL_VIDEO_EVENTS.map(
-  (event) => `${PRODUCT_PREFIX_VIDEO}.${event}` as const
-)
-
-export const INTERNAL_MEMBER_UPDATED_EVENTS = MEMBER_UPDATED_EVENTS.map(
   (event) => `${PRODUCT_PREFIX_VIDEO}.${event}` as const
 )

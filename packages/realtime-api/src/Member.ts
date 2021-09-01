@@ -3,11 +3,11 @@ import {
   BaseComponentOptions,
   Rooms,
   RoomCustomMethods,
-  MemberEventParams,
+  VideoMemberEventParams,
 } from '@signalwire/core'
 
 interface MemberOptions extends BaseComponentOptions {
-  params: MemberEventParams
+  params: VideoMemberEventParams
 }
 
 interface MemberMethods {

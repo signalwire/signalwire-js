@@ -231,6 +231,8 @@ export type InternalGlobalVideoEvents =
 export interface EventTransform {
   instanceFactory: (payload: any) => any
   payloadTransform: (payload: any) => any
+  getInstanceEventNamespace?: (payload: any) => string
+  getInstanceEventChannel?: (payload: any) => string
 }
 
 export type BaseEventHandler = (...args: any[]) => void

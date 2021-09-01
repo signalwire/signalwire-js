@@ -13,5 +13,8 @@ export type {
   MemberCommandParams,
   MemberCommandWithVolumeParams,
   MemberCommandWithValueParams,
+  DeprecatedMemberUpdatableProps,
+  DeprecatedVideoMemberHandlerParams,
+  VideoMemberHandlerParams,
 } from './utils/interfaces'
 export type { CreateRoomObjectOptions } from './createRoomObject'

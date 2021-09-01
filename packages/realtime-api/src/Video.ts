@@ -2,11 +2,16 @@ import {
   RoomCustomMethods,
   connect,
   toExternalJSON,
-  InternalRoomEvent,
+  InternalVideoRoomEventNames,
   EventTransform,
 } from '@signalwire/core'
 import { BaseConsumer } from './BaseConsumer'
 import { Room } from './Room'
+
+type TransformEvent = Extract<
+  InternalVideoRoomEventNames,
+  'video.room.started' | 'video.room.ended'
+>
 
 class Video extends BaseConsumer {
   /** @internal */
@@ -19,15 +24,9 @@ class Video extends BaseConsumer {
 
   /** @internal */
   protected getEmitterTransforms() {
-    return new Map<InternalRoomEvent | InternalRoomEvent[], EventTransform>([
+    return new Map<TransformEvent | TransformEvent[], EventTransform>([
       [
-        // TODO: Move to a const
-        [
-          'video.room.started',
-          'video.room.updated',
-          'video.room.subscribed',
-          'video.room.ended',
-        ],
+        ['video.room.started', 'video.room.ended'],
         {
           instanceFactory: (payload: any) => {
             const room: Room = connect({
@@ -49,7 +48,13 @@ class Video extends BaseConsumer {
             return room
           },
           payloadTransform: (payload: any) => {
-            return toExternalJSON(payload)
+            return toExternalJSON(payload.room)
+          },
+          getInstanceEventNamespace: (payload: any) => {
+            return payload.room_session_id
+          },
+          getInstanceEventChannel: (payload: any) => {
+            return payload.room.event_channel
           },
         },
       ],
