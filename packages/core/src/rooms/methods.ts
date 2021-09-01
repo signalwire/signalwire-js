@@ -108,30 +108,30 @@ export const getRecordings = createRoomMethod<BaseRPCResult, void>(
     transformResolve: baseCodeTransform,
   }
 )
-export const startRecording = createRoomMethod<BaseRPCResult, void>(
-  'video.recording.start',
-  {
-    transformResolve: (payload) => payload,
-  }
-)
-export const stopRecording = createRoomMethod<BaseRPCResult, void>(
-  'video.recording.stop',
-  {
-    transformResolve: baseCodeTransform,
-  }
-)
-export const pauseRecording = createRoomMethod<BaseRPCResult, void>(
-  'video.recording.pause',
-  {
-    transformResolve: baseCodeTransform,
-  }
-)
-export const resumeRecording = createRoomMethod<BaseRPCResult, void>(
-  'video.recording.resume',
-  {
-    transformResolve: baseCodeTransform,
-  }
-)
+// export const startRecording = createRoomMethod<BaseRPCResult, void>(
+//   'video.recording.start',
+//   {
+//     transformResolve: (payload) => payload,
+//   }
+// )
+// export const stopRecording = createRoomMethod<BaseRPCResult, void>(
+//   'video.recording.stop',
+//   {
+//     transformResolve: baseCodeTransform,
+//   }
+// )
+// export const pauseRecording = createRoomMethod<BaseRPCResult, void>(
+//   'video.recording.pause',
+//   {
+//     transformResolve: baseCodeTransform,
+//   }
+// )
+// export const resumeRecording = createRoomMethod<BaseRPCResult, void>(
+//   'video.recording.resume',
+//   {
+//     transformResolve: baseCodeTransform,
+//   }
+// )
 
 export type GetLayouts = ReturnType<typeof getLayouts.value>
 export type GetMembers = ReturnType<typeof getMembers.value>
@@ -140,9 +140,6 @@ export type ShowVideoMuted = ReturnType<typeof showVideoMuted.value>
 
 export type GetRecordings = ReturnType<typeof getRecordings.value>
 export type StartRecording = ReturnType<typeof startRecording.value>
-export type StopRecording = ReturnType<typeof stopRecording.value>
-export type PauseRecording = ReturnType<typeof pauseRecording.value>
-export type ResumeRecording = ReturnType<typeof resumeRecording.value>
 // End Room Methods
 
 /**
@@ -239,3 +236,31 @@ export type SetInputSensitivityMember = ReturnType<
 >
 export type RemoveMember = ReturnType<typeof removeMember.value>
 // End Room Member Methods
+
+export const startRecording: RoomMethodDescriptor<any> = {
+  value: function () {
+    return new Promise(async (resolve) => {
+      console.log('>> Running start')
+      const handler = (instance: any) => {
+        console.log('>> Solving...', instance)
+        resolve(instance)
+      }
+
+      this.on('video._INTERNAL_.recording.start', handler)
+
+      try {
+        const payload = await this.execute({
+          method: 'video.recording.start',
+          params: {
+            room_session_id: this.roomSessionId,
+          },
+        })
+        console.log('>> Running start 2', payload)
+        this.emit('video._INTERNAL_.recording.start', payload)
+      } catch (error) {
+        this.off('video._INTERNAL_.recording.start', handler)
+        throw error
+      }
+    })
+  },
+}

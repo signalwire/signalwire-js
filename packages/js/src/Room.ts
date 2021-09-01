@@ -1,4 +1,10 @@
-import { logger, connect, Rooms, RoomCustomMethods } from '@signalwire/core'
+import {
+  logger,
+  connect,
+  Rooms,
+  RoomCustomMethods,
+  EventTransform,
+} from '@signalwire/core'
 import {
   getDisplayMedia,
   BaseConnection,
@@ -34,6 +40,32 @@ class Room extends BaseConnection implements BaseRoomInterface {
 
   get deviceList() {
     return Array.from(this._deviceList)
+  }
+
+  /** @internal */
+  protected getEmitterTransforms() {
+    return new Map<string | string[], EventTransform>([
+      [
+        'video._INTERNAL_.recording.start',
+        {
+          instanceFactory: (payload: any) => {
+            console.warn('>> Creating instance', payload)
+            return Rooms.createRoomSessionRecordingObject({
+              store: this.store,
+              emitter: this.emitter,
+            })
+          },
+          payloadTransform: (payload: any) => {
+            console.warn('>> payloadTransform', payload)
+            return {
+              ...payload,
+              id: payload.recording_id,
+              roomSessionId: this.roomSessionId,
+            }
+          },
+        },
+      ],
+    ])
   }
 
   /**
