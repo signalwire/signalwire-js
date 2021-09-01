@@ -3,7 +3,6 @@ import {
   VideoRoomEvent,
   InternalVideoRoomEventNames,
 } from './videoRoom'
-
 import {
   VideoMemberEventNames,
   VideoMemberEvent,
@@ -14,10 +13,16 @@ import {
   InternalVideoLayoutEventNames,
   VideoLayoutEvent,
 } from './videoLayout'
+import {
+  VideoRecordingEventNames,
+  VideoRecordingEvent,
+  InternalVideoRecordingEventNames,
+} from './videoRecording'
 
 export * from './videoRoom'
 export * from './videoMember'
 export * from './videoLayout'
+export * from './videoRecording'
 
 export type RTCTrackEventName = 'track'
 
@@ -28,6 +33,7 @@ export type RoomEventNames =
   | VideoRoomEventNames
   | VideoMemberEventNames
   | VideoLayoutEventNames
+  | VideoRecordingEventNames
   | RTCTrackEventName
 
 /**
@@ -39,9 +45,11 @@ export type InternalVideoEventNames =
   | InternalVideoRoomEventNames
   | InternalVideoMemberEventNames
   | InternalVideoLayoutEventNames
+  | InternalVideoRecordingEventNames
   | RTCTrackEventName
 
 export type VideoAPIEventParams =
   | VideoRoomEvent
   | VideoMemberEvent
   | VideoLayoutEvent
+  | VideoRecordingEvent
