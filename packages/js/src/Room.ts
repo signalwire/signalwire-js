@@ -48,15 +48,13 @@ class Room extends BaseConnection implements BaseRoomInterface {
       [
         'video._INTERNAL_.recording.start',
         {
-          instanceFactory: (payload: any) => {
-            console.warn('>> Creating instance', payload)
+          instanceFactory: (_payload: any) => {
             return Rooms.createRoomSessionRecordingObject({
               store: this.store,
               emitter: this.emitter,
             })
           },
           payloadTransform: (payload: any) => {
-            console.warn('>> payloadTransform', payload)
             return {
               ...payload,
               id: payload.recording_id,

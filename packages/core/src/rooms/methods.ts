@@ -240,9 +240,7 @@ export type RemoveMember = ReturnType<typeof removeMember.value>
 export const startRecording: RoomMethodDescriptor<any> = {
   value: function () {
     return new Promise(async (resolve) => {
-      console.log('>> Running start')
       const handler = (instance: any) => {
-        console.log('>> Solving...', instance)
         resolve(instance)
       }
 
@@ -255,7 +253,6 @@ export const startRecording: RoomMethodDescriptor<any> = {
             room_session_id: this.roomSessionId,
           },
         })
-        console.log('>> Running start 2', payload)
         this.emit('video._INTERNAL_.recording.start', payload)
       } catch (error) {
         this.off('video._INTERNAL_.recording.start', handler)
