@@ -169,6 +169,22 @@ export class BaseComponent implements Emitter {
     return this._eventsTransformsCache.get(transformCacheKey)
   }
 
+  /** @internal */
+  private cleanupEventHandlerTransformCache(event: string | symbol) {
+    const transformCacheKey = this.getEventHandlerTransformCacheKey(event)
+    const instance = this._eventsTransformsCache.get(transformCacheKey)
+
+    if (instance) {
+      instance.destroy()
+      return this._eventsTransformsCache.delete(event)
+    }
+
+    logger.debug(
+      `[cleanupEventHandlerTransformCache] Key wasn't cached`, event
+    )
+    return false
+  }
+
   /**
    * Creates the event handler to be attached to the `EventEmitter`.
    * It contains the logic for applying any custom transforms for
@@ -286,6 +302,7 @@ export class BaseComponent implements Emitter {
     const [event, fn, context, once] = this._getOptionsFromParams(params)
     const handler = this.getAndRemoveStableEventHandler(fn)
     const namespacedEvent = this._getNamespacedEvent(event)
+    this.cleanupEventHandlerTransformCache(event)
     logger.trace('Removing event listener', namespacedEvent)
     return this.emitter.off(namespacedEvent, handler, context, once)
   }
