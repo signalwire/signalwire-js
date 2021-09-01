@@ -100,9 +100,6 @@ interface RoomControlMethodsInterface {
   showVideoMuted(): Rooms.ShowVideoMuted
   getRecordings(): Rooms.GetRecordings
   startRecording(): Rooms.StartRecording
-  stopRecording(params: { recording_id: string }): Rooms.StopRecording
-  pauseRecording(params: { recording_id: string }): Rooms.PauseRecording
-  resumeRecording(params: { recording_id: string }): Rooms.ResumeRecording
 }
 
 /**

@@ -230,9 +230,6 @@ const customMethods: RoomCustomMethods<RoomMethods> = {
   // TODO: Add these to the spec list
   getRecordings: Rooms.getRecordings,
   startRecording: Rooms.startRecording,
-  stopRecording: Rooms.stopRecording,
-  pauseRecording: Rooms.pauseRecording,
-  resumeRecording: Rooms.resumeRecording,
 }
 Object.defineProperties(Room.prototype, customMethods)
 
