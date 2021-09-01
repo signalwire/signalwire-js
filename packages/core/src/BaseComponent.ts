@@ -376,7 +376,11 @@ export class BaseComponent implements Emitter {
        * request hasn't failed
        */
       if (component?.errors[key] !== undefined) {
-        value.reject(value.transformReject(component.errors[key]))
+        const res = value.transformReject({
+          instance: this,
+          payload: component.errors[key],
+        })
+        value.reject(res)
         this._requests.delete(key)
       }
     })
@@ -390,7 +394,11 @@ export class BaseComponent implements Emitter {
        * request is not ready yet.
        */
       if (component?.responses[key] !== undefined) {
-        value.resolve(value.transformResolve(component.responses[key]))
+        const res = value.transformResolve({
+          instance: this,
+          payload: component.responses[key],
+        })
+        value.resolve(res)
         this._requests.delete(key)
       }
     })

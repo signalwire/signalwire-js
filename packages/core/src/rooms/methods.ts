@@ -1,6 +1,8 @@
 import { BaseRoomInterface } from '.'
+import { connect } from '../redux'
 import { Member } from '../types'
 import { ExecuteExtendedOptions, RoomMethod } from '../utils/interfaces'
+import { Recording } from '../Recording'
 
 interface RoomMethodPropertyDescriptor<T> extends PropertyDescriptor {
   value: (params: RoomMethodParams) => Promise<T>
@@ -69,19 +71,42 @@ const createRoomMemberMethod = <InputType, OutputType>(
   },
 })
 
+interface RoomRecordingMethodParams {}
+
+const createRoomRecordingMethod = <InputType, OutputType>(
+  method: RoomMethod,
+  options: ExecuteExtendedOptions<InputType, OutputType> = {}
+): RoomMethodDescriptor<OutputType> => ({
+  value: function (_params: RoomRecordingMethodParams = {}) {
+    return this.execute(
+      {
+        method,
+        params: {
+          room_session_id: this.roomSessionId,
+          // @ts-expect-error
+          recording_id: this.recordingId,
+        },
+      },
+      options
+    )
+  },
+})
+
 /**
  * Room Methods
  */
 export const getLayouts = createRoomMethod<{ layouts: string[] }>(
   'video.list_available_layouts',
   {
-    transformResolve: (payload) => ({ layouts: payload.layouts }),
+    // @ts-expect-error
+    transformResolve: ({ payload }) => ({ layouts: payload.layouts }),
   }
 )
 export const getMembers = createRoomMethod<{ members: Member[] }>(
   'video.members.get',
   {
-    transformResolve: (payload) => ({ members: payload.members }),
+    // @ts-expect-error
+    transformResolve: ({ payload }) => ({ members: payload.members }),
   }
 )
 export const setLayout = createRoomMethod<BaseRPCResult, void>(
@@ -104,30 +129,6 @@ export const showVideoMuted = createRoomMethod<BaseRPCResult, void>(
 )
 export const getRecordings = createRoomMethod<BaseRPCResult, void>(
   'video.recording.list',
-  {
-    transformResolve: baseCodeTransform,
-  }
-)
-export const startRecording = createRoomMethod<BaseRPCResult, void>(
-  'video.recording.start',
-  {
-    transformResolve: (payload) => payload,
-  }
-)
-export const stopRecording = createRoomMethod<BaseRPCResult, void>(
-  'video.recording.stop',
-  {
-    transformResolve: baseCodeTransform,
-  }
-)
-export const pauseRecording = createRoomMethod<BaseRPCResult, void>(
-  'video.recording.pause',
-  {
-    transformResolve: baseCodeTransform,
-  }
-)
-export const resumeRecording = createRoomMethod<BaseRPCResult, void>(
-  'video.recording.resume',
   {
     transformResolve: baseCodeTransform,
   }
@@ -239,3 +240,53 @@ export type SetInputSensitivityMember = ReturnType<
 >
 export type RemoveMember = ReturnType<typeof removeMember.value>
 // End Room Member Methods
+
+/**
+ * Recording Methods
+ */
+export const startRecording = createRoomMethod<BaseRPCResult, void>(
+  'video.recording.start',
+  {
+    transformResolve: ({ instance, payload }) => {
+      const rec: Recording = connect({
+        // @ts-ignore
+        store: instance.store,
+        Component: Recording,
+        componentListeners: {
+          errors: 'onError',
+          responses: 'onSuccess',
+        },
+      })({
+        // @ts-ignore
+        store: instance.store,
+        // @ts-ignore
+        emitter: instance.options.emitter,
+        // @ts-ignore
+        id: payload.recording_id,
+        // @ts-ignore
+        roomSessionId: instance.roomSessionId,
+      })
+
+      return rec
+    },
+  }
+)
+export const stopRecording = createRoomRecordingMethod<BaseRPCResult, void>(
+  'video.recording.stop',
+  {
+    transformResolve: baseCodeTransform,
+  }
+)
+export const pauseRecording = createRoomRecordingMethod<BaseRPCResult, void>(
+  'video.recording.pause',
+  {
+    transformResolve: baseCodeTransform,
+  }
+)
+export const resumeRecording = createRoomRecordingMethod<BaseRPCResult, void>(
+  'video.recording.resume',
+  {
+    transformResolve: baseCodeTransform,
+  }
+)
+// End Recording Methods
