@@ -46,7 +46,12 @@ class Room extends BaseConnection implements BaseRoomInterface {
   protected getEmitterTransforms() {
     return new Map<string | string[], EventTransform>([
       [
-        'video._INTERNAL_.recording.start',
+        [
+          'video._INTERNAL_.recording.start',
+          'video.recording.started',
+          'video.recording.updated',
+          'video.recording.ended',
+        ],
         {
           instanceFactory: (_payload: any) => {
             return Rooms.createRoomSessionRecordingObject({
@@ -55,8 +60,13 @@ class Room extends BaseConnection implements BaseRoomInterface {
             })
           },
           payloadTransform: (payload: any) => {
+            if (payload?.recording) {
+              return {
+                ...payload?.recording,
+                roomSessionId: this.roomSessionId,
+              }
+            }
             return {
-              ...payload,
               id: payload.recording_id,
               roomSessionId: this.roomSessionId,
             }
