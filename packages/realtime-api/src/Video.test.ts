@@ -69,6 +69,51 @@ describe('Member Object', () => {
       video.emit('video.room.started', firstRoom.params.params)
     })
 
+    it('should destroy the cached obj when an event has no longer handlers attached', () => {
+      const destroyer = jest.fn()
+      const h = (room: any) => {
+        room._destroyer = destroyer
+      }
+      video.on('room.started', h)
+
+      video.run()
+      video.emit('video.room.started', firstRoom.params.params)
+
+      video.off('room.started', h)
+      expect(destroyer).toHaveBeenCalled()
+    })
+
+    it('should *not* destroy the cached obj when there are existing listeners attached', () => {
+      const destroyer = jest.fn()
+      const h = (room: any) => {
+        room._destroyer = destroyer
+      }
+      video.on('room.started', h)
+      video.on('room.started', () => {})
+
+      video.run()
+      video.emit('video.room.started', firstRoom.params.params)
+
+      video.off('room.started', h)
+      expect(destroyer).not.toHaveBeenCalled()
+    })
+
+    it('should destroy the cached obj when .off is called with no handler', () => {
+      const destroyer = jest.fn()
+      const h = (room: any) => {
+        room._destroyer = destroyer
+      }
+      video.on('room.started', h)
+      video.on('room.started', () => {})
+      video.on('room.started', () => {})
+
+      video.run()
+      video.emit('video.room.started', firstRoom.params.params)
+
+      video.off('room.started')
+      expect(destroyer).toHaveBeenCalled()
+    })
+
     it('each room object should use its own payload from the Proxy', async () => {
       const mockExecute = jest.fn()
       const mockNameCheck = jest.fn()
