@@ -12,6 +12,7 @@ import {
 import { BaseConsumer } from '../BaseConsumer'
 import { createRoomSessionMemberObject } from './RoomSessionMember'
 
+// FIXME: Move these interfaces to core (and use them in JS too)
 export interface MemberCommandParams {
   memberId?: string
 }
