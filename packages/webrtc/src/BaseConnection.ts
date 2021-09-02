@@ -283,6 +283,7 @@ export class BaseConnection
     } else {
       this._attachListeners(component.roomSessionId)
     }
+    this.applyEmitterTransforms()
   }
 
   /** @internal */

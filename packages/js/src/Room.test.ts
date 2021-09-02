@@ -18,11 +18,13 @@ describe('Room Object', () => {
       emitter: new EventEmitter(),
     })
     room.execute = jest.fn()
-
-    // @ts-expect-error
-    room._roomSessionId = 'room-session-id'
-    // @ts-expect-error
-    room._attachListeners(room.roomSessionId)
+    // mock a room.subscribed event
+    // room.onRoomSubscribed({
+    //   nodeId: 'node-id',
+    //   roomId: 'room-id',
+    //   roomSessionId: 'room-session-id',
+    //   memberId: 'member-id',
+    // })
   })
 
   it('should have all the custom methods defined', () => {
