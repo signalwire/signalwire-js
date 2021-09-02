@@ -170,17 +170,26 @@ export class BaseComponent implements Emitter {
   }
 
   /** @internal */
-  private cleanupEventHandlerTransformCache(event: string | symbol) {
+  private cleanupEventHandlerTransformCache({
+    event,
+    force,
+  }: {
+    event: string | symbol
+    force: boolean
+  }) {
     const transformCacheKey = this.getEventHandlerTransformCacheKey(event)
+    const namespacedEvent = this._getNamespacedEvent(event)
     const instance = this._eventsTransformsCache.get(transformCacheKey)
+    const eventCount = this.listenerCount(namespacedEvent)
 
-    if (instance) {
+    if (instance && (force || eventCount <= 1)) {
       instance.destroy()
-      return this._eventsTransformsCache.delete(event)
+      return this._eventsTransformsCache.delete(transformCacheKey)
     }
 
     logger.debug(
-      `[cleanupEventHandlerTransformCache] Key wasn't cached`, event
+      `[cleanupEventHandlerTransformCache] Key wasn't cached`,
+      transformCacheKey
     )
     return false
   }
@@ -302,7 +311,15 @@ export class BaseComponent implements Emitter {
     const [event, fn, context, once] = this._getOptionsFromParams(params)
     const handler = this.getAndRemoveStableEventHandler(fn)
     const namespacedEvent = this._getNamespacedEvent(event)
-    this.cleanupEventHandlerTransformCache(event)
+    this.cleanupEventHandlerTransformCache({
+      event,
+      /**
+       * If handler is not defined we'll force the cleanup
+       * since the `emitter` will remove all the handlers
+       * for the specified event
+       */
+      force: !handler
+    })
     logger.trace('Removing event listener', namespacedEvent)
     return this.emitter.off(namespacedEvent, handler, context, once)
   }
@@ -346,6 +363,11 @@ export class BaseComponent implements Emitter {
     const namespacedEvent = this._getNamespacedEvent(prefixedEvent)
     logger.trace('Emit on event:', namespacedEvent)
     return this.emitter.emit(namespacedEvent, ...args)
+  }
+
+  /** @internal */
+  listenerCount(...params: Parameters<Emitter['listenerCount']>) {
+    return this.emitter.listenerCount(...params)
   }
 
   destroy() {
