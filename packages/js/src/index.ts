@@ -45,7 +45,6 @@ export type {
   MemberTalkingEventNames,
   VideoMemberTalkingEventParams,
   InternalVideoMember,
-  Rooms,
 } from '@signalwire/core'
 export type {
   BaseConnectionOptions,

@@ -18,3 +18,4 @@ export type {
   VideoMemberHandlerParams,
 } from './utils/interfaces'
 export type { CreateRoomObjectOptions } from './createRoomObject'
+export type { RoomSessionRecording } from '@signalwire/core'
