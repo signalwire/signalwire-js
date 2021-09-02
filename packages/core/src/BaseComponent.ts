@@ -407,6 +407,12 @@ export class BaseComponent implements Emitter {
   }
 
   /** @internal */
+  getParam<T extends string>(param: T) {
+    // @ts-expect-error
+    return this[param]
+  }
+
+  /** @internal */
   private flushEventsRegisterQueue() {
     this._eventsRegisterQueue.forEach((item) => {
       // @ts-ignore
