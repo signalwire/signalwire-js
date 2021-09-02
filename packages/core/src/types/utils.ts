@@ -16,3 +16,9 @@ export type EntityUpdated<T> = T & {
 }
 
 export type ToInternalVideoEvent<T extends string> = `video.${T}`
+
+type OnlyFunctionPropertyNames<T> = {
+  [K in keyof T]: T[K] extends Function ? K : never
+}[keyof T]
+
+export type OnlyFunctionProperties<T> = Pick<T, OnlyFunctionPropertyNames<T>>
