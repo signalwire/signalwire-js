@@ -19,12 +19,12 @@ describe('Room Object', () => {
     })
     room.execute = jest.fn()
     // mock a room.subscribed event
-    // room.onRoomSubscribed({
-    //   nodeId: 'node-id',
-    //   roomId: 'room-id',
-    //   roomSessionId: 'room-session-id',
-    //   memberId: 'member-id',
-    // })
+    room.onRoomSubscribed({
+      nodeId: 'node-id',
+      roomId: 'room-id',
+      roomSessionId: 'room-session-id',
+      memberId: 'member-id',
+    })
   })
 
   it('should have all the custom methods defined', () => {
