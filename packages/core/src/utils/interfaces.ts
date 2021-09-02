@@ -12,7 +12,7 @@ import {
  */
 export type Emitter = Pick<
   EventEmitter,
-  'on' | 'off' | 'once' | 'emit' | 'removeAllListeners' | 'eventNames'
+  'on' | 'off' | 'once' | 'emit' | 'removeAllListeners' | 'eventNames' | 'listenerCount'
 >
 
 type JSONRPCParams = Record<string, any>
