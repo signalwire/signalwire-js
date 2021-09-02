@@ -135,7 +135,7 @@ interface RoomControlMethodsInterface {
   hideVideoMuted(): Rooms.HideVideoMuted
   showVideoMuted(): Rooms.ShowVideoMuted
   getRecordings(): Rooms.GetRecordings
-  startRecording(): Rooms.StartRecording
+  startRecording(): Promise<Rooms.RoomSessionRecording>
 }
 
 /**
