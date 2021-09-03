@@ -165,7 +165,7 @@ export class BaseComponent implements Emitter {
       return instance
     }
 
-    // @ts-expect-error
+    // @ts-ignore
     return this._eventsTransformsCache.get(transformCacheKey)
   }
 
