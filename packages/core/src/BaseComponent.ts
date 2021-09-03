@@ -471,7 +471,7 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
   }
 
   /** @internal */
-  getParam(param: keyof OnlyStateProperties<T>) {
+  getStateProperty(param: keyof OnlyStateProperties<T>) {
     // @ts-expect-error
     return this[param]
   }

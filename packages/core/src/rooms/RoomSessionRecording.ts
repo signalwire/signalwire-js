@@ -23,8 +23,8 @@ export class RoomSessionRecordingAPI
     await this.execute({
       method: 'video.recording.pause',
       params: {
-        room_session_id: this.getParam('roomSessionId'),
-        recording_id: this.getParam('id'),
+        room_session_id: this.getStateProperty('roomSessionId'),
+        recording_id: this.getStateProperty('id'),
       },
     })
   }
@@ -33,8 +33,8 @@ export class RoomSessionRecordingAPI
     await this.execute({
       method: 'video.recording.resume',
       params: {
-        room_session_id: this.getParam('roomSessionId'),
-        recording_id: this.getParam('id'),
+        room_session_id: this.getStateProperty('roomSessionId'),
+        recording_id: this.getStateProperty('id'),
       },
     })
   }
@@ -43,8 +43,8 @@ export class RoomSessionRecordingAPI
     await this.execute({
       method: 'video.recording.stop',
       params: {
-        room_session_id: this.getParam('roomSessionId'),
-        recording_id: this.getParam('id'),
+        room_session_id: this.getStateProperty('roomSessionId'),
+        recording_id: this.getStateProperty('id'),
       },
     })
   }
