@@ -318,7 +318,7 @@ export class BaseComponent implements Emitter {
        * since the `emitter` will remove all the handlers
        * for the specified event
        */
-      force: !handler
+      force: !handler,
     })
     logger.trace('Removing event listener', namespacedEvent)
     return this.emitter.off(namespacedEvent, handler, context, once)
@@ -467,6 +467,12 @@ export class BaseComponent implements Emitter {
         this._requests.delete(key)
       }
     })
+  }
+
+  /** @internal */
+  getParam<T extends string>(param: T) {
+    // @ts-expect-error
+    return this[param]
   }
 
   /** @internal */

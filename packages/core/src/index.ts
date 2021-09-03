@@ -41,6 +41,7 @@ export type {
 } from './redux/interfaces'
 export * as actions from './redux/actions'
 export * as Rooms from './rooms'
+export type { RoomSessionRecording } from './rooms'
 export const selectors = {
   ...sessionSelectors,
 }

@@ -13,6 +13,8 @@ import type {
   VideoMemberTalkingEventParams,
   RTCTrackEventName,
   InternalVideoMemberUpdatableProps,
+  VideoRecordingEventNames,
+  RoomSessionRecording,
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
 import type { Room } from '../Room'
@@ -48,7 +50,8 @@ export type RoomObjectEventsHandlerMap = Record<
   > &
   Record<VideoRoomEventNames, (params: VideoRoomEventParams) => void> &
   Record<RTCTrackEventName, (event: RTCTrackEvent) => void> &
-  Record<BaseConnectionState, (params: Room) => void>
+  Record<BaseConnectionState, (params: Room) => void> &
+  Record<VideoRecordingEventNames, (recording: RoomSessionRecording) => void>
 
 export type RoomObjectEvents = {
   [k in keyof RoomObjectEventsHandlerMap]: RoomObjectEventsHandlerMap[k]
@@ -134,6 +137,8 @@ interface RoomControlMethodsInterface {
   removeMember(params: Required<MemberCommandParams>): Rooms.RemoveMember
   hideVideoMuted(): Rooms.HideVideoMuted
   showVideoMuted(): Rooms.ShowVideoMuted
+  getRecordings(): Rooms.GetRecordings
+  startRecording(): Promise<Rooms.RoomSessionRecording>
 }
 
 /**

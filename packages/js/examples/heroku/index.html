@@ -303,6 +303,46 @@
               ></select>
             </div>
           </div>
+
+          <div id="controlRecording" class="row py-2 d-none">
+            <h6>Recording (<i id="recordingState">unknown</i>)</h6>
+            <div class="col-12">
+              <div class="btn-group w-100" role="group">
+                <button
+                  id="startRecordingBtn"
+                  class="btn btn-success px-3 mt-2 d-none"
+                  onClick="startRecording()"
+                  disabled="true"
+                >
+                  Start Recording
+                </button>
+                <button
+                  id="pauseRecordingBtn"
+                  class="btn btn-info px-3 mt-2 d-none"
+                  onClick="pauseRecording()"
+                  disabled="true"
+                >
+                  Pause Recording
+                </button>
+                <button
+                  id="resumeRecordingBtn"
+                  class="btn btn-info px-3 mt-2 d-none"
+                  onClick="resumeRecording()"
+                  disabled="true"
+                >
+                  Resume Recording
+                </button>
+                <button
+                  id="stopRecordingBtn"
+                  class="btn btn-danger px-3 mt-2 d-none"
+                  onClick="stopRecording()"
+                  disabled="true"
+                >
+                  Stop Recording
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <hr />

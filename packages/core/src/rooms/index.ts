@@ -7,3 +7,4 @@ export interface BaseRoomInterface extends BaseComponent {
 }
 
 export * from './methods'
+export * from './RoomSessionRecording'

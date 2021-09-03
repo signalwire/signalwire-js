@@ -102,11 +102,44 @@ export const showVideoMuted = createRoomMethod<BaseRPCResult, void>(
     transformResolve: baseCodeTransform,
   }
 )
+export const getRecordings = createRoomMethod<BaseRPCResult, void>(
+  'video.recording.list',
+  {
+    transformResolve: baseCodeTransform,
+  }
+)
+export const startRecording: RoomMethodDescriptor<any> = {
+  value: function () {
+    return new Promise(async (resolve) => {
+      const handler = (instance: any) => {
+        resolve(instance)
+      }
+
+      this.on('video._INTERNAL_.recording.start', handler)
+
+      try {
+        const payload = await this.execute({
+          method: 'video.recording.start',
+          params: {
+            room_session_id: this.roomSessionId,
+          },
+        })
+        this.emit('video._INTERNAL_.recording.start', payload)
+      } catch (error) {
+        this.off('video._INTERNAL_.recording.start', handler)
+        throw error
+      }
+    })
+  },
+}
 
 export type GetLayouts = ReturnType<typeof getLayouts.value>
 export type GetMembers = ReturnType<typeof getMembers.value>
 export type HideVideoMuted = ReturnType<typeof hideVideoMuted.value>
 export type ShowVideoMuted = ReturnType<typeof showVideoMuted.value>
+
+export type GetRecordings = ReturnType<typeof getRecordings.value>
+export type StartRecording = ReturnType<typeof startRecording.value>
 // End Room Methods
 
 /**

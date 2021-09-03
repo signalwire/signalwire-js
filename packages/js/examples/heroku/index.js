@@ -23,6 +23,11 @@ const inCallElements = [
   showVMutedBtn,
   hideScreenShareBtn,
   showScreenShareBtn,
+  controlRecording,
+  startRecordingBtn,
+  stopRecordingBtn,
+  pauseRecordingBtn,
+  resumeRecordingBtn,
 ]
 
 async function loadLayouts(currentLayoutId) {
@@ -148,6 +153,19 @@ window.connect = () => {
     roomObj.on('room.updated', (params) =>
       console.debug('>> room.updated', params)
     )
+
+    roomObj.on('recording.started', (params) => {
+      console.debug('>> recording.started', params)
+      document.getElementById('recordingState').innerText = 'recording'
+    })
+    roomObj.on('recording.ended', (params) => {
+      console.debug('>> recording.ended', params)
+      document.getElementById('recordingState').innerText = 'completed'
+    })
+    roomObj.on('recording.updated', (params) => {
+      console.debug('>> recording.updated', params)
+      document.getElementById('recordingState').innerText = params.state
+    })
     roomObj.on('room.ended', (params) => {
       console.debug('>> room.ended', params)
       hangup()
@@ -347,6 +365,57 @@ window.rangeInputHandler = (range) => {
       roomObj.setInputSensitivity({ value: range.value })
       break
   }
+}
+
+let recordingObj = null
+window.startRecording = () => {
+  console.debug('>> startRecording')
+  roomObj
+    .startRecording()
+    .then((response) => {
+      console.log('Recording started!', response)
+      recordingObj = response
+    })
+    .catch((error) => {
+      console.error('Failed to start recording:', error)
+    })
+}
+
+window.stopRecording = () => {
+  console.debug('>> stopRecording')
+  recordingObj
+    .stop()
+    .then((response) => {
+      console.log('Recording stopped!', response)
+      recordingObj = null
+    })
+    .catch((error) => {
+      console.error('Failed to stop recording:', error)
+    })
+}
+
+window.pauseRecording = () => {
+  console.debug('>> pauseRecording')
+  recordingObj
+    .pause()
+    .then((response) => {
+      console.log('Recording paused!', response)
+    })
+    .catch((error) => {
+      console.error('Failed to pause recording:', error)
+    })
+}
+
+window.resumeRecording = () => {
+  console.debug('>> resumeRecording')
+  recordingObj
+    .resume()
+    .then((response) => {
+      console.log('Recording resumed!', response)
+    })
+    .catch((error) => {
+      console.error('Failed to resume recording:', error)
+    })
 }
 
 /**

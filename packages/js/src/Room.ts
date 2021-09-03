@@ -1,4 +1,10 @@
-import { logger, connect, Rooms, RoomCustomMethods } from '@signalwire/core'
+import {
+  logger,
+  connect,
+  Rooms,
+  RoomCustomMethods,
+  EventTransform,
+} from '@signalwire/core'
 import {
   getDisplayMedia,
   BaseConnection,
@@ -34,6 +40,40 @@ class Room extends BaseConnection implements BaseRoomInterface {
 
   get deviceList() {
     return Array.from(this._deviceList)
+  }
+
+  /** @internal */
+  protected getEmitterTransforms() {
+    return new Map<string | string[], EventTransform>([
+      [
+        [
+          'video._INTERNAL_.recording.start',
+          'video.recording.started',
+          'video.recording.updated',
+          'video.recording.ended',
+        ],
+        {
+          instanceFactory: (_payload: any) => {
+            return Rooms.createRoomSessionRecordingObject({
+              store: this.store,
+              emitter: this.emitter,
+            })
+          },
+          payloadTransform: (payload: any) => {
+            if (payload?.recording) {
+              return {
+                ...payload?.recording,
+                roomSessionId: this.roomSessionId,
+              }
+            }
+            return {
+              id: payload.recording_id,
+              roomSessionId: this.roomSessionId,
+            }
+          },
+        },
+      ],
+    ])
   }
 
   /**
@@ -227,6 +267,9 @@ const customMethods: RoomCustomMethods<RoomMethods> = {
   setLayout: Rooms.setLayout,
   hideVideoMuted: Rooms.hideVideoMuted,
   showVideoMuted: Rooms.showVideoMuted,
+  // TODO: Add these to the spec list
+  getRecordings: Rooms.getRecordings,
+  startRecording: Rooms.startRecording,
 }
 Object.defineProperties(Room.prototype, customMethods)
 

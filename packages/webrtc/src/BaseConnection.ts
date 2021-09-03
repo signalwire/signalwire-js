@@ -25,6 +25,9 @@ const ROOM_EVENTS: InternalVideoEventNames[] = [
   'video.member.left',
   'video.member.talking',
   'video.layout.changed',
+  'video.recording.started',
+  'video.recording.updated',
+  'video.recording.ended',
 ]
 
 /**
@@ -280,6 +283,8 @@ export class BaseConnection
     } else {
       this._attachListeners(component.roomSessionId)
     }
+    // FIXME: Move to a better place when rework _attachListeners too.
+    this.applyEmitterTransforms()
   }
 
   /** @internal */
