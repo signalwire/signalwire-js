@@ -17,9 +17,6 @@ type MemberEventMap =
 class Room extends BaseConsumer {
   protected _eventsPrefix = 'video' as const
 
-  // This is needed for the custom methods.
-  roomSessionId = this.options.namespace
-
   /** @internal */
   protected getEmitterTransforms() {
     return new Map<MemberEventMap, EventTransform>([
@@ -34,7 +31,7 @@ class Room extends BaseConsumer {
           ...INTERNAL_MEMBER_UPDATED_EVENTS,
         ],
         {
-          instanceFactory: (payload: VideoMemberEventParams) => {
+          instanceFactory: () => {
             const member: Member = connect({
               store: this.store,
               Component: Member,
@@ -45,7 +42,6 @@ class Room extends BaseConsumer {
             })({
               store: this.store,
               emitter: this.options.emitter,
-              params: payload,
             })
 
             return member

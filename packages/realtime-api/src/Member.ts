@@ -1,14 +1,4 @@
-import {
-  BaseComponent,
-  BaseComponentOptions,
-  Rooms,
-  RoomCustomMethods,
-  VideoMemberEventParams,
-} from '@signalwire/core'
-
-interface MemberOptions extends BaseComponentOptions {
-  params: VideoMemberEventParams
-}
+import { BaseComponent, Rooms, RoomCustomMethods } from '@signalwire/core'
 
 interface MemberMethods {
   audioMute(): Rooms.AudioMuteMember
@@ -33,17 +23,9 @@ interface Member extends MemberMethods {
 }
 
 class Member extends BaseComponent {
-  constructor(public options: MemberOptions) {
-    super(options)
-  }
-
-  // These are needed for the custom methods.
-  roomSessionId = this.options.params.room_session_id
-  memberId = this.options.params.member.id
-
   remove() {
     // Alias to removeMember forcing `memberId`
-    return this.removeMember({ memberId: this.memberId })
+    return this.removeMember({ memberId: this.getStateProperty('memberId') })
   }
 }
 

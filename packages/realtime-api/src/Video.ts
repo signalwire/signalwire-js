@@ -28,7 +28,7 @@ class Video extends BaseConsumer {
       [
         ['video.room.started', 'video.room.ended'],
         {
-          instanceFactory: (payload: any) => {
+          instanceFactory: () => {
             const room: Room = connect({
               store: this.store,
               Component: Room,
@@ -37,10 +37,6 @@ class Video extends BaseConsumer {
                 responses: 'onSuccess',
               },
             })({
-              name: payload.room.name,
-              id: payload.room.room_id,
-              namespace: payload.room.room_session_id,
-              eventChannel: payload.room.event_channel,
               store: this.store,
               emitter: this.options.emitter,
             })
