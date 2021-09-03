@@ -21,4 +21,10 @@ type OnlyFunctionPropertyNames<T> = {
   [K in keyof T]: T[K] extends Function ? K : never
 }[keyof T]
 
+type OnlyStatePropertyNames<T> = {
+  [K in keyof T]: T[K] extends Function ? never : K
+}[keyof T]
+
 export type OnlyFunctionProperties<T> = Pick<T, OnlyFunctionPropertyNames<T>>
+
+export type OnlyStateProperties<T> = Pick<T, OnlyStatePropertyNames<T>>

@@ -15,18 +15,16 @@ export interface RoomSessionRecording {
   stop(): Promise<void>
 }
 
-type AllowedParams = 'roomSessionId' | 'id'
-
 export class RoomSessionRecordingAPI
-  extends BaseComponent
+  extends BaseComponent<RoomSessionRecording>
   implements OnlyFunctionProperties<RoomSessionRecording>
 {
   async pause() {
     await this.execute({
       method: 'video.recording.pause',
       params: {
-        room_session_id: this.getParam<AllowedParams>('roomSessionId'),
-        recording_id: this.getParam<AllowedParams>('id'),
+        room_session_id: this.getParam('roomSessionId'),
+        recording_id: this.getParam('id'),
       },
     })
   }
@@ -35,8 +33,8 @@ export class RoomSessionRecordingAPI
     await this.execute({
       method: 'video.recording.resume',
       params: {
-        room_session_id: this.getParam<AllowedParams>('roomSessionId'),
-        recording_id: this.getParam<AllowedParams>('id'),
+        room_session_id: this.getParam('roomSessionId'),
+        recording_id: this.getParam('id'),
       },
     })
   }
@@ -45,8 +43,8 @@ export class RoomSessionRecordingAPI
     await this.execute({
       method: 'video.recording.stop',
       params: {
-        room_session_id: this.getParam<AllowedParams>('roomSessionId'),
-        recording_id: this.getParam<AllowedParams>('id'),
+        room_session_id: this.getParam('roomSessionId'),
+        recording_id: this.getParam('id'),
       },
     })
   }
