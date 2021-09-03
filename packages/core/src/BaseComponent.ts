@@ -15,6 +15,7 @@ import { EventEmitter, getNamespacedEvent } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
 import { makeCustomSagaAction } from './redux/actions'
 import { OnlyStateProperties } from './types'
+import { toInternalEventName } from './utils/toInternalEventName'
 
 type EventRegisterHandlers =
   | {
@@ -284,9 +285,10 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
     const [event, fn, context] = this._getOptionsFromParams(params)
     const handler = this.applyEventHandlerTransform(event, fn)
     const namespacedEvent = this._getNamespacedEvent(event)
-    logger.trace('Registering event', namespacedEvent)
+    const internalEvent = toInternalEventName(namespacedEvent)
+    logger.trace('Registering event', internalEvent)
     this.trackEvent(event)
-    return this.emitter.on(namespacedEvent, handler, context)
+    return this.emitter.on(internalEvent, handler, context)
   }
 
   once(...params: Parameters<Emitter['once']>) {
@@ -298,9 +300,10 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
     const [event, fn, context] = this._getOptionsFromParams(params)
     const handler = this.applyEventHandlerTransform(event, fn)
     const namespacedEvent = this._getNamespacedEvent(event)
-    logger.trace('Registering event', namespacedEvent)
+    const internalEvent = toInternalEventName(namespacedEvent)
+    logger.trace('Registering event', internalEvent)
     this.trackEvent(event)
-    return this.emitter.once(namespacedEvent, handler, context)
+    return this.emitter.once(internalEvent, handler, context)
   }
 
   off(...params: Parameters<Emitter['off']>) {
