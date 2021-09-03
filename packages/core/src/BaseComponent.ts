@@ -14,6 +14,7 @@ import {
 import { EventEmitter, getNamespacedEvent } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
 import { makeCustomSagaAction } from './redux/actions'
+import { OnlyStateProperties } from './types'
 
 type EventRegisterHandlers =
   | {
@@ -35,7 +36,7 @@ type EventRegisterHandlers =
 
 const identity: ExecuteTransform<any, any> = (payload) => payload
 
-export class BaseComponent implements Emitter {
+export class BaseComponent<T = Record<string, unknown>> implements Emitter {
   /** @internal */
   private readonly uuid = uuid()
 
@@ -470,7 +471,7 @@ export class BaseComponent implements Emitter {
   }
 
   /** @internal */
-  getParam<T extends string>(param: T) {
+  getStateProperty(param: keyof OnlyStateProperties<T>) {
     // @ts-expect-error
     return this[param]
   }
