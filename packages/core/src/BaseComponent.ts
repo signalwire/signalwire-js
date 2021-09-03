@@ -530,12 +530,19 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
   }
 
   /** @internal */
-  protected _attachListeners(namespace: string) {
+  protected _setNamespace(namespace: string) {
     if (namespace === undefined) {
       logger.error('Tried to call `_attachListeners` without a `namespace`.')
       return
     }
     this._eventsNamespace = namespace
+  }
+
+  /** @internal */
+  protected _attachListeners(namespace?: string) {
+    if (typeof namespace === 'string') {
+      this._setNamespace(namespace)
+    }
     this.flushEventsQueue()
   }
 
