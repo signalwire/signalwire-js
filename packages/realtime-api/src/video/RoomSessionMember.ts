@@ -34,9 +34,8 @@ export class RoomSessionMemberAPI
     await this.execute({
       method: 'video.member.remove',
       params: {
-        // TODO: use `getParam`
-        // room_session_id: this.getParam('roomSessionId'),
-        // member_id: this.getParam('id'),
+        room_session_id: this.getStateProperty('roomSessionId'),
+        member_id: this.getStateProperty('memberId'),
       },
     })
   }

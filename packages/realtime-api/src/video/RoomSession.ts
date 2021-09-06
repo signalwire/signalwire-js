@@ -47,22 +47,11 @@ interface RoomSessionMethods {
   setLayout(): Rooms.SetLayout
 }
 
-// FIXME: extends VideoRoom properties too
-interface RoomSession extends RoomSessionMethods {}
-
 type MemberEventMap =
   | InternalVideoMemberEventNames
   | InternalVideoMemberEventNames[]
 
-/**
- * FIXME: extends BaseConsumer without an `options.namespace`
- * for the _attachListeners
- */
-// FIXME: Using `Partial` because of defineProperties
-export class RoomSessionAPI
-  extends BaseConsumer
-  implements Partial<RoomSession>
-{
+export class RoomSessionAPI extends BaseConsumer {
   protected _eventsPrefix = 'video' as const
 
   /** @internal */
@@ -86,7 +75,11 @@ export class RoomSessionAPI
             })
           },
           payloadTransform: (payload: VideoMemberEventParams) => {
-            return toExternalJSON(payload.member)
+            const { id, ...rest } = payload.member
+            return toExternalJSON({
+              ...rest,
+              member_id: id,
+            })
           },
         },
       ],

@@ -6,7 +6,7 @@ import {
   EventTransform,
 } from '@signalwire/core'
 import { BaseConsumer } from './BaseConsumer'
-import { Room } from './Room'
+import { RoomSessionAPI } from './video/RoomSession'
 
 type TransformEvent = Extract<
   InternalVideoRoomEventNames,
@@ -29,9 +29,9 @@ class Video extends BaseConsumer {
         ['video.room.started', 'video.room.ended'],
         {
           instanceFactory: () => {
-            const room: Room = connect({
+            const room: RoomSessionAPI = connect({
               store: this.store,
-              Component: Room,
+              Component: RoomSessionAPI,
               componentListeners: {
                 errors: 'onError',
                 responses: 'onSuccess',
