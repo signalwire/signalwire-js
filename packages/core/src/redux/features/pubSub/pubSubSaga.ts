@@ -1,8 +1,11 @@
 import { SagaIterator } from 'redux-saga'
 import { take } from '@redux-saga/core/effects'
-import { logger, isInternalGlobalEvent } from '../../../utils'
+import {
+  logger,
+  isInternalGlobalEvent,
+  toInternalEventName,
+} from '../../../utils'
 import type { Emitter } from '../../../utils/interfaces'
-import { getNamespacedEvent } from '../../../utils/EventEmitter'
 import { PubSubChannel, PubSubAction } from '../../interfaces'
 
 type PubSubSagaParams = {
@@ -39,7 +42,7 @@ export function* pubSubSaga({
         emitter.emit(type, payload)
       }
 
-      emitter.emit(getNamespacedEvent({ namespace, event: type }), payload)
+      emitter.emit(toInternalEventName({ namespace, event: type }), payload)
     } catch (error) {
       logger.error(error)
     }

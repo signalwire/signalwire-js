@@ -41,23 +41,4 @@ const getEventEmitter = <T>(userOptions: UserOptions) => {
   )
 }
 
-const getNamespacedEvent = ({
-  namespace,
-  event,
-}: {
-  namespace: string
-  event: string
-}) => {
-  /**
-   * If getNamespacedEvent is called with the `namespace` already
-   * present in the `event` or with a falsy namespace we'll return it
-   * as is
-   */
-  if (!namespace || event.startsWith(namespace)) {
-    return event
-  }
-
-  return `${namespace}:${event}`
-}
-
-export { assertEventEmitter, EventEmitter, getEventEmitter, getNamespacedEvent }
+export { assertEventEmitter, EventEmitter, getEventEmitter }

@@ -1,5 +1,5 @@
 import { Action } from '@reduxjs/toolkit'
-import { uuid, logger } from './utils'
+import { uuid, logger, toInternalEventName } from './utils'
 import { executeAction } from './redux'
 import {
   ExecuteParams,
@@ -11,11 +11,10 @@ import {
   EventTransform,
   BaseEventHandler,
 } from './utils/interfaces'
-import { EventEmitter, getNamespacedEvent } from './utils/EventEmitter'
+import { EventEmitter } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
 import { makeCustomSagaAction } from './redux/actions'
 import { OnlyStateProperties } from './types'
-import { toInternalEventName } from './utils/toInternalEventName'
 
 type EventRegisterHandlers =
   | {
@@ -62,14 +61,18 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
    * to that specific room.
    */
   private _getNamespacedEvent(event: string | symbol) {
-    if (typeof event === 'string' && this._eventsNamespace !== undefined) {
-      return getNamespacedEvent({
-        namespace: this._eventsNamespace,
-        event,
-      })
-    }
+    return toInternalEventName({
+      event,
+      namespace: this._eventsNamespace,
+    })
+    // if (typeof event === 'string' && this._eventsNamespace !== undefined) {
+    //   return getNamespacedEvent({
+    //     namespace: this._eventsNamespace,
+    //     event,
+    //   })
+    // }
 
-    return event
+    // return event
   }
   /**
    * A prefix is a product, like `video` or `chat`.
@@ -312,8 +315,7 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
 
     const [event, fn, context] = this._getOptionsFromParams(params)
     const handler = this.getOrCreateStableEventHandler(event, fn)
-    const namespacedEvent = this._getNamespacedEvent(event)
-    const internalEvent = toInternalEventName(namespacedEvent)
+    const internalEvent = this._getNamespacedEvent(event)
     logger.trace('Registering event', internalEvent)
     this.trackEvent(event)
     return this.emitter.on(internalEvent, handler, context)
@@ -327,8 +329,7 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
 
     const [event, fn, context] = this._getOptionsFromParams(params)
     const handler = this.getOrCreateStableEventHandler(event, fn)
-    const namespacedEvent = this._getNamespacedEvent(event)
-    const internalEvent = toInternalEventName(namespacedEvent)
+    const internalEvent = this._getNamespacedEvent(event)
     logger.trace('Registering event', internalEvent)
     this.trackEvent(event)
     return this.emitter.once(internalEvent, handler, context)
@@ -342,8 +343,7 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
 
     const [event, fn, context, once] = this._getOptionsFromParams(params)
     const handler = this.getAndRemoveStableEventHandler(event, fn)
-    const namespacedEvent = this._getNamespacedEvent(event)
-    const internalEvent = toInternalEventName(namespacedEvent)
+    const internalEvent = this._getNamespacedEvent(event)
     this.cleanupEventHandlerTransformCache({
       event,
       /**
