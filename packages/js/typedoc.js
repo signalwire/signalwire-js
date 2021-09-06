@@ -7,4 +7,6 @@ module.exports = {
   hideGenerator: true,
   readme: 'none',
   tsconfig: 'tsconfig.docs.json',
+  pageSlugPrefix: 'js-',
+  plugin: ['@signalwire/typedoc-readme-api-theme']
 }
