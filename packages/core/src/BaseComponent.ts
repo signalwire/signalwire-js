@@ -65,14 +65,6 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
       event,
       namespace: this._eventsNamespace,
     })
-    // if (typeof event === 'string' && this._eventsNamespace !== undefined) {
-    //   return getNamespacedEvent({
-    //     namespace: this._eventsNamespace,
-    //     event,
-    //   })
-    // }
-
-    // return event
   }
   /**
    * A prefix is a product, like `video` or `chat`.
@@ -203,9 +195,9 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
   }
 
   /**
-   * Transforms are mapped using the "raw" event name (i.e
-   * non-namespaced sent by the server) and then mapped again
-   * using the end-user `fn` reference.
+   * Transforms are mapped using the "prefixed" event name (i.e
+   * non-namespaced sent by the server with the _eventPrefix) and
+   * then mapped again using the end-user `fn` reference.
    * @internal
    */
   private getEmitterListenersMapByEventName(event: string | symbol) {
