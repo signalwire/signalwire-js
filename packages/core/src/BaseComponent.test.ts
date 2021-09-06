@@ -23,6 +23,83 @@ describe('BaseComponent', () => {
       instance = new JestComponent()
     })
 
+    it('should transform the event name to the internal format', () => {
+      instance.on('test.event_one', () => {})
+      instance.on('test.eventOne', () => {})
+      instance.once('video.test.eventOne', () => {})
+
+      instance.once('video.test.eventTwo', () => {})
+
+      expect(instance.listenerCount('video.test.event_one')).toEqual(3)
+      expect(instance.listenerCount('video.test.event_two')).toEqual(1)
+    })
+
+    it('should transform the event name to the internal format with namespace', () => {
+      const customInstance = new JestComponent('custom')
+      customInstance.on('test.event_one', () => {})
+      customInstance.on('test.eventOne', () => {})
+      customInstance.once('video.test.eventOne', () => {})
+
+      customInstance.once('video.test.eventTwo', () => {})
+
+      expect(
+        customInstance.listenerCount('custom:video.test.event_one')
+      ).toEqual(3)
+      expect(
+        customInstance.listenerCount('custom:video.test.event_two')
+      ).toEqual(1)
+    })
+
+    it('should keep track of the original events with the _eventsPrefix', () => {
+      const firstInstance = new JestComponent('first')
+      firstInstance.on('first.event_one', () => {})
+      firstInstance.once('video.first.eventOne', () => {})
+      firstInstance.on('first.event_two', () => {})
+      firstInstance.once('video.first.eventTwo', () => {})
+
+      const secondInstance = new JestComponent('second')
+      secondInstance.on('second.event_one', () => {})
+      secondInstance.once('video.second.eventOne', () => {})
+      secondInstance.on('second.event_two', () => {})
+      secondInstance.once('video.second.eventTwo', () => {})
+
+      expect(firstInstance.eventNames()).toStrictEqual([
+        'video.first.event_one',
+        'video.first.eventOne',
+        'video.first.event_two',
+        'video.first.eventTwo',
+      ])
+      expect(secondInstance.eventNames()).toStrictEqual([
+        'video.second.event_one',
+        'video.second.eventOne',
+        'video.second.event_two',
+        'video.second.eventTwo',
+      ])
+    })
+
+    it('should remove the listeners with .off', () => {
+      const instance = new JestComponent('custom')
+      const mockOne = jest.fn()
+      instance.on('test.eventOne', mockOne)
+      instance.once('test.eventOne', mockOne)
+      const mockTwo = jest.fn()
+      instance.on('test.eventTwo', mockTwo)
+      instance.once('test.eventTwo', mockTwo)
+
+      expect(instance.listenerCount('custom:video.test.event_one')).toEqual(2)
+      expect(instance.listenerCount('custom:video.test.event_two')).toEqual(2)
+
+      // No-op
+      instance.off('test.eventOne', () => {})
+      expect(instance.listenerCount('custom:video.test.event_one')).toEqual(2)
+
+      instance.off('test.eventOne', mockOne)
+      expect(instance.listenerCount('custom:video.test.event_one')).toEqual(0)
+
+      instance.off('test.eventTwo', mockTwo)
+      expect(instance.listenerCount('custom:video.test.event_two')).toEqual(0)
+    })
+
     it('should handle snake_case events', (done) => {
       const serverEvent = 'video.event.server_side'
       const payload = { test: 1 }
