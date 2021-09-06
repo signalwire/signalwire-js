@@ -1,4 +1,10 @@
-import { uuid, logger, isGlobalEvent, toExternalJSON } from './utils'
+import {
+  uuid,
+  logger,
+  isGlobalEvent,
+  toExternalJSON,
+  validateEventsToSubscribe,
+} from './utils'
 import { BaseSession } from './BaseSession'
 import { BaseJWTSession } from './BaseJWTSession'
 import { configureStore, connect } from './redux'
@@ -25,6 +31,7 @@ export {
   getEventEmitter,
   isGlobalEvent,
   toExternalJSON,
+  validateEventsToSubscribe,
   GLOBAL_VIDEO_EVENTS,
   MEMBER_UPDATED_EVENTS,
   INTERNAL_MEMBER_UPDATED_EVENTS,

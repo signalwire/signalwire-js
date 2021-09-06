@@ -3,6 +3,7 @@ import {
   BaseComponentOptions,
   ExecuteParams,
   logger,
+  validateEventsToSubscribe,
 } from '@signalwire/core'
 
 interface BaseConsumerOptions extends BaseComponentOptions {
@@ -30,7 +31,7 @@ export class BaseConsumer extends BaseComponent {
   }
 
   protected getSubscriptions(): (string | symbol)[] {
-    return this.eventNames()
+    return validateEventsToSubscribe(this.eventNames())
   }
 
   run() {
