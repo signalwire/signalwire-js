@@ -65,3 +65,27 @@ export const getGlobalEvents = (kind: 'all' | 'video' = 'all') => {
       ]
   }
 }
+
+const WITH_CUSTOM_EVENT_NAMES = ['member.updated', 'member.talking'] as const
+/**
+ * Check and filter the events the user attached returning only the valid ones
+ * for the server.
+ * IE: `member.updated.audioMuted` means `member.updated` for the server.
+ * @internal
+ */
+export const validateEventsToSubscribe = (events: (string | symbol)[]) => {
+  const valid = events.map((event) => {
+    if (typeof event === 'string') {
+      const found = WITH_CUSTOM_EVENT_NAMES.find((withCustomName) => {
+        return event.startsWith(withCustomName)
+      })
+      if (found) {
+        return found
+      }
+    }
+
+    return event
+  })
+
+  return Array.from(new Set(valid))
+}
