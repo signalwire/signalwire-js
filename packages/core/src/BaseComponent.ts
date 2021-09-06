@@ -96,7 +96,10 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
   /**
    * Keeps track of the stable references used for registering events.
    */
-  private _emitterListenersCache = new Map<BaseEventHandler, BaseEventHandler>()
+  private _emitterListenersCache = new Map<
+    string | symbol,
+    Map<BaseEventHandler, BaseEventHandler>
+  >()
   /**
    * List of events being registered through the EventEmitter
    * instance. These events include the `_eventsPrefix` but not the
@@ -197,13 +200,43 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
   }
 
   /**
+   * Transforms are mapped using the "raw" event name (i.e
+   * non-namespaced sent by the server) and then mapped again
+   * using the end-user `fn` reference.
+   * @internal
+   */
+  private getEmitterListenersMapByEventName(event: string | symbol) {
+    return (
+      this._emitterListenersCache.get(event) ??
+      new Map<BaseEventHandler, BaseEventHandler>()
+    )
+  }
+
+  private getAndRemoveStableEventHandler(
+    event: string | symbol,
+    fn?: BaseEventHandler
+  ) {
+    const cacheByEventName = this.getEmitterListenersMapByEventName(event)
+    if (fn && cacheByEventName.has(fn)) {
+      const handler = cacheByEventName.get(fn)
+      cacheByEventName.delete(fn)
+      this._emitterListenersCache.set(event, cacheByEventName)
+      return handler
+    }
+
+    return fn
+  }
+
+  /**
    * Creates the event handler to be attached to the `EventEmitter`.
    * It contains the logic for applying any custom transforms for
    * specific events along with the logic for caching the calls to
    * `transform.instanceFactory`
-   * @internal
    **/
-  private eventHandlerTransformFactory(event: string | symbol, fn: any) {
+  private createStableEventHandler(
+    event: string | symbol,
+    fn: BaseEventHandler
+  ) {
     return (payload: unknown) => {
       const transform = this._emitterTransforms.get(event)
       if (!transform) {
@@ -241,29 +274,24 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
     }
   }
 
-  /** @internal */
-  private applyEventHandlerTransform(
+  private getOrCreateStableEventHandler(
     event: string | symbol,
-    fn: (...args: any[]) => void
+    fn: BaseEventHandler
   ) {
     /**
      * Transforms are mapped using the "raw" event name (i.e
      * non-namespaced sent by the server)
      */
-    const handler = this.eventHandlerTransformFactory(event, fn)
-    this._emitterListenersCache.set(fn, handler)
+    const cacheByEventName = this.getEmitterListenersMapByEventName(event)
+    let handler = cacheByEventName.get(fn)
 
-    return handler
-  }
-
-  private getAndRemoveStableEventHandler(fn?: (...args: any[]) => void) {
-    if (fn && this._emitterListenersCache.has(fn)) {
-      const handler = this._emitterListenersCache.get(fn)
-      this._emitterListenersCache.delete(fn)
-      return handler
+    if (!handler) {
+      handler = this.createStableEventHandler(event, fn)
+      cacheByEventName.set(fn, handler)
+      this._emitterListenersCache.set(event, cacheByEventName)
     }
 
-    return fn
+    return handler
   }
 
   private trackEvent(event: string | symbol) {
@@ -283,7 +311,7 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
     }
 
     const [event, fn, context] = this._getOptionsFromParams(params)
-    const handler = this.applyEventHandlerTransform(event, fn)
+    const handler = this.getOrCreateStableEventHandler(event, fn)
     const namespacedEvent = this._getNamespacedEvent(event)
     const internalEvent = toInternalEventName(namespacedEvent)
     logger.trace('Registering event', internalEvent)
@@ -298,7 +326,7 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
     }
 
     const [event, fn, context] = this._getOptionsFromParams(params)
-    const handler = this.applyEventHandlerTransform(event, fn)
+    const handler = this.getOrCreateStableEventHandler(event, fn)
     const namespacedEvent = this._getNamespacedEvent(event)
     const internalEvent = toInternalEventName(namespacedEvent)
     logger.trace('Registering event', internalEvent)
@@ -313,8 +341,9 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
     }
 
     const [event, fn, context, once] = this._getOptionsFromParams(params)
-    const handler = this.getAndRemoveStableEventHandler(fn)
+    const handler = this.getAndRemoveStableEventHandler(event, fn)
     const namespacedEvent = this._getNamespacedEvent(event)
+    const internalEvent = toInternalEventName(namespacedEvent)
     this.cleanupEventHandlerTransformCache({
       event,
       /**
@@ -324,8 +353,8 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
        */
       force: !handler,
     })
-    logger.trace('Removing event listener', namespacedEvent)
-    return this.emitter.off(namespacedEvent, handler, context, once)
+    logger.trace('Removing event listener', internalEvent)
+    return this.emitter.off(internalEvent, handler, context, once)
   }
 
   removeAllListeners(...params: Parameters<Emitter['removeAllListeners']>) {
