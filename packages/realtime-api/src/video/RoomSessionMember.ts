@@ -3,8 +3,8 @@ import {
   BaseComponent,
   BaseComponentOptions,
   Rooms,
-  RoomCustomMethods,
 } from '@signalwire/core'
+import { extendComponent } from '../extendComponent'
 
 export interface RoomSessionMemberMethods {
   audioMute(): Rooms.AudioMuteMember
@@ -21,41 +21,42 @@ export interface RoomSessionMemberMethods {
 }
 
 // FIXME: extends VideoMember properties too
-export interface RoomSessionMember extends RoomSessionMemberMethods {
+export interface RoomSessionMember
+  extends RoomSessionMemberMethods,
+    BaseComponent {
   remove(): Rooms.RemoveMember
 }
 
-// FIXME: Using `Partial` because of defineProperties
-export class RoomSessionMemberAPI
-  extends BaseComponent
-  implements Partial<RoomSessionMember>
-{
-  async remove() {
-    await this.execute({
-      method: 'video.member.remove',
-      params: {
-        room_session_id: this.getStateProperty('roomSessionId'),
-        member_id: this.getStateProperty('memberId'),
-      },
-    })
+const RoomSessionMemberAPI = extendComponent<
+  RoomSessionMember,
+  RoomSessionMemberMethods
+>(
+  class API extends BaseComponent {
+    async remove() {
+      await this.execute({
+        method: 'video.member.remove',
+        params: {
+          room_session_id: this.getStateProperty('roomSessionId'),
+          member_id: this.getStateProperty('memberId'),
+        },
+      })
+    }
+  },
+  {
+    audioMute: Rooms.audioMuteMember,
+    audioUnmute: Rooms.audioUnmuteMember,
+    videoMute: Rooms.videoMuteMember,
+    videoUnmute: Rooms.videoUnmuteMember,
+    deaf: Rooms.deafMember,
+    undeaf: Rooms.undeafMember,
+    setMicrophoneVolume: Rooms.setInputVolumeMember,
+    setSpeakerVolume: Rooms.setOutputVolumeMember,
+    setInputSensitivity: Rooms.setInputSensitivityMember,
   }
-}
-
-const customMethods: RoomCustomMethods<RoomSessionMemberMethods> = {
-  audioMute: Rooms.audioMuteMember,
-  audioUnmute: Rooms.audioUnmuteMember,
-  videoMute: Rooms.videoMuteMember,
-  videoUnmute: Rooms.videoUnmuteMember,
-  deaf: Rooms.deafMember,
-  undeaf: Rooms.undeafMember,
-  setMicrophoneVolume: Rooms.setInputVolumeMember,
-  setSpeakerVolume: Rooms.setOutputVolumeMember,
-  setInputSensitivity: Rooms.setInputSensitivityMember,
-}
-Object.defineProperties(RoomSessionMemberAPI.prototype, customMethods)
+)
 
 export const createRoomSessionMemberObject = (params: BaseComponentOptions) => {
-  const member: RoomSessionMemberAPI = connect({
+  const member = connect({
     store: params.store,
     Component: RoomSessionMemberAPI,
     componentListeners: {
