@@ -1,11 +1,11 @@
 module.exports = {
-  out: './docs/',
+  out: './docs/md/',
   entryPoints: ['src/index.ts'],
   excludeExternals: true,
   excludeInternal: true,
   excludePrivate: true,
   hideGenerator: true,
-  readme: 'none',
+  readme: 'README.md',
   tsconfig: 'tsconfig.docs.json',
   pageSlugPrefix: 'js-',
   plugin: ['@signalwire/typedoc-readme-api-theme']
