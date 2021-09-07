@@ -36,7 +36,9 @@
     "build": "tsc --project tsconfig.build.json && sw-build --web && sw-build --umd",
     "test": "NODE_ENV=test jest",
     "example": "(cd examples && npm run dev)",
-    "docs": "typedoc --options typedoc.js --readme README.md",
+    "docs": "npm run docs:md; npm run docs:html",
+    "docs:md": "typedoc --options typedoc.md.js --readme README.md",
+    "docs:html": "typedoc --options typedoc.html.js --readme README.md",
     "docs:watch": "npm run docs -- --watch",
     "prepublishOnly": "npm run build"
   },

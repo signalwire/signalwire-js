@@ -1,5 +1,5 @@
 module.exports = {
-  out: './docs/',
+  out: './docs/md/',
   entryPoints: ['src/index.ts'],
   excludeExternals: true,
   excludeInternal: true,
