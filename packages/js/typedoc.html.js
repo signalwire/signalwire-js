@@ -5,7 +5,7 @@ module.exports = {
   excludeInternal: true,
   excludePrivate: true,
   hideGenerator: true,
-  readme: 'none',
+  readme: 'README.md',
   tsconfig: 'tsconfig.docs.json',
   plugin: [ ]
 }
