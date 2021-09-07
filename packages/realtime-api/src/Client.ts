@@ -1,13 +1,12 @@
-import StrictEventEmitter from 'strict-event-emitter-types'
 import {
   BaseClient,
-  SessionState,
-  GlobalVideoEvents,
-  connect,
   EventsPrefix,
+  GlobalVideoEvents,
+  SessionState,
 } from '@signalwire/core'
-import { Video } from './Video'
+import StrictEventEmitter from 'strict-event-emitter-types'
 import { RealTimeVideoApiEvents } from './types/video'
+import { createVideoObject, Video } from './Video'
 
 interface Consumer {
   on: (event: GlobalVideoEvents, handler: any) => void
@@ -29,18 +28,10 @@ export class Client extends BaseClient {
     if (this._consumers.has('video')) {
       return this._consumers.get('video') as Video
     }
-    const video = connect({
-      store: this.store,
-      Component: Video,
-      componentListeners: {
-        errors: 'onError',
-        responses: 'onSuccess',
-      },
-    })({
+    const video = createVideoObject({
       store: this.store,
       emitter: this.options.emitter,
     })
-
     // TODO: Define pattern for this (creating Proxies)
     const proxiedObj = new Proxy(video, {
       get(target: any, prop: any, receiver: any) {
@@ -57,7 +48,6 @@ export class Client extends BaseClient {
         return Reflect.get(target, prop, receiver)
       },
     })
-
     this._consumers.set('video', proxiedObj)
     return proxiedObj
   }

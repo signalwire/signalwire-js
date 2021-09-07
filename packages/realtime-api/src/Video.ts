@@ -1,7 +1,8 @@
 import {
+  BaseComponentOptions,
+  connect,
   EventTransform,
   InternalVideoRoomEventNames,
-  RoomCustomMethods,
   toExternalJSON,
 } from '@signalwire/core'
 import { BaseConsumer } from './BaseConsumer'
@@ -12,7 +13,7 @@ type TransformEvent = Extract<
   'video.room.started' | 'video.room.ended'
 >
 
-class Video extends BaseConsumer {
+export class Video extends BaseConsumer {
   /** @internal */
   protected _eventsPrefix = 'video' as const
 
@@ -48,9 +49,15 @@ class Video extends BaseConsumer {
   }
 }
 
-const customMethods: RoomCustomMethods<any> = {
-  // TODO: add methods
-}
-Object.defineProperties(Video.prototype, customMethods)
+export const createVideoObject = (params: BaseComponentOptions) => {
+  const video = connect({
+    store: params.store,
+    Component: Video,
+    componentListeners: {
+      errors: 'onError',
+      responses: 'onSuccess',
+    },
+  })(params)
 
-export { Video }
+  return video
+}
