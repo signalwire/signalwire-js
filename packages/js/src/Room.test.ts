@@ -1,11 +1,12 @@
-import { connect, EventEmitter } from '@signalwire/core'
+import { connect, EventEmitter, actions } from '@signalwire/core'
 import { Room } from './Room'
 import { ROOM_COMPONENT_LISTENERS } from './utils/constants'
-import { configureJestStore } from './testUtils'
+import { configureJestStore, configureFullStack } from './testUtils'
+import type { RoomObject } from './utils/interfaces'
 
 describe('Room Object', () => {
   let store: any
-  let room: Room
+  let room: RoomObject
 
   beforeEach(() => {
     store = configureJestStore()
@@ -125,6 +126,66 @@ describe('Room Object', () => {
           recording_id: 'second-recording',
         },
       })
+    })
+  })
+
+  describe('as event emitter', () => {
+    it('should listen on the talking events', () => {
+      const { store, session, emitter } = configureFullStack()
+      room = connect({
+        store,
+        Component: Room,
+        componentListeners: ROOM_COMPONENT_LISTENERS,
+      })({
+        store,
+        emitter,
+      })
+      room.execute = jest.fn()
+      // mock a room.subscribed event
+      room.onRoomSubscribed({
+        nodeId: 'node-id',
+        roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
+        roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
+        memberId: 'member-id',
+      })
+
+      const startedHandler = jest.fn()
+      room.on('member.talking.started', startedHandler)
+      // deprecated
+      room.on('member.talking.start', startedHandler)
+
+      const endedHandler = jest.fn()
+      room.on('member.talking.ended', endedHandler)
+      // deprecated
+      room.on('member.talking.stop', endedHandler)
+
+      const globalHandler = jest.fn()
+      room.on('member.talking', globalHandler)
+
+      const talkingTrue = JSON.parse(
+        '{"jsonrpc":"2.0","id":"9050e4f8-b08e-4e39-9796-bfb6e83c2a2d","method":"signalwire.event","params":{"params":{"room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","member":{"id":"a3693340-6f42-4cab-b18e-8e2a22695698","room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","talking":true}},"timestamp":1627374612.9585,"event_type":"video.member.talking","event_channel":"room.0a324e3c-5e2f-443a-a333-10bf005f249e"}}'
+      )
+      session.dispatch(actions.socketMessageAction(talkingTrue))
+
+      expect(startedHandler).toHaveBeenCalledTimes(2)
+      expect(globalHandler).toHaveBeenCalledTimes(1)
+
+      const talkingFalse = JSON.parse(
+        '{"jsonrpc":"2.0","id":"9050e4f8-b08e-4e39-9796-bfb6e83c2a2d","method":"signalwire.event","params":{"params":{"room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","member":{"id":"a3693340-6f42-4cab-b18e-8e2a22695698","room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","talking":false}},"timestamp":1627374612.9585,"event_type":"video.member.talking","event_channel":"room.0a324e3c-5e2f-443a-a333-10bf005f249e"}}'
+      )
+      session.dispatch(actions.socketMessageAction(talkingFalse))
+
+      expect(endedHandler).toHaveBeenCalledTimes(2)
+      expect(globalHandler).toHaveBeenCalledTimes(2)
+
+      expect(globalHandler).toHaveBeenNthCalledWith(
+        1,
+        talkingTrue.params.params
+      )
+      expect(globalHandler).toHaveBeenNthCalledWith(
+        2,
+        talkingFalse.params.params
+      )
     })
   })
 })
