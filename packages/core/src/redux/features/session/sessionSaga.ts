@@ -264,10 +264,15 @@ export function* sessionChannelWatcher({
       case 'video.member.talking': {
         const { member } = params.params
         if ('talking' in member) {
-          const suffix = member.talking ? 'start' : 'stop'
-          const type = `video.member.talking.${suffix}` as const
+          const suffix = member.talking ? 'started' : 'ended'
           yield put(pubSubChannel, {
-            type,
+            type: `video.member.talking.${suffix}` as const,
+            payload: params.params,
+          })
+          // Keep for backwards compat.
+          const deprecatedSuffix = member.talking ? 'start' : 'stop'
+          yield put(pubSubChannel, {
+            type: `video.member.talking.${deprecatedSuffix}` as const,
             payload: params.params,
           })
         }

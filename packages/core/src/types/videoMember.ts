@@ -63,11 +63,23 @@ export type MemberTalking = 'member.talking'
  * See {@link MEMBER_UPDATED_EVENTS} for the full list of events.
  */
 export type MemberUpdatedEventNames = typeof MEMBER_UPDATED_EVENTS[number]
+export type MemberTalkingStarted = 'member.talking.started'
+export type MemberTalkingEnded = 'member.talking.ended'
+/**
+ * Use `member.talking.started` instead
+ * @deprecated
+ */
 export type MemberTalkingStart = 'member.talking.start'
+/**
+ * Use `member.talking.ended` instead
+ * @deprecated
+ */
 export type MemberTalkingStop = 'member.talking.stop'
 
 export type MemberTalkingEventNames =
   | MemberTalking
+  | MemberTalkingStarted
+  | MemberTalkingEnded
   | MemberTalkingStart
   | MemberTalkingStop
 
