@@ -89,6 +89,12 @@ describe('BaseComponent', () => {
       expect(instance.listenerCount('custom:video.test.event_one')).toEqual(2)
       expect(instance.listenerCount('custom:video.test.event_two')).toEqual(2)
 
+      // _trackedEvents contains raw-prefixed event names
+      expect(instance.eventNames()).toStrictEqual([
+        'video.test.eventOne',
+        'video.test.eventTwo',
+      ])
+
       // No-op
       instance.off('test.eventOne', () => {})
       expect(instance.listenerCount('custom:video.test.event_one')).toEqual(2)
@@ -98,6 +104,33 @@ describe('BaseComponent', () => {
 
       instance.off('test.eventTwo', mockTwo)
       expect(instance.listenerCount('custom:video.test.event_two')).toEqual(0)
+
+      expect(instance.eventNames()).toStrictEqual([])
+    })
+
+    it('should remove all the listeners with .removeAllListeners', () => {
+      const instance = new JestComponent('custom')
+      const mockOne = jest.fn()
+      instance.on('test.eventOne', mockOne)
+      instance.once('test.eventOne', mockOne)
+      const mockTwo = jest.fn()
+      instance.on('test.eventTwo', mockTwo)
+      instance.once('test.eventTwo', mockTwo)
+
+      expect(instance.listenerCount('custom:video.test.event_one')).toEqual(2)
+      expect(instance.listenerCount('custom:video.test.event_two')).toEqual(2)
+
+      // _trackedEvents contains raw-prefixed event names
+      expect(instance.eventNames()).toStrictEqual([
+        'video.test.eventOne',
+        'video.test.eventTwo',
+      ])
+
+      instance.removeAllListeners()
+
+      expect(instance.listenerCount('custom:video.test.event_one')).toEqual(0)
+      expect(instance.listenerCount('custom:video.test.event_two')).toEqual(0)
+      expect(instance.eventNames()).toStrictEqual([])
     })
 
     it('should handle snake_case events', (done) => {
