@@ -1,8 +1,8 @@
-import { RoomCustomMethods, ConstructableType } from '@signalwire/core'
+import { APIMethodsMap, ConstructableType } from '@signalwire/core'
 
 export const extendComponent = <T, M>(
   klass: any,
-  methods: RoomCustomMethods<M>
+  methods: APIMethodsMap<M>
 ) => {
   Object.defineProperties(klass.prototype, methods)
 
