@@ -21,9 +21,7 @@ export interface RoomSessionMemberMethods {
   }): Rooms.SetInputSensitivityMember
 }
 
-export interface RoomSessionMemberAPI
-  extends RoomSessionMemberMethods,
-    BaseComponent {
+export interface RoomSessionMemberAPI extends RoomSessionMemberMethods {
   remove(): Rooms.RemoveMember
 }
 
@@ -57,8 +55,9 @@ const RoomSessionMemberAPI = extendComponent<
 })
 
 export const createRoomSessionMemberObject = (params: BaseComponentOptions) => {
-  const member: RoomSessionMember = connect({
+  const member = connect({
     store: params.store,
+    // @ts-expect-error
     Component: RoomSessionMemberAPI,
     componentListeners: {
       errors: 'onError',
@@ -66,5 +65,5 @@ export const createRoomSessionMemberObject = (params: BaseComponentOptions) => {
     },
   })(params)
 
-  return member
+  return member as any as RoomSessionMember
 }

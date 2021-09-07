@@ -51,7 +51,7 @@ type MemberEventMap =
   | InternalVideoMemberEventNames
   | InternalVideoMemberEventNames[]
 
-export interface RoomSession extends RoomSessionMethods, BaseConsumer {}
+export interface RoomSession extends RoomSessionMethods {}
 
 class RoomSessionConsumer extends BaseConsumer {
   protected _eventsPrefix = 'video' as const
@@ -111,8 +111,9 @@ export const RoomSessionAPI = extendComponent<RoomSession, RoomSessionMethods>(
 )
 
 export const createRoomSessionObject = (params: BaseComponentOptions) => {
-  const roomSession: RoomSession = connect({
+  const roomSession = connect({
     store: params.store,
+    // @ts-expect-error
     Component: RoomSessionAPI,
     componentListeners: {
       errors: 'onError',
@@ -120,5 +121,5 @@ export const createRoomSessionObject = (params: BaseComponentOptions) => {
     },
   })(params)
 
-  return roomSession
+  return roomSession as any as RoomSession
 }
