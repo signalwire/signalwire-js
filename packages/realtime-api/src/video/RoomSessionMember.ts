@@ -2,10 +2,10 @@ import {
   connect,
   BaseComponent,
   BaseComponentOptions,
+  extendComponent,
   Rooms,
   VideoMember,
 } from '@signalwire/core'
-import { extendComponent } from '../extendComponent'
 
 export interface RoomSessionMemberMethods {
   audioMute(): Rooms.AudioMuteMember

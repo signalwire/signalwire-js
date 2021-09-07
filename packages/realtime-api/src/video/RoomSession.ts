@@ -2,6 +2,7 @@ import {
   BaseComponentOptions,
   connect,
   EventTransform,
+  extendComponent,
   InternalVideoMemberEventNames,
   INTERNAL_MEMBER_UPDATED_EVENTS,
   Rooms,
@@ -9,7 +10,6 @@ import {
   VideoMemberEventParams,
 } from '@signalwire/core'
 import { BaseConsumer } from '../BaseConsumer'
-import { extendComponent } from '../extendComponent'
 import { createRoomSessionMemberObject } from './RoomSessionMember'
 
 // FIXME: Move these interfaces to core (and use them in JS too)

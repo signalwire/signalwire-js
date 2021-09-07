@@ -1,4 +1,5 @@
-import { APIMethodsMap, ConstructableType } from '@signalwire/core'
+import type { APIMethodsMap } from './interfaces'
+import type { ConstructableType } from '../types/utils'
 
 export const extendComponent = <T, M>(
   klass: any,

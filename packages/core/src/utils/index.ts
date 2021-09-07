@@ -9,6 +9,7 @@ export { logger } from './logger'
 export * from './parseRPCResponse'
 export * from './toExternalJSON'
 export * from './toInternalEventName'
+export * from './extendComponent'
 
 export const mutateStorageKey = (key: string) => `${STORAGE_PREFIX}${key}`
 
