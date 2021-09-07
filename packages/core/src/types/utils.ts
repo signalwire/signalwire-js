@@ -30,5 +30,5 @@ export type OnlyFunctionProperties<T> = Pick<T, OnlyFunctionPropertyNames<T>>
 export type OnlyStateProperties<T> = Pick<T, OnlyStatePropertyNames<T>>
 
 export interface ConstructableType<T> {
-  new (o: any): T
+  new (o?: any): T
 }
