@@ -1,9 +1,4 @@
-import { RoomCustomMethods } from '@signalwire/core'
-
-// TODO: move to utils
-interface ConstructableT<T> {
-  new (o: any): T
-}
+import { RoomCustomMethods, ConstructableType } from '@signalwire/core'
 
 export const extendComponent = <T, M>(
   klass: any,
@@ -11,5 +6,5 @@ export const extendComponent = <T, M>(
 ) => {
   Object.defineProperties(klass.prototype, methods)
 
-  return klass as ConstructableT<T>
+  return klass as ConstructableType<T>
 }
