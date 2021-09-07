@@ -23,10 +23,11 @@ export const configureJestStore = () => {
 }
 
 /**
- * Helper method to configure a Store w/o Saga middleware.
- * Useful to test slices and reducers logic.
+ * Helper method to configure a Store with a rootSaga
+ * and a mocked Session object.
+ * This allow to write integration tests.
  *
- * @returns Redux Store
+ * @returns { store, session, emitter, destroy }
  */
 export const configureFullStack = () => {
   const session = {
