@@ -1,6 +1,6 @@
-import { connect, EventEmitter } from '@signalwire/core'
+import { EventEmitter } from '@signalwire/core'
 import { configureJestStore } from './testUtils'
-import { Video } from './Video'
+import { createVideoObject, Video } from './Video'
 
 describe('Member Object', () => {
   let store: any
@@ -8,20 +8,7 @@ describe('Member Object', () => {
 
   beforeEach(() => {
     store = configureJestStore()
-    video = connect({
-      store,
-      Component: Video,
-      componentListeners: {
-        errors: 'onError',
-        responses: 'onSuccess',
-      },
-    })({
-      /**
-       * Events at this level will always be global so there's no need
-       * for a namespace.
-       */
-      namespace: '',
-      eventChannel: 'video.rooms',
+    video = createVideoObject({
       store: store,
       emitter: new EventEmitter(),
     })

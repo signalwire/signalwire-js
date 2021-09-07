@@ -1,34 +1,19 @@
 import {
   BaseComponent,
-  BaseComponentOptions,
   ExecuteParams,
   logger,
   validateEventsToSubscribe,
 } from '@signalwire/core'
 
-interface BaseConsumerOptions extends BaseComponentOptions {
-  name: string
-  id: string
-  namespace: string
-  eventChannel: string
-}
-
+/**
+ * Instances of this class are meant to be wrapped by a
+ * Proxy that intercepts the `_eventsNamespace` (to tell the
+ * BaseComponent it's fine to attach the event listeners)
+ * and the `eventChannel`
+ * @internal
+ */
 export class BaseConsumer extends BaseComponent {
-  protected _namespace: string
   protected subscribeParams?: Record<string, any> = {}
-
-  constructor(public options: BaseConsumerOptions) {
-    super(options)
-    this._attachListeners(options.namespace)
-  }
-
-  get name() {
-    return this.options.name
-  }
-
-  private get eventChannel() {
-    return this.options.eventChannel
-  }
 
   protected getSubscriptions(): (string | symbol)[] {
     return validateEventsToSubscribe(this.eventNames())
@@ -44,7 +29,7 @@ export class BaseConsumer extends BaseComponent {
           method: 'signalwire.subscribe',
           params: {
             ...this.subscribeParams,
-            event_channel: this.eventChannel,
+            event_channel: this.getStateProperty('eventChannel'),
             events: subscriptions,
           },
         }

@@ -1,19 +1,19 @@
 import {
-  RoomCustomMethods,
+  BaseComponentOptions,
   connect,
-  toExternalJSON,
-  InternalVideoRoomEventNames,
   EventTransform,
+  InternalVideoRoomEventNames,
+  toExternalJSON,
 } from '@signalwire/core'
 import { BaseConsumer } from './BaseConsumer'
-import { Room } from './Room'
+import { createRoomSessionObject } from './video/RoomSession'
 
 type TransformEvent = Extract<
   InternalVideoRoomEventNames,
   'video.room.started' | 'video.room.ended'
 >
 
-class Video extends BaseConsumer {
+export class Video extends BaseConsumer {
   /** @internal */
   protected _eventsPrefix = 'video' as const
 
@@ -28,24 +28,11 @@ class Video extends BaseConsumer {
       [
         ['video.room.started', 'video.room.ended'],
         {
-          instanceFactory: (payload: any) => {
-            const room: Room = connect({
-              store: this.store,
-              Component: Room,
-              componentListeners: {
-                errors: 'onError',
-                responses: 'onSuccess',
-              },
-            })({
-              name: payload.room.name,
-              id: payload.room.room_id,
-              namespace: payload.room.room_session_id,
-              eventChannel: payload.room.event_channel,
+          instanceFactory: () => {
+            return createRoomSessionObject({
               store: this.store,
               emitter: this.options.emitter,
             })
-
-            return room
           },
           payloadTransform: (payload: any) => {
             return toExternalJSON(payload.room)
@@ -62,9 +49,29 @@ class Video extends BaseConsumer {
   }
 }
 
-const customMethods: RoomCustomMethods<any> = {
-  // TODO: add methods
-}
-Object.defineProperties(Video.prototype, customMethods)
+export const createVideoObject = (params: BaseComponentOptions) => {
+  const video = connect({
+    store: params.store,
+    Component: Video,
+    componentListeners: {
+      errors: 'onError',
+      responses: 'onSuccess',
+    },
+  })(params)
 
-export { Video }
+  return new Proxy(video, {
+    get(target: any, prop: any, receiver: any) {
+      if (prop === '_eventsNamespace') {
+        /**
+         * Events at this level will always be global so
+         * there's no need for a namespace.
+         */
+        return ''
+      } else if (prop === 'eventChannel') {
+        return 'video.rooms'
+      }
+
+      return Reflect.get(target, prop, receiver)
+    },
+  })
+}

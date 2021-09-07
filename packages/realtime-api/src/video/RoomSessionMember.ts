@@ -2,8 +2,9 @@ import {
   connect,
   BaseComponent,
   BaseComponentOptions,
+  extendComponent,
   Rooms,
-  RoomCustomMethods,
+  VideoMember,
 } from '@signalwire/core'
 
 export interface RoomSessionMemberMethods {
@@ -20,29 +21,28 @@ export interface RoomSessionMemberMethods {
   }): Rooms.SetInputSensitivityMember
 }
 
-// FIXME: extends VideoMember properties too
-export interface RoomSessionMember extends RoomSessionMemberMethods {
+export interface RoomSessionMemberAPI extends RoomSessionMemberMethods {
   remove(): Rooms.RemoveMember
 }
 
-// FIXME: Using `Partial` because of defineProperties
-export class RoomSessionMemberAPI
-  extends BaseComponent
-  implements Partial<RoomSessionMember>
-{
+export type RoomSessionMember = RoomSessionMemberAPI & VideoMember
+
+class RoomSessionMemberComponent extends BaseComponent {
   async remove() {
     await this.execute({
       method: 'video.member.remove',
       params: {
-        // TODO: use `getParam`
-        // room_session_id: this.getParam('roomSessionId'),
-        // member_id: this.getParam('id'),
+        room_session_id: this.getStateProperty('roomSessionId'),
+        member_id: this.getStateProperty('memberId'),
       },
     })
   }
 }
 
-const customMethods: RoomCustomMethods<RoomSessionMemberMethods> = {
+const RoomSessionMemberAPI = extendComponent<
+  RoomSessionMember,
+  RoomSessionMemberMethods
+>(RoomSessionMemberComponent, {
   audioMute: Rooms.audioMuteMember,
   audioUnmute: Rooms.audioUnmuteMember,
   videoMute: Rooms.videoMuteMember,
@@ -52,12 +52,12 @@ const customMethods: RoomCustomMethods<RoomSessionMemberMethods> = {
   setMicrophoneVolume: Rooms.setInputVolumeMember,
   setSpeakerVolume: Rooms.setOutputVolumeMember,
   setInputSensitivity: Rooms.setInputSensitivityMember,
-}
-Object.defineProperties(RoomSessionMemberAPI.prototype, customMethods)
+})
 
 export const createRoomSessionMemberObject = (params: BaseComponentOptions) => {
-  const member: RoomSessionMemberAPI = connect({
+  const member = connect({
     store: params.store,
+    // @ts-expect-error
     Component: RoomSessionMemberAPI,
     componentListeners: {
       errors: 'onError',
@@ -65,5 +65,5 @@ export const createRoomSessionMemberObject = (params: BaseComponentOptions) => {
     },
   })(params)
 
-  return member
+  return member as any as RoomSessionMember
 }

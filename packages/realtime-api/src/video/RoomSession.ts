@@ -1,13 +1,13 @@
 import {
-  connect,
   BaseComponentOptions,
-  Rooms,
-  RoomCustomMethods,
+  connect,
   EventTransform,
-  toExternalJSON,
-  VideoMemberEventParams,
+  extendComponent,
   InternalVideoMemberEventNames,
   INTERNAL_MEMBER_UPDATED_EVENTS,
+  Rooms,
+  toExternalJSON,
+  VideoMemberEventParams,
 } from '@signalwire/core'
 import { BaseConsumer } from '../BaseConsumer'
 import { createRoomSessionMemberObject } from './RoomSessionMember'
@@ -47,22 +47,14 @@ interface RoomSessionMethods {
   setLayout(): Rooms.SetLayout
 }
 
-// FIXME: extends VideoRoom properties too
-interface RoomSession extends RoomSessionMethods {}
-
 type MemberEventMap =
   | InternalVideoMemberEventNames
   | InternalVideoMemberEventNames[]
 
-/**
- * FIXME: extends BaseConsumer without an `options.namespace`
- * for the _attachListeners
- */
-// FIXME: Using `Partial` because of defineProperties
-export class RoomSessionAPI
-  extends BaseConsumer
-  implements Partial<RoomSession>
-{
+// TODO: update once we do the split between API and Entity interfaces
+export interface RoomSession extends RoomSessionMethods, BaseConsumer {}
+
+class RoomSessionConsumer extends BaseConsumer {
   protected _eventsPrefix = 'video' as const
 
   /** @internal */
@@ -86,7 +78,19 @@ export class RoomSessionAPI
             })
           },
           payloadTransform: (payload: VideoMemberEventParams) => {
-            return toExternalJSON(payload.member)
+            const { id, ...rest } = payload.member
+            return toExternalJSON({
+              ...rest,
+              /**
+               * The server is sending the member id as `id`
+               * but internally (i.e in CustomMethods) we
+               * reference it as `memberId`. This is needed
+               * because sometimes we have to deal with
+               * multiple ids at once and having them
+               * properly prefixed makes it easier to read.
+               */
+              member_id: id,
+            })
           },
         },
       ],
@@ -94,27 +98,29 @@ export class RoomSessionAPI
   }
 }
 
-const customMethods: RoomCustomMethods<RoomSessionMethods> = {
-  videoMute: Rooms.videoMuteMember,
-  videoUnmute: Rooms.videoUnmuteMember,
-  getMembers: Rooms.getMembers,
-  audioMute: Rooms.audioMuteMember,
-  audioUnmute: Rooms.audioUnmuteMember,
-  deaf: Rooms.deafMember,
-  undeaf: Rooms.undeafMember,
-  setMicrophoneVolume: Rooms.setInputVolumeMember,
-  setSpeakerVolume: Rooms.setOutputVolumeMember,
-  setInputSensitivity: Rooms.setInputSensitivityMember,
-  removeMember: Rooms.removeMember,
-  hideVideoMuted: Rooms.hideVideoMuted,
-  showVideoMuted: Rooms.showVideoMuted,
-  getLayouts: Rooms.getLayouts,
-  setLayout: Rooms.setLayout,
-}
-Object.defineProperties(RoomSessionAPI.prototype, customMethods)
+export const RoomSessionAPI = extendComponent<RoomSession, RoomSessionMethods>(
+  RoomSessionConsumer,
+  {
+    videoMute: Rooms.videoMuteMember,
+    videoUnmute: Rooms.videoUnmuteMember,
+    getMembers: Rooms.getMembers,
+    audioMute: Rooms.audioMuteMember,
+    audioUnmute: Rooms.audioUnmuteMember,
+    deaf: Rooms.deafMember,
+    undeaf: Rooms.undeafMember,
+    setMicrophoneVolume: Rooms.setInputVolumeMember,
+    setSpeakerVolume: Rooms.setOutputVolumeMember,
+    setInputSensitivity: Rooms.setInputSensitivityMember,
+    removeMember: Rooms.removeMember,
+    hideVideoMuted: Rooms.hideVideoMuted,
+    showVideoMuted: Rooms.showVideoMuted,
+    getLayouts: Rooms.getLayouts,
+    setLayout: Rooms.setLayout,
+  }
+)
 
 export const createRoomSessionObject = (params: BaseComponentOptions) => {
-  const roomSession: RoomSessionAPI = connect({
+  const roomSession: RoomSession = connect({
     store: params.store,
     Component: RoomSessionAPI,
     componentListeners: {

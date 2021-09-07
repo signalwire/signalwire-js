@@ -1,11 +1,11 @@
 import { configureJestStore } from '../testUtils'
 import {
   createRoomSessionMemberObject,
-  RoomSessionMemberAPI,
+  RoomSessionMember,
 } from './RoomSessionMember'
 
 describe('Member Object', () => {
-  let member: RoomSessionMemberAPI
+  let member: RoomSessionMember
 
   beforeEach(() => {
     member = createRoomSessionMemberObject({
