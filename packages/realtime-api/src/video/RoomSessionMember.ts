@@ -55,7 +55,7 @@ const RoomSessionMemberAPI = extendComponent<
 })
 
 export const createRoomSessionMemberObject = (params: BaseComponentOptions) => {
-  const member = connect({
+  const member: RoomSessionMember = connect({
     store: params.store,
     Component: RoomSessionMemberAPI,
     componentListeners: {
