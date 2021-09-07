@@ -59,5 +59,19 @@ export const createVideoObject = (params: BaseComponentOptions) => {
     },
   })(params)
 
-  return video
+  return new Proxy(video, {
+    get(target: any, prop: any, receiver: any) {
+      if (prop === '_eventsNamespace') {
+        /**
+         * Events at this level will always be global so
+         * there's no need for a namespace.
+         */
+        return ''
+      } else if (prop === 'eventChannel') {
+        return 'video.rooms'
+      }
+
+      return Reflect.get(target, prop, receiver)
+    },
+  })
 }
