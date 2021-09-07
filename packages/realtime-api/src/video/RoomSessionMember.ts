@@ -3,6 +3,7 @@ import {
   BaseComponent,
   BaseComponentOptions,
   Rooms,
+  VideoMember,
 } from '@signalwire/core'
 import { extendComponent } from '../extendComponent'
 
@@ -20,12 +21,13 @@ export interface RoomSessionMemberMethods {
   }): Rooms.SetInputSensitivityMember
 }
 
-// FIXME: extends VideoMember properties too
-export interface RoomSessionMember
+export interface RoomSessionMemberAPI
   extends RoomSessionMemberMethods,
     BaseComponent {
   remove(): Rooms.RemoveMember
 }
+
+export type RoomSessionMember = RoomSessionMemberAPI & VideoMember
 
 class RoomSessionMemberComponent extends BaseComponent {
   async remove() {
