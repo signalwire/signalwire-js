@@ -27,33 +27,32 @@ export interface RoomSessionMember
   remove(): Rooms.RemoveMember
 }
 
+class RoomSessionMemberComponent extends BaseComponent {
+  async remove() {
+    await this.execute({
+      method: 'video.member.remove',
+      params: {
+        room_session_id: this.getStateProperty('roomSessionId'),
+        member_id: this.getStateProperty('memberId'),
+      },
+    })
+  }
+}
+
 const RoomSessionMemberAPI = extendComponent<
   RoomSessionMember,
   RoomSessionMemberMethods
->(
-  class API extends BaseComponent {
-    async remove() {
-      await this.execute({
-        method: 'video.member.remove',
-        params: {
-          room_session_id: this.getStateProperty('roomSessionId'),
-          member_id: this.getStateProperty('memberId'),
-        },
-      })
-    }
-  },
-  {
-    audioMute: Rooms.audioMuteMember,
-    audioUnmute: Rooms.audioUnmuteMember,
-    videoMute: Rooms.videoMuteMember,
-    videoUnmute: Rooms.videoUnmuteMember,
-    deaf: Rooms.deafMember,
-    undeaf: Rooms.undeafMember,
-    setMicrophoneVolume: Rooms.setInputVolumeMember,
-    setSpeakerVolume: Rooms.setOutputVolumeMember,
-    setInputSensitivity: Rooms.setInputSensitivityMember,
-  }
-)
+>(RoomSessionMemberComponent, {
+  audioMute: Rooms.audioMuteMember,
+  audioUnmute: Rooms.audioUnmuteMember,
+  videoMute: Rooms.videoMuteMember,
+  videoUnmute: Rooms.videoUnmuteMember,
+  deaf: Rooms.deafMember,
+  undeaf: Rooms.undeafMember,
+  setMicrophoneVolume: Rooms.setInputVolumeMember,
+  setSpeakerVolume: Rooms.setOutputVolumeMember,
+  setInputSensitivity: Rooms.setInputSensitivityMember,
+})
 
 export const createRoomSessionMemberObject = (params: BaseComponentOptions) => {
   const member = connect({
