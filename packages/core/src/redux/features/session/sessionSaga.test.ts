@@ -160,6 +160,10 @@ describe('sessionChannelWatcher', () => {
           },
         ])
         .put(pubSubChannel, {
+          type: 'video.member.talking.started',
+          payload,
+        })
+        .put(pubSubChannel, {
           type: 'video.member.talking.start',
           payload,
         })
@@ -169,7 +173,7 @@ describe('sessionChannelWatcher', () => {
         })
         .run()
         .finally(() => {
-          expect(dispatchedActions).toHaveLength(2)
+          expect(dispatchedActions).toHaveLength(3)
         })
     })
 
@@ -212,6 +216,10 @@ describe('sessionChannelWatcher', () => {
           },
         ])
         .put(pubSubChannel, {
+          type: 'video.member.talking.ended',
+          payload,
+        })
+        .put(pubSubChannel, {
           type: 'video.member.talking.stop',
           payload,
         })
@@ -221,7 +229,7 @@ describe('sessionChannelWatcher', () => {
         })
         .run()
         .finally(() => {
-          expect(dispatchedActions).toHaveLength(2)
+          expect(dispatchedActions).toHaveLength(3)
         })
     })
 
