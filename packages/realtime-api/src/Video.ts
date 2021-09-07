@@ -1,12 +1,11 @@
 import {
-  RoomCustomMethods,
-  connect,
-  toExternalJSON,
-  InternalVideoRoomEventNames,
   EventTransform,
+  InternalVideoRoomEventNames,
+  RoomCustomMethods,
+  toExternalJSON,
 } from '@signalwire/core'
 import { BaseConsumer } from './BaseConsumer'
-import { RoomSessionAPI } from './video/RoomSession'
+import { createRoomSessionObject } from './video/RoomSession'
 
 type TransformEvent = Extract<
   InternalVideoRoomEventNames,
@@ -29,19 +28,10 @@ class Video extends BaseConsumer {
         ['video.room.started', 'video.room.ended'],
         {
           instanceFactory: () => {
-            const room: RoomSessionAPI = connect({
-              store: this.store,
-              Component: RoomSessionAPI,
-              componentListeners: {
-                errors: 'onError',
-                responses: 'onSuccess',
-              },
-            })({
+            return createRoomSessionObject({
               store: this.store,
               emitter: this.options.emitter,
             })
-
-            return room
           },
           payloadTransform: (payload: any) => {
             return toExternalJSON(payload.room)
