@@ -8,6 +8,7 @@ export { v4 as uuid } from 'uuid'
 export { logger } from './logger'
 export * from './parseRPCResponse'
 export * from './toExternalJSON'
+export * from './toInternalEventName'
 
 export const mutateStorageKey = (key: string) => `${STORAGE_PREFIX}${key}`
 

@@ -47,7 +47,7 @@ class Room extends BaseConnection implements BaseRoomInterface {
     return new Map<string | string[], EventTransform>([
       [
         [
-          'video._INTERNAL_.recording.start',
+          'video.__internal__.recording.start',
           'video.recording.started',
           'video.recording.updated',
           'video.recording.ended',
