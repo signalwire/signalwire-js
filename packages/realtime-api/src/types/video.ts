@@ -7,8 +7,8 @@ import type {
   VideoLayoutEventNames,
   MemberTalkingEventNames,
 } from '@signalwire/core'
-import { RoomSession } from '../video/RoomSession'
-import { RoomSessionMember } from '../video/RoomSessionMember'
+import type { RoomSession } from '../video/RoomSession'
+import type { RoomSessionMember } from '../video/RoomSessionMember'
 
 // `Video` namespace related typings
 export type RealTimeVideoApiGlobalEvents = GlobalVideoEvents

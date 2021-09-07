@@ -81,6 +81,14 @@ class RoomSessionConsumer extends BaseConsumer {
             const { id, ...rest } = payload.member
             return toExternalJSON({
               ...rest,
+              /**
+               * The server is sending the member id as `id`
+               * but internally (i.e in CustomMethods) we
+               * reference it as `memberId`. This is needed
+               * because sometimes we have to deal with
+               * multiple ids at once and having them
+               * properly prefixed makes it easier to read.
+               */
               member_id: id,
             })
           },
