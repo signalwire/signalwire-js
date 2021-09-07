@@ -293,6 +293,10 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
     this._trackedEvents = Array.from(new Set(this._trackedEvents.concat(event)))
   }
 
+  private untrackEvent(event: string | symbol) {
+    this._trackedEvents = this._trackedEvents.filter((evt) => evt !== event)
+  }
+
   private _getOptionsFromParams<T extends any[]>(params: T): typeof params {
     const [event, ...rest] = params
 
@@ -346,6 +350,7 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
       force: !handler,
     })
     logger.trace('Removing event listener', internalEvent)
+    this.untrackEvent(event)
     return this.emitter.off(internalEvent, handler, context, once)
   }
 
