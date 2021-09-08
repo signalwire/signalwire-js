@@ -91,7 +91,7 @@ class RoomSessionConsumer extends BaseConsumer {
           instanceFactory: (payload: VideoLayoutChangedEventParams) => {
             // TODO: Implement a Layout object when we have a better payload
             // from the backend
-            return toExternalJSON(payload.layout)
+            return {}
           },
           payloadTransform: (payload: VideoLayoutChangedEventParams) => {
             return toExternalJSON(payload.layout)
