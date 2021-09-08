@@ -68,7 +68,10 @@ export const getGlobalEvents = (kind: 'all' | 'video' = 'all') => {
   }
 }
 
-const WITH_CUSTOM_EVENT_NAMES = ['member.updated', 'member.talking'] as const
+const WITH_CUSTOM_EVENT_NAMES = [
+  'video.member.updated',
+  'video.member.talking',
+] as const
 /**
  * Check and filter the events the user attached returning only the valid ones
  * for the server.
@@ -78,6 +81,7 @@ const WITH_CUSTOM_EVENT_NAMES = ['member.updated', 'member.talking'] as const
 export const validateEventsToSubscribe = (events: (string | symbol)[]) => {
   const valid = events.map((event) => {
     if (typeof event === 'string') {
+      // console.log('>> EVT?', event)
       const found = WITH_CUSTOM_EVENT_NAMES.find((withCustomName) => {
         return event.startsWith(withCustomName)
       })

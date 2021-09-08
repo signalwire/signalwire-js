@@ -43,39 +43,45 @@ describe('timeoutPromise', () => {
 
 describe('validateEventsToSubscribe', () => {
   it('should be no-op for valid event list', () => {
-    const events = [
+    const first = [
       'member.joined',
       'random.event.camelCase',
       'random.event.snake_case',
-      'layout.changed',
-      'member.updated',
-      'member.left',
     ]
-    expect(validateEventsToSubscribe(events)).toStrictEqual(events)
+    expect(validateEventsToSubscribe(first)).toStrictEqual(first)
+    const second = [
+      'video.member.joined',
+      'video.random.event.camelCase',
+      'video.random.event.snake_case',
+      'video.layout.changed',
+      'video.member.updated',
+      'video.member.left',
+    ]
+    expect(validateEventsToSubscribe(second)).toStrictEqual(second)
   })
 
   it('should check for custom-events', () => {
     const events = [
-      'member.joined',
-      'member.updated.videoMuted',
-      'member.updated.visible',
+      'video.member.joined',
+      'video.member.updated.videoMuted',
+      'video.member.updated.visible',
     ]
     expect(validateEventsToSubscribe(events)).toStrictEqual([
-      'member.joined',
-      'member.updated',
+      'video.member.joined',
+      'video.member.updated',
     ])
   })
 
   it('should check for custom-events and make it unique', () => {
     const events = [
-      'member.joined',
-      'member.updated',
-      'member.updated.videoMuted',
-      'member.updated.visible',
+      'video.member.joined',
+      'video.member.updated',
+      'video.member.updated.videoMuted',
+      'video.member.updated.visible',
     ]
     expect(validateEventsToSubscribe(events)).toStrictEqual([
-      'member.joined',
-      'member.updated',
+      'video.member.joined',
+      'video.member.updated',
     ])
   })
 })
