@@ -81,7 +81,6 @@ const WITH_CUSTOM_EVENT_NAMES = [
 export const validateEventsToSubscribe = (events: (string | symbol)[]) => {
   const valid = events.map((event) => {
     if (typeof event === 'string') {
-      // console.log('>> EVT?', event)
       const found = WITH_CUSTOM_EVENT_NAMES.find((withCustomName) => {
         return event.startsWith(withCustomName)
       })

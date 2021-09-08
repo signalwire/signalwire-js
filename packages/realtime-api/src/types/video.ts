@@ -34,6 +34,7 @@ export type RealTimeRoomApiEventsHandlerMapping = Record<
     RoomStarted | RoomEnded,
     (room: StrictEventEmitter<RoomSession, RealTimeRoomApiEvents>) => void
   > &
+  // TODO: we need to tweak the `room` param because it includes `updated` too in this event
   Record<
     RoomUpdated,
     (room: StrictEventEmitter<RoomSession, RealTimeRoomApiEvents>) => void
