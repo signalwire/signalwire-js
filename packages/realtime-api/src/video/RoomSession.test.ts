@@ -1,8 +1,8 @@
 import { configureJestStore } from '../testUtils'
-import { createRoomSessionObject, RoomSessionAPI } from './RoomSession'
+import { createRoomSessionObject } from './RoomSession'
 
 describe('RoomSession Object', () => {
-  let roomSession: RoomSessionAPI
+  let roomSession: ReturnType<typeof createRoomSessionObject>
 
   beforeEach(() => {
     roomSession = createRoomSessionObject({
@@ -13,7 +13,6 @@ describe('RoomSession Object', () => {
   })
 
   it('should have all the custom methods defined', () => {
-    // TS complains due to defineProperties
     expect(roomSession.videoMute).toBeDefined()
     expect(roomSession.videoUnmute).toBeDefined()
     expect(roomSession.getMembers).toBeDefined()
