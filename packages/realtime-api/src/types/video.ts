@@ -3,6 +3,7 @@ import type {
   GlobalVideoEvents,
   VideoMemberEventNames,
   RoomStarted,
+  RoomUpdated,
   RoomEnded,
   VideoLayoutEventNames,
   MemberTalkingEventNames,
@@ -31,6 +32,10 @@ export type RealTimeRoomApiEventsHandlerMapping = Record<
   Record<MemberTalkingEventNames, (member: RoomSessionMember) => void> &
   Record<
     RoomStarted | RoomEnded,
+    (room: StrictEventEmitter<RoomSession, RealTimeRoomApiEvents>) => void
+  > &
+  Record<
+    RoomUpdated,
     (room: StrictEventEmitter<RoomSession, RealTimeRoomApiEvents>) => void
   >
 
