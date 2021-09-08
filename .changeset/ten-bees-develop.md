@@ -2,4 +2,4 @@
 '@signalwire/realtime-api': patch
 ---
 
-Added transforms for `room.updated` and `layout.changed` events. Added new `member.talking.started`/`member.talking.ended` events too.
+Update event handlers for `room.updated` and `layout.changed` events and add new `member.talking.started`/`member.talking.ended` events.
