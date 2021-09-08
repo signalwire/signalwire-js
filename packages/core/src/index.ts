@@ -4,6 +4,7 @@ import {
   isGlobalEvent,
   toExternalJSON,
   validateEventsToSubscribe,
+  extendComponent,
 } from './utils'
 import { BaseSession } from './BaseSession'
 import { BaseJWTSession } from './BaseJWTSession'
@@ -28,6 +29,7 @@ export {
   connect,
   configureStore,
   EventEmitter,
+  extendComponent,
   getEventEmitter,
   isGlobalEvent,
   toExternalJSON,

@@ -137,7 +137,13 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
     this._eventsEmitQueue.add({ event, args })
   }
 
-  /** @internal */
+  /**
+   * Take into account that `this._eventsNamespace` can be
+   * intercepted by a wrapping Proxy object. We use this
+   * extensibily for wrapping instances of the BaseConsumer
+   * and event handlers instances.
+   * @internal
+   **/
   private shouldAddToQueue() {
     return this._eventsNamespace === undefined
   }
@@ -530,12 +536,10 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
   }
 
   /** @internal */
-  protected _attachListeners(namespace: string) {
-    if (namespace === undefined) {
-      logger.error('Tried to call `_attachListeners` without a `namespace`.')
-      return
+  protected _attachListeners(namespace?: string) {
+    if (typeof namespace === 'string') {
+      this._eventsNamespace = namespace
     }
-    this._eventsNamespace = namespace
     this.flushEventsQueue()
   }
 

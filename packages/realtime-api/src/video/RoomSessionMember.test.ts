@@ -1,22 +1,22 @@
-import { Member } from './Member'
+import { configureJestStore } from '../testUtils'
+import {
+  createRoomSessionMemberObject,
+  RoomSessionMember,
+} from './RoomSessionMember'
 
 describe('Member Object', () => {
-  let member: Member
+  let member: RoomSessionMember
 
   beforeEach(() => {
-    member = new Member({
-      store: jest.fn() as any,
+    member = createRoomSessionMemberObject({
+      store: configureJestStore(),
       emitter: jest.fn() as any,
-      params: {
-        room_id: 'room_id',
-        room_session_id: 'room_session_id',
-        member: {} as any,
-      },
     })
     member.execute = jest.fn()
   })
 
   it('should have all the custom methods defined', () => {
+    // TS complains due to defineProperties
     expect(member.audioMute).toBeDefined()
     expect(member.audioUnmute).toBeDefined()
     expect(member.videoMute).toBeDefined()
@@ -27,6 +27,5 @@ describe('Member Object', () => {
     expect(member.setSpeakerVolume).toBeDefined()
     expect(member.setInputSensitivity).toBeDefined()
     expect(member.remove).toBeDefined()
-    expect(member.removeMember).toBeDefined()
   })
 })

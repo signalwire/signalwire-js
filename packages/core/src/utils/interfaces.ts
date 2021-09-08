@@ -216,9 +216,11 @@ export type ExecuteTransform<InputType = unknown, OutputType = unknown> = (
   payload: InputType
 ) => OutputType
 
-export type RoomCustomMethods<T> = {
+export type APIMethodsMap<T> = {
   [k in keyof T]: PropertyDescriptor
 }
+
+export type RoomCustomMethods<T> = APIMethodsMap<T>
 
 export type EventsPrefix = '' | typeof PRODUCT_PREFIXES[number]
 /**
