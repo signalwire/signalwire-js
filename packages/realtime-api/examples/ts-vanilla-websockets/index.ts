@@ -9,18 +9,24 @@ async function run() {
     })
 
     client.video.on('room.started', async (room) => {
-      room.on('member.talking', (member) => {
-        console.log('---> MEMBER TALKING!!!')
-        setTimeout(async () => {
-          console.log('---> MUTE ME?')
-          await member.audioMute()
-          console.log('---> OK - MUTED!')
-        }, 3000)
+      room.on('member.talking.started', (member) => {
+        console.log('---> member.talking.started', member)
+      })
+      room.on('member.talking.ended', (member) => {
+        console.log('---> member.talking.ended', member)
       })
 
       room.on('member.joined', async (member) => {
         console.log('---> member.joined', member)
         await member.videoMute()
+      })
+
+      room.on('room.updated', async (room) => {
+        console.log('---> room.updated', room)
+      })
+
+      room.on('layout.changed', async (layout) => {
+        console.log('---> layout.changed', layout)
       })
 
       room.on('member.updated', (member) => {
