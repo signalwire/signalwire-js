@@ -1,8 +1,8 @@
-import { createWebSocketClient } from '@signalwire/realtime-api'
+import { createClient } from '@signalwire/realtime-api'
 
 async function run() {
   try {
-    const client = await createWebSocketClient({
+    const client = await createClient({
       host: 'relay.swire.io',
       project: '<project-id>',
       token: '<project-token>',
