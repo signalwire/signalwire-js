@@ -1,3 +1,3 @@
-import { createWebSocketClient } from './createWebSocketClient'
+import { createClient } from './createClient'
 
-export { createWebSocketClient }
+export { createClient }
