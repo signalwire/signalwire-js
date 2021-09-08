@@ -29,7 +29,6 @@ export type InternalVideoRecordingEventNames =
 export interface VideoRecording {
   id: string
   state: 'recording' | 'paused' | 'completed'
-  url?: string
   duration?: number
   startedAt?: number
   endedAt?: number
