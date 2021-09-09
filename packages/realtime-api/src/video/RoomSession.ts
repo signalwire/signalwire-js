@@ -8,6 +8,10 @@ import {
   Rooms,
   toExternalJSON,
   VideoMemberEventParams,
+  InternalVideoRoomEventNames,
+  VideoRoomUpdatedEventParams,
+  InternalVideoLayoutEventNames,
+  VideoLayoutChangedEventParams,
 } from '@signalwire/core'
 import { BaseConsumer } from '../BaseConsumer'
 import { createRoomSessionMemberObject } from './RoomSessionMember'
@@ -47,9 +51,10 @@ interface RoomSessionMethods {
   setLayout(): Rooms.SetLayout
 }
 
-type MemberEventMap =
+type EmitterTransformsEvents =
+  | InternalVideoRoomEventNames
   | InternalVideoMemberEventNames
-  | InternalVideoMemberEventNames[]
+  | InternalVideoLayoutEventNames
 
 // TODO: update once we do the split between API and Entity interfaces
 export interface RoomSession extends RoomSessionMethods, BaseConsumer {}
@@ -59,14 +64,49 @@ class RoomSessionConsumer extends BaseConsumer {
 
   /** @internal */
   protected getEmitterTransforms() {
-    return new Map<MemberEventMap, EventTransform>([
+    return new Map<
+      EmitterTransformsEvents | EmitterTransformsEvents[],
+      EventTransform
+    >([
+      [
+        'video.room.updated',
+        {
+          instanceFactory: () => {
+            return this
+          },
+          payloadTransform: (payload: VideoRoomUpdatedEventParams) => {
+            return toExternalJSON(payload.room)
+          },
+          getInstanceEventNamespace: (payload: VideoRoomUpdatedEventParams) => {
+            return payload.room_session_id
+          },
+          getInstanceEventChannel: (payload: VideoRoomUpdatedEventParams) => {
+            return payload.room.event_channel
+          },
+        },
+      ],
+      [
+        'video.layout.changed',
+        {
+          instanceFactory: () => {
+            // TODO: Implement a Layout object when we have a better payload
+            // from the backend
+            return {}
+          },
+          payloadTransform: (payload: VideoLayoutChangedEventParams) => {
+            return toExternalJSON(payload.layout)
+          },
+        },
+      ],
       [
         [
           'video.member.joined',
           'video.member.left',
           'video.member.talking',
           'video.member.talking.start',
+          'video.member.talking.started',
           'video.member.talking.stop',
+          'video.member.talking.ended',
           'video.member.updated',
           ...INTERNAL_MEMBER_UPDATED_EVENTS,
         ],

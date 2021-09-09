@@ -68,7 +68,10 @@ export const getGlobalEvents = (kind: 'all' | 'video' = 'all') => {
   }
 }
 
-const WITH_CUSTOM_EVENT_NAMES = ['member.updated', 'member.talking'] as const
+const WITH_CUSTOM_EVENT_NAMES = [
+  'video.member.updated',
+  'video.member.talking',
+] as const
 /**
  * Check and filter the events the user attached returning only the valid ones
  * for the server.
