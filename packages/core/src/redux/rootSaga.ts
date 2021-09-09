@@ -35,12 +35,14 @@ type StartSagaOptions = {
   session: BaseSession
   sessionChannel: EventChannel<unknown>
   pubSubChannel: PubSubChannel
-  userOptions: UserOptions
+  // TODO: check generic
+  userOptions: UserOptions<{}>
 }
 
 export function* initSessionSaga(
   SessionConstructor: SessionConstructor,
-  userOptions: UserOptions
+  // TODO: check generic
+  userOptions: UserOptions<{}>
 ): SagaIterator {
   const session = new SessionConstructor(userOptions)
 
@@ -168,7 +170,8 @@ interface RootSagaOptions {
 }
 
 export default (options: RootSagaOptions) => {
-  return function* root(userOptions: UserOptions): SagaIterator {
+  // TODO: check generic
+  return function* root(userOptions: UserOptions<{}>): SagaIterator {
     yield fork(executeQueueWatcher)
 
     /**

@@ -57,9 +57,11 @@ type EmitterTransformsEvents =
   | InternalVideoLayoutEventNames
 
 // TODO: update once we do the split between API and Entity interfaces
-export interface RoomSession extends RoomSessionMethods, BaseConsumer {}
+export interface RoomSession
+  extends RoomSessionMethods,
+    BaseConsumer<MemberEventMap> {}
 
-class RoomSessionConsumer extends BaseConsumer {
+class RoomSessionConsumer extends BaseConsumer<MemberEventMap> {
   protected _eventsPrefix = 'video' as const
 
   /** @internal */
@@ -114,6 +116,7 @@ class RoomSessionConsumer extends BaseConsumer {
           instanceFactory: (_payload: VideoMemberEventParams) => {
             return createRoomSessionMemberObject({
               store: this.store,
+              // @ts-expect-error
               emitter: this.options.emitter,
             })
           },
@@ -159,9 +162,12 @@ export const RoomSessionAPI = extendComponent<RoomSession, RoomSessionMethods>(
   }
 )
 
-export const createRoomSessionObject = (params: BaseComponentOptions) => {
-  const roomSession: RoomSession = connect({
+export const createRoomSessionObject = (
+  params: BaseComponentOptions<MemberEventMap>
+) => {
+  const roomSession = connect({
     store: params.store,
+    // @ts-expect-error
     Component: RoomSessionAPI,
     componentListeners: {
       errors: 'onError',
@@ -169,5 +175,5 @@ export const createRoomSessionObject = (params: BaseComponentOptions) => {
     },
   })(params)
 
-  return roomSession
+  return roomSession as any as RoomSession
 }

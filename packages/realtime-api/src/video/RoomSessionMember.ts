@@ -27,7 +27,8 @@ export interface RoomSessionMemberAPI extends RoomSessionMemberMethods {
 
 export type RoomSessionMember = RoomSessionMemberAPI & VideoMember
 
-class RoomSessionMemberComponent extends BaseComponent {
+// TODO: check generic
+class RoomSessionMemberComponent extends BaseComponent<{}> {
   async remove() {
     await this.execute({
       method: 'video.member.remove',
@@ -54,7 +55,10 @@ const RoomSessionMemberAPI = extendComponent<
   setInputSensitivity: Rooms.setInputSensitivityMember,
 })
 
-export const createRoomSessionMemberObject = (params: BaseComponentOptions) => {
+// TODO: check generic
+export const createRoomSessionMemberObject = (
+  params: BaseComponentOptions<{}>
+) => {
   const member = connect({
     store: params.store,
     // @ts-expect-error

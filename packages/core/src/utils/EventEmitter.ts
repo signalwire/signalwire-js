@@ -26,7 +26,9 @@ const assertEventEmitter = (emitter: unknown): emitter is EventEmitter => {
   return false
 }
 
-const getEventEmitter = <T>(userOptions: UserOptions) => {
+const getEventEmitter = <T extends EventEmitter.ValidEventTypes>(
+  userOptions: UserOptions<T>
+) => {
   if (!userOptions.emitter) {
     const emitter = new EventEmitter()
     return emitter as StrictEventEmitter<EventEmitter, T>

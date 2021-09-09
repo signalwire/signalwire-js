@@ -2,9 +2,12 @@ import { AuthError } from './CustomErrors'
 import { destroyAction, initAction } from './redux'
 import { BaseClientOptions } from './utils/interfaces'
 import { BaseComponent } from './BaseComponent'
+import { EventEmitter } from './utils/EventEmitter'
 
-export class BaseClient extends BaseComponent {
-  constructor(public options: BaseClientOptions) {
+export class BaseClient<
+  EventTypes extends EventEmitter.ValidEventTypes
+> extends BaseComponent<EventTypes> {
+  constructor(public options: BaseClientOptions<EventTypes>) {
     super(options)
   }
 

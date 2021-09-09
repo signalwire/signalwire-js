@@ -19,7 +19,8 @@ interface Connect<T> {
 type ReduxComponentKeys = keyof ReduxComponent
 type ReduxSessionKeys = keyof SessionState
 
-export const connect = <T extends BaseComponent>(options: Connect<T>) => {
+// TODO: check generic
+export const connect = <T extends BaseComponent<{}>>(options: Connect<T>) => {
   const {
     componentListeners = {},
     sessionListeners = {},

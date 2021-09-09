@@ -10,9 +10,15 @@ import {
 /**
  * Minimal interface the emitter must fulfill
  */
-export type Emitter = Pick<
-  EventEmitter,
-  'on' | 'off' | 'once' | 'emit' | 'removeAllListeners' | 'eventNames' | 'listenerCount'
+export type Emitter<T extends EventEmitter.ValidEventTypes> = Pick<
+  EventEmitter<T>,
+  | 'on'
+  | 'off'
+  | 'once'
+  | 'emit'
+  | 'removeAllListeners'
+  | 'eventNames'
+  | 'listenerCount'
 >
 
 type JSONRPCParams = Record<string, any>
@@ -75,9 +81,10 @@ export interface SessionOptions {
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
 }
 
-export interface UserOptions extends SessionOptions {
+export interface UserOptions<EventTypes extends EventEmitter.ValidEventTypes>
+  extends SessionOptions {
   devTools?: boolean
-  emitter?: Emitter
+  emitter?: Emitter<EventTypes>
 }
 
 /**
@@ -85,14 +92,18 @@ export interface UserOptions extends SessionOptions {
  * the interface we use internally that extends the options provided.
  * @internal
  */
-export interface BaseClientOptions extends UserOptions {
+export interface BaseClientOptions<
+  EventTypes extends EventEmitter.ValidEventTypes
+> extends UserOptions<EventTypes> {
   store: SDKStore
-  emitter: Emitter
+  emitter: Emitter<EventTypes>
 }
 
-export interface BaseComponentOptions {
+export interface BaseComponentOptions<
+  EventTypes extends EventEmitter.ValidEventTypes
+> {
   store: SDKStore
-  emitter: Emitter
+  emitter: Emitter<EventTypes>
 }
 
 export interface SessionRequestObject {

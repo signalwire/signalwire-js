@@ -115,6 +115,7 @@ export const startRecording: RoomMethodDescriptor<any> = {
         resolve(instance)
       }
 
+      // @ts-ignore
       this.on('video.__internal__.recording.start', handler)
 
       try {
@@ -124,8 +125,10 @@ export const startRecording: RoomMethodDescriptor<any> = {
             room_session_id: this.roomSessionId,
           },
         })
+        // @ts-ignore
         this.emit('video.__internal__.recording.start', payload)
       } catch (error) {
+        // @ts-ignore
         this.off('video.__internal__.recording.start', handler)
         throw error
       }

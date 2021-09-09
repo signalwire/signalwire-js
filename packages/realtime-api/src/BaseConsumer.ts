@@ -3,6 +3,7 @@ import {
   ExecuteParams,
   logger,
   validateEventsToSubscribe,
+  EventEmitter,
 } from '@signalwire/core'
 
 /**
@@ -12,7 +13,9 @@ import {
  * and the `eventChannel`
  * @internal
  */
-export class BaseConsumer extends BaseComponent {
+export class BaseConsumer<
+  EventTypes extends EventEmitter.ValidEventTypes
+> extends BaseComponent<EventTypes> {
   protected subscribeParams?: Record<string, any> = {}
 
   protected getSubscriptions(): (string | symbol)[] {

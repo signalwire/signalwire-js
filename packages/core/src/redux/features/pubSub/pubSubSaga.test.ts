@@ -14,6 +14,7 @@ describe('sessionChannelWatcher', () => {
 
     return expectSaga(pubSubSaga, {
       pubSubChannel,
+      // @ts-expect-error
       emitter,
     })
       .provide([
@@ -48,6 +49,7 @@ describe('sessionChannelWatcher', () => {
 
     return expectSaga(pubSubSaga, {
       pubSubChannel,
+      // @ts-expect-error
       emitter,
     })
       .provide([

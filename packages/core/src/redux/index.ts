@@ -7,7 +7,8 @@ import { connect } from './connect'
 import { UserOptions, SessionConstructor } from '../utils/interfaces'
 
 interface ConfigureStoreOptions {
-  userOptions: UserOptions
+  // TODO: check generic
+  userOptions: UserOptions<Record<string, any>>
   SessionConstructor: SessionConstructor
   runSagaMiddleware?: boolean
   preloadedState?: Partial<SDKState>

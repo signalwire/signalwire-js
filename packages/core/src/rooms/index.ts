@@ -1,6 +1,7 @@
 import { BaseComponent } from '..'
 
-export interface BaseRoomInterface extends BaseComponent {
+// TODO: check generic
+export interface BaseRoomInterface extends BaseComponent<{}> {
   roomId: string
   roomSessionId: string
   memberId: string

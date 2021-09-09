@@ -9,34 +9,37 @@ import {
   ExecuteExtendedOptions,
   EventsPrefix,
   EventTransform,
-  BaseEventHandler,
 } from './utils/interfaces'
 import { EventEmitter } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
 import { makeCustomSagaAction } from './redux/actions'
 import { OnlyStateProperties } from './types'
 
-type EventRegisterHandlers =
+type EventRegisterHandlers<EventTypes extends EventEmitter.ValidEventTypes> =
   | {
       type: 'on'
-      params: Parameters<Emitter['on']>
+      params: Parameters<Emitter<EventTypes>['on']>
     }
   | {
       type: 'off'
-      params: Parameters<Emitter['off']>
+      params: Parameters<Emitter<EventTypes>['off']>
     }
   | {
       type: 'once'
-      params: Parameters<Emitter['once']>
+      params: Parameters<Emitter<EventTypes>['once']>
     }
   | {
       type: 'removeAllListeners'
-      params: Parameters<Emitter['removeAllListeners']>
+      params: Parameters<Emitter<EventTypes>['removeAllListeners']>
     }
 
 const identity: ExecuteTransform<any, any> = (payload) => payload
 
-export class BaseComponent<T = Record<string, unknown>> implements Emitter {
+export class BaseComponent<
+  EventTypes extends EventEmitter.ValidEventTypes,
+  StateProperties = Record<string, unknown>
+> implements Emitter<EventTypes>
+{
   /** @internal */
   private readonly uuid = uuid()
 
@@ -47,10 +50,13 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
 
   /** @internal */
   protected _eventsPrefix: EventsPrefix = ''
-  private _eventsRegisterQueue = new Set<EventRegisterHandlers>()
+  private _eventsRegisterQueue = new Set<EventRegisterHandlers<EventTypes>>()
   private _eventsEmitQueue = new Set<any>()
   private _eventsNamespace?: string
-  private _eventsTransformsCache = new Map<string | symbol, BaseComponent>()
+  private _eventsTransformsCache = new Map<
+    EventEmitter.EventNames<EventTypes>,
+    BaseComponent<EventTypes>
+  >()
   private _requests = new Map()
   private _customSagaTriggers = new Map()
   private _destroyer?: () => void
@@ -60,7 +66,7 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
    * when working with a room, the namespace will let us send messages
    * to that specific room.
    */
-  private _getNamespacedEvent(event: string | symbol) {
+  private _getNamespacedEvent(event: EventEmitter.EventNames<EventTypes>) {
     return toInternalEventName({
       event,
       namespace: this._eventsNamespace,
@@ -69,13 +75,13 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
   /**
    * A prefix is a product, like `video` or `chat`.
    */
-  private _getPrefixedEvent(event: string | symbol) {
+  private _getPrefixedEvent(event: EventEmitter.EventNames<EventTypes>) {
     if (
       this._eventsPrefix &&
       typeof event === 'string' &&
       !event.startsWith(this._eventsPrefix)
     ) {
-      return `${this._eventsPrefix}.${event}`
+      return `${this._eventsPrefix}.${event}` as EventEmitter.EventNames<EventTypes>
     }
 
     return event
@@ -86,23 +92,35 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
    * event handlers registered by the end user (when using the Emitter
    * interface).
    */
-  private _emitterTransforms: Map<string | symbol, EventTransform> = new Map()
+  private _emitterTransforms: Map<
+    EventEmitter.EventNames<EventTypes>,
+    EventTransform
+  > = new Map()
 
   /**
    * Keeps track of the stable references used for registering events.
    */
   private _emitterListenersCache = new Map<
-    string | symbol,
-    Map<BaseEventHandler, BaseEventHandler>
+    EventEmitter.EventNames<EventTypes>,
+    Map<
+      EventEmitter.EventListener<
+        EventTypes,
+        EventEmitter.EventNames<EventTypes>
+      >,
+      EventEmitter.EventListener<
+        EventTypes,
+        EventEmitter.EventNames<EventTypes>
+      >
+    >
   >()
   /**
    * List of events being registered through the EventEmitter
    * instance. These events include the `_eventsPrefix` but not the
    * `_eventsNamespace`
    */
-  private _trackedEvents: (string | symbol)[] = []
+  private _trackedEvents: Array<EventEmitter.EventNames<EventTypes>> = []
 
-  constructor(public options: BaseComponentOptions) {}
+  constructor(public options: BaseComponentOptions<EventTypes>) {}
 
   /** @internal */
   set destroyer(d: () => void) {
@@ -120,7 +138,7 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
   }
 
   /** @internal */
-  private addEventToRegisterQueue(options: EventRegisterHandlers) {
+  private addEventToRegisterQueue(options: EventRegisterHandlers<EventTypes>) {
     const [event, fn, context] = options.params
     logger.trace('Adding event to the register queue', { event, fn, context })
     // @ts-ignore
@@ -128,11 +146,14 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
       type: options.type,
       params: options.params,
     })
-    return this.emitter as EventEmitter<string | symbol, any>
+    return this.emitter as any as EventEmitter<EventTypes>
   }
 
   /** @internal */
-  private addEventToEmitQueue(event: string | symbol, args: any[]) {
+  private addEventToEmitQueue(
+    event: EventEmitter.EventNames<EventTypes>,
+    args: any[]
+  ) {
     logger.trace('Adding to the emit queue', event)
     this._eventsEmitQueue.add({ event, args })
   }
@@ -149,7 +170,9 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
   }
 
   /** @internal */
-  private getEventHandlerTransformCacheKey(event: string | symbol) {
+  private getEventHandlerTransformCacheKey(
+    event: EventEmitter.EventNames<EventTypes>
+  ) {
     return this._getNamespacedEvent(event)
   }
 
@@ -159,10 +182,10 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
     transform,
     payload,
   }: {
-    event: string | symbol
+    event: EventEmitter.EventNames<EventTypes>
     transform: EventTransform
     payload: unknown
-  }): BaseComponent {
+  }): BaseComponent<EventTypes> {
     const transformCacheKey = this.getEventHandlerTransformCacheKey(event)
     if (!this._eventsTransformsCache.has(transformCacheKey)) {
       const instance = transform.instanceFactory(payload)
@@ -180,7 +203,7 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
     event,
     force,
   }: {
-    event: string | symbol
+    event: EventEmitter.EventNames<EventTypes>
     force: boolean
   }) {
     const transformCacheKey = this.getEventHandlerTransformCacheKey(event)
@@ -206,16 +229,30 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
    * then mapped again using the end-user `fn` reference.
    * @internal
    */
-  private getEmitterListenersMapByEventName(event: string | symbol) {
+  private getEmitterListenersMapByEventName(
+    event: EventEmitter.EventNames<EventTypes>
+  ) {
     return (
       this._emitterListenersCache.get(event) ??
-      new Map<BaseEventHandler, BaseEventHandler>()
+      new Map<
+        EventEmitter.EventListener<
+          EventTypes,
+          EventEmitter.EventNames<EventTypes>
+        >,
+        EventEmitter.EventListener<
+          EventTypes,
+          EventEmitter.EventNames<EventTypes>
+        >
+      >()
     )
   }
 
   private getAndRemoveStableEventHandler(
-    event: string | symbol,
-    fn?: BaseEventHandler
+    event: EventEmitter.EventNames<EventTypes>,
+    fn?: EventEmitter.EventListener<
+      EventTypes,
+      EventEmitter.EventNames<EventTypes>
+    >
   ) {
     const cacheByEventName = this.getEmitterListenersMapByEventName(event)
     if (fn && cacheByEventName.has(fn)) {
@@ -235,12 +272,16 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
    * `transform.instanceFactory`
    **/
   private createStableEventHandler(
-    event: string | symbol,
-    fn: BaseEventHandler
+    event: EventEmitter.EventNames<EventTypes>,
+    fn: EventEmitter.EventListener<
+      EventTypes,
+      EventEmitter.EventNames<EventTypes>
+    >
   ) {
-    return (payload: unknown) => {
+    const wrapperHandler = (payload: unknown) => {
       const transform = this._emitterTransforms.get(event)
       if (!transform) {
+        // @ts-ignore
         return fn(payload)
       }
 
@@ -271,13 +312,21 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
         },
       })
 
+      // @ts-ignore
       return fn(proxiedObj)
     }
+    return wrapperHandler as EventEmitter.EventListener<
+      EventTypes,
+      EventEmitter.EventNames<EventTypes>
+    >
   }
 
   private getOrCreateStableEventHandler(
-    event: string | symbol,
-    fn: BaseEventHandler
+    event: EventEmitter.EventNames<EventTypes>,
+    fn: EventEmitter.EventListener<
+      EventTypes,
+      EventEmitter.EventNames<EventTypes>
+    >
   ) {
     /**
      * Transforms are mapped using the "raw" event name (i.e
@@ -295,24 +344,27 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
     return handler
   }
 
-  private trackEvent(event: string | symbol) {
+  private trackEvent(event: EventEmitter.EventNames<EventTypes>) {
     this._trackedEvents = Array.from(new Set(this._trackedEvents.concat(event)))
   }
 
-  private untrackEvent(event: string | symbol) {
+  private untrackEvent(event: EventEmitter.EventNames<EventTypes>) {
     this._trackedEvents = this._trackedEvents.filter((evt) => evt !== event)
   }
 
   private _getOptionsFromParams<T extends any[]>(params: T): typeof params {
     const [event, ...rest] = params
 
-    return [this._getPrefixedEvent(event), ...rest] as any as T
+    return [
+      this._getPrefixedEvent(event) as EventEmitter.EventNames<EventTypes>,
+      ...rest,
+    ] as any as T
   }
 
-  on(...params: Parameters<Emitter['on']>) {
+  on(...params: Parameters<Emitter<EventTypes>['on']>) {
     if (this.shouldAddToQueue()) {
-      this.addEventToRegisterQueue({ type: 'on', params })
-      return this.emitter as EventEmitter<string | symbol, any>
+      this.addEventToRegisterQueue({ type: 'on', params: params as any })
+      return this.emitter as EventEmitter<EventTypes>
     }
 
     const [event, fn, context] = this._getOptionsFromParams(params)
@@ -323,10 +375,10 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
     return this.emitter.on(internalEvent, handler, context)
   }
 
-  once(...params: Parameters<Emitter['once']>) {
+  once(...params: Parameters<Emitter<EventTypes>['once']>) {
     if (this.shouldAddToQueue()) {
       this.addEventToRegisterQueue({ type: 'once', params })
-      return this.emitter as EventEmitter<string | symbol, any>
+      return this.emitter as EventEmitter<EventTypes>
     }
 
     const [event, fn, context] = this._getOptionsFromParams(params)
@@ -337,10 +389,10 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
     return this.emitter.once(internalEvent, handler, context)
   }
 
-  off(...params: Parameters<Emitter['off']>) {
+  off(...params: Parameters<Emitter<EventTypes>['off']>) {
     if (this.shouldAddToQueue()) {
       this.addEventToRegisterQueue({ type: 'off', params })
-      return this.emitter as EventEmitter<string | symbol, any>
+      return this.emitter as EventEmitter<EventTypes>
     }
 
     const [event, fn, context, once] = this._getOptionsFromParams(params)
@@ -360,10 +412,12 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
     return this.emitter.off(internalEvent, handler, context, once)
   }
 
-  removeAllListeners(...params: Parameters<Emitter['removeAllListeners']>) {
+  removeAllListeners(
+    ...params: Parameters<Emitter<EventTypes>['removeAllListeners']>
+  ) {
     if (this.shouldAddToQueue()) {
       this.addEventToRegisterQueue({ type: 'removeAllListeners', params })
-      return this.emitter as EventEmitter<string | symbol, any>
+      return this.emitter as EventEmitter<EventTypes>
     }
 
     const [event] = params
@@ -380,7 +434,7 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
       this.off(eventName)
     })
 
-    return this.emitter as EventEmitter<string | symbol, any>
+    return this.emitter as EventEmitter<EventTypes>
   }
 
   /** @internal */
@@ -389,7 +443,7 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
   }
 
   /** @internal */
-  emit(event: string | symbol, ...args: any[]) {
+  emit(event: EventEmitter.EventNames<EventTypes>, ...args: any[]) {
     if (this.shouldAddToQueue()) {
       this.addEventToEmitQueue(event, args)
       return false
@@ -398,11 +452,12 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
     const prefixedEvent = this._getPrefixedEvent(event)
     const namespacedEvent = this._getNamespacedEvent(prefixedEvent)
     logger.trace('Emit on event:', namespacedEvent)
+    // @ts-ignore
     return this.emitter.emit(namespacedEvent, ...args)
   }
 
   /** @internal */
-  listenerCount(...params: Parameters<Emitter['listenerCount']>) {
+  listenerCount(...params: Parameters<Emitter<EventTypes>['listenerCount']>) {
     return this.emitter.listenerCount(...params)
   }
 
@@ -506,7 +561,7 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
   }
 
   /** @internal */
-  getStateProperty(param: keyof OnlyStateProperties<T>) {
+  getStateProperty(param: keyof OnlyStateProperties<StateProperties>) {
     // @ts-expect-error
     return this[param]
   }
@@ -562,8 +617,10 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
   protected applyEmitterTransforms() {
     this.getEmitterTransforms().forEach((handlersObj, key) => {
       if (Array.isArray(key)) {
+        // @ts-ignore
         key.forEach((k) => this._emitterTransforms.set(k, handlersObj))
       } else {
+        // @ts-ignore
         this._emitterTransforms.set(key, handlersObj)
       }
     })
