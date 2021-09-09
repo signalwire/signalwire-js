@@ -48,6 +48,40 @@ describe('Room Object', () => {
     expect(room.startRecording).toBeDefined()
   })
 
+  describe('getRecordings', () => {
+    it('should return an array of recordings', async () => {
+      const { store, session, emitter } = configureFullStack()
+      const recordingList = [{ id: 'recordingOne' }, { id: 'recordingTwo' }]
+
+      session.execute = jest.fn().mockResolvedValue({
+        code: '200',
+        message: 'OK',
+        recordings: recordingList,
+      })
+
+      room = connect({
+        store,
+        Component: Room,
+        componentListeners: ROOM_COMPONENT_LISTENERS,
+      })({
+        store,
+        emitter,
+      })
+      // mock a room.subscribed event
+      room.onRoomSubscribed({
+        nodeId: 'node-id',
+        roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
+        roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
+        memberId: 'member-id',
+      })
+
+      const result = await room.getRecordings()
+      expect(result).toStrictEqual({
+        recordings: recordingList,
+      })
+    })
+  })
+
   describe('startRecording', () => {
     it('should return an interactive object', async () => {
       ;(room.execute as jest.Mock).mockResolvedValueOnce({

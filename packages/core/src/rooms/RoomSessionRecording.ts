@@ -7,7 +7,6 @@ export interface RoomSessionRecording {
   id: string
   roomSessionId: string
   state: string
-  url: string
   duration: string
 
   pause(): Promise<void>
