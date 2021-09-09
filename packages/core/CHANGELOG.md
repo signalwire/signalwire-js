@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.2] - 2021-09-09
+
+### Added
+
+- [#261](https://github.com/signalwire/signalwire-js/pull/261) [`9dd7dbb`](https://github.com/signalwire/signalwire-js/commit/9dd7dbb890b92b5f69c3c9bb615083367d8113bb) - Add classes and typings to support the Recording APIs.
+
+* [#273](https://github.com/signalwire/signalwire-js/pull/273) [`249facf`](https://github.com/signalwire/signalwire-js/commit/249facf92698be19f9567caea0283535b51a3ae7) - Added `member.talking.started`, `member.talking.ended` and deprecated `member.talking.start` and `member.talking.stop` for consistency.
+
+### Fixed
+
+- [#271](https://github.com/signalwire/signalwire-js/pull/271) [`e6233cc`](https://github.com/signalwire/signalwire-js/commit/e6233cc74fb3ad5fc3e042ac36f717be5e6988b8) - Bugfix on the internal EventEmitter where, in a specific case, the `.off()` method did not remove the listener. Improved test coverage.
+
+- [#277](https://github.com/signalwire/signalwire-js/pull/277) [`5b4e57d`](https://github.com/signalwire/signalwire-js/commit/5b4e57d12fed829b15cf28a77ba0082f582e35f3) - Fix `validateEventsToSubscribe` method to check the prefixed-event.
+
 ## [3.1.1] - 2021-08-27
 
 ### Changed
