@@ -1,7 +1,8 @@
-import { BaseComponent } from '..'
+import { BaseComponent, EventEmitter } from '..'
 
-// TODO: check generic
-export interface BaseRoomInterface extends BaseComponent<{}> {
+export interface BaseRoomInterface<
+  EventTypes extends EventEmitter.ValidEventTypes
+> extends BaseComponent<EventTypes> {
   roomId: string
   roomSessionId: string
   memberId: string

@@ -6,7 +6,8 @@ interface RoomMethodPropertyDescriptor<T> extends PropertyDescriptor {
   value: (params: RoomMethodParams) => Promise<T>
 }
 type RoomMethodDescriptor<T = unknown> = RoomMethodPropertyDescriptor<T> &
-  ThisType<BaseRoomInterface>
+  // TODO: is string enough here?
+  ThisType<BaseRoomInterface<string>>
 type RoomMethodParams = Record<string, unknown>
 interface BaseRPCResult {
   code: string
