@@ -387,32 +387,51 @@ export class BaseComponent<
     return this.emitter.on(internalEvent, handler)
   }
 
-  // TODO: replicate changes made in .on
-  once(...params: Parameters<Emitter<EventTypes>['once']>) {
+  once<T extends EventEmitter.EventNames<EventTypes>>(
+    event: T,
+    fn: EventEmitter.EventListener<EventTypes, T>
+  ) {
     if (this.shouldAddToQueue()) {
-      this.addEventToRegisterQueue({ type: 'once', params })
+      this.addEventToRegisterQueue({
+        type: 'once',
+        params: [event, fn] as any,
+      })
       return this.emitter as EventEmitter<EventTypes>
     }
 
-    const [event, fn, context] = this._getOptionsFromParams(params)
-    const handler = this.getOrCreateStableEventHandler(event, fn)
-    const internalEvent = this._getNamespacedEvent(event)
+    // TODO: pick a better name for parsed*
+    const [parsedEvent, parsedFn] = this._getOptionsFromParams([event, fn])
+    const handler = this.getOrCreateStableEventHandler(
+      parsedEvent,
+      parsedFn as any
+    )
+    const internalEvent = this._getNamespacedEvent(parsedEvent)
     logger.trace('Registering event', internalEvent)
-    this.trackEvent(event)
-    return this.emitter.once(internalEvent, handler, context)
+    this.trackEvent(parsedEvent)
+    return this.emitter.once(internalEvent, handler)
   }
 
-  off(...params: Parameters<Emitter<EventTypes>['off']>) {
+  off<T extends EventEmitter.EventNames<EventTypes>>(
+    event: T,
+    fn?: EventEmitter.EventListener<EventTypes, T>
+  ) {
     if (this.shouldAddToQueue()) {
-      this.addEventToRegisterQueue({ type: 'off', params })
+      this.addEventToRegisterQueue({
+        type: 'off',
+        params: [event, fn] as any,
+      })
       return this.emitter as EventEmitter<EventTypes>
     }
 
-    const [event, fn, context, once] = this._getOptionsFromParams(params)
-    const handler = this.getAndRemoveStableEventHandler(event, fn)
-    const internalEvent = this._getNamespacedEvent(event)
+    // TODO: pick a better name for parsed*
+    const [parsedEvent, parsedFn] = this._getOptionsFromParams([event, fn])
+    const handler = this.getAndRemoveStableEventHandler(
+      parsedEvent,
+      parsedFn as any
+    )
+    const internalEvent = this._getNamespacedEvent(parsedEvent)
     this.cleanupEventHandlerTransformCache({
-      event,
+      event: parsedEvent,
       /**
        * If handler is not defined we'll force the cleanup
        * since the `emitter` will remove all the handlers
@@ -421,8 +440,8 @@ export class BaseComponent<
       force: !handler,
     })
     logger.trace('Removing event listener', internalEvent)
-    this.untrackEvent(event)
-    return this.emitter.off(internalEvent, handler, context, once)
+    this.untrackEvent(parsedEvent)
+    return this.emitter.off(internalEvent, handler)
   }
 
   removeAllListeners(
