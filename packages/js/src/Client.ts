@@ -2,7 +2,7 @@ import { logger, connect, BaseClient, ClientEvents } from '@signalwire/core'
 import type { CustomSaga } from '@signalwire/core'
 import { ConnectionOptions } from '@signalwire/webrtc'
 import { makeMediaElementsSaga } from './features/mediaElements/mediaElementsSagas'
-import type { RoomObject } from './utils/interfaces'
+import type { RoomObjectEvents } from './utils/interfaces'
 import { ROOM_COMPONENT_LISTENERS } from './utils/constants'
 import { Room } from './Room'
 
@@ -41,7 +41,8 @@ export class Client extends BaseClient<ClientEvents> {
           )
         }
 
-        const room: RoomObject = connect({
+        // @ts-expect-error
+        const room = connect<RoomObjectEvents, Room>({
           store: this.store,
           Component: Room,
           customSagas,
@@ -55,6 +56,7 @@ export class Client extends BaseClient<ClientEvents> {
          * Stop and Restore outbound audio on audio_muted event
          */
         if (stopMicrophoneWhileMuted) {
+          // @ts-expect-error
           room.on('member.updated.audio_muted', ({ member }) => {
             try {
               if (member.id === room.memberId && 'audio_muted' in member) {
@@ -72,6 +74,7 @@ export class Client extends BaseClient<ClientEvents> {
          * Stop and Restore outbound video on video_muted event
          */
         if (stopCameraWhileMuted) {
+          // @ts-expect-error
           room.on('member.updated.video_muted', ({ member }) => {
             try {
               if (member.id === room.memberId && 'video_muted' in member) {

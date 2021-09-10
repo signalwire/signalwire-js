@@ -5,7 +5,6 @@ import {
   getEventEmitter,
   UserOptions,
 } from '@signalwire/core'
-import StrictEventEmitter from 'strict-event-emitter-types'
 import { Client } from './Client'
 import { JWTSession } from './JWTSession'
 

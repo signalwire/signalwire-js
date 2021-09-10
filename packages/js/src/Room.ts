@@ -11,8 +11,7 @@ import {
   BaseConnectionOptions,
 } from '@signalwire/webrtc'
 import {
-  RoomScreenShareObject,
-  RoomDeviceObject,
+  RoomObjectEvents,
   CreateScreenShareObjectOptions,
   AddDeviceOptions,
   AddCameraOptions,
@@ -31,8 +30,8 @@ import { RoomDevice } from './RoomDevice'
 interface Room extends RoomMethods {}
 
 class Room extends BaseConnection implements BaseRoomInterface {
-  private _screenShareList = new Set<RoomScreenShareObject>()
-  private _deviceList = new Set<RoomDeviceObject>()
+  private _screenShareList = new Set<RoomScreenShare>()
+  private _deviceList = new Set<RoomDevice>()
 
   get screenShareList() {
     return Array.from(this._screenShareList)
@@ -56,6 +55,7 @@ class Room extends BaseConnection implements BaseRoomInterface {
           instanceFactory: (_payload: any) => {
             return Rooms.createRoomSessionRecordingObject({
               store: this.store,
+              // @ts-expect-error
               emitter: this.emitter,
             })
           },
@@ -98,7 +98,11 @@ class Room extends BaseConnection implements BaseRoomInterface {
       },
     }
 
-    const screenShare: RoomScreenShareObject = connect({
+    const screenShare: RoomScreenShare = connect<
+      RoomObjectEvents,
+      // @ts-expect-error
+      RoomScreenShare
+    >({
       store: this.store,
       Component: RoomScreenShare,
       componentListeners: ROOM_COMPONENT_LISTENERS,
@@ -180,7 +184,8 @@ class Room extends BaseConnection implements BaseRoomInterface {
       },
     }
 
-    const roomDevice: RoomDeviceObject = connect({
+    // @ts-expect-error
+    const roomDevice = connect<RoomObjectEvents, RoomDevice>({
       store: this.store,
       Component: RoomDevice,
       componentListeners: ROOM_COMPONENT_LISTENERS,

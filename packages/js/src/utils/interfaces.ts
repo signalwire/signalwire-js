@@ -1,4 +1,3 @@
-import StrictEventEmitter from 'strict-event-emitter-types'
 import type {
   Rooms,
   BaseConnectionState,
@@ -18,8 +17,6 @@ import type {
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
 import type { Room } from '../Room'
-import type { RoomScreenShare } from '../RoomScreenShare'
-import type { RoomDevice } from '../RoomDevice'
 
 const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
   INTERNAL_MEMBER_UPDATABLE_PROPS
@@ -56,13 +53,6 @@ export type RoomObjectEventsHandlerMap = Record<
 export type RoomObjectEvents = {
   [k in keyof RoomObjectEventsHandlerMap]: RoomObjectEventsHandlerMap[k]
 }
-
-export type RoomObject = StrictEventEmitter<Room, RoomObjectEvents>
-export type RoomScreenShareObject = StrictEventEmitter<
-  RoomScreenShare,
-  RoomObjectEvents
->
-export type RoomDeviceObject = StrictEventEmitter<RoomDevice, RoomObjectEvents>
 
 export type CreateScreenShareObjectOptions = {
   autoJoin?: boolean
