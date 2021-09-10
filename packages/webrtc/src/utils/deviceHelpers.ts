@@ -34,7 +34,8 @@ const _legacyCheckPermissions = async (kind?: MediaDeviceKind) => {
   return devices.every(({ deviceId, label }) => Boolean(deviceId && label))
 }
 
-type DevicePermissionName = DevicePermissionDescriptor['name']
+// DevicePermissionDescriptor['name]
+type DevicePermissionName = 'camera' | 'microphone' | 'speaker'
 
 /**
  * Asynchronously returns whether we have permissions to access the specified
@@ -62,6 +63,7 @@ export const checkPermissions = async (name?: DevicePermissionName) => {
        * valid enumation value for `PermissionName`. As of today, some
        * browsers like Fireforx will throw with `name: "camera"`
        */
+      // @ts-expect-error
       const status = await navigator.permissions.query({ name })
 
       return status.state === 'granted'

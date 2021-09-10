@@ -408,6 +408,7 @@ export default class RTCPeer {
     }
     if (event.candidate) {
       logger.debug('IceCandidate:', event.candidate)
+      // @ts-expect-error
       this.call.emit('icecandidate', event)
     } else {
       this._sdpReady()
@@ -512,6 +513,7 @@ export default class RTCPeer {
     // })
 
     this.instance.addEventListener('track', (event: RTCTrackEvent) => {
+      // @ts-expect-error
       this.call.emit('track', event)
 
       if (this.isSfu) {
