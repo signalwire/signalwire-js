@@ -4,13 +4,14 @@ import {
   connect,
   getEventEmitter,
   UserOptions,
+  InternalUserOptions,
 } from '@signalwire/core'
 // import StrictEventEmitter from 'strict-event-emitter-types'
 import { Client } from './Client'
 import { Session } from './Session'
 // import { VideoObject } from './Video'
 
-type CreateClientOptions = Omit<UserOptions<ClientEvents>, 'autoConnect'>
+type CreateClientOptions = Omit<UserOptions, 'autoConnect'>
 
 // interface IRealtimeClient extends Emitter<ClientEvents> {
 //   video: VideoObject
@@ -26,12 +27,11 @@ type CreateClientOptions = Omit<UserOptions<ClientEvents>, 'autoConnect'>
 export const createClient = async (
   userOptions: CreateClientOptions
 ): Promise<Client> => {
-  const baseUserOptions = {
+  const baseUserOptions: InternalUserOptions = {
     ...userOptions,
-    emitter: getEventEmitter<ClientEvents>(userOptions),
+    emitter: getEventEmitter<ClientEvents>(),
   }
   const store = configureStore({
-    // @ts-expect-error
     userOptions: baseUserOptions,
     SessionConstructor: Session,
   })

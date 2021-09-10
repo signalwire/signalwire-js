@@ -1,7 +1,8 @@
 import { Task, SagaIterator } from '@redux-saga/types'
 import { channel, EventChannel } from 'redux-saga'
 import { fork, call, take, put, delay } from '@redux-saga/core/effects'
-import { UserOptions, SessionConstructor } from '../utils/interfaces'
+import { SessionConstructor, InternalUserOptions } from '../utils/interfaces'
+import { BaseSession } from '../BaseSession'
 import {
   executeActionWatcher,
   sessionChannelWatcher,
@@ -21,7 +22,6 @@ import {
   sessionConnectedAction,
 } from './actions'
 import { sessionActions } from './features'
-import { BaseSession } from '..'
 import {
   authErrorAction,
   authSuccessAction,
@@ -31,18 +31,16 @@ import {
 import { AuthError } from '../CustomErrors'
 import { PubSubChannel } from './interfaces'
 
-type StartSagaOptions = {
+interface StartSagaOptions {
   session: BaseSession
   sessionChannel: EventChannel<unknown>
   pubSubChannel: PubSubChannel
-  // TODO: check generic
-  userOptions: UserOptions<{}>
+  userOptions: InternalUserOptions
 }
 
 export function* initSessionSaga(
   SessionConstructor: SessionConstructor,
-  // TODO: check generic
-  userOptions: UserOptions<{}>
+  userOptions: InternalUserOptions
 ): SagaIterator {
   const session = new SessionConstructor(userOptions)
 
@@ -170,8 +168,7 @@ interface RootSagaOptions {
 }
 
 export default (options: RootSagaOptions) => {
-  // TODO: check generic
-  return function* root(userOptions: UserOptions<{}>): SagaIterator {
+  return function* root(userOptions: InternalUserOptions): SagaIterator {
     yield fork(executeQueueWatcher)
 
     /**

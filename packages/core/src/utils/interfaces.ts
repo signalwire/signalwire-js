@@ -81,10 +81,13 @@ export interface SessionOptions {
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
 }
 
-export interface UserOptions<EventTypes extends EventEmitter.ValidEventTypes>
-  extends SessionOptions {
+export interface UserOptions extends SessionOptions {
   devTools?: boolean
-  emitter?: Emitter<EventTypes>
+}
+
+export interface InternalUserOptions extends UserOptions {
+  // TODO: check if we need to make InternalUserOptions a generic
+  emitter: Emitter<any>
 }
 
 /**
@@ -93,8 +96,9 @@ export interface UserOptions<EventTypes extends EventEmitter.ValidEventTypes>
  * @internal
  */
 export interface BaseClientOptions<
-  EventTypes extends EventEmitter.ValidEventTypes
-> extends UserOptions<EventTypes> {
+  // TODO: review if having a default makes sense.
+  EventTypes extends EventEmitter.ValidEventTypes = any
+> extends UserOptions {
   store: SDKStore
   emitter: Emitter<EventTypes>
 }
