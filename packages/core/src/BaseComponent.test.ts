@@ -156,5 +156,72 @@ describe('BaseComponent', () => {
 
       instance.emit(serverEvent, payload)
     })
+
+    it('with emitterTransforms it should transform the payload', () => {
+      class CustomComponent extends JestComponent {
+        protected getEmitterTransforms() {
+          return new Map([
+            [
+              ['video.jest.snake_case', 'video.jest.camel_case'],
+              {
+                instanceFactory: () => {
+                  return {
+                    instance: this,
+                    inject: 'something',
+                  }
+                },
+                payloadTransform: (payload: any) => {
+                  return {
+                    transformed: 'data',
+                    payload,
+                  }
+                },
+                getInstanceEventNamespace: (_payload: any) => {
+                  return 'new-namespace'
+                },
+                getInstanceEventChannel: (_payload: any) => {
+                  return 'new-event-channel'
+                },
+              },
+            ],
+          ])
+        }
+      }
+
+      const instance = new CustomComponent()
+      // @ts-expect-error
+      instance.applyEmitterTransforms()
+      const payload = { key: 'value' }
+
+      const mockFn = jest.fn()
+      instance.on('jest.snake_case', (obj: any) => {
+        expect(obj._eventsNamespace).toEqual('new-namespace')
+        expect(obj.eventChannel).toEqual('new-event-channel')
+        expect(obj.transformed).toEqual('data')
+        expect(obj.payload).toStrictEqual(payload)
+        mockFn(obj)
+      })
+
+      instance.on('jest.camelCase', (obj: any) => {
+        expect(obj._eventsNamespace).toEqual('new-namespace')
+        expect(obj.eventChannel).toEqual('new-event-channel')
+        expect(obj.transformed).toEqual('data')
+        expect(obj.payload).toStrictEqual(payload)
+        mockFn(obj)
+      })
+
+      instance.emit('jest.snake_case', payload)
+      instance.emit('jest.camel_case', payload)
+
+      expect(mockFn).toHaveBeenCalledTimes(2)
+      expect(mockFn).toHaveBeenNthCalledWith(1, {
+        instance,
+        inject: 'something',
+      })
+      expect(mockFn).toHaveBeenNthCalledWith(2, {
+        instance,
+        inject: 'something',
+      })
+    })
   })
 })
