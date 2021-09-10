@@ -2,8 +2,8 @@ import {
   logger,
   connect,
   Rooms,
-  RoomCustomMethods,
   EventTransform,
+  extendComponent,
 } from '@signalwire/core'
 import {
   getDisplayMedia,
@@ -27,9 +27,12 @@ import { audioSetSpeakerAction } from './features/actions'
 import { RoomScreenShare } from './RoomScreenShare'
 import { RoomDevice } from './RoomDevice'
 
-interface Room extends RoomMethods {}
+interface Room extends RoomMethods, BaseConnection<RoomObjectEvents> {
+  join(): Promise<Room>
+  leave(): Promise<void>
+}
 
-class Room
+class RoomConnection
   extends BaseConnection<RoomObjectEvents>
   implements BaseRoomInterface
 {
@@ -101,7 +104,7 @@ class Room
       },
     }
 
-    const screenShare: RoomScreenShare = connect<
+    const screenShare = connect<
       RoomObjectEvents,
       // @ts-expect-error
       RoomScreenShare
@@ -247,6 +250,7 @@ class Room
    * be removed in v3.0.0
    */
   getLayoutList() {
+    // @ts-expect-error
     return this.getLayouts()
   }
 
@@ -255,11 +259,12 @@ class Room
    * be removed in v3.0.0
    */
   getMemberList() {
+    // @ts-expect-error
     return this.getMembers()
   }
 }
 
-const customMethods: RoomCustomMethods<RoomMethods> = {
+const Room = extendComponent<Room, RoomMethods>(RoomConnection, {
   audioMute: Rooms.audioMuteMember,
   audioUnmute: Rooms.audioUnmuteMember,
   videoMute: Rooms.videoMuteMember,
@@ -275,10 +280,8 @@ const customMethods: RoomCustomMethods<RoomMethods> = {
   setLayout: Rooms.setLayout,
   hideVideoMuted: Rooms.hideVideoMuted,
   showVideoMuted: Rooms.showVideoMuted,
-  // TODO: Add these to the spec list
   getRecordings: Rooms.getRecordings,
   startRecording: Rooms.startRecording,
-}
-Object.defineProperties(Room.prototype, customMethods)
+})
 
 export { Room }
