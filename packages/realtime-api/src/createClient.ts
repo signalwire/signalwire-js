@@ -36,7 +36,7 @@ export const createClient = async (
     SessionConstructor: Session,
   })
 
-  const client = connect({
+  const client = connect<ClientEvents, Client>({
     store,
     Component: Client,
     componentListeners: {

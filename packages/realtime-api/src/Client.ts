@@ -7,17 +7,14 @@ import {
 } from '@signalwire/core'
 import { createVideoObject, Video } from './Video'
 
-// interface Consumer {
-//   on: (event: GlobalVideoEvents, handler: any) => void
-//   run: () => Promise<unknown>
-// }
-
 export interface RealtimeClient extends Emitter<ClientEvents> {
   video: Video
 }
 
-export class Client extends BaseClient<{}> {
-  private _consumers: Map<EventsPrefix, any> = new Map()
+type ClientNamespaces = Video
+
+export class Client extends BaseClient<ClientEvents> {
+  private _consumers: Map<EventsPrefix, ClientNamespaces> = new Map()
 
   async onAuth(session: SessionState) {
     if (session.authStatus === 'authorized') {
@@ -33,8 +30,10 @@ export class Client extends BaseClient<{}> {
     }
     const video = createVideoObject({
       store: this.store,
-      // TODO:
-      emitter: this.options.emitter as any,
+      // Emitter is now typed but we share it across objects
+      // so types won't match
+      // @ts-expect-error
+      emitter: this.options.emitter,
     })
     this._consumers.set('video', video)
     return video
