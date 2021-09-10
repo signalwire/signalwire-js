@@ -3,7 +3,7 @@ const DEFAULT_OPTIONS = {
    * Properties coming from the server where their value will be
    * converted to camelCase
    */
-  propsToUpdateValue: ['updated'],
+  propsToUpdateValue: ['updated', 'layers'],
 }
 
 /**
@@ -36,7 +36,12 @@ export const toExternalJSON = <T>(
      */
     if (propType === 'object' && value) {
       if (Array.isArray(value) && options.propsToUpdateValue.includes(key)) {
-        reducer[prop] = value.map((v) => v && fromSnakeToCamelCase(v))
+        reducer[prop] = value.map((v) => {
+          if (typeof v === 'string') {
+            return fromSnakeToCamelCase(v)
+          }
+          return toExternalJSON(v)
+        })
       } else {
         reducer[prop] = toExternalJSON(value as T)
       }
