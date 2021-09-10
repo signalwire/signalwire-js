@@ -239,7 +239,9 @@ export class BaseComponent<T = Record<string, unknown>> implements Emitter {
     fn: BaseEventHandler
   ) {
     return (payload: unknown) => {
-      const transform = this._emitterTransforms.get(event)
+      // FIXME: review how we're passing events from the on/once/off methods
+      const internalNotNamespacedEvent = toInternalEventName({ event })
+      const transform = this._emitterTransforms.get(internalNotNamespacedEvent)
       if (!transform) {
         return fn(payload)
       }
