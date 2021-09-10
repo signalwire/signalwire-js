@@ -54,13 +54,13 @@ import { JWTSession } from './JWTSession'
 export const createClient = async (userOptions: UserOptions) => {
   const baseUserOptions = {
     ...userOptions,
-    emitter: getEventEmitter<ClientEvents>(userOptions),
+    emitter: getEventEmitter<ClientEvents>(),
   }
   const store = configureStore({
     userOptions: baseUserOptions,
     SessionConstructor: JWTSession,
   })
-  const client: StrictEventEmitter<Client, ClientEvents> = connect({
+  const client = connect<ClientEvents, Client>({
     store,
     Component: Client,
     componentListeners: {

@@ -1,4 +1,4 @@
-import { logger, connect, BaseClient } from '@signalwire/core'
+import { logger, connect, BaseClient, ClientEvents } from '@signalwire/core'
 import type { CustomSaga } from '@signalwire/core'
 import { ConnectionOptions } from '@signalwire/webrtc'
 import { makeMediaElementsSaga } from './features/mediaElements/mediaElementsSagas'
@@ -13,7 +13,7 @@ export interface MakeRoomOptions extends ConnectionOptions {
   stopMicrophoneWhileMuted?: boolean
 }
 
-export class Client extends BaseClient {
+export class Client extends BaseClient<ClientEvents> {
   get rooms() {
     return {
       makeRoomObject: (makeRoomOptions: MakeRoomOptions) => {

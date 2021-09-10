@@ -59,9 +59,9 @@ type EmitterTransformsEvents =
 // TODO: update once we do the split between API and Entity interfaces
 export interface RoomSession
   extends RoomSessionMethods,
-    BaseConsumer<MemberEventMap> {}
+    BaseConsumer<EmitterTransformsEvents> {}
 
-class RoomSessionConsumer extends BaseConsumer<MemberEventMap> {
+class RoomSessionConsumer extends BaseConsumer<EmitterTransformsEvents> {
   protected _eventsPrefix = 'video' as const
 
   /** @internal */
@@ -116,6 +116,9 @@ class RoomSessionConsumer extends BaseConsumer<MemberEventMap> {
           instanceFactory: (_payload: VideoMemberEventParams) => {
             return createRoomSessionMemberObject({
               store: this.store,
+              // TODO: the emitter is now typed so types
+              // don't match but internally it doesn't
+              // matter that much.
               // @ts-expect-error
               emitter: this.options.emitter,
             })
@@ -163,11 +166,10 @@ export const RoomSessionAPI = extendComponent<RoomSession, RoomSessionMethods>(
 )
 
 export const createRoomSessionObject = (
-  params: BaseComponentOptions<MemberEventMap>
+  params: BaseComponentOptions<EmitterTransformsEvents>
 ) => {
-  const roomSession = connect({
+  const roomSession = connect<EmitterTransformsEvents, RoomSession>({
     store: params.store,
-    // @ts-expect-error
     Component: RoomSessionAPI,
     componentListeners: {
       errors: 'onError',
@@ -175,5 +177,5 @@ export const createRoomSessionObject = (
     },
   })(params)
 
-  return roomSession as any as RoomSession
+  return roomSession
 }

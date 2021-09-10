@@ -39,6 +39,7 @@ export class Video
           instanceFactory: () => {
             return createRoomSessionObject({
               store: this.store,
+              // Emitter is now typed.
               // @ts-expect-error
               emitter: this.options.emitter,
             })
