@@ -1,5 +1,4 @@
 import { logger, EventEmitter } from '@signalwire/core'
-import StrictEventEmitter from 'strict-event-emitter-types'
 import * as WebRTC from './webrtcHelpers'
 
 /**
@@ -625,23 +624,18 @@ type DeviceWatcherChange<T extends DeviceWatcherEventNames> = {
 }
 
 interface DeviceWatcherEvents {
-  added: DeviceWatcherChange<'added'>
-  removed: DeviceWatcherChange<'removed'>
-  updated: DeviceWatcherChange<'updated'>
-  changed: {
+  added: (params: DeviceWatcherChange<'added'>) => void
+  removed: (params: DeviceWatcherChange<'removed'>) => void
+  updated: (params: DeviceWatcherChange<'updated'>) => void
+  changed: (params: {
     changes: {
       added: DeviceWatcherChangePayload<'added'>[]
       removed: DeviceWatcherChangePayload<'removed'>[]
       updated: DeviceWatcherChangePayload<'updated'>[]
     }
     devices: MediaDeviceInfo[]
-  }
+  }) => void
 }
-
-type DeviceWatcherEventEmitter = StrictEventEmitter<
-  EventEmitter,
-  DeviceWatcherEvents
->
 
 /**
  * Asynchronously returns an event emitter that notifies changes in the devices.
@@ -686,10 +680,9 @@ type DeviceWatcherEventEmitter = StrictEventEmitter<
  */
 export const createDeviceWatcher = async (
   options: CreateDeviceWatcherOptions = {}
-): Promise<DeviceWatcherEventEmitter> => {
+) => {
   const targets = await validateTargets({ targets: options.targets })
-  const emitter: StrictEventEmitter<EventEmitter, DeviceWatcherEvents> =
-    new EventEmitter()
+  const emitter = new EventEmitter<DeviceWatcherEvents>()
   const currentDevices = await WebRTC.enumerateDevices()
   const kinds = targets?.reduce((reducer, name) => {
     const kind = _getMediaDeviceKindByName(name)
