@@ -124,9 +124,8 @@ class RoomSessionConsumer extends BaseConsumer<EmitterTransformsEvents> {
             })
           },
           payloadTransform: (payload: VideoMemberEventParams) => {
-            const { id, ...rest } = payload.member
             return toExternalJSON({
-              ...rest,
+              ...payload.member,
               /**
                * The server is sending the member id as `id`
                * but internally (i.e in CustomMethods) we
@@ -135,7 +134,7 @@ class RoomSessionConsumer extends BaseConsumer<EmitterTransformsEvents> {
                * multiple ids at once and having them
                * properly prefixed makes it easier to read.
                */
-              member_id: id,
+              member_id: payload.member.id,
             })
           },
         },
