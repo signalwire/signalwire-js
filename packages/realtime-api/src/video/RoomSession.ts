@@ -14,6 +14,7 @@ import {
   VideoLayoutChangedEventParams,
 } from '@signalwire/core'
 import { BaseConsumer } from '../BaseConsumer'
+import { RealTimeRoomApiEvents } from '../types'
 import { createRoomSessionMemberObject } from './RoomSessionMember'
 
 // FIXME: Move these interfaces to core (and use them in JS too)
@@ -59,9 +60,8 @@ type EmitterTransformsEvents =
 // TODO: update once we do the split between API and Entity interfaces
 export interface RoomSession
   extends RoomSessionMethods,
-    BaseConsumer<EmitterTransformsEvents> {}
-
-class RoomSessionConsumer extends BaseConsumer<EmitterTransformsEvents> {
+    BaseConsumer<RealTimeRoomApiEvents> {}
+class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   protected _eventsPrefix = 'video' as const
 
   /** @internal */
@@ -167,8 +167,8 @@ export const RoomSessionAPI = extendComponent<RoomSession, RoomSessionMethods>(
 
 export const createRoomSessionObject = (
   params: BaseComponentOptions<EmitterTransformsEvents>
-) => {
-  const roomSession = connect<EmitterTransformsEvents, RoomSession>({
+): RoomSession => {
+  const roomSession = connect<RealTimeRoomApiEvents, RoomSession>({
     store: params.store,
     Component: RoomSessionAPI,
     componentListeners: {

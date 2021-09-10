@@ -6,23 +6,10 @@ import {
   UserOptions,
   InternalUserOptions,
 } from '@signalwire/core'
-// import StrictEventEmitter from 'strict-event-emitter-types'
 import { Client } from './Client'
 import { Session } from './Session'
-// import { VideoObject } from './Video'
 
 type CreateClientOptions = Omit<UserOptions, 'autoConnect'>
-
-// interface IRealtimeClient extends Emitter<ClientEvents> {
-//   video: VideoObject
-//   connect: () => any
-//   destroy: () => any
-// }
-
-// export interface RealtimeClient
-//   extends StrictEventEmitter<Client, ClientEvents> {}
-// export interface RealtimeClient
-//   extends StrictEventEmitter<IRealtimeClient, ClientEvents> {}
 
 export const createClient = async (
   userOptions: CreateClientOptions
