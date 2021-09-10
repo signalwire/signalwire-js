@@ -48,7 +48,6 @@ export const makeMediaElementsSaga = ({
         )
       }
 
-      // @ts-expect-error
       room.on('layout.changed', (params) => {
         if (room.peer.hasVideoSender && room.localStream) {
           layoutChangedHandler({
@@ -60,10 +59,8 @@ export const makeMediaElementsSaga = ({
         }
       })
 
-      // @ts-expect-error
       room.on('member.updated.video_muted', (params) => {
         try {
-          // @ts-expect-error
           const { member } = params
           if (member.id === room.memberId && 'video_muted' in member) {
             member.video_muted ? hideOverlay(member.id) : showOverlay(member.id)
@@ -76,7 +73,6 @@ export const makeMediaElementsSaga = ({
       let audioTask: Task | undefined
       let videoTask: Task | undefined
 
-      // @ts-expect-error
       room.on('track', function (event: RTCTrackEvent) {
         switch (event.track.kind) {
           case 'audio':
