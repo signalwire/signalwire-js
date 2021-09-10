@@ -4,7 +4,7 @@ import { EventEmitter } from './utils/EventEmitter'
 
 describe('BaseComponent', () => {
   describe('as an event emitter', () => {
-    class JestComponent extends BaseComponent {
+    class JestComponent extends BaseComponent<any> {
       protected _eventsPrefix = 'video' as const
 
       constructor(namespace = '') {
@@ -17,7 +17,7 @@ describe('BaseComponent', () => {
       }
     }
 
-    let instance: BaseComponent
+    let instance: BaseComponent<any>
 
     beforeEach(() => {
       instance = new JestComponent()
