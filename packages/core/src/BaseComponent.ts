@@ -361,20 +361,31 @@ export class BaseComponent<
     ] as any as T
   }
 
-  on(...params: Parameters<Emitter<EventTypes>['on']>) {
+  on<T extends EventEmitter.EventNames<EventTypes>>(
+    event: T,
+    fn: EventEmitter.EventListener<EventTypes, T>
+  ) {
     if (this.shouldAddToQueue()) {
-      this.addEventToRegisterQueue({ type: 'on', params: params as any })
+      this.addEventToRegisterQueue({
+        type: 'on',
+        params: [event, fn] as any,
+      })
       return this.emitter as EventEmitter<EventTypes>
     }
 
-    const [event, fn, context] = this._getOptionsFromParams(params)
-    const handler = this.getOrCreateStableEventHandler(event, fn)
-    const internalEvent = this._getNamespacedEvent(event)
+    // TODO: pick a better name for parsed*
+    const [parsedEvent, parsedFn] = this._getOptionsFromParams([event, fn])
+    const handler = this.getOrCreateStableEventHandler(
+      parsedEvent,
+      parsedFn as any
+    )
+    const internalEvent = this._getNamespacedEvent(parsedEvent)
     logger.trace('Registering event', internalEvent)
-    this.trackEvent(event)
-    return this.emitter.on(internalEvent, handler, context)
+    this.trackEvent(parsedEvent)
+    return this.emitter.on(internalEvent, handler)
   }
 
+  // TODO: replicate changes made in .on
   once(...params: Parameters<Emitter<EventTypes>['once']>) {
     if (this.shouldAddToQueue()) {
       this.addEventToRegisterQueue({ type: 'once', params })
