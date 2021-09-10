@@ -10,6 +10,7 @@ import {
   InternalVideoEventNames,
   Rooms,
   JSONRPCRequest,
+  EventEmitter,
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import { ConnectionOptions } from './utils/interfaces'
@@ -75,22 +76,27 @@ const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
 type EventsHandlerMapping = Record<BaseConnectionState, () => void> &
   Record<string, () => void>
 
-export type EventTypes = {
+export type BaseConnectionStateEventTypes = {
   [k in BaseConnectionState]: EventsHandlerMapping[k]
 }
 
-export type BaseConnectionOptions = ConnectionOptions &
-  BaseComponentOptions<EventTypes>
+export type BaseConnectionOptions<
+  EventTypes extends EventEmitter.ValidEventTypes
+> = ConnectionOptions &
+  BaseComponentOptions<EventTypes & BaseConnectionStateEventTypes>
 
-export class BaseConnection
-  extends BaseComponent<EventTypes>
+export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
+  extends BaseComponent<EventTypes & BaseConnectionStateEventTypes>
   // TODO: fix types
-  implements Rooms.BaseRoomInterface<any>
+  implements
+    Rooms.BaseRoomInterface<EventTypes & BaseConnectionStateEventTypes>
 {
   public nodeId = ''
   public direction: 'inbound' | 'outbound'
-  public peer: RTCPeer
-  public options: BaseConnectionOptions
+  public peer: RTCPeer<EventTypes>
+  public options: BaseConnectionOptions<
+    EventTypes & BaseConnectionStateEventTypes
+  >
   /** @internal */
   public cause: string
   /** @internal */
@@ -111,7 +117,9 @@ export class BaseConnection
   private _roomSessionId: string
   private _memberId: string
 
-  constructor(options: BaseConnectionOptions) {
+  constructor(
+    options: BaseConnectionOptions<EventTypes & BaseConnectionStateEventTypes>
+  ) {
     super(options)
 
     const iceServers =
@@ -446,11 +454,13 @@ export class BaseConnection
       this.peer = new RTCPeer(this, 'offer')
       try {
         const _resolve = () => resolve(this as any as T)
-
+        // @ts-expect-error
         this.once('active', () => {
+          // @ts-expect-error
           this.off('destroy', _resolve)
           _resolve()
         })
+        // @ts-expect-error
         this.once('destroy', _resolve)
         await this.peer.start()
       } catch (error) {
@@ -468,10 +478,13 @@ export class BaseConnection
       try {
         const _resolve = () => resolve(this)
 
+        // @ts-expect-error
         this.once('active', () => {
+          // @ts-expect-error
           this.off('destroy', _resolve)
           _resolve()
         })
+        // @ts-expect-error
         this.once('destroy', _resolve)
         await this.peer.start()
       } catch (error) {
@@ -580,6 +593,7 @@ export class BaseConnection
       `Call ${this.id} state change from ${this.prevState} to ${this.state}`
     )
 
+    // @ts-expect-error
     this.emit(this.state, this)
 
     switch (state) {

@@ -1,10 +1,10 @@
 import { Rooms, RoomCustomMethods } from '@signalwire/core'
 import { BaseConnection } from '@signalwire/webrtc'
-import { RoomDeviceMethods } from './utils/interfaces'
+import { RoomDeviceMethods, RoomObjectEvents } from './utils/interfaces'
 
 interface RoomDevice extends RoomDeviceMethods {}
 
-class RoomDevice extends BaseConnection {
+class RoomDevice extends BaseConnection<RoomObjectEvents> {
   join() {
     return super.invite()
   }

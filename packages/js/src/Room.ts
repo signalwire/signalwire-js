@@ -29,7 +29,10 @@ import { RoomDevice } from './RoomDevice'
 
 interface Room extends RoomMethods {}
 
-class Room extends BaseConnection implements BaseRoomInterface {
+class Room
+  extends BaseConnection<RoomObjectEvents>
+  implements BaseRoomInterface
+{
   private _screenShareList = new Set<RoomScreenShare>()
   private _deviceList = new Set<RoomDevice>()
 
@@ -85,7 +88,7 @@ class Room extends BaseConnection implements BaseRoomInterface {
       audio: audio === true ? SCREENSHARE_AUDIO_CONSTRAINTS : audio,
       video,
     })
-    const options: BaseConnectionOptions = {
+    const options: BaseConnectionOptions<RoomObjectEvents> = {
       ...this.options,
       screenShare: true,
       recoverCall: false,
@@ -169,7 +172,7 @@ class Room extends BaseConnection implements BaseRoomInterface {
       )
     }
 
-    const options: BaseConnectionOptions = {
+    const options: BaseConnectionOptions<RoomObjectEvents> = {
       ...this.options,
       localStream: undefined,
       remoteStream: undefined,

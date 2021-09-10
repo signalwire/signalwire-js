@@ -42,7 +42,7 @@ export class Client extends BaseClient<ClientEvents> {
         }
 
         // @ts-expect-error
-        const room = connect<RoomObjectEvents, Room>({
+        const room: Room = connect<RoomObjectEvents, Room>({
           store: this.store,
           Component: Room,
           customSagas,
