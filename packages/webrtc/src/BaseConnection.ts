@@ -84,12 +84,12 @@ export type BaseConnectionOptions = ConnectionOptions &
 
 export class BaseConnection
   extends BaseComponent<EventTypes>
-  implements Rooms.BaseRoomInterface
+  // TODO: fix types
+  implements Rooms.BaseRoomInterface<any>
 {
   public nodeId = ''
   public direction: 'inbound' | 'outbound'
   public peer: RTCPeer
-  // @ts-expect-error
   public options: BaseConnectionOptions
   /** @internal */
   public cause: string
