@@ -72,14 +72,24 @@ const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   iceGatheringTimeout: 2 * 1000,
 }
 
-export type BaseConnectionOptions = ConnectionOptions & BaseComponentOptions
+type EventsHandlerMapping = Record<BaseConnectionState, () => void> &
+  Record<string, () => void>
+
+export type EventTypes = {
+  [k in BaseConnectionState]: EventsHandlerMapping[k]
+}
+
+export type BaseConnectionOptions = ConnectionOptions &
+  BaseComponentOptions<EventTypes>
+
 export class BaseConnection
-  extends BaseComponent
+  extends BaseComponent<EventTypes>
   implements Rooms.BaseRoomInterface
 {
   public nodeId = ''
   public direction: 'inbound' | 'outbound'
   public peer: RTCPeer
+  // @ts-expect-error
   public options: BaseConnectionOptions
   /** @internal */
   public cause: string
