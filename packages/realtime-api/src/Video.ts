@@ -1,7 +1,7 @@
 import {
   BaseComponentOptions,
   connect,
-  EventEmitter,
+  Emitter,
   EventTransform,
   InternalVideoRoomEventNames,
   toExternalJSON,
@@ -15,9 +15,8 @@ type TransformEvent = Extract<
   'video.room.started' | 'video.room.ended'
 >
 
-export interface VideoObject extends EventEmitter<RealTimeVideoApiEvents> {}
+export interface VideoObject extends Emitter<RealTimeVideoApiEvents> {}
 
-// @ts-ignore
 export class Video
   extends BaseConsumer<RealTimeVideoApiEvents>
   implements VideoObject
@@ -62,10 +61,8 @@ export class Video
 export const createVideoObject = (
   params: BaseComponentOptions<RealTimeVideoApiEvents>
 ): Video => {
-  const video = connect({
+  const video = connect<RealTimeVideoApiEvents, Video>({
     store: params.store,
-    // TODO:
-    // @ts-expect-error
     Component: Video,
     componentListeners: {
       errors: 'onError',
@@ -73,7 +70,7 @@ export const createVideoObject = (
     },
   })(params)
 
-  const proxy = new Proxy(video, {
+  const proxy = new Proxy<Video>(video, {
     get(target: any, prop: any, receiver: any) {
       if (prop === '_eventsNamespace') {
         /**
@@ -87,7 +84,7 @@ export const createVideoObject = (
 
       return Reflect.get(target, prop, receiver)
     },
-  }) as any as Video
+  })
 
   return proxy
 }
