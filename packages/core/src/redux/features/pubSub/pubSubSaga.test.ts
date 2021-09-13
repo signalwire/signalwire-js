@@ -39,7 +39,7 @@ describe('sessionChannelWatcher', () => {
 
   it('should be resilient to the end-user errors', () => {
     let runSagaCounter = 0
-    const emitter = new EventEmitter()
+    const emitter = new EventEmitter<string>()
     const mockFn = jest.fn()
     emitter.on('exception', () => {
       throw 'Jest Error'
@@ -49,7 +49,6 @@ describe('sessionChannelWatcher', () => {
 
     return expectSaga(pubSubSaga, {
       pubSubChannel,
-      // @ts-expect-error
       emitter,
     })
       .provide([

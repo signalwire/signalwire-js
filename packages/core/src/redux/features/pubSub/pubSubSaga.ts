@@ -10,8 +10,7 @@ import { PubSubChannel, PubSubAction } from '../../interfaces'
 
 type PubSubSagaParams = {
   pubSubChannel: PubSubChannel
-  // TODO: check generic
-  emitter: Emitter<{}>
+  emitter: Emitter<string>
 }
 const findNamespaceInPayload = (payload?: any): string => {
   /**
@@ -40,7 +39,6 @@ export function* pubSubSaga({
        * event twice to reach everyone.
        */
       if (isInternalGlobalEvent(type)) {
-        // @ts-expect-error
         emitter.emit(type, payload)
       }
 

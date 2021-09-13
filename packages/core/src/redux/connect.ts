@@ -20,7 +20,6 @@ interface Connect<T> {
 type ReduxComponentKeys = keyof ReduxComponent
 type ReduxSessionKeys = keyof SessionState
 
-// TODO: check generic
 export const connect = <
   EventTypes extends EventEmitter.ValidEventTypes,
   T extends BaseComponent<EventTypes>
