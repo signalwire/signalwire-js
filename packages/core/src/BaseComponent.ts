@@ -283,7 +283,7 @@ export class BaseComponent<
       const internalNotNamespacedEvent = toInternalEventName({ event })
       const transform = this._emitterTransforms.get(internalNotNamespacedEvent)
       if (!transform) {
-        // @ts-ignore
+        // @ts-expect-error
         return fn(payload)
       }
 
@@ -314,7 +314,7 @@ export class BaseComponent<
         },
       })
 
-      // @ts-ignore
+      // @ts-expect-error
       return fn(proxiedObj)
     }
     return wrapperHandler as EventEmitter.EventListener<
@@ -360,7 +360,7 @@ export class BaseComponent<
     return [
       this._getPrefixedEvent(event) as EventEmitter.EventNames<EventTypes>,
       ...rest,
-    ] as any as T
+    ] as T
   }
 
   on<T extends EventEmitter.EventNames<EventTypes>>(
@@ -649,11 +649,17 @@ export class BaseComponent<
   protected applyEmitterTransforms() {
     this.getEmitterTransforms().forEach((handlersObj, key) => {
       if (Array.isArray(key)) {
-        // @ts-ignore
-        key.forEach((k) => this._emitterTransforms.set(k, handlersObj))
+        key.forEach((k) =>
+          this._emitterTransforms.set(
+            k as EventEmitter.EventNames<EventTypes>,
+            handlersObj
+          )
+        )
       } else {
-        // @ts-ignore
-        this._emitterTransforms.set(key, handlersObj)
+        this._emitterTransforms.set(
+          key as EventEmitter.EventNames<EventTypes>,
+          handlersObj
+        )
       }
     })
   }
