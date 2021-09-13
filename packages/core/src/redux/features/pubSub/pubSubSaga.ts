@@ -42,8 +42,10 @@ export function* pubSubSaga({
         emitter.emit(type, payload)
       }
 
-      // @ts-expect-error
-      emitter.emit(toInternalEventName<{}>({ namespace, event: type }), payload)
+      emitter.emit(
+        toInternalEventName<string>({ namespace, event: type }),
+        payload
+      )
     } catch (error) {
       logger.error(error)
     }
