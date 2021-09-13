@@ -1,9 +1,29 @@
+import type { EventEmitter } from '../utils/EventEmitter'
 import type { VideoAPIEventParams, InternalVideoEventNames } from './video'
 import type { SessionEvents, JSONRPCRequest } from '../utils/interfaces'
 
 export interface SwEvent {
   event_channel: string
   timestamp: number
+}
+
+export interface EventEmitterContract<
+  EventTypes extends EventEmitter.ValidEventTypes
+> {
+  on<T extends EventEmitter.EventNames<EventTypes>>(
+    event: T,
+    fn: EventEmitter.EventListener<EventTypes, T>
+  ): EventEmitterContract<EventTypes>
+
+  once<T extends EventEmitter.EventNames<EventTypes>>(
+    event: T,
+    fn: EventEmitter.EventListener<EventTypes, T>
+  ): EventEmitterContract<EventTypes>
+
+  off<T extends EventEmitter.EventNames<EventTypes>>(
+    event: T,
+    fn?: EventEmitter.EventListener<EventTypes, T>
+  ): EventEmitterContract<EventTypes>
 }
 
 export interface WebRTCMessageParams extends SwEvent {

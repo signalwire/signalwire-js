@@ -32,3 +32,13 @@ export type OnlyStateProperties<T> = Pick<T, OnlyStatePropertyNames<T>>
 export interface ConstructableType<T> {
   new (o?: any): T
 }
+
+export interface MemberCommandParams {
+  memberId?: string
+}
+export interface MemberCommandWithVolumeParams extends MemberCommandParams {
+  volume: number
+}
+export interface MemberCommandWithValueParams extends MemberCommandParams {
+  value: number
+}
