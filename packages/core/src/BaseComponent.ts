@@ -146,7 +146,7 @@ export class BaseComponent<
       type: options.type,
       params: options.params,
     })
-    return this.emitter as any as EventEmitter<EventTypes>
+    return this.emitter as EventEmitter<EventTypes>
   }
 
   /** @internal */
