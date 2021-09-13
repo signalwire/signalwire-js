@@ -1,4 +1,4 @@
-import type { SwEvent, EmitterContract } from '.'
+import type { SwEvent } from '.'
 import type {
   CamelToSnakeCase,
   EntityUpdated,
@@ -9,9 +9,8 @@ import type {
   OnlyFunctionProperties,
   OnlyStateProperties,
 } from './utils'
-import type { InternalVideoMember } from './videoMember'
+import type { InternalVideoMemberEntity } from './videoMember'
 import * as Rooms from '../rooms'
-import type { EventEmitter } from '../utils/EventEmitter'
 
 /**
  * Public event types
@@ -44,9 +43,7 @@ export type InternalVideoRoomSessionEventNames =
 /**
  * Public Contract for a VideoRoomSession
  */
-export interface VideoRoomSessionContract<
-  EventTypes extends EventEmitter.ValidEventTypes
-> extends EmitterContract<EventTypes> {
+export interface VideoRoomSessionContract {
   id: string
   roomId: string
   eventChannel: string
@@ -81,15 +78,13 @@ export interface VideoRoomSessionContract<
 /**
  * VideoRoomSession properties
  */
-export type VideoRoomSessionEntity = OnlyStateProperties<
-  VideoRoomSessionContract<{}>
->
+export type VideoRoomSessionEntity =
+  OnlyStateProperties<VideoRoomSessionContract>
 /**
  * VideoRoomSession methods
  */
-export type VideoRoomSessionMethods = OnlyFunctionProperties<
-  VideoRoomSessionContract<{}>
->
+export type VideoRoomSessionMethods =
+  OnlyFunctionProperties<VideoRoomSessionContract>
 
 /**
  * VideoRoomSessionEntity plus `updated` field
@@ -157,11 +152,11 @@ export interface VideoRoomStartedEvent extends SwEvent {
 export interface VideoRoomSubscribedEventParams {
   // keep room for backward compat
   room: InternalVideoRoomEntity & {
-    members: InternalVideoMember[]
+    members: InternalVideoMemberEntity[]
     // TODO: add recordings[] and other bootstrap things
   }
   room_session: InternalVideoRoomSessionEntity & {
-    members: InternalVideoMember[]
+    members: InternalVideoMemberEntity[]
     // TODO: add recordings[] and other bootstrap things
   }
   // FIXME: only for webrtc
