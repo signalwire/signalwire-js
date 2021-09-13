@@ -1,6 +1,6 @@
 jest.mock('@signalwire/core', () => {
   return {
-    ...jest.requireActual('@signalwire/core'),
+    ...(jest.requireActual('@signalwire/core') as any),
     logger: {
       error: jest.fn(),
       warn: jest.fn(),

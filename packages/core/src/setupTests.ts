@@ -1,6 +1,6 @@
 jest.mock('./utils', () => {
   return {
-    ...jest.requireActual('./utils'),
+    ...(jest.requireActual('./utils') as any),
     logger: {
       error: jest.fn(),
       warn: jest.fn(),
