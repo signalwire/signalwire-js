@@ -15,6 +15,7 @@ import {
   VideoRoomSessionContract,
   VideoRoomSessionMethods,
   EmitterContract,
+  ConsumerContract,
 } from '@signalwire/core'
 import { BaseConsumer } from '../BaseConsumer'
 import { RealTimeRoomApiEvents } from '../types'
@@ -27,7 +28,8 @@ type EmitterTransformsEvents =
 
 export interface RoomSession
   extends VideoRoomSessionContract,
-    EmitterContract<RealTimeRoomApiEvents> {}
+    EmitterContract<RealTimeRoomApiEvents>,
+    ConsumerContract {}
 
 class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   protected _eventsPrefix = 'video' as const

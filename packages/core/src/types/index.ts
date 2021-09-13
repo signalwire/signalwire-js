@@ -26,6 +26,10 @@ export interface EmitterContract<
   ): EmitterContract<EventTypes>
 }
 
+export interface ConsumerContract {
+  run(): Promise<void>
+}
+
 export interface WebRTCMessageParams extends SwEvent {
   event_type: 'webrtc.message'
   project_id: string
