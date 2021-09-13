@@ -6,7 +6,7 @@ import {
   toInternalEventName,
 } from '../../../utils'
 import type { Emitter } from '../../../utils/interfaces'
-import { PubSubChannel, PubSubAction } from '../../interfaces'
+import type { PubSubChannel, PubSubAction } from '../../interfaces'
 
 type PubSubSagaParams = {
   pubSubChannel: PubSubChannel

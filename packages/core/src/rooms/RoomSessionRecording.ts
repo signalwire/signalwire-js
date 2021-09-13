@@ -15,7 +15,7 @@ export interface RoomSessionRecording {
   stop(): Promise<void>
 }
 
-type RoomSessionRecordingEvents = Record<
+export type RoomSessionRecordingEvents = Record<
   VideoRecordingEventNames,
   (recording: RoomSessionRecording) => void
 >
