@@ -6,11 +6,11 @@ import {
   toInternalEventName,
 } from '../../../utils'
 import type { Emitter } from '../../../utils/interfaces'
-import { PubSubChannel, PubSubAction } from '../../interfaces'
+import type { PubSubChannel, PubSubAction } from '../../interfaces'
 
 type PubSubSagaParams = {
   pubSubChannel: PubSubChannel
-  emitter: Emitter
+  emitter: Emitter<string>
 }
 const findNamespaceInPayload = (payload?: any): string => {
   /**
@@ -42,7 +42,10 @@ export function* pubSubSaga({
         emitter.emit(type, payload)
       }
 
-      emitter.emit(toInternalEventName({ namespace, event: type }), payload)
+      emitter.emit(
+        toInternalEventName<string>({ namespace, event: type }),
+        payload
+      )
     } catch (error) {
       logger.error(error)
     }

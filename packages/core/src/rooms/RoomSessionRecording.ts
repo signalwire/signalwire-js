@@ -2,6 +2,7 @@ import { connect } from '../redux'
 import { BaseComponent } from '../BaseComponent'
 import { BaseComponentOptions } from '../utils/interfaces'
 import { OnlyFunctionProperties } from '../types'
+import type { VideoRecordingEventNames } from '../types/videoRecording'
 
 export interface RoomSessionRecording {
   id: string
@@ -14,8 +15,13 @@ export interface RoomSessionRecording {
   stop(): Promise<void>
 }
 
+export type RoomSessionRecordingEvents = Record<
+  VideoRecordingEventNames,
+  (recording: RoomSessionRecording) => void
+>
+
 export class RoomSessionRecordingAPI
-  extends BaseComponent<RoomSessionRecording>
+  extends BaseComponent<RoomSessionRecordingEvents>
   implements OnlyFunctionProperties<RoomSessionRecording>
 {
   async pause() {
@@ -51,9 +57,12 @@ export class RoomSessionRecordingAPI
 
 // TODO: move to its own file
 export const createRoomSessionRecordingObject = (
-  params: BaseComponentOptions
-) => {
-  const recording: RoomSessionRecordingAPI = connect({
+  params: BaseComponentOptions<RoomSessionRecordingEvents>
+): RoomSessionRecordingAPI => {
+  const recording = connect<
+    RoomSessionRecordingEvents,
+    RoomSessionRecordingAPI
+  >({
     store: params.store,
     Component: RoomSessionRecordingAPI,
     componentListeners: {

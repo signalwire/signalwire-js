@@ -27,6 +27,8 @@
     },
     "composite": true,
     "declarationMap": true,
-    "strictPropertyInitialization": false
+    "strictPropertyInitialization": false,
+    "useUnknownInCatchVariables": false,
+    "skipLibCheck": true
   }
 }

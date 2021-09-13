@@ -1,8 +1,8 @@
-import { logger, connect, BaseClient } from '@signalwire/core'
+import { logger, connect, BaseClient, ClientEvents } from '@signalwire/core'
 import type { CustomSaga } from '@signalwire/core'
 import { ConnectionOptions } from '@signalwire/webrtc'
 import { makeMediaElementsSaga } from './features/mediaElements/mediaElementsSagas'
-import type { RoomObject } from './utils/interfaces'
+import type { RoomObjectEvents } from './utils/interfaces'
 import { ROOM_COMPONENT_LISTENERS } from './utils/constants'
 import { Room } from './Room'
 
@@ -13,7 +13,7 @@ export interface MakeRoomOptions extends ConnectionOptions {
   stopMicrophoneWhileMuted?: boolean
 }
 
-export class Client extends BaseClient {
+export class Client extends BaseClient<ClientEvents> {
   get rooms() {
     return {
       makeRoomObject: (makeRoomOptions: MakeRoomOptions) => {
@@ -41,7 +41,8 @@ export class Client extends BaseClient {
           )
         }
 
-        const room: RoomObject = connect({
+        // @ts-expect-error
+        const room = connect<RoomObjectEvents, Room>({
           store: this.store,
           Component: Room,
           customSagas,

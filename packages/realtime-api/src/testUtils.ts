@@ -1,4 +1,4 @@
-import { configureStore } from '@signalwire/core'
+import { configureStore, EventEmitter } from '@signalwire/core'
 import { Session } from './Session'
 
 const PROJECT_ID = '8f0a119a-cda7-4497-a47d-c81493b824d4'
@@ -16,6 +16,7 @@ export const configureJestStore = () => {
       project: PROJECT_ID,
       token: TOKEN,
       devTools: false,
+      emitter: new EventEmitter(),
     },
     SessionConstructor: Session,
     runSagaMiddleware: false,

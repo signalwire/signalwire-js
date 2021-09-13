@@ -3,6 +3,7 @@ import { configureStore } from './redux'
 import { PubSubChannel } from './redux/interfaces'
 import { BaseSession } from './BaseSession'
 import { RPCConnectResult } from './utils/interfaces'
+import { EventEmitter } from './utils/EventEmitter'
 
 const PROJECT_ID = '8f0a119a-cda7-4497-a47d-c81493b824d4'
 const TOKEN = '<VRT>'
@@ -19,6 +20,7 @@ export const configureJestStore = () => {
       project: PROJECT_ID,
       token: TOKEN,
       devTools: false,
+      emitter: new EventEmitter(),
     },
     SessionConstructor: BaseSession,
     runSagaMiddleware: false,

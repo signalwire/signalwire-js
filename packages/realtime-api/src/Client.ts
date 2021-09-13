@@ -1,20 +1,20 @@
 import {
   BaseClient,
   EventsPrefix,
-  GlobalVideoEvents,
   SessionState,
+  Emitter,
+  ClientEvents,
 } from '@signalwire/core'
-import StrictEventEmitter from 'strict-event-emitter-types'
-import { RealTimeVideoApiEvents } from './types/video'
 import { createVideoObject, Video } from './Video'
 
-interface Consumer {
-  on: (event: GlobalVideoEvents, handler: any) => void
-  run: () => Promise<unknown>
+export interface RealtimeClient extends Emitter<ClientEvents> {
+  video: Video
 }
 
-export class Client extends BaseClient {
-  private _consumers: Map<EventsPrefix, Consumer> = new Map()
+type ClientNamespaces = Video
+
+export class Client extends BaseClient<ClientEvents> {
+  private _consumers: Map<EventsPrefix, ClientNamespaces> = new Map()
 
   async onAuth(session: SessionState) {
     if (session.authStatus === 'authorized') {
@@ -24,12 +24,15 @@ export class Client extends BaseClient {
     }
   }
 
-  get video(): StrictEventEmitter<Video, RealTimeVideoApiEvents> {
+  get video(): Video {
     if (this._consumers.has('video')) {
       return this._consumers.get('video') as Video
     }
     const video = createVideoObject({
       store: this.store,
+      // Emitter is now typed but we share it across objects
+      // so types won't match
+      // @ts-expect-error
       emitter: this.options.emitter,
     })
     this._consumers.set('video', video)

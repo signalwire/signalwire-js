@@ -10,8 +10,8 @@ export const ROOM_COMPONENT_LISTENERS = {
 
 export const SCREENSHARE_AUDIO_CONSTRAINTS: MediaTrackConstraints = {
   echoCancellation: false,
+  // @ts-expect-error
   noiseSuppression: false,
   autoGainControl: false,
-  // @ts-expect-error
   googAutoGainControl: false,
 }

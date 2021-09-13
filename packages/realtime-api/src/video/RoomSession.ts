@@ -14,6 +14,7 @@ import {
   VideoLayoutChangedEventParams,
 } from '@signalwire/core'
 import { BaseConsumer } from '../BaseConsumer'
+import { RealTimeRoomApiEvents } from '../types'
 import { createRoomSessionMemberObject } from './RoomSessionMember'
 
 // FIXME: Move these interfaces to core (and use them in JS too)
@@ -57,9 +58,10 @@ type EmitterTransformsEvents =
   | InternalVideoLayoutEventNames
 
 // TODO: update once we do the split between API and Entity interfaces
-export interface RoomSession extends RoomSessionMethods, BaseConsumer {}
-
-class RoomSessionConsumer extends BaseConsumer {
+export interface RoomSession
+  extends RoomSessionMethods,
+    BaseConsumer<RealTimeRoomApiEvents> {}
+class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   protected _eventsPrefix = 'video' as const
 
   /** @internal */
@@ -114,13 +116,16 @@ class RoomSessionConsumer extends BaseConsumer {
           instanceFactory: (_payload: VideoMemberEventParams) => {
             return createRoomSessionMemberObject({
               store: this.store,
+              // TODO: the emitter is now typed so types
+              // don't match but internally it doesn't
+              // matter that much.
+              // @ts-expect-error
               emitter: this.options.emitter,
             })
           },
           payloadTransform: (payload: VideoMemberEventParams) => {
-            const { id, ...rest } = payload.member
             return toExternalJSON({
-              ...rest,
+              ...payload.member,
               /**
                * The server is sending the member id as `id`
                * but internally (i.e in CustomMethods) we
@@ -129,7 +134,7 @@ class RoomSessionConsumer extends BaseConsumer {
                * multiple ids at once and having them
                * properly prefixed makes it easier to read.
                */
-              member_id: id,
+              member_id: payload.member.id,
             })
           },
         },
@@ -159,8 +164,10 @@ export const RoomSessionAPI = extendComponent<RoomSession, RoomSessionMethods>(
   }
 )
 
-export const createRoomSessionObject = (params: BaseComponentOptions) => {
-  const roomSession: RoomSession = connect({
+export const createRoomSessionObject = (
+  params: BaseComponentOptions<EmitterTransformsEvents>
+): RoomSession => {
+  const roomSession = connect<RealTimeRoomApiEvents, RoomSession>({
     store: params.store,
     Component: RoomSessionAPI,
     componentListeners: {

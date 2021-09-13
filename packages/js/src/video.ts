@@ -9,7 +9,6 @@ export { Client, createRoomObject, joinRoom, Room, RoomScreenShare, RoomDevice }
 
 export type { MakeRoomOptions }
 export type {
-  RoomObject,
   MemberCommandParams,
   MemberCommandWithVolumeParams,
   MemberCommandWithValueParams,

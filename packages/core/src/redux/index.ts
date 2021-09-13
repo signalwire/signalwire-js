@@ -4,10 +4,10 @@ import { rootReducer } from './rootReducer'
 import rootSaga from './rootSaga'
 import { SDKState } from './interfaces'
 import { connect } from './connect'
-import { UserOptions, SessionConstructor } from '../utils/interfaces'
+import { InternalUserOptions, SessionConstructor } from '../utils/interfaces'
 
 interface ConfigureStoreOptions {
-  userOptions: UserOptions
+  userOptions: InternalUserOptions
   SessionConstructor: SessionConstructor
   runSagaMiddleware?: boolean
   preloadedState?: Partial<SDKState>

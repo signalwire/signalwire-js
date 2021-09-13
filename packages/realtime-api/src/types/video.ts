@@ -1,4 +1,3 @@
-import StrictEventEmitter from 'strict-event-emitter-types'
 import type {
   GlobalVideoEvents,
   VideoMemberEventNames,
@@ -16,7 +15,7 @@ export type RealTimeVideoApiGlobalEvents = GlobalVideoEvents
 
 export type RealTimeVideoApiEventsHandlerMapping = Record<
   RealTimeVideoApiGlobalEvents,
-  (room: StrictEventEmitter<RoomSession, RealTimeRoomApiEvents>) => void
+  (room: RoomSession) => void
 >
 
 export type RealTimeVideoApiEvents = {
@@ -30,15 +29,9 @@ export type RealTimeRoomApiEventsHandlerMapping = Record<
 > &
   Record<VideoMemberEventNames, (member: RoomSessionMember) => void> &
   Record<MemberTalkingEventNames, (member: RoomSessionMember) => void> &
-  Record<
-    RoomStarted | RoomEnded,
-    (room: StrictEventEmitter<RoomSession, RealTimeRoomApiEvents>) => void
-  > &
+  Record<RoomStarted | RoomEnded, (room: RoomSession) => void> &
   // TODO: we need to tweak the `room` param because it includes `updated` too in this event
-  Record<
-    RoomUpdated,
-    (room: StrictEventEmitter<RoomSession, RealTimeRoomApiEvents>) => void
-  >
+  Record<RoomUpdated, (room: RoomSession) => void>
 
 export type RealTimeRoomApiEvents = {
   [k in keyof RealTimeRoomApiEventsHandlerMapping]: RealTimeRoomApiEventsHandlerMapping[k]

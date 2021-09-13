@@ -6,7 +6,8 @@ interface RoomMethodPropertyDescriptor<T> extends PropertyDescriptor {
   value: (params: RoomMethodParams) => Promise<T>
 }
 type RoomMethodDescriptor<T = unknown> = RoomMethodPropertyDescriptor<T> &
-  ThisType<BaseRoomInterface>
+  // TODO: Replace string with a tighter type
+  ThisType<BaseRoomInterface<string>>
 type RoomMethodParams = Record<string, unknown>
 interface BaseRPCResult {
   code: string
@@ -114,7 +115,6 @@ export const startRecording: RoomMethodDescriptor<any> = {
       const handler = (instance: any) => {
         resolve(instance)
       }
-
       this.on('video.__internal__.recording.start', handler)
 
       try {

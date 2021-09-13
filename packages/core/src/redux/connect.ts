@@ -4,6 +4,7 @@ import { componentActions } from './features'
 import { getComponent } from './features/component/componentSelectors'
 import { getSession } from './features/session/sessionSelectors'
 import type { BaseComponent } from '../BaseComponent'
+import { EventEmitter } from '../utils/EventEmitter'
 
 type ComponentEventHandler = (component: ReduxComponent) => unknown
 type SessionEventHandler = (session: SessionState) => unknown
@@ -19,7 +20,12 @@ interface Connect<T> {
 type ReduxComponentKeys = keyof ReduxComponent
 type ReduxSessionKeys = keyof SessionState
 
-export const connect = <T extends BaseComponent>(options: Connect<T>) => {
+export const connect = <
+  EventTypes extends EventEmitter.ValidEventTypes,
+  T extends BaseComponent<EventTypes>
+>(
+  options: Connect<T>
+) => {
   const {
     componentListeners = {},
     sessionListeners = {},

@@ -5,7 +5,6 @@ import {
   getEventEmitter,
   UserOptions,
 } from '@signalwire/core'
-import StrictEventEmitter from 'strict-event-emitter-types'
 import { Client } from './Client'
 import { JWTSession } from './JWTSession'
 
@@ -54,13 +53,13 @@ import { JWTSession } from './JWTSession'
 export const createClient = async (userOptions: UserOptions) => {
   const baseUserOptions = {
     ...userOptions,
-    emitter: getEventEmitter<ClientEvents>(userOptions),
+    emitter: getEventEmitter<ClientEvents>(),
   }
   const store = configureStore({
     userOptions: baseUserOptions,
     SessionConstructor: JWTSession,
   })
-  const client: StrictEventEmitter<Client, ClientEvents> = connect({
+  const client = connect<ClientEvents, Client>({
     store,
     Component: Client,
     componentListeners: {

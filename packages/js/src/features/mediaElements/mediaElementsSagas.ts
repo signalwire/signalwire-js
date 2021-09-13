@@ -51,6 +51,7 @@ export const makeMediaElementsSaga = ({
       room.on('layout.changed', (params) => {
         if (room.peer.hasVideoSender && room.localStream) {
           layoutChangedHandler({
+            // @ts-expect-error
             layout: params.layout,
             localStream: room.localStream,
             myMemberId: room.memberId,

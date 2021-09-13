@@ -2,8 +2,8 @@ import {
   logger,
   connect,
   Rooms,
-  RoomCustomMethods,
   EventTransform,
+  extendComponent,
 } from '@signalwire/core'
 import {
   getDisplayMedia,
@@ -11,8 +11,7 @@ import {
   BaseConnectionOptions,
 } from '@signalwire/webrtc'
 import {
-  RoomScreenShareObject,
-  RoomDeviceObject,
+  RoomObjectEvents,
   CreateScreenShareObjectOptions,
   AddDeviceOptions,
   AddCameraOptions,
@@ -28,11 +27,17 @@ import { audioSetSpeakerAction } from './features/actions'
 import { RoomScreenShare } from './RoomScreenShare'
 import { RoomDevice } from './RoomDevice'
 
-interface Room extends RoomMethods {}
+interface Room extends RoomMethods, BaseConnection<RoomObjectEvents> {
+  join(): Promise<Room>
+  leave(): Promise<void>
+}
 
-class Room extends BaseConnection implements BaseRoomInterface {
-  private _screenShareList = new Set<RoomScreenShareObject>()
-  private _deviceList = new Set<RoomDeviceObject>()
+class RoomConnection
+  extends BaseConnection<RoomObjectEvents>
+  implements BaseRoomInterface
+{
+  private _screenShareList = new Set<RoomScreenShare>()
+  private _deviceList = new Set<RoomDevice>()
 
   get screenShareList() {
     return Array.from(this._screenShareList)
@@ -56,6 +61,7 @@ class Room extends BaseConnection implements BaseRoomInterface {
           instanceFactory: (_payload: any) => {
             return Rooms.createRoomSessionRecordingObject({
               store: this.store,
+              // @ts-expect-error
               emitter: this.emitter,
             })
           },
@@ -85,7 +91,7 @@ class Room extends BaseConnection implements BaseRoomInterface {
       audio: audio === true ? SCREENSHARE_AUDIO_CONSTRAINTS : audio,
       video,
     })
-    const options: BaseConnectionOptions = {
+    const options: BaseConnectionOptions<RoomObjectEvents> = {
       ...this.options,
       screenShare: true,
       recoverCall: false,
@@ -98,7 +104,11 @@ class Room extends BaseConnection implements BaseRoomInterface {
       },
     }
 
-    const screenShare: RoomScreenShareObject = connect({
+    const screenShare = connect<
+      RoomObjectEvents,
+      // @ts-expect-error
+      RoomScreenShare
+    >({
       store: this.store,
       Component: RoomScreenShare,
       componentListeners: ROOM_COMPONENT_LISTENERS,
@@ -165,7 +175,7 @@ class Room extends BaseConnection implements BaseRoomInterface {
       )
     }
 
-    const options: BaseConnectionOptions = {
+    const options: BaseConnectionOptions<RoomObjectEvents> = {
       ...this.options,
       localStream: undefined,
       remoteStream: undefined,
@@ -180,7 +190,8 @@ class Room extends BaseConnection implements BaseRoomInterface {
       },
     }
 
-    const roomDevice: RoomDeviceObject = connect({
+    // @ts-expect-error
+    const roomDevice = connect<RoomObjectEvents, RoomDevice>({
       store: this.store,
       Component: RoomDevice,
       componentListeners: ROOM_COMPONENT_LISTENERS,
@@ -239,6 +250,7 @@ class Room extends BaseConnection implements BaseRoomInterface {
    * be removed in v3.0.0
    */
   getLayoutList() {
+    // @ts-expect-error
     return this.getLayouts()
   }
 
@@ -247,11 +259,12 @@ class Room extends BaseConnection implements BaseRoomInterface {
    * be removed in v3.0.0
    */
   getMemberList() {
+    // @ts-expect-error
     return this.getMembers()
   }
 }
 
-const customMethods: RoomCustomMethods<RoomMethods> = {
+const Room = extendComponent<Room, RoomMethods>(RoomConnection, {
   audioMute: Rooms.audioMuteMember,
   audioUnmute: Rooms.audioUnmuteMember,
   videoMute: Rooms.videoMuteMember,
@@ -267,10 +280,8 @@ const customMethods: RoomCustomMethods<RoomMethods> = {
   setLayout: Rooms.setLayout,
   hideVideoMuted: Rooms.hideVideoMuted,
   showVideoMuted: Rooms.showVideoMuted,
-  // TODO: Add these to the spec list
   getRecordings: Rooms.getRecordings,
   startRecording: Rooms.startRecording,
-}
-Object.defineProperties(Room.prototype, customMethods)
+})
 
 export { Room }

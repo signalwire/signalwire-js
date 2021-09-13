@@ -71,10 +71,10 @@ class MediaStreamTrackMock implements MediaStreamTrack {
   readonly: boolean
   readyState: MediaStreamTrackState
   remote: boolean
-  onended: (this: MediaStreamTrack, ev: MediaStreamErrorEvent) => any
+  onended: (this: MediaStreamTrack, ev: any) => any
   onisolationchange: (this: MediaStreamTrack, ev: Event) => any
   onmute: (this: MediaStreamTrack, ev: Event) => any
-  onoverconstrained: (this: MediaStreamTrack, ev: MediaStreamErrorEvent) => any
+  onoverconstrained: (this: MediaStreamTrack, ev: any) => any
   onunmute: (this: MediaStreamTrack, ev: Event) => any
 
   applyConstraints(constraints: any): Promise<void> {
@@ -167,13 +167,13 @@ class RTCPeerConnectionMock implements RTCPeerConnection {
   onicegatheringstatechange: (this: RTCPeerConnection, ev: Event) => any
   onnegotiationneeded: (this: RTCPeerConnection, ev: Event) => any
   onsignalingstatechange: (this: RTCPeerConnection, ev: Event) => any
-  onstatsended: (this: RTCPeerConnection, ev: RTCStatsEvent) => any
+  onstatsended: (this: RTCPeerConnection, ev: any) => any
   ontrack: (this: RTCPeerConnection, ev: RTCTrackEvent) => any
-  peerIdentity: Promise<RTCIdentityAssertion>
+  peerIdentity: Promise<any>
   pendingLocalDescription: RTCSessionDescription
   pendingRemoteDescription: RTCSessionDescription
   remoteDescription: RTCSessionDescription
-  sctp: RTCSctpTransport
+  sctp: any
   signalingState: RTCSignalingState
   // addIceCandidate(candidate: RTCIceCandidateInit | RTCIceCandidate): Promise<void>
   // addIceCandidate(candidate?: RTCIceCandidateInit | RTCIceCandidate): Promise<void>
@@ -249,7 +249,7 @@ class RTCPeerConnectionMock implements RTCPeerConnection {
   getStats(selector?: MediaStreamTrack): Promise<RTCStatsReport>
   getStats(
     selector: MediaStreamTrack,
-    successCallback: RTCStatsCallback,
+    successCallback: RTCSessionDescriptionCallback,
     failureCallback: RTCPeerConnectionErrorCallback
   ): Promise<void>
   getStats(
@@ -272,10 +272,7 @@ class RTCPeerConnectionMock implements RTCPeerConnection {
   setConfiguration(configuration: any) {
     throw new Error('Method not implemented: setConfiguration')
   }
-  setIdentityProvider(
-    provider: string,
-    options?: RTCIdentityProviderOptions
-  ): void {
+  setIdentityProvider(provider: string, options?: any): void {
     throw new Error('Method not implemented: setIdentityProvider')
   }
   setLocalDescription(description: RTCSessionDescriptionInit): Promise<void>
