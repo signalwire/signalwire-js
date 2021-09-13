@@ -1,5 +1,5 @@
 import { BaseRoomInterface } from '.'
-import { VideoMember, VideoRecording } from '../types'
+import { VideoMember, VideoRecordingEntity } from '../types'
 import { ExecuteExtendedOptions, RoomMethod } from '../utils/interfaces'
 
 interface RoomMethodPropertyDescriptor<T> extends PropertyDescriptor {
@@ -103,12 +103,11 @@ export const showVideoMuted = createRoomMethod<BaseRPCResult, void>(
     transformResolve: baseCodeTransform,
   }
 )
-export const getRecordings = createRoomMethod<{ recordings: VideoRecording[] }>(
-  'video.recording.list',
-  {
-    transformResolve: (payload) => ({ recordings: payload.recordings }),
-  }
-)
+export const getRecordings = createRoomMethod<{
+  recordings: VideoRecordingEntity[]
+}>('video.recording.list', {
+  transformResolve: (payload) => ({ recordings: payload.recordings }),
+})
 export const startRecording: RoomMethodDescriptor<any> = {
   value: function () {
     return new Promise(async (resolve) => {

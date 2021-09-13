@@ -1,5 +1,10 @@
 import type { SwEvent } from '.'
-import type { CamelToSnakeCase, ToInternalVideoEvent } from './utils'
+import type {
+  CamelToSnakeCase,
+  ToInternalVideoEvent,
+  OnlyStateProperties,
+  OnlyFunctionProperties,
+} from './utils'
 
 /**
  * Public event types
@@ -24,22 +29,39 @@ export type InternalVideoRecordingEventNames =
   ToInternalVideoEvent<VideoRecordingEventNames>
 
 /**
- * Base Interface for a VideoRecording entity
+ * Public Contract for a VideoRecording
  */
-export interface VideoRecording {
+export interface VideoRecordingContract {
   id: string
   state: 'recording' | 'paused' | 'completed'
   duration?: number
   startedAt?: number
   endedAt?: number
+
+  pause(): Promise<void>
+  resume(): Promise<void>
+  stop(): Promise<void>
 }
 
 /**
- * VideoRecording entity for internal usage (converted to snake_case)
+ * VideoRecording properties
+ */
+export type VideoRecordingEntity = OnlyStateProperties<VideoRecordingContract>
+
+/**
+ * VideoRecording methods
+ */
+export type VideoRecordingMethods =
+  OnlyFunctionProperties<VideoRecordingContract>
+
+/**
+ * VideoRecordingEntity entity for internal usage (converted to snake_case)
  * @internal
  */
-export type InternalVideoRecording = {
-  [K in keyof VideoRecording as CamelToSnakeCase<K>]: VideoRecording[K]
+export type InternalVideoRecordingEntity = {
+  [K in NonNullable<
+    keyof VideoRecordingEntity
+  > as CamelToSnakeCase<K>]: VideoRecordingEntity[K]
 }
 
 /**
@@ -56,7 +78,7 @@ export type InternalVideoRecording = {
 export interface VideoRecordingStartedEventParams {
   room_id: string
   room_session_id: string
-  recording: InternalVideoRecording
+  recording: InternalVideoRecordingEntity
 }
 
 export interface VideoRecordingStartedEvent extends SwEvent {
@@ -70,7 +92,7 @@ export interface VideoRecordingStartedEvent extends SwEvent {
 export interface VideoRecordingUpdatedEventParams {
   room_id: string
   room_session_id: string
-  recording: InternalVideoRecording
+  recording: InternalVideoRecordingEntity
 }
 
 export interface VideoRecordingUpdatedEvent extends SwEvent {
@@ -84,7 +106,7 @@ export interface VideoRecordingUpdatedEvent extends SwEvent {
 export interface VideoRecordingEndedEventParams {
   room_id: string
   room_session_id: string
-  recording: InternalVideoRecording
+  recording: InternalVideoRecordingEntity
 }
 
 export interface VideoRecordingEndedEvent extends SwEvent {
