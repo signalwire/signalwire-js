@@ -7,14 +7,13 @@ import { createPubSubChannel } from '../../../testUtils'
 describe('sessionChannelWatcher', () => {
   it('should take from pubSubChannel and emit through the EventEmitter', () => {
     let runSaga = true
-    const emitter = new EventEmitter()
+    const emitter = new EventEmitter<string>()
     const mockFn = jest.fn()
     emitter.on('event.name', mockFn)
     const pubSubChannel = createPubSubChannel()
 
     return expectSaga(pubSubSaga, {
       pubSubChannel,
-      // @ts-expect-error
       emitter,
     })
       .provide([
