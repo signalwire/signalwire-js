@@ -1,10 +1,10 @@
 import type {
-  VideoRoomEventNames,
+  VideoRoomSessionEventNames,
   RoomStarted,
   RoomSubscribed,
   RoomUpdated,
   RoomEnded,
-  VideoMember,
+  VideoMemberEntity,
 } from '@signalwire/core'
 
 /** @deprecated */
@@ -16,13 +16,13 @@ export type RoomSubscribedEventName = RoomSubscribed
 /** @deprecated */
 export type RoomUpdatedEventName = RoomUpdated
 /** @deprecated */
-export type RoomEvent = VideoRoomEventNames
+export type RoomEvent = VideoRoomSessionEventNames
 /** @deprecated */
-export type RoomMember = VideoMember & { type: 'member' }
+export type RoomMember = VideoMemberEntity & { type: 'member' }
 /** @deprecated */
-export type RoomScreenShare = VideoMember & { type: 'screen' }
+export type RoomScreenShare = VideoMemberEntity & { type: 'screen' }
 /** @deprecated */
-export type RoomDevice = VideoMember & { type: 'device' }
+export type RoomDevice = VideoMemberEntity & { type: 'device' }
 
 export * as Video from './video'
 
@@ -37,7 +37,7 @@ export type {
   BaseComponentOptions,
   BaseConnectionState,
   ClientEvents,
-  Emitter,
+  EmitterContract,
   RoomEventNames,
   RTCTrackEventName,
   UserOptions,
@@ -45,13 +45,13 @@ export type {
   SessionEvents,
   VideoLayout,
   VideoLayoutEventNames,
-  VideoRoomEventNames,
+  VideoRoomSessionEventNames,
   VideoRoomEventParams,
-  VideoMember,
+  VideoMemberEntity,
   VideoMemberEventNames,
   MemberTalkingEventNames,
   VideoMemberTalkingEventParams,
-  InternalVideoMember,
+  InternalVideoMemberEntity,
 } from '@signalwire/core'
 export type {
   BaseConnectionOptions,

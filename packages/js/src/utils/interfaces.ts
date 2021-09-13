@@ -3,10 +3,10 @@ import type {
   BaseConnectionState,
   VideoLayout,
   VideoLayoutEventNames,
-  VideoRoomEventNames,
+  VideoRoomSessionEventNames,
   VideoRoomEventParams,
-  VideoMember,
-  InternalVideoMember,
+  VideoMemberEntity,
+  InternalVideoMemberEntity,
   VideoMemberEventNames,
   MemberTalkingEventNames,
   VideoMemberTalkingEventParams,
@@ -29,8 +29,10 @@ const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
 export type DeprecatedMemberUpdatableProps =
   typeof INTERNAL_MEMBER_UPDATED_EVENTS[number]
 /** @deprecated */
-export type DeprecatedVideoMemberHandlerParams = { member: InternalVideoMember }
-export type VideoMemberHandlerParams = { member: VideoMember }
+export type DeprecatedVideoMemberHandlerParams = {
+  member: InternalVideoMemberEntity
+}
+export type VideoMemberHandlerParams = { member: VideoMemberEntity }
 
 export type RoomObjectEventsHandlerMap = Record<
   VideoLayoutEventNames,
@@ -45,7 +47,7 @@ export type RoomObjectEventsHandlerMap = Record<
     MemberTalkingEventNames,
     (params: VideoMemberTalkingEventParams) => void
   > &
-  Record<VideoRoomEventNames, (params: VideoRoomEventParams) => void> &
+  Record<VideoRoomSessionEventNames, (params: VideoRoomEventParams) => void> &
   Record<RTCTrackEventName, (event: RTCTrackEvent) => void> &
   Record<BaseConnectionState, (params: Room) => void> &
   Record<VideoRecordingEventNames, (recording: RoomSessionRecording) => void>
