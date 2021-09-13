@@ -8,59 +8,27 @@ import {
   Rooms,
   toExternalJSON,
   VideoMemberEventParams,
-  InternalVideoRoomEventNames,
+  InternalVideoRoomSessionEventNames,
   VideoRoomUpdatedEventParams,
   InternalVideoLayoutEventNames,
   VideoLayoutChangedEventParams,
+  VideoRoomSessionContract,
+  VideoRoomSessionMethods,
+  EmitterContract,
 } from '@signalwire/core'
 import { BaseConsumer } from '../BaseConsumer'
 import { RealTimeRoomApiEvents } from '../types'
 import { createRoomSessionMemberObject } from './RoomSessionMember'
 
-// FIXME: Move these interfaces to core (and use them in JS too)
-export interface MemberCommandParams {
-  memberId?: string
-}
-export interface MemberCommandWithVolumeParams extends MemberCommandParams {
-  volume: number
-}
-export interface MemberCommandWithValueParams extends MemberCommandParams {
-  value: number
-}
-
-interface RoomSessionMethods {
-  audioMute(params: MemberCommandParams): Rooms.AudioMuteMember
-  audioUnmute(params: MemberCommandParams): Rooms.AudioUnmuteMember
-  videoMute(params: MemberCommandParams): Rooms.VideoMuteMember
-  videoUnmute(params: MemberCommandParams): Rooms.VideoUnmuteMember
-  setMicrophoneVolume(
-    params: MemberCommandWithVolumeParams
-  ): Rooms.SetInputVolumeMember
-  setInputSensitivity(
-    params: MemberCommandWithValueParams
-  ): Rooms.SetInputSensitivityMember
-  getMembers(): Rooms.GetMembers
-  deaf(params: MemberCommandParams): Rooms.DeafMember
-  undeaf(params: MemberCommandParams): Rooms.UndeafMember
-  setSpeakerVolume(
-    params: MemberCommandWithVolumeParams
-  ): Rooms.SetOutputVolumeMember
-  removeMember(params: Required<MemberCommandParams>): Rooms.RemoveMember
-  hideVideoMuted(): Rooms.HideVideoMuted
-  showVideoMuted(): Rooms.ShowVideoMuted
-  getLayouts(): Rooms.GetLayouts
-  setLayout(): Rooms.SetLayout
-}
-
 type EmitterTransformsEvents =
-  | InternalVideoRoomEventNames
+  | InternalVideoRoomSessionEventNames
   | InternalVideoMemberEventNames
   | InternalVideoLayoutEventNames
 
-// TODO: update once we do the split between API and Entity interfaces
 export interface RoomSession
-  extends RoomSessionMethods,
-    BaseConsumer<RealTimeRoomApiEvents> {}
+  extends VideoRoomSessionContract,
+    EmitterContract<RealTimeRoomApiEvents> {}
+
 class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   protected _eventsPrefix = 'video' as const
 
@@ -143,30 +111,31 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   }
 }
 
-export const RoomSessionAPI = extendComponent<RoomSession, RoomSessionMethods>(
+export const RoomSessionAPI = extendComponent<
   RoomSessionConsumer,
-  {
-    videoMute: Rooms.videoMuteMember,
-    videoUnmute: Rooms.videoUnmuteMember,
-    getMembers: Rooms.getMembers,
-    audioMute: Rooms.audioMuteMember,
-    audioUnmute: Rooms.audioUnmuteMember,
-    deaf: Rooms.deafMember,
-    undeaf: Rooms.undeafMember,
-    setMicrophoneVolume: Rooms.setInputVolumeMember,
-    setSpeakerVolume: Rooms.setOutputVolumeMember,
-    setInputSensitivity: Rooms.setInputSensitivityMember,
-    removeMember: Rooms.removeMember,
-    hideVideoMuted: Rooms.hideVideoMuted,
-    showVideoMuted: Rooms.showVideoMuted,
-    getLayouts: Rooms.getLayouts,
-    setLayout: Rooms.setLayout,
-  }
-)
+  VideoRoomSessionMethods
+>(RoomSessionConsumer, {
+  videoMute: Rooms.videoMuteMember,
+  videoUnmute: Rooms.videoUnmuteMember,
+  getMembers: Rooms.getMembers,
+  audioMute: Rooms.audioMuteMember,
+  audioUnmute: Rooms.audioUnmuteMember,
+  deaf: Rooms.deafMember,
+  undeaf: Rooms.undeafMember,
+  setMicrophoneVolume: Rooms.setInputVolumeMember,
+  setSpeakerVolume: Rooms.setOutputVolumeMember,
+  setInputSensitivity: Rooms.setInputSensitivityMember,
+  removeMember: Rooms.removeMember,
+  // hideVideoMuted: Rooms.hideVideoMuted,
+  showVideoMuted: Rooms.showVideoMuted,
+  getLayouts: Rooms.getLayouts,
+  setLayout: Rooms.setLayout,
+})
 
 export const createRoomSessionObject = (
   params: BaseComponentOptions<EmitterTransformsEvents>
 ): RoomSession => {
+  // @ts-expect-error
   const roomSession = connect<RealTimeRoomApiEvents, RoomSession>({
     store: params.store,
     Component: RoomSessionAPI,
