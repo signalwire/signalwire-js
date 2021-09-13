@@ -87,7 +87,6 @@ export type BaseConnectionOptions<
 
 export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   extends BaseComponent<EventTypes & BaseConnectionStateEventTypes>
-  // TODO: fix types
   implements
     Rooms.BaseRoomInterface<EventTypes & BaseConnectionStateEventTypes>
 {
