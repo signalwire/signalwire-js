@@ -86,7 +86,10 @@ export interface UserOptions extends SessionOptions {
 }
 
 export interface InternalUserOptions extends UserOptions {
-  // TODO: check if we need to make InternalUserOptions a generic
+  /**
+   * TODO: Create type containing all the possible types the
+   * emitter should be allowed to handle
+   */
   emitter: Emitter<any>
 }
 
