@@ -27,7 +27,8 @@ export interface RoomSessionMemberAPI extends RoomSessionMemberMethods {
 
 export type RoomSessionMember = RoomSessionMemberAPI & VideoMember
 
-// TODO: check generic
+// TODO: Extend from a variant of `BaseComponent` that
+// doesn't expose EventEmitter methods
 class RoomSessionMemberComponent extends BaseComponent<{}> {
   async remove() {
     await this.execute({
@@ -55,7 +56,6 @@ const RoomSessionMemberAPI = extendComponent<
   setInputSensitivity: Rooms.setInputSensitivityMember,
 })
 
-// TODO: check generic
 export const createRoomSessionMemberObject = (
   params: BaseComponentOptions<{}>
 ) => {
