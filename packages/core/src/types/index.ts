@@ -7,23 +7,23 @@ export interface SwEvent {
   timestamp: number
 }
 
-export interface EventEmitterContract<
+export interface EmitterContract<
   EventTypes extends EventEmitter.ValidEventTypes
 > {
   on<T extends EventEmitter.EventNames<EventTypes>>(
     event: T,
     fn: EventEmitter.EventListener<EventTypes, T>
-  ): EventEmitterContract<EventTypes>
+  ): EmitterContract<EventTypes>
 
   once<T extends EventEmitter.EventNames<EventTypes>>(
     event: T,
     fn: EventEmitter.EventListener<EventTypes, T>
-  ): EventEmitterContract<EventTypes>
+  ): EmitterContract<EventTypes>
 
   off<T extends EventEmitter.EventNames<EventTypes>>(
     event: T,
     fn?: EventEmitter.EventListener<EventTypes, T>
-  ): EventEmitterContract<EventTypes>
+  ): EmitterContract<EventTypes>
 }
 
 export interface WebRTCMessageParams extends SwEvent {

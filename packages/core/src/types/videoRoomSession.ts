@@ -1,4 +1,4 @@
-import type { SwEvent, EventEmitterContract } from '.'
+import type { SwEvent, EmitterContract } from '.'
 import type {
   CamelToSnakeCase,
   EntityUpdated,
@@ -46,7 +46,7 @@ export type InternalVideoRoomSessionEventNames =
  */
 export interface VideoRoomSessionContract<
   EventTypes extends EventEmitter.ValidEventTypes
-> extends EventEmitterContract<EventTypes> {
+> extends EmitterContract<EventTypes> {
   id: string
   roomId: string
   eventChannel: string
