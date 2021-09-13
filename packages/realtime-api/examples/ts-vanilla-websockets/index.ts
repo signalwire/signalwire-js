@@ -4,8 +4,8 @@ async function run() {
   try {
     const client = await createClient({
       host: 'relay.swire.io',
-      project: '<project-id>',
-      token: '<project-token>',
+      project: process.env.PROJECT as string,
+      token: process.env.TOKEN as string,
     })
 
     client.video.on('room.started', async (room) => {
@@ -50,7 +50,7 @@ async function run() {
     })
 
     client.video.on('room.ended', (room) => {
-      console.log('🔴 ROOOM ENDED 🔴', room.name, room)
+      console.log('🔴 ROOOM ENDED 🔴', room)
     })
 
     await client.connect()
