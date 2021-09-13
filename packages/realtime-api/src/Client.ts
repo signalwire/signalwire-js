@@ -2,12 +2,12 @@ import {
   BaseClient,
   EventsPrefix,
   SessionState,
-  Emitter,
+  EmitterContract,
   ClientEvents,
 } from '@signalwire/core'
 import { createVideoObject, Video } from './Video'
 
-export interface RealtimeClient extends Emitter<ClientEvents> {
+export interface RealtimeClient extends EmitterContract<ClientEvents> {
   video: Video
 }
 

@@ -1,9 +1,9 @@
 import {
   BaseComponentOptions,
   connect,
-  Emitter,
+  EmitterContract,
   EventTransform,
-  InternalVideoRoomEventNames,
+  InternalVideoRoomSessionEventNames,
   toExternalJSON,
 } from '@signalwire/core'
 import { BaseConsumer } from './BaseConsumer'
@@ -11,11 +11,11 @@ import { RealTimeVideoApiEvents } from './types/video'
 import { createRoomSessionObject } from './video/RoomSession'
 
 type TransformEvent = Extract<
-  InternalVideoRoomEventNames,
+  InternalVideoRoomSessionEventNames,
   'video.room.started' | 'video.room.ended'
 >
 
-interface VideoObject extends Emitter<RealTimeVideoApiEvents> {}
+interface VideoObject extends EmitterContract<RealTimeVideoApiEvents> {}
 
 export class Video
   extends BaseConsumer<RealTimeVideoApiEvents>
