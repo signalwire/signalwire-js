@@ -15,7 +15,7 @@ type TransformEvent = Extract<
   'video.room.started' | 'video.room.ended'
 >
 
-export interface VideoObject extends Emitter<RealTimeVideoApiEvents> {}
+interface VideoObject extends Emitter<RealTimeVideoApiEvents> {}
 
 export class Video
   extends BaseConsumer<RealTimeVideoApiEvents>
