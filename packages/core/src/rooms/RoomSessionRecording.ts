@@ -58,10 +58,12 @@ export class RoomSessionRecordingAPI
 // TODO: move to its own file
 export const createRoomSessionRecordingObject = (
   params: BaseComponentOptions<RoomSessionRecordingEvents>
-) => {
-  const recording = connect({
+): RoomSessionRecordingAPI => {
+  const recording = connect<
+    RoomSessionRecordingEvents,
+    RoomSessionRecordingAPI
+  >({
     store: params.store,
-    // @ts-expect-error
     Component: RoomSessionRecordingAPI,
     componentListeners: {
       errors: 'onError',
@@ -69,5 +71,5 @@ export const createRoomSessionRecordingObject = (
     },
   })(params)
 
-  return recording as any as RoomSessionRecordingAPI
+  return recording
 }
