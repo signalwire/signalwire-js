@@ -1,19 +1,13 @@
 import {
   logger,
-  connect,
   BaseClient,
   ClientEvents,
   ClientContract,
 } from '@signalwire/core'
 import type { CustomSaga } from '@signalwire/core'
-import {
-  ConnectionOptions,
-  BaseConnectionStateEventTypes,
-} from '@signalwire/webrtc'
+import { ConnectionOptions } from '@signalwire/webrtc'
 import { makeMediaElementsSaga } from './features/mediaElements/mediaElementsSagas'
-import type { RoomObjectEvents } from './utils/interfaces'
-import { ROOM_COMPONENT_LISTENERS } from './utils/constants'
-import { Room, RoomConnection, RoomAPI } from './Room'
+import { RoomConnection, createRoomSessionObject } from './Room'
 
 export interface Client extends ClientContract<Client, ClientEvents> {
   rooms: ClientAPI['rooms']
@@ -54,18 +48,12 @@ export class ClientAPI extends BaseClient<ClientEvents> {
           )
         }
 
-        const room = connect<
-          RoomObjectEvents & BaseConnectionStateEventTypes,
-          RoomConnection,
-          Room
-        >({
-          store: this.store,
-          Component: RoomAPI,
-          customSagas,
-          componentListeners: ROOM_COMPONENT_LISTENERS,
-        })({
+        const room = createRoomSessionObject({
           ...options,
-          emitter: this.options.emitter,
+          store: this.store,
+          // @ts-expect-error
+          emitter: this.emitter,
+          customSagas,
         })
 
         /**
