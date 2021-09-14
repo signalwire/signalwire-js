@@ -1,20 +1,14 @@
-import { connect, EventEmitter, actions } from '@signalwire/core'
-import { Room } from './Room'
-import { ROOM_COMPONENT_LISTENERS } from './utils/constants'
+import { EventEmitter, actions } from '@signalwire/core'
+import { createRoomSessionObject } from './Room'
 import { configureJestStore, configureFullStack } from './testUtils'
-import type { RoomObject } from './utils/interfaces'
 
 describe('Room Object', () => {
   let store: any
-  let room: RoomObject
+  let room: any
 
   beforeEach(() => {
     store = configureJestStore()
-    room = connect({
-      store,
-      Component: Room,
-      componentListeners: ROOM_COMPONENT_LISTENERS,
-    })({
+    room = createRoomSessionObject({
       store,
       emitter: new EventEmitter(),
     })
@@ -59,12 +53,9 @@ describe('Room Object', () => {
         recordings: recordingList,
       })
 
-      room = connect({
+      room = createRoomSessionObject({
         store,
-        Component: Room,
-        componentListeners: ROOM_COMPONENT_LISTENERS,
-      })({
-        store,
+        // @ts-expect-error
         emitter,
       })
       // mock a room.subscribed event
@@ -166,12 +157,9 @@ describe('Room Object', () => {
   describe('as event emitter', () => {
     it('should listen on the talking events', () => {
       const { store, session, emitter } = configureFullStack()
-      room = connect({
+      room = createRoomSessionObject({
         store,
-        Component: Room,
-        componentListeners: ROOM_COMPONENT_LISTENERS,
-      })({
-        store,
+        // @ts-expect-error
         emitter,
       })
       room.execute = jest.fn()

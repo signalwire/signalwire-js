@@ -4,6 +4,7 @@ import {
   Rooms,
   EventTransform,
   extendComponent,
+  BaseComponentOptions,
   BaseConnectionContract,
 } from '@signalwire/core'
 import {
@@ -297,3 +298,18 @@ export const RoomAPI = extendComponent<RoomConnection, RoomMethods>(
     startRecording: Rooms.startRecording,
   }
 )
+
+type RoomObjectEventsHandlerMapping = RoomObjectEvents &
+  BaseConnectionStateEventTypes
+
+export const createRoomSessionObject = (
+  params: BaseComponentOptions<RoomObjectEventsHandlerMapping>
+): Room => {
+  const room = connect<RoomObjectEventsHandlerMapping, RoomConnection, Room>({
+    store: params.store,
+    Component: RoomAPI,
+    componentListeners: ROOM_COMPONENT_LISTENERS,
+  })(params)
+
+  return room
+}
