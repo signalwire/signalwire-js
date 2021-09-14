@@ -1,8 +1,9 @@
 module.exports = {
-  out: './docs/',
+  out: './docs/html/',
   entryPoints: ['src/index.ts'],
   excludeExternals: true,
   excludeInternal: true,
+  excludeProtected: true,
   excludePrivate: true,
   hideGenerator: true,
   readme: 'README.md',

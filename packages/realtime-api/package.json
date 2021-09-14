@@ -36,7 +36,9 @@
     "build": "tsc --project tsconfig.build.json && sw-build --node",
     "test": "NODE_ENV=test jest",
     "prepublishOnly": "npm run build",
-    "docs": "typedoc --options typedoc.js",
+    "docs": "npm run docs:md && npm run docs:html",
+    "docs:md": "typedoc --options typedoc.md.js",
+    "docs:html": "typedoc --options typedoc.html.js",
     "docs:watch": "npm run docs -- --watch"
   },
   "dependencies": {
