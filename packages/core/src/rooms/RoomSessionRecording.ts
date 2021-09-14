@@ -2,26 +2,20 @@ import { connect } from '../redux'
 import { BaseComponent } from '../BaseComponent'
 import { BaseComponentOptions } from '../utils/interfaces'
 import { OnlyFunctionProperties } from '../types'
-import type { VideoRecordingEventNames } from '../types/videoRecording'
+import type {
+  VideoRecordingContract,
+  VideoRecordingEventNames,
+} from '../types/videoRecording'
 
-export interface RoomSessionRecording {
-  id: string
-  roomSessionId: string
-  state: string
-  duration: string
+export interface RoomSessionRecording extends VideoRecordingContract {}
 
-  pause(): Promise<void>
-  resume(): Promise<void>
-  stop(): Promise<void>
-}
-
-export type RoomSessionRecordingEvents = Record<
+export type RoomSessionRecordingEventsHandlerMapping = Record<
   VideoRecordingEventNames,
   (recording: RoomSessionRecording) => void
 >
 
 export class RoomSessionRecordingAPI
-  extends BaseComponent<RoomSessionRecordingEvents>
+  extends BaseComponent<RoomSessionRecordingEventsHandlerMapping>
   implements OnlyFunctionProperties<RoomSessionRecording>
 {
   async pause() {
@@ -57,10 +51,10 @@ export class RoomSessionRecordingAPI
 
 // TODO: move to its own file
 export const createRoomSessionRecordingObject = (
-  params: BaseComponentOptions<RoomSessionRecordingEvents>
+  params: BaseComponentOptions<RoomSessionRecordingEventsHandlerMapping>
 ): RoomSessionRecordingAPI => {
   const recording = connect<
-    RoomSessionRecordingEvents,
+    RoomSessionRecordingEventsHandlerMapping,
     RoomSessionRecordingAPI
   >({
     store: params.store,

@@ -3,7 +3,7 @@ import { EventEmitter } from '../utils/EventEmitter'
 import {
   createRoomSessionRecordingObject,
   RoomSessionRecordingAPI,
-  RoomSessionRecordingEvents,
+  RoomSessionRecordingEventsHandlerMapping,
 } from './RoomSessionRecording'
 
 describe('RoomSessionRecording', () => {
@@ -12,7 +12,7 @@ describe('RoomSessionRecording', () => {
     beforeEach(() => {
       instance = createRoomSessionRecordingObject({
         store: configureJestStore(),
-        emitter: new EventEmitter<RoomSessionRecordingEvents>(),
+        emitter: new EventEmitter<RoomSessionRecordingEventsHandlerMapping>(),
       })
       instance.execute = jest.fn()
     })
