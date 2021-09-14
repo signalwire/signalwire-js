@@ -69,9 +69,7 @@ export interface VideoRoomSessionContract {
     params: MemberCommandWithVolumeParams
   ): Rooms.SetOutputVolumeMember
   removeMember(params: Required<MemberCommandParams>): Rooms.RemoveMember
-  // FIXME: same as the boolean prop as above
-  // hideVideoMuted(): Rooms.HideVideoMuted
-  showVideoMuted(): Rooms.ShowVideoMuted
+  setHideVideoMuted(value: boolean): Rooms.SetHideVideoMuted
   getLayouts(): Rooms.GetLayouts
   setLayout(): Rooms.SetLayout
   getRecordings(): Rooms.GetRecordings
