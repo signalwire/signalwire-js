@@ -9,7 +9,8 @@ import {
 import { Client, RealtimeClient } from './Client'
 import { Session } from './Session'
 
-type CreateClientOptions = Omit<UserOptions, 'autoConnect'>
+export interface CreateClientOptions extends Omit<UserOptions, 'autoConnect'> {}
+export type { RealtimeClient, ClientEvents }
 
 export const createClient = async (
   userOptions: CreateClientOptions

@@ -59,6 +59,7 @@ export interface JSONRPCResponse {
 }
 
 export interface SessionOptions {
+  /** @internal */
   host?: string
   project?: string
   token: string
@@ -68,6 +69,7 @@ export interface SessionOptions {
 }
 
 export interface UserOptions extends SessionOptions {
+  /** @internal */
   devTools?: boolean
 }
 

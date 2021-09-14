@@ -5,10 +5,12 @@ import {
   InternalVideoRoomSessionEventNames,
   toExternalJSON,
   ConsumerContract,
+  RoomSessionRecording,
 } from '@signalwire/core'
 import { BaseConsumer } from './BaseConsumer'
 import { RealTimeVideoApiEvents } from './types/video'
-import { createRoomSessionObject } from './video/RoomSession'
+import { createRoomSessionObject, RoomSession } from './video/RoomSession'
+import type { RoomSessionMember } from './video/RoomSessionMember'
 
 type TransformEvent = Extract<
   InternalVideoRoomSessionEventNames,
@@ -16,6 +18,7 @@ type TransformEvent = Extract<
 >
 
 export interface VideoObject extends ConsumerContract<RealTimeVideoApiEvents> {}
+export type { RoomSession, RoomSessionMember, RoomSessionRecording }
 
 export class Video extends BaseConsumer<RealTimeVideoApiEvents> {
   /** @internal */

@@ -46,6 +46,7 @@ export type InternalVideoRoomSessionEventNames =
 export interface VideoRoomSessionContract {
   id: string
   roomId: string
+  /** @internal */
   eventChannel: string
   name: string
   recording: boolean

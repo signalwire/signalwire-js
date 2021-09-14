@@ -11,16 +11,13 @@ import type {
 import type { RoomSession } from '../video/RoomSession'
 import type { RoomSessionMember } from '../video/RoomSessionMember'
 
-// `Video` namespace related typings
-export type RealTimeVideoApiGlobalEvents = GlobalVideoEvents
-
 export type RealTimeVideoApiEventsHandlerMapping = Record<
-  RealTimeVideoApiGlobalEvents,
+  GlobalVideoEvents,
   (room: RoomSession) => void
 >
 
 export type RealTimeVideoApiEvents = {
-  [k in RealTimeVideoApiGlobalEvents]: RealTimeVideoApiEventsHandlerMapping[k]
+  [k in keyof RealTimeVideoApiEventsHandlerMapping]: RealTimeVideoApiEventsHandlerMapping[k]
 }
 
 // TODO: replace `any` with proper types.
