@@ -4,7 +4,7 @@ import { ConnectionOptions } from '@signalwire/webrtc'
 import { makeMediaElementsSaga } from './features/mediaElements/mediaElementsSagas'
 import type { RoomObjectEvents } from './utils/interfaces'
 import { ROOM_COMPONENT_LISTENERS } from './utils/constants'
-import { Room } from './Room'
+import { Room, RoomConnection, RoomAPI } from './Room'
 
 export interface MakeRoomOptions extends ConnectionOptions {
   rootElementId?: string
@@ -41,10 +41,11 @@ export class Client extends BaseClient<ClientEvents> {
           )
         }
 
+        // TODO:
         // @ts-expect-error
-        const room = connect<RoomObjectEvents, Room>({
+        const room = connect<RoomObjectEvents, RoomConnection, Room>({
           store: this.store,
-          Component: Room,
+          Component: RoomAPI,
           customSagas,
           componentListeners: ROOM_COMPONENT_LISTENERS,
         })({

@@ -31,6 +31,12 @@ export interface BaseConnectionContract<
 > extends EmitterContract<EventTypes> {
   // TODO: remove this property and move logic into BaseConnection.hangup()
   active: boolean
+  // TODO: remove these
+  stopOutboundAudio: any
+  restoreOutboundAudio: any
+  restoreOutboundVideo: any
+  stopOutboundVideo: any
+  memberId: string
 }
 
 export interface ConsumerContract<

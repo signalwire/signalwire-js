@@ -4,6 +4,7 @@ import {
   Rooms,
   EventTransform,
   extendComponent,
+  BaseConnectionContract,
 } from '@signalwire/core'
 import {
   getDisplayMedia,
@@ -32,12 +33,14 @@ import {
 } from './RoomScreenShare'
 import { RoomDeviceAPI, RoomDeviceConnection, RoomDevice } from './RoomDevice'
 
-interface Room extends RoomMethods, BaseConnection<RoomObjectEvents> {
+export interface Room
+  extends RoomMethods,
+    BaseConnectionContract<RoomObjectEvents> {
   join(): Promise<Room>
   leave(): Promise<void>
 }
 
-class RoomConnection
+export class RoomConnection
   extends BaseConnection<RoomObjectEvents>
   implements BaseRoomInterface
 {
@@ -272,24 +275,25 @@ class RoomConnection
   }
 }
 
-const Room = extendComponent<Room, RoomMethods>(RoomConnection, {
-  audioMute: Rooms.audioMuteMember,
-  audioUnmute: Rooms.audioUnmuteMember,
-  videoMute: Rooms.videoMuteMember,
-  videoUnmute: Rooms.videoUnmuteMember,
-  deaf: Rooms.deafMember,
-  undeaf: Rooms.undeafMember,
-  setMicrophoneVolume: Rooms.setInputVolumeMember,
-  setSpeakerVolume: Rooms.setOutputVolumeMember,
-  setInputSensitivity: Rooms.setInputSensitivityMember,
-  removeMember: Rooms.removeMember,
-  getMembers: Rooms.getMembers,
-  getLayouts: Rooms.getLayouts,
-  setLayout: Rooms.setLayout,
-  hideVideoMuted: Rooms.hideVideoMuted,
-  showVideoMuted: Rooms.showVideoMuted,
-  getRecordings: Rooms.getRecordings,
-  startRecording: Rooms.startRecording,
-})
-
-export { Room }
+export const RoomAPI = extendComponent<RoomConnection, RoomMethods>(
+  RoomConnection,
+  {
+    audioMute: Rooms.audioMuteMember,
+    audioUnmute: Rooms.audioUnmuteMember,
+    videoMute: Rooms.videoMuteMember,
+    videoUnmute: Rooms.videoUnmuteMember,
+    deaf: Rooms.deafMember,
+    undeaf: Rooms.undeafMember,
+    setMicrophoneVolume: Rooms.setInputVolumeMember,
+    setSpeakerVolume: Rooms.setOutputVolumeMember,
+    setInputSensitivity: Rooms.setInputSensitivityMember,
+    removeMember: Rooms.removeMember,
+    getMembers: Rooms.getMembers,
+    getLayouts: Rooms.getLayouts,
+    setLayout: Rooms.setLayout,
+    hideVideoMuted: Rooms.hideVideoMuted,
+    showVideoMuted: Rooms.showVideoMuted,
+    getRecordings: Rooms.getRecordings,
+    startRecording: Rooms.startRecording,
+  }
+)
