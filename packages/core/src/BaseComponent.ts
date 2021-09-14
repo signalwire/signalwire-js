@@ -5,7 +5,6 @@ import {
   ExecuteParams,
   ExecuteTransform,
   BaseComponentOptions,
-  Emitter,
   ExecuteExtendedOptions,
   EventsPrefix,
   EventTransform,
@@ -13,24 +12,24 @@ import {
 import { EventEmitter } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
 import { makeCustomSagaAction } from './redux/actions'
-import { OnlyStateProperties } from './types'
+import { OnlyStateProperties, EmitterContract } from './types'
 
 type EventRegisterHandlers<EventTypes extends EventEmitter.ValidEventTypes> =
   | {
       type: 'on'
-      params: Parameters<Emitter<EventTypes>['on']>
+      params: Parameters<EmitterContract<EventTypes>['on']>
     }
   | {
       type: 'off'
-      params: Parameters<Emitter<EventTypes>['off']>
+      params: Parameters<EmitterContract<EventTypes>['off']>
     }
   | {
       type: 'once'
-      params: Parameters<Emitter<EventTypes>['once']>
+      params: Parameters<EmitterContract<EventTypes>['once']>
     }
   | {
       type: 'removeAllListeners'
-      params: Parameters<Emitter<EventTypes>['removeAllListeners']>
+      params: [event: EventEmitter.EventNames<EventTypes>]
     }
 
 const identity: ExecuteTransform<any, any> = (payload) => payload
@@ -38,7 +37,7 @@ const identity: ExecuteTransform<any, any> = (payload) => payload
 export class BaseComponent<
   EventTypes extends EventEmitter.ValidEventTypes,
   StateProperties = Record<string, unknown>
-> implements Emitter<EventTypes>
+> implements EmitterContract<EventTypes>
 {
   /** @internal */
   private readonly uuid = uuid()
@@ -139,8 +138,8 @@ export class BaseComponent<
 
   /** @internal */
   private addEventToRegisterQueue(options: EventRegisterHandlers<EventTypes>) {
-    const [event, fn, context] = options.params
-    logger.trace('Adding event to the register queue', { event, fn, context })
+    const [event, fn] = options.params
+    logger.trace('Adding event to the register queue', { event, fn })
     // @ts-ignore
     this._eventsRegisterQueue.add({
       type: options.type,
@@ -444,15 +443,15 @@ export class BaseComponent<
     return this.emitter.off(internalEvent, handler)
   }
 
-  removeAllListeners(
-    ...params: Parameters<Emitter<EventTypes>['removeAllListeners']>
-  ) {
+  removeAllListeners<T extends EventEmitter.EventNames<EventTypes>>(event?: T) {
     if (this.shouldAddToQueue()) {
-      this.addEventToRegisterQueue({ type: 'removeAllListeners', params })
+      this.addEventToRegisterQueue({
+        type: 'removeAllListeners',
+        params: [event] as any,
+      })
       return this.emitter as EventEmitter<EventTypes>
     }
 
-    const [event] = params
     if (event) {
       return this.off(event)
     }
@@ -489,8 +488,8 @@ export class BaseComponent<
   }
 
   /** @internal */
-  listenerCount(...params: Parameters<Emitter<EventTypes>['listenerCount']>) {
-    return this.emitter.listenerCount(...params)
+  listenerCount<T extends EventEmitter.EventNames<EventTypes>>(event: T) {
+    return this.emitter.listenerCount(event)
   }
 
   destroy() {

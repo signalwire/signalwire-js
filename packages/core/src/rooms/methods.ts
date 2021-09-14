@@ -1,11 +1,15 @@
 import { BaseRoomInterface } from '.'
-import { VideoMember, VideoRecording } from '../types'
+import { VideoMemberEntity, VideoRecordingEntity } from '../types'
 import { ExecuteExtendedOptions, RoomMethod } from '../utils/interfaces'
 
-interface RoomMethodPropertyDescriptor<T> extends PropertyDescriptor {
-  value: (params: RoomMethodParams) => Promise<T>
+interface RoomMethodPropertyDescriptor<T, ParamsType>
+  extends PropertyDescriptor {
+  value: (params: ParamsType) => Promise<T>
 }
-type RoomMethodDescriptor<T = unknown> = RoomMethodPropertyDescriptor<T> &
+type RoomMethodDescriptor<
+  T = unknown,
+  ParamsType = RoomMethodParams
+> = RoomMethodPropertyDescriptor<T, ParamsType> &
   // TODO: Replace string with a tighter type
   ThisType<BaseRoomInterface<string>>
 type RoomMethodParams = Record<string, unknown>
@@ -79,7 +83,7 @@ export const getLayouts = createRoomMethod<{ layouts: string[] }>(
     transformResolve: (payload) => ({ layouts: payload.layouts }),
   }
 )
-export const getMembers = createRoomMethod<{ members: VideoMember[] }>(
+export const getMembers = createRoomMethod<{ members: VideoMemberEntity[] }>(
   'video.members.get',
   {
     transformResolve: (payload) => ({ members: payload.members }),
@@ -103,12 +107,29 @@ export const showVideoMuted = createRoomMethod<BaseRPCResult, void>(
     transformResolve: baseCodeTransform,
   }
 )
-export const getRecordings = createRoomMethod<{ recordings: VideoRecording[] }>(
-  'video.recording.list',
-  {
-    transformResolve: (payload) => ({ recordings: payload.recordings }),
-  }
-)
+
+export const setHideVideoMuted: RoomMethodDescriptor<any, boolean> = {
+  value: function (value: boolean) {
+    const method = value ? 'video.hide_video_muted' : 'video.show_video_muted'
+    return this.execute(
+      {
+        method,
+        params: {
+          room_session_id: this.roomSessionId,
+        },
+      },
+      {
+        transformResolve: baseCodeTransform,
+      }
+    )
+  },
+}
+
+export const getRecordings = createRoomMethod<{
+  recordings: VideoRecordingEntity[]
+}>('video.recording.list', {
+  transformResolve: (payload) => ({ recordings: payload.recordings }),
+})
 export const startRecording: RoomMethodDescriptor<any> = {
   value: function () {
     return new Promise(async (resolve) => {
@@ -137,6 +158,7 @@ export type GetLayouts = ReturnType<typeof getLayouts.value>
 export type GetMembers = ReturnType<typeof getMembers.value>
 export type HideVideoMuted = ReturnType<typeof hideVideoMuted.value>
 export type ShowVideoMuted = ReturnType<typeof showVideoMuted.value>
+export type SetHideVideoMuted = ReturnType<typeof setHideVideoMuted.value>
 
 export type GetRecordings = ReturnType<typeof getRecordings.value>
 export type StartRecording = ReturnType<typeof startRecording.value>

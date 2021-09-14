@@ -6,7 +6,10 @@ import type {
   SnakeToCamelCase,
   EntityUpdated,
   ToInternalVideoEvent,
+  OnlyStateProperties,
+  OnlyFunctionProperties,
 } from './utils'
+import * as Rooms from '../rooms'
 
 /**
  * Used to not duplicate member fields across constants and types
@@ -34,7 +37,7 @@ export const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
   }` as const
 })
 
-export type VideoMemberUpdatableProps = {
+type VideoMemberUpdatableProps = {
   [K in keyof InternalVideoMemberUpdatableProps as SnakeToCamelCase<K>]: InternalVideoMemberUpdatableProps[K]
 }
 
@@ -103,33 +106,54 @@ export type InternalVideoMemberEventNames =
     >
   | typeof INTERNAL_MEMBER_UPDATED_EVENTS[number]
 
-/**
- * Base Interface for a VideoMember entity
- */
 export type VideoMemberType = 'member' | 'screen' | 'device'
-export interface VideoMemberBase {
+
+/**
+ * Public Contract for a VideoMember
+ */
+export interface VideoMemberContract extends VideoMemberUpdatableProps {
   id: string
   roomId: string
   roomSessionId: string
   name: string
   parentId?: string
   type: VideoMemberType
+
+  audioMute(): Rooms.AudioMuteMember
+  audioUnmute(): Rooms.AudioUnmuteMember
+  videoMute(): Rooms.VideoMuteMember
+  videoUnmute(): Rooms.VideoUnmuteMember
+  setDeaf(): Rooms.DeafMember
+  setUndeaf(): Rooms.UndeafMember
+  setMicrophoneVolume(params: { volume: number }): Rooms.SetInputVolumeMember
+  setSpeakerVolume(params: { volume: number }): Rooms.SetOutputVolumeMember
+  setInputSensitivity(params: {
+    value: number
+  }): Rooms.SetInputSensitivityMember
 }
 
-export interface VideoMember
-  extends VideoMemberBase,
-    VideoMemberUpdatableProps {}
 /**
- * VideoMember entity plus `updated` field
+ * VideoMember properties
  */
-export type VideoMemberUpdated = EntityUpdated<VideoMember>
+export type VideoMemberEntity = OnlyStateProperties<VideoMemberContract>
+/**
+ * VideoMember methods
+ */
+export type VideoMemberMethods = OnlyFunctionProperties<VideoMemberContract>
 
 /**
- * VideoMember entity for internal usage (converted to snake_case)
+ * VideoMemberEntity entity plus `updated` field
+ */
+export type VideoMemberEntityUpdated = EntityUpdated<VideoMemberEntity>
+
+/**
+ * VideoMemberEntity entity for internal usage (converted to snake_case)
  * @internal
  */
-export type InternalVideoMember = {
-  [K in keyof VideoMember as CamelToSnakeCase<K>]: VideoMember[K]
+export type InternalVideoMemberEntity = {
+  [K in NonNullable<
+    keyof VideoMemberEntity
+  > as CamelToSnakeCase<K>]: VideoMemberEntity[K]
 }
 
 /**
@@ -137,7 +161,8 @@ export type InternalVideoMember = {
  * for internal usage (converted to snake_case)
  * @internal
  */
-export type InternalVideoMemberUpdated = EntityUpdated<InternalVideoMember>
+export type InternalVideoMemberEntityUpdated =
+  EntityUpdated<InternalVideoMemberEntity>
 
 /**
  * ==========
@@ -153,7 +178,7 @@ export type InternalVideoMemberUpdated = EntityUpdated<InternalVideoMember>
 export interface VideoMemberJoinedEventParams {
   room_session_id: string
   room_id: string
-  member: InternalVideoMember
+  member: InternalVideoMemberEntity
 }
 
 export interface VideoMemberJoinedEvent extends SwEvent {
@@ -167,7 +192,7 @@ export interface VideoMemberJoinedEvent extends SwEvent {
 export interface VideoMemberUpdatedEventParams {
   room_session_id: string
   room_id: string
-  member: InternalVideoMemberUpdated
+  member: InternalVideoMemberEntityUpdated
 }
 
 export interface VideoMemberUpdatedEvent extends SwEvent {
@@ -181,8 +206,7 @@ export interface VideoMemberUpdatedEvent extends SwEvent {
 export interface VideoMemberLeftEventParams {
   room_session_id: string
   room_id: string
-  // TODO: check if we have full object here
-  member: InternalVideoMember
+  member: InternalVideoMemberEntity
 }
 
 export interface VideoMemberLeftEvent extends SwEvent {
@@ -196,7 +220,8 @@ export interface VideoMemberLeftEvent extends SwEvent {
 export interface VideoMemberTalkingEventParams {
   room_session_id: string
   room_id: string
-  member: Pick<InternalVideoMember, 'id'> & {
+  member: {
+    id: string
     talking: boolean
   }
 }

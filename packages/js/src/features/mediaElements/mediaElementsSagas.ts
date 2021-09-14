@@ -11,7 +11,7 @@ import {
 } from '../../utils/videoElement'
 import { setAudioMediaTrack } from '../../utils/audioElement'
 import { audioSetSpeakerAction } from '../actions'
-import type { Room } from '../../Room'
+import type { RoomConnection } from '../../Room'
 
 export const makeMediaElementsSaga = ({
   rootElementId,
@@ -25,7 +25,7 @@ export const makeMediaElementsSaga = ({
   function* mediaElementsSaga({
     instance: room,
     runSaga,
-  }: CustomSagaParams<Room>): SagaIterator {
+  }: CustomSagaParams<RoomConnection>): SagaIterator {
     try {
       const layerMap = new Map()
       const userRootElement = rootElementId
@@ -111,7 +111,7 @@ function* audioElementActionsWatcher({
   room,
 }: {
   element: HTMLAudioElement
-  room: Room
+  room: RoomConnection
 }): SagaIterator {
   // TODO: For now we're handling individual actions but in the future
   // we might want to have a single action per custom saga and use it
@@ -159,7 +159,7 @@ function* audioElementSetupWorker({
   track: MediaStreamTrack
   element: HTMLAudioElement
   speakerId?: string
-  room: Room
+  room: RoomConnection
 }): SagaIterator {
   setAudioMediaTrack({ track, element })
   if (speakerId) {

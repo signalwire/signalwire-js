@@ -8,59 +8,30 @@ import {
   Rooms,
   toExternalJSON,
   VideoMemberEventParams,
-  InternalVideoRoomEventNames,
+  InternalVideoRoomSessionEventNames,
   VideoRoomUpdatedEventParams,
   InternalVideoLayoutEventNames,
+  InternalVideoRecordingEventNames,
   VideoLayoutChangedEventParams,
+  VideoRoomSessionContract,
+  VideoRoomSessionMethods,
+  ConsumerContract,
 } from '@signalwire/core'
 import { BaseConsumer } from '../BaseConsumer'
 import { RealTimeRoomApiEvents } from '../types'
 import { createRoomSessionMemberObject } from './RoomSessionMember'
 
-// FIXME: Move these interfaces to core (and use them in JS too)
-export interface MemberCommandParams {
-  memberId?: string
-}
-export interface MemberCommandWithVolumeParams extends MemberCommandParams {
-  volume: number
-}
-export interface MemberCommandWithValueParams extends MemberCommandParams {
-  value: number
-}
-
-interface RoomSessionMethods {
-  audioMute(params: MemberCommandParams): Rooms.AudioMuteMember
-  audioUnmute(params: MemberCommandParams): Rooms.AudioUnmuteMember
-  videoMute(params: MemberCommandParams): Rooms.VideoMuteMember
-  videoUnmute(params: MemberCommandParams): Rooms.VideoUnmuteMember
-  setMicrophoneVolume(
-    params: MemberCommandWithVolumeParams
-  ): Rooms.SetInputVolumeMember
-  setInputSensitivity(
-    params: MemberCommandWithValueParams
-  ): Rooms.SetInputSensitivityMember
-  getMembers(): Rooms.GetMembers
-  deaf(params: MemberCommandParams): Rooms.DeafMember
-  undeaf(params: MemberCommandParams): Rooms.UndeafMember
-  setSpeakerVolume(
-    params: MemberCommandWithVolumeParams
-  ): Rooms.SetOutputVolumeMember
-  removeMember(params: Required<MemberCommandParams>): Rooms.RemoveMember
-  hideVideoMuted(): Rooms.HideVideoMuted
-  showVideoMuted(): Rooms.ShowVideoMuted
-  getLayouts(): Rooms.GetLayouts
-  setLayout(): Rooms.SetLayout
-}
-
 type EmitterTransformsEvents =
-  | InternalVideoRoomEventNames
+  | InternalVideoRoomSessionEventNames
   | InternalVideoMemberEventNames
   | InternalVideoLayoutEventNames
+  | InternalVideoRecordingEventNames
+  | 'video.__internal__.recording.start'
 
-// TODO: update once we do the split between API and Entity interfaces
 export interface RoomSession
-  extends RoomSessionMethods,
-    BaseConsumer<RealTimeRoomApiEvents> {}
+  extends VideoRoomSessionContract,
+    ConsumerContract<RealTimeRoomApiEvents> {}
+
 class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   protected _eventsPrefix = 'video' as const
 
@@ -139,35 +110,71 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
           },
         },
       ],
+      [
+        [
+          'video.__internal__.recording.start',
+          'video.recording.started',
+          'video.recording.updated',
+          'video.recording.ended',
+        ],
+        {
+          instanceFactory: (_payload: any) => {
+            return Rooms.createRoomSessionRecordingObject({
+              store: this.store,
+              // @ts-expect-error
+              emitter: this.emitter,
+            })
+          },
+          payloadTransform: (payload: any) => {
+            if (payload?.recording) {
+              return toExternalJSON({
+                ...payload?.recording,
+                // FIXME: start using room_session and change this to `id`
+                room_session_id: this.getStateProperty('roomSessionId'),
+              })
+            }
+            return {
+              id: payload.recording_id,
+              // FIXME: start using room_session and change this to `id`
+              roomSessionId: this.getStateProperty('roomSessionId'),
+            }
+          },
+        },
+      ],
     ])
   }
 }
 
-export const RoomSessionAPI = extendComponent<RoomSession, RoomSessionMethods>(
+export const RoomSessionAPI = extendComponent<
   RoomSessionConsumer,
-  {
-    videoMute: Rooms.videoMuteMember,
-    videoUnmute: Rooms.videoUnmuteMember,
-    getMembers: Rooms.getMembers,
-    audioMute: Rooms.audioMuteMember,
-    audioUnmute: Rooms.audioUnmuteMember,
-    deaf: Rooms.deafMember,
-    undeaf: Rooms.undeafMember,
-    setMicrophoneVolume: Rooms.setInputVolumeMember,
-    setSpeakerVolume: Rooms.setOutputVolumeMember,
-    setInputSensitivity: Rooms.setInputSensitivityMember,
-    removeMember: Rooms.removeMember,
-    hideVideoMuted: Rooms.hideVideoMuted,
-    showVideoMuted: Rooms.showVideoMuted,
-    getLayouts: Rooms.getLayouts,
-    setLayout: Rooms.setLayout,
-  }
-)
+  VideoRoomSessionMethods
+>(RoomSessionConsumer, {
+  videoMute: Rooms.videoMuteMember,
+  videoUnmute: Rooms.videoUnmuteMember,
+  getMembers: Rooms.getMembers,
+  audioMute: Rooms.audioMuteMember,
+  audioUnmute: Rooms.audioUnmuteMember,
+  deaf: Rooms.deafMember,
+  undeaf: Rooms.undeafMember,
+  setMicrophoneVolume: Rooms.setInputVolumeMember,
+  setSpeakerVolume: Rooms.setOutputVolumeMember,
+  setInputSensitivity: Rooms.setInputSensitivityMember,
+  removeMember: Rooms.removeMember,
+  setHideVideoMuted: Rooms.setHideVideoMuted,
+  getLayouts: Rooms.getLayouts,
+  setLayout: Rooms.setLayout,
+  getRecordings: Rooms.getRecordings,
+  startRecording: Rooms.startRecording,
+})
 
 export const createRoomSessionObject = (
   params: BaseComponentOptions<EmitterTransformsEvents>
 ): RoomSession => {
-  const roomSession = connect<RealTimeRoomApiEvents, RoomSession>({
+  const roomSession = connect<
+    RealTimeRoomApiEvents,
+    RoomSessionConsumer,
+    RoomSession
+  >({
     store: params.store,
     Component: RoomSessionAPI,
     componentListeners: {

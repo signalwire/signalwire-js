@@ -1,8 +1,8 @@
 import {
-  VideoRoomEventNames,
+  VideoRoomSessionEventNames,
   VideoRoomEvent,
-  InternalVideoRoomEventNames,
-} from './videoRoom'
+  InternalVideoRoomSessionEventNames,
+} from './videoRoomSession'
 import {
   VideoMemberEventNames,
   VideoMemberEvent,
@@ -19,7 +19,7 @@ import {
   InternalVideoRecordingEventNames,
 } from './videoRecording'
 
-export * from './videoRoom'
+export * from './videoRoomSession'
 export * from './videoMember'
 export * from './videoLayout'
 export * from './videoRecording'
@@ -30,7 +30,7 @@ export type RTCTrackEventName = 'track'
  * List of all the events a RoomObject can listen to
  */
 export type RoomEventNames =
-  | VideoRoomEventNames
+  | VideoRoomSessionEventNames
   | VideoMemberEventNames
   | VideoLayoutEventNames
   | VideoRecordingEventNames
@@ -42,7 +42,7 @@ export type RoomEventNames =
  * @internal
  */
 export type InternalVideoEventNames =
-  | InternalVideoRoomEventNames
+  | InternalVideoRoomSessionEventNames
   | InternalVideoMemberEventNames
   | InternalVideoLayoutEventNames
   | InternalVideoRecordingEventNames

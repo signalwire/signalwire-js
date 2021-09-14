@@ -6,14 +6,15 @@ import {
   UserOptions,
   InternalUserOptions,
 } from '@signalwire/core'
-import { Client } from './Client'
+import { Client, RealtimeClient } from './Client'
 import { Session } from './Session'
 
-type CreateClientOptions = Omit<UserOptions, 'autoConnect'>
+export interface CreateClientOptions extends Omit<UserOptions, 'autoConnect'> {}
+export type { RealtimeClient, ClientEvents }
 
 export const createClient = async (
   userOptions: CreateClientOptions
-): Promise<Client> => {
+): Promise<RealtimeClient> => {
   const baseUserOptions: InternalUserOptions = {
     ...userOptions,
     emitter: getEventEmitter<ClientEvents>(),
@@ -23,7 +24,7 @@ export const createClient = async (
     SessionConstructor: Session,
   })
 
-  const client = connect<ClientEvents, Client>({
+  const client = connect<ClientEvents, Client, RealtimeClient>({
     store,
     Component: Client,
     componentListeners: {

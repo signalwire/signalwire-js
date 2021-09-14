@@ -6,20 +6,18 @@ import type {
   RoomEnded,
   VideoLayoutEventNames,
   MemberTalkingEventNames,
+  Rooms,
 } from '@signalwire/core'
 import type { RoomSession } from '../video/RoomSession'
 import type { RoomSessionMember } from '../video/RoomSessionMember'
 
-// `Video` namespace related typings
-export type RealTimeVideoApiGlobalEvents = GlobalVideoEvents
-
 export type RealTimeVideoApiEventsHandlerMapping = Record<
-  RealTimeVideoApiGlobalEvents,
+  GlobalVideoEvents,
   (room: RoomSession) => void
 >
 
 export type RealTimeVideoApiEvents = {
-  [k in RealTimeVideoApiGlobalEvents]: RealTimeVideoApiEventsHandlerMapping[k]
+  [k in keyof RealTimeVideoApiEventsHandlerMapping]: RealTimeVideoApiEventsHandlerMapping[k]
 }
 
 // TODO: replace `any` with proper types.
@@ -31,7 +29,8 @@ export type RealTimeRoomApiEventsHandlerMapping = Record<
   Record<MemberTalkingEventNames, (member: RoomSessionMember) => void> &
   Record<RoomStarted | RoomEnded, (room: RoomSession) => void> &
   // TODO: we need to tweak the `room` param because it includes `updated` too in this event
-  Record<RoomUpdated, (room: RoomSession) => void>
+  Record<RoomUpdated, (room: RoomSession) => void> &
+  Rooms.RoomSessionRecordingEventsHandlerMapping
 
 export type RealTimeRoomApiEvents = {
   [k in keyof RealTimeRoomApiEventsHandlerMapping]: RealTimeRoomApiEventsHandlerMapping[k]

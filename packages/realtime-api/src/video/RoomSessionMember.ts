@@ -4,28 +4,15 @@ import {
   BaseComponentOptions,
   extendComponent,
   Rooms,
-  VideoMember,
+  VideoMemberContract,
+  VideoMemberMethods,
 } from '@signalwire/core'
 
-export interface RoomSessionMemberMethods {
-  audioMute(): Rooms.AudioMuteMember
-  audioUnmute(): Rooms.AudioUnmuteMember
-  videoMute(): Rooms.VideoMuteMember
-  videoUnmute(): Rooms.VideoUnmuteMember
-  deaf(): Rooms.DeafMember
-  undeaf(): Rooms.UndeafMember
-  setMicrophoneVolume(params: { volume: number }): Rooms.SetInputVolumeMember
-  setSpeakerVolume(params: { volume: number }): Rooms.SetOutputVolumeMember
-  setInputSensitivity(params: {
-    value: number
-  }): Rooms.SetInputSensitivityMember
-}
-
-export interface RoomSessionMemberAPI extends RoomSessionMemberMethods {
+export interface RoomSessionMemberAPI extends VideoMemberMethods {
   remove(): Rooms.RemoveMember
 }
 
-export type RoomSessionMember = RoomSessionMemberAPI & VideoMember
+export interface RoomSessionMember extends VideoMemberContract {}
 
 // TODO: Extend from a variant of `BaseComponent` that
 // doesn't expose EventEmitter methods
@@ -43,14 +30,14 @@ class RoomSessionMemberComponent extends BaseComponent<{}> {
 
 const RoomSessionMemberAPI = extendComponent<
   RoomSessionMember,
-  RoomSessionMemberMethods
+  VideoMemberMethods
 >(RoomSessionMemberComponent, {
   audioMute: Rooms.audioMuteMember,
   audioUnmute: Rooms.audioUnmuteMember,
   videoMute: Rooms.videoMuteMember,
   videoUnmute: Rooms.videoUnmuteMember,
-  deaf: Rooms.deafMember,
-  undeaf: Rooms.undeafMember,
+  setDeaf: Rooms.deafMember,
+  setUndeaf: Rooms.undeafMember,
   setMicrophoneVolume: Rooms.setInputVolumeMember,
   setSpeakerVolume: Rooms.setOutputVolumeMember,
   setInputSensitivity: Rooms.setInputSensitivityMember,

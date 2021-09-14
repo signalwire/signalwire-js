@@ -5,12 +5,12 @@ import {
   isInternalGlobalEvent,
   toInternalEventName,
 } from '../../../utils'
-import type { Emitter } from '../../../utils/interfaces'
+import type { EventEmitter } from '../../../utils/EventEmitter'
 import type { PubSubChannel, PubSubAction } from '../../interfaces'
 
 type PubSubSagaParams = {
   pubSubChannel: PubSubChannel
-  emitter: Emitter<string>
+  emitter: EventEmitter<string>
 }
 const findNamespaceInPayload = (payload?: any): string => {
   /**

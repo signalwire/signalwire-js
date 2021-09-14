@@ -1,11 +1,11 @@
-import { RoomScreenShare } from './RoomScreenShare'
+import { RoomScreenShareAPI } from './RoomScreenShare'
 import { configureJestStore } from './testUtils'
 
 describe('RoomScreenShare Object', () => {
-  let roomScreenShare: RoomScreenShare
+  let roomScreenShare: any
 
   beforeEach(() => {
-    roomScreenShare = new RoomScreenShare({
+    roomScreenShare = new RoomScreenShareAPI({
       store: configureJestStore(),
       emitter: jest.fn() as any,
     })

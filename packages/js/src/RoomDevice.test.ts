@@ -1,11 +1,11 @@
-import { RoomDevice } from './RoomDevice'
+import { RoomDeviceAPI } from './RoomDevice'
 import { configureJestStore } from './testUtils'
 
 describe('RoomDevice Object', () => {
-  let roomDevice: RoomDevice
+  let roomDevice: any
 
   beforeEach(() => {
-    roomDevice = new RoomDevice({
+    roomDevice = new RoomDeviceAPI({
       store: configureJestStore(),
       emitter: jest.fn() as any,
     })
