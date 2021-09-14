@@ -36,9 +36,8 @@ const RoomSessionMemberAPI = extendComponent<
   audioUnmute: Rooms.audioUnmuteMember,
   videoMute: Rooms.videoMuteMember,
   videoUnmute: Rooms.videoUnmuteMember,
-  // FIXME: deaf / undeaf
-  // deaf: Rooms.deafMember,
-  // undeaf: Rooms.undeafMember,
+  setDeaf: Rooms.deafMember,
+  setUndeaf: Rooms.undeafMember,
   setMicrophoneVolume: Rooms.setInputVolumeMember,
   setSpeakerVolume: Rooms.setOutputVolumeMember,
   setInputSensitivity: Rooms.setInputSensitivityMember,
