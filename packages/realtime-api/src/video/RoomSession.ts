@@ -14,7 +14,6 @@ import {
   VideoLayoutChangedEventParams,
   VideoRoomSessionContract,
   VideoRoomSessionMethods,
-  EmitterContract,
   ConsumerContract,
 } from '@signalwire/core'
 import { BaseConsumer } from '../BaseConsumer'
@@ -28,8 +27,7 @@ type EmitterTransformsEvents =
 
 export interface RoomSession
   extends VideoRoomSessionContract,
-    EmitterContract<RealTimeRoomApiEvents>,
-    ConsumerContract {}
+    ConsumerContract<RealTimeRoomApiEvents> {}
 
 class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   protected _eventsPrefix = 'video' as const
@@ -137,8 +135,11 @@ export const RoomSessionAPI = extendComponent<
 export const createRoomSessionObject = (
   params: BaseComponentOptions<EmitterTransformsEvents>
 ): RoomSession => {
-  // @ts-expect-error
-  const roomSession = connect<RealTimeRoomApiEvents, RoomSession>({
+  const roomSession = connect<
+    RealTimeRoomApiEvents,
+    RoomSessionConsumer,
+    RoomSession
+  >({
     store: params.store,
     Component: RoomSessionAPI,
     componentListeners: {

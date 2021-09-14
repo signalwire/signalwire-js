@@ -26,7 +26,9 @@ export interface EmitterContract<
   ): EmitterContract<EventTypes>
 }
 
-export interface ConsumerContract {
+export interface ConsumerContract<
+  EventTypes extends EventEmitter.ValidEventTypes
+> extends EmitterContract<EventTypes> {
   run(): Promise<void>
 }
 
