@@ -2,16 +2,17 @@ import {
   BaseClient,
   EventsPrefix,
   SessionState,
-  EmitterContract,
+  ClientContract,
   ClientEvents,
 } from '@signalwire/core'
-import { createVideoObject, Video } from './Video'
+import { createVideoObject, VideoObject } from './Video'
 
-export interface RealtimeClient extends EmitterContract<ClientEvents> {
-  video: Video
+export interface RealtimeClient
+  extends ClientContract<RealtimeClient, ClientEvents> {
+  video: VideoObject
 }
 
-type ClientNamespaces = Video
+type ClientNamespaces = VideoObject
 
 export class Client extends BaseClient<ClientEvents> {
   private _consumers: Map<EventsPrefix, ClientNamespaces> = new Map()
@@ -24,9 +25,9 @@ export class Client extends BaseClient<ClientEvents> {
     }
   }
 
-  get video(): Video {
+  get video(): VideoObject {
     if (this._consumers.has('video')) {
-      return this._consumers.get('video') as Video
+      return this._consumers.get('video')!
     }
     const video = createVideoObject({
       store: this.store,

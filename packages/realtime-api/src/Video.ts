@@ -1,10 +1,10 @@
 import {
   BaseComponentOptions,
   connect,
-  EmitterContract,
   EventTransform,
   InternalVideoRoomSessionEventNames,
   toExternalJSON,
+  ConsumerContract,
 } from '@signalwire/core'
 import { BaseConsumer } from './BaseConsumer'
 import { RealTimeVideoApiEvents } from './types/video'
@@ -15,12 +15,9 @@ type TransformEvent = Extract<
   'video.room.started' | 'video.room.ended'
 >
 
-interface VideoObject extends EmitterContract<RealTimeVideoApiEvents> {}
+export interface VideoObject extends ConsumerContract<RealTimeVideoApiEvents> {}
 
-export class Video
-  extends BaseConsumer<RealTimeVideoApiEvents>
-  implements VideoObject
-{
+export class Video extends BaseConsumer<RealTimeVideoApiEvents> {
   /** @internal */
   protected _eventsPrefix = 'video' as const
 
@@ -60,8 +57,8 @@ export class Video
 
 export const createVideoObject = (
   params: BaseComponentOptions<RealTimeVideoApiEvents>
-): Video => {
-  const video = connect<RealTimeVideoApiEvents, Video>({
+): VideoObject => {
+  const video = connect<RealTimeVideoApiEvents, Video, VideoObject>({
     store: params.store,
     Component: Video,
     componentListeners: {
@@ -70,7 +67,7 @@ export const createVideoObject = (
     },
   })(params)
 
-  const proxy = new Proxy<Video>(video, {
+  const proxy = new Proxy<VideoObject>(video, {
     get(target: any, prop: any, receiver: any) {
       if (prop === '_eventsNamespace') {
         /**
