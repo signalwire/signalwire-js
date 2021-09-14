@@ -132,6 +132,8 @@ export const RoomSessionAPI = extendComponent<
   showVideoMuted: Rooms.showVideoMuted,
   getLayouts: Rooms.getLayouts,
   setLayout: Rooms.setLayout,
+  getRecordings: Rooms.getRecordings,
+  startRecording: Rooms.startRecording,
 })
 
 export const createRoomSessionObject = (

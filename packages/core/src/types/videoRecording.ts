@@ -33,6 +33,7 @@ export type InternalVideoRecordingEventNames =
  */
 export interface VideoRecordingContract {
   id: string
+  roomSessionId: string
   state: 'recording' | 'paused' | 'completed'
   duration?: number
   startedAt?: number
