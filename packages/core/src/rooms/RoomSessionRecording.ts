@@ -49,13 +49,13 @@ export class RoomSessionRecordingAPI
   }
 }
 
-// TODO: move to its own file
 export const createRoomSessionRecordingObject = (
   params: BaseComponentOptions<RoomSessionRecordingEventsHandlerMapping>
-): RoomSessionRecordingAPI => {
+): RoomSessionRecording => {
   const recording = connect<
     RoomSessionRecordingEventsHandlerMapping,
-    RoomSessionRecordingAPI
+    RoomSessionRecordingAPI,
+    RoomSessionRecording
   >({
     store: params.store,
     Component: RoomSessionRecordingAPI,
