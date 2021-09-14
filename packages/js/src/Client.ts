@@ -15,8 +15,8 @@ import type { RoomObjectEvents } from './utils/interfaces'
 import { ROOM_COMPONENT_LISTENERS } from './utils/constants'
 import { Room, RoomConnection, RoomAPI } from './Room'
 
-export interface JSClient extends ClientContract<JSClient, ClientEvents> {
-  rooms: any
+export interface Client extends ClientContract<Client, ClientEvents> {
+  rooms: ClientAPI['rooms']
 }
 
 export interface MakeRoomOptions extends ConnectionOptions {
@@ -26,7 +26,7 @@ export interface MakeRoomOptions extends ConnectionOptions {
   stopMicrophoneWhileMuted?: boolean
 }
 
-export class Client extends BaseClient<ClientEvents> {
+export class ClientAPI extends BaseClient<ClientEvents> {
   get rooms() {
     return {
       makeRoomObject: (makeRoomOptions: MakeRoomOptions) => {
