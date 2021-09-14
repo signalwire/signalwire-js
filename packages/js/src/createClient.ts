@@ -5,7 +5,7 @@ import {
   getEventEmitter,
   UserOptions,
 } from '@signalwire/core'
-import { Client } from './Client'
+import { Client, JSClient } from './Client'
 import { JWTSession } from './JWTSession'
 
 /**
@@ -59,7 +59,7 @@ export const createClient = async (userOptions: UserOptions) => {
     userOptions: baseUserOptions,
     SessionConstructor: JWTSession,
   })
-  const client = connect<ClientEvents, Client>({
+  const client = connect<ClientEvents, Client, JSClient>({
     store,
     Component: Client,
     componentListeners: {

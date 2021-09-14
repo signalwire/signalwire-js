@@ -49,8 +49,8 @@ export type RoomObjectEventsHandlerMap = Record<
   > &
   Record<VideoRoomSessionEventNames, (params: VideoRoomEventParams) => void> &
   Record<RTCTrackEventName, (event: RTCTrackEvent) => void> &
-  Record<BaseConnectionState, (params: Room) => void> &
-  Record<VideoRecordingEventNames, (recording: RoomSessionRecording) => void>
+  Record<VideoRecordingEventNames, (recording: RoomSessionRecording) => void> &
+  Record<BaseConnectionState, (params: Room) => void>
 
 export type RoomObjectEvents = {
   [k in keyof RoomObjectEventsHandlerMap]: RoomObjectEventsHandlerMap[k]

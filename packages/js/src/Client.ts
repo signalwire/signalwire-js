@@ -1,10 +1,23 @@
-import { logger, connect, BaseClient, ClientEvents } from '@signalwire/core'
+import {
+  logger,
+  connect,
+  BaseClient,
+  ClientEvents,
+  ClientContract,
+} from '@signalwire/core'
 import type { CustomSaga } from '@signalwire/core'
-import { ConnectionOptions } from '@signalwire/webrtc'
+import {
+  ConnectionOptions,
+  BaseConnectionStateEventTypes,
+} from '@signalwire/webrtc'
 import { makeMediaElementsSaga } from './features/mediaElements/mediaElementsSagas'
 import type { RoomObjectEvents } from './utils/interfaces'
 import { ROOM_COMPONENT_LISTENERS } from './utils/constants'
 import { Room, RoomConnection, RoomAPI } from './Room'
+
+export interface JSClient extends ClientContract<JSClient, ClientEvents> {
+  rooms: any
+}
 
 export interface MakeRoomOptions extends ConnectionOptions {
   rootElementId?: string
@@ -25,7 +38,7 @@ export class Client extends BaseClient<ClientEvents> {
           ...options
         } = makeRoomOptions
 
-        const customSagas: Array<CustomSaga<Room>> = []
+        const customSagas: Array<CustomSaga<RoomConnection>> = []
 
         /**
          * If the user provides a `roomElementId` we'll automatically
@@ -41,9 +54,11 @@ export class Client extends BaseClient<ClientEvents> {
           )
         }
 
-        // TODO:
-        // @ts-expect-error
-        const room = connect<RoomObjectEvents, RoomConnection, Room>({
+        const room = connect<
+          RoomObjectEvents & BaseConnectionStateEventTypes,
+          RoomConnection,
+          Room
+        >({
           store: this.store,
           Component: RoomAPI,
           customSagas,
