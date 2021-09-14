@@ -4,13 +4,28 @@ import { BaseComponentOptions } from '../utils/interfaces'
 import { OnlyFunctionProperties } from '../types'
 
 export interface RoomSessionRecording {
+  /** Unique identifier for this recording */
   id: string
+  /** Id of the associated room session */
   roomSessionId: string
+  /** Current state of this recording */
   state: string
+  /** Duration of the recording */
   duration: string
 
+  /**
+   * Pauses the recording
+   */
   pause(): Promise<void>
+
+  /**
+   * Resumes the recording
+   */
   resume(): Promise<void>
+
+  /**
+   * Stops the recording
+   */
   stop(): Promise<void>
 }
 
