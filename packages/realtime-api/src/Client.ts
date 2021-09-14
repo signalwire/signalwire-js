@@ -15,6 +15,11 @@ export interface RealtimeClient
 
 type ClientNamespaces = VideoObject
 
+/**
+ * A real-time Client. 
+ * 
+ * To construct an instance of this class, please use {@link createClient}.
+ */
 export class Client extends BaseClient<ClientEvents> {
   private _consumers: Map<EventsPrefix, ClientNamespaces> = new Map()
 
@@ -40,6 +45,24 @@ export class Client extends BaseClient<ClientEvents> {
     }
   }
 
+  /**
+   * Connects this client to the SignalWire network.
+   * @returns Upon connection, asynchronously returns an instance of this same object.
+   * 
+   * @example
+   * ```typescript
+   * const client = await createClient({project, token})
+   * client.video.on('room.started', async (room) => { })  // connect events
+   * await client.connect()
+   * ```
+   */
+   connect(): Promise<this> {
+    return super.connect()
+  }
+
+  /**
+   * Access the Video API Consumer
+   */
   get video(): VideoObject {
     if (this._consumers.has('video')) {
       return this._consumers.get('video')!

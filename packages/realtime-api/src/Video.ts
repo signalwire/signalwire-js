@@ -20,6 +20,31 @@ type TransformEvent = Extract<
 export interface VideoObject extends ConsumerContract<RealTimeVideoApiEvents> {}
 export type { RoomSession, RoomSessionMember, RoomSessionRecording }
 
+/**
+ * Access the Video API Consumer. You can use an instance of the Video class
+ * (you can obtain one via {@link createClient}) to subscribe to the
+ * following events:
+ * 
+ * **room.started**  
+ * Emitted when a room session is started. Your event handler
+ * receives an object which is an instance of {@link Room}. Example:
+ * ```typescript
+ * const client = await createClient(...)
+ * client.video.on('room.started', async (room) => {
+ *     console.log(room.name)
+ * })
+ * ```
+ * 
+ * **room.ended**  
+ * Emitted when a room session ends. Your event handler receives
+ * an object which is an instance of {@link Room}.
+ * ```typescript
+ * const client = await createClient(...)
+ * client.video.on('room.ended', async (room) => {
+ *     console.log(room.name)
+ * })
+ * ```
+ */
 export class Video extends BaseConsumer<RealTimeVideoApiEvents> {
   /** @internal */
   protected _eventsPrefix = 'video' as const
