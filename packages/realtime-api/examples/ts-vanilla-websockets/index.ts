@@ -63,7 +63,37 @@ async function run() {
         console.log('---> visible', member.id, member.visible)
       })
 
+      room.on('recording.started', (rec) => {
+        console.log('recording.started', rec.id, rec.state, rec.startedAt)
+      })
+
+      room.on('recording.updated', (rec) => {
+        console.log('recording.updated', rec.id, rec.state, rec.startedAt)
+      })
+
+      room.on('recording.ended', (rec) => {
+        console.log(
+          'recording.ended',
+          rec.id,
+          rec.state,
+          rec.startedAt,
+          rec.endedAt,
+          rec.duration
+        )
+      })
       await room.run()
+
+      const rec = await room.startRecording()
+
+      setTimeout(async () => {
+        const list = await room.getRecordings()
+        console.log('Recordings', JSON.stringify(list, null, 2))
+
+        setTimeout(async () => {
+          await rec.stop()
+          console.log('Recording STOPPED')
+        }, 6000)
+      }, 2000)
 
       console.log('🟢 ROOOM STARTED 🟢')
     })
