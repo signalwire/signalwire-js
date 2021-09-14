@@ -26,16 +26,14 @@ export class RoomDeviceConnection extends BaseConnection<BaseConnectionStateEven
   }
 }
 
-const RoomDeviceAPI = extendComponent<RoomDeviceConnection, RoomDeviceMethods>(
+export const RoomDeviceAPI = extendComponent<
   RoomDeviceConnection,
-  {
-    audioMute: Rooms.audioMuteMember,
-    audioUnmute: Rooms.audioUnmuteMember,
-    videoMute: Rooms.videoMuteMember,
-    videoUnmute: Rooms.videoUnmuteMember,
-    setMicrophoneVolume: Rooms.setInputVolumeMember,
-    setInputSensitivity: Rooms.setInputSensitivityMember,
-  }
-)
-
-export { RoomDeviceAPI }
+  RoomDeviceMethods
+>(RoomDeviceConnection, {
+  audioMute: Rooms.audioMuteMember,
+  audioUnmute: Rooms.audioUnmuteMember,
+  videoMute: Rooms.videoMuteMember,
+  videoUnmute: Rooms.videoUnmuteMember,
+  setMicrophoneVolume: Rooms.setInputVolumeMember,
+  setInputSensitivity: Rooms.setInputSensitivityMember,
+})

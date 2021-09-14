@@ -26,7 +26,7 @@ export class RoomScreenShareConnection extends BaseConnection<BaseConnectionStat
   }
 }
 
-const RoomScreenShareAPI = extendComponent<
+export const RoomScreenShareAPI = extendComponent<
   RoomScreenShareConnection,
   RoomScreenShareMethods
 >(RoomScreenShareConnection, {
@@ -37,5 +37,3 @@ const RoomScreenShareAPI = extendComponent<
   setMicrophoneVolume: Rooms.setInputVolumeMember,
   setInputSensitivity: Rooms.setInputSensitivityMember,
 })
-
-export { RoomScreenShareAPI }
