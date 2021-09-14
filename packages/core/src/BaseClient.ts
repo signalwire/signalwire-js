@@ -3,12 +3,10 @@ import { destroyAction, initAction } from './redux'
 import { BaseClientOptions } from './utils/interfaces'
 import { BaseComponent } from './BaseComponent'
 import { EventEmitter } from './utils/EventEmitter'
-import { ClientContract } from './types'
 
-export class BaseClient<EventTypes extends EventEmitter.ValidEventTypes>
-  extends BaseComponent<EventTypes>
-  implements ClientContract<BaseClient<EventTypes>, EventTypes>
-{
+export class BaseClient<
+  EventTypes extends EventEmitter.ValidEventTypes
+> extends BaseComponent<EventTypes> {
   constructor(public options: BaseClientOptions<EventTypes>) {
     super(options)
   }
