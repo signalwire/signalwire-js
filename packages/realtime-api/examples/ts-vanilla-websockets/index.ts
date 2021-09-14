@@ -44,18 +44,10 @@ async function run() {
         )
       })
 
-      // @ts-expect-error
-      room.on('member.updated.audio_muted', (member) => {
-        console.log('---> audio_muted', member.id, member.audioMuted)
-      })
       room.on('member.updated.audioMuted', (member) => {
         console.log('---> audioMuted', member.id, member.audioMuted)
       })
 
-      // @ts-expect-error
-      room.on('member.updated.video_muted', (member) => {
-        console.log('---> video_muted', member.id, member.videoMuted)
-      })
       room.on('member.updated.videoMuted', (member) => {
         console.log('---> videoMuted', member.id, member.videoMuted)
       })

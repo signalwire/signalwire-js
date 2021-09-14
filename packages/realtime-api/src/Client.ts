@@ -4,6 +4,7 @@ import {
   SessionState,
   ClientContract,
   ClientEvents,
+  logger,
 } from '@signalwire/core'
 import { createVideoObject, VideoObject } from './Video'
 
@@ -18,10 +19,24 @@ export class Client extends BaseClient<ClientEvents> {
   private _consumers: Map<EventsPrefix, ClientNamespaces> = new Map()
 
   async onAuth(session: SessionState) {
-    if (session.authStatus === 'authorized') {
-      this._consumers.forEach((consumer) => {
-        consumer.run()
-      })
+    try {
+      if (session.authStatus === 'authorized') {
+        this._consumers.forEach((consumer) => {
+          consumer.run()
+        })
+      }
+    } catch (error) {
+      logger.error('Client subscription failed.')
+      this.disconnect()
+
+      /**
+       * TODO: This error is not being catched by us so it's
+       * gonna appear as `UnhandledPromiseRejectionWarning`.
+       * The reason we are re-throwing here is because if
+       * this happens something serious happened and the app
+       * won't work anymore since subscribes aren't working.
+       */
+      throw error
     }
   }
 
