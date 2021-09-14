@@ -7,20 +7,6 @@ import {
   PRODUCT_PREFIXES,
 } from './constants'
 
-/**
- * Minimal interface the emitter must fulfill
- */
-// export type Emitter<T extends EventEmitter.ValidEventTypes> = Pick<
-//   EventEmitter<T>,
-//   | 'on'
-//   | 'off'
-//   | 'once'
-//   | 'emit'
-//   | 'removeAllListeners'
-//   | 'eventNames'
-//   | 'listenerCount'
-// >
-
 type JSONRPCParams = Record<string, any>
 type JSONRPCResult = Record<string, any>
 type JSONRPCError = Record<string, any>
