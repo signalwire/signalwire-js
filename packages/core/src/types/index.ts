@@ -26,6 +26,13 @@ export interface EmitterContract<
   ): EmitterContract<EventTypes>
 }
 
+export interface BaseConnectionContract<
+  EventTypes extends EventEmitter.ValidEventTypes
+> extends EmitterContract<EventTypes> {
+  // TODO: remove this property and move logic into BaseConnection.hangup()
+  active: boolean
+}
+
 export interface ConsumerContract<
   EventTypes extends EventEmitter.ValidEventTypes
 > extends EmitterContract<EventTypes> {

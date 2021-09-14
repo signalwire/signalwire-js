@@ -9,6 +9,7 @@ import {
   getDisplayMedia,
   BaseConnection,
   BaseConnectionOptions,
+  BaseConnectionStateEventTypes,
 } from '@signalwire/webrtc'
 import {
   RoomObjectEvents,
@@ -24,8 +25,12 @@ import {
   SCREENSHARE_AUDIO_CONSTRAINTS,
 } from './utils/constants'
 import { audioSetSpeakerAction } from './features/actions'
-import { RoomScreenShare } from './RoomScreenShare'
-import { RoomDevice } from './RoomDevice'
+import {
+  RoomScreenShareAPI,
+  RoomScreenShareConnection,
+  RoomScreenShare,
+} from './RoomScreenShare'
+import { RoomDeviceAPI, RoomDeviceConnection, RoomDevice } from './RoomDevice'
 
 interface Room extends RoomMethods, BaseConnection<RoomObjectEvents> {
   join(): Promise<Room>
@@ -105,12 +110,12 @@ class RoomConnection
     }
 
     const screenShare = connect<
-      RoomObjectEvents,
-      // @ts-expect-error
+      BaseConnectionStateEventTypes,
+      RoomScreenShareConnection,
       RoomScreenShare
     >({
       store: this.store,
-      Component: RoomScreenShare,
+      Component: RoomScreenShareAPI,
       componentListeners: ROOM_COMPONENT_LISTENERS,
     })(options)
 
@@ -121,7 +126,7 @@ class RoomConnection
     displayStream.getVideoTracks().forEach((t) => {
       t.addEventListener('ended', () => {
         if (screenShare && screenShare.active) {
-          screenShare.hangup()
+          screenShare.leave()
         }
       })
     })
@@ -190,10 +195,13 @@ class RoomConnection
       },
     }
 
-    // @ts-expect-error
-    const roomDevice = connect<RoomObjectEvents, RoomDevice>({
+    const roomDevice = connect<
+      BaseConnectionStateEventTypes,
+      RoomDeviceConnection,
+      RoomDevice
+    >({
       store: this.store,
-      Component: RoomDevice,
+      Component: RoomDeviceAPI,
       componentListeners: ROOM_COMPONENT_LISTENERS,
     })(options)
 
@@ -228,10 +236,10 @@ class RoomConnection
   /** @internal */
   async hangup() {
     this._screenShareList.forEach((screenShare) => {
-      screenShare.hangup()
+      screenShare.leave()
     })
     this._deviceList.forEach((device) => {
-      device.hangup()
+      device.leave()
     })
 
     return super.hangup()
