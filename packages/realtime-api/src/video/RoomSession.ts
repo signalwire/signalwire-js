@@ -11,6 +11,7 @@ import {
   InternalVideoRoomSessionEventNames,
   VideoRoomUpdatedEventParams,
   InternalVideoLayoutEventNames,
+  InternalVideoRecordingEventNames,
   VideoLayoutChangedEventParams,
   VideoRoomSessionContract,
   VideoRoomSessionMethods,
@@ -24,6 +25,8 @@ type EmitterTransformsEvents =
   | InternalVideoRoomSessionEventNames
   | InternalVideoMemberEventNames
   | InternalVideoLayoutEventNames
+  | InternalVideoRecordingEventNames
+  | 'video.__internal__.recording.start'
 
 export interface RoomSession
   extends VideoRoomSessionContract,
@@ -104,6 +107,37 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
                */
               member_id: payload.member.id,
             })
+          },
+        },
+      ],
+      [
+        [
+          'video.__internal__.recording.start',
+          'video.recording.started',
+          'video.recording.updated',
+          'video.recording.ended',
+        ],
+        {
+          instanceFactory: (_payload: any) => {
+            return Rooms.createRoomSessionRecordingObject({
+              store: this.store,
+              // @ts-expect-error
+              emitter: this.emitter,
+            })
+          },
+          payloadTransform: (payload: any) => {
+            if (payload?.recording) {
+              return toExternalJSON({
+                ...payload?.recording,
+                // FIXME: start using room_session and change this to `id`
+                room_session_id: this.getStateProperty('roomSessionId'),
+              })
+            }
+            return {
+              id: payload.recording_id,
+              // FIXME: start using room_session and change this to `id`
+              roomSessionId: this.getStateProperty('roomSessionId'),
+            }
           },
         },
       ],
