@@ -16,16 +16,101 @@ describe('Member Object', () => {
     member.execute = jest.fn()
   })
 
-  it('should have all the custom methods defined', () => {
-    expect(member.audioMute).toBeDefined()
-    expect(member.audioUnmute).toBeDefined()
-    expect(member.videoMute).toBeDefined()
-    expect(member.videoUnmute).toBeDefined()
-    expect(member.setDeaf).toBeDefined()
-    expect(member.setUndeaf).toBeDefined()
-    expect(member.setMicrophoneVolume).toBeDefined()
-    expect(member.setSpeakerVolume).toBeDefined()
-    expect(member.setInputSensitivity).toBeDefined()
-    expect(member.remove).toBeDefined()
+  const expectExecute = (payload: any) => {
+    // @ts-expect-error
+    expect(member.execute).toHaveBeenLastCalledWith(payload, {
+      transformResolve: expect.anything(),
+    })
+    // @ts-expect-error
+    member.execute.mockClear()
+  }
+
+  it('should have all the custom methods defined', async () => {
+    await member.audioMute()
+    expectExecute({
+      method: 'video.member.audio_mute',
+      params: {
+        room_session_id: member.roomSessionId,
+        member_id: member.id,
+      },
+    })
+    await member.audioUnmute()
+    expectExecute({
+      method: 'video.member.audio_unmute',
+      params: {
+        room_session_id: member.roomSessionId,
+        member_id: member.id,
+      },
+    })
+    await member.videoMute()
+    expectExecute({
+      method: 'video.member.video_mute',
+      params: {
+        room_session_id: member.roomSessionId,
+        member_id: member.id,
+      },
+    })
+    await member.videoUnmute()
+    expectExecute({
+      method: 'video.member.video_unmute',
+      params: {
+        room_session_id: member.roomSessionId,
+        member_id: member.id,
+      },
+    })
+    await member.setDeaf()
+    expectExecute({
+      method: 'video.member.deaf',
+      params: {
+        room_session_id: member.roomSessionId,
+        member_id: member.id,
+      },
+    })
+    // await member.setDeaf(false)
+    // expectExecute({
+    //   method: 'video.member.undeaf',
+    //   params: {
+    //     room_session_id: member.roomSessionId,
+    //     member_id: member.id,
+    //   },
+    // })
+    // expect(member.setUndeaf).toBeDefined()
+    await member.setMicrophoneVolume({ volume: 10 })
+    expectExecute({
+      method: 'video.member.set_input_volume',
+      params: {
+        room_session_id: member.roomSessionId,
+        member_id: member.id,
+        volume: 10,
+      },
+    })
+    await member.setSpeakerVolume({ volume: 10 })
+    expectExecute({
+      method: 'video.member.set_output_volume',
+      params: {
+        room_session_id: member.roomSessionId,
+        member_id: member.id,
+        volume: 10,
+      },
+    })
+    await member.setInputSensitivity({ value: 10 })
+    expectExecute({
+      method: 'video.member.set_input_sensitivity',
+      params: {
+        room_session_id: member.roomSessionId,
+        member_id: member.id,
+        value: 10,
+      },
+    })
+
+    await member.remove()
+    // @ts-expect-error
+    expect(member.execute).toHaveBeenLastCalledWith({
+      method: 'video.member.remove',
+      params: {
+        room_session_id: member.roomSessionId,
+        member_id: member.id,
+      },
+    })
   })
 })
