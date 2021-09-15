@@ -120,8 +120,9 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
   type: VideoMemberType
 
   /**
-   * Puts the microphone on mute. The other participants will not hear audio
-   * from the muted participant anymore.
+   * Mutes the outbound audio for this member (e.g., the one coming from a
+   * microphone). The other participants will not hear audio from the muted
+   * participant anymore.
    *
    * @example
    * ```typescript
@@ -131,7 +132,8 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
   audioMute(): Rooms.AudioMuteMember
 
   /**
-   * Unmutes the microphone of this member if it had been previously muted.
+   * Unmutes the outbound audio for this member (e.g., the one coming from a
+   * microphone) if it had been previously muted.
    *
    * @example
    * ```typescript
@@ -141,8 +143,8 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
   audioUnmute(): Rooms.AudioUnmuteMember
 
   /**
-   * Puts the video on mute. Participants will see a mute image instead of the
-   * video stream.
+   * Mutes the outbound video for this member (e.g., the one coming from a
+   * webcam). Participants will see a mute image instead of the video stream.
    *
    * @example
    * ```typescript
@@ -152,9 +154,10 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
   videoMute(): Rooms.VideoMuteMember
 
   /**
-   * Unmutes the video if it had been previously muted. Participants will
-   * start seeing the video stream again.
-   * 
+   * Unmutes the outbound video for this member (e.g., the one coming from a
+   * webcam) if it had been previously muted. Participants will start seeing the
+   * video stream again.
+   *
    * @example
    * ```typescript
    * await member.videoUnmute()
@@ -163,10 +166,11 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
   videoUnmute(): Rooms.VideoUnmuteMember
 
   /**
-   * Mutes or unmutes the incoming audio for the member. When the incoming audio
-   * is muted, the affected participant will not hear audio from the other
-   * participants anymore.
-   * 
+   * Mutes or unmutes the inbound audio for the member (e.g., the one that get
+   * played through this member's speakers). When the inbound audio is muted,
+   * the affected participant will not hear audio from the other participants
+   * anymore.
+   *
    * @param value whether to mute the audio
    *
    * @example
