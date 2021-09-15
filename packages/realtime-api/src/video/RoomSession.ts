@@ -48,7 +48,10 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
             return this
           },
           payloadTransform: (payload: VideoRoomUpdatedEventParams) => {
-            return toExternalJSON(payload.room_session)
+            return toExternalJSON({
+              ...payload.room_session,
+              room_session_id: payload.room_session.id,
+            })
           },
           getInstanceEventNamespace: (payload: VideoRoomUpdatedEventParams) => {
             return payload.room_session.id
