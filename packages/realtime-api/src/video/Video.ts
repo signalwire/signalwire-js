@@ -24,7 +24,7 @@ type TransformEvent = Extract<
  * 
  * **room.started**  
  * Emitted when a room session is started. Your event handler
- * receives an object which is an instance of {@link Room}. Example:
+ * receives an object which is an instance of {@link RoomSession}. Example:
  * ```typescript
  * const client = await createClient(...)
  * client.video.on('room.started', async (room) => {
@@ -34,7 +34,7 @@ type TransformEvent = Extract<
  * 
  * **room.ended**  
  * Emitted when a room session ends. Your event handler receives
- * an object which is an instance of {@link Room}.
+ * an object which is an instance of {@link RoomSession}.
  * ```typescript
  * const client = await createClient(...)
  * client.video.on('room.ended', async (room) => {
