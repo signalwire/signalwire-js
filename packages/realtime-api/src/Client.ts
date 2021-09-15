@@ -6,14 +6,14 @@ import {
   ClientEvents,
   logger,
 } from '@signalwire/core'
-import { createVideoObject, VideoObject } from './Video'
+import { createVideoObject, Video } from './Video'
 
 export interface RealtimeClient
   extends ClientContract<RealtimeClient, ClientEvents> {
-  video: VideoObject
+  video: Video
 }
 
-type ClientNamespaces = VideoObject
+type ClientNamespaces = Video
 
 export class Client extends BaseClient<ClientEvents> {
   private _consumers: Map<EventsPrefix, ClientNamespaces> = new Map()
@@ -40,7 +40,7 @@ export class Client extends BaseClient<ClientEvents> {
     }
   }
 
-  get video(): VideoObject {
+  get video(): Video {
     if (this._consumers.has('video')) {
       return this._consumers.get('video')!
     }
