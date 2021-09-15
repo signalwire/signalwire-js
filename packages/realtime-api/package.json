@@ -1,6 +1,6 @@
 {
   "name": "@signalwire/realtime-api",
-  "description": "SignalWire Real-Time SDK for Node.js",
+  "description": "SignalWire RealTime SDK for Node.js",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
   "version": "3.0.0-beta.0",
