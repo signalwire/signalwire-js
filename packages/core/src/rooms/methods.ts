@@ -145,7 +145,10 @@ export const startRecording: RoomMethodDescriptor<any> = {
             room_session_id: this.roomSessionId,
           },
         })
-        this.emit('video.__internal__.recording.start', payload)
+        this.emit('video.__internal__.recording.start', {
+          ...(payload as object),
+          room_session_id: this.roomSessionId,
+        })
       } catch (error) {
         this.off('video.__internal__.recording.start', handler)
         throw error
