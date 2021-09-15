@@ -1,16 +1,19 @@
-import { EventEmitter } from '@signalwire/core'
-import { configureJestStore } from '../testUtils'
+import { actions } from '@signalwire/core'
+import { configureFullStack } from '../testUtils'
 import { createVideoObject, Video } from './Video'
 
-describe('Member Object', () => {
-  let store: any
+describe('Video Object', () => {
   let video: Video
 
+  const { store, session, emitter } = configureFullStack()
   beforeEach(() => {
-    store = configureJestStore()
+    // remove all listeners before each run
+    emitter.removeAllListeners()
+
     video = createVideoObject({
-      store: store,
-      emitter: new EventEmitter(),
+      store,
+      // @ts-expect-error
+      emitter,
     })
     // @ts-expect-error
     video.execute = jest.fn()
@@ -23,7 +26,7 @@ describe('Member Object', () => {
   })
 
   it('should invoke execute with event listeners', async () => {
-    video.on('room.ended', jest.fn)
+    video.on('room.started', jest.fn)
     await video.subscribe()
     // @ts-expect-error
     expect(video.execute).toHaveBeenCalledWith({
@@ -31,7 +34,7 @@ describe('Member Object', () => {
       params: {
         get_initial_state: true,
         event_channel: 'video.rooms',
-        events: ['video.room.ended'],
+        events: ['video.room.started'],
       },
     })
   })
@@ -39,15 +42,17 @@ describe('Member Object', () => {
   describe('video.room.started event', () => {
     const eventChannelOne = 'room.<uuid-one>'
     const firstRoom = JSON.parse(
-      `{"jsonrpc":"2.0","id":"uuid1","method":"signalwire.event","params":{"params":{"room_session_id":"session-one","room_id":"room_id","room":{"room_id":"room_id","room_session_id":"session-one","name":"First Room","event_channel":"${eventChannelOne}"}},"timestamp":1630004194.9456,"event_type":"video.room.started","event_channel":"video.rooms.78429ef1-283b-4fa9-8ebc-16b59f95bb1f"}}`
+      `{"jsonrpc":"2.0","id":"uuid1","method":"signalwire.event","params":{"params":{"room":{"recording":false,"room_session_id":"session-one","name":"First Room","hide_video_muted":false,"music_on_hold":false,"room_id":"room_id","event_channel":"${eventChannelOne}"},"room_session_id":"session-one","room_id":"room_id","room_session":{"recording":false,"name":"First Room","hide_video_muted":false,"id":"session-one","music_on_hold":false,"room_id":"room_id","event_channel":"${eventChannelOne}"}},"timestamp":1631692502.1308,"event_type":"video.room.started","event_channel":"video.rooms.4b7ae78a-d02e-4889-a63b-08b156d5916e"}}`
     )
     const eventChannelTwo = 'room.<uuid-one>'
     const secondRoom = JSON.parse(
-      `{"jsonrpc":"2.0","id":"uuid1","method":"signalwire.event","params":{"params":{"room_session_id":"session-two","room_id":"room_id","room":{"room_id":"room_id","room_session_id":"session-two","name":"Second Room","event_channel":"${eventChannelTwo}"}},"timestamp":1630004194.9456,"event_type":"video.room.started","event_channel":"video.rooms.78429ef1-283b-4fa9-8ebc-16b59f95bb1f"}}`
+      `{"jsonrpc":"2.0","id":"uuid1","method":"signalwire.event","params":{"params":{"room":{"recording":false,"room_session_id":"session-two","name":"Second Room","hide_video_muted":false,"music_on_hold":false,"room_id":"room_id","event_channel":"${eventChannelTwo}"},"room_session_id":"session-two","room_id":"room_id","room_session":{"recording":false,"name":"Second Room","hide_video_muted":false,"id":"session-two","music_on_hold":false,"room_id":"room_id","event_channel":"${eventChannelTwo}"}},"timestamp":1631692502.1308,"event_type":"video.room.started","event_channel":"video.rooms.4b7ae78a-d02e-4889-a63b-08b156d5916e"}}`
     )
 
     it('should pass a Room obj to the handler', (done) => {
       video.on('room.started', (room) => {
+        expect(room.id).toBe('session-one')
+        expect(room.name).toBe('First Room')
         expect(room.videoMute).toBeDefined()
         expect(room.videoUnmute).toBeDefined()
         expect(room.getMembers).toBeDefined()
@@ -55,42 +60,41 @@ describe('Member Object', () => {
         done()
       })
 
-      video.subscribe()
-      // @ts-expect-error
-      video.emit('video.room.started', firstRoom.params.params)
+      video.subscribe().then(() => {
+        session.dispatch(actions.socketMessageAction(firstRoom))
+      })
     })
 
-    it('should destroy the cached obj when an event has no longer handlers attached', () => {
+    it('should destroy the cached obj when an event has no longer handlers attached', async () => {
       const destroyer = jest.fn()
       const h = (room: any) => {
         room._destroyer = destroyer
       }
       video.on('room.started', h)
 
-      video.subscribe()
-      // @ts-expect-error
-      video.emit('video.room.started', firstRoom.params.params)
+      await video.subscribe()
+      session.dispatch(actions.socketMessageAction(firstRoom))
 
       video.off('room.started', h)
       expect(destroyer).toHaveBeenCalled()
     })
 
-    it('should *not* destroy the cached obj when there are existing listeners attached', () => {
+    it('should *not* destroy the cached obj when there are existing listeners attached', async () => {
       const destroyer = jest.fn()
       const h = (room: any) => {
         room._destroyer = destroyer
       }
       video.on('room.started', h)
       video.on('room.started', () => {})
-      video.subscribe()
-      // @ts-expect-error
-      video.emit('video.room.started', firstRoom.params.params)
+
+      await video.subscribe()
+      session.dispatch(actions.socketMessageAction(firstRoom))
 
       video.off('room.started', h)
       expect(destroyer).not.toHaveBeenCalled()
     })
 
-    it('should destroy the cached obj when .off is called with no handler', () => {
+    it('should destroy the cached obj when .off is called with no handler', async () => {
       const destroyer = jest.fn()
       const h = (room: any) => {
         room._destroyer = destroyer
@@ -98,9 +102,9 @@ describe('Member Object', () => {
       video.on('room.started', h)
       video.on('room.started', () => {})
       video.on('room.started', () => {})
-      video.subscribe()
-      // @ts-expect-error
-      video.emit('video.room.started', firstRoom.params.params)
+
+      await video.subscribe()
+      session.dispatch(actions.socketMessageAction(firstRoom))
 
       video.off('room.started')
       expect(destroyer).toHaveBeenCalled()
@@ -116,24 +120,22 @@ describe('Member Object', () => {
           expect(room.getMembers).toBeDefined()
           expect(room.subscribe).toBeDefined()
 
-          room.on('layout.changed', jest.fn)
+          room.on('member.updated.audioMuted', jest.fn)
           // @ts-expect-error
           room.execute = mockExecute
           room.subscribe()
           mockNameCheck(room.name)
 
-          // @ts-expect-error
-          if (room.roomSessionId === 'session-two') {
+          if (room.id === 'session-two') {
             resolve(undefined)
           }
         })
       })
 
-      video.subscribe()
-      // @ts-expect-error
-      video.emit('video.room.started', firstRoom.params.params)
-      // @ts-expect-error
-      video.emit('video.room.started', secondRoom.params.params)
+      await video.subscribe()
+
+      session.dispatch(actions.socketMessageAction(firstRoom))
+      session.dispatch(actions.socketMessageAction(secondRoom))
 
       await promise
 
@@ -142,14 +144,14 @@ describe('Member Object', () => {
         method: 'signalwire.subscribe',
         params: {
           event_channel: eventChannelOne,
-          events: ['video.layout.changed'],
+          events: ['video.member.updated'],
         },
       })
       expect(mockExecute).toHaveBeenNthCalledWith(2, {
         method: 'signalwire.subscribe',
         params: {
           event_channel: eventChannelTwo,
-          events: ['video.layout.changed'],
+          events: ['video.member.updated'],
         },
       })
 

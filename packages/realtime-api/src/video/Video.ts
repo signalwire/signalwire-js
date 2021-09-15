@@ -6,6 +6,7 @@ import {
   toExternalJSON,
   ConsumerContract,
   RoomSessionRecording,
+  VideoRoomEventParams,
 } from '@signalwire/core'
 import { BaseConsumer } from '../BaseConsumer'
 import { RealTimeVideoApiEvents } from '../types/video'
@@ -44,14 +45,14 @@ export class VideoAPI extends BaseConsumer<RealTimeVideoApiEvents> {
               emitter: this.options.emitter,
             })
           },
-          payloadTransform: (payload: any) => {
-            return toExternalJSON(payload.room)
+          payloadTransform: (payload: VideoRoomEventParams) => {
+            return toExternalJSON(payload.room_session)
           },
-          getInstanceEventNamespace: (payload: any) => {
-            return payload.room_session_id
+          getInstanceEventNamespace: (payload: VideoRoomEventParams) => {
+            return payload.room_session.id
           },
-          getInstanceEventChannel: (payload: any) => {
-            return payload.room.event_channel
+          getInstanceEventChannel: (payload: VideoRoomEventParams) => {
+            return payload.room_session.event_channel
           },
         },
       ],
