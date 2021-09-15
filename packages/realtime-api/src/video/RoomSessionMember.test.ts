@@ -12,11 +12,11 @@ describe('Member Object', () => {
       store: configureJestStore(),
       emitter: jest.fn() as any,
     })
+    // @ts-expect-error
     member.execute = jest.fn()
   })
 
   it('should have all the custom methods defined', () => {
-    // TS complains due to defineProperties
     expect(member.audioMute).toBeDefined()
     expect(member.audioUnmute).toBeDefined()
     expect(member.videoMute).toBeDefined()
