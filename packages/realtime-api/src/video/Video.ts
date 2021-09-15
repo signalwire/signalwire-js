@@ -28,8 +28,8 @@ type TransformEvent = Extract<
  * receives an object which is an instance of {@link RoomSession}. Example:
  * ```typescript
  * const client = await createClient(...)
- * client.video.on('room.started', async (room) => {
- *     console.log(room.name)
+ * client.video.on('room.started', async (roomSession) => {
+ *     console.log(roomSession.name)
  * })
  * ```
  * 
@@ -38,8 +38,8 @@ type TransformEvent = Extract<
  * an object which is an instance of {@link RoomSession}.
  * ```typescript
  * const client = await createClient(...)
- * client.video.on('room.ended', async (room) => {
- *     console.log(room.name)
+ * client.video.on('room.ended', async (roomSession) => {
+ *     console.log(roomSession.name)
  * })
  * ```
  */
