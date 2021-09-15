@@ -8,62 +8,39 @@ async function run() {
       token: process.env.TOKEN as string,
     })
 
-    client.video.on('room.started', async (room) => {
-      // room.on('member.talking.started', (member) => {
-      //   console.log('---> member.talking.started', member)
-      // })
-      // room.on('member.talking.ended', (member) => {
-      //   console.log('---> member.talking.ended', member)
-      // })
-
-      room.on('member.joined', async (member) => {
-        console.log('---> member.joined', member.id, member.name)
+    client.video.on('room.started', async (roomSession) => {
+      roomSession.on('member.joined', async (member) => {
+        console.log('member.joined', member.id, member.name)
         await member.videoMute()
         await member.audioMute()
         await member.setDeaf(true)
       })
 
-      room.on('member.left', async (member) => {
-        console.log('---> member.left', member.id, member.name)
+      roomSession.on('member.left', async (member) => {
+        console.log('member.left', member.id, member.name)
       })
 
-      room.on('room.updated', async (room) => {
-        console.log('---> room.updated', room.id, room.name, room.updated)
+      roomSession.on('room.updated', async (roomSession) => {
+        console.log('room.updated', roomSession.id, roomSession.name)
       })
 
-      room.on('layout.changed', async (layout) => {
-        console.log('---> layout.changed', layout.name, layout.layers.length)
+      roomSession.on('layout.changed', async (layout) => {
+        console.log('layout.changed', layout.name, layout.layers.length)
       })
 
-      room.on('member.updated', (member) => {
-        console.log(
-          '---> member.updated',
-          member.id,
-          member.name,
-          member.updated
-        )
+      roomSession.on('member.updated', (member) => {
+        console.log('-member.updated', member.id, member.name, member.updated)
       })
 
-      room.on('member.updated.audioMuted', (member) => {
-        console.log('---> audioMuted', member.id, member.audioMuted)
-      })
-
-      room.on('member.updated.videoMuted', (member) => {
-        console.log('---> videoMuted', member.id, member.videoMuted)
-      })
-      room.on('member.updated.visible', (member) => {
-        console.log('---> visible', member.id, member.visible)
-      })
-
-      room.on('recording.started', (rec) => {
+      roomSession.on('recording.started', (rec) => {
         console.log('recording.started', rec.id, rec.state, rec.startedAt)
       })
 
-      room.on('recording.updated', (rec) => {
+      roomSession.on('recording.updated', (rec) => {
         console.log('recording.updated', rec.id, rec.state, rec.startedAt)
       })
 
-      room.on('recording.ended', (rec) => {
+      roomSession.on('recording.ended', (rec) => {
         console.log(
           'recording.ended',
           rec.id,
@@ -73,12 +50,12 @@ async function run() {
           rec.duration
         )
       })
-      await room.subscribe()
+      await roomSession.subscribe()
 
-      const rec = await room.startRecording()
+      const rec = await roomSession.startRecording()
 
       setTimeout(async () => {
-        const list = await room.getRecordings()
+        const list = await roomSession.getRecordings()
         console.log('Recordings', JSON.stringify(list, null, 2))
 
         setTimeout(async () => {
@@ -87,11 +64,11 @@ async function run() {
         }, 10 * 1000)
       }, 2000)
 
-      console.log('🟢 ROOOM STARTED 🟢', room.id, room.name)
+      console.log('🟢 ROOOM STARTED 🟢', roomSession.id, roomSession.name)
     })
 
-    client.video.on('room.ended', (room) => {
-      console.log('🔴 ROOOM ENDED 🔴', room.id, room.name)
+    client.video.on('room.ended', (roomSession) => {
+      console.log('🔴 ROOOM ENDED 🔴', roomSession.id, roomSession.name)
     })
 
     await client.connect()
