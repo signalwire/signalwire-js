@@ -39,7 +39,6 @@ async function run() {
           '---> member.updated',
           member.id,
           member.name,
-          // @ts-expect-error
           member.updated
         )
       })

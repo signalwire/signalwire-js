@@ -6,9 +6,11 @@ import {
   Rooms,
   VideoMemberContract,
   VideoMemberMethods,
+  EntityUpdated,
 } from '@signalwire/core'
 
 export interface RoomSessionMember extends VideoMemberContract {}
+export type RoomSessionMemberUpdated = EntityUpdated<RoomSessionMember>
 
 // TODO: Extend from a variant of `BaseComponent` that
 // doesn't expose EventEmitter methods
