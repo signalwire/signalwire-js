@@ -1,15 +1,17 @@
-import StrictEventEmitter from 'strict-event-emitter-types'
 import type {
   Rooms,
   BaseConnectionState,
   VideoLayout,
   VideoLayoutEventNames,
-  VideoRoomEventNames,
+  VideoRoomSessionEventNames,
   VideoRoomEventParams,
-  VideoMember,
-  InternalVideoMember,
+  VideoMemberEntity,
+  InternalVideoMemberEntity,
   VideoMemberEventNames,
+  MemberUpdated,
+  MemberUpdatedEventNames,
   MemberTalkingEventNames,
+  VideoMemberEntityUpdated,
   VideoMemberTalkingEventParams,
   RTCTrackEventName,
   InternalVideoMemberUpdatableProps,
@@ -18,8 +20,6 @@ import type {
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
 import type { Room } from '../Room'
-import type { RoomScreenShare } from '../RoomScreenShare'
-import type { RoomDevice } from '../RoomDevice'
 
 const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
   INTERNAL_MEMBER_UPDATABLE_PROPS
@@ -32,14 +32,26 @@ const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
 export type DeprecatedMemberUpdatableProps =
   typeof INTERNAL_MEMBER_UPDATED_EVENTS[number]
 /** @deprecated */
-export type DeprecatedVideoMemberHandlerParams = { member: InternalVideoMember }
-export type VideoMemberHandlerParams = { member: VideoMember }
+export type DeprecatedVideoMemberHandlerParams = {
+  member: InternalVideoMemberEntity
+}
+export type VideoMemberHandlerParams = { member: VideoMemberEntity }
+export type VideoMemberUpdatedHandlerParams = {
+  member: VideoMemberEntityUpdated
+}
 
 export type RoomObjectEventsHandlerMap = Record<
   VideoLayoutEventNames,
   (params: { layout: VideoLayout }) => void
 > &
-  Record<VideoMemberEventNames, (params: VideoMemberHandlerParams) => void> &
+  Record<
+    Exclude<VideoMemberEventNames, MemberUpdated | MemberUpdatedEventNames>,
+    (params: VideoMemberHandlerParams) => void
+  > &
+  Record<
+    Extract<VideoMemberEventNames, MemberUpdated | MemberUpdatedEventNames>,
+    (params: VideoMemberUpdatedHandlerParams) => void
+  > &
   Record<
     DeprecatedMemberUpdatableProps,
     (params: DeprecatedVideoMemberHandlerParams) => void
@@ -48,21 +60,14 @@ export type RoomObjectEventsHandlerMap = Record<
     MemberTalkingEventNames,
     (params: VideoMemberTalkingEventParams) => void
   > &
-  Record<VideoRoomEventNames, (params: VideoRoomEventParams) => void> &
+  Record<VideoRoomSessionEventNames, (params: VideoRoomEventParams) => void> &
   Record<RTCTrackEventName, (event: RTCTrackEvent) => void> &
-  Record<BaseConnectionState, (params: Room) => void> &
-  Record<VideoRecordingEventNames, (recording: RoomSessionRecording) => void>
+  Record<VideoRecordingEventNames, (recording: RoomSessionRecording) => void> &
+  Record<BaseConnectionState, (params: Room) => void>
 
 export type RoomObjectEvents = {
   [k in keyof RoomObjectEventsHandlerMap]: RoomObjectEventsHandlerMap[k]
 }
-
-export type RoomObject = StrictEventEmitter<Room, RoomObjectEvents>
-export type RoomScreenShareObject = StrictEventEmitter<
-  RoomScreenShare,
-  RoomObjectEvents
->
-export type RoomDeviceObject = StrictEventEmitter<RoomDevice, RoomObjectEvents>
 
 export type CreateScreenShareObjectOptions = {
   autoJoin?: boolean
@@ -99,10 +104,10 @@ export interface BaseRoomInterface {
 }
 
 interface RoomMemberMethodsInterface {
-  audioMute(params: MemberCommandParams): Rooms.AudioMuteMember
-  audioUnmute(params: MemberCommandParams): Rooms.AudioUnmuteMember
-  videoMute(params: MemberCommandParams): Rooms.VideoMuteMember
-  videoUnmute(params: MemberCommandParams): Rooms.VideoUnmuteMember
+  audioMute(params?: MemberCommandParams): Rooms.AudioMuteMember
+  audioUnmute(params?: MemberCommandParams): Rooms.AudioUnmuteMember
+  videoMute(params?: MemberCommandParams): Rooms.VideoMuteMember
+  videoUnmute(params?: MemberCommandParams): Rooms.VideoUnmuteMember
   setMicrophoneVolume(
     params: MemberCommandWithVolumeParams
   ): Rooms.SetInputVolumeMember
@@ -129,8 +134,8 @@ interface RoomLayoutMethodsInterface {
 
 interface RoomControlMethodsInterface {
   getMembers(): Rooms.GetMembers
-  deaf(params: MemberCommandParams): Rooms.DeafMember
-  undeaf(params: MemberCommandParams): Rooms.UndeafMember
+  deaf(params?: MemberCommandParams): Rooms.DeafMember
+  undeaf(params?: MemberCommandParams): Rooms.UndeafMember
   setSpeakerVolume(
     params: MemberCommandWithVolumeParams
   ): Rooms.SetOutputVolumeMember

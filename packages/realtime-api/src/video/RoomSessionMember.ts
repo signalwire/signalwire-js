@@ -4,30 +4,17 @@ import {
   BaseComponentOptions,
   extendComponent,
   Rooms,
-  VideoMember,
+  VideoMemberContract,
+  VideoMemberMethods,
+  EntityUpdated,
 } from '@signalwire/core'
 
-export interface RoomSessionMemberMethods {
-  audioMute(): Rooms.AudioMuteMember
-  audioUnmute(): Rooms.AudioUnmuteMember
-  videoMute(): Rooms.VideoMuteMember
-  videoUnmute(): Rooms.VideoUnmuteMember
-  deaf(): Rooms.DeafMember
-  undeaf(): Rooms.UndeafMember
-  setMicrophoneVolume(params: { volume: number }): Rooms.SetInputVolumeMember
-  setSpeakerVolume(params: { volume: number }): Rooms.SetOutputVolumeMember
-  setInputSensitivity(params: {
-    value: number
-  }): Rooms.SetInputSensitivityMember
-}
+export interface RoomSessionMember extends VideoMemberContract {}
+export type RoomSessionMemberUpdated = EntityUpdated<RoomSessionMember>
 
-export interface RoomSessionMemberAPI extends RoomSessionMemberMethods {
-  remove(): Rooms.RemoveMember
-}
-
-export type RoomSessionMember = RoomSessionMemberAPI & VideoMember
-
-class RoomSessionMemberComponent extends BaseComponent {
+// TODO: Extend from a variant of `BaseComponent` that
+// doesn't expose EventEmitter methods
+class RoomSessionMemberComponent extends BaseComponent<{}> {
   async remove() {
     await this.execute({
       method: 'video.member.remove',
@@ -40,24 +27,25 @@ class RoomSessionMemberComponent extends BaseComponent {
 }
 
 const RoomSessionMemberAPI = extendComponent<
-  RoomSessionMember,
-  RoomSessionMemberMethods
+  RoomSessionMemberComponent,
+  // `remove` is defined by `RoomSessionMemberComponent`
+  Omit<VideoMemberMethods, 'remove'>
 >(RoomSessionMemberComponent, {
   audioMute: Rooms.audioMuteMember,
   audioUnmute: Rooms.audioUnmuteMember,
   videoMute: Rooms.videoMuteMember,
   videoUnmute: Rooms.videoUnmuteMember,
-  deaf: Rooms.deafMember,
-  undeaf: Rooms.undeafMember,
+  setDeaf: Rooms.setDeaf,
   setMicrophoneVolume: Rooms.setInputVolumeMember,
   setSpeakerVolume: Rooms.setOutputVolumeMember,
   setInputSensitivity: Rooms.setInputSensitivityMember,
 })
 
-export const createRoomSessionMemberObject = (params: BaseComponentOptions) => {
-  const member = connect({
+export const createRoomSessionMemberObject = (
+  params: BaseComponentOptions<{}>
+): RoomSessionMember => {
+  const member = connect<{}, RoomSessionMemberComponent, RoomSessionMember>({
     store: params.store,
-    // @ts-expect-error
     Component: RoomSessionMemberAPI,
     componentListeners: {
       errors: 'onError',
@@ -65,5 +53,5 @@ export const createRoomSessionMemberObject = (params: BaseComponentOptions) => {
     },
   })(params)
 
-  return member as any as RoomSessionMember
+  return member
 }

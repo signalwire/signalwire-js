@@ -4,6 +4,7 @@ import { componentActions } from './features'
 import { getComponent } from './features/component/componentSelectors'
 import { getSession } from './features/session/sessionSelectors'
 import type { BaseComponent } from '../BaseComponent'
+import { EventEmitter } from '../utils/EventEmitter'
 
 type ComponentEventHandler = (component: ReduxComponent) => unknown
 type SessionEventHandler = (session: SessionState) => unknown
@@ -19,7 +20,19 @@ interface Connect<T> {
 type ReduxComponentKeys = keyof ReduxComponent
 type ReduxSessionKeys = keyof SessionState
 
-export const connect = <T extends BaseComponent>(options: Connect<T>) => {
+export const connect = <
+  EventTypes extends EventEmitter.ValidEventTypes,
+  /**
+   * Class extending BaseComponent.
+   */
+  T extends BaseComponent<EventTypes>,
+  /**
+   * The type the end user will be interacting with.
+   */
+  TargetType
+>(
+  options: Connect<T>
+) => {
   const {
     componentListeners = {},
     sessionListeners = {},
@@ -30,7 +43,7 @@ export const connect = <T extends BaseComponent>(options: Connect<T>) => {
   const componentKeys = Object.keys(componentListeners) as ReduxComponentKeys[]
   const sessionKeys = Object.keys(sessionListeners) as ReduxSessionKeys[]
 
-  return (userOptions: any) => {
+  return (userOptions: any): TargetType => {
     const instance = new Component({ ...userOptions, store })
     const cacheMap = new Map<string, any>()
     /**
@@ -108,6 +121,6 @@ export const connect = <T extends BaseComponent>(options: Connect<T>) => {
       }
     }
 
-    return instance
+    return instance as any as TargetType
   }
 }

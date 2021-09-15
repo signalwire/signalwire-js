@@ -1,16 +1,26 @@
-type ToInternalEventNameParams = {
-  event: string | symbol
+import { EventEmitter } from './EventEmitter'
+
+type ToInternalEventNameParams<
+  EventTypes extends EventEmitter.ValidEventTypes
+> = {
+  event: EventEmitter.EventNames<EventTypes>
   namespace?: string
 }
 
-export const toInternalEventName = ({
+export const toInternalEventName = <
+  EventTypes extends EventEmitter.ValidEventTypes
+>({
   event,
   namespace,
-}: ToInternalEventNameParams) => {
+}: ToInternalEventNameParams<EventTypes>) => {
+  // TODO: improve types of getNamespacedEvent and fromCamelToSnakeCase
   if (typeof event === 'string') {
     // other transforms here..
-    event = getNamespacedEvent({ event, namespace })
-    event = fromCamelToSnakeCase(event)
+    event = getNamespacedEvent({
+      event,
+      namespace,
+    }) as EventEmitter.EventNames<EventTypes>
+    event = fromCamelToSnakeCase<EventEmitter.EventNames<EventTypes>>(event)
   }
 
   return event
@@ -21,10 +31,11 @@ const UPPERCASE_REGEX = /[A-Z]/g
  * Converts values from camelCase to snake_case
  * @internal
  */
-const fromCamelToSnakeCase = (event: string) => {
+const fromCamelToSnakeCase = <T>(event: T): T => {
+  // @ts-ignore
   return event.replace(UPPERCASE_REGEX, (letter) => {
     return `_${letter.toLowerCase()}`
-  })
+  }) as T
 }
 
 const getNamespacedEvent = ({

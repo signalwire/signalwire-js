@@ -6,7 +6,10 @@ import type {
   SnakeToCamelCase,
   EntityUpdated,
   ToInternalVideoEvent,
+  OnlyStateProperties,
+  OnlyFunctionProperties,
 } from './utils'
+import * as Rooms from '../rooms'
 
 /**
  * Used to not duplicate member fields across constants and types
@@ -34,7 +37,7 @@ export const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
   }` as const
 })
 
-export type VideoMemberUpdatableProps = {
+type VideoMemberUpdatableProps = {
   [K in keyof InternalVideoMemberUpdatableProps as SnakeToCamelCase<K>]: InternalVideoMemberUpdatableProps[K]
 }
 
@@ -103,33 +106,159 @@ export type InternalVideoMemberEventNames =
     >
   | typeof INTERNAL_MEMBER_UPDATED_EVENTS[number]
 
-/**
- * Base Interface for a VideoMember entity
- */
 export type VideoMemberType = 'member' | 'screen' | 'device'
-export interface VideoMemberBase {
+
+/**
+ * Public Contract for a VideoMember
+ */
+export interface VideoMemberContract extends VideoMemberUpdatableProps {
   id: string
   roomId: string
   roomSessionId: string
   name: string
   parentId?: string
   type: VideoMemberType
+
+  /**
+   * Mutes the outbound audio for this member (e.g., the one coming from a
+   * microphone). The other participants will not hear audio from the muted
+   * participant anymore.
+   *
+   * @example
+   * ```typescript
+   * await member.audioMute()
+   * ```
+   */
+  audioMute(): Rooms.AudioMuteMember
+
+  /**
+   * Unmutes the outbound audio for this member (e.g., the one coming from a
+   * microphone) if it had been previously muted.
+   *
+   * @example
+   * ```typescript
+   * await member.audioUnmute()
+   * ```
+   */
+  audioUnmute(): Rooms.AudioUnmuteMember
+
+  /**
+   * Mutes the outbound video for this member (e.g., the one coming from a
+   * webcam). Participants will see a mute image instead of the video stream.
+   *
+   * @example
+   * ```typescript
+   * await member.videoMute()
+   * ```
+   */
+  videoMute(): Rooms.VideoMuteMember
+
+  /**
+   * Unmutes the outbound video for this member (e.g., the one coming from a
+   * webcam) if it had been previously muted. Participants will start seeing the
+   * video stream again.
+   *
+   * @example
+   * ```typescript
+   * await member.videoUnmute()
+   * ```
+   */
+  videoUnmute(): Rooms.VideoUnmuteMember
+
+  /**
+   * Mutes or unmutes the inbound audio for the member (e.g., the one that get
+   * played through this member's speakers). When the inbound audio is muted,
+   * the affected participant will not hear audio from the other participants
+   * anymore.
+   *
+   * @param value whether to mute the audio
+   *
+   * @example
+   * ```typescript
+   * await member.setDeaf(true)
+   * ```
+   */
+  setDeaf(value: boolean): Rooms.SetDeaf
+
+  /**
+   * Sets the microphone input level for the member.
+   *
+   * @param params 
+   * @param params.volume desired volume. Values range from -50 to 50, with a
+   * default of 0.
+   *
+   * @example
+   * ```typescript
+   * await member.setMicrophoneVolume({volume: -10})
+   * ```
+   */
+  setMicrophoneVolume(params: { volume: number }): Rooms.SetInputVolumeMember
+
+  /**
+   * Sets the speaker output level.
+   * 
+   * @param params 
+   * @param params.value desired volume. Values range from -50 to 50, with a
+   * default of 0.
+   *
+   * @example
+   * ```typescript
+   * await member.setSpeakerVolume({volume: -10})
+   * ```
+   */
+  setSpeakerVolume(params: { volume: number }): Rooms.SetOutputVolumeMember
+
+  /**
+   * Sets the input level at which the participant is identified as currently
+   * speaking.
+   * 
+   * @param params
+   * @param params.value desired sensitivity. The default value is 30 and the
+   * scale goes from 0 (lowest sensitivity, essentially muted) to 100 (highest
+   * sensitivity).
+   *
+   * @example
+   * ```typescript
+   * await member.setInputSensitivity({value: 80})
+   * ```
+   */
+  setInputSensitivity(params: {
+    value: number
+  }): Rooms.SetInputSensitivityMember
+
+  /**
+   * Removes this member from the room.
+   * 
+   * @example
+   * ```typescript
+   * await member.remove()
+   * ```
+   */
+  remove(): Rooms.RemoveMember
 }
 
-export interface VideoMember
-  extends VideoMemberBase,
-    VideoMemberUpdatableProps {}
 /**
- * VideoMember entity plus `updated` field
+ * VideoMember properties
  */
-export type VideoMemberUpdated = EntityUpdated<VideoMember>
+export type VideoMemberEntity = OnlyStateProperties<VideoMemberContract>
+/**
+ * VideoMember methods
+ */
+export type VideoMemberMethods = OnlyFunctionProperties<VideoMemberContract>
 
 /**
- * VideoMember entity for internal usage (converted to snake_case)
+ * VideoMemberEntity entity plus `updated` field
+ */
+export type VideoMemberEntityUpdated = EntityUpdated<VideoMemberEntity>
+
+/**
+ * VideoMemberEntity entity for internal usage (converted to snake_case)
  * @internal
  */
-export type InternalVideoMember = {
-  [K in keyof VideoMember as CamelToSnakeCase<K>]: VideoMember[K]
+export type InternalVideoMemberEntity = {
+  [K in NonNullable<
+    keyof VideoMemberEntity
+  > as CamelToSnakeCase<K>]: VideoMemberEntity[K]
 }
 
 /**
@@ -137,7 +266,8 @@ export type InternalVideoMember = {
  * for internal usage (converted to snake_case)
  * @internal
  */
-export type InternalVideoMemberUpdated = EntityUpdated<InternalVideoMember>
+export type InternalVideoMemberEntityUpdated =
+  EntityUpdated<InternalVideoMemberEntity>
 
 /**
  * ==========
@@ -153,7 +283,7 @@ export type InternalVideoMemberUpdated = EntityUpdated<InternalVideoMember>
 export interface VideoMemberJoinedEventParams {
   room_session_id: string
   room_id: string
-  member: InternalVideoMember
+  member: InternalVideoMemberEntity
 }
 
 export interface VideoMemberJoinedEvent extends SwEvent {
@@ -167,7 +297,7 @@ export interface VideoMemberJoinedEvent extends SwEvent {
 export interface VideoMemberUpdatedEventParams {
   room_session_id: string
   room_id: string
-  member: InternalVideoMemberUpdated
+  member: InternalVideoMemberEntityUpdated
 }
 
 export interface VideoMemberUpdatedEvent extends SwEvent {
@@ -181,8 +311,7 @@ export interface VideoMemberUpdatedEvent extends SwEvent {
 export interface VideoMemberLeftEventParams {
   room_session_id: string
   room_id: string
-  // TODO: check if we have full object here
-  member: InternalVideoMember
+  member: InternalVideoMemberEntity
 }
 
 export interface VideoMemberLeftEvent extends SwEvent {
@@ -196,7 +325,8 @@ export interface VideoMemberLeftEvent extends SwEvent {
 export interface VideoMemberTalkingEventParams {
   room_session_id: string
   room_id: string
-  member: Pick<InternalVideoMember, 'id'> & {
+  member: {
+    id: string
     talking: boolean
   }
 }

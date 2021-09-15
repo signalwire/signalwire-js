@@ -1,4 +1,4 @@
-import { logger } from '@signalwire/core'
+import { logger, EventEmitter } from '@signalwire/core'
 import { getUserMedia, getMediaConstraints } from './utils/helpers'
 import {
   sdpStereoHack,
@@ -14,14 +14,17 @@ import {
 } from './utils/webrtcHelpers'
 import { ConnectionOptions } from './utils/interfaces'
 
-export default class RTCPeer {
+export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   public instance: RTCPeerConnection
 
   private options: ConnectionOptions
   private _iceTimeout: any
   private _negotiating = false
 
-  constructor(public call: BaseConnection, public type: RTCSdpType) {
+  constructor(
+    public call: BaseConnection<EventTypes>,
+    public type: RTCSdpType
+  ) {
     this.options = call.options
     logger.debug('New Peer with type:', this.type, 'Options:', this.options)
 
@@ -408,6 +411,7 @@ export default class RTCPeer {
     }
     if (event.candidate) {
       logger.debug('IceCandidate:', event.candidate)
+      // @ts-expect-error
       this.call.emit('icecandidate', event)
     } else {
       this._sdpReady()
@@ -512,6 +516,7 @@ export default class RTCPeer {
     // })
 
     this.instance.addEventListener('track', (event: RTCTrackEvent) => {
+      // @ts-expect-error
       this.call.emit('track', event)
 
       if (this.isSfu) {

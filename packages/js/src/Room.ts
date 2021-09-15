@@ -2,17 +2,19 @@ import {
   logger,
   connect,
   Rooms,
-  RoomCustomMethods,
   EventTransform,
+  extendComponent,
+  BaseComponentOptions,
+  BaseConnectionContract,
 } from '@signalwire/core'
 import {
   getDisplayMedia,
   BaseConnection,
   BaseConnectionOptions,
+  BaseConnectionStateEventTypes,
 } from '@signalwire/webrtc'
 import {
-  RoomScreenShareObject,
-  RoomDeviceObject,
+  RoomObjectEvents,
   CreateScreenShareObjectOptions,
   AddDeviceOptions,
   AddCameraOptions,
@@ -25,14 +27,26 @@ import {
   SCREENSHARE_AUDIO_CONSTRAINTS,
 } from './utils/constants'
 import { audioSetSpeakerAction } from './features/actions'
-import { RoomScreenShare } from './RoomScreenShare'
-import { RoomDevice } from './RoomDevice'
+import {
+  RoomScreenShareAPI,
+  RoomScreenShareConnection,
+  RoomScreenShare,
+} from './RoomScreenShare'
+import { RoomDeviceAPI, RoomDeviceConnection, RoomDevice } from './RoomDevice'
 
-interface Room extends RoomMethods {}
+export interface Room
+  extends RoomMethods,
+    BaseConnectionContract<RoomObjectEvents> {
+  join(): Promise<Room>
+  leave(): Promise<void>
+}
 
-class Room extends BaseConnection implements BaseRoomInterface {
-  private _screenShareList = new Set<RoomScreenShareObject>()
-  private _deviceList = new Set<RoomDeviceObject>()
+export class RoomConnection
+  extends BaseConnection<RoomObjectEvents>
+  implements BaseRoomInterface
+{
+  private _screenShareList = new Set<RoomScreenShare>()
+  private _deviceList = new Set<RoomDevice>()
 
   get screenShareList() {
     return Array.from(this._screenShareList)
@@ -56,6 +70,7 @@ class Room extends BaseConnection implements BaseRoomInterface {
           instanceFactory: (_payload: any) => {
             return Rooms.createRoomSessionRecordingObject({
               store: this.store,
+              // @ts-expect-error
               emitter: this.emitter,
             })
           },
@@ -85,7 +100,7 @@ class Room extends BaseConnection implements BaseRoomInterface {
       audio: audio === true ? SCREENSHARE_AUDIO_CONSTRAINTS : audio,
       video,
     })
-    const options: BaseConnectionOptions = {
+    const options: BaseConnectionOptions<RoomObjectEvents> = {
       ...this.options,
       screenShare: true,
       recoverCall: false,
@@ -98,9 +113,13 @@ class Room extends BaseConnection implements BaseRoomInterface {
       },
     }
 
-    const screenShare: RoomScreenShareObject = connect({
+    const screenShare = connect<
+      BaseConnectionStateEventTypes,
+      RoomScreenShareConnection,
+      RoomScreenShare
+    >({
       store: this.store,
-      Component: RoomScreenShare,
+      Component: RoomScreenShareAPI,
       componentListeners: ROOM_COMPONENT_LISTENERS,
     })(options)
 
@@ -111,7 +130,7 @@ class Room extends BaseConnection implements BaseRoomInterface {
     displayStream.getVideoTracks().forEach((t) => {
       t.addEventListener('ended', () => {
         if (screenShare && screenShare.active) {
-          screenShare.hangup()
+          screenShare.leave()
         }
       })
     })
@@ -165,7 +184,7 @@ class Room extends BaseConnection implements BaseRoomInterface {
       )
     }
 
-    const options: BaseConnectionOptions = {
+    const options: BaseConnectionOptions<RoomObjectEvents> = {
       ...this.options,
       localStream: undefined,
       remoteStream: undefined,
@@ -180,9 +199,13 @@ class Room extends BaseConnection implements BaseRoomInterface {
       },
     }
 
-    const roomDevice: RoomDeviceObject = connect({
+    const roomDevice = connect<
+      BaseConnectionStateEventTypes,
+      RoomDeviceConnection,
+      RoomDevice
+    >({
       store: this.store,
-      Component: RoomDevice,
+      Component: RoomDeviceAPI,
       componentListeners: ROOM_COMPONENT_LISTENERS,
     })(options)
 
@@ -217,10 +240,10 @@ class Room extends BaseConnection implements BaseRoomInterface {
   /** @internal */
   async hangup() {
     this._screenShareList.forEach((screenShare) => {
-      screenShare.hangup()
+      screenShare.leave()
     })
     this._deviceList.forEach((device) => {
-      device.hangup()
+      device.leave()
     })
 
     return super.hangup()
@@ -239,6 +262,7 @@ class Room extends BaseConnection implements BaseRoomInterface {
    * be removed in v3.0.0
    */
   getLayoutList() {
+    // @ts-expect-error
     return this.getLayouts()
   }
 
@@ -247,30 +271,47 @@ class Room extends BaseConnection implements BaseRoomInterface {
    * be removed in v3.0.0
    */
   getMemberList() {
+    // @ts-expect-error
     return this.getMembers()
   }
 }
 
-const customMethods: RoomCustomMethods<RoomMethods> = {
-  audioMute: Rooms.audioMuteMember,
-  audioUnmute: Rooms.audioUnmuteMember,
-  videoMute: Rooms.videoMuteMember,
-  videoUnmute: Rooms.videoUnmuteMember,
-  deaf: Rooms.deafMember,
-  undeaf: Rooms.undeafMember,
-  setMicrophoneVolume: Rooms.setInputVolumeMember,
-  setSpeakerVolume: Rooms.setOutputVolumeMember,
-  setInputSensitivity: Rooms.setInputSensitivityMember,
-  removeMember: Rooms.removeMember,
-  getMembers: Rooms.getMembers,
-  getLayouts: Rooms.getLayouts,
-  setLayout: Rooms.setLayout,
-  hideVideoMuted: Rooms.hideVideoMuted,
-  showVideoMuted: Rooms.showVideoMuted,
-  // TODO: Add these to the spec list
-  getRecordings: Rooms.getRecordings,
-  startRecording: Rooms.startRecording,
-}
-Object.defineProperties(Room.prototype, customMethods)
+export const RoomAPI = extendComponent<RoomConnection, RoomMethods>(
+  RoomConnection,
+  {
+    audioMute: Rooms.audioMuteMember,
+    audioUnmute: Rooms.audioUnmuteMember,
+    videoMute: Rooms.videoMuteMember,
+    videoUnmute: Rooms.videoUnmuteMember,
+    deaf: Rooms.deafMember,
+    undeaf: Rooms.undeafMember,
+    setMicrophoneVolume: Rooms.setInputVolumeMember,
+    setSpeakerVolume: Rooms.setOutputVolumeMember,
+    setInputSensitivity: Rooms.setInputSensitivityMember,
+    removeMember: Rooms.removeMember,
+    getMembers: Rooms.getMembers,
+    getLayouts: Rooms.getLayouts,
+    setLayout: Rooms.setLayout,
+    hideVideoMuted: Rooms.hideVideoMuted,
+    showVideoMuted: Rooms.showVideoMuted,
+    getRecordings: Rooms.getRecordings,
+    startRecording: Rooms.startRecording,
+  }
+)
 
-export { Room }
+type RoomObjectEventsHandlerMapping = RoomObjectEvents &
+  BaseConnectionStateEventTypes
+
+/** @internal */
+export const createRoomSessionObject = (
+  params: BaseComponentOptions<RoomObjectEventsHandlerMapping>
+): Room => {
+  const room = connect<RoomObjectEventsHandlerMapping, RoomConnection, Room>({
+    store: params.store,
+    customSagas: params.customSagas,
+    Component: RoomAPI,
+    componentListeners: ROOM_COMPONENT_LISTENERS,
+  })(params)
+
+  return room
+}

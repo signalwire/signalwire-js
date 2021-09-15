@@ -1,3 +1,2 @@
-import { createClient } from './createClient'
-
-export { createClient }
+export * from './createClient'
+export * as Video from './video/Video'

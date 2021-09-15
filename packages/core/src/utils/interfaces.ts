@@ -6,14 +6,7 @@ import {
   INTERNAL_GLOBAL_VIDEO_EVENTS,
   PRODUCT_PREFIXES,
 } from './constants'
-
-/**
- * Minimal interface the emitter must fulfill
- */
-export type Emitter = Pick<
-  EventEmitter,
-  'on' | 'off' | 'once' | 'emit' | 'removeAllListeners' | 'eventNames' | 'listenerCount'
->
+import type { CustomSaga } from '../redux/interfaces'
 
 type JSONRPCParams = Record<string, any>
 type JSONRPCResult = Record<string, any>
@@ -67,17 +60,29 @@ export interface JSONRPCResponse {
 }
 
 export interface SessionOptions {
+  /** @internal */
   host?: string
+  /** SignalWire project id, e.g. `a10d8a9f-2166-4e82-56ff-118bc3a4840f` */
   project?: string
+  /** SignalWire project token, e.g. `PT9e5660c101cd140a1c93a0197640a369cf5f16975a0079c9` */
   token: string
   autoConnect?: boolean
   // From `LogLevelDesc` of loglevel to simplify our docs
+  /** logging level */
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
 }
 
 export interface UserOptions extends SessionOptions {
+  /** @internal */
   devTools?: boolean
-  emitter?: Emitter
+}
+
+export interface InternalUserOptions extends UserOptions {
+  /**
+   * TODO: Create type containing all the possible types the
+   * emitter should be allowed to handle
+   */
+  emitter: EventEmitter<any>
 }
 
 /**
@@ -85,14 +90,20 @@ export interface UserOptions extends SessionOptions {
  * the interface we use internally that extends the options provided.
  * @internal
  */
-export interface BaseClientOptions extends UserOptions {
+export interface BaseClientOptions<
+  // TODO: review if having a default makes sense.
+  EventTypes extends EventEmitter.ValidEventTypes = any
+> extends UserOptions {
   store: SDKStore
-  emitter: Emitter
+  emitter: EventEmitter<EventTypes>
 }
 
-export interface BaseComponentOptions {
+export interface BaseComponentOptions<
+  EventTypes extends EventEmitter.ValidEventTypes
+> {
   store: SDKStore
-  emitter: Emitter
+  emitter: EventEmitter<EventTypes>
+  customSagas?: CustomSaga<any>[]
 }
 
 export interface SessionRequestObject {

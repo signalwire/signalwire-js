@@ -22,7 +22,6 @@ export const supportsGetUserMedia = () => {
  * Returns whether the current environment supports `getDisplayMedia`.
  */
 export const supportsGetDisplayMedia = () => {
-  // @ts-expect-error
   return typeof navigator?.mediaDevices?.getDisplayMedia === 'function'
 }
 
@@ -146,7 +145,6 @@ export const getUserMedia = (
  * ```
  */
 export const getDisplayMedia = (constraints: MediaStreamConstraints) => {
-  // @ts-expect-error
   return getMediaDevicesApi().getDisplayMedia(constraints)
 }
 

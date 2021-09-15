@@ -58,4 +58,60 @@ describe('toExternalJSON', () => {
       })
     ).toStrictEqual(output)
   })
+
+  it('converts the layout `layers` key to be camelCase', () => {
+    const input = {
+      layers: [
+        {
+          y: 25,
+          x: 0,
+          layer_index: 0,
+          height: 50,
+          z_index: 0,
+          reservation: 'focus-1',
+          width: 50,
+        },
+        {
+          y: 25,
+          x: 50,
+          layer_index: 1,
+          height: 50,
+          z_index: 1,
+          reservation: 'focus-2',
+          width: 50,
+        },
+      ],
+      room_session_id: '688d9de2-09ac-4dd9-89c6-59e44fa9cd44',
+      room_id: '24c86438-8cd7-4315-9cf4-e3ac0b8cb588',
+      name: '2x1',
+    }
+
+    const output = {
+      layers: [
+        {
+          y: 25,
+          x: 0,
+          layerIndex: 0,
+          height: 50,
+          zIndex: 0,
+          reservation: 'focus-1',
+          width: 50,
+        },
+        {
+          y: 25,
+          x: 50,
+          layerIndex: 1,
+          height: 50,
+          zIndex: 1,
+          reservation: 'focus-2',
+          width: 50,
+        },
+      ],
+      roomSessionId: '688d9de2-09ac-4dd9-89c6-59e44fa9cd44',
+      roomId: '24c86438-8cd7-4315-9cf4-e3ac0b8cb588',
+      name: '2x1',
+    }
+
+    expect(toExternalJSON(input)).toStrictEqual(output)
+  })
 })

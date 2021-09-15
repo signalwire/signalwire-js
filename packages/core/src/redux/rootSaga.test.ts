@@ -85,6 +85,7 @@ describe('sessionStatusWatcher', () => {
   const sessionChannel = eventChannel(() => () => {})
   const userOptions = {
     token: '',
+    emitter: jest.fn() as any,
   }
   const options = {
     session,
@@ -135,6 +136,7 @@ describe('initSessionSaga', () => {
   })
   const userOptions = {
     token: '',
+    emitter: jest.fn() as any,
   }
 
   beforeEach(() => {
@@ -225,7 +227,7 @@ describe('rootSaga', () => {
     const SessionConstructor = jest.fn().mockImplementation(() => {
       return session
     })
-    const userOptions = { token: '' }
+    const userOptions = { token: '', emitter: jest.fn() as any }
     const saga = testSaga(
       rootSaga({
         SessionConstructor,

@@ -2,9 +2,12 @@ import { AuthError } from './CustomErrors'
 import { destroyAction, initAction } from './redux'
 import { BaseClientOptions } from './utils/interfaces'
 import { BaseComponent } from './BaseComponent'
+import { EventEmitter } from './utils/EventEmitter'
 
-export class BaseClient extends BaseComponent {
-  constructor(public options: BaseClientOptions) {
+export class BaseClient<
+  EventTypes extends EventEmitter.ValidEventTypes
+> extends BaseComponent<EventTypes> {
+  constructor(public options: BaseClientOptions<EventTypes>) {
     super(options)
   }
 
@@ -46,8 +49,6 @@ export class BaseClient extends BaseComponent {
 
   /**
    * Disconnect the Client from the SignalWire network.
-   *
-   * @returns void
    */
   disconnect() {
     this.store.dispatch(destroyAction())

@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.3] - 2021-09-15
+
+### Changed
+
+- [#278](https://github.com/signalwire/signalwire-js/pull/278) [`f35a8e0`](https://github.com/signalwire/signalwire-js/commit/f35a8e00a1c38a15d87c7bc3dd6afddc7e77da68) - Improve way of creating strictly typed EventEmitter instances.
+
+- [#287](https://github.com/signalwire/signalwire-js/pull/287) [`820c6d1`](https://github.com/signalwire/signalwire-js/commit/820c6d1b6472486fefdb64d81997a09d966dda23) - Extend interface for VideoMemberContract
+
+* [#283](https://github.com/signalwire/signalwire-js/pull/283) [`968bda7`](https://github.com/signalwire/signalwire-js/commit/968bda73d119183b8af5b7692504050db339d85a) - Review internal usage of interfaces to control what the SDKs are going to expose.
+
 ## [3.1.2] - 2021-09-09
 
 ### Added

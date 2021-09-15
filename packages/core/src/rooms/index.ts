@@ -1,6 +1,8 @@
-import { BaseComponent } from '..'
+import { BaseComponent, EventEmitter } from '..'
 
-export interface BaseRoomInterface extends BaseComponent {
+export interface BaseRoomInterface<
+  EventTypes extends EventEmitter.ValidEventTypes
+> extends BaseComponent<EventTypes> {
   roomId: string
   roomSessionId: string
   memberId: string

@@ -1,12 +1,17 @@
 import { BaseRoomInterface } from '.'
-import { VideoMember, VideoRecording } from '../types'
+import { VideoMemberEntity, VideoRecordingEntity } from '../types'
 import { ExecuteExtendedOptions, RoomMethod } from '../utils/interfaces'
 
-interface RoomMethodPropertyDescriptor<T> extends PropertyDescriptor {
-  value: (params: RoomMethodParams) => Promise<T>
+interface RoomMethodPropertyDescriptor<T, ParamsType>
+  extends PropertyDescriptor {
+  value: (params: ParamsType) => Promise<T>
 }
-type RoomMethodDescriptor<T = unknown> = RoomMethodPropertyDescriptor<T> &
-  ThisType<BaseRoomInterface>
+type RoomMethodDescriptor<
+  T = unknown,
+  ParamsType = RoomMethodParams
+> = RoomMethodPropertyDescriptor<T, ParamsType> &
+  // TODO: Replace string with a tighter type
+  ThisType<BaseRoomInterface<string>>
 type RoomMethodParams = Record<string, unknown>
 interface BaseRPCResult {
   code: string
@@ -78,7 +83,7 @@ export const getLayouts = createRoomMethod<{ layouts: string[] }>(
     transformResolve: (payload) => ({ layouts: payload.layouts }),
   }
 )
-export const getMembers = createRoomMethod<{ members: VideoMember[] }>(
+export const getMembers = createRoomMethod<{ members: VideoMemberEntity[] }>(
   'video.members.get',
   {
     transformResolve: (payload) => ({ members: payload.members }),
@@ -102,19 +107,35 @@ export const showVideoMuted = createRoomMethod<BaseRPCResult, void>(
     transformResolve: baseCodeTransform,
   }
 )
-export const getRecordings = createRoomMethod<{ recordings: VideoRecording[] }>(
-  'video.recording.list',
-  {
-    transformResolve: (payload) => ({ recordings: payload.recordings }),
-  }
-)
+
+export const setHideVideoMuted: RoomMethodDescriptor<any, boolean> = {
+  value: function (value: boolean) {
+    const method = value ? 'video.hide_video_muted' : 'video.show_video_muted'
+    return this.execute(
+      {
+        method,
+        params: {
+          room_session_id: this.roomSessionId,
+        },
+      },
+      {
+        transformResolve: baseCodeTransform,
+      }
+    )
+  },
+}
+
+export const getRecordings = createRoomMethod<{
+  recordings: VideoRecordingEntity[]
+}>('video.recording.list', {
+  transformResolve: (payload) => ({ recordings: payload.recordings }),
+})
 export const startRecording: RoomMethodDescriptor<any> = {
   value: function () {
     return new Promise(async (resolve) => {
       const handler = (instance: any) => {
         resolve(instance)
       }
-
       this.on('video.__internal__.recording.start', handler)
 
       try {
@@ -124,7 +145,10 @@ export const startRecording: RoomMethodDescriptor<any> = {
             room_session_id: this.roomSessionId,
           },
         })
-        this.emit('video.__internal__.recording.start', payload)
+        this.emit('video.__internal__.recording.start', {
+          ...(payload as object),
+          room_session_id: this.roomSessionId,
+        })
       } catch (error) {
         this.off('video.__internal__.recording.start', handler)
         throw error
@@ -137,6 +161,7 @@ export type GetLayouts = ReturnType<typeof getLayouts.value>
 export type GetMembers = ReturnType<typeof getMembers.value>
 export type HideVideoMuted = ReturnType<typeof hideVideoMuted.value>
 export type ShowVideoMuted = ReturnType<typeof showVideoMuted.value>
+export type SetHideVideoMuted = ReturnType<typeof setHideVideoMuted.value>
 
 export type GetRecordings = ReturnType<typeof getRecordings.value>
 export type StartRecording = ReturnType<typeof startRecording.value>
@@ -181,6 +206,25 @@ export const undeafMember = createRoomMemberMethod<BaseRPCResult, void>(
     transformResolve: baseCodeTransform,
   }
 )
+// This is used on a RoomSessionMember instance where we have
+// `this.roomSessionId` and `this.memberId`
+export const setDeaf: RoomMethodDescriptor<any, boolean> = {
+  value: function (value: boolean) {
+    const method = value ? 'video.member.deaf' : 'video.member.undeaf'
+    return this.execute(
+      {
+        method,
+        params: {
+          room_session_id: this.roomSessionId,
+          member_id: this.memberId,
+        },
+      },
+      {
+        transformResolve: baseCodeTransform,
+      }
+    )
+  },
+}
 export const setInputVolumeMember = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.set_input_volume',
   {
@@ -226,6 +270,7 @@ export type VideoMuteMember = ReturnType<typeof videoMuteMember.value>
 export type VideoUnmuteMember = ReturnType<typeof videoUnmuteMember.value>
 export type DeafMember = ReturnType<typeof deafMember.value>
 export type UndeafMember = ReturnType<typeof undeafMember.value>
+export type SetDeaf = ReturnType<typeof setDeaf.value>
 export type SetLayout = ReturnType<typeof setLayout.value>
 export type SetInputVolumeMember = ReturnType<typeof setInputVolumeMember.value>
 export type SetOutputVolumeMember = ReturnType<

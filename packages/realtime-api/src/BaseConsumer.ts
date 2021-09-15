@@ -3,6 +3,8 @@ import {
   ExecuteParams,
   logger,
   validateEventsToSubscribe,
+  EventEmitter,
+  BaseComponentOptions,
 } from '@signalwire/core'
 
 /**
@@ -12,19 +14,31 @@ import {
  * and the `eventChannel`
  * @internal
  */
-export class BaseConsumer extends BaseComponent {
+export class BaseConsumer<
+  EventTypes extends EventEmitter.ValidEventTypes
+> extends BaseComponent<EventTypes> {
   protected subscribeParams?: Record<string, any> = {}
 
   protected getSubscriptions(): (string | symbol)[] {
     return validateEventsToSubscribe(this.eventNames())
   }
 
-  run() {
+  constructor(public options: BaseComponentOptions<EventTypes>) {
+    super(options)
+
+    /**
+     * Always apply the emitter transforms
+     * We should split between internal and public:
+     * always apply the internals and apply only the ones
+     * the user registered event listeners to.
+     */
+    this.applyEmitterTransforms()
+  }
+
+  subscribe() {
     return new Promise(async (resolve, reject) => {
       const subscriptions = this.getSubscriptions()
       if (subscriptions.length > 0) {
-        this.applyEmitterTransforms()
-
         const execParams: ExecuteParams = {
           method: 'signalwire.subscribe',
           params: {

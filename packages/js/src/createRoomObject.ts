@@ -1,7 +1,7 @@
 import { UserOptions } from '@signalwire/core'
-import { RoomObject } from './utils/interfaces'
 import { createClient } from './createClient'
 import { MakeRoomOptions } from './Client'
+import type { Room } from './Room'
 
 export interface CreateRoomObjectOptions extends UserOptions, MakeRoomOptions {
   autoJoin?: boolean
@@ -36,7 +36,7 @@ const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
  */
 export const createRoomObject = (
   roomOptions: CreateRoomObjectOptions
-): Promise<RoomObject> => {
+): Promise<Room> => {
   return new Promise(async (resolve, reject) => {
     const {
       audio = true,
