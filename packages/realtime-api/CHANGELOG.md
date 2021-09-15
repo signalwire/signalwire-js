@@ -1,5 +1,9 @@
 # @signalwire/realtime-api
 
+All notable changes to this project will be documented in this file.
+
+This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 ## [Unreleased]
 
 - [#276](https://github.com/signalwire/signalwire-js/pull/276) [`ca34859`](https://github.com/signalwire/signalwire-js/commit/ca34859f42fa7fd0abdf7842a1018896908ad45b) - Rename `createWebSocketClient` to `createClient`

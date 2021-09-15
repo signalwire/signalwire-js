@@ -4,7 +4,7 @@
   "description": "SignalWire Real-Time SDK for Node.js",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
-  "version": "0.0.1-beta.4",
+  "version": "3.0.0-beta.0",
   "main": "dist/index.node.js",
   "exports": {
     "require": "./dist/index.node.js",
