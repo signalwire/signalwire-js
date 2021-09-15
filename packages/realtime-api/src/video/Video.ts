@@ -7,21 +7,21 @@ import {
   ConsumerContract,
   RoomSessionRecording,
 } from '@signalwire/core'
-import { BaseConsumer } from './BaseConsumer'
-import { RealTimeVideoApiEvents } from './types/video'
-import { createRoomSessionObject, RoomSession } from './video/RoomSession'
-import type { RoomSessionMember } from './video/RoomSessionMember'
+import { BaseConsumer } from '../BaseConsumer'
+import { RealTimeVideoApiEvents } from '../types/video'
+import { createRoomSessionObject, RoomSession } from './RoomSession'
+import type { RoomSessionMember } from './RoomSessionMember'
 
 type TransformEvent = Extract<
   InternalVideoRoomSessionEventNames,
   'video.room.started' | 'video.room.ended'
 >
 
-export interface VideoObject extends ConsumerContract<RealTimeVideoApiEvents> {}
+export interface Video extends ConsumerContract<RealTimeVideoApiEvents> {}
 export type { RoomSession, RoomSessionMember, RoomSessionRecording }
 
 /** @internal */
-export class Video extends BaseConsumer<RealTimeVideoApiEvents> {
+export class VideoAPI extends BaseConsumer<RealTimeVideoApiEvents> {
   /** @internal */
   protected _eventsPrefix = 'video' as const
 
@@ -62,17 +62,17 @@ export class Video extends BaseConsumer<RealTimeVideoApiEvents> {
 /** @internal */
 export const createVideoObject = (
   params: BaseComponentOptions<RealTimeVideoApiEvents>
-): VideoObject => {
-  const video = connect<RealTimeVideoApiEvents, Video, VideoObject>({
+): Video => {
+  const video = connect<RealTimeVideoApiEvents, VideoAPI, Video>({
     store: params.store,
-    Component: Video,
+    Component: VideoAPI,
     componentListeners: {
       errors: 'onError',
       responses: 'onSuccess',
     },
   })(params)
 
-  const proxy = new Proxy<VideoObject>(video, {
+  const proxy = new Proxy<Video>(video, {
     get(target: any, prop: any, receiver: any) {
       if (prop === '_eventsNamespace') {
         /**

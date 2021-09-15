@@ -130,6 +130,7 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
   setInputSensitivity(params: {
     value: number
   }): Rooms.SetInputSensitivityMember
+  remove(): Rooms.RemoveMember
 }
 
 /**

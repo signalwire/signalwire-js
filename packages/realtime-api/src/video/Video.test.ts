@@ -1,5 +1,5 @@
 import { EventEmitter } from '@signalwire/core'
-import { configureJestStore } from './testUtils'
+import { configureJestStore } from '../testUtils'
 import { createVideoObject, Video } from './Video'
 
 describe('Member Object', () => {
@@ -12,23 +12,26 @@ describe('Member Object', () => {
       store: store,
       emitter: new EventEmitter(),
     })
+    // @ts-expect-error
     video.execute = jest.fn()
   })
 
   it('should not invoke execute without event listeners', async () => {
     await video.subscribe()
+    // @ts-expect-error
     expect(video.execute).not.toHaveBeenCalled()
   })
 
   it('should invoke execute with event listeners', async () => {
-    video.on('event.here', jest.fn)
+    video.on('room.ended', jest.fn)
     await video.subscribe()
+    // @ts-expect-error
     expect(video.execute).toHaveBeenCalledWith({
       method: 'signalwire.subscribe',
       params: {
         get_initial_state: true,
         event_channel: 'video.rooms',
-        events: ['video.event.here'],
+        events: ['video.room.ended'],
       },
     })
   })
@@ -53,6 +56,7 @@ describe('Member Object', () => {
       })
 
       video.subscribe()
+      // @ts-expect-error
       video.emit('video.room.started', firstRoom.params.params)
     })
 
@@ -64,6 +68,7 @@ describe('Member Object', () => {
       video.on('room.started', h)
 
       video.subscribe()
+      // @ts-expect-error
       video.emit('video.room.started', firstRoom.params.params)
 
       video.off('room.started', h)
@@ -77,8 +82,8 @@ describe('Member Object', () => {
       }
       video.on('room.started', h)
       video.on('room.started', () => {})
-
       video.subscribe()
+      // @ts-expect-error
       video.emit('video.room.started', firstRoom.params.params)
 
       video.off('room.started', h)
@@ -93,8 +98,8 @@ describe('Member Object', () => {
       video.on('room.started', h)
       video.on('room.started', () => {})
       video.on('room.started', () => {})
-
       video.subscribe()
+      // @ts-expect-error
       video.emit('video.room.started', firstRoom.params.params)
 
       video.off('room.started')
@@ -111,11 +116,13 @@ describe('Member Object', () => {
           expect(room.getMembers).toBeDefined()
           expect(room.subscribe).toBeDefined()
 
-          room.on('event.here', jest.fn)
+          room.on('layout.changed', jest.fn)
+          // @ts-expect-error
           room.execute = mockExecute
           room.subscribe()
           mockNameCheck(room.name)
 
+          // @ts-expect-error
           if (room.roomSessionId === 'session-two') {
             resolve(undefined)
           }
@@ -123,8 +130,9 @@ describe('Member Object', () => {
       })
 
       video.subscribe()
+      // @ts-expect-error
       video.emit('video.room.started', firstRoom.params.params)
-
+      // @ts-expect-error
       video.emit('video.room.started', secondRoom.params.params)
 
       await promise
@@ -134,14 +142,14 @@ describe('Member Object', () => {
         method: 'signalwire.subscribe',
         params: {
           event_channel: eventChannelOne,
-          events: ['video.event.here'],
+          events: ['video.layout.changed'],
         },
       })
       expect(mockExecute).toHaveBeenNthCalledWith(2, {
         method: 'signalwire.subscribe',
         params: {
           event_channel: eventChannelTwo,
-          events: ['video.event.here'],
+          events: ['video.layout.changed'],
         },
       })
 
