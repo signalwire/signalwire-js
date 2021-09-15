@@ -29,13 +29,11 @@ describe('RoomSession Object', () => {
         roomSession = newRoom
         // @ts-expect-error
         roomSession._attachListeners(roomSessionId)
-        await roomSession.subscribe()
         resolve(roomSession)
       })
       // tweak "_eventsNamespace" using _attachListeners
       // @ts-expect-error
       video._attachListeners('')
-      await video.subscribe()
 
       const eventChannelOne = 'room.<uuid-one>'
       const firstRoom = JSON.parse(
