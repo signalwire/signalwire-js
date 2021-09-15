@@ -3,7 +3,7 @@ import { createClient } from '@signalwire/realtime-api'
 async function run() {
   try {
     const client = await createClient({
-      host: 'relay.swire.io',
+      // host: 'relay.swire.io',
       project: process.env.PROJECT as string,
       token: process.env.TOKEN as string,
     })
@@ -19,6 +19,8 @@ async function run() {
       room.on('member.joined', async (member) => {
         console.log('---> member.joined', member.id, member.name)
         await member.videoMute()
+        await member.audioMute()
+        await member.setDeaf(true)
       })
 
       room.on('member.left', async (member) => {
@@ -31,7 +33,7 @@ async function run() {
       })
 
       room.on('layout.changed', async (layout) => {
-        console.log('---> layout.changed', layout, layout.name)
+        console.log('---> layout.changed', layout.name, layout.layers.length)
       })
 
       room.on('member.updated', (member) => {
@@ -83,14 +85,14 @@ async function run() {
         setTimeout(async () => {
           await rec.stop()
           console.log('Recording STOPPED')
-        }, 6000)
+        }, 10 * 1000)
       }, 2000)
 
-      console.log('🟢 ROOOM STARTED 🟢')
+      console.log('🟢 ROOOM STARTED 🟢', room.id, room.name)
     })
 
     client.video.on('room.ended', (room) => {
-      console.log('🔴 ROOOM ENDED 🔴', room, room.name)
+      console.log('🔴 ROOOM ENDED 🔴', room.id, room.name)
     })
 
     await client.connect()
