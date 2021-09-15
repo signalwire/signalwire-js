@@ -48,7 +48,7 @@ describe('Member Object', () => {
         expect(room.videoMute).toBeDefined()
         expect(room.videoUnmute).toBeDefined()
         expect(room.getMembers).toBeDefined()
-        expect(room.run).toBeDefined()
+        expect(room.subscribe).toBeDefined()
         done()
       })
 
@@ -109,7 +109,7 @@ describe('Member Object', () => {
           expect(room.videoMute).toBeDefined()
           expect(room.videoUnmute).toBeDefined()
           expect(room.getMembers).toBeDefined()
-          expect(room.run).toBeDefined()
+          expect(room.subscribe).toBeDefined()
 
           room.on('event.here', jest.fn)
           room.execute = mockExecute
