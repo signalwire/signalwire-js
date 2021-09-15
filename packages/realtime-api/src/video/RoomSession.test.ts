@@ -9,6 +9,7 @@ describe('RoomSession Object', () => {
       store: configureJestStore(),
       emitter: jest.fn() as any,
     })
+    // @ts-expect-error
     roomSession.execute = jest.fn()
   })
 
