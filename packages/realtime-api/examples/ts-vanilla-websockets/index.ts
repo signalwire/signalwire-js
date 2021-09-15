@@ -28,7 +28,6 @@ async function run() {
       })
 
       room.on('room.updated', async (room) => {
-        // @ts-expect-error
         console.log('---> room.updated', room.id, room.name, room.updated)
       })
 
