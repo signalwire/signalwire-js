@@ -53,6 +53,7 @@ describe('Room Custom Methods', () => {
         code: '200',
         message: 'Recording started',
         recording_id: 'c22d7223-5a01-49fe-8da0-46bec8e75e32',
+        room_session_id: 'mocked',
       })
     })
   })
