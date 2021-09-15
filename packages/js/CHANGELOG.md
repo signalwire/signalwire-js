@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.1] - 2021-09-15
+
+### Changed
+
+- [#278](https://github.com/signalwire/signalwire-js/pull/278) [`f35a8e0`](https://github.com/signalwire/signalwire-js/commit/f35a8e00a1c38a15d87c7bc3dd6afddc7e77da68) - Removed option for passing a custom event emitter when creating a client.
+
+### Fixed
+
+- [#290](https://github.com/signalwire/signalwire-js/pull/290) [`a780d6d`](https://github.com/signalwire/signalwire-js/commit/a780d6d2b03a3350aa41dbbe72397b75e9e18b64) - Split event handlers for member from member updated events so each type of event gets the proper instance as a handler param.
+
+- [#291](https://github.com/signalwire/signalwire-js/pull/291) [`07bf09c`](https://github.com/signalwire/signalwire-js/commit/07bf09ca4cfc11b3103c86f14b5526dcf41fe33d) - Fix TS signature for member methods
+
+### Dependencies
+
+- Updated dependencies [[`f35a8e0`](https://github.com/signalwire/signalwire-js/commit/f35a8e00a1c38a15d87c7bc3dd6afddc7e77da68), [`a780d6d`](https://github.com/signalwire/signalwire-js/commit/a780d6d2b03a3350aa41dbbe72397b75e9e18b64), [`f35a8e0`](https://github.com/signalwire/signalwire-js/commit/f35a8e00a1c38a15d87c7bc3dd6afddc7e77da68), [`820c6d1`](https://github.com/signalwire/signalwire-js/commit/820c6d1b6472486fefdb64d81997a09d966dda23), [`968bda7`](https://github.com/signalwire/signalwire-js/commit/968bda73d119183b8af5b7692504050db339d85a)]:
+  - @signalwire/core@3.1.3
+  - @signalwire/webrtc@3.1.3
+
 ## [3.2.0] - 2021-09-09
 
 ### Added
