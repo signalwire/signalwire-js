@@ -20,6 +20,7 @@ type TransformEvent = Extract<
 export interface VideoObject extends ConsumerContract<RealTimeVideoApiEvents> {}
 export type { RoomSession, RoomSessionMember, RoomSessionRecording }
 
+/** @internal */
 export class Video extends BaseConsumer<RealTimeVideoApiEvents> {
   /** @internal */
   protected _eventsPrefix = 'video' as const
@@ -58,6 +59,7 @@ export class Video extends BaseConsumer<RealTimeVideoApiEvents> {
   }
 }
 
+/** @internal */
 export const createVideoObject = (
   params: BaseComponentOptions<RealTimeVideoApiEvents>
 ): VideoObject => {

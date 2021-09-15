@@ -16,13 +16,13 @@ describe('Member Object', () => {
   })
 
   it('should not invoke execute without event listeners', async () => {
-    await video.run()
+    await video.subscribe()
     expect(video.execute).not.toHaveBeenCalled()
   })
 
   it('should invoke execute with event listeners', async () => {
     video.on('event.here', jest.fn)
-    await video.run()
+    await video.subscribe()
     expect(video.execute).toHaveBeenCalledWith({
       method: 'signalwire.subscribe',
       params: {
@@ -48,11 +48,11 @@ describe('Member Object', () => {
         expect(room.videoMute).toBeDefined()
         expect(room.videoUnmute).toBeDefined()
         expect(room.getMembers).toBeDefined()
-        expect(room.run).toBeDefined()
+        expect(room.subscribe).toBeDefined()
         done()
       })
 
-      video.run()
+      video.subscribe()
       video.emit('video.room.started', firstRoom.params.params)
     })
 
@@ -63,7 +63,7 @@ describe('Member Object', () => {
       }
       video.on('room.started', h)
 
-      video.run()
+      video.subscribe()
       video.emit('video.room.started', firstRoom.params.params)
 
       video.off('room.started', h)
@@ -78,7 +78,7 @@ describe('Member Object', () => {
       video.on('room.started', h)
       video.on('room.started', () => {})
 
-      video.run()
+      video.subscribe()
       video.emit('video.room.started', firstRoom.params.params)
 
       video.off('room.started', h)
@@ -94,7 +94,7 @@ describe('Member Object', () => {
       video.on('room.started', () => {})
       video.on('room.started', () => {})
 
-      video.run()
+      video.subscribe()
       video.emit('video.room.started', firstRoom.params.params)
 
       video.off('room.started')
@@ -109,11 +109,11 @@ describe('Member Object', () => {
           expect(room.videoMute).toBeDefined()
           expect(room.videoUnmute).toBeDefined()
           expect(room.getMembers).toBeDefined()
-          expect(room.run).toBeDefined()
+          expect(room.subscribe).toBeDefined()
 
           room.on('event.here', jest.fn)
           room.execute = mockExecute
-          room.run()
+          room.subscribe()
           mockNameCheck(room.name)
 
           if (room.roomSessionId === 'session-two') {
@@ -122,7 +122,7 @@ describe('Member Object', () => {
         })
       })
 
-      video.run()
+      video.subscribe()
       video.emit('video.room.started', firstRoom.params.params)
 
       video.emit('video.room.started', secondRoom.params.params)
