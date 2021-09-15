@@ -129,14 +129,12 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
             if (payload?.recording) {
               return toExternalJSON({
                 ...payload?.recording,
-                // FIXME: start using room_session and change this to `id`
-                room_session_id: this.getStateProperty('roomSessionId'),
+                room_session_id: this.getStateProperty('id'),
               })
             }
             return {
               id: payload.recording_id,
-              // FIXME: start using room_session and change this to `id`
-              roomSessionId: this.getStateProperty('roomSessionId'),
+              roomSessionId: this.getStateProperty('id'),
             }
           },
         },
