@@ -26,6 +26,12 @@ export class BaseConsumer<
   constructor(public options: BaseComponentOptions<EventTypes>) {
     super(options)
 
+    /**
+     * Always apply the emitter transforms
+     * We should split between internal and public:
+     * always apply the internals and apply only the ones
+     * the user registered event listeners to.
+     */
     this.applyEmitterTransforms()
   }
 

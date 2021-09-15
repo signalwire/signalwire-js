@@ -10,13 +10,12 @@ async function run() {
     })
 
     client.video.on('room.started', async (room) => {
-      // @ts-ignore
-      console.log('Room started', room.id, room.name, room.roomSessionId)
-      console.log('Starting now')
+      console.log('Room started', room.id, room.name)
+      console.log('Start Recording')
       const rec = await room.startRecording()
 
       setTimeout(() => {
-        console.log('Stopping now')
+        console.log('Stop Recording')
         rec.stop()
       }, 10 * 1000)
     })
