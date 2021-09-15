@@ -29,6 +29,7 @@
     "declarationMap": true,
     "strictPropertyInitialization": false,
     "useUnknownInCatchVariables": false,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
   }
 }

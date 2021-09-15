@@ -73,7 +73,7 @@ async function run() {
           rec.duration
         )
       })
-      await room.run()
+      await room.subscribe()
 
       const rec = await room.startRecording()
 

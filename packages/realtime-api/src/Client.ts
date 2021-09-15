@@ -6,14 +6,14 @@ import {
   ClientEvents,
   logger,
 } from '@signalwire/core'
-import { createVideoObject, VideoObject } from './Video'
+import { createVideoObject, Video } from './video/Video'
 
 export interface RealtimeClient
   extends ClientContract<RealtimeClient, ClientEvents> {
-  video: VideoObject
+  video: Video
 }
 
-type ClientNamespaces = VideoObject
+type ClientNamespaces = Video
 
 /**
  * A real-time Client. 
@@ -27,7 +27,7 @@ export class Client extends BaseClient<ClientEvents> {
     try {
       if (session.authStatus === 'authorized') {
         this._consumers.forEach((consumer) => {
-          consumer.run()
+          consumer.subscribe()
         })
       }
     } catch (error) {
@@ -63,7 +63,7 @@ export class Client extends BaseClient<ClientEvents> {
   /**
    * Access the Video API Consumer
    */
-  get video(): VideoObject {
+  get video(): Video {
     if (this._consumers.has('video')) {
       return this._consumers.get('video')!
     }

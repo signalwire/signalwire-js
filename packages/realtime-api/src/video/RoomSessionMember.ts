@@ -8,10 +8,6 @@ import {
   VideoMemberMethods,
 } from '@signalwire/core'
 
-export interface RoomSessionMemberAPI extends VideoMemberMethods {
-  remove(): Rooms.RemoveMember
-}
-
 export interface RoomSessionMember extends VideoMemberContract {}
 
 // TODO: Extend from a variant of `BaseComponent` that
@@ -29,8 +25,9 @@ class RoomSessionMemberComponent extends BaseComponent<{}> {
 }
 
 const RoomSessionMemberAPI = extendComponent<
-  RoomSessionMember,
-  VideoMemberMethods
+  RoomSessionMemberComponent,
+  // `remove` is defined by `RoomSessionMemberComponent`
+  Omit<VideoMemberMethods, 'remove'>
 >(RoomSessionMemberComponent, {
   audioMute: Rooms.audioMuteMember,
   audioUnmute: Rooms.audioUnmuteMember,
@@ -45,10 +42,9 @@ const RoomSessionMemberAPI = extendComponent<
 
 export const createRoomSessionMemberObject = (
   params: BaseComponentOptions<{}>
-) => {
-  const member = connect({
+): RoomSessionMember => {
+  const member = connect<{}, RoomSessionMemberComponent, RoomSessionMember>({
     store: params.store,
-    // @ts-expect-error
     Component: RoomSessionMemberAPI,
     componentListeners: {
       errors: 'onError',
@@ -56,5 +52,5 @@ export const createRoomSessionMemberObject = (
     },
   })(params)
 
-  return member as any as RoomSessionMember
+  return member
 }

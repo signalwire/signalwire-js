@@ -42,7 +42,7 @@ export interface BaseConnectionContract<
 export interface ConsumerContract<
   EventTypes extends EventEmitter.ValidEventTypes
 > extends EmitterContract<EventTypes> {
-  run(): Promise<void>
+  subscribe(): Promise<void>
 }
 
 export interface ClientContract<
