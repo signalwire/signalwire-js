@@ -1,7 +1,0 @@
-{
-  "name": "websocket",
-  "version": "0.0.0",
-  "scripts": {
-    "dev": "node index.js"
-  }
-}
