@@ -22,7 +22,7 @@ export class Client extends BaseClient<ClientEvents> {
     try {
       if (session.authStatus === 'authorized') {
         this._consumers.forEach((consumer) => {
-          consumer.run()
+          consumer.subscribe()
         })
       }
     } catch (error) {

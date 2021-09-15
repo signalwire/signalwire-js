@@ -22,7 +22,7 @@ export class BaseConsumer<
     return validateEventsToSubscribe(this.eventNames())
   }
 
-  run() {
+  subscribe() {
     return new Promise(async (resolve, reject) => {
       const subscriptions = this.getSubscriptions()
       if (subscriptions.length > 0) {
