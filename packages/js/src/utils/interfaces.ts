@@ -104,10 +104,10 @@ export interface BaseRoomInterface {
 }
 
 interface RoomMemberMethodsInterface {
-  audioMute(params: MemberCommandParams): Rooms.AudioMuteMember
-  audioUnmute(params: MemberCommandParams): Rooms.AudioUnmuteMember
-  videoMute(params: MemberCommandParams): Rooms.VideoMuteMember
-  videoUnmute(params: MemberCommandParams): Rooms.VideoUnmuteMember
+  audioMute(params?: MemberCommandParams): Rooms.AudioMuteMember
+  audioUnmute(params?: MemberCommandParams): Rooms.AudioUnmuteMember
+  videoMute(params?: MemberCommandParams): Rooms.VideoMuteMember
+  videoUnmute(params?: MemberCommandParams): Rooms.VideoUnmuteMember
   setMicrophoneVolume(
     params: MemberCommandWithVolumeParams
   ): Rooms.SetInputVolumeMember
@@ -134,8 +134,8 @@ interface RoomLayoutMethodsInterface {
 
 interface RoomControlMethodsInterface {
   getMembers(): Rooms.GetMembers
-  deaf(params: MemberCommandParams): Rooms.DeafMember
-  undeaf(params: MemberCommandParams): Rooms.UndeafMember
+  deaf(params?: MemberCommandParams): Rooms.DeafMember
+  undeaf(params?: MemberCommandParams): Rooms.UndeafMember
   setSpeakerVolume(
     params: MemberCommandWithVolumeParams
   ): Rooms.SetOutputVolumeMember
