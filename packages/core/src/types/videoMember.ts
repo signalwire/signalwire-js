@@ -119,17 +119,125 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
   parentId?: string
   type: VideoMemberType
 
+  /**
+   * Puts the microphone on mute. The other participants will not hear audio
+   * from the muted participant anymore.
+   *
+   * @example
+   * ```typescript
+   * await member.audioMute()
+   * ```
+   */
   audioMute(): Rooms.AudioMuteMember
+
+  /**
+   * Unmutes the microphone of this member if it had been previously muted.
+   *
+   * @example
+   * ```typescript
+   * await member.audioUnmute()
+   * ```
+   */
   audioUnmute(): Rooms.AudioUnmuteMember
+
+  /**
+   * Puts the video on mute. Participants will see a mute image instead of the
+   * video stream.
+   *
+   * @example
+   * ```typescript
+   * await member.videoMute()
+   * ```
+   */
   videoMute(): Rooms.VideoMuteMember
+
+  /**
+   * Unmutes the video if it had been previously muted. Participants will
+   * start seeing the video stream again.
+   * 
+   * @example
+   * ```typescript
+   * await member.videoUnmute()
+   * ```
+   */
   videoUnmute(): Rooms.VideoUnmuteMember
+
+  /**
+   * Mutes the incoming audio for the member. The affected participant will not hear audio
+   * from the other participants anymore.
+   * 
+   * @example
+   * ```typescript
+   * await member.setDeaf()
+   * ```
+   */
   setDeaf(): Rooms.DeafMember
+
+  /**
+   * Unmutes the incoming audio for the member. The affected participant will start hearing
+   * audio from the other participants again.
+   * 
+   * @example
+   * ```typescript
+   * await member.setUndeaf()
+   * ```
+   */
   setUndeaf(): Rooms.UndeafMember
+
+  /**
+   * Sets the microphone input level for the member.
+   *
+   * @param params 
+   * @param params.volume desired volume. Values range from -50 to 50, with a
+   * default of 0.
+   *
+   * @example
+   * ```typescript
+   * await member.setMicrophoneVolume({volume: -10})
+   * ```
+   */
   setMicrophoneVolume(params: { volume: number }): Rooms.SetInputVolumeMember
+
+  /**
+   * Sets the speaker output level.
+   * 
+   * @param params 
+   * @param params.value desired volume. Values range from -50 to 50, with a
+   * default of 0.
+   *
+   * @example
+   * ```typescript
+   * await member.setSpeakerVolume({volume: -10})
+   * ```
+   */
   setSpeakerVolume(params: { volume: number }): Rooms.SetOutputVolumeMember
+
+  /**
+   * Sets the input level at which the participant is identified as currently
+   * speaking.
+   * 
+   * @param params
+   * @param params.value desired sensitivity. The default value is 30 and the
+   * scale goes from 0 (lowest sensitivity, essentially muted) to 100 (highest
+   * sensitivity).
+   *
+   * @example
+   * ```typescript
+   * await member.setInputSensitivity({value: 80})
+   * ```
+   */
   setInputSensitivity(params: {
     value: number
   }): Rooms.SetInputSensitivityMember
+
+  /**
+   * Removes this member from the room.
+   * 
+   * @example
+   * ```typescript
+   * await member.remove()
+   * ```
+   */
   remove(): Rooms.RemoveMember
 }
 
