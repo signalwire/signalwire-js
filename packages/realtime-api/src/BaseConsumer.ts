@@ -25,9 +25,8 @@ export class BaseConsumer<
   subscribe() {
     return new Promise(async (resolve, reject) => {
       const subscriptions = this.getSubscriptions()
+      this.applyEmitterTransforms()
       if (subscriptions.length > 0) {
-        this.applyEmitterTransforms()
-
         const execParams: ExecuteParams = {
           method: 'signalwire.subscribe',
           params: {
