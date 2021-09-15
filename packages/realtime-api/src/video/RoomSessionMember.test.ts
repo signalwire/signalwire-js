@@ -83,7 +83,7 @@ describe('Member Object', () => {
         member_id: memberId,
       },
     })
-    await member.setDeaf()
+    await member.setDeaf(true)
     expectExecute({
       method: 'video.member.deaf',
       params: {
@@ -91,15 +91,14 @@ describe('Member Object', () => {
         member_id: memberId,
       },
     })
-    // await member.setDeaf(false)
-    // expectExecute({
-    //   method: 'video.member.undeaf',
-    //   params: {
-    //     room_session_id: roomSessionId,
-    //     member_id: memberId,
-    //   },
-    // })
-    // expect(member.setUndeaf).toBeDefined()
+    await member.setDeaf(false)
+    expectExecute({
+      method: 'video.member.undeaf',
+      params: {
+        room_session_id: roomSessionId,
+        member_id: memberId,
+      },
+    })
     await member.setMicrophoneVolume({ volume: 10 })
     expectExecute({
       method: 'video.member.set_input_volume',
