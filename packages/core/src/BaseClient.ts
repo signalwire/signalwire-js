@@ -49,8 +49,6 @@ export class BaseClient<
 
   /**
    * Disconnect the Client from the SignalWire network.
-   *
-   * @returns void
    */
   disconnect() {
     this.store.dispatch(destroyAction())
