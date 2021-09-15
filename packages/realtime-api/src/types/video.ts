@@ -10,7 +10,7 @@ import type {
   MemberUpdated,
   MemberUpdatedEventNames,
 } from '@signalwire/core'
-import type { RoomSession } from '../video/RoomSession'
+import type { RoomSession, RoomSessionUpdated } from '../video/RoomSession'
 import type {
   RoomSessionMember,
   RoomSessionMemberUpdated,
@@ -40,8 +40,7 @@ export type RealTimeRoomApiEventsHandlerMapping = Record<
   > &
   Record<MemberTalkingEventNames, (member: RoomSessionMember) => void> &
   Record<RoomStarted | RoomEnded, (room: RoomSession) => void> &
-  // TODO: we need to tweak the `room` param because it includes `updated` too in this event
-  Record<RoomUpdated, (room: RoomSession) => void> &
+  Record<RoomUpdated, (room: RoomSessionUpdated) => void> &
   Rooms.RoomSessionRecordingEventsHandlerMapping
 
 export type RealTimeRoomApiEvents = {

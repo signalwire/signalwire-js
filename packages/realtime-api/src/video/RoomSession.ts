@@ -16,6 +16,7 @@ import {
   VideoRoomSessionContract,
   VideoRoomSessionMethods,
   ConsumerContract,
+  EntityUpdated,
 } from '@signalwire/core'
 import { BaseConsumer } from '../BaseConsumer'
 import { RealTimeRoomApiEvents } from '../types'
@@ -31,6 +32,7 @@ type EmitterTransformsEvents =
 export interface RoomSession
   extends VideoRoomSessionContract,
     ConsumerContract<RealTimeRoomApiEvents> {}
+export type RoomSessionUpdated = EntityUpdated<RoomSession>
 
 class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   protected _eventsPrefix = 'video' as const
@@ -48,13 +50,16 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
             return this
           },
           payloadTransform: (payload: VideoRoomUpdatedEventParams) => {
-            return toExternalJSON(payload.room)
+            return toExternalJSON({
+              ...payload.room_session,
+              room_session_id: payload.room_session.id,
+            })
           },
           getInstanceEventNamespace: (payload: VideoRoomUpdatedEventParams) => {
-            return payload.room_session_id
+            return payload.room_session.id
           },
           getInstanceEventChannel: (payload: VideoRoomUpdatedEventParams) => {
-            return payload.room.event_channel
+            return payload.room_session.event_channel
           },
         },
       ],
@@ -128,15 +133,13 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
           payloadTransform: (payload: any) => {
             if (payload?.recording) {
               return toExternalJSON({
-                ...payload?.recording,
-                // FIXME: start using room_session and change this to `id`
-                room_session_id: this.getStateProperty('roomSessionId'),
+                ...payload.recording,
+                room_session_id: payload.room_session_id,
               })
             }
             return {
               id: payload.recording_id,
-              // FIXME: start using room_session and change this to `id`
-              roomSessionId: this.getStateProperty('roomSessionId'),
+              roomSessionId: payload.room_session_id,
             }
           },
         },

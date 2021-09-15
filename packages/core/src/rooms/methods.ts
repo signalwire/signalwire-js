@@ -145,7 +145,10 @@ export const startRecording: RoomMethodDescriptor<any> = {
             room_session_id: this.roomSessionId,
           },
         })
-        this.emit('video.__internal__.recording.start', payload)
+        this.emit('video.__internal__.recording.start', {
+          ...(payload as object),
+          room_session_id: this.roomSessionId,
+        })
       } catch (error) {
         this.off('video.__internal__.recording.start', handler)
         throw error
@@ -203,6 +206,25 @@ export const undeafMember = createRoomMemberMethod<BaseRPCResult, void>(
     transformResolve: baseCodeTransform,
   }
 )
+// This is used on a RoomSessionMember instance where we have
+// `this.roomSessionId` and `this.memberId`
+export const setDeaf: RoomMethodDescriptor<any, boolean> = {
+  value: function (value: boolean) {
+    const method = value ? 'video.member.deaf' : 'video.member.undeaf'
+    return this.execute(
+      {
+        method,
+        params: {
+          room_session_id: this.roomSessionId,
+          member_id: this.memberId,
+        },
+      },
+      {
+        transformResolve: baseCodeTransform,
+      }
+    )
+  },
+}
 export const setInputVolumeMember = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.set_input_volume',
   {
@@ -248,6 +270,7 @@ export type VideoMuteMember = ReturnType<typeof videoMuteMember.value>
 export type VideoUnmuteMember = ReturnType<typeof videoUnmuteMember.value>
 export type DeafMember = ReturnType<typeof deafMember.value>
 export type UndeafMember = ReturnType<typeof undeafMember.value>
+export type SetDeaf = ReturnType<typeof setDeaf.value>
 export type SetLayout = ReturnType<typeof setLayout.value>
 export type SetInputVolumeMember = ReturnType<typeof setInputVolumeMember.value>
 export type SetOutputVolumeMember = ReturnType<

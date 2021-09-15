@@ -123,8 +123,7 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
   audioUnmute(): Rooms.AudioUnmuteMember
   videoMute(): Rooms.VideoMuteMember
   videoUnmute(): Rooms.VideoUnmuteMember
-  setDeaf(): Rooms.DeafMember
-  setUndeaf(): Rooms.UndeafMember
+  setDeaf(value: boolean): Rooms.SetDeaf
   setMicrophoneVolume(params: { volume: number }): Rooms.SetInputVolumeMember
   setSpeakerVolume(params: { volume: number }): Rooms.SetOutputVolumeMember
   setInputSensitivity(params: {
