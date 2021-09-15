@@ -6,6 +6,7 @@ import {
   INTERNAL_GLOBAL_VIDEO_EVENTS,
   PRODUCT_PREFIXES,
 } from './constants'
+import type { CustomSaga } from '../redux/interfaces'
 
 type JSONRPCParams = Record<string, any>
 type JSONRPCResult = Record<string, any>
@@ -102,6 +103,7 @@ export interface BaseComponentOptions<
 > {
   store: SDKStore
   emitter: EventEmitter<EventTypes>
+  customSagas?: CustomSaga<any>[]
 }
 
 export interface SessionRequestObject {

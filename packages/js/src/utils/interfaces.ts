@@ -8,7 +8,10 @@ import type {
   VideoMemberEntity,
   InternalVideoMemberEntity,
   VideoMemberEventNames,
+  MemberUpdated,
+  MemberUpdatedEventNames,
   MemberTalkingEventNames,
+  VideoMemberEntityUpdated,
   VideoMemberTalkingEventParams,
   RTCTrackEventName,
   InternalVideoMemberUpdatableProps,
@@ -33,12 +36,22 @@ export type DeprecatedVideoMemberHandlerParams = {
   member: InternalVideoMemberEntity
 }
 export type VideoMemberHandlerParams = { member: VideoMemberEntity }
+export type VideoMemberUpdatedHandlerParams = {
+  member: VideoMemberEntityUpdated
+}
 
 export type RoomObjectEventsHandlerMap = Record<
   VideoLayoutEventNames,
   (params: { layout: VideoLayout }) => void
 > &
-  Record<VideoMemberEventNames, (params: VideoMemberHandlerParams) => void> &
+  Record<
+    Exclude<VideoMemberEventNames, MemberUpdated | MemberUpdatedEventNames>,
+    (params: VideoMemberHandlerParams) => void
+  > &
+  Record<
+    Extract<VideoMemberEventNames, MemberUpdated | MemberUpdatedEventNames>,
+    (params: VideoMemberUpdatedHandlerParams) => void
+  > &
   Record<
     DeprecatedMemberUpdatableProps,
     (params: DeprecatedVideoMemberHandlerParams) => void

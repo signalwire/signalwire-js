@@ -4,6 +4,7 @@ import {
   logger,
   validateEventsToSubscribe,
   EventEmitter,
+  BaseComponentOptions,
 } from '@signalwire/core'
 
 /**
@@ -22,12 +23,22 @@ export class BaseConsumer<
     return validateEventsToSubscribe(this.eventNames())
   }
 
+  constructor(public options: BaseComponentOptions<EventTypes>) {
+    super(options)
+
+    /**
+     * Always apply the emitter transforms
+     * We should split between internal and public:
+     * always apply the internals and apply only the ones
+     * the user registered event listeners to.
+     */
+    this.applyEmitterTransforms()
+  }
+
   subscribe() {
     return new Promise(async (resolve, reject) => {
       const subscriptions = this.getSubscriptions()
       if (subscriptions.length > 0) {
-        this.applyEmitterTransforms()
-
         const execParams: ExecuteParams = {
           method: 'signalwire.subscribe',
           params: {

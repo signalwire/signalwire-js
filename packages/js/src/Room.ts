@@ -302,11 +302,13 @@ export const RoomAPI = extendComponent<RoomConnection, RoomMethods>(
 type RoomObjectEventsHandlerMapping = RoomObjectEvents &
   BaseConnectionStateEventTypes
 
+/** @internal */
 export const createRoomSessionObject = (
   params: BaseComponentOptions<RoomObjectEventsHandlerMapping>
 ): Room => {
   const room = connect<RoomObjectEventsHandlerMapping, RoomConnection, Room>({
     store: params.store,
+    customSagas: params.customSagas,
     Component: RoomAPI,
     componentListeners: ROOM_COMPONENT_LISTENERS,
   })(params)

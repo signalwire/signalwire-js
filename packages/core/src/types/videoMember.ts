@@ -163,26 +163,18 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
   videoUnmute(): Rooms.VideoUnmuteMember
 
   /**
-   * Mutes the incoming audio for the member. The affected participant will not hear audio
-   * from the other participants anymore.
+   * Mutes or unmutes the incoming audio for the member. When the incoming audio
+   * is muted, the affected participant will not hear audio from the other
+   * participants anymore.
    * 
+   * @param value whether to mute the audio
+   *
    * @example
    * ```typescript
-   * await member.setDeaf()
+   * await member.setDeaf(true)
    * ```
    */
-  setDeaf(): Rooms.DeafMember
-
-  /**
-   * Unmutes the incoming audio for the member. The affected participant will start hearing
-   * audio from the other participants again.
-   * 
-   * @example
-   * ```typescript
-   * await member.setUndeaf()
-   * ```
-   */
-  setUndeaf(): Rooms.UndeafMember
+  setDeaf(value: boolean): Rooms.SetDeaf
 
   /**
    * Sets the microphone input level for the member.

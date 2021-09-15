@@ -6,9 +6,11 @@ import {
   Rooms,
   VideoMemberContract,
   VideoMemberMethods,
+  EntityUpdated,
 } from '@signalwire/core'
 
 export interface RoomSessionMember extends VideoMemberContract {}
+export type RoomSessionMemberUpdated = EntityUpdated<RoomSessionMember>
 
 // TODO: Extend from a variant of `BaseComponent` that
 // doesn't expose EventEmitter methods
@@ -33,8 +35,7 @@ const RoomSessionMemberAPI = extendComponent<
   audioUnmute: Rooms.audioUnmuteMember,
   videoMute: Rooms.videoMuteMember,
   videoUnmute: Rooms.videoUnmuteMember,
-  setDeaf: Rooms.deafMember,
-  setUndeaf: Rooms.undeafMember,
+  setDeaf: Rooms.setDeaf,
   setMicrophoneVolume: Rooms.setInputVolumeMember,
   setSpeakerVolume: Rooms.setOutputVolumeMember,
   setInputSensitivity: Rooms.setInputSensitivityMember,
