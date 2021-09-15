@@ -1,2 +1,2 @@
 export * from './createClient'
-export * as Video from './Video'
+export * as Video from './video/Video'

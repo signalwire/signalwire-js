@@ -1,5 +1,5 @@
 import { EventEmitter } from '@signalwire/core'
-import { configureJestStore } from './testUtils'
+import { configureJestStore } from '../testUtils'
 import { createVideoObject, Video } from './Video'
 
 describe('Member Object', () => {

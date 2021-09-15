@@ -7,10 +7,10 @@ import {
   ConsumerContract,
   RoomSessionRecording,
 } from '@signalwire/core'
-import { BaseConsumer } from './BaseConsumer'
-import { RealTimeVideoApiEvents } from './types/video'
-import { createRoomSessionObject, RoomSession } from './video/RoomSession'
-import type { RoomSessionMember } from './video/RoomSessionMember'
+import { BaseConsumer } from '../BaseConsumer'
+import { RealTimeVideoApiEvents } from '../types/video'
+import { createRoomSessionObject, RoomSession } from './RoomSession'
+import type { RoomSessionMember } from './RoomSessionMember'
 
 type TransformEvent = Extract<
   InternalVideoRoomSessionEventNames,

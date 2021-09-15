@@ -6,7 +6,7 @@ import {
   ClientEvents,
   logger,
 } from '@signalwire/core'
-import { createVideoObject, Video } from './Video'
+import { createVideoObject, Video } from './video/Video'
 
 export interface RealtimeClient
   extends ClientContract<RealtimeClient, ClientEvents> {
