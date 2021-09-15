@@ -161,4 +161,26 @@ describe('Video Object', () => {
       expect(mockNameCheck).toHaveBeenNthCalledWith(2, 'Second Room')
     })
   })
+
+  describe('video.room.ended event', () => {
+    const roomEndedEvent = JSON.parse(
+      `{"jsonrpc":"2.0","id":"uuid2","method":"signalwire.event","params":{"params":{"room":{"recording":false,"room_session_id":"session-one","name":"First Room","hide_video_muted":false,"music_on_hold":false,"room_id":"room_id","event_channel":"room.<uuid-one>"},"room_session_id":"session-one","room_id":"room_id","room_session":{"recording":false,"name":"First Room","hide_video_muted":false,"id":"session-one","music_on_hold":false,"room_id":"room_id","event_channel":"room.<uuid-one>"}},"timestamp":1631692510.415,"event_type":"video.room.ended","event_channel":"video.rooms.4b7ae78a-d02e-4889-a63b-08b156d5916e"}}`
+    )
+
+    it('should pass a Room obj to the handler', (done) => {
+      video.on('room.ended', (room) => {
+        expect(room.id).toBe('session-one')
+        expect(room.name).toBe('First Room')
+        expect(room.videoMute).toBeDefined()
+        expect(room.videoUnmute).toBeDefined()
+        expect(room.getMembers).toBeDefined()
+        expect(room.subscribe).toBeDefined()
+        done()
+      })
+
+      video.subscribe().then(() => {
+        session.dispatch(actions.socketMessageAction(roomEndedEvent))
+      })
+    })
+  })
 })
