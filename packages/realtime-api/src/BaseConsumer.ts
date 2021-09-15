@@ -4,6 +4,7 @@ import {
   logger,
   validateEventsToSubscribe,
   EventEmitter,
+  BaseComponentOptions,
 } from '@signalwire/core'
 
 /**
@@ -22,10 +23,15 @@ export class BaseConsumer<
     return validateEventsToSubscribe(this.eventNames())
   }
 
+  constructor(public options: BaseComponentOptions<EventTypes>) {
+    super(options)
+
+    this.applyEmitterTransforms()
+  }
+
   subscribe() {
     return new Promise(async (resolve, reject) => {
       const subscriptions = this.getSubscriptions()
-      this.applyEmitterTransforms()
       if (subscriptions.length > 0) {
         const execParams: ExecuteParams = {
           method: 'signalwire.subscribe',
