@@ -37,11 +37,11 @@ export const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
   }` as const
 })
 
-type VideoMemberUpdatableProps = {
+type VideoMemberUpdatablePropsMain = {
   [K in keyof InternalVideoMemberUpdatableProps as SnakeToCamelCase<K>]: InternalVideoMemberUpdatableProps[K]
 }
 
-type VideoMemberUpdatablePropsCamelCase = {
+type VideoMemberUpdatablePropsDocs = {
   /** Whether the outbound audio is muted (e.g., from the microphone) */
   audioMuted: boolean,
   /** Whether the outbound video is muted */
@@ -62,12 +62,10 @@ type VideoMemberUpdatablePropsCamelCase = {
   inputSensitivity: number
 }
 
-// We use this to check whether two types are exactly the same
-const validateType = <T> (_: T) => undefined
+type SameOf<T, P> = T extends P ? P extends T ? T : never : never
 
-// Compile-time error if the two types don't match
-validateType<VideoMemberUpdatablePropsCamelCase>((null as any) as VideoMemberUpdatableProps)
-validateType<VideoMemberUpdatableProps>((null as any) as VideoMemberUpdatablePropsCamelCase)
+// Note: ...Docs must be first in order to get typedoc documentation
+type VideoMemberUpdatableProps = SameOf<VideoMemberUpdatablePropsDocs, VideoMemberUpdatablePropsMain>
 
 // @ts-expect-error
 export const MEMBER_UPDATABLE_PROPS: VideoMemberUpdatableProps = toExternalJSON(
@@ -139,7 +137,7 @@ export type VideoMemberType = 'member' | 'screen' | 'device'
 /**
  * Public Contract for a VideoMember
  */
-export interface VideoMemberContract extends VideoMemberUpdatablePropsCamelCase {
+export interface VideoMemberContract extends VideoMemberUpdatableProps {
   /** Unique id of this member. */
   id: string
   /** Id of the room associated to this member. */
