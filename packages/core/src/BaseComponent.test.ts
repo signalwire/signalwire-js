@@ -124,8 +124,6 @@ describe('BaseComponent', () => {
 
       instance.removeAllListeners()
 
-      console.log('instance.eventNames()', instance.eventNames())
-
       expect(instance.listenerCount('custom:video.test.event_one')).toEqual(0)
       expect(instance.listenerCount('custom:video.test.event_two')).toEqual(0)
       expect(instance.eventNames()).toStrictEqual([])
