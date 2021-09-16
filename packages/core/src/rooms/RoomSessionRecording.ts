@@ -7,6 +7,9 @@ import type {
   VideoRecordingEventNames,
 } from '../types/videoRecording'
 
+/**
+ * Represents a specific recording of a room session.
+ */
 export interface RoomSessionRecording extends VideoRecordingContract {}
 
 export type RoomSessionRecordingEventsHandlerMapping = Record<
