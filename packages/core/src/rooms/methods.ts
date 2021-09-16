@@ -1,5 +1,9 @@
 import { BaseRoomInterface } from '.'
-import { VideoMemberEntity, VideoRecordingEntity } from '../types'
+import {
+  VideoMemberEntity,
+  VideoRecordingEntity,
+  VideoPlaybackEntity,
+} from '../types'
 import { toLocalEvent } from '../utils'
 import { ExecuteExtendedOptions, RoomMethod } from '../utils/interfaces'
 
@@ -158,6 +162,44 @@ export const startRecording: RoomMethodDescriptor<any> = {
   },
 }
 
+export const getPlaybacks = createRoomMethod<{
+  playbacks: VideoPlaybackEntity[]
+}>('video.playback.list', {
+  transformResolve: (payload) => ({ playbacks: payload.playbacks }),
+})
+
+export type StartPlaybackParams = {
+  url: string
+  volume?: number
+}
+export const startPlayback: RoomMethodDescriptor<any, StartPlaybackParams> = {
+  value: function (params) {
+    return new Promise(async (resolve) => {
+      const handler = (instance: any) => {
+        resolve(instance)
+      }
+      this.on('video.__internal__.playback.start', handler)
+
+      try {
+        const payload = await this.execute({
+          method: 'video.playback.start',
+          params: {
+            room_session_id: this.roomSessionId,
+            ...params,
+          },
+        })
+        this.emit('video.__internal__.playback.start', {
+          ...(payload as object),
+          room_session_id: this.roomSessionId,
+        })
+      } catch (error) {
+        this.off('video.__internal__.playback.start', handler)
+        throw error
+      }
+    })
+  },
+}
+
 export type GetLayouts = ReturnType<typeof getLayouts.value>
 export type GetMembers = ReturnType<typeof getMembers.value>
 export type HideVideoMuted = ReturnType<typeof hideVideoMuted.value>
@@ -166,6 +208,9 @@ export type SetHideVideoMuted = ReturnType<typeof setHideVideoMuted.value>
 
 export type GetRecordings = ReturnType<typeof getRecordings.value>
 export type StartRecording = ReturnType<typeof startRecording.value>
+
+export type GetPlaybacks = ReturnType<typeof getPlaybacks.value>
+export type StartPlayback = ReturnType<typeof startPlayback.value>
 // End Room Methods
 
 /**
