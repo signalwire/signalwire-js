@@ -51,7 +51,7 @@ describe('RoomSessionPlayback', () => {
       await instance.setVolume(30)
       // @ts-expect-error
       expect(instance.execute).toHaveBeenLastCalledWith({
-        method: 'video.playback.stop',
+        method: 'video.playback.set_volume',
         params: {
           room_session_id: 'room-session-id',
           playback_id: 'c22d7223-5a01-49fe-8da0-46bec8e75e32',
