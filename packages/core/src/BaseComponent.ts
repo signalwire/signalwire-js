@@ -284,9 +284,8 @@ export class BaseComponent<
     >
   ) {
     const wrapperHandler = (payload: unknown) => {
-      // FIXME: review how we're passing events from the on/once/off methods
-      const internalNotNamespacedEvent = toInternalEventName({ event })
-      const transform = this._emitterTransforms.get(internalNotNamespacedEvent)
+      const internalEvent = this._getInternalEvent(event)
+      const transform = this._emitterTransforms.get(internalEvent)
       if (!transform) {
         // @ts-expect-error
         return fn(payload)
