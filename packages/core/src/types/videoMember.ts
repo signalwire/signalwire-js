@@ -41,6 +41,34 @@ type VideoMemberUpdatableProps = {
   [K in keyof InternalVideoMemberUpdatableProps as SnakeToCamelCase<K>]: InternalVideoMemberUpdatableProps[K]
 }
 
+type VideoMemberUpdatablePropsCamelCase = {
+  /** Whether the outbound audio is muted (e.g., from the microphone) */
+  audioMuted: boolean,
+  /** Whether the outbound video is muted */
+  videoMuted: boolean,
+  /** Whether the inbound audio is muted */
+  deaf: boolean,
+  /** Whether the member is on hold */
+  onHold: boolean,
+  /** Whether the member is visible */
+  visible: boolean,
+  /** Input volume (e.g., of the microphone). Values range from -50 to 50, with a default of 0. */
+  inputVolume: number,
+  /** Output volume (e.g., of the speaker). Values range from -50 to 50, with a default of 0. */
+  outputVolume: number,
+  /** Input level at which the participant is identified as currently speaking.
+   * The default value is 30 and the scale goes from 0 (lowest sensitivity,
+   * essentially muted) to 100 (highest sensitivity). */
+  inputSensitivity: number
+}
+
+// We use this to check whether two types are exactly the same
+const validateType = <T> (_: T) => undefined
+
+// Compile-time error if the two types don't match
+validateType<VideoMemberUpdatablePropsCamelCase>((undefined as any) as VideoMemberUpdatableProps)
+validateType<VideoMemberUpdatableProps>((undefined as any) as VideoMemberUpdatablePropsCamelCase)
+
 // @ts-expect-error
 export const MEMBER_UPDATABLE_PROPS: VideoMemberUpdatableProps = toExternalJSON(
   INTERNAL_MEMBER_UPDATABLE_PROPS
@@ -111,12 +139,18 @@ export type VideoMemberType = 'member' | 'screen' | 'device'
 /**
  * Public Contract for a VideoMember
  */
-export interface VideoMemberContract extends VideoMemberUpdatableProps {
+export interface VideoMemberContract extends VideoMemberUpdatablePropsCamelCase {
+  /** Unique id of this member. */
   id: string
+  /** Id of the room associated to this member. */
   roomId: string
+  /** Id of the room session associated to this member. */
   roomSessionId: string
+  /** Name of this member. */
   name: string
+  /** Id of the parent video member, if it exists. */
   parentId?: string
+  /** Type of this video member. Can be `'member'`, `'screen'`, or `'device'`. */
   type: VideoMemberType
 
   /**
