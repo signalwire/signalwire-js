@@ -50,6 +50,7 @@ export class BaseConsumer<
 
         try {
           await this.execute(execParams)
+          this.applyEmitterTransforms()
         } catch (error) {
           return reject(error)
         }
