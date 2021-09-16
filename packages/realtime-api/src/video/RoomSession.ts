@@ -29,6 +29,81 @@ type EmitterTransformsEvents =
   | InternalVideoRecordingEventNames
   | 'video.__internal__.recording.start'
 
+/**
+ * Represents a room session. You can obtain instances of this class by
+ * subscribing to the appropriate events from {@link Video}.
+ *
+ * You can use this object to subscribe to the following events.
+ *
+ * #### Room events
+ *
+ * **room.started**,<br>  
+ * **room.ended**<br>  
+ * Emitted when the room session is, respectively, started or ended.  Your event
+ * handler receives an object which is an instance of {@link RoomSession}.
+ *
+ * **recording.started**,<br>  
+ * **recording.updated**,<br>  
+ * **recording.ended**<br>  
+ * Emitted when a recording is, respectively, started, updated, or ended. Your
+ * event handler receives an object which is an instance of
+ * {@link RoomSessionRecording}.
+ *
+ * **layout.changed**<br>  
+ * Emitted when the layout of the room changes. Your event handler receives an
+ * object which is an instance of {@link RoomSessionRecording}.
+ *
+ * **room.updated**<br>  
+ * Emitted when a property of the room is updated. Your event handler receives
+ * an object which is an instance of {@link RoomSessionRecording}.
+ *
+ * #### Member events
+ *
+ * **member.joined**<br>  
+ * Emitted when a member joins the room. Your event handler receives an object
+ * of type {@link RoomSessionMember}.
+ *
+ * **member.left**<br>  
+ * Emitted when a member leaves the room. Your event handler receives an object
+ * of type {@link RoomSessionMember}.
+ *
+ * **member.talking**<br>  
+ * Emitted when a member starts or stops talking. Your event handler receives an
+ * object of type {@link RoomSessionMember}.
+ *
+ * **member.talking.started**<br>  
+ * Emitted when a member starts talking. Your event handler receives an object
+ * of type {@link RoomSessionMember}.
+ *
+ * **member.talking.ended**<br>  
+ * Emitted when a member stops talking. Your event handler receives an object of
+ * type {@link RoomSessionMember}.
+ *
+ * **member.updated**<br>  
+ * Emitted when any property of one of the members is updated. Your event
+ * handler receives an object `member` of type {@link RoomSessionMember}. Use
+ * `member.updated` to access the list of updated properties. Example:
+ * ```typescript
+ * room.on('member.updated', (member) => {
+ *     console.log(member.updated)
+ *     // [ 'audioMuted' ]
+ * }
+ * ```
+ *
+ * **member.updated.audioMuted**,<br>  
+ * **member.updated.videoMuted**,<br>  
+ * **member.updated.deaf**,<br>  
+ * **member.updated.onHold**,<br>  
+ * **member.updated.visible**,<br>  
+ * **member.updated.inputVolume**,<br>  
+ * **member.updated.outputVolume**,<br>  
+ * **member.updated.inputSensitivity**<br>  
+ * Each of the above events is emitted when the associated property changes.
+ * Your event handler receives an object `member` of type
+ * {@link RoomSessionMember}.
+ *
+ *
+ */
 export interface RoomSession
   extends VideoRoomSessionContract,
     ConsumerContract<RealTimeRoomApiEvents> {}

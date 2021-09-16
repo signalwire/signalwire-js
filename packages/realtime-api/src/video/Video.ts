@@ -23,7 +23,7 @@ type TransformEvent = Extract<
  * (you can obtain one via {@link createClient}) to subscribe to the
  * following events:
  * 
- * **room.started**  
+ * **room.started**<br>  
  * Emitted when a room session is started. Your event handler
  * receives an object which is an instance of {@link RoomSession}. Example:
  * ```typescript
@@ -31,9 +31,10 @@ type TransformEvent = Extract<
  * client.video.on('room.started', async (roomSession) => {
  *     console.log(roomSession.name)
  * })
+ * await client.connect()
  * ```
  * 
- * **room.ended**  
+ * **room.ended**<br>  
  * Emitted when a room session ends. Your event handler receives
  * an object which is an instance of {@link RoomSession}.
  * ```typescript
@@ -41,9 +42,13 @@ type TransformEvent = Extract<
  * client.video.on('room.ended', async (roomSession) => {
  *     console.log(roomSession.name)
  * })
+ * await client.connect()
  * ```
  */
-export interface Video extends ConsumerContract<RealTimeVideoApiEvents> {}
+export interface Video extends ConsumerContract<RealTimeVideoApiEvents> {
+  /** @internal */
+  subscribe(): Promise<void>
+}
 export type { RoomSession, RoomSessionMember, RoomSessionRecording }
 
 /** @internal */
