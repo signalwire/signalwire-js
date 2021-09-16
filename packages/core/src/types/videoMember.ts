@@ -66,8 +66,8 @@ type VideoMemberUpdatablePropsCamelCase = {
 const validateType = <T> (_: T) => undefined
 
 // Compile-time error if the two types don't match
-validateType<VideoMemberUpdatablePropsCamelCase>((undefined as any) as VideoMemberUpdatableProps)
-validateType<VideoMemberUpdatableProps>((undefined as any) as VideoMemberUpdatablePropsCamelCase)
+validateType<VideoMemberUpdatablePropsCamelCase>((null as any) as VideoMemberUpdatableProps)
+validateType<VideoMemberUpdatableProps>((null as any) as VideoMemberUpdatablePropsCamelCase)
 
 // @ts-expect-error
 export const MEMBER_UPDATABLE_PROPS: VideoMemberUpdatableProps = toExternalJSON(
