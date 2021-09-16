@@ -64,11 +64,11 @@ async function run() {
         }, 10 * 1000)
       }, 2000)
 
-      console.log('🟢 ROOOM STARTED 🟢', roomSession.id, roomSession.name)
+      console.log('🟢 ROOM STARTED 🟢', roomSession.id, roomSession.name)
     })
 
     client.video.on('room.ended', (roomSession) => {
-      console.log('🔴 ROOOM ENDED 🔴', roomSession.id, roomSession.name)
+      console.log('🔴 ROOM ENDED 🔴', roomSession.id, roomSession.name)
     })
 
     await client.connect()
