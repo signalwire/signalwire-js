@@ -230,9 +230,9 @@ export interface VideoMemberContract extends VideoMemberUpdatablePropsCamelCase 
 
   /**
    * Sets the speaker output level.
-   * 
+   *
    * @param params 
-   * @param params.value desired volume. Values range from -50 to 50, with a
+   * @param params.volume desired volume. Values range from -50 to 50, with a
    * default of 0.
    *
    * @example
