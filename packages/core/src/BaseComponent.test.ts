@@ -51,29 +51,27 @@ describe('BaseComponent', () => {
     })
 
     it('should keep track of the original events with the _eventsPrefix', () => {
-      const firstInstance = new JestComponent('first')
+      const firstInstance = new JestComponent('first_namespace')
       firstInstance.on('first.event_one', () => {})
       firstInstance.once('video.first.eventOne', () => {})
       firstInstance.on('first.event_two', () => {})
       firstInstance.once('video.first.eventTwo', () => {})
+      firstInstance.once('video.first.eventTwoExtra', () => {})
 
-      const secondInstance = new JestComponent('second')
+      const secondInstance = new JestComponent('second_namespace')
       secondInstance.on('second.event_one', () => {})
       secondInstance.once('video.second.eventOne', () => {})
       secondInstance.on('second.event_two', () => {})
       secondInstance.once('video.second.eventTwo', () => {})
 
       expect(firstInstance.eventNames()).toStrictEqual([
-        'video.first.event_one',
-        'video.first.eventOne',
-        'video.first.event_two',
-        'video.first.eventTwo',
+        'first_namespace:video.first.event_one',
+        'first_namespace:video.first.event_two',
+        'first_namespace:video.first.event_two_extra',
       ])
       expect(secondInstance.eventNames()).toStrictEqual([
-        'video.second.event_one',
-        'video.second.eventOne',
-        'video.second.event_two',
-        'video.second.eventTwo',
+        'second_namespace:video.second.event_one',
+        'second_namespace:video.second.event_two',
       ])
     })
 
@@ -89,10 +87,9 @@ describe('BaseComponent', () => {
       expect(instance.listenerCount('custom:video.test.event_one')).toEqual(2)
       expect(instance.listenerCount('custom:video.test.event_two')).toEqual(2)
 
-      // _trackedEvents contains raw-prefixed event names
       expect(instance.eventNames()).toStrictEqual([
-        'video.test.eventOne',
-        'video.test.eventTwo',
+        'custom:video.test.event_one',
+        'custom:video.test.event_two',
       ])
 
       // No-op
@@ -120,13 +117,14 @@ describe('BaseComponent', () => {
       expect(instance.listenerCount('custom:video.test.event_one')).toEqual(2)
       expect(instance.listenerCount('custom:video.test.event_two')).toEqual(2)
 
-      // _trackedEvents contains raw-prefixed event names
       expect(instance.eventNames()).toStrictEqual([
-        'video.test.eventOne',
-        'video.test.eventTwo',
+        'custom:video.test.event_one',
+        'custom:video.test.event_two',
       ])
 
       instance.removeAllListeners()
+
+      console.log('instance.eventNames()', instance.eventNames())
 
       expect(instance.listenerCount('custom:video.test.event_one')).toEqual(0)
       expect(instance.listenerCount('custom:video.test.event_two')).toEqual(0)

@@ -59,6 +59,7 @@ export class BaseComponent<
   private _requests = new Map()
   private _customSagaTriggers = new Map()
   private _destroyer?: () => void
+
   /**
    * A Namespace let us scope specific instances inside of a
    * particular product (like 'video.', 'chat.', etc.). For instance,
@@ -71,6 +72,7 @@ export class BaseComponent<
       namespace: this._eventsNamespace,
     })
   }
+
   /**
    * A prefix is a product, like `video` or `chat`.
    */
@@ -78,12 +80,16 @@ export class BaseComponent<
     if (
       this._eventsPrefix &&
       typeof event === 'string' &&
-      !event.startsWith(this._eventsPrefix)
+      !event.includes(`${this._eventsPrefix}.`)
     ) {
       return `${this._eventsPrefix}.${event}` as EventEmitter.EventNames<EventTypes>
     }
 
     return event
+  }
+
+  private _getInternalEvent(event: EventEmitter.EventNames<EventTypes>) {
+    return this._getNamespacedEvent(this._getPrefixedEvent(event))
   }
 
   /**
@@ -345,69 +351,56 @@ export class BaseComponent<
     return handler
   }
 
-  private trackEvent(event: EventEmitter.EventNames<EventTypes>) {
+  /**
+   * Since the EventEmitter instance (this.emitter) is
+   * shared across the whole app each BaseComponent instance
+   * will have to keep track of their own events so if/when
+   * the user calls `removeAllListeners` we only clean the
+   * events this instance cares/controls.
+   */
+  private _trackEvent(event: EventEmitter.EventNames<EventTypes>) {
     this._trackedEvents = Array.from(new Set(this._trackedEvents.concat(event)))
   }
 
-  private untrackEvent(event: EventEmitter.EventNames<EventTypes>) {
+  private _untrackEvent(event: EventEmitter.EventNames<EventTypes>) {
     this._trackedEvents = this._trackedEvents.filter((evt) => evt !== event)
   }
 
-  private _getOptionsFromParams<T extends any[]>(params: T): typeof params {
-    const [event, ...rest] = params
-
-    return [
-      this._getPrefixedEvent(event) as EventEmitter.EventNames<EventTypes>,
-      ...rest,
-    ] as T
+  private _addListener<T extends EventEmitter.EventNames<EventTypes>>(
+    event: T,
+    fn: EventEmitter.EventListener<EventTypes, T>,
+    once?: boolean
+  ) {
+    const type: EventRegisterHandlers<EventTypes>['type'] = once ? 'once' : 'on'
+    if (this.shouldAddToQueue()) {
+      this.addEventToRegisterQueue({
+        type,
+        params: [event, fn] as any,
+      })
+      return this.emitter as EventEmitter<EventTypes>
+    }
+    const internalEvent = this._getInternalEvent(event)
+    const wrappedHandler = this.getOrCreateStableEventHandler(
+      internalEvent,
+      fn as any
+    )
+    logger.trace('Registering event', internalEvent)
+    this._trackEvent(internalEvent)
+    return this.emitter[type](internalEvent, wrappedHandler)
   }
 
   on<T extends EventEmitter.EventNames<EventTypes>>(
     event: T,
     fn: EventEmitter.EventListener<EventTypes, T>
   ) {
-    if (this.shouldAddToQueue()) {
-      this.addEventToRegisterQueue({
-        type: 'on',
-        params: [event, fn] as any,
-      })
-      return this.emitter as EventEmitter<EventTypes>
-    }
-
-    // TODO: pick a better name for parsed*
-    const [parsedEvent, parsedFn] = this._getOptionsFromParams([event, fn])
-    const handler = this.getOrCreateStableEventHandler(
-      parsedEvent,
-      parsedFn as any
-    )
-    const internalEvent = this._getNamespacedEvent(parsedEvent)
-    logger.trace('Registering event', internalEvent)
-    this.trackEvent(parsedEvent)
-    return this.emitter.on(internalEvent, handler)
+    return this._addListener(event, fn)
   }
 
   once<T extends EventEmitter.EventNames<EventTypes>>(
     event: T,
     fn: EventEmitter.EventListener<EventTypes, T>
   ) {
-    if (this.shouldAddToQueue()) {
-      this.addEventToRegisterQueue({
-        type: 'once',
-        params: [event, fn] as any,
-      })
-      return this.emitter as EventEmitter<EventTypes>
-    }
-
-    // TODO: pick a better name for parsed*
-    const [parsedEvent, parsedFn] = this._getOptionsFromParams([event, fn])
-    const handler = this.getOrCreateStableEventHandler(
-      parsedEvent,
-      parsedFn as any
-    )
-    const internalEvent = this._getNamespacedEvent(parsedEvent)
-    logger.trace('Registering event', internalEvent)
-    this.trackEvent(parsedEvent)
-    return this.emitter.once(internalEvent, handler)
+    return this._addListener(event, fn, true)
   }
 
   off<T extends EventEmitter.EventNames<EventTypes>>(
@@ -422,15 +415,13 @@ export class BaseComponent<
       return this.emitter as EventEmitter<EventTypes>
     }
 
-    // TODO: pick a better name for parsed*
-    const [parsedEvent, parsedFn] = this._getOptionsFromParams([event, fn])
+    const internalEvent = this._getInternalEvent(event)
     const handler = this.getAndRemoveStableEventHandler(
-      parsedEvent,
-      parsedFn as any
+      internalEvent,
+      fn as any
     )
-    const internalEvent = this._getNamespacedEvent(parsedEvent)
     this.cleanupEventHandlerTransformCache({
-      event: parsedEvent,
+      event: internalEvent,
       /**
        * If handler is not defined we'll force the cleanup
        * since the `emitter` will remove all the handlers
@@ -439,7 +430,7 @@ export class BaseComponent<
       force: !handler,
     })
     logger.trace('Removing event listener', internalEvent)
-    this.untrackEvent(parsedEvent)
+    this._untrackEvent(internalEvent)
     return this.emitter.off(internalEvent, handler)
   }
 
@@ -456,11 +447,6 @@ export class BaseComponent<
       return this.off(event)
     }
 
-    /**
-     * Note that we're passing the non-namespaced event here.
-     * `this.off` will take care of deriving the proper namespaced
-     * event and handle transforms, etc.
-     */
     this.eventNames().forEach((eventName) => {
       this.off(eventName)
     })
@@ -480,11 +466,10 @@ export class BaseComponent<
       return false
     }
 
-    const prefixedEvent = this._getPrefixedEvent(event)
-    const namespacedEvent = this._getNamespacedEvent(prefixedEvent)
-    logger.trace('Emit on event:', namespacedEvent)
+    const internalEvent = this._getInternalEvent(event)
+    logger.trace('Emit on event:', internalEvent)
     // @ts-ignore
-    return this.emitter.emit(namespacedEvent, ...args)
+    return this.emitter.emit(internalEvent, ...args)
   }
 
   /** @internal */
@@ -650,13 +635,13 @@ export class BaseComponent<
       if (Array.isArray(key)) {
         key.forEach((k) =>
           this._emitterTransforms.set(
-            k as EventEmitter.EventNames<EventTypes>,
+            this._getInternalEvent(k as EventEmitter.EventNames<EventTypes>),
             handlersObj
           )
         )
       } else {
         this._emitterTransforms.set(
-          key as EventEmitter.EventNames<EventTypes>,
+          this._getInternalEvent(key as EventEmitter.EventNames<EventTypes>),
           handlersObj
         )
       }
