@@ -71,7 +71,7 @@ export interface VideoRoomSessionContract {
   removeMember(params: Required<MemberCommandParams>): Rooms.RemoveMember
   setHideVideoMuted(value: boolean): Rooms.SetHideVideoMuted
   getLayouts(): Rooms.GetLayouts
-  setLayout(): Rooms.SetLayout
+  setLayout(params: { name: string }): Rooms.SetLayout
   getRecordings(): Rooms.GetRecordings
   startRecording(): Promise<Rooms.RoomSessionRecording>
 }
