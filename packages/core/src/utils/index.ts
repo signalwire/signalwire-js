@@ -2,6 +2,7 @@ import {
   STORAGE_PREFIX,
   GLOBAL_VIDEO_EVENTS,
   INTERNAL_GLOBAL_VIDEO_EVENTS,
+  EVENT_NAMESPACE_DIVIDER,
 } from './constants'
 
 export { v4 as uuid } from 'uuid'
@@ -68,6 +69,11 @@ export const getGlobalEvents = (kind: 'all' | 'video' = 'all') => {
   }
 }
 
+export const cleanupEventNamespace = (event: string) => {
+  const eventParts = event.split(EVENT_NAMESPACE_DIVIDER)
+  return eventParts[eventParts.length - 1]
+}
+
 const WITH_CUSTOM_EVENT_NAMES = [
   'video.member.updated',
   'video.member.talking',
@@ -79,17 +85,16 @@ const WITH_CUSTOM_EVENT_NAMES = [
  * @internal
  */
 export const validateEventsToSubscribe = (events: (string | symbol)[]) => {
-  const valid = events.map((event) => {
-    if (typeof event === 'string') {
+  const valid = events.map((internalEvent) => {
+    if (typeof internalEvent === 'string') {
+      const event = cleanupEventNamespace(internalEvent)
       const found = WITH_CUSTOM_EVENT_NAMES.find((withCustomName) => {
         return event.startsWith(withCustomName)
       })
-      if (found) {
-        return found
-      }
+      return found || event
     }
 
-    return event
+    return internalEvent
   })
 
   return Array.from(new Set(valid))

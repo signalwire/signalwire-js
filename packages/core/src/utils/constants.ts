@@ -11,6 +11,11 @@ export enum WebSocketState {
   CLOSED = 3,
 }
 
+/**
+ * Used for namespacing events.
+ */
+export const EVENT_NAMESPACE_DIVIDER = ':'
+
 export const PRODUCT_PREFIX_VIDEO = 'video'
 
 export const GLOBAL_VIDEO_EVENTS = ['room.started', 'room.ended'] as const

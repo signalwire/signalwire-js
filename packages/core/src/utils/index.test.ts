@@ -84,4 +84,19 @@ describe('validateEventsToSubscribe', () => {
       'video.member.updated',
     ])
   })
+
+  it('should cleanup namespaced events', () => {
+    const events = [
+      '1111-2222-3333-4444:video.member.joined',
+      '12345:video.member.updated',
+      'video.member.ns_one',
+      'video.member.ns_two',
+    ]
+    expect(validateEventsToSubscribe(events)).toStrictEqual([
+      'video.member.joined',
+      'video.member.updated',
+      'video.member.ns_one',
+      'video.member.ns_two',
+    ])
+  })
 })
