@@ -67,9 +67,16 @@ export class BaseComponent<
    * to that specific room.
    */
   private _getNamespacedEvent(event: EventEmitter.EventNames<EventTypes>) {
+    let namespace = this._eventsNamespace
+
+    // TODO: move to external function
+    if (typeof event === 'string' && event.includes('__internal__')) {
+      namespace = this.__uuid
+    }
+
     return toInternalEventName({
       event,
-      namespace: this._eventsNamespace,
+      namespace,
     })
   }
 
@@ -155,7 +162,7 @@ export class BaseComponent<
   }
 
   /** @internal */
-  private addEventToEmitQueue(
+  private _addEventToEmitQueue(
     event: EventEmitter.EventNames<EventTypes>,
     args: any[]
   ) {
@@ -175,55 +182,45 @@ export class BaseComponent<
   }
 
   /** @internal */
-  private getEventHandlerTransformCacheKey(
-    event: EventEmitter.EventNames<EventTypes>
-  ) {
-    return this._getNamespacedEvent(event)
-  }
-
-  /** @internal */
   private runAndCacheEventHandlerTransform({
-    event,
+    internalEvent,
     transform,
     payload,
   }: {
-    event: EventEmitter.EventNames<EventTypes>
+    internalEvent: EventEmitter.EventNames<EventTypes>
     transform: EventTransform
     payload: unknown
   }): BaseComponent<EventTypes> {
-    const transformCacheKey = this.getEventHandlerTransformCacheKey(event)
-    if (!this._eventsTransformsCache.has(transformCacheKey)) {
+    if (!this._eventsTransformsCache.has(internalEvent)) {
       const instance = transform.instanceFactory(payload)
-      this._eventsTransformsCache.set(transformCacheKey, instance)
+      this._eventsTransformsCache.set(internalEvent, instance)
 
       return instance
     }
 
-    // @ts-ignore
-    return this._eventsTransformsCache.get(transformCacheKey)
+    // @ts-expect-error
+    return this._eventsTransformsCache.get(internalEvent)
   }
 
   /** @internal */
   private cleanupEventHandlerTransformCache({
-    event,
+    internalEvent,
     force,
   }: {
-    event: EventEmitter.EventNames<EventTypes>
+    internalEvent: EventEmitter.EventNames<EventTypes>
     force: boolean
   }) {
-    const transformCacheKey = this.getEventHandlerTransformCacheKey(event)
-    const namespacedEvent = this._getNamespacedEvent(event)
-    const instance = this._eventsTransformsCache.get(transformCacheKey)
-    const eventCount = this.listenerCount(namespacedEvent)
+    const instance = this._eventsTransformsCache.get(internalEvent)
+    const eventCount = this.listenerCount(internalEvent)
 
     if (instance && (force || eventCount <= 1)) {
       instance.destroy()
-      return this._eventsTransformsCache.delete(transformCacheKey)
+      return this._eventsTransformsCache.delete(internalEvent)
     }
 
     logger.debug(
       `[cleanupEventHandlerTransformCache] Key wasn't cached`,
-      transformCacheKey
+      internalEvent
     )
     return false
   }
@@ -234,11 +231,11 @@ export class BaseComponent<
    * then mapped again using the end-user `fn` reference.
    * @internal
    */
-  private getEmitterListenersMapByEventName(
-    event: EventEmitter.EventNames<EventTypes>
+  private getEmitterListenersMapByInternalEventName(
+    internalEvent: EventEmitter.EventNames<EventTypes>
   ) {
     return (
-      this._emitterListenersCache.get(event) ??
+      this._emitterListenersCache.get(internalEvent) ??
       new Map<
         EventEmitter.EventListener<
           EventTypes,
@@ -253,17 +250,18 @@ export class BaseComponent<
   }
 
   private getAndRemoveStableEventHandler(
-    event: EventEmitter.EventNames<EventTypes>,
+    internalEvent: EventEmitter.EventNames<EventTypes>,
     fn?: EventEmitter.EventListener<
       EventTypes,
       EventEmitter.EventNames<EventTypes>
     >
   ) {
-    const cacheByEventName = this.getEmitterListenersMapByEventName(event)
+    const cacheByEventName =
+      this.getEmitterListenersMapByInternalEventName(internalEvent)
     if (fn && cacheByEventName.has(fn)) {
       const handler = cacheByEventName.get(fn)
       cacheByEventName.delete(fn)
-      this._emitterListenersCache.set(event, cacheByEventName)
+      this._emitterListenersCache.set(internalEvent, cacheByEventName)
       return handler
     }
 
@@ -276,15 +274,14 @@ export class BaseComponent<
    * specific events along with the logic for caching the calls to
    * `transform.instanceFactory`
    **/
-  private createStableEventHandler(
-    event: EventEmitter.EventNames<EventTypes>,
+  private _createStableEventHandler(
+    internalEvent: EventEmitter.EventNames<EventTypes>,
     fn: EventEmitter.EventListener<
       EventTypes,
       EventEmitter.EventNames<EventTypes>
     >
   ) {
     const wrapperHandler = (payload: unknown) => {
-      const internalEvent = this._getInternalEvent(event)
       const transform = this._emitterTransforms.get(internalEvent)
       if (!transform) {
         // @ts-expect-error
@@ -292,7 +289,7 @@ export class BaseComponent<
       }
 
       const cachedInstance = this.runAndCacheEventHandlerTransform({
-        event,
+        internalEvent,
         transform,
         payload,
       })
@@ -328,23 +325,20 @@ export class BaseComponent<
   }
 
   private getOrCreateStableEventHandler(
-    event: EventEmitter.EventNames<EventTypes>,
+    internalEvent: EventEmitter.EventNames<EventTypes>,
     fn: EventEmitter.EventListener<
       EventTypes,
       EventEmitter.EventNames<EventTypes>
     >
   ) {
-    /**
-     * Transforms are mapped using the "raw" event name (i.e
-     * non-namespaced sent by the server)
-     */
-    const cacheByEventName = this.getEmitterListenersMapByEventName(event)
+    const cacheByEventName =
+      this.getEmitterListenersMapByInternalEventName(internalEvent)
     let handler = cacheByEventName.get(fn)
 
     if (!handler) {
-      handler = this.createStableEventHandler(event, fn)
+      handler = this._createStableEventHandler(internalEvent, fn)
       cacheByEventName.set(fn, handler)
-      this._emitterListenersCache.set(event, cacheByEventName)
+      this._emitterListenersCache.set(internalEvent, cacheByEventName)
     }
 
     return handler
@@ -357,12 +351,16 @@ export class BaseComponent<
    * the user calls `removeAllListeners` we only clean the
    * events this instance cares/controls.
    */
-  private _trackEvent(event: EventEmitter.EventNames<EventTypes>) {
-    this._trackedEvents = Array.from(new Set(this._trackedEvents.concat(event)))
+  private _trackEvent(internalEvent: EventEmitter.EventNames<EventTypes>) {
+    this._trackedEvents = Array.from(
+      new Set(this._trackedEvents.concat(internalEvent))
+    )
   }
 
-  private _untrackEvent(event: EventEmitter.EventNames<EventTypes>) {
-    this._trackedEvents = this._trackedEvents.filter((evt) => evt !== event)
+  private _untrackEvent(internalEvent: EventEmitter.EventNames<EventTypes>) {
+    this._trackedEvents = this._trackedEvents.filter(
+      (evt) => evt !== internalEvent
+    )
   }
 
   private _addListener<T extends EventEmitter.EventNames<EventTypes>>(
@@ -420,7 +418,7 @@ export class BaseComponent<
       fn as any
     )
     this.cleanupEventHandlerTransformCache({
-      event: internalEvent,
+      internalEvent,
       /**
        * If handler is not defined we'll force the cleanup
        * since the `emitter` will remove all the handlers
@@ -461,7 +459,7 @@ export class BaseComponent<
   /** @internal */
   emit(event: EventEmitter.EventNames<EventTypes>, ...args: any[]) {
     if (this.shouldAddToQueue()) {
-      this.addEventToEmitQueue(event, args)
+      this._addEventToEmitQueue(event, args)
       return false
     }
 
