@@ -105,7 +105,7 @@ export const isLocalEvent = (event: string) => {
   return event.includes(LOCAL_EVENT_PREFIX)
 }
 
-export const toLocalEvent = (event: string) => {
+export const toLocalEvent = <T extends string>(event: string): T => {
   const eventParts = event.split('.')
   const prefix = eventParts[0]
 
@@ -120,5 +120,5 @@ export const toLocalEvent = (event: string) => {
 
       return reducer
     }, [] as string[])
-    .join('.')
+    .join('.') as T
 }

@@ -3,6 +3,7 @@ import {
   logger,
   isGlobalEvent,
   toExternalJSON,
+  toLocalEvent,
   validateEventsToSubscribe,
   extendComponent,
 } from './utils'
@@ -33,6 +34,7 @@ export {
   getEventEmitter,
   isGlobalEvent,
   toExternalJSON,
+  toLocalEvent,
   validateEventsToSubscribe,
   GLOBAL_VIDEO_EVENTS,
   MEMBER_UPDATED_EVENTS,

@@ -1,5 +1,5 @@
 import { Action } from '@reduxjs/toolkit'
-import { uuid, logger, toInternalEventName } from './utils'
+import { uuid, logger, toInternalEventName, isLocalEvent } from './utils'
 import { executeAction } from './redux'
 import {
   ExecuteParams,
@@ -69,8 +69,8 @@ export class BaseComponent<
   private _getNamespacedEvent(event: EventEmitter.EventNames<EventTypes>) {
     let namespace = this._eventsNamespace
 
-    // TODO: move to external function
-    if (typeof event === 'string' && event.includes('__internal__')) {
+    // TODO: explain why we're using a diff namespace for local events.
+    if (typeof event === 'string' && isLocalEvent(event)) {
       namespace = this.__uuid
     }
 
