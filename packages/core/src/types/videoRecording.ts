@@ -44,10 +44,10 @@ export interface VideoRecordingContract {
   /** Duration, if available */
   duration?: number
 
-  /** Start time, if available (UNIX timestamp in seconds) */
+  /** Start time, if available */
   startedAt?: number
 
-  /** End time, if available (UNIX timestamp in seconds) */
+  /** End time, if available */
   endedAt?: number
 
   /** Pauses the recording. */
