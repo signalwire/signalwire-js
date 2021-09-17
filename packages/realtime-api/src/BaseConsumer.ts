@@ -27,12 +27,13 @@ export class BaseConsumer<
     super(options)
 
     /**
-     * Always apply the emitter transforms
-     * We should split between internal and public:
-     * always apply the internals and apply only the ones
-     * the user registered event listeners to.
+     * Local events can be attached right away because we
+     * have enough information during build time on how to
+     * namespace them. Other events depend on info coming
+     * from the server and for those we have to wait until
+     * the `subscribe()` happen.
      */
-    this.applyEmitterTransforms()
+    this.applyEmitterTransforms({ local: true })
   }
 
   subscribe() {

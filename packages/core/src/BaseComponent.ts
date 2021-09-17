@@ -621,26 +621,49 @@ export class BaseComponent<
     return new Map()
   }
 
+  private _setEmitterTransform({
+    event,
+    handler,
+    local,
+  }: {
+    event: string | string[]
+    handler: EventTransform
+    local: boolean
+  }) {
+    if (local && typeof event === 'string' && !isLocalEvent(event)) {
+      return
+    }
+
+    this._emitterTransforms.set(
+      this._getInternalEvent(event as EventEmitter.EventNames<EventTypes>),
+      handler
+    )
+  }
+
   /**
    * Loop through the `getEmitterTransforms` Map and translate those into the
    * internal `_emitterTransforms` Map to quickly select & use the transform starting
    * from the server-side event.
    * @internal
    */
-  protected applyEmitterTransforms() {
+  protected applyEmitterTransforms(
+    { local = false }: { local: boolean } = { local: false }
+  ) {
     this.getEmitterTransforms().forEach((handlersObj, key) => {
       if (Array.isArray(key)) {
-        key.forEach((k) =>
-          this._emitterTransforms.set(
-            this._getInternalEvent(k as EventEmitter.EventNames<EventTypes>),
-            handlersObj
-          )
-        )
+        key.forEach((k) => {
+          this._setEmitterTransform({
+            event: k,
+            handler: handlersObj,
+            local,
+          })
+        })
       } else {
-        this._emitterTransforms.set(
-          this._getInternalEvent(key as EventEmitter.EventNames<EventTypes>),
-          handlersObj
-        )
+        this._setEmitterTransform({
+          event: key,
+          handler: handlersObj,
+          local,
+        })
       }
     })
   }
