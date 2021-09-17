@@ -1,8 +1,11 @@
 import {
   checkWebSocketHost,
+  isLocalEvent,
   timeoutPromise,
+  toLocalEvent,
   validateEventsToSubscribe,
 } from './'
+import { LOCAL_EVENT_PREFIX } from './constants'
 
 describe('checkWebSocketHost', () => {
   it('should add wss protocol if not present', () => {
@@ -98,5 +101,20 @@ describe('validateEventsToSubscribe', () => {
       'video.member.ns_one',
       'video.member.ns_two',
     ])
+  })
+})
+
+describe('toLocalEvent', () => {
+  it('should convert the event to our local event syntax', () => {
+    expect(toLocalEvent('video.room.started')).toEqual(
+      `video.${LOCAL_EVENT_PREFIX}.room.started`
+    )
+  })
+})
+
+describe('isLocalEvent', () => {
+  it('should identify when an event is local', () => {
+    expect(isLocalEvent(toLocalEvent('video.room.started'))).toBeTruthy()
+    expect(isLocalEvent('video.room.started')).toBeFalsy()
   })
 })

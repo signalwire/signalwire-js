@@ -3,6 +3,7 @@ import {
   GLOBAL_VIDEO_EVENTS,
   INTERNAL_GLOBAL_VIDEO_EVENTS,
   EVENT_NAMESPACE_DIVIDER,
+  LOCAL_EVENT_PREFIX,
 } from './constants'
 
 export { v4 as uuid } from 'uuid'
@@ -98,4 +99,26 @@ export const validateEventsToSubscribe = (events: (string | symbol)[]) => {
   })
 
   return Array.from(new Set(valid))
+}
+
+export const isLocalEvent = (event: string) => {
+  return event.includes(LOCAL_EVENT_PREFIX)
+}
+
+export const toLocalEvent = (event: string) => {
+  const eventParts = event.split('.')
+  const prefix = eventParts[0]
+
+  return event
+    .split('.')
+    .reduce((reducer, item) => {
+      reducer.push(item)
+
+      if (item === prefix) {
+        reducer.push(LOCAL_EVENT_PREFIX)
+      }
+
+      return reducer
+    }, [] as string[])
+    .join('.')
 }
