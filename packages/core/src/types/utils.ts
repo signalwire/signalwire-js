@@ -29,6 +29,8 @@ export type OnlyFunctionProperties<T> = Pick<T, OnlyFunctionPropertyNames<T>>
 
 export type OnlyStateProperties<T> = Pick<T, OnlyStatePropertyNames<T>>
 
+export type SameOf<ExpectedType, Output> = ExpectedType extends Output ? Output extends ExpectedType ? Output : never : never
+
 export interface ConstructableType<T> {
   new (o?: any): T
 }

@@ -8,6 +8,7 @@ import type {
   ToInternalVideoEvent,
   OnlyStateProperties,
   OnlyFunctionProperties,
+  SameOf
 } from './utils'
 import * as Rooms from '../rooms'
 
@@ -41,7 +42,7 @@ type VideoMemberUpdatablePropsMain = {
   [K in keyof InternalVideoMemberUpdatableProps as SnakeToCamelCase<K>]: InternalVideoMemberUpdatableProps[K]
 }
 
-type VideoMemberUpdatablePropsDocs = {
+type VideoMemberUpdatableProps = SameOf<VideoMemberUpdatablePropsMain, {
   /** Whether the outbound audio is muted (e.g., from the microphone) */
   audioMuted: boolean,
   /** Whether the outbound video is muted */
@@ -60,12 +61,7 @@ type VideoMemberUpdatablePropsDocs = {
    * The default value is 30 and the scale goes from 0 (lowest sensitivity,
    * essentially muted) to 100 (highest sensitivity). */
   inputSensitivity: number
-}
-
-type SameOf<T, P> = T extends P ? P extends T ? T : never : never
-
-// Note: ...Docs must be first in order to get typedoc documentation
-type VideoMemberUpdatableProps = SameOf<VideoMemberUpdatablePropsDocs, VideoMemberUpdatablePropsMain>
+}>
 
 // @ts-expect-error
 export const MEMBER_UPDATABLE_PROPS: VideoMemberUpdatableProps = toExternalJSON(
