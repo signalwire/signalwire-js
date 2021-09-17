@@ -244,10 +244,70 @@ export type GlobalVideoEvents = typeof GLOBAL_VIDEO_EVENTS[number]
 export type InternalGlobalVideoEvents =
   typeof INTERNAL_GLOBAL_VIDEO_EVENTS[number]
 
+/**
+ * `EventTransform`s represent our internal pipeline for
+ * creating specific instances for each event handler. This
+ * is basically what let us create and pass a `Member`
+ * object for the `member.x` event handler.
+ *
+ * Each class extending from `BaseComponent` has the ability
+ * to define a `getEmitterTransforms` method. That method
+ * will let us specify a set of methods (defined by the
+ * `EventTransform` interface) for defining how we want to
+ * handle certain events.
+ *
+ * Internally, the pipeline looks as follows:
+ * 1. We create and cache the instance using
+ *    `instanceFactory`. You could think of this object as a
+ *    set of methods with no state. It's important to note
+ *    that `instanceFactory` **must** return an stateless
+ *    object. If for some reason you have to have some state
+ *    on the instance make sure those values are static.
+ * 2. Every time we get an event from the server, we grab
+ *    its payload, and combine the stateless object we
+ *    created with `instanceFactory` with that payload
+ *    (through a Proxy) to create a unique **stateful**
+ *    object. This will be the instance the end user will be
+ *    interacting with.
+ *
+ * The easiest way to think about this is that the payload
+ * sent by the server is our **state**, while the object
+ * created using `instanceFactory` is the **behavior**.
+ *
+ * Proxy
+ * ┌───────────────────────────────────┐
+ * │┼─────────────────────────────────┼│
+ * ││            payload              ││
+ * │┼─────────────────────────────────┼│
+ * │┼─────────────────────────────────┼│
+ * ││   object (from instanceFactory) ││
+ * │┼─────────────────────────────────┼│
+ * └───────────────────────────────────┘
+ */
 export interface EventTransform {
+  /**
+   * Must return an **stateless** object. Think of it as a
+   * set of APIs representing the behavior you want to
+   * expose to the end user.
+   */
   instanceFactory: (payload: any) => any
+  /**
+   * Allow us to transform the payload sent by the server.
+   *
+   * It's important to note that the `payload` **is your
+   * only state**, so if you try to access something using
+   * `this` you'll get only to static properties or methods
+   * defined by the object returned from `instanceFactory`.
+   */
   payloadTransform: (payload: any) => any
+  /**
+   * Allow us to define what property to use to namespace
+   * our events (_eventsNamespace).
+   */
   getInstanceEventNamespace?: (payload: any) => string
+  /**
+   * Allow us to define the `event_channel` for the Proxy.
+   */
   getInstanceEventChannel?: (payload: any) => string
 }
 
