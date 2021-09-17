@@ -35,12 +35,14 @@ type EmitterTransformsEvents =
  *
  * You can use this object to subscribe to the following events.
  *
- * #### Room events
+ * #### Room events:
  *
  * **room.started**,<br>  
+ * **room.updated**,<br>  
  * **room.ended**<br>  
- * Emitted when the room session is, respectively, started or ended.  Your event
- * handler receives an object which is an instance of {@link RoomSession}.
+ * Emitted when the room session is, respectively, started, updated, or ended.
+ * Your event handler receives an object which is an instance of
+ * {@link RoomSession}.
  *
  * **recording.started**,<br>  
  * **recording.updated**,<br>  
@@ -50,14 +52,9 @@ type EmitterTransformsEvents =
  * {@link RoomSessionRecording}.
  *
  * **layout.changed**<br>  
- * Emitted when the layout of the room changes. Your event handler receives an
- * object which is an instance of {@link RoomSessionRecording}.
+ * Emitted when the layout of the room changes.
  *
- * **room.updated**<br>  
- * Emitted when a property of the room is updated. Your event handler receives
- * an object which is an instance of {@link RoomSessionRecording}.
- *
- * #### Member events
+ * #### Member events:
  *
  * **member.joined**<br>  
  * Emitted when a member joins the room. Your event handler receives an object

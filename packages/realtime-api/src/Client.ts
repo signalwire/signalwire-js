@@ -86,10 +86,6 @@ export class Client extends BaseClient<ClientEvents> {
     }
   }
 
-   connect(): Promise<this> {
-    return super.connect()
-  }
-
   get video(): Video {
     if (this._consumers.has('video')) {
       return this._consumers.get('video')!

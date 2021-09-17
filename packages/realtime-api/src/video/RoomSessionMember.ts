@@ -11,7 +11,7 @@ import {
 
 /**
  * Represents a member of a room session. You receive instances of this type by
- * listening to room events.
+ * listening to room events, for example on a {@link RoomSession} object.
  *
  * > ℹ️ State of RoomSessionMember objects
  * >
