@@ -44,12 +44,17 @@ export type InternalVideoRoomSessionEventNames =
  * Public Contract for a VideoRoomSession
  */
 export interface VideoRoomSessionContract {
+  /** Unique id for this room session */
   id: string
+  /** Id of the room associated to this room session */
   roomId: string
   /** @internal */
   eventChannel: string
+  /** Name of this room */
   name: string
+  /** Whether recording is active */
   recording: boolean
+  /** Whether muted videos are shown in the room layout. See {@link setHideVideoMuted} */
   hideVideoMuted: boolean
 
   audioMute(params: MemberCommandParams): Rooms.AudioMuteMember
@@ -71,7 +76,7 @@ export interface VideoRoomSessionContract {
   removeMember(params: Required<MemberCommandParams>): Rooms.RemoveMember
   setHideVideoMuted(value: boolean): Rooms.SetHideVideoMuted
   getLayouts(): Rooms.GetLayouts
-  setLayout(): Rooms.SetLayout
+  setLayout(params: { name: string }): Rooms.SetLayout
   getRecordings(): Rooms.GetRecordings
   startRecording(): Promise<Rooms.RoomSessionRecording>
 }
