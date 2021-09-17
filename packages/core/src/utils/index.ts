@@ -70,7 +70,7 @@ export const getGlobalEvents = (kind: 'all' | 'video' = 'all') => {
   }
 }
 
-export const cleanupEventNamespace = (event: string) => {
+const cleanupEventNamespace = (event: string) => {
   const eventParts = event.split(EVENT_NAMESPACE_DIVIDER)
   return eventParts[eventParts.length - 1]
 }
@@ -101,6 +101,10 @@ export const validateEventsToSubscribe = (events: (string | symbol)[]) => {
   return Array.from(new Set(valid))
 }
 
+/**
+ * "Local" events are events controlled by the SDK and the
+ * server has no knowledge about them.
+ */
 export const isLocalEvent = (event: string) => {
   return event.includes(LOCAL_EVENT_PREFIX)
 }

@@ -67,9 +67,20 @@ export class BaseComponent<
    * to that specific room.
    */
   private _getNamespacedEvent(event: EventEmitter.EventNames<EventTypes>) {
+    /**
+     * "Remote" events are the events controlled by the
+     * server. In order to be able to attach them we have to
+     * wait for the server to respond.
+     * `this._eventsNamespace` is usually set with some
+     * piece of data coming from the server.
+     */
     let namespace = this._eventsNamespace
 
-    // TODO: explain why we're using a diff namespace for local events.
+    /**
+     * "Local" events are attached synchronously so in order
+     * to be able to namespaced them properly we must make
+     * use of our locally generated __uuid.
+     */
     if (typeof event === 'string' && isLocalEvent(event)) {
       namespace = this.__uuid
     }
