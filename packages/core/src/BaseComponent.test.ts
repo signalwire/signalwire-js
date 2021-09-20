@@ -1,6 +1,7 @@
 import { BaseComponent } from './BaseComponent'
 import { configureJestStore } from './testUtils'
 import { EventEmitter } from './utils/EventEmitter'
+import { toLocalEvent } from './utils'
 
 describe('BaseComponent', () => {
   describe('as an event emitter', () => {
@@ -218,6 +219,84 @@ describe('BaseComponent', () => {
         instance,
         inject: 'something',
       })
+    })
+
+    it('should properly apply local and remote emitter transforms when needed', () => {
+      const mockInstanceFactoryRegistered = jest.fn(() => ({}))
+      const mockPayloadTransformRegistered = jest.fn()
+      const mockInstanceFactoryNotRegistered = jest.fn(() => ({}))
+      const mockPayloadTransformNotRegistered = jest.fn()
+      const mockInstanceFactoryLocal = jest.fn(() => ({}))
+      const mockPayloadTransformLocal = jest.fn()
+
+      const localEventName = toLocalEvent('video.jest.localEvent')
+
+      class CustomComponent extends JestComponent {
+        protected getEmitterTransforms() {
+          return new Map([
+            [
+              ['video.jest.eventOne', 'video.jest.eventTwo'],
+              {
+                instanceFactory: mockInstanceFactoryRegistered,
+                payloadTransform: mockPayloadTransformRegistered,
+              },
+            ],
+            [
+              ['video.jest.notRegistered'],
+              {
+                instanceFactory: mockInstanceFactoryNotRegistered,
+                payloadTransform: mockPayloadTransformNotRegistered,
+              },
+            ],
+            [
+              [localEventName],
+              {
+                instanceFactory: mockInstanceFactoryLocal,
+                payloadTransform: mockPayloadTransformLocal,
+              },
+            ],
+          ])
+        }
+      }
+
+      const instance = new CustomComponent()
+
+      instance.on('jest.eventOne', () => {})
+      instance.on(localEventName, () => {})
+
+      // @ts-expect-error
+      instance.applyEmitterTransforms({ local: true })
+      instance.emit(localEventName, {})
+      instance.emit('jest.eventOne', {})
+      instance.emit('video.jest.notRegistered', {})
+
+      // Local events
+      expect(mockInstanceFactoryLocal).toHaveBeenCalledTimes(1)
+      expect(mockPayloadTransformLocal).toHaveBeenCalledTimes(1)
+
+      // Remote events
+      expect(mockInstanceFactoryRegistered).toHaveBeenCalledTimes(0)
+      expect(mockPayloadTransformRegistered).toHaveBeenCalledTimes(0)
+      expect(mockInstanceFactoryNotRegistered).toHaveBeenCalledTimes(0)
+      expect(mockPayloadTransformNotRegistered).toHaveBeenCalledTimes(0)
+
+      // @ts-expect-error
+      instance.applyEmitterTransforms()
+      instance.emit(localEventName, {})
+      instance.emit('jest.eventOne', {})
+      instance.emit('video.jest.notRegistered', {})
+
+      // Local events
+      expect(mockInstanceFactoryLocal).toHaveBeenCalledTimes(1)
+      expect(mockPayloadTransformLocal).toHaveBeenCalledTimes(2)
+
+      // Remote events
+      expect(mockInstanceFactoryRegistered).toHaveBeenCalledTimes(1)
+      expect(mockPayloadTransformRegistered).toHaveBeenCalledTimes(1)
+      expect(mockInstanceFactoryNotRegistered).toHaveBeenCalledTimes(0)
+      expect(mockPayloadTransformNotRegistered).toHaveBeenCalledTimes(0)
+      // @ts-expect-error
+      expect(instance._emitterTransforms.size).toEqual(2)
     })
   })
 })
