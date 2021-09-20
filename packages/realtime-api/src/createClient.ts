@@ -9,6 +9,7 @@ import {
 import { Client, RealtimeClient } from './Client'
 import { Session } from './Session'
 
+/** @internal */
 export interface CreateClientOptions extends Omit<UserOptions, 'autoConnect'> {}
 export type { RealtimeClient, ClientEvents }
 

@@ -9,6 +9,17 @@ import {
   EntityUpdated,
 } from '@signalwire/core'
 
+/**
+ * Represents a member of a room session. You receive instances of this type by
+ * listening to room events, for example on a {@link RoomSession} object.
+ *
+ * > ℹ️ State of RoomSessionMember objects
+ * >
+ * > The state of RoomSessionMember objects, for example `member.visible`, is
+ * > immutable. When you receive instances of RoomSessionMember from event
+ * > listeners, the state of the member always refers to that specific point in
+ * > time and remains fixed for the whole lifetime of the object. 
+ */
 export interface RoomSessionMember extends VideoMemberContract {}
 export type RoomSessionMemberUpdated = EntityUpdated<RoomSessionMember>
 

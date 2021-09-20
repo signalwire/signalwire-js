@@ -156,7 +156,10 @@ export type SessionStatus =
 
 export type SessionEvents = `session.${SessionStatus}`
 
-/** List of all the events the client can listen to. */
+/**
+ * List of all the events the client can listen to.
+ * @internal
+ */
 export type ClientEvents = Record<SessionEvents, () => void>
 
 export type BaseConnectionState =

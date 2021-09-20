@@ -8,6 +8,7 @@ import type {
   ToInternalVideoEvent,
   OnlyStateProperties,
   OnlyFunctionProperties,
+  AssertSameType
 } from './utils'
 import * as Rooms from '../rooms'
 
@@ -37,9 +38,30 @@ export const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
   }` as const
 })
 
-type VideoMemberUpdatableProps = {
+type VideoMemberUpdatablePropsMain = {
   [K in keyof InternalVideoMemberUpdatableProps as SnakeToCamelCase<K>]: InternalVideoMemberUpdatableProps[K]
 }
+
+type VideoMemberUpdatableProps = AssertSameType<VideoMemberUpdatablePropsMain, {
+  /** Whether the outbound audio is muted (e.g., from the microphone) */
+  audioMuted: boolean,
+  /** Whether the outbound video is muted */
+  videoMuted: boolean,
+  /** Whether the inbound audio is muted */
+  deaf: boolean,
+  /** Whether the member is on hold */
+  onHold: boolean,
+  /** Whether the member is visible */
+  visible: boolean,
+  /** Input volume (e.g., of the microphone). Values range from -50 to 50, with a default of 0. */
+  inputVolume: number,
+  /** Output volume (e.g., of the speaker). Values range from -50 to 50, with a default of 0. */
+  outputVolume: number,
+  /** Input level at which the participant is identified as currently speaking.
+   * The default value is 30 and the scale goes from 0 (lowest sensitivity,
+   * essentially muted) to 100 (highest sensitivity). */
+  inputSensitivity: number
+}>
 
 // @ts-expect-error
 export const MEMBER_UPDATABLE_PROPS: VideoMemberUpdatableProps = toExternalJSON(
@@ -112,11 +134,17 @@ export type VideoMemberType = 'member' | 'screen' | 'device'
  * Public Contract for a VideoMember
  */
 export interface VideoMemberContract extends VideoMemberUpdatableProps {
+  /** Unique id of this member. */
   id: string
+  /** Id of the room associated to this member. */
   roomId: string
+  /** Id of the room session associated to this member. */
   roomSessionId: string
+  /** Name of this member. */
   name: string
+  /** Id of the parent video member, if it exists. */
   parentId?: string
+  /** Type of this video member. Can be `'member'`, `'screen'`, or `'device'`. */
   type: VideoMemberType
 
   /**
@@ -196,9 +224,9 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
 
   /**
    * Sets the speaker output level.
-   * 
+   *
    * @param params 
-   * @param params.value desired volume. Values range from -50 to 50, with a
+   * @param params.volume desired volume. Values range from -50 to 50, with a
    * default of 0.
    *
    * @example

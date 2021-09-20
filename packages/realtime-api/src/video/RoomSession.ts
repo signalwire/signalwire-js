@@ -18,6 +18,8 @@ import {
   VideoRoomSessionMethods,
   ConsumerContract,
   EntityUpdated,
+  VideoMemberEntity,
+  AssertSameType
 } from '@signalwire/core'
 import { BaseConsumer } from '../BaseConsumer'
 import { RealTimeRoomApiEvents } from '../types'
@@ -30,9 +32,355 @@ type EmitterTransformsEvents =
   | InternalVideoRecordingEventNames
   | 'video.__local__.recording.start'
 
-export interface RoomSession
+interface RoomSessionMain
   extends VideoRoomSessionContract,
-    ConsumerContract<RealTimeRoomApiEvents> {}
+  ConsumerContract<RealTimeRoomApiEvents> {}
+
+/**
+ * Represents a room session. You can obtain instances of this class by
+ * subscribing to the appropriate events from {@link Video}.
+ *
+ * You can use this object to subscribe to the following events.
+ *
+ * #### Room events:
+ *
+ * **room.started**,<br>  
+ * **room.updated**,<br>  
+ * **room.ended**<br>  
+ * Emitted when the room session is, respectively, started, updated, or ended.
+ * Your event handler receives an object which is an instance of
+ * {@link RoomSession}.
+ *
+ * **recording.started**,<br>  
+ * **recording.updated**,<br>  
+ * **recording.ended**<br>  
+ * Emitted when a recording is, respectively, started, updated, or ended. Your
+ * event handler receives an object which is an instance of
+ * {@link RoomSessionRecording}.
+ *
+ * **layout.changed**<br>  
+ * Emitted when the layout of the room changes.
+ *
+ * #### Member events:
+ *
+ * **member.joined**<br>  
+ * Emitted when a member joins the room. Your event handler receives an object
+ * of type {@link RoomSessionMember}.
+ *
+ * **member.left**<br>  
+ * Emitted when a member leaves the room. Your event handler receives an object
+ * of type {@link RoomSessionMember}.
+ *
+ * **member.talking**<br>  
+ * Emitted when a member starts or stops talking. Your event handler receives an
+ * object of type {@link RoomSessionMember}.
+ *
+ * **member.talking.started**<br>  
+ * Emitted when a member starts talking. Your event handler receives an object
+ * of type {@link RoomSessionMember}.
+ *
+ * **member.talking.ended**<br>  
+ * Emitted when a member stops talking. Your event handler receives an object of
+ * type {@link RoomSessionMember}.
+ *
+ * **member.updated**<br>  
+ * Emitted when any property of one of the members is updated. Your event
+ * handler receives an object `member` of type {@link RoomSessionMember}. Use
+ * `member.updated` to access the list of updated properties. Example:
+ * ```typescript
+ * room.on('member.updated', (member) => {
+ *     console.log(member.updated)
+ *     // [ 'audioMuted' ]
+ * }
+ * ```
+ *
+ * **member.updated.audioMuted**,<br>  
+ * **member.updated.videoMuted**,<br>  
+ * **member.updated.deaf**,<br>  
+ * **member.updated.onHold**,<br>  
+ * **member.updated.visible**,<br>  
+ * **member.updated.inputVolume**,<br>  
+ * **member.updated.outputVolume**,<br>  
+ * **member.updated.inputSensitivity**<br>  
+ * Each of the above events is emitted when the associated property changes.
+ * Your event handler receives an object `member` of type
+ * {@link RoomSessionMember}.
+ *
+ *
+ */
+interface RoomSessionDocs extends RoomSessionMain {
+  /**
+   * Puts the microphone of a given member on mute. The other participants
+   * will not hear audio from the muted participant anymore.
+   * @param params 
+   * @param params.memberId id of the member to mute
+   *
+   * @example
+   * ```typescript
+   * const id = 'de550c0c-3fac-4efd-b06f-b5b8614b8966'  // you can get this from getMembers()
+   * await room.audioMute({memberId: id})
+   * ```
+   */
+  audioMute(params: { memberId: string }): Promise<void>
+
+  /**
+   * Unmutes the microphone of a given member if it had been previously muted.
+   * @param params 
+   * @param params.memberId id of the member to unmute
+   *
+   * @example
+   * ```typescript
+   * const id = 'de550c0c-3fac-4efd-b06f-b5b8614b8966'  // you can get this from getMembers()
+   * await room.audioUnmute({memberId: id})
+   * ```
+   */
+  audioUnmute(params: { memberId: string }): Promise<void>
+
+  /**
+   * Puts the video of a given member on mute. Participants will see a mute
+   * image instead of the video stream.
+   * @param params 
+   * @param params.memberId id of the member to mute
+   *
+   * @example
+   * ```typescript
+   * const id = 'de550c0c-3fac-4efd-b06f-b5b8614b8966'  // you can get this from getMembers()
+   * await room.videoMute({memberId: id})
+   * ```
+   */
+  videoMute(params: { memberId: string }): Promise<void>
+
+  /**
+   * Unmutes the video of a given member if it had been previously muted.
+   * Participants will start seeing the video stream again.
+   * @param params 
+   * @param params.memberId id of the member to unmute
+   *
+   * @example
+   * ```typescript
+   * const id = 'de550c0c-3fac-4efd-b06f-b5b8614b8966'  // you can get this from getMembers()
+   * await room.videoUnmute({memberId: id})
+   * ```
+   */
+  videoUnmute(params: { memberId: string }): Promise<void>
+
+  /**
+   * Sets the microphone input level for a given member.
+   *
+   * @param params 
+   * @param params.memberId id of the member for which to set microphone
+   * volume
+   * @param params.volume desired volume. Values range from -50 to 50, with a
+   * default of 0.
+   *
+   * @example
+   * ```typescript
+   * const id = 'de550c0c-3fac-4efd-b06f-b5b8614b8966'  // you can get this from getMembers()
+   * await room.setMicrophoneVolume({memberId: id, volume: -10})
+   * ```
+   */
+  setMicrophoneVolume(params: { memberId: string, volume: number }): Promise<void>
+
+  /**
+   * Sets the input level at which the participant is identified as currently
+   * speaking.
+   * @param params 
+   * @param params.memberId id of the member to affect
+   * @param params.value desired sensitivity. The default value is 30 and the
+   * scale goes from 0 (lowest sensitivity, essentially muted) to 100 (highest
+   * sensitivity).
+   *
+   * @example
+   * ```typescript
+   * const id = 'de550c0c-3fac-4efd-b06f-b5b8614b8966'  // you can get this from getMembers()
+   * await room.setInputSensitivity({memberId: id, value: 80})
+   * ```
+   */
+  setInputSensitivity(params: { memberId: string, value: number }): Promise<void>
+
+  /**
+   * Returns a list of members currently in the room.
+   * 
+   * @returns an object with type: Promise<{members: {@link VideoMember}[]}>
+   * 
+   * @example
+   * ```typescript
+   * await room.getMembers()
+   * // returns:
+   * {
+   * "members": [
+   *     {
+   *          "visible": true,
+   *          "room_session_id": "fde15619-13c1-4cb5-899d-96afaca2c52a",
+   *          "input_volume": 0,
+   *          "id": "1bf4d4fb-a3e4-4d46-80a8-3ebfdceb2a60",
+   *          "input_sensitivity": 50,
+   *          "output_volume": 0,
+   *          "audio_muted": false,
+   *          "on_hold": false,
+   *          "name": "Mark",
+   *          "deaf": false,
+   *          "video_muted": false,
+   *          "room_id": "aae25822-892c-4832-b0b3-34aac3a0e8d1",
+   *          "type": "member"
+   *     },
+   *     {
+   *          "visible": true,
+   *          "room_session_id": "fde15619-13c1-4cb5-899d-96afaca2c52a",
+   *          "input_volume": 0,
+   *          "id": "e0c5be44-d6c7-438f-8cda-f859a1a0b1e7",
+   *          "input_sensitivity": 50,
+   *          "output_volume": 0,
+   *          "audio_muted": false,
+   *          "on_hold": false,
+   *          "name": "David",
+   *          "deaf": false,
+   *          "video_muted": false,
+   *          "room_id": "aae25822-892c-4832-b0b3-34aac3a0e8d1",
+   *          "type": "member"
+   *     }
+   * ]
+   * }
+   * ```
+   */
+  getMembers(): Promise<{ members: VideoMemberEntity[] }>
+
+  /**
+   * Mutes the incoming audio for a given member. The affected participant
+   * will not hear audio from the other participants anymore.
+   *
+   * Note that in addition to making a participant deaf, this will also
+   * automatically mute the microphone of the target participant. If you want,
+   * you can then manually unmute it by calling {@link audioUnmute}.
+   * @param params 
+   * @param params.memberId id of the member to affect
+   *
+   * @example
+   * ```typescript
+   * const id = 'de550c0c-3fac-4efd-b06f-b5b8614b8966'  // you can get this from getMembers()
+   * await room.deaf({memberId: id})
+   * ```
+   */
+  deaf(params: { memberId: string }): Promise<void>
+
+  /**
+   * Unmutes the incoming audio for a given member. The affected participant
+   * will start hearing audio from the other participants again.
+   *
+   * Note that in addition to allowing a participants to hear the others, this
+   * will also automatically unmute the microphone of the target participant.
+   * If you want, you can then manually mute it by calling {@link audioMute}.
+   * @param params 
+   * @param params.memberId id of the member to affect
+   *
+   * @example
+   * ```typescript
+   * const id = 'de550c0c-3fac-4efd-b06f-b5b8614b8966'  // you can get this from getMembers()
+   * await room.undeaf({memberId: id})
+   * ```
+   */
+  undeaf(params: { memberId: string }): Promise<void>
+
+  /**
+   * Sets the speaker output level.
+   * @param params 
+   * @param params.memberId id of the member to affect
+   * @param params.volume desired volume. Values range from -50 to 50, with a
+   * default of 0.
+   *
+   * @example
+   * ```typescript
+   * const id = 'de550c0c-3fac-4efd-b06f-b5b8614b8966'  // you can get this from getMembers()
+   * await room.setSpeakerVolume({memberId: id, volume: -10})
+   * ```
+   */
+  setSpeakerVolume(params: { memberId: string, volume: number }): Promise<void>
+
+  /**
+   * Removes a specific participant from the room.
+   * @param params 
+   * @param params.memberId id of the member to remove
+   * 
+   * @example
+   * ```typescript
+   * const id = 'de550c0c-3fac-4efd-b06f-b5b8614b8966'  // you can get this from getMembers()
+   * await room.removeMember({memberId: id})
+   * ```
+   */
+  removeMember(params: { memberId: string }): Promise<void>
+
+  /**
+   * Show or hide muted videos in the room layout. Members that have been muted
+   * via {@link videoMute} will display a mute image instead of the video, if
+   * this setting is enabled.
+   *
+   * @param value whether to show muted videos in the room layout.
+   *
+   * @example
+   * ```typescript
+   * await room.setHideVideoMuted(false)
+   * ```
+   */
+  setHideVideoMuted(value: boolean): Rooms.SetHideVideoMuted
+
+  /**
+   * Returns a list of available layouts for the room. To set a room layout,
+   * use {@link setLayout}.
+   *
+   * @example
+   * ```typescript
+   * await room.getLayouts()
+   * // returns:
+   * {
+   *   "layouts": [
+   *     "8x8", "2x1", "1x1", "5up", "5x5",
+   *     "4x4", "10x10", "2x2", "6x6", "3x3",
+   *     "grid-responsive", "highlight-1-responsive"
+   *   ]
+   * }
+   * ```
+   */
+  getLayouts(): Promise<{ layouts: string[] }>
+
+  /**
+   * Sets a layout for the room. You can obtain a list of available layouts
+   * with {@link getLayouts}.
+   * @param params 
+   * @param params.name name of the layout
+   * 
+   * @example Set the 6x6 layout:
+   * ```typescript
+   * await room.setLayout({name: "6x6"})
+   * ```
+   */
+  setLayout(params: { name: string }): Promise<void>
+
+  /**
+   * Obtains a list of recordings for the current room session.
+   */
+  getRecordings(): Rooms.GetRecordings
+
+  /**
+   * Starts the recording of the room. You can use the returned
+   * {@link RoomSessionRecording} object to control the recording (e.g., pause,
+   * resume, stop).
+   * 
+   * @example
+   * ```typescript
+   * const rec = await room.startRecording()
+   * await rec.stop()
+   * ```
+   */
+  startRecording(): Promise<Rooms.RoomSessionRecording>
+
+  /**
+   * Start listening for the events for which you have provided event handlers.
+   */
+  subscribe(): Promise<void>
+}
+
+export interface RoomSession extends AssertSameType<RoomSessionMain, RoomSessionDocs> {}
+
 export type RoomSessionUpdated = EntityUpdated<RoomSession>
 
 class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {

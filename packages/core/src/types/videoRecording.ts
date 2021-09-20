@@ -32,15 +32,31 @@ export type InternalVideoRecordingEventNames =
  * Public Contract for a VideoRecording
  */
 export interface VideoRecordingContract {
+  /** The unique id of this recording */
   id: string
+
+  /** The id of the room session associated to this recording */
   roomSessionId: string
+
+  /** Current state */
   state: 'recording' | 'paused' | 'completed'
+
+  /** Duration, if available */
   duration?: number
+
+  /** Start time, if available */
   startedAt?: number
+
+  /** End time, if available */
   endedAt?: number
 
+  /** Pauses the recording. */
   pause(): Promise<void>
+
+  /** Resumes the recording */
   resume(): Promise<void>
+
+  /** Stops the recording */
   stop(): Promise<void>
 }
 
