@@ -132,6 +132,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
     this.setState('new')
     logger.debug('New Call with Options:', this.options)
+
+    this.applyEmitterTransforms({ local: true })
   }
 
   get id() {
