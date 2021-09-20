@@ -8,7 +8,7 @@ import type {
   ToInternalVideoEvent,
   OnlyStateProperties,
   OnlyFunctionProperties,
-  SameOf
+  AssertSameType
 } from './utils'
 import * as Rooms from '../rooms'
 
@@ -42,7 +42,7 @@ type VideoMemberUpdatablePropsMain = {
   [K in keyof InternalVideoMemberUpdatableProps as SnakeToCamelCase<K>]: InternalVideoMemberUpdatableProps[K]
 }
 
-type VideoMemberUpdatableProps = SameOf<VideoMemberUpdatablePropsMain, {
+type VideoMemberUpdatableProps = AssertSameType<VideoMemberUpdatablePropsMain, {
   /** Whether the outbound audio is muted (e.g., from the microphone) */
   audioMuted: boolean,
   /** Whether the outbound video is muted */

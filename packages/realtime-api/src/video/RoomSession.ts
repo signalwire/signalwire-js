@@ -18,7 +18,7 @@ import {
   ConsumerContract,
   EntityUpdated,
   VideoMemberEntity,
-  SameOf
+  AssertSameType
 } from '@signalwire/core'
 import { BaseConsumer } from '../BaseConsumer'
 import { RealTimeRoomApiEvents } from '../types'
@@ -378,7 +378,7 @@ interface RoomSessionDocs extends RoomSessionMain {
   subscribe(): Promise<void>
 }
 
-export interface RoomSession extends SameOf<RoomSessionMain, RoomSessionDocs> {}
+export interface RoomSession extends AssertSameType<RoomSessionMain, RoomSessionDocs> {}
 
 export type RoomSessionUpdated = EntityUpdated<RoomSession>
 
