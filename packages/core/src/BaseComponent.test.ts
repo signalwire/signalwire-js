@@ -186,8 +186,6 @@ describe('BaseComponent', () => {
       }
 
       const instance = new CustomComponent()
-      // @ts-expect-error
-      instance.applyEmitterTransforms()
       const payload = { key: 'value' }
 
       const mockFn = jest.fn()
@@ -207,6 +205,8 @@ describe('BaseComponent', () => {
         mockFn(obj)
       })
 
+      // @ts-expect-error
+      instance.applyEmitterTransforms()
       instance.emit('jest.snake_case', payload)
       instance.emit('jest.camel_case', payload)
 
