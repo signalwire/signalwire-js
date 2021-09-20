@@ -7,6 +7,7 @@ import {
   INTERNAL_MEMBER_UPDATED_EVENTS,
   Rooms,
   toExternalJSON,
+  toLocalEvent,
   VideoMemberEventParams,
   InternalVideoRoomSessionEventNames,
   VideoRoomUpdatedEventParams,
@@ -27,7 +28,7 @@ type EmitterTransformsEvents =
   | InternalVideoMemberEventNames
   | InternalVideoLayoutEventNames
   | InternalVideoRecordingEventNames
-  | 'video.__internal__.recording.start'
+  | 'video.__local__.recording.start'
 
 export interface RoomSession
   extends VideoRoomSessionContract,
@@ -117,7 +118,7 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
       ],
       [
         [
-          'video.__internal__.recording.start',
+          toLocalEvent<EmitterTransformsEvents>('video.recording.start'),
           'video.recording.started',
           'video.recording.updated',
           'video.recording.ended',

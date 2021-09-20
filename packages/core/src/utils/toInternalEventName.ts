@@ -1,3 +1,4 @@
+import { EVENT_NAMESPACE_DIVIDER } from './constants'
 import { EventEmitter } from './EventEmitter'
 
 type ToInternalEventNameParams<
@@ -54,5 +55,5 @@ const getNamespacedEvent = ({
     return event
   }
 
-  return `${namespace}:${event}`
+  return `${namespace}${EVENT_NAMESPACE_DIVIDER}${event}`
 }

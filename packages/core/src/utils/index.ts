@@ -2,6 +2,8 @@ import {
   STORAGE_PREFIX,
   GLOBAL_VIDEO_EVENTS,
   INTERNAL_GLOBAL_VIDEO_EVENTS,
+  EVENT_NAMESPACE_DIVIDER,
+  LOCAL_EVENT_PREFIX,
 } from './constants'
 
 export { v4 as uuid } from 'uuid'
@@ -68,6 +70,11 @@ export const getGlobalEvents = (kind: 'all' | 'video' = 'all') => {
   }
 }
 
+const cleanupEventNamespace = (event: string) => {
+  const eventParts = event.split(EVENT_NAMESPACE_DIVIDER)
+  return eventParts[eventParts.length - 1]
+}
+
 const WITH_CUSTOM_EVENT_NAMES = [
   'video.member.updated',
   'video.member.talking',
@@ -79,18 +86,43 @@ const WITH_CUSTOM_EVENT_NAMES = [
  * @internal
  */
 export const validateEventsToSubscribe = (events: (string | symbol)[]) => {
-  const valid = events.map((event) => {
-    if (typeof event === 'string') {
+  const valid = events.map((internalEvent) => {
+    if (typeof internalEvent === 'string') {
+      const event = cleanupEventNamespace(internalEvent)
       const found = WITH_CUSTOM_EVENT_NAMES.find((withCustomName) => {
         return event.startsWith(withCustomName)
       })
-      if (found) {
-        return found
-      }
+      return found || event
     }
 
-    return event
+    return internalEvent
   })
 
   return Array.from(new Set(valid))
+}
+
+/**
+ * "Local" events are events controlled by the SDK and the
+ * server has no knowledge about them.
+ */
+export const isLocalEvent = (event: string) => {
+  return event.includes(LOCAL_EVENT_PREFIX)
+}
+
+export const toLocalEvent = <T extends string>(event: string): T => {
+  const eventParts = event.split('.')
+  const prefix = eventParts[0]
+
+  return event
+    .split('.')
+    .reduce((reducer, item) => {
+      reducer.push(item)
+
+      if (item === prefix) {
+        reducer.push(LOCAL_EVENT_PREFIX)
+      }
+
+      return reducer
+    }, [] as string[])
+    .join('.') as T
 }

@@ -1,5 +1,6 @@
 import { BaseRoomInterface } from '.'
 import { VideoMemberEntity, VideoRecordingEntity } from '../types'
+import { toLocalEvent } from '../utils'
 import { ExecuteExtendedOptions, RoomMethod } from '../utils/interfaces'
 
 interface RoomMethodPropertyDescriptor<T, ParamsType>
@@ -136,7 +137,7 @@ export const startRecording: RoomMethodDescriptor<any> = {
       const handler = (instance: any) => {
         resolve(instance)
       }
-      this.on('video.__internal__.recording.start', handler)
+      this.on(toLocalEvent('video.recording.start'), handler)
 
       try {
         const payload = await this.execute({
@@ -145,12 +146,12 @@ export const startRecording: RoomMethodDescriptor<any> = {
             room_session_id: this.roomSessionId,
           },
         })
-        this.emit('video.__internal__.recording.start', {
+        this.emit(toLocalEvent('video.recording.start'), {
           ...(payload as object),
           room_session_id: this.roomSessionId,
         })
       } catch (error) {
-        this.off('video.__internal__.recording.start', handler)
+        this.off(toLocalEvent('video.recording.start'), handler)
         throw error
       }
     })

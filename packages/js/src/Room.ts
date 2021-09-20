@@ -6,6 +6,7 @@ import {
   extendComponent,
   BaseComponentOptions,
   BaseConnectionContract,
+  toLocalEvent,
 } from '@signalwire/core'
 import {
   getDisplayMedia,
@@ -61,7 +62,7 @@ export class RoomConnection
     return new Map<string | string[], EventTransform>([
       [
         [
-          'video.__internal__.recording.start',
+          toLocalEvent('video.recording.start'),
           'video.recording.started',
           'video.recording.updated',
           'video.recording.ended',
