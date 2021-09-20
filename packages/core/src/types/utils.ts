@@ -39,7 +39,7 @@ export type OnlyStateProperties<T> = Pick<T, OnlyStatePropertyNames<T>>
  * problem, we additionally write a fully documented explicit type and we use
  * `AssertSameType` to ensure that the two are equal at compile-time. Of the two
  * input types, `AssertSameType` returns the documented one (which, apart from
- * documentation, is indistinguishable to the other one).
+ * documentation, is indistinguishable from the other one).
  *
  * As an example, say we want to expose an interface named `RoomSession`, whose
  * methods are not currently getting picked up by TypeDoc:
