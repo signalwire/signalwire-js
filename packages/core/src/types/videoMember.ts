@@ -8,7 +8,7 @@ import type {
   ToInternalVideoEvent,
   OnlyStateProperties,
   OnlyFunctionProperties,
-  AssertSameType
+  AssertSameType,
 } from './utils'
 import * as Rooms from '../rooms'
 
@@ -42,26 +42,29 @@ type VideoMemberUpdatablePropsMain = {
   [K in keyof InternalVideoMemberUpdatableProps as SnakeToCamelCase<K>]: InternalVideoMemberUpdatableProps[K]
 }
 
-type VideoMemberUpdatableProps = AssertSameType<VideoMemberUpdatablePropsMain, {
-  /** Whether the outbound audio is muted (e.g., from the microphone) */
-  audioMuted: boolean,
-  /** Whether the outbound video is muted */
-  videoMuted: boolean,
-  /** Whether the inbound audio is muted */
-  deaf: boolean,
-  /** Whether the member is on hold */
-  onHold: boolean,
-  /** Whether the member is visible */
-  visible: boolean,
-  /** Input volume (e.g., of the microphone). Values range from -50 to 50, with a default of 0. */
-  inputVolume: number,
-  /** Output volume (e.g., of the speaker). Values range from -50 to 50, with a default of 0. */
-  outputVolume: number,
-  /** Input level at which the participant is identified as currently speaking.
-   * The default value is 30 and the scale goes from 0 (lowest sensitivity,
-   * essentially muted) to 100 (highest sensitivity). */
-  inputSensitivity: number
-}>
+type VideoMemberUpdatableProps = AssertSameType<
+  VideoMemberUpdatablePropsMain,
+  {
+    /** Whether the outbound audio is muted (e.g., from the microphone) */
+    audioMuted: boolean
+    /** Whether the outbound video is muted */
+    videoMuted: boolean
+    /** Whether the inbound audio is muted */
+    deaf: boolean
+    /** Whether the member is on hold */
+    onHold: boolean
+    /** Whether the member is visible */
+    visible: boolean
+    /** Input volume (e.g., of the microphone). Values range from -50 to 50, with a default of 0. */
+    inputVolume: number
+    /** Output volume (e.g., of the speaker). Values range from -50 to 50, with a default of 0. */
+    outputVolume: number
+    /** Input level at which the participant is identified as currently speaking.
+     * The default value is 30 and the scale goes from 0 (lowest sensitivity,
+     * essentially muted) to 100 (highest sensitivity). */
+    inputSensitivity: number
+  }
+>
 
 // @ts-expect-error
 export const MEMBER_UPDATABLE_PROPS: VideoMemberUpdatableProps = toExternalJSON(
@@ -209,37 +212,49 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
   setDeaf(value: boolean): Rooms.SetDeaf
 
   /**
-   * Sets the microphone input level for the member.
-   *
-   * @param params 
-   * @param params.volume desired volume. Values range from -50 to 50, with a
-   * default of 0.
-   *
-   * @example
-   * ```typescript
-   * await member.setMicrophoneVolume({volume: -10})
-   * ```
+   * @deprecated Use {@link setInputVolume} instead.
+   * `setMicrophoneVolume` will be removed in v4.0.0
    */
   setMicrophoneVolume(params: { volume: number }): Rooms.SetInputVolumeMember
 
   /**
-   * Sets the speaker output level.
+   * Sets the input level for the member.
    *
-   * @param params 
+   * @param params
    * @param params.volume desired volume. Values range from -50 to 50, with a
    * default of 0.
    *
    * @example
    * ```typescript
-   * await member.setSpeakerVolume({volume: -10})
+   * await member.setInputVolume({volume: -10})
    * ```
    */
+  setInputVolume(params: { volume: number }): Rooms.SetInputVolumeMember
+  /**
+   * @deprecated Use {@link setOutputVolume} instead.
+   * `setSpeakerVolume` will be removed in v4.0.0
+   */
+
   setSpeakerVolume(params: { volume: number }): Rooms.SetOutputVolumeMember
+
+  /**
+   * Sets the output level.
+   *
+   * @param params
+   * @param params.volume desired volume. Values range from -50 to 50, with a
+   * default of 0.
+   *
+   * @example
+   * ```typescript
+   * await member.setOutputVolume({volume: -10})
+   * ```
+   */
+  setOutputVolume(params: { volume: number }): Rooms.SetOutputVolumeMember
 
   /**
    * Sets the input level at which the participant is identified as currently
    * speaking.
-   * 
+   *
    * @param params
    * @param params.value desired sensitivity. The default value is 30 and the
    * scale goes from 0 (lowest sensitivity, essentially muted) to 100 (highest
@@ -256,7 +271,7 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
 
   /**
    * Removes this member from the room.
-   * 
+   *
    * @example
    * ```typescript
    * await member.remove()

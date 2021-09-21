@@ -18,7 +18,7 @@ import {
  * > The state of RoomSessionMember objects, for example `member.visible`, is
  * > immutable. When you receive instances of RoomSessionMember from event
  * > listeners, the state of the member always refers to that specific point in
- * > time and remains fixed for the whole lifetime of the object. 
+ * > time and remains fixed for the whole lifetime of the object.
  */
 export interface RoomSessionMember extends VideoMemberContract {}
 export type RoomSessionMemberUpdated = EntityUpdated<RoomSessionMember>
@@ -48,7 +48,9 @@ const RoomSessionMemberAPI = extendComponent<
   videoUnmute: Rooms.videoUnmuteMember,
   setDeaf: Rooms.setDeaf,
   setMicrophoneVolume: Rooms.setInputVolumeMember,
+  setInputVolume: Rooms.setInputVolumeMember,
   setSpeakerVolume: Rooms.setOutputVolumeMember,
+  setOutputVolume: Rooms.setOutputVolumeMember,
   setInputSensitivity: Rooms.setInputSensitivityMember,
 })
 
