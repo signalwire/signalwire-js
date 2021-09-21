@@ -637,18 +637,30 @@ export class BaseComponent<
     handler,
     local,
   }: {
-    event: string | string[]
+    event: string
     handler: EventTransform
     local: boolean
   }) {
-    if (local && typeof event === 'string' && !isLocalEvent(event)) {
+    const internalEvent = this._getInternalEvent(
+      event as EventEmitter.EventNames<EventTypes>
+    )
+
+    if (
+      local
+        ? /**
+           * When `local === true` we filter out `Remote Events`
+           */
+          !isLocalEvent(event)
+        : /**
+           * When `local !== true` we filter out `Local Events` AND
+           * events the user hasn't subscribed to.
+           */
+          isLocalEvent(event) || !this.eventNames().includes(internalEvent)
+    ) {
       return
     }
 
-    this._emitterTransforms.set(
-      this._getInternalEvent(event as EventEmitter.EventNames<EventTypes>),
-      handler
-    )
+    this._emitterTransforms.set(internalEvent, handler)
   }
 
   /**
