@@ -64,6 +64,9 @@ export interface VideoRoomSessionContract {
   setMicrophoneVolume(
     params: MemberCommandWithVolumeParams
   ): Rooms.SetInputVolumeMember
+  setInputVolume(
+    params: MemberCommandWithVolumeParams
+  ): Rooms.SetInputVolumeMember
   setInputSensitivity(
     params: MemberCommandWithValueParams
   ): Rooms.SetInputSensitivityMember
@@ -71,6 +74,9 @@ export interface VideoRoomSessionContract {
   deaf(params: MemberCommandParams): Rooms.DeafMember
   undeaf(params: MemberCommandParams): Rooms.UndeafMember
   setSpeakerVolume(
+    params: MemberCommandWithVolumeParams
+  ): Rooms.SetOutputVolumeMember
+  setOutputVolume(
     params: MemberCommandWithVolumeParams
   ): Rooms.SetOutputVolumeMember
   removeMember(params: Required<MemberCommandParams>): Rooms.RemoveMember

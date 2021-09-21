@@ -50,6 +50,8 @@ describe('RoomSession Object', () => {
     expect(roomSession.audioUnmute).toBeDefined()
     expect(roomSession.deaf).toBeDefined()
     expect(roomSession.undeaf).toBeDefined()
+    expect(roomSession.setInputVolume).toBeDefined()
+    expect(roomSession.setOutputVolume).toBeDefined()
     expect(roomSession.setMicrophoneVolume).toBeDefined()
     expect(roomSession.setSpeakerVolume).toBeDefined()
     expect(roomSession.setInputSensitivity).toBeDefined()
