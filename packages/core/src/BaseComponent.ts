@@ -637,7 +637,7 @@ export class BaseComponent<
     handler,
     local,
   }: {
-    event: string | string[]
+    event: string
     handler: EventTransform
     local: boolean
   }) {
@@ -646,8 +646,7 @@ export class BaseComponent<
     )
 
     if (
-      typeof event === 'string' &&
-      (local
+      local
         ? /**
            * When `local === true` we filter out `Remote Events`
            */
@@ -656,7 +655,7 @@ export class BaseComponent<
            * When `local !== true` we filter out `Local Events` AND
            * events the user hasn't subscribed to.
            */
-          isLocalEvent(event) || !this.eventNames().includes(internalEvent))
+          isLocalEvent(event) || !this.eventNames().includes(internalEvent)
     ) {
       return
     }
