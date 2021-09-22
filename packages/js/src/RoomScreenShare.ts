@@ -35,5 +35,6 @@ export const RoomScreenShareAPI = extendComponent<
   videoMute: Rooms.videoMuteMember,
   videoUnmute: Rooms.videoUnmuteMember,
   setMicrophoneVolume: Rooms.setInputVolumeMember,
+  setInputVolume: Rooms.setInputVolumeMember,
   setInputSensitivity: Rooms.setInputSensitivityMember,
 })

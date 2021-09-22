@@ -108,6 +108,13 @@ interface RoomMemberMethodsInterface {
   audioUnmute(params?: MemberCommandParams): Rooms.AudioUnmuteMember
   videoMute(params?: MemberCommandParams): Rooms.VideoMuteMember
   videoUnmute(params?: MemberCommandParams): Rooms.VideoUnmuteMember
+  setInputVolume(
+    params: MemberCommandWithVolumeParams
+  ): Rooms.SetInputVolumeMember
+  /**
+   * @deprecated Use {@link setInputVolume} instead.
+   * `setMicrophoneVolume` will be removed in v4.0.0
+   */
   setMicrophoneVolume(
     params: MemberCommandWithVolumeParams
   ): Rooms.SetInputVolumeMember
@@ -121,7 +128,12 @@ interface RoomMemberSelfMethodsInterface {
   audioUnmute(): Rooms.AudioUnmuteMember
   videoMute(): Rooms.VideoMuteMember
   videoUnmute(): Rooms.VideoUnmuteMember
+  /**
+   * @deprecated Use {@link setInputVolume} instead.
+   * `setMicrophoneVolume` will be removed in v4.0.0
+   */
   setMicrophoneVolume(params: { volume: number }): Rooms.SetInputVolumeMember
+  setInputVolume(params: { volume: number }): Rooms.SetInputVolumeMember
   setInputSensitivity(params: {
     value: number
   }): Rooms.SetInputSensitivityMember
@@ -136,6 +148,13 @@ interface RoomControlMethodsInterface {
   getMembers(): Rooms.GetMembers
   deaf(params?: MemberCommandParams): Rooms.DeafMember
   undeaf(params?: MemberCommandParams): Rooms.UndeafMember
+  setOutputVolume(
+    params: MemberCommandWithVolumeParams
+  ): Rooms.SetOutputVolumeMember
+  /**
+   * @deprecated Use {@link setOutputVolume} instead.
+   * `setSpeakerVolume` will be removed in v4.0.0
+   */
   setSpeakerVolume(
     params: MemberCommandWithVolumeParams
   ): Rooms.SetOutputVolumeMember

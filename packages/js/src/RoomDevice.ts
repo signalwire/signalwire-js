@@ -34,6 +34,7 @@ export const RoomDeviceAPI = extendComponent<
   audioUnmute: Rooms.audioUnmuteMember,
   videoMute: Rooms.videoMuteMember,
   videoUnmute: Rooms.videoUnmuteMember,
+  setInputVolume: Rooms.setInputVolumeMember,
   setMicrophoneVolume: Rooms.setInputVolumeMember,
   setInputSensitivity: Rooms.setInputSensitivityMember,
 })

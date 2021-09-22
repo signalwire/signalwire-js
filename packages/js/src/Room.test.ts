@@ -1,10 +1,11 @@
 import { EventEmitter, actions } from '@signalwire/core'
 import { createRoomSessionObject } from './Room'
+import type { Room } from './Room'
 import { configureJestStore, configureFullStack } from './testUtils'
 
 describe('Room Object', () => {
   let store: any
-  let room: any
+  let room: Room
 
   beforeEach(() => {
     store = configureJestStore()
@@ -12,8 +13,10 @@ describe('Room Object', () => {
       store,
       emitter: new EventEmitter(),
     })
+    // @ts-expect-error
     room.execute = jest.fn()
     // mock a room.subscribed event
+    // @ts-expect-error
     room.onRoomSubscribed({
       nodeId: 'node-id',
       roomId: 'room-id',
@@ -29,6 +32,8 @@ describe('Room Object', () => {
     expect(room.videoUnmute).toBeDefined()
     expect(room.deaf).toBeDefined()
     expect(room.undeaf).toBeDefined()
+    expect(room.setInputVolume).toBeDefined()
+    expect(room.setOutputVolume).toBeDefined()
     expect(room.setMicrophoneVolume).toBeDefined()
     expect(room.setSpeakerVolume).toBeDefined()
     expect(room.setInputSensitivity).toBeDefined()
@@ -59,6 +64,7 @@ describe('Room Object', () => {
         emitter,
       })
       // mock a room.subscribed event
+      // @ts-expect-error
       room.onRoomSubscribed({
         nodeId: 'node-id',
         roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
@@ -75,6 +81,7 @@ describe('Room Object', () => {
 
   describe('startRecording', () => {
     it('should return an interactive object', async () => {
+      // @ts-expect-error
       ;(room.execute as jest.Mock).mockResolvedValueOnce({
         code: '200',
         message: 'Recording started',
@@ -82,6 +89,7 @@ describe('Room Object', () => {
       })
 
       const recording = await room.startRecording()
+      // @ts-expect-error
       recording.execute = jest.fn()
       expect(recording.id).toEqual('c22d7223-5a01-49fe-8da0-46bec8e75e32')
       expect(recording.roomSessionId).toEqual('room-session-id')
@@ -97,16 +105,19 @@ describe('Room Object', () => {
         },
       }
       await recording.pause()
+      // @ts-expect-error
       expect(recording.execute).toHaveBeenLastCalledWith({
         ...baseExecuteParams,
         method: 'video.recording.pause',
       })
       await recording.resume()
+      // @ts-expect-error
       expect(recording.execute).toHaveBeenLastCalledWith({
         ...baseExecuteParams,
         method: 'video.recording.resume',
       })
       await recording.stop()
+      // @ts-expect-error
       expect(recording.execute).toHaveBeenLastCalledWith({
         ...baseExecuteParams,
         method: 'video.recording.stop',
@@ -114,11 +125,13 @@ describe('Room Object', () => {
     })
 
     it('should work with simulataneous recordings', async () => {
+      // @ts-expect-error
       ;(room.execute as jest.Mock).mockResolvedValueOnce({
         code: '200',
         message: 'Recording started',
         recording_id: 'first-recording',
       })
+      // @ts-expect-error
       ;(room.execute as jest.Mock).mockResolvedValueOnce({
         code: '200',
         message: 'Recording started',
@@ -126,13 +139,16 @@ describe('Room Object', () => {
       })
 
       const firstRecording = await room.startRecording()
+      // @ts-expect-error
       firstRecording.execute = jest.fn()
       const secondRecording = await room.startRecording()
+      // @ts-expect-error
       secondRecording.execute = jest.fn()
 
       expect(firstRecording.id).toEqual('first-recording')
       expect(firstRecording.roomSessionId).toEqual('room-session-id')
       await firstRecording.stop()
+      // @ts-expect-error
       expect(firstRecording.execute).toHaveBeenLastCalledWith({
         method: 'video.recording.stop',
         params: {
@@ -144,6 +160,7 @@ describe('Room Object', () => {
       expect(secondRecording.id).toEqual('second-recording')
       expect(secondRecording.roomSessionId).toEqual('room-session-id')
       await secondRecording.stop()
+      // @ts-expect-error
       expect(secondRecording.execute).toHaveBeenLastCalledWith({
         method: 'video.recording.stop',
         params: {
@@ -162,8 +179,10 @@ describe('Room Object', () => {
         // @ts-expect-error
         emitter,
       })
+      // @ts-expect-error
       room.execute = jest.fn()
       // mock a room.subscribed event
+      // @ts-expect-error
       room.onRoomSubscribed({
         nodeId: 'node-id',
         roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',

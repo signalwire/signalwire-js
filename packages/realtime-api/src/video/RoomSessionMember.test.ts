@@ -99,7 +99,7 @@ describe('Member Object', () => {
         member_id: memberId,
       },
     })
-    await member.setMicrophoneVolume({ volume: 10 })
+    await member.setInputVolume({ volume: 10 })
     expectExecute({
       method: 'video.member.set_input_volume',
       params: {
@@ -108,7 +108,7 @@ describe('Member Object', () => {
         volume: 10,
       },
     })
-    await member.setSpeakerVolume({ volume: 10 })
+    await member.setOutputVolume({ volume: 10 })
     expectExecute({
       method: 'video.member.set_output_volume',
       params: {

@@ -286,6 +286,8 @@ export const RoomAPI = extendComponent<RoomConnection, RoomMethods>(
     videoUnmute: Rooms.videoUnmuteMember,
     deaf: Rooms.deafMember,
     undeaf: Rooms.undeafMember,
+    setInputVolume: Rooms.setInputVolumeMember,
+    setOutputVolume: Rooms.setOutputVolumeMember,
     setMicrophoneVolume: Rooms.setInputVolumeMember,
     setSpeakerVolume: Rooms.setOutputVolumeMember,
     setInputSensitivity: Rooms.setInputSensitivityMember,
