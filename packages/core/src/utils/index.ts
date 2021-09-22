@@ -79,6 +79,22 @@ const WITH_CUSTOM_EVENT_NAMES = [
   'video.member.updated',
   'video.member.talking',
 ] as const
+
+const CLIENT_SIDE_EVENT_NAMES = [
+  'video.track',
+  'video.active',
+  'video.answering',
+  'video.destroy',
+  'video.early',
+  'video.hangup',
+  'video.held',
+  'video.new',
+  'video.purge',
+  'video.recovering',
+  'video.requesting',
+  'video.ringing',
+  'video.trying',
+]
 /**
  * Check and filter the events the user attached returning only the valid ones
  * for the server.
@@ -89,6 +105,9 @@ export const validateEventsToSubscribe = (events: (string | symbol)[]) => {
   const valid = events.map((internalEvent) => {
     if (typeof internalEvent === 'string') {
       const event = cleanupEventNamespace(internalEvent)
+      if (CLIENT_SIDE_EVENT_NAMES.includes(event)) {
+        return null
+      }
       const found = WITH_CUSTOM_EVENT_NAMES.find((withCustomName) => {
         return event.startsWith(withCustomName)
       })
@@ -98,7 +117,7 @@ export const validateEventsToSubscribe = (events: (string | symbol)[]) => {
     return internalEvent
   })
 
-  return Array.from(new Set(valid))
+  return Array.from(new Set(valid)).filter(Boolean)
 }
 
 /**
