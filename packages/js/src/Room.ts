@@ -7,6 +7,7 @@ import {
   BaseComponentOptions,
   BaseConnectionContract,
   toLocalEvent,
+  toExternalJSON,
 } from '@signalwire/core'
 import {
   getDisplayMedia,
@@ -77,15 +78,16 @@ export class RoomConnection
           },
           payloadTransform: (payload: any) => {
             if (payload?.recording) {
-              return {
-                ...payload?.recording,
+              return toExternalJSON({
+                ...payload.recording,
                 roomSessionId: this.roomSessionId,
-              }
+              })
             }
-            return {
+
+            return toExternalJSON({
               id: payload.recording_id,
               roomSessionId: this.roomSessionId,
-            }
+            })
           },
         },
       ],
