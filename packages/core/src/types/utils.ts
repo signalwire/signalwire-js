@@ -75,7 +75,24 @@ export type OnlyStateProperties<T> = Pick<T, OnlyStatePropertyNames<T>>
  * compile-time error. If they are equal, `RoomSession` will refer to the
  * documented version of the methods.
  */
-export type AssertSameType<ExpectedType, Output> = ExpectedType extends Output ? Output extends ExpectedType ? Output : never : never
+export type AssertSameType<ExpectedType, Output> = ExpectedType extends Output
+  ? Output extends ExpectedType
+    ? Output
+    : never
+  : never
+
+export type IsTimestamp<K> = K extends `${string}At` ? K : never
+
+/**
+ * For user convinience sometimes we expose some properties
+ * with a different type than the one used by the server. A
+ * good example of this is `startedAt/endedAt` fields where
+ * we expose a `Date` object to the user while the server
+ * treat them as timestamps (`number`).
+ */
+export type ConvertToInternalTypes<K, Value> = K extends IsTimestamp<K>
+  ? number | undefined
+  : Value
 
 export interface ConstructableType<T> {
   new (o?: any): T

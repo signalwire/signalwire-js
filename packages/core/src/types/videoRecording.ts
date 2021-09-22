@@ -1,6 +1,7 @@
 import type { SwEvent } from '.'
 import type {
   CamelToSnakeCase,
+  ConvertToInternalTypes,
   ToInternalVideoEvent,
   OnlyStateProperties,
   OnlyFunctionProperties,
@@ -45,10 +46,10 @@ export interface VideoRecordingContract {
   duration?: number
 
   /** Start time, if available */
-  startedAt?: number
+  startedAt?: Date
 
   /** End time, if available */
-  endedAt?: number
+  endedAt?: Date
 
   /** Pauses the recording. */
   pause(): Promise<void>
@@ -72,13 +73,14 @@ export type VideoRecordingMethods =
   OnlyFunctionProperties<VideoRecordingContract>
 
 /**
- * VideoRecordingEntity entity for internal usage (converted to snake_case)
+ * VideoRecordingEntity entity for internal usage (converted
+ * to snake_case and mapped to internal types.)
  * @internal
  */
 export type InternalVideoRecordingEntity = {
   [K in NonNullable<
     keyof VideoRecordingEntity
-  > as CamelToSnakeCase<K>]: VideoRecordingEntity[K]
+  > as CamelToSnakeCase<K>]: ConvertToInternalTypes<K, VideoRecordingEntity[K]>
 }
 
 /**
