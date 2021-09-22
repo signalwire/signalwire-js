@@ -81,6 +81,7 @@ const WITH_CUSTOM_EVENT_NAMES = [
 ] as const
 
 const CLIENT_SIDE_EVENT_NAMES = [
+  'video.room.joined', // generated client-side
   'video.track',
   'video.active',
   'video.answering',
