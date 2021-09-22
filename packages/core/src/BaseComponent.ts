@@ -385,6 +385,9 @@ export class BaseComponent<
     fn: EventEmitter.EventListener<EventTypes, T>,
     once?: boolean
   ) {
+    const internalEvent = this._getInternalEvent(event)
+    this._trackEvent(internalEvent)
+
     const type: EventRegisterHandlers<EventTypes>['type'] = once ? 'once' : 'on'
     if (this.shouldAddToQueue()) {
       this.addEventToRegisterQueue({
@@ -393,13 +396,11 @@ export class BaseComponent<
       })
       return this.emitter as EventEmitter<EventTypes>
     }
-    const internalEvent = this._getInternalEvent(event)
     const wrappedHandler = this.getOrCreateStableEventHandler(
       internalEvent,
       fn as any
     )
     logger.trace('Registering event', internalEvent)
-    this._trackEvent(internalEvent)
     return this.emitter[type](internalEvent, wrappedHandler)
   }
 
