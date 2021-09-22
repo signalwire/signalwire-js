@@ -1,5 +1,11 @@
 import { Action } from '@reduxjs/toolkit'
-import { uuid, logger, toInternalEventName, isLocalEvent } from './utils'
+import {
+  uuid,
+  logger,
+  toInternalEventName,
+  isLocalEvent,
+  validateEventsToSubscribe,
+} from './utils'
 import { executeAction } from './redux'
 import {
   ExecuteParams,
@@ -465,6 +471,10 @@ export class BaseComponent<
   /** @internal */
   eventNames() {
     return this._trackedEvents
+  }
+
+  protected getSubscriptions() {
+    return validateEventsToSubscribe(this.eventNames())
   }
 
   /** @internal */
