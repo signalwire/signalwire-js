@@ -218,7 +218,7 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
   setMicrophoneVolume(params: { volume: number }): Rooms.SetInputVolumeMember
 
   /**
-   * Sets the input level for the member.
+   * Sets the input volume for the member (e.g., the microphone input level).
    *
    * @param params
    * @param params.volume desired volume. Values range from -50 to 50, with a
@@ -238,7 +238,7 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
   setSpeakerVolume(params: { volume: number }): Rooms.SetOutputVolumeMember
 
   /**
-   * Sets the output level.
+   * Sets the output volume for the member (e.g., the speaker output level).
    *
    * @param params
    * @param params.volume desired volume. Values range from -50 to 50, with a

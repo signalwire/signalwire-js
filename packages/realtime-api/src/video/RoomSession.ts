@@ -44,46 +44,46 @@ interface RoomSessionMain
  *
  * #### Room events:
  *
- * **room.started**,<br>
- * **room.updated**,<br>
- * **room.ended**<br>
+ * **room.started**,<br>  
+ * **room.updated**,<br>  
+ * **room.ended**<br>  
  * Emitted when the room session is, respectively, started, updated, or ended.
  * Your event handler receives an object which is an instance of
  * {@link RoomSession}.
  *
- * **recording.started**,<br>
- * **recording.updated**,<br>
- * **recording.ended**<br>
+ * **recording.started**,<br>  
+ * **recording.updated**,<br>  
+ * **recording.ended**<br>  
  * Emitted when a recording is, respectively, started, updated, or ended. Your
  * event handler receives an object which is an instance of
  * {@link RoomSessionRecording}.
  *
- * **layout.changed**<br>
+ * **layout.changed**<br>  
  * Emitted when the layout of the room changes.
  *
  * #### Member events:
  *
- * **member.joined**<br>
+ * **member.joined**<br>  
  * Emitted when a member joins the room. Your event handler receives an object
  * of type {@link RoomSessionMember}.
  *
- * **member.left**<br>
+ * **member.left**<br>  
  * Emitted when a member leaves the room. Your event handler receives an object
  * of type {@link RoomSessionMember}.
  *
- * **member.talking**<br>
+ * **member.talking**<br>  
  * Emitted when a member starts or stops talking. Your event handler receives an
  * object of type {@link RoomSessionMember}.
  *
- * **member.talking.started**<br>
+ * **member.talking.started**<br>  
  * Emitted when a member starts talking. Your event handler receives an object
  * of type {@link RoomSessionMember}.
  *
- * **member.talking.ended**<br>
+ * **member.talking.ended**<br>  
  * Emitted when a member stops talking. Your event handler receives an object of
  * type {@link RoomSessionMember}.
  *
- * **member.updated**<br>
+ * **member.updated**<br>  
  * Emitted when any property of one of the members is updated. Your event
  * handler receives an object `member` of type {@link RoomSessionMember}. Use
  * `member.updated` to access the list of updated properties. Example:
@@ -94,14 +94,14 @@ interface RoomSessionMain
  * }
  * ```
  *
- * **member.updated.audioMuted**,<br>
- * **member.updated.videoMuted**,<br>
- * **member.updated.deaf**,<br>
- * **member.updated.onHold**,<br>
- * **member.updated.visible**,<br>
- * **member.updated.inputVolume**,<br>
- * **member.updated.outputVolume**,<br>
- * **member.updated.inputSensitivity**<br>
+ * **member.updated.audioMuted**,<br>  
+ * **member.updated.videoMuted**,<br>  
+ * **member.updated.deaf**,<br>  
+ * **member.updated.onHold**,<br>  
+ * **member.updated.visible**,<br>  
+ * **member.updated.inputVolume**,<br>  
+ * **member.updated.outputVolume**,<br>  
+ * **member.updated.inputSensitivity**<br>  
  * Each of the above events is emitted when the associated property changes.
  * Your event handler receives an object `member` of type
  * {@link RoomSessionMember}.
@@ -174,11 +174,11 @@ interface RoomSessionDocs extends RoomSessionMain {
   }): Promise<void>
 
   /**
-   * Sets the input level for a given member.
+   * Sets the input volume for a given member (e.g., the microphone input
+   * level).
    *
    * @param params
-   * @param params.memberId id of the member for which to set microphone
-   * volume
+   * @param params.memberId id of the member to affect
    * @param params.volume desired volume. Values range from -50 to 50, with a
    * default of 0.
    *
@@ -300,7 +300,7 @@ interface RoomSessionDocs extends RoomSessionMain {
   setSpeakerVolume(params: { memberId: string; volume: number }): Promise<void>
 
   /**
-   * Sets the output level.
+   * Sets the output volume for the member (e.g., the speaker output level).
    * @param params
    * @param params.memberId id of the member to affect
    * @param params.volume desired volume. Values range from -50 to 50, with a
