@@ -128,11 +128,19 @@ export class BaseSession {
       logger.warn('Session already connected.')
       return
     }
-    this._socket = new this.WebSocketConstructor(this._host)
+    this._socket = this._createSocket()
     this._socket.addEventListener('open', this._onSocketOpen)
     this._socket.addEventListener('close', this._onSocketClose)
     this._socket.addEventListener('error', this._onSocketError)
     this._socket.addEventListener('message', this._onSocketMessage)
+  }
+
+  /**
+   * Allow children classes to override it.
+   * @return WebSocket instance
+   */
+  protected _createSocket() {
+    return new this.WebSocketConstructor(this._host)
   }
 
   /**
