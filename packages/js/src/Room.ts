@@ -80,7 +80,6 @@ export class RoomConnection
             if (payload?.recording) {
               return toExternalJSON({
                 ...payload.recording,
-                id: payload.recording_id,
                 room_session_id: this.roomSessionId,
               })
             }
