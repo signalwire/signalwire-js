@@ -284,7 +284,14 @@ export class BaseSession {
       default:
         // If it's not a response, trigger the dispatch.
         this.dispatch(socketMessageAction(payload))
+        this._handleWebSocketMessage(payload)
     }
+  }
+
+  protected _handleWebSocketMessage(
+    _payload: JSONRPCRequest | JSONRPCResponse
+  ) {
+    // no-op
   }
 
   public dispatch(_payload: PayloadAction<any>) {
