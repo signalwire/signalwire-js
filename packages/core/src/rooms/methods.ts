@@ -178,7 +178,7 @@ export const startPlayback: RoomMethodDescriptor<any, StartPlaybackParams> = {
       const handler = (instance: any) => {
         resolve(instance)
       }
-      this.on('video.__internal__.playback.start', handler)
+      this.on(toLocalEvent('video.playback.start'), handler)
 
       try {
         const payload = await this.execute({
@@ -188,12 +188,12 @@ export const startPlayback: RoomMethodDescriptor<any, StartPlaybackParams> = {
             ...params,
           },
         })
-        this.emit('video.__internal__.playback.start', {
+        this.emit(toLocalEvent('video.playback.start'), {
           ...(payload as object),
           room_session_id: this.roomSessionId,
         })
       } catch (error) {
-        this.off('video.__internal__.playback.start', handler)
+        this.off(toLocalEvent('video.playback.start'), handler)
         throw error
       }
     })
