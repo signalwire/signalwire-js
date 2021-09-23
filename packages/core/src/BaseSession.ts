@@ -72,6 +72,10 @@ export class BaseSession {
     this.connect = this.connect.bind(this)
   }
 
+  get host() {
+    return this._host
+  }
+
   get rpcConnectResult() {
     return this._rpcConnectResult
   }
