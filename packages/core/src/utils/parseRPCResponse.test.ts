@@ -83,5 +83,14 @@ describe('parseRPCResponse', () => {
         error: { code: '123', message: 'Random Error', callID: 'call-id' },
       })
     })
+
+    it('should handle nested "result" fields', () => {
+      const response = JSON.parse(
+        '{"jsonrpc":"2.0","id":"486cea22-ff10-48c3-bae6-8498fb25aef4","result":{"requester_identity":"9afe633f-e810-4ef2-bf54-efb5a6ce37d0@us","responder_identity":"a5686e42-9814-42f1-9060-1228c2b5cc67@us","result":{"data":"test"}},"hops":["31c1cb04-a2fe-4266-80ee-8da1c70c46f8@"]}'
+      )
+      expect(parseRPCResponse({ request, response })).toEqual({
+        result: { data: 'test' },
+      })
+    })
   })
 })
