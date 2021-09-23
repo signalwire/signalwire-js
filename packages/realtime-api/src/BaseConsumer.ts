@@ -2,7 +2,6 @@ import {
   BaseComponent,
   ExecuteParams,
   logger,
-  validateEventsToSubscribe,
   EventEmitter,
   BaseComponentOptions,
 } from '@signalwire/core'
@@ -18,10 +17,6 @@ export class BaseConsumer<
   EventTypes extends EventEmitter.ValidEventTypes
 > extends BaseComponent<EventTypes> {
   protected subscribeParams?: Record<string, any> = {}
-
-  protected getSubscriptions(): (string | symbol)[] {
-    return validateEventsToSubscribe(this.eventNames())
-  }
 
   constructor(public options: BaseComponentOptions<EventTypes>) {
     super(options)

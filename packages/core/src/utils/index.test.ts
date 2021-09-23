@@ -102,6 +102,20 @@ describe('validateEventsToSubscribe', () => {
       'video.member.ns_two',
     ])
   })
+
+  it('should remove client-side events', () => {
+    const events = [
+      '1111-2222-3333-4444:video.member.joined',
+      '12345:video.member.updated.audioMuted',
+      'video.track',
+      'video.active',
+      'video.ringing',
+    ]
+    expect(validateEventsToSubscribe(events)).toStrictEqual([
+      'video.member.joined',
+      'video.member.updated',
+    ])
+  })
 })
 
 describe('toLocalEvent', () => {

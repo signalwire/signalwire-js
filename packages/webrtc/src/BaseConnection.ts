@@ -7,7 +7,6 @@ import {
   selectors,
   BaseComponentOptions,
   BaseConnectionState,
-  InternalVideoEventNames,
   Rooms,
   JSONRPCRequest,
   EventEmitter,
@@ -15,45 +14,6 @@ import {
 import RTCPeer from './RTCPeer'
 import { ConnectionOptions } from './utils/interfaces'
 import { stopStream, stopTrack, getUserMedia } from './utils/webrtcHelpers'
-
-const ROOM_EVENTS: InternalVideoEventNames[] = [
-  'video.room.started',
-  'video.room.subscribed',
-  'video.room.updated',
-  'video.room.ended',
-  'video.member.joined',
-  'video.member.updated',
-  'video.member.left',
-  'video.member.talking',
-  'video.layout.changed',
-  'video.recording.started',
-  'video.recording.updated',
-  'video.recording.ended',
-]
-
-/**
- * Events to be subscribing for screen sharing during
- * `verto.invite`
- */
-const SCREENSHARE_ROOM_EVENTS = [
-  /**
-   * This is not a real event, it's only being used for debugging
-   * purposes
-   */
-  'video.room.screenshare',
-]
-
-/**
- * Events to be subscribing for screen sharing during
- * `verto.invite`
- */
-const DEVICE_ROOM_EVENTS = [
-  /**
-   * This is not a real event, it's only being used for debugging
-   * purposes
-   */
-  'video.room.additionaldevice',
-]
 
 const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   destinationNumber: 'room',
@@ -250,11 +210,13 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     }
     if (vertoMessage.method === 'verto.invite') {
       if (this.options.screenShare) {
-        params.subscribe = SCREENSHARE_ROOM_EVENTS
+        /** Only being used for debugging purposes */
+        params.subscribe = ['video.room.screenshare']
       } else if (this.options.additionalDevice) {
-        params.subscribe = DEVICE_ROOM_EVENTS
+        /** Only being used for debugging purposes */
+        params.subscribe = ['video.room.additionaldevice']
       } else {
-        params.subscribe = ROOM_EVENTS
+        params.subscribe = this.getSubscriptions()
       }
     }
 

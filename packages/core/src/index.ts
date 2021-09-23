@@ -4,7 +4,6 @@ import {
   isGlobalEvent,
   toExternalJSON,
   toLocalEvent,
-  validateEventsToSubscribe,
   extendComponent,
 } from './utils'
 import { BaseSession } from './BaseSession'
@@ -35,7 +34,6 @@ export {
   isGlobalEvent,
   toExternalJSON,
   toLocalEvent,
-  validateEventsToSubscribe,
   GLOBAL_VIDEO_EVENTS,
   MEMBER_UPDATED_EVENTS,
   INTERNAL_MEMBER_UPDATED_EVENTS,
