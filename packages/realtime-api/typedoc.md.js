@@ -6,8 +6,10 @@ module.exports = {
   excludeProtected: true,
   excludePrivate: true,
   hideGenerator: true,
-  readme: 'README.md',
+  readme: 'none',
   tsconfig: 'tsconfig.docs.json',
-  pageSlugPrefix: 'rt-',
   plugin: ['@signalwire/typedoc-readme-api-theme'],
+  pageSlugPrefix: 'rt-',
+  entryDocument: 'rt-exports.md',
+  entryTitle: 'Realtime API'
 }
