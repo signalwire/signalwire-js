@@ -22,12 +22,12 @@ type TransformEvent = Extract<
  * Access the Video API Consumer. You can use an instance of the Video class
  * (you can obtain one via {@link createClient}) to subscribe to the
  * Video events.
- * 
+ *
  * ### Events
  * You can use this object to subscribe to the following events.
- * 
+ *
  *  - **room.started**:
- * 
+ *
  * Emitted when a room session is started. Your event handler
  * receives an object which is an instance of {@link RoomSession}. Example:
  * ```typescript
@@ -37,9 +37,9 @@ type TransformEvent = Extract<
  * })
  * await client.connect()
  * ```
- * 
+ *
  *  - **room.ended**:
- * 
+ *
  * Emitted when a room session ends. Your event handler receives
  * an object which is an instance of {@link RoomSession}.
  * ```typescript

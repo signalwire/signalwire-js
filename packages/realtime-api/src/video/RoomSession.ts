@@ -331,13 +331,13 @@ interface RoomSessionDocs extends RoomSessionMain {
  *
  * ### Events
  * You can use this object to subscribe to the following events.
- * 
+ *
  * #### Room events:
  *
  *  - **room.started**,
  *  - **room.updated**,
  *  - **room.ended**:
- * 
+ *
  * Emitted when the room session is, respectively, started, updated, or ended.
  * Your event handler receives an object which is an instance of
  * {@link RoomSession}.
@@ -345,44 +345,44 @@ interface RoomSessionDocs extends RoomSessionMain {
  *  - **recording.started**,
  *  - **recording.updated**,
  *  - **recording.ended**:
- * 
+ *
  * Emitted when a recording is, respectively, started, updated, or ended. Your
  * event handler receives an object which is an instance of
  * {@link RoomSessionRecording}.
  *
  *  - **layout.changed**:
- * 
+ *
  * Emitted when the layout of the room changes.
  *
  * #### Member events:
  *
  *  - **member.joined**:
- * 
+ *
  * Emitted when a member joins the room. Your event handler receives an object
  * of type {@link RoomSessionMember}.
  *
  *  - **member.left**:
- * 
+ *
  * Emitted when a member leaves the room. Your event handler receives an object
  * of type {@link RoomSessionMember}.
  *
  *  - **member.talking**:
- * 
+ *
  * Emitted when a member starts or stops talking. Your event handler receives an
  * object of type {@link RoomSessionMember}.
  *
  *  - **member.talking.started**:
- * 
+ *
  * Emitted when a member starts talking. Your event handler receives an object
  * of type {@link RoomSessionMember}.
  *
  *  - **member.talking.ended**:
- * 
+ *
  * Emitted when a member stops talking. Your event handler receives an object of
  * type {@link RoomSessionMember}.
  *
  *  - **member.updated**:
- * 
+ *
  * Emitted when any property of one of the members is updated. Your event
  * handler receives an object `member` of type {@link RoomSessionMember}. Use
  * `member.updated` to access the list of updated properties. Example:
@@ -401,7 +401,7 @@ interface RoomSessionDocs extends RoomSessionMain {
  *  - **member.updated.inputVolume**,
  *  - **member.updated.outputVolume**,
  *  - **member.updated.inputSensitivity**:
- * 
+ *
  * Each of the above events is emitted when the associated property changes.
  * Your event handler receives an object `member` of type
  * {@link RoomSessionMember}.
