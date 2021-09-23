@@ -114,4 +114,30 @@ describe('toExternalJSON', () => {
 
     expect(toExternalJSON(input)).toStrictEqual(output)
   })
+
+  it('converts timestamp properties to Date objects', () => {
+    const input = {
+      started_at: 1632305086964,
+      ended_at: 1632305100130,
+      completed_at: 'an invalid date',
+      started: 1632305086964,
+      ended: 1632305100130,
+      prop_one: 'one',
+      prop_two: 'two',
+      prop_three: 1,
+    }
+
+    const output = {
+      startedAt: new Date(1632305086964),
+      endedAt: new Date(1632305100130),
+      completedAt: 'an invalid date',
+      started: 1632305086964,
+      ended: 1632305100130,
+      propOne: 'one',
+      propTwo: 'two',
+      propThree: 1,
+    }
+
+    expect(toExternalJSON(input)).toStrictEqual(output)
+  })
 })

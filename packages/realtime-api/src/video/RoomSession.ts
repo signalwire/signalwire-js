@@ -515,10 +515,11 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
                 room_session_id: payload.room_session_id,
               })
             }
-            return {
+
+            return toExternalJSON({
               id: payload.recording_id,
-              roomSessionId: payload.room_session_id,
-            }
+              room_session_id: payload.room_session_id,
+            })
           },
         },
       ],

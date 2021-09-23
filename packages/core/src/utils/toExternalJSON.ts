@@ -1,9 +1,34 @@
+const toDateObject = (timestamp?: number) => {
+  if (typeof timestamp === 'undefined') {
+    return timestamp
+  }
+
+  const date = new Date(timestamp)
+
+  /**
+   * If for some reason we can't convert to a valid date
+   * we'll return the original value
+   */
+  if (isNaN(date.getTime())) {
+    return timestamp
+  }
+
+  return date
+}
+
 const DEFAULT_OPTIONS = {
   /**
    * Properties coming from the server where their value will be
    * converted to camelCase
    */
   propsToUpdateValue: ['updated', 'layers'],
+}
+
+/**
+ * Follows the same convention as `src/types/utils/IsTimestamp`
+ */
+const isTimestampProperty = (prop: string) => {
+  return prop.endsWith('At')
 }
 
 /**
@@ -30,7 +55,7 @@ export const toExternalJSON = <T>(
     const propType = typeof value
 
     /**
-     * While this check won't be enough to detect all possible object
+     * While this check won't be enough to detect all possible objects
      * it would cover our needs here since we just need to detect that
      * it's not a primitive value
      */
@@ -46,7 +71,11 @@ export const toExternalJSON = <T>(
         reducer[prop] = toExternalJSON(value as T)
       }
     } else {
-      reducer[prop] = value
+      if (isTimestampProperty(prop)) {
+        reducer[prop] = toDateObject(value)
+      } else {
+        reducer[prop] = value
+      }
     }
 
     return reducer
