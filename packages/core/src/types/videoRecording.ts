@@ -78,9 +78,17 @@ export type VideoRecordingMethods =
  * @internal
  */
 export type InternalVideoRecordingEntity = {
-  [K in NonNullable<
+  [Property in NonNullable<
     keyof VideoRecordingEntity
-  > as CamelToSnakeCase<K>]: ConvertToInternalTypes<K, VideoRecordingEntity[K]>
+  > as CamelToSnakeCase<Property>]: ConvertToInternalTypes<
+    Property,
+    /**
+     * Default type to be applied to `Property` in case
+     * `ConvertToInternalTypes` doesn't have an explicit
+     * conversion for the property.
+     */
+    VideoRecordingEntity[Property]
+  >
 }
 
 /**

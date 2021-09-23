@@ -81,18 +81,31 @@ export type AssertSameType<ExpectedType, Output> = ExpectedType extends Output
     : never
   : never
 
-export type IsTimestamp<K> = K extends `${string}At` ? K : never
+export type IsTimestampProperty<Property> = Property extends `${string}At`
+  ? Property
+  : never
+
+export interface DefaultPublicToInternalTypeMapping {
+  startedAt?: number
+  endedAt?: number
+}
 
 /**
- * For user convenience, sometimes we expose some properties
- * with a different type than the one used by the server. A
- * good example of this are the `startedAt` and `endedAt`
- * fields where we give a `Date` object to the user while
- * the server treat them as timestamps (`number`).
+ * For user convenience, sometimes we expose properties with
+ * a different type than the one used by the server. A good
+ * example of this are the `startedAt` and `endedAt` fields
+ * where we give a `Date` object to the user while the
+ * server treat them as timestamps (`number`).
  */
-export type ConvertToInternalTypes<K, Value> = K extends IsTimestamp<K>
-  ? number | undefined
-  : Value
+export type ConvertToInternalTypes<
+  Property extends string,
+  DefaultType,
+  TypesMap extends Partial<
+    Record<string, any>
+  > = DefaultPublicToInternalTypeMapping
+> = Property extends IsTimestampProperty<Property>
+  ? TypesMap[Property]
+  : DefaultType
 
 export interface ConstructableType<T> {
   new (o?: any): T
