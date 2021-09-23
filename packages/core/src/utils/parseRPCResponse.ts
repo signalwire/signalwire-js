@@ -39,19 +39,23 @@ const parseResponse = (
   if (error) {
     return { error }
   }
-  const { code, node_id, result: vertoResult = null } = result
+  const { code, node_id, result: nestedResult = null } = result
   if (code && code !== '200') {
     return { error: result }
   }
-  if (vertoResult === null) {
+  if (nestedResult === null) {
     if (nodeId) {
-      // Attach node_id to the vertoResult
+      // Attach node_id to the nestedResult
       result.node_id = nodeId
     }
     return { result }
   }
-  if (vertoResult) {
-    return parseResponse(vertoResult, node_id)
+  if (nestedResult) {
+    if (nestedResult.jsonrpc) {
+      // This is a verto message
+      return parseResponse(nestedResult, node_id)
+    }
+    return { result: nestedResult }
   }
   return { result }
 }
