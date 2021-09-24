@@ -11,10 +11,6 @@ import type {
 } from './utils'
 import type { InternalVideoMemberEntity } from './videoMember'
 import * as Rooms from '../rooms'
-import {
-  INTERNAL_MEMBER_UPDATED_EVENTS,
-  VideoMemberUpdatedEventParams,
-} from '..'
 
 /**
  * Public event types
