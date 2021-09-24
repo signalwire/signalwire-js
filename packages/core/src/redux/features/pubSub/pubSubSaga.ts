@@ -6,21 +6,63 @@ import {
   toInternalEventName,
 } from '../../../utils'
 import type { EventEmitter } from '../../../utils/EventEmitter'
-import type { PubSubChannel, PubSubAction } from '../../interfaces'
+import type {
+  PubSubChannel,
+  PubSubAction,
+  MapToPubSubShape,
+} from '../../interfaces'
+import type {
+  VideoMemberEvent,
+  InternalVideoMemberEvent,
+  VideoRoomEvent,
+  InternalVideoRoomEvent,
+  VideoLayoutEvent,
+  VideoRecordingEvent,
+} from '../../../types'
 
 type PubSubSagaParams = {
   pubSubChannel: PubSubChannel
   emitter: EventEmitter<string>
 }
-const findNamespaceInPayload = (payload?: any): string => {
-  /**
-   * TODO: We should check the event type here
-   * At the moment we handle `room_session_id` only
-   * but in the future we'll have more APIs (chat/calling/messagging etc.)
-   */
-  const ns = payload?.room?.room_session_id || payload?.room_session_id
 
-  return ns || ''
+const isVideoMemberEvent = (
+  action: PubSubAction
+): action is MapToPubSubShape<VideoMemberEvent | InternalVideoMemberEvent> => {
+  return action.type.startsWith('video.member.')
+}
+
+const isVideoRoomEvent = (
+  action: PubSubAction
+): action is MapToPubSubShape<VideoRoomEvent | InternalVideoRoomEvent> => {
+  return action.type.startsWith('video.room.')
+}
+
+const isVideoLayoutEvent = (
+  action: PubSubAction
+): action is MapToPubSubShape<VideoLayoutEvent> => {
+  return action.type.startsWith('video.layout.')
+}
+
+const isVideoRecordingEvent = (
+  action: PubSubAction
+): action is MapToPubSubShape<VideoRecordingEvent> => {
+  return action.type.startsWith('video.recording.')
+}
+
+const findNamespaceInPayload = (action: PubSubAction): string => {
+  if (action.payload === undefined) {
+    return ''
+  } else if (
+    isVideoMemberEvent(action) ||
+    isVideoLayoutEvent(action) ||
+    isVideoRecordingEvent(action)
+  ) {
+    return action.payload.room_session_id
+  } else if (isVideoRoomEvent(action)) {
+    return action.payload.room_session.id
+  }
+
+  return ''
 }
 
 export function* pubSubSaga({
@@ -28,9 +70,10 @@ export function* pubSubSaga({
   emitter,
 }: PubSubSagaParams): SagaIterator<any> {
   while (true) {
-    const { type, payload }: PubSubAction = yield take(pubSubChannel)
+    const pubSubAction: PubSubAction = yield take(pubSubChannel)
+    const { type, payload } = pubSubAction
     try {
-      const namespace = findNamespaceInPayload(payload)
+      const namespace = findNamespaceInPayload(pubSubAction)
       /**
        * There are events (like `video.room.started`/`video.room.ended`) that can
        * be consumed from different places, like from a `roomObj`

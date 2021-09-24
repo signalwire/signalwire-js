@@ -2,14 +2,13 @@ import {
   VideoRoomSessionEventNames,
   VideoRoomEvent,
   InternalVideoRoomSessionEventNames,
-  InternalVideoRoomJoinedEvent,
+  InternalVideoRoomEvent,
 } from './videoRoomSession'
 import {
   VideoMemberEventNames,
   VideoMemberEvent,
   InternalVideoMemberEventNames,
-  InternalVideoMemberUpdatedEvent,
-  InternalVideoMemberTalkingEvent,
+  InternalVideoMemberEvent,
 } from './videoMember'
 import {
   VideoLayoutEventNames,
@@ -52,9 +51,8 @@ export type InternalVideoEventNames =
   | RTCTrackEventName
 
 export type InternalVideoAPIEvent =
-  | InternalVideoRoomJoinedEvent
-  | InternalVideoMemberUpdatedEvent
-  | InternalVideoMemberTalkingEvent
+  | InternalVideoRoomEvent
+  | InternalVideoMemberEvent
 
 export type VideoAPIEventParams =
   | VideoRoomEvent

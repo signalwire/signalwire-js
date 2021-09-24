@@ -325,6 +325,10 @@ export interface InternalVideoMemberTalkingEvent extends SwEvent {
   params: VideoMemberTalkingEventParams
 }
 
+export type InternalVideoMemberEvent =
+  | InternalVideoMemberUpdatedEvent
+  | InternalVideoMemberTalkingEvent
+
 /**
  * ==========
  * ==========

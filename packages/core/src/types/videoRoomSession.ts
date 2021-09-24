@@ -139,6 +139,8 @@ export interface InternalVideoRoomJoinedEvent extends SwEvent {
   params: VideoRoomSubscribedEventParams
 }
 
+export type InternalVideoRoomEvent = InternalVideoRoomJoinedEvent
+
 /**
  * ==========
  * ==========
