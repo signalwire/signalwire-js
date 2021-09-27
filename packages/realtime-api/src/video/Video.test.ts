@@ -143,15 +143,17 @@ describe('Video Object', () => {
       expect(mockExecute).toHaveBeenNthCalledWith(1, {
         method: 'signalwire.subscribe',
         params: {
+          get_initial_state: true,
           event_channel: eventChannelOne,
-          events: ['video.member.updated'],
+          events: ['video.member.updated', 'video.room.subscribed'],
         },
       })
       expect(mockExecute).toHaveBeenNthCalledWith(2, {
         method: 'signalwire.subscribe',
         params: {
+          get_initial_state: true,
           event_channel: eventChannelTwo,
-          events: ['video.member.updated'],
+          events: ['video.member.updated', 'video.room.subscribed'],
         },
       })
 

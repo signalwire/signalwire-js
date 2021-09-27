@@ -32,12 +32,19 @@ describe('Member Object', () => {
       // tweak "_eventsNamespace" using _attachListeners
       // @ts-expect-error
       roomSession._attachListeners(roomSessionId)
-      await roomSession.subscribe()
+      roomSession.subscribe().then(() => {
+        // Trigger a member.joined event to resolve the main Promise
+        const memberJoinedEvent = JSON.parse(
+          `{"jsonrpc":"2.0","id":"uuid","method":"signalwire.event","params":{"params":{"room_session_id":"${roomSessionId}","room_id":"03b71e19-1ed2-4417-a544-7d0ca01186ed","member":{"visible":false,"room_session_id":"${roomSessionId}","input_volume":0,"id":"${memberId}","input_sensitivity":44,"audio_muted":false,"output_volume":0,"name":"edoardo","deaf":false,"video_muted":false,"room_id":"03b71e19-1ed2-4417-a544-7d0ca01186ed","type":"member"}},"timestamp":1234,"event_type":"video.member.joined","event_channel":"${roomSession.eventChannel}"}}`
+        )
+        session.dispatch(actions.socketMessageAction(memberJoinedEvent))
+      })
 
-      const memberJoinedEvent = JSON.parse(
-        `{"jsonrpc":"2.0","id":"uuid","method":"signalwire.event","params":{"params":{"room_session_id":"${roomSessionId}","room_id":"03b71e19-1ed2-4417-a544-7d0ca01186ed","member":{"visible":false,"room_session_id":"${roomSessionId}","input_volume":0,"id":"${memberId}","input_sensitivity":44,"audio_muted":false,"output_volume":0,"name":"edoardo","deaf":false,"video_muted":false,"room_id":"03b71e19-1ed2-4417-a544-7d0ca01186ed","type":"member"}},"timestamp":1234,"event_type":"video.member.joined","event_channel":"${roomSession.eventChannel}"}}`
+      // Emit room.subscribed event to resolve the promise above.
+      const roomSubscribedEvent = JSON.parse(
+        `{"jsonrpc":"2.0","id":"4198ee12-ec98-4002-afc5-e031fc32bb8a","method":"signalwire.event","params":{"params":{"room_session":{"recording":false,"name":"behindTheWire","hide_video_muted":false,"id":"${roomSessionId}","members":[{"visible":false,"room_session_id":"${roomSessionId}","input_volume":0,"id":"b3b0cfd6-2382-4ac6-a8c9-9182584697ae","input_sensitivity":44,"audio_muted":false,"output_volume":0,"name":"edoardo","deaf":false,"video_muted":false,"room_id":"297ec3bb-fdc5-4995-ae75-c40a43c272ee","type":"member"}],"room_id":"297ec3bb-fdc5-4995-ae75-c40a43c272ee","event_channel":"${roomSession.eventChannel}"}},"timestamp":1632738590.6955,"event_type":"video.room.subscribed","event_channel":"${roomSession.eventChannel}"}}`
       )
-      session.dispatch(actions.socketMessageAction(memberJoinedEvent))
+      session.dispatch(actions.socketMessageAction(roomSubscribedEvent))
     })
   })
 
