@@ -416,6 +416,11 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   protected _eventsPrefix = 'video' as const
 
   /** @internal */
+  protected subscribeParams = {
+    get_initial_state: true,
+  }
+
+  /** @internal */
   protected getEmitterTransforms() {
     return new Map<
       EmitterTransformsEvents | EmitterTransformsEvents[],
