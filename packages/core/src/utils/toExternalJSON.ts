@@ -21,7 +21,13 @@ const DEFAULT_OPTIONS = {
    * Properties coming from the server where their value will be
    * converted to camelCase
    */
-  propsToUpdateValue: ['updated', 'layers'],
+  propsToUpdateValue: [
+    'updated',
+    'layers',
+    'members',
+    'recordings',
+    'playbacks',
+  ],
 }
 
 /**
