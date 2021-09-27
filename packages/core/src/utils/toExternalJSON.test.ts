@@ -140,4 +140,39 @@ describe('toExternalJSON', () => {
 
     expect(toExternalJSON(input)).toStrictEqual(output)
   })
+
+  it('converts the layout `layers` key to be camelCase', () => {
+    const id = '5074e94f-de6e-4477-8068-f046cab81f77'
+    const roomId = '297ec3bb-fdc5-4995-ae75-c40a43c272ee'
+    const input = JSON.parse(
+      `{"recording":false,"name":"test","hide_video_muted":false,"id":"${id}","members":[{"visible":false,"room_session_id":"${id}","input_volume":0,"id":"b3b0cfd6-2382-4ac6-a8c9-9182584697ae","input_sensitivity":44,"audio_muted":false,"output_volume":0,"name":"user","deaf":false,"video_muted":false,"room_id":"${roomId}","type":"member"}],"room_id":"${roomId}","event_channel":"room.uuid"}`
+    )
+
+    const output = {
+      id,
+      roomId,
+      eventChannel: 'room.uuid',
+      recording: false,
+      name: 'test',
+      hideVideoMuted: false,
+      members: [
+        {
+          id: 'b3b0cfd6-2382-4ac6-a8c9-9182584697ae',
+          roomSessionId: id,
+          roomId,
+          type: 'member',
+          name: 'user',
+          visible: false,
+          audioMuted: false,
+          videoMuted: false,
+          deaf: false,
+          outputVolume: 0,
+          inputVolume: 0,
+          inputSensitivity: 44,
+        },
+      ],
+    }
+
+    expect(toExternalJSON(input)).toStrictEqual(output)
+  })
 })
