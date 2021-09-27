@@ -134,6 +134,13 @@ type InternalVideoRoomEntity = {
 export type InternalVideoRoomUpdated =
   EntityUpdated<InternalVideoRoomSessionEntity>
 
+export interface InternalVideoRoomJoinedEvent extends SwEvent {
+  event_type: ToInternalVideoEvent<RoomJoined>
+  params: VideoRoomSubscribedEventParams
+}
+
+export type InternalVideoRoomEvent = InternalVideoRoomJoinedEvent
+
 /**
  * ==========
  * ==========

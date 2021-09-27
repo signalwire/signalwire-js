@@ -121,6 +121,9 @@ export type VideoMemberEventNames =
   | MemberUpdatedEventNames
   | MemberTalkingEventNames
 
+export type InternalMemberUpdatedEventNames =
+  typeof INTERNAL_MEMBER_UPDATED_EVENTS[number]
+
 /**
  * List of internal events
  * @internal
@@ -129,7 +132,7 @@ export type InternalVideoMemberEventNames =
   | ToInternalVideoEvent<
       MemberJoined | MemberLeft | MemberUpdated | MemberTalkingEventNames
     >
-  | typeof INTERNAL_MEMBER_UPDATED_EVENTS[number]
+  | InternalMemberUpdatedEventNames
 
 export type VideoMemberType = 'member' | 'screen' | 'device'
 
@@ -311,6 +314,20 @@ export type InternalVideoMemberEntity = {
  */
 export type InternalVideoMemberEntityUpdated =
   EntityUpdated<InternalVideoMemberEntity>
+
+export interface InternalVideoMemberUpdatedEvent extends SwEvent {
+  event_type: InternalMemberUpdatedEventNames
+  params: VideoMemberUpdatedEventParams
+}
+
+export interface InternalVideoMemberTalkingEvent extends SwEvent {
+  event_type: MemberTalkingEventNames
+  params: VideoMemberTalkingEventParams
+}
+
+export type InternalVideoMemberEvent =
+  | InternalVideoMemberUpdatedEvent
+  | InternalVideoMemberTalkingEvent
 
 /**
  * ==========

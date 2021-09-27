@@ -10,7 +10,7 @@ describe('sessionChannelWatcher', () => {
   describe('videoAPIWorker', () => {
     it('should handle video.room.subscribed dispatching componentActions.upsert and the room.joined', async () => {
       const jsonrpc = JSON.parse(
-        '{"jsonrpc":"2.0","id":"83cbf7d3-4364-454e-af84-6f1f9176901b","method":"signalwire.event","params":{"params":{"room":{"room_session_id":"6fbe4472-e6dd-431f-887f-33171cd83ccb","logos_visible":true,"members":[{"visible":false,"room_session_id":"6fbe4472-e6dd-431f-887f-33171cd83ccb","input_volume":0,"id":"0e5f67e0-8dbf-48dd-b920-804b97fccee6","input_sensitivity":200,"output_volume":0,"audio_muted":false,"on_hold":false,"name":"Edo","deaf":false,"video_muted":false,"room_id":"790d6c79-f0d1-421e-b5f2-f09bd05941ce","type":"member"}],"blind_mode":false,"recording":false,"silent_mode":false,"name":"edoRoom2","hide_video_muted":false,"locked":false,"meeting_mode":false,"room_id":"790d6c79-f0d1-421e-b5f2-f09bd05941ce","event_channel":"room.649c069f-c0a1-4cc8-9d6a-be642ad68eab"},"call_id":"0e5f67e0-8dbf-48dd-b920-804b97fccee6","member_id":"0e5f67e0-8dbf-48dd-b920-804b97fccee6"},"timestamp":1627373985.2656,"event_type":"video.room.subscribed","event_channel":"room.649c069f-c0a1-4cc8-9d6a-be642ad68eab"}}'
+        '{"jsonrpc":"2.0","id":"828e8cf4-3be5-44d1-97eb-e701f470cepe","method":"signalwire.event","params":{"params":{"member_id":"e196da29-0080-4347-8811-b60bd35e4xxx","room":{"recording":false,"room_session_id":"9067212d-22d3-4ed9-90bb-9055367213pep","name":"realtimeRoom","hide_video_muted":false,"members":[{"visible":false,"room_session_id":"9067212d-22d3-4ed9-90bb-9055367213pep","input_volume":0,"id":"e196da29-0080-4347-8811-b60bd35e4xxx","input_sensitivity":44,"audio_muted":false,"output_volume":0,"name":"francisco","deaf":false,"video_muted":false,"room_id":"90e1349e-1c72-44f8-908c-a96dac60b47xx","type":"member"}],"room_id":"90e1349e-1c72-44f8-908c-a96dac60b47xx","event_channel":"room.4e143e89-f5d5-4476-8dd8-c52f6b4cef11x"},"call_id":"e196da29-0080-4347-8811-b60bd35e4xxx","room_session":{"recording":false,"name":"realtimeRoom","hide_video_muted":false,"id":"9067212d-22d3-4ed9-90bb-9055367213pep","members":[{"visible":false,"room_session_id":"9067212d-22d3-4ed9-90bb-9055367213pep","input_volume":0,"id":"e196da29-0080-4347-8811-b60bd35e4xxx","input_sensitivity":44,"audio_muted":false,"output_volume":0,"name":"francisco","deaf":false,"video_muted":false,"room_id":"90e1349e-1c72-44f8-908c-a96dac60b47xx","type":"member"}],"room_id":"90e1349e-1c72-44f8-908c-a96dac60b47xx","event_channel":"room.4e143e89-f5d5-4476-8dd8-c52f6b4cef11x"}},"timestamp":1632471983.7166,"event_type":"video.room.subscribed","event_channel":"room.4e143e89-f5d5-4476-8dd8-c52f6b4cef11x"}}'
       )
       let runSaga = true
       const session = {
@@ -45,10 +45,10 @@ describe('sessionChannelWatcher', () => {
         ])
         .put(
           componentActions.upsert({
-            id: '0e5f67e0-8dbf-48dd-b920-804b97fccee6',
-            roomId: '790d6c79-f0d1-421e-b5f2-f09bd05941ce',
-            roomSessionId: '6fbe4472-e6dd-431f-887f-33171cd83ccb',
-            memberId: '0e5f67e0-8dbf-48dd-b920-804b97fccee6',
+            id: 'e196da29-0080-4347-8811-b60bd35e4xxx',
+            roomId: '90e1349e-1c72-44f8-908c-a96dac60b47xx',
+            roomSessionId: '9067212d-22d3-4ed9-90bb-9055367213pep',
+            memberId: 'e196da29-0080-4347-8811-b60bd35e4xxx',
           })
         )
         .put(pubSubChannel, {

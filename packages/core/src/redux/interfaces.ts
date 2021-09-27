@@ -4,10 +4,11 @@ import {
   JSONRPCResponse,
   SessionAuthError,
   SessionAuthStatus,
+  SessionEvents,
   JSONRPCMethod,
   BaseConnectionState,
 } from '../utils/interfaces'
-import type { PubSubChannelEvents } from '../types'
+import type { VideoAPIEventParams, InternalVideoAPIEvent } from '../types'
 
 interface SWComponent {
   id: string
@@ -76,8 +77,25 @@ export interface CustomSagaParams<T> {
 
 export type CustomSaga<T> = (params: CustomSagaParams<T>) => SagaIterator<any>
 
-export interface PubSubAction {
-  type: PubSubChannelEvents
-  payload?: any
+/**
+ * Converts from:
+ * { event_type: <value>, params: <value> }
+ * into
+ * { type: <value>, payload: <value> }
+ */
+export type MapToPubSubShape<T> = {
+  [K in keyof T as K extends 'event_type'
+    ? 'type'
+    : K extends 'params'
+    ? 'payload'
+    : never]: T[K]
 }
+
+export type PubSubAction =
+  | MapToPubSubShape<VideoAPIEventParams | InternalVideoAPIEvent>
+  | {
+      type: SessionEvents
+      payload: undefined
+    }
+
 export type PubSubChannel = Channel<PubSubAction>

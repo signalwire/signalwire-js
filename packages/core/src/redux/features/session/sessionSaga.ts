@@ -8,6 +8,8 @@ import type {
   VideoAPIEventParams,
   SwEventParams,
   WebRTCMessageParams,
+  InternalMemberUpdatedEventNames,
+  MemberTalkingEventNames,
 } from '../../../types'
 import {
   ExecuteActionParams,
@@ -212,8 +214,8 @@ export function* sessionChannelWatcher({
         yield put(
           componentActions.upsert({
             id: params.params.call_id,
-            roomId: params.params.room.room_id,
-            roomSessionId: params.params.room.room_session_id,
+            roomId: params.params.room_session.room_id,
+            roomSessionId: params.params.room_session.id,
             memberId: params.params.member_id,
           })
         )
@@ -229,9 +231,9 @@ export function* sessionChannelWatcher({
           member: { updated = [] },
         } = params.params
         for (const key of updated) {
-          const type = `video.member.updated.${key}` as const
+          const type =
+            `video.member.updated.${key}` as InternalMemberUpdatedEventNames
           yield put(pubSubChannel, {
-            // @ts-expect-error
             type,
             payload: params.params,
           })
@@ -266,13 +268,13 @@ export function* sessionChannelWatcher({
         if ('talking' in member) {
           const suffix = member.talking ? 'started' : 'ended'
           yield put(pubSubChannel, {
-            type: `video.member.talking.${suffix}` as const,
+            type: `video.member.talking.${suffix}` as MemberTalkingEventNames,
             payload: params.params,
           })
           // Keep for backwards compat.
           const deprecatedSuffix = member.talking ? 'start' : 'stop'
           yield put(pubSubChannel, {
-            type: `video.member.talking.${deprecatedSuffix}` as const,
+            type: `video.member.talking.${deprecatedSuffix}` as MemberTalkingEventNames,
             payload: params.params,
           })
         }
@@ -283,6 +285,7 @@ export function* sessionChannelWatcher({
     // Emit on the pubSubChannel this "event_type"
     yield put(pubSubChannel, {
       type: params.event_type,
+      // @ts-expect-error
       payload: params.params,
     })
   }
