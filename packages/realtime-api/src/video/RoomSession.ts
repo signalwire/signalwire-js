@@ -34,7 +34,7 @@ type EmitterTransformsEvents =
 
 interface RoomSessionMain
   extends VideoRoomSessionContract,
-    ConsumerContract<RealTimeRoomApiEvents> {}
+    ConsumerContract<RealTimeRoomApiEvents, RoomSessionFullState> {}
 
 interface RoomSessionDocs extends RoomSessionMain {
   /**
@@ -322,7 +322,7 @@ interface RoomSessionDocs extends RoomSessionMain {
   /**
    * Start listening for the events for which you have provided event handlers.
    */
-  subscribe(): Promise<void>
+  subscribe(): Promise<RoomSessionFullState>
 }
 
 /**
@@ -411,6 +411,9 @@ export interface RoomSession
   extends AssertSameType<RoomSessionMain, RoomSessionDocs> {}
 
 export type RoomSessionUpdated = EntityUpdated<RoomSession>
+export interface RoomSessionFullState extends RoomSession {
+  members: VideoMemberEntity[]
+}
 
 class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   protected _eventsPrefix = 'video' as const
@@ -420,12 +423,44 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     get_initial_state: true,
   }
 
+  subscribe() {
+    return new Promise(async (resolve, reject) => {
+      const handler = (payload: RoomSessionFullState) => {
+        resolve(payload)
+      }
+      try {
+        this.once('room.subscribed', handler)
+        await super.subscribe()
+      } catch (error) {
+        this.off('room.subscribed', handler)
+        return reject(error)
+      }
+    })
+  }
+
   /** @internal */
   protected getEmitterTransforms() {
     return new Map<
       EmitterTransformsEvents | EmitterTransformsEvents[],
       EventTransform
     >([
+      [
+        'video.room.subscribed',
+        {
+          instanceFactory: () => {
+            return this
+          },
+          payloadTransform: (payload: VideoRoomUpdatedEventParams) => {
+            return toExternalJSON(payload.room_session)
+          },
+          getInstanceEventNamespace: (payload: VideoRoomUpdatedEventParams) => {
+            return payload.room_session.id
+          },
+          getInstanceEventChannel: (payload: VideoRoomUpdatedEventParams) => {
+            return payload.room_session.event_channel
+          },
+        },
+      ],
       [
         'video.room.updated',
         {
