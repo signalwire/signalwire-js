@@ -40,9 +40,10 @@ export interface BaseConnectionContract<
 }
 
 export interface ConsumerContract<
-  EventTypes extends EventEmitter.ValidEventTypes
+  EventTypes extends EventEmitter.ValidEventTypes,
+  SubscribeType = void
 > extends EmitterContract<EventTypes> {
-  subscribe(): Promise<void>
+  subscribe(): Promise<SubscribeType>
 }
 
 export interface ClientContract<
