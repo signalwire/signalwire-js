@@ -50,7 +50,19 @@ async function run() {
           rec.duration
         )
       })
-      await roomSession.subscribe()
+
+      const roomSessionState = await roomSession.subscribe()
+
+      console.log(
+        'State:',
+        roomSessionState.name,
+        roomSessionState.id,
+        roomSessionState.roomId,
+        roomSessionState.members
+      )
+      roomSessionState.members.forEach((member: any) => {
+        console.log('Room Member', member.id, member.name)
+      })
 
       const rec = await roomSession.startRecording()
 
