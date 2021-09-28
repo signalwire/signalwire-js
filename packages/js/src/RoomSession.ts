@@ -13,8 +13,7 @@ const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
  * List of properties/methods the user won't be able to use
  * before they sucessfully call `roomSession.join()`.
  */
-const UNSAFE_PROP_ACCESS = [
-  'active',
+export const UNSAFE_PROP_ACCESS = [
   'audioMute',
   'audioUnmute',
   'deaf',
@@ -22,9 +21,7 @@ const UNSAFE_PROP_ACCESS = [
   'getMembers',
   'getRecordings',
   'hideVideoMuted',
-  'join',
   'leave',
-  'memberId',
   'removerMember',
   'restoreOutboundAudio',
   'restoreOutboundVideo',
