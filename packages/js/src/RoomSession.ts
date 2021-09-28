@@ -9,6 +9,40 @@ const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
   aspectRatio: { ideal: 16 / 9 },
 }
 
+/**
+ * List of properties/methods the user won't be able to use
+ * before they sucessfully call `roomSession.join()`.
+ */
+const UNSAFE_PROP_ACCESS = [
+  'active',
+  'audioMute',
+  'audioUnmute',
+  'deaf',
+  'getLayouts',
+  'getMembers',
+  'getRecordings',
+  'hideVideoMuted',
+  'join',
+  'leave',
+  'memberId',
+  'removerMember',
+  'restoreOutboundAudio',
+  'restoreOutboundVideo',
+  'setInputSensitivity',
+  'setInputVolume',
+  'setLayout',
+  'setOutputVolume',
+  'showVideoMuted',
+  'startRecording',
+  'stopOutboundAudio',
+  'stopOutboundVideo',
+  'undeaf',
+  'videoMute',
+  'videoUnmute',
+  'setMicrophoneVolume',
+  'setSpeakerVolume',
+]
+
 export const RoomSession = function (roomOptions: CreateRoomObjectOptions) {
   const {
     audio = true,
@@ -54,14 +88,17 @@ export const RoomSession = function (roomOptions: CreateRoomObjectOptions) {
     return room
   }
 
-  // TODO: add types
   return new Proxy<Room>(room, {
-    get(target: any, prop: any, receiver: any) {
+    get(target: Room, prop: any, receiver: any) {
       if (prop === 'join') {
         return join
       }
 
-      // TODO: throw errors if the user tries to access certain properties before we're connected.
+      if (!target.active && UNSAFE_PROP_ACCESS.includes(prop)) {
+        throw new Error(
+          `Tried to access the property/method "${prop}" before the room was connected. Please call roomSession.join() first.`
+        )
+      }
 
       return Reflect.get(target, prop, receiver)
     },
