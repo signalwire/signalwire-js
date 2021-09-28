@@ -33,6 +33,7 @@ const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
  *   console.error('Error', error)
  * }
  * ```
+ * @deprecated Use {@link RoomSession} instead.
  */
 export const createRoomObject = (
   roomOptions: CreateRoomObjectOptions
@@ -51,13 +52,10 @@ export const createRoomObject = (
       ...userOptions
     } = roomOptions
 
-    const client = await createClient({
+    const client = createClient({
       ...userOptions,
-      autoConnect: true,
-    }).catch((error) => {
-      reject(error)
-      return null
     })
+    await client.connect()
 
     if (!client) {
       return
