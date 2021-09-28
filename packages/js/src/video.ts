@@ -4,8 +4,16 @@ import { MakeRoomOptions } from './Client'
 import { Room } from './Room'
 import { RoomScreenShare } from './RoomScreenShare'
 import { RoomDevice } from './RoomDevice'
+import { RoomSession } from './RoomSession'
 
-export { createRoomObject, joinRoom, Room, RoomScreenShare, RoomDevice }
+export {
+  createRoomObject,
+  joinRoom,
+  Room,
+  RoomScreenShare,
+  RoomDevice,
+  RoomSession,
+}
 
 export type { MakeRoomOptions }
 export type {
