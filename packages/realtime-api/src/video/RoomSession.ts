@@ -320,7 +320,8 @@ interface RoomSessionDocs extends RoomSessionMain {
   startRecording(): Promise<Rooms.RoomSessionRecording>
 
   /**
-   * Start listening for the events for which you have provided event handlers.
+   * Start listening for the events for which you have provided event handlers and
+   * returns the {@link RoomSessionFullState} the contains the full state of the room session.
    */
   subscribe(): Promise<RoomSessionFullState>
 }

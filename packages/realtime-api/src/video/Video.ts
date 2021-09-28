@@ -10,7 +10,11 @@ import {
 } from '@signalwire/core'
 import { BaseConsumer } from '../BaseConsumer'
 import { RealTimeVideoApiEvents } from '../types/video'
-import { createRoomSessionObject, RoomSession } from './RoomSession'
+import {
+  createRoomSessionObject,
+  RoomSession,
+  RoomSessionFullState,
+} from './RoomSession'
 import type { RoomSessionMember } from './RoomSessionMember'
 
 type TransformEvent = Extract<
@@ -54,7 +58,12 @@ export interface Video extends ConsumerContract<RealTimeVideoApiEvents> {
   /** @internal */
   subscribe(): Promise<void>
 }
-export type { RoomSession, RoomSessionMember, RoomSessionRecording }
+export type {
+  RoomSession,
+  RoomSessionFullState,
+  RoomSessionMember,
+  RoomSessionRecording,
+}
 
 /** @internal */
 export class VideoAPI extends BaseConsumer<RealTimeVideoApiEvents> {
