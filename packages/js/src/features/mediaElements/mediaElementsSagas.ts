@@ -190,7 +190,6 @@ function* videoElementSetupWorker({
     setVideoMediaTrack({ element, track })
 
     element.style.width = '100%'
-    element.style.height = '100%'
 
     if (!applyLocalVideoOverlay) {
       rootElement.appendChild(element)
@@ -216,10 +215,12 @@ function* videoElementSetupWorker({
     const relativeWrapper = document.createElement('div')
     relativeWrapper.style.position = 'relative'
     relativeWrapper.style.width = '100%'
-    relativeWrapper.style.height = '100%'
     relativeWrapper.style.margin = '0 auto'
     relativeWrapper.appendChild(paddingWrapper)
 
+    rootElement.style.display = 'flex'
+    rootElement.style.alignItems = 'center'
+    rootElement.style.justifyContent = 'center'
     rootElement.appendChild(relativeWrapper)
   }
 
