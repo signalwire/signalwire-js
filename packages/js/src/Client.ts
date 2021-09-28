@@ -15,6 +15,8 @@ export interface Client extends ClientContract<Client, ClientEvents> {
 
 export interface MakeRoomOptions extends ConnectionOptions {
   rootElementId?: string
+  /** @internal */
+  rootElement?: HTMLElement
   applyLocalVideoOverlay?: boolean
   stopCameraWhileMuted?: boolean
   stopMicrophoneWhileMuted?: boolean
@@ -26,6 +28,7 @@ export class ClientAPI extends BaseClient<ClientEvents> {
       makeRoomObject: (makeRoomOptions: MakeRoomOptions) => {
         const {
           rootElementId,
+          rootElement,
           applyLocalVideoOverlay = true,
           stopCameraWhileMuted = true,
           stopMicrophoneWhileMuted = true,
@@ -35,13 +38,14 @@ export class ClientAPI extends BaseClient<ClientEvents> {
         const customSagas: Array<CustomSaga<RoomConnection>> = []
 
         /**
-         * If the user provides a `roomElementId` we'll automatically
+         * If the user provides a `roomElementId` or `rootElement` we'll automatically
          * handle the Audio and Video elements for them
          */
-        if (rootElementId) {
+        if (rootElementId || rootElement) {
           customSagas.push(
             makeMediaElementsSaga({
               rootElementId,
+              rootElement,
               applyLocalVideoOverlay,
               speakerId: options.speakerId,
             })

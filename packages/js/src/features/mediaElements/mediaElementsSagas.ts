@@ -15,10 +15,12 @@ import type { RoomConnection } from '../../Room'
 
 export const makeMediaElementsSaga = ({
   rootElementId,
+  rootElement: rootEl,
   applyLocalVideoOverlay,
   speakerId,
 }: {
   rootElementId?: string
+  rootElement?: HTMLElement
   applyLocalVideoOverlay?: boolean
   speakerId?: string
 }) =>
@@ -31,7 +33,7 @@ export const makeMediaElementsSaga = ({
       const userRootElement = rootElementId
         ? document.getElementById(rootElementId)
         : undefined
-      const rootElement = userRootElement || document.body
+      const rootElement = userRootElement || rootEl || document.body
       const videoEl = buildVideo()
       const audioEl = new Audio()
       const layoutChangedHandler = makeLayoutChangedHandler({
@@ -42,7 +44,7 @@ export const makeMediaElementsSaga = ({
       const hideOverlay = makeDisplayChangeFn('none')
       const showOverlay = makeDisplayChangeFn('block')
 
-      if (!userRootElement) {
+      if (!userRootElement && !rootEl) {
         logger.warn(
           `We couldn't find an element with id: ${rootElementId}: using 'document.body' instead.`
         )

@@ -124,7 +124,8 @@ window.connect = () => {
   Video.createRoomObject({
     host: document.getElementById('host').value,
     token: document.getElementById('token').value,
-    rootElementId: 'rootElement',
+    // rootElementId: 'rootElement',
+    rootElement: document.getElementById('rootElement'),
     audio: true,
     video: true,
   }).then((roomObject) => {
