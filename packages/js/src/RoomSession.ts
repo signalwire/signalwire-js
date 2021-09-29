@@ -3,15 +3,13 @@ import { createClient } from './createClient'
 import type { MakeRoomOptions } from './Client'
 import type { Room } from './Room'
 
-export interface CreateRoomObjectOptions extends UserOptions, MakeRoomOptions {}
-
 const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
   aspectRatio: { ideal: 16 / 9 },
 }
 
 /**
- * List of properties/methods the user won't be able to use
- * before they sucessfully call `roomSession.join()`.
+ * List of properties/methods the user shouldn't be able to
+ * use until they sucessfully call `roomSession.join()`.
  */
 export const UNSAFE_PROP_ACCESS = [
   'audioMute',
@@ -40,7 +38,11 @@ export const UNSAFE_PROP_ACCESS = [
   'setSpeakerVolume',
 ]
 
-export const RoomSession = function (roomOptions: CreateRoomObjectOptions) {
+export interface RoomSessionOptions extends UserOptions, MakeRoomOptions {}
+
+export interface RoomSession extends Room {}
+
+export const RoomSession = function (roomOptions: RoomSessionOptions) {
   const {
     audio = true,
     video = true,
@@ -85,7 +87,7 @@ export const RoomSession = function (roomOptions: CreateRoomObjectOptions) {
     return room
   }
 
-  return new Proxy<Room>(room, {
+  return new Proxy<RoomSession>(room, {
     get(target: Room, prop: any, receiver: any) {
       if (prop === 'join') {
         return join
@@ -100,4 +102,4 @@ export const RoomSession = function (roomOptions: CreateRoomObjectOptions) {
       return Reflect.get(target, prop, receiver)
     },
   })
-} as unknown as { new (roomOptions: CreateRoomObjectOptions): Room }
+} as unknown as { new (roomOptions: RoomSessionOptions): RoomSession }
