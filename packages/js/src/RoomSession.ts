@@ -55,10 +55,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     ...userOptions
   } = roomOptions
 
-  const client = createClient({
-    ...userOptions,
-  })
-
+  const client = createClient(userOptions)
   const room = client.rooms.makeRoomObject({
     audio,
     video: video === true ? VIDEO_CONSTRAINTS : video,
@@ -83,6 +80,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
       await room.join()
     } catch (e) {
       logger.error(e)
+      throw e
     }
     return room
   }
