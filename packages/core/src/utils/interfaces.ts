@@ -244,6 +244,13 @@ export type GlobalVideoEvents = typeof GLOBAL_VIDEO_EVENTS[number]
 export type InternalGlobalVideoEvents =
   typeof INTERNAL_GLOBAL_VIDEO_EVENTS[number]
 
+export type EventTransformType =
+  | 'roomSession'
+  | 'roomSessionSubscribed'
+  | 'roomSessionMember'
+  | 'roomSessionLayout'
+  | 'roomSessionRecording'
+  | 'roomSessionPlayback'
 /**
  * `EventTransform`s represent our internal pipeline for
  * creating specific instances for each event handler. This
@@ -285,6 +292,11 @@ export type InternalGlobalVideoEvents =
  * └───────────────────────────────────┘
  */
 export interface EventTransform {
+  /**
+   * Using the `key` we can cache and retrieve a single instance
+   * for the **stateless** object returned by `instanceFactory`
+   */
+  key: EventTransformType
   /**
    * Must return an **stateless** object. Think of it as a
    * set of APIs representing the behavior you want to

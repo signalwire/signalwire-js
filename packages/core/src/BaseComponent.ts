@@ -122,7 +122,7 @@ export class BaseComponent<
    * interface).
    */
   private _emitterTransforms: Map<
-    EventEmitter.EventNames<EventTypes>,
+    EventEmitter.EventNames<EventTypes> | EventTransformType,
     EventTransform
   > = new Map()
 

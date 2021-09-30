@@ -11,6 +11,7 @@ import {
   VideoMemberEventParams,
   InternalVideoRoomSessionEventNames,
   VideoRoomUpdatedEventParams,
+  VideoRoomSubscribedEventParams,
   InternalVideoLayoutEventNames,
   InternalVideoRecordingEventNames,
   VideoLayoutChangedEventParams,
@@ -23,7 +24,10 @@ import {
 } from '@signalwire/core'
 import { BaseConsumer } from '../BaseConsumer'
 import { RealTimeRoomApiEvents } from '../types'
-import { createRoomSessionMemberObject } from './RoomSessionMember'
+import {
+  createRoomSessionMemberObject,
+  RoomSessionMember,
+} from './RoomSessionMember'
 
 type EmitterTransformsEvents =
   | InternalVideoRoomSessionEventNames
@@ -413,7 +417,7 @@ export interface RoomSession
 
 export type RoomSessionUpdated = EntityUpdated<RoomSession>
 export interface RoomSessionFullState extends RoomSession {
-  members: VideoMemberEntity[]
+  members: RoomSessionMember[]
 }
 
 class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
@@ -448,16 +452,21 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
       [
         'video.room.subscribed',
         {
+          key: 'roomSessionSubscribed',
           instanceFactory: () => {
             return this
           },
-          payloadTransform: (payload: VideoRoomUpdatedEventParams) => {
+          payloadTransform: (payload: VideoRoomSubscribedEventParams) => {
             return toExternalJSON(payload.room_session)
           },
-          getInstanceEventNamespace: (payload: VideoRoomUpdatedEventParams) => {
+          getInstanceEventNamespace: (
+            payload: VideoRoomSubscribedEventParams
+          ) => {
             return payload.room_session.id
           },
-          getInstanceEventChannel: (payload: VideoRoomUpdatedEventParams) => {
+          getInstanceEventChannel: (
+            payload: VideoRoomSubscribedEventParams
+          ) => {
             return payload.room_session.event_channel
           },
         },
@@ -465,6 +474,7 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
       [
         'video.room.updated',
         {
+          key: 'roomSession',
           instanceFactory: () => {
             return this
           },
@@ -485,6 +495,7 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
       [
         'video.layout.changed',
         {
+          key: 'roomSessionLayout',
           instanceFactory: () => {
             // TODO: Implement a Layout object when we have a better payload
             // from the backend
@@ -508,6 +519,7 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
           ...INTERNAL_MEMBER_UPDATED_EVENTS,
         ],
         {
+          key: 'roomSessionMember',
           instanceFactory: (_payload: VideoMemberEventParams) => {
             return createRoomSessionMemberObject({
               store: this.store,
@@ -542,6 +554,7 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
           'video.recording.ended',
         ],
         {
+          key: 'roomSessionRecording',
           instanceFactory: (_payload: any) => {
             return Rooms.createRoomSessionRecordingObject({
               store: this.store,
