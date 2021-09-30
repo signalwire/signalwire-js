@@ -124,7 +124,7 @@ window.connect = () => {
   const roomSession = new Video.RoomSession({
     host: document.getElementById('host').value,
     token: document.getElementById('token').value,
-    rootElementId: 'rootElement',
+    rootElement: document.getElementById('rootElement'),
     audio: true,
     video: true,
   })
