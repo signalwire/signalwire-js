@@ -5,6 +5,7 @@ import {
   toInternalEventName,
   isLocalEvent,
   validateEventsToSubscribe,
+  proxyFactory,
 } from './utils'
 import { executeAction } from './redux'
 import {
@@ -13,6 +14,7 @@ import {
   BaseComponentOptions,
   ExecuteExtendedOptions,
   EventsPrefix,
+  EventTransformType,
   EventTransform,
 } from './utils/interfaces'
 import { EventEmitter } from './utils/EventEmitter'
@@ -311,7 +313,46 @@ export class BaseComponent<
         payload,
       })
 
-      const transformedPayload = transform.payloadTransform(payload)
+      // TODO: Move to a private method
+      const FIELDS: {
+        field: string
+        entity: string
+        eventTransformType: EventTransformType
+      }[] = [
+        {
+          field: 'members',
+          // entity is used to match the server payloads that has
+          // member: {}
+          entity: 'member',
+          eventTransformType: 'roomSessionMember',
+        },
+        {
+          field: 'recordings',
+          // entity is used to match the server payloads that has
+          // recording: {}
+          entity: 'recording',
+          eventTransformType: 'roomSessionRecording',
+        },
+      ]
+      const processEventTransformPayload = (payload: any) => {
+        FIELDS.forEach(({ field, entity, eventTransformType }) => {
+          const transform = this._emitterTransforms.get(eventTransformType)
+          if (!transform || !payload?.[field]?.length) {
+            return
+          }
+          payload[field] = payload[field].map((jsonPayload: any) => {
+            return proxyFactory({
+              transform,
+              payload: { [entity]: jsonPayload },
+            })
+          })
+        })
+        return payload
+      }
+
+      const transformedPayload = processEventTransformPayload(
+        transform.payloadTransform(payload)
+      )
       const proxiedObj = new Proxy(cachedInstance, {
         get(target: any, prop: any, receiver: any) {
           if (
@@ -699,6 +740,12 @@ export class BaseComponent<
           local,
         })
       }
+
+      /**
+       * Set a transform using the `key` to select it easily when
+       * creating Proxy objects.
+       */
+      this._emitterTransforms.set(handlersObj.key, handlersObj)
     })
   }
 }
