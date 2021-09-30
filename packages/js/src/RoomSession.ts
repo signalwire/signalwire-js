@@ -42,6 +42,19 @@ export interface RoomSessionOptions extends UserOptions, MakeRoomOptions {}
 
 export interface RoomSession extends Room {}
 
+/**
+ * @privateRemarks
+ *
+ * The use of a function expression as a contructor instead
+ * of a class was picked because it made a couple things
+ * simpler for this use case.
+ * 1. Making classes behave as factories can be tricky when
+ *    working with TypeScript since it's non trivial to
+ *    switch the type returned by the constructor
+ * 2. It also generates more verbose code (once transpiled)
+ *    if we want to have private fields to store `room` and
+ *    `client`.
+ */
 export const RoomSession = function (roomOptions: RoomSessionOptions) {
   const {
     audio = true,
@@ -100,4 +113,5 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
       return Reflect.get(target, prop, receiver)
     },
   })
+  // For consistency with other constructors we'll make TS force the use of `new`
 } as unknown as { new (roomOptions: RoomSessionOptions): RoomSession }
