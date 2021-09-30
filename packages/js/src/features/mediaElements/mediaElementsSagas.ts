@@ -14,11 +14,11 @@ import { audioSetSpeakerAction } from '../actions'
 import type { RoomConnection } from '../../Room'
 
 export const makeMediaElementsSaga = ({
-  rootElementId,
+  rootElement,
   applyLocalVideoOverlay,
   speakerId,
 }: {
-  rootElementId?: string
+  rootElement: HTMLElement
   applyLocalVideoOverlay?: boolean
   speakerId?: string
 }) =>
@@ -28,10 +28,6 @@ export const makeMediaElementsSaga = ({
   }: CustomSagaParams<RoomConnection>): SagaIterator {
     try {
       const layerMap = new Map()
-      const userRootElement = rootElementId
-        ? document.getElementById(rootElementId)
-        : undefined
-      const rootElement = userRootElement || document.body
       const videoEl = buildVideo()
       const audioEl = new Audio()
       const layoutChangedHandler = makeLayoutChangedHandler({
@@ -41,12 +37,6 @@ export const makeMediaElementsSaga = ({
       })
       const hideOverlay = makeDisplayChangeFn('none')
       const showOverlay = makeDisplayChangeFn('block')
-
-      if (!userRootElement) {
-        logger.warn(
-          `We couldn't find an element with id: ${rootElementId}: using 'document.body' instead.`
-        )
-      }
 
       room.on('layout.changed', (params) => {
         if (room.peer.hasVideoSender && room.localStream) {
