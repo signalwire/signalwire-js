@@ -19,7 +19,8 @@ interface NestedFieldToProcess {
   eventTransformType: EventTransformType
 }
 
-const _instanceByTransformKey = new Map<string, EventTransform>()
+/** Exported for test purposes */
+export const _instanceByTransformKey = new Map<string, EventTransform>()
 export const NESTED_FIELDS_TO_PROCESS: NestedFieldToProcess[] = [
   {
     field: 'members',
@@ -44,8 +45,7 @@ const _getOrCreateInstance = ({
     return instance
   }
 
-  // @ts-expect-error
-  return _instanceByTransformKey.get(internalEvent)
+  return _instanceByTransformKey.get(transform.key)
 }
 
 export const instanceProxyFactory = ({
