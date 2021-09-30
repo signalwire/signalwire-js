@@ -175,4 +175,32 @@ describe('toExternalJSON', () => {
 
     expect(toExternalJSON(input)).toStrictEqual(output)
   })
+
+  it('should not change keys already camelCase-d', async () => {
+    const input = {
+      someId: 'test',
+      anotherProp: null,
+      this_change: null,
+      someOtherProperty: {
+        nested_property: {
+          nestedProp2: 'nested prop value',
+        },
+        firstLevel: 'test',
+      },
+    }
+
+    const output = {
+      someId: 'test',
+      anotherProp: null,
+      thisChange: null,
+      someOtherProperty: {
+        nestedProperty: {
+          nestedProp2: 'nested prop value',
+        },
+        firstLevel: 'test',
+      },
+    }
+
+    expect(toExternalJSON(input)).toStrictEqual(output)
+  })
 })

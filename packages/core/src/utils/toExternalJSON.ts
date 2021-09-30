@@ -93,6 +93,9 @@ export const toExternalJSON = <T>(
  * @internal
  */
 const fromSnakeToCamelCase = (input: string) => {
+  if (!input.includes('_')) {
+    return input
+  }
   return input.split('_').reduce((reducer, part, index) => {
     const fc = part.trim().charAt(0)
     const remainingChars = part.substr(1).toLowerCase()
