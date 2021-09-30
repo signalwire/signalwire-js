@@ -12,7 +12,7 @@ export * from './parseRPCResponse'
 export * from './toExternalJSON'
 export * from './toInternalEventName'
 export * from './extendComponent'
-export * from './proxyFactory'
+export * from './eventTransformUtils'
 
 export const mutateStorageKey = (key: string) => `${STORAGE_PREFIX}${key}`
 

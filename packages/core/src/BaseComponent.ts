@@ -5,7 +5,8 @@ import {
   toInternalEventName,
   isLocalEvent,
   validateEventsToSubscribe,
-  proxyFactory,
+  instanceProxyFactory,
+  NESTED_FIELDS_TO_PROCESS,
 } from './utils'
 import { executeAction } from './redux'
 import {
@@ -313,44 +314,7 @@ export class BaseComponent<
         payload,
       })
 
-      // TODO: Move to a private method
-      const FIELDS: {
-        field: string
-        entity: string
-        eventTransformType: EventTransformType
-      }[] = [
-        {
-          field: 'members',
-          // entity is used to match the server payloads that has
-          // member: {}
-          entity: 'member',
-          eventTransformType: 'roomSessionMember',
-        },
-        {
-          field: 'recordings',
-          // entity is used to match the server payloads that has
-          // recording: {}
-          entity: 'recording',
-          eventTransformType: 'roomSessionRecording',
-        },
-      ]
-      const processEventTransformPayload = (payload: any) => {
-        FIELDS.forEach(({ field, entity, eventTransformType }) => {
-          const transform = this._emitterTransforms.get(eventTransformType)
-          if (!transform || !payload?.[field]?.length) {
-            return
-          }
-          payload[field] = payload[field].map((jsonPayload: any) => {
-            return proxyFactory({
-              transform,
-              payload: { [entity]: jsonPayload },
-            })
-          })
-        })
-        return payload
-      }
-
-      const transformedPayload = processEventTransformPayload(
+      const transformedPayload = this._processTransformedPayload(
         transform.payloadTransform(payload)
       )
       const proxiedObj = new Proxy(cachedInstance, {
@@ -380,6 +344,26 @@ export class BaseComponent<
       EventTypes,
       EventEmitter.EventNames<EventTypes>
     >
+  }
+
+  private _processTransformedPayload(transformedPayload: any) {
+    NESTED_FIELDS_TO_PROCESS.forEach(
+      ({ field, preProcessPayload, eventTransformType }) => {
+        const transform = this._emitterTransforms.get(eventTransformType)
+        if (!transform || !transformedPayload?.[field]?.length) {
+          return
+        }
+        transformedPayload[field] = transformedPayload[field].map(
+          (jsonPayload: any) => {
+            return instanceProxyFactory({
+              transform,
+              payload: preProcessPayload(jsonPayload),
+            })
+          }
+        )
+      }
+    )
+    return transformedPayload
   }
 
   private getOrCreateStableEventHandler(
