@@ -23,6 +23,7 @@ import { CreateRoomObjectOptions, createRoomObject } from './createRoomObject'
  *   console.error('Error', error)
  * }
  * ```
+ * @deprecated Use {@link RoomSession} instead.
  */
 export const joinRoom = (roomOptions: CreateRoomObjectOptions) => {
   return createRoomObject({
