@@ -1,9 +1,12 @@
-import { UserOptions } from '@signalwire/core'
+import { UserOptions, logger } from '@signalwire/core'
 import { createClient } from './createClient'
 import { MakeRoomOptions } from './Client'
 import type { Room } from './Room'
 
-export interface CreateRoomObjectOptions extends UserOptions, MakeRoomOptions {
+export interface CreateRoomObjectOptions
+  extends UserOptions,
+    Omit<MakeRoomOptions, 'rootElement'> {
+  rootElementId?: string
   autoJoin?: boolean
 }
 const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
@@ -61,13 +64,33 @@ export const createRoomObject = (
       return
     }
 
+    /**
+     * Since `makeRoomObject` now only accepts a
+     * `rootElement` the following is to preserve backwards
+     * compatibility with the previous syntax
+     */
+    let rootElement: HTMLElement | undefined
+    if (rootElementId) {
+      const el = document.getElementById(rootElementId)
+
+      if (el) {
+        rootElement = el
+      } else {
+        rootElement = document.body
+
+        logger.warn(
+          `We couldn't find an element with id: ${rootElementId}: using 'document.body' instead.`
+        )
+      }
+    }
+
     const room = client.rooms.makeRoomObject({
       audio,
       video: video === true ? VIDEO_CONSTRAINTS : video,
       negotiateAudio: true,
       negotiateVideo: true,
       iceServers,
-      rootElementId,
+      rootElement,
       applyLocalVideoOverlay,
       stopCameraWhileMuted,
       stopMicrophoneWhileMuted,
