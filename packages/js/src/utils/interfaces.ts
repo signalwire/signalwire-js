@@ -69,11 +69,16 @@ export type RoomSessionObjectEvents = {
   [k in keyof RoomSessionObjectEventsHandlerMap]: RoomSessionObjectEventsHandlerMap[k]
 }
 
-export type CreateScreenShareObjectOptions = {
+export type StartScreenShareOptions = {
   autoJoin?: boolean
   audio?: MediaStreamConstraints['audio']
   video?: MediaStreamConstraints['video']
 }
+
+/**
+ * @deprecated Use {@link StartScreenShareOptions} instead.
+ */
+export type CreateScreenShareObjectOptions = StartScreenShareOptions
 
 export type AddDeviceOptions = {
   autoJoin?: boolean

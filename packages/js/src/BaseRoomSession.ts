@@ -98,10 +98,15 @@ export class RoomSessionConnection
     ])
   }
 
+  /** @deprecated Use {@link startScreenShare} instead. */
+  async createScreenShareObject(opts: CreateScreenShareObjectOptions = {}) {
+    return this.startScreenShare(opts)
+  }
+
   /**
    * Allow sharing the screen within the room.
    */
-  async createScreenShareObject(opts: CreateScreenShareObjectOptions = {}) {
+  async startScreenShare(opts: CreateScreenShareObjectOptions = {}) {
     const { autoJoin = true, audio = false, video = true } = opts
     const displayStream: MediaStream = await getDisplayMedia({
       audio: audio === true ? SCREENSHARE_AUDIO_CONSTRAINTS : audio,
