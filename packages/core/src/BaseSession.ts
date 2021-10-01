@@ -72,6 +72,10 @@ export class BaseSession {
     this.connect = this.connect.bind(this)
   }
 
+  get host() {
+    return this._host
+  }
+
   get rpcConnectResult() {
     return this._rpcConnectResult
   }
@@ -128,11 +132,19 @@ export class BaseSession {
       logger.warn('Session already connected.')
       return
     }
-    this._socket = new this.WebSocketConstructor(this._host)
+    this._socket = this._createSocket()
     this._socket.addEventListener('open', this._onSocketOpen)
     this._socket.addEventListener('close', this._onSocketClose)
     this._socket.addEventListener('error', this._onSocketError)
     this._socket.addEventListener('message', this._onSocketMessage)
+  }
+
+  /**
+   * Allow children classes to override it.
+   * @return WebSocket instance
+   */
+  protected _createSocket() {
+    return new this.WebSocketConstructor(this._host)
   }
 
   /**
@@ -253,6 +265,7 @@ export class BaseSession {
 
     switch (payload.method) {
       case 'signalwire.ping':
+      case 'blade.ping': // required for internal
         return this._pingHandler(payload)
       case 'signalwire.disconnect': {
         /**
@@ -271,7 +284,14 @@ export class BaseSession {
       default:
         // If it's not a response, trigger the dispatch.
         this.dispatch(socketMessageAction(payload))
+        this._handleWebSocketMessage(payload)
     }
+  }
+
+  protected _handleWebSocketMessage(
+    _payload: JSONRPCRequest | JSONRPCResponse
+  ) {
+    // no-op
   }
 
   public dispatch(_payload: PayloadAction<any>) {
