@@ -50,7 +50,7 @@ import { JWTSession } from './JWTSession'
  * }
  * ```
  */
-export const createClient = async (userOptions: UserOptions) => {
+export const createClient = (userOptions: UserOptions) => {
   const baseUserOptions = {
     ...userOptions,
     emitter: getEventEmitter<ClientEvents>(),
@@ -68,8 +68,6 @@ export const createClient = async (userOptions: UserOptions) => {
       id: 'onClientSubscribed',
     },
   })(baseUserOptions)
-  if (baseUserOptions.autoConnect) {
-    await client.connect()
-  }
+
   return client
 }

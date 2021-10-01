@@ -121,101 +121,99 @@ function initDeviceOptions() {
  * Connect with Relay creating a client and attaching all the event handler.
  */
 window.connect = () => {
-  Video.createRoomObject({
+  const roomSession = new Video.RoomSession({
     host: document.getElementById('host').value,
     token: document.getElementById('token').value,
-    rootElementId: 'rootElement',
+    rootElement: document.getElementById('rootElement'),
     audio: true,
     video: true,
-  }).then((roomObject) => {
-    roomObj = roomObject
-    window._roomObj = roomObject
+  })
 
-    console.debug('Video SDK roomObj', roomObj)
+  roomObj = roomSession
+  window._roomObj = roomSession
 
-    roomObj.on('room.started', (params) =>
-      console.debug('>> room.started', params)
-    )
-    roomObj.on('room.joined', (params) => {
-      console.debug('>> room.joined', params)
+  console.debug('Video SDK roomObj', roomObj)
 
-      btnConnect.classList.add('d-none')
-      btnDisconnect.classList.remove('d-none')
-      connectStatus.innerHTML = 'Connected'
+  roomObj.on('room.started', (params) =>
+    console.debug('>> room.started', params)
+  )
+  roomObj.on('room.joined', (params) => {
+    console.debug('>> room.joined', params)
 
-      inCallElements.forEach((button) => {
-        button.classList.remove('d-none')
-        button.disabled = false
-      })
+    btnConnect.classList.add('d-none')
+    btnDisconnect.classList.remove('d-none')
+    connectStatus.innerHTML = 'Connected'
 
-      loadLayouts()
+    inCallElements.forEach((button) => {
+      button.classList.remove('d-none')
+      button.disabled = false
     })
-    roomObj.on('room.updated', (params) =>
-      console.debug('>> room.updated', params)
-    )
 
-    roomObj.on('recording.started', (params) => {
-      console.debug('>> recording.started', params)
-      document.getElementById('recordingState').innerText = 'recording'
-    })
-    roomObj.on('recording.ended', (params) => {
-      console.debug('>> recording.ended', params)
-      document.getElementById('recordingState').innerText = 'completed'
-    })
-    roomObj.on('recording.updated', (params) => {
-      console.debug('>> recording.updated', params)
-      document.getElementById('recordingState').innerText = params.state
-    })
-    roomObj.on('room.ended', (params) => {
-      console.debug('>> room.ended', params)
-      hangup()
-    })
-    roomObj.on('member.joined', (params) =>
-      console.debug('>> member.joined', params)
-    )
-    roomObj.on('member.updated', (params) =>
-      console.debug('>> member.updated', params)
-    )
+    loadLayouts()
+  })
+  roomObj.on('room.updated', (params) =>
+    console.debug('>> room.updated', params)
+  )
 
-    roomObj.on('member.updated.audio_muted', (params) =>
-      console.debug('>> member.updated.audio_muted', params)
-    )
-    roomObj.on('member.updated.video_muted', (params) =>
-      console.debug('>> member.updated.video_muted', params)
-    )
+  roomObj.on('recording.started', (params) => {
+    console.debug('>> recording.started', params)
+    document.getElementById('recordingState').innerText = 'recording'
+  })
+  roomObj.on('recording.ended', (params) => {
+    console.debug('>> recording.ended', params)
+    document.getElementById('recordingState').innerText = 'completed'
+  })
+  roomObj.on('recording.updated', (params) => {
+    console.debug('>> recording.updated', params)
+    document.getElementById('recordingState').innerText = params.state
+  })
+  roomObj.on('room.ended', (params) => {
+    console.debug('>> room.ended', params)
+    hangup()
+  })
+  roomObj.on('member.joined', (params) =>
+    console.debug('>> member.joined', params)
+  )
+  roomObj.on('member.updated', (params) =>
+    console.debug('>> member.updated', params)
+  )
 
-    roomObj.on('member.left', (params) =>
-      console.debug('>> member.left', params)
-    )
-    roomObj.on('member.talking', (params) =>
-      console.debug('>> member.talking', params)
-    )
-    roomObj.on('layout.changed', (params) =>
-      console.debug('>> layout.changed', params)
-    )
-    roomObj.on('track', (event) => console.debug('>> DEMO track', event))
+  roomObj.on('member.updated.audio_muted', (params) =>
+    console.debug('>> member.updated.audio_muted', params)
+  )
+  roomObj.on('member.updated.video_muted', (params) =>
+    console.debug('>> member.updated.video_muted', params)
+  )
 
-    roomObj
-      .join()
-      .then((result) => {
-        console.log('>> Room Joined', result)
+  roomObj.on('member.left', (params) => console.debug('>> member.left', params))
+  roomObj.on('member.talking', (params) =>
+    console.debug('>> member.talking', params)
+  )
+  roomObj.on('layout.changed', (params) =>
+    console.debug('>> layout.changed', params)
+  )
+  roomObj.on('track', (event) => console.debug('>> DEMO track', event))
 
-        enumerateDevices()
-          .then(initDeviceOptions)
-          .catch((error) => {
-            console.error(error)
-          })
+  roomObj
+    .join()
+    .then((result) => {
+      console.log('>> Room Joined', result)
 
-        createDeviceWatcher().then((deviceWatcher) => {
-          deviceWatcher.on('changed', () => {
-            initDeviceOptions()
-          })
+      enumerateDevices()
+        .then(initDeviceOptions)
+        .catch((error) => {
+          console.error(error)
+        })
+
+      createDeviceWatcher().then((deviceWatcher) => {
+        deviceWatcher.on('changed', () => {
+          initDeviceOptions()
         })
       })
-      .catch((error) => {
-        console.error('Join error?', error)
-      })
-  })
+    })
+    .catch((error) => {
+      console.error('Join error?', error)
+    })
 
   connectStatus.innerHTML = 'Connecting...'
 }

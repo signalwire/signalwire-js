@@ -1,3 +1,4 @@
+export * from './helpers'
 export * from './RPCConnect'
 export * from './RPCReauthenticate'
 export * from './RPCPing'
