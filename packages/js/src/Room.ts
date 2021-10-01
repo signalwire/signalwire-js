@@ -36,6 +36,7 @@ import {
 } from './RoomScreenShare'
 import { RoomDeviceAPI, RoomDeviceConnection, RoomDevice } from './RoomDevice'
 
+/** @deprecated Use {@link RoomSession} instead. */
 export interface Room
   extends RoomMethods,
     BaseConnectionContract<RoomObjectEvents> {
