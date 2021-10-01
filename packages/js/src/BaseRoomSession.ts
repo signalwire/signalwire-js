@@ -30,9 +30,9 @@ import {
 } from './utils/constants'
 import { audioSetSpeakerAction } from './features/actions'
 import {
-  RoomScreenShareAPI,
-  RoomScreenShareConnection,
-  RoomScreenShare,
+  RoomSessionScreenShareAPI,
+  RoomSessionScreenShareConnection,
+  RoomSessionScreenShare,
 } from './RoomScreenShare'
 import {
   RoomSessionDeviceAPI,
@@ -51,7 +51,7 @@ export class RoomSessionConnection
   extends BaseConnection<RoomSessionObjectEvents>
   implements BaseRoomInterface
 {
-  private _screenShareList = new Set<RoomScreenShare>()
+  private _screenShareList = new Set<RoomSessionScreenShare>()
   private _deviceList = new Set<RoomSessionDevice>()
 
   get screenShareList() {
@@ -122,11 +122,11 @@ export class RoomSessionConnection
 
     const screenShare = connect<
       BaseConnectionStateEventTypes,
-      RoomScreenShareConnection,
-      RoomScreenShare
+      RoomSessionScreenShareConnection,
+      RoomSessionScreenShare
     >({
       store: this.store,
-      Component: RoomScreenShareAPI,
+      Component: RoomSessionScreenShareAPI,
       componentListeners: ROOM_COMPONENT_LISTENERS,
     })(options)
 

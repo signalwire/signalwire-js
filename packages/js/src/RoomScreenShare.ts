@@ -9,14 +9,16 @@ import {
 } from '@signalwire/webrtc'
 import { RoomScreenShareMethods } from './utils/interfaces'
 
-export interface RoomScreenShare
+/** @deprecated Use {@link RoomSessionScreenShare} instead */
+export type RoomScreenShare = RoomSessionScreenShare
+export interface RoomSessionScreenShare
   extends RoomScreenShareMethods,
     BaseConnectionContract<BaseConnectionStateEventTypes> {
   join(): Promise<void>
   leave(): Promise<void>
 }
 
-export class RoomScreenShareConnection extends BaseConnection<BaseConnectionStateEventTypes> {
+export class RoomSessionScreenShareConnection extends BaseConnection<BaseConnectionStateEventTypes> {
   join() {
     return super.invite()
   }
@@ -26,10 +28,10 @@ export class RoomScreenShareConnection extends BaseConnection<BaseConnectionStat
   }
 }
 
-export const RoomScreenShareAPI = extendComponent<
-  RoomScreenShareConnection,
+export const RoomSessionScreenShareAPI = extendComponent<
+  RoomSessionScreenShareConnection,
   RoomScreenShareMethods
->(RoomScreenShareConnection, {
+>(RoomSessionScreenShareConnection, {
   audioMute: Rooms.audioMuteMember,
   audioUnmute: Rooms.audioUnmuteMember,
   videoMute: Rooms.videoMuteMember,
