@@ -728,6 +728,8 @@ export class BaseComponent<
       /**
        * Set a transform using the `key` to select it easily when
        * creating Proxy objects.
+       * The transform by `type` will be used by nested fields while the top-level
+       * by `internalEvent` for each single event transform.
        */
       this._emitterTransforms.set(handlersObj.type, handlersObj)
     })
