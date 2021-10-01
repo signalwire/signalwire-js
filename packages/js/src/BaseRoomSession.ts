@@ -16,7 +16,7 @@ import {
   BaseConnectionStateEventTypes,
 } from '@signalwire/webrtc'
 import {
-  RoomObjectEvents as RoomSessionObjectEvents,
+  RoomSessionObjectEvents,
   CreateScreenShareObjectOptions,
   AddDeviceOptions,
   AddCameraOptions,

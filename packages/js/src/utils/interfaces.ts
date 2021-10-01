@@ -40,7 +40,7 @@ export type VideoMemberUpdatedHandlerParams = {
   member: VideoMemberEntityUpdated
 }
 
-export type RoomObjectEventsHandlerMap = Record<
+export type RoomSessionObjectEventsHandlerMap = Record<
   VideoLayoutEventNames,
   (params: { layout: VideoLayout }) => void
 > &
@@ -65,8 +65,8 @@ export type RoomObjectEventsHandlerMap = Record<
   Record<VideoRecordingEventNames, (recording: RoomSessionRecording) => void> &
   Record<BaseConnectionState, (params: RoomSession) => void>
 
-export type RoomObjectEvents = {
-  [k in keyof RoomObjectEventsHandlerMap]: RoomObjectEventsHandlerMap[k]
+export type RoomSessionObjectEvents = {
+  [k in keyof RoomSessionObjectEventsHandlerMap]: RoomSessionObjectEventsHandlerMap[k]
 }
 
 export type CreateScreenShareObjectOptions = {
