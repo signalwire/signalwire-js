@@ -34,7 +34,11 @@ import {
   RoomScreenShareConnection,
   RoomScreenShare,
 } from './RoomScreenShare'
-import { RoomDeviceAPI, RoomDeviceConnection, RoomDevice } from './RoomDevice'
+import {
+  RoomSessionDeviceAPI,
+  RoomSessionDeviceConnection,
+  RoomSessionDevice,
+} from './RoomDevice'
 
 export interface BaseRoomSession<T>
   extends RoomMethods,
@@ -48,7 +52,7 @@ export class RoomSessionConnection
   implements BaseRoomInterface
 {
   private _screenShareList = new Set<RoomScreenShare>()
-  private _deviceList = new Set<RoomDevice>()
+  private _deviceList = new Set<RoomSessionDevice>()
 
   get screenShareList() {
     return Array.from(this._screenShareList)
@@ -204,11 +208,11 @@ export class RoomSessionConnection
 
     const roomDevice = connect<
       BaseConnectionStateEventTypes,
-      RoomDeviceConnection,
-      RoomDevice
+      RoomSessionDeviceConnection,
+      RoomSessionDevice
     >({
       store: this.store,
-      Component: RoomDeviceAPI,
+      Component: RoomSessionDeviceAPI,
       componentListeners: ROOM_COMPONENT_LISTENERS,
     })(options)
 

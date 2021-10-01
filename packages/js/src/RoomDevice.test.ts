@@ -1,15 +1,15 @@
-import { RoomDeviceAPI } from './RoomDevice'
-import type { RoomDevice } from './RoomDevice'
+import { RoomSessionDeviceAPI } from './RoomDevice'
+import type { RoomSessionDevice } from './RoomDevice'
 import { configureJestStore } from './testUtils'
 
 describe('RoomDevice Object', () => {
-  let roomDevice: RoomDevice
+  let roomDevice: RoomSessionDevice
 
   beforeEach(() => {
-    roomDevice = new RoomDeviceAPI({
+    roomDevice = new RoomSessionDeviceAPI({
       store: configureJestStore(),
       emitter: jest.fn() as any,
-    }) as any as RoomDevice
+    }) as any as RoomSessionDevice
     // @ts-expect-error
     roomDevice.execute = jest.fn()
   })

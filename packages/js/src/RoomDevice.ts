@@ -7,16 +7,18 @@ import {
   BaseConnection,
   BaseConnectionStateEventTypes,
 } from '@signalwire/webrtc'
-import { RoomDeviceMethods } from './utils/interfaces'
+import { RoomSessionDeviceMethods } from './utils/interfaces'
 
-export interface RoomDevice
-  extends RoomDeviceMethods,
+/** @deprecated Use {@link RoomSessionDevice} instead */
+export type RoomDevice = RoomSessionDevice
+export interface RoomSessionDevice
+  extends RoomSessionDeviceMethods,
     BaseConnectionContract<BaseConnectionStateEventTypes> {
   join(): Promise<void>
   leave(): Promise<void>
 }
 
-export class RoomDeviceConnection extends BaseConnection<BaseConnectionStateEventTypes> {
+export class RoomSessionDeviceConnection extends BaseConnection<BaseConnectionStateEventTypes> {
   join() {
     return super.invite()
   }
@@ -26,10 +28,10 @@ export class RoomDeviceConnection extends BaseConnection<BaseConnectionStateEven
   }
 }
 
-export const RoomDeviceAPI = extendComponent<
-  RoomDeviceConnection,
-  RoomDeviceMethods
->(RoomDeviceConnection, {
+export const RoomSessionDeviceAPI = extendComponent<
+  RoomSessionDeviceConnection,
+  RoomSessionDeviceMethods
+>(RoomSessionDeviceConnection, {
   audioMute: Rooms.audioMuteMember,
   audioUnmute: Rooms.audioUnmuteMember,
   videoMute: Rooms.videoMuteMember,

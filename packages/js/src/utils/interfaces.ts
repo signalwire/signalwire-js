@@ -179,7 +179,8 @@ export interface RoomMethods
     RoomLayoutMethodsInterface,
     RoomControlMethodsInterface {}
 
-export interface RoomDeviceMethods extends RoomMemberSelfMethodsInterface {}
+export interface RoomSessionDeviceMethods
+  extends RoomMemberSelfMethodsInterface {}
 
 export interface RoomScreenShareMethods
   extends RoomMemberSelfMethodsInterface {}
