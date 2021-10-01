@@ -16,7 +16,7 @@ import {
   BaseConnectionStateEventTypes,
 } from '@signalwire/webrtc'
 import {
-  RoomObjectEvents,
+  RoomObjectEvents as RoomSessionObjectEvents,
   CreateScreenShareObjectOptions,
   AddDeviceOptions,
   AddCameraOptions,
@@ -36,16 +36,15 @@ import {
 } from './RoomScreenShare'
 import { RoomDeviceAPI, RoomDeviceConnection, RoomDevice } from './RoomDevice'
 
-/** @deprecated Use {@link RoomSession} instead. */
-export interface Room
+export interface BaseRoomSession<T>
   extends RoomMethods,
-    BaseConnectionContract<RoomObjectEvents> {
-  join(): Promise<Room>
+    BaseConnectionContract<RoomSessionObjectEvents> {
+  join(): Promise<T>
   leave(): Promise<void>
 }
 
-export class RoomConnection
-  extends BaseConnection<RoomObjectEvents>
+export class RoomSessionConnection
+  extends BaseConnection<RoomSessionObjectEvents>
   implements BaseRoomInterface
 {
   private _screenShareList = new Set<RoomScreenShare>()
@@ -104,7 +103,7 @@ export class RoomConnection
       audio: audio === true ? SCREENSHARE_AUDIO_CONSTRAINTS : audio,
       video,
     })
-    const options: BaseConnectionOptions<RoomObjectEvents> = {
+    const options: BaseConnectionOptions<RoomSessionObjectEvents> = {
       ...this.options,
       screenShare: true,
       recoverCall: false,
@@ -188,7 +187,7 @@ export class RoomConnection
       )
     }
 
-    const options: BaseConnectionOptions<RoomObjectEvents> = {
+    const options: BaseConnectionOptions<RoomSessionObjectEvents> = {
       ...this.options,
       localStream: undefined,
       remoteStream: undefined,
@@ -230,7 +229,7 @@ export class RoomConnection
   }
 
   join() {
-    return super.invite<Room>()
+    return super.invite<BaseRoomSession<this>>()
   }
 
   leave() {
@@ -280,42 +279,46 @@ export class RoomConnection
   }
 }
 
-export const RoomAPI = extendComponent<RoomConnection, RoomMethods>(
-  RoomConnection,
-  {
-    audioMute: Rooms.audioMuteMember,
-    audioUnmute: Rooms.audioUnmuteMember,
-    videoMute: Rooms.videoMuteMember,
-    videoUnmute: Rooms.videoUnmuteMember,
-    deaf: Rooms.deafMember,
-    undeaf: Rooms.undeafMember,
-    setInputVolume: Rooms.setInputVolumeMember,
-    setOutputVolume: Rooms.setOutputVolumeMember,
-    setMicrophoneVolume: Rooms.setInputVolumeMember,
-    setSpeakerVolume: Rooms.setOutputVolumeMember,
-    setInputSensitivity: Rooms.setInputSensitivityMember,
-    removeMember: Rooms.removeMember,
-    getMembers: Rooms.getMembers,
-    getLayouts: Rooms.getLayouts,
-    setLayout: Rooms.setLayout,
-    hideVideoMuted: Rooms.hideVideoMuted,
-    showVideoMuted: Rooms.showVideoMuted,
-    getRecordings: Rooms.getRecordings,
-    startRecording: Rooms.startRecording,
-  }
-)
+export const RoomSessionAPI = extendComponent<
+  RoomSessionConnection,
+  RoomMethods
+>(RoomSessionConnection, {
+  audioMute: Rooms.audioMuteMember,
+  audioUnmute: Rooms.audioUnmuteMember,
+  videoMute: Rooms.videoMuteMember,
+  videoUnmute: Rooms.videoUnmuteMember,
+  deaf: Rooms.deafMember,
+  undeaf: Rooms.undeafMember,
+  setInputVolume: Rooms.setInputVolumeMember,
+  setOutputVolume: Rooms.setOutputVolumeMember,
+  setMicrophoneVolume: Rooms.setInputVolumeMember,
+  setSpeakerVolume: Rooms.setOutputVolumeMember,
+  setInputSensitivity: Rooms.setInputSensitivityMember,
+  removeMember: Rooms.removeMember,
+  getMembers: Rooms.getMembers,
+  getLayouts: Rooms.getLayouts,
+  setLayout: Rooms.setLayout,
+  hideVideoMuted: Rooms.hideVideoMuted,
+  showVideoMuted: Rooms.showVideoMuted,
+  getRecordings: Rooms.getRecordings,
+  startRecording: Rooms.startRecording,
+})
 
-type RoomObjectEventsHandlerMapping = RoomObjectEvents &
+type RoomSessionObjectEventsHandlerMapping = RoomSessionObjectEvents &
   BaseConnectionStateEventTypes
 
 /** @internal */
-export const createRoomSessionObject = (
-  params: BaseComponentOptions<RoomObjectEventsHandlerMapping>
-): Room => {
-  const room = connect<RoomObjectEventsHandlerMapping, RoomConnection, Room>({
+export const createBaseRoomSessionObject = <RoomSessionType>(
+  params: BaseComponentOptions<RoomSessionObjectEventsHandlerMapping>
+): BaseRoomSession<RoomSessionType> => {
+  const room = connect<
+    RoomSessionObjectEventsHandlerMapping,
+    RoomSessionConnection,
+    BaseRoomSession<RoomSessionType>
+  >({
     store: params.store,
     customSagas: params.customSagas,
-    Component: RoomAPI,
+    Component: RoomSessionAPI,
     componentListeners: ROOM_COMPONENT_LISTENERS,
   })(params)
 

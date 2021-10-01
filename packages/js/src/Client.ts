@@ -7,10 +7,15 @@ import {
 import type { CustomSaga } from '@signalwire/core'
 import { ConnectionOptions } from '@signalwire/webrtc'
 import { makeMediaElementsSaga } from './features/mediaElements/mediaElementsSagas'
-import { RoomConnection, createRoomSessionObject } from './Room'
+import { RoomSession } from './RoomSession'
+import {
+  createBaseRoomSessionObject,
+  RoomSessionConnection,
+} from './BaseRoomSession'
 
-export interface Client extends ClientContract<Client, ClientEvents> {
-  rooms: ClientAPI['rooms']
+export interface Client<RoomSessionType = RoomSession>
+  extends ClientContract<Client<RoomSessionType>, ClientEvents> {
+  rooms: ClientAPI<RoomSessionType>['rooms']
 }
 
 export interface MakeRoomOptions extends ConnectionOptions {
@@ -20,7 +25,9 @@ export interface MakeRoomOptions extends ConnectionOptions {
   stopMicrophoneWhileMuted?: boolean
 }
 
-export class ClientAPI extends BaseClient<ClientEvents> {
+export class ClientAPI<
+  RoomSessionType = RoomSession
+> extends BaseClient<ClientEvents> {
   get rooms() {
     return {
       makeRoomObject: (makeRoomOptions: MakeRoomOptions) => {
@@ -32,7 +39,7 @@ export class ClientAPI extends BaseClient<ClientEvents> {
           ...options
         } = makeRoomOptions
 
-        const customSagas: Array<CustomSaga<RoomConnection>> = []
+        const customSagas: Array<CustomSaga<RoomSessionConnection>> = []
 
         /**
          * If the user provides a `roomElement` we'll
@@ -49,7 +56,7 @@ export class ClientAPI extends BaseClient<ClientEvents> {
           )
         }
 
-        const room = createRoomSessionObject({
+        const room = createBaseRoomSessionObject<RoomSessionType>({
           ...options,
           store: this.store,
           // @ts-expect-error

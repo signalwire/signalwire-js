@@ -19,7 +19,7 @@ import type {
   RoomSessionRecording,
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
-import type { Room } from '../Room'
+import type { RoomSession } from '../RoomSession'
 
 const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
   INTERNAL_MEMBER_UPDATABLE_PROPS
@@ -63,7 +63,7 @@ export type RoomObjectEventsHandlerMap = Record<
   Record<VideoRoomSessionEventNames, (params: VideoRoomEventParams) => void> &
   Record<RTCTrackEventName, (event: RTCTrackEvent) => void> &
   Record<VideoRecordingEventNames, (recording: RoomSessionRecording) => void> &
-  Record<BaseConnectionState, (params: Room) => void>
+  Record<BaseConnectionState, (params: RoomSession) => void>
 
 export type RoomObjectEvents = {
   [k in keyof RoomObjectEventsHandlerMap]: RoomObjectEventsHandlerMap[k]
