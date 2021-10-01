@@ -38,7 +38,7 @@ import {
   RoomSessionDeviceAPI,
   RoomSessionDeviceConnection,
   RoomSessionDevice,
-} from './RoomDevice'
+} from './RoomSessionDevice'
 
 export interface BaseRoomSession<T>
   extends RoomMethods,

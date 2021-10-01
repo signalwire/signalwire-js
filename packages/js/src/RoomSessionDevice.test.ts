@@ -1,5 +1,5 @@
-import { RoomSessionDeviceAPI } from './RoomDevice'
-import type { RoomSessionDevice } from './RoomDevice'
+import { RoomSessionDeviceAPI } from './RoomSessionDevice'
+import type { RoomSessionDevice } from './RoomSessionDevice'
 import { configureJestStore } from './testUtils'
 
 describe('RoomDevice Object', () => {
