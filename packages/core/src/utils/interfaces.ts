@@ -305,7 +305,7 @@ export interface EventTransform {
    * Using the `key` we can cache and retrieve a single instance
    * for the **stateless** object returned by `instanceFactory`
    */
-  key: EventTransformType
+  type: EventTransformType
   /**
    * Must return an **stateless** object. Think of it as a
    * set of APIs representing the behavior you want to

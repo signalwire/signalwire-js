@@ -161,7 +161,7 @@ describe('BaseComponent', () => {
             [
               ['video.jest.snake_case', 'video.jest.camel_case'],
               {
-                key: 'roomSession' as const,
+                type: 'roomSession' as const,
                 instanceFactory: () => {
                   return {
                     instance: this,
@@ -238,7 +238,7 @@ describe('BaseComponent', () => {
             [
               ['video.jest.eventOne', 'video.jest.eventTwo'],
               {
-                key: eventTransformKey,
+                type: eventTransformKey,
                 instanceFactory: mockInstanceFactoryRegistered,
                 payloadTransform: mockPayloadTransformRegistered,
               },
@@ -246,7 +246,7 @@ describe('BaseComponent', () => {
             [
               ['video.jest.notRegistered'],
               {
-                key: eventTransformKey,
+                type: eventTransformKey,
                 instanceFactory: mockInstanceFactoryNotRegistered,
                 payloadTransform: mockPayloadTransformNotRegistered,
               },
@@ -254,7 +254,7 @@ describe('BaseComponent', () => {
             [
               [localEventName],
               {
-                key: eventTransformKey,
+                type: eventTransformKey,
                 instanceFactory: mockInstanceFactoryLocal,
                 payloadTransform: mockPayloadTransformLocal,
               },

@@ -20,13 +20,13 @@ interface NestedFieldToProcess {
 }
 
 /**
- * Note: the cached instances within `_instanceByTransformKey` will never be
- * cleaned since we're caching by `transform.key` so we will always have one
+ * Note: the cached instances within `_instanceByTransformType` will never be
+ * cleaned since we're caching by `transform.type` so we will always have one
  * instance per type regardless of the Room/Member/Recording we're working on.
  * This is something we can improve in the future, but not an issue right now.
  * Exported for test purposes
  */
-export const _instanceByTransformKey = new Map<string, EventTransform>()
+export const _instanceByTransformType = new Map<string, EventTransform>()
 export const NESTED_FIELDS_TO_PROCESS: NestedFieldToProcess[] = [
   {
     field: 'members',
@@ -44,14 +44,14 @@ const _getOrCreateInstance = ({
   transform,
   payload,
 }: InstanceProxyFactoryParams) => {
-  if (!_instanceByTransformKey.has(transform.key)) {
+  if (!_instanceByTransformType.has(transform.type)) {
     const instance = transform.instanceFactory(payload)
-    _instanceByTransformKey.set(transform.key, instance)
+    _instanceByTransformType.set(transform.type, instance)
 
     return instance
   }
 
-  return _instanceByTransformKey.get(transform.key)
+  return _instanceByTransformType.get(transform.type)
 }
 
 export const instanceProxyFactory = ({

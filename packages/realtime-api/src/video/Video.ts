@@ -82,7 +82,7 @@ export class VideoAPI extends BaseConsumer<RealTimeVideoApiEvents> {
         ['video.room.started', 'video.room.ended'],
         {
           // TODO: create a new key or use `roomSession`?
-          key: 'roomSession',
+          type: 'roomSession',
           instanceFactory: () => {
             return createRoomSessionObject({
               store: this.store,

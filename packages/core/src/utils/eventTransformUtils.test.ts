@@ -1,7 +1,7 @@
 import { EventTransform } from './interfaces'
 import {
   instanceProxyFactory,
-  _instanceByTransformKey,
+  _instanceByTransformType,
 } from './eventTransformUtils'
 import { toExternalJSON } from './toExternalJSON'
 
@@ -20,7 +20,7 @@ describe('instanceProxyFactory', () => {
 
   const transform: EventTransform = {
     // @ts-expect-error
-    key: 'randomKey',
+    type: 'randomKey',
     instanceFactory: () => {
       return mockInstance
     },
@@ -56,8 +56,8 @@ describe('instanceProxyFactory', () => {
       expect(proxy._eventsNamespace).toBe('random')
     }
 
-    expect(_instanceByTransformKey.size).toBe(1)
-    expect(_instanceByTransformKey.get('randomKey')).toBe(mockInstance)
+    expect(_instanceByTransformType.size).toBe(1)
+    expect(_instanceByTransformType.get('randomKey')).toBe(mockInstance)
   })
 
   it('should cache the instances by type', () => {
@@ -67,20 +67,20 @@ describe('instanceProxyFactory', () => {
     const secondProxy = instanceProxyFactory({ transform, payload })
     expect(secondProxy.snakeCase).toBe('foo')
 
-    expect(_instanceByTransformKey.size).toBe(1)
-    expect(_instanceByTransformKey.get('randomKey')).toBe(mockInstance)
+    expect(_instanceByTransformType.size).toBe(1)
+    expect(_instanceByTransformType.get('randomKey')).toBe(mockInstance)
 
     const thirdProxy = instanceProxyFactory({
       transform: {
         ...transform,
         // @ts-expect-error
-        key: 'otherKey',
+        type: 'otherKey',
       },
       payload,
     })
     expect(thirdProxy.snakeCase).toBe('foo')
 
-    expect(_instanceByTransformKey.size).toBe(2)
-    expect(_instanceByTransformKey.get('otherKey')).toBe(mockInstance)
+    expect(_instanceByTransformType.size).toBe(2)
+    expect(_instanceByTransformType.get('otherKey')).toBe(mockInstance)
   })
 })

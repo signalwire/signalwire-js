@@ -452,7 +452,7 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
       [
         'video.room.subscribed',
         {
-          key: 'roomSessionSubscribed',
+          type: 'roomSessionSubscribed',
           instanceFactory: () => {
             return this
           },
@@ -474,7 +474,7 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
       [
         'video.room.updated',
         {
-          key: 'roomSession',
+          type: 'roomSession',
           instanceFactory: () => {
             return this
           },
@@ -495,7 +495,7 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
       [
         'video.layout.changed',
         {
-          key: 'roomSessionLayout',
+          type: 'roomSessionLayout',
           instanceFactory: () => {
             // TODO: Implement a Layout object when we have a better payload
             // from the backend
@@ -519,7 +519,7 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
           ...INTERNAL_MEMBER_UPDATED_EVENTS,
         ],
         {
-          key: 'roomSessionMember',
+          type: 'roomSessionMember',
           instanceFactory: (_payload: VideoMemberEventParams) => {
             return createRoomSessionMemberObject({
               store: this.store,
@@ -554,7 +554,7 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
           'video.recording.ended',
         ],
         {
-          key: 'roomSessionRecording',
+          type: 'roomSessionRecording',
           instanceFactory: (_payload: any) => {
             return Rooms.createRoomSessionRecordingObject({
               store: this.store,

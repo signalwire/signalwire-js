@@ -69,7 +69,7 @@ export class RoomConnection
           'video.recording.ended',
         ],
         {
-          key: 'roomSessionRecording',
+          type: 'roomSessionRecording',
           instanceFactory: (_payload: any) => {
             return Rooms.createRoomSessionRecordingObject({
               store: this.store,

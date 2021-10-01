@@ -314,7 +314,7 @@ export class BaseComponent<
         payload,
       })
 
-      const transformedPayload = this._processTransformedPayload(
+      const transformedPayload = this._parseNestedFields(
         transform.payloadTransform(payload)
       )
       const proxiedObj = new Proxy(cachedInstance, {
@@ -346,7 +346,7 @@ export class BaseComponent<
     >
   }
 
-  private _processTransformedPayload(transformedPayload: any) {
+  private _parseNestedFields(transformedPayload: any) {
     NESTED_FIELDS_TO_PROCESS.forEach(
       ({ field, preProcessPayload, eventTransformType }) => {
         const transform = this._emitterTransforms.get(eventTransformType)
@@ -729,7 +729,7 @@ export class BaseComponent<
        * Set a transform using the `key` to select it easily when
        * creating Proxy objects.
        */
-      this._emitterTransforms.set(handlersObj.key, handlersObj)
+      this._emitterTransforms.set(handlersObj.type, handlersObj)
     })
   }
 }
