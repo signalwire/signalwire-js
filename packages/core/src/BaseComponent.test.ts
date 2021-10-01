@@ -161,6 +161,7 @@ describe('BaseComponent', () => {
             [
               ['video.jest.snake_case', 'video.jest.camel_case'],
               {
+                type: 'roomSession' as const,
                 instanceFactory: () => {
                   return {
                     instance: this,
@@ -230,13 +231,14 @@ describe('BaseComponent', () => {
       const mockPayloadTransformLocal = jest.fn()
 
       const localEventName = toLocalEvent('video.jest.localEvent')
-
+      const eventTransformKey = 'roomSession' as const
       class CustomComponent extends JestComponent {
         protected getEmitterTransforms() {
           return new Map([
             [
               ['video.jest.eventOne', 'video.jest.eventTwo'],
               {
+                type: eventTransformKey,
                 instanceFactory: mockInstanceFactoryRegistered,
                 payloadTransform: mockPayloadTransformRegistered,
               },
@@ -244,6 +246,7 @@ describe('BaseComponent', () => {
             [
               ['video.jest.notRegistered'],
               {
+                type: eventTransformKey,
                 instanceFactory: mockInstanceFactoryNotRegistered,
                 payloadTransform: mockPayloadTransformNotRegistered,
               },
@@ -251,6 +254,7 @@ describe('BaseComponent', () => {
             [
               [localEventName],
               {
+                type: eventTransformKey,
                 instanceFactory: mockInstanceFactoryLocal,
                 payloadTransform: mockPayloadTransformLocal,
               },
@@ -280,6 +284,10 @@ describe('BaseComponent', () => {
       expect(mockInstanceFactoryNotRegistered).toHaveBeenCalledTimes(0)
       expect(mockPayloadTransformNotRegistered).toHaveBeenCalledTimes(0)
 
+      /** 2 transforms because we added the transform `key` too */
+      // @ts-expect-error
+      expect(instance._emitterTransforms.size).toEqual(2)
+
       // @ts-expect-error
       instance.applyEmitterTransforms()
       instance.emit(localEventName, {})
@@ -295,8 +303,10 @@ describe('BaseComponent', () => {
       expect(mockPayloadTransformRegistered).toHaveBeenCalledTimes(1)
       expect(mockInstanceFactoryNotRegistered).toHaveBeenCalledTimes(0)
       expect(mockPayloadTransformNotRegistered).toHaveBeenCalledTimes(0)
+
+      /** 3 transforms because we added the transform `key` too */
       // @ts-expect-error
-      expect(instance._emitterTransforms.size).toEqual(2)
+      expect(instance._emitterTransforms.size).toEqual(3)
     })
   })
 })
