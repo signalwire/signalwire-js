@@ -244,6 +244,15 @@ export type GlobalVideoEvents = typeof GLOBAL_VIDEO_EVENTS[number]
 export type InternalGlobalVideoEvents =
   typeof INTERNAL_GLOBAL_VIDEO_EVENTS[number]
 
+/**
+ * NOTE: `EventTransformType` is not tied to a constructor but more on
+ * the event payloads.
+ * We are using `roomSession` and `roomSessionSubscribed` here because
+ * some "Room" events have similar payloads while `room.subscribed` has
+ * nested fields the SDK has to process.
+ * `EventTransformType` identifies a unique `EventTransform` type based on the
+ * payload it has to process.
+ */
 export type EventTransformType =
   | 'roomSession'
   | 'roomSessionSubscribed'
