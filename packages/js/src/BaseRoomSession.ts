@@ -33,7 +33,7 @@ import {
   RoomSessionScreenShareAPI,
   RoomSessionScreenShareConnection,
   RoomSessionScreenShare,
-} from './RoomScreenShare'
+} from './RoomSessionScreenShare'
 import {
   RoomSessionDeviceAPI,
   RoomSessionDeviceConnection,

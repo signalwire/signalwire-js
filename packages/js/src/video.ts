@@ -1,9 +1,12 @@
 import { createRoomObject, Room } from './createRoomObject'
 import { joinRoom } from './joinRoom'
 import { MakeRoomOptions } from './Client'
-import { RoomSessionScreenShare, RoomScreenShare } from './RoomScreenShare'
-import { RoomSessionDevice, RoomDevice } from './RoomSessionDevice'
 import { RoomSession } from './RoomSession'
+import { RoomSessionDevice, RoomDevice } from './RoomSessionDevice'
+import {
+  RoomSessionScreenShare,
+  RoomScreenShare,
+} from './RoomSessionScreenShare'
 
 export {
   RoomSession,

@@ -1,5 +1,5 @@
-import { RoomSessionScreenShareAPI } from './RoomScreenShare'
-import type { RoomSessionScreenShare } from './RoomScreenShare'
+import { RoomSessionScreenShareAPI } from './RoomSessionScreenShare'
+import type { RoomSessionScreenShare } from './RoomSessionScreenShare'
 import { configureJestStore } from './testUtils'
 
 describe('RoomScreenShare Object', () => {
