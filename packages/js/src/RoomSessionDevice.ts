@@ -10,7 +10,7 @@ import {
 import { RoomSessionDeviceMethods } from './utils/interfaces'
 
 /** @deprecated Use {@link RoomSessionDevice} instead */
-export type RoomDevice = RoomSessionDevice
+export interface RoomDevice extends RoomSessionDevice {}
 export interface RoomSessionDevice
   extends RoomSessionDeviceMethods,
     BaseConnectionContract<BaseConnectionStateEventTypes> {

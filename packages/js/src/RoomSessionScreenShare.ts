@@ -10,7 +10,7 @@ import {
 import { RoomScreenShareMethods } from './utils/interfaces'
 
 /** @deprecated Use {@link RoomSessionScreenShare} instead */
-export type RoomScreenShare = RoomSessionScreenShare
+export interface RoomScreenShare extends RoomSessionScreenShare {}
 export interface RoomSessionScreenShare
   extends RoomScreenShareMethods,
     BaseConnectionContract<BaseConnectionStateEventTypes> {
