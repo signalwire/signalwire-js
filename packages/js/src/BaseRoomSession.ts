@@ -15,7 +15,7 @@ import {
   BaseConnectionOptions,
   BaseConnectionStateEventTypes,
 } from '@signalwire/webrtc'
-import {
+import type {
   RoomSessionObjectEvents,
   CreateScreenShareObjectOptions,
   AddDeviceOptions,
@@ -23,6 +23,7 @@ import {
   AddMicrophoneOptions,
   BaseRoomInterface,
   RoomMethods,
+  StartScreenShareOptions,
 } from './utils/interfaces'
 import {
   ROOM_COMPONENT_LISTENERS,
@@ -106,7 +107,7 @@ export class RoomSessionConnection
   /**
    * Allow sharing the screen within the room.
    */
-  async startScreenShare(opts: CreateScreenShareObjectOptions = {}) {
+  async startScreenShare(opts: StartScreenShareOptions = {}) {
     const { autoJoin = true, audio = false, video = true } = opts
     const displayStream: MediaStream = await getDisplayMedia({
       audio: audio === true ? SCREENSHARE_AUDIO_CONSTRAINTS : audio,

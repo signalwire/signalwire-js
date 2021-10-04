@@ -78,7 +78,8 @@ export type StartScreenShareOptions = {
 /**
  * @deprecated Use {@link StartScreenShareOptions} instead.
  */
-export type CreateScreenShareObjectOptions = StartScreenShareOptions
+export interface CreateScreenShareObjectOptions
+  extends StartScreenShareOptions {}
 
 export type AddDeviceOptions = {
   autoJoin?: boolean
