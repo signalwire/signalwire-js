@@ -83,6 +83,9 @@ const OPTIONS_MAP = {
    */
   '--dev': {
     minify: false,
+    define: {
+      'process.env.NODE_ENV': JSON.stringify('development'),
+    },
     watch: {
       onRebuild(error, result) {
         if (error) console.error('watch build failed:', error)
@@ -144,6 +147,7 @@ const getBuildOptions = ({ flags, pkgJson }) => {
     'process.env.SDK_PKG_NAME': JSON.stringify(pkgJson.name),
     'process.env.SDK_PKG_DESCRIPTION': JSON.stringify(pkgJson.description),
     'process.env.SDK_PKG_AGENT': JSON.stringify(getPackageAgentName(pkgJson)),
+    'process.env.NODE_ENV': JSON.stringify('production'),
   }
 
   /**
@@ -159,10 +163,7 @@ const getBuildOptions = ({ flags, pkgJson }) => {
         process.exit(1)
       }
 
-      return {
-        ...reducer,
-        ...options,
-      }
+      return mergeOptions(reducer, options)
     },
     {
       define: sdkEnvVariables,
@@ -188,19 +189,11 @@ const getBuildOptions = ({ flags, pkgJson }) => {
       )
     }
 
-    return [
-      {
-        ...activeMode,
-        ...commonOptions,
-      },
-    ]
+    return [mergeOptions(activeMode, commonOptions)]
   }
 
   return OPTIONS_MAP[modeFlag].map((opt) => {
-    return {
-      ...opt,
-      ...commonOptions,
-    }
+    return mergeOptions(opt, commonOptions)
   })
 }
 /**
@@ -266,6 +259,16 @@ const buildUmd = async (options) => {
     file: outfile,
     sourcemap: true,
   })
+}
+const mergeOptions = (options, defaultOptions = {}) => {
+  return {
+    ...defaultOptions,
+    ...options,
+    define: {
+      ...defaultOptions.define,
+      ...options.define,
+    },
+  }
 }
 
 /**
