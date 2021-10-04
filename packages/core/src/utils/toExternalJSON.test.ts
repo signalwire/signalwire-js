@@ -117,11 +117,11 @@ describe('toExternalJSON', () => {
 
   it('converts timestamp properties to Date objects', () => {
     const input = {
-      started_at: 1632305086964,
-      ended_at: 1632305100130,
+      started_at: 1632305086964 / 1000,
+      ended_at: 1632305100130 / 1000,
       completed_at: 'an invalid date',
-      started: 1632305086964,
-      ended: 1632305100130,
+      started: 1632305086964 / 1000,
+      ended: 1632305100130 / 1000,
       prop_one: 'one',
       prop_two: 'two',
       prop_three: 1,
@@ -131,8 +131,8 @@ describe('toExternalJSON', () => {
       startedAt: new Date(1632305086964),
       endedAt: new Date(1632305100130),
       completedAt: 'an invalid date',
-      started: 1632305086964,
-      ended: 1632305100130,
+      started: 1632305086964 / 1000,
+      ended: 1632305100130 / 1000,
       propOne: 'one',
       propTwo: 'two',
       propThree: 1,
@@ -141,11 +141,11 @@ describe('toExternalJSON', () => {
     expect(toExternalJSON(input)).toStrictEqual(output)
   })
 
-  it('converts the layout `layers` key to be camelCase', () => {
+  it('converts nested key like members and recordings', () => {
     const id = '5074e94f-de6e-4477-8068-f046cab81f77'
     const roomId = '297ec3bb-fdc5-4995-ae75-c40a43c272ee'
     const input = JSON.parse(
-      `{"recording":false,"name":"test","hide_video_muted":false,"id":"${id}","members":[{"visible":false,"room_session_id":"${id}","input_volume":0,"id":"b3b0cfd6-2382-4ac6-a8c9-9182584697ae","input_sensitivity":44,"audio_muted":false,"output_volume":0,"name":"user","deaf":false,"video_muted":false,"room_id":"${roomId}","type":"member"}],"room_id":"${roomId}","event_channel":"room.uuid"}`
+      `{"recording":false,"name":"test","hide_video_muted":false,"id":"${id}","members":[{"visible":false,"room_session_id":"${id}","input_volume":0,"id":"b3b0cfd6-2382-4ac6-a8c9-9182584697ae","input_sensitivity":44,"audio_muted":false,"output_volume":0,"name":"user","deaf":false,"video_muted":false,"room_id":"${roomId}","type":"member"}],"recordings":[{"id":"rec1","state":"recording","started_at":1633340944.785},{"id":"rec2","state":"completed","started_at":1633340944.785,"ended_at":1633340976.802}],"room_id":"${roomId}","event_channel":"room.uuid"}`
     )
 
     const output = {
@@ -169,6 +169,19 @@ describe('toExternalJSON', () => {
           outputVolume: 0,
           inputVolume: 0,
           inputSensitivity: 44,
+        },
+      ],
+      recordings: [
+        {
+          id: 'rec1',
+          state: 'recording',
+          startedAt: new Date(1633340944.785 * 1000),
+        },
+        {
+          id: 'rec2',
+          state: 'completed',
+          startedAt: new Date(1633340944.785 * 1000),
+          endedAt: new Date(1633340976.802 * 1000),
         },
       ],
     }

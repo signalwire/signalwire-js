@@ -3,7 +3,7 @@ const toDateObject = (timestamp?: number) => {
     return timestamp
   }
 
-  const date = new Date(timestamp)
+  const date = new Date(timestamp * 1000)
 
   /**
    * If for some reason we can't convert to a valid date
