@@ -428,6 +428,14 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     get_initial_state: true,
   }
 
+  /**
+   * @privateRemarks
+   *
+   * Override BaseConsumer `subscribe` to resolve the promise when the 'room.subscribed'
+   * event comes. This way we can return to the user the room full state.
+   * Note: the payload will go through an EventTrasform - see the `type: roomSessionSubscribed`
+   * below.
+   */
   subscribe() {
     return new Promise(async (resolve, reject) => {
       const handler = (payload: RoomSessionFullState) => {
