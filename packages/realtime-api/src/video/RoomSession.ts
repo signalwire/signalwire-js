@@ -11,6 +11,7 @@ import {
   VideoMemberEventParams,
   InternalVideoRoomSessionEventNames,
   VideoRoomUpdatedEventParams,
+  VideoRoomSubscribedEventParams,
   InternalVideoLayoutEventNames,
   InternalVideoRecordingEventNames,
   VideoLayoutChangedEventParams,
@@ -23,7 +24,10 @@ import {
 } from '@signalwire/core'
 import { BaseConsumer } from '../BaseConsumer'
 import { RealTimeRoomApiEvents } from '../types'
-import { createRoomSessionMemberObject } from './RoomSessionMember'
+import {
+  createRoomSessionMemberObject,
+  RoomSessionMember,
+} from './RoomSessionMember'
 
 type EmitterTransformsEvents =
   | InternalVideoRoomSessionEventNames
@@ -34,7 +38,7 @@ type EmitterTransformsEvents =
 
 interface RoomSessionMain
   extends VideoRoomSessionContract,
-    ConsumerContract<RealTimeRoomApiEvents> {}
+    ConsumerContract<RealTimeRoomApiEvents, RoomSessionFullState> {}
 
 interface RoomSessionDocs extends RoomSessionMain {
   /**
@@ -320,9 +324,10 @@ interface RoomSessionDocs extends RoomSessionMain {
   startRecording(): Promise<Rooms.RoomSessionRecording>
 
   /**
-   * Start listening for the events for which you have provided event handlers.
+   * Start listening for the events for which you have provided event handlers and
+   * returns the {@link RoomSessionFullState} the contains the full state of the room session.
    */
-  subscribe(): Promise<void>
+  subscribe(): Promise<RoomSessionFullState>
 }
 
 /**
@@ -411,9 +416,40 @@ export interface RoomSession
   extends AssertSameType<RoomSessionMain, RoomSessionDocs> {}
 
 export type RoomSessionUpdated = EntityUpdated<RoomSession>
+export interface RoomSessionFullState extends RoomSession {
+  members: RoomSessionMember[]
+}
 
 class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   protected _eventsPrefix = 'video' as const
+
+  /** @internal */
+  protected subscribeParams = {
+    get_initial_state: true,
+  }
+
+  /**
+   * @privateRemarks
+   *
+   * Override BaseConsumer `subscribe` to resolve the promise when the 'room.subscribed'
+   * event comes. This way we can return to the user the room full state.
+   * Note: the payload will go through an EventTrasform - see the `type: roomSessionSubscribed`
+   * below.
+   */
+  subscribe() {
+    return new Promise(async (resolve, reject) => {
+      const handler = (payload: RoomSessionFullState) => {
+        resolve(payload)
+      }
+      try {
+        this.once('room.subscribed', handler)
+        await super.subscribe()
+      } catch (error) {
+        this.off('room.subscribed', handler)
+        return reject(error)
+      }
+    })
+  }
 
   /** @internal */
   protected getEmitterTransforms() {
@@ -422,8 +458,31 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
       EventTransform
     >([
       [
+        'video.room.subscribed',
+        {
+          type: 'roomSessionSubscribed',
+          instanceFactory: () => {
+            return this
+          },
+          payloadTransform: (payload: VideoRoomSubscribedEventParams) => {
+            return toExternalJSON(payload.room_session)
+          },
+          getInstanceEventNamespace: (
+            payload: VideoRoomSubscribedEventParams
+          ) => {
+            return payload.room_session.id
+          },
+          getInstanceEventChannel: (
+            payload: VideoRoomSubscribedEventParams
+          ) => {
+            return payload.room_session.event_channel
+          },
+        },
+      ],
+      [
         'video.room.updated',
         {
+          type: 'roomSession',
           instanceFactory: () => {
             return this
           },
@@ -444,6 +503,7 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
       [
         'video.layout.changed',
         {
+          type: 'roomSessionLayout',
           instanceFactory: () => {
             // TODO: Implement a Layout object when we have a better payload
             // from the backend
@@ -467,6 +527,7 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
           ...INTERNAL_MEMBER_UPDATED_EVENTS,
         ],
         {
+          type: 'roomSessionMember',
           instanceFactory: (_payload: VideoMemberEventParams) => {
             return createRoomSessionMemberObject({
               store: this.store,
@@ -501,6 +562,7 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
           'video.recording.ended',
         ],
         {
+          type: 'roomSessionRecording',
           instanceFactory: (_payload: any) => {
             return Rooms.createRoomSessionRecordingObject({
               store: this.store,

@@ -5,6 +5,8 @@ import {
   toInternalEventName,
   isLocalEvent,
   validateEventsToSubscribe,
+  instanceProxyFactory,
+  NESTED_FIELDS_TO_PROCESS,
 } from './utils'
 import { executeAction } from './redux'
 import {
@@ -13,6 +15,7 @@ import {
   BaseComponentOptions,
   ExecuteExtendedOptions,
   EventsPrefix,
+  EventTransformType,
   EventTransform,
 } from './utils/interfaces'
 import { EventEmitter } from './utils/EventEmitter'
@@ -122,7 +125,7 @@ export class BaseComponent<
    * interface).
    */
   private _emitterTransforms: Map<
-    EventEmitter.EventNames<EventTypes>,
+    EventEmitter.EventNames<EventTypes> | EventTransformType,
     EventTransform
   > = new Map()
 
@@ -311,7 +314,9 @@ export class BaseComponent<
         payload,
       })
 
-      const transformedPayload = transform.payloadTransform(payload)
+      const transformedPayload = this._parseNestedFields(
+        transform.payloadTransform(payload)
+      )
       const proxiedObj = new Proxy(cachedInstance, {
         get(target: any, prop: any, receiver: any) {
           if (
@@ -339,6 +344,26 @@ export class BaseComponent<
       EventTypes,
       EventEmitter.EventNames<EventTypes>
     >
+  }
+
+  private _parseNestedFields(transformedPayload: any) {
+    NESTED_FIELDS_TO_PROCESS.forEach(
+      ({ field, preProcessPayload, eventTransformType }) => {
+        const transform = this._emitterTransforms.get(eventTransformType)
+        if (!transform || !transformedPayload?.[field]?.length) {
+          return
+        }
+        transformedPayload[field] = transformedPayload[field].map(
+          (jsonPayload: any) => {
+            return instanceProxyFactory({
+              transform,
+              payload: preProcessPayload(jsonPayload),
+            })
+          }
+        )
+      }
+    )
+    return transformedPayload
   }
 
   private getOrCreateStableEventHandler(
@@ -699,6 +724,14 @@ export class BaseComponent<
           local,
         })
       }
+
+      /**
+       * Set a transform using the `key` to select it easily when
+       * creating Proxy objects.
+       * The transform by `type` will be used by nested fields while the top-level
+       * by `internalEvent` for each single event transform.
+       */
+      this._emitterTransforms.set(handlersObj.type, handlersObj)
     })
   }
 }

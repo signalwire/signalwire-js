@@ -3,6 +3,7 @@ import type {
   VideoMemberEventNames,
   RoomStarted,
   RoomUpdated,
+  RoomSubscribed,
   RoomEnded,
   VideoLayoutEventNames,
   MemberTalkingEventNames,
@@ -10,7 +11,11 @@ import type {
   MemberUpdated,
   MemberUpdatedEventNames,
 } from '@signalwire/core'
-import type { RoomSession, RoomSessionUpdated } from '../video/RoomSession'
+import type {
+  RoomSession,
+  RoomSessionUpdated,
+  RoomSessionFullState,
+} from '../video/RoomSession'
 import type {
   RoomSessionMember,
   RoomSessionMemberUpdated,
@@ -39,8 +44,9 @@ export type RealTimeRoomApiEventsHandlerMapping = Record<
     (member: RoomSessionMemberUpdated) => void
   > &
   Record<MemberTalkingEventNames, (member: RoomSessionMember) => void> &
-  Record<RoomStarted | RoomEnded, (room: RoomSession) => void> &
-  Record<RoomUpdated, (room: RoomSessionUpdated) => void> &
+  Record<RoomStarted | RoomEnded, (roomSession: RoomSession) => void> &
+  Record<RoomUpdated, (roomSession: RoomSessionUpdated) => void> &
+  Record<RoomSubscribed, (roomSessionFull: RoomSessionFullState) => void> &
   Rooms.RoomSessionRecordingEventsHandlerMapping
 
 export type RealTimeRoomApiEvents = {

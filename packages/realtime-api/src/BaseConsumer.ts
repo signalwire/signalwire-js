@@ -45,8 +45,8 @@ export class BaseConsumer<
         }
 
         try {
-          await this.execute(execParams)
           this.applyEmitterTransforms()
+          await this.execute(execParams)
         } catch (error) {
           return reject(error)
         }

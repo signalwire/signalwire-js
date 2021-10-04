@@ -244,6 +244,22 @@ export type InternalGlobalVideoEvents =
   typeof INTERNAL_GLOBAL_VIDEO_EVENTS[number]
 
 /**
+ * NOTE: `EventTransformType` is not tied to a constructor but more on
+ * the event payloads.
+ * We are using `roomSession` and `roomSessionSubscribed` here because
+ * some "Room" events have similar payloads while `room.subscribed` has
+ * nested fields the SDK has to process.
+ * `EventTransformType` identifies a unique `EventTransform` type based on the
+ * payload it has to process.
+ */
+export type EventTransformType =
+  | 'roomSession'
+  | 'roomSessionSubscribed'
+  | 'roomSessionMember'
+  | 'roomSessionLayout'
+  | 'roomSessionRecording'
+  | 'roomSessionPlayback'
+/**
  * `EventTransform`s represent our internal pipeline for
  * creating specific instances for each event handler. This
  * is basically what let us create and pass a `Member`
@@ -284,6 +300,11 @@ export type InternalGlobalVideoEvents =
  * └───────────────────────────────────┘
  */
 export interface EventTransform {
+  /**
+   * Using the `key` we can cache and retrieve a single instance
+   * for the **stateless** object returned by `instanceFactory`
+   */
+  type: EventTransformType
   /**
    * Must return an **stateless** object. Think of it as a
    * set of APIs representing the behavior you want to

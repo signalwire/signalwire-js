@@ -3,7 +3,7 @@ const toDateObject = (timestamp?: number) => {
     return timestamp
   }
 
-  const date = new Date(timestamp)
+  const date = new Date(timestamp * 1000)
 
   /**
    * If for some reason we can't convert to a valid date
@@ -21,7 +21,13 @@ const DEFAULT_OPTIONS = {
    * Properties coming from the server where their value will be
    * converted to camelCase
    */
-  propsToUpdateValue: ['updated', 'layers'],
+  propsToUpdateValue: [
+    'updated',
+    'layers',
+    'members',
+    'recordings',
+    'playbacks',
+  ],
 }
 
 /**
@@ -87,6 +93,9 @@ export const toExternalJSON = <T>(
  * @internal
  */
 const fromSnakeToCamelCase = (input: string) => {
+  if (!input.includes('_')) {
+    return input
+  }
   return input.split('_').reduce((reducer, part, index) => {
     const fc = part.trim().charAt(0)
     const remainingChars = part.substr(1).toLowerCase()
