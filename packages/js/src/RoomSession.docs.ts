@@ -2,7 +2,7 @@ import { BaseRoomSession } from './BaseRoomSession'
 import { RoomSessionDevice } from './RoomSessionDevice';
 import { RoomSessionScreenShare } from './RoomSessionScreenShare';
 
-export interface RoomSessionDocs<T> extends BaseRoomSession<T>  {
+export interface RoomSessionDocs<T> extends BaseRoomSession<T> {
 
   /** Whether the connection is currently active */
   get active(): boolean
@@ -54,7 +54,7 @@ export interface RoomSessionDocs<T> extends BaseRoomSession<T>  {
   /** The unique identifier for the room session */
   get roomSessionId(): string
 
-  /** Contains any local screen shares added to the room via {@link createScreenShareObject}. */
+  /** Contains any local screen shares added to the room via {@link startScreenShare}. */
   get screenShareList(): RoomSessionScreenShare[]
   
   /** Whether the connection is currently in the "trying" state. */
@@ -113,12 +113,33 @@ export interface RoomSessionDocs<T> extends BaseRoomSession<T>  {
    * sharing instances and add all of them to the room.
    * @param opts 
    * 
+   * @deprecated Use {@link startScreenShare} instead.
+   * 
    * @example Sharing the screen together with the associated audio:
    * ```typescript
    * await roomSession.createScreenShareObject({audio: true, video: true})
    * ```
    */
   createScreenShareObject(opts: {
+    /** Whether the screen share object should automatically join the room */
+    autoJoin?: boolean
+    /** Audio constraints to use when joining the room. Default: `true`. */
+    audio?: MediaStreamConstraints['audio']
+    /** Video constraints to use when joining the room. Default: `true`. */
+    video?: MediaStreamConstraints['video']
+  }): Promise<RoomSessionScreenShare>
+
+  /**
+   * Adds a screen sharing instance to the room. You can create multiple screen
+   * sharing instances and add all of them to the room.
+   * @param opts 
+   * 
+   * @example Sharing the screen together with the associated audio:
+   * ```typescript
+   * await roomSession.startScreenShare({audio: true, video: true})
+   * ```
+   */
+   startScreenShare(opts: {
     /** Whether the screen share object should automatically join the room */
     autoJoin?: boolean
     /** Audio constraints to use when joining the room. Default: `true`. */
