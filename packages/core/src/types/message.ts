@@ -1,7 +1,7 @@
 import { INTERNAL_GLOBAL_MESSAGING_EVENTS } from '../utils/constants'
 
-type MessageDirection = 'inbound' | 'outbound'
-type MessageState = 'queued' | 'initiated' | 'sent' | 'delivered' | 'undelivered' | 'failed'
+export type MessageDirection = 'inbound' | 'outbound'
+export type MessageState = 'queued' | 'initiated' | 'sent' | 'delivered' | 'undelivered' | 'failed'
 export type MessageEventTypes = typeof INTERNAL_GLOBAL_MESSAGING_EVENTS[number]
 
 export type MessageEventParams = {
