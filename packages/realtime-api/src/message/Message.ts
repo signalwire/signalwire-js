@@ -1,36 +1,119 @@
-import { MessageEventParams, Message as CoreMessage, extendComponent, BaseComponentOptions, connect, ConsumerContract } from '@signalwire/core'
+import { BaseComponentOptions, connect, ConsumerContract, logger, MessageEventParams } from '@signalwire/core'
 import { BaseConsumer } from '../BaseConsumer'
-import { MessageAPIEventHandlerMapping } from '../types'
+import { MessageAPIEventHandlerMapping, MessageMethodParams, MessageMethodParamsWithoutType, MessageMethodResponse, MessageObject } from '../types'
 
-export type MessageObject = MessageEventParams['params']
-
-
-export class MessageConsumer extends BaseConsumer<MessageAPIEventHandlerMapping> {
-  protected _eventsPrefix = 'messaging' as const
-}
-
-export interface MessageAPIMethods {
-  send(params: CoreMessage.MessageMethodParams): Promise<CoreMessage.MessageMethodResponse>
-  sendSMS(params: CoreMessage.MessageMethodParamsWithoutType): Promise<CoreMessage.MessageMethodResponse>
-  sendMMS(params: CoreMessage.MessageMethodParamsWithoutType): Promise<CoreMessage.MessageMethodResponse>
-}
-
-export interface MessageAPI extends ConsumerContract<MessageAPIEventHandlerMapping>, MessageAPIMethods {
+const STATES_TO_RESOLVE_SENT_REQUESTS = [
+  'sent', 'delivered', 'failed', 'undelivered'
+]
+export interface MessageAPI extends ConsumerContract<MessageAPIEventHandlerMapping> {
+  send(params: MessageMethodParams): Promise<MessageObject>
+  sendSMS(params: MessageMethodParamsWithoutType): Promise<MessageObject>
+  sendMMS(params: MessageMethodParamsWithoutType): Promise<MessageObject>
   subscribe(): Promise<void>
 }
 
-export const Message = extendComponent<MessageConsumer, MessageAPIMethods>(MessageConsumer, {
-  send: CoreMessage.send,
-  sendSMS: CoreMessage.sendSMS,
-  sendMMS: CoreMessage.sendMMS,
-})
+export class MessageConsumer extends BaseConsumer<MessageAPIEventHandlerMapping> implements MessageAPI {
+  protected _eventsPrefix = 'messaging' as const
+  private _sendRequests: Map<string, { resolve: (value: MessageObject) => void, reject: (reason?: any) => void }> = new Map()
+
+  constructor(public options: BaseComponentOptions<MessageAPIEventHandlerMapping>) {
+    super(options)
+    this.on('state', this._onMessageStateChange.bind(this))
+    this._attachListeners('')
+    this.applyEmitterTransforms()
+  }
+  
+  /* @internal */
+  public _onMessageStateChange(messageObj: MessageObject) {
+    if (STATES_TO_RESOLVE_SENT_REQUESTS.includes(messageObj.state) && this._sendRequests.has(messageObj.id)) {
+      const { resolve } = this._sendRequests.get(messageObj.id)!
+      this._sendRequests.delete(messageObj.id)
+      resolve(messageObj)
+    }
+  }
+
+  private async _send({to: to_number, from: from_number, onMessageStateChange, ...params}: MessageMethodParams): Promise<MessageObject> {
+    const response: MessageMethodResponse = await this.execute({
+      method: 'messaging.send',
+      params: {
+        to_number,
+        from_number,
+        ...params
+      }
+    })
+    if (onMessageStateChange) {
+      this.on('state', (messageObj: MessageObject) => {
+        if (messageObj.id === response.message_id) {
+          onMessageStateChange(messageObj)
+        }
+      })
+    }
+    return new Promise((resolve, reject) => {
+      this._sendRequests.set(response.message_id, { resolve, reject })
+    })
+  }
+
+  send(params: MessageMethodParams): Promise<MessageObject> {
+    return this._send(params)
+  }
+
+  sendMMS(params: MessageMethodParamsWithoutType): Promise<MessageObject> {
+    return this._send({
+      type: 'mms',
+      ...params
+    })
+  }
+
+  sendSMS(params: MessageMethodParamsWithoutType): Promise<MessageObject> {
+    return this._send({
+      type: 'sms',
+      ...params
+    })
+  }
+
+  subscribe(): Promise<void> {
+    return Promise.resolve()
+  }
+
+  protected getEmitterTransforms() {
+    return new Map([[
+      ['messaging.receive', 'messaging.state'],
+      {
+        instanceFactory: () => ({}),
+        payloadTransform: (payload: MessageEventParams["params"]) => {
+          const { 
+            message_id: id, 
+            from_number: from, 
+            to_number: to, 
+            message_state: state, 
+            ...rest 
+          } = payload
+          return {
+            id,
+            to,
+            from,
+            state,
+            get delivered(): boolean {
+              return this.state === 'delivered'
+            },
+            get sent(): boolean {
+              return this.state === 'sent'
+            },
+            ...rest
+          }
+        }
+      }
+    ]])
+  }
+
+}
 
 export const createMessageObject = (
   params: BaseComponentOptions<MessageAPIEventHandlerMapping>
 ): MessageAPI => {
   const message = connect<MessageAPIEventHandlerMapping, MessageConsumer, MessageAPI>({
     store: params.store,
-    Component: Message,
+    Component: MessageConsumer,
     componentListeners: {
       errors: 'onError',
       responses: 'onSuccess',

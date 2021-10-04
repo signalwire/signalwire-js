@@ -1,24 +1,26 @@
+import { logger } from '@signalwire/core'
 import { createClient } from '@signalwire/realtime-api'
 
 async function run() {
   const client = await createClient({
     project: process.env.PROJECT!,
     token: process.env.TOKEN!,
-    // contexts: ['default'],
-    logLevel: 'debug'
+    contexts: ['default'],
+    logLevel: 'trace',
   })
 
   await client.connect()
-
-  const result = await client.message.sendSMS({
+  const message = await client.message.sendSMS({
     context: 'default',
-    body: 'Hello From Client',
+    body: 'can you hear me?????',
     to: '+12066779446',
     from: '+12082663675',
-    tags: ['my-tag', 'whatever'],
+    onMessageStateChange: (msgObj) => {
+      logger.info('onMessageStateChange: ', msgObj.state)
+    }
   })
 
-  console.log(result)
+  logger.info(`MESSAGE ID: ${message.id}, STATE: ${message.state}`)
 }
 
 run();
