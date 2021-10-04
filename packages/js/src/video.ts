@@ -1,18 +1,23 @@
-import { createRoomObject } from './createRoomObject'
+import { createRoomObject, Room } from './createRoomObject'
 import { joinRoom } from './joinRoom'
 import { MakeRoomOptions } from './Client'
-import { Room } from './Room'
-import { RoomScreenShare } from './RoomScreenShare'
-import { RoomDevice } from './RoomDevice'
 import { RoomSession } from './RoomSession'
+import { RoomSessionDevice, RoomDevice } from './RoomSessionDevice'
+import {
+  RoomSessionScreenShare,
+  RoomScreenShare,
+} from './RoomSessionScreenShare'
 
 export {
+  RoomSession,
+  RoomSessionDevice,
+  RoomSessionScreenShare,
+  // Just to keep backwards compatibility.
   createRoomObject,
   joinRoom,
   Room,
-  RoomScreenShare,
   RoomDevice,
-  RoomSession,
+  RoomScreenShare,
 }
 
 export type { MakeRoomOptions }

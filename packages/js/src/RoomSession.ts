@@ -1,7 +1,7 @@
 import { UserOptions, logger } from '@signalwire/core'
 import { createClient } from './createClient'
 import type { MakeRoomOptions } from './Client'
-import type { Room } from './Room'
+import { BaseRoomSession } from './BaseRoomSession'
 
 const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
   aspectRatio: { ideal: 16 / 9 },
@@ -40,7 +40,7 @@ export const UNSAFE_PROP_ACCESS = [
 
 export interface RoomSessionOptions extends UserOptions, MakeRoomOptions {}
 
-export interface RoomSession extends Room {}
+export interface RoomSession extends BaseRoomSession<RoomSession> {}
 
 /**
  * @privateRemarks
@@ -68,7 +68,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     ...userOptions
   } = roomOptions
 
-  const client = createClient(userOptions)
+  const client = createClient<RoomSession>(userOptions)
   const room = client.rooms.makeRoomObject({
     audio,
     video: video === true ? VIDEO_CONSTRAINTS : video,
@@ -99,7 +99,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
   }
 
   return new Proxy<RoomSession>(room, {
-    get(target: Room, prop: any, receiver: any) {
+    get(target: RoomSession, prop: any, receiver: any) {
       if (prop === 'join') {
         return join
       }

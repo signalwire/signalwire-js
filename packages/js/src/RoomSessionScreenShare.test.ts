@@ -1,15 +1,15 @@
-import { RoomScreenShareAPI } from './RoomScreenShare'
-import type { RoomScreenShare } from './RoomScreenShare'
+import { RoomSessionScreenShareAPI } from './RoomSessionScreenShare'
+import type { RoomSessionScreenShare } from './RoomSessionScreenShare'
 import { configureJestStore } from './testUtils'
 
 describe('RoomScreenShare Object', () => {
-  let roomScreenShare: RoomScreenShare
+  let roomScreenShare: RoomSessionScreenShare
 
   beforeEach(() => {
-    roomScreenShare = new RoomScreenShareAPI({
+    roomScreenShare = new RoomSessionScreenShareAPI({
       store: configureJestStore(),
       emitter: jest.fn() as any,
-    }) as any as RoomScreenShare
+    }) as any as RoomSessionScreenShare
     // @ts-expect-error
     roomScreenShare.execute = jest.fn()
   })

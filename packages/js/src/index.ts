@@ -58,6 +58,9 @@ export type {
   ConnectionOptions,
 } from '@signalwire/webrtc'
 export type {
-  RoomObjectEventsHandlerMap,
-  RoomObjectEvents,
+  RoomSessionObjectEventsHandlerMap,
+  RoomSessionObjectEvents,
+  // Just to keep backwards compatibility.
+  RoomSessionObjectEventsHandlerMap as RoomObjectEventsHandlerMap,
+  RoomSessionObjectEvents as RoomObjectEvents,
 } from './utils/interfaces'
