@@ -284,7 +284,7 @@ describe('BaseComponent', () => {
       expect(mockInstanceFactoryNotRegistered).toHaveBeenCalledTimes(0)
       expect(mockPayloadTransformNotRegistered).toHaveBeenCalledTimes(0)
 
-      /** 2 transforms because we added the transform `key` too */
+      /** 2 transforms because we added the transform `type` too */
       // @ts-expect-error
       expect(instance._emitterTransforms.size).toEqual(2)
 
@@ -304,7 +304,7 @@ describe('BaseComponent', () => {
       expect(mockInstanceFactoryNotRegistered).toHaveBeenCalledTimes(0)
       expect(mockPayloadTransformNotRegistered).toHaveBeenCalledTimes(0)
 
-      /** 3 transforms because we added the transform `key` too */
+      /** 3 transforms because we added the transform `type` too */
       // @ts-expect-error
       expect(instance._emitterTransforms.size).toEqual(3)
     })
