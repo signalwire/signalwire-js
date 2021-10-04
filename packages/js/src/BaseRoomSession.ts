@@ -338,7 +338,7 @@ export const RoomSessionAPI = extendComponent<
   getRecordings: Rooms.getRecordings,
   startRecording: Rooms.startRecording,
   getPlaybacks: Rooms.getPlaybacks,
-  startPlayback: Rooms.startPlayback,
+  play: Rooms.play,
 })
 
 type RoomSessionObjectEventsHandlerMapping = RoomSessionObjectEvents &

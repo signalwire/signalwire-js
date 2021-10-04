@@ -46,7 +46,7 @@ describe('Room Object', () => {
     expect(room.getRecordings).toBeDefined()
     expect(room.startRecording).toBeDefined()
     expect(room.getPlaybacks).toBeDefined()
-    expect(room.startPlayback).toBeDefined()
+    expect(room.play).toBeDefined()
   })
 
   describe('getRecordings', () => {
@@ -184,7 +184,7 @@ describe('Room Object', () => {
         playbacks,
       })
 
-      room = createRoomSessionObject({
+      room = createBaseRoomSessionObject({
         store,
         // @ts-expect-error
         emitter,
@@ -204,7 +204,7 @@ describe('Room Object', () => {
       })
     })
 
-    it('startPlayback should return an interactive object', async () => {
+    it('play should return an interactive object', async () => {
       // @ts-expect-error
       ;(room.execute as jest.Mock).mockResolvedValueOnce({
         code: '200',
@@ -216,7 +216,7 @@ describe('Room Object', () => {
         },
       })
 
-      const playback = await room.startPlayback({
+      const playback = await room.play({
         url: 'rtmp://jest.example.com/bla',
         volume: 5,
       })
@@ -276,7 +276,7 @@ describe('Room Object', () => {
       })
     })
 
-    it('startPlayback should work with simulataneous playbacks', async () => {
+    it('play should work with simulataneous playbacks', async () => {
       // @ts-expect-error
       ;(room.execute as jest.Mock).mockResolvedValueOnce({
         code: '200',
@@ -298,12 +298,12 @@ describe('Room Object', () => {
         },
       })
 
-      const firstPlayback = await room.startPlayback({
+      const firstPlayback = await room.play({
         url: 'url-one',
       })
       // @ts-expect-error
       firstPlayback.execute = jest.fn()
-      const secondPlayback = await room.startPlayback({
+      const secondPlayback = await room.play({
         url: 'url-two',
       })
       // @ts-expect-error

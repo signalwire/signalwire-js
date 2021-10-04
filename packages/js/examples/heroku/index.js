@@ -40,8 +40,8 @@ const playbackElements = [
 ]
 
 window.playbackStarted = () => {
-  startPlaybackBtn.classList.add('d-none')
-  startPlaybackBtn.disabled = true
+  playBtn.classList.add('d-none')
+  playBtn.disabled = true
 
   playbackElements.forEach((button) => {
     button.classList.remove('d-none')
@@ -49,8 +49,8 @@ window.playbackStarted = () => {
   })
 }
 window.playbackEnded = () => {
-  startPlaybackBtn.classList.remove('d-none')
-  startPlaybackBtn.disabled = false
+  playBtn.classList.remove('d-none')
+  playBtn.disabled = false
 
   playbackElements.forEach((button) => {
     button.classList.add('d-none')
@@ -483,7 +483,7 @@ window.startPlayback = () => {
   }
   console.debug('>> startPlayback', url)
   roomObj
-    .startPlayback({ url, volume: 10 })
+    .play({ url, volume: 10 })
     .then((response) => {
       console.log('Playback started!', response)
       playbackObj = response

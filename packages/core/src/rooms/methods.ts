@@ -168,11 +168,11 @@ export const getPlaybacks = createRoomMethod<{
   transformResolve: (payload) => ({ playbacks: payload.playbacks }),
 })
 
-export type StartPlaybackParams = {
+export type PlayParams = {
   url: string
   volume?: number
 }
-export const startPlayback: RoomMethodDescriptor<any, StartPlaybackParams> = {
+export const play: RoomMethodDescriptor<any, PlayParams> = {
   value: function (params) {
     return new Promise(async (resolve) => {
       const handler = (instance: any) => {
@@ -210,7 +210,7 @@ export type GetRecordings = ReturnType<typeof getRecordings.value>
 export type StartRecording = ReturnType<typeof startRecording.value>
 
 export type GetPlaybacks = ReturnType<typeof getPlaybacks.value>
-export type StartPlayback = ReturnType<typeof startPlayback.value>
+export type Play = ReturnType<typeof play.value>
 // End Room Methods
 
 /**

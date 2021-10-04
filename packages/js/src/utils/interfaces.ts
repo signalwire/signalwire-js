@@ -173,9 +173,7 @@ interface RoomControlMethodsInterface {
   getRecordings(): Rooms.GetRecordings
   startRecording(): Promise<Rooms.RoomSessionRecording>
   getPlaybacks(): Rooms.GetPlaybacks
-  startPlayback(
-    params: Rooms.StartPlaybackParams
-  ): Promise<Rooms.RoomSessionPlayback>
+  play(params: Rooms.PlayParams): Promise<Rooms.RoomSessionPlayback>
 }
 
 /**
