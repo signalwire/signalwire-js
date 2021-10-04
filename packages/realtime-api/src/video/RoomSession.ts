@@ -433,6 +433,7 @@ export interface RoomSession
 
 export type RoomSessionUpdated = EntityUpdated<RoomSession>
 export interface RoomSessionFullState extends RoomSession {
+  /** List of members that are part of this room session */
   members: RoomSessionMember[]
 }
 
