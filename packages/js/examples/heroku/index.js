@@ -258,7 +258,7 @@ window.ready = (callback) => {
 
 let screenShareObj
 window.startScreenShare = async () => {
-  screenShareObj = await roomObj.createScreenShareObject({
+  screenShareObj = await roomObj.startScreenShare({
     audio: true,
     video: true,
   })

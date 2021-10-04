@@ -1,15 +1,15 @@
 import { EventEmitter, actions } from '@signalwire/core'
-import { createRoomSessionObject } from './Room'
-import type { Room } from './Room'
+import { createBaseRoomSessionObject } from './BaseRoomSession'
+import type { RoomSession } from './RoomSession'
 import { configureJestStore, configureFullStack } from './testUtils'
 
 describe('Room Object', () => {
   let store: any
-  let room: Room
+  let room: RoomSession
 
   beforeEach(() => {
     store = configureJestStore()
-    room = createRoomSessionObject({
+    room = createBaseRoomSessionObject<RoomSession>({
       store,
       emitter: new EventEmitter(),
     })
@@ -58,7 +58,7 @@ describe('Room Object', () => {
         recordings: recordingList,
       })
 
-      room = createRoomSessionObject({
+      room = createBaseRoomSessionObject({
         store,
         // @ts-expect-error
         emitter,
@@ -174,7 +174,7 @@ describe('Room Object', () => {
   describe('as event emitter', () => {
     it('should listen on the talking events', () => {
       const { store, session, emitter } = configureFullStack()
-      room = createRoomSessionObject({
+      room = createBaseRoomSessionObject({
         store,
         // @ts-expect-error
         emitter,

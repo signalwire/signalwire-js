@@ -7,16 +7,18 @@ import {
   BaseConnection,
   BaseConnectionStateEventTypes,
 } from '@signalwire/webrtc'
-import { RoomDeviceMethods } from './utils/interfaces'
+import { RoomScreenShareMethods } from './utils/interfaces'
 
-export interface RoomDevice
-  extends RoomDeviceMethods,
+/** @deprecated Use {@link RoomSessionScreenShare} instead */
+export interface RoomScreenShare extends RoomSessionScreenShare {}
+export interface RoomSessionScreenShare
+  extends RoomScreenShareMethods,
     BaseConnectionContract<BaseConnectionStateEventTypes> {
   join(): Promise<void>
   leave(): Promise<void>
 }
 
-export class RoomDeviceConnection extends BaseConnection<BaseConnectionStateEventTypes> {
+export class RoomSessionScreenShareConnection extends BaseConnection<BaseConnectionStateEventTypes> {
   join() {
     return super.invite()
   }
@@ -26,15 +28,15 @@ export class RoomDeviceConnection extends BaseConnection<BaseConnectionStateEven
   }
 }
 
-export const RoomDeviceAPI = extendComponent<
-  RoomDeviceConnection,
-  RoomDeviceMethods
->(RoomDeviceConnection, {
+export const RoomSessionScreenShareAPI = extendComponent<
+  RoomSessionScreenShareConnection,
+  RoomScreenShareMethods
+>(RoomSessionScreenShareConnection, {
   audioMute: Rooms.audioMuteMember,
   audioUnmute: Rooms.audioUnmuteMember,
   videoMute: Rooms.videoMuteMember,
   videoUnmute: Rooms.videoUnmuteMember,
-  setInputVolume: Rooms.setInputVolumeMember,
   setMicrophoneVolume: Rooms.setInputVolumeMember,
+  setInputVolume: Rooms.setInputVolumeMember,
   setInputSensitivity: Rooms.setInputSensitivityMember,
 })

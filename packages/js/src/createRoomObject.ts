@@ -1,7 +1,13 @@
 import { UserOptions, logger } from '@signalwire/core'
 import { createClient } from './createClient'
 import { MakeRoomOptions } from './Client'
-import type { Room } from './Room'
+import { BaseRoomSession } from './BaseRoomSession'
+
+/**
+ * @internal
+ * @deprecated Use {@link RoomSession} instead.
+ **/
+export interface Room extends BaseRoomSession<Room> {}
 
 export interface CreateRoomObjectOptions
   extends UserOptions,
@@ -55,7 +61,7 @@ export const createRoomObject = (
       ...userOptions
     } = roomOptions
 
-    const client = createClient({
+    const client = createClient<Room>({
       ...userOptions,
     })
     await client.connect()
