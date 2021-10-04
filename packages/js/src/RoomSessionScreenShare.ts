@@ -8,15 +8,22 @@ import {
   BaseConnectionStateEventTypes,
 } from '@signalwire/webrtc'
 import { RoomScreenShareMethods } from './utils/interfaces'
+import { RoomSessionScreenShareDocs } from './RoomSessionScreenShare.docs'
 
 /** @deprecated Use {@link RoomSessionScreenShare} instead */
 export interface RoomScreenShare extends RoomSessionScreenShare {}
-export interface RoomSessionScreenShare
+interface RoomSessionScreenShareMain
   extends RoomScreenShareMethods,
     BaseConnectionContract<BaseConnectionStateEventTypes> {
   join(): Promise<void>
   leave(): Promise<void>
 }
+
+/**
+ * Represents a screen sharing.
+ */
+export interface RoomSessionScreenShare
+  extends RoomSessionScreenShareDocs { }  // TODO: AssertSameType<RoomSessionScreenShareMain, RoomSessionScreenShareDocs>
 
 export class RoomSessionScreenShareConnection extends BaseConnection<BaseConnectionStateEventTypes> {
   join() {

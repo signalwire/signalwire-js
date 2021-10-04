@@ -2,6 +2,7 @@ import { UserOptions, logger } from '@signalwire/core'
 import { createClient } from './createClient'
 import type { MakeRoomOptions } from './Client'
 import { BaseRoomSession } from './BaseRoomSession'
+import { RoomSessionDocs } from './RoomSession.docs'
 
 const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
   aspectRatio: { ideal: 16 / 9 },
@@ -40,9 +41,33 @@ export const UNSAFE_PROP_ACCESS = [
 
 export interface RoomSessionOptions extends UserOptions, MakeRoomOptions {}
 
-export interface RoomSession extends BaseRoomSession<RoomSession> {}
+interface RoomSessionMain extends BaseRoomSession<RoomSession> {}
 
 /**
+ * A RoomSession allows you to start and control video sessions.
+ *
+ * For example, the following code joins a video session and listens for new
+ * members joining:
+ *
+ * ```typescript
+ * const roomSession = new SignalWire.Video.RoomSession({
+ *   token: '<YourRoomToken>',
+ *   rootElement: document.getElementById('myVideoElement'),
+ *   audio: true,
+ *   video: true,
+ * })
+ *
+ * roomSession.on('member.joined', (e) => {
+ *   console.log(`${e.member.name} joined`)
+ * })
+ *
+ * roomSession.join()
+ * ```
+ */
+export interface RoomSession extends RoomSessionDocs<RoomSession> {}  // TODO: AssertSameType<RoomSessionMain, RoomSessionDocs>
+
+/**
+ * @ignore
  * @privateRemarks
  *
  * The use of a function expression as a contructor instead
@@ -98,7 +123,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     return room
   }
 
-  return new Proxy<RoomSession>(room, {
+  return new Proxy<RoomSession>(room as any, {
     get(target: RoomSession, prop: any, receiver: any) {
       if (prop === 'join') {
         return join
