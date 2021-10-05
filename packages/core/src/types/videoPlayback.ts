@@ -32,17 +32,42 @@ export type InternalVideoPlaybackEventNames =
  * Public Contract for a VideoPlayback
  */
 export interface VideoPlaybackContract {
+  /** Unique id for this playback */
   id: string
+
+  /** Id of the room session associated to this playback */
   roomSessionId: string
+
+  /** Current state of the playback */
   state: 'playing' | 'paused' | 'completed'
+
+  /** Url of the file reproduced by this playback */
   url: string
+  
+  /** Audio volume at which the playback file is reproduced */
   volume: number
+
+  /** Start time, if available */
   startedAt: number
+
+  /** End time, if available */
   endedAt?: number
 
+  /** Pauses the playback. */
   pause(): Promise<void>
+
+  /** Resumes the playback. */
   resume(): Promise<void>
+
+  /** Stops the playback. */
   stop(): Promise<void>
+
+  /**
+   * Sets the audio volume for the playback.
+   *
+   * @param volume The desired volume. Values range from -50 to 50, with a
+   * default of 0.
+   */
   setVolume(volume: number): Promise<void>
 }
 

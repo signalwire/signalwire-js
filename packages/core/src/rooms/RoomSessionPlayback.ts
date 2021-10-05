@@ -7,6 +7,12 @@ import type {
   VideoPlaybackEventNames,
 } from '../types/videoPlayback'
 
+/**
+ * Instances of this class allow you to control (e.g., pause, resume, stop) the
+ * playback inside a room session. You can obtain instances of this class by
+ * starting a playback from the desired {@link RoomSession} (see
+ * {@link RoomSession.play})
+ */
 export interface RoomSessionPlayback extends VideoPlaybackContract {}
 
 export type RoomSessionPlaybackEventsHandlerMapping = Record<
