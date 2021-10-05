@@ -416,18 +416,10 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       this.direction = 'outbound'
       this.peer = new RTCPeer(this, 'offer')
       try {
-        const _resolve = () => resolve(this as any as T)
-        // @ts-expect-error
-        this.once('active', () => {
-          // @ts-expect-error
-          this.off('destroy', _resolve)
-          _resolve()
-        })
-        // @ts-expect-error
-        this.once('destroy', _resolve)
         await this.peer.start()
+        resolve(this as any as T)
       } catch (error) {
-        logger.error('Join error', error)
+        logger.error('Invite error', error)
         reject(error)
       }
     })
@@ -439,17 +431,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       this.direction = 'inbound'
       this.peer = new RTCPeer(this, 'answer')
       try {
-        const _resolve = () => resolve(this)
-
-        // @ts-expect-error
-        this.once('active', () => {
-          // @ts-expect-error
-          this.off('destroy', _resolve)
-          _resolve()
-        })
-        // @ts-expect-error
-        this.once('destroy', _resolve)
         await this.peer.start()
+        resolve(this)
       } catch (error) {
         logger.error('Answer error', error)
         reject(error)
@@ -465,9 +448,10 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         // if (this.active) {
         //   this.executeUpdateMedia()
         // } else {
-        this.executeInvite(sdp)
-        // }
-        break
+
+        return this.executeInvite(sdp)
+
+      // }
       case 'answer':
         logger.warn('Unhandled verto.answer')
         // this.executeAnswer()
@@ -486,13 +470,13 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       logger.debug('Invite response', response)
     } catch (error) {
       const { action, jsonrpc } = error
-      logger.error('Invite Error', jsonrpc, action)
-      if (
-        jsonrpc?.code === '404' ||
-        jsonrpc?.cause === 'INVALID_MSG_UNSPECIFIED'
-      ) {
-        this.setState('hangup')
-      }
+      logger.error('ppp Invite Error ????????????', jsonrpc, action)
+      // FIXME: Handle hangup redirect
+      // if (jsonrpc?.code || jsonrpc?.cause === 'INVALID_MSG_UNSPECIFIED') {
+      //   this.setState('hangup')
+      // }
+      this.setState('hangup')
+      throw error
     }
   }
 
