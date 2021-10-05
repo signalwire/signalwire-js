@@ -51,6 +51,25 @@ async function run() {
         )
       })
 
+      roomSession.on('playback.started', (playback) => {
+        console.log('playback.started', playback.id, playback.state)
+      })
+
+      roomSession.on('playback.updated', (playback) => {
+        console.log('playback.updated', playback.id, playback.state)
+      })
+
+      roomSession.on('playback.ended', (playback) => {
+        console.log(
+          'playback.ended',
+          playback.id,
+          playback.state,
+          playback.startedAt,
+          playback.endedAt,
+          playback.volume
+        )
+      })
+
       const roomSessionState = await roomSession.subscribe()
 
       console.log(
@@ -73,6 +92,21 @@ async function run() {
         setTimeout(async () => {
           await rec.stop()
           console.log('Recording STOPPED')
+        }, 10 * 1000)
+      }, 3000)
+
+      const playback = await roomSession.play({
+        url: 'https://example/foo.mp4',
+        volume: 10,
+      })
+
+      setTimeout(async () => {
+        const list = await roomSession.getPlaybacks()
+        console.log('Playbacks', JSON.stringify(list, null, 2))
+
+        setTimeout(async () => {
+          await playback.stop()
+          console.log('Playback STOPPED')
         }, 10 * 1000)
       }, 2000)
 
