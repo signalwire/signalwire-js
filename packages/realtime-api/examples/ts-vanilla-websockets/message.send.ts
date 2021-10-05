@@ -13,8 +13,8 @@ async function run() {
   const message = await client.message.sendSMS({
     context: 'default',
     body: 'can you hear me?????',
-    to: '+12066779446',
-    from: '+12082663675',
+    to: '<FROM_NUMBER>',
+    from: '<TO_NUMBER>',
     onMessageStateChange: (msgObj) => {
       logger.info('onMessageStateChange: ', msgObj.state)
     }

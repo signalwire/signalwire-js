@@ -44,7 +44,7 @@ export type JSONRPCMethod =
   | 'video.message'
   | RoomMethod
   | VertoMethod
-  | MessageMethods
+  | MessageMethod
 
 export interface JSONRPCRequest {
   jsonrpc: '2.0'
@@ -209,7 +209,7 @@ export type RoomMethod =
   | 'video.recording.resume'
 
 
-export type MessageMethods = 'messaging.send'
+export type MessageMethod = 'messaging.send'
 
 export interface WebSocketClient {
   addEventListener: WebSocket['addEventListener']
@@ -338,8 +338,3 @@ export interface EventTransform {
 }
 
 export type BaseEventHandler = (...args: any[]) => void
-
-export type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>>
-  & {
-    [K in Keys]: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>
-  }[Keys]

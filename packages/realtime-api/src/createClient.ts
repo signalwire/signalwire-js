@@ -18,6 +18,7 @@ export type { RealtimeClient, ClientEvents }
  * @param userOptions
  * @param userOptions.project SignalWire project id, e.g. `a10d8a9f-2166-4e82-56ff-118bc3a4840f`
  * @param userOptions.token SignalWire project token, e.g. `PT9e5660c101cd140a1c93a0197640a369cf5f16975a0079c9`
+ * @param userOptions.contexts SignalWire Relay contexts, e.g `['default', 'my-context']`
  * @param userOptions.logLevel logging level
  * @returns an instance of a real-time Client.
  * 
@@ -26,6 +27,7 @@ export type { RealtimeClient, ClientEvents }
  * const client = await createClient({
  *   project: '<project-id>',
  *   token: '<project-token>'
+ *   contexts: ['<your_contexts>']
  * })
  * ```
  */

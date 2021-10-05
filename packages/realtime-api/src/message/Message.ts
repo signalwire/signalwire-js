@@ -2,7 +2,7 @@ import { BaseComponent, BaseComponentOptions, connect, MessageEventParams } from
 import { MessageAPIEventHandlerMapping, MessageMethodParams, SMSMessageMethodParams, MMSMessageMethodParams, MessageMethodResponse, MessageObject, BaseMessageMethodParams } from '../types'
 
 const STATES_TO_RESOLVE_SENT_REQUESTS = [
-  'sent', 'delivered', 'failed', 'undelivered'
+  'delivered', 'undelivered'
 ]
 interface MessageAPI {
   send(params: MessageMethodParams): Promise<MessageObject>

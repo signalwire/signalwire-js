@@ -31,7 +31,7 @@ export class BaseConsumer<
     this.applyEmitterTransforms({ local: true })
   }
 
-  subscribe(): Promise<void> {
+  subscribe() {
     return new Promise(async (resolve, reject) => {
       const subscriptions = this.getSubscriptions()
       if (subscriptions.length > 0) {
