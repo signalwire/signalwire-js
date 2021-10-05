@@ -7,6 +7,7 @@ import {
   ConsumerContract,
   RoomSessionRecording,
   VideoRoomEventParams,
+  RoomSessionPlayback,
 } from '@signalwire/core'
 import { BaseConsumer } from '../BaseConsumer'
 import { RealTimeVideoApiEvents } from '../types/video'
@@ -63,6 +64,7 @@ export type {
   RoomSessionFullState,
   RoomSessionMember,
   RoomSessionRecording,
+  RoomSessionPlayback,
 }
 
 /** @internal */
