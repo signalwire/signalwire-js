@@ -1,18 +1,17 @@
-import { BaseComponentOptions, connect, ConsumerContract, logger, MessageEventParams } from '@signalwire/core'
+import { BaseComponent, BaseComponentOptions, connect, ConsumerContract, logger, MessageEventParams } from '@signalwire/core'
 import { BaseConsumer } from '../BaseConsumer'
 import { MessageAPIEventHandlerMapping, MessageMethodParams, MessageMethodParamsWithoutType, MessageMethodResponse, MessageObject } from '../types'
 
 const STATES_TO_RESOLVE_SENT_REQUESTS = [
   'sent', 'delivered', 'failed', 'undelivered'
 ]
-export interface MessageAPI extends ConsumerContract<MessageAPIEventHandlerMapping> {
+export interface MessageAPI {
   send(params: MessageMethodParams): Promise<MessageObject>
   sendSMS(params: MessageMethodParamsWithoutType): Promise<MessageObject>
   sendMMS(params: MessageMethodParamsWithoutType): Promise<MessageObject>
-  subscribe(): Promise<void>
 }
 
-export class MessageConsumer extends BaseConsumer<MessageAPIEventHandlerMapping> implements MessageAPI {
+export class MessageComponent extends BaseComponent<MessageAPIEventHandlerMapping> implements MessageAPI {
   protected _eventsPrefix = 'messaging' as const
   private _sendRequests: Map<string, { resolve: (value: MessageObject) => void, reject: (reason?: any) => void }> = new Map()
 
@@ -71,10 +70,6 @@ export class MessageConsumer extends BaseConsumer<MessageAPIEventHandlerMapping>
     })
   }
 
-  subscribe(): Promise<void> {
-    return Promise.resolve()
-  }
-
   protected getEmitterTransforms() {
     return new Map([[
       ['messaging.receive', 'messaging.state'],
@@ -111,9 +106,9 @@ export class MessageConsumer extends BaseConsumer<MessageAPIEventHandlerMapping>
 export const createMessageObject = (
   params: BaseComponentOptions<MessageAPIEventHandlerMapping>
 ): MessageAPI => {
-  const message = connect<MessageAPIEventHandlerMapping, MessageConsumer, MessageAPI>({
+  const message = connect<MessageAPIEventHandlerMapping, MessageComponent, MessageAPI>({
     store: params.store,
-    Component: MessageConsumer,
+    Component: MessageComponent,
     componentListeners: {
       errors: 'onError',
       responses: 'onSuccess',

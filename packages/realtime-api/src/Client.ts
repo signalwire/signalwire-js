@@ -62,10 +62,11 @@ export interface RealtimeClient
   message: MessageAPI
 }
 
-type ClientNamespaces = Video | MessageAPI
+type ClientNamespaces = Video
 
 export class Client extends BaseClient<ClientEvents> {
   private _consumers: Map<EventsPrefix, ClientNamespaces> = new Map()
+  private _message: MessageAPI
 
   async onAuth(session: SessionState) {
     try {
@@ -105,18 +106,15 @@ export class Client extends BaseClient<ClientEvents> {
   }
 
   get message(): MessageAPI {
-    if (this._consumers.has('messaging')) {
-      // @ts-expect-error
-      return this._consumers.get('messaging')!
+    if (!this._message) {
+      this._message = createMessageObject({
+        store: this.options.store,
+        // Emitter is now typed but we share it across objects
+        // so types won't match
+        // @ts-expect-error
+        emitter: this.options.emitter,
+      })
     }
-    const message = createMessageObject({
-      store: this.store,
-      // Emitter is now typed but we share it across objects
-      // so types won't match
-      // @ts-expect-error
-      emitter: this.options.emitter,
-    })
-    this._consumers.set('messaging', message)
-    return message
+    return this._message
   }
 }

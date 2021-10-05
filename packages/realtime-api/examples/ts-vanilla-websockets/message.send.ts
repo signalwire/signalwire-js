@@ -20,7 +20,7 @@ async function run() {
     }
   })
 
-  logger.info(`MESSAGE ID: ${message.id}, STATE: ${message.state}`)
+  logger.info(`MESSAGE SENT >>>> message_id: ${message.id}, state: ${message.state}`)
 }
 
 run();

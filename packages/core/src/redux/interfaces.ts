@@ -8,7 +8,7 @@ import {
   JSONRPCMethod,
   BaseConnectionState,
 } from '../utils/interfaces'
-import type { VideoAPIEventParams, InternalVideoAPIEvent } from '../types'
+import type { VideoAPIEventParams, InternalVideoAPIEvent, MessagePubsubEvent } from '../types'
 
 interface SWComponent {
   id: string
@@ -93,6 +93,7 @@ export type MapToPubSubShape<T> = {
 
 export type PubSubAction =
   | MapToPubSubShape<VideoAPIEventParams | InternalVideoAPIEvent>
+  | MessagePubsubEvent
   | {
       type: SessionEvents
       payload: undefined

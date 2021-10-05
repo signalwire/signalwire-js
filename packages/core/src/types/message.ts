@@ -4,6 +4,11 @@ export type MessageDirection = 'inbound' | 'outbound'
 export type MessageState = 'queued' | 'initiated' | 'sent' | 'delivered' | 'undelivered' | 'failed'
 export type MessageEventTypes = typeof INTERNAL_GLOBAL_MESSAGING_EVENTS[number]
 
+export interface MessagePubsubEvent {
+  type: MessageEventTypes,
+  payload: MessageEventParams['params']
+}
+
 export type MessageEventParams = {
   event_type: MessageEventTypes,
   context: string,
