@@ -1,5 +1,4 @@
-import { BaseComponent, BaseComponentOptions, connect, ConsumerContract, logger, MessageEventParams } from '@signalwire/core'
-import { BaseConsumer } from '../BaseConsumer'
+import { BaseComponent, BaseComponentOptions, connect, MessageEventParams } from '@signalwire/core'
 import { MessageAPIEventHandlerMapping, MessageMethodParams, MessageMethodParamsWithoutType, MessageMethodResponse, MessageObject } from '../types'
 
 const STATES_TO_RESOLVE_SENT_REQUESTS = [
