@@ -16,6 +16,7 @@ export class MessageComponent extends BaseComponent<MessageAPIEventHandlerMappin
 
   constructor(public options: BaseComponentOptions<MessageAPIEventHandlerMapping>) {
     super(options)
+    // @ts-ignore
     this.on('state', this._onMessageStateChange.bind(this))
     this._attachListeners('')
     this.applyEmitterTransforms()

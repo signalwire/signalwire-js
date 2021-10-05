@@ -13,10 +13,6 @@ async function run() {
   client.message.on('receive', (data) => {
     console.log(`RECEIVED MESSAGE >>> `, data)
   })
-
-  client.message.on('state', (data) => {
-    console.log(`MESSAGE STATE EVENT >>> `, data)
-  })
 }
 
 run();

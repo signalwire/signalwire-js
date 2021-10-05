@@ -29,7 +29,7 @@ export type MessageMethodResponse = {
   message: string
 }
 
-export type MessageAPIEventHandlerMapping = Record<'state' | 'receive', (...args: any[]) => void>
+export type MessageAPIEventHandlerMapping = Record<'receive', (...args: any[]) => void>
 
 export type MessageObject = {
   id: string,
