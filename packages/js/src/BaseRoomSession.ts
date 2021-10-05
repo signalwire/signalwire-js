@@ -114,10 +114,10 @@ export class RoomSessionConnection
             })
           },
           payloadTransform: (payload: any) => {
-            return {
+            return toExternalJSON({
               ...payload.playback,
-              roomSessionId: this.roomSessionId,
-            }
+              room_session_id: this.roomSessionId,
+            })
           },
         },
       ],
