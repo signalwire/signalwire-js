@@ -377,7 +377,6 @@ interface RoomSessionDocs extends RoomSessionMain {
    *   console.log('members:', roomSessionState.members)
    * }
    * ```
->>>>>>> main
    */
   subscribe(): Promise<RoomSessionFullState>
 }
