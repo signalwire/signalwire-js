@@ -111,64 +111,66 @@ describe('RoomSession Object', () => {
     })
   })
 
-  it('play should return a playback object', async () => {
-    // @ts-expect-error
-    roomSession.execute = jest.fn().mockResolvedValue({
-      room_session_id: roomSessionId,
-      room_id: 'roomId',
-      playback: {
-        id: 'playbackId',
-        state: 'playing',
+  describe('playback apis', () => {
+    it('play() should return a playback object', async () => {
+      // @ts-expect-error
+      roomSession.execute = jest.fn().mockResolvedValue({
+        room_session_id: roomSessionId,
+        room_id: 'roomId',
+        playback: {
+          id: 'playbackId',
+          state: 'playing',
+          url: 'rtmp://example.com/foo',
+          volume: 10,
+          started_at: 1629460916,
+        },
+      })
+
+      const playback = await roomSession.play({
         url: 'rtmp://example.com/foo',
         volume: 10,
-        started_at: 1629460916,
-      },
-    })
+      })
 
-    const playback = await roomSession.play({
-      url: 'rtmp://example.com/foo',
-      volume: 10,
-    })
+      // @ts-expect-error
+      playback.execute = jest.fn()
 
-    // @ts-expect-error
-    playback.execute = jest.fn()
-
-    await playback.pause()
-    // @ts-ignore
-    expect(playback.execute).toHaveBeenLastCalledWith({
-      method: 'video.playback.pause',
-      params: {
-        room_session_id: roomSessionId,
-        playback_id: 'playbackId',
-      },
-    })
-    await playback.resume()
-    // @ts-ignore
-    expect(playback.execute).toHaveBeenLastCalledWith({
-      method: 'video.playback.resume',
-      params: {
-        room_session_id: roomSessionId,
-        playback_id: 'playbackId',
-      },
-    })
-    await playback.setVolume(20)
-    // @ts-ignore
-    expect(playback.execute).toHaveBeenLastCalledWith({
-      method: 'video.playback.set_volume',
-      params: {
-        room_session_id: roomSessionId,
-        playback_id: 'playbackId',
-        volume: 20,
-      },
-    })
-    await playback.stop()
-    // @ts-ignore
-    expect(playback.execute).toHaveBeenLastCalledWith({
-      method: 'video.playback.stop',
-      params: {
-        room_session_id: roomSessionId,
-        playback_id: 'playbackId',
-      },
+      await playback.pause()
+      // @ts-ignore
+      expect(playback.execute).toHaveBeenLastCalledWith({
+        method: 'video.playback.pause',
+        params: {
+          room_session_id: roomSessionId,
+          playback_id: 'playbackId',
+        },
+      })
+      await playback.resume()
+      // @ts-ignore
+      expect(playback.execute).toHaveBeenLastCalledWith({
+        method: 'video.playback.resume',
+        params: {
+          room_session_id: roomSessionId,
+          playback_id: 'playbackId',
+        },
+      })
+      await playback.setVolume(20)
+      // @ts-ignore
+      expect(playback.execute).toHaveBeenLastCalledWith({
+        method: 'video.playback.set_volume',
+        params: {
+          room_session_id: roomSessionId,
+          playback_id: 'playbackId',
+          volume: 20,
+        },
+      })
+      await playback.stop()
+      // @ts-ignore
+      expect(playback.execute).toHaveBeenLastCalledWith({
+        method: 'video.playback.stop',
+        params: {
+          room_session_id: roomSessionId,
+          playback_id: 'playbackId',
+        },
+      })
     })
   })
 })
