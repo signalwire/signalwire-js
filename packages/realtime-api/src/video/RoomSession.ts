@@ -343,7 +343,8 @@ interface RoomSessionDocs extends RoomSessionMain {
    * {@link RoomSessionPlayback} object to control the playback (e.g., pause,
    * resume, setVolume and stop).
    *
-   * @param params.url The url of the RTMP stream to reproduce
+   * @param params.url The url (http, https, rtmp, rtmps) of the stream to
+   * reproduce.
    * @param params.volume The audio volume at which to play the stream. Values
    * range from -50 to 50, with a default of 0.
    *
