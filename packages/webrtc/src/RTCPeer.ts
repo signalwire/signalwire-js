@@ -20,6 +20,13 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private options: ConnectionOptions
   private _iceTimeout: any
   private _negotiating = false
+  /**
+   * Both of these properties are used to have granular
+   * control over when to `resolve` and when `reject` the
+   * `start()` method.
+   */
+  private _resolveStartMethod: (value?: unknown) => void
+  private _rejectStartMethod: (error: unknown) => void
 
   constructor(
     public call: BaseConnection<EventTypes>,
@@ -303,77 +310,85 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   async start() {
-    this.options.localStream = await this._retrieveLocalStream()
+    return new Promise(async (resolve, reject) => {
+      this._resolveStartMethod = resolve
+      this._rejectStartMethod = reject
 
-    const { localStream = null } = this.options
-    if (localStream && streamIsValid(localStream)) {
-      const audioTracks = localStream.getAudioTracks()
-      logger.debug('Local audio tracks: ', audioTracks)
-      const videoTracks = localStream.getVideoTracks()
-      logger.debug('Local video tracks: ', videoTracks)
-      // FIXME: use transceivers way only for offer - when answer gotta match mid from the ones from SRD
-      if (this.isOffer && typeof this.instance.addTransceiver === 'function') {
-        // Use addTransceiver
+      this.options.localStream = await this._retrieveLocalStream()
 
-        audioTracks.forEach((track) => {
-          this.instance.addTransceiver(track, {
+      const { localStream = null } = this.options
+      if (localStream && streamIsValid(localStream)) {
+        const audioTracks = localStream.getAudioTracks()
+        logger.debug('Local audio tracks: ', audioTracks)
+        const videoTracks = localStream.getVideoTracks()
+        logger.debug('Local video tracks: ', videoTracks)
+        // FIXME: use transceivers way only for offer - when answer gotta match mid from the ones from SRD
+        if (
+          this.isOffer &&
+          typeof this.instance.addTransceiver === 'function'
+        ) {
+          // Use addTransceiver
+
+          audioTracks.forEach((track) => {
+            this.instance.addTransceiver(track, {
+              direction: 'sendrecv',
+              streams: [localStream],
+            })
+          })
+
+          const transceiverParams: RTCRtpTransceiverInit = {
             direction: 'sendrecv',
             streams: [localStream],
-          })
-        })
-
-        const transceiverParams: RTCRtpTransceiverInit = {
-          direction: 'sendrecv',
-          streams: [localStream],
-        }
-        if (this.isSimulcast) {
-          const rids = ['0', '1', '2']
-          transceiverParams.sendEncodings = rids.map((rid) => ({
-            active: true,
-            rid: rid,
-            scaleResolutionDownBy: Number(rid) * 6 || 1.0,
-          }))
-        }
-        logger.debug('Applying video transceiverParams', transceiverParams)
-        videoTracks.forEach((track) => {
-          this.instance.addTransceiver(track, transceiverParams)
-        })
-
-        if (this.isSfu) {
-          const { msStreamsNumber = 5 } = this.options
-          logger.debug('Add ', msStreamsNumber, 'recvonly MS Streams')
-          transceiverParams.direction = 'recvonly'
-          for (let i = 0; i < Number(msStreamsNumber); i++) {
-            this.instance.addTransceiver('video', transceiverParams)
           }
+          if (this.isSimulcast) {
+            const rids = ['0', '1', '2']
+            transceiverParams.sendEncodings = rids.map((rid) => ({
+              active: true,
+              rid: rid,
+              scaleResolutionDownBy: Number(rid) * 6 || 1.0,
+            }))
+          }
+          logger.debug('Applying video transceiverParams', transceiverParams)
+          videoTracks.forEach((track) => {
+            this.instance.addTransceiver(track, transceiverParams)
+          })
+
+          if (this.isSfu) {
+            const { msStreamsNumber = 5 } = this.options
+            logger.debug('Add ', msStreamsNumber, 'recvonly MS Streams')
+            transceiverParams.direction = 'recvonly'
+            for (let i = 0; i < Number(msStreamsNumber); i++) {
+              this.instance.addTransceiver('video', transceiverParams)
+            }
+          }
+        } else if (typeof this.instance.addTrack === 'function') {
+          // Use addTrack
+
+          audioTracks.forEach((track) => {
+            this.instance.addTrack(track, localStream)
+          })
+
+          videoTracks.forEach((track) => {
+            this.instance.addTrack(track, localStream)
+          })
+        } else {
+          // Fallback to legacy addStream ..
+          // @ts-ignore
+          this.instance.addStream(localStream)
         }
-      } else if (typeof this.instance.addTrack === 'function') {
-        // Use addTrack
+      }
 
-        audioTracks.forEach((track) => {
-          this.instance.addTrack(track, localStream)
-        })
-
-        videoTracks.forEach((track) => {
-          this.instance.addTrack(track, localStream)
-        })
+      if (this.isOffer) {
+        if (this.options.negotiateAudio) {
+          this._checkMediaToNegotiate('audio')
+        }
+        if (this.options.negotiateVideo) {
+          this._checkMediaToNegotiate('video')
+        }
       } else {
-        // Fallback to legacy addStream ..
-        // @ts-ignore
-        this.instance.addStream(localStream)
+        this.startNegotiation()
       }
-    }
-
-    if (this.isOffer) {
-      if (this.options.negotiateAudio) {
-        this._checkMediaToNegotiate('audio')
-      }
-      if (this.options.negotiateVideo) {
-        this._checkMediaToNegotiate('video')
-      }
-    } else {
-      this.startNegotiation()
-    }
+    })
   }
 
   private _checkMediaToNegotiate(kind: string) {
@@ -385,7 +400,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
   }
 
-  private _sdpReady() {
+  private async _sdpReady() {
     clearTimeout(this._iceTimeout)
     this._iceTimeout = null
     if (!this.instance.localDescription) {
@@ -399,7 +414,14 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
     logger.debug('LOCAL SDP \n', `Type: ${type}`, '\n\n', sdp)
     this.instance.removeEventListener('icecandidate', this._onIce)
-    this.call.onLocalSDPReady(this.instance.localDescription)
+
+    try {
+      await this.call.onLocalSDPReady(this.instance.localDescription)
+
+      this._resolveStartMethod()
+    } catch (error) {
+      this._rejectStartMethod(error)
+    }
   }
 
   private _onIce(event: RTCPeerConnectionIceEvent) {

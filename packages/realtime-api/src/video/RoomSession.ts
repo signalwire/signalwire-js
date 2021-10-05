@@ -324,8 +324,24 @@ interface RoomSessionDocs extends RoomSessionMain {
   startRecording(): Promise<Rooms.RoomSessionRecording>
 
   /**
-   * Start listening for the events for which you have provided event handlers and
-   * returns the {@link RoomSessionFullState} the contains the full state of the room session.
+   * Start listening for the events for which you have provided event handlers
+   * and returns the {@link RoomSessionFullState} that contains the full state
+   * of the room session.
+   *
+   * @example
+   * ```typescript
+   * const client = ...  // get a client with createClient()
+   *
+   * client.video.on('room.started', async (roomSession) => {
+   *   // attach event listeners...
+   *   // roomSession.on(...)
+   *
+   *   // This gives you the full state of the room session!
+   *   const roomSessionState = await roomSession.subscribe()
+   *   console.log('room name:', roomSessionState.name)
+   *   console.log('members:', roomSessionState.members)
+   * }
+   * ```
    */
   subscribe(): Promise<RoomSessionFullState>
 }
@@ -417,6 +433,7 @@ export interface RoomSession
 
 export type RoomSessionUpdated = EntityUpdated<RoomSession>
 export interface RoomSessionFullState extends RoomSession {
+  /** List of members that are part of this room session */
   members: RoomSessionMember[]
 }
 
