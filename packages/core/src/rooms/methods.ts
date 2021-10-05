@@ -4,7 +4,7 @@ import {
   VideoRecordingEntity,
   VideoPlaybackEntity,
 } from '../types'
-import { toLocalEvent } from '../utils'
+import { toLocalEvent, toExternalJSON } from '../utils'
 import { ExecuteExtendedOptions, RoomMethod } from '../utils/interfaces'
 
 interface RoomMethodPropertyDescriptor<T, ParamsType>
@@ -133,7 +133,9 @@ export const setHideVideoMuted: RoomMethodDescriptor<any, boolean> = {
 export const getRecordings = createRoomMethod<{
   recordings: VideoRecordingEntity[]
 }>('video.recording.list', {
-  transformResolve: (payload) => ({ recordings: payload.recordings }),
+  transformResolve: (payload) => ({
+    recordings: payload.recordings.map((row) => toExternalJSON(row)),
+  }),
 })
 export const startRecording: RoomMethodDescriptor<any> = {
   value: function () {
@@ -165,7 +167,9 @@ export const startRecording: RoomMethodDescriptor<any> = {
 export const getPlaybacks = createRoomMethod<{
   playbacks: VideoPlaybackEntity[]
 }>('video.playback.list', {
-  transformResolve: (payload) => ({ playbacks: payload.playbacks }),
+  transformResolve: (payload) => ({
+    playbacks: payload.playbacks.map((row) => toExternalJSON(row)),
+  }),
 })
 
 export type PlayParams = {
