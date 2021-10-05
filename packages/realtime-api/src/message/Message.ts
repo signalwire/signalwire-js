@@ -1,13 +1,13 @@
 import { BaseComponent, BaseComponentOptions, connect, MessageEventParams } from '@signalwire/core'
-import { MessageAPIEventHandlerMapping, MessageMethodParams, MessageMethodParamsWithoutType, MessageMethodResponse, MessageObject } from '../types'
+import { MessageAPIEventHandlerMapping, MessageMethodParams, SMSMessageMethodParams, MMSMessageMethodParams, MessageMethodResponse, MessageObject, BaseMessageMethodParams } from '../types'
 
 const STATES_TO_RESOLVE_SENT_REQUESTS = [
   'sent', 'delivered', 'failed', 'undelivered'
 ]
-export interface MessageAPI {
+interface MessageAPI {
   send(params: MessageMethodParams): Promise<MessageObject>
-  sendSMS(params: MessageMethodParamsWithoutType): Promise<MessageObject>
-  sendMMS(params: MessageMethodParamsWithoutType): Promise<MessageObject>
+  sendSMS(params: SMSMessageMethodParams): Promise<MessageObject>
+  sendMMS(params: MMSMessageMethodParams): Promise<MessageObject>
 }
 
 export class MessageComponent extends BaseComponent<MessageAPIEventHandlerMapping> implements MessageAPI {
@@ -30,7 +30,7 @@ export class MessageComponent extends BaseComponent<MessageAPIEventHandlerMappin
     }
   }
 
-  private async _send({to: to_number, from: from_number, onMessageStateChange, ...params}: MessageMethodParams): Promise<MessageObject> {
+  private async _send({ to: to_number, from: from_number, onMessageStateChange, ...params}: BaseMessageMethodParams): Promise<MessageObject> {
     const response: MessageMethodResponse = await this.execute({
       method: 'messaging.send',
       params: {
@@ -51,20 +51,22 @@ export class MessageComponent extends BaseComponent<MessageAPIEventHandlerMappin
     })
   }
 
-  send(params: MessageMethodParams): Promise<MessageObject> {
-    return this._send(params)
+  send({type, ...params}: MessageMethodParams): Promise<MessageObject> {
+    if (type === 'sms') {
+      return this.sendSMS(params as SMSMessageMethodParams)
+    } else {
+      return this.sendMMS(params as MMSMessageMethodParams)
+    }
   }
 
-  sendMMS(params: MessageMethodParamsWithoutType): Promise<MessageObject> {
+  sendMMS(params: MMSMessageMethodParams): Promise<MessageObject> {
     return this._send({
-      type: 'mms',
       ...params
     })
   }
 
-  sendSMS(params: MessageMethodParamsWithoutType): Promise<MessageObject> {
+  sendSMS(params: SMSMessageMethodParams): Promise<MessageObject> {
     return this._send({
-      type: 'sms',
       ...params
     })
   }
@@ -104,8 +106,8 @@ export class MessageComponent extends BaseComponent<MessageAPIEventHandlerMappin
 
 export const createMessageObject = (
   params: BaseComponentOptions<MessageAPIEventHandlerMapping>
-): MessageAPI => {
-  const message = connect<MessageAPIEventHandlerMapping, MessageComponent, MessageAPI>({
+): MessageComponent => {
+  const message = connect<MessageAPIEventHandlerMapping, MessageComponent, MessageComponent>({
     store: params.store,
     Component: MessageComponent,
     componentListeners: {
@@ -113,7 +115,7 @@ export const createMessageObject = (
       responses: 'onSuccess',
     },
   })(params)
-  const proxy = new Proxy<MessageAPI>(message, {
+  const proxy = new Proxy<MessageComponent>(message, {
     get(target: any, prop: any, receiver: any) {
       if (prop === '_eventsNamespace') {
         /**

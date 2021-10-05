@@ -1,8 +1,6 @@
-import { MessageDirection, MessageState } from "@signalwire/core"
+import { MessageDirection, MessageState, RequireAtLeastOne } from "@signalwire/core"
 
-
-export type MessageMethodParams = {
-  type: 'sms' | 'mms',
+export type BaseMessageMethodParams = {
   context: string,
   region?: string,
   body?: string,
@@ -13,13 +11,23 @@ export type MessageMethodParams = {
   onMessageStateChange?: (messageObj: MessageObject) => void
 }
 
+export type MessageMethodParams = RequireAtLeastOne<BaseMessageMethodParams & {
+  type: 'sms' | 'mms',
+}, 'body' | 'media'>
+
+export type SMSMessageMethodParams = 
+  Required<Pick<BaseMessageMethodParams, 'body'>>
+  & Omit<BaseMessageMethodParams, 'body'>
+
+export type MMSMessageMethodParams = 
+  Required<Pick<BaseMessageMethodParams, 'media'>>
+  & Omit<BaseMessageMethodParams, 'media'>
+
 export type MessageMethodResponse = {
   message_id: string,
   code: string,
   message: string
 }
-
-export type MessageMethodParamsWithoutType = Omit<MessageMethodParams, 'type'>
 
 export type MessageAPIEventHandlerMapping = Record<'state' | 'receive', (...args: any[]) => void>
 
@@ -33,5 +41,6 @@ export type MessageObject = {
   body?: string,
   state: MessageState,
   delivered: boolean,
-  sent: boolean
+  sent: boolean,
+  context: string,
 }

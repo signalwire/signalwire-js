@@ -43,6 +43,7 @@ export const configureFullStack = () => {
       token: TOKEN,
       devTools: false,
       emitter,
+      contexts: ['test-context']
     },
     SessionConstructor: jest.fn().mockImplementation(() => {
       return session

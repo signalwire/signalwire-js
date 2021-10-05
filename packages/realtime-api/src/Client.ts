@@ -6,7 +6,7 @@ import {
   ClientEvents,
   logger,
 } from '@signalwire/core'
-import { createMessageObject, MessageAPI } from './message'
+import { createMessageObject, MessageComponent } from './message'
 import { createVideoObject, Video } from './video/Video'
 
 /**
@@ -59,14 +59,14 @@ export interface RealtimeClient
    */
   video: Video
 
-  message: MessageAPI
+  message: MessageComponent
 }
 
 type ClientNamespaces = Video
 
 export class Client extends BaseClient<ClientEvents> {
   private _consumers: Map<EventsPrefix, ClientNamespaces> = new Map()
-  private _message: MessageAPI
+  private _message: MessageComponent
 
   async onAuth(session: SessionState) {
     try {
@@ -105,7 +105,7 @@ export class Client extends BaseClient<ClientEvents> {
     return video
   }
 
-  get message(): MessageAPI {
+  get message(): MessageComponent {
     if (!this._message) {
       this._message = createMessageObject({
         store: this.options.store,
