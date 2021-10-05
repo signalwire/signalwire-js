@@ -312,7 +312,7 @@ interface RoomSessionDocs extends RoomSessionMain {
   /**
    * Obtains a list of recordings for the current room session.
    *
-   * @returns The returned objects contain all the state members of a
+   * @returns The returned objects contain all the properties of a
    * {@link RoomSessionRecording}, but no methods.
    */
   getRecordings(): Rooms.GetRecordings
@@ -333,7 +333,7 @@ interface RoomSessionDocs extends RoomSessionMain {
   /**
    * Obtains a list of playbacks for the current room session.
    *
-   * @returns The returned objects contain all the state members of a
+   * @returns The returned objects contain all the properties of a
    * {@link RoomSessionPlayback}, but no methods.
    */
   getPlaybacks(): Rooms.GetPlaybacks
