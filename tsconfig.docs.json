@@ -4,9 +4,20 @@
     "module": "commonjs",
     "target": "es2020",
 
-    "strict": false,
+    "strict": true,
+    "strictNullChecks": true,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "strictPropertyInitialization": false,
+    "useUnknownInCatchVariables": false,
+
+    "baseUrl": ".",
+    "paths": {
+      "@signalwire/js": ["packages/js/src"],
+      "@signalwire/core": ["packages/core/src"],
+      "@signalwire/webrtc": ["packages/webrtc/src"],
+      "@signalwire/node": ["packages/node/src"]
+    },
   },
   "exclude": ["**/*.test.ts", "**/*.native.ts"]
 }
