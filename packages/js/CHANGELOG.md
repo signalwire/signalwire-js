@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.0] - 2021-10-06
+
+### Deprecated
+
+- [#318](https://github.com/signalwire/signalwire-js/pull/318) [`cc5fd62`](https://github.com/signalwire/signalwire-js/commit/cc5fd6227689855e6b4127c537f7ac77b3f75c7f) - Deprecated `Room`, `RoomDevice`, `RoomScreenShare` and `createScreenShareObject()` in favour of `RoomSession`, `RoomSessionDevice`, `RoomSessionScreenShare` and `startScreenShare()` respectively.
+
+### Changed
+
+- [#313](https://github.com/signalwire/signalwire-js/pull/313) [`5c35910`](https://github.com/signalwire/signalwire-js/commit/5c3591034abee66519ffa6593bb1a50144ec0d7c) - Introduce `RoomSession` as a new primitive for connecting to a Room. Mark `createRoomObject()` and `joinRoom()` as deprecated.
+
+* [#312](https://github.com/signalwire/signalwire-js/pull/312) [`feb23ba`](https://github.com/signalwire/signalwire-js/commit/feb23ba7e7545fa4e298cfb371538c223d75c272) - Remove `height: 100%` on the localVideo overlay to avoid positioning issues if the wrapper has a fixed height.
+
+- [#302](https://github.com/signalwire/signalwire-js/pull/302) [`2ac7f6d`](https://github.com/signalwire/signalwire-js/commit/2ac7f6defeb9a1a2a4254c300a15c258f8a57cd7) - Added `setInputVolume`/`setOutputVolume` and marked `setMicrophoneVolume`/`setSpeakerVolume` as deprecated.
+
+* [#316](https://github.com/signalwire/signalwire-js/pull/316) [`ab4ff5a`](https://github.com/signalwire/signalwire-js/commit/ab4ff5a094f3f53f388d905c103b023d5d2b435b) - Use `rootElement` in the new `RoomSession` constructor to handle the local video overlay.
+
+- [#305](https://github.com/signalwire/signalwire-js/pull/305) [`cec54bd`](https://github.com/signalwire/signalwire-js/commit/cec54bd208801f42a719a7777da802ae2c51a79a) - Convert timestamp properties to `Date` objects.
+
+### Dependencies
+
+- Updated dependencies [[`3af0ea6`](https://github.com/signalwire/signalwire-js/commit/3af0ea6ee53ea9e5009e5e36c7e7418833730159), [`72eb91b`](https://github.com/signalwire/signalwire-js/commit/72eb91bd74a046fa720868a4b43e6154d7a076f0), [`2ac7f6d`](https://github.com/signalwire/signalwire-js/commit/2ac7f6defeb9a1a2a4254c300a15c258f8a57cd7), [`cec54bd`](https://github.com/signalwire/signalwire-js/commit/cec54bd208801f42a719a7777da802ae2c51a79a), [`febb842`](https://github.com/signalwire/signalwire-js/commit/febb84202568fde1b94558c8b470ba9e348f1aa4), [`b60e9fc`](https://github.com/signalwire/signalwire-js/commit/b60e9fcea7f1f308efcc78081cb3fb61c60ae522), [`da9909e`](https://github.com/signalwire/signalwire-js/commit/da9909ec37b470ef5d34c494147bb49bef6a748e), [`4d21716`](https://github.com/signalwire/signalwire-js/commit/4d2171661dcf2a9ebd5bb6b6daa5c32a78dfa21f), [`49b4aa9`](https://github.com/signalwire/signalwire-js/commit/49b4aa9d127df0d52512b6c44359fc7b7b88caae), [`685e0a2`](https://github.com/signalwire/signalwire-js/commit/685e0a240bec5ee065f8fde91879c476768e4c1f)]:
+  - @signalwire/core@3.1.4
+  - @signalwire/webrtc@3.1.4
+
 ## [3.2.1] - 2021-09-15
 
 ### Changed
