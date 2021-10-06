@@ -22,7 +22,7 @@
     "@changesets/changelog-github": "^0.4.0",
     "@changesets/cli": "^2.16.0",
     "@manypkg/cli": "^0.18.0",
-    "@signalwire/typedoc-readme-api-theme": "^0.6.0",
+    "@signalwire/typedoc-readme-api-theme": "^0.6.1",
     "@types/jest": "^26.0.24",
     "babel-jest": "^27.0.6",
     "concurrently": "^6.2.0",
