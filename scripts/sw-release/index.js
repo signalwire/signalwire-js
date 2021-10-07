@@ -14,8 +14,9 @@ const getCommonTasks = () => {
   return [
     {
       title: '🧪 Running test suite...',
-      task: (_ctx, task) =>
-        task.newListr(
+      enabled: false,
+      task: (_ctx, task) => {
+        return task.newListr(
           packages.map(({ name }) => {
             return {
               title: `Testing ${name}`,
@@ -26,7 +27,8 @@ const getCommonTasks = () => {
               },
             }
           })
-        ),
+        )
+      },
     },
   ]
 }
@@ -37,6 +39,7 @@ const getDevelopmentTasks = () => {
     {
       title: '⚒️ Preparing "development" release',
       task: async () => {
+        // TODO: call proper script
         await new Promise((r) => setTimeout(r, 500))
         return Promise.resolve('!!!')
       },
@@ -53,10 +56,10 @@ const getModeTasks = (flags) => {
 
   switch (mode) {
     case '--development': {
-      return getDevelopmentTasks()
+      return getDevelopmentTasks(flags)
     }
     case '--production': {
-      return getProductionTasks()
+      return getProductionTasks(flags)
     }
   }
 }
@@ -67,15 +70,23 @@ export async function cli(args) {
 
   const tasks = new Listr([
     ...getModeTasks(flags),
-    ...packages.map(({ name }) => {
-      return {
-        title: `Publishing ${name}`,
-        task: async () => {
-          await new Promise((r) => setTimeout(r, 500))
-          return Promise.resolve('!!!')
-        },
-      }
-    }),
+    {
+      title: `🚀 Publishing Packages`,
+      task: async (_ctx, task) => {
+        return task.newListr(
+          packages.map(({ name }) => {
+            return {
+              title: `Publishing ${name}`,
+              task: async () => {
+                // TODO: call proper script
+                await new Promise((r) => setTimeout(r, 500))
+                return Promise.resolve('!!!')
+              },
+            }
+          })
+        )
+      },
+    },
   ])
 
   try {
