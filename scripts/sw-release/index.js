@@ -80,6 +80,7 @@ const publishTaskFactory = (
               task: async (_ctx, currentTask) => {
                 await execa(
                   'npm',
+                  // TODO: remove --dry-run
                   ['publish', '--dry-run', ...options.npmOptions],
                   {
                     cwd: pathname,
@@ -87,7 +88,7 @@ const publishTaskFactory = (
                 )
 
                 // Updates the subtask's title (the individual package)
-                currentTask.title = `${name} is now published!`
+                currentTask.title = `${name}`
 
                 // Updates the `parent`'s task title
                 if (index + 1 === totalPackages) {
