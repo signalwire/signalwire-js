@@ -1,6 +1,7 @@
-import path from 'path'
-import fs from 'fs'
-import { fileURLToPath } from 'url'
+import path from 'node:path'
+import fs from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import execa from 'execa'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -54,7 +55,7 @@ const getPackages = ({ pathname = PACKAGES_PATH } = DEFAULT_OPTIONS) => {
   return pkgDeps
 }
 
-const BUILD_MODES = ['--dev', '--production']
+const BUILD_MODES = ['--development', '--production']
 const isModeFlag = (flag) => {
   return BUILD_MODES.includes(flag)
 }
@@ -62,4 +63,10 @@ const getModeFlag = (flags = []) => {
   return flags.find((f) => isModeFlag(f))
 }
 
-export { getPackages, getModeFlag }
+const getLastGitSha = async (length = 7) => {
+  const { stdout: sha } = await execa('git', ['log', '-1', '--format=%H'])
+
+  return sha.substring(0, length)
+}
+
+export { getPackages, getModeFlag, getLastGitSha }
