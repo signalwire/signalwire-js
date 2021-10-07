@@ -42,7 +42,7 @@ const getCommonTasks = () => {
                 })
 
                 // Updates the subtask's title (the individual package)
-                currentTask.title = `${name} is now published!`
+                currentTask.title = `${name} tests ran successfully!`
 
                 // Updates the `parent`'s task title
                 if (index + 1 === totalPackages) {
