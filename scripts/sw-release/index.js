@@ -148,8 +148,9 @@ const getDevelopmentTasks = () => {
         ])
       },
     },
-    // TODO: add dev-specific options
-    publishTaskFactory(),
+    publishTaskFactory({
+      npmOptions: ['--tag dev'],
+    }),
   ]
 }
 
