@@ -24,41 +24,39 @@ const getDevVersion = async () => {
   return `dev.${timestamp}.${sha}`
 }
 
-const getCommonTasks = () => {
+const getTestTask = () => {
   const packages = getPackages()
   const totalPackages = packages.length
 
-  return [
-    {
-      title: '🧪 Running test suites...',
-      task: (_ctx, task) => {
-        return task.newListr((parentTask) => {
-          return packages.map(({ name }, index) => {
-            return {
-              title: `Testing ${name}`,
-              task: async (_ctx, currentTask) => {
-                await execa('manypkg', ['run', name, 'test'], {
-                  cwd: ROOT_DIR,
-                })
+  return {
+    title: '🧪 Running test suites...',
+    task: (_ctx, task) => {
+      return task.newListr((parentTask) => {
+        return packages.map(({ name }, index) => {
+          return {
+            title: `Testing ${name}`,
+            task: async (_ctx, currentTask) => {
+              await execa('manypkg', ['run', name, 'test'], {
+                cwd: ROOT_DIR,
+              })
 
-                // Updates the subtask's title (the individual package)
-                currentTask.title = `${name} tests ran successfully!`
+              // Updates the subtask's title (the individual package)
+              currentTask.title = `${name} tests ran successfully!`
 
-                // Updates the `parent`'s task title
-                if (index + 1 === totalPackages) {
-                  parentTask.title = `🧪 Test suites ran successfully!`
-                } else {
-                  parentTask.title = `🟢 Ran ${index + 1} of ${
-                    packages.length
-                  } test suites.`
-                }
-              },
-            }
-          })
+              // Updates the `parent`'s task title
+              if (index + 1 === totalPackages) {
+                parentTask.title = `🧪 Test suites ran successfully!`
+              } else {
+                parentTask.title = `🟢 Ran ${index + 1} of ${
+                  packages.length
+                } test suites.`
+              }
+            },
+          }
         })
-      },
+      })
     },
-  ]
+  }
 }
 
 const publishTaskFactory = (
@@ -118,7 +116,7 @@ const publishTaskFactory = (
 
 const getDevelopmentTasks = () => {
   return [
-    ...getCommonTasks(),
+    getTestTask(),
     {
       title: '⚒️  Preparing "development" release',
       task: async (_ctx, task) => {
@@ -156,7 +154,7 @@ const getDevelopmentTasks = () => {
 }
 
 const getProductionTasks = () => {
-  return [...getCommonTasks()]
+  return [getTestTask()]
 }
 
 const getModeTasks = (flags) => {
