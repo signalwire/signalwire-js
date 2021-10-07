@@ -26,27 +26,93 @@ const getDevVersion = async () => {
 
 const getCommonTasks = () => {
   const packages = getPackages()
+  const totalPackages = packages.length
 
   return [
     {
-      title: '🧪 Running test suite...',
-      enabled: false,
+      title: '🧪 Running test suites...',
       task: (_ctx, task) => {
-        return task.newListr(
-          packages.map(({ name }) => {
+        return task.newListr((parentTask) => {
+          return packages.map(({ name }, index) => {
             return {
               title: `Testing ${name}`,
-              task: () => {
-                return execa('manypkg', ['run', name, 'test'], {
+              task: async (_ctx, currentTask) => {
+                await execa('manypkg', ['run', name, 'test'], {
                   cwd: ROOT_DIR,
                 })
+
+                // Updates the subtask's title (the individual package)
+                currentTask.title = `${name} is now published!`
+
+                // Updates the `parent`'s task title
+                if (index + 1 === totalPackages) {
+                  parentTask.title = `🧪 Test suites ran successfully!`
+                } else {
+                  parentTask.title = `🟢 Ran ${index + 1} of ${
+                    packages.length
+                  } test suites.`
+                }
               },
             }
           })
-        )
+        })
       },
     },
   ]
+}
+
+const publishTaskFactory = (
+  options = {
+    npmOptions: [],
+  }
+) => {
+  const packages = getPackages()
+  const totalPackages = packages.length
+
+  return {
+    title: `🟢 Publishing Packages`,
+    task(_ctx, task) {
+      return task.newListr(
+        (parentTask) =>
+          packages.map(({ name, pathname }, index) => {
+            return {
+              title: `Publishing ${name}`,
+              task: async (_ctx, currentTask) => {
+                await execa(
+                  'npm',
+                  ['publish', '--dry-run', ...options.npmOptions],
+                  {
+                    cwd: pathname,
+                  }
+                )
+
+                // Updates the subtask's title (the individual package)
+                currentTask.title = `${name} is now published!`
+
+                // Updates the `parent`'s task title
+                if (index + 1 === totalPackages) {
+                  parentTask.title = `🚀 All packages have been published!`
+                } else {
+                  parentTask.title = `🟢 Published ${index + 1} of ${
+                    packages.length
+                  } Packages`
+                }
+              },
+            }
+          }),
+        {
+          rendererOptions: {
+            /**
+             * This option will keep the subtasks list opened
+             * after completion. This is useful to see exactly
+             * which packages were published.
+             */
+            collapse: false,
+          },
+        }
+      )
+    },
+  }
 }
 
 const getDevelopmentTasks = () => {
@@ -61,13 +127,15 @@ const getDevelopmentTasks = () => {
             task: async () => {
               const devVersion = await getDevVersion()
 
-              return execa(
+              await execa(
                 'npm',
                 ['run', 'changeset', 'pre', 'enter', devVersion],
                 {
                   cwd: ROOT_DIR,
                 }
               )
+
+              task.title = '⚒️  "development" release ready to be published.'
             },
           },
           {
@@ -81,6 +149,8 @@ const getDevelopmentTasks = () => {
         ])
       },
     },
+    // TODO: add dev-specific options
+    publishTaskFactory(),
   ]
 }
 
@@ -103,28 +173,7 @@ const getModeTasks = (flags) => {
 
 export async function cli(args) {
   const flags = args.slice(2)
-  const packages = getPackages()
-
-  const tasks = new Listr([
-    ...getModeTasks(flags),
-    {
-      title: `🚀 Publishing Packages`,
-      task: async (_ctx, task) => {
-        return task.newListr(
-          packages.map(({ name }) => {
-            return {
-              title: `Publishing ${name}`,
-              task: async () => {
-                // TODO: call proper script
-                await new Promise((r) => setTimeout(r, 500))
-                return Promise.resolve('!!!')
-              },
-            }
-          })
-        )
-      },
-    },
-  ])
+  const tasks = new Listr([...getModeTasks(flags)])
 
   try {
     await tasks.run()
