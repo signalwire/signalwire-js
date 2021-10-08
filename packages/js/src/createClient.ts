@@ -71,6 +71,9 @@ export const createClient = <RoomSessionType>(userOptions: UserOptions) => {
       responses: 'onSuccess',
       id: 'onClientSubscribed',
     },
+    sessionListeners: {
+      authStatus: 'onAuth',
+    }
   })(baseUserOptions)
 
   return client

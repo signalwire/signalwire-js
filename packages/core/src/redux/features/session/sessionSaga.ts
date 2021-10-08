@@ -10,6 +10,7 @@ import type {
   WebRTCMessageParams,
   InternalMemberUpdatedEventNames,
   MemberTalkingEventNames,
+  CantinaEventParams,
 } from '../../../types'
 import {
   ExecuteActionParams,
@@ -41,6 +42,9 @@ const isWebrtcEvent = (e: SwEventParams): e is WebRTCMessageParams => {
 }
 const isVideoEvent = (e: SwEventParams): e is VideoAPIEventParams => {
   return !!e?.event_type?.startsWith('video.')
+}
+const isCantinaRoomEvent = (e: SwEventParams): e is CantinaEventParams => {
+  return !!e?.event_type?.startsWith('cantina-manager')
 }
 
 /**
@@ -290,6 +294,15 @@ export function* sessionChannelWatcher({
     })
   }
 
+  function* cantinaAPIWorker(params: CantinaEventParams): SagaIterator {
+    yield put(pubSubChannel, {
+      // @ts-expect-error
+      type: params.event_type,
+      // @ts-expect-error
+      payload: params.params,
+    })
+  }
+
   function* swEventWorker(broadcastParams: SwEventParams) {
     if (isWebrtcEvent(broadcastParams)) {
       yield fork(vertoWorker, {
@@ -300,6 +313,11 @@ export function* sessionChannelWatcher({
     }
     if (isVideoEvent(broadcastParams)) {
       yield fork(videoAPIWorker, broadcastParams)
+      return
+    }
+
+    if (isCantinaRoomEvent(broadcastParams)) {
+      yield fork(cantinaAPIWorker, broadcastParams)
       return
     }
 

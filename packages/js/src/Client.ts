@@ -3,6 +3,7 @@ import {
   BaseClient,
   ClientEvents,
   ClientContract,
+  SessionState,
 } from '@signalwire/core'
 import type { CustomSaga } from '@signalwire/core'
 import { ConnectionOptions } from '@signalwire/webrtc'
@@ -12,6 +13,7 @@ import {
   createBaseRoomSessionObject,
   RoomSessionConnection,
 } from './BaseRoomSession'
+import { Cantina, createCantinaObject } from './cantina'
 
 export interface Client<RoomSessionType = RoomSession>
   extends ClientContract<Client<RoomSessionType>, ClientEvents> {
@@ -28,6 +30,14 @@ export interface MakeRoomOptions extends ConnectionOptions {
 export class ClientAPI<
   RoomSessionType = RoomSession
 > extends BaseClient<ClientEvents> {
+  private _cantina: Cantina
+
+  onAuth(session: SessionState) {
+    if (session.authStatus === 'authorized') {
+      this._cantina.subscribe()
+    }
+  }
+
   get rooms() {
     return {
       makeRoomObject: (makeRoomOptions: MakeRoomOptions) => {
@@ -101,5 +111,12 @@ export class ClientAPI<
         return room
       },
     }
+  }
+
+  get cantina() {
+    if (!this._cantina) {
+      this._cantina = createCantinaObject(this.options)
+    }
+    return this._cantina
   }
 }

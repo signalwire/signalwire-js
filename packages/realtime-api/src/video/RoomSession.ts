@@ -21,8 +21,8 @@ import {
   EntityUpdated,
   VideoMemberEntity,
   AssertSameType,
+  BaseConsumer,
 } from '@signalwire/core'
-import { BaseConsumer } from '../BaseConsumer'
 import { RealTimeRoomApiEvents } from '../types'
 import {
   createRoomSessionMemberObject,

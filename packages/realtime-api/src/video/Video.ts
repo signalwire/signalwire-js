@@ -1,5 +1,6 @@
 import {
   BaseComponentOptions,
+  BaseConsumer,
   connect,
   EventTransform,
   InternalVideoRoomSessionEventNames,
@@ -8,7 +9,7 @@ import {
   RoomSessionRecording,
   VideoRoomEventParams,
 } from '@signalwire/core'
-import { BaseConsumer } from '../BaseConsumer'
+
 import { RealTimeVideoApiEvents } from '../types/video'
 import {
   createRoomSessionObject,

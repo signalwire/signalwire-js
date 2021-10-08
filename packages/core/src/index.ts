@@ -11,6 +11,7 @@ import { BaseJWTSession } from './BaseJWTSession'
 import { configureStore, connect } from './redux'
 import { BaseClient } from './BaseClient'
 import { BaseComponent } from './BaseComponent'
+import { BaseConsumer } from './BaseConsumer'
 import { EventEmitter, getEventEmitter } from './utils/EventEmitter'
 import * as sessionSelectors from './redux/features/session/sessionSelectors'
 import { GLOBAL_VIDEO_EVENTS } from './utils/constants'
@@ -25,6 +26,7 @@ export {
   BaseSession,
   BaseJWTSession,
   BaseComponent,
+  BaseConsumer,
   BaseClient,
   connect,
   configureStore,
