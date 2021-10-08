@@ -6,10 +6,6 @@ import execa from 'execa'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-/**
- * List of packages that **won't** be published.
- */
-const UNRELEASED_PACKAGES = ['@signalwire/web-api', '@signalwire/react-native']
 const TARGET_DEPTH_LEVEL = 1
 const _scan = (pathname, level = 0, acc = []) => {
   if (level > TARGET_DEPTH_LEVEL) {
@@ -28,7 +24,7 @@ const _scan = (pathname, level = 0, acc = []) => {
         fs.readFileSync(path.resolve(pathname, 'package.json'), 'utf-8')
       )
 
-      if (UNRELEASED_PACKAGES.includes(pkgJson.name)) {
+      if (pkgJson.private) {
         return
       }
 
