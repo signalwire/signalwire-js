@@ -76,14 +76,9 @@ const publishTaskFactory = (
             return {
               title: `Publishing ${name}`,
               task: async (_ctx, currentTask) => {
-                await execa(
-                  'npm',
-                  // TODO: remove --dry-run
-                  ['publish', '--dry-run', ...options.npmOptions],
-                  {
-                    cwd: pathname,
-                  }
-                )
+                await execa('npm', ['publish', ...options.npmOptions], {
+                  cwd: pathname,
+                })
 
                 // Updates the subtask's title (the individual package)
                 currentTask.title = `${name}`
