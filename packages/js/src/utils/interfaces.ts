@@ -19,6 +19,8 @@ import type {
   VideoPlaybackEventNames,
   RoomSessionRecording,
   RoomSessionPlayback,
+  VideoRoomSessionContract,
+  OnlyFunctionProperties,
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
 import type { RoomSession } from '../RoomSession'
@@ -112,26 +114,6 @@ export interface BaseRoomInterface {
   leave(): Promise<unknown>
 }
 
-interface RoomMemberMethodsInterface {
-  audioMute(params?: MemberCommandParams): Rooms.AudioMuteMember
-  audioUnmute(params?: MemberCommandParams): Rooms.AudioUnmuteMember
-  videoMute(params?: MemberCommandParams): Rooms.VideoMuteMember
-  videoUnmute(params?: MemberCommandParams): Rooms.VideoUnmuteMember
-  setInputVolume(
-    params: MemberCommandWithVolumeParams
-  ): Rooms.SetInputVolumeMember
-  /**
-   * @deprecated Use {@link setInputVolume} instead.
-   * `setMicrophoneVolume` will be removed in v4.0.0
-   */
-  setMicrophoneVolume(
-    params: MemberCommandWithVolumeParams
-  ): Rooms.SetInputVolumeMember
-  setInputSensitivity(
-    params: MemberCommandWithValueParams
-  ): Rooms.SetInputSensitivityMember
-}
-
 interface RoomMemberSelfMethodsInterface {
   audioMute(): Rooms.AudioMuteMember
   audioUnmute(): Rooms.AudioUnmuteMember
@@ -147,7 +129,6 @@ interface RoomMemberSelfMethodsInterface {
     value: number
   }): Rooms.SetInputSensitivityMember
 }
-
 interface RoomLayoutMethodsInterface {
   getLayouts(): Rooms.GetLayouts
   setLayout(params: { name: string }): Rooms.SetLayout
@@ -186,9 +167,12 @@ interface RoomControlMethodsInterface {
  * flexibility across different objects.
  */
 export interface RoomMethods
-  extends RoomMemberMethodsInterface,
-    RoomLayoutMethodsInterface,
-    RoomControlMethodsInterface {}
+  extends OnlyFunctionProperties<VideoRoomSessionContract> {
+  /** @deprecated */
+  hideVideoMuted(): Rooms.HideVideoMuted
+  /** @deprecated */
+  showVideoMuted(): Rooms.ShowVideoMuted
+}
 
 export interface RoomSessionDeviceMethods
   extends RoomMemberSelfMethodsInterface {}
