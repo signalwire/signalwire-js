@@ -1,5 +1,4 @@
 import { BaseComponentOptions, BaseConsumer, connect, ConsumerContract, EventTransform, InternalUserOptions, toExternalJSON } from '@signalwire/core'
-import { SDKStore } from '@signalwire/core/src/redux'
 import { createBaseRoomSessionObject } from '../BaseRoomSession';
 import { RoomSession } from "../RoomSession";
 
