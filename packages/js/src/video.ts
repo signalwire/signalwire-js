@@ -1,4 +1,5 @@
 import { createRoomObject, Room } from './createRoomObject'
+import { createClient } from './createClient'
 import { joinRoom } from './joinRoom'
 import { MakeRoomOptions } from './Client'
 import { RoomSession } from './RoomSession'
@@ -18,6 +19,7 @@ export {
   Room,
   RoomDevice,
   RoomScreenShare,
+  createClient,
 }
 
 export type { MakeRoomOptions }

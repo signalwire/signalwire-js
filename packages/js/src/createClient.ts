@@ -9,6 +9,7 @@ import { ClientAPI, Client } from './Client'
 import { JWTSession } from './JWTSession'
 
 /**
+ * @internal
  * ## Intro
  * With Video.createClient() you can establish a WebSocket connection
  * with SignalWire and interact with the client.
