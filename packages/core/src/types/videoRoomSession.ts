@@ -61,6 +61,7 @@ export interface VideoRoomSessionContract {
   audioUnmute(params: MemberCommandParams): Rooms.AudioUnmuteMember
   videoMute(params: MemberCommandParams): Rooms.VideoMuteMember
   videoUnmute(params: MemberCommandParams): Rooms.VideoUnmuteMember
+  /** @deprecated Use {@link setInputVolume} instead. */
   setMicrophoneVolume(
     params: MemberCommandWithVolumeParams
   ): Rooms.SetInputVolumeMember

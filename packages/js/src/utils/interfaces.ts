@@ -157,6 +157,18 @@ interface RoomControlMethodsInterface {
   play(params: Rooms.PlayParams): Promise<Rooms.RoomSessionPlayback>
 }
 
+interface RoomMemberSelfMethodsInterface
+  extends Pick<
+    OnlyFunctionProperties<VideoRoomSessionContract>,
+    | 'audioMute'
+    | 'audioUnmute'
+    | 'videoMute'
+    | 'videoUnmute'
+    | 'setMicrophoneVolume'
+    | 'setInputVolume'
+    | 'setInputSensitivity'
+  > {}
+
 /**
  * We are using these interfaces in
  * combination of Object.defineProperties()
