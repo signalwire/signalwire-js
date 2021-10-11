@@ -115,6 +115,7 @@ export class ClientAPI<
 
   get cantina() {
     if (!this._cantina) {
+      // @ts-expect-error
       this._cantina = createCantinaObject(this.options)
     }
     return this._cantina
