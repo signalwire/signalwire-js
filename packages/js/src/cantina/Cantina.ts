@@ -1,4 +1,4 @@
-import { BaseConsumer, connect, ConsumerContract, EventTransform, InternalUserOptions, toExternalJSON } from '@signalwire/core'
+import { BaseComponentOptions, BaseConsumer, connect, ConsumerContract, EventTransform, InternalUserOptions, toExternalJSON } from '@signalwire/core'
 import { SDKStore } from '@signalwire/core/src/redux'
 import { createBaseRoomSessionObject } from '../BaseRoomSession';
 import { RoomSession } from "../RoomSession";
@@ -47,10 +47,7 @@ export class CantinaAPI extends BaseConsumer<CantinaManagerEvents> {
   }
 }
 
-export interface CantinaOptions extends InternalUserOptions {
-  store: SDKStore
-}
-export const createCantinaObject = (options: CantinaOptions) => {
+export const createCantinaObject = (options: BaseComponentOptions<CantinaEvents>) => {
   const {
     store,
     ...userOptions
