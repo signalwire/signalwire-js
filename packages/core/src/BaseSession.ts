@@ -100,6 +100,10 @@ export class BaseSession {
     return this._socket?.readyState === WebSocketState.OPEN
   }
 
+  get contexts() {
+    return this.options.contexts ?? []
+  }
+
   get closing() {
     return this._socket?.readyState === WebSocketState.CLOSING
   }
@@ -220,6 +224,11 @@ export class BaseSession {
     if (this._relayProtocolIsValid()) {
       params.protocol = this.relayProtocol
     }
+
+    if (this.contexts.length) {
+      params.contexts = this.contexts
+    }
+    
     this._rpcConnectResult = await this.execute(RPCConnect(params))
   }
 

@@ -32,6 +32,7 @@ export type { RealtimeClient, ClientEvents }
 export const createClient: (userOptions: {
   project?: string
   token: string
+  contexts?: string[],
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
 }) => Promise<RealtimeClient> =
 // Note: types are inlined for clarity of documentation

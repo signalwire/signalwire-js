@@ -44,6 +44,7 @@ export type JSONRPCMethod =
   | 'video.message'
   | RoomMethod
   | VertoMethod
+  | MessageMethods
 
 export interface JSONRPCRequest {
   jsonrpc: '2.0'
@@ -66,6 +67,8 @@ export interface SessionOptions {
   project?: string
   /** SignalWire project token, e.g. `PT9e5660c101cd140a1c93a0197640a369cf5f16975a0079c9` */
   token: string
+  // relay contexts
+  contexts?: string[]
   // From `LogLevelDesc` of loglevel to simplify our docs
   /** logging level */
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
@@ -204,6 +207,9 @@ export type RoomMethod =
   | 'video.recording.stop'
   | 'video.recording.pause'
   | 'video.recording.resume'
+
+
+export type MessageMethods = 'messaging.send'
 
 export interface WebSocketClient {
   addEventListener: WebSocket['addEventListener']

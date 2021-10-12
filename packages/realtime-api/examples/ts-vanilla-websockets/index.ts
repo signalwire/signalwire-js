@@ -84,7 +84,6 @@ async function run() {
     })
 
     await client.connect()
-
     console.log('Client Running..')
   } catch (error) {
     console.log('<Error>', error)

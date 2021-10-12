@@ -6,6 +6,7 @@ import {
   ClientEvents,
   logger,
 } from '@signalwire/core'
+import { createMessageObject, MessageAPI } from './message'
 import { createVideoObject, Video } from './video/Video'
 
 /**
@@ -57,9 +58,11 @@ export interface RealtimeClient
    * Access the Video API Consumer
    */
   video: Video
+
+  message: MessageAPI
 }
 
-type ClientNamespaces = Video
+type ClientNamespaces = Video | MessageAPI
 
 export class Client extends BaseClient<ClientEvents> {
   private _consumers: Map<EventsPrefix, ClientNamespaces> = new Map()
@@ -99,5 +102,21 @@ export class Client extends BaseClient<ClientEvents> {
     })
     this._consumers.set('video', video)
     return video
+  }
+
+  get message(): MessageAPI {
+    if (this._consumers.has('messaging')) {
+      // @ts-expect-error
+      return this._consumers.get('messaging')!
+    }
+    const message = createMessageObject({
+      store: this.store,
+      // Emitter is now typed but we share it across objects
+      // so types won't match
+      // @ts-expect-error
+      emitter: this.options.emitter,
+    })
+    this._consumers.set('messaging', message)
+    return message
   }
 }

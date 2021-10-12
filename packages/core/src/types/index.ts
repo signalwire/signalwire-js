@@ -1,6 +1,7 @@
 import type { EventEmitter } from '../utils/EventEmitter'
 import type { VideoAPIEventParams, InternalVideoEventNames } from './video'
 import type { SessionEvents, JSONRPCRequest } from '../utils/interfaces'
+import { MessageEventParams, MessageEventTypes } from './message'
 
 export interface SwEvent {
   event_channel: string
@@ -65,11 +66,14 @@ export interface WebRTCMessageParams extends SwEvent {
 export type SwEventParams =
   | VideoAPIEventParams
   | WebRTCMessageParams
+  | MessageEventParams
 
 // prettier-ignore
 export type PubSubChannelEvents =
   | InternalVideoEventNames
   | SessionEvents
+  | MessageEventTypes
 
 export * from './video'
+export * from './message'
 export * from './utils'

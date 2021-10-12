@@ -10,6 +10,7 @@ import type {
   WebRTCMessageParams,
   InternalMemberUpdatedEventNames,
   MemberTalkingEventNames,
+  MessageEventParams,
 } from '../../../types'
 import {
   ExecuteActionParams,
@@ -42,6 +43,9 @@ const isWebrtcEvent = (e: SwEventParams): e is WebRTCMessageParams => {
 const isVideoEvent = (e: SwEventParams): e is VideoAPIEventParams => {
   return !!e?.event_type?.startsWith('video.')
 }
+const isMessagingEvent = (e: SwEventParams):  e is MessageEventParams => {
+  return !!e?.event_type?.startsWith('messaging.')
+} 
 
 /**
  * Watch every "executeAction" and fork the worker to send
@@ -208,6 +212,23 @@ export function* sessionChannelWatcher({
     }
   }
 
+  function* messagingAPIWorker(params: MessageEventParams): SagaIterator {
+    switch (params.event_type) {
+      case 'messaging.receive':
+        yield put(pubSubChannel, {
+          type: 'messaging.receive',
+          payload: params.params
+        })
+        break
+      case 'messaging.state':
+        yield put(pubSubChannel, {
+          type: 'messaging.state',
+          payload: params.params
+        })
+        break
+    }
+  }
+
   function* videoAPIWorker(params: VideoAPIEventParams): SagaIterator {
     switch (params.event_type) {
       case 'video.room.subscribed': {
@@ -300,6 +321,11 @@ export function* sessionChannelWatcher({
     }
     if (isVideoEvent(broadcastParams)) {
       yield fork(videoAPIWorker, broadcastParams)
+      return
+    }
+
+    if (isMessagingEvent(broadcastParams)) {
+      yield fork(messagingAPIWorker, broadcastParams)
       return
     }
 
