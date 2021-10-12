@@ -8,7 +8,7 @@ import {
   JSONRPCMethod,
   BaseConnectionState,
 } from '../utils/interfaces'
-import type { VideoAPIEventParams, InternalVideoAPIEvent, MessagePubsubEvent } from '../types'
+import type { VideoAPIEventParams, InternalVideoAPIEvent, MessagePubsubEvent, MessageEventParams } from '../types'
 
 interface SWComponent {
   id: string
@@ -33,8 +33,8 @@ export interface WebRTCCall extends SWComponent {
   videoConstraints?: MediaTrackConstraints
 }
 
-export interface Message extends SWComponent {
-  state?: string
+export interface Message extends SWComponent, Partial<MessageEventParams["params"]> {
+  localMessageUUID?: string
 }
 
 export type ReduxComponent = WebRTCCall | Message

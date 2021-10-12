@@ -19,6 +19,7 @@ export type MessageEventParams = {
     message_id: string,
     context: string,
     direction: MessageDirection,
+    tag: string,
     tags?: string[],
     from_number: string,
     to_number: string,

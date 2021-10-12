@@ -1,5 +1,21 @@
-import { BaseComponent, BaseComponentOptions, connect, MessageEventParams } from '@signalwire/core'
-import { MessageAPIEventHandlerMapping, MessageMethodParams, SMSMessageMethodParams, MMSMessageMethodParams, MessageMethodResponse, MessageObject, BaseMessageMethodParams } from '../types'
+import { 
+  BaseComponent,
+  BaseComponentOptions,
+  connect,
+  EventTransform,
+  MessageEventTypes,
+  uuid,
+} from '@signalwire/core'
+import { Message } from '@signalwire/core/src/redux/interfaces'
+import {
+  MessageAPIEventHandlerMapping,
+  MessageMethodParams,
+  SMSMessageMethodParams,
+  MMSMessageMethodParams,
+  MessageMethodResponse,
+  MessageObject,
+  BaseMessageMethodParams
+} from '../types'
 
 const STATES_TO_RESOLVE_SENT_REQUESTS = [
   'delivered', 'undelivered'
@@ -10,45 +26,78 @@ interface MessageAPI {
   sendMMS(params: MMSMessageMethodParams): Promise<MessageObject>
 }
 
+const messagePayloadTransform = (payload: any) => {
+  // console.log(payload)
+  const {
+    id: _,
+    message_id: id, 
+    from_number: from, 
+    to_number: to, 
+    message_state: state, 
+    ...rest 
+  } = payload
+  return {
+    id,
+    to,
+    from,
+    state,
+    get delivered(): boolean {
+      return this.state === 'delivered'
+    },
+    get sent(): boolean {
+      return this.state === 'sent'
+    },
+    ...rest
+  }
+}
+
 export class MessageComponent extends BaseComponent<MessageAPIEventHandlerMapping> implements MessageAPI {
   protected _eventsPrefix = 'messaging' as const
   private _sendRequests: Map<string, { resolve: (value: MessageObject) => void, reject: (reason?: any) => void }> = new Map()
-
+  private _onMessageStateChangeCallbacks: Map<string, (message: MessageObject) => void> = new Map()
   constructor(public options: BaseComponentOptions<MessageAPIEventHandlerMapping>) {
     super(options)
-    // @ts-ignore
-    this.on('state', this._onMessageStateChange.bind(this))
     this._attachListeners('')
     this.applyEmitterTransforms()
   }
   
   /* @internal */
-  public _onMessageStateChange(messageObj: MessageObject) {
-    if (STATES_TO_RESOLVE_SENT_REQUESTS.includes(messageObj.state) && this._sendRequests.has(messageObj.id)) {
-      const { resolve } = this._sendRequests.get(messageObj.id)!
-      this._sendRequests.delete(messageObj.id)
-      resolve(messageObj)
+  public onMessageStateChange(message: Message) {
+    const messageObject = messagePayloadTransform(message)
+
+    if (this._onMessageStateChangeCallbacks.has(messageObject.localMessageUUID)) {
+      const callback = this._onMessageStateChangeCallbacks.get(messageObject.localMessageUUID)!
+      callback(messageObject)
+      this._onMessageStateChangeCallbacks.delete(messageObject.localMessageUUID)
+    }
+
+    if (
+      messageObject.state && messageObject.localMessageUUID
+      && STATES_TO_RESOLVE_SENT_REQUESTS.includes(messageObject.state)
+      && this._sendRequests.has(messageObject.localMessageUUID))
+    {
+      const { resolve } = this._sendRequests.get(messageObject.localMessageUUID)!
+      resolve(messageObject)
+      this._sendRequests.delete(messageObject.localMessageUUID)
     }
   }
 
-  private async _send({ to: to_number, from: from_number, onMessageStateChange, ...params}: BaseMessageMethodParams): Promise<MessageObject> {
-    const response: MessageMethodResponse = await this.execute({
+  private _send({ to: to_number, from: from_number, onMessageStateChange, ...params}: BaseMessageMethodParams): Promise<MessageObject> {
+    const localMessageUUID = uuid()
+     this.execute({
       method: 'messaging.send',
       params: {
         to_number,
         from_number,
+        tag: `${this.__uuid}:${localMessageUUID}`,
         ...params
       }
     })
     if (onMessageStateChange) {
-      this.on('state', (messageObj: MessageObject) => {
-        if (messageObj.id === response.message_id) {
-          onMessageStateChange(messageObj)
-        }
-      })
+      this._onMessageStateChangeCallbacks.set(localMessageUUID, onMessageStateChange)
     }
-    return new Promise((resolve, reject) => {
-      this._sendRequests.set(response.message_id, { resolve, reject })
+    return new Promise<MessageObject>((resolve, reject) => {
+      this._sendRequests.set(localMessageUUID, { resolve, reject })
     })
   }
 
@@ -61,44 +110,20 @@ export class MessageComponent extends BaseComponent<MessageAPIEventHandlerMappin
   }
 
   sendMMS(params: MMSMessageMethodParams): Promise<MessageObject> {
-    return this._send({
-      ...params
-    })
+    return this._send(params)
   }
 
   sendSMS(params: SMSMessageMethodParams): Promise<MessageObject> {
-    return this._send({
-      ...params
-    })
+    return this._send(params)
   }
 
   protected getEmitterTransforms() {
-    return new Map([[
+    return new Map<MessageEventTypes | MessageEventTypes[], EventTransform>([[
       ['messaging.receive', 'messaging.state'],
       {
+        type: 'messaging',
         instanceFactory: () => ({}),
-        payloadTransform: (payload: MessageEventParams["params"]) => {
-          const { 
-            message_id: id, 
-            from_number: from, 
-            to_number: to, 
-            message_state: state, 
-            ...rest 
-          } = payload
-          return {
-            id,
-            to,
-            from,
-            state,
-            get delivered(): boolean {
-              return this.state === 'delivered'
-            },
-            get sent(): boolean {
-              return this.state === 'sent'
-            },
-            ...rest
-          }
-        }
+        payloadTransform: messagePayloadTransform,
       }
     ]])
   }
@@ -114,6 +139,7 @@ export const createMessageObject = (
     componentListeners: {
       errors: 'onError',
       responses: 'onSuccess',
+      message_state: 'onMessageStateChange',
     },
   })(params)
   const proxy = new Proxy<MessageComponent>(message, {

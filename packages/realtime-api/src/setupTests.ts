@@ -13,3 +13,5 @@ jest.mock('@signalwire/core', () => {
     },
   }
 })
+
+jest.mock('uuid', )

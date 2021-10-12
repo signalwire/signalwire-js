@@ -221,10 +221,16 @@ export function* sessionChannelWatcher({
         })
         break
       case 'messaging.state':
-        yield put(pubSubChannel, {
-          type: 'messaging.state',
-          payload: params.params
-        })
+        // yield put(pubSubChannel, {
+        //   type: 'messaging.state',
+        //   payload: params.params
+        // })
+        const [id, localMessageUUID] = params.params.tag.split(':')
+        yield put(componentActions.upsert({
+          id,
+          localMessageUUID,
+          ...params.params,
+        }))
         break
     }
   }

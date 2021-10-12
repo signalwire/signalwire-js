@@ -69,7 +69,6 @@ export const connect = <
         if (updatedValue !== undefined && current !== updatedValue) {
           cacheMap.set(cacheKey, updatedValue)
           const fnName = componentListeners[reduxKey]
-
           if (typeof fnName === 'string') {
             // FIXME: proper types for fnName
             // @ts-ignore
