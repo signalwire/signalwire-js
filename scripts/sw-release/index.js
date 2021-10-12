@@ -144,7 +144,7 @@ const getDevelopmentTasks = () => {
       },
     },
     publishTaskFactory({
-      npmOptions: ['--tag dev'],
+      npmOptions: ['--tag', 'dev'],
     }),
   ]
 }
