@@ -7,6 +7,7 @@ import {
   PRODUCT_PREFIXES,
 } from './constants'
 import type { CustomSaga } from '../redux/interfaces'
+import type { URL as NodeURL } from 'node:url'
 
 type JSONRPCParams = Record<string, any>
 type JSONRPCResult = Record<string, any>
@@ -211,8 +212,30 @@ export interface WebSocketClient {
   close: WebSocket['close']
   readyState: WebSocket['readyState']
 }
+
+export interface NodeSocketClient extends WebSocketClient {
+  addEventListener(
+    method: 'message',
+    cb: (event: any) => void,
+    options?: any
+  ): void
+}
+
+/**
+ * There's a difference in `searchParams` between URL from
+ * `lib` and URL from `url` (node) that makes using the same
+ * not possible for us.
+ */
+export interface NodeSocketAdapter {
+  new (address: string | NodeURL, options?: any): NodeSocketClient
+  new (
+    address: string | NodeURL,
+    protocols?: string | string[],
+    options?: any
+  ): NodeSocketClient
+}
 export interface WebSocketAdapter {
-  new (url: string, protocols?: string | string[]): WebSocketClient
+  new (url: string | URL, protocols?: string | string[]): WebSocketClient
 }
 
 export type ExecuteParams = {
