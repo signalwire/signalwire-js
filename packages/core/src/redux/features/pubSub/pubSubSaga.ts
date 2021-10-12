@@ -18,6 +18,7 @@ import type {
   InternalVideoRoomEvent,
   VideoLayoutEvent,
   VideoRecordingEvent,
+  VideoPlaybackEvent,
 } from '../../../types'
 
 type PubSubSagaParams = {
@@ -49,17 +50,28 @@ const isVideoRecordingEvent = (
   return action.type.startsWith('video.recording.')
 }
 
+const isVideoPlaybackEvent = (
+  action: PubSubAction
+): action is MapToPubSubShape<VideoPlaybackEvent> => {
+  return action.type.startsWith('video.playback.')
+}
+
 const findNamespaceInPayload = (action: PubSubAction): string => {
   if (action.payload === undefined) {
     return ''
   } else if (
     isVideoMemberEvent(action) ||
     isVideoLayoutEvent(action) ||
-    isVideoRecordingEvent(action)
+    isVideoRecordingEvent(action) ||
+    isVideoPlaybackEvent(action)
   ) {
     return action.payload.room_session_id
   } else if (isVideoRoomEvent(action)) {
     return action.payload.room_session.id
+  }
+
+  if ('development' === process.env.NODE_ENV) {
+    logger.info('Namespace not found for', (action as any)?.type)
   }
 
   return ''
