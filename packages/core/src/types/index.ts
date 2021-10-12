@@ -42,6 +42,8 @@ export interface BaseConnectionContract<
   trying: boolean
   active: boolean
   memberId: string
+  updateCamera(constraints: MediaTrackConstraints): Promise<void>
+  updateMicrophone(constraints: MediaTrackConstraints): Promise<void>
 }
 
 export interface ConsumerContract<
