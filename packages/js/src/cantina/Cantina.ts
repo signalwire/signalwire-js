@@ -1,23 +1,24 @@
-import { BaseComponentOptions, BaseConsumer, connect, ConsumerContract, EventTransform, toExternalJSON } from '@signalwire/core'
-import { createBaseRoomSessionObject } from '../BaseRoomSession';
-import { RoomSession } from "../RoomSession";
-
-type CantinaNameSpace = 'cantina-manager'
-type CantinaEvents = 'room.started' | 'room.updated' | 'room.ended'
-
-type PrefixedEvent<T extends CantinaEvents> = `${CantinaNameSpace}.${T}`
-
-type CantinaNamespacedEvents = PrefixedEvent<CantinaEvents>
-
-
-/** @internal */
-export type CantinaManagerEvents = Record<CantinaEvents, (room: RoomSession) => void>
+import {
+  BaseComponentOptions,
+  BaseConsumer,
+  CantinaEvents,
+  CantinaNamespacedEvents,
+  connect,
+  ConsumerContract,
+  EventTransform,
+  toExternalJSON,
+} from '@signalwire/core'
+import { createBaseRoomSessionObject } from '../BaseRoomSession'
+import { RoomSession } from '../RoomSession'
 
 /** @internal */
-export interface Cantina extends ConsumerContract<CantinaManagerEvents> {
-  /** @internal */
-  subscribe(): Promise<void>
-}
+export type CantinaManagerEvents = Record<
+  CantinaEvents,
+  (room: RoomSession) => void
+>
+
+/** @internal */
+export interface Cantina extends ConsumerContract<CantinaManagerEvents> {}
 
 /** @internal */
 export class CantinaAPI extends BaseConsumer<CantinaManagerEvents> {
@@ -26,41 +27,51 @@ export class CantinaAPI extends BaseConsumer<CantinaManagerEvents> {
 
   /** @internal */
   getEmitterTransforms() {
-    return new Map<CantinaNamespacedEvents | CantinaNamespacedEvents[], EventTransform>([
-      [[
-      'cantina-manager.room.started',
-      'cantina-manager.room.updated',
-      'cantina-manager.room.ended',
-      ], {
-        type: 'roomSession',
-        instanceFactory: () => {
-          return createBaseRoomSessionObject<RoomSession>({
-            store: this.store,
-            // @ts-expect-error
-            emitter: this.emitter,
-         })
+    return new Map<
+      CantinaNamespacedEvents | CantinaNamespacedEvents[],
+      EventTransform
+    >([
+      [
+        [
+          'cantina-manager.room.started',
+          'cantina-manager.room.updated',
+          'cantina-manager.room.ended',
+        ],
+        {
+          type: 'roomSession',
+          instanceFactory: () => {
+            return createBaseRoomSessionObject<RoomSession>({
+              store: this.store,
+              // @ts-expect-error
+              emitter: this.emitter,
+            })
+          },
+          payloadTransform: (payload) => toExternalJSON(payload),
         },
-        payloadTransform: (payload) => toExternalJSON(payload),
-      }]
+      ],
     ])
   }
 }
 
-export const createCantinaObject = (options: BaseComponentOptions<CantinaEvents>) => {
-  const {
-    store,
-    ...userOptions
-  } = options
+export const createCantinaObject = (
+  options: BaseComponentOptions<CantinaEvents>
+) => {
+  const { store, ...userOptions } = options
   const cantina = connect<
     CantinaEvents,
     // @ts-expect-error
     CantinaAPI,
-    Cantina>({
-      store: options.store,
-      Component: CantinaAPI
-    })(userOptions)
+    Cantina
+  >({
+    store: options.store,
+    Component: CantinaAPI,
+  })(userOptions)
   const proxy = new Proxy(cantina, {
-    get(target: Cantina, property: string | symbol, receiver: ProxyHandler<Cantina>) {
+    get(
+      target: Cantina,
+      property: string | symbol,
+      receiver: ProxyHandler<Cantina>
+    ) {
       if (property === '_eventsNamespace') {
         return ''
       }
@@ -69,8 +80,7 @@ export const createCantinaObject = (options: BaseComponentOptions<CantinaEvents>
         return 'cantina-manager.rooms'
       }
       return Reflect.get(target, property, receiver)
-    }
+    },
   })
   return proxy
 }
-

@@ -3,20 +3,22 @@ import { SwEvent, RoomStarted, RoomUpdated, RoomEnded } from '.'
 /** @internal */
 export type CantinaRoomEvents = RoomStarted | RoomUpdated | RoomEnded
 
-type ToInternalCantinaRoomEvent<T extends CantinaRoomEvents> = `cantina-manager.${T}`
+type ToInternalCantinaRoomEvent<T extends CantinaRoomEvents> =
+  `cantina-manager.${T}`
 
 /** @internal */
-export type InternalCantinaRoomEvents = ToInternalCantinaRoomEvent<CantinaRoomEvents>
+export type InternalCantinaRoomEvents =
+  ToInternalCantinaRoomEvent<CantinaRoomEvents>
 
 /** @internal */
 export type CantinaRoomTypes = 'permanent' | 'adhoc' | 'hidden'
 
 /** @internal */
-export type CantinaRoomMemberRoles = 
-  | 'inviteable' 
-  | 'configurator' 
-  | 'visitor' 
-  | 'attendee' 
+export type CantinaRoomMemberRoles =
+  | 'inviteable'
+  | 'configurator'
+  | 'visitor'
+  | 'attendee'
   | 'moderator'
   | 'manager'
 
@@ -52,9 +54,16 @@ export interface CantinaRoomEventParams {
 
 /** @internal */
 export interface CantinaRoomEvent extends SwEvent {
-  event_type: InternalCantinaRoomEvents,
+  event_type: InternalCantinaRoomEvents
   params: CantinaRoomEventParams
 }
 
 /** @internal */
 export type CantinaEventParams = CantinaRoomEvent
+
+export type CantinaNameSpace = 'cantina-manager'
+export type CantinaEvents = 'room.started' | 'room.updated' | 'room.ended'
+
+export type PrefixedEvent<T extends CantinaEvents> = `${CantinaNameSpace}.${T}`
+
+export type CantinaNamespacedEvents = PrefixedEvent<CantinaEvents>

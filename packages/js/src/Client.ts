@@ -3,7 +3,6 @@ import {
   BaseClient,
   ClientEvents,
   ClientContract,
-  SessionState,
 } from '@signalwire/core'
 import type { CustomSaga } from '@signalwire/core'
 import { ConnectionOptions } from '@signalwire/webrtc'
@@ -31,12 +30,6 @@ export class ClientAPI<
   RoomSessionType = RoomSession
 > extends BaseClient<ClientEvents> {
   private _cantina: Cantina
-
-  onAuth(session: SessionState) {
-    if (session.authStatus === 'authorized') {
-      this._cantina.subscribe()
-    }
-  }
 
   get rooms() {
     return {
