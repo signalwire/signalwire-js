@@ -453,6 +453,46 @@ export interface RoomControlMethodsInterfaceDocs {
    * ```
    */
   startRecording(): Promise<Rooms.RoomSessionRecording>
+
+  /** 
+   * Obtains a list of recordings for the current room session.
+   *
+   * @permissions
+   *  - `room.playback`
+   *
+   * You need to specify the permissions when [creating the Video Room
+   * Token](https://developer.signalwire.com/apis/reference/create_room_token)
+   * on the server side.
+   * 
+   * @returns The returned objects contain all the properties of a
+   * {@link RoomSessionPlayback}, but no methods.
+   */
+  getPlaybacks(): Rooms.GetPlaybacks
+
+  /**
+   * Starts a playback in the room. You can use the returned
+   * {@link RoomSessionPlayback} object to control the playback (e.g., pause,
+   * resume, setVolume and stop).
+   *
+   * @param params.url The url (http, https, rtmp, rtmps) of the stream to
+   * reproduce.
+   * @param params.volume The audio volume at which to play the stream. Values
+   * range from -50 to 50, with a default of 0.
+   *
+   * @permissions
+   *  - `room.playback`
+   *
+   * You need to specify the permissions when [creating the Video Room
+   * Token](https://developer.signalwire.com/apis/reference/create_room_token)
+   * on the server side.
+   * 
+   * @example
+   * ```typescript
+   * const playback = await roomSession.play({ url: 'rtmp://example.com/foo' })
+   * await playback.stop()
+   * ```
+   */
+  play(params: {url: string, volume?: number}): Promise<Rooms.RoomSessionPlayback>
 }
 
 export interface RoomMemberSelfMethodsInterfaceDocs {

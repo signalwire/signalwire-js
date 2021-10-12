@@ -11,6 +11,7 @@ import {
 let roomObj = null
 
 const inCallElements = [
+  roomControls,
   muteSelfBtn,
   unmuteSelfBtn,
   muteVideoSelfBtn,
@@ -28,7 +29,34 @@ const inCallElements = [
   stopRecordingBtn,
   pauseRecordingBtn,
   resumeRecordingBtn,
+  controlPlayback,
 ]
+
+const playbackElements = [
+  stopPlaybackBtn,
+  pausePlaybackBtn,
+  resumePlaybackBtn,
+  playbackVolumeControl,
+]
+
+window.playbackStarted = () => {
+  playBtn.classList.add('d-none')
+  playBtn.disabled = true
+
+  playbackElements.forEach((button) => {
+    button.classList.remove('d-none')
+    button.disabled = false
+  })
+}
+window.playbackEnded = () => {
+  playBtn.classList.remove('d-none')
+  playBtn.disabled = false
+
+  playbackElements.forEach((button) => {
+    button.classList.add('d-none')
+    button.disabled = true
+  })
+}
 
 async function loadLayouts(currentLayoutId) {
   try {
@@ -148,7 +176,6 @@ window.connect = () => {
       button.classList.remove('d-none')
       button.disabled = false
     })
-
     loadLayouts()
   })
   roomObj.on('room.updated', (params) =>
@@ -193,6 +220,24 @@ window.connect = () => {
     console.debug('>> layout.changed', params)
   )
   roomObj.on('track', (event) => console.debug('>> DEMO track', event))
+
+  roomObj.on('playback.started', (params) => {
+    console.debug('>> playback.started', params)
+
+    playbackStarted()
+  })
+  roomObj.on('playback.ended', (params) => {
+    console.debug('>> playback.ended', params)
+
+    playbackEnded()
+  })
+  roomObj.on('playback.updated', (params) => {
+    console.debug('>> playback.updated', params)
+
+    if (params.volume) {
+      document.getElementById('playbackVolume').value = params.volume
+    }
+  })
 
   roomObj
     .join()
@@ -362,6 +407,20 @@ window.rangeInputHandler = (range) => {
     case 'inputSensitivity':
       roomObj.setInputSensitivity({ value: range.value })
       break
+    case 'playbackVolume': {
+      if (!playbackObj) {
+        return console.warn('Invalid playbackObj for `setVolume`')
+      }
+      playbackObj
+        .setVolume(range.value)
+        .then((response) => {
+          console.log('Playback setVolume:', response)
+        })
+        .catch((error) => {
+          console.error('Failed to set the playback volume:', error)
+        })
+      break
+    }
   }
 }
 
@@ -413,6 +472,61 @@ window.resumeRecording = () => {
     })
     .catch((error) => {
       console.error('Failed to resume recording:', error)
+    })
+}
+
+let playbackObj = null
+window.startPlayback = () => {
+  const url = document.getElementById('playbackUrl').value
+  if (!url) {
+    return console.warn('Invalid playback URL')
+  }
+  console.debug('>> startPlayback', url)
+  roomObj
+    .play({ url, volume: 10 })
+    .then((response) => {
+      console.log('Playback started!', response)
+      playbackObj = response
+    })
+    .catch((error) => {
+      console.error('Failed to start playback:', error)
+    })
+}
+
+window.stopPlayback = () => {
+  console.debug('>> stopPlayback')
+  playbackObj
+    .stop()
+    .then((response) => {
+      console.log('Playback stopped!', response)
+      playbackObj = null
+    })
+    .catch((error) => {
+      console.error('Failed to stop playback:', error)
+    })
+}
+
+window.pausePlayback = () => {
+  console.debug('>> pausePlayback')
+  playbackObj
+    .pause()
+    .then((response) => {
+      console.log('Playback paused!', response)
+    })
+    .catch((error) => {
+      console.error('Failed to pause playback:', error)
+    })
+}
+
+window.resumePlayback = () => {
+  console.debug('>> resumePlayback')
+  playbackObj
+    .resume()
+    .then((response) => {
+      console.log('Playback resumed!', response)
+    })
+    .catch((error) => {
+      console.error('Failed to resume playback:', error)
     })
 }
 

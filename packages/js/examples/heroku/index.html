@@ -108,21 +108,14 @@
               </div>
             </div>
           </div>
-        </div>
 
-        <div class="col-12 col-md-8 mt-4 mt-md-1">
-          <div class="row py-3">
-            <div class="col-12">
-              <h5>Remote Video</h5>
-              <div id="rootElement"></div>
-            </div>
-          </div>
-          <div class="row py-2">
-            <div class="col-4">
+          <div id="roomControls" class="card mt-4 d-none">
+            <div class="card-body">
+              <h5>Controls</h5>
               <div class="btn-group w-100" role="group">
                 <button
                   id="muteSelfBtn"
-                  class="btn btn-warning px-3 mt-2 d-none"
+                  class="btn btn-warning px-3 mt-2"
                   onClick="muteSelf()"
                   disabled="true"
                 >
@@ -130,19 +123,18 @@
                 </button>
                 <button
                   id="unmuteSelfBtn"
-                  class="btn btn-warning px-3 mt-2 d-none"
+                  class="btn btn-warning px-3 mt-2"
                   onClick="unmuteSelf()"
                   disabled="true"
                 >
                   UnMute Self
                 </button>
               </div>
-            </div>
-            <div class="col-4">
+
               <div class="btn-group w-100" role="group">
                 <button
                   id="muteVideoSelfBtn"
-                  class="btn btn-warning px-3 mt-2 d-none"
+                  class="btn btn-warning px-3 mt-2"
                   onClick="muteVideoSelf()"
                   disabled="true"
                 >
@@ -150,19 +142,66 @@
                 </button>
                 <button
                   id="unmuteVideoSelfBtn"
-                  class="btn btn-warning px-3 mt-2 d-none"
+                  class="btn btn-warning px-3 mt-2"
                   onClick="unmuteVideoSelf()"
                   disabled="true"
                 >
                   Video UnMute Self
                 </button>
               </div>
-            </div>
-            <div class="col-4">
+
+              <div class="btn-group w-100" role="group">
+                <button
+                  id="deafSelfBtn"
+                  class="btn btn-warning px-3 mt-2"
+                  onClick="deafSelf()"
+                  disabled="true"
+                >
+                  Deaf Self
+                </button>
+                <button
+                  id="undeafSelfBtn"
+                  class="btn btn-warning px-3 mt-2"
+                  onClick="undeafSelf()"
+                  disabled="true"
+                >
+                  Undeaf Self
+                </button>
+              </div>
+
+              <div class="btn-group w-100" role="group">
+                <button
+                  id="hideVMutedBtn"
+                  class="btn btn-warning px-3 mt-2"
+                  onClick="hideVideoMuted()"
+                  disabled="true"
+                >
+                  Hide vMuted
+                </button>
+                <button
+                  id="showVMutedBtn"
+                  class="btn btn-warning px-3 mt-2"
+                  onClick="showVideoMuted()"
+                  disabled="true"
+                >
+                  Show vMuted
+                </button>
+              </div>
+
+              <div class="col-12 mt-2">
+                <label for="layout" class="form-label"> Change Layout </label>
+                <select
+                  class="form-select"
+                  onchange="changeLayout(this)"
+                  value=""
+                  id="layout"
+                ></select>
+              </div>
+
               <div class="btn-group w-100" role="group">
                 <button
                   id="hideScreenShareBtn"
-                  class="btn btn-warning px-3 mt-2 d-none"
+                  class="btn btn-success px-3 mt-2"
                   onClick="startScreenShare()"
                   disabled="true"
                 >
@@ -170,7 +209,7 @@
                 </button>
                 <button
                   id="showScreenShareBtn"
-                  class="btn btn-warning px-3 mt-2 d-none"
+                  class="btn btn-danger px-3 mt-2"
                   onClick="stopScreenShare()"
                   disabled="true"
                 >
@@ -179,46 +218,12 @@
               </div>
             </div>
           </div>
-          <div class="row py-2">
-            <div class="col-6">
-              <div class="btn-group w-100" role="group">
-                <button
-                  id="deafSelfBtn"
-                  class="btn btn-warning px-3 mt-2 d-none"
-                  onClick="deafSelf()"
-                  disabled="true"
-                >
-                  Deaf Self
-                </button>
-                <button
-                  id="undeafSelfBtn"
-                  class="btn btn-warning px-3 mt-2 d-none"
-                  onClick="undeafSelf()"
-                  disabled="true"
-                >
-                  Undeaf Self
-                </button>
-              </div>
-            </div>
-            <div class="col-6">
-              <div class="btn-group w-100" role="group">
-                <button
-                  id="hideVMutedBtn"
-                  class="btn btn-warning px-3 mt-2 d-none"
-                  onClick="hideVideoMuted()"
-                  disabled="true"
-                >
-                  Hide vMuted
-                </button>
-                <button
-                  id="showVMutedBtn"
-                  class="btn btn-warning px-3 mt-2 d-none"
-                  onClick="showVideoMuted()"
-                  disabled="true"
-                >
-                  Show vMuted
-                </button>
-              </div>
+        </div>
+
+        <div class="col-12 col-md-8 mt-4 mt-md-1">
+          <div class="row py-3">
+            <div class="col-12">
+              <div id="rootElement"></div>
             </div>
           </div>
 
@@ -269,23 +274,7 @@
 
           <div id="controlLayout" class="row py-2 d-none">
             <div class="col-4">
-              <label for="microphoneSelect" class="form-label">
-                Microphone
-              </label>
-              <select
-                class="form-select"
-                value=""
-                id="microphoneSelect"
-                onchange="changeMicrophone(this)"
-              ></select>
-              <label for="speakerSelect" class="form-label"> Speaker </label>
-              <select
-                class="form-select"
-                value=""
-                id="speakerSelect"
-                onchange="changeSpeaker(this)"
-              ></select>
-              <label for="cameraSelect" class="form-label"> Video </label>
+              <label for="cameraSelect" class="form-label">Camera</label>
               <select
                 class="form-select"
                 value=""
@@ -294,12 +283,23 @@
               ></select>
             </div>
             <div class="col-4">
-              <label for="layout" class="form-label"> Change Layout </label>
+              <label for="microphoneSelect" class="form-label"
+                >Microphone</label
+              >
               <select
                 class="form-select"
-                onchange="changeLayout(this)"
                 value=""
-                id="layout"
+                id="microphoneSelect"
+                onchange="changeMicrophone(this)"
+              ></select>
+            </div>
+            <div class="col-4">
+              <label for="speakerSelect" class="form-label">Speaker</label>
+              <select
+                class="form-select"
+                value=""
+                id="speakerSelect"
+                onchange="changeSpeaker(this)"
               ></select>
             </div>
           </div>
@@ -340,6 +340,62 @@
                 >
                   Stop Recording
                 </button>
+              </div>
+            </div>
+          </div>
+
+          <div id="controlPlayback" class="row py-2 d-none">
+            <h6>Playback URL</h6>
+            <div class="form-group">
+              <input type="text" class="form-control" id="playbackUrl" />
+            </div>
+            <div class="col-12">
+              <div class="btn-group w-100" role="group">
+                <button
+                  id="playBtn"
+                  class="btn btn-success px-3 mt-2"
+                  onClick="startPlayback()"
+                >
+                  Start Playback
+                </button>
+                <button
+                  id="pausePlaybackBtn"
+                  class="btn btn-info px-3 mt-2 d-none"
+                  onClick="pausePlayback()"
+                  disabled="true"
+                >
+                  Pause Playback
+                </button>
+                <button
+                  id="resumePlaybackBtn"
+                  class="btn btn-info px-3 mt-2 d-none"
+                  onClick="resumePlayback()"
+                  disabled="true"
+                >
+                  Resume Playback
+                </button>
+                <button
+                  id="stopPlaybackBtn"
+                  class="btn btn-danger px-3 mt-2 d-none"
+                  onClick="stopPlayback()"
+                  disabled="true"
+                >
+                  Stop Playback
+                </button>
+              </div>
+              <div id="playbackVolumeControl" class="col-12 d-none">
+                <label for="playbackVolume" class="form-label">
+                  Playback Volume
+                </label>
+                <input
+                  type="range"
+                  class="form-range"
+                  oninput="rangeInputHandler(this)"
+                  min="-50"
+                  max="50"
+                  value="0"
+                  id="playbackVolume"
+                />
               </div>
             </div>
           </div>

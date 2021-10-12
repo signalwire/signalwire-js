@@ -1,6 +1,10 @@
 import { BaseRoomInterface } from '.'
-import { VideoMemberEntity, VideoRecordingEntity } from '../types'
-import { toLocalEvent } from '../utils'
+import {
+  VideoMemberEntity,
+  VideoRecordingEntity,
+  VideoPlaybackEntity,
+} from '../types'
+import { toLocalEvent, toExternalJSON } from '../utils'
 import { ExecuteExtendedOptions, RoomMethod } from '../utils/interfaces'
 
 interface RoomMethodPropertyDescriptor<T, ParamsType>
@@ -129,7 +133,9 @@ export const setHideVideoMuted: RoomMethodDescriptor<any, boolean> = {
 export const getRecordings = createRoomMethod<{
   recordings: VideoRecordingEntity[]
 }>('video.recording.list', {
-  transformResolve: (payload) => ({ recordings: payload.recordings }),
+  transformResolve: (payload) => ({
+    recordings: payload.recordings.map((row) => toExternalJSON(row)),
+  }),
 })
 export const startRecording: RoomMethodDescriptor<any> = {
   value: function () {
@@ -158,6 +164,46 @@ export const startRecording: RoomMethodDescriptor<any> = {
   },
 }
 
+export const getPlaybacks = createRoomMethod<{
+  playbacks: VideoPlaybackEntity[]
+}>('video.playback.list', {
+  transformResolve: (payload) => ({
+    playbacks: payload.playbacks.map((row) => toExternalJSON(row)),
+  }),
+})
+
+export type PlayParams = {
+  url: string
+  volume?: number
+}
+export const play: RoomMethodDescriptor<any, PlayParams> = {
+  value: function (params) {
+    return new Promise(async (resolve) => {
+      const handler = (instance: any) => {
+        resolve(instance)
+      }
+      this.on(toLocalEvent('video.playback.start'), handler)
+
+      try {
+        const payload = await this.execute({
+          method: 'video.playback.start',
+          params: {
+            room_session_id: this.roomSessionId,
+            ...params,
+          },
+        })
+        this.emit(toLocalEvent('video.playback.start'), {
+          ...(payload as object),
+          room_session_id: this.roomSessionId,
+        })
+      } catch (error) {
+        this.off(toLocalEvent('video.playback.start'), handler)
+        throw error
+      }
+    })
+  },
+}
+
 export type GetLayouts = ReturnType<typeof getLayouts.value>
 export type GetMembers = ReturnType<typeof getMembers.value>
 export type HideVideoMuted = ReturnType<typeof hideVideoMuted.value>
@@ -166,6 +212,9 @@ export type SetHideVideoMuted = ReturnType<typeof setHideVideoMuted.value>
 
 export type GetRecordings = ReturnType<typeof getRecordings.value>
 export type StartRecording = ReturnType<typeof startRecording.value>
+
+export type GetPlaybacks = ReturnType<typeof getPlaybacks.value>
+export type Play = ReturnType<typeof play.value>
 // End Room Methods
 
 /**

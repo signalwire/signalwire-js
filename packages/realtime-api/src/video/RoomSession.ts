@@ -14,6 +14,8 @@ import {
   VideoRoomSubscribedEventParams,
   InternalVideoLayoutEventNames,
   InternalVideoRecordingEventNames,
+  InternalVideoPlaybackEventNames,
+  VideoPlaybackEventParams,
   VideoLayoutChangedEventParams,
   VideoRoomSessionContract,
   VideoRoomSessionMethods,
@@ -35,6 +37,8 @@ type EmitterTransformsEvents =
   | InternalVideoLayoutEventNames
   | InternalVideoRecordingEventNames
   | 'video.__local__.recording.start'
+  | InternalVideoPlaybackEventNames
+  | 'video.__local__.playback.start'
 
 interface RoomSessionMain
   extends VideoRoomSessionContract,
@@ -50,7 +54,7 @@ interface RoomSessionDocs extends RoomSessionMain {
    * @example
    * ```typescript
    * const id = 'de550c0c-3fac-4efd-b06f-b5b8614b8966'  // you can get this from getMembers()
-   * await room.audioMute({memberId: id})
+   * await roomSession.audioMute({memberId: id})
    * ```
    */
   audioMute(params: { memberId: string }): Promise<void>
@@ -63,7 +67,7 @@ interface RoomSessionDocs extends RoomSessionMain {
    * @example
    * ```typescript
    * const id = 'de550c0c-3fac-4efd-b06f-b5b8614b8966'  // you can get this from getMembers()
-   * await room.audioUnmute({memberId: id})
+   * await roomSession.audioUnmute({memberId: id})
    * ```
    */
   audioUnmute(params: { memberId: string }): Promise<void>
@@ -77,7 +81,7 @@ interface RoomSessionDocs extends RoomSessionMain {
    * @example
    * ```typescript
    * const id = 'de550c0c-3fac-4efd-b06f-b5b8614b8966'  // you can get this from getMembers()
-   * await room.videoMute({memberId: id})
+   * await roomSession.videoMute({memberId: id})
    * ```
    */
   videoMute(params: { memberId: string }): Promise<void>
@@ -91,7 +95,7 @@ interface RoomSessionDocs extends RoomSessionMain {
    * @example
    * ```typescript
    * const id = 'de550c0c-3fac-4efd-b06f-b5b8614b8966'  // you can get this from getMembers()
-   * await room.videoUnmute({memberId: id})
+   * await roomSession.videoUnmute({memberId: id})
    * ```
    */
   videoUnmute(params: { memberId: string }): Promise<void>
@@ -117,7 +121,7 @@ interface RoomSessionDocs extends RoomSessionMain {
    * @example
    * ```typescript
    * const id = 'de550c0c-3fac-4efd-b06f-b5b8614b8966'  // you can get this from getMembers()
-   * await room.setInputVolume({memberId: id, volume: -10})
+   * await roomSession.setInputVolume({memberId: id, volume: -10})
    * ```
    */
   setInputVolume(params: { memberId: string; volume: number }): Promise<void>
@@ -134,7 +138,7 @@ interface RoomSessionDocs extends RoomSessionMain {
    * @example
    * ```typescript
    * const id = 'de550c0c-3fac-4efd-b06f-b5b8614b8966'  // you can get this from getMembers()
-   * await room.setInputSensitivity({memberId: id, value: 80})
+   * await roomSession.setInputSensitivity({memberId: id, value: 80})
    * ```
    */
   setInputSensitivity(params: {
@@ -149,7 +153,7 @@ interface RoomSessionDocs extends RoomSessionMain {
    *
    * @example
    * ```typescript
-   * await room.getMembers()
+   * await roomSession.getMembers()
    * // returns:
    * {
    * "members": [
@@ -202,7 +206,7 @@ interface RoomSessionDocs extends RoomSessionMain {
    * @example
    * ```typescript
    * const id = 'de550c0c-3fac-4efd-b06f-b5b8614b8966'  // you can get this from getMembers()
-   * await room.deaf({memberId: id})
+   * await roomSession.deaf({memberId: id})
    * ```
    */
   deaf(params: { memberId: string }): Promise<void>
@@ -220,7 +224,7 @@ interface RoomSessionDocs extends RoomSessionMain {
    * @example
    * ```typescript
    * const id = 'de550c0c-3fac-4efd-b06f-b5b8614b8966'  // you can get this from getMembers()
-   * await room.undeaf({memberId: id})
+   * await roomSession.undeaf({memberId: id})
    * ```
    */
   undeaf(params: { memberId: string }): Promise<void>
@@ -241,7 +245,7 @@ interface RoomSessionDocs extends RoomSessionMain {
    * @example
    * ```typescript
    * const id = 'de550c0c-3fac-4efd-b06f-b5b8614b8966'  // you can get this from getMembers()
-   * await room.setOutputVolume({memberId: id, volume: -10})
+   * await roomSession.setOutputVolume({memberId: id, volume: -10})
    * ```
    */
   setOutputVolume(params: { memberId: string; volume: number }): Promise<void>
@@ -254,7 +258,7 @@ interface RoomSessionDocs extends RoomSessionMain {
    * @example
    * ```typescript
    * const id = 'de550c0c-3fac-4efd-b06f-b5b8614b8966'  // you can get this from getMembers()
-   * await room.removeMember({memberId: id})
+   * await roomSession.removeMember({memberId: id})
    * ```
    */
   removeMember(params: { memberId: string }): Promise<void>
@@ -268,7 +272,7 @@ interface RoomSessionDocs extends RoomSessionMain {
    *
    * @example
    * ```typescript
-   * await room.setHideVideoMuted(false)
+   * await roomSession.setHideVideoMuted(false)
    * ```
    */
   setHideVideoMuted(value: boolean): Rooms.SetHideVideoMuted
@@ -279,7 +283,7 @@ interface RoomSessionDocs extends RoomSessionMain {
    *
    * @example
    * ```typescript
-   * await room.getLayouts()
+   * await roomSession.getLayouts()
    * // returns:
    * {
    *   "layouts": [
@@ -300,13 +304,16 @@ interface RoomSessionDocs extends RoomSessionMain {
    *
    * @example Set the 6x6 layout:
    * ```typescript
-   * await room.setLayout({name: "6x6"})
+   * await roomSession.setLayout({name: "6x6"})
    * ```
    */
   setLayout(params: { name: string }): Promise<void>
 
   /**
    * Obtains a list of recordings for the current room session.
+   *
+   * @returns The returned objects contain all the properties of a
+   * {@link RoomSessionRecording}, but no methods.
    */
   getRecordings(): Rooms.GetRecordings
 
@@ -317,11 +324,40 @@ interface RoomSessionDocs extends RoomSessionMain {
    *
    * @example
    * ```typescript
-   * const rec = await room.startRecording()
+   * const rec = await roomSession.startRecording()
    * await rec.stop()
    * ```
    */
   startRecording(): Promise<Rooms.RoomSessionRecording>
+
+  /**
+   * Obtains a list of playbacks for the current room session.
+   *
+   * @returns The returned objects contain all the properties of a
+   * {@link RoomSessionPlayback}, but no methods.
+   */
+  getPlaybacks(): Rooms.GetPlaybacks
+
+  /**
+   * Starts a playback in the room. You can use the returned
+   * {@link RoomSessionPlayback} object to control the playback (e.g., pause,
+   * resume, setVolume and stop).
+   *
+   * @param params.url The url (http, https, rtmp, rtmps) of the stream to
+   * reproduce.
+   * @param params.volume The audio volume at which to play the stream. Values
+   * range from -50 to 50, with a default of 0.
+   *
+   * @example
+   * ```typescript
+   * const playback = await roomSession.play({ url: 'rtmp://example.com/foo' })
+   * await playback.stop()
+   * ```
+   */
+  play(params: {
+    url: string
+    volume?: number
+  }): Promise<Rooms.RoomSessionPlayback>
 
   /**
    * Start listening for the events for which you have provided event handlers
@@ -370,6 +406,14 @@ interface RoomSessionDocs extends RoomSessionMain {
  * Emitted when a recording is, respectively, started, updated, or ended. Your
  * event handler receives an object which is an instance of
  * {@link RoomSessionRecording}.
+ *
+ *  - **playback.started**,
+ *  - **playback.updated**,
+ *  - **playback.ended**:
+ *
+ * Emitted when a playback is, respectively, started, updated, or ended. Your
+ * event handler receives an object which is an instance of
+ * {@link RoomSessionPlayback}.
  *
  *  - **layout.changed**:
  *
@@ -602,6 +646,30 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
           },
         },
       ],
+      [
+        [
+          toLocalEvent<EmitterTransformsEvents>('video.playback.start'),
+          'video.playback.started',
+          'video.playback.updated',
+          'video.playback.ended',
+        ],
+        {
+          type: 'roomSessionPlayback',
+          instanceFactory: (_payload: any) => {
+            return Rooms.createRoomSessionPlaybackObject({
+              store: this.store,
+              // @ts-expect-error
+              emitter: this.emitter,
+            })
+          },
+          payloadTransform: (payload: VideoPlaybackEventParams) => {
+            return toExternalJSON({
+              ...payload.playback,
+              room_session_id: payload.room_session_id,
+            })
+          },
+        },
+      ],
     ])
   }
 }
@@ -628,6 +696,8 @@ export const RoomSessionAPI = extendComponent<
   setLayout: Rooms.setLayout,
   getRecordings: Rooms.getRecordings,
   startRecording: Rooms.startRecording,
+  getPlaybacks: Rooms.getPlaybacks,
+  play: Rooms.play,
 })
 
 export const createRoomSessionObject = (

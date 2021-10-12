@@ -6,60 +6,60 @@ export interface RoomSessionDocs<T> extends BaseRoomSession<T> {
 
   /** Whether the connection is currently active */
   get active(): boolean
-  
+
   /** The id of the video device, or null if not available */
   get cameraId(): string
-  
+
   /** The label of the video device, or null if not available */
   get cameraLabel(): string
-  
+
   /**
    * Contains any additional devices added via {@link addCamera},
    * {@link addMicrophone}, or {@link addDevice}.
    */
   get deviceList(): RoomSessionDevice[]
-  
+
   /**
    * Provides access to the local audio
    * [MediaStreamTrack](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack).
    */
   get localAudioTrack(): MediaStreamTrack
-  
+
   /** Provides access to the local [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream) */
   get localStream(): MediaStream
-  
+
   /**
    * Provides access to the local video
    * [MediaStreamTrack](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack).
    */
   get localVideoTrack(): MediaStreamTrack
-  
+
   /** The id of the current member within the room */
   get memberId(): string
-  
+
   /** The id of the audio input device, or null if not available */
   get microphoneId(): string
-  
+
   /** The label of the audio input device, or null if not available */
   get microphoneLabel(): string
-  
+
   /**
    * Provides access to the remote [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream)
    */
   get remoteStream(): MediaStream
-  
+
   /** The unique identifier for the room */
   get roomId(): string
-  
+
   /** The unique identifier for the room session */
   get roomSessionId(): string
 
   /** Contains any local screen shares added to the room via {@link startScreenShare}. */
   get screenShareList(): RoomSessionScreenShare[]
-  
+
   /** Whether the connection is currently in the "trying" state. */
   get trying(): boolean
-  
+
   /** @internal */
   restoreOutboundAudio: any
   /** @internal */
@@ -139,7 +139,7 @@ export interface RoomSessionDocs<T> extends BaseRoomSession<T> {
    * await roomSession.startScreenShare({audio: true, video: true})
    * ```
    */
-   startScreenShare(opts: {
+  startScreenShare(opts: {
     /** Whether the screen share object should automatically join the room */
     autoJoin?: boolean
     /** Audio constraints to use when joining the room. Default: `true`. */
@@ -289,7 +289,7 @@ export interface RoomSessionDocs<T> extends BaseRoomSession<T> {
    * no effect on the server-side room.
    */
   destroy(): void
-  
+
   /** @ignore */
   setMicrophoneVolume(params: any): any
 
@@ -339,219 +339,239 @@ export interface RoomSessionDocs<T> extends BaseRoomSession<T> {
    * 
    * @event
    */
-   'room.joined': undefined
+  'room.joined': undefined
 
-   /**
-    * The properties of the room have been updated. The event handler receives
-    * objects of type:
-    *
-    * ```typescript
-    * type _ = {
-    *   room_session_id: string,
-    *   room_id: string,
-    *   room: {
-    *     updated: Array<string>,
-    *     room_session_id: string,
-    *     room_id: string,
-    *   }
-    * }
-    * ```
-    *
-    * In particular, in the field `room.updated` you find an array of all the
-    * properties that have been updated. The new values for those properties are
-    * available as additional fields of `room`.
-    *
-    * For example, say `hide_video_muted` has been updated. The received object
-    * will be:
-    * ```typescript
-    * {
-    *   "room_session_id": "fc695445-7f93-4597-b705-c0db6c21096a",
-    *   "room_id": "aae25822-892c-4832-b0b3-34aac3a0e8d1",
-    *   "room": {
-    *     "updated": [ "hide_video_muted" ],
-    *     "room_session_id": "fc695445-7f93-4597-b705-c0db6c21096a",
-    *     "room_id": "aae25822-892c-4832-b0b3-34aac3a0e8d1",
-    *     "hide_video_muted": true
-    *   }
-    * }
-    * ```
-    *
-    * @event
-    */
-   'room.updated': undefined
+  /**
+   * The properties of the room have been updated. The event handler receives
+   * objects of type:
+   *
+   * ```typescript
+   * type _ = {
+   *   room_session_id: string,
+   *   room_id: string,
+   *   room: {
+   *     updated: Array<string>,
+   *     room_session_id: string,
+   *     room_id: string,
+   *   }
+   * }
+   * ```
+   *
+   * In particular, in the field `room.updated` you find an array of all the
+   * properties that have been updated. The new values for those properties are
+   * available as additional fields of `room`.
+   *
+   * For example, say `hide_video_muted` has been updated. The received object
+   * will be:
+   * ```typescript
+   * {
+   *   "room_session_id": "fc695445-7f93-4597-b705-c0db6c21096a",
+   *   "room_id": "aae25822-892c-4832-b0b3-34aac3a0e8d1",
+   *   "room": {
+   *     "updated": [ "hide_video_muted" ],
+   *     "room_session_id": "fc695445-7f93-4597-b705-c0db6c21096a",
+   *     "room_id": "aae25822-892c-4832-b0b3-34aac3a0e8d1",
+   *     "hide_video_muted": true
+   *   }
+   * }
+   * ```
+   *
+   * @event
+   */
+  'room.updated': undefined
 
-   /**
-    * A member has joined the room. The event handler receives objects of type:
-    * 
-    * ```typescript
-    * type _ = {
-    *   room_session_id: string,
-    *   room_id: string,
-    *   member: {
-    *     visible: boolean,
-    *     room_session_id: string,
-    *     input_volume: number,
-    *     id: string,
-    *     scope_id: string,
-    *     input_sensitivity: number,
-    *     output_volume: number,
-    *     audio_muted: boolean,
-    *     on_hold: boolean,
-    *     name: string,
-    *     deaf: boolean,
-    *     video_muted: boolean,
-    *     room_id: string,
-    *     type: string
-    *   }
-    * }
-    * ```
-    * 
-    * @event
-    */
-   'member.joined': undefined
+  /**
+   * A member has joined the room. The event handler receives objects of type:
+   * 
+   * ```typescript
+   * type _ = {
+   *   room_session_id: string,
+   *   room_id: string,
+   *   member: {
+   *     visible: boolean,
+   *     room_session_id: string,
+   *     input_volume: number,
+   *     id: string,
+   *     scope_id: string,
+   *     input_sensitivity: number,
+   *     output_volume: number,
+   *     audio_muted: boolean,
+   *     on_hold: boolean,
+   *     name: string,
+   *     deaf: boolean,
+   *     video_muted: boolean,
+   *     room_id: string,
+   *     type: string
+   *   }
+   * }
+   * ```
+   * 
+   * @event
+   */
+  'member.joined': undefined
 
-   /**
-    * A property of a member of the room has been updated. The event handler
-    * receives objects of type:
-    *
-    * ```typescript
-    * type _ = {
-    *   room_session_id: string,
-    *   room_id: string,
-    *   member: {
-    *     updated: Array<string>,
-    *     room_session_id: string,
-    *     id: string,
-    *     room_id: string,
-    *     type: string
-    *   }
-    * }
-    * ```
-    *
-    * In particular, in the field `member.updated` you find an array of all the
-    * properties that have been updated. The new values for those properties are
-    * available as additional fields of member.
-    *
-    * For example, say `visible` and `video_muted` have been updated. The
-    * received object will be:
-    * 
-    * ```typescript
-    * {
-    *   "room_session_id": "35e85417-09cf-4b07-8f21-d3c16809e5a8",
-    *   "room_id": "aae25822-892c-4832-b0b3-34aac3a0e8d1",
-    *   "member": {
-    *     "updated": ["visible", "video_muted"],
-    *     "room_session_id": "35e85417-09cf-4b07-8f21-d3c16809e5a8",
-    *     "visible": false,
-    *     "video_muted": true,
-    *     "id": "4a829c9f-812c-49d7-b272-e3077213c55e",
-    *     "room_id": "aae25822-892c-4832-b0b3-34aac3a0e8d1",
-    *     "type": "member"
-    *   }
-    * }
-    * ```  
-    *
-    * @event
-    */
-   'member.updated': undefined
+  /**
+   * A property of a member of the room has been updated. The event handler
+   * receives objects of type:
+   *
+   * ```typescript
+   * type _ = {
+   *   room_session_id: string,
+   *   room_id: string,
+   *   member: {
+   *     updated: Array<string>,
+   *     room_session_id: string,
+   *     id: string,
+   *     room_id: string,
+   *     type: string
+   *   }
+   * }
+   * ```
+   *
+   * In particular, in the field `member.updated` you find an array of all the
+   * properties that have been updated. The new values for those properties are
+   * available as additional fields of member.
+   *
+   * For example, say `visible` and `video_muted` have been updated. The
+   * received object will be:
+   * 
+   * ```typescript
+   * {
+   *   "room_session_id": "35e85417-09cf-4b07-8f21-d3c16809e5a8",
+   *   "room_id": "aae25822-892c-4832-b0b3-34aac3a0e8d1",
+   *   "member": {
+   *     "updated": ["visible", "video_muted"],
+   *     "room_session_id": "35e85417-09cf-4b07-8f21-d3c16809e5a8",
+   *     "visible": false,
+   *     "video_muted": true,
+   *     "id": "4a829c9f-812c-49d7-b272-e3077213c55e",
+   *     "room_id": "aae25822-892c-4832-b0b3-34aac3a0e8d1",
+   *     "type": "member"
+   *   }
+   * }
+   * ```  
+   *
+   * @event
+   */
+  'member.updated': undefined
 
-   /**
-    * A member has left the room. The event handler receives objects of type:
-    * 
-    * ```typescript
-    * type _ = {
-    *   room_session_id: string,
-    *   room_id: string,
-    *   member: {
-    *     room_session_id: string,
-    *     id: string,
-    *     room_id: string,
-    *     type: string
-    *   }
-    * }
-    * ```
-    * 
-    * @event
-    */
-   'member.left': undefined
+  /**
+   * A member has left the room. The event handler receives objects of type:
+   * 
+   * ```typescript
+   * type _ = {
+   *   room_session_id: string,
+   *   room_id: string,
+   *   member: {
+   *     room_session_id: string,
+   *     id: string,
+   *     room_id: string,
+   *     type: string
+   *   }
+   * }
+   * ```
+   * 
+   * @event
+   */
+  'member.left': undefined
 
-   /**
-    * A member is talking or has stopped talking. The event handler receives
-    * objects of type:
-    * 
-    * ```typescript
-    * type _ = {
-    *   room_session_id: string,
-    *   room_id: string,
-    *   member: {
-    *     id: string,
-    *     room_session_id: string,
-    *     room_id: string,
-    *     talking: boolean
-    *   }
-    * }
-    * ```
-    * 
-    * @event
-    */
-   'member.talking': undefined
+  /**
+   * A member is talking or has stopped talking. The event handler receives
+   * objects of type:
+   * 
+   * ```typescript
+   * type _ = {
+   *   room_session_id: string,
+   *   room_id: string,
+   *   member: {
+   *     id: string,
+   *     room_session_id: string,
+   *     room_id: string,
+   *     talking: boolean
+   *   }
+   * }
+   * ```
+   * 
+   * @event
+   */
+  'member.talking': undefined
 
-   /**
-    * The layout of the room has changed. This event is not limited to changes
-    * associated to the grid layout of the room: it also includes for example
-    * changes in the position of the participants within the grid of the room.
-    * The event handler receives objects of type:
-    * 
-    * ```typescript
-    * type _ = {
-    *   room_session_id: string,
-    *   room_id: string,
-    *   layout: {
-    *     layers: Array<{
-    *       y: number,
-    *       x: number,
-    *       reservation: string,
-    *       layer_index: number,
-    *       height: number,
-    *       z_index: number,
-    *       member_id: string,
-    *       width: number
-    *     }>,
-    *     room_session_id: string,
-    *     room_id: string,
-    *     name: string
-    *   }
-    * }
-    * ```
-    * @event
-    */
-   'layout.changed': undefined
+  /**
+   * The layout of the room has changed. This event is not limited to changes
+   * associated to the grid layout of the room: it also includes for example
+   * changes in the position of the participants within the grid of the room.
+   * The event handler receives objects of type:
+   * 
+   * ```typescript
+   * type _ = {
+   *   room_session_id: string,
+   *   room_id: string,
+   *   layout: {
+   *     layers: Array<{
+   *       y: number,
+   *       x: number,
+   *       reservation: string,
+   *       layer_index: number,
+   *       height: number,
+   *       z_index: number,
+   *       member_id: string,
+   *       width: number
+   *     }>,
+   *     room_session_id: string,
+   *     room_id: string,
+   *     name: string
+   *   }
+   * }
+   * ```
+   * @event
+   */
+  'layout.changed': undefined
 
-   /**
-    * A recording has been started in the room. You only receive this event if
-    * your token has the `room.recording` permission. The event handler receives
-    * a {@link RoomSessionRecording} object.
-    * 
-    * @event
-    */
-   'recording.started': undefined
+  /**
+   * A recording has been started in the room. You only receive this event if
+   * your token has the `room.recording` permission. The event handler receives
+   * a {@link RoomSessionRecording} object.
+   * 
+   * @event
+   */
+  'recording.started': undefined
 
-   /**
-    * An active recording has been updated. You only receive this event if your
-    * token has the room.recording permission. The event handler receives a
-    * {@link RoomSessionRecording} object.
-    * 
-    * @event
-    */
-   'recording.updated': undefined
+  /**
+   * An active recording has been updated. You only receive this event if your
+   * token has the `room.recording` permission. The event handler receives a
+   * {@link RoomSessionRecording} object.
+   * 
+   * @event
+   */
+  'recording.updated': undefined
 
-   /**
-    * An active recording has been stopped. You only receive this event if your
-    * token has the room.recording permission. The event handler receives a
-    * {@link RoomSessionRecording} object.
-    * 
-    * @event
-    */
-   'recording.ended': undefined
+  /**
+   * An active recording has been stopped. You only receive this event if your
+   * token has the `room.recording` permission. The event handler receives a
+   * {@link RoomSessionRecording} object.
+   * 
+   * @event
+   */
+  'recording.ended': undefined
 
+  /**
+   * A playback has been started. You only receive this event if your token has
+   * the `room.playback` permission. The event handler receives a
+   * {@link RoomSessionPlayback} object.
+   */
+  'playback.started': undefined
+
+  /**
+   * A playback has been updated. You only receive this event if your token has
+   * the `room.playback` permission. The event handler receives a
+   * {@link RoomSessionPlayback} object.
+   */
+  'playback.updated': undefined
+
+  /**
+   * A playback has ended. You only receive this event if your token has
+   * the `room.playback` permission. The event handler receives a
+   * {@link RoomSessionPlayback} object.
+   */
+  'playback.ended': undefined
 }

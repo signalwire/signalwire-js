@@ -85,6 +85,8 @@ export interface VideoRoomSessionContract {
   setLayout(params: { name: string }): Rooms.SetLayout
   getRecordings(): Rooms.GetRecordings
   startRecording(): Promise<Rooms.RoomSessionRecording>
+  getPlaybacks(): Rooms.GetPlaybacks
+  play(params: Rooms.PlayParams): Promise<Rooms.RoomSessionPlayback>
 }
 
 /**
