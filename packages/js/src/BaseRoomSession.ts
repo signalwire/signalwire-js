@@ -97,6 +97,30 @@ export class RoomSessionConnection
           },
         },
       ],
+      [
+        [
+          toLocalEvent('video.playback.start'),
+          'video.playback.started',
+          'video.playback.updated',
+          'video.playback.ended',
+        ],
+        {
+          type: 'roomSessionPlayback',
+          instanceFactory: (_payload: any) => {
+            return Rooms.createRoomSessionPlaybackObject({
+              store: this.store,
+              // @ts-expect-error
+              emitter: this.emitter,
+            })
+          },
+          payloadTransform: (payload: any) => {
+            return toExternalJSON({
+              ...payload.playback,
+              room_session_id: this.roomSessionId,
+            })
+          },
+        },
+      ],
     ])
   }
 
@@ -313,6 +337,8 @@ export const RoomSessionAPI = extendComponent<
   showVideoMuted: Rooms.showVideoMuted,
   getRecordings: Rooms.getRecordings,
   startRecording: Rooms.startRecording,
+  getPlaybacks: Rooms.getPlaybacks,
+  play: Rooms.play,
 })
 
 type RoomSessionObjectEventsHandlerMapping = RoomSessionObjectEvents &

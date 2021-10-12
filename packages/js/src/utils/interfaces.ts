@@ -16,7 +16,9 @@ import type {
   RTCTrackEventName,
   InternalVideoMemberUpdatableProps,
   VideoRecordingEventNames,
+  VideoPlaybackEventNames,
   RoomSessionRecording,
+  RoomSessionPlayback,
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
 import type { RoomSession } from '../RoomSession'
@@ -63,6 +65,7 @@ export type RoomSessionObjectEventsHandlerMap = Record<
   Record<VideoRoomSessionEventNames, (params: VideoRoomEventParams) => void> &
   Record<RTCTrackEventName, (event: RTCTrackEvent) => void> &
   Record<VideoRecordingEventNames, (recording: RoomSessionRecording) => void> &
+  Record<VideoPlaybackEventNames, (recording: RoomSessionPlayback) => void> &
   Record<BaseConnectionState, (params: RoomSession) => void>
 
 export type RoomSessionObjectEvents = {
@@ -169,6 +172,8 @@ interface RoomControlMethodsInterface {
   showVideoMuted(): Rooms.ShowVideoMuted
   getRecordings(): Rooms.GetRecordings
   startRecording(): Promise<Rooms.RoomSessionRecording>
+  getPlaybacks(): Rooms.GetPlaybacks
+  play(params: Rooms.PlayParams): Promise<Rooms.RoomSessionPlayback>
 }
 
 /**
