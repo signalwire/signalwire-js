@@ -24,6 +24,8 @@ import type {
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
 import type { RoomSession } from '../RoomSession'
+import type { RoomSessionDevice } from '../RoomSessionDevice'
+import type { RoomSessionScreenShare } from '../RoomSessionScreenShare'
 
 const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
   INTERNAL_MEMBER_UPDATABLE_PROPS
@@ -170,12 +172,10 @@ interface RoomMemberSelfMethodsInterface
   > {}
 
 /**
- * We are using these interfaces in
- * combination of Object.defineProperties()
- * to avoid code duplication and expose a
- * nice documentation via TypeDoc.
- * The interface forces TS checking
- * while Object.defineProperties allow us
+ * We are using these interfaces in combination of
+ * Object.defineProperties() to avoid code duplication and
+ * expose a nice documentation via TypeDoc. The interface
+ * forces TS checking while Object.defineProperties allow us
  * flexibility across different objects.
  */
 export interface RoomMethods
@@ -184,6 +184,21 @@ export interface RoomMethods
   hideVideoMuted(): Rooms.HideVideoMuted
   /** @deprecated */
   showVideoMuted(): Rooms.ShowVideoMuted
+}
+
+export interface RoomSessionConnectionContract {
+  screenShareList: RoomSessionScreenShare[]
+  deviceList: RoomSessionDevice[]
+  createScreenShareObject(
+    opts?: CreateScreenShareObjectOptions
+  ): Promise<RoomSessionScreenShare>
+  startScreenShare(
+    opts?: StartScreenShareOptions
+  ): Promise<RoomSessionScreenShare>
+  addCamera(opts: AddCameraOptions): Promise<RoomSessionDevice>
+  addMicrophone(opts: AddMicrophoneOptions): Promise<RoomSessionDevice>
+  addDevice(opts: AddDeviceOptions): Promise<RoomSessionDevice>
+  updateSpeaker(opts: { deviceId: string }): Promise<undefined>
 }
 
 export interface RoomSessionDeviceMethods
