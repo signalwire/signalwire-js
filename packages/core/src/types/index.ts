@@ -26,6 +26,10 @@ export interface EmitterContract<
   ): EmitterContract<EventTypes>
 }
 
+export interface BaseComponentContract {
+  destroy(): void
+}
+
 export interface BaseConnectionContract<
   EventTypes extends EventEmitter.ValidEventTypes
 > extends EmitterContract<EventTypes> {

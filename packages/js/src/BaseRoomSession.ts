@@ -4,6 +4,7 @@ import {
   Rooms,
   EventTransform,
   extendComponent,
+  BaseComponentContract,
   BaseComponentOptions,
   BaseConnectionContract,
   toLocalEvent,
@@ -45,6 +46,7 @@ import {
 export interface BaseRoomSession<T>
   extends RoomMethods,
     RoomSessionConnectionContract,
+    BaseComponentContract,
     BaseConnectionContract<RoomSessionObjectEvents> {
   join(): Promise<T>
   leave(): Promise<void>
