@@ -74,4 +74,22 @@ const getLastGitSha = async (length = 7) => {
   return sha.substring(0, length)
 }
 
-export { getPackages, getChangedPackages, getModeFlag, getLastGitSha }
+const isCleanGitStatus = async () => {
+  const status = await execa('git', ['status', '--porcelain'])
+
+  if (status.stdout !== '') {
+    throw new Error(
+      'Git is in a dirty state. Please commit or stash your changes first.'
+    )
+  }
+
+  return true
+}
+
+export {
+  getPackages,
+  getChangedPackages,
+  getModeFlag,
+  getLastGitSha,
+  isCleanGitStatus,
+}
