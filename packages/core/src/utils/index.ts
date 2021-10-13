@@ -4,6 +4,8 @@ import {
   INTERNAL_GLOBAL_VIDEO_EVENTS,
   EVENT_NAMESPACE_DIVIDER,
   LOCAL_EVENT_PREFIX,
+  INTERNAL_GLOBAL_MESSAGE_EVENTS,
+  GLOBAL_MESSAGE_EVENTS,
 } from './constants'
 
 export { v4 as uuid } from 'uuid'
@@ -55,18 +57,24 @@ export const isGlobalEvent = (event: string) => {
 
 /** @internal */
 export const isInternalGlobalEvent = (event: string) => {
-  // @ts-ignore
-  return INTERNAL_GLOBAL_VIDEO_EVENTS.includes(event)
+  return [
+    ...INTERNAL_GLOBAL_VIDEO_EVENTS,
+    ...INTERNAL_GLOBAL_MESSAGE_EVENTS,
+    // @ts-ignore
+  ].includes(event)
 }
 
-export const getGlobalEvents = (kind: 'all' | 'video' = 'all') => {
+export const getGlobalEvents = (kind: 'all' | 'video' | 'message' = 'all') => {
   switch (kind) {
     case 'video':
       return GLOBAL_VIDEO_EVENTS
+    case 'message':
+      return GLOBAL_MESSAGE_EVENTS
     default:
       // prettier-ignore
       return [
         ...GLOBAL_VIDEO_EVENTS,
+        ...GLOBAL_MESSAGE_EVENTS,
       ]
   }
 }

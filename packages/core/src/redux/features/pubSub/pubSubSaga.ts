@@ -20,6 +20,7 @@ import type {
   VideoRecordingEvent,
   VideoPlaybackEvent,
 } from '../../../types'
+import { MessageAPIEventParams } from '../../../types/message'
 
 type PubSubSagaParams = {
   pubSubChannel: PubSubChannel
@@ -56,6 +57,12 @@ const isVideoPlaybackEvent = (
   return action.type.startsWith('video.playback.')
 }
 
+const isMessageEvent = (
+  action: PubSubAction
+): action is MapToPubSubShape<MessageAPIEventParams> => {
+  return action.type.startsWith('messaging.')
+}
+
 const findNamespaceInPayload = (action: PubSubAction): string => {
   if (action.payload === undefined) {
     return ''
@@ -68,6 +75,8 @@ const findNamespaceInPayload = (action: PubSubAction): string => {
     return action.payload.room_session_id
   } else if (isVideoRoomEvent(action)) {
     return action.payload.room_session.id
+  } else if (isMessageEvent(action)) {
+    return action.payload.tag
   }
 
   if ('development' === process.env.NODE_ENV) {

@@ -49,6 +49,7 @@ export class BaseSession {
   private _requestQueue: SessionRequestQueued[] = []
   private _socket: WebSocketClient | null = null
   private _host: string = DEFAULT_HOST
+  private _contexts?: string[]
 
   private _executeTimeoutMs = 10 * 1000
   private _executeTimeoutError = Symbol.for('sw-execute-timeout')
@@ -58,9 +59,13 @@ export class BaseSession {
   private _status: SessionStatus = 'unknown'
 
   constructor(public options: SessionOptions) {
-    const { host, logLevel = 'info' } = options
+    const { host, contexts, logLevel = 'info' } = options
     if (host) {
       this._host = checkWebSocketHost(host)
+    }
+
+    if (contexts) {
+      this._contexts = contexts
     }
     if (logLevel) {
       this.logger.setLevel(logLevel)
@@ -75,6 +80,10 @@ export class BaseSession {
 
   get host() {
     return this._host
+  }
+
+  get contexts() {
+    return this._contexts
   }
 
   get rpcConnectResult() {
@@ -217,6 +226,9 @@ export class BaseSession {
         project: this.options.project,
         token: this.options.token,
       },
+    }
+    if (this.contexts) {
+      params.contexts = this.contexts
     }
     if (this._relayProtocolIsValid()) {
       params.protocol = this.relayProtocol

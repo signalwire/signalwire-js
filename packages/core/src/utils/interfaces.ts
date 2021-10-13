@@ -2,7 +2,9 @@ import type { EventEmitter } from '../utils/EventEmitter'
 import { BaseSession } from '../BaseSession'
 import { SDKStore } from '../redux'
 import {
+  GLOBAL_MESSAGE_EVENTS,
   GLOBAL_VIDEO_EVENTS,
+  INTERNAL_GLOBAL_MESSAGE_EVENTS,
   INTERNAL_GLOBAL_VIDEO_EVENTS,
   PRODUCT_PREFIXES,
 } from './constants'
@@ -45,6 +47,7 @@ export type JSONRPCMethod =
   | 'video.message'
   | RoomMethod
   | VertoMethod
+  | MessageMethods
 
 export interface JSONRPCRequest {
   jsonrpc: '2.0'
@@ -67,6 +70,8 @@ export interface SessionOptions {
   project?: string
   /** SignalWire project token, e.g. `PT9e5660c101cd140a1c93a0197640a369cf5f16975a0079c9` */
   token: string
+  /** SignalWire relay contexts, e.g. `['default']` */
+  contexts?: string[]
   // From `LogLevelDesc` of loglevel to simplify our docs
   /** logging level */
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
@@ -212,6 +217,11 @@ export type RoomMethod =
   | 'video.playback.stop'
   | 'video.playback.set_volume'
 
+/**
+ * List of all Message methods
+ */
+export type MessageMethods = 'messaging.send'
+
 export interface WebSocketClient {
   addEventListener: WebSocket['addEventListener']
   send: WebSocket['send']
@@ -271,6 +281,13 @@ export type EventsPrefix = '' | typeof PRODUCT_PREFIXES[number]
 export type GlobalVideoEvents = typeof GLOBAL_VIDEO_EVENTS[number]
 export type InternalGlobalVideoEvents =
   typeof INTERNAL_GLOBAL_VIDEO_EVENTS[number]
+
+/**
+ * See {@link GLOBAL_MESSAGE_EVENTS} for the full list of Message events.
+ */
+export type GlobalMessageEvents = typeof GLOBAL_MESSAGE_EVENTS[number]
+export type InternalGlobalMessageEvents =
+  typeof INTERNAL_GLOBAL_MESSAGE_EVENTS[number]
 
 /**
  * NOTE: `EventTransformType` is not tied to a constructor but more on

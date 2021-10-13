@@ -17,6 +17,8 @@ export type EntityUpdated<T> = T & {
 
 export type ToInternalVideoEvent<T extends string> = `video.${T}`
 
+export type ToInternalMessageEvent<T extends string> = `messaging.${T}`
+
 type OnlyFunctionPropertyNames<T> = {
   [K in keyof T]: T[K] extends Function ? K : never
 }[keyof T]

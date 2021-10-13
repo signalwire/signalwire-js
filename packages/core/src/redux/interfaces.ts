@@ -9,6 +9,7 @@ import {
   BaseConnectionState,
 } from '../utils/interfaces'
 import type { VideoAPIEventParams, InternalVideoAPIEvent } from '../types'
+import { MessageAPIEventParams, MessageStates } from '../types/message'
 
 interface SWComponent {
   id: string
@@ -34,7 +35,9 @@ export interface WebRTCCall extends SWComponent {
 }
 
 export interface Message extends SWComponent {
-  state?: string
+  state?: MessageStates
+  reason?: string
+  segments?: number
 }
 
 export type ReduxComponent = WebRTCCall | Message
@@ -93,6 +96,7 @@ export type MapToPubSubShape<T> = {
 
 export type PubSubAction =
   | MapToPubSubShape<VideoAPIEventParams | InternalVideoAPIEvent>
+  | MapToPubSubShape<MessageAPIEventParams>
   | {
       type: SessionEvents
       payload: undefined

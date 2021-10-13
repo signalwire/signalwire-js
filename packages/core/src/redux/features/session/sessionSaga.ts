@@ -23,6 +23,7 @@ import { logger } from '../../../utils'
 import { getAuthStatus } from '../session/sessionSelectors'
 import { getComponent } from '../component/componentSelectors'
 import { SessionAuthStatus } from '../../../utils/interfaces'
+import { MessageAPIEventParams } from '../../../types/message'
 
 type SessionSagaParams = {
   session: BaseSession
@@ -41,6 +42,9 @@ const isWebrtcEvent = (e: SwEventParams): e is WebRTCMessageParams => {
 }
 const isVideoEvent = (e: SwEventParams): e is VideoAPIEventParams => {
   return !!e?.event_type?.startsWith('video.')
+}
+const isMessageEvent = (e: SwEventParams): e is MessageAPIEventParams => {
+  return !!e?.event_type?.startsWith('messaging.')
 }
 
 /**
@@ -290,6 +294,29 @@ export function* sessionChannelWatcher({
     })
   }
 
+  function* messageAPIWorker(params: MessageAPIEventParams): SagaIterator {
+    switch (params.event_type) {
+      case 'messaging.receive':
+        yield put(pubSubChannel, {
+          type: 'messaging.receive',
+          payload: params.params,
+        })
+        break
+      case 'messaging.state':
+        yield put(componentActions.upsert({
+          id: params.params.message_id,
+          state: params.params.message_state,
+          reason: params.params.reason,
+          segments: params.params.segments,
+        }))
+        yield put(pubSubChannel, {
+          type: 'messaging.state',
+          payload: params.params,
+        })
+        break
+    }
+  }
+
   function* swEventWorker(broadcastParams: SwEventParams) {
     if (isWebrtcEvent(broadcastParams)) {
       yield fork(vertoWorker, {
@@ -300,6 +327,11 @@ export function* sessionChannelWatcher({
     }
     if (isVideoEvent(broadcastParams)) {
       yield fork(videoAPIWorker, broadcastParams)
+      return
+    }
+
+    if(isMessageEvent(broadcastParams)) {
+      yield fork(messageAPIWorker, broadcastParams)
       return
     }
 
