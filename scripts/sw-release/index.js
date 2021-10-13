@@ -2,7 +2,12 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import execa from 'execa'
 import { Listr } from 'listr2'
-import { getPackages, getModeFlag, getLastGitSha } from '@sw-internal/common'
+import {
+  getPackages,
+  getModeFlag,
+  getLastGitSha,
+  getChangedPackages,
+} from '@sw-internal/common'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -79,14 +84,15 @@ const getTestTask = () => {
 const publishTaskFactory = (
   options = {
     npmOptions: [],
+    packages,
   }
 ) => {
-  const packages = getPackages()
-  const totalPackages = packages.length
-
   return {
     title: `🟢 Publishing Packages`,
     task(_ctx, task) {
+      const packages = getChangedPackages(options.packages)
+      const totalPackages = packages.length
+
       return task.newListr(
         (parentTask) =>
           packages.map(({ name, pathname }, index) => {
@@ -102,7 +108,7 @@ const publishTaskFactory = (
 
                 // Updates the `parent`'s task title
                 if (index + 1 === totalPackages) {
-                  parentTask.title = `🚀 All packages have been published!`
+                  parentTask.title = `🚀 All updated packages have been published!`
                 } else {
                   parentTask.title = `🟢 Published ${index + 1} of ${
                     packages.length
@@ -126,7 +132,7 @@ const publishTaskFactory = (
   }
 }
 
-const getDevelopmentTasks = () => {
+const getDevelopmentTasks = ({ packages }) => {
   return [
     getBuildTask(),
     getTestTask(),
@@ -163,24 +169,27 @@ const getDevelopmentTasks = () => {
     },
     publishTaskFactory({
       npmOptions: ['--tag', 'dev'],
+      packages,
     }),
   ]
 }
 
 const getProductionTasks = () => {
-  return [getTestTask()]
   return [getBuildTask(), getTestTask()]
 }
 
 const getModeTasks = (flags) => {
   const mode = getModeFlag(flags) || '--development'
+  // We get a reference of the original packages to detect
+  // changes. Only packages with versions will be published.
+  const packages = getPackages()
 
   switch (mode) {
     case '--development': {
-      return getDevelopmentTasks(flags)
+      return getDevelopmentTasks({ flags, packages })
     }
     case '--production': {
-      return getProductionTasks(flags)
+      return getProductionTasks({ flags, packages })
     }
   }
 }
