@@ -296,12 +296,6 @@ export function* sessionChannelWatcher({
 
   function* messageAPIWorker(params: MessageAPIEventParams): SagaIterator {
     switch (params.event_type) {
-      case 'messaging.receive':
-        yield put(pubSubChannel, {
-          type: 'messaging.receive',
-          payload: params.params,
-        })
-        break
       case 'messaging.state':
         yield put(
           componentActions.upsert({
@@ -311,12 +305,12 @@ export function* sessionChannelWatcher({
             segments: params.params.segments,
           })
         )
-        yield put(pubSubChannel, {
-          type: 'messaging.state',
-          payload: params.params,
-        })
         break
     }
+    yield put(pubSubChannel, {
+      type: params.event_type,
+      payload: params.params,
+    })
   }
 
   function* swEventWorker(broadcastParams: SwEventParams) {
