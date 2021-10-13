@@ -131,33 +131,6 @@ interface RoomMemberSelfMethodsInterface {
     value: number
   }): Rooms.SetInputSensitivityMember
 }
-interface RoomLayoutMethodsInterface {
-  getLayouts(): Rooms.GetLayouts
-  setLayout(params: { name: string }): Rooms.SetLayout
-}
-
-interface RoomControlMethodsInterface {
-  getMembers(): Rooms.GetMembers
-  deaf(params?: MemberCommandParams): Rooms.DeafMember
-  undeaf(params?: MemberCommandParams): Rooms.UndeafMember
-  setOutputVolume(
-    params: MemberCommandWithVolumeParams
-  ): Rooms.SetOutputVolumeMember
-  /**
-   * @deprecated Use {@link setOutputVolume} instead.
-   * `setSpeakerVolume` will be removed in v4.0.0
-   */
-  setSpeakerVolume(
-    params: MemberCommandWithVolumeParams
-  ): Rooms.SetOutputVolumeMember
-  removeMember(params: Required<MemberCommandParams>): Rooms.RemoveMember
-  hideVideoMuted(): Rooms.HideVideoMuted
-  showVideoMuted(): Rooms.ShowVideoMuted
-  getRecordings(): Rooms.GetRecordings
-  startRecording(): Promise<Rooms.RoomSessionRecording>
-  getPlaybacks(): Rooms.GetPlaybacks
-  play(params: Rooms.PlayParams): Promise<Rooms.RoomSessionPlayback>
-}
 
 interface RoomMemberSelfMethodsInterface
   extends Pick<
@@ -189,6 +162,7 @@ export interface RoomMethods
 export interface RoomSessionConnectionContract {
   screenShareList: RoomSessionScreenShare[]
   deviceList: RoomSessionDevice[]
+  /** @deprecated Use {@link startScreenShare} instead. */
   createScreenShareObject(
     opts?: CreateScreenShareObjectOptions
   ): Promise<RoomSessionScreenShare>
