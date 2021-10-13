@@ -29,6 +29,7 @@ const _scan = (pathname, level = 0, acc = []) => {
       }
 
       acc.push({
+        version: pkgJson.version,
         name: pkgJson.name,
         pathname,
       })
@@ -51,6 +52,14 @@ const getPackages = ({ pathname = PACKAGES_PATH } = DEFAULT_OPTIONS) => {
   return pkgDeps
 }
 
+const getChangedPackages = (originalPackages) => {
+  const currentPackages = getPackages()
+
+  return currentPackages.filter((pkg, index) => {
+    return pkg.version !== originalPackages[index].version
+  })
+}
+
 const BUILD_MODES = ['--development', '--production']
 const isModeFlag = (flag) => {
   return BUILD_MODES.includes(flag)
@@ -65,4 +74,4 @@ const getLastGitSha = async (length = 7) => {
   return sha.substring(0, length)
 }
 
-export { getPackages, getModeFlag, getLastGitSha }
+export { getPackages, getChangedPackages, getModeFlag, getLastGitSha }
