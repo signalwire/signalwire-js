@@ -6,7 +6,7 @@ import {
   getPackages,
   getModeFlag,
   getLastGitSha,
-  getChangedPackages,
+  isPackagePublished,
   isCleanGitStatus,
 } from '@sw-internal/common'
 
@@ -85,27 +85,52 @@ const getTestTask = () => {
 const publishTaskFactory = (
   options = {
     npmOptions: [],
-    packages,
+    publishGitTag: false,
   }
 ) => {
   return {
     title: `🟢 Publishing Packages`,
     task(_ctx, task) {
-      const packages = getChangedPackages(options.packages)
+      const packages = getPackages()
       const totalPackages = packages.length
 
       return task.newListr(
         (parentTask) =>
-          packages.map(({ name, pathname }, index) => {
+          packages.map(({ name, pathname, version }, index) => {
             return {
               title: `Publishing ${name}`,
               task: async (_ctx, currentTask) => {
-                await execa('npm', ['publish', ...options.npmOptions], {
-                  cwd: pathname,
-                })
+                // If the version we have now (locally) has
+                // been published in npm then there's no
+                // need to do anything else.
+                if (await isPackagePublished({ name, version })) {
+                  currentTask.title = `Skipped ${name}`
+                } else {
+                  // TODO: uncomment before merge.
+                  // await execa('npm', ['publish', ...options.npmOptions], {
+                  //   cwd: pathname,
+                  // })
 
-                // Updates the subtask's title (the individual package)
-                currentTask.title = `${name}`
+                  let taskTitle
+                  if (options.publishGitTag) {
+                    // TODO: delete these 2 lines and replace with commands bellow.
+                    const commandRan = ['tag', '-a', `${name}@${version}`].join(
+                      ' '
+                    )
+                    taskTitle = `${name}: npm + git ${commandRan}`
+
+                    // TODO: uncomment before merge.
+                    // await execa('git', ['tag', '-a', `${name}@${version}`], {
+                    //   cwd: pathname,
+                    // })
+                    // taskTitle = `${name}: Published to npm + git tag created.`
+                  } else {
+                    taskTitle = name
+                  }
+
+                  // Updates the subtask's title (the individual package)
+                  currentTask.title = taskTitle
+                }
 
                 // Updates the `parent`'s task title
                 if (index + 1 === totalPackages) {
@@ -133,7 +158,7 @@ const publishTaskFactory = (
   }
 }
 
-const getDevelopmentTasks = ({ packages }) => {
+const getDevelopmentTasks = () => {
   return [
     getBuildTask(),
     getTestTask(),
@@ -170,7 +195,6 @@ const getDevelopmentTasks = ({ packages }) => {
     },
     publishTaskFactory({
       npmOptions: ['--tag', 'dev'],
-      packages,
     }),
   ]
 }
@@ -192,6 +216,10 @@ const getProductionTasks = () => {
     },
     getBuildTask(),
     getTestTask(),
+    publishTaskFactory({
+      npmOptions: [],
+      publishGitTag: true,
+    }),
   ]
 }
 
@@ -238,19 +266,16 @@ const getPrepareProductionTasks = () => {
 
 const getModeTasks = (flags) => {
   const mode = getModeFlag(flags) || '--development'
-  // We get a reference of the original packages to detect
-  // changes. Only packages with versions will be published.
-  const packages = getPackages()
 
   switch (mode) {
     case '--development': {
-      return getDevelopmentTasks({ flags, packages })
+      return getDevelopmentTasks({ flags })
     }
     case '--production': {
-      return getProductionTasks({ flags, packages })
+      return getProductionTasks({ flags })
     }
     case '--prepare-prod': {
-      return getPrepareProductionTasks({ flags, packages })
+      return getPrepareProductionTasks({ flags })
     }
   }
 }

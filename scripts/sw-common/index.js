@@ -52,14 +52,6 @@ const getPackages = ({ pathname = PACKAGES_PATH } = DEFAULT_OPTIONS) => {
   return pkgDeps
 }
 
-const getChangedPackages = (originalPackages) => {
-  const currentPackages = getPackages()
-
-  return currentPackages.filter((pkg, index) => {
-    return pkg.version !== originalPackages[index].version
-  })
-}
-
 const BUILD_MODES = ['--development', '--production', '--prepare-prod']
 const isModeFlag = (flag) => {
   return BUILD_MODES.includes(flag)
@@ -86,33 +78,21 @@ const isCleanGitStatus = async () => {
   return true
 }
 
-const getLatestPublishedVersion = async (packageName, tag = '') => {
+const isPackagePublished = async ({ name, version }) => {
+  const packageName = version ? `${name}@${version}` : name
   const status = await execa('npm', ['show', packageName, 'versions'])
-  const allVersions = JSON.parse(status.stdout.replace(/\'/g, '"'))
 
-  if (!tag) {
-    // we'll return only the versions that don't have any
-    // custom tag like `-dev`, `-beta`, etc.
-    const versions = allVersions.filter((v) => v.split('-').length === 1)
-
-    return versions[versions.length - 1]
+  if (status.stdout) {
+    return true
   }
 
-  const versions = allVersions
-    .filter((v) => v.split('-').length === 2)
-    .filter((v) => {
-      const parts = v.split('-')
-      return parts[1].startsWith(tag)
-    })
-
-  return versions[versions.length - 1]
+  return false
 }
 
 export {
   getPackages,
-  getChangedPackages,
   getModeFlag,
   getLastGitSha,
-  getLatestPublishedVersion,
+  isPackagePublished,
   isCleanGitStatus,
 }
