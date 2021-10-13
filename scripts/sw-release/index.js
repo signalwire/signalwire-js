@@ -177,8 +177,6 @@ const getDevelopmentTasks = ({ packages }) => {
 
 const getProductionTasks = () => {
   return [
-    getBuildTask(),
-    getTestTask(),
     {
       title: '🔍 Checking Git status',
       task: async (_ctx, task) => {
@@ -192,6 +190,8 @@ const getProductionTasks = () => {
         }
       },
     },
+    getBuildTask(),
+    getTestTask(),
   ]
 }
 
