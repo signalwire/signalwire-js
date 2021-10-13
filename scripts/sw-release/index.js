@@ -7,6 +7,7 @@ import {
   getModeFlag,
   getLastGitSha,
   getChangedPackages,
+  isCleanGitStatus,
 } from '@sw-internal/common'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -175,7 +176,22 @@ const getDevelopmentTasks = ({ packages }) => {
 }
 
 const getProductionTasks = () => {
-  return [getBuildTask(), getTestTask()]
+  return [
+    getBuildTask(),
+    getTestTask(),
+    {
+      title: '🔍 Checking Git status',
+      task: async (_ctx, task) => {
+        try {
+          await isCleanGitStatus()
+        } catch (e) {
+          task.title = `🛑 ${e.message}`
+
+          return Promise.reject('')
+        }
+      },
+    },
+  ]
 }
 
 const getModeTasks = (flags) => {
