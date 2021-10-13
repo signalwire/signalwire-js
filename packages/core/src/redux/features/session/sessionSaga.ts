@@ -303,12 +303,14 @@ export function* sessionChannelWatcher({
         })
         break
       case 'messaging.state':
-        yield put(componentActions.upsert({
-          id: params.params.message_id,
-          state: params.params.message_state,
-          reason: params.params.reason,
-          segments: params.params.segments,
-        }))
+        yield put(
+          componentActions.upsert({
+            id: params.params.message_id,
+            state: params.params.message_state,
+            reason: params.params.reason,
+            segments: params.params.segments,
+          })
+        )
         yield put(pubSubChannel, {
           type: 'messaging.state',
           payload: params.params,
@@ -330,7 +332,7 @@ export function* sessionChannelWatcher({
       return
     }
 
-    if(isMessageEvent(broadcastParams)) {
+    if (isMessageEvent(broadcastParams)) {
       yield fork(messageAPIWorker, broadcastParams)
       return
     }

@@ -43,7 +43,7 @@ export interface VideoPlaybackContract {
 
   /** Url of the file reproduced by this playback */
   url: string
-  
+
   /** Audio volume at which the playback file is reproduced */
   volume: number
 

@@ -1,4 +1,4 @@
-import { SwEvent, ToInternalMessageEvent } from "."
+import { SwEvent, ToInternalMessageEvent } from '.'
 
 /**
  * public message event types
@@ -11,17 +11,23 @@ export type MessageState = 'state'
  */
 export type MessageEventNames = MessageReceive | MessageState
 
-
 /**
  * List of internal message events
  * @internal
  */
-export type InternalMessageEventNames = ToInternalMessageEvent<MessageEventNames>
+export type InternalMessageEventNames =
+  ToInternalMessageEvent<MessageEventNames>
 
 /**
  * List of all Message states
  */
-export type MessageStates = 'queued' | 'initiated' | 'sent' | 'delivered' | 'undelievered' | 'failed'
+export type MessageStates =
+  | 'queued'
+  | 'initiated'
+  | 'sent'
+  | 'delivered'
+  | 'undelievered'
+  | 'failed'
 
 /**
  * List of Message direction
@@ -93,4 +99,6 @@ export type MessageEvents = MessageReceiveEvent | MessageStateEvent
 
 export type MessageAPIEventParams = MessageEvents
 
-export type MessageEventParams = MessageReceiveEventParams | MessageStateEventParams
+export type MessageEventParams =
+  | MessageReceiveEventParams
+  | MessageStateEventParams
