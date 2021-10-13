@@ -86,10 +86,33 @@ const isCleanGitStatus = async () => {
   return true
 }
 
+const getLatestPublishedVersion = async (packageName, tag = '') => {
+  const status = await execa('npm', ['show', packageName, 'versions'])
+  const allVersions = JSON.parse(status.stdout.replace(/\'/g, '"'))
+
+  if (!tag) {
+    // we'll return only the versions that don't have any
+    // custom tag like `-dev`, `-beta`, etc.
+    const versions = allVersions.filter((v) => v.split('-').length === 1)
+
+    return versions[versions.length - 1]
+  }
+
+  const versions = allVersions
+    .filter((v) => v.split('-').length === 2)
+    .filter((v) => {
+      const parts = v.split('-')
+      return parts[1].startsWith(tag)
+    })
+
+  return versions[versions.length - 1]
+}
+
 export {
   getPackages,
   getChangedPackages,
   getModeFlag,
   getLastGitSha,
+  getLatestPublishedVersion,
   isCleanGitStatus,
 }
