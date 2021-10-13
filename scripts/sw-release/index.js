@@ -24,6 +24,23 @@ const getDevVersion = async () => {
   return `dev.${timestamp}.${sha}`
 }
 
+const getBuildTask = () => {
+  return {
+    title: '🏗️  Building all packages...',
+    task: async (_ctx, currentTask) => {
+      try {
+        await execa('npm', ['run', 'build'], {
+          cwd: ROOT_DIR,
+        })
+        currentTask.title = '🏗️  Build ran successfully!'
+      } catch (e) {
+        currentTask.title = '🛑 Build failed.'
+        throw e
+      }
+    },
+  }
+}
+
 const getTestTask = () => {
   const packages = getPackages()
   const totalPackages = packages.length
@@ -111,6 +128,7 @@ const publishTaskFactory = (
 
 const getDevelopmentTasks = () => {
   return [
+    getBuildTask(),
     getTestTask(),
     {
       title: '⚒️  Preparing "development" release',
@@ -151,6 +169,7 @@ const getDevelopmentTasks = () => {
 
 const getProductionTasks = () => {
   return [getTestTask()]
+  return [getBuildTask(), getTestTask()]
 }
 
 const getModeTasks = (flags) => {
