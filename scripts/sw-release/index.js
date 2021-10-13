@@ -184,6 +184,7 @@ const getProductionTasks = () => {
       task: async (_ctx, task) => {
         try {
           await isCleanGitStatus()
+          task.title = '🔍 Git: clean working tree!'
         } catch (e) {
           task.title = `🛑 ${e.message}`
 
