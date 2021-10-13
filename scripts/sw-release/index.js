@@ -195,6 +195,47 @@ const getProductionTasks = () => {
   ]
 }
 
+const getPrepareProductionTasks = () => {
+  return [
+    getBuildTask(),
+    getTestTask(),
+    {
+      title: '⚒️  Preparing "production" release',
+      task: async () => {
+        return execa('npm', ['run', 'changeset', 'version'], {
+          cwd: ROOT_DIR,
+        })
+      },
+    },
+    {
+      title: '📝 Next Steps',
+      task: async (_ctx, task) => {
+        return task.newListr(
+          [
+            {
+              title: '1. Verify/Modify all the affected CHANGELOG.md files',
+              task: () => {},
+            },
+            {
+              title: '2. `git commit -m "<release-message>`',
+              task: () => {},
+            },
+            {
+              title: '3. `npm run release:prod`',
+              task: () => {},
+            },
+          ],
+          {
+            rendererOptions: {
+              collapse: false,
+            },
+          }
+        )
+      },
+    },
+  ]
+}
+
 const getModeTasks = (flags) => {
   const mode = getModeFlag(flags) || '--development'
   // We get a reference of the original packages to detect
@@ -207,6 +248,9 @@ const getModeTasks = (flags) => {
     }
     case '--production': {
       return getProductionTasks({ flags, packages })
+    }
+    case '--prepare-prod': {
+      return getPrepareProductionTasks({ flags, packages })
     }
   }
 }

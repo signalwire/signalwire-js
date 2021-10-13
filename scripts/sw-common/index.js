@@ -60,7 +60,7 @@ const getChangedPackages = (originalPackages) => {
   })
 }
 
-const BUILD_MODES = ['--development', '--production']
+const BUILD_MODES = ['--development', '--production', '--prepare-prod']
 const isModeFlag = (flag) => {
   return BUILD_MODES.includes(flag)
 }
