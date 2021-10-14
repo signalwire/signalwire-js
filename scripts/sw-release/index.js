@@ -159,7 +159,13 @@ const publishTaskFactory = (options) => {
                       tasks.push(
                         await executer(
                           'git',
-                          ['tag', '-a', `${name}@${version}`],
+                          [
+                            'tag',
+                            '-a',
+                            `${name}@${version}`,
+                            '-m',
+                            `Release ${name}@${version}`,
+                          ],
                           {
                             cwd: pathname,
                           }
