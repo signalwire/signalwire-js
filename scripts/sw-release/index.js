@@ -144,7 +144,7 @@ const publishTaskFactory = (options) => {
                   // been published in npm then there's no
                   // need to do anything else.
                   if (await isPackagePublished({ name, version, executer })) {
-                    currentTask.title = `Skipped ${name}`
+                    currentTask.title = `Skipped ${name}: version: ${version} is already published on npm.`
                   } else {
                     tasks.push(
                       await executer(
@@ -173,9 +173,9 @@ const publishTaskFactory = (options) => {
                           }
                         )
                       )
-                      taskTitle = `${name}: Published to npm + git tag created.`
+                      taskTitle = `${name}: Published on npm + git tag created.`
                     } else {
-                      taskTitle = name
+                      taskTitle = `${name}: Published on npm.`
                     }
 
                     // If we're in dry-run mode we'll
