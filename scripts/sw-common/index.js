@@ -104,18 +104,19 @@ const isDryRun = (flags) => {
   return getDryRunFlag(flags) ? true : false
 }
 
-const getProductionReleaseType = (flags) => {
+const getReleaseType = (flags) => {
   const flag = getProductionFlag(flags)
 
   if (flag) {
     return {
-      status: true,
       type: flag.includes('prepare-prod') ? 'prepare' : 'publish',
+      mode: 'production',
     }
   }
 
   return {
-    status: false,
+    type: 'publish',
+    mode: 'development',
   }
 }
 
@@ -159,6 +160,6 @@ export {
   getLastGitSha,
   isCleanGitStatus,
   isDryRun,
-  getProductionReleaseType,
+  getReleaseType,
   isPackagePublished,
 }

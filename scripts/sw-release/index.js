@@ -11,7 +11,7 @@ import {
   isCleanGitStatus,
   getExecuter,
   isDryRun,
-  getProductionReleaseType,
+  getReleaseType,
 } from '@sw-internal/common'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -360,14 +360,14 @@ const getModeTasks = (flags) => {
 
 const getExtendedFlags = async (flags) => {
   const dryRun = isDryRun(flags)
-  const prodType = getProductionReleaseType(flags)
+  const releaseType = getReleaseType(flags)
 
-  if (prodType.status && !dryRun) {
+  if (!dryRun) {
     const answer = await inquirer.prompt([
       {
         type: 'confirm',
         name: 'continue',
-        message: `**Important**:\nYou're about to ${prodType.type} a production release.\nWould you like to run it in --dry-mode first?`,
+        message: `**Important**:\nYou're about to ${releaseType.type} a ${releaseType.mode} release.\nWould you like to run it in --dry-mode first?`,
         default: true,
       },
     ])
