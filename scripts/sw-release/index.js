@@ -296,10 +296,16 @@ const getPrepareProductionTasks = ({ dryRun, executer }) => {
     ...getTestTask({ executer }),
     {
       title: '⚒️  Preparing "production" release',
-      task: async () => {
-        return executer('npm', ['run', 'changeset', 'version'], {
+      task: async (_ctx, task) => {
+        const status = await executer('npm', ['run', 'changeset', 'version'], {
           cwd: ROOT_DIR,
         })
+
+        if (dryRun) {
+          task.title = `→ ℹ️  [Dry Run] Executed commands: ${status.command}`
+        } else {
+          task.title = '⚒️  "production" release ready to be published.'
+        }
       },
     },
     {
