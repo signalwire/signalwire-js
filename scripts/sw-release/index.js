@@ -148,7 +148,7 @@ const publishTaskFactory = (options) => {
               // skip the package.
               if (beta && npmTag !== 'beta') {
                 return {
-                  title: `Skipping ${name}: package is in beta`,
+                  title: `Skipped ${name}: package is in beta`,
                   task: () => {},
                 }
               }
