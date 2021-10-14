@@ -1,7 +1,8 @@
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import execa from 'execa'
+import inquirer from 'inquirer'
 import { Listr } from 'listr2'
+import { fileURLToPath } from 'node:url'
 import {
   getPackages,
   getModeFlag,
@@ -10,6 +11,7 @@ import {
   isCleanGitStatus,
   getExecuter,
   isDryRun,
+  getProductionReleaseType,
 } from '@sw-internal/common'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -147,7 +149,7 @@ const publishTaskFactory = (options) => {
                     tasks.push(
                       await executer(
                         'npm',
-                        ['publish', ...options.npmOptions],
+                        ['publish', '--dry-run', ...options.npmOptions],
                         {
                           cwd: pathname,
                         }
@@ -356,8 +358,31 @@ const getModeTasks = (flags) => {
   }
 }
 
+const getExtendedFlags = async (flags) => {
+  const dryRun = isDryRun(flags)
+  const prodType = getProductionReleaseType(flags)
+
+  if (prodType.status && !dryRun) {
+    const answer = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'continue',
+        message: `**Important**:\nYou're about to ${prodType.type} a production release.\nWould you like to run it in --dry-mode first?`,
+        default: true,
+      },
+    ])
+
+    if (answer.continue) {
+      return [...flags, '--dry-run']
+    }
+  }
+
+  return flags
+}
+
 export async function cli(args) {
-  const flags = args.slice(2)
+  const userFlags = args.slice(2)
+  const flags = await getExtendedFlags(userFlags)
   const tasks = new Listr([...getModeTasks(flags)])
 
   try {

@@ -59,11 +59,23 @@ const isModeFlag = (flag) => {
 const isDryRunFlag = (flag) => {
   return flag === '--dry-run'
 }
+const isProductionModeFlag = (flag) => {
+  return flag === '--production'
+}
+const isPrepareProductionModeFlag = (flag) => {
+  return flag === '--prepare-prod'
+}
 const getModeFlag = (flags = []) => {
   return flags.find((f) => isModeFlag(f))
 }
 const getDryRunFlag = (flags = []) => {
   return flags.find((f) => isDryRunFlag(f))
+}
+// We'll detect if it's either a `prepare` or `release`
+const getProductionFlag = (flags = []) => {
+  return flags.find(
+    (f) => isProductionModeFlag(f) || isPrepareProductionModeFlag(f)
+  )
 }
 
 const getLastGitSha = async ({ executer }) => {
@@ -89,9 +101,22 @@ const getExecuter = ({ flags }) => {
 }
 
 const isDryRun = (flags) => {
-  const isDryRun = getDryRunFlag(flags)
+  return getDryRunFlag(flags) ? true : false
+}
 
-  return isDryRun ? true : false
+const getProductionReleaseType = (flags) => {
+  const flag = getProductionFlag(flags)
+
+  if (flag) {
+    return {
+      status: true,
+      type: flag.includes('prepare-prod') ? 'prepare' : 'publish',
+    }
+  }
+
+  return {
+    status: false,
+  }
 }
 
 const isCleanGitStatus = async ({ executer }) => {
@@ -134,5 +159,6 @@ export {
   getLastGitSha,
   isCleanGitStatus,
   isDryRun,
+  getProductionReleaseType,
   isPackagePublished,
 }
