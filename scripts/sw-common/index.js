@@ -51,23 +51,54 @@ const getPackages = ({ pathname = PACKAGES_PATH } = DEFAULT_OPTIONS) => {
 
   return pkgDeps
 }
-
+const MODIFIERS = ['--dry-run']
 const BUILD_MODES = ['--development', '--production', '--prepare-prod']
 const isModeFlag = (flag) => {
   return BUILD_MODES.includes(flag)
 }
+const isDryRunFlag = (flag) => {
+  return flag === '--dry-run'
+}
 const getModeFlag = (flags = []) => {
   return flags.find((f) => isModeFlag(f))
 }
-
-const getLastGitSha = async (length = 7) => {
-  const { stdout: sha } = await execa('git', ['log', '-1', '--format=%H'])
-
-  return sha.substring(0, length)
+const getDryRunFlag = (flags = []) => {
+  return flags.find((f) => isDryRunFlag(f))
 }
 
-const isCleanGitStatus = async () => {
-  const status = await execa('git', ['status', '--porcelain'])
+const getLastGitSha = async ({ executer }) => {
+  const { stdout: sha } = await executer('git', ['log', '-1', '--format=%H'])
+
+  return sha.substring(0, 7)
+}
+
+/** @returns execa.ExecaReturnValue<string> */
+const mockedExecuter = async (command, args, _options, mockOptions) => {
+  return { command: `${command} ${args.join(' ')}`, ...mockOptions }
+}
+
+/** @returns execa.ExecaReturnValue<string> */
+const getExecuter = ({ flags }) => {
+  const isDryRun = getDryRunFlag(flags)
+
+  if (isDryRun) {
+    return mockedExecuter
+  }
+
+  return execa
+}
+
+const isDryRun = (flags) => {
+  const isDryRun = getDryRunFlag(flags)
+
+  return isDryRun ? true : false
+}
+
+const isCleanGitStatus = async ({ executer }) => {
+  const status = await executer('git', ['status', '--porcelain'], undefined, {
+    // @see mockedExecuter - mockOptions
+    stdout: '',
+  })
 
   if (status.stdout !== '') {
     throw new Error(
@@ -78,9 +109,16 @@ const isCleanGitStatus = async () => {
   return true
 }
 
-const isPackagePublished = async ({ name, version }) => {
+const isPackagePublished = async ({ name, version, executer }) => {
   const packageName = version ? `${name}@${version}` : name
-  const status = await execa('npm', ['show', packageName, 'versions'])
+  const status = await executer(
+    'npm',
+    ['show', packageName, 'versions'],
+    undefined,
+    {
+      stdout: '',
+    }
+  )
 
   if (status.stdout) {
     return true
@@ -90,9 +128,11 @@ const isPackagePublished = async ({ name, version }) => {
 }
 
 export {
+  getExecuter,
   getPackages,
   getModeFlag,
   getLastGitSha,
-  isPackagePublished,
   isCleanGitStatus,
+  isDryRun,
+  isPackagePublished,
 }

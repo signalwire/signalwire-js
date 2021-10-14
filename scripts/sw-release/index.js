@@ -8,6 +8,8 @@ import {
   getLastGitSha,
   isPackagePublished,
   isCleanGitStatus,
+  getExecuter,
+  isDryRun,
 } from '@sw-internal/common'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -15,7 +17,9 @@ const __dirname = path.dirname(__filename)
 const ROOT_DIR = path.join(__dirname, '../../')
 
 const getDevVersion = async () => {
-  const sha = await getLastGitSha()
+  // we need to execute this even on --dry-run to properly
+  // generate the new version number.
+  const sha = await getLastGitSha({ executer: execa })
 
   const d = new Date()
 
@@ -30,126 +34,22 @@ const getDevVersion = async () => {
   return `dev.${timestamp}.${sha}`
 }
 
-const getBuildTask = () => {
+const getDryRunInfoTask = ({ dryRun, tasks }) => {
   return {
-    title: '🏗️  Building all packages...',
-    task: async (_ctx, currentTask) => {
-      try {
-        await execa('npm', ['run', 'build'], {
-          cwd: ROOT_DIR,
-        })
-        currentTask.title = '🏗️  Build ran successfully!'
-      } catch (e) {
-        currentTask.title = '🛑 Build failed.'
-        throw e
-      }
-    },
-  }
-}
-
-const getTestTask = () => {
-  const packages = getPackages()
-  const totalPackages = packages.length
-
-  return {
-    title: '🧪 Running test suites...',
-    task: (_ctx, task) => {
-      return task.newListr((parentTask) => {
-        return packages.map(({ name }, index) => {
-          return {
-            title: `Testing ${name}`,
-            task: async (_ctx, currentTask) => {
-              await execa('manypkg', ['run', name, 'test'], {
-                cwd: ROOT_DIR,
-              })
-
-              // Updates the subtask's title (the individual package)
-              currentTask.title = `${name} tests ran successfully!`
-
-              // Updates the `parent`'s task title
-              if (index + 1 === totalPackages) {
-                parentTask.title = `🧪 Test suites ran successfully!`
-              } else {
-                parentTask.title = `🟢 Ran ${index + 1} of ${
-                  packages.length
-                } test suites.`
-              }
-            },
-          }
-        })
-      })
-    },
-  }
-}
-
-const publishTaskFactory = (
-  options = {
-    npmOptions: [],
-    publishGitTag: false,
-  }
-) => {
-  return {
-    title: `🟢 Publishing Packages`,
-    task(_ctx, task) {
-      const packages = getPackages()
-      const totalPackages = packages.length
-
+    title: '→ ℹ️  [Dry Run] Executed commands:',
+    enabled: dryRun,
+    task: async (_ctx, task) => {
       return task.newListr(
-        (parentTask) =>
-          packages.map(({ name, pathname, version }, index) => {
+        () => {
+          return tasks.map((task) => {
             return {
-              title: `Publishing ${name}`,
-              task: async (_ctx, currentTask) => {
-                // If the version we have now (locally) has
-                // been published in npm then there's no
-                // need to do anything else.
-                if (await isPackagePublished({ name, version })) {
-                  currentTask.title = `Skipped ${name}`
-                } else {
-                  // TODO: uncomment before merge.
-                  // await execa('npm', ['publish', ...options.npmOptions], {
-                  //   cwd: pathname,
-                  // })
-
-                  let taskTitle
-                  if (options.publishGitTag) {
-                    // TODO: delete these 2 lines and replace with commands bellow.
-                    const commandRan = ['tag', '-a', `${name}@${version}`].join(
-                      ' '
-                    )
-                    taskTitle = `${name}: npm + git ${commandRan}`
-
-                    // TODO: uncomment before merge.
-                    // await execa('git', ['tag', '-a', `${name}@${version}`], {
-                    //   cwd: pathname,
-                    // })
-                    // taskTitle = `${name}: Published to npm + git tag created.`
-                  } else {
-                    taskTitle = name
-                  }
-
-                  // Updates the subtask's title (the individual package)
-                  currentTask.title = taskTitle
-                }
-
-                // Updates the `parent`'s task title
-                if (index + 1 === totalPackages) {
-                  parentTask.title = `🚀 All updated packages have been published!`
-                } else {
-                  parentTask.title = `🟢 Published ${index + 1} of ${
-                    packages.length
-                  } Packages`
-                }
-              },
+              title: task.command,
+              task: () => {},
             }
-          }),
+          })
+        },
         {
           rendererOptions: {
-            /**
-             * This option will keep the subtasks list opened
-             * after completion. This is useful to see exactly
-             * which packages were published.
-             */
             collapse: false,
           },
         }
@@ -158,10 +58,163 @@ const publishTaskFactory = (
   }
 }
 
-const getDevelopmentTasks = () => {
+const getBuildTask = ({ dryRun, executer }) => {
+  let tasks = []
   return [
-    getBuildTask(),
-    getTestTask(),
+    {
+      title: '🏗️  Building all packages...',
+      task: async (_ctx, currentTask) => {
+        try {
+          tasks.push(
+            await executer('npm', ['run', 'build'], {
+              cwd: ROOT_DIR,
+            })
+          )
+          currentTask.title = '🏗️  Build ran successfully!'
+        } catch (e) {
+          currentTask.title = '🛑 Build failed.'
+          throw e
+        }
+      },
+    },
+    getDryRunInfoTask({ dryRun, tasks }),
+  ]
+}
+
+const getTestTask = ({ dryRun, executer }) => {
+  const packages = getPackages()
+  const totalPackages = packages.length
+  let tasks = []
+
+  return [
+    {
+      title: '🧪 Running test suites...',
+      task: (_ctx, task) => {
+        return task.newListr((parentTask) => {
+          return packages.map(({ name }, index) => {
+            return {
+              title: `Testing ${name}`,
+              task: async (_ctx, currentTask) => {
+                tasks.push(
+                  await executer('manypkg', ['run', name, 'test'], {
+                    cwd: ROOT_DIR,
+                  })
+                )
+
+                // Updates the subtask's title (the individual package)
+                currentTask.title = `${name} tests ran successfully!`
+
+                // Updates the `parent`'s task title
+                if (index + 1 === totalPackages) {
+                  parentTask.title = `🧪 Test suites ran successfully!`
+                } else {
+                  parentTask.title = `🟢 Ran ${index + 1} of ${
+                    packages.length
+                  } test suites.`
+                }
+              },
+            }
+          })
+        })
+      },
+    },
+    getDryRunInfoTask({ dryRun, tasks }),
+  ]
+}
+
+const publishTaskFactory = (options) => {
+  return [
+    {
+      title: `🟢 Publishing Packages`,
+      task(_ctx, task) {
+        const packages = getPackages()
+        const totalPackages = packages.length
+        const { executer, dryRun } = options
+
+        return task.newListr(
+          (parentTask) =>
+            packages.map(({ name, pathname, version }, index) => {
+              let tasks = []
+              return {
+                title: `Publishing ${name}`,
+                task: async (_ctx, currentTask) => {
+                  // If the version we have now (locally) has
+                  // been published in npm then there's no
+                  // need to do anything else.
+                  if (await isPackagePublished({ name, version, executer })) {
+                    currentTask.title = `Skipped ${name}`
+                  } else {
+                    tasks.push(
+                      await executer(
+                        'npm',
+                        ['publish', ...options.npmOptions],
+                        {
+                          cwd: pathname,
+                        }
+                      )
+                    )
+
+                    let taskTitle
+                    if (options.publishGitTag) {
+                      tasks.push(
+                        await executer(
+                          'git',
+                          ['tag', '-a', `${name}@${version}`],
+                          {
+                            cwd: pathname,
+                          }
+                        )
+                      )
+                      taskTitle = `${name}: Published to npm + git tag created.`
+                    } else {
+                      taskTitle = name
+                    }
+
+                    // If we're in dry-run mode we'll
+                    // replace the task title with the
+                    // executed commands
+                    if (dryRun) {
+                      taskTitle = `→ ℹ️  [Dry Run] Executed commands for ${name}:\n${tasks
+                        .map((t) => t.command)
+                        .join('\n')}`
+                    }
+
+                    // Updates the subtask's title (the
+                    // individual package)
+                    currentTask.title = taskTitle
+                  }
+
+                  // Updates the `parent`'s task title
+                  if (index + 1 === totalPackages) {
+                    parentTask.title = `🚀 All updated packages have been published!`
+                  } else {
+                    parentTask.title = `🟢 Published ${index + 1} of ${
+                      packages.length
+                    } Packages`
+                  }
+                },
+              }
+            }),
+          {
+            rendererOptions: {
+              /**
+               * This option will keep the subtasks list opened
+               * after completion. This is useful to see exactly
+               * which packages were published.
+               */
+              collapse: false,
+            },
+          }
+        )
+      },
+    },
+  ]
+}
+
+const getDevelopmentTasks = ({ dryRun, executer }) => {
+  return [
+    ...getBuildTask({ dryRun, executer }),
+    ...getTestTask({ dryRun, executer }),
     {
       title: '⚒️  Preparing "development" release',
       task: async (_ctx, task) => {
@@ -171,7 +224,7 @@ const getDevelopmentTasks = () => {
             task: async () => {
               const devVersion = await getDevVersion()
 
-              await execa(
+              await executer(
                 'npm',
                 ['run', 'changeset', 'pre', 'enter', devVersion],
                 {
@@ -185,7 +238,7 @@ const getDevelopmentTasks = () => {
           {
             title: 'Versioning packages',
             task: async () => {
-              return execa('npm', ['run', 'changeset', 'version'], {
+              return executer('npm', ['run', 'changeset', 'version'], {
                 cwd: ROOT_DIR,
               })
             },
@@ -193,19 +246,21 @@ const getDevelopmentTasks = () => {
         ])
       },
     },
-    publishTaskFactory({
+    ...publishTaskFactory({
       npmOptions: ['--tag', 'dev'],
+      executer,
+      dryRun,
     }),
   ]
 }
 
-const getProductionTasks = () => {
+const getProductionTasks = ({ executer, dryRun }) => {
   return [
     {
       title: '🔍 Checking Git status',
       task: async (_ctx, task) => {
         try {
-          await isCleanGitStatus()
+          await isCleanGitStatus({ executer })
           task.title = '🔍 Git: clean working tree!'
         } catch (e) {
           task.title = `🛑 ${e.message}`
@@ -214,23 +269,25 @@ const getProductionTasks = () => {
         }
       },
     },
-    getBuildTask(),
-    getTestTask(),
-    publishTaskFactory({
+    ...getBuildTask({ dryRun, executer }),
+    ...getTestTask({ dryRun, executer }),
+    ...publishTaskFactory({
       npmOptions: [],
       publishGitTag: true,
+      executer,
+      dryRun,
     }),
   ]
 }
 
-const getPrepareProductionTasks = () => {
+const getPrepareProductionTasks = ({ dryRun, executer }) => {
   return [
-    getBuildTask(),
-    getTestTask(),
+    ...getBuildTask({ dryRun, executer }),
+    ...getTestTask({ executer }),
     {
       title: '⚒️  Preparing "production" release',
       task: async () => {
-        return execa('npm', ['run', 'changeset', 'version'], {
+        return executer('npm', ['run', 'changeset', 'version'], {
           cwd: ROOT_DIR,
         })
       },
@@ -266,16 +323,19 @@ const getPrepareProductionTasks = () => {
 
 const getModeTasks = (flags) => {
   const mode = getModeFlag(flags) || '--development'
+  // When using --dry-run we'll use a mocked version of `execa`
+  const executer = getExecuter({ flags })
+  const dryRun = isDryRun(flags)
 
   switch (mode) {
     case '--development': {
-      return getDevelopmentTasks({ flags })
+      return getDevelopmentTasks({ flags, executer, dryRun })
     }
     case '--production': {
-      return getProductionTasks({ flags })
+      return getProductionTasks({ flags, executer, dryRun })
     }
     case '--prepare-prod': {
-      return getPrepareProductionTasks({ flags })
+      return getPrepareProductionTasks({ flags, executer, dryRun })
     }
   }
 }
