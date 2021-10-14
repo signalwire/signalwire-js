@@ -230,7 +230,7 @@ const getDevelopmentTasks = ({ dryRun, executer }) => {
             task: async () => {
               const devVersion = await getDevVersion()
 
-              await executer(
+              const status = await executer(
                 'npm',
                 ['run', 'changeset', 'pre', 'enter', devVersion],
                 {
@@ -238,7 +238,11 @@ const getDevelopmentTasks = ({ dryRun, executer }) => {
                 }
               )
 
-              task.title = '⚒️  "development" release ready to be published.'
+              if (dryRun) {
+                task.title = `→ ℹ️  [Dry Run] Executed commands: ${status.command}`
+              } else {
+                task.title = '⚒️  "development" release ready to be published.'
+              }
             },
           },
           {
