@@ -135,9 +135,14 @@ const isCleanGitStatus = async ({ executer }) => {
   return true
 }
 
-const isPackagePublished = async ({ name, version, executer }) => {
+const isPackagePublished = async ({ name, version, executer, options }) => {
+  // During `dev` we'll execute the real command since we
+  // have to check if the new version has been published on
+  // npm.
+  const localExecuter = options.includes('dev') ? execa : executer
+
   const packageName = version ? `${name}@${version}` : name
-  const status = await executer(
+  const status = await localExecuter(
     'npm',
     ['show', packageName, 'versions'],
     undefined,

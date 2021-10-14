@@ -143,7 +143,17 @@ const publishTaskFactory = (options) => {
                   // If the version we have now (locally) has
                   // been published in npm then there's no
                   // need to do anything else.
-                  if (await isPackagePublished({ name, version, executer })) {
+                  if (
+                    await isPackagePublished({
+                      name,
+                      version,
+                      executer,
+                      // When publishing the `dev` tag we'll
+                      // check npm regardless if --dry-run
+                      // is on or not.
+                      options: options.npmOptions,
+                    })
+                  ) {
                     currentTask.title = `Skipped ${name}: version: ${version} is already published on npm.`
                   } else {
                     tasks.push(
@@ -226,13 +236,18 @@ const getDevelopmentTasks = ({ dryRun, executer }) => {
     {
       title: '⚒️  Preparing "development" release',
       task: async (_ctx, task) => {
+        // We need to execute these tasks regardless if
+        // we're in dry-run mode or not otherwise the output
+        // won't be useful since packages will have the same
+        // version during the publishing phase
+        const localExecuter = execa
         return task.newListr([
           {
             title: 'Entering pre-release mode',
             task: async () => {
               const devVersion = await getDevVersion()
 
-              const status = await executer(
+              const status = await localExecuter(
                 'npm',
                 ['run', 'changeset', 'pre', 'enter', devVersion],
                 {
@@ -250,7 +265,7 @@ const getDevelopmentTasks = ({ dryRun, executer }) => {
           {
             title: 'Versioning packages',
             task: async () => {
-              return executer('npm', ['run', 'changeset', 'version'], {
+              return localExecuter('npm', ['run', 'changeset', 'version'], {
                 cwd: ROOT_DIR,
               })
             },
