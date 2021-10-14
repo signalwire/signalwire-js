@@ -12,6 +12,7 @@ import {
   getExecuter,
   isDryRun,
   getReleaseType,
+  getNpmTag,
 } from '@sw-internal/common'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -135,7 +136,23 @@ const publishTaskFactory = (options) => {
 
         return task.newListr(
           (parentTask) =>
-            packages.map(({ name, pathname, version }, index) => {
+            packages.map(({ name, pathname, version, beta }, index) => {
+              const npmTag = getNpmTag(options.npmOptions)
+
+              // "beta" is a non-standard package.json level
+              // property we defined to be able to have beta
+              // and production packages living on the same
+              // branch. If we detect that a package has
+              // been marked as "beta" and we're trying to
+              // publish something that's not beta we'll
+              // skip the package.
+              if (beta && npmTag !== 'beta') {
+                return {
+                  title: `Skipping ${name}: package is in beta`,
+                  task: () => {},
+                }
+              }
+
               let tasks = []
               return {
                 title: `Publishing ${name}`,
@@ -147,11 +164,8 @@ const publishTaskFactory = (options) => {
                     await isPackagePublished({
                       name,
                       version,
-                      executer,
-                      // When publishing the `dev` tag we'll
-                      // check npm regardless if --dry-run
-                      // is on or not.
-                      options: options.npmOptions,
+                      // We ensure to always reach npm, even on dry-run
+                      executer: execa,
                     })
                   ) {
                     currentTask.title = `Skipped ${name}: version: ${version} is already published on npm.`
@@ -183,6 +197,8 @@ const publishTaskFactory = (options) => {
                           }
                         )
                       )
+                      // TODO: push tag.
+
                       taskTitle = `${name}: Published on npm + git tag created.`
                     } else {
                       taskTitle = `${name}: Published on npm.`
@@ -310,10 +326,11 @@ const getProductionTasks = ({ executer, dryRun }) => {
 const getPrepareProductionTasks = ({ dryRun, executer }) => {
   return [
     ...getBuildTask({ dryRun, executer }),
-    ...getTestTask({ executer }),
+    ...getTestTask({ dryRun, executer }),
     {
-      title: '⚒️  Preparing "production" release',
+      title: '⚒️  Prepare "production" release',
       task: async (_ctx, task) => {
+        task.title = '⚒️  Preparing "production" release'
         const status = await executer('npm', ['run', 'changeset', 'version'], {
           cwd: ROOT_DIR,
         })
@@ -321,7 +338,7 @@ const getPrepareProductionTasks = ({ dryRun, executer }) => {
         if (dryRun) {
           task.title = `→ ℹ️  [Dry Run] Executed commands: ${status.command}`
         } else {
-          task.title = '⚒️  "production" release ready to be published.'
+          task.title = `⚒️  "production" release ready to be published: ${status.command}`
         }
       },
     },

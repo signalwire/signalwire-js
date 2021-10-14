@@ -31,6 +31,12 @@ const _scan = (pathname, level = 0, acc = []) => {
       acc.push({
         version: pkgJson.version,
         name: pkgJson.name,
+        // To be able to have packages in beta within the
+        // same branch as other prod-ready packages we opted
+        // for having a non-standard field that let us
+        // filter packages marked as "beta" when publishing
+        // production releases.
+        beta: pkgJson.beta,
         pathname,
       })
     } else {
@@ -51,7 +57,7 @@ const getPackages = ({ pathname = PACKAGES_PATH } = DEFAULT_OPTIONS) => {
 
   return pkgDeps
 }
-const MODIFIERS = ['--dry-run']
+
 const BUILD_MODES = ['--development', '--production', '--prepare-prod']
 const isModeFlag = (flag) => {
   return BUILD_MODES.includes(flag)
@@ -135,14 +141,9 @@ const isCleanGitStatus = async ({ executer }) => {
   return true
 }
 
-const isPackagePublished = async ({ name, version, executer, options }) => {
-  // During `dev` we'll execute the real command since we
-  // have to check if the new version has been published on
-  // npm.
-  const localExecuter = options.includes('dev') ? execa : executer
-
+const isPackagePublished = async ({ name, version, executer }) => {
   const packageName = version ? `${name}@${version}` : name
-  const status = await localExecuter(
+  const status = await executer(
     'npm',
     ['show', packageName, 'versions'],
     undefined,
@@ -158,13 +159,24 @@ const isPackagePublished = async ({ name, version, executer, options }) => {
   return false
 }
 
+const getNpmTag = (options) => {
+  const tagIndex = options.findIndex((opt) => opt === '--tag')
+
+  if (tagIndex === -1) {
+    return ''
+  }
+
+  return options[tagIndex + 1]
+}
+
 export {
   getExecuter,
-  getPackages,
-  getModeFlag,
   getLastGitSha,
+  getModeFlag,
+  getNpmTag,
+  getPackages,
+  getReleaseType,
   isCleanGitStatus,
   isDryRun,
-  getReleaseType,
   isPackagePublished,
 }
