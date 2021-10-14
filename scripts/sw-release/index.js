@@ -65,17 +65,22 @@ const getBuildTask = ({ dryRun, executer }) => {
   let tasks = []
   return [
     {
-      title: '🏗️  Building all packages...',
-      task: async (_ctx, currentTask) => {
+      title: '🏗️  Build all packages...',
+      task: async (_ctx, task) => {
+        task.title = '🏗️  Building all packages...'
         try {
           tasks.push(
             await executer('npm', ['run', 'build'], {
               cwd: ROOT_DIR,
             })
           )
-          currentTask.title = '🏗️  Build ran successfully!'
+          if (dryRun) {
+            task.title = 'ℹ️  [Dry Run] Build Tasks:'
+          } else {
+            task.title = '🏗️  Build ran successfully!'
+          }
         } catch (e) {
-          currentTask.title = '🛑 Build failed.'
+          task.title = '🛑 Build failed.'
           throw e
         }
       },
@@ -91,8 +96,9 @@ const getTestTask = ({ dryRun, executer }) => {
 
   return [
     {
-      title: '🧪 Running test suites...',
+      title: '🧪 Run test suites...',
       task: (_ctx, task) => {
+        task.title = '🧪 Running test suites...'
         return task.newListr((parentTask) => {
           return packages.map(({ name }, index) => {
             return {
@@ -109,7 +115,11 @@ const getTestTask = ({ dryRun, executer }) => {
 
                 // Updates the `parent`'s task title
                 if (index + 1 === totalPackages) {
-                  parentTask.title = `🧪 Test suites ran successfully!`
+                  if (dryRun) {
+                    parentTask.title = `ℹ️  [Dry Run] Test Tasks:`
+                  } else {
+                    parentTask.title = `🧪 Test suites ran successfully!`
+                  }
                 } else {
                   parentTask.title = `🟢 Ran ${index + 1} of ${
                     packages.length
@@ -220,7 +230,11 @@ const publishTaskFactory = (options) => {
 
                   // Updates the `parent`'s task title
                   if (index + 1 === totalPackages) {
-                    parentTask.title = `🚀 All updated packages have been published!`
+                    if (dryRun) {
+                      parentTask.title = `ℹ️  [Dry Run] Packages to be published:`
+                    } else {
+                      parentTask.title = `🚀 All updated packages have been published!`
+                    }
                   } else {
                     parentTask.title = `🟢 Published ${index + 1} of ${
                       packages.length
