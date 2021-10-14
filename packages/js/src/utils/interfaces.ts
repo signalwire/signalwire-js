@@ -141,9 +141,9 @@ interface RoomMemberSelfMethodsInterface {
  */
 export interface RoomMethods
   extends OnlyFunctionProperties<VideoRoomSessionContract> {
-  /** @deprecated */
+  /** @deprecated Use {@link setVideoMuted} instead */
   hideVideoMuted(): Rooms.HideVideoMuted
-  /** @deprecated */
+  /** @deprecated Use {@link setVideoMuted} instead */
   showVideoMuted(): Rooms.ShowVideoMuted
 }
 

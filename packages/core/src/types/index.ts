@@ -43,7 +43,6 @@ export interface BaseConnectionContract<
   remoteStream: MediaStream | undefined
   roomId: string
   roomSessionId: string
-  trying: boolean
   active: boolean
   memberId: string
   updateCamera(constraints: MediaTrackConstraints): Promise<void>
