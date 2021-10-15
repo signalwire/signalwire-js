@@ -3,15 +3,15 @@ import inquirer from 'inquirer'
 import { Listr } from 'listr2'
 
 import {
-  getModeFlag,
   getLastGitSha,
   isCleanGitStatus,
   getExecuter,
   isDryRun,
-  getReleaseType,
 } from '@sw-internal/common'
 
 import {
+  getModeFlag,
+  getReleaseType,
   getBuildTask,
   getTestTask,
   ROOT_DIR,

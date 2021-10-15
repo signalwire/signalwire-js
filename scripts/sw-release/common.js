@@ -229,10 +229,55 @@ const publishTaskFactory = (options) => {
   ]
 }
 
+const isProductionModeFlag = (flag) => {
+  return flag === '--production'
+}
+const isPrepareProductionModeFlag = (flag) => {
+  return flag === '--prepare-prod'
+}
+
+// We'll detect if it's either a `prepare` or `release`
+const getProductionFlag = (flags = []) => {
+  return flags.find(
+    (f) => isProductionModeFlag(f) || isPrepareProductionModeFlag(f)
+  )
+}
+
+const getReleaseType = (flags) => {
+  const flag = getProductionFlag(flags)
+
+  if (flag) {
+    return {
+      type: flag.includes('prepare-prod') ? 'prepare' : 'publish',
+      mode: 'production',
+    }
+  }
+
+  return {
+    type: 'publish',
+    mode: 'development',
+  }
+}
+
+const BUILD_MODES = [
+  '--beta',
+  '--development',
+  '--prepare-prod',
+  '--production',
+]
+const isModeFlag = (flag) => {
+  return BUILD_MODES.includes(flag)
+}
+const getModeFlag = (flags = []) => {
+  return flags.find((f) => isModeFlag(f))
+}
+
 export {
+  getModeFlag,
   getDryRunInfoTask,
   getBuildTask,
   getTestTask,
   publishTaskFactory,
+  getReleaseType,
   ROOT_DIR,
 }

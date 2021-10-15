@@ -58,30 +58,12 @@ const getPackages = ({ pathname = PACKAGES_PATH } = DEFAULT_OPTIONS) => {
   return pkgDeps
 }
 
-const BUILD_MODES = ['--development', '--production', '--prepare-prod']
-const isModeFlag = (flag) => {
-  return BUILD_MODES.includes(flag)
-}
 const isDryRunFlag = (flag) => {
   return flag === '--dry-run'
 }
-const isProductionModeFlag = (flag) => {
-  return flag === '--production'
-}
-const isPrepareProductionModeFlag = (flag) => {
-  return flag === '--prepare-prod'
-}
-const getModeFlag = (flags = []) => {
-  return flags.find((f) => isModeFlag(f))
-}
+
 const getDryRunFlag = (flags = []) => {
   return flags.find((f) => isDryRunFlag(f))
-}
-// We'll detect if it's either a `prepare` or `release`
-const getProductionFlag = (flags = []) => {
-  return flags.find(
-    (f) => isProductionModeFlag(f) || isPrepareProductionModeFlag(f)
-  )
 }
 
 const getLastGitSha = async ({ executer }) => {
@@ -108,22 +90,6 @@ const getExecuter = (flags) => {
 
 const isDryRun = (flags) => {
   return getDryRunFlag(flags) ? true : false
-}
-
-const getReleaseType = (flags) => {
-  const flag = getProductionFlag(flags)
-
-  if (flag) {
-    return {
-      type: flag.includes('prepare-prod') ? 'prepare' : 'publish',
-      mode: 'production',
-    }
-  }
-
-  return {
-    type: 'publish',
-    mode: 'development',
-  }
 }
 
 const isCleanGitStatus = async ({ executer }) => {
@@ -172,10 +138,8 @@ const getNpmTag = (options) => {
 export {
   getExecuter,
   getLastGitSha,
-  getModeFlag,
   getNpmTag,
   getPackages,
-  getReleaseType,
   isCleanGitStatus,
   isDryRun,
   isPackagePublished,
