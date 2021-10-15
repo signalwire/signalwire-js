@@ -7,21 +7,21 @@
  *
  * ```javascript
  * const { createClient } = require('@signalwire/realtime-api')
- * 
+ *
  * createClient({
  *   project: '<project-id>',
  *   token: '<project-token>'
  * }).then((client) => {
  *   client.video.on('room.started', async (roomSession) => {
  *     console.log("Room started")
- *   
+ *
  *     roomSession.on('member.joined', async (member) => {
  *       console.log(member)
  *     })
- *   
+ *
  *     await roomSession.subscribe()
  *   });
- * 
+ *
  *   client.connect()
  * });
  * ```

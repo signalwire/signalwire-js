@@ -6,30 +6,30 @@ import {
   ClientEvents,
   logger,
 } from '@signalwire/core'
+import { createMessageNamespace, MessageNamespace } from './message'
 import { createVideoObject, Video } from './video/Video'
 
 /**
- * A real-time Client. 
- * 
+ * A real-time Client.
+ *
  * To construct an instance of this class, please use {@link createClient}.
- * 
+ *
  * Example usage:
  * ```typescript
  * import {createClient} from '@signalwire/realtime-api'
- * 
+ *
  * // Obtain a client:
  * const client = await createClient({project, token})
- * 
+ *
  * // Listen on events:
  * client.video.on('room.started', async (room) => { })
- * 
+ *
  * // Connect:
  * await client.connect()
  * ```
  */
 export interface RealtimeClient
   extends ClientContract<RealtimeClient, ClientEvents> {
-
   /**
    * Connects this client to the SignalWire network.
    *
@@ -57,12 +57,18 @@ export interface RealtimeClient
    * Access the Video API Consumer
    */
   video: Video
+
+  /**
+   * Access the Message API
+   */
+  message: MessageNamespace
 }
 
 type ClientNamespaces = Video
 
 export class Client extends BaseClient<ClientEvents> {
   private _consumers: Map<EventsPrefix, ClientNamespaces> = new Map()
+  private _message: MessageNamespace
 
   async onAuth(session: SessionState) {
     try {
@@ -99,5 +105,18 @@ export class Client extends BaseClient<ClientEvents> {
     })
     this._consumers.set('video', video)
     return video
+  }
+
+  get message(): MessageNamespace {
+    if (!this._message) {
+      this._message = createMessageNamespace({
+        store: this.store,
+        // Emitter is now typed but we share it across objects
+        // so types won't match
+        // @ts-expect-error
+        emitter: this.options.emitter,
+      })
+    }
+    return this._message
   }
 }

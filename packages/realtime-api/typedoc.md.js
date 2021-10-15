@@ -11,5 +11,5 @@ module.exports = {
   plugin: ['@signalwire/typedoc-readme-api-theme'],
   pageSlugPrefix: 'rt-',
   entryDocument: 'rt-exports.md',
-  entryTitle: 'Realtime API'
+  entryTitle: 'Realtime API',
 }

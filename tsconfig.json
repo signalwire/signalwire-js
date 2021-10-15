@@ -23,7 +23,8 @@
       "@signalwire/js": ["packages/js/src"],
       "@signalwire/core": ["packages/core/src"],
       "@signalwire/webrtc": ["packages/webrtc/src"],
-      "@signalwire/node": ["packages/node/src"]
+      "@signalwire/node": ["packages/node/src"],
+      "@signalwire/realtime-api": ["packages/realtime-api/src"],
     },
     "composite": true,
     "declarationMap": true,

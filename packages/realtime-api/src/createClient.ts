@@ -20,7 +20,7 @@ export type { RealtimeClient, ClientEvents }
  * @param userOptions.token SignalWire project token, e.g. `PT9e5660c101cd140a1c93a0197640a369cf5f16975a0079c9`
  * @param userOptions.logLevel logging level
  * @returns an instance of a real-time Client.
- * 
+ *
  * @example
  * ```typescript
  * const client = await createClient({
@@ -32,31 +32,32 @@ export type { RealtimeClient, ClientEvents }
 export const createClient: (userOptions: {
   project?: string
   token: string
+  contexts?: string[]
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
 }) => Promise<RealtimeClient> =
-// Note: types are inlined for clarity of documentation
-async (userOptions) => {
-  const baseUserOptions: InternalUserOptions = {
-    ...userOptions,
-    emitter: getEventEmitter<ClientEvents>(),
+  // Note: types are inlined for clarity of documentation
+  async (userOptions) => {
+    const baseUserOptions: InternalUserOptions = {
+      ...userOptions,
+      emitter: getEventEmitter<ClientEvents>(),
+    }
+    const store = configureStore({
+      userOptions: baseUserOptions,
+      SessionConstructor: Session,
+    })
+
+    const client = connect<ClientEvents, Client, RealtimeClient>({
+      store,
+      Component: Client,
+      componentListeners: {
+        errors: 'onError',
+        responses: 'onSuccess',
+        id: 'onClientSubscribed',
+      },
+      sessionListeners: {
+        authStatus: 'onAuth',
+      },
+    })(baseUserOptions)
+
+    return client
   }
-  const store = configureStore({
-    userOptions: baseUserOptions,
-    SessionConstructor: Session,
-  })
-
-  const client = connect<ClientEvents, Client, RealtimeClient>({
-    store,
-    Component: Client,
-    componentListeners: {
-      errors: 'onError',
-      responses: 'onSuccess',
-      id: 'onClientSubscribed',
-    },
-    sessionListeners: {
-      authStatus: 'onAuth',
-    },
-  })(baseUserOptions)
-
-  return client
-}
