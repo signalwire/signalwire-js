@@ -74,6 +74,7 @@ export interface VideoRoomSessionContract {
   getMembers(): Rooms.GetMembers
   deaf(params: MemberCommandParams): Rooms.DeafMember
   undeaf(params: MemberCommandParams): Rooms.UndeafMember
+  /** @deprecated Use {@link setOutputVolume} instead. */
   setSpeakerVolume(
     params: MemberCommandWithVolumeParams
   ): Rooms.SetOutputVolumeMember
