@@ -131,6 +131,11 @@ const publishTaskFactory = (options) => {
                   title: `Skipped ${name}: package is in beta`,
                   task: () => {},
                 }
+              } else if (npmTag === 'beta' && !beta) {
+                return {
+                  title: `Skipped ${name}: package is *not* in beta.`,
+                  task: () => {},
+                }
               }
 
               let tasks = []

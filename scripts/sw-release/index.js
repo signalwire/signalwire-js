@@ -5,6 +5,7 @@ import { getModeFlag, getReleaseType } from './common.js'
 import { getDevelopmentTasks } from './modes/development.js'
 import { getProductionTasks } from './modes/production.js'
 import { getPrepareProductionTasks } from './modes/prepareProd.js'
+import { getBetaTasks } from './modes/beta.js'
 
 const getModeTasks = (flags) => {
   const mode = getModeFlag(flags) || '--development'
@@ -13,6 +14,9 @@ const getModeTasks = (flags) => {
   const dryRun = isDryRun(flags)
 
   switch (mode) {
+    case '--beta': {
+      return getBetaTasks({ flags, executer, dryRun })
+    }
     case '--development': {
       return getDevelopmentTasks({ flags, executer, dryRun })
     }
