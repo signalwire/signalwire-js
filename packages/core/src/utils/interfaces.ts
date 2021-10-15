@@ -305,6 +305,7 @@ export type EventTransformType =
   | 'roomSessionLayout'
   | 'roomSessionRecording'
   | 'roomSessionPlayback'
+  | 'message'
 /**
  * `EventTransform`s represent our internal pipeline for
  * creating specific instances for each event handler. This

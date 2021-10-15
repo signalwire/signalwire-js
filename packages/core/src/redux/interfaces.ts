@@ -10,6 +10,7 @@ import {
 } from '../utils/interfaces'
 import type { VideoAPIEventParams, InternalVideoAPIEvent } from '../types'
 import { MessageAPIEventParams, MessageStates } from '../types/message'
+import { MessageDirection } from 'packages/core/dist/core/src'
 
 interface SWComponent {
   id: string
@@ -35,9 +36,11 @@ export interface WebRTCCall extends SWComponent {
 }
 
 export interface Message extends SWComponent {
-  state?: MessageStates
+  message_id: string,
+  message_state?: MessageStates
   reason?: string
   segments?: number
+  direction: MessageDirection
 }
 
 export type ReduxComponent = WebRTCCall | Message

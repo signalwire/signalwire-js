@@ -297,10 +297,13 @@ export function* sessionChannelWatcher({
   function* messageAPIWorker(params: MessageAPIEventParams): SagaIterator {
     switch (params.event_type) {
       case 'messaging.state':
+        // FIXME: temp hack
+        const id = params.params.tags?.find(t => t.startsWith('uuid:'))!.split(':')[1]!
         yield put(
           componentActions.upsert({
-            id: params.params.message_id,
-            state: params.params.message_state,
+            id,
+            message_id: params.params.message_id,
+            message_state: params.params.message_state,
             reason: params.params.reason,
             segments: params.params.segments,
           })

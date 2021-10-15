@@ -691,7 +691,7 @@ export class BaseComponent<
            * When `local !== true` we filter out `Local Events` AND
            * events the user hasn't subscribed to.
            */
-          isLocalEvent(event) || !this.eventNames().includes(internalEvent)
+          isLocalEvent(event)
     ) {
       return
     }

@@ -76,7 +76,15 @@ const findNamespaceInPayload = (action: PubSubAction): string => {
   } else if (isVideoRoomEvent(action)) {
     return action.payload.room_session.id
   } else if (isMessageEvent(action)) {
-    return action.payload.tag
+    if (action.payload.tag) {
+      return action.payload.tag
+    } else {
+      // FIXME: Temp hack before tag is ready
+      const tag = action.payload.tags?.find(t => t.startsWith('tag:'))
+      if (tag) {
+        return tag.split(':')[1]
+      }
+    }
   }
 
   if ('development' === process.env.NODE_ENV) {

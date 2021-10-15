@@ -71,7 +71,7 @@ export interface MessageReceiveEventParams {
   from_number: string
   to_number: string
   body?: string
-  media?: string
+  media?: string[]
   segments: number
   message_state: MessageStates
 }
@@ -89,7 +89,7 @@ export interface MessageContract {
   tags?: string[]
   tag: string
   segments: number
-  state?: MessageState
+  state?: MessageStates
   direction?: MessageDirections
   reason?: string
   send(): Promise<void>

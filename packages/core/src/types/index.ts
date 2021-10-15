@@ -74,4 +74,5 @@ export type PubSubChannelEvents =
   | SessionEvents
 
 export * from './video'
+export * from './message'
 export * from './utils'
