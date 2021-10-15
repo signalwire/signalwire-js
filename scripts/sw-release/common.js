@@ -133,7 +133,7 @@ const publishTaskFactory = (options) => {
                 }
               } else if (npmTag === 'beta' && !beta) {
                 return {
-                  title: `Skipped ${name}: package is *not* in beta.`,
+                  title: `Skipped ${name}: package is not in beta.`,
                   task: () => {},
                 }
               }
@@ -278,11 +278,11 @@ const getModeFlag = (flags = []) => {
 }
 
 export {
-  getModeFlag,
-  getDryRunInfoTask,
   getBuildTask,
+  getDryRunInfoTask,
+  getModeFlag,
+  getReleaseType,
   getTestTask,
   publishTaskFactory,
-  getReleaseType,
   ROOT_DIR,
 }
