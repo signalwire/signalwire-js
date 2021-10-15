@@ -19,9 +19,13 @@ import type {
   VideoPlaybackEventNames,
   RoomSessionRecording,
   RoomSessionPlayback,
+  VideoRoomSessionContract,
+  OnlyFunctionProperties,
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
 import type { RoomSession } from '../RoomSession'
+import type { RoomSessionDevice } from '../RoomSessionDevice'
+import type { RoomSessionScreenShare } from '../RoomSessionScreenShare'
 
 const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
   INTERNAL_MEMBER_UPDATABLE_PROPS
@@ -112,26 +116,6 @@ export interface BaseRoomInterface {
   leave(): Promise<unknown>
 }
 
-interface RoomMemberMethodsInterface {
-  audioMute(params?: MemberCommandParams): Rooms.AudioMuteMember
-  audioUnmute(params?: MemberCommandParams): Rooms.AudioUnmuteMember
-  videoMute(params?: MemberCommandParams): Rooms.VideoMuteMember
-  videoUnmute(params?: MemberCommandParams): Rooms.VideoUnmuteMember
-  setInputVolume(
-    params: MemberCommandWithVolumeParams
-  ): Rooms.SetInputVolumeMember
-  /**
-   * @deprecated Use {@link setInputVolume} instead.
-   * `setMicrophoneVolume` will be removed in v4.0.0
-   */
-  setMicrophoneVolume(
-    params: MemberCommandWithVolumeParams
-  ): Rooms.SetInputVolumeMember
-  setInputSensitivity(
-    params: MemberCommandWithValueParams
-  ): Rooms.SetInputSensitivityMember
-}
-
 interface RoomMemberSelfMethodsInterface {
   audioMute(): Rooms.AudioMuteMember
   audioUnmute(): Rooms.AudioUnmuteMember
@@ -148,47 +132,36 @@ interface RoomMemberSelfMethodsInterface {
   }): Rooms.SetInputSensitivityMember
 }
 
-interface RoomLayoutMethodsInterface {
-  getLayouts(): Rooms.GetLayouts
-  setLayout(params: { name: string }): Rooms.SetLayout
-}
-
-interface RoomControlMethodsInterface {
-  getMembers(): Rooms.GetMembers
-  deaf(params?: MemberCommandParams): Rooms.DeafMember
-  undeaf(params?: MemberCommandParams): Rooms.UndeafMember
-  setOutputVolume(
-    params: MemberCommandWithVolumeParams
-  ): Rooms.SetOutputVolumeMember
-  /**
-   * @deprecated Use {@link setOutputVolume} instead.
-   * `setSpeakerVolume` will be removed in v4.0.0
-   */
-  setSpeakerVolume(
-    params: MemberCommandWithVolumeParams
-  ): Rooms.SetOutputVolumeMember
-  removeMember(params: Required<MemberCommandParams>): Rooms.RemoveMember
-  hideVideoMuted(): Rooms.HideVideoMuted
-  showVideoMuted(): Rooms.ShowVideoMuted
-  getRecordings(): Rooms.GetRecordings
-  startRecording(): Promise<Rooms.RoomSessionRecording>
-  getPlaybacks(): Rooms.GetPlaybacks
-  play(params: Rooms.PlayParams): Promise<Rooms.RoomSessionPlayback>
-}
-
 /**
- * We are using these interfaces in
- * combination of Object.defineProperties()
- * to avoid code duplication and expose a
- * nice documentation via TypeDoc.
- * The interface forces TS checking
- * while Object.defineProperties allow us
+ * We are using these interfaces in combination of
+ * Object.defineProperties() to avoid code duplication and
+ * expose a nice documentation via TypeDoc. The interface
+ * forces TS checking while Object.defineProperties allow us
  * flexibility across different objects.
  */
 export interface RoomMethods
-  extends RoomMemberMethodsInterface,
-    RoomLayoutMethodsInterface,
-    RoomControlMethodsInterface {}
+  extends OnlyFunctionProperties<VideoRoomSessionContract> {
+  /** @deprecated Use {@link setVideoMuted} instead */
+  hideVideoMuted(): Rooms.HideVideoMuted
+  /** @deprecated Use {@link setVideoMuted} instead */
+  showVideoMuted(): Rooms.ShowVideoMuted
+}
+
+export interface RoomSessionConnectionContract {
+  screenShareList: RoomSessionScreenShare[]
+  deviceList: RoomSessionDevice[]
+  /** @deprecated Use {@link startScreenShare} instead. */
+  createScreenShareObject(
+    opts?: CreateScreenShareObjectOptions
+  ): Promise<RoomSessionScreenShare>
+  startScreenShare(
+    opts?: StartScreenShareOptions
+  ): Promise<RoomSessionScreenShare>
+  addCamera(opts: AddCameraOptions): Promise<RoomSessionDevice>
+  addMicrophone(opts: AddMicrophoneOptions): Promise<RoomSessionDevice>
+  addDevice(opts: AddDeviceOptions): Promise<RoomSessionDevice>
+  updateSpeaker(opts: { deviceId: string }): Promise<undefined>
+}
 
 export interface RoomSessionDeviceMethods
   extends RoomMemberSelfMethodsInterface {}

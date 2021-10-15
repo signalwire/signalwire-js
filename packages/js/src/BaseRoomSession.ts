@@ -4,6 +4,7 @@ import {
   Rooms,
   EventTransform,
   extendComponent,
+  BaseComponentContract,
   BaseComponentOptions,
   BaseConnectionContract,
   toLocalEvent,
@@ -24,6 +25,7 @@ import type {
   BaseRoomInterface,
   RoomMethods,
   StartScreenShareOptions,
+  RoomSessionConnectionContract,
 } from './utils/interfaces'
 import {
   ROOM_COMPONENT_LISTENERS,
@@ -43,6 +45,8 @@ import {
 
 export interface BaseRoomSession<T>
   extends RoomMethods,
+    RoomSessionConnectionContract,
+    BaseComponentContract,
     BaseConnectionContract<RoomSessionObjectEvents> {
   join(): Promise<T>
   leave(): Promise<void>
@@ -50,7 +54,7 @@ export interface BaseRoomSession<T>
 
 export class RoomSessionConnection
   extends BaseConnection<RoomSessionObjectEvents>
-  implements BaseRoomInterface
+  implements BaseRoomInterface, RoomSessionConnectionContract
 {
   private _screenShareList = new Set<RoomSessionScreenShare>()
   private _deviceList = new Set<RoomSessionDevice>()
@@ -339,6 +343,7 @@ export const RoomSessionAPI = extendComponent<
   startRecording: Rooms.startRecording,
   getPlaybacks: Rooms.getPlaybacks,
   play: Rooms.play,
+  setHideVideoMuted: Rooms.setHideVideoMuted,
 })
 
 type RoomSessionObjectEventsHandlerMapping = RoomSessionObjectEvents &

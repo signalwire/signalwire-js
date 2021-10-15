@@ -61,6 +61,7 @@ export interface VideoRoomSessionContract {
   audioUnmute(params: MemberCommandParams): Rooms.AudioUnmuteMember
   videoMute(params: MemberCommandParams): Rooms.VideoMuteMember
   videoUnmute(params: MemberCommandParams): Rooms.VideoUnmuteMember
+  /** @deprecated Use {@link setInputVolume} instead. */
   setMicrophoneVolume(
     params: MemberCommandWithVolumeParams
   ): Rooms.SetInputVolumeMember
@@ -73,6 +74,7 @@ export interface VideoRoomSessionContract {
   getMembers(): Rooms.GetMembers
   deaf(params: MemberCommandParams): Rooms.DeafMember
   undeaf(params: MemberCommandParams): Rooms.UndeafMember
+  /** @deprecated Use {@link setOutputVolume} instead. */
   setSpeakerVolume(
     params: MemberCommandWithVolumeParams
   ): Rooms.SetOutputVolumeMember

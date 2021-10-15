@@ -26,17 +26,27 @@ export interface EmitterContract<
   ): EmitterContract<EventTypes>
 }
 
+export interface BaseComponentContract {
+  destroy(): void
+}
+
 export interface BaseConnectionContract<
   EventTypes extends EventEmitter.ValidEventTypes
 > extends EmitterContract<EventTypes> {
-  // TODO: remove this property and move logic into BaseConnection.hangup()
+  cameraId: string | null
+  cameraLabel: string | null
+  localAudioTrack: MediaStreamTrack | null
+  localStream: MediaStream | undefined
+  localVideoTrack: MediaStreamTrack | null
+  microphoneId: string | null
+  microphoneLabel: string | null
+  remoteStream: MediaStream | undefined
+  roomId: string
+  roomSessionId: string
   active: boolean
-  // TODO: remove these
-  stopOutboundAudio: any
-  restoreOutboundAudio: any
-  restoreOutboundVideo: any
-  stopOutboundVideo: any
   memberId: string
+  updateCamera(constraints: MediaTrackConstraints): Promise<void>
+  updateMicrophone(constraints: MediaTrackConstraints): Promise<void>
 }
 
 export interface ConsumerContract<
