@@ -75,6 +75,8 @@ export interface SessionOptions {
 export interface UserOptions extends SessionOptions {
   /** @internal */
   devTools?: boolean
+  /** @internal */
+  customSagas?: any[] // FIXME: typings and maybe rename (?)
 }
 
 export interface InternalUserOptions extends UserOptions {
