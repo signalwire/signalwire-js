@@ -388,7 +388,7 @@ const getPrepareProductionTasks = ({ dryRun, executer }) => {
 const getModeTasks = (flags) => {
   const mode = getModeFlag(flags) || '--development'
   // When using --dry-run we'll use a mocked version of `execa`
-  const executer = getExecuter({ flags })
+  const executer = getExecuter(flags)
   const dryRun = isDryRun(flags)
 
   switch (mode) {

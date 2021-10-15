@@ -96,7 +96,7 @@ const mockedExecuter = async (command, args, _options, mockOptions) => {
 }
 
 /** @returns execa.ExecaReturnValue<string> */
-const getExecuter = ({ flags }) => {
+const getExecuter = (flags) => {
   const isDryRun = getDryRunFlag(flags)
 
   if (isDryRun) {
