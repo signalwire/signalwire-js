@@ -14,7 +14,9 @@
     "build": "manypkg exec rm -rf dist && sw-build-all",
     "prettier": "prettier --write .",
     "start:web": "concurrently \"manypkg run @signalwire/core start\" \"manypkg run @signalwire/js start\" \"manypkg run @signalwire/webrtc start\" \"manypkg run @signalwire/js example\"",
-    "release:dev": "sw-release --dev"
+    "release:dev": "sw-release --development",
+    "prepare:prod": "sw-release --prepare-prod",
+    "release:prod": "sw-release --production"
   },
   "dependencies": {
     "@babel/core": "^7.14.6",

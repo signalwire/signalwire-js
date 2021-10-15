@@ -29,7 +29,14 @@ const _scan = (pathname, level = 0, acc = []) => {
       }
 
       acc.push({
+        version: pkgJson.version,
         name: pkgJson.name,
+        // To be able to have packages in beta within the
+        // same branch as other prod-ready packages we opted
+        // for having a non-standard field that let us
+        // filter packages marked as "beta" when publishing
+        // production releases.
+        beta: pkgJson.beta,
         pathname,
       })
     } else {
@@ -51,18 +58,125 @@ const getPackages = ({ pathname = PACKAGES_PATH } = DEFAULT_OPTIONS) => {
   return pkgDeps
 }
 
-const BUILD_MODES = ['--development', '--production']
+const BUILD_MODES = ['--development', '--production', '--prepare-prod']
 const isModeFlag = (flag) => {
   return BUILD_MODES.includes(flag)
+}
+const isDryRunFlag = (flag) => {
+  return flag === '--dry-run'
+}
+const isProductionModeFlag = (flag) => {
+  return flag === '--production'
+}
+const isPrepareProductionModeFlag = (flag) => {
+  return flag === '--prepare-prod'
 }
 const getModeFlag = (flags = []) => {
   return flags.find((f) => isModeFlag(f))
 }
-
-const getLastGitSha = async (length = 7) => {
-  const { stdout: sha } = await execa('git', ['log', '-1', '--format=%H'])
-
-  return sha.substring(0, length)
+const getDryRunFlag = (flags = []) => {
+  return flags.find((f) => isDryRunFlag(f))
+}
+// We'll detect if it's either a `prepare` or `release`
+const getProductionFlag = (flags = []) => {
+  return flags.find(
+    (f) => isProductionModeFlag(f) || isPrepareProductionModeFlag(f)
+  )
 }
 
-export { getPackages, getModeFlag, getLastGitSha }
+const getLastGitSha = async ({ executer }) => {
+  const { stdout: sha } = await executer('git', ['log', '-1', '--format=%H'])
+
+  return sha.substring(0, 7)
+}
+
+/** @returns execa.ExecaReturnValue<string> */
+const mockedExecuter = async (command, args, _options, mockOptions) => {
+  return { command: `${command} ${args.join(' ')}`, ...mockOptions }
+}
+
+/** @returns execa.ExecaReturnValue<string> */
+const getExecuter = ({ flags }) => {
+  const isDryRun = getDryRunFlag(flags)
+
+  if (isDryRun) {
+    return mockedExecuter
+  }
+
+  return execa
+}
+
+const isDryRun = (flags) => {
+  return getDryRunFlag(flags) ? true : false
+}
+
+const getReleaseType = (flags) => {
+  const flag = getProductionFlag(flags)
+
+  if (flag) {
+    return {
+      type: flag.includes('prepare-prod') ? 'prepare' : 'publish',
+      mode: 'production',
+    }
+  }
+
+  return {
+    type: 'publish',
+    mode: 'development',
+  }
+}
+
+const isCleanGitStatus = async ({ executer }) => {
+  const status = await executer('git', ['status', '--porcelain'], undefined, {
+    // @see mockedExecuter - mockOptions
+    stdout: '',
+  })
+
+  if (status.stdout !== '') {
+    throw new Error(
+      'Git is in a dirty state. Please commit or stash your changes first.'
+    )
+  }
+
+  return true
+}
+
+const isPackagePublished = async ({ name, version, executer }) => {
+  const packageName = version ? `${name}@${version}` : name
+  const status = await executer(
+    'npm',
+    ['show', packageName, 'versions'],
+    undefined,
+    {
+      stdout: '',
+    }
+  )
+
+  if (status.stdout) {
+    return true
+  }
+
+  return false
+}
+
+const getNpmTag = (options) => {
+  const tagIndex = options.findIndex((opt) => opt === '--tag')
+
+  if (tagIndex === -1) {
+    return ''
+  }
+
+  return options[tagIndex + 1]
+}
+
+export {
+  getExecuter,
+  getLastGitSha,
+  getModeFlag,
+  getNpmTag,
+  getPackages,
+  getReleaseType,
+  isCleanGitStatus,
+  isDryRun,
+  isPackagePublished,
+}
