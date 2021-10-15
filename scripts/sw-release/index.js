@@ -1,7 +1,7 @@
 import inquirer from 'inquirer'
 import { Listr } from 'listr2'
 import { getExecuter, isDryRun } from '@sw-internal/common'
-import { getModeFlag, getReleaseType } from './common.js'
+import { getModeFlag, getReleaseType, isCI } from './common.js'
 import { getDevelopmentTasks } from './modes/development.js'
 import { getProductionTasks } from './modes/production.js'
 import { getPrepareProductionTasks } from './modes/prepareProd.js'
@@ -32,8 +32,9 @@ const getModeTasks = (flags) => {
 const getExtendedFlags = async (flags) => {
   const dryRun = isDryRun(flags)
   const releaseType = getReleaseType(flags)
+  const ci = isCI(flags)
 
-  if (!dryRun) {
+  if (!dryRun && !ci) {
     const answer = await inquirer.prompt([
       {
         type: 'confirm',

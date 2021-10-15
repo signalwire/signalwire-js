@@ -277,12 +277,22 @@ const getModeFlag = (flags = []) => {
   return flags.find((f) => isModeFlag(f))
 }
 
+const MODIFIERS = ['--ci']
+const getModifierFlags = (flags = []) => {
+  return flags.filter((f) => MODIFIERS.includes(f))
+}
+const isCI = (flags = []) => {
+  return getModifierFlags(flags).includes('--ci')
+}
+
 export {
   getBuildTask,
   getDryRunInfoTask,
   getModeFlag,
+  getModifierFlags,
   getReleaseType,
   getTestTask,
+  isCI,
   publishTaskFactory,
   ROOT_DIR,
 }
