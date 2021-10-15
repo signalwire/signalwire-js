@@ -9,6 +9,8 @@ import {
   BaseConnectionContract,
   toLocalEvent,
   toExternalJSON,
+  sagaEffects,
+  SagaIterator,
 } from '@signalwire/core'
 import {
   getDisplayMedia,
@@ -43,6 +45,16 @@ import {
   RoomSessionDevice,
 } from './RoomSessionDevice'
 
+// TODO: Remove before merge
+export function* videoWorker(): SagaIterator {
+  while (true) {
+    const action = yield sagaEffects.take((action: any) =>
+      action.type.startsWith('video.')
+    )
+    console.debug('>>> videoWorker', action)
+  }
+}
+
 export interface BaseRoomSession<T>
   extends RoomMethods,
     RoomSessionConnectionContract,
@@ -65,6 +77,11 @@ export class RoomSessionConnection
 
   get deviceList() {
     return Array.from(this._deviceList)
+  }
+
+  /** @internal */
+  protected getCustomSagas() {
+    return new Map([['video', { saga: videoWorker }]])
   }
 
   /** @internal */

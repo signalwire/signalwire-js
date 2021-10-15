@@ -46,6 +46,7 @@ export class BaseConsumer<
 
         try {
           this.applyEmitterTransforms()
+          this.attachCustomSagas()
           await this.execute(execParams)
         } catch (error) {
           return reject(error)

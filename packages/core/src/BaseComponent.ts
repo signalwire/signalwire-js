@@ -1,4 +1,5 @@
 import { Action } from '@reduxjs/toolkit'
+import { Task } from '@redux-saga/types'
 import {
   uuid,
   logger,
@@ -155,6 +156,12 @@ export class BaseComponent<
    * `_eventsNamespace`
    */
   private _trackedEvents: Array<EventEmitter.EventNames<EventTypes>> = []
+
+  /**
+   * List of running saga Tasks to be cancelled on `destroy`.
+   * TODO: better name
+   */
+  private _customSagaTasks: Task[] = []
 
   constructor(public options: BaseComponentOptions<EventTypes>) {}
 
@@ -528,6 +535,7 @@ export class BaseComponent<
   destroy() {
     this._destroyer?.()
     this.removeAllListeners()
+    this.detachCustomSagas()
   }
 
   /** @internal */
@@ -736,6 +744,30 @@ export class BaseComponent<
        * by `internalEvent` for each single event transform.
        */
       this._emitterTransforms.set(handlersObj.type, handlersObj)
+    })
+  }
+
+  /**
+   * Returns a Map of Sagas that will be attached to the Store to handle
+   * events or perform side-effects.
+   * FIXME: types
+   */
+  protected getCustomSagas(): Map<string, { saga: any }> {
+    // TODO: we might not need a Map here so replace with Array ?
+    return new Map()
+  }
+
+  protected attachCustomSagas() {
+    this.getCustomSagas().forEach(({ saga }) => {
+      // TODO: passing args to saga ? Like: `{ instance: this }`
+      const task = this.store.runSaga(saga)
+      this._customSagaTasks.push(task)
+    })
+  }
+
+  private detachCustomSagas() {
+    this._customSagaTasks.forEach((task) => {
+      task.cancel()
     })
   }
 }

@@ -337,6 +337,13 @@ export function* sessionChannelWatcher({
   }
 
   function* swEventWorker(broadcastParams: SwEventParams) {
+    /**
+     * Put actions with `event_type` to trigger all the children sagas
+     * This should replace all the isWebrtcEvent/isVideoEvent guards below
+     * since we'll move that logic on a separate package.
+     */
+    yield put({ type: broadcastParams.event_type, payload: broadcastParams })
+
     if (isWebrtcEvent(broadcastParams)) {
       yield fork(vertoWorker, {
         jsonrpc: broadcastParams.params,
