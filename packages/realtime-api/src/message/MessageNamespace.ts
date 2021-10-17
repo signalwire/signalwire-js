@@ -4,7 +4,6 @@ import {
   connect,
   EventsPrefix,
   EventTransform,
-  InternalGlobalMessageEvents,
   MessageStateEventParams,
   SessionState,
 } from '@signalwire/core'
@@ -38,10 +37,7 @@ export class MessageNamespace extends BaseComponent<RelayMessageAPIEvents> {
   }
 
   protected getEmitterTransforms() {
-    return new Map<
-      InternalGlobalMessageEvents | InternalGlobalMessageEvents[],
-      EventTransform
-    >([
+    return new Map<string | string[], EventTransform>([
       [
         ['messaging.receive', 'messaging.state'],
         {
