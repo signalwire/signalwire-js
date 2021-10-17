@@ -398,6 +398,107 @@ describe('sessionChannelWatcher', () => {
     })
   })
 
+  describe('messageAPIWorker', () => {
+    it('should handle messaging.state dispatching componentActions.upsert and messaging.state', () => {
+      const jsonrpc = JSON.parse(
+        '{"jsonrpc":"2.0","id":"0c0bec13-1e5f-4cf7-9350-71cc5bff9c78","method":"signalwire.event","params":{"event_type":"messaging.state","space_id":"4827f42d-720f-47ef-bbc6-c05625186998","project_id":"75abe29b-c789-4c67-b3c7-c14d7371b5cb","context":"default","timestamp":1634448429.889162,"params":{"message_id":"3e0629c8-ef6a-4104-a3eb-e9aa85d1e170","context":"default","direction":"outbound","tags":["tag:7dfb2687-6c61-4176-9161-69cbfeae267f","uuid:3b856b58-36da-40c0-86e2-523e80f0cce3","message","outbound","SMS","default","+2222","+1111","relay-client"],"from_number":"+1111","to_number":"+2222","body":"hello there","media":[],"segments":1,"message_state":"delivered"}}}'
+      )
+      let runSaga = true
+      const session = {
+        relayProtocol: jsonrpc.params.protocol,
+      } as any
+      const tag = '3b856b58-36da-40c0-86e2-523e80f0cce3'
+      const pubSubChannel = createPubSubChannel()
+      const sessionChannel = eventChannel(() => () => {})
+      const dispatchedActions: unknown[] = []
+
+      return expectSaga(sessionChannelWatcher, {
+        session,
+        pubSubChannel,
+        sessionChannel,
+      })
+        .provide([
+          {
+            take({ channel }, next) {
+              if (runSaga && channel === sessionChannel) {
+                runSaga = false
+                return socketMessageAction(jsonrpc)
+              } else if (runSaga === false) {
+                sessionChannel.close()
+                pubSubChannel.close()
+              }
+              return next()
+            },
+            put(action, next) {
+              dispatchedActions.push(action)
+              return next()
+            },
+          },
+        ])
+        .put(
+          componentActions.upsert({
+            id: tag,
+            message_id: jsonrpc.params.params.message_id,
+            message_state: jsonrpc.params.params.message_state,
+            segments: jsonrpc.params.params.segments,
+            reason: jsonrpc.params.params.reasnon,
+          })
+        )
+        .put(pubSubChannel, {
+          type: 'messaging.state',
+          payload: jsonrpc.params.params,
+        })
+        .run()
+        .finally(() => {
+          expect(dispatchedActions).toHaveLength(2)
+        })
+    })
+    it('should handle messaging.receive and dispatch messaging.receive on pubSubChannel', () => {
+      const jsonrpc = JSON.parse(
+        '{"jsonrpc":"2.0","id":"50536846-f664-4060-bdd4-301cf95e54f3","method":"signalwire.event","params":{"event_type":"messaging.receive","space_id":"4827f42d-720f-47ef-bbc6-c05625186998","project_id":"75abe29b-c789-4c67-b3c7-c14d7371b5cb","context":"default","timestamp":1634450988.1005094,"params":{"message_id":"97275e61-edd9-44e2-9553-0be6f55f6b80","context":"default","direction":"inbound","tags":["message","inbound","SMS","default","+16509000205","+66613306106","relay-client"],"from_number":"+66613306106","to_number":"+16509000205","body":"Hello there","media":null,"segments":1,"message_state":"received"}}}'
+      )
+      let runSaga = true
+      const session = {
+        relayProtocol: jsonrpc.params.protocol,
+      } as any
+      const pubSubChannel = createPubSubChannel()
+      const sessionChannel = eventChannel(() => () => {})
+      const dispatchedActions: unknown[] = []
+
+      return expectSaga(sessionChannelWatcher, {
+        session,
+        pubSubChannel,
+        sessionChannel,
+      })
+        .provide([
+          {
+            take({ channel }, next) {
+              if (runSaga && channel === sessionChannel) {
+                runSaga = false
+                return socketMessageAction(jsonrpc)
+              } else if (runSaga === false) {
+                sessionChannel.close()
+                pubSubChannel.close()
+              }
+              return next()
+            },
+            put(action, next) {
+              dispatchedActions.push(action)
+              return next()
+            },
+          },
+        ])
+        .put(pubSubChannel, {
+          type: 'messaging.receive',
+          payload: jsonrpc.params.params,
+        })
+        .run()
+        .finally(() => {
+          expect(dispatchedActions).toHaveLength(1)
+        })
+    })
+  })
+
   describe('vertoWorker', () => {
     describe('verto.media', () => {
       it('should handle verto.media event with remote SDP', () => {

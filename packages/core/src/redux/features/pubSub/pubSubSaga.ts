@@ -80,7 +80,7 @@ const findNamespaceInPayload = (action: PubSubAction): string => {
       return action.payload.tag
     } else {
       // FIXME: Temp hack before tag is ready
-      const tag = action.payload.tags?.find(t => t.startsWith('tag:'))
+      const tag = action.payload.tags?.find((t) => t.startsWith('tag:'))
       if (tag) {
         return tag.split(':')[1]
       }

@@ -298,7 +298,9 @@ export function* sessionChannelWatcher({
     switch (params.event_type) {
       case 'messaging.state':
         // FIXME: temp hack
-        const id = params.params.tags?.find(t => t.startsWith('uuid:'))!.split(':')[1]!
+        const id = params.params.tags
+          ?.find((t) => t.startsWith('uuid:'))!
+          .split(':')[1]!
         yield put(
           componentActions.upsert({
             id,

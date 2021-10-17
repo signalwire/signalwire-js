@@ -9,7 +9,11 @@ import {
   BaseConnectionState,
 } from '../utils/interfaces'
 import type { VideoAPIEventParams, InternalVideoAPIEvent } from '../types'
-import { MessageAPIEventParams, MessageDirections, MessageStates } from '../types/message'
+import {
+  MessageAPIEventParams,
+  MessageDirections,
+  MessageStates,
+} from '../types/message'
 
 interface SWComponent {
   id: string
@@ -35,7 +39,7 @@ export interface WebRTCCall extends SWComponent {
 }
 
 export interface Message extends SWComponent {
-  message_id: string,
+  message_id: string
   message_state?: MessageStates
   reason?: string
   segments?: number
