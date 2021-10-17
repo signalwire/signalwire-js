@@ -92,7 +92,7 @@ export interface MessageContract {
   state?: MessageStates
   direction?: MessageDirections
   reason?: string
-  send(): Promise<void>
+  send(): Promise<MessageContract>
 }
 
 export type MessageEvents = MessageReceiveEvent | MessageStateEvent

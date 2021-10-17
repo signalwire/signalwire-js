@@ -58,7 +58,7 @@ export interface MessageDoc extends MessageMain {
    *
    * ```
    */
-  send(): Promise<void>
+  send(): Promise<MessageContract>
 }
 /**
  * Represnt a message, you can obtain this instance by calling createMessage method
@@ -92,7 +92,7 @@ type MessageState = Pick<
 
 type InternalMessageOptions = MessageOptions & Partial<MessageState>
 
-const EVENTS_TO_RESOLVE_PROMISE = ['delivered', 'sent', 'undelivered', 'failed']
+const EVENTS_TO_RESOLVE_PROMISE = ['delivered', 'undelivered']
 export class MessageComponent
   extends BaseComponent<MessageComponentEvents>
   implements Message
@@ -193,7 +193,7 @@ export class MessageComponent
     }
   }
 
-  send() {
+  async send() {
     const {
       to: to_number,
       from: from_number,
@@ -223,9 +223,10 @@ export class MessageComponent
       method: 'messaging.send',
       params,
     })
-    return new Promise<void>((resolve) => {
+    await new Promise<void>((resolve) => {
       this._resolve = resolve
     })
+    return this
   }
 
   protected getEmitterTransforms() {

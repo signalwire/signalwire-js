@@ -45,6 +45,6 @@ export const INTERNAL_GLOBAL_VIDEO_EVENTS = GLOBAL_VIDEO_EVENTS.map(
  * setnr by the server
  * @internal
  */
-export const INTERNAL_GLOBAL_MESSAGE_EVENTS = GLOBAL_MESSAGE_EVENTS.map(
-  (event) => `${PRODUCT_PREFIX_MESSAGE}.${event}` as const
-)
+export const INTERNAL_GLOBAL_MESSAGE_EVENTS = [
+  `${PRODUCT_PREFIX_MESSAGE}.${GLOBAL_MESSAGE_EVENTS[1]}` as const,
+]

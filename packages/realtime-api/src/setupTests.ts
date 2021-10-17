@@ -1,3 +1,10 @@
+jest.mock('uuid', () => {
+  return {
+    ...(jest.requireActual('uuid') as any),
+    v4: () => 'mocked-uuid',
+  }
+})
+
 jest.mock('@signalwire/core', () => {
   return {
     ...(jest.requireActual('@signalwire/core') as any),
