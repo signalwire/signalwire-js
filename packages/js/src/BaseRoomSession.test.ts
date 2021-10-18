@@ -87,7 +87,9 @@ describe('Room Object', () => {
       ;(room.execute as jest.Mock).mockResolvedValueOnce({
         code: '200',
         message: 'Recording started',
-        recording_id: 'c22d7223-5a01-49fe-8da0-46bec8e75e32',
+        recording: {
+          id: 'c22d7223-5a01-49fe-8da0-46bec8e75e32',
+        },
       })
 
       const recording = await room.startRecording()
@@ -131,13 +133,17 @@ describe('Room Object', () => {
       ;(room.execute as jest.Mock).mockResolvedValueOnce({
         code: '200',
         message: 'Recording started',
-        recording_id: 'first-recording',
+        recording: {
+          id: 'first-recording',
+        },
       })
       // @ts-expect-error
       ;(room.execute as jest.Mock).mockResolvedValueOnce({
         code: '200',
         message: 'Recording started',
-        recording_id: 'second-recording',
+        recording: {
+          id: 'second-recording',
+        },
       })
 
       const firstRecording = await room.startRecording()
