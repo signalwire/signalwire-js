@@ -89,7 +89,7 @@ const makeLayoutChangedHandler =
 
       let myLayer = layerMap.get(myMemberId)
       if (!myLayer) {
-        const myLayer = await _buildLayer({ element, location: layer })
+        myLayer = await _buildLayer({ element, location: layer })
         myLayer.id = myMemberId
 
         const localVideo = buildVideo()
@@ -99,11 +99,11 @@ const makeLayoutChangedHandler =
 
         myLayer.appendChild(localVideo)
 
-        layerMap.set(myMemberId, myLayer)
         const mcuLayers = rootElement.querySelector('.mcuLayers')
         const exists = document.getElementById(myMemberId)
         if (mcuLayers && !exists) {
           mcuLayers.appendChild(myLayer)
+          layerMap.set(myMemberId, myLayer)
         }
 
         return
