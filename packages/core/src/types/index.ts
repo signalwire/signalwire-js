@@ -48,6 +48,15 @@ export interface BaseConnectionContract<
   memberId: string
   updateCamera(constraints: MediaTrackConstraints): Promise<void>
   updateMicrophone(constraints: MediaTrackConstraints): Promise<void>
+
+  /** @internal */
+  stopOutboundAudio(): void
+  /** @internal */
+  restoreOutboundAudio(): void
+  /** @internal */
+  stopOutboundVideo(): void
+  /** @internal */
+  restoreOutboundVideo(): void
 }
 
 export interface ConsumerContract<
