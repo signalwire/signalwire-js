@@ -8,7 +8,7 @@ import { RoomScreenShareMethods } from './utils/interfaces'
 
 export interface RoomSessionScreenShareDocs
   extends RoomScreenShareMethods,
-    BaseConnectionContract<BaseConnectionStateEventTypes> {
+  BaseConnectionContract<BaseConnectionStateEventTypes> {
 
   /** Joins this device to the room session. */
   join(): Promise<void>

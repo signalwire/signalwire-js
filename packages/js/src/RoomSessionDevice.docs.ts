@@ -8,7 +8,7 @@ import { RoomSessionDeviceMethods } from './utils/interfaces'
 
 export interface RoomSessionDeviceDocs
   extends RoomSessionDeviceMethods,
-    BaseConnectionContract<BaseConnectionStateEventTypes> {
+  BaseConnectionContract<BaseConnectionStateEventTypes> {
 
   /** Joins this device to the room session. */
   join(): Promise<void>
