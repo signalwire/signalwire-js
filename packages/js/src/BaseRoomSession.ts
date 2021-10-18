@@ -87,15 +87,8 @@ export class RoomSessionConnection
             })
           },
           payloadTransform: (payload: any) => {
-            if (payload?.recording) {
-              return toExternalJSON({
-                ...payload.recording,
-                room_session_id: this.roomSessionId,
-              })
-            }
-
             return toExternalJSON({
-              id: payload.recording_id,
+              ...payload.recording,
               room_session_id: this.roomSessionId,
             })
           },
