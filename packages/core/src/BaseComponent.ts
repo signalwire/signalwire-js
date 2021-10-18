@@ -21,7 +21,11 @@ import {
 import { EventEmitter } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
 import { makeCustomSagaAction } from './redux/actions'
-import { OnlyStateProperties, EmitterContract } from './types'
+import {
+  OnlyStateProperties,
+  EmitterContract,
+  BaseComponentContract,
+} from './types'
 
 type EventRegisterHandlers<EventTypes extends EventEmitter.ValidEventTypes> =
   | {
@@ -46,7 +50,7 @@ const identity: ExecuteTransform<any, any> = (payload) => payload
 export class BaseComponent<
   EventTypes extends EventEmitter.ValidEventTypes,
   StateProperties = Record<string, unknown>
-> implements EmitterContract<EventTypes>
+> implements EmitterContract<EventTypes>, BaseComponentContract
 {
   /** @internal */
   private readonly uuid = uuid()

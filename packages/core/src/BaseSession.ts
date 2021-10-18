@@ -16,6 +16,7 @@ import {
   JSONRPCRequest,
   JSONRPCResponse,
   WebSocketAdapter,
+  NodeSocketAdapter,
   WebSocketClient,
   SessionStatus,
 } from './utils/interfaces'
@@ -38,7 +39,7 @@ import { sessionActions } from './redux/features/session/sessionSlice'
 
 export class BaseSession {
   public uuid = uuid()
-  public WebSocketConstructor: WebSocketAdapter
+  public WebSocketConstructor: NodeSocketAdapter | WebSocketAdapter
   public agent: string
   public connectVersion = DEFAULT_CONNECT_VERSION
 

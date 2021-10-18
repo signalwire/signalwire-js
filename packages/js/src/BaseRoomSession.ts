@@ -4,6 +4,7 @@ import {
   Rooms,
   EventTransform,
   extendComponent,
+  BaseComponentContract,
   BaseComponentOptions,
   BaseConnectionContract,
   toLocalEvent,
@@ -24,6 +25,7 @@ import type {
   BaseRoomInterface,
   RoomMethods,
   StartScreenShareOptions,
+  RoomSessionConnectionContract,
 } from './utils/interfaces'
 import {
   ROOM_COMPONENT_LISTENERS,
@@ -43,6 +45,8 @@ import {
 
 export interface BaseRoomSession<T>
   extends RoomMethods,
+    RoomSessionConnectionContract,
+    BaseComponentContract,
     BaseConnectionContract<RoomSessionObjectEvents> {
   join(): Promise<T>
   leave(): Promise<void>
@@ -50,7 +54,7 @@ export interface BaseRoomSession<T>
 
 export class RoomSessionConnection
   extends BaseConnection<RoomSessionObjectEvents>
-  implements BaseRoomInterface
+  implements BaseRoomInterface, RoomSessionConnectionContract
 {
   private _screenShareList = new Set<RoomSessionScreenShare>()
   private _deviceList = new Set<RoomSessionDevice>()
@@ -92,6 +96,30 @@ export class RoomSessionConnection
 
             return toExternalJSON({
               id: payload.recording_id,
+              room_session_id: this.roomSessionId,
+            })
+          },
+        },
+      ],
+      [
+        [
+          toLocalEvent('video.playback.start'),
+          'video.playback.started',
+          'video.playback.updated',
+          'video.playback.ended',
+        ],
+        {
+          type: 'roomSessionPlayback',
+          instanceFactory: (_payload: any) => {
+            return Rooms.createRoomSessionPlaybackObject({
+              store: this.store,
+              // @ts-expect-error
+              emitter: this.emitter,
+            })
+          },
+          payloadTransform: (payload: any) => {
+            return toExternalJSON({
+              ...payload.playback,
               room_session_id: this.roomSessionId,
             })
           },
@@ -313,6 +341,9 @@ export const RoomSessionAPI = extendComponent<
   showVideoMuted: Rooms.showVideoMuted,
   getRecordings: Rooms.getRecordings,
   startRecording: Rooms.startRecording,
+  getPlaybacks: Rooms.getPlaybacks,
+  play: Rooms.play,
+  setHideVideoMuted: Rooms.setHideVideoMuted,
 })
 
 type RoomSessionObjectEventsHandlerMapping = RoomSessionObjectEvents &

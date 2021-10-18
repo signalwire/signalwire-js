@@ -10,6 +10,7 @@ import {
   Rooms,
   JSONRPCRequest,
   EventEmitter,
+  BaseConnectionContract,
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import { ConnectionOptions } from './utils/interfaces'
@@ -48,7 +49,8 @@ export type BaseConnectionOptions<
 export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   extends BaseComponent<EventTypes & BaseConnectionStateEventTypes>
   implements
-    Rooms.BaseRoomInterface<EventTypes & BaseConnectionStateEventTypes>
+    Rooms.BaseRoomInterface<EventTypes & BaseConnectionStateEventTypes>,
+    BaseConnectionContract<EventTypes & BaseConnectionStateEventTypes>
 {
   public nodeId = ''
   public direction: 'inbound' | 'outbound'
