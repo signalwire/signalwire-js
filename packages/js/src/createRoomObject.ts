@@ -20,11 +20,7 @@ const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
 }
 
 /**
- * ## Intro
  * Using Video.createRoomObject() you can create a `RoomObject` to join a room.
- *
- * ## Examples
- * Create a roomObject using the token.
  *
  * @example
  * With an HTMLDivElement with id="root" in the DOM.

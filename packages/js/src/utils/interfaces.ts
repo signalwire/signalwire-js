@@ -21,11 +21,13 @@ import type {
   RoomSessionPlayback,
   VideoRoomSessionContract,
   OnlyFunctionProperties,
+  AssertSameType,
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
 import type { RoomSession } from '../RoomSession'
 import type { RoomSessionDevice } from '../RoomSessionDevice'
 import type { RoomSessionScreenShare } from '../RoomSessionScreenShare'
+import { RoomMemberSelfMethodsInterfaceDocs } from './interfaces.docs'
 
 const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
   INTERNAL_MEMBER_UPDATABLE_PROPS
@@ -116,7 +118,7 @@ export interface BaseRoomInterface {
   leave(): Promise<unknown>
 }
 
-interface RoomMemberSelfMethodsInterface {
+interface RoomMemberSelfMethodsInterface extends AssertSameType<{
   audioMute(): Rooms.AudioMuteMember
   audioUnmute(): Rooms.AudioUnmuteMember
   videoMute(): Rooms.VideoMuteMember
@@ -130,7 +132,7 @@ interface RoomMemberSelfMethodsInterface {
   setInputSensitivity(params: {
     value: number
   }): Rooms.SetInputSensitivityMember
-}
+}, RoomMemberSelfMethodsInterfaceDocs> { }
 
 /**
  * We are using these interfaces in combination of
