@@ -2,9 +2,10 @@ import execa from 'execa'
 import { getLastGitSha } from '@sw-internal/common'
 import {
   getBuildTask,
+  getInstallDependenciesTask,
   getTestTask,
-  ROOT_DIR,
   publishTaskFactory,
+  ROOT_DIR,
 } from '../common.js'
 
 const getDevVersion = async () => {
@@ -25,8 +26,9 @@ const getDevVersion = async () => {
   return `dev.${timestamp}.${sha}`
 }
 
-const getDevelopmentTasks = ({ dryRun, executer }) => {
+const getDevelopmentTasks = ({ flags, dryRun, executer }) => {
   return [
+    ...getInstallDependenciesTask({ flags, dryRun, executer }),
     ...getBuildTask({ dryRun, executer }),
     ...getTestTask({ dryRun, executer }),
     {
