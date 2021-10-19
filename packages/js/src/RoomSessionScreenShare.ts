@@ -23,7 +23,11 @@ interface RoomSessionScreenShareMain
 /**
  * Represents a screen sharing.
  */
-export interface RoomSessionScreenShare extends AssertSameType<RoomSessionScreenShareMain, RoomSessionScreenShareDocs> { }
+export interface RoomSessionScreenShare
+  extends AssertSameType<
+    RoomSessionScreenShareMain,
+    RoomSessionScreenShareDocs
+  > {}
 
 export class RoomSessionScreenShareConnection extends BaseConnection<BaseConnectionStateEventTypes> {
   join() {

@@ -27,7 +27,8 @@ interface RoomSessionDeviceMain
  * {@link RoomSession.addCamera}, {@link RoomSession.addMicrophone}, and
  * {@link RoomSession.addDevice}.
  */
-export interface RoomSessionDevice extends AssertSameType<RoomSessionDeviceMain, RoomSessionDeviceDocs> { }
+export interface RoomSessionDevice
+  extends AssertSameType<RoomSessionDeviceMain, RoomSessionDeviceDocs> {}
 
 export class RoomSessionDeviceConnection extends BaseConnection<BaseConnectionStateEventTypes> {
   join() {

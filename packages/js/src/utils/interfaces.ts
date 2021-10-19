@@ -118,21 +118,27 @@ export interface BaseRoomInterface {
   leave(): Promise<unknown>
 }
 
-interface RoomMemberSelfMethodsInterface extends AssertSameType<{
-  audioMute(): Rooms.AudioMuteMember
-  audioUnmute(): Rooms.AudioUnmuteMember
-  videoMute(): Rooms.VideoMuteMember
-  videoUnmute(): Rooms.VideoUnmuteMember
-  /**
-   * @deprecated Use {@link setInputVolume} instead.
-   * `setMicrophoneVolume` will be removed in v4.0.0
-   */
-  setMicrophoneVolume(params: { volume: number }): Rooms.SetInputVolumeMember
-  setInputVolume(params: { volume: number }): Rooms.SetInputVolumeMember
-  setInputSensitivity(params: {
-    value: number
-  }): Rooms.SetInputSensitivityMember
-}, RoomMemberSelfMethodsInterfaceDocs> { }
+interface RoomMemberSelfMethodsInterface
+  extends AssertSameType<
+    {
+      audioMute(): Rooms.AudioMuteMember
+      audioUnmute(): Rooms.AudioUnmuteMember
+      videoMute(): Rooms.VideoMuteMember
+      videoUnmute(): Rooms.VideoUnmuteMember
+      /**
+       * @deprecated Use {@link setInputVolume} instead.
+       * `setMicrophoneVolume` will be removed in v4.0.0
+       */
+      setMicrophoneVolume(params: {
+        volume: number
+      }): Rooms.SetInputVolumeMember
+      setInputVolume(params: { volume: number }): Rooms.SetInputVolumeMember
+      setInputSensitivity(params: {
+        value: number
+      }): Rooms.SetInputSensitivityMember
+    },
+    RoomMemberSelfMethodsInterfaceDocs
+  > {}
 
 /**
  * We are using these interfaces in combination of
