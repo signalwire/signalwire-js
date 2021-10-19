@@ -68,7 +68,6 @@ describe('RoomSession Object', () => {
   it('startRecording should return a recording object', async () => {
     // @ts-expect-error
     roomSession.execute = jest.fn().mockResolvedValue({
-      recording_id: 'recordingId',
       room_session_id: roomSessionId,
       room_id: 'roomId',
       recording: {

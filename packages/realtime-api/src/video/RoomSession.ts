@@ -632,15 +632,8 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
             })
           },
           payloadTransform: (payload: any) => {
-            if (payload?.recording) {
-              return toExternalJSON({
-                ...payload.recording,
-                room_session_id: payload.room_session_id,
-              })
-            }
-
             return toExternalJSON({
-              id: payload.recording_id,
+              ...payload.recording,
               room_session_id: payload.room_session_id,
             })
           },
