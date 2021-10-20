@@ -1,13 +1,15 @@
 import execa from 'execa'
 import {
   getBuildTask,
+  getInstallDependenciesTask,
   getTestTask,
-  ROOT_DIR,
   publishTaskFactory,
+  ROOT_DIR,
 } from '../common.js'
 
-const getBetaTasks = ({ dryRun, executer }) => {
+const getBetaTasks = ({ flags, dryRun, executer }) => {
   return [
+    ...getInstallDependenciesTask({ flags, dryRun, executer }),
     ...getBuildTask({ dryRun, executer }),
     ...getTestTask({ dryRun, executer }),
     {

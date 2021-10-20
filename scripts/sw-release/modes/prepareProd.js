@@ -1,7 +1,13 @@
-import { getBuildTask, getTestTask, ROOT_DIR } from '../common.js'
+import {
+  getBuildTask,
+  getInstallDependenciesTask,
+  getTestTask,
+  ROOT_DIR,
+} from '../common.js'
 
-const getPrepareProductionTasks = ({ dryRun, executer }) => {
+const getPrepareProductionTasks = ({ flags, dryRun, executer }) => {
   return [
+    ...getInstallDependenciesTask({ flags, dryRun, executer }),
     ...getBuildTask({ dryRun, executer }),
     ...getTestTask({ dryRun, executer }),
     {

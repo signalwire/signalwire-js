@@ -1,7 +1,7 @@
 import inquirer from 'inquirer'
 import { Listr } from 'listr2'
 import { getExecuter, isDryRun } from '@sw-internal/common'
-import { getModeFlag, getReleaseType, isCI } from './common.js'
+import { getModeFlag, getReleaseType, isCI, isSkipDeps } from './common.js'
 import { getDevelopmentTasks } from './modes/development.js'
 import { getProductionTasks } from './modes/production.js'
 import { getPrepareProductionTasks } from './modes/prepareProd.js'
@@ -34,7 +34,14 @@ const getExtendedFlags = async (flags) => {
   const releaseType = getReleaseType(flags)
   const ci = isCI(flags)
 
-  if (!dryRun && !ci) {
+  // If it's `ci` we'll leave flags untouched to avoid
+  // confussion.
+  if (ci) {
+    return flags
+  }
+
+  let extendedFlags = [].concat(flags)
+  if (!dryRun) {
     const answer = await inquirer.prompt([
       {
         type: 'confirm',
@@ -45,11 +52,11 @@ const getExtendedFlags = async (flags) => {
     ])
 
     if (answer.continue) {
-      return [...flags, '--dry-run']
+      extendedFlags.push('--dry-run')
     }
   }
 
-  return flags
+  return extendedFlags
 }
 
 export async function cli(args) {

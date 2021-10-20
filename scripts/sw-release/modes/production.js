@@ -1,7 +1,12 @@
 import { isCleanGitStatus } from '@sw-internal/common'
-import { getBuildTask, getTestTask, publishTaskFactory } from '../common.js'
+import {
+  getBuildTask,
+  getInstallDependenciesTask,
+  getTestTask,
+  publishTaskFactory,
+} from '../common.js'
 
-const getProductionTasks = ({ executer, dryRun }) => {
+const getProductionTasks = ({ flags, executer, dryRun }) => {
   return [
     {
       title: '🔍 Checking Git status',
@@ -16,6 +21,7 @@ const getProductionTasks = ({ executer, dryRun }) => {
         }
       },
     },
+    ...getInstallDependenciesTask({ flags, dryRun, executer }),
     ...getBuildTask({ dryRun, executer }),
     ...getTestTask({ dryRun, executer }),
     ...publishTaskFactory({
