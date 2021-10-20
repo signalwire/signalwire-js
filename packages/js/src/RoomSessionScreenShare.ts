@@ -2,21 +2,32 @@ import {
   Rooms,
   extendComponent,
   BaseConnectionContract,
+  AssertSameType,
 } from '@signalwire/core'
 import {
   BaseConnection,
   BaseConnectionStateEventTypes,
 } from '@signalwire/webrtc'
+import { RoomSessionScreenShareDocs } from './RoomSessionScreenShare.docs'
 import { RoomScreenShareMethods } from './utils/interfaces'
 
 /** @deprecated Use {@link RoomSessionScreenShare} instead */
 export interface RoomScreenShare extends RoomSessionScreenShare {}
-export interface RoomSessionScreenShare
+interface RoomSessionScreenShareMain
   extends RoomScreenShareMethods,
     BaseConnectionContract<BaseConnectionStateEventTypes> {
   join(): Promise<void>
   leave(): Promise<void>
 }
+
+/**
+ * Represents a screen sharing.
+ */
+export interface RoomSessionScreenShare
+  extends AssertSameType<
+    RoomSessionScreenShareMain,
+    RoomSessionScreenShareDocs
+  > {}
 
 export class RoomSessionScreenShareConnection extends BaseConnection<BaseConnectionStateEventTypes> {
   join() {

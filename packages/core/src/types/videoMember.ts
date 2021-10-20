@@ -233,11 +233,11 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
    * ```
    */
   setInputVolume(params: { volume: number }): Rooms.SetInputVolumeMember
+
   /**
    * @deprecated Use {@link setOutputVolume} instead.
    * `setSpeakerVolume` will be removed in v4.0.0
    */
-
   setSpeakerVolume(params: { volume: number }): Rooms.SetOutputVolumeMember
 
   /**

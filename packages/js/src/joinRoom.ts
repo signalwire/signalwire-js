@@ -1,11 +1,7 @@
 import { CreateRoomObjectOptions, createRoomObject } from './createRoomObject'
 
 /**
- * ## Intro
  * Using Video.joinRoom() you can automatically join a room.
- *
- * ## Examples
- * Join a room using the token.
  *
  * @example
  * With an HTMLDivElement with id="root" in the DOM.
