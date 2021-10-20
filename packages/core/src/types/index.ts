@@ -34,18 +34,39 @@ export interface BaseComponentContract {
 export interface BaseConnectionContract<
   EventTypes extends EventEmitter.ValidEventTypes
 > extends EmitterContract<EventTypes> {
-  cameraId: string | null
-  cameraLabel: string | null
-  localAudioTrack: MediaStreamTrack | null
-  localStream: MediaStream | undefined
-  localVideoTrack: MediaStreamTrack | null
-  microphoneId: string | null
-  microphoneLabel: string | null
-  remoteStream: MediaStream | undefined
-  roomId: string
-  roomSessionId: string
-  active: boolean
-  memberId: string
+  /** The id of the video device, or null if not available */
+  get cameraId(): string | null
+  /** The label of the video device, or null if not available */
+  get cameraLabel(): string | null
+  /**
+   * Provides access to the local audio
+   * [MediaStreamTrack](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack).
+   */
+  get localAudioTrack(): MediaStreamTrack | null
+  /** Provides access to the local [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream) */
+  get localStream(): MediaStream | undefined
+  /**
+   * Provides access to the local video
+   * [MediaStreamTrack](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack).
+   */
+  get localVideoTrack(): MediaStreamTrack | null
+  /** The id of the audio input device, or null if not available */
+  get microphoneId(): string | null
+  /** The label of the audio input device, or null if not available */
+  get microphoneLabel(): string | null
+  /**
+   * Provides access to the remote [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream)
+   */
+  get remoteStream(): MediaStream | undefined
+  /** The unique identifier for the room */
+  get roomId(): string
+  /** The unique identifier for the room session */
+  get roomSessionId(): string
+  /** Whether the connection is currently active */
+  get active(): boolean
+  /** The id of the current member within the room */
+  get memberId(): string
+
   updateCamera(constraints: MediaTrackConstraints): Promise<void>
   updateMicrophone(constraints: MediaTrackConstraints): Promise<void>
 

@@ -1,3 +1,25 @@
+/**
+ * Welcome to the technical documentation for the JavaScript SDK.
+ *
+ * At the outer level, when you import the SignalWire JS library you get access
+ * to two different namespaces:
+ *
+ *  - {@link Video}
+ *  - {@link WebRTC}
+ *
+ * {@link Video} gives you access to the classes and methods that let you
+ * interface with the backend Video APIs. {@link WebRTC} contains several
+ * functions that are useful for interacting with the hardware of the user's
+ * device.
+ *
+ * You don't know where to start? Create an instance of
+ * {@link Video.RoomSession} to join a room, or take a look at [Getting Started
+ * with the SignalWire Video
+ * API](https://developer.signalwire.com/apis/docs/getting-started-with-the-signalwire-video-api-1).
+ *
+ * @module
+ */
+
 import type {
   VideoRoomSessionEventNames,
   RoomStarted,
@@ -7,23 +29,27 @@ import type {
   VideoMemberEntity,
 } from '@signalwire/core'
 
-/** @deprecated */
+/** @ignore @deprecated */
 export type RoomStartedEventName = RoomStarted
-/** @deprecated */
+/** @ignore @deprecated */
 export type RoomEndedEventName = RoomEnded
-/** @deprecated */
+/** @ignore @deprecated */
 export type RoomSubscribedEventName = RoomSubscribed
-/** @deprecated */
+/** @ignore @deprecated */
 export type RoomUpdatedEventName = RoomUpdated
-/** @deprecated */
+/** @ignore @deprecated */
 export type RoomEvent = VideoRoomSessionEventNames
-/** @deprecated */
+/** @ignore @deprecated */
 export type RoomMember = VideoMemberEntity & { type: 'member' }
-/** @deprecated */
+/** @ignore @deprecated */
 export type RoomScreenShare = VideoMemberEntity & { type: 'screen' }
-/** @deprecated */
+/** @ignore @deprecated */
 export type RoomDevice = VideoMemberEntity & { type: 'device' }
 
+/**
+ * The Video namespace contains the classes and functions that you need to
+ * create a video conferencing application.
+ */
 export * as Video from './video'
 
 /**
@@ -33,6 +59,8 @@ export * as Video from './video'
  * from a webcam, from a microphone, or from a screen sharing.
  */
 export * as WebRTC from './webrtc'
+
+/** @ignore */
 export type {
   BaseComponentOptions,
   BaseConnectionState,
@@ -53,10 +81,14 @@ export type {
   VideoMemberTalkingEventParams,
   InternalVideoMemberEntity,
 } from '@signalwire/core'
+
+/** @ignore */
 export type {
   BaseConnectionOptions,
   ConnectionOptions,
 } from '@signalwire/webrtc'
+
+/** @ignore */
 export type {
   RoomSessionObjectEventsHandlerMap,
   RoomSessionObjectEvents,

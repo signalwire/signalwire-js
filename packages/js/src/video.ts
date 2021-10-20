@@ -22,7 +22,10 @@ export {
   createClient,
 }
 
+/** @ignore */
 export type { MakeRoomOptions }
+
+/** @ignore */
 export type {
   MemberCommandParams,
   MemberCommandWithVolumeParams,
@@ -31,5 +34,11 @@ export type {
   DeprecatedVideoMemberHandlerParams,
   VideoMemberHandlerParams,
 } from './utils/interfaces'
+
+/** @ignore */
 export type { CreateRoomObjectOptions } from './createRoomObject'
-export type { RoomSessionRecording } from '@signalwire/core'
+
+export type {
+  RoomSessionRecording,
+  RoomSessionPlayback,
+} from '@signalwire/core'

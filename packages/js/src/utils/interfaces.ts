@@ -21,11 +21,13 @@ import type {
   RoomSessionPlayback,
   VideoRoomSessionContract,
   OnlyFunctionProperties,
+  AssertSameType,
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
 import type { RoomSession } from '../RoomSession'
 import type { RoomSessionDevice } from '../RoomSessionDevice'
 import type { RoomSessionScreenShare } from '../RoomSessionScreenShare'
+import { RoomMemberSelfMethodsInterfaceDocs } from './interfaces.docs'
 
 const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
   INTERNAL_MEMBER_UPDATABLE_PROPS
@@ -116,21 +118,27 @@ export interface BaseRoomInterface {
   leave(): Promise<unknown>
 }
 
-interface RoomMemberSelfMethodsInterface {
-  audioMute(): Rooms.AudioMuteMember
-  audioUnmute(): Rooms.AudioUnmuteMember
-  videoMute(): Rooms.VideoMuteMember
-  videoUnmute(): Rooms.VideoUnmuteMember
-  /**
-   * @deprecated Use {@link setInputVolume} instead.
-   * `setMicrophoneVolume` will be removed in v4.0.0
-   */
-  setMicrophoneVolume(params: { volume: number }): Rooms.SetInputVolumeMember
-  setInputVolume(params: { volume: number }): Rooms.SetInputVolumeMember
-  setInputSensitivity(params: {
-    value: number
-  }): Rooms.SetInputSensitivityMember
-}
+interface RoomMemberSelfMethodsInterface
+  extends AssertSameType<
+    {
+      audioMute(): Rooms.AudioMuteMember
+      audioUnmute(): Rooms.AudioUnmuteMember
+      videoMute(): Rooms.VideoMuteMember
+      videoUnmute(): Rooms.VideoUnmuteMember
+      /**
+       * @deprecated Use {@link setInputVolume} instead.
+       * `setMicrophoneVolume` will be removed in v4.0.0
+       */
+      setMicrophoneVolume(params: {
+        volume: number
+      }): Rooms.SetInputVolumeMember
+      setInputVolume(params: { volume: number }): Rooms.SetInputVolumeMember
+      setInputSensitivity(params: {
+        value: number
+      }): Rooms.SetInputSensitivityMember
+    },
+    RoomMemberSelfMethodsInterfaceDocs
+  > {}
 
 /**
  * We are using these interfaces in combination of

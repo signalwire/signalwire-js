@@ -35,7 +35,7 @@ const getBuildTask = ({ dryRun, executer }) => {
   let tasks = []
   return [
     {
-      title: '🏗️  Build all packages...',
+      title: '🏗️  Build all packages',
       task: async (_ctx, task) => {
         task.title = '🏗️  Building all packages...'
         try {
@@ -66,7 +66,7 @@ const getTestTask = ({ dryRun, executer }) => {
 
   return [
     {
-      title: '🧪 Run test suites...',
+      title: '🧪 Run test suites',
       task: (_ctx, task) => {
         task.title = '🧪 Running test suites...'
         return task.newListr((parentTask) => {
@@ -99,6 +99,37 @@ const getTestTask = ({ dryRun, executer }) => {
             }
           })
         })
+      },
+    },
+    getDryRunInfoTask({ dryRun, tasks }),
+  ]
+}
+
+const getInstallDependenciesTask = ({ flags, dryRun, executer }) => {
+  let tasks = []
+  const skipDeps = isSkipDeps(flags)
+
+  return [
+    {
+      skip: skipDeps,
+      title: '📦  Install packages',
+      task: async (_ctx, task) => {
+        task.title = '📦  Installing packages...'
+        try {
+          tasks.push(
+            await executer('npm', ['install'], {
+              cwd: ROOT_DIR,
+            })
+          )
+          if (dryRun) {
+            task.title = 'ℹ️  [Dry Run] Install Tasks:'
+          } else {
+            task.title = '📦  Packages installed successfully!'
+          }
+        } catch (e) {
+          task.title = '🛑 Install failed.'
+          throw e
+        }
       },
     },
     getDryRunInfoTask({ dryRun, tasks }),
@@ -277,22 +308,27 @@ const getModeFlag = (flags = []) => {
   return flags.find((f) => isModeFlag(f))
 }
 
-const MODIFIERS = ['--ci']
+const MODIFIERS = ['--ci', '--skip-deps']
 const getModifierFlags = (flags = []) => {
   return flags.filter((f) => MODIFIERS.includes(f))
 }
 const isCI = (flags = []) => {
   return getModifierFlags(flags).includes('--ci')
 }
+const isSkipDeps = (flags = []) => {
+  return getModifierFlags(flags).includes('--skip-deps')
+}
 
 export {
   getBuildTask,
   getDryRunInfoTask,
+  getInstallDependenciesTask,
   getModeFlag,
   getModifierFlags,
   getReleaseType,
   getTestTask,
   isCI,
+  isSkipDeps,
   publishTaskFactory,
   ROOT_DIR,
 }
