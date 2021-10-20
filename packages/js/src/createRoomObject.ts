@@ -1,4 +1,4 @@
-import { UserOptions, logger } from '@signalwire/core'
+import { UserOptions, logger, AssertSameType } from '@signalwire/core'
 import { createClient } from './createClient'
 import { MakeRoomOptions } from './Client'
 import { BaseRoomSession } from './BaseRoomSession'
@@ -9,12 +9,50 @@ import { BaseRoomSession } from './BaseRoomSession'
  **/
 export interface Room extends BaseRoomSession<Room> {}
 
-export interface CreateRoomObjectOptions
+interface CreateRoomObjectOptionsMain
   extends UserOptions,
     Omit<MakeRoomOptions, 'rootElement'> {
+  /** Id of the HTML element in which to display the video stream */
   rootElementId?: string
+  /** Whether to automatically join the room session. */
   autoJoin?: boolean
 }
+
+/**
+ * @deprecated Usage of this object is deprecated. See {@link RoomSession}
+ * instead.
+ */
+export interface CreateRoomObjectOptions
+  extends AssertSameType<
+    CreateRoomObjectOptionsMain,
+    {
+      /** SignalWire project id, e.g. `a10d8a9f-2166-4e82-56ff-118bc3a4840f` */
+      project?: string
+      /** SignalWire project token, e.g. `PT9e5660c101cd140a1c93a0197640a369cf5f16975a0079c9` */
+      token: string
+      /** logging level */
+      logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
+      /** Id of the HTML element in which to display the video stream */
+      rootElementId?: string
+      /** Whether to apply the local-overlay on top of your video. Default: `true`. */
+      applyLocalVideoOverlay?: boolean
+      /** Whether to stop the camera when the member is muted. Default: `true`. */
+      stopCameraWhileMuted?: boolean
+      /** Whether to stop the microphone when the member is muted. Default: `true`. */
+      stopMicrophoneWhileMuted?: boolean
+      /** List of ICE servers. */
+      iceServers?: RTCIceServer[]
+      /** Audio constraints to use when joining the room. Default: `true`. */
+      audio?: MediaStreamConstraints['audio']
+      /** Video constraints to use when joining the room. Default: `true`. */
+      video?: MediaStreamConstraints['video']
+      /** Id of the speaker device to use for audio output. If undefined, picks a default speaker. */
+      speakerId?: string
+      /** Whether to automatically join the room session. */
+      autoJoin?: boolean
+    }
+  > {}
+
 const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
   aspectRatio: { ideal: 16 / 9 },
 }

@@ -33,7 +33,6 @@ export type {
   VideoMemberHandlerParams,
 } from './utils/interfaces'
 
-/** @ignore */
 export type { CreateRoomObjectOptions } from './createRoomObject'
 
 export type {
