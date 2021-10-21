@@ -43,7 +43,7 @@ const isWebrtcEvent = (e: SwEventParams): e is WebRTCMessageParams => {
 const isVideoEvent = (e: SwEventParams): e is VideoAPIEventParams => {
   return !!e?.event_type?.startsWith('video.')
 }
-const isCantinaRoomEvent = (e: SwEventParams): e is CantinaEvent => {
+const isCantinaEvent = (e: SwEventParams): e is CantinaEvent => {
   return !!e?.event_type?.startsWith('cantina-manager')
 }
 
@@ -316,7 +316,7 @@ export function* sessionChannelWatcher({
       return
     }
 
-    if (isCantinaRoomEvent(broadcastParams)) {
+    if (isCantinaEvent(broadcastParams)) {
       yield fork(cantinaAPIWorker, broadcastParams)
       return
     }
