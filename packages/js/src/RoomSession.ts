@@ -65,6 +65,11 @@ interface RoomSessionMain extends BaseRoomSession<RoomSessionMain> {
  *
  * roomSession.join()
  * ```
+ *
+ * ## Events
+ *
+ * Please see {@link RoomSessionEvents} for the list of events emitted by a
+ * RoomSession object.
  */
 export interface RoomSession
   extends AssertSameType<RoomSessionMain, RoomSessionDocs<RoomSessionMain>> {}

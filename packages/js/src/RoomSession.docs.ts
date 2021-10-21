@@ -9,7 +9,6 @@ export interface RoomSessionDocs<T>
     RoomLayoutMethodsInterface,
     RoomSessionConstructorDocs<T>,
     Pick<BaseRoomSession<T>, 'on' | 'off' | 'once'> {
-
   /** @internal */
   stopOutboundAudio(): void
   /** @internal */
@@ -884,6 +883,9 @@ interface RoomLayoutMethodsInterface {
   setLayout(params: { name: string }): Rooms.SetLayout
 }
 
+/**
+ * List of events emitted by a {@link RoomSession} object.
+ */
 export interface RoomSessionEvents {
   /**
    * The current client joined the room session. The event handler receives
