@@ -39,6 +39,7 @@ export class CantinaAPI extends BaseConsumer<CantinaManagerEvents> {
         ],
         {
           type: 'roomSession',
+          // For now we expose the transformed payload and not a RoomSession
           instanceFactory: (payload) => toExternalJSON(payload),
           payloadTransform: (payload) => toExternalJSON(payload),
         },
