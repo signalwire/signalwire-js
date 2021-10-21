@@ -43,29 +43,9 @@ describe('Cantina namespace', () => {
 
     it('should pass RoomSession object to the handler', (done) => {
       cantina.on('room.started', (room) => {
-        // @ts-expect-error
         expect(room.id).toBe('room-id')
-        // @ts-expect-error
         expect(room.name).toBe('room-one')
-        expect(room.audioMute).toBeDefined()
-        expect(room.audioUnmute).toBeDefined()
-        expect(room.videoMute).toBeDefined()
-        expect(room.videoUnmute).toBeDefined()
-        expect(room.deaf).toBeDefined()
-        expect(room.undeaf).toBeDefined()
-        expect(room.setInputVolume).toBeDefined()
-        expect(room.setOutputVolume).toBeDefined()
-        expect(room.setMicrophoneVolume).toBeDefined()
-        expect(room.setSpeakerVolume).toBeDefined()
-        expect(room.setInputSensitivity).toBeDefined()
-        expect(room.removeMember).toBeDefined()
-        expect(room.getMembers).toBeDefined()
-        expect(room.getLayouts).toBeDefined()
-        expect(room.setLayout).toBeDefined()
-        expect(room.hideVideoMuted).toBeDefined()
-        expect(room.showVideoMuted).toBeDefined()
-        expect(room.getRecordings).toBeDefined()
-        expect(room.startRecording).toBeDefined()
+        expect(room.memberCount).toBe(1)
         done()
       })
       cantina.subscribe().then(() => {
@@ -81,29 +61,9 @@ describe('Cantina namespace', () => {
 
     it('should pass RoomSession object to the handler', (done) => {
       cantina.on('room.updated', (room) => {
-        // @ts-expect-error
         expect(room.id).toBe('room-id')
-        // @ts-expect-error
         expect(room.name).toBe('room-one')
-        expect(room.audioMute).toBeDefined()
-        expect(room.audioUnmute).toBeDefined()
-        expect(room.videoMute).toBeDefined()
-        expect(room.videoUnmute).toBeDefined()
-        expect(room.deaf).toBeDefined()
-        expect(room.undeaf).toBeDefined()
-        expect(room.setInputVolume).toBeDefined()
-        expect(room.setOutputVolume).toBeDefined()
-        expect(room.setMicrophoneVolume).toBeDefined()
-        expect(room.setSpeakerVolume).toBeDefined()
-        expect(room.setInputSensitivity).toBeDefined()
-        expect(room.removeMember).toBeDefined()
-        expect(room.getMembers).toBeDefined()
-        expect(room.getLayouts).toBeDefined()
-        expect(room.setLayout).toBeDefined()
-        expect(room.hideVideoMuted).toBeDefined()
-        expect(room.showVideoMuted).toBeDefined()
-        expect(room.getRecordings).toBeDefined()
-        expect(room.startRecording).toBeDefined()
+        expect(room.memberCount).toBe(1)
         done()
       })
       cantina.subscribe().then(() => {
@@ -119,29 +79,9 @@ describe('Cantina namespace', () => {
 
     it('should pass RoomSession object to the handler', (done) => {
       cantina.on('room.ended', (room) => {
-        // @ts-expect-error
         expect(room.id).toBe('room-id')
-        // @ts-expect-error
         expect(room.name).toBe('room-one')
-        expect(room.audioMute).toBeDefined()
-        expect(room.audioUnmute).toBeDefined()
-        expect(room.videoMute).toBeDefined()
-        expect(room.videoUnmute).toBeDefined()
-        expect(room.deaf).toBeDefined()
-        expect(room.undeaf).toBeDefined()
-        expect(room.setInputVolume).toBeDefined()
-        expect(room.setOutputVolume).toBeDefined()
-        expect(room.setMicrophoneVolume).toBeDefined()
-        expect(room.setSpeakerVolume).toBeDefined()
-        expect(room.setInputSensitivity).toBeDefined()
-        expect(room.removeMember).toBeDefined()
-        expect(room.getMembers).toBeDefined()
-        expect(room.getLayouts).toBeDefined()
-        expect(room.setLayout).toBeDefined()
-        expect(room.hideVideoMuted).toBeDefined()
-        expect(room.showVideoMuted).toBeDefined()
-        expect(room.getRecordings).toBeDefined()
-        expect(room.startRecording).toBeDefined()
+        expect(room.memberCount).toBe(1)
         done()
       })
       cantina.subscribe().then(() => {

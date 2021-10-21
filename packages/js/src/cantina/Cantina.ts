@@ -7,14 +7,13 @@ import {
   ConsumerContract,
   EventTransform,
   toExternalJSON,
+  CantinaRoomEntity,
 } from '@signalwire/core'
-import { createBaseRoomSessionObject } from '../BaseRoomSession'
-import { RoomSession } from '../RoomSession'
 
 /** @internal */
 export type CantinaManagerEvents = Record<
   CantinaRoomEventNames,
-  (room: RoomSession) => void
+  (room: CantinaRoomEntity) => void
 >
 
 /** @internal */
@@ -40,13 +39,7 @@ export class CantinaAPI extends BaseConsumer<CantinaManagerEvents> {
         ],
         {
           type: 'roomSession',
-          instanceFactory: () => {
-            return createBaseRoomSessionObject<RoomSession>({
-              store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
-            })
-          },
+          instanceFactory: (payload) => toExternalJSON(payload),
           payloadTransform: (payload) => toExternalJSON(payload),
         },
       ],

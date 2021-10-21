@@ -1,4 +1,5 @@
 import { SwEvent, RoomStarted, RoomUpdated, RoomEnded } from '.'
+import { CamelToSnakeCase } from './utils'
 
 export type CantinaNamespace = 'cantina-manager'
 type ToInternalCantinaEvent<T extends string> = `${CantinaNamespace}.${T}`
@@ -23,7 +24,7 @@ export type InternalCantinaRoomEventNames =
   ToInternalCantinaEvent<CantinaRoomEventNames>
 
 /** @internal */
-type CantinaRoomMemberRole =
+type CantinaRoomRole =
   | 'inviteable'
   | 'configurator'
   | 'visitor'
@@ -35,23 +36,31 @@ type CantinaRoomMemberRole =
 export interface CantinaRoomEntity {
   id: string
   name: string
-  cantina_id: string
-  last_snapshot?: string
-  member_count: number
+  cantinaId: string
+  lastSnapshot?: string
+  memberCount: number
   recording: boolean
   locked: boolean
-  room_type: 'permanent' | 'adhoc'
+  roomType: 'permanent' | 'adhoc'
   visibility: 'pinned' | 'normal' | 'occupied'
-  room_description?: string
-  join_button?: string
-  order_priority?: number
-  custom_alone?: string
-  custom_canvas?: string
-  custom_empty?: string
-  custom_preview?: string
-  has_sms_from_number: boolean
-  auto_open_nav: boolean
-  my_roles: CantinaRoomMemberRole[]
+  roomDescription?: string
+  joinButton?: string
+  orderPriority?: number
+  customAlone?: string
+  customCanvas?: string
+  customEmpty?: string
+  customPreview?: string
+  hasSmsFromNumber: boolean
+  autoOpenNav: boolean
+  myRoles: CantinaRoomRole[]
+}
+
+/**
+ * CantinaRoomEntity for internal usage (converted to snake_case)
+ * @internal
+ */
+export type InternalCantinaRoomEntity = {
+  [K in keyof CantinaRoomEntity as CamelToSnakeCase<K>]: CantinaRoomEntity[K]
 }
 
 /**
@@ -66,7 +75,7 @@ export interface CantinaRoomEntity {
  * 'cantina-manager.rooms.subscribed'
  */
 export interface CantinaRoomsSubscribedEventParams {
-  rooms: CantinaRoomEntity[]
+  rooms: InternalCantinaRoomEntity[]
 }
 
 export interface CantinaRoomsSubscribedEvent extends SwEvent {
@@ -82,7 +91,7 @@ export interface CantinaRoomsSubscribedEvent extends SwEvent {
  * 'cantina-manager.room.deleted'
  */
 export interface CantinaRoomEventParams {
-  room: CantinaRoomEntity
+  room: InternalCantinaRoomEntity
 }
 
 export interface CantinaRoomEvent extends SwEvent {
