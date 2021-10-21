@@ -1,20 +1,29 @@
 import { SwEvent, RoomStarted, RoomUpdated, RoomEnded } from '.'
 
-/** @internal */
-export type CantinaRoomEvents = RoomStarted | RoomUpdated | RoomEnded
+export type CantinaNamespace = 'cantina-manager'
+type ToInternalCantinaEvent<T extends string> = `${CantinaNamespace}.${T}`
 
-type ToInternalCantinaRoomEvent<T extends CantinaRoomEvents> =
-  `cantina-manager.${T}`
-
-/** @internal */
-export type InternalCantinaRoomEvents =
-  ToInternalCantinaRoomEvent<CantinaRoomEvents>
+type RoomsSubscribed = 'rooms.subscribed'
+type RoomAdded = 'room.added'
+type RoomDeleted = 'room.deleted'
 
 /** @internal */
-export type CantinaRoomTypes = 'permanent' | 'adhoc' | 'hidden'
+export type CantinaRoomEventNames =
+  | RoomStarted
+  | RoomAdded
+  | RoomUpdated
+  | RoomEnded
+  | RoomDeleted
+
+/**
+ * List of internal events
+ * @internal
+ */
+export type InternalCantinaRoomEventNames =
+  ToInternalCantinaEvent<CantinaRoomEventNames>
 
 /** @internal */
-export type CantinaRoomMemberRoles =
+type CantinaRoomMemberRole =
   | 'inviteable'
   | 'configurator'
   | 'visitor'
@@ -25,17 +34,15 @@ export type CantinaRoomMemberRoles =
 /** @internal */
 export interface CantinaRoomEntity {
   id: string
-  cantina_id: string
-  project_id: string
   name: string
-  preview: string
+  cantina_id: string
   last_snapshot?: string
   member_count: number
   recording: boolean
   locked: boolean
-  room_type: CantinaRoomTypes
-  visibility: 'normal'
-  room_descript?: string
+  room_type: 'permanent' | 'adhoc'
+  visibility: 'pinned' | 'normal' | 'occupied'
+  room_description?: string
   join_button?: string
   order_priority?: number
   custom_alone?: string
@@ -44,26 +51,47 @@ export interface CantinaRoomEntity {
   custom_preview?: string
   has_sms_from_number: boolean
   auto_open_nav: boolean
-  my_roles: CantinaRoomMemberRoles[]
+  my_roles: CantinaRoomMemberRole[]
 }
 
-/** @internal */
+/**
+ * ==========
+ * ==========
+ * Server-Side Events
+ * ==========
+ * ==========
+ */
+
+/**
+ * 'cantina-manager.rooms.subscribed'
+ */
+export interface CantinaRoomsSubscribedEventParams {
+  rooms: CantinaRoomEntity[]
+}
+
+export interface CantinaRoomsSubscribedEvent extends SwEvent {
+  event_type: ToInternalCantinaEvent<RoomsSubscribed>
+  params: CantinaRoomsSubscribedEventParams
+}
+
+/**
+ * 'cantina-manager.room.started'
+ * 'cantina-manager.room.added'
+ * 'cantina-manager.room.updated'
+ * 'cantina-manager.room.ended'
+ * 'cantina-manager.room.deleted'
+ */
 export interface CantinaRoomEventParams {
   room: CantinaRoomEntity
 }
 
-/** @internal */
 export interface CantinaRoomEvent extends SwEvent {
-  event_type: InternalCantinaRoomEvents
+  event_type: ToInternalCantinaEvent<CantinaRoomEventNames>
   params: CantinaRoomEventParams
 }
 
-/** @internal */
-export type CantinaEventParams = CantinaRoomEvent
+export type CantinaEvent = CantinaRoomsSubscribedEvent | CantinaRoomEvent
 
-export type CantinaNameSpace = 'cantina-manager'
-export type CantinaEvents = 'room.started' | 'room.updated' | 'room.ended'
-
-export type PrefixedEvent<T extends CantinaEvents> = `${CantinaNameSpace}.${T}`
-
-export type CantinaNamespacedEvents = PrefixedEvent<CantinaEvents>
+export type CantinaEventParams =
+  | CantinaRoomsSubscribedEventParams
+  | CantinaRoomEventParams
