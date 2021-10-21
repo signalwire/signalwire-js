@@ -22,7 +22,10 @@ export const PRODUCT_PREFIX_VIDEO = 'video'
 
 export const GLOBAL_VIDEO_EVENTS = ['room.started', 'room.ended'] as const
 
-export const PRODUCT_PREFIXES = [PRODUCT_PREFIX_VIDEO] as const
+export const PRODUCT_PREFIXES = [
+  PRODUCT_PREFIX_VIDEO,
+  'cantina-manager',
+] as const
 
 /**
  * For internal usage only. These are the fully qualified event names

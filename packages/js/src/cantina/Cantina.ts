@@ -1,8 +1,8 @@
 import {
   BaseComponentOptions,
   BaseConsumer,
-  CantinaEvents,
-  CantinaNamespacedEvents,
+  CantinaRoomEventNames,
+  InternalCantinaRoomEventNames,
   connect,
   ConsumerContract,
   EventTransform,
@@ -13,7 +13,7 @@ import { RoomSession } from '../RoomSession'
 
 /** @internal */
 export type CantinaManagerEvents = Record<
-  CantinaEvents,
+  CantinaRoomEventNames,
   (room: RoomSession) => void
 >
 
@@ -22,20 +22,21 @@ export interface Cantina extends ConsumerContract<CantinaManagerEvents> {}
 
 /** @internal */
 export class CantinaAPI extends BaseConsumer<CantinaManagerEvents> {
-  // @ts-expect-error
-  protected _eventsPrefix = 'cantina-manager'
+  protected _eventsPrefix = 'cantina-manager' as const
 
   /** @internal */
   getEmitterTransforms() {
     return new Map<
-      CantinaNamespacedEvents | CantinaNamespacedEvents[],
+      InternalCantinaRoomEventNames | InternalCantinaRoomEventNames[],
       EventTransform
     >([
       [
         [
           'cantina-manager.room.started',
+          'cantina-manager.room.added',
           'cantina-manager.room.updated',
           'cantina-manager.room.ended',
+          'cantina-manager.room.deleted',
         ],
         {
           type: 'roomSession',
@@ -54,19 +55,18 @@ export class CantinaAPI extends BaseConsumer<CantinaManagerEvents> {
 }
 
 export const createCantinaObject = (
-  options: BaseComponentOptions<CantinaEvents>
+  params: BaseComponentOptions<CantinaManagerEvents>
 ) => {
-  const { store, ...userOptions } = options
-  const cantina = connect<
-    CantinaEvents,
-    // @ts-expect-error
-    CantinaAPI,
-    Cantina
-  >({
-    store: options.store,
+  const cantina = connect<CantinaManagerEvents, CantinaAPI, Cantina>({
+    store: params.store,
     Component: CantinaAPI,
-  })(userOptions)
-  const proxy = new Proxy(cantina, {
+    componentListeners: {
+      errors: 'onError',
+      responses: 'onSuccess',
+    },
+  })(params)
+
+  const proxy = new Proxy<Cantina>(cantina, {
     get(
       target: Cantina,
       property: string | symbol,
@@ -74,11 +74,10 @@ export const createCantinaObject = (
     ) {
       if (property === '_eventsNamespace') {
         return ''
-      }
-
-      if (property === 'eventChannel') {
+      } else if (property === 'eventChannel') {
         return 'cantina-manager.rooms'
       }
+
       return Reflect.get(target, property, receiver)
     },
   })
