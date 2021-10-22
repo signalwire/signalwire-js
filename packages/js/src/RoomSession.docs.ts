@@ -127,8 +127,8 @@ export interface RoomSessionDocs<T>
    * multiple video sources at the same time.
    *
    * @param opts Specify the constraints for the device. In addition, you can
-   * add the autoJoin key to specify whether the device should immediately join
-   * the room or joining will be performed manually later.
+   * add the `autoJoin` key to specify whether the device should immediately
+   * join the room or joining will be performed manually later.
    *
    * @example Adding any of the camera devices to the room (duplicate streams
    * are possible):
@@ -162,8 +162,8 @@ export interface RoomSessionDocs<T>
    * multiple video sources at the same time.
    *
    * @param opts Specify the constraints for the device. In addition, you can
-   * add the autoJoin key to specify whether the device should immediately join
-   * the room or joining will be performed manually later.
+   * add the `autoJoin` key to specify whether the device should immediately
+   * join the room or joining will be performed manually later.
    *
    * @example Adding any of the microphone devices to the room (duplicate
    * streams are possible):
@@ -199,8 +199,8 @@ export interface RoomSessionDocs<T>
    * {@link addCamera} and {@link addMicrophone}.
    *
    * @param opts Specify the constraints for the device. In addition, you can
-   * add the autoJoin key to specify whether the device should immediately join
-   * the room or joining will be performed manually later.
+   * add the `autoJoin` key to specify whether the device should immediately
+   * join the room or joining will be performed manually later.
    *
    * @example Adding any of the microphone devices to the room (duplicate
    * streams are possible):
