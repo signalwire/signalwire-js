@@ -33,10 +33,11 @@ export type {
   VideoMemberHandlerParams,
 } from './utils/interfaces'
 
-/** @ignore */
 export type { CreateRoomObjectOptions } from './createRoomObject'
 
 export type {
   RoomSessionRecording,
   RoomSessionPlayback,
 } from '@signalwire/core'
+
+export type { RoomSessionEvents } from './RoomSession.docs'
