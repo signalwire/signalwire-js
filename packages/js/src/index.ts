@@ -28,6 +28,7 @@ import type {
   RoomEnded,
   VideoMemberEntity,
 } from '@signalwire/core'
+import { __DEV__ } from '@signalwire/utils'
 
 /** @ignore @deprecated */
 export type RoomStartedEventName = RoomStarted
@@ -96,3 +97,7 @@ export type {
   RoomSessionObjectEventsHandlerMap as RoomObjectEventsHandlerMap,
   RoomSessionObjectEvents as RoomObjectEvents,
 } from './utils/interfaces'
+
+if (__DEV__) {
+  console.log('DEV LOG')
+}

@@ -44,6 +44,7 @@
   },
   "dependencies": {
     "@signalwire/core": "3.2.0",
+    "@signalwire/utils": "0.0.0",
     "@signalwire/webrtc": "3.1.5"
   },
   "types": "dist/js/src/index.d.ts"
