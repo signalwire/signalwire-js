@@ -1,5 +1,5 @@
-import { createAction } from '@reduxjs/toolkit'
+import { actions } from '@signalwire/core'
 
-export const audioSetSpeakerAction = createAction<string>(
+export const audioSetSpeakerAction = actions.createAction<string>(
   'swJs/audioSetSpeakerAction'
 )
