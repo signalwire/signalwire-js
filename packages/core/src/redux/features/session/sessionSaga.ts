@@ -103,14 +103,14 @@ export function* executeActionWatcher(session: BaseSession): SagaIterator {
       if (isCancelled && componentId && requestId) {
         const error: JSONRPCResponse = {
           jsonrpc: '2.0',
-          id: componentId,
+          id: requestId,
           error: {
             // Invalid Request
             code: -32600,
             message: 'Cancelled task',
           },
         }
-        logger.warn('worker cancelled', componentId, error)
+        logger.debug('worker cancelled', { requestId, componentId, error })
         yield put(
           componentActions.executeFailure({
             componentId,
