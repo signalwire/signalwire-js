@@ -110,7 +110,11 @@ export function* executeActionWatcher(session: BaseSession): SagaIterator {
             message: 'Cancelled task',
           },
         }
-        logger.debug('worker cancelled', { requestId, componentId, error })
+        logger.debug('executeActionWorker cancelled', {
+          requestId,
+          componentId,
+          error,
+        })
         yield put(
           componentActions.executeFailure({
             componentId,
