@@ -48,6 +48,7 @@ import { JWTSession } from './JWTSession'
  *   console.error('Error', error)
  * }
  * ```
+ * @internal
  */
 export const createClient = <RoomSessionType>(userOptions: UserOptions) => {
   const baseUserOptions = {

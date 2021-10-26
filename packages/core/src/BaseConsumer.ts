@@ -4,7 +4,7 @@ import {
   logger,
   EventEmitter,
   BaseComponentOptions,
-} from '@signalwire/core'
+} from '.'
 
 /**
  * Instances of this class are meant to be wrapped by a

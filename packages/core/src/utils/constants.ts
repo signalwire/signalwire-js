@@ -19,10 +19,14 @@ export const EVENT_NAMESPACE_DIVIDER = ':'
 export const LOCAL_EVENT_PREFIX = '__local__'
 
 export const PRODUCT_PREFIX_VIDEO = 'video'
+export const PRODUCT_PREFIX_CANTINA = 'cantina-manager'
 
 export const GLOBAL_VIDEO_EVENTS = ['room.started', 'room.ended'] as const
 
-export const PRODUCT_PREFIXES = [PRODUCT_PREFIX_VIDEO] as const
+export const PRODUCT_PREFIXES = [
+  PRODUCT_PREFIX_VIDEO,
+  PRODUCT_PREFIX_CANTINA,
+] as const
 
 /**
  * For internal usage only. These are the fully qualified event names
