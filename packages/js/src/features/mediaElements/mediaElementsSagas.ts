@@ -1,6 +1,10 @@
-import { logger, CustomSagaParams, actions } from '@signalwire/core'
-import { take, call, fork } from '@redux-saga/core/effects'
-import { SagaIterator, Task } from '@redux-saga/types'
+import {
+  logger,
+  CustomSagaParams,
+  actions,
+  sagaEffects,
+} from '@signalwire/core'
+import type { SagaIterator, Task } from '@signalwire/core'
 import { setMediaElementSinkId } from '@signalwire/webrtc'
 import {
   buildVideo,
@@ -112,12 +116,12 @@ function* audioElementActionsWatcher({
   )
 
   while (true) {
-    const action = yield take([setSpeakerActionType])
+    const action = yield sagaEffects.take([setSpeakerActionType])
 
     try {
       switch (action.type) {
         case setSpeakerActionType:
-          const response = yield call(
+          const response = yield sagaEffects.call(
             setMediaElementSinkId,
             element,
             action.payload
@@ -157,7 +161,7 @@ function* audioElementSetupWorker({
     setMediaElementSinkId(element, speakerId).catch(() => {})
   }
 
-  yield fork(audioElementActionsWatcher, {
+  yield sagaEffects.fork(audioElementActionsWatcher, {
     element,
     room,
   })
