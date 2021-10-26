@@ -112,11 +112,6 @@ export interface SessionRequestObject {
   reject: (value: unknown) => void
 }
 
-export interface SessionRequestQueued {
-  resolve: (value: unknown) => void
-  msg: JSONRPCRequest | JSONRPCResponse
-}
-
 interface Authorization {
   type: 'video'
   project: string

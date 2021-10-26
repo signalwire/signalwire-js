@@ -1,9 +1,16 @@
 import { SagaIterator, eventChannel, EventChannel } from 'redux-saga'
-import { call, put, take, fork, select } from '@redux-saga/core/effects'
+import {
+  call,
+  put,
+  take,
+  fork,
+  select,
+  cancelled,
+} from '@redux-saga/core/effects'
 import { PayloadAction } from '@reduxjs/toolkit'
 import { BaseSession } from '../../../BaseSession'
 import { VertoResult } from '../../../RPCMessages'
-import { JSONRPCRequest } from '../../../utils/interfaces'
+import { JSONRPCRequest, JSONRPCResponse } from '../../../utils/interfaces'
 import type {
   VideoAPIEventParams,
   SwEventParams,
@@ -55,6 +62,16 @@ const isCantinaEvent = (e: SwEventParams): e is CantinaEvent => {
  */
 export function* executeActionWatcher(session: BaseSession): SagaIterator {
   function* worker(action: PayloadAction<ExecuteActionParams>): SagaIterator {
+    const authStatus: SessionAuthStatus = yield select(getAuthStatus)
+
+    /**
+     * Just a safety-guard since this code shouldn't be
+     * executed when the session is not authorized.
+     */
+    if (authStatus !== 'authorized') {
+      return
+    }
+
     const { componentId, requestId, method, params } = action.payload
     try {
       const message = RPCExecute({
@@ -84,16 +101,39 @@ export function* executeActionWatcher(session: BaseSession): SagaIterator {
           })
         )
       }
+    } finally {
+      const isCancelled = yield cancelled()
+
+      if (isCancelled && componentId && requestId) {
+        const error: JSONRPCResponse = {
+          jsonrpc: '2.0',
+          id: requestId,
+          error: {
+            // Invalid Request
+            code: -32600,
+            message: 'Cancelled task',
+          },
+        }
+        logger.debug('executeActionWorker cancelled', {
+          requestId,
+          componentId,
+          error,
+        })
+        yield put(
+          componentActions.executeFailure({
+            componentId,
+            requestId,
+            action,
+            error,
+          })
+        )
+      }
     }
   }
 
   while (true) {
     const action = yield take(executeAction.type)
-    const authStatus: SessionAuthStatus = yield select(getAuthStatus)
-
-    if (authStatus === 'authorized') {
-      yield fork(worker, action)
-    }
+    yield fork(worker, action)
   }
 }
 

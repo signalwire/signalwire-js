@@ -11,7 +11,6 @@ import {
 import {
   SessionOptions,
   SessionRequestObject,
-  SessionRequestQueued,
   RPCConnectResult,
   JSONRPCRequest,
   JSONRPCResponse,
@@ -46,7 +45,6 @@ export class BaseSession {
   protected _rpcConnectResult: RPCConnectResult
 
   private _requests = new Map<string, SessionRequestObject>()
-  private _requestQueue: SessionRequestQueued[] = []
   private _socket: WebSocketClient | null = null
   private _host: string = DEFAULT_HOST
 
@@ -163,7 +161,6 @@ export class BaseSession {
     }
 
     clearTimeout(this._checkPingTimer)
-    this._requestQueue = []
     this._requests.clear()
     this._closeConnection('disconnected')
   }
@@ -174,7 +171,9 @@ export class BaseSession {
    */
   execute(msg: JSONRPCRequest | JSONRPCResponse): Promise<any> {
     if (this._status === 'idle' || !this.connected) {
-      return new Promise((resolve) => this._requestQueue.push({ resolve, msg }))
+      return Promise.reject(
+        "Can't call `execute` when Session is not authorized."
+      )
     }
     let promise: Promise<unknown>
     if ('params' in msg) {
@@ -228,7 +227,6 @@ export class BaseSession {
     logger.debug('_onSocketOpen', event.type)
     try {
       await this.authenticate()
-      this._emptyRequestQueue()
       this._status = 'connected'
       this.dispatch(authSuccessAction())
     } catch (error) {
@@ -308,17 +306,6 @@ export class BaseSession {
     return (
       this.signature && this?.relayProtocol?.split('_')[1] === this.signature
     )
-  }
-
-  /**
-   * Execute all the queued messages during the idle period.
-   * @return void
-   */
-  private _emptyRequestQueue() {
-    this._requestQueue.forEach(({ resolve, msg }) => {
-      resolve(this.execute(msg))
-    })
-    this._requestQueue = []
   }
 
   private async _pingHandler(payload: JSONRPCRequest) {
