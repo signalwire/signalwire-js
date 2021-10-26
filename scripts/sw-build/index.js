@@ -25,6 +25,7 @@ const COMMON_NODE = {
 
 const COMMON_WEB = {
   entryPoints: ['./src/index.ts'],
+  platform: 'neutral',
   minify: false,
   sourcemap: true,
   bundle: true,
