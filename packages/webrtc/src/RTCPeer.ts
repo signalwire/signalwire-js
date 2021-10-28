@@ -36,8 +36,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     logger.debug('New Peer with type:', this.type, 'Options:', this.options)
 
     this._onIce = this._onIce.bind(this)
-    this.instance = RTCPeerConnection(this.config)
-    this._attachListeners()
   }
 
   get isOffer() {
@@ -309,12 +307,28 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
   }
 
+  private _setupRTCPeerConnection() {
+    if (!this.instance) {
+      this.instance = RTCPeerConnection(this.config)
+      this._attachListeners()
+    }
+  }
+
   async start() {
     return new Promise(async (resolve, reject) => {
       this._resolveStartMethod = resolve
       this._rejectStartMethod = reject
 
       this.options.localStream = await this._retrieveLocalStream()
+
+      /**
+       * We need to defer the creation of RTCPeerConnection
+       * until we gain gUM access otherwise it will have
+       * private IP addresses in ICE host candidates
+       * replaced by an mDNS hostname
+       * @see https://groups.google.com/g/discuss-webrtc/c/6stQXi72BEU?pli=1
+       */
+      this._setupRTCPeerConnection()
 
       const { localStream = null } = this.options
       if (localStream && streamIsValid(localStream)) {
