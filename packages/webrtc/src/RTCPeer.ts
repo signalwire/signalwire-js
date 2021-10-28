@@ -36,8 +36,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     logger.debug('New Peer with type:', this.type, 'Options:', this.options)
 
     this._onIce = this._onIce.bind(this)
-    this.instance = RTCPeerConnection(this.config)
-    this._attachListeners()
   }
 
   get isOffer() {
