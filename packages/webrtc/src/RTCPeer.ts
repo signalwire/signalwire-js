@@ -310,8 +310,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private _setupRTCPeerConnection() {
-    this.instance = RTCPeerConnection(this.config)
-    this._attachListeners()
+    if (!this.instance) {
+      this.instance = RTCPeerConnection(this.config)
+      this._attachListeners()
+    }
   }
 
   async start() {
