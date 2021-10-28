@@ -96,8 +96,3 @@ export type {
   RoomSessionObjectEventsHandlerMap as RoomObjectEventsHandlerMap,
   RoomSessionObjectEvents as RoomObjectEvents,
 } from './utils/interfaces'
-
-// @ts-ignore
-if (process.env.NODE_ENV === 'development') {
-  console.log('DEV LOG')
-}
