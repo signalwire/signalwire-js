@@ -13,11 +13,11 @@ import typescript from 'rollup-plugin-typescript2'
 
 const COMMON_NODE = {
   entryPoints: ['./src/index.ts'],
-  bundle: true,
-  minify: true,
+  minify: false,
   sourcemap: true,
   platform: 'node',
   target: 'node14',
+  bundle: true,
   // TODO: we might want to expose an option to selectively define
   // what to bundle and what not
   plugins: [nodeExternalsPlugin()],
@@ -25,9 +25,10 @@ const COMMON_NODE = {
 
 const COMMON_WEB = {
   entryPoints: ['./src/index.ts'],
-  bundle: true,
-  minify: true,
+  platform: 'neutral',
+  minify: false,
   sourcemap: true,
+  bundle: true,
   plugins: [nodeExternalsPlugin()],
 }
 const OPTIONS_MAP = {
@@ -83,9 +84,6 @@ const OPTIONS_MAP = {
    */
   '--dev': {
     minify: false,
-    define: {
-      'process.env.NODE_ENV': JSON.stringify('development'),
-    },
     watch: {
       onRebuild(error, result) {
         if (error) console.error('watch build failed:', error)
@@ -147,7 +145,6 @@ const getBuildOptions = ({ flags, pkgJson }) => {
     'process.env.SDK_PKG_NAME': JSON.stringify(pkgJson.name),
     'process.env.SDK_PKG_DESCRIPTION': JSON.stringify(pkgJson.description),
     'process.env.SDK_PKG_AGENT': JSON.stringify(getPackageAgentName(pkgJson)),
-    'process.env.NODE_ENV': JSON.stringify('production'),
   }
 
   /**

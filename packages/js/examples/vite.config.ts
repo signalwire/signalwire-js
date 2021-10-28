@@ -8,6 +8,8 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         tsVanilla: resolve(__dirname, 'ts-vanilla/index.html'),
+        heroku: resolve(__dirname, 'heroku/index.html'),
+        // vanilla: resolve(__dirname, 'vanilla/index.html'),
         webrtcUtils: resolve(__dirname, 'ts-vanilla-webrtc-utils/index.html'),
       },
     },

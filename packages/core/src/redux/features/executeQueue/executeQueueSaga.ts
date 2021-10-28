@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga'
-import { put, take, fork, select } from '@redux-saga/core/effects'
+import { put, take, fork, select } from 'redux-saga/effects'
 import { PayloadAction } from '@reduxjs/toolkit'
 import { ExecuteActionParams } from '../../interfaces'
 import { getAuthStatus } from '../session/sessionSelectors'

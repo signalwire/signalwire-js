@@ -15,7 +15,7 @@
     "@rollup/plugin-commonjs": "^19.0.1",
     "@rollup/plugin-node-resolve": "^13.0.2",
     "@rollup/plugin-replace": "^3.0.0",
-    "esbuild": "^0.12.15",
+    "esbuild": "^0.13.9",
     "esbuild-node-externals": "^1.3.0",
     "rollup": "^2.53.3",
     "rollup-plugin-license": "^2.5.0",

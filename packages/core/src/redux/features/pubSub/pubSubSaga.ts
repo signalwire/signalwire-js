@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga'
-import { take } from '@redux-saga/core/effects'
+import { take } from 'redux-saga/effects'
 import {
   logger,
   isInternalGlobalEvent,

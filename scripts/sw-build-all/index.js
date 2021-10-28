@@ -65,7 +65,7 @@ export async function cli(args) {
           fs.readFileSync(path.resolve(pathname, 'package.json'), 'utf-8')
         )
 
-        const deps = Object.keys(pkgJson.dependencies).filter((key) =>
+        const deps = Object.keys(pkgJson.dependencies || {}).filter((key) =>
           key.includes('@signalwire')
         )
 
