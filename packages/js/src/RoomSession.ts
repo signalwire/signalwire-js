@@ -125,7 +125,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
       try {
         await client.connect()
 
-        room.on('room.subscribed', () => {
+        room.once('room.subscribed', () => {
           resolve(room)
         })
 
