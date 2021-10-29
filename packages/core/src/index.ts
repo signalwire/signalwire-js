@@ -1,6 +1,7 @@
 import {
   uuid,
-  logger,
+  setLogger,
+  getLogger,
   isGlobalEvent,
   toExternalJSON,
   toLocalEvent,
@@ -22,7 +23,8 @@ import {
 
 export {
   uuid,
-  logger,
+  setLogger,
+  getLogger,
   BaseSession,
   BaseJWTSession,
   BaseComponent,

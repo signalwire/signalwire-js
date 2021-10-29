@@ -1,7 +1,7 @@
 import {
   BaseComponent,
   ExecuteParams,
-  logger,
+  getLogger,
   EventEmitter,
   BaseComponentOptions,
 } from '.'
@@ -52,7 +52,7 @@ export class BaseConsumer<
           return reject(error)
         }
       } else {
-        logger.warn('`run()` was called without any listeners attached.')
+        getLogger().warn('`run()` was called without any listeners attached.')
       }
 
       return resolve(undefined)

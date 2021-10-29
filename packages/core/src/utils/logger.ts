@@ -1,10 +1,10 @@
 import log from 'loglevel'
 const datetime = () =>
   new Date().toISOString().replace('T', ' ').replace('Z', '')
-const logger = log.getLogger('signalwire')
+const defaultLogger = log.getLogger('signalwire')
 
-const originalFactory = logger.methodFactory
-logger.methodFactory = (methodName, logLevel, loggerName) => {
+const originalFactory = defaultLogger.methodFactory
+defaultLogger.methodFactory = (methodName, logLevel, loggerName) => {
   const rawMethod = originalFactory(methodName, logLevel, loggerName)
 
   return function () {
@@ -19,8 +19,19 @@ logger.methodFactory = (methodName, logLevel, loggerName) => {
 const level =
   // @ts-ignore
   'development' === process.env.NODE_ENV
-    ? logger.levels.DEBUG
-    : logger.getLevel()
-logger.setLevel(level)
+    ? defaultLogger.levels.DEBUG
+    : defaultLogger.getLevel()
+defaultLogger.setLevel(level)
 
-export { logger }
+let userLogger: any
+const setLogger = (logger: any) => {
+  userLogger = logger
+  console.log('---> userLogger', userLogger, logger)
+  // logger = userLogger
+}
+
+const getLogger = () => {
+  return userLogger ?? defaultLogger
+}
+
+export { setLogger, getLogger }

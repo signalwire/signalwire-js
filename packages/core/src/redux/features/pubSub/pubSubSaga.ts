@@ -1,9 +1,9 @@
 import { SagaIterator } from 'redux-saga'
 import { take } from 'redux-saga/effects'
 import {
-  logger,
   isInternalGlobalEvent,
   toInternalEventName,
+  getLogger,
 } from '../../../utils'
 import type { EventEmitter } from '../../../utils/EventEmitter'
 import type {
@@ -71,7 +71,7 @@ const findNamespaceInPayload = (action: PubSubAction): string => {
   }
 
   if ('development' === process.env.NODE_ENV) {
-    logger.info('Namespace not found for', (action as any)?.type)
+    getLogger().info('Namespace not found for', (action as any)?.type)
   }
 
   return ''
@@ -102,7 +102,7 @@ export function* pubSubSaga({
         payload
       )
     } catch (error) {
-      logger.error(error)
+      getLogger().error(error)
     }
   }
 }

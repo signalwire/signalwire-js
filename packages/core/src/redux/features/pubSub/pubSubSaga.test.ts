@@ -1,10 +1,11 @@
 import { expectSaga } from 'redux-saga-test-plan'
 import { pubSubSaga } from './pubSubSaga'
-import { logger } from '../../../utils'
 import { EventEmitter } from '../../../utils/EventEmitter'
 import { createPubSubChannel } from '../../../testUtils'
+import { getLogger } from '@signalwire/core'
 
 describe('sessionChannelWatcher', () => {
+  const logger = getLogger()
   it('should take from pubSubChannel and emit through the EventEmitter', () => {
     let runSaga = true
     const emitter = new EventEmitter<string>()
