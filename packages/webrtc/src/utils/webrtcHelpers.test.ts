@@ -1,4 +1,4 @@
-import { logger } from '@signalwire/core'
+import { getLogger } from '@signalwire/core'
 import { getUserMedia } from './webrtcHelpers'
 
 describe('WebRTC Helpers', () => {
@@ -6,7 +6,7 @@ describe('WebRTC Helpers', () => {
     let loggerErrorSpy: jest.SpyInstance
     beforeEach(() => {
       loggerErrorSpy = jest
-        .spyOn(logger, 'error')
+        .spyOn(getLogger(), 'error')
         .mockImplementationOnce(() => {})
     })
     afterEach(() => {

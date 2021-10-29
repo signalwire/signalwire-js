@@ -1,4 +1,4 @@
-import { logger } from '@signalwire/core'
+import { getLogger } from '@signalwire/core'
 
 export const RTCPeerConnection = (config: RTCConfiguration) => {
   return new window.RTCPeerConnection(config)
@@ -74,43 +74,46 @@ export const getUserMedia = (
   } catch (error) {
     switch (error.name) {
       case 'Error': {
-        logger.error(
+        getLogger().error(
           "navigator.mediaDevices.getUserMedia doesn't seem to be supported."
         )
         break
       }
       case 'NotFoundError': {
-        logger.error(
+        getLogger().error(
           'No media tracks of the type specified were found that satisfy the given constraints.'
         )
         break
       }
       case 'NotReadableError': {
-        logger.error(
+        getLogger().error(
           'Hardware error occurred at the operating system, browser, or Web page level which prevented access to the device. This could have been caused by having the Camera or Mic being user by another application.'
         )
         break
       }
       case 'OverconstrainedError': {
-        logger.error(
+        getLogger().error(
           `The constraint: ${error.constraint} cannot be met by the selected device.`
         )
-        logger.info(`List of available constraints:`, getSupportedConstraints())
+        getLogger().info(
+          `List of available constraints:`,
+          getSupportedConstraints()
+        )
         break
       }
       case 'NotAllowedError': {
-        logger.error(
+        getLogger().error(
           'The user has mostly likely denied access to the device. This could also happen if the browsing context is insecure (using HTTP rather than HTTPS)'
         )
         break
       }
       case 'TypeError': {
         if (Object.keys(constraints).length === 0) {
-          logger.error(
+          getLogger().error(
             'Constraints can\'t be empty nor have "video" and "audio" set to false.'
           )
         } else {
-          logger.error(
+          getLogger().error(
             'Please check that you are calling this method from a secure context (using HTTPS rather than HTTP).'
           )
         }
@@ -118,7 +121,7 @@ export const getUserMedia = (
         break
       }
       case 'SecurityError': {
-        logger.error(
+        getLogger().error(
           'User media support is disabled on the Document on which getUserMedia() was called. The mechanism by which user media support is enabled and disabled is left up to the individual user agent.'
         )
         break
@@ -242,13 +245,13 @@ export const setMediaElementSinkId = async (
   deviceId: string
 ): Promise<undefined> => {
   if (el === null) {
-    logger.warn('No HTMLMediaElement to attach the speakerId')
+    getLogger().warn('No HTMLMediaElement to attach the speakerId')
     return
   } else if (typeof deviceId !== 'string') {
-    logger.warn(`Invalid speaker deviceId: '${deviceId}'`)
+    getLogger().warn(`Invalid speaker deviceId: '${deviceId}'`)
     return
   } else if (!supportsMediaOutput()) {
-    logger.warn('Browser does not support output device selection.')
+    getLogger().warn('Browser does not support output device selection.')
     return
   }
   try {
@@ -256,11 +259,11 @@ export const setMediaElementSinkId = async (
     return await el.setSinkId(deviceId)
   } catch (error) {
     if (error.name === 'SecurityError') {
-      logger.error(
+      getLogger().error(
         `You need to use HTTPS for selecting audio output device: ${error}`
       )
     } else {
-      logger.error(`Error: ${error}`)
+      getLogger().error(`Error: ${error}`)
     }
 
     throw error

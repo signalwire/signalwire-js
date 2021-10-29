@@ -4,32 +4,30 @@ import {
   SessionState,
   ClientContract,
   ClientEvents,
-  logger,
 } from '@signalwire/core'
 import { createVideoObject, Video } from './video/Video'
 
 /**
- * A real-time Client. 
- * 
+ * A real-time Client.
+ *
  * To construct an instance of this class, please use {@link createClient}.
- * 
+ *
  * Example usage:
  * ```typescript
  * import {createClient} from '@signalwire/realtime-api'
- * 
+ *
  * // Obtain a client:
  * const client = await createClient({ project, token })
- * 
+ *
  * // Listen on events:
  * client.video.on('room.started', async (room) => { })
- * 
+ *
  * // Connect:
  * await client.connect()
  * ```
  */
 export interface RealtimeClient
   extends ClientContract<RealtimeClient, ClientEvents> {
-
   /**
    * Connects this client to the SignalWire network.
    *
@@ -72,7 +70,7 @@ export class Client extends BaseClient<ClientEvents> {
         })
       }
     } catch (error) {
-      logger.error('Client subscription failed.')
+      this.logger.error('Client subscription failed.')
       this.disconnect()
 
       /**
