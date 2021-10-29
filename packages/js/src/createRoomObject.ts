@@ -1,4 +1,4 @@
-import { UserOptions, logger, AssertSameType } from '@signalwire/core'
+import { UserOptions, getLogger, AssertSameType } from '@signalwire/core'
 import { createClient } from './createClient'
 import { MakeRoomOptions } from './Client'
 import { BaseRoomSession } from './BaseRoomSession'
@@ -118,7 +118,7 @@ export const createRoomObject = (
       } else {
         rootElement = document.body
 
-        logger.warn(
+        getLogger().warn(
           `We couldn't find an element with id: ${rootElementId}: using 'document.body' instead.`
         )
       }

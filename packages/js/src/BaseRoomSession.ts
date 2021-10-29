@@ -1,5 +1,4 @@
 import {
-  logger,
   connect,
   Rooms,
   EventTransform,
@@ -181,7 +180,7 @@ export class RoomSessionConnection
       }
       return screenShare
     } catch (error) {
-      logger.error('ScreenShare Error', error)
+      this.logger.error('ScreenShare Error', error)
       throw error
     }
   }
@@ -255,7 +254,7 @@ export class RoomSessionConnection
       }
       return roomDevice
     } catch (error) {
-      logger.error('RoomDevice Error', error)
+      this.logger.error('RoomDevice Error', error)
       throw error
     }
   }

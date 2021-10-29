@@ -1,4 +1,4 @@
-import { UserOptions, logger, AssertSameType } from '@signalwire/core'
+import { UserOptions, AssertSameType, getLogger } from '@signalwire/core'
 import { createClient } from './createClient'
 import type { MakeRoomOptions } from './Client'
 import { BaseRoomSession } from './BaseRoomSession'
@@ -131,7 +131,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
 
         await room.join()
       } catch (error) {
-        logger.error('RoomSession Join', error)
+        getLogger().error('RoomSession Join', error)
         reject(error)
       }
     })

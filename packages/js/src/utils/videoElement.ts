@@ -1,5 +1,5 @@
 import {
-  logger,
+  getLogger,
   InternalVideoLayoutLayer,
   InternalVideoLayout,
 } from '@signalwire/core'
@@ -84,7 +84,10 @@ const makeLayoutChangedHandler =
       const layer = layers.find(({ member_id }) => member_id === myMemberId)
 
       if (!layer) {
-        return logger.debug('Current Layer Not Found', JSON.stringify(layout))
+        return getLogger().debug(
+          'Current Layer Not Found',
+          JSON.stringify(layout)
+        )
       }
 
       let myLayer = layerMap.get(myMemberId)
@@ -115,7 +118,7 @@ const makeLayoutChangedHandler =
       myLayer.style.width = width
       myLayer.style.height = height
     } catch (error) {
-      logger.error('Layout Changed Error', error)
+      getLogger().error('Layout Changed Error', error)
     }
   }
 
