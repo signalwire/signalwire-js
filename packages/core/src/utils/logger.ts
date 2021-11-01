@@ -26,8 +26,6 @@ defaultLogger.setLevel(level)
 let userLogger: any
 const setLogger = (logger: any) => {
   userLogger = logger
-  console.log('---> userLogger', userLogger, logger)
-  // logger = userLogger
 }
 
 const getLogger = () => {
