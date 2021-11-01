@@ -80,8 +80,8 @@ export class RoomSessionConnection
   }
 
   /** @internal */
-  protected getCustomSagas() {
-    return new Map([['video', { saga: videoWorker }]])
+  protected override getWorkers() {
+    return new Map([['video', { worker: videoWorker }]])
   }
 
   /** @internal */

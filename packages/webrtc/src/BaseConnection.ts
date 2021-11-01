@@ -96,7 +96,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     logger.debug('New Call with Options:', this.options)
 
     this.applyEmitterTransforms({ local: true })
-    this.attachCustomSagas()
+    this.attachWorkers()
   }
 
   get id() {

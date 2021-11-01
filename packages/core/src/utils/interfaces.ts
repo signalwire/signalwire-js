@@ -1,3 +1,4 @@
+import type { SagaIterator } from '@redux-saga/types'
 import type { EventEmitter } from '../utils/EventEmitter'
 import { BaseSession } from '../BaseSession'
 import { SDKStore } from '../redux'
@@ -75,8 +76,6 @@ export interface SessionOptions {
 export interface UserOptions extends SessionOptions {
   /** @internal */
   devTools?: boolean
-  /** @internal */
-  customSagas?: any[] // FIXME: typings and maybe rename (?)
 }
 
 export interface InternalUserOptions extends UserOptions {
@@ -85,6 +84,7 @@ export interface InternalUserOptions extends UserOptions {
    * emitter should be allowed to handle
    */
   emitter: EventEmitter<any>
+  customWorkers?: SDKWorker[]
 }
 
 /**
@@ -358,3 +358,7 @@ export interface EventTransform {
 }
 
 export type BaseEventHandler = (...args: any[]) => void
+
+// TODO: Add worker params
+export interface SDKWorkerParams {}
+export type SDKWorker = (params?: SDKWorkerParams) => SagaIterator<any>

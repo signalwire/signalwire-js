@@ -58,17 +58,17 @@ export function* initSessionSaga(
   const pubSubChannel: PubSubChannel = yield call(channel)
 
   /**
-   * Start all the custom sagas on startup
+   * Start all the custom workers on startup
    */
   let customTasks: Task[] = []
-  if (userOptions.customSagas?.length) {
+  if (userOptions.customWorkers?.length) {
     try {
-      const effects = userOptions.customSagas.map((saga) => {
+      const effects = userOptions.customWorkers.map((saga) => {
         return call(createRestartableSaga(saga))
       })
       customTasks = yield all(effects)
     } catch (error) {
-      logger.error('Error running custom sagas', error)
+      logger.error('Error running custom workers', error)
     }
   }
 
