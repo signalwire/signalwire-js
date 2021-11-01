@@ -120,15 +120,21 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     client.disconnect()
   })
 
-  const join = async () => {
-    try {
-      await client.connect()
-      await room.join()
-    } catch (e) {
-      logger.error(e)
-      throw e
-    }
-    return room
+  const join = () => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        await client.connect()
+
+        room.once('room.subscribed', () => {
+          resolve(room)
+        })
+
+        await room.join()
+      } catch (error) {
+        logger.error('RoomSession Join', error)
+        reject(error)
+      }
+    })
   }
 
   return new Proxy<Omit<RoomSession, 'new'>>(room, {

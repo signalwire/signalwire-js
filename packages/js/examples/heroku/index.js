@@ -244,6 +244,10 @@ window.connect = () => {
     .then((result) => {
       console.log('>> Room Joined', result)
 
+      roomObj.getLayouts().then((layouts) => {
+        console.log('>> Layouts', layouts)
+      })
+
       enumerateDevices()
         .then(initDeviceOptions)
         .catch((error) => {

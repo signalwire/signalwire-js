@@ -301,9 +301,18 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     try {
       const type = this.isOffer ? 'answer' : 'offer'
       await this._setRemoteDescription({ sdp, type })
+
+      /**
+       * Resolve the start() method only for Offer because for Answer
+       * we need to reply to the server and wait for the signaling.
+       */
+      if (this.isOffer) {
+        this._resolveStartMethod()
+      }
     } catch (error) {
       logger.error(`Error handling remote SDP on call ${this.call.id}:`, error)
       this.call.hangup()
+      this._rejectStartMethod(error)
     }
   }
 
@@ -319,7 +328,13 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       this._resolveStartMethod = resolve
       this._rejectStartMethod = reject
 
-      this.options.localStream = await this._retrieveLocalStream()
+      try {
+        this.options.localStream = await this._retrieveLocalStream()
+      } catch (error) {
+        logger.error('Error retrieving a local stream', error)
+        this._rejectStartMethod(error)
+        return this.call.setState('hangup')
+      }
 
       /**
        * We need to defer the creation of RTCPeerConnection
@@ -431,8 +446,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
     try {
       await this.call.onLocalSDPReady(this.instance.localDescription)
-
-      this._resolveStartMethod()
     } catch (error) {
       this._rejectStartMethod(error)
     }
