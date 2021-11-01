@@ -1,5 +1,10 @@
 import { sessionStorage } from './utils/storage/'
-import { RPCConnect, RPCConnectParams } from './RPCMessages'
+import {
+  RPCConnect,
+  RPCConnectParams,
+  RPCReauthenticate,
+  RPCReauthenticateParams,
+} from './RPCMessages'
 import { SessionOptions } from './utils/interfaces'
 import { BaseSession } from './BaseSession'
 
@@ -64,19 +69,43 @@ export class BaseJWTSession extends BaseSession {
   }
 
   /**
+   * Authenticate with the SignalWire Network
+   * using JWT
+   * @return Promise<void>
+   */
+  private async reauthenticate() {
+    if (this.expired) {
+      return this.connect()
+    }
+
+    const params: RPCReauthenticateParams = {
+      project: this._rpcConnectResult.authorization.project,
+      jwt_token: this.options.token,
+    }
+
+    this._rpcConnectResult = await this.execute(RPCReauthenticate(params))
+  }
+
+  /**
    * Set a timer to dispatch a notification when the JWT is going to expire.
    * @return void
    */
-  protected _checkTokenExpiration() {
+  protected async _checkTokenExpiration() {
     if (!this.expiresAt) {
       return
     }
     if (this.expiresIn <= this._refreshTokenNotificationDiff) {
-      this.logger.debug(
-        'Your JWT is going to expire. Please refresh it to keep the session live.'
-      )
-      // TODO: check JWT expires_at and handle re-auth
-      // trigger(SwEvent.Notification, { type: Notification.RefreshToken, session: this }, this.uuid, false)
+      if (this.options.refreshToken) {
+        this.logger.debug('Fetching new token')
+        // FIXME: set/get token in a better way
+        this.options.token = await this.options.refreshToken()
+        this.logger.debug('Got token', this.options.token)
+        await this.reauthenticate()
+      } else {
+        this.logger.error(
+          'You must provide a `refreshToken()` method into the init options.'
+        )
+      }
     }
     clearTimeout(this._checkTokenExpirationTimer)
     if (!this.expired) {

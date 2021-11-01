@@ -71,6 +71,8 @@ export interface SessionOptions {
   // From `LogLevelDesc` of loglevel to simplify our docs
   /** logging level */
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
+  /** @internal */
+  refreshToken?(): Promise<string>
 }
 
 export interface UserOptions extends SessionOptions {
