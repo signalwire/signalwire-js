@@ -18,7 +18,7 @@ import { createVideoObject, Video } from './video/Video'
  * import {createClient} from '@signalwire/realtime-api'
  * 
  * // Obtain a client:
- * const client = await createClient({project, token})
+ * const client = await createClient({ project, token })
  * 
  * // Listen on events:
  * client.video.on('room.started', async (room) => { })
