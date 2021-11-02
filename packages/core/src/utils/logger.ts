@@ -17,6 +17,7 @@ logger.methodFactory = (methodName, logLevel, loggerName) => {
 }
 
 const level =
+  // @ts-ignore
   'development' === process.env.NODE_ENV
     ? logger.levels.DEBUG
     : logger.getLevel()

@@ -1,4 +1,5 @@
 import { Action } from '@reduxjs/toolkit'
+import { Task } from '@redux-saga/types'
 import {
   uuid,
   logger,
@@ -17,6 +18,7 @@ import {
   EventsPrefix,
   EventTransformType,
   EventTransform,
+  SDKWorker,
 } from './utils/interfaces'
 import { EventEmitter } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
@@ -155,6 +157,11 @@ export class BaseComponent<
    * `_eventsNamespace`
    */
   private _trackedEvents: Array<EventEmitter.EventNames<EventTypes>> = []
+
+  /**
+   * List of running Tasks to be cancelled on `destroy`.
+   */
+  private _runningWorkers: Task[] = []
 
   constructor(public options: BaseComponentOptions<EventTypes>) {}
 
@@ -528,6 +535,7 @@ export class BaseComponent<
   destroy() {
     this._destroyer?.()
     this.removeAllListeners()
+    this.detachWorkers()
   }
 
   /** @internal */
@@ -737,5 +745,28 @@ export class BaseComponent<
        */
       this._emitterTransforms.set(handlersObj.type, handlersObj)
     })
+  }
+
+  /**
+   * Returns a Map of Sagas that will be attached to the Store to handle
+   * events or perform side-effects.
+   */
+  protected getWorkers(): Map<string, { worker: SDKWorker }> {
+    return new Map()
+  }
+
+  protected attachWorkers() {
+    this.getWorkers().forEach(({ worker }) => {
+      // TODO: passing args to saga ? Like: `{ instance: this }`
+      const task = this.store.runSaga(worker)
+      this._runningWorkers.push(task)
+    })
+  }
+
+  private detachWorkers() {
+    this._runningWorkers.forEach((task) => {
+      task.cancel()
+    })
+    this._runningWorkers = []
   }
 }

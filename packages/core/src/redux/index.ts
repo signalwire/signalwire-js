@@ -52,3 +52,4 @@ const configureStore = (options: ConfigureStoreOptions) => {
 
 export { connect, configureStore }
 export * from './actions'
+export * from './utils/sagaHelpers'

@@ -1,7 +1,8 @@
 import { Task, SagaIterator } from '@redux-saga/types'
 import { channel, EventChannel } from 'redux-saga'
-import { fork, call, take, put, delay } from 'redux-saga/effects'
+import { fork, call, take, put, delay, all } from 'redux-saga/effects'
 import { SessionConstructor, InternalUserOptions } from '../utils/interfaces'
+import { logger } from '../utils'
 import { BaseSession } from '../BaseSession'
 import {
   executeActionWatcher,
@@ -30,6 +31,7 @@ import {
 } from './actions'
 import { AuthError } from '../CustomErrors'
 import { PubSubChannel } from './interfaces'
+import { createRestartableSaga } from './utils/sagaHelpers'
 
 interface StartSagaOptions {
   session: BaseSession
@@ -55,6 +57,21 @@ export function* initSessionSaga(
    */
   const pubSubChannel: PubSubChannel = yield call(channel)
 
+  /**
+   * Start all the custom workers on startup
+   */
+  let customTasks: Task[] = []
+  if (userOptions.workers?.length) {
+    try {
+      const effects = userOptions.workers.map((saga) => {
+        return call(createRestartableSaga(saga))
+      })
+      customTasks = yield all(effects)
+    } catch (error) {
+      logger.error('Error running custom workers', error)
+    }
+  }
+
   yield fork(sessionChannelWatcher, {
     session,
     sessionChannel,
@@ -76,6 +93,7 @@ export function* initSessionSaga(
   yield take(destroyAction.type)
   pubSubChannel.close()
   sessionChannel.close()
+  customTasks.forEach((task) => task.cancel())
 }
 
 export function* socketClosedWorker({
