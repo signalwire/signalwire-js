@@ -61,7 +61,7 @@ describe('sessionChannelWatcher', () => {
         })
         .run()
         .finally(() => {
-          expect(dispatchedActions).toHaveLength(4)
+          expect(dispatchedActions).toHaveLength(3)
         })
     })
 
@@ -117,7 +117,7 @@ describe('sessionChannelWatcher', () => {
         })
         .run()
         .finally(() => {
-          expect(dispatchedActions).toHaveLength(4)
+          expect(dispatchedActions).toHaveLength(3)
         })
     })
 
@@ -173,7 +173,7 @@ describe('sessionChannelWatcher', () => {
         })
         .run()
         .finally(() => {
-          expect(dispatchedActions).toHaveLength(4)
+          expect(dispatchedActions).toHaveLength(3)
         })
     })
 
@@ -229,7 +229,7 @@ describe('sessionChannelWatcher', () => {
         })
         .run()
         .finally(() => {
-          expect(dispatchedActions).toHaveLength(4)
+          expect(dispatchedActions).toHaveLength(3)
         })
     })
 
@@ -277,7 +277,7 @@ describe('sessionChannelWatcher', () => {
         })
         .run()
         .finally(() => {
-          expect(dispatchedActions).toHaveLength(2)
+          expect(dispatchedActions).toHaveLength(1)
         })
     })
 
@@ -322,7 +322,7 @@ describe('sessionChannelWatcher', () => {
         })
         .run()
         .finally(() => {
-          expect(dispatchedActions).toHaveLength(2)
+          expect(dispatchedActions).toHaveLength(1)
         })
     })
 
@@ -393,7 +393,7 @@ describe('sessionChannelWatcher', () => {
         })
         .run()
         .finally(() => {
-          expect(dispatchedActions).toHaveLength(3)
+          expect(dispatchedActions).toHaveLength(2)
         })
     })
   })
@@ -453,7 +453,7 @@ describe('sessionChannelWatcher', () => {
           )
           .run()
           .finally(() => {
-            expect(dispatchedActions).toHaveLength(3)
+            expect(dispatchedActions).toHaveLength(2)
           })
       })
     })
@@ -511,7 +511,7 @@ describe('sessionChannelWatcher', () => {
           )
           .run()
           .finally(() => {
-            expect(dispatchedActions).toHaveLength(3)
+            expect(dispatchedActions).toHaveLength(2)
           })
       })
 
@@ -568,7 +568,7 @@ describe('sessionChannelWatcher', () => {
           )
           .run()
           .finally(() => {
-            expect(dispatchedActions).toHaveLength(3)
+            expect(dispatchedActions).toHaveLength(2)
           })
       })
     })
@@ -629,7 +629,7 @@ describe('sessionChannelWatcher', () => {
           )
           .run()
           .finally(() => {
-            expect(dispatchedActions).toHaveLength(3)
+            expect(dispatchedActions).toHaveLength(2)
           })
       })
     })
@@ -680,7 +680,7 @@ describe('sessionChannelWatcher', () => {
           )
           .run()
           .finally(() => {
-            expect(dispatchedActions).toHaveLength(2)
+            expect(dispatchedActions).toHaveLength(1)
           })
       })
     })
@@ -771,7 +771,7 @@ describe('sessionChannelWatcher', () => {
           )
           .run()
           .finally(() => {
-            expect(dispatchedActions).toHaveLength(2)
+            expect(dispatchedActions).toHaveLength(1)
           })
       })
 
@@ -826,7 +826,7 @@ describe('sessionChannelWatcher', () => {
           )
           .run()
           .finally(() => {
-            expect(dispatchedActions).toHaveLength(2)
+            expect(dispatchedActions).toHaveLength(1)
           })
       })
     })
