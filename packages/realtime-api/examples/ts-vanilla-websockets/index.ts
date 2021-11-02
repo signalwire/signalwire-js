@@ -2,10 +2,10 @@ import { setLogger } from '@signalwire/core'
 import { createClient } from '@signalwire/realtime-api'
 import pino from 'pino'
 
-const logger = pino()
-const child = logger.child({ a: 'example-prop' })
-child.level = 'trace'
-setLogger(child)
+const logger = pino({
+  level: 'trace',
+})
+setLogger(logger)
 
 async function run() {
   try {

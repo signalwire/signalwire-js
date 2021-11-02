@@ -62,7 +62,15 @@ export class BaseSession {
     }
 
     if (logLevel) {
-      // this.logger.setLevel(logLevel)
+      /**
+       * `setLevel` only makes sense when dealing with our
+       * default logger. The error is expected because we
+       * don't expose `setLevel` as part of our public
+       * SDKLogger since there's no standard API across
+       * loggers to do this.
+       */
+      // @ts-expect-error
+      this.logger.setLevel?.(logLevel)
     }
     this._onSocketOpen = this._onSocketOpen.bind(this)
     this._onSocketError = this._onSocketError.bind(this)
