@@ -29,7 +29,7 @@ describe('logger', () => {
       expect(mockLogger.debug).toHaveBeenCalledWith('debug')
       expect(mockLogger.error).toHaveBeenCalledWith('error')
       expect(mockLogger.trace).toHaveBeenCalledWith('trace')
-      expect(mockLogger.warn).toHaveBeenCalledWith('warx')
+      expect(mockLogger.warn).toHaveBeenCalledWith('warn')
     })
   })
 })
