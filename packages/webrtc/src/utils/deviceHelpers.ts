@@ -737,8 +737,7 @@ export const createDeviceWatcher = async (
       })
     }
   }
-  const mediaDevicesApi = WebRTC.getMediaDevicesApi()
-  mediaDevicesApi.addEventListener('devicechange', deviceChangeHandler)
+  WebRTC.getMediaDevicesApi().addEventListener('devicechange', deviceChangeHandler)
 
   return emitter
 }
