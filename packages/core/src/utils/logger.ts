@@ -1,4 +1,6 @@
 import log from 'loglevel'
+import { SDKLogger } from '..'
+
 const datetime = () =>
   new Date().toISOString().replace('T', ' ').replace('Z', '')
 const defaultLogger = log.getLogger('signalwire')
@@ -28,7 +30,10 @@ const setLogger = (logger: any) => {
   userLogger = logger
 }
 
-const getLogger = () => {
+const getLogger = (): SDKLogger => {
+  if (userLogger) {
+    userLogger.level = 'trace'
+  }
   return userLogger ?? defaultLogger
 }
 

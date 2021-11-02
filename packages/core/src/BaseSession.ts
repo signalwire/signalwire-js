@@ -88,8 +88,7 @@ export class BaseSession {
     return this._rpcConnectResult?.authorization?.signature
   }
 
-  // TODO:
-  get logger(): any {
+  protected get logger() {
     return getLogger()
   }
 

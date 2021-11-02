@@ -74,11 +74,8 @@ export class BaseComponent<
   private _requests = new Map()
   private _customSagaTriggers = new Map()
   private _destroyer?: () => void
-  // TODO: add proper type
-  /** @internal */
-  protected _logger: any
 
-  get logger() {
+  protected get logger() {
     return getLogger()
   }
 

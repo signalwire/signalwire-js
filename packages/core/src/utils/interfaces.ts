@@ -362,3 +362,16 @@ export type BaseEventHandler = (...args: any[]) => void
 // TODO: Add worker params
 export interface SDKWorkerParams {}
 export type SDKWorker = (params?: SDKWorkerParams) => SagaIterator<any>
+interface LogFn {
+  <T extends object>(obj: T, msg?: string, ...args: any[]): void
+  (obj: unknown, msg?: string, ...args: any[]): void
+  (msg: string, ...args: any[]): void
+}
+export interface SDKLogger {
+  fatal: LogFn
+  error: LogFn
+  warn: LogFn
+  info: LogFn
+  debug: LogFn
+  trace: LogFn
+}
