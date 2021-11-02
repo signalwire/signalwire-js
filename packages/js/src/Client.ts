@@ -6,7 +6,10 @@ import {
 } from '@signalwire/core'
 import type { CustomSaga } from '@signalwire/core'
 import { ConnectionOptions } from '@signalwire/webrtc'
-import { makeMediaElementsSaga } from './features/mediaElements/mediaElementsSagas'
+import {
+  makeVideoElementSaga,
+  makeAudioElementSaga,
+} from './features/mediaElements/mediaElementsSagas'
 import { RoomSession } from './RoomSession'
 import {
   createBaseRoomSessionObject,
@@ -45,16 +48,24 @@ export class ClientAPI<
         const customSagas: Array<CustomSaga<RoomSessionConnection>> = []
 
         /**
+         * By default the SDK will attach the audio to
+         * an Audio element (regardless of "rootElement")
+         */
+        customSagas.push(
+          makeAudioElementSaga({
+            speakerId: options.speakerId,
+          })
+        )
+
+        /**
          * If the user provides a `roomElement` we'll
-         * automatically handle the Audio and Video elements
-         * for them
+         * automatically handle the Video element for them
          */
         if (rootElement) {
           customSagas.push(
-            makeMediaElementsSaga({
+            makeVideoElementSaga({
               rootElement,
               applyLocalVideoOverlay,
-              speakerId: options.speakerId,
             })
           )
         }

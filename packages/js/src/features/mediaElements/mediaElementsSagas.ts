@@ -17,23 +17,20 @@ import { setAudioMediaTrack } from '../../utils/audioElement'
 import { audioSetSpeakerAction } from '../actions'
 import type { RoomSessionConnection } from '../../BaseRoomSession'
 
-export const makeMediaElementsSaga = ({
+export const makeVideoElementSaga = ({
   rootElement,
   applyLocalVideoOverlay,
-  speakerId,
 }: {
   rootElement: HTMLElement
   applyLocalVideoOverlay?: boolean
-  speakerId?: string
-}) =>
-  function* mediaElementsSaga({
+}) => {
+  return function* videoElementSaga({
     instance: room,
     runSaga,
   }: CustomSagaParams<RoomSessionConnection>): SagaIterator {
     try {
       const layerMap = new Map()
       const videoEl = buildVideo()
-      const audioEl = new Audio()
       const layoutChangedHandler = makeLayoutChangedHandler({
         rootElement,
         element: videoEl,
@@ -64,19 +61,10 @@ export const makeMediaElementsSaga = ({
         }
       })
 
-      let audioTask: Task | undefined
       let videoTask: Task | undefined
 
-      room.on('track', function (event: RTCTrackEvent) {
+      const trackHandler = function (event: RTCTrackEvent) {
         switch (event.track.kind) {
-          case 'audio':
-            audioTask = runSaga(audioElementSetupWorker, {
-              track: event.track,
-              element: audioEl,
-              speakerId,
-              room,
-            })
-            break
           case 'video': {
             videoTask = runSaga(videoElementSetupWorker, {
               applyLocalVideoOverlay,
@@ -84,21 +72,59 @@ export const makeMediaElementsSaga = ({
               track: event.track,
               element: videoEl,
             })
+            // Remove listener when done with video
+            room.off('track', trackHandler)
             break
           }
         }
-      })
+      }
+      room.on('track', trackHandler)
 
       room.once('destroy', () => {
         cleanupElement(rootElement)
         layerMap.clear()
-        audioTask?.cancel()
         videoTask?.cancel()
       })
     } catch (error) {
-      logger.error('mediaElementsSagas', error)
+      logger.error('videoElementSaga', error)
     }
   }
+}
+
+export const makeAudioElementSaga = ({ speakerId }: { speakerId?: string }) => {
+  return function* audioElementSaga({
+    instance: room,
+    runSaga,
+  }: CustomSagaParams<RoomSessionConnection>): SagaIterator {
+    try {
+      const audioEl = new Audio()
+      let audioTask: Task | undefined
+
+      const trackHandler = function (event: RTCTrackEvent) {
+        switch (event.track.kind) {
+          case 'audio': {
+            audioTask = runSaga(audioElementSetupWorker, {
+              track: event.track,
+              element: audioEl,
+              speakerId,
+              room,
+            })
+            // Remove listener when done with audio
+            room.off('track', trackHandler)
+            break
+          }
+        }
+      }
+      room.on('track', trackHandler)
+
+      room.once('destroy', () => {
+        audioTask?.cancel()
+      })
+    } catch (error) {
+      logger.error('audioElementSaga', error)
+    }
+  }
+}
 
 function* audioElementActionsWatcher({
   element,
