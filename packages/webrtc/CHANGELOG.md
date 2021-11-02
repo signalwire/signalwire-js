@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.6] - 2021-11-02
+
+### Fixed
+
+- [#347](https://github.com/signalwire/signalwire-js/pull/347) [`2360ef7`](https://github.com/signalwire/signalwire-js/commit/2360ef77915497072d4428aacf0595d9713a614e) - Fix issue with connection not being able to stablish when video/audio permissions were not granted.
+
+- [#349](https://github.com/signalwire/signalwire-js/pull/349) [`a1bc095`](https://github.com/signalwire/signalwire-js/commit/a1bc095c22b9d2823208b6fddfbfd785803430de) - Fix issue when using multiple `createDeviceWatcher` at the same time.
+
+### Dependencies
+
+- Updated dependencies [[`bae6985`](https://github.com/signalwire/signalwire-js/commit/bae69856f67aa339c02e074fc936048f2cc7bc7b), [`fa40510`](https://github.com/signalwire/signalwire-js/commit/fa4051009213028955a043fedcfb7109da2e6f4b)]:
+  - @signalwire/core@3.3.0
+
 ## [3.1.5] - 2021-10-12
 
 ### Dependencies
