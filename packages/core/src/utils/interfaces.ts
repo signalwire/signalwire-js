@@ -84,7 +84,7 @@ export interface InternalUserOptions extends UserOptions {
    * emitter should be allowed to handle
    */
   emitter: EventEmitter<any>
-  customWorkers?: SDKWorker[]
+  workers?: SDKWorker[]
 }
 
 /**

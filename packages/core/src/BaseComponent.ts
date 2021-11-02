@@ -767,5 +767,6 @@ export class BaseComponent<
     this._runningWorkers.forEach((task) => {
       task.cancel()
     })
+    this._runningWorkers = []
   }
 }

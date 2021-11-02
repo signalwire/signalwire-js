@@ -61,9 +61,9 @@ export function* initSessionSaga(
    * Start all the custom workers on startup
    */
   let customTasks: Task[] = []
-  if (userOptions.customWorkers?.length) {
+  if (userOptions.workers?.length) {
     try {
-      const effects = userOptions.customWorkers.map((saga) => {
+      const effects = userOptions.workers.map((saga) => {
         return call(createRestartableSaga(saga))
       })
       customTasks = yield all(effects)
