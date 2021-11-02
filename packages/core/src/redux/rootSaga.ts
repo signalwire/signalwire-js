@@ -2,7 +2,7 @@ import { Task, SagaIterator } from '@redux-saga/types'
 import { channel, EventChannel } from 'redux-saga'
 import { fork, call, take, put, delay, all } from 'redux-saga/effects'
 import { SessionConstructor, InternalUserOptions } from '../utils/interfaces'
-import { logger } from '../utils'
+import { getLogger } from '../utils'
 import { BaseSession } from '../BaseSession'
 import {
   executeActionWatcher,
@@ -68,7 +68,7 @@ export function* initSessionSaga(
       })
       customTasks = yield all(effects)
     } catch (error) {
-      logger.error('Error running custom workers', error)
+      getLogger().error('Error running custom workers', error)
     }
   }
 
