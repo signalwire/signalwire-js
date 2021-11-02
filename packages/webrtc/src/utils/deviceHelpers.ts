@@ -699,7 +699,7 @@ export const createDeviceWatcher = async (
     targets: kinds,
   })
 
-  WebRTC.getMediaDevicesApi().ondevicechange = async () => {
+  const deviceChangeHandler = async () => {
     const currentDevices = await WebRTC.enumerateDevices()
     const oldDevices = knownDevices
     const newDevices = _filterDevices(currentDevices, {
@@ -737,6 +737,7 @@ export const createDeviceWatcher = async (
       })
     }
   }
+  WebRTC.getMediaDevicesApi().addEventListener('devicechange', deviceChangeHandler)
 
   return emitter
 }
