@@ -25,16 +25,13 @@ const level =
     : defaultLogger.getLevel()
 defaultLogger.setLevel(level)
 
-let userLogger: any
-const setLogger = (logger: any) => {
+let userLogger: SDKLogger | null
+const setLogger = (logger: SDKLogger | null) => {
   userLogger = logger
 }
 
 const getLogger = (): SDKLogger => {
-  if (userLogger) {
-    userLogger.level = 'trace'
-  }
-  return userLogger ?? defaultLogger
+  return userLogger ?? (defaultLogger as any as SDKLogger)
 }
 
 export { setLogger, getLogger }
