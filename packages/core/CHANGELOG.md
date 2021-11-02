@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.0] - 2021-11-02
+
+### Added
+
+- [#338](https://github.com/signalwire/signalwire-js/pull/338) [`bae6985`](https://github.com/signalwire/signalwire-js/commit/bae69856f67aa339c02e074fc936048f2cc7bc7b) - Add `displayName` to VideoRoomSessionContract.
+
+### Changed
+
+- [#327](https://github.com/signalwire/signalwire-js/pull/327) [`fa40510`](https://github.com/signalwire/signalwire-js/commit/fa4051009213028955a043fedcfb7109da2e6f4b) - Improved internal typings for the Video namespace.
+
 ## [3.2.0] - 2021-10-12
 
 ### Added

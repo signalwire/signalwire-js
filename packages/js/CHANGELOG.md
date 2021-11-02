@@ -4,6 +4,32 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.0] - 2021-11-02
+
+### Added
+
+- [#327](https://github.com/signalwire/signalwire-js/pull/327) [`fa40510`](https://github.com/signalwire/signalwire-js/commit/fa4051009213028955a043fedcfb7109da2e6f4b) - Added `setHideVideoMuted` to RoomSession interface.
+
+- [#343](https://github.com/signalwire/signalwire-js/pull/343) [`9df995b`](https://github.com/signalwire/signalwire-js/commit/9df995b437fdf8703af16f91b0362d313732ff25) - Included a complete method documentation for the SDK
+
+### Changed
+
+- [#351](https://github.com/signalwire/signalwire-js/pull/351) [`0e22ac8`](https://github.com/signalwire/signalwire-js/commit/0e22ac8dd3aedf8189276df42910e2ddb5f583bb) - Always attach the audio track regardless the `rootElement` option.
+
+- [#327](https://github.com/signalwire/signalwire-js/pull/327) [`fa40510`](https://github.com/signalwire/signalwire-js/commit/fa4051009213028955a043fedcfb7109da2e6f4b) - Improved internal typings for the Video namespace.
+
+### Fixed
+
+- [#346](https://github.com/signalwire/signalwire-js/pull/346) [`ea0cef3`](https://github.com/signalwire/signalwire-js/commit/ea0cef3f3d7da2d5b709786313d830a9af43dd5b) - Fix possible race condition on RoomSession `join()` method.
+
+- [#337](https://github.com/signalwire/signalwire-js/pull/337) [`ccc0d35`](https://github.com/signalwire/signalwire-js/commit/ccc0d35e4103cc85f9689f4ef125b213b3a05b24) - Fix a possible race condition when applying the localVideo overlay.
+
+### Dependencies
+
+- Updated dependencies [[`2360ef7`](https://github.com/signalwire/signalwire-js/commit/2360ef77915497072d4428aacf0595d9713a614e), [`a1bc095`](https://github.com/signalwire/signalwire-js/commit/a1bc095c22b9d2823208b6fddfbfd785803430de), [`bae6985`](https://github.com/signalwire/signalwire-js/commit/bae69856f67aa339c02e074fc936048f2cc7bc7b), [`fa40510`](https://github.com/signalwire/signalwire-js/commit/fa4051009213028955a043fedcfb7109da2e6f4b)]:
+  - @signalwire/webrtc@3.1.6
+  - @signalwire/core@3.3.0
+
 ## [3.4.0] - 2021-10-12
 
 ### Added
