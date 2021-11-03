@@ -136,7 +136,6 @@ export function* sessionChannelWatcher({
   pubSubChannel,
 }: SessionSagaParams): SagaIterator {
   function* vertoWorker({ jsonrpc, nodeId }: VertoWorkerParams) {
-    getLogger().debug('vertoWorker', jsonrpc, nodeId)
     const { id, method, params = {} } = jsonrpc
 
     switch (method) {
@@ -372,7 +371,6 @@ export function* sessionChannelWatcher({
   function* sessionChannelWorker(
     action: PayloadAction<JSONRPCRequest>
   ): SagaIterator {
-    getLogger().debug('Inbound WebSocket Message', action)
     if (action.type !== socketMessageAction.type) {
       yield put(action)
       return
