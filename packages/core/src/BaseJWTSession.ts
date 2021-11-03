@@ -103,7 +103,6 @@ export class BaseJWTSession extends BaseSession {
     }
     if (this.expiresIn <= this._refreshTokenNotificationDiff) {
       if (this.options._onRefreshToken) {
-        this.logger.debug('Token is going to expire! - Invoke user cb')
         this.options._onRefreshToken()
       } else {
         this.logger.error('The token is going to expire!')
