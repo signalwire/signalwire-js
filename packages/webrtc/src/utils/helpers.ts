@@ -1,10 +1,10 @@
-import { logger } from '@signalwire/core'
+import { getLogger } from '@signalwire/core'
 import * as WebRTC from './webrtcHelpers'
 import { assureDeviceId } from './deviceHelpers'
 import { ConnectionOptions } from './interfaces'
 
 export const getUserMedia = async (constraints: MediaStreamConstraints) => {
-  logger.info('RTCService.getUserMedia', constraints)
+  getLogger().info('RTCService.getUserMedia', constraints)
   const { audio, video } = constraints
   if (!audio && !video) {
     return
@@ -12,7 +12,7 @@ export const getUserMedia = async (constraints: MediaStreamConstraints) => {
   try {
     return await WebRTC.getUserMedia(constraints)
   } catch (error) {
-    logger.error('getUserMedia error: ', error)
+    getLogger().error('getUserMedia error: ', error)
     throw error
   }
 }

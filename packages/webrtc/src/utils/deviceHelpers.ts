@@ -1,4 +1,4 @@
-import { logger, EventEmitter } from '@signalwire/core'
+import { getLogger, EventEmitter } from '@signalwire/core'
 import * as WebRTC from './webrtcHelpers'
 
 /**
@@ -27,7 +27,7 @@ const _getMediaDeviceKindByName = (name?: DevicePermissionName) => {
 const _legacyCheckPermissions = async (kind?: MediaDeviceKind) => {
   const devices: MediaDeviceInfo[] = await WebRTC.enumerateDevicesByKind(kind)
   if (!devices.length) {
-    logger.warn(`No ${kind} devices to check for permissions!`)
+    getLogger().warn(`No ${kind} devices to check for permissions!`)
     return null
   }
   return devices.every(({ deviceId, label }) => Boolean(deviceId && label))
@@ -419,8 +419,8 @@ const _getDeviceListDiff = (
   const removals = _deviceInfoToMap(oldDevices)
   const updates: MediaDeviceInfo[] = []
 
-  logger.debug('[_getDeviceListDiff] <- oldDevices', oldDevices)
-  logger.debug('[_getDeviceListDiff] -> newDevices', newDevices)
+  getLogger().debug('[_getDeviceListDiff] <- oldDevices', oldDevices)
+  getLogger().debug('[_getDeviceListDiff] -> newDevices', newDevices)
 
   const additions = newDevices.filter((newDevice) => {
     const id = newDevice.deviceId
@@ -526,7 +526,7 @@ const validateTargets = async (options: {
 }): Promise<DevicePermissionName[]> => {
   const targets = (options.targets ?? DEFAULT_TARGETS).filter((target) => {
     if (!DEFAULT_TARGETS.includes(target)) {
-      logger.warn(
+      getLogger().warn(
         `We'll ignore the "${target}" target as it is not allowed. ${ALLOWED_TARGETS_MSG}.`
       )
       return false
@@ -591,14 +591,14 @@ const validateTargets = async (options: {
           )}. `
         : ''
 
-    logger.warn(
+    getLogger().warn(
       `${unsupportedTargets}${needPermissions}We'll be watching for the following targets instead: "${filteredTargets.join(
         ', '
       )}"`
     )
   }
 
-  logger.debug(`Watching these targets: "${filteredTargets.join(', ')}"`)
+  getLogger().debug(`Watching these targets: "${filteredTargets.join(', ')}"`)
   return filteredTargets
 }
 

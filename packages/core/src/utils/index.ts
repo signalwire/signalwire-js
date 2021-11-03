@@ -5,9 +5,9 @@ import {
   EVENT_NAMESPACE_DIVIDER,
   LOCAL_EVENT_PREFIX,
 } from './constants'
+export { setLogger, getLogger } from './logger'
 
 export { v4 as uuid } from 'uuid'
-export { logger } from './logger'
 export * from './parseRPCResponse'
 export * from './toExternalJSON'
 export * from './toInternalEventName'

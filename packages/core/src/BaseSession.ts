@@ -1,5 +1,5 @@
 import { PayloadAction } from '@reduxjs/toolkit'
-import { uuid, logger } from './utils'
+import { uuid, getLogger } from './utils'
 import { DEFAULT_HOST, WebSocketState } from './utils/constants'
 import {
   RPCConnect,
@@ -60,8 +60,17 @@ export class BaseSession {
     if (host) {
       this._host = checkWebSocketHost(host)
     }
+
     if (logLevel) {
-      this.logger.setLevel(logLevel)
+      /**
+       * `setLevel` only makes sense when dealing with our
+       * default logger. The error is expected because we
+       * don't expose `setLevel` as part of our public
+       * SDKLogger since there's no standard API across
+       * loggers to do this.
+       */
+      // @ts-expect-error
+      this.logger.setLevel?.(logLevel)
     }
     this._onSocketOpen = this._onSocketOpen.bind(this)
     this._onSocketError = this._onSocketError.bind(this)
@@ -87,8 +96,8 @@ export class BaseSession {
     return this._rpcConnectResult?.authorization?.signature
   }
 
-  get logger(): typeof logger {
-    return logger
+  protected get logger() {
+    return getLogger()
   }
 
   get connecting() {
@@ -120,7 +129,7 @@ export class BaseSession {
    */
   connect(): void {
     if (!this?.WebSocketConstructor) {
-      logger.error('Missing WebSocketConstructor')
+      this.logger.error('Missing WebSocketConstructor')
       return
     }
     /**
@@ -128,7 +137,7 @@ export class BaseSession {
      * This prevents issues if "connect()" is called multiple times.
      */
     if (this._socket) {
-      logger.warn('Session already connected.')
+      this.logger.warn('Session already connected.')
       return
     }
     this._socket = this._createSocket()
@@ -156,7 +165,7 @@ export class BaseSession {
      * if it's already in closing state.
      */
     if (!this._socket || this.closing) {
-      logger.warn('Session not connected or already in closing state.')
+      this.logger.warn('Session not connected or already in closing state.')
       return
     }
 
@@ -186,7 +195,7 @@ export class BaseSession {
       promise = Promise.resolve()
     }
 
-    logger.trace('SEND: \n', JSON.stringify(msg, null, 2), '\n')
+    this.logger.trace('SEND: \n', JSON.stringify(msg, null, 2), '\n')
     this._socket!.send(JSON.stringify(msg))
 
     return timeoutPromise(
@@ -195,7 +204,7 @@ export class BaseSession {
       this._executeTimeoutError
     ).catch((error) => {
       if (error === this._executeTimeoutError) {
-        logger.error('Request Timeout', msg)
+        this.logger.error('Request Timeout', msg)
         // Possibly half-open connection so force close our side
         this._closeConnection('reconnecting')
       } else {
@@ -224,24 +233,24 @@ export class BaseSession {
   }
 
   protected async _onSocketOpen(event: Event) {
-    logger.debug('_onSocketOpen', event.type)
+    this.logger.debug('_onSocketOpen', event.type)
     try {
       await this.authenticate()
       this._status = 'connected'
       this.dispatch(authSuccessAction())
     } catch (error) {
-      logger.error('Auth Error', error)
+      this.logger.error('Auth Error', error)
       this.dispatch(authErrorAction({ error }))
     }
   }
 
   protected _onSocketError(event: Event) {
-    logger.debug('_onSocketError', event)
+    this.logger.debug('_onSocketError', event)
     this.dispatch(socketErrorAction())
   }
 
   protected _onSocketClose(event: CloseEvent) {
-    logger.debug('_onSocketClose', event.type, event.code, event.reason)
+    this.logger.debug('_onSocketClose', event.type, event.code, event.reason)
     this._status =
       event.code >= 1006 && event.code <= 1014 ? 'reconnecting' : 'disconnected'
     this.dispatch(socketClosedAction())
@@ -250,7 +259,7 @@ export class BaseSession {
 
   protected _onSocketMessage(event: MessageEvent) {
     const payload: any = safeParseJson(event.data)
-    logger.trace('RECV: \n', JSON.stringify(payload, null, 2), '\n')
+    this.logger.trace('RECV: \n', JSON.stringify(payload, null, 2), '\n')
     const request = this._requests.get(payload.id)
     if (request) {
       const { rpcRequest, resolve, reject } = request
@@ -273,7 +282,7 @@ export class BaseSession {
          */
         this.execute(RPCDisconnectResponse(payload.id))
           .catch((error) => {
-            logger.error('SwDisconnect Error', error)
+            this.logger.error('SwDisconnect Error', error)
           })
           .finally(() => {
             this._status = 'idle'

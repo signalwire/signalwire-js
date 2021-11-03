@@ -1,4 +1,4 @@
-import { logger, EventEmitter } from '@signalwire/core'
+import { EventEmitter, getLogger } from '@signalwire/core'
 import { getUserMedia, getMediaConstraints } from './utils/helpers'
 import {
   sdpStereoHack,
@@ -28,12 +28,21 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _resolveStartMethod: (value?: unknown) => void
   private _rejectStartMethod: (error: unknown) => void
 
+  private get logger() {
+    return getLogger()
+  }
+
   constructor(
     public call: BaseConnection<EventTypes>,
     public type: RTCSdpType
   ) {
     this.options = call.options
-    logger.debug('New Peer with type:', this.type, 'Options:', this.options)
+    this.logger.debug(
+      'New Peer with type:',
+      this.type,
+      'Options:',
+      this.options
+    )
 
     this._onIce = this._onIce.bind(this)
   }
@@ -89,7 +98,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       sdpSemantics: 'unified-plan',
       ...rtcPeerConfig,
     }
-    logger.debug('RTC config', config)
+    this.logger.debug('RTC config', config)
     return config
   }
 
@@ -101,14 +110,14 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     try {
       const sender = this._getSenderByKind(kind)
       if (!sender) {
-        return logger.info(`There is not a '${kind}' sender to stop.`)
+        return this.logger.info(`There is not a '${kind}' sender to stop.`)
       }
       if (sender.track) {
         stopTrack(sender.track)
         this.options?.localStream?.removeTrack(sender.track)
       }
     } catch (error) {
-      logger.error('RTCPeer stopTrackSender error', kind, error)
+      this.logger.error('RTCPeer stopTrackSender error', kind, error)
     }
   }
 
@@ -116,10 +125,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     try {
       const sender = this._getSenderByKind(kind)
       if (!sender) {
-        return logger.info(`There is not a '${kind}' sender to restore.`)
+        return this.logger.info(`There is not a '${kind}' sender to restore.`)
       }
       if (sender.track && sender.track.readyState !== 'ended') {
-        return logger.info(`There is already an active ${kind} track.`)
+        return this.logger.info(`There is already an active ${kind} track.`)
       }
       const constraints = await getMediaConstraints(this.options)
       // @ts-ignore
@@ -132,7 +141,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         }
       }
     } catch (error) {
-      logger.error('RTCPeer restoreTrackSender error', kind, error)
+      this.logger.error('RTCPeer restoreTrackSender error', kind, error)
     }
   }
 
@@ -145,7 +154,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       const { deviceId = null } = sender.track.getSettings()
       return deviceId
     } catch (error) {
-      logger.error('RTCPeer getDeviceId error', kind, error)
+      this.logger.error('RTCPeer getDeviceId error', kind, error)
       return null
     }
   }
@@ -158,7 +167,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
       return sender.track.getSettings()
     } catch (error) {
-      logger.error('RTCPeer getTrackSettings error', kind, error)
+      this.logger.error('RTCPeer getTrackSettings error', kind, error)
       return null
     }
   }
@@ -171,7 +180,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
       return sender.track.label
     } catch (error) {
-      logger.error('RTCPeer getDeviceLabel error', kind, error)
+      this.logger.error('RTCPeer getDeviceLabel error', kind, error)
       return null
     }
   }
@@ -180,7 +189,9 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     try {
       const config = this.instance.getConfiguration()
       if (config.iceTransportPolicy === 'relay') {
-        return logger.warn('RTCPeer already with iceTransportPolicy relay only')
+        return this.logger.warn(
+          'RTCPeer already with iceTransportPolicy relay only'
+        )
       }
       const newConfig: RTCConfiguration = {
         ...config,
@@ -190,7 +201,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       // @ts-ignore
       this.instance.restartIce()
     } catch (error) {
-      logger.error('RTCPeer restartIce error', error)
+      this.logger.error('RTCPeer restartIce error', error)
     }
   }
 
@@ -201,7 +212,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     try {
       const sender = this._getSenderByKind(kind)
       if (!sender || !sender.track) {
-        return logger.info('No sender to apply constraints', kind, constraints)
+        return this.logger.info(
+          'No sender to apply constraints',
+          kind,
+          constraints
+        )
       }
       if (sender.track.readyState === 'live') {
         const newConstraints: MediaTrackConstraints = {
@@ -212,17 +227,21 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         if (deviceId && !this.options.screenShare) {
           newConstraints.deviceId = { exact: deviceId }
         }
-        logger.info(`Apply ${kind} constraints`, this.call.id, newConstraints)
+        this.logger.info(
+          `Apply ${kind} constraints`,
+          this.call.id,
+          newConstraints
+        )
         await sender.track.applyConstraints(newConstraints)
       }
     } catch (error) {
-      logger.error('Error applying constraints', kind, constraints)
+      this.logger.error('Error applying constraints', kind, constraints)
     }
   }
 
   private _getSenderByKind(kind: string) {
     if (!this.instance.getSenders) {
-      logger.warn('RTCPeerConnection.getSenders() not available.')
+      this.logger.warn('RTCPeerConnection.getSenders() not available.')
       return null
     }
     return this.instance
@@ -232,7 +251,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   private _getReceiverByKind(kind: string) {
     if (!this.instance.getReceivers) {
-      logger.warn('RTCPeerConnection.getReceivers() not available.')
+      this.logger.warn('RTCPeerConnection.getReceivers() not available.')
       return null
     }
     return this.instance
@@ -242,7 +261,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   async startNegotiation(force = false) {
     if (this._negotiating) {
-      return logger.warn('Skip twice onnegotiationneeded!')
+      return this.logger.warn('Skip twice onnegotiationneeded!')
     }
     this._negotiating = true
     try {
@@ -259,7 +278,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       this.instance.addEventListener('icecandidate', this._onIce)
 
       if (this.isOffer) {
-        logger.debug('Trying to generate offer')
+        this.logger.debug('Trying to generate offer')
         const offer = await this.instance.createOffer({
           /**
            * While this property is deprected, on Browsers where this
@@ -273,7 +292,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
 
       if (this.isAnswer) {
-        logger.debug('Trying to generate answer')
+        this.logger.debug('Trying to generate answer')
         await this._setRemoteDescription({
           sdp: this.options.remoteSdp,
           type: 'offer',
@@ -293,7 +312,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         this._sdpReady()
       }
     } catch (error) {
-      logger.error(`Error creating ${this.type}:`, error)
+      this.logger.error(`Error creating ${this.type}:`, error)
     }
   }
 
@@ -310,7 +329,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         this._resolveStartMethod()
       }
     } catch (error) {
-      logger.error(`Error handling remote SDP on call ${this.call.id}:`, error)
+      this.logger.error(
+        `Error handling remote SDP on call ${this.call.id}:`,
+        error
+      )
       this.call.hangup()
       this._rejectStartMethod(error)
     }
@@ -331,7 +353,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       try {
         this.options.localStream = await this._retrieveLocalStream()
       } catch (error) {
-        logger.error('Error retrieving a local stream', error)
+        this.logger.error('Error retrieving a local stream', error)
         this._rejectStartMethod(error)
         return this.call.setState('hangup')
       }
@@ -348,9 +370,9 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       const { localStream = null } = this.options
       if (localStream && streamIsValid(localStream)) {
         const audioTracks = localStream.getAudioTracks()
-        logger.debug('Local audio tracks: ', audioTracks)
+        this.logger.debug('Local audio tracks: ', audioTracks)
         const videoTracks = localStream.getVideoTracks()
-        logger.debug('Local video tracks: ', videoTracks)
+        this.logger.debug('Local video tracks: ', videoTracks)
         // FIXME: use transceivers way only for offer - when answer gotta match mid from the ones from SRD
         if (
           this.isOffer &&
@@ -377,14 +399,17 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
               scaleResolutionDownBy: Number(rid) * 6 || 1.0,
             }))
           }
-          logger.debug('Applying video transceiverParams', transceiverParams)
+          this.logger.debug(
+            'Applying video transceiverParams',
+            transceiverParams
+          )
           videoTracks.forEach((track) => {
             this.instance.addTransceiver(track, transceiverParams)
           })
 
           if (this.isSfu) {
             const { msStreamsNumber = 5 } = this.options
-            logger.debug('Add ', msStreamsNumber, 'recvonly MS Streams')
+            this.logger.debug('Add ', msStreamsNumber, 'recvonly MS Streams')
             transceiverParams.direction = 'recvonly'
             for (let i = 0; i < Number(msStreamsNumber); i++) {
               this.instance.addTransceiver('video', transceiverParams)
@@ -425,7 +450,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     const sender = this._getSenderByKind(kind)
     if (!sender && this.instance.addTransceiver) {
       const transceiver = this.instance.addTransceiver(kind)
-      logger.debug('Add transceiver', kind, transceiver)
+      this.logger.debug('Add transceiver', kind, transceiver)
     }
   }
 
@@ -437,11 +462,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
     const { sdp, type } = this.instance.localDescription
     if (sdp.indexOf('candidate') === -1) {
-      logger.debug('No candidate - retry \n')
+      this.logger.debug('No candidate - retry \n')
       this.startNegotiation(true)
       return
     }
-    logger.debug('LOCAL SDP \n', `Type: ${type}`, '\n\n', sdp)
+    this.logger.debug('LOCAL SDP \n', `Type: ${type}`, '\n\n', sdp)
     this.instance.removeEventListener('icecandidate', this._onIce)
 
     try {
@@ -459,7 +484,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       )
     }
     if (event.candidate) {
-      logger.debug('IceCandidate:', event.candidate)
+      this.logger.debug('IceCandidate:', event.candidate)
       // @ts-expect-error
       this.call.emit('icecandidate', event)
     } else {
@@ -491,7 +516,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       )
     }
 
-    logger.debug(
+    this.logger.debug(
       'LOCAL SDP \n',
       `Type: ${localDescription.type}`,
       '\n\n',
@@ -511,7 +536,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       )
     }
     const sessionDescr: RTCSessionDescription = sdpToJsonHack(remoteDescription)
-    logger.debug(
+    this.logger.debug(
       'REMOTE SDP \n',
       `Type: ${remoteDescription.type}`,
       '\n\n',
@@ -530,7 +555,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   private _attachListeners() {
     this.instance.addEventListener('signalingstatechange', () => {
-      logger.debug('signalingState:', this.instance.signalingState)
+      this.logger.debug('signalingState:', this.instance.signalingState)
 
       switch (this.instance.signalingState) {
         case 'stable':
@@ -548,20 +573,20 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     })
 
     this.instance.addEventListener('negotiationneeded', () => {
-      logger.debug('Negotiation needed event')
+      this.logger.debug('Negotiation needed event')
       this.startNegotiation()
     })
 
     this.instance.addEventListener('iceconnectionstatechange', () => {
-      logger.debug('iceConnectionState:', this.instance.iceConnectionState)
+      this.logger.debug('iceConnectionState:', this.instance.iceConnectionState)
     })
 
     this.instance.addEventListener('icegatheringstatechange', () => {
-      logger.debug('iceGatheringState:', this.instance.iceGatheringState)
+      this.logger.debug('iceGatheringState:', this.instance.iceGatheringState)
     })
 
     // this.instance.addEventListener('icecandidateerror', (event) => {
-    //   logger.warn('IceCandidate Error:', event)
+    //   this.logger.warn('IceCandidate Error:', event)
     // })
 
     this.instance.addEventListener('track', (event: RTCTrackEvent) => {

@@ -1,5 +1,4 @@
 import {
-  logger,
   VertoBye,
   VertoInfo,
   VertoInvite,
@@ -93,7 +92,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     }
 
     this.setState('new')
-    logger.debug('New Call with Options:', this.options)
+    this.logger.debug('New Call with Options:', this.options)
 
     this.applyEmitterTransforms({ local: true })
     this.attachWorkers()
@@ -231,7 +230,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   /** @internal */
   public onStateChange(component: any) {
-    logger.debug('onStateChange', component)
+    this.logger.debug('onStateChange', component)
     switch (component.state) {
       case 'hangup':
         this._hangup(component)
@@ -244,7 +243,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   /** @internal */
   public onRemoteSDP(component: any) {
-    logger.debug('onRemoteSDP', component)
+    this.logger.debug('onRemoteSDP', component)
     if (component.remoteSDP) {
       this.peer.onRemoteSdp(component.remoteSDP)
     }
@@ -252,7 +251,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   /** @internal */
   public onRoomSubscribed(component: any) {
-    logger.debug('onRoomSubscribed', component)
+    this.logger.debug('onRoomSubscribed', component)
     this.nodeId = component.nodeId
     this._roomId = component.roomId
     this._roomSessionId = component.roomSessionId
@@ -273,7 +272,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   /** @internal */
   onVideoConstraints(component: any) {
-    logger.debug('onVideoConstraints', component)
+    this.logger.debug('onVideoConstraints', component)
     if (component?.videoConstraints) {
       this.peer.applyMediaConstraints('video', component.videoConstraints)
     }
@@ -281,7 +280,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   /** @internal */
   onAudioConstraints(component: any) {
-    logger.debug('onAudioConstraints', component)
+    this.logger.debug('onAudioConstraints', component)
     if (component?.audioConstraints) {
       this.peer.applyMediaConstraints('audio', component.audioConstraints)
     }
@@ -305,12 +304,12 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   /** @internal */
   private manageSendersWithConstraints(constraints: MediaStreamConstraints) {
     if (constraints.audio === false) {
-      logger.info('Switching off the microphone')
+      this.logger.info('Switching off the microphone')
       this.stopOutboundAudio()
     }
 
     if (constraints.video === false) {
-      logger.info('Switching off the camera')
+      this.logger.info('Switching off the camera')
       this.stopOutboundVideo()
     }
 
@@ -325,27 +324,27 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   ): Promise<void> {
     return new Promise(async (resolve, reject) => {
       try {
-        logger.debug(
+        this.logger.debug(
           'updateConstraints trying constraints',
           this.__uuid,
           constraints
         )
         if (!Object.keys(constraints).length) {
-          return logger.warn('Invalid constraints:', constraints)
+          return this.logger.warn('Invalid constraints:', constraints)
         }
 
         const shouldContinueWithUpdate =
           this.manageSendersWithConstraints(constraints)
 
         if (!shouldContinueWithUpdate) {
-          logger.debug(
+          this.logger.debug(
             'Either `video` and `audio` (or both) constraints were set to `false` so their corresponding senders (if any) were stopped'
           )
           return
         }
 
         const newStream = await getUserMedia(constraints)
-        logger.debug('updateConstraints got stream', newStream)
+        this.logger.debug('updateConstraints got stream', newStream)
         if (!this.options.localStream) {
           this.options.localStream = new MediaStream()
         }
@@ -353,33 +352,33 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         const tracks = newStream.getTracks()
         for (let i = 0; i < tracks.length; i++) {
           const newTrack = tracks[i]
-          logger.debug('updateConstraints apply track: ', newTrack)
+          this.logger.debug('updateConstraints apply track: ', newTrack)
           const transceiver = instance
             .getTransceivers()
             .find(({ mid, sender, receiver }) => {
               if (sender.track && sender.track.kind === newTrack.kind) {
-                logger.debug('Found transceiver by sender')
+                this.logger.debug('Found transceiver by sender')
                 return true
               }
               if (receiver.track && receiver.track.kind === newTrack.kind) {
-                logger.debug('Found transceiver by receiver')
+                this.logger.debug('Found transceiver by receiver')
                 return true
               }
               if (mid === null) {
-                logger.debug('Found disassociated transceiver')
+                this.logger.debug('Found disassociated transceiver')
                 return true
               }
               return false
             })
           if (transceiver && transceiver.sender) {
-            logger.debug(
+            this.logger.debug(
               'updateConstraints FOUND - replaceTrack on it and on localStream'
             )
             await transceiver.sender.replaceTrack(newTrack)
-            logger.debug('updateConstraints replaceTrack SUCCESS')
+            this.logger.debug('updateConstraints replaceTrack SUCCESS')
             this.options.localStream.getTracks().forEach((track) => {
               if (track.kind === newTrack.kind && track.id !== newTrack.id) {
-                logger.debug(
+                this.logger.debug(
                   'updateConstraints stop old track and apply new one - '
                 )
                 stopTrack(track)
@@ -389,7 +388,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
             this.options.localStream.addTrack(newTrack)
           } else {
-            logger.debug(
+            this.logger.debug(
               'updateConstraints NOT FOUND - addTrack and start dancing!'
             )
             this.peer.type = 'offer'
@@ -397,17 +396,17 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
             this.options.localStream.addTrack(newTrack)
             instance.addTrack(newTrack, this.options.localStream)
           }
-          logger.debug('updateConstraints Simply update mic/cam')
+          this.logger.debug('updateConstraints Simply update mic/cam')
           if (newTrack.kind === 'audio') {
             this.options.micId = newTrack.getSettings().deviceId
           } else if (newTrack.kind === 'video') {
             this.options.camId = newTrack.getSettings().deviceId
           }
         }
-        logger.debug('updateConstraints done!')
+        this.logger.debug('updateConstraints done!')
         resolve()
       } catch (error) {
-        logger.error('updateConstraints', error)
+        this.logger.error('updateConstraints', error)
         reject(error)
       }
     })
@@ -422,7 +421,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         await this.peer.start()
         resolve(this as any as T)
       } catch (error) {
-        logger.error('Invite error', error)
+        this.logger.error('Invite error', error)
         reject(error)
       }
     })
@@ -437,7 +436,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         await this.peer.start()
         resolve(this)
       } catch (error) {
-        logger.error('Answer error', error)
+        this.logger.error('Answer error', error)
         reject(error)
       }
     })
@@ -456,11 +455,13 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
       // }
       case 'answer':
-        logger.warn('Unhandled verto.answer')
+        this.logger.warn('Unhandled verto.answer')
         // this.executeAnswer()
         break
       default:
-        return logger.error(`Unknown SDP type: '${type}' on call ${this.id}`)
+        return this.logger.error(
+          `Unknown SDP type: '${type}' on call ${this.id}`
+        )
     }
   }
 
@@ -470,7 +471,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     try {
       const msg = VertoInvite({ ...this.messagePayload, sdp })
       const response = await this.vertoExecute(msg)
-      logger.debug('Invite response', response)
+      this.logger.debug('Invite response', response)
     } catch (error) {
       // FIXME: Handle hangup redirect
       // if (jsonrpc?.code || jsonrpc?.cause === 'INVALID_MSG_UNSPECIFIED') {
@@ -486,7 +487,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       const bye = VertoBye(this.messagePayload)
       await this.vertoExecute(bye)
     } catch (error) {
-      logger.error('Hangup error:', error)
+      this.logger.error('Hangup error:', error)
     } finally {
       this._hangup()
     }
@@ -537,7 +538,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   setState(state: BaseConnectionState) {
     this.prevState = this.state
     this.state = state
-    logger.debug(
+    this.logger.debug(
       `Call ${this.id} state change from ${this.prevState} to ${this.state}`
     )
 
@@ -569,7 +570,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     this.cause = byeCause
     this.causeCode = byeCauseCode
     if (redirectDestination && this.trying && this.peer.localSdp) {
-      logger.warn('Execute invite again')
+      this.logger.warn('Execute invite again')
       return this.executeInvite(this.peer.localSdp)
     }
     return this.setState('hangup')

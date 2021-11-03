@@ -1,5 +1,5 @@
 import {
-  logger,
+  getLogger,
   CustomSagaParams,
   actions,
   sagaEffects,
@@ -57,7 +57,7 @@ export const makeVideoElementSaga = ({
             member.video_muted ? hideOverlay(member.id) : showOverlay(member.id)
           }
         } catch (error) {
-          logger.error('Error handling video_muted', error)
+          getLogger().error('Error handling video_muted', error)
         }
       })
 
@@ -86,7 +86,7 @@ export const makeVideoElementSaga = ({
         videoTask?.cancel()
       })
     } catch (error) {
-      logger.error('videoElementSaga', error)
+      getLogger().error('videoElementSaga', error)
     }
   }
 }
@@ -121,7 +121,7 @@ export const makeAudioElementSaga = ({ speakerId }: { speakerId?: string }) => {
         audioTask?.cancel()
       })
     } catch (error) {
-      logger.error('audioElementSaga', error)
+      getLogger().error('audioElementSaga', error)
     }
   }
 }
@@ -165,7 +165,7 @@ function* audioElementActionsWatcher({
         payload: error,
         kind: 'reject',
       })
-      logger.error(error)
+      getLogger().error(error)
     }
   }
 }

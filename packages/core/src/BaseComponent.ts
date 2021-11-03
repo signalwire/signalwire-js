@@ -2,12 +2,12 @@ import { Action } from '@reduxjs/toolkit'
 import { Task } from '@redux-saga/types'
 import {
   uuid,
-  logger,
   toInternalEventName,
   isLocalEvent,
   validateEventsToSubscribe,
   instanceProxyFactory,
   NESTED_FIELDS_TO_PROCESS,
+  getLogger,
 } from './utils'
 import { executeAction } from './redux'
 import {
@@ -74,6 +74,10 @@ export class BaseComponent<
   private _requests = new Map()
   private _customSagaTriggers = new Map()
   private _destroyer?: () => void
+
+  protected get logger() {
+    return getLogger()
+  }
 
   /**
    * A Namespace let us scope specific instances inside of a
@@ -183,7 +187,7 @@ export class BaseComponent<
   /** @internal */
   private addEventToRegisterQueue(options: EventRegisterHandlers<EventTypes>) {
     const [event, fn] = options.params
-    logger.trace('Adding event to the register queue', { event, fn })
+    this.logger.trace('Adding event to the register queue', { event, fn })
     // @ts-ignore
     this._eventsRegisterQueue.add({
       type: options.type,
@@ -197,7 +201,7 @@ export class BaseComponent<
     event: EventEmitter.EventNames<EventTypes>,
     args: any[]
   ) {
-    logger.trace('Adding to the emit queue', event)
+    this.logger.trace('Adding to the emit queue', event)
     this._eventsEmitQueue.add({ event, args })
   }
 
@@ -249,7 +253,7 @@ export class BaseComponent<
       return this._eventsTransformsCache.delete(internalEvent)
     }
 
-    logger.debug(
+    this.logger.debug(
       `[cleanupEventHandlerTransformCache] Key wasn't cached`,
       internalEvent
     )
@@ -436,7 +440,7 @@ export class BaseComponent<
       internalEvent,
       fn as any
     )
-    logger.trace('Registering event', internalEvent)
+    this.logger.trace('Registering event', internalEvent)
     return this.emitter[type](internalEvent, wrappedHandler)
   }
 
@@ -480,7 +484,7 @@ export class BaseComponent<
        */
       force: !handler,
     })
-    logger.trace('Removing event listener', internalEvent)
+    this.logger.trace('Removing event listener', internalEvent)
     this._untrackEvent(internalEvent)
     return this.emitter.off(internalEvent, handler)
   }
@@ -522,7 +526,7 @@ export class BaseComponent<
     }
 
     const internalEvent = this._getInternalEvent(event)
-    logger.trace('Emit on event:', internalEvent)
+    this.logger.trace('Emit on event:', internalEvent)
     // @ts-ignore
     return this.emitter.emit(internalEvent, ...args)
   }

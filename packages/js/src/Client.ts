@@ -1,9 +1,4 @@
-import {
-  logger,
-  BaseClient,
-  ClientEvents,
-  ClientContract,
-} from '@signalwire/core'
+import { BaseClient, ClientEvents, ClientContract } from '@signalwire/core'
 import type { CustomSaga } from '@signalwire/core'
 import { ConnectionOptions } from '@signalwire/webrtc'
 import {
@@ -90,7 +85,7 @@ export class ClientAPI<
                   : room.restoreOutboundAudio()
               }
             } catch (error) {
-              logger.error('Error handling audio_muted', error)
+              this.logger.error('Error handling audio_muted', error)
             }
           })
         }
@@ -107,7 +102,7 @@ export class ClientAPI<
                   : room.restoreOutboundVideo()
               }
             } catch (error) {
-              logger.error('Error handling video_muted', error)
+              this.logger.error('Error handling video_muted', error)
             }
           })
         }

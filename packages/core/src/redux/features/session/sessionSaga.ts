@@ -20,7 +20,7 @@ import {
 import { executeAction, socketMessageAction } from '../../actions'
 import { componentActions } from '../'
 import { RPCExecute } from '../../../RPCMessages'
-import { logger } from '../../../utils'
+import { getLogger } from '../../../utils'
 import { getAuthStatus } from '../session/sessionSelectors'
 import { getComponent } from '../component/componentSelectors'
 import { SessionAuthStatus } from '../../../utils/interfaces'
@@ -83,7 +83,7 @@ export function* executeActionWatcher(session: BaseSession): SagaIterator {
         )
       }
     } catch (error) {
-      logger.warn('worker error', componentId, error)
+      getLogger().warn('worker error', componentId, error)
       if (componentId && requestId) {
         yield put(
           componentActions.executeFailure({
@@ -107,7 +107,7 @@ export function* executeActionWatcher(session: BaseSession): SagaIterator {
             message: 'Cancelled task',
           },
         }
-        logger.debug('executeActionWorker cancelled', {
+        getLogger().debug('executeActionWorker cancelled', {
           requestId,
           componentId,
           error,
@@ -136,7 +136,6 @@ export function* sessionChannelWatcher({
   pubSubChannel,
 }: SessionSagaParams): SagaIterator {
   function* vertoWorker({ jsonrpc, nodeId }: VertoWorkerParams) {
-    logger.debug('vertoWorker', jsonrpc, nodeId)
     const { id, method, params = {} } = jsonrpc
 
     switch (method) {
@@ -217,7 +216,7 @@ export function* sessionChannelWatcher({
       case 'verto.mediaParams': {
         const { callID, mediaParams = {} } = params
         if (!callID) {
-          logger.debug(`Invalid mediaParams event`, params)
+          getLogger().debug(`Invalid mediaParams event`, params)
           break
         }
         const component: WebRTCCall = { id: callID }
@@ -235,13 +234,13 @@ export function* sessionChannelWatcher({
       // case 'verto.attach':
       //   break
       case 'verto.info':
-        return logger.debug('Verto Info', params)
+        return getLogger().debug('Verto Info', params)
       case 'verto.clientReady':
-        return logger.debug('Verto ClientReady', params)
+        return getLogger().debug('Verto ClientReady', params)
       case 'verto.announce':
-        return logger.debug('Verto Announce', params)
+        return getLogger().debug('Verto Announce', params)
       default:
-        return logger.debug(`Unknown Verto method: ${method}`, params)
+        return getLogger().debug(`Unknown Verto method: ${method}`, params)
     }
   }
 
@@ -366,13 +365,12 @@ export function* sessionChannelWatcher({
       // @ts-expect-error
       throw new Error(`Unknown broadcast event: ${broadcastParams.event}`)
     }
-    return logger.debug('Unknown broadcast event', broadcastParams)
+    return getLogger().debug('Unknown broadcast event', broadcastParams)
   }
 
   function* sessionChannelWorker(
     action: PayloadAction<JSONRPCRequest>
   ): SagaIterator {
-    logger.debug('Inbound WebSocket Message', action)
     if (action.type !== socketMessageAction.type) {
       yield put(action)
       return
@@ -384,7 +382,7 @@ export function* sessionChannelWatcher({
         yield fork(swEventWorker, params as SwEventParams)
         break
       default:
-        return logger.debug(`Unknown message: ${method}`, action)
+        return getLogger().debug(`Unknown message: ${method}`, action)
     }
   }
 
@@ -398,9 +396,9 @@ export function* sessionChannelWatcher({
         yield fork(sessionChannelWorker, action)
       }
     } catch (error) {
-      logger.error('sessionChannelWorker error:', error)
+      getLogger().error('sessionChannelWorker error:', error)
     } finally {
-      logger.debug('sessionChannelWorker finally')
+      getLogger().debug('sessionChannelWorker finally')
     }
   }
 }
@@ -413,7 +411,7 @@ export function createSessionChannel(session: BaseSession) {
 
     // this will be invoked when the saga calls `channel.close()` method
     const unsubscribe = () => {
-      logger.debug('sessionChannel unsubscribe')
+      getLogger().debug('sessionChannel unsubscribe')
       session.disconnect()
     }
 

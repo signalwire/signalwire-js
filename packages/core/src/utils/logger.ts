@@ -1,10 +1,12 @@
 import log from 'loglevel'
+import { SDKLogger } from '..'
+
 const datetime = () =>
   new Date().toISOString().replace('T', ' ').replace('Z', '')
-const logger = log.getLogger('signalwire')
+const defaultLogger = log.getLogger('signalwire')
 
-const originalFactory = logger.methodFactory
-logger.methodFactory = (methodName, logLevel, loggerName) => {
+const originalFactory = defaultLogger.methodFactory
+defaultLogger.methodFactory = (methodName, logLevel, loggerName) => {
   const rawMethod = originalFactory(methodName, logLevel, loggerName)
 
   return function () {
@@ -19,8 +21,17 @@ logger.methodFactory = (methodName, logLevel, loggerName) => {
 const level =
   // @ts-ignore
   'development' === process.env.NODE_ENV
-    ? logger.levels.DEBUG
-    : logger.getLevel()
-logger.setLevel(level)
+    ? defaultLogger.levels.DEBUG
+    : defaultLogger.getLevel()
+defaultLogger.setLevel(level)
 
-export { logger }
+let userLogger: SDKLogger | null
+const setLogger = (logger: SDKLogger | null) => {
+  userLogger = logger
+}
+
+const getLogger = (): SDKLogger => {
+  return userLogger ?? (defaultLogger as any as SDKLogger)
+}
+
+export { setLogger, getLogger }

@@ -1,4 +1,3 @@
-import { logger } from './utils/logger'
 import { sessionStorage } from './utils/storage/'
 import { RPCConnect, RPCConnectParams } from './RPCMessages'
 import { SessionOptions } from './utils/interfaces'
@@ -73,7 +72,7 @@ export class BaseJWTSession extends BaseSession {
       return
     }
     if (this.expiresIn <= this._refreshTokenNotificationDiff) {
-      logger.debug(
+      this.logger.debug(
         'Your JWT is going to expire. Please refresh it to keep the session live.'
       )
       // TODO: check JWT expires_at and handle re-auth

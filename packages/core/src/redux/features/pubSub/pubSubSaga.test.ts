@@ -1,10 +1,13 @@
 import { expectSaga } from 'redux-saga-test-plan'
+import { getLogger } from '../../../'
 import { pubSubSaga } from './pubSubSaga'
-import { logger } from '../../../utils'
 import { EventEmitter } from '../../../utils/EventEmitter'
 import { createPubSubChannel } from '../../../testUtils'
 
 describe('sessionChannelWatcher', () => {
+  const logger = getLogger()
+  const originalError = logger.error
+
   it('should take from pubSubChannel and emit through the EventEmitter', () => {
     let runSaga = true
     const emitter = new EventEmitter<string>()
@@ -36,7 +39,16 @@ describe('sessionChannelWatcher', () => {
       })
   })
 
+  beforeEach(() => {
+    logger.error = jest.fn()
+  })
+
+  afterEach(() => {
+    logger.error = originalError
+  })
+
   it('should be resilient to the end-user errors', () => {
+    const logger = getLogger()
     let runSagaCounter = 0
     const emitter = new EventEmitter<string>()
     const mockFn = jest.fn()
