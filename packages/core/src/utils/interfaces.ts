@@ -77,7 +77,7 @@ export interface SessionOptions {
    *
    * @internal
    * */
-  refreshToken?(): Promise<string>
+  _onRefreshToken?(): void
 }
 
 export interface UserOptions extends SessionOptions {

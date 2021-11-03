@@ -41,6 +41,7 @@ export class BaseSession {
   public WebSocketConstructor: NodeSocketAdapter | WebSocketAdapter
   public agent: string
   public connectVersion = DEFAULT_CONNECT_VERSION
+  public reauthenticate?(): Promise<void>
 
   protected _rpcConnectResult: RPCConnectResult
 
@@ -120,6 +121,10 @@ export class BaseSession {
 
   get status() {
     return this._status
+  }
+
+  set token(token: string) {
+    this.options.token = token
   }
 
   /**

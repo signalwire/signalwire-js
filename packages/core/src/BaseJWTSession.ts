@@ -26,6 +26,7 @@ export class BaseJWTSession extends BaseSession {
     super(options)
 
     this._checkTokenExpiration = this._checkTokenExpiration.bind(this)
+    this.reauthenticate = this.reauthenticate.bind(this)
   }
 
   get expiresAt() {
@@ -69,11 +70,12 @@ export class BaseJWTSession extends BaseSession {
   }
 
   /**
-   * Authenticate with the SignalWire Network
-   * using JWT
+   * Reauthenticate with the SignalWire Network
+   * using a newer JWT. If the session has expired
+   * will reconnect it.
    * @return Promise<void>
    */
-  private async reauthenticate() {
+  async reauthenticate() {
     if (this.expired) {
       return this.connect()
     }
@@ -83,28 +85,28 @@ export class BaseJWTSession extends BaseSession {
       jwt_token: this.options.token,
     }
 
-    this._rpcConnectResult = await this.execute(RPCReauthenticate(params))
+    try {
+      this._rpcConnectResult = await this.execute(RPCReauthenticate(params))
+    } catch (error) {
+      clearTimeout(this._checkTokenExpirationTimer)
+      throw error
+    }
   }
 
   /**
    * Set a timer to dispatch a notification when the JWT is going to expire.
    * @return void
    */
-  protected async _checkTokenExpiration() {
+  protected _checkTokenExpiration() {
     if (!this.expiresAt) {
       return
     }
     if (this.expiresIn <= this._refreshTokenNotificationDiff) {
-      if (this.options.refreshToken) {
-        this.logger.debug('Fetching new token')
-        // FIXME: set/get token in a better way
-        this.options.token = await this.options.refreshToken()
-        this.logger.debug('Got token', this.options.token)
-        await this.reauthenticate()
+      if (this.options._onRefreshToken) {
+        this.logger.debug('Token is going to expire! - Invoke user cb')
+        this.options._onRefreshToken()
       } else {
-        this.logger.error(
-          'You must provide a `refreshToken()` method into the init options.'
-        )
+        this.logger.error('The token is going to expire!')
       }
     }
     clearTimeout(this._checkTokenExpirationTimer)

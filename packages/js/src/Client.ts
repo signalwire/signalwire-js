@@ -1,4 +1,9 @@
-import { BaseClient, ClientEvents, ClientContract } from '@signalwire/core'
+import {
+  BaseClient,
+  ClientEvents,
+  ClientContract,
+  actions,
+} from '@signalwire/core'
 import type { CustomSaga } from '@signalwire/core'
 import { ConnectionOptions } from '@signalwire/webrtc'
 import {
@@ -118,5 +123,17 @@ export class ClientAPI<
       this._cantina = createCantinaObject(this.options)
     }
     return this._cantina
+  }
+
+  /**
+   * Reauthenticate with the SignalWire network using a new token
+   * For now it returns void since with an invalid token the server
+   * will close the connection right away so we can hook on the session
+   * events in case. Need to improve it.
+   *
+   * @internal
+   */
+  reauthenticate(token: string) {
+    this.store.dispatch(actions.reauthAction({ token }))
   }
 }

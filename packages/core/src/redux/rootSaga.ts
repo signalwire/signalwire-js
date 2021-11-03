@@ -21,6 +21,7 @@ import {
   sessionReconnectingAction,
   sessionDisconnectedAction,
   sessionConnectedAction,
+  reauthAction,
 } from './actions'
 import { sessionActions } from './features'
 import {
@@ -115,6 +116,23 @@ export function* socketClosedWorker({
   }
 }
 
+export function* reauthenticateWorker({
+  session,
+  token,
+}: {
+  session: BaseSession
+  token: string
+}) {
+  try {
+    if (session.reauthenticate) {
+      session.token = token
+      yield call(session.reauthenticate)
+    }
+  } catch (error) {
+    getLogger().error('Reauthenticate Error', error)
+  }
+}
+
 export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
   while (true) {
     const action = yield take([
@@ -122,6 +140,7 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
       authErrorAction.type,
       socketErrorAction.type,
       socketClosedAction.type,
+      reauthAction.type,
     ])
 
     switch (action.type) {
@@ -144,6 +163,14 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
         break
       case socketClosedAction.type:
         yield fork(socketClosedWorker, options)
+        break
+      case reauthAction.type: {
+        yield fork(reauthenticateWorker, {
+          session: options.session,
+          token: action.payload.token,
+        })
+        break
+      }
     }
   }
 }
