@@ -1,10 +1,5 @@
 import { isCleanGitStatus } from '@sw-internal/common'
-import {
-  getBuildTask,
-  getInstallDependenciesTask,
-  getTestTask,
-  publishTaskFactory,
-} from '../common.js'
+import { getBuildTask, getTestTask, publishTaskFactory } from '../common.js'
 
 const getProductionTasks = ({ flags, executer, dryRun }) => {
   return [
@@ -21,7 +16,6 @@ const getProductionTasks = ({ flags, executer, dryRun }) => {
         }
       },
     },
-    ...getInstallDependenciesTask({ flags, dryRun, executer }),
     ...getBuildTask({ dryRun, executer }),
     ...getTestTask({ dryRun, executer }),
     ...publishTaskFactory({
