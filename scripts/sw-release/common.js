@@ -189,7 +189,7 @@ const publishTaskFactory = (options) => {
                     tasks.push(
                       await executer(
                         'npm',
-                        ['publish', '--dry-run', ...options.npmOptions],
+                        ['publish', ...options.npmOptions],
                         {
                           cwd: pathname,
                         }
