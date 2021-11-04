@@ -27,6 +27,7 @@ import {
   destroyAction,
   initAction,
   closeConnectionAction,
+  reauthAction,
 } from './actions'
 import { AuthError } from '../CustomErrors'
 import { createPubSubChannel } from '../testUtils'
@@ -76,6 +77,7 @@ describe('sessionStatusWatcher', () => {
     authErrorAction.type,
     socketErrorAction.type,
     socketClosedAction.type,
+    reauthAction.type,
   ]
   const session = {
     closed: true,

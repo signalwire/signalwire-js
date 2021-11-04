@@ -1,5 +1,10 @@
 import { sessionStorage } from './utils/storage/'
-import { RPCConnect, RPCConnectParams } from './RPCMessages'
+import {
+  RPCConnect,
+  RPCConnectParams,
+  RPCReauthenticate,
+  RPCReauthenticateParams,
+} from './RPCMessages'
 import { SessionOptions } from './utils/interfaces'
 import { BaseSession } from './BaseSession'
 
@@ -21,6 +26,7 @@ export class BaseJWTSession extends BaseSession {
     super(options)
 
     this._checkTokenExpiration = this._checkTokenExpiration.bind(this)
+    this.reauthenticate = this.reauthenticate.bind(this)
   }
 
   get expiresAt() {
@@ -64,6 +70,30 @@ export class BaseJWTSession extends BaseSession {
   }
 
   /**
+   * Reauthenticate with the SignalWire Network
+   * using a newer JWT. If the session has expired
+   * will reconnect it.
+   * @return Promise<void>
+   */
+  async reauthenticate() {
+    if (this.expired) {
+      return this.connect()
+    }
+
+    const params: RPCReauthenticateParams = {
+      project: this._rpcConnectResult.authorization.project,
+      jwt_token: this.options.token,
+    }
+
+    try {
+      this._rpcConnectResult = await this.execute(RPCReauthenticate(params))
+    } catch (error) {
+      clearTimeout(this._checkTokenExpirationTimer)
+      throw error
+    }
+  }
+
+  /**
    * Set a timer to dispatch a notification when the JWT is going to expire.
    * @return void
    */
@@ -72,11 +102,11 @@ export class BaseJWTSession extends BaseSession {
       return
     }
     if (this.expiresIn <= this._refreshTokenNotificationDiff) {
-      this.logger.debug(
-        'Your JWT is going to expire. Please refresh it to keep the session live.'
-      )
-      // TODO: check JWT expires_at and handle re-auth
-      // trigger(SwEvent.Notification, { type: Notification.RefreshToken, session: this }, this.uuid, false)
+      if (this.options._onRefreshToken) {
+        this.options._onRefreshToken()
+      } else {
+        this.logger.error('The token is going to expire!')
+      }
     }
     clearTimeout(this._checkTokenExpirationTimer)
     if (!this.expired) {

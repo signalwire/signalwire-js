@@ -9,6 +9,10 @@ import { ExecuteActionParams } from './interfaces'
 export const initAction = createAction('swSdk/init')
 export const destroyAction = createAction('swSdk/destroy')
 export const closeConnectionAction = createAction('swSdk/closeConnection')
+/**
+ * Used to trigger a `signalwire.reauthenticate`
+ */
+export const reauthAction = createAction<{ token: string }>('swSdk/reauth')
 
 /**
  * Trigger saga to send a JSONRPC over the wire

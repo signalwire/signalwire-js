@@ -71,6 +71,13 @@ export interface SessionOptions {
   // From `LogLevelDesc` of loglevel to simplify our docs
   /** logging level */
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
+  /**
+   * The SDK invokes this method and uses the new token to re-auth.
+   * TODO: rename it: getNewToken, getRefreshedToken, fetchToken (?)
+   *
+   * @internal
+   * */
+  _onRefreshToken?(): void
 }
 
 export interface UserOptions extends SessionOptions {
