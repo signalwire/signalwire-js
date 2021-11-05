@@ -30,6 +30,11 @@ const setLogger = (logger: SDKLogger | null) => {
   userLogger = logger
 }
 
+let debugOptions: any = {}
+const _setDebugOptions = (options: any) => {
+  Object.assign(debugOptions, options)
+}
+
 const trace = (...params: Parameters<SDKLogger['trace']>) => {
   const logger = userLogger ?? (defaultLogger as any as SDKLogger)
 
@@ -37,8 +42,10 @@ const trace = (...params: Parameters<SDKLogger['trace']>) => {
   return logger.info(...params)
 }
 
-const getLogger = (): SDKLogger => {
+const getLogger = (opts?: any): SDKLogger => {
   const logger = userLogger ?? (defaultLogger as any as SDKLogger)
+
+  console.log('debugOptions', { debugOptions, opts })
 
   return new Proxy<SDKLogger>(logger, {
     get(target, prop: keyof SDKLogger, receiver) {
@@ -51,4 +58,4 @@ const getLogger = (): SDKLogger => {
   })
 }
 
-export { setLogger, getLogger }
+export { setLogger, getLogger, _setDebugOptions }
