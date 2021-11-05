@@ -18,12 +18,12 @@ defaultLogger.methodFactory = (methodName, logLevel, loggerName) => {
   }
 }
 
-const level =
+const defaultLoggerLevel =
   // @ts-ignore
   'development' === process.env.NODE_ENV
     ? defaultLogger.levels.DEBUG
     : defaultLogger.getLevel()
-defaultLogger.setLevel(level)
+defaultLogger.setLevel(defaultLoggerLevel)
 
 let userLogger: SDKLogger | null
 const setLogger = (logger: SDKLogger | null) => {
