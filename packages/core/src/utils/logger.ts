@@ -30,8 +30,25 @@ const setLogger = (logger: SDKLogger | null) => {
   userLogger = logger
 }
 
+const trace = (...params: Parameters<SDKLogger['trace']>) => {
+  const logger = userLogger ?? (defaultLogger as any as SDKLogger)
+
+  // TODO: add conditionals based on flags.
+  return logger.info(...params)
+}
+
 const getLogger = (): SDKLogger => {
-  return userLogger ?? (defaultLogger as any as SDKLogger)
+  const logger = userLogger ?? (defaultLogger as any as SDKLogger)
+
+  return new Proxy<SDKLogger>(logger, {
+    get(target, prop: keyof SDKLogger, receiver) {
+      if (prop === 'trace') {
+        return trace
+      }
+
+      return Reflect.get(target, prop, receiver)
+    },
+  })
 }
 
 export { setLogger, getLogger }
