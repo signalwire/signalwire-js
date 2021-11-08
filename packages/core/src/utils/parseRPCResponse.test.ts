@@ -92,5 +92,14 @@ describe('parseRPCResponse', () => {
         result: { data: 'test' },
       })
     })
+
+    it('should handle nested "result" fields with error', () => {
+      const response = JSON.parse(
+        '{"jsonrpc":"2.0","id":"uuid","result":{"requester_nodeid":"node1","requester_identity":"node1","responder_nodeid":"node2","responder_identity":"node2","result":{"code":"500","message":"Server error"}}}'
+      )
+      expect(parseRPCResponse({ request, response })).toEqual({
+        error: { code: '500', message: 'Server error' },
+      })
+    })
   })
 })
