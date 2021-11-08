@@ -8,7 +8,6 @@ import {
   instanceProxyFactory,
   NESTED_FIELDS_TO_PROCESS,
   getLogger,
-  _setDebugOptions,
 } from './utils'
 import { executeAction } from './redux'
 import {
@@ -168,13 +167,7 @@ export class BaseComponent<
    */
   private _runningWorkers: Task[] = []
 
-  constructor(public options: BaseComponentOptions<EventTypes>) {
-    // @ts-expect-error
-    const { debug } = options
-    if (debug) {
-      _setDebugOptions(debug)
-    }
-  }
+  constructor(public options: BaseComponentOptions<EventTypes>) {}
 
   /** @internal */
   set destroyer(d: () => void) {

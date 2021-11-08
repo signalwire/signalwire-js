@@ -78,12 +78,15 @@ export interface SessionOptions {
    * @internal
    * */
   _onRefreshToken?(): void
-  debug?: any
 }
 
 export interface UserOptions extends SessionOptions {
   /** @internal */
   devTools?: boolean
+  /** @internal */
+  debug?: {
+    logWsTraffic?: boolean
+  }
 }
 
 export interface InternalUserOptions extends UserOptions {

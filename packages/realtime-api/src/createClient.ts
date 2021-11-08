@@ -33,9 +33,6 @@ export const createClient: (userOptions: {
   project?: string
   token: string
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
-  debug?: {
-    wsTraffic?: boolean
-  }
 }) => Promise<RealtimeClient> =
   // Note: types are inlined for clarity of documentation
   async (userOptions) => {

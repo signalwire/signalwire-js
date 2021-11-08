@@ -31,7 +31,7 @@ const setLogger = (logger: SDKLogger | null) => {
 }
 
 let debugOptions: any = {}
-const _setDebugOptions = (options: any) => {
+const setDebugOptions = (options: any) => {
   Object.assign(debugOptions, options)
 }
 
@@ -58,4 +58,4 @@ const getLogger = (opts?: any): SDKLogger => {
   })
 }
 
-export { setLogger, getLogger, _setDebugOptions }
+export { setLogger, getLogger, setDebugOptions }
