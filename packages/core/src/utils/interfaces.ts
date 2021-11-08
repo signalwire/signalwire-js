@@ -385,4 +385,5 @@ export interface SDKLogger {
   info: LogFn
   debug: LogFn
   trace: LogFn
+  level: string // TODO:
 }
