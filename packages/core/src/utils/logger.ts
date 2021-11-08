@@ -48,7 +48,7 @@ const getLoggerInstance = (): SDKLogger => {
   return userLogger ?? (defaultLogger as any as SDKLogger)
 }
 
-// TODO: find a better place to place this.
+// TODO: find a better place to put this.
 const WS_MESSAGES_PREFIX = ['RECV:', 'SEND:']
 const isWsTraffic = (msg: string) => {
   return WS_MESSAGES_PREFIX.some((wsPrefix) => msg.startsWith(wsPrefix))
@@ -59,9 +59,11 @@ const trace = (...params: Parameters<SDKLogger['trace']>): void => {
   const { logWsTraffic } = debugOptions || {}
 
   if (isWsTraffic(params[0])) {
-    // If the user set `logWsTraffic: true` we'll
+    /**
+     * If the user sets `logWsTraffic: true` then we'll
+     * upgrade it to a `info` level.
+     */
     if (logWsTraffic) {
-      // TODO: pick the appropiate fn based o
       return logger.info(...params)
     } else {
       return undefined
