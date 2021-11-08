@@ -1,5 +1,5 @@
 import log from 'loglevel'
-import type { SDKLogger, UserOptions } from '..'
+import type { SDKLogger, InternalSDKLogger, UserOptions } from '..'
 
 const datetime = () =>
   new Date().toISOString().replace('T', ' ').replace('Z', '')
@@ -48,43 +48,41 @@ const getLoggerInstance = (): SDKLogger => {
   return userLogger ?? (defaultLogger as any as SDKLogger)
 }
 
-// TODO: find a better place to put this.
-const WS_MESSAGES_PREFIX = ['RECV:', 'SEND:']
-const isWsTraffic = (msg: string) => {
-  return WS_MESSAGES_PREFIX.some((wsPrefix) => msg.startsWith(wsPrefix))
-}
-
-const trace = (...params: Parameters<SDKLogger['trace']>): void => {
+const wsTraffic = (
+  payload: Parameters<InternalSDKLogger['wsTraffic']>[0]
+): void => {
   const logger = getLoggerInstance()
   const { logWsTraffic } = debugOptions || {}
 
-  if (isWsTraffic(params[0])) {
-    /**
-     * If the user sets `logWsTraffic: true` then we'll
-     * upgrade it to a `info` level.
-     */
-    if (logWsTraffic) {
-      return logger.info(...params)
-    } else {
-      return undefined
-    }
+  if (!logWsTraffic) {
+    return undefined
   }
 
-  return logger.trace(...params)
+  if ('method' in payload) {
+    const msg =
+      payload.method !== 'signalwire.ping'
+        ? JSON.stringify(payload, null, 2)
+        : payload
+
+    return logger.info('SEND: \n', msg, '\n')
+  }
+
+  // TODO: should we always stringify here?
+  return logger.info('RECV: \n', JSON.stringify(payload, null, 2), '\n')
 }
 
-const getLogger = (): SDKLogger => {
+const getLogger = (): InternalSDKLogger => {
   const logger = getLoggerInstance()
 
-  return new Proxy<SDKLogger>(logger, {
-    get(target, prop: keyof SDKLogger, receiver) {
-      if (prop === 'trace') {
-        return trace
+  return new Proxy(logger, {
+    get(target, prop: keyof InternalSDKLogger, receiver) {
+      if (prop === 'wsTraffic') {
+        return wsTraffic
       }
 
       return Reflect.get(target, prop, receiver)
     },
-  })
+  }) as InternalSDKLogger
 }
 
 export { setLogger, getLogger, setDebugOptions }
