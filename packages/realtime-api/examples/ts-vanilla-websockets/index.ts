@@ -14,7 +14,7 @@ async function run() {
       project: process.env.PROJECT as string,
       token: process.env.TOKEN as string,
       debug: {
-        wsTraffic: true,
+        logWsTraffic: true,
       },
     })
 
