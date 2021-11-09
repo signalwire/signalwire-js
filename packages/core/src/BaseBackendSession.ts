@@ -17,9 +17,9 @@ import {
 } from './utils/interfaces'
 
 interface WSOptions {
-  key: string
-  cert: string
-  caCert: string
+  key?: string
+  cert?: string
+  ca?: string
 }
 
 /**
