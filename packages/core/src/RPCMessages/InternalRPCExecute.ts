@@ -3,7 +3,7 @@ import { makeRPCRequest } from './helpers'
 /**
  * @internal
  */
-export interface BladeExecuteParams {
+export interface InternalRPCExecuteParams {
   requester_identity?: string
   responder_identity?: string
   attempted?: string[]
@@ -15,7 +15,7 @@ export interface BladeExecuteParams {
 /**
  * @internal
  */
-export const InterRPCExecute = (params: BladeExecuteParams) => {
+export const InterRPCExecute = (params: InternalRPCExecuteParams) => {
   return makeRPCRequest({
     method: 'blade.execute',
     params,
