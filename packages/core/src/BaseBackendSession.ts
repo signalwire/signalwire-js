@@ -16,12 +16,6 @@ import {
   SessionOptions,
 } from './utils/interfaces'
 
-interface WSOptions {
-  key?: string
-  cert?: string
-  ca?: string
-}
-
 /**
  * @internal
  */
@@ -31,9 +25,6 @@ export interface BackendSessionOptions extends SessionOptions, WSOptions {}
  * @internal
  */
 export class BaseBackendSession extends BaseSession {
-  constructor(public options: BackendSessionOptions) {
-    super(options)
-  }
   protected protocols(): { protocol: string; rank: number }[] {
     return [
       {
@@ -51,7 +42,7 @@ export class BaseBackendSession extends BaseSession {
     this._rpcConnectResult = await this.execute(InternalRPCConnect(params))
   }
 
-  protected getSocketOptions() {
+  protected getSocketOptions(): any {
     return {}
   }
   protected override _createSocket(): NodeSocketClient {
