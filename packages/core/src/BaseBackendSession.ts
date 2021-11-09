@@ -1,4 +1,3 @@
-import fs from 'fs'
 import { BaseSession } from './BaseSession'
 import {
   InternalRPCConnect,
@@ -35,37 +34,25 @@ export class BaseBackendSession extends BaseSession {
   constructor(public options: BackendSessionOptions) {
     super(options)
   }
-  protected provider(): string {
-    return '(unspecified)'
+  protected protocols(): { protocol: string; rank: number }[] {
+    return [
+      {
+        protocol: '(unspecified)',
+        rank: 1,
+      },
+    ]
   }
   override async authenticate(): Promise<void> {
+    const protocols = this.protocols()
     const params: InternalRPCConnectParams = {
       agent: this.agent,
-      protocols: [
-        {
-          protocol: this.provider(),
-          rank: 1,
-        },
-      ],
+      protocols,
     }
     this._rpcConnectResult = await this.execute(InternalRPCConnect(params))
   }
 
   protected getSocketOptions() {
-    const { caCert: caPath, cert: certPath, key: keyPath } = this.options
-    if (
-      fs.existsSync(caPath) &&
-      fs.existsSync(certPath) &&
-      fs.existsSync(keyPath)
-    ) {
-      const ca = fs.readFileSync(caPath).toString()
-      const key = fs.readFileSync(keyPath).toString()
-      const cert = fs.readFileSync(certPath).toString()
-      const socketOptions = { cert, key, ca: [ca], rejectUnauthorized: false }
-      return socketOptions
-    } else {
-      throw new Error('cert, key and caCert paths are required.')
-    }
+    return {}
   }
   protected override _createSocket(): NodeSocketClient {
     this.logger.info('_createSocket')
