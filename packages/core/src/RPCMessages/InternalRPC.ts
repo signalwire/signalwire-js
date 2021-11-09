@@ -11,7 +11,6 @@ export type InternalRPCMethods =
   | 'blade.protocol'
 
 /**
- * See https://www.jsonrpc.org/specification#response_object
  * @internal
  */
 export const JSONRPCParseError = -32700 as const
@@ -99,8 +98,6 @@ export const makeInternalRPCErrorResponse = (
 
 // The following types are implicated in `blade.execute`.
 // Blade layer 2 operations
-
-// See switchblade/Messages/ExecuteResult.cs
 /**
  * @internal
  */
