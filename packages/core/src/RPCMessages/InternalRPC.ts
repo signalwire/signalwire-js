@@ -1,30 +1,14 @@
-import { uuid } from '../utils'
-
-/**
- * Base JSONRPC format
- * @internal
- */
-interface IBaseJSONRPCPayload {
-  jsonrpc: '2.0'
-  id: string
-}
+import { JSONRPCRequest, JSONRPCResponse } from '../utils/interfaces'
+import { makeRPCResponse } from './helpers'
 
 /**
  * Blade (JSONRPC) layer 1 operations
  * @internal
  */
-export type BladeRPCMethods =
+export type InternalRPCMethods =
   | 'blade.connect'
   | 'blade.execute'
   | 'blade.protocol'
-
-/**
- * @internal
- */
-export interface BladeRequest extends IBaseJSONRPCPayload {
-  method: BladeRPCMethods
-  params: BladeRPCRequest
-}
 
 /**
  * See https://www.jsonrpc.org/specification#response_object
@@ -60,7 +44,7 @@ export type JSONRPCErrorCodes =
 /**
  * @internal
  */
-export type BladeResponseProperties = {
+export type InternalRPCResponseProperties = {
   result: Record<string, any>
   error: {
     code: JSONRPCErrorCodes
@@ -78,49 +62,31 @@ type OnlyOne<T, Keys extends keyof T> = Pick<T, Exclude<keyof T, Keys>> &
 /**
  * @internal
  */
-export type BladeResponse = IBaseJSONRPCPayload &
-  OnlyOne<BladeResponseProperties, 'result' | 'error'>
+export type InternalRPCResponse = Omit<JSONRPCResponse, 'result' | 'error'> &
+  OnlyOne<InternalRPCResponseProperties, 'result' | 'error'>
 
 /**
  * @internal
  */
-export const makeBladeRequest = ({
-  method,
-  params,
-}: {
-  method: BladeRequest['method']
-  params: BladeRequest['params']
-}): BladeRequest => {
-  return {
-    jsonrpc: '2.0',
-    id: uuid(),
-    method,
-    params,
-  }
-}
-
-/**
- * @internal
- */
-export const makeBladeResultResponse = (
-  request: BladeRequest,
+export const makeInternalRPCResultResponse = (
+  request: JSONRPCRequest,
   result: Record<string, any>
-): BladeResponse => {
-  return {
-    jsonrpc: '2.0',
+): InternalRPCResponse => {
+  return makeRPCResponse({
     id: request.id,
     result,
-  }
+  })
 }
 
 /**
+ * we can't use makeRPCResponse here, since it only returns `result` and never return `error`
  * @internal
  */
-export const makeBladeErrorResponse = (
-  request: BladeRequest,
+export const makeInternalRPCErrorResponse = (
+  request: JSONRPCRequest,
   code: JSONRPCErrorCodes,
   message: string
-): BladeResponse => {
+): InternalRPCResponse => {
   return {
     jsonrpc: '2.0',
     id: request.id,
@@ -138,7 +104,7 @@ export const makeBladeErrorResponse = (
 /**
  * @internal
  */
-export interface BladeRPCCommonBody {
+export interface InternalRPCCommonBody {
   requester_identity: string
   responder_identity: string
 }
@@ -146,20 +112,17 @@ export interface BladeRPCCommonBody {
 /**
  * @internal
  */
-export interface BladeRPCRequest extends BladeRPCCommonBody {
+export interface InternalRPCRequestBody extends InternalRPCCommonBody {
   protocol: string
   method: string
   params: Record<string, unknown>
 }
 
-// Blade 3.0 conventions: the results are flattened inside the response result
-type BladeRPC30Result = Record<string, any>
-
 /**
  * We're using 3.0 conventions
  * @internal
  */
-export type BladeRPCResult = BladeRPC30Result
+export type InternalRPCResult = Record<string, any>
 
 /**
  * The RPC Response only contains a `result` field.
@@ -167,29 +130,29 @@ export type BladeRPCResult = BladeRPC30Result
  * an application-level error.
  * @internal
  */
-export interface BladeRPCResponse {
-  result: BladeRPCCommonBody & {
+export interface InternalRPCResponseBody {
+  result: InternalRPCCommonBody & {
     code: string
     message?: string
-  } & BladeRPCResult
+  } & InternalRPCResult
 }
 
 /**
  * @internal
  */
 export type RequestHandler = (
-  request: BladeRPCRequest
-) => Promise<BladeRPCResponse>
+  request: InternalRPCRequestBody
+) => Promise<InternalRPCResponseBody>
 
 export type RPCMethodHandler = [method: string, handler: RequestHandler]
 
 /**
  * @internal
  */
-export const makeBladeRPCResultResponse = (
-  request: BladeRPCRequest,
+export const makeInternalRPCResultResponseBody = (
+  request: InternalRPCRequestBody,
   result: Record<string, any>
-): BladeRPCResponse => {
+): InternalRPCResponseBody => {
   return {
     result: {
       requester_identity: request.requester_identity,
@@ -208,10 +171,10 @@ export const makeBladeRPCResultResponse = (
 /**
  * @internal
  */
-export const makeBladeRPCErrorResponse = (
-  request: BladeRPCRequest,
+export const makeInternalRPCErrorResponseBody = (
+  request: InternalRPCRequestBody,
   code: string,
   message?: string
-): BladeRPCResponse => {
-  return makeBladeRPCResultResponse(request, { code, message })
+): InternalRPCResponseBody => {
+  return makeInternalRPCResultResponseBody(request, { code, message })
 }

@@ -1,4 +1,4 @@
-import { BladeRequest, makeBladeRequest } from './Blade'
+import { makeRPCRequest } from './helpers'
 
 /**
  * @internal
@@ -20,10 +20,9 @@ export interface BladeExecuteParams {
 /**
  * @internal
  */
-export const BladeExecute = (params: BladeExecuteParams): BladeRequest => {
-  return makeBladeRequest({
+export const InterRPCExecute = (params: BladeExecuteParams) => {
+  return makeRPCRequest({
     method: 'blade.execute',
-    // @ts-ignore
     params,
   })
 }

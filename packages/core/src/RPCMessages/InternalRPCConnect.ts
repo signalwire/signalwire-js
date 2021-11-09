@@ -1,10 +1,10 @@
-import { BladeRequest, makeBladeRequest } from './Blade'
+import { makeRPCRequest } from './helpers'
 import { RPCConnectParams } from './RPCConnect'
 
 /**
  * @internal
  */
-export type BladeConnectParams = Pick<
+export type InternalRPCConnectParams = Pick<
   RPCConnectParams,
   'version' | 'agent' | 'protocol'
 > & {
@@ -14,10 +14,9 @@ export type BladeConnectParams = Pick<
 /**
  * @internal
  */
-export const BladeConnect = (params: BladeConnectParams): BladeRequest => {
-  return makeBladeRequest({
+export const InternalRPCConnect = (params: InternalRPCConnectParams) => {
+  return makeRPCRequest({
     method: 'blade.connect',
-    // @ts-ignore
     params: {
       version: {
         major: 2,
