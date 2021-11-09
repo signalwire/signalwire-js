@@ -1,19 +1,21 @@
-import WebSocket from 'ws'
 import fs from 'fs'
 import { BaseSession } from './BaseSession'
-import { NodeSocketClient, SessionOptions } from './utils/interfaces'
 import {
-  BladeConnect,
-  BladeConnectParams,
-  BladeRequest,
-  BladeResponse,
-  BladeRPCRequest,
-  BladeRPCResponse,
+  InternalRPCConnect,
+  InternalRPCConnectParams,
+  InternalRPCRequestBody,
+  InternalRPCResponse,
+  InternalRPCResponseBody,
   JSONRPCMethodNotFound,
-  makeBladeErrorResponse,
-  makeBladeResultResponse,
-  makeBladeRPCErrorResponse,
+  makeInternalRPCErrorResponse,
+  makeInternalRPCErrorResponseBody,
+  makeInternalRPCResultResponse,
 } from './RPCMessages'
+import {
+  JSONRPCRequest,
+  NodeSocketClient,
+  SessionOptions,
+} from './utils/interfaces'
 
 interface WSOptions {
   key: string
@@ -30,19 +32,14 @@ export interface BackendSessionOptions extends SessionOptions, WSOptions {}
  * @internal
  */
 export class BaseBackendSession extends BaseSession {
-  public override WebSocketConstructor = WebSocket
-  protected wsOptions: WSOptions
-
-  constructor(options: BackendSessionOptions) {
+  constructor(public options: BackendSessionOptions) {
     super(options)
-    const { key, cert, caCert } = options
-    this.wsOptions = { key, cert, caCert }
   }
   protected provider(): string {
     return '(unspecified)'
   }
   override async authenticate(): Promise<void> {
-    const params: BladeConnectParams = {
+    const params: InternalRPCConnectParams = {
       agent: this.agent,
       protocols: [
         {
@@ -51,30 +48,37 @@ export class BaseBackendSession extends BaseSession {
         },
       ],
     }
-    this._rpcConnectResult = await this.execute(BladeConnect(params))
+    this._rpcConnectResult = await this.execute(InternalRPCConnect(params))
   }
 
-  protected override _createSocket(): NodeSocketClient {
-    this.logger.info('_createSocket')
-    const { caCert: caPath, cert: certPath, key: keyPath } = this.wsOptions
+  protected getSocketOptions() {
+    const { caCert: caPath, cert: certPath, key: keyPath } = this.options
     if (
       fs.existsSync(caPath) &&
       fs.existsSync(certPath) &&
       fs.existsSync(keyPath)
     ) {
-      const ca = fs.readFileSync(caPath)
-      const key = fs.readFileSync(keyPath)
-      const cert = fs.readFileSync(certPath)
-      const wsOptions = { cert, key, ca: [ca], rejectUnauthorized: false }
-      return new this.WebSocketConstructor(this.host, wsOptions)
+      const ca = fs.readFileSync(caPath).toString()
+      const key = fs.readFileSync(keyPath).toString()
+      const cert = fs.readFileSync(certPath).toString()
+      const socketOptions = { cert, key, ca: [ca], rejectUnauthorized: false }
+      return socketOptions
     } else {
       throw new Error('cert, key and caCert paths are required.')
     }
   }
+  protected override _createSocket(): NodeSocketClient {
+    this.logger.info('_createSocket')
+    const socketOptions = this.getSocketOptions()
+    // @ts-ignore
+    return new this.WebSocketConstructor(this.host, socketOptions)
+  }
 
-  protected process(request: BladeRPCRequest): Promise<BladeRPCResponse> {
+  protected process(
+    request: InternalRPCRequestBody
+  ): Promise<InternalRPCResponseBody> {
     this.logger.error({ request }, 'process (not implemented)')
-    const response = makeBladeRPCErrorResponse(
+    const response = makeInternalRPCErrorResponseBody(
       request,
       '500',
       `Virtual class BaseBackendSession does not implement any RPC`
@@ -84,7 +88,7 @@ export class BaseBackendSession extends BaseSession {
 
   /* @internal */
   protected override async _handleWebSocketMessage(
-    payload: BladeRequest
+    payload: JSONRPCRequest
   ): Promise<void> {
     const { method, params } = payload
     switch (method) {
@@ -93,8 +97,10 @@ export class BaseBackendSession extends BaseSession {
           { params },
           '_handleWebSocketMessage: blade.execute request received'
         )
-        const rpcResponse: BladeRPCResponse = await this.process(params)
-        const response: BladeResponse = makeBladeResultResponse(
+        const rpcResponse: InternalRPCResponseBody = await this.process(
+          params as InternalRPCRequestBody
+        )
+        const response: InternalRPCResponse = makeInternalRPCResultResponse(
           payload,
           rpcResponse.result
         )
@@ -103,7 +109,7 @@ export class BaseBackendSession extends BaseSession {
         break
       default:
         await this.execute(
-          makeBladeErrorResponse(
+          makeInternalRPCErrorResponse(
             payload,
             JSONRPCMethodNotFound,
             'Unknown method received'
