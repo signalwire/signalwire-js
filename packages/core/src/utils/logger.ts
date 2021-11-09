@@ -37,6 +37,10 @@ const setLogger = (logger: SDKLogger | null) => {
 
 let debugOptions: UserOptions['debug'] = {}
 const setDebugOptions = (options: any) => {
+  if (options == null) {
+    debugOptions = {}
+    return
+  }
   Object.assign(debugOptions, options)
 }
 
