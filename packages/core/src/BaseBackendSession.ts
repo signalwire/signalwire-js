@@ -77,7 +77,7 @@ export class BaseBackendSession extends BaseSession {
     const response = makeBladeRPCErrorResponse(
       request,
       '500',
-      `Virtual class AutomaticSession does not implement any RPC`
+      `Virtual class BaseBackendSession does not implement any RPC`
     )
     return Promise.resolve(response)
   }
