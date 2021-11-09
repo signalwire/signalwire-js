@@ -10,16 +10,7 @@ import {
   makeInternalRPCErrorResponseBody,
   makeInternalRPCResultResponse,
 } from './RPCMessages'
-import {
-  JSONRPCRequest,
-  NodeSocketClient,
-  SessionOptions,
-} from './utils/interfaces'
-
-/**
- * @internal
- */
-export interface BackendSessionOptions extends SessionOptions, WSOptions {}
+import { JSONRPCRequest, NodeSocketClient } from './utils/interfaces'
 
 /**
  * @internal
