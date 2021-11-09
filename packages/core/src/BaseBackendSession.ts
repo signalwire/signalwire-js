@@ -42,7 +42,7 @@ export class BaseBackendSession extends BaseSession {
     this._rpcConnectResult = await this.execute(InternalRPCConnect(params))
   }
 
-  protected getSocketOptions(): any {
+  protected getSocketOptions(): Record<string, any> {
     return {}
   }
   protected override _createSocket(): NodeSocketClient {
