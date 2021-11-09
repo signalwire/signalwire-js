@@ -1,18 +1,14 @@
 import log from 'loglevel'
-import type { SDKLogger, InternalSDKLogger, UserOptions } from '..'
+import type {
+  SDKLogger,
+  InternalSDKLogger,
+  WsTrafficOptions,
+  UserOptions,
+} from '..'
 
 const datetime = () =>
   new Date().toISOString().replace('T', ' ').replace('Z', '')
-const defaultLoggerInstance = log.getLogger('signalwire')
-const defaultLogger = new Proxy(defaultLoggerInstance, {
-  get(target, prop: keyof SDKLogger, receiver) {
-    if (prop === 'level') {
-      return defaultLoggerInstance.getLevel()
-    }
-
-    return Reflect.get(target, prop, receiver)
-  },
-})
+const defaultLogger = log.getLogger('signalwire')
 
 const originalFactory = defaultLogger.methodFactory
 defaultLogger.methodFactory = (methodName, logLevel, loggerName) => {
@@ -48,9 +44,15 @@ const getLoggerInstance = (): SDKLogger => {
   return userLogger ?? (defaultLogger as any as SDKLogger)
 }
 
-const wsTraffic = (
-  payload: Parameters<InternalSDKLogger['wsTraffic']>[0]
-): void => {
+const shouldStringify = (payload: WsTrafficOptions['payload']) => {
+  if ('method' in payload && payload.method === 'signalwire.ping') {
+    return false
+  }
+
+  return true
+}
+
+const wsTraffic: InternalSDKLogger['wsTraffic'] = ({ type, payload }) => {
   const logger = getLoggerInstance()
   const { logWsTraffic } = debugOptions || {}
 
@@ -58,17 +60,11 @@ const wsTraffic = (
     return undefined
   }
 
-  if ('method' in payload) {
-    const msg =
-      payload.method !== 'signalwire.ping'
-        ? JSON.stringify(payload, null, 2)
-        : payload
+  const msg = shouldStringify(payload)
+    ? JSON.stringify(payload, null, 2)
+    : payload
 
-    return logger.info('SEND: \n', msg, '\n')
-  }
-
-  // TODO: should we always stringify here?
-  return logger.info('RECV: \n', JSON.stringify(payload, null, 2), '\n')
+  return logger.info(`${type.toUpperCase()}: \n`, msg, '\n')
 }
 
 const getLogger = (): InternalSDKLogger => {

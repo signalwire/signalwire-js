@@ -385,9 +385,13 @@ export interface SDKLogger {
   info: LogFn
   debug: LogFn
   trace: LogFn
-  level: string // TODO:
+}
+
+export interface WsTrafficOptions {
+  type: 'send' | 'recv'
+  payload: JSONRPCResponse | JSONRPCRequest
 }
 
 export interface InternalSDKLogger extends SDKLogger {
-  wsTraffic: (payload: JSONRPCResponse | JSONRPCRequest) => void
+  wsTraffic: (options: WsTrafficOptions) => void
 }
