@@ -673,7 +673,7 @@ interface RoomControlMethodsInterfaceDocs {
   /**
    * Do not show muted videos in the room layout.
    *
-   * @deprecated
+   * @deprecated Use {@link setHideVideoMuted} instead.
    *
    * @permissions
    *  - `room.hide_video_muted`
@@ -694,7 +694,7 @@ interface RoomControlMethodsInterfaceDocs {
    * Members that have been muted via {@link videoMute} will display a mute
    * image instead of the video.
    *
-   * @deprecated
+   * @deprecated Use {@link setHideVideoMuted} instead.
    *
    * @permissions
    *  - `room.show_video_muted`
