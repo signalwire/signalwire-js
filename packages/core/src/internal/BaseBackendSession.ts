@@ -1,4 +1,4 @@
-import { BaseSession } from './BaseSession'
+import { BaseSession } from '../BaseSession'
 import {
   InternalRPCConnect,
   InternalRPCConnectParams,
@@ -9,8 +9,8 @@ import {
   makeInternalRPCErrorResponse,
   makeInternalRPCErrorResponseBody,
   makeInternalRPCResultResponse,
-} from './RPCMessages'
-import { JSONRPCRequest, NodeSocketClient } from './utils/interfaces'
+} from '.'
+import { JSONRPCRequest, NodeSocketClient } from '../utils/interfaces'
 
 /**
  * @internal

@@ -1,4 +1,4 @@
-import { makeRPCRequest } from '../helpers'
+import { makeRPCRequest } from '../RPCMessages/helpers'
 
 /**
  * @internal

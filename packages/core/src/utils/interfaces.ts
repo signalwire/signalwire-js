@@ -9,7 +9,7 @@ import {
 } from './constants'
 import type { CustomSaga } from '../redux/interfaces'
 import type { URL as NodeURL } from 'node:url'
-import { InternalRPCMethods } from '../RPCMessages'
+import { InternalRPCMethods } from '../internal'
 
 type JSONRPCParams = Record<string, any>
 type JSONRPCResult = Record<string, any>

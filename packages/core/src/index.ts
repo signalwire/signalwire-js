@@ -9,7 +9,6 @@ import {
 } from './utils'
 import { BaseSession } from './BaseSession'
 import { BaseJWTSession } from './BaseJWTSession'
-import { BaseBackendSession } from './BaseBackendSession'
 import { configureStore, connect } from './redux'
 import { BaseClient } from './BaseClient'
 import { BaseComponent } from './BaseComponent'
@@ -28,7 +27,6 @@ export {
   getLogger,
   BaseSession,
   BaseJWTSession,
-  BaseBackendSession,
   BaseComponent,
   BaseConsumer,
   BaseClient,
@@ -46,6 +44,7 @@ export {
 }
 
 export * from './RPCMessages'
+export * from './internal'
 export * from './utils/interfaces'
 export * from './types'
 export * from './CustomErrors'

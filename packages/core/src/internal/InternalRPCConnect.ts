@@ -1,5 +1,5 @@
-import { makeRPCRequest } from '../helpers'
-import { RPCConnectParams } from '../RPCConnect'
+import { makeRPCRequest } from '../RPCMessages/helpers'
+import { RPCConnectParams } from '../RPCMessages/RPCConnect'
 
 /**
  * @internal
