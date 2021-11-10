@@ -1,5 +1,5 @@
-import { JSONRPCRequest, JSONRPCResponse } from '../utils/interfaces'
-import { makeRPCResponse } from './helpers'
+import { JSONRPCRequest, JSONRPCResponse } from '../../utils/interfaces'
+import { makeRPCResponse } from '../helpers'
 
 /**
  * Blade (JSONRPC) layer 1 operations
