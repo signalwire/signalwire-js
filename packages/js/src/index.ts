@@ -29,8 +29,6 @@ import type {
   VideoMemberEntity,
 } from '@signalwire/core'
 
-import { setLogger } from '@signalwire/core'
-
 /** @ignore @deprecated */
 export type RoomStartedEventName = RoomStarted
 /** @ignore @deprecated */
@@ -61,8 +59,6 @@ export * as Video from './video'
  * from a webcam, from a microphone, or from a screen sharing.
  */
 export * as WebRTC from './webrtc'
-
-export { setLogger }
 
 /** @ignore */
 export type {

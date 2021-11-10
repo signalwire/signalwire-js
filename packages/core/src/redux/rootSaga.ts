@@ -2,7 +2,7 @@ import { Task, SagaIterator } from '@redux-saga/types'
 import { channel, EventChannel } from 'redux-saga'
 import { fork, call, take, put, delay, all } from 'redux-saga/effects'
 import { SessionConstructor, InternalUserOptions } from '../utils/interfaces'
-import { getLogger, setDebugOptions } from '../utils'
+import { getLogger, setDebugOptions, setLogger } from '../utils'
 import { BaseSession } from '../BaseSession'
 import {
   executeActionWatcher,
@@ -214,6 +214,9 @@ interface RootSagaOptions {
 
 export default (options: RootSagaOptions) => {
   return function* root(userOptions: InternalUserOptions): SagaIterator {
+    if (userOptions.logger) {
+      setLogger(userOptions.logger)
+    }
     if (userOptions.debug) {
       setDebugOptions(userOptions.debug)
     }

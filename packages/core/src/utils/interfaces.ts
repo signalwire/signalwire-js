@@ -79,7 +79,6 @@ export interface SessionOptions {
    * */
   _onRefreshToken?(): void
 }
-
 export interface UserOptions extends SessionOptions {
   /** @internal */
   devTools?: boolean
@@ -87,6 +86,8 @@ export interface UserOptions extends SessionOptions {
   debug?: {
     logWsTraffic?: boolean
   }
+  /** @internal */
+  logger?: SDKLogger
 }
 
 export interface InternalUserOptions extends UserOptions {
