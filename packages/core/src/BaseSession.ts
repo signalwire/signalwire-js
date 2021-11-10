@@ -200,7 +200,7 @@ export class BaseSession {
       promise = Promise.resolve()
     }
 
-    this.logger.trace('SEND: \n', JSON.stringify(msg, null, 2), '\n')
+    this.logger.wsTraffic({ type: 'send', payload: msg })
     this._socket!.send(JSON.stringify(msg))
 
     return timeoutPromise(
@@ -264,7 +264,7 @@ export class BaseSession {
 
   protected _onSocketMessage(event: MessageEvent) {
     const payload: any = safeParseJson(event.data)
-    this.logger.trace('RECV: \n', JSON.stringify(payload, null, 2), '\n')
+    this.logger.wsTraffic({ type: 'recv', payload })
     const request = this._requests.get(payload.id)
     if (request) {
       const { rpcRequest, resolve, reject } = request

@@ -83,6 +83,10 @@ export interface SessionOptions {
 export interface UserOptions extends SessionOptions {
   /** @internal */
   devTools?: boolean
+  /** @internal */
+  debug?: {
+    logWsTraffic?: boolean
+  }
 }
 
 export interface InternalUserOptions extends UserOptions {
@@ -381,4 +385,13 @@ export interface SDKLogger {
   info: LogFn
   debug: LogFn
   trace: LogFn
+}
+
+export interface WsTrafficOptions {
+  type: 'send' | 'recv'
+  payload: JSONRPCResponse | JSONRPCRequest
+}
+
+export interface InternalSDKLogger extends SDKLogger {
+  wsTraffic: (options: WsTrafficOptions) => void
 }
