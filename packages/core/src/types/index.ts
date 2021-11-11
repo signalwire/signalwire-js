@@ -116,3 +116,4 @@ export type PubSubChannelEvents =
 export * from './video'
 export * from './utils'
 export * from './cantina'
+export * from './chat'
