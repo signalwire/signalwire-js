@@ -1,4 +1,4 @@
-import { channel, eventChannel } from 'redux-saga'
+import { channel, eventChannel } from '@redux-saga/core'
 import { expectSaga, testSaga } from 'redux-saga-test-plan'
 import rootSaga, {
   socketClosedWorker,

@@ -1,4 +1,4 @@
-import { eventChannel } from 'redux-saga'
+import { eventChannel } from '@redux-saga/core'
 import { expectSaga } from 'redux-saga-test-plan'
 import { VertoResult } from '../../../RPCMessages'
 import { socketMessageAction, executeAction } from '../../actions'
