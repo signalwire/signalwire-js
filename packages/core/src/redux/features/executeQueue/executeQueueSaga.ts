@@ -1,4 +1,4 @@
-import { SagaIterator } from 'redux-saga'
+import { SagaIterator } from '@redux-saga/core'
 import { put, take, fork, select } from '@redux-saga/core/effects'
 import { PayloadAction } from '@reduxjs/toolkit'
 import { ExecuteActionParams } from '../../interfaces'

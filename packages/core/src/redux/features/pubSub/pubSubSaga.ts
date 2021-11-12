@@ -1,4 +1,4 @@
-import { SagaIterator } from 'redux-saga'
+import { SagaIterator } from '@redux-saga/core'
 import { take } from '@redux-saga/core/effects'
 import {
   isInternalGlobalEvent,

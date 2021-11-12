@@ -1,4 +1,4 @@
-import { channel } from 'redux-saga'
+import { channel } from '@redux-saga/core'
 import { configureStore } from './redux'
 import { PubSubChannel } from './redux/interfaces'
 import { BaseSession } from './BaseSession'

@@ -1,4 +1,4 @@
-import { SagaIterator, eventChannel, EventChannel } from 'redux-saga'
+import { SagaIterator, eventChannel, EventChannel } from '@redux-saga/core'
 import {
   call,
   put,

@@ -1,5 +1,5 @@
 import type { Task, SagaIterator } from '@redux-saga/types'
-import { channel, EventChannel } from 'redux-saga'
+import { channel, EventChannel } from '@redux-saga/core'
 import { fork, call, take, put, delay, all } from '@redux-saga/core/effects'
 import { SessionConstructor, InternalUserOptions } from '../utils/interfaces'
 import { getLogger, setDebugOptions, setLogger } from '../utils'
