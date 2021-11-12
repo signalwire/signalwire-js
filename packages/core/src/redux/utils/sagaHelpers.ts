@@ -1,4 +1,4 @@
-import { call, spawn } from 'redux-saga/effects'
+import { call, spawn } from '@redux-saga/core/effects'
 import { getLogger } from '../../utils'
 
 export const createRestartableSaga = (saga: any) => {

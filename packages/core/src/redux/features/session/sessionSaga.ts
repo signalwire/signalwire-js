@@ -1,5 +1,12 @@
 import { SagaIterator, eventChannel, EventChannel } from 'redux-saga'
-import { call, put, take, fork, select, cancelled } from 'redux-saga/effects'
+import {
+  call,
+  put,
+  take,
+  fork,
+  select,
+  cancelled,
+} from '@redux-saga/core/effects'
 import { PayloadAction } from '@reduxjs/toolkit'
 import { BaseSession } from '../../../BaseSession'
 import { VertoResult } from '../../../RPCMessages'

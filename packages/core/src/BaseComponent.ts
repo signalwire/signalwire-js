@@ -1,5 +1,5 @@
 import { Action } from '@reduxjs/toolkit'
-import { Task } from '@redux-saga/types'
+import type { Task } from '@redux-saga/types'
 import {
   uuid,
   toInternalEventName,
