@@ -7,6 +7,8 @@ import {
   ConsumerContract,
   extendComponent,
   VideoRoomSessionContract,
+  SagaIterator,
+  sagaEffects,
 } from '@signalwire/core'
 import { ChatApiEvents } from '../types'
 
@@ -23,8 +25,22 @@ export interface Chat extends AssertSameType<ChatMain, ChatDocs> {}
 
 export interface ChatFullState extends Chat {}
 
+// TODO: find a better place to put this.
+export function* chatWorker(): SagaIterator {
+  while (true) {
+    const action = yield sagaEffects.take((action: any) =>
+      action.type.startsWith('chat.')
+    )
+    console.debug('chatWorker:', action)
+  }
+}
+
 class ChatConsumer extends BaseConsumer<ChatApiEvents> {
   protected _eventsPrefix = 'chat' as const
+
+  protected getWorkers() {
+    return new Map([['chat', { worker: chatWorker }]])
+  }
 
   subscribe() {
     return new Promise((resolve) => {
