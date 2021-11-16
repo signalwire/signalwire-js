@@ -48,6 +48,7 @@ export type JSONRPCMethod =
   | RoomMethod
   | VertoMethod
   | InternalRPCMethods
+  | ChatMethod
 
 export interface JSONRPCRequest {
   jsonrpc: '2.0'
@@ -191,6 +192,8 @@ export type SessionAuthError = {
   code: number
   error: string
 }
+
+export type ChatMethod = 'chat.publish'
 
 /**
  * List of all Room methods

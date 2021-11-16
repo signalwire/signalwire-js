@@ -6,9 +6,10 @@ import {
   connect,
   ConsumerContract,
   extendComponent,
-  VideoRoomSessionContract,
+  ChatContract,
   SagaIterator,
   sagaEffects,
+  Chat,
 } from '@signalwire/core'
 import { ChatApiEvents } from '../types'
 
@@ -16,7 +17,7 @@ import { ChatApiEvents } from '../types'
 type EmitterTransformsEvents = ''
 
 interface ChatMain
-  extends VideoRoomSessionContract,
+  extends ChatContract,
     ConsumerContract<ChatApiEvents, ChatFullState> {}
 
 interface ChatDocs extends ChatMain {}
@@ -42,16 +43,20 @@ class ChatConsumer extends BaseConsumer<ChatApiEvents> {
     return new Map([['chat', { worker: chatWorker }]])
   }
 
-  subscribe() {
+  subscribe(): Promise<ChatFullState> {
     return new Promise((resolve) => {
-      setTimeout(resolve, 500)
+      setTimeout(() => {
+        resolve({} as ChatFullState)
+      }, 500)
     })
   }
 }
 
 export const ChatAPI = extendComponent<ChatConsumer, ChatMethods>(
   ChatConsumer,
-  {}
+  {
+    publish: Chat.publish,
+  }
 )
 
 export const createChatObject = (

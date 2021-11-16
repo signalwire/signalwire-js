@@ -58,6 +58,7 @@ export * as sagaHelpers from './redux/utils/sagaHelpers'
 export * as sagaEffects from '@redux-saga/core/effects'
 export type { SagaIterator, Task, Saga } from '@redux-saga/types'
 export * as Rooms from './rooms'
+export * as Chat from './chat'
 export type { RoomSessionRecording, RoomSessionPlayback } from './rooms'
 export const selectors = {
   ...sessionSelectors,
