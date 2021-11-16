@@ -21,7 +21,8 @@ export type CantinaRoomEventNames =
  * @internal
  */
 export type InternalCantinaRoomEventNames =
-  ToInternalCantinaEvent<CantinaRoomEventNames>
+  | ToInternalCantinaEvent<RoomsSubscribed>
+  | ToInternalCantinaEvent<CantinaRoomEventNames>
 
 /** @internal */
 type CantinaRoomRole =

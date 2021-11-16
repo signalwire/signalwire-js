@@ -216,4 +216,26 @@ describe('toExternalJSON', () => {
 
     expect(toExternalJSON(input)).toStrictEqual(output)
   })
+
+  it('should not change values within array not in the whitelist', async () => {
+    const input = {
+      updated: ['key_one', 'key_two'],
+      unknown_list: ['value_one', 'value_two'],
+      this_change: null,
+      nested_property: {
+        nested_array: ['other_test'],
+      },
+    }
+
+    const output = {
+      updated: ['keyOne', 'keyTwo'],
+      unknownList: ['value_one', 'value_two'],
+      thisChange: null,
+      nestedProperty: {
+        nestedArray: ['other_test'],
+      },
+    }
+
+    expect(toExternalJSON(input)).toStrictEqual(output)
+  })
 })
