@@ -8,6 +8,7 @@ import {
   EventTransform,
   toExternalJSON,
   CantinaRoomEntity,
+  CantinaRoomsSubscribedEventParams,
 } from '@signalwire/core'
 
 /** @internal */
@@ -29,6 +30,19 @@ export class CantinaAPI extends BaseConsumer<CantinaManagerEvents> {
       InternalCantinaRoomEventNames | InternalCantinaRoomEventNames[],
       EventTransform
     >([
+      [
+        ['cantina-manager.rooms.subscribed'],
+        {
+          type: 'roomSession',
+          // For now we expose the transformed payload and not a RoomSession
+          instanceFactory: ({ rooms }: CantinaRoomsSubscribedEventParams) => ({
+            rooms: rooms.map((row) => toExternalJSON(row)),
+          }),
+          payloadTransform: ({ rooms }: CantinaRoomsSubscribedEventParams) => ({
+            rooms: rooms.map((row) => toExternalJSON(row)),
+          }),
+        },
+      ],
       [
         [
           'cantina-manager.room.started',
