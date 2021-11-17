@@ -33,8 +33,7 @@ export * from './createClient'
 
 /**
  * You can use the Video namespace to subscribe to video-related events.
- * 
+ *
  * See {@link Video.Video} for examples.
  */
 export * as Video from './video/Video'
-export { setLogger } from '@signalwire/core'

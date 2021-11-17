@@ -66,13 +66,17 @@ export const toExternalJSON = <T>(
      * it's not a primitive value
      */
     if (propType === 'object' && value) {
-      if (Array.isArray(value) && options.propsToUpdateValue.includes(key)) {
-        reducer[prop] = value.map((v) => {
-          if (typeof v === 'string') {
-            return fromSnakeToCamelCase(v)
-          }
-          return toExternalJSON(v)
-        })
+      if (Array.isArray(value)) {
+        if (options.propsToUpdateValue.includes(key)) {
+          reducer[prop] = value.map((v) => {
+            if (typeof v === 'string') {
+              return fromSnakeToCamelCase(v)
+            }
+            return toExternalJSON(v)
+          })
+        } else {
+          reducer[prop] = value
+        }
       } else {
         reducer[prop] = toExternalJSON(value as T)
       }

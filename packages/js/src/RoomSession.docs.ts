@@ -19,57 +19,57 @@ export interface RoomSessionDocs<T>
   restoreOutboundVideo(): void
 
   /** Whether the connection is currently active */
-  get active(): boolean
+  readonly active: boolean
 
   /** The id of the video device, or null if not available */
-  get cameraId(): string | null
+  readonly cameraId: string | null
 
   /** The label of the video device, or null if not available */
-  get cameraLabel(): string | null
+  readonly cameraLabel: string | null
 
   /**
    * Contains any additional devices added via {@link addCamera},
    * {@link addMicrophone}, or {@link addDevice}.
    */
-  get deviceList(): RoomSessionDevice[]
+  readonly deviceList: RoomSessionDevice[]
 
   /**
    * Provides access to the local audio
    * [MediaStreamTrack](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack).
    */
-  get localAudioTrack(): MediaStreamTrack | null
+  readonly localAudioTrack: MediaStreamTrack | null
 
   /** Provides access to the local [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream) */
-  get localStream(): MediaStream | undefined
+  readonly localStream: MediaStream | undefined
 
   /**
    * Provides access to the local video
    * [MediaStreamTrack](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack).
    */
-  get localVideoTrack(): MediaStreamTrack | null
+  readonly localVideoTrack: MediaStreamTrack | null
 
   /** The id of the current member within the room */
-  get memberId(): string
+  readonly memberId: string
 
   /** The id of the audio input device, or null if not available */
-  get microphoneId(): string | null
+  readonly microphoneId: string | null
 
   /** The label of the audio input device, or null if not available */
-  get microphoneLabel(): string | null
+  readonly microphoneLabel: string | null
 
   /**
    * Provides access to the remote [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream)
    */
-  get remoteStream(): MediaStream | undefined
+  readonly remoteStream: MediaStream | undefined
 
   /** The unique identifier for the room */
-  get roomId(): string
+  readonly roomId: string
 
   /** The unique identifier for the room session */
-  get roomSessionId(): string
+  readonly roomSessionId: string
 
   /** Contains any local screen shares added to the room via {@link startScreenShare}. */
-  get screenShareList(): RoomSessionScreenShare[]
+  readonly screenShareList: RoomSessionScreenShare[]
 
   /**
    * Joins the room session.
@@ -673,7 +673,7 @@ interface RoomControlMethodsInterfaceDocs {
   /**
    * Do not show muted videos in the room layout.
    *
-   * @deprecated
+   * @deprecated Use {@link setHideVideoMuted} instead.
    *
    * @permissions
    *  - `room.hide_video_muted`
@@ -694,7 +694,7 @@ interface RoomControlMethodsInterfaceDocs {
    * Members that have been muted via {@link videoMute} will display a mute
    * image instead of the video.
    *
-   * @deprecated
+   * @deprecated Use {@link setHideVideoMuted} instead.
    *
    * @permissions
    *  - `room.show_video_muted`

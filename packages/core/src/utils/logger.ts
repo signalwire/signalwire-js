@@ -1,5 +1,10 @@
 import log from 'loglevel'
-import { SDKLogger } from '..'
+import type {
+  SDKLogger,
+  InternalSDKLogger,
+  WsTrafficOptions,
+  UserOptions,
+} from '..'
 
 const datetime = () =>
   new Date().toISOString().replace('T', ' ').replace('Z', '')
@@ -18,20 +23,66 @@ defaultLogger.methodFactory = (methodName, logLevel, loggerName) => {
   }
 }
 
-const level =
+const defaultLoggerLevel =
   // @ts-ignore
   'development' === process.env.NODE_ENV
     ? defaultLogger.levels.DEBUG
     : defaultLogger.getLevel()
-defaultLogger.setLevel(level)
+defaultLogger.setLevel(defaultLoggerLevel)
 
 let userLogger: SDKLogger | null
 const setLogger = (logger: SDKLogger | null) => {
   userLogger = logger
 }
 
-const getLogger = (): SDKLogger => {
+let debugOptions: UserOptions['debug'] = {}
+const setDebugOptions = (options: any) => {
+  if (options == null) {
+    debugOptions = {}
+    return
+  }
+  Object.assign(debugOptions, options)
+}
+
+const getLoggerInstance = (): SDKLogger => {
   return userLogger ?? (defaultLogger as any as SDKLogger)
 }
 
-export { setLogger, getLogger }
+const shouldStringify = (payload: WsTrafficOptions['payload']) => {
+  if ('method' in payload && payload.method === 'signalwire.ping') {
+    return false
+  }
+
+  return true
+}
+
+const wsTraffic: InternalSDKLogger['wsTraffic'] = ({ type, payload }) => {
+  const logger = getLoggerInstance()
+  const { logWsTraffic } = debugOptions || {}
+
+  if (!logWsTraffic) {
+    return undefined
+  }
+
+  const msg = shouldStringify(payload)
+    ? JSON.stringify(payload, null, 2)
+    : payload
+
+  return logger.info(`${type.toUpperCase()}: \n`, msg, '\n')
+}
+
+const getLogger = (): InternalSDKLogger => {
+  const logger = getLoggerInstance()
+
+  return new Proxy(logger, {
+    get(target, prop: keyof InternalSDKLogger, receiver) {
+      if (prop === 'wsTraffic') {
+        return wsTraffic
+      }
+
+      return Reflect.get(target, prop, receiver)
+    },
+  }) as InternalSDKLogger
+}
+
+export { setLogger, getLogger, setDebugOptions }

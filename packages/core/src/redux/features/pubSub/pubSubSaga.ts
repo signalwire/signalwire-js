@@ -1,5 +1,5 @@
-import { SagaIterator } from 'redux-saga'
-import { take } from 'redux-saga/effects'
+import { SagaIterator } from '@redux-saga/core'
+import { take } from '@redux-saga/core/effects'
 import {
   isInternalGlobalEvent,
   toInternalEventName,

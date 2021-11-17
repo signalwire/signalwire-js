@@ -55,7 +55,7 @@ export type {
 } from './redux/interfaces'
 export * as actions from './redux/actions'
 export * as sagaHelpers from './redux/utils/sagaHelpers'
-export * as sagaEffects from 'redux-saga/effects'
+export * as sagaEffects from '@redux-saga/core/effects'
 export type { SagaIterator, Task, Saga } from '@redux-saga/types'
 export * as Rooms from './rooms'
 export type { RoomSessionRecording, RoomSessionPlayback } from './rooms'

@@ -1,11 +1,9 @@
-import { setLogger } from '@signalwire/core'
 import { createClient } from '@signalwire/realtime-api'
 import pino from 'pino'
 
 const logger = pino({
   level: 'trace',
 })
-setLogger(logger)
 
 async function run() {
   try {
@@ -13,6 +11,10 @@ async function run() {
       // host: 'relay.swire.io',
       project: process.env.PROJECT as string,
       token: process.env.TOKEN as string,
+      debug: {
+        logWsTraffic: true,
+      },
+      logger,
     })
 
     client.video.on('room.started', async (roomSession) => {

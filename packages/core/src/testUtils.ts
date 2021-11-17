@@ -1,21 +1,22 @@
-import { channel } from 'redux-saga'
+import { channel } from '@redux-saga/core'
 import { configureStore } from './redux'
 import { PubSubChannel } from './redux/interfaces'
 import { BaseSession } from './BaseSession'
-import { RPCConnectResult, SDKLogger } from './utils/interfaces'
+import { RPCConnectResult, InternalSDKLogger } from './utils/interfaces'
 import { EventEmitter } from './utils/EventEmitter'
 
 const PROJECT_ID = '8f0a119a-cda7-4497-a47d-c81493b824d4'
 const TOKEN = '<VRT>'
 
-export const mockLogger: SDKLogger = {
+export const createMockedLogger = (): InternalSDKLogger => ({
   fatal: jest.fn(),
   error: jest.fn(),
   warn: jest.fn(),
   info: jest.fn(),
   debug: jest.fn(),
   trace: jest.fn(),
-}
+  wsTraffic: jest.fn(),
+})
 
 /**
  * Helper method to configure a Store w/o Saga middleware.
