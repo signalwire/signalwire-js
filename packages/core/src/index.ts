@@ -44,6 +44,7 @@ export {
 }
 
 export * from './RPCMessages'
+export * from './internal'
 export * from './utils/interfaces'
 export * from './types'
 export * from './CustomErrors'

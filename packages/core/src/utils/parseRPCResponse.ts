@@ -51,13 +51,9 @@ const parseResponse = (
     return { result }
   }
   if (nestedResult) {
-    const { jsonrpc, code } = nestedResult
-    if (jsonrpc) {
+    if (nestedResult.jsonrpc) {
       // This is a verto message
       return parseResponse(nestedResult, node_id)
-    }
-    if (code && code !== '200') {
-      return { error: nestedResult }
     }
     return { result: nestedResult }
   }
