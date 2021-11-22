@@ -1,7 +1,8 @@
+import { Saga } from '@redux-saga/core'
 import { call, spawn } from '@redux-saga/core/effects'
 import { getLogger } from '../../utils'
 
-export const createRestartableSaga = (saga: any) => {
+export const createRestartableSaga = (saga: Saga) => {
   return function* () {
     spawn(function* () {
       while (true) {
@@ -19,13 +20,18 @@ export const createRestartableSaga = (saga: any) => {
   }
 }
 
-export const createCatchableSaga = (saga: any) => {
-  return function* () {
+const defaultCatchHandler = (error: any) =>
+  getLogger().error('Catchable Saga Error', error)
+
+export const createCatchableSaga = <Args = any>(
+  saga: Saga,
+  errorHandler = defaultCatchHandler
+) => {
+  return function* (...params: Args[]) {
     try {
-      getLogger().debug('Run a catchable saga')
-      yield call(saga)
+      yield call(saga, ...params)
     } catch (error) {
-      getLogger().error('Catchable Saga Error', error)
+      errorHandler(error)
     }
   }
 }

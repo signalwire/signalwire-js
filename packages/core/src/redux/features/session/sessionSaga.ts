@@ -24,6 +24,7 @@ import {
   WebRTCCall,
   PubSubChannel,
 } from '../../interfaces'
+import { createCatchableSaga } from '../../utils/sagaHelpers'
 import { executeAction, socketMessageAction } from '../../actions'
 import { componentActions } from '../'
 import { RPCExecute } from '../../../RPCMessages'
@@ -392,6 +393,11 @@ export function* sessionChannelWatcher({
         return getLogger().debug(`Unknown message: ${method}`, action)
     }
   }
+  const sessionChannelWorkerCatchable = createCatchableSaga<
+    PayloadAction<JSONRPCRequest>
+  >(sessionChannelWorker, (error) => {
+    getLogger().error('Channel Error', error)
+  })
 
   /**
    * Make the watcher restartable
@@ -400,7 +406,7 @@ export function* sessionChannelWatcher({
     try {
       while (true) {
         const action = yield take(sessionChannel)
-        yield fork(sessionChannelWorker, action)
+        yield fork(sessionChannelWorkerCatchable, action)
       }
     } catch (error) {
       getLogger().error('sessionChannelWorker error:', error)
