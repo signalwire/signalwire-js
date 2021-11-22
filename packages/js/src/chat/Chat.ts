@@ -27,4 +27,4 @@ export const Chat = function (chatOptions: ChatOptions) {
     },
   })
   // For consistency with other constructors we'll make TS force the use of `new`
-} as unknown as { new (roomOptions: ChatOptions): Chat }
+} as unknown as { new (chatOptions: ChatOptions): Chat }

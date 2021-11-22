@@ -43,7 +43,10 @@ export class BaseClient<
         }
       })
 
-      this.store.dispatch(initAction())
+      const state = this.store.getState()
+      if (state.session.authStatus === 'unknown') {
+        this.store.dispatch(initAction())
+      }
     })
   }
 
