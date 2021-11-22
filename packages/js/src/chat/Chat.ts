@@ -43,12 +43,23 @@ class ChatConsumer extends BaseConsumer<ChatApiEvents> {
     return new Map([['chat', { worker: chatWorker }]])
   }
 
-  subscribe(): Promise<ChatFullState> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({} as ChatFullState)
-      }, 500)
-    })
+  private _setSubscribeParams(channels?: string[]) {
+    this.subscribeParams = {
+      ...this.subscribeParams,
+      channels,
+    }
+  }
+
+  async subscribe(channels?: string[]) {
+    if (!channels || channels.length === 0) {
+      throw new Error(
+        'Please specify one or more channels when calling .subscribe()'
+      )
+    }
+
+    this._setSubscribeParams(channels)
+
+    return await super.subscribe()
   }
 }
 
