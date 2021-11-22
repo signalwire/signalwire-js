@@ -29,7 +29,7 @@ export class BaseClient<
   connect(): Promise<this> {
     const initialState = this.store.getState()
 
-    if (initialState.session.authStatus === 'unauthorized') {
+    if (initialState.session.authStatus === 'authorized') {
       return Promise.resolve(this)
     }
 
@@ -49,7 +49,7 @@ export class BaseClient<
         }
       })
 
-      if (initialState.session.authStatus === 'unknown') {
+      if (initialState.session.authStatus !== 'authorizing') {
         this.store.dispatch(initAction())
       }
     })
