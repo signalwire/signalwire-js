@@ -1,4 +1,4 @@
-import { ChatInterface } from '.'
+import type { ChatPublishParams, ChatInterface } from '../types/chat'
 import { ExecuteExtendedOptions, ChatMethod } from '../utils/interfaces'
 
 interface ChatMethodPropertyDescriptor<T, ParamsType>
@@ -9,9 +9,7 @@ type ChatMethodParams = Record<string, unknown>
 type ChatMethodDescriptor<
   T = unknown,
   ParamsType = ChatMethodParams
-> = ChatMethodPropertyDescriptor<T, ParamsType> &
-  // TODO: Replace string with a tighter type
-  ThisType<ChatInterface<string>>
+> = ChatMethodPropertyDescriptor<T, ParamsType> & ThisType<ChatInterface>
 
 const createChatMethod = <InputType, OutputType = InputType>(
   method: ChatMethod,
@@ -33,6 +31,4 @@ const createChatMethod = <InputType, OutputType = InputType>(
 /**
  * Chat Methods
  */
-export const publish = createChatMethod<{ layouts: string[] }>('chat.publish', {
-  transformResolve: (payload) => ({ layouts: payload.layouts }),
-})
+export const publish = createChatMethod<ChatPublishParams>('chat.publish')

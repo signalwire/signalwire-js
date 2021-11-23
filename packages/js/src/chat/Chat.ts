@@ -10,7 +10,7 @@ import { ChatApiEvents } from '../types'
 export interface ChatFullState extends Chat {}
 interface ChatMain
   extends ChatContract,
-    ConsumerContract<ChatApiEvents, ChatFullState> {}
+    Omit<ConsumerContract<ChatApiEvents, ChatFullState>, 'subscribe'> {}
 
 interface ChatDocs extends ChatMain {}
 
@@ -20,9 +20,21 @@ export interface ChatOptions extends UserOptions {}
 
 export const Chat = function (chatOptions: ChatOptions) {
   const client = createClient<Chat>(chatOptions)
+  const subscribe: Chat['subscribe'] = async (channels) => {
+    await client.connect()
 
-  return new Proxy<Omit<Chat, 'new'>>(client.chat, {
-    get(target: Chat, prop: any, receiver: any) {
+    await client.chat.subscribe(channels)
+  }
+  const publish: Chat['publish'] = async () => {}
+
+  return new Proxy<Chat>(client.chat, {
+    get(target: Chat, prop: keyof Chat, receiver: any) {
+      if (prop === 'subscribe') {
+        return subscribe
+      } else if (prop === 'publish') {
+        return publish
+      }
+
       return Reflect.get(target, prop, receiver)
     },
   })

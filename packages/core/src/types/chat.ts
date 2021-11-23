@@ -1,8 +1,30 @@
-import type { OnlyStateProperties, OnlyFunctionProperties } from '.'
+import { BaseConsumer, OnlyStateProperties, OnlyFunctionProperties } from '..'
 
-export interface ChatContract {
-  publish(options: any): any
+export type ChatApiEventsHandlerMapping = Record<
+  'message',
+  (message: any) => void
+>
+
+export type ChatApiEvents = {
+  [k in keyof ChatApiEventsHandlerMapping]: ChatApiEventsHandlerMapping[k]
 }
 
+export interface ChatPublishParams {
+  message: any
+  channel: string
+  meta?: any
+}
+export interface ChatContract {
+  subscribe(channels: string[]): any
+  publish(params: ChatPublishParams): any
+}
+
+export interface ChatInterface
+  extends Omit<BaseConsumer<ChatApiEvents>, 'subscribe'>,
+    ChatContract {}
+
 export type ChatEntity = OnlyStateProperties<ChatContract>
-export type ChatMethods = OnlyFunctionProperties<ChatContract>
+export type ChatMethods = Omit<
+  OnlyFunctionProperties<ChatContract>,
+  'subscribe'
+>
