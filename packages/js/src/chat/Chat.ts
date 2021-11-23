@@ -23,9 +23,13 @@ export const Chat = function (chatOptions: ChatOptions) {
   const subscribe: Chat['subscribe'] = async (channels) => {
     await client.connect()
 
-    await client.chat.subscribe(channels)
+    return await client.chat.subscribe(channels)
   }
-  const publish: Chat['publish'] = async () => {}
+  const publish: Chat['publish'] = async (params) => {
+    await client.connect()
+
+    return await client.chat.publish(params)
+  }
 
   return new Proxy<Chat>(client.chat, {
     get(target: Chat, prop: keyof Chat, receiver: any) {
