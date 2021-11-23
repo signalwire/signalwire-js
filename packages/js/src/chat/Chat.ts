@@ -3,9 +3,9 @@ import type {
   ChatContract,
   ConsumerContract,
   UserOptions,
+  ChatApiEvents,
 } from '@signalwire/core'
 import { createClient } from '../createClient'
-import { ChatApiEvents } from '../types'
 
 export interface ChatFullState extends Chat {}
 interface ChatMain

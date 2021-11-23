@@ -1,33 +1,22 @@
 import {
   BaseComponentOptions,
   BaseConsumer,
-  Chat as ChatCore,
+  ChatApiEvents,
   ChatMethods,
   connect,
   extendComponent,
-  sagaEffects,
-  SagaIterator,
-} from '@signalwire/core'
-import type { ChatApiEvents } from '../types'
+} from '..'
+import * as chatMethods from './methods'
+import * as workers from './workers'
 
 // TODO
 type EmitterTransformsEvents = ''
 
-// TODO: find a better place to put this.
-export function* chatWorker(): SagaIterator {
-  while (true) {
-    const action = yield sagaEffects.take((action: any) =>
-      action.type.startsWith('chat.')
-    )
-    console.debug('chatWorker:', action)
-  }
-}
-
-class BaseChatConsumer extends BaseConsumer<ChatApiEvents> {
+export class BaseChatConsumer extends BaseConsumer<ChatApiEvents> {
   protected _eventsPrefix = 'chat' as const
 
   protected getWorkers() {
-    return new Map([['chat', { worker: chatWorker }]])
+    return new Map([['chat', { worker: workers.chatWorker }]])
   }
 
   private _setSubscribeParams(channels?: string[]) {
@@ -53,7 +42,7 @@ class BaseChatConsumer extends BaseConsumer<ChatApiEvents> {
 export const BaseChatAPI = extendComponent<BaseChatConsumer, ChatMethods>(
   BaseChatConsumer,
   {
-    publish: ChatCore.publish,
+    publish: chatMethods.publish,
   }
 )
 

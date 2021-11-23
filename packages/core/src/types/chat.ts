@@ -19,10 +19,6 @@ export interface ChatContract {
   publish(params: ChatPublishParams): any
 }
 
-export interface ChatInterface
-  extends Omit<BaseConsumer<ChatApiEvents>, 'subscribe'>,
-    ChatContract {}
-
 export type ChatEntity = OnlyStateProperties<ChatContract>
 export type ChatMethods = Omit<
   OnlyFunctionProperties<ChatContract>,

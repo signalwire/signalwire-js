@@ -3,6 +3,7 @@ import {
   ClientEvents,
   ClientContract,
   actions,
+  Chat as ChatNamespace,
 } from '@signalwire/core'
 import type { CustomSaga } from '@signalwire/core'
 import { ConnectionOptions } from '@signalwire/webrtc'
@@ -16,7 +17,6 @@ import {
   RoomSessionConnection,
 } from './BaseRoomSession'
 import { Cantina, createCantinaObject } from './cantina'
-import { createBaseChatObject } from './chat/BaseChat'
 import type { Chat } from './chat/Chat'
 
 export interface Client<RoomSessionType = RoomSession>
@@ -123,7 +123,7 @@ export class ClientAPI<
 
   get chat() {
     if (!this._chat) {
-      this._chat = createBaseChatObject<Chat>({
+      this._chat = ChatNamespace.createBaseChatObject<Chat>({
         store: this.store,
         // Emitter is now typed but we share it across objects
         // so types won't match

@@ -1,4 +1,5 @@
-import type { ChatPublishParams, ChatInterface } from '../types/chat'
+import type { ChatPublishParams } from '../types/chat'
+import type { BaseChatConsumer } from './BaseChat'
 import { ExecuteExtendedOptions, ChatMethod } from '../utils/interfaces'
 
 interface ChatMethodPropertyDescriptor<T, ParamsType>
@@ -9,7 +10,7 @@ type ChatMethodParams = Record<string, unknown>
 type ChatMethodDescriptor<
   T = unknown,
   ParamsType = ChatMethodParams
-> = ChatMethodPropertyDescriptor<T, ParamsType> & ThisType<ChatInterface>
+> = ChatMethodPropertyDescriptor<T, ParamsType> & ThisType<BaseChatConsumer>
 
 const createChatMethod = <InputType, OutputType = InputType>(
   method: ChatMethod,
