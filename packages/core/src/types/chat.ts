@@ -1,4 +1,4 @@
-import { BaseConsumer, OnlyStateProperties, OnlyFunctionProperties } from '..'
+import { OnlyStateProperties, OnlyFunctionProperties } from '..'
 
 export type ChatApiEventsHandlerMapping = Record<
   'message',
