@@ -27,8 +27,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
     runSagaMiddleware = true,
   } = options
   const sagaMiddleware = createSagaMiddleware()
-  // @ts-ignore
-  const pubSubChannel = channel(undefined, 'pepeepepep')
+  const pubSubChannel = channel()
   const store = rtConfigureStore({
     devTools: userOptions?.devTools ?? true,
     reducer: rootReducer,
