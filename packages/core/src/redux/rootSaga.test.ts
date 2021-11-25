@@ -136,9 +136,11 @@ describe('initSessionSaga', () => {
   const SessionConstructor = jest.fn().mockImplementation(() => {
     return session
   })
+  const pubSubChannel = createPubSubChannel()
   const userOptions = {
     token: '',
     emitter: jest.fn() as any,
+    pubSubChannel,
   }
 
   beforeEach(() => {
@@ -150,7 +152,10 @@ describe('initSessionSaga', () => {
     pubSubChannel.close = jest.fn()
     const sessionChannel = eventChannel(() => () => {})
     sessionChannel.close = jest.fn()
-    const saga = testSaga(initSessionSaga, SessionConstructor, userOptions)
+    const saga = testSaga(initSessionSaga, SessionConstructor, {
+      ...userOptions,
+      pubSubChannel,
+    })
     saga.next(sessionChannel).call(createSessionChannel, session)
     saga.next(sessionChannel).call(channel)
     saga.next(pubSubChannel).fork(sessionChannelWatcher, {
@@ -222,6 +227,7 @@ describe('startSaga', () => {
 })
 
 describe('rootSaga', () => {
+  const pubSubChannel = createPubSubChannel()
   it('wait for initAction and fork initSessionSaga', () => {
     const session = {
       connect: jest.fn(),
@@ -234,7 +240,10 @@ describe('rootSaga', () => {
       rootSaga({
         SessionConstructor,
       }),
-      userOptions
+      {
+        ...userOptions,
+        pubSubChannel,
+      }
     )
 
     saga.next().fork(executeQueueWatcher)

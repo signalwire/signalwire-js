@@ -7,7 +7,7 @@ import {
   INTERNAL_GLOBAL_VIDEO_EVENTS,
   PRODUCT_PREFIXES,
 } from './constants'
-import type { CustomSaga } from '../redux/interfaces'
+import type { CustomSaga, PubSubChannel } from '../redux/interfaces'
 import type { URL as NodeURL } from 'node:url'
 import { InternalRPCMethods } from '../internal'
 
@@ -377,8 +377,10 @@ export interface EventTransform {
 export type BaseEventHandler = (...args: any[]) => void
 
 // TODO: Add worker params
-export interface SDKWorkerParams {}
-export type SDKWorker = (params?: SDKWorkerParams) => SagaIterator<any>
+export interface SDKWorkerParams {
+  pubSubChannel: PubSubChannel
+}
+export type SDKWorker = (params: SDKWorkerParams) => SagaIterator<any>
 interface LogFn {
   <T extends object>(obj: T, msg?: string, ...args: any[]): void
   (obj: unknown, msg?: string, ...args: any[]): void

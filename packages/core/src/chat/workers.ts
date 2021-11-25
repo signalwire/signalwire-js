@@ -1,10 +1,20 @@
-import { sagaEffects, SagaIterator } from '..'
+import { sagaEffects, SagaIterator, SDKWorker } from '..'
 
-export function* chatWorker(): SagaIterator {
+export const chatWorker: SDKWorker = function* chatWorker({
+  pubSubChannel,
+  ...rest
+}): SagaIterator {
+  console.log('rest', rest)
+
   while (true) {
-    const action = yield sagaEffects.take((action: any) =>
-      action.type.startsWith('chat.')
-    )
-    console.debug('chatWorker:', action)
+    const action = yield sagaEffects.take((action: any) => {
+      return action.type.startsWith('chat.')
+    })
+    console.log('chatWorker:', action)
+
+    yield sagaEffects.put(pubSubChannel, {
+      type: 'message' as any,
+      payload: action.payload,
+    })
   }
 }
