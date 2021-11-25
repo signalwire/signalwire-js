@@ -96,3 +96,5 @@ export type {
   RoomSessionObjectEventsHandlerMap as RoomObjectEventsHandlerMap,
   RoomSessionObjectEvents as RoomObjectEvents,
 } from './utils/interfaces'
+
+export * from './chat/Chat'

@@ -11,6 +11,7 @@ export default defineConfig({
         heroku: resolve(__dirname, 'heroku/index.html'),
         // vanilla: resolve(__dirname, 'vanilla/index.html'),
         webrtcUtils: resolve(__dirname, 'ts-vanilla-webrtc-utils/index.html'),
+        chat: resolve(__dirname, 'chat/index.html'),
       },
     },
   },
