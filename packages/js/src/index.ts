@@ -53,6 +53,12 @@ export type RoomDevice = VideoMemberEntity & { type: 'device' }
 export * as Video from './video'
 
 /**
+ * The Chat namespace contains the classes and functions that you need to
+ * create a real-time chat application.
+ */
+export * as Chat from './chat/Chat'
+
+/**
  * The WebRTC namespace includes functions that give you access to the input and
  * output media devices available on the user's machine. For example, you can
  * use these functions to request permission and get access to the media stream

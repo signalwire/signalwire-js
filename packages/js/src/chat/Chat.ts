@@ -12,7 +12,17 @@ interface ChatMain
   extends ChatContract,
     Omit<ConsumerContract<ChatApiEvents, ChatFullState>, 'subscribe'> {}
 
-interface ChatDocs extends ChatMain {}
+interface ChatDocs extends Omit<ConsumerContract<ChatApiEvents, ChatFullState>, 'subscribe'> {
+  /** Publish docs */
+  publish(params: {
+    message: any
+    channel: string
+    meta?: any
+  }): any
+
+  /** Subscribe docs */
+  subscribe(channels: string[]): any
+}
 
 export interface Chat extends AssertSameType<ChatMain, ChatDocs> {}
 
