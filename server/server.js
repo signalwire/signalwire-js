@@ -99,7 +99,7 @@ wss.on('connection', function connection(ws) {
       )
 
       setTimeout(() => {
-        console.log('hago send the chat.message')
+        console.log('Send chat.message')
         ws.send(
           JSON.stringify({
             jsonrpc: '2.0',

@@ -344,6 +344,9 @@ export function* sessionChannelWatcher({
   }
 
   function* swEventWorker(broadcastParams: SwEventParams) {
+    // TODO: add check to validate that broadcastParams are
+    // within our range of supported events
+
     /**
      * Put actions with `event_type` to trigger all the children sagas
      * This should replace all the isWebrtcEvent/isVideoEvent guards below
@@ -369,11 +372,12 @@ export function* sessionChannelWatcher({
       return
     }
 
-    if ('development' === process.env.NODE_ENV) {
-      // @ts-expect-error
-      throw new Error(`Unknown broadcast event: ${broadcastParams.event}`)
-    }
-    return getLogger().debug('Unknown broadcast event', broadcastParams)
+    // TODO: remove this since it no longer applies.
+    // if ('development' === process.env.NODE_ENV) {
+    //   // @ts-expect-error
+    //   throw new Error(`Unknown broadcast event: ${broadcastParams.event}`)
+    // }
+    // return getLogger().debug('Unknown broadcast event', broadcastParams)
   }
 
   function* sessionChannelWorker(

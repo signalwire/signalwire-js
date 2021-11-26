@@ -2,9 +2,13 @@ import { configureStore as rtConfigureStore } from '@reduxjs/toolkit'
 import createSagaMiddleware, { channel, Saga, Task } from '@redux-saga/core'
 import { rootReducer } from './rootReducer'
 import rootSaga from './rootSaga'
-import { SDKState } from './interfaces'
+import { PubSubChannel, SDKState } from './interfaces'
 import { connect } from './connect'
-import { InternalUserOptions, SessionConstructor } from '../utils/interfaces'
+import {
+  InternalUserOptions,
+  SessionConstructor,
+  InternalChannels,
+} from '../utils/interfaces'
 
 interface ConfigureStoreOptions {
   userOptions: InternalUserOptions
@@ -27,7 +31,14 @@ const configureStore = (options: ConfigureStoreOptions) => {
     runSagaMiddleware = true,
   } = options
   const sagaMiddleware = createSagaMiddleware()
-  const pubSubChannel = channel()
+  const pubSubChannel: PubSubChannel = channel()
+  /**
+   * List of channels that are gonna be shared across all
+   * sagas.
+   */
+  const channels: InternalChannels = {
+    pubSubChannel,
+  }
   const store = rtConfigureStore({
     devTools: userOptions?.devTools ?? true,
     reducer: rootReducer,
@@ -51,8 +62,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
     const saga = rootSaga({
       SessionConstructor,
     })
-    // @ts-expect-error
-    runSaga(saga, userOptions)
+    sagaMiddleware.run(saga, { userOptions, channels })
   }
 
   return {

@@ -376,10 +376,11 @@ export interface EventTransform {
 
 export type BaseEventHandler = (...args: any[]) => void
 
-// TODO: Add worker params
-export interface SDKWorkerParams {
+export type InternalChannels = {
   pubSubChannel: PubSubChannel
 }
+
+export type SDKWorkerParams = InternalChannels
 export type SDKWorker = (params: SDKWorkerParams) => SagaIterator<any>
 interface LogFn {
   <T extends object>(obj: T, msg?: string, ...args: any[]): void
