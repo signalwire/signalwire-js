@@ -620,7 +620,7 @@ interface RoomControlMethodsInterfaceDocs {
    * @param params
    * @param params.memberId id of the member to affect. If omitted, affects the
    * default device in the local client.
-   * @param params.value desired volume. Values range from -50 to 50, with a
+   * @param params.volume desired volume. Values range from -50 to 50, with a
    * default of 0.
    *
    * @permissions
