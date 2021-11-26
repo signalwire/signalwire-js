@@ -56,7 +56,7 @@ export * as Video from './video'
  * The Chat namespace contains the classes and functions that you need to
  * create a real-time chat application.
  */
-export * as Chat from './chat/Chat'
+export * as Chat from './chat'
 
 /**
  * The WebRTC namespace includes functions that give you access to the input and

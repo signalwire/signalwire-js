@@ -24,6 +24,18 @@ interface ChatDocs extends Omit<ConsumerContract<ChatApiEvents, ChatFullState>, 
   subscribe(channels: string[]): any
 }
 
+/**
+ * You can use the Chat object to ...
+ * 
+ * ```js
+ * let example = 'example'
+ * ```
+ * 
+ * ## Events
+ *
+ * Please see {@link ChatEvents} for the list of events emitted by a
+ * Chat object.
+ */
 export interface Chat extends AssertSameType<ChatMain, ChatDocs> {}
 
 export interface ChatOptions extends UserOptions {}
