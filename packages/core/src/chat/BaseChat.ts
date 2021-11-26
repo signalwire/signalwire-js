@@ -5,6 +5,7 @@ import {
   ChatMethods,
   connect,
   extendComponent,
+  toExternalJSON,
 } from '..'
 import * as chatMethods from './methods'
 import * as workers from './workers'
@@ -37,6 +38,29 @@ export class BaseChatConsumer extends BaseConsumer<ChatApiEvents> {
 
     return await super.subscribe()
   }
+
+  /** @internal */
+  protected getEmitterTransforms() {
+    return new Map<any, any>([
+      [
+        ['message'],
+        {
+          type: 'chatMessage',
+          instanceFactory: () => {
+            return {}
+          },
+          payloadTransform: (p: any) => {
+            console.log('--> payload', toExternalJSON(p))
+            return toExternalJSON(p)
+          },
+        },
+      ],
+    ])
+  }
+
+  onChatSubscribed() {
+    this._attachListeners('')
+  }
 }
 
 export const BaseChatAPI = extendComponent<BaseChatConsumer, ChatMethods>(
@@ -55,6 +79,7 @@ export const createBaseChatObject = <ChatType>(
     componentListeners: {
       errors: 'onError',
       responses: 'onSuccess',
+      id: 'onChatSubscribed',
     },
   })(params)
 
