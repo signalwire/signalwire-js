@@ -71,7 +71,10 @@ const findNamespaceInPayload = (action: PubSubAction): string => {
   }
 
   if ('development' === process.env.NODE_ENV) {
-    getLogger().info('Namespace not found for', (action as any)?.type)
+    getLogger().info(
+      'Namespace not found for action.type: ',
+      (action as any)?.type
+    )
   }
 
   return ''
