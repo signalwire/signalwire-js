@@ -1,7 +1,11 @@
 import type { Task, SagaIterator } from '@redux-saga/types'
 import { EventChannel } from '@redux-saga/core'
 import { fork, call, take, put, delay, all } from '@redux-saga/core/effects'
-import { SessionConstructor, InternalUserOptions } from '../utils/interfaces'
+import {
+  SessionConstructor,
+  InternalUserOptions,
+  InternalChannels,
+} from '../utils/interfaces'
 import { getLogger, setDebugOptions, setLogger } from '../utils'
 import { BaseSession } from '../BaseSession'
 import {
@@ -41,11 +45,15 @@ interface StartSagaOptions {
   userOptions: InternalUserOptions
 }
 
-export function* initSessionSaga(
-  SessionConstructor: SessionConstructor,
-  // TODO: create a type mapping
-  userOptions: InternalUserOptions & { pubSubChannel: PubSubChannel }
-): SagaIterator {
+export function* initSessionSaga({
+  SessionConstructor,
+  userOptions,
+  channels,
+}: {
+  SessionConstructor: SessionConstructor
+  userOptions: InternalUserOptions
+  channels: InternalChannels
+}): SagaIterator {
   const session = new SessionConstructor(userOptions)
 
   const sessionChannel: EventChannel<unknown> = yield call(
@@ -57,7 +65,7 @@ export function* initSessionSaga(
    * Channel to communicate between sagas and emit events to
    * the public
    */
-  const pubSubChannel = userOptions.pubSubChannel
+  const pubSubChannel = channels.pubSubChannel
 
   /**
    * Start all the custom workers on startup
@@ -215,9 +223,13 @@ interface RootSagaOptions {
 
 export default (options: RootSagaOptions) => {
   // TODO: create a type mapping
-  return function* root(
-    userOptions: InternalUserOptions & { pubSubChannel: PubSubChannel }
-  ): SagaIterator {
+  return function* root({
+    userOptions,
+    channels,
+  }: {
+    userOptions: InternalUserOptions
+    channels: InternalChannels
+  }): SagaIterator {
     if (userOptions.logger) {
       setLogger(userOptions.logger)
     }
@@ -237,7 +249,11 @@ export default (options: RootSagaOptions) => {
      * send/receive websocket messages
      */
     try {
-      yield call(initSessionSaga, options.SessionConstructor, userOptions)
+      yield call(initSessionSaga, {
+        ...options,
+        userOptions,
+        channels,
+      })
     } catch (error) {
       return
     }

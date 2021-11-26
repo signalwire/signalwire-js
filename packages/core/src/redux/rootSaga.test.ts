@@ -152,13 +152,13 @@ describe('initSessionSaga', () => {
     pubSubChannel.close = jest.fn()
     const sessionChannel = eventChannel(() => () => {})
     sessionChannel.close = jest.fn()
-    const saga = testSaga(initSessionSaga, SessionConstructor, {
-      ...userOptions,
-      pubSubChannel,
+    const saga = testSaga(initSessionSaga, {
+      SessionConstructor,
+      userOptions,
+      channels: { pubSubChannel },
     })
     saga.next(sessionChannel).call(createSessionChannel, session)
-    saga.next(sessionChannel).call(channel)
-    saga.next(pubSubChannel).fork(sessionChannelWatcher, {
+    saga.next(sessionChannel).fork(sessionChannelWatcher, {
       session,
       sessionChannel,
       pubSubChannel,
@@ -236,19 +236,24 @@ describe('rootSaga', () => {
       return session
     })
     const userOptions = { token: '', emitter: jest.fn() as any }
+    const channels = { pubSubChannel }
     const saga = testSaga(
       rootSaga({
         SessionConstructor,
       }),
       {
-        ...userOptions,
-        pubSubChannel,
+        userOptions,
+        channels,
       }
     )
 
     saga.next().fork(executeQueueWatcher)
     saga.next().take(initAction.type)
-    saga.next().call(initSessionSaga, SessionConstructor, userOptions)
+    saga.next().call(initSessionSaga, {
+      SessionConstructor,
+      userOptions,
+      channels,
+    })
     saga.next().isDone()
   })
 })
