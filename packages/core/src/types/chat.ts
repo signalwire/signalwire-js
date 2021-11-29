@@ -24,3 +24,7 @@ export type ChatMethods = Omit<
   OnlyFunctionProperties<ChatContract>,
   'subscribe'
 >
+
+export interface ChatServerChannel {
+  name: string
+}

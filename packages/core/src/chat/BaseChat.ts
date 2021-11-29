@@ -5,36 +5,50 @@ import {
   ChatMethods,
   connect,
   extendComponent,
+  JSONRPCMethod,
   toExternalJSON,
+  ChatServerChannel,
 } from '..'
 import * as chatMethods from './methods'
 import * as workers from './workers'
 
-// TODO
+// TODO:
 type EmitterTransformsEvents = ''
 
+const toServerChannels = (channels: string[]): ChatServerChannel[] => {
+  return channels.map((name) => {
+    return {
+      name,
+    }
+  })
+}
+
 export class BaseChatConsumer extends BaseConsumer<ChatApiEvents> {
-  protected _eventsPrefix = 'chat' as const
+  protected override _eventsPrefix = 'chat' as const
+  protected override subscribeMethod: JSONRPCMethod = 'chat.subscribe'
 
   protected getWorkers() {
     return new Map([['chat', { worker: workers.chatWorker }]])
   }
 
-  private _setSubscribeParams(channels?: string[]) {
+  private _setSubscribeParams(channels: string[]) {
     this.subscribeParams = {
       ...this.subscribeParams,
-      channels,
+      channels: toServerChannels(channels),
     }
   }
 
-  async subscribe(channels?: string[]) {
-    if (!channels || channels.length === 0) {
+  async subscribe(channels?: string | string[]) {
+    const _channels =
+      !channels || Array.isArray(channels) ? channels : [channels]
+
+    if (!Array.isArray(_channels) || _channels.length === 0) {
       throw new Error(
         'Please specify one or more channels when calling .subscribe()'
       )
     }
 
-    this._setSubscribeParams(channels)
+    this._setSubscribeParams(_channels)
 
     return await super.subscribe()
   }
