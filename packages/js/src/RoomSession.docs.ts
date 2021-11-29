@@ -1149,6 +1149,8 @@ export interface RoomSessionEvents {
    * A playback has been started. You only receive this event if your token has
    * the `room.playback` permission. The event handler receives a
    * {@link RoomSessionPlayback} object.
+   *
+   * @event
    */
   'playback.started': undefined
 
@@ -1156,6 +1158,8 @@ export interface RoomSessionEvents {
    * A playback has been updated. You only receive this event if your token has
    * the `room.playback` permission. The event handler receives a
    * {@link RoomSessionPlayback} object.
+   *
+   * @event
    */
   'playback.updated': undefined
 
@@ -1163,6 +1167,8 @@ export interface RoomSessionEvents {
    * A playback has ended. You only receive this event if your token has
    * the `room.playback` permission. The event handler receives a
    * {@link RoomSessionPlayback} object.
+   *
+   * @event
    */
   'playback.ended': undefined
 }
