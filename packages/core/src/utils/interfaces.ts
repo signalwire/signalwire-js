@@ -193,7 +193,7 @@ export type SessionAuthError = {
   error: string
 }
 
-export type ChatMethod = 'chat.publish'
+export type ChatMethod = 'chat.subscribe' | 'chat.publish'
 
 /**
  * List of all Room methods

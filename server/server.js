@@ -88,8 +88,8 @@ wss.on('connection', function connection(ws) {
           console.log('--> sent!')
         }
       )
-    } else if (parsedData.method === 'signalwire.subscribe') {
-      console.log('signalwire.subscribe')
+    } else if (parsedData.method === 'chat.subscribe') {
+      console.log('chat.subscribe')
       ws.send(
         JSON.stringify({
           jsonrpc: '2.0',
@@ -99,18 +99,48 @@ wss.on('connection', function connection(ws) {
       )
 
       setTimeout(() => {
+        ws.send(
+          JSON.stringify({
+            jsonrpc: '2.0',
+            id: '2d2f4457-e9d8-49b2-a93f-42ef3afbf8c4',
+            method: 'signalwire.event',
+            params: {
+              params: {
+                channels: [
+                  { name: 'watercooler' },
+                  { name: 'foo' },
+                  { name: 'bar' },
+                ],
+              },
+              event_type: 'chat.subscribed',
+              timestamp: 1638179628.8468,
+            },
+          })
+        )
+      }, 100)
+
+      setTimeout(() => {
         console.log('Send chat.message')
         ws.send(
           JSON.stringify({
             jsonrpc: '2.0',
-            id: '5b776bf6-4f59-4d75-bdf2-e7270ef89a01',
+            id: '007b26c0-11dd-415c-adaf-03488e45fdef',
             method: 'signalwire.event',
             params: {
-              event_type: 'chat.message',
+              event_type: 'chat.channel.message',
+              event_channel: 'chat.78429ef1-283b-4fa9-8ebc-16b59f95bb1f',
               params: {
-                jsonrpc: '2.0',
-                id: 257,
+                channel: 'watercooler',
+                message: 'Hello World!',
+                sender: {
+                  id: '1c71bcf5-7524-4833-8e0d-3d89f06d41b8',
+                  name: 'joesmith',
+                },
+                meta: {
+                  // custom data sent by the sender
+                },
               },
+              timestamp: 1631201227.2882,
             },
           })
         )
