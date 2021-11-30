@@ -7,20 +7,60 @@ import type {
 } from '@signalwire/core'
 import { createClient } from '../createClient'
 
-export interface ChatFullState extends Chat {}
+export interface ChatFullState extends Chat { }
 interface ChatMain
   extends ChatContract,
-    Omit<ConsumerContract<ChatApiEvents, ChatFullState>, 'subscribe'> {}
+  Omit<ConsumerContract<ChatApiEvents, ChatFullState>, 'subscribe'> {
+  new(chatOptions: ChatOptions): this
+}
 
 interface ChatDocs extends Omit<ConsumerContract<ChatApiEvents, ChatFullState>, 'subscribe'> {
-  /** Publish docs */
+  /**
+   * Creates a new Chat client.
+   * 
+   * For example:
+   * 
+   * ```js
+   * import { Chat } from '@signalwire/js'
+   * 
+   * const chat = new Chat({
+   *   token: '<your_token>',
+   * })
+   * ```
+   * 
+   * @example aaababb
+   */
+  new(chatOptions: {
+    /** SignalWire project token, e.g. `PT9e5660c101cd140a1c93a0197640a369cf5f16975a0079c9` */
+    token: string
+    /** logging level */
+    logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
+  }): this
+
+  /**
+   * Publishes a message in the specified channel.
+   * 
+   * @returns a promise that is resolved when the subscription has been
+   * completed.
+   */
   publish(params: {
+    /** The message to be published */
     message: any
+    /** Name of the channel on which to publish the message */
     channel: string
+    /** Additional metadata */
     meta?: any
   }): any
 
-  /** Subscribe docs */
+  /**
+   * Subscribes to the specified channels. After subscribing, the client will
+   * start receiving the messages that are published on the specified channels.
+   *
+   * @param channels list of channel names to subscribe to
+   *
+   * @returns a promise that is resolved when the subscription has been
+   * completed.
+   */
   subscribe(channels: string[]): any
 }
 
