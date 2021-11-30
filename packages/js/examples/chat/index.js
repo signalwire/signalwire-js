@@ -7,7 +7,19 @@ window.connect = async ({ channels, host, token }) => {
   })
 
   chat.on('message', (args) => {
-    // TODO: append message to each chat window
+    const { timestamp } = args
+    const { message, channel } = args.params
+    const messageEl = document.createElement('div')
+    messageEl.classList.add('message', 'bg-indigo-200', 'p-2')
+    messageEl.innerHTML = `
+      <div class="message-meta"><span class="font-bold">when</span>: ${timestamp}</div>
+      <div class="message-body">${message}</div>
+    `
+    const channelEl = document.querySelector(
+      `.chat-messages-channel-${channel}`
+    )
+
+    channelEl.appendChild(messageEl)
   })
 
   await chat.subscribe(channels)
