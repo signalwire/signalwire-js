@@ -4,6 +4,8 @@ module.exports = {
     'index.html',
     './*vanilla*/**/*.html',
     './*vanilla*/**/*.{js,jsx,ts,tsx,vue}',
+    './*chat*/**/*.html',
+    './*chat*/**/*.{js,jsx,ts,tsx,vue}',
     './src/**/*.{js,jsx,ts,tsx,vue}',
   ],
   darkMode: false, // or 'media' or 'class'

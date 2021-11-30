@@ -1,13 +1,94 @@
 import { Chat } from '@signalwire/js'
 
-window.connect = () => {
+window.connect = async ({ channels, host, token }) => {
   const chat = new Chat({
-    host: 'ws://localhost:8080',
+    host,
+    token,
   })
 
   chat.on('message', (args) => {
-    console.log('---> Example message!', args)
+    // TODO: append message to each chat window
   })
 
-  chat.subscribe(['one, two'])
+  await chat.subscribe(channels)
+
+  // UI Sample code.
+  // --------------------------
+  const messageEl = document.getElementById('message')
+  const messagesContainerEl = document.getElementById('chat-messages')
+  const formEl = document.getElementById('chat-box')
+  const channelSelectorEl = document.getElementById('chat-channels-selector')
+
+  channels.forEach((channel) => {
+    messagesContainerEl.insertAdjacentHTML(
+      'beforeend',
+      `<div
+        class="chat-messages-channel-${channel} mt-6 px-4 py-5 bg-white space-y-6 sm:p-6"
+       >
+        <p class="text-gray-700 text-xl font-extrabold tracking-tight mt-2">
+          Channel: ${channel}
+        </p>
+      </div>`
+    )
+  })
+
+  // Sets options for the channel selector.
+  channelSelectorEl.innerHTML = channels
+    .map((channel) => `<option value="${channel}">${channel}</option>`)
+    .join('')
+
+  formEl.addEventListener('submit', (e) => {
+    e.preventDefault()
+
+    const data = new FormData(formEl)
+
+    chat.publish({
+      channel: data.get('channel'),
+      message: data.get('message'),
+    })
+
+    messageEl.value = ''
+  })
 }
+
+// UI Initialization
+// --------------------------
+document.getElementById('host').value =
+  localStorage.getItem('relay.chat.example.host') || ''
+document.getElementById('token').value =
+  localStorage.getItem('relay.chat.example.token') || ''
+
+window.saveInLocalStorage = (e) => {
+  const key = e.target.name || e.target.id
+  localStorage.setItem('relay.chat.example.' + key, e.target.value)
+}
+
+const chatJoin = document.getElementById('chat-join')
+const chatConnected = document.getElementById('chat-connected')
+const chatConnectEl = document.getElementById('chat-connect')
+
+chatConnectEl.addEventListener('submit', async (e) => {
+  e.preventDefault()
+
+  const data = new FormData(chatConnectEl)
+  const channels = data
+    .get('channel')
+    .split(',')
+    .filter((channel) => channel.trim())
+    .map((channel) => channel.trim())
+
+  if (channels.length === 0) {
+    // TODO: show error message
+    return
+  }
+
+  // TODO: add loading indicator and try/catch
+  await window.connect({
+    channels,
+    host: data.get('host'),
+    token: data.get('token'),
+  })
+
+  chatJoin.style.display = 'none'
+  chatConnected.style.display = 'block'
+})
