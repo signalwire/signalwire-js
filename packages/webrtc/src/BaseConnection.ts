@@ -569,8 +569,9 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     } = params
     this.cause = byeCause
     this.causeCode = byeCauseCode
-    if (redirectDestination && this.trying && this.peer.localSdp) {
-      this.logger.warn('Execute invite again')
+    if (redirectDestination && this.peer.localSdp) {
+      this.logger.debug('Redirect Destination to:', redirectDestination)
+      this.nodeId = redirectDestination
       return this.executeInvite(this.peer.localSdp)
     }
     return this.setState('hangup')
