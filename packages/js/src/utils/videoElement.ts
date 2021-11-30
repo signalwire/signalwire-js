@@ -4,6 +4,10 @@ import {
   InternalVideoLayout,
 } from '@signalwire/core'
 
+const _addSDKPrefix = (input: string) => {
+  return `sw-sdk-${input}`
+}
+
 const buildVideo = () => {
   const video = document.createElement('video')
   video.muted = true
@@ -90,10 +94,11 @@ const makeLayoutChangedHandler =
         )
       }
 
-      let myLayer = layerMap.get(myMemberId)
+      const myLayerKey = _addSDKPrefix(myMemberId)
+      let myLayer = layerMap.get(myLayerKey)
       if (!myLayer) {
         myLayer = await _buildLayer({ element, location: layer })
-        myLayer.id = myMemberId
+        myLayer.id = myLayerKey
 
         const localVideo = buildVideo()
         localVideo.srcObject = localStream
@@ -103,10 +108,10 @@ const makeLayoutChangedHandler =
         myLayer.appendChild(localVideo)
 
         const mcuLayers = rootElement.querySelector('.mcuLayers')
-        const exists = document.getElementById(myMemberId)
+        const exists = document.getElementById(myLayerKey)
         if (mcuLayers && !exists) {
           mcuLayers.appendChild(myLayer)
-          layerMap.set(myMemberId, myLayer)
+          layerMap.set(myLayerKey, myLayer)
         }
 
         return
