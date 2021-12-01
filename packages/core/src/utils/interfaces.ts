@@ -380,8 +380,8 @@ export type InternalChannels = {
   pubSubChannel: PubSubChannel
 }
 
-export type SDKWorkerParams = InternalChannels
-export type SDKWorker = (params: SDKWorkerParams) => SagaIterator<any>
+export type SDKWorkerParams<T> = InternalChannels & T
+export type SDKWorker = <T>(params: SDKWorkerParams<T>) => SagaIterator<any>
 interface LogFn {
   <T extends object>(obj: T, msg?: string, ...args: any[]): void
   (obj: unknown, msg?: string, ...args: any[]): void

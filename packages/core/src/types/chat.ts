@@ -1,4 +1,5 @@
 import { OnlyStateProperties, OnlyFunctionProperties, SwEvent } from '..'
+import { MapToPubSubShape } from '../redux/interfaces'
 
 export type ChatNamespace = 'chat'
 type ToInternalChatEvent<T extends string> = `${ChatNamespace}.${T}`
@@ -56,3 +57,7 @@ export interface ChatChannelMessageEvent extends SwEvent {
 }
 
 export type ChatEvent = ChatChannelMessageEvent
+
+export type ChatEventParams = ChatChannelMessageEventParams
+
+export type ChatAction = MapToPubSubShape<ChatEvent>

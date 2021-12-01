@@ -1,10 +1,10 @@
-import { sagaEffects, SagaIterator, SDKWorker, getLogger } from '..'
+import { sagaEffects, SagaIterator, SDKWorker, getLogger, ChatAction } from '..'
 
 export const chatWorker: SDKWorker = function* chatWorker({
   pubSubChannel,
 }): SagaIterator {
   while (true) {
-    const action = yield sagaEffects.take((action: any) => {
+    const action: ChatAction = yield sagaEffects.take((action: any) => {
       return action.type.startsWith('chat.')
     })
     getLogger().debug('chatWorker:', action)
