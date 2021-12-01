@@ -280,9 +280,10 @@ interface RoomSessionConstructorDocs<T> {
    * Creates a new RoomSession.
    */
   new (opts: {
-    /** SignalWire project id, e.g. `a10d8a9f-2166-4e82-56ff-118bc3a4840f` */
-    project?: string
-    /** SignalWire project token, e.g. `PT9e5660c101cd140a1c93a0197640a369cf5f16975a0079c9` */
+    /**
+     * SignalWire video room token (get one from the [REST
+     * APIs](https://developer.signalwire.com/apis/reference/create_room_token))
+     */
     token: string
     /** logging level */
     logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
@@ -1149,6 +1150,8 @@ export interface RoomSessionEvents {
    * A playback has been started. You only receive this event if your token has
    * the `room.playback` permission. The event handler receives a
    * {@link RoomSessionPlayback} object.
+   *
+   * @event
    */
   'playback.started': undefined
 
@@ -1156,6 +1159,8 @@ export interface RoomSessionEvents {
    * A playback has been updated. You only receive this event if your token has
    * the `room.playback` permission. The event handler receives a
    * {@link RoomSessionPlayback} object.
+   *
+   * @event
    */
   'playback.updated': undefined
 
@@ -1163,6 +1168,8 @@ export interface RoomSessionEvents {
    * A playback has ended. You only receive this event if your token has
    * the `room.playback` permission. The event handler receives a
    * {@link RoomSessionPlayback} object.
+   *
+   * @event
    */
   'playback.ended': undefined
 }
