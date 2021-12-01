@@ -344,17 +344,6 @@ export function* sessionChannelWatcher({
   }
 
   function* swEventWorker(broadcastParams: SwEventParams) {
-    // TODO: add check to validate that broadcastParams are
-    // within our range of supported events
-
-    /**
-     * Put actions with `event_type` to trigger all the children sagas
-     * This should replace all the isWebrtcEvent/isVideoEvent guards below
-     * since we'll move that logic on a separate package.
-     * TODO: commented for now since it's no-op
-     */
-    yield put({ type: broadcastParams.event_type, payload: broadcastParams })
-
     if (isWebrtcEvent(broadcastParams)) {
       yield fork(vertoWorker, {
         jsonrpc: broadcastParams.params,
@@ -372,12 +361,12 @@ export function* sessionChannelWatcher({
       return
     }
 
-    // TODO: remove this since it no longer applies.
-    // if ('development' === process.env.NODE_ENV) {
-    //   // @ts-expect-error
-    //   throw new Error(`Unknown broadcast event: ${broadcastParams.event}`)
-    // }
-    // return getLogger().debug('Unknown broadcast event', broadcastParams)
+    /**
+     * Put actions with `event_type` to trigger all the children sagas
+     * This should replace all the isWebrtcEvent/isVideoEvent guards below
+     * since we'll move that logic on a separate package.
+     */
+    yield put({ type: broadcastParams.event_type, payload: broadcastParams })
   }
 
   function* sessionChannelWorker(
