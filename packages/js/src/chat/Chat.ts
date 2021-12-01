@@ -18,20 +18,18 @@ interface ChatDocs extends Omit<ConsumerContract<ChatApiEvents, ChatFullState>, 
   /**
    * Creates a new Chat client.
    * 
-   * For example:
+   * @example
    * 
    * ```js
    * import { Chat } from '@signalwire/js'
    * 
    * const chat = new Chat({
-   *   token: '<your_token>',
+   *   token: '<your_chat_token>',
    * })
    * ```
-   * 
-   * @example aaababb
    */
   new(chatOptions: {
-    /** SignalWire project token, e.g. `PT9e5660c101cd140a1c93a0197640a369cf5f16975a0079c9` */
+    /** SignalWire Chat token (you can get one with the REST APIs) */
     token: string
     /** logging level */
     logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
