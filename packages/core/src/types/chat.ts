@@ -1,4 +1,9 @@
-import { OnlyStateProperties, OnlyFunctionProperties } from '..'
+import { OnlyStateProperties, OnlyFunctionProperties, SwEvent } from '..'
+
+export type ChatNamespace = 'chat'
+type ToInternalChatEvent<T extends string> = `${ChatNamespace}.${T}`
+
+type ChannelMessage = 'channel.message'
 
 export type ChatApiEventsHandlerMapping = Record<
   'message',
@@ -28,3 +33,26 @@ export type ChatMethods = Omit<
 export interface ChatServerChannel {
   name: string
 }
+
+/**
+ * ==========
+ * ==========
+ * Server-Side Events
+ * ==========
+ * ==========
+ */
+
+/**
+ * 'chat.channel.message'
+ */
+export interface ChatChannelMessageEventParams {
+  message: string
+  channel: string
+}
+
+export interface ChatChannelMessageEvent extends SwEvent {
+  event_type: ToInternalChatEvent<ChannelMessage>
+  params: ChatChannelMessageEventParams
+}
+
+export type ChatEvent = ChatChannelMessageEvent
