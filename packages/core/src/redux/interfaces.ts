@@ -8,7 +8,11 @@ import {
   JSONRPCMethod,
   BaseConnectionState,
 } from '../utils/interfaces'
-import type { VideoAPIEventParams, InternalVideoAPIEvent } from '../types'
+import type {
+  VideoAPIEventParams,
+  InternalVideoAPIEvent,
+  ChatAction,
+} from '../types'
 import { SDKRunSaga } from '.'
 
 interface SWComponent {
@@ -98,5 +102,6 @@ export type PubSubAction =
       type: SessionEvents
       payload: undefined
     }
+  | ChatAction
 
 export type PubSubChannel = Channel<PubSubAction>

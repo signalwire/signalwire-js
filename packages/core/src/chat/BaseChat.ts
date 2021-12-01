@@ -64,7 +64,6 @@ export class BaseChatConsumer extends BaseConsumer<ChatApiEvents> {
             return {}
           },
           payloadTransform: (p: any) => {
-            console.log('--> payload', toExternalJSON(p))
             return toExternalJSON(p)
           },
         },

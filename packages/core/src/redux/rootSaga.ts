@@ -222,7 +222,6 @@ interface RootSagaOptions {
 }
 
 export default (options: RootSagaOptions) => {
-  // TODO: create a type mapping
   return function* root({
     userOptions,
     channels,

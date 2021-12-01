@@ -1,28 +1,15 @@
-import { sagaEffects, SagaIterator, SDKWorker, getLogger } from '..'
-import { componentActions } from '../redux/features'
+import { sagaEffects, SagaIterator, SDKWorker, getLogger, ChatAction } from '..'
 
 export const chatWorker: SDKWorker = function* chatWorker({
   pubSubChannel,
 }): SagaIterator {
   while (true) {
-    const action = yield sagaEffects.take((action: any) => {
+    const action: ChatAction = yield sagaEffects.take((action: any) => {
       return action.type.startsWith('chat.')
     })
-    console.log('chatWorker:', action)
+    getLogger().debug('chatWorker:', action)
 
     switch (action.type) {
-      case 'chat.subscribed': {
-        // TODO: re-enable once we have a better idea of the
-        // response type
-        // yield sagaEffects.put(
-        //   componentActions.upsert({
-        //     // TODO: add remaining params
-        //     id: action.payload.params.chatId,
-        //   })
-        // )
-        break
-      }
-
       case 'chat.channel.message': {
         yield sagaEffects.put(pubSubChannel, {
           type: 'chat.message' as any,
@@ -32,7 +19,7 @@ export const chatWorker: SDKWorker = function* chatWorker({
       }
 
       default: {
-        getLogger().info('Unrecognized Action', action)
+        getLogger().warn('[chatWorker] Unrecognized Action', action)
         break
       }
     }
