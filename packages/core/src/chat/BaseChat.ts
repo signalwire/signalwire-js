@@ -7,7 +7,7 @@ import {
   extendComponent,
   JSONRPCSubscribeMethod,
   toExternalJSON,
-  ChatServerChannel,
+  InternalChatChannel,
 } from '..'
 import * as chatMethods from './methods'
 import * as workers from './workers'
@@ -15,7 +15,7 @@ import * as workers from './workers'
 // TODO:
 type EmitterTransformsEvents = ''
 
-const toServerChannels = (channels: string[]): ChatServerChannel[] => {
+const toInternalChatChannels = (channels: string[]): InternalChatChannel[] => {
   return channels.map((name) => {
     return {
       name,
@@ -34,7 +34,7 @@ export class BaseChatConsumer extends BaseConsumer<ChatApiEvents> {
   private _setSubscribeParams(channels: string[]) {
     this.subscribeParams = {
       ...this.subscribeParams,
-      channels: toServerChannels(channels),
+      channels: toInternalChatChannels(channels),
     }
   }
 
