@@ -54,7 +54,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
   const runSaga: SDKRunSaga = (saga: Saga, args) => {
     return sagaMiddleware.run(saga, {
       ...args,
-      pubSubChannel,
+      channels,
     })
   }
 
