@@ -1,10 +1,14 @@
 import { configureStore as rtConfigureStore } from '@reduxjs/toolkit'
-import createSagaMiddleware from '@redux-saga/core'
+import createSagaMiddleware, { channel, Saga, Task } from '@redux-saga/core'
 import { rootReducer } from './rootReducer'
 import rootSaga from './rootSaga'
-import { SDKState } from './interfaces'
+import { PubSubChannel, SDKState } from './interfaces'
 import { connect } from './connect'
-import { InternalUserOptions, SessionConstructor } from '../utils/interfaces'
+import {
+  InternalUserOptions,
+  SessionConstructor,
+  InternalChannels,
+} from '../utils/interfaces'
 
 interface ConfigureStoreOptions {
   userOptions: InternalUserOptions
@@ -14,6 +18,10 @@ interface ConfigureStoreOptions {
 }
 
 export type SDKStore = ReturnType<typeof configureStore>
+export type SDKRunSaga = <S extends Saga>(
+  saga: S,
+  params?: Parameters<S>[0]
+) => Task
 
 const configureStore = (options: ConfigureStoreOptions) => {
   const {
@@ -23,7 +31,14 @@ const configureStore = (options: ConfigureStoreOptions) => {
     runSagaMiddleware = true,
   } = options
   const sagaMiddleware = createSagaMiddleware()
-
+  const pubSubChannel: PubSubChannel = channel()
+  /**
+   * List of channels that are gonna be shared across all
+   * sagas.
+   */
+  const channels: InternalChannels = {
+    pubSubChannel,
+  }
   const store = rtConfigureStore({
     devTools: userOptions?.devTools ?? true,
     reducer: rootReducer,
@@ -36,17 +51,23 @@ const configureStore = (options: ConfigureStoreOptions) => {
       // @see https://redux-toolkit.js.org/api/getDefaultMiddleware#intended-usage
       getDefaultMiddleware().concat(sagaMiddleware),
   })
+  const runSaga: SDKRunSaga = (saga: Saga, args) => {
+    return sagaMiddleware.run(saga, {
+      ...args,
+      channels,
+    })
+  }
 
   if (runSagaMiddleware) {
     const saga = rootSaga({
       SessionConstructor,
     })
-    sagaMiddleware.run(saga, userOptions)
+    sagaMiddleware.run(saga, { userOptions, channels })
   }
 
   return {
     ...store,
-    runSaga: sagaMiddleware.run,
+    runSaga,
   }
 }
 

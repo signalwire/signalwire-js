@@ -1,4 +1,4 @@
-import { channel, eventChannel } from '@redux-saga/core'
+import { eventChannel } from '@redux-saga/core'
 import { expectSaga, testSaga } from 'redux-saga-test-plan'
 import rootSaga, {
   socketClosedWorker,
@@ -136,9 +136,11 @@ describe('initSessionSaga', () => {
   const SessionConstructor = jest.fn().mockImplementation(() => {
     return session
   })
+  const pubSubChannel = createPubSubChannel()
   const userOptions = {
     token: '',
     emitter: jest.fn() as any,
+    pubSubChannel,
   }
 
   beforeEach(() => {
@@ -150,10 +152,13 @@ describe('initSessionSaga', () => {
     pubSubChannel.close = jest.fn()
     const sessionChannel = eventChannel(() => () => {})
     sessionChannel.close = jest.fn()
-    const saga = testSaga(initSessionSaga, SessionConstructor, userOptions)
+    const saga = testSaga(initSessionSaga, {
+      SessionConstructor,
+      userOptions,
+      channels: { pubSubChannel },
+    })
     saga.next(sessionChannel).call(createSessionChannel, session)
-    saga.next(sessionChannel).call(channel)
-    saga.next(pubSubChannel).fork(sessionChannelWatcher, {
+    saga.next(sessionChannel).fork(sessionChannelWatcher, {
       session,
       sessionChannel,
       pubSubChannel,
@@ -222,6 +227,7 @@ describe('startSaga', () => {
 })
 
 describe('rootSaga', () => {
+  const pubSubChannel = createPubSubChannel()
   it('wait for initAction and fork initSessionSaga', () => {
     const session = {
       connect: jest.fn(),
@@ -230,16 +236,24 @@ describe('rootSaga', () => {
       return session
     })
     const userOptions = { token: '', emitter: jest.fn() as any }
+    const channels = { pubSubChannel }
     const saga = testSaga(
       rootSaga({
         SessionConstructor,
       }),
-      userOptions
+      {
+        userOptions,
+        channels,
+      }
     )
 
     saga.next().fork(executeQueueWatcher)
     saga.next().take(initAction.type)
-    saga.next().call(initSessionSaga, SessionConstructor, userOptions)
+    saga.next().call(initSessionSaga, {
+      SessionConstructor,
+      userOptions,
+      channels,
+    })
     saga.next().isDone()
   })
 })

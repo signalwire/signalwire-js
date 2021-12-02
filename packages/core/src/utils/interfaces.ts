@@ -7,7 +7,7 @@ import {
   INTERNAL_GLOBAL_VIDEO_EVENTS,
   PRODUCT_PREFIXES,
 } from './constants'
-import type { CustomSaga } from '../redux/interfaces'
+import type { CustomSaga, PubSubChannel } from '../redux/interfaces'
 import type { URL as NodeURL } from 'node:url'
 import { InternalRPCMethods } from '../internal'
 
@@ -48,6 +48,12 @@ export type JSONRPCMethod =
   | RoomMethod
   | VertoMethod
   | InternalRPCMethods
+  | ChatMethod
+
+export type JSONRPCSubscribeMethod = Extract<
+  JSONRPCMethod,
+  'signalwire.subscribe' | 'chat.subscribe'
+>
 
 export interface JSONRPCRequest {
   jsonrpc: '2.0'
@@ -191,6 +197,8 @@ export type SessionAuthError = {
   code: number
   error: string
 }
+
+export type ChatMethod = 'chat.subscribe' | 'chat.publish'
 
 /**
  * List of all Room methods
@@ -373,9 +381,12 @@ export interface EventTransform {
 
 export type BaseEventHandler = (...args: any[]) => void
 
-// TODO: Add worker params
-export interface SDKWorkerParams {}
-export type SDKWorker = (params?: SDKWorkerParams) => SagaIterator<any>
+export type InternalChannels = {
+  pubSubChannel: PubSubChannel
+}
+
+export type SDKWorkerParams<T> = { channels: InternalChannels } & T
+export type SDKWorker = <T>(params: SDKWorkerParams<T>) => SagaIterator<any>
 interface LogFn {
   <T extends object>(obj: T, msg?: string, ...args: any[]): void
   (obj: unknown, msg?: string, ...args: any[]): void

@@ -27,6 +27,12 @@ export class BaseClient<
    * @returns Promise that will resolve with the Client object.
    */
   connect(): Promise<this> {
+    const initialState = this.store.getState()
+
+    if (initialState.session.authStatus === 'authorized') {
+      return Promise.resolve(this)
+    }
+
     return new Promise((resolve, reject) => {
       const unsubscribe = this.store.subscribe(() => {
         const state = this.store.getState()
@@ -43,7 +49,9 @@ export class BaseClient<
         }
       })
 
-      this.store.dispatch(initAction())
+      if (initialState.session.authStatus !== 'authorizing') {
+        this.store.dispatch(initAction())
+      }
     })
   }
 

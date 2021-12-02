@@ -1,5 +1,5 @@
 import { PayloadAction } from '@reduxjs/toolkit'
-import type { Saga, Task, SagaIterator, Channel } from '@redux-saga/types'
+import type { SagaIterator, Channel } from '@redux-saga/types'
 import {
   JSONRPCResponse,
   SessionAuthError,
@@ -8,7 +8,12 @@ import {
   JSONRPCMethod,
   BaseConnectionState,
 } from '../utils/interfaces'
-import type { VideoAPIEventParams, InternalVideoAPIEvent } from '../types'
+import type {
+  VideoAPIEventParams,
+  InternalVideoAPIEvent,
+  ChatAction,
+} from '../types'
+import { SDKRunSaga } from '.'
 
 interface SWComponent {
   id: string
@@ -72,7 +77,7 @@ export interface ExecuteQueueState {
 
 export interface CustomSagaParams<T> {
   instance: T
-  runSaga: <S extends Saga>(saga: S, ...args: Parameters<S>) => Task
+  runSaga: SDKRunSaga
 }
 
 export type CustomSaga<T> = (params: CustomSagaParams<T>) => SagaIterator<any>
@@ -97,5 +102,6 @@ export type PubSubAction =
       type: SessionEvents
       payload: undefined
     }
+  | ChatAction
 
 export type PubSubChannel = Channel<PubSubAction>

@@ -3,6 +3,7 @@ import {
   ClientEvents,
   ClientContract,
   actions,
+  Chat as ChatNamespace,
 } from '@signalwire/core'
 import type { CustomSaga } from '@signalwire/core'
 import { ConnectionOptions } from '@signalwire/webrtc'
@@ -16,10 +17,12 @@ import {
   RoomSessionConnection,
 } from './BaseRoomSession'
 import { Cantina, createCantinaObject } from './cantina'
+import type { Chat } from './chat/Chat'
 
 export interface Client<RoomSessionType = RoomSession>
   extends ClientContract<Client<RoomSessionType>, ClientEvents> {
   rooms: ClientAPI<RoomSessionType>['rooms']
+  chat: ClientAPI<RoomSessionType>['chat']
 }
 
 export interface MakeRoomOptions extends ConnectionOptions {
@@ -33,6 +36,7 @@ export class ClientAPI<
   RoomSessionType = RoomSession
 > extends BaseClient<ClientEvents> {
   private _cantina: Cantina
+  private _chat: Chat
 
   get rooms() {
     return {
@@ -115,6 +119,19 @@ export class ClientAPI<
         return room
       },
     }
+  }
+
+  get chat() {
+    if (!this._chat) {
+      this._chat = ChatNamespace.createBaseChatObject<Chat>({
+        store: this.store,
+        // Emitter is now typed but we share it across objects
+        // so types won't match
+        // @ts-expect-error
+        emitter: this.options.emitter,
+      })
+    }
+    return this._chat
   }
 
   get cantina() {

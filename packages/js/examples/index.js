@@ -38,6 +38,10 @@ const EXAMPLES = [
         url: '/ts-vanilla-webrtc-utils/',
         language: 'WebRTC',
       },
+      {
+        url: '/chat/',
+        language: 'JavaScript',
+      },
     ],
   },
 ]

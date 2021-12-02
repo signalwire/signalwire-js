@@ -3,6 +3,7 @@ import {
   ExecuteParams,
   EventEmitter,
   BaseComponentOptions,
+  JSONRPCSubscribeMethod,
 } from '.'
 
 /**
@@ -15,6 +16,7 @@ import {
 export class BaseConsumer<
   EventTypes extends EventEmitter.ValidEventTypes
 > extends BaseComponent<EventTypes> {
+  protected subscribeMethod: JSONRPCSubscribeMethod = 'signalwire.subscribe'
   protected subscribeParams?: Record<string, any> = {}
 
   constructor(public options: BaseComponentOptions<EventTypes>) {
@@ -35,7 +37,7 @@ export class BaseConsumer<
       const subscriptions = this.getSubscriptions()
       if (subscriptions.length > 0) {
         const execParams: ExecuteParams = {
-          method: 'signalwire.subscribe',
+          method: this.subscribeMethod,
           params: {
             ...this.subscribeParams,
             event_channel: this.getStateProperty('eventChannel'),
