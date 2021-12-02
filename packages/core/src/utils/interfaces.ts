@@ -50,6 +50,11 @@ export type JSONRPCMethod =
   | InternalRPCMethods
   | ChatMethod
 
+export type JSONRPCSubscribeMethod = Extract<
+  JSONRPCMethod,
+  'signalwire.subscribe' | 'chat.subscribe'
+>
+
 export interface JSONRPCRequest {
   jsonrpc: '2.0'
   id: string
