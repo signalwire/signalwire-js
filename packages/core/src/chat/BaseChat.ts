@@ -5,7 +5,7 @@ import {
   ChatMethods,
   connect,
   extendComponent,
-  JSONRPCMethod,
+  JSONRPCSubscribeMethod,
   toExternalJSON,
   ChatServerChannel,
 } from '..'
@@ -25,7 +25,7 @@ const toServerChannels = (channels: string[]): ChatServerChannel[] => {
 
 export class BaseChatConsumer extends BaseConsumer<ChatApiEvents> {
   protected override _eventsPrefix = 'chat' as const
-  protected override subscribeMethod: JSONRPCMethod = 'chat.subscribe'
+  protected override subscribeMethod: JSONRPCSubscribeMethod = 'chat.subscribe'
 
   protected getWorkers() {
     return new Map([['chat', { worker: workers.chatWorker }]])
