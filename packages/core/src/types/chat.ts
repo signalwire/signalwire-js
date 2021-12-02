@@ -32,7 +32,7 @@ export type ChatMethods = Omit<
   'subscribe'
 >
 
-export interface ChatServerChannel {
+export interface InternalChatChannel {
   name: string
 }
 

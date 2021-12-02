@@ -50,6 +50,11 @@ export type JSONRPCMethod =
   | InternalRPCMethods
   | ChatMethod
 
+export type JSONRPCSubscribeMethod = Extract<
+  JSONRPCMethod,
+  'signalwire.subscribe' | 'chat.subscribe'
+>
+
 export interface JSONRPCRequest {
   jsonrpc: '2.0'
   id: string
@@ -380,7 +385,7 @@ export type InternalChannels = {
   pubSubChannel: PubSubChannel
 }
 
-export type SDKWorkerParams<T> = InternalChannels & T
+export type SDKWorkerParams<T> = { channels: InternalChannels } & T
 export type SDKWorker = <T>(params: SDKWorkerParams<T>) => SagaIterator<any>
 interface LogFn {
   <T extends object>(obj: T, msg?: string, ...args: any[]): void

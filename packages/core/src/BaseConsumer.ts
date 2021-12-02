@@ -3,7 +3,7 @@ import {
   ExecuteParams,
   EventEmitter,
   BaseComponentOptions,
-  JSONRPCMethod,
+  JSONRPCSubscribeMethod,
 } from '.'
 
 /**
@@ -16,7 +16,7 @@ import {
 export class BaseConsumer<
   EventTypes extends EventEmitter.ValidEventTypes
 > extends BaseComponent<EventTypes> {
-  protected subscribeMethod: JSONRPCMethod = 'signalwire.subscribe'
+  protected subscribeMethod: JSONRPCSubscribeMethod = 'signalwire.subscribe'
   protected subscribeParams?: Record<string, any> = {}
 
   constructor(public options: BaseComponentOptions<EventTypes>) {

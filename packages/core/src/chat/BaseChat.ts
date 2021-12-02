@@ -5,9 +5,9 @@ import {
   ChatMethods,
   connect,
   extendComponent,
-  JSONRPCMethod,
+  JSONRPCSubscribeMethod,
   toExternalJSON,
-  ChatServerChannel,
+  InternalChatChannel,
 } from '..'
 import * as chatMethods from './methods'
 import * as workers from './workers'
@@ -15,7 +15,7 @@ import * as workers from './workers'
 // TODO:
 type EmitterTransformsEvents = ''
 
-const toServerChannels = (channels: string[]): ChatServerChannel[] => {
+const toInternalChatChannels = (channels: string[]): InternalChatChannel[] => {
   return channels.map((name) => {
     return {
       name,
@@ -25,7 +25,7 @@ const toServerChannels = (channels: string[]): ChatServerChannel[] => {
 
 export class BaseChatConsumer extends BaseConsumer<ChatApiEvents> {
   protected override _eventsPrefix = 'chat' as const
-  protected override subscribeMethod: JSONRPCMethod = 'chat.subscribe'
+  protected override subscribeMethod: JSONRPCSubscribeMethod = 'chat.subscribe'
 
   protected getWorkers() {
     return new Map([['chat', { worker: workers.chatWorker }]])
@@ -34,7 +34,7 @@ export class BaseChatConsumer extends BaseConsumer<ChatApiEvents> {
   private _setSubscribeParams(channels: string[]) {
     this.subscribeParams = {
       ...this.subscribeParams,
-      channels: toServerChannels(channels),
+      channels: toInternalChatChannels(channels),
     }
   }
 
@@ -71,7 +71,7 @@ export class BaseChatConsumer extends BaseConsumer<ChatApiEvents> {
     ])
   }
 
-  onChatSubscribed() {
+  onChatInitialized() {
     this._attachListeners('')
   }
 }
@@ -92,7 +92,7 @@ export const createBaseChatObject = <ChatType>(
     componentListeners: {
       errors: 'onError',
       responses: 'onSuccess',
-      id: 'onChatSubscribed',
+      id: 'onChatInitialized',
     },
   })(params)
 
