@@ -12,6 +12,12 @@ export const chatWorker: SDKWorker = function* chatWorker({
     switch (action.type) {
       case 'chat.channel.message': {
         yield sagaEffects.put(pubSubChannel, {
+          /**
+           * FIXME: This is a hack to get the message to the
+           * correct channel. We'll fix this once we have a
+           * proper way to setup the prefix `channel` at a
+           * BaseConsumer level.
+           */
           type: 'chat.message' as any,
           payload: action.payload,
         })
