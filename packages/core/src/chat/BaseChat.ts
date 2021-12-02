@@ -71,7 +71,7 @@ export class BaseChatConsumer extends BaseConsumer<ChatApiEvents> {
     ])
   }
 
-  onChatSubscribed() {
+  onChatInitialized() {
     this._attachListeners('')
   }
 }
@@ -92,7 +92,7 @@ export const createBaseChatObject = <ChatType>(
     componentListeners: {
       errors: 'onError',
       responses: 'onSuccess',
-      id: 'onChatSubscribed',
+      id: 'onChatInitialized',
     },
   })(params)
 
