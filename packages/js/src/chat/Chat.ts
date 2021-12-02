@@ -40,6 +40,14 @@ interface ChatDocs extends Omit<ConsumerContract<ChatApiEvents, ChatFullState>, 
    * 
    * @returns a promise that is resolved when the subscription has been
    * completed.
+   * 
+   * @example 
+   * ```js
+   * await chat.publish({
+   *   channel: 'mychannel1',
+   *   message: 'hello world'
+   * })
+   * ```
    */
   publish(params: {
     /** The message to be published */
@@ -58,21 +66,45 @@ interface ChatDocs extends Omit<ConsumerContract<ChatApiEvents, ChatFullState>, 
    *
    * @returns a promise that is resolved when the subscription has been
    * completed.
+   * 
+   * @example 
+   * ```js
+   * await chat.subscribe([ 'mychannel1', 'mychannel2' ])
+   * ```
    */
   subscribe(channels: string[]): any
 }
 
 /**
- * You can use the Chat object to ...
+ * You can use the Chat object to build a messaging system into the browser.
+ *
+ * Example usage:
  * 
  * ```js
- * let example = 'example'
+ * import { Chat } from '@signalwire/js'
+ * 
+ * const chat = new Chat({
+ *   token: '<your_chat_token>',  // get this from the REST APIs
+ * })
+ * 
+ * await chat.subscribe([ 'mychannel1', 'mychannel2' ])
+ * 
+ * chat.on('message', (args) => {
+ *   const { timestamp } = args
+ *   const { message, channel } = args.params
+ *   console.log("Received", message, "on", channel, "at", timestamp)
+ * })
+ * 
+ * await chat.publish({
+ *   channel: 'mychannel1',
+ *   message: 'hello world'
+ * })
  * ```
  * 
  * ## Events
  *
- * Please see {@link ChatEvents} for the list of events emitted by a
- * Chat object.
+ * Please see {@link ChatEvents} for the list of events emitted by a Chat
+ * object.
  */
 export interface Chat extends AssertSameType<ChatMain, ChatDocs> {}
 
