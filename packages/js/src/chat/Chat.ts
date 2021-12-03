@@ -24,7 +24,7 @@ interface ChatDocs
    * ```js
    * import { Chat } from '@signalwire/js'
    *
-   * const chat = new Chat({
+   * const chat = new Chat.Chat({
    *   token: '<your_chat_token>',
    * })
    * ```
