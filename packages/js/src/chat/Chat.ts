@@ -7,28 +7,29 @@ import type {
 } from '@signalwire/core'
 import { createClient } from '../createClient'
 
-export interface ChatFullState extends Chat { }
+export interface ChatFullState extends Chat {}
 interface ChatMain
   extends ChatContract,
-  Omit<ConsumerContract<ChatApiEvents, ChatFullState>, 'subscribe'> {
-  new(chatOptions: ChatOptions): this
+    Omit<ConsumerContract<ChatApiEvents, ChatFullState>, 'subscribe'> {
+  new (chatOptions: ChatOptions): this
 }
 
-interface ChatDocs extends Omit<ConsumerContract<ChatApiEvents, ChatFullState>, 'subscribe'> {
+interface ChatDocs
+  extends Omit<ConsumerContract<ChatApiEvents, ChatFullState>, 'subscribe'> {
   /**
    * Creates a new Chat client.
-   * 
+   *
    * @example
-   * 
+   *
    * ```js
    * import { Chat } from '@signalwire/js'
-   * 
+   *
    * const chat = new Chat({
    *   token: '<your_chat_token>',
    * })
    * ```
    */
-  new(chatOptions: {
+  new (chatOptions: {
     /** SignalWire Chat token (you can get one with the REST APIs) */
     token: string
     /** logging level */
@@ -37,11 +38,11 @@ interface ChatDocs extends Omit<ConsumerContract<ChatApiEvents, ChatFullState>, 
 
   /**
    * Publishes a message in the specified channel.
-   * 
+   *
    * @returns a promise that is resolved when the subscription has been
    * completed.
-   * 
-   * @example 
+   *
+   * @example
    * ```js
    * await chat.publish({
    *   channel: 'mychannel1',
@@ -66,8 +67,8 @@ interface ChatDocs extends Omit<ConsumerContract<ChatApiEvents, ChatFullState>, 
    *
    * @returns a promise that is resolved when the subscription has been
    * completed.
-   * 
-   * @example 
+   *
+   * @example
    * ```js
    * await chat.subscribe([ 'mychannel1', 'mychannel2' ])
    * ```
@@ -79,28 +80,28 @@ interface ChatDocs extends Omit<ConsumerContract<ChatApiEvents, ChatFullState>, 
  * You can use the Chat object to build a messaging system into the browser.
  *
  * Example usage:
- * 
+ *
  * ```js
  * import { Chat } from '@signalwire/js'
- * 
+ *
  * const chat = new Chat({
  *   token: '<your_chat_token>',  // get this from the REST APIs
  * })
- * 
+ *
  * await chat.subscribe([ 'mychannel1', 'mychannel2' ])
- * 
+ *
  * chat.on('message', (args) => {
  *   const { timestamp } = args
  *   const { message, channel } = args.params
  *   console.log("Received", message, "on", channel, "at", timestamp)
  * })
- * 
+ *
  * await chat.publish({
  *   channel: 'mychannel1',
  *   message: 'hello world'
  * })
  * ```
- * 
+ *
  * ## Events
  *
  * Please see {@link ChatEvents} for the list of events emitted by a Chat
