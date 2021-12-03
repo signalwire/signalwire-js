@@ -1,7 +1,7 @@
 import { Chat } from '@signalwire/js'
 
 window.connect = async ({ channels, host, token }) => {
-  const chat = new Chat({
+  const chat = new Chat.Chat({
     host,
     token,
   })
