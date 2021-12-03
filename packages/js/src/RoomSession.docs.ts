@@ -280,9 +280,10 @@ interface RoomSessionConstructorDocs<T> {
    * Creates a new RoomSession.
    */
   new (opts: {
-    /** SignalWire project id, e.g. `a10d8a9f-2166-4e82-56ff-118bc3a4840f` */
-    project?: string
-    /** SignalWire project token, e.g. `PT9e5660c101cd140a1c93a0197640a369cf5f16975a0079c9` */
+    /**
+     * SignalWire video room token (get one from the [REST
+     * APIs](https://developer.signalwire.com/apis/reference/create_room_token))
+     */
     token: string
     /** logging level */
     logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
@@ -620,7 +621,7 @@ interface RoomControlMethodsInterfaceDocs {
    * @param params
    * @param params.memberId id of the member to affect. If omitted, affects the
    * default device in the local client.
-   * @param params.value desired volume. Values range from -50 to 50, with a
+   * @param params.volume desired volume. Values range from -50 to 50, with a
    * default of 0.
    *
    * @permissions
