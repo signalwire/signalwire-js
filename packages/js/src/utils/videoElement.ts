@@ -132,7 +132,7 @@ const makeLayoutChangedHandler =
 
 const makeDisplayChangeFn = (display: 'block' | 'none') => {
   return (domId: string) => {
-    const el = document.getElementById(domId)
+    const el = document.getElementById(_addSDKPrefix(domId))
     if (el) {
       el.style.display = display
     }
