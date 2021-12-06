@@ -114,8 +114,6 @@ describe('Chat Object', () => {
           expect(parsedMessage.params).toStrictEqual(params)
         }
       })
-
-      expect(true).toBe(true)
     })
   })
 })
