@@ -85,19 +85,21 @@ const makeLayoutChangedHandler =
   async ({ layout, myMemberId, localStream }: LayoutChangedHandlerParams) => {
     try {
       const { layers = [] } = layout
-      const layer = layers.find(({ member_id }) => member_id === myMemberId)
-
-      if (!layer) {
-        return getLogger().debug(
-          'Current Layer Not Found',
-          JSON.stringify(layout)
-        )
-      }
+      const location = layers.find(({ member_id }) => member_id === myMemberId)
 
       const myLayerKey = _addSDKPrefix(myMemberId)
       let myLayer = layerMap.get(myLayerKey)
+      if (!location) {
+        if (myLayer) {
+          getLogger().debug('Current layer not visible')
+          myLayer.style.display = 'none'
+        }
+
+        return
+      }
+
       if (!myLayer) {
-        myLayer = await _buildLayer({ element, location: layer })
+        myLayer = await _buildLayer({ element, location })
         myLayer.id = myLayerKey
 
         const localVideo = buildVideo()
@@ -117,7 +119,8 @@ const makeLayoutChangedHandler =
         return
       }
 
-      const { top, left, width, height } = _getLocationStyles(layer)
+      const { top, left, width, height } = _getLocationStyles(location)
+      myLayer.style.display = 'block'
       myLayer.style.top = top
       myLayer.style.left = left
       myLayer.style.width = width
