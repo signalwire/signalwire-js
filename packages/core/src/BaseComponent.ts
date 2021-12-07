@@ -28,6 +28,11 @@ import {
   EmitterContract,
   BaseComponentContract,
 } from './types'
+import {
+  getAuthError,
+  getAuthStatus,
+} from './redux/features/session/sessionSelectors'
+import { AuthError } from './CustomErrors'
 
 type EventRegisterHandlers<EventTypes extends EventEmitter.ValidEventTypes> =
   | {
@@ -682,6 +687,49 @@ export class BaseComponent<
    */
   protected getEmitterTransforms(): Map<string | string[], EventTransform> {
     return new Map()
+  }
+
+  /** @internal */
+  protected _waitUntilSessionAuthorized(): Promise<this> {
+    const authStatus = getAuthStatus(this.store.getState())
+
+    switch (authStatus) {
+      case 'authorized':
+        return Promise.resolve(this)
+
+      /**
+       * `unknown` is the initial state of the auth reducer
+       * so if we've got this far it means it's the first
+       * time the user is calling `connect`.
+       */
+      case 'unknown':
+      /**
+       * `authorizing` means that the user is calling
+       * `connect` again while we're in the process of
+       * authorizing the session.
+       */
+      case 'authorizing':
+        return new Promise((resolve, reject) => {
+          const unsubscribe = this.store.subscribe(() => {
+            const authStatus = getAuthStatus(this.store.getState())
+            const authError = getAuthError(this.store.getState())
+
+            if (authStatus === 'authorized') {
+              resolve(this)
+              unsubscribe()
+            } else if (authStatus === 'unauthorized') {
+              const error = authError
+                ? new AuthError(authError.code, authError.error)
+                : new Error('Unauthorized')
+              reject(error)
+              unsubscribe()
+            }
+          })
+        })
+
+      case 'unauthorized':
+        return Promise.reject(new Error('Unauthorized'))
+    }
   }
 
   private _setEmitterTransform({

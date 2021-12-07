@@ -1,23 +1,19 @@
-import { AuthError } from './CustomErrors'
 import { destroyAction, initAction } from './redux'
 import { BaseClientOptions } from './utils/interfaces'
 import { BaseComponent } from './BaseComponent'
 import { EventEmitter } from './utils/EventEmitter'
+import { getAuthStatus } from './redux/features/session/sessionSelectors'
 
 export class BaseClient<
   EventTypes extends EventEmitter.ValidEventTypes
 > extends BaseComponent<EventTypes> {
   constructor(public options: BaseClientOptions<EventTypes>) {
     super(options)
-  }
-
-  /**
-   * Starts the initialization process as soon as the Client has been
-   * registered in the Redux store.
-   *
-   * @internal
-   */
-  protected onClientSubscribed() {
+    /**
+     * Since we don't need a namespace for these events
+     * we'll attach them as soon as the Client has been
+     * registered in the Redux store.
+     */
     this._attachListeners('')
   }
 
@@ -27,32 +23,13 @@ export class BaseClient<
    * @returns Promise that will resolve with the Client object.
    */
   connect(): Promise<this> {
-    const initialState = this.store.getState()
+    const authStatus = getAuthStatus(this.store.getState())
 
-    if (initialState.session.authStatus === 'authorized') {
-      return Promise.resolve(this)
+    if (authStatus === 'unknown' || authStatus === 'unauthorized') {
+      this.store.dispatch(initAction())
     }
 
-    return new Promise((resolve, reject) => {
-      const unsubscribe = this.store.subscribe(() => {
-        const state = this.store.getState()
-        const { authStatus, authError } = state.session
-        if (authStatus === 'authorized') {
-          resolve(this)
-          unsubscribe()
-        } else if (authStatus === 'unauthorized') {
-          const error = authError
-            ? new AuthError(authError.code, authError.error)
-            : new Error('Unauthorized')
-          reject(error)
-          unsubscribe()
-        }
-      })
-
-      if (initialState.session.authStatus !== 'authorizing') {
-        this.store.dispatch(initAction())
-      }
-    })
+    return this._waitUntilSessionAuthorized()
   }
 
   /**

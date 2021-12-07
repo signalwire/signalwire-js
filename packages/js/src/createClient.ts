@@ -69,7 +69,6 @@ export const createClient = <RoomSessionType>(userOptions: UserOptions) => {
     componentListeners: {
       errors: 'onError',
       responses: 'onSuccess',
-      id: 'onClientSubscribed',
     },
   })(baseUserOptions)
 

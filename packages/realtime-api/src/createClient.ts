@@ -51,7 +51,6 @@ export const createClient: (userOptions: {
       componentListeners: {
         errors: 'onError',
         responses: 'onSuccess',
-        id: 'onClientSubscribed',
       },
       sessionListeners: {
         authStatus: 'onAuth',
