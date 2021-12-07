@@ -697,7 +697,17 @@ export class BaseComponent<
       case 'authorized':
         return Promise.resolve(this)
 
+      /**
+       * `unknown` is the initial state of the auth reducer
+       * so if we've got this far it means it's the first
+       * time the user is calling `connect`.
+       */
       case 'unknown':
+      /**
+       * `authorizing` means that the user is calling
+       * `connect` again while we're in the process of
+       * authorizing the session.
+       */
       case 'authorizing':
         return new Promise((resolve, reject) => {
           const unsubscribe = this.store.subscribe(() => {
