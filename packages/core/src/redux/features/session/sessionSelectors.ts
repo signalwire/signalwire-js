@@ -11,3 +11,7 @@ export const getSession = (store: SDKState) => {
 export const getAuthStatus = ({ session }: SDKState) => {
   return session.authStatus
 }
+
+export const getAuthError = ({ session }: SDKState) => {
+  return session.authError
+}
