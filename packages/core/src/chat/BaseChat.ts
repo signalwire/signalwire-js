@@ -8,12 +8,15 @@ import {
   JSONRPCSubscribeMethod,
   toExternalJSON,
   InternalChatChannel,
+  EventTransform,
+  ChatChannelMessageEvent,
 } from '..'
+import { BaseChatMessage } from './BaseChatMessage'
 import * as chatMethods from './methods'
 import * as workers from './workers'
 
 // TODO:
-type EmitterTransformsEvents = ''
+type ChatTransformsEvents = 'message'
 
 const toInternalChatChannels = (channels: string[]): InternalChatChannel[] => {
   return channels.map((name) => {
@@ -55,16 +58,19 @@ export class BaseChatConsumer extends BaseConsumer<ChatApiEvents> {
 
   /** @internal */
   protected getEmitterTransforms() {
-    return new Map<any, any>([
+    return new Map<
+      ChatTransformsEvents | ChatTransformsEvents[],
+      EventTransform
+    >([
       [
         ['message'],
         {
           type: 'chatMessage',
-          instanceFactory: () => {
-            return {}
+          instanceFactory: (payload: ChatChannelMessageEvent) => {
+            return new BaseChatMessage(toExternalJSON(payload.params))
           },
-          payloadTransform: (p: any) => {
-            return toExternalJSON(p)
+          payloadTransform: (payload: ChatChannelMessageEvent) => {
+            return toExternalJSON(payload.params)
           },
         },
       ],
@@ -84,7 +90,7 @@ export const BaseChatAPI = extendComponent<BaseChatConsumer, ChatMethods>(
 )
 
 export const createBaseChatObject = <ChatType>(
-  params: BaseComponentOptions<EmitterTransformsEvents>
+  params: BaseComponentOptions<ChatTransformsEvents>
 ) => {
   const chat = connect<ChatApiEvents, BaseChatConsumer, ChatType>({
     store: params.store,
