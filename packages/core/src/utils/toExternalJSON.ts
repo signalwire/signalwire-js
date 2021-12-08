@@ -1,3 +1,5 @@
+import { SnakeToCamelCase } from '../types/utils'
+
 const toDateObject = (timestamp?: number) => {
   if (typeof timestamp === 'undefined') {
     return timestamp
@@ -35,6 +37,10 @@ const DEFAULT_OPTIONS = {
  */
 const isTimestampProperty = (prop: string) => {
   return prop.endsWith('At')
+}
+
+type ToExternalJSONResult<T> = {
+  [K in keyof T as SnakeToCamelCase<Extract<K, string>>]: T[K]
 }
 
 /**
@@ -89,7 +95,7 @@ export const toExternalJSON = <T>(
     }
 
     return reducer
-  }, {} as Record<string, unknown>) as T
+  }, {} as Record<string, unknown>) as ToExternalJSONResult<T>
 }
 
 /**
