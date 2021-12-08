@@ -26,6 +26,15 @@ export interface ChatContract {
   publish(params: ChatPublishParams): any
 }
 
+export interface ChatMessageContract {
+  id: string
+  senderId: string
+  channel: string
+  message: any
+  timestamp: number
+  meta?: any
+}
+
 export type ChatEntity = OnlyStateProperties<ChatContract>
 export type ChatMethods = Omit<
   OnlyFunctionProperties<ChatContract>,
@@ -48,8 +57,12 @@ export interface InternalChatChannel {
  * 'chat.channel.message'
  */
 export interface ChatChannelMessageEventParams {
+  id: string
+  sender_id: string
   message: string
   channel: string
+  meta?: any
+  timestamp: number
 }
 
 export interface ChatChannelMessageEvent extends SwEvent {
