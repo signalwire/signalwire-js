@@ -291,6 +291,8 @@ export type GlobalVideoEvents = typeof GLOBAL_VIDEO_EVENTS[number]
 export type InternalGlobalVideoEvents =
   typeof INTERNAL_GLOBAL_VIDEO_EVENTS[number]
 
+type ChatTransformType = 'chatMessage'
+
 /**
  * NOTE: `EventTransformType` is not tied to a constructor but more on
  * the event payloads.
@@ -307,6 +309,7 @@ export type EventTransformType =
   | 'roomSessionLayout'
   | 'roomSessionRecording'
   | 'roomSessionPlayback'
+  | ChatTransformType
 /**
  * `EventTransform`s represent our internal pipeline for
  * creating specific instances for each event handler. This
