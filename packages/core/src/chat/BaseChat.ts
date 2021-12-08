@@ -1,7 +1,6 @@
 import {
   BaseComponentOptions,
   BaseConsumer,
-  ChatApiEvents,
   ChatMethods,
   connect,
   extendComponent,
@@ -10,10 +9,20 @@ import {
   InternalChatChannel,
   EventTransform,
   ChatChannelMessageEvent,
+  EventEmitter,
 } from '..'
 import { BaseChatMessage } from './BaseChatMessage'
 import * as chatMethods from './methods'
 import * as workers from './workers'
+
+export type BaseChatApiEventsHandlerMapping = Record<
+  'message',
+  (message: any) => void
+>
+
+export type BaseChatApiEvents = {
+  [k in keyof BaseChatApiEventsHandlerMapping]: BaseChatApiEventsHandlerMapping[k]
+}
 
 // TODO:
 type ChatTransformsEvents = 'message'
@@ -26,7 +35,9 @@ const toInternalChatChannels = (channels: string[]): InternalChatChannel[] => {
   })
 }
 
-export class BaseChatConsumer extends BaseConsumer<ChatApiEvents> {
+export class BaseChatConsumer<
+  T extends EventEmitter.ValidEventTypes = BaseChatApiEvents
+> extends BaseConsumer<T> {
   protected override _eventsPrefix = 'chat' as const
   protected override subscribeMethod: JSONRPCSubscribeMethod = 'chat.subscribe'
 
@@ -82,19 +93,29 @@ export class BaseChatConsumer extends BaseConsumer<ChatApiEvents> {
   }
 }
 
-export const BaseChatAPI = extendComponent<BaseChatConsumer, ChatMethods>(
-  BaseChatConsumer,
-  {
-    publish: chatMethods.publish,
-  }
-)
+export const BaseChatAPI = <
+  ChatApiEvents extends EventEmitter.ValidEventTypes = BaseChatApiEvents
+>() =>
+  extendComponent<BaseChatConsumer<ChatApiEvents>, ChatMethods>(
+    BaseChatConsumer,
+    {
+      publish: chatMethods.publish,
+    }
+  )
 
-export const createBaseChatObject = <ChatType>(
+export const createBaseChatObject = <
+  ChatType,
+  ChatApiEvents extends EventEmitter.ValidEventTypes = BaseChatApiEvents
+>(
   params: BaseComponentOptions<ChatTransformsEvents>
 ) => {
-  const chat = connect<ChatApiEvents, BaseChatConsumer, ChatType>({
+  const chat = connect<
+    ChatApiEvents,
+    BaseChatConsumer<ChatApiEvents>,
+    ChatType
+  >({
     store: params.store,
-    Component: BaseChatAPI,
+    Component: BaseChatAPI<ChatApiEvents>(),
     componentListeners: {
       errors: 'onError',
       responses: 'onSuccess',

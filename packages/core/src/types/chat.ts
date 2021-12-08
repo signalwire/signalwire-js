@@ -5,16 +5,7 @@ import { PRODUCT_PREFIX_CHAT } from '../utils/constants'
 export type ChatNamespace = typeof PRODUCT_PREFIX_CHAT
 type ToInternalChatEvent<T extends string> = `${ChatNamespace}.${T}`
 
-type ChannelMessage = 'channel.message'
-
-export type ChatApiEventsHandlerMapping = Record<
-  'message',
-  (message: any) => void
->
-
-export type ChatApiEvents = {
-  [k in keyof ChatApiEventsHandlerMapping]: ChatApiEventsHandlerMapping[k]
-}
+type ChannelMessageEvent = 'channel.message'
 
 export interface ChatPublishParams {
   message: any
@@ -25,7 +16,6 @@ export interface ChatContract {
   subscribe(channels: string[]): any
   publish(params: ChatPublishParams): any
 }
-
 export interface ChatMessageContract {
   id: string
   senderId: string
@@ -66,7 +56,7 @@ export interface ChatChannelMessageEventParams {
 }
 
 export interface ChatChannelMessageEvent extends SwEvent {
-  event_type: ToInternalChatEvent<ChannelMessage>
+  event_type: ToInternalChatEvent<ChannelMessageEvent>
   params: ChatChannelMessageEventParams
 }
 
