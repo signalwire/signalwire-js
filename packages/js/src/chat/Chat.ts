@@ -3,9 +3,11 @@ import type {
   ChatContract,
   ConsumerContract,
   UserOptions,
-  ChatApiEvents,
+  Chat as ChatNamespace,
 } from '@signalwire/core'
 import { createClient } from '../createClient'
+
+export interface ChatApiEvents extends ChatNamespace.BaseChatApiEvents {}
 
 export interface ChatFullState extends Chat {}
 interface ChatMain

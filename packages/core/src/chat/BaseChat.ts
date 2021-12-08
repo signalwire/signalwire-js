@@ -20,8 +20,8 @@ export type BaseChatApiEventsHandlerMapping = Record<
   (message: any) => void
 >
 
-export type BaseChatApiEvents = {
-  [k in keyof BaseChatApiEventsHandlerMapping]: BaseChatApiEventsHandlerMapping[k]
+export type BaseChatApiEvents<T = BaseChatApiEventsHandlerMapping> = {
+  [k in keyof T]: T[k]
 }
 
 // TODO:
