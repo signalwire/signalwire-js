@@ -1,30 +1,37 @@
 import {
   BaseComponentOptions,
   BaseConsumer,
-  ChatMethods,
   connect,
   extendComponent,
   JSONRPCSubscribeMethod,
   toExternalJSON,
   InternalChatChannel,
   EventTransform,
-  ChatChannelMessageEvent,
 } from '..'
 import { ChatMessage } from './ChatMessage'
 import * as chatMethods from './methods'
 import * as workers from './workers'
+import type {
+  ChatChannelMessageEvent,
+  ChatMethods,
+  ChatMessageEventName,
+  ChatEventNames,
+} from '../types/chat'
 
 export type BaseChatApiEventsHandlerMapping = Record<
-  'message',
+  ChatMessageEventName,
   (message: ChatMessage) => void
 >
 
+/**
+ * @privateRemarks
+ *
+ * Each package will have the option to either extend this
+ * type or provide their own event mapping.
+ */
 export type BaseChatApiEvents<T = BaseChatApiEventsHandlerMapping> = {
   [k in keyof T]: T[k]
 }
-
-// TODO:
-type ChatTransformsEvents = 'message'
 
 const toInternalChatChannels = (channels: string[]): InternalChatChannel[] => {
   return channels.map((name) => {
@@ -66,10 +73,7 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
 
   /** @internal */
   protected getEmitterTransforms() {
-    return new Map<
-      ChatTransformsEvents | ChatTransformsEvents[],
-      EventTransform
-    >([
+    return new Map<ChatEventNames | ChatEventNames[], EventTransform>([
       [
         ['message'],
         {
@@ -98,7 +102,7 @@ export const BaseChatAPI = extendComponent<BaseChatConsumer, ChatMethods>(
 )
 
 export const createBaseChatObject = <ChatType>(
-  params: BaseComponentOptions<ChatTransformsEvents>
+  params: BaseComponentOptions<ChatEventNames>
 ) => {
   const chat = connect<BaseChatApiEvents, BaseChatConsumer, ChatType>({
     store: params.store,

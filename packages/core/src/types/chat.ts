@@ -2,10 +2,11 @@ import { OnlyStateProperties, OnlyFunctionProperties, SwEvent } from '..'
 import { MapToPubSubShape } from '../redux/interfaces'
 import { PRODUCT_PREFIX_CHAT } from '../utils/constants'
 
-export type ChatNamespace = typeof PRODUCT_PREFIX_CHAT
 type ToInternalChatEvent<T extends string> = `${ChatNamespace}.${T}`
+export type ChatNamespace = typeof PRODUCT_PREFIX_CHAT
 
-type ChannelMessageEvent = 'channel.message'
+export type ChatMessageEventName = 'message'
+export type ChatEventNames = ChatMessageEventName
 
 export interface ChatPublishParams {
   message: any
@@ -43,6 +44,8 @@ export interface InternalChatChannel {
  * ==========
  */
 
+type ChannelMessageEventName = 'channel.message'
+
 /**
  * 'chat.channel.message'
  */
@@ -56,7 +59,7 @@ export interface ChatChannelMessageEventParams {
 }
 
 export interface ChatChannelMessageEvent extends SwEvent {
-  event_type: ToInternalChatEvent<ChannelMessageEvent>
+  event_type: ToInternalChatEvent<ChannelMessageEventName>
   params: ChatChannelMessageEventParams
 }
 
