@@ -1,4 +1,4 @@
-import { SnakeToCamelCase } from '../types/utils'
+import { SnakeToCamelCase, ConverToExternalTypes } from '../types/utils'
 
 const toDateObject = (timestamp?: number) => {
   if (typeof timestamp === 'undefined') {
@@ -40,7 +40,9 @@ const isTimestampProperty = (prop: string) => {
 }
 
 type ToExternalJSONResult<T> = {
-  [K in keyof T as SnakeToCamelCase<Extract<K, string>>]: T[K]
+  [Property in NonNullable<keyof T> as SnakeToCamelCase<
+    Extract<Property, string>
+  >]: ConverToExternalTypes<Extract<Property, string>, T[Property]>
 }
 
 /**
