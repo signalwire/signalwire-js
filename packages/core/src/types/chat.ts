@@ -22,7 +22,7 @@ export interface ChatMessageContract {
   senderId: string
   channel: string
   message: any
-  timestamp: number
+  publishedAt: Date
   meta?: any
 }
 
@@ -55,7 +55,7 @@ export interface ChatChannelMessageEventParams {
   message: string
   channel: string
   meta?: any
-  timestamp: number
+  publishedAt: number
 }
 
 export interface ChatChannelMessageEvent extends SwEvent {

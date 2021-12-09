@@ -23,7 +23,7 @@ export class ChatMessage implements ChatMessageContract {
     return this.payload.meta
   }
 
-  get timestamp(): number {
-    return this.payload.timestamp
+  get publishedAt(): Date {
+    return this.payload.publishedAt
   }
 }
