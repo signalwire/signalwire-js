@@ -10,13 +10,13 @@ import {
   EventTransform,
   ChatChannelMessageEvent,
 } from '..'
-import { BaseChatMessage } from './BaseChatMessage'
+import { ChatMessage } from './ChatMessage'
 import * as chatMethods from './methods'
 import * as workers from './workers'
 
 export type BaseChatApiEventsHandlerMapping = Record<
   'message',
-  (message: any) => void
+  (message: ChatMessage) => void
 >
 
 export type BaseChatApiEvents<T = BaseChatApiEventsHandlerMapping> = {
@@ -75,7 +75,7 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
         {
           type: 'chatMessage',
           instanceFactory: (payload: ChatChannelMessageEvent) => {
-            return new BaseChatMessage(toExternalJSON(payload.params))
+            return new ChatMessage(toExternalJSON(payload.params))
           },
           payloadTransform: (payload: ChatChannelMessageEvent) => {
             return toExternalJSON(payload.params)

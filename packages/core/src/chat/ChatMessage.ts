@@ -1,6 +1,6 @@
 import { ChatMessageContract } from '..'
 
-export class BaseChatMessage implements ChatMessageContract {
+export class ChatMessage implements ChatMessageContract {
   constructor(public payload: ChatMessageContract) {}
 
   get id(): string {
