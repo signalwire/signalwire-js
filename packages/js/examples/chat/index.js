@@ -7,8 +7,7 @@ window.connect = async ({ channels, host, token }) => {
   })
 
   chat.on('message', (args) => {
-    const { timestamp } = args
-    const { message, channel } = args.params
+    const { message, channel, timestamp } = args
     const messageEl = document.createElement('div')
     messageEl.classList.add('message', 'bg-indigo-200', 'p-2')
     messageEl.innerHTML = `
