@@ -9,7 +9,6 @@ import {
   InternalChatChannel,
   EventTransform,
   ChatChannelMessageEvent,
-  EventEmitter,
 } from '..'
 import { BaseChatMessage } from './BaseChatMessage'
 import * as chatMethods from './methods'
@@ -35,9 +34,7 @@ const toInternalChatChannels = (channels: string[]): InternalChatChannel[] => {
   })
 }
 
-export class BaseChatConsumer<
-  T extends EventEmitter.ValidEventTypes = BaseChatApiEvents
-> extends BaseConsumer<T> {
+export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
   protected override _eventsPrefix = 'chat' as const
   protected override subscribeMethod: JSONRPCSubscribeMethod = 'chat.subscribe'
 
@@ -93,29 +90,19 @@ export class BaseChatConsumer<
   }
 }
 
-export const BaseChatAPI = <
-  ChatApiEvents extends EventEmitter.ValidEventTypes = BaseChatApiEvents
->() =>
-  extendComponent<BaseChatConsumer<ChatApiEvents>, ChatMethods>(
-    BaseChatConsumer,
-    {
-      publish: chatMethods.publish,
-    }
-  )
+export const BaseChatAPI = extendComponent<BaseChatConsumer, ChatMethods>(
+  BaseChatConsumer,
+  {
+    publish: chatMethods.publish,
+  }
+)
 
-export const createBaseChatObject = <
-  ChatType,
-  ChatApiEvents extends EventEmitter.ValidEventTypes = BaseChatApiEvents
->(
+export const createBaseChatObject = <ChatType>(
   params: BaseComponentOptions<ChatTransformsEvents>
 ) => {
-  const chat = connect<
-    ChatApiEvents,
-    BaseChatConsumer<ChatApiEvents>,
-    ChatType
-  >({
+  const chat = connect<BaseChatApiEvents, BaseChatConsumer, ChatType>({
     store: params.store,
-    Component: BaseChatAPI<ChatApiEvents>(),
+    Component: BaseChatAPI,
     componentListeners: {
       errors: 'onError',
       responses: 'onSuccess',
