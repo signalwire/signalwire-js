@@ -53,7 +53,9 @@ export class BaseConsumer<
           return reject(error)
         }
       } else {
-        this.logger.warn('`run()` was called without any listeners attached.')
+        this.logger.warn(
+          '`subscribe()` was called without any listeners attached.'
+        )
       }
 
       return resolve(undefined)
