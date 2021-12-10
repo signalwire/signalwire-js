@@ -56,10 +56,28 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
     this._attachListeners('')
   }
 
-  private _setSubscribeParams(channels: string[]) {
+  private _getChannelsParam(
+    channels: string | string[] | undefined,
+    method: 'subscribe' | 'unsubscribe'
+  ) {
+    const _channels =
+      !channels || Array.isArray(channels) ? channels : [channels]
+
+    if (!Array.isArray(_channels) || _channels.length === 0) {
+      throw new Error(
+        `Please specify one or more channels when calling .${method}()`
+      )
+    }
+
+    return {
+      channels: toInternalChatChannels(_channels),
+    }
+  }
+
+  private _setSubscribeParams(params: Record<string, any>) {
     this.subscribeParams = {
       ...this.subscribeParams,
-      channels: toInternalChatChannels(channels),
+      ...params,
     }
   }
 
@@ -86,16 +104,11 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
   }
 
   async subscribe(channels?: string | string[]) {
-    const _channels =
-      !channels || Array.isArray(channels) ? channels : [channels]
-
-    if (!Array.isArray(_channels) || _channels.length === 0) {
-      throw new Error(
-        'Please specify one or more channels when calling .subscribe()'
-      )
+    const params = {
+      ...this._getChannelsParam(channels, 'subscribe'),
     }
 
-    this._setSubscribeParams(_channels)
+    this._setSubscribeParams(params)
 
     return await super.subscribe()
   }
