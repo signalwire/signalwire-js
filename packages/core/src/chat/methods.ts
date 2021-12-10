@@ -1,6 +1,6 @@
-import type { ChatPublishParams } from '../types/chat'
+import type { ChatPublishParams, ChatJSONRPCMethod } from '../types/chat'
 import type { BaseChatConsumer } from './BaseChat'
-import { ExecuteExtendedOptions, ChatMethod } from '../utils/interfaces'
+import type { ExecuteExtendedOptions } from '../utils/interfaces'
 
 interface ChatMethodPropertyDescriptor<T, ParamsType>
   extends PropertyDescriptor {
@@ -13,7 +13,7 @@ type ChatMethodDescriptor<
 > = ChatMethodPropertyDescriptor<T, ParamsType> & ThisType<BaseChatConsumer>
 
 const createChatMethod = <InputType, OutputType = InputType>(
-  method: ChatMethod,
+  method: ChatJSONRPCMethod,
   options: ExecuteExtendedOptions<InputType, OutputType> = {}
 ): ChatMethodDescriptor<OutputType> => ({
   value: function (params: ChatMethodParams = {}): Promise<OutputType> {

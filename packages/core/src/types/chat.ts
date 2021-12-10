@@ -1,5 +1,5 @@
-import { OnlyStateProperties, OnlyFunctionProperties, SwEvent } from '..'
-import { MapToPubSubShape } from '../redux/interfaces'
+import type { OnlyStateProperties, OnlyFunctionProperties, SwEvent } from '..'
+import type { MapToPubSubShape } from '../redux/interfaces'
 import { PRODUCT_PREFIX_CHAT } from '../utils/constants'
 
 type ToInternalChatEvent<T extends string> = `${ChatNamespace}.${T}`
@@ -31,10 +31,6 @@ export type ChatMethods = Omit<
   OnlyFunctionProperties<ChatContract>,
   'subscribe'
 >
-
-export interface InternalChatChannel {
-  name: string
-}
 
 /**
  * ==========
@@ -68,3 +64,9 @@ export type ChatEvent = ChatChannelMessageEvent
 export type ChatEventParams = ChatChannelMessageEventParams
 
 export type ChatAction = MapToPubSubShape<ChatEvent>
+
+export interface InternalChatChannel {
+  name: string
+}
+
+export type ChatJSONRPCMethod = 'chat.subscribe' | 'chat.publish'
