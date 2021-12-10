@@ -7,6 +7,7 @@ import {
   toExternalJSON,
   InternalChatChannel,
   EventTransform,
+  ExecuteParams,
 } from '..'
 import { ChatMessage } from './ChatMessage'
 import * as chatMethods from './methods'
@@ -111,6 +112,37 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
     this._setSubscribeParams(params)
 
     return await super.subscribe()
+  }
+
+  async unsubscribe(channels: string | string[]) {
+    const params = {
+      ...this._getChannelsParam(channels, 'unsubscribe'),
+    }
+
+    return new Promise(async (resolve, reject) => {
+      const subscriptions = this.getSubscriptions()
+      if (subscriptions.length > 0) {
+        const execParams: ExecuteParams = {
+          method: 'chat.unsubscribe',
+          params: {
+            ...params,
+            events: subscriptions,
+          },
+        }
+
+        try {
+          await this.execute(execParams)
+        } catch (error) {
+          return reject(error)
+        }
+      } else {
+        this.logger.warn(
+          '`unsubscribe()` was called without any listeners attached.'
+        )
+      }
+
+      return resolve(undefined)
+    })
   }
 }
 

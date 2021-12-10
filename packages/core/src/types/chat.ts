@@ -15,6 +15,7 @@ export interface ChatPublishParams {
 }
 export interface ChatContract {
   subscribe(channels: string[]): any
+  unsubscribe(channels: string[]): any
   publish(params: ChatPublishParams): any
 }
 export interface ChatMessageContract {
@@ -29,7 +30,7 @@ export interface ChatMessageContract {
 export type ChatEntity = OnlyStateProperties<ChatContract>
 export type ChatMethods = Omit<
   OnlyFunctionProperties<ChatContract>,
-  'subscribe'
+  'subscribe' | 'unsubscribe'
 >
 
 /**
@@ -69,6 +70,9 @@ export interface InternalChatChannel {
   name: string
 }
 
-export type ChatJSONRPCMethod = 'chat.subscribe' | 'chat.publish'
+export type ChatJSONRPCMethod =
+  | 'chat.subscribe'
+  | 'chat.publish'
+  | 'chat.unsubscribe'
 
 export type ChatTransformType = 'chatMessage'
