@@ -70,3 +70,5 @@ export interface InternalChatChannel {
 }
 
 export type ChatJSONRPCMethod = 'chat.subscribe' | 'chat.publish'
+
+export type ChatTransformType = 'chatMessage'
