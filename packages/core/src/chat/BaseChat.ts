@@ -45,6 +45,17 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
   protected override _eventsPrefix = 'chat' as const
   protected override subscribeMethod: JSONRPCSubscribeMethod = 'chat.subscribe'
 
+  constructor(options: BaseComponentOptions<BaseChatApiEvents>) {
+    super(options)
+
+    /**
+     * Since we don't need a namespace for these events
+     * we'll attach them as soon as the Client has been
+     * registered in the Redux store.
+     */
+    this._attachListeners('')
+  }
+
   protected getWorkers() {
     return new Map([['chat', { worker: workers.chatWorker }]])
   }
@@ -88,10 +99,6 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
       ],
     ])
   }
-
-  onChatInitialized() {
-    this._attachListeners('')
-  }
 }
 
 export const BaseChatAPI = extendComponent<BaseChatConsumer, ChatMethods>(
@@ -110,7 +117,6 @@ export const createBaseChatObject = <ChatType>(
     componentListeners: {
       errors: 'onError',
       responses: 'onSuccess',
-      id: 'onChatInitialized',
     },
   })(params)
 
