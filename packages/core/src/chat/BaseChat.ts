@@ -56,10 +56,6 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
     this._attachListeners('')
   }
 
-  protected getWorkers() {
-    return new Map([['chat', { worker: workers.chatWorker }]])
-  }
-
   private _setSubscribeParams(channels: string[]) {
     this.subscribeParams = {
       ...this.subscribeParams,
@@ -67,19 +63,8 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
     }
   }
 
-  async subscribe(channels?: string | string[]) {
-    const _channels =
-      !channels || Array.isArray(channels) ? channels : [channels]
-
-    if (!Array.isArray(_channels) || _channels.length === 0) {
-      throw new Error(
-        'Please specify one or more channels when calling .subscribe()'
-      )
-    }
-
-    this._setSubscribeParams(_channels)
-
-    return await super.subscribe()
+  protected getWorkers() {
+    return new Map([['chat', { worker: workers.chatWorker }]])
   }
 
   /** @internal */
@@ -98,6 +83,21 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
         },
       ],
     ])
+  }
+
+  async subscribe(channels?: string | string[]) {
+    const _channels =
+      !channels || Array.isArray(channels) ? channels : [channels]
+
+    if (!Array.isArray(_channels) || _channels.length === 0) {
+      throw new Error(
+        'Please specify one or more channels when calling .subscribe()'
+      )
+    }
+
+    this._setSubscribeParams(_channels)
+
+    return await super.subscribe()
   }
 }
 
