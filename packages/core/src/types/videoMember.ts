@@ -66,7 +66,6 @@ type VideoMemberUpdatableProps = AssertSameType<
   }
 >
 
-// @ts-expect-error
 export const MEMBER_UPDATABLE_PROPS: VideoMemberUpdatableProps = toExternalJSON(
   INTERNAL_MEMBER_UPDATABLE_PROPS
 )

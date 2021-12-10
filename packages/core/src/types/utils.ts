@@ -90,6 +90,22 @@ export interface DefaultPublicToInternalTypeMapping {
   endedAt?: number
 }
 
+export interface DefaultInternalToPublicTypeMapping {}
+
+export type ConverToExternalTypes<
+  Property extends string,
+  DefaultType,
+  TypesMap extends Partial<
+    Record<string, any>
+  > = DefaultInternalToPublicTypeMapping
+> = Property extends IsTimestampProperty<Property>
+  ? // We're basically checking that `Property` exists inside
+    // of `TypesMap`, if not we'll default to Date
+    TypesMap[Property] extends TypesMap[keyof TypesMap]
+    ? TypesMap[Property]
+    : Date
+  : DefaultType
+
 /**
  * For user convenience, sometimes we expose properties with
  * a different type than the one used by the server. A good

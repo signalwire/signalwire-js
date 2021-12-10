@@ -1,19 +1,37 @@
 import {
   BaseComponentOptions,
   BaseConsumer,
-  ChatApiEvents,
-  ChatMethods,
   connect,
   extendComponent,
   JSONRPCSubscribeMethod,
   toExternalJSON,
   InternalChatChannel,
+  EventTransform,
 } from '..'
+import { ChatMessage } from './ChatMessage'
 import * as chatMethods from './methods'
 import * as workers from './workers'
+import type {
+  ChatChannelMessageEvent,
+  ChatMethods,
+  ChatMessageEventName,
+  ChatEventNames,
+} from '../types/chat'
 
-// TODO:
-type EmitterTransformsEvents = ''
+export type BaseChatApiEventsHandlerMapping = Record<
+  ChatMessageEventName,
+  (message: ChatMessage) => void
+>
+
+/**
+ * @privateRemarks
+ *
+ * Each package will have the option to either extend this
+ * type or provide their own event mapping.
+ */
+export type BaseChatApiEvents<T = BaseChatApiEventsHandlerMapping> = {
+  [k in keyof T]: T[k]
+}
 
 const toInternalChatChannels = (channels: string[]): InternalChatChannel[] => {
   return channels.map((name) => {
@@ -23,7 +41,7 @@ const toInternalChatChannels = (channels: string[]): InternalChatChannel[] => {
   })
 }
 
-export class BaseChatConsumer extends BaseConsumer<ChatApiEvents> {
+export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
   protected override _eventsPrefix = 'chat' as const
   protected override subscribeMethod: JSONRPCSubscribeMethod = 'chat.subscribe'
 
@@ -55,16 +73,16 @@ export class BaseChatConsumer extends BaseConsumer<ChatApiEvents> {
 
   /** @internal */
   protected getEmitterTransforms() {
-    return new Map<any, any>([
+    return new Map<ChatEventNames | ChatEventNames[], EventTransform>([
       [
         ['message'],
         {
           type: 'chatMessage',
-          instanceFactory: () => {
-            return {}
+          instanceFactory: (payload: ChatChannelMessageEvent) => {
+            return new ChatMessage(toExternalJSON(payload.params))
           },
-          payloadTransform: (p: any) => {
-            return toExternalJSON(p)
+          payloadTransform: (payload: ChatChannelMessageEvent) => {
+            return toExternalJSON(payload.params)
           },
         },
       ],
@@ -84,9 +102,9 @@ export const BaseChatAPI = extendComponent<BaseChatConsumer, ChatMethods>(
 )
 
 export const createBaseChatObject = <ChatType>(
-  params: BaseComponentOptions<EmitterTransformsEvents>
+  params: BaseComponentOptions<ChatEventNames>
 ) => {
-  const chat = connect<ChatApiEvents, BaseChatConsumer, ChatType>({
+  const chat = connect<BaseChatApiEvents, BaseChatConsumer, ChatType>({
     store: params.store,
     Component: BaseChatAPI,
     componentListeners: {
