@@ -8,14 +8,16 @@ export type ChatNamespace = typeof PRODUCT_PREFIX_CHAT
 export type ChatMessageEventName = 'message'
 export type ChatEventNames = ChatMessageEventName
 
+export type ChatChannel = string | string[]
+
 export interface ChatPublishParams {
   message: any
   channel: string
   meta?: any
 }
 export interface ChatContract {
-  subscribe(channels: string[]): any
-  unsubscribe(channels: string[]): any
+  subscribe(channels: ChatChannel[]): any
+  unsubscribe(channels: ChatChannel[]): any
   publish(params: ChatPublishParams): any
 }
 export interface ChatMessageContract {

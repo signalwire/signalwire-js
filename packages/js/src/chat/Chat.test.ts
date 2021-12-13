@@ -116,4 +116,41 @@ describe('Chat Object', () => {
       })
     })
   })
+
+  describe('Unsubscribe', () => {
+    it('should convert channels into the internal channel notation when calling .unsubscribe()', async () => {
+      const chat = new Chat({
+        host,
+        token,
+      })
+
+      chat.on('message', () => {})
+      await chat.subscribe(['test1', 'test2', 'test3'])
+      await chat.unsubscribe(['test1', 'test2', 'test3'])
+
+      const unsubscribeMsg = JSON.parse(server.messages[1].toString())
+      expect(unsubscribeMsg.params.channels).toStrictEqual([
+        { name: 'test1' },
+        { name: 'test2' },
+        { name: 'test3' },
+      ])
+    })
+
+    it('should throw if the user call .unsubscribe() before the session is authorized', async () => {
+      const chat = new Chat({
+        host,
+        token,
+      })
+
+      chat.on('message', () => {})
+
+      try {
+        await chat.unsubscribe(['test1'])
+      } catch (err) {
+        expect(err.message).toBe(
+          'You must be authenticated to unsubscribe from a channel'
+        )
+      }
+    })
+  })
 })

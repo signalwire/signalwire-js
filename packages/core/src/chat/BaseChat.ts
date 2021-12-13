@@ -17,6 +17,7 @@ import type {
   ChatMethods,
   ChatMessageEventName,
   ChatEventNames,
+  ChatChannel,
 } from '../types/chat'
 
 export type BaseChatApiEventsHandlerMapping = Record<
@@ -82,6 +83,18 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
     }
   }
 
+  private _getSubscribeParams({ channels }: { channels?: ChatChannel }) {
+    return {
+      ...this._getChannelsParam(channels, 'subscribe'),
+    }
+  }
+
+  private _getUnsubscribeParams({ channels }: { channels?: ChatChannel }) {
+    return {
+      ...this._getChannelsParam(channels, 'unsubscribe'),
+    }
+  }
+
   protected getWorkers() {
     return new Map([['chat', { worker: workers.chatWorker }]])
   }
@@ -104,23 +117,27 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
     ])
   }
 
-  async subscribe(channels?: string | string[]) {
-    const params = {
-      ...this._getChannelsParam(channels, 'subscribe'),
-    }
+  async subscribe(channels?: ChatChannel) {
+    const params = this._getSubscribeParams({ channels })
 
     this._setSubscribeParams(params)
 
-    return await super.subscribe()
+    return super.subscribe()
   }
 
-  async unsubscribe(channels: string | string[]) {
-    const params = {
-      ...this._getChannelsParam(channels, 'unsubscribe'),
+  async unsubscribe(channels: ChatChannel) {
+    if (
+      this._sessionAuthStatus === 'unknown' ||
+      this._sessionAuthStatus === 'unauthorized'
+    ) {
+      throw new Error('You must be authenticated to unsubscribe from a channel')
     }
+
+    const params = this._getUnsubscribeParams({ channels })
 
     return new Promise(async (resolve, reject) => {
       const subscriptions = this.getSubscriptions()
+
       if (subscriptions.length > 0) {
         const execParams: ExecuteParams = {
           method: 'chat.unsubscribe',
