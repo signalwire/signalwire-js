@@ -136,7 +136,8 @@ describe('Chat Object', () => {
       ])
     })
 
-    it('should throw if the user call .unsubscribe() before the session is authorized', async () => {
+    it('should throw if the user calls .unsubscribe() before the session is authorized', async () => {
+      expect.assertions(1)
       const chat = new Chat({
         host,
         token,
@@ -149,6 +150,50 @@ describe('Chat Object', () => {
       } catch (err) {
         expect(err.message).toBe(
           'You must be authenticated to unsubscribe from a channel'
+        )
+      }
+    })
+
+    it('should throw if the user calls .unsubscribe() without being subscribed to channels', async () => {
+      expect.assertions(1)
+      const chat = new Chat({
+        host,
+        token,
+      })
+
+      chat.on('message', () => {})
+
+      // This is to force the session to be connected when
+      // calling unsubscribe()
+      await chat.publish({
+        channel: 'test',
+        message: 'test',
+      })
+
+      try {
+        await chat.unsubscribe(['test1'])
+      } catch (err) {
+        expect(err.message).toBe(
+          'You must subscribe to at least one channel before calling unsubscribe()'
+        )
+      }
+    })
+
+    it('should throw if the user calls .unsubscribe() with channels different than the ones they are subscribed to', async () => {
+      expect.assertions(1)
+      const chat = new Chat({
+        host,
+        token,
+      })
+
+      chat.on('message', () => {})
+
+      try {
+        await chat.subscribe(['test1', 'test2', 'test3', 'test4'])
+        await chat.unsubscribe(['test1', 'test5'])
+      } catch (err) {
+        expect(err.message).toBe(
+          `You can't unsubscribe from a channel that you didn't subscribe to. You're subscribed to the following channels: test1, test2, test3, test4 but tried to unsubscribe from: test1, test5`
         )
       }
     })
