@@ -136,6 +136,24 @@ describe('Chat Object', () => {
       ])
     })
 
+    it('should allow the user to .unsubscribe() from any subgroup of subscribed channels', async () => {
+      expect.assertions(4)
+      const chat = new Chat({
+        host,
+        token,
+      })
+
+      chat.on('message', () => {})
+
+      await chat.subscribe(['test1', 'test2', 'test3'])
+      expect(await chat.unsubscribe(['test1', 'test3'])).toBeUndefined()
+      expect(await chat.unsubscribe(['test1', 'test2'])).toBeUndefined()
+      expect(await chat.unsubscribe(['test2', 'test3'])).toBeUndefined()
+      expect(
+        await chat.unsubscribe(['test1', 'test2', 'test3'])
+      ).toBeUndefined()
+    })
+
     it('should throw if the user calls .unsubscribe() before the session is authorized', async () => {
       expect.assertions(1)
       const chat = new Chat({

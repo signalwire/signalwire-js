@@ -43,19 +43,6 @@ const toInternalChatChannels = (channels: string[]): InternalChatChannel[] => {
   })
 }
 
-const areChannelsEqual = (
-  channels1?: InternalChatChannel[],
-  channels2?: InternalChatChannel[]
-) => {
-  if (!channels1 || !channels2 || channels1.length !== channels2.length) {
-    return false
-  }
-
-  return channels1.every((channel1) => {
-    return channels2.some((channel2) => channel2.name === channel1.name)
-  })
-}
-
 export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
   protected override _eventsPrefix = 'chat' as const
   protected override subscribeMethod: JSONRPCSubscribeMethod = 'chat.subscribe'
@@ -102,6 +89,19 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
     }
   }
 
+  private _areValidUnsubscribeChannels(channels?: InternalChatChannel[]) {
+    const subscribedChannels = this.subscribeParams?.channels
+    if (!channels || !subscribedChannels) {
+      return false
+    }
+
+    return channels.every((channel) => {
+      return subscribedChannels.some(
+        (subChannel: InternalChatChannel) => subChannel.name === channel.name
+      )
+    })
+  }
+
   private _getUnsubscribeParams({ channels }: { channels?: ChatChannel }) {
     const channelsParam = this._getChannelsParam(channels, 'unsubscribe')
 
@@ -109,9 +109,7 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
       throw new Error(
         'You must subscribe to at least one channel before calling unsubscribe()'
       )
-    } else if (
-      !areChannelsEqual(channelsParam.channels, this.subscribeParams.channels)
-    ) {
+    } else if (!this._areValidUnsubscribeChannels(channelsParam.channels)) {
       throw new Error(
         `You can't unsubscribe from a channel that you didn't subscribe to. You're subscribed to the following channels: ${this.subscribeParams.channels
           .map((c: InternalChatChannel) => c.name)
