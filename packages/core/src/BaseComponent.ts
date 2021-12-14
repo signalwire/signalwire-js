@@ -690,6 +690,7 @@ export class BaseComponent<
     return new Map()
   }
 
+  /** @internal */
   protected get _sessionAuthStatus(): SessionAuthStatus {
     return getAuthStatus(this.store.getState())
   }
