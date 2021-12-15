@@ -10,6 +10,7 @@ import {
 import type { CustomSaga, PubSubChannel } from '../redux/interfaces'
 import type { URL as NodeURL } from 'node:url'
 import { InternalRPCMethods } from '../internal'
+import { ChatJSONRPCMethod, ChatTransformType } from '..'
 
 type JSONRPCParams = Record<string, any>
 type JSONRPCResult = Record<string, any>
@@ -48,7 +49,7 @@ export type JSONRPCMethod =
   | RoomMethod
   | VertoMethod
   | InternalRPCMethods
-  | ChatMethod
+  | ChatJSONRPCMethod
 
 export type JSONRPCSubscribeMethod = Extract<
   JSONRPCMethod,
@@ -198,8 +199,6 @@ export type SessionAuthError = {
   error: string
 }
 
-export type ChatMethod = 'chat.subscribe' | 'chat.publish'
-
 /**
  * List of all Room methods
  */
@@ -290,8 +289,6 @@ export type EventsPrefix = '' | typeof PRODUCT_PREFIXES[number]
 export type GlobalVideoEvents = typeof GLOBAL_VIDEO_EVENTS[number]
 export type InternalGlobalVideoEvents =
   typeof INTERNAL_GLOBAL_VIDEO_EVENTS[number]
-
-type ChatTransformType = 'chatMessage'
 
 /**
  * NOTE: `EventTransformType` is not tied to a constructor but more on

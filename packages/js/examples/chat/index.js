@@ -30,12 +30,22 @@ window.connect = async ({ channels, host, token }) => {
   const formEl = document.getElementById('chat-box')
   const channelSelectorEl = document.getElementById('chat-channels-selector')
 
+  window.disconnect = (channel) => {
+    const el = document.querySelector(`.chat-messages-channel-${channel}`)
+    el.classList.add('opacity-20', 'pointer-events-none')
+
+    chat.unsubscribe(channel)
+  }
+
   channels.forEach((channel) => {
     messagesContainerEl.insertAdjacentHTML(
       'beforeend',
       `<div
         class="chat-messages-channel-${channel} mt-6 px-4 py-5 bg-white space-y-6 sm:p-6"
        >
+        <div class="font-bold">
+          <button onclick="disconnect('${channel}')">Unsubscribe</button>
+        </div>
         <p class="text-gray-700 text-xl font-extrabold tracking-tight mt-2">
           Channel: ${channel}
         </p>

@@ -19,6 +19,7 @@ import {
   EventTransformType,
   EventTransform,
   SDKWorker,
+  SessionAuthStatus,
 } from './utils/interfaces'
 import { EventEmitter } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
@@ -687,6 +688,11 @@ export class BaseComponent<
    */
   protected getEmitterTransforms(): Map<string | string[], EventTransform> {
     return new Map()
+  }
+
+  /** @internal */
+  protected get _sessionAuthStatus(): SessionAuthStatus {
+    return getAuthStatus(this.store.getState())
   }
 
   /** @internal */

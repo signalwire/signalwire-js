@@ -7,6 +7,7 @@ import {
   toExternalJSON,
   InternalChatChannel,
   EventTransform,
+  ExecuteParams,
 } from '..'
 import { ChatMessage } from './ChatMessage'
 import * as chatMethods from './methods'
@@ -16,6 +17,7 @@ import type {
   ChatMethods,
   ChatMessageEventName,
   ChatEventNames,
+  ChatChannel,
 } from '../types/chat'
 
 export type BaseChatApiEventsHandlerMapping = Record<
@@ -45,30 +47,85 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
   protected override _eventsPrefix = 'chat' as const
   protected override subscribeMethod: JSONRPCSubscribeMethod = 'chat.subscribe'
 
-  protected getWorkers() {
-    return new Map([['chat', { worker: workers.chatWorker }]])
+  constructor(options: BaseComponentOptions<BaseChatApiEvents>) {
+    super(options)
+
+    /**
+     * Since we don't need a namespace for these events
+     * we'll attach them as soon as the Client has been
+     * registered in the Redux store.
+     */
+    this._attachListeners('')
   }
 
-  private _setSubscribeParams(channels: string[]) {
-    this.subscribeParams = {
-      ...this.subscribeParams,
-      channels: toInternalChatChannels(channels),
-    }
-  }
-
-  async subscribe(channels?: string | string[]) {
+  private _getChannelsParam(
+    channels: string | string[] | undefined,
+    method: 'subscribe' | 'unsubscribe'
+  ) {
     const _channels =
       !channels || Array.isArray(channels) ? channels : [channels]
 
     if (!Array.isArray(_channels) || _channels.length === 0) {
       throw new Error(
-        'Please specify one or more channels when calling .subscribe()'
+        `Please specify one or more channels when calling .${method}()`
       )
     }
 
-    this._setSubscribeParams(_channels)
+    return {
+      channels: toInternalChatChannels(_channels),
+    }
+  }
 
-    return await super.subscribe()
+  private _setSubscribeParams(params: Record<string, any>) {
+    this.subscribeParams = {
+      ...this.subscribeParams,
+      ...params,
+    }
+  }
+
+  private _getSubscribeParams({ channels }: { channels?: ChatChannel }) {
+    return {
+      ...this._getChannelsParam(channels, 'subscribe'),
+    }
+  }
+
+  private _areValidUnsubscribeChannels(channels?: InternalChatChannel[]) {
+    const subscribedChannels = this.subscribeParams?.channels
+    if (!channels || !subscribedChannels) {
+      return false
+    }
+
+    return channels.every((channel) => {
+      return subscribedChannels.some(
+        (subChannel: InternalChatChannel) => subChannel.name === channel.name
+      )
+    })
+  }
+
+  private _getUnsubscribeParams({ channels }: { channels?: ChatChannel }) {
+    const channelsParam = this._getChannelsParam(channels, 'unsubscribe')
+
+    if (!this.subscribeParams?.channels) {
+      throw new Error(
+        'You must subscribe to at least one channel before calling unsubscribe()'
+      )
+    } else if (!this._areValidUnsubscribeChannels(channelsParam.channels)) {
+      throw new Error(
+        `You can't unsubscribe from a channel that you didn't subscribe to. You're subscribed to the following channels: ${this.subscribeParams.channels
+          .map((c: InternalChatChannel) => c.name)
+          .join(', ')} but tried to unsubscribe from: ${channelsParam.channels
+          .map((c: InternalChatChannel) => c.name)
+          .join(', ')}`
+      )
+    }
+
+    return {
+      ...channelsParam,
+    }
+  }
+
+  protected getWorkers() {
+    return new Map([['chat', { worker: workers.chatWorker }]])
   }
 
   /** @internal */
@@ -89,8 +146,49 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
     ])
   }
 
-  onChatInitialized() {
-    this._attachListeners('')
+  async subscribe(channels?: ChatChannel) {
+    const params = this._getSubscribeParams({ channels })
+
+    this._setSubscribeParams(params)
+
+    return super.subscribe()
+  }
+
+  async unsubscribe(channels: ChatChannel) {
+    if (
+      this._sessionAuthStatus === 'unknown' ||
+      this._sessionAuthStatus === 'unauthorized'
+    ) {
+      throw new Error('You must be authenticated to unsubscribe from a channel')
+    }
+
+    const params = this._getUnsubscribeParams({ channels })
+
+    return new Promise(async (resolve, reject) => {
+      const subscriptions = this.getSubscriptions()
+
+      if (subscriptions.length > 0) {
+        const execParams: ExecuteParams = {
+          method: 'chat.unsubscribe',
+          params: {
+            ...params,
+            events: subscriptions,
+          },
+        }
+
+        try {
+          await this.execute(execParams)
+        } catch (error) {
+          return reject(error)
+        }
+      } else {
+        this.logger.warn(
+          '`unsubscribe()` was called without any listeners attached.'
+        )
+      }
+
+      return resolve(undefined)
+    })
   }
 }
 
@@ -110,7 +208,6 @@ export const createBaseChatObject = <ChatType>(
     componentListeners: {
       errors: 'onError',
       responses: 'onSuccess',
-      id: 'onChatInitialized',
     },
   })(params)
 
