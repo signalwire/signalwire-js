@@ -334,7 +334,7 @@ interface RoomMemberMethodsInterfaceDocs {
    * await room.audioMute({memberId: id})
    * ```
    */
-  audioMute(params: { memberId?: string }): Promise<void>
+  audioMute(params?: { memberId?: string }): Promise<void>
 
   /**
    * Unmutes the microphone if it had been previously muted. You can use this
@@ -362,7 +362,7 @@ interface RoomMemberMethodsInterfaceDocs {
    * await room.audioUnmute({memberId: id})
    * ```
    */
-  audioUnmute(params: { memberId?: string }): Promise<void>
+  audioUnmute(params?: { memberId?: string }): Promise<void>
 
   /**
    * Puts the video on mute. Participants will see a mute image instead of the
@@ -391,7 +391,7 @@ interface RoomMemberMethodsInterfaceDocs {
    * await room.videoMute({memberId: id})
    * ```
    */
-  videoMute(params: { memberId?: string }): Promise<void>
+  videoMute(params?: { memberId?: string }): Promise<void>
 
   /**
    * Unmutes the video if it had been previously muted. Participants will
@@ -420,7 +420,7 @@ interface RoomMemberMethodsInterfaceDocs {
    * await room.videoUnmute({memberId: id})
    * ```
    */
-  videoUnmute(params: { memberId?: string }): Promise<void>
+  videoUnmute(params?: { memberId?: string }): Promise<void>
 
   /**
    * Sets the input volume level (e.g. for the microphone). You can use this
@@ -578,7 +578,7 @@ interface RoomControlMethodsInterfaceDocs {
    * await room.deaf({memberId: id})
    * ```
    */
-  deaf(params: { memberId?: string }): Promise<void>
+  deaf(params?: { memberId?: string }): Promise<void>
 
   /**
    * Unmutes the incoming audio. The affected participant will start hearing
@@ -612,7 +612,7 @@ interface RoomControlMethodsInterfaceDocs {
    * await room.undeaf({memberId: id})
    * ```
    */
-  undeaf(params: { memberId?: string }): Promise<void>
+  undeaf(params?: { memberId?: string }): Promise<void>
 
   /**
    * Sets the output volume level (e.g., for the speaker). You can use this
