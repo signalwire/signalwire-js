@@ -59,10 +59,10 @@ export interface VideoRoomSessionContract {
   /** Whether muted videos are shown in the room layout. See {@link setHideVideoMuted} */
   hideVideoMuted: boolean
 
-  audioMute(params: MemberCommandParams): Rooms.AudioMuteMember
-  audioUnmute(params: MemberCommandParams): Rooms.AudioUnmuteMember
-  videoMute(params: MemberCommandParams): Rooms.VideoMuteMember
-  videoUnmute(params: MemberCommandParams): Rooms.VideoUnmuteMember
+  audioMute(params?: MemberCommandParams): Rooms.AudioMuteMember
+  audioUnmute(params?: MemberCommandParams): Rooms.AudioUnmuteMember
+  videoMute(params?: MemberCommandParams): Rooms.VideoMuteMember
+  videoUnmute(params?: MemberCommandParams): Rooms.VideoUnmuteMember
   /** @deprecated Use {@link setInputVolume} instead. */
   setMicrophoneVolume(
     params: MemberCommandWithVolumeParams
@@ -74,8 +74,8 @@ export interface VideoRoomSessionContract {
     params: MemberCommandWithValueParams
   ): Rooms.SetInputSensitivityMember
   getMembers(): Rooms.GetMembers
-  deaf(params: MemberCommandParams): Rooms.DeafMember
-  undeaf(params: MemberCommandParams): Rooms.UndeafMember
+  deaf(params?: MemberCommandParams): Rooms.DeafMember
+  undeaf(params?: MemberCommandParams): Rooms.UndeafMember
   /** @deprecated Use {@link setOutputVolume} instead. */
   setSpeakerVolume(
     params: MemberCommandWithVolumeParams
