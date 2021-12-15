@@ -22,7 +22,7 @@ export interface Chat extends AssertSameType<ChatMain, ChatDocs> {}
 export interface ChatOptions extends UserOptions {}
 
 export const Chat = function (chatOptions: ChatOptions) {
-  if ('development' !== process.env.NODE_ENV) {
+  if ('production' === process.env.NODE_ENV) {
     getLogger().warn(
       '`Chat` is still under development and may change in the future without prior notice.'
     )
