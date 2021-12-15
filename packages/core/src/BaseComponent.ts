@@ -258,7 +258,7 @@ export class BaseComponent<
       return this._eventsTransformsCache.delete(internalEvent)
     }
 
-    this.logger.debug(
+    this.logger.trace(
       `[cleanupEventHandlerTransformCache] Key wasn't cached`,
       internalEvent
     )

@@ -37,7 +37,6 @@ export class BaseBackendSession extends BaseSession {
     return {}
   }
   protected override _createSocket(): NodeSocketClient {
-    this.logger.info('_createSocket')
     const socketOptions = this.getSocketOptions()
     // @ts-ignore
     return new this.WebSocketConstructor(this.host, socketOptions)

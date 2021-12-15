@@ -105,7 +105,7 @@ export class BaseJWTSession extends BaseSession {
       if (this.options._onRefreshToken) {
         this.options._onRefreshToken()
       } else {
-        this.logger.error('The token is going to expire!')
+        this.logger.warn('The token is going to expire!')
       }
     }
     clearTimeout(this._checkTokenExpirationTimer)

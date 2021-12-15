@@ -254,6 +254,7 @@ export default (options: RootSagaOptions) => {
         channels,
       })
     } catch (error) {
+      getLogger().error('RootSaga Error:', error)
       return
     }
   }
