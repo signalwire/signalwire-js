@@ -97,4 +97,5 @@ export type {
   RoomSessionObjectEvents as RoomObjectEvents,
 } from './utils/interfaces'
 
+/** @internal */
 export * as __sw__PubSub from './chat/Chat'
