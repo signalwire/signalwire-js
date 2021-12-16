@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.6.0] - 2021-12-16
+
+### Added
+
+- [#361](https://github.com/signalwire/signalwire-js/pull/361) [`4606f19`](https://github.com/signalwire/signalwire-js/commit/4606f19fe72270d6d84b4e19fbf8cc51345df98c) - [wip] Initial changes for the Chat namespace.
+
+### Fixed
+
+- [#375](https://github.com/signalwire/signalwire-js/pull/375) [`2b1e970`](https://github.com/signalwire/signalwire-js/commit/2b1e970df5fd74c79609fe7a678280020a4624e2) - Hide the local video overlay element when the user's video is not in the layout.
+
+- [#379](https://github.com/signalwire/signalwire-js/pull/379) [`dd41aba`](https://github.com/signalwire/signalwire-js/commit/dd41abaa3ed3c5d93f7e546323fce51f9158ec23) - `RoomSession`: Improve TypeScript signature for member methods with optional properties.
+
+- [#370](https://github.com/signalwire/signalwire-js/pull/370) [`ba0647b`](https://github.com/signalwire/signalwire-js/commit/ba0647bd198838d2f769c097e6b94348a55920b3) - Add prefix to the DOM elements created by the SDK to make them unique.
+
+### Dependencies
+
+- Updated dependencies [[`64997a0`](https://github.com/signalwire/signalwire-js/commit/64997a088c6771fa39213c3df0e58e8afb8ffaae), [`b7bdfcb`](https://github.com/signalwire/signalwire-js/commit/b7bdfcb807f711af640c0a2c32376e5b619ad108), [`ff82436`](https://github.com/signalwire/signalwire-js/commit/ff82436cb240843e8724b8ab2118d878f0c9dbd9), [`dd41aba`](https://github.com/signalwire/signalwire-js/commit/dd41abaa3ed3c5d93f7e546323fce51f9158ec23), [`f1ae2c9`](https://github.com/signalwire/signalwire-js/commit/f1ae2c94fce75efd1d30932bfa8f504c71c008f5), [`d2e51b8`](https://github.com/signalwire/signalwire-js/commit/d2e51b82bbc8307e0baa948c6a34d07dd1deb812), [`f436d5f`](https://github.com/signalwire/signalwire-js/commit/f436d5f106291f68ad8fb834f90cec0b9acd52bc), [`104256e`](https://github.com/signalwire/signalwire-js/commit/104256e31c8b919eb47bd9f630e8412db4de7f76), [`4606f19`](https://github.com/signalwire/signalwire-js/commit/4606f19fe72270d6d84b4e19fbf8cc51345df98c), [`1fb1440`](https://github.com/signalwire/signalwire-js/commit/1fb144037b34797b52d4515a1e0f632aace630ca), [`ec2ca1d`](https://github.com/signalwire/signalwire-js/commit/ec2ca1d05e2e531d6d46ffccf5e01ecb9def5a1d), [`499f62a`](https://github.com/signalwire/signalwire-js/commit/499f62a7a02fe023a197aa950cbda975ef4509b0), [`f494e05`](https://github.com/signalwire/signalwire-js/commit/f494e05a28e013d29431c93690d2382db8df96e8), [`94b7363`](https://github.com/signalwire/signalwire-js/commit/94b7363da35f153dbdcc6d55e37cc81222c5f9fa)]:
+  - @signalwire/core@3.4.0
+  - @signalwire/webrtc@3.2.0
+
 ## [3.5.0] - 2021-11-02
 
 ### Added

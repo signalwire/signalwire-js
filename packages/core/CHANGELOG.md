@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.4.0] - 2021-12-16
+
+### Added
+
+- [#360](https://github.com/signalwire/signalwire-js/pull/360) [`b7bdfcb`](https://github.com/signalwire/signalwire-js/commit/b7bdfcb807f711af640c0a2c32376e5b619ad108) - Allow to set a custom logger via `UserOptions`.
+
+* [#348](https://github.com/signalwire/signalwire-js/pull/348) [`f1ae2c9`](https://github.com/signalwire/signalwire-js/commit/f1ae2c94fce75efd1d30932bfa8f504c71c008f5) - Expose a way to set a custom logger.
+
+- [#361](https://github.com/signalwire/signalwire-js/pull/361) [`4606f19`](https://github.com/signalwire/signalwire-js/commit/4606f19fe72270d6d84b4e19fbf8cc51345df98c) - [wip] Initial changes for the Chat namespace.
+
+### Changed
+
+- [#365](https://github.com/signalwire/signalwire-js/pull/365) [`64997a0`](https://github.com/signalwire/signalwire-js/commit/64997a088c6771fa39213c3df0e58e8afb8ffaae) - Improve internal watcher/workers to be more resilient in case of errors.
+
+- [#376](https://github.com/signalwire/signalwire-js/pull/376) [`d2e51b8`](https://github.com/signalwire/signalwire-js/commit/d2e51b82bbc8307e0baa948c6a34d07dd1deb812) - Improve logic for connecting the client.
+
+### Fixed
+
+- [#362](https://github.com/signalwire/signalwire-js/pull/362) [`f494e05`](https://github.com/signalwire/signalwire-js/commit/f494e05a28e013d29431c93690d2382db8df96e8) - Fix definition types.
+
 ## [3.3.0] - 2021-11-02
 
 ### Added
