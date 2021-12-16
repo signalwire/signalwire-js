@@ -89,35 +89,8 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
     }
   }
 
-  private _areValidUnsubscribeChannels(channels?: InternalChatChannel[]) {
-    const subscribedChannels = this.subscribeParams?.channels
-    if (!channels || !subscribedChannels) {
-      return false
-    }
-
-    return channels.every((channel) => {
-      return subscribedChannels.some(
-        (subChannel: InternalChatChannel) => subChannel.name === channel.name
-      )
-    })
-  }
-
   private _getUnsubscribeParams({ channels }: { channels?: ChatChannel }) {
     const channelsParam = this._getChannelsParam(channels, 'unsubscribe')
-
-    if (!this.subscribeParams?.channels) {
-      throw new Error(
-        'You must subscribe to at least one channel before calling unsubscribe()'
-      )
-    } else if (!this._areValidUnsubscribeChannels(channelsParam.channels)) {
-      throw new Error(
-        `You can't unsubscribe from a channel that you didn't subscribe to. You're subscribed to the following channels: ${this.subscribeParams.channels
-          .map((c: InternalChatChannel) => c.name)
-          .join(', ')} but tried to unsubscribe from: ${channelsParam.channels
-          .map((c: InternalChatChannel) => c.name)
-          .join(', ')}`
-      )
-    }
 
     return {
       ...channelsParam,

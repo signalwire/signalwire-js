@@ -12,13 +12,32 @@ describe('Chat Object', () => {
       socket.on('message', (data: any) => {
         const parsedData = JSON.parse(data)
 
-        socket.send(
-          JSON.stringify({
-            jsonrpc: '2.0',
-            id: parsedData.id,
-            result: {},
-          })
-        )
+        // The error message is not important for the test.
+        // The idea is just to document what's the expected
+        // behavior (reject) or not (resolve).
+        if (
+          parsedData.method === 'chat.unsubscribe' &&
+          (parsedData.params.channels.length === 0 ||
+            parsedData.params.channels.some((ch: any) =>
+              ch.name.endsWith('_error')
+            ))
+        ) {
+          socket.send(
+            JSON.stringify({
+              jsonrpc: '2.0',
+              id: parsedData.id,
+              error: { code: -32600, message: 'Invalid Request' },
+            })
+          )
+        } else {
+          socket.send(
+            JSON.stringify({
+              jsonrpc: '2.0',
+              id: parsedData.id,
+              result: {},
+            })
+          )
+        }
       })
     })
   })
@@ -118,7 +137,7 @@ describe('Chat Object', () => {
   })
 
   describe('Unsubscribe', () => {
-    it('should convert channels into the internal channel notation when calling .unsubscribe()', async () => {
+    it('should convert channels into the internal channel notation', async () => {
       const chat = new Chat({
         host,
         token,
@@ -154,7 +173,7 @@ describe('Chat Object', () => {
       ).toBeUndefined()
     })
 
-    it('should throw if the user calls .unsubscribe() before the session is authorized', async () => {
+    it('should reject if its called before the session is authorized', async () => {
       expect.assertions(1)
       const chat = new Chat({
         host,
@@ -172,7 +191,7 @@ describe('Chat Object', () => {
       }
     })
 
-    it('should throw if the user calls .unsubscribe() without being subscribed to channels', async () => {
+    it("should reject if it's called without channels", async () => {
       expect.assertions(1)
       const chat = new Chat({
         host,
@@ -188,16 +207,10 @@ describe('Chat Object', () => {
         message: 'test',
       })
 
-      try {
-        await chat.unsubscribe(['test1'])
-      } catch (err) {
-        expect(err.message).toBe(
-          'You must subscribe to at least one channel before calling unsubscribe()'
-        )
-      }
+      await expect(() => chat.unsubscribe(['test1_error'])).rejects.toBeTruthy()
     })
 
-    it('should throw if the user calls .unsubscribe() with channels different than the ones they are subscribed to', async () => {
+    it('should reject if the user calls .unsubscribe() with channels different than the ones they are subscribed to', async () => {
       expect.assertions(1)
       const chat = new Chat({
         host,
@@ -206,14 +219,10 @@ describe('Chat Object', () => {
 
       chat.on('message', () => {})
 
-      try {
-        await chat.subscribe(['test1', 'test2', 'test3', 'test4'])
-        await chat.unsubscribe(['test1', 'test5'])
-      } catch (err) {
-        expect(err.message).toBe(
-          `You can't unsubscribe from a channel that you didn't subscribe to. You're subscribed to the following channels: test1, test2, test3, test4 but tried to unsubscribe from: test1, test5`
-        )
-      }
+      await chat.subscribe(['test1', 'test2', 'test3', 'test4'])
+      await expect(() =>
+        chat.unsubscribe(['test1', 'test5_error'])
+      ).rejects.toBeTruthy()
     })
   })
 })
