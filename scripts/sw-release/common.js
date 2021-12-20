@@ -75,7 +75,7 @@ const getTestTask = ({ dryRun, executer }) => {
               title: `Testing ${name}`,
               task: async (_ctx, currentTask) => {
                 tasks.push(
-                  await executer('manypkg', ['run', name, 'test'], {
+                  await executer('npm', ['run', 'test', `-w=${name}`], {
                     cwd: ROOT_DIR,
                   })
                 )
