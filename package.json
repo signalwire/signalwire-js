@@ -28,7 +28,7 @@
     "babel-jest": "^27.4.5",
     "concurrently": "^6.5.1",
     "jest": "^27.4.5",
-    "prettier": "^2.3.2",
+    "prettier": "^2.5.1",
     "typedoc": "^0.22.10",
     "typescript": "^4.5.4"
   }
