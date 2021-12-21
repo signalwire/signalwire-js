@@ -9,6 +9,7 @@ import * as rollup from 'rollup'
 import commonjs from '@rollup/plugin-commonjs'
 import license from 'rollup-plugin-license'
 import replace from '@rollup/plugin-replace'
+import { visualizer } from 'rollup-plugin-visualizer'
 import typescript from 'rollup-plugin-typescript2'
 
 const COMMON_NODE = {
@@ -248,6 +249,7 @@ const buildUmd = async (options) => {
         },
         mangle: true,
       }),
+      visualizer(),
     ],
   })
   return instance.write({
