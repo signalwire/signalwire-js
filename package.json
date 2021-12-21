@@ -7,13 +7,11 @@
     "./scripts/*"
   ],
   "scripts": {
-    "postinstall": "manypkg check",
     "changeset": "changeset",
-    "clean": "manypkg exec rm -rf node_modules && manypkg exec rm -rf dist && rm -rf node_modules",
-    "test": "manypkg exec npm run test",
-    "build": "manypkg exec rm -rf dist && sw-build-all",
+    "clean": "npm exec --ws -- npx rimraf node_modules && npm exec --ws -- npx rimraf dist && npx rimraf node_modules",
+    "test": "npm exec --ws npm run test",
+    "build": "npm exec --ws -- npx rimraf dist && sw-build-all",
     "prettier": "prettier --write .",
-    "start:web": "concurrently \"manypkg run @signalwire/core start\" \"manypkg run @signalwire/js start\" \"manypkg run @signalwire/webrtc start\" \"manypkg run @signalwire/js example\"",
     "release:dev": "sw-release --development",
     "release:beta": "sw-release --beta",
     "prepare:prod": "sw-release --prepare-prod",
@@ -25,7 +23,6 @@
     "@babel/preset-typescript": "^7.16.5",
     "@changesets/changelog-github": "^0.4.0",
     "@changesets/cli": "^2.16.0",
-    "@manypkg/cli": "^0.18.0",
     "@signalwire/typedoc-readme-api-theme": "^0.6.1",
     "@types/jest": "^27.0.3",
     "babel-jest": "^27.4.5",
@@ -33,7 +30,6 @@
     "jest": "^27.4.5",
     "prettier": "^2.3.2",
     "typedoc": "^0.22.10",
-    "typescript": "^4.5.4",
-    "yarn": "^1.22.11"
+    "typescript": "^4.5.4"
   }
 }

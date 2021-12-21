@@ -99,7 +99,7 @@ export async function cli(args) {
 
   for await (const packages of tree.values()) {
     const n = packages.map((pkg) => {
-      return `manypkg run @signalwire/${pkg} build`
+      return `npm run build -w=@signalwire/${pkg}`
     })
 
     try {
