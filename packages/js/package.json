@@ -34,7 +34,6 @@
   "scripts": {
     "start": "sw-build --dev --web",
     "build": "tsc --project tsconfig.build.json && sw-build --web && sw-build --umd",
-    "build:umd": "sw-build --umd",
     "test": "NODE_ENV=test jest",
     "example": "(cd examples && npm run dev)",
     "docs": "npm run docs:md && npm run docs:html",
