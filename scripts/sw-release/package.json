@@ -15,6 +15,6 @@
     "@sw-internal/common": "^0.0.0",
     "execa": "^6.0.0",
     "inquirer": "^8.2.0",
-    "listr2": "^3.12.2"
+    "listr2": "^3.13.5"
   }
 }
