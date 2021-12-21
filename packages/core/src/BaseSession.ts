@@ -91,6 +91,11 @@ export class BaseSession {
     return this._host
   }
 
+  get contexts(): string[] {
+    // @ts-expect-error
+    return this.options.contexts ?? []
+  }
+
   get rpcConnectResult() {
     return this._rpcConnectResult
   }
@@ -239,6 +244,9 @@ export class BaseSession {
     }
     if (this._relayProtocolIsValid()) {
       params.protocol = this.relayProtocol
+    }
+    if (this.contexts.length) {
+      params.contexts = this.contexts
     }
     this._rpcConnectResult = await this.execute(RPCConnect(params))
   }
