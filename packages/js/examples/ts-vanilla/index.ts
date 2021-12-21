@@ -6,7 +6,6 @@ window._makeClient = async ({ token, emitter }) => {
     const client = await Video.createClient({
       host: 'relay.swire.io',
       token,
-      autoConnect: false,
       emitter,
     })
 

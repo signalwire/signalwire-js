@@ -16,30 +16,10 @@ import { JWTSession } from './JWTSession'
  * Create a client
  *
  * @example
- * With autoConnect true the client is ready to be used.
  * ```js
  * try {
- *   const client = await Video.createClient({
- *     token: '<YourToken>',
- *   })
- *
- *   // Your client is already connected..
- * } catch (error) {
- *   console.error('Auth Error', error)
- * }
- * ```
- *
- * @example
- * With autoConnect false you can attach additional handlers.
- * ```js
- * try {
- *   const client = await Video.createClient({
+ *   const client = Video.createClient({
  *     token: '<YourJWT>',
- *     autoConnect: false,
- *   })
- *
- *   client.on('socket.closed', () => {
- *     // The WebSocket connection is closed
  *   })
  *
  *   await client.connect()
