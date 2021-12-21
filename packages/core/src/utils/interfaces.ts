@@ -45,6 +45,8 @@ export type JSONRPCMethod =
   | 'signalwire.event'
   | 'signalwire.reauthenticate'
   | 'signalwire.subscribe'
+  | 'signalwire.receive'
+  | 'signalwire.unreceive'
   | 'video.message'
   | RoomMethod
   | VertoMethod
@@ -317,6 +319,7 @@ export type EventTransformType =
   | 'roomSessionRecording'
   | 'roomSessionPlayback'
   | ChatTransformType
+  | 'relayTask'
 /**
  * `EventTransform`s represent our internal pipeline for
  * creating specific instances for each event handler. This

@@ -37,3 +37,14 @@ export * from './createClient'
  * See {@link Video.Video} for examples.
  */
 export * as Video from './video/Video'
+
+/**
+ * Same exports of `@signalwire/node` SDK to easy migrate.
+  export {
+    RestClient,
+    RelayClient,
+    RelayConsumer,
+    Task
+  }
+*/
+export * from './relay'
