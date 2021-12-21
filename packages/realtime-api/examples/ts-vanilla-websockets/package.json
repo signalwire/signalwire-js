@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node --loader ts-node/esm index.ts"
+    "dev": "node --loader ts-node/esm relay.ts"
   },
   "dependencies": {
     "pino": "^7.2.0"
