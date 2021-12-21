@@ -762,7 +762,6 @@ describe('sessionChannelWatcher', () => {
             componentActions.upsert({
               id: '05274260-163b-43b7-805e-b4b14f92baaf',
               audioConstraints: {
-                // @ts-expect-error
                 autoGainControl: false,
                 echoCancellation: false,
                 noiseSuppression: false,
