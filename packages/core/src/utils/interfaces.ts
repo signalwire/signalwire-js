@@ -10,7 +10,7 @@ import {
 import type { CustomSaga, PubSubChannel } from '../redux/interfaces'
 import type { URL as NodeURL } from 'node:url'
 import { InternalRPCMethods } from '../internal'
-import { ChatJSONRPCMethod, ChatTransformType } from '..'
+import { ChatJSONRPCMethod, ChatTransformType, RelayJSONRPCMethod } from '..'
 
 type JSONRPCParams = Record<string, any>
 type JSONRPCResult = Record<string, any>
@@ -45,13 +45,12 @@ export type JSONRPCMethod =
   | 'signalwire.event'
   | 'signalwire.reauthenticate'
   | 'signalwire.subscribe'
-  | 'signalwire.receive'
-  | 'signalwire.unreceive'
   | 'video.message'
   | RoomMethod
   | VertoMethod
   | InternalRPCMethods
   | ChatJSONRPCMethod
+  | RelayJSONRPCMethod
 
 export type JSONRPCSubscribeMethod = Extract<
   JSONRPCMethod,
