@@ -1,5 +1,7 @@
 import { request } from 'https'
 
+const TASK_PATH = '/api/relay/rest/tasks'
+
 export class Task {
   /** @internal */
   host: string = 'relay.signalwire.com'
@@ -23,7 +25,7 @@ export class Task {
         host: this.host,
         port: 443,
         method: 'POST',
-        path: '/api/relay/rest/tasks',
+        path: TASK_PATH,
         headers: {
           Authorization: this.basicAuthToken(),
           'Content-Type': 'application/json',
