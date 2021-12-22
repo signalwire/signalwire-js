@@ -27,7 +27,7 @@ export class RelayConsumer {
   setup?: (consumer: RelayConsumer) => void
   ready?: (consumer: RelayConsumer) => void
 
-  protected client: RelayClient
+  public client: RelayClient
 
   constructor(params: RelayConsumerOptions) {
     const {

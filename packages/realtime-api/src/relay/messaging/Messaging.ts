@@ -102,10 +102,8 @@ export class BaseMessaging extends BaseComponent<BaseMessagingApiEvents> {
       // @ts-expect-error
       method: 'messaging.send',
       params,
-      // FIXME: error handling
-    }).catch((error) => error)
-    this.logger.info('Send message response', response)
-
+      // TODO: Review error handling for "jsonrpc"
+    }).catch((error) => error.jsonrpc)
     return new SendResult(response)
   }
 }

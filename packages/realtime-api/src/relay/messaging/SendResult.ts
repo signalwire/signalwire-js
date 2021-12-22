@@ -9,8 +9,12 @@ export class SendResult {
   public messageId: string
   public errors: string[] = []
 
-  constructor(protected options: SendResultOptions) {
+  constructor(options: SendResultOptions) {
     this.successful = options?.code === '200'
     this.messageId = options.message_id
+    console.log('options', options)
+    if (!this.successful && options.message) {
+      this.errors = [options.message]
+    }
   }
 }
