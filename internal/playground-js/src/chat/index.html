@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Signalwire Chat Demo</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link
+      rel="shortcut icon"
+      href="https://signalwire.com/assets/images/favicon.ico"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-200">
+    <main class="max-w-xl mx-auto">
+      <div class="opacity-20 pointer-events-none"></div>
+      <div id="chat-join">
+        <div class="mt-6 px-4 py-5 bg-white space-y-6 sm:p-6">
+          <form id="chat-connect">
+            <div class="mb-2">
+              <label for="host" class="block text-sm font-medium text-gray-700"
+                >Host</label
+              >
+              <input
+                type="text"
+                class="
+                  p-2
+                  shadow-sm
+                  focus:ring-indigo-500 focus:border-indigo-500
+                  mt-1
+                  block
+                  w-full
+                  sm:text-sm
+                  border border-gray-300
+                  rounded-md
+                "
+                id="host"
+                name="host"
+                placeholder="Host to use"
+                onchange="saveInLocalStorage(event)"
+              />
+            </div>
+            <div class="mb-2">
+              <label for="token" class="block text-sm font-medium text-gray-700"
+                >Token</label
+              >
+              <input
+                type="text"
+                class="
+                  p-2
+                  shadow-sm
+                  focus:ring-indigo-500 focus:border-indigo-500
+                  mt-1
+                  block
+                  w-full
+                  sm:text-sm
+                  border border-gray-300
+                  rounded-md
+                "
+                id="token"
+                name="token"
+                placeholder="Enter token"
+                onchange="saveInLocalStorage(event)"
+              />
+            </div>
+
+            <div class="mb-2">
+              <label
+                for="channel"
+                class="block text-sm font-medium text-gray-700"
+              >
+                Channels:
+              </label>
+              <p class="mt-2 text-sm text-gray-500">
+                Comma separated list of channels to join
+              </p>
+              <div class="mt-1">
+                <input
+                  type="text"
+                  id="channel"
+                  name="channel"
+                  class="
+                    p-2
+                    shadow-sm
+                    focus:ring-indigo-500 focus:border-indigo-500
+                    mt-1
+                    block
+                    w-full
+                    sm:text-sm
+                    border border-gray-300
+                    rounded-md
+                  "
+                  placeholder="Channel 1, Channel 2"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              class="
+                inline-flex
+                justify-center
+                py-2
+                px-4
+                border border-transparent
+                shadow-sm
+                text-sm
+                font-medium
+                rounded-md
+                text-white
+                bg-indigo-600
+                hover:bg-indigo-700
+                focus:outline-none
+                focus:ring-2
+                focus:ring-offset-2
+                focus:ring-indigo-500
+              "
+            >
+              send
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div id="chat-connected" class="hidden">
+        <div class="mt-6 px-4 py-5 bg-white space-y-6 sm:p-6">
+          <form id="chat-box">
+            <div class="mb-2">
+              <label
+                for="channel"
+                class="block text-sm font-medium text-gray-700"
+              >
+                Channel
+              </label>
+              <div class="mt-1">
+                <select id="chat-channels-selector" name="channel"></select>
+              </div>
+            </div>
+
+            <div class="mb-2">
+              <label
+                for="message"
+                class="block text-sm font-medium text-gray-700"
+              >
+                Message
+              </label>
+              <div class="mt-1">
+                <textarea
+                  id="message"
+                  name="message"
+                  rows="3"
+                  class="
+                    p-2
+                    shadow-sm
+                    focus:ring-indigo-500 focus:border-indigo-500
+                    mt-1
+                    block
+                    w-full
+                    sm:text-sm
+                    border border-gray-300
+                    rounded-md
+                  "
+                ></textarea>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              class="
+                inline-flex
+                justify-center
+                py-2
+                px-4
+                border border-transparent
+                shadow-sm
+                text-sm
+                font-medium
+                rounded-md
+                text-white
+                bg-indigo-600
+                hover:bg-indigo-700
+                focus:outline-none
+                focus:ring-2
+                focus:ring-offset-2
+                focus:ring-indigo-500
+              "
+            >
+              send
+            </button>
+          </form>
+        </div>
+
+        <div id="chat-messages"></div>
+      </div>
+    </main>
+    <script type="module" src="./index.js"></script>
+  </body>
+</html>
