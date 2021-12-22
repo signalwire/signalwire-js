@@ -15,7 +15,11 @@ import { createTaskingObject, Tasking } from './tasking/Tasking'
 // import { Messaging } from './Messaging'
 // import { Calling } from './Calling'
 
-export interface RelayClient extends ClientContract<RelayClient, ClientEvents> {
+type RelayClientEvents = ClientEvents &
+  Record<'signalwire.ready', (client: RelayClient) => void>
+
+export interface RelayClient
+  extends ClientContract<RelayClient, RelayClientEvents> {
   tasking: Tasking
 }
 
@@ -23,12 +27,12 @@ export interface RelayClientOptions extends UserOptions {
   contexts: string[]
 }
 
-class RelayClientAPI extends BaseClient<ClientEvents> {
+class RelayClientAPI extends BaseClient<RelayClientEvents> {
   // private _calling: Calling = null
   private _tasking: Tasking
   // private _messaging: Messaging = null
 
-  constructor(options: BaseClientOptions<ClientEvents>) {
+  constructor(options: BaseClientOptions<RelayClientEvents>) {
     super(options)
 
     this._handleSignals()
@@ -36,7 +40,6 @@ class RelayClientAPI extends BaseClient<ClientEvents> {
 
   onAuth(session: SessionState) {
     if (session.authStatus === 'authorized') {
-      // @ts-expect-error
       this.emit('signalwire.ready')
     }
   }
@@ -85,14 +88,14 @@ class RelayClientAPI extends BaseClient<ClientEvents> {
 export const RelayClient = function (options: RelayClientOptions) {
   const baseUserOptions: InternalUserOptions = {
     ...options,
-    emitter: getEventEmitter<ClientEvents>(),
+    emitter: getEventEmitter<RelayClientEvents>(),
   }
   const store = configureStore({
     userOptions: baseUserOptions,
     SessionConstructor: Session,
   })
 
-  const client = connect<ClientEvents, RelayClientAPI, RelayClient>({
+  const client = connect<RelayClientEvents, RelayClientAPI, RelayClient>({
     store,
     Component: RelayClientAPI,
     componentListeners: {
