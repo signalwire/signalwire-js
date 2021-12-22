@@ -10,7 +10,12 @@ import {
 import type { CustomSaga, PubSubChannel } from '../redux/interfaces'
 import type { URL as NodeURL } from 'node:url'
 import { InternalRPCMethods } from '../internal'
-import { ChatJSONRPCMethod, ChatTransformType, RelayJSONRPCMethod } from '..'
+import {
+  ChatJSONRPCMethod,
+  ChatTransformType,
+  RelayJSONRPCMethod,
+  RelayTransformType,
+} from '..'
 
 type JSONRPCParams = Record<string, any>
 type JSONRPCResult = Record<string, any>
@@ -310,7 +315,7 @@ export type EventTransformType =
   | 'roomSessionRecording'
   | 'roomSessionPlayback'
   | ChatTransformType
-  | 'relayTask'
+  | RelayTransformType
 /**
  * `EventTransform`s represent our internal pipeline for
  * creating specific instances for each event handler. This
