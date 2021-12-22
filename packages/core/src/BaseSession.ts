@@ -86,8 +86,7 @@ export class BaseSession {
   }
 
   get contexts(): string[] {
-    // @ts-expect-error
-    return this.options.contexts ?? []
+    return this.options?.contexts ?? []
   }
 
   get rpcConnectResult() {
