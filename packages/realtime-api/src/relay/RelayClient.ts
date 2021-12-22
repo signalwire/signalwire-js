@@ -35,12 +35,14 @@ class RelayClientAPI extends BaseClient<RelayClientEvents> {
   constructor(options: BaseClientOptions<RelayClientEvents>) {
     super(options)
 
-    this._handleSignals()
+    this._attachSignals()
   }
 
   onAuth(session: SessionState) {
     if (session.authStatus === 'authorized') {
       this.emit('signalwire.ready')
+    } else if (session.authStatus === 'unauthorized') {
+      this._detachSignals()
     }
   }
 
@@ -73,14 +75,19 @@ class RelayClientAPI extends BaseClient<RelayClientEvents> {
   // }
 
   // TODO: Review teardown process
-  private _handleSignals(): void {
-    const _gracefulDisconnect = (signal: string) => {
-      this.logger.info(`Received ${signal} - Disconnecting...`)
-      this.disconnect()
-    }
+  private _gracefulDisconnect(signal: string) {
+    this.logger.info(`Received ${signal} - Disconnecting...`)
+    this.disconnect()
+  }
 
-    process.on('SIGTERM', _gracefulDisconnect)
-    process.on('SIGINT', _gracefulDisconnect)
+  private _attachSignals() {
+    process.on('SIGTERM', this._gracefulDisconnect)
+    process.on('SIGINT', this._gracefulDisconnect)
+  }
+
+  private _detachSignals() {
+    process.off('SIGTERM', this._gracefulDisconnect)
+    process.off('SIGINT', this._gracefulDisconnect)
   }
 }
 
