@@ -12,6 +12,7 @@ import {
 } from '@signalwire/core'
 import { Session } from '../Session'
 import { createTaskingObject, Tasking } from './tasking/Tasking'
+import { createMessagingObject, Messaging } from './messaging/Messaging'
 // import { Messaging } from './Messaging'
 // import { Calling } from './Calling'
 
@@ -21,6 +22,7 @@ type RelayClientEvents = ClientEvents &
 export interface RelayClient
   extends ClientContract<RelayClient, RelayClientEvents> {
   tasking: Tasking
+  messaging: Messaging
 }
 
 export interface RelayClientOptions extends UserOptions {
@@ -30,7 +32,7 @@ export interface RelayClientOptions extends UserOptions {
 class RelayClientAPI extends BaseClient<RelayClientEvents> {
   // private _calling: Calling = null
   private _tasking: Tasking
-  // private _messaging: Messaging = null
+  private _messaging: Messaging
 
   constructor(options: BaseClientOptions<RelayClientEvents>) {
     super(options)
@@ -67,12 +69,19 @@ class RelayClientAPI extends BaseClient<RelayClientEvents> {
     return this._tasking
   }
 
-  // get messaging(): Messaging {
-  //   if (!this._messaging) {
-  //     this._messaging = new Messaging(this)
-  //   }
-  //   return this._messaging
-  // }
+  get messaging(): Messaging {
+    if (this._messaging) {
+      return this._messaging
+    }
+    this._messaging = createMessagingObject({
+      store: this.store,
+      // Emitter is now typed but we share it across objects
+      // so types won't match
+      // @ts-expect-error
+      emitter: this.options.emitter,
+    })
+    return this._messaging
+  }
 
   // TODO: Review teardown process
   private _gracefulDisconnect(signal: string) {
