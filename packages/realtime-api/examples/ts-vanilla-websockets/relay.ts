@@ -13,7 +13,6 @@ async function run() {
       },
     })
 
-    // @ts-expect-error
     client.on('signalwire.ready', (client) => {
       console.log('READY!!', client)
     })
