@@ -36,21 +36,6 @@ export type BaseTaskingApiEvents<T = BaseTaskingApiEventsHandlerMapping> = {
 }
 
 export class BaseTasking extends BaseComponent<BaseTaskingApiEvents> {
-  // protected override _eventsPrefix = '' as const
-
-  constructor(options: BaseComponentOptions<BaseTaskingApiEvents>) {
-    super(options)
-
-    /**
-     * Since we don't need a namespace for these events
-     * we'll attach them as soon as the Client has been
-     * registered in the Redux store.
-     */
-    // this._attachListeners('')
-    // this.attachWorkers()
-    // this.applyEmitterTransforms()
-  }
-
   protected getWorkers() {
     return new Map([['tasking', { worker: taskingWorker }]])
   }
