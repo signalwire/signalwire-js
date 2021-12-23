@@ -46,8 +46,7 @@
   },
   "devDependencies": {
     "@types/node-fetch": "^2.5.10",
-    "msw": "^0.28.2",
-    "ts-node": "^10.0.0"
+    "msw": "^0.28.2"
   },
   "types": "dist/web-api/src/index.d.ts"
 }
