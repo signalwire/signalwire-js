@@ -4,7 +4,7 @@ async function run() {
   try {
     const client = await createClient({
       // @ts-expect-error
-      host: 'relay.swire.io',
+      host: process.env.HOST || 'relay.swire.io',
       project: process.env.PROJECT as string,
       token: process.env.TOKEN as string,
     })
