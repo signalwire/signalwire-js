@@ -1,0 +1,15 @@
+{
+  "name": "@sw-internal/playground-realtime-api",
+  "version": "0.0.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "dev": "node index.js",
+    "dev2": "node -r esbuild-register src/ts-vanilla-websockets/index.ts"
+  },
+  "devDependencies": {
+    "dotenv": "^10.0.0",
+    "esbuild-register": "^3.2.1",
+    "inquirer": "^8.2.0"
+  }
+}
