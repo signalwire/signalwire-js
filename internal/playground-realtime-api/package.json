@@ -4,8 +4,7 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "dev": "node index.js",
-    "dev2": "node -r esbuild-register src/ts-vanilla-websockets/index.ts"
+    "dev": "node -r dotenv/config index.js"
   },
   "devDependencies": {
     "dotenv": "^10.0.0",

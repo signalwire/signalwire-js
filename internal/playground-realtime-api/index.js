@@ -1,4 +1,8 @@
-require('dotenv').config()
+/**
+ * Note: File is written using CommonJS because spawning a
+ * process from within an ESModule context is breaking the
+ * load of the example code using `-r esbuild-register`
+ */
 const inquirer = require('inquirer')
 const path = require('node:path')
 const fs = require('node:fs')
@@ -22,6 +26,7 @@ async function main() {
       type: 'list',
       name: 'script',
       choices: getFolders(path.join(__dirname, './src')),
+      message: 'Select an example to run:'
     },
   ])
 
