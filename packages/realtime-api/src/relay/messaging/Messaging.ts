@@ -42,6 +42,22 @@ export type BaseMessagingApiEvents<T = BaseMessagingApiEventsHandlerMapping> = {
   [k in keyof T]: T[k]
 }
 
+interface MessagingSendParams {
+  context: string
+  from: string
+  to: string
+  body?: string
+  tags?: string[]
+  region?: string
+  media?: string[]
+}
+
+interface InternalMessagingSendParams
+  extends Omit<MessagingSendParams, 'from' | 'to'> {
+  from_number: string
+  to_number: string
+}
+
 export class BaseMessaging extends BaseComponent<BaseMessagingApiEvents> {
   protected getWorkers() {
     return new Map([['messaging', { worker: messagingWorker }]])
@@ -92,18 +108,23 @@ export class BaseMessaging extends BaseComponent<BaseMessagingApiEvents> {
     }
   }
 
-  async send(params: any): Promise<SendResult> {
-    const { from = '', to = '' } = params
-    params.from_number = from
-    params.to_number = to
-    delete params.from
-    delete params.to
+  async send(params: MessagingSendParams): Promise<SendResult> {
+    const { from = '', to = '', ...rest } = params
+    const sendParams: InternalMessagingSendParams = {
+      ...rest,
+      from_number: from,
+      to_number: to,
+    }
     const response: any = await this.execute({
-      // @ts-expect-error
       method: 'messaging.send',
-      params,
-      // TODO: Review error handling for "jsonrpc"
-    }).catch((error) => error.jsonrpc)
+      params: sendParams,
+    }).catch((error) => {
+      /**
+       * Return the jsonrpc response with code/message
+       */
+      return error.jsonrpc
+    })
+
     return new SendResult(response)
   }
 }
