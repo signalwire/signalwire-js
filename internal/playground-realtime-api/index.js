@@ -14,25 +14,28 @@ const getScriptOptions = (pathname) => {
   const list = fs.readdirSync(pathname)
   let acc = []
   list.forEach(function (item) {
-    if (fs.lstatSync(pathname + '/' + item).isDirectory()) {
-      acc.push(item)
+    const itemPath = pathname + '/' + item
+    if (fs.lstatSync(itemPath).isDirectory()) {
+      const type = getScriptType(itemPath)
+      acc.push({
+        name: `[${type}] ${item}`,
+        value: {
+          name: item,
+          type,
+        },
+      })
     }
   })
 
   return acc
 }
 
-const TARGET_DEPTH_LEVEL = 1
 /**
- * The Script type will be determined by the extension of
- * its `index` file. Check `ALLOWED_SCRIPT_EXTENSIONS` for
- * more info on allowed extensions.
+ * The script type will be determined by the extension of
+ * its `index` file. Check `ALLOWED_SCRIPT_EXTENSIONS` to
+ * see allowed extensions.
  */
-const getScriptType = (pathname, level = 0) => {
-  if (level > TARGET_DEPTH_LEVEL) {
-    return
-  }
-
+const getScriptType = (pathname) => {
   const list = fs.readdirSync(pathname)
 
   let ext
@@ -51,8 +54,7 @@ const getScriptType = (pathname, level = 0) => {
       }
 
       ext = tempExt
-    } else {
-      return getScriptType(path.join(pathname, item), level + 1)
+      break
     }
   }
 
@@ -63,14 +65,15 @@ const getScriptType = (pathname, level = 0) => {
   return ext
 }
 
-const getRunParams = (pathname) => {
-  const ext = getScriptType(`./src/${pathname}`)
-
-  switch (ext) {
+const getRunParams = (script) => {
+  switch (script.type) {
     case 'js':
-      return ['node', [`./src/${pathname}/index.js`]]
+      return ['node', [`./src/${script.name}/index.js`]]
     case 'ts':
-      return ['node', ['-r', 'esbuild-register', `./src/${pathname}/index.ts`]]
+      return [
+        'node',
+        ['-r', 'esbuild-register', `./src/${script.name}/index.ts`],
+      ]
   }
 }
 
