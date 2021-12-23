@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
-import path from 'path'
-import fs from 'fs'
+import path from 'node:path'
+import fs from 'node:fs'
 
 const getHtmlList = (list: any) => {
   return `
@@ -24,7 +24,8 @@ const getHtmlList = (list: any) => {
               <ul>
                 ${list
                   .map(
-                    (vv: any) => `<li><a href="src/${vv}" class="block mx-3 my-4 font-bold text-indigo-600">☞ ${vv}</a></li>`
+                    (vv: any) =>
+                      `<li><a href="src/${vv}" class="block mx-3 my-4 font-bold text-indigo-600">☞ ${vv}</a></li>`
                   )
                   .join('')}
                 </ul>
@@ -49,17 +50,19 @@ function listPlugin() {
       server.middlewares.use((req: any, res: any, next: any) => {
         const { url } = req
 
-        if (url === "/") {
+        if (url === '/') {
           const pwd = path.join(__dirname, 'src')
           const folders = fs.readdirSync(pwd, {
             withFileTypes: true,
           })
-          const list2 = folders.map((file) => {
-            if (file.isDirectory()) {
-              return file.name + '/'
-            }
-            return false
-          }).filter(l => l)
+          const list2 = folders
+            .map((file) => {
+              if (file.isDirectory()) {
+                return file.name + '/'
+              }
+              return false
+            })
+            .filter((l) => l)
           res.end(getHtmlList(list2))
         } else {
           next()
