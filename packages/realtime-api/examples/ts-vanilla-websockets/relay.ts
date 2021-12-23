@@ -1,29 +1,31 @@
 import * as SDK from '@signalwire/realtime-api'
 
-// async function run() {
-//   try {
-//     const client = new RelayClient({
-//       host: 'relay.swire.io',
-//       project: process.env.PROJECT as string,
-//       token: process.env.TOKEN as string,
-//       contexts: ['office'],
-//       logLevel: 'debug',
-//       debug: {
-//         logWsTraffic: true,
-//       },
-//     })
+// @ts-ignore
+async function run() {
+  try {
+    const client = new SDK.RelayClient({
+      host: 'relay.swire.io',
+      project: process.env.PROJECT as string,
+      token: process.env.TOKEN as string,
+      contexts: ['office'],
+      logLevel: 'debug',
+      debug: {
+        logWsTraffic: true,
+      },
+    })
 
-//     client.on('signalwire.ready', (client) => {
-//       console.log('READY!!', client)
-//     })
+    client.on('signalwire.ready', (client) => {
+      console.log('READY!!', client)
+    })
 
-//     await client.connect()
+    await client.connect()
 
-//     console.log('Client Running..')
-//   } catch (error) {
-//     console.log('<Error>', error)
-//   }
-// }
+    console.log('Client Running..')
+  } catch (error) {
+    console.log('<Error>', error)
+  }
+}
+
 // run()
 
 const consumer = new SDK.RelayConsumer({
@@ -31,17 +33,14 @@ const consumer = new SDK.RelayConsumer({
   project: process.env.PROJECT as string,
   token: process.env.TOKEN as string,
   contexts: ['office'],
-  debug: {
-    logWsTraffic: true,
-  },
   ready: async (consumer) => {
     console.log('Ready...')
     try {
       const result = await consumer.client.messaging.send({
         context: 'office',
-        from: '+12135877632',
-        to: '+12062371092',
-        body: 'Welcome at SignalWire!',
+        from: '+1..',
+        to: '+1..',
+        body: 'Welcome!!',
       })
 
       console.log(
