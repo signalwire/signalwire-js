@@ -14,6 +14,10 @@ export const messagingWorker: SDKWorker = function* ({
     })
     getLogger().debug('messagingWorker:', action)
 
+    /**
+     * For now we keep the switch since we discussed a way to
+     * stop using the EventTransforms and build objects here instead.
+     */
     switch (action.type) {
       case 'messaging.state': {
         yield sagaEffects.put(pubSubChannel, action)
