@@ -340,7 +340,14 @@ export class BaseComponent<
       )
       const proxiedObj = new Proxy(cachedInstance, {
         get(target: any, prop: any, receiver: any) {
-          if (
+          if (prop === 'toString') {
+            const property = target[prop]
+
+            return typeof property === 'function'
+              ? // TODO: define serializer.
+                () => JSON.stringify(transformedPayload)
+              : property
+          } else if (
             prop === '_eventsNamespace' &&
             transform.getInstanceEventNamespace
           ) {
