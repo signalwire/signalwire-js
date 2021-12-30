@@ -1,3 +1,6 @@
-export type RelayJSONRPCMethod = 'signalwire.receive' | 'signalwire.unreceive'
+export type RelayJSONRPCMethod =
+  | 'signalwire.receive'
+  | 'signalwire.unreceive'
+  | 'messaging.send'
 
-export type RelayTransformType = 'relayTask'
+export type RelayTransformType = 'relayTask' | 'relayMessage'

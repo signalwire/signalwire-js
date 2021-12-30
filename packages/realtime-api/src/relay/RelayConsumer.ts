@@ -27,7 +27,7 @@ export class RelayConsumer {
   setup?: (consumer: RelayConsumer) => void
   ready?: (consumer: RelayConsumer) => void
 
-  protected client: RelayClient
+  public client: RelayClient
 
   constructor(params: RelayConsumerOptions) {
     const {
@@ -88,6 +88,9 @@ export class RelayConsumer {
       project,
       token,
       contexts,
+      debug: {
+        logWsTraffic: true,
+      },
     })
 
     if (this.onTask) {
@@ -100,19 +103,12 @@ export class RelayConsumer {
     //     client.calling.onReceive(this.contexts, this.onIncomingCall)
     //   )
     // }
-    // if (this.onIncomingMessage) {
-    //   promises.push(
-    //     client.messaging.onReceive(this.contexts, this.onIncomingMessage)
-    //   )
-    // }
-    // if (this.onMessageStateChange) {
-    //   promises.push(
-    //     client.messaging.onStateChange(
-    //       this.contexts,
-    //       this.onMessageStateChange
-    //     )
-    //   )
-    // }
+    if (this.onIncomingMessage) {
+      this.client.messaging.on('messaging.state', this.onIncomingMessage)
+    }
+    if (this.onMessageStateChange) {
+      this.client.messaging.on('messaging.receive', this.onMessageStateChange)
+    }
 
     await this.client.connect()
 
