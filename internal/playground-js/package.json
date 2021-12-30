@@ -1,0 +1,14 @@
+{
+  "name": "@sw-internal/playground-js",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview",
+    "test": ""
+  },
+  "devDependencies": {
+    "vite": "^2.7.6"
+  }
+}

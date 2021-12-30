@@ -3,7 +3,8 @@ import { createClient } from '@signalwire/realtime-api'
 async function run() {
   try {
     const client = await createClient({
-      // host: 'relay.swire.io',
+      // @ts-expect-error
+      host: process.env.HOST || 'relay.swire.io',
       project: process.env.PROJECT as string,
       token: process.env.TOKEN as string,
       logLevel: 'trace',

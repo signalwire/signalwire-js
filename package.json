@@ -4,7 +4,8 @@
   "private": true,
   "workspaces": [
     "./packages/*",
-    "./scripts/*"
+    "./scripts/*",
+    "./internal/*"
   ],
   "scripts": {
     "changeset": "changeset",
@@ -27,6 +28,7 @@
     "@types/jest": "^27.0.3",
     "babel-jest": "^27.4.5",
     "concurrently": "^6.5.1",
+    "esbuild": "^0.14.8",
     "jest": "^27.4.5",
     "prettier": "^2.5.1",
     "typedoc": "^0.22.10",
