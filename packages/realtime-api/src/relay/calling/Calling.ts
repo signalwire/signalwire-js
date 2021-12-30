@@ -1,8 +1,14 @@
 import { trigger } from '../../services/Handler'
-import { DeepArray, ICallDevice, ICallOptions, IDialCallParams, IMakeCallParams } from '../../util/interfaces'
+import {
+  DeepArray,
+  ICallDevice,
+  ICallOptions,
+  IDialCallParams,
+  IMakeCallParams,
+} from '../../util/interfaces'
 import logger from '../../util/logger'
 import Relay from '../Relay'
-import Call from './Call'
+import { Call } from './Call'
 import { CallNotification } from '../../util/constants/relay'
 import { isIDialCallParams, prepareDialDevices } from '../helpers'
 
@@ -50,7 +56,7 @@ export default class Calling extends Relay {
       }
     } else {
       const paramsDevices = []
-      params.forEach(p => {
+      params.forEach((p) => {
         if (!isIDialCallParams(p)) {
           paramsDevices.push(p)
         }
@@ -75,18 +81,18 @@ export default class Calling extends Relay {
   }
 
   removeCall(callToRemove: Call): void {
-    const index = this._calls.findIndex(call => callToRemove == call)
+    const index = this._calls.findIndex((call) => callToRemove == call)
     if (index >= 0) {
       this._calls.splice(index, 1)
     }
   }
 
   getCallById(id: string): Call {
-    return this._calls.find(call => call.id === id)
+    return this._calls.find((call) => call.id === id)
   }
 
   getCallByTag(tag: string): Call {
-    return this._calls.find(call => call.tag === tag)
+    return this._calls.find((call) => call.tag === tag)
   }
 
   /**
@@ -140,7 +146,11 @@ export default class Calling extends Relay {
    */
   private _onReceive(params: any): void {
     const call = new Call(this, params)
-    trigger(this.session.relayProtocol, call, this._ctxReceiveUniqueId(call.context))
+    trigger(
+      this.session.relayProtocol,
+      call,
+      this._ctxReceiveUniqueId(call.context)
+    )
   }
 
   /**
