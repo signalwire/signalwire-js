@@ -4,7 +4,7 @@ import * as SDK from '@signalwire/realtime-api'
 async function run() {
   try {
     const client = new SDK.RelayClient({
-      host: 'relay.swire.io',
+      host: process.env.HOST || 'relay.swire.io',
       project: process.env.PROJECT as string,
       token: process.env.TOKEN as string,
       contexts: ['office'],
@@ -29,7 +29,7 @@ async function run() {
 // run()
 
 const consumer = new SDK.RelayConsumer({
-  // host: 'relay.swire.io',
+  host: process.env.HOST || 'relay.swire.io',
   project: process.env.PROJECT as string,
   token: process.env.TOKEN as string,
   contexts: ['office'],
