@@ -77,7 +77,10 @@ type ShapeOf<T> = Record<keyof T, any>
  * compile-time error. If they are equal, `RoomSession` will refer to the
  * documented version of the methods.
  */
-export type AssertSameType<ExpectedType extends ShapeOf<Output>, Output extends ShapeOf<ExpectedType>> = Output
+export type AssertSameType<
+  ExpectedType extends ShapeOf<Output>,
+  Output extends ShapeOf<ExpectedType>
+> = Output
 
 export type IsTimestampProperty<Property> = Property extends `${string}At`
   ? Property
