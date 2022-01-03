@@ -49,6 +49,7 @@ describe('sessionChannelWatcher', () => {
             roomId: '90e1349e-1c72-44f8-908c-a96dac60b47xx',
             roomSessionId: '9067212d-22d3-4ed9-90bb-9055367213pep',
             memberId: 'e196da29-0080-4347-8811-b60bd35e4xxx',
+            previewUrl: undefined,
           })
         )
         .put(pubSubChannel, {
