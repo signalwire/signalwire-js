@@ -71,7 +71,10 @@ export interface RoomSessionDocs<T>
   /** Contains any local screen shares added to the room via {@link startScreenShare}. */
   readonly screenShareList: RoomSessionScreenShare[]
 
-  /** If the Room has "enable_room_previews: true", it contains the URL to the room preview. */
+  /**
+   * If the Room has been created with the property `enable_room_previews` set
+   * to `true`, this field contains the URL to the room preview.
+   */
   readonly previewUrl: string | null // TODO: optional or null ?
 
   /**
