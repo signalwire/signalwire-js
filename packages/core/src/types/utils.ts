@@ -29,7 +29,7 @@ export type OnlyFunctionProperties<T> = Pick<T, OnlyFunctionPropertyNames<T>>
 
 export type OnlyStateProperties<T> = Pick<T, OnlyStatePropertyNames<T>>
 
-type ShapeOf<T> = Record<keyof T, any>
+type ShapeOf<T> = Record<keyof T, T[keyof T]>
 
 /**
  * This type fails to be evaluated if the two type parameters don't match. If
