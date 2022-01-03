@@ -32,8 +32,8 @@ export type OnlyStateProperties<T> = Pick<T, OnlyStatePropertyNames<T>>
 type ShapeOf<T> = Record<keyof T, any>
 
 /**
- * This type is `never` if the two type parameters don't match. If they match,
- * it is equal to one of the two types.
+ * This type fails to be evaluated if the two type parameters don't match. If
+ * they match, it is equal to one of the two types.
  *
  * Motivation: we use this type for documentation purposes. Some of the types
  * and interfaces that we want to publicly expose have several layers of
