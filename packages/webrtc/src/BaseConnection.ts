@@ -76,6 +76,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   private _roomId: string
   private _roomSessionId: string
   private _memberId: string
+  private _previewUrl: string
 
   constructor(
     options: BaseConnectionOptions<EventTypes & BaseConnectionStateEventTypes>
@@ -112,6 +113,10 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   get memberId() {
     return this._memberId
+  }
+
+  get previewUrl() {
+    return this._previewUrl
   }
 
   get roomId() {
@@ -256,6 +261,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     this._roomId = component.roomId
     this._roomSessionId = component.roomSessionId
     this._memberId = component.memberId
+    this._previewUrl = component.previewUrl
 
     /**
      * For screenShare/additionalDevice we're using

@@ -31,6 +31,7 @@ export interface WebRTCCall extends SWComponent {
   roomId?: string
   roomSessionId?: string
   memberId?: string
+  previewUrl?: string | null
   byeCause?: string
   byeCauseCode?: number
   redirectDestination?: string
