@@ -11,6 +11,9 @@ export interface RoomSessionDeviceDocs
   /** Detaches this device from the room session. */
   leave(): Promise<void>
 
+  /** @ignore */
+  readonly previewUrl?: string
+
   /**
    * Replaces the current camera stream with the one coming from a different
    * device.

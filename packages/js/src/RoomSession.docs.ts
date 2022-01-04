@@ -72,6 +72,12 @@ export interface RoomSessionDocs<T>
   readonly screenShareList: RoomSessionScreenShare[]
 
   /**
+   * If the Room has been created with the property `enable_room_previews` set
+   * to `true`, this field contains the URL to the room preview.
+   */
+  readonly previewUrl?: string
+
+  /**
    * Joins the room session.
    */
   join(): Promise<this>

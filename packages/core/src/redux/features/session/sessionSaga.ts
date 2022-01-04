@@ -261,6 +261,7 @@ export function* sessionChannelWatcher({
             roomId: params.params.room_session.room_id,
             roomSessionId: params.params.room_session.id,
             memberId: params.params.member_id,
+            previewUrl: params.params.room_session.preview_url,
           })
         )
         // Rename "room.subscribed" with "room.joined" for the end-user
