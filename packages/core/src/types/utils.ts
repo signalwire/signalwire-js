@@ -29,9 +29,11 @@ export type OnlyFunctionProperties<T> = Pick<T, OnlyFunctionPropertyNames<T>>
 
 export type OnlyStateProperties<T> = Pick<T, OnlyStatePropertyNames<T>>
 
+type ShapeOf<T> = Omit<T, never>
+
 /**
- * This type is `never` if the two type parameters don't match. If they match,
- * it is equal to one of the two types.
+ * This type fails to be evaluated if the two type parameters don't match. If
+ * they match, it is equal to one of the two types.
  *
  * Motivation: we use this type for documentation purposes. Some of the types
  * and interfaces that we want to publicly expose have several layers of
@@ -75,11 +77,10 @@ export type OnlyStateProperties<T> = Pick<T, OnlyStatePropertyNames<T>>
  * compile-time error. If they are equal, `RoomSession` will refer to the
  * documented version of the methods.
  */
-export type AssertSameType<ExpectedType, Output> = ExpectedType extends Output
-  ? Output extends ExpectedType
-    ? Output
-    : never
-  : never
+export type AssertSameType<
+  ExpectedType extends ShapeOf<Output>,
+  Output extends ShapeOf<ExpectedType>
+> = Output
 
 export type IsTimestampProperty<Property> = Property extends `${string}At`
   ? Property
