@@ -8,6 +8,9 @@ export const initialComponentState: Readonly<ComponentState> = {
 }
 
 type UpdateComponent = Partial<ReduxComponent> & Pick<ReduxComponent, 'id'>
+type CleanupComponentParams = {
+  ids: Array<ReduxComponent['id']>
+}
 
 type SuccessParams = {
   componentId: string
@@ -56,14 +59,9 @@ const componentSlice = createDestroyableSlice({
         jsonrpc: error,
       }
     },
-    cleanup: (state) => {
-      Object.keys(state.byId).forEach((componentId) => {
-        if (
-          state.byId[componentId].responses ||
-          state.byId[componentId].errors
-        ) {
-          delete state.byId[componentId]
-        }
+    cleanup: (state, { payload }: PayloadAction<CleanupComponentParams>) => {
+      payload.ids.forEach((componentId) => {
+        delete state.byId[componentId]
       })
     },
   },
