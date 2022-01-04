@@ -103,7 +103,6 @@ export const connect = <
         }
       }
     })
-    store.dispatch(componentActions.upsert({ id: instance.__uuid }))
 
     // Run all the custom sagas
     const taskList = customSagas?.map((saga) => {
