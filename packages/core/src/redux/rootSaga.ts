@@ -37,6 +37,7 @@ import {
 import { AuthError } from '../CustomErrors'
 import { PubSubChannel } from './interfaces'
 import { createRestartableSaga } from './utils/sagaHelpers'
+import { componentCleanupSaga } from './features/component/componentSaga'
 
 interface StartSagaOptions {
   session: BaseSession
@@ -82,6 +83,8 @@ export function* initSessionSaga({
     }
   }
 
+  const compCleanupTask = yield fork(componentCleanupSaga)
+
   yield fork(sessionChannelWatcher, {
     session,
     sessionChannel,
@@ -101,6 +104,7 @@ export function* initSessionSaga({
   session.connect()
 
   yield take(destroyAction.type)
+  compCleanupTask.cancel()
   pubSubChannel.close()
   sessionChannel.close()
   customTasks.forEach((task) => task.cancel())

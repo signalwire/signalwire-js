@@ -56,6 +56,16 @@ const componentSlice = createDestroyableSlice({
         jsonrpc: error,
       }
     },
+    cleanup: (state) => {
+      Object.keys(state.byId).forEach((componentId) => {
+        if (
+          state.byId[componentId].responses ||
+          state.byId[componentId].errors
+        ) {
+          delete state.byId[componentId]
+        }
+      })
+    },
   },
 })
 
