@@ -59,7 +59,7 @@ export interface VideoRoomSessionContract {
   /** Whether muted videos are shown in the room layout. See {@link setHideVideoMuted} */
   hideVideoMuted: boolean
   /** URL to the room preview. */
-  previewUrl: string | null
+  previewUrl?: string
 
   audioMute(params?: MemberCommandParams): Rooms.AudioMuteMember
   audioUnmute(params?: MemberCommandParams): Rooms.AudioUnmuteMember
@@ -117,7 +117,9 @@ export type VideoRoomSessionEntityUpdated =
  * @internal
  */
 export type InternalVideoRoomSessionEntity = {
-  [K in keyof VideoRoomSessionEntity as CamelToSnakeCase<K>]: VideoRoomSessionEntity[K]
+  [K in NonNullable<
+    keyof VideoRoomSessionEntity
+  > as CamelToSnakeCase<K>]: VideoRoomSessionEntity[K]
 }
 
 /**
@@ -132,7 +134,7 @@ type InternalVideoRoomEntity = {
   name: string
   recording: boolean
   hide_video_muted: boolean
-  preview_url: string | null
+  preview_url?: string
 }
 
 /**

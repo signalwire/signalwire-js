@@ -75,7 +75,7 @@ export interface RoomSessionDocs<T>
    * If the Room has been created with the property `enable_room_previews` set
    * to `true`, this field contains the URL to the room preview.
    */
-  readonly previewUrl: string | null // TODO: optional or null ?
+  readonly previewUrl?: string
 
   /**
    * Joins the room session.

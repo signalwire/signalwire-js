@@ -12,7 +12,7 @@ export interface RoomSessionDeviceDocs
   leave(): Promise<void>
 
   /** @ignore */
-  readonly previewUrl: string | null
+  readonly previewUrl?: string
 
   /**
    * Replaces the current camera stream with the one coming from a different

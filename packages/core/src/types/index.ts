@@ -68,7 +68,7 @@ export interface BaseConnectionContract<
   /** The id of the current member within the room */
   readonly memberId: string
   /** The preview_url for the room. Only with "enable_room_previews: true" on Room configuration. */
-  readonly previewUrl: string | null // TODO: optional or null ?
+  readonly previewUrl?: string
 
   updateCamera(constraints: MediaTrackConstraints): Promise<void>
   updateMicrophone(constraints: MediaTrackConstraints): Promise<void>
