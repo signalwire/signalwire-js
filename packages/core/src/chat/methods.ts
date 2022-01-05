@@ -6,7 +6,7 @@ import type {
 } from '../types/chat'
 import type { BaseChatConsumer } from './BaseChat'
 import type { ExecuteExtendedOptions } from '../utils/interfaces'
-import { toInternalChatChannels } from '../utils'
+import { toInternalChatChannels, toExternalJSON } from '../utils'
 
 interface ChatMethodPropertyDescriptor<T, ParamsType>
   extends PropertyDescriptor {
@@ -43,9 +43,8 @@ const createChatMethod = <InputType, OutputType = InputType>(
 })
 
 /**
- * Type the params for each room member method that uses the provided
- * memberId or fallback to the instance memberId. Additional params
- * can be passed as `value` or `volume`.
+ * Type the params for each chat method that requires a memberId.
+ * Additional params can be passed.
  */
 interface ChatMemberMethodParams {
   memberId?: string
@@ -67,8 +66,7 @@ const createChatMemberMethod = <InputType, OutputType = InputType>(
       {
         method,
         params: {
-          // FIXME: change to member_id after backend is deployed
-          user_id: memberId,
+          member_id: memberId,
           ...rest,
           channels,
         },
@@ -82,6 +80,23 @@ const createChatMemberMethod = <InputType, OutputType = InputType>(
  * Chat Methods
  */
 export const publish = createChatMethod<ChatPublishParams>('chat.publish')
+export const getMessages = createChatMethod<{ messages: any[]; cursor: any }>(
+  'chat.messages.get',
+  {
+    transformResolve: (payload) => ({
+      messages: payload.messages.map((message) => toExternalJSON(message)),
+      cursor: payload.cursor,
+    }),
+  }
+)
+export const getMembers = createChatMethod<{ members: any[] }>(
+  'chat.members.get',
+  {
+    transformResolve: (payload) => ({
+      members: payload.members.map((member) => toExternalJSON(member)),
+    }),
+  }
+)
 export const setState = createChatMethod<ChatSetStateParams>(
   'chat.presence.set_state'
 )
@@ -89,10 +104,9 @@ export const setState = createChatMethod<ChatSetStateParams>(
 /**
  * Chat Member Methods
  */
-export const getState = createChatMemberMethod<
-  // FIXME: adjust types after backend is deployed
-  { user_states: any },
-  { channels: any }
->('chat.presence.get_state', {
-  transformResolve: (payload) => ({ channels: payload.user_states }),
-})
+export const getState = createChatMemberMethod<{ channels: any }>(
+  'chat.presence.get_state',
+  {
+    transformResolve: (payload) => ({ channels: payload.channels }),
+  }
+)

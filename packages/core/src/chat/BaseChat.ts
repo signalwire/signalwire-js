@@ -169,6 +169,8 @@ export const BaseChatAPI = extendComponent<BaseChatConsumer, ChatMethods>(
   BaseChatConsumer,
   {
     publish: chatMethods.publish,
+    getMembers: chatMethods.getMembers,
+    getMessages: chatMethods.getMessages,
     setState: chatMethods.setState,
     getState: chatMethods.getState,
   }
