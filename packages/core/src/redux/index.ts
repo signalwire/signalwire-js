@@ -10,7 +10,7 @@ import {
   InternalChannels,
 } from '../utils/interfaces'
 
-interface ConfigureStoreOptions {
+export interface ConfigureStoreOptions {
   userOptions: InternalUserOptions
   SessionConstructor: SessionConstructor
   runSagaMiddleware?: boolean
