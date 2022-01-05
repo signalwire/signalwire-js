@@ -6,6 +6,8 @@ window.connect = async ({ channels, host, token }) => {
     token,
   })
 
+  window.__chat = chat
+
   chat.on('message', (args) => {
     const { message, channel, timestamp } = args
     const messageEl = document.createElement('div')
