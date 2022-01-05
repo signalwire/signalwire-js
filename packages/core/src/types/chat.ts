@@ -13,12 +13,12 @@ export type ChatChannel = string | string[]
 export interface ChatPublishParams {
   message: any
   channel: string
-  meta?: any
+  meta?: Record<any, any>
 }
 export interface ChatContract {
-  subscribe(channels: ChatChannel[]): any
-  unsubscribe(channels: ChatChannel[]): any
-  publish(params: ChatPublishParams): any
+  subscribe(channels: ChatChannel): Promise<any>
+  unsubscribe(channels: ChatChannel): Promise<any>
+  publish(params: ChatPublishParams): Promise<any>
 }
 export interface ChatMessageContract {
   id: string
