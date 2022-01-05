@@ -1,6 +1,5 @@
 import type {
   ChatPublishParams,
-  ChatSetStateParams,
   ChatJSONRPCMethod,
   InternalChatChannel,
 } from '../types/chat'
@@ -97,9 +96,9 @@ export const getMembers = createChatMethod<{ members: any[] }>(
     }),
   }
 )
-export const setState = createChatMethod<ChatSetStateParams>(
-  'chat.presence.set_state'
-)
+export const setState = createChatMethod<any, void>('chat.presence.set_state', {
+  transformResolve: () => {},
+})
 
 /**
  * Chat Member Methods
