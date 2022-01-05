@@ -62,11 +62,6 @@ describe('ComponentState Tests', () => {
       response,
     })
 
-    it('should not change the state if the componentId does not exist', () => {
-      store.dispatch(executeSuccessAction)
-      expect(store.getState().components).toStrictEqual(initialComponentState)
-    })
-
     it('should update the state properly including the response', () => {
       // Create the component first
       store.dispatch(componentActions.upsert(component))
@@ -101,11 +96,6 @@ describe('ComponentState Tests', () => {
       action,
       requestId,
       error,
-    })
-
-    it('should not change the state if the componentId does not exist', () => {
-      store.dispatch(executeFailureAction)
-      expect(store.getState().components).toStrictEqual(initialComponentState)
     })
 
     it('should update the state properly including both the action request and the error response', () => {
