@@ -8,19 +8,34 @@ window.connect = async ({ channels, host, token }) => {
 
   window.__chat = chat
 
-  chat.on('message', (args) => {
-    const { message, channel, timestamp } = args
+  const _loadHistory = async () => {
+    for (const channel of channels) {
+      const history = await chat.getMessages({ channel })
+      history.messages.reverse().forEach((message) => {
+        console.debug('Append Message', message)
+        _appendMessage({ ...message, channel })
+      })
+    }
+  }
+
+  const _appendMessage = (message) => {
+    const { content, channel, publishedAt } = message
     const messageEl = document.createElement('div')
     messageEl.classList.add('message', 'bg-indigo-200', 'p-2')
     messageEl.innerHTML = `
-      <div class="message-meta"><span class="font-bold">when</span>: ${timestamp}</div>
-      <div class="message-body">${message}</div>
+      <div class="message-meta"><span class="font-bold">At</span>: ${publishedAt}</div>
+      <div class="message-body">${content}</div>
     `
     const channelEl = document.querySelector(
       `.chat-messages-channel-${channel}`
     )
 
     channelEl.appendChild(messageEl)
+  }
+
+  chat.on('message', (message) => {
+    console.debug('Inbound Message', message)
+    _appendMessage(message)
   })
 
   await chat.subscribe(channels)
@@ -72,6 +87,8 @@ window.connect = async ({ channels, host, token }) => {
 
     messageEl.value = ''
   })
+
+  _loadHistory()
 }
 
 // UI Initialization
