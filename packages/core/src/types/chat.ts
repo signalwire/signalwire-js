@@ -15,10 +15,20 @@ export interface ChatPublishParams {
   channel: string
   meta?: Record<any, any>
 }
+export interface ChatSetStateParams {
+  channels: ChatChannel
+  state: Record<any, any>
+}
+export interface ChatGetStateParams {
+  channels: ChatChannel
+  memberId: string
+}
 export interface ChatContract {
   subscribe(channels: ChatChannel): Promise<any>
   unsubscribe(channels: ChatChannel): Promise<any>
   publish(params: ChatPublishParams): Promise<any>
+  setState(params: ChatSetStateParams): Promise<any>
+  getState(params: ChatGetStateParams): Promise<any>
 }
 export interface ChatMessageContract {
   id: string
@@ -76,5 +86,7 @@ export type ChatJSONRPCMethod =
   | 'chat.subscribe'
   | 'chat.publish'
   | 'chat.unsubscribe'
+  | 'chat.presence.set_state'
+  | 'chat.presence.get_state'
 
 export type ChatTransformType = 'chatMessage'
