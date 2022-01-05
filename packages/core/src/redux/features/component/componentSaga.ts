@@ -3,21 +3,21 @@ import { delay, fork, put, select } from '@redux-saga/core/effects'
 import { componentActions } from '..'
 import { getComponentsToCleanup } from './componentSelectors'
 
-export function* componentCleanupSaga(): SagaIterator {
-  function* worker(): SagaIterator {
-    const toCleanup = yield select(getComponentsToCleanup)
+export function* componentCleanupSagaWorker(): SagaIterator {
+  const toCleanup = yield select(getComponentsToCleanup)
 
-    if (toCleanup.length) {
-      yield put(
-        componentActions.cleanup({
-          ids: toCleanup,
-        })
-      )
-    }
+  if (toCleanup.length) {
+    yield put(
+      componentActions.cleanup({
+        ids: toCleanup,
+      })
+    )
   }
+}
 
+export function* componentCleanupSaga(): SagaIterator {
   while (true) {
     yield delay(2000)
-    yield fork(worker)
+    yield fork(componentCleanupSagaWorker)
   }
 }
