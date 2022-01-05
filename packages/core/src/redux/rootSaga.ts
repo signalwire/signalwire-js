@@ -83,8 +83,6 @@ export function* initSessionSaga({
     }
   }
 
-  const compCleanupTask = yield fork(componentCleanupSaga)
-
   yield fork(sessionChannelWatcher, {
     session,
     sessionChannel,
@@ -101,10 +99,17 @@ export function* initSessionSaga({
     userOptions,
   })
 
+  const compCleanupTask = yield fork(componentCleanupSaga)
+
   session.connect()
 
   yield take(destroyAction.type)
-  compCleanupTask.cancel()
+  /**
+   * We have to manually cancel the fork because it is not
+   * being automatically cleaned up when the session is
+   * destroyed, most likely because it's using a timer.
+   */
+  compCleanupTask?.cancel()
   pubSubChannel.close()
   sessionChannel.close()
   customTasks.forEach((task) => task.cancel())
