@@ -46,7 +46,7 @@ export interface ChatMessageContract {
   id: string
   senderId: string
   channel: string
-  message: any
+  content: any
   publishedAt: Date
   meta?: any
 }
@@ -71,12 +71,14 @@ type ChannelMessageEventName = 'channel.message'
  * 'chat.channel.message'
  */
 export interface ChatChannelMessageEventParams {
-  id: string
-  sender_id: string
-  message: string
   channel: string
-  meta?: any
-  publishedAt: number
+  message: {
+    id: string
+    sender_id: string
+    content: string
+    meta?: any
+    publishedAt: number
+  }
 }
 
 export interface ChatChannelMessageEvent extends SwEvent {

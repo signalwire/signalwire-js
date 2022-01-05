@@ -162,6 +162,66 @@ describe('Chat Object', () => {
     ).toBe(1)
   })
 
+  describe('message handler', () => {
+    it('should return a ChatMessage object', (done) => {
+      WS.clean()
+      server = new WS(host)
+      server.on('connection', (socket) => {
+        socket.on('message', (data: any) => {
+          const parsedData = JSON.parse(data)
+          socket.send(
+            JSON.stringify({
+              jsonrpc: '2.0',
+              id: parsedData.id,
+              result: {},
+            })
+          )
+
+          if (parsedData.method === 'chat.subscribe') {
+            socket.send(
+              JSON.stringify({
+                jsonrpc: '2.0',
+                id: '7a5cbfac-d1f8-4e7f-b1cf-9e1f7cdc6b54',
+                method: 'signalwire.event',
+                params: {
+                  event_type: 'chat.channel.message',
+                  event_channel: 'chat',
+                  params: {
+                    channel: 'lobby',
+                    message: {
+                      id: 'f5511ad5-4dc2-4d28-a449-cc39909093b9',
+                      sender_id: '1507e5f9-075c-463d-94ba-a8f9ec0c7d4e',
+                      content: 'Hello World!',
+                      published_at: 1641405257.795,
+                    },
+                  },
+                  timestamp: 1641405258.253,
+                },
+              })
+            )
+          }
+        })
+      })
+
+      const chat = new Chat({
+        host,
+        token,
+      })
+      chat.on('message', (message) => {
+        expect(message.channel).toBe('lobby')
+        expect(message.id).toBe('f5511ad5-4dc2-4d28-a449-cc39909093b9')
+        expect(message.senderId).toBe('1507e5f9-075c-463d-94ba-a8f9ec0c7d4e')
+        expect(message.content).toBe('Hello World!')
+        expect(message.publishedAt).toStrictEqual(
+          new Date(1641405257.795 * 1000)
+        )
+
+        done()
+      })
+      chat.subscribe(['test1'])
+    })
+  })
+
   describe('Subscribe', () => {
     it('should convert channels into the internal channel notation when calling .subscribe()', async () => {
       const chat = new Chat({
