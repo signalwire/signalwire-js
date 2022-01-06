@@ -1,4 +1,4 @@
-import { InternalChatChannel } from '..'
+import { InternalChatChannel } from '../..'
 
 export const toInternalChatChannels = (
   channels: string | string[] | undefined
