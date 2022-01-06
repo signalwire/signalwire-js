@@ -112,16 +112,16 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
             const { channel, message } = payload.params
             return new ChatMessage(
               toExternalJSON({
-                channel,
                 ...message,
+                channel,
               })
             )
           },
           payloadTransform: (payload: ChatChannelMessageEvent) => {
             const { channel, message } = payload.params
             return toExternalJSON({
-              channel,
               ...message,
+              channel,
             })
           },
         },
