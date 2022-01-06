@@ -17,7 +17,7 @@ export function* componentCleanupSagaWorker(): SagaIterator {
 
 export function* componentCleanupSaga(): SagaIterator {
   while (true) {
-    yield delay(2000)
+    yield delay(3600_000) // 1 hour
     yield fork(componentCleanupSagaWorker)
   }
 }
