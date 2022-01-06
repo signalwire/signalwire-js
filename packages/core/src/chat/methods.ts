@@ -1,11 +1,8 @@
-import type {
-  ChatPublishParams,
-  ChatJSONRPCMethod,
-  InternalChatChannel,
-} from '../types/chat'
+import type { ChatPublishParams, ChatJSONRPCMethod } from '../types/chat'
 import type { BaseChatConsumer } from './BaseChat'
 import type { ExecuteExtendedOptions } from '../utils/interfaces'
-import { toInternalChatChannels, toExternalJSON } from '../utils'
+import { toExternalJSON } from '../utils'
+import { toInternalChatChannels, isValidChannels } from './utils'
 
 interface ChatMethodPropertyDescriptor<T, ParamsType>
   extends PropertyDescriptor {
@@ -22,11 +19,9 @@ const createChatMethod = <InputType, OutputType = InputType>(
   options: ExecuteExtendedOptions<InputType, OutputType> = {}
 ): ChatMethodDescriptor<OutputType> => ({
   value: function (params: ChatMethodParams = {}): Promise<OutputType> {
-    let channels: InternalChatChannel[] | undefined = undefined
-    if (params?.channels) {
-      // @ts-expect-error
-      channels = toInternalChatChannels(params.channels)
-    }
+    const channels = isValidChannels(params?.channels)
+      ? toInternalChatChannels(params.channels)
+      : undefined
 
     return this.execute(
       {
@@ -55,11 +50,9 @@ const createChatMemberMethod = <InputType, OutputType = InputType>(
   options: ExecuteExtendedOptions<InputType, OutputType> = {}
 ): ChatMethodDescriptor<OutputType> => ({
   value: function ({ memberId, ...rest }: ChatMemberMethodParams = {}) {
-    let channels: InternalChatChannel[] | undefined = undefined
-    if (rest?.channels) {
-      // @ts-expect-error
-      channels = toInternalChatChannels(rest.channels)
-    }
+    const channels = isValidChannels(rest?.channels)
+      ? toInternalChatChannels(rest.channels)
+      : undefined
 
     return this.execute(
       {
