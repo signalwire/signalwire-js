@@ -82,7 +82,7 @@ export type AssertSameType<
   Output extends ShapeOf<ExpectedType>
 > = Output
 
-export type IsTimestampProperty<Property> = Property extends `${string}At`
+type IsTimestampProperty<Property> = Property extends `${string}_at`
   ? Property
   : never
 
@@ -93,6 +93,9 @@ export interface DefaultPublicToInternalTypeMapping {
 
 export interface DefaultInternalToPublicTypeMapping {}
 
+/**
+ * Note: Property is snake_case
+ */
 export type ConverToExternalTypes<
   Property extends string,
   DefaultType,
