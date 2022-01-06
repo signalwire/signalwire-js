@@ -4,6 +4,14 @@ import { Chat } from './Chat'
 describe('Chat Object', () => {
   const host = 'ws://localhost:1234'
   const token = '<jwt>'
+  const messages = [
+    {
+      id: '5fdc8fc5-b7fe-4fbd-8204-f2310dec2614',
+      sender_id: '1507e5f9-075c-463d-94ba-a8f9ec0c7d4e',
+      content: 'hello world',
+      published_at: 1641393396.153,
+    },
+  ]
 
   let server: WS
   beforeEach(async () => {
@@ -27,6 +35,70 @@ describe('Chat Object', () => {
               jsonrpc: '2.0',
               id: parsedData.id,
               error: { code: -32600, message: 'Invalid Request' },
+            })
+          )
+        } else if (parsedData.method === 'chat.messages.get') {
+          socket.send(
+            JSON.stringify({
+              jsonrpc: '2.0',
+              id: parsedData.id,
+              result: {
+                code: '200',
+                message: 'OK',
+                messages,
+                cursor: {
+                  before: 'before',
+                  after: 'after',
+                },
+              },
+            })
+          )
+        } else if (parsedData.method === 'chat.members.get') {
+          socket.send(
+            JSON.stringify({
+              jsonrpc: '2.0',
+              id: parsedData.id,
+              result: {
+                code: '200',
+                message: 'Success',
+                members: [
+                  {
+                    id: '1507e5f9-075c-463d-94ba-a8f9ec0c7d4e',
+                  },
+                ],
+              },
+            })
+          )
+        } else if (parsedData.method === 'chat.presence.set_state') {
+          socket.send(
+            JSON.stringify({
+              jsonrpc: '2.0',
+              id: parsedData.id,
+              result: {
+                code: '200',
+                message: 'Success',
+              },
+            })
+          )
+        } else if (parsedData.method === 'chat.presence.get_state') {
+          socket.send(
+            JSON.stringify({
+              jsonrpc: '2.0',
+              id: parsedData.id,
+              result: {
+                code: '200',
+                message: 'Success',
+                channels: {
+                  lobby: {
+                    state: {
+                      typing: true,
+                    },
+                  },
+                },
+                member: {
+                  id: '1507e5f9-075c-463d-94ba-a8f9ec0c7d4e',
+                },
+              },
             })
           )
         } else {
@@ -88,6 +160,66 @@ describe('Chat Object', () => {
         return parsedMessage.method === 'signalwire.connect'
       }).length
     ).toBe(1)
+  })
+
+  describe('message handler', () => {
+    it('should return a ChatMessage object', (done) => {
+      WS.clean()
+      server = new WS(host)
+      server.on('connection', (socket) => {
+        socket.on('message', (data: any) => {
+          const parsedData = JSON.parse(data)
+          socket.send(
+            JSON.stringify({
+              jsonrpc: '2.0',
+              id: parsedData.id,
+              result: {},
+            })
+          )
+
+          if (parsedData.method === 'chat.subscribe') {
+            socket.send(
+              JSON.stringify({
+                jsonrpc: '2.0',
+                id: '7a5cbfac-d1f8-4e7f-b1cf-9e1f7cdc6b54',
+                method: 'signalwire.event',
+                params: {
+                  event_type: 'chat.channel.message',
+                  event_channel: 'chat',
+                  params: {
+                    channel: 'lobby',
+                    message: {
+                      id: 'f5511ad5-4dc2-4d28-a449-cc39909093b9',
+                      sender_id: '1507e5f9-075c-463d-94ba-a8f9ec0c7d4e',
+                      content: 'Hello World!',
+                      published_at: 1641405257.795,
+                    },
+                  },
+                  timestamp: 1641405258.253,
+                },
+              })
+            )
+          }
+        })
+      })
+
+      const chat = new Chat({
+        host,
+        token,
+      })
+      chat.on('message', (message) => {
+        expect(message.channel).toBe('lobby')
+        expect(message.id).toBe('f5511ad5-4dc2-4d28-a449-cc39909093b9')
+        expect(message.senderId).toBe('1507e5f9-075c-463d-94ba-a8f9ec0c7d4e')
+        expect(message.content).toBe('Hello World!')
+        expect(message.publishedAt).toStrictEqual(
+          new Date(1641405257.795 * 1000)
+        )
+
+        done()
+      })
+      chat.subscribe(['test1'])
+    })
   })
 
   describe('Subscribe', () => {
@@ -223,6 +355,127 @@ describe('Chat Object', () => {
       await expect(() =>
         chat.unsubscribe(['test1', 'test5_error'])
       ).rejects.toBeTruthy()
+    })
+  })
+
+  describe('getMembers', () => {
+    it('should send the proper RPC and format the response', async () => {
+      const chat = new Chat({
+        host,
+        token,
+      })
+      chat.on('message', () => {})
+      await chat.subscribe(['test1'])
+
+      const response = await chat.getMembers({ channel: 'test1' })
+
+      const request = JSON.parse(server.messages[2].toString())
+      expect(request.method).toEqual('chat.members.get')
+      expect(request.params).toStrictEqual({ channel: 'test1' })
+
+      expect(response).toStrictEqual({
+        members: [
+          {
+            id: '1507e5f9-075c-463d-94ba-a8f9ec0c7d4e',
+          },
+        ],
+      })
+    })
+  })
+
+  describe('getMessages', () => {
+    it('should send the proper RPC and format the response', async () => {
+      const chat = new Chat({
+        host,
+        token,
+      })
+      chat.on('message', () => {})
+      await chat.subscribe(['test1'])
+
+      const response = await chat.getMessages({
+        channel: 'test1',
+        cursor: { before: 'before' },
+      })
+
+      const request = JSON.parse(server.messages[2].toString())
+      expect(request.method).toEqual('chat.messages.get')
+      expect(request.params).toStrictEqual({
+        channel: 'test1',
+        cursor: { before: 'before' },
+      })
+
+      expect(response).toStrictEqual({
+        messages: [
+          {
+            id: '5fdc8fc5-b7fe-4fbd-8204-f2310dec2614',
+            senderId: '1507e5f9-075c-463d-94ba-a8f9ec0c7d4e',
+            content: 'hello world',
+            publishedAt: new Date(1641393396.153 * 1000),
+          },
+        ],
+        cursor: {
+          before: 'before',
+          after: 'after',
+        },
+      })
+    })
+  })
+
+  describe('setState', () => {
+    it('should send the proper RPC and format the response', async () => {
+      const chat = new Chat({
+        host,
+        token,
+      })
+      chat.on('message', () => {})
+      await chat.subscribe(['test1'])
+
+      const response = await chat.setState({
+        channels: 'test1',
+        state: { typing: true },
+      })
+
+      const request = JSON.parse(server.messages[2].toString())
+      expect(request.method).toEqual('chat.presence.set_state')
+      expect(request.params).toStrictEqual({
+        channels: [{ name: 'test1' }],
+        state: { typing: true },
+      })
+
+      expect(response).toStrictEqual(undefined)
+    })
+  })
+
+  describe('getState', () => {
+    it('should send the proper RPC and format the response', async () => {
+      const chat = new Chat({
+        host,
+        token,
+      })
+      chat.on('message', () => {})
+      await chat.subscribe(['test1'])
+
+      const response = await chat.getState({
+        memberId: 'memberId',
+        channels: 'test1',
+      })
+
+      const request = JSON.parse(server.messages[2].toString())
+      expect(request.method).toEqual('chat.presence.get_state')
+      expect(request.params).toStrictEqual({
+        channels: [{ name: 'test1' }],
+        member_id: 'memberId',
+      })
+
+      expect(response).toStrictEqual({
+        channels: {
+          lobby: {
+            state: {
+              typing: true,
+            },
+          },
+        },
+      })
     })
   })
 })

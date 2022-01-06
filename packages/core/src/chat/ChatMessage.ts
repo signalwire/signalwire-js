@@ -1,7 +1,7 @@
 import { ChatMessageContract } from '..'
 
 export class ChatMessage implements ChatMessageContract {
-  constructor(public payload: ChatMessageContract) {}
+  constructor(private payload: ChatMessageContract) {}
 
   get id(): string {
     return this.payload.id
@@ -15,8 +15,8 @@ export class ChatMessage implements ChatMessageContract {
     return this.payload.channel
   }
 
-  get message(): string {
-    return this.payload.message
+  get content(): string {
+    return this.payload.content
   }
 
   get meta(): any {

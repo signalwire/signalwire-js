@@ -1,4 +1,9 @@
-import type { OnlyStateProperties, OnlyFunctionProperties, SwEvent } from '..'
+import type {
+  OnlyStateProperties,
+  OnlyFunctionProperties,
+  SwEvent,
+  CamelToSnakeCase,
+} from '..'
 import type { MapToPubSubShape } from '../redux/interfaces'
 import { PRODUCT_PREFIX_CHAT } from '../utils/constants'
 
@@ -15,18 +20,32 @@ export interface ChatPublishParams {
   channel: string
   meta?: Record<any, any>
 }
+export interface ChatSetStateParams {
+  channels: ChatChannel
+  state: Record<any, any>
+}
+export interface ChatGetStateParams {
+  channels: ChatChannel
+  memberId: string
+}
+export interface ChatGetMessagesParams {
+  channel: string
+  cursor?: {
+    after?: string
+    before?: string
+  }
+}
+export interface ChatGetMembersParams {
+  channel: string
+}
 export interface ChatContract {
   subscribe(channels: ChatChannel): Promise<any>
   unsubscribe(channels: ChatChannel): Promise<any>
   publish(params: ChatPublishParams): Promise<any>
-}
-export interface ChatMessageContract {
-  id: string
-  senderId: string
-  channel: string
-  message: any
-  publishedAt: Date
-  meta?: any
+  getMessages(params: ChatGetMessagesParams): Promise<any>
+  getMembers(params: ChatGetMembersParams): Promise<any>
+  setState(params: ChatSetStateParams): Promise<any>
+  getState(params: ChatGetStateParams): Promise<any>
 }
 
 export type ChatEntity = OnlyStateProperties<ChatContract>
@@ -34,6 +53,24 @@ export type ChatMethods = Omit<
   OnlyFunctionProperties<ChatContract>,
   'subscribe' | 'unsubscribe'
 >
+
+export interface ChatMessageContract {
+  id: string
+  senderId: string
+  channel: string
+  content: any
+  publishedAt: Date
+  meta?: any
+}
+export type ChatMessageEntity = Omit<
+  OnlyStateProperties<ChatMessageContract>,
+  'channel'
+>
+export type InternalChatMessageEntity = {
+  [K in NonNullable<
+    keyof ChatMessageEntity
+  > as CamelToSnakeCase<K>]: ChatMessageEntity[K]
+}
 
 /**
  * ==========
@@ -49,12 +86,8 @@ type ChannelMessageEventName = 'channel.message'
  * 'chat.channel.message'
  */
 export interface ChatChannelMessageEventParams {
-  id: string
-  sender_id: string
-  message: string
   channel: string
-  meta?: any
-  publishedAt: number
+  message: InternalChatMessageEntity
 }
 
 export interface ChatChannelMessageEvent extends SwEvent {
@@ -76,5 +109,9 @@ export type ChatJSONRPCMethod =
   | 'chat.subscribe'
   | 'chat.publish'
   | 'chat.unsubscribe'
+  | 'chat.presence.set_state'
+  | 'chat.presence.get_state'
+  | 'chat.members.get'
+  | 'chat.messages.get'
 
 export type ChatTransformType = 'chatMessage'
