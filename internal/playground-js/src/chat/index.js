@@ -38,6 +38,16 @@ window.connect = async ({ channels, host, token }) => {
     _appendMessage(message)
   })
 
+  chat.on('member.joined', (member) => {
+    console.debug('Member Joined a channel', member.id, member.channel)
+  })
+  chat.on('member.updated', (member) => {
+    console.debug('Member Updated', member.id, member.channel, member.state)
+  })
+  chat.on('member.left', (member) => {
+    console.debug('Member Left a channel', member.id, member.channel)
+  })
+
   await chat.subscribe(channels)
 
   // UI Sample code.
