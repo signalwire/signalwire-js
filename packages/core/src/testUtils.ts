@@ -1,5 +1,5 @@
 import { channel } from '@redux-saga/core'
-import { configureStore } from './redux'
+import { configureStore, ConfigureStoreOptions } from './redux'
 import { PubSubChannel } from './redux/interfaces'
 import { BaseSession } from './BaseSession'
 import { RPCConnectResult, InternalSDKLogger } from './utils/interfaces'
@@ -24,7 +24,7 @@ export const createMockedLogger = (): InternalSDKLogger => ({
  *
  * @returns Redux Store
  */
-export const configureJestStore = () => {
+export const configureJestStore = (options?: Partial<ConfigureStoreOptions>) => {
   return configureStore({
     userOptions: {
       project: PROJECT_ID,
@@ -34,6 +34,7 @@ export const configureJestStore = () => {
     },
     SessionConstructor: BaseSession,
     runSagaMiddleware: false,
+    ...options,
   })
 }
 

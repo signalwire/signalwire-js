@@ -37,6 +37,7 @@ import {
 import { AuthError } from '../CustomErrors'
 import { PubSubChannel } from './interfaces'
 import { createRestartableSaga } from './utils/sagaHelpers'
+import { componentCleanupSaga } from './features/component/componentSaga'
 
 interface StartSagaOptions {
   session: BaseSession
@@ -98,9 +99,17 @@ export function* initSessionSaga({
     userOptions,
   })
 
+  const compCleanupTask = yield fork(componentCleanupSaga)
+
   session.connect()
 
   yield take(destroyAction.type)
+  /**
+   * We have to manually cancel the fork because it is not
+   * being automatically cleaned up when the session is
+   * destroyed, most likely because it's using a timer.
+   */
+  compCleanupTask?.cancel()
   pubSubChannel.close()
   sessionChannel.close()
   customTasks.forEach((task) => task.cancel())

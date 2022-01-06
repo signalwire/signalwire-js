@@ -1,6 +1,5 @@
 import { ReduxComponent, SessionState, CustomSaga } from './interfaces'
 import { SDKStore } from './'
-import { componentActions } from './features'
 import { getComponent } from './features/component/componentSelectors'
 import { getSession } from './features/session/sessionSelectors'
 import type { BaseComponent } from '../BaseComponent'
@@ -54,10 +53,7 @@ export const connect = <
 
     const storeUnsubscribe = store.subscribe(() => {
       const state = store.getState()
-      const component = getComponent(state, instance.__uuid)
-      if (!component) {
-        return
-      }
+      const component = getComponent(state, instance.__uuid) || {}
       for (const reduxKey of componentKeys) {
         if (run === false) {
           return
@@ -65,7 +61,7 @@ export const connect = <
 
         const cacheKey = `${instance.__uuid}.${reduxKey}`
         const current = cacheMap.get(cacheKey)
-        const updatedValue = component?.[reduxKey]
+        const updatedValue = component[reduxKey]
         if (updatedValue !== undefined && current !== updatedValue) {
           cacheMap.set(cacheKey, updatedValue)
           const fnName = componentListeners[reduxKey]
@@ -103,7 +99,6 @@ export const connect = <
         }
       }
     })
-    store.dispatch(componentActions.upsert({ id: instance.__uuid }))
 
     // Run all the custom sagas
     const taskList = customSagas?.map((saga) => {

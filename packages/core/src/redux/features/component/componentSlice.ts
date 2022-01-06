@@ -8,6 +8,9 @@ export const initialComponentState: Readonly<ComponentState> = {
 }
 
 type UpdateComponent = Partial<ReduxComponent> & Pick<ReduxComponent, 'id'>
+type CleanupComponentParams = {
+  ids: Array<ReduxComponent['id']>
+}
 
 type SuccessParams = {
   componentId: string
@@ -39,21 +42,27 @@ const componentSlice = createDestroyableSlice({
     },
     executeSuccess: (state, { payload }: PayloadAction<SuccessParams>) => {
       const { componentId, requestId, response } = payload
-      if (state.byId[componentId]) {
-        state.byId[componentId].responses =
-          state.byId[componentId].responses || {}
-        state.byId[componentId].responses![requestId] = response
+      state.byId[componentId] ??= {
+        id: componentId,
       }
+      state.byId[componentId].responses ??= {}
+      state.byId[componentId].responses![requestId] = response
     },
     executeFailure: (state, { payload }: PayloadAction<FailureParams>) => {
       const { componentId, requestId, error, action } = payload
-      if (state.byId[componentId]) {
-        state.byId[componentId].errors = state.byId[componentId].errors || {}
-        state.byId[componentId].errors![requestId] = {
-          action,
-          jsonrpc: error,
-        }
+      state.byId[componentId] ??= {
+        id: componentId,
       }
+      state.byId[componentId].errors ??= {}
+      state.byId[componentId].errors![requestId] = {
+        action,
+        jsonrpc: error,
+      }
+    },
+    cleanup: (state, { payload }: PayloadAction<CleanupComponentParams>) => {
+      payload.ids.forEach((componentId) => {
+        delete state.byId[componentId]
+      })
     },
   },
 })
