@@ -1,4 +1,9 @@
-import type { OnlyStateProperties, OnlyFunctionProperties, SwEvent } from '..'
+import type {
+  OnlyStateProperties,
+  OnlyFunctionProperties,
+  SwEvent,
+  CamelToSnakeCase,
+} from '..'
 import type { MapToPubSubShape } from '../redux/interfaces'
 import { PRODUCT_PREFIX_CHAT } from '../utils/constants'
 
@@ -42,20 +47,30 @@ export interface ChatContract {
   setState(params: ChatSetStateParams): Promise<any>
   getState(params: ChatGetStateParams): Promise<any>
 }
-export interface ChatMessageContract {
-  id: string
-  senderId: string
-  channel: string
-  message: any
-  publishedAt: Date
-  meta?: any
-}
 
 export type ChatEntity = OnlyStateProperties<ChatContract>
 export type ChatMethods = Omit<
   OnlyFunctionProperties<ChatContract>,
   'subscribe' | 'unsubscribe'
 >
+
+export interface ChatMessageContract {
+  id: string
+  senderId: string
+  channel: string
+  content: any
+  publishedAt: Date
+  meta?: any
+}
+export type ChatMessageEntity = Omit<
+  OnlyStateProperties<ChatMessageContract>,
+  'channel'
+>
+export type InternalChatMessageEntity = {
+  [K in NonNullable<
+    keyof ChatMessageEntity
+  > as CamelToSnakeCase<K>]: ChatMessageEntity[K]
+}
 
 /**
  * ==========
@@ -71,12 +86,8 @@ type ChannelMessageEventName = 'channel.message'
  * 'chat.channel.message'
  */
 export interface ChatChannelMessageEventParams {
-  id: string
-  sender_id: string
-  message: string
   channel: string
-  meta?: any
-  publishedAt: number
+  message: InternalChatMessageEntity
 }
 
 export interface ChatChannelMessageEvent extends SwEvent {
