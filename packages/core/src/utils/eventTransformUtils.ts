@@ -1,4 +1,5 @@
 import { EventTransform, EventTransformType } from './interfaces'
+import { proxyFactory } from './proxyUtils'
 
 interface InstanceProxyFactoryParams {
   transform: EventTransform
@@ -65,21 +66,11 @@ export const instanceProxyFactory = ({
   })
 
   const transformedPayload = transform.payloadTransform(payload)
-  const proxiedObj = new Proxy(cachedInstance, {
-    get(target: any, prop: any, receiver: any) {
-      if (prop === '_eventsNamespace' && transform.getInstanceEventNamespace) {
-        return transform.getInstanceEventNamespace(payload)
-      }
-      if (prop === 'eventChannel' && transform.getInstanceEventChannel) {
-        return transform.getInstanceEventChannel(payload)
-      }
-
-      if (prop in transformedPayload) {
-        return transformedPayload[prop]
-      }
-
-      return Reflect.get(target, prop, receiver)
-    },
+  const proxiedObj = proxyFactory({
+    transform,
+    payload,
+    instance: cachedInstance,
+    transformedPayload,
   })
 
   return proxiedObj

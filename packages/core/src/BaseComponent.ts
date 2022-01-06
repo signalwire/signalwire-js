@@ -34,6 +34,7 @@ import {
   getAuthStatus,
 } from './redux/features/session/sessionSelectors'
 import { AuthError } from './CustomErrors'
+import { proxyFactory } from './utils/proxyUtils'
 
 type EventRegisterHandlers<EventTypes extends EventEmitter.ValidEventTypes> =
   | {
@@ -338,31 +339,12 @@ export class BaseComponent<
       const transformedPayload = this._parseNestedFields(
         transform.payloadTransform(payload)
       )
-      const proxiedObj = new Proxy(cachedInstance, {
-        get(target: any, prop: any, receiver: any) {
-          if (prop === 'toString') {
-            const property = target[prop]
 
-            return typeof property === 'function'
-              ? // TODO: define serializer.
-                () => JSON.stringify(transformedPayload)
-              : property
-          } else if (
-            prop === '_eventsNamespace' &&
-            transform.getInstanceEventNamespace
-          ) {
-            return transform.getInstanceEventNamespace(payload)
-          }
-          if (prop === 'eventChannel' && transform.getInstanceEventChannel) {
-            return transform.getInstanceEventChannel(payload)
-          }
-
-          if (prop in transformedPayload) {
-            return transformedPayload[prop]
-          }
-
-          return Reflect.get(target, prop, receiver)
-        },
+      const proxiedObj = proxyFactory({
+        instance: cachedInstance,
+        payload,
+        transformedPayload,
+        transform
       })
 
       // @ts-expect-error
