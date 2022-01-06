@@ -11,7 +11,15 @@ type ToInternalChatEvent<T extends string> = `${ChatNamespace}.${T}`
 export type ChatNamespace = typeof PRODUCT_PREFIX_CHAT
 
 export type ChatMessageEventName = 'message'
-export type ChatEventNames = ChatMessageEventName
+export type ChatMemberJoinedEventName = 'member.joined'
+export type ChatMemberUpdatedEventName = 'member.updated'
+export type ChatMemberLeftEventName = 'member.left'
+export type ChatMemberEventNames =
+  | ChatMemberJoinedEventName
+  | ChatMemberUpdatedEventName
+  | ChatMemberLeftEventName
+
+export type ChatEventNames = ChatMessageEventName | ChatMemberEventNames
 
 export type ChatChannel = string | string[]
 
@@ -72,6 +80,17 @@ export type InternalChatMessageEntity = {
   > as CamelToSnakeCase<K>]: ChatMessageEntity[K]
 }
 
+export interface ChatMemberContract {
+  id: string
+  channel: string
+  state?: Record<any, any>
+}
+
+// Not using OnlyStateProperties because Member for now is just an id..
+export interface InternalChatMemberEntity {
+  id: string
+}
+
 /**
  * ==========
  * ==========
@@ -95,9 +114,57 @@ export interface ChatChannelMessageEvent extends SwEvent {
   params: ChatChannelMessageEventParams
 }
 
-export type ChatEvent = ChatChannelMessageEvent
+/**
+ * 'chat.member.joined'
+ */
+export interface ChatMemberJoinedEventParams {
+  channel: string
+  member: InternalChatMemberEntity
+}
 
-export type ChatEventParams = ChatChannelMessageEventParams
+export interface ChatMemberJoinedEvent extends SwEvent {
+  event_type: ToInternalChatEvent<ChatMemberJoinedEventName>
+  params: ChatMemberJoinedEventParams
+}
+
+/**
+ * 'chat.member.updated'
+ */
+export interface ChatMemberUpdatedEventParams {
+  channel: string
+  member: InternalChatMemberEntity
+  state: Record<any, any>
+}
+
+export interface ChatMemberUpdatedEvent extends SwEvent {
+  event_type: ToInternalChatEvent<ChatMemberUpdatedEventName>
+  params: ChatMemberUpdatedEventParams
+}
+
+/**
+ * 'chat.member.left'
+ */
+export interface ChatMemberLeftEventParams {
+  channel: string
+  member: InternalChatMemberEntity
+}
+
+export interface ChatMemberLeftEvent extends SwEvent {
+  event_type: ToInternalChatEvent<ChatMemberLeftEventName>
+  params: ChatMemberLeftEventParams
+}
+
+export type ChatEvent =
+  | ChatChannelMessageEvent
+  | ChatMemberJoinedEvent
+  | ChatMemberUpdatedEvent
+  | ChatMemberLeftEvent
+
+export type ChatEventParams =
+  | ChatChannelMessageEventParams
+  | ChatMemberJoinedEventParams
+  | ChatMemberUpdatedEventParams
+  | ChatMemberLeftEventParams
 
 export type ChatAction = MapToPubSubShape<ChatEvent>
 
