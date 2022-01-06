@@ -23,6 +23,11 @@ export const chatWorker: SDKWorker = function* chatWorker({
         })
         break
       }
+      case 'chat.member.joined':
+      case 'chat.member.updated':
+      case 'chat.member.left':
+        yield sagaEffects.put(pubSubChannel, action)
+        break
 
       default: {
         getLogger().warn('[chatWorker] Unrecognized Action', action)

@@ -222,6 +222,131 @@ describe('Chat Object', () => {
     })
   })
 
+  describe('member event handlers', () => {
+    const _setupMockWS = (eventPayload: any) => {
+      WS.clean()
+      server = new WS(host)
+      server.on('connection', (socket) => {
+        socket.on('message', (data: any) => {
+          const parsedData = JSON.parse(data)
+          socket.send(
+            JSON.stringify({
+              jsonrpc: '2.0',
+              id: parsedData.id,
+              result: {},
+            })
+          )
+
+          if (parsedData.method === 'chat.subscribe') {
+            socket.send(JSON.stringify(eventPayload))
+          }
+        })
+      })
+    }
+
+    it('should return a ChatMember object on member.joined', (done) => {
+      _setupMockWS({
+        jsonrpc: '2.0',
+        id: '45266133-cdfe-4e99-a257-1ea77572f1d9',
+        method: 'signalwire.event',
+        params: {
+          event_type: 'chat.member.joined',
+          event_channel: 'chat',
+          params: {
+            channel: 'lobby',
+            member: {
+              id: '1507e5f9-075c-463d-94ba-a8f9ec0c7d4e',
+            },
+          },
+          timestamp: 1641468229.28,
+        },
+      })
+
+      const chat = new Chat({
+        host,
+        token,
+      })
+      chat.on('member.joined', (member) => {
+        expect(member.channel).toBe('lobby')
+        expect(member.id).toBe('1507e5f9-075c-463d-94ba-a8f9ec0c7d4e')
+
+        done()
+      })
+
+      chat.subscribe(['test1'])
+    })
+
+    it('should return a ChatMember object on member.updated', (done) => {
+      _setupMockWS({
+        jsonrpc: '2.0',
+        id: 'f734e59a-dea2-4de2-8369-7f6df4bf3016',
+        method: 'signalwire.event',
+        params: {
+          event_type: 'chat.member.updated',
+          event_channel: 'chat',
+          params: {
+            channel: 'lobby',
+            member: {
+              id: '1507e5f9-075c-463d-94ba-a8f9ec0c7d4e',
+            },
+            state: {
+              typing: true,
+            },
+          },
+          timestamp: 1641468242.538,
+        },
+      })
+
+      const chat = new Chat({
+        host,
+        token,
+      })
+      chat.on('member.updated', (member) => {
+        expect(member.channel).toBe('lobby')
+        expect(member.id).toBe('1507e5f9-075c-463d-94ba-a8f9ec0c7d4e')
+        expect(member.state).toStrictEqual({
+          typing: true,
+        })
+
+        done()
+      })
+
+      chat.subscribe(['test1'])
+    })
+
+    it('should return a ChatMember object on member.left', (done) => {
+      _setupMockWS({
+        jsonrpc: '2.0',
+        id: '45266133-cdfe-4e99-a257-1ea77572f1d9',
+        method: 'signalwire.event',
+        params: {
+          event_type: 'chat.member.left',
+          event_channel: 'chat',
+          params: {
+            channel: 'lobby',
+            member: {
+              id: '1507e5f9-075c-463d-94ba-a8f9ec0c7d4e',
+            },
+          },
+          timestamp: 1641468229.28,
+        },
+      })
+
+      const chat = new Chat({
+        host,
+        token,
+      })
+      chat.on('member.left', (member) => {
+        expect(member.channel).toBe('lobby')
+        expect(member.id).toBe('1507e5f9-075c-463d-94ba-a8f9ec0c7d4e')
+
+        done()
+      })
+
+      chat.subscribe(['test1'])
+    })
+  })
+
   describe('Subscribe', () => {
     it('should convert channels into the internal channel notation when calling .subscribe()', async () => {
       const chat = new Chat({
