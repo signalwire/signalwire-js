@@ -887,7 +887,17 @@ interface RoomLayoutMethodsInterface {
    * await room.setLayout({name: "6x6"})
    * ```
    */
-  setLayout(params: { name: string }): Rooms.SetLayout
+  setLayout(params: {
+    name: string
+    positions?: Record<
+      string,
+      | 'reserved'
+      | `reserved-${number}`
+      | 'standard'
+      | `standard-${number}`
+      | 'off-canvas'
+    >
+  }): Rooms.SetLayout
 }
 
 /**
