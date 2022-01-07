@@ -1,7 +1,7 @@
 import WS from 'jest-websocket-mock'
-import { Chat } from './Chat'
+import { Client } from './Client'
 
-describe('Chat Object', () => {
+describe('ChatClient Object', () => {
   const host = 'ws://localhost:1234'
   const token = '<jwt>'
   const messages = [
@@ -119,7 +119,7 @@ describe('Chat Object', () => {
   })
 
   it('should automatically connect when calling either .subscribe() or .publish()', async () => {
-    const chat = new Chat({
+    const chat = new Client({
       host,
       token,
     })
@@ -137,7 +137,7 @@ describe('Chat Object', () => {
   })
 
   it('should emit a single "signalwire.connect" at most when subscribing/publishing at the same time', async () => {
-    const chat = new Chat({
+    const chat = new Client({
       host,
       token,
     })
@@ -203,7 +203,7 @@ describe('Chat Object', () => {
         })
       })
 
-      const chat = new Chat({
+      const chat = new Client({
         host,
         token,
       })
@@ -262,7 +262,7 @@ describe('Chat Object', () => {
         },
       })
 
-      const chat = new Chat({
+      const chat = new Client({
         host,
         token,
       })
@@ -297,7 +297,7 @@ describe('Chat Object', () => {
         },
       })
 
-      const chat = new Chat({
+      const chat = new Client({
         host,
         token,
       })
@@ -332,7 +332,7 @@ describe('Chat Object', () => {
         },
       })
 
-      const chat = new Chat({
+      const chat = new Client({
         host,
         token,
       })
@@ -349,7 +349,7 @@ describe('Chat Object', () => {
 
   describe('Subscribe', () => {
     it('should convert channels into the internal channel notation when calling .subscribe()', async () => {
-      const chat = new Chat({
+      const chat = new Client({
         host,
         token,
       })
@@ -368,7 +368,7 @@ describe('Chat Object', () => {
 
   describe('Publish', () => {
     it('should support publishing-only mode', async () => {
-      const chat = new Chat({
+      const chat = new Client({
         host,
         token,
       })
@@ -395,7 +395,7 @@ describe('Chat Object', () => {
 
   describe('Unsubscribe', () => {
     it('should convert channels into the internal channel notation', async () => {
-      const chat = new Chat({
+      const chat = new Client({
         host,
         token,
       })
@@ -414,7 +414,7 @@ describe('Chat Object', () => {
 
     it('should allow the user to .unsubscribe() from any subgroup of subscribed channels', async () => {
       expect.assertions(4)
-      const chat = new Chat({
+      const chat = new Client({
         host,
         token,
       })
@@ -432,7 +432,7 @@ describe('Chat Object', () => {
 
     it('should reject if its called before the session is authorized', async () => {
       expect.assertions(1)
-      const chat = new Chat({
+      const chat = new Client({
         host,
         token,
       })
@@ -450,7 +450,7 @@ describe('Chat Object', () => {
 
     it("should reject if it's called without channels", async () => {
       expect.assertions(1)
-      const chat = new Chat({
+      const chat = new Client({
         host,
         token,
       })
@@ -469,7 +469,7 @@ describe('Chat Object', () => {
 
     it('should reject if the user calls .unsubscribe() with channels different than the ones they are subscribed to', async () => {
       expect.assertions(1)
-      const chat = new Chat({
+      const chat = new Client({
         host,
         token,
       })
@@ -485,7 +485,7 @@ describe('Chat Object', () => {
 
   describe('getMembers', () => {
     it('should send the proper RPC and format the response', async () => {
-      const chat = new Chat({
+      const chat = new Client({
         host,
         token,
       })
@@ -510,7 +510,7 @@ describe('Chat Object', () => {
 
   describe('getMessages', () => {
     it('should send the proper RPC and format the response', async () => {
-      const chat = new Chat({
+      const chat = new Client({
         host,
         token,
       })
@@ -548,7 +548,7 @@ describe('Chat Object', () => {
 
   describe('setState', () => {
     it('should send the proper RPC and format the response', async () => {
-      const chat = new Chat({
+      const chat = new Client({
         host,
         token,
       })
@@ -573,7 +573,7 @@ describe('Chat Object', () => {
 
   describe('getState', () => {
     it('should send the proper RPC and format the response', async () => {
-      const chat = new Chat({
+      const chat = new Client({
         host,
         token,
       })
