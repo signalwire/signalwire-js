@@ -94,19 +94,29 @@ export const getMembers = createRoomMethod<{ members: VideoMemberEntity[] }>(
     transformResolve: (payload) => ({ members: payload.members }),
   }
 )
+
+export type LayoutPosition =
+  | 'reserved'
+  | `reserved-${number}`
+  | 'standard'
+  | `standard-${number}`
+  | 'off-canvas'
+
 export interface SetLayoutParams {
   name: string
-  positions?: Record<
-    string,
-    | 'reserved'
-    | `reserved-${number}`
-    | 'standard'
-    | `standard-${number}`
-    | 'off-canvas'
-  >
+  positions?: Record<string, LayoutPosition>
 }
 export const setLayout = createRoomMethod<BaseRPCResult, void>(
   'video.set_layout',
+  {
+    transformResolve: baseCodeTransform,
+  }
+)
+export interface SetPositionParams {
+  positions?: Record<string, LayoutPosition>
+}
+export const setPosition = createRoomMethod<BaseRPCResult, void>(
+  'video.set_position',
   {
     transformResolve: baseCodeTransform,
   }
@@ -333,6 +343,7 @@ export type DeafMember = ReturnType<typeof deafMember.value>
 export type UndeafMember = ReturnType<typeof undeafMember.value>
 export type SetDeaf = ReturnType<typeof setDeaf.value>
 export type SetLayout = ReturnType<typeof setLayout.value>
+export type SetPosition = ReturnType<typeof setPosition.value>
 export type SetInputVolumeMember = ReturnType<typeof setInputVolumeMember.value>
 export type SetOutputVolumeMember = ReturnType<
   typeof setOutputVolumeMember.value
