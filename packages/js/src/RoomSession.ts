@@ -27,6 +27,8 @@ export const UNSAFE_PROP_ACCESS = [
   'setInputSensitivity',
   'setInputVolume',
   'setLayout',
+  'setPositions',
+  'setPosition',
   'setOutputVolume',
   'showVideoMuted',
   'startRecording',

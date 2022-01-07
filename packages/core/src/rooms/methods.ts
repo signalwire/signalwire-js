@@ -112,10 +112,10 @@ export const setLayout = createRoomMethod<BaseRPCResult, void>(
     transformResolve: baseCodeTransform,
   }
 )
-export interface SetPositionParams {
+export interface SetPositionsParams {
   positions?: Record<string, LayoutPosition>
 }
-export const setPosition = createRoomMethod<BaseRPCResult, void>(
+export const setPositions = createRoomMethod<BaseRPCResult, void>(
   'video.set_position',
   {
     transformResolve: baseCodeTransform,
@@ -314,6 +314,15 @@ export const setInputSensitivityMember = createRoomMemberMethod<
 >('video.member.set_input_sensitivity', {
   transformResolve: baseCodeTransform,
 })
+export interface SetPositionMemberParams {
+  position?: LayoutPosition
+}
+export const setPositionMember = createRoomMemberMethod<BaseRPCResult, void>(
+  'video.member.set_position',
+  {
+    transformResolve: baseCodeTransform,
+  }
+)
 export const removeMember: RoomMethodDescriptor<void> = {
   value: function ({ memberId, ...rest }: RoomMemberMethodParams = {}) {
     if (!memberId) {
@@ -343,7 +352,7 @@ export type DeafMember = ReturnType<typeof deafMember.value>
 export type UndeafMember = ReturnType<typeof undeafMember.value>
 export type SetDeaf = ReturnType<typeof setDeaf.value>
 export type SetLayout = ReturnType<typeof setLayout.value>
-export type SetPosition = ReturnType<typeof setPosition.value>
+export type SetPositions = ReturnType<typeof setPositions.value>
 export type SetInputVolumeMember = ReturnType<typeof setInputVolumeMember.value>
 export type SetOutputVolumeMember = ReturnType<
   typeof setOutputVolumeMember.value
@@ -351,5 +360,6 @@ export type SetOutputVolumeMember = ReturnType<
 export type SetInputSensitivityMember = ReturnType<
   typeof setInputSensitivityMember.value
 >
+export type SetPositionMember = ReturnType<typeof setPositionMember.value>
 export type RemoveMember = ReturnType<typeof removeMember.value>
 // End Room Member Methods
