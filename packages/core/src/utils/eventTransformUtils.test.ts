@@ -83,4 +83,12 @@ describe('instanceProxyFactory', () => {
     expect(_instanceByTransformType.size).toBe(2)
     expect(_instanceByTransformType.get('otherKey')).toBe(mockInstance)
   })
+
+  it('should be serializable', async () => {
+    const proxy = instanceProxyFactory({ transform, payload })
+
+    expect(proxy.toString()).toMatchInlineSnapshot(
+      `"{\\"id\\":\\"random\\",\\"snakeCase\\":\\"foo\\",\\"camelCase\\":\\"baz\\",\\"otherTest\\":true,\\"counter\\":0}"`
+    )
+  })
 })
