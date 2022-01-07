@@ -5,6 +5,7 @@ import {
   VideoRecordingEntity,
   InternalVideoPlaybackEntity,
   VideoPlaybackEntity,
+  MemberCommandParams,
 } from '../types'
 import { toLocalEvent, toExternalJSON } from '../utils'
 import {
@@ -339,9 +340,8 @@ export const setInputSensitivityMember = createRoomMemberMethod<
 >('video.member.set_input_sensitivity', {
   transformResolve: baseCodeTransform,
 })
-
-export interface SetPositionMemberParams {
-  position?: LayoutPosition
+export interface SetPositionMemberParams extends MemberCommandParams {
+  position: LayoutPosition
 }
 export const setPositionMember = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.set_position',
