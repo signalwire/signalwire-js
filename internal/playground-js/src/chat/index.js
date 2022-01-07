@@ -1,7 +1,7 @@
-import { __sw__PubSub } from '@signalwire/js'
+import { Chat } from '@signalwire/js'
 
 window.connect = async ({ channels, host, token }) => {
-  const chat = new __sw__PubSub.Chat({
+  const chat = new Chat.Client({
     host,
     token,
   })

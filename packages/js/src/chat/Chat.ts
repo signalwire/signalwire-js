@@ -8,40 +8,44 @@ import type {
 import { getLogger } from '@signalwire/core'
 import { createClient } from '../createClient'
 
-export interface ChatApiEvents extends ChatNamespace.BaseChatApiEvents {}
+export interface ChatClientApiEvents extends ChatNamespace.BaseChatApiEvents {}
 
-export interface ChatFullState extends Chat {}
-interface ChatMain
+export interface ChatClientFullState extends ChatClient {}
+interface ChatClientMain
   extends ChatContract,
-    Omit<ConsumerContract<ChatApiEvents, ChatFullState>, 'subscribe'> {}
+    Omit<
+      ConsumerContract<ChatClientApiEvents, ChatClientFullState>,
+      'subscribe'
+    > {}
 
-interface ChatDocs extends ChatMain {}
+interface ChatClientDocs extends ChatClientMain {}
 
-export interface Chat extends AssertSameType<ChatMain, ChatDocs> {}
+export interface ChatClient
+  extends AssertSameType<ChatClientMain, ChatClientDocs> {}
 
-export interface ChatOptions extends UserOptions {}
+export interface ChatClientOptions extends UserOptions {}
 
-export const Chat = function (chatOptions: ChatOptions) {
+export const Client = function (chatOptions: ChatClientOptions) {
   if ('production' === process.env.NODE_ENV) {
     getLogger().warn(
       '`Chat` is still under development and may change in the future without prior notice.'
     )
   }
 
-  const client = createClient<Chat>(chatOptions)
-  const subscribe: Chat['subscribe'] = async (channels) => {
+  const client = createClient<ChatClient>(chatOptions)
+  const subscribe: ChatClient['subscribe'] = async (channels) => {
     await client.connect()
 
     return client.chat.subscribe(channels)
   }
-  const publish: Chat['publish'] = async (params) => {
+  const publish: ChatClient['publish'] = async (params) => {
     await client.connect()
 
     return client.chat.publish(params)
   }
 
-  return new Proxy<Chat>(client.chat, {
-    get(target: Chat, prop: keyof Chat, receiver: any) {
+  return new Proxy<ChatClient>(client.chat, {
+    get(target: ChatClient, prop: keyof ChatClient, receiver: any) {
       if (prop === 'subscribe') {
         return subscribe
       } else if (prop === 'publish') {
@@ -52,4 +56,4 @@ export const Chat = function (chatOptions: ChatOptions) {
     },
   })
   // For consistency with other constructors we'll make TS force the use of `new`
-} as unknown as { new (chatOptions: ChatOptions): Chat }
+} as unknown as { new (chatOptions: ChatClientOptions): ChatClient }
