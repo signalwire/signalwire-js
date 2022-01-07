@@ -911,7 +911,8 @@ interface RoomLayoutMethodsInterface {
   }): Promise<void>
 
   setPosition(params: {
-    position?:
+    memberId?: string
+    position:
       | 'reserved'
       | `reserved-${number}`
       | 'standard'
