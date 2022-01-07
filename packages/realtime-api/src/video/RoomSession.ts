@@ -307,7 +307,17 @@ interface RoomSessionDocs extends RoomSessionMain {
    * await roomSession.setLayout({name: "6x6"})
    * ```
    */
-  setLayout(params: { name: string }): Promise<void>
+  setLayout(params: {
+    name: string
+    positions?: Record<
+      string,
+      | 'reserved'
+      | `reserved-${number}`
+      | 'standard'
+      | `standard-${number}`
+      | 'off-canvas'
+    >
+  }): Promise<void>
 
   /**
    * Obtains a list of recordings for the current room session.
