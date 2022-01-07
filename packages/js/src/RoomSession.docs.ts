@@ -899,7 +899,7 @@ interface RoomLayoutMethodsInterface {
     >
   }): Rooms.SetLayout
 
-  setPosition(params: {
+  setPositions(params: {
     positions?: Record<
       string,
       | 'reserved'
@@ -908,6 +908,15 @@ interface RoomLayoutMethodsInterface {
       | `standard-${number}`
       | 'off-canvas'
     >
+  }): Promise<void>
+
+  setPosition(params: {
+    position?:
+      | 'reserved'
+      | `reserved-${number}`
+      | 'standard'
+      | `standard-${number}`
+      | 'off-canvas'
   }): Promise<void>
 }
 

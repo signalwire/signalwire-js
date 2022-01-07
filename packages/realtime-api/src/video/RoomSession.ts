@@ -319,7 +319,7 @@ interface RoomSessionDocs extends RoomSessionMain {
     >
   }): Promise<void>
 
-  setPosition(params: {
+  setPositions(params: {
     positions?: Record<
       string,
       | 'reserved'
@@ -328,6 +328,15 @@ interface RoomSessionDocs extends RoomSessionMain {
       | `standard-${number}`
       | 'off-canvas'
     >
+  }): Promise<void>
+
+  setPosition(params: {
+    position?:
+      | 'reserved'
+      | `reserved-${number}`
+      | 'standard'
+      | `standard-${number}`
+      | 'off-canvas'
   }): Promise<void>
 
   /**
@@ -708,7 +717,8 @@ export const RoomSessionAPI = extendComponent<
   setHideVideoMuted: Rooms.setHideVideoMuted,
   getLayouts: Rooms.getLayouts,
   setLayout: Rooms.setLayout,
-  setPosition: Rooms.setPosition,
+  setPositions: Rooms.setPositions,
+  setPosition: Rooms.setPositionMember,
   getRecordings: Rooms.getRecordings,
   startRecording: Rooms.startRecording,
   getPlaybacks: Rooms.getPlaybacks,
