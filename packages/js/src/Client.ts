@@ -17,7 +17,7 @@ import {
   RoomSessionConnection,
 } from './BaseRoomSession'
 import { Cantina, createCantinaObject } from './cantina'
-import type { ChatClient } from './chat/Client'
+import type { Client as ChatClient } from './chat/Client'
 
 export interface Client<RoomSessionType = RoomSession>
   extends ClientContract<Client<RoomSessionType>, ClientEvents> {
