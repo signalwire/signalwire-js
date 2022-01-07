@@ -94,6 +94,17 @@ export const getMembers = createRoomMethod<{ members: VideoMemberEntity[] }>(
     transformResolve: (payload) => ({ members: payload.members }),
   }
 )
+export interface SetLayoutParams {
+  name: string
+  positions?: Record<
+    string,
+    | 'reserved'
+    | `reserved-${number}`
+    | 'standard'
+    | `standard-${number}`
+    | 'off-canvas'
+  >
+}
 export const setLayout = createRoomMethod<BaseRPCResult, void>(
   'video.set_layout',
   {
