@@ -12,6 +12,7 @@ import {
   ExecuteExtendedOptions,
   RoomMethod,
   BaseRPCResult,
+  MemberPosition,
 } from '../utils/interfaces'
 
 type RoomMethodParams = Record<string, unknown>
@@ -105,17 +106,9 @@ export const getMembers = createRoomMethod<{ members: VideoMemberEntity[] }>(
     transformResolve: (payload) => ({ members: payload.members }),
   }
 )
-
-export type LayoutPosition =
-  | 'reserved'
-  | `reserved-${number}`
-  | 'standard'
-  | `standard-${number}`
-  | 'off-canvas'
-
 export interface SetLayoutParams {
   name: string
-  positions?: Record<string, LayoutPosition>
+  positions?: Record<string, MemberPosition>
 }
 export const setLayout = createRoomMethod<BaseRPCResult, void>(
   'video.set_layout',
@@ -124,7 +117,7 @@ export const setLayout = createRoomMethod<BaseRPCResult, void>(
   }
 )
 export interface SetPositionsParams {
-  positions?: Record<string, LayoutPosition>
+  positions?: Record<string, MemberPosition>
 }
 export const setPositions = createRoomMethod<BaseRPCResult, void>(
   'video.set_position',
@@ -223,6 +216,7 @@ export const getPlaybacks = createRoomMethod<
 export type PlayParams = {
   url: string
   volume?: number
+  positions?: Record<string, MemberPosition>
 }
 export const play: RoomMethodDescriptor<any, PlayParams> = {
   value: function (params) {
@@ -341,7 +335,7 @@ export const setInputSensitivityMember = createRoomMemberMethod<
   transformResolve: baseCodeTransform,
 })
 export interface SetPositionMemberParams extends MemberCommandParams {
-  position: LayoutPosition
+  position: MemberPosition
 }
 export const setPositionMember = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.set_position',
