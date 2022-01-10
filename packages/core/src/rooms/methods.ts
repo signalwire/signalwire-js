@@ -1,15 +1,15 @@
 import { BaseRoomInterface } from '.'
-import {
+import type {
   VideoMemberEntity,
   VideoRecordingEntity,
   VideoPlaybackEntity,
   MemberCommandParams,
+  MemberPosition
 } from '../types'
 import { toLocalEvent, toExternalJSON } from '../utils'
 import {
   ExecuteExtendedOptions,
   RoomMethod,
-  MemberPosition,
 } from '../utils/interfaces'
 
 interface RoomMethodPropertyDescriptor<T, ParamsType>
