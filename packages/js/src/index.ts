@@ -98,4 +98,4 @@ export type {
 } from './utils/interfaces'
 
 /** @internal */
-export * as Chat from './chat'
+export * as __sw__Chat from './chat'
