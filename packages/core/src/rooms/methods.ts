@@ -315,7 +315,7 @@ export const setInputSensitivityMember = createRoomMemberMethod<
 export interface SetPositionMemberParams extends MemberCommandParams {
   position: MemberPosition
 }
-export const setPositionMember = createRoomMemberMethod<BaseRPCResult, void>(
+export const setPosition = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.set_position',
   {
     transformResolve: baseCodeTransform,
@@ -358,6 +358,6 @@ export type SetOutputVolumeMember = ReturnType<
 export type SetInputSensitivityMember = ReturnType<
   typeof setInputSensitivityMember.value
 >
-export type SetPositionMember = ReturnType<typeof setPositionMember.value>
+export type SetPositionMember = ReturnType<typeof setPosition.value>
 export type RemoveMember = ReturnType<typeof removeMember.value>
 // End Room Member Methods
