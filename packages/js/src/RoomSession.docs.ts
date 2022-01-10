@@ -838,7 +838,15 @@ interface RoomControlMethodsInterfaceDocs {
    */
   play(params: {
     url: string
-    volume?: number
+    volume?: number,
+    positions?: Record<
+      string,
+      | 'reserved'
+      | `reserved-${number}`
+      | 'standard'
+      | `standard-${number}`
+      | 'off-canvas'
+    >
   }): Promise<Rooms.RoomSessionPlayback>
 }
 
