@@ -432,10 +432,3 @@ export interface InternalSDKLogger extends SDKLogger {
   wsTraffic: (options: WsTrafficOptions) => void
 }
 
-export type MemberPosition =
-  | 'reserved'
-  | `reserved-${number}`
-  | 'standard'
-  | `standard-${number}`
-  | 'off-canvas'
-

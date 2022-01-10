@@ -1,5 +1,5 @@
 import { BaseRoomInterface } from '.'
-import {
+import type {
   VideoMemberEntity,
   InternalVideoRecordingEntity,
   VideoRecordingEntity,
