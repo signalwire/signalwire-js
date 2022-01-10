@@ -1,4 +1,4 @@
-import type { SwEvent } from '.'
+import type { SwEvent, MemberPosition } from '.'
 import type { CamelToSnakeCase, ToInternalVideoEvent } from './utils'
 
 export type LayoutChanged = 'layout.changed'
@@ -34,6 +34,7 @@ export interface VideoLayoutLayer {
   layerIndex: number
   zIndex: number
   reservation: string
+  positions?: Record<string, MemberPosition>
 }
 
 /**
