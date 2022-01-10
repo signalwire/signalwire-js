@@ -57,4 +57,111 @@ describe('Room Custom Methods', () => {
       })
     })
   })
+
+  describe('setLayout', () => {
+    it('should execute with proper params', async () => {
+      ;(instance.execute as jest.Mock).mockResolvedValueOnce({})
+      instance.roomSessionId = 'mocked'
+
+      await instance.setLayout({
+        positions: {
+          'c22d7124-5a01-49fe-8da0-46bec8e75f12': 'reserved',
+        },
+      })
+      expect(instance.execute).toHaveBeenCalledTimes(1)
+      expect(instance.execute).toHaveBeenCalledWith(
+        {
+          method: 'video.set_layout',
+          params: {
+            room_session_id: 'mocked',
+            positions: {
+              'c22d7124-5a01-49fe-8da0-46bec8e75f12': 'reserved',
+            },
+          },
+        },
+        {
+          transformResolve: expect.anything(),
+        }
+      )
+    })
+  })
+
+  describe('setPositions', () => {
+    it('should execute with proper params', async () => {
+      ;(instance.execute as jest.Mock).mockResolvedValueOnce({})
+      instance.roomSessionId = 'mocked'
+
+      await instance.setPositions({
+        positions: {
+          'cebecb3a-b9e4-499c-a707-0af96c110a04': 'standard',
+          'aaaaaaa-b9e4-499c-a707-0af96c110a04': 'reserved-1',
+        },
+      })
+      expect(instance.execute).toHaveBeenCalledTimes(1)
+      expect(instance.execute).toHaveBeenCalledWith(
+        {
+          method: 'video.set_position',
+          params: {
+            room_session_id: 'mocked',
+            positions: {
+              'cebecb3a-b9e4-499c-a707-0af96c110a04': 'standard',
+              'aaaaaaa-b9e4-499c-a707-0af96c110a04': 'reserved-1',
+            },
+          },
+        },
+        {
+          transformResolve: expect.anything(),
+        }
+      )
+    })
+  })
+
+  describe('setPosition', () => {
+    it('should execute with proper params', async () => {
+      ;(instance.execute as jest.Mock).mockResolvedValueOnce({})
+      instance.roomSessionId = 'mocked'
+
+      await instance.setPosition({
+        member_id: 'cebecb3a-b9e4-499c-a707-0af96c110a04',
+        position: 'standard',
+      })
+      expect(instance.execute).toHaveBeenCalledTimes(1)
+      expect(instance.execute).toHaveBeenCalledWith(
+        {
+          method: 'video.member.set_position',
+          params: {
+            room_session_id: 'mocked',
+            member_id: 'cebecb3a-b9e4-499c-a707-0af96c110a04',
+            position: 'standard',
+          },
+        },
+        {
+          transformResolve: expect.anything(),
+        }
+      )
+    })
+  })
+
+  describe('play', () => {
+    it('should execute with proper params', async () => {
+      ;(instance.execute as jest.Mock).mockResolvedValueOnce({})
+      instance.roomSessionId = 'mocked'
+
+      await instance.play({
+        positions: {
+          'c22d7124-5a01-49fe-8da0-46bec8e75f12': 'reserved',
+        },
+      })
+      expect(instance.execute).toHaveBeenCalledTimes(1)
+      expect(instance.execute).toHaveBeenCalledWith({
+        method: 'video.playback.start',
+        params: {
+          room_session_id: 'mocked',
+          positions: {
+            'c22d7124-5a01-49fe-8da0-46bec8e75f12': 'reserved',
+          },
+        },
+      })
+    })
+  })
 })
