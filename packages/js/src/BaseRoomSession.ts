@@ -345,7 +345,7 @@ export const RoomSessionAPI = extendComponent<
   getLayouts: Rooms.getLayouts,
   setLayout: Rooms.setLayout,
   setPositions: Rooms.setPositions,
-  setPosition: Rooms.setPositions,
+  setPosition: Rooms.setPosition,
   hideVideoMuted: Rooms.hideVideoMuted,
   showVideoMuted: Rooms.showVideoMuted,
   getRecordings: Rooms.getRecordings,
