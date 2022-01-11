@@ -1,6 +1,6 @@
 {
   "name": "@sw-internal/build",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "A CLI for building packages using esbuild",
   "main": "index.js",
   "type": "module",
