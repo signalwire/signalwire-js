@@ -21,7 +21,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@signalwire/core": "3.4.0",
-    "@signalwire/webrtc": "3.2.0"
+    "@signalwire/core": "3.4.1",
+    "@signalwire/webrtc": "3.3.0"
   }
 }
