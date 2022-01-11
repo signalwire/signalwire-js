@@ -21,21 +21,30 @@ const sessionSlice = createDestroyableSlice({
   initialState: initialSessionState,
   reducers: {
     connected: (state, { payload }: PayloadAction<RPCConnectResult>) => {
-      state.authStatus = 'authorized'
-      state.authCount += 1
-      state.protocol = payload?.protocol ?? ''
-      state.iceServers = payload?.ice_servers ?? []
+      return {
+        ...state,
+        authStatus: 'authorized',
+        authCount: state.authCount + 1,
+        protocol: payload?.protocol ?? '',
+        iceServers: payload?.ice_servers ?? [],
+      }
     },
     authStatus: (state, { payload }: PayloadAction<SessionAuthStatus>) => {
-      state.authStatus = payload
+      return {
+        ...state,
+        authStatus: payload,
+      }
     },
   },
   extraReducers: (builder) => {
     builder.addCase(
       authErrorAction.type,
       (state, { payload }: PayloadAction<{ error: SessionAuthError }>) => {
-        state.authStatus = 'unauthorized'
-        state.authError = payload.error
+        return {
+          ...state,
+          authStatus: 'unauthorized',
+          authError: payload.error,
+        }
       }
     )
   },

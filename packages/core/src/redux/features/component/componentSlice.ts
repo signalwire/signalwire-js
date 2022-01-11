@@ -24,45 +24,112 @@ type FailureParams = {
   action: any
 }
 
+const requestUpdater = <T>({
+  state,
+  payload,
+  componentId,
+  key,
+  requestId,
+}: {
+  state: Readonly<ComponentState>
+  payload: T
+  componentId: string
+  key: 'responses' | 'errors'
+  requestId: string
+}): Readonly<ComponentState> => {
+  if (componentId in state.byId) {
+    return {
+      ...state,
+      byId: {
+        ...state.byId,
+        [componentId]: {
+          ...state.byId[componentId],
+          [key]: {
+            ...state.byId[componentId][key],
+            [requestId]: payload,
+          },
+        },
+      },
+    }
+  } else {
+    return {
+      ...state,
+      byId: {
+        ...state.byId,
+        [componentId]: {
+          id: componentId,
+          [key]: {
+            [requestId]: payload,
+          },
+        },
+      },
+    }
+  }
+}
+
 const componentSlice = createDestroyableSlice({
   name: 'components',
   initialState: initialComponentState,
   reducers: {
     upsert: (state, { payload }: PayloadAction<UpdateComponent>) => {
       if (payload.id in state.byId) {
-        // To avoid spread operator, update only the keys passed in.
-        Object.keys(payload).forEach((key) => {
-          // @ts-ignore
-          state.byId[payload.id][key] = payload[key]
-        })
+        return {
+          ...state,
+          byId: {
+            ...state.byId,
+            [payload.id]: {
+              ...state.byId[payload.id],
+              ...payload,
+            },
+          },
+        }
       } else {
-        // If not in state already, set directly using the id.
-        state.byId[payload.id] = payload
+        return {
+          ...state,
+          byId: {
+            ...state.byId,
+            [payload.id]: payload,
+          },
+        }
       }
     },
     executeSuccess: (state, { payload }: PayloadAction<SuccessParams>) => {
       const { componentId, requestId, response } = payload
-      state.byId[componentId] ??= {
-        id: componentId,
-      }
-      state.byId[componentId].responses ??= {}
-      state.byId[componentId].responses![requestId] = response
+      return requestUpdater({
+        componentId,
+        requestId,
+        state,
+        key: 'responses',
+        payload: response,
+      })
     },
     executeFailure: (state, { payload }: PayloadAction<FailureParams>) => {
       const { componentId, requestId, error, action } = payload
-      state.byId[componentId] ??= {
-        id: componentId,
-      }
-      state.byId[componentId].errors ??= {}
-      state.byId[componentId].errors![requestId] = {
-        action,
-        jsonrpc: error,
-      }
+      return requestUpdater({
+        componentId,
+        requestId,
+        state,
+        key: 'errors',
+        payload: {
+          action,
+          jsonrpc: error,
+        },
+      })
     },
     cleanup: (state, { payload }: PayloadAction<CleanupComponentParams>) => {
-      payload.ids.forEach((componentId) => {
-        delete state.byId[componentId]
-      })
+      return {
+        ...state,
+        byId: Object.entries(state.byId).reduce(
+          (reducer, [componentId, value]) => {
+            if (!payload.ids.includes(componentId)) {
+              reducer[componentId] = value
+            }
+
+            return reducer
+          },
+          {} as ComponentState['byId']
+        ),
+      }
     },
   },
 })

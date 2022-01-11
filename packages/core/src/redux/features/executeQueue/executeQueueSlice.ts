@@ -14,7 +14,10 @@ const executeQueueSlice = createDestroyableSlice({
       // TODO: Do we have to check for something (like an item in
       // queue with the same `payload.method`?) before adding the
       // payload to the queue?
-      state.queue.push(payload)
+      return {
+        ...state,
+        queue: state.queue.concat(payload)
+      }
     },
     clean: () => {
       return initialExecuteQueueState
