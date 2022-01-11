@@ -69,7 +69,7 @@ describe('ChatClient Object', () => {
               },
             })
           )
-        } else if (parsedData.method === 'chat.presence.set_state') {
+        } else if (parsedData.method === 'chat.member.set_state') {
           socket.send(
             JSON.stringify({
               jsonrpc: '2.0',
@@ -80,7 +80,7 @@ describe('ChatClient Object', () => {
               },
             })
           )
-        } else if (parsedData.method === 'chat.presence.get_state') {
+        } else if (parsedData.method === 'chat.member.get_state') {
           socket.send(
             JSON.stringify({
               jsonrpc: '2.0',
@@ -555,13 +555,13 @@ describe('ChatClient Object', () => {
       chat.on('message', () => {})
       await chat.subscribe(['test1'])
 
-      const response = await chat.setState({
+      const response = await chat.setMemberState({
         channels: 'test1',
         state: { typing: true },
       })
 
       const request = JSON.parse(server.messages[2].toString())
-      expect(request.method).toEqual('chat.presence.set_state')
+      expect(request.method).toEqual('chat.member.set_state')
       expect(request.params).toStrictEqual({
         channels: [{ name: 'test1' }],
         state: { typing: true },
@@ -580,13 +580,13 @@ describe('ChatClient Object', () => {
       chat.on('message', () => {})
       await chat.subscribe(['test1'])
 
-      const response = await chat.getState({
+      const response = await chat.getMemberState({
         memberId: 'memberId',
         channels: 'test1',
       })
 
       const request = JSON.parse(server.messages[2].toString())
-      expect(request.method).toEqual('chat.presence.get_state')
+      expect(request.method).toEqual('chat.member.get_state')
       expect(request.params).toStrictEqual({
         channels: [{ name: 'test1' }],
         member_id: 'memberId',

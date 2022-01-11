@@ -28,22 +28,22 @@ export interface ChatPublishParams {
   channel: string
   meta?: Record<any, any>
 }
-export interface ChatSetStateParams {
+interface ChatSetMemberStateParams {
   channels: ChatChannel
   state: Record<any, any>
 }
-export interface ChatGetStateParams {
+interface ChatGetMemberStateParams {
   channels: ChatChannel
   memberId: string
 }
-export interface ChatGetMessagesParams {
+interface ChatGetMessagesParams {
   channel: string
   cursor?: {
     after?: string
     before?: string
   }
 }
-export interface ChatGetMembersParams {
+interface ChatGetMembersParams {
   channel: string
 }
 export interface ChatContract {
@@ -52,8 +52,8 @@ export interface ChatContract {
   publish(params: ChatPublishParams): Promise<any>
   getMessages(params: ChatGetMessagesParams): Promise<any>
   getMembers(params: ChatGetMembersParams): Promise<any>
-  setState(params: ChatSetStateParams): Promise<any>
-  getState(params: ChatGetStateParams): Promise<any>
+  setMemberState(params: ChatSetMemberStateParams): Promise<any>
+  getMemberState(params: ChatGetMemberStateParams): Promise<any>
 }
 
 export type ChatEntity = OnlyStateProperties<ChatContract>
@@ -176,8 +176,8 @@ export type ChatJSONRPCMethod =
   | 'chat.subscribe'
   | 'chat.publish'
   | 'chat.unsubscribe'
-  | 'chat.presence.set_state'
-  | 'chat.presence.get_state'
+  | 'chat.member.set_state'
+  | 'chat.member.get_state'
   | 'chat.members.get'
   | 'chat.messages.get'
 
