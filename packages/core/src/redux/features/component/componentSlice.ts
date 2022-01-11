@@ -1,4 +1,4 @@
-import { PayloadAction } from '@reduxjs/toolkit'
+import type { PayloadAction } from '../../core'
 import { JSONRPCResponse } from '../../../utils/interfaces'
 import { ComponentState, ReduxComponent } from '../../interfaces'
 import { createDestroyableSlice } from '../../utils/createDestroyableSlice'

@@ -1,4 +1,4 @@
-import { PayloadAction } from '@reduxjs/toolkit'
+import type { PayloadAction } from '../../core'
 import { SessionState } from '../../interfaces'
 import {
   RPCConnectResult,

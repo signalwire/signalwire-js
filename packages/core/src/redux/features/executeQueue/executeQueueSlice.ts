@@ -1,4 +1,4 @@
-import { PayloadAction } from '@reduxjs/toolkit'
+import type { PayloadAction } from '../../core'
 import { ExecuteQueueState, ExecuteActionParams } from '../../interfaces'
 import { createDestroyableSlice } from '../../utils/createDestroyableSlice'
 
