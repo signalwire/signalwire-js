@@ -8,40 +8,40 @@ import type {
 import { getLogger } from '@signalwire/core'
 import { createClient } from '../createClient'
 
-export interface ChatApiEvents extends ChatNamespace.BaseChatApiEvents {}
+export interface ClientApiEvents extends ChatNamespace.BaseChatApiEvents {}
 
-export interface ChatFullState extends Chat {}
-interface ChatMain
+export interface ClientFullState extends Client {}
+interface ClientMain
   extends ChatContract,
-    Omit<ConsumerContract<ChatApiEvents, ChatFullState>, 'subscribe'> {}
+    Omit<ConsumerContract<ClientApiEvents, ClientFullState>, 'subscribe'> {}
 
-interface ChatDocs extends ChatMain {}
+interface ClientDocs extends ClientMain {}
 
-export interface Chat extends AssertSameType<ChatMain, ChatDocs> {}
+export interface Client extends AssertSameType<ClientMain, ClientDocs> {}
 
-export interface ChatOptions extends UserOptions {}
+export interface ClientOptions extends UserOptions {}
 
-export const Chat = function (chatOptions: ChatOptions) {
+export const Client = function (chatOptions: ClientOptions) {
   if ('production' === process.env.NODE_ENV) {
     getLogger().warn(
       '`Chat` is still under development and may change in the future without prior notice.'
     )
   }
 
-  const client = createClient<Chat>(chatOptions)
-  const subscribe: Chat['subscribe'] = async (channels) => {
+  const client = createClient<Client>(chatOptions)
+  const subscribe: Client['subscribe'] = async (channels) => {
     await client.connect()
 
     return client.chat.subscribe(channels)
   }
-  const publish: Chat['publish'] = async (params) => {
+  const publish: Client['publish'] = async (params) => {
     await client.connect()
 
     return client.chat.publish(params)
   }
 
-  return new Proxy<Chat>(client.chat, {
-    get(target: Chat, prop: keyof Chat, receiver: any) {
+  return new Proxy<Client>(client.chat, {
+    get(target: Client, prop: keyof Client, receiver: any) {
       if (prop === 'subscribe') {
         return subscribe
       } else if (prop === 'publish') {
@@ -52,4 +52,4 @@ export const Chat = function (chatOptions: ChatOptions) {
     },
   })
   // For consistency with other constructors we'll make TS force the use of `new`
-} as unknown as { new (chatOptions: ChatOptions): Chat }
+} as unknown as { new (chatOptions: ClientOptions): Client }

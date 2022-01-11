@@ -17,7 +17,7 @@ import {
   RoomSessionConnection,
 } from './BaseRoomSession'
 import { Cantina, createCantinaObject } from './cantina'
-import type { Chat } from './chat/Chat'
+import type { Client as ChatClient } from './chat/Client'
 
 export interface Client<RoomSessionType = RoomSession>
   extends ClientContract<Client<RoomSessionType>, ClientEvents> {
@@ -36,7 +36,7 @@ export class ClientAPI<
   RoomSessionType = RoomSession
 > extends BaseClient<ClientEvents> {
   private _cantina: Cantina
-  private _chat: Chat
+  private _chat: ChatClient
 
   get rooms() {
     return {
@@ -123,7 +123,7 @@ export class ClientAPI<
 
   get chat() {
     if (!this._chat) {
-      this._chat = ChatNamespace.createBaseChatObject<Chat>({
+      this._chat = ChatNamespace.createBaseChatObject<ChatClient>({
         store: this.store,
         // Emitter is now typed but we share it across objects
         // so types won't match

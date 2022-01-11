@@ -98,4 +98,4 @@ export type {
 } from './utils/interfaces'
 
 /** @internal */
-export * as __sw__PubSub from './chat/Chat'
+export * as __sw__Chat from './chat'
