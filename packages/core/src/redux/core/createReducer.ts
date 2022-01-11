@@ -1,0 +1,157 @@
+import { Action, AnyAction, Reducer } from 'redux'
+import { ActionReducerMapBuilder, executeReducerBuilderCallback } from './mapBuilders'
+import { NoInfer } from './tsHelpers'
+
+export type CaseReducer<S = any, A extends Action = AnyAction> = (
+  state: S,
+  action: A
+) => S | void
+
+export interface ActionMatcher<A extends AnyAction> {
+  (action: AnyAction): action is A
+}
+
+/**
+ * Defines a mapping from action types to corresponding action object shapes.
+ *
+ * @deprecated This should not be used manually - it is only used for internal
+ *             inference purposes and should not have any further value.
+ *             It might be removed in the future.
+ * @public
+ */
+export type Actions<T extends keyof any = string> = Record<T, Action>
+
+/**
+ * A mapping from action types to case reducers for `createReducer()`.
+ *
+ * @deprecated This should not be used manually - it is only used
+ *             for internal inference purposes and using it manually
+ *             would lead to type erasure.
+ *             It might be removed in the future.
+ * @public
+ */
+export type CaseReducers<S, AS extends Actions> = {
+  [T in keyof AS]: AS[T] extends Action ? CaseReducer<S, AS[T]> : void
+}
+
+export type ActionMatcherDescription<S, A extends AnyAction> = {
+  matcher: ActionMatcher<A>
+  reducer: CaseReducer<S, NoInfer<A>>
+}
+
+export type ActionMatcherDescriptionCollection<S> = Array<
+  ActionMatcherDescription<S, any>
+>
+
+
+export type NotFunction<T> = T extends Function ? never : T
+
+export type ReducerWithInitialState<S extends NotFunction<any>> = Reducer<S> & {
+  getInitialState: () => S
+}
+
+export type ReadonlyActionMatcherDescriptionCollection<S> = ReadonlyArray<
+  ActionMatcherDescription<S, any>
+>
+
+function isStateFunction<S>(x: unknown): x is () => S {
+  return typeof x === 'function'
+}
+
+export function createReducer<S extends NotFunction<any>>(
+  initialState: S | (() => S),
+  builderCallback: (builder: ActionReducerMapBuilder<S>) => void
+): ReducerWithInitialState<S>
+
+export function createReducer<
+  S extends NotFunction<any>,
+  CR extends CaseReducers<S, any> = CaseReducers<S, any>
+>(
+  initialState: S | (() => S),
+  actionsMap: CR,
+  actionMatchers?: ActionMatcherDescriptionCollection<S>,
+  defaultCaseReducer?: CaseReducer<S>
+): ReducerWithInitialState<S>
+
+export function createReducer<S extends NotFunction<any>>(
+  initialState: S | (() => S),
+  mapOrBuilderCallback:
+    | CaseReducers<S, any>
+    | ((builder: ActionReducerMapBuilder<S>) => void),
+  actionMatchers: ReadonlyActionMatcherDescriptionCollection<S> = [],
+  defaultCaseReducer?: CaseReducer<S>
+): ReducerWithInitialState<S> {
+  let [actionsMap, finalActionMatchers, finalDefaultCaseReducer] =
+    typeof mapOrBuilderCallback === 'function'
+      ? executeReducerBuilderCallback(mapOrBuilderCallback)
+      : [mapOrBuilderCallback, actionMatchers, defaultCaseReducer]
+
+  // Ensure the initial state gets frozen either way
+  let getInitialState: () => S
+  if (isStateFunction(initialState)) {
+    // getInitialState = () => createNextState(initialState(), () => {})
+    getInitialState = () => initialState()
+  } else {
+    // const frozenInitialState = createNextState(initialState, () => {})
+    getInitialState = () => initialState
+  }
+
+  function reducer(state = getInitialState(), action: any): S {
+    let caseReducers = [
+      actionsMap[action.type],
+      ...finalActionMatchers
+        .filter(({ matcher }) => matcher(action))
+        .map(({ reducer }) => reducer),
+    ]
+    if (caseReducers.filter((cr) => !!cr).length === 0) {
+      caseReducers = [finalDefaultCaseReducer]
+    }
+
+    return caseReducers.reduce((previousState, caseReducer): S => {
+      if (caseReducer) {
+        return caseReducer(previousState, action) as S
+        // if (isDraft(previousState)) {
+        //   // If it's already a draft, we must already be inside a `createNextState` call,
+        //   // likely because this is being wrapped in `createReducer`, `createSlice`, or nested
+        //   // inside an existing draft. It's safe to just pass the draft to the mutator.
+        //   const draft = previousState as Draft<S> // We can assume this is already a draft
+        //   const result = caseReducer(draft, action)
+
+        //   if (typeof result === 'undefined') {
+        //     return previousState
+        //   }
+
+        //   return result as S
+        // } else if (!isDraftable(previousState)) {
+        //   // If state is not draftable (ex: a primitive, such as 0), we want to directly
+        //   // return the caseReducer func and not wrap it with produce.
+        //   const result = caseReducer(previousState as any, action)
+
+        //   if (typeof result === 'undefined') {
+        //     if (previousState === null) {
+        //       return previousState
+        //     }
+        //     throw Error(
+        //       'A case reducer on a non-draftable value must not return undefined'
+        //     )
+        //   }
+
+        //   return result as S
+        // } else {
+        //   // @ts-ignore createNextState() produces an Immutable<Draft<S>> rather
+        //   // than an Immutable<S>, and TypeScript cannot find out how to reconcile
+        //   // these two types.
+        //   return createNextState(previousState, (draft: Draft<S>) => {
+        //     return caseReducer(draft, action)
+        //   })
+        // }
+      }
+
+      return previousState
+    }, state)
+  }
+
+  reducer.getInitialState = getInitialState
+
+  return reducer as ReducerWithInitialState<S>
+}

@@ -60,3 +60,12 @@ export type IsUnknownOrNonInferrable<T, True, False> = AtLeastTS35<
   IsUnknown<T, True, False>,
   IsEmptyObj<T, True, IsUnknown<T, True, False>>
 >
+
+/**
+ * Helper type. Passes T out again, but boxes it in a way that it cannot
+ * "widen" the type by accident if it is a generic that should be inferred
+ * from elsewhere.
+ *
+ * @internal
+ */
+ export type NoInfer<T> = [T][T extends any ? 0 : never]

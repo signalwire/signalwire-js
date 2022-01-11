@@ -5,7 +5,7 @@ import type {
   IfVoid,
   IsAny,
 } from './tsHelpers'
-// import isPlainObject from './isPlainObject'
+
 
 /**
  * An action with a string type and an associated payload. This is the
