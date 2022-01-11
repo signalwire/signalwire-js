@@ -33,7 +33,7 @@ interface ChatSetMemberStateParams {
   state: Record<any, any>
 }
 interface ChatGetMemberStateParams {
-  channels: ChatChannel
+  channels?: ChatChannel
   memberId: string
 }
 interface ChatGetMessagesParams {

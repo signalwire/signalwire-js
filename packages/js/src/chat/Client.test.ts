@@ -602,5 +602,34 @@ describe('ChatClient Object', () => {
         },
       })
     })
+
+    it('should send the proper RPC without (optional) channels', async () => {
+      const chat = new Client({
+        host,
+        token,
+      })
+      chat.on('message', () => {})
+      await chat.subscribe(['test1'])
+
+      const response = await chat.getMemberState({
+        memberId: 'memberId',
+      })
+
+      const request = JSON.parse(server.messages[2].toString())
+      expect(request.method).toEqual('chat.member.get_state')
+      expect(request.params).toStrictEqual({
+        member_id: 'memberId',
+      })
+
+      expect(response).toStrictEqual({
+        channels: {
+          lobby: {
+            state: {
+              typing: true,
+            },
+          },
+        },
+      })
+    })
   })
 })
