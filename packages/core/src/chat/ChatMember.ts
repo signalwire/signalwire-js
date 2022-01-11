@@ -12,6 +12,6 @@ export class ChatMember implements ChatMemberContract {
   }
 
   get state(): any {
-    return this.payload?.state ?? {}
+    return this.payload.state ?? {}
   }
 }

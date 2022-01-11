@@ -83,12 +83,15 @@ export type InternalChatMessageEntity = {
 export interface ChatMemberContract {
   id: string
   channel: string
-  state?: Record<any, any>
+  state: Record<any, any>
 }
 
-// Not using OnlyStateProperties because Member for now is just an id..
-export interface InternalChatMemberEntity {
-  id: string
+export type ChatMemberEntity = OnlyStateProperties<ChatMemberContract>
+
+export type InternalChatMemberEntity = {
+  [K in NonNullable<
+    keyof ChatMemberEntity
+  > as CamelToSnakeCase<K>]: ChatMemberEntity[K]
 }
 
 /**
@@ -133,7 +136,6 @@ export interface ChatMemberJoinedEvent extends SwEvent {
 export interface ChatMemberUpdatedEventParams {
   channel: string
   member: InternalChatMemberEntity
-  state: Record<any, any>
 }
 
 export interface ChatMemberUpdatedEvent extends SwEvent {

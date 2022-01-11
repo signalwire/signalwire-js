@@ -25,6 +25,10 @@ import type {
   ChatChannel,
 } from '../types/chat'
 
+type ChatMemberEvent =
+  | ChatMemberJoinedEvent
+  | ChatMemberLeftEvent
+  | ChatMemberUpdatedEvent
 export type BaseChatApiEventsHandlerMapping = Record<
   ChatMessageEventName,
   (message: ChatMessage) => void
@@ -133,12 +137,10 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
         },
       ],
       [
-        ['member.joined', 'member.left'],
+        ['member.joined', 'member.left', 'member.updated'],
         {
           type: 'chatMessage',
-          instanceFactory: (
-            payload: ChatMemberJoinedEvent | ChatMemberLeftEvent
-          ) => {
+          instanceFactory: (payload: ChatMemberEvent) => {
             const { channel, member } = payload.params
             const params = {
               ...toExternalJSON(member),
@@ -146,36 +148,11 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
             }
             return new ChatMember(params)
           },
-          payloadTransform: (
-            payload: ChatMemberJoinedEvent | ChatMemberLeftEvent
-          ) => {
+          payloadTransform: (payload: ChatMemberEvent) => {
             const { channel, member } = payload.params
             return {
               ...toExternalJSON(member),
               channel,
-            }
-          },
-        },
-      ],
-      [
-        ['member.updated'],
-        {
-          type: 'chatMessage',
-          instanceFactory: (payload: ChatMemberUpdatedEvent) => {
-            const { channel, member, state = {} } = payload.params
-            const params = {
-              ...toExternalJSON(member),
-              channel,
-              state,
-            }
-            return new ChatMember(params)
-          },
-          payloadTransform: (payload: ChatMemberUpdatedEvent) => {
-            const { channel, member, state = {} } = payload.params
-            return {
-              ...toExternalJSON(member),
-              channel,
-              state,
             }
           },
         },
