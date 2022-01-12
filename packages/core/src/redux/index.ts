@@ -1,5 +1,5 @@
-import { configureStore as rtConfigureStore } from '@reduxjs/toolkit'
 import createSagaMiddleware, { channel, Saga, Task } from '@redux-saga/core'
+import { configureStore as rtConfigureStore } from './core'
 import { rootReducer } from './rootReducer'
 import rootSaga from './rootSaga'
 import { PubSubChannel, SDKState } from './interfaces'

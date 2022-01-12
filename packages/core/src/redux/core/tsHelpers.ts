@@ -1,3 +1,23 @@
+import type { Middleware } from 'redux'
+
+export type UnionToIntersection<U> = (
+  U extends any ? (k: U) => void : never
+) extends (k: infer I) => void
+  ? I
+  : never
+
+export type DispatchForMiddlewares<M> = M extends ReadonlyArray<any>
+  ? UnionToIntersection<
+      M[number] extends infer MiddlewareValues
+        ? MiddlewareValues extends Middleware<infer DispatchExt, any, any>
+          ? DispatchExt extends Function
+            ? IsAny<DispatchExt, never, DispatchExt>
+            : never
+          : never
+        : never
+    >
+  : never
+
 /**
  * return True if T is `any`, otherwise return False
  * taken from https://github.com/joonhocho/tsdef
@@ -68,4 +88,4 @@ export type IsUnknownOrNonInferrable<T, True, False> = AtLeastTS35<
  *
  * @internal
  */
- export type NoInfer<T> = [T][T extends any ? 0 : never]
+export type NoInfer<T> = [T][T extends any ? 0 : never]
