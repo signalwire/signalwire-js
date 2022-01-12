@@ -16,7 +16,7 @@ export * from './eventTransformUtils'
 
 export const mutateStorageKey = (key: string) => `${STORAGE_PREFIX}${key}`
 
-export const safeParseJson = (value: string): string | Object => {
+export const safeParseJson = <T>(value: T): T | Object => {
   if (typeof value !== 'string') {
     return value
   }
