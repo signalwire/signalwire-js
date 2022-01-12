@@ -201,7 +201,7 @@ export class BaseSession {
     }
 
     this.logger.wsTraffic({ type: 'send', payload: msg })
-    this._socket!.send(JSON.stringify(msg))
+    this._socket!.send(this.encode(msg))
 
     return timeoutPromise(
       promise,
@@ -263,7 +263,7 @@ export class BaseSession {
   }
 
   protected _onSocketMessage(event: MessageEvent) {
-    const payload: any = safeParseJson(event.data)
+    const payload = this.decode(event.data)
     this.logger.wsTraffic({ type: 'recv', payload })
     const request = this._requests.get(payload.id)
     if (request) {
@@ -320,6 +320,14 @@ export class BaseSession {
     return (
       this.signature && this?.relayProtocol?.split('_')[1] === this.signature
     )
+  }
+
+  protected encode<T>(input: T): Parameters<WebSocketClient['send']>[0] {
+    return JSON.stringify(input)
+  }
+
+  protected decode<T>(input: T): any {
+    return safeParseJson(input)
   }
 
   private async _pingHandler(payload: JSONRPCRequest) {
