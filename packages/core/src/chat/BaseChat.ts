@@ -141,19 +141,12 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
         {
           type: 'chatMessage',
           instanceFactory: (payload: ChatMemberEvent) => {
-            const { channel, member } = payload.params
-            const params = {
-              ...toExternalJSON(member),
-              channel,
-            }
-            return new ChatMember(params)
+            const { member } = payload.params
+            return new ChatMember(toExternalJSON(member))
           },
           payloadTransform: (payload: ChatMemberEvent) => {
-            const { channel, member } = payload.params
-            return {
-              ...toExternalJSON(member),
-              channel,
-            }
+            const { member } = payload.params
+            return toExternalJSON(member)
           },
         },
       ],

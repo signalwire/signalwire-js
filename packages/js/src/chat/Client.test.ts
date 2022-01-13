@@ -190,7 +190,11 @@ describe('ChatClient Object', () => {
                     channel: 'lobby',
                     message: {
                       id: 'f5511ad5-4dc2-4d28-a449-cc39909093b9',
-                      sender_id: '1507e5f9-075c-463d-94ba-a8f9ec0c7d4e',
+                      member: {
+                        id: '1507e5f9-075c-463d-94ba-a8f9ec0c7d4e',
+                        channel: 'lobby',
+                        state: { active: true },
+                      },
                       content: 'Hello World!',
                       published_at: 1641405257.795,
                     },
@@ -210,7 +214,11 @@ describe('ChatClient Object', () => {
       chat.on('message', (message) => {
         expect(message.channel).toBe('lobby')
         expect(message.id).toBe('f5511ad5-4dc2-4d28-a449-cc39909093b9')
-        expect(message.senderId).toBe('1507e5f9-075c-463d-94ba-a8f9ec0c7d4e')
+        expect(message.member).toStrictEqual({
+          id: '1507e5f9-075c-463d-94ba-a8f9ec0c7d4e',
+          channel: 'lobby',
+          state: { active: true },
+        })
         expect(message.content).toBe('Hello World!')
         expect(message.publishedAt).toStrictEqual(
           new Date(1641405257.795 * 1000)

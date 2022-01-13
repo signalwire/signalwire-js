@@ -65,8 +65,8 @@ export type ChatMethods = Omit<
 
 export interface ChatMessageContract {
   id: string
-  senderId: string
   channel: string
+  member: ChatMemberContract
   content: any
   publishedAt: Date
   meta?: any
@@ -79,7 +79,7 @@ export type InternalChatMessageEntity = {
   [K in NonNullable<
     keyof ChatMessageEntity
   > as CamelToSnakeCase<K>]: ChatMessageEntity[K]
-}
+} & { member: InternalChatMemberEntity }
 
 export interface ChatMemberContract {
   id: string
