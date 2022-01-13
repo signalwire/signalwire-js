@@ -1,14 +1,15 @@
 import type { PayloadAction } from '../../core'
-import { SessionState } from '../../interfaces'
-import {
+import type { SessionState } from '../../interfaces'
+import type {
   RPCConnectResult,
   SessionAuthError,
   SessionAuthStatus,
 } from '../../../utils/interfaces'
+import type { DeepReadonly } from '../../../types'
 import { createDestroyableSlice } from '../../utils/createDestroyableSlice'
 import { authErrorAction } from '../../actions'
 
-export const initialSessionState: Readonly<SessionState> = {
+export const initialSessionState: DeepReadonly<SessionState> = {
   protocol: '',
   iceServers: [],
   authStatus: 'unknown',

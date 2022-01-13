@@ -1,8 +1,9 @@
-import type { PayloadAction } from '../../core'
-import { ExecuteQueueState, ExecuteActionParams } from '../../interfaces'
 import { createDestroyableSlice } from '../../utils/createDestroyableSlice'
+import type { PayloadAction } from '../../core'
+import type { ExecuteQueueState, ExecuteActionParams } from '../../interfaces'
+import type { DeepReadonly } from '../../../types'
 
-export const initialExecuteQueueState: Readonly<ExecuteQueueState> = {
+export const initialExecuteQueueState: DeepReadonly<ExecuteQueueState> = {
   queue: [],
 }
 
