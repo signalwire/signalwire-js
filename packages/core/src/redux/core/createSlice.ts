@@ -6,6 +6,7 @@ import {
   PrepareAction,
   _ActionCreatorWithPreparedPayload,
 } from '.'
+import { DeepReadonly } from '../../types'
 import { PayloadActionCreator } from './createAction'
 import {
   CaseReducer,
@@ -46,7 +47,7 @@ export interface Slice<
   /**
    * The slice's reducer.
    */
-  reducer: Reducer<State>
+  reducer: Reducer<DeepReadonly<State>>
 
   /**
    * Action creators for the types of actions that are handled by the slice
@@ -64,7 +65,7 @@ export interface Slice<
    * Provides access to the initial state value given to the slice.
    * If a lazy state initializer was provided, it will be called and a fresh value returned.
    */
-  getInitialState: () => State
+  getInitialState: () => DeepReadonly<State>
 }
 
 /**
@@ -102,8 +103,8 @@ export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
  */
 export type SliceCaseReducers<State> = {
   [K: string]:
-    | CaseReducer<State, PayloadAction<any>>
-    | CaseReducerWithPrepare<State, PayloadAction<any, string, any, any>>
+    | CaseReducer<DeepReadonly<State>, PayloadAction<any>>
+    | CaseReducerWithPrepare<DeepReadonly<State>, PayloadAction<any, string, any, any>>
 }
 
 /**
@@ -222,7 +223,7 @@ export function createSlice<
     const maybeReducerWithPrepare = reducers[reducerName]
     const type = getType(name, reducerName)
 
-    let caseReducer: CaseReducer<State, any>
+    let caseReducer: CaseReducer<DeepReadonly<State>, any>
     let prepareCallback: PrepareAction<any> | undefined
 
     if ('reducer' in maybeReducerWithPrepare) {
