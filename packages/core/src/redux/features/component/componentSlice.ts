@@ -1,9 +1,10 @@
-import type { PayloadAction } from '../../core'
-import { JSONRPCResponse } from '../../../utils/interfaces'
-import { ComponentState, ReduxComponent } from '../../interfaces'
 import { createDestroyableSlice } from '../../utils/createDestroyableSlice'
+import type { PayloadAction } from '../../core'
+import type { JSONRPCResponse } from '../../../utils/interfaces'
+import type { ComponentState, ReduxComponent } from '../../interfaces'
+import type { DeepReadonly } from '../../../types'
 
-export const initialComponentState: Readonly<ComponentState> = {
+export const initialComponentState: DeepReadonly<ComponentState> = {
   byId: {},
 }
 
@@ -31,12 +32,12 @@ const requestUpdater = <T>({
   key,
   requestId,
 }: {
-  state: Readonly<ComponentState>
+  state: DeepReadonly<ComponentState>
   payload: T
   componentId: string
   key: 'responses' | 'errors'
   requestId: string
-}): Readonly<ComponentState> => {
+}): DeepReadonly<ComponentState> => {
   if (componentId in state.byId) {
     return {
       ...state,
