@@ -571,29 +571,6 @@ describe('ChatClient Object', () => {
       await chat.subscribe(['test1'])
 
       const response = await chat.setMemberState({
-        channels: 'test1',
-        state: { typing: true },
-      })
-
-      const request = JSON.parse(server.messages[2].toString())
-      expect(request.method).toEqual('chat.member.set_state')
-      expect(request.params).toStrictEqual({
-        channels: [{ name: 'test1' }],
-        state: { typing: true },
-      })
-
-      expect(response).toStrictEqual(undefined)
-    })
-
-    it('should send the proper RPC with memberId and format the response', async () => {
-      const chat = new Client({
-        host,
-        token,
-      })
-      chat.on('message', () => {})
-      await chat.subscribe(['test1'])
-
-      const response = await chat.setMemberState({
         memberId: 'memberUuid1',
         channels: 'test1',
         state: { typing: true },
