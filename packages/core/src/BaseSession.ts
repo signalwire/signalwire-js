@@ -1,5 +1,13 @@
 import { PayloadAction } from '@reduxjs/toolkit'
-import { uuid, getLogger } from './utils'
+import {
+  uuid,
+  getLogger,
+  checkWebSocketHost,
+  timeoutPromise,
+  parseRPCResponse,
+  safeParseJson,
+  isJSONRPCResponse,
+} from './utils'
 import { DEFAULT_HOST, WebSocketState } from './utils/constants'
 import {
   RPCConnect,
@@ -19,13 +27,6 @@ import {
   WebSocketClient,
   SessionStatus,
 } from './utils/interfaces'
-
-import {
-  checkWebSocketHost,
-  timeoutPromise,
-  parseRPCResponse,
-  safeParseJson,
-} from './utils'
 import {
   closeConnectionAction,
   authErrorAction,
@@ -201,7 +202,7 @@ export class BaseSession {
     }
 
     this.logger.wsTraffic({ type: 'send', payload: msg })
-    this._socket!.send(JSON.stringify(msg))
+    this._socket!.send(this.encode(msg))
 
     return timeoutPromise(
       promise,
@@ -263,17 +264,22 @@ export class BaseSession {
   }
 
   protected _onSocketMessage(event: MessageEvent) {
-    const payload: any = safeParseJson(event.data)
+    const payload = this.decode<JSONRPCRequest | JSONRPCResponse>(event.data)
     this.logger.wsTraffic({ type: 'recv', payload })
-    const request = this._requests.get(payload.id)
-    if (request) {
-      const { rpcRequest, resolve, reject } = request
-      this._requests.delete(payload.id)
-      const { result, error } = parseRPCResponse({
-        response: payload,
-        request: rpcRequest,
-      })
-      return error ? reject(error) : resolve(result)
+
+    if (isJSONRPCResponse(payload)) {
+      const request = this._requests.get(payload.id)
+      if (request) {
+        const { rpcRequest, resolve, reject } = request
+        this._requests.delete(payload.id)
+        const { result, error } = parseRPCResponse({
+          response: payload,
+          request: rpcRequest,
+        })
+        return error ? reject(error) : resolve(result)
+      }
+
+      return this.logger.warn('Unknown request for', payload)
     }
 
     switch (payload.method) {
@@ -320,6 +326,14 @@ export class BaseSession {
     return (
       this.signature && this?.relayProtocol?.split('_')[1] === this.signature
     )
+  }
+
+  protected encode<T>(input: T): Parameters<WebSocketClient['send']>[0] {
+    return JSON.stringify(input)
+  }
+
+  protected decode<T>(input: any): T {
+    return safeParseJson(input)
   }
 
   private async _pingHandler(payload: JSONRPCRequest) {

@@ -6,6 +6,7 @@ import { makeRPCResponse } from '../RPCMessages/helpers'
  * @internal
  */
 export type InternalRPCMethods =
+  | 'blade.ping'
   | 'blade.connect'
   | 'blade.execute'
   | 'blade.protocol'
@@ -13,11 +14,11 @@ export type InternalRPCMethods =
 /**
  * @internal
  */
-export const JSONRPCParseError = -32700 as const
+const JSONRPCParseError = -32700 as const
 /**
  * @internal
  */
-export const JSONRPCInvalidRequest = -32600 as const
+const JSONRPCInvalidRequest = -32600 as const
 /**
  * @internal
  */
@@ -25,15 +26,15 @@ export const JSONRPCMethodNotFound = -32601 as const
 /**
  * @internal
  */
-export const JSONRPCInvalidParams = -32602 as const
+const JSONRPCInvalidParams = -32602 as const
 /**
  * @internal
  */
-export const JSONRPCInternalError = -32603 as const
+const JSONRPCInternalError = -32603 as const
 /**
  * @internal
  */
-export type JSONRPCErrorCodes =
+type JSONRPCErrorCodes =
   | typeof JSONRPCParseError
   | typeof JSONRPCInvalidRequest
   | typeof JSONRPCMethodNotFound
@@ -43,7 +44,7 @@ export type JSONRPCErrorCodes =
 /**
  * @internal
  */
-export type InternalRPCResponseProperties = {
+type InternalRPCResponseProperties = {
   result: Record<string, any>
   error: {
     code: JSONRPCErrorCodes

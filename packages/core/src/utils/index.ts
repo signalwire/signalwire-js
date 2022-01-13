@@ -1,3 +1,4 @@
+import { JSONRPCRequest, JSONRPCResponse } from '..'
 import {
   STORAGE_PREFIX,
   GLOBAL_VIDEO_EVENTS,
@@ -16,7 +17,7 @@ export * from './eventTransformUtils'
 
 export const mutateStorageKey = (key: string) => `${STORAGE_PREFIX}${key}`
 
-export const safeParseJson = (value: string): string | Object => {
+export const safeParseJson = <T>(value: T): T | Object => {
   if (typeof value !== 'string') {
     return value
   }
@@ -155,4 +156,16 @@ export const toLocalEvent = <T extends string>(event: string): T => {
       return reducer
     }, [] as string[])
     .join('.') as T
+}
+
+export const isJSONRPCRequest = (
+  e: JSONRPCRequest | JSONRPCResponse
+): e is JSONRPCRequest => {
+  return Boolean((e as JSONRPCRequest).method)
+}
+
+export const isJSONRPCResponse = (
+  e: JSONRPCRequest | JSONRPCResponse
+): e is JSONRPCResponse => {
+  return !isJSONRPCRequest(e)
 }
