@@ -256,6 +256,8 @@ describe('ChatClient Object', () => {
             channel: 'lobby',
             member: {
               id: '1507e5f9-075c-463d-94ba-a8f9ec0c7d4e',
+              channel: 'lobby',
+              state: { init: 1 },
             },
           },
           timestamp: 1641468229.28,
@@ -269,6 +271,7 @@ describe('ChatClient Object', () => {
       chat.on('member.joined', (member) => {
         expect(member.channel).toBe('lobby')
         expect(member.id).toBe('1507e5f9-075c-463d-94ba-a8f9ec0c7d4e')
+        expect(member.state).toStrictEqual({ init: 1 })
 
         done()
       })
@@ -288,9 +291,10 @@ describe('ChatClient Object', () => {
             channel: 'lobby',
             member: {
               id: '1507e5f9-075c-463d-94ba-a8f9ec0c7d4e',
-            },
-            state: {
-              typing: true,
+              channel: 'lobby',
+              state: {
+                typing: true,
+              },
             },
           },
           timestamp: 1641468242.538,
@@ -326,6 +330,8 @@ describe('ChatClient Object', () => {
             channel: 'lobby',
             member: {
               id: '1507e5f9-075c-463d-94ba-a8f9ec0c7d4e',
+              channel: 'lobby',
+              state: {},
             },
           },
           timestamp: 1641468229.28,
@@ -339,6 +345,7 @@ describe('ChatClient Object', () => {
       chat.on('member.left', (member) => {
         expect(member.channel).toBe('lobby')
         expect(member.id).toBe('1507e5f9-075c-463d-94ba-a8f9ec0c7d4e')
+        expect(member.state).toStrictEqual({})
 
         done()
       })
