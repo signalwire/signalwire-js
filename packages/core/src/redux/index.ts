@@ -1,3 +1,4 @@
+import { Store } from 'redux'
 import createSagaMiddleware, { channel, Saga, Task } from '@redux-saga/core'
 import { configureStore as rtConfigureStore } from './core'
 import { rootReducer } from './rootReducer'
@@ -50,7 +51,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
       // type information under some circumstances.
       // @see https://redux-toolkit.js.org/api/getDefaultMiddleware#intended-usage
       getDefaultMiddleware().concat(sagaMiddleware),
-  })
+  }) as Store
   const runSaga: SDKRunSaga = (saga: Saga, args) => {
     return sagaMiddleware.run(saga, {
       ...args,
