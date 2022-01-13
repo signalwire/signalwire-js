@@ -29,12 +29,13 @@ export interface ChatPublishParams {
   meta?: Record<any, any>
 }
 interface ChatSetMemberStateParams {
+  memberId?: string
   channels: ChatChannel
   state: Record<any, any>
 }
 interface ChatGetMemberStateParams {
-  channels?: ChatChannel
   memberId: string
+  channels?: ChatChannel
 }
 interface ChatGetMessagesParams {
   channel: string

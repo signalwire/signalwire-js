@@ -89,16 +89,16 @@ export const getMembers = createChatMethod<{ members: any[] }>(
     }),
   }
 )
-export const setMemberState = createChatMethod<any, void>(
+
+/**
+ * Chat Member Methods
+ */
+export const setMemberState = createChatMemberMethod<any, void>(
   'chat.member.set_state',
   {
     transformResolve: () => {},
   }
 )
-
-/**
- * Chat Member Methods
- */
 export const getMemberState = createChatMemberMethod<{ channels: any }>(
   'chat.member.get_state',
   {
