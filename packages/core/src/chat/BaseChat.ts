@@ -25,6 +25,10 @@ import type {
   ChatChannel,
 } from '../types/chat'
 
+type ChatMemberEvent =
+  | ChatMemberJoinedEvent
+  | ChatMemberLeftEvent
+  | ChatMemberUpdatedEvent
 export type BaseChatApiEventsHandlerMapping = Record<
   ChatMessageEventName,
   (message: ChatMessage) => void
@@ -133,50 +137,16 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
         },
       ],
       [
-        ['member.joined', 'member.left'],
+        ['member.joined', 'member.left', 'member.updated'],
         {
           type: 'chatMessage',
-          instanceFactory: (
-            payload: ChatMemberJoinedEvent | ChatMemberLeftEvent
-          ) => {
-            const { channel, member } = payload.params
-            const params = {
-              ...toExternalJSON(member),
-              channel,
-            }
-            return new ChatMember(params)
+          instanceFactory: (payload: ChatMemberEvent) => {
+            const { member } = payload.params
+            return new ChatMember(toExternalJSON(member))
           },
-          payloadTransform: (
-            payload: ChatMemberJoinedEvent | ChatMemberLeftEvent
-          ) => {
-            const { channel, member } = payload.params
-            return {
-              ...toExternalJSON(member),
-              channel,
-            }
-          },
-        },
-      ],
-      [
-        ['member.updated'],
-        {
-          type: 'chatMessage',
-          instanceFactory: (payload: ChatMemberUpdatedEvent) => {
-            const { channel, member, state = {} } = payload.params
-            const params = {
-              ...toExternalJSON(member),
-              channel,
-              state,
-            }
-            return new ChatMember(params)
-          },
-          payloadTransform: (payload: ChatMemberUpdatedEvent) => {
-            const { channel, member, state = {} } = payload.params
-            return {
-              ...toExternalJSON(member),
-              channel,
-              state,
-            }
+          payloadTransform: (payload: ChatMemberEvent) => {
+            const { member } = payload.params
+            return toExternalJSON(member)
           },
         },
       ],
@@ -235,8 +205,8 @@ export const BaseChatAPI = extendComponent<BaseChatConsumer, ChatMethods>(
     publish: chatMethods.publish,
     getMembers: chatMethods.getMembers,
     getMessages: chatMethods.getMessages,
-    setState: chatMethods.setState,
-    getState: chatMethods.getState,
+    setMemberState: chatMethods.setMemberState,
+    getMemberState: chatMethods.getMemberState,
   }
 )
 

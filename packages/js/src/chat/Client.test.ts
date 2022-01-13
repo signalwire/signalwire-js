@@ -69,7 +69,7 @@ describe('ChatClient Object', () => {
               },
             })
           )
-        } else if (parsedData.method === 'chat.presence.set_state') {
+        } else if (parsedData.method === 'chat.member.set_state') {
           socket.send(
             JSON.stringify({
               jsonrpc: '2.0',
@@ -80,7 +80,7 @@ describe('ChatClient Object', () => {
               },
             })
           )
-        } else if (parsedData.method === 'chat.presence.get_state') {
+        } else if (parsedData.method === 'chat.member.get_state') {
           socket.send(
             JSON.stringify({
               jsonrpc: '2.0',
@@ -190,7 +190,11 @@ describe('ChatClient Object', () => {
                     channel: 'lobby',
                     message: {
                       id: 'f5511ad5-4dc2-4d28-a449-cc39909093b9',
-                      sender_id: '1507e5f9-075c-463d-94ba-a8f9ec0c7d4e',
+                      member: {
+                        id: '1507e5f9-075c-463d-94ba-a8f9ec0c7d4e',
+                        channel: 'lobby',
+                        state: { active: true },
+                      },
                       content: 'Hello World!',
                       published_at: 1641405257.795,
                     },
@@ -210,7 +214,11 @@ describe('ChatClient Object', () => {
       chat.on('message', (message) => {
         expect(message.channel).toBe('lobby')
         expect(message.id).toBe('f5511ad5-4dc2-4d28-a449-cc39909093b9')
-        expect(message.senderId).toBe('1507e5f9-075c-463d-94ba-a8f9ec0c7d4e')
+        expect(message.member).toStrictEqual({
+          id: '1507e5f9-075c-463d-94ba-a8f9ec0c7d4e',
+          channel: 'lobby',
+          state: { active: true },
+        })
         expect(message.content).toBe('Hello World!')
         expect(message.publishedAt).toStrictEqual(
           new Date(1641405257.795 * 1000)
@@ -256,6 +264,8 @@ describe('ChatClient Object', () => {
             channel: 'lobby',
             member: {
               id: '1507e5f9-075c-463d-94ba-a8f9ec0c7d4e',
+              channel: 'lobby',
+              state: { init: 1 },
             },
           },
           timestamp: 1641468229.28,
@@ -269,6 +279,7 @@ describe('ChatClient Object', () => {
       chat.on('member.joined', (member) => {
         expect(member.channel).toBe('lobby')
         expect(member.id).toBe('1507e5f9-075c-463d-94ba-a8f9ec0c7d4e')
+        expect(member.state).toStrictEqual({ init: 1 })
 
         done()
       })
@@ -288,9 +299,10 @@ describe('ChatClient Object', () => {
             channel: 'lobby',
             member: {
               id: '1507e5f9-075c-463d-94ba-a8f9ec0c7d4e',
-            },
-            state: {
-              typing: true,
+              channel: 'lobby',
+              state: {
+                typing: true,
+              },
             },
           },
           timestamp: 1641468242.538,
@@ -326,6 +338,8 @@ describe('ChatClient Object', () => {
             channel: 'lobby',
             member: {
               id: '1507e5f9-075c-463d-94ba-a8f9ec0c7d4e',
+              channel: 'lobby',
+              state: {},
             },
           },
           timestamp: 1641468229.28,
@@ -339,6 +353,7 @@ describe('ChatClient Object', () => {
       chat.on('member.left', (member) => {
         expect(member.channel).toBe('lobby')
         expect(member.id).toBe('1507e5f9-075c-463d-94ba-a8f9ec0c7d4e')
+        expect(member.state).toStrictEqual({})
 
         done()
       })
@@ -555,14 +570,16 @@ describe('ChatClient Object', () => {
       chat.on('message', () => {})
       await chat.subscribe(['test1'])
 
-      const response = await chat.setState({
+      const response = await chat.setMemberState({
+        memberId: 'memberUuid1',
         channels: 'test1',
         state: { typing: true },
       })
 
       const request = JSON.parse(server.messages[2].toString())
-      expect(request.method).toEqual('chat.presence.set_state')
+      expect(request.method).toEqual('chat.member.set_state')
       expect(request.params).toStrictEqual({
+        member_id: 'memberUuid1',
         channels: [{ name: 'test1' }],
         state: { typing: true },
       })
@@ -580,15 +597,44 @@ describe('ChatClient Object', () => {
       chat.on('message', () => {})
       await chat.subscribe(['test1'])
 
-      const response = await chat.getState({
+      const response = await chat.getMemberState({
         memberId: 'memberId',
         channels: 'test1',
       })
 
       const request = JSON.parse(server.messages[2].toString())
-      expect(request.method).toEqual('chat.presence.get_state')
+      expect(request.method).toEqual('chat.member.get_state')
       expect(request.params).toStrictEqual({
         channels: [{ name: 'test1' }],
+        member_id: 'memberId',
+      })
+
+      expect(response).toStrictEqual({
+        channels: {
+          lobby: {
+            state: {
+              typing: true,
+            },
+          },
+        },
+      })
+    })
+
+    it('should send the proper RPC without (optional) channels', async () => {
+      const chat = new Client({
+        host,
+        token,
+      })
+      chat.on('message', () => {})
+      await chat.subscribe(['test1'])
+
+      const response = await chat.getMemberState({
+        memberId: 'memberId',
+      })
+
+      const request = JSON.parse(server.messages[2].toString())
+      expect(request.method).toEqual('chat.member.get_state')
+      expect(request.params).toStrictEqual({
         member_id: 'memberId',
       })
 

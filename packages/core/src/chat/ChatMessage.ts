@@ -1,4 +1,4 @@
-import { ChatMessageContract } from '..'
+import { ChatMessageContract, ChatMemberContract } from '..'
 
 export class ChatMessage implements ChatMessageContract {
   constructor(private payload: ChatMessageContract) {}
@@ -7,8 +7,8 @@ export class ChatMessage implements ChatMessageContract {
     return this.payload.id
   }
 
-  get senderId(): string {
-    return this.payload.senderId
+  get member(): ChatMemberContract {
+    return this.payload.member
   }
 
   get channel(): string {

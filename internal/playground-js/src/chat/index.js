@@ -35,17 +35,37 @@ window.connect = async ({ channels, host, token }) => {
 
   chat.on('message', (message) => {
     console.debug('Inbound Message', message)
+
+    // message.id
+    // message.channel
+    // message.member
+    // message.member.id
+    // message.member.channel
+    // message.member.state
+    // message.publishedAt
+    // message.content
+    // message.meta // {}
     _appendMessage(message)
   })
 
   chat.on('member.joined', (member) => {
-    console.debug('Member Joined a channel', member.id, member.channel)
+    console.debug(
+      'Member Joined a channel',
+      member.id,
+      member.channel,
+      member.state
+    )
   })
   chat.on('member.updated', (member) => {
     console.debug('Member Updated', member.id, member.channel, member.state)
   })
   chat.on('member.left', (member) => {
-    console.debug('Member Left a channel', member.id, member.channel)
+    console.debug(
+      'Member Left a channel',
+      member.id,
+      member.channel,
+      member.state
+    )
   })
 
   await chat.subscribe(channels)

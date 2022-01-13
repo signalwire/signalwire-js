@@ -23,27 +23,33 @@ export type ChatEventNames = ChatMessageEventName | ChatMemberEventNames
 
 export type ChatChannel = string | string[]
 
+export interface ChatSubscribeParams {
+  message: any
+  channel: string
+  meta?: Record<any, any>
+}
 export interface ChatPublishParams {
   message: any
   channel: string
   meta?: Record<any, any>
 }
-export interface ChatSetStateParams {
+interface ChatSetMemberStateParams {
+  memberId: string
   channels: ChatChannel
   state: Record<any, any>
 }
-export interface ChatGetStateParams {
-  channels: ChatChannel
+interface ChatGetMemberStateParams {
   memberId: string
+  channels?: ChatChannel
 }
-export interface ChatGetMessagesParams {
+interface ChatGetMessagesParams {
   channel: string
   cursor?: {
     after?: string
     before?: string
   }
 }
-export interface ChatGetMembersParams {
+interface ChatGetMembersParams {
   channel: string
 }
 export interface ChatContract {
@@ -52,8 +58,8 @@ export interface ChatContract {
   publish(params: ChatPublishParams): Promise<any>
   getMessages(params: ChatGetMessagesParams): Promise<any>
   getMembers(params: ChatGetMembersParams): Promise<any>
-  setState(params: ChatSetStateParams): Promise<any>
-  getState(params: ChatGetStateParams): Promise<any>
+  setMemberState(params: ChatSetMemberStateParams): Promise<any>
+  getMemberState(params: ChatGetMemberStateParams): Promise<any>
 }
 
 export type ChatEntity = OnlyStateProperties<ChatContract>
@@ -64,8 +70,8 @@ export type ChatMethods = Omit<
 
 export interface ChatMessageContract {
   id: string
-  senderId: string
   channel: string
+  member: ChatMemberContract
   content: any
   publishedAt: Date
   meta?: any
@@ -78,17 +84,20 @@ export type InternalChatMessageEntity = {
   [K in NonNullable<
     keyof ChatMessageEntity
   > as CamelToSnakeCase<K>]: ChatMessageEntity[K]
-}
+} & { member: InternalChatMemberEntity }
 
 export interface ChatMemberContract {
   id: string
   channel: string
-  state?: Record<any, any>
+  state: Record<any, any>
 }
 
-// Not using OnlyStateProperties because Member for now is just an id..
-export interface InternalChatMemberEntity {
-  id: string
+export type ChatMemberEntity = OnlyStateProperties<ChatMemberContract>
+
+export type InternalChatMemberEntity = {
+  [K in NonNullable<
+    keyof ChatMemberEntity
+  > as CamelToSnakeCase<K>]: ChatMemberEntity[K]
 }
 
 /**
@@ -133,7 +142,6 @@ export interface ChatMemberJoinedEvent extends SwEvent {
 export interface ChatMemberUpdatedEventParams {
   channel: string
   member: InternalChatMemberEntity
-  state: Record<any, any>
 }
 
 export interface ChatMemberUpdatedEvent extends SwEvent {
@@ -176,8 +184,8 @@ export type ChatJSONRPCMethod =
   | 'chat.subscribe'
   | 'chat.publish'
   | 'chat.unsubscribe'
-  | 'chat.presence.set_state'
-  | 'chat.presence.get_state'
+  | 'chat.member.set_state'
+  | 'chat.member.get_state'
   | 'chat.members.get'
   | 'chat.messages.get'
 
