@@ -1,3 +1,4 @@
+import { JSONRPCRequest, JSONRPCResponse } from '..'
 import {
   STORAGE_PREFIX,
   GLOBAL_VIDEO_EVENTS,
@@ -155,4 +156,16 @@ export const toLocalEvent = <T extends string>(event: string): T => {
       return reducer
     }, [] as string[])
     .join('.') as T
+}
+
+export const isJSONRPCRequest = (
+  e: JSONRPCRequest | JSONRPCResponse
+): e is JSONRPCRequest => {
+  return Boolean((e as JSONRPCRequest).method)
+}
+
+export const isJSONRPCResponse = (
+  e: JSONRPCRequest | JSONRPCResponse
+): e is JSONRPCResponse => {
+  return !isJSONRPCRequest(e)
 }

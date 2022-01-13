@@ -6,6 +6,7 @@ import { makeRPCResponse } from '../RPCMessages/helpers'
  * @internal
  */
 export type InternalRPCMethods =
+  | 'blade.ping'
   | 'blade.connect'
   | 'blade.execute'
   | 'blade.protocol'
