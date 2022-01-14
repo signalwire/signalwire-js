@@ -7,6 +7,7 @@ import type {
 } from '@signalwire/core'
 import { getLogger } from '@signalwire/core'
 import { createClient } from '../createClient'
+import { ClientDocs } from './Client.docs'
 
 export interface ClientApiEvents extends ChatNamespace.BaseChatApiEvents {}
 
@@ -14,8 +15,6 @@ export interface ClientFullState extends Client {}
 interface ClientMain
   extends ChatContract,
     Omit<ConsumerContract<ClientApiEvents, ClientFullState>, 'subscribe'> {}
-
-interface ClientDocs extends ClientMain {}
 
 export interface Client extends AssertSameType<ClientMain, ClientDocs> {}
 
