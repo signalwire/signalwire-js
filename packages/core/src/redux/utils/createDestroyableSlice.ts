@@ -2,8 +2,8 @@ import {
   SliceCaseReducers,
   ValidateSliceCaseReducers,
   createSlice,
-} from '../core/createSlice'
-import { ActionReducerMapBuilder } from '../core/mapBuilders'
+} from '../toolkit/createSlice'
+import { ActionReducerMapBuilder } from '../toolkit/mapBuilders'
 import { destroyAction } from '../actions'
 
 export const createDestroyableSlice = <

@@ -1,6 +1,6 @@
 import { Store } from 'redux'
 import createSagaMiddleware, { channel, Saga, Task } from '@redux-saga/core'
-import { configureStore as rtConfigureStore } from './core'
+import { configureStore as rtConfigureStore } from './toolkit'
 import { rootReducer } from './rootReducer'
 import rootSaga from './rootSaga'
 import { PubSubChannel, SDKState } from './interfaces'
@@ -75,4 +75,4 @@ const configureStore = (options: ConfigureStoreOptions) => {
 export { connect, configureStore }
 export * from './actions'
 export * from './utils/sagaHelpers'
-export * from './core'
+export * from './toolkit'

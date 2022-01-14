@@ -1,5 +1,5 @@
 import { createDestroyableSlice } from '../../utils/createDestroyableSlice'
-import type { PayloadAction } from '../../core'
+import type { PayloadAction } from '../../toolkit'
 import type { JSONRPCResponse } from '../../../utils/interfaces'
 import type { ComponentState, ReduxComponent } from '../../interfaces'
 import type { DeepReadonly } from '../../../types'

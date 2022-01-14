@@ -7,7 +7,7 @@ import {
   select,
   cancelled,
 } from '@redux-saga/core/effects'
-import type { PayloadAction } from '../../core'
+import type { PayloadAction } from '../../toolkit'
 import { BaseSession } from '../../../BaseSession'
 import { VertoResult } from '../../../RPCMessages'
 import { JSONRPCRequest, JSONRPCResponse } from '../../../utils/interfaces'

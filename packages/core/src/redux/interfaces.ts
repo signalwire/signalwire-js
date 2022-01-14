@@ -1,5 +1,5 @@
 import type { SagaIterator, Channel } from '@redux-saga/types'
-import type { PayloadAction } from './core'
+import type { PayloadAction } from './toolkit'
 import {
   JSONRPCResponse,
   SessionAuthError,

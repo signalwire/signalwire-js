@@ -1,4 +1,4 @@
-import type { PayloadAction } from '../../core'
+import type { PayloadAction } from '../../toolkit'
 import type { SessionState } from '../../interfaces'
 import type {
   RPCConnectResult,

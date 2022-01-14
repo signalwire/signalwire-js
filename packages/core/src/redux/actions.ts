@@ -1,4 +1,4 @@
-import { createAction, Action } from './core'
+import { createAction, Action } from './toolkit'
 import {
   JSONRPCRequest,
   SessionAuthError,

@@ -1,4 +1,4 @@
-import { combineReducers } from './core'
+import { combineReducers } from './toolkit'
 import {
   componentReducer,
   sessionReducer,
