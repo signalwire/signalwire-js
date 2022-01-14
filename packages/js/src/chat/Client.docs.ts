@@ -7,6 +7,14 @@ import type {
   ClientFullState
 } from './Client'
 
+export type PagingCursor = {
+  before: string
+  after?: never
+} | {
+  before?: never
+  after: string
+}
+
 export interface ClientDocs extends
   Omit<ConsumerContract<ClientApiEvents, ClientFullState>, 'subscribe'> {
 
@@ -59,7 +67,7 @@ export interface ClientDocs extends
    *   message: 'Hello, world.'
    * })
    * ```
-   * 
+   *
    * @example Publishing a message as an object:
    * ```js
    * await chatClient.publish({
@@ -83,12 +91,32 @@ export interface ClientDocs extends
     meta?: Record<any, any>
   }): Promise<any>
 
+  /**
+   * Returns the list of messages that were sent to the specified channel.
+   * 
+   * @example
+   * ```js
+   * const m = await chatClient.getMessages({ channel: 'chan1' })
+   * 
+   * m.messages.length;  // 23
+   * m.messages[0];  // the most recent message
+   * 
+   * m.cursor.next;  // if not null, there are more messages.
+   * 
+   * // Get the next page using the cursor
+   * const next = await chatClient.getMessages({
+   *   channel: 'chan1',
+   *   cursor: {
+   *     after: m.cursor.after
+   *   }
+   * })
+   * ```
+   */
   getMessages(params: {
+    /** Channel for which to retrieve the messages. */
     channel: string
-    cursor?: {
-      after?: string
-      before?: string
-    }
+    /** Cursor for pagination. */
+    cursor?: PagingCursor
   }): Promise<any>
 
   /**
