@@ -135,6 +135,15 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     return this.options.remoteStream
   }
 
+  get iceServers() {
+    let iceServers = this.options?.iceServers ?? []
+    if (!iceServers || !iceServers.length) {
+      iceServers = this.select(selectors.getIceServers)
+    }
+
+    return iceServers
+  }
+
   /** @internal */
   get messagePayload() {
     const {

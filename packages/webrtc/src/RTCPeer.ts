@@ -90,10 +90,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   get config(): RTCConfiguration {
-    const { iceServers = [], rtcPeerConfig = {} } = this.options
+    const { rtcPeerConfig = {} } = this.options
     const config: RTCConfiguration = {
       bundlePolicy: 'max-compat',
-      iceServers,
+      iceServers: this.call.iceServers,
       // @ts-ignore
       sdpSemantics: 'unified-plan',
       ...rtcPeerConfig,
