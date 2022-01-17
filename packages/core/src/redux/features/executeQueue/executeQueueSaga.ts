@@ -1,6 +1,6 @@
 import { SagaIterator } from '@redux-saga/core'
 import { put, take, fork, select } from '@redux-saga/core/effects'
-import { PayloadAction } from '@reduxjs/toolkit'
+import type { PayloadAction } from '../../toolkit'
 import { ExecuteActionParams } from '../../interfaces'
 import { getAuthStatus } from '../session/sessionSelectors'
 import { SessionAuthStatus } from '../../../utils/interfaces'

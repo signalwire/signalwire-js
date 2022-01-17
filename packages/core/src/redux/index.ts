@@ -1,5 +1,6 @@
-import { configureStore as rtConfigureStore } from '@reduxjs/toolkit'
+import { Store } from 'redux'
 import createSagaMiddleware, { channel, Saga, Task } from '@redux-saga/core'
+import { configureStore as rtConfigureStore } from './toolkit'
 import { rootReducer } from './rootReducer'
 import rootSaga from './rootSaga'
 import { PubSubChannel, SDKState } from './interfaces'
@@ -50,7 +51,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
       // type information under some circumstances.
       // @see https://redux-toolkit.js.org/api/getDefaultMiddleware#intended-usage
       getDefaultMiddleware().concat(sagaMiddleware),
-  })
+  }) as Store
   const runSaga: SDKRunSaga = (saga: Saga, args) => {
     return sagaMiddleware.run(saga, {
       ...args,
@@ -74,3 +75,4 @@ const configureStore = (options: ConfigureStoreOptions) => {
 export { connect, configureStore }
 export * from './actions'
 export * from './utils/sagaHelpers'
+export * from './toolkit'

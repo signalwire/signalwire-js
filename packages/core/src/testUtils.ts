@@ -1,5 +1,5 @@
 import { channel } from '@redux-saga/core'
-import { configureStore, ConfigureStoreOptions } from './redux'
+import { configureStore, ConfigureStoreOptions, SDKStore } from './redux'
 import { PubSubChannel } from './redux/interfaces'
 import { BaseSession } from './BaseSession'
 import { RPCConnectResult, InternalSDKLogger } from './utils/interfaces'
@@ -35,7 +35,7 @@ export const configureJestStore = (options?: Partial<ConfigureStoreOptions>) => 
     SessionConstructor: BaseSession,
     runSagaMiddleware: false,
     ...options,
-  })
+  }) as SDKStore
 }
 
 export const wait = (ms: number) => {
