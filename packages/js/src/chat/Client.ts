@@ -7,10 +7,15 @@ import type {
 } from '@signalwire/core'
 import { getLogger } from '@signalwire/core'
 import { createClient } from '../createClient'
-import { ClientDocs } from './Client.docs'
+import {
+  ClientApiEventsDocs,
+  ClientDocs,
+} from './Client.docs'
 
-export interface ClientApiEvents extends ChatNamespace.BaseChatApiEvents {}
+interface ClientApiEventsMain extends ChatNamespace.BaseChatApiEvents {}
+export interface ClientApiEvents extends AssertSameType<ClientApiEventsMain, ClientApiEventsDocs> {}
 
+/** @ignore */
 export interface ClientFullState extends Client {}
 interface ClientMain
   extends ChatContract,
@@ -30,10 +35,10 @@ interface ClientMain
  *
  * await chatClient.subscribe([ 'mychannel1', 'mychannel2' ])
  *
- * chatClient.on('message', (args) => {
- *   const { timestamp } = args
- *   const { message, channel } = args.params
- *   console.log("Received", message, "on", channel, "at", timestamp)
+ * chatClient.on('message', (message) => {
+ *   console.log("Received", message.content,
+ *               "on", message.channel,
+ *               "at", message.publishedAt)
  * })
  *
  * await chatClient.publish({
@@ -44,11 +49,12 @@ interface ClientMain
  *
  * ## Events
  *
- * Please see {@link ClientApiEvents} for the list of events emitted by a chat Client
- * object.
+ * Please see {@link ClientApiEvents} for the list of events emitted by a chat
+ * Client object.
  */
 export interface Client extends AssertSameType<ClientMain, ClientDocs> {}
 
+/** @ignore */
 export interface ClientOptions extends UserOptions {}
 
 export const Client = function (chatOptions: ClientOptions) {

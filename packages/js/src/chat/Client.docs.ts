@@ -1,5 +1,6 @@
 import type {
   ConsumerContract,
+  Chat,
 } from '@signalwire/core'
 
 import type {
@@ -203,4 +204,27 @@ export interface ClientDocs extends
     memberId: string
   }): Promise<any>
 
+}
+
+
+export interface ClientApiEventsDocs {
+  /**
+   * A new message has been received.
+   */
+  "message": (message: Chat.ChatMessage) => void
+
+  /**
+   * A new member joined the chat.
+   */
+  "member.joined": (member: Chat.ChatMember) => void
+
+  /**
+   * A member updated its state.
+   */
+  "member.updated": (member: Chat.ChatMember) => void
+
+  /**
+   * A member left the chat.
+   */
+  "member.left": (member: Chat.ChatMember) => void
 }
