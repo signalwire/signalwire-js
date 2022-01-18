@@ -16,6 +16,37 @@ interface ClientMain
   extends ChatContract,
     Omit<ConsumerContract<ClientApiEvents, ClientFullState>, 'subscribe'> {}
 
+/**
+ * You can use the Client object to build a messaging system into the browser.
+ *
+ * Example usage:
+ *
+ * ```js
+ * import { Chat } from '@signalwire/js'
+ *
+ * const chatClient = new Chat.Client({
+ *   token: '<your_chat_token>',  // get this from the REST APIs
+ * })
+ *
+ * await chatClient.subscribe([ 'mychannel1', 'mychannel2' ])
+ *
+ * chatClient.on('message', (args) => {
+ *   const { timestamp } = args
+ *   const { message, channel } = args.params
+ *   console.log("Received", message, "on", channel, "at", timestamp)
+ * })
+ *
+ * await chatClient.publish({
+ *   channel: 'mychannel1',
+ *   message: 'hello world'
+ * })
+ * ```
+ *
+ * ## Events
+ *
+ * Please see {@link ClientApiEvents} for the list of events emitted by a chat Client
+ * object.
+ */
 export interface Client extends AssertSameType<ClientMain, ClientDocs> {}
 
 export interface ClientOptions extends UserOptions {}

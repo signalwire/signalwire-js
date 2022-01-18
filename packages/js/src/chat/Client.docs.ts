@@ -19,6 +19,26 @@ export interface ClientDocs extends
   Omit<ConsumerContract<ClientApiEvents, ClientFullState>, 'subscribe'> {
 
   /**
+   * Creates a new Chat client.
+   *
+   * @example
+   *
+   * ```js
+   * import { Chat } from '@signalwire/js'
+   *
+   * const chatClient = new Chat.Client({
+   *   token: '<your_chat_token>',
+   * })
+   * ```
+   */
+  new(chatOptions: {
+    /** SignalWire Chat token (you can get one with the REST APIs) */
+    token: string
+    /** Logging level */
+    logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
+  }): this
+
+  /**
    * List of channels for which you want to receive messages. You can only
    * subscribe to those channels for which your token has read permission.
    *
@@ -100,6 +120,9 @@ export interface ClientDocs extends
    * 
    * m.messages.length;  // 23
    * m.messages[0];  // the most recent message
+   * m.messages[0].member;  // the sender
+   * m.messages[0].content;  // the content
+   * m.messages[0].meta;  // the metadata (if any)
    * 
    * m.cursor.next;  // if not null, there are more messages.
    * 
