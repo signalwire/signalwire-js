@@ -1,4 +1,3 @@
-import { Action } from '@reduxjs/toolkit'
 import type { Task } from '@redux-saga/types'
 import {
   uuid,
@@ -9,7 +8,7 @@ import {
   NESTED_FIELDS_TO_PROCESS,
   getLogger,
 } from './utils'
-import { executeAction } from './redux'
+import { executeAction, Action } from './redux'
 import {
   ExecuteParams,
   ExecuteTransform,

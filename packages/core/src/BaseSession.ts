@@ -1,4 +1,3 @@
-import { PayloadAction } from '@reduxjs/toolkit'
 import {
   uuid,
   getLogger,
@@ -8,6 +7,7 @@ import {
   safeParseJson,
   isJSONRPCResponse,
 } from './utils'
+import { PayloadAction } from './redux'
 import { DEFAULT_HOST, WebSocketState } from './utils/constants'
 import {
   RPCConnect,

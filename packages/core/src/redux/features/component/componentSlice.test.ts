@@ -1,7 +1,7 @@
 import { Store } from 'redux'
 import { configureJestStore } from '../../../testUtils'
 import { componentActions, initialComponentState } from './componentSlice'
-import { getComponent } from './componentSelectors'
+import { getComponent, getComponentsById } from './componentSelectors'
 import { destroyAction, executeAction } from '../../actions'
 import { ReduxComponent } from '../../interfaces'
 import { JSONRPCResponse } from '../../../utils/interfaces'
@@ -45,6 +45,45 @@ describe('ComponentState Tests', () => {
         id: '268b4cf8-a3c5-4003-8666-3b7a4f0a5af9',
         state: 'active',
       })
+    })
+  })
+
+  describe('cleanup action', () => {
+    const s = configureJestStore({
+      preloadedState: {
+        components: {
+          byId: {
+            '268b4cf8-a3c5-4003-8666-3b7a4f0a5af9': {
+              id: '268b4cf8-a3c5-4003-8666-3b7a4f0a5af9',
+            },
+            'faa63915-3a64-4c39-acbb-06dac0758f8a': {
+              id: 'faa63915-3a64-4c39-acbb-06dac0758f8a',
+              responses: {},
+            },
+            'zfaa63915-3a64-4c39-acbb-06dac0758f8a': {
+              id: 'zfaa63915-3a64-4c39-acbb-06dac0758f8a',
+              errors: {},
+            },
+          },
+        },
+      },
+    })
+
+    s.dispatch(
+      componentActions.cleanup({
+        ...component,
+        ids: [
+          '268b4cf8-a3c5-4003-8666-3b7a4f0a5af9',
+          'faa63915-3a64-4c39-acbb-06dac0758f8a',
+        ],
+      })
+    )
+
+    expect(getComponentsById(s.getState())).toStrictEqual({
+      'zfaa63915-3a64-4c39-acbb-06dac0758f8a': {
+        id: 'zfaa63915-3a64-4c39-acbb-06dac0758f8a',
+        errors: {},
+      },
     })
   })
 

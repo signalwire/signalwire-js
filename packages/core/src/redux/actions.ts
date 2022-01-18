@@ -1,4 +1,4 @@
-import { createAction, Action } from '@reduxjs/toolkit'
+import { createAction, Action } from './toolkit'
 import {
   JSONRPCRequest,
   SessionAuthError,

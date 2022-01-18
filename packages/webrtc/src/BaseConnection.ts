@@ -83,13 +83,9 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   ) {
     super(options)
 
-    const iceServers =
-      options?.iceServers ?? this.select(selectors.getIceServers)
-
     this.options = {
       ...DEFAULT_CALL_OPTIONS,
       ...options,
-      iceServers,
     }
 
     this.setState('new')
@@ -133,6 +129,10 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   get remoteStream() {
     return this.options.remoteStream
+  }
+
+  get iceServers() {
+    return this.options?.iceServers ?? this.select(selectors.getIceServers)
   }
 
   /** @internal */

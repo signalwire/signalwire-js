@@ -1,8 +1,9 @@
-import { PayloadAction } from '@reduxjs/toolkit'
-import { ExecuteQueueState, ExecuteActionParams } from '../../interfaces'
 import { createDestroyableSlice } from '../../utils/createDestroyableSlice'
+import type { PayloadAction } from '../../toolkit'
+import type { ExecuteQueueState, ExecuteActionParams } from '../../interfaces'
+import type { DeepReadonly } from '../../../types'
 
-export const initialExecuteQueueState: Readonly<ExecuteQueueState> = {
+export const initialExecuteQueueState: DeepReadonly<ExecuteQueueState> = {
   queue: [],
 }
 
@@ -14,7 +15,10 @@ const executeQueueSlice = createDestroyableSlice({
       // TODO: Do we have to check for something (like an item in
       // queue with the same `payload.method`?) before adding the
       // payload to the queue?
-      state.queue.push(payload)
+      return {
+        ...state,
+        queue: state.queue.concat(payload)
+      }
     },
     clean: () => {
       return initialExecuteQueueState

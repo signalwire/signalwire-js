@@ -2,8 +2,8 @@ import {
   SliceCaseReducers,
   ValidateSliceCaseReducers,
   createSlice,
-  ActionReducerMapBuilder,
-} from '@reduxjs/toolkit'
+} from '../toolkit/createSlice'
+import { ActionReducerMapBuilder } from '../toolkit/mapBuilders'
 import { destroyAction } from '../actions'
 
 export const createDestroyableSlice = <
