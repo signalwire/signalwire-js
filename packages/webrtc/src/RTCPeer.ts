@@ -449,7 +449,9 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     // addTransceiver of 'kind' if not present
     const sender = this._getSenderByKind(kind)
     if (!sender && this.instance.addTransceiver) {
-      const transceiver = this.instance.addTransceiver(kind)
+      const transceiver = this.instance.addTransceiver(kind, {
+        direction: 'recvonly',
+      })
       this.logger.debug('Add transceiver', kind, transceiver)
     }
   }
