@@ -45,7 +45,12 @@ export class BaseBackendSession extends BaseSession {
   protected process(
     request: InternalRPCRequestBody
   ): Promise<InternalRPCResponseBody> {
-    this.logger.error({ request }, 'process (not implemented)')
+    this.logger.error(
+      JSON.stringify({
+        msg: '[core sdk] process not implemented',
+        request,
+      })
+    )
     const response = makeInternalRPCErrorResponseBody(
       request,
       '500',
@@ -60,10 +65,12 @@ export class BaseBackendSession extends BaseSession {
   ): Promise<void> {
     const { method, params } = payload
     switch (method) {
-      case 'blade.execute':
-        this.logger.info(
-          { params },
-          '_handleWebSocketMessage: blade.execute request received'
+      case 'blade.execute': {
+        this.logger.trace(
+          JSON.stringify({
+            msg: '[core sdk] _handleWebSocketMessage: blade.execute request received',
+            params,
+          })
         )
         const rpcResponse: InternalRPCResponseBody = await this.process(
           params as InternalRPCRequestBody
@@ -73,9 +80,15 @@ export class BaseBackendSession extends BaseSession {
           rpcResponse.result
         )
         await this.execute(response)
-        this.logger.info({ response }, '_handleWebSocketMessage: sent response')
+        this.logger.trace(
+          JSON.stringify({
+            msg: '[core sdk] _handleWebSocketMessage: blade.execute response sent',
+            response,
+          })
+        )
         break
-      default:
+      }
+      default: {
         await this.execute(
           makeInternalRPCErrorResponse(
             payload,
@@ -84,10 +97,13 @@ export class BaseBackendSession extends BaseSession {
           )
         )
         this.logger.error(
-          { payload },
-          '_handleWebSocketMessage: unknown method received'
+          JSON.stringify({
+            msg: '[core sdk] _handleWebSocketMessage: received unknown method',
+            payload,
+          })
         )
         break
+      }
     }
   }
 }
