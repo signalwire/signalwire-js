@@ -1,13 +1,11 @@
 import {
-  getEventEmitter,
-  InternalUserOptions,
   ClientEvents,
   configureStore,
   connect,
+  EventEmitter,
   UserOptions,
 } from '@signalwire/core'
-import { Session } from './Session'
-import { Client, RealtimeClient } from './Client'
+import { Client, RealtimeClient } from './BaseClient'
 
 const CLIENTS_MAP: Map<string, RealtimeClient> = new Map()
 
@@ -29,32 +27,23 @@ const createClient = (userOptions: {
   project?: string
   token: string
   logLevel?: UserOptions['logLevel']
+  store: ReturnType<typeof configureStore>
+  emitter: EventEmitter
 }) => {
-  const baseUserOptions: InternalUserOptions = {
-    ...userOptions,
-    emitter: getEventEmitter<ClientEvents>(),
-  }
-  const store = configureStore({
-    userOptions: baseUserOptions,
-    SessionConstructor: Session,
-  })
-
   const client = connect<ClientEvents, Client, RealtimeClient>({
-    store,
+    store: userOptions.store,
     Component: Client,
     componentListeners: {
       errors: 'onError',
       responses: 'onSuccess',
-    },
-    sessionListeners: {
-      authStatus: 'onAuth',
-    },
-  })(baseUserOptions)
+    }
+  })(userOptions)
 
   return client
 }
 
-const getToken = (userToken?: string) => {
+export const getToken = (userToken?: string) => {
+  // TODO: read from global store
   const token = userToken || process.env.SW_TOKEN
 
   if (!token) {
@@ -67,23 +56,21 @@ const getToken = (userToken?: string) => {
 
 export const getClient = (userOptions: {
   project?: string
-  token?: string
+  token: string
   logLevel?: UserOptions['logLevel']
+  store: ReturnType<typeof configureStore>
+  emitter: EventEmitter
 }): RealtimeClient => {
-  const token = getToken(userOptions.token)
   const clientKey = getClientKey({
     project: userOptions.project,
-    token,
+    token: userOptions.token,
   })
 
   if (CLIENTS_MAP.has(clientKey)) {
     // @ts-expect-error
     return CLIENTS_MAP.get(clientKey)
   } else {
-    const client = createClient({
-      ...userOptions,
-      token,
-    })
+    const client = createClient(userOptions)
 
     CLIENTS_MAP.set(clientKey, client)
 

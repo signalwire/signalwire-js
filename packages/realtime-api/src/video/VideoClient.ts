@@ -1,12 +1,14 @@
-import { AssertSameType, UserOptions } from '@signalwire/core'
-import { RealtimeClient } from '../Client'
-import { getClient } from '../getClient'
+import { AssertSameType, getEventEmitter, UserOptions } from '@signalwire/core'
+// import { RealtimeClient } from '../BaseClient'
+import { createStore } from '../createStore'
+import { getClient, getToken } from '../getClient'
 import { RealTimeVideoApiEvents } from '../types'
+import { createVideoObject, Video } from './Video'
 
 export interface VideoClientApiEvents extends RealTimeVideoApiEvents {}
 
 export interface VideoApiFullState extends VideoClient {}
-interface VideoClientMain extends RealtimeClient {}
+interface VideoClientMain extends Video {}
 
 interface VideoClientDocs extends VideoClientMain {}
 
@@ -19,20 +21,45 @@ export interface VideoClientOptions
 }
 
 const VideoClient = function (options: VideoClientOptions) {
-  const client = getClient(options)
+  const token = getToken(options.token)
+  const emitter = getEventEmitter<any>()
 
-  const on: RealtimeClient['on'] = (...args) => {
-    client.connect()
-
-    return client.on(...args)
+  const baseOptions = {
+    ...options,
+    token,
+    emitter,
   }
 
-  // TODO: intercept other methods.
+  const store = createStore(baseOptions)
+  const client = getClient({
+    ...baseOptions,
+    store,
+  })
 
-  return new Proxy<VideoClient>(client, {
+  // TODO: intercept client methods.
+
+  const video = createVideoObject({
+    store,
+    emitter,
+  })
+
+  // TODO: intercept video methods.
+  const videoOn: Video['on'] = (...args) => {
+    client.connect()
+
+    return video.on(...args)
+  }
+
+  // This should replace the `onAuth` we have in
+  // `packages/realtime-api/src/Client.ts`
+  client.on('session.connected', () => {
+    video.subscribe()
+  })
+
+  return new Proxy<VideoClient>(video, {
     get(target: VideoClient, prop: keyof VideoClient, receiver: any) {
       if (prop === 'on') {
-        return on
+        return videoOn
       }
 
       return Reflect.get(target, prop, receiver)
