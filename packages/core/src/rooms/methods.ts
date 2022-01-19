@@ -107,12 +107,16 @@ export const setLayout = createRoomMethod<BaseRPCResult, void>(
   }
 )
 export interface SetRolesParams {
-  roles?: Record<string, VideoRole>
+  roles: Record<string, VideoRole>
 }
-// TODO: rename "roles" to "positions" before execute
 export const setRoles = createRoomMethod<BaseRPCResult, void>(
   'video.set_position',
   {
+    transformParams: (params) => {
+      return {
+        positions: params.roles,
+      }
+    },
     transformResolve: baseCodeTransform,
   }
 )
@@ -201,13 +205,16 @@ export const play: RoomMethodDescriptor<any, PlayParams> = {
       }
       this.on(toLocalEvent('video.playback.start'), handler)
 
+      /** Rename roles to positions */
+      const { roles: positions, ...rest } = params
+
       try {
         const payload = await this.execute({
           method: 'video.playback.start',
           params: {
             room_session_id: this.roomSessionId,
-            // TODO: rename "roles" to "positions"!
-            ...params,
+            positions,
+            ...rest,
           },
         })
         this.emit(toLocalEvent('video.playback.start'), {
@@ -314,10 +321,14 @@ export const setInputSensitivityMember = createRoomMemberMethod<
 export interface SetRoleParams extends MemberCommandParams {
   role: VideoRole
 }
-// TODO: rename "role" to "position" before execute
 export const setRole = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.set_position',
   {
+    transformParams: (params) => {
+      return {
+        position: params.role,
+      }
+    },
     transformResolve: baseCodeTransform,
   }
 )
