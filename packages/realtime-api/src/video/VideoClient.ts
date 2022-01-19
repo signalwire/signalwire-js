@@ -75,4 +75,4 @@ const VideoClient = function (options: VideoClientOptions) {
   // For consistency with other constructors we'll make TS force the use of `new`
 } as unknown as { new (options: VideoClientOptions): VideoClient }
 
-export default VideoClient
+export { VideoClient as Client }

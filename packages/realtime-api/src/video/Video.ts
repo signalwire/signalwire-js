@@ -93,7 +93,7 @@ export type {
 }
 
 /** @internal */
-export class VideoAPI extends BaseConsumer<RealTimeVideoApiEvents> {
+class VideoAPI extends BaseConsumer<RealTimeVideoApiEvents> {
   /** @internal */
   protected _eventsPrefix = 'video' as const
 
@@ -167,3 +167,5 @@ export const createVideoObject = (
 
   return proxy
 }
+
+export * from './VideoClient'
