@@ -838,8 +838,8 @@ interface RoomControlMethodsInterfaceDocs {
    */
   play(params: {
     url: string
-    volume?: number,
-    positions?: Record<
+    volume?: number
+    roles?: Record<
       string,
       | 'reserved'
       | `reserved-${number}`
@@ -897,7 +897,7 @@ interface RoomLayoutMethodsInterface {
    */
   setLayout(params: {
     name: string
-    positions?: Record<
+    roles?: Record<
       string,
       | 'reserved'
       | `reserved-${number}`
@@ -907,8 +907,8 @@ interface RoomLayoutMethodsInterface {
     >
   }): Rooms.SetLayout
 
-  setPositions(params: {
-    positions?: Record<
+  setRoles(params: {
+    roles?: Record<
       string,
       | 'reserved'
       | `reserved-${number}`
@@ -918,9 +918,10 @@ interface RoomLayoutMethodsInterface {
     >
   }): Promise<void>
 
-  setPosition(params: {
+  // TODO: This is specific to a member. Rename to setMemberRole?
+  setRole(params: {
     memberId?: string
-    position:
+    role:
       | 'reserved'
       | `reserved-${number}`
       | 'standard'

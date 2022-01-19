@@ -11,6 +11,7 @@ import type {
   AssertSameType,
 } from './utils'
 import * as Rooms from '../rooms'
+import type { VideoRole } from '..'
 
 /**
  * Used to not duplicate member fields across constants and types
@@ -26,6 +27,7 @@ export const INTERNAL_MEMBER_UPDATABLE_PROPS = {
   input_volume: 1,
   output_volume: 1,
   input_sensitivity: 1,
+  position: '' as VideoRole,
 }
 export type InternalVideoMemberUpdatableProps =
   typeof INTERNAL_MEMBER_UPDATABLE_PROPS
@@ -63,6 +65,8 @@ type VideoMemberUpdatableProps = AssertSameType<
      * The default value is 30 and the scale goes from 0 (lowest sensitivity,
      * essentially muted) to 100 (highest sensitivity). */
     inputSensitivity: number
+    // TODO: translate "position" to "role" in transforms
+    position: VideoRole
   }
 >
 

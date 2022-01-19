@@ -309,7 +309,7 @@ interface RoomSessionDocs extends RoomSessionMain {
    */
   setLayout(params: {
     name: string
-    positions?: Record<
+    roles?: Record<
       string,
       | 'reserved'
       | `reserved-${number}`
@@ -319,8 +319,8 @@ interface RoomSessionDocs extends RoomSessionMain {
     >
   }): Promise<void>
 
-  setPositions(params: {
-    positions?: Record<
+  setRoles(params: {
+    roles?: Record<
       string,
       | 'reserved'
       | `reserved-${number}`
@@ -330,9 +330,9 @@ interface RoomSessionDocs extends RoomSessionMain {
     >
   }): Promise<void>
 
-  setPosition(params: {
+  setRole(params: {
     memberId?: string
-    position:
+    role:
       | 'reserved'
       | `reserved-${number}`
       | 'standard'
@@ -387,8 +387,8 @@ interface RoomSessionDocs extends RoomSessionMain {
    */
   play(params: {
     url: string
-    volume?: number,
-    positions?: Record<
+    volume?: number
+    roles?: Record<
       string,
       | 'reserved'
       | `reserved-${number}`
@@ -726,8 +726,8 @@ export const RoomSessionAPI = extendComponent<
   setHideVideoMuted: Rooms.setHideVideoMuted,
   getLayouts: Rooms.getLayouts,
   setLayout: Rooms.setLayout,
-  setPositions: Rooms.setPositions,
-  setPosition: Rooms.setPosition,
+  setRoles: Rooms.setRoles,
+  setRole: Rooms.setRole,
   getRecordings: Rooms.getRecordings,
   startRecording: Rooms.startRecording,
   getPlaybacks: Rooms.getPlaybacks,

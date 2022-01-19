@@ -4,13 +4,10 @@ import type {
   VideoRecordingEntity,
   VideoPlaybackEntity,
   MemberCommandParams,
-  MemberPosition
+  VideoRole,
 } from '../types'
 import { toLocalEvent, toExternalJSON } from '../utils'
-import {
-  ExecuteExtendedOptions,
-  RoomMethod,
-} from '../utils/interfaces'
+import { ExecuteExtendedOptions, RoomMethod } from '../utils/interfaces'
 
 interface RoomMethodPropertyDescriptor<T, ParamsType>
   extends PropertyDescriptor {
@@ -101,7 +98,7 @@ export const getMembers = createRoomMethod<{ members: VideoMemberEntity[] }>(
 )
 export interface SetLayoutParams {
   name: string
-  positions?: Record<string, MemberPosition>
+  roles?: Record<string, VideoRole>
 }
 export const setLayout = createRoomMethod<BaseRPCResult, void>(
   'video.set_layout',
@@ -109,10 +106,10 @@ export const setLayout = createRoomMethod<BaseRPCResult, void>(
     transformResolve: baseCodeTransform,
   }
 )
-export interface SetPositionsParams {
-  positions?: Record<string, MemberPosition>
+export interface SetRolesParams {
+  roles?: Record<string, VideoRole>
 }
-export const setPositions = createRoomMethod<BaseRPCResult, void>(
+export const setRoles = createRoomMethod<BaseRPCResult, void>(
   'video.set_position',
   {
     transformResolve: baseCodeTransform,
@@ -193,7 +190,7 @@ export const getPlaybacks = createRoomMethod<{
 export type PlayParams = {
   url: string
   volume?: number
-  positions?: Record<string, MemberPosition>
+  roles?: Record<string, VideoRole>
 }
 export const play: RoomMethodDescriptor<any, PlayParams> = {
   value: function (params) {
@@ -312,10 +309,10 @@ export const setInputSensitivityMember = createRoomMemberMethod<
 >('video.member.set_input_sensitivity', {
   transformResolve: baseCodeTransform,
 })
-export interface SetPositionParams extends MemberCommandParams {
-  position: MemberPosition
+export interface SetRoleParams extends MemberCommandParams {
+  role: VideoRole
 }
-export const setPosition = createRoomMemberMethod<BaseRPCResult, void>(
+export const setRole = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.set_position',
   {
     transformResolve: baseCodeTransform,
@@ -350,7 +347,7 @@ export type DeafMember = ReturnType<typeof deafMember.value>
 export type UndeafMember = ReturnType<typeof undeafMember.value>
 export type SetDeaf = ReturnType<typeof setDeaf.value>
 export type SetLayout = ReturnType<typeof setLayout.value>
-export type SetPositions = ReturnType<typeof setPositions.value>
+export type SetRoles = ReturnType<typeof setRoles.value>
 export type SetInputVolumeMember = ReturnType<typeof setInputVolumeMember.value>
 export type SetOutputVolumeMember = ReturnType<
   typeof setOutputVolumeMember.value
@@ -358,6 +355,6 @@ export type SetOutputVolumeMember = ReturnType<
 export type SetInputSensitivityMember = ReturnType<
   typeof setInputSensitivityMember.value
 >
-export type SetPosition = ReturnType<typeof setPosition.value>
+export type SetRole = ReturnType<typeof setRole.value>
 export type RemoveMember = ReturnType<typeof removeMember.value>
 // End Room Member Methods
