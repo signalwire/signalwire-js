@@ -1,14 +1,6 @@
-import {
-  AssertSameType,
-  getEventEmitter,
-  InternalUserOptions,
-  UserOptions,
-  ClientEvents,
-  configureStore,
-  connect,
-} from '@signalwire/core'
-import { Session } from '../Session'
-import { Client, RealtimeClient } from '../Client'
+import { AssertSameType, UserOptions } from '@signalwire/core'
+import { RealtimeClient } from '../Client'
+import { getClient } from '../getClient'
 import { RealTimeVideoApiEvents } from '../types'
 
 export interface VideoClientApiEvents extends RealTimeVideoApiEvents {}
@@ -21,39 +13,13 @@ interface VideoClientDocs extends VideoClientMain {}
 export interface VideoClient
   extends AssertSameType<VideoClientMain, VideoClientDocs> {}
 
-export interface VideoClientOptions extends UserOptions {}
-
-const createClient = (userOptions: {
-  project?: string
-  token: string
-  logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
-}) => {
-  const baseUserOptions: InternalUserOptions = {
-    ...userOptions,
-    emitter: getEventEmitter<ClientEvents>(),
-  }
-  const store = configureStore({
-    userOptions: baseUserOptions,
-    SessionConstructor: Session,
-  })
-
-  const client = connect<ClientEvents, Client, RealtimeClient>({
-    store,
-    Component: Client,
-    componentListeners: {
-      errors: 'onError',
-      responses: 'onSuccess',
-    },
-    sessionListeners: {
-      authStatus: 'onAuth',
-    },
-  })(baseUserOptions)
-
-  return client
+export interface VideoClientOptions
+  extends Omit<UserOptions, 'host' | '_onRefreshToken' | 'token'> {
+  token?: string
 }
 
 const VideoClient = function (options: VideoClientOptions) {
-  const client = createClient(options)
+  const client = getClient(options)
 
   const on: RealtimeClient['on'] = (...args) => {
     client.connect()
