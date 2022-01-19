@@ -109,6 +109,7 @@ export const setLayout = createRoomMethod<BaseRPCResult, void>(
 export interface SetRolesParams {
   roles?: Record<string, VideoRole>
 }
+// TODO: rename "roles" to "positions" before execute
 export const setRoles = createRoomMethod<BaseRPCResult, void>(
   'video.set_position',
   {
@@ -205,6 +206,7 @@ export const play: RoomMethodDescriptor<any, PlayParams> = {
           method: 'video.playback.start',
           params: {
             room_session_id: this.roomSessionId,
+            // TODO: rename "roles" to "positions"!
             ...params,
           },
         })
@@ -312,6 +314,7 @@ export const setInputSensitivityMember = createRoomMemberMethod<
 export interface SetRoleParams extends MemberCommandParams {
   role: VideoRole
 }
+// TODO: rename "role" to "position" before execute
 export const setRole = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.set_position',
   {
