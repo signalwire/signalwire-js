@@ -33,9 +33,10 @@ export interface VideoLayoutLayer {
   width: number
   layerIndex: number
   zIndex: number
+  /** @deprecated */
   reservation: string
-  // TODO: translate "positions" to "roles" in transforms
-  positions?: Record<string, VideoRole>
+  // TODO: translate "position" to "role" in transforms
+  position: VideoRole
 }
 
 /**
