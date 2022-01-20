@@ -1,8 +1,8 @@
-import { AssertSameType, getEventEmitter, UserOptions } from '@signalwire/core'
+import { AssertSameType, UserOptions } from '@signalwire/core'
 // import { RealtimeClient } from '../BaseClient'
-import { createStore } from '../createStore'
 import { getClient, getToken } from '../getClient'
 import { RealTimeVideoApiEvents } from '../types'
+import { setupInternals } from '../utils/internals'
 import { createVideoObject, Video } from './Video'
 
 export interface VideoClientApiEvents extends RealTimeVideoApiEvents {}
@@ -22,17 +22,15 @@ export interface VideoClientOptions
 
 const VideoClient = function (options: VideoClientOptions) {
   const token = getToken(options.token)
-  const emitter = getEventEmitter<any>()
+  const { emitter, store } = setupInternals({
+    ...options,
+    token,
+  })
 
-  const baseOptions = {
+  const client = getClient({
     ...options,
     token,
     emitter,
-  }
-
-  const store = createStore(baseOptions)
-  const client = getClient({
-    ...baseOptions,
     store,
   })
 
