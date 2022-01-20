@@ -17,6 +17,10 @@ async function run() {
       // logLevel: 'trace',
     })
 
+    client.session.on('session.connected', () => {
+      console.log('Session Connected!');
+    })
+
     client.on('room.started', (room) => {
       console.log('Room started --->', room.id, room.name)
     })

@@ -1,5 +1,5 @@
 import { AssertSameType, UserOptions } from '@signalwire/core'
-// import { RealtimeClient } from '../BaseClient'
+import { RealtimeClient } from '../BaseClient'
 import { getClient, getToken } from '../getClient'
 import { RealTimeVideoApiEvents } from '../types'
 import { setupInternals } from '../utils/internals'
@@ -33,30 +33,70 @@ const VideoClient = function (options: VideoClientOptions) {
     store,
   })
 
-  // TODO: intercept client methods.
+  // Client interceptors
+  const clientOn: RealtimeClient['on'] = (...args) => {
+    client.connect()
+
+    return client.on(...args)
+  }
+  const clientOnce: RealtimeClient['once'] = (...args) => {
+    client.connect()
+
+    return client.once(...args)
+  }
+
+  const proxiedClient = new Proxy<RealtimeClient>(client, {
+    get(target: RealtimeClient, prop: keyof RealtimeClient, receiver: any) {
+      if (prop === 'on') {
+        return clientOn
+      } else if (prop === 'once') {
+        return clientOnce
+      }
+
+      return Reflect.get(target, prop, receiver)
+    },
+  })
 
   const video = createVideoObject({
     store,
     emitter,
   })
 
-  // TODO: intercept video methods.
+  // Video interceptors:
   const videoOn: Video['on'] = (...args) => {
     client.connect()
 
     return video.on(...args)
   }
+  const videoOnce: Video['once'] = (...args) => {
+    client.connect()
 
-  // This should replace the `onAuth` we have in
-  // `packages/realtime-api/src/Client.ts`
+    return video.once(...args)
+  }
+  const videoSubscribe: Video['subscribe'] = async (...args) => {
+    await client.connect()
+
+    return video.subscribe(...args)
+  }
+
   client.on('session.connected', () => {
     video.subscribe()
   })
 
   return new Proxy<VideoClient>(video, {
-    get(target: VideoClient, prop: keyof VideoClient, receiver: any) {
+    get(
+      target: VideoClient,
+      prop: keyof VideoClient | 'session',
+      receiver: any
+    ) {
       if (prop === 'on') {
         return videoOn
+      } else if (prop === 'once') {
+        return videoOnce
+      } else if (prop === 'subscribe') {
+        return videoSubscribe
+      } else if (prop === 'session') {
+        return proxiedClient
       }
 
       return Reflect.get(target, prop, receiver)
