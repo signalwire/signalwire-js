@@ -26,7 +26,6 @@ const VideoClient = function (options: VideoClientOptions) {
     ...options,
     token,
   })
-
   const client = getClient({
     ...options,
     token,
