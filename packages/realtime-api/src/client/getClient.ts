@@ -13,18 +13,14 @@ const getClientKey = ({
   project,
   token,
 }: {
-  project?: string
+  project: string
   token: string
 }) => {
-  if (project) {
-    return `${project}:${token}`
-  }
-
-  return token
+  return `${project}:${token}`
 }
 
 const createClient = (userOptions: {
-  project?: string
+  project: string
   token: string
   logLevel?: UserOptions['logLevel']
   store: ReturnType<typeof configureStore>
@@ -42,20 +38,8 @@ const createClient = (userOptions: {
   return client
 }
 
-export const getToken = (userToken?: string) => {
-  // TODO: read from global store
-  const token = userToken || process.env.SW_TOKEN
-
-  if (!token) {
-    // TODO: Add error message
-    throw new Error('Missing token')
-  }
-
-  return token
-}
-
 export const getClient = (userOptions: {
-  project?: string
+  project: string
   token: string
   logLevel?: UserOptions['logLevel']
   store: ReturnType<typeof configureStore>

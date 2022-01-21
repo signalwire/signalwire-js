@@ -2,7 +2,7 @@ import { configureStore, getEventEmitter, UserOptions } from '@signalwire/core'
 import { Session } from '../Session'
 
 export const setupInternals = (userOptions: {
-  project?: string
+  project: string
   token: string
   logLevel?: UserOptions['logLevel']
 }) => {
@@ -24,4 +24,38 @@ export const setupInternals = (userOptions: {
   })
 
   return { store, emitter }
+}
+
+const getToken = (userToken?: string) => {
+  // TODO: read from global store
+  const token = userToken || process.env.SW_TOKEN
+
+  if (!token) {
+    // TODO: Add error message
+    throw new Error('Missing token')
+  }
+
+  return token
+}
+
+const getProject = (userProject?: string) => {
+  // TODO: read from global store
+  const project = userProject || process.env.SW_PROJECT
+
+  if (!project) {
+    // TODO: Add error message
+    throw new Error('Missing Project')
+  }
+
+  return project
+}
+
+export const getCredentials = (options: {
+  token?: string
+  project?: string
+}) => {
+  const project = getProject(options.project)
+  const token = getToken(options.token)
+
+  return { project, token }
 }
