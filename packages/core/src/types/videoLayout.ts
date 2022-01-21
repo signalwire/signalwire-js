@@ -35,16 +35,18 @@ export interface VideoLayoutLayer {
   zIndex: number
   /** @deprecated */
   reservation: string
-  // TODO: translate "position" to "role" in transforms
-  position: VideoRole
+  role: VideoRole
 }
 
 /**
  * VideoLayout entity for internal usage (converted to snake_case)
+ * and translate "role" to "position"
  * @internal
  */
 export type InternalVideoLayoutLayer = {
-  [K in keyof VideoLayoutLayer as CamelToSnakeCase<K>]: VideoLayoutLayer[K]
+  [K in keyof VideoLayoutLayer as CamelToSnakeCase<
+    K extends 'role' ? 'position' : K
+  >]: VideoLayoutLayer[K]
 }
 export type InternalVideoLayout = {
   [K in Exclude<

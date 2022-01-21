@@ -27,7 +27,11 @@ export const INTERNAL_MEMBER_UPDATABLE_PROPS = {
   input_volume: 1,
   output_volume: 1,
   input_sensitivity: 1,
-  position: '' as VideoRole,
+  /**
+   * In the events we have "position" but we translate it
+   * to "role" for the public interface
+   */
+  role: '' as VideoRole,
 }
 export type InternalVideoMemberUpdatableProps =
   typeof INTERNAL_MEMBER_UPDATABLE_PROPS
@@ -65,8 +69,7 @@ type VideoMemberUpdatableProps = AssertSameType<
      * The default value is 30 and the scale goes from 0 (lowest sensitivity,
      * essentially muted) to 100 (highest sensitivity). */
     inputSensitivity: number
-    // TODO: translate "position" to "role" in transforms
-    position: VideoRole
+    role: VideoRole
   }
 >
 
@@ -302,12 +305,13 @@ export type VideoMemberEntityUpdated = EntityUpdated<VideoMemberEntity>
 
 /**
  * VideoMemberEntity entity for internal usage (converted to snake_case)
+ * translate "role" to "position"
  * @internal
  */
 export type InternalVideoMemberEntity = {
-  [K in NonNullable<
-    keyof VideoMemberEntity
-  > as CamelToSnakeCase<K>]: VideoMemberEntity[K]
+  [K in NonNullable<keyof VideoMemberEntity> as CamelToSnakeCase<
+    K extends 'role' ? 'position' : K
+  >]: VideoMemberEntity[K]
 }
 
 /**
