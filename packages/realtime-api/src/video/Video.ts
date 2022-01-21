@@ -85,7 +85,7 @@ export interface Video extends ConsumerContract<RealTimeVideoApiEvents> {
   /** @internal */
   subscribe(): Promise<void>
   /** @internal */
-  session: RealtimeClient
+  _session: RealtimeClient
 }
 export type {
   RoomSession,
