@@ -1,4 +1,4 @@
-import { AssertSameType, UserOptions } from '@signalwire/core'
+import { AssertSameType, getLogger, UserOptions } from '@signalwire/core'
 import { RealtimeClient } from '../client/Client'
 import { getClient } from '../client/getClient'
 import { RealTimeVideoApiEvents } from '../types'
@@ -20,6 +20,17 @@ export interface VideoClientOptions
   token?: string
 }
 
+const clientConnect = (client: RealtimeClient) => {
+  /**
+   * We swallow the (possible) error to avoid polluting the
+   * stdout. The error itself won't be swallowed from the
+   * user (it will be handled by our `rootSaga`) and we can
+   * extend that behavior by adding the following listener:
+   * client.on('session.auth_error', () => { ... })
+   */
+  return client.connect().catch(() => {})
+}
+
 const VideoClient = function (options: VideoClientOptions) {
   const credentials = getCredentials({
     token: options.token,
@@ -36,14 +47,20 @@ const VideoClient = function (options: VideoClientOptions) {
     store,
   })
 
+  client.on('session.auth_error', () => {
+    getLogger().error("Wrong credentials: couldn't connect the client.")
+
+    // TODO: we can execute the future `onConnectError` from here.
+  })
+
   // Client interceptors
   const clientOn: RealtimeClient['on'] = (...args) => {
-    client.connect()
+    clientConnect(client)
 
     return client.on(...args)
   }
   const clientOnce: RealtimeClient['once'] = (...args) => {
-    client.connect()
+    clientConnect(client)
 
     return client.once(...args)
   }
@@ -67,17 +84,17 @@ const VideoClient = function (options: VideoClientOptions) {
 
   // Video interceptors:
   const videoOn: Video['on'] = (...args) => {
-    client.connect()
+    clientConnect(client)
 
     return video.on(...args)
   }
   const videoOnce: Video['once'] = (...args) => {
-    client.connect()
+    clientConnect(client)
 
     return video.once(...args)
   }
   const videoSubscribe: Video['subscribe'] = async (...args) => {
-    await client.connect()
+    await clientConnect(client)
 
     return video.subscribe(...args)
   }
@@ -98,7 +115,7 @@ const VideoClient = function (options: VideoClientOptions) {
         return videoOnce
       } else if (prop === 'subscribe') {
         return videoSubscribe
-      } else if (prop === 'session') {
+      } else if (prop === '_session') {
         return proxiedClient
       }
 
