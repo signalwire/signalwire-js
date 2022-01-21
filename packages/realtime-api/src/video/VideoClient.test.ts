@@ -1,5 +1,5 @@
 import WS from 'jest-websocket-mock'
-import * as getClient from '../getClient'
+import * as getClient from '../client/getClient'
 import { Client } from './VideoClient'
 
 describe.only('VideoClient', () => {
@@ -55,7 +55,7 @@ describe.only('VideoClient', () => {
 
       expect(mockedBaseClient.connect).toHaveBeenCalledTimes(0)
 
-      video.on('room.started', () => {})
+      video.once('room.started', () => {})
 
       expect(mockedBaseClient.connect).toHaveBeenCalledTimes(1)
     })

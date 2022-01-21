@@ -5,7 +5,7 @@ import {
   EventEmitter,
   UserOptions,
 } from '@signalwire/core'
-import { Client, RealtimeClient } from './BaseClient'
+import { Client, RealtimeClient } from './Client'
 
 const CLIENTS_MAP: Map<string, RealtimeClient> = new Map()
 

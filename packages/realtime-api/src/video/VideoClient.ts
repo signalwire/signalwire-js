@@ -1,6 +1,6 @@
 import { AssertSameType, UserOptions } from '@signalwire/core'
-import { RealtimeClient } from '../BaseClient'
-import { getClient, getToken } from '../getClient'
+import { RealtimeClient } from '../client/Client'
+import { getClient, getToken } from '../client/getClient'
 import { RealTimeVideoApiEvents } from '../types'
 import { setupInternals } from '../utils/internals'
 import { createVideoObject, Video } from './Video'

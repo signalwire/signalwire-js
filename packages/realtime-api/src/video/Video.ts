@@ -10,7 +10,7 @@ import {
   VideoRoomEventParams,
   RoomSessionPlayback,
 } from '@signalwire/core'
-import type { RealtimeClient } from '../BaseClient'
+import type { RealtimeClient } from '../client/Client'
 
 import { RealTimeVideoApiEvents } from '../types/video'
 import {
