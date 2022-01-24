@@ -1,5 +1,5 @@
 import WS from 'jest-websocket-mock'
-import * as getClient from '../client/getClient'
+import * as getProxiedClient from '../client/getProxiedClient'
 import { Client } from './VideoClient'
 import * as Video from './Video'
 
@@ -57,7 +57,7 @@ describe('VideoClient', () => {
 
       beforeEach(async () => {
         getClientMock = jest
-          .spyOn(getClient, 'getClient')
+          .spyOn(getProxiedClient, 'getProxiedClient')
           .mockImplementationOnce(() => {
             return mockedBaseClient
           })

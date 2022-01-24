@@ -1,8 +1,7 @@
 import type { AssertSameType, UserOptions } from '@signalwire/core'
-import type { RealtimeClient } from '../client/index'
 import type { RealTimeVideoApiEvents } from '../types'
 import { getLogger } from '@signalwire/core'
-import { getClient, clientConnect } from '../client/index'
+import { getProxiedClient, clientConnect } from '../client/index'
 import { getCredentials, setupInternals } from '../utils/internals'
 import { createVideoObject, Video } from './Video'
 
@@ -30,41 +29,11 @@ const VideoClient = function (options: VideoClientOptions) {
     ...options,
     ...credentials,
   })
-  const client = getClient({
+  const client = getProxiedClient({
     ...options,
     ...credentials,
     emitter,
     store,
-  })
-
-  client.on('session.auth_error', () => {
-    getLogger().error("Wrong credentials: couldn't connect the client.")
-
-    // TODO: we can execute the future `onConnectError` from here.
-  })
-
-  // Client interceptors
-  const clientOn: RealtimeClient['on'] = (...args) => {
-    clientConnect(client)
-
-    return client.on(...args)
-  }
-  const clientOnce: RealtimeClient['once'] = (...args) => {
-    clientConnect(client)
-
-    return client.once(...args)
-  }
-
-  const proxiedClient = new Proxy<RealtimeClient>(client, {
-    get(target: RealtimeClient, prop: keyof RealtimeClient, receiver: any) {
-      if (prop === 'on') {
-        return clientOn
-      } else if (prop === 'once') {
-        return clientOnce
-      }
-
-      return Reflect.get(target, prop, receiver)
-    },
   })
 
   const video = createVideoObject({
@@ -114,7 +83,7 @@ const VideoClient = function (options: VideoClientOptions) {
       } else if (prop === 'subscribe') {
         return videoSubscribe
       } else if (prop === '_session') {
-        return proxiedClient
+        return client
       }
 
       return Reflect.get(target, prop, receiver)
