@@ -1,33 +1,37 @@
 import WS from 'jest-websocket-mock'
 import * as getClient from '../client/getClient'
 import { Client } from './VideoClient'
+import * as Video from './Video'
 
 describe('VideoClient', () => {
   describe('Client', () => {
     const host = 'ws://localhost:1234'
     const token = '<jwt>'
     let server: WS
-    let consoleMock: jest.SpyInstance
-    let getClientMock: jest.SpyInstance
-    const mockedBaseClient: any = {
-      connect: jest.fn(),
-      on: jest.fn(),
+    const authError = {
+      code: -32002,
+      message:
+        'Authentication service failed with status ProtocolError, 401 Unauthorized: {}',
     }
+
     beforeEach(async () => {
-      consoleMock = jest
-        .spyOn(global.console, 'error')
-        .mockImplementation(() => {})
-
-      getClientMock = jest
-        .spyOn(getClient, 'getClient')
-        .mockImplementationOnce(() => {
-          return mockedBaseClient
-        })
-
       server = new WS(host)
       server.on('connection', (socket: any) => {
         socket.on('message', (data: any) => {
           const parsedData = JSON.parse(data)
+
+          if (
+            parsedData.method === 'signalwire.connect' &&
+            parsedData.params.authentication.token === '<invalid-token>'
+          ) {
+            socket.send(
+              JSON.stringify({
+                jsonrpc: '2.0',
+                id: parsedData.id,
+                error: authError,
+              })
+            )
+          }
 
           socket.send(
             JSON.stringify({
@@ -41,23 +45,105 @@ describe('VideoClient', () => {
     })
 
     afterEach(() => {
-      consoleMock.mockRestore()
-      getClientMock.mockRestore()
       WS.clean()
     })
 
-    it('should automatically connect the underlying client', async () => {
+    describe('Automatic connect', () => {
+      let getClientMock: jest.SpyInstance
+      const mockedBaseClient: any = {
+        connect: jest.fn(() => Promise.resolve()),
+        on: jest.fn(),
+      }
+
+      beforeEach(async () => {
+        getClientMock = jest
+          .spyOn(getClient, 'getClient')
+          .mockImplementationOnce(() => {
+            return mockedBaseClient
+          })
+      })
+
+      afterEach(() => {
+        getClientMock.mockRestore()
+        Object.values(mockedBaseClient).forEach((mock: any) => {
+          if (typeof mock.mockRestore === 'function') {
+            mock.mockRestore()
+          }
+        })
+      })
+      it('should automatically connect the underlying client', async () => {
+        const video = new Client({
+          // @ts-expect-error
+          host,
+          project: 'some-project',
+          token,
+        })
+
+        expect(mockedBaseClient.connect).toHaveBeenCalledTimes(0)
+
+        video.once('room.started', () => {})
+
+        expect(mockedBaseClient.connect).toHaveBeenCalledTimes(1)
+      })
+    })
+
+    describe('Automatic subscribe', () => {
+      let createVideoObjectMock: jest.SpyInstance
+      const mockedVideo: any = {
+        subscribe: jest.fn(() => Promise.resolve()),
+        on: jest.fn(),
+      }
+      beforeEach(async () => {
+        createVideoObjectMock = jest
+          .spyOn(Video, 'createVideoObject')
+          .mockImplementationOnce(() => {
+            return mockedVideo
+          })
+      })
+      afterEach(() => {
+        createVideoObjectMock.mockRestore()
+        Object.values(mockedVideo).forEach((mock: any) => {
+          if (typeof mock.mockRestore === 'function') {
+            mock.mockRestore()
+          }
+        })
+      })
+
+      it('should automatically call subscribe the moment the client is connected', async ()=> {
+        const video = new Client({
+          // @ts-expect-error
+          host,
+          project: 'some-project-x',
+          token,
+        })
+
+        video.on('room.started', () => {})
+
+        // Artificial timer to wait for the connect() to happen
+        await new Promise(r => setTimeout(r, 2000))
+
+        expect(mockedVideo.subscribe).toHaveBeenCalledTimes(1)
+      })
+    })
+
+    it('should show an error if client.connect failed to connect', async () => {
+      const logger = {
+        error: jest.fn(),
+        trace: jest.fn(),
+        debug: jest.fn(),
+        warn: jest.fn()
+      }
       const video = new Client({
         // @ts-expect-error
         host,
-        token,
+        project: 'some-project',
+        token: '<invalid-token>',
+        logger: logger as any
       })
 
-      expect(mockedBaseClient.connect).toHaveBeenCalledTimes(0)
+      await video.subscribe()
 
-      video.once('room.started', () => {})
-
-      expect(mockedBaseClient.connect).toHaveBeenCalledTimes(1)
+      expect(logger.error).toHaveBeenNthCalledWith(1, "Auth Error", {"code": -32002, "message": "Authentication service failed with status ProtocolError, 401 Unauthorized: {}"})
     })
   })
 })
