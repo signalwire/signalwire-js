@@ -100,8 +100,16 @@ const VideoClient = function (options: VideoClientOptions) {
     return video.subscribe(...args)
   }
 
-  client.on('session.connected', () => {
-    video.subscribe()
+  client.on('session.connected', async () => {
+    try {
+      await video.subscribe()
+    } catch (e) {
+      // TODO: In the future we'll provide a
+      // `onSubscribedError` (or similar) to allow the user
+      // customize this behavior.
+      getLogger().error('Client subscription failed.')
+      client.disconnect()
+    }
   })
 
   return new Proxy<VideoClient>(video, {
