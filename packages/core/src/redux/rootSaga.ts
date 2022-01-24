@@ -233,7 +233,7 @@ interface SessionAuthErrorOptions {
   userOptions: InternalUserOptions
   action: any
 }
-function* sessionAuthErrorSaga(options: SessionAuthErrorOptions) {
+export function* sessionAuthErrorSaga(options: SessionAuthErrorOptions) {
   const { pubSubChannel, userOptions, action } = options
   const { error: authError } = action.payload
   const error = authError

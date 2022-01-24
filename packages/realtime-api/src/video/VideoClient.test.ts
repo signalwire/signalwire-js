@@ -2,7 +2,7 @@ import WS from 'jest-websocket-mock'
 import * as getClient from '../client/getClient'
 import { Client } from './VideoClient'
 
-describe.only('VideoClient', () => {
+describe('VideoClient', () => {
   describe('Client', () => {
     const host = 'ws://localhost:1234'
     const token = '<jwt>'
