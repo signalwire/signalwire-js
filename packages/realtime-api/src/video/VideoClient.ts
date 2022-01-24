@@ -1,7 +1,8 @@
-import { AssertSameType, getLogger, UserOptions } from '@signalwire/core'
-import { RealtimeClient } from '../client/Client'
-import { getClient } from '../client/getClient'
-import { RealTimeVideoApiEvents } from '../types'
+import type { AssertSameType, UserOptions } from '@signalwire/core'
+import type { RealtimeClient } from '../client/'
+import type { RealTimeVideoApiEvents } from '../types'
+import { getLogger } from '@signalwire/core'
+import { getClient, clientConnect } from '../client/'
 import { getCredentials, setupInternals } from '../utils/internals'
 import { createVideoObject, Video } from './Video'
 
@@ -18,18 +19,6 @@ export interface VideoClient
 export interface VideoClientOptions
   extends Omit<UserOptions, 'host' | '_onRefreshToken' | 'token'> {
   token?: string
-}
-
-const clientConnect = (client: RealtimeClient) => {
-  /**
-   * We swallow the (possible) error here to avoid polluting
-   * the stdout. The error itself won't be swallowed from
-   * the user (it will be handled by our `rootSaga`) and we
-   * can extend that behavior by adding the following
-   * listener:
-   * client.on('session.auth_error', () => { ... })
-   */
-  return client.connect().catch(() => {})
 }
 
 const VideoClient = function (options: VideoClientOptions) {
