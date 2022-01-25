@@ -37,3 +37,5 @@ export * from './createClient'
  * See {@link Video.Video} for examples.
  */
 export * as Video from './video/Video'
+
+export * as Chat from './chat/Chat'
