@@ -23,13 +23,8 @@ export type ChatEventNames = ChatMessageEventName | ChatMemberEventNames
 
 export type ChatChannel = string | string[]
 
-export interface ChatSubscribeParams {
-  message: any
-  channel: string
-  meta?: Record<any, any>
-}
 export interface ChatPublishParams {
-  message: any
+  content: any
   channel: string
   meta?: Record<any, any>
 }

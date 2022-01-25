@@ -112,7 +112,7 @@ window.connect = async ({ channels, host, token }) => {
 
     chat.publish({
       channel: data.get('channel'),
-      message: data.get('message'),
+      content: data.get('message'),
     })
 
     messageEl.value = ''

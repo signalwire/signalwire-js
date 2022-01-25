@@ -128,7 +128,7 @@ describe('ChatClient Object', () => {
     await chat.subscribe(['test'])
     await chat.publish({
       channel: 'test',
-      message: 'test',
+      content: 'test',
     })
 
     const connectMsg = JSON.parse(server.messages[0].toString())
@@ -147,7 +147,7 @@ describe('ChatClient Object', () => {
       chat.subscribe(['test']),
       chat.publish({
         channel: 'test',
-        message: 'test',
+        content: 'test',
       }),
     ])
 
@@ -390,7 +390,7 @@ describe('ChatClient Object', () => {
 
       const params = {
         channel: 'test',
-        message: 'test',
+        content: 'test',
       }
 
       await chat.publish(params)
@@ -476,7 +476,7 @@ describe('ChatClient Object', () => {
       // calling unsubscribe()
       await chat.publish({
         channel: 'test',
-        message: 'test',
+        content: 'test',
       })
 
       await expect(() => chat.unsubscribe(['test1_error'])).rejects.toBeTruthy()
