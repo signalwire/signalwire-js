@@ -25,6 +25,9 @@ import { createVideoObject, Video } from './video/Video'
  * // Connect:
  * await client.connect()
  * ```
+ * @deprecated It's no longer needed to create the client
+ * manually. You can use the product constructors, like
+ * Video.Client, to access the same functionality.
  */
 export interface RealtimeClient
   extends ClientContract<RealtimeClient, ClientEvents> {

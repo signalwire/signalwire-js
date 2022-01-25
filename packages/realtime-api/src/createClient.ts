@@ -28,6 +28,10 @@ export type { RealtimeClient, ClientEvents }
  *   token: '<project-token>'
  * })
  * ```
+ *
+ * @deprecated It's no longer needed to create the client
+ * manually. You can use the product constructors, like
+ * Video.Client, to access the same functionality.
  */
 export const createClient: (userOptions: {
   project?: string

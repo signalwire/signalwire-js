@@ -5,6 +5,7 @@ import rootSaga, {
   sessionStatusWatcher,
   startSaga,
   initSessionSaga,
+  sessionAuthErrorSaga,
 } from './rootSaga'
 import {
   createSessionChannel,
@@ -108,10 +109,18 @@ describe('sessionStatusWatcher', () => {
   it('should throw Auth Error on authError action', () => {
     const saga = testSaga(sessionStatusWatcher, options)
     saga.next().take(actions)
+    const action = authErrorAction({
+      error: { code: 123, error: 'Protocol Error' },
+    })
     try {
-      saga.next(
-        authErrorAction({ error: { code: 123, error: 'Protocol Error' } })
-      )
+      saga
+        .next(action)
+        .fork(sessionAuthErrorSaga, {
+          pubSubChannel,
+          userOptions,
+          action,
+        })
+        .throw(new AuthError(123, 'Protocol Error'))
     } catch (error) {
       expect(error).toBeInstanceOf(AuthError)
       expect(error.message).toEqual('Protocol Error')
