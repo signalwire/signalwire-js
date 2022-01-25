@@ -22,6 +22,7 @@ import type {
   VideoRoomSessionContract,
   OnlyFunctionProperties,
   AssertSameType,
+  MemberPosition,
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
 import type { RoomSession } from '../RoomSession'
@@ -82,6 +83,11 @@ export type StartScreenShareOptions = {
   autoJoin?: boolean
   audio?: MediaStreamConstraints['audio']
   video?: MediaStreamConstraints['video']
+  // TODO: union types for valid layouts?
+  layout?: string
+  // TODO: export a Positions type from core
+  positions?: Record<string, MemberPosition>
+  restoreLayout?: boolean
 }
 
 /**

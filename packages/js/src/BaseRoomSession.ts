@@ -129,7 +129,14 @@ export class RoomSessionConnection
    * Allow sharing the screen within the room.
    */
   async startScreenShare(opts: StartScreenShareOptions = {}) {
-    const { autoJoin = true, audio = false, video = true } = opts
+    const {
+      autoJoin = true,
+      audio = false,
+      video = true,
+      layout,
+      positions = {},
+      restoreLayout = true,
+    } = opts
     const displayStream: MediaStream = await getDisplayMedia({
       audio: audio === true ? SCREENSHARE_AUDIO_CONSTRAINTS : audio,
       video,
@@ -145,6 +152,9 @@ export class RoomSessionConnection
         memberCallId: this.__uuid,
         memberId: this.memberId,
       },
+      layout,
+      positions,
+      restoreLayout,
     }
 
     const screenShare = connect<
