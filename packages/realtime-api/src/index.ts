@@ -51,3 +51,5 @@
 export * as Video from './video/Video'
 
 export * from './createClient'
+
+export * as Chat from './chat/Chat'
