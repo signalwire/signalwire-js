@@ -134,8 +134,8 @@ export class RoomSessionConnection
       audio = false,
       video = true,
       layout,
-      positions = {},
-      restoreLayout = true,
+      positions,
+      restoreLayout,
     } = opts
     const displayStream: MediaStream = await getDisplayMedia({
       audio: audio === true ? SCREENSHARE_AUDIO_CONSTRAINTS : audio,
