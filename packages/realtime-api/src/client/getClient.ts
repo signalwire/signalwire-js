@@ -9,7 +9,7 @@ import { Client, RealtimeClient } from './Client'
 
 const CLIENTS_MAP: Map<string, RealtimeClient> = new Map()
 
-const getClientKey = ({
+export const getClientKey = ({
   project,
   token,
 }: {
@@ -32,31 +32,35 @@ const createClient = (userOptions: {
     componentListeners: {
       errors: 'onError',
       responses: 'onSuccess',
-    }
+    },
   })(userOptions)
 
   return client
 }
 
-export const getClient = (userOptions: {
+export const getClient = ({
+  cache = CLIENTS_MAP,
+  ...userOptions
+}: {
   project: string
   token: string
   logLevel?: UserOptions['logLevel']
   store: ReturnType<typeof configureStore>
   emitter: EventEmitter
+  cache?: Map<string, RealtimeClient>
 }): RealtimeClient => {
   const clientKey = getClientKey({
     project: userOptions.project,
     token: userOptions.token,
   })
 
-  if (CLIENTS_MAP.has(clientKey)) {
+  if (cache.has(clientKey)) {
     // @ts-expect-error
-    return CLIENTS_MAP.get(clientKey)
+    return cache.get(clientKey)
   } else {
     const client = createClient(userOptions)
 
-    CLIENTS_MAP.set(clientKey, client)
+    cache.set(clientKey, client)
 
     return client
   }
