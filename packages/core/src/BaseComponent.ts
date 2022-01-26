@@ -343,7 +343,7 @@ export class BaseComponent<
         instance: cachedInstance,
         payload,
         transformedPayload,
-        transform
+        transform,
       })
 
       // @ts-expect-error
@@ -540,9 +540,11 @@ export class BaseComponent<
   execute<InputType = unknown, OutputType = unknown>(
     { method, params }: ExecuteParams,
     {
+      transformParams = identity,
       transformResolve = identity,
       transformReject = identity,
     }: ExecuteExtendedOptions<InputType, OutputType> = {
+      transformParams: identity,
       transformResolve: identity,
       transformReject: identity,
     }
@@ -561,7 +563,7 @@ export class BaseComponent<
           requestId,
           componentId: this.__uuid,
           method,
-          params,
+          params: transformParams(params),
         })
       )
     })
