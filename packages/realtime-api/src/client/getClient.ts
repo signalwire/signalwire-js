@@ -9,7 +9,7 @@ import { Client, RealtimeClient } from './Client'
 
 const CLIENTS_MAP: Map<string, RealtimeClient> = new Map()
 
-export const getClientKey = ({
+const getClientKey = ({
   project,
   token,
 }: {
