@@ -1,4 +1,4 @@
-import type { MemberPosition } from '@signalwire/core'
+import type { VideoPositions } from '@signalwire/core'
 
 export interface ConnectionOptions {
   // TODO: Not used anymore but required for backend
@@ -74,9 +74,7 @@ export interface ConnectionOptions {
   /** @internal */
   iceGatheringTimeout?: number
 
-  // TODO: union types for valid layouts?
   layout?: string
-  // TODO: export a Positions type from core
-  positions?: Record<string, MemberPosition>
+  positions?: VideoPositions
   restoreLayout?: boolean
 }

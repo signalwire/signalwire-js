@@ -311,6 +311,7 @@ interface RoomSessionDocs extends RoomSessionMain {
     name: string
     positions?: Record<
       string,
+      | 'self'
       | 'reserved'
       | `reserved-${number}`
       | 'standard'
@@ -320,8 +321,9 @@ interface RoomSessionDocs extends RoomSessionMain {
   }): Promise<void>
 
   setPositions(params: {
-    positions?: Record<
+    positions: Record<
       string,
+      | 'self'
       | 'reserved'
       | `reserved-${number}`
       | 'standard'
@@ -333,6 +335,7 @@ interface RoomSessionDocs extends RoomSessionMain {
   setPosition(params: {
     memberId?: string
     position:
+      | 'self'
       | 'reserved'
       | `reserved-${number}`
       | 'standard'
@@ -387,9 +390,10 @@ interface RoomSessionDocs extends RoomSessionMain {
    */
   play(params: {
     url: string
-    volume?: number,
+    volume?: number
     positions?: Record<
       string,
+      | 'self'
       | 'reserved'
       | `reserved-${number}`
       | 'standard'

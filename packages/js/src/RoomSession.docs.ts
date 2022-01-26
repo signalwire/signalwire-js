@@ -1,4 +1,4 @@
-import type { AssertSameType, MemberPosition, Rooms } from '@signalwire/core'
+import type { AssertSameType, VideoPositions, Rooms } from '@signalwire/core'
 import { BaseRoomSession } from './BaseRoomSession'
 import { RoomSessionDevice } from './RoomSessionDevice'
 import { RoomSessionScreenShare } from './RoomSessionScreenShare'
@@ -132,10 +132,8 @@ export interface RoomSessionDocs<T>
         video?: MediaStreamConstraints['video']
         /** Layout to use to use when joining the room. */
         layout?: string
-        /** Automatically set positions when screen share joins the room.
-         * TODO: import a Positions type from core instead Record<>
-         */
-        positions?: Record<string, MemberPosition>
+        /** Automatically set positions when screen share joins the room. */
+        positions?: VideoPositions
         /** Whether to restore the previous layout when the screen share leaves the room. */
         restoreLayout?: boolean
       }
@@ -855,6 +853,7 @@ interface RoomControlMethodsInterfaceDocs {
     volume?: number
     positions?: Record<
       string,
+      | 'self'
       | 'reserved'
       | `reserved-${number}`
       | 'standard'
@@ -913,6 +912,7 @@ interface RoomLayoutMethodsInterface {
     name: string
     positions?: Record<
       string,
+      | 'self'
       | 'reserved'
       | `reserved-${number}`
       | 'standard'
@@ -922,8 +922,9 @@ interface RoomLayoutMethodsInterface {
   }): Rooms.SetLayout
 
   setPositions(params: {
-    positions?: Record<
+    positions: Record<
       string,
+      | 'self'
       | 'reserved'
       | `reserved-${number}`
       | 'standard'
@@ -935,6 +936,7 @@ interface RoomLayoutMethodsInterface {
   setPosition(params: {
     memberId?: string
     position:
+      | 'self'
       | 'reserved'
       | `reserved-${number}`
       | 'standard'
