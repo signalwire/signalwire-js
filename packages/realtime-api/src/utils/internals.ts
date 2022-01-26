@@ -32,7 +32,7 @@ const getToken = (userToken?: string) => {
 
   if (!token) {
     // TODO: Add error message
-    throw new Error('Missing token')
+    throw new Error('Missing `token`')
   }
 
   return token
@@ -44,7 +44,7 @@ const getProject = (userProject?: string) => {
 
   if (!project) {
     // TODO: Add error message
-    throw new Error('Missing Project')
+    throw new Error('Missing `project`')
   }
 
   return project
