@@ -25,7 +25,7 @@ export interface ChatClientOptions
   token?: string
 }
 
-const ChatClient = function (options: ChatClientOptions) {
+const ChatClient = function (options?: ChatClientOptions) {
   if ('production' === process.env.NODE_ENV) {
     getLogger().warn(
       '`Chat` is still under development and may change in the future without prior notice.'
@@ -33,8 +33,8 @@ const ChatClient = function (options: ChatClientOptions) {
   }
 
   const credentials = getCredentials({
-    token: options.token,
-    project: options.project,
+    token: options?.token,
+    project: options?.project,
   })
   const { emitter, store } = setupInternals({
     ...options,
@@ -89,6 +89,6 @@ const ChatClient = function (options: ChatClientOptions) {
     },
   })
   // For consistency with other constructors we'll make TS force the use of `new`
-} as unknown as { new (chatOptions: ChatClientOptions): ChatClient }
+} as unknown as { new (options?: ChatClientOptions): ChatClient }
 
 export { ChatClient as Client }

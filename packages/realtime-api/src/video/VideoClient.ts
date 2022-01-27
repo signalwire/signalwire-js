@@ -20,10 +20,10 @@ export interface VideoClientOptions
   token?: string
 }
 
-const VideoClient = function (options: VideoClientOptions) {
+const VideoClient = function (options?: VideoClientOptions) {
   const credentials = getCredentials({
-    token: options.token,
-    project: options.project,
+    token: options?.token,
+    project: options?.project,
   })
   const { emitter, store } = setupInternals({
     ...options,
@@ -90,6 +90,6 @@ const VideoClient = function (options: VideoClientOptions) {
     },
   })
   // For consistency with other constructors we'll make TS force the use of `new`
-} as unknown as { new (options: VideoClientOptions): VideoClient }
+} as unknown as { new (options?: VideoClientOptions): VideoClient }
 
 export { VideoClient as Client }
