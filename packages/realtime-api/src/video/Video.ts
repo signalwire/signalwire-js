@@ -10,6 +10,7 @@ import {
   VideoRoomEventParams,
   RoomSessionPlayback,
 } from '@signalwire/core'
+import type { RealtimeClient } from '../client/Client'
 
 import { RealTimeVideoApiEvents } from '../types/video'
 import {
@@ -83,6 +84,8 @@ type TransformEvent = Extract<
 export interface Video extends ConsumerContract<RealTimeVideoApiEvents> {
   /** @internal */
   subscribe(): Promise<void>
+  /** @internal */
+  _session: RealtimeClient
 }
 export type {
   RoomSession,
@@ -93,7 +96,7 @@ export type {
 }
 
 /** @internal */
-export class VideoAPI extends BaseConsumer<RealTimeVideoApiEvents> {
+class VideoAPI extends BaseConsumer<RealTimeVideoApiEvents> {
   /** @internal */
   protected _eventsPrefix = 'video' as const
 
@@ -167,3 +170,5 @@ export const createVideoObject = (
 
   return proxy
 }
+
+export * from './VideoClient'

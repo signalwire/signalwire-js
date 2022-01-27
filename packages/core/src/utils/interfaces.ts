@@ -171,6 +171,7 @@ export type SessionStatus =
   | 'reconnecting'
   | 'connected'
   | 'disconnected'
+  | 'auth_error'
 
 export type SessionEvents = `session.${SessionStatus}`
 
@@ -268,8 +269,15 @@ export type ExecuteParams = {
 }
 
 export interface ExecuteExtendedOptions<InputType, OutputType> {
+  /** To transform the resolved response */
   transformResolve?: ExecuteTransform<InputType, OutputType>
+  /** To transform the rejected response */
   transformReject?: ExecuteTransform<InputType, OutputType>
+  /** To transform the RPC execute params */
+  transformParams?: ExecuteTransform<
+    ExecuteParams['params'],
+    ExecuteParams['params']
+  >
 }
 
 export type ExecuteTransform<InputType = unknown, OutputType = unknown> = (

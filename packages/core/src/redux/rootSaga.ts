@@ -25,6 +25,7 @@ import {
   sessionReconnectingAction,
   sessionDisconnectedAction,
   sessionConnectedAction,
+  sessionAuthErrorAction,
   reauthAction,
 } from './actions'
 import { sessionActions } from './features'
@@ -166,11 +167,12 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
         yield fork(startSaga, options)
         break
       case authErrorAction.type: {
-        const { error: authError } = action.payload
-        const error = authError
-          ? new AuthError(authError.code, authError.error)
-          : new Error('Unauthorized')
-        throw error
+        yield fork(sessionAuthErrorSaga, {
+          action,
+          userOptions: options.userOptions,
+          pubSubChannel: options.pubSubChannel,
+        })
+        break
       }
       case socketErrorAction.type:
         // TODO: define if we want to emit external events here.
@@ -224,6 +226,30 @@ export function* startSaga(options: StartSagaOptions): SagaIterator {
   pubSubTask.cancel()
   executeActionTask.cancel()
   flushExecuteQueueTask.cancel()
+}
+
+interface SessionAuthErrorOptions {
+  pubSubChannel: PubSubChannel
+  userOptions: InternalUserOptions
+  action: any
+}
+export function* sessionAuthErrorSaga(options: SessionAuthErrorOptions) {
+  const { pubSubChannel, userOptions, action } = options
+  const { error: authError } = action.payload
+  const error = authError
+    ? new AuthError(authError.code, authError.error)
+    : new Error('Unauthorized')
+
+  const pubSubTask: Task = yield fork(pubSubSaga, {
+    pubSubChannel,
+    emitter: userOptions.emitter!,
+  })
+
+  yield put(pubSubChannel, sessionAuthErrorAction())
+
+  pubSubTask.cancel()
+
+  throw error
 }
 
 interface RootSagaOptions {
