@@ -1,4 +1,5 @@
 import { configureStore, getEventEmitter, UserOptions } from '@signalwire/core'
+import { getConfig } from '../configure'
 import { Session } from '../Session'
 
 export const setupInternals = (userOptions: {
@@ -27,8 +28,8 @@ export const setupInternals = (userOptions: {
 }
 
 const getToken = (userToken?: string) => {
-  // TODO: read from global store
-  const token = userToken || process.env.SW_TOKEN
+  const globalConfig = getConfig()
+  const token = userToken || process.env.SW_TOKEN || globalConfig.token
 
   if (!token) {
     // TODO: Add error message
@@ -39,8 +40,8 @@ const getToken = (userToken?: string) => {
 }
 
 const getProject = (userProject?: string) => {
-  // TODO: read from global store
-  const project = userProject || process.env.SW_PROJECT
+  const globalConfig = getConfig()
+  const project = userProject || process.env.SW_PROJECT || globalConfig.project
 
   if (!project) {
     // TODO: Add error message

@@ -39,3 +39,5 @@ export * from './createClient'
 export * as Video from './video/Video'
 
 export * as Chat from './chat/Chat'
+
+export * from './configure'
