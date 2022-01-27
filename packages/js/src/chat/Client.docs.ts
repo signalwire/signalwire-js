@@ -102,7 +102,7 @@ export interface ClientDocs extends
    */
   publish(params: {
     /** The message to send. This can be any JSON-serializable object. */
-    message: any
+    content: any
     /** Channel in which to send the message. */
     channel: string
     /**
