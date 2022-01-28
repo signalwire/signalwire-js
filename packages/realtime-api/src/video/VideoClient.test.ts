@@ -59,7 +59,6 @@ describe('VideoClient', () => {
         video.once('room.started', () => {})
 
         video._session.on('session.connected', () => {
-          expect(true).toEqual(true)
           done()
         })
       })

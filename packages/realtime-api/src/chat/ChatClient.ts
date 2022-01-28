@@ -6,14 +6,17 @@ import {
   Chat as ChatNamespace,
 } from '@signalwire/core'
 import { getLogger } from '@signalwire/core'
-import { clientConnect, setupClient } from '../client/index'
+import { clientConnect, setupClient, RealtimeClient } from '../client/index'
 
 export interface ClientApiEvents extends ChatNamespace.BaseChatApiEvents {}
 
 export interface ClientFullState extends ChatClient {}
 interface ClientMain
   extends ChatContract,
-    Omit<ConsumerContract<ClientApiEvents, ClientFullState>, 'subscribe'> {}
+    Omit<ConsumerContract<ClientApiEvents, ClientFullState>, 'subscribe'> {
+  /** @internal */
+  _session: RealtimeClient
+}
 
 interface ClientDocs extends ClientMain {}
 
@@ -66,6 +69,8 @@ const ChatClient = function (options?: ChatClientOptions) {
         return subscribe
       } else if (prop === 'publish') {
         return publish
+      } else if (prop === '_session') {
+        return client
       }
 
       return Reflect.get(target, prop, receiver)
