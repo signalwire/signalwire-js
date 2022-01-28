@@ -29,7 +29,7 @@ export const setupInternals = (userOptions: {
 
 const getToken = (userToken?: string) => {
   const globalConfig = getConfig()
-  const token = userToken || process.env.SW_TOKEN || globalConfig.token
+  const token = userToken || globalConfig.token || process.env.SW_TOKEN
 
   if (!token) {
     // TODO: Add error message
@@ -41,7 +41,7 @@ const getToken = (userToken?: string) => {
 
 const getProject = (userProject?: string) => {
   const globalConfig = getConfig()
-  const project = userProject || process.env.SW_PROJECT || globalConfig.project
+  const project = userProject || globalConfig.project || process.env.SW_PROJECT
 
   if (!project) {
     // TODO: Add error message
@@ -51,12 +51,14 @@ const getProject = (userProject?: string) => {
   return project
 }
 
-export const getCredentials = (options: {
+interface GetCredentialsOptions {
   token?: string
   project?: string
-}) => {
-  const project = getProject(options.project)
-  const token = getToken(options.token)
+}
+
+export const getCredentials = (options?: GetCredentialsOptions) => {
+  const project = getProject(options?.project)
+  const token = getToken(options?.token)
 
   return { project, token }
 }

@@ -16,42 +16,6 @@ describe('getCredentials', () => {
     expect(() => getCredentials({})).toThrow()
   })
 
-  describe('Environment variables', () => {
-    const processEnv = process.env
-    beforeEach(() => {
-      jest.resetModules()
-      process.env = { ...processEnv }
-    })
-    afterAll(() => {
-      process.env = processEnv
-    })
-
-    it('should read from environment variables when the user doesnt provide token and/or project', () => {
-      process.env.SW_PROJECT = 'env-project'
-      process.env.SW_TOKEN = 'env-token'
-
-      expect(getCredentials({})).toEqual({
-        project: 'env-project',
-        token: 'env-token',
-      })
-    })
-
-    it('should give priority to user params over env variables', () => {
-      process.env.SW_PROJECT = 'env-project'
-      process.env.SW_TOKEN = 'env-token'
-
-      expect(
-        getCredentials({
-          project: 'a-project',
-          token: 'a-token',
-        })
-      ).toEqual({
-        project: 'a-project',
-        token: 'a-token',
-      })
-    })
-  })
-
   describe('Global config', () => {
     const processEnv = process.env
     beforeEach(() => {
@@ -60,6 +24,10 @@ describe('getCredentials', () => {
     })
     afterAll(() => {
       process.env = processEnv
+      config({
+        token: undefined,
+        project: undefined
+      })
     })
 
     it('should read options from global config (if available)', () => {
@@ -69,9 +37,79 @@ describe('getCredentials', () => {
         cache: {},
       })
 
-      expect(getCredentials({})).toEqual({
+      expect(getCredentials()).toEqual({
         project: 'global-project',
         token: 'global-token',
+      })
+    })
+
+    it('should have lower priority than local config', () => {
+      config({
+        project: 'global-project',
+        token: 'global-token',
+        cache: {},
+      })
+
+      expect(
+        getCredentials({
+          token: 'local-token',
+        })
+      ).toEqual({
+        project: 'global-project',
+        token: 'local-token',
+      })
+
+      // Local config for token not provided so global
+      // config should be used
+      expect(
+        getCredentials({
+          project: 'local-project',
+        })
+      ).toEqual({
+        project: 'local-project',
+        token: 'global-token',
+      })
+    })
+  })
+
+  describe('Environment variables', () => {
+    const processEnv = process.env
+    beforeEach(() => {
+      jest.resetModules()
+      process.env = { ...processEnv }
+    })
+    afterEach(() => {
+      config({
+        project: undefined,
+        token: undefined
+      })
+    })
+    afterAll(() => {
+      process.env = processEnv
+    })
+
+    it("should read from environment variables when the user doesn't provide token and/or project nor a global config", () => {
+      process.env.SW_PROJECT = 'env-project'
+      process.env.SW_TOKEN = 'env-token'
+
+      expect(getCredentials()).toEqual({
+        project: 'env-project',
+        token: 'env-token',
+      })
+    })
+
+    it('should give priority to local config over env variables', () => {
+      process.env.SW_PROJECT = 'env-project'
+      process.env.SW_TOKEN = 'env-token'
+
+      expect(
+        getCredentials({
+          project: 'local-project',
+          token: 'local-token',
+        })
+      ).toEqual({
+        project: 'local-project',
+        token: 'local-token',
       })
     })
 
@@ -85,11 +123,11 @@ describe('getCredentials', () => {
       process.env.SW_PROJECT = 'env-project'
       process.env.SW_TOKEN = 'env-token'
 
-      // process.env should have priority over the global
-      // config
-      expect(getCredentials({})).toEqual({
-        project: 'env-project',
-        token: 'env-token',
+      // the global config should have priority over
+      // process.env
+      expect(getCredentials()).toEqual({
+        project: 'global-project',
+        token: 'global-token',
       })
 
       // Local config should have priority over both,
@@ -104,9 +142,11 @@ describe('getCredentials', () => {
         token: 'local-token',
       })
 
-      // Local config for token not provided so process.env
-      // should take priority over the global config for
-      // that value
+      config({
+        token: undefined,
+      })
+      // Neither local or global config was provided for
+      // token so the process.env will be used.
       expect(
         getCredentials({
           project: 'local-project',
@@ -116,37 +156,24 @@ describe('getCredentials', () => {
         token: 'env-token',
       })
 
-      // Neither local or process.env config was provided
-      // for token so the global config will be used.
-      process.env.SW_TOKEN = undefined
-      expect(
-        getCredentials({
-          project: 'local-project',
-        })
-      ).toEqual({
-        project: 'local-project',
-        token: 'global-token',
+      config({
+        project: 'global-project',
+        token: undefined,
       })
-
       process.env.SW_PROJECT = 'env-project'
       process.env.SW_TOKEN = 'env-token'
-      expect(
-        getCredentials({
-          token: 'local-token',
-        })
-      ).toEqual({
-        project: 'env-project',
-        token: 'local-token',
+      expect(getCredentials()).toEqual({
+        project: 'global-project',
+        token: 'env-token',
       })
 
-      process.env.SW_PROJECT = undefined
-      expect(
-        getCredentials({
-          token: 'local-token',
-        })
-      ).toEqual({
-        project: 'global-project',
-        token: 'local-token',
+      config({
+        project: undefined,
+        token: 'global-token',
+      })
+      expect(getCredentials()).toEqual({
+        project: 'env-project',
+        token: 'global-token',
       })
     })
   })
