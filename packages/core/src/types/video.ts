@@ -34,6 +34,16 @@ export * from './videoPlayback'
 
 export type RTCTrackEventName = 'track'
 
+export type VideoPosition =
+  | 'self'
+  | 'reserved'
+  | `reserved-${number}`
+  | 'standard'
+  | `standard-${number}`
+  | 'off-canvas'
+
+export type VideoPositions = Record<string, VideoPosition>
+
 /**
  * List of all the events a RoomObject can listen to
  */
