@@ -59,7 +59,7 @@ const VideoClient = function (options?: VideoClientOptions) {
   return new Proxy<VideoClient>(video, {
     get(
       target: VideoClient,
-      prop: keyof VideoClient | 'session',
+      prop: keyof VideoClient,
       receiver: any
     ) {
       if (prop === 'on') {
