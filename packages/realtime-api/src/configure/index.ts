@@ -14,6 +14,7 @@ export interface ConfigOptions extends GlobalConfig {
   cache?: GlobalConfig
 }
 
+/** @internal */
 export const config = ({
   cache = GLOBAL_CONFIG,
   ...options
