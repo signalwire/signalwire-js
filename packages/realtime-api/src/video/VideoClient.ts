@@ -95,7 +95,7 @@ const VideoClient = function (options?: VideoClientOptions) {
   return new Proxy<Omit<VideoClient, 'new'>>(video, {
     get(
       target: VideoClient,
-      prop: keyof VideoClient | 'session',
+      prop: keyof VideoClient,
       receiver: any
     ) {
       if (prop in interceptors) {
