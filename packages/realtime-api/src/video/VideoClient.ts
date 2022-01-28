@@ -1,8 +1,7 @@
 import type { AssertSameType, UserOptions } from '@signalwire/core'
 import type { RealTimeVideoApiEvents } from '../types'
 import { getLogger } from '@signalwire/core'
-import { getProxiedClient, clientConnect } from '../client/index'
-import { getCredentials, setupInternals } from '../utils/internals'
+import { setupClient, clientConnect } from '../client/index'
 import { createVideoObject, Video } from './Video'
 import { VideoClientDocs } from './VideoClient.docs'
 
@@ -50,20 +49,7 @@ export interface VideoClientOptions
 
 /** @ignore */
 const VideoClient = function (options?: VideoClientOptions) {
-  const credentials = getCredentials({
-    token: options?.token,
-    project: options?.project,
-  })
-  const { emitter, store } = setupInternals({
-    ...options,
-    ...credentials,
-  })
-  const client = getProxiedClient({
-    ...options,
-    ...credentials,
-    emitter,
-    store,
-  })
+  const { client, store, emitter } = setupClient(options)
 
   const video = createVideoObject({
     store,

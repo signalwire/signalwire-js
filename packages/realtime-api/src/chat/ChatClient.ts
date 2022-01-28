@@ -6,8 +6,7 @@ import {
   Chat as ChatNamespace,
 } from '@signalwire/core'
 import { getLogger } from '@signalwire/core'
-import { clientConnect, getProxiedClient } from '../client/index'
-import { getCredentials, setupInternals } from '../utils/internals'
+import { clientConnect, setupClient } from '../client/index'
 
 export interface ClientApiEvents extends ChatNamespace.BaseChatApiEvents {}
 
@@ -31,27 +30,11 @@ const ChatClient = function (options?: ChatClientOptions) {
       '`Chat` is still under development and may change in the future without prior notice.'
     )
   }
-
-  const credentials = getCredentials({
-    token: options?.token,
-    project: options?.project,
-  })
-  const { emitter, store } = setupInternals({
-    ...options,
-    ...credentials,
-  })
-  const client = getProxiedClient({
-    ...options,
-    ...credentials,
-    emitter,
-    store,
-  })
-
+  const { client, store, emitter } = setupClient(options)
   const chat = ChatNamespace.createBaseChatObject<ChatClient>({
     store,
     emitter,
   })
-
   const chatOn: ChatClient['on'] = (...args) => {
     clientConnect(client)
 
