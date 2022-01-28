@@ -1,5 +1,4 @@
 import WS from 'jest-websocket-mock'
-import * as getProxiedClient from '../client/getProxiedClient'
 import { Client } from './ChatClient'
 
 describe('ChatClient', () => {
@@ -48,29 +47,7 @@ describe('ChatClient', () => {
     })
 
     describe('Automatic connect', () => {
-      let getClientMock: jest.SpyInstance
-      const mockedBaseClient: any = {
-        connect: jest.fn(() => Promise.resolve()),
-        on: jest.fn(),
-      }
-
-      beforeEach(async () => {
-        getClientMock = jest
-          .spyOn(getProxiedClient, 'getProxiedClient')
-          .mockImplementationOnce(() => {
-            return mockedBaseClient
-          })
-      })
-
-      afterEach(() => {
-        getClientMock.mockRestore()
-        Object.values(mockedBaseClient).forEach((mock: any) => {
-          if (typeof mock.mockRestore === 'function') {
-            mock.mockRestore()
-          }
-        })
-      })
-      it('should automatically connect the underlying client', async () => {
+      it('should automatically connect the underlying client', (done) => {
         const chat = new Client({
           // @ts-expect-error
           host,
@@ -78,11 +55,11 @@ describe('ChatClient', () => {
           token,
         })
 
-        expect(mockedBaseClient.connect).toHaveBeenCalledTimes(0)
-
         chat.once('member.joined', () => {})
 
-        expect(mockedBaseClient.connect).toHaveBeenCalledTimes(1)
+        chat._session.on('session.connected', () => {
+          done()
+        })
       })
     })
 

@@ -71,7 +71,7 @@ describe('VideoClient', () => {
         })
       })
 
-      it('should automatically connect the underlying client', async () => {
+      it('should automatically connect the underlying client', (done) => {
         const video = new Client({
           // @ts-expect-error
           host,
@@ -83,6 +83,7 @@ describe('VideoClient', () => {
 
         video._session.on('session.connected', () => {
           expect(true).toEqual(true)
+          done()
         })
       })
     })
