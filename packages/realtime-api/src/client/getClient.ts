@@ -5,9 +5,18 @@ import {
   EventEmitter,
   UserOptions,
 } from '@signalwire/core'
+import { setupInternals } from '../utils/internals'
 import { Client, RealtimeClient } from './Client'
 
-const CLIENTS_MAP: Map<string, RealtimeClient> = new Map()
+export interface ClientConfig {
+  client: RealtimeClient
+  store: ReturnType<typeof configureStore>
+  emitter: EventEmitter<any>
+}
+
+export type ClientCache = Map<string, ClientConfig>
+
+const CLIENTS_MAP: ClientCache = new Map()
 
 const getClientKey = ({
   project,
@@ -45,10 +54,8 @@ export const getClient = ({
   project: string
   token: string
   logLevel?: UserOptions['logLevel']
-  store: ReturnType<typeof configureStore>
-  emitter: EventEmitter
-  cache?: Map<string, RealtimeClient>
-}): RealtimeClient => {
+  cache?: ClientCache
+}): ClientConfig => {
   const clientKey = getClientKey({
     project: userOptions.project,
     token: userOptions.token,
@@ -58,10 +65,18 @@ export const getClient = ({
     // @ts-expect-error
     return cache.get(clientKey)
   } else {
-    const client = createClient(userOptions)
-
-    cache.set(clientKey, client)
-
-    return client
+    const { emitter, store } = setupInternals(userOptions)
+    const client = createClient({
+      ...userOptions,
+      store,
+      emitter,
+    })
+    const config: ClientConfig = {
+      client,
+      store,
+      emitter,
+    }
+    cache.set(clientKey, config)
+    return config
   }
 }
