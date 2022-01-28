@@ -1,5 +1,4 @@
 import WS from 'jest-websocket-mock'
-import * as getProxiedClient from '../client/getProxiedClient'
 import { Client } from './VideoClient'
 import * as Video from './Video'
 
@@ -80,11 +79,11 @@ describe('VideoClient', () => {
           token,
         })
 
-        expect(mockedBaseClient.connect).toHaveBeenCalledTimes(0)
-
         video.once('room.started', () => {})
 
-        expect(mockedBaseClient.connect).toHaveBeenCalledTimes(1)
+        video._session.on('session.connected', () => {
+          expect(true).toEqual(true)
+        })
       })
     })
 
