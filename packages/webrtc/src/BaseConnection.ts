@@ -479,10 +479,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       const response = await this.vertoExecute(msg)
       this.logger.debug('Invite response', response)
     } catch (error) {
-      // FIXME: Handle hangup redirect
-      // if (jsonrpc?.code || jsonrpc?.cause === 'INVALID_MSG_UNSPECIFIED') {
-      //   this.setState('hangup')
-      // }
       this.setState('hangup')
       throw error.jsonrpc
     }
