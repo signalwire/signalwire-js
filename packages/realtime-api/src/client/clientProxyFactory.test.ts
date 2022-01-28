@@ -12,7 +12,7 @@ describe('clientProxyFactory', () => {
       emitter,
       cache: new Map(),
     }
-    const client = getClient(options)
+    const { client } = getClient(options)
     const connectMock = jest.fn()
     const proxiedClient = clientProxyFactory(client, { connect: connectMock })
 
