@@ -565,6 +565,12 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           // Chrome bug: https://bugs.chromium.org/p/chromium/issues/detail?id=740501
           this._negotiating = false
           break
+        case 'have-local-offer': {
+          if (this.instance.iceGatheringState === 'complete') {
+            this._sdpReady()
+          }
+          break
+        }
         case 'closed':
           // @ts-ignore
           delete this.instance
