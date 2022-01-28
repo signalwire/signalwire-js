@@ -31,6 +31,7 @@ const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   requestTimeout: 10 * 1000,
   autoApplyMediaParams: true,
   iceGatheringTimeout: 2 * 1000,
+  restoreLayout: true,
 }
 
 type EventsHandlerMapping = Record<BaseConnectionState, () => void> &
@@ -477,7 +478,18 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   async executeInvite(sdp: string) {
     this.setState('requesting')
     try {
-      const msg = VertoInvite({ ...this.messagePayload, sdp })
+      const ssOpts = this.options.screenShare
+        ? {
+            layout: this.options.layout,
+            restore_layout: this.options.restoreLayout,
+            positions: this.options.positions,
+          }
+        : {}
+      const msg = VertoInvite({
+        ...this.messagePayload,
+        ...ssOpts,
+        sdp,
+      })
       const response = await this.vertoExecute(msg)
       this.logger.debug('Invite response', response)
     } catch (error) {

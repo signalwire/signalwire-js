@@ -121,13 +121,6 @@ export type PubSubChannelEvents =
   | InternalVideoEventNames
   | SessionEvents
 
-export type MemberPosition =
-  | 'reserved'
-  | `reserved-${number}`
-  | 'standard'
-  | `standard-${number}`
-  | 'off-canvas'
-
 export * from './video'
 export * from './utils'
 export * from './cantina'

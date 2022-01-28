@@ -61,23 +61,29 @@ window.playbackEnded = () => {
 async function loadLayouts(currentLayoutId) {
   try {
     const { layouts } = await roomObj.getLayoutList()
-    const layoutEl = document.getElementById('layout')
-    layoutEl.innerHTML = ''
+    const fillSelectElement = (id) => {
+      const layoutEl = document.getElementById(id)
+      layoutEl.innerHTML = ''
 
-    const defOption = document.createElement('option')
-    defOption.value = ''
-    defOption.innerHTML = 'Change layout..'
-    layoutEl.appendChild(defOption)
-    for (var i = 0; i < layouts.length; i++) {
-      const layout = layouts[i]
-      var opt = document.createElement('option')
-      opt.value = layout
-      opt.innerHTML = layout
-      layoutEl.appendChild(opt)
+      const defOption = document.createElement('option')
+      defOption.value = ''
+      defOption.innerHTML =
+        id === 'layout' ? 'Change layout..' : 'Select layout for ScreenShare..'
+      layoutEl.appendChild(defOption)
+      for (var i = 0; i < layouts.length; i++) {
+        const layout = layouts[i]
+        var opt = document.createElement('option')
+        opt.value = layout
+        opt.innerHTML = layout
+        layoutEl.appendChild(opt)
+      }
+      if (currentLayoutId) {
+        layoutEl.value = currentLayoutId
+      }
     }
-    if (currentLayoutId) {
-      layoutEl.value = currentLayoutId
-    }
+
+    fillSelectElement('layout')
+    fillSelectElement('ssLayout')
   } catch (error) {
     console.warn('Error listing layout', error)
   }
@@ -311,10 +317,19 @@ window.ready = (callback) => {
 
 let screenShareObj
 window.startScreenShare = async () => {
-  screenShareObj = await roomObj.startScreenShare({
-    audio: true,
-    video: true,
-  })
+  screenShareObj = await roomObj
+    .startScreenShare({
+      audio: true,
+      video: true,
+      layout: document.getElementById('ssLayout').value,
+      restoreLayout: document.getElementById('ssRestoreLayout').checked,
+      positions: {
+        self: 'reserved-1',
+      },
+    })
+    .catch((error) => {
+      console.error('ScreenShare Error', error)
+    })
 }
 window.stopScreenShare = () => {
   screenShareObj.hangup()

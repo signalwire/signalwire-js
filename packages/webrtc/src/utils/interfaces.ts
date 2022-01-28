@@ -1,3 +1,5 @@
+import type { VideoPositions } from '@signalwire/core'
+
 export interface ConnectionOptions {
   // TODO: Not used anymore but required for backend
   /** @internal */
@@ -71,4 +73,8 @@ export interface ConnectionOptions {
   rtcPeerConfig?: { [key: string]: any }
   /** @internal */
   iceGatheringTimeout?: number
+
+  layout?: string
+  positions?: VideoPositions
+  restoreLayout?: boolean
 }

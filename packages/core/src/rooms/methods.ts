@@ -6,13 +6,13 @@ import type {
   InternalVideoPlaybackEntity,
   VideoPlaybackEntity,
   MemberCommandParams,
+  VideoPosition,
 } from '../types'
 import { toLocalEvent, toExternalJSON } from '../utils'
 import {
   ExecuteExtendedOptions,
   RoomMethod,
   BaseRPCResult,
-  MemberPosition,
 } from '../utils/interfaces'
 
 type RoomMethodParams = Record<string, unknown>
@@ -108,7 +108,7 @@ export const getMembers = createRoomMethod<{ members: VideoMemberEntity[] }>(
 )
 export interface SetLayoutParams {
   name: string
-  positions?: Record<string, MemberPosition>
+  positions?: Record<string, VideoPosition>
 }
 export const setLayout = createRoomMethod<BaseRPCResult, void>(
   'video.set_layout',
@@ -117,7 +117,7 @@ export const setLayout = createRoomMethod<BaseRPCResult, void>(
   }
 )
 export interface SetPositionsParams {
-  positions?: Record<string, MemberPosition>
+  positions: Record<string, VideoPosition>
 }
 export const setPositions = createRoomMethod<BaseRPCResult, void>(
   'video.set_position',
@@ -216,7 +216,7 @@ export const getPlaybacks = createRoomMethod<
 export type PlayParams = {
   url: string
   volume?: number
-  positions?: Record<string, MemberPosition>
+  positions?: Record<string, VideoPosition>
 }
 export const play: RoomMethodDescriptor<any, PlayParams> = {
   value: function (params) {
@@ -335,7 +335,7 @@ export const setInputSensitivityMember = createRoomMemberMethod<
   transformResolve: baseCodeTransform,
 })
 export interface SetPositionParams extends MemberCommandParams {
-  position: MemberPosition
+  position: VideoPosition
 }
 export const setPosition = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.set_position',
