@@ -451,13 +451,15 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   /** @internal */
   onLocalSDPReady(localDescription: RTCSessionDescription) {
     const { type, sdp } = localDescription
+    const mungedSDP = this._mungeSDP(sdp)
+    this.logger.debug('MUNGED SDP \n', `Type: ${type}`, '\n\n', mungedSDP)
     switch (type) {
       case 'offer':
         // if (this.active) {
         //   this.executeUpdateMedia()
         // } else {
 
-        return this.executeInvite(sdp)
+        return this.executeInvite(mungedSDP)
 
       // }
       case 'answer':
@@ -577,6 +579,15 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       return this.executeInvite(this.peer.localSdp)
     }
     return this.setState('hangup')
+  }
+
+  /**
+   * Allow to define logic to munge the SDP
+   *
+   * @internal
+   * */
+  private _mungeSDP(sdp: string) {
+    return sdp
   }
 
   /** @internal */
