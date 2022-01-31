@@ -17,6 +17,7 @@ export enum WebSocketState {
 export const EVENT_NAMESPACE_DIVIDER = ':'
 
 export const LOCAL_EVENT_PREFIX = '__local__'
+export const SYNTHETIC_EVENT_PREFIX = '__synthetic__'
 
 export const PRODUCT_PREFIX_VIDEO = 'video'
 export const PRODUCT_PREFIX_CANTINA = 'cantina-manager'
