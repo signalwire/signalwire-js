@@ -30,7 +30,11 @@ type PubSubSagaParams = {
 const isVideoMemberEvent = (
   action: PubSubAction
 ): action is MapToPubSubShape<VideoMemberEvent | InternalVideoMemberEvent> => {
-  return action.type.startsWith('video.member.')
+  return (
+    action.type.startsWith('video.member.') ||
+    // TODO: find a better way to do this check.
+    action.type.startsWith('video.__synthetic__.member')
+  )
 }
 
 const isVideoRoomEvent = (
