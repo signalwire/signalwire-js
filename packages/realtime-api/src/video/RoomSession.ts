@@ -332,7 +332,7 @@ interface RoomSessionDocs extends RoomSessionMain {
     >
   }): Promise<void>
 
-  setPosition(params: {
+  setMemberPosition(params: {
     memberId?: string
     position:
       | 'self'
@@ -731,7 +731,7 @@ export const RoomSessionAPI = extendComponent<
   getLayouts: Rooms.getLayouts,
   setLayout: Rooms.setLayout,
   setPositions: Rooms.setPositions,
-  setPosition: Rooms.setPosition,
+  setMemberPosition: Rooms.setMemberPosition,
   getRecordings: Rooms.getRecordings,
   startRecording: Rooms.startRecording,
   getPlaybacks: Rooms.getPlaybacks,

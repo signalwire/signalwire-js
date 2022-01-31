@@ -116,12 +116,12 @@ describe('Room Custom Methods', () => {
     })
   })
 
-  describe('setPosition', () => {
+  describe('setMemberPosition', () => {
     it('should execute with proper params', async () => {
       ;(instance.execute as jest.Mock).mockResolvedValueOnce({})
       instance.roomSessionId = 'mocked'
 
-      await instance.setPosition({
+      await instance.setMemberPosition({
         member_id: 'cebecb3a-b9e4-499c-a707-0af96c110a04',
         position: 'standard',
       })
