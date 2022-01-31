@@ -41,6 +41,7 @@ import {
   RoomSessionDeviceConnection,
   RoomSessionDevice,
 } from './RoomSessionDevice'
+import * as workers from './video/workers'
 
 export interface BaseRoomSession<T>
   extends RoomMethods,
@@ -117,6 +118,12 @@ export class RoomSessionConnection
           },
         },
       ],
+    ])
+  }
+
+  protected getWorkers() {
+    return new Map([
+      ['membersChanged', { worker: workers.membersChangedWorker }],
     ])
   }
 
