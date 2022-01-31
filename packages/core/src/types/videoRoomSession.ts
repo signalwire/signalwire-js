@@ -90,7 +90,9 @@ export interface VideoRoomSessionContract {
   getLayouts(): Rooms.GetLayouts
   setLayout(params: Rooms.SetLayoutParams): Rooms.SetLayout
   setPositions(params: Rooms.SetPositionsParams): Rooms.SetPositions
-  setPosition(params: Rooms.SetPositionParams): Rooms.SetPosition
+  setMemberPosition(
+    params: Rooms.SetMemberPositionParams
+  ): Rooms.SetMemberPosition
   getRecordings(): Rooms.GetRecordings
   startRecording(): Promise<Rooms.RoomSessionRecording>
   getPlaybacks(): Rooms.GetPlaybacks

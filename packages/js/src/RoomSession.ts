@@ -32,7 +32,7 @@ export const UNSAFE_PROP_ACCESS = [
   'setInputVolume',
   'setLayout',
   'setPositions',
-  'setPosition',
+  'setMemberPosition',
   'setOutputVolume',
   'showVideoMuted',
   'startRecording',

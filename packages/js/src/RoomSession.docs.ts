@@ -933,7 +933,7 @@ interface RoomLayoutMethodsInterface {
     >
   }): Promise<void>
 
-  setPosition(params: {
+  setMemberPosition(params: {
     memberId?: string
     position:
       | 'self'
