@@ -61,6 +61,10 @@ export const isInternalGlobalEvent = (event: string) => {
   return INTERNAL_GLOBAL_VIDEO_EVENTS.includes(event)
 }
 
+export const isSyntheticEvent = (event: string) => {
+  return event.includes(SYNTHETIC_EVENT_PREFIX)
+}
+
 export const getGlobalEvents = (kind: 'all' | 'video' = 'all') => {
   switch (kind) {
     case 'video':
@@ -118,7 +122,7 @@ export const validateEventsToSubscribe = (events: (string | symbol)[]) => {
   const valid = events.map((internalEvent) => {
     if (typeof internalEvent === 'string') {
       const event = cleanupEventNamespace(internalEvent)
-      if (CLIENT_SIDE_EVENT_NAMES.includes(event)) {
+      if (CLIENT_SIDE_EVENT_NAMES.includes(event) || isSyntheticEvent(event)) {
         return null
       }
       const found = WITH_CUSTOM_EVENT_NAMES.find((withCustomName) => {
