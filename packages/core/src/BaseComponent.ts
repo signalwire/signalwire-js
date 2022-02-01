@@ -799,14 +799,16 @@ export class BaseComponent<
    * Returns a Map of Sagas that will be attached to the Store to handle
    * events or perform side-effects.
    */
-  protected getWorkers(): Map<string, { worker: SDKWorker }> {
+  protected getWorkers(): Map<string, { worker: SDKWorker<any> }> {
     return new Map()
   }
 
   protected attachWorkers() {
     this.getWorkers().forEach(({ worker }) => {
-      // TODO: passing args to saga ? Like: `{ instance: this }`
-      const task = this.store.runSaga(worker)
+      const task = this.store.runSaga(worker, {
+        instance: this,
+        runSaga: this.store.runSaga,
+      })
       this._runningWorkers.push(task)
     })
   }
