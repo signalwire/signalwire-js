@@ -1,11 +1,11 @@
 import { EventEmitter, actions } from '@signalwire/core'
-import { createBaseRoomSessionObject } from './BaseRoomSession'
+import { BaseRoomSession, createBaseRoomSessionObject } from './BaseRoomSession'
 import type { RoomSession } from './RoomSession'
 import { configureJestStore, configureFullStack } from './testUtils'
 
 describe('Room Object', () => {
   let store: any
-  let room: RoomSession
+  let room: BaseRoomSession<RoomSession>
 
   beforeEach(() => {
     store = configureJestStore()

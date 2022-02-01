@@ -98,7 +98,7 @@ export function* pubSubSaga({
   emitter,
 }: PubSubSagaParams): SagaIterator<any> {
   while (true) {
-    const pubSubAction: PubSubAction = yield take(pubSubChannel)
+    const pubSubAction: PubSubAction = yield take(pubSubChannel, '*')
     const { type, payload } = pubSubAction
     try {
       const namespace = findNamespaceInPayload(pubSubAction)

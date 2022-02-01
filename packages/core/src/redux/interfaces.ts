@@ -1,4 +1,4 @@
-import type { SagaIterator, Channel } from '@redux-saga/types'
+import type { SagaIterator } from '@redux-saga/types'
 import type { PayloadAction } from './toolkit'
 import {
   JSONRPCResponse,
@@ -14,6 +14,7 @@ import type {
   ChatAction,
 } from '../types'
 import { SDKRunSaga } from '.'
+import { MulticastChannel } from '@redux-saga/core'
 
 interface SWComponent {
   id: string
@@ -105,4 +106,4 @@ export type PubSubAction =
     }
   | ChatAction
 
-export type PubSubChannel = Channel<PubSubAction>
+export type PubSubChannel = MulticastChannel<PubSubAction>
