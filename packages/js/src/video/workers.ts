@@ -6,6 +6,7 @@ import {
   validateEventsToSubscribe,
   toInternalEventName,
   PubSubChannel,
+  InternalVideoMemberEntity,
 } from '@signalwire/core'
 import { RoomSession } from '../RoomSession'
 
@@ -29,6 +30,8 @@ const MEMBER_LIST_EVENTS = [
   'video.member.updated',
 ]
 
+type MemberList = Map<string, InternalVideoMemberEntity>
+
 const isMemberListEvent = (event: string) => {
   return MEMBER_LIST_EVENTS.includes(event)
 }
@@ -43,6 +46,38 @@ const shouldListenToMemberList = (subscriptions: string[]) => {
   return subscriptions.some((event) =>
     event.includes(INTERNAL_MEMBER_LIST_UPDATED_EVENT)
   )
+}
+
+const getMembersFromAction = (action: any) => {
+  if (action.type === 'video.room.joined') {
+    return action.payload.room_session.members
+  }
+
+  return [action.payload.member]
+}
+
+const getUpdatedMembers = ({
+  action,
+  memberList,
+}: {
+  action: any
+  memberList: MemberList
+}) => {
+  const actionMembers = getMembersFromAction(action)
+
+  switch (action.type) {
+    case 'video.member.left':
+      actionMembers.forEach((member: InternalVideoMemberEntity) => {
+        memberList.delete(member.id)
+      })
+      break
+    default:
+      actionMembers.forEach((member: InternalVideoMemberEntity) => {
+        memberList.set(member.id, member)
+      })
+  }
+
+  return memberList
 }
 
 const initMemberListSubscriptions = (
@@ -78,26 +113,37 @@ const initMemberListSubscriptions = (
 
   room.on(SYNTHETIC_MEMBER_LIST_UPDATED_EVENT as any, eventBridgeHandler)
 
+  /**
+   * Any events attached by the saga should be specified
+   * here so it can be cleaned up when needed.
+   */
   const unsubscribe = () => {
     room.off(SYNTHETIC_MEMBER_LIST_UPDATED_EVENT as any, eventBridgeHandler)
   }
 
+  const memberList: MemberList = new Map()
+
   return {
     unsubscribe,
+    memberList,
   }
 }
 
 function* membersListUpdatedWatcher({
   pubSubChannel,
+  memberList,
 }: {
   pubSubChannel: PubSubChannel
+  memberList: MemberList
 }): SagaIterator {
   function* worker(pubSubAction: any) {
     const { payload } = pubSubAction
 
-    // TODO: complete payload with the updated member list.
+    const members = getUpdatedMembers({ action: pubSubAction, memberList })
+
     const memberListPayload = {
       room_session_id: payload.room_session_id || payload.room_session.id,
+      members,
     }
 
     // TODO: add typings
@@ -131,9 +177,12 @@ export const memberListUpdatedWorker: SDKWorker<RoomSession> =
       return
     }
 
-    initMemberListSubscriptions(instance, subscriptions)
+    const { memberList } = initMemberListSubscriptions(instance, subscriptions)
 
-    yield sagaEffects.fork(membersListUpdatedWatcher, { pubSubChannel })
+    yield sagaEffects.fork(membersListUpdatedWatcher, {
+      pubSubChannel,
+      memberList,
+    })
 
     // TODO: take(destroy) to cleanup
   }
