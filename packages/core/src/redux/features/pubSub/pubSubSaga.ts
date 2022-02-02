@@ -30,7 +30,11 @@ type PubSubSagaParams = {
 const isVideoMemberEvent = (
   action: PubSubAction
 ): action is MapToPubSubShape<VideoMemberEvent | InternalVideoMemberEvent> => {
-  return action.type.startsWith('video.member.')
+  return (
+    action.type.startsWith('video.member.') ||
+    // TODO: find a better way to do this check.
+    action.type.startsWith('video.__synthetic__.member')
+  )
 }
 
 const isVideoRoomEvent = (
@@ -94,7 +98,7 @@ export function* pubSubSaga({
   emitter,
 }: PubSubSagaParams): SagaIterator<any> {
   while (true) {
-    const pubSubAction: PubSubAction = yield take(pubSubChannel)
+    const pubSubAction: PubSubAction = yield take(pubSubChannel, '*')
     const { type, payload } = pubSubAction
     try {
       const namespace = findNamespaceInPayload(pubSubAction)

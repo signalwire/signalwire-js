@@ -1,6 +1,7 @@
+import { BaseChatConsumer } from './BaseChat'
 import { sagaEffects, SagaIterator, SDKWorker, getLogger, ChatAction } from '..'
 
-export const chatWorker: SDKWorker = function* chatWorker({
+export const chatWorker: SDKWorker<BaseChatConsumer> = function* chatWorker({
   channels: { pubSubChannel },
 }): SagaIterator {
   while (true) {

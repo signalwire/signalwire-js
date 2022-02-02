@@ -5,7 +5,10 @@ import {
   isGlobalEvent,
   toExternalJSON,
   toLocalEvent,
+  toSyntheticEvent,
   extendComponent,
+  validateEventsToSubscribe,
+  toInternalEventName
 } from './utils'
 import { BaseSession } from './BaseSession'
 import { BaseJWTSession } from './BaseJWTSession'
@@ -34,10 +37,13 @@ export {
   configureStore,
   EventEmitter,
   extendComponent,
+  validateEventsToSubscribe,
   getEventEmitter,
   isGlobalEvent,
   toExternalJSON,
   toLocalEvent,
+  toInternalEventName,
+  toSyntheticEvent,
   GLOBAL_VIDEO_EVENTS,
   MEMBER_UPDATED_EVENTS,
   INTERNAL_MEMBER_UPDATED_EVENTS,
@@ -52,6 +58,7 @@ export type {
   SessionState,
   CustomSagaParams,
   CustomSaga,
+  PubSubChannel
 } from './redux/interfaces'
 export * as actions from './redux/actions'
 export * as sagaHelpers from './redux/utils/sagaHelpers'

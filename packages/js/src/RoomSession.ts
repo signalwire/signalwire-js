@@ -1,4 +1,8 @@
-import { UserOptions, AssertSameType, getLogger } from '@signalwire/core'
+import {
+  UserOptions,
+  AssertSameType,
+  getLogger,
+} from '@signalwire/core'
 import { createClient } from './createClient'
 import type { MakeRoomOptions } from './Client'
 import { BaseRoomSession } from './BaseRoomSession'
@@ -123,6 +127,9 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
   const join = () => {
     return new Promise(async (resolve, reject) => {
       try {
+        // @ts-expect-error
+        room.attachPreConnectWorkers()
+
         await client.connect()
 
         room.once('room.subscribed', () => {
@@ -137,10 +144,15 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     })
   }
 
+  const interceptors = {
+    join,
+  } as const
+
   return new Proxy<Omit<RoomSession, 'new'>>(room, {
-    get(target: RoomSession, prop: any, receiver: any) {
-      if (prop === 'join') {
-        return join
+    get(target: RoomSession, prop: keyof RoomSession, receiver: any) {
+      if (prop in interceptors) {
+        // @ts-expect-error
+        return interceptors[prop]
       }
 
       if (!target.active && UNSAFE_PROP_ACCESS.includes(prop)) {

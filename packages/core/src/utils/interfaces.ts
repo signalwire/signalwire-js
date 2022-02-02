@@ -105,7 +105,7 @@ export interface InternalUserOptions extends UserOptions {
    * emitter should be allowed to handle
    */
   emitter: EventEmitter<any>
-  workers?: SDKWorker[]
+  workers?: SDKWorker<any>[]
 }
 
 /**
@@ -393,8 +393,17 @@ export type InternalChannels = {
   pubSubChannel: PubSubChannel
 }
 
-export type SDKWorkerParams<T> = { channels: InternalChannels } & T
-export type SDKWorker = <T>(params: SDKWorkerParams<T>) => SagaIterator<any>
+export type SDKWorkerParams<T> = {
+  channels: InternalChannels
+  instance: T
+  runSaga: any
+}
+export type SDKWorker<T> = (params: SDKWorkerParams<T>) => SagaIterator<any>
+
+export interface SDKWorkerDefinition {
+  worker: SDKWorker<any>
+}
+
 interface LogFn {
   <T extends object>(obj: T, msg?: string, ...args: any[]): void
   (obj: unknown, msg?: string, ...args: any[]): void

@@ -41,6 +41,7 @@ import {
   RoomSessionDeviceConnection,
   RoomSessionDevice,
 } from './RoomSessionDevice'
+import * as workers from './video/workers'
 
 export interface BaseRoomSession<T>
   extends RoomMethods,
@@ -118,6 +119,20 @@ export class RoomSessionConnection
         },
       ],
     ])
+  }
+
+  /**
+   * This method will be called by `join()` right before the
+   * `connect()` happens and it's a way for us to control
+   * exactly when the workers are attached.
+   * @internal
+   */
+  protected attachPreConnectWorkers() {
+    this.setWorker('memberListUpdated', {
+      worker: workers.memberListUpdatedWorker,
+    })
+
+    this.attachWorkers()
   }
 
   /** @deprecated Use {@link startScreenShare} instead. */

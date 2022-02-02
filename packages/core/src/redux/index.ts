@@ -1,5 +1,9 @@
 import { Store } from 'redux'
-import createSagaMiddleware, { channel, Saga, Task } from '@redux-saga/core'
+import createSagaMiddleware, {
+  multicastChannel,
+  Saga,
+  Task,
+} from '@redux-saga/core'
 import { configureStore as rtConfigureStore } from './toolkit'
 import { rootReducer } from './rootReducer'
 import rootSaga from './rootSaga'
@@ -32,7 +36,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
     runSagaMiddleware = true,
   } = options
   const sagaMiddleware = createSagaMiddleware()
-  const pubSubChannel: PubSubChannel = channel()
+  const pubSubChannel: PubSubChannel = multicastChannel()
   /**
    * List of channels that are gonna be shared across all
    * sagas.
@@ -52,7 +56,13 @@ const configureStore = (options: ConfigureStoreOptions) => {
       // @see https://redux-toolkit.js.org/api/getDefaultMiddleware#intended-usage
       getDefaultMiddleware().concat(sagaMiddleware),
   }) as Store
-  const runSaga: SDKRunSaga = (saga: Saga, args) => {
+  const runSaga = <T>(
+    saga: Saga,
+    args: {
+      instance: T
+      runSaga: any
+    }
+  ) => {
     return sagaMiddleware.run(saga, {
       ...args,
       channels,

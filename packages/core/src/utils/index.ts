@@ -5,6 +5,7 @@ import {
   INTERNAL_GLOBAL_VIDEO_EVENTS,
   EVENT_NAMESPACE_DIVIDER,
   LOCAL_EVENT_PREFIX,
+  SYNTHETIC_EVENT_PREFIX,
 } from './constants'
 export { setLogger, getLogger, setDebugOptions } from './logger'
 
@@ -58,6 +59,10 @@ export const isGlobalEvent = (event: string) => {
 export const isInternalGlobalEvent = (event: string) => {
   // @ts-ignore
   return INTERNAL_GLOBAL_VIDEO_EVENTS.includes(event)
+}
+
+export const isSyntheticEvent = (event: string) => {
+  return event.includes(SYNTHETIC_EVENT_PREFIX)
 }
 
 export const getGlobalEvents = (kind: 'all' | 'video' = 'all') => {
@@ -117,7 +122,7 @@ export const validateEventsToSubscribe = (events: (string | symbol)[]) => {
   const valid = events.map((internalEvent) => {
     if (typeof internalEvent === 'string') {
       const event = cleanupEventNamespace(internalEvent)
-      if (CLIENT_SIDE_EVENT_NAMES.includes(event)) {
+      if (CLIENT_SIDE_EVENT_NAMES.includes(event) || isSyntheticEvent(event)) {
         return null
       }
       const found = WITH_CUSTOM_EVENT_NAMES.find((withCustomName) => {
@@ -151,6 +156,24 @@ export const toLocalEvent = <T extends string>(event: string): T => {
 
       if (item === prefix) {
         reducer.push(LOCAL_EVENT_PREFIX)
+      }
+
+      return reducer
+    }, [] as string[])
+    .join('.') as T
+}
+
+export const toSyntheticEvent = <T extends string>(event: string): T => {
+  const eventParts = event.split('.')
+  const prefix = eventParts[0]
+
+  return event
+    .split('.')
+    .reduce((reducer, item) => {
+      reducer.push(item)
+
+      if (item === prefix) {
+        reducer.push(SYNTHETIC_EVENT_PREFIX)
       }
 
       return reducer
