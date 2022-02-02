@@ -239,7 +239,7 @@ window.connect = () => {
     }
   })
 
-  roomObj.on('members.changed', (payload) => {
+  roomObj.on('memberList.updated', (payload) => {
     console.log('>> members.changed', payload)
   })
 
