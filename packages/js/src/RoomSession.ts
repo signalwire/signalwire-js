@@ -2,7 +2,6 @@ import {
   UserOptions,
   AssertSameType,
   getLogger,
-  toSyntheticEvent,
 } from '@signalwire/core'
 import { createClient } from './createClient'
 import type { MakeRoomOptions } from './Client'
@@ -123,12 +122,6 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
   // WebRTC connection left the room.
   room.once('destroy', () => {
     client.disconnect()
-  })
-
-  // TODO: This handler can't be attached like this.
-  room.on(toSyntheticEvent('video.member_list.updated') as any, (payload) => {
-    // @ts-expect-error
-    room.emit('video.memberList.updated', payload)
   })
 
   const join = () => {

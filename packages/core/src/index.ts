@@ -7,7 +7,8 @@ import {
   toLocalEvent,
   toSyntheticEvent,
   extendComponent,
-  validateEventsToSubscribe
+  validateEventsToSubscribe,
+  toInternalEventName
 } from './utils'
 import { BaseSession } from './BaseSession'
 import { BaseJWTSession } from './BaseJWTSession'
@@ -41,6 +42,7 @@ export {
   isGlobalEvent,
   toExternalJSON,
   toLocalEvent,
+  toInternalEventName,
   toSyntheticEvent,
   GLOBAL_VIDEO_EVENTS,
   MEMBER_UPDATED_EVENTS,

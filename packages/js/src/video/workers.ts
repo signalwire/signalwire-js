@@ -4,13 +4,21 @@ import {
   SDKWorker,
   toSyntheticEvent,
   validateEventsToSubscribe,
+  toInternalEventName,
 } from '@signalwire/core'
 import { RoomSession } from '../RoomSession'
 
 const noop = () => {}
 
-// TODO: find a better place for this.
-const TARGET_EVENT = 'video.member_list.updated'
+const EXTERNAL_MEMBER_LIST_UPDATED_EVENT = 'video.memberList.updated'
+
+const INTERNAL_MEMBER_LIST_UPDATED_EVENT = toInternalEventName({
+  event: EXTERNAL_MEMBER_LIST_UPDATED_EVENT,
+})
+
+const SYNTHETIC_MEMBER_LIST_UPDATED_EVENT = toSyntheticEvent(
+  INTERNAL_MEMBER_LIST_UPDATED_EVENT
+)
 
 const MEMBER_LIST_EVENTS = [
   /**
@@ -40,7 +48,9 @@ const getMemberListEventsToSubscribe = (subscriptions: string[]) => {
 }
 
 const shouldListenToMemberList = (subscriptions: string[]) => {
-  return subscriptions.some((event) => event.includes(TARGET_EVENT))
+  return subscriptions.some((event) =>
+    event.includes(INTERNAL_MEMBER_LIST_UPDATED_EVENT)
+  )
 }
 
 const initMemberListSubscriptions = (
@@ -63,6 +73,12 @@ const initMemberListSubscriptions = (
      * attached).
      */
     room.once(event as any, noop)
+  })
+
+  // TODO: handle off for this event.
+  room.on(SYNTHETIC_MEMBER_LIST_UPDATED_EVENT as any, (payload) => {
+    // @ts-expect-error
+    room.emit(EXTERNAL_MEMBER_LIST_UPDATED_EVENT, payload)
   })
 }
 
@@ -97,7 +113,7 @@ export const memberListUpdatedWorker: SDKWorker<RoomSession> =
 
       // TODO: add typings
       yield sagaEffects.put(pubSubChannel, {
-        type: toSyntheticEvent('video.member_list.updated') as any,
+        type: SYNTHETIC_MEMBER_LIST_UPDATED_EVENT as any,
         payload: memberListPayload as any,
       })
     }
