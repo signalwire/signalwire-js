@@ -18,6 +18,7 @@ import {
   EventTransformType,
   EventTransform,
   SDKWorker,
+  SDKWorkerDefinition,
   SessionAuthStatus,
 } from './utils/interfaces'
 import { EventEmitter } from './utils/EventEmitter'
@@ -80,10 +81,6 @@ export class BaseComponent<
   private _requests = new Map()
   private _customSagaTriggers = new Map()
   private _destroyer?: () => void
-
-  protected get logger() {
-    return getLogger()
-  }
 
   /**
    * A Namespace let us scope specific instances inside of a
@@ -172,6 +169,19 @@ export class BaseComponent<
    * List of running Tasks to be cancelled on `destroy`.
    */
   private _runningWorkers: Task[] = []
+
+  protected get logger() {
+    return getLogger()
+  }
+
+  /**
+   * Map of Sagas that will be attached to the Store to
+   * handle events or perform side-effects. This Map will
+   * behave as a queue and will be emptied once the workers
+   * have been attached. See `this.attachWorkers` for
+   * details.
+   */
+  protected _workers: Map<string, { worker: SDKWorker<any> }> = new Map()
 
   constructor(public options: BaseComponentOptions<EventTypes>) {}
 
@@ -795,21 +805,34 @@ export class BaseComponent<
     })
   }
 
+  /** @internal */
+  protected setWorker(name: string, def: SDKWorkerDefinition) {
+    this._workers.set(name, def)
+  }
+
   /**
    * Returns a Map of Sagas that will be attached to the Store to handle
    * events or perform side-effects.
+   * @internal
    */
-  protected getWorkers(): Map<string, { worker: SDKWorker<any> }> {
-    return new Map()
+  protected getWorkers() {
+    return this._workers
   }
 
+  /** @internal */
   protected attachWorkers() {
-    this.getWorkers().forEach(({ worker }) => {
+    this.getWorkers().forEach(({ worker }, name) => {
       const task = this.store.runSaga(worker, {
         instance: this,
         runSaga: this.store.runSaga,
       })
       this._runningWorkers.push(task)
+      /**
+       * Attaching workers is a one-time op for instances so
+       * the moment we attach one we'll remove it from the
+       * queue.
+       */
+      this._workers.delete(name)
     })
   }
 
