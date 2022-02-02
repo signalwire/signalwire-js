@@ -42,7 +42,7 @@ const getMemberListEventsToSubscribe = (subscriptions: string[]) => {
   })
 }
 
-const shouldListenToMemberList = (subscriptions: string[]) => {
+const shouldHandleMemberList = (subscriptions: string[]) => {
   return subscriptions.some((event) =>
     event.includes(INTERNAL_MEMBER_LIST_UPDATED_EVENT)
   )
@@ -173,7 +173,7 @@ export const memberListUpdatedWorker: SDKWorker<RoomSession> =
     // @ts-expect-error
     const subscriptions = instance.getSubscriptions()
 
-    if (!shouldListenToMemberList(subscriptions)) {
+    if (!shouldHandleMemberList(subscriptions)) {
       return
     }
 
