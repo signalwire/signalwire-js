@@ -121,6 +121,12 @@ export class RoomSessionConnection
     ])
   }
 
+  /**
+   * This method will be called by `join()` right before the
+   * `connect()` happens and it's a way for us to control
+   * exactly when the workers are attached.
+   * @internal
+   */
   protected attachPreConnectWorkers() {
     this.setWorker('memberListUpdated', {
       worker: workers.memberListUpdatedWorker,

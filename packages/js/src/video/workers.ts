@@ -121,21 +121,18 @@ const initMemberListSubscriptions = (
     room.off(SYNTHETIC_MEMBER_LIST_UPDATED_EVENT as any, eventBridgeHandler)
   }
 
-  const memberList: MemberList = new Map()
-
   return {
     cleanup,
-    memberList,
   }
 }
 
 function* membersListUpdatedWatcher({
   pubSubChannel,
-  memberList,
 }: {
   pubSubChannel: PubSubChannel
-  memberList: MemberList
 }): SagaIterator {
+  const memberList: MemberList = new Map()
+
   function* worker(pubSubAction: any) {
     const { payload } = pubSubAction
     const members = getUpdatedMembers({ action: pubSubAction, memberList })
@@ -175,14 +172,10 @@ export const memberListUpdatedWorker: SDKWorker<RoomSession> =
       return
     }
 
-    const { memberList, cleanup } = initMemberListSubscriptions(
-      instance,
-      subscriptions
-    )
+    const { cleanup } = initMemberListSubscriptions(instance, subscriptions)
 
     yield sagaEffects.fork(membersListUpdatedWatcher, {
       pubSubChannel,
-      memberList,
     })
 
     instance.once('destroy', () => {
