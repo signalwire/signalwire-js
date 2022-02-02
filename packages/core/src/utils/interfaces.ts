@@ -399,6 +399,11 @@ export type SDKWorkerParams<T> = {
   runSaga: any
 }
 export type SDKWorker<T> = (params: SDKWorkerParams<T>) => SagaIterator<any>
+
+export interface SDKWorkerDefinition {
+  worker: SDKWorker<any>
+}
+
 interface LogFn {
   <T extends object>(obj: T, msg?: string, ...args: any[]): void
   (obj: unknown, msg?: string, ...args: any[]): void
