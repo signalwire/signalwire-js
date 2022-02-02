@@ -20,6 +20,10 @@ const MEMBER_LIST_EVENTS = [
    * `validateEventsToSubscribe`
    */
   'video.room.subscribed',
+  /**
+   * Alias to `video.room.subscribed`
+   */
+  'video.room.joined',
   'video.member.joined',
   'video.member.left',
   'video.member.updated',
@@ -86,9 +90,15 @@ export const memberListUpdatedWorker: SDKWorker<RoomSession> =
 
       const { payload } = pubSubAction
 
+      // TODO: complete payload with the updated member list.
+      const memberListPayload = {
+        room_session_id: payload.room_session_id || payload.room_session.id,
+      }
+
+      // TODO: add typings
       yield sagaEffects.put(pubSubChannel, {
         type: toSyntheticEvent('video.member_list.updated') as any,
-        payload: payload,
+        payload: memberListPayload as any,
       })
     }
   }
