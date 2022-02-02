@@ -117,14 +117,14 @@ const initMemberListSubscriptions = (
    * Any events attached by the saga should be specified
    * here so it can be cleaned up when needed.
    */
-  const unsubscribe = () => {
+  const cleanup = () => {
     room.off(SYNTHETIC_MEMBER_LIST_UPDATED_EVENT as any, eventBridgeHandler)
   }
 
   const memberList: MemberList = new Map()
 
   return {
-    unsubscribe,
+    cleanup,
     memberList,
   }
 }
@@ -175,12 +175,17 @@ export const memberListUpdatedWorker: SDKWorker<RoomSession> =
       return
     }
 
-    const { memberList } = initMemberListSubscriptions(instance, subscriptions)
+    const { memberList, cleanup } = initMemberListSubscriptions(
+      instance,
+      subscriptions
+    )
 
     yield sagaEffects.fork(membersListUpdatedWatcher, {
       pubSubChannel,
       memberList,
     })
 
-    // TODO: take(destroy) to cleanup
+    instance.once('destroy', () => {
+      cleanup()
+    })
   }
