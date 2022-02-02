@@ -7,6 +7,7 @@ import {
   toLocalEvent,
   toSyntheticEvent,
   extendComponent,
+  validateEventsToSubscribe
 } from './utils'
 import { BaseSession } from './BaseSession'
 import { BaseJWTSession } from './BaseJWTSession'
@@ -35,6 +36,7 @@ export {
   configureStore,
   EventEmitter,
   extendComponent,
+  validateEventsToSubscribe,
   getEventEmitter,
   isGlobalEvent,
   toExternalJSON,
