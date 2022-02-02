@@ -126,14 +126,17 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
   })
 
   // TODO: This handler can't be attached like this.
-  room.on(toSyntheticEvent('video.members.changed') as any, (payload) => {
+  room.on(toSyntheticEvent('video.member_list.updated') as any, (payload) => {
     // @ts-expect-error
-    room.emit('video.members.changed', payload)
+    room.emit('video.memberList.updated', payload)
   })
 
   const join = () => {
     return new Promise(async (resolve, reject) => {
       try {
+        // @ts-expect-error
+        room.attachPreConnectWorkers()
+
         await client.connect()
 
         room.once('room.subscribed', () => {

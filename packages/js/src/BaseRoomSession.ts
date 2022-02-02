@@ -121,10 +121,12 @@ export class RoomSessionConnection
     ])
   }
 
-  protected getWorkers() {
-    return new Map([
-      ['membersChanged', { worker: workers.membersChangedWorker }],
-    ])
+  protected attachPreConnectWorkers() {
+    this.setWorker('memberListUpdated', {
+      worker: workers.memberListUpdatedWorker,
+    })
+
+    this.attachWorkers()
   }
 
   /** @deprecated Use {@link startScreenShare} instead. */
