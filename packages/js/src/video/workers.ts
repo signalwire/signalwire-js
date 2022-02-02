@@ -21,16 +21,7 @@ const SYNTHETIC_MEMBER_LIST_UPDATED_EVENT = toSyntheticEvent(
 )
 
 const MEMBER_LIST_EVENTS = [
-  /**
-   * The end user has access to `video.room.joined` but
-   * since it's just an internal alias to
-   * `video.room.subscribed` it will be filtered by
-   * `validateEventsToSubscribe`
-   */
-  'video.room.subscribed',
-  /**
-   * Alias to `video.room.subscribed`
-   */
+  /** Alias to `video.room.subscribed` */
   'video.room.joined',
   'video.member.joined',
   'video.member.left',
