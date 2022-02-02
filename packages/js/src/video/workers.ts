@@ -5,6 +5,7 @@ import {
   toSyntheticEvent,
   validateEventsToSubscribe,
   toInternalEventName,
+  PubSubChannel,
 } from '@signalwire/core'
 import { RoomSession } from '../RoomSession'
 
@@ -66,11 +67,56 @@ const initMemberListSubscriptions = (
     room.once(event as any, noop)
   })
 
-  // TODO: handle off for this event.
-  room.on(SYNTHETIC_MEMBER_LIST_UPDATED_EVENT as any, (payload) => {
+  /**
+   * This handler will act as a simple bridge between
+   * synthetic events and external events.
+   */
+  const eventBridgeHandler = (payload: any) => {
     // @ts-expect-error
     room.emit(EXTERNAL_MEMBER_LIST_UPDATED_EVENT, payload)
-  })
+  }
+
+  room.on(SYNTHETIC_MEMBER_LIST_UPDATED_EVENT as any, eventBridgeHandler)
+
+  const unsubscribe = () => {
+    room.off(SYNTHETIC_MEMBER_LIST_UPDATED_EVENT as any, eventBridgeHandler)
+  }
+
+  return {
+    unsubscribe,
+  }
+}
+
+function* membersListUpdatedWatcher({
+  pubSubChannel,
+}: {
+  pubSubChannel: PubSubChannel
+}): SagaIterator {
+  function* worker(pubSubAction: any) {
+    const { payload } = pubSubAction
+
+    // TODO: complete payload with the updated member list.
+    const memberListPayload = {
+      room_session_id: payload.room_session_id || payload.room_session.id,
+    }
+
+    // TODO: add typings
+    yield sagaEffects.put(pubSubChannel, {
+      type: SYNTHETIC_MEMBER_LIST_UPDATED_EVENT as any,
+      payload: memberListPayload as any,
+    })
+  }
+
+  while (true) {
+    const pubSubAction = yield sagaEffects.take(
+      pubSubChannel,
+      ({ type }: any) => {
+        return isMemberListEvent(type)
+      }
+    )
+
+    yield sagaEffects.fork(worker, pubSubAction)
+  }
 }
 
 export const memberListUpdatedWorker: SDKWorker<RoomSession> =
@@ -87,25 +133,7 @@ export const memberListUpdatedWorker: SDKWorker<RoomSession> =
 
     initMemberListSubscriptions(instance, subscriptions)
 
-    while (true) {
-      const pubSubAction = yield sagaEffects.take(
-        pubSubChannel,
-        ({ type }: any) => {
-          return isMemberListEvent(type)
-        }
-      )
+    yield sagaEffects.fork(membersListUpdatedWatcher, { pubSubChannel })
 
-      const { payload } = pubSubAction
-
-      // TODO: complete payload with the updated member list.
-      const memberListPayload = {
-        room_session_id: payload.room_session_id || payload.room_session.id,
-      }
-
-      // TODO: add typings
-      yield sagaEffects.put(pubSubChannel, {
-        type: SYNTHETIC_MEMBER_LIST_UPDATED_EVENT as any,
-        payload: memberListPayload as any,
-      })
-    }
+    // TODO: take(destroy) to cleanup
   }

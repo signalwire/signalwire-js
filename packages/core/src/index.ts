@@ -58,6 +58,7 @@ export type {
   SessionState,
   CustomSagaParams,
   CustomSaga,
+  PubSubChannel
 } from './redux/interfaces'
 export * as actions from './redux/actions'
 export * as sagaHelpers from './redux/utils/sagaHelpers'
