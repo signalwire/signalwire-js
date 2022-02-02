@@ -77,7 +77,7 @@ const getUpdatedMembers = ({
       })
   }
 
-  return memberList
+  return Array.from(memberList.values())
 }
 
 const initMemberListSubscriptions = (
@@ -138,9 +138,7 @@ function* membersListUpdatedWatcher({
 }): SagaIterator {
   function* worker(pubSubAction: any) {
     const { payload } = pubSubAction
-
     const members = getUpdatedMembers({ action: pubSubAction, memberList })
-
     const memberListPayload = {
       room_session_id: payload.room_session_id || payload.room_session.id,
       members,
