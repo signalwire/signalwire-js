@@ -70,6 +70,11 @@ export interface JSONRPCResponse {
   error?: JSONRPCError
 }
 
+export interface BaseRPCResult extends Record<string, unknown> {
+  code: string
+  message: string
+}
+
 export interface SessionOptions {
   /** @internal */
   host?: string
@@ -268,16 +273,13 @@ export type ExecuteParams = {
   params: Record<string, any>
 }
 
-export interface ExecuteExtendedOptions<InputType, OutputType> {
+export interface ExecuteExtendedOptions<InputType, OutputType, ParamsType> {
   /** To transform the resolved response */
   transformResolve?: ExecuteTransform<InputType, OutputType>
   /** To transform the rejected response */
   transformReject?: ExecuteTransform<InputType, OutputType>
   /** To transform the RPC execute params */
-  transformParams?: ExecuteTransform<
-    ExecuteParams['params'],
-    ExecuteParams['params']
-  >
+  transformParams?: ExecuteTransform<ParamsType, ExecuteParams['params']>
 }
 
 export type ExecuteTransform<InputType = unknown, OutputType = unknown> = (
