@@ -7,6 +7,12 @@ import {
   toInternalEventName,
   PubSubChannel,
   InternalVideoMemberEntity,
+  InternalVideoMemberUpdatedEvent,
+  VideoMemberJoinedEvent,
+  VideoMemberLeftEvent,
+  VideoMemberUpdatedEvent,
+  InternalVideoRoomJoinedEvent,
+  MapToPubSubShape,
 } from '@signalwire/core'
 import type { RoomSession } from '../RoomSession'
 import type { VideoMemberListUpdatedParams } from '../utils/interfaces'
@@ -23,7 +29,18 @@ const SYNTHETIC_MEMBER_LIST_UPDATED_EVENT = toSyntheticEvent(
   INTERNAL_MEMBER_LIST_UPDATED_EVENT
 )
 
-const MEMBER_LIST_EVENTS = [
+/**
+ * List of action types this worker cares about.
+ */
+type MemberListUpdatedTargetActions = MapToPubSubShape<
+  | InternalVideoRoomJoinedEvent
+  | InternalVideoMemberUpdatedEvent
+  | VideoMemberJoinedEvent
+  | VideoMemberLeftEvent
+  | VideoMemberUpdatedEvent
+>
+
+const MEMBER_LIST_EVENTS: Array<MemberListUpdatedTargetActions['type']> = [
   /** Alias to `video.room.subscribed` */
   'video.room.joined',
   'video.member.joined',
@@ -33,13 +50,16 @@ const MEMBER_LIST_EVENTS = [
 
 type MemberList = Map<string, InternalVideoMemberEntity>
 
-const isMemberListEvent = (event: string) => {
+const isMemberListEvent = (
+  event: string
+): event is MemberListUpdatedTargetActions['type'] => {
+  // @ts-expect-error
   return MEMBER_LIST_EVENTS.includes(event)
 }
 
-const getMemberListEventsToSubscribe = (subscriptions: string[]) => {
+const getMemberListEventsToSubscribe = (subscriptions: MemberListUpdatedTargetActions['type'][]) => {
   return validateEventsToSubscribe(MEMBER_LIST_EVENTS).filter((event) => {
-    return !subscriptions.includes(event as string)
+    return !subscriptions.includes(event)
   })
 }
 
@@ -49,7 +69,7 @@ const shouldHandleMemberList = (subscriptions: string[]) => {
   )
 }
 
-const getMembersFromAction = (action: any) => {
+const getMembersFromAction = (action: MemberListUpdatedTargetActions) => {
   if (action.type === 'video.room.joined') {
     return action.payload.room_session.members
   }
@@ -57,11 +77,11 @@ const getMembersFromAction = (action: any) => {
   return [action.payload.member]
 }
 
-const getUpdatedMembers = ({
+export const getUpdatedMembers = ({
   action,
   memberList,
 }: {
-  action: any
+  action: MemberListUpdatedTargetActions
   memberList: MemberList
 }) => {
   const actionMembers = getMembersFromAction(action)
@@ -83,7 +103,7 @@ const getUpdatedMembers = ({
 
 const initMemberListSubscriptions = (
   room: RoomSession,
-  subscriptions: string[]
+  subscriptions: MemberListUpdatedTargetActions['type'][]
 ) => {
   const events = getMemberListEventsToSubscribe(subscriptions)
 
@@ -136,11 +156,21 @@ function* membersListUpdatedWatcher({
 }): SagaIterator {
   const memberList: MemberList = new Map()
 
-  function* worker(pubSubAction: any) {
-    const { payload } = pubSubAction
+  function* worker(pubSubAction: MemberListUpdatedTargetActions) {
+    const roomSessionId =
+      pubSubAction.type === 'video.room.joined'
+        ? pubSubAction.payload.room_session.id
+        : pubSubAction.payload.room_session_id
+
     const members = getUpdatedMembers({ action: pubSubAction, memberList })
     const memberListPayload = {
-      room_session_id: payload.room_session_id || payload.room_session.id,
+      /**
+       * At this point it's needed to send the
+       * `room_session_id` so the pubSubSaga can properly
+       * infer the namespace for emitting the events to the
+       * appropiate room.
+       */
+      room_session_id: roomSessionId,
       members,
     }
 
@@ -152,7 +182,7 @@ function* membersListUpdatedWatcher({
   }
 
   while (true) {
-    const pubSubAction = yield sagaEffects.take(
+    const pubSubAction: MemberListUpdatedTargetActions = yield sagaEffects.take(
       pubSubChannel,
       ({ type }: any) => {
         return isMemberListEvent(type)
