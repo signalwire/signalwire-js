@@ -35,7 +35,7 @@ export interface ClientDocs extends
   new(chatOptions: {
     /** SignalWire Chat token (you can get one with the REST APIs) */
     token: string
-    /** Logging level */
+    /** @ignore */
     logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
   }): this
 
