@@ -1,35 +1,50 @@
-import type { ChatPublishParams, ChatJSONRPCMethod } from '../types/chat'
+import type {
+  ChatJSONRPCMethod,
+  ChatCursor,
+  InternalChatMessageEntity,
+  ChatMessageEntity,
+  InternalChatMemberEntity,
+  ChatMemberEntity,
+} from '../types/chat'
 import type { BaseChatConsumer } from './BaseChat'
-import type { ExecuteExtendedOptions } from '../utils/interfaces'
+import type { ExecuteExtendedOptions, BaseRPCResult } from '../utils/interfaces'
 import { toExternalJSON } from '../utils'
 import { toInternalChatChannels, isValidChannels } from './utils'
 
-interface ChatMethodPropertyDescriptor<T, ParamsType>
-  extends PropertyDescriptor {
-  value: (params: ParamsType) => Promise<T>
-}
 type ChatMethodParams = Record<string, unknown>
+
+interface ChatMethodPropertyDescriptor<OutputType, ParamsType>
+  extends PropertyDescriptor {
+  // FIXME: optional?
+  value: (params: ParamsType) => Promise<OutputType>
+}
 type ChatMethodDescriptor<
-  T = unknown,
+  OutputType = unknown,
   ParamsType = ChatMethodParams
-> = ChatMethodPropertyDescriptor<T, ParamsType> & ThisType<BaseChatConsumer>
+> = ChatMethodPropertyDescriptor<OutputType, ParamsType> &
+  ThisType<BaseChatConsumer>
 
-const createChatMethod = <InputType, OutputType = InputType>(
+/**
+ * Transform for returning `undefined` for `execute`s that were
+ * successully resolved. If the `execute` failed for some reason, then
+ * the promise will be rejected and this transform will never be
+ * executed.
+ */
+const baseCodeTransform = () => {}
+
+const createChatMethod = <
+  InputType,
+  OutputType = InputType,
+  ParamsType extends ChatMethodParams = ChatMethodParams
+>(
   method: ChatJSONRPCMethod,
-  options: ExecuteExtendedOptions<InputType, OutputType> = {}
+  options: ExecuteExtendedOptions<InputType, OutputType, ParamsType> = {}
 ): ChatMethodDescriptor<OutputType> => ({
-  value: function (params: ChatMethodParams = {}): Promise<OutputType> {
-    const channels = isValidChannels(params?.channels)
-      ? toInternalChatChannels(params.channels)
-      : undefined
-
+  value: function (params = {}): Promise<OutputType> {
     return this.execute(
       {
         method,
-        params: {
-          ...params,
-          channels,
-        },
+        params,
       },
       options
     )
@@ -40,27 +55,25 @@ const createChatMethod = <InputType, OutputType = InputType>(
  * Type the params for each chat method that requires a memberId.
  * Additional params can be passed.
  */
-interface ChatMemberMethodParams {
+interface ChatMemberMethodParams extends Record<string, unknown> {
   memberId?: string
-  [key: string]: unknown
 }
 
-const createChatMemberMethod = <InputType, OutputType = InputType>(
+const createChatMemberMethod = <
+  InputType,
+  OutputType = InputType,
+  ParamsType extends ChatMemberMethodParams = ChatMemberMethodParams
+>(
   method: ChatJSONRPCMethod,
-  options: ExecuteExtendedOptions<InputType, OutputType> = {}
+  options: ExecuteExtendedOptions<InputType, OutputType, ParamsType> = {}
 ): ChatMethodDescriptor<OutputType> => ({
-  value: function ({ memberId, ...rest }: ChatMemberMethodParams = {}) {
-    const channels = isValidChannels(rest?.channels)
-      ? toInternalChatChannels(rest.channels)
-      : undefined
-
+  value: function ({ memberId, ...rest } = {}) {
     return this.execute(
       {
         method,
         params: {
           member_id: memberId,
           ...rest,
-          channels,
         },
       },
       options
@@ -71,17 +84,35 @@ const createChatMemberMethod = <InputType, OutputType = InputType>(
 /**
  * Chat Methods
  */
-export const publish = createChatMethod<ChatPublishParams>('chat.publish')
-export const getMessages = createChatMethod<{ messages: any[]; cursor: any }>(
-  'chat.messages.get',
-  {
-    transformResolve: (payload) => ({
-      messages: payload.messages.map((message) => toExternalJSON(message)),
-      cursor: payload.cursor,
-    }),
-  }
-)
-export const getMembers = createChatMethod<{ members: any[] }>(
+export const publish = createChatMethod<BaseRPCResult, void>('chat.publish', {
+  transformResolve: baseCodeTransform,
+})
+
+interface GetMessagesInput extends BaseRPCResult {
+  messages: InternalChatMessageEntity[]
+  cursor: ChatCursor
+}
+interface GetMessagesOutput {
+  messages: ChatMessageEntity[]
+  cursor: ChatCursor
+}
+export const getMessages = createChatMethod<
+  GetMessagesInput,
+  GetMessagesOutput
+>('chat.messages.get', {
+  transformResolve: (payload) => ({
+    messages: payload.messages.map((message) => toExternalJSON(message)),
+    cursor: payload.cursor,
+  }),
+})
+
+interface GetMembersInput extends BaseRPCResult {
+  members: InternalChatMemberEntity[]
+}
+interface GetMembersOutput {
+  members: ChatMemberEntity[]
+}
+export const getMembers = createChatMethod<GetMembersInput, GetMembersOutput>(
   'chat.members.get',
   {
     transformResolve: (payload) => ({
@@ -90,18 +121,37 @@ export const getMembers = createChatMethod<{ members: any[] }>(
   }
 )
 
+const transformParamChannels = (params: ChatMemberMethodParams) => {
+  const channels = isValidChannels(params?.channels)
+    ? toInternalChatChannels(params.channels)
+    : undefined
+
+  return {
+    ...params,
+    channels,
+  }
+}
 /**
  * Chat Member Methods
  */
-export const setMemberState = createChatMemberMethod<any, void>(
+export const setMemberState = createChatMemberMethod<BaseRPCResult, void>(
   'chat.member.set_state',
   {
-    transformResolve: () => {},
+    transformResolve: baseCodeTransform,
+    transformParams: transformParamChannels,
   }
 )
-export const getMemberState = createChatMemberMethod<{ channels: any }>(
-  'chat.member.get_state',
-  {
-    transformResolve: (payload) => ({ channels: payload.channels }),
-  }
-)
+
+interface GetMemberStateInput extends BaseRPCResult {
+  channels: any
+}
+interface GetMemberStateOutput {
+  channels: any
+}
+export const getMemberState = createChatMemberMethod<
+  GetMemberStateInput,
+  GetMemberStateOutput
+>('chat.member.get_state', {
+  transformResolve: (payload) => ({ channels: payload.channels }),
+  transformParams: transformParamChannels,
+})
