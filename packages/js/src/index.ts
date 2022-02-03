@@ -47,6 +47,12 @@ export type RoomScreenShare = VideoMemberEntity & { type: 'screen' }
 export type RoomDevice = VideoMemberEntity & { type: 'device' }
 
 /**
+ * The Chat namespace contains the classes and functions that you need to
+ * create a real-time chat application.
+ */
+export * as Chat from './chat'
+
+/**
  * The Video namespace contains the classes and functions that you need to
  * create a video conferencing application.
  */
@@ -96,6 +102,3 @@ export type {
   RoomSessionObjectEventsHandlerMap as RoomObjectEventsHandlerMap,
   RoomSessionObjectEvents as RoomObjectEvents,
 } from './utils/interfaces'
-
-/** @internal */
-export * as __sw__Chat from './chat'
