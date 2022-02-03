@@ -1,28 +1,32 @@
 import { BaseRoomInterface } from '.'
 import {
   VideoMemberEntity,
+  InternalVideoRecordingEntity,
   VideoRecordingEntity,
+  InternalVideoPlaybackEntity,
   VideoPlaybackEntity,
 } from '../types'
 import { toLocalEvent, toExternalJSON } from '../utils'
-import { ExecuteExtendedOptions, RoomMethod } from '../utils/interfaces'
+import {
+  ExecuteExtendedOptions,
+  RoomMethod,
+  BaseRPCResult,
+} from '../utils/interfaces'
 
-interface RoomMethodPropertyDescriptor<T, ParamsType>
+type RoomMethodParams = Record<string, unknown>
+
+interface RoomMethodPropertyDescriptor<OutputType, ParamsType>
   extends PropertyDescriptor {
-  value: (params: ParamsType) => Promise<T>
+  // FIXME: optional?
+  value: (params: ParamsType) => Promise<OutputType>
 }
+
 type RoomMethodDescriptor<
-  T = unknown,
+  OutputType = unknown,
   ParamsType = RoomMethodParams
-> = RoomMethodPropertyDescriptor<T, ParamsType> &
+> = RoomMethodPropertyDescriptor<OutputType, ParamsType> &
   // TODO: Replace string with a tighter type
   ThisType<BaseRoomInterface<string>>
-type RoomMethodParams = Record<string, unknown>
-interface BaseRPCResult {
-  code: string
-  message: string
-  [k: string]: unknown
-}
 
 /**
  * Transform for returning `undefined` for `execute`s that were
@@ -32,17 +36,22 @@ interface BaseRPCResult {
  */
 const baseCodeTransform = () => {}
 
-const createRoomMethod = <InputType, OutputType = InputType>(
+const createRoomMethod = <
+  InputType,
+  OutputType = InputType,
+  ParamsType extends RoomMethodParams = RoomMethodParams
+>(
   method: RoomMethod,
-  options: ExecuteExtendedOptions<InputType, OutputType> = {}
-): RoomMethodDescriptor<OutputType> => ({
-  value: function (params: RoomMethodParams = {}): Promise<OutputType> {
+  options: ExecuteExtendedOptions<InputType, OutputType, ParamsType> = {}
+): RoomMethodDescriptor<OutputType, ParamsType> => ({
+  value: function (params): Promise<OutputType> {
     return this.execute(
       {
         method,
         params: {
           room_session_id: this.roomSessionId,
-          ...params,
+          // FIXME:
+          ...(params || {}),
         },
       },
       options
@@ -55,16 +64,22 @@ const createRoomMethod = <InputType, OutputType = InputType>(
  * memberId or fallback to the instance memberId. Additional params
  * can be passed as `value` or `volume`.
  */
-interface RoomMemberMethodParams {
+interface RoomMemberMethodParams extends Record<string, unknown> {
   memberId?: string
-  [key: string]: unknown
 }
 
-const createRoomMemberMethod = <InputType, OutputType>(
+const createRoomMemberMethod = <
+  InputType,
+  OutputType,
+  ParamsType extends RoomMemberMethodParams = RoomMemberMethodParams
+>(
   method: RoomMethod,
-  options: ExecuteExtendedOptions<InputType, OutputType> = {}
-): RoomMethodDescriptor<OutputType> => ({
-  value: function ({ memberId, ...rest }: RoomMemberMethodParams = {}) {
+  options: ExecuteExtendedOptions<InputType, OutputType, ParamsType> = {}
+): RoomMethodDescriptor<OutputType, ParamsType> => ({
+  value: function (params) {
+    // FIXME:
+    const { memberId, ...rest } = params || {}
+
     return this.execute(
       {
         method,
@@ -113,12 +128,11 @@ export const showVideoMuted = createRoomMethod<BaseRPCResult, void>(
   }
 )
 
-export const setHideVideoMuted: RoomMethodDescriptor<any, boolean> = {
-  value: function (value: boolean) {
-    const method = value ? 'video.hide_video_muted' : 'video.show_video_muted'
+export const setHideVideoMuted: RoomMethodDescriptor<void, boolean> = {
+  value: function (value) {
     return this.execute(
       {
-        method,
+        method: value ? 'video.hide_video_muted' : 'video.show_video_muted',
         params: {
           room_session_id: this.roomSessionId,
         },
@@ -130,14 +144,23 @@ export const setHideVideoMuted: RoomMethodDescriptor<any, boolean> = {
   },
 }
 
-export const getRecordings = createRoomMethod<{
+interface GetRecordingsInput extends BaseRPCResult {
+  recordings: InternalVideoRecordingEntity[]
+}
+interface GetRecordingsOutput {
   recordings: VideoRecordingEntity[]
-}>('video.recording.list', {
+}
+
+export const getRecordings = createRoomMethod<
+  GetRecordingsInput,
+  GetRecordingsOutput
+>('video.recording.list', {
   transformResolve: (payload) => ({
     recordings: payload.recordings.map((row) => toExternalJSON(row)),
   }),
 })
-export const startRecording: RoomMethodDescriptor<any> = {
+
+export const startRecording: RoomMethodDescriptor<void> = {
   value: function () {
     return new Promise(async (resolve) => {
       const handler = (instance: any) => {
@@ -164,9 +187,17 @@ export const startRecording: RoomMethodDescriptor<any> = {
   },
 }
 
-export const getPlaybacks = createRoomMethod<{
+interface GetPlaybacksInput extends BaseRPCResult {
+  playbacks: InternalVideoPlaybackEntity[]
+}
+interface GetPlaybacksOutput {
   playbacks: VideoPlaybackEntity[]
-}>('video.playback.list', {
+}
+
+export const getPlaybacks = createRoomMethod<
+  GetPlaybacksInput,
+  GetPlaybacksOutput
+>('video.playback.list', {
   transformResolve: (payload) => ({
     playbacks: payload.playbacks.map((row) => toExternalJSON(row)),
   }),
@@ -258,12 +289,11 @@ export const undeafMember = createRoomMemberMethod<BaseRPCResult, void>(
 )
 // This is used on a RoomSessionMember instance where we have
 // `this.roomSessionId` and `this.memberId`
-export const setDeaf: RoomMethodDescriptor<any, boolean> = {
-  value: function (value: boolean) {
-    const method = value ? 'video.member.deaf' : 'video.member.undeaf'
+export const setDeaf: RoomMethodDescriptor<void, boolean> = {
+  value: function (value) {
     return this.execute(
       {
-        method,
+        method: value ? 'video.member.deaf' : 'video.member.undeaf',
         params: {
           room_session_id: this.roomSessionId,
           member_id: this.memberId,
@@ -293,8 +323,11 @@ export const setInputSensitivityMember = createRoomMemberMethod<
 >('video.member.set_input_sensitivity', {
   transformResolve: baseCodeTransform,
 })
-export const removeMember: RoomMethodDescriptor<void> = {
-  value: function ({ memberId, ...rest }: RoomMemberMethodParams = {}) {
+export const removeMember: RoomMethodDescriptor<
+  void,
+  Required<RoomMemberMethodParams>
+> = {
+  value: function ({ memberId, ...rest }) {
     if (!memberId) {
       throw new TypeError('Invalid or missing "memberId" argument')
     }
