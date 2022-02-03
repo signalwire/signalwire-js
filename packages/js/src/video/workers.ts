@@ -8,7 +8,8 @@ import {
   PubSubChannel,
   InternalVideoMemberEntity,
 } from '@signalwire/core'
-import { RoomSession } from '../RoomSession'
+import type { RoomSession } from '../RoomSession'
+import type { VideoMemberListUpdatedParams } from '../utils/interfaces'
 
 const noop = () => {}
 
@@ -106,19 +107,21 @@ const initMemberListSubscriptions = (
    * This handler will act as a simple bridge between
    * synthetic events and external events.
    */
-  const eventBridgeHandler = (payload: any) => {
+  const eventBridgeHandler = ({ members }: VideoMemberListUpdatedParams) => {
     // @ts-expect-error
-    room.emit(EXTERNAL_MEMBER_LIST_UPDATED_EVENT, payload)
+    room.emit(EXTERNAL_MEMBER_LIST_UPDATED_EVENT, { members })
   }
 
-  room.on(SYNTHETIC_MEMBER_LIST_UPDATED_EVENT as any, eventBridgeHandler)
+  // @ts-expect-error
+  room.on(SYNTHETIC_MEMBER_LIST_UPDATED_EVENT, eventBridgeHandler)
 
   /**
    * Any events attached by the saga should be specified
    * here so it can be cleaned up when needed.
    */
   const cleanup = () => {
-    room.off(SYNTHETIC_MEMBER_LIST_UPDATED_EVENT as any, eventBridgeHandler)
+    // @ts-expect-error
+    room.off(SYNTHETIC_MEMBER_LIST_UPDATED_EVENT, eventBridgeHandler)
   }
 
   return {
