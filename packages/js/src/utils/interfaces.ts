@@ -5,7 +5,6 @@ import type {
   VideoLayoutEventNames,
   VideoRoomSessionEventNames,
   VideoRoomEventParams,
-  VideoMemberEntity,
   InternalVideoMemberEntity,
   VideoMemberEventNames,
   MemberUpdated,
@@ -22,12 +21,25 @@ import type {
   VideoRoomSessionContract,
   OnlyFunctionProperties,
   AssertSameType,
+  MemberListUpdated,
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
 import type { RoomSession } from '../RoomSession'
 import type { RoomSessionDevice } from '../RoomSessionDevice'
 import type { RoomSessionScreenShare } from '../RoomSessionScreenShare'
 import { RoomMemberSelfMethodsInterfaceDocs } from './interfaces.docs'
+
+/**
+ * @privateRemarks
+ * Every other package exposing a `VideoMemberEntity` is
+ * transforming the server payload into something else, with
+ * the most significant change being converting properties
+ * from snake to camel case. The `js` package, on the other
+ * hand, exposes the server payload pretty much as is (as as
+ * v3) so what we consider internal (sdk and server) in
+ * other packages is external (user facing) for `js`.
+ */
+type VideoMemberEntity = InternalVideoMemberEntity
 
 const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
   INTERNAL_MEMBER_UPDATABLE_PROPS
@@ -47,18 +59,26 @@ export type VideoMemberHandlerParams = { member: VideoMemberEntity }
 export type VideoMemberUpdatedHandlerParams = {
   member: VideoMemberEntityUpdated
 }
+export type VideoMemberListUpdatedParams = { members: VideoMemberEntity[] }
 
 export type RoomSessionObjectEventsHandlerMap = Record<
   VideoLayoutEventNames,
   (params: { layout: VideoLayout }) => void
 > &
   Record<
-    Exclude<VideoMemberEventNames, MemberUpdated | MemberUpdatedEventNames>,
+    Exclude<
+      VideoMemberEventNames,
+      MemberUpdated | MemberUpdatedEventNames | MemberListUpdated
+    >,
     (params: VideoMemberHandlerParams) => void
   > &
   Record<
     Extract<VideoMemberEventNames, MemberUpdated | MemberUpdatedEventNames>,
     (params: VideoMemberUpdatedHandlerParams) => void
+  > &
+  Record<
+    Extract<VideoMemberEventNames, MemberListUpdated>,
+    (params: VideoMemberListUpdatedParams) => void
   > &
   Record<
     DeprecatedMemberUpdatableProps,
