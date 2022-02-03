@@ -118,7 +118,9 @@ const CLIENT_SIDE_EVENT_NAMES = [
  * IE: `member.updated.audioMuted` means `member.updated` for the server.
  * @internal
  */
-export const validateEventsToSubscribe = (events: (string | symbol)[]) => {
+export const validateEventsToSubscribe = <T = string>(
+  events: T[]
+): T[] => {
   const valid = events.map((internalEvent) => {
     if (typeof internalEvent === 'string') {
       const event = cleanupEventNamespace(internalEvent)
@@ -134,7 +136,7 @@ export const validateEventsToSubscribe = (events: (string | symbol)[]) => {
     return internalEvent
   })
 
-  return Array.from(new Set(valid)).filter(Boolean)
+  return Array.from(new Set(valid)).filter(Boolean) as T[]
 }
 
 /**
