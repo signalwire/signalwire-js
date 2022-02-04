@@ -902,7 +902,7 @@ export interface RoomSessionEvents {
    *
    * ```typescript
    * type _ = {
-   *   room: {
+   *   room_session: {
    *     room_session_id: string,
    *     logos_visible: boolean,
    *     members: Array<{
@@ -1093,6 +1093,15 @@ export interface RoomSessionEvents {
    * @event
    */
   'member.talking': undefined
+
+  /**
+   * The set of members or one or more properties of a member have changed. The
+   * event handler receives an object `e` with the updated, full list of members in
+   * the room as `e.members`.
+   * 
+   * @event
+   */
+  'memberList.updated': undefined
 
   /**
    * The layout of the room has changed. This event is not limited to changes
