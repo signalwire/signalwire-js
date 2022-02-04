@@ -24,6 +24,7 @@ export const executeAction = createAction<ExecuteActionParams>(
 export const authErrorAction =
   createAction<{ error: SessionAuthError }>('auth/error')
 export const authSuccessAction = createAction('auth/success')
+export const authExpiringAction = createAction('auth/expiring')
 
 export const socketClosedAction = createAction('socket/closed')
 export const socketErrorAction = createAction('socket/error')
@@ -43,6 +44,9 @@ export const sessionReconnectingAction = createAction<void, SessionEvents>(
 )
 export const sessionAuthErrorAction = createAction<Error, SessionEvents>(
   'session.auth_error'
+)
+export const sessionExpiringAction = createAction<void, SessionEvents>(
+  'session.expiring'
 )
 const formatCustomSagaAction = (id: string, action: Action) => {
   return `${action.type}/${id}`

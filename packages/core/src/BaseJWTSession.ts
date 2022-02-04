@@ -7,6 +7,7 @@ import {
 } from './RPCMessages'
 import { SessionOptions } from './utils/interfaces'
 import { BaseSession } from './BaseSession'
+import { authExpiringAction } from './redux/actions'
 
 export class BaseJWTSession extends BaseSession {
   /**
@@ -102,6 +103,8 @@ export class BaseJWTSession extends BaseSession {
       return
     }
     if (this.expiresIn <= this._refreshTokenNotificationDiff) {
+      this.dispatch(authExpiringAction())
+
       if (this.options._onRefreshToken) {
         this.options._onRefreshToken()
       } else {

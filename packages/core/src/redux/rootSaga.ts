@@ -26,12 +26,14 @@ import {
   sessionDisconnectedAction,
   sessionConnectedAction,
   sessionAuthErrorAction,
+  sessionExpiringAction,
   reauthAction,
 } from './actions'
 import { sessionActions } from './features'
 import {
   authErrorAction,
   authSuccessAction,
+  authExpiringAction,
   socketClosedAction,
   socketErrorAction,
 } from './actions'
@@ -161,6 +163,7 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
     const action = yield take([
       authSuccessAction.type,
       authErrorAction.type,
+      authExpiringAction.type,
       socketErrorAction.type,
       socketClosedAction.type,
       reauthAction.type,
@@ -176,6 +179,10 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
           userOptions: options.userOptions,
           pubSubChannel: options.pubSubChannel,
         })
+        break
+      }
+      case authExpiringAction.type: {
+        yield put(options.pubSubChannel, sessionExpiringAction())
         break
       }
       case socketErrorAction.type:
