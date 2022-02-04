@@ -130,25 +130,29 @@ export function* socketClosedWorker({
     yield delay(Math.random() * 2000)
     yield call(session.connect)
   } else {
-    sessionChannel.close()
     yield put(pubSubChannel, sessionDisconnectedAction())
+    sessionChannel.close()
   }
 }
 
 export function* reauthenticateWorker({
   session,
   token,
+  pubSubChannel,
 }: {
   session: BaseSession
   token: string
+  pubSubChannel: PubSubChannel
 }) {
   try {
     if (session.reauthenticate) {
       session.token = token
       yield call(session.reauthenticate)
+      yield put(pubSubChannel, sessionConnectedAction())
     }
   } catch (error) {
     getLogger().error('Reauthenticate Error', error)
+    yield put(authErrorAction({ error }))
   }
 }
 
@@ -188,6 +192,7 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
         yield fork(reauthenticateWorker, {
           session: options.session,
           token: action.payload.token,
+          pubSubChannel: options.pubSubChannel,
         })
         break
       }
@@ -245,8 +250,11 @@ export function* sessionAuthErrorSaga(options: SessionAuthErrorOptions) {
     emitter: userOptions.emitter!,
   })
 
-  yield put(pubSubChannel, sessionAuthErrorAction())
-
+  yield put(pubSubChannel, sessionAuthErrorAction(error))
+  /**
+   * Wait for `session.disconnected` to cancel all the tasks
+   */
+  yield take(sessionDisconnectedAction)
   pubSubTask.cancel()
 
   throw error
