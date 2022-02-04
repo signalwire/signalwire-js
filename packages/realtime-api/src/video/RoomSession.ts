@@ -332,6 +332,18 @@ interface RoomSessionDocs extends RoomSessionMain {
     >
   }): Promise<void>
 
+  setRoles(params: {
+    roles: Record<
+      string,
+      | 'self'
+      | 'reserved'
+      | `reserved-${number}`
+      | 'standard'
+      | `standard-${number}`
+      | 'off-canvas'
+    >
+  }): Promise<void>
+
   setMemberPosition(params: {
     memberId?: string
     position:
