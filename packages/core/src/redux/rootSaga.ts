@@ -237,7 +237,7 @@ export function* sessionAuthErrorSaga(options: SessionAuthErrorOptions) {
   const { pubSubChannel, userOptions, action } = options
   const { error: authError } = action.payload
   const error = authError
-    ? new AuthError(authError.code, authError.error)
+    ? new AuthError(authError.code, authError?.message || '')
     : new Error('Unauthorized')
 
   const pubSubTask: Task = yield fork(pubSubSaga, {
