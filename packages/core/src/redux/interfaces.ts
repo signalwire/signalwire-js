@@ -102,7 +102,7 @@ export type PubSubAction =
   | MapToPubSubShape<VideoAPIEventParams | InternalVideoAPIEvent>
   | {
       type: SessionEvents
-      payload: undefined
+      payload: Error | undefined
     }
   | ChatAction
 
