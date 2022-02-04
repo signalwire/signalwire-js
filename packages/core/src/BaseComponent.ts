@@ -7,6 +7,7 @@ import {
   instanceProxyFactory,
   NESTED_FIELDS_TO_PROCESS,
   getLogger,
+  isSessionEvent,
 } from './utils'
 import { executeAction, Action } from './redux'
 import {
@@ -120,7 +121,8 @@ export class BaseComponent<
     if (
       this._eventsPrefix &&
       typeof event === 'string' &&
-      !event.includes(`${this._eventsPrefix}.`)
+      !event.includes(`${this._eventsPrefix}.`) &&
+      !isSessionEvent(event)
     ) {
       return `${this._eventsPrefix}.${event}` as EventEmitter.EventNames<EventTypes>
     }

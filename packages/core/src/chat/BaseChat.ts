@@ -203,17 +203,12 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
 
   updateToken(token: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      /**
-       * Use this.emitter to avoid the internal/namespaced event
-       * ie: `session.disconnected` transformed to `chat.session.disconnected`
-       */
-
       // @ts-expect-error
-      this.emitter.once('session.auth_error', (error) => {
+      this.once('session.auth_error', (error) => {
         reject(error)
       })
       // @ts-expect-error
-      this.emitter.once('session.connected', () => {
+      this.once('session.connected', () => {
         resolve()
       })
 
