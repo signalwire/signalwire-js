@@ -7,6 +7,16 @@ import type {
 import type { MapToPubSubShape } from '../redux/interfaces'
 import { PRODUCT_PREFIX_CHAT } from '../utils/constants'
 
+export type ChatCursor =
+  | {
+      before: string
+      after?: never
+    }
+  | {
+      before?: never
+      after: string
+    }
+
 type ToInternalChatEvent<T extends string> = `${ChatNamespace}.${T}`
 export type ChatNamespace = typeof PRODUCT_PREFIX_CHAT
 
@@ -23,7 +33,7 @@ export type ChatEventNames = ChatMessageEventName | ChatMemberEventNames
 
 export type ChatChannel = string | string[]
 
-export interface ChatPublishParams {
+interface ChatPublishParams {
   content: any
   channel: string
   meta?: Record<any, any>
@@ -39,10 +49,7 @@ interface ChatGetMemberStateParams {
 }
 interface ChatGetMessagesParams {
   channel: string
-  cursor?: {
-    after?: string
-    before?: string
-  }
+  cursor?: ChatCursor
 }
 interface ChatGetMembersParams {
   channel: string

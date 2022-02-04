@@ -547,13 +547,17 @@ export class BaseComponent<
   }
 
   /** @internal */
-  execute<InputType = unknown, OutputType = unknown>(
+  execute<
+    InputType = unknown,
+    OutputType = unknown,
+    ParamsType = Record<string, any>
+  >(
     { method, params }: ExecuteParams,
     {
       transformParams = identity,
       transformResolve = identity,
       transformReject = identity,
-    }: ExecuteExtendedOptions<InputType, OutputType> = {
+    }: ExecuteExtendedOptions<InputType, OutputType, ParamsType> = {
       transformParams: identity,
       transformResolve: identity,
       transformReject: identity,
@@ -573,7 +577,7 @@ export class BaseComponent<
           requestId,
           componentId: this.__uuid,
           method,
-          params: transformParams(params),
+          params: transformParams(params as ParamsType),
         })
       )
     })
