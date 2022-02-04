@@ -343,6 +343,17 @@ interface RoomSessionDocs extends RoomSessionMain {
       | 'off-canvas'
   }): Promise<void>
 
+  setMemberRole(params: {
+    memberId?: string
+    role:
+      | 'self'
+      | 'reserved'
+      | `reserved-${number}`
+      | 'standard'
+      | `standard-${number}`
+      | 'off-canvas'
+  }): Promise<void>
+
   /**
    * Obtains a list of recordings for the current room session.
    *
@@ -732,6 +743,7 @@ export const RoomSessionAPI = extendComponent<
   setLayout: Rooms.setLayout,
   setPositions: Rooms.setPositions,
   setMemberPosition: Rooms.setMemberPosition,
+  setMemberRole: Rooms.setMemberPosition,
   getRecordings: Rooms.getRecordings,
   startRecording: Rooms.startRecording,
   getPlaybacks: Rooms.getPlaybacks,

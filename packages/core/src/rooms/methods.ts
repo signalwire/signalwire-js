@@ -7,6 +7,7 @@ import type {
   VideoPlaybackEntity,
   MemberCommandParams,
   VideoPosition,
+  VideoRole,
 } from '../types'
 import { toLocalEvent, toExternalJSON } from '../utils'
 import {
@@ -337,6 +338,9 @@ export const setInputSensitivityMember = createRoomMemberMethod<
 export interface SetMemberPositionParams extends MemberCommandParams {
   position: VideoPosition
 }
+export interface SetMemberRoleParams extends MemberCommandParams {
+  role: VideoRole
+}
 export const setMemberPosition = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.set_position',
   {
@@ -384,5 +388,6 @@ export type SetInputSensitivityMember = ReturnType<
   typeof setInputSensitivityMember.value
 >
 export type SetMemberPosition = ReturnType<typeof setMemberPosition.value>
+export type SetMemberRole = ReturnType<typeof setMemberPosition.value>
 export type RemoveMember = ReturnType<typeof removeMember.value>
 // End Room Member Methods

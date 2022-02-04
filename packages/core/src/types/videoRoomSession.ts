@@ -93,6 +93,9 @@ export interface VideoRoomSessionContract {
   setMemberPosition(
     params: Rooms.SetMemberPositionParams
   ): Rooms.SetMemberPosition
+  setMemberRole(
+    params: Rooms.SetMemberRoleParams
+  ): Rooms.SetMemberRole
   getRecordings(): Rooms.GetRecordings
   startRecording(): Promise<Rooms.RoomSessionRecording>
   getPlaybacks(): Rooms.GetPlaybacks
