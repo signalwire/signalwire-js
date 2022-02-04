@@ -31,7 +31,14 @@ export class BaseJWTSession extends BaseSession {
   }
 
   get expiresAt() {
-    return this?._rpcConnectResult?.authorization?.expires_at ?? 0
+    const expiresAt = this?._rpcConnectResult?.authorization?.expires_at ?? 0
+    if (typeof expiresAt === 'string') {
+      const parsed = Date.parse(expiresAt)
+      if (!isNaN(parsed)) {
+        return Math.floor(parsed / 1000)
+      }
+    }
+    return expiresAt
   }
 
   get expiresIn() {
@@ -92,6 +99,11 @@ export class BaseJWTSession extends BaseSession {
       clearTimeout(this._checkTokenExpirationTimer)
       throw error
     }
+  }
+
+  protected override _onSocketClose(event: CloseEvent) {
+    clearTimeout(this._checkTokenExpirationTimer)
+    super._onSocketClose(event)
   }
 
   /**
