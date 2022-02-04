@@ -65,6 +65,10 @@ export const isSyntheticEvent = (event: string) => {
   return event.includes(SYNTHETIC_EVENT_PREFIX)
 }
 
+export const isSessionEvent = (event: string) => {
+  return event.includes('session.')
+}
+
 export const getGlobalEvents = (kind: 'all' | 'video' = 'all') => {
   switch (kind) {
     case 'video':
@@ -118,13 +122,15 @@ const CLIENT_SIDE_EVENT_NAMES = [
  * IE: `member.updated.audioMuted` means `member.updated` for the server.
  * @internal
  */
-export const validateEventsToSubscribe = <T = string>(
-  events: T[]
-): T[] => {
+export const validateEventsToSubscribe = <T = string>(events: T[]): T[] => {
   const valid = events.map((internalEvent) => {
     if (typeof internalEvent === 'string') {
       const event = cleanupEventNamespace(internalEvent)
-      if (CLIENT_SIDE_EVENT_NAMES.includes(event) || isSyntheticEvent(event)) {
+      if (
+        CLIENT_SIDE_EVENT_NAMES.includes(event) ||
+        isSyntheticEvent(event) ||
+        isSessionEvent(event)
+      ) {
         return null
       }
       const found = WITH_CUSTOM_EVENT_NAMES.find((withCustomName) => {
