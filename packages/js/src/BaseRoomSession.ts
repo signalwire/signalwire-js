@@ -355,6 +355,7 @@ export const RoomSessionAPI = extendComponent<
   getLayouts: Rooms.getLayouts,
   setLayout: Rooms.setLayout,
   setPositions: Rooms.setPositions,
+  setRoles: Rooms.setPositions,
   setMemberPosition: Rooms.setMemberPosition,
   setMemberRole: Rooms.setMemberPosition,
   hideVideoMuted: Rooms.hideVideoMuted,

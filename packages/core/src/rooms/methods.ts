@@ -120,6 +120,9 @@ export const setLayout = createRoomMethod<BaseRPCResult, void>(
 export interface SetPositionsParams {
   positions: Record<string, VideoPosition>
 }
+export interface SetRolesParams {
+  roles: Record<string, VideoRole>
+}
 export const setPositions = createRoomMethod<BaseRPCResult, void>(
   'video.set_position',
   {
@@ -380,6 +383,7 @@ export type UndeafMember = ReturnType<typeof undeafMember.value>
 export type SetDeaf = ReturnType<typeof setDeaf.value>
 export type SetLayout = ReturnType<typeof setLayout.value>
 export type SetPositions = ReturnType<typeof setPositions.value>
+export type SetRoles = ReturnType<typeof setPositions.value>
 export type SetInputVolumeMember = ReturnType<typeof setInputVolumeMember.value>
 export type SetOutputVolumeMember = ReturnType<
   typeof setOutputVolumeMember.value
