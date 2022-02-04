@@ -38,9 +38,16 @@ export interface ClientDocs
   }): this
 
   /**
-   * TBD
+   * Replaces the token used by the client with a new one. You can use this
+   * method to replace the token when for example it is expiring, in order to
+   * keep the session alive.
    *
-   * @param token the new token to keep the session alive.
+   * The new token can contain different channels from the previous one. In that
+   * case, you will need to subscribe to the new channels if you want to receive
+   * messages for those. Channels that were in the previous token but are not in
+   * the new one will get unsubscribed automatically.
+   *
+   * @param token the new token.
    *
    * @example
    * ```js
@@ -225,9 +232,8 @@ export interface ClientDocs
 
 export interface ClientApiEventsDocs {
   /**
-   * FIXME: docs
    * The session is going to expire.
-   * Use the `updateToken` method to refresh
+   * Use the `updateToken` method to refresh your token.
    */
   'session.expiring': () => void
 
