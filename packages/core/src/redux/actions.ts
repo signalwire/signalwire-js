@@ -41,10 +41,9 @@ export const sessionDisconnectedAction = createAction<void, SessionEvents>(
 export const sessionReconnectingAction = createAction<void, SessionEvents>(
   'session.reconnecting'
 )
-export const sessionAuthErrorAction = createAction<void, SessionEvents>(
+export const sessionAuthErrorAction = createAction<Error, SessionEvents>(
   'session.auth_error'
 )
-
 const formatCustomSagaAction = (id: string, action: Action) => {
   return `${action.type}/${id}`
 }
