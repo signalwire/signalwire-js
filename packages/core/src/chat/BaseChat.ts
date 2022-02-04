@@ -8,6 +8,7 @@ import {
   InternalChatChannel,
   EventTransform,
   ExecuteParams,
+  actions,
 } from '..'
 import { ChatMessage } from './ChatMessage'
 import { ChatMember } from './ChatMember'
@@ -195,6 +196,26 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
       }
 
       return resolve(undefined)
+    })
+  }
+
+  updateToken(token: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      /**
+       * Use this.emitter to avoid the internal/namespaced event
+       * ie: `session.disconnected` transformed to `chat.session.disconnected`
+       */
+
+      // @ts-expect-error
+      this.emitter.once('session.auth_error', (error) => {
+        reject(error)
+      })
+      // @ts-expect-error
+      this.emitter.once('session.connected', () => {
+        resolve()
+      })
+
+      this.store.dispatch(actions.reauthAction({ token }))
     })
   }
 }
