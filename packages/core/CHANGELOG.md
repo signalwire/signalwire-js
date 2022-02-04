@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.0] - 2022-02-04
+
+### Added
+
+- [#400](https://github.com/signalwire/signalwire-js/pull/400) [`3f851e2a`](https://github.com/signalwire/signalwire-js/commit/3f851e2a83e5f62919ff689efb5adb2084654ad9) - Expose chat member events: `member.joined`, `member.updated` and `member.left`.
+
+- [#407](https://github.com/signalwire/signalwire-js/pull/407) [`7c688bb5`](https://github.com/signalwire/signalwire-js/commit/7c688bb575fa737c468e5cc330ef145dfe480812) - Add encode/decode protected methods to BaseSession to allow override.
+
+- [#415](https://github.com/signalwire/signalwire-js/pull/415) [`6d94624b`](https://github.com/signalwire/signalwire-js/commit/6d94624b943a653393e66ef4c1aeb72ac7ef2864) - Add transformParams to ExecuteExtendedOptions.
+
+- [#424](https://github.com/signalwire/signalwire-js/pull/424) [`743168df`](https://github.com/signalwire/signalwire-js/commit/743168df0abef04960e18bba70474f489e1d36ce) - Add support for `updateToken` to the Chat.Client to allow renew tokens for a chat session.
+
 ## [3.4.1] - 2022-01-11
 
 ### Changed
