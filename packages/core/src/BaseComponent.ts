@@ -577,7 +577,6 @@ export class BaseComponent<
           requestId,
           componentId: this.__uuid,
           method,
-          // FIXME:
           params: transformParams(params as ParamsType),
         })
       )

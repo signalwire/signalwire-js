@@ -15,7 +15,6 @@ type ChatMethodParams = Record<string, unknown>
 
 interface ChatMethodPropertyDescriptor<OutputType, ParamsType>
   extends PropertyDescriptor {
-  // FIXME: optional?
   value: (params: ParamsType) => Promise<OutputType>
 }
 type ChatMethodDescriptor<

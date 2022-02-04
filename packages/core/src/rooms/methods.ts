@@ -17,7 +17,6 @@ type RoomMethodParams = Record<string, unknown>
 
 interface RoomMethodPropertyDescriptor<OutputType, ParamsType>
   extends PropertyDescriptor {
-  // FIXME: optional?
   value: (params: ParamsType) => Promise<OutputType>
 }
 
@@ -44,14 +43,13 @@ const createRoomMethod = <
   method: RoomMethod,
   options: ExecuteExtendedOptions<InputType, OutputType, ParamsType> = {}
 ): RoomMethodDescriptor<OutputType, ParamsType> => ({
-  value: function (params): Promise<OutputType> {
+  value: function (params = {} as ParamsType): Promise<OutputType> {
     return this.execute(
       {
         method,
         params: {
           room_session_id: this.roomSessionId,
-          // FIXME:
-          ...(params || {}),
+          ...params,
         },
       },
       options
@@ -76,10 +74,7 @@ const createRoomMemberMethod = <
   method: RoomMethod,
   options: ExecuteExtendedOptions<InputType, OutputType, ParamsType> = {}
 ): RoomMethodDescriptor<OutputType, ParamsType> => ({
-  value: function (params) {
-    // FIXME:
-    const { memberId, ...rest } = params || {}
-
+  value: function ({ memberId, ...rest } = {} as ParamsType) {
     return this.execute(
       {
         method,
