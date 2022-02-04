@@ -731,7 +731,7 @@ export class BaseComponent<
               unsubscribe()
             } else if (authStatus === 'unauthorized') {
               const error = authError
-                ? new AuthError(authError.code, authError.error)
+                ? new AuthError(authError.code, authError.message)
                 : new Error('Unauthorized')
               reject(error)
               unsubscribe()

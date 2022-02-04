@@ -203,7 +203,7 @@ export type BaseConnectionState =
 
 export type SessionAuthError = {
   code: number
-  error: string
+  message: string
 }
 
 /**

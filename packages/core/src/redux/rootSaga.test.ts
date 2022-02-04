@@ -113,7 +113,7 @@ describe('sessionStatusWatcher', () => {
     const saga = testSaga(sessionStatusWatcher, options)
     saga.next().take(actions)
     const action = authErrorAction({
-      error: { code: 123, error: 'Protocol Error' },
+      error: { code: 123, message: 'Protocol Error' },
     })
     try {
       saga
