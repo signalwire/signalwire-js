@@ -33,6 +33,11 @@ window.connect = async ({ channels, host, token }) => {
     channelEl.appendChild(messageEl)
   }
 
+  chat.on('session.expiring', async () => {
+    console.debug('Fetch new token and keep the session up!')
+    // chat.updateToken('<fresh-token-here>')
+  })
+
   chat.on('message', (message) => {
     console.debug('Inbound Message', message)
 

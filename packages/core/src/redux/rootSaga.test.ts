@@ -21,8 +21,10 @@ import { sessionActions } from './features'
 import {
   sessionConnectedAction,
   sessionDisconnectedAction,
+  sessionExpiringAction,
   authSuccessAction,
   authErrorAction,
+  authExpiringAction,
   socketErrorAction,
   socketClosedAction,
   destroyAction,
@@ -77,6 +79,7 @@ describe('sessionStatusWatcher', () => {
   const actions = [
     authSuccessAction.type,
     authErrorAction.type,
+    authExpiringAction.type,
     socketErrorAction.type,
     socketClosedAction.type,
     reauthAction.type,
@@ -110,7 +113,7 @@ describe('sessionStatusWatcher', () => {
     const saga = testSaga(sessionStatusWatcher, options)
     saga.next().take(actions)
     const action = authErrorAction({
-      error: { code: 123, error: 'Protocol Error' },
+      error: { code: 123, message: 'Protocol Error' },
     })
     try {
       saga
@@ -134,6 +137,17 @@ describe('sessionStatusWatcher', () => {
 
     saga.next().take(actions)
     saga.next(socketClosedAction()).fork(socketClosedWorker, options)
+    // Saga waits again for actions due to the while loop
+    saga.next().take(actions)
+  })
+
+  it('should put sessionExpiringAction on authExpiringAction', () => {
+    const saga = testSaga(sessionStatusWatcher, options)
+
+    saga.next().take(actions)
+    saga
+      .next(authExpiringAction())
+      .put(options.pubSubChannel, sessionExpiringAction())
     // Saga waits again for actions due to the while loop
     saga.next().take(actions)
   })

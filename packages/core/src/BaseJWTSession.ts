@@ -7,6 +7,7 @@ import {
 } from './RPCMessages'
 import { SessionOptions } from './utils/interfaces'
 import { BaseSession } from './BaseSession'
+import { authExpiringAction } from './redux/actions'
 
 export class BaseJWTSession extends BaseSession {
   /**
@@ -30,7 +31,14 @@ export class BaseJWTSession extends BaseSession {
   }
 
   get expiresAt() {
-    return this?._rpcConnectResult?.authorization?.expires_at ?? 0
+    const expiresAt = this?._rpcConnectResult?.authorization?.expires_at ?? 0
+    if (typeof expiresAt === 'string') {
+      const parsed = Date.parse(expiresAt)
+      if (!isNaN(parsed)) {
+        return Math.floor(parsed / 1000)
+      }
+    }
+    return expiresAt
   }
 
   get expiresIn() {
@@ -93,6 +101,11 @@ export class BaseJWTSession extends BaseSession {
     }
   }
 
+  protected override _onSocketClose(event: CloseEvent) {
+    clearTimeout(this._checkTokenExpirationTimer)
+    super._onSocketClose(event)
+  }
+
   /**
    * Set a timer to dispatch a notification when the JWT is going to expire.
    * @return void
@@ -102,6 +115,8 @@ export class BaseJWTSession extends BaseSession {
       return
     }
     if (this.expiresIn <= this._refreshTokenNotificationDiff) {
+      this.dispatch(authExpiringAction())
+
       if (this.options._onRefreshToken) {
         this.options._onRefreshToken()
       } else {

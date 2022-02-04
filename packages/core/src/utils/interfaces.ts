@@ -177,6 +177,7 @@ export type SessionStatus =
   | 'connected'
   | 'disconnected'
   | 'auth_error'
+  | 'expiring'
 
 export type SessionEvents = `session.${SessionStatus}`
 
@@ -202,7 +203,7 @@ export type BaseConnectionState =
 
 export type SessionAuthError = {
   code: number
-  error: string
+  message: string
 }
 
 /**

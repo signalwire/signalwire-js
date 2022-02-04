@@ -8,6 +8,8 @@ import {
   InternalChatChannel,
   EventTransform,
   ExecuteParams,
+  actions,
+  SessionEvents,
 } from '..'
 import { ChatMessage } from './ChatMessage'
 import { ChatMember } from './ChatMember'
@@ -33,7 +35,8 @@ export type BaseChatApiEventsHandlerMapping = Record<
   ChatMessageEventName,
   (message: ChatMessage) => void
 > &
-  Record<ChatMemberEventNames, (member: ChatMember) => void>
+  Record<ChatMemberEventNames, (member: ChatMember) => void> &
+  Record<Extract<SessionEvents, 'session.expiring'>, () => void>
 
 /**
  * @privateRemarks
@@ -195,6 +198,21 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
       }
 
       return resolve(undefined)
+    })
+  }
+
+  updateToken(token: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // @ts-expect-error
+      this.once('session.auth_error', (error) => {
+        reject(error)
+      })
+      // @ts-expect-error
+      this.once('session.connected', () => {
+        resolve()
+      })
+
+      this.store.dispatch(actions.reauthAction({ token }))
     })
   }
 }

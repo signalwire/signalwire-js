@@ -26,12 +26,14 @@ import {
   sessionDisconnectedAction,
   sessionConnectedAction,
   sessionAuthErrorAction,
+  sessionExpiringAction,
   reauthAction,
 } from './actions'
 import { sessionActions } from './features'
 import {
   authErrorAction,
   authSuccessAction,
+  authExpiringAction,
   socketClosedAction,
   socketErrorAction,
 } from './actions'
@@ -130,25 +132,29 @@ export function* socketClosedWorker({
     yield delay(Math.random() * 2000)
     yield call(session.connect)
   } else {
-    sessionChannel.close()
     yield put(pubSubChannel, sessionDisconnectedAction())
+    sessionChannel.close()
   }
 }
 
 export function* reauthenticateWorker({
   session,
   token,
+  pubSubChannel,
 }: {
   session: BaseSession
   token: string
+  pubSubChannel: PubSubChannel
 }) {
   try {
     if (session.reauthenticate) {
       session.token = token
       yield call(session.reauthenticate)
+      yield put(pubSubChannel, sessionConnectedAction())
     }
   } catch (error) {
     getLogger().error('Reauthenticate Error', error)
+    yield put(authErrorAction({ error }))
   }
 }
 
@@ -157,6 +163,7 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
     const action = yield take([
       authSuccessAction.type,
       authErrorAction.type,
+      authExpiringAction.type,
       socketErrorAction.type,
       socketClosedAction.type,
       reauthAction.type,
@@ -174,6 +181,10 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
         })
         break
       }
+      case authExpiringAction.type: {
+        yield put(options.pubSubChannel, sessionExpiringAction())
+        break
+      }
       case socketErrorAction.type:
         // TODO: define if we want to emit external events here.
         // yield put(pubSubChannel, {
@@ -188,6 +199,7 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
         yield fork(reauthenticateWorker, {
           session: options.session,
           token: action.payload.token,
+          pubSubChannel: options.pubSubChannel,
         })
         break
       }
@@ -237,7 +249,7 @@ export function* sessionAuthErrorSaga(options: SessionAuthErrorOptions) {
   const { pubSubChannel, userOptions, action } = options
   const { error: authError } = action.payload
   const error = authError
-    ? new AuthError(authError.code, authError.error)
+    ? new AuthError(authError.code, authError.message)
     : new Error('Unauthorized')
 
   const pubSubTask: Task = yield fork(pubSubSaga, {
@@ -245,8 +257,11 @@ export function* sessionAuthErrorSaga(options: SessionAuthErrorOptions) {
     emitter: userOptions.emitter!,
   })
 
-  yield put(pubSubChannel, sessionAuthErrorAction())
-
+  yield put(pubSubChannel, sessionAuthErrorAction(error))
+  /**
+   * Wait for `session.disconnected` to cancel all the tasks
+   */
+  yield take(sessionDisconnectedAction)
   pubSubTask.cancel()
 
   throw error
