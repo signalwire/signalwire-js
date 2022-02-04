@@ -55,6 +55,7 @@ interface ChatGetMembersParams {
   channel: string
 }
 export interface ChatContract {
+  updateToken(token: string): Promise<void>
   subscribe(channels: ChatChannel): Promise<any>
   unsubscribe(channels: ChatChannel): Promise<any>
   publish(params: ChatPublishParams): Promise<any>
@@ -67,7 +68,7 @@ export interface ChatContract {
 export type ChatEntity = OnlyStateProperties<ChatContract>
 export type ChatMethods = Omit<
   OnlyFunctionProperties<ChatContract>,
-  'subscribe' | 'unsubscribe'
+  'subscribe' | 'unsubscribe' | 'updateToken'
 >
 
 export interface ChatMessageContract {

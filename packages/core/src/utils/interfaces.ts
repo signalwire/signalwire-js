@@ -177,6 +177,7 @@ export type SessionStatus =
   | 'connected'
   | 'disconnected'
   | 'auth_error'
+  | 'expiring'
 
 export type SessionEvents = `session.${SessionStatus}`
 

@@ -9,6 +9,7 @@ import {
   EventTransform,
   ExecuteParams,
   actions,
+  SessionEvents,
 } from '..'
 import { ChatMessage } from './ChatMessage'
 import { ChatMember } from './ChatMember'
@@ -34,7 +35,8 @@ export type BaseChatApiEventsHandlerMapping = Record<
   ChatMessageEventName,
   (message: ChatMessage) => void
 > &
-  Record<ChatMemberEventNames, (member: ChatMember) => void>
+  Record<ChatMemberEventNames, (member: ChatMember) => void> &
+  Record<Extract<SessionEvents, 'session.expiring'>, () => void>
 
 /**
  * @privateRemarks
