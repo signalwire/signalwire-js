@@ -127,8 +127,20 @@ export const setPositions = createRoomMethod<BaseRPCResult, void>(
   'video.set_position',
   {
     transformResolve: baseCodeTransform,
+    transformParams: (params) => {
+      if (params.roles) {
+        const { roles, ...restParams } = params
+        return {
+          ...restParams,
+          positions: params.roles,
+        }
+      }
+
+      return params
+    },
   }
 )
+export const setRoles = setPositions
 export const hideVideoMuted = createRoomMethod<BaseRPCResult, void>(
   'video.hide_video_muted',
   {
@@ -348,8 +360,20 @@ export const setMemberPosition = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.set_position',
   {
     transformResolve: baseCodeTransform,
+    transformParams: (params) => {
+      if (params.role) {
+        const { role, ...restParams } = params
+        return {
+          ...restParams,
+          position: role,
+        }
+      }
+
+      return params
+    },
   }
 )
+export const setMemberRole = setMemberPosition
 export const removeMember: RoomMethodDescriptor<
   void,
   Required<RoomMemberMethodParams>
@@ -383,7 +407,7 @@ export type UndeafMember = ReturnType<typeof undeafMember.value>
 export type SetDeaf = ReturnType<typeof setDeaf.value>
 export type SetLayout = ReturnType<typeof setLayout.value>
 export type SetPositions = ReturnType<typeof setPositions.value>
-export type SetRoles = ReturnType<typeof setPositions.value>
+export type SetRoles = ReturnType<typeof setRoles.value>
 export type SetInputVolumeMember = ReturnType<typeof setInputVolumeMember.value>
 export type SetOutputVolumeMember = ReturnType<
   typeof setOutputVolumeMember.value
@@ -392,6 +416,6 @@ export type SetInputSensitivityMember = ReturnType<
   typeof setInputSensitivityMember.value
 >
 export type SetMemberPosition = ReturnType<typeof setMemberPosition.value>
-export type SetMemberRole = ReturnType<typeof setMemberPosition.value>
+export type SetMemberRole = ReturnType<typeof setMemberRole.value>
 export type RemoveMember = ReturnType<typeof removeMember.value>
 // End Room Member Methods

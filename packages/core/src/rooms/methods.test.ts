@@ -3,6 +3,7 @@ import { BaseComponent } from '../BaseComponent'
 import { EventEmitter } from '../utils/EventEmitter'
 import { connect, SDKStore } from '../redux'
 import * as CustomMethods from './methods'
+import * as ReduxActions from '../redux/actions'
 
 describe('Room Custom Methods', () => {
   let store: SDKStore
@@ -111,8 +112,58 @@ describe('Room Custom Methods', () => {
         },
         {
           transformResolve: expect.anything(),
+          transformParams: expect.anything(),
         }
       )
+    })
+  })
+
+  describe('setRoles (setPositions alias)', () => {
+    let executeActionMock: jest.SpyInstance;
+
+    beforeEach(() => {
+      executeActionMock = jest.spyOn(ReduxActions, 'executeAction')
+    })
+
+    afterEach(() => {
+      executeActionMock.mockRestore()
+    })
+
+    it('should execute with proper params', async () => {
+      const localInstance: any = connect({
+        store,
+        componentListeners: {
+          errors: 'onError',
+          responses: 'onSuccess',
+        },
+        Component: BaseComponent,
+      })({
+        emitter: new EventEmitter(),
+      })
+      localInstance._attachListeners(localInstance.__uuid)
+      localInstance.roomSessionId = 'mocked'
+
+      // const executeActionMock = jest.spyOn(ReduxActions, 'executeAction')
+
+      localInstance.setRoles({
+        roles: {
+          'cebecb3a-b9e4-499c-a707-0af96c110a04': 'standard',
+          'aaaaaaa-b9e4-499c-a707-0af96c110a04': 'reserved-1',
+        },
+      })
+
+      expect(executeActionMock).toHaveBeenCalledWith({
+        requestId: expect.anything(),
+        componentId: expect.anything(),
+        method: 'video.set_position',
+        params: {
+          positions: {
+            'cebecb3a-b9e4-499c-a707-0af96c110a04': 'standard',
+            'aaaaaaa-b9e4-499c-a707-0af96c110a04': 'reserved-1',
+          },
+          room_session_id: 'mocked',
+        },
+      })
     })
   })
 
@@ -137,8 +188,52 @@ describe('Room Custom Methods', () => {
         },
         {
           transformResolve: expect.anything(),
+          transformParams: expect.anything(),
         }
       )
+    })
+  })
+
+  describe('setMemberRole (setMemberPosition alias)', () => {
+    let executeActionMock: jest.SpyInstance;
+
+    beforeEach(() => {
+      executeActionMock = jest.spyOn(ReduxActions, 'executeAction')
+    })
+
+    afterEach(() => {
+      executeActionMock.mockRestore()
+    })
+
+    it('should execute with proper params', async () => {
+      const localInstance: any = connect({
+        store,
+        componentListeners: {
+          errors: 'onError',
+          responses: 'onSuccess',
+        },
+        Component: BaseComponent,
+      })({
+        emitter: new EventEmitter(),
+      })
+      localInstance._attachListeners(localInstance.__uuid)
+      localInstance.roomSessionId = 'mocked'
+
+      localInstance.setMemberRole({
+        memberId: 'member-id',
+        role: 'standard',
+      })
+
+      expect(executeActionMock).toHaveBeenCalledWith({
+        requestId: expect.anything(),
+        componentId: expect.anything(),
+        method: 'video.member.set_position',
+        params: {
+          member_id: 'member-id',
+          position: 'standard',
+          room_session_id: 'mocked',
+        },
+      })
     })
   })
 
