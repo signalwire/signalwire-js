@@ -128,6 +128,10 @@ export const setPositions = createRoomMethod<BaseRPCResult, void>(
   {
     transformResolve: baseCodeTransform,
     transformParams: (params) => {
+      /**
+       * This method has an alias (setRoles) which uses a
+       * different set of params
+       */
       if (params.roles) {
         const { roles, ...restParams } = params
         return {
@@ -361,6 +365,10 @@ export const setMemberPosition = createRoomMemberMethod<BaseRPCResult, void>(
   {
     transformResolve: baseCodeTransform,
     transformParams: (params) => {
+      /**
+       * This method has an alias (setMemberRole) which uses a
+       * different set of params
+       */
       if (params.role) {
         const { role, ...restParams } = params
         return {
