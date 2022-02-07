@@ -143,8 +143,6 @@ describe('Room Custom Methods', () => {
       localInstance._attachListeners(localInstance.__uuid)
       localInstance.roomSessionId = 'mocked'
 
-      // const executeActionMock = jest.spyOn(ReduxActions, 'executeAction')
-
       localInstance.setRoles({
         roles: {
           'cebecb3a-b9e4-499c-a707-0af96c110a04': 'standard',
