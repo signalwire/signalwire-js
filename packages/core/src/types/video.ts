@@ -42,6 +42,8 @@ export type VideoPosition =
   | `standard-${number}`
   | 'off-canvas'
 
+export type VideoRole = VideoPosition
+
 export type VideoPositions = Record<string, VideoPosition>
 
 /**
