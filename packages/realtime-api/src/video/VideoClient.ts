@@ -4,15 +4,16 @@ import { getLogger } from '@signalwire/core'
 import { getProxiedClient, clientConnect } from '../client/index'
 import { getCredentials, setupInternals } from '../utils/internals'
 import { createVideoObject, Video } from './Video'
+import { VideoClientDocs } from './VideoClient.docs'
 
 export interface VideoClientApiEvents extends RealTimeVideoApiEvents {}
 
 export interface VideoApiFullState extends VideoClient {}
-interface VideoClientMain extends Video {}
+interface VideoClientMain extends Video {
+  new (opts: VideoClientOptions): this
+}
 
-interface VideoClientDocs extends VideoClientMain {}
-
-export interface VideoClient
+interface VideoClient
   extends AssertSameType<VideoClientMain, VideoClientDocs> {}
 
 export interface VideoClientOptions
@@ -20,6 +21,7 @@ export interface VideoClientOptions
   token?: string
 }
 
+/** @ignore */
 const VideoClient = function (options: VideoClientOptions) {
   const credentials = getCredentials({
     token: options.token,
@@ -70,7 +72,7 @@ const VideoClient = function (options: VideoClientOptions) {
     }
   })
 
-  return new Proxy<VideoClient>(video, {
+  return new Proxy<Omit<VideoClient, 'new'>>(video, {
     get(
       target: VideoClient,
       prop: keyof VideoClient | 'session',

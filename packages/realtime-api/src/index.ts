@@ -2,34 +2,30 @@
  * You can use the realtime SDK to listen for and react to events from
  * SignalWire's RealTime APIs.
  *
- * To get started, create a realtime client with {@link createClient} and listen
- * for events. For example:
+ * To get started, create a realtime client, for example with
+ * {@link Video.Client} and listen for events. For example:
  *
  * ```javascript
- * const { createClient } = require('@signalwire/realtime-api')
+ * import { Video } from '@signalwire/realtime-api'
  *
- * createClient({
+ * const video = new Video.Client({
  *   project: '<project-id>',
  *   token: '<project-token>'
- * }).then((client) => {
- *   client.video.on('room.started', async (roomSession) => {
- *     console.log("Room started")
+ * })
  *
- *     roomSession.on('member.joined', async (member) => {
- *       console.log(member)
- *     })
+ * video.on('room.started', async (roomSession) => {
+ *   console.log("Room started")
  *
- *     await roomSession.subscribe()
- *   });
+ *   roomSession.on('member.joined', async (member) => {
+ *     console.log(member)
+ *   })
  *
- *   client.connect()
+ *   await roomSession.subscribe()
  * });
  * ```
  *
  * @module
  */
-
-export * from './createClient'
 
 /**
  * You can use the Video namespace to subscribe to video-related events.
@@ -37,3 +33,5 @@ export * from './createClient'
  * See {@link Video.Video} for examples.
  */
 export * as Video from './video/Video'
+
+export * from './createClient'

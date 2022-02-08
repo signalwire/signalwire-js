@@ -26,9 +26,8 @@ type TransformEvent = Extract<
 >
 
 /**
- * Access the Video API Consumer. You can use an instance of the Video class
- * (you can obtain one via {@link createClient}) to subscribe to the Video
- * events.
+ * Access the Video API Consumer. You can use an instance of the Video class to
+ * subscribe to Video events.
  *
  * ### Example
  *
@@ -36,11 +35,10 @@ type TransformEvent = Extract<
  * it:
  *
  * ```javascript
- * // Obtain a client:
- * const client = await createClient({ project, token })
+ * const video = new Video.Client({ project, token })
  *
  * // Listen for events:
- * client.video.on('room.started', async (roomSession) => {
+ * video.on('room.started', async (roomSession) => {
  *   console.log('Room has started:', roomSession.name)
  *
  *   roomSession.on('member.joined', async (member) => {
@@ -49,9 +47,6 @@ type TransformEvent = Extract<
  *
  *   await roomSession.subscribe()
  * })
- *
- * // Connect the client:
- * await client.connect()
  * ```
  *
  * ### Events
@@ -62,11 +57,10 @@ type TransformEvent = Extract<
  * Emitted when a room session is started. Your event handler receives an object
  * which is an instance of {@link RoomSession}. Example:
  * ```typescript
- * const client = await createClient(...)
- * client.video.on('room.started', async (roomSession) => {
+ * const video = new Video.Client(...)
+ * video.on('room.started', async (roomSession) => {
  *     console.log(roomSession.name)
  * })
- * await client.connect()
  * ```
  *
  *  - **room.ended**:
@@ -74,11 +68,10 @@ type TransformEvent = Extract<
  * Emitted when a room session ends. Your event handler receives an object which
  * is an instance of {@link RoomSession}.
  * ```typescript
- * const client = await createClient(...)
- * client.video.on('room.ended', async (roomSession) => {
+ * const video = new Video.Client(...)
+ * video.on('room.ended', async (roomSession) => {
  *     console.log(roomSession.name)
  * })
- * await client.connect()
  * ```
  */
 export interface Video extends ConsumerContract<RealTimeVideoApiEvents> {

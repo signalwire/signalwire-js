@@ -29,9 +29,9 @@ export type { RealtimeClient, ClientEvents }
  * })
  * ```
  *
- * @deprecated It's no longer needed to create the client
+ * @deprecated You no longer need to create the client
  * manually. You can use the product constructors, like
- * Video.Client, to access the same functionality.
+ * {@link Video.Client}, to access the same functionality.
  */
 export const createClient: (userOptions: {
   project?: string
