@@ -8,7 +8,7 @@ export interface RoomSessionDocs<T>
     RoomControlMethodsInterfaceDocs,
     RoomLayoutMethodsInterface,
     RoomSessionConstructorDocs<T>,
-    Pick<BaseRoomSession<T>, 'on' | 'off' | 'once'> {
+    Pick<BaseRoomSession<T>, 'on' | 'off' | 'once' | 'removeAllListeners'> {
   /** @internal */
   stopOutboundAudio(): void
   /** @internal */
