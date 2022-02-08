@@ -51,5 +51,11 @@ export const proxyFactory = ({
     },
   })
 
+  /**
+   * This is just for helping users have a better experience
+   * when using console.log to debug the Proxy.
+   */
+  Object.assign(proxiedObj, transformedPayload)
+
   return proxiedObj
 }
