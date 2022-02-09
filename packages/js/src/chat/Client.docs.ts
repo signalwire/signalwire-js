@@ -110,7 +110,7 @@ export interface ClientDocs
    * ```js
    * await chatClient.publish({
    *   channel: 'my-channel',
-   *   message: 'Hello, world.'
+   *   content: 'Hello, world.'
    * })
    * ```
    *
@@ -118,7 +118,7 @@ export interface ClientDocs
    * ```js
    * await chatClient.publish({
    *   channel: 'my-channel',
-   *   message: {
+   *   content: {
    *     field_one: 'value_one',
    *     field_two: 'value_two',
    *   }
