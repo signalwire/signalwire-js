@@ -17,14 +17,21 @@ const proxyToString = <T>({
 }
 
 const getAllMethods = (objTarget: any): Record<string, Function> => {
-  let methods = new Set<string>()
+  let methods: Record<string, Function> = {}
   let obj = objTarget
   let shouldContinue = true
   while (shouldContinue) {
-    let keys = Reflect.ownKeys(obj)
-    keys.forEach(
-      (k) => typeof objTarget[k] === 'function' && methods.add(k as string)
-    )
+    Reflect.ownKeys(obj).forEach((k) => {
+      if (
+        typeof objTarget[k] === 'function' &&
+        typeof k === 'string' &&
+        // If the method was already defined it means we can
+        // safely skip since it was overwritten
+        !(k in methods)
+      ) {
+        methods[k] = objTarget[k]
+      }
+    })
 
     // TODO: check if there's another way to "stop" at
     // BaseComponent or BaseSession
@@ -35,10 +42,7 @@ const getAllMethods = (objTarget: any): Record<string, Function> => {
     }
   }
 
-  return Array.from(methods).reduce((reducer, method) => {
-    reducer[method] = objTarget[method]
-    return reducer
-  }, {} as Record<string, Function>)
+  return methods
 }
 
 export const serializeableProxy = ({
@@ -61,6 +65,8 @@ export const serializeableProxy = ({
         value,
         enumerable: true,
         configurable: true,
+        // We mostly need this for our tests where we're
+        // overwritting things like `execute`.
         writable: true,
       }
 
