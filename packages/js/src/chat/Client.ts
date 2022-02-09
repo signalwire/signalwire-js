@@ -43,7 +43,7 @@ interface ClientMain
  *
  * await chatClient.publish({
  *   channel: 'mychannel1',
- *   message: 'hello world'
+ *   content: 'hello world'
  * })
  * ```
  *
