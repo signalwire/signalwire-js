@@ -26,7 +26,7 @@ const getAllMethods = (objTarget: any): Record<string, Function> => {
         typeof objTarget[k] === 'function' &&
         typeof k === 'string' &&
         // If the method was already defined it means we can
-        // safely skip since it was overwritten
+        // safely skip it since it was overwritten
         !(k in methods)
       ) {
         methods[k] = objTarget[k]
