@@ -16,8 +16,6 @@ const proxyToString = <T>({
     : property
 }
 
-const blackListedMethods = ['_destroyer']
-
 const getAllMethods = (objTarget: any): Record<string, Function> => {
   let methods: Record<string, Function> = {}
   let obj = objTarget
@@ -27,7 +25,6 @@ const getAllMethods = (objTarget: any): Record<string, Function> => {
       if (
         typeof objTarget[k] === 'function' &&
         typeof k === 'string' &&
-        !blackListedMethods.includes(k) &&
         // If the method was already defined it means we can
         // safely skip since it was overwritten
         !(k in methods)
