@@ -37,7 +37,12 @@ import {
 } from './redux/actions'
 import { sessionActions } from './redux/features/session/sessionSlice'
 
+export const SW_SYMBOL = Symbol('BaseSession')
+
 export class BaseSession {
+  /** @internal */
+  public __sw_symbol = SW_SYMBOL
+
   public uuid = uuid()
   public WebSocketConstructor: NodeSocketAdapter | WebSocketAdapter
   public agent: string
