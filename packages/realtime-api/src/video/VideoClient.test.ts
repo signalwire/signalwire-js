@@ -71,6 +71,7 @@ describe('VideoClient', () => {
           }
         })
       })
+
       it('should automatically connect the underlying client', async () => {
         const video = new Client({
           // @ts-expect-error
@@ -123,6 +124,8 @@ describe('VideoClient', () => {
         await new Promise((r) => setTimeout(r, 1000))
 
         expect(mockedVideo.subscribe).toHaveBeenCalledTimes(1)
+
+        video._session.disconnect()
       })
     })
 
@@ -173,6 +176,8 @@ describe('VideoClient', () => {
             'Client subscription failed.'
           )
         }
+
+        video._session.disconnect()
       })
     })
 
@@ -198,6 +203,8 @@ describe('VideoClient', () => {
         message:
           'Authentication service failed with status ProtocolError, 401 Unauthorized: {}',
       })
+
+      video._session.disconnect()
     })
   })
 })

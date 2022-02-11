@@ -7,7 +7,7 @@ describe('Member Object', () => {
   let member: RoomSessionMember
   const roomSessionId = '3b36a747-e33a-409d-bbb9-1ddffc543b6d'
   const memberId = '483c60ba-b776-4051-834a-5575c4b7cffe'
-  const { store, session, emitter } = configureFullStack()
+  const { store, session, emitter, destroy } = configureFullStack()
 
   beforeEach(() => {
     // remove all listeners before each run
@@ -46,6 +46,10 @@ describe('Member Object', () => {
       )
       session.dispatch(actions.socketMessageAction(roomSubscribedEvent))
     })
+  })
+
+  afterAll(() => {
+    destroy()
   })
 
   const expectExecute = (payload: any) => {
