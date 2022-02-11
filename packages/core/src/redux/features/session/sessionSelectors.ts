@@ -15,3 +15,7 @@ export const getAuthStatus = ({ session }: SDKState) => {
 export const getAuthError = ({ session }: SDKState) => {
   return session.authError
 }
+
+export const getProtocol = ({ session }: SDKState) => {
+  return session.protocol
+}
