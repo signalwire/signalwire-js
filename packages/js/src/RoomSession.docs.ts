@@ -116,13 +116,13 @@ export interface RoomSessionDocs<T>
    *
    * @example Sharing the screen together with the associated audio:
    * ```typescript
-   * await roomSession.startScreenShare({audio: true, video: true})
+   * await roomSession.startScreenShare({ audio: true, video: true })
    * ```
    */
   startScreenShare(opts: {
     /** Whether the screen share object should automatically join the room */
     autoJoin?: boolean
-    /** Audio constraints to use when joining the room. Default: `true`. */
+    /** Audio constraints to use when joining the room. Default: `false`. */
     audio?: MediaStreamConstraints['audio']
     /** Video constraints to use when joining the room. Default: `true`. */
     video?: MediaStreamConstraints['video']
