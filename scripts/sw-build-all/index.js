@@ -66,11 +66,18 @@ export async function cli(args) {
           fs.readFileSync(path.resolve(pathname, 'package.json'), 'utf-8')
         )
 
-        const deps = Object.keys(pkgJson.dependencies || {}).filter((key) =>
-          key.includes('@signalwire')
-        )
-
         const pkgName = parsePackageName(pathname)
+
+        const deps = Object.keys(pkgJson.dependencies || {}).filter((key) => {
+          /**
+           * FIXME: `realtime-api` depends on the old `@signalwire/node` on NPM
+           * so we need to skip it to avoid a catch-22 in buildTree
+           */
+          if (pkgName === 'realtime-api' && key === '@signalwire/node') {
+            return false
+          }
+          return key.includes('@signalwire')
+        })
 
         if (deps.length === 0) {
           packagesWithNoDeps.add(pkgName)
@@ -92,6 +99,7 @@ export async function cli(args) {
 
   console.log('🌲 Constructing the build tree...')
   const pkgDeps = scan(path.join(__dirname, '../../packages'))
+  console.log('pkgDeps', pkgDeps)
   const tree = buildTree(
     pkgDeps,
     new Map([[0, Array.from(packagesWithNoDeps)]])
