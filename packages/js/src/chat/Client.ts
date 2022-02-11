@@ -58,12 +58,6 @@ export interface Client extends AssertSameType<ClientMain, ClientDocs> {}
 export interface ClientOptions extends UserOptions {}
 
 export const Client = function (chatOptions: ClientOptions) {
-  if ('production' === process.env.NODE_ENV) {
-    getLogger().warn(
-      '`Chat` is still under development and may change in the future without prior notice.'
-    )
-  }
-
   const client = createClient<Client>(chatOptions)
   const subscribe: Client['subscribe'] = async (channels) => {
     await client.connect()
