@@ -7,7 +7,7 @@ describe('RoomSession Object', () => {
   let roomSession: ReturnType<typeof createRoomSessionObject>
   const roomSessionId = 'roomSessionId'
 
-  const { store, session, emitter } = configureFullStack()
+  const { store, session, emitter, destroy } = configureFullStack()
 
   beforeEach(() => {
     // remove all listeners before each run
@@ -40,6 +40,10 @@ describe('RoomSession Object', () => {
       )
       session.dispatch(actions.socketMessageAction(firstRoom))
     })
+  })
+
+  afterAll(() => {
+    destroy()
   })
 
   it('should have all the custom methods defined', () => {

@@ -5,7 +5,7 @@ import { createVideoObject, Video } from './Video'
 describe('Video Object', () => {
   let video: Video
 
-  const { store, session, emitter } = configureFullStack()
+  const { store, session, emitter, destroy } = configureFullStack()
   beforeEach(() => {
     // remove all listeners before each run
     emitter.removeAllListeners()
@@ -17,6 +17,10 @@ describe('Video Object', () => {
     })
     // @ts-expect-error
     video.execute = jest.fn()
+  })
+
+  afterAll(() => {
+    destroy()
   })
 
   it('should not invoke execute without event listeners', async () => {
