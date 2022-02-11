@@ -10,6 +10,7 @@ import { getClient } from './getClient'
 export const getProxiedClient = (userOptions: {
   project: string
   token: string
+  contexts?: string[]
   logLevel?: UserOptions['logLevel']
   store: ReturnType<typeof configureStore>
   emitter: EventEmitter
