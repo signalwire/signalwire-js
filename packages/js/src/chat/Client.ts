@@ -5,15 +5,12 @@ import type {
   UserOptions,
   Chat as ChatNamespace,
 } from '@signalwire/core'
-import { getLogger } from '@signalwire/core'
 import { createClient } from '../createClient'
-import {
-  ClientApiEventsDocs,
-  ClientDocs,
-} from './Client.docs'
+import { ClientApiEventsDocs, ClientDocs } from './Client.docs'
 
 interface ClientApiEventsMain extends ChatNamespace.BaseChatApiEvents {}
-export interface ClientApiEvents extends AssertSameType<ClientApiEventsMain, ClientApiEventsDocs> {}
+export interface ClientApiEvents
+  extends AssertSameType<ClientApiEventsMain, ClientApiEventsDocs> {}
 
 /** @ignore */
 export interface ClientFullState extends Client {}
