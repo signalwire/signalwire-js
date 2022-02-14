@@ -812,7 +812,7 @@ const createAnalyzer = (audioContext: AudioContext) => {
   return analyser
 }
 
-const MAX_VOLUME = 10
+const MAX_VOLUME = 100
 
 interface MicrophoneAnalyzerEvents {
   volumeChanged: (volume: number) => void
@@ -851,15 +851,15 @@ export const createMicrophoneAnalyzer = async (
       const dataArray = new Uint8Array(analyser.frequencyBinCount)
       analyser.getByteFrequencyData(dataArray)
       /**
-       * dataArray contains the values of the volume gathered
-       * within a single requestAnimationFrame With reduce,
-       * divide by 200 and Math.floor we translate the array
-       * values into a 0-10 scale to draw the green bars for
-       * the voice/volume energy.
+       * dataArray contains the values of the volume
+       * gathered within a single requestAnimationFrame With
+       * reduce and divide by 20 we translate the array
+       * values into a 0-100 scale to draw the green bars
+       * for the voice/volume energy.
        */
-      const latestVol = Math.floor(
-        dataArray.reduce((final, value) => final + value, 0) / 200
-      )
+      const latestVol =
+        dataArray.reduce((final, value) => final + value, 0) / 20
+
       if (volume !== latestVol) {
         volume = latestVol
         emitter.emit('volumeChanged', Math.min(volume, MAX_VOLUME))

@@ -290,7 +290,7 @@ window.connect = () => {
       const el = document.getElementById('mic-meter')
       createMicrophoneAnalyzer(roomSession.localStream).then((mic) => {
         mic.on('volumeChanged', (vol) => {
-          meter(el, vol * 10)
+          meter(el, vol)
         })
       })
     })
