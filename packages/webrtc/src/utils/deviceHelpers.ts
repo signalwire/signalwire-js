@@ -812,6 +812,8 @@ const createAnalyzer = (audioContext: AudioContext) => {
   return analyser
 }
 
+const MAX_VOLUME = 10
+
 interface MicrophoneAnalyzerEvents {
   volumeChanged: (volume: number) => void
 }
@@ -836,12 +838,19 @@ export const createMicrophoneAnalyzer = async (
   const startMetering = () => {
     const dataArray = new Uint8Array(analyser.frequencyBinCount)
     analyser.getByteFrequencyData(dataArray)
+    /**
+     * dataArray contains the values of the volume gathered
+     * within a single requestAnimationFrame With reduce,
+     * divide by 200 and Math.floor we translate the array
+     * values into a 0-10 scale to draw the green bars for
+     * the voice/volume energy.
+     */
     const latestVol = Math.floor(
       dataArray.reduce((final, value) => final + value, 0) / 200
     )
     if (volume !== latestVol) {
       volume = latestVol
-      emitter.emit('volumeChanged', volume)
+      emitter.emit('volumeChanged', Math.min(volume, MAX_VOLUME))
     }
     rafId = requestAnimationFrame(startMetering)
   }
