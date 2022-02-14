@@ -48,6 +48,7 @@ export async function cli(args) {
       return acc
     }
   }
+
   const scan = (pathname, level = 0, acc = new Map()) => {
     if (level > TARGET_DEPTH_LEVEL) {
       return
@@ -97,16 +98,17 @@ export async function cli(args) {
   )
   console.log('🛠  Build order:', tree)
 
-  for await (const packages of tree.values()) {
-    const n = packages.map((pkg) => {
-      return `npm run build -w=@signalwire/${pkg}`
-    })
+  try {
+    for await (const packages of tree.values()) {
+      const n = packages.map((pkg) => {
+        return `npm run build -w=@signalwire/${pkg}`
+      })
 
-    try {
       console.log('🏃‍♂️ Running ->', n)
       await concurrently(n)
-    } catch (e) {
-      console.error('something went wrong')
     }
+  } catch (e) {
+    console.error('Build error', e)
+    process.exit(1)
   }
 }
