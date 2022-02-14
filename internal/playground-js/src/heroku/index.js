@@ -6,9 +6,11 @@ import {
   getSpeakerDevices,
   supportsMediaOutput,
   createDeviceWatcher,
+  createMicrophoneAnalyzer,
 } from '@signalwire/webrtc'
 
 let roomObj = null
+let micAnalyzer = null
 
 const inCallElements = [
   roomControls,
@@ -145,6 +147,27 @@ function initDeviceOptions() {
   setVideoDevicesOptions()
 }
 
+function meter(el, val) {
+  const canvasWidth = el.width
+  const canvasHeight = el.height
+  const ctx = el.getContext('2d')
+  ctx.clearRect(0, 0, canvasWidth, canvasHeight)
+
+  // Border
+  ctx.beginPath()
+  ctx.rect(0, 0, canvasWidth, canvasHeight)
+  ctx.strokeStyle = '#0f5e39'
+  ctx.stroke()
+
+  // Meter fill
+  ctx.beginPath()
+  ctx.rect(0, canvasHeight, canvasWidth, -val)
+  ctx.stroke()
+  ctx.fillStyle = '#198754'
+  ctx.fill()
+  ctx.stroke()
+}
+
 /**
  * Connect with Relay creating a client and attaching all the event handler.
  */
@@ -263,6 +286,13 @@ window.connect = () => {
           initDeviceOptions()
         })
       })
+
+      const el = document.getElementById('mic-meter')
+      createMicrophoneAnalyzer(roomSession.localStream).then((mic) => {
+        mic.on('volumeChanged', (vol) => {
+          meter(el, vol * 10)
+        })
+      })
     })
     .catch((error) => {
       console.error('Join error?', error)
@@ -277,6 +307,9 @@ window.connect = () => {
 window.hangup = () => {
   if (roomObj) {
     roomObj.hangup()
+  }
+  if (micAnalyzer) {
+    micAnalyzer.destroy()
   }
 
   btnConnect.classList.remove('d-none')
