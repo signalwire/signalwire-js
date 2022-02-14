@@ -816,6 +816,7 @@ const MAX_VOLUME = 10
 
 interface MicrophoneAnalyzerEvents {
   volumeChanged: (volume: number) => void
+  destroyed: (reason: null | 'error' | 'disconnected') => void
 }
 
 export const createMicrophoneAnalyzer = async (
@@ -835,24 +836,38 @@ export const createMicrophoneAnalyzer = async (
     // TODO: throw
   }
 
+  /**
+   * If the device gets disconnected, we'll notify the user of
+   * the change.
+   */
+  stream.getTracks().forEach((track) => {
+    track.addEventListener('ended', () => {
+      emitter.emit('destroyed', 'disconnected')
+    })
+  })
+
   const startMetering = () => {
-    const dataArray = new Uint8Array(analyser.frequencyBinCount)
-    analyser.getByteFrequencyData(dataArray)
-    /**
-     * dataArray contains the values of the volume gathered
-     * within a single requestAnimationFrame With reduce,
-     * divide by 200 and Math.floor we translate the array
-     * values into a 0-10 scale to draw the green bars for
-     * the voice/volume energy.
-     */
-    const latestVol = Math.floor(
-      dataArray.reduce((final, value) => final + value, 0) / 200
-    )
-    if (volume !== latestVol) {
-      volume = latestVol
-      emitter.emit('volumeChanged', Math.min(volume, MAX_VOLUME))
+    try {
+      const dataArray = new Uint8Array(analyser.frequencyBinCount)
+      analyser.getByteFrequencyData(dataArray)
+      /**
+       * dataArray contains the values of the volume gathered
+       * within a single requestAnimationFrame With reduce,
+       * divide by 200 and Math.floor we translate the array
+       * values into a 0-10 scale to draw the green bars for
+       * the voice/volume energy.
+       */
+      const latestVol = Math.floor(
+        dataArray.reduce((final, value) => final + value, 0) / 200
+      )
+      if (volume !== latestVol) {
+        volume = latestVol
+        emitter.emit('volumeChanged', Math.min(volume, MAX_VOLUME))
+      }
+      rafId = requestAnimationFrame(startMetering)
+    } catch (e) {
+      emitter.emit('destroyed', 'error')
     }
-    rafId = requestAnimationFrame(startMetering)
   }
   rafId = requestAnimationFrame(startMetering)
 
@@ -868,6 +883,7 @@ export const createMicrophoneAnalyzer = async (
     if (!isMediaStream(options)) {
       stream.getTracks().forEach((track) => track.stop())
     }
+    emitter.emit('destroyed', null)
   }
 
   return new Proxy(emitter, {
