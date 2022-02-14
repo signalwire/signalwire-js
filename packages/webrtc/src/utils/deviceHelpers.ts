@@ -840,7 +840,7 @@ export const createMicrophoneAnalyzer = async (
    * If the device gets disconnected, we'll notify the user of
    * the change.
    */
-  stream.getTracks().forEach((track) => {
+  stream.getAudioTracks().forEach((track) => {
     track.addEventListener('ended', () => {
       emitter.emit('destroyed', 'disconnected')
     })
@@ -884,6 +884,7 @@ export const createMicrophoneAnalyzer = async (
       stream.getTracks().forEach((track) => track.stop())
     }
     emitter.emit('destroyed', null)
+    emitter.removeAllListeners()
   }
 
   return new Proxy(emitter, {
