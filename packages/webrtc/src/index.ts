@@ -20,6 +20,7 @@ export {
   createMicrophoneDeviceWatcher,
   createSpeakerDeviceWatcher,
   createCameraDeviceWatcher,
+  createMicrophoneAnalyzer,
 } from './utils/deviceHelpers'
 export {
   supportsMediaDevices,

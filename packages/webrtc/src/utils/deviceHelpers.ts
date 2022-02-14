@@ -737,7 +737,10 @@ export const createDeviceWatcher = async (
       })
     }
   }
-  WebRTC.getMediaDevicesApi().addEventListener('devicechange', deviceChangeHandler)
+  WebRTC.getMediaDevicesApi().addEventListener(
+    'devicechange',
+    deviceChangeHandler
+  )
 
   return emitter
 }
@@ -771,3 +774,99 @@ export const createSpeakerDeviceWatcher = () =>
  */
 export const createCameraDeviceWatcher = () =>
   createDeviceWatcher({ targets: ['camera'] })
+
+const isMediaStream = (options: any): options is MediaStream => {
+  return typeof options.getTracks === 'function'
+}
+
+const getMicrophoneAnalyzerMediaStream = async (
+  options: string | MediaTrackConstraints | MediaStream
+) => {
+  if (isMediaStream(options)) {
+    return options
+  }
+
+  let constraints: MediaStreamConstraints
+  if (typeof options === 'string') {
+    constraints = {
+      audio: {
+        deviceId: options,
+      },
+    }
+  } else {
+    constraints = {
+      audio: options,
+    }
+  }
+
+  return WebRTC.getUserMedia(constraints)
+}
+
+const createAnalyzer = (audioContext: AudioContext) => {
+  const analyser = audioContext.createAnalyser()
+  analyser.fftSize = 64
+  analyser.minDecibels = -90
+  analyser.maxDecibels = -10
+  analyser.smoothingTimeConstant = 0.85
+
+  return analyser
+}
+
+interface MicrophoneAnalyzerEvents {
+  volumeChanged: (volume: number) => void
+}
+
+export const createMicrophoneAnalyzer = async (
+  options: string | MediaTrackConstraints | MediaStream
+) => {
+  const stream = await getMicrophoneAnalyzerMediaStream(options)
+  const emitter = new EventEmitter<MicrophoneAnalyzerEvents>()
+  const audioContext = new (window.AudioContext ||
+    (window as any).webkitAudioContext)()
+  const analyser = createAnalyzer(audioContext)
+  let rafId: number | undefined
+  let volume: number | undefined
+  try {
+    audioContext.createMediaStreamSource(stream).connect(analyser)
+  } catch (error) {
+    console.debug('No audio track found')
+    // TODO: throw
+  }
+
+  const startMetering = () => {
+    const dataArray = new Uint8Array(analyser.frequencyBinCount)
+    analyser.getByteFrequencyData(dataArray)
+    const latestVol = Math.floor(
+      dataArray.reduce((final, value) => final + value, 0) / 200
+    )
+    if (volume !== latestVol) {
+      volume = latestVol
+      emitter.emit('volumeChanged', volume)
+    }
+    rafId = requestAnimationFrame(startMetering)
+  }
+  rafId = requestAnimationFrame(startMetering)
+
+  const destroy = () => {
+    if (rafId) {
+      cancelAnimationFrame(rafId)
+    }
+    audioContext.close()
+    /**
+     * If the user provided a MediaStream, we don't need to
+     * close it.
+     */
+    if (!isMediaStream(options)) {
+      stream.getTracks().forEach((track) => track.stop())
+    }
+  }
+
+  return new Proxy(emitter, {
+    get(target: any, prop: any, receiver: any) {
+      if (prop === 'destroy') {
+        return destroy
+      }
+      return Reflect.get(target, prop, receiver)
+    },
+  })
+}
