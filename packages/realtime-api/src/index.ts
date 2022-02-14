@@ -28,9 +28,53 @@
  */
 
 /**
- * You can use the Video namespace to subscribe to video-related events.
+ * Access the Video API Consumer. You can instantiate a {@link Video.Client} to
+ * subscribe to Video events.
  *
- * See {@link Video.Video} for examples.
+ * ### Example
+ *
+ * The following example logs whenever a room session is started or a user joins
+ * it:
+ *
+ * ```javascript
+ * const video = new Video.Client({ project, token })
+ *
+ * // Listen for events:
+ * video.on('room.started', async (roomSession) => {
+ *   console.log('Room has started:', roomSession.name)
+ *
+ *   roomSession.on('member.joined', async (member) => {
+ *     console.log('Member joined:', member.name)
+ *   })
+ *
+ *   await roomSession.subscribe()
+ * })
+ * ```
+ *
+ * ### Events
+ * You can use this object to subscribe to the following events.
+ *
+ *  - **room.started**:
+ *
+ * Emitted when a room session is started. Your event handler receives an object
+ * which is an instance of {@link Video.RoomSession}. Example:
+ * ```typescript
+ * const video = new Video.Client(...)
+ * video.on('room.started', async (roomSession) => {
+ *     console.log(roomSession.name)
+ * })
+ * ```
+ *
+ *  - **room.ended**:
+ *
+ * Emitted when a room session ends. Your event handler receives an object which
+ * is an instance of {@link Video.RoomSession}.
+ * ```typescript
+ * const video = new Video.Client(...)
+ * video.on('room.ended', async (roomSession) => {
+ *     console.log(roomSession.name)
+ * })
+ * ```
  */
 export * as Video from './video/Video'
 
