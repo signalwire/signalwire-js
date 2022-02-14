@@ -168,6 +168,16 @@ function meter(el, val) {
   ctx.stroke()
 }
 
+const initializeMicAnalyzer = async (stream, el) => {
+  micAnalyzer = await createMicrophoneAnalyzer(stream)
+  micAnalyzer.on('volumeChanged', (vol) => {
+    meter(el, vol)
+  })
+  micAnalyzer.on('destroyed', (reason) => {
+    console.log('Microphone analyzer destroyed', reason)
+  })
+}
+
 /**
  * Connect with Relay creating a client and attaching all the event handler.
  */
@@ -268,7 +278,7 @@ window.connect = () => {
 
   roomObj
     .join()
-    .then((result) => {
+    .then(async (result) => {
       console.log('>> Room Joined', result)
 
       roomObj.getLayouts().then((layouts) => {
@@ -281,16 +291,18 @@ window.connect = () => {
           console.error(error)
         })
 
-      createDeviceWatcher().then((deviceWatcher) => {
-        deviceWatcher.on('changed', () => {
-          initDeviceOptions()
-        })
-      })
-
       const el = document.getElementById('mic-meter')
-      createMicrophoneAnalyzer(roomSession.localStream).then((mic) => {
-        mic.on('volumeChanged', (vol) => {
-          meter(el, vol)
+      await initializeMicAnalyzer(roomSession.localStream, el)
+
+      createDeviceWatcher().then((deviceWatcher) => {
+        deviceWatcher.on('changed', async () => {
+          initDeviceOptions()
+
+          if (micAnalyzer?.destroy) {
+            micAnalyzer.destroy()
+          }
+
+          await initializeMicAnalyzer(roomSession.localStream, el)
         })
       })
     })
@@ -305,11 +317,12 @@ window.connect = () => {
  * Hangup the roomObj if present
  */
 window.hangup = () => {
-  if (roomObj) {
-    roomObj.hangup()
-  }
   if (micAnalyzer) {
     micAnalyzer.destroy()
+  }
+
+  if (roomObj) {
+    roomObj.hangup()
   }
 
   btnConnect.classList.remove('d-none')
