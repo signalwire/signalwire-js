@@ -215,10 +215,14 @@ describe('BaseComponent', () => {
       expect(mockFn).toHaveBeenNthCalledWith(1, {
         instance,
         inject: 'something',
+        payload,
+        transformed: 'data',
       })
       expect(mockFn).toHaveBeenNthCalledWith(2, {
         instance,
         inject: 'something',
+        payload,
+        transformed: 'data',
       })
     })
 

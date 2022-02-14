@@ -16,6 +16,63 @@ const proxyToString = <T>({
     : property
 }
 
+const getAllMethods = (objTarget: any): Record<string, Function> => {
+  let methods: Record<string, Function> = {}
+  let obj = objTarget
+  let shouldContinue = true
+  while (shouldContinue) {
+    Object.getOwnPropertyNames(obj).forEach((k) => {
+      if (
+        typeof objTarget[k] === 'function' &&
+        typeof k === 'string' &&
+        // If the method was already defined it means we can
+        // safely skip it since it was overwritten
+        !(k in methods)
+      ) {
+        methods[k] = objTarget[k]
+      }
+    })
+
+    if (!obj || !obj.__sw_symbol) {
+      shouldContinue = false
+    } else {
+      obj = Object.getPrototypeOf(obj)
+    }
+  }
+
+  return methods
+}
+
+export const serializeableProxy = ({
+  instance,
+  proxiedObj,
+  payload,
+}: {
+  instance: any
+  proxiedObj: any
+  payload: any
+}) => {
+  const data = {
+    ...payload,
+    ...getAllMethods(instance),
+  }
+  return Object.defineProperties(
+    proxiedObj,
+    Object.entries(data).reduce((reducer, [key, value]) => {
+      reducer[key] = {
+        value,
+        enumerable: true,
+        configurable: true,
+        // We mostly need this for our tests where we're
+        // overwritting things like `execute`.
+        writable: true,
+      }
+
+      return reducer
+    }, {} as Record<string, PropertyDescriptor>)
+  )
+}
+
 interface ProxyFactoryOptions {
   instance: any
   transform: EventTransform
@@ -51,5 +108,13 @@ export const proxyFactory = ({
     },
   })
 
-  return proxiedObj
+  /**
+   * This is just for helping users have a better experience
+   * when using console.log to debug the Proxy.
+   */
+  return serializeableProxy({
+    instance,
+    proxiedObj,
+    payload: transformedPayload,
+  })
 }

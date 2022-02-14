@@ -57,11 +57,16 @@ type EventRegisterHandlers<EventTypes extends EventEmitter.ValidEventTypes> =
 
 const identity: ExecuteTransform<any, any> = (payload) => payload
 
+export const SW_SYMBOL = Symbol('BaseComponent')
+
 export class BaseComponent<
   EventTypes extends EventEmitter.ValidEventTypes,
   StateProperties = Record<string, unknown>
 > implements EmitterContract<EventTypes>, BaseComponentContract
 {
+  /** @internal */
+  public __sw_symbol = SW_SYMBOL
+
   /** @internal */
   private readonly uuid = uuid()
 

@@ -15,6 +15,7 @@ export * from './toExternalJSON'
 export * from './toInternalEventName'
 export * from './extendComponent'
 export * from './eventTransformUtils'
+export * from './proxyUtils'
 
 export const mutateStorageKey = (key: string) => `${STORAGE_PREFIX}${key}`
 
