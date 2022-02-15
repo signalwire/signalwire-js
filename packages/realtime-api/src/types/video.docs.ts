@@ -2,11 +2,24 @@ import type { RoomSession } from '../video/RoomSession'
 
 export type RealTimeVideoApiEventsDocs = {
   /**
-   * A new room session has started.
+   * Emitted when a room session is started. Your event handler receives an
+   * object which is an instance of {@link Video.RoomSession}. Example:
+   * ```typescript
+   * const video = new Video.Client(...)
+   * video.on('room.started', async (roomSession) => {
+   *     console.log(roomSession.name)
+   * })
+   * ```
    */
   'room.started': (room: RoomSession) => void
   /**
-   * A room session has ended.
+   * Emitted when a room session ends. Your event handler receives an object
+   * which is an instance of {@link Video.RoomSession}.
+   * ```typescript
+   * const video = new Video.Client(...)
+   * video.on('room.ended', async (roomSession) => {
+   *     console.log(roomSession.name)
+   * })
    */
   'room.ended': (room: RoomSession) => void
 }
