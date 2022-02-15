@@ -14,7 +14,6 @@ export const relayWorker: SDKWorker<RelayClient> = function* ({
     const action: any = yield sagaEffects.take((action: any) => {
       return action.type.startsWith('calling.')
     })
-    getLogger().debug('relayWorker:', action)
 
     switch (action.type) {
       case 'calling.call.receive': {
