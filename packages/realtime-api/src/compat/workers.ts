@@ -21,6 +21,56 @@ export const relayWorker: SDKWorker<RelayClient> = function* ({
         instance.calling._onReceive(action.payload.params)
         break
       }
+      case 'calling.call.dial': {
+        // @ts-expect-error
+        instance.calling._onDial(action.payload.params)
+        break
+      }
+      case 'calling.call.state': {
+        // @ts-expect-error
+        instance.calling._onState(action.payload.params)
+        break
+      }
+      case 'calling.call.connect': {
+        // @ts-expect-error
+        instance.calling._onConnect(action.payload.params)
+        break
+      }
+      case 'calling.call.record': {
+        // @ts-expect-error
+        instance.calling._onRecord(action.payload.params)
+        break
+      }
+      case 'calling.call.play': {
+        // @ts-expect-error
+        instance.calling._onPlay(action.payload.params)
+        break
+      }
+      case 'calling.call.collect': {
+        // @ts-expect-error
+        instance.calling._onCollect(action.payload.params)
+        break
+      }
+      case 'calling.call.fax': {
+        // @ts-expect-error
+        instance.calling._onFax(action.payload.params)
+        break
+      }
+      case 'calling.call.detect': {
+        // @ts-expect-error
+        instance.calling._onDetect(action.payload.params)
+        break
+      }
+      case 'calling.call.tap': {
+        // @ts-expect-error
+        instance.calling._onTap(action.payload.params)
+        break
+      }
+      case 'calling.call.send_digits': {
+        // @ts-expect-error
+        instance.calling._onSendDigits(params)
+        break
+      }
 
       default: {
         getLogger().warn('[relayWorker] Unrecognized Action', action)
