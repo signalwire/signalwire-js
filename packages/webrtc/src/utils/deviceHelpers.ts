@@ -823,17 +823,22 @@ export const createMicrophoneAnalyzer = async (
   options: string | MediaTrackConstraints | MediaStream
 ) => {
   const stream = await getMicrophoneAnalyzerMediaStream(options)
+
+  if (!stream) {
+    throw new Error('Failed to get the audio stream')
+  }
+
   const emitter = new EventEmitter<MicrophoneAnalyzerEvents>()
   const audioContext = new (window.AudioContext ||
     (window as any).webkitAudioContext)()
   const analyser = createAnalyzer(audioContext)
   let rafId: number | undefined
   let volume: number | undefined
+
   try {
     audioContext.createMediaStreamSource(stream).connect(analyser)
   } catch (error) {
-    console.debug('No audio track found')
-    // TODO: throw
+    throw new Error('No audio track found')
   }
 
   /**
