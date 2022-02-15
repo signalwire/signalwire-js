@@ -168,7 +168,8 @@ function meter(el, val) {
   ctx.stroke()
 }
 
-const initializeMicAnalyzer = async (stream, el) => {
+const initializeMicAnalyzer = async (stream) => {
+  const el = document.getElementById('mic-meter')
   micAnalyzer = await createMicrophoneAnalyzer(stream)
   micAnalyzer.on('volumeChanged', (vol) => {
     meter(el, vol)
@@ -291,18 +292,15 @@ window.connect = () => {
           console.error(error)
         })
 
-      const el = document.getElementById('mic-meter')
-      await initializeMicAnalyzer(roomSession.localStream, el)
+      await initializeMicAnalyzer(roomObj.localStream)
 
       createDeviceWatcher().then((deviceWatcher) => {
-        deviceWatcher.on('changed', async () => {
+        deviceWatcher.on('changed', () => {
           initDeviceOptions()
 
           if (micAnalyzer?.destroy) {
             micAnalyzer.destroy()
           }
-
-          await initializeMicAnalyzer(roomSession.localStream, el)
         })
       })
     })
@@ -424,7 +422,9 @@ window.changeMicrophone = (select) => {
   if (!select.value) {
     return
   }
-  roomObj.updateMicrophone({ deviceId: select.value })
+  roomObj.updateMicrophone({ deviceId: select.value }).then(() => {
+    initializeMicAnalyzer(roomObj.localStream)
+  })
 }
 
 window.changeCamera = (select) => {
