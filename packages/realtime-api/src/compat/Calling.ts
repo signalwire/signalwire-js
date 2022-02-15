@@ -9,7 +9,6 @@ export class Calling extends LegacyCalling {
   emitter: EventEmitter
 
   constructor(public session: any, public opts: any) {
-    // TODO: Pass a patched-interface here
     super(session)
 
     this.store = opts.store
