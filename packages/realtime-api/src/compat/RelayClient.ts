@@ -6,6 +6,7 @@ import type {
   BaseComponentOptions,
   SessionState,
   SDKWorker,
+  ExecuteExtendedOptions,
 } from '@signalwire/core'
 import { connect, selectors, BaseClient } from '@signalwire/core'
 import { getProxiedClient, clientConnect } from '../client/index'
@@ -49,6 +50,18 @@ class RelayClientAPI extends BaseClient<RelayClientEvents> {
     } else if (session.authStatus === 'unauthorized') {
       this._detachSignals()
     }
+  }
+
+  override execute<
+    InputType = unknown,
+    OutputType = unknown,
+    ParamsType = Record<string, any>
+  >(
+    msg: any,
+    options: ExecuteExtendedOptions<InputType, OutputType, ParamsType>
+  ): Promise<OutputType> {
+    const { method, params } = msg.request.params
+    return super.execute({ method, params }, options)
   }
 
   get relayProtocol(): string {
