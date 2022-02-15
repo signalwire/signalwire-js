@@ -29,7 +29,8 @@
 
 /**
  * Access the Video API Consumer. You can instantiate a {@link Video.Client} to
- * subscribe to Video events.
+ * subscribe to Video events. Please check {@link Video.VideoClientApiEvents}
+ * for the full list of events that a {@link Video.Client} can subscribe to.
  *
  * ### Example
  *
