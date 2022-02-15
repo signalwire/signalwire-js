@@ -12,6 +12,7 @@ import { connect, selectors, BaseClient } from '@signalwire/core'
 import { getProxiedClient, clientConnect } from '../client/index'
 import { getCredentials, setupInternals } from '../utils/internals'
 import { Calling } from './Calling'
+import { Messaging } from './Messaging'
 import { relayWorker } from './workers'
 
 type RelayClientEvents = ClientEvents &
@@ -20,8 +21,8 @@ type RelayClientEvents = ClientEvents &
 export interface RelayClient
   extends ClientContract<RelayClient, RelayClientEvents> {
   calling: Calling
+  messaging: Messaging
   // tasking: Tasking
-  // messaging: Messaging
 }
 
 export interface RelayClientOptions extends UserOptions {
@@ -30,8 +31,8 @@ export interface RelayClientOptions extends UserOptions {
 
 class RelayClientAPI extends BaseClient<RelayClientEvents> {
   private _calling: Calling
+  private _messaging: Messaging
   // private _tasking: Tasking
-  // private _messaging: Messaging
 
   constructor(options: BaseClientOptions<RelayClientEvents>) {
     super(options)
@@ -92,19 +93,15 @@ class RelayClientAPI extends BaseClient<RelayClientEvents> {
   //   return this._tasking
   // }
 
-  // get messaging(): Messaging {
-  //   if (this._messaging) {
-  //     return this._messaging
-  //   }
-  //   this._messaging = createMessagingObject({
-  //     store: this.store,
-  //     // Emitter is now typed but we share it across objects
-  //     // so types won't match
-  //     // @ts-expect-error
-  //     emitter: this.options.emitter,
-  //   })
-  //   return this._messaging
-  // }
+  get messaging(): Messaging {
+    if (!this._messaging) {
+      this._messaging = new Messaging(this, {
+        store: this.store,
+        emitter: this.emitter,
+      })
+    }
+    return this._messaging
+  }
 
   // TODO: Review teardown process
   private _gracefulDisconnect(signal: string) {

@@ -104,15 +104,15 @@ export class RelayConsumer {
       if (this.onIncomingCall) {
         this.client.calling.onReceive(this.contexts, this.onIncomingCall)
       }
-      // if (this.onIncomingMessage) {
-      //   this.client.messaging.onReceive(this.contexts, this.onIncomingMessage)
-      // }
-      // if (this.onMessageStateChange) {
-      //   this.client.messaging.onStateChange(
-      //     this.contexts,
-      //     this.onMessageStateChange
-      //   )
-      // }
+      if (this.onIncomingMessage) {
+        this.client.messaging.onReceive(this.contexts, this.onIncomingMessage)
+      }
+      if (this.onMessageStateChange) {
+        this.client.messaging.onStateChange(
+          this.contexts,
+          this.onMessageStateChange
+        )
+      }
       // if (this.onTask) {
       //   this.client.tasking.onReceive(this.contexts, this.onTask)
       // }
