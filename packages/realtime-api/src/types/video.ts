@@ -32,7 +32,10 @@ type RealTimeVideoApiEventsMain = {
   [k in keyof RealTimeVideoApiEventsHandlerMapping]: RealTimeVideoApiEventsHandlerMapping[k]
 }
 
-export type RealTimeVideoApiEvents = AssertSameType<RealTimeVideoApiEventsMain, RealTimeVideoApiEventsDocs>
+export type RealTimeVideoApiEvents = AssertSameType<
+  RealTimeVideoApiEventsMain,
+  RealTimeVideoApiEventsDocs
+>
 
 // TODO: replace `any` with proper types.
 export type RealTimeRoomApiEventsHandlerMapping = Record<
