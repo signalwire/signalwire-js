@@ -6,6 +6,9 @@ import { getCredentials, setupInternals } from '../utils/internals'
 import { createVideoObject, Video } from './Video'
 import { VideoClientDocs } from './VideoClient.docs'
 
+/**
+ * List of events for {@link Video.Client}.
+ */
 export interface VideoClientApiEvents extends RealTimeVideoApiEvents {}
 
 export interface VideoApiFullState extends VideoClient {}
@@ -13,6 +16,28 @@ interface VideoClientMain extends Video {
   new (opts: VideoClientOptions): this
 }
 
+/**
+ * You can use instances of this class to subscribe to video events. Please see
+ * {@link VideoClientApiEvents} for the full list of events you can subscribe
+ * to.
+ *
+ * @example
+ *
+ * ```javascript
+ * const video = new Video.Client({
+ *   project: '<project-id>',
+ *   token: '<project-token>'
+ * })
+ *
+ * video.on('room.started', async (roomSession) => {
+ *   console.log("Room started")
+ * });
+ *
+ * video.on('room.ended', async (roomSession) => {
+ *   console.log("Room ended")
+ * });
+ * ```
+ */
 interface VideoClient
   extends AssertSameType<VideoClientMain, VideoClientDocs> {}
 
