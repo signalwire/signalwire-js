@@ -6,9 +6,11 @@ import {
   getSpeakerDevices,
   supportsMediaOutput,
   createDeviceWatcher,
+  createMicrophoneAnalyzer,
 } from '@signalwire/webrtc'
 
 let roomObj = null
+let micAnalyzer = null
 
 const inCallElements = [
   roomControls,
@@ -145,6 +147,38 @@ function initDeviceOptions() {
   setVideoDevicesOptions()
 }
 
+function meter(el, val) {
+  const canvasWidth = el.width
+  const canvasHeight = el.height
+  const ctx = el.getContext('2d')
+  ctx.clearRect(0, 0, canvasWidth, canvasHeight)
+
+  // Border
+  ctx.beginPath()
+  ctx.rect(0, 0, canvasWidth, canvasHeight)
+  ctx.strokeStyle = '#0f5e39'
+  ctx.stroke()
+
+  // Meter fill
+  ctx.beginPath()
+  ctx.rect(0, canvasHeight, canvasWidth, -val)
+  ctx.stroke()
+  ctx.fillStyle = '#198754'
+  ctx.fill()
+  ctx.stroke()
+}
+
+const initializeMicAnalyzer = async (stream) => {
+  const el = document.getElementById('mic-meter')
+  micAnalyzer = await createMicrophoneAnalyzer(stream)
+  micAnalyzer.on('volumeChanged', (vol) => {
+    meter(el, vol)
+  })
+  micAnalyzer.on('destroyed', (reason) => {
+    console.log('Microphone analyzer destroyed', reason)
+  })
+}
+
 /**
  * Connect with Relay creating a client and attaching all the event handler.
  */
@@ -245,7 +279,7 @@ window.connect = () => {
 
   roomObj
     .join()
-    .then((result) => {
+    .then(async (result) => {
       console.log('>> Room Joined', result)
 
       roomObj.getLayouts().then((layouts) => {
@@ -258,9 +292,15 @@ window.connect = () => {
           console.error(error)
         })
 
+      await initializeMicAnalyzer(roomObj.localStream)
+
       createDeviceWatcher().then((deviceWatcher) => {
         deviceWatcher.on('changed', () => {
           initDeviceOptions()
+
+          if (micAnalyzer?.destroy) {
+            micAnalyzer.destroy()
+          }
         })
       })
     })
@@ -275,6 +315,10 @@ window.connect = () => {
  * Hangup the roomObj if present
  */
 window.hangup = () => {
+  if (micAnalyzer) {
+    micAnalyzer.destroy()
+  }
+
   if (roomObj) {
     roomObj.hangup()
   }
@@ -378,7 +422,9 @@ window.changeMicrophone = (select) => {
   if (!select.value) {
     return
   }
-  roomObj.updateMicrophone({ deviceId: select.value })
+  roomObj.updateMicrophone({ deviceId: select.value }).then(() => {
+    initializeMicAnalyzer(roomObj.localStream)
+  })
 }
 
 window.changeCamera = (select) => {
