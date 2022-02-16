@@ -1,7 +1,8 @@
-import type { Rooms } from '@signalwire/core'
+import type { AssertSameType, VideoPositions, Rooms } from '@signalwire/core'
 import { BaseRoomSession } from './BaseRoomSession'
 import { RoomSessionDevice } from './RoomSessionDevice'
 import { RoomSessionScreenShare } from './RoomSessionScreenShare'
+import { StartScreenShareOptions } from './utils/interfaces'
 
 export interface RoomSessionDocs<T>
   extends RoomMemberMethodsInterfaceDocs,
@@ -119,14 +120,25 @@ export interface RoomSessionDocs<T>
    * await roomSession.startScreenShare({ audio: true, video: true })
    * ```
    */
-  startScreenShare(opts: {
-    /** Whether the screen share object should automatically join the room */
-    autoJoin?: boolean
-    /** Audio constraints to use when joining the room. Default: `false`. */
-    audio?: MediaStreamConstraints['audio']
-    /** Video constraints to use when joining the room. Default: `true`. */
-    video?: MediaStreamConstraints['video']
-  }): Promise<RoomSessionScreenShare>
+  startScreenShare(
+    opts: AssertSameType<
+      StartScreenShareOptions,
+      {
+        /** Whether the screen share object should automatically join the room. Default: `true`. */
+        autoJoin?: boolean
+        /** Audio constraints to use when joining the room. Default: `true`. */
+        audio?: MediaStreamConstraints['audio']
+        /** Video constraints to use when joining the room. Default: `true`. */
+        video?: MediaStreamConstraints['video']
+        /** Layout to use to use when joining the room. */
+        layout?: string
+        /** Automatically set positions when screen share joins the room. */
+        positions?: VideoPositions
+        /** Whether to restore the previous layout when the screen share leaves the room. */
+        restoreLayout?: boolean
+      }
+    >
+  ): Promise<RoomSessionScreenShare>
 
   /**
    * Adds a camera device to the room. Using this method, a user can stream
@@ -839,6 +851,13 @@ interface RoomControlMethodsInterfaceDocs {
   play(params: {
     url: string
     volume?: number
+    positions?: Record<
+      string,
+      | 'self'
+      | 'standard'
+      | `standard-${number}`
+      | 'off-canvas'
+    >
   }): Promise<Rooms.RoomSessionPlayback>
 }
 
@@ -887,7 +906,54 @@ interface RoomLayoutMethodsInterface {
    * await room.setLayout({name: "6x6"})
    * ```
    */
-  setLayout(params: { name: string }): Rooms.SetLayout
+  setLayout(params: {
+    name: string
+    positions?: Record<
+      string,
+      | 'self'
+      | 'standard'
+      | `standard-${number}`
+      | 'off-canvas'
+    >
+  }): Rooms.SetLayout
+
+  setPositions(params: {
+    positions: Record<
+      string,
+      | 'self'
+      | 'standard'
+      | `standard-${number}`
+      | 'off-canvas'
+    >
+  }): Promise<void>
+
+  setRoles(params: {
+    roles: Record<
+      string,
+      | 'self'
+      | 'standard'
+      | `standard-${number}`
+      | 'off-canvas'
+    >
+  }): Promise<void>
+
+  setMemberPosition(params: {
+    memberId?: string
+    position:
+      | 'self'
+      | 'standard'
+      | `standard-${number}`
+      | 'off-canvas'
+  }): Promise<void>
+
+  setMemberRole(params: {
+    memberId?: string
+    role:
+      | 'self'
+      | 'standard'
+      | `standard-${number}`
+      | 'off-canvas'
+  }): Promise<void>
 }
 
 /**
@@ -1098,7 +1164,7 @@ export interface RoomSessionEvents {
    * The set of members or one or more properties of a member have changed. The
    * event handler receives an object `e` with the updated, full list of members in
    * the room as `e.members`.
-   * 
+   *
    * @event
    */
   'memberList.updated': undefined
