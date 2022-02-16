@@ -95,7 +95,7 @@ describe('Room Custom Methods', () => {
       await instance.setPositions({
         positions: {
           'cebecb3a-b9e4-499c-a707-0af96c110a04': 'standard',
-          'aaaaaaa-b9e4-499c-a707-0af96c110a04': 'reserved-1',
+          'aaaaaaa-b9e4-499c-a707-0af96c110a04': 'standard-1',
         },
       })
       expect(instance.execute).toHaveBeenCalledTimes(1)
@@ -106,7 +106,7 @@ describe('Room Custom Methods', () => {
             room_session_id: 'mocked',
             positions: {
               'cebecb3a-b9e4-499c-a707-0af96c110a04': 'standard',
-              'aaaaaaa-b9e4-499c-a707-0af96c110a04': 'reserved-1',
+              'aaaaaaa-b9e4-499c-a707-0af96c110a04': 'standard-1',
             },
           },
         },
@@ -146,7 +146,7 @@ describe('Room Custom Methods', () => {
       localInstance.setRoles({
         roles: {
           'cebecb3a-b9e4-499c-a707-0af96c110a04': 'standard',
-          'aaaaaaa-b9e4-499c-a707-0af96c110a04': 'reserved-1',
+          'aaaaaaa-b9e4-499c-a707-0af96c110a04': 'standard-1',
         },
       })
 
@@ -157,7 +157,7 @@ describe('Room Custom Methods', () => {
         params: {
           positions: {
             'cebecb3a-b9e4-499c-a707-0af96c110a04': 'standard',
-            'aaaaaaa-b9e4-499c-a707-0af96c110a04': 'reserved-1',
+            'aaaaaaa-b9e4-499c-a707-0af96c110a04': 'standard-1',
           },
           room_session_id: 'mocked',
         },

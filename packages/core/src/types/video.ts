@@ -36,8 +36,8 @@ export type RTCTrackEventName = 'track'
 
 export type VideoPosition =
   | 'self'
-  | 'reserved'
-  | `reserved-${number}`
+  // | 'reserved'
+  // | `reserved-${number}`
   | 'standard'
   | `standard-${number}`
   | 'off-canvas'

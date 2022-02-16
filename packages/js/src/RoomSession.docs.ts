@@ -854,8 +854,6 @@ interface RoomControlMethodsInterfaceDocs {
     positions?: Record<
       string,
       | 'self'
-      | 'reserved'
-      | `reserved-${number}`
       | 'standard'
       | `standard-${number}`
       | 'off-canvas'
@@ -913,8 +911,6 @@ interface RoomLayoutMethodsInterface {
     positions?: Record<
       string,
       | 'self'
-      | 'reserved'
-      | `reserved-${number}`
       | 'standard'
       | `standard-${number}`
       | 'off-canvas'
@@ -925,8 +921,6 @@ interface RoomLayoutMethodsInterface {
     positions: Record<
       string,
       | 'self'
-      | 'reserved'
-      | `reserved-${number}`
       | 'standard'
       | `standard-${number}`
       | 'off-canvas'
@@ -937,8 +931,6 @@ interface RoomLayoutMethodsInterface {
     roles: Record<
       string,
       | 'self'
-      | 'reserved'
-      | `reserved-${number}`
       | 'standard'
       | `standard-${number}`
       | 'off-canvas'
@@ -949,8 +941,6 @@ interface RoomLayoutMethodsInterface {
     memberId?: string
     position:
       | 'self'
-      | 'reserved'
-      | `reserved-${number}`
       | 'standard'
       | `standard-${number}`
       | 'off-canvas'
@@ -960,8 +950,6 @@ interface RoomLayoutMethodsInterface {
     memberId?: string
     role:
       | 'self'
-      | 'reserved'
-      | `reserved-${number}`
       | 'standard'
       | `standard-${number}`
       | 'off-canvas'

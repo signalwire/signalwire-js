@@ -312,8 +312,6 @@ interface RoomSessionDocs extends RoomSessionMain {
     positions?: Record<
       string,
       | 'self'
-      | 'reserved'
-      | `reserved-${number}`
       | 'standard'
       | `standard-${number}`
       | 'off-canvas'
@@ -324,8 +322,6 @@ interface RoomSessionDocs extends RoomSessionMain {
     positions: Record<
       string,
       | 'self'
-      | 'reserved'
-      | `reserved-${number}`
       | 'standard'
       | `standard-${number}`
       | 'off-canvas'
@@ -336,8 +332,6 @@ interface RoomSessionDocs extends RoomSessionMain {
     roles: Record<
       string,
       | 'self'
-      | 'reserved'
-      | `reserved-${number}`
       | 'standard'
       | `standard-${number}`
       | 'off-canvas'
@@ -348,8 +342,6 @@ interface RoomSessionDocs extends RoomSessionMain {
     memberId?: string
     position:
       | 'self'
-      | 'reserved'
-      | `reserved-${number}`
       | 'standard'
       | `standard-${number}`
       | 'off-canvas'
@@ -359,8 +351,6 @@ interface RoomSessionDocs extends RoomSessionMain {
     memberId?: string
     role:
       | 'self'
-      | 'reserved'
-      | `reserved-${number}`
       | 'standard'
       | `standard-${number}`
       | 'off-canvas'
@@ -417,8 +407,6 @@ interface RoomSessionDocs extends RoomSessionMain {
     positions?: Record<
       string,
       | 'self'
-      | 'reserved'
-      | `reserved-${number}`
       | 'standard'
       | `standard-${number}`
       | 'off-canvas'
