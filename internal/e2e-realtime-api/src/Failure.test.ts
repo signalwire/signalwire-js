@@ -1,5 +1,6 @@
 async function main() {
-  process.exit(2)
+  // Noop
+  process.exit(0)
 }
 
 main()
