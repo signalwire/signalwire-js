@@ -1,0 +1,14 @@
+{
+  "name": "@sw-internal/e2e-realtime-api",
+  "version": "0.0.1",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "dev": "node -r dotenv/config index.js",
+    "test": ""
+  },
+  "devDependencies": {
+    "dotenv": "^10.0.0",
+    "esbuild-register": "^3.2.1"
+  }
+}
