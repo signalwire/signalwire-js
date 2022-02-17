@@ -113,9 +113,9 @@ export class RelayConsumer {
           this.onMessageStateChange
         )
       }
-      // if (this.onTask) {
-      //   this.client.tasking.onReceive(this.contexts, this.onTask)
-      // }
+      if (this.onTask) {
+        this.client.tasking.onReceive(this.contexts, this.onTask)
+      }
 
       if (isFunction(this.ready)) {
         this.ready(this)
