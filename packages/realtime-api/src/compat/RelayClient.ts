@@ -13,6 +13,7 @@ import { getProxiedClient, clientConnect } from '../client/index'
 import { getCredentials, setupInternals } from '../utils/internals'
 import { Calling } from './Calling'
 import { Messaging } from './Messaging'
+import { Tasking } from './Tasking'
 import { relayWorker } from './workers'
 
 type RelayClientEvents = ClientEvents &
@@ -22,7 +23,7 @@ export interface RelayClient
   extends ClientContract<RelayClient, RelayClientEvents> {
   calling: Calling
   messaging: Messaging
-  // tasking: Tasking
+  tasking: Tasking
 }
 
 export interface RelayClientOptions extends UserOptions {
@@ -32,7 +33,7 @@ export interface RelayClientOptions extends UserOptions {
 class RelayClientAPI extends BaseClient<RelayClientEvents> {
   private _calling: Calling
   private _messaging: Messaging
-  // private _tasking: Tasking
+  private _tasking: Tasking
 
   constructor(options: BaseClientOptions<RelayClientEvents>) {
     super(options)
@@ -79,19 +80,15 @@ class RelayClientAPI extends BaseClient<RelayClientEvents> {
     return this._calling
   }
 
-  // get tasking(): Tasking {
-  //   if (this._tasking) {
-  //     return this._tasking
-  //   }
-  //   this._tasking = createTaskingObject({
-  //     store: this.store,
-  //     // Emitter is now typed but we share it across objects
-  //     // so types won't match
-  //     // @ts-expect-error
-  //     emitter: this.options.emitter,
-  //   })
-  //   return this._tasking
-  // }
+  get tasking(): Tasking {
+    if (!this._tasking) {
+      this._tasking = new Tasking(this, {
+        store: this.store,
+        emitter: this.emitter,
+      })
+    }
+    return this._tasking
+  }
 
   get messaging(): Messaging {
     if (!this._messaging) {
