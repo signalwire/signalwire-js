@@ -24,8 +24,10 @@ import {
   VideoMemberEntity,
   AssertSameType,
   BaseConsumer,
+  EventEmitter,
 } from '@signalwire/core'
 import { RealTimeRoomApiEvents } from '../types'
+import { debounce } from '../utils/debounce'
 import {
   createRoomSessionMemberObject,
   RoomSessionMember,
@@ -543,6 +545,36 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     get_initial_state: true,
   }
 
+  debouncedSubscribe: ReturnType<typeof debounce>
+
+  constructor(options: BaseComponentOptions<RealTimeRoomApiEvents>) {
+    super(options)
+
+    this.debouncedSubscribe = debounce(this.subscribe, 100)
+  }
+
+  on(
+    event: keyof RealTimeRoomApiEvents,
+    fn: EventEmitter.EventListener<RealTimeRoomApiEvents, any>
+  ) {
+    const instance = super.on(event, fn)
+
+    this.debouncedSubscribe()
+
+    return instance
+  }
+
+  once(
+    event: keyof RealTimeRoomApiEvents,
+    fn: EventEmitter.EventListener<RealTimeRoomApiEvents, any>
+  ) {
+    const instance = super.once(event, fn)
+
+    this.debouncedSubscribe()
+
+    return instance
+  }
+
   /**
    * @privateRemarks
    *
@@ -557,10 +589,10 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
         resolve(payload)
       }
       try {
-        this.once('room.subscribed', handler)
+        super.once('room.subscribed', handler)
         await super.subscribe()
       } catch (error) {
-        this.off('room.subscribed', handler)
+        super.off('room.subscribed', handler)
         return reject(error)
       }
     })
