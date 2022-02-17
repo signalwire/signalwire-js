@@ -558,9 +558,7 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     fn: EventEmitter.EventListener<RealTimeRoomApiEvents, any>
   ) {
     const instance = super.on(event, fn)
-
     this.debouncedSubscribe()
-
     return instance
   }
 
@@ -569,9 +567,7 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     fn: EventEmitter.EventListener<RealTimeRoomApiEvents, any>
   ) {
     const instance = super.once(event, fn)
-
     this.debouncedSubscribe()
-
     return instance
   }
 
