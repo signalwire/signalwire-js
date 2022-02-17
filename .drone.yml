@@ -9,5 +9,12 @@ steps:
       - npm run build
       - npm test
 
+  - name: e2e-tests
+    image: node:16-alpine
+    commands:
+      - npm install
+      - npm run build
+      - npm run -w=@sw-internal/e2e-realtime-api dev
+
 trigger:
   event: push
