@@ -52,10 +52,10 @@ const VideoClient = function (options: VideoClientOptions) {
 
     return video.once(...args)
   }
-  const videoSubscribe: Video['subscribe'] = async (...args) => {
+  const videoSubscribe: Video['subscribe'] = async () => {
     await clientConnect(client)
 
-    return video.subscribe(...args)
+    return video.subscribe()
   }
 
   client.on('session.connected', async () => {
@@ -70,20 +70,22 @@ const VideoClient = function (options: VideoClientOptions) {
     }
   })
 
+  const interceptors = {
+    on: videoOn,
+    once: videoOnce,
+    subscribe: videoSubscribe,
+    _session: client,
+  } as const
+
   return new Proxy<VideoClient>(video, {
     get(
       target: VideoClient,
       prop: keyof VideoClient | 'session',
       receiver: any
     ) {
-      if (prop === 'on') {
-        return videoOn
-      } else if (prop === 'once') {
-        return videoOnce
-      } else if (prop === 'subscribe') {
-        return videoSubscribe
-      } else if (prop === '_session') {
-        return client
+      if (prop in interceptors) {
+        // @ts-expect-error
+        return interceptors[prop]
       }
 
       return Reflect.get(target, prop, receiver)
