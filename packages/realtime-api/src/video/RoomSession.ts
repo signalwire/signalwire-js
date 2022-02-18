@@ -545,7 +545,8 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     get_initial_state: true,
   }
 
-  debouncedSubscribe: ReturnType<typeof debounce>
+  /** @internal */
+  private debouncedSubscribe: ReturnType<typeof debounce>
 
   constructor(options: BaseComponentOptions<RealTimeRoomApiEvents>) {
     super(options)
@@ -585,6 +586,11 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
         resolve(payload)
       }
       try {
+        /**
+         * Note that we're using `super.once` (instead of
+         * `this.once`) here, because we don't want to
+         * re-trigger our added custom behavior.
+         */
         super.once('room.subscribed', handler)
         await super.subscribe()
       } catch (error) {
