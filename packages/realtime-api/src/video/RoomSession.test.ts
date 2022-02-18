@@ -172,4 +172,24 @@ describe('RoomSession Object', () => {
       })
     })
   })
+
+  describe.only('automatic subscribe', () => {
+    it('should automatically call subscribe when attaching events', async () => {
+      const { store, emitter } = configureFullStack()
+      const room = createRoomSessionObject({
+        store,
+        // @ts-expect-error
+        emitter,
+      })
+
+      // @ts-expect-error
+      room.debouncedSubscribe = jest.fn()
+
+      room.on('member.joined', () => {})
+      room.on('member.left', () => {})
+
+      // @ts-expect-error
+      expect(room.debouncedSubscribe).toHaveBeenCalledTimes(2)
+    })
+  })
 })
