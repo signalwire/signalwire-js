@@ -67,7 +67,7 @@ export const relayWorker: SDKWorker<RelayClient> = function* ({
       }
       case 'calling.call.send_digits': {
         // @ts-expect-error
-        instance.calling._onSendDigits(params)
+        instance.calling._onSendDigits(action.payload.params)
         break
       }
 
