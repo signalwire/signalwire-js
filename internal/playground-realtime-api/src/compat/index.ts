@@ -1,34 +1,6 @@
-import { Compat } from '@signalwire/realtime-api'
-console.log(Compat)
-// @ts-ignore
-// async function run() {
-//   try {
-//     const client = new Compat.RelayClient({
-//       host: process.env.HOST || 'relay.swire.io',
-//       project: process.env.PROJECT as string,
-//       token: process.env.TOKEN as string,
-//       contexts: ['office'],
-//       logLevel: 'debug',
-//       debug: {
-//         logWsTraffic: true,
-//       },
-//     })
+import { __sw__Relay } from '@signalwire/realtime-api'
 
-//     client.on('signalwire.ready', (client) => {
-//       console.log('READY!!', client)
-//     })
-
-//     await client.connect()
-
-//     console.log('Client Running..')
-//   } catch (error) {
-//     console.log('<Error>', error)
-//   }
-// }
-
-// run()
-
-const consumer = new Compat.RelayConsumer({
+const consumer = new __sw__Relay.RelayConsumer({
   host: process.env.HOST || 'relay.swire.io',
   project: process.env.PROJECT as string,
   token: process.env.TOKEN as string,

@@ -1,4 +1,4 @@
-import { Compat } from '@signalwire/realtime-api'
+import { __sw__Relay } from '@signalwire/realtime-api'
 
 /**
  * Max 10 seconds to execute the script
@@ -28,7 +28,7 @@ async function main() {
   const fromNumber = String(process.env.RELAY_FROM_NUMBER)
   const toNumber = String(process.env.RELAY_TO_NUMBER)
 
-  const sender = new Compat.RelayConsumer({
+  const sender = new __sw__Relay.RelayConsumer({
     host,
     project,
     token,
@@ -36,7 +36,7 @@ async function main() {
     debug: {
       logWsTraffic: true,
     },
-    ready: async (consumer: Compat.RelayConsumer) => {
+    ready: async (consumer: __sw__Relay.RelayConsumer) => {
       const { successful, call } = await consumer.client.calling.dial({
         type: 'phone',
         from: fromNumber,
@@ -52,7 +52,7 @@ async function main() {
     },
   })
 
-  const receiver = new Compat.RelayConsumer({
+  const receiver = new __sw__Relay.RelayConsumer({
     host,
     project,
     token,

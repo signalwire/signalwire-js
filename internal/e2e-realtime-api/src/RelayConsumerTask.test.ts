@@ -1,4 +1,4 @@
-import { Compat } from '@signalwire/realtime-api'
+import { __sw__Relay } from '@signalwire/realtime-api'
 
 /**
  * Max 10 seconds to execute the script
@@ -26,7 +26,7 @@ async function main() {
   const token = String(process.env.RELAY_TOKEN)
   const contexts = ['sdk-jest', String(process.env.RELAY_CONTEXT)]
 
-  const consumer = new Compat.RelayConsumer({
+  const consumer = new __sw__Relay.RelayConsumer({
     host,
     project,
     token,
@@ -47,7 +47,7 @@ async function main() {
   await consumer.run()
 
   // Deliver task to it
-  const task = new Compat.Task(project, token)
+  const task = new __sw__Relay.Task(project, token)
   await task.deliver(String(process.env.RELAY_CONTEXT), { foo: 'baz' })
 }
 

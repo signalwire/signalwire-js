@@ -38,4 +38,8 @@ export * from './createClient'
  */
 export * as Video from './video/Video'
 
-export * as Compat from './compat/index'
+/**
+ * WIP Namespace
+ * @internal
+ */
+export * as __sw__Relay from './compat/index'
