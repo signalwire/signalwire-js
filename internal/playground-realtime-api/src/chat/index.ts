@@ -1,6 +1,8 @@
 import { Chat } from '@signalwire/realtime-api'
 
 async function run() {
+  console.log('PROJECT --->', process.env.PROJECT)
+  console.log('TOKEN --->', process.env.TOKEN)
   try {
     const chat = new Chat.Client({
       // @ts-expect-error
@@ -14,6 +16,36 @@ async function run() {
     })
 
     await chat.subscribe(['lobby'])
+
+    const pubRes = await chat.publish({
+      content: 'Hello There',
+      channel: 'lobby',
+      meta: {
+        data: 'whatever',
+      },
+    })
+
+    console.log('Publish Result --->', pubRes)
+
+    const messagesResult = await chat.getMessages({
+      channel: 'lobby',
+    })
+
+    console.log('Get Messages Result ---> ', messagesResult)
+
+    const setStateResult = await chat.setMemberState({
+      state: {
+        data: 'state data',
+      },
+      channels: ['lobby'],
+      memberId: 'test-user',
+    })
+
+    console.log('Set Member State Result --->', setStateResult)
+
+    const unsubscribeRes = await chat.unsubscribe(['lobby'])
+
+    console.log('Unsubscribe Result --->', unsubscribeRes)
 
     console.log('Client Running..')
   } catch (error) {
