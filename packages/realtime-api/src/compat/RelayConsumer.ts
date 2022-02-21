@@ -7,6 +7,8 @@ interface IRelayConsumerParams {
   host?: string
   project: string
   token: string
+  logLevel?: string
+  logWsTraffic?: boolean
   contexts?: string[]
   onIncomingCall?: Function
   onIncomingMessage?: Function
@@ -32,7 +34,7 @@ export class RelayConsumer {
 
   public client: any
 
-  constructor(params: IRelayConsumerParams) {
+  constructor(protected options: IRelayConsumerParams) {
     const {
       host,
       project,
@@ -45,7 +47,7 @@ export class RelayConsumer {
       setup,
       ready,
       teardown,
-    } = params
+    } = options
 
     this.host = host ?? ''
     this.project = project
@@ -89,9 +91,10 @@ export class RelayConsumer {
       project,
       token,
       contexts,
-      // logLevel: 'debug',
+      // @ts-expect-error
+      logLevel: this.options.logLevel || 'info',
       debug: {
-        // logWsTraffic: true,
+        logWsTraffic: Boolean(this.options.logWsTraffic),
       },
     })
 
