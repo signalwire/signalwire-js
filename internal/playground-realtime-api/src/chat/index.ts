@@ -43,6 +43,13 @@ async function run() {
 
     console.log('Set Member State Result --->', setStateResult)
 
+    const getStateResult = await chat.getMemberState({
+      channels: ['lobby'],
+      memberId: 'test-user',
+    })
+
+    console.log('Get Member State Result --->', getStateResult)
+
     const unsubscribeRes = await chat.unsubscribe(['lobby'])
 
     console.log('Unsubscribe Result --->', unsubscribeRes)
