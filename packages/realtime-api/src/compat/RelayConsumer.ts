@@ -1,14 +1,12 @@
-import { getLogger } from '@signalwire/core'
+import { getLogger, UserOptions } from '@signalwire/core'
 import { RelayClient } from './RelayClient'
 
 const isFunction = (t: any): t is Function => typeof t === 'function'
 
-interface IRelayConsumerParams {
+interface RelayConsumerParams extends UserOptions {
   host?: string
   project: string
   token: string
-  logLevel?: string
-  logWsTraffic?: boolean
   contexts?: string[]
   onIncomingCall?: Function
   onIncomingMessage?: Function
@@ -34,7 +32,7 @@ export class RelayConsumer {
 
   public client: any
 
-  constructor(protected options: IRelayConsumerParams) {
+  constructor(protected options: RelayConsumerParams) {
     const {
       host,
       project,
@@ -86,16 +84,14 @@ export class RelayConsumer {
       return
     }
 
+    const { logLevel, debug } = this.options
     this.client = new RelayClient({
       host,
       project,
       token,
       contexts,
-      // @ts-expect-error
-      logLevel: this.options.logLevel || 'info',
-      debug: {
-        logWsTraffic: Boolean(this.options.logWsTraffic),
-      },
+      logLevel,
+      debug,
     })
 
     // @ts-expect-error

@@ -3,7 +3,7 @@ import { Compat } from '@signalwire/realtime-api'
 /**
  * Max 10 seconds to execute the script
  */
-const MAX_EXECUTION_TIME = 20_000
+const MAX_EXECUTION_TIME = 10_000
 
 async function main() {
   let timer: ReturnType<typeof setTimeout>
@@ -33,8 +33,9 @@ async function main() {
     project,
     token,
     contexts,
-    logLevel: 'debug',
-    logWsTraffic: true,
+    debug: {
+      logWsTraffic: true,
+    },
     ready: async (consumer: Compat.RelayConsumer) => {
       const { successful, call } = await consumer.client.calling.dial({
         type: 'phone',
@@ -56,8 +57,9 @@ async function main() {
     project,
     token,
     contexts,
-    logLevel: 'debug',
-    logWsTraffic: true,
+    debug: {
+      logWsTraffic: true,
+    },
     onIncomingCall: async (relayCall: any) => {
       if (relayCall.from === fromNumber && relayCall.to === toNumber) {
         await relayCall.answer()
