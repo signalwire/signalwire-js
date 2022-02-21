@@ -12,7 +12,10 @@ export const relayWorker: SDKWorker<RelayClient> = function* ({
 }): SagaIterator {
   while (true) {
     const action: any = yield sagaEffects.take((action: any) => {
-      return action.type.startsWith('calling.')
+      return (
+        action.type.startsWith('calling.') ||
+        action.type === 'queuing.relay.tasks'
+      )
     })
 
     switch (action.type) {
@@ -68,6 +71,14 @@ export const relayWorker: SDKWorker<RelayClient> = function* ({
       case 'calling.call.send_digits': {
         // @ts-expect-error
         instance.calling._onSendDigits(action.payload.params)
+        break
+      }
+
+      /**
+       * TASK EVENTS
+       */
+      case 'queuing.relay.tasks': {
+        instance.tasking.onTaskingReceive(action.payload)
         break
       }
 
