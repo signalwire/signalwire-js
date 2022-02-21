@@ -1,5 +1,7 @@
 import type { EventEmitter } from '@signalwire/core'
-
+/**
+ * Importing Tasking objects from the V2 Node.js SDK
+ */
 import LegacyTasking from '@signalwire/node/dist/common/src/relay/tasking/Tasking'
 
 export class Tasking extends LegacyTasking {

@@ -1,5 +1,7 @@
 import type { EventEmitter } from '@signalwire/core'
-
+/**
+ * Importing Calling and Call objects from the V2 Node.js SDK
+ */
 import LegacyCalling from '@signalwire/node/dist/common/src/relay/calling/Calling'
 import LegacyCall from '@signalwire/node/dist/common/src/relay/calling/Call'
 

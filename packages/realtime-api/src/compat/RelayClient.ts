@@ -138,9 +138,6 @@ export const createRelayObject = (
          * there's no need for a namespace.
          */
         return ''
-      } else if (prop === 'eventChannel') {
-        // FIXME:
-        return 'video.rooms'
       }
 
       return Reflect.get(target, prop, receiver)

@@ -1,5 +1,7 @@
 import type { EventEmitter } from '@signalwire/core'
-
+/**
+ * Importing Messaging and Message objects from the V2 Node.js SDK
+ */
 import LegacyMessaging from '@signalwire/node/dist/common/src/relay/messaging/Messaging'
 import LegacyMessage from '@signalwire/node/dist/common/src/relay/messaging/Message'
 

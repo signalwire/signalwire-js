@@ -59,10 +59,6 @@ async function main() {
     logLevel: 'debug',
     logWsTraffic: true,
     onIncomingCall: async (relayCall: any) => {
-      // expect(relayCall).toBeInstanceOf(LegacyCall)
-      // expect(relayCall.id).toBeDefined()
-      // expect(relayCall.from).toBe(fromNumber)
-      // expect(relayCall.to).toBe(toNumber)
       if (relayCall.from === fromNumber && relayCall.to === toNumber) {
         await relayCall.answer()
         // TODO: Add other logic here
