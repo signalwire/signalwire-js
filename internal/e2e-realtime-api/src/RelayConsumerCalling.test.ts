@@ -10,14 +10,14 @@ async function main() {
 
   const start = () => {
     timer = setTimeout(() => {
-      console.error('RelayConsumer Timeout!')
+      console.error('RelayConsumerCalling Timeout!')
       process.exit(2)
     }, MAX_EXECUTION_TIME)
   }
 
   const done = () => {
     clearTimeout(timer)
-    console.log('RelayConsumer Success!')
+    console.log('RelayConsumerCalling Success!')
     process.exit(0)
   }
 
