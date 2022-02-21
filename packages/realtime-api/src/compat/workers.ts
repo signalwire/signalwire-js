@@ -14,6 +14,7 @@ export const relayWorker: SDKWorker<RelayClient> = function* ({
     const action: any = yield sagaEffects.take((action: any) => {
       return (
         action.type.startsWith('calling.') ||
+        action.type.startsWith('messaging.') ||
         action.type === 'queuing.relay.tasks'
       )
     })
@@ -79,6 +80,18 @@ export const relayWorker: SDKWorker<RelayClient> = function* ({
        */
       case 'queuing.relay.tasks': {
         instance.tasking.onTaskingReceive(action.payload)
+        break
+      }
+
+      /**
+       * MESSAGING EVENTS
+       */
+      case 'messaging.receive': {
+        instance.messaging.onMessagingReceive(action.payload.params)
+        break
+      }
+      case 'messaging.state': {
+        instance.messaging.onMessagingState(action.payload.params)
         break
       }
 
