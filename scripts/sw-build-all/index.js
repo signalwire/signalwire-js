@@ -99,7 +99,6 @@ export async function cli(args) {
 
   console.log('🌲 Constructing the build tree...')
   const pkgDeps = scan(path.join(__dirname, '../../packages'))
-  console.log('pkgDeps', pkgDeps)
   const tree = buildTree(
     pkgDeps,
     new Map([[0, Array.from(packagesWithNoDeps)]])
