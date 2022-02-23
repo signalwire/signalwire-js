@@ -1,9 +1,7 @@
-import { Video } from '@signalwire/js'
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import './App.css'
 import { MemberList } from './components/MemberList'
-import { useRoomSession } from './hooks/useRoomSession'
-import { setRoomSession } from './store'
+import { useCreateRoomSession, useRoomSession } from './hooks/useRoomSession'
 
 const options = {
   host: 'relay.swire.io',
@@ -15,34 +13,36 @@ const options = {
 function App() {
   const rootEl = useRef<HTMLDivElement>(null)
   const [roomSession] = useRoomSession()
+  const createRoomSession = useCreateRoomSession()
+
+  useEffect(() => {
+    createRoomSession({
+      ...options,
+      rootElement: rootEl.current!,
+    })
+  }, [])
 
   return (
     <div>
-      {!roomSession && (
-        <button
-          onClick={() => {
-            const room = new Video.RoomSession({
-              ...options,
-              rootElement: rootEl.current!,
-            })
-            setRoomSession(room.roomSessionId, room)
-            room.join()
-          }}
-        >
-          Join
-        </button>
-      )}
+      {/* TODO: we don't have a react-way to identify if the underlying session is active or not since `roomSession.active` is not reactive */}
+      <button
+        onClick={() => {
+          roomSession?.join()
+        }}
+      >
+        Join
+      </button>
 
-      {roomSession && (
-        <button
-          onClick={() => {
-            // @ts-expect-error
-            roomSession?.hangup()
-          }}
-        >
-          Hangup
-        </button>
-      )}
+      <button
+        onClick={() => {
+          // @ts-expect-error
+          roomSession?.hangup()
+        }}
+      >
+        Hangup
+      </button>
+
+      {/* If we conditionally render this element we can no longer read the roomSession from the store (???) */}
       <MemberList />
       <div ref={rootEl} />
     </div>

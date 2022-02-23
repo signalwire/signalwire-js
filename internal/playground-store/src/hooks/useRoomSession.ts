@@ -1,23 +1,24 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Video } from '@signalwire/js'
 import { onRoomSessionReady, setRoomSession } from '../store'
 
-export const useCreateRoomSession = (options: any) => {
-  const [roomSession] = useState<Video.RoomSession>(
-    () => new Video.RoomSession(options)
-  )
-
-  useEffect(() => {
-    setRoomSession(roomSession.roomSessionId, roomSession)
+export const useCreateRoomSession = () => {
+  return useCallback((options) => {
+    const room = new Video.RoomSession(options)
+    setRoomSession(room.roomSessionId, room)
   }, [])
-
-  return roomSession
 }
 
 export const useRoomSession = (): [Video.RoomSession | undefined] => {
   const [roomSession, setRoomSession] = useState<Video.RoomSession>()
+
   useEffect(() => {
-    onRoomSessionReady().then((room) => {
+    onRoomSessionReady({
+      destroyCallback: () => {
+        setRoomSession(undefined)
+      },
+    }).then((room) => {
+      console.log('Room Session Ready')
       setRoomSession(room)
     })
   }, [])
@@ -26,7 +27,7 @@ export const useRoomSession = (): [Video.RoomSession | undefined] => {
 }
 
 export const useMemberListUpdated = () => {
-  // Video.VideoMemberListUpdatedParams
+  // TODO: Missing Video.VideoMemberListUpdatedParams from js package
   const [data, setData] = useState<any>()
   const [roomSession] = useRoomSession()
 

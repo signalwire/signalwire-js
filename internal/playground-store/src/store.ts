@@ -36,12 +36,27 @@ const setRoomSession = (
   state['roomSessionId'] = roomSessionId
 }
 
-const onRoomSessionReady = async () => {
+const onRoomSessionReady = async ({
+  destroyCallback,
+}: { destroyCallback?: any } = {}) => {
   return new Promise<Video.RoomSession>((resolve) => {
+    if (state.roomSessionId) {
+      return resolve(getRoomSession())
+    }
+
     subscribeKey(state, 'roomSessionId', (v) => {
-      const room = state.rooms[state.roomSessionId]
+      const id = state.roomSessionId
+      const room = state.rooms[id]
 
       if (room) {
+        room.once('destroy', () => {
+          // @ts-expect-error
+          state.rooms[id] = undefined
+          state.roomSessionId = ''
+
+          destroyCallback?.()
+        })
+
         resolve(room)
       }
 
