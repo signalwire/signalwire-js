@@ -2,38 +2,56 @@
  * You can use the realtime SDK to listen for and react to events from
  * SignalWire's RealTime APIs.
  *
- * To get started, create a realtime client with {@link createClient} and listen
- * for events. For example:
+ * To get started, create a realtime client, for example with
+ * {@link Video.Client} and listen for events. For example:
  *
  * ```javascript
- * const { createClient } = require('@signalwire/realtime-api')
+ * import { Video } from '@signalwire/realtime-api'
  *
- * createClient({
+ * const video = new Video.Client({
  *   project: '<project-id>',
  *   token: '<project-token>'
- * }).then((client) => {
- *   client.video.on('room.started', async (roomSession) => {
- *     console.log("Room started")
+ * })
  *
- *     roomSession.on('member.joined', async (member) => {
- *       console.log(member)
- *     })
+ * video.on('room.started', async (roomSession) => {
+ *   console.log("Room started")
  *
- *     await roomSession.subscribe()
- *   });
+ *   roomSession.on('member.joined', async (member) => {
+ *     console.log(member)
+ *   })
  *
- *   client.connect()
+ *   await roomSession.subscribe()
  * });
  * ```
  *
  * @module
  */
 
-export * from './createClient'
-
 /**
- * You can use the Video namespace to subscribe to video-related events.
+ * Access the Video API Consumer. You can instantiate a {@link Video.Client} to
+ * subscribe to Video events. Please check {@link Video.VideoClientApiEvents}
+ * for the full list of events that a {@link Video.Client} can subscribe to.
  *
- * See {@link Video.Video} for examples.
+ * ### Example
+ *
+ * The following example logs whenever a room session is started or a user joins
+ * it:
+ *
+ * ```javascript
+ * const video = new Video.Client({ project, token })
+ *
+ * // Listen for events:
+ * video.on('room.started', async (roomSession) => {
+ *   console.log('Room has started:', roomSession.name)
+ *
+ *   roomSession.on('member.joined', async (member) => {
+ *     console.log('Member joined:', member.name)
+ *   })
+ *
+ *   await roomSession.subscribe()
+ * })
+ * ```
  */
 export * as Video from './video/Video'
+
+export * from './createClient'

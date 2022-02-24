@@ -25,62 +25,6 @@ type TransformEvent = Extract<
   'video.room.started' | 'video.room.ended'
 >
 
-/**
- * Access the Video API Consumer. You can use an instance of the Video class
- * (you can obtain one via {@link createClient}) to subscribe to the Video
- * events.
- *
- * ### Example
- *
- * The following example logs whenever a room session is started or a user joins
- * it:
- *
- * ```javascript
- * // Obtain a client:
- * const client = await createClient({ project, token })
- *
- * // Listen for events:
- * client.video.on('room.started', async (roomSession) => {
- *   console.log('Room has started:', roomSession.name)
- *
- *   roomSession.on('member.joined', async (member) => {
- *     console.log('Member joined:', member.name)
- *   })
- *
- *   await roomSession.subscribe()
- * })
- *
- * // Connect the client:
- * await client.connect()
- * ```
- *
- * ### Events
- * You can use this object to subscribe to the following events.
- *
- *  - **room.started**:
- *
- * Emitted when a room session is started. Your event handler receives an object
- * which is an instance of {@link RoomSession}. Example:
- * ```typescript
- * const client = await createClient(...)
- * client.video.on('room.started', async (roomSession) => {
- *     console.log(roomSession.name)
- * })
- * await client.connect()
- * ```
- *
- *  - **room.ended**:
- *
- * Emitted when a room session ends. Your event handler receives an object which
- * is an instance of {@link RoomSession}.
- * ```typescript
- * const client = await createClient(...)
- * client.video.on('room.ended', async (roomSession) => {
- *     console.log(roomSession.name)
- * })
- * await client.connect()
- * ```
- */
 export interface Video extends ConsumerContract<RealTimeVideoApiEvents> {
   /** @internal */
   subscribe(): Promise<void>
