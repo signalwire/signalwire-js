@@ -927,28 +927,9 @@ interface RoomLayoutMethodsInterface {
     >
   }): Promise<void>
 
-  setRoles(params: {
-    roles: Record<
-      string,
-      | 'self'
-      | 'standard'
-      | `standard-${number}`
-      | 'off-canvas'
-    >
-  }): Promise<void>
-
   setMemberPosition(params: {
     memberId?: string
     position:
-      | 'self'
-      | 'standard'
-      | `standard-${number}`
-      | 'off-canvas'
-  }): Promise<void>
-
-  setMemberRole(params: {
-    memberId?: string
-    role:
       | 'self'
       | 'standard'
       | `standard-${number}`
