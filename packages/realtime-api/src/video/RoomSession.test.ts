@@ -173,7 +173,7 @@ describe('RoomSession Object', () => {
     })
   })
 
-  describe.only('automatic subscribe', () => {
+  describe('automatic subscribe', () => {
     it('should automatically call subscribe when attaching events', async () => {
       const { store, emitter } = configureFullStack()
       const room = createRoomSessionObject({
