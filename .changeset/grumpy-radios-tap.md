@@ -5,4 +5,4 @@
 '@signalwire/webrtc': patch
 ---
 
-Add `layout`, `positions` and `restoreLayout` when starting a screenShare.
+Add `layout` and `positions` when starting a screenShare.

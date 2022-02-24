@@ -105,7 +105,6 @@ export type StartScreenShareOptions = {
   video?: MediaStreamConstraints['video']
   layout?: string
   positions?: VideoPositions
-  restoreLayout?: boolean
 }
 
 /**

@@ -76,5 +76,4 @@ export interface ConnectionOptions {
 
   layout?: string
   positions?: VideoPositions
-  restoreLayout?: boolean
 }
