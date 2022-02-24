@@ -9,7 +9,7 @@ async function run() {
       token: process.env.TOKEN as string,
     })
 
-    const channel = 'lobby'
+    const channel = 'channel-name-here'
 
     chat.on('member.joined', (member) => {
       console.log('member.joined', member)
