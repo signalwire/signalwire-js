@@ -366,7 +366,6 @@ window.startScreenShare = async () => {
       audio: true,
       video: true,
       layout: document.getElementById('ssLayout').value,
-      restoreLayout: document.getElementById('ssRestoreLayout').checked,
       positions: {
         self: 'reserved-1',
       },

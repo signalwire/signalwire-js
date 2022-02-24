@@ -134,8 +134,6 @@ export interface RoomSessionDocs<T>
         layout?: string
         /** Automatically set positions when screen share joins the room. */
         positions?: VideoPositions
-        /** Whether to restore the previous layout when the screen share leaves the room. */
-        restoreLayout?: boolean
       }
     >
   ): Promise<RoomSessionScreenShare>
@@ -927,28 +925,9 @@ interface RoomLayoutMethodsInterface {
     >
   }): Promise<void>
 
-  setRoles(params: {
-    roles: Record<
-      string,
-      | 'self'
-      | 'standard'
-      | `standard-${number}`
-      | 'off-canvas'
-    >
-  }): Promise<void>
-
   setMemberPosition(params: {
     memberId?: string
     position:
-      | 'self'
-      | 'standard'
-      | `standard-${number}`
-      | 'off-canvas'
-  }): Promise<void>
-
-  setMemberRole(params: {
-    memberId?: string
-    role:
       | 'self'
       | 'standard'
       | `standard-${number}`

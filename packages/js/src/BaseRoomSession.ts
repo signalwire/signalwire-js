@@ -150,7 +150,6 @@ export class RoomSessionConnection
       video = true,
       layout,
       positions,
-      restoreLayout,
     } = opts
     const displayStream: MediaStream = await getDisplayMedia({
       audio: audio === true ? SCREENSHARE_AUDIO_CONSTRAINTS : audio,
@@ -169,7 +168,6 @@ export class RoomSessionConnection
       },
       layout,
       positions,
-      restoreLayout,
     }
 
     const screenShare = connect<
@@ -355,9 +353,7 @@ export const RoomSessionAPI = extendComponent<
   getLayouts: Rooms.getLayouts,
   setLayout: Rooms.setLayout,
   setPositions: Rooms.setPositions,
-  setRoles: Rooms.setPositions,
   setMemberPosition: Rooms.setMemberPosition,
-  setMemberRole: Rooms.setMemberPosition,
   hideVideoMuted: Rooms.hideVideoMuted,
   showVideoMuted: Rooms.showVideoMuted,
   getRecordings: Rooms.getRecordings,

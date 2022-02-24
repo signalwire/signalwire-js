@@ -31,7 +31,6 @@ const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   requestTimeout: 10 * 1000,
   autoApplyMediaParams: true,
   iceGatheringTimeout: 2 * 1000,
-  restoreLayout: true,
 }
 
 type EventsHandlerMapping = Record<BaseConnectionState, () => void> &
@@ -481,7 +480,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       const ssOpts = this.options.screenShare
         ? {
             layout: this.options.layout,
-            restore_layout: this.options.restoreLayout,
             positions: this.options.positions,
           }
         : {}

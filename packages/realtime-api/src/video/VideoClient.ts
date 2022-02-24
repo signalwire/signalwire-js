@@ -4,15 +4,41 @@ import { getLogger } from '@signalwire/core'
 import { getProxiedClient, clientConnect } from '../client/index'
 import { getCredentials, setupInternals } from '../utils/internals'
 import { createVideoObject, Video } from './Video'
+import { VideoClientDocs } from './VideoClient.docs'
 
+/**
+ * List of events for {@link Video.Client}.
+ */
 export interface VideoClientApiEvents extends RealTimeVideoApiEvents {}
 
 export interface VideoApiFullState extends VideoClient {}
-interface VideoClientMain extends Video {}
+interface VideoClientMain extends Video {
+  new (opts: VideoClientOptions): this
+}
 
-interface VideoClientDocs extends VideoClientMain {}
-
-export interface VideoClient
+/**
+ * You can use instances of this class to subscribe to video events. Please see
+ * {@link VideoClientApiEvents} for the full list of events you can subscribe
+ * to.
+ *
+ * @example
+ *
+ * ```javascript
+ * const video = new Video.Client({
+ *   project: '<project-id>',
+ *   token: '<project-token>'
+ * })
+ *
+ * video.on('room.started', async (roomSession) => {
+ *   console.log("Room started")
+ * });
+ *
+ * video.on('room.ended', async (roomSession) => {
+ *   console.log("Room ended")
+ * });
+ * ```
+ */
+interface VideoClient
   extends AssertSameType<VideoClientMain, VideoClientDocs> {}
 
 export interface VideoClientOptions
@@ -20,6 +46,7 @@ export interface VideoClientOptions
   token?: string
 }
 
+/** @ignore */
 const VideoClient = function (options: VideoClientOptions) {
   const credentials = getCredentials({
     token: options.token,
@@ -77,7 +104,7 @@ const VideoClient = function (options: VideoClientOptions) {
     _session: client,
   } as const
 
-  return new Proxy<VideoClient>(video, {
+  return new Proxy<Omit<VideoClient, 'new'>>(video, {
     get(
       target: VideoClient,
       prop: keyof VideoClient | 'session',
