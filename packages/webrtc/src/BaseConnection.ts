@@ -326,8 +326,13 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
    * @internal
    */
   private updateConstraints(
-    constraints: MediaStreamConstraints
+    constraints: MediaStreamConstraints,
+    attempt = 0
   ): Promise<void> {
+    if (attempt > 1) {
+      return Promise.reject(new Error('Failed to update constraints'))
+    }
+
     return new Promise(async (resolve, reject) => {
       try {
         this.logger.debug(
@@ -349,7 +354,55 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
           return
         }
 
-        const newStream = await getUserMedia(constraints)
+        let newStream!: MediaStream
+        try {
+          newStream = await getUserMedia(constraints)
+        } catch (error) {
+          /**
+           * In Firefox you cannot open more than one
+           * microphone at a time, per process. When this
+           * happens we'll try to do the following:
+           * 1. Stop the current audio track
+           * 2. Try to get another audio track with the new
+           *    constraints
+           * 3. If we get an error: restore the media tracks
+           *    using the previous constraints.
+           * @see
+           * https://bugzilla.mozilla.org/show_bug.cgi?id=1238038
+           */
+          if (
+            error instanceof DOMException &&
+            error.name === 'NotReadableError'
+          ) {
+            let oldConstraints: MediaStreamConstraints = {}
+            this.options.localStream?.getTracks().forEach((track) => {
+              // @ts-expect-error
+              oldConstraints[track.kind] = track.getConstraints()
+            })
+
+            this.options.localStream?.getTracks().forEach((track) => {
+              // @ts-expect-error
+              if (constraints[track.kind] !== undefined) {
+                this.logger.debug(
+                  'updateConstraints stop old tracks to retrieve new ones'
+                )
+                stopTrack(track)
+                this.options.localStream?.removeTrack(track)
+              }
+            })
+
+            try {
+              return this.updateConstraints(constraints, attempt + 1)
+            } catch (error) {
+              this.logger.error('Restoring previous constraints')
+              return this.updateConstraints(oldConstraints, attempt + 1)
+            }
+          }
+
+          this.logger.error('updateConstraints', error)
+          return reject(error)
+        }
+
         this.logger.debug('updateConstraints got stream', newStream)
         if (!this.options.localStream) {
           this.options.localStream = new MediaStream()
