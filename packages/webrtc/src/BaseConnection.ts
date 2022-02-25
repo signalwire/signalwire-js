@@ -327,7 +327,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
    */
   private updateConstraints(
     constraints: MediaStreamConstraints,
-    attempt = 0
+    { attempt = 0 } = {}
   ): Promise<void> {
     if (attempt > 1) {
       return Promise.reject(new Error('Failed to update constraints'))
@@ -372,7 +372,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
            */
           if (
             error instanceof DOMException &&
-            error.name === 'NotReadableError'
+            error.message === 'Concurrent mic process limit.'
           ) {
             let oldConstraints: MediaStreamConstraints = {}
             this.options.localStream?.getTracks().forEach((track) => {
@@ -392,10 +392,18 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
             })
 
             try {
-              return this.updateConstraints(constraints, attempt + 1)
+              return resolve(
+                this.updateConstraints(constraints, {
+                  attempt: attempt + 1,
+                })
+              )
             } catch (error) {
               this.logger.error('Restoring previous constraints')
-              return this.updateConstraints(oldConstraints, attempt + 1)
+              return resolve(
+                this.updateConstraints(oldConstraints, {
+                  attempt: attempt + 1,
+                })
+              )
             }
           }
 
