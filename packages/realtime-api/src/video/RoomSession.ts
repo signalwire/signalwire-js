@@ -397,9 +397,12 @@ interface RoomSessionDocs extends RoomSessionMain {
   }): Promise<Rooms.RoomSessionPlayback>
 
   /**
-   * Start listening for the events for which you have provided event handlers
-   * and returns the {@link RoomSessionFullState} that contains the full state
-   * of the room session.
+   * Listens for the events for which you have provided event handlers and
+   * returns the {@link RoomSessionFullState} that contains the full state of
+   * the room session.
+   *
+   * Note that you don't need to manually call this method to start listening
+   * to events, since they are listened automatically.
    *
    * @example
    * ```typescript
