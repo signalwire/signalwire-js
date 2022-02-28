@@ -88,6 +88,27 @@ export class BaseComponent<
   private _customSagaTriggers = new Map()
   private _destroyer?: () => void
 
+  private _handleCompoundEvents(event: EventEmitter.EventNames<EventTypes>) {
+    let compoundEvents
+    for (const evt of this.getCompoundEvents().keys()) {
+      const internalEvent = this._getInternalEvent(evt)
+      if (internalEvent === event) {
+        compoundEvents = this.getCompoundEvents().get(evt)
+        break
+      }
+    }
+
+    if (!compoundEvents || compoundEvents.length === 0) {
+      return
+    }
+
+    // To keep things simple we only support specifying
+    // the event but not it's handler
+    compoundEvents.forEach((compoundEvent) => {
+      this._addListener(compoundEvent, (() => {}) as any, true)
+    })
+  }
+
   /**
    * A Namespace let us scope specific instances inside of a
    * particular product (like 'video.', 'chat.', etc.). For instance,
@@ -439,6 +460,8 @@ export class BaseComponent<
     const internalEvent = this._getInternalEvent(event)
     this._trackEvent(internalEvent)
 
+    this._handleCompoundEvents(internalEvent)
+
     const type: EventRegisterHandlers<EventTypes>['type'] = once ? 'once' : 'on'
     if (this.shouldAddToQueue()) {
       this.addEventToRegisterQueue({
@@ -689,6 +712,14 @@ export class BaseComponent<
       this._eventsNamespace = namespace
     }
     this.flushEventsQueue()
+  }
+
+  /** @internal */
+  protected getCompoundEvents(): Map<
+    EventEmitter.EventNames<EventTypes>,
+    EventEmitter.EventNames<EventTypes>[]
+  > {
+    return new Map()
   }
 
   /**
