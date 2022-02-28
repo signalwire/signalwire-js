@@ -27,4 +27,5 @@ export {
   setMediaElementSinkId,
   stopStream,
   stopTrack,
+  createMicrophoneAnalyzer,
 } from '@signalwire/webrtc'
