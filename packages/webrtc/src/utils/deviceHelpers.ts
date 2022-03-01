@@ -837,7 +837,7 @@ interface MicrophoneAnalyzerEvents {
  * @example
  *
  * ```js
- * micAnalyzer = await createMicrophoneAnalyzer('device-id')
+ * const micAnalyzer = await createMicrophoneAnalyzer('device-id')
  *
  * micAnalyzer.on('volumeChanged', (vol) => {
  *   console.log("Volume: ", vol)
