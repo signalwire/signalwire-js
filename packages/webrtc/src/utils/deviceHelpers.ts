@@ -819,6 +819,10 @@ interface MicrophoneAnalyzerEvents {
   destroyed: (reason: null | 'error' | 'disconnected') => void
 }
 
+interface MicrophoneAnalyzer extends EventEmitter<MicrophoneAnalyzerEvents> {
+  destroy(): void
+}
+
 /**
  * Initializes a microphone analyzer. You can use a MicrophoneAnalyzer to track
  * the input audio volume.
@@ -858,7 +862,7 @@ interface MicrophoneAnalyzerEvents {
  */
 export const createMicrophoneAnalyzer = async (
   options: string | MediaTrackConstraints | MediaStream
-) => {
+): Promise<MicrophoneAnalyzer> => {
   const stream = await getMicrophoneAnalyzerMediaStream(options)
 
   if (!stream) {
@@ -929,12 +933,16 @@ export const createMicrophoneAnalyzer = async (
     emitter.removeAllListeners()
   }
 
-  return new Proxy(emitter, {
-    get(target: any, prop: any, receiver: any) {
-      if (prop === 'destroy') {
-        return destroy
-      }
-      return Reflect.get(target, prop, receiver)
-    },
-  })
+  return new Proxy<MicrophoneAnalyzer>(
+    // @ts-expect-error
+    emitter,
+    {
+      get(target, prop: keyof MicrophoneAnalyzer, receiver: any) {
+        if (prop === 'destroy') {
+          return destroy
+        }
+        return Reflect.get(target, prop, receiver)
+      },
+    }
+  )
 }
