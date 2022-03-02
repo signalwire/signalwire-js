@@ -858,7 +858,7 @@ interface MicrophoneAnalyzer extends EventEmitter<MicrophoneAnalyzerEvents> {
  * or a
  * [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream).
  *
- * @returns a MicrophoneAnalyzer.
+ * @returns Asynchronously returns a MicrophoneAnalyzer.
  */
 export const createMicrophoneAnalyzer = async (
   options: string | MediaTrackConstraints | MediaStream
