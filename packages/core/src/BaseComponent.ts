@@ -112,7 +112,6 @@ export class BaseComponent<
           internalEvent: internalCompoundEvent,
         },
       })
-
       /**
        * In the future we might want to support defining
        * custom compound event handlers by specifying not
