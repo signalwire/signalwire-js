@@ -1,6 +1,6 @@
 {
   "name": "@sw-internal/build-all",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A CLI for creating the build tree and concurrently building each of them",
   "main": "index.js",
   "type": "module",
