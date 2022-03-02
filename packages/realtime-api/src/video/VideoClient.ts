@@ -11,6 +11,7 @@ import { VideoClientDocs } from './VideoClient.docs'
  */
 export interface VideoClientApiEvents extends RealTimeVideoApiEvents {}
 
+/** @ignore */
 export interface VideoApiFullState extends VideoClient {}
 interface VideoClientMain extends Video {
   new (opts: VideoClientOptions): this
@@ -41,6 +42,7 @@ interface VideoClientMain extends Video {
 interface VideoClient
   extends AssertSameType<VideoClientMain, VideoClientDocs> {}
 
+/** @ignore */
 export interface VideoClientOptions
   extends Omit<UserOptions, 'host' | '_onRefreshToken' | 'token'> {
   token?: string

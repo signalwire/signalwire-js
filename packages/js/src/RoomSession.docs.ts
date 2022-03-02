@@ -126,7 +126,7 @@ export interface RoomSessionDocs<T>
       {
         /** Whether the screen share object should automatically join the room. Default: `true`. */
         autoJoin?: boolean
-        /** Audio constraints to use when joining the room. Default: `true`. */
+        /** Audio constraints to use when joining the room. Default: `false`. */
         audio?: MediaStreamConstraints['audio']
         /** Video constraints to use when joining the room. Default: `true`. */
         video?: MediaStreamConstraints['video']

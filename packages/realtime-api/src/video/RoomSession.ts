@@ -332,6 +332,13 @@ interface RoomSessionDocs extends RoomSessionMain {
   /**
    * Obtains a list of recordings for the current room session.
    *
+   * @example
+   * ```js
+   * const rec = await roomSession.getRecordings()
+   * rec.recordings[0].id
+   * rec.recordings[0].state
+   * ```
+   * 
    * @returns The returned objects contain all the properties of a
    * {@link RoomSessionRecording}, but no methods.
    */
@@ -352,6 +359,13 @@ interface RoomSessionDocs extends RoomSessionMain {
 
   /**
    * Obtains a list of playbacks for the current room session.
+   * 
+   * @example
+   * ```js
+   * const pl = await roomSession.startRecording()
+   * pl.playbacks[0].id
+   * pl.playbacks[0].state
+   * ```
    *
    * @returns The returned objects contain all the properties of a
    * {@link RoomSessionPlayback}, but no methods.
