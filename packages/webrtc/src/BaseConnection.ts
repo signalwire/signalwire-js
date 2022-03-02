@@ -376,11 +376,14 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
           ) {
             let oldConstraints: MediaStreamConstraints = {}
             this.options.localStream?.getTracks().forEach((track) => {
+              /**
+               * We'll keep a reference of the original
+               * constraints so if something fails we should
+               * be able to restore them.
+               */
               // @ts-expect-error
               oldConstraints[track.kind] = track.getConstraints()
-            })
 
-            this.options.localStream?.getTracks().forEach((track) => {
               // @ts-expect-error
               if (constraints[track.kind] !== undefined) {
                 this.logger.debug(
