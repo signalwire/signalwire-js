@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0-beta.7] - 2022-03-02
+
+### Added
+
+- [#426](https://github.com/signalwire/signalwire-js/pull/426) [`edc573f2`](https://github.com/signalwire/signalwire-js/commit/edc573f2cb7f3c82430b833117f537b7dcc462c8) - Expose the `removeAllListeners` method for all the components.
+
+### Patch Changes
+
+- [#435](https://github.com/signalwire/signalwire-js/pull/435) [`cc457600`](https://github.com/signalwire/signalwire-js/commit/cc45760040abefa0d95865a61d037e878d50737d) - Calls to `RoomSession.subscribe()` are now optional.
+
+### Dependencies
+
+- Updated dependencies [[`bc0134e9`](https://github.com/signalwire/signalwire-js/commit/bc0134e939c654f5e2d78188b041f31c611724c1), [`46600032`](https://github.com/signalwire/signalwire-js/commit/466000329e146b39fbf809ff6f31c727f780e592), [`d168a035`](https://github.com/signalwire/signalwire-js/commit/d168a035c6f56f5002935269a2f379ef796355df), [`edc573f2`](https://github.com/signalwire/signalwire-js/commit/edc573f2cb7f3c82430b833117f537b7dcc462c8)]:
+  - @signalwire/core@3.6.0
+
 ## [3.0.0-beta.6] - 2022-02-04
 
 ### Dependencies

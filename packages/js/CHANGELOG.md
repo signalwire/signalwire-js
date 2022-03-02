@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.9.0] - 2022-03-02
+
+### Added
+
+- [#433](https://github.com/signalwire/signalwire-js/pull/433) [`dabaafe9`](https://github.com/signalwire/signalwire-js/commit/dabaafe96a7cce64df5b23d52add51714006fa81) - Add helper for testing the microphone
+
+- [#426](https://github.com/signalwire/signalwire-js/pull/426) [`edc573f2`](https://github.com/signalwire/signalwire-js/commit/edc573f2cb7f3c82430b833117f537b7dcc462c8) - Expose the `removeAllListeners` method for all the components.
+
+- [#447](https://github.com/signalwire/signalwire-js/pull/447) [`37567d47`](https://github.com/signalwire/signalwire-js/commit/37567d470f7b0630d2b8aa448218837d045b74e5) - Expose `RoomSessionOptions` and `VideoMemberListUpdatedParams` types.
+
+### Changed
+
+- [#432](https://github.com/signalwire/signalwire-js/pull/432) [`3434f3af`](https://github.com/signalwire/signalwire-js/commit/3434f3af7bc7a7568ca907581c7fed41dec3d7f8) - Removed an obsolete console warning which was triggered for the previously experimental `Chat` feature.
+
+### Dependencies
+
+- Updated dependencies [[`dabaafe9`](https://github.com/signalwire/signalwire-js/commit/dabaafe96a7cce64df5b23d52add51714006fa81), [`0edfa63b`](https://github.com/signalwire/signalwire-js/commit/0edfa63bd4a44b3dbf4e5a7d171f62c47330bad9), [`bc0134e9`](https://github.com/signalwire/signalwire-js/commit/bc0134e939c654f5e2d78188b041f31c611724c1), [`46600032`](https://github.com/signalwire/signalwire-js/commit/466000329e146b39fbf809ff6f31c727f780e592), [`d168a035`](https://github.com/signalwire/signalwire-js/commit/d168a035c6f56f5002935269a2f379ef796355df), [`f1fca94d`](https://github.com/signalwire/signalwire-js/commit/f1fca94d21825601e76adb7c5914cf36e8d7f9f3), [`edc573f2`](https://github.com/signalwire/signalwire-js/commit/edc573f2cb7f3c82430b833117f537b7dcc462c8)]:
+  - @signalwire/webrtc@3.4.0
+  - @signalwire/core@3.6.0
+
 ## [3.8.0] - 2022-02-04
 
 ### Added

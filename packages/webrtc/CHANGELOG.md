@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.4.0] - 2022-03-02
+
+### Added
+
+- [#433](https://github.com/signalwire/signalwire-js/pull/433) [`dabaafe9`](https://github.com/signalwire/signalwire-js/commit/dabaafe96a7cce64df5b23d52add51714006fa81) - Add `createMicrophoneAnalyzer` helper for testing the microphone.
+
+### Changed
+
+- [#446](https://github.com/signalwire/signalwire-js/pull/446) [`0edfa63b`](https://github.com/signalwire/signalwire-js/commit/0edfa63bd4a44b3dbf4e5a7d171f62c47330bad9) - Fix typings for `createMicrophoneAnalyzer` to make it return `Promise<MicrophoneAnalyzer>`.
+
+### Fixed
+
+- [#442](https://github.com/signalwire/signalwire-js/pull/442) [`f1fca94d`](https://github.com/signalwire/signalwire-js/commit/f1fca94d21825601e76adb7c5914cf36e8d7f9f3) - Fix to properly handle switching between microphones on Firefox.
+
+### Dependencies
+
+- Updated dependencies [[`bc0134e9`](https://github.com/signalwire/signalwire-js/commit/bc0134e939c654f5e2d78188b041f31c611724c1), [`46600032`](https://github.com/signalwire/signalwire-js/commit/466000329e146b39fbf809ff6f31c727f780e592), [`d168a035`](https://github.com/signalwire/signalwire-js/commit/d168a035c6f56f5002935269a2f379ef796355df), [`edc573f2`](https://github.com/signalwire/signalwire-js/commit/edc573f2cb7f3c82430b833117f537b7dcc462c8)]:
+  - @signalwire/core@3.6.0
+
 ## [3.3.1] - 2022-02-04
 
 ### Fixed
