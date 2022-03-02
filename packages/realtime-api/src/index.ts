@@ -19,8 +19,6 @@
  *   roomSession.on('member.joined', async (member) => {
  *     console.log(member)
  *   })
- *
- *   await roomSession.subscribe()
  * });
  * ```
  *
@@ -47,8 +45,6 @@
  *   roomSession.on('member.joined', async (member) => {
  *     console.log('Member joined:', member.name)
  *   })
- *
- *   await roomSession.subscribe()
  * })
  * ```
  */
