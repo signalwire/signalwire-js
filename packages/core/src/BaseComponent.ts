@@ -102,10 +102,19 @@ export class BaseComponent<
       return
     }
 
-    // To keep things simple we only support specifying
-    // the event but not it's handler
     compoundEvents.forEach((compoundEvent) => {
-      this._addListener(compoundEvent, (() => {}) as any, true)
+      /**
+       * In the future we might want to support defining
+       * custom compound event handlers by specifying not
+       * only the event but its event handler as well. For
+       * now we don't have a need for that so we'll keep it
+       * simple and just track the event without going
+       * through the emitter (since we don't need the
+       * handler).
+       */
+      if (typeof compoundEvent === 'string') {
+        this._trackEvent(compoundEvent)
+      }
     })
   }
 
