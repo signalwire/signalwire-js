@@ -7,18 +7,24 @@ async function run() {
       host: process.env.HOST || 'relay.swire.io',
       project: process.env.PROJECT as string,
       token: process.env.TOKEN as string,
+      debug: {
+        logWsTraffic: true,
+      },
     })
 
     video.on('room.started', (room) => {
       console.log('Room started --->', room.id, room.name)
+      // room.on('member.updated', () => {
+      //   console.log('>>>>> MEMBER UPDATED!');
+      // })
 
-      room.on('member.joined', (member) => {
-        console.log('Member joined --->', member.id, member.name)
-      })
+      // room.on('member.joined', (member) => {
+      //   console.log('Member joined --->', member.id, member.name)
+      // })
 
-      room.on('member.left', (member) => {
-        console.log('Member left --->', member.id, member.name)
-      })
+      // room.on('member.left', (member) => {
+      //   console.log('Member left --->', member.id, member.name)
+      // })
     })
 
     video.on('room.ended', (room) => {
