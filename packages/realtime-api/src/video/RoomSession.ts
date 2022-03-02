@@ -311,33 +311,23 @@ interface RoomSessionDocs extends RoomSessionMain {
    */
   setLayout(params: {
     name: string
-    positions?: Record<
-      string,
-      | 'self'
-      | 'standard'
-      | `standard-${number}`
-      | 'off-canvas'
-    >
+    // positions?: Record<
+    //   string,
+    //   'self' | 'standard' | `standard-${number}` | 'off-canvas'
+    // >
   }): Promise<void>
 
-  setPositions(params: {
-    positions: Record<
-      string,
-      | 'self'
-      | 'standard'
-      | `standard-${number}`
-      | 'off-canvas'
-    >
-  }): Promise<void>
+  // setPositions(params: {
+  //   positions: Record<
+  //     string,
+  //     'self' | 'standard' | `standard-${number}` | 'off-canvas'
+  //   >
+  // }): Promise<void>
 
-  setMemberPosition(params: {
-    memberId?: string
-    position:
-      | 'self'
-      | 'standard'
-      | `standard-${number}`
-      | 'off-canvas'
-  }): Promise<void>
+  // setMemberPosition(params: {
+  //   memberId?: string
+  //   position: 'self' | 'standard' | `standard-${number}` | 'off-canvas'
+  // }): Promise<void>
 
   /**
    * Obtains a list of recordings for the current room session.
@@ -387,13 +377,10 @@ interface RoomSessionDocs extends RoomSessionMain {
   play(params: {
     url: string
     volume?: number
-    positions?: Record<
-      string,
-      | 'self'
-      | 'standard'
-      | `standard-${number}`
-      | 'off-canvas'
-    >
+    // positions?: Record<
+    //   string,
+    //   'self' | 'standard' | `standard-${number}` | 'off-canvas'
+    // >
   }): Promise<Rooms.RoomSessionPlayback>
 
   /**
@@ -759,8 +746,8 @@ export const RoomSessionAPI = extendComponent<
   setHideVideoMuted: Rooms.setHideVideoMuted,
   getLayouts: Rooms.getLayouts,
   setLayout: Rooms.setLayout,
-  setPositions: Rooms.setPositions,
-  setMemberPosition: Rooms.setMemberPosition,
+  // setPositions: Rooms.setPositions,
+  // setMemberPosition: Rooms.setMemberPosition,
   getRecordings: Rooms.getRecordings,
   startRecording: Rooms.startRecording,
   getPlaybacks: Rooms.getPlaybacks,

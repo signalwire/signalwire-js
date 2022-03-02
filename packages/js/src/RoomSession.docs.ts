@@ -849,13 +849,10 @@ interface RoomControlMethodsInterfaceDocs {
   play(params: {
     url: string
     volume?: number
-    positions?: Record<
-      string,
-      | 'self'
-      | 'standard'
-      | `standard-${number}`
-      | 'off-canvas'
-    >
+    // positions?: Record<
+    //   string,
+    //   'self' | 'standard' | `standard-${number}` | 'off-canvas'
+    // >
   }): Promise<Rooms.RoomSessionPlayback>
 }
 
@@ -906,33 +903,30 @@ interface RoomLayoutMethodsInterface {
    */
   setLayout(params: {
     name: string
-    positions?: Record<
-      string,
-      | 'self'
-      | 'standard'
-      | `standard-${number}`
-      | 'off-canvas'
-    >
+    // positions?: Record<
+    //   string,
+    //   'self' | 'standard' | `standard-${number}` | 'off-canvas'
+    // >
   }): Rooms.SetLayout
 
-  setPositions(params: {
-    positions: Record<
-      string,
-      | 'self'
-      | 'standard'
-      | `standard-${number}`
-      | 'off-canvas'
-    >
-  }): Promise<void>
+  // setPositions(params: {
+  //   positions: Record<
+  //     string,
+  //     | 'self'
+  //     | 'standard'
+  //     | `standard-${number}`
+  //     | 'off-canvas'
+  //   >
+  // }): Promise<void>
 
-  setMemberPosition(params: {
-    memberId?: string
-    position:
-      | 'self'
-      | 'standard'
-      | `standard-${number}`
-      | 'off-canvas'
-  }): Promise<void>
+  // setMemberPosition(params: {
+  //   memberId?: string
+  //   position:
+  //     | 'self'
+  //     | 'standard'
+  //     | `standard-${number}`
+  //     | 'off-canvas'
+  // }): Promise<void>
 }
 
 /**
