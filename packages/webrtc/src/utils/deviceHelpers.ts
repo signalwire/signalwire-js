@@ -823,6 +823,43 @@ interface MicrophoneAnalyzer extends EventEmitter<MicrophoneAnalyzerEvents> {
   destroy(): void
 }
 
+/**
+ * Initializes a microphone analyzer. You can use a MicrophoneAnalyzer to track
+ * the input audio volume.
+ *
+ * To stop the analyzer, plase call the `destroy()` method on the object
+ * returned by this method.
+ *
+ * The returned object emits the following events:
+ *
+ *   - `volumeChanged`: instantaneous volume from 0 to 100
+ *   - `destroyed`: the object has been destroyed. You get a parameter
+ *     describing the reason, which can be `null` (if you called `destroy()`),
+ *     `"error"` (in case of errors), or `"disconnected"` (if the device was
+ *     disconnected).
+ *
+ * @example
+ *
+ * ```js
+ * const micAnalyzer = await createMicrophoneAnalyzer('device-id')
+ *
+ * micAnalyzer.on('volumeChanged', (vol) => {
+ *   console.log("Volume: ", vol)
+ * })
+ * micAnalyzer.on('destroyed', (reason) => {
+ *   console.log('Microphone analyzer destroyed', reason)
+ * })
+ *
+ * micAnalyzer.destroy()
+ * ```
+ *
+ * @param options either the id of the device to analize, or
+ * [MediaStreamConstraints](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamConstraints),
+ * or a
+ * [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream).
+ *
+ * @returns Asynchronously returns a MicrophoneAnalyzer.
+ */
 export const createMicrophoneAnalyzer = async (
   options: string | MediaTrackConstraints | MediaStream
 ): Promise<MicrophoneAnalyzer> => {
