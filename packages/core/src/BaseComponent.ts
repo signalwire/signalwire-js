@@ -821,18 +821,9 @@ export class BaseComponent<
     this._workers.set(name, def)
   }
 
-  /**
-   * Returns a Map of Sagas that will be attached to the Store to handle
-   * events or perform side-effects.
-   * @internal
-   */
-  protected getWorkers() {
-    return this._workers
-  }
-
   /** @internal */
   protected attachWorkers() {
-    this.getWorkers().forEach(({ worker }, name) => {
+    return this._workers.forEach(({ worker }, name) => {
       const task = this.store.runSaga(worker, {
         instance: this,
         runSaga: this.store.runSaga,

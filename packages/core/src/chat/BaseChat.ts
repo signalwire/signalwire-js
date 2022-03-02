@@ -69,6 +69,8 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
      * registered in the Redux store.
      */
     this._attachListeners('')
+
+    this.setWorker('chat', { worker: workers.chatWorker })
   }
 
   private _getChannelsParam(
@@ -108,10 +110,6 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
     return {
       ...channelsParam,
     }
-  }
-
-  protected getWorkers() {
-    return new Map([['chat', { worker: workers.chatWorker }]])
   }
 
   /** @internal */
