@@ -34,6 +34,7 @@ import {
   createRoomSessionMemberObject,
   RoomSessionMember,
 } from './RoomSessionMember'
+import { layoutWorker } from './workers/layoutWorker'
 
 type EmitterTransformsEvents =
   | InternalVideoRoomSessionEventNames
@@ -510,20 +511,6 @@ export interface RoomSessionFullState extends RoomSession {
   members: RoomSessionMember[]
 }
 
-const layoutWorker: any = function* layoutWorker({ instance }: any) {
-  console.log('>>>> ENTER layoutWorker')
-
-  // This breaks
-  instance.on('layout.changed', () => {
-    console.log('automatic subscribe')
-  })
-
-  // Works -> no auto subscribe
-  // instance.addEventListener('layout.changed', (params: any) => {
-  //   console.log('layout.changed > no auto subscribe', params)
-  // })
-}
-
 class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   protected _eventsPrefix = 'video' as const
 
@@ -539,15 +526,12 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     super(options)
 
     this.debouncedSubscribe = debounce(this.subscribe, 100)
+    this.setWorker('layoutWorker', { worker: layoutWorker })
     this.attachWorkers()
   }
 
-  protected getWorkers() {
-    return new Map([['chat', { worker: layoutWorker }]])
-  }
-
   /** @internal */
-  addEventListener(
+  protected _internal_on(
     event: keyof RealTimeRoomApiEvents,
     fn: EventEmitter.EventListener<RealTimeRoomApiEvents, any>
   ) {
