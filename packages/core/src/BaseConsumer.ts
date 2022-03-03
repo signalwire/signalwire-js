@@ -18,6 +18,7 @@ export class BaseConsumer<
 > extends BaseComponent<EventTypes> {
   protected subscribeMethod: JSONRPCSubscribeMethod = 'signalwire.subscribe'
   protected subscribeParams?: Record<string, any> = {}
+  private _latestExecuteParams: ExecuteParams
 
   constructor(public options: BaseComponentOptions<EventTypes>) {
     super(options)
@@ -32,33 +33,49 @@ export class BaseConsumer<
     this.applyEmitterTransforms({ local: true })
   }
 
-  subscribe() {
-    return new Promise(async (resolve, reject) => {
-      const subscriptions = this.getSubscriptions()
-      if (subscriptions.length > 0) {
-        const execParams: ExecuteParams = {
-          method: this.subscribeMethod,
-          params: {
-            ...this.subscribeParams,
-            event_channel: this.getStateProperty('eventChannel'),
-            events: subscriptions,
-          },
-        }
+  private shouldExecuteSubscribe(execParams: ExecuteParams) {
+    return (
+      !this._latestExecuteParams ||
+      JSON.stringify(execParams) !== JSON.stringify(this._latestExecuteParams)
+    )
+  }
 
+  subscribe() {
+    const subscriptions = this.getSubscriptions()
+
+    if (subscriptions.length === 0) {
+      this.logger.warn(
+        '`subscribe()` was called without any listeners attached.'
+      )
+      return Promise.resolve()
+    }
+
+    const execParams: ExecuteParams = {
+      method: this.subscribeMethod,
+      params: {
+        ...this.subscribeParams,
+        event_channel: this.getStateProperty('eventChannel'),
+        events: subscriptions,
+      },
+    }
+
+    if (this.shouldExecuteSubscribe(execParams)) {
+      this._latestExecuteParams = execParams
+      return new Promise(async (resolve, reject) => {
         try {
           this.applyEmitterTransforms()
           this.attachWorkers()
           await this.execute(execParams)
+          return resolve(undefined)
         } catch (error) {
           return reject(error)
         }
-      } else {
-        this.logger.warn(
-          '`subscribe()` was called without any listeners attached.'
-        )
-      }
+      })
+    }
 
-      return resolve(undefined)
-    })
+    this.logger.debug(
+      'BaseConsumer.subscribe() - Skipped .execute() since the execParams are exactly the same as last time'
+    )
+    return Promise.resolve()
   }
 }
