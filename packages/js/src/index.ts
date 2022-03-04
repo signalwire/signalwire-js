@@ -9,9 +9,9 @@
  *  - {@link WebRTC}
  *
  * Video gives you access to the classes and methods that let you
- * interface with the backend Video APIs. Chat gives you access to the classes and functions that you need to create a real-time chat application. WebRTC  
+ * interface with the backend Video APIs. Chat gives you access to the classes and functions that you need to create a real-time chat application. WebRTC
  * contains several functions that are useful for interacting with the hardware of the user's device.
- * 
+ *
  *
  * Don't know where to start? Create an instance of
  * {@link Video.RoomSession} to join a room, use the {@link Chat.Client} constructor to start a chat application, or take a look at [Getting Started
@@ -87,6 +87,8 @@ export type {
   MemberTalkingEventNames,
   VideoMemberTalkingEventParams,
   InternalVideoMemberEntity,
+  VideoPosition,
+  VideoPositions,
 } from '@signalwire/core'
 
 /** @ignore */

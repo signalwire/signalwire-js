@@ -93,7 +93,7 @@ describe('Room Custom Methods', () => {
 
       await instance.setPositions({
         positions: {
-          'cebecb3a-b9e4-499c-a707-0af96c110a04': 'standard',
+          'cebecb3a-b9e4-499c-a707-0af96c110a04': 'auto',
           'aaaaaaa-b9e4-499c-a707-0af96c110a04': 'standard-1',
         },
       })
@@ -104,7 +104,7 @@ describe('Room Custom Methods', () => {
           params: {
             room_session_id: 'mocked',
             positions: {
-              'cebecb3a-b9e4-499c-a707-0af96c110a04': 'standard',
+              'cebecb3a-b9e4-499c-a707-0af96c110a04': 'auto',
               'aaaaaaa-b9e4-499c-a707-0af96c110a04': 'standard-1',
             },
           },
@@ -123,7 +123,7 @@ describe('Room Custom Methods', () => {
 
       await instance.setMemberPosition({
         member_id: 'cebecb3a-b9e4-499c-a707-0af96c110a04',
-        position: 'standard',
+        position: 'auto',
       })
       expect(instance.execute).toHaveBeenCalledTimes(1)
       expect(instance.execute).toHaveBeenCalledWith(
@@ -132,7 +132,7 @@ describe('Room Custom Methods', () => {
           params: {
             room_session_id: 'mocked',
             member_id: 'cebecb3a-b9e4-499c-a707-0af96c110a04',
-            position: 'standard',
+            position: 'auto',
           },
         },
         {

@@ -1,4 +1,9 @@
-import type { AssertSameType, VideoPositions, Rooms } from '@signalwire/core'
+import type {
+  AssertSameType,
+  VideoPositions,
+  Rooms,
+  VideoPosition,
+} from '@signalwire/core'
 import { BaseRoomSession } from './BaseRoomSession'
 import { RoomSessionDevice } from './RoomSessionDevice'
 import { RoomSessionScreenShare } from './RoomSessionScreenShare'
@@ -849,10 +854,7 @@ interface RoomControlMethodsInterfaceDocs {
   play(params: {
     url: string
     volume?: number
-    // positions?: Record<
-    //   string,
-    //   'self' | 'standard' | `standard-${number}` | 'off-canvas'
-    // >
+    positions?: VideoPositions
   }): Promise<Rooms.RoomSessionPlayback>
 }
 
@@ -903,30 +905,15 @@ interface RoomLayoutMethodsInterface {
    */
   setLayout(params: {
     name: string
-    // positions?: Record<
-    //   string,
-    //   'self' | 'standard' | `standard-${number}` | 'off-canvas'
-    // >
+    positions?: VideoPositions
   }): Rooms.SetLayout
 
-  // setPositions(params: {
-  //   positions: Record<
-  //     string,
-  //     | 'self'
-  //     | 'standard'
-  //     | `standard-${number}`
-  //     | 'off-canvas'
-  //   >
-  // }): Promise<void>
+  setPositions(params: { positions: VideoPositions }): Promise<void>
 
-  // setMemberPosition(params: {
-  //   memberId?: string
-  //   position:
-  //     | 'self'
-  //     | 'standard'
-  //     | `standard-${number}`
-  //     | 'off-canvas'
-  // }): Promise<void>
+  setMemberPosition(params: {
+    memberId?: string
+    position: VideoPosition
+  }): Promise<void>
 }
 
 /**

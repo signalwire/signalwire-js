@@ -108,7 +108,7 @@ export const getMembers = createRoomMethod<{ members: VideoMemberEntity[] }>(
 )
 export interface SetLayoutParams {
   name: string
-  // positions?: Record<string, VideoPosition>
+  positions?: Record<string, VideoPosition>
 }
 export const setLayout = createRoomMethod<BaseRPCResult, void>(
   'video.set_layout',
@@ -216,7 +216,7 @@ export const getPlaybacks = createRoomMethod<
 export type PlayParams = {
   url: string
   volume?: number
-  // positions?: Record<string, VideoPosition>
+  positions?: Record<string, VideoPosition>
 }
 export const play: RoomMethodDescriptor<any, PlayParams> = {
   value: function (params) {
