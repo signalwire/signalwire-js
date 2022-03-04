@@ -227,6 +227,8 @@ export type RoomMethod =
   | 'video.member.set_input_sensitivity'
   | 'video.member.set_position'
   | 'video.member.remove'
+  | 'video.member.set_meta'
+  | 'video.set_meta'
   | 'video.set_layout'
   | 'video.set_position'
   | 'video.recording.list'

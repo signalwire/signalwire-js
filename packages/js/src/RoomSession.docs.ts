@@ -856,6 +856,49 @@ interface RoomControlMethodsInterfaceDocs {
     volume?: number
     positions?: VideoPositions
   }): Promise<Rooms.RoomSessionPlayback>
+
+  /**
+   * FIXME:
+   * Set a custom payload "meta" on the RoomSession - TBD
+   *
+   * @param meta Custom payload to set the `meta` field on a RoomSession
+   *
+   * @permissions
+   *  - `room.set_meta`
+   *
+   * You need to specify the permissions when [creating the Video Room
+   * Token](https://developer.signalwire.com/apis/reference/create_room_token)
+   * on the server side.
+   *
+   * @example
+   * ```ts
+   * await roomSession.setMeta({ foo: 'bar' })
+   * ```
+   */
+  setMeta(params: { meta: Record<string, unknown> }): Rooms.SetMeta
+
+  /**
+   * FIXME:
+   * Set a custom payload "meta" on a Member - TBD
+   *
+   * @param meta Custom payload to set the `meta` field on a Member
+   *
+   * @permissions
+   *  - `room.member.set_meta`
+   *
+   * You need to specify the permissions when [creating the Video Room
+   * Token](https://developer.signalwire.com/apis/reference/create_room_token)
+   * on the server side.
+   *
+   * @example
+   * ```ts
+   * await roomSession.setMemberMeta({ email: 'joe@example.com' })
+   * ```
+   */
+  setMemberMeta(params: {
+    memberId: string
+    meta: Record<string, unknown>
+  }): Rooms.SetMemberMeta
 }
 
 interface RoomLayoutMethodsInterface {

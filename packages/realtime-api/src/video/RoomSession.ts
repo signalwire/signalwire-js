@@ -771,6 +771,8 @@ export const RoomSessionAPI = extendComponent<
   startRecording: Rooms.startRecording,
   getPlaybacks: Rooms.getPlaybacks,
   play: Rooms.play,
+  setMeta: Rooms.setMeta,
+  setMemberMeta: Rooms.setMemberMeta,
 })
 
 export const createRoomSessionObject = (
