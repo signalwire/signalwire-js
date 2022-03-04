@@ -25,6 +25,8 @@ import {
   AssertSameType,
   BaseConsumer,
   EventEmitter,
+  VideoPosition,
+  VideoPositions,
 } from '@signalwire/core'
 import { RealTimeRoomApiEvents } from '../types'
 import { debounce } from '../utils/debounce'
@@ -309,37 +311,13 @@ interface RoomSessionDocs extends RoomSessionMain {
    * await roomSession.setLayout({name: "6x6"})
    * ```
    */
-  setLayout(params: {
-    name: string
-    positions?: Record<
-      string,
-      | 'self'
-      | 'auto'
-      | `reserved-${number}`
-      | `standard-${number}`
-      | 'off-canvas'
-    >
-  }): Promise<void>
+  setLayout(params: { name: string; positions?: VideoPositions }): Promise<void>
 
-  setPositions(params: {
-    positions: Record<
-      string,
-      | 'self'
-      | 'auto'
-      | `reserved-${number}`
-      | `standard-${number}`
-      | 'off-canvas'
-    >
-  }): Promise<void>
+  setPositions(params: { positions: VideoPositions }): Promise<void>
 
   setMemberPosition(params: {
     memberId?: string
-    position:
-      | 'self'
-      | 'auto'
-      | `reserved-${number}`
-      | `standard-${number}`
-      | 'off-canvas'
+    position: VideoPosition
   }): Promise<void>
 
   /**
@@ -404,14 +382,7 @@ interface RoomSessionDocs extends RoomSessionMain {
   play(params: {
     url: string
     volume?: number
-    positions?: Record<
-      string,
-      | 'self'
-      | 'auto'
-      | `reserved-${number}`
-      | `standard-${number}`
-      | 'off-canvas'
-    >
+    positions?: VideoPositions
   }): Promise<Rooms.RoomSessionPlayback>
 
   /**
