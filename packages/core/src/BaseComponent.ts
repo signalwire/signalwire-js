@@ -102,16 +102,17 @@ export class BaseComponent<
       return
     }
 
+    // TODO: replace with action creator.
+    this.store.dispatch({
+      type: 'compound_event:attach',
+      payload: {
+        compoundEvents,
+        event: internalEvent,
+        namespace: this._eventsNamespace
+      },
+    })
+
     compoundEvents.forEach((compoundEvent) => {
-      const internalCompoundEvent = this._getInternalEvent(compoundEvent)
-      // TODO: replace with action creator.
-      this.store.dispatch({
-        type: 'compound_event:attach',
-        payload: {
-          rawEvent: compoundEvent,
-          internalEvent: internalCompoundEvent,
-        },
-      })
       /**
        * In the future we might want to support defining
        * custom compound event handlers by specifying not
@@ -474,7 +475,7 @@ export class BaseComponent<
     event: T,
     fn: EventEmitter.EventListener<EventTypes, T>,
     once?: boolean
-    ) {
+  ) {
     this._handleCompoundEvents(event)
 
     const internalEvent = this._getInternalEvent(event)
