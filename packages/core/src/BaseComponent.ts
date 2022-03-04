@@ -481,8 +481,6 @@ export class BaseComponent<
     const internalEvent = this._getInternalEvent(event)
     this._trackEvent(internalEvent)
 
-    this._handleCompoundEvents(internalEvent)
-
     const type: EventRegisterHandlers<EventTypes>['type'] = once ? 'once' : 'on'
     if (this.shouldAddToQueue()) {
       this.addEventToRegisterQueue({
