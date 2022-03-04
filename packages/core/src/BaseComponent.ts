@@ -34,6 +34,7 @@ import {
   getAuthError,
   getAuthStatus,
 } from './redux/features/session/sessionSelectors'
+import { compoundEventAttachAction } from './redux/actions'
 import { AuthError } from './CustomErrors'
 import { proxyFactory } from './utils/proxyUtils'
 
@@ -102,15 +103,13 @@ export class BaseComponent<
       return
     }
 
-    // TODO: replace with action creator.
-    this.store.dispatch({
-      type: 'compound_event:attach',
-      payload: {
+    this.store.dispatch(
+      compoundEventAttachAction({
         compoundEvents,
         event: internalEvent,
-        namespace: this._eventsNamespace
-      },
-    })
+        namespace: this._eventsNamespace,
+      })
+    )
 
     compoundEvents.forEach((compoundEvent) => {
       /**

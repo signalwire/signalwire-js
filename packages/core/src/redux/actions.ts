@@ -3,8 +3,10 @@ import {
   JSONRPCRequest,
   SessionAuthError,
   SessionEvents,
+  CompoundEvents,
 } from '../utils/interfaces'
 import { ExecuteActionParams } from './interfaces'
+import { EventEmitter } from '..'
 
 export const initAction = createAction('swSdk/init')
 export const destroyAction = createAction('swSdk/destroy')
@@ -62,5 +64,14 @@ export const makeCustomSagaAction = (id: string, action: Action) => {
 export const getCustomSagaActionType = (id: string, action: Action) => {
   return formatCustomSagaAction(id, action)
 }
+
+export const compoundEventAttachAction = createAction<
+  {
+    compoundEvents: EventEmitter.EventNames<EventEmitter.ValidEventTypes>[]
+    event: EventEmitter.EventNames<EventEmitter.ValidEventTypes>
+    namespace?: string
+  },
+  CompoundEvents
+>('compound_event:attach')
 
 export { createAction }
