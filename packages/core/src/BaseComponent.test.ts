@@ -213,12 +213,16 @@ describe('BaseComponent', () => {
 
       expect(mockFn).toHaveBeenCalledTimes(2)
       expect(mockFn).toHaveBeenNthCalledWith(1, {
+        _eventsNamespace: 'new-namespace',
+        eventChannel: 'new-event-channel',
         instance,
         inject: 'something',
         payload,
         transformed: 'data',
       })
       expect(mockFn).toHaveBeenNthCalledWith(2, {
+        _eventsNamespace: 'new-namespace',
+        eventChannel: 'new-event-channel',
         instance,
         inject: 'something',
         payload,
