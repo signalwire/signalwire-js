@@ -179,7 +179,7 @@ describe('RoomSession Object', () => {
 
   describe('automatic subscribe', () => {
     it('should automatically call subscribe when attaching events', async () => {
-      const { store, emitter } = configureFullStack()
+      const { store, emitter, destroy } = configureFullStack()
       const room = createRoomSessionObject({
         store,
         // @ts-expect-error
@@ -194,6 +194,8 @@ describe('RoomSession Object', () => {
 
       // @ts-expect-error
       expect(room.debouncedSubscribe).toHaveBeenCalledTimes(2)
+
+      destroy()
     })
   })
 })
