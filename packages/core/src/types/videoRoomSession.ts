@@ -89,10 +89,10 @@ export interface VideoRoomSessionContract {
   setHideVideoMuted(value: boolean): Rooms.SetHideVideoMuted
   getLayouts(): Rooms.GetLayouts
   setLayout(params: Rooms.SetLayoutParams): Rooms.SetLayout
-  // setPositions(params: Rooms.SetPositionsParams): Rooms.SetPositions
-  // setMemberPosition(
-  //   params: Rooms.SetMemberPositionParams
-  // ): Rooms.SetMemberPosition
+  setPositions(params: Rooms.SetPositionsParams): Rooms.SetPositions
+  setMemberPosition(
+    params: Rooms.SetMemberPositionParams
+  ): Rooms.SetMemberPosition
   getRecordings(): Rooms.GetRecordings
   startRecording(): Promise<Rooms.RoomSessionRecording>
   getPlaybacks(): Rooms.GetPlaybacks
