@@ -26,6 +26,7 @@ export const INTERNAL_MEMBER_UPDATABLE_PROPS = {
   input_volume: 1,
   output_volume: 1,
   input_sensitivity: 1,
+  meta: {},
 }
 export type InternalVideoMemberUpdatableProps =
   typeof INTERNAL_MEMBER_UPDATABLE_PROPS
@@ -63,6 +64,7 @@ type VideoMemberUpdatableProps = AssertSameType<
      * The default value is 30 and the scale goes from 0 (lowest sensitivity,
      * essentially muted) to 100 (highest sensitivity). */
     inputSensitivity: number
+    meta: Record<string, unknown>
   }
 >
 
