@@ -44,7 +44,7 @@ describe('Video Object', () => {
     const firstRoom = JSON.parse(
       `{"jsonrpc":"2.0","id":"uuid1","method":"signalwire.event","params":{"params":{"room":{"recording":false,"room_session_id":"session-one","name":"First Room","hide_video_muted":false,"music_on_hold":false,"room_id":"room_id","event_channel":"${eventChannelOne}"},"room_session_id":"session-one","room_id":"room_id","room_session":{"recording":false,"name":"First Room","hide_video_muted":false,"id":"session-one","music_on_hold":false,"room_id":"room_id","event_channel":"${eventChannelOne}"}},"timestamp":1631692502.1308,"event_type":"video.room.started","event_channel":"video.rooms.4b7ae78a-d02e-4889-a63b-08b156d5916e"}}`
     )
-    const eventChannelTwo = 'room.<uuid-one>'
+    const eventChannelTwo = 'room.<uuid-two>'
     const secondRoom = JSON.parse(
       `{"jsonrpc":"2.0","id":"uuid1","method":"signalwire.event","params":{"params":{"room":{"recording":false,"room_session_id":"session-two","name":"Second Room","hide_video_muted":false,"music_on_hold":false,"room_id":"room_id","event_channel":"${eventChannelTwo}"},"room_session_id":"session-two","room_id":"room_id","room_session":{"recording":false,"name":"Second Room","hide_video_muted":false,"id":"session-two","music_on_hold":false,"room_id":"room_id","event_channel":"${eventChannelTwo}"}},"timestamp":1631692502.1308,"event_type":"video.room.started","event_channel":"video.rooms.4b7ae78a-d02e-4889-a63b-08b156d5916e"}}`
     )
@@ -120,7 +120,7 @@ describe('Video Object', () => {
           expect(room.getMembers).toBeDefined()
           expect(room.subscribe).toBeDefined()
 
-          room.on('member.updated.audioMuted', jest.fn)
+          room.on('member.joined', jest.fn)
           // @ts-expect-error
           room.execute = mockExecute
           room.subscribe()
@@ -145,7 +145,7 @@ describe('Video Object', () => {
         params: {
           get_initial_state: true,
           event_channel: eventChannelOne,
-          events: ['video.member.updated', 'video.room.subscribed'],
+          events: ['video.member.joined', 'video.room.subscribed'],
         },
       })
       expect(mockExecute).toHaveBeenNthCalledWith(2, {
@@ -153,7 +153,7 @@ describe('Video Object', () => {
         params: {
           get_initial_state: true,
           event_channel: eventChannelTwo,
-          events: ['video.member.updated', 'video.room.subscribed'],
+          events: ['video.member.joined', 'video.room.subscribed'],
         },
       })
 
