@@ -7,9 +7,6 @@ async function run() {
       host: process.env.HOST || 'relay.swire.io',
       project: process.env.PROJECT as string,
       token: process.env.TOKEN as string,
-      debug: {
-        logWsTraffic: true,
-      },
     })
 
     video.on('room.started', (room) => {
