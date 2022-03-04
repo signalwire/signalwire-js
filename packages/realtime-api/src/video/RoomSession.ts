@@ -314,7 +314,8 @@ interface RoomSessionDocs extends RoomSessionMain {
     positions?: Record<
       string,
       | 'self'
-      | 'standard'
+      | 'auto'
+      | `reserved-${number}`
       | `standard-${number}`
       | 'off-canvas'
     >
@@ -324,7 +325,8 @@ interface RoomSessionDocs extends RoomSessionMain {
     positions: Record<
       string,
       | 'self'
-      | 'standard'
+      | 'auto'
+      | `reserved-${number}`
       | `standard-${number}`
       | 'off-canvas'
     >
@@ -334,7 +336,8 @@ interface RoomSessionDocs extends RoomSessionMain {
     memberId?: string
     position:
       | 'self'
-      | 'standard'
+      | 'auto'
+      | `reserved-${number}`
       | `standard-${number}`
       | 'off-canvas'
   }): Promise<void>
@@ -348,7 +351,7 @@ interface RoomSessionDocs extends RoomSessionMain {
    * rec.recordings[0].id
    * rec.recordings[0].state
    * ```
-   * 
+   *
    * @returns The returned objects contain all the properties of a
    * {@link RoomSessionRecording}, but no methods.
    */
@@ -369,7 +372,7 @@ interface RoomSessionDocs extends RoomSessionMain {
 
   /**
    * Obtains a list of playbacks for the current room session.
-   * 
+   *
    * @example
    * ```js
    * const pl = await roomSession.startRecording()
@@ -404,7 +407,8 @@ interface RoomSessionDocs extends RoomSessionMain {
     positions?: Record<
       string,
       | 'self'
-      | 'standard'
+      | 'auto'
+      | `reserved-${number}`
       | `standard-${number}`
       | 'off-canvas'
     >

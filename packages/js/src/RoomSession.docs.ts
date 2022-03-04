@@ -852,7 +852,8 @@ interface RoomControlMethodsInterfaceDocs {
     positions?: Record<
       string,
       | 'self'
-      | 'standard'
+      | 'auto'
+      | `reserved-${number}`
       | `standard-${number}`
       | 'off-canvas'
     >
@@ -909,7 +910,8 @@ interface RoomLayoutMethodsInterface {
     positions?: Record<
       string,
       | 'self'
-      | 'standard'
+      | 'auto'
+      | `reserved-${number}`
       | `standard-${number}`
       | 'off-canvas'
     >
@@ -919,7 +921,8 @@ interface RoomLayoutMethodsInterface {
     positions: Record<
       string,
       | 'self'
-      | 'standard'
+      | 'auto'
+      | `reserved-${number}`
       | `standard-${number}`
       | 'off-canvas'
     >
@@ -929,7 +932,8 @@ interface RoomLayoutMethodsInterface {
     memberId?: string
     position:
       | 'self'
-      | 'standard'
+      | 'auto'
+      | `reserved-${number}`
       | `standard-${number}`
       | 'off-canvas'
   }): Promise<void>
