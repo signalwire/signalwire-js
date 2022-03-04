@@ -26,7 +26,7 @@ export const createTestRunner = ({
   const done = (exitCode: number) => {
     clearTimeout(timer)
     if (exitCode === 0) {
-      console.error(`Test Runner ${name} Passed!`)
+      console.log(`Test Runner ${name} Passed!`)
     } else {
       console.log(`Test Runner ${name} finished with exitCode: ${exitCode}`)
     }
