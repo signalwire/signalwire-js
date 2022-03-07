@@ -108,4 +108,4 @@ export type PubSubAction =
   | ChatAction
 
 export type PubSubChannel = MulticastChannel<PubSubAction>
-export type SwEventChannel = MulticastChannel<SwEventParams>
+export type SwEventChannel = MulticastChannel<MapToPubSubShape<SwEventParams>>

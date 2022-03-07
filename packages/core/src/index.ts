@@ -9,7 +9,7 @@ import {
   extendComponent,
   validateEventsToSubscribe,
   toInternalEventName,
-  serializeableProxy
+  serializeableProxy,
 } from './utils'
 import { BaseSession } from './BaseSession'
 import { BaseJWTSession } from './BaseJWTSession'
@@ -61,7 +61,7 @@ export type {
   CustomSagaParams,
   CustomSaga,
   PubSubChannel,
-  MapToPubSubShape
+  MapToPubSubShape,
 } from './redux/interfaces'
 export * as actions from './redux/actions'
 export * as sagaHelpers from './redux/utils/sagaHelpers'
@@ -69,6 +69,7 @@ export * as sagaEffects from '@redux-saga/core/effects'
 export type { SagaIterator, Task, Saga } from '@redux-saga/types'
 export * as Rooms from './rooms'
 export * as Chat from './chat'
+export * as MemberPosition from './memberPosition'
 export type { RoomSessionRecording, RoomSessionPlayback } from './rooms'
 export const selectors = {
   ...sessionSelectors,

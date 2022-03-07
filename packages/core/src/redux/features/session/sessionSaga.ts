@@ -33,6 +33,7 @@ import { getLogger } from '../../../utils'
 import { getAuthStatus } from '../session/sessionSelectors'
 import { getComponent } from '../component/componentSelectors'
 import { SessionAuthStatus } from '../../../utils/interfaces'
+import { toInternalAction } from 'packages/core/src/utils/toInternalAction'
 
 type SessionSagaParams = {
   session: BaseSession
@@ -348,7 +349,7 @@ export function* sessionChannelWatcher({
   }
 
   function* swEventWorker(broadcastParams: SwEventParams) {
-    yield put(swEventChannel, broadcastParams)
+    yield put(swEventChannel, toInternalAction(broadcastParams))
 
     if (isWebrtcEvent(broadcastParams)) {
       yield fork(vertoWorker, {
