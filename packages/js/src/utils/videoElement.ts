@@ -120,7 +120,13 @@ const makeLayoutChangedHandler =
       }
 
       const { top, left, width, height } = _getLocationStyles(location)
-      myLayer.style.display = 'block'
+
+      /**
+       * Show myLayer only if the localStream has a valid video track
+       */
+      if (localStream.getVideoTracks().length > 0) {
+        myLayer.style.display = 'block'
+      }
       myLayer.style.top = top
       myLayer.style.left = left
       myLayer.style.width = width
