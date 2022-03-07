@@ -47,24 +47,49 @@ export const serializeableProxy = ({
   instance,
   proxiedObj,
   payload,
+  transformedPayload,
+  transform,
 }: {
   instance: any
   proxiedObj: any
   payload: any
+  transformedPayload: any
+  transform: any
 }) => {
   const data = {
-    ...payload,
+    ...transformedPayload,
+    /**
+     * We manually add `_eventsNamespace` and `eventChannel`
+     * as an attempt to make this object as close as Proxy,
+     * but `_eventsNamespace` is actually required when
+     * using `instance` inside of workers. Without this the
+     * events will be queued because `_eventsNamespace` is
+     * undefined.
+     */
+    _eventsNamespace: transform.getInstanceEventNamespace
+      ? transform.getInstanceEventNamespace(payload)
+      : undefined,
+    eventChannel: transform.getInstanceEventChannel
+      ? transform.getInstanceEventChannel(payload)
+      : undefined,
     ...getAllMethods(instance),
   }
+
   return Object.defineProperties(
     proxiedObj,
     Object.entries(data).reduce((reducer, [key, value]) => {
+      if (value === undefined) {
+        return reducer
+      }
+
       reducer[key] = {
         value,
         enumerable: true,
         configurable: true,
-        // We mostly need this for our tests where we're
-        // overwritting things like `execute`.
+        /**
+         * We mostly need this for our tests where we're
+         * overwritting things like `execute`.
+         */
         writable: true,
       }
 
@@ -93,6 +118,14 @@ export const proxyFactory = ({
           property: target[prop],
           payload: transformedPayload,
         })
+
+        /**
+         * Having `_eventsNamespace` defined will make
+         * BaseComponent.shouldAddToQueue === false, which
+         * will allow us to attach events right away
+         * (otherwise the events will be queued until the
+         * `namespace` is ready)
+         */
       } else if (
         prop === '_eventsNamespace' &&
         transform.getInstanceEventNamespace
@@ -115,6 +148,8 @@ export const proxyFactory = ({
   return serializeableProxy({
     instance,
     proxiedObj,
-    payload: transformedPayload,
+    payload,
+    transformedPayload,
+    transform,
   })
 }

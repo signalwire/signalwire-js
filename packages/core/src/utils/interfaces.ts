@@ -181,6 +181,8 @@ export type SessionStatus =
 
 export type SessionEvents = `session.${SessionStatus}`
 
+export type CompoundEvents = 'compound_event:attach'
+
 /**
  * List of all the events the client can listen to.
  * @internal
@@ -431,4 +433,3 @@ export interface WsTrafficOptions {
 export interface InternalSDKLogger extends SDKLogger {
   wsTraffic: (options: WsTrafficOptions) => void
 }
-

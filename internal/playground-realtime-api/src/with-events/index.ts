@@ -11,6 +11,9 @@ async function run() {
 
     video.on('room.started', (room) => {
       console.log('Room started --->', room.id, room.name)
+      room.on('member.updated', () => {
+        console.log('Member updated --->');
+      })
 
       room.on('member.joined', (member) => {
         console.log('Member joined --->', member.id, member.name)

@@ -525,6 +525,16 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     super(options)
 
     this.debouncedSubscribe = debounce(this.subscribe, 100)
+    // this.setWorker('layoutWorker', { worker: layoutWorker })
+    // this.attachWorkers()
+  }
+
+  /** @internal */
+  protected _internal_on(
+    event: keyof RealTimeRoomApiEvents,
+    fn: EventEmitter.EventListener<RealTimeRoomApiEvents, any>
+  ) {
+    return super.on(event, fn)
   }
 
   on(
@@ -571,6 +581,13 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
         return reject(error)
       }
     })
+  }
+
+  /** @internal */
+  protected override getCompoundEvents() {
+    return new Map<any, any>([
+      ['video.member.updated', ['video.layout.changed']],
+    ])
   }
 
   /** @internal */

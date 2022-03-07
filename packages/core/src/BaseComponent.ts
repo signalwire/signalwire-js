@@ -34,6 +34,7 @@ import {
   getAuthError,
   getAuthStatus,
 } from './redux/features/session/sessionSelectors'
+import { compoundEventAttachAction } from './redux/actions'
 import { AuthError } from './CustomErrors'
 import { proxyFactory } from './utils/proxyUtils'
 
@@ -87,6 +88,44 @@ export class BaseComponent<
   private _requests = new Map()
   private _customSagaTriggers = new Map()
   private _destroyer?: () => void
+
+  private _handleCompoundEvents(event: EventEmitter.EventNames<EventTypes>) {
+    const internalEvent = this._getInternalEvent(event)
+    let compoundEvents
+    for (const evt of this.getCompoundEvents().keys()) {
+      if (this._getInternalEvent(evt) === internalEvent) {
+        compoundEvents = this.getCompoundEvents().get(evt)
+        break
+      }
+    }
+
+    if (!compoundEvents || compoundEvents.length === 0) {
+      return
+    }
+
+    this.store.dispatch(
+      compoundEventAttachAction({
+        compoundEvents,
+        event: internalEvent,
+        namespace: this._eventsNamespace,
+      })
+    )
+
+    compoundEvents.forEach((compoundEvent) => {
+      /**
+       * In the future we might want to support defining
+       * custom compound event handlers by specifying not
+       * only the event but its event handler as well. For
+       * now we don't have a need for that so we'll keep it
+       * simple and just track the event without going
+       * through the emitter (since we don't need the
+       * handler).
+       */
+      if (typeof compoundEvent === 'string') {
+        this._trackEvent(compoundEvent)
+      }
+    })
+  }
 
   /**
    * A Namespace let us scope specific instances inside of a
@@ -436,6 +475,8 @@ export class BaseComponent<
     fn: EventEmitter.EventListener<EventTypes, T>,
     once?: boolean
   ) {
+    this._handleCompoundEvents(event)
+
     const internalEvent = this._getInternalEvent(event)
     this._trackEvent(internalEvent)
 
@@ -689,6 +730,14 @@ export class BaseComponent<
       this._eventsNamespace = namespace
     }
     this.flushEventsQueue()
+  }
+
+  /** @internal */
+  protected getCompoundEvents(): Map<
+    EventEmitter.EventNames<EventTypes>,
+    EventEmitter.EventNames<EventTypes>[]
+  > {
+    return new Map()
   }
 
   /**
