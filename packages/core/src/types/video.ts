@@ -35,7 +35,6 @@ export * from './videoPlayback'
 export type RTCTrackEventName = 'track'
 
 export type VideoPosition =
-  | 'self'
   | 'auto'
   | `reserved-${number}`
   | `standard-${number}`
