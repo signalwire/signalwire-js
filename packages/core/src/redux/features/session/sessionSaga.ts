@@ -19,10 +19,11 @@ import type {
   MemberTalkingEventNames,
   CantinaEvent,
 } from '../../../types'
-import {
+import type {
   ExecuteActionParams,
   WebRTCCall,
   PubSubChannel,
+  SwEventChannel,
 } from '../../interfaces'
 import { createCatchableSaga } from '../../utils/sagaHelpers'
 import { executeAction, socketMessageAction } from '../../actions'
@@ -37,6 +38,7 @@ type SessionSagaParams = {
   session: BaseSession
   sessionChannel: EventChannel<unknown>
   pubSubChannel: PubSubChannel
+  swEventChannel: SwEventChannel
 }
 
 type VertoWorkerParams = {
@@ -142,6 +144,7 @@ export function* sessionChannelWatcher({
   session,
   sessionChannel,
   pubSubChannel,
+  swEventChannel
 }: SessionSagaParams): SagaIterator {
   function* vertoWorker({ jsonrpc, nodeId }: VertoWorkerParams) {
     const { id, method, params = {} } = jsonrpc
@@ -345,6 +348,8 @@ export function* sessionChannelWatcher({
   }
 
   function* swEventWorker(broadcastParams: SwEventParams) {
+    yield put(swEventChannel, broadcastParams)
+
     if (isWebrtcEvent(broadcastParams)) {
       yield fork(vertoWorker, {
         jsonrpc: broadcastParams.params,

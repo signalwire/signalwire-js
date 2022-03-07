@@ -12,6 +12,7 @@ import type {
   VideoAPIEventParams,
   InternalVideoAPIEvent,
   ChatAction,
+  SwEventParams,
 } from '../types'
 import { SDKRunSaga } from '.'
 import { MulticastChannel } from '@redux-saga/core'
@@ -107,3 +108,4 @@ export type PubSubAction =
   | ChatAction
 
 export type PubSubChannel = MulticastChannel<PubSubAction>
+export type SwEventChannel = MulticastChannel<SwEventParams>

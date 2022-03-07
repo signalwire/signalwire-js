@@ -4,7 +4,7 @@ import { VertoResult } from '../../../RPCMessages'
 import { socketMessageAction, executeAction } from '../../actions'
 import { componentActions } from '../'
 import { sessionChannelWatcher, createSessionChannel } from './sessionSaga'
-import { createPubSubChannel } from '../../../testUtils'
+import { createPubSubChannel, createSwEventChannel } from '../../../testUtils'
 
 describe('sessionChannelWatcher', () => {
   describe('videoAPIWorker', () => {
@@ -17,12 +17,14 @@ describe('sessionChannelWatcher', () => {
         relayProtocol: jsonrpc.params.protocol,
       } as any
       const pubSubChannel = createPubSubChannel()
+      const swEventChannel = createSwEventChannel()
       const sessionChannel = eventChannel(() => () => {})
       const dispatchedActions: unknown[] = []
 
       return expectSaga(sessionChannelWatcher, {
         session,
         pubSubChannel,
+        swEventChannel,
         sessionChannel,
       })
         .provide([
@@ -75,6 +77,7 @@ describe('sessionChannelWatcher', () => {
         relayProtocol: jsonrpc.params.protocol,
       } as any
       const pubSubChannel = createPubSubChannel()
+      const swEventChannel = createSwEventChannel()
       const sessionChannel = eventChannel(() => () => {})
       const dispatchedActions: unknown[] = []
       const payload = JSON.parse(
@@ -84,6 +87,7 @@ describe('sessionChannelWatcher', () => {
       return expectSaga(sessionChannelWatcher, {
         session,
         pubSubChannel,
+        swEventChannel,
         sessionChannel,
       })
         .provide([
@@ -131,6 +135,7 @@ describe('sessionChannelWatcher', () => {
         relayProtocol: jsonrpc.params.protocol,
       } as any
       const pubSubChannel = createPubSubChannel()
+      const swEventChannel = createSwEventChannel()
       const sessionChannel = eventChannel(() => () => {})
       const dispatchedActions: unknown[] = []
       const payload = JSON.parse(
@@ -140,6 +145,7 @@ describe('sessionChannelWatcher', () => {
       return expectSaga(sessionChannelWatcher, {
         session,
         pubSubChannel,
+        swEventChannel,
         sessionChannel,
       })
         .provide([
@@ -187,6 +193,7 @@ describe('sessionChannelWatcher', () => {
         relayProtocol: jsonrpc.params.protocol,
       } as any
       const pubSubChannel = createPubSubChannel()
+      const swEventChannel = createSwEventChannel()
       const sessionChannel = eventChannel(() => () => {})
       const dispatchedActions: unknown[] = []
       const payload = JSON.parse(
@@ -196,6 +203,7 @@ describe('sessionChannelWatcher', () => {
       return expectSaga(sessionChannelWatcher, {
         session,
         pubSubChannel,
+        swEventChannel,
         sessionChannel,
       })
         .provide([
@@ -243,6 +251,7 @@ describe('sessionChannelWatcher', () => {
         relayProtocol: jsonrpc.params.protocol,
       } as any
       const pubSubChannel = createPubSubChannel()
+      const swEventChannel = createSwEventChannel()
       const sessionChannel = eventChannel(() => () => {})
       const dispatchedActions: unknown[] = []
       const payload = JSON.parse(
@@ -252,6 +261,7 @@ describe('sessionChannelWatcher', () => {
       return expectSaga(sessionChannelWatcher, {
         session,
         pubSubChannel,
+        swEventChannel,
         sessionChannel,
       })
         .provide([
@@ -291,12 +301,14 @@ describe('sessionChannelWatcher', () => {
         relayProtocol: jsonrpc.params.protocol,
       } as any
       const pubSubChannel = createPubSubChannel()
+      const swEventChannel = createSwEventChannel()
       const sessionChannel = eventChannel(() => () => {})
       const dispatchedActions: unknown[] = []
 
       return expectSaga(sessionChannelWatcher, {
         session,
         pubSubChannel,
+        swEventChannel,
         sessionChannel,
       })
         .provide([
@@ -337,6 +349,7 @@ describe('sessionChannelWatcher', () => {
         relayProtocol: jsonrpc.params.protocol,
       } as any
       const pubSubChannel = createPubSubChannel()
+      const swEventChannel = createSwEventChannel()
       const sessionChannel = eventChannel(() => () => {})
       const dispatchedActions: unknown[] = []
       const defaultState = {
@@ -359,6 +372,7 @@ describe('sessionChannelWatcher', () => {
       return expectSaga(sessionChannelWatcher, {
         session,
         pubSubChannel,
+        swEventChannel,
         sessionChannel,
       })
         .withState(defaultState)
@@ -410,12 +424,14 @@ describe('sessionChannelWatcher', () => {
           relayProtocol: jsonrpc.params.protocol,
         } as any
         const pubSubChannel = createPubSubChannel()
+        const swEventChannel = createSwEventChannel()
         const sessionChannel = eventChannel(() => () => {})
         const dispatchedActions: unknown[] = []
 
         return expectSaga(sessionChannelWatcher, {
           session,
           pubSubChannel,
+          swEventChannel,
           sessionChannel,
         })
           .provide([
@@ -469,12 +485,14 @@ describe('sessionChannelWatcher', () => {
           relayProtocol: jsonrpc.params.protocol,
         } as any
         const pubSubChannel = createPubSubChannel()
+        const swEventChannel = createSwEventChannel()
         const sessionChannel = eventChannel(() => () => {})
         const dispatchedActions: unknown[] = []
 
         return expectSaga(sessionChannelWatcher, {
           session,
           pubSubChannel,
+          swEventChannel,
           sessionChannel,
         })
           .provide([
@@ -525,12 +543,14 @@ describe('sessionChannelWatcher', () => {
           relayProtocol: jsonrpc.params.protocol,
         } as any
         const pubSubChannel = createPubSubChannel()
+        const swEventChannel = createSwEventChannel()
         const sessionChannel = eventChannel(() => () => {})
         const dispatchedActions: unknown[] = []
 
         return expectSaga(sessionChannelWatcher, {
           session,
           pubSubChannel,
+          swEventChannel,
           sessionChannel,
         })
           .provide([
@@ -584,12 +604,14 @@ describe('sessionChannelWatcher', () => {
           relayProtocol: jsonrpc.params.protocol,
         } as any
         const pubSubChannel = createPubSubChannel()
+        const swEventChannel = createSwEventChannel()
         const sessionChannel = eventChannel(() => () => {})
         const dispatchedActions: unknown[] = []
 
         return expectSaga(sessionChannelWatcher, {
           session,
           pubSubChannel,
+          swEventChannel,
           sessionChannel,
         })
           .provide([
@@ -645,12 +667,14 @@ describe('sessionChannelWatcher', () => {
           relayProtocol: jsonrpc.params.protocol,
         } as any
         const pubSubChannel = createPubSubChannel()
+        const swEventChannel = createSwEventChannel()
         const sessionChannel = eventChannel(() => () => {})
         const dispatchedActions: unknown[] = []
 
         return expectSaga(sessionChannelWatcher, {
           session,
           pubSubChannel,
+          swEventChannel,
           sessionChannel,
         })
           .provide([
@@ -697,11 +721,13 @@ describe('sessionChannelWatcher', () => {
           disconnect: jest.fn(),
         } as any
         const pubSubChannel = createPubSubChannel()
+        const swEventChannel = createSwEventChannel()
         const sessionChannel = eventChannel(() => () => {})
 
         return expectSaga(sessionChannelWatcher, {
           session,
           pubSubChannel,
+          swEventChannel,
           sessionChannel,
         })
           .provide([
@@ -734,12 +760,14 @@ describe('sessionChannelWatcher', () => {
           // relayProtocol: jsonrpc.params.protocol,
         } as any
         const pubSubChannel = createPubSubChannel()
+        const swEventChannel = createSwEventChannel()
         const sessionChannel = eventChannel(() => () => {})
         const dispatchedActions: unknown[] = []
 
         return expectSaga(sessionChannelWatcher, {
           session,
           pubSubChannel,
+          swEventChannel,
           sessionChannel,
         })
           .provide([
@@ -784,12 +812,14 @@ describe('sessionChannelWatcher', () => {
           // relayProtocol: jsonrpc.params.protocol,
         } as any
         const pubSubChannel = createPubSubChannel()
+        const swEventChannel = createSwEventChannel()
         const sessionChannel = eventChannel(() => () => {})
         const dispatchedActions: unknown[] = []
 
         return expectSaga(sessionChannelWatcher, {
           session,
           pubSubChannel,
+          swEventChannel,
           sessionChannel,
         })
           .provide([

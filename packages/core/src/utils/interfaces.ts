@@ -7,7 +7,7 @@ import {
   INTERNAL_GLOBAL_VIDEO_EVENTS,
   PRODUCT_PREFIXES,
 } from './constants'
-import type { CustomSaga, PubSubChannel } from '../redux/interfaces'
+import type { CustomSaga, PubSubChannel, SwEventChannel } from '../redux/interfaces'
 import type { URL as NodeURL } from 'node:url'
 import { InternalRPCMethods } from '../internal'
 import { ChatJSONRPCMethod, ChatTransformType } from '..'
@@ -398,6 +398,7 @@ export type BaseEventHandler = (...args: any[]) => void
 
 export type InternalChannels = {
   pubSubChannel: PubSubChannel
+  swEventChannel: SwEventChannel
 }
 
 export type SDKWorkerParams<T> = {
