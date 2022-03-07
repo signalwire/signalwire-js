@@ -9,5 +9,25 @@ steps:
       - npm run build
       - npm test
 
+  - name: e2e-tests
+    image: node:16-alpine
+    commands:
+      - npm install
+      - npm run build
+      - npm run -w=@sw-internal/e2e-realtime-api dev
+    environment:
+      RELAY_HOST:
+        from_secret: RELAY_HOST
+      RELAY_PROJECT:
+        from_secret: RELAY_PROJECT
+      RELAY_TOKEN:
+        from_secret: RELAY_TOKEN
+      RELAY_CONTEXT:
+        from_secret: RELAY_CONTEXT
+      RELAY_FROM_NUMBER:
+        from_secret: RELAY_FROM_NUMBER
+      RELAY_TO_NUMBER:
+        from_secret: RELAY_TO_NUMBER
+
 trigger:
   event: push

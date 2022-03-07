@@ -7,7 +7,7 @@ describe('RoomSession Object', () => {
   let roomSession: ReturnType<typeof createRoomSessionObject>
   const roomSessionId = 'roomSessionId'
 
-  const { store, session, emitter } = configureFullStack()
+  const { store, session, emitter, destroy } = configureFullStack()
 
   beforeEach(() => {
     // remove all listeners before each run
@@ -40,6 +40,10 @@ describe('RoomSession Object', () => {
       )
       session.dispatch(actions.socketMessageAction(firstRoom))
     })
+  })
+
+  afterAll(() => {
+    destroy()
   })
 
   it('should have all the custom methods defined', () => {
@@ -175,7 +179,7 @@ describe('RoomSession Object', () => {
 
   describe('automatic subscribe', () => {
     it('should automatically call subscribe when attaching events', async () => {
-      const { store, emitter } = configureFullStack()
+      const { store, emitter, destroy } = configureFullStack()
       const room = createRoomSessionObject({
         store,
         // @ts-expect-error
@@ -190,6 +194,8 @@ describe('RoomSession Object', () => {
 
       // @ts-expect-error
       expect(room.debouncedSubscribe).toHaveBeenCalledTimes(2)
+
+      destroy()
     })
   })
 })
