@@ -40,14 +40,14 @@ export class BaseConsumer<
     )
   }
 
-  subscribe() {
+  async subscribe() {
     const subscriptions = this.getSubscriptions()
 
     if (subscriptions.length === 0) {
       this.logger.warn(
         '`subscribe()` was called without any listeners attached.'
       )
-      return Promise.resolve()
+      return
     }
 
     const execParams: ExecuteParams = {
@@ -59,23 +59,23 @@ export class BaseConsumer<
       },
     }
 
-    if (this.shouldExecuteSubscribe(execParams)) {
-      this._latestExecuteParams = execParams
-      return new Promise(async (resolve, reject) => {
-        try {
-          this.applyEmitterTransforms()
-          this.attachWorkers()
-          await this.execute(execParams)
-          return resolve(undefined)
-        } catch (error) {
-          return reject(error)
-        }
-      })
+    if (!this.shouldExecuteSubscribe(execParams)) {
+      this.logger.debug(
+        'BaseConsumer.subscribe() - Skipped .execute() since the execParams are exactly the same as last time'
+      )
+      return
     }
 
-    this.logger.debug(
-      'BaseConsumer.subscribe() - Skipped .execute() since the execParams are exactly the same as last time'
-    )
-    return Promise.resolve()
+    this._latestExecuteParams = execParams
+    return new Promise(async (resolve, reject) => {
+      try {
+        this.applyEmitterTransforms()
+        this.attachWorkers()
+        await this.execute(execParams)
+        return resolve(undefined)
+      } catch (error) {
+        return reject(error)
+      }
+    })
   }
 }
