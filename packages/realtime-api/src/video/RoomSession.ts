@@ -34,7 +34,6 @@ import {
   createRoomSessionMemberObject,
   RoomSessionMember,
 } from './RoomSessionMember'
-import { layoutWorker } from './workers/layoutWorker'
 
 type EmitterTransformsEvents =
   | InternalVideoRoomSessionEventNames
@@ -526,8 +525,8 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     super(options)
 
     this.debouncedSubscribe = debounce(this.subscribe, 100)
-    this.setWorker('layoutWorker', { worker: layoutWorker })
-    this.attachWorkers()
+    // this.setWorker('layoutWorker', { worker: layoutWorker })
+    // this.attachWorkers()
   }
 
   /** @internal */
