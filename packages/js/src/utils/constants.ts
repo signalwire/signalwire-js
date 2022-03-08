@@ -9,7 +9,7 @@ export const ROOM_COMPONENT_LISTENERS = {
 }
 
 export const SCREENSHARE_AUDIO_CONSTRAINTS: MediaTrackConstraints = {
-  echoCancellation: false,
+  echoCancellation: true,
   noiseSuppression: false,
   autoGainControl: false,
   // @ts-expect-error
