@@ -1,6 +1,6 @@
 import { PRODUCT_PREFIX_VIDEO } from '../utils/constants'
 import { toExternalJSON } from '../utils'
-import type { SwEvent } from '.'
+import type { SwEvent, VideoPosition } from '.'
 import type {
   CamelToSnakeCase,
   SnakeToCamelCase,
@@ -162,6 +162,8 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
   parentId?: string
   /** Type of this video member. Can be `'member'`, `'screen'`, or `'device'`. */
   type: VideoMemberType
+  requestedPosition: VideoPosition
+  currentPosition: VideoPosition
 
   /**
    * Mutes the outbound audio for this member (e.g., the one coming from a
