@@ -13,7 +13,10 @@ function* memberPositionLayoutChanged(options: any) {
 
   const layers = action.payload.layout.layers
 
+  console.log('-------------------------------')
+  console.log('Layers', layers)
   console.log('> Member list', Array.from(memberList))
+  console.log('-------------------------------')
 
   memberList.forEach((member: InternalVideoMemberEntity) => {
     const memberLayer = layers.find(
@@ -42,24 +45,6 @@ function* memberPositionLayoutChanged(options: any) {
   })
 }
 
-function* memberPositionDiffWorker(options: any) {
-  const { action, memberList } = options
-
-  console.log('memberPositionDiffWorker', JSON.stringify(action, null, 2))
-  switch (action.type) {
-    case 'video.member.updated':
-      // This will erase the `currentPosition`. Should we leave the last one (if any)?
-      memberList.set(action.payload.member.id, action.payload.member)
-
-      console.log('---> UPDATED MEMBER LIST', Array.from(memberList))
-
-      break
-    case 'video.layout.changed':
-      yield fork(memberPositionLayoutChanged, options)
-      break
-  }
-}
-
 export const memberPositionWorker: SDKWorker<any> =
   function* memberPositionWorker({ instance, channels }): SagaIterator {
     const { swEventChannel } = channels
@@ -80,8 +65,10 @@ export const memberPositionWorker: SDKWorker<any> =
     while (true) {
       const action = yield sagaEffects.take(swEventChannel, (action: any) => {
         const istargetEvent =
-          action.type.startsWith('video.member.updated') ||
-          action.type.startsWith('video.layout.changed')
+          action.type === 'video.member.updated' ||
+          action.type === 'video.layout.changed' ||
+          action.type === 'video.member.joined' ||
+          action.type === 'video.member.left'
 
         return (
           istargetEvent &&
@@ -89,12 +76,33 @@ export const memberPositionWorker: SDKWorker<any> =
         )
       })
 
-      yield fork(memberPositionDiffWorker, {
-        action,
-        channels,
-        memberList,
-        instance,
-      })
+      switch (action.type) {
+        case 'video.member.updated': {
+          // This will erase the `currentPosition`. Should
+          // we leave the last one (if any)?
+          memberList.set(action.payload.member.id, action.payload.member)
+          break
+        }
+        case 'video.member.joined': {
+          const member = action.payload.member
+          memberList.set(member.id, member)
+          break
+        }
+        case 'video.member.left': {
+          const member = action.payload.member
+          memberList.delete(member.id)
+          break
+        }
+        case 'video.layout.changed': {
+          yield fork(memberPositionLayoutChanged, {
+            action,
+            channels,
+            memberList,
+            instance,
+          })
+          break
+        }
+      }
 
       instance.once('destroy', () => {
         cleanup()
@@ -109,7 +117,6 @@ export const getMemberList = (payload: VideoRoomSubscribedEventParams) => {
   const memberList: MemberList = new Map()
 
   members.forEach((member: any) => {
-    console.log('->> member', member.id)
     memberList.set(member.id, member)
   })
 
