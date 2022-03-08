@@ -29,11 +29,10 @@ import { createCatchableSaga } from '../../utils/sagaHelpers'
 import { executeAction, socketMessageAction } from '../../actions'
 import { componentActions } from '../'
 import { RPCExecute } from '../../../RPCMessages'
-import { getLogger } from '../../../utils'
+import { getLogger, toInternalAction } from '../../../utils'
 import { getAuthStatus } from '../session/sessionSelectors'
 import { getComponent } from '../component/componentSelectors'
 import { SessionAuthStatus } from '../../../utils/interfaces'
-import { toInternalAction } from 'packages/core/src/utils/toInternalAction'
 
 type SessionSagaParams = {
   session: BaseSession
