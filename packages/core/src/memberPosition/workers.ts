@@ -1,4 +1,4 @@
-import { fork } from '@redux-saga/core/effects'
+import { fork, put } from '@redux-saga/core/effects'
 import {
   InternalVideoMemberEntity,
   sagaEffects,
@@ -9,16 +9,16 @@ import {
 import { findNamespaceInPayload } from '../redux/features/shared/namespace'
 
 function* memberPositionLayoutChanged(options: any) {
-  const { action, memberList } = options
+  const {
+    action,
+    memberList,
+    channels: { pubSubChannel },
+    instance,
+  } = options
 
   const layers = action.payload.layout.layers
 
-  console.log('-------------------------------')
-  console.log('Layers', layers)
-  console.log('> Member list', Array.from(memberList))
-  console.log('-------------------------------')
-
-  memberList.forEach((member: InternalVideoMemberEntity) => {
+  for (const [_, member] of memberList) {
     const memberLayer = layers.find(
       (layer: any) => layer.member_id === member.id
     )
@@ -32,17 +32,34 @@ function* memberPositionLayoutChanged(options: any) {
 
         memberList.set(member.id, updatedMember)
 
-        console.log(
-          '---> trigger member.updated -> member has a different position'
-        )
+        yield put(pubSubChannel, {
+          type: 'video.member.updated',
+          payload: {
+            room_session_id: instance._eventsNamespace,
+            member: updatedMember,
+          },
+        })
       }
     } else {
       // Member started on-canvas and is now off-canvas.
       if (member.requested_position !== 'off-canvas') {
-        console.log('---> trigger member.updated -> member is now off canvas')
+        const updatedMember: InternalVideoMemberEntity = {
+          ...member,
+          current_position: 'off-canvas',
+        }
+
+        memberList.set(member.id, updatedMember)
+
+        yield put(pubSubChannel, {
+          type: 'video.member.updated',
+          payload: {
+            room_session_id: instance._eventsNamespace,
+            member: updatedMember,
+          },
+        })
       }
     }
-  })
+  }
 }
 
 export const memberPositionWorker: SDKWorker<any> =
