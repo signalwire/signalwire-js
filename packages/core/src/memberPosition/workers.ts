@@ -25,11 +25,15 @@ function* memberPositionLayoutChanged(options: any) {
 
     if (memberLayer) {
       if (memberLayer.position !== member.current_position) {
+        /**
+         * We'll keep track of the last `current_position`
+         * inside of the member so we could use it to
+         * compare it with the next value.
+         */
         const updatedMember: InternalVideoMemberEntity = {
           ...member,
           current_position: memberLayer.position,
         }
-
         memberList.set(member.id, updatedMember)
 
         yield put(pubSubChannel, {
@@ -95,9 +99,18 @@ export const memberPositionWorker: SDKWorker<any> =
 
       switch (action.type) {
         case 'video.member.updated': {
-          // This will erase the `currentPosition`. Should
-          // we leave the last one (if any)?
-          memberList.set(action.payload.member.id, action.payload.member)
+          const updatedMember: InternalVideoMemberEntity = {
+            ...action.payload.member,
+            /**
+             * Since the event doesn't come with
+             * `current_position` we'll try to keep its
+             * previous value (if any).
+             */
+            current_position: memberList.get(action.payload.member.id)
+              ?.current_position,
+          }
+
+          memberList.set(action.payload.member.id, updatedMember)
           break
         }
         case 'video.member.joined': {

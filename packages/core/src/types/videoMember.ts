@@ -163,7 +163,7 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
   /** Type of this video member. Can be `'member'`, `'screen'`, or `'device'`. */
   type: VideoMemberType
   requestedPosition: VideoPosition
-  currentPosition: VideoPosition
+  currentPosition?: VideoPosition
 
   /**
    * Mutes the outbound audio for this member (e.g., the one coming from a
