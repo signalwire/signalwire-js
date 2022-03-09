@@ -124,6 +124,11 @@ export interface RoomSessionDocs<T>
    * ```typescript
    * await roomSession.startScreenShare({ audio: true, video: true })
    * ```
+   * 
+   * @example Sharing the screen while changing layout:
+   * ```typescript
+   * XXXXXX
+   * ```
    */
   startScreenShare(
     opts: AssertSameType<
@@ -135,9 +140,9 @@ export interface RoomSessionDocs<T>
         audio?: MediaStreamConstraints['audio']
         /** Video constraints to use when joining the room. Default: `true`. */
         video?: MediaStreamConstraints['video']
-        /** Layout to use to use when joining the room. */
+        /** Layout to switch to as soon as the screen share joins the room. */
         layout?: string
-        /** Automatically set positions when screen share joins the room. */
+        /** Layout positions to assign as soon as the screen share joins the room. */
         positions?: VideoPositions
       }
     >

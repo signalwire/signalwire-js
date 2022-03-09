@@ -34,12 +34,28 @@ export * from './videoPlayback'
 
 export type RTCTrackEventName = 'track'
 
+/**
+ * Each video layout has a number of positions which members can be assigned to.
+ * This type enumerates all the available position names. Note that not all
+ * these position names may be available within a given layout.
+ *
+ *  - `auto`: the position of the member in the layout is determined automatically.
+ *  - `reserved-n`: the _n_-th reserved position in the layout (e.g. `reserved-3`).
+ *  - `standard-n`: the _n_-th standard position in the layout (e.g. `standard-3`).
+ *  - `off-canvas`: the member is hidden outside the layout.
+ */
 export type VideoPosition =
   | 'auto'
   | `reserved-${number}`
   | `standard-${number}`
   | 'off-canvas'
 
+/**
+ * An object whose keys represent member IDs, and values are chosen from
+ * {@link VideoPosition}. Instead of a member ID, in some contexts you can use
+ * the special keyword `self` if you don't know yet the ID of the member which
+ * is going to be created.
+ */
 export type VideoPositions = Record<string, VideoPosition>
 
 /**
