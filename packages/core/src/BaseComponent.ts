@@ -311,7 +311,10 @@ export class BaseComponent<
     const eventCount = this.listenerCount(internalEvent)
 
     if (instance && (force || eventCount <= 1)) {
-      instance.destroy()
+      // Do not eat yourself
+      if (instance.__uuid !== this.__uuid) {
+        instance.destroy()
+      }
       return this._eventsTransformsCache.delete(internalEvent)
     }
 
