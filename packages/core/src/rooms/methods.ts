@@ -246,12 +246,16 @@ export const play: RoomMethodDescriptor<any, PlayParams> = {
   },
 }
 
-export interface SetMetaParams {
-  meta: Record<string, unknown>
-}
-export const setMeta = createRoomMethod<BaseRPCResult, void>('video.set_meta', {
-  transformResolve: baseCodeTransform,
-})
+export interface SetMetaParams extends Record<string, unknown> {}
+export const setMeta = createRoomMethod<BaseRPCResult, void, SetMetaParams>(
+  'video.set_meta',
+  {
+    transformResolve: baseCodeTransform,
+    transformParams: (params) => {
+      return { meta: params }
+    },
+  }
+)
 
 export type GetLayouts = ReturnType<typeof getLayouts.value>
 export type GetMembers = ReturnType<typeof getMembers.value>

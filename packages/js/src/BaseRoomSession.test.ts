@@ -425,9 +425,7 @@ describe('Room Object', () => {
         memberId: 'member-id',
       })
 
-      const result = await room.setMeta({
-        meta: { foo: 'bar' },
-      })
+      const result = await room.setMeta({ foo: 'bar' })
       expect(result).toBeUndefined()
 
       expect(session.execute).toHaveBeenLastCalledWith({

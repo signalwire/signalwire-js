@@ -875,7 +875,7 @@ interface RoomControlMethodsInterfaceDocs {
    * await roomSession.setMeta({ foo: 'bar' })
    * ```
    */
-  setMeta(params: { meta: Record<string, unknown> }): Rooms.SetMeta
+  setMeta(meta: Record<string, unknown>): Rooms.SetMeta
 
   /**
    * FIXME:
