@@ -12,6 +12,7 @@ import {
   InternalVideoRoomSessionEventNames,
   VideoRoomUpdatedEventParams,
   VideoRoomSubscribedEventParams,
+  VideoRoomEventParams,
   InternalVideoLayoutEventNames,
   InternalVideoRecordingEventNames,
   InternalVideoPlaybackEventNames,
@@ -510,6 +511,10 @@ export interface RoomSessionFullState extends RoomSession {
   members: RoomSessionMember[]
 }
 
+export const pickRoomSessionIdFromPayload = (payload: VideoRoomEventParams) => {
+  return payload.room_session.id
+}
+
 class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   protected _eventsPrefix = 'video' as const
 
@@ -524,17 +529,28 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   constructor(options: BaseComponentOptions<RealTimeRoomApiEvents>) {
     super(options)
 
+    /**
+     * Invoke _attachListeners manually because we need to attach the
+     * `room.ended` listener to destroy this instance when the room ends.
+     */
+
+    // @ts-expect-error
+    this._attachListeners(pickRoomSessionIdFromPayload(options.payload))
+    /**
+     * We don't use the RoomSession (_endedRoom) in the handler on purpose
+     * since the end-user won't be able to subscribe for events since the
+     * room does not exist anymore so there won't be any listeners/workers
+     * to detach.
+     * We just destroy the current instance that instead was created by a
+     * `room.started`.
+     */
+    super.once('room.ended', (_endedRoom) => {
+      this.destroy()
+    })
+
     this.debouncedSubscribe = debounce(this.subscribe, 100)
     // this.setWorker('layoutWorker', { worker: layoutWorker })
     // this.attachWorkers()
-  }
-
-  /** @internal */
-  protected _internal_on(
-    event: keyof RealTimeRoomApiEvents,
-    fn: EventEmitter.EventListener<RealTimeRoomApiEvents, any>
-  ) {
-    return super.on(event, fn)
   }
 
   on(
@@ -587,6 +603,7 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   protected override getCompoundEvents() {
     return new Map<any, any>([
       ['video.member.updated', ['video.layout.changed']],
+      ['video.room.started', ['video.room.ended']],
     ])
   }
 
@@ -619,7 +636,7 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
         },
       ],
       [
-        'video.room.updated',
+        ['video.room.updated', 'video.room.ended'],
         {
           type: 'roomSession',
           instanceFactory: () => {
@@ -628,11 +645,11 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
           payloadTransform: (payload: VideoRoomUpdatedEventParams) => {
             return toExternalJSON({
               ...payload.room_session,
-              room_session_id: payload.room_session.id,
+              room_session_id: pickRoomSessionIdFromPayload(payload),
             })
           },
           getInstanceEventNamespace: (payload: VideoRoomUpdatedEventParams) => {
-            return payload.room_session.id
+            return pickRoomSessionIdFromPayload(payload)
           },
           getInstanceEventChannel: (payload: VideoRoomUpdatedEventParams) => {
             return payload.room_session.event_channel

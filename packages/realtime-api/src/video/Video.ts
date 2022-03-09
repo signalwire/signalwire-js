@@ -17,6 +17,7 @@ import {
   createRoomSessionObject,
   RoomSession,
   RoomSessionFullState,
+  pickRoomSessionIdFromPayload,
 } from './RoomSession'
 import type { RoomSessionMember } from './RoomSessionMember'
 
@@ -57,22 +58,23 @@ class VideoAPI extends BaseConsumer<RealTimeVideoApiEvents> {
         {
           // TODO: create a new key or use `roomSession`?
           type: 'roomSession',
-          instanceFactory: () => {
+          instanceFactory: (payload: VideoRoomEventParams) => {
             return createRoomSessionObject({
               store: this.store,
               // Emitter is now typed.
               // @ts-expect-error
               emitter: this.options.emitter,
+              payload,
             })
           },
           payloadTransform: (payload: VideoRoomEventParams) => {
             return toExternalJSON({
               ...payload.room_session,
-              room_session_id: payload.room_session.id,
+              room_session_id: pickRoomSessionIdFromPayload(payload),
             })
           },
           getInstanceEventNamespace: (payload: VideoRoomEventParams) => {
-            return payload.room_session.id
+            return pickRoomSessionIdFromPayload(payload)
           },
           getInstanceEventChannel: (payload: VideoRoomEventParams) => {
             return payload.room_session.event_channel
