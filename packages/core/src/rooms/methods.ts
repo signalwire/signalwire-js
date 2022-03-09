@@ -252,7 +252,8 @@ export const setMeta = createRoomMethod<BaseRPCResult, void, SetMetaParams>(
   {
     transformResolve: baseCodeTransform,
     transformParams: (params) => {
-      return { meta: params }
+      const { room_session_id, ...meta } = params
+      return { room_session_id, meta }
     },
   }
 )
