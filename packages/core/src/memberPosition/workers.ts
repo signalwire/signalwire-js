@@ -1,12 +1,12 @@
 import { fork, put } from '@redux-saga/core/effects'
 import {
   InternalMemberUpdatedEventNames,
-  InternalVideoMemberEntity,
   sagaEffects,
   SagaIterator,
   SDKWorker,
   SDKWorkerParams,
   VideoMemberUpdatedEventParams,
+  VideoPosition,
   VideoRoomSubscribedEventParams,
 } from '..'
 import { findNamespaceInPayload } from '../redux/features/shared/namespace'
@@ -16,51 +16,54 @@ function* memberPositionLayoutChangedWorker(options: any) {
     action,
     memberList,
     channels: { pubSubChannel },
-    instance,
   } = options
   const layers = action.payload.layout.layers
+  const processedMembers: Record<string, boolean> = {}
 
-  for (const [_, member] of memberList) {
-    const memberLayer = layers.find(
-      (layer: any) => layer.member_id === member.id
-    )
+  layers.forEach((layer: any) => {
+    const memberId = layer.member_id
+    if (!memberId) {
+      return
+    }
 
-    if (memberLayer) {
-      if (memberLayer.position !== member.current_position) {
-        /**
-         * We'll keep track of the last `current_position`
-         * inside of the member so we could use it to
-         * compare it with the next value.
-         */
-        const updatedMember: InternalVideoMemberEntity = {
-          ...member,
-          current_position: memberLayer.position,
-        }
-        memberList.set(member.id, updatedMember)
-        yield put(pubSubChannel, {
-          type: 'video.member.updated',
-          payload: {
-            room_session_id: instance._eventsNamespace,
-            member: updatedMember,
-          },
-        })
-      }
+    const memberEventParams = memberList.get(memberId)
+
+    if (layer.position !== memberEventParams.member?.current_position) {
+      mutateMemberCurrentPosition({
+        memberList,
+        memberId,
+        currentPosition: layer.position,
+      })
+      processedMembers[memberId] = true
     } else {
-      // Member started on-canvas and is now off-canvas.
-      if (member.requested_position !== 'off-canvas') {
-        const updatedMember: InternalVideoMemberEntity = {
-          ...member,
-          current_position: 'off-canvas',
-        }
-        memberList.set(member.id, updatedMember)
-        yield put(pubSubChannel, {
-          type: 'video.member.updated',
-          payload: {
-            room_session_id: instance._eventsNamespace,
-            member: updatedMember,
-          },
-        })
-      }
+      // Values marked as false won't be put to `pubSubChannel`
+      processedMembers[memberId] = false
+    }
+  })
+
+  for (const [memberId, payload] of memberList) {
+    if (processedMembers[memberId]) {
+      yield put(pubSubChannel, {
+        type: 'video.member.updated',
+        payload,
+      })
+
+      /**
+       * `undefined` means that we couldn't find the
+       * `memberId` inside the `layout.layers` array, which
+       * implies that the user should now be off-canvas
+       */
+    } else if (processedMembers[memberId] === undefined) {
+      const updatedMemberEventParams = mutateMemberCurrentPosition({
+        memberList,
+        memberId,
+        currentPosition: 'off-canvas',
+      })
+
+      yield put(pubSubChannel, {
+        type: 'video.member.updated',
+        payload: updatedMemberEventParams,
+      })
     }
   }
 }
@@ -73,25 +76,16 @@ function* memberUpdatedWorker({
   memberList: MemberEventParamsList
   action: any
 }) {
-  const updatedMemberEventParams: VideoMemberUpdatedEventParams = {
-    ...memberList.get(action.payload.member.id)!,
-    member: {
-      ...action.payload.member,
-      /**
-       * Since the event doesn't come with
-       * `current_position` we'll try to keep its
-       * previous value (if any).
-       */
-      current_position: memberList.get(action.payload.member.id)?.member
-        ?.current_position,
-    },
-  }
-  memberList.set(action.payload.member.id, updatedMemberEventParams)
+  const updatedMemberEventParams = mutateMemberCurrentPosition({
+    memberList,
+    memberId: action.payload.member.id,
+    currentPosition: memberList.get(action.payload.member.id)?.member
+      ?.current_position,
+  })
 
   const {
     member: { updated = [] },
   } = action.payload
-  console.log('UPDATED', updated)
 
   for (const key of updated) {
     const type = `${action.type}.${key}` as InternalMemberUpdatedEventNames
@@ -178,7 +172,29 @@ export const memberPositionWorker: SDKWorker<any> =
 
 type MemberEventParamsList = Map<string, VideoMemberUpdatedEventParams>
 
-export const getMemberList = (payload: VideoRoomSubscribedEventParams) => {
+const mutateMemberCurrentPosition = ({
+  memberList,
+  memberId,
+  currentPosition,
+}: {
+  memberList: MemberEventParamsList
+  memberId: string
+  currentPosition?: VideoPosition
+}) => {
+  const memberEventParams = memberList.get(memberId)!
+  const updatedMemberEventParams: VideoMemberUpdatedEventParams = {
+    ...memberEventParams,
+    member: {
+      ...memberEventParams?.member,
+      current_position: currentPosition,
+    },
+  }
+  memberList.set(memberId, updatedMemberEventParams)
+
+  return updatedMemberEventParams
+}
+
+const getMemberList = (payload: VideoRoomSubscribedEventParams) => {
   const members = payload.room.members
   const memberList: MemberEventParamsList = new Map()
 
@@ -191,6 +207,8 @@ export const getMemberList = (payload: VideoRoomSubscribedEventParams) => {
       member,
     })
   })
+
+  console.log('INITIAL MEMBER LIST', memberList)
 
   return memberList
 }
