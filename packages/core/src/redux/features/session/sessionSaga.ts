@@ -15,7 +15,6 @@ import type {
   VideoAPIEventParams,
   SwEventParams,
   WebRTCMessageParams,
-  InternalMemberUpdatedEventNames,
   MemberTalkingEventNames,
   CantinaEvent,
 } from '../../../types'
@@ -144,7 +143,7 @@ export function* sessionChannelWatcher({
   session,
   sessionChannel,
   pubSubChannel,
-  swEventChannel
+  swEventChannel,
 }: SessionSagaParams): SagaIterator {
   function* vertoWorker({ jsonrpc, nodeId }: VertoWorkerParams) {
     const { id, method, params = {} } = jsonrpc
@@ -257,6 +256,15 @@ export function* sessionChannelWatcher({
 
   function* videoAPIWorker(params: VideoAPIEventParams): SagaIterator {
     switch (params.event_type) {
+      case 'video.member.updated': {
+        /**
+         * `video.member.updated` is handled by the
+         * layoutWorker so to avoid dispatching the event
+         * twice (or with incomplete data) we'll early
+         * return.
+         */
+        return
+      }
       case 'video.room.subscribed': {
         yield put(
           componentActions.upsert({
@@ -272,20 +280,6 @@ export function* sessionChannelWatcher({
           type: 'video.room.joined',
           payload: params.params,
         })
-        break
-      }
-      case 'video.member.updated': {
-        const {
-          member: { updated = [] },
-        } = params.params
-        for (const key of updated) {
-          const type =
-            `video.member.updated.${key}` as InternalMemberUpdatedEventNames
-          yield put(pubSubChannel, {
-            type,
-            payload: params.params,
-          })
-        }
         break
       }
       case 'video.member.joined': {

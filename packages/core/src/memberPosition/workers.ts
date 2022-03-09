@@ -1,21 +1,23 @@
 import { fork, put } from '@redux-saga/core/effects'
 import {
+  InternalMemberUpdatedEventNames,
   InternalVideoMemberEntity,
   sagaEffects,
   SagaIterator,
   SDKWorker,
+  SDKWorkerParams,
+  VideoMemberUpdatedEventParams,
   VideoRoomSubscribedEventParams,
 } from '..'
 import { findNamespaceInPayload } from '../redux/features/shared/namespace'
 
-function* memberPositionLayoutChanged(options: any) {
+function* memberPositionLayoutChangedWorker(options: any) {
   const {
     action,
     memberList,
     channels: { pubSubChannel },
     instance,
   } = options
-
   const layers = action.payload.layout.layers
 
   for (const [_, member] of memberList) {
@@ -35,7 +37,6 @@ function* memberPositionLayoutChanged(options: any) {
           current_position: memberLayer.position,
         }
         memberList.set(member.id, updatedMember)
-
         yield put(pubSubChannel, {
           type: 'video.member.updated',
           payload: {
@@ -51,9 +52,7 @@ function* memberPositionLayoutChanged(options: any) {
           ...member,
           current_position: 'off-canvas',
         }
-
         memberList.set(member.id, updatedMember)
-
         yield put(pubSubChannel, {
           type: 'video.member.updated',
           payload: {
@@ -64,6 +63,48 @@ function* memberPositionLayoutChanged(options: any) {
       }
     }
   }
+}
+
+function* memberUpdatedWorker({
+  action,
+  channels,
+  memberList,
+}: Omit<SDKWorkerParams<any>, 'runSaga'> & {
+  memberList: MemberEventParamsList
+  action: any
+}) {
+  const updatedMemberEventParams: VideoMemberUpdatedEventParams = {
+    ...memberList.get(action.payload.member.id)!,
+    member: {
+      ...action.payload.member,
+      /**
+       * Since the event doesn't come with
+       * `current_position` we'll try to keep its
+       * previous value (if any).
+       */
+      current_position: memberList.get(action.payload.member.id)?.member
+        ?.current_position,
+    },
+  }
+  memberList.set(action.payload.member.id, updatedMemberEventParams)
+
+  const {
+    member: { updated = [] },
+  } = action.payload
+  console.log('UPDATED', updated)
+
+  for (const key of updated) {
+    const type = `${action.type}.${key}` as InternalMemberUpdatedEventNames
+    yield put(channels.pubSubChannel, {
+      type,
+      payload: updatedMemberEventParams,
+    })
+  }
+
+  yield put(channels.pubSubChannel, {
+    type: action.type,
+    payload: updatedMemberEventParams,
+  })
 }
 
 export const memberPositionWorker: SDKWorker<any> =
@@ -99,23 +140,18 @@ export const memberPositionWorker: SDKWorker<any> =
 
       switch (action.type) {
         case 'video.member.updated': {
-          const updatedMember: InternalVideoMemberEntity = {
-            ...action.payload.member,
-            /**
-             * Since the event doesn't come with
-             * `current_position` we'll try to keep its
-             * previous value (if any).
-             */
-            current_position: memberList.get(action.payload.member.id)
-              ?.current_position,
-          }
+          yield fork(memberUpdatedWorker, {
+            action,
+            channels,
+            memberList,
+            instance,
+          })
 
-          memberList.set(action.payload.member.id, updatedMember)
           break
         }
         case 'video.member.joined': {
           const member = action.payload.member
-          memberList.set(member.id, member)
+          memberList.set(member.id, action.payload)
           break
         }
         case 'video.member.left': {
@@ -124,7 +160,7 @@ export const memberPositionWorker: SDKWorker<any> =
           break
         }
         case 'video.layout.changed': {
-          yield fork(memberPositionLayoutChanged, {
+          yield fork(memberPositionLayoutChangedWorker, {
             action,
             channels,
             memberList,
@@ -140,14 +176,20 @@ export const memberPositionWorker: SDKWorker<any> =
     }
   }
 
-type MemberList = Map<string, InternalVideoMemberEntity>
+type MemberEventParamsList = Map<string, VideoMemberUpdatedEventParams>
 
 export const getMemberList = (payload: VideoRoomSubscribedEventParams) => {
   const members = payload.room.members
-  const memberList: MemberList = new Map()
+  const memberList: MemberEventParamsList = new Map()
 
-  members.forEach((member: any) => {
-    memberList.set(member.id, member)
+  members.forEach((member) => {
+    memberList.set(member.id, {
+      room_id: payload.room.room_id,
+      room_session_id: payload.room.room_session_id,
+      // At this point we don't have `member.updated`
+      // @ts-expect-error
+      member,
+    })
   })
 
   return memberList
