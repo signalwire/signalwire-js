@@ -60,6 +60,7 @@ export interface VideoRoomSessionContract {
   hideVideoMuted: boolean
   /** URL to the room preview. */
   previewUrl?: string
+  meta: Record<string, unknown>
 
   audioMute(params?: MemberCommandParams): Rooms.AudioMuteMember
   audioUnmute(params?: MemberCommandParams): Rooms.AudioUnmuteMember
@@ -97,6 +98,9 @@ export interface VideoRoomSessionContract {
   startRecording(): Promise<Rooms.RoomSessionRecording>
   getPlaybacks(): Rooms.GetPlaybacks
   play(params: Rooms.PlayParams): Promise<Rooms.RoomSessionPlayback>
+
+  setMeta(params: Rooms.SetMetaParams): Rooms.SetMeta
+  setMemberMeta(params: Rooms.SetMemberMetaParams): Rooms.SetMemberMeta
 }
 
 /**

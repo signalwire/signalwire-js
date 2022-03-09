@@ -856,6 +856,75 @@ interface RoomControlMethodsInterfaceDocs {
     volume?: number
     positions?: VideoPositions
   }): Promise<Rooms.RoomSessionPlayback>
+
+  /**
+   * Assigns custom metadata to the RoomSession. You can use this to store
+   * metadata whose meaning is entirely defined by your application.
+   *
+   * Note that calling this method overwrites any metadata that had been
+   * previously set on this RoomSession.
+   *
+   * @param meta The medatada object to assign to the RoomSession.
+   *
+   * @permissions
+   *  - `room.set_meta`
+   *
+   * You need to specify the permissions when [creating the Video Room
+   * Token](https://developer.signalwire.com/apis/reference/create_room_token)
+   * on the server side.
+   *
+   * @example
+   * ```js
+   * await roomSession.setMeta({ foo: 'bar' })
+   * ```
+   */
+  setMeta(meta: Record<string, unknown>): Rooms.SetMeta
+
+  /**
+   * Assigns custom metadata to the specified RoomSession member. You can use
+   * this to store metadata whose meaning is entirely defined by your
+   * application.
+   *
+   * Note that calling this method overwrites any metadata that had been
+   * previously set on the specified member.
+   *
+   * @param params.memberId Id of the member to affect. If omitted, affects the
+   * default device in the local client.
+   * @param params.meta The medatada object to assign to the member.
+   *
+   * @permissions
+   *  - `room.self.set_meta`: to set the metadata for the local member
+   *  - `room.member.set_meta`: to set the metadata for a remote member
+   *
+   * You need to specify the permissions when [creating the Video Room
+   * Token](https://developer.signalwire.com/apis/reference/create_room_token)
+   * on the server side.
+   *
+   * @example
+   * Setting metadata for the current member:
+   * ```js
+   * await roomSession.setMemberMeta({
+   *   meta: {
+   *     email: 'joe@example.com'
+   *   }
+   * })
+   * ```
+   *
+   * @example
+   * Setting metadata for another member:
+   * ```js
+   * await roomSession.setMemberMeta({
+   *   memberId: 'de550c0c-3fac-4efd-b06f-b5b8614b8966'  // you can get this from getMembers()
+   *   meta: {
+   *     email: 'joe@example.com'
+   *   }
+   * })
+   * ```
+   */
+  setMemberMeta(params: {
+    memberId?: string
+    meta: Record<string, unknown>
+  }): Rooms.SetMemberMeta
 }
 
 interface RoomLayoutMethodsInterface {

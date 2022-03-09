@@ -361,6 +361,8 @@ export const RoomSessionAPI = extendComponent<
   getPlaybacks: Rooms.getPlaybacks,
   play: Rooms.play,
   setHideVideoMuted: Rooms.setHideVideoMuted,
+  setMeta: Rooms.setMeta,
+  setMemberMeta: Rooms.setMemberMeta,
 })
 
 type RoomSessionObjectEventsHandlerMapping = RoomSessionObjectEvents &

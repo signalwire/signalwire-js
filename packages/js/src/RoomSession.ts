@@ -1,8 +1,4 @@
-import {
-  UserOptions,
-  AssertSameType,
-  getLogger,
-} from '@signalwire/core'
+import { UserOptions, AssertSameType, getLogger } from '@signalwire/core'
 import { createClient } from './createClient'
 import type { MakeRoomOptions } from './Client'
 import { BaseRoomSession } from './BaseRoomSession'
@@ -43,6 +39,8 @@ export const UNSAFE_PROP_ACCESS = [
   'videoUnmute',
   'setMicrophoneVolume',
   'setSpeakerVolume',
+  'setMeta',
+  'setMemberMeta',
 ]
 
 export interface RoomSessionOptions extends UserOptions, MakeRoomOptions {}
