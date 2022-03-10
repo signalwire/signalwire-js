@@ -60,6 +60,10 @@ function* memberPositionLayoutChangedWorker(options: any) {
         currentPosition: 'off-canvas',
       })
 
+      if (!updatedMemberEventParams) {
+        return
+      }
+
       yield put(pubSubChannel, {
         type: 'video.member.updated',
         payload: updatedMemberEventParams,
@@ -83,6 +87,10 @@ export function* memberUpdatedWorker({
       ?.current_position,
   })
 
+  if (!updatedMemberEventParams) {
+    return
+  }
+
   const {
     member: { updated = [] },
   } = action.payload
@@ -90,8 +98,8 @@ export function* memberUpdatedWorker({
   const memberUpdatedPayload = {
     ...updatedMemberEventParams,
     member: {
+      ...updatedMemberEventParams.member,
       ...action.payload.member,
-      updated: action.payload.member.updated,
     },
   }
 
@@ -181,7 +189,16 @@ const mutateMemberCurrentPosition = ({
   memberId: string
   currentPosition?: VideoPosition
 }) => {
-  const memberEventParams = memberList.get(memberId)!
+  const memberEventParams = memberList.get(memberId)
+
+  if (!memberEventParams) {
+    return
+
+    // This is to avoid setting an undefined property
+  } else if (!currentPosition) {
+    return memberEventParams
+  }
+
   const updatedMemberEventParams: VideoMemberUpdatedEventParams = {
     ...memberEventParams,
     member: {
