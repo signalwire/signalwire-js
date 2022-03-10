@@ -68,7 +68,7 @@ function* memberPositionLayoutChangedWorker(options: any) {
   }
 }
 
-function* memberUpdatedWorker({
+export function* memberUpdatedWorker({
   action,
   channels,
   memberList,
@@ -87,17 +87,25 @@ function* memberUpdatedWorker({
     member: { updated = [] },
   } = action.payload
 
+  const memberUpdatedPayload = {
+    ...updatedMemberEventParams,
+    member: {
+      ...action.payload.member,
+      updated: action.payload.member.updated,
+    },
+  }
+
   for (const key of updated) {
     const type = `${action.type}.${key}` as InternalMemberUpdatedEventNames
     yield put(channels.pubSubChannel, {
       type,
-      payload: updatedMemberEventParams,
+      payload: memberUpdatedPayload,
     })
   }
 
   yield put(channels.pubSubChannel, {
     type: action.type,
-    payload: updatedMemberEventParams,
+    payload: memberUpdatedPayload,
   })
 }
 
@@ -199,8 +207,6 @@ const getMemberList = (payload: VideoRoomSubscribedEventParams) => {
       member,
     })
   })
-
-  console.log('INITIAL MEMBER LIST', memberList)
 
   return memberList
 }
