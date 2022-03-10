@@ -114,10 +114,6 @@ export const memberPositionWorker: SDKWorker<any> =
     })
     let memberList = getMemberList(action.payload)
 
-    const cleanup = () => {
-      memberList.clear()
-    }
-
     while (true) {
       const action = yield sagaEffects.take(swEventChannel, (action: any) => {
         const istargetEvent =
@@ -163,10 +159,6 @@ export const memberPositionWorker: SDKWorker<any> =
           break
         }
       }
-
-      instance.once('destroy', () => {
-        cleanup()
-      })
     }
   }
 
