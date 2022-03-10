@@ -187,6 +187,7 @@ describe('initSessionSaga', () => {
       session,
       sessionChannel,
       pubSubChannel,
+      swEventChannel
     })
     saga.next().fork(sessionStatusWatcher, {
       session,
