@@ -9,6 +9,7 @@ import {
   toLocalEvent,
   toExternalJSON,
   VideoRoomEventParams,
+  MemberPosition,
 } from '@signalwire/core'
 import {
   getDisplayMedia,
@@ -124,18 +125,7 @@ export class RoomSessionConnection
 
   /** @internal */
   protected override getCompoundEvents() {
-    return new Map<any, any>([
-      [
-        'video.member.updated',
-        [
-          'video.layout.changed',
-          // `member.joined` and `member.left` are needed to
-          // keep the member list up to date
-          'video.member.joined',
-          'video.member.left',
-        ],
-      ],
-    ])
+    return new Map<any, any>([...MemberPosition.MEMBER_POSITION_COMPOUND_EVENTS])
   }
 
   /**

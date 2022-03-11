@@ -27,6 +27,7 @@ import {
   EventEmitter,
   VideoPosition,
   VideoPositions,
+  MemberPosition,
 } from '@signalwire/core'
 import { RealTimeRoomApiEvents } from '../types'
 import { debounce } from '../utils/debounce'
@@ -588,18 +589,7 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
 
   /** @internal */
   protected override getCompoundEvents() {
-    return new Map<any, any>([
-      [
-        'video.member.updated',
-        [
-          'video.layout.changed',
-          // `member.joined` and `member.left` are needed to
-          // keep the member list up to date
-          'video.member.joined',
-          'video.member.left',
-        ],
-      ],
-    ])
+    return new Map<any, any>([...MemberPosition.MEMBER_POSITION_COMPOUND_EVENTS])
   }
 
   /** @internal */

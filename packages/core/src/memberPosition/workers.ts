@@ -117,6 +117,19 @@ export function* memberUpdatedWorker({
   })
 }
 
+export const MEMBER_POSITION_COMPOUND_EVENTS = new Map<any, any>([
+  [
+    'video.member.updated',
+    [
+      'video.layout.changed',
+      // `member.joined` and `member.left` are needed to
+      // keep the member list up to date
+      'video.member.joined',
+      'video.member.left',
+    ],
+  ],
+])
+
 export const memberPositionWorker: SDKWorker<any> =
   function* memberPositionWorker({
     instance,
