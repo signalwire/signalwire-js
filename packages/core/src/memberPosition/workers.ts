@@ -128,7 +128,7 @@ export const memberPositionWorker: SDKWorker<any> =
         findNamespaceInPayload(action) === instance._eventsNamespace
       )
     })
-    let memberList = getMemberList(action.payload)
+    let memberList = initializeMemberList(action.payload)
 
     while (true) {
       const action = yield sagaEffects.take(swEventChannel, (action: any) => {
@@ -152,7 +152,6 @@ export const memberPositionWorker: SDKWorker<any> =
             memberList,
             instance,
           })
-
           break
         }
         case 'video.member.joined': {
@@ -211,7 +210,7 @@ const mutateMemberCurrentPosition = ({
   return updatedMemberEventParams
 }
 
-const getMemberList = (payload: VideoRoomSubscribedEventParams) => {
+const initializeMemberList = (payload: VideoRoomSubscribedEventParams) => {
   const members = payload.room.members
   const memberList: MemberEventParamsList = new Map()
 
