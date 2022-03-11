@@ -7,7 +7,11 @@ import {
   INTERNAL_GLOBAL_VIDEO_EVENTS,
   PRODUCT_PREFIXES,
 } from './constants'
-import type { CustomSaga, PubSubChannel, SwEventChannel } from '../redux/interfaces'
+import type {
+  CustomSaga,
+  PubSubChannel,
+  SwEventChannel,
+} from '../redux/interfaces'
 import type { URL as NodeURL } from 'node:url'
 import { InternalRPCMethods } from '../internal'
 import { ChatJSONRPCMethod, ChatTransformType } from '..'
@@ -405,6 +409,7 @@ export type SDKWorkerParams<T> = {
   channels: InternalChannels
   instance: T
   runSaga: any
+  payload?: any
 }
 export type SDKWorker<T> = (params: SDKWorkerParams<T>) => SagaIterator<any>
 

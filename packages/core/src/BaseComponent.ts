@@ -21,6 +21,7 @@ import {
   SDKWorker,
   SDKWorkerDefinition,
   SessionAuthStatus,
+  SDKWorkerParams,
 } from './utils/interfaces'
 import { EventEmitter } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
@@ -871,11 +872,12 @@ export class BaseComponent<
   }
 
   /** @internal */
-  protected attachWorkers() {
+  protected attachWorkers(params: Partial<SDKWorkerParams<any>> = {}) {
     return this._workers.forEach(({ worker }, name) => {
       const task = this.store.runSaga(worker, {
         instance: this,
         runSaga: this.store.runSaga,
+        ...params,
       })
       this._runningWorkers.push(task)
       /**
