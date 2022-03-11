@@ -8,6 +8,7 @@ import {
   BaseConnectionContract,
   toLocalEvent,
   toExternalJSON,
+  VideoRoomEventParams,
 } from '@signalwire/core'
 import {
   getDisplayMedia,
@@ -121,6 +122,22 @@ export class RoomSessionConnection
     ])
   }
 
+  /** @internal */
+  protected override getCompoundEvents() {
+    return new Map<any, any>([
+      [
+        'video.member.updated',
+        [
+          'video.layout.changed',
+          // `member.joined` and `member.left` are needed to
+          // keep the member list up to date
+          'video.member.joined',
+          'video.member.left',
+        ],
+      ],
+    ])
+  }
+
   /**
    * This method will be called by `join()` right before the
    * `connect()` happens and it's a way for us to control
@@ -133,6 +150,19 @@ export class RoomSessionConnection
     })
 
     this.attachWorkers()
+  }
+
+  /**
+   * This method will be called right after
+   * `room.subscribed` happened
+   * @internal
+   */
+  protected attachOnSubscribedWorkers(payload: VideoRoomEventParams) {
+    this.setWorker('memberPositionWorker', {
+      worker: workers.memberPositionWorker,
+    })
+
+    this.attachWorkers({ payload })
   }
 
   /** @deprecated Use {@link startScreenShare} instead. */
