@@ -118,17 +118,17 @@ export function* memberUpdatedWorker({
 }
 
 export const memberPositionWorker: SDKWorker<any> =
-  function* memberPositionWorker({ instance, channels }): SagaIterator {
-    const { swEventChannel } = channels
-    const action = yield sagaEffects.take(swEventChannel, (action: any) => {
-      const istargetEvent = action.type === 'video.room.subscribed'
+  function* memberPositionWorker({
+    instance,
+    channels,
+    payload,
+  }): SagaIterator {
+    if (!payload) {
+      return
+    }
 
-      return (
-        istargetEvent &&
-        findNamespaceInPayload(action) === instance._eventsNamespace
-      )
-    })
-    let memberList = initializeMemberList(action.payload)
+    const { swEventChannel } = channels
+    let memberList = initializeMemberList(payload)
 
     while (true) {
       const action = yield sagaEffects.take(swEventChannel, (action: any) => {

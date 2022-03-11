@@ -27,7 +27,6 @@ import {
   EventEmitter,
   VideoPosition,
   VideoPositions,
-  MemberPosition,
 } from '@signalwire/core'
 import { RealTimeRoomApiEvents } from '../types'
 import { debounce } from '../utils/debounce'
@@ -35,6 +34,7 @@ import {
   createRoomSessionMemberObject,
   RoomSessionMember,
 } from './RoomSessionMember'
+import { memberPositionWorker } from './memberPosition/workers'
 
 type EmitterTransformsEvents =
   | InternalVideoRoomSessionEventNames
@@ -527,7 +527,7 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
 
     this.debouncedSubscribe = debounce(this.subscribe, 100)
     this.setWorker('memberPositionWorker', {
-      worker: MemberPosition.memberPositionWorker,
+      worker: memberPositionWorker,
     })
     this.attachWorkers()
   }
