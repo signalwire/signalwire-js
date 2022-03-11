@@ -589,8 +589,13 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         sdp,
         action: 'updateMedia',
       })
-      const response = await this.vertoExecute(msg)
+      const response: any = await this.vertoExecute(msg)
+      if (!response.sdp) {
+        this.logger.error('UpdateMedia invalid SDP answer', response)
+      }
+
       this.logger.debug('UpdateMedia response', response)
+      await this.peer.onRemoteSdp(response.sdp)
     } catch (error) {
       this.logger.error('UpdateMedia error', error)
       // this.setState('hangup')
