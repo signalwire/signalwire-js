@@ -1,4 +1,3 @@
-import { fork } from '@redux-saga/core/effects'
 import {
   sagaEffects,
   SagaIterator,
@@ -20,7 +19,7 @@ export const memberPositionWorker: SDKWorker<any> =
       )
     })
 
-    yield fork(MemberPosition.memberPositionWorker, {
+    yield sagaEffects.fork(MemberPosition.memberPositionWorker, {
       ...options,
       payload: action.payload,
     })

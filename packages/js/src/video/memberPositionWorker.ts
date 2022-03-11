@@ -1,5 +1,4 @@
-import { fork } from '@redux-saga/core/effects'
-import { SagaIterator, SDKWorker, MemberPosition } from '@signalwire/core'
+import { SagaIterator, SDKWorker, MemberPosition, sagaEffects } from '@signalwire/core'
 
 export const memberPositionWorker: SDKWorker<any> =
   function* memberPositionWorker(options): SagaIterator {
@@ -7,7 +6,7 @@ export const memberPositionWorker: SDKWorker<any> =
       return
     }
 
-    yield fork(MemberPosition.memberPositionWorker, {
+    yield sagaEffects.fork(MemberPosition.memberPositionWorker, {
       ...options,
       payload: options.payload,
     })
