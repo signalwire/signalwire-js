@@ -776,7 +776,7 @@ export const createCameraDeviceWatcher = () =>
   createDeviceWatcher({ targets: ['camera'] })
 
 const isMediaStream = (options: any): options is MediaStream => {
-  return typeof options.getTracks === 'function'
+  return typeof options?.getTracks === 'function'
 }
 
 const getMicrophoneAnalyzerMediaStream = async (
