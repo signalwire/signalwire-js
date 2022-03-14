@@ -48,29 +48,6 @@ describe('VideoClient', () => {
     })
 
     describe('Automatic connect', () => {
-      let getClientMock: jest.SpyInstance
-      const mockedBaseClient: any = {
-        connect: jest.fn(() => Promise.resolve()),
-        on: jest.fn(),
-      }
-
-      beforeEach(async () => {
-        getClientMock = jest
-          .spyOn(getProxiedClient, 'getProxiedClient')
-          .mockImplementationOnce(() => {
-            return mockedBaseClient
-          })
-      })
-
-      afterEach(() => {
-        getClientMock.mockRestore()
-        Object.values(mockedBaseClient).forEach((mock: any) => {
-          if (typeof mock.mockRestore === 'function') {
-            mock.mockRestore()
-          }
-        })
-      })
-
       it('should automatically connect the underlying client', (done) => {
         const video = new Client({
           // @ts-expect-error
