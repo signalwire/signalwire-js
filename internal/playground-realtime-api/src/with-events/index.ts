@@ -11,17 +11,17 @@ async function run() {
 
     video.on('room.started', (room) => {
       console.log('Room started --->', room.id, room.name)
-      room.on('member.updated', (member) => {
-        console.log('Member updated --->', member.currentPosition);
+      room.on('member.updated', () => {
+        console.log('Member updated --->');
       })
 
-      // room.on('member.joined', (member) => {
-      //   console.log('Member joined --->', member.id, member.name)
-      // })
+      room.on('member.joined', (member) => {
+        console.log('Member joined --->', member.id, member.name)
+      })
 
-      // room.on('member.left', (member) => {
-      //   console.log('Member left --->', member.id, member.name)
-      // })
+      room.on('member.left', (member) => {
+        console.log('Member left --->', member.id, member.name)
+      })
     })
 
     video.on('room.ended', (room) => {
