@@ -59,18 +59,19 @@ const ChatClient = function (options?: ChatClientOptions) {
     return chat.publish(params)
   }
 
+  const interceptors = {
+    on: chatOn,
+    once: chatOnce,
+    subscribe,
+    publish,
+    _session: client,
+  } as const
+
   return new Proxy<ChatClient>(chat, {
     get(target: ChatClient, prop: keyof ChatClient, receiver: any) {
-      if (prop === 'on') {
-        return chatOn
-      } else if (prop === 'once') {
-        return chatOnce
-      } else if (prop === 'subscribe') {
-        return subscribe
-      } else if (prop === 'publish') {
-        return publish
-      } else if (prop === '_session') {
-        return client
+      if (prop in interceptors) {
+        // @ts-expect-error
+        return interceptors[prop]
       }
 
       return Reflect.get(target, prop, receiver)
