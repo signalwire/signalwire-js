@@ -1,8 +1,7 @@
 import type { AssertSameType, UserOptions } from '@signalwire/core'
 import type { RealTimeVideoApiEvents } from '../types'
 import { getLogger } from '@signalwire/core'
-import { getProxiedClient, clientConnect } from '../client/index'
-import { getCredentials, setupInternals } from '../utils/internals'
+import { setupClient, clientConnect } from '../client/index'
 import { createVideoObject, Video } from './Video'
 import { VideoClientDocs } from './VideoClient.docs'
 
@@ -49,21 +48,8 @@ export interface VideoClientOptions
 }
 
 /** @ignore */
-const VideoClient = function (options: VideoClientOptions) {
-  const credentials = getCredentials({
-    token: options.token,
-    project: options.project,
-  })
-  const { emitter, store } = setupInternals({
-    ...options,
-    ...credentials,
-  })
-  const client = getProxiedClient({
-    ...options,
-    ...credentials,
-    emitter,
-    store,
-  })
+const VideoClient = function (options?: VideoClientOptions) {
+  const { client, store, emitter } = setupClient(options)
 
   const video = createVideoObject({
     store,
@@ -109,7 +95,7 @@ const VideoClient = function (options: VideoClientOptions) {
   return new Proxy<Omit<VideoClient, 'new'>>(video, {
     get(
       target: VideoClient,
-      prop: keyof VideoClient | 'session',
+      prop: keyof VideoClient,
       receiver: any
     ) {
       if (prop in interceptors) {
@@ -121,6 +107,6 @@ const VideoClient = function (options: VideoClientOptions) {
     },
   })
   // For consistency with other constructors we'll make TS force the use of `new`
-} as unknown as { new (options: VideoClientOptions): VideoClient }
+} as unknown as { new (options?: VideoClientOptions): VideoClient }
 
 export { VideoClient as Client }

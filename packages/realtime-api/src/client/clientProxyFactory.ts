@@ -1,7 +1,20 @@
 import { RealtimeClient } from './Client'
-import { clientConnect } from './clientConnect'
+import { clientConnect as baseClientConnect } from './clientConnect'
 
-export const clientProxyFactory = (client: RealtimeClient) => {
+interface ClientInterceptors {
+  connect?: (client: RealtimeClient) => Promise<void | RealtimeClient>
+}
+
+const defaultInterceptors: ClientInterceptors = {
+  connect: baseClientConnect,
+}
+
+export const clientProxyFactory = (
+  client: RealtimeClient,
+  interceptors: ClientInterceptors = defaultInterceptors
+) => {
+  const clientConnect = interceptors.connect || baseClientConnect
+
   // Client interceptors
   const clientOn: RealtimeClient['on'] = (...args) => {
     clientConnect(client)
