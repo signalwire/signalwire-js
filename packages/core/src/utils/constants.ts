@@ -24,6 +24,7 @@ export const PRODUCT_PREFIX_CANTINA = 'cantina-manager'
 export const PRODUCT_PREFIX_CHAT = 'chat'
 export const PRODUCT_PREFIX_TASK = 'tasking'
 export const PRODUCT_PREFIX_MESSAGING = 'messaging'
+export const PRODUCT_PREFIX_VOICE = 'voice'
 
 export const GLOBAL_VIDEO_EVENTS = ['room.started', 'room.ended'] as const
 
@@ -33,6 +34,7 @@ export const PRODUCT_PREFIXES = [
   PRODUCT_PREFIX_CHAT,
   PRODUCT_PREFIX_TASK,
   PRODUCT_PREFIX_MESSAGING,
+  PRODUCT_PREFIX_VOICE,
 ] as const
 
 /**
