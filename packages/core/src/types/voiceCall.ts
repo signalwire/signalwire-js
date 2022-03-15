@@ -94,3 +94,7 @@ export type VoiceCallEvent = VoiceCallCreatedEvent | VoiceCallEndedEvent
 export type VoiceCallEventParams =
   | VoiceCallCreatedEventParams
   | VoiceCallEndedEventParams
+
+export type VoiceCallJSONRPCMethod =
+  | 'voice.call.dial'
+  | 'voice.call.hangup'

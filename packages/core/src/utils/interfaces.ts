@@ -18,6 +18,7 @@ import {
   ChatTransformType,
   MessagingJSONRPCMethod,
   MessagingTransformType,
+  VoiceJSONRPCMethod,
 } from '..'
 
 type JSONRPCParams = Record<string, any>
@@ -58,6 +59,7 @@ export type JSONRPCMethod =
   | VertoMethod
   | ChatJSONRPCMethod
   | MessagingJSONRPCMethod
+  | VoiceJSONRPCMethod
 
 export type JSONRPCSubscribeMethod = Extract<
   JSONRPCMethod,
