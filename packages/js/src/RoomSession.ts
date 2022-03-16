@@ -21,7 +21,6 @@ export const UNSAFE_PROP_ACCESS = [
   'getRecordings',
   'hideVideoMuted',
   'leave',
-  'hangup', // alias for leave (undocumented but worth to check)
   'removerMember',
   'restoreOutboundAudio',
   'restoreOutboundVideo',
