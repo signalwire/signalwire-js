@@ -29,30 +29,30 @@ export interface VoiceClientOptions
 const VoiceClient = function (options?: VoiceClientOptions) {
   const { client, store, emitter } = setupClient(options)
 
-  const voice = createCallObject({
+  const call = createCallObject({
     store,
     emitter,
   })
 
-  const voiceOn: Call['on'] = (...args) => {
+  const callOn: Call['on'] = (...args) => {
     clientConnect(client)
 
-    return voice.on(...args)
+    return call.on(...args)
   }
-  const voiceOnce: Call['once'] = (...args) => {
+  const callOnce: Call['once'] = (...args) => {
     clientConnect(client)
 
-    return voice.once(...args)
+    return call.once(...args)
   }
-  const voiceSubscribe: Call['subscribe'] = async () => {
+  const callSubscribe: Call['subscribe'] = async () => {
     await clientConnect(client)
 
-    return voice.subscribe()
+    return call.subscribe()
   }
 
   client.on('session.connected', async () => {
     try {
-      await voice.subscribe()
+      await call.subscribe()
     } catch (e) {
       // TODO: In the future we'll provide a
       // `onSubscribedError` (or similar) to allow the user
@@ -63,13 +63,13 @@ const VoiceClient = function (options?: VoiceClientOptions) {
   })
 
   const interceptors = {
-    on: voiceOn,
-    once: voiceOnce,
-    subscribe: voiceSubscribe,
+    on: callOn,
+    once: callOnce,
+    subscribe: callSubscribe,
     _session: client,
   } as const
 
-  return new Proxy<Omit<VoiceClient, 'new'>>(voice, {
+  return new Proxy<Omit<VoiceClient, 'new'>>(call, {
     get(target: VoiceClient, prop: keyof VoiceClient, receiver: any) {
       if (prop in interceptors) {
         // @ts-expect-error
