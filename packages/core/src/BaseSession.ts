@@ -289,7 +289,6 @@ export class BaseSession {
 
     switch (payload.method) {
       case 'signalwire.ping':
-      case 'blade.ping': // required for internal
         return this._pingHandler(payload)
       case 'signalwire.disconnect': {
         /**

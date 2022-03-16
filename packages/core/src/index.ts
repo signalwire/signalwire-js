@@ -9,7 +9,7 @@ import {
   extendComponent,
   validateEventsToSubscribe,
   toInternalEventName,
-  serializeableProxy
+  serializeableProxy,
 } from './utils'
 import { BaseSession } from './BaseSession'
 import { BaseJWTSession } from './BaseJWTSession'
@@ -52,7 +52,6 @@ export {
 }
 
 export * from './RPCMessages'
-export * from './internal'
 export * from './utils/interfaces'
 export * from './types'
 export * from './CustomErrors'
@@ -61,7 +60,7 @@ export type {
   CustomSagaParams,
   CustomSaga,
   PubSubChannel,
-  MapToPubSubShape
+  MapToPubSubShape,
 } from './redux/interfaces'
 export * as actions from './redux/actions'
 export * as sagaHelpers from './redux/utils/sagaHelpers'
