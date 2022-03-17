@@ -2,4 +2,4 @@
 '@signalwire/webrtc': patch
 ---
 
-Fixed getDisplayMedia signature
+Fixed getDisplayMedia signature.
