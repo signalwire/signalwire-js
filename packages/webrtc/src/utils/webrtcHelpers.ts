@@ -147,7 +147,7 @@ export const getUserMedia = (
  * // MediaStream {id: "HCXy...", active: true, ...}
  * ```
  */
-export const getDisplayMedia = (constraints: MediaStreamConstraints) => {
+export const getDisplayMedia = (constraints?: MediaStreamConstraints) => {
   return getMediaDevicesApi().getDisplayMedia(constraints)
 }
 
