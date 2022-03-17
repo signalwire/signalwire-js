@@ -47,6 +47,8 @@ describe('Room Object', () => {
     expect(room.startRecording).toBeDefined()
     expect(room.getPlaybacks).toBeDefined()
     expect(room.play).toBeDefined()
+    expect(room.setMeta).toBeDefined()
+    expect(room.setMemberMeta).toBeDefined()
   })
 
   describe('getRecordings', () => {
@@ -397,6 +399,84 @@ describe('Room Object', () => {
         2,
         talkingFalse.params.params
       )
+    })
+  })
+
+  describe('meta methods', () => {
+    it('should allow to set the meta field on the RoomSession', async () => {
+      const { store, session, emitter } = configureFullStack()
+
+      session.execute = jest.fn().mockResolvedValue({
+        code: '200',
+        message: 'OK',
+      })
+
+      room = createBaseRoomSessionObject({
+        store,
+        // @ts-expect-error
+        emitter,
+      })
+      // mock a room.subscribed event
+      // @ts-expect-error
+      room.onRoomSubscribed({
+        nodeId: 'node-id',
+        roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
+        roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
+        memberId: 'member-id',
+      })
+
+      const result = await room.setMeta({ foo: 'bar' })
+      expect(result).toBeUndefined()
+
+      expect(session.execute).toHaveBeenLastCalledWith({
+        jsonrpc: '2.0',
+        id: expect.any(String),
+        method: 'video.set_meta',
+        params: {
+          room_session_id: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
+          meta: { foo: 'bar' },
+        },
+      })
+    })
+
+    it('should allow to set the meta field on the Member', async () => {
+      const { store, session, emitter } = configureFullStack()
+
+      session.execute = jest.fn().mockResolvedValue({
+        code: '200',
+        message: 'OK',
+      })
+
+      room = createBaseRoomSessionObject({
+        store,
+        // @ts-expect-error
+        emitter,
+      })
+      // mock a room.subscribed event
+      // @ts-expect-error
+      room.onRoomSubscribed({
+        nodeId: 'node-id',
+        roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
+        roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
+        memberId: 'member-id',
+      })
+
+      const result = await room.setMemberMeta({
+        memberId: 'uuid',
+        meta: { displayName: 'jest' },
+      })
+      expect(result).toBeUndefined()
+
+      expect(session.execute).toHaveBeenLastCalledWith({
+        jsonrpc: '2.0',
+        id: expect.any(String),
+        method: 'video.member.set_meta',
+        params: {
+          room_session_id: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
+          member_id: 'uuid',
+          meta: { displayName: 'jest' },
+        },
+      })
     })
   })
 })

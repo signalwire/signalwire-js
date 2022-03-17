@@ -1,6 +1,6 @@
-import { channel } from '@redux-saga/core'
+import { multicastChannel } from '@redux-saga/core'
 import { configureStore, ConfigureStoreOptions, SDKStore } from './redux'
-import { PubSubChannel } from './redux/interfaces'
+import { PubSubChannel, SwEventChannel } from './redux/interfaces'
 import { BaseSession } from './BaseSession'
 import { RPCConnectResult, InternalSDKLogger } from './utils/interfaces'
 import { EventEmitter } from './utils/EventEmitter'
@@ -73,4 +73,5 @@ export const rpcConnectResultVRT: RPCConnectResult = {
   ],
 }
 
-export const createPubSubChannel = (): PubSubChannel => channel()
+export const createPubSubChannel = (): PubSubChannel => multicastChannel()
+export const createSwEventChannel = (): SwEventChannel => multicastChannel()

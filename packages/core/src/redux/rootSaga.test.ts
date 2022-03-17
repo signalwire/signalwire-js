@@ -33,7 +33,7 @@ import {
   reauthAction,
 } from './actions'
 import { AuthError } from '../CustomErrors'
-import { createPubSubChannel } from '../testUtils'
+import { createPubSubChannel, createSwEventChannel } from '../testUtils'
 import { componentCleanupSaga } from './features/component/componentSaga'
 
 describe('socketClosedWorker', () => {
@@ -173,19 +173,21 @@ describe('initSessionSaga', () => {
 
   it('should create the session, the sessionChannel and fork watchers', () => {
     const pubSubChannel = createPubSubChannel()
+    const swEventChannel = createSwEventChannel()
     pubSubChannel.close = jest.fn()
     const sessionChannel = eventChannel(() => () => {})
     sessionChannel.close = jest.fn()
     const saga = testSaga(initSessionSaga, {
       SessionConstructor,
       userOptions,
-      channels: { pubSubChannel },
+      channels: { pubSubChannel, swEventChannel },
     })
     saga.next(sessionChannel).call(createSessionChannel, session)
     saga.next(sessionChannel).fork(sessionChannelWatcher, {
       session,
       sessionChannel,
       pubSubChannel,
+      swEventChannel
     })
     saga.next().fork(sessionStatusWatcher, {
       session,
@@ -253,6 +255,7 @@ describe('startSaga', () => {
 
 describe('rootSaga', () => {
   const pubSubChannel = createPubSubChannel()
+  const swEventChannel = createSwEventChannel()
   it('wait for initAction and fork initSessionSaga', () => {
     const session = {
       connect: jest.fn(),
@@ -261,7 +264,7 @@ describe('rootSaga', () => {
       return session
     })
     const userOptions = { token: '', emitter: jest.fn() as any }
-    const channels = { pubSubChannel }
+    const channels = { pubSubChannel, swEventChannel }
     const saga = testSaga(
       rootSaga({
         SessionConstructor,

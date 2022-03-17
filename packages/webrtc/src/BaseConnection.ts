@@ -210,7 +210,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
    * Verto messages have to be wrapped into an execute
    * request and sent using the 'video.message' method.
    */
-  public vertoExecute(vertoMessage: JSONRPCRequest) {
+  private vertoExecute(vertoMessage: JSONRPCRequest) {
     const params: any = {
       message: vertoMessage,
       node_id: this.nodeId,
@@ -224,6 +224,14 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         params.subscribe = ['video.room.additionaldevice']
       } else {
         params.subscribe = this.getSubscriptions()
+      }
+    } else {
+      // nodeId is required for all the requests (except for verto.invite)
+      if (!this.nodeId) {
+        this.logger.warn(
+          `Skip Request. Missing nodeId for '${vertoMessage.method}'.`
+        )
+        return
       }
     }
 
@@ -539,6 +547,15 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   /** @internal */
   async executeInvite(sdp: string) {
+    if (this.state !== 'new') {
+      /**
+       * Something bad happened. Either App logic invoking
+       * methods in a wrong order or events are not correct.
+       */
+      throw new Error(
+        `Invalid state: '${this.state}' for connection id: ${this.id}`
+      )
+    }
     this.setState('requesting')
     try {
       const ssOpts = this.options.screenShare

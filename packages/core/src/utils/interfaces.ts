@@ -7,9 +7,12 @@ import {
   INTERNAL_GLOBAL_VIDEO_EVENTS,
   PRODUCT_PREFIXES,
 } from './constants'
-import type { CustomSaga, PubSubChannel } from '../redux/interfaces'
+import type {
+  CustomSaga,
+  PubSubChannel,
+  SwEventChannel,
+} from '../redux/interfaces'
 import type { URL as NodeURL } from 'node:url'
-import { InternalRPCMethods } from '../internal'
 import { ChatJSONRPCMethod, ChatTransformType } from '..'
 
 type JSONRPCParams = Record<string, any>
@@ -48,7 +51,6 @@ export type JSONRPCMethod =
   | 'video.message'
   | RoomMethod
   | VertoMethod
-  | InternalRPCMethods
   | ChatJSONRPCMethod
 
 export type JSONRPCSubscribeMethod = Extract<
@@ -227,6 +229,8 @@ export type RoomMethod =
   | 'video.member.set_input_sensitivity'
   | 'video.member.set_position'
   | 'video.member.remove'
+  | 'video.member.set_meta'
+  | 'video.set_meta'
   | 'video.set_layout'
   | 'video.set_position'
   | 'video.recording.list'
@@ -398,12 +402,14 @@ export type BaseEventHandler = (...args: any[]) => void
 
 export type InternalChannels = {
   pubSubChannel: PubSubChannel
+  swEventChannel: SwEventChannel
 }
 
 export type SDKWorkerParams<T> = {
   channels: InternalChannels
   instance: T
   runSaga: any
+  payload?: any
 }
 export type SDKWorker<T> = (params: SDKWorkerParams<T>) => SagaIterator<any>
 

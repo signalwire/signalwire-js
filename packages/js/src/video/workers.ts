@@ -1,1 +1,2 @@
-export * from "./memberListUpdatedWorker"
+export * from './memberListUpdatedWorker'
+export * from './memberPositionWorker'
