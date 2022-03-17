@@ -43,10 +43,10 @@
   },
   "dependencies": {
     "@signalwire/core": "3.6.0",
-    "ws": "^8.4.0"
+    "ws": "^8.5.0"
   },
   "devDependencies": {
-    "@types/ws": "^8.2.2"
+    "@types/ws": "^8.5.3"
   },
   "types": "dist/realtime-api/src/index.d.ts"
 }

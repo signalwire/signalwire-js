@@ -44,7 +44,7 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@types/uuid": "^8.3.3",
+    "@types/uuid": "^8.3.4",
     "jest-websocket-mock": "^2.3.0",
     "mock-socket": "^9.1.2",
     "redux-saga-test-plan": "^4.0.4"
