@@ -10,6 +10,6 @@
   "devDependencies": {
     "dotenv": "^16.0.0",
     "esbuild-register": "^3.2.1",
-    "inquirer": "^8.2.0"
+    "inquirer": "^8.2.1"
   }
 }
