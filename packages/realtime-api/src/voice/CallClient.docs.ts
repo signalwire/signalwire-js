@@ -1,6 +1,6 @@
 import { Call } from './Call'
 
-export interface VoiceClientDocs extends Call {
+export interface CallClientDocs extends Call {
   new (opts: {
     /** SignalWire project id, e.g. `a10d8a9f-2166-4e82-56ff-118bc3a4840f` */
     project: string

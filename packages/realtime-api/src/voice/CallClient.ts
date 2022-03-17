@@ -3,30 +3,27 @@ import type { RealTimeCallApiEvents } from '../types'
 import { getLogger } from '@signalwire/core'
 import { setupClient, clientConnect } from '../client/index'
 import { createCallObject, Call } from './Call'
-import { VoiceClientDocs } from './VoiceClient.docs'
+import { CallClientDocs } from './CallClient.docs'
 
 /**
- * List of events for {@link Voice.Client}.
+ * List of events for {@link Voice.Call}.
  */
-export interface VoiceClientApiEvents extends RealTimeCallApiEvents {}
+export interface CallClientApiEvents extends RealTimeCallApiEvents {}
 
-/** @ignore */
-export interface VoiceApiFullState extends VoiceClient {}
-interface VoiceClientMain extends Call {
-  new (opts: VoiceClientOptions): this
+interface CallClientMain extends Call {
+  new (opts: CallClientOptions): this
 }
 
-interface VoiceClient
-  extends AssertSameType<VoiceClientMain, VoiceClientDocs> {}
+interface CallClient extends AssertSameType<CallClientMain, CallClientDocs> {}
 
 /** @ignore */
-export interface VoiceClientOptions
+export interface CallClientOptions
   extends Omit<UserOptions, 'host' | '_onRefreshToken' | 'token'> {
   token?: string
 }
 
 /** @ignore */
-const VoiceClient = function (options?: VoiceClientOptions) {
+const CallClient = function (options?: CallClientOptions) {
   const { client, store, emitter } = setupClient(options)
 
   const call = createCallObject({
@@ -69,8 +66,8 @@ const VoiceClient = function (options?: VoiceClientOptions) {
     _session: client,
   } as const
 
-  return new Proxy<Omit<VoiceClient, 'new'>>(call, {
-    get(target: VoiceClient, prop: keyof VoiceClient, receiver: any) {
+  return new Proxy<Omit<CallClient, 'new'>>(call, {
+    get(target: CallClient, prop: keyof CallClient, receiver: any) {
       if (prop in interceptors) {
         // @ts-expect-error
         return interceptors[prop]
@@ -80,6 +77,6 @@ const VoiceClient = function (options?: VoiceClientOptions) {
     },
   })
   // For consistency with other constructors we'll make TS force the use of `new`
-} as unknown as { new (options?: VoiceClientOptions): VoiceClient }
+} as unknown as { new (options?: CallClientOptions): CallClient }
 
-export { VoiceClient as Client }
+export { CallClient }

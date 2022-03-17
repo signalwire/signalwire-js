@@ -2,7 +2,7 @@ import { Voice } from '@signalwire/realtime-api'
 
 async function run() {
   try {
-    const call = new Voice.Client({
+    const call = new Voice.Call({
       // @ts-expect-error
       host: process.env.HOST || 'relay.swire.io',
       project: process.env.PROJECT as string,
