@@ -19,6 +19,7 @@ import { BaseComponent } from './BaseComponent'
 import { BaseConsumer } from './BaseConsumer'
 import { EventEmitter, getEventEmitter } from './utils/EventEmitter'
 import * as sessionSelectors from './redux/features/session/sessionSelectors'
+import { findNamespaceInPayload } from './redux/features/shared/namespace'
 import { GLOBAL_VIDEO_EVENTS } from './utils/constants'
 import {
   MEMBER_UPDATED_EVENTS,
@@ -49,6 +50,7 @@ export {
   GLOBAL_VIDEO_EVENTS,
   MEMBER_UPDATED_EVENTS,
   INTERNAL_MEMBER_UPDATED_EVENTS,
+  findNamespaceInPayload,
 }
 
 export * from './RPCMessages'
@@ -68,6 +70,7 @@ export * as sagaEffects from '@redux-saga/core/effects'
 export type { SagaIterator, Task, Saga } from '@redux-saga/types'
 export * as Rooms from './rooms'
 export * as Chat from './chat'
+export * as MemberPosition from './memberPosition'
 export type { RoomSessionRecording, RoomSessionPlayback } from './rooms'
 export const selectors = {
   ...sessionSelectors,

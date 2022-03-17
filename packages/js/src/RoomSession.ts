@@ -132,7 +132,9 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
 
         await client.connect()
 
-        room.once('room.subscribed', () => {
+        room.once('room.subscribed', (payload) => {
+          // @ts-expect-error
+          room.attachOnSubscribedWorkers(payload)
           resolve(room)
         })
 

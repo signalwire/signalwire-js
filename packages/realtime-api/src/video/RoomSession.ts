@@ -27,6 +27,7 @@ import {
   EventEmitter,
   VideoPosition,
   VideoPositions,
+  MemberPosition,
 } from '@signalwire/core'
 import { RealTimeRoomApiEvents } from '../types'
 import { debounce } from '../utils/debounce'
@@ -34,6 +35,7 @@ import {
   createRoomSessionMemberObject,
   RoomSessionMember,
 } from './RoomSessionMember'
+import { memberPositionWorker } from './memberPosition/workers'
 
 type EmitterTransformsEvents =
   | InternalVideoRoomSessionEventNames
@@ -568,8 +570,10 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     super(options)
 
     this.debouncedSubscribe = debounce(this.subscribe, 100)
-    // this.setWorker('layoutWorker', { worker: layoutWorker })
-    // this.attachWorkers()
+    this.setWorker('memberPositionWorker', {
+      worker: memberPositionWorker,
+    })
+    this.attachWorkers()
   }
 
   /** @internal */
@@ -628,9 +632,7 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
 
   /** @internal */
   protected override getCompoundEvents() {
-    return new Map<any, any>([
-      ['video.member.updated', ['video.layout.changed']],
-    ])
+    return new Map<any, any>([...MemberPosition.MEMBER_POSITION_COMPOUND_EVENTS])
   }
 
   /** @internal */

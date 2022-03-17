@@ -70,6 +70,10 @@ export function* initSessionSaga({
    * the public
    */
   const pubSubChannel = channels.pubSubChannel
+  /**
+   * Channel to broadcast all the events sent by the server
+   */
+  const swEventChannel = channels.swEventChannel
 
   /**
    * Start all the custom workers on startup
@@ -90,6 +94,7 @@ export function* initSessionSaga({
     session,
     sessionChannel,
     pubSubChannel,
+    swEventChannel
   })
 
   /**
