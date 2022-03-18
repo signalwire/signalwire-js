@@ -124,7 +124,7 @@ export interface RoomSessionDocs<T>
    * ```js
    * await roomSession.startScreenShare({ audio: true, video: true })
    * ```
-   * 
+   *
    * @example Sharing the screen while changing layout:
    * ```js
    * await roomSession.startScreenShare({
@@ -1013,7 +1013,7 @@ interface RoomLayoutMethodsInterface {
 
   /**
    * Assigns a position in the layout to the specified member.
-   * 
+   *
    * @example
    * ```js
    * await roomSession.setMemberPosition({

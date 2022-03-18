@@ -338,7 +338,7 @@ interface RoomSessionDocs extends RoomSessionMain {
 
   /**
    * Assigns a position in the layout to the specified member.
-   * 
+   *
    * @example
    * ```js
    * await roomSession.setMemberPosition({
@@ -668,7 +668,9 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
 
   /** @internal */
   protected override getCompoundEvents() {
-    return new Map<any, any>([...MemberPosition.MEMBER_POSITION_COMPOUND_EVENTS])
+    return new Map<any, any>([
+      ...MemberPosition.MEMBER_POSITION_COMPOUND_EVENTS,
+    ])
   }
 
   /** @internal */

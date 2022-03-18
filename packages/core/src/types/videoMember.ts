@@ -64,6 +64,7 @@ type VideoMemberUpdatableProps = AssertSameType<
      * The default value is 30 and the scale goes from 0 (lowest sensitivity,
      * essentially muted) to 100 (highest sensitivity). */
     inputSensitivity: number
+    /** Metadata associated to this member. */
     meta: Record<string, unknown>
   }
 >
