@@ -121,13 +121,20 @@ export interface RoomSessionDocs<T>
    * @param opts
    *
    * @example Sharing the screen together with the associated audio:
-   * ```typescript
+   * ```js
    * await roomSession.startScreenShare({ audio: true, video: true })
    * ```
    * 
    * @example Sharing the screen while changing layout:
-   * ```typescript
-   * XXXXXX
+   * ```js
+   * await roomSession.startScreenShare({
+   *   audio: true,
+   *   video: true,
+   *   layout: "screen-share",
+   *   positions: {
+   *     "self": "reserved-1"
+   *   }
+   * })
    * ```
    */
   startScreenShare(
@@ -838,11 +845,6 @@ interface RoomControlMethodsInterfaceDocs {
    * {@link RoomSessionPlayback} object to control the playback (e.g., pause,
    * resume, setVolume and stop).
    *
-   * @param params.url The url (http, https, rtmp, rtmps) of the stream to
-   * reproduce.
-   * @param params.volume The audio volume at which to play the stream. Values
-   * range from -50 to 50, with a default of 0.
-   *
    * @permissions
    *  - `room.playback`
    *
@@ -857,8 +859,17 @@ interface RoomControlMethodsInterfaceDocs {
    * ```
    */
   play(params: {
+    /** The url (http, https, rtmp, rtmps) of the stream to reproduce. */
     url: string
+    /**
+     * The audio volume at which to play the stream. Values range from -50 to
+     * 50, with a default of 0.
+     */
     volume?: number
+    /**
+     * Positions to assign as soon as the playback starts. You can use the
+     * special keywork `self` to refer to the id of the playback.
+     */
     positions?: VideoPositions
   }): Promise<Rooms.RoomSessionPlayback>
 
@@ -962,8 +973,6 @@ interface RoomLayoutMethodsInterface {
   /**
    * Sets a layout for the room. You can obtain a list of available layouts
    * with {@link getLayouts}.
-   * @param params
-   * @param params.name name of the layout
    *
    * @permissions
    *  - `room.set_layout`
@@ -978,14 +987,45 @@ interface RoomLayoutMethodsInterface {
    * ```
    */
   setLayout(params: {
+    /** Name of the layout */
     name: string
+    /** Positions to assign as soon as the new layout is set. */
     positions?: VideoPositions
   }): Rooms.SetLayout
 
-  setPositions(params: { positions: VideoPositions }): Promise<void>
+  /**
+   * Assigns a position in the layout for multiple members.
+   *
+   * @example
+   * ```js
+   * await roomSession.setPositions({
+   *   positions: {
+   *     "1bf4d4fb-a3e4-4d46-80a8-3ebfdceb2a60": "reserved-1",
+   *     "e0c5be44-d6c7-438f-8cda-f859a1a0b1e7": "auto"
+   *   }
+   * })
+   * ```
+   */
+  setPositions(params: {
+    /** Mapping of member IDs and positions to assign */
+    positions: VideoPositions
+  }): Promise<void>
 
+  /**
+   * Assigns a position in the layout to the specified member.
+   * 
+   * @example
+   * ```js
+   * await roomSession.setMemberPosition({
+   *   memberId: "1bf4d4fb-a3e4-4d46-80a8-3ebfdceb2a60",
+   *   position: "off-canvas"
+   * })
+   * ```
+   */
   setMemberPosition(params: {
+    /** Id of the member to affect. If omitted, affects the current member. */
     memberId?: string
+    /** Position to assign in the layout. */
     position: VideoPosition
   }): Promise<void>
 }
