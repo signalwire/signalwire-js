@@ -164,7 +164,12 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
   parentId?: string
   /** Type of this video member. Can be `'member'`, `'screen'`, or `'device'`. */
   type: VideoMemberType
+  /**
+   * Position requested for this member in the layout. This may differ from
+   * `currentPosition` if the requested position is not currently available.
+   */
   requestedPosition: VideoPosition
+  /** Current position of this member in the layout. */
   currentPosition?: VideoPosition
 
   /**
