@@ -6,7 +6,7 @@
   "type": "module",
   "private": true,
   "dependencies": {
-    "execa": "^6.0.0"
+    "execa": "^6.1.0"
   },
   "scripts": {
     "test": ""

@@ -13,8 +13,8 @@
   },
   "dependencies": {
     "@sw-internal/common": "^0.0.1",
-    "execa": "^6.0.0",
-    "inquirer": "^8.2.0",
-    "listr2": "^3.13.5"
+    "execa": "^6.1.0",
+    "inquirer": "^8.2.1",
+    "listr2": "^4.0.5"
   }
 }
