@@ -345,7 +345,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     return new Promise(async (resolve, reject) => {
       try {
         if (!Object.keys(constraints).length) {
-          return this.logger.warn('Invalid constraints:', constraints)
+          return reject(new Error('Invalid audio/video constraints.'))
         }
 
         this.logger.debug(
