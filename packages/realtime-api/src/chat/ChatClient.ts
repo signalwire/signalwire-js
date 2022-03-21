@@ -7,22 +7,52 @@ import {
 } from '@signalwire/core'
 import { getLogger } from '@signalwire/core'
 import { clientConnect, setupClient, RealtimeClient } from '../client/index'
+import { ChatClientApiEventsDocs, ClientDocs } from './ChatClient.docs'
 
-export interface ClientApiEvents extends ChatNamespace.BaseChatApiEvents {}
+export interface ChatClientApiEventsMain extends ChatNamespace.BaseChatApiEvents {}
+export interface ChatClientApiEvents extends AssertSameType<ChatClientApiEventsMain, ChatClientApiEventsDocs> {}
 
 export interface ClientFullState extends ChatClient {}
 interface ClientMain
   extends ChatContract,
-    Omit<ConsumerContract<ClientApiEvents, ClientFullState>, 'subscribe'> {
+    Omit<ConsumerContract<ChatClientApiEvents, ClientFullState>, 'subscribe'> {
+
+  new (opts: ChatClientOptions): this
+
   /** @internal */
   _session: RealtimeClient
 }
 
-interface ClientDocs extends ClientMain {}
+/**
+ * You can use instances of this class to control the chat and subscribe to its
+ * events. Please see {@link ChatClientApiEvents} for the full list of events
+ * you can subscribe to.
+ *
+ * @example
+ *
+ * ```javascript
+ * const chatClient = new Chat.Client({
+ *   project: '<project-id>',
+ *   token: '<api-token>'
+ * })
+ * 
+ * await chatClient.subscribe([ 'mychannel1', 'mychannel2' ])
+ *
+ * chatClient.on('message', (message) => {
+ *   console.log("Received", message.content,
+ *               "on", message.channel,
+ *               "at", message.publishedAt)
+ * })
+ *
+ * await chatClient.publish({
+ *   channel: 'mychannel1',
+ *   content: 'hello world'
+ * })
+ * ```
+ */
+interface ChatClient extends AssertSameType<ClientMain, ClientDocs> {}
 
-export interface ChatClient extends AssertSameType<ClientMain, ClientDocs> {}
-
-export interface ChatClientOptions
+interface ChatClientOptions
   extends Omit<UserOptions, 'host' | '_onRefreshToken' | 'token'> {
   token?: string
 }
