@@ -320,7 +320,6 @@ export class BaseComponent<
         instance.__uuid !== this.__uuid &&
         typeof instance.destroy === 'function'
       ) {
-        console.log('instance?', instance)
         instance.destroy()
       }
       return this._eventsTransformsCache.delete(internalEvent)
