@@ -1,5 +1,5 @@
 import type { SwEvent } from '.'
-import { PRODUCT_PREFIX_VOICE } from '../utils/constants'
+import { PRODUCT_PREFIX_VOICE_CALL } from '../utils/constants'
 import type {
   CamelToSnakeCase,
   OnlyFunctionProperties,
@@ -7,7 +7,7 @@ import type {
 } from './utils'
 
 type ToInternalVoiceEvent<T extends string> = `${VoiceNamespace}.${T}`
-export type VoiceNamespace = typeof PRODUCT_PREFIX_VOICE
+export type VoiceNamespace = typeof PRODUCT_PREFIX_VOICE_CALL
 
 /**
  * Public event types

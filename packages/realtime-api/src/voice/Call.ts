@@ -25,7 +25,7 @@ export interface Call extends AssertSameType<CallMain, CallDocs> {}
 export interface CallFullState extends Call {}
 
 export class CallConsumer extends AutoSubscribeConsumer<RealTimeCallApiEvents> {
-  protected _eventsPrefix = 'voice' as const
+  protected _eventsPrefix = 'calling' as const
 
   /** @internal */
   protected subscribeParams = {
