@@ -312,7 +312,16 @@ export class BaseComponent<
     const eventCount = this.listenerCount(internalEvent)
 
     if (instance && (force || eventCount <= 1)) {
-      instance.destroy()
+      /**
+       * Make sure to not invoke destroy on "self"
+       * and that `instance.destroy` is defined.
+       */
+      if (
+        instance.__uuid !== this.__uuid &&
+        typeof instance.destroy === 'function'
+      ) {
+        instance.destroy()
+      }
       return this._eventsTransformsCache.delete(internalEvent)
     }
 
