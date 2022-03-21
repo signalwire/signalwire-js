@@ -74,4 +74,5 @@ export * from './createClient'
  */
 export * as Chat from './chat/Chat'
 
+/** @ignore */
 export * from './configure'
