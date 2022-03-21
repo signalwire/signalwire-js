@@ -90,14 +90,14 @@ window.connect = async ({ channels, host, token }) => {
   })
 
   chat.on('member.joined', (member) => {
-    console.debug(
+    console.log(
       'Member Joined a channel',
       member.id,
       member.channel,
       member.state
     )
   })
-  chat.on('chat.member.updated', (member) => {
+  chat.on('member.updated', (member) => {
     console.log('Member Updated', member.id, member.channel, member.state)
     const li = document.getElementById(`member-${member.channel}-${member.id}`)
     li.innerHTML = `${member.id} (channel=${member.channel}) (state=${JSON.stringify(member.state)})`
