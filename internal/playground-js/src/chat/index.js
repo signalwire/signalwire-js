@@ -18,6 +18,42 @@ window.connect = async ({ channels, host, token }) => {
     }
   }
 
+  const _getChannelMembers = async () => {
+    const memberList = document.getElementById('members-list')
+
+    for (const channel of channels) {
+      const { members } = await chat.getMembers({
+        channel
+      })
+      members.forEach((member) => {
+        const li = document.createElement('li')
+        li.id = `member-${member.channel}-${member.id}`
+        const a = document.createElement('a')
+        a.onclick = function (e) {
+          e.preventDefault()
+          const memberId = e.target.getAttribute('data-id')
+          const channel = e.target.getAttribute('data-channel')
+
+          chat.getMemberState({
+            channels: [channel],
+            memberId
+          }).then((res) => {
+            const { channels: states } = res
+            Object.entries(states).forEach(([channel, { state }]) => {
+              e.target.innerHTML = `${memberId} (channel=${channel}) (state=${JSON.stringify(state)})`
+            })
+          })
+        }
+        a.href = '#'
+        a.setAttribute('data-id', member.id)
+        a.setAttribute('data-channel', member.channel)
+        a.innerHTML = `${member.id} (channel=${member.channel}) (state=${JSON.stringify(member.state)})`
+        li.appendChild(a)
+        memberList.appendChild(li)
+      })
+    }
+  }
+
   const _appendMessage = (message) => {
     const { content, channel, publishedAt } = message
     const messageEl = document.createElement('div')
@@ -61,11 +97,14 @@ window.connect = async ({ channels, host, token }) => {
       member.state
     )
   })
-  chat.on('member.updated', (member) => {
-    console.debug('Member Updated', member.id, member.channel, member.state)
+  chat.on('chat.member.updated', (member) => {
+    console.log('Member Updated', member.id, member.channel, member.state)
+    const li = document.getElementById(`member-${member.channel}-${member.id}`)
+    li.innerHTML = `${member.id} (channel=${member.channel}) (state=${JSON.stringify(member.state)})`
   })
+
   chat.on('member.left', (member) => {
-    console.debug(
+    console.log(
       'Member Left a channel',
       member.id,
       member.channel,
@@ -81,6 +120,9 @@ window.connect = async ({ channels, host, token }) => {
   const messagesContainerEl = document.getElementById('chat-messages')
   const formEl = document.getElementById('chat-box')
   const channelSelectorEl = document.getElementById('chat-channels-selector')
+
+  const stateFormEl = document.getElementById('state-form')
+  const stateChannelSelectorEl = document.getElementById('state-channels-selector')
 
   window.disconnect = (channel) => {
     const el = document.querySelector(`.chat-messages-channel-${channel}`)
@@ -109,6 +151,10 @@ window.connect = async ({ channels, host, token }) => {
   channelSelectorEl.innerHTML = channels
     .map((channel) => `<option value="${channel}">${channel}</option>`)
     .join('')
+  
+  stateChannelSelectorEl.innerHTML = channels
+    .map((channel) => `<option value="${channel}">${channel}</option>`)
+    .join('')
 
   formEl.addEventListener('submit', (e) => {
     e.preventDefault()
@@ -123,7 +169,21 @@ window.connect = async ({ channels, host, token }) => {
     messageEl.value = ''
   })
 
+  stateFormEl.addEventListener('submit', async (e) => {
+    e.preventDefault()
+
+    const data = new FormData(stateFormEl)
+    const channel = data.get('channel')
+    const state = data.get('state')
+    await chat.setMemberState({
+      channels: [channel],
+      state: JSON.parse(state)
+    })
+    console.log('state state call done.')
+  })
+
   _loadHistory()
+  _getChannelMembers()
 }
 
 // UI Initialization
