@@ -27,6 +27,39 @@ export type VoiceCallEventNames = CallCreated | CallEnded
 export type InternalVoiceCallEventNames =
   ToInternalVoiceEvent<VoiceCallEventNames>
 
+type SipCodec = 'PCMU' | 'PCMA' | 'OPUS' | 'G729' | 'G722' | 'VP8' | 'H264'
+
+export interface SipHeader {
+  name: string
+  value: string
+}
+
+export interface VoiceCallPhoneParams {
+  type: 'phone'
+  from?: string
+  to: string
+  timeout?: number
+}
+
+export interface VoiceCallSipParams {
+  type: 'sip'
+  from: string
+  to: string
+  timeout?: number
+  headers?: SipHeader[]
+  codecs?: SipCodec[]
+  webrtc_media?: boolean
+}
+
+export interface NestedArray<T> extends Array<T | NestedArray<T>> {}
+
+export type VoiceCallDeviceParams = VoiceCallPhoneParams | VoiceCallSipParams
+
+export interface VoiceCallDialMethodParams {
+  region?: string
+  devices: NestedArray<VoiceCallDeviceParams>
+}
+
 /**
  * Public Contract for a VoiceCall
  */
@@ -34,7 +67,7 @@ export interface VoiceCallContract {
   /** Unique id for this voice call */
   id: string
 
-  dial(params?: any): any
+  dial(params?: VoiceCallDialMethodParams): any
   hangup(params?: any): any
 }
 
@@ -95,6 +128,4 @@ export type VoiceCallEventParams =
   | VoiceCallCreatedEventParams
   | VoiceCallEndedEventParams
 
-export type VoiceCallJSONRPCMethod =
-  | 'voice.call.dial'
-  | 'voice.call.hangup'
+export type VoiceCallJSONRPCMethod = 'calling.dial' | 'calling.hangup'
