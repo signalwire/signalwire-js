@@ -10,5 +10,8 @@
   "devDependencies": {
     "dotenv": "^16.0.0",
     "esbuild-register": "^3.2.1"
+  },
+  "dependencies": {
+    "ws": "^8.5.0"
   }
 }
