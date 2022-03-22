@@ -30,7 +30,6 @@ export interface ChatClientOptions
 type ClientMethods = Exclude<keyof ChatClient, '_session'>
 const INTERCEPTED_METHODS: ClientMethods[] = [
   'subscribe',
-  'unsubscribe',
   'publish',
   'getMessages',
   'getMembers',

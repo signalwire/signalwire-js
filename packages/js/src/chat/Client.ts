@@ -57,7 +57,6 @@ export interface ClientOptions extends UserOptions {}
 type ClientMethods = keyof Client
 const INTERCEPTED_METHODS: ClientMethods[] = [
   'subscribe',
-  'unsubscribe',
   'publish',
   'updateToken',
   'getMessages',
