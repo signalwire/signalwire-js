@@ -10,6 +10,7 @@ import {
   validateEventsToSubscribe,
   toInternalEventName,
   serializeableProxy,
+  timeoutPromise,
 } from './utils'
 import { BaseSession } from './BaseSession'
 import { BaseJWTSession } from './BaseJWTSession'
@@ -51,6 +52,7 @@ export {
   MEMBER_UPDATED_EVENTS,
   INTERNAL_MEMBER_UPDATED_EVENTS,
   findNamespaceInPayload,
+  timeoutPromise,
 }
 
 export * from './RPCMessages'

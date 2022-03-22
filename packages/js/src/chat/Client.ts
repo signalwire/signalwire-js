@@ -54,25 +54,33 @@ export interface Client extends AssertSameType<ClientMain, ClientDocs> {}
 /** @ignore */
 export interface ClientOptions extends UserOptions {}
 
+type ClientMethods = keyof Client
+const INTERCEPTED_METHODS: ClientMethods[] = [
+  'subscribe',
+  'publish',
+  'updateToken',
+  'getMessages',
+  'getMembers',
+  'getMemberState',
+  'setMemberState',
+]
+
 export const Client = function (chatOptions: ClientOptions) {
   const client = createClient<Client>(chatOptions)
-  const subscribe: Client['subscribe'] = async (channels) => {
-    await client.connect()
 
-    return client.chat.subscribe(channels)
-  }
-  const publish: Client['publish'] = async (params) => {
-    await client.connect()
+  const createInterceptor = <K extends keyof Client>(prop: K) => {
+    return async (...params: Parameters<Client[K]>) => {
+      await client.connect()
 
-    return client.chat.publish(params)
+      // @ts-expect-error
+      return client.chat[prop](...params)
+    }
   }
 
   return new Proxy<Client>(client.chat, {
     get(target: Client, prop: keyof Client, receiver: any) {
-      if (prop === 'subscribe') {
-        return subscribe
-      } else if (prop === 'publish') {
-        return publish
+      if (INTERCEPTED_METHODS.includes(prop)) {
+        return createInterceptor(prop)
       }
 
       return Reflect.get(target, prop, receiver)

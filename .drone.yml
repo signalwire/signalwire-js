@@ -16,6 +16,8 @@ steps:
       - npm run build
       - npm run -w=@sw-internal/e2e-realtime-api dev
     environment:
+      API_HOST:
+        from_secret: API_HOST
       RELAY_HOST:
         from_secret: RELAY_HOST
       RELAY_PROJECT:

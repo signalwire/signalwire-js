@@ -1,3 +1,5 @@
+import { request } from 'node:https'
+
 /**
  * 10 seconds to execute the script by default
  */
@@ -47,4 +49,56 @@ export const createTestRunner = ({
       }
     },
   }
+}
+
+const getAuthorization = () => {
+  const auth = `${process.env.RELAY_PROJECT}:${process.env.RELAY_TOKEN}`
+  return 'Basic ' + Buffer.from(auth).toString('base64')
+}
+
+type CreateCRTParams = {
+  memberId: string
+  channels: Record<string, Partial<Record<'read' | 'write', boolean>>>
+}
+export const createCRT = ({
+  memberId,
+  channels,
+}: CreateCRTParams): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const data = JSON.stringify({
+      ttl: 120,
+      member_id: memberId,
+      state: {
+        displayName: 'E2E Tester',
+      },
+      channels: channels,
+    })
+    const options = {
+      host: process.env.API_HOST,
+      port: 443,
+      method: 'POST',
+      path: '/api/chat/tokens',
+      headers: {
+        Authorization: getAuthorization(),
+        'Content-Type': 'application/json',
+        'Content-Length': data.length,
+      },
+    }
+    // console.log('CRT options', options)
+    const req = request(options, (response) => {
+      let body = ''
+      response.on('data', (chunk) => {
+        body += chunk
+      })
+
+      response.on('end', () => {
+        resolve(JSON.parse(body))
+      })
+    })
+
+    req.on('error', reject)
+
+    req.write(data)
+    req.end()
+  })
 }

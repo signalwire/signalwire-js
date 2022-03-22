@@ -37,13 +37,13 @@ export const checkWebSocketHost = (host: string): string => {
   return `${protocol}${host}`
 }
 
-export const timeoutPromise = (
-  promise: Promise<unknown>,
+export const timeoutPromise = <T = unknown>(
+  promise: Promise<T>,
   time: number,
   exception: any
 ) => {
   let timer: any = null
-  return Promise.race([
+  return Promise.race<T>([
     promise,
     new Promise(
       (_resolve, reject) => (timer = setTimeout(reject, time, exception))
