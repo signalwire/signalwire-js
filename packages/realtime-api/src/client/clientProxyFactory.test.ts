@@ -4,7 +4,7 @@ import { getClient } from './getClient'
 
 describe('clientProxyFactory', () => {
   it('should handle the automatic connection every time the user attach an event', () => {
-    const { store, emitter } = configureFullStack()
+    const { store, emitter, destroy } = configureFullStack()
     const options = {
       project: 'a-proj',
       token: 'a-proj',
@@ -22,5 +22,7 @@ describe('clientProxyFactory', () => {
     proxiedClient.on('session.reconnecting', () => {})
 
     expect(connectMock).toHaveBeenCalledTimes(2)
+
+    destroy()
   })
 })
