@@ -1,4 +1,4 @@
-import { request } from 'https'
+import { request } from 'node:https'
 
 /**
  * 10 seconds to execute the script by default
