@@ -81,7 +81,7 @@ const testChatClientPublish = (
     console.log('Running publish..')
     let events = 0
     const resolveIfDone = () => {
-      if (events === 6) {
+      if (events === 2) {
         resolve(0)
       }
     }
