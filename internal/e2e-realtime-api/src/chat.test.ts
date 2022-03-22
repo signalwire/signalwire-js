@@ -1,3 +1,10 @@
+/**
+ * The goal here is to run Chat from `realtime-api` and `js` SDKs and make sure
+ * they both receive the proper responses and events.
+ * The `handler` method grab a CRT and connects a JS ChatClient and a RealtimeAPI ChatClient
+ * and the consume all the methods asserting both SDKs receive the proper events.
+ */
+import { timeoutPromise } from '@signalwire/core'
 import { Chat as RealtimeAPIChat } from '@signalwire/realtime-api'
 import { Chat as JSChat } from '@signalwire/js'
 import { WebSocket } from 'ws'
@@ -6,6 +13,8 @@ import { createTestRunner, createCRT } from './utils'
 // @ts-ignore
 global.WebSocket = WebSocket
 
+const promiseTimeout = 4_000
+const promiseException = 4 // error code to identify the Promise timeout
 // TODO: pass as argument
 const channel = 'rw'
 
@@ -30,7 +39,7 @@ const testChatClientSubscribe = (
   firstClient: ChatClient,
   secondClient: ChatClient
 ) => {
-  return new Promise<number>(async (resolve, reject) => {
+  const promise = new Promise<number>(async (resolve) => {
     console.log('Running subscribe..')
     let events = 0
     const resolveIfDone = () => {
@@ -55,26 +64,24 @@ const testChatClientSubscribe = (
       resolveIfDone()
     })
 
-    setTimeout(() => {
-      reject(4)
-    }, 8_000)
-
     await Promise.all([
       firstClient.subscribe(channel),
       secondClient.subscribe(channel),
     ])
   })
+
+  return timeoutPromise(promise, promiseTimeout, promiseException)
 }
 
 const testChatClientPublish = (
   firstClient: ChatClient,
   secondClient: ChatClient
 ) => {
-  return new Promise<number>(async (resolve, reject) => {
+  const promise = new Promise<number>(async (resolve) => {
     console.log('Running publish..')
     let events = 0
     const resolveIfDone = () => {
-      if (events === 2) {
+      if (events === 6) {
         resolve(0)
       }
     }
@@ -95,10 +102,6 @@ const testChatClientPublish = (
       }
     })
 
-    setTimeout(() => {
-      reject(4)
-    }, 8_000)
-
     await Promise.all([
       firstClient.subscribe(channel),
       secondClient.subscribe(channel),
@@ -113,13 +116,15 @@ const testChatClientPublish = (
       },
     })
   })
+
+  return timeoutPromise(promise, promiseTimeout, promiseException)
 }
 
 const testChatClientUnsubscribe = (
   firstClient: ChatClient,
   secondClient: ChatClient
 ) => {
-  return new Promise<number>(async (resolve, reject) => {
+  const promise = new Promise<number>(async (resolve) => {
     console.log('Running unsubscribe..')
     let events = 0
     const resolveIfDone = () => {
@@ -148,10 +153,6 @@ const testChatClientUnsubscribe = (
       resolveIfDone()
     })
 
-    setTimeout(() => {
-      reject(4)
-    }, 8_000)
-
     await Promise.all([
       firstClient.subscribe(channel),
       secondClient.subscribe(channel),
@@ -161,6 +162,8 @@ const testChatClientUnsubscribe = (
 
     await secondClient.unsubscribe(channel)
   })
+
+  return timeoutPromise(promise, promiseTimeout, promiseException)
 }
 
 const testChatClientMethods = async (client: ChatClient) => {
@@ -180,7 +183,7 @@ const testChatClientSetAndGetMemberState = (
   firstClient: ChatClient,
   secondClient: ChatClient
 ) => {
-  return new Promise<number>(async (resolve, reject) => {
+  const promise = new Promise<number>(async (resolve, reject) => {
     console.log('Set member state..')
     let events = 0
     const resolveIfDone = () => {
@@ -204,10 +207,6 @@ const testChatClientSetAndGetMemberState = (
         resolveIfDone()
       }
     })
-
-    setTimeout(() => {
-      reject(4)
-    }, 3_000)
 
     console.log('Get Member State..')
     const getStateResult = await firstClient.getMemberState({
@@ -233,6 +232,8 @@ const testChatClientSetAndGetMemberState = (
       },
     })
   })
+
+  return timeoutPromise(promise, promiseTimeout, promiseException)
 }
 
 const handler = async () => {
