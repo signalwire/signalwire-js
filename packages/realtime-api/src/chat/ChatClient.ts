@@ -27,6 +27,17 @@ export interface ChatClientOptions
   token?: string
 }
 
+type ClientMethods = Exclude<keyof ChatClient, '_session'>
+const INTERCEPTED_METHODS: ClientMethods[] = [
+  'subscribe',
+  'unsubscribe',
+  'publish',
+  'getMessages',
+  'getMembers',
+  'getMemberState',
+  'setMemberState',
+]
+
 const ChatClient = function (options?: ChatClientOptions) {
   if ('production' === process.env.NODE_ENV) {
     getLogger().warn(
@@ -48,22 +59,19 @@ const ChatClient = function (options?: ChatClientOptions) {
 
     return chat.once(...args)
   }
-  const subscribe: ChatClient['subscribe'] = async (channels) => {
-    await clientConnect(client)
 
-    return chat.subscribe(channels)
-  }
-  const publish: ChatClient['publish'] = async (params) => {
-    await clientConnect(client)
+  const createInterceptor = <K extends ClientMethods>(prop: K) => {
+    return async (...params: Parameters<ChatClient[K]>) => {
+      await clientConnect(client)
 
-    return chat.publish(params)
+      // @ts-expect-error
+      return chat[prop](...params)
+    }
   }
 
   const interceptors = {
     on: chatOn,
     once: chatOnce,
-    subscribe,
-    publish,
     _session: client,
   } as const
 
@@ -72,6 +80,11 @@ const ChatClient = function (options?: ChatClientOptions) {
       if (prop in interceptors) {
         // @ts-expect-error
         return interceptors[prop]
+      }
+
+      // FIXME: types and _session check
+      if (prop !== '_session' && INTERCEPTED_METHODS.includes(prop)) {
+        return createInterceptor(prop)
       }
 
       return Reflect.get(target, prop, receiver)
