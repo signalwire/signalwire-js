@@ -1,7 +1,5 @@
 import {
-  BaseRPCResult,
   ExecuteExtendedOptions,
-  uuid,
   VoiceCallDeviceParams,
   VoiceCallDialMethodParams,
   VoiceCallJSONRPCMethod,
@@ -68,7 +66,7 @@ const toInternalDevice = (device: VoiceCallDeviceParams) => {
 // TODO: add proper to internal mapping
 type ToInternalDialParams<T> = T extends any ? any : any
 
-const toInternalDevices = (
+export const toInternalDevices = (
   params: VoiceCallDialMethodParams['devices'],
   internalDevices: ToInternalDialParams<
     VoiceCallDialMethodParams['devices']
@@ -87,24 +85,6 @@ const toInternalDevices = (
 /**
  * Call Methods
  */
-// TODO: define InputType/OutputType
-export const callDial = createCallMethod<
-  BaseRPCResult,
-  BaseRPCResult,
-  VoiceCallDialMethodParams
->('calling.dial', {
-  transformParams: (params: VoiceCallDialMethodParams) => {
-    return {
-      ...params,
-      tag: uuid(),
-      devices: toInternalDevices(params.devices),
-    }
-  },
-  // TODO: define transformResolve
-  transformResolve: (params) => params,
-})
-
-export type CallDial = ReturnType<typeof callDial.value>
 
 // TODO: add types
 export const callHangup = createCallMethod<any, any, any>('calling.hangup', {
