@@ -23,7 +23,7 @@ window.connect = async ({ channels, host, token }) => {
 
     for (const channel of channels) {
       const { members } = await chat.getMembers({
-        channel
+        channel,
       })
       members.forEach((member) => {
         const li = document.createElement('li')
@@ -34,20 +34,26 @@ window.connect = async ({ channels, host, token }) => {
           const memberId = e.target.getAttribute('data-id')
           const channel = e.target.getAttribute('data-channel')
 
-          chat.getMemberState({
-            channels: [channel],
-            memberId
-          }).then((res) => {
-            const { channels: states } = res
-            Object.entries(states).forEach(([channel, { state }]) => {
-              e.target.innerHTML = `${memberId} (channel=${channel}) (state=${JSON.stringify(state)})`
+          chat
+            .getMemberState({
+              channels: [channel],
+              memberId,
             })
-          })
+            .then((res) => {
+              const { channels: states } = res
+              Object.entries(states).forEach(([channel, { state }]) => {
+                e.target.innerHTML = `${memberId} (channel=${channel}) (state=${JSON.stringify(
+                  state
+                )})`
+              })
+            })
         }
         a.href = '#'
         a.setAttribute('data-id', member.id)
         a.setAttribute('data-channel', member.channel)
-        a.innerHTML = `${member.id} (channel=${member.channel}) (state=${JSON.stringify(member.state)})`
+        a.innerHTML = `${member.id} (channel=${
+          member.channel
+        }) (state=${JSON.stringify(member.state)})`
         li.appendChild(a)
         memberList.appendChild(li)
       })
@@ -100,7 +106,9 @@ window.connect = async ({ channels, host, token }) => {
   chat.on('member.updated', (member) => {
     console.log('Member Updated', member.id, member.channel, member.state)
     const li = document.getElementById(`member-${member.channel}-${member.id}`)
-    li.innerHTML = `${member.id} (channel=${member.channel}) (state=${JSON.stringify(member.state)})`
+    li.innerHTML = `${member.id} (channel=${
+      member.channel
+    }) (state=${JSON.stringify(member.state)})`
   })
 
   chat.on('member.left', (member) => {
@@ -122,7 +130,9 @@ window.connect = async ({ channels, host, token }) => {
   const channelSelectorEl = document.getElementById('chat-channels-selector')
 
   const stateFormEl = document.getElementById('state-form')
-  const stateChannelSelectorEl = document.getElementById('state-channels-selector')
+  const stateChannelSelectorEl = document.getElementById(
+    'state-channels-selector'
+  )
 
   window.disconnect = (channel) => {
     const el = document.querySelector(`.chat-messages-channel-${channel}`)
@@ -151,7 +161,7 @@ window.connect = async ({ channels, host, token }) => {
   channelSelectorEl.innerHTML = channels
     .map((channel) => `<option value="${channel}">${channel}</option>`)
     .join('')
-  
+
   stateChannelSelectorEl.innerHTML = channels
     .map((channel) => `<option value="${channel}">${channel}</option>`)
     .join('')
@@ -177,7 +187,7 @@ window.connect = async ({ channels, host, token }) => {
     const state = data.get('state')
     await chat.setMemberState({
       channels: [channel],
-      state: JSON.parse(state)
+      state: JSON.parse(state),
     })
     console.log('state state call done.')
   })
