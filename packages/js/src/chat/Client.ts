@@ -80,7 +80,7 @@ export const Client = function (chatOptions: ClientOptions) {
 
   return new Proxy<Client>(client.chat, {
     get(target: Client, prop: keyof Client, receiver: any) {
-      if (prop in INTERCEPTED_METHODS) {
+      if (INTERCEPTED_METHODS.includes(prop)) {
         return createInterceptor(prop)
       }
 
