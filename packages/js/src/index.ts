@@ -67,6 +67,11 @@ export * as Video from './video'
  */
 export * as WebRTC from './webrtc'
 
+export type {
+  VideoPosition,
+  VideoPositions,
+} from '@signalwire/core'
+
 /** @ignore */
 export type {
   BaseComponentOptions,
@@ -87,8 +92,6 @@ export type {
   MemberTalkingEventNames,
   VideoMemberTalkingEventParams,
   InternalVideoMemberEntity,
-  VideoPosition,
-  VideoPositions,
 } from '@signalwire/core'
 
 /** @ignore */

@@ -64,6 +64,7 @@ type VideoMemberUpdatableProps = AssertSameType<
      * The default value is 30 and the scale goes from 0 (lowest sensitivity,
      * essentially muted) to 100 (highest sensitivity). */
     inputSensitivity: number
+    /** Metadata associated to this member. */
     meta: Record<string, unknown>
   }
 >
@@ -164,7 +165,12 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
   parentId?: string
   /** Type of this video member. Can be `'member'`, `'screen'`, or `'device'`. */
   type: VideoMemberType
+  /**
+   * Position requested for this member in the layout. This may differ from
+   * `currentPosition` if the requested position is not currently available.
+   */
   requestedPosition: VideoPosition
+  /** Current position of this member in the layout. */
   currentPosition?: VideoPosition
 
   /**

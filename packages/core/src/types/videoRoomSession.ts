@@ -60,6 +60,7 @@ export interface VideoRoomSessionContract {
   hideVideoMuted: boolean
   /** URL to the room preview. */
   previewUrl?: string
+  /** Metadata associated to this room session. */
   meta: Record<string, unknown>
 
   audioMute(params?: MemberCommandParams): Rooms.AudioMuteMember

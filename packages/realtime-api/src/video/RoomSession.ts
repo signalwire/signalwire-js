@@ -305,20 +305,52 @@ interface RoomSessionDocs extends RoomSessionMain {
   /**
    * Sets a layout for the room. You can obtain a list of available layouts
    * with {@link getLayouts}.
-   * @param params
-   * @param params.name name of the layout
    *
    * @example Set the 6x6 layout:
    * ```typescript
    * await roomSession.setLayout({name: "6x6"})
    * ```
    */
-  setLayout(params: { name: string; positions?: VideoPositions }): Promise<void>
+  setLayout(params: {
+    /** Name of the layout */
+    name: string
+    /** Positions to assign as soon as the new layout is set. */
+    positions?: VideoPositions
+  }): Rooms.SetLayout
 
-  setPositions(params: { positions: VideoPositions }): Promise<void>
+  /**
+   * Assigns a position in the layout for multiple members.
+   *
+   * @example
+   * ```js
+   * await roomSession.setPositions({
+   *   positions: {
+   *     "1bf4d4fb-a3e4-4d46-80a8-3ebfdceb2a60": "reserved-1",
+   *     "e0c5be44-d6c7-438f-8cda-f859a1a0b1e7": "auto"
+   *   }
+   * })
+   * ```
+   */
+  setPositions(params: {
+    /** Mapping of member IDs and positions to assign */
+    positions: VideoPositions
+  }): Promise<void>
 
+  /**
+   * Assigns a position in the layout to the specified member.
+   *
+   * @example
+   * ```js
+   * await roomSession.setMemberPosition({
+   *   memberId: "1bf4d4fb-a3e4-4d46-80a8-3ebfdceb2a60",
+   *   position: "off-canvas"
+   * })
+   * ```
+   */
   setMemberPosition(params: {
-    memberId?: string
+    /** Id of the member to affect. */
+    memberId: string
+    /** Position to assign in the layout. */
     position: VideoPosition
   }): Promise<void>
 
@@ -370,11 +402,6 @@ interface RoomSessionDocs extends RoomSessionMain {
    * {@link RoomSessionPlayback} object to control the playback (e.g., pause,
    * resume, setVolume and stop).
    *
-   * @param params.url The url (http, https, rtmp, rtmps) of the stream to
-   * reproduce.
-   * @param params.volume The audio volume at which to play the stream. Values
-   * range from -50 to 50, with a default of 0.
-   *
    * @example
    * ```typescript
    * const playback = await roomSession.play({ url: 'rtmp://example.com/foo' })
@@ -382,8 +409,17 @@ interface RoomSessionDocs extends RoomSessionMain {
    * ```
    */
   play(params: {
+    /** The url (http, https, rtmp, rtmps) of the stream to reproduce. */
     url: string
+    /**
+     * The audio volume at which to play the stream. Values range from -50 to
+     * 50, with a default of 0.
+     */
     volume?: number
+    /**
+     * Positions to assign as soon as the playback starts. You can use the
+     * special keywork `self` to refer to the id of the playback.
+     */
     positions?: VideoPositions
   }): Promise<Rooms.RoomSessionPlayback>
 
@@ -394,7 +430,7 @@ interface RoomSessionDocs extends RoomSessionMain {
    * Note that calling this method overwrites any metadata that had been
    * previously set on this RoomSession.
    *
-   * @param meta The medatada object to assign to the RoomSession.
+   * @param meta The metadata object to assign to the RoomSession.
    *
    * @example
    * ```js
@@ -632,7 +668,9 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
 
   /** @internal */
   protected override getCompoundEvents() {
-    return new Map<any, any>([...MemberPosition.MEMBER_POSITION_COMPOUND_EVENTS])
+    return new Map<any, any>([
+      ...MemberPosition.MEMBER_POSITION_COMPOUND_EVENTS,
+    ])
   }
 
   /** @internal */
