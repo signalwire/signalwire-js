@@ -2,7 +2,7 @@ import { Voice } from '@signalwire/realtime-api'
 
 async function run() {
   try {
-    const call = new Voice.Call({
+    const client = new Voice.Client({
       // @ts-expect-error
       host: process.env.HOST || 'relay.swire.io',
       project: process.env.PROJECT as string,
@@ -12,12 +12,7 @@ async function run() {
     // call.on('call.created', () => {})
 
     try {
-      const res = await call.dial({
-        // to: '+12083660792',
-        // from: '+15183601338',
-        // tag: 'Custom client data',
-        // tag: uuid(),
-        // region: 'us',
+      const call = await client.dial({
         devices: [
           [
             {
@@ -29,8 +24,7 @@ async function run() {
           ],
         ],
       })
-      console.log('Dial resolved!', res);
-
+      console.log('Dial resolved!', call)
     } catch (e) {
       console.log('---> E', JSON.stringify(e, null, 2))
     }

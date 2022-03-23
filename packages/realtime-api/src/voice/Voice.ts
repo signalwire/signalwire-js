@@ -6,4 +6,4 @@ import {
 
 export type { CallClientApiEvents, CallClientOptions }
 
-export { CallClient as Call }
+export { CallClient as Client }
