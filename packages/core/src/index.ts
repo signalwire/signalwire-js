@@ -75,3 +75,4 @@ export type { RoomSessionRecording, RoomSessionPlayback } from './rooms'
 export const selectors = {
   ...sessionSelectors,
 }
+export { ChatMember, ChatMessage } from './chat'
