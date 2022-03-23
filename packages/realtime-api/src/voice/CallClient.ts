@@ -46,6 +46,11 @@ const CallClient = function (options?: CallClientOptions) {
 
     return call.subscribe()
   }
+  const callDial: Call['dial'] = async (...args) => {
+    await clientConnect(client)
+
+    return call.dial(...args)
+  }
 
   client.on('session.connected', async () => {
     try {
@@ -63,6 +68,7 @@ const CallClient = function (options?: CallClientOptions) {
     on: callOn,
     once: callOnce,
     subscribe: callSubscribe,
+    dial: callDial,
     _session: client,
   } as const
 
