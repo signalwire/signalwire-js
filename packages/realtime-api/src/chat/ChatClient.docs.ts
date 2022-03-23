@@ -1,72 +1,35 @@
-import type { ConsumerContract, Chat } from '@signalwire/core'
+import { Chat, ChatCursor, ConsumerContract } from "@signalwire/core";
+import { ChatClientApiEvents, ClientFullState } from "./ChatClient";
+import { RealtimeClient } from '../client/index'
 
-import type { ClientApiEvents, ClientFullState } from './Client'
-
-export type PagingCursor =
-  | {
-      before: string
-      after?: never
-    }
-  | {
-      before?: never
-      after: string
-    }
-
-export interface ClientDocs
-  extends Omit<
-    ConsumerContract<ClientApiEvents, ClientFullState>,
-    'subscribe'
-  > {
+export interface ClientDocs extends
+Omit<ConsumerContract<ChatClientApiEvents, ClientFullState>, 'subscribe'> {
   /**
    * Creates a new Chat client.
    *
    * @example
    *
    * ```js
-   * import { Chat } from '@signalwire/js'
+   * import { Chat } from '@signalwire/realtime-api'
    *
    * const chatClient = new Chat.Client({
-   *   token: '<your_chat_token>',
+   *   project: '<project-id>',
+   *   token: '<api-token>'
    * })
    * ```
    */
-  new (chatOptions: {
-    /** SignalWire Chat token (you can get one with the REST APIs) */
+   new (chatOptions: {
+    /** SignalWire project id, e.g. `a10d8a9f-2166-4e82-56ff-118bc3a4840f` */
+    project: string
+    /** SignalWire API token */
     token: string
-    /** @ignore */
-    logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
   }): this
 
-  /**
-   * Replaces the token used by the client with a new one. You can use this
-   * method to replace the token when for example it is expiring, in order to
-   * keep the session alive.
-   *
-   * The new token can contain different channels from the previous one. In that
-   * case, you will need to subscribe to the new channels if you want to receive
-   * messages for those. Channels that were in the previous token but are not in
-   * the new one will get unsubscribed automatically.
-   *
-   * @param token the new token.
-   *
-   * @example
-   * ```js
-   * const chatClient = new Chat.Client({
-   *   token: '<your chat token>'
-   * })
-   *
-   * chatClient.on('session.expiring', async () => {
-   *   const newToken = await fetchNewToken(..)
-   *
-   *   await chatClient.updateToken(newToken)
-   * })
-   * ```
-   */
+  /** @ignore */
   updateToken(token: string): Promise<void>
 
   /**
-   * List of channels for which you want to receive messages. You can only
-   * subscribe to those channels for which your token has read permission.
+   * List of channels for which you want to receive messages.
    *
    * Note that the `subscribe` function is idempotent, and calling it again with
    * a different set of channels _will not_ unsubscribe you from the old ones.
@@ -78,7 +41,8 @@ export interface ClientDocs
    * @example
    * ```js
    * const chatClient = new Chat.Client({
-   *   token: '<your chat token>'
+   *   project: '<project-id>',
+   *   token: '<api-token>'
    * })
    *
    * chatClient.on('message', m => console.log(m))
@@ -165,7 +129,7 @@ export interface ClientDocs
     /** Channel for which to retrieve the messages. */
     channel: string
     /** Cursor for pagination. */
-    cursor?: PagingCursor
+    cursor?: ChatCursor
   }): Promise<any>
 
   /**
@@ -200,7 +164,7 @@ export interface ClientDocs
    * ```
    */
   setMemberState(params: {
-    /** Id of the member to affect. If not provided, defaults to the current member. */
+    /** Id of the member to affect. */
     memberId: string
     /** Channels for which to set the state. */
     channels: string | string[]
@@ -225,18 +189,18 @@ export interface ClientDocs
    * ```
    */
   getMemberState(params: {
-    /** Channels for which to get the state. */
-    channels: string | string[]
     /** Id of the member for which to get the state. */
     memberId: string
+    /** Channels for which to get the state. */
+    channels: string | string[]
   }): Promise<any>
+
+  /** @ignore */
+  _session: RealtimeClient
 }
 
-export interface ClientApiEventsDocs {
-  /**
-   * The session is going to expire.
-   * Use the `updateToken` method to refresh your token.
-   */
+export interface ChatClientApiEventsDocs {
+  /** @ignore */
   'session.expiring': () => void
 
   /**

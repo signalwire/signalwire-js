@@ -52,6 +52,27 @@ export * as Video from './video/Video'
 
 export * from './createClient'
 
+/**
+ * Access the Chat API Consumer. You can instantiate a {@link Chat.Client} to
+ * subscribe to Chat events. Please check {@link Chat.ChatClientApiEvents}
+ * for the full list of events that a {@link Chat.Client} can subscribe to.
+ *
+ * ### Example
+ *
+ * The following example logs the messages sent to the "welcome" channel.
+ *
+ * ```javascript
+ * const chatClient = new Chat.Client({
+ *   project: '<project-id>',
+ *   token: '<api-token>'
+ * })
+ *
+ * chatClient.on('message', m => console.log(m))
+ *
+ * await chatClient.subscribe("welcome")
+ * ```
+ */
 export * as Chat from './chat/Chat'
 
+/** @ignore */
 export * from './configure'
