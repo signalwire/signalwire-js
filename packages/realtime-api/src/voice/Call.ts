@@ -7,13 +7,15 @@ import {
   VoiceCallMethods,
   VoiceCallContract,
   VoiceCallDialMethodParams,
-  uuid,
 } from '@signalwire/core'
 import { AutoSubscribeConsumer } from '../AutoSubscribeConsumer'
 import { RealTimeCallApiEvents } from '../types'
 import * as methods from './methods'
 import { toInternalDevices } from './methods'
-import { SYNTHETIC_MEMBER_LIST_UPDATED_EVENT, voiceCallStateWorker } from './workers'
+import {
+  SYNTHETIC_MEMBER_LIST_UPDATED_EVENT,
+  voiceCallStateWorker,
+} from './workers'
 
 // TODO:
 type EmitterTransformsEvents = ''
@@ -66,7 +68,7 @@ export class CallConsumer extends AutoSubscribeConsumer<RealTimeCallApiEvents> {
         method: 'calling.dial',
         params: {
           ...params,
-          tag: uuid(),
+          tag: this.__uuid,
           devices: toInternalDevices(params.devices),
         },
       })

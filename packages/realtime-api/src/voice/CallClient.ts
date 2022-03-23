@@ -1,7 +1,7 @@
 import type { AssertSameType, UserOptions } from '@signalwire/core'
 import type { RealTimeCallApiEvents } from '../types'
 import { getLogger } from '@signalwire/core'
-import { setupClient, clientConnect } from '../client/index'
+import { setupClient, clientConnect, RealtimeClient } from '../client/index'
 import { createCallObject, Call } from './Call'
 import { CallClientDocs } from './CallClient.docs'
 
@@ -26,54 +26,51 @@ export interface CallClientOptions
 const CallClient = function (options?: CallClientOptions) {
   const { client, store, emitter } = setupClient(options)
 
-  const call = createCallObject({
-    store,
-    emitter,
-  })
-
-  const callOn: Call['on'] = (...args) => {
+  const clientOn: RealtimeClient['on'] = (...args) => {
     clientConnect(client)
 
-    return call.on(...args)
+    return client.on(...args)
   }
-  const callOnce: Call['once'] = (...args) => {
+  const clientOnce: RealtimeClient['once'] = (...args) => {
     clientConnect(client)
 
-    return call.once(...args)
+    return client.once(...args)
   }
-  const callSubscribe: Call['subscribe'] = async () => {
-    await clientConnect(client)
 
-    return call.subscribe()
-  }
   const callDial: Call['dial'] = async (...args) => {
     await clientConnect(client)
 
-    return call.dial(...args)
+    const call = createCallObject({
+      store,
+      emitter,
+    })
+
+    client.once('session.connected', async () => {
+      try {
+        await call.subscribe()
+      } catch (e) {
+        // TODO: In the future we'll provide a
+        // `onSubscribedError` (or similar) to allow the user
+        // customize this behavior.
+        getLogger().error('Client subscription failed.')
+        client.disconnect()
+      }
+    })
+
+    await call.dial(...args)
+
+    return call
   }
 
-  client.on('session.connected', async () => {
-    try {
-      await call.subscribe()
-    } catch (e) {
-      // TODO: In the future we'll provide a
-      // `onSubscribedError` (or similar) to allow the user
-      // customize this behavior.
-      getLogger().error('Client subscription failed.')
-      client.disconnect()
-    }
-  })
-
   const interceptors = {
-    on: callOn,
-    once: callOnce,
-    subscribe: callSubscribe,
+    on: clientOn,
+    once: clientOnce,
     dial: callDial,
     _session: client,
   } as const
 
-  return new Proxy<Omit<CallClient, 'new'>>(call, {
-    get(target: CallClient, prop: keyof CallClient, receiver: any) {
+  return new Proxy<Omit<RealtimeClient, 'new'>>(client, {
+    get(target, prop, receiver) {
       if (prop in interceptors) {
         // @ts-expect-error
         return interceptors[prop]
