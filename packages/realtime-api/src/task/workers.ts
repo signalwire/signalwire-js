@@ -1,14 +1,5 @@
-import {
-  sagaEffects,
-  SagaIterator,
-  SDKWorker,
-  toSyntheticEvent,
-} from '@signalwire/core'
+import { sagaEffects, SagaIterator, SDKWorker } from '@signalwire/core'
 import type { Task } from './Task'
-
-export const SYNTHETIC_MEMBER_LIST_UPDATED_EVENT = toSyntheticEvent(
-  'calling.call.answered'
-)
 
 export const taskWorker: SDKWorker<Task> = function* (options): SagaIterator {
   const { channels } = options
@@ -17,9 +8,6 @@ export const taskWorker: SDKWorker<Task> = function* (options): SagaIterator {
     return action.type === 'queuing.relay.tasks'
   })
 
-  console.log('---> action', action)
-
-  // TODO: this should be conditional
   yield sagaEffects.put(pubSubChannel, {
     // @ts-expect-error
     type: 'task.inbound',

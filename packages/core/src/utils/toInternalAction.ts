@@ -7,6 +7,10 @@ export const toInternalAction = <
 ) => {
   const { event_type, params } = event
 
+  /**
+   * queuing.relay.tasks has a slightly different shape:
+   * no nested "params" so we return the whole event.
+   */
   if (event_type === 'queuing.relay.tasks') {
     return {
       type: event_type,

@@ -4,7 +4,7 @@ const PATH = '/api/relay/rest/tasks'
 
 export class Job {
   /** @internal */
-  host: string = 'relay.signalwire.com'
+  host = 'relay.signalwire.com'
 
   constructor(private project: string, private token: string) {
     if (!project || !token) {
