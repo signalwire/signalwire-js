@@ -1,7 +1,7 @@
 import { MapToPubSubShape } from '../redux/interfaces'
 
 export const toInternalAction = <
-  T extends { event_type: unknown; params: unknown }
+  T extends { event_type: unknown; params?: unknown }
 >(
   event: T
 ) => {
