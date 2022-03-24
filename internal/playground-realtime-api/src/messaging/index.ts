@@ -23,8 +23,8 @@ async function run() {
     try {
       const response = await client.send({
         context: 'office',
-        from: '+15183601338',
-        to: '+12062371092',
+        from: '+1xx',
+        to: '+1yy',
       })
       console.log('>> send response', response)
     } catch (error) {
