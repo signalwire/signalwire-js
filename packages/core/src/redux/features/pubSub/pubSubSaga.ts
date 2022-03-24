@@ -6,10 +6,7 @@ import {
   getLogger,
 } from '../../../utils'
 import type { EventEmitter } from '../../../utils/EventEmitter'
-import type {
-  PubSubChannel,
-  PubSubAction,
-} from '../../interfaces'
+import type { PubSubChannel, PubSubAction } from '../../interfaces'
 import { findNamespaceInPayload } from '../shared/namespace'
 
 type PubSubSagaParams = {
