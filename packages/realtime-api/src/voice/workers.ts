@@ -24,9 +24,7 @@ export const voiceCallStateWorker: SDKWorker<any> = function* (
 
   // TODO: this should be conditional
   yield sagaEffects.put(channels.pubSubChannel, {
-    // @ts-expect-error
     type: SYNTHETIC_MEMBER_LIST_UPDATED_EVENT,
+    payload: action.payload
   })
-
-  console.log('---> action', action)
 }

@@ -1,4 +1,5 @@
 import type { SwEvent } from '.'
+import { MapToPubSubShape } from '..'
 import { PRODUCT_PREFIX_VOICE_CALL } from '../utils/constants'
 import type {
   CamelToSnakeCase,
@@ -103,6 +104,7 @@ export type InternalVoiceCallEntity = {
  */
 export interface VoiceCallCreatedEventParams {
   call_id: string
+  tag: string
 }
 
 export interface VoiceCallCreatedEvent extends SwEvent {
@@ -115,6 +117,7 @@ export interface VoiceCallCreatedEvent extends SwEvent {
  */
 export interface VoiceCallEndedEventParams {
   call_id: string
+  tag: string
 }
 
 export interface VoiceCallEndedEvent extends SwEvent {
@@ -127,5 +130,7 @@ export type VoiceCallEvent = VoiceCallCreatedEvent | VoiceCallEndedEvent
 export type VoiceCallEventParams =
   | VoiceCallCreatedEventParams
   | VoiceCallEndedEventParams
+
+export type VoiceCallAction = MapToPubSubShape<VoiceCallEvent>
 
 export type VoiceCallJSONRPCMethod = 'calling.dial' | 'calling.hangup'

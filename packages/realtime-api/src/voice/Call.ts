@@ -40,10 +40,7 @@ export class CallConsumer extends AutoSubscribeConsumer<RealTimeCallApiEvents> {
 
   constructor(options: BaseComponentOptions<RealTimeCallApiEvents>) {
     super(options)
-
-    // TODO: check if this makes sense.
-    // this._attachListeners(this.__uuid)
-    this._attachListeners('')
+    this._attachListeners(this.__uuid)
 
     this.setWorker('voiceCallStateWorker', {
       worker: voiceCallStateWorker,

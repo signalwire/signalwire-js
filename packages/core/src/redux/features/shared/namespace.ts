@@ -7,6 +7,7 @@ import type {
   VideoPlaybackEvent,
   VideoRecordingEvent,
   VideoRoomEvent,
+  VoiceCallEvent,
 } from '../../../types'
 import { getLogger } from '../../../utils'
 import type { MapToPubSubShape, PubSubAction } from '../../interfaces'
@@ -51,6 +52,12 @@ const isChatEvent = (
   return action.type.startsWith('chat.')
 }
 
+const isVoiceCallEvent = (
+  action: PubSubAction
+): action is MapToPubSubShape<VoiceCallEvent> => {
+  return action.type.startsWith('calling.')
+}
+
 export const findNamespaceInPayload = (action: PubSubAction): string => {
   if (action.payload === undefined) {
     return ''
@@ -65,6 +72,8 @@ export const findNamespaceInPayload = (action: PubSubAction): string => {
     return action.payload.room_session.id
   } else if (isChatEvent(action)) {
     return ''
+  } else if (isVoiceCallEvent(action)) {
+    return action.payload.tag
   }
 
   if ('development' === process.env.NODE_ENV) {

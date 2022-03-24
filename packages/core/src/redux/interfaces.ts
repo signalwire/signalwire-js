@@ -15,6 +15,7 @@ import type {
   TaskAction,
   MessagingAction,
   SwEventParams,
+  VoiceCallAction,
 } from '../types'
 import { SDKRunSaga } from '.'
 import { END, MulticastChannel } from '@redux-saga/core'
@@ -110,6 +111,7 @@ export type PubSubAction =
   | ChatAction
   | TaskAction
   | MessagingAction
+  | VoiceCallAction
 
 export type PubSubChannel = MulticastChannel<PubSubAction>
 export type SwEventChannel = MulticastChannel<MapToPubSubShape<SwEventParams>>
