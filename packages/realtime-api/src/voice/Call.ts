@@ -13,6 +13,7 @@ import { RealTimeCallApiEvents } from '../types'
 import * as methods from './methods'
 import { toInternalDevices } from './methods'
 import {
+  SYNTHETIC_CALL_STATE_FAILED_EVENT,
   SYNTHETIC_CALL_STATE_ANSWERED_EVENT,
   voiceCallStateWorker,
 } from './workers'
@@ -49,17 +50,16 @@ export class CallConsumer extends AutoSubscribeConsumer<RealTimeCallApiEvents> {
   }
 
   dial(params: VoiceCallDialMethodParams) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       // @ts-expect-error
       this.once(SYNTHETIC_CALL_STATE_ANSWERED_EVENT, () => {
-        console.log('------------> ANSWERED!')
-        resolve('answered')
+        resolve(this)
       })
 
-      // this.once('__internal__call.failed', () => {
-      //   console.log('------------> FAILED!')
-      //   reject('failed')
-      // })
+      // @ts-expect-error
+      this.once(SYNTHETIC_CALL_STATE_FAILED_EVENT, () => {
+        reject(new Error('Failed to establish the call.'))
+      })
 
       this.execute({
         method: 'calling.dial',
@@ -68,6 +68,8 @@ export class CallConsumer extends AutoSubscribeConsumer<RealTimeCallApiEvents> {
           tag: this.__uuid,
           devices: toInternalDevices(params.devices),
         },
+      }).catch((e) => {
+        reject(e)
       })
     })
   }
