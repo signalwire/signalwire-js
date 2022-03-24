@@ -13,7 +13,12 @@ import type {
   SwEventChannel,
 } from '../redux/interfaces'
 import type { URL as NodeURL } from 'node:url'
-import { ChatJSONRPCMethod, ChatTransformType } from '..'
+import {
+  ChatJSONRPCMethod,
+  ChatTransformType,
+  MessagingJSONRPCMethod,
+  MessagingTransformType,
+} from '..'
 
 type JSONRPCParams = Record<string, any>
 type JSONRPCResult = Record<string, any>
@@ -52,6 +57,7 @@ export type JSONRPCMethod =
   | RoomMethod
   | VertoMethod
   | ChatJSONRPCMethod
+  | MessagingJSONRPCMethod
 
 export type JSONRPCSubscribeMethod = Extract<
   JSONRPCMethod,
@@ -328,6 +334,8 @@ export type EventTransformType =
   | 'roomSessionRecording'
   | 'roomSessionPlayback'
   | ChatTransformType
+  | MessagingTransformType
+
 /**
  * `EventTransform`s represent our internal pipeline for
  * creating specific instances for each event handler. This

@@ -79,3 +79,4 @@ export * from './configure'
 
 /** @ignore */
 export * as Task from './task/Task'
+export * as Messaging from './messaging/Messaging'
