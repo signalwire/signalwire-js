@@ -14,9 +14,6 @@ const handler = () => {
       project: process.env.RELAY_PROJECT as string,
       token: process.env.RELAY_TOKEN as string,
       contexts: [context],
-      debug: {
-        logWsTraffic: true,
-      },
     })
 
     client.on('task.inbound', (payload) => {
