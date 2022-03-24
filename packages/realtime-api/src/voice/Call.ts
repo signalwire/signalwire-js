@@ -13,7 +13,7 @@ import { RealTimeCallApiEvents } from '../types'
 import * as methods from './methods'
 import { toInternalDevices } from './methods'
 import {
-  SYNTHETIC_MEMBER_LIST_UPDATED_EVENT,
+  SYNTHETIC_CALL_STATE_ANSWERED_EVENT,
   voiceCallStateWorker,
 } from './workers'
 
@@ -51,7 +51,7 @@ export class CallConsumer extends AutoSubscribeConsumer<RealTimeCallApiEvents> {
   dial(params: VoiceCallDialMethodParams) {
     return new Promise((resolve) => {
       // @ts-expect-error
-      this.once(SYNTHETIC_MEMBER_LIST_UPDATED_EVENT, () => {
+      this.once(SYNTHETIC_CALL_STATE_ANSWERED_EVENT, () => {
         console.log('------------> ANSWERED!')
         resolve('answered')
       })

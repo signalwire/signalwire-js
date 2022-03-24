@@ -1,30 +1,50 @@
 import {
+  findNamespaceInPayload,
   sagaEffects,
   SagaIterator,
   SDKWorker,
   toSyntheticEvent,
 } from '@signalwire/core'
 
-export const SYNTHETIC_MEMBER_LIST_UPDATED_EVENT = toSyntheticEvent(
+export const SYNTHETIC_CALL_STATE_ANSWERED_EVENT = toSyntheticEvent(
   'calling.call.answered'
 )
+
+export const SYNTHETIC_CALL_STATE_FAILED_EVENT = toSyntheticEvent(
+  'calling.call.failed'
+)
+
+const TARGET_CALL_STATES = ['answered', 'failed']
 
 export const voiceCallStateWorker: SDKWorker<any> = function* (
   options
 ): SagaIterator {
-  const { channels } = options
-  const { swEventChannel } = channels
-  const action = yield sagaEffects.take(swEventChannel, (action: any) => {
-    const istargetEvent = action.type === 'calling.call.dial'
+  let isDone = false
+  while (!isDone) {
+    const { channels, instance } = options
+    const { swEventChannel } = channels
+    const action = yield sagaEffects.take(swEventChannel, (action: any) => {
+      return (
+        action.type === 'calling.call.state' &&
+        findNamespaceInPayload(action) === instance.__uuid &&
+        TARGET_CALL_STATES.includes(action.payload.call_state)
+      )
+    })
 
-    return istargetEvent
-    // TODO: filter by instance.
-    // && findNamespaceInPayload(action) === instance._eventsNamespace
-  })
+    isDone = true
 
-  // TODO: this should be conditional
-  yield sagaEffects.put(channels.pubSubChannel, {
-    type: SYNTHETIC_MEMBER_LIST_UPDATED_EVENT,
-    payload: action.payload
-  })
+    if (action.payload.call_state === 'answered') {
+      yield sagaEffects.put(channels.pubSubChannel, {
+        type: SYNTHETIC_CALL_STATE_ANSWERED_EVENT,
+        payload: action.payload,
+      })
+    } else if (action.payload.call_state === 'failed') {
+      yield sagaEffects.put(channels.pubSubChannel, {
+        type: SYNTHETIC_CALL_STATE_FAILED_EVENT,
+        payload: action.payload,
+      })
+    } else {
+      throw new Error('[voiceCallStateWorker] unhandled call_state')
+    }
+  }
 }
