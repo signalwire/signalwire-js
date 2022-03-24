@@ -17,6 +17,7 @@ describe('MessagingClient', () => {
       server.on('connection', (socket: any) => {
         socket.on('message', (data: any) => {
           const parsedData = JSON.parse(data)
+          console.log('>>', parsedData)
           if (
             parsedData.method === 'signalwire.connect' &&
             parsedData.params.authentication.token === '<invalid-token>'
@@ -75,11 +76,12 @@ describe('MessagingClient', () => {
           expect(message.tags).toStrictEqual(messagePayload.tags)
           expect(message.segments).toStrictEqual(messagePayload.segments)
 
+          messaging._session.removeAllListeners()
           messaging._session.disconnect()
           done()
         })
 
-        messaging._session.on('session.connected', () => {
+        messaging._session.once('session.connected', () => {
           server.send(
             JSON.stringify({
               jsonrpc: '2.0',
@@ -87,6 +89,61 @@ describe('MessagingClient', () => {
               method: 'signalwire.event',
               params: {
                 event_type: 'messaging.receive',
+                context: 'foo',
+                timestamp: 123457.1234,
+                space_id: 'uuid',
+                project_id: 'uuid',
+                params: messagePayload,
+              },
+            })
+          )
+        })
+      })
+
+      it('should handle messaging.state payloads', (done) => {
+        const messagePayload = {
+          message_id: '145cceb8-d4ed-4056-9696-f6775f950f2e',
+          context: 'foo',
+          direction: 'outbound',
+          tag: null,
+          tags: [],
+          from_number: '+1xxx',
+          to_number: '+1yyy',
+          body: 'Hello World!',
+          media: [],
+          segments: 1,
+          message_state: 'queued',
+        }
+        const messaging = new Client({
+          host,
+          project: 'some-project',
+          token: 'some-other-token',
+          contexts: ['foo'],
+
+          logLevel: 'debug',
+        })
+
+        messaging.on('messaging.state', (message) => {
+          expect(message).toBeInstanceOf(Message)
+          expect(message.id).toEqual(messagePayload.message_id)
+          expect(message.context).toEqual(messagePayload.context)
+          expect(message.body).toEqual(messagePayload.body)
+          expect(message.media).toStrictEqual(messagePayload.media)
+          expect(message.tags).toStrictEqual(messagePayload.tags)
+          expect(message.segments).toStrictEqual(messagePayload.segments)
+
+          messaging._session.disconnect()
+          done()
+        })
+
+        messaging._session.once('session.connected', () => {
+          server.send(
+            JSON.stringify({
+              jsonrpc: '2.0',
+              id: 'd42a7c46-c6c7-4f56-b52d-c1cbbcdc8125',
+              method: 'signalwire.event',
+              params: {
+                event_type: 'messaging.state',
                 context: 'foo',
                 timestamp: 123457.1234,
                 space_id: 'uuid',
