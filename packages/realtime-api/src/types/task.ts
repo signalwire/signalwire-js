@@ -1,6 +1,7 @@
-// FIXME: move 'task.inbound' in core?
+import type { TaskInboundEventName } from '@signalwire/core'
+
 export type RealTimeTaskApiEventsHandlerMapping = Record<
-  'task.inbound',
+  TaskInboundEventName,
   (params: Record<string, unknown>) => void
 >
 
