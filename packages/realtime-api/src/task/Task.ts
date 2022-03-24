@@ -37,25 +37,7 @@ export const createTaskObject = (
     },
   })(params)
 
-  const proxy = new Proxy<Task>(task, {
-    get(target: any, prop: any, receiver: any) {
-      // FIXME: do we need _eventsNamespace here?
-      if (prop === '_eventsNamespace') {
-        /**
-         * Events at this level will always be global so
-         * there's no need for a namespace.
-         */
-        return ''
-      } else if (prop === 'eventChannel') {
-        // FIXME: eventChannel?
-        return ''
-      }
-
-      return Reflect.get(target, prop, receiver)
-    },
-  })
-
-  return proxy
+  return task
 }
 
 export * from './TaskClient'
