@@ -3,6 +3,7 @@ import type { VideoAPIEventParams, InternalVideoEventNames } from './video'
 import type { SessionEvents, JSONRPCRequest } from '../utils/interfaces'
 import type { CantinaEvent } from './cantina'
 import type { ChatEvent } from './chat'
+import type { TaskEvent } from './task'
 
 export interface SwEvent {
   event_channel: string
@@ -28,7 +29,7 @@ export interface EmitterContract<
   ): EmitterContract<EventTypes>
 
   removeAllListeners<T extends EventEmitter.EventNames<EventTypes>>(
-    event?: T,
+    event?: T
   ): EmitterContract<EventTypes>
 }
 
@@ -115,6 +116,7 @@ export type SwEventParams =
   | WebRTCMessageParams
   | CantinaEvent
   | ChatEvent
+  | TaskEvent
 
 // prettier-ignore
 export type PubSubChannelEvents =
@@ -125,3 +127,4 @@ export * from './video'
 export * from './utils'
 export * from './cantina'
 export * from './chat'
+export * from './task'
