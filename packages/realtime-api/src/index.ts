@@ -76,3 +76,6 @@ export * as Chat from './chat/Chat'
 
 /** @ignore */
 export * from './configure'
+
+/** @ignore */
+export * as Task from './task/Task'

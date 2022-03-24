@@ -7,6 +7,13 @@ export const toInternalAction = <
 ) => {
   const { event_type, params } = event
 
+  if (event_type === 'queuing.relay.tasks') {
+    return {
+      type: event_type,
+      payload: event,
+    } as MapToPubSubShape<T>
+  }
+
   return {
     type: event_type,
     payload: params,
