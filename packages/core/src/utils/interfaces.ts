@@ -84,6 +84,8 @@ export interface SessionOptions {
   project?: string
   /** SignalWire project token, e.g. `PT9e5660c101cd140a1c93a0197640a369cf5f16975a0079c9` */
   token: string
+  /** Relay contexts, e.g. 'home' or 'office' */
+  contexts?: string[]
   // From `LogLevelDesc` of loglevel to simplify our docs
   /** logging level */
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
