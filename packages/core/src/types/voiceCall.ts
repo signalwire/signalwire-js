@@ -72,12 +72,12 @@ export type VoiceCallDisconnectReason =
 /**
  * Public Contract for a VoiceCall
  */
-export interface VoiceCallContract {
+export interface VoiceCallContract<T = any> {
   /** Unique id for this voice call */
   id: string
 
-  dial(params?: VoiceCallDialMethodParams): this
-  hangup(reason?: VoiceCallDisconnectReason): void
+  dial(params?: VoiceCallDialMethodParams): Promise<T>
+  hangup(reason?: VoiceCallDisconnectReason): Promise<void>
 }
 
 /**

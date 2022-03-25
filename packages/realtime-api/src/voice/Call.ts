@@ -23,7 +23,7 @@ import {
 type EmitterTransformsEvents = ''
 
 interface CallMain
-  extends VoiceCallContract,
+  extends VoiceCallContract<Call>,
     ConsumerContract<RealTimeCallApiEvents, CallFullState> {}
 
 interface CallDocs extends CallMain {}
