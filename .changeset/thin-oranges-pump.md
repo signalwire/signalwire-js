@@ -1,5 +1,5 @@
 ---
-'@signalwire/realtime-api': patch
+'@signalwire/realtime-api': minor
 ---
 
 Add `Task` namespace
