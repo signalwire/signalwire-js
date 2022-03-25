@@ -5,6 +5,7 @@ import {
 
 const toInternalDevice = (device: VoiceCallDeviceParams) => {
   switch (device.type) {
+    case 'sip':
     case 'phone': {
       const { to, from, type, ...rest } = device
       return {
