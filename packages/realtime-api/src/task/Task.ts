@@ -11,9 +11,6 @@ export interface Task extends ConsumerContract<RealTimeTaskApiEvents> {
 
 /** @internal */
 class TaskAPI extends BaseConsumer<RealTimeTaskApiEvents> {
-  /** @internal */
-  protected _eventsPrefix = 'tasking' as const
-
   constructor(options: BaseComponentOptions<RealTimeTaskApiEvents>) {
     super(options)
 
@@ -21,6 +18,7 @@ class TaskAPI extends BaseConsumer<RealTimeTaskApiEvents> {
       worker: taskWorker,
     })
     this.attachWorkers()
+    this._attachListeners('')
   }
 }
 
