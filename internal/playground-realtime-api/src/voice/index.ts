@@ -24,7 +24,14 @@ async function run() {
           ],
         ],
       })
-      console.log('Dial resolved!', call)
+
+      console.log('Dial resolved!')
+
+      setTimeout(async () => {
+        console.log('Terminating the call')
+        await call.hangup()
+        console.log('Call terminated!')
+      }, 3000)
     } catch (e) {
       console.log('---> E', JSON.stringify(e, null, 2))
     }
