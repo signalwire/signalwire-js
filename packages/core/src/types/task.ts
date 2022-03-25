@@ -1,8 +1,8 @@
 import type { OnlyStateProperties, OnlyFunctionProperties } from '..'
 
-export type TaskInboundEventName = 'task.inbound'
+export type TaskReceivedEventName = 'task.received'
 
-export type TaskEventNames = TaskInboundEventName
+export type TaskEventNames = TaskReceivedEventName
 
 export interface TaskContract {}
 
@@ -40,6 +40,6 @@ export type TaskEvent = TaskInboundEvent
  * has a different shape
  */
 export type TaskAction = {
-  type: TaskInboundEventName
+  type: TaskReceivedEventName
   payload: TaskInboundEvent
 }

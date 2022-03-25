@@ -1,7 +1,7 @@
-import type { TaskInboundEventName } from '@signalwire/core'
+import type { TaskReceivedEventName } from '@signalwire/core'
 
 export type RealTimeTaskApiEventsHandlerMapping = Record<
-  TaskInboundEventName,
+  TaskReceivedEventName,
   (params: Record<string, unknown>) => void
 >
 

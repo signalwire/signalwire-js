@@ -12,7 +12,7 @@ const client = new Task.Client({
   },
 })
 
-client.on('task.inbound', (payload) => {
+client.on('task.received', (payload) => {
   console.log('Task Received', payload)
 })
 

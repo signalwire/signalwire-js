@@ -17,7 +17,7 @@ export const taskWorker: SDKWorker<Task> = function* (options): SagaIterator {
   )
 
   yield sagaEffects.put(pubSubChannel, {
-    type: 'task.inbound',
+    type: 'task.received',
     payload: action.payload.message,
   })
 }
