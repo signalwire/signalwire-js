@@ -67,7 +67,7 @@ describe('MessagingClient', () => {
           contexts: ['foo'],
         })
 
-        messaging.on('messaging.receive', (message) => {
+        messaging.on('message.received', (message) => {
           expect(message).toBeInstanceOf(Message)
           expect(message.id).toEqual(messagePayload.message_id)
           expect(message.context).toEqual(messagePayload.context)
@@ -123,7 +123,7 @@ describe('MessagingClient', () => {
           logLevel: 'debug',
         })
 
-        messaging.on('messaging.state', (message) => {
+        messaging.on('message.updated', (message) => {
           expect(message).toBeInstanceOf(Message)
           expect(message.id).toEqual(messagePayload.message_id)
           expect(message.context).toEqual(messagePayload.context)
@@ -169,7 +169,7 @@ describe('MessagingClient', () => {
           logger: logger as any,
         })
 
-        messaging.on('messaging.receive', (_message) => {})
+        messaging.on('message.received', (_message) => {})
 
         messaging._session.on('session.auth_error', () => {
           expect(logger.error).toHaveBeenNthCalledWith(1, 'Auth Error', {

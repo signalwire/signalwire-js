@@ -12,12 +12,12 @@ async function run() {
       },
     })
 
-    client.on('messaging.receive', (message) => {
-      console.log('messaging.receive', message)
+    client.on('message.received', (message) => {
+      console.log('message.received', message)
     })
 
-    client.on('messaging.state', (message) => {
-      console.log('messaging.state', message)
+    client.on('message.updated', (message) => {
+      console.log('message.updated', message)
     })
 
     try {

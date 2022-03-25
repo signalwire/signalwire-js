@@ -5,16 +5,13 @@ import { PRODUCT_PREFIX_MESSAGING } from '../utils/constants'
 // type ToInternalChatEvent<T extends string> = `${MessagingNamespace}.${T}`
 export type MessagingNamespace = typeof PRODUCT_PREFIX_MESSAGING
 
-// export type ChatMessageEventName = 'message'
-// export type ChatMemberJoinedEventName = 'member.joined'
-// export type ChatMemberUpdatedEventName = 'member.updated'
-// export type ChatMemberLeftEventName = 'member.left'
-// export type ChatMemberEventNames =
-//   | ChatMemberJoinedEventName
-//   | ChatMemberUpdatedEventName
-//   | ChatMemberLeftEventName
+export type MessageReceivedEventName = 'message.received'
+export type MessageUpdatedEventName = 'message.updated'
 
-// export type ChatEventNames = ChatMessageEventName | ChatMemberEventNames
+export type MessagingState = 'messaging.state'
+export type MessagingReceive = 'messaging.receive'
+
+export type MessagingEventNames = MessagingState | MessagingReceive
 
 export interface MessagingContract {}
 
@@ -38,7 +35,7 @@ export type MessagingMethods = Omit<
 export interface MessagingStateEventParams {}
 
 export interface MessagingStateEvent extends SwEvent {
-  event_type: 'messaging.state'
+  event_type: MessagingState
   params: MessagingStateEventParams
 }
 
@@ -48,7 +45,7 @@ export interface MessagingStateEvent extends SwEvent {
 export interface MessagingReceiveEventParams {}
 
 export interface MessagingReceiveEvent extends SwEvent {
-  event_type: 'messaging.receive'
+  event_type: MessagingReceive
   params: MessagingReceiveEventParams
 }
 
