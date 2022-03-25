@@ -14,7 +14,10 @@ export const SYNTHETIC_CALL_STATE_FAILED_EVENT = toSyntheticEvent(
   'calling.call.failed'
 )
 
-const TARGET_CALL_STATES = ['answered', 'failed']
+export const SYNTHETIC_CALL_STATE_ENDED_EVENT =
+  toSyntheticEvent('calling.call.ended')
+
+const TARGET_CALL_STATES = ['answered', 'failed', 'ended']
 
 export const voiceCallStateWorker: SDKWorker<any> = function* (
   options
@@ -31,8 +34,6 @@ export const voiceCallStateWorker: SDKWorker<any> = function* (
       )
     })
 
-    isDone = true
-
     if (action.payload.call_state === 'answered') {
       yield sagaEffects.put(channels.pubSubChannel, {
         type: SYNTHETIC_CALL_STATE_ANSWERED_EVENT,
@@ -41,6 +42,13 @@ export const voiceCallStateWorker: SDKWorker<any> = function* (
     } else if (action.payload.call_state === 'failed') {
       yield sagaEffects.put(channels.pubSubChannel, {
         type: SYNTHETIC_CALL_STATE_FAILED_EVENT,
+        payload: action.payload,
+      })
+    } else if (action.payload.call_state === 'ended') {
+      isDone = true
+
+      yield sagaEffects.put(channels.pubSubChannel, {
+        type: SYNTHETIC_CALL_STATE_ENDED_EVENT,
         payload: action.payload,
       })
     } else {

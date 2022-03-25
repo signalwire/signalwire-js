@@ -7,14 +7,15 @@ import {
   VoiceCallMethods,
   VoiceCallContract,
   VoiceCallDialMethodParams,
+  VoiceCallDisconnectReason,
 } from '@signalwire/core'
 import { AutoSubscribeConsumer } from '../AutoSubscribeConsumer'
 import { RealTimeCallApiEvents } from '../types'
-import * as methods from './methods'
-import { toInternalDevices } from './methods'
+import { toInternalDevices } from './utils'
 import {
   SYNTHETIC_CALL_STATE_FAILED_EVENT,
   SYNTHETIC_CALL_STATE_ANSWERED_EVENT,
+  SYNTHETIC_CALL_STATE_ENDED_EVENT,
   voiceCallStateWorker,
 } from './workers'
 
@@ -39,6 +40,9 @@ export class CallConsumer extends AutoSubscribeConsumer<RealTimeCallApiEvents> {
     get_initial_state: true,
   }
 
+  private _callId: string
+  private _nodeId: string
+
   constructor(options: BaseComponentOptions<RealTimeCallApiEvents>) {
     super(options)
     this._attachListeners(this.__uuid)
@@ -52,7 +56,10 @@ export class CallConsumer extends AutoSubscribeConsumer<RealTimeCallApiEvents> {
   dial(params: VoiceCallDialMethodParams) {
     return new Promise((resolve, reject) => {
       // @ts-expect-error
-      this.once(SYNTHETIC_CALL_STATE_ANSWERED_EVENT, () => {
+      this.once(SYNTHETIC_CALL_STATE_ANSWERED_EVENT, (payload) => {
+        this._callId = payload.call_id
+        this._nodeId = payload.node_id
+
         resolve(this)
       })
 
@@ -73,14 +80,40 @@ export class CallConsumer extends AutoSubscribeConsumer<RealTimeCallApiEvents> {
       })
     })
   }
+
+  hangup(reason: VoiceCallDisconnectReason = 'hangup') {
+    return new Promise((resolve, reject) => {
+      if (!this._callId || !this._nodeId) {
+        reject(
+          new Error(
+            `Can't call hangup() on a call that hasn't been established.`
+          )
+        )
+      }
+
+      // @ts-expect-error
+      this.once(SYNTHETIC_CALL_STATE_ENDED_EVENT, () => {
+        resolve(undefined)
+      })
+
+      this.execute({
+        method: 'calling.end',
+        params: {
+          node_id: this._nodeId,
+          call_id: this._callId,
+          reason: reason,
+        },
+      }).catch((e) => {
+        reject(e)
+      })
+    })
+  }
 }
 
 export const CallAPI = extendComponent<
   CallConsumer,
-  Omit<VoiceCallMethods, 'dial'>
->(CallConsumer, {
-  hangup: methods.callHangup,
-})
+  Omit<VoiceCallMethods, 'dial' | 'hangup'>
+>(CallConsumer, {})
 
 export const createCallObject = (
   params: BaseComponentOptions<EmitterTransformsEvents>

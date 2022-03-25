@@ -61,6 +61,14 @@ export interface VoiceCallDialMethodParams {
   devices: NestedArray<VoiceCallDeviceParams>
 }
 
+export type VoiceCallDisconnectReason =
+  | 'hangup'
+  | 'cancel'
+  | 'busy'
+  | 'noAnswer'
+  | 'decline'
+  | 'error'
+
 /**
  * Public Contract for a VoiceCall
  */
@@ -99,13 +107,16 @@ export type InternalVoiceCallEntity = {
  * ==========
  */
 
+interface VoiceCallStateEvent {
+  call_id: string
+  node_id: string
+  tag: string
+}
+
 /**
  * 'voice.call.created'
  */
-export interface VoiceCallCreatedEventParams {
-  call_id: string
-  tag: string
-}
+export interface VoiceCallCreatedEventParams extends VoiceCallStateEvent {}
 
 export interface VoiceCallCreatedEvent extends SwEvent {
   event_type: ToInternalVoiceEvent<CallCreated>
@@ -115,10 +126,7 @@ export interface VoiceCallCreatedEvent extends SwEvent {
 /**
  * 'voice.call.ended'
  */
-export interface VoiceCallEndedEventParams {
-  call_id: string
-  tag: string
-}
+export interface VoiceCallEndedEventParams extends VoiceCallStateEvent {}
 
 export interface VoiceCallEndedEvent extends SwEvent {
   event_type: ToInternalVoiceEvent<CallEnded>
@@ -133,4 +141,4 @@ export type VoiceCallEventParams =
 
 export type VoiceCallAction = MapToPubSubShape<VoiceCallEvent>
 
-export type VoiceCallJSONRPCMethod = 'calling.dial' | 'calling.hangup'
+export type VoiceCallJSONRPCMethod = 'calling.dial' | 'calling.end'
