@@ -12,10 +12,11 @@ import type {
   VideoAPIEventParams,
   InternalVideoAPIEvent,
   ChatAction,
+  TaskAction,
   SwEventParams,
 } from '../types'
 import { SDKRunSaga } from '.'
-import { MulticastChannel } from '@redux-saga/core'
+import { END, MulticastChannel } from '@redux-saga/core'
 
 interface SWComponent {
   id: string
@@ -106,6 +107,9 @@ export type PubSubAction =
       payload: Error | undefined
     }
   | ChatAction
+  | TaskAction
 
 export type PubSubChannel = MulticastChannel<PubSubAction>
 export type SwEventChannel = MulticastChannel<MapToPubSubShape<SwEventParams>>
+
+export type SDKActions = MapToPubSubShape<SwEventParams> | END

@@ -65,6 +65,7 @@ export type {
   CustomSaga,
   PubSubChannel,
   MapToPubSubShape,
+  SDKActions,
 } from './redux/interfaces'
 export * as actions from './redux/actions'
 export * as sagaHelpers from './redux/utils/sagaHelpers'
