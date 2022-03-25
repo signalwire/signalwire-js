@@ -50,9 +50,6 @@ class MessagingAPI extends BaseConsumer<RealTimeMessagingApiEvents> {
 
   /** @internal */
   protected getEmitterTransforms() {
-    /**
-     * TODO: implement transforms to return a "Message"
-     */
     return new Map<string | string[], EventTransform>([
       [
         ['messaging.state', 'messaging.receive'],
