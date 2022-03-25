@@ -1,5 +1,11 @@
 # @sw-internal/build
 
+## 0.0.2
+
+### Patch Changes
+
+- [#464](https://github.com/signalwire/signalwire-js/pull/464) [`2c8fc597`](https://github.com/signalwire/signalwire-js/commit/2c8fc59719e7f40c1d9b01ebf67190d358dcea46) - Upgrade dependencies.
+
 ## 0.0.1
 
 ### Patch Changes
