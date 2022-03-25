@@ -1,5 +1,15 @@
 # @sw-internal/playground-js
 
+## 0.0.3
+
+### Patch Changes
+
+- [#401](https://github.com/signalwire/signalwire-js/pull/401) [`46600032`](https://github.com/signalwire/signalwire-js/commit/466000329e146b39fbf809ff6f31c727f780e592) - Add `layout` and `positions` when starting a screenShare.
+
+* [#464](https://github.com/signalwire/signalwire-js/pull/464) [`2c8fc597`](https://github.com/signalwire/signalwire-js/commit/2c8fc59719e7f40c1d9b01ebf67190d358dcea46) - [internal] upgrade dependencies
+
+- [#418](https://github.com/signalwire/signalwire-js/pull/418) [`a8036381`](https://github.com/signalwire/signalwire-js/commit/a803638111de02e5174f47e661477fe5b2f4e092) - Add ability to reinvite media on the BaseConnection
+
 ## 0.0.2
 
 ### Patch Changes

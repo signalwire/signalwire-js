@@ -1,6 +1,6 @@
 {
   "name": "@sw-internal/release",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A CLI for publishing releases on npm.",
   "main": "index.js",
   "type": "module",
@@ -12,7 +12,7 @@
     "sw-release": "bin/cli.js"
   },
   "dependencies": {
-    "@sw-internal/common": "^0.0.1",
+    "@sw-internal/common": "^0.0.2",
     "execa": "^6.1.0",
     "inquirer": "^8.2.1",
     "listr2": "^4.0.5"
