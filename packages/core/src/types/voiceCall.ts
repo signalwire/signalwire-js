@@ -76,8 +76,8 @@ export interface VoiceCallContract {
   /** Unique id for this voice call */
   id: string
 
-  dial(params?: VoiceCallDialMethodParams): any
-  hangup(params?: any): any
+  dial(params?: VoiceCallDialMethodParams): this
+  hangup(reason?: VoiceCallDisconnectReason): void
 }
 
 /**
