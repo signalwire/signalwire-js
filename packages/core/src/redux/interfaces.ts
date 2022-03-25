@@ -13,6 +13,7 @@ import type {
   InternalVideoAPIEvent,
   ChatAction,
   TaskAction,
+  MessagingAction,
   SwEventParams,
 } from '../types'
 import { SDKRunSaga } from '.'
@@ -108,6 +109,7 @@ export type PubSubAction =
     }
   | ChatAction
   | TaskAction
+  | MessagingAction
 
 export type PubSubChannel = MulticastChannel<PubSubAction>
 export type SwEventChannel = MulticastChannel<MapToPubSubShape<SwEventParams>>

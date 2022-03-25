@@ -4,6 +4,7 @@ import type { SessionEvents, JSONRPCRequest } from '../utils/interfaces'
 import type { CantinaEvent } from './cantina'
 import type { ChatEvent } from './chat'
 import type { TaskEvent } from './task'
+import type { MessagingEvent } from './messaging'
 
 export interface SwEvent {
   event_channel: string
@@ -117,6 +118,7 @@ export type SwEventParams =
   | CantinaEvent
   | ChatEvent
   | TaskEvent
+  | MessagingEvent
 
 // prettier-ignore
 export type PubSubChannelEvents =

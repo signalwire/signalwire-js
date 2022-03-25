@@ -3,6 +3,7 @@ import {
   SagaIterator,
   SDKWorker,
   getLogger,
+  SDKActions,
 } from '@signalwire/core'
 import type { Messaging } from './Messaging'
 
@@ -12,8 +13,7 @@ export const messagingWorker: SDKWorker<Messaging> = function* (
   const { channels } = options
   const { swEventChannel, pubSubChannel } = channels
   while (true) {
-    // FIXME: use SDKActions after merge #471
-    const action: any = yield sagaEffects.take(
+    const action: SDKActions = yield sagaEffects.take(
       swEventChannel,
       (action: any) => {
         return action.type.startsWith('messaging.')
