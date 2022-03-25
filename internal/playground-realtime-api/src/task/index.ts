@@ -16,19 +16,13 @@ client.on('task.received', (payload) => {
   console.log('Task Received', payload)
 })
 
-setTimeout(() => {
-  console.log('Sending job...')
-
-  // const job = new Task.Job({
-  //   host: process.env.HOST || 'relay.swire.io',
-  //   project: process.env.PROJECT as string,
-  //   token: process.env.TOKEN as string,
-  // })
-  const job = new Task.Job(
-    process.env.PROJECT as string,
-    process.env.TOKEN as string
-  )
-  job.host = process.env.HOST || 'relay.swire.io'
-
-  job.deliver('office', { yo: ['bro', 1, true] }).catch(console.log)
+setTimeout(async () => {
+  console.log('Sending to the client..')
+  await Task.send({
+    host: process.env.HOST || 'relay.swire.io',
+    project: process.env.PROJECT as string,
+    token: process.env.TOKEN as string,
+    context: 'office',
+    message: { yo: ['bro', 1, true] },
+  })
 }, 2000)

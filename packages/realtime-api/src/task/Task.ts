@@ -41,4 +41,4 @@ export const createTaskObject = (
 }
 
 export * from './TaskClient'
-export * from './Job'
+export * from './send'

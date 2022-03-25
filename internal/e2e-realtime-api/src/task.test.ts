@@ -16,21 +16,21 @@ const handler = () => {
       contexts: [context],
     })
 
-    client.on('task.inbound', (payload) => {
+    client.on('task.received', (payload) => {
       if (payload.id === jobPayload.id && payload.item === 'foo') {
         return resolve(0)
       }
-      console.error('Invalid payload on `task.inbound`', payload)
+      console.error('Invalid payload on `task.received`', payload)
       return reject(4)
     })
 
-    const job = new Task.Job(
-      process.env.RELAY_PROJECT as string,
-      process.env.RELAY_TOKEN as string
-    )
-    job.host = process.env.RELAY_HOST as string
-
-    await job.deliver(context, jobPayload)
+    await Task.send({
+      host: process.env.RELAY_HOST as string,
+      project: process.env.RELAY_PROJECT as string,
+      token: process.env.RELAY_TOKEN as string,
+      context,
+      message: jobPayload,
+    })
   })
 }
 

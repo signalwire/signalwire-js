@@ -1,5 +1,5 @@
 import type { AssertSameType, UserOptions } from '@signalwire/core'
-import { setupClient, clientConnect, RealtimeClient } from '../client/index'
+import { setupClient, clientConnect } from '../client/index'
 import { TaskClientDocs } from './TaskClient.docs'
 import type { Task } from './Task'
 import { createTaskObject } from './Task'
@@ -12,7 +12,9 @@ interface TaskClient extends AssertSameType<TaskClientMain, TaskClientDocs> {}
 
 /** @ignore */
 export interface TaskClientOptions
-  extends Omit<UserOptions, '_onRefreshToken'> {}
+  extends Omit<UserOptions, '_onRefreshToken'> {
+  contexts: string[]
+}
 
 /** @ignore */
 const TaskClient = function (options?: TaskClientOptions) {
@@ -23,20 +25,20 @@ const TaskClient = function (options?: TaskClientOptions) {
     emitter,
   })
 
-  const clientOn: RealtimeClient['on'] = (...args) => {
+  const taskOn: TaskClient['on'] = (...args) => {
     clientConnect(client)
 
-    return client.on(...args)
+    return task.on(...args)
   }
-  const clientOnce: RealtimeClient['once'] = (...args) => {
+  const taskOnce: TaskClient['once'] = (...args) => {
     clientConnect(client)
 
-    return client.once(...args)
+    return task.once(...args)
   }
 
   const interceptors = {
-    on: clientOn,
-    once: clientOnce,
+    on: taskOn,
+    once: taskOnce,
     _session: client,
   } as const
 
