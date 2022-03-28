@@ -1,6 +1,8 @@
+import { MessagingMessageState } from '@signalwire/core'
+
 export interface MessageContract {
   id: string
-  state: string
+  state: MessagingMessageState
   context: string
   from: string
   to: string
@@ -13,7 +15,7 @@ export interface MessageContract {
 
 interface MessageOptions {
   message_id: string
-  message_state: string
+  message_state: MessagingMessageState
   context: string
   from_number: string
   to_number: string
@@ -27,7 +29,7 @@ interface MessageOptions {
 
 export class Message implements MessageContract {
   public id: string
-  public state: string
+  public state: MessagingMessageState
   public context: string
   public from: string
   public to: string
