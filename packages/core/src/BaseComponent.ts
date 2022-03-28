@@ -390,7 +390,7 @@ export class BaseComponent<
   ) {
     const wrapperHandler = (payload: unknown) => {
       const transform = this._emitterTransforms.get(internalEvent)
-      console.log('Look for', internalEvent, transform)
+      this.logger.trace('Got emitterTransform for', internalEvent, transform)
       if (!transform) {
         // @ts-expect-error
         return fn(payload)
