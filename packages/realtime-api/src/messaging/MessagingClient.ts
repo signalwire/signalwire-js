@@ -24,7 +24,7 @@ const MessagingClient = function (options?: MessagingClientOptions) {
     emitter,
   })
 
-  client.on('session.connected', () => {
+  client.once('session.connected', () => {
     // @ts-expect-error
     messaging.applyEmitterTransforms()
   })
