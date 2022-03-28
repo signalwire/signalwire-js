@@ -72,7 +72,7 @@ export interface MessagingReceiveEventParams {
   from_number: string
   to_number: string
   body: string
-  media: string[]
+  media?: string[]
   segments: number
   message_state: 'received'
 }
@@ -85,7 +85,23 @@ export interface MessagingReceiveEvent extends SwEvent {
   params: MessagingReceiveEventParams
 }
 
-export type MessagingEvent = MessagingStateEvent | MessagingReceiveEvent
+/**
+ * Events from the SDK (just renamed for the end-users)
+ */
+export interface MessageUpdatedEvent
+  extends Omit<MessagingStateEvent, 'event_type'> {
+  event_type: 'message.updated'
+}
+export interface MessageReceivedEvent
+  extends Omit<MessagingReceiveEvent, 'event_type'> {
+  event_type: 'message.received'
+}
+
+export type MessagingEvent =
+  | MessagingStateEvent
+  | MessageUpdatedEvent
+  | MessagingReceiveEvent
+  | MessageReceivedEvent
 
 export type MessagingEventParams =
   | MessagingStateEventParams

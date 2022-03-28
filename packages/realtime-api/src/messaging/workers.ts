@@ -21,10 +21,29 @@ export const messagingWorker: SDKWorker<Messaging> = function* (
     )
     getLogger().debug('messagingWorker:', action)
 
+    /**
+     * Rename the wire events to be consistent with other SDK events.
+     * messaging.receive => message.received
+     * messaging.state => message.updated
+     */
+
     switch (action.type) {
-      case 'messaging.receive':
+      case 'messaging.receive': {
+        // yield sagaEffects.put(pubSubChannel, action)
+
+        yield sagaEffects.put(pubSubChannel, {
+          type: 'message.received',
+          payload: action.payload,
+        })
+        break
+      }
       case 'messaging.state': {
-        yield sagaEffects.put(pubSubChannel, action)
+        // yield sagaEffects.put(pubSubChannel, action)
+
+        yield sagaEffects.put(pubSubChannel, {
+          type: 'message.updated',
+          payload: action.payload,
+        })
         break
       }
 

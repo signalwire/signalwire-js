@@ -36,7 +36,6 @@ export interface Messaging
 /** @internal */
 class MessagingAPI extends BaseConsumer<RealTimeMessagingApiEvents> {
   /** @internal */
-  // protected _eventsPrefix = '' as const
 
   constructor(options: BaseComponentOptions<RealTimeMessagingApiEvents>) {
     super(options)
@@ -52,7 +51,12 @@ class MessagingAPI extends BaseConsumer<RealTimeMessagingApiEvents> {
   protected getEmitterTransforms() {
     return new Map<string | string[], EventTransform>([
       [
-        ['messaging.state', 'messaging.receive'],
+        [
+          'messaging.state',
+          'messaging.receive',
+          'message.updated',
+          'message.received',
+        ],
         {
           type: 'messagingMessage',
           instanceFactory: (payload: any) => {
