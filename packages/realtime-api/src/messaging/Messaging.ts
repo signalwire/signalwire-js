@@ -100,8 +100,7 @@ class MessagingAPI extends BaseConsumer<RealTimeMessagingApiEvents> {
         params: sendParams,
       })
 
-      // FIXME: check the response type
-      return response
+      return toExternalJSON(response)
     } catch (error) {
       this.logger.error('Error sending message', error.jsonrpc)
       throw error.jsonrpc
