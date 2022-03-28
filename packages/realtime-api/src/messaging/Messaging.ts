@@ -89,18 +89,19 @@ class MessagingAPI extends BaseConsumer<RealTimeMessagingApiEvents> {
       from_number: from,
       to_number: to,
     }
-    const response: any = await this.execute({
-      method: 'messaging.send',
-      params: sendParams,
-    }).catch((error) => {
-      /**
-       * Return the jsonrpc response with code/message
-       */
-      return error.jsonrpc
-    })
 
-    // FIXME: check the response type
-    return response
+    try {
+      const response: any = await this.execute({
+        method: 'messaging.send',
+        params: sendParams,
+      })
+
+      // FIXME: check the response type
+      return response
+    } catch (error) {
+      this.logger.error('Error sending message', error.jsonrpc)
+      throw error.jsonrpc
+    }
   }
 }
 
