@@ -74,10 +74,17 @@ export type VoiceCallDisconnectReason =
  */
 export interface VoiceCallContract<T = any> {
   /** Unique id for this voice call */
-  id: string
+  readonly id: string
+  /** @ignore */
+  tag: string
+  /** @ignore */
+  callId: string
+  /** @ignore */
+  nodeId: string
 
   dial(params?: VoiceCallDialMethodParams): Promise<T>
   hangup(reason?: VoiceCallDisconnectReason): Promise<void>
+  answer(): Promise<T>
 }
 
 /**
@@ -141,4 +148,7 @@ export type VoiceCallEventParams =
 
 export type VoiceCallAction = MapToPubSubShape<VoiceCallEvent>
 
-export type VoiceCallJSONRPCMethod = 'calling.dial' | 'calling.end'
+export type VoiceCallJSONRPCMethod =
+  | 'calling.dial'
+  | 'calling.end'
+  | 'calling.answer'

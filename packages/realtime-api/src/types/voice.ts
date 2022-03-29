@@ -4,7 +4,8 @@ import type { CallCreated, CallEnded } from '@signalwire/core'
 export type RealTimeCallApiEventsHandlerMapping = Record<
   CallCreated | CallEnded,
   (params: any) => void
->
+> &
+  Record<'call.received', (params: any) => void>
 
 export type RealTimeCallApiEvents = {
   [k in keyof RealTimeCallApiEventsHandlerMapping]: RealTimeCallApiEventsHandlerMapping[k]
