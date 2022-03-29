@@ -3,6 +3,7 @@ import {
   sagaEffects,
   SagaIterator,
   SDKWorker,
+  SDKActions,
   CallingCallStateEvent,
   toSyntheticEvent,
   MapToPubSubShape,
@@ -33,7 +34,7 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
   let isDone = false
   while (!isDone) {
     const action: MapToPubSubShape<CallingCallStateEvent> =
-      yield sagaEffects.take(swEventChannel, (action: any) => {
+      yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
         return (
           action.type === 'calling.call.state' &&
           (instance.id === action.payload.call_id ||
