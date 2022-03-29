@@ -441,12 +441,20 @@ export type InternalChannels = {
   swEventChannel: SwEventChannel
 }
 
-export type SDKWorkerParams<T> = {
+export interface SDKWorkerParams<T> {
   channels: InternalChannels
   instance: T
   runSaga: any
+  /**
+   * TODO: rename these optional args with something more explicit or
+   * create derived types of `SDKWorkerParams` with specific arguments (?)
+   */
   payload?: any
+  resolve?(value: unknown): void
+  reject?(reason?: any): void
+  actionFilterHandler?(): boolean
 }
+
 export type SDKWorker<T> = (params: SDKWorkerParams<T>) => SagaIterator<any>
 
 export interface SDKWorkerDefinition {
