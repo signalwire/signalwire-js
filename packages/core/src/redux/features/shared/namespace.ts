@@ -73,7 +73,7 @@ export const findNamespaceInPayload = (action: PubSubAction): string => {
   } else if (isChatEvent(action)) {
     return ''
   } else if (isVoiceCallEvent(action)) {
-    return action.payload.tag
+    return action.payload.tag ?? ''
   }
 
   if ('development' === process.env.NODE_ENV) {

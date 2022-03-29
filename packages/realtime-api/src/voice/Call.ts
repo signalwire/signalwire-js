@@ -13,7 +13,7 @@ import { AutoSubscribeConsumer } from '../AutoSubscribeConsumer'
 import { RealTimeCallApiEvents } from '../types'
 import { toInternalDevices } from './utils'
 import {
-  SYNTHETIC_CALL_STATE_FAILED_EVENT,
+  // SYNTHETIC_CALL_STATE_FAILED_EVENT,
   SYNTHETIC_CALL_STATE_ANSWERED_EVENT,
   SYNTHETIC_CALL_STATE_ENDED_EVENT,
   voiceCallStateWorker,
@@ -80,10 +80,9 @@ export class CallConsumer extends AutoSubscribeConsumer<RealTimeCallApiEvents> {
         resolve(this)
       })
 
-      // @ts-expect-error
-      this.once(SYNTHETIC_CALL_STATE_FAILED_EVENT, () => {
-        reject(new Error('Failed to establish the call.'))
-      })
+      // this.once(SYNTHETIC_CALL_STATE_FAILED_EVENT, () => {
+      //   reject(new Error('Failed to establish the call.'))
+      // })
 
       this.execute({
         method: 'calling.dial',
@@ -119,11 +118,6 @@ export class CallConsumer extends AutoSubscribeConsumer<RealTimeCallApiEvents> {
         resolve(undefined)
       })
 
-      // @ts-expect-error
-      this.once(SYNTHETIC_CALL_STATE_FAILED_EVENT, () => {
-        reject(new Error('Failed to hangup the call.'))
-      })
-
       this.execute({
         method: 'calling.end',
         params: {
@@ -157,16 +151,12 @@ export class CallConsumer extends AutoSubscribeConsumer<RealTimeCallApiEvents> {
       this.once(SYNTHETIC_CALL_STATE_ANSWERED_EVENT, () => {
         // @ts-expect-error
         this.off(SYNTHETIC_CALL_STATE_ENDED_EVENT, errorHandler)
-        // @ts-expect-error
-        this.off(SYNTHETIC_CALL_STATE_FAILED_EVENT, errorHandler)
 
         resolve(this)
       })
 
       // @ts-expect-error
       this.once(SYNTHETIC_CALL_STATE_ENDED_EVENT, errorHandler)
-      // @ts-expect-error
-      this.once(SYNTHETIC_CALL_STATE_FAILED_EVENT, errorHandler)
 
       this.execute({
         method: 'calling.answer',

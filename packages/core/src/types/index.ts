@@ -5,6 +5,7 @@ import type { CantinaEvent } from './cantina'
 import type { ChatEvent } from './chat'
 import type { TaskEvent } from './task'
 import type { MessagingEvent } from './messaging'
+import type { VoiceCallEvent } from './voice'
 
 export interface SwEvent {
   event_channel: string
@@ -119,6 +120,7 @@ export type SwEventParams =
   | ChatEvent
   | TaskEvent
   | MessagingEvent
+  | VoiceCallEvent
 
 // prettier-ignore
 export type PubSubChannelEvents =

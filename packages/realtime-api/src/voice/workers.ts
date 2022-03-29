@@ -3,7 +3,9 @@ import {
   sagaEffects,
   SagaIterator,
   SDKWorker,
+  CallingCallStateEvent,
   toSyntheticEvent,
+  MapToPubSubShape,
 } from '@signalwire/core'
 import { Client } from '../client/index'
 import { createCallObject, Call } from './Call'
@@ -12,9 +14,9 @@ export const SYNTHETIC_CALL_STATE_ANSWERED_EVENT = toSyntheticEvent(
   'calling.call.answered'
 )
 
-export const SYNTHETIC_CALL_STATE_FAILED_EVENT = toSyntheticEvent(
-  'calling.call.failed'
-)
+// export const SYNTHETIC_CALL_STATE_FAILED_EVENT = toSyntheticEvent(
+//   'calling.call.failed'
+// )
 
 export const SYNTHETIC_CALL_STATE_ENDED_EVENT =
   toSyntheticEvent('calling.call.ended')
@@ -30,14 +32,15 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
 
   let isDone = false
   while (!isDone) {
-    const action = yield sagaEffects.take(swEventChannel, (action: any) => {
-      return (
-        action.type === 'calling.call.state' &&
-        (instance.id === action.payload.call_id ||
-          instance.tag === action.payload.tag) &&
-        TARGET_CALL_STATES.includes(action.payload.call_state)
-      )
-    })
+    const action: MapToPubSubShape<CallingCallStateEvent> =
+      yield sagaEffects.take(swEventChannel, (action: any) => {
+        return (
+          action.type === 'calling.call.state' &&
+          (instance.id === action.payload.call_id ||
+            instance.tag === action.payload.tag) &&
+          TARGET_CALL_STATES.includes(action.payload.call_state)
+        )
+      })
 
     // Inject `tag` to have our EE to work because inbound calls don't have tags.
     const newPayload = {
@@ -47,18 +50,15 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
 
     if (action.payload.call_state === 'answered') {
       yield sagaEffects.put(pubSubChannel, {
+        // @ts-expect-error
         type: SYNTHETIC_CALL_STATE_ANSWERED_EVENT,
-        payload: newPayload,
-      })
-    } else if (action.payload.call_state === 'failed') {
-      yield sagaEffects.put(pubSubChannel, {
-        type: SYNTHETIC_CALL_STATE_FAILED_EVENT,
         payload: newPayload,
       })
     } else if (action.payload.call_state === 'ended') {
       isDone = true
 
       yield sagaEffects.put(pubSubChannel, {
+        // @ts-expect-error
         type: SYNTHETIC_CALL_STATE_ENDED_EVENT,
         payload: newPayload,
       })
