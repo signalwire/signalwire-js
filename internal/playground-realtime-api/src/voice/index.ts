@@ -43,11 +43,6 @@ async function run() {
         ],
       })
 
-      // @ts-expect-error
-      call.on('call.state', (params) => {
-        console.log('OMG!!', params)
-      })
-
       console.log('Dial resolved!', call)
     } catch (e) {
       console.log('---> E', JSON.stringify(e, null, 2))
