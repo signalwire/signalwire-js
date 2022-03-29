@@ -11,6 +11,13 @@ type ToInternalVoiceEvent<T extends string> = `${VoiceNamespace}.${T}`
 export type VoiceNamespace = typeof PRODUCT_PREFIX_VOICE_CALL
 
 /**
+ * Private event types
+ */
+export type CallDial = 'call.dial'
+export type CallState = 'call.state'
+export type CallReceive = 'call.receive'
+
+/**
  * Public event types
  */
 export type CallCreated = 'call.created'
@@ -74,10 +81,17 @@ export type VoiceCallDisconnectReason =
  */
 export interface VoiceCallContract<T = any> {
   /** Unique id for this voice call */
-  id: string
+  readonly id: string
+  /** @ignore */
+  tag: string
+  /** @ignore */
+  callId: string
+  /** @ignore */
+  nodeId: string
 
   dial(params?: VoiceCallDialMethodParams): Promise<T>
   hangup(reason?: VoiceCallDisconnectReason): Promise<void>
+  answer(): Promise<T>
 }
 
 /**
@@ -107,38 +121,121 @@ export type InternalVoiceCallEntity = {
  * ==========
  */
 
-interface VoiceCallStateEvent {
+interface CallingCallPhoneDevice {
+  type: 'phone'
+  params: {
+    from_number: string
+    to_number: string
+    timeout: number
+    max_duration: number
+  }
+}
+
+interface CallingCallSIPDevice {
+  type: 'sip'
+  params: {
+    from: string
+    from_name?: string
+    to: string
+    timeout?: number
+    max_duration?: number
+    headers?: SipHeader[]
+    codecs?: SipCodec[]
+    webrtc_media?: boolean
+  }
+}
+
+type CallingCallDevice = CallingCallPhoneDevice | CallingCallSIPDevice
+
+interface CallingCall {
   call_id: string
+  call_state: 'created' | 'ringing' | 'answered' | 'ending' | 'ended'
+  context?: string
+  tag?: string
+  direction: 'inbound' | 'outbound'
+  device: CallingCallDevice
+  node_id: string
+  segment_id: string
+}
+
+interface CallingCallDial extends CallingCall {
+  dial_winner: 'true' | 'false'
+}
+
+/**
+ * 'calling.call.dial'
+ */
+export interface CallingCallDialEventParams {
   node_id: string
   tag: string
+  dial_state: 'dialing' | 'answered' | 'failed'
+  call?: CallingCallDial
+}
+
+export interface CallingCallDialEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallDial>
+  params: CallingCallDialEventParams
 }
 
 /**
- * 'voice.call.created'
+ * 'calling.call.state'
  */
-export interface VoiceCallCreatedEventParams extends VoiceCallStateEvent {}
+export interface CallingCallStateEventParams extends CallingCall {}
 
-export interface VoiceCallCreatedEvent extends SwEvent {
-  event_type: ToInternalVoiceEvent<CallCreated>
-  params: VoiceCallCreatedEventParams
+export interface CallingCallStateEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallState>
+  params: CallingCallStateEventParams
 }
 
 /**
- * 'voice.call.ended'
+ * 'calling.call.receive'
  */
-export interface VoiceCallEndedEventParams extends VoiceCallStateEvent {}
+export interface CallingCallReceiveEventParams extends CallingCall {}
 
-export interface VoiceCallEndedEvent extends SwEvent {
-  event_type: ToInternalVoiceEvent<CallEnded>
-  params: VoiceCallEndedEventParams
+export interface CallingCallReceiveEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallReceive>
+  params: CallingCallReceiveEventParams
 }
 
-export type VoiceCallEvent = VoiceCallCreatedEvent | VoiceCallEndedEvent
+// interface VoiceCallStateEvent {
+//   call_id: string
+//   node_id: string
+//   tag: string
+// }
+
+// /**
+//  * 'voice.call.created'
+//  */
+// export interface VoiceCallCreatedEventParams extends VoiceCallStateEvent {}
+
+// export interface VoiceCallCreatedEvent extends SwEvent {
+//   event_type: ToInternalVoiceEvent<CallCreated>
+//   params: VoiceCallCreatedEventParams
+// }
+
+// /**
+//  * 'voice.call.ended'
+//  */
+// export interface VoiceCallEndedEventParams extends VoiceCallStateEvent {}
+
+// export interface VoiceCallEndedEvent extends SwEvent {
+//   event_type: ToInternalVoiceEvent<CallEnded>
+//   params: VoiceCallEndedEventParams
+// }
+
+export type VoiceCallEvent =
+  | CallingCallDialEvent
+  | CallingCallStateEvent
+  | CallingCallReceiveEvent
 
 export type VoiceCallEventParams =
-  | VoiceCallCreatedEventParams
-  | VoiceCallEndedEventParams
+  | CallingCallDialEventParams
+  | CallingCallStateEventParams
+  | CallingCallReceiveEventParams
 
 export type VoiceCallAction = MapToPubSubShape<VoiceCallEvent>
 
-export type VoiceCallJSONRPCMethod = 'calling.dial' | 'calling.end'
+export type VoiceCallJSONRPCMethod =
+  | 'calling.dial'
+  | 'calling.end'
+  | 'calling.answer'
