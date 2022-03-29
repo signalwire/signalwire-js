@@ -4,6 +4,7 @@ import { getLogger } from '@signalwire/core'
 import { setupClient, clientConnect, RealtimeClient } from '../client/index'
 import { createCallObject, Call } from './Call'
 import { CallClientDocs } from './CallClient.docs'
+import { voiceCallReceiveWorker } from './workers'
 
 /**
  * List of events for {@link Voice.Call}.
@@ -18,13 +19,20 @@ interface CallClient extends AssertSameType<CallClientMain, CallClientDocs> {}
 
 /** @ignore */
 export interface CallClientOptions
-  extends Omit<UserOptions, 'host' | '_onRefreshToken' | 'token'> {
-  token?: string
+  extends Omit<UserOptions, '_onRefreshToken'> {
+  contexts: string[]
 }
 
 /** @ignore */
 const CallClient = function (options?: CallClientOptions) {
   const { client, store, emitter } = setupClient(options)
+
+  // @ts-expect-error
+  client.setWorker('voiceCallReceiveWorker', {
+    worker: voiceCallReceiveWorker,
+  })
+  // @ts-expect-error
+  client.attachWorkers()
 
   const clientOn: RealtimeClient['on'] = (...args) => {
     clientConnect(client)
