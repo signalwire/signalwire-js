@@ -13,7 +13,7 @@ import { AutoSubscribeConsumer } from '../AutoSubscribeConsumer'
 import { RealTimeCallApiEvents } from '../types'
 import { toInternalDevices } from './utils'
 import {
-  SYNTHETIC_CALL_STATE_FAILED_EVENT,
+  // SYNTHETIC_CALL_STATE_FAILED_EVENT,
   SYNTHETIC_CALL_STATE_ANSWERED_EVENT,
   SYNTHETIC_CALL_STATE_ENDED_EVENT,
   voiceCallStateWorker,
@@ -46,15 +46,32 @@ export class CallConsumer extends AutoSubscribeConsumer<RealTimeCallApiEvents> {
   constructor(options: BaseComponentOptions<RealTimeCallApiEvents>) {
     super(options)
     this._attachListeners(this.__uuid)
+  }
 
-    this.setWorker('voiceCallStateWorker', {
-      worker: voiceCallStateWorker,
-    })
-    this.attachWorkers()
+  get id() {
+    return this._callId
+  }
+
+  get tag() {
+    return this.__uuid
+  }
+
+  set callId(callId: string) {
+    this._callId = callId
+  }
+
+  set nodeId(nodeId: string) {
+    this._nodeId = nodeId
   }
 
   dial(params: VoiceCallDialMethodParams) {
     return new Promise((resolve, reject) => {
+      // TODO: pass resolve/reject to the worker instead of use synthetic events?
+      this.setWorker('voiceCallStateWorker', {
+        worker: voiceCallStateWorker,
+      })
+      this.attachWorkers()
+
       // @ts-expect-error
       this.once(SYNTHETIC_CALL_STATE_ANSWERED_EVENT, (payload) => {
         this._callId = payload.call_id
@@ -63,10 +80,9 @@ export class CallConsumer extends AutoSubscribeConsumer<RealTimeCallApiEvents> {
         resolve(this)
       })
 
-      // @ts-expect-error
-      this.once(SYNTHETIC_CALL_STATE_FAILED_EVENT, () => {
-        reject(new Error('Failed to establish the call.'))
-      })
+      // this.once(SYNTHETIC_CALL_STATE_FAILED_EVENT, () => {
+      //   reject(new Error('Failed to establish the call.'))
+      // })
 
       this.execute({
         method: 'calling.dial',
@@ -91,6 +107,12 @@ export class CallConsumer extends AutoSubscribeConsumer<RealTimeCallApiEvents> {
         )
       }
 
+      // TODO: pass resolve/reject to the worker instead of use synthetic events?
+      this.setWorker('voiceCallStateWorker', {
+        worker: voiceCallStateWorker,
+      })
+      this.attachWorkers()
+
       // @ts-expect-error
       this.once(SYNTHETIC_CALL_STATE_ENDED_EVENT, () => {
         resolve(undefined)
@@ -108,11 +130,50 @@ export class CallConsumer extends AutoSubscribeConsumer<RealTimeCallApiEvents> {
       })
     })
   }
+
+  answer() {
+    return new Promise<this>((resolve, reject) => {
+      if (!this._callId || !this._nodeId) {
+        reject(new Error(`Can't call answer() on a call without callId.`))
+      }
+
+      const errorHandler = () => {
+        reject(new Error('Failed to answer the call.'))
+      }
+
+      // TODO: pass resolve/reject to the worker instead of use synthetic events?
+      this.setWorker('voiceCallStateWorker', {
+        worker: voiceCallStateWorker,
+      })
+      this.attachWorkers({ payload: 1 })
+
+      // @ts-expect-error
+      this.once(SYNTHETIC_CALL_STATE_ANSWERED_EVENT, () => {
+        // @ts-expect-error
+        this.off(SYNTHETIC_CALL_STATE_ENDED_EVENT, errorHandler)
+
+        resolve(this)
+      })
+
+      // @ts-expect-error
+      this.once(SYNTHETIC_CALL_STATE_ENDED_EVENT, errorHandler)
+
+      this.execute({
+        method: 'calling.answer',
+        params: {
+          node_id: this._nodeId,
+          call_id: this._callId,
+        },
+      }).catch((e) => {
+        reject(e)
+      })
+    })
+  }
 }
 
 export const CallAPI = extendComponent<
   CallConsumer,
-  Omit<VoiceCallMethods, 'dial' | 'hangup'>
+  Omit<VoiceCallMethods, 'dial' | 'hangup' | 'answer'>
 >(CallConsumer, {})
 
 export const createCallObject = (
