@@ -226,13 +226,13 @@ const mutateMemberCurrentPosition = ({
 }
 
 const initializeMemberList = (payload: VideoRoomSubscribedEventParams) => {
-  const members = payload.room.members
+  const members = payload.room_session.members
   const memberList: MemberEventParamsList = new Map()
 
   members.forEach((member) => {
     memberList.set(member.id, {
-      room_id: payload.room.room_id,
-      room_session_id: payload.room.room_session_id,
+      room_id: payload.room_session.room_id,
+      room_session_id: payload.room_session.id,
       // At this point we don't have `member.updated`
       // @ts-expect-error
       member,
