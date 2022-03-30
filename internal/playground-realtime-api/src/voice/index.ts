@@ -50,6 +50,26 @@ async function run() {
         })
       }
 
+      call.on('recording.started', (r) => {
+        console.log('>> recording.started', r.id)
+      })
+      call.on('recording.failed', (r) => {
+        console.log('>> recording.failed', r.id, r.state)
+      })
+      call.on('recording.ended', (r) => {
+        console.log(
+          '>> recording.ended',
+          r.id,
+          r.state,
+          r.size,
+          r.duration,
+          r.url
+        )
+      })
+
+      const recording = await call.recordAudio()
+      console.log('Recording STARTED!', recording.id)
+
       call.on('playback.started', (p) => {
         console.log('>> playback.started', p.id, p.state)
       })
@@ -83,6 +103,17 @@ async function run() {
       await sleep()
       await playback.stop()
       console.log('Playback STOPPED!')
+
+      await sleep()
+      await recording.stop()
+      console.log(
+        'Recording STOPPED!',
+        recording.id,
+        recording.state,
+        recording.size,
+        recording.duration,
+        recording.url
+      )
 
       await call.hangup()
     } catch (e) {
