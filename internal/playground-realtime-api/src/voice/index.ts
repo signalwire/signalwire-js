@@ -43,12 +43,51 @@ async function run() {
         ],
       })
 
-      console.log('Dial resolved!', call)
-    } catch (e) {
-      console.log('---> E', JSON.stringify(e, null, 2))
-    }
+      console.log('Dial resolved!', call.id)
+      const sleep = () => {
+        return new Promise((r) => {
+          setTimeout(r, 3000)
+        })
+      }
 
-    console.log('Client Running..')
+      call.on('playback.started', (p) => {
+        console.log('>> playback.started', p.id, p.state)
+      })
+      call.on('playback.updated', (p) => {
+        console.log('>> playback.updated', p.id, p.state)
+      })
+      call.on('playback.ended', (p) => {
+        console.log('>> playback.ended', p.id, p.state)
+      })
+
+      const playback = await call.play({
+        media: [
+          {
+            type: 'audio',
+            url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
+          },
+          { type: 'silence', duration: 5 },
+          { type: 'tts', text: 'Thank you!' },
+        ],
+        volume: 2.0,
+      })
+
+      console.log('Playback STARTED!', playback.id)
+
+      await sleep()
+      await playback.pause()
+      console.log('Playback PAUSED!')
+      await sleep()
+      await playback.resume()
+      console.log('Playback RESUMED!')
+      await sleep()
+      await playback.stop()
+      console.log('Playback STOPPED!')
+
+      await call.hangup()
+    } catch (e) {
+      console.log('Error:', JSON.stringify(e, null, 2))
+    }
   } catch (error) {
     console.log('<Error>', error)
   }
