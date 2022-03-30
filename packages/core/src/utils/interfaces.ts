@@ -14,6 +14,7 @@ import type {
 } from '../redux/interfaces'
 import type { URL as NodeURL } from 'node:url'
 import {
+  CallingTransformType,
   ChatJSONRPCMethod,
   ChatTransformType,
   MessagingJSONRPCMethod,
@@ -342,6 +343,7 @@ export type EventTransformType =
   | 'roomSessionPlayback'
   | ChatTransformType
   | MessagingTransformType
+  | CallingTransformType
 
 export interface NestedFieldToProcess {
   /**
@@ -446,13 +448,10 @@ export interface SDKWorkerParams<T> {
   instance: T
   runSaga: any
   /**
-   * TODO: rename these optional args with something more explicit or
+   * TODO: rename `payload` with something more explicit or
    * create derived types of `SDKWorkerParams` with specific arguments (?)
    */
   payload?: any
-  resolve?(value: unknown): void
-  reject?(reason?: any): void
-  actionFilterHandler?(): boolean
 }
 
 export type SDKWorker<T> = (params: SDKWorkerParams<T>) => SagaIterator<any>

@@ -9,31 +9,80 @@ import type {
 
 type ToInternalVoiceEvent<T extends string> = `${VoiceNamespace}.${T}`
 export type VoiceNamespace = typeof PRODUCT_PREFIX_VOICE_CALL
-
+type RingtoneName =
+  | 'at'
+  | 'au'
+  | 'bg'
+  | 'br'
+  | 'be'
+  | 'ch'
+  | 'cl'
+  | 'cn'
+  | 'cz'
+  | 'de'
+  | 'dk'
+  | 'ee'
+  | 'es'
+  | 'fi'
+  | 'fr'
+  | 'gr'
+  | 'hu'
+  | 'il'
+  | 'in'
+  | 'it'
+  | 'lt'
+  | 'jp'
+  | 'mx'
+  | 'my'
+  | 'nl'
+  | 'no'
+  | 'nz'
+  | 'ph'
+  | 'pl'
+  | 'pt'
+  | 'ru'
+  | 'se'
+  | 'sg'
+  | 'th'
+  | 'uk'
+  | 'us'
+  | 'tw'
+  | 've'
+  | 'za'
 /**
  * Private event types
  */
 export type CallDial = 'call.dial'
 export type CallState = 'call.state'
 export type CallReceive = 'call.receive'
+export type CallPlay = 'call.play'
 
 /**
  * Public event types
  */
 export type CallCreated = 'call.created'
 export type CallEnded = 'call.ended'
+export type CallReceived = 'call.received'
+export type CallPlaybackStarted = 'playback.started'
+export type CallPlaybackUpdated = 'playback.updated'
+export type CallPlaybackEnded = 'playback.ended'
 
 /**
  * List of public event names
  */
-export type VoiceCallEventNames = CallCreated | CallEnded
+export type VoiceCallEventNames =
+  | CallCreated
+  | CallEnded
+  | CallPlaybackStarted
+  | CallPlaybackUpdated
+  | CallPlaybackEnded
 
 /**
  * List of internal events
  * @internal
  */
-export type InternalVoiceCallEventNames =
-  ToInternalVoiceEvent<VoiceCallEventNames>
+// export type InternalVoiceCallEventNames =
+//   ToInternalVoiceEvent<VoiceCallEventNames>
 
 type SipCodec = 'PCMU' | 'PCMA' | 'OPUS' | 'G729' | 'G722' | 'VP8' | 'H264'
 
@@ -68,6 +117,57 @@ export interface VoiceCallDialMethodParams {
   devices: NestedArray<VoiceCallDeviceParams>
 }
 
+export interface VoiceCallPlayAudioParams {
+  type: 'audio'
+  url: string
+}
+
+export interface VoiceCallPlayTTSParams {
+  type: 'tts'
+  text: string
+  language?: string
+  gender?: 'male' | 'female'
+}
+
+export interface VoiceCallPlaySilenceParams {
+  type: 'silence'
+  duration: number
+}
+
+export interface VoiceCallPlayRingtoneParams {
+  type: 'ringtone'
+  name: RingtoneName
+  duration?: number
+}
+
+export type VoiceCallPlayParams =
+  | VoiceCallPlayAudioParams
+  | VoiceCallPlayTTSParams
+  | VoiceCallPlaySilenceParams
+  | VoiceCallPlayRingtoneParams
+
+export interface VoiceCallPlayMethodParams {
+  media: NestedArray<VoiceCallPlayParams>
+  volume?: number
+}
+
+export interface VoiceCallPlayAudioMethodParams
+  extends Omit<VoiceCallPlayAudioParams, 'type'> {
+  volume?: number
+}
+
+export interface VoiceCallPlaySilenceMethodParams
+  extends Omit<VoiceCallPlaySilenceParams, 'type'> {}
+
+export interface VoiceCallPlayRingtoneMethodParams
+  extends Omit<VoiceCallPlayRingtoneParams, 'type'> {
+  volume?: number
+}
+export interface VoiceCallPlayTTSMethodParams
+  extends Omit<VoiceCallPlayTTSParams, 'type'> {
+  volume?: number
+}
+
 export type VoiceCallDisconnectReason =
   | 'hangup'
   | 'cancel'
@@ -75,6 +175,39 @@ export type VoiceCallDisconnectReason =
   | 'noAnswer'
   | 'decline'
   | 'error'
+
+/**
+ * Public Contract for a VoiceCall
+ */
+export interface VoiceCallPlaybackContract {
+  /** Unique id for this playback */
+  readonly id: string
+  /** @ignore */
+  readonly callId: string
+  /** @ignore */
+  readonly controlId: string
+  /** @ignore */
+  readonly volume: number
+  /** @ignore */
+  readonly state: CallingCallPlayState
+
+  pause(): Promise<this>
+  resume(): Promise<this>
+  stop(): Promise<this>
+  setVolume(volume: number): Promise<this>
+}
+
+/**
+ * VoiceCallPlayback properties
+ */
+export type VoiceCallPlaybackEntity =
+  OnlyStateProperties<VoiceCallPlaybackContract>
+
+/**
+ * VoiceCallPlayback methods
+ */
+export type VoiceCallPlaybackMethods =
+  OnlyFunctionProperties<VoiceCallPlaybackContract>
 
 /**
  * Public Contract for a VoiceCall
@@ -92,6 +225,19 @@ export interface VoiceCallContract<T = any> {
   dial(params?: VoiceCallDialMethodParams): Promise<T>
   hangup(reason?: VoiceCallDisconnectReason): Promise<void>
   answer(): Promise<T>
+  play(params: VoiceCallPlayMethodParams): Promise<VoiceCallPlaybackContract>
+  playAudio(
+    params: VoiceCallPlayAudioMethodParams
+  ): Promise<VoiceCallPlaybackContract>
+  playSilence(
+    params: VoiceCallPlaySilenceMethodParams
+  ): Promise<VoiceCallPlaybackContract>
+  playRingtone(
+    params: VoiceCallPlayRingtoneMethodParams
+  ): Promise<VoiceCallPlaybackContract>
+  playTTS(
+    params: VoiceCallPlayTTSMethodParams
+  ): Promise<VoiceCallPlaybackContract>
 }
 
 /**
@@ -197,6 +343,52 @@ export interface CallingCallReceiveEvent extends SwEvent {
   params: CallingCallReceiveEventParams
 }
 
+export type CallingCallPlayState = 'playing' | 'paused' | 'error' | 'finished'
+/**
+ * 'calling.call.play'
+ */
+export interface CallingCallPlayEventParams {
+  node_id: string
+  call_id: string
+  control_id: string
+  state: CallingCallPlayState
+}
+
+export interface CallingCallPlayEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallPlay>
+  params: CallingCallPlayEventParams
+}
+
+/**
+ * ==========
+ * ==========
+ * SDK-Side Events
+ * ==========
+ * ==========
+ */
+
+/**
+ * 'calling.playback.started'
+ */
+export interface CallPlaybackStartedEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallPlaybackStarted>
+  params: CallingCallPlayEventParams & { tag: string }
+}
+/**
+ * 'calling.playback.updated'
+ */
+export interface CallPlaybackUpdatedEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallPlaybackUpdated>
+  params: CallingCallPlayEventParams & { tag: string }
+}
+/**
+ * 'calling.playback.ended'
+ */
+export interface CallPlaybackEndedEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallPlaybackEnded>
+  params: CallingCallPlayEventParams & { tag: string }
+}
+
 // interface VoiceCallStateEvent {
 //   call_id: string
 //   node_id: string
@@ -227,11 +419,19 @@ export type VoiceCallEvent =
   | CallingCallDialEvent
   | CallingCallStateEvent
   | CallingCallReceiveEvent
+  | CallingCallPlayEvent
+  | CallPlaybackStartedEvent
+  | CallPlaybackUpdatedEvent
+  | CallPlaybackEndedEvent
 
 export type VoiceCallEventParams =
   | CallingCallDialEventParams
   | CallingCallStateEventParams
   | CallingCallReceiveEventParams
+  | CallingCallPlayEventParams
+  | CallPlaybackStartedEvent['params']
+  | CallPlaybackUpdatedEvent['params']
+  | CallPlaybackEndedEvent['params']
 
 export type VoiceCallAction = MapToPubSubShape<VoiceCallEvent>
 
@@ -239,3 +439,10 @@ export type VoiceCallJSONRPCMethod =
   | 'calling.dial'
   | 'calling.end'
   | 'calling.answer'
+  | 'calling.play'
+  | 'calling.play.pause'
+  | 'calling.play.resume'
+  | 'calling.play.volume'
+  | 'calling.play.stop'
+
+export type CallingTransformType = 'voiceCallPlayback'

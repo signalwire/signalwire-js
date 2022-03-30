@@ -1,6 +1,5 @@
 import type { AssertSameType, UserOptions } from '@signalwire/core'
 import type { RealTimeCallApiEvents } from '../types'
-import { getLogger } from '@signalwire/core'
 import { setupClient, clientConnect, RealtimeClient } from '../client/index'
 import { createCallObject, Call } from './Call'
 import { CallClientDocs } from './CallClient.docs'
@@ -51,18 +50,6 @@ const CallClient = function (options?: CallClientOptions) {
     const call = createCallObject({
       store,
       emitter,
-    })
-
-    client.once('session.connected', async () => {
-      try {
-        await call.subscribe()
-      } catch (e) {
-        // TODO: In the future we'll provide a
-        // `onSubscribedError` (or similar) to allow the user
-        // customize this behavior.
-        getLogger().error('Client subscription failed.')
-        client.disconnect()
-      }
     })
 
     await call.dial(...args)

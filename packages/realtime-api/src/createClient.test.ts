@@ -22,7 +22,7 @@ describe('createClient', () => {
           parsedData.method === 'signalwire.connect' &&
           parsedData.params.authentication.token === '<invalid-token>'
         ) {
-          socket.send(
+          return socket.send(
             JSON.stringify({
               jsonrpc: '2.0',
               id: parsedData.id,
@@ -74,6 +74,8 @@ describe('createClient', () => {
     // @ts-expect-error
     client._waitUntilSessionAuthorized().then((c) => {
       expect(c).toEqual(client)
+
+      client.disconnect()
     })
 
     await client.connect()
@@ -109,5 +111,7 @@ describe('createClient', () => {
     await Promise.all([client.connect(), client.connect(), client.connect()])
 
     expect(messageHandler).toHaveBeenCalledTimes(1)
+
+    client.disconnect()
   })
 })
