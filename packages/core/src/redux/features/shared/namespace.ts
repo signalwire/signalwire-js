@@ -73,6 +73,8 @@ export const findNamespaceInPayload = (action: PubSubAction): string => {
   } else if (isChatEvent(action)) {
     return ''
   } else if (isVoiceCallEvent(action)) {
+    // FIXME:
+    // @ts-expect-error
     return action.payload.tag ?? ''
   }
 

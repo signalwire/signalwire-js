@@ -17,7 +17,7 @@ describe('MessagingClient', () => {
       server.on('connection', (socket: any) => {
         socket.on('message', (data: any) => {
           const parsedData = JSON.parse(data)
-          console.log('>>', parsedData)
+
           if (
             parsedData.method === 'signalwire.connect' &&
             parsedData.params.authentication.token === '<invalid-token>'
@@ -119,8 +119,6 @@ describe('MessagingClient', () => {
           project: 'some-project',
           token: 'some-other-token',
           contexts: ['foo'],
-
-          logLevel: 'debug',
         })
 
         messaging.on('message.updated', (message) => {
