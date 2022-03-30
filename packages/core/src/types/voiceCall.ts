@@ -62,18 +62,27 @@ export type CallPlay = 'call.play'
  */
 export type CallCreated = 'call.created'
 export type CallEnded = 'call.ended'
+export type CallReceived = 'call.received'
+export type CallPlaybackStarted = 'playback.started'
+export type CallPlaybackUpdated = 'playback.updated'
+export type CallPlaybackEnded = 'playback.ended'
 
 /**
  * List of public event names
  */
-export type VoiceCallEventNames = CallCreated | CallEnded
+export type VoiceCallEventNames =
+  | CallCreated
+  | CallEnded
+  | CallPlaybackStarted
+  | CallPlaybackUpdated
+  | CallPlaybackEnded
 
 /**
  * List of internal events
  * @internal
  */
-export type InternalVoiceCallEventNames =
-  ToInternalVoiceEvent<VoiceCallEventNames>
+// export type InternalVoiceCallEventNames =
+//   ToInternalVoiceEvent<VoiceCallEventNames>
 
 type SipCodec = 'PCMU' | 'PCMA' | 'OPUS' | 'G729' | 'G722' | 'VP8' | 'H264'
 
@@ -321,6 +330,36 @@ export interface CallingCallPlayEvent extends SwEvent {
   params: CallingCallPlayEventParams
 }
 
+/**
+ * ==========
+ * ==========
+ * SDK-Side Events
+ * ==========
+ * ==========
+ */
+
+/**
+ * 'calling.playback.started'
+ */
+export interface CallPlaybackStartedEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallPlaybackStarted>
+  params: CallingCallPlayEventParams & { tag: string }
+}
+/**
+ * 'calling.playback.updated'
+ */
+export interface CallPlaybackUpdatedEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallPlaybackUpdated>
+  params: CallingCallPlayEventParams & { tag: string }
+}
+/**
+ * 'calling.playback.ended'
+ */
+export interface CallPlaybackEndedEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallPlaybackEnded>
+  params: CallingCallPlayEventParams & { tag: string }
+}
+
 // interface VoiceCallStateEvent {
 //   call_id: string
 //   node_id: string
@@ -352,12 +391,18 @@ export type VoiceCallEvent =
   | CallingCallStateEvent
   | CallingCallReceiveEvent
   | CallingCallPlayEvent
+  | CallPlaybackStartedEvent
+  | CallPlaybackUpdatedEvent
+  | CallPlaybackEndedEvent
 
 export type VoiceCallEventParams =
   | CallingCallDialEventParams
   | CallingCallStateEventParams
   | CallingCallReceiveEventParams
   | CallingCallPlayEventParams
+  | CallPlaybackStartedEvent['params']
+  | CallPlaybackUpdatedEvent['params']
+  | CallPlaybackEndedEvent['params']
 
 export type VoiceCallAction = MapToPubSubShape<VoiceCallEvent>
 

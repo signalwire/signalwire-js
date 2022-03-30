@@ -32,6 +32,12 @@ export const voiceCallPlayWorker: SDKWorker<Call> = function* (
           action.payload.control_id === controlId
         )
       })
+
+    const payloadWithTag = {
+      tag: instance.tag,
+      ...action.payload,
+    }
+
     switch (action.payload.state) {
       case 'playing': {
         const type = paused
@@ -40,14 +46,8 @@ export const voiceCallPlayWorker: SDKWorker<Call> = function* (
         paused = false
 
         yield sagaEffects.put(pubSubChannel, {
-          // @ts-expect-error
           type,
-          // @ts-ignore
-          payload: {
-            // @ts-expect-error
-            tag: instance.tag,
-            ...action.payload,
-          },
+          payload: payloadWithTag,
         })
         break
       }
@@ -55,14 +55,8 @@ export const voiceCallPlayWorker: SDKWorker<Call> = function* (
         paused = true
 
         yield sagaEffects.put(pubSubChannel, {
-          // @ts-expect-error
           type: 'calling.playback.updated',
-          // @ts-ignore
-          payload: {
-            // @ts-expect-error
-            tag: instance.tag,
-            ...action.payload,
-          },
+          payload: payloadWithTag,
         })
         break
       }
@@ -71,14 +65,8 @@ export const voiceCallPlayWorker: SDKWorker<Call> = function* (
         break
       case 'finished': {
         yield sagaEffects.put(pubSubChannel, {
-          // @ts-expect-error
           type: 'calling.playback.ended',
-          // @ts-ignore
-          payload: {
-            // @ts-expect-error
-            tag: instance.tag,
-            ...action.payload,
-          },
+          payload: payloadWithTag,
         })
 
         done()
