@@ -4,7 +4,7 @@ import {
   BaseComponent,
   BaseComponentOptions,
   connect,
-  ConsumerContract,
+  EmitterContract,
   extendComponent,
   VoiceCallMethods,
   VoiceCallContract,
@@ -19,7 +19,6 @@ import {
   toLocalEvent,
   toExternalJSON,
   CallingCallPlayEventParams,
-  EventEmitter,
 } from '@signalwire/core'
 import { RealTimeCallApiEvents } from '../types'
 import { toInternalDevices, toInternalPlayParams } from './utils'
@@ -40,7 +39,7 @@ type EmitterTransformsEvents =
 
 interface CallMain
   extends VoiceCallContract<Call>,
-    ConsumerContract<RealTimeCallApiEvents, CallFullState> {}
+    EmitterContract<RealTimeCallApiEvents> {}
 
 interface CallDocs extends CallMain {}
 
@@ -56,8 +55,8 @@ export class CallConsumer extends BaseComponent<RealTimeCallApiEvents> {
     get_initial_state: true,
   }
 
-  private _callId: string
-  private _nodeId: string
+  public callId: string
+  public nodeId: string
 
   constructor(options: BaseComponentOptions<RealTimeCallApiEvents>) {
     super(options)
@@ -65,42 +64,41 @@ export class CallConsumer extends BaseComponent<RealTimeCallApiEvents> {
     this.applyEmitterTransforms({ local: true })
   }
 
-  override on(
-    event: EventEmitter.EventNames<RealTimeCallApiEvents>,
-    fn: EventEmitter.EventListener<RealTimeCallApiEvents, any>
-  ) {
-    const instance = super.on(event, fn)
-    this.applyEmitterTransforms()
-    return instance
-  }
-
-  override once(
-    event: EventEmitter.EventNames<RealTimeCallApiEvents>,
-    fn: EventEmitter.EventListener<RealTimeCallApiEvents, any>
-  ) {
-    const instance = super.once(event, fn)
-    this.applyEmitterTransforms()
-    return instance
-  }
-
   get id() {
-    return this._callId
+    return this.callId
   }
 
   get tag() {
     return this.__uuid
   }
 
-  set callId(callId: string) {
-    this._callId = callId
+  get type() {
+    // @ts-expect-error
+    return this.device?.type ?? ''
   }
 
-  set nodeId(nodeId: string) {
-    this._nodeId = nodeId
+  get from() {
+    if (this.type === 'phone') {
+      // @ts-expect-error
+      return this.device?.params?.fromNumber ?? ''
+    } else if (this.type === 'sip') {
+      // @ts-expect-error
+      return this.device?.params?.from ?? ''
+    }
+    // @ts-expect-error
+    return this.device?.params?.from ?? ''
   }
 
-  get nodeId() {
-    return this._nodeId
+  get to() {
+    if (this.type === 'phone') {
+      // @ts-expect-error
+      return this.device?.params?.toNumber ?? ''
+    } else if (this.type === 'sip') {
+      // @ts-expect-error
+      return this.device?.params?.to ?? ''
+    }
+    // @ts-expect-error
+    return this.device?.params?.to ?? ''
   }
 
   /** @internal */
@@ -119,7 +117,6 @@ export class CallConsumer extends BaseComponent<RealTimeCallApiEvents> {
         {
           type: 'voiceCallPlayback',
           instanceFactory: (_payload: any) => {
-            console.log('instanceFactory HERE!!')
             return createCallPlaybackObject({
               store: this.store,
               // @ts-expect-error
@@ -169,7 +166,7 @@ export class CallConsumer extends BaseComponent<RealTimeCallApiEvents> {
 
   hangup(reason: VoiceCallDisconnectReason = 'hangup') {
     return new Promise((resolve, reject) => {
-      if (!this._callId || !this._nodeId) {
+      if (!this.callId || !this.nodeId) {
         reject(
           new Error(
             `Can't call hangup() on a call that hasn't been established.`
@@ -191,8 +188,8 @@ export class CallConsumer extends BaseComponent<RealTimeCallApiEvents> {
       this.execute({
         method: 'calling.end',
         params: {
-          node_id: this._nodeId,
-          call_id: this._callId,
+          node_id: this.nodeId,
+          call_id: this.callId,
           reason: reason,
         },
       }).catch((e) => {
@@ -203,7 +200,7 @@ export class CallConsumer extends BaseComponent<RealTimeCallApiEvents> {
 
   answer() {
     return new Promise<this>((resolve, reject) => {
-      if (!this._callId || !this._nodeId) {
+      if (!this.callId || !this.nodeId) {
         reject(new Error(`Can't call answer() on a call without callId.`))
       }
 
@@ -231,8 +228,8 @@ export class CallConsumer extends BaseComponent<RealTimeCallApiEvents> {
       this.execute({
         method: 'calling.answer',
         params: {
-          node_id: this._nodeId,
-          call_id: this._callId,
+          node_id: this.nodeId,
+          call_id: this.callId,
         },
       }).catch((e) => {
         reject(e)
@@ -242,7 +239,7 @@ export class CallConsumer extends BaseComponent<RealTimeCallApiEvents> {
 
   play(params: VoiceCallPlayMethodParams) {
     return new Promise<this>((resolve, reject) => {
-      if (!this._callId || !this._nodeId) {
+      if (!this.callId || !this.nodeId) {
         reject(new Error(`Can't call play() on a call not established yet.`))
       }
 
@@ -261,13 +258,14 @@ export class CallConsumer extends BaseComponent<RealTimeCallApiEvents> {
         resolve(callPlayback)
       }
 
+      // @ts-expect-error
       this.once(toLocalEvent('calling.playback.start'), resolveHandler)
 
       this.execute({
         method: 'calling.play',
         params: {
-          node_id: this._nodeId,
-          call_id: this._callId,
+          node_id: this.nodeId,
+          call_id: this.callId,
           control_id: controlId,
           volume: params.volume,
           play: toInternalPlayParams(params.media),
