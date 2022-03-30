@@ -1,5 +1,7 @@
 import {
+  uuid,
   AssertSameType,
+  BaseComponent,
   BaseComponentOptions,
   connect,
   ConsumerContract,
@@ -8,19 +10,29 @@ import {
   VoiceCallContract,
   VoiceCallDialMethodParams,
   VoiceCallDisconnectReason,
+  VoiceCallPlayMethodParams,
+  EventTransform,
+  toLocalEvent,
+  toExternalJSON,
+  CallingCallPlayEventParams,
+  EventEmitter,
 } from '@signalwire/core'
-import { AutoSubscribeConsumer } from '../AutoSubscribeConsumer'
 import { RealTimeCallApiEvents } from '../types'
-import { toInternalDevices } from './utils'
+import { toInternalDevices, toInternalPlayParams } from './utils'
 import {
-  // SYNTHETIC_CALL_STATE_FAILED_EVENT,
   SYNTHETIC_CALL_STATE_ANSWERED_EVENT,
   SYNTHETIC_CALL_STATE_ENDED_EVENT,
   voiceCallStateWorker,
+  voiceCallPlayWorker,
 } from './workers'
+import { createCallPlaybackObject } from './CallPlayback'
 
 // TODO:
-type EmitterTransformsEvents = ''
+type EmitterTransformsEvents =
+  | 'calling.playback.start'
+  | 'calling.playback.started'
+  | 'calling.playback.updated'
+  | 'calling.playback.ended'
 
 interface CallMain
   extends VoiceCallContract<Call>,
@@ -83,6 +95,41 @@ export class CallConsumer extends BaseComponent<RealTimeCallApiEvents> {
     this._nodeId = nodeId
   }
 
+  get nodeId() {
+    return this._nodeId
+  }
+
+  /** @internal */
+  protected getEmitterTransforms() {
+    return new Map<
+      EmitterTransformsEvents | EmitterTransformsEvents[],
+      EventTransform
+    >([
+      [
+        [
+          toLocalEvent<EmitterTransformsEvents>('calling.playback.start'),
+          'calling.playback.started',
+          'calling.playback.updated',
+          'calling.playback.ended',
+        ],
+        {
+          type: 'voiceCallPlayback',
+          instanceFactory: (_payload: any) => {
+            console.log('instanceFactory HERE!!')
+            return createCallPlaybackObject({
+              store: this.store,
+              // @ts-expect-error
+              emitter: this.emitter,
+            })
+          },
+          payloadTransform: (payload: CallingCallPlayEventParams) => {
+            return toExternalJSON(payload)
+          },
+        },
+      ],
+    ])
+  }
+
   dial(params: VoiceCallDialMethodParams) {
     return new Promise((resolve, reject) => {
       // TODO: pass resolve/reject to the worker instead of use synthetic events?
@@ -92,9 +139,9 @@ export class CallConsumer extends BaseComponent<RealTimeCallApiEvents> {
       this.attachWorkers()
 
       // @ts-expect-error
-      this.once(SYNTHETIC_CALL_STATE_ANSWERED_EVENT, (payload) => {
-        this._callId = payload.call_id
-        this._nodeId = payload.node_id
+      this.once(SYNTHETIC_CALL_STATE_ANSWERED_EVENT, (payload: any) => {
+        this.callId = payload.call_id
+        this.nodeId = payload.node_id
 
         resolve(this)
       })
@@ -188,11 +235,61 @@ export class CallConsumer extends BaseComponent<RealTimeCallApiEvents> {
       })
     })
   }
+
+  play(params: VoiceCallPlayMethodParams) {
+    return new Promise<this>((resolve, reject) => {
+      if (!this._callId || !this._nodeId) {
+        reject(new Error(`Can't call play() on a call not established yet.`))
+      }
+
+      const controlId = uuid()
+
+      this.setWorker('voiceCallPlayWorker', {
+        worker: voiceCallPlayWorker,
+      })
+      this.attachWorkers({
+        payload: {
+          controlId,
+        },
+      })
+
+      const resolveHandler = (callPlayback: any) => {
+        resolve(callPlayback)
+      }
+
+      this.once(toLocalEvent('calling.playback.start'), resolveHandler)
+
+      this.execute({
+        method: 'calling.play',
+        params: {
+          node_id: this._nodeId,
+          call_id: this._callId,
+          control_id: controlId,
+          volume: params.volume,
+          play: toInternalPlayParams(params.media),
+        },
+      })
+        .then(() => {
+          const startEvent: CallingCallPlayEventParams = {
+            control_id: controlId,
+            call_id: this.id,
+            node_id: this.nodeId,
+            state: 'playing',
+          }
+          this.emit(toLocalEvent('calling.playback.start'), startEvent)
+        })
+        .catch((e) => {
+          // @ts-expect-error
+          this.off(toLocalEvent('calling.playback.start'), resolveHandler)
+          reject(e)
+        })
+    })
+  }
 }
 
 export const CallAPI = extendComponent<
   CallConsumer,
-  Omit<VoiceCallMethods, 'dial' | 'hangup' | 'answer'>
+  Omit<VoiceCallMethods, 'dial' | 'hangup' | 'answer' | 'play'>
 >(CallConsumer, {})
 
 export const createCallObject = (
