@@ -11,6 +11,10 @@ import {
   VoiceCallDialMethodParams,
   VoiceCallDisconnectReason,
   VoiceCallPlayMethodParams,
+  VoiceCallPlayAudioMethodParams,
+  VoiceCallPlaySilenceMethodParams,
+  VoiceCallPlayRingtoneMethodParams,
+  VoiceCallPlayTTSMethodParams,
   EventTransform,
   toLocalEvent,
   toExternalJSON,
@@ -285,12 +289,43 @@ export class CallConsumer extends BaseComponent<RealTimeCallApiEvents> {
         })
     })
   }
+
+  playAudio(params: VoiceCallPlayAudioMethodParams) {
+    const { volume, ...rest } = params
+    return this.play({
+      media: [{ type: 'audio', ...rest }],
+      volume,
+    })
+  }
+
+  playSilence(params: VoiceCallPlaySilenceMethodParams) {
+    return this.play({
+      media: [{ type: 'silence', ...params }],
+    })
+  }
+
+  playRingtone(params: VoiceCallPlayRingtoneMethodParams) {
+    const { volume, ...rest } = params
+    return this.play({
+      media: [{ type: 'ringtone', ...rest }],
+      volume,
+    })
+  }
+
+  playTTS(params: VoiceCallPlayTTSMethodParams) {
+    const { volume, ...rest } = params
+    return this.play({
+      media: [{ type: 'tts', ...rest }],
+      volume,
+    })
+  }
 }
 
-export const CallAPI = extendComponent<
+// FIXME: instead of Omit methods, i used "Partial<VoiceCallMethods>"
+export const CallAPI = extendComponent<CallConsumer, Partial<VoiceCallMethods>>(
   CallConsumer,
-  Omit<VoiceCallMethods, 'dial' | 'hangup' | 'answer' | 'play'>
->(CallConsumer, {})
+  {}
+)
 
 export const createCallObject = (
   params: BaseComponentOptions<EmitterTransformsEvents>

@@ -137,7 +137,7 @@ export interface VoiceCallPlaySilenceParams {
 export interface VoiceCallPlayRingtoneParams {
   type: 'ringtone'
   name: RingtoneName
-  duration: number
+  duration?: number
 }
 
 export type VoiceCallPlayParams =
@@ -148,6 +148,23 @@ export type VoiceCallPlayParams =
 
 export interface VoiceCallPlayMethodParams {
   media: NestedArray<VoiceCallPlayParams>
+  volume?: number
+}
+
+export interface VoiceCallPlayAudioMethodParams
+  extends Omit<VoiceCallPlayAudioParams, 'type'> {
+  volume?: number
+}
+
+export interface VoiceCallPlaySilenceMethodParams
+  extends Omit<VoiceCallPlaySilenceParams, 'type'> {}
+
+export interface VoiceCallPlayRingtoneMethodParams
+  extends Omit<VoiceCallPlayRingtoneParams, 'type'> {
+  volume?: number
+}
+export interface VoiceCallPlayTTSMethodParams
+  extends Omit<VoiceCallPlayTTSParams, 'type'> {
   volume?: number
 }
 
@@ -209,6 +226,18 @@ export interface VoiceCallContract<T = any> {
   hangup(reason?: VoiceCallDisconnectReason): Promise<void>
   answer(): Promise<T>
   play(params: VoiceCallPlayMethodParams): Promise<VoiceCallPlaybackContract>
+  playAudio(
+    params: VoiceCallPlayAudioMethodParams
+  ): Promise<VoiceCallPlaybackContract>
+  playSilence(
+    params: VoiceCallPlaySilenceMethodParams
+  ): Promise<VoiceCallPlaybackContract>
+  playRingtone(
+    params: VoiceCallPlayRingtoneMethodParams
+  ): Promise<VoiceCallPlaybackContract>
+  playTTS(
+    params: VoiceCallPlayTTSMethodParams
+  ): Promise<VoiceCallPlaybackContract>
 }
 
 /**
