@@ -56,6 +56,7 @@ export type CallDial = 'call.dial'
 export type CallState = 'call.state'
 export type CallReceive = 'call.receive'
 export type CallPlay = 'call.play'
+export type CallRecord = 'call.record'
 
 /**
  * Public event types
@@ -66,6 +67,10 @@ export type CallReceived = 'call.received'
 export type CallPlaybackStarted = 'playback.started'
 export type CallPlaybackUpdated = 'playback.updated'
 export type CallPlaybackEnded = 'playback.ended'
+export type CallRecordingStarted = 'recording.started'
+export type CallRecordingUpdated = 'recording.updated'
+export type CallRecordingEnded = 'recording.ended'
+export type CallRecordingFailed = 'recording.failed'
 
 /**
  * List of public event names
@@ -76,6 +81,10 @@ export type VoiceCallEventNames =
   | CallPlaybackStarted
   | CallPlaybackUpdated
   | CallPlaybackEnded
+  | CallRecordingStarted
+  | CallRecordingUpdated
+  | CallRecordingEnded
+  | CallRecordingFailed
 
 /**
  * List of internal events
@@ -168,6 +177,18 @@ export interface VoiceCallPlayTTSMethodParams
   volume?: number
 }
 
+export interface VoiceCallRecordMethodParams {
+  audio: {
+    beep?: boolean
+    format?: 'mp3' | 'wav'
+    stereo?: boolean
+    direction?: 'listen' | 'speak' | 'both'
+    initial_timeout?: number
+    end_silence_timeout?: number
+    terminators?: string
+  }
+}
+
 export type VoiceCallDisconnectReason =
   | 'hangup'
   | 'cancel'
@@ -210,6 +231,40 @@ export type VoiceCallPlaybackMethods =
   OnlyFunctionProperties<VoiceCallPlaybackContract>
 
 /**
+ * Public Contract for a VoiceCallRecording
+ */
+export interface VoiceCallRecordingContract {
+  /** Unique id for this recording */
+  readonly id: string
+  /** @ignore */
+  readonly callId: string
+  /** @ignore */
+  readonly controlId: string
+  /** @ignore */
+  readonly state?: CallingCallRecordState
+  /** @ignore */
+  readonly url?: string
+  /** @ignore */
+  readonly size?: number
+  /** @ignore */
+  readonly duration?: number
+
+  stop(): Promise<this>
+}
+
+/**
+ * VoiceCallRecording properties
+ */
+export type VoiceCallRecordingEntity =
+  OnlyStateProperties<VoiceCallRecordingContract>
+
+/**
+ * VoiceCallRecording methods
+ */
+export type VoiceCallRecordingMethods =
+  OnlyFunctionProperties<VoiceCallRecordingContract>
+
+/**
  * Public Contract for a VoiceCall
  */
 export interface VoiceCallContract<T = any> {
@@ -244,6 +299,12 @@ export interface VoiceCallContract<T = any> {
   playTTS(
     params: VoiceCallPlayTTSMethodParams
   ): Promise<VoiceCallPlaybackContract>
+  record(
+    params: VoiceCallRecordMethodParams
+  ): Promise<VoiceCallRecordingContract>
+  recordAudio(
+    params?: VoiceCallRecordMethodParams['audio']
+  ): Promise<VoiceCallRecordingContract>
 }
 
 /**
@@ -366,6 +427,26 @@ export interface CallingCallPlayEvent extends SwEvent {
 }
 
 /**
+ * 'calling.call.record'
+ */
+export type CallingCallRecordState = 'recording' | 'no_input' | 'finished'
+export interface CallingCallRecordEventParams {
+  node_id: string
+  call_id: string
+  control_id: string
+  state: CallingCallRecordState
+  url?: string
+  duration?: number
+  size?: number
+  record: any // FIXME:
+}
+
+export interface CallingCallRecordEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallRecord>
+  params: CallingCallRecordEventParams
+}
+
+/**
  * ==========
  * ==========
  * SDK-Side Events
@@ -402,6 +483,35 @@ export interface CallReceivedEvent extends SwEvent {
   params: CallingCallReceiveEventParams
 }
 
+/**
+ * 'calling.recording.started'
+ */
+export interface CallRecordingStartedEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallRecordingStarted>
+  params: CallingCallRecordEventParams & { tag: string }
+}
+/**
+ * 'calling.recording.updated'
+ */
+export interface CallRecordingUpdatedEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallRecordingUpdated>
+  params: CallingCallRecordEventParams & { tag: string }
+}
+/**
+ * 'calling.recording.ended'
+ */
+export interface CallRecordingEndedEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallRecordingEnded>
+  params: CallingCallRecordEventParams & { tag: string }
+}
+/**
+ * 'calling.recording.failed'
+ */
+export interface CallRecordingFailedEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallRecordingFailed>
+  params: CallingCallRecordEventParams & { tag: string }
+}
+
 // interface VoiceCallStateEvent {
 //   call_id: string
 //   node_id: string
@@ -434,11 +544,16 @@ export type VoiceCallEvent =
   | CallingCallStateEvent
   | CallingCallReceiveEvent
   | CallingCallPlayEvent
+  | CallingCallRecordEvent
   // SDK Events
   | CallReceivedEvent
   | CallPlaybackStartedEvent
   | CallPlaybackUpdatedEvent
   | CallPlaybackEndedEvent
+  | CallRecordingStartedEvent
+  | CallRecordingUpdatedEvent
+  | CallRecordingEndedEvent
+  | CallRecordingFailedEvent
 
 export type VoiceCallEventParams =
   // Server Event Params
@@ -446,11 +561,16 @@ export type VoiceCallEventParams =
   | CallingCallStateEventParams
   | CallingCallReceiveEventParams
   | CallingCallPlayEventParams
+  | CallingCallRecordEventParams
   // SDK Event Params
   | CallReceivedEvent['params']
   | CallPlaybackStartedEvent['params']
   | CallPlaybackUpdatedEvent['params']
   | CallPlaybackEndedEvent['params']
+  | CallRecordingStartedEvent['params']
+  | CallRecordingUpdatedEvent['params']
+  | CallRecordingEndedEvent['params']
+  | CallRecordingFailedEvent['params']
 
 export type VoiceCallAction = MapToPubSubShape<VoiceCallEvent>
 
@@ -463,5 +583,10 @@ export type VoiceCallJSONRPCMethod =
   | 'calling.play.resume'
   | 'calling.play.volume'
   | 'calling.play.stop'
+  | 'calling.record'
+  | 'calling.record.stop'
 
-export type CallingTransformType = 'voiceCallReceived' | 'voiceCallPlayback'
+export type CallingTransformType =
+  | 'voiceCallReceived'
+  | 'voiceCallPlayback'
+  | 'voiceCallRecord'

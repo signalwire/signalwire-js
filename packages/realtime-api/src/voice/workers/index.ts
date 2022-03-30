@@ -2,6 +2,7 @@ import { toSyntheticEvent } from '@signalwire/core'
 export * from './voiceCallStateWorker'
 export * from './voiceCallReceiveWorker'
 export * from './voiceCallPlayWorker'
+export * from './voiceCallRecordWorker'
 
 export const SYNTHETIC_CALL_STATE_ANSWERED_EVENT = toSyntheticEvent(
   'calling.call.answered'
