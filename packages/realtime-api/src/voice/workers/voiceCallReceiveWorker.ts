@@ -5,7 +5,6 @@ import {
   SDKWorker,
 } from '@signalwire/core'
 import type { Client } from '../../client/index'
-import { createCallObject } from '../Call'
 
 export const voiceCallReceiveWorker: SDKWorker<Client> = function* (
   options
@@ -27,19 +26,9 @@ export const voiceCallReceiveWorker: SDKWorker<Client> = function* (
       )
     })
 
-    const call = createCallObject({
-      store: instance.store,
-      // @ts-expect-error
-      emitter: instance.emitter,
-    })
-    call.callId = action.payload.call_id
-    call.nodeId = action.payload.node_id
-
     yield sagaEffects.put(pubSubChannel, {
-      // @ts-expect-error
-      type: 'call.received',
-      // @ts-expect-error
-      payload: call,
+      type: 'calling.call.received',
+      payload: action.payload,
     })
   }
 
