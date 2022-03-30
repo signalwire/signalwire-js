@@ -222,6 +222,12 @@ export interface VoiceCallContract<T = any> {
   /** @ignore */
   nodeId: string
 
+  type: 'phone' | 'sip'
+  device: any // FIXME:
+  from: string
+  to: string
+  direction: 'inbound' | 'outbound'
+
   dial(params?: VoiceCallDialMethodParams): Promise<T>
   hangup(reason?: VoiceCallDisconnectReason): Promise<void>
   answer(): Promise<T>
@@ -388,6 +394,13 @@ export interface CallPlaybackEndedEvent extends SwEvent {
   event_type: ToInternalVoiceEvent<CallPlaybackEnded>
   params: CallingCallPlayEventParams & { tag: string }
 }
+/**
+ * 'calling.call.received'
+ */
+export interface CallReceivedEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallReceived>
+  params: CallingCallReceiveEventParams
+}
 
 // interface VoiceCallStateEvent {
 //   call_id: string
@@ -416,19 +429,25 @@ export interface CallPlaybackEndedEvent extends SwEvent {
 // }
 
 export type VoiceCallEvent =
+  // Server Events
   | CallingCallDialEvent
   | CallingCallStateEvent
   | CallingCallReceiveEvent
   | CallingCallPlayEvent
+  // SDK Events
+  | CallReceivedEvent
   | CallPlaybackStartedEvent
   | CallPlaybackUpdatedEvent
   | CallPlaybackEndedEvent
 
 export type VoiceCallEventParams =
+  // Server Event Params
   | CallingCallDialEventParams
   | CallingCallStateEventParams
   | CallingCallReceiveEventParams
   | CallingCallPlayEventParams
+  // SDK Event Params
+  | CallReceivedEvent['params']
   | CallPlaybackStartedEvent['params']
   | CallPlaybackUpdatedEvent['params']
   | CallPlaybackEndedEvent['params']
@@ -445,4 +464,4 @@ export type VoiceCallJSONRPCMethod =
   | 'calling.play.volume'
   | 'calling.play.stop'
 
-export type CallingTransformType = 'voiceCallPlayback'
+export type CallingTransformType = 'voiceCallReceived' | 'voiceCallPlayback'
