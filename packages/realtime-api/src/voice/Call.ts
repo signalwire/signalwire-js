@@ -32,7 +32,7 @@ export interface Call extends AssertSameType<CallMain, CallDocs> {}
 
 export interface CallFullState extends Call {}
 
-export class CallConsumer extends AutoSubscribeConsumer<RealTimeCallApiEvents> {
+export class CallConsumer extends BaseComponent<RealTimeCallApiEvents> {
   protected _eventsPrefix = 'calling' as const
 
   /** @internal */
@@ -46,6 +46,25 @@ export class CallConsumer extends AutoSubscribeConsumer<RealTimeCallApiEvents> {
   constructor(options: BaseComponentOptions<RealTimeCallApiEvents>) {
     super(options)
     this._attachListeners(this.__uuid)
+    this.applyEmitterTransforms({ local: true })
+  }
+
+  override on(
+    event: EventEmitter.EventNames<RealTimeCallApiEvents>,
+    fn: EventEmitter.EventListener<RealTimeCallApiEvents, any>
+  ) {
+    const instance = super.on(event, fn)
+    this.applyEmitterTransforms()
+    return instance
+  }
+
+  override once(
+    event: EventEmitter.EventNames<RealTimeCallApiEvents>,
+    fn: EventEmitter.EventListener<RealTimeCallApiEvents, any>
+  ) {
+    const instance = super.once(event, fn)
+    this.applyEmitterTransforms()
+    return instance
   }
 
   get id() {
