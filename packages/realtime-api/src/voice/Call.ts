@@ -1,7 +1,6 @@
 import {
   uuid,
   AssertSameType,
-  BaseComponent,
   BaseComponentOptions,
   connect,
   EmitterContract,
@@ -15,20 +14,25 @@ import {
   VoiceCallPlaySilenceMethodParams,
   VoiceCallPlayRingtoneMethodParams,
   VoiceCallPlayTTSMethodParams,
+  CallingCallRecordEventParams,
+  VoiceCallRecordMethodParams,
   EventTransform,
   toLocalEvent,
   toExternalJSON,
   CallingCallPlayEventParams,
 } from '@signalwire/core'
 import { RealTimeCallApiEvents } from '../types'
+import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
 import { toInternalDevices, toInternalPlayParams } from './utils'
 import {
   SYNTHETIC_CALL_STATE_ANSWERED_EVENT,
   SYNTHETIC_CALL_STATE_ENDED_EVENT,
   voiceCallStateWorker,
   voiceCallPlayWorker,
+  voiceCallRecordWorker,
 } from './workers'
 import { createCallPlaybackObject } from './CallPlayback'
+import { CallRecording, createCallRecordingObject } from './CallRecording'
 
 // TODO:
 type EmitterTransformsEvents =
@@ -36,6 +40,10 @@ type EmitterTransformsEvents =
   | 'calling.playback.started'
   | 'calling.playback.updated'
   | 'calling.playback.ended'
+  | 'calling.recording.started'
+  | 'calling.recording.updated'
+  | 'calling.recording.ended'
+  | 'calling.recording.failed'
 
 interface CallMain
   extends VoiceCallContract<Call>,
@@ -47,7 +55,14 @@ export interface Call extends AssertSameType<CallMain, CallDocs> {}
 
 export interface CallFullState extends Call {}
 
-export class CallConsumer extends BaseComponent<RealTimeCallApiEvents> {
+/**
+ * Used to resolve the record() method and to update the CallRecording
+ * object through the EmitterTransform
+ */
+export const callingRecordTriggerEvent = toLocalEvent<EmitterTransformsEvents>(
+  'calling.recording.trigger'
+)
+export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEvents> {
   protected _eventsPrefix = 'calling' as const
 
   /** @internal */
@@ -124,6 +139,28 @@ export class CallConsumer extends BaseComponent<RealTimeCallApiEvents> {
             })
           },
           payloadTransform: (payload: CallingCallPlayEventParams) => {
+            return toExternalJSON(payload)
+          },
+        },
+      ],
+      [
+        [
+          callingRecordTriggerEvent,
+          'calling.recording.started',
+          'calling.recording.updated',
+          'calling.recording.ended',
+          'calling.recording.failed',
+        ],
+        {
+          type: 'voiceCallRecord',
+          instanceFactory: (_payload: any) => {
+            return createCallRecordingObject({
+              store: this.store,
+              // @ts-expect-error
+              emitter: this.emitter,
+            })
+          },
+          payloadTransform: (payload: CallingCallRecordEventParams) => {
             return toExternalJSON(payload)
           },
         },
@@ -258,7 +295,6 @@ export class CallConsumer extends BaseComponent<RealTimeCallApiEvents> {
         resolve(callPlayback)
       }
 
-      // @ts-expect-error
       this.once(toLocalEvent('calling.playback.start'), resolveHandler)
 
       this.execute({
@@ -315,6 +351,65 @@ export class CallConsumer extends BaseComponent<RealTimeCallApiEvents> {
     return this.play({
       media: [{ type: 'tts', ...rest }],
       volume,
+    })
+  }
+
+  record(params: VoiceCallRecordMethodParams) {
+    return new Promise<CallRecording>((resolve, reject) => {
+      if (!this.callId || !this.nodeId) {
+        reject(new Error(`Can't call record() on a call not established yet.`))
+      }
+
+      const controlId = uuid()
+
+      this.setWorker('voiceCallRecordWorker', {
+        worker: voiceCallRecordWorker,
+      })
+      this.attachWorkers({
+        payload: {
+          controlId,
+        },
+      })
+
+      const resolveHandler = (callRecording: CallRecording) => {
+        resolve(callRecording)
+      }
+
+      // @ts-expect-error
+      this.on(callingRecordTriggerEvent, resolveHandler)
+
+      const record = { ...params }
+      this.execute({
+        method: 'calling.record',
+        params: {
+          node_id: this.nodeId,
+          call_id: this.callId,
+          control_id: controlId,
+          record,
+        },
+      })
+        .then(() => {
+          const startEvent: Omit<CallingCallRecordEventParams, 'state'> = {
+            control_id: controlId,
+            call_id: this.id,
+            node_id: this.nodeId,
+            // state: 'recording',
+            record,
+          }
+          // @ts-expect-error
+          this.emit(callingRecordTriggerEvent, startEvent)
+        })
+        .catch((e) => {
+          // @ts-expect-error
+          this.off(callingRecordTriggerEvent, resolveHandler)
+          reject(e)
+        })
+    })
+  }
+
+  recordAudio(params: VoiceCallRecordMethodParams['audio'] = {}) {
+    return this.record({
+      audio: params,
     })
   }
 }
