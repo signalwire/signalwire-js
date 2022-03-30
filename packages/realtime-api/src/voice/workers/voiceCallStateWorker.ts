@@ -8,6 +8,10 @@ import {
   MapToPubSubShape,
 } from '@signalwire/core'
 import { Call } from '../Call'
+import {
+  SYNTHETIC_CALL_STATE_ANSWERED_EVENT,
+  SYNTHETIC_CALL_STATE_ENDED_EVENT,
+} from './'
 
 const TARGET_CALL_STATES = ['answered', 'failed', 'ended']
 
@@ -40,6 +44,7 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
       yield sagaEffects.put(pubSubChannel, {
         // @ts-expect-error
         type: SYNTHETIC_CALL_STATE_ANSWERED_EVENT,
+        // @ts-expect-error
         payload: newPayload,
       })
     } else if (action.payload.call_state === 'ended') {
@@ -48,6 +53,7 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
       yield sagaEffects.put(pubSubChannel, {
         // @ts-expect-error
         type: SYNTHETIC_CALL_STATE_ENDED_EVENT,
+        // @ts-expect-error
         payload: newPayload,
       })
     } else {
