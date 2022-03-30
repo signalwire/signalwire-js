@@ -21,11 +21,7 @@ export interface CallPlayback extends VoiceCallPlaybackContract {}
 export type CallPlaybackEventsHandlerMapping = {}
 
 export interface CallPlaybackOptions
-  extends BaseComponentOptions<CallPlaybackEventsHandlerMapping> {
-  callId: string
-  nodeId: string
-  controlId: string
-}
+  extends BaseComponentOptions<CallPlaybackEventsHandlerMapping> {}
 
 export class CallPlaybackAPI
   extends BaseComponent<CallPlaybackEventsHandlerMapping>

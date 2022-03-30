@@ -157,7 +157,9 @@ export interface VoiceCallPlaybackContract {
   /** Unique id for this playback */
   readonly id: string
   /** @ignore */
-  callId: string
+  readonly callId: string
+  /** @ignore */
+  readonly controlId: string
   /** @ignore */
   readonly volume: number
   /** @ignore */
