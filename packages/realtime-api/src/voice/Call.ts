@@ -16,6 +16,8 @@ import {
   VoiceCallPlayTTSMethodParams,
   CallingCallRecordEventParams,
   VoiceCallRecordMethodParams,
+  CallingCallCollectEventParams,
+  VoiceCallPromptMethodParams,
   EventTransform,
   toLocalEvent,
   toExternalJSON,
@@ -30,9 +32,11 @@ import {
   voiceCallStateWorker,
   voiceCallPlayWorker,
   voiceCallRecordWorker,
+  voiceCallPromptWorker,
 } from './workers'
 import { createCallPlaybackObject } from './CallPlayback'
 import { CallRecording, createCallRecordingObject } from './CallRecording'
+import { CallPrompt, createCallPromptObject } from './CallPrompt'
 
 // TODO:
 type EmitterTransformsEvents =
@@ -44,6 +48,10 @@ type EmitterTransformsEvents =
   | 'calling.recording.updated'
   | 'calling.recording.ended'
   | 'calling.recording.failed'
+  | 'calling.prompt.started'
+  | 'calling.prompt.updated'
+  | 'calling.prompt.ended'
+  | 'calling.prompt.failed'
 
 interface CallMain
   extends VoiceCallContract<Call>,
@@ -61,6 +69,14 @@ export interface CallFullState extends Call {}
  */
 export const callingRecordTriggerEvent = toLocalEvent<EmitterTransformsEvents>(
   'calling.recording.trigger'
+)
+
+/**
+ * Used to resolve the prompt() method and to update the CallPrompt
+ * object through the EmitterTransform
+ */
+export const callingPromptTriggerEvent = toLocalEvent<EmitterTransformsEvents>(
+  'calling.prompt.trigger'
 )
 export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEvents> {
   protected _eventsPrefix = 'calling' as const
@@ -161,6 +177,28 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
             })
           },
           payloadTransform: (payload: CallingCallRecordEventParams) => {
+            return toExternalJSON(payload)
+          },
+        },
+      ],
+      [
+        [
+          callingPromptTriggerEvent,
+          'calling.prompt.started',
+          'calling.prompt.updated',
+          'calling.prompt.ended',
+          'calling.prompt.failed',
+        ],
+        {
+          type: 'voiceCallPrompt',
+          instanceFactory: (_payload: any) => {
+            return createCallPromptObject({
+              store: this.store,
+              // @ts-expect-error
+              emitter: this.emitter,
+            })
+          },
+          payloadTransform: (payload: CallingCallCollectEventParams) => {
             return toExternalJSON(payload)
           },
         },
@@ -410,6 +448,77 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
   recordAudio(params: VoiceCallRecordMethodParams['audio'] = {}) {
     return this.record({
       audio: params,
+    })
+  }
+
+  prompt(params: VoiceCallPromptMethodParams) {
+    return new Promise<CallPrompt>((resolve, reject) => {
+      if (!this.callId || !this.nodeId) {
+        reject(new Error(`Can't call record() on a call not established yet.`))
+      }
+
+      const controlId = uuid()
+
+      this.setWorker('voiceCallPromptWorker', {
+        worker: voiceCallPromptWorker,
+      })
+      this.attachWorkers({
+        payload: {
+          controlId,
+        },
+      })
+
+      const resolveHandler = (callRecording: CallPrompt) => {
+        resolve(callRecording)
+      }
+      // @ts-expect-error
+      this.on(callingPromptTriggerEvent, resolveHandler)
+
+      // TODO: move this to a method to build `collect`
+      const {
+        initial_timeout,
+        partial_results,
+        digits,
+        speech,
+        media,
+        volume,
+      } = params
+      const collect = {
+        initial_timeout,
+        partial_results,
+        digits,
+        speech,
+      }
+      this.execute({
+        method: 'calling.play_and_collect',
+        params: {
+          node_id: this.nodeId,
+          call_id: this.callId,
+          control_id: controlId,
+          volume,
+          play: toInternalPlayParams(media),
+          collect,
+        },
+      })
+        .then(() => {
+          const startEvent: Omit<CallingCallCollectEventParams, 'result'> = {
+            control_id: controlId,
+            call_id: this.id,
+            node_id: this.nodeId,
+          }
+          // TODO: (review) There's no event for prompt started so we generate it here
+          this.emit('prompt.started', startEvent)
+
+          // @ts-expect-error
+          this.emit(callingPromptTriggerEvent, startEvent)
+        })
+        .catch((e) => {
+          this.off('prompt.started', resolveHandler)
+
+          // @ts-expect-error
+          this.off(callingPromptTriggerEvent, resolveHandler)
+          reject(e)
+        })
     })
   }
 }
