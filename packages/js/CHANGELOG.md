@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.10.1] - 2022-03-31
+
+### Fixed
+
+- [#480](https://github.com/signalwire/signalwire-js/pull/480) [`ea6d5a43`](https://github.com/signalwire/signalwire-js/commit/ea6d5a4332be0484affeab479d83d12002cf7c95) - Fix race condition on `layout.changed` processing to update the localVideo overlay.
+
 ## [3.10.0] - 2022-03-25
 
 ### Added
