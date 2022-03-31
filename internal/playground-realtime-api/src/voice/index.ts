@@ -50,6 +50,26 @@ async function run() {
         })
       }
 
+      call.on('tap.started', (p) => {
+        console.log('>> tap.started', p.id, p.state)
+      })
+
+      call.on('tap.ended', (p) => {
+        console.log('>> tap.ended', p.id, p.state)
+      })
+
+      const tap = await call.tapAudio({
+        direction: 'both',
+        device: {
+          type: 'ws',
+          uri: 'wss://ws.postman-echo.com/raw',
+        },
+      })
+
+      await sleep(1000)
+      console.log('>> Trying to stop', tap.id, tap.state)
+      await tap.stop()
+
       call.on('prompt.started', (p) => {
         console.log('>> prompt.started', p.id)
       })
@@ -163,7 +183,7 @@ async function run() {
 
       await call.hangup()
     } catch (e) {
-      console.log('Error:', JSON.stringify(e, null, 2))
+      console.log('Error:', e)
     }
   } catch (error) {
     console.log('<Error>', error)
