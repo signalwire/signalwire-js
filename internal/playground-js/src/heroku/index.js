@@ -193,8 +193,8 @@ window.connect = () => {
     host: document.getElementById('host').value,
     token: document.getElementById('token').value,
     rootElement: document.getElementById('rootElement'),
-    audio: false,
-    video: false,
+    audio: true,
+    video: true,
     logLevel: 'debug',
   })
 
