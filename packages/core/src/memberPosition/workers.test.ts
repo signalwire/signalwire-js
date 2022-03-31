@@ -78,7 +78,10 @@ describe('memberPositionWorker', () => {
         expect(dispatchedActions).toHaveLength(3)
         expect(memberList.get(memberId)?.member.visible).toBe(true)
         expect(memberList.get(memberId)?.member.video_muted).toBe(false)
-        expect(memberList.get(memberId)?.member.updated).toBe(1)
+        expect(memberList.get(memberId)?.member.updated).toStrictEqual([
+          'visible',
+          'video_muted',
+        ])
       })
   })
 })
