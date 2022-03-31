@@ -626,7 +626,7 @@ export interface CallingCallCollectEvent extends SwEvent {
 }
 
 /**
- * 'calling.call.record'
+ * 'calling.call.tap'
  */
 export type CallingCallTapState = 'tapping' | 'finished'
 
@@ -652,7 +652,7 @@ interface CallingCallTapDeviceWS {
 interface CallingCallTapAudio {
   type: 'audio'
   params: {
-    direction: TapDirection
+    direction?: TapDirection
   }
 }
 

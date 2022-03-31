@@ -62,7 +62,7 @@ async function run() {
         direction: 'both',
         device: {
           type: 'ws',
-          uri: 'wss://ws.postman-echo.com/raw',
+          uri: 'wss://example.domain.com/endpoint',
         },
       })
 
@@ -182,8 +182,8 @@ async function run() {
       )
 
       await call.hangup()
-    } catch (e) {
-      console.log('Error:', e)
+    } catch (error) {
+      console.log('Error:', error)
     }
   } catch (error) {
     console.log('<Error>', error)
