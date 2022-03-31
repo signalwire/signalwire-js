@@ -80,11 +80,11 @@ export function* memberUpdatedWorker({
   memberList: MemberEventParamsList
   action: any
 }) {
+  const memberId = action.payload.member.id
   const updatedMemberEventParams = mutateMemberCurrentPosition({
     memberList,
-    memberId: action.payload.member.id,
-    currentPosition: memberList.get(action.payload.member.id)?.member
-      ?.current_position,
+    memberId,
+    currentPosition: memberList.get(memberId)?.member?.current_position,
   })
 
   if (!updatedMemberEventParams) {
@@ -102,6 +102,8 @@ export function* memberUpdatedWorker({
       ...action.payload.member,
     },
   }
+  /** member.updated event is the only one updating the memberList payload */
+  memberList.set(memberId, memberUpdatedPayload)
 
   for (const key of updated) {
     const type = `${action.type}.${key}` as InternalMemberUpdatedEventNames
