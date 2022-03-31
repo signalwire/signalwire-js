@@ -57,6 +57,7 @@ export type CallState = 'call.state'
 export type CallReceive = 'call.receive'
 export type CallPlay = 'call.play'
 export type CallRecord = 'call.record'
+export type CallCollect = 'call.collect'
 
 /**
  * Public event types
@@ -71,6 +72,10 @@ export type CallRecordingStarted = 'recording.started'
 export type CallRecordingUpdated = 'recording.updated'
 export type CallRecordingEnded = 'recording.ended'
 export type CallRecordingFailed = 'recording.failed'
+export type CallPromptStarted = 'prompt.started'
+export type CallPromptUpdated = 'prompt.updated'
+export type CallPromptEnded = 'prompt.ended'
+export type CallPromptFailed = 'prompt.failed'
 
 /**
  * List of public event names
@@ -189,6 +194,31 @@ export interface VoiceCallRecordMethodParams {
   }
 }
 
+type SpeechOrDigits =
+  | {
+      digits: {
+        max: number
+        digit_timeout?: number
+        terminators?: string
+      }
+      speech?: never
+    }
+  | {
+      digits?: never
+      speech: {
+        end_silence_timeout: number
+        speech_timeout: number
+        language: number
+        hints: string[]
+      }
+    }
+export type VoiceCallPromptMethodParams = SpeechOrDigits & {
+  media: NestedArray<VoiceCallPlayParams>
+  volume?: number
+  initial_timeout?: number
+  partial_results?: boolean
+}
+
 export type VoiceCallDisconnectReason =
   | 'hangup'
   | 'cancel'
@@ -265,6 +295,34 @@ export type VoiceCallRecordingMethods =
   OnlyFunctionProperties<VoiceCallRecordingContract>
 
 /**
+ * Public Contract for a VoiceCallPrompt
+ */
+export interface VoiceCallPromptContract {
+  /** Unique id for this recording */
+  readonly id: string
+  /** @ignore */
+  readonly callId: string
+  /** @ignore */
+  readonly controlId: string
+  /** @ignore */
+  readonly result: any // FIXME:
+
+  stop(): Promise<this>
+  setVolume(volume: number): Promise<this>
+}
+
+/**
+ * VoiceCallPrompt properties
+ */
+export type VoiceCallPromptEntity = OnlyStateProperties<VoiceCallPromptContract>
+
+/**
+ * VoiceCallPrompt methods
+ */
+export type VoiceCallPromptMethods =
+  OnlyFunctionProperties<VoiceCallPromptContract>
+
+/**
  * Public Contract for a VoiceCall
  */
 export interface VoiceCallContract<T = any> {
@@ -305,6 +363,7 @@ export interface VoiceCallContract<T = any> {
   recordAudio(
     params?: VoiceCallRecordMethodParams['audio']
   ): Promise<VoiceCallRecordingContract>
+  prompt(params: VoiceCallPromptMethodParams): Promise<VoiceCallPromptContract>
 }
 
 /**
@@ -447,6 +506,52 @@ export interface CallingCallRecordEvent extends SwEvent {
 }
 
 /**
+ * 'calling.call.record'
+ */
+interface CallingCallCollectResultError {
+  type: 'error'
+}
+interface CallingCallCollectResultNoInput {
+  type: 'no_input'
+}
+interface CallingCallCollectResultNoMatch {
+  type: 'no_match'
+}
+interface CallingCallCollectResultDigit {
+  type: 'digit'
+  params: {
+    digits: string
+    terminator: string
+  }
+}
+interface CallingCallCollectResultSpeech {
+  type: 'speech'
+  params: {
+    text: string
+    confidence: number
+  }
+}
+export type CallingCallCollectResult =
+  | CallingCallCollectResultError
+  | CallingCallCollectResultNoInput
+  | CallingCallCollectResultNoMatch
+  | CallingCallCollectResultDigit
+  | CallingCallCollectResultSpeech
+
+export interface CallingCallCollectEventParams {
+  node_id: string
+  call_id: string
+  control_id: string
+  result: CallingCallCollectResult
+  final?: boolean
+}
+
+export interface CallingCallCollectEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallCollect>
+  params: CallingCallCollectEventParams
+}
+
+/**
  * ==========
  * ==========
  * SDK-Side Events
@@ -512,6 +617,35 @@ export interface CallRecordingFailedEvent extends SwEvent {
   params: CallingCallRecordEventParams & { tag: string }
 }
 
+/**
+ * 'calling.prompt.started'
+ */
+export interface CallPromptStartedEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallPromptStarted>
+  params: CallingCallCollectEventParams & { tag: string }
+}
+/**
+ * 'calling.prompt.updated'
+ */
+export interface CallPromptUpdatedEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallPromptUpdated>
+  params: CallingCallCollectEventParams & { tag: string }
+}
+/**
+ * 'calling.prompt.ended'
+ */
+export interface CallPromptEndedEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallPromptEnded>
+  params: CallingCallCollectEventParams & { tag: string }
+}
+/**
+ * 'calling.prompt.failed'
+ */
+export interface CallPromptFailedEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallPromptFailed>
+  params: CallingCallCollectEventParams & { tag: string }
+}
+
 // interface VoiceCallStateEvent {
 //   call_id: string
 //   node_id: string
@@ -545,6 +679,7 @@ export type VoiceCallEvent =
   | CallingCallReceiveEvent
   | CallingCallPlayEvent
   | CallingCallRecordEvent
+  | CallingCallCollectEvent
   // SDK Events
   | CallReceivedEvent
   | CallPlaybackStartedEvent
@@ -554,6 +689,10 @@ export type VoiceCallEvent =
   | CallRecordingUpdatedEvent
   | CallRecordingEndedEvent
   | CallRecordingFailedEvent
+  | CallPromptStartedEvent
+  | CallPromptUpdatedEvent
+  | CallPromptEndedEvent
+  | CallPromptFailedEvent
 
 export type VoiceCallEventParams =
   // Server Event Params
@@ -562,6 +701,7 @@ export type VoiceCallEventParams =
   | CallingCallReceiveEventParams
   | CallingCallPlayEventParams
   | CallingCallRecordEventParams
+  | CallingCallCollectEventParams
   // SDK Event Params
   | CallReceivedEvent['params']
   | CallPlaybackStartedEvent['params']
@@ -571,6 +711,10 @@ export type VoiceCallEventParams =
   | CallRecordingUpdatedEvent['params']
   | CallRecordingEndedEvent['params']
   | CallRecordingFailedEvent['params']
+  | CallPromptStartedEvent['params']
+  | CallPromptUpdatedEvent['params']
+  | CallPromptEndedEvent['params']
+  | CallPromptFailedEvent['params']
 
 export type VoiceCallAction = MapToPubSubShape<VoiceCallEvent>
 
@@ -585,8 +729,12 @@ export type VoiceCallJSONRPCMethod =
   | 'calling.play.stop'
   | 'calling.record'
   | 'calling.record.stop'
+  | 'calling.play_and_collect'
+  | 'calling.play_and_collect.stop'
+  | 'calling.play_and_collect.volume'
 
 export type CallingTransformType =
   | 'voiceCallReceived'
   | 'voiceCallPlayback'
   | 'voiceCallRecord'
+  | 'voiceCallPrompt'
