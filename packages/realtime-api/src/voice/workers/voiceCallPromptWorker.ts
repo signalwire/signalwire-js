@@ -50,28 +50,41 @@ export const voiceCallPromptWorker: SDKWorker<Call> = function* (
     })
 
     if (action.payload.result) {
+      let typeToEmit: 'calling.prompt.failed' | 'calling.prompt.ended'
       switch (action.payload.result.type) {
         case 'no_match':
         case 'no_input':
         case 'error': {
-          yield sagaEffects.put(pubSubChannel, {
-            type: 'calling.prompt.failed',
-            payload: payloadWithTag,
-          })
+          typeToEmit = 'calling.prompt.failed'
           break
         }
         case 'speech':
         case 'digit': {
-          yield sagaEffects.put(pubSubChannel, {
-            type: 'calling.prompt.ended',
-            payload: payloadWithTag,
-          })
+          typeToEmit = 'calling.prompt.ended'
           break
         }
         // case 'start_of_speech': { TODO:
         //   break
         // }
       }
+
+      yield sagaEffects.put(pubSubChannel, {
+        type: typeToEmit,
+        payload: payloadWithTag,
+      })
+
+      /**
+       * Dispatch an event to resolve `waitForResult` in CallPrompt
+       * when ended
+       */
+      yield sagaEffects.put(pubSubChannel, {
+        type: typeToEmit,
+        // @ts-ignore
+        payload: {
+          tag: controlId,
+          ...action.payload,
+        },
+      })
 
       done()
     }

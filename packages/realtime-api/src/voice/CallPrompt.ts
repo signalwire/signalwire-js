@@ -23,6 +23,8 @@ export class CallPromptAPI
   extends BaseComponent<CallPromptEventsHandlerMapping>
   implements VoiceCallPromptContract
 {
+  protected _eventsPrefix = 'calling' as const
+
   callId: string
   nodeId: string
   controlId: string
@@ -105,6 +107,18 @@ export class CallPromptAPI
     })
 
     return this
+  }
+
+  waitForResult() {
+    return new Promise<this>((resolve) => {
+      this._attachListeners(this.controlId)
+
+      const handler = () => resolve(this)
+      // @ts-expect-error
+      this.on('prompt.ended', handler)
+      // @ts-expect-error
+      this.on('prompt.failed', handler)
+    })
   }
 }
 

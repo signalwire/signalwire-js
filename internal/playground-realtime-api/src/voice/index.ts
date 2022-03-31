@@ -7,7 +7,7 @@ async function run() {
       project: process.env.PROJECT as string,
       token: process.env.TOKEN as string,
       contexts: [process.env.RELAY_CONTEXT as string],
-      // logLevel: 'trace',
+      // // logLevel: 'trace',
       // debug: {
       //   logWsTraffic: true,
       // },
@@ -85,6 +85,11 @@ async function run() {
           terminators: '#',
         },
       })
+
+      /** Wait for the result - sync way */
+      // const { type, digits, terminator } = await prompt.waitForResult()
+      // console.log('Prompt Output:', type, digits, terminator)
+
       console.log('Prompt STARTED!', prompt.id)
       await prompt.setVolume(2.0)
       await sleep()
