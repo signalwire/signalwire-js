@@ -80,7 +80,36 @@ export * from './configure'
 /** @ignore */
 export * as Task from './task/Task'
 
-/** @ignore */
+/**
+ * Access the Messaging API. You can instantiate a {@link Messaging.Client} to
+ * send or receive SMS and MMS. Please check
+ * {@link Messaging.MessagingClientApiEvents} for the full list of events that
+ * a {@link Messaging.Client} can subscribe to.
+ *
+ * @example
+ *
+ * The following example listens for incoming SMSs over an "office" context,
+ * and also sends an SMS.
+ *
+ * ```javascript
+ * const client = new Messaging.Client({
+ *   project: "<project-id>",
+ *   token: "<api-token>",
+ *   contexts: ['office']
+ * })
+ *
+ * client.on('message.received', (message) => {
+ *   console.log('message.received', message)
+ * })
+ *
+ * await client.send({
+ *   context: 'office',
+ *   from: '+1xxx',
+ *   to: '+1yyy',
+ *   body: 'Hello World!'
+ * })
+ * ```
+ */
 export * as Messaging from './messaging/Messaging'
 
 /** @ignore */

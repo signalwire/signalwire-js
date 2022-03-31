@@ -9,6 +9,7 @@ export const getConfig = (): GlobalConfig => {
   return GLOBAL_CONFIG
 }
 
+/** @ignore */
 export interface ConfigOptions extends GlobalConfig {
   /** @internal */
   cache?: GlobalConfig
