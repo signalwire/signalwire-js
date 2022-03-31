@@ -58,6 +58,7 @@ export type CallReceive = 'call.receive'
 export type CallPlay = 'call.play'
 export type CallRecord = 'call.record'
 export type CallCollect = 'call.collect'
+export type CallTap = 'call.tap'
 
 /**
  * Public event types
@@ -76,6 +77,8 @@ export type CallPromptStarted = 'prompt.started'
 export type CallPromptUpdated = 'prompt.updated'
 export type CallPromptEnded = 'prompt.ended'
 export type CallPromptFailed = 'prompt.failed'
+export type CallTapStarted = 'tap.started'
+export type CallTapEnded = 'tap.ended'
 
 /**
  * List of public event names
@@ -90,6 +93,12 @@ export type VoiceCallEventNames =
   | CallRecordingUpdated
   | CallRecordingEnded
   | CallRecordingFailed
+  | CallPromptStarted
+  | CallPromptUpdated
+  | CallPromptEnded
+  | CallPromptFailed
+  | CallTapStarted
+  | CallTapEnded
 
 /**
  * List of internal events
@@ -218,6 +227,35 @@ export type VoiceCallPromptMethodParams = SpeechOrDigits & {
   initial_timeout?: number
   partial_results?: boolean
 }
+type TapCodec = 'OPUS' | 'PCMA' | 'PCMU'
+interface TapDeviceWS {
+  type: 'ws'
+  uri: string
+  codec?: TapCodec
+  rate?: number
+}
+
+interface TapDeviceRTP {
+  type: 'rtp'
+  addr: string
+  port: string
+  codec?: TapCodec
+  ptime?: number
+}
+
+type TapDevice = TapDeviceWS | TapDeviceRTP
+type TapDirection = 'listen' | 'speak' | 'both'
+export interface VoiceCallTapMethodParams {
+  device: TapDevice
+  audio: {
+    direction: TapDirection
+  }
+}
+
+export interface VoiceCallTapAudioMethodParams {
+  device: TapDevice
+  direction: TapDirection
+}
 
 export type VoiceCallDisconnectReason =
   | 'hangup'
@@ -330,6 +368,32 @@ export type VoiceCallPromptMethods =
   OnlyFunctionProperties<VoiceCallPromptContract>
 
 /**
+ * Public Contract for a VoiceCallTap
+ */
+export interface VoiceCallTapContract {
+  /** Unique id for this recording */
+  readonly id: string
+  /** @ignore */
+  readonly callId: string
+  /** @ignore */
+  readonly controlId: string
+  /** @ignore */
+  readonly state: CallingCallTapState
+
+  stop(): Promise<this>
+}
+
+/**
+ * VoiceCallTap properties
+ */
+export type VoiceCallTapEntity = OnlyStateProperties<VoiceCallTapContract>
+
+/**
+ * VoiceCallTap methods
+ */
+export type VoiceCallTapMethods = OnlyFunctionProperties<VoiceCallTapContract>
+
+/**
  * Public Contract for a VoiceCall
  */
 export interface VoiceCallContract<T = any> {
@@ -371,6 +435,9 @@ export interface VoiceCallContract<T = any> {
     params?: VoiceCallRecordMethodParams['audio']
   ): Promise<VoiceCallRecordingContract>
   prompt(params: VoiceCallPromptMethodParams): Promise<VoiceCallPromptContract>
+  // TODO: add derived prompt methods
+  tap(params: VoiceCallTapMethodParams): Promise<VoiceCallTapContract>
+  tapAudio(params: VoiceCallTapAudioMethodParams): Promise<VoiceCallTapContract>
 }
 
 /**
@@ -513,7 +580,7 @@ export interface CallingCallRecordEvent extends SwEvent {
 }
 
 /**
- * 'calling.call.record'
+ * 'calling.call.collect'
  */
 interface CallingCallCollectResultError {
   type: 'error'
@@ -556,6 +623,51 @@ export interface CallingCallCollectEventParams {
 export interface CallingCallCollectEvent extends SwEvent {
   event_type: ToInternalVoiceEvent<CallCollect>
   params: CallingCallCollectEventParams
+}
+
+/**
+ * 'calling.call.record'
+ */
+export type CallingCallTapState = 'tapping' | 'finished'
+
+interface CallingCallTapDeviceRTP {
+  type: 'rtp'
+  params: {
+    addr: string
+    port: number
+    codec?: TapCodec
+    ptime?: number
+  }
+}
+
+interface CallingCallTapDeviceWS {
+  type: 'ws'
+  params: {
+    uri: string
+    codec?: TapCodec
+    rate?: number
+  }
+}
+
+interface CallingCallTapAudio {
+  type: 'audio'
+  params: {
+    direction: TapDirection
+  }
+}
+
+export interface CallingCallTapEventParams {
+  node_id: string
+  call_id: string
+  control_id: string
+  state: CallingCallTapState
+  tap: CallingCallTapAudio
+  device: CallingCallTapDeviceRTP | CallingCallTapDeviceWS
+}
+
+export interface CallingCallTapEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallTap>
+  params: CallingCallTapEventParams
 }
 
 /**
@@ -653,6 +765,21 @@ export interface CallPromptFailedEvent extends SwEvent {
   params: CallingCallCollectEventParams & { tag: string }
 }
 
+/**
+ * 'calling.tap.started'
+ */
+export interface CallTapStartedEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallTapStarted>
+  params: CallingCallTapEventParams & { tag: string }
+}
+/**
+ * 'calling.tap.ended'
+ */
+export interface CallTapEndedEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallTapEnded>
+  params: CallingCallTapEventParams & { tag: string }
+}
+
 // interface VoiceCallStateEvent {
 //   call_id: string
 //   node_id: string
@@ -687,6 +814,7 @@ export type VoiceCallEvent =
   | CallingCallPlayEvent
   | CallingCallRecordEvent
   | CallingCallCollectEvent
+  | CallingCallTapEvent
   // SDK Events
   | CallReceivedEvent
   | CallPlaybackStartedEvent
@@ -700,6 +828,8 @@ export type VoiceCallEvent =
   | CallPromptUpdatedEvent
   | CallPromptEndedEvent
   | CallPromptFailedEvent
+  | CallTapStartedEvent
+  | CallTapEndedEvent
 
 export type VoiceCallEventParams =
   // Server Event Params
@@ -709,6 +839,7 @@ export type VoiceCallEventParams =
   | CallingCallPlayEventParams
   | CallingCallRecordEventParams
   | CallingCallCollectEventParams
+  | CallingCallTapEventParams
   // SDK Event Params
   | CallReceivedEvent['params']
   | CallPlaybackStartedEvent['params']
@@ -722,6 +853,8 @@ export type VoiceCallEventParams =
   | CallPromptUpdatedEvent['params']
   | CallPromptEndedEvent['params']
   | CallPromptFailedEvent['params']
+  | CallTapStartedEvent['params']
+  | CallTapEndedEvent['params']
 
 export type VoiceCallAction = MapToPubSubShape<VoiceCallEvent>
 
@@ -739,9 +872,12 @@ export type VoiceCallJSONRPCMethod =
   | 'calling.play_and_collect'
   | 'calling.play_and_collect.stop'
   | 'calling.play_and_collect.volume'
+  | 'calling.tap'
+  | 'calling.tap.stop'
 
 export type CallingTransformType =
   | 'voiceCallReceived'
   | 'voiceCallPlayback'
   | 'voiceCallRecord'
   | 'voiceCallPrompt'
+  | 'voiceCallTap'
