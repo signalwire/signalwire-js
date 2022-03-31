@@ -44,11 +44,52 @@ async function run() {
       })
 
       console.log('Dial resolved!', call.id)
-      const sleep = () => {
+      const sleep = (ms = 3000) => {
         return new Promise((r) => {
-          setTimeout(r, 3000)
+          setTimeout(r, ms)
         })
       }
+
+      call.on('prompt.started', (p) => {
+        console.log('>> prompt.started', p.id)
+      })
+      call.on('prompt.updated', (p) => {
+        console.log('>> prompt.updated', p.id)
+      })
+      call.on('prompt.failed', (p) => {
+        console.log('>> prompt.failed', p.id, p.reason)
+      })
+      call.on('prompt.ended', (p) => {
+        console.log(
+          '>> prompt.ended',
+          p.id,
+          p.type,
+          'Digits: ',
+          p.digits,
+          'Terminator',
+          p.terminator
+        )
+      })
+
+      const prompt = await call.prompt({
+        media: [
+          {
+            type: 'tts',
+            text: 'Welcome to SignalWire! Please enter your 4 digits PIN',
+          },
+        ],
+        volume: 1.0,
+        digits: {
+          max: 4,
+          digit_timeout: 10,
+          terminators: '#',
+        },
+      })
+      console.log('Prompt STARTED!', prompt.id)
+      await prompt.setVolume(2.0)
+      await sleep()
+      await prompt.stop()
+      console.log('Prompt STOPPED!', prompt.id)
 
       call.on('recording.started', (r) => {
         console.log('>> recording.started', r.id)
