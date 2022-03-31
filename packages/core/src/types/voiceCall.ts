@@ -304,8 +304,14 @@ export interface VoiceCallPromptContract {
   readonly callId: string
   /** @ignore */
   readonly controlId: string
-  /** @ignore */
-  readonly result: any // FIXME:
+
+  readonly type?: CallingCallCollectResult['type']
+  /** Alias for type in case of errors */
+  readonly reason?: string
+  readonly digits?: string
+  readonly terminator?: string
+  readonly text?: string
+  readonly confidence?: number
 
   stop(): Promise<this>
   setVolume(volume: number): Promise<this>

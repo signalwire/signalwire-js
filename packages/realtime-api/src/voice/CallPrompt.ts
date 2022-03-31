@@ -3,6 +3,7 @@ import {
   BaseComponent,
   BaseComponentOptions,
   VoiceCallPromptContract,
+  CallingCallCollectResult,
 } from '@signalwire/core'
 
 /**
@@ -25,10 +26,50 @@ export class CallPromptAPI
   callId: string
   nodeId: string
   controlId: string
-  result: any // FIXME:
+  result?: CallingCallCollectResult
 
   get id() {
     return this.controlId
+  }
+
+  get type() {
+    return this.result?.type
+  }
+
+  /**
+   * User-friendly alias to understand the reason in case of errors
+   * no_match | no_input | error
+   */
+  get reason() {
+    return this.type
+  }
+
+  get digits() {
+    if (this.result?.type === 'digit') {
+      return this.result.params.digits
+    }
+    return undefined
+  }
+
+  get terminator() {
+    if (this.result?.type === 'digit') {
+      return this.result.params.terminator
+    }
+    return undefined
+  }
+
+  get text() {
+    if (this.result?.type === 'speech') {
+      return this.result.params.text
+    }
+    return undefined
+  }
+
+  get confidence() {
+    if (this.result?.type === 'speech') {
+      return this.result.params.confidence
+    }
+    return undefined
   }
 
   async stop() {
@@ -45,7 +86,7 @@ export class CallPromptAPI
     }
 
     /**
-     * TODO: we should wait for the prompt `finished` event to allow
+     * TODO: we should wait for the prompt to be finished to allow
      * the CallPrompt/Proxy object to update the payload properly
      */
 
