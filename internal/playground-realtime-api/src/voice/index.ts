@@ -50,6 +50,44 @@ async function run() {
         })
       }
 
+      await sleep()
+
+      try {
+        const peer = await call.connect({
+          devices: [
+            [
+              {
+                type: 'sip',
+                from: 'sip:user1@domain.com',
+                to: 'sip:user2@domain.com',
+                timeout: 30,
+              },
+            ],
+          ],
+          ringback: [{ type: 'ringtone', name: 'it' }],
+        })
+
+        console.log('Peer:', peer.id, peer.type, peer.from, peer.to)
+
+        console.log('Main:', call.id, call.type, call.from, call.to)
+
+        // Wait until Main and Peer are connected
+        await call.waitUntilConnected()
+
+        await call.play({
+          media: [
+            {
+              type: 'tts',
+              text: 'Thank you, you are now disconnected from the peer',
+            },
+          ],
+          volume: 2.0,
+        })
+        await sleep()
+      } catch (error) {
+        console.error('Connect Error', error)
+      }
+
       call.on('tap.started', (p) => {
         console.log('>> tap.started', p.id, p.state)
       })

@@ -28,6 +28,9 @@ import {
   VoiceCallTapMethodParams,
   VoiceCallTapAudioMethodParams,
   CallingCallTapEventParams,
+  CallingCallStateEventParams,
+  VoiceCallConnectMethodParams,
+  CallingCallConnectEventParams,
 } from '@signalwire/core'
 import { RealTimeCallApiEvents } from '../types'
 import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
@@ -40,13 +43,13 @@ import {
   voiceCallRecordWorker,
   voiceCallPromptWorker,
   voiceCallTapWorker,
+  voiceCallConnectWorker,
 } from './workers'
 import { createCallPlaybackObject } from './CallPlayback'
 import { CallRecording, createCallRecordingObject } from './CallRecording'
 import { CallPrompt, createCallPromptObject } from './CallPrompt'
 import { CallTap, createCallTapObject } from './CallTap'
 
-// TODO:
 type EmitterTransformsEvents =
   | 'calling.playback.start'
   | 'calling.playback.started'
@@ -62,6 +65,9 @@ type EmitterTransformsEvents =
   | 'calling.prompt.failed'
   | 'calling.tap.started'
   | 'calling.tap.ended'
+  // events not exposed
+  | 'calling.call.state'
+  | 'calling.connect.connected'
 
 interface CallMain
   extends VoiceCallContract<Call>,
@@ -104,6 +110,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
   public callId: string
   public nodeId: string
+  public peer: string
 
   constructor(options: BaseComponentOptions<RealTimeCallApiEvents>) {
     super(options)
@@ -146,6 +153,11 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     }
     // @ts-expect-error
     return this.device?.params?.to ?? ''
+  }
+
+  get headers() {
+    // @ts-expect-error
+    return this.device?.params?.headers ?? []
   }
 
   /** @internal */
@@ -232,6 +244,35 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
           },
           payloadTransform: (payload: CallingCallTapEventParams) => {
             return toExternalJSON(payload)
+          },
+        },
+      ],
+      [
+        ['calling.call.state'],
+        {
+          type: 'voiceCallState',
+          instanceFactory: (_payload: any) => {
+            return this
+          },
+          payloadTransform: (payload: CallingCallStateEventParams) => {
+            return toExternalJSON(payload)
+          },
+        },
+      ],
+      [
+        ['calling.connect.connected'],
+        {
+          type: 'voiceCallConnect',
+          instanceFactory: (_payload: any) => {
+            return createCallObject({
+              store: this.store,
+              // @ts-expect-error
+              emitter: this.emitter,
+            })
+          },
+          payloadTransform: (payload: CallingCallConnectEventParams) => {
+            const { tag, ...peerParams } = payload.peer
+            return toExternalJSON(peerParams)
           },
         },
       ],
@@ -651,6 +692,107 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
   tapAudio(params: VoiceCallTapAudioMethodParams) {
     const { direction, device } = params
     return this.tap({ audio: { direction }, device })
+  }
+
+  connect(params: VoiceCallConnectMethodParams) {
+    return new Promise<any>((resolve, reject) => {
+      if (!this.callId || !this.nodeId) {
+        reject(new Error(`Can't call connect() on a call not established yet.`))
+      }
+
+      this.setWorker('voiceCallConnectWorker', {
+        worker: voiceCallConnectWorker,
+      })
+      this.attachWorkers()
+
+      const resolveHandler = (payload: CallingCallConnectEventParams) => {
+        // @ts-expect-error
+        this.off('connect.failed', rejectHandler)
+
+        resolve(payload)
+      }
+
+      const rejectHandler = (payload: CallingCallConnectEventParams) => {
+        // @ts-expect-error
+        this.off('connect.connected', resolveHandler)
+
+        reject(toExternalJSON(payload))
+      }
+
+      // @ts-expect-error
+      this.on('call.state', () => {
+        /**
+         * FIXME: this no-op listener is required for our EE transforms to
+         * update the call object via the `calling.call.state` transform
+         * and apply the "peer" property to the Proxy.
+         */
+      })
+
+      // @ts-expect-error
+      this.once('connect.connected', resolveHandler)
+      // @ts-expect-error
+      this.once('connect.failed', rejectHandler)
+
+      const { devices, ringback = [] } = params
+      this.execute({
+        method: 'calling.connect',
+        params: {
+          node_id: this.nodeId,
+          call_id: this.callId,
+          tag: this.__uuid,
+          devices: toInternalDevices(devices),
+          ringback: toInternalPlayParams(ringback),
+        },
+      }).catch((e) => {
+        // @ts-expect-error
+        this.off('connect.connected', resolveHandler)
+        // @ts-expect-error
+        this.off('connect.failed', rejectHandler)
+
+        reject(e)
+      })
+    })
+  }
+
+  disconnect() {
+    return new Promise<void>((resolve, reject) => {
+      if (!this.callId || !this.nodeId || !this.peer) {
+        reject(
+          new Error(`Can't call disconnect() on a call not connected yet.`)
+        )
+      }
+
+      const resolveHandler = () => {
+        resolve()
+      }
+      // @ts-expect-error
+      this.once('connect.disconnected', resolveHandler)
+
+      this.execute({
+        method: 'calling.disconnect',
+        params: {
+          node_id: this.nodeId,
+          call_id: this.callId,
+        },
+      }).catch((e) => {
+        // @ts-expect-error
+        this.off('connect.disconnected', resolveHandler)
+
+        reject(e)
+      })
+    })
+  }
+
+  waitUntilConnected() {
+    return new Promise<this>((resolve) => {
+      const resolveHandler = () => {
+        resolve(this)
+      }
+      // @ts-expect-error
+      this.once('connect.disconnected', resolveHandler)
+      // @ts-expect-error
+      this.once('connect.failed', resolveHandler)
+    })
   }
 }
 
