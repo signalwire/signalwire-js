@@ -102,12 +102,14 @@ export * from './configure'
  * 
  * From a different process, even on a different machine, you can then send tasks:
  * 
+ * ```js
  * await Task.send({
  *   project: "<project-id>",
  *   token: "<api-token>",
  *   context: 'office',
  *   message: { hello: ['world', true] },
  * })
+ * ```
  */
 export * as Task from './task/Task'
 
