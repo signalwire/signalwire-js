@@ -3,6 +3,7 @@ import { request } from 'node:https'
 const PATH = '/api/relay/rest/tasks'
 const HOST = 'relay.signalwire.com'
 
+/** Parameters for {@link send} */
 export interface TaskSendParams {
   /** @ignore */
   host?: string
@@ -18,8 +19,29 @@ export interface TaskSendParams {
 
 /**
  * Send a job to your Task Client in a specific context.
- * @param params @inlineparam
+ * 
+ * @param params
  * @returns 
+ *
+ * @example
+ *
+ * > Send a task with a message to then make an outbound Call.
+ *
+ * ```js
+ * const message = {
+ *   'action': 'call',
+ *   'from': '+18881112222'
+ *   'to': '+18881113333'
+ * }
+ *
+ * await Task.send({
+ *   project: "<project-id>",
+ *   token: "<api-token>",
+ *   context: 'office',
+ *   message: message,
+ * })
+ * ```
+ * 
  */
 export const send = ({
   host = HOST,

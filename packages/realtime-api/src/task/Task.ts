@@ -4,6 +4,7 @@ import type { TaskClientApiEvents } from '../types'
 import { RealtimeClient } from '../client/index'
 import { taskWorker } from './workers'
 
+/** @internal */
 export interface Task extends ConsumerContract<TaskClientApiEvents> {
   /** @internal */
   _session: RealtimeClient
