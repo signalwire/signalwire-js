@@ -18,6 +18,9 @@ import {
   VoiceCallRecordMethodParams,
   CallingCallCollectEventParams,
   VoiceCallPromptMethodParams,
+  VoiceCallPromptAudioMethodParams,
+  VoiceCallPromptRingtoneMethodParams,
+  VoiceCallPromptTTSMethodParams,
   EventTransform,
   toLocalEvent,
   toExternalJSON,
@@ -548,6 +551,34 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
           this.off(callingPromptTriggerEvent, resolveHandler)
           reject(e)
         })
+    })
+  }
+
+  promptAudio(params: VoiceCallPromptAudioMethodParams) {
+    const { url, ...rest } = params
+
+    return this.prompt({
+      media: [{ type: 'audio', url }],
+      ...rest,
+    })
+  }
+
+  promptRingtone(params: VoiceCallPromptRingtoneMethodParams) {
+    // FIXME: ringtone `name` is too generic as argument
+    const { name, duration, ...rest } = params
+
+    return this.prompt({
+      media: [{ type: 'ringtone', name, duration }],
+      ...rest,
+    })
+  }
+
+  promptTTS(params: VoiceCallPromptTTSMethodParams) {
+    const { text, language, gender, ...rest } = params
+
+    return this.prompt({
+      media: [{ type: 'tts', text, language, gender }],
+      ...rest,
     })
   }
 

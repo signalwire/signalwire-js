@@ -227,6 +227,24 @@ export type VoiceCallPromptMethodParams = SpeechOrDigits & {
   initial_timeout?: number
   partial_results?: boolean
 }
+export type VoiceCallPromptAudioMethodParams = SpeechOrDigits &
+  Omit<VoiceCallPlayAudioParams, 'type'> & {
+    volume?: number
+    initial_timeout?: number
+    partial_results?: boolean
+  }
+export type VoiceCallPromptRingtoneMethodParams = SpeechOrDigits &
+  Omit<VoiceCallPlayRingtoneParams, 'type'> & {
+    volume?: number
+    initial_timeout?: number
+    partial_results?: boolean
+  }
+export type VoiceCallPromptTTSMethodParams = SpeechOrDigits &
+  Omit<VoiceCallPlayTTSParams, 'type'> & {
+    volume?: number
+    initial_timeout?: number
+    partial_results?: boolean
+  }
 type TapCodec = 'OPUS' | 'PCMA' | 'PCMU'
 interface TapDeviceWS {
   type: 'ws'
@@ -435,6 +453,15 @@ export interface VoiceCallContract<T = any> {
     params?: VoiceCallRecordMethodParams['audio']
   ): Promise<VoiceCallRecordingContract>
   prompt(params: VoiceCallPromptMethodParams): Promise<VoiceCallPromptContract>
+  promptAudio(
+    params: VoiceCallPromptAudioMethodParams
+  ): Promise<VoiceCallPromptContract>
+  promptRingtone(
+    params: VoiceCallPromptRingtoneMethodParams
+  ): Promise<VoiceCallPromptContract>
+  promptTTS(
+    params: VoiceCallPromptTTSMethodParams
+  ): Promise<VoiceCallPromptContract>
   // TODO: add derived prompt methods
   tap(params: VoiceCallTapMethodParams): Promise<VoiceCallTapContract>
   tapAudio(params: VoiceCallTapAudioMethodParams): Promise<VoiceCallTapContract>
