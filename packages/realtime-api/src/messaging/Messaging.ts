@@ -26,6 +26,7 @@ interface InternalMessagingSendParams
   to_number: string
 }
 
+/** @internal */
 export interface Messaging
   extends ConsumerContract<RealTimeMessagingApiEvents> {
   /** @internal */
@@ -130,3 +131,4 @@ export const createMessagingObject = (
 
 export * from './MessagingClient'
 export * from './Message'
+export { MessagingMessageState } from '@signalwire/core'
