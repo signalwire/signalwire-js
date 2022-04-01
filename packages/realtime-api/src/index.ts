@@ -30,7 +30,7 @@
  * subscribe to Video events. Please check {@link Video.VideoClientApiEvents}
  * for the full list of events that a {@link Video.Client} can subscribe to.
  *
- * ### Example
+ * @example
  *
  * The following example logs whenever a room session is started or a user joins
  * it:
@@ -57,7 +57,7 @@ export * from './createClient'
  * subscribe to Chat events. Please check {@link Chat.ChatClientApiEvents}
  * for the full list of events that a {@link Chat.Client} can subscribe to.
  *
- * ### Example
+ * @example
  *
  * The following example logs the messages sent to the "welcome" channel.
  *
@@ -77,7 +77,38 @@ export * as Chat from './chat/Chat'
 /** @ignore */
 export * from './configure'
 
-/** @ignore */
+/**
+ * Access the Task API. You can instantiate a {@link Task.Client} to
+ * receive tasks from a different application. Please check
+ * {@link Task.TaskClientApiEvents} for the full list of events that
+ * a {@link Task.Client} can subscribe to.
+ *
+ * @example
+ *
+ * The following example listens for incoming tasks.
+ *
+ * ```javascript
+ * const client = new Task.Client({
+ *   project: "<project-id>",
+ *   token: "<api-token>",
+ *   contexts: ['office']
+ * })
+ * 
+ * client.on('task.received', (payload) => {
+ *   console.log('Task Received', payload)
+ *   // Do something with the payload...
+ * })
+ * ```
+ * 
+ * From a different process, even on a different machine, you can then send tasks:
+ * 
+ * await Task.send({
+ *   project: "<project-id>",
+ *   token: "<api-token>",
+ *   context: 'office',
+ *   message: { hello: ['world', true] },
+ * })
+ */
 export * as Task from './task/Task'
 
 /**
