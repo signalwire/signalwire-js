@@ -116,6 +116,15 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     super(options)
     this._attachListeners(this.__uuid)
     this.applyEmitterTransforms({ local: true })
+
+    // @ts-expect-error
+    this.on('call.state', () => {
+      /**
+       * FIXME: this no-op listener is required for our EE transforms to
+       * update the call object via the `calling.call.state` transform
+       * and apply the "peer" property to the Proxy.
+       */
+    })
   }
 
   get id() {
@@ -718,15 +727,6 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
         reject(toExternalJSON(payload))
       }
-
-      // @ts-expect-error
-      this.on('call.state', () => {
-        /**
-         * FIXME: this no-op listener is required for our EE transforms to
-         * update the call object via the `calling.call.state` transform
-         * and apply the "peer" property to the Proxy.
-         */
-      })
 
       // @ts-expect-error
       this.once('connect.connected', resolveHandler)
