@@ -17,7 +17,7 @@ const buildVideo = () => {
   return video
 }
 
-const _videoReady = ({ element }: { element: HTMLVideoElement }) => {
+const waitForVideoReady = ({ element }: { element: HTMLVideoElement }) => {
   return new Promise<void>((resolve) => {
     element.addEventListener('canplay', function listener() {
       element.removeEventListener('canplay', listener)
@@ -44,16 +44,7 @@ const _getLocationStyles = ({
   }
 }
 
-const _buildLayer = async ({
-  location,
-  element,
-}: {
-  location: InternalVideoLayoutLayer
-  element: HTMLVideoElement
-}) => {
-  if (element.readyState === HTMLMediaElement.HAVE_NOTHING) {
-    await _videoReady({ element })
-  }
+const _buildLayer = ({ location }: { location: InternalVideoLayoutLayer }) => {
   const { top, left, width, height } = _getLocationStyles(location)
   const layer = document.createElement('div')
   layer.style.position = 'absolute'
@@ -75,14 +66,13 @@ interface LayoutChangedHandlerParams {
 const makeLayoutChangedHandler =
   ({
     layerMap,
-    element,
     rootElement,
   }: {
     layerMap: Map<string, HTMLElement>
-    element: HTMLVideoElement
     rootElement: HTMLElement
   }) =>
   async ({ layout, myMemberId, localStream }: LayoutChangedHandlerParams) => {
+    getLogger().debug('Process layout.changed')
     try {
       const { layers = [] } = layout
       const location = layers.find(({ member_id }) => member_id === myMemberId)
@@ -90,6 +80,7 @@ const makeLayoutChangedHandler =
       const myLayerKey = _addSDKPrefix(myMemberId)
       let myLayer = layerMap.get(myLayerKey)
       if (!location) {
+        getLogger().debug('Location not found')
         if (myLayer) {
           getLogger().debug('Current layer not visible')
           myLayer.style.display = 'none'
@@ -99,7 +90,8 @@ const makeLayoutChangedHandler =
       }
 
       if (!myLayer) {
-        myLayer = await _buildLayer({ element, location })
+        getLogger().debug('Build myLayer')
+        myLayer = _buildLayer({ location })
         myLayer.id = myLayerKey
 
         const localVideo = buildVideo()
@@ -120,7 +112,7 @@ const makeLayoutChangedHandler =
       }
 
       const { top, left, width, height } = _getLocationStyles(location)
-
+      getLogger().debug('Update myLayer:', top, left, width, height)
       /**
        * Show myLayer only if the localStream has a valid video track
        */
@@ -172,4 +164,5 @@ export {
   makeLayoutChangedHandler,
   makeDisplayChangeFn,
   setVideoMediaTrack,
+  waitForVideoReady,
 }

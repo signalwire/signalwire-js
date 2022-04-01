@@ -12,6 +12,7 @@ import {
   makeDisplayChangeFn,
   makeLayoutChangedHandler,
   setVideoMediaTrack,
+  waitForVideoReady,
 } from '../../utils/videoElement'
 import { setAudioMediaTrack } from '../../utils/audioElement'
 import { audioSetSpeakerAction } from '../actions'
@@ -33,13 +34,13 @@ export const makeVideoElementSaga = ({
       const videoEl = buildVideo()
       const layoutChangedHandler = makeLayoutChangedHandler({
         rootElement,
-        element: videoEl,
         layerMap,
       })
       const hideOverlay = makeDisplayChangeFn('none')
       const showOverlay = makeDisplayChangeFn('block')
 
       room.on('layout.changed', (params) => {
+        getLogger().debug('Received layout.changed')
         if (room.peer.hasVideoSender && room.localStream) {
           layoutChangedHandler({
             // @ts-expect-error
@@ -206,7 +207,7 @@ function* videoElementSetupWorker({
   track: MediaStreamTrack
   element: HTMLVideoElement
 }): SagaIterator {
-  const handleVideoTrack = (track: MediaStreamTrack) => {
+  const handleVideoTrack = async (track: MediaStreamTrack) => {
     setVideoMediaTrack({ element, track })
 
     element.style.width = '100%'
@@ -230,6 +231,7 @@ function* videoElementSetupWorker({
 
     const layersWrapper = document.createElement('div')
     layersWrapper.classList.add('mcuLayers')
+    layersWrapper.style.display = 'none'
     paddingWrapper.appendChild(layersWrapper)
 
     const relativeWrapper = document.createElement('div')
@@ -242,9 +244,17 @@ function* videoElementSetupWorker({
     rootElement.style.alignItems = 'center'
     rootElement.style.justifyContent = 'center'
     rootElement.appendChild(relativeWrapper)
+
+    if (element.readyState === HTMLMediaElement.HAVE_NOTHING) {
+      getLogger().debug('Wait for the MCU to be ready')
+      await waitForVideoReady({ element })
+    }
+    layersWrapper.style.display = 'block'
   }
 
-  handleVideoTrack(track)
+  handleVideoTrack(track).catch((error) => {
+    getLogger().error('Handle video track error', error)
+  })
 
   // TODO: take destroy
 }
