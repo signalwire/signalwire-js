@@ -22,6 +22,9 @@ import {
   toLocalEvent,
   toExternalJSON,
   CallingCallPlayEventParams,
+  VoiceCallTapMethodParams,
+  VoiceCallTapAudioMethodParams,
+  CallingCallTapEventParams,
 } from '@signalwire/core'
 import { RealTimeCallApiEvents } from '../types'
 import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
@@ -33,10 +36,12 @@ import {
   voiceCallPlayWorker,
   voiceCallRecordWorker,
   voiceCallPromptWorker,
+  voiceCallTapWorker,
 } from './workers'
 import { createCallPlaybackObject } from './CallPlayback'
 import { CallRecording, createCallRecordingObject } from './CallRecording'
 import { CallPrompt, createCallPromptObject } from './CallPrompt'
+import { CallTap, createCallTapObject } from './CallTap'
 
 // TODO:
 type EmitterTransformsEvents =
@@ -52,6 +57,8 @@ type EmitterTransformsEvents =
   | 'calling.prompt.updated'
   | 'calling.prompt.ended'
   | 'calling.prompt.failed'
+  | 'calling.tap.started'
+  | 'calling.tap.ended'
 
 interface CallMain
   extends VoiceCallContract<Call>,
@@ -64,20 +71,26 @@ export interface Call extends AssertSameType<CallMain, CallDocs> {}
 export interface CallFullState extends Call {}
 
 /**
- * Used to resolve the record() method and to update the CallRecording
- * object through the EmitterTransform
+ * Used to resolve the record() method and to update the CallRecording object through the EmitterTransform
  */
 export const callingRecordTriggerEvent = toLocalEvent<EmitterTransformsEvents>(
   'calling.recording.trigger'
 )
 
 /**
- * Used to resolve the prompt() method and to update the CallPrompt
- * object through the EmitterTransform
+ * Used to resolve the prompt() method and to update the CallPrompt object through the EmitterTransform
  */
 export const callingPromptTriggerEvent = toLocalEvent<EmitterTransformsEvents>(
   'calling.prompt.trigger'
 )
+
+/**
+ * Used to resolve the tap() method and to update the CallTap object through the EmitterTransform
+ */
+export const callingTapTriggerEvent = toLocalEvent<EmitterTransformsEvents>(
+  'calling.tap.trigger'
+)
+
 export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEvents> {
   protected _eventsPrefix = 'calling' as const
 
@@ -199,6 +212,22 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
             })
           },
           payloadTransform: (payload: CallingCallCollectEventParams) => {
+            return toExternalJSON(payload)
+          },
+        },
+      ],
+      [
+        [callingTapTriggerEvent, 'calling.tap.started', 'calling.tap.ended'],
+        {
+          type: 'voiceCallTap',
+          instanceFactory: (_payload: any) => {
+            return createCallTapObject({
+              store: this.store,
+              // @ts-expect-error
+              emitter: this.emitter,
+            })
+          },
+          payloadTransform: (payload: CallingCallTapEventParams) => {
             return toExternalJSON(payload)
           },
         },
@@ -520,6 +549,77 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
           reject(e)
         })
     })
+  }
+
+  tap(params: VoiceCallTapMethodParams) {
+    return new Promise<CallTap>((resolve, reject) => {
+      if (!this.callId || !this.nodeId) {
+        reject(new Error(`Can't call tap() on a call not established yet.`))
+      }
+
+      const controlId = uuid()
+
+      this.setWorker('voiceCallTapWorker', {
+        worker: voiceCallTapWorker,
+      })
+      this.attachWorkers({
+        payload: {
+          controlId,
+        },
+      })
+
+      const resolveHandler = (callTap: CallTap) => {
+        resolve(callTap)
+      }
+
+      // @ts-expect-error
+      this.on(callingTapTriggerEvent, resolveHandler)
+
+      // TODO: Move to a method to build the objects and transform camelCase to snake_case
+      const {
+        audio = {},
+        device: { type, ...rest },
+      } = params
+
+      this.execute({
+        method: 'calling.tap',
+        params: {
+          node_id: this.nodeId,
+          call_id: this.callId,
+          control_id: controlId,
+          tap: {
+            type: 'audio',
+            params: audio,
+          },
+          device: {
+            type,
+            params: rest,
+          },
+        },
+      })
+        .then(() => {
+          const startEvent: Omit<
+            CallingCallTapEventParams,
+            'state' | 'tap' | 'device'
+          > = {
+            control_id: controlId,
+            call_id: this.id,
+            node_id: this.nodeId,
+          }
+          // @ts-expect-error
+          this.emit(callingTapTriggerEvent, startEvent)
+        })
+        .catch((e) => {
+          // @ts-expect-error
+          this.off(callingTapTriggerEvent, resolveHandler)
+          reject(e)
+        })
+    })
+  }
+
+  tapAudio(params: VoiceCallTapAudioMethodParams) {
+    const { direction, device } = params
+    return this.tap({ audio: { direction }, device })
   }
 }
 
