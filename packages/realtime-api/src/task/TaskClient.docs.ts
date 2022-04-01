@@ -9,4 +9,7 @@ export interface TaskClientDocs extends Task {
     /** SignalWire contexts, e.g. 'home', 'office'... */
     contexts: string[]
   }): this
+
+  /** @ignore */
+  subscribe(): Promise<void>
 }
