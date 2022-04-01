@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.7.1] - 2022-04-01
+
+### Fixed
+
+- [#484](https://github.com/signalwire/signalwire-js/pull/484) [`a9abe1d5`](https://github.com/signalwire/signalwire-js/commit/a9abe1d5f2267513f0765fd47a2cf9334463b445) - Keep internal memberList data up to date to generate synthetic events with the correct values.
+
 ## [3.7.0] - 2022-03-25
 
 ### Added
