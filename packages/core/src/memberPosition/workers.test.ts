@@ -5,7 +5,8 @@ import { createPubSubChannel, createSwEventChannel } from '../testUtils'
 
 describe('memberPositionWorker', () => {
   util.inspect.defaultOptions.depth = null
-  it('should handle video.member.updated dispatching the sub-events for what is changed for the user', async () => {
+  it('should handle video.member.updated dispatching the sub-events for what is changed for the user and updating the internal cache', () => {
+    const memberId = 'ab42641c-e784-42f1-9815-d264105bc24f'
     const action = {
       type: 'video.member.updated',
       payload: {
@@ -15,7 +16,7 @@ describe('memberPositionWorker', () => {
           requested_position: 'auto',
           updated: ['visible', 'video_muted'],
           room_session_id: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
-          id: 'ab42641c-e784-42f1-9815-d264105bc24f',
+          id: memberId,
           visible: true,
           room_id: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
           video_muted: false,
@@ -25,6 +26,23 @@ describe('memberPositionWorker', () => {
     const pubSubChannel = createPubSubChannel()
     const swEventChannel = createSwEventChannel()
     const dispatchedActions: unknown[] = []
+    const memberList = new Map([
+      [
+        memberId,
+        {
+          room_session_id: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
+          room_id: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
+          member: {
+            requested_position: 'auto',
+            room_session_id: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
+            id: memberId,
+            visible: false,
+            room_id: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
+            video_muted: true,
+          } as any,
+        },
+      ],
+    ])
 
     return expectSaga(memberUpdatedWorker, {
       action,
@@ -32,23 +50,7 @@ describe('memberPositionWorker', () => {
         pubSubChannel,
         swEventChannel,
       },
-      memberList: new Map([
-        [
-          'ab42641c-e784-42f1-9815-d264105bc24f',
-          {
-            room_session_id: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
-            room_id: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
-            member: {
-              requested_position: 'auto',
-              room_session_id: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
-              id: 'ab42641c-e784-42f1-9815-d264105bc24f',
-              visible: false,
-              room_id: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
-              video_muted: true,
-            } as any,
-          },
-        ],
-      ]),
+      memberList,
       instance: {},
     })
       .provide([
@@ -72,8 +74,14 @@ describe('memberPositionWorker', () => {
         payload: action.payload,
       })
       .run()
-    .finally(() => {
-      expect(dispatchedActions).toHaveLength(3)
-    })
+      .finally(() => {
+        expect(dispatchedActions).toHaveLength(3)
+        expect(memberList.get(memberId)?.member.visible).toBe(true)
+        expect(memberList.get(memberId)?.member.video_muted).toBe(false)
+        expect(memberList.get(memberId)?.member.updated).toStrictEqual([
+          'visible',
+          'video_muted',
+        ])
+      })
   })
 })
