@@ -10,7 +10,7 @@ type TaskClientApiEventsMain = {
   [k in keyof RealTimeTaskApiEventsHandlerMapping]: RealTimeTaskApiEventsHandlerMapping[k]
 }
 
-export type TaskClientApiEvents = AssertSameType<
+export interface TaskClientApiEvents extends AssertSameType<
   TaskClientApiEventsMain,
   TaskClientApiEventsDocs
->
+> { }
