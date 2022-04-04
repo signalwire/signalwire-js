@@ -19,9 +19,9 @@ export interface TaskSendParams {
 
 /**
  * Send a job to your Task Client in a specific context.
- * 
+ *
  * @param params
- * @returns 
+ * @returns
  *
  * @example
  *
@@ -41,7 +41,7 @@ export interface TaskSendParams {
  *   message: message,
  * })
  * ```
- * 
+ *
  */
 export const send = ({
   host = HOST,

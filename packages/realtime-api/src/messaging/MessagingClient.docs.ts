@@ -1,8 +1,9 @@
-import { ConsumerContract } from '@signalwire/core';
-import { MessagingClientApiEvents } from '../types';
+import { ConsumerContract } from '@signalwire/core'
+import { MessagingClientApiEvents } from '../types'
 import { RealtimeClient } from '../client/index'
 
-export interface MessagingClientDocs extends ConsumerContract<MessagingClientApiEvents> {
+export interface MessagingClientDocs
+  extends ConsumerContract<MessagingClientApiEvents> {
   new (opts: {
     /** SignalWire Project ID, e.g. `a10d8a9f-2166-4e82-56ff-118bc3a4840f` */
     project: string
@@ -17,13 +18,13 @@ export interface MessagingClientDocs extends ConsumerContract<MessagingClientApi
 
   /**
    * Send an outbound SMS or MMS message.
-   * 
+   *
    * @returns Asynchronously returns a result object.
-   * 
+   *
    * @example
-   * 
+   *
    * > Send a message in the context *office*.
-   * 
+   *
    * ```js
    * const sendResult = await client.send({
    *   context: 'office',
@@ -31,7 +32,7 @@ export interface MessagingClientDocs extends ConsumerContract<MessagingClientApi
    *   to: '+1yyy',
    *   body: 'Hello World!'
    * })
-   * 
+   *
    * if (sendResult.successful) {    FIXME We don't have a successful field. We have `code === '200'`
    *   console.log('Message ID: ', sendResult.messageId)
    * }
@@ -52,7 +53,7 @@ export interface MessagingClientDocs extends ConsumerContract<MessagingClientApi
     region?: string
     /** Array of URLs to send in the message. Optional if `body` is present. */
     media?: string[]
-  }): Promise<any>  // FIXME @edolix
+  }): Promise<any> // FIXME @edolix
 
   /** @ignore */
   subscribe(): Promise<void>

@@ -27,8 +27,7 @@ interface InternalMessagingSendParams
 }
 
 /** @internal */
-export interface Messaging
-  extends ConsumerContract<MessagingClientApiEvents> {
+export interface Messaging extends ConsumerContract<MessagingClientApiEvents> {
   /** @internal */
   _session: RealtimeClient
   send(params: MessagingSendParams): Promise<any>
@@ -113,11 +112,7 @@ class MessagingAPI extends BaseConsumer<MessagingClientApiEvents> {
 export const createMessagingObject = (
   params: BaseComponentOptions<MessagingClientApiEvents>
 ): Messaging => {
-  const messaging = connect<
-    MessagingClientApiEvents,
-    MessagingAPI,
-    Messaging
-  >({
+  const messaging = connect<MessagingClientApiEvents, MessagingAPI, Messaging>({
     store: params.store,
     Component: MessagingAPI,
     componentListeners: {

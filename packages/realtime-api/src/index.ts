@@ -93,15 +93,15 @@ export * from './configure'
  *   token: "<api-token>",
  *   contexts: ['office']
  * })
- * 
+ *
  * client.on('task.received', (payload) => {
  *   console.log('Task Received', payload)
  *   // Do something with the payload...
  * })
  * ```
- * 
+ *
  * From a different process, even on a different machine, you can then send tasks:
- * 
+ *
  * ```js
  * await Task.send({
  *   project: "<project-id>",

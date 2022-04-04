@@ -15,7 +15,8 @@ type MessagingClientApiEventsMain = {
   [k in keyof RealTimeMessagingApiEventsHandlerMapping]: RealTimeMessagingApiEventsHandlerMapping[k]
 }
 
-export interface MessagingClientApiEvents extends AssertSameType<
-  MessagingClientApiEventsMain,
-  MessagingClientApiEventsDocs
-> {}
+export interface MessagingClientApiEvents
+  extends AssertSameType<
+    MessagingClientApiEventsMain,
+    MessagingClientApiEventsDocs
+  > {}

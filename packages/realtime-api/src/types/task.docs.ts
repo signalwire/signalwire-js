@@ -10,9 +10,9 @@ export type TaskClientApiEventsDocs = {
    *   // Do something with the payload...
    * })
    * ```
-   * 
+   *
    * @param payload The message payload.
-   * 
+   *
    * @event
    */
   'task.received': (payload: Record<string, unknown>) => void

@@ -1,4 +1,4 @@
-import { MessageContract } from "../messaging/Message";
+import { MessageContract } from '../messaging/Message'
 
 export interface MessagingClientApiEventsDocs {
   'message.received': (message: MessageContract) => void

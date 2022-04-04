@@ -4,7 +4,7 @@ import { PRODUCT_PREFIX_MESSAGING } from '../utils/constants'
 
 /**
  * The state a message can be in.
- * 
+ *
  *  - `queued`: The message has been queued in Relay.
  *  - `initiated`: Relay has initiated the process of sending the message.
  *  - `sent`: Relay has sent the message.
