@@ -1,16 +1,28 @@
 import { MessagingMessageState } from '@signalwire/core'
 
-/** @internal */
+/**
+ * An object representing an SMS or MMS message.
+ */
 export interface MessageContract {
+  /** The unique identifier of the message. */
   id: string
+  /** The current state of the message. */
   state: MessagingMessageState
+  /** The context of the message. */
   context: string
+  /** The phone number the message comes from. */
   from: string
+  /** The destination number of the message. */
   to: string
+  /** The direction of the message: `inbound` or `outbound`. */
   direction: string
+  /** Array of strings with message tags. */
   tags: string[]
+  /** Body of the message */
   body: string
+  /** Array of URLs media. */
   media: string[]
+  /** Number of segments of the message. */
   segments: number
 }
 

@@ -3,9 +3,7 @@ import { setupClient, clientConnect } from '../client/index'
 import { MessagingClientDocs } from './MessagingClient.docs'
 import type { Messaging } from './Messaging'
 import { createMessagingObject } from './Messaging'
-import { RealTimeMessagingApiEvents } from '../types'
-
-export interface MessagingClientApiEvents extends RealTimeMessagingApiEvents {}
+export { MessagingClientApiEvents } from '../types'
 
 interface MessagingClientMain extends Messaging {
   new (opts: MessagingClientOptions): this

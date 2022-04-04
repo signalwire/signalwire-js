@@ -5,7 +5,7 @@ import {
   toExternalJSON,
 } from '@signalwire/core'
 import { connect, BaseConsumer } from '@signalwire/core'
-import type { RealTimeMessagingApiEvents } from '../types'
+import type { MessagingClientApiEvents } from '../types'
 import { RealtimeClient } from '../client/index'
 import { messagingWorker } from './workers'
 import { MessageContract, Message } from './Message'
@@ -28,17 +28,17 @@ interface InternalMessagingSendParams
 
 /** @internal */
 export interface Messaging
-  extends ConsumerContract<RealTimeMessagingApiEvents> {
+  extends ConsumerContract<MessagingClientApiEvents> {
   /** @internal */
   _session: RealtimeClient
   send(params: MessagingSendParams): Promise<any>
 }
 
 /** @internal */
-class MessagingAPI extends BaseConsumer<RealTimeMessagingApiEvents> {
+class MessagingAPI extends BaseConsumer<MessagingClientApiEvents> {
   /** @internal */
 
-  constructor(options: BaseComponentOptions<RealTimeMessagingApiEvents>) {
+  constructor(options: BaseComponentOptions<MessagingClientApiEvents>) {
     super(options)
 
     this.setWorker('messagingWorker', {
@@ -111,10 +111,10 @@ class MessagingAPI extends BaseConsumer<RealTimeMessagingApiEvents> {
 
 /** @internal */
 export const createMessagingObject = (
-  params: BaseComponentOptions<RealTimeMessagingApiEvents>
+  params: BaseComponentOptions<MessagingClientApiEvents>
 ): Messaging => {
   const messaging = connect<
-    RealTimeMessagingApiEvents,
+    MessagingClientApiEvents,
     MessagingAPI,
     Messaging
   >({

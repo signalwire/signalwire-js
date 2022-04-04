@@ -1,8 +1,8 @@
 import { ConsumerContract } from '@signalwire/core';
-import { RealTimeMessagingApiEvents } from '../types';
+import { MessagingClientApiEvents } from '../types';
 import { RealtimeClient } from '../client/index'
 
-export interface MessagingClientDocs extends ConsumerContract<RealTimeMessagingApiEvents> {
+export interface MessagingClientDocs extends ConsumerContract<MessagingClientApiEvents> {
   new (opts: {
     /** SignalWire Project ID, e.g. `a10d8a9f-2166-4e82-56ff-118bc3a4840f` */
     project: string
