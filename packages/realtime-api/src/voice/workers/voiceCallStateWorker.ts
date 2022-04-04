@@ -26,12 +26,18 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
   while (!isDone) {
     const action: MapToPubSubShape<CallingCallStateEvent> =
       yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
-        return (
+        if (
           action.type === 'calling.call.state' &&
-          (instance.id === action.payload.call_id ||
-            instance.tag === action.payload.tag) &&
           TARGET_CALL_STATES.includes(action.payload.call_state)
-        )
+        ) {
+          // To avoid mixing events on `connect` we check for `instance.id`
+          // if there's already a callId value.
+          if (instance.id) {
+            return instance.id === action.payload.call_id
+          }
+          return instance.tag === action.payload.tag
+        }
+        return false
       })
 
     // Inject `tag` to have our EE to work because inbound calls don't have tags.
@@ -39,6 +45,14 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
       tag: instance.tag,
       ...action.payload,
     }
+
+    /**
+     * Update the Call object payload with the new state
+     */
+    yield sagaEffects.put(pubSubChannel, {
+      type: 'calling.call.state',
+      payload: newPayload,
+    })
 
     if (action.payload.call_state === 'answered') {
       yield sagaEffects.put(pubSubChannel, {
