@@ -5,6 +5,7 @@ export * from './voiceCallPlayWorker'
 export * from './voiceCallRecordWorker'
 export * from './voiceCallPromptWorker'
 export * from './voiceCallTapWorker'
+export * from './voiceCallConnectWorker'
 
 export const SYNTHETIC_CALL_STATE_ANSWERED_EVENT = toSyntheticEvent(
   'calling.call.answered'
