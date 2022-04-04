@@ -24,6 +24,8 @@ export interface MessageContract {
   media: string[]
   /** Number of segments of the message. */
   segments: number
+  /** Reason why the message was not sent. This is present only in case of failure. */
+  reason?: string
 }
 
 interface MessageOptions {
@@ -40,31 +42,18 @@ interface MessageOptions {
   reason?: string
 }
 
-/**
- * An object representing an SMS or MMS message.
- */
+/** @internal */
 export class Message implements MessageContract {
-  /** The unique identifier of the message. */
   public id: string
-  /** The current state of the message. */
   public state: MessagingMessageState
-  /** The context of the message. */
   public context: string
-  /** The phone number the message comes from. */
   public from: string
-  /** The destination number of the message. */
   public to: string
-  /** Body of the message */
   public body: string
-  /** The direction of the message: `inbound` or `outbound`. */
   public direction: 'inbound' | 'outbound'
-  /** Array of URLs media. */
   public media: string[]
-  /** Number of segments of the message. */
   public segments: number
-  /** Array of strings with message tags. */
   public tags: string[]
-  /** Reason why the message was not sent. This is present only in case of failure. */
   public reason?: string
 
   constructor(options: MessageOptions) {
