@@ -1,9 +1,9 @@
-import { toSnakeCaseProps } from './toSnakeCaseProps'
+import { toSnakeCaseKeys } from './toSnakeCaseKeys'
 
-describe.only('toSnakeCaseProps', () => {
+describe.only('toSnakeCaseKeys', () => {
   it('should convert properties from camelCase to snake_case', () => {
     expect(
-      toSnakeCaseProps({
+      toSnakeCaseKeys({
         someProperty: 'someValue',
         someOtherProperty: 'someOtherValue',
         nestedProperty: {
@@ -43,7 +43,7 @@ describe.only('toSnakeCaseProps', () => {
 
   it('should allow passing a function for transforming values', () => {
     expect(
-      toSnakeCaseProps(
+      toSnakeCaseKeys(
         {
           someProperty: 'someValue',
           someOtherProperty: 'someOtherValue',

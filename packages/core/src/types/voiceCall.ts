@@ -234,8 +234,8 @@ type SpeechOrDigits =
 export type VoiceCallPromptMethodParams = SpeechOrDigits & {
   media: NestedArray<VoiceCallPlayParams>
   volume?: number
-  initial_timeout?: number
-  partial_results?: boolean
+  initialTimeout?: number
+  partialResults?: boolean
 }
 export type VoiceCallPromptAudioMethodParams = SpeechOrDigits &
   Omit<VoiceCallPlayAudioParams, 'type'> & {
