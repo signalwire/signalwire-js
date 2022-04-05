@@ -19,6 +19,7 @@ describe.only('toSnakeCaseProps', () => {
             },
           },
         },
+        nestedPropertyWithLongName: 'nestedValueWithLongName',
       })
     ).toEqual({
       some_property: 'someValue',
@@ -36,28 +37,32 @@ describe.only('toSnakeCaseProps', () => {
           },
         },
       },
+      nested_property_with_long_name: 'nestedValueWithLongName',
     })
   })
 
   it('should allow passing a function for transforming values', () => {
     expect(
-      toSnakeCaseProps({
-        someProperty: 'someValue',
-        someOtherProperty: 'someOtherValue',
-        nestedProperty: {
-          nestedProperty1: 'nestedValue',
-          nestedProperty2: 'nestedValue2',
-          nestedProperty3: {
-            nestedProperty4: 'nestedValue4',
-            nestedProperty5: {
-              nestedProperty6: 'nestedValue6',
-              nestedProperty7: {
-                nestedProperty8: 'nestedValue8',
+      toSnakeCaseProps(
+        {
+          someProperty: 'someValue',
+          someOtherProperty: 'someOtherValue',
+          nestedProperty: {
+            nestedProperty1: 'nestedValue',
+            nestedProperty2: 'nestedValue2',
+            nestedProperty3: {
+              nestedProperty4: 'nestedValue4',
+              nestedProperty5: {
+                nestedProperty6: 'nestedValue6',
+                nestedProperty7: {
+                  nestedProperty8: 'nestedValue8',
+                },
               },
             },
           },
         },
-      }, (value: string) => value.toUpperCase())
+        (value: string) => value.toUpperCase()
+      )
     ).toEqual({
       some_property: 'SOMEVALUE',
       some_other_property: 'SOMEOTHERVALUE',
