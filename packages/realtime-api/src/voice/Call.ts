@@ -32,6 +32,8 @@ import {
   CallingCallStateEventParams,
   VoiceCallConnectMethodParams,
   CallingCallConnectEventParams,
+  VoiceCallDetectMethodParams,
+  CallingCallDetectEventParams,
 } from '@signalwire/core'
 import { RealTimeCallApiEvents } from '../types'
 import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
@@ -49,11 +51,13 @@ import {
   voiceCallConnectWorker,
   voiceCallDialWorker,
   voiceCallSendDigitsWorker,
+  voiceCallDetectWorker,
 } from './workers'
 import { createCallPlaybackObject } from './CallPlayback'
 import { CallRecording, createCallRecordingObject } from './CallRecording'
 import { CallPrompt, createCallPromptObject } from './CallPrompt'
 import { CallTap, createCallTapObject } from './CallTap'
+import { CallDetect, createCallDetectObject } from './CallDetect'
 
 type EmitterTransformsEvents =
   | 'calling.playback.start'
@@ -70,6 +74,8 @@ type EmitterTransformsEvents =
   | 'calling.prompt.failed'
   | 'calling.tap.started'
   | 'calling.tap.ended'
+  | 'calling.detect.started'
+  | 'calling.detect.ended'
   // events not exposed
   | 'calling.call.state'
   | 'calling.connect.connected'
@@ -105,13 +111,15 @@ export const callingTapTriggerEvent = toLocalEvent<EmitterTransformsEvents>(
   'calling.tap.trigger'
 )
 
+/**
+ * Used to resolve the detect() method and to update the CallDetect object through the EmitterTransform
+ */
+export const callingDetectTriggerEvent = toLocalEvent<EmitterTransformsEvents>(
+  'calling.detect.trigger'
+)
+
 export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEvents> {
   protected _eventsPrefix = 'calling' as const
-
-  /** @internal */
-  protected subscribeParams = {
-    get_initial_state: true,
-  }
 
   public callId: string
   public nodeId: string
@@ -297,6 +305,26 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
           payloadTransform: (payload: CallingCallConnectEventParams) => {
             const { tag, ...peerParams } = payload.peer
             return toExternalJSON(peerParams)
+          },
+        },
+      ],
+      [
+        [
+          callingDetectTriggerEvent,
+          'calling.detect.started',
+          'calling.detect.ended',
+        ],
+        {
+          type: 'voiceCallDetect',
+          instanceFactory: (_payload: any) => {
+            return createCallDetectObject({
+              store: this.store,
+              // @ts-expect-error
+              emitter: this.emitter,
+            })
+          },
+          payloadTransform: (payload: CallingCallDetectEventParams) => {
+            return toExternalJSON(payload)
           },
         },
       ],
@@ -829,6 +857,63 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       this.once('connect.disconnected', resolveHandler)
       // @ts-expect-error
       this.once('connect.failed', resolveHandler)
+    })
+  }
+
+  detect(params: VoiceCallDetectMethodParams) {
+    return new Promise<CallDetect>((resolve, reject) => {
+      if (!this.callId || !this.nodeId) {
+        reject(new Error(`Can't call detect() on a call not established yet.`))
+      }
+
+      const controlId = uuid()
+
+      this.setWorker('voiceCallDetectWorker', {
+        worker: voiceCallDetectWorker,
+      })
+      this.attachWorkers({
+        payload: {
+          controlId,
+        },
+      })
+
+      const resolveHandler = (callDetect: CallDetect) => {
+        resolve(callDetect)
+      }
+
+      // @ts-expect-error
+      this.on(callingDetectTriggerEvent, resolveHandler)
+
+      // TODO: build params in a method
+      const { timeout, type, ...rest } = params
+
+      this.execute({
+        method: 'calling.detect',
+        params: {
+          node_id: this.nodeId,
+          call_id: this.callId,
+          control_id: controlId,
+          timeout,
+          detect: {
+            type,
+            params: rest,
+          },
+        },
+      })
+        .then(() => {
+          const startEvent: CallingCallDetectEventParams = {
+            control_id: controlId,
+            call_id: this.id,
+            node_id: this.nodeId,
+          }
+          // @ts-expect-error
+          this.emit(callingDetectTriggerEvent, startEvent)
+        })
+        .catch((e) => {
+          // @ts-expect-error
+          this.off(callingDetectTriggerEvent, resolveHandler)
+          reject(e)
+        })
     })
   }
 }
