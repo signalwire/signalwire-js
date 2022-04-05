@@ -61,6 +61,7 @@ export type CallCollect = 'call.collect'
 export type CallTap = 'call.tap'
 export type CallConnect = 'call.connect'
 export type CallSendDigits = 'call.send_digits'
+export type CallDetect = 'call.detect'
 
 /**
  * Public event types
@@ -86,6 +87,8 @@ export type CallConnectConnecting = 'connect.connecting'
 export type CallConnectConnected = 'connect.connected'
 export type CallConnectDisconnected = 'connect.disconnected'
 export type CallConnectFailed = 'connect.failed'
+export type CallDetectStarted = 'detect.started'
+export type CallDetectEnded = 'detect.ended'
 
 /**
  * List of public event names
@@ -110,6 +113,8 @@ export type VoiceCallEventNames =
   | CallConnectConnected
   | CallConnectDisconnected
   | CallConnectFailed
+  | CallDetectStarted
+  | CallDetectEnded
 
 /**
  * List of internal events
@@ -293,6 +298,32 @@ export interface VoiceCallConnectMethodParams {
   devices: NestedArray<VoiceCallDeviceParams>
 }
 
+export interface VoiceCallDetectMachineParams {
+  type: 'machine'
+  initial_timeout?: number
+  end_silence_timeout?: number
+  machine_voice_threshold?: number
+  machine_words_threshold?: number
+}
+
+export interface VoiceCallDetectFaxParams {
+  type: 'fax'
+  tone?: 'CED' | 'CNG'
+}
+
+export interface VoiceCallDetectDigitParams {
+  type: 'digit'
+  digits?: string
+}
+
+export type VoiceCallDetectMethodParams = {
+  timeout?: number
+} & (
+  | VoiceCallDetectMachineParams
+  | VoiceCallDetectFaxParams
+  | VoiceCallDetectDigitParams
+)
+
 export type VoiceCallDisconnectReason =
   | 'hangup'
   | 'cancel'
@@ -392,6 +423,33 @@ export type VoiceCallRecordingEntity =
  */
 export type VoiceCallRecordingMethods =
   OnlyFunctionProperties<VoiceCallRecordingContract>
+
+/**
+ * Public Contract for a VoiceCallDetect
+ */
+export interface VoiceCallDetectContract {
+  /** Unique id for this recording */
+  readonly id: string
+  /** @ignore */
+  readonly callId: string
+  /** @ignore */
+  readonly controlId: string
+  /** @ignore */
+  readonly state?: CallingCallRecordState // FIXME:
+
+  stop(): Promise<this>
+}
+
+/**
+ * VoiceCallDetect properties
+ */
+export type VoiceCallDetectEntity = OnlyStateProperties<VoiceCallDetectContract>
+
+/**
+ * VoiceCallDetect methods
+ */
+export type VoiceCallDetectMethods =
+  OnlyFunctionProperties<VoiceCallDetectContract>
 
 /**
  * Public Contract for a VoiceCallPrompt
@@ -517,6 +575,7 @@ export interface VoiceCallContract<T = any> {
   connect(params: VoiceCallConnectMethodParams): Promise<VoiceCallContract>
   waitUntilConnected(): Promise<this>
   disconnect(): Promise<void>
+  detect(params: VoiceCallDetectMethodParams): Promise<VoiceCallDetectContract>
 }
 
 /**
@@ -799,6 +858,41 @@ export interface CallingCallSendDigitsEvent extends SwEvent {
 }
 
 /**
+ * 'calling.call.detect'
+ */
+type DetectState = 'finished' | 'error'
+interface DetectFax {
+  type: 'fax'
+  params: {
+    event: 'CED' | 'CNG' | DetectState
+  }
+}
+interface DetectMachine {
+  type: 'machine'
+  params: {
+    event: 'MACHINE' | 'HUMAN' | 'UNKNOWN' | 'READY' | 'NOT_READY' | DetectState
+  }
+}
+interface DetectDigit {
+  type: 'digit'
+  params: {
+    event: string | DetectState
+  }
+}
+type Detector = DetectFax | DetectMachine | DetectDigit
+export interface CallingCallDetectEventParams {
+  node_id: string
+  call_id: string
+  control_id: string
+  detect?: Detector
+}
+
+export interface CallingCallDetectEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallDetect>
+  params: CallingCallDetectEventParams
+}
+
+/**
  * ==========
  * ==========
  * SDK-Side Events
@@ -937,6 +1031,21 @@ export interface CallConnectFailedEvent extends SwEvent {
   params: CallingCallConnectEventParams
 }
 
+/**
+ * 'calling.detect.started'
+ */
+export interface CallDetectStartedEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallDetectStarted>
+  params: CallingCallDetectEventParams & { tag: string }
+}
+/**
+ * 'calling.detect.ended'
+ */
+export interface CallDetectEndedEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallDetectEnded>
+  params: CallingCallDetectEventParams & { tag: string }
+}
+
 // interface VoiceCallStateEvent {
 //   call_id: string
 //   node_id: string
@@ -974,6 +1083,7 @@ export type VoiceCallEvent =
   | CallingCallTapEvent
   | CallingCallConnectEvent
   | CallingCallSendDigitsEvent
+  | CallingCallDetectEvent
   // SDK Events
   | CallReceivedEvent
   | CallPlaybackStartedEvent
@@ -993,6 +1103,8 @@ export type VoiceCallEvent =
   | CallConnectConnectedEvent
   | CallConnectDisconnectedEvent
   | CallConnectFailedEvent
+  | CallDetectStartedEvent
+  | CallDetectEndedEvent
 
 export type VoiceCallEventParams =
   // Server Event Params
@@ -1005,6 +1117,7 @@ export type VoiceCallEventParams =
   | CallingCallTapEventParams
   | CallingCallConnectEventParams
   | CallingCallSendDigitsEventParams
+  | CallingCallDetectEventParams
   // SDK Event Params
   | CallReceivedEvent['params']
   | CallPlaybackStartedEvent['params']
@@ -1024,6 +1137,8 @@ export type VoiceCallEventParams =
   | CallConnectConnectedEvent['params']
   | CallConnectDisconnectedEvent['params']
   | CallConnectFailedEvent['params']
+  | CallDetectStartedEvent['params']
+  | CallDetectEndedEvent['params']
 
 export type VoiceCallAction = MapToPubSubShape<VoiceCallEvent>
 
@@ -1046,6 +1161,8 @@ export type VoiceCallJSONRPCMethod =
   | 'calling.connect'
   | 'calling.disconnect'
   | 'calling.send_digits'
+  | 'calling.detect'
+  | 'calling.detect.stop'
 
 export type CallingTransformType =
   | 'voiceCallReceived'
@@ -1055,3 +1172,4 @@ export type CallingTransformType =
   | 'voiceCallTap'
   | 'voiceCallConnect'
   | 'voiceCallState'
+  | 'voiceCallDetect'
