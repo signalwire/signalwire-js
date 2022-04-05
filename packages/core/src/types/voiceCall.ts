@@ -217,7 +217,7 @@ type SpeechOrDigits =
   | {
       digits: {
         max: number
-        digit_timeout?: number
+        digitTimeout?: number
         terminators?: string
       }
       speech?: never
@@ -225,8 +225,8 @@ type SpeechOrDigits =
   | {
       digits?: never
       speech: {
-        end_silence_timeout: number
-        speech_timeout: number
+        endSilenceTimeout: number
+        speechTimeout: number
         language: number
         hints: string[]
       }
