@@ -4,7 +4,7 @@ import {
   EventTransform,
   toExternalJSON,
 } from '@signalwire/core'
-import { connect, BaseConsumer } from '@signalwire/core'
+import { connect, BaseComponent } from '@signalwire/core'
 import type { RealTimeMessagingApiEvents } from '../types'
 import { RealtimeClient } from '../client/index'
 import { messagingWorker } from './workers'
@@ -34,7 +34,7 @@ export interface Messaging
 }
 
 /** @internal */
-class MessagingAPI extends BaseConsumer<RealTimeMessagingApiEvents> {
+class MessagingAPI extends BaseComponent<RealTimeMessagingApiEvents> {
   /** @internal */
 
   constructor(options: BaseComponentOptions<RealTimeMessagingApiEvents>) {
