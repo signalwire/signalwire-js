@@ -1,5 +1,5 @@
 import {
-  ConsumerContract,
+  DisconnectableClientContract,
   BaseComponentOptions,
   EventTransform,
   toExternalJSON,
@@ -27,7 +27,7 @@ interface InternalMessagingSendParams
 }
 
 export interface Messaging
-  extends ConsumerContract<RealTimeMessagingApiEvents> {
+  extends DisconnectableClientContract<Messaging, RealTimeMessagingApiEvents> {
   /** @internal */
   _session: RealtimeClient
   send(params: MessagingSendParams): Promise<any>
