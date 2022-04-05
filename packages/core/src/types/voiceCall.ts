@@ -240,20 +240,20 @@ export type VoiceCallPromptMethodParams = SpeechOrDigits & {
 export type VoiceCallPromptAudioMethodParams = SpeechOrDigits &
   Omit<VoiceCallPlayAudioParams, 'type'> & {
     volume?: number
-    initial_timeout?: number
-    partial_results?: boolean
+    initialTimeout?: number
+    partialResults?: boolean
   }
 export type VoiceCallPromptRingtoneMethodParams = SpeechOrDigits &
   Omit<VoiceCallPlayRingtoneParams, 'type'> & {
     volume?: number
-    initial_timeout?: number
-    partial_results?: boolean
+    initialTimeout?: number
+    partialResults?: boolean
   }
 export type VoiceCallPromptTTSMethodParams = SpeechOrDigits &
   Omit<VoiceCallPlayTTSParams, 'type'> & {
     volume?: number
-    initial_timeout?: number
-    partial_results?: boolean
+    initialTimeout?: number
+    partialResults?: boolean
   }
 type TapCodec = 'OPUS' | 'PCMA' | 'PCMU'
 interface TapDeviceWS {
