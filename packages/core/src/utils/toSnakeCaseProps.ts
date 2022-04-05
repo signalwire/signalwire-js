@@ -1,7 +1,14 @@
+import { CamelToSnakeCase } from '../types/utils'
 import { fromCamelToSnakeCase } from './common'
 
-export const toSnakeCaseProps = (
-  obj: any,
+type ToSnakeCaseProps<T> = {
+  [Property in NonNullable<keyof T> as CamelToSnakeCase<
+    Extract<Property, string>
+  >]: T[Property]
+}
+
+export const toSnakeCaseProps = <T extends Record<string, any>>(
+  obj: T,
   transform: (value: string) => any = (value: string) => value,
   result: Record<string, any> = {}
 ) => {
@@ -13,6 +20,5 @@ export const toSnakeCaseProps = (
       result[newKey] = transform(obj[key])
     }
   })
-  return result
+  return result as ToSnakeCaseProps<T>
 }
-
