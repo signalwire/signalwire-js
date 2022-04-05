@@ -207,8 +207,8 @@ export interface VoiceCallRecordMethodParams {
     format?: 'mp3' | 'wav'
     stereo?: boolean
     direction?: 'listen' | 'speak' | 'both'
-    initial_timeout?: number
-    end_silence_timeout?: number
+    initialTimeout?: number
+    endSilenceTimeout?: number
     terminators?: string
   }
 }
