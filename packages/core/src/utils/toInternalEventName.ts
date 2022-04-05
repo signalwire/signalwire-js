@@ -1,3 +1,4 @@
+import { fromCamelToSnakeCase } from './common'
 import { EVENT_NAMESPACE_DIVIDER } from './constants'
 import { EventEmitter } from './EventEmitter'
 
@@ -25,18 +26,6 @@ export const toInternalEventName = <
   }
 
   return event
-}
-
-const UPPERCASE_REGEX = /[A-Z]/g
-/**
- * Converts values from camelCase to snake_case
- * @internal
- */
-const fromCamelToSnakeCase = <T>(event: T): T => {
-  // @ts-ignore
-  return event.replace(UPPERCASE_REGEX, (letter) => {
-    return `_${letter.toLowerCase()}`
-  }) as T
 }
 
 const getNamespacedEvent = ({
