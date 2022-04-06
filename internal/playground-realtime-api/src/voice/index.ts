@@ -139,7 +139,7 @@ async function run() {
         volume: 1.0,
         digits: {
           max: 4,
-          digit_timeout: 10,
+          digitTimeout: 10,
           terminators: '#',
         },
       })

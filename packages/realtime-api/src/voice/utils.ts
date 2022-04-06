@@ -3,6 +3,7 @@ import {
   VoiceCallDialMethodParams,
   VoiceCallPlayParams,
   VoiceCallPlayMethodParams,
+  toSnakeCaseKeys,
 } from '@signalwire/core'
 
 const toInternalDevice = (device: VoiceCallDeviceParams) => {
@@ -11,18 +12,18 @@ const toInternalDevice = (device: VoiceCallDeviceParams) => {
       const { type, ...params } = device
       return {
         type,
-        params,
+        params: toSnakeCaseKeys(params),
       }
     }
     case 'phone': {
       const { to, from, type, ...rest } = device
       return {
         type,
-        params: {
+        params: toSnakeCaseKeys({
           ...rest,
           to_number: to,
           from_number: from,
-        },
+        }),
       }
     }
 
