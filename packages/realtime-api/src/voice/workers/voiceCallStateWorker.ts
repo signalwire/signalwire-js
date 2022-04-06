@@ -22,8 +22,8 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
   const { swEventChannel, pubSubChannel } = channels
   getLogger().trace('voiceCallStateWorker started')
 
-  let isDone = false
-  while (!isDone) {
+  let run = true
+  while (run) {
     const action: MapToPubSubShape<CallingCallStateEvent> =
       yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
         if (
@@ -62,7 +62,7 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
         payload: newPayload,
       })
     } else if (action.payload.call_state === 'ended') {
-      isDone = true
+      run = false
 
       yield sagaEffects.put(pubSubChannel, {
         // @ts-expect-error
