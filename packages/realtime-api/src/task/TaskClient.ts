@@ -35,11 +35,13 @@ const TaskClient = function (options?: TaskClientOptions) {
 
     return task.once(...args)
   }
+  const disconnect = () => client.disconnect()
 
   const interceptors = {
     on: taskOn,
     once: taskOnce,
     _session: client,
+    disconnect,
   } as const
 
   return new Proxy<Omit<TaskClient, 'new'>>(task, {

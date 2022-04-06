@@ -33,6 +33,11 @@ async function run() {
     }
 
     console.log('Client Running..')
+
+    setTimeout(async () => {
+      console.log('Disconnect the client..')
+      client.disconnect()
+    }, 10_000)
   } catch (error) {
     console.log('<Error>', error)
   }

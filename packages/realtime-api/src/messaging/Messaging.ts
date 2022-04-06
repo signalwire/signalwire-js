@@ -1,10 +1,10 @@
 import {
-  ConsumerContract,
+  DisconnectableClientContract,
   BaseComponentOptions,
   EventTransform,
   toExternalJSON,
 } from '@signalwire/core'
-import { connect, BaseConsumer } from '@signalwire/core'
+import { connect, BaseComponent } from '@signalwire/core'
 import type { RealTimeMessagingApiEvents } from '../types'
 import { RealtimeClient } from '../client/index'
 import { messagingWorker } from './workers'
@@ -27,14 +27,14 @@ interface InternalMessagingSendParams
 }
 
 export interface Messaging
-  extends ConsumerContract<RealTimeMessagingApiEvents> {
+  extends DisconnectableClientContract<Messaging, RealTimeMessagingApiEvents> {
   /** @internal */
   _session: RealtimeClient
   send(params: MessagingSendParams): Promise<any>
 }
 
 /** @internal */
-class MessagingAPI extends BaseConsumer<RealTimeMessagingApiEvents> {
+class MessagingAPI extends BaseComponent<RealTimeMessagingApiEvents> {
   /** @internal */
 
   constructor(options: BaseComponentOptions<RealTimeMessagingApiEvents>) {

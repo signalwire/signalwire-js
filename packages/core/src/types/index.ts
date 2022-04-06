@@ -104,6 +104,11 @@ export interface ClientContract<
   disconnect(): void
 }
 
+export interface DisconnectableClientContract<
+  ClientInstance,
+  EventTypes extends EventEmitter.ValidEventTypes
+> extends Omit<ClientContract<ClientInstance, EventTypes>, 'connect'> {}
+
 export interface WebRTCMessageParams extends SwEvent {
   event_type: 'webrtc.message'
   project_id: string

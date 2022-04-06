@@ -4,9 +4,7 @@ const client = new Task.Client({
   host: process.env.HOST || 'relay.swire.io',
   project: process.env.PROJECT as string,
   token: process.env.TOKEN as string,
-
   contexts: ['office'],
-
   debug: {
     logWsTraffic: true,
   },
@@ -25,4 +23,9 @@ setTimeout(async () => {
     context: 'office',
     message: { yo: ['bro', 1, true] },
   })
+
+  setTimeout(async () => {
+    console.log('Disconnect the client..')
+    client.disconnect()
+  }, 2000)
 }, 2000)

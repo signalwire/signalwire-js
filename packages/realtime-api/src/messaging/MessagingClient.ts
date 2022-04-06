@@ -44,12 +44,14 @@ const MessagingClient = function (options?: MessagingClientOptions) {
 
     return messaging.send(...args)
   }
+  const disconnect = () => client.disconnect()
 
   const interceptors = {
     on: messagingOn,
     once: messagingOnce,
     send: send,
     _session: client,
+    disconnect,
   } as const
 
   return new Proxy<Omit<MessagingClient, 'new'>>(messaging, {

@@ -1,16 +1,20 @@
-import type { ConsumerContract, BaseComponentOptions } from '@signalwire/core'
-import { connect, BaseConsumer } from '@signalwire/core'
+import type {
+  DisconnectableClientContract,
+  BaseComponentOptions,
+} from '@signalwire/core'
+import { connect, BaseComponent } from '@signalwire/core'
 import type { RealTimeTaskApiEvents } from '../types'
 import { RealtimeClient } from '../client/index'
 import { taskWorker } from './workers'
 
-export interface Task extends ConsumerContract<RealTimeTaskApiEvents> {
+export interface Task
+  extends DisconnectableClientContract<Task, RealTimeTaskApiEvents> {
   /** @internal */
   _session: RealtimeClient
 }
 
 /** @internal */
-class TaskAPI extends BaseConsumer<RealTimeTaskApiEvents> {
+class TaskAPI extends BaseComponent<RealTimeTaskApiEvents> {
   constructor(options: BaseComponentOptions<RealTimeTaskApiEvents>) {
     super(options)
 
