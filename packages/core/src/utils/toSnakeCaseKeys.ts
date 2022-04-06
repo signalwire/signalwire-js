@@ -19,7 +19,7 @@ export const toSnakeCaseKeys = <T extends Record<string, any>>(
   } else {
     Object.keys(obj).forEach((key) => {
       const newKey = fromCamelToSnakeCase(key)
-      if (typeof obj[key] === 'object') {
+      if (typeOf(obj[key]) === 'object') {
         result[newKey] = toSnakeCaseKeys(obj[key], transform, result[newKey])
       } else {
         result[newKey] = transform(obj[key])
