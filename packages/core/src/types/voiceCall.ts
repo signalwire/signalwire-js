@@ -138,7 +138,7 @@ export interface VoiceCallSipParams {
   timeout?: number
   headers?: SipHeader[]
   codecs?: SipCodec[]
-  webrtc_media?: boolean
+  webrtcMedia?: boolean
 }
 
 export interface NestedArray<T> extends Array<T | NestedArray<T>> {}
@@ -207,8 +207,8 @@ export interface VoiceCallRecordMethodParams {
     format?: 'mp3' | 'wav'
     stereo?: boolean
     direction?: 'listen' | 'speak' | 'both'
-    initial_timeout?: number
-    end_silence_timeout?: number
+    initialTimeout?: number
+    endSilenceTimeout?: number
     terminators?: string
   }
 }
@@ -217,7 +217,7 @@ type SpeechOrDigits =
   | {
       digits: {
         max: number
-        digit_timeout?: number
+        digitTimeout?: number
         terminators?: string
       }
       speech?: never
@@ -225,8 +225,8 @@ type SpeechOrDigits =
   | {
       digits?: never
       speech: {
-        end_silence_timeout: number
-        speech_timeout: number
+        endSilenceTimeout: number
+        speechTimeout: number
         language: number
         hints: string[]
       }
@@ -234,26 +234,26 @@ type SpeechOrDigits =
 export type VoiceCallPromptMethodParams = SpeechOrDigits & {
   media: NestedArray<VoiceCallPlayParams>
   volume?: number
-  initial_timeout?: number
-  partial_results?: boolean
+  initialTimeout?: number
+  partialResults?: boolean
 }
 export type VoiceCallPromptAudioMethodParams = SpeechOrDigits &
   Omit<VoiceCallPlayAudioParams, 'type'> & {
     volume?: number
-    initial_timeout?: number
-    partial_results?: boolean
+    initialTimeout?: number
+    partialResults?: boolean
   }
 export type VoiceCallPromptRingtoneMethodParams = SpeechOrDigits &
   Omit<VoiceCallPlayRingtoneParams, 'type'> & {
     volume?: number
-    initial_timeout?: number
-    partial_results?: boolean
+    initialTimeout?: number
+    partialResults?: boolean
   }
 export type VoiceCallPromptTTSMethodParams = SpeechOrDigits &
   Omit<VoiceCallPlayTTSParams, 'type'> & {
     volume?: number
-    initial_timeout?: number
-    partial_results?: boolean
+    initialTimeout?: number
+    partialResults?: boolean
   }
 type TapCodec = 'OPUS' | 'PCMA' | 'PCMU'
 interface TapDeviceWS {
