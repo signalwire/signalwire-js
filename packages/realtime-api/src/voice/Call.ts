@@ -24,6 +24,7 @@ import {
   EventTransform,
   toLocalEvent,
   toExternalJSON,
+  toSnakeCaseKeys,
   CallingCallPlayEventParams,
   VoiceCallTapMethodParams,
   VoiceCallTapAudioMethodParams,
@@ -498,7 +499,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       // @ts-expect-error
       this.on(callingRecordTriggerEvent, resolveHandler)
 
-      const record = { ...params }
+      const record = toSnakeCaseKeys(params)
       this.execute({
         method: 'calling.record',
         params: {
@@ -564,7 +565,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         speech,
         media,
         volume,
-      } = params
+      } = toSnakeCaseKeys(params)
       const collect = {
         initial_timeout,
         partial_results,
