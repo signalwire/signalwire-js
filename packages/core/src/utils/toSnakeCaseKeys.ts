@@ -1,5 +1,5 @@
 import { CamelToSnakeCase } from '../types/utils'
-import { fromCamelToSnakeCase, typeOf } from './common'
+import { fromCamelToSnakeCase } from './common'
 
 type ToSnakeCaseKeys<T> = {
   [Property in NonNullable<keyof T> as CamelToSnakeCase<
@@ -12,14 +12,15 @@ export const toSnakeCaseKeys = <T extends Record<string, any>>(
   transform: (value: string) => any = (value: string) => value,
   result: Record<string, any> = {}
 ) => {
-  if (typeOf(obj) === 'array') {
+  if (Array.isArray(obj)) {
     result = obj.map((item: any, index: number) =>
       toSnakeCaseKeys(item, transform, result[index])
     )
   } else {
     Object.keys(obj).forEach((key) => {
       const newKey = fromCamelToSnakeCase(key)
-      if (typeOf(obj[key]) === 'object' || typeOf(obj[key]) === 'array') {
+      // Both 'object's and arrays will enter this branch
+      if (obj[key] && typeof obj[key] === 'object') {
         result[newKey] = toSnakeCaseKeys(obj[key], transform, result[newKey])
       } else {
         result[newKey] = transform(obj[key])
