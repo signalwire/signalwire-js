@@ -1,7 +1,7 @@
 import {
   DisconnectableClientContract,
   BaseComponentOptions,
-  BaseConsumer,
+  BaseComponent,
 } from '@signalwire/core'
 import { connect } from '@signalwire/core'
 import type { TaskClientApiEvents } from '../types'
@@ -15,7 +15,7 @@ export interface Task
 }
 
 /** @internal */
-class TaskAPI extends BaseConsumer<TaskClientApiEvents> {
+class TaskAPI extends BaseComponent<TaskClientApiEvents> {
   constructor(options: BaseComponentOptions<TaskClientApiEvents>) {
     super(options)
 
