@@ -4,7 +4,7 @@ export type TaskClientApiEventsDocs = {
    * payload. Example:
    *
    * ```javascript
-   * const video = new Task.Client(...)
+   * const client = new Task.Client(...)
    * client.on('task.received', (payload) => {
    *   console.log('Task Received', payload)
    *   // Do something with the payload...
