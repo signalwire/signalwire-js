@@ -34,7 +34,7 @@ export class CallDetectAPI
   async stop() {
     // if (this.state !== 'finished') {
     await this.execute({
-      method: 'calling.tap.stop',
+      method: 'calling.detect.stop',
       params: {
         node_id: this.nodeId,
         call_id: this.callId,
@@ -50,7 +50,7 @@ export class CallDetectAPI
 export const createCallDetectObject = (
   params: CallDetectOptions
 ): CallDetect => {
-  const tap = connect<
+  const detect = connect<
     CallDetectEventsHandlerMapping,
     CallDetectAPI,
     CallDetect
@@ -63,5 +63,5 @@ export const createCallDetectObject = (
     },
   })(params)
 
-  return tap
+  return detect
 }
