@@ -7,15 +7,11 @@ import {
   CallingCallStateEvent,
   MapToPubSubShape,
 } from '@signalwire/core'
-import { Call } from '../Call'
-import {
-  SYNTHETIC_CALL_STATE_ANSWERED_EVENT,
-  SYNTHETIC_CALL_STATE_ENDED_EVENT,
-} from './'
+// import { Call } from '../Call'
 
 const TARGET_CALL_STATES = ['answered', 'failed', 'ended']
 
-export const voiceCallStateWorker: SDKWorker<Call> = function* (
+export const voiceCallStateWorker: SDKWorker<any> = function* (
   options
 ): SagaIterator {
   const { channels, instance } = options
@@ -40,7 +36,8 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
         return false
       })
 
-    // Inject `tag` to have our EE to work because inbound calls don't have tags.
+    // Inject `tag` to have our EE to work because inbound
+    // calls don't have tags.
     const newPayload = {
       tag: instance.tag,
       ...action.payload,
@@ -53,26 +50,6 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
       type: 'calling.call.state',
       payload: newPayload,
     })
-
-    if (action.payload.call_state === 'answered') {
-      yield sagaEffects.put(pubSubChannel, {
-        // @ts-expect-error
-        type: SYNTHETIC_CALL_STATE_ANSWERED_EVENT,
-        // @ts-expect-error
-        payload: newPayload,
-      })
-    } else if (action.payload.call_state === 'ended') {
-      run = false
-
-      yield sagaEffects.put(pubSubChannel, {
-        // @ts-expect-error
-        type: SYNTHETIC_CALL_STATE_ENDED_EVENT,
-        // @ts-expect-error
-        payload: newPayload,
-      })
-    } else {
-      throw new Error('[voiceCallStateWorker] unhandled call_state')
-    }
   }
   getLogger().trace('voiceCallStateWorker ended')
 }

@@ -32,6 +32,7 @@ import {
   CallingCallStateEventParams,
   VoiceCallConnectMethodParams,
   CallingCallConnectEventParams,
+  CallingCallDialEvent,
 } from '@signalwire/core'
 import { RealTimeCallApiEvents } from '../types'
 import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
@@ -45,6 +46,7 @@ import {
   voiceCallPromptWorker,
   voiceCallTapWorker,
   voiceCallConnectWorker,
+  voiceCallDialWorker,
 } from './workers'
 import { createCallPlaybackObject } from './CallPlayback'
 import { CallRecording, createCallRecordingObject } from './CallRecording'
@@ -125,6 +127,16 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
        * update the call object via the `calling.call.state` transform
        * and apply the "peer" property to the Proxy.
        */
+    })
+
+    /**
+     * It will take care of keeping instances of this class
+     * up-to-date with the latest changes sent from the
+     * server. Changes will be available to the consumer via
+     * our Proxy API.
+     */
+    this.setWorker('voiceCallStateWorker', {
+      worker: voiceCallStateWorker,
     })
   }
 
@@ -292,18 +304,25 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
   dial(params: VoiceCallDialMethodParams) {
     return new Promise((resolve, reject) => {
       // TODO: pass resolve/reject to the worker instead of use synthetic events?
-      this.setWorker('voiceCallStateWorker', {
-        worker: voiceCallStateWorker,
+      this.setWorker('voiceCallDialWorker', {
+        worker: voiceCallDialWorker,
       })
       this.attachWorkers()
 
-      // @ts-expect-error
-      this.once(SYNTHETIC_CALL_STATE_ANSWERED_EVENT, (payload: any) => {
-        this.callId = payload.call_id
-        this.nodeId = payload.node_id
+      this.once(
+        // @ts-expect-error
+        SYNTHETIC_CALL_STATE_ANSWERED_EVENT,
+        /**
+         * This event implies that dial_state === "answered",
+         * which implies `call` to be defined.
+         */
+        (payload: Required<CallingCallDialEvent['params']>) => {
+          this.callId = payload.call.call_id
+          this.nodeId = payload.node_id
 
-        resolve(this)
-      })
+          resolve(this)
+        }
+      )
 
       // this.once(SYNTHETIC_CALL_STATE_FAILED_EVENT, () => {
       //   reject(new Error('Failed to establish the call.'))
@@ -333,8 +352,8 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       }
 
       // TODO: pass resolve/reject to the worker instead of use synthetic events?
-      this.setWorker('voiceCallStateWorker', {
-        worker: voiceCallStateWorker,
+      this.setWorker('voiceCallDialWorker', {
+        worker: voiceCallDialWorker,
       })
       this.attachWorkers()
 
@@ -367,10 +386,10 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       }
 
       // TODO: pass resolve/reject to the worker instead of use synthetic events?
-      this.setWorker('voiceCallStateWorker', {
-        worker: voiceCallStateWorker,
+      this.setWorker('voiceCallDialWorker', {
+        worker: voiceCallDialWorker,
       })
-      this.attachWorkers({ payload: 1 })
+      this.attachWorkers()
 
       // @ts-expect-error
       this.once(SYNTHETIC_CALL_STATE_ANSWERED_EVENT, () => {
