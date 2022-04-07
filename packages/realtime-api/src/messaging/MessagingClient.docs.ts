@@ -1,9 +1,10 @@
-import { ConsumerContract } from '@signalwire/core'
+import { DisconnectableClientContract } from '@signalwire/core'
 import { MessagingClientApiEvents } from '../types'
 import { RealtimeClient } from '../client/index'
+import { Messaging } from './Messaging'
 
 export interface MessagingClientDocs
-  extends ConsumerContract<MessagingClientApiEvents> {
+  extends DisconnectableClientContract<Messaging, MessagingClientApiEvents> {
   new (opts: {
     /** SignalWire Project ID, e.g. `a10d8a9f-2166-4e82-56ff-118bc3a4840f` */
     project: string
@@ -55,6 +56,4 @@ export interface MessagingClientDocs
     media?: string[]
   }): Promise<any> // FIXME @edolix
 
-  /** @ignore */
-  subscribe(): Promise<void>
 }

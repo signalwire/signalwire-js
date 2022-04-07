@@ -1,6 +1,8 @@
-import type { Task } from './Task'
+import { DisconnectableClientContract } from '@signalwire/core';
+import { RealtimeClient } from '../client/index'
+import type { Task, TaskClientApiEvents } from './Task'
 
-export interface TaskClientDocs extends Task {
+export interface TaskClientDocs extends DisconnectableClientContract<Task, TaskClientApiEvents> {
   new (opts: {
     /** SignalWire project id, e.g. `a10d8a9f-2166-4e82-56ff-118bc3a4840f` */
     project: string
@@ -11,5 +13,5 @@ export interface TaskClientDocs extends Task {
   }): this
 
   /** @ignore */
-  subscribe(): Promise<void>
+  _session: RealtimeClient
 }

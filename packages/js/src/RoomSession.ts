@@ -141,6 +141,9 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
         await room.join()
       } catch (error) {
         getLogger().error('RoomSession Join', error)
+        // Disconnect the underlay client in case of media/signaling errors
+        client.disconnect()
+
         reject(error)
       }
     })

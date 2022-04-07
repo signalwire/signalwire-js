@@ -101,8 +101,23 @@ export interface ClientContract<
   EventTypes extends EventEmitter.ValidEventTypes
 > extends EmitterContract<EventTypes> {
   connect(): Promise<ClientInstance>
+
+  /**
+   * Disconnects this client. The client will stop receiving events and you will need to create a new instance if you want to use it again.
+   * 
+   * @example
+   * 
+   * ```js
+   * client.disconnect()
+   * ```
+   */
   disconnect(): void
 }
+
+export interface DisconnectableClientContract<
+  ClientInstance,
+  EventTypes extends EventEmitter.ValidEventTypes
+> extends Omit<ClientContract<ClientInstance, EventTypes>, 'connect'> {}
 
 export interface WebRTCMessageParams extends SwEvent {
   event_type: 'webrtc.message'
