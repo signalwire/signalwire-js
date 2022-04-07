@@ -24,7 +24,7 @@ export interface MessagingClientDocs
    *
    * @example
    *
-   * > Send a message in the context *office*.
+   * > Send a message (associated events will be received in the context *office*).
    *
    * ```js
    * const sendResult = await client.send({
