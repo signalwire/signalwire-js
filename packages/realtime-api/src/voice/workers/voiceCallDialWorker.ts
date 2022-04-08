@@ -13,7 +13,10 @@ import {
   SYNTHETIC_CALL_DIAL_FAILED_EVENT,
 } from './'
 
-const TARGET_DIAL_STATES = ['answered', 'failed']
+const TARGET_DIAL_STATES: CallingCallDialEvent['params']['dial_state'][] = [
+  'answered',
+  'failed',
+]
 
 export const voiceCallDialWorker: SDKWorker<Call> = function* (
   options
