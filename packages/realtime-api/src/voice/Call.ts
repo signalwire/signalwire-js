@@ -48,6 +48,7 @@ import {
   voiceCallConnectWorker,
   voiceCallDialWorker,
   SYNTHETIC_CALL_DIAL_ANSWERED_EVENT,
+  SYNTHETIC_CALL_DIAL_FAILED_EVENT,
 } from './workers'
 import { createCallPlaybackObject } from './CallPlayback'
 import { CallRecording, createCallRecordingObject } from './CallRecording'
@@ -325,9 +326,10 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         }
       )
 
-      // this.once(SYNTHETIC_CALL_STATE_FAILED_EVENT, () => {
-      //   reject(new Error('Failed to establish the call.'))
-      // })
+      // @ts-expect-error
+      this.once(SYNTHETIC_CALL_DIAL_FAILED_EVENT, () => {
+        reject(new Error('Failed to establish the call.'))
+      })
 
       this.execute({
         method: 'calling.dial',
