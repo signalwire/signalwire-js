@@ -34,6 +34,7 @@ export const configureFullStack = () => {
   const session = {
     dispatch: console.log,
     connect: jest.fn(),
+    disconnect: jest.fn(),
     execute: jest.fn(),
   }
   const emitter = new EventEmitter()
