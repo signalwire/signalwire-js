@@ -9,8 +9,7 @@ import {
 } from '@signalwire/core'
 // import { Call } from '../Call'
 import {
-  SYNTHETIC_CALL_STATE_ANSWERED_EVENT,
-  // SYNTHETIC_CALL_STATE_ENDED_EVENT,
+  SYNTHETIC_CALL_DIAL_ANSWERED_EVENT,
 } from './'
 
 const TARGET_CALL_STATES = ['dialing', 'answered', 'failed']
@@ -46,18 +45,16 @@ export const voiceCallDialWorker: SDKWorker<any> = function* (
       tag: instance.tag,
     }
 
-    console.log('>>> Payload from server', JSON.stringify(action.payload, null, 2));
-
-    console.log('>>>>>>> newPayload', JSON.stringify(newPayload, null, 2));
-
     if (action.payload.dial_state === 'answered') {
       yield sagaEffects.put(pubSubChannel, {
         // @ts-expect-error
-        type: SYNTHETIC_CALL_STATE_ANSWERED_EVENT,
+        type: SYNTHETIC_CALL_DIAL_ANSWERED_EVENT,
         // @ts-expect-error
         payload: newPayload,
       })
     }
+
+    // TODO: handle dial_state === "failed"
 
     // else if (action.payload.dial_state === 'failed') {
     //   run = false

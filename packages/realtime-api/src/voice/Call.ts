@@ -47,6 +47,7 @@ import {
   voiceCallTapWorker,
   voiceCallConnectWorker,
   voiceCallDialWorker,
+  SYNTHETIC_CALL_DIAL_ANSWERED_EVENT,
 } from './workers'
 import { createCallPlaybackObject } from './CallPlayback'
 import { CallRecording, createCallRecordingObject } from './CallRecording'
@@ -311,7 +312,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
       this.once(
         // @ts-expect-error
-        SYNTHETIC_CALL_STATE_ANSWERED_EVENT,
+        SYNTHETIC_CALL_DIAL_ANSWERED_EVENT,
         /**
          * This event implies that dial_state === "answered",
          * which implies `call` to be defined.
@@ -352,9 +353,6 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       }
 
       // TODO: pass resolve/reject to the worker instead of use synthetic events?
-      this.setWorker('voiceCallDialWorker', {
-        worker: voiceCallDialWorker,
-      })
       this.attachWorkers()
 
       // @ts-expect-error
@@ -385,10 +383,8 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         reject(new Error('Failed to answer the call.'))
       }
 
-      // TODO: pass resolve/reject to the worker instead of use synthetic events?
-      this.setWorker('voiceCallDialWorker', {
-        worker: voiceCallDialWorker,
-      })
+      // TODO: pass resolve/reject to the worker instead of
+      // use synthetic events?
       this.attachWorkers()
 
       // @ts-expect-error

@@ -18,3 +18,11 @@ export const SYNTHETIC_CALL_STATE_ANSWERED_EVENT = toSyntheticEvent(
 
 export const SYNTHETIC_CALL_STATE_ENDED_EVENT =
   toSyntheticEvent('calling.call.ended')
+
+export const SYNTHETIC_CALL_DIAL_ANSWERED_EVENT = toSyntheticEvent(
+  'calling.call.dial.answered'
+)
+
+export const SYNTHETIC_CALL_DIAL_FAILED_EVENT = toSyntheticEvent(
+  'calling.call.dial.failed'
+)
