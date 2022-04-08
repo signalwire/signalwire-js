@@ -7,7 +7,7 @@ import {
   CallingCallStateEvent,
   MapToPubSubShape,
 } from '@signalwire/core'
-// import { Call } from '../Call'
+import type { Call } from '../Call'
 import {
   SYNTHETIC_CALL_STATE_ANSWERED_EVENT,
   SYNTHETIC_CALL_STATE_ENDED_EVENT,
@@ -15,7 +15,7 @@ import {
 
 const TARGET_CALL_STATES = ['answered', 'failed', 'ended']
 
-export const voiceCallStateWorker: SDKWorker<any> = function* (
+export const voiceCallStateWorker: SDKWorker<Call> = function* (
   options
 ): SagaIterator {
   const { channels, instance } = options
