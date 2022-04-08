@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { RoomSession, UNSAFE_PROP_ACCESS } from './RoomSession'
 
 describe('RoomSession Object', () => {
