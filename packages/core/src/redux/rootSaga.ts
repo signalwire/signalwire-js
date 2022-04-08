@@ -94,7 +94,7 @@ export function* initSessionSaga({
     session,
     sessionChannel,
     pubSubChannel,
-    swEventChannel
+    swEventChannel,
   })
 
   /**
@@ -120,6 +120,7 @@ export function* initSessionSaga({
   compCleanupTask?.cancel()
   pubSubChannel.close()
   sessionChannel.close()
+  swEventChannel.close()
   customTasks.forEach((task) => task.cancel())
 }
 
