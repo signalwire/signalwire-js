@@ -16,6 +16,7 @@ import type {
   MessagingAction,
   SwEventParams,
   VoiceCallAction,
+  VideoManagerAction,
 } from '../types'
 import { SDKRunSaga } from '.'
 import { END, MulticastChannel } from '@redux-saga/core'
@@ -108,6 +109,7 @@ export type PubSubAction =
       type: SessionEvents
       payload: Error | undefined
     }
+  | VideoManagerAction
   | ChatAction
   | TaskAction
   | MessagingAction

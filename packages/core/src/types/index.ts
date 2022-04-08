@@ -1,7 +1,7 @@
 import type { EventEmitter } from '../utils/EventEmitter'
 import type { VideoAPIEventParams, InternalVideoEventNames } from './video'
 import type { SessionEvents, JSONRPCRequest } from '../utils/interfaces'
-import type { CantinaEvent } from './cantina'
+import type { VideoManagerEvent } from './cantina'
 import type { ChatEvent } from './chat'
 import type { TaskEvent } from './task'
 import type { MessagingEvent } from './messaging'
@@ -120,7 +120,7 @@ export interface WebRTCMessageParams extends SwEvent {
 export type SwEventParams =
   | VideoAPIEventParams
   | WebRTCMessageParams
-  | CantinaEvent
+  | VideoManagerEvent
   | ChatEvent
   | TaskEvent
   | MessagingEvent
