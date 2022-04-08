@@ -311,25 +311,31 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       })
       this.attachWorkers()
 
-      this.once(
-        // @ts-expect-error
-        SYNTHETIC_CALL_DIAL_ANSWERED_EVENT,
+      const dialAnswerHandler = (
         /**
          * This event implies that dial_state === "answered",
          * which implies `call` to be defined.
          */
-        (payload: Required<CallingCallDialEvent['params']>) => {
-          this.callId = payload.call.call_id
-          this.nodeId = payload.node_id
-
-          resolve(this)
-        }
-      )
-
-      // @ts-expect-error
-      this.once(SYNTHETIC_CALL_DIAL_FAILED_EVENT, () => {
+        payload: Required<CallingCallDialEvent['params']>
+      ) => {
+        // @ts-expect-error
+        this.off(SYNTHETIC_CALL_DIAL_FAILED_EVENT, dialFailHandler)
+        this.callId = payload.call.call_id
+        this.nodeId = payload.node_id
+        resolve(this)
+      }
+      const dialFailHandler = () => {
+        // @ts-expect-error
+        this.off(SYNTHETIC_CALL_DIAL_ANSWERED_EVENT, dialAnswerHandler)
         reject(new Error('Failed to establish the call.'))
-      })
+      }
+      this.once(
+        // @ts-expect-error
+        SYNTHETIC_CALL_DIAL_ANSWERED_EVENT,
+        dialAnswerHandler
+      )
+      // @ts-expect-error
+      this.once(SYNTHETIC_CALL_DIAL_FAILED_EVENT, dialFailHandler)
 
       this.execute({
         method: 'calling.dial',
