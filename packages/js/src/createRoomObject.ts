@@ -124,7 +124,7 @@ export const createRoomObject = (
       }
     }
 
-    const room = client.rooms.makeRoomObject({
+    const roomObject = client.rooms.makeRoomObject({
       audio,
       video: video === true ? VIDEO_CONSTRAINTS : video,
       negotiateAudio: true,
@@ -138,8 +138,35 @@ export const createRoomObject = (
     })
 
     // WebRTC connection left the room.
-    room.once('destroy', () => {
+    roomObject.once('destroy', () => {
       client.disconnect()
+    })
+
+    const join = () => {
+      return new Promise(async (resolve, reject) => {
+        try {
+          roomObject.once('room.subscribed', (_payload) => {
+            resolve(roomObject)
+          })
+
+          await roomObject.join()
+        } catch (error) {
+          getLogger().error('Join', error)
+          // Disconnect the underlay client in case of media/signaling errors
+          client.disconnect()
+
+          reject(error)
+        }
+      })
+    }
+
+    const room = new Proxy(roomObject, {
+      get(target: any, prop: any, receiver: any) {
+        if (prop === 'join') {
+          return join
+        }
+        return Reflect.get(target, prop, receiver)
+      },
     })
 
     if (autoJoin) {
