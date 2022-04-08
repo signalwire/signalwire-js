@@ -32,11 +32,6 @@ export const voiceCallDialWorker: SDKWorker<Call> = function* (
         action.type === 'calling.call.dial' &&
         TARGET_DIAL_STATES.includes(action.payload.dial_state)
       ) {
-        // To avoid mixing events on `connect` we check for `instance.id`
-        // if there's already a callId value.
-        if (instance.id) {
-          return instance.id === action.payload.call?.call_id
-        }
         return instance.tag === action.payload.tag
       }
       return false
