@@ -16,7 +16,7 @@ import {
   createBaseRoomSessionObject,
   RoomSessionConnection,
 } from './BaseRoomSession'
-import { Cantina, createCantinaObject } from './cantina'
+import { VideoManager, createVideoManagerObject } from './cantina'
 import type { Client as ChatClient } from './chat/Client'
 
 export interface Client<RoomSessionType = RoomSession>
@@ -35,7 +35,7 @@ export interface MakeRoomOptions extends ConnectionOptions {
 export class ClientAPI<
   RoomSessionType = RoomSession
 > extends BaseClient<ClientEvents> {
-  private _cantina: Cantina
+  private _videoManager: VideoManager
   private _chat: ChatClient
 
   get rooms() {
@@ -134,12 +134,13 @@ export class ClientAPI<
     return this._chat
   }
 
-  get cantina() {
-    if (!this._cantina) {
+  /** @internal */
+  get videoManager() {
+    if (!this._videoManager) {
       // @ts-expect-error
-      this._cantina = createCantinaObject(this.options)
+      this._videoManager = createVideoManagerObject(this.options)
     }
-    return this._cantina
+    return this._videoManager
   }
 
   /**

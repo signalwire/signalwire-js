@@ -1,33 +1,45 @@
 import {
   BaseComponentOptions,
   BaseConsumer,
-  CantinaRoomEventNames,
-  InternalCantinaRoomEventNames,
+  VideoManagerRoomEventNames,
+  InternalVideoManagerRoomEventNames,
   connect,
   ConsumerContract,
   EventTransform,
   toExternalJSON,
-  CantinaRoomEntity,
-  CantinaRoomsSubscribedEventParams,
+  VideoManagerRoomEntity,
+  VideoManagerRoomsSubscribedEventParams,
 } from '@signalwire/core'
+import { videoManagerWorker } from './workers'
+
+type EmitterTransformsEvents = InternalVideoManagerRoomEventNames
 
 /** @internal */
-export type CantinaManagerEvents = Record<
-  CantinaRoomEventNames,
-  (room: CantinaRoomEntity) => void
+export type VideoManagerEvents = Record<
+  VideoManagerRoomEventNames,
+  (room: VideoManagerRoomEntity) => void
 >
 
 /** @internal */
-export interface Cantina extends ConsumerContract<CantinaManagerEvents> {}
+export interface VideoManager extends ConsumerContract<VideoManagerEvents> {}
 
 /** @internal */
-export class CantinaAPI extends BaseConsumer<CantinaManagerEvents> {
+export class VideoManagerAPI extends BaseConsumer<VideoManagerEvents> {
   protected _eventsPrefix = 'video-manager' as const
+
+  constructor(options: BaseComponentOptions<VideoManagerEvents>) {
+    super(options)
+
+    this.setWorker('videoManagerWorker', {
+      worker: videoManagerWorker,
+    })
+    this.attachWorkers()
+  }
 
   /** @internal */
   getEmitterTransforms() {
     return new Map<
-      InternalCantinaRoomEventNames | InternalCantinaRoomEventNames[],
+      EmitterTransformsEvents | EmitterTransformsEvents[],
       EventTransform
     >([
       [
@@ -35,10 +47,14 @@ export class CantinaAPI extends BaseConsumer<CantinaManagerEvents> {
         {
           type: 'roomSession',
           // For now we expose the transformed payload and not a RoomSession
-          instanceFactory: ({ rooms }: CantinaRoomsSubscribedEventParams) => ({
+          instanceFactory: ({
+            rooms,
+          }: VideoManagerRoomsSubscribedEventParams) => ({
             rooms: rooms.map((row) => toExternalJSON(row)),
           }),
-          payloadTransform: ({ rooms }: CantinaRoomsSubscribedEventParams) => ({
+          payloadTransform: ({
+            rooms,
+          }: VideoManagerRoomsSubscribedEventParams) => ({
             rooms: rooms.map((row) => toExternalJSON(row)),
           }),
         },
@@ -62,23 +78,23 @@ export class CantinaAPI extends BaseConsumer<CantinaManagerEvents> {
   }
 }
 
-export const createCantinaObject = (
-  params: BaseComponentOptions<CantinaManagerEvents>
+export const createVideoManagerObject = (
+  params: BaseComponentOptions<VideoManagerEvents>
 ) => {
-  const cantina = connect<CantinaManagerEvents, CantinaAPI, Cantina>({
+  const manager = connect<VideoManagerEvents, VideoManagerAPI, VideoManager>({
     store: params.store,
-    Component: CantinaAPI,
+    Component: VideoManagerAPI,
     componentListeners: {
       errors: 'onError',
       responses: 'onSuccess',
     },
   })(params)
 
-  const proxy = new Proxy<Cantina>(cantina, {
+  const proxy = new Proxy<VideoManager>(manager, {
     get(
-      target: Cantina,
+      target: VideoManager,
       property: string | symbol,
-      receiver: ProxyHandler<Cantina>
+      receiver: ProxyHandler<VideoManager>
     ) {
       if (property === '_eventsNamespace') {
         return ''

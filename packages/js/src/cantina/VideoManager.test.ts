@@ -1,33 +1,33 @@
 import { configureFullStack } from '../testUtils'
-import { Cantina, createCantinaObject } from '.'
+import { VideoManager, createVideoManagerObject } from '.'
 import { actions } from '@signalwire/core'
 
-describe('Cantina namespace', () => {
-  let cantina: Cantina
+describe('VideoManager namespace', () => {
+  let manager: VideoManager
   const { session, emitter, store } = configureFullStack()
   beforeEach(() => {
     emitter.removeAllListeners()
-    cantina = createCantinaObject({
+    manager = createVideoManagerObject({
       store,
       // @ts-expect-error
       emitter,
     })
     // @ts-expect-error
-    cantina.execute = jest.fn()
+    manager.execute = jest.fn()
   })
 
   it('should not call execute without subscribed events', (done) => {
-    cantina.subscribe()
+    manager.subscribe()
     // @ts-expect-error
-    expect(cantina.execute).not.toHaveBeenCalled()
+    expect(manager.execute).not.toHaveBeenCalled()
     done()
   })
 
   it('should call execute with subscribed events', async () => {
-    cantina.on('room.started', jest.fn)
-    await cantina.subscribe()
+    manager.on('room.started', jest.fn)
+    await manager.subscribe()
     // @ts-expect-error
-    expect(cantina.execute).toHaveBeenCalledWith({
+    expect(manager.execute).toHaveBeenCalledWith({
       method: 'signalwire.subscribe',
       params: {
         event_channel: 'video-manager.rooms',
@@ -42,13 +42,13 @@ describe('Cantina namespace', () => {
     )
 
     it('should pass RoomSession object to the handler', (done) => {
-      cantina.on('room.started', (room) => {
+      manager.on('room.started', (room) => {
         expect(room.id).toBe('room-id')
         expect(room.name).toBe('room-one')
         expect(room.memberCount).toBe(1)
         done()
       })
-      cantina.subscribe().then(() => {
+      manager.subscribe().then(() => {
         session.dispatch(actions.socketMessageAction(firstRoom))
       })
     })
@@ -60,13 +60,13 @@ describe('Cantina namespace', () => {
     )
 
     it('should pass RoomSession object to the handler', (done) => {
-      cantina.on('room.updated', (room) => {
+      manager.on('room.updated', (room) => {
         expect(room.id).toBe('room-id')
         expect(room.name).toBe('room-one')
         expect(room.memberCount).toBe(1)
         done()
       })
-      cantina.subscribe().then(() => {
+      manager.subscribe().then(() => {
         session.dispatch(actions.socketMessageAction(firstRoom))
       })
     })
@@ -78,13 +78,13 @@ describe('Cantina namespace', () => {
     )
 
     it('should pass RoomSession object to the handler', (done) => {
-      cantina.on('room.ended', (room) => {
+      manager.on('room.ended', (room) => {
         expect(room.id).toBe('room-id')
         expect(room.name).toBe('room-one')
         expect(room.memberCount).toBe(1)
         done()
       })
-      cantina.subscribe().then(() => {
+      manager.subscribe().then(() => {
         session.dispatch(actions.socketMessageAction(firstRoom))
       })
     })
