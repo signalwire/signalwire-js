@@ -13,8 +13,6 @@ import {
   SYNTHETIC_CALL_STATE_ENDED_EVENT,
 } from './'
 
-const TARGET_CALL_STATES = ['answered', 'failed', 'ended']
-
 export const voiceCallStateWorker: SDKWorker<Call> = function* (
   options
 ): SagaIterator {
@@ -27,8 +25,7 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
     const action: MapToPubSubShape<CallingCallStateEvent> =
       yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
         if (
-          action.type === 'calling.call.state' &&
-          TARGET_CALL_STATES.includes(action.payload.call_state)
+          action.type === 'calling.call.state'
         ) {
           // To avoid mixing events on `connect` we check for `instance.id`
           // if there's already a callId value.
@@ -71,8 +68,6 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
         // @ts-expect-error
         payload: newPayload,
       })
-    } else {
-      throw new Error('[voiceCallStateWorker] unhandled call_state')
     }
   }
   getLogger().trace('voiceCallStateWorker ended')
