@@ -1,7 +1,7 @@
 import { SwEvent, RoomStarted, RoomUpdated, RoomEnded } from '.'
 import { CamelToSnakeCase } from './utils'
 
-export type CantinaNamespace = 'cantina-manager'
+export type CantinaNamespace = 'video-manager'
 type ToInternalCantinaEvent<T extends string> = `${CantinaNamespace}.${T}`
 
 type RoomsSubscribed = 'rooms.subscribed'
@@ -73,7 +73,7 @@ export type InternalCantinaRoomEntity = {
  */
 
 /**
- * 'cantina-manager.rooms.subscribed'
+ * 'video-manager.rooms.subscribed'
  */
 export interface CantinaRoomsSubscribedEventParams {
   rooms: InternalCantinaRoomEntity[]
@@ -85,11 +85,11 @@ export interface CantinaRoomsSubscribedEvent extends SwEvent {
 }
 
 /**
- * 'cantina-manager.room.started'
- * 'cantina-manager.room.added'
- * 'cantina-manager.room.updated'
- * 'cantina-manager.room.ended'
- * 'cantina-manager.room.deleted'
+ * 'video-manager.room.started'
+ * 'video-manager.room.added'
+ * 'video-manager.room.updated'
+ * 'video-manager.room.ended'
+ * 'video-manager.room.deleted'
  */
 export interface CantinaRoomEventParams {
   room: InternalCantinaRoomEntity

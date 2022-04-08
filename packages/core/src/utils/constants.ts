@@ -20,7 +20,7 @@ export const LOCAL_EVENT_PREFIX = '__local__'
 export const SYNTHETIC_EVENT_PREFIX = '__synthetic__'
 
 export const PRODUCT_PREFIX_VIDEO = 'video'
-export const PRODUCT_PREFIX_CANTINA = 'cantina-manager'
+export const PRODUCT_PREFIX_CANTINA = 'video-manager'
 export const PRODUCT_PREFIX_CHAT = 'chat'
 export const PRODUCT_PREFIX_TASK = 'tasking'
 export const PRODUCT_PREFIX_MESSAGING = 'messaging'

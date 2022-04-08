@@ -22,7 +22,7 @@ export interface Cantina extends ConsumerContract<CantinaManagerEvents> {}
 
 /** @internal */
 export class CantinaAPI extends BaseConsumer<CantinaManagerEvents> {
-  protected _eventsPrefix = 'cantina-manager' as const
+  protected _eventsPrefix = 'video-manager' as const
 
   /** @internal */
   getEmitterTransforms() {
@@ -31,7 +31,7 @@ export class CantinaAPI extends BaseConsumer<CantinaManagerEvents> {
       EventTransform
     >([
       [
-        ['cantina-manager.rooms.subscribed'],
+        ['video-manager.rooms.subscribed'],
         {
           type: 'roomSession',
           // For now we expose the transformed payload and not a RoomSession
@@ -45,11 +45,11 @@ export class CantinaAPI extends BaseConsumer<CantinaManagerEvents> {
       ],
       [
         [
-          'cantina-manager.room.started',
-          'cantina-manager.room.added',
-          'cantina-manager.room.updated',
-          'cantina-manager.room.ended',
-          'cantina-manager.room.deleted',
+          'video-manager.room.started',
+          'video-manager.room.added',
+          'video-manager.room.updated',
+          'video-manager.room.ended',
+          'video-manager.room.deleted',
         ],
         {
           type: 'roomSession',
@@ -83,7 +83,7 @@ export const createCantinaObject = (
       if (property === '_eventsNamespace') {
         return ''
       } else if (property === 'eventChannel') {
-        return 'cantina-manager.rooms'
+        return 'video-manager.rooms'
       }
 
       return Reflect.get(target, property, receiver)

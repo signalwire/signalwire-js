@@ -53,7 +53,7 @@ const isVideoEvent = (e: SwEventParams): e is VideoAPIEventParams => {
   return !!e?.event_type?.startsWith('video.')
 }
 const isCantinaEvent = (e: SwEventParams): e is CantinaEvent => {
-  return !!e?.event_type?.startsWith('cantina-manager.')
+  return !!e?.event_type?.startsWith('video-manager.')
 }
 
 /**
