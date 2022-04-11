@@ -32,14 +32,11 @@ import {
   CallingCallStateEventParams,
   VoiceCallConnectMethodParams,
   CallingCallConnectEventParams,
-  CallingCallDialEvent,
 } from '@signalwire/core'
 import { RealTimeCallApiEvents } from '../types'
 import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
 import { toInternalDevices, toInternalPlayParams } from './utils'
 import {
-  SYNTHETIC_CALL_STATE_ANSWERED_EVENT,
-  SYNTHETIC_CALL_STATE_ENDED_EVENT,
   voiceCallStateWorker,
   voiceCallPlayWorker,
   voiceCallRecordWorker,
@@ -47,8 +44,6 @@ import {
   voiceCallTapWorker,
   voiceCallConnectWorker,
   voiceCallDialWorker,
-  SYNTHETIC_CALL_DIAL_ANSWERED_EVENT,
-  SYNTHETIC_CALL_DIAL_FAILED_EVENT,
 } from './workers'
 import { createCallPlaybackObject } from './CallPlayback'
 import { CallRecording, createCallRecordingObject } from './CallRecording'
@@ -305,37 +300,14 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
   dial(params: VoiceCallDialMethodParams) {
     return new Promise((resolve, reject) => {
-      // TODO: pass resolve/reject to the worker instead of use synthetic events?
-      this.setWorker('voiceCallDialWorker', {
+      this.runWorker('voiceCallDialWorker', {
         worker: voiceCallDialWorker,
+        onDone: resolve,
+        onFail: reject,
       })
-      this.attachWorkers()
 
-      const dialAnswerHandler = (
-        /**
-         * This event implies that dial_state === "answered",
-         * which implies `call` to be defined.
-         */
-        payload: Required<CallingCallDialEvent['params']>
-      ) => {
-        // @ts-expect-error
-        this.off(SYNTHETIC_CALL_DIAL_FAILED_EVENT, dialFailHandler)
-        this.callId = payload.call.call_id
-        this.nodeId = payload.node_id
-        resolve(this)
-      }
-      const dialFailHandler = () => {
-        // @ts-expect-error
-        this.off(SYNTHETIC_CALL_DIAL_ANSWERED_EVENT, dialAnswerHandler)
-        reject(new Error('Failed to establish the call.'))
-      }
-      this.once(
-        // @ts-expect-error
-        SYNTHETIC_CALL_DIAL_ANSWERED_EVENT,
-        dialAnswerHandler
-      )
-      // @ts-expect-error
-      this.once(SYNTHETIC_CALL_DIAL_FAILED_EVENT, dialFailHandler)
+      // TODO:
+      this.attachWorkers()
 
       this.execute({
         method: 'calling.dial',
@@ -360,12 +332,17 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         )
       }
 
-      // TODO: pass resolve/reject to the worker instead of use synthetic events?
-      this.attachWorkers()
-
       // @ts-expect-error
-      this.once(SYNTHETIC_CALL_STATE_ENDED_EVENT, () => {
-        resolve(undefined)
+      this.on('call.state', (params) => {
+        const { payload } = params
+        /**
+         * FIXME: this no-op listener is required for our EE transforms to
+         * update the call object via the `calling.call.state` transform
+         * and apply the "peer" property to the Proxy.
+         */
+        if (payload.call_state === 'ended') {
+          resolve(new Error('Failed to answer the call.'))
+        }
       })
 
       this.execute({
@@ -387,24 +364,15 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         reject(new Error(`Can't call answer() on a call without callId.`))
       }
 
-      const errorHandler = () => {
-        reject(new Error('Failed to answer the call.'))
-      }
-
-      // TODO: pass resolve/reject to the worker instead of
-      // use synthetic events?
-      this.attachWorkers()
-
       // @ts-expect-error
-      this.once(SYNTHETIC_CALL_STATE_ANSWERED_EVENT, () => {
-        // @ts-expect-error
-        this.off(SYNTHETIC_CALL_STATE_ENDED_EVENT, errorHandler)
-
-        resolve(this)
+      this.on('call.state', (params) => {
+        const { payload } = params
+        if (payload.call_state === 'answered') {
+          resolve(this)
+        } else if (payload.call_state === 'ended') {
+          reject(new Error('Failed to answer the call.'))
+        }
       })
-
-      // @ts-expect-error
-      this.once(SYNTHETIC_CALL_STATE_ENDED_EVENT, errorHandler)
 
       this.execute({
         method: 'calling.answer',
