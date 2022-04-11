@@ -7,13 +7,11 @@ import {
   CallingCallStateEvent,
   MapToPubSubShape,
 } from '@signalwire/core'
-import { Call } from '../Call'
+import type { Call } from '../Call'
 import {
   SYNTHETIC_CALL_STATE_ANSWERED_EVENT,
   SYNTHETIC_CALL_STATE_ENDED_EVENT,
 } from './'
-
-const TARGET_CALL_STATES = ['answered', 'failed', 'ended']
 
 export const voiceCallStateWorker: SDKWorker<Call> = function* (
   options
@@ -22,13 +20,12 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
   const { swEventChannel, pubSubChannel } = channels
   getLogger().trace('voiceCallStateWorker started')
 
-  let isDone = false
-  while (!isDone) {
+  let run = true
+  while (run) {
     const action: MapToPubSubShape<CallingCallStateEvent> =
       yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
         if (
-          action.type === 'calling.call.state' &&
-          TARGET_CALL_STATES.includes(action.payload.call_state)
+          action.type === 'calling.call.state'
         ) {
           // To avoid mixing events on `connect` we check for `instance.id`
           // if there's already a callId value.
@@ -40,7 +37,8 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
         return false
       })
 
-    // Inject `tag` to have our EE to work because inbound calls don't have tags.
+    // Inject `tag` to have our EE to work because inbound
+    // calls don't have tags.
     const newPayload = {
       tag: instance.tag,
       ...action.payload,
@@ -62,7 +60,7 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
         payload: newPayload,
       })
     } else if (action.payload.call_state === 'ended') {
-      isDone = true
+      run = false
 
       yield sagaEffects.put(pubSubChannel, {
         // @ts-expect-error
@@ -70,8 +68,6 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
         // @ts-expect-error
         payload: newPayload,
       })
-    } else {
-      throw new Error('[voiceCallStateWorker] unhandled call_state')
     }
   }
   getLogger().trace('voiceCallStateWorker ended')
