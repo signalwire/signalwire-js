@@ -34,6 +34,13 @@ export const makeVideoElementSaga = ({
       const layerMap = new Map<string, HTMLDivElement>()
       const videoEl = buildVideo()
 
+      /**
+       * We used this `LocalOverlay` interface to interact with the localVideo
+       * overlay DOM element in here and in the `layoutChangedHandler`.
+       * The idea is to avoid APIs like `document.getElementById` because it
+       * won't work if the SDK is used within a Shadow DOM tree.
+       * Instead of querying the `document`, let's use our `layerMap`.
+       */
       const localOverlay: LocalOverlay = {
         get id() {
           return addSDKPrefix(room.memberId)
