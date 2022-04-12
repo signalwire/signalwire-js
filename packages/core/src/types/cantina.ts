@@ -1,15 +1,17 @@
 import { SwEvent, RoomStarted, RoomUpdated, RoomEnded } from '.'
+import { MapToPubSubShape } from '..'
 import { CamelToSnakeCase } from './utils'
 
-export type CantinaNamespace = 'cantina-manager'
-type ToInternalCantinaEvent<T extends string> = `${CantinaNamespace}.${T}`
+type VideoManagerNamespace = 'video-manager'
+type ToInternalVideoManagerEvent<T extends string> =
+  `${VideoManagerNamespace}.${T}`
 
 type RoomsSubscribed = 'rooms.subscribed'
 type RoomAdded = 'room.added'
 type RoomDeleted = 'room.deleted'
 
 /** @internal */
-export type CantinaRoomEventNames =
+export type VideoManagerRoomEventNames =
   | RoomStarted
   | RoomAdded
   | RoomUpdated
@@ -20,12 +22,12 @@ export type CantinaRoomEventNames =
  * List of internal events
  * @internal
  */
-export type InternalCantinaRoomEventNames =
-  | ToInternalCantinaEvent<RoomsSubscribed>
-  | ToInternalCantinaEvent<CantinaRoomEventNames>
+export type InternalVideoManagerRoomEventNames =
+  | ToInternalVideoManagerEvent<RoomsSubscribed>
+  | ToInternalVideoManagerEvent<VideoManagerRoomEventNames>
 
 /** @internal */
-type CantinaRoomRole =
+type VideoManagerRoomRole =
   | 'inviteable'
   | 'configurator'
   | 'visitor'
@@ -34,7 +36,7 @@ type CantinaRoomRole =
   | 'manager'
 
 /** @internal */
-export interface CantinaRoomEntity {
+export interface VideoManagerRoomEntity {
   id: string
   name: string
   cantinaId: string
@@ -53,15 +55,15 @@ export interface CantinaRoomEntity {
   customPreview?: string
   hasSmsFromNumber: boolean
   autoOpenNav: boolean
-  myRoles: CantinaRoomRole[]
+  myRoles: VideoManagerRoomRole[]
 }
 
 /**
- * CantinaRoomEntity for internal usage (converted to snake_case)
+ * VideoManagerRoomEntity for internal usage (converted to snake_case)
  * @internal
  */
-export type InternalCantinaRoomEntity = {
-  [K in keyof CantinaRoomEntity as CamelToSnakeCase<K>]: CantinaRoomEntity[K]
+export type InternalVideoManagerRoomEntity = {
+  [K in keyof VideoManagerRoomEntity as CamelToSnakeCase<K>]: VideoManagerRoomEntity[K]
 }
 
 /**
@@ -73,35 +75,39 @@ export type InternalCantinaRoomEntity = {
  */
 
 /**
- * 'cantina-manager.rooms.subscribed'
+ * 'video-manager.rooms.subscribed'
  */
-export interface CantinaRoomsSubscribedEventParams {
-  rooms: InternalCantinaRoomEntity[]
+export interface VideoManagerRoomsSubscribedEventParams {
+  rooms: InternalVideoManagerRoomEntity[]
 }
 
-export interface CantinaRoomsSubscribedEvent extends SwEvent {
-  event_type: ToInternalCantinaEvent<RoomsSubscribed>
-  params: CantinaRoomsSubscribedEventParams
+export interface VideoManagerRoomsSubscribedEvent extends SwEvent {
+  event_type: ToInternalVideoManagerEvent<RoomsSubscribed>
+  params: VideoManagerRoomsSubscribedEventParams
 }
 
 /**
- * 'cantina-manager.room.started'
- * 'cantina-manager.room.added'
- * 'cantina-manager.room.updated'
- * 'cantina-manager.room.ended'
- * 'cantina-manager.room.deleted'
+ * 'video-manager.room.started'
+ * 'video-manager.room.added'
+ * 'video-manager.room.updated'
+ * 'video-manager.room.ended'
+ * 'video-manager.room.deleted'
  */
-export interface CantinaRoomEventParams {
-  room: InternalCantinaRoomEntity
+export interface VideoManagerRoomEventParams {
+  room: InternalVideoManagerRoomEntity
 }
 
-export interface CantinaRoomEvent extends SwEvent {
-  event_type: ToInternalCantinaEvent<CantinaRoomEventNames>
-  params: CantinaRoomEventParams
+export interface VideoManagerRoomEvent extends SwEvent {
+  event_type: ToInternalVideoManagerEvent<VideoManagerRoomEventNames>
+  params: VideoManagerRoomEventParams
 }
 
-export type CantinaEvent = CantinaRoomsSubscribedEvent | CantinaRoomEvent
+export type VideoManagerEvent =
+  | VideoManagerRoomsSubscribedEvent
+  | VideoManagerRoomEvent
 
-export type CantinaEventParams =
-  | CantinaRoomsSubscribedEventParams
-  | CantinaRoomEventParams
+export type VideoManagerEventParams =
+  | VideoManagerRoomsSubscribedEventParams
+  | VideoManagerRoomEventParams
+
+export type VideoManagerAction = MapToPubSubShape<VideoManagerEvent>

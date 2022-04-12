@@ -20,7 +20,10 @@ export const LOCAL_EVENT_PREFIX = '__local__'
 export const SYNTHETIC_EVENT_PREFIX = '__synthetic__'
 
 export const PRODUCT_PREFIX_VIDEO = 'video'
-export const PRODUCT_PREFIX_CANTINA = 'cantina-manager'
+/**
+ * video-manager is an [internal] superset of the video apis
+ */
+export const PRODUCT_PREFIX_VIDEO_MANAGER = 'video-manager'
 export const PRODUCT_PREFIX_CHAT = 'chat'
 export const PRODUCT_PREFIX_TASK = 'tasking'
 export const PRODUCT_PREFIX_MESSAGING = 'messaging'
@@ -31,7 +34,7 @@ export const GLOBAL_VIDEO_EVENTS = ['room.started', 'room.ended'] as const
 
 export const PRODUCT_PREFIXES = [
   PRODUCT_PREFIX_VIDEO,
-  PRODUCT_PREFIX_CANTINA,
+  PRODUCT_PREFIX_VIDEO_MANAGER,
   PRODUCT_PREFIX_CHAT,
   PRODUCT_PREFIX_TASK,
   PRODUCT_PREFIX_MESSAGING,

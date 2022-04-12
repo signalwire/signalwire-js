@@ -1,1 +1,1 @@
-export * from './Cantina'
+export * from './VideoManager'
