@@ -17,6 +17,8 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
   getLogger().trace('voiceCallStateWorker started', instance.id, instance.tag)
 
   let run = true
+  const done = () => (run = false)
+
   while (run) {
     const action: MapToPubSubShape<CallingCallStateEvent> =
       yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
@@ -94,6 +96,10 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
       type: 'calling.call.state',
       payload: newPayload,
     })
+
+    if (newPayload.call_state === 'ended') {
+      done()
+    }
   }
 
   getLogger().info('voiceCallStateWorker ended', instance.id, instance.tag)
