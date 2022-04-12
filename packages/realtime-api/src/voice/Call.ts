@@ -276,7 +276,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
           payloadTransform: (payload: CallingCallStateEventParams) => {
             return toExternalJSON(payload)
           },
-          mode: "no-cache"
+          mode: 'no-cache',
         },
       ],
       [
