@@ -290,7 +290,11 @@ export class BaseComponent<
     transform: EventTransform
     payload: unknown
   }): BaseComponent<EventTypes> {
-    if (!this._eventsTransformsCache.has(internalEvent)) {
+    if (transform.mode === "no-cache") {
+      const instance = transform.instanceFactory(payload)
+
+      return instance
+    } else if (!this._eventsTransformsCache.has(internalEvent)) {
       const instance = transform.instanceFactory(payload)
       this._eventsTransformsCache.set(internalEvent, instance)
 

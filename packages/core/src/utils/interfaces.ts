@@ -411,6 +411,12 @@ export interface EventTransform {
    * Allow us to define the `event_channel` for the Proxy.
    */
   getInstanceEventChannel?: (payload: any) => string
+  /**
+   * Determines if the instance created by `instanceFactory`
+   * should be cached per event. This is the instance that
+   * will be passed to our event handlers
+   */
+  mode?: 'cache' | 'no-cache'
 }
 
 export type BaseEventHandler = (...args: any[]) => void
