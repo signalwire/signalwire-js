@@ -332,14 +332,8 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
       // @ts-expect-error
       this.on('call.state', (params) => {
-        const { payload } = params
-        /**
-         * FIXME: this no-op listener is required for our EE transforms to
-         * update the call object via the `calling.call.state` transform
-         * and apply the "peer" property to the Proxy.
-         */
-        if (payload.call_state === 'ended') {
-          resolve(new Error('Failed to answer the call.'))
+        if (params.callState === 'ended') {
+          resolve(new Error('Failed to hangup the call.'))
         }
       })
 
