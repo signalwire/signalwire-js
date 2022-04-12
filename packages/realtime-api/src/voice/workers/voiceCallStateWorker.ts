@@ -83,8 +83,8 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
     // Inject `tag` to have our EE to work because inbound
     // calls don't have tags.
     const newPayload = {
-      tag: instance.tag,
       ...action.payload,
+      tag: instance.tag,
     }
 
     /**
