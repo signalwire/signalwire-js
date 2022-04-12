@@ -14,7 +14,7 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
 ): SagaIterator {
   const { channels, instance } = options
   const { swEventChannel, pubSubChannel } = channels
-  getLogger().trace('voiceCallStateWorker started')
+  getLogger().trace('voiceCallStateWorker started', instance.id, instance.tag)
 
   let run = true
   while (run) {
@@ -95,5 +95,6 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
       payload: newPayload,
     })
   }
-  getLogger().trace('voiceCallStateWorker ended')
+
+  getLogger().info('voiceCallStateWorker ended', instance.id, instance.tag)
 }
