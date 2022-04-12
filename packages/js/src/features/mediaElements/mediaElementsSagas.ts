@@ -9,10 +9,11 @@ import { setMediaElementSinkId } from '@signalwire/webrtc'
 import {
   buildVideo,
   cleanupElement,
-  makeDisplayChangeFn,
   makeLayoutChangedHandler,
   setVideoMediaTrack,
   waitForVideoReady,
+  LocalOverlay,
+  addSDKPrefix,
 } from '../../utils/videoElement'
 import { setAudioMediaTrack } from '../../utils/audioElement'
 import { audioSetSpeakerAction } from '../actions'
@@ -30,14 +31,50 @@ export const makeVideoElementSaga = ({
     runSaga,
   }: CustomSagaParams<RoomSessionConnection>): SagaIterator {
     try {
-      const layerMap = new Map()
+      const layerMap = new Map<string, HTMLDivElement>()
       const videoEl = buildVideo()
+
+      /**
+       * We used this `LocalOverlay` interface to interact with the localVideo
+       * overlay DOM element in here and in the `layoutChangedHandler`.
+       * The idea is to avoid APIs like `document.getElementById` because it
+       * won't work if the SDK is used within a Shadow DOM tree.
+       * Instead of querying the `document`, let's use our `layerMap`.
+       */
+      const localOverlay: LocalOverlay = {
+        get id() {
+          return addSDKPrefix(room.memberId)
+        },
+        get domElement() {
+          return layerMap.get(this.id)
+        },
+        set domElement(element: HTMLDivElement | undefined) {
+          if (element) {
+            getLogger().debug('Set localOverlay', element)
+            layerMap.set(this.id, element)
+          } else {
+            getLogger().debug('Remove localOverlay')
+            layerMap.delete(this.id)
+          }
+        },
+        hide() {
+          if (!this.domElement) {
+            return getLogger().warn('Missing localOverlay to hide')
+          }
+          this.domElement.style.display = 'none'
+        },
+        show() {
+          if (!this.domElement) {
+            return getLogger().warn('Missing localOverlay to show')
+          }
+          this.domElement.style.display = 'block'
+        },
+      }
+
       const layoutChangedHandler = makeLayoutChangedHandler({
         rootElement,
-        layerMap,
+        localOverlay,
       })
-      const hideOverlay = makeDisplayChangeFn('none')
-      const showOverlay = makeDisplayChangeFn('block')
 
       room.on('layout.changed', (params) => {
         getLogger().debug('Received layout.changed')
@@ -55,7 +92,7 @@ export const makeVideoElementSaga = ({
         try {
           const { member } = params
           if (member.id === room.memberId && 'video_muted' in member) {
-            member.video_muted ? hideOverlay(member.id) : showOverlay(member.id)
+            member.video_muted ? localOverlay.hide() : localOverlay.show()
           }
         } catch (error) {
           getLogger().error('Error handling video_muted', error)

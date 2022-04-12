@@ -4,7 +4,7 @@ import {
   InternalVideoLayout,
 } from '@signalwire/core'
 
-const _addSDKPrefix = (input: string) => {
+const addSDKPrefix = (input: string) => {
   return `sw-sdk-${input}`
 }
 
@@ -57,6 +57,18 @@ const _buildLayer = ({ location }: { location: InternalVideoLayoutLayer }) => {
   return layer
 }
 
+export interface LocalOverlay {
+  readonly id: string
+  domElement: HTMLDivElement | undefined
+  hide(): void
+  show(): void
+}
+
+interface MakeLayoutChangedHandlerParams {
+  localOverlay: LocalOverlay
+  rootElement: HTMLElement
+}
+
 interface LayoutChangedHandlerParams {
   layout: InternalVideoLayout
   myMemberId: string
@@ -64,26 +76,19 @@ interface LayoutChangedHandlerParams {
 }
 
 const makeLayoutChangedHandler =
-  ({
-    layerMap,
-    rootElement,
-  }: {
-    layerMap: Map<string, HTMLElement>
-    rootElement: HTMLElement
-  }) =>
+  ({ localOverlay, rootElement }: MakeLayoutChangedHandlerParams) =>
   async ({ layout, myMemberId, localStream }: LayoutChangedHandlerParams) => {
     getLogger().debug('Process layout.changed')
     try {
       const { layers = [] } = layout
       const location = layers.find(({ member_id }) => member_id === myMemberId)
 
-      const myLayerKey = _addSDKPrefix(myMemberId)
-      let myLayer = layerMap.get(myLayerKey)
+      let myLayer = localOverlay.domElement
       if (!location) {
         getLogger().debug('Location not found')
         if (myLayer) {
           getLogger().debug('Current layer not visible')
-          myLayer.style.display = 'none'
+          localOverlay.hide()
         }
 
         return
@@ -92,7 +97,7 @@ const makeLayoutChangedHandler =
       if (!myLayer) {
         getLogger().debug('Build myLayer')
         myLayer = _buildLayer({ location })
-        myLayer.id = myLayerKey
+        myLayer.id = localOverlay.id
 
         const localVideo = buildVideo()
         localVideo.srcObject = localStream
@@ -102,10 +107,10 @@ const makeLayoutChangedHandler =
         myLayer.appendChild(localVideo)
 
         const mcuLayers = rootElement.querySelector('.mcuLayers')
-        const exists = document.getElementById(myLayerKey)
+        const exists = mcuLayers?.querySelector(`#${myLayer.id}`)
         if (mcuLayers && !exists) {
           mcuLayers.appendChild(myLayer)
-          layerMap.set(myLayerKey, myLayer)
+          localOverlay.domElement = myLayer
         }
 
         return
@@ -127,15 +132,6 @@ const makeLayoutChangedHandler =
       getLogger().error('Layout Changed Error', error)
     }
   }
-
-const makeDisplayChangeFn = (display: 'block' | 'none') => {
-  return (domId: string) => {
-    const el = document.getElementById(_addSDKPrefix(domId))
-    if (el) {
-      el.style.display = display
-    }
-  }
-}
 
 const cleanupElement = (rootElement: HTMLElement) => {
   while (rootElement.firstChild) {
@@ -162,7 +158,7 @@ export {
   buildVideo,
   cleanupElement,
   makeLayoutChangedHandler,
-  makeDisplayChangeFn,
   setVideoMediaTrack,
   waitForVideoReady,
+  addSDKPrefix,
 }
