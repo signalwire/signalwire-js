@@ -132,7 +132,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
      * server. Changes will be available to the consumer via
      * our Proxy API.
      */
-    this.setWorker('voiceCallStateWorker', {
+    this.runWorker('voiceCallStateWorker', {
       worker: voiceCallStateWorker,
     })
   }
@@ -276,6 +276,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
           payloadTransform: (payload: CallingCallStateEventParams) => {
             return toExternalJSON(payload)
           },
+          mode: "no-cache"
         },
       ],
       [
@@ -305,9 +306,6 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         onDone: resolve,
         onFail: reject,
       })
-
-      // TODO:
-      this.attachWorkers()
 
       this.execute({
         method: 'calling.dial',
