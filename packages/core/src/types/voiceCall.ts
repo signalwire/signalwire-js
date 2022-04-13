@@ -88,6 +88,7 @@ export type CallConnectConnected = 'connect.connected'
 export type CallConnectDisconnected = 'connect.disconnected'
 export type CallConnectFailed = 'connect.failed'
 export type CallDetectStarted = 'detect.started'
+export type CallDetectUpdated = 'detect.updated'
 export type CallDetectEnded = 'detect.ended'
 
 /**
@@ -114,6 +115,7 @@ export type VoiceCallEventNames =
   | CallConnectDisconnected
   | CallConnectFailed
   | CallDetectStarted
+  | CallDetectUpdated
   | CallDetectEnded
 
 /**
@@ -438,6 +440,7 @@ export interface VoiceCallDetectContract {
   readonly state?: CallingCallRecordState // FIXME:
 
   stop(): Promise<this>
+  waitForResult(): Promise<this>
 }
 
 /**
@@ -860,7 +863,7 @@ export interface CallingCallSendDigitsEvent extends SwEvent {
 /**
  * 'calling.call.detect'
  */
-type DetectState = 'finished' | 'error'
+export type DetectState = 'finished' | 'error'
 interface DetectFax {
   type: 'fax'
   params: {
@@ -876,7 +879,20 @@ interface DetectMachine {
 interface DetectDigit {
   type: 'digit'
   params: {
-    event: string | DetectState
+    event:
+      | '0'
+      | '1'
+      | '2'
+      | '3'
+      | '4'
+      | '5'
+      | '6'
+      | '7'
+      | '8'
+      | '9'
+      | '#'
+      | '*'
+      | DetectState
   }
 }
 type Detector = DetectFax | DetectMachine | DetectDigit
@@ -1039,6 +1055,13 @@ export interface CallDetectStartedEvent extends SwEvent {
   params: CallingCallDetectEventParams & { tag: string }
 }
 /**
+ * 'calling.detect.updated'
+ */
+export interface CallDetectUpdatedEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallDetectUpdated>
+  params: CallingCallDetectEventParams & { tag: string }
+}
+/**
  * 'calling.detect.ended'
  */
 export interface CallDetectEndedEvent extends SwEvent {
@@ -1104,6 +1127,7 @@ export type VoiceCallEvent =
   | CallConnectDisconnectedEvent
   | CallConnectFailedEvent
   | CallDetectStartedEvent
+  | CallDetectUpdatedEvent
   | CallDetectEndedEvent
 
 export type VoiceCallEventParams =
@@ -1138,6 +1162,7 @@ export type VoiceCallEventParams =
   | CallConnectDisconnectedEvent['params']
   | CallConnectFailedEvent['params']
   | CallDetectStartedEvent['params']
+  | CallDetectUpdatedEvent['params']
   | CallDetectEndedEvent['params']
 
 export type VoiceCallAction = MapToPubSubShape<VoiceCallEvent>
