@@ -21,7 +21,6 @@ import {
   SDKWorker,
   SDKWorkerDefinition,
   SessionAuthStatus,
-  // SDKWorkerParams,
   AttachSDKWorkerParams,
 } from './utils/interfaces'
 import { EventEmitter } from './utils/EventEmitter'
