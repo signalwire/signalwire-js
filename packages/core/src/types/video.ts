@@ -55,7 +55,7 @@ export type VideoPosition =
  * {@link VideoPosition}. Instead of a member ID, in some contexts you can use
  * the special keyword `self` if you don't know yet the ID of the member which
  * is going to be created.
- * 
+ *
  * For example:
  *
  * ```js
@@ -66,7 +66,7 @@ export type VideoPosition =
  * ```
  *
  * Or:
- * 
+ *
  * ```js
  * {
  *   "self": "reserved-1"

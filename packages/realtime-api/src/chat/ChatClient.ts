@@ -67,6 +67,7 @@ const INTERCEPTED_METHODS: ClientMethods[] = [
   'setMemberState',
 ]
 
+/** @ignore */
 const ChatClient = function (options?: ChatClientOptions) {
   if ('production' === process.env.NODE_ENV) {
     getLogger().warn(

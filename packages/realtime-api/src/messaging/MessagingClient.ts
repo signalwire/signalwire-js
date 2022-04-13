@@ -3,11 +3,38 @@ import { setupClient, clientConnect } from '../client/index'
 import { MessagingClientDocs } from './MessagingClient.docs'
 import type { Messaging } from './Messaging'
 import { createMessagingObject } from './Messaging'
+export { MessagingClientApiEvents } from '../types'
 
 interface MessagingClientMain extends Messaging {
   new (opts: MessagingClientOptions): this
 }
 
+/**
+ * You can use instances of this class to send or receive messages. Please see
+ * {@link MessagingClientApiEvents} for the full list of events you can subscribe
+ * to.
+ *
+ * @example
+ *
+ * ```javascript
+ * const client = new Messaging.Client({
+ *   project: "<project-id>",
+ *   token: "<api-token>",
+ *   contexts: ['office']
+ * })
+ *
+ * client.on('message.received', (message) => {
+ *   console.log('message.received', message)
+ * })
+ *
+ * await client.send({
+ *   context: 'office',
+ *   from: '+1xxx',
+ *   to: '+1yyy',
+ *   body: 'Hello World!'
+ * })
+ * ```
+ */
 interface MessagingClient
   extends AssertSameType<MessagingClientMain, MessagingClientDocs> {}
 

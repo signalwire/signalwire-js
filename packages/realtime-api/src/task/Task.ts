@@ -1,21 +1,22 @@
-import type {
+import {
   DisconnectableClientContract,
   BaseComponentOptions,
+  BaseComponent,
 } from '@signalwire/core'
-import { connect, BaseComponent } from '@signalwire/core'
-import type { RealTimeTaskApiEvents } from '../types'
+import { connect } from '@signalwire/core'
+import type { TaskClientApiEvents } from '../types'
 import { RealtimeClient } from '../client/index'
 import { taskWorker } from './workers'
 
 export interface Task
-  extends DisconnectableClientContract<Task, RealTimeTaskApiEvents> {
+  extends DisconnectableClientContract<Task, TaskClientApiEvents> {
   /** @internal */
   _session: RealtimeClient
 }
 
 /** @internal */
-class TaskAPI extends BaseComponent<RealTimeTaskApiEvents> {
-  constructor(options: BaseComponentOptions<RealTimeTaskApiEvents>) {
+class TaskAPI extends BaseComponent<TaskClientApiEvents> {
+  constructor(options: BaseComponentOptions<TaskClientApiEvents>) {
     super(options)
 
     this.setWorker('taskWorker', {
@@ -28,9 +29,9 @@ class TaskAPI extends BaseComponent<RealTimeTaskApiEvents> {
 
 /** @internal */
 export const createTaskObject = (
-  params: BaseComponentOptions<RealTimeTaskApiEvents>
+  params: BaseComponentOptions<TaskClientApiEvents>
 ): Task => {
-  const task = connect<RealTimeTaskApiEvents, TaskAPI, Task>({
+  const task = connect<TaskClientApiEvents, TaskAPI, Task>({
     store: params.store,
     Component: TaskAPI,
     componentListeners: {
@@ -44,3 +45,4 @@ export const createTaskObject = (
 
 export * from './TaskClient'
 export * from './send'
+export { TaskClientApiEvents } from '../types'

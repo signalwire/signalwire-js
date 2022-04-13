@@ -2,6 +2,16 @@ import type { OnlyStateProperties, OnlyFunctionProperties, SwEvent } from '..'
 import type { MapToPubSubShape } from '../redux/interfaces'
 import { PRODUCT_PREFIX_MESSAGING } from '../utils/constants'
 
+/**
+ * The state a message can be in.
+ *
+ *  - `queued`: The message has been queued in Relay.
+ *  - `initiated`: Relay has initiated the process of sending the message.
+ *  - `sent`: Relay has sent the message.
+ *  - `delivered`: The message has been successfully delivered. Due to the nature of SMS and MMS, receiving a `delivered` event is not guaranteed, even if the message is delivered successfully.
+ *  - `undelivered`: The message has not been delivered. Due to the nature of SMS and MMS, receiving a `undelivered` event is not guaranteed, even if the message fails to be delivered.
+ *  - `failed`: The request has failed.
+ */
 export type MessagingMessageState =
   | 'queued'
   | 'initiated'
