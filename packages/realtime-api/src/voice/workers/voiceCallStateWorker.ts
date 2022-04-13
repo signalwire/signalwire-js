@@ -23,8 +23,9 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
     const action: MapToPubSubShape<CallingCallStateEvent> =
       yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
         if (action.type === 'calling.call.state') {
-          // To avoid mixing events on `connect` we check for `instance.id`
-          // if there's already a callId value.
+          // To avoid mixing events on `connect` we check
+          // for `instance.id` if there's already a callId
+          // value.
           if (instance.id) {
             return instance.id === action.payload.call_id
           }
@@ -34,12 +35,16 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
       })
 
     /**
-     * Override (or inject) "tag" with `instance.tag` because we use it as namespace
-     * in the EE and:
-     * - all the inbound legs have no "tag" in the `calling.call.state` events
-     * - all the legs created by a "connect" RPC will share the same "tag" of the originator leg to allow the SDK to make a relation
+     * Override (or inject) "tag" with `instance.tag`
+     * because we use it as namespace in the EE and:
+     * - all the inbound legs have no "tag" in the
+     *   `calling.call.state` events
+     * - all the legs created by a "connect" RPC will share
+     *   the same "tag" of the originator leg to allow the
+     *   SDK to make a relation
      *
-     * Since in the SDK each Call has its own "tag" (__uuid), we need to target them through the EE with
+     * Since in the SDK each Call has its own "tag"
+     * (__uuid), we need to target them through the EE with
      * the right "tag".
      */
     const newPayload = {
