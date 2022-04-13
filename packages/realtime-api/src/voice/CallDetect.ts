@@ -22,6 +22,8 @@ export class CallDetectAPI
   extends BaseComponent<CallDetectEventsHandlerMapping>
   implements VoiceCallDetectContract
 {
+  protected _eventsPrefix = 'calling' as const
+
   callId: string
   nodeId: string
   controlId: string
@@ -44,6 +46,17 @@ export class CallDetectAPI
     // }
 
     return this
+  }
+
+  waitForResult() {
+    return new Promise<this>((resolve) => {
+      this._attachListeners(this.controlId)
+
+      // @ts-expect-error
+      this.once('detect.ended', () => {
+        resolve(this)
+      })
+    })
   }
 }
 
