@@ -11,7 +11,7 @@ import { messagingWorker } from './workers'
 import { MessageContract, Message } from './Message'
 
 interface MessagingSendParams {
-  context: string
+  context?: string
   from: string
   to: string
   body?: string
@@ -87,9 +87,10 @@ class MessagingAPI extends BaseComponent<RealTimeMessagingApiEvents> {
   }
 
   async send(params: MessagingSendParams): Promise<any> {
-    const { from = '', to = '', ...rest } = params
+    const { from = '', to = '', context = 'default', ...rest } = params
     const sendParams: InternalMessagingSendParams = {
       ...rest,
+      context,
       from_number: from,
       to_number: to,
     }
