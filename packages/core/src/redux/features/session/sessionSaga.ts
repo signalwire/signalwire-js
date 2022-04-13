@@ -88,7 +88,7 @@ export function* executeActionWatcher(session: BaseSession): SagaIterator {
         )
       }
     } catch (error) {
-      getLogger().warn('worker error', componentId, error)
+      getLogger().warn('worker error', componentId, JSON.stringify(error))
       if (componentId && requestId) {
         yield put(
           componentActions.executeFailure({
