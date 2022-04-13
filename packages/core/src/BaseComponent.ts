@@ -20,7 +20,7 @@ import {
   SDKWorker,
   SDKWorkerDefinition,
   SessionAuthStatus,
-  SDKWorkerParams,
+  AttachSDKWorkerParams,
 } from './utils/interfaces'
 import { EventEmitter } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
@@ -291,7 +291,11 @@ export class BaseComponent<
     transform: EventTransform
     payload: unknown
   }): BaseComponent<EventTypes> {
-    if (!this._eventsTransformsCache.has(internalEvent)) {
+    if (transform.mode === "no-cache") {
+      const instance = transform.instanceFactory(payload)
+
+      return instance
+    } else if (!this._eventsTransformsCache.has(internalEvent)) {
       const instance = transform.instanceFactory(payload)
       this._eventsTransformsCache.set(internalEvent, instance)
 
@@ -941,27 +945,60 @@ export class BaseComponent<
     })
   }
 
-  /** @internal */
-  protected setWorker(name: string, def: SDKWorkerDefinition) {
+  protected runWorker(name: string, def: SDKWorkerDefinition) {
+    if (this._workers.has(name)) {
+      getLogger().warn(
+        `[runWorker] Worker with name ${name} has already been registerd.`
+      )
+    } else {
+      this._setWorker(name, def)
+    }
+
+    this._attachWorker(name, def)
+  }
+
+  /**
+   * @internal
+   * @deprecated use {@link runWorker} instead
+   */
+   protected setWorker(name: string, def: SDKWorkerDefinition) {
+    this._setWorker(name, def)
+  }
+
+  /**
+   * @internal
+   * @deprecated use {@link runWorker} instead
+   */
+  protected attachWorkers(params: AttachSDKWorkerParams<any> = {}) {
+    return this._workers.forEach(({ worker, ...workerOptions }, name) => {
+      this._attachWorker(name, {
+        worker,
+        ...workerOptions,
+        ...params,
+      })
+    })
+  }
+
+  private _setWorker(name: string, def: SDKWorkerDefinition) {
     this._workers.set(name, def)
   }
 
-  /** @internal */
-  protected attachWorkers(params: Partial<SDKWorkerParams<any>> = {}) {
-    return this._workers.forEach(({ worker }, name) => {
-      const task = this.store.runSaga(worker, {
-        instance: this,
-        runSaga: this.store.runSaga,
-        ...params,
-      })
-      this._runningWorkers.push(task)
-      /**
-       * Attaching workers is a one-time op for instances so
-       * the moment we attach one we'll remove it from the
-       * queue.
-       */
-      this._workers.delete(name)
+  private _attachWorker(
+    name: string,
+    { worker, ...params }: SDKWorkerDefinition
+  ) {
+    const task = this.store.runSaga(worker, {
+      instance: this,
+      runSaga: this.store.runSaga,
+      ...params,
     })
+    this._runningWorkers.push(task)
+    /**
+     * Attaching workers is a one-time op for instances so
+     * the moment we attach one we'll remove it from the
+     * queue.
+     */
+    this._workers.delete(name)
   }
 
   private detachWorkers() {

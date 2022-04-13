@@ -14,6 +14,7 @@ import type {
 } from '../redux/interfaces'
 import type { URL as NodeURL } from 'node:url'
 import {
+  AllOrNone,
   CallingTransformType,
   ChatJSONRPCMethod,
   ChatTransformType,
@@ -434,6 +435,12 @@ export interface EventTransform {
    * Allow us to define the `event_channel` for the Proxy.
    */
   getInstanceEventChannel?: (payload: any) => string
+  /**
+   * Determines if the instance created by `instanceFactory`
+   * should be cached per event. This is the instance that
+   * will be passed to our event handlers
+   */
+  mode?: 'cache' | 'no-cache'
 }
 
 export type BaseEventHandler = (...args: any[]) => void
@@ -443,7 +450,12 @@ export type InternalChannels = {
   swEventChannel: SwEventChannel
 }
 
-export interface SDKWorkerParams<T> {
+type SDKWorkerHooks<T> = AllOrNone<{
+  onDone: (options?: Partial<SDKWorkerParams<T>>) => void
+  onFail: (options?: Partial<SDKWorkerParams<T>>) => void
+}>
+
+type SDKWorkerBaseParams<T> = {
   channels: InternalChannels
   instance: T
   runSaga: any
@@ -454,11 +466,15 @@ export interface SDKWorkerParams<T> {
   payload?: any
 }
 
+export type SDKWorkerParams<T> = SDKWorkerBaseParams<T> & SDKWorkerHooks<any>
+
+export type AttachSDKWorkerParams<T> = Partial<SDKWorkerBaseParams<T>>
+
 export type SDKWorker<T> = (params: SDKWorkerParams<T>) => SagaIterator<any>
 
-export interface SDKWorkerDefinition {
+export type SDKWorkerDefinition = {
   worker: SDKWorker<any>
-}
+} & SDKWorkerHooks<any>
 
 interface LogFn {
   <T extends object>(obj: T, msg?: string, ...args: any[]): void

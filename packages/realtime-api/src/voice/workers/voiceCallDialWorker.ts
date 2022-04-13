@@ -8,10 +8,6 @@ import {
   CallingCallDialEvent,
 } from '@signalwire/core'
 import type { Call } from '../Call'
-import {
-  SYNTHETIC_CALL_DIAL_ANSWERED_EVENT,
-  SYNTHETIC_CALL_DIAL_FAILED_EVENT,
-} from './'
 
 const TARGET_DIAL_STATES: CallingCallDialEvent['params']['dial_state'][] = [
   'answered',
@@ -21,8 +17,8 @@ const TARGET_DIAL_STATES: CallingCallDialEvent['params']['dial_state'][] = [
 export const voiceCallDialWorker: SDKWorker<Call> = function* (
   options
 ): SagaIterator {
-  const { channels, instance } = options
-  const { swEventChannel, pubSubChannel } = channels
+  const { channels, instance, onDone, onFail } = options
+  const { swEventChannel } = channels
   getLogger().trace('voiceCallDialWorker started')
 
   const action: MapToPubSubShape<CallingCallDialEvent> = yield sagaEffects.take(
@@ -39,19 +35,9 @@ export const voiceCallDialWorker: SDKWorker<Call> = function* (
   )
 
   if (action.payload.dial_state === 'answered') {
-    yield sagaEffects.put(pubSubChannel, {
-      // @ts-expect-error
-      type: SYNTHETIC_CALL_DIAL_ANSWERED_EVENT,
-      // @ts-expect-error
-      payload: action.payload,
-    })
+    onDone?.()
   } else if (action.payload.dial_state === 'failed') {
-    yield sagaEffects.put(pubSubChannel, {
-      // @ts-expect-error
-      type: SYNTHETIC_CALL_DIAL_FAILED_EVENT,
-      // @ts-expect-error
-      payload: action.payload,
-    })
+    onFail?.()
   } else {
     throw new Error('[voiceCallDialWorker] unhandled call_state')
   }

@@ -33,6 +33,7 @@ export const voiceCallPlayWorker: SDKWorker<Call> = function* (
         )
       })
 
+    /** Add `tag` to the payload to allow pubSubSaga to match it with the Call namespace */
     const payloadWithTag = {
       tag: instance.tag,
       ...action.payload,
