@@ -16,11 +16,12 @@ export const voiceCallDetectWorker: SDKWorker<Call> = function* (
   getLogger().trace('voiceCallDetectWorker started')
   const { channels, instance, payload } = options
   const { swEventChannel, pubSubChannel } = channels
-  const { controlId } = payload
+  const { controlId, waitForBeep = false } = payload
   if (!controlId) {
     throw new Error('Missing controlId for tapping')
   }
 
+  let waitingForReady = false
   let run = true
   const done = () => (run = false)
 
@@ -32,6 +33,12 @@ export const voiceCallDetectWorker: SDKWorker<Call> = function* (
           action.payload.control_id === controlId
         )
       })
+
+    const { detect } = action.payload
+    if (!detect) {
+      // Ignore events without detect and (also) make TS happy
+      continue
+    }
 
     /** Add `tag` to the payload to allow pubSubSaga to match it with the Call namespace */
     const payloadWithTag = {
@@ -49,48 +56,45 @@ export const voiceCallDetectWorker: SDKWorker<Call> = function* (
       payload: payloadWithTag,
     })
 
-    const { detect } = action.payload
-    if (!detect) {
+    const {
+      type,
+      params: { event },
+    } = detect
+
+    if (event === 'error' || event === 'finished') {
+      yield sagaEffects.put(pubSubChannel, {
+        type: 'calling.detect.ended',
+        payload: payloadWithTag,
+      })
+
+      done()
       continue
     }
 
-    switch (detect.type) {
-      case 'fax': {
-        // yield sagaEffects.put(pubSubChannel, {
-        //   type: 'calling.tap.started',
-        //   payload: payloadWithTag,
-        // })
-        break
-      }
-      case 'digit': {
-        // yield sagaEffects.put(pubSubChannel, {
-        //   type: 'calling.tap.ended',
-        //   payload: payloadWithTag,
-        // })
-        break
-      }
-      case 'machine': {
-        // yield sagaEffects.put(pubSubChannel, {
-        //   type: 'calling.tap.ended',
-        //   payload: payloadWithTag,
-        // })
-        break
-      }
-    }
+    yield sagaEffects.put(pubSubChannel, {
+      type: 'calling.detect.updated',
+      payload: payloadWithTag,
+    })
 
-    if (detect.params.event === 'error') {
-      // yield sagaEffects.put(pubSubChannel, {
-      //   type: 'calling.tap.ended',
-      //   payload: payloadWithTag,
-      // })
-      done()
-    }
-    if (detect.params.event === 'finished') {
-      // yield sagaEffects.put(pubSubChannel, {
-      //   type: 'calling.tap.ended',
-      //   payload: payloadWithTag,
-      // })
-      done()
+    switch (type) {
+      // case 'digit':
+      // case 'fax': {
+      //   break
+      // }
+      case 'machine': {
+        if (waitingForReady && event === 'READY') {
+          yield sagaEffects.put(pubSubChannel, {
+            type: 'calling.detect.ended',
+            payload: payloadWithTag,
+          })
+
+          done()
+        }
+        if (waitForBeep) {
+          waitingForReady = true
+        }
+        break
+      }
     }
   }
 

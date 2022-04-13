@@ -320,6 +320,7 @@ export interface VoiceCallDetectDigitParams {
 
 export type VoiceCallDetectMethodParams = {
   timeout?: number
+  waitForBeep?: boolean
 } & (
   | VoiceCallDetectMachineParams
   | VoiceCallDetectFaxParams

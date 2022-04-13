@@ -78,6 +78,7 @@ type EmitterTransformsEvents =
   | 'calling.detect.ended'
   // events not exposed
   | 'calling.call.state'
+  | 'calling.detect.updated'
   | 'calling.connect.connected'
 
 interface CallMain
@@ -312,6 +313,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         [
           callingDetectTriggerEvent,
           'calling.detect.started',
+          'calling.detect.updated',
           'calling.detect.ended',
         ],
         {
@@ -866,6 +868,8 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         reject(new Error(`Can't call detect() on a call not established yet.`))
       }
 
+      // TODO: build params in a method
+      const { waitForBeep = false, timeout, type, ...rest } = params
       const controlId = uuid()
 
       this.setWorker('voiceCallDetectWorker', {
@@ -874,6 +878,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       this.attachWorkers({
         payload: {
           controlId,
+          waitForBeep,
         },
       })
 
@@ -883,9 +888,6 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
       // @ts-expect-error
       this.once(callingDetectTriggerEvent, resolveHandler)
-
-      // TODO: build params in a method
-      const { timeout, type, ...rest } = params
 
       this.execute({
         method: 'calling.detect',
