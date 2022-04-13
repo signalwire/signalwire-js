@@ -282,7 +282,7 @@ export class BaseComponent<
 
   /** @internal */
   private runAndCacheEventHandlerTransform({
-    // internalEvent,
+    internalEvent,
     transform,
     payload,
   }: {
@@ -290,18 +290,19 @@ export class BaseComponent<
     transform: EventTransform
     payload: unknown
   }): BaseComponent<EventTypes> {
-    const instance = transform.instanceFactory(payload)
-    return instance
+    if (transform.mode === "no-cache") {
+      const instance = transform.instanceFactory(payload)
 
-    // if (!this._eventsTransformsCache.has(internalEvent)) {
-    //   const instance = transform.instanceFactory(payload)
-    //   this._eventsTransformsCache.set(internalEvent, instance)
+      return instance
+    } else if (!this._eventsTransformsCache.has(internalEvent)) {
+      const instance = transform.instanceFactory(payload)
+      this._eventsTransformsCache.set(internalEvent, instance)
 
-    //   return instance
-    // }
+      return instance
+    }
 
-    // // @ts-expect-error
-    // return this._eventsTransformsCache.get(internalEvent)
+    // @ts-expect-error
+    return this._eventsTransformsCache.get(internalEvent)
   }
 
   /** @internal */

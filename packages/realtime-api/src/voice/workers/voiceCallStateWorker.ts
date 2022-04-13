@@ -23,60 +23,11 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
     const action: MapToPubSubShape<CallingCallStateEvent> =
       yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
         if (action.type === 'calling.call.state') {
-          // TODO: Temp fix.
-          if (['ended', 'ending'].includes(action.payload.call_state)) {
-            console.log(
-              '>> Call ending, skipping',
-              JSON.stringify(
-                {
-                  id: instance.id,
-                  tag: instance.tag,
-                  action,
-                },
-                null,
-                2
-              )
-            )
-
-            return false
-          }
-
           // To avoid mixing events on `connect` we check for `instance.id`
           // if there's already a callId value.
           if (instance.id) {
-            console.log(
-              '---> instance.id branch',
-              JSON.stringify(
-                {
-                  id: instance.id,
-                  tag: instance.tag,
-                  callId: action.payload.call_id,
-                  // @ts-expect-error
-                  perr: instance.peer,
-                  payload: action.payload,
-                },
-                null,
-                2
-              )
-            )
-
             return instance.id === action.payload.call_id
           }
-          console.log(
-            '---> tag branch',
-            JSON.stringify(
-              {
-                id: instance.id,
-                tag: instance.tag,
-                callId: action.payload.tag,
-                // @ts-expect-error
-                perr: instance.peer,
-                payload: action.payload,
-              },
-              null,
-              2
-            )
-          )
           return instance.tag === action.payload.tag
         }
         return false
