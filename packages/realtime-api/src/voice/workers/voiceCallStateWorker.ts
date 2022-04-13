@@ -33,8 +33,15 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
         return false
       })
 
-    // Inject `tag` to have our EE to work because inbound
-    // calls don't have tags.
+    /**
+     * Override (or inject) "tag" with `instance.tag` because we use it as namespace
+     * in the EE and:
+     * - all the inbound legs have no "tag" in the `calling.call.state` events
+     * - all the legs created by a "connect" RPC will share the same "tag" of the originator leg to allow the SDK to make a relation
+     *
+     * Since in the SDK each Call has its own "tag" (__uuid), we need to target them through the EE with
+     * the right "tag".
+     */
     const newPayload = {
       ...action.payload,
       tag: instance.tag,
