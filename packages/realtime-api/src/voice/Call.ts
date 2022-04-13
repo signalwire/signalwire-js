@@ -357,9 +357,9 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
       // @ts-expect-error
       this.on('call.state', (params) => {
-        if (params.call_state === 'answered') {
+        if (params.callState === 'answered') {
           resolve(this)
-        } else if (params.call_state === 'ended') {
+        } else if (params.callState === 'ended') {
           reject(new Error('Failed to answer the call.'))
         }
       })
