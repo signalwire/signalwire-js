@@ -882,7 +882,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       }
 
       // @ts-expect-error
-      this.on(callingDetectTriggerEvent, resolveHandler)
+      this.once(callingDetectTriggerEvent, resolveHandler)
 
       // TODO: build params in a method
       const { timeout, type, ...rest } = params
