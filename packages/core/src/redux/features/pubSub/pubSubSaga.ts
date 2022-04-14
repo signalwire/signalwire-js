@@ -34,6 +34,10 @@ export function* pubSubSaga({
         emitter.emit(type, payload)
       }
 
+      getLogger().trace(
+        'Emit:',
+        toInternalEventName<string>({ namespace, event: type })
+      )
       emitter.emit(
         toInternalEventName<string>({ namespace, event: type }),
         payload
