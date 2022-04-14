@@ -645,7 +645,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       const callStateHandler = (params: any) => {
         if (params.callState === 'ended' || params.callState === 'ending') {
           reject(
-            new Error("Call is about to end, couldn't send digits in time.")
+            new Error("Call is ended or about to end, couldn't send digits in time.")
           )
         }
       }
