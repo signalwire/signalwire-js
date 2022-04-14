@@ -887,7 +887,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       }
 
       // @ts-expect-error
-      this.once(callingDetectTriggerEvent, resolveHandler)
+      this.on(callingDetectTriggerEvent, resolveHandler)
 
       this.execute({
         method: 'calling.detect',

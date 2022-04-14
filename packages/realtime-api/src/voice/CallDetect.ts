@@ -3,6 +3,7 @@ import {
   BaseComponent,
   BaseComponentOptions,
   VoiceCallDetectContract,
+  Detector,
 } from '@signalwire/core'
 
 /**
@@ -27,10 +28,14 @@ export class CallDetectAPI
   callId: string
   nodeId: string
   controlId: string
-  // TODO: define all the props
+  detect?: Detector
 
   get id() {
     return this.controlId
+  }
+
+  get type() {
+    return this?.detect?.type
   }
 
   async stop() {

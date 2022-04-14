@@ -438,7 +438,7 @@ export interface VoiceCallDetectContract {
   /** @ignore */
   readonly controlId: string
   /** @ignore */
-  readonly state?: CallingCallRecordState // FIXME:
+  readonly type?: DetectType
 
   stop(): Promise<this>
   waitForResult(): Promise<this>
@@ -896,7 +896,8 @@ interface DetectDigit {
       | DetectState
   }
 }
-type Detector = DetectFax | DetectMachine | DetectDigit
+export type Detector = DetectFax | DetectMachine | DetectDigit
+export type DetectType = Detector['type']
 export interface CallingCallDetectEventParams {
   node_id: string
   call_id: string

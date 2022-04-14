@@ -23,6 +23,7 @@ export const voiceCallDetectWorker: SDKWorker<Call> = function* (
 
   let waitingForReady = false
   let run = true
+  let lastAction!: MapToPubSubShape<CallingCallDetectEvent>
   const done = () => (run = false)
 
   while (run) {
@@ -39,6 +40,7 @@ export const voiceCallDetectWorker: SDKWorker<Call> = function* (
       // Ignore events without detect and (also) make TS happy
       continue
     }
+    lastAction = action
 
     /** Add `tag` to the payload to allow pubSubSaga to match it with the Call namespace */
     const payloadWithTag = {
@@ -96,6 +98,20 @@ export const voiceCallDetectWorker: SDKWorker<Call> = function* (
         break
       }
     }
+  }
+
+  if (lastAction) {
+    /**
+     * On endef, dispatch an event to resolve `waitForResult` in CallDetect
+     * overriding the `tag` to be the controlId
+     */
+    yield sagaEffects.put(pubSubChannel, {
+      type: 'calling.detect.ended',
+      payload: {
+        ...lastAction.payload,
+        tag: controlId,
+      },
+    })
   }
 
   getLogger().trace('voiceCallDetectWorker ended')
