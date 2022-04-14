@@ -11,8 +11,18 @@ async function run() {
 
     video.on('room.started', (room) => {
       console.log('Room started --->', room.id, room.name)
+      room.on('room.subscribed', (room) => {
+        console.log(
+          'Room Subscribed --->',
+          room.id,
+          room.members[0].id,
+          room.members[0].name
+        )
+        room.members[0].audioMute()
+      })
+
       room.on('member.updated', () => {
-        console.log('Member updated --->');
+        console.log('Member updated --->')
       })
 
       room.on('member.joined', (member) => {

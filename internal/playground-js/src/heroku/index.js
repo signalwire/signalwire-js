@@ -207,7 +207,12 @@ window.connect = () => {
     console.debug('>> room.started', params)
   )
   roomObj.on('room.joined', (params) => {
-    console.debug('>> room.joined', params)
+    console.debug(
+      '>> room.joined',
+      params,
+      params.room_session.recordings,
+      params.room_session.members
+    )
 
     btnConnect.classList.add('d-none')
     btnDisconnect.classList.remove('d-none')
