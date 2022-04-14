@@ -10,6 +10,7 @@ import {
   toExternalJSON,
   VideoRoomEventParams,
   MemberPosition,
+  VideoRoomSubscribedEventParams,
 } from '@signalwire/core'
 import {
   getDisplayMedia,
@@ -73,6 +74,48 @@ export class RoomSessionConnection
   protected getEmitterTransforms() {
     return new Map<string | string[], EventTransform>([
       [
+        ['video.room.joined'],
+        {
+          type: 'roomSession',
+          instanceFactory: (payload: VideoRoomSubscribedEventParams) => {
+            return payload
+          },
+          payloadTransform: (payload: VideoRoomSubscribedEventParams) => {
+            return payload
+          },
+          nestedFieldsToProcess: () => {
+            return [
+              {
+                eventTransformType: 'roomSessionPlayback',
+                process: (transformedPayload, instanceFactory) => {
+                  if (transformedPayload.room_session?.playbacks?.length) {
+                    transformedPayload.room_session.playbacks =
+                      transformedPayload.room_session.playbacks.map(
+                        instanceFactory
+                      )
+                  }
+                  return transformedPayload
+                },
+                processInstancePayload: (payload) => ({ member: payload }),
+              },
+              {
+                eventTransformType: 'roomSessionRecording',
+                process: (transformedPayload, instanceFactory) => {
+                  if (transformedPayload.room_session?.recordings?.length) {
+                    transformedPayload.room_session.recordings =
+                      transformedPayload.room_session.recordings.map(
+                        instanceFactory
+                      )
+                  }
+                  return transformedPayload
+                },
+                processInstancePayload: (payload) => ({ recording: payload }),
+              },
+            ]
+          },
+        },
+      ],
+      [
         [
           toLocalEvent('video.recording.start'),
           'video.recording.started',
@@ -125,7 +168,9 @@ export class RoomSessionConnection
 
   /** @internal */
   protected override getCompoundEvents() {
-    return new Map<any, any>([...MemberPosition.MEMBER_POSITION_COMPOUND_EVENTS])
+    return new Map<any, any>([
+      ...MemberPosition.MEMBER_POSITION_COMPOUND_EVENTS,
+    ])
   }
 
   /**

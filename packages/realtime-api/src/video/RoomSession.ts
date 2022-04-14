@@ -689,6 +689,32 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
           payloadTransform: (payload: VideoRoomSubscribedEventParams) => {
             return toExternalJSON(payload.room_session)
           },
+          nestedFieldsToProcess: () => {
+            return [
+              {
+                process: (transformedPayload, instanceFactory) => {
+                  if (transformedPayload?.members?.length) {
+                    transformedPayload.members =
+                      transformedPayload.members.map(instanceFactory)
+                  }
+                  return transformedPayload
+                },
+                processInstancePayload: (payload) => ({ member: payload }),
+                eventTransformType: 'roomSessionMember',
+              },
+              {
+                process: (transformedPayload, instanceFactory) => {
+                  if (transformedPayload?.recordings?.length) {
+                    transformedPayload.recordings =
+                      transformedPayload.recordings.map(instanceFactory)
+                  }
+                  return transformedPayload
+                },
+                processInstancePayload: (payload) => ({ recording: payload }),
+                eventTransformType: 'roomSessionRecording',
+              },
+            ]
+          },
           getInstanceEventNamespace: (
             payload: VideoRoomSubscribedEventParams
           ) => {

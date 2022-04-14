@@ -5,7 +5,6 @@ import {
   isLocalEvent,
   validateEventsToSubscribe,
   instanceProxyFactory,
-  NESTED_FIELDS_TO_PROCESS,
   getLogger,
   isSessionEvent,
 } from './utils'
@@ -402,9 +401,10 @@ export class BaseComponent<
         payload,
       })
 
-      const transformedPayload = this._parseNestedFields(
-        transform.payloadTransform(payload)
-      )
+      const transformedPayload = this._parseNestedFields({
+        transform,
+        payload,
+      })
 
       const proxiedObj = proxyFactory({
         instance: cachedInstance,
@@ -422,21 +422,29 @@ export class BaseComponent<
     >
   }
 
-  private _parseNestedFields(transformedPayload: any) {
-    NESTED_FIELDS_TO_PROCESS.forEach(
-      ({ field, preProcessPayload, eventTransformType }) => {
-        const transform = this._emitterTransforms.get(eventTransformType)
-        if (!transform || !transformedPayload?.[field]?.length) {
+  private _parseNestedFields({
+    transform,
+    payload,
+  }: {
+    transform: EventTransform
+    payload: unknown
+  }) {
+    let transformedPayload = transform.payloadTransform(payload)
+    const fieldsToProcess = transform?.nestedFieldsToProcess?.() ?? []
+
+    fieldsToProcess.forEach(
+      ({ process, processInstancePayload, eventTransformType }) => {
+        const transformToUse = this._emitterTransforms.get(eventTransformType)
+        if (!transformToUse) {
           return
         }
-        transformedPayload[field] = transformedPayload[field].map(
-          (jsonPayload: any) => {
-            return instanceProxyFactory({
-              transform,
-              payload: preProcessPayload(jsonPayload),
-            })
-          }
-        )
+        const instanceFactory = (jsonPayload: any) => {
+          return instanceProxyFactory({
+            transform: transformToUse,
+            payload: processInstancePayload(jsonPayload),
+          })
+        }
+        transformedPayload = process(transformedPayload, instanceFactory)
       }
     )
     return transformedPayload

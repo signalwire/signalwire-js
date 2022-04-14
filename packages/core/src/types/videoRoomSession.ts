@@ -56,6 +56,8 @@ export interface VideoRoomSessionContract {
   name: string
   /** Whether recording is active */
   recording: boolean
+  /** List of active recordings in the room */
+  recordings?: any[]
   /** Whether muted videos are shown in the room layout. See {@link setHideVideoMuted} */
   hideVideoMuted: boolean
   /** URL to the room preview. */
