@@ -1,5 +1,11 @@
 import { Voice } from '@signalwire/realtime-api'
 
+const sleep = (ms = 3000) => {
+  return new Promise((r) => {
+    setTimeout(r, ms)
+  })
+}
+
 async function run() {
   try {
     const client = new Voice.Client({
@@ -7,7 +13,7 @@ async function run() {
       project: process.env.PROJECT as string,
       token: process.env.TOKEN as string,
       contexts: [process.env.RELAY_CONTEXT as string],
-      // // logLevel: 'trace',
+      // logLevel: 'trace',
       // debug: {
       //   logWsTraffic: true,
       // },
@@ -18,12 +24,32 @@ async function run() {
 
       try {
         await call.answer()
-        console.log('Inbound call answered', call)
-        setTimeout(async () => {
-          console.log('Terminating the call')
-          await call.hangup()
-          console.log('Call terminated!')
-        }, 3000)
+        console.log('Inbound call answered')
+        await sleep(1000)
+        await call.play({
+          media: [
+            {
+              type: 'tts',
+              text: 'Hello there',
+            },
+            {
+              type: 'silence',
+              duration: 20,
+            },
+            // {
+            //   type: 'audio',
+            //   url: 'https://www.soundjay.com/buttons/beep-01a.mp3',
+            // },
+          ],
+          volume: 2.0,
+        })
+        await call.hangup()
+
+        // setTimeout(async () => {
+        //   console.log('Terminating the call')
+        //   await call.hangup()
+        //   console.log('Call terminated!')
+        // }, 3000)
       } catch (error) {
         console.error('Error answering inbound call', error)
       }
@@ -46,11 +72,14 @@ async function run() {
       })
 
       console.log('Dial resolved!', call.id)
-      const sleep = (ms = 3000) => {
-        return new Promise((r) => {
-          setTimeout(r, ms)
-        })
-      }
+
+      const detect = await call.detect({
+        type: 'machine',
+        waitForBeep: true,
+      })
+      const result = await detect.waitForResult()
+      // @ts-expect-error
+      console.log('Detect Result', result.type, result.detect)
 
       await sleep()
 
