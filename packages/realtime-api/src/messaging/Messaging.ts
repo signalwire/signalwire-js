@@ -11,7 +11,7 @@ import { messagingWorker } from './workers'
 import { MessageContract, Message } from './Message'
 
 interface MessagingSendParams {
-  context: string
+  context?: string
   from: string
   to: string
   body?: string

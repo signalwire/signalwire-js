@@ -22,7 +22,6 @@ async function run() {
 
     try {
       const response = await client.send({
-        context: 'office',
         from: '+1xxx',
         to: '+1yyy',
         body: 'Hello World!',
