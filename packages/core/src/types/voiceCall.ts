@@ -60,6 +60,7 @@ export type CallRecord = 'call.record'
 export type CallCollect = 'call.collect'
 export type CallTap = 'call.tap'
 export type CallConnect = 'call.connect'
+export type CallSendDigits = 'call.send_digits'
 
 /**
  * Public event types
@@ -483,6 +484,7 @@ export interface VoiceCallContract<T = any> {
     params: VoiceCallPromptTTSMethodParams
   ): Promise<VoiceCallPromptContract>
   // TODO: add derived prompt methods
+  sendDigits(digits: string): Promise<T>
   tap(params: VoiceCallTapMethodParams): Promise<VoiceCallTapContract>
   tapAudio(params: VoiceCallTapAudioMethodParams): Promise<VoiceCallTapContract>
   connect(params: VoiceCallConnectMethodParams): Promise<VoiceCallContract>
@@ -753,6 +755,23 @@ export interface CallingCallConnectEvent extends SwEvent {
 }
 
 /**
+ * 'calling.call.send_digits
+ */
+
+ export type CallingCallSendDigitsState = 'finished'
+ export interface CallingCallSendDigitsEventParams {
+   node_id: string
+   call_id: string
+   control_id: string
+   state: CallingCallSendDigitsState
+ }
+
+ export interface CallingCallSendDigitsEvent extends SwEvent {
+   event_type: ToInternalVoiceEvent<CallSendDigits>
+   params: CallingCallSendDigitsEventParams
+ }
+
+/**
  * ==========
  * ==========
  * SDK-Side Events
@@ -927,6 +946,7 @@ export type VoiceCallEvent =
   | CallingCallCollectEvent
   | CallingCallTapEvent
   | CallingCallConnectEvent
+  | CallingCallSendDigitsEvent
   // SDK Events
   | CallReceivedEvent
   | CallPlaybackStartedEvent
@@ -957,6 +977,7 @@ export type VoiceCallEventParams =
   | CallingCallCollectEventParams
   | CallingCallTapEventParams
   | CallingCallConnectEventParams
+  | CallingCallSendDigitsEventParams
   // SDK Event Params
   | CallReceivedEvent['params']
   | CallPlaybackStartedEvent['params']
@@ -997,6 +1018,7 @@ export type VoiceCallJSONRPCMethod =
   | 'calling.tap.stop'
   | 'calling.connect'
   | 'calling.disconnect'
+  | 'calling.send_digits'
 
 export type CallingTransformType =
   | 'voiceCallReceived'
