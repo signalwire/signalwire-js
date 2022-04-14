@@ -456,7 +456,7 @@ export type InternalChannels = {
 
 type SDKWorkerHooks<T> = AllOrNone<{
   onDone: (options?: Partial<SDKWorkerParams<T>>) => void
-  onFail: (options?: Partial<SDKWorkerParams<T>>) => void
+  onFail: (error?: Error) => void
 }>
 
 type SDKWorkerBaseParams<T> = {
