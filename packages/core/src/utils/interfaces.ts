@@ -433,7 +433,7 @@ export interface EventTransform {
    * This allow us to target the fields and apply transform those
    * into stateless object following our EventTranform pattern.
    */
-  nestedFieldsToProcess?: () => NestedFieldToProcess[]
+  nestedFieldsToProcess?: Record<string, NestedFieldToProcess>
   /**
    * Allow us to define what property to use to namespace
    * our events (_eventsNamespace).

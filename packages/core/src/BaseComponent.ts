@@ -401,10 +401,7 @@ export class BaseComponent<
         payload,
       })
 
-      const transformedPayload = this._parseNestedFields({
-        transform,
-        payload,
-      })
+      const transformedPayload = this._parseNestedFields(payload, transform)
 
       const proxiedObj = proxyFactory({
         instance: cachedInstance,
@@ -422,32 +419,77 @@ export class BaseComponent<
     >
   }
 
-  private _parseNestedFields({
-    transform,
-    payload,
-  }: {
-    transform: EventTransform
-    payload: unknown
-  }) {
-    let transformedPayload = transform.payloadTransform(payload)
-    const fieldsToProcess = transform?.nestedFieldsToProcess?.() ?? []
+  private _parseNestedFields(
+    obj: unknown,
+    transform: EventTransform,
+    process = (p: any) => p,
+    result: any = {}
+  ) {
+    if (Array.isArray(obj)) {
+      result = obj.map((item: any, index: number) => {
+        return this._parseNestedFields(
+          item,
+          transform,
+          process,
+          // At this point we don't have a key so we can't
+          // reference a transform. This process comes from
+          // a previous iteration (since we don't support
+          // top level arrays)
+          obj[index]
+        )
+      })
+    } else if (obj && typeof obj === 'object') {
+      Object.entries(obj).forEach(([key, value]) => {
+        const nestedTransform = transform.nestedFieldsToProcess
+          ? transform.nestedFieldsToProcess[key]
+          : undefined
+        const transformToUse = nestedTransform
+          ? this._emitterTransforms.get(nestedTransform.eventTransformType)
+          : undefined
 
-    fieldsToProcess.forEach(
-      ({ process, processInstancePayload, eventTransformType }) => {
-        const transformToUse = this._emitterTransforms.get(eventTransformType)
-        if (!transformToUse) {
-          return
-        }
-        const instanceFactory = (jsonPayload: any) => {
-          return instanceProxyFactory({
-            transform: transformToUse,
-            payload: processInstancePayload(jsonPayload),
+        if (Array.isArray(value)) {
+          result[key] = value.map((item, index) => {
+            return this._parseNestedFields(
+              item,
+              transform,
+              (p) => {
+                if (transformToUse && nestedTransform) {
+                  return instanceProxyFactory({
+                    transform: transformToUse,
+                    payload: process(
+                      nestedTransform.processInstancePayload(value[index])
+                    ),
+                  })
+                }
+
+                return p
+              },
+              result[key]
+            )
           })
+        } else if (value && typeof value === 'object') {
+          result[key] = this._parseNestedFields(
+            value,
+            transform,
+            (p) => {
+              if (transformToUse && nestedTransform) {
+                return instanceProxyFactory({
+                  transform: transformToUse,
+                  payload: process(nestedTransform.processInstancePayload(p)),
+                })
+              }
+
+              return p
+            },
+            result[key]
+          )
+        } else {
+          result[key] = process(value)
         }
-        transformedPayload = process(transformedPayload, instanceFactory)
-      }
-    )
-    return transformedPayload
+      })
+    }
+
+    return result
   }
 
   private getOrCreateStableEventHandler(
