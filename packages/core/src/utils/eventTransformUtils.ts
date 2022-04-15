@@ -1,23 +1,9 @@
-import { EventTransform, EventTransformType } from './interfaces'
+import { EventTransform } from './interfaces'
 import { proxyFactory } from './proxyUtils'
 
 interface InstanceProxyFactoryParams {
   transform: EventTransform
   payload: Record<any, unknown>
-}
-
-interface NestedFieldToProcess {
-  /** Nested field to transform through an EventTransform */
-  field: string
-  /**
-   * Allow us to update the nested `payload` to match the shape we already
-   * treat consuming other events from the server.
-   * For example: wrapping the `payload` within a specific key.
-   *  `payload` becomes `{ "member": payload }`
-   */
-  preProcessPayload: (payload: any) => any
-  /** Type of the EventTransform to select from `instance._emitterTransforms` */
-  eventTransformType: EventTransformType
 }
 
 /**
@@ -28,18 +14,6 @@ interface NestedFieldToProcess {
  * Exported for test purposes
  */
 export const _instanceByTransformType = new Map<string, EventTransform>()
-export const NESTED_FIELDS_TO_PROCESS: NestedFieldToProcess[] = [
-  {
-    field: 'members',
-    preProcessPayload: (payload) => ({ member: payload }),
-    eventTransformType: 'roomSessionMember',
-  },
-  {
-    field: 'recordings',
-    preProcessPayload: (payload) => ({ recording: payload }),
-    eventTransformType: 'roomSessionRecording',
-  },
-]
 
 const _getOrCreateInstance = ({
   transform,

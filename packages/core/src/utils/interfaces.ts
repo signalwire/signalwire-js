@@ -338,6 +338,27 @@ export type EventTransformType =
   | ChatTransformType
   | MessagingTransformType
 
+export interface NestedFieldToProcess {
+  /**
+   * It's responsible for digging into the `transformedPayload` and mutating it with
+   * the correct logic and using the `instanceFactory` function to create child objects
+   * for the nested fields. For example: members/recordings/playbacks.
+   */
+  process: (
+    transformedPayload: any,
+    instanceFactory: (payload: any) => any
+  ) => any
+  /**
+   * Allow us to update the nested `payload` to match the shape we already
+   * treat consuming other events from the server.
+   * For example: wrapping the `payload` within a specific key.
+   *  `payload` becomes `{ "member": payload }`
+   */
+  processInstancePayload: (payload: any) => any
+  /** Type of the EventTransform to select from `instance._emitterTransforms` */
+  eventTransformType: EventTransformType
+}
+
 /**
  * `EventTransform`s represent our internal pipeline for
  * creating specific instances for each event handler. This
@@ -399,6 +420,13 @@ export interface EventTransform {
    * defined by the object returned from `instanceFactory`.
    */
   payloadTransform: (payload: any) => any
+  /**
+   * For some events we need to transform not only the top-level
+   * payload but also different nested fields.
+   * This allow us to target the fields and apply transform those
+   * into stateless object following our EventTranform pattern.
+   */
+  nestedFieldsToProcess?: () => NestedFieldToProcess[]
   /**
    * Allow us to define what property to use to namespace
    * our events (_eventsNamespace).
