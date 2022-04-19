@@ -41,7 +41,7 @@ export interface MessagingClientDocs
    */
   send(params: {
     /** Inbound events for the message will be received on this context. */
-    context: string
+    context?: string
     /** The phone number to place the message from. Must be a SignalWire phone number or short code that you own. */
     from: string
     /** The phone number to send to. */
