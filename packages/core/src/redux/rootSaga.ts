@@ -143,6 +143,10 @@ export function* socketClosedWorker({
     sessionChannel.close()
   } else {
     getLogger().warn('Unhandled Session Status', session.status)
+
+    if ('development' === process.env.NODE_ENV) {
+      throw new Error(`Unhandled Session Status: '${session.status}'`)
+    }
   }
 }
 
