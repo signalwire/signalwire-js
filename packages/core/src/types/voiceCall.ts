@@ -300,32 +300,34 @@ export interface VoiceCallConnectMethodParams {
   devices: NestedArray<VoiceCallDeviceParams>
 }
 
-export interface VoiceCallDetectMachineParams {
-  type: 'machine'
-  initial_timeout?: number
-  end_silence_timeout?: number
-  machine_voice_threshold?: number
-  machine_words_threshold?: number
+interface VoiceCallDetectBaseParams {
+  timeout?: number
+  waitForBeep?: boolean // SDK-side only
 }
 
-export interface VoiceCallDetectFaxParams {
+export interface VoiceCallDetectMachineParams
+  extends VoiceCallDetectBaseParams {
+  type: 'machine'
+  initialTimeout?: number
+  endSilenceTimeout?: number
+  machineVoiceThreshold?: number
+  machineWordsThreshold?: number
+}
+
+export interface VoiceCallDetectFaxParams extends VoiceCallDetectBaseParams {
   type: 'fax'
   tone?: 'CED' | 'CNG'
 }
 
-export interface VoiceCallDetectDigitParams {
+export interface VoiceCallDetectDigitParams extends VoiceCallDetectBaseParams {
   type: 'digit'
   digits?: string
 }
 
-export type VoiceCallDetectMethodParams = {
-  timeout?: number
-  waitForBeep?: boolean
-} & (
+export type VoiceCallDetectMethodParams =
   | VoiceCallDetectMachineParams
   | VoiceCallDetectFaxParams
   | VoiceCallDetectDigitParams
-)
 
 export type VoiceCallDisconnectReason =
   | 'hangup'

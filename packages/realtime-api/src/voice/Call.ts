@@ -33,6 +33,9 @@ import {
   VoiceCallConnectMethodParams,
   CallingCallConnectEventParams,
   VoiceCallDetectMethodParams,
+  VoiceCallDetectMachineParams,
+  VoiceCallDetectFaxParams,
+  VoiceCallDetectDigitParams,
   CallingCallDetectEventParams,
 } from '@signalwire/core'
 import { RealTimeCallApiEvents } from '../types'
@@ -898,7 +901,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
           timeout,
           detect: {
             type,
-            params: rest,
+            params: toSnakeCaseKeys(rest),
           },
         },
       })
@@ -916,6 +919,27 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
           this.off(callingDetectTriggerEvent, resolveHandler)
           reject(e)
         })
+    })
+  }
+
+  amd(params: Omit<VoiceCallDetectMachineParams, 'type'>) {
+    return this.detect({
+      ...params,
+      type: 'machine',
+    })
+  }
+
+  detectFax(params: Omit<VoiceCallDetectFaxParams, 'type'>) {
+    return this.detect({
+      ...params,
+      type: 'fax',
+    })
+  }
+
+  detectDigit(params: Omit<VoiceCallDetectDigitParams, 'type'>) {
+    return this.detect({
+      ...params,
+      type: 'digit',
     })
   }
 }
