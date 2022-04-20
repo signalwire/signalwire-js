@@ -17,7 +17,7 @@ export const voiceCallSendDigitsWorker: SDKWorker<Call> = function* (
   options
 ): SagaIterator {
   getLogger().trace('voiceCallSendDigitsWorker started')
-  const { channels, instance, onDone, onFail, initialState = {} } = options
+  const { channels, onDone, onFail, initialState = {} } = options
   const { swEventChannel } = channels
   const { controlId } = initialState
 
@@ -31,10 +31,7 @@ export const voiceCallSendDigitsWorker: SDKWorker<Call> = function* (
         action.type === 'calling.call.send_digits' &&
         TARGET_STATES.includes(action.payload.state)
       ) {
-        return (
-          instance.callId === action.payload.call_id &&
-          action.payload.control_id === controlId
-        )
+        return action.payload.control_id === controlId
       }
       return false
     })
@@ -42,7 +39,7 @@ export const voiceCallSendDigitsWorker: SDKWorker<Call> = function* (
   if (action.payload.state === 'finished') {
     onDone?.()
   } else {
-    const error = new Error('[voiceCallSendDigitsWorker] unhandled state')
+    const error = new Error(`[voiceCallSendDigitsWorker] unhandled state: '${action.payload.state}'`)
     if (typeof onFail === 'function') {
       onFail(error)
     } else {
