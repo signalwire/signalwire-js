@@ -425,6 +425,10 @@ export class BaseComponent<
     process = (p: any) => p,
     result: any = {}
   ) {
+    if (!transform.nestedFieldsToProcess) {
+      return transform.payloadTransform(obj)
+    }
+
     if (Array.isArray(obj)) {
       result = obj.map((item: any, index: number) => {
         return this._parseNestedFields(
