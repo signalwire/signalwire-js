@@ -16,9 +16,14 @@ const TARGET_STATES: CallingCallSendDigitsEvent['params']['state'][] = [
 export const voiceCallSendDigitsWorker: SDKWorker<Call> = function* (
   options
 ): SagaIterator {
-  const { channels, instance, onDone, onFail } = options
-  const { swEventChannel } = channels
   getLogger().trace('voiceCallSendDigitsWorker started')
+  const { channels, instance, onDone, onFail, initialState = {} } = options
+  const { swEventChannel } = channels
+  const { controlId } = initialState
+
+  if (!controlId) {
+    throw new Error('Missing controlId for sendDigits')
+  }
 
   const action: MapToPubSubShape<CallingCallSendDigitsEvent> =
     yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
@@ -26,7 +31,10 @@ export const voiceCallSendDigitsWorker: SDKWorker<Call> = function* (
         action.type === 'calling.call.send_digits' &&
         TARGET_STATES.includes(action.payload.state)
       ) {
-        return instance.callId === action.payload.call_id
+        return (
+          instance.callId === action.payload.call_id &&
+          action.payload.control_id === controlId
+        )
       }
       return false
     })
