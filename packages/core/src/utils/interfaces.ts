@@ -257,6 +257,7 @@ export type RoomMethod =
 
 export interface WebSocketClient {
   addEventListener: WebSocket['addEventListener']
+  removeEventListener: WebSocket['addEventListener']
   send: WebSocket['send']
   close: WebSocket['close']
   readyState: WebSocket['readyState']
