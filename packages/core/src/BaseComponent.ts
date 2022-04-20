@@ -444,9 +444,7 @@ export class BaseComponent<
       })
     } else if (obj && typeof obj === 'object') {
       Object.entries(obj).forEach(([key, value]) => {
-        const nestedTransform = transform.nestedFieldsToProcess
-          ? transform.nestedFieldsToProcess[key]
-          : undefined
+        const nestedTransform = transform.nestedFieldsToProcess?.[key]
         const transformToUse = nestedTransform
           ? this._emitterTransforms.get(nestedTransform.eventTransformType)
           : undefined
