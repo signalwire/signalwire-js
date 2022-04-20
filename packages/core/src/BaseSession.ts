@@ -152,9 +152,30 @@ export class BaseSession {
       return
     }
     this._socket = this._createSocket()
-    this._socket.addEventListener('open', this._onSocketOpen)
-    this._socket.addEventListener('close', this._onSocketClose)
-    this._socket.addEventListener('error', this._onSocketError)
+
+    /** Handle 'open' once */
+    const openHandler = (event: Event) => {
+      this._socket?.removeEventListener('open', openHandler)
+      this._onSocketOpen(event)
+    }
+    this._socket.addEventListener('open', openHandler)
+
+    /** Handle 'close' once */
+    const closeHandler = (event: CloseEvent) => {
+      this._socket?.removeEventListener('close', closeHandler)
+      this._onSocketClose(event)
+    }
+    this._socket.addEventListener('close', closeHandler)
+
+    /** Handle 'error' once */
+    const errorHandler = (event: Event) => {
+      this._socket?.removeEventListener('error', errorHandler)
+      this._onSocketError(event)
+    }
+    this._socket.addEventListener('error', errorHandler)
+
+    /** Remove previous 'message' listener in case of reconnect */
+    this._socket.removeEventListener('message', this._onSocketMessage)
     this._socket.addEventListener('message', this._onSocketMessage)
   }
 
@@ -216,6 +237,14 @@ export class BaseSession {
     ).catch((error) => {
       if (error === this._executeTimeoutError) {
         this.logger.error('Request Timeout', msg)
+        if (this.status === 'disconnected') {
+          return this.logger.debug(
+            'Request failed because the session is disconnected',
+            this.status,
+            this._socket
+          )
+        }
+
         // Possibly half-open connection so force close our side
         this._closeConnection('reconnecting')
       } else {
