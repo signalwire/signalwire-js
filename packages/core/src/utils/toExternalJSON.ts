@@ -64,6 +64,12 @@ export const toExternalJSON = <T>(
   input: T,
   options: typeof DEFAULT_OPTIONS = DEFAULT_OPTIONS
 ) => {
+  // @ts-expect-error
+  if (input?.__sw_symbol) {
+    // Return if the input is a BaseComponent
+    return input
+  }
+
   return Object.entries(input).reduce((reducer, [key, value]) => {
     const prop = fromSnakeToCamelCase(key) as any
     const propType = typeof value
