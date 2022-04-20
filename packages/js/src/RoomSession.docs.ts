@@ -996,6 +996,13 @@ interface RoomLayoutMethodsInterface {
   /**
    * Assigns a position in the layout for multiple members.
    *
+   * @permissions
+   *  - `room.set_position`
+   *
+   * You need to specify the permissions when [creating the Video Room
+   * Token](https://developer.signalwire.com/apis/reference/create_room_token)
+   * on the server side.
+   *
    * @example
    * ```js
    * await roomSession.setPositions({
@@ -1013,6 +1020,14 @@ interface RoomLayoutMethodsInterface {
 
   /**
    * Assigns a position in the layout to the specified member.
+   *
+   * @permissions
+   *  - `room.self.set_position`: to set the position for the local member
+   *  - `room.member.set_position`: to set the position for a remote member
+   *
+   * You need to specify the permissions when [creating the Video Room
+   * Token](https://developer.signalwire.com/apis/reference/create_room_token)
+   * on the server side.
    *
    * @example
    * ```js
