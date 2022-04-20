@@ -133,13 +133,16 @@ export function* socketClosedWorker({
   sessionChannel: EventChannel<unknown>
   pubSubChannel: PubSubChannel
 }) {
+  getLogger().debug('socketClosedWorker', session.status)
   if (session.status === 'reconnecting') {
     yield put(pubSubChannel, sessionReconnectingAction())
     yield delay(Math.random() * 2000)
     yield call(session.connect)
-  } else {
+  } else if (session.status === 'disconnected') {
     yield put(pubSubChannel, sessionDisconnectedAction())
     sessionChannel.close()
+  } else {
+    getLogger().warn('Unhandled Session Status', session.status)
   }
 }
 
@@ -175,6 +178,7 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
       reauthAction.type,
     ])
 
+    getLogger().debug('sessionStatusWatcher', action.type, action.payload)
     switch (action.type) {
       case authSuccessAction.type:
         yield fork(startSaga, options)
