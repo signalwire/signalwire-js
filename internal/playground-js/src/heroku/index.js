@@ -206,6 +206,8 @@ window.connect = () => {
   roomObj.on('room.started', (params) =>
     console.debug('>> room.started', params)
   )
+  roomObj.on('room.joined', console.log)
+  roomObj.on('room.joined', console.warn)
   roomObj.on('room.joined', (params) => {
     console.debug(
       '>> room.joined',
