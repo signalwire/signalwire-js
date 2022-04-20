@@ -67,7 +67,7 @@ export const toExternalJSON = <T>(
   // @ts-expect-error
   if (input?.__sw_symbol) {
     // Return if the input is a BaseComponent
-    return input
+    return input as unknown as ToExternalJSONResult<T>
   }
 
   return Object.entries(input).reduce((reducer, [key, value]) => {
