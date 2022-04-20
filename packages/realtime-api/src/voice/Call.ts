@@ -44,6 +44,7 @@ import {
   voiceCallTapWorker,
   voiceCallConnectWorker,
   voiceCallDialWorker,
+  voiceCallSendDigitsWorker,
 } from './workers'
 import { createCallPlaybackObject } from './CallPlayback'
 import { CallRecording, createCallRecordingObject } from './CallRecording'
@@ -611,6 +612,62 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     return this.prompt({
       media: [{ type: 'tts', text, language, gender }],
       ...rest,
+    })
+  }
+
+  sendDigits(digits: string) {
+    return new Promise((resolve, reject) => {
+      if (!this.callId || !this.nodeId) {
+        reject(
+          new Error(`Can't call sendDigits() on a call not established yet.`)
+        )
+      }
+
+      const controlId = uuid()
+
+      const cleanup = () => {
+        // @ts-expect-error
+        this.off('call.state', callStateHandler)
+      }
+
+      this.runWorker('voiceCallSendDigitsWorker', {
+        worker: voiceCallSendDigitsWorker,
+        initialState: {
+          controlId,
+        },
+        onDone: (options) => {
+          cleanup()
+          resolve(options)
+        },
+        onFail: (error) => {
+          cleanup()
+          reject(error)
+        },
+      })
+
+      const callStateHandler = (params: any) => {
+        if (params.callState === 'ended' || params.callState === 'ending') {
+          reject(
+            new Error(
+              "Call is ended or about to end, couldn't send digits in time."
+            )
+          )
+        }
+      }
+      // @ts-expect-error
+      this.once('call.state', callStateHandler)
+
+      this.execute({
+        method: 'calling.send_digits',
+        params: {
+          node_id: this.nodeId,
+          call_id: this.callId,
+          control_id: controlId,
+          digits,
+        },
+      }).catch((e) => {
+        reject(e)
+      })
     })
   }
 
