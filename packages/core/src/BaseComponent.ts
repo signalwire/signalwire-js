@@ -449,7 +449,12 @@ export class BaseComponent<
           obj[index]
         )
       })
-    } else if (obj && typeof obj === 'object') {
+    } else if (
+      obj &&
+      typeof obj === 'object' &&
+      // @ts-expect-error
+      !obj?.__sw_symbol
+    ) {
       Object.entries(obj).forEach(([key, value]) => {
         const nestedTransform = transform.nestedFieldsToProcess?.[key]
         const transformToUse = nestedTransform
