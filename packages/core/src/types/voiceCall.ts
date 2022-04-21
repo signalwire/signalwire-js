@@ -582,6 +582,15 @@ export interface VoiceCallContract<T = any> {
   waitUntilConnected(): Promise<this>
   disconnect(): Promise<void>
   detect(params: VoiceCallDetectMethodParams): Promise<VoiceCallDetectContract>
+  amd(
+    params?: Omit<VoiceCallDetectMachineParams, 'type'>
+  ): Promise<VoiceCallDetectContract>
+  detectFax(
+    params?: Omit<VoiceCallDetectFaxParams, 'type'>
+  ): Promise<VoiceCallDetectContract>
+  detectDigit(
+    params?: Omit<VoiceCallDetectDigitParams, 'type'>
+  ): Promise<VoiceCallDetectContract>
 }
 
 /**

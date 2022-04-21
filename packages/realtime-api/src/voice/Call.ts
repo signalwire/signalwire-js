@@ -922,21 +922,21 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     })
   }
 
-  amd(params: Omit<VoiceCallDetectMachineParams, 'type'>) {
+  amd(params: Omit<VoiceCallDetectMachineParams, 'type'> = {}) {
     return this.detect({
       ...params,
       type: 'machine',
     })
   }
 
-  detectFax(params: Omit<VoiceCallDetectFaxParams, 'type'>) {
+  detectFax(params: Omit<VoiceCallDetectFaxParams, 'type'> = {}) {
     return this.detect({
       ...params,
       type: 'fax',
     })
   }
 
-  detectDigit(params: Omit<VoiceCallDetectDigitParams, 'type'>) {
+  detectDigit(params: Omit<VoiceCallDetectDigitParams, 'type'> = {}) {
     return this.detect({
       ...params,
       type: 'digit',
