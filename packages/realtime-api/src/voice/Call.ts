@@ -9,7 +9,7 @@ import {
   VoiceCallContract,
   VoiceDialer,
   VoiceCallDisconnectReason,
-  VoiceCallPlayMethodParams,
+  VoicePlaylist,
   VoiceCallPlayAudioMethodParams,
   VoiceCallPlaySilenceMethodParams,
   VoiceCallPlayRingtoneMethodParams,
@@ -35,7 +35,11 @@ import {
 } from '@signalwire/core'
 import { RealTimeCallApiEvents } from '../types'
 import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
-import { toInternalDevices, toInternalPlayParams } from './utils'
+import {
+  toInternalDevices,
+  toInternalPlayParams,
+  createPlaylist,
+} from './utils'
 import {
   voiceCallStateWorker,
   voiceCallPlayWorker,
@@ -378,7 +382,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     })
   }
 
-  play(params: VoiceCallPlayMethodParams) {
+  play(params: VoicePlaylist) {
     return new Promise<this>((resolve, reject) => {
       if (!this.callId || !this.nodeId) {
         reject(new Error(`Can't call play() on a call not established yet.`))
@@ -430,32 +434,25 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
   playAudio(params: VoiceCallPlayAudioMethodParams) {
     const { volume, ...rest } = params
-    return this.play({
-      media: [{ type: 'audio', ...rest }],
-      volume,
-    })
+    const playlist = createPlaylist({ volume }).playAudio(rest)
+    return this.play(playlist)
   }
 
   playSilence(params: VoiceCallPlaySilenceMethodParams) {
-    return this.play({
-      media: [{ type: 'silence', ...params }],
-    })
+    const playlist = createPlaylist().playSilence(params)
+    return this.play(playlist)
   }
 
   playRingtone(params: VoiceCallPlayRingtoneMethodParams) {
     const { volume, ...rest } = params
-    return this.play({
-      media: [{ type: 'ringtone', ...rest }],
-      volume,
-    })
+    const playlist = createPlaylist({ volume }).playRingtone(rest)
+    return this.play(playlist)
   }
 
   playTTS(params: VoiceCallPlayTTSMethodParams) {
     const { volume, ...rest } = params
-    return this.play({
-      media: [{ type: 'tts', ...rest }],
-      volume,
-    })
+    const playlist = createPlaylist({ volume }).playTTS(rest)
+    return this.play(playlist)
   }
 
   record(params: VoiceCallRecordMethodParams) {
