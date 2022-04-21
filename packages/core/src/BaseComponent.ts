@@ -432,7 +432,7 @@ export class BaseComponent<
     if (Array.isArray(obj)) {
       result = obj.map((item: any, index: number) => {
         return this._parseNestedFields(
-          item,
+          process(item),
           transform,
           process,
           // At this point we don't have a key so we can't
@@ -449,32 +449,17 @@ export class BaseComponent<
           ? this._emitterTransforms.get(nestedTransform.eventTransformType)
           : undefined
 
-        if (Array.isArray(value)) {
-          result[key] = value.map((item, index) => {
-            return this._parseNestedFields(
-              item,
-              transform,
-              (p) => {
-                if (transformToUse && nestedTransform) {
-                  return instanceProxyFactory({
-                    transform: transformToUse,
-                    payload: process(
-                      nestedTransform.processInstancePayload(value[index])
-                    ),
-                  })
-                }
-
-                return p
-              },
-              result[key]
-            )
-          })
-        } else if (value && typeof value === 'object') {
+        if (value && typeof value === 'object') {
           result[key] = this._parseNestedFields(
             value,
             transform,
             (p) => {
-              if (transformToUse && nestedTransform) {
+              if (
+                nestedTransform &&
+                transformToUse &&
+                p &&
+                typeof p === 'object'
+              ) {
                 return instanceProxyFactory({
                   transform: transformToUse,
                   payload: process(nestedTransform.processInstancePayload(p)),
