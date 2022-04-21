@@ -1,13 +1,10 @@
-import {
-  connect,
-  BaseComponentOptions,
-  toExternalJSON,
-  VoiceCallDialMethodParams,
-} from '@signalwire/core'
+import { connect, BaseComponentOptions, toExternalJSON } from '@signalwire/core'
 import type {
   EmitterContract,
   EventTransform,
   CallingCallReceiveEventParams,
+  CreateVoiceDialerParams,
+  VoiceDialer,
 } from '@signalwire/core'
 import { RealtimeClient } from '../client/index'
 import { createCallObject, Call } from './Call'
@@ -27,7 +24,8 @@ type EmitterTransformsEvents = 'calling.call.received'
 export interface Voice extends EmitterContract<RealTimeVoiceApiEvents> {
   /** @internal */
   _session: RealtimeClient
-  dial(params: VoiceCallDialMethodParams): Promise<Call>
+  dial(dialer: VoiceDialer): Promise<Call>
+  createDialer(params?: CreateVoiceDialerParams): VoiceDialer
 }
 
 /** @internal */
@@ -69,6 +67,36 @@ class VoiceAPI extends AutoApplyTransformsConsumer<RealTimeVoiceApiEvents> {
         },
       ],
     ])
+  }
+
+  createDialer(params: CreateVoiceDialerParams = {}): VoiceDialer {
+    const devices: VoiceDialer['devices'] = []
+
+    const dialer: VoiceDialer = {
+      ...params,
+      devices,
+      dialPhone(params) {
+        devices.push([{ type: 'phone', ...params }])
+        return dialer
+      },
+      dialSip(params) {
+        devices.push([{ type: 'sip', ...params }])
+        return dialer
+      },
+      inParallel(dialer) {
+        const parallel = dialer.devices.map((row) => {
+          if (Array.isArray(row)) {
+            return row[0]
+          }
+          return row
+        })
+        devices.push(parallel)
+
+        return dialer
+      },
+    }
+
+    return dialer
   }
 }
 

@@ -299,6 +299,17 @@ export type VoiceCallDisconnectReason =
   | 'decline'
   | 'error'
 
+export interface CreateVoiceDialerParams {
+  region?: string
+}
+
+export interface VoiceDialer extends CreateVoiceDialerParams {
+  devices: VoiceCallDialMethodParams['devices']
+  dialPhone(params: Omit<VoiceCallPhoneParams, 'type'>): this
+  dialSip(params: Omit<VoiceCallSipParams, 'type'>): this
+  inParallel(dialer: VoiceDialer): this
+}
+
 /**
  * Public Contract for a VoiceCall
  */
@@ -451,7 +462,7 @@ export interface VoiceCallContract<T = any> {
   direction: 'inbound' | 'outbound'
   headers?: SipHeader[]
 
-  dial(params?: VoiceCallDialMethodParams): Promise<T>
+  dial(params: VoiceDialer): Promise<T>
   hangup(reason?: VoiceCallDisconnectReason): Promise<void>
   answer(): Promise<T>
   play(params: VoiceCallPlayMethodParams): Promise<VoiceCallPlaybackContract>
@@ -758,18 +769,18 @@ export interface CallingCallConnectEvent extends SwEvent {
  * 'calling.call.send_digits
  */
 
- export type CallingCallSendDigitsState = 'finished'
- export interface CallingCallSendDigitsEventParams {
-   node_id: string
-   call_id: string
-   control_id: string
-   state: CallingCallSendDigitsState
- }
+export type CallingCallSendDigitsState = 'finished'
+export interface CallingCallSendDigitsEventParams {
+  node_id: string
+  call_id: string
+  control_id: string
+  state: CallingCallSendDigitsState
+}
 
- export interface CallingCallSendDigitsEvent extends SwEvent {
-   event_type: ToInternalVoiceEvent<CallSendDigits>
-   params: CallingCallSendDigitsEventParams
- }
+export interface CallingCallSendDigitsEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallSendDigits>
+  params: CallingCallSendDigitsEventParams
+}
 
 /**
  * ==========
