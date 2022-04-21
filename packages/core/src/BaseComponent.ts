@@ -423,10 +423,17 @@ export class BaseComponent<
     obj: unknown,
     transform: EventTransform,
     process = (p: any) => p,
-    result: any = {}
-  ) {
+    result: any = undefined
+  ): any {
     if (!transform.nestedFieldsToProcess) {
       return transform.payloadTransform(obj)
+    }
+
+    // First time we ran this util we'll apply the top level
+    // transform
+    if (!result) {
+      const r = transform.payloadTransform(obj)
+      return this._parseNestedFields(r, transform, process, r)
     }
 
     if (Array.isArray(obj)) {
