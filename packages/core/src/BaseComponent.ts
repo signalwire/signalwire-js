@@ -423,17 +423,26 @@ export class BaseComponent<
     obj: unknown,
     transform: EventTransform,
     process = (p: any) => p,
-    result: any = undefined
+    result: any = undefined,
+    level = 0
   ): any {
     if (!transform.nestedFieldsToProcess) {
       return transform.payloadTransform(obj)
+    }
+
+    // It's non trivial to detect when the end of the line
+    // is since we can be dealing with multiple levels of
+    // nested Proxies so we default to maxDepth of 5.
+    // 4 = Max Depth
+    if (level > 4) {
+      return result
     }
 
     // First time we ran this util we'll apply the top level
     // transform
     if (!result) {
       const r = transform.payloadTransform(obj)
-      return this._parseNestedFields(r, transform, process, r)
+      return this._parseNestedFields(r, transform, process, r, level + 1)
     }
 
     if (Array.isArray(obj)) {
@@ -446,15 +455,11 @@ export class BaseComponent<
           // reference a transform. This process comes from
           // a previous iteration (since we don't support
           // top level arrays)
-          obj[index]
+          obj[index],
+          level + 1
         )
       })
-    } else if (
-      obj &&
-      typeof obj === 'object' &&
-      // @ts-expect-error
-      !obj?.__sw_symbol
-    ) {
+    } else if (obj && typeof obj === 'object') {
       Object.entries(obj).forEach(([key, value]) => {
         const nestedTransform = transform.nestedFieldsToProcess?.[key]
         const transformToUse = nestedTransform
@@ -480,7 +485,8 @@ export class BaseComponent<
 
               return p
             },
-            result[key]
+            result[key],
+            level + 1
           )
         } else {
           result[key] = process(value)
