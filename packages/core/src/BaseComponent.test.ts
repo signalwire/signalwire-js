@@ -306,21 +306,23 @@ describe('BaseComponent', () => {
       // prettier-ignore
       const payload = {"call_id":"28a20c71-43d4-443f-85d6-8ce3199b192b","member_id":"28a20c71-43d4-443f-85d6-8ce3199b192b","room_session":{"room_id":"b5bc21f7-ccd1-41c8-9c72-db4d16783048","id":"2aeca1a3-c22d-4a29-b422-cf562bcc6853","event_channel":"EC_78b616ce-214f-427f-bf82-af4c0bfffadc","name":"testing-positions","recording":true,"hide_video_muted":false,"layout_name":"grid-responsive","display_name":"testing-positions","meta":{},"recordings":[{"id":"9580c366-f438-42ac-ab94-c6bbeca29d51","state":"recording","duration":null,"started_at":1650449237.568,"ended_at":null}],"members":[{"id":"ca9976e9-4caa-4bb4-8be1-b8e66ada641a","room_id":"b5bc21f7-ccd1-41c8-9c72-db4d16783048","room_session_id":"2aeca1a3-c22d-4a29-b422-cf562bcc6853","name":"fran","type":"member","parent_id":"","requested_position":"auto","visible":false,"audio_muted":false,"video_muted":true,"deaf":false,"input_volume":0,"output_volume":0,"input_sensitivity":11.11111111111111,"meta":null},{"id":"28a20c71-43d4-443f-85d6-8ce3199b192b","room_id":"b5bc21f7-ccd1-41c8-9c72-db4d16783048","room_session_id":"2aeca1a3-c22d-4a29-b422-cf562bcc6853","name":"fran","type":"member","parent_id":"","requested_position":"auto","visible":false,"audio_muted":false,"video_muted":false,"deaf":false,"input_volume":0,"output_volume":0,"input_sensitivity":11.11111111111111,"meta":null}]},"room":{"room_id":"b5bc21f7-ccd1-41c8-9c72-db4d16783048","event_channel":"EC_78b616ce-214f-427f-bf82-af4c0bfffadc","name":"testing-positions","recording":true,"hide_video_muted":false,"layout_name":"grid-responsive","display_name":"testing-positions","meta":{},"recordings":[{"id":"9580c366-f438-42ac-ab94-c6bbeca29d51","state":"recording","duration":null,"started_at":1650449237.568,"ended_at":null}],"members":[{"id":"ca9976e9-4caa-4bb4-8be1-b8e66ada641a","room_id":"b5bc21f7-ccd1-41c8-9c72-db4d16783048","room_session_id":"2aeca1a3-c22d-4a29-b422-cf562bcc6853","name":"fran","type":"member","parent_id":"","requested_position":"auto","visible":false,"audio_muted":false,"video_muted":true,"deaf":false,"input_volume":0,"output_volume":0,"input_sensitivity":11.11111111111111,"meta":null},{"id":"28a20c71-43d4-443f-85d6-8ce3199b192b","room_id":"b5bc21f7-ccd1-41c8-9c72-db4d16783048","room_session_id":"2aeca1a3-c22d-4a29-b422-cf562bcc6853","name":"fran","type":"member","parent_id":"","requested_position":"auto","visible":false,"audio_muted":false,"video_muted":false,"deaf":false,"input_volume":0,"output_volume":0,"input_sensitivity":11.11111111111111,"meta":null}],"room_session_id":"2aeca1a3-c22d-4a29-b422-cf562bcc6853"}}
 
+      instance.on('jest.withNestedTransforms', () => {})
+      instance.on('jest.withNestedTransforms', () => {})
+      instance.on('jest.withNestedTransforms', () => {})
+
       instance.on('jest.withNestedTransforms', (obj: any) => {
         expect(instanceFactoryMock0).toHaveBeenCalledTimes(1)
         expect(instanceFactoryMock1).toHaveBeenCalledTimes(1)
         expect(instanceFactoryMock2).toHaveBeenCalledTimes(1)
 
         expect(obj).toHaveProperty('__jestKey', 'mock0')
-        expect(obj.recordings[0]).toHaveProperty(
-          '__jestKey',
-          'mock1'
-        )
+        expect(obj.recordings[0]).toHaveProperty('__jestKey', 'mock1')
         expect(obj.members[0]).toHaveProperty('__jestKey', 'mock2')
       })
 
       // @ts-expect-error
       instance.applyEmitterTransforms()
+      instance.emit('jest.withNestedTransforms', payload)
       instance.emit('jest.withNestedTransforms', payload)
     })
 
