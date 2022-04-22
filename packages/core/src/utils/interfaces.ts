@@ -345,15 +345,6 @@ export type EventTransformType =
 
 export interface NestedFieldToProcess {
   /**
-   * It's responsible for digging into the `transformedPayload` and mutating it with
-   * the correct logic and using the `instanceFactory` function to create child objects
-   * for the nested fields. For example: members/recordings/playbacks.
-   */
-  process: (
-    transformedPayload: any,
-    instanceFactory: (payload: any) => any
-  ) => any
-  /**
    * Allow us to update the nested `payload` to match the shape we already
    * treat consuming other events from the server.
    * For example: wrapping the `payload` within a specific key.
@@ -431,7 +422,7 @@ export interface EventTransform {
    * This allow us to target the fields and apply transform those
    * into stateless object following our EventTranform pattern.
    */
-  nestedFieldsToProcess?: () => NestedFieldToProcess[]
+  nestedFieldsToProcess?: Record<string, NestedFieldToProcess>
   /**
    * Allow us to define what property to use to namespace
    * our events (_eventsNamespace).

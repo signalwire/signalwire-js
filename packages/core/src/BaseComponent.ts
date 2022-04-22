@@ -401,10 +401,7 @@ export class BaseComponent<
         payload,
       })
 
-      const transformedPayload = this._parseNestedFields({
-        transform,
-        payload,
-      })
+      const transformedPayload = this._parseNestedFields(payload, transform)
 
       const proxiedObj = proxyFactory({
         instance: cachedInstance,
@@ -422,32 +419,93 @@ export class BaseComponent<
     >
   }
 
-  private _parseNestedFields({
-    transform,
-    payload,
-  }: {
-    transform: EventTransform
-    payload: unknown
-  }) {
-    let transformedPayload = transform.payloadTransform(payload)
-    const fieldsToProcess = transform?.nestedFieldsToProcess?.() ?? []
+  private _parseNestedFields(
+    obj: unknown,
+    transform: EventTransform,
+    process = (p: any) => p,
+    result: any = undefined,
+    // `level` keeps track of how deep we are in the
+    // processing line.
+    level = 0,
+    // max depth level we'll get into. this value could
+    // change depending on how soon we detect the first
+    // Proxy.
+    maxDepth = 5
+  ): any {
+    if (!transform.nestedFieldsToProcess) {
+      return transform.payloadTransform(obj)
+    }
 
-    fieldsToProcess.forEach(
-      ({ process, processInstancePayload, eventTransformType }) => {
-        const transformToUse = this._emitterTransforms.get(eventTransformType)
-        if (!transformToUse) {
-          return
+    // It's non trivial to detect when the end of the line
+    // is since we can be dealing with multiple levels of
+    // nested Proxies at a time.
+    // 4 = Max Depth
+    if (level > maxDepth) {
+      return result
+      // @ts-expect-error
+    } else if (obj.__sw_proxy) {
+      maxDepth = level
+    }
+
+    // First time we ran this util we'll apply the top level
+    // transform
+    if (!result) {
+      const r = transform.payloadTransform(obj)
+      return this._parseNestedFields(r, transform, process, r, level + 1, maxDepth)
+    }
+
+    if (Array.isArray(obj)) {
+      result = obj.map((item: any, index: number) => {
+        return this._parseNestedFields(
+          process(item),
+          transform,
+          process,
+          // At this point we don't have a key so we can't
+          // reference a transform. This process comes from
+          // a previous iteration (since we don't support
+          // top level arrays)
+          obj[index],
+          level + 1,
+          maxDepth
+        )
+      })
+    } else if (obj && typeof obj === 'object') {
+      Object.entries(obj).forEach(([key, value]) => {
+        const nestedTransform = transform.nestedFieldsToProcess?.[key]
+        const transformToUse = nestedTransform
+          ? this._emitterTransforms.get(nestedTransform.eventTransformType)
+          : undefined
+
+        if (value && typeof value === 'object') {
+          result[key] = this._parseNestedFields(
+            value,
+            transform,
+            (p) => {
+              if (
+                nestedTransform &&
+                transformToUse &&
+                p &&
+                typeof p === 'object'
+              ) {
+                return instanceProxyFactory({
+                  transform: transformToUse,
+                  payload: process(nestedTransform.processInstancePayload(p)),
+                })
+              }
+
+              return p
+            },
+            result[key],
+            level + 1,
+            maxDepth
+          )
+        } else {
+          result[key] = process(value)
         }
-        const instanceFactory = (jsonPayload: any) => {
-          return instanceProxyFactory({
-            transform: transformToUse,
-            payload: processInstancePayload(jsonPayload),
-          })
-        }
-        transformedPayload = process(transformedPayload, instanceFactory)
-      }
-    )
-    return transformedPayload
+      })
+    }
+
+    return result
   }
 
   private getOrCreateStableEventHandler(

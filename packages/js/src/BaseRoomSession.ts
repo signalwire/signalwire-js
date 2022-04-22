@@ -83,35 +83,15 @@ export class RoomSessionConnection
           payloadTransform: (payload: VideoRoomSubscribedEventParams) => {
             return payload
           },
-          nestedFieldsToProcess: () => {
-            return [
-              {
-                eventTransformType: 'roomSessionPlayback',
-                process: (transformedPayload, instanceFactory) => {
-                  if (transformedPayload.room_session?.playbacks?.length) {
-                    transformedPayload.room_session.playbacks =
-                      transformedPayload.room_session.playbacks.map(
-                        instanceFactory
-                      )
-                  }
-                  return transformedPayload
-                },
-                processInstancePayload: (payload) => ({ member: payload }),
-              },
-              {
-                eventTransformType: 'roomSessionRecording',
-                process: (transformedPayload, instanceFactory) => {
-                  if (transformedPayload.room_session?.recordings?.length) {
-                    transformedPayload.room_session.recordings =
-                      transformedPayload.room_session.recordings.map(
-                        instanceFactory
-                      )
-                  }
-                  return transformedPayload
-                },
-                processInstancePayload: (payload) => ({ recording: payload }),
-              },
-            ]
+          nestedFieldsToProcess: {
+            recordings: {
+              eventTransformType: 'roomSessionRecording',
+              processInstancePayload: (payload) => ({ recording: payload }),
+            },
+            playbacks: {
+              eventTransformType: 'roomSessionPlayback',
+              processInstancePayload: (payload) => ({ member: payload }),
+            },
           },
         },
       ],
