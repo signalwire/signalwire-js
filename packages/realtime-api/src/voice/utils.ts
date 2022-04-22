@@ -82,11 +82,11 @@ export const createDialer = (params: CreateVoiceDialerParams = {}) => {
   const dialer: VoiceDialer = {
     ...params,
     devices,
-    dialPhone(params) {
+    addPhone(params) {
       devices.push([{ type: 'phone', ...params }])
       return dialer
     },
-    dialSip(params) {
+    addSip(params) {
       devices.push([{ type: 'sip', ...params }])
       return dialer
     },

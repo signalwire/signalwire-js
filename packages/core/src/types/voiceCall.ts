@@ -305,8 +305,8 @@ export interface CreateVoiceDialerParams {
 
 export interface VoiceDialer extends CreateVoiceDialerParams {
   devices: VoiceCallDialMethodParams['devices']
-  dialPhone(params: Omit<VoiceCallPhoneParams, 'type'>): this
-  dialSip(params: Omit<VoiceCallSipParams, 'type'>): this
+  addPhone(params: Omit<VoiceCallPhoneParams, 'type'>): this
+  addSip(params: Omit<VoiceCallSipParams, 'type'>): this
   inParallel(dialer: VoiceDialer): this
 }
 

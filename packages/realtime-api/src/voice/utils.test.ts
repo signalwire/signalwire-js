@@ -133,21 +133,21 @@ describe('createDialer', () => {
     const dialer = createDialer()
 
     dialer
-      .dialPhone({ from: '+1', to: '+2', timeout: 30 })
-      .dialSip({
+      .addPhone({ from: '+1', to: '+2', timeout: 30 })
+      .addSip({
         from: 'sip:one',
         to: 'sip:two',
         headers: [{ name: 'foo', value: 'bar' }],
       })
       .inParallel(
         createDialer()
-          .dialPhone({ from: '+3', to: '+4' })
-          .dialSip({
+          .addPhone({ from: '+3', to: '+4' })
+          .addSip({
             from: 'sip:three',
             to: 'sip:four',
             headers: [{ name: 'baz', value: 'qux' }],
           })
-          .dialPhone({ from: '+5', to: '+6' })
+          .addPhone({ from: '+5', to: '+6' })
       )
 
     expect(dialer.devices).toStrictEqual([
@@ -192,8 +192,8 @@ describe('createDialer', () => {
     const dialer = createDialer({ region: 'us' })
     dialer.inParallel(
       createDialer()
-        .dialPhone({ from: '+3', to: '+4' })
-        .dialPhone({ from: '+5', to: '+6' })
+        .addPhone({ from: '+3', to: '+4' })
+        .addPhone({ from: '+5', to: '+6' })
     )
 
     expect(dialer.region).toBe('us')
