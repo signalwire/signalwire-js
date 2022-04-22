@@ -30,7 +30,7 @@ async function run() {
     })
 
     try {
-      const dialer = client.createDialer().dialPhone({
+      const dialer = Voice.createDialer().dialPhone({
         to: process.env.TO_NUMBER as string,
         from: process.env.FROM_NUMBER as string,
         timeout: 30,
