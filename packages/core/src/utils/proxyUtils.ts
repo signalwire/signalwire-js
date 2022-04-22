@@ -113,6 +113,10 @@ export const proxyFactory = ({
 }: ProxyFactoryOptions) => {
   const proxiedObj = new Proxy(instance, {
     get(target: any, prop: any, receiver: any) {
+      if (prop === '__sw_proxy') {
+        return true
+      }
+
       if (prop === 'toString') {
         return proxyToString({
           property: target[prop],
