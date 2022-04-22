@@ -30,12 +30,20 @@ async function run() {
     })
 
     try {
-      const dialer = Voice.createDialer().addPhone({
+      // Using createDialer util
+      // const dialer = Voice.createDialer().addPhone({
+      //   to: process.env.TO_NUMBER as string,
+      //   from: process.env.FROM_NUMBER as string,
+      //   timeout: 30,
+      // })
+      // const call = await client.dial(dialer)
+
+      // Using dialPhone Alias
+      const call = await client.dialPhone({
         to: process.env.TO_NUMBER as string,
         from: process.env.FROM_NUMBER as string,
         timeout: 30,
       })
-      const call = await client.dial(dialer)
 
       console.log('Dial resolved!', call.id)
       const sleep = (ms = 3000) => {
