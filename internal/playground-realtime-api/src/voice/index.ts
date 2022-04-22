@@ -76,7 +76,7 @@ async function run() {
         // Wait until Main and Peer are connected
         await call.waitUntilConnected()
 
-        const playlist = client.createPlaylist({ volume: 2 }).playTTS({
+        const playlist = Voice.createPlaylist({ volume: 2 }).playTTS({
           text: 'Thank you, you are now disconnected from the peer',
         })
         await call.play(playlist)
@@ -182,8 +182,7 @@ async function run() {
         console.log('>> playback.ended', p.id, p.state)
       })
 
-      const playlist = client
-        .createPlaylist({ volume: 2 })
+      const playlist = Voice.createPlaylist({ volume: 2 })
         .playAudio({
           url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
         })

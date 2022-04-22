@@ -14,11 +14,11 @@ import { createCallObject, Call } from './Call'
 import { voiceCallReceiveWorker } from './workers'
 import { createDialer } from './utils'
 import type { RealTimeCallApiEvents } from '../types'
-import { createPlaylist } from './utils'
 import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
 
 export * from './VoiceClient'
 export { createDialer }
+export { createPlaylist } from './utils'
 
 /**
  * List of events for {@link Voice.Call}.
@@ -40,8 +40,6 @@ export interface Voice extends EmitterContract<RealTimeVoiceApiEvents> {
 class VoiceAPI extends AutoApplyTransformsConsumer<RealTimeVoiceApiEvents> {
   /** @internal */
   protected _eventsPrefix = 'calling' as const
-
-  public createPlaylist = createPlaylist
 
   constructor(options: BaseComponentOptions<RealTimeVoiceApiEvents>) {
     super(options)
