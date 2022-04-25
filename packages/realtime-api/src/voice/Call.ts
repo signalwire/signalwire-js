@@ -870,11 +870,9 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       const { waitForBeep = false, timeout, type, ...rest } = params
       const controlId = uuid()
 
-      this.setWorker('voiceCallDetectWorker', {
+      this.runWorker('voiceCallDetectWorker', {
         worker: voiceCallDetectWorker,
-      })
-      this.attachWorkers({
-        payload: {
+        initialState: {
           controlId,
           waitForBeep,
         },

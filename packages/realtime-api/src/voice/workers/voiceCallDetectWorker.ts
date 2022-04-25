@@ -14,9 +14,9 @@ export const voiceCallDetectWorker: SDKWorker<Call> = function* (
   options
 ): SagaIterator {
   getLogger().trace('voiceCallDetectWorker started')
-  const { channels, instance, payload } = options
+  const { channels, instance, initialState } = options
   const { swEventChannel, pubSubChannel } = channels
-  const { controlId, waitForBeep = false } = payload
+  const { controlId, waitForBeep = false } = initialState
   if (!controlId) {
     throw new Error('Missing controlId for tapping')
   }
