@@ -921,7 +921,11 @@ export const createMicrophoneAnalyzer = async (
     if (rafId) {
       cancelAnimationFrame(rafId)
     }
-    audioContext.close()
+    if (audioContext.state !== 'closed') {
+      audioContext.close().catch((error) => {
+        getLogger().error('Error closing the AudioContext', error)
+      })
+    }
     /**
      * If the user provided a MediaStream, we don't need to
      * close it.
