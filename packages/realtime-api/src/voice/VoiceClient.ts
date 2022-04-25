@@ -38,7 +38,7 @@ const VoiceClient = function (options?: VoiceClientOptions) {
     return voice.once(...args)
   }
 
-  const callDial: Call['dial'] = async (...args) => {
+  const callDial: Call['dial'] = async (dialer) => {
     await clientConnect(client)
 
     const call = createCallObject({
@@ -46,7 +46,7 @@ const VoiceClient = function (options?: VoiceClientOptions) {
       emitter,
     })
 
-    await call.dial(...args)
+    await call.dial(dialer)
 
     return call
   }

@@ -132,6 +132,8 @@ export interface VoiceCallPhoneParams {
   timeout?: number
 }
 
+export type OmitType<T> = Omit<T, 'type'>
+
 export interface VoiceCallSipParams {
   type: 'sip'
   from: string
@@ -186,19 +188,19 @@ export interface VoiceCallPlayMethodParams {
 }
 
 export interface VoiceCallPlayAudioMethodParams
-  extends Omit<VoiceCallPlayAudioParams, 'type'> {
+  extends OmitType<VoiceCallPlayAudioParams> {
   volume?: number
 }
 
 export interface VoiceCallPlaySilenceMethodParams
-  extends Omit<VoiceCallPlaySilenceParams, 'type'> {}
+  extends OmitType<VoiceCallPlaySilenceParams> {}
 
 export interface VoiceCallPlayRingtoneMethodParams
-  extends Omit<VoiceCallPlayRingtoneParams, 'type'> {
+  extends OmitType<VoiceCallPlayRingtoneParams> {
   volume?: number
 }
 export interface VoiceCallPlayTTSMethodParams
-  extends Omit<VoiceCallPlayTTSParams, 'type'> {
+  extends OmitType<VoiceCallPlayTTSParams> {
   volume?: number
 }
 
@@ -239,19 +241,19 @@ export type VoiceCallPromptMethodParams = SpeechOrDigits & {
   partialResults?: boolean
 }
 export type VoiceCallPromptAudioMethodParams = SpeechOrDigits &
-  Omit<VoiceCallPlayAudioParams, 'type'> & {
+  OmitType<VoiceCallPlayAudioParams> & {
     volume?: number
     initialTimeout?: number
     partialResults?: boolean
   }
 export type VoiceCallPromptRingtoneMethodParams = SpeechOrDigits &
-  Omit<VoiceCallPlayRingtoneParams, 'type'> & {
+  OmitType<VoiceCallPlayRingtoneParams> & {
     volume?: number
     initialTimeout?: number
     partialResults?: boolean
   }
 export type VoiceCallPromptTTSMethodParams = SpeechOrDigits &
-  Omit<VoiceCallPlayTTSParams, 'type'> & {
+  OmitType<VoiceCallPlayTTSParams> & {
     volume?: number
     initialTimeout?: number
     partialResults?: boolean
@@ -298,6 +300,19 @@ export type VoiceCallDisconnectReason =
   | 'noAnswer'
   | 'decline'
   | 'error'
+
+export type VoiceCallDialPhoneMethodParams = OmitType<VoiceCallPhoneParams>
+export type VoiceCallDialSipMethodParams = OmitType<VoiceCallSipParams>
+export interface CreateVoiceDialerParams {
+  region?: string
+}
+
+export interface VoiceDialer extends CreateVoiceDialerParams {
+  devices: VoiceCallDialMethodParams['devices']
+  addPhone(params: VoiceCallDialPhoneMethodParams): this
+  addSip(params: VoiceCallDialSipMethodParams): this
+  inParallel(dialer: VoiceDialer): this
+}
 
 /**
  * Public Contract for a VoiceCall
@@ -451,7 +466,7 @@ export interface VoiceCallContract<T = any> {
   direction: 'inbound' | 'outbound'
   headers?: SipHeader[]
 
-  dial(params?: VoiceCallDialMethodParams): Promise<T>
+  dial(params: VoiceDialer): Promise<T>
   hangup(reason?: VoiceCallDisconnectReason): Promise<void>
   answer(): Promise<T>
   play(params: VoiceCallPlayMethodParams): Promise<VoiceCallPlaybackContract>
@@ -758,18 +773,18 @@ export interface CallingCallConnectEvent extends SwEvent {
  * 'calling.call.send_digits
  */
 
- export type CallingCallSendDigitsState = 'finished'
- export interface CallingCallSendDigitsEventParams {
-   node_id: string
-   call_id: string
-   control_id: string
-   state: CallingCallSendDigitsState
- }
+export type CallingCallSendDigitsState = 'finished'
+export interface CallingCallSendDigitsEventParams {
+  node_id: string
+  call_id: string
+  control_id: string
+  state: CallingCallSendDigitsState
+}
 
- export interface CallingCallSendDigitsEvent extends SwEvent {
-   event_type: ToInternalVoiceEvent<CallSendDigits>
-   params: CallingCallSendDigitsEventParams
- }
+export interface CallingCallSendDigitsEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallSendDigits>
+  params: CallingCallSendDigitsEventParams
+}
 
 /**
  * ==========

@@ -7,7 +7,7 @@ import {
   extendComponent,
   VoiceCallMethods,
   VoiceCallContract,
-  VoiceCallDialMethodParams,
+  VoiceDialer,
   VoiceCallDisconnectReason,
   VoiceCallPlayMethodParams,
   VoiceCallPlayAudioMethodParams,
@@ -299,7 +299,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     ])
   }
 
-  dial(params: VoiceCallDialMethodParams) {
+  dial(params: VoiceDialer) {
     return new Promise((resolve, reject) => {
       this.runWorker('voiceCallDialWorker', {
         worker: voiceCallDialWorker,
@@ -307,12 +307,13 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         onFail: reject,
       })
 
+      const { region, devices } = params
       this.execute({
         method: 'calling.dial',
         params: {
-          ...params,
           tag: this.__uuid,
-          devices: toInternalDevices(params.devices),
+          region,
+          devices: toInternalDevices(devices),
         },
       }).catch((e) => {
         reject(e)
