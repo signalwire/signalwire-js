@@ -1,5 +1,14 @@
 import { Voice } from '@signalwire/realtime-api'
 
+const sleep = (ms = 3000) => {
+  return new Promise((r) => {
+    setTimeout(r, ms)
+  })
+}
+
+// In this example you need to perform and outbound/inbound call
+const RUN_DETECTOR = false
+
 async function run() {
   try {
     const client = new Voice.Client({
@@ -7,10 +16,10 @@ async function run() {
       project: process.env.PROJECT as string,
       token: process.env.TOKEN as string,
       contexts: [process.env.RELAY_CONTEXT as string],
-      // // logLevel: 'trace',
-      // debug: {
-      //   logWsTraffic: true,
-      // },
+      // logLevel: 'trace',
+      debug: {
+        logWsTraffic: true,
+      },
     })
 
     client.on('call.received', async (call) => {
@@ -18,12 +27,36 @@ async function run() {
 
       try {
         await call.answer()
-        console.log('Inbound call answered', call)
-        setTimeout(async () => {
-          console.log('Terminating the call')
-          await call.hangup()
-          console.log('Call terminated!')
-        }, 3000)
+        console.log('Inbound call answered')
+        await sleep(1000)
+
+        // Send digits to trigger the detector
+        await call.sendDigits('1w2w3')
+
+        // Play media to mock an answering machine
+        // await call.play({
+        //   media: [
+        //     {
+        //       type: 'tts',
+        //       text: 'Hello, please leave a message',
+        //     },
+        //     {
+        //       type: 'silence',
+        //       duration: 2,
+        //     },
+        //     {
+        //       type: 'audio',
+        //       url: 'https://www.soundjay.com/buttons/beep-01a.mp3',
+        //     },
+        //   ],
+        //   volume: 2.0,
+        // })
+
+        // setTimeout(async () => {
+        //   console.log('Terminating the call')
+        //   await call.hangup()
+        //   console.log('Call terminated!')
+        // }, 3000)
       } catch (error) {
         console.error('Error answering inbound call', error)
       }
@@ -46,13 +79,15 @@ async function run() {
       })
 
       console.log('Dial resolved!', call.id)
-      const sleep = (ms = 3000) => {
-        return new Promise((r) => {
-          setTimeout(r, ms)
-        })
-      }
 
-      await sleep()
+      if (RUN_DETECTOR) {
+        // See the `call.received` handler
+        const detect = await call.detectDigit()
+        const result = await detect.waitForResult()
+        console.log('Detect Result', result.type)
+
+        await sleep()
+      }
 
       try {
         const peer = await call.connect({
