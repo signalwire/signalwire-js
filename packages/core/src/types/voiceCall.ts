@@ -440,7 +440,7 @@ export interface VoiceCallDetectContract {
   /** @ignore */
   readonly controlId: string
   /** @ignore */
-  readonly type?: DetectType
+  readonly type?: CallingCallDetectType
 
   stop(): Promise<this>
   waitForResult(): Promise<this>
@@ -875,20 +875,26 @@ export interface CallingCallSendDigitsEvent extends SwEvent {
 /**
  * 'calling.call.detect'
  */
-export type DetectState = 'finished' | 'error'
-interface DetectFax {
+type CallingCallDetectState = 'finished' | 'error'
+interface CallingCallDetectFax {
   type: 'fax'
   params: {
-    event: 'CED' | 'CNG' | DetectState
+    event: 'CED' | 'CNG' | CallingCallDetectState
   }
 }
-interface DetectMachine {
+interface CallingCallDetectMachine {
   type: 'machine'
   params: {
-    event: 'MACHINE' | 'HUMAN' | 'UNKNOWN' | 'READY' | 'NOT_READY' | DetectState
+    event:
+      | 'MACHINE'
+      | 'HUMAN'
+      | 'UNKNOWN'
+      | 'READY'
+      | 'NOT_READY'
+      | CallingCallDetectState
   }
 }
-interface DetectDigit {
+interface CallingCallDetectDigit {
   type: 'digit'
   params: {
     event:
@@ -904,11 +910,14 @@ interface DetectDigit {
       | '9'
       | '#'
       | '*'
-      | DetectState
+      | CallingCallDetectState
   }
 }
-export type Detector = DetectFax | DetectMachine | DetectDigit
-export type DetectType = Detector['type']
+export type Detector =
+  | CallingCallDetectFax
+  | CallingCallDetectMachine
+  | CallingCallDetectDigit
+type CallingCallDetectType = Detector['type']
 export interface CallingCallDetectEventParams {
   node_id: string
   call_id: string
