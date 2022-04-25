@@ -65,5 +65,5 @@ export const voiceCallStateWorker: SDKWorker<Call> = function* (
     }
   }
 
-  getLogger().info('voiceCallStateWorker ended', instance.id, instance.tag)
+  getLogger().trace('voiceCallStateWorker ended', instance.id, instance.tag)
 }
