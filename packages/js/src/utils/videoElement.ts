@@ -14,6 +14,17 @@ const buildVideo = () => {
   video.autoplay = true
   video.playsInline = true
 
+  /**
+   * Local and Remov video elements should never be paused
+   * and Safari/Firefox pause the video (ie: enabling PiP, switch cameras etc)
+   * We try to force it to keep playing.
+   */
+  video.addEventListener('pause', () => {
+    video.play().catch((error) => {
+      getLogger().error('Video Element Paused', video, error)
+    })
+  })
+
   return video
 }
 
