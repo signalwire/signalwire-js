@@ -56,7 +56,7 @@ import {
   voiceCallSendDigitsWorker,
   voiceCallDetectWorker,
 } from './workers'
-import { createCallPlaybackObject } from './CallPlayback'
+import { CallPlayback, createCallPlaybackObject } from './CallPlayback'
 import { CallRecording, createCallRecordingObject } from './CallRecording'
 import { CallPrompt, createCallPromptObject } from './CallPrompt'
 import { CallTap, createCallTapObject } from './CallTap'
@@ -416,20 +416,18 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
   }
 
   play(params: VoicePlaylist) {
-    return new Promise<this>((resolve, reject) => {
+    return new Promise<CallPlayback>((resolve, reject) => {
       if (!this.callId || !this.nodeId) {
         reject(new Error(`Can't call play() on a call not established yet.`))
       }
 
       const controlId = uuid()
 
-      this.setWorker('voiceCallPlayWorker', {
+      this.runWorker('voiceCallPlayWorker', {
         worker: voiceCallPlayWorker,
-      })
-      this.attachWorkers({
-        payload: {
+        initialState: {
           controlId,
-        },
+        }
       })
 
       const resolveHandler = (callPlayback: any) => {
