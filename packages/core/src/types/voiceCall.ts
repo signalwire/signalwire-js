@@ -314,6 +314,18 @@ export interface VoiceDialer extends CreateVoiceDialerParams {
   inParallel(dialer: VoiceDialer): this
 }
 
+export interface CreateVoicePlaylistParams {
+  volume?: number
+}
+
+export interface VoicePlaylist extends CreateVoicePlaylistParams {
+  media: VoiceCallPlayMethodParams['media']
+  playAudio(params: VoiceCallPlayAudioMethodParams): this
+  playTTS(params: VoiceCallPlayTTSMethodParams): this
+  playSilence(params: VoiceCallPlaySilenceMethodParams): this
+  playRingtone(params: VoiceCallPlayRingtoneMethodParams): this
+}
+
 /**
  * Public Contract for a VoiceCall
  */
@@ -469,7 +481,7 @@ export interface VoiceCallContract<T = any> {
   dial(params: VoiceDialer): Promise<T>
   hangup(reason?: VoiceCallDisconnectReason): Promise<void>
   answer(): Promise<T>
-  play(params: VoiceCallPlayMethodParams): Promise<VoiceCallPlaybackContract>
+  play(params: VoicePlaylist): Promise<VoiceCallPlaybackContract>
   playAudio(
     params: VoiceCallPlayAudioMethodParams
   ): Promise<VoiceCallPlaybackContract>
