@@ -6,6 +6,8 @@ import type {
   VoiceDialer,
   VoiceCallDialPhoneMethodParams,
   VoiceCallDialSipMethodParams,
+  VoicePlaylist,
+  CreateVoicePlaylistParams,
 } from '@signalwire/core'
 import { RealtimeClient } from '../client/index'
 import { createCallObject, Call } from './Call'
@@ -16,6 +18,7 @@ import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
 
 export * from './VoiceClient'
 export { createDialer }
+export { createPlaylist } from './utils'
 
 /**
  * List of events for {@link Voice.Call}.
@@ -30,6 +33,7 @@ export interface Voice extends EmitterContract<RealTimeVoiceApiEvents> {
   dial(dialer: VoiceDialer): Promise<Call>
   dialPhone(params: VoiceCallDialPhoneMethodParams): Promise<Call>
   dialSip(params: VoiceCallDialSipMethodParams): Promise<Call>
+  createPlaylist(params?: CreateVoicePlaylistParams): VoicePlaylist
 }
 
 /** @internal */
