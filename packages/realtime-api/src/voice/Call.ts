@@ -427,7 +427,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         worker: voiceCallPlayWorker,
         initialState: {
           controlId,
-        }
+        },
       })
 
       const resolveHandler = (callPlayback: any) => {
@@ -498,7 +498,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         worker: voiceCallRecordWorker,
         initialState: {
           controlId,
-        }
+        },
       })
 
       const resolveHandler = (callRecording: CallRecording) => {
@@ -555,7 +555,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         worker: voiceCallPromptWorker,
         initialState: {
           controlId,
-        }
+        },
       })
 
       const resolveHandler = (callRecording: CallPrompt) => {
@@ -660,13 +660,17 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         initialState: {
           controlId,
         },
-        onDone: (options) => {
+        onDone: (args) => {
           cleanup()
-          resolve(options)
+          if (args?.options) {
+            resolve(args.options)
+          }
         },
-        onFail: (error) => {
+        onFail: (args) => {
           cleanup()
-          reject(error)
+          if (args?.error) {
+            reject(args.error)
+          }
         },
       })
 
@@ -708,7 +712,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         worker: voiceCallTapWorker,
         initialState: {
           controlId,
-        }
+        },
       })
 
       const resolveHandler = (callTap: CallTap) => {
@@ -771,10 +775,9 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         reject(new Error(`Can't call connect() on a call not established yet.`))
       }
 
-      this.setWorker('voiceCallConnectWorker', {
+      this.runWorker('voiceCallConnectWorker', {
         worker: voiceCallConnectWorker,
       })
-      this.attachWorkers()
 
       const resolveHandler = (payload: CallingCallConnectEventParams) => {
         // @ts-expect-error

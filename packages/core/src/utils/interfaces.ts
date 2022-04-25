@@ -460,8 +460,11 @@ export type InternalChannels = {
 }
 
 type SDKWorkerHooks<T> = AllOrNone<{
-  onDone: (options?: Partial<SDKWorkerParams<T>>) => void
-  onFail: (error?: Error) => void
+  onDone: (args?: {
+    params?: any
+    options?: Partial<SDKWorkerParams<T>>
+  }) => void
+  onFail: (args?: { params?: any; error?: Error }) => void
 }>
 
 type SDKWorkerBaseParams<T> = {
@@ -484,7 +487,7 @@ export type AttachSDKWorkerParams<T> = Partial<SDKWorkerBaseParams<T>>
 export type SDKWorker<T> = (params: SDKWorkerParams<T>) => SagaIterator<any>
 
 export type SDKWorkerDefinition = {
-  worker: SDKWorker<any>,
+  worker: SDKWorker<any>
   initialState?: any
 } & SDKWorkerHooks<any>
 

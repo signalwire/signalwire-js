@@ -39,9 +39,11 @@ export const voiceCallSendDigitsWorker: SDKWorker<Call> = function* (
   if (action.payload.state === 'finished') {
     onDone?.()
   } else {
-    const error = new Error(`[voiceCallSendDigitsWorker] unhandled state: '${action.payload.state}'`)
+    const error = new Error(
+      `[voiceCallSendDigitsWorker] unhandled state: '${action.payload.state}'`
+    )
     if (typeof onFail === 'function') {
-      onFail(error)
+      onFail({ error })
     } else {
       throw error
     }
