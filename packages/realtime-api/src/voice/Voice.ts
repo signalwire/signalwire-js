@@ -1,21 +1,21 @@
-import {
-  connect,
-  BaseComponentOptions,
-  toExternalJSON,
-  VoiceCallDialMethodParams,
-} from '@signalwire/core'
+import { connect, BaseComponentOptions, toExternalJSON } from '@signalwire/core'
 import type {
   EmitterContract,
   EventTransform,
   CallingCallReceiveEventParams,
+  VoiceDialer,
+  VoiceCallDialPhoneMethodParams,
+  VoiceCallDialSipMethodParams,
 } from '@signalwire/core'
 import { RealtimeClient } from '../client/index'
 import { createCallObject, Call } from './Call'
 import { voiceCallReceiveWorker } from './workers'
+import { createDialer } from './utils'
 import type { RealTimeCallApiEvents } from '../types'
 import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
 
 export * from './VoiceClient'
+export { createDialer }
 
 /**
  * List of events for {@link Voice.Call}.
@@ -27,7 +27,9 @@ type EmitterTransformsEvents = 'calling.call.received'
 export interface Voice extends EmitterContract<RealTimeVoiceApiEvents> {
   /** @internal */
   _session: RealtimeClient
-  dial(params: VoiceCallDialMethodParams): Promise<Call>
+  dial(dialer: VoiceDialer): Promise<Call>
+  dialPhone(params: VoiceCallDialPhoneMethodParams): Promise<Call>
+  dialSip(params: VoiceCallDialSipMethodParams): Promise<Call>
 }
 
 /** @internal */
@@ -69,6 +71,20 @@ class VoiceAPI extends AutoApplyTransformsConsumer<RealTimeVoiceApiEvents> {
         },
       ],
     ])
+  }
+
+  dialPhone(params: VoiceCallDialPhoneMethodParams) {
+    const dialer = createDialer().addPhone(params)
+    // dial is available through the VoiceClient Proxy
+    // @ts-expect-error
+    return this.dial(dialer)
+  }
+
+  dialSip(params: VoiceCallDialSipMethodParams) {
+    const dialer = createDialer().addSip(params)
+    // dial is available through the VoiceClient Proxy
+    // @ts-expect-error
+    return this.dial(dialer)
   }
 }
 
