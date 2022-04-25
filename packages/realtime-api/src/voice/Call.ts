@@ -551,13 +551,11 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
       const controlId = uuid()
 
-      this.setWorker('voiceCallPromptWorker', {
+      this.runWorker('voiceCallPromptWorker', {
         worker: voiceCallPromptWorker,
-      })
-      this.attachWorkers({
-        payload: {
+        initialState: {
           controlId,
-        },
+        }
       })
 
       const resolveHandler = (callRecording: CallPrompt) => {
