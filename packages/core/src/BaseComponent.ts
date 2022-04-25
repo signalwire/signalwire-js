@@ -888,6 +888,7 @@ export class BaseComponent<
     })
   }
 
+  /** @internal */
   protected runWorker(name: string, def: SDKWorkerDefinition) {
     if (this._workers.has(name)) {
       getLogger().warn(
