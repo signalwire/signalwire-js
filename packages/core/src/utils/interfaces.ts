@@ -482,7 +482,7 @@ type SDKWorkerBaseParams<T> = {
 
 export type SDKWorkerParams<
   T,
-  Hooks extends SDKWorkerHooks
+  Hooks extends SDKWorkerHooks = SDKWorkerHooks
 > = SDKWorkerBaseParams<T> & Hooks
 
 export type AttachSDKWorkerParams<T> = Partial<SDKWorkerBaseParams<T>>
