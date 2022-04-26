@@ -21,6 +21,7 @@ import {
   SDKWorkerDefinition,
   SessionAuthStatus,
   AttachSDKWorkerParams,
+  SDKWorkerHooks,
 } from './utils/interfaces'
 import { EventEmitter } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
@@ -889,7 +890,10 @@ export class BaseComponent<
   }
 
   /** @internal */
-  protected runWorker(name: string, def: SDKWorkerDefinition) {
+  protected runWorker<Hooks extends SDKWorkerHooks = SDKWorkerHooks>(
+    name: string,
+    def: SDKWorkerDefinition<Hooks>
+  ) {
     if (this._workers.has(name)) {
       getLogger().warn(
         `[runWorker] Worker with name ${name} has already been registerd.`
@@ -923,13 +927,16 @@ export class BaseComponent<
     })
   }
 
-  private _setWorker(name: string, def: SDKWorkerDefinition) {
+  private _setWorker<Hooks extends SDKWorkerHooks = SDKWorkerHooks>(
+    name: string,
+    def: SDKWorkerDefinition<Hooks>
+  ) {
     this._workers.set(name, def)
   }
 
-  private _attachWorker(
+  private _attachWorker<Hooks extends SDKWorkerHooks = SDKWorkerHooks>(
     name: string,
-    { worker, ...params }: SDKWorkerDefinition
+    { worker, ...params }: SDKWorkerDefinition<Hooks>
   ) {
     const task = this.store.runSaga(worker, {
       instance: this,
