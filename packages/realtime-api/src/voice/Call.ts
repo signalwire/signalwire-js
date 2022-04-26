@@ -57,7 +57,6 @@ import {
   voiceCallDetectWorker,
   VoiceCallDialWorkerHooks,
   VoiceCallSendDigitsWorkerHooks,
-  VoiceCallConnectWorkerHooks,
 } from './workers'
 import { CallPlayback, createCallPlaybackObject } from './CallPlayback'
 import { CallRecording, createCallRecordingObject } from './CallRecording'
@@ -777,7 +776,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         reject(new Error(`Can't call connect() on a call not established yet.`))
       }
 
-      this.runWorker<VoiceCallConnectWorkerHooks>('voiceCallConnectWorker', {
+      this.runWorker('voiceCallConnectWorker', {
         worker: voiceCallConnectWorker,
       })
 
