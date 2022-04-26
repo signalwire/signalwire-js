@@ -289,7 +289,7 @@ export class BaseComponent<
     transform: EventTransform
     payload: unknown
   }): BaseComponent<EventTypes> {
-    if (transform.mode === "no-cache") {
+    if (transform.mode === 'no-cache') {
       const instance = transform.instanceFactory(payload)
 
       return instance
@@ -909,7 +909,7 @@ export class BaseComponent<
    * @internal
    * @deprecated use {@link runWorker} instead
    */
-   protected setWorker(name: string, def: SDKWorkerDefinition) {
+  protected setWorker(name: string, def: SDKWorkerDefinition) {
     this._setWorker(name, def)
   }
 
