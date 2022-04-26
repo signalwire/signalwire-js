@@ -78,10 +78,12 @@ export class RoomSessionConnection
         {
           type: 'roomSession',
           instanceFactory: (payload: VideoRoomSubscribedEventParams) => {
-            return payload
+            // FIXME:
+            return JSON.parse(JSON.stringify(payload))
           },
           payloadTransform: (payload: VideoRoomSubscribedEventParams) => {
-            return payload
+            // FIXME:
+            return JSON.parse(JSON.stringify(payload))
           },
           nestedFieldsToProcess: {
             recordings: {
