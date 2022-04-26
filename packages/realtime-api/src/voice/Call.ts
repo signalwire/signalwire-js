@@ -55,6 +55,9 @@ import {
   voiceCallDialWorker,
   voiceCallSendDigitsWorker,
   voiceCallDetectWorker,
+  VoiceCallDialWorkerHooks,
+  VoiceCallSendDigitsWorkerHooks,
+  VoiceCallConnectWorkerHooks,
 } from './workers'
 import { CallPlayback, createCallPlaybackObject } from './CallPlayback'
 import { CallRecording, createCallRecordingObject } from './CallRecording'
@@ -338,7 +341,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
   dial(params: VoiceDialer) {
     return new Promise((resolve, reject) => {
-      this.runWorker('voiceCallDialWorker', {
+      this.runWorker<VoiceCallDialWorkerHooks>('voiceCallDialWorker', {
         worker: voiceCallDialWorker,
         onDone: resolve,
         onFail: reject,
@@ -655,24 +658,23 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         this.off('call.state', callStateHandler)
       }
 
-      this.runWorker('voiceCallSendDigitsWorker', {
-        worker: voiceCallSendDigitsWorker,
-        initialState: {
-          controlId,
-        },
-        onDone: (args) => {
-          cleanup()
-          if (args?.options) {
-            resolve(args.options)
-          }
-        },
-        onFail: (args) => {
-          cleanup()
-          if (args?.error) {
-            reject(args.error)
-          }
-        },
-      })
+      this.runWorker<VoiceCallSendDigitsWorkerHooks>(
+        'voiceCallSendDigitsWorker',
+        {
+          worker: voiceCallSendDigitsWorker,
+          initialState: {
+            controlId,
+          },
+          onDone: (args) => {
+            cleanup()
+            resolve(args)
+          },
+          onFail: ({ error }) => {
+            cleanup()
+            reject(error)
+          },
+        }
+      )
 
       const callStateHandler = (params: any) => {
         if (params.callState === 'ended' || params.callState === 'ending') {
@@ -775,7 +777,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         reject(new Error(`Can't call connect() on a call not established yet.`))
       }
 
-      this.runWorker('voiceCallConnectWorker', {
+      this.runWorker<VoiceCallConnectWorkerHooks>('voiceCallConnectWorker', {
         worker: voiceCallConnectWorker,
       })
 

@@ -6,14 +6,29 @@ import {
   SDKActions,
   CallingCallConnectEvent,
   MapToPubSubShape,
+  SDKWorkerHooks,
+  CallingCallConnectEventParams,
 } from '@signalwire/core'
 import type { Call } from '../Call'
 
-export const voiceCallConnectWorker: SDKWorker<Call> = function* (
-  options
-): SagaIterator {
+type VoiceCallConnectWorkerOnDone = (args: {
+  params: CallingCallConnectEventParams
+}) => void
+type VoiceCallConnectWorkerOnFail = (args: {
+  params: CallingCallConnectEventParams
+}) => void
+
+export type VoiceCallConnectWorkerHooks = SDKWorkerHooks<
+  VoiceCallConnectWorkerOnDone,
+  VoiceCallConnectWorkerOnFail
+>
+
+export const voiceCallConnectWorker: SDKWorker<
+  Call,
+  VoiceCallConnectWorkerHooks
+> = function* (options): SagaIterator {
   getLogger().trace('voiceCallConnectWorker started')
-  const { channels, instance } = options
+  const { channels, instance, onDone, onFail } = options
   const { swEventChannel, pubSubChannel } = channels
 
   let run = true
@@ -54,10 +69,16 @@ export const voiceCallConnectWorker: SDKWorker<Call> = function* (
             peer: action.payload.peer,
           },
         })
+
+        onDone?.({ params: action.payload })
         break
       }
-      case 'disconnected':
+      case 'disconnected': {
+        done()
+        break
+      }
       case 'failed': {
+        onFail?.({ params: action.payload })
         done()
         break
       }
