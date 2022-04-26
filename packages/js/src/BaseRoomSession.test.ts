@@ -53,7 +53,7 @@ describe('Room Object', () => {
 
   describe('getRecordings', () => {
     it('should return an array of recordings', async () => {
-      const { store, session, emitter } = configureFullStack()
+      const { store, session, emitter, destroy } = configureFullStack()
       const recordingList = [{ id: 'recordingOne' }, { id: 'recordingTwo' }]
 
       session.execute = jest.fn().mockResolvedValue({
@@ -80,6 +80,8 @@ describe('Room Object', () => {
       expect(result).toStrictEqual({
         recordings: recordingList,
       })
+
+      destroy()
     })
   })
 
@@ -183,7 +185,7 @@ describe('Room Object', () => {
 
   describe('playback methods', () => {
     it('getPlaybacks should return an array of playbacks', async () => {
-      const { store, session, emitter } = configureFullStack()
+      const { store, session, emitter, destroy } = configureFullStack()
       const playbacks = [{ id: 'playbackOne' }, { id: 'playbackTwo' }]
 
       session.execute = jest.fn().mockResolvedValue({
@@ -210,6 +212,8 @@ describe('Room Object', () => {
       expect(result).toStrictEqual({
         playbacks,
       })
+
+      destroy()
     })
 
     it('play should return an interactive object', async () => {
@@ -345,7 +349,7 @@ describe('Room Object', () => {
 
   describe('as event emitter', () => {
     it('should listen on the talking events', () => {
-      const { store, session, emitter } = configureFullStack()
+      const { store, session, emitter, destroy } = configureFullStack()
       room = createBaseRoomSessionObject({
         store,
         // @ts-expect-error
@@ -399,6 +403,7 @@ describe('Room Object', () => {
         2,
         talkingFalse.params.params
       )
+      destroy()
     })
 
     it('should handle the room.subscribed event with nested fields', (done) => {
@@ -516,7 +521,7 @@ describe('Room Object', () => {
 
   describe('meta methods', () => {
     it('should allow to set the meta field on the RoomSession', async () => {
-      const { store, session, emitter } = configureFullStack()
+      const { store, session, emitter, destroy } = configureFullStack()
 
       session.execute = jest.fn().mockResolvedValue({
         code: '200',
@@ -549,10 +554,12 @@ describe('Room Object', () => {
           meta: { foo: 'bar' },
         },
       })
+
+      destroy()
     })
 
     it('should allow to set the meta field on the Member', async () => {
-      const { store, session, emitter } = configureFullStack()
+      const { store, session, emitter, destroy } = configureFullStack()
 
       session.execute = jest.fn().mockResolvedValue({
         code: '200',
@@ -589,6 +596,8 @@ describe('Room Object', () => {
           meta: { displayName: 'jest' },
         },
       })
+
+      destroy()
     })
   })
 })
