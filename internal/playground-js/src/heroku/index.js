@@ -206,6 +206,11 @@ window.connect = () => {
   roomObj.on('room.started', (params) =>
     console.debug('>> room.started', params)
   )
+  const handler = (params) => {
+    console.warn('Debug', params)
+  }
+  roomObj.on('room.joined', handler)
+  roomObj.on('room.joined', handler)
   roomObj.on('room.joined', console.log)
   roomObj.on('room.joined', console.warn)
   roomObj.on('room.joined', (params) => {
@@ -215,6 +220,10 @@ window.connect = () => {
       params.room_session.recordings,
       params.room_session.members
     )
+
+    if (params.room_session.recordings) {
+      window.__recording = params.room_session.recordings[0]
+    }
 
     btnConnect.classList.add('d-none')
     btnDisconnect.classList.remove('d-none')
