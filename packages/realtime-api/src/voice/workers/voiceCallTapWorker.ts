@@ -14,9 +14,9 @@ export const voiceCallTapWorker: SDKWorker<Call> = function* (
   options
 ): SagaIterator {
   getLogger().trace('voiceCallTapWorker started')
-  const { channels, instance, payload } = options
+  const { channels, instance, initialState } = options
   const { swEventChannel, pubSubChannel } = channels
-  const { controlId } = payload
+  const { controlId } = initialState
   if (!controlId) {
     throw new Error('Missing controlId for tapping')
   }

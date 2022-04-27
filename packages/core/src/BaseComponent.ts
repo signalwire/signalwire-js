@@ -21,6 +21,7 @@ import {
   SDKWorkerDefinition,
   SessionAuthStatus,
   AttachSDKWorkerParams,
+  SDKWorkerHooks,
 } from './utils/interfaces'
 import { EventEmitter } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
@@ -288,7 +289,7 @@ export class BaseComponent<
     transform: EventTransform
     payload: unknown
   }): BaseComponent<EventTypes> {
-    if (transform.mode === "no-cache") {
+    if (transform.mode === 'no-cache') {
       const instance = transform.instanceFactory(payload)
 
       return instance
@@ -888,7 +889,11 @@ export class BaseComponent<
     })
   }
 
-  protected runWorker(name: string, def: SDKWorkerDefinition) {
+  /** @internal */
+  protected runWorker<Hooks extends SDKWorkerHooks = SDKWorkerHooks>(
+    name: string,
+    def: SDKWorkerDefinition<Hooks>
+  ) {
     if (this._workers.has(name)) {
       getLogger().warn(
         `[runWorker] Worker with name ${name} has already been registerd.`
@@ -904,7 +909,7 @@ export class BaseComponent<
    * @internal
    * @deprecated use {@link runWorker} instead
    */
-   protected setWorker(name: string, def: SDKWorkerDefinition) {
+  protected setWorker(name: string, def: SDKWorkerDefinition) {
     this._setWorker(name, def)
   }
 
@@ -922,13 +927,16 @@ export class BaseComponent<
     })
   }
 
-  private _setWorker(name: string, def: SDKWorkerDefinition) {
+  private _setWorker<Hooks extends SDKWorkerHooks = SDKWorkerHooks>(
+    name: string,
+    def: SDKWorkerDefinition<Hooks>
+  ) {
     this._workers.set(name, def)
   }
 
-  private _attachWorker(
+  private _attachWorker<Hooks extends SDKWorkerHooks = SDKWorkerHooks>(
     name: string,
-    { worker, ...params }: SDKWorkerDefinition
+    { worker, ...params }: SDKWorkerDefinition<Hooks>
   ) {
     const task = this.store.runSaga(worker, {
       instance: this,

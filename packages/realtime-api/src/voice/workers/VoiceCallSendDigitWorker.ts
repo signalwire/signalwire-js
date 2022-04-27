@@ -6,6 +6,7 @@ import {
   SDKActions,
   MapToPubSubShape,
   CallingCallSendDigitsEvent,
+  SDKWorkerHooks,
 } from '@signalwire/core'
 import type { Call } from '../Call'
 
@@ -13,11 +14,20 @@ const TARGET_STATES: CallingCallSendDigitsEvent['params']['state'][] = [
   'finished',
 ]
 
-export const voiceCallSendDigitsWorker: SDKWorker<Call> = function* (
-  options
-): SagaIterator {
+type VoiceCallSendDigitsWorkerOnDone = (args: Call) => void
+type VoiceCallSendDigitsWorkerOnFail = (args: { error: Error }) => void
+
+export type VoiceCallSendDigitsWorkerHooks = SDKWorkerHooks<
+  VoiceCallSendDigitsWorkerOnDone,
+  VoiceCallSendDigitsWorkerOnFail
+>
+
+export const voiceCallSendDigitsWorker: SDKWorker<
+  Call,
+  VoiceCallSendDigitsWorkerHooks
+> = function* (options): SagaIterator {
   getLogger().trace('voiceCallSendDigitsWorker started')
-  const { channels, onDone, onFail, initialState = {} } = options
+  const { channels, onDone, onFail, initialState = {}, instance } = options
   const { swEventChannel } = channels
   const { controlId } = initialState
 
@@ -37,11 +47,13 @@ export const voiceCallSendDigitsWorker: SDKWorker<Call> = function* (
     })
 
   if (action.payload.state === 'finished') {
-    onDone?.()
+    onDone?.(instance)
   } else {
-    const error = new Error(`[voiceCallSendDigitsWorker] unhandled state: '${action.payload.state}'`)
+    const error = new Error(
+      `[voiceCallSendDigitsWorker] unhandled state: '${action.payload.state}'`
+    )
     if (typeof onFail === 'function') {
-      onFail(error)
+      onFail({ error })
     } else {
       throw error
     }
