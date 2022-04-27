@@ -55,8 +55,10 @@ import {
   voiceCallDialWorker,
   voiceCallSendDigitsWorker,
   voiceCallDetectWorker,
+  VoiceCallDialWorkerHooks,
+  VoiceCallSendDigitsWorkerHooks,
 } from './workers'
-import { createCallPlaybackObject } from './CallPlayback'
+import { CallPlayback, createCallPlaybackObject } from './CallPlayback'
 import { CallRecording, createCallRecordingObject } from './CallRecording'
 import { CallPrompt, createCallPromptObject } from './CallPrompt'
 import { CallTap, createCallTapObject } from './CallTap'
@@ -338,7 +340,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
   dial(params: VoiceDialer) {
     return new Promise((resolve, reject) => {
-      this.runWorker('voiceCallDialWorker', {
+      this.runWorker<VoiceCallDialWorkerHooks>('voiceCallDialWorker', {
         worker: voiceCallDialWorker,
         onDone: resolve,
         onFail: reject,
@@ -416,18 +418,16 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
   }
 
   play(params: VoicePlaylist) {
-    return new Promise<this>((resolve, reject) => {
+    return new Promise<CallPlayback>((resolve, reject) => {
       if (!this.callId || !this.nodeId) {
         reject(new Error(`Can't call play() on a call not established yet.`))
       }
 
       const controlId = uuid()
 
-      this.setWorker('voiceCallPlayWorker', {
+      this.runWorker('voiceCallPlayWorker', {
         worker: voiceCallPlayWorker,
-      })
-      this.attachWorkers({
-        payload: {
+        initialState: {
           controlId,
         },
       })
@@ -496,11 +496,9 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
       const controlId = uuid()
 
-      this.setWorker('voiceCallRecordWorker', {
+      this.runWorker('voiceCallRecordWorker', {
         worker: voiceCallRecordWorker,
-      })
-      this.attachWorkers({
-        payload: {
+        initialState: {
           controlId,
         },
       })
@@ -555,11 +553,9 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
       const controlId = uuid()
 
-      this.setWorker('voiceCallPromptWorker', {
+      this.runWorker('voiceCallPromptWorker', {
         worker: voiceCallPromptWorker,
-      })
-      this.attachWorkers({
-        payload: {
+        initialState: {
           controlId,
         },
       })
@@ -661,20 +657,23 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         this.off('call.state', callStateHandler)
       }
 
-      this.runWorker('voiceCallSendDigitsWorker', {
-        worker: voiceCallSendDigitsWorker,
-        initialState: {
-          controlId,
-        },
-        onDone: (options) => {
-          cleanup()
-          resolve(options)
-        },
-        onFail: (error) => {
-          cleanup()
-          reject(error)
-        },
-      })
+      this.runWorker<VoiceCallSendDigitsWorkerHooks>(
+        'voiceCallSendDigitsWorker',
+        {
+          worker: voiceCallSendDigitsWorker,
+          initialState: {
+            controlId,
+          },
+          onDone: (args) => {
+            cleanup()
+            resolve(args)
+          },
+          onFail: ({ error }) => {
+            cleanup()
+            reject(error)
+          },
+        }
+      )
 
       const callStateHandler = (params: any) => {
         if (params.callState === 'ended' || params.callState === 'ending') {
@@ -710,11 +709,9 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
       const controlId = uuid()
 
-      this.setWorker('voiceCallTapWorker', {
+      this.runWorker('voiceCallTapWorker', {
         worker: voiceCallTapWorker,
-      })
-      this.attachWorkers({
-        payload: {
+        initialState: {
           controlId,
         },
       })
@@ -779,10 +776,9 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         reject(new Error(`Can't call connect() on a call not established yet.`))
       }
 
-      this.setWorker('voiceCallConnectWorker', {
+      this.runWorker('voiceCallConnectWorker', {
         worker: voiceCallConnectWorker,
       })
-      this.attachWorkers()
 
       const resolveHandler = (payload: CallingCallConnectEventParams) => {
         // @ts-expect-error
@@ -875,11 +871,9 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       const { waitForBeep = false, timeout, type, ...rest } = params
       const controlId = uuid()
 
-      this.setWorker('voiceCallDetectWorker', {
+      this.runWorker('voiceCallDetectWorker', {
         worker: voiceCallDetectWorker,
-      })
-      this.attachWorkers({
-        payload: {
+        initialState: {
           controlId,
           waitForBeep,
         },

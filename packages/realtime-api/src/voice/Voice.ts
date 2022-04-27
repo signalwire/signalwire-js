@@ -44,11 +44,10 @@ class VoiceAPI extends AutoApplyTransformsConsumer<RealTimeVoiceApiEvents> {
   constructor(options: BaseComponentOptions<RealTimeVoiceApiEvents>) {
     super(options)
 
-    this.setWorker('voiceCallReceiveWorker', {
+    this.runWorker('voiceCallReceiveWorker', {
       worker: voiceCallReceiveWorker,
     })
 
-    this.attachWorkers()
     this._attachListeners('')
   }
 

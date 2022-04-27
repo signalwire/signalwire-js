@@ -450,9 +450,12 @@ export type InternalChannels = {
   swEventChannel: SwEventChannel
 }
 
-type SDKWorkerHooks<T> = AllOrNone<{
-  onDone: (options?: Partial<SDKWorkerParams<T>>) => void
-  onFail: (error?: Error) => void
+export type SDKWorkerHooks<
+  OnDone = (options?: any) => void,
+  OnFail = (options?: any) => void
+> = AllOrNone<{
+  onDone: OnDone
+  onFail: OnFail
 }>
 
 type SDKWorkerBaseParams<T> = {
@@ -468,16 +471,22 @@ type SDKWorkerBaseParams<T> = {
   initialState?: any
 }
 
-export type SDKWorkerParams<T> = SDKWorkerBaseParams<T> & SDKWorkerHooks<any>
+export type SDKWorkerParams<
+  T,
+  Hooks extends SDKWorkerHooks = SDKWorkerHooks
+> = SDKWorkerBaseParams<T> & Hooks
 
 export type AttachSDKWorkerParams<T> = Partial<SDKWorkerBaseParams<T>>
 
-export type SDKWorker<T> = (params: SDKWorkerParams<T>) => SagaIterator<any>
+export type SDKWorker<T, Hooks extends SDKWorkerHooks = SDKWorkerHooks> = (
+  params: SDKWorkerParams<T, Hooks>
+) => SagaIterator<any>
 
-export type SDKWorkerDefinition = {
-  worker: SDKWorker<any>,
-  initialState?: any
-} & SDKWorkerHooks<any>
+export type SDKWorkerDefinition<Hooks extends SDKWorkerHooks = SDKWorkerHooks> =
+  {
+    worker: SDKWorker<any>
+    initialState?: any
+  } & Hooks
 
 interface LogFn {
   <T extends object>(obj: T, msg?: string, ...args: any[]): void
