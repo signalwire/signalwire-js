@@ -39,7 +39,7 @@ const isTimestampProperty = (prop: string) => {
   return prop.endsWith('At')
 }
 
-type ToExternalJSONResult<T> = {
+export type ToExternalJSONResult<T> = {
   [Property in NonNullable<keyof T> as SnakeToCamelCase<
     Extract<Property, string>
   >]: ConverToExternalTypes<Extract<Property, string>, T[Property]>
