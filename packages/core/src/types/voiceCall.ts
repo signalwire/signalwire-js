@@ -345,9 +345,7 @@ export interface CreateVoiceDialerParams {
 
 export interface VoiceDialer extends CreateVoiceDialerParams {
   devices: VoiceCallDialMethodParams['devices']
-  addPhone(params: VoiceCallDialPhoneMethodParams): this
-  addSip(params: VoiceCallDialSipMethodParams): this
-  inParallel(dialer: VoiceDialer): this
+  add(params: VoiceCallDeviceParams | VoiceCallDeviceParams[]): this
 }
 
 export interface CreateVoicePlaylistParams {

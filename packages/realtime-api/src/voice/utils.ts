@@ -3,8 +3,6 @@ import type {
   VoiceCallDialMethodParams,
   VoiceCallPlayParams,
   VoiceCallPlayMethodParams,
-  CreateVoiceDialerParams,
-  VoiceDialer,
   CreateVoicePlaylistParams,
   VoicePlaylist,
 } from '@signalwire/core'
@@ -76,36 +74,6 @@ export const toInternalPlayParams = (
     }
   })
   return result
-}
-
-export const createDialer = (params: CreateVoiceDialerParams = {}) => {
-  const devices: VoiceDialer['devices'] = []
-
-  const dialer: VoiceDialer = {
-    ...params,
-    devices,
-    addPhone(params) {
-      devices.push([{ type: 'phone', ...params }])
-      return dialer
-    },
-    addSip(params) {
-      devices.push([{ type: 'sip', ...params }])
-      return dialer
-    },
-    inParallel(dialer) {
-      const parallel = dialer.devices.map((row) => {
-        if (Array.isArray(row)) {
-          return row[0]
-        }
-        return row
-      })
-      devices.push(parallel)
-
-      return dialer
-    },
-  }
-
-  return dialer
 }
 
 export const createPlaylist = (params: CreateVoicePlaylistParams = {}) => {

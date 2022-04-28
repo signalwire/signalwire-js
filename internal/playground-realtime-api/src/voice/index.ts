@@ -63,12 +63,14 @@ async function run() {
     })
 
     try {
-      // Using createDialer util
-      // const dialer = Voice.createDialer().addPhone({
-      //   to: process.env.TO_NUMBER as string,
-      //   from: process.env.FROM_NUMBER as string,
-      //   timeout: 30,
-      // })
+      // Using "new Voice.Dialer" API
+      // const dialer = new Voice.Dialer().add(
+      //   Voice.Dialer.Phone({
+      //     to: process.env.TO_NUMBER as string,
+      //     from: process.env.FROM_NUMBER as string,
+      //     timeout: 30,
+      //   })
+      // )
       // const call = await client.dial(dialer)
 
       // Using dialPhone Alias

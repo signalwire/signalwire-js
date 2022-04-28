@@ -12,12 +12,12 @@ import type {
 import { RealtimeClient } from '../client/index'
 import { createCallObject, Call } from './Call'
 import { voiceCallReceiveWorker } from './workers'
-import { createDialer } from './utils'
+import { Dialer } from './Dialer'
 import type { RealTimeCallApiEvents } from '../types'
 import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
 
 export * from './VoiceClient'
-export { createDialer }
+export { Dialer }
 export { createPlaylist } from './utils'
 
 /**
@@ -77,14 +77,14 @@ class VoiceAPI extends AutoApplyTransformsConsumer<RealTimeVoiceApiEvents> {
   }
 
   dialPhone(params: VoiceCallDialPhoneMethodParams) {
-    const dialer = createDialer().addPhone(params)
+    const dialer = new Dialer().add(Dialer.Phone(params))
     // dial is available through the VoiceClient Proxy
     // @ts-expect-error
     return this.dial(dialer)
   }
 
   dialSip(params: VoiceCallDialSipMethodParams) {
-    const dialer = createDialer().addSip(params)
+    const dialer = new Dialer().add(Dialer.Sip(params))
     // dial is available through the VoiceClient Proxy
     // @ts-expect-error
     return this.dial(dialer)
