@@ -26,12 +26,24 @@ interface InternalMessagingSendParams
   to_number: string
 }
 
+interface MessagingSendResult {
+  message: string
+  code: string
+  messageId: string
+}
+
+interface MessagingSendError {
+  message: string
+  code: string
+  errors: Record<any, any>
+}
+
 /** @internal */
 export interface Messaging
   extends DisconnectableClientContract<Messaging, MessagingClientApiEvents> {
   /** @internal */
   _session: RealtimeClient
-  send(params: MessagingSendParams): Promise<any>
+  send(params: MessagingSendParams): Promise<MessagingSendResult>
 }
 
 /** @internal */
@@ -101,10 +113,10 @@ class MessagingAPI extends BaseComponent<MessagingClientApiEvents> {
         params: sendParams,
       })
 
-      return toExternalJSON(response)
+      return toExternalJSON<MessagingSendResult>(response)
     } catch (error) {
       this.logger.error('Error sending message', error.jsonrpc)
-      throw error.jsonrpc
+      throw error.jsonrpc as MessagingSendError
     }
   }
 }
