@@ -7,6 +7,9 @@ import {
   MapToPubSubShape,
   CallingCallDialEvent,
   SDKWorkerHooks,
+  ToExternalJSONResult,
+  CallingCallDialFailedEventParams,
+  toExternalJSON,
 } from '@signalwire/core'
 import type { Call } from '../Call'
 
@@ -16,7 +19,9 @@ const TARGET_DIAL_STATES: CallingCallDialEvent['params']['dial_state'][] = [
 ]
 
 type VoiceCallDialWorkerOnDone = (args: Call) => void
-type VoiceCallDialWorkerOnFail = () => void
+type VoiceCallDialWorkerOnFail = (
+  args: ToExternalJSONResult<CallingCallDialFailedEventParams>
+) => void
 
 export type VoiceCallDialWorkerHooks = SDKWorkerHooks<
   VoiceCallDialWorkerOnDone,
@@ -43,7 +48,7 @@ export const voiceCallDialWorker: SDKWorker<Call, VoiceCallDialWorkerHooks> =
     if (action.payload.dial_state === 'answered') {
       onDone?.(instance)
     } else if (action.payload.dial_state === 'failed') {
-      onFail?.()
+      onFail?.(toExternalJSON(action.payload))
     } else {
       throw new Error('[voiceCallDialWorker] unhandled call_state')
     }
