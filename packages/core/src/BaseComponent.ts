@@ -72,6 +72,9 @@ export class BaseComponent<
   private readonly uuid = uuid()
 
   /** @internal */
+  private _proxyFactoryCache = new WeakMap<any, any>()
+
+  /** @internal */
   get __uuid() {
     return this.uuid
   }
@@ -401,14 +404,27 @@ export class BaseComponent<
         payload,
       })
 
-      const transformedPayload = this._parseNestedFields(payload, transform)
+      let proxiedObj
+      // A single event can have multiple event handlers
+      // attached. Given that the payload should be the same
+      // for all of them, to avoid re-applying the same
+      // transforms and creating a brand new Proxy for each
+      // handler we'll cache the computed value and pass
+      // that computed value instead to each handler.
+      if (this._proxyFactoryCache.has(payload)) {
+        proxiedObj = this._proxyFactoryCache.get(payload)
+      } else {
+        const transformedPayload = this._parseNestedFields(payload, transform)
 
-      const proxiedObj = proxyFactory({
-        instance: cachedInstance,
-        payload,
-        transformedPayload,
-        transform,
-      })
+        proxiedObj = proxyFactory({
+          instance: cachedInstance,
+          payload,
+          transformedPayload,
+          transform,
+        })
+
+        this._proxyFactoryCache.set(payload, proxiedObj)
+      }
 
       // @ts-expect-error
       return fn(proxiedObj)
