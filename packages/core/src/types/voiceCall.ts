@@ -539,7 +539,7 @@ export interface VoiceCallContract<T = any> {
   device: any // FIXME:
   from: string
   to: string
-  direction: 'inbound' | 'outbound'
+  direction: CallingCallDirection
   headers?: SipHeader[]
 
   dial(params: VoiceDialer): Promise<T>
@@ -646,12 +646,14 @@ interface CallingCallSIPDevice {
 
 type CallingCallDevice = CallingCallPhoneDevice | CallingCallSIPDevice
 type CallingCallState = 'created' | 'ringing' | 'answered' | 'ending' | 'ended'
+type CallingCallDirection = 'inbound' | 'outbound'
+
 interface CallingCall {
   call_id: string
   call_state: CallingCallState
   context?: string
   tag?: string
-  direction: 'inbound' | 'outbound'
+  direction: CallingCallDirection
   device: CallingCallDevice
   node_id: string
   segment_id?: string
@@ -664,12 +666,28 @@ interface CallingCallDial extends CallingCall {
 /**
  * 'calling.call.dial'
  */
-export interface CallingCallDialEventParams {
+export type CallingCallDialDialingEventParams = {
   node_id: string
   tag: string
-  dial_state: 'dialing' | 'answered' | 'failed'
-  call?: CallingCallDial
+  dial_state: 'dialing'
 }
+export type CallingCallDialAnsweredEventParams = {
+  node_id: string
+  tag: string
+  dial_state: 'answered'
+  call: CallingCallDial
+}
+export type CallingCallDialFailedEventParams = {
+  node_id: string
+  tag: string
+  dial_state: 'failed'
+  reason: string
+  source: CallingCallDirection
+}
+export type CallingCallDialEventParams =
+  | CallingCallDialDialingEventParams
+  | CallingCallDialAnsweredEventParams
+  | CallingCallDialFailedEventParams
 
 export interface CallingCallDialEvent extends SwEvent {
   event_type: ToInternalVoiceEvent<CallDial>

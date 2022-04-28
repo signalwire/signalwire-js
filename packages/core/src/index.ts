@@ -69,6 +69,7 @@ export type {
   MapToPubSubShape,
   SDKActions,
 } from './redux/interfaces'
+export type { ToExternalJSONResult } from './utils'
 export * as actions from './redux/actions'
 export * as sagaHelpers from './redux/utils/sagaHelpers'
 export * as sagaEffects from '@redux-saga/core/effects'
