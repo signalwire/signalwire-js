@@ -113,9 +113,11 @@ async function run() {
         // Wait until Main and Peer are connected
         await call.waitUntilConnected()
 
-        const playlist = Voice.createPlaylist({ volume: 2 }).playTTS({
-          text: 'Thank you, you are now disconnected from the peer',
-        })
+        const playlist = new Voice.Playlist({ volume: 2 }).add(
+          Voice.Playlist.TTS({
+            text: 'Thank you, you are now disconnected from the peer',
+          })
+        )
         await call.play(playlist)
 
         await sleep()
@@ -219,16 +221,22 @@ async function run() {
         console.log('>> playback.ended', p.id, p.state)
       })
 
-      const playlist = Voice.createPlaylist({ volume: 2 })
-        .playAudio({
-          url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
-        })
-        .playSilence({
-          duration: 5,
-        })
-        .playTTS({
-          text: 'Thank you, you are now disconnected from the peer',
-        })
+      const playlist = new Voice.Playlist({ volume: 2 })
+        .add(
+          Voice.Playlist.Audio({
+            url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
+          })
+        )
+        .add(
+          Voice.Playlist.Silence({
+            duration: 5,
+          })
+        )
+        .add(
+          Voice.Playlist.TTS({
+            text: 'Thank you, you are now disconnected from the peer',
+          })
+        )
       const playback = await call.play(playlist)
 
       console.log('Playback STARTED!', playback.id)

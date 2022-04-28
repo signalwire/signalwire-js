@@ -3,8 +3,6 @@ import type {
   VoiceCallDialMethodParams,
   VoiceCallPlayParams,
   VoiceCallPlayMethodParams,
-  CreateVoicePlaylistParams,
-  VoicePlaylist,
 } from '@signalwire/core'
 import { toSnakeCaseKeys } from '@signalwire/core'
 
@@ -74,31 +72,4 @@ export const toInternalPlayParams = (
     }
   })
   return result
-}
-
-export const createPlaylist = (params: CreateVoicePlaylistParams = {}) => {
-  const media: VoicePlaylist['media'] = []
-
-  const playlist: VoicePlaylist = {
-    ...params,
-    media,
-    playAudio(params) {
-      media.push({ type: 'audio', ...params })
-      return playlist
-    },
-    playTTS(params) {
-      media.push({ type: 'tts', ...params })
-      return playlist
-    },
-    playSilence(params) {
-      media.push({ type: 'silence', ...params })
-      return playlist
-    },
-    playRingtone(params) {
-      media.push({ type: 'ringtone', ...params })
-      return playlist
-    },
-  }
-
-  return playlist
 }

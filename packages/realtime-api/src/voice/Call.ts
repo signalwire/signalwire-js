@@ -40,11 +40,8 @@ import {
 } from '@signalwire/core'
 import { RealTimeCallApiEvents } from '../types'
 import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
-import {
-  toInternalDevices,
-  toInternalPlayParams,
-  createPlaylist,
-} from './utils'
+import { toInternalDevices, toInternalPlayParams } from './utils'
+import { Playlist } from './Playlist'
 import {
   voiceCallStateWorker,
   voiceCallPlayWorker,
@@ -467,24 +464,24 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
   playAudio(params: VoiceCallPlayAudioMethodParams) {
     const { volume, ...rest } = params
-    const playlist = createPlaylist({ volume }).playAudio(rest)
+    const playlist = new Playlist({ volume }).add(Playlist.Audio(rest))
     return this.play(playlist)
   }
 
   playSilence(params: VoiceCallPlaySilenceMethodParams) {
-    const playlist = createPlaylist().playSilence(params)
+    const playlist = new Playlist().add(Playlist.Silence(params))
     return this.play(playlist)
   }
 
   playRingtone(params: VoiceCallPlayRingtoneMethodParams) {
     const { volume, ...rest } = params
-    const playlist = createPlaylist({ volume }).playRingtone(rest)
+    const playlist = new Playlist({ volume }).add(Playlist.Ringtone(rest))
     return this.play(playlist)
   }
 
   playTTS(params: VoiceCallPlayTTSMethodParams) {
     const { volume, ...rest } = params
-    const playlist = createPlaylist({ volume }).playTTS(rest)
+    const playlist = new Playlist({ volume }).add(Playlist.TTS(rest))
     return this.play(playlist)
   }
 

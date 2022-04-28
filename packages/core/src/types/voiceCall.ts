@@ -354,10 +354,7 @@ export interface CreateVoicePlaylistParams {
 
 export interface VoicePlaylist extends CreateVoicePlaylistParams {
   media: VoiceCallPlayMethodParams['media']
-  playAudio(params: VoiceCallPlayAudioMethodParams): this
-  playTTS(params: VoiceCallPlayTTSMethodParams): this
-  playSilence(params: VoiceCallPlaySilenceMethodParams): this
-  playRingtone(params: VoiceCallPlayRingtoneMethodParams): this
+  add(params: VoiceCallPlayParams | VoiceCallPlayParams[]): this
 }
 
 /**
