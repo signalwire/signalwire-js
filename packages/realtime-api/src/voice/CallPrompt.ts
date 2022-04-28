@@ -115,9 +115,9 @@ export class CallPromptAPI
 
       const handler = () => resolve(this)
       // @ts-expect-error
-      this.on('prompt.ended', handler)
+      this.once('prompt.ended', handler)
       // @ts-expect-error
-      this.on('prompt.failed', handler)
+      this.once('prompt.failed', handler)
     })
   }
 }
