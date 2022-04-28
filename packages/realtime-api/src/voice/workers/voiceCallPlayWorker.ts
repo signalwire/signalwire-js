@@ -70,6 +70,19 @@ export const voiceCallPlayWorker: SDKWorker<Call> = function* (
           payload: payloadWithTag,
         })
 
+        /**
+         * Dispatch an event to resolve `waitForResult` in CallPlayback
+         * when ended
+         */
+        yield sagaEffects.put(pubSubChannel, {
+          type: 'calling.playback.ended',
+          // @ts-ignore
+          payload: {
+            tag: controlId,
+            ...action.payload,
+          },
+        })
+
         done()
         break
       }

@@ -97,6 +97,12 @@ export interface Call extends AssertSameType<CallMain, CallDocs> {}
 export interface CallFullState extends Call {}
 
 /**
+ * Used to resolve the play() method and to update the CallPlayback object through the EmitterTransform
+ */
+export const callingPlaybackTriggerEvent =
+  toLocalEvent<EmitterTransformsEvents>('calling.playback.trigger')
+
+/**
  * Used to resolve the record() method and to update the CallRecording object through the EmitterTransform
  */
 export const callingRecordTriggerEvent = toLocalEvent<EmitterTransformsEvents>(
@@ -206,7 +212,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     >([
       [
         [
-          toLocalEvent<EmitterTransformsEvents>('calling.playback.start'),
+          callingPlaybackTriggerEvent,
           'calling.playback.started',
           'calling.playback.updated',
           'calling.playback.ended',
@@ -436,7 +442,8 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         resolve(callPlayback)
       }
 
-      this.once(toLocalEvent('calling.playback.start'), resolveHandler)
+      // @ts-expect-error
+      this.on(callingPlaybackTriggerEvent, resolveHandler)
 
       this.execute({
         method: 'calling.play',
@@ -455,11 +462,12 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
             node_id: this.nodeId,
             state: 'playing',
           }
-          this.emit(toLocalEvent('calling.playback.start'), startEvent)
+          // @ts-expect-error
+          this.emit(callingPlaybackTriggerEvent, startEvent)
         })
         .catch((e) => {
           // @ts-expect-error
-          this.off(toLocalEvent('calling.playback.start'), resolveHandler)
+          this.off(callingPlaybackTriggerEvent, resolveHandler)
           reject(e)
         })
     })
