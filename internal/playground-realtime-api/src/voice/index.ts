@@ -17,9 +17,9 @@ async function run() {
       token: process.env.TOKEN as string,
       contexts: [process.env.RELAY_CONTEXT as string],
       // logLevel: 'trace',
-      debug: {
-        logWsTraffic: true,
-      },
+      // debug: {
+      //   logWsTraffic: true,
+      // },
     })
 
     client.on('call.received', async (call) => {
@@ -228,6 +228,9 @@ async function run() {
           text: 'Thank you, you are now disconnected from the peer',
         })
       const playback = await call.play(playlist)
+
+      // To wait for the playback to end (without pause/resume/stop it)
+      // await playback.waitForEnded()
 
       console.log('Playback STARTED!', playback.id)
 
