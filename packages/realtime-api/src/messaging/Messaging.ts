@@ -26,7 +26,7 @@ interface InternalMessagingSendParams
   to_number: string
 }
 
-interface MessagingSendResult {
+export interface MessagingSendResult {
   message: string
   code: string
   messageId: string
