@@ -32,7 +32,7 @@ export interface MessagingSendResult {
   messageId: string
 }
 
-export interface MessagingSendError {
+interface MessagingSendError {
   message: string
   code: string
   errors: Record<any, any>
