@@ -1,10 +1,13 @@
-import { DisconnectableClientContract } from '@signalwire/core'
-import { MessagingClientApiEvents } from '../types'
-import { RealtimeClient } from '../client/index'
-import { Messaging } from './Messaging'
+import type { Messaging, MessagingSendResult } from './Messaging'
 
-export interface MessagingClientDocs
-  extends DisconnectableClientContract<Messaging, MessagingClientApiEvents> {
+type InheritedMembers = '_session'
+  | 'on'
+  | 'off'
+  | 'once'
+  | 'removeAllListeners'
+  | 'disconnect'
+
+export interface MessagingClientDocs extends Pick<Messaging, InheritedMembers> {
   new (opts: {
     /** SignalWire Project ID, e.g. `a10d8a9f-2166-4e82-56ff-118bc3a4840f` */
     project: string
@@ -14,9 +17,6 @@ export interface MessagingClientDocs
     contexts: string[]
   }): this
 
-  /** @ignore */
-  _session: RealtimeClient
-
   /**
    * Send an outbound SMS or MMS message.
    *
@@ -24,25 +24,31 @@ export interface MessagingClientDocs
    *
    * @example
    *
-   * > Send a message (associated events will be received in the context *office*).
+   * > Send a message.
    *
    * ```js
-   * const sendResult = await client.send({
-   *   context: 'office',
-   *   from: '+1xxx',
-   *   to: '+1yyy',
-   *   body: 'Hello World!'
-   * })
-   *
-   * if (sendResult.successful) {    FIXME We don't have a successful field. We have `code === '200'`
+   * try {
+   *   const sendResult = await client.send({
+   *     from: '+1xxx',
+   *     to: '+1yyy',
+   *     body: 'Hello World!'
+   *   })
    *   console.log('Message ID: ', sendResult.messageId)
+   * } catch (e) {
+   *   console.error(e.message)
    * }
    * ```
    */
   send(params: {
-    /** Inbound events for the message will be received on this context. */
-    context: string
-    /** The phone number to place the message from. Must be a SignalWire phone number or short code that you own. */
+    /**
+     * Inbound events for the message will be received on this context. If not
+     * specified, a `default` context will be used.
+     */
+    context?: string
+    /**
+     * The phone number to place the message from. Must be a SignalWire phone
+     * number or short code that you own.
+     */
     from: string
     /** The phone number to send to. */
     to: string
@@ -50,10 +56,13 @@ export interface MessagingClientDocs
     body?: string
     /** Array of strings to tag the message with for searching in the UI. */
     tags?: string[]
-    /** FIXME */
+    /**
+     * Region of the world to originate the message from. A default value is
+     * picked based on account preferences or device location.
+     */
     region?: string
     /** Array of URLs to send in the message. Optional if `body` is present. */
     media?: string[]
-  }): Promise<any> // FIXME @edolix
+  }): Promise<MessagingSendResult>
 
 }

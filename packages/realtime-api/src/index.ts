@@ -136,7 +136,6 @@ export * as Task from './task/Task'
  * })
  *
  * await client.send({
- *   context: 'office',
  *   from: '+1xxx',
  *   to: '+1yyy',
  *   body: 'Hello World!'

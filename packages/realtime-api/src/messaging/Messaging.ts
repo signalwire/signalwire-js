@@ -26,13 +26,13 @@ interface InternalMessagingSendParams
   to_number: string
 }
 
-interface MessagingSendResult {
+export interface MessagingSendResult {
   message: string
   code: string
   messageId: string
 }
 
-interface MessagingSendError {
+export interface MessagingSendError {
   message: string
   code: string
   errors: Record<any, any>
