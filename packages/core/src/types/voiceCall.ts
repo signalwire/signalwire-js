@@ -354,7 +354,7 @@ export interface CreateVoicePlaylistParams {
 
 export interface VoicePlaylist extends CreateVoicePlaylistParams {
   media: VoiceCallPlayMethodParams['media']
-  add(params: VoiceCallPlayParams | VoiceCallPlayParams[]): this
+  add(params: VoiceCallPlayParams): this
 }
 
 /**
