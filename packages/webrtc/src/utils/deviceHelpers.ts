@@ -155,6 +155,10 @@ export const getDevicesWithPermissions = async (
     stream = await WebRTC.getUserMedia(constraints)
   }
   const devices = await getDevices(kind, fullList)
+  /**
+   * Firefox requires an active stream at the time of `enumerateDevices`
+   * so we need to stop it after `getDevices`
+   */
   if (stream) {
     WebRTC.stopStream(stream)
   }
