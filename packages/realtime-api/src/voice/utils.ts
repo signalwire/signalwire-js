@@ -3,10 +3,6 @@ import type {
   VoiceCallDialMethodParams,
   VoiceCallPlayParams,
   VoiceCallPlayMethodParams,
-  CreateVoiceDialerParams,
-  VoiceDialer,
-  CreateVoicePlaylistParams,
-  VoicePlaylist,
 } from '@signalwire/core'
 import { toSnakeCaseKeys } from '@signalwire/core'
 
@@ -76,61 +72,4 @@ export const toInternalPlayParams = (
     }
   })
   return result
-}
-
-export const createDialer = (params: CreateVoiceDialerParams = {}) => {
-  const devices: VoiceDialer['devices'] = []
-
-  const dialer: VoiceDialer = {
-    ...params,
-    devices,
-    addPhone(params) {
-      devices.push([{ type: 'phone', ...params }])
-      return dialer
-    },
-    addSip(params) {
-      devices.push([{ type: 'sip', ...params }])
-      return dialer
-    },
-    inParallel(dialer) {
-      const parallel = dialer.devices.map((row) => {
-        if (Array.isArray(row)) {
-          return row[0]
-        }
-        return row
-      })
-      devices.push(parallel)
-
-      return dialer
-    },
-  }
-
-  return dialer
-}
-
-export const createPlaylist = (params: CreateVoicePlaylistParams = {}) => {
-  const media: VoicePlaylist['media'] = []
-
-  const playlist: VoicePlaylist = {
-    ...params,
-    media,
-    playAudio(params) {
-      media.push({ type: 'audio', ...params })
-      return playlist
-    },
-    playTTS(params) {
-      media.push({ type: 'tts', ...params })
-      return playlist
-    },
-    playSilence(params) {
-      media.push({ type: 'silence', ...params })
-      return playlist
-    },
-    playRingtone(params) {
-      media.push({ type: 'ringtone', ...params })
-      return playlist
-    },
-  }
-
-  return playlist
 }
