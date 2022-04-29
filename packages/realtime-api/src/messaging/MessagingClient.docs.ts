@@ -1,6 +1,7 @@
 import type { Messaging, MessagingSendResult } from './Messaging'
 
-type InheritedMembers = '_session'
+type InheritedMembers =
+  | '_session'
   | 'on'
   | 'off'
   | 'once'
@@ -64,5 +65,4 @@ export interface MessagingClientDocs extends Pick<Messaging, InheritedMembers> {
     /** Array of URLs to send in the message. Optional if `body` is present. */
     media?: string[]
   }): Promise<MessagingSendResult>
-
 }
