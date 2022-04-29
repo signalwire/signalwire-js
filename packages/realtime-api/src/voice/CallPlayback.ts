@@ -27,6 +27,8 @@ export class CallPlaybackAPI
   extends BaseComponent<CallPlaybackEventsHandlerMapping>
   implements VoiceCallPlaybackContract
 {
+  protected _eventsPrefix = 'calling' as const
+
   callId: string
   nodeId: string
   controlId: string
@@ -94,6 +96,18 @@ export class CallPlaybackAPI
     })
 
     return this
+  }
+
+  waitForEnded() {
+    return new Promise<this>((resolve) => {
+      this._attachListeners(this.controlId)
+
+      const handler = () => resolve(this)
+      // @ts-expect-error
+      this.once('playback.ended', handler)
+      // // @ts-expect-error
+      // this.on('prompt.failed', handler)
+    })
   }
 }
 

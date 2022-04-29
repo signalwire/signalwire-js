@@ -376,6 +376,7 @@ export interface VoiceCallPlaybackContract {
   resume(): Promise<this>
   stop(): Promise<this>
   setVolume(volume: number): Promise<this>
+  waitForEnded(): Promise<this>
 }
 
 /**
