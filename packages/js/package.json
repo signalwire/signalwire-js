@@ -34,7 +34,7 @@
   "scripts": {
     "start": "sw-build --dev --web",
     "build": "tsc --project tsconfig.build.json && sw-build --web && sw-build --umd",
-    "test": "NODE_ENV=test jest",
+    "test": "NODE_ENV=test jest --detectOpenHandles --forceExit",
     "example": "(cd examples && npm run dev)",
     "docs": "npm run docs:md && npm run docs:html",
     "docs:md": "typedoc --options typedoc.md.js",
