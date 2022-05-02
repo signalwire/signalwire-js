@@ -314,6 +314,11 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
             })
           },
           payloadTransform: (payload: CallingCallConnectEventParams) => {
+            /**
+             * Within a `calling.connect` process `tag` refers to the originator leg.
+             * We need to remove tag from the server payload to let the new (connected)
+             * Call object to use its own tag value set to `this.__uuid`.
+             */
             const { tag, ...peerParams } = payload.peer
             return toExternalJSON(peerParams)
           },
