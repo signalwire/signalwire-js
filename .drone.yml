@@ -30,6 +30,19 @@ steps:
         from_secret: RELAY_FROM_NUMBER
       RELAY_TO_NUMBER:
         from_secret: RELAY_TO_NUMBER
+      # Scoped value for Voice tests
+      VOICE_HOST:
+        from_secret: VOICE_HOST
+      VOICE_PROJECT:
+        from_secret: VOICE_PROJECT
+      VOICE_TOKEN:
+        from_secret: VOICE_TOKEN
+      VOICE_CONTEXT:
+        from_secret: VOICE_CONTEXT
+      VOICE_DIAL_FROM_NUMBER:
+        from_secret: VOICE_DIAL_FROM_NUMBER
+      VOICE_DIAL_TO_NUMBER:
+        from_secret: VOICE_DIAL_TO_NUMBER
 
 trigger:
   event: push

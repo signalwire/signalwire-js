@@ -4,6 +4,7 @@ import {
   getLogger,
   isGlobalEvent,
   toExternalJSON,
+  toSnakeCaseKeys,
   toLocalEvent,
   toSyntheticEvent,
   extendComponent,
@@ -44,6 +45,7 @@ export {
   getEventEmitter,
   isGlobalEvent,
   toExternalJSON,
+  toSnakeCaseKeys,
   toLocalEvent,
   toInternalEventName,
   serializeableProxy,
@@ -67,6 +69,7 @@ export type {
   MapToPubSubShape,
   SDKActions,
 } from './redux/interfaces'
+export type { ToExternalJSONResult } from './utils'
 export * as actions from './redux/actions'
 export * as sagaHelpers from './redux/utils/sagaHelpers'
 export * as sagaEffects from '@redux-saga/core/effects'
