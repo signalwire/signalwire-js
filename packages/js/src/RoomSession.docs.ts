@@ -976,6 +976,7 @@ interface RoomLayoutMethodsInterface {
    *
    * @permissions
    *  - `room.set_layout`
+   *  - `room.set_position` (if you need to assign positions)
    *
    * You need to specify the permissions when [creating the Video Room
    * Token](https://developer.signalwire.com/apis/reference/create_room_token)
