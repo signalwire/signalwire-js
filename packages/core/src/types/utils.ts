@@ -173,3 +173,11 @@ export type DeepReadonly<T> = T extends Builtin
   : IsUnknown<T> extends true
   ? unknown
   : Readonly<T>
+
+/**
+ * If one property is present then all properties should be
+ * present.
+ */
+export type AllOrNone<T extends Record<any, any>> =
+  | T
+  | Partial<Record<keyof T, never>>

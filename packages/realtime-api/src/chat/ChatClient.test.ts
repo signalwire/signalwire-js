@@ -22,7 +22,7 @@ describe('ChatClient', () => {
             parsedData.method === 'signalwire.connect' &&
             parsedData.params.authentication.token === '<invalid-token>'
           ) {
-            socket.send(
+            return socket.send(
               JSON.stringify({
                 jsonrpc: '2.0',
                 id: parsedData.id,
@@ -58,6 +58,8 @@ describe('ChatClient', () => {
         chat.once('member.joined', () => {})
 
         chat._session.on('session.connected', () => {
+          chat._session.disconnect()
+
           done()
         })
       })
@@ -85,6 +87,8 @@ describe('ChatClient', () => {
         message:
           'Authentication service failed with status ProtocolError, 401 Unauthorized: {}',
       })
+
+      chat._session.disconnect()
     })
   })
 })

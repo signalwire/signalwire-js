@@ -81,8 +81,8 @@ describe('toInternalDevices', () => {
         {
           type: 'sip',
           params: {
-            to_number: '+12083660791',
-            from_number: '+15183601331',
+            to: '+12083660791',
+            from: '+15183601331',
             timeout: 30,
           },
         },

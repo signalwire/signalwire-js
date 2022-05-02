@@ -1,6 +1,10 @@
 import { Video } from '@signalwire/js'
 import {
   enumerateDevices,
+  checkPermissions,
+  getCameraDevicesWithPermissions,
+  getMicrophoneDevicesWithPermissions,
+  getSpeakerDevicesWithPermissions,
   getMicrophoneDevices,
   getCameraDevices,
   getSpeakerDevices,
@@ -8,6 +12,14 @@ import {
   createDeviceWatcher,
   createMicrophoneAnalyzer,
 } from '@signalwire/webrtc'
+
+window.getMicrophoneDevices = getMicrophoneDevices
+window.getCameraDevices = getCameraDevices
+window.getSpeakerDevices = getSpeakerDevices
+window.checkPermissions = checkPermissions
+window.getCameraDevicesWithPermissions = getCameraDevicesWithPermissions
+window.getMicrophoneDevicesWithPermissions = getMicrophoneDevicesWithPermissions
+window.getSpeakerDevicesWithPermissions = getSpeakerDevicesWithPermissions
 
 let roomObj = null
 let micAnalyzer = null
@@ -206,6 +218,13 @@ window.connect = () => {
   roomObj.on('room.started', (params) =>
     console.debug('>> room.started', params)
   )
+  const handler = (params) => {
+    console.warn('Debug', params)
+  }
+  roomObj.on('room.joined', handler)
+  roomObj.on('room.joined', handler)
+  roomObj.on('room.joined', console.log)
+  roomObj.on('room.joined', console.warn)
   roomObj.on('room.joined', (params) => {
     console.debug(
       '>> room.joined',
@@ -213,6 +232,10 @@ window.connect = () => {
       params.room_session.recordings,
       params.room_session.members
     )
+
+    if (params.room_session.recordings) {
+      window.__recording = params.room_session.recordings[0]
+    }
 
     btnConnect.classList.add('d-none')
     btnDisconnect.classList.remove('d-none')

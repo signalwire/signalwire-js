@@ -4,6 +4,7 @@ import {
   assureDeviceId,
   checkPermissions,
 } from './deviceHelpers'
+import * as WebRTC from './webrtcHelpers'
 
 describe('Helpers browser functions', () => {
   const group1 = 'group1'
@@ -178,20 +179,23 @@ describe('Helpers browser functions', () => {
 
     describe('without camera permissions', () => {
       it('should invoke getUserMedia to request camera permissions and return device list removing duplicates', async () => {
+        ;(WebRTC.stopStream as jest.Mock) = jest.fn()
+
+        // @ts-ignore
+        navigator.permissions.query.mockResolvedValueOnce()
         // @ts-ignore
         navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(
           DEVICES_CAMERA_NO_LABELS
         )
-        const devices = await getDevicesWithPermissions()
+        const devices = await getDevicesWithPermissions('camera')
         expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(1)
         expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith({
-          audio: true,
+          audio: false,
           video: true,
         })
-        expect(devices).toHaveLength(5)
-        expect(devices[0].label).toEqual(
-          'Default - External Microphone (Built-in)'
-        )
+        expect(WebRTC.stopStream).toHaveBeenCalledTimes(1)
+        expect(devices).toHaveLength(2)
+        expect(devices[0].label).toEqual('FaceTime HD Camera')
         expect(devices.every((d) => d.deviceId && d.label)).toBe(true)
       })
     })
@@ -199,16 +203,19 @@ describe('Helpers browser functions', () => {
     describe('without microphone permissions', () => {
       it('should invoke getUserMedia to request microphone permissions and return device list removing duplicates', async () => {
         // @ts-ignore
+        navigator.permissions.query.mockResolvedValueOnce()
+
+        // @ts-ignore
         navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(
           DEVICES_MICROPHONE_NO_LABELS
         )
-        const devices = await getDevicesWithPermissions()
+        const devices = await getDevicesWithPermissions('microphone')
         expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(1)
         expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith({
           audio: true,
-          video: true,
+          video: false,
         })
-        expect(devices).toHaveLength(5)
+        expect(devices).toHaveLength(2)
         expect(devices[0].label).toEqual(
           'Default - External Microphone (Built-in)'
         )

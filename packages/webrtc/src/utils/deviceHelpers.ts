@@ -149,12 +149,21 @@ export const getDevicesWithPermissions = async (
   fullList: boolean = false
 ): Promise<MediaDeviceInfo[]> => {
   const hasPerms = await checkPermissions(kind)
+  let stream: MediaStream | undefined = undefined
   if (hasPerms === false) {
     const constraints = _constraintsByKind(kind)
-    const stream = await WebRTC.getUserMedia(constraints)
+    stream = await WebRTC.getUserMedia(constraints)
+  }
+  const devices = await getDevices(kind, fullList)
+  /**
+   * Firefox requires an active stream at the time of `enumerateDevices`
+   * so we need to stop it after `getDevices`
+   */
+  if (stream) {
     WebRTC.stopStream(stream)
   }
-  return getDevices(kind, fullList)
+
+  return devices
 }
 
 /**
@@ -921,7 +930,11 @@ export const createMicrophoneAnalyzer = async (
     if (rafId) {
       cancelAnimationFrame(rafId)
     }
-    audioContext.close()
+    if (audioContext.state !== 'closed') {
+      audioContext.close().catch((error) => {
+        getLogger().error('Error closing the AudioContext', error)
+      })
+    }
     /**
      * If the user provided a MediaStream, we don't need to
      * close it.

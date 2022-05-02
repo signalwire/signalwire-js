@@ -14,6 +14,8 @@ import type {
 } from '../redux/interfaces'
 import type { URL as NodeURL } from 'node:url'
 import {
+  AllOrNone,
+  CallingTransformType,
   ChatJSONRPCMethod,
   ChatTransformType,
   MessagingJSONRPCMethod,
@@ -342,17 +344,9 @@ export type EventTransformType =
   | 'roomSessionPlayback'
   | ChatTransformType
   | MessagingTransformType
+  | CallingTransformType
 
 export interface NestedFieldToProcess {
-  /**
-   * It's responsible for digging into the `transformedPayload` and mutating it with
-   * the correct logic and using the `instanceFactory` function to create child objects
-   * for the nested fields. For example: members/recordings/playbacks.
-   */
-  process: (
-    transformedPayload: any,
-    instanceFactory: (payload: any) => any
-  ) => any
   /**
    * Allow us to update the nested `payload` to match the shape we already
    * treat consuming other events from the server.
@@ -431,7 +425,7 @@ export interface EventTransform {
    * This allow us to target the fields and apply transform those
    * into stateless object following our EventTranform pattern.
    */
-  nestedFieldsToProcess?: () => NestedFieldToProcess[]
+  nestedFieldsToProcess?: Record<string, NestedFieldToProcess>
   /**
    * Allow us to define what property to use to namespace
    * our events (_eventsNamespace).
@@ -441,6 +435,12 @@ export interface EventTransform {
    * Allow us to define the `event_channel` for the Proxy.
    */
   getInstanceEventChannel?: (payload: any) => string
+  /**
+   * Determines if the instance created by `instanceFactory`
+   * should be cached per event. This is the instance that
+   * will be passed to our event handlers
+   */
+  mode?: 'cache' | 'no-cache'
 }
 
 export type BaseEventHandler = (...args: any[]) => void
@@ -450,17 +450,43 @@ export type InternalChannels = {
   swEventChannel: SwEventChannel
 }
 
-export type SDKWorkerParams<T> = {
+export type SDKWorkerHooks<
+  OnDone = (options?: any) => void,
+  OnFail = (options?: any) => void
+> = AllOrNone<{
+  onDone: OnDone
+  onFail: OnFail
+}>
+
+type SDKWorkerBaseParams<T> = {
   channels: InternalChannels
   instance: T
   runSaga: any
+  /**
+   * TODO: rename `payload` with something more explicit or
+   * create derived types of `SDKWorkerParams` with specific arguments (?)
+   * @deprecated use `initialState`
+   */
   payload?: any
+  initialState?: any
 }
-export type SDKWorker<T> = (params: SDKWorkerParams<T>) => SagaIterator<any>
 
-export interface SDKWorkerDefinition {
-  worker: SDKWorker<any>
-}
+export type SDKWorkerParams<
+  T,
+  Hooks extends SDKWorkerHooks = SDKWorkerHooks
+> = SDKWorkerBaseParams<T> & Hooks
+
+export type AttachSDKWorkerParams<T> = Partial<SDKWorkerBaseParams<T>>
+
+export type SDKWorker<T, Hooks extends SDKWorkerHooks = SDKWorkerHooks> = (
+  params: SDKWorkerParams<T, Hooks>
+) => SagaIterator<any>
+
+export type SDKWorkerDefinition<Hooks extends SDKWorkerHooks = SDKWorkerHooks> =
+  {
+    worker: SDKWorker<any>
+    initialState?: any
+  } & Hooks
 
 interface LogFn {
   <T extends object>(obj: T, msg?: string, ...args: any[]): void

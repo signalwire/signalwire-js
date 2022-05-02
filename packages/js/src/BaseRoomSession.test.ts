@@ -53,7 +53,7 @@ describe('Room Object', () => {
 
   describe('getRecordings', () => {
     it('should return an array of recordings', async () => {
-      const { store, session, emitter } = configureFullStack()
+      const { store, session, emitter, destroy } = configureFullStack()
       const recordingList = [{ id: 'recordingOne' }, { id: 'recordingTwo' }]
 
       session.execute = jest.fn().mockResolvedValue({
@@ -80,6 +80,8 @@ describe('Room Object', () => {
       expect(result).toStrictEqual({
         recordings: recordingList,
       })
+
+      destroy()
     })
   })
 
@@ -183,7 +185,7 @@ describe('Room Object', () => {
 
   describe('playback methods', () => {
     it('getPlaybacks should return an array of playbacks', async () => {
-      const { store, session, emitter } = configureFullStack()
+      const { store, session, emitter, destroy } = configureFullStack()
       const playbacks = [{ id: 'playbackOne' }, { id: 'playbackTwo' }]
 
       session.execute = jest.fn().mockResolvedValue({
@@ -210,6 +212,8 @@ describe('Room Object', () => {
       expect(result).toStrictEqual({
         playbacks,
       })
+
+      destroy()
     })
 
     it('play should return an interactive object', async () => {
@@ -345,7 +349,7 @@ describe('Room Object', () => {
 
   describe('as event emitter', () => {
     it('should listen on the talking events', () => {
-      const { store, session, emitter } = configureFullStack()
+      const { store, session, emitter, destroy } = configureFullStack()
       room = createBaseRoomSessionObject({
         store,
         // @ts-expect-error
@@ -399,12 +403,125 @@ describe('Room Object', () => {
         2,
         talkingFalse.params.params
       )
+      destroy()
+    })
+
+    it('should handle the room.subscribed event with nested fields', (done) => {
+      const roomId = 'd8caec4b-ddc9-4806-b2d0-e7c7d5cefe79'
+      const roomSessionId = '638a54a7-61d8-4db0-bc24-426aee5cebcd'
+      const recordingId = 'd1ae1822-5a5d-4950-8693-e59dc5dd96e0'
+      const memberId = '465ea212-c456-423b-9bcc-838c5e1b2851'
+
+      const { store, session, emitter, destroy } = configureFullStack()
+      room = createBaseRoomSessionObject({
+        store,
+        // @ts-expect-error
+        emitter,
+      })
+      // @ts-expect-error
+      room.execute = jest.fn()
+      // const startedHandler = jest.fn()
+      room.on('room.joined', (params) => {
+        /** Test same keys between room_session and room for backwards compat. */
+        const keys = ['room_session', 'room'] as const
+        keys.forEach(async (key) => {
+          expect(params[key].name).toEqual('bu')
+          expect(params[key].room_id).toEqual(roomId)
+          expect(params[key].recording).toBe(true)
+          expect(params[key].hide_video_muted).toBe(false)
+          // @ts-expect-error
+          expect(params[key].meta).toStrictEqual({})
+          // @ts-expect-error
+          const { members, recordings } = params[key]
+
+          // Test members and member object
+          expect(members).toHaveLength(1)
+          expect(members[0].id).toEqual(memberId)
+          expect(members[0].name).toEqual('edo')
+          expect(members[0].visible).toEqual(false)
+          expect(members[0].audio_muted).toEqual(false)
+          expect(members[0].video_muted).toEqual(false)
+          expect(members[0].deaf).toEqual(false)
+          expect(members[0].input_volume).toEqual(0)
+          expect(members[0].output_volume).toEqual(0)
+          expect(members[0].input_sensitivity).toEqual(11.11111111111111)
+          expect(members[0].meta).toStrictEqual({})
+
+          // Test recordings and recording object
+          expect(recordings).toHaveLength(1)
+          const recordingObj = recordings[0]
+          expect(recordingObj.id).toEqual(recordingId)
+          expect(recordingObj.state).toEqual('recording')
+          expect(recordingObj.duration).toBeNull()
+          expect(recordingObj.startedAt).toBeInstanceOf(Date)
+          expect(recordingObj.endedAt).toBeInstanceOf(Date)
+
+          const execMock = jest.fn()
+          const _clearMock = () => {
+            execMock.mockClear()
+            recordingObj.execute = execMock
+          }
+          _clearMock()
+          await recordingObj.pause()
+          expect(execMock).toHaveBeenCalledTimes(1)
+          expect(execMock).toHaveBeenCalledWith({
+            method: 'video.recording.pause',
+            params: {
+              recording_id: recordingId,
+              room_session_id: roomSessionId,
+            },
+          })
+
+          _clearMock()
+          await recordingObj.resume()
+          expect(execMock).toHaveBeenCalledTimes(1)
+          expect(execMock).toHaveBeenCalledWith({
+            method: 'video.recording.resume',
+            params: {
+              recording_id: recordingId,
+              room_session_id: roomSessionId,
+            },
+          })
+
+          _clearMock()
+          await recordingObj.stop()
+          expect(execMock).toHaveBeenCalledTimes(1)
+          expect(execMock).toHaveBeenCalledWith({
+            method: 'video.recording.stop',
+            params: {
+              recording_id: recordingId,
+              room_session_id: roomSessionId,
+            },
+          })
+        })
+        /** Test specific keys between room_session and room for backwards compat. */
+        expect(params.room.room_session_id).toEqual(roomSessionId)
+        expect(params.room_session.id).toEqual(roomSessionId)
+
+        /** Test RoomSession properties */
+        expect(room.roomId).toEqual(roomId)
+        expect(room.roomSessionId).toEqual(roomSessionId)
+        expect(room.memberId).toEqual(memberId)
+
+        destroy()
+        done()
+      })
+
+      /**
+       * Mock `call_id` to match the event with "room.__uuid"
+       */
+      const roomSubscribed = JSON.parse(
+        // @ts-expect-error
+        `{"jsonrpc":"2.0","id":"d8a9fb9a-ad28-4a0a-8caa-5e06ec22f856","method":"signalwire.event","params":{"event_type":"video.room.subscribed","timestamp":1650960870.216,"event_channel":"EC_4d2c491d-bf96-4802-9008-c360a51155a2","params":{"call_id":"${room.id}","member_id":"465ea212-c456-423b-9bcc-838c5e1b2851","room_session":{"room_id":"d8caec4b-ddc9-4806-b2d0-e7c7d5cefe79","id":"638a54a7-61d8-4db0-bc24-426aee5cebcd","event_channel":"EC_4d2c491d-bf96-4802-9008-c360a51155a2","name":"bu","recording":true,"hide_video_muted":false,"display_name":"bu","meta":{},"recordings":[{"id":"d1ae1822-5a5d-4950-8693-e59dc5dd96e0","state":"recording","duration":null,"started_at":1650960870.033,"ended_at":null}],"members":[{"id":"465ea212-c456-423b-9bcc-838c5e1b2851","room_id":"d8caec4b-ddc9-4806-b2d0-e7c7d5cefe79","room_session_id":"638a54a7-61d8-4db0-bc24-426aee5cebcd","name":"edo","type":"member","parent_id":"","requested_position":"auto","visible":false,"audio_muted":false,"video_muted":false,"deaf":false,"input_volume":0,"output_volume":0,"input_sensitivity":11.11111111111111,"meta":{}}]},"room":{"room_id":"d8caec4b-ddc9-4806-b2d0-e7c7d5cefe79","event_channel":"EC_4d2c491d-bf96-4802-9008-c360a51155a2","name":"bu","recording":true,"hide_video_muted":false,"display_name":"bu","meta":{},"recordings":[{"id":"d1ae1822-5a5d-4950-8693-e59dc5dd96e0","state":"recording","duration":null,"started_at":1650960870.033,"ended_at":null}],"members":[{"id":"465ea212-c456-423b-9bcc-838c5e1b2851","room_id":"d8caec4b-ddc9-4806-b2d0-e7c7d5cefe79","room_session_id":"638a54a7-61d8-4db0-bc24-426aee5cebcd","name":"edo","type":"member","parent_id":"","requested_position":"auto","visible":false,"audio_muted":false,"video_muted":false,"deaf":false,"input_volume":0,"output_volume":0,"input_sensitivity":11.11111111111111,"meta":{}}],"room_session_id":"638a54a7-61d8-4db0-bc24-426aee5cebcd"}}}}`
+      )
+      // mock a room.subscribed event
+      session.dispatch(actions.socketMessageAction(roomSubscribed))
     })
   })
 
   describe('meta methods', () => {
     it('should allow to set the meta field on the RoomSession', async () => {
-      const { store, session, emitter } = configureFullStack()
+      const { store, session, emitter, destroy } = configureFullStack()
 
       session.execute = jest.fn().mockResolvedValue({
         code: '200',
@@ -437,10 +554,12 @@ describe('Room Object', () => {
           meta: { foo: 'bar' },
         },
       })
+
+      destroy()
     })
 
     it('should allow to set the meta field on the Member', async () => {
-      const { store, session, emitter } = configureFullStack()
+      const { store, session, emitter, destroy } = configureFullStack()
 
       session.execute = jest.fn().mockResolvedValue({
         code: '200',
@@ -477,6 +596,8 @@ describe('Room Object', () => {
           meta: { displayName: 'jest' },
         },
       })
+
+      destroy()
     })
   })
 })
