@@ -20,6 +20,37 @@ export interface VoiceClientDocs extends Pick<Voice, InheritedMembers> {
     contexts: string[]
   }): this
 
+  /**
+   * Makes an outbound Call and waits until it has been answered or hung up.
+   *
+   * With this method you can specify a configuration of devices to call in
+   * series and/or in parallel: as soon as one device answers the call, the
+   * returned promise is resolved. You specify a configuration through a
+   * {@link VoiceDialer} object.
+   *
+   * @example Calls a phone number. If the number doesn't answer within 30
+   * seconds, calls two different SIP endpoints in parallel.
+   *
+   * ```js
+   * const dialer = new Voice.Dialer()
+   *   .add(Voice.Dialer.Phone({ from: '+XXXXXX', to: '+YYYYYY', timeout: 30 }))
+   *   .add([
+   *     Voice.Dialer.Sip({ from: 'sip:aaa@bbb.cc', to: 'sip:xxx@yyy.zz' }),
+   *     Voice.Dialer.Sip({ from: 'sip:aaa@bbb.cc', to: 'sip:ppp@qqq.rr' })
+   *   ])
+   *
+   * try {
+   *   const call = await client.dial(dialer)
+   *   console.log("Call answered")
+   * } catch (e) {
+   *   console.log("Call not answered")
+   * }
+   * ```
+   *
+   * @param dialer The dialer specifying the devices to call.
+   * 
+   * @returns A call object.
+   */
   dial(dialer: VoiceDialer): Promise<Call>
 
   dialPhone(params: {
