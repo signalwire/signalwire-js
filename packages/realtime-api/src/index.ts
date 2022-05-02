@@ -152,7 +152,8 @@ export * as Messaging from './messaging/Messaging'
  *
  * @example
  *
- * The following example answers any call in the "office" context.
+ * The following example answers any call in the "office" context,
+ * and immediately plays some speech.
  *
  * ```javascript
  * const client = new Voice.Client({
@@ -161,7 +162,18 @@ export * as Messaging from './messaging/Messaging'
  *   contexts: ['office']
  * })
  *
- * ...
+ * client.on('call.received', async (call) => {
+ *   console.log('Got call', call.from, call.to)
+ *
+ *   try {
+ *     await call.answer()
+ *     console.log('Inbound call answered')
+ *
+ *     await call.playTTS({ text: "Hello! This is a test call."})
+ *   } catch (error) {
+ *     console.error('Error answering inbound call', error)
+ *   }
+ * })
  * ```
  */
 export * as Voice from './voice/Voice'
