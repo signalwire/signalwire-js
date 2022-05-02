@@ -73,7 +73,11 @@ export const findNamespaceInPayload = (action: PubSubAction): string => {
   } else if (isChatEvent(action)) {
     return ''
   } else if (isVoiceCallEvent(action)) {
-    // FIXME:
+    /**
+     * Some calling events (ie: `calling.call.receive`) have no "tag"
+     * but we inject it within the workers before put the action.
+     * See voiceCallPlayWorker as an example.
+     */
     // @ts-expect-error
     return action.payload.tag ?? ''
   }
