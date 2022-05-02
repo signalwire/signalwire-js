@@ -125,7 +125,7 @@ export type VoiceCallEventNames =
 // export type InternalVoiceCallEventNames =
 //   ToInternalVoiceEvent<VoiceCallEventNames>
 
-type SipCodec = 'PCMU' | 'PCMA' | 'OPUS' | 'G729' | 'G722' | 'VP8' | 'H264'
+export type SipCodec = 'PCMU' | 'PCMA' | 'OPUS' | 'G729' | 'G722' | 'VP8' | 'H264'
 
 export interface SipHeader {
   name: string
