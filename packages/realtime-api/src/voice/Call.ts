@@ -180,6 +180,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       // @ts-expect-error
       return this.device?.params?.from ?? ''
     }
+    this.logger.warn('Unknow Call type', this.type)
     // @ts-expect-error
     return this.device?.params?.from ?? ''
   }
@@ -192,6 +193,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       // @ts-expect-error
       return this.device?.params?.to ?? ''
     }
+    this.logger.warn('Unknow Call type', this.type)
     // @ts-expect-error
     return this.device?.params?.to ?? ''
   }
