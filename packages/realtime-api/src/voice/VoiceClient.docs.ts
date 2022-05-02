@@ -22,6 +22,9 @@ export interface VoiceClientDocs extends Pick<Voice, InheritedMembers> {
 
   /**
    * Makes an outbound Call and waits until it has been answered or hung up.
+   * This is an advanced method that lets you call multiple devices in parallel
+   * or series: for simpler use cases, see {@link dialPhone} and
+   * {@link dialSip}.
    *
    * With this method you can specify a configuration of devices to call in
    * series and/or in parallel: as soon as one device answers the call, the
@@ -47,24 +50,84 @@ export interface VoiceClientDocs extends Pick<Voice, InheritedMembers> {
    * }
    * ```
    *
-   * @param dialer The dialer specifying the devices to call.
-   * 
+   * @param dialer The Dialer specifying the devices to call.
+   *
    * @returns A call object.
    */
   dial(dialer: VoiceDialer): Promise<Call>
 
+  /**
+   * Makes an outbound call to a PSTN number.
+   *
+   * @example
+   * try {
+   *   const call = await client.dialPhone({
+   *     from: '+YYYYYYYYYY',
+   *     to: '+XXXXXXXXXX',
+   *     timeout: 30,
+   *   })
+   * } catch (e) {
+   *   console.log("Call not answered.")
+   * }
+   *
+   * @returns A call object.
+   */
   dialPhone(params: {
-    from?: string | undefined;
-    to: string;
-    timeout?: number | undefined;
+    /**
+     * The party the call is coming from. Must be a SignalWire number or SIP
+     * endpoint that you own.
+     */
+    from?: string | undefined
+    /** The party you are attempting to call. */
+    to: string
+    /**
+     * The time, in seconds, the call will ring before it is considered
+     * unanswered.
+     */
+    timeout?: number | undefined
   }): Promise<Call>
 
+  /**
+   * Makes an outbound call to a SIP endpoint.
+   *
+   * @example
+   * try {
+   *   const call = await client.dialPhone({
+   *     from: 'sip:xxx@yyy.zz',
+   *     to: 'sip:ppp@qqq.rr',
+   *     timeout: 30,
+   *   })
+   * } catch (e) {
+   *   console.log("Call not answered.")
+   * }
+   *
+   * @returns A call object.
+   */
   dialSip(params: {
-    from: string;
-    to: string;
-    timeout?: number | undefined;
-    headers?: SipHeader[] | undefined;
-    codecs?: SipCodec[] | undefined;
-    webrtcMedia?: boolean | undefined;
+    /**
+     * The party the call is coming from. Must be a SignalWire number or SIP
+     * endpoint that you own.
+     */
+    from: string
+    /** The party you are attempting to call. */
+    to: string
+    /**
+     * The time, in seconds, the call will ring before it is considered
+     * unanswered.
+     */
+    timeout?: number | undefined
+    /**
+     * Array of `SipHeader` objects like: `{ name: string, value: string }`.
+     * Must be X- headers only, see example below.
+     */
+    headers?: SipHeader[] | undefined
+    /**
+     * Optional array of desired codecs in order of preference. Supported values
+     * are PCMU, PCMA, OPUS, G729, G722, VP8, H264. Default is parent leg
+     * codec(s).
+     */
+    codecs?: SipCodec[] | undefined
+    /** If true, WebRTC media is negotiated. Default is parent leg setting. */
+    webrtcMedia?: boolean | undefined
   }): Promise<Call>
 }
