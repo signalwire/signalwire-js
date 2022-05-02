@@ -1,6 +1,10 @@
 import { Video } from '@signalwire/js'
 import {
   enumerateDevices,
+  checkPermissions,
+  getCameraDevicesWithPermissions,
+  getMicrophoneDevicesWithPermissions,
+  getSpeakerDevicesWithPermissions,
   getMicrophoneDevices,
   getCameraDevices,
   getSpeakerDevices,
@@ -8,6 +12,14 @@ import {
   createDeviceWatcher,
   createMicrophoneAnalyzer,
 } from '@signalwire/webrtc'
+
+window.getMicrophoneDevices = getMicrophoneDevices
+window.getCameraDevices = getCameraDevices
+window.getSpeakerDevices = getSpeakerDevices
+window.checkPermissions = checkPermissions
+window.getCameraDevicesWithPermissions = getCameraDevicesWithPermissions
+window.getMicrophoneDevicesWithPermissions = getMicrophoneDevicesWithPermissions
+window.getSpeakerDevicesWithPermissions = getSpeakerDevicesWithPermissions
 
 let roomObj = null
 let micAnalyzer = null
