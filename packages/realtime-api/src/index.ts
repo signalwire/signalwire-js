@@ -144,5 +144,24 @@ export * as Task from './task/Task'
  */
 export * as Messaging from './messaging/Messaging'
 
-/** @ignore */
+/**
+ * Access the Voice API. You can instantiate a {@link Voice.Client} to
+ * make or receive calls. Please check
+ * {@link Voice.VoiceClientApiEvents} for the full list of events that
+ * a {@link Voice.Client} can subscribe to.
+ *
+ * @example
+ *
+ * The following example answers any call in the "office" context.
+ *
+ * ```javascript
+ * const client = new Voice.Client({
+ *   project: "<project-id>",
+ *   token: "<api-token>",
+ *   contexts: ['office']
+ * })
+ *
+ * ...
+ * ```
+ */
 export * as Voice from './voice/Voice'
