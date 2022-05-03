@@ -649,8 +649,13 @@ interface CallingCallSIPDevice {
 }
 
 type CallingCallDevice = CallingCallPhoneDevice | CallingCallSIPDevice
-type CallingCallState = 'created' | 'ringing' | 'answered' | 'ending' | 'ended'
 type CallingCallDirection = 'inbound' | 'outbound'
+export type CallingCallState =
+  | 'created'
+  | 'ringing'
+  | 'answered'
+  | 'ending'
+  | 'ended'
 
 interface CallingCall {
   call_id: string
