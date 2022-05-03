@@ -514,6 +514,11 @@ export type VoiceCallTapEntity = OnlyStateProperties<VoiceCallTapContract>
  */
 export type VoiceCallTapMethods = OnlyFunctionProperties<VoiceCallTapContract>
 
+export type CallingCallWaitForState = Extract<
+  CallingCallState,
+  'ending' | 'ended'
+>
+
 /**
  * Public Contract for a VoiceCall
  */
@@ -576,6 +581,9 @@ export interface VoiceCallContract<T = any> {
   tapAudio(params: VoiceCallTapAudioMethodParams): Promise<VoiceCallTapContract>
   connect(params: VoiceCallConnectMethodParams): Promise<VoiceCallContract>
   waitUntilConnected(): Promise<this>
+  waitFor(
+    params: CallingCallWaitForState | CallingCallWaitForState[]
+  ): Promise<boolean>
   disconnect(): Promise<void>
   detect(params: VoiceCallDetectMethodParams): Promise<VoiceCallDetectContract>
   amd(
