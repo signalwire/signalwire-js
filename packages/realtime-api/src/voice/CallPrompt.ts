@@ -45,13 +45,7 @@ export class CallPromptAPI
       EventTransform
     >([
       [
-        [
-          // callingPromptTriggerEvent,
-          // 'calling.prompt.started',
-          // 'calling.prompt.updated',
-          'calling.prompt.ended',
-          'calling.prompt.failed',
-        ],
+        ['calling.prompt.ended', 'calling.prompt.failed'],
         {
           type: 'voiceCallPrompt',
           instanceFactory: (_payload: any) => {
