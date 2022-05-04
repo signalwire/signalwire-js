@@ -9,9 +9,11 @@
   },
   "devDependencies": {
     "dotenv": "^16.0.0",
-    "esbuild-register": "^3.3.2"
+    "esbuild-register": "^3.3.2",
+    "@types/tap": "^15.0.7"
   },
   "dependencies": {
-    "ws": "^8.5.0"
+    "ws": "^8.5.0",
+    "tap": "^16.1.0"
   }
 }
