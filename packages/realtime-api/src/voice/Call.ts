@@ -60,6 +60,7 @@ import { CallRecording, createCallRecordingObject } from './CallRecording'
 import { CallPrompt, createCallPromptObject } from './CallPrompt'
 import { CallTap, createCallTapObject } from './CallTap'
 import { CallDetect, createCallDetectObject } from './CallDetect'
+import { CallDocs } from './Call.docs'
 
 type EmitterTransformsEvents =
   | 'calling.playback.start'
@@ -86,8 +87,6 @@ type EmitterTransformsEvents =
 interface CallMain
   extends VoiceCallContract<Call>,
     EmitterContract<RealTimeCallApiEvents> {}
-
-interface CallDocs extends CallMain {}
 
 export interface Call extends AssertSameType<CallMain, CallDocs> {}
 
