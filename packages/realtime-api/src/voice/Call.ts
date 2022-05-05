@@ -577,6 +577,9 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       if (!this.callId || !this.nodeId) {
         reject(new Error(`Can't call record() on a call not established yet.`))
       }
+      if (!params.playlist) {
+        reject(new Error(`Missing 'playlist' params.`))
+      }
 
       const controlId = uuid()
 
@@ -593,15 +596,10 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       // @ts-expect-error
       this.on(callingPromptTriggerEvent, resolveHandler)
 
+      const { volume, media } = params.playlist
       // TODO: move this to a method to build `collect`
-      const {
-        initial_timeout,
-        partial_results,
-        digits,
-        speech,
-        media,
-        volume,
-      } = toSnakeCaseKeys(params)
+      const { initial_timeout, partial_results, digits, speech } =
+        toSnakeCaseKeys(params)
       const collect = {
         initial_timeout,
         partial_results,
@@ -642,29 +640,35 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
   }
 
   promptAudio(params: VoiceCallPromptAudioMethodParams) {
-    const { url, ...rest } = params
+    const { url, volume, ...rest } = params
+    const playlist = new Playlist({ volume }).add(Playlist.Audio({ url }))
 
     return this.prompt({
-      media: [{ type: 'audio', url }],
+      playlist,
       ...rest,
     })
   }
 
   promptRingtone(params: VoiceCallPromptRingtoneMethodParams) {
-    // FIXME: ringtone `name` is too generic as argument
-    const { name, duration, ...rest } = params
+    const { name, duration, volume, ...rest } = params
+    const playlist = new Playlist({ volume }).add(
+      Playlist.Ringtone({ name, duration })
+    )
 
     return this.prompt({
-      media: [{ type: 'ringtone', name, duration }],
+      playlist,
       ...rest,
     })
   }
 
   promptTTS(params: VoiceCallPromptTTSMethodParams) {
-    const { text, language, gender, ...rest } = params
+    const { text, language, gender, volume, ...rest } = params
+    const playlist = new Playlist({ volume }).add(
+      Playlist.TTS({ text, language, gender })
+    )
 
     return this.prompt({
-      media: [{ type: 'tts', text, language, gender }],
+      playlist,
       ...rest,
     })
   }

@@ -242,8 +242,7 @@ type SpeechOrDigits =
       }
     }
 export type VoiceCallPromptMethodParams = SpeechOrDigits & {
-  media: NestedArray<VoiceCallPlayParams>
-  volume?: number
+  playlist: VoicePlaylist
   initialTimeout?: number
   partialResults?: boolean
 }
