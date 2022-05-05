@@ -241,25 +241,21 @@ const _filterDevices = (
  * {@link getSpeakerDevices}.
  *
  * @param name filter for this device category
- * @param fullList By default, only devices for which
- * we have permissions are returned. To obtain a list of devices regardless of
- * the permissions, pass `fullList=true`. Note however that some values such as
- * `name` and `deviceId` could be omitted.
+ * @param fullList Default to false. To retrieve the raw list from the browser
+ * that might include different deviceId for the same group. TBD @daniele
  *
  * @example
  * ```typescript
  * await SignalWire.WebRTC.getDevices("camera", true)
  * // [
  * //   {
- * //     "deviceId": "",
+ * //     "deviceId": "3c4f97...",
  * //     "kind": "videoinput",
- * //     "label": "",
- * //     "groupId": "3c4f97...828fec"
+ * //     "label": "HD Camera",
+ * //     "groupId": "828fec..."
  * //   }
  * // ]
  * ```
- * In this case, `deviceId` and `label` are omitted because we lack permissions.
- * Without `fullList=true`, this device would not have been returned.
  */
 export const getDevices = async (
   name?: DevicePermissionName,
