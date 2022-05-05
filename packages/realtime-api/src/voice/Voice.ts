@@ -3,19 +3,19 @@ import type {
   EmitterContract,
   EventTransform,
   CallingCallReceiveEventParams,
-  VoiceDialer,
+  VoiceDeviceBuilder,
   VoiceCallDialPhoneMethodParams,
   VoiceCallDialSipMethodParams,
 } from '@signalwire/core'
 import { RealtimeClient } from '../client/index'
 import { createCallObject, Call } from './Call'
 import { voiceCallReceiveWorker } from './workers'
-import { Dialer } from './Dialer'
+import { DeviceBuilder } from './Dialer'
 import type { RealTimeCallApiEvents } from '../types'
 import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
 
 export * from './VoiceClient'
-export { Dialer }
+export { DeviceBuilder }
 export { Playlist } from './Playlist'
 
 /**
@@ -28,7 +28,7 @@ type EmitterTransformsEvents = 'calling.call.received'
 export interface Voice extends EmitterContract<RealTimeVoiceApiEvents> {
   /** @internal */
   _session: RealtimeClient
-  dial(dialer: VoiceDialer): Promise<Call>
+  dial(dialer: VoiceDeviceBuilder): Promise<Call>
   dialPhone(params: VoiceCallDialPhoneMethodParams): Promise<Call>
   dialSip(params: VoiceCallDialSipMethodParams): Promise<Call>
 }
@@ -73,18 +73,24 @@ class VoiceAPI extends AutoApplyTransformsConsumer<RealTimeVoiceApiEvents> {
     ])
   }
 
-  dialPhone(params: VoiceCallDialPhoneMethodParams) {
-    const dialer = new Dialer().add(Dialer.Phone(params))
+  dialPhone({ region, ...params }: VoiceCallDialPhoneMethodParams) {
+    const devices = new DeviceBuilder().add(DeviceBuilder.Phone(params))
     // dial is available through the VoiceClient Proxy
     // @ts-expect-error
-    return this.dial(dialer)
+    return this.dial({
+      region,
+      devices,
+    })
   }
 
-  dialSip(params: VoiceCallDialSipMethodParams) {
-    const dialer = new Dialer().add(Dialer.Sip(params))
+  dialSip({ region, ...params }: VoiceCallDialSipMethodParams) {
+    const devices = new DeviceBuilder().add(DeviceBuilder.Sip(params))
     // dial is available through the VoiceClient Proxy
     // @ts-expect-error
-    return this.dial(dialer)
+    return this.dial({
+      region,
+      devices,
+    })
   }
 }
 
