@@ -6,6 +6,7 @@ import type {
   VoiceCallSipParams,
   VoiceCallDialSipMethodParams,
 } from '@signalwire/core'
+
 export class DeviceBuilder implements VoiceDeviceBuilder {
   private _devices: VoiceDeviceBuilder['devices'] = []
 
