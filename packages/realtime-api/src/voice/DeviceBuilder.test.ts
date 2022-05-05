@@ -1,4 +1,4 @@
-import { DeviceBuilder } from './Dialer'
+import { DeviceBuilder } from './DeviceBuilder'
 
 describe('DeviceBuilder', () => {
   it('should build a list of devices to dial', () => {

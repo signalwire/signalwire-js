@@ -61,7 +61,7 @@ import { CallRecording, createCallRecordingObject } from './CallRecording'
 import { CallPrompt, createCallPromptObject } from './CallPrompt'
 import { CallTap, createCallTapObject } from './CallTap'
 import { CallDetect, createCallDetectObject } from './CallDetect'
-import { DeviceBuilder } from './Dialer'
+import { DeviceBuilder } from './DeviceBuilder'
 
 type EmitterTransformsEvents =
   | 'calling.playback.start'

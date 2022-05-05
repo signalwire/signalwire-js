@@ -10,7 +10,7 @@ import type {
 import { RealtimeClient } from '../client/index'
 import { createCallObject, Call } from './Call'
 import { voiceCallReceiveWorker } from './workers'
-import { DeviceBuilder } from './Dialer'
+import { DeviceBuilder } from './DeviceBuilder'
 import type { RealTimeCallApiEvents } from '../types'
 import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
 
