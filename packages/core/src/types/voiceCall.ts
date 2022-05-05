@@ -9,7 +9,7 @@ import type {
 
 type ToInternalVoiceEvent<T extends string> = `${VoiceNamespace}.${T}`
 export type VoiceNamespace = typeof PRODUCT_PREFIX_VOICE_CALL
-type RingtoneName =
+export type RingtoneName =
   | 'at'
   | 'au'
   | 'bg'
@@ -280,7 +280,7 @@ interface TapDeviceRTP {
   ptime?: number
 }
 
-type TapDevice = TapDeviceWS | TapDeviceRTP
+export type TapDevice = TapDeviceWS | TapDeviceRTP
 type TapDirection = 'listen' | 'speak' | 'both'
 export interface VoiceCallTapMethodParams {
   device: TapDevice

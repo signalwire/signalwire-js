@@ -1,12 +1,19 @@
 import type {
   VoiceCallContract,
-  VoiceCallDialMethodParams,
-  VoiceCallDisconnectReason,
   SipHeader,
   EmitterContract,
-  VoiceDialer,
   VoicePlaylist,
   VoiceCallPlaybackContract,
+  VoiceDeviceBuilder,
+  VoiceCallRecordMethodParams,
+  VoiceCallRecordingContract,
+  VoiceCallPromptContract,
+  RingtoneName,
+  VoiceCallTapContract,
+  VoiceCallTapMethodParams,
+  TapDevice,
+  VoiceCallDetectMethodParams,
+  VoiceCallDetectContract,
 } from '@signalwire/core'
 import type { RealTimeCallApiEvents } from '../types'
 import type { Call } from './Call'
@@ -34,53 +41,93 @@ export interface CallDocs
 
   headers?: SipHeader[]
 
-  dial(params: VoiceDialer): Promise<Call>
+  dial(
+    params:
+      | VoiceDeviceBuilder
+      | {
+          devices: VoiceDeviceBuilder
+          region: string
+        }
+  ): Promise<Call>
+
   hangup(
     reason?: 'hangup' | 'cancel' | 'busy' | 'noAnswer' | 'decline' | 'error'
   ): Promise<void>
   answer(): Promise<Call>
   play(params: VoicePlaylist): Promise<VoiceCallPlaybackContract>
-  playAudio(params: {
-      volume?: number
-    }): Promise<VoiceCallPlaybackContract>
-  playSilence(): Promise<VoiceCallPlaybackContract>
-  playRingtone(
-    params: {volume?: number}
-  ): Promise<VoiceCallPlaybackContract>
-  playTTS(
-    params: {volume?: number}
-  ): Promise<VoiceCallPlaybackContract>
+  playAudio(params: { volume?: number }): Promise<VoiceCallPlaybackContract>
+  playSilence(params: { duration: number }): Promise<VoiceCallPlaybackContract>
+  playRingtone(params: { volume?: number }): Promise<VoiceCallPlaybackContract>
+  playTTS(params: { volume?: number }): Promise<VoiceCallPlaybackContract>
   record(
     params: VoiceCallRecordMethodParams
   ): Promise<VoiceCallRecordingContract>
   recordAudio(
     params?: VoiceCallRecordMethodParams['audio']
   ): Promise<VoiceCallRecordingContract>
-  prompt(params: VoiceCallPromptMethodParams): Promise<VoiceCallPromptContract>
-  promptAudio(
-    params: VoiceCallPromptAudioMethodParams
-  ): Promise<VoiceCallPromptContract>
-  promptRingtone(
-    params: VoiceCallPromptRingtoneMethodParams
-  ): Promise<VoiceCallPromptContract>
-  promptTTS(
-    params: VoiceCallPromptTTSMethodParams
-  ): Promise<VoiceCallPromptContract>
+  prompt(params: {
+    playlist: VoicePlaylist
+    initialTimeout?: number
+    partialResults?: boolean
+  }): Promise<VoiceCallPromptContract>
+  promptAudio(params: {
+    url: string
+    volume?: number
+    initialTimeout?: number
+    partialResults?: boolean
+  }): Promise<VoiceCallPromptContract>
+  promptRingtone(params: {
+    name: RingtoneName
+    duration?: number
+    volume?: number
+    initialTimeout?: number
+    partialResults?: boolean
+  }): Promise<VoiceCallPromptContract>
+  promptTTS(params: {
+    text: string
+    language?: string
+    gender?: 'male' | 'female'
+    volume?: number
+    initialTimeout?: number
+    partialResults?: boolean
+  }): Promise<VoiceCallPromptContract>
   // TODO: add derived prompt methods
   sendDigits(digits: string): Promise<Call>
   tap(params: VoiceCallTapMethodParams): Promise<VoiceCallTapContract>
-  tapAudio(params: VoiceCallTapAudioMethodParams): Promise<VoiceCallTapContract>
-  connect(params: VoiceCallConnectMethodParams): Promise<VoiceCallContract>
+  tapAudio(params: {
+    device: TapDevice
+    direction: 'listen' | 'speak' | 'both'
+  }): Promise<VoiceCallTapContract>
+  connect(
+    params:
+      | VoiceDeviceBuilder
+      | {
+          devices: VoiceDeviceBuilder
+          ringback?: VoicePlaylist
+        }
+  ): Promise<VoiceCallContract>
   waitUntilConnected(): Promise<this>
+  waitFor(
+    params: ('ending' | 'ended') | ('ending' | 'ended')[]
+  ): Promise<boolean>
   disconnect(): Promise<void>
   detect(params: VoiceCallDetectMethodParams): Promise<VoiceCallDetectContract>
-  amd(
-    params?: Omit<VoiceCallDetectMachineParams, 'type'>
-  ): Promise<VoiceCallDetectContract>
-  detectFax(
-    params?: Omit<VoiceCallDetectFaxParams, 'type'>
-  ): Promise<VoiceCallDetectContract>
-  detectDigit(
-    params?: Omit<VoiceCallDetectDigitParams, 'type'>
-  ): Promise<VoiceCallDetectContract>
+  amd(params?: {
+    timeout?: number
+    waitForBeep?: boolean
+    initialTimeout?: number
+    endSilenceTimeout?: number
+    machineVoiceThreshold?: number
+    machineWordsThreshold?: number
+  }): Promise<VoiceCallDetectContract>
+  detectFax(params?: {
+    timeout?: number
+    waitForBeep?: boolean
+    tone?: 'CED' | 'CNG'
+  }): Promise<VoiceCallDetectContract>
+  detectDigit(params?: {
+    timeout?: number
+    waitForBeep?: boolean
+    digits?: string
+  }): Promise<VoiceCallDetectContract>
 }
