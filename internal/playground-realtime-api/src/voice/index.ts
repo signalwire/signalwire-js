@@ -167,13 +167,11 @@ async function run() {
       })
 
       const prompt = await call.prompt({
-        media: [
-          {
-            type: 'tts',
+        playlist: new Voice.Playlist({ volume: 1.0 }).add(
+          Voice.Playlist.TTS({
             text: 'Welcome to SignalWire! Please enter your 4 digits PIN',
-          },
-        ],
-        volume: 1.0,
+          })
+        ),
         digits: {
           max: 4,
           digitTimeout: 10,
