@@ -474,7 +474,7 @@ export interface VoiceCallPromptContract {
 
   stop(): Promise<this>
   setVolume(volume: number): Promise<this>
-  waitForResult(): Promise<this>
+  waitForResult(): Promise<VoiceCallPromptContract>
 }
 
 /**
