@@ -241,8 +241,8 @@ const _filterDevices = (
  * {@link getSpeakerDevices}.
  *
  * @param name filter for this device category
- * @param fullList Default to false. To retrieve the raw list from the browser
- * that might include different deviceId for the same group. TBD @daniele
+ * @param fullList Default to false. Set to true to retrieve the raw list as returned by
+ * the browser, which might include multiple, duplicate deviceIds for the same group.
  *
  * @example
  * ```typescript
