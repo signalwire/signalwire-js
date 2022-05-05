@@ -242,8 +242,7 @@ type SpeechOrDigits =
       }
     }
 export type VoiceCallPromptMethodParams = SpeechOrDigits & {
-  media: NestedArray<VoiceCallPlayParams>
-  volume?: number
+  playlist: VoicePlaylist
   initialTimeout?: number
   partialResults?: boolean
 }
@@ -295,11 +294,12 @@ export interface VoiceCallTapAudioMethodParams {
   direction: TapDirection
 }
 
-export interface VoiceCallConnectMethodParams {
-  ringback?: NestedArray<VoiceCallPlayParams>
-  devices: NestedArray<VoiceCallDeviceParams>
-}
-
+export type VoiceCallConnectMethodParams =
+  | VoiceDeviceBuilder
+  | {
+      devices: VoiceDeviceBuilder
+      ringback?: VoicePlaylist
+    }
 interface VoiceCallDetectBaseParams {
   timeout?: number
   waitForBeep?: boolean // SDK-side only
@@ -337,13 +337,24 @@ export type VoiceCallDisconnectReason =
   | 'decline'
   | 'error'
 
-export type VoiceCallDialPhoneMethodParams = OmitType<VoiceCallPhoneParams>
-export type VoiceCallDialSipMethodParams = OmitType<VoiceCallSipParams>
-export interface CreateVoiceDialerParams {
-  region?: string
+export interface VoiceCallDialRegionParams {
+  region?: VoiceRegion
 }
 
-export interface VoiceDialer extends CreateVoiceDialerParams {
+export type VoiceCallDialPhoneMethodParams = OmitType<VoiceCallPhoneParams> &
+  VoiceCallDialRegionParams
+export type VoiceCallDialSipMethodParams = OmitType<VoiceCallSipParams> &
+  VoiceCallDialRegionParams
+
+type VoiceRegion = string
+
+export type VoiceDialerParams =
+  | VoiceDeviceBuilder
+  | ({
+      devices: VoiceDeviceBuilder
+    } & VoiceCallDialRegionParams)
+
+export interface VoiceDeviceBuilder {
   devices: VoiceCallDialMethodParams['devices']
   add(params: VoiceCallDeviceParams | VoiceCallDeviceParams[]): this
 }
@@ -474,7 +485,7 @@ export interface VoiceCallPromptContract {
 
   stop(): Promise<this>
   setVolume(volume: number): Promise<this>
-  waitForResult(): Promise<this>
+  waitForResult(): Promise<VoiceCallPromptContract>
 }
 
 /**
@@ -514,6 +525,11 @@ export type VoiceCallTapEntity = OnlyStateProperties<VoiceCallTapContract>
  */
 export type VoiceCallTapMethods = OnlyFunctionProperties<VoiceCallTapContract>
 
+export type CallingCallWaitForState = Extract<
+  CallingCallState,
+  'ending' | 'ended'
+>
+
 /**
  * Public Contract for a VoiceCall
  */
@@ -538,7 +554,7 @@ export interface VoiceCallContract<T = any> {
   direction: CallingCallDirection
   headers?: SipHeader[]
 
-  dial(params: VoiceDialer): Promise<T>
+  dial(params: VoiceDialerParams): Promise<T>
   hangup(reason?: VoiceCallDisconnectReason): Promise<void>
   answer(): Promise<T>
   play(params: VoicePlaylist): Promise<VoiceCallPlaybackContract>
@@ -576,6 +592,9 @@ export interface VoiceCallContract<T = any> {
   tapAudio(params: VoiceCallTapAudioMethodParams): Promise<VoiceCallTapContract>
   connect(params: VoiceCallConnectMethodParams): Promise<VoiceCallContract>
   waitUntilConnected(): Promise<this>
+  waitFor(
+    params: CallingCallWaitForState | CallingCallWaitForState[]
+  ): Promise<boolean>
   disconnect(): Promise<void>
   detect(params: VoiceCallDetectMethodParams): Promise<VoiceCallDetectContract>
   amd(
@@ -641,8 +660,13 @@ interface CallingCallSIPDevice {
 }
 
 type CallingCallDevice = CallingCallPhoneDevice | CallingCallSIPDevice
-type CallingCallState = 'created' | 'ringing' | 'answered' | 'ending' | 'ended'
 type CallingCallDirection = 'inbound' | 'outbound'
+export type CallingCallState =
+  | 'created'
+  | 'ringing'
+  | 'answered'
+  | 'ending'
+  | 'ended'
 
 interface CallingCall {
   call_id: string

@@ -7,7 +7,6 @@ import {
   extendComponent,
   VoiceCallMethods,
   VoiceCallContract,
-  VoiceDialer,
   VoiceCallDisconnectReason,
   VoicePlaylist,
   VoiceCallPlayAudioMethodParams,
@@ -29,6 +28,7 @@ import {
   VoiceCallTapMethodParams,
   VoiceCallTapAudioMethodParams,
   CallingCallTapEventParams,
+  CallingCallState,
   CallingCallStateEventParams,
   VoiceCallConnectMethodParams,
   CallingCallConnectEventParams,
@@ -37,6 +37,7 @@ import {
   VoiceCallDetectFaxParams,
   VoiceCallDetectDigitParams,
   CallingCallDetectEventParams,
+  VoiceDialerParams,
 } from '@signalwire/core'
 import { RealTimeCallApiEvents } from '../types'
 import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
@@ -60,6 +61,7 @@ import { CallRecording, createCallRecordingObject } from './CallRecording'
 import { CallPrompt, createCallPromptObject } from './CallPrompt'
 import { CallTap, createCallTapObject } from './CallTap'
 import { CallDetect, createCallDetectObject } from './CallDetect'
+import { DeviceBuilder } from './DeviceBuilder'
 import { CallDocs } from './Call.docs'
 
 type EmitterTransformsEvents =
@@ -347,7 +349,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     ])
   }
 
-  dial(params: VoiceDialer) {
+  dial(params: VoiceDialerParams) {
     return new Promise((resolve, reject) => {
       this.runWorker<VoiceCallDialWorkerHooks>('voiceCallDialWorker', {
         worker: voiceCallDialWorker,
@@ -355,14 +357,27 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         onFail: reject,
       })
 
-      const { region, devices } = params
-      this.execute({
-        method: 'calling.dial',
-        params: {
+      let executeParams: Record<string, any>
+      if (params instanceof DeviceBuilder) {
+        const { devices } = params
+        executeParams = {
+          tag: this.__uuid,
+          devices: toInternalDevices(devices),
+        }
+      } else if ('region' in params) {
+        const { region, devices: deviceBuilder } = params
+        executeParams = {
           tag: this.__uuid,
           region,
-          devices: toInternalDevices(devices),
-        },
+          devices: toInternalDevices(deviceBuilder.devices),
+        }
+      } else {
+        throw new Error('[dial] Invalid input')
+      }
+
+      this.execute({
+        method: 'calling.dial',
+        params: executeParams,
       }).catch((e) => {
         reject(e)
       })
@@ -561,6 +576,9 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       if (!this.callId || !this.nodeId) {
         reject(new Error(`Can't call record() on a call not established yet.`))
       }
+      if (!params.playlist) {
+        reject(new Error(`Missing 'playlist' params.`))
+      }
 
       const controlId = uuid()
 
@@ -577,15 +595,10 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       // @ts-expect-error
       this.on(callingPromptTriggerEvent, resolveHandler)
 
+      const { volume, media } = params.playlist
       // TODO: move this to a method to build `collect`
-      const {
-        initial_timeout,
-        partial_results,
-        digits,
-        speech,
-        media,
-        volume,
-      } = toSnakeCaseKeys(params)
+      const { initial_timeout, partial_results, digits, speech } =
+        toSnakeCaseKeys(params)
       const collect = {
         initial_timeout,
         partial_results,
@@ -626,29 +639,35 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
   }
 
   promptAudio(params: VoiceCallPromptAudioMethodParams) {
-    const { url, ...rest } = params
+    const { url, volume, ...rest } = params
+    const playlist = new Playlist({ volume }).add(Playlist.Audio({ url }))
 
     return this.prompt({
-      media: [{ type: 'audio', url }],
+      playlist,
       ...rest,
     })
   }
 
   promptRingtone(params: VoiceCallPromptRingtoneMethodParams) {
-    // FIXME: ringtone `name` is too generic as argument
-    const { name, duration, ...rest } = params
+    const { name, duration, volume, ...rest } = params
+    const playlist = new Playlist({ volume }).add(
+      Playlist.Ringtone({ name, duration })
+    )
 
     return this.prompt({
-      media: [{ type: 'ringtone', name, duration }],
+      playlist,
       ...rest,
     })
   }
 
   promptTTS(params: VoiceCallPromptTTSMethodParams) {
-    const { text, language, gender, ...rest } = params
+    const { text, language, gender, volume, ...rest } = params
+    const playlist = new Playlist({ volume }).add(
+      Playlist.TTS({ text, language, gender })
+    )
 
     return this.prompt({
-      media: [{ type: 'tts', text, language, gender }],
+      playlist,
       ...rest,
     })
   }
@@ -787,6 +806,24 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         reject(new Error(`Can't call connect() on a call not established yet.`))
       }
 
+      let executeParams: Record<string, any>
+      if (params instanceof DeviceBuilder) {
+        const { devices } = params
+        executeParams = {
+          tag: this.__uuid,
+          devices: toInternalDevices(devices),
+        }
+      } else if ('ringback' in params) {
+        const { ringback, devices: deviceBuilder } = params
+        executeParams = {
+          tag: this.__uuid,
+          ringback: toInternalPlayParams(ringback?.media ?? []),
+          devices: toInternalDevices(deviceBuilder.devices),
+        }
+      } else {
+        throw new Error('[connect] Invalid input')
+      }
+
       this.runWorker('voiceCallConnectWorker', {
         worker: voiceCallConnectWorker,
       })
@@ -810,15 +847,13 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       // @ts-expect-error
       this.once('connect.failed', rejectHandler)
 
-      const { devices, ringback = [] } = params
       this.execute({
         method: 'calling.connect',
         params: {
           node_id: this.nodeId,
           call_id: this.callId,
           tag: this.__uuid,
-          devices: toInternalDevices(devices),
-          ringback: toInternalPlayParams(ringback),
+          ...executeParams,
         },
       }).catch((e) => {
         // @ts-expect-error
@@ -945,6 +980,38 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     return this.detect({
       ...params,
       type: 'digit',
+    })
+  }
+
+  waitFor(params: CallingCallState | CallingCallState[]) {
+    return new Promise((resolve) => {
+      if (!params) {
+        resolve(true)
+      }
+
+      const events = Array.isArray(params) ? params : [params]
+      const emittedCallStates = new Set<CallingCallState>()
+      const shouldResolve = () => emittedCallStates.size === events.length
+      const shouldWaitForEnded = events.includes('ended')
+      // If the user is not awaiting for the `ended` state
+      // and we've got that from the server then we won't
+      // get the event/s the user was awaiting for
+      const shouldResolveUnsuccessful = (state: CallingCallState) => {
+        return !shouldWaitForEnded && state === 'ended'
+      }
+
+      // @ts-expect-error
+      this.on('call.state', (params) => {
+        if (events.includes(params.callState)) {
+          emittedCallStates.add(params.callState)
+        } else if (shouldResolveUnsuccessful(params.callState)) {
+          return resolve(false)
+        }
+
+        if (shouldResolve()) {
+          resolve(true)
+        }
+      })
     })
   }
 }

@@ -16,14 +16,13 @@ describe('WebRTC Helpers', () => {
     })
 
     it('should throw for environments not supporting getUserMedia', async () => {
-      jest.fn().mockResolvedValueOnce
       // @ts-ignore
       navigator.mediaDevices.getUserMedia.mockImplementationOnce(() => {
         throw new Error('Not implemented')
       })
 
       try {
-        getUserMedia()
+        await getUserMedia()
       } catch (e) {
         expect(e.name).toBe('Error')
       }
@@ -31,7 +30,7 @@ describe('WebRTC Helpers', () => {
     })
 
     it('should provide default contraints when no constraints have been passed', async () => {
-      const stream = getUserMedia()
+      const stream = await getUserMedia()
       expect(stream).toMatchInlineSnapshot(`
         MediaStreamMock {
           "_tracks": Array [

@@ -1,10 +1,18 @@
 import {
   connect,
-  BaseComponent,
   BaseComponentOptions,
   VoiceCallPromptContract,
   CallingCallCollectResult,
+  EventTransform,
+  toExternalJSON,
 } from '@signalwire/core'
+import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
+
+type EmitterTransformsEvents =
+  | 'calling.prompt.started'
+  | 'calling.prompt.updated'
+  | 'calling.prompt.ended'
+  | 'calling.prompt.failed'
 
 /**
  * Instances of this class allow you to control (e.g., resume) the
@@ -20,7 +28,7 @@ export interface CallPromptOptions
   extends BaseComponentOptions<CallPromptEventsHandlerMapping> {}
 
 export class CallPromptAPI
-  extends BaseComponent<CallPromptEventsHandlerMapping>
+  extends AutoApplyTransformsConsumer<CallPromptEventsHandlerMapping>
   implements VoiceCallPromptContract
 {
   protected _eventsPrefix = 'calling' as const
@@ -29,6 +37,30 @@ export class CallPromptAPI
   nodeId: string
   controlId: string
   result?: CallingCallCollectResult
+
+  /** @internal */
+  protected getEmitterTransforms() {
+    return new Map<
+      EmitterTransformsEvents | EmitterTransformsEvents[],
+      EventTransform
+    >([
+      [
+        ['calling.prompt.ended', 'calling.prompt.failed'],
+        {
+          type: 'voiceCallPrompt',
+          instanceFactory: (_payload: any) => {
+            return createCallPromptObject({
+              store: this.store,
+              emitter: this.emitter,
+            })
+          },
+          payloadTransform: (payload: any) => {
+            return toExternalJSON(payload)
+          },
+        },
+      ],
+    ])
+  }
 
   get id() {
     return this.controlId
@@ -110,10 +142,18 @@ export class CallPromptAPI
   }
 
   waitForResult() {
-    return new Promise<this>((resolve) => {
+    return new Promise<CallPrompt>((resolve) => {
       this._attachListeners(this.controlId)
 
-      const handler = () => resolve(this)
+      const handler = (callPrompt: CallPrompt) => {
+        // @ts-expect-error
+        this.off('prompt.ended', handler)
+        // @ts-expect-error
+        this.off('prompt.failed', handler)
+
+        resolve(callPrompt)
+      }
+
       // @ts-expect-error
       this.once('prompt.ended', handler)
       // @ts-expect-error
