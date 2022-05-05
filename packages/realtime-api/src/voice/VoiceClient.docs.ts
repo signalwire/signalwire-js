@@ -1,6 +1,6 @@
-import { SipCodec, SipHeader, VoiceDialer } from '@signalwire/core'
-import { Call } from './Call'
-import { Voice } from './Voice'
+import type { SipCodec, SipHeader, VoiceDeviceBuilder } from '@signalwire/core'
+import type { Call } from './Call'
+import type { Voice } from './Voice'
 
 type InheritedMembers =
   | '_session'
@@ -29,21 +29,21 @@ export interface VoiceClientDocs extends Pick<Voice, InheritedMembers> {
    * With this method you can specify a configuration of devices to call in
    * series and/or in parallel: as soon as one device answers the call, the
    * returned promise is resolved. You specify a configuration through a
-   * {@link VoiceDialer} object.
+   * {@link VoiceDeviceBuilder} object.
    *
    * @example Calls a phone number. If the number doesn't answer within 30
    * seconds, calls two different SIP endpoints in parallel.
    *
    * ```js
-   * const dialer = new Voice.Dialer()
-   *   .add(Voice.Dialer.Phone({ from: '+XXXXXX', to: '+YYYYYY', timeout: 30 }))
+   * const devices = new Voice.DeviceBuilder()
+   *   .add(Voice.DeviceBuilder.Phone({ from: '+XXXXXX', to: '+YYYYYY', timeout: 30 }))
    *   .add([
-   *     Voice.Dialer.Sip({ from: 'sip:aaa@bbb.cc', to: 'sip:xxx@yyy.zz' }),
-   *     Voice.Dialer.Sip({ from: 'sip:aaa@bbb.cc', to: 'sip:ppp@qqq.rr' })
+   *     Voice.DeviceBuilder.Sip({ from: 'sip:aaa@bbb.cc', to: 'sip:xxx@yyy.zz' }),
+   *     Voice.DeviceBuilder.Sip({ from: 'sip:aaa@bbb.cc', to: 'sip:ppp@qqq.rr' })
    *   ])
    *
    * try {
-   *   const call = await client.dial(dialer)
+   *   const call = await client.dial(devices)
    *   console.log("Call answered")
    * } catch (e) {
    *   console.log("Call not answered")
@@ -54,7 +54,7 @@ export interface VoiceClientDocs extends Pick<Voice, InheritedMembers> {
    *
    * @returns A call object.
    */
-  dial(dialer: VoiceDialer): Promise<Call>
+  dial(dialer: VoiceDeviceBuilder): Promise<Call>
 
   /**
    * Makes an outbound call to a PSTN number.
