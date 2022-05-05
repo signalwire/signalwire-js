@@ -19,6 +19,7 @@ import type { RealTimeCallApiEvents } from '../types'
 import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
 
 export * from './VoiceClient'
+export { Call } from './Call'
 export { DeviceBuilder }
 export { Playlist } from './Playlist'
 
