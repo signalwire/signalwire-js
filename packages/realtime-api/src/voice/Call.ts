@@ -29,6 +29,7 @@ import {
   VoiceCallTapMethodParams,
   VoiceCallTapAudioMethodParams,
   CallingCallTapEventParams,
+  CallingCallState,
   CallingCallStateEventParams,
   VoiceCallConnectMethodParams,
   CallingCallConnectEventParams,
@@ -946,6 +947,38 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     return this.detect({
       ...params,
       type: 'digit',
+    })
+  }
+
+  waitFor(params: CallingCallState | CallingCallState[]) {
+    return new Promise((resolve) => {
+      if (!params) {
+        resolve(true)
+      }
+
+      const events = Array.isArray(params) ? params : [params]
+      const emittedCallStates = new Set<CallingCallState>()
+      const shouldResolve = () => emittedCallStates.size === events.length
+      const shouldWaitForEnded = events.includes('ended')
+      // If the user is not awaiting for the `ended` state
+      // and we've got that from the server then we won't
+      // get the event/s the user was awaiting for
+      const shouldResolveUnsuccessful = (state: CallingCallState) => {
+        return !shouldWaitForEnded && state === 'ended'
+      }
+
+      // @ts-expect-error
+      this.on('call.state', (params) => {
+        if (events.includes(params.callState)) {
+          emittedCallStates.add(params.callState)
+        } else if (shouldResolveUnsuccessful(params.callState)) {
+          return resolve(false)
+        }
+
+        if (shouldResolve()) {
+          resolve(true)
+        }
+      })
     })
   }
 }

@@ -38,8 +38,6 @@ const handler = () => {
 
         console.log('Finishing the call.')
         await call.hangup()
-
-        resolve(0)
       } catch (error) {
         console.error('Error', error)
         reject(4)
@@ -53,6 +51,12 @@ const handler = () => {
     })
 
     console.log('Call resolved', call.id)
+    await Promise.all([
+      call.waitFor('ended'),
+      call.waitFor('ending'),
+      call.waitFor(['ending', 'ended']),
+    ])
+    resolve(0)
   })
 }
 
