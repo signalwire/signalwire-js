@@ -143,28 +143,12 @@ const _constraintsByKind = (
  * //   }
  * // ]
  * ```
+ * @deprecated Use {@link getDevices} instead.
  */
 export const getDevicesWithPermissions = async (
   kind?: DevicePermissionName,
   fullList: boolean = false
-): Promise<MediaDeviceInfo[]> => {
-  const hasPerms = await checkPermissions(kind)
-  let stream: MediaStream | undefined = undefined
-  if (hasPerms === false) {
-    const constraints = _constraintsByKind(kind)
-    stream = await WebRTC.getUserMedia(constraints)
-  }
-  const devices = await getDevices(kind, fullList)
-  /**
-   * Firefox requires an active stream at the time of `enumerateDevices`
-   * so we need to stop it after `getDevices`
-   */
-  if (stream) {
-    WebRTC.stopStream(stream)
-  }
-
-  return devices
-}
+): Promise<MediaDeviceInfo[]> => getDevices(kind, fullList)
 
 /**
  * After prompting the user for permission, returns an array of camera devices.
@@ -181,6 +165,7 @@ export const getDevicesWithPermissions = async (
  * //   }
  * // ]
  * ```
+ * * @deprecated Use {@link getCameraDevices} instead.
  */
 export const getCameraDevicesWithPermissions = () =>
   getDevicesWithPermissions('camera')
@@ -200,6 +185,7 @@ export const getCameraDevicesWithPermissions = () =>
  * //   }
  * // ]
  * ```
+ * * @deprecated Use {@link getMicrophoneDevices} instead.
  */
 export const getMicrophoneDevicesWithPermissions = () =>
   getDevicesWithPermissions('microphone')
@@ -219,6 +205,7 @@ export const getMicrophoneDevicesWithPermissions = () =>
  * //   }
  * // ]
  * ```
+ * * @deprecated Use {@link getSpeakerDevices} instead.
  */
 export const getSpeakerDevicesWithPermissions = () =>
   getDevicesWithPermissions('speaker')
@@ -247,7 +234,7 @@ const _filterDevices = (
 
 /**
  * Enumerates the media input and output devices available on this machine. If
- * `name` is not null, only the devices of the specified kind are returned.
+ * `name` is provided, only the devices of the specified kind are returned.
  * Possible values of the `name` parameters are `"camera"`, `"microphone"`, and
  * `"speaker"`, which respectively correspond to functions
  * {@link getCameraDevices}, {@link getMicrophoneDevices}, and
@@ -278,9 +265,25 @@ export const getDevices = async (
   name?: DevicePermissionName,
   fullList: boolean = false
 ): Promise<MediaDeviceInfo[]> => {
-  const devices: MediaDeviceInfo[] = await WebRTC.enumerateDevicesByKind(
+  const hasPerms = await checkPermissions(name)
+  let stream: MediaStream | undefined = undefined
+  if (hasPerms === false) {
+    const constraints = _constraintsByKind(name)
+    stream = await WebRTC.getUserMedia(constraints)
+  }
+
+  const devices = await WebRTC.enumerateDevicesByKind(
     _getMediaDeviceKindByName(name)
   )
+
+  /**
+   * Firefox requires an active stream at the time of `enumerateDevices`
+   * so we need to stop it after `WebRTC.enumerateDevicesByKind`
+   */
+  if (stream) {
+    WebRTC.stopStream(stream)
+  }
+
   if (fullList === true) {
     return devices
   }
