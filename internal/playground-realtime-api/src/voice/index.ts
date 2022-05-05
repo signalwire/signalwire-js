@@ -93,17 +93,18 @@ async function run() {
 
       try {
         const peer = await call.connect({
-          devices: [
-            [
-              {
-                type: 'sip',
-                from: 'sip:user1@domain.com',
-                to: 'sip:user2@domain.com',
-                timeout: 30,
-              },
-            ],
-          ],
-          ringback: [{ type: 'ringtone', name: 'it' }],
+          devices: new Voice.DeviceBuilder().add(
+            Voice.DeviceBuilder.Sip({
+              from: 'sip:user1@domain.com',
+              to: 'sip:user2@domain.com',
+              timeout: 30,
+            })
+          ),
+          ringback: new Voice.Playlist().add(
+            Voice.Playlist.Ringtone({
+              name: 'it',
+            })
+          ),
         })
 
         console.log('Peer:', peer.id, peer.type, peer.from, peer.to)

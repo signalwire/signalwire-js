@@ -803,6 +803,24 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         reject(new Error(`Can't call connect() on a call not established yet.`))
       }
 
+      let executeParams: Record<string, any>
+      if (params instanceof DeviceBuilder) {
+        const { devices } = params
+        executeParams = {
+          tag: this.__uuid,
+          devices: toInternalDevices(devices),
+        }
+      } else if ('ringback' in params) {
+        const { ringback, devices: deviceBuilder } = params
+        executeParams = {
+          tag: this.__uuid,
+          ringback: toInternalPlayParams(ringback?.media ?? []),
+          devices: toInternalDevices(deviceBuilder.devices),
+        }
+      } else {
+        throw new Error('[connect] Invalid input')
+      }
+
       this.runWorker('voiceCallConnectWorker', {
         worker: voiceCallConnectWorker,
       })
@@ -826,15 +844,13 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       // @ts-expect-error
       this.once('connect.failed', rejectHandler)
 
-      const { devices, ringback = [] } = params
       this.execute({
         method: 'calling.connect',
         params: {
           node_id: this.nodeId,
           call_id: this.callId,
           tag: this.__uuid,
-          devices: toInternalDevices(devices),
-          ringback: toInternalPlayParams(ringback),
+          ...executeParams,
         },
       }).catch((e) => {
         // @ts-expect-error

@@ -295,11 +295,12 @@ export interface VoiceCallTapAudioMethodParams {
   direction: TapDirection
 }
 
-export interface VoiceCallConnectMethodParams {
-  ringback?: NestedArray<VoiceCallPlayParams>
-  devices: NestedArray<VoiceCallDeviceParams>
-}
-
+export type VoiceCallConnectMethodParams =
+  | VoiceDeviceBuilder
+  | {
+      devices: VoiceDeviceBuilder
+      ringback?: VoicePlaylist
+    }
 interface VoiceCallDetectBaseParams {
   timeout?: number
   waitForBeep?: boolean // SDK-side only
