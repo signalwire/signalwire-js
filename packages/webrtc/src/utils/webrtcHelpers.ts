@@ -1,4 +1,6 @@
-import { getLogger } from '@signalwire/core'
+import { getLogger, timeoutPromise } from '@signalwire/core'
+
+const GUM_TIMEOUT = 5_000
 
 export const RTCPeerConnection = (config: RTCConfiguration) => {
   return new window.RTCPeerConnection(config)
@@ -66,16 +68,21 @@ export const getMediaDevicesApi = () => {
  * // MediaStream {id: "EDVk...", active: true, ...}
  * ```
  */
-export const getUserMedia = (
+export const getUserMedia = async (
   constraints: MediaStreamConstraints = { audio: true, video: true }
 ) => {
   try {
-    return getMediaDevicesApi().getUserMedia(constraints)
+    const promise = getMediaDevicesApi().getUserMedia(constraints)
+    const exception = new Error(
+      "Looks like it's not possible to read from your devices"
+    )
+    return await timeoutPromise<MediaStream>(promise, GUM_TIMEOUT, exception)
   } catch (error) {
     switch (error.name) {
       case 'Error': {
         getLogger().error(
-          "navigator.mediaDevices.getUserMedia doesn't seem to be supported."
+          error?.message ??
+            "navigator.mediaDevices.getUserMedia doesn't seem to be supported."
         )
         break
       }

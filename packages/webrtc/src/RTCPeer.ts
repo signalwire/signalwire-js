@@ -353,7 +353,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       try {
         this.options.localStream = await this._retrieveLocalStream()
       } catch (error) {
-        this.logger.error('Error retrieving a local stream', error)
         this._rejectStartMethod(error)
         return this.call.setState('hangup')
       }

@@ -3,18 +3,14 @@ import * as WebRTC from './webrtcHelpers'
 import { assureDeviceId } from './deviceHelpers'
 import { ConnectionOptions } from './interfaces'
 
-export const getUserMedia = async (constraints: MediaStreamConstraints) => {
+export const getUserMedia = (constraints: MediaStreamConstraints) => {
   getLogger().info('RTCService.getUserMedia', constraints)
   const { audio, video } = constraints
   if (!audio && !video) {
     return
   }
-  try {
-    return await WebRTC.getUserMedia(constraints)
-  } catch (error) {
-    getLogger().error('getUserMedia error: ', error)
-    throw error
-  }
+
+  return WebRTC.getUserMedia(constraints)
 }
 
 export const getMediaConstraints = async (
