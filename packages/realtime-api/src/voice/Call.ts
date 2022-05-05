@@ -7,7 +7,6 @@ import {
   extendComponent,
   VoiceCallMethods,
   VoiceCallContract,
-  VoiceDialer,
   VoiceCallDisconnectReason,
   VoicePlaylist,
   VoiceCallPlayAudioMethodParams,
@@ -38,6 +37,7 @@ import {
   VoiceCallDetectFaxParams,
   VoiceCallDetectDigitParams,
   CallingCallDetectEventParams,
+  VoiceDialerParams,
 } from '@signalwire/core'
 import { RealTimeCallApiEvents } from '../types'
 import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
@@ -61,6 +61,7 @@ import { CallRecording, createCallRecordingObject } from './CallRecording'
 import { CallPrompt, createCallPromptObject } from './CallPrompt'
 import { CallTap, createCallTapObject } from './CallTap'
 import { CallDetect, createCallDetectObject } from './CallDetect'
+import { DeviceBuilder } from './DeviceBuilder'
 
 type EmitterTransformsEvents =
   | 'calling.playback.start'
@@ -349,7 +350,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     ])
   }
 
-  dial(params: VoiceDialer) {
+  dial(params: VoiceDialerParams) {
     return new Promise((resolve, reject) => {
       this.runWorker<VoiceCallDialWorkerHooks>('voiceCallDialWorker', {
         worker: voiceCallDialWorker,
@@ -357,14 +358,27 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         onFail: reject,
       })
 
-      const { region, devices } = params
-      this.execute({
-        method: 'calling.dial',
-        params: {
+      let executeParams: Record<string, any>
+      if (params instanceof DeviceBuilder) {
+        const { devices } = params
+        executeParams = {
+          tag: this.__uuid,
+          devices: toInternalDevices(devices),
+        }
+      } else if ('region' in params) {
+        const { region, devices: deviceBuilder } = params
+        executeParams = {
           tag: this.__uuid,
           region,
-          devices: toInternalDevices(devices),
-        },
+          devices: toInternalDevices(deviceBuilder.devices),
+        }
+      } else {
+        throw new Error('[dial] Invalid input')
+      }
+
+      this.execute({
+        method: 'calling.dial',
+        params: executeParams,
       }).catch((e) => {
         reject(e)
       })

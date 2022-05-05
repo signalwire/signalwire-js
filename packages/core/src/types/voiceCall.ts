@@ -337,13 +337,24 @@ export type VoiceCallDisconnectReason =
   | 'decline'
   | 'error'
 
-export type VoiceCallDialPhoneMethodParams = OmitType<VoiceCallPhoneParams>
-export type VoiceCallDialSipMethodParams = OmitType<VoiceCallSipParams>
-export interface CreateVoiceDialerParams {
-  region?: string
+export interface VoiceCallDialRegionParams {
+  region?: VoiceRegion
 }
 
-export interface VoiceDialer extends CreateVoiceDialerParams {
+export type VoiceCallDialPhoneMethodParams = OmitType<VoiceCallPhoneParams> &
+  VoiceCallDialRegionParams
+export type VoiceCallDialSipMethodParams = OmitType<VoiceCallSipParams> &
+  VoiceCallDialRegionParams
+
+type VoiceRegion = string
+
+export type VoiceDialerParams =
+  | VoiceDeviceBuilder
+  | ({
+      devices: VoiceDeviceBuilder
+    } & VoiceCallDialRegionParams)
+
+export interface VoiceDeviceBuilder {
   devices: VoiceCallDialMethodParams['devices']
   add(params: VoiceCallDeviceParams | VoiceCallDeviceParams[]): this
 }
@@ -543,7 +554,7 @@ export interface VoiceCallContract<T = any> {
   direction: CallingCallDirection
   headers?: SipHeader[]
 
-  dial(params: VoiceDialer): Promise<T>
+  dial(params: VoiceDialerParams): Promise<T>
   hangup(reason?: VoiceCallDisconnectReason): Promise<void>
   answer(): Promise<T>
   play(params: VoicePlaylist): Promise<VoiceCallPlaybackContract>

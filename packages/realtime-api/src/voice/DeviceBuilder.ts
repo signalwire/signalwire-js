@@ -1,6 +1,5 @@
 import type {
-  CreateVoiceDialerParams,
-  VoiceDialer,
+  VoiceDeviceBuilder,
   VoiceCallDeviceParams,
   VoiceCallPhoneParams,
   VoiceCallDialPhoneMethodParams,
@@ -8,14 +7,8 @@ import type {
   VoiceCallDialSipMethodParams,
 } from '@signalwire/core'
 
-export class Dialer implements VoiceDialer {
-  private _devices: VoiceDialer['devices'] = []
-
-  constructor(private params: CreateVoiceDialerParams = {}) {}
-
-  get region() {
-    return this.params?.region
-  }
+export class DeviceBuilder implements VoiceDeviceBuilder {
+  private _devices: VoiceDeviceBuilder['devices'] = []
 
   get devices() {
     return this._devices
