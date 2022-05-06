@@ -387,7 +387,66 @@ export interface CallDocs
     speech?: CollectSpeechConfig
   }): Promise<VoiceCallPromptContract>
 
-
+  /**
+   * Play a ringtone while collecting user input from the call, such as `digits` or `speech`.
+   *
+   * @example
+   * 
+   * Prompting for digits and waiting for a result:
+   * 
+   * ```js
+   * const prompt = await call.promptTTS({
+   *   text: 'Please enter your PIN',
+   *   digits: {
+   *     max: 5,
+   *     digitTimeout: 2,
+   *     terminators: '#*'
+   *   }
+   * })
+   * const { type, digits, terminator } = await prompt.waitForResult()
+   * ```
+   * 
+   * @example
+   * 
+   * Prompting for speech and waiting for a result:
+   * 
+   * ```js
+   * const prompt = await call.promptTTS({
+   *   text: 'Please enter your PIN',
+   *   speech: {
+   *     endSilenceTimeout: 1,
+   *     speechTimeout: 60,
+   *     language: 'en-US',
+   *     hints: []
+   *   }
+   * })
+   * const { type, speech, terminator } = await prompt.waitForResult()
+   * ```
+   * 
+   * @example
+   * 
+   * Prompting for speech and listening for results using the events:
+   * 
+   * ```js
+   * call.on('prompt.started', (p) => {
+   *   console.log('prompt.started', p.id)
+   * })
+   * call.on('prompt.updated', (p) => {
+   *   console.log('prompt.updated', p.id)
+   * })
+   * call.on('prompt.failed', (p) => {
+   *   console.log('prompt.failed', p.id, p.reason)
+   * })
+   * call.on('prompt.ended', (p) => {
+   *   console.log(prompt.ended, p.id, p.text)
+   * })
+   *
+   * const prompt = await call.promptTTS({
+   *   text: 'Please enter your PIN',
+   *   speech: {}
+   * })
+   * ```
+   */
   promptTTS(params: {
     /** Text to play */
     text: string
@@ -409,8 +468,26 @@ export interface CallDocs
      */
     speech?: CollectSpeechConfig
   }): Promise<VoiceCallPromptContract>
-  // TODO: add derived prompt methods
-  sendDigits(digits: string): Promise<Call>
+  
+  /**
+   * Play DTMF digits to the other party on the call.
+   * 
+   * @example
+   * 
+   * ```js
+   * await call.sendDigits('123')
+   * ```
+   */
+  sendDigits(
+    /**
+     * String of DTMF digits to send. Allowed digits are `1234567890*#ABCD` and
+     * `wW` for short and long waits. If any invalid characters are present, the
+     * entire operation is rejected.
+     */
+    digits: string
+  ): Promise<Call>
+
+  
   tap(params: VoiceCallTapMethodParams): Promise<VoiceCallTapContract>
   tapAudio(params: {
     device: TapDevice
