@@ -16,6 +16,7 @@ import type {
   VoiceCallDetectContract,
   CollectDigitsConfig,
   CollectSpeechConfig,
+  VoiceCallConnectMethodParams,
 } from '@signalwire/core'
 import type { RealTimeCallApiEvents } from '../types'
 import type { Call } from './Call'
@@ -533,15 +534,86 @@ export interface CallDocs
     direction: 'listen' | 'speak' | 'both'
   }): Promise<VoiceCallTapContract>
 
-  connect(
-    params:
-      | VoiceDeviceBuilder
-      | {
-          devices: VoiceDeviceBuilder
-          ringback?: VoicePlaylist
-        }
-  ): Promise<VoiceCallContract>
+  /**
+   * Attempt to connect an existing call to a new outbound call. You can wait
+   * until the call is connected by calling {@link waitUntilConnected}.
+   *
+   * You can connect to multiple devices in series, parallel, or combinations of
+   * both with the use of a {@link Voice.DeviceBuilder}.
+   *
+   * @example
+   *
+   * Connecting to a new SIP call.
+   *
+   * ```js
+   * const peer = await call.connect(
+   *   new Voice.DeviceBuilder().add(
+   *     Voice.DeviceBuilder.Sip({
+   *       from: 'sip:user1@domain.com',
+   *       to: 'sip:user2@domain.com',
+   *       timeout: 30,
+   *     })
+   *   )
+   * )
+   * ```
+   *
+   * @example
+   *
+   * Connecting to a new SIP call, while playing ringback audio.
+   *
+   * ```js
+   * const peer = await call.connect({
+   *   devices: new Voice.DeviceBuilder().add(
+   *     Voice.DeviceBuilder.Sip({
+   *       from: 'sip:user1@domain.com',
+   *       to: 'sip:user2@domain.com',
+   *       timeout: 30,
+   *     })
+   *   ),
+   *   ringback: new Voice.Playlist().add(
+   *     Voice.Playlist.Ringtone({
+   *       name: 'it',
+   *     })
+   *   ),
+   * })
+   * ```
+   */
+  connect(params: VoiceCallConnectMethodParams): Promise<VoiceCallContract>
+
+  /**
+   * Returns a promise that is resolved only after the current call has been
+   * connected. Also see {@link connect}.
+   *
+   * @example
+   *
+   * ```js
+   * const peer = await call.connect(
+   *   new Voice.DeviceBuilder().add(
+   *     Voice.DeviceBuilder.Sip({
+   *       from: 'sip:user1@domain.com',
+   *       to: 'sip:user2@domain.com',
+   *       timeout: 30,
+   *     })
+   *   )
+   * )
+   * await call.waitUntilConnected()
+   * ```
+   */
   waitUntilConnected(): Promise<this>
+
+  /**
+   * Returns a promise that is resolved only after the current call is in one of
+   * the specified states.
+   *
+   * @returns true if the requested states have been reached, false if they
+   * won't be reached because the call ended.
+   *
+   * @example
+   *
+   * ```js
+   * await call.waitFor('ended')
+   * ```
+   */
   waitFor(
     params: ('ending' | 'ended') | ('ending' | 'ended')[]
   ): Promise<boolean>
