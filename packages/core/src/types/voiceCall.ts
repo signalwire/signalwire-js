@@ -223,23 +223,34 @@ export interface VoiceCallRecordMethodParams {
   }
 }
 
+export type CollectDigitsConfig = {
+  /** Max number of digits to collect. */
+  max: number
+  /** Timeout in seconds between each digit. */
+  digitTimeout?: number
+  /** DTMF digits that will end the collection. Default not set. */
+  terminators?: string
+}
+
+export type CollectSpeechConfig = {
+  /** How much silence to wait for end of speech. Default to 1 second. */
+  endSilenceTimeout?: number
+  /** Maximum time to collect speech. Default to 60 seconds. */
+  speechTimeout?: number
+  /** Language to detect. Default to `en-US`. */
+  language?: number
+  /** Array of expected phrases to detect. */
+  hints?: string[]
+}
+
 type SpeechOrDigits =
   | {
-      digits: {
-        max: number
-        digitTimeout?: number
-        terminators?: string
-      }
+      digits: CollectDigitsConfig
       speech?: never
     }
   | {
       digits?: never
-      speech: {
-        endSilenceTimeout: number
-        speechTimeout: number
-        language: number
-        hints: string[]
-      }
+      speech: CollectSpeechConfig
     }
 export type VoiceCallPromptMethodParams = SpeechOrDigits & {
   playlist: VoicePlaylist
