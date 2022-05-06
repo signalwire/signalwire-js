@@ -55,9 +55,9 @@ export interface CallDocs
   /**
    * Hangs up the call.
    * @param reason Optional reason for hanging up
-   * 
+   *
    * @example
-   * 
+   *
    * ```js
    * call.hangup();
    * ```
@@ -68,9 +68,9 @@ export interface CallDocs
 
   /**
    * Answers the incoming call.
-   * 
+   *
    * @example
-   * 
+   *
    * ```js
    * client.on('call.received', async (call) => {
    *   try {
@@ -91,10 +91,10 @@ export interface CallDocs
    * {@link playAudio}, {@link playSilence}, {@link playTTS} or
    * {@link playRingtone} for more specific usages.
    *
-   * @param params a media playlist.  // FIXME 
-   * 
+   * @param params a media playlist.  // FIXME
+   *
    * @example
-   * 
+   *
    * ```js
    * await call.play(new Voice.Playlist({ volume: 1.0 }).add(
    *   Voice.Playlist.TTS({
@@ -107,9 +107,9 @@ export interface CallDocs
 
   /**
    * Plays an audio file.
-   * 
+   *
    * @example
-   * 
+   *
    * ```js
    * const playback = await call.playAudio({ url: 'https://cdn.signalwire.com/default-music/welcome.mp3' });
    * await playback.waitForEnded();
@@ -117,16 +117,16 @@ export interface CallDocs
    */
   playAudio(params: {
     /** HTTP(s) URL to an audio resource to play. */
-    url: string,
+    url: string
     /** Volume value between -40dB and +40dB where 0 is unchanged. Default is 0. */
     volume?: number
   }): Promise<VoiceCallPlaybackContract>
 
   /**
    * Plays some silence.
-   * 
+   *
    * @example
-   * 
+   *
    * ```js
    * const playback = await call.playSilence({ duration: 3 });
    * await playback.waitForEnded();
@@ -139,9 +139,9 @@ export interface CallDocs
 
   /**
    * Plays a ringtone.
-   * 
+   *
    * @example
-   * 
+   *
    * ```js
    * const playback = await call.playRingtone({ name: 'it' });
    * await playback.waitForEnded();
@@ -158,9 +158,9 @@ export interface CallDocs
 
   /**
    * Plays text-to-speech.
-   * 
+   *
    * @example
-   * 
+   *
    * ```js
    * const playback = await call.playTTS({ text: 'Welcome to SignalWire!' });
    * await playback.waitForEnded();
@@ -179,9 +179,9 @@ export interface CallDocs
 
   /**
    * Records the call.  TODO
-   * 
+   *
    * @example
-   * 
+   *
    * ```js
    * ```
    */
@@ -191,7 +191,7 @@ export interface CallDocs
 
   /**
    * Records the audio from the call.
-   * 
+   *
    * @example
    *
    * ```js
@@ -218,7 +218,7 @@ export interface CallDocs
 
   /**
    * TODO
-   * @param params 
+   * @param params
    */
   prompt(params: {
     playlist: VoicePlaylist
@@ -230,9 +230,9 @@ export interface CallDocs
    * Play an audio while collecting user input from the call, such as `digits` or `speech`.
    *
    * @example
-   * 
+   *
    * Prompting for digits and waiting for a result:
-   * 
+   *
    * ```js
    * const prompt = await call.promptAudio({
    *   url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
@@ -244,11 +244,11 @@ export interface CallDocs
    * })
    * const { type, digits, terminator } = await prompt.waitForResult()
    * ```
-   * 
+   *
    * @example
-   * 
+   *
    * Prompting for speech and waiting for a result:
-   * 
+   *
    * ```js
    * const prompt = await call.promptAudio({
    *   url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
@@ -261,11 +261,11 @@ export interface CallDocs
    * })
    * const { type, speech, terminator } = await prompt.waitForResult()
    * ```
-   * 
+   *
    * @example
-   * 
+   *
    * Prompting for speech and listening for results using the events:
-   * 
+   *
    * ```js
    * call.on('prompt.started', (p) => {
    *   console.log('prompt.started', p.id)
@@ -308,9 +308,9 @@ export interface CallDocs
    * Play a ringtone while collecting user input from the call, such as `digits` or `speech`.
    *
    * @example
-   * 
+   *
    * Prompting for digits and waiting for a result:
-   * 
+   *
    * ```js
    * const prompt = await call.promptRingtone({
    *   name: 'it',
@@ -323,11 +323,11 @@ export interface CallDocs
    * })
    * const { type, digits, terminator } = await prompt.waitForResult()
    * ```
-   * 
+   *
    * @example
-   * 
+   *
    * Prompting for speech and waiting for a result:
-   * 
+   *
    * ```js
    * const prompt = await call.promptRingtone({
    *   name: 'it',
@@ -341,11 +341,11 @@ export interface CallDocs
    * })
    * const { type, speech, terminator } = await prompt.waitForResult()
    * ```
-   * 
+   *
    * @example
-   * 
+   *
    * Prompting for speech and listening for results using the events:
-   * 
+   *
    * ```js
    * call.on('prompt.started', (p) => {
    *   console.log('prompt.started', p.id)
@@ -391,9 +391,9 @@ export interface CallDocs
    * Play a ringtone while collecting user input from the call, such as `digits` or `speech`.
    *
    * @example
-   * 
+   *
    * Prompting for digits and waiting for a result:
-   * 
+   *
    * ```js
    * const prompt = await call.promptTTS({
    *   text: 'Please enter your PIN',
@@ -405,11 +405,11 @@ export interface CallDocs
    * })
    * const { type, digits, terminator } = await prompt.waitForResult()
    * ```
-   * 
+   *
    * @example
-   * 
+   *
    * Prompting for speech and waiting for a result:
-   * 
+   *
    * ```js
    * const prompt = await call.promptTTS({
    *   text: 'Please enter your PIN',
@@ -422,11 +422,11 @@ export interface CallDocs
    * })
    * const { type, speech, terminator } = await prompt.waitForResult()
    * ```
-   * 
+   *
    * @example
-   * 
+   *
    * Prompting for speech and listening for results using the events:
-   * 
+   *
    * ```js
    * call.on('prompt.started', (p) => {
    *   console.log('prompt.started', p.id)
@@ -468,12 +468,12 @@ export interface CallDocs
      */
     speech?: CollectSpeechConfig
   }): Promise<VoiceCallPromptContract>
-  
+
   /**
    * Play DTMF digits to the other party on the call.
-   * 
+   *
    * @example
-   * 
+   *
    * ```js
    * await call.sendDigits('123')
    * ```
@@ -487,12 +487,52 @@ export interface CallDocs
     digits: string
   ): Promise<Call>
 
-  
+  /**
+   * Intercept call media and stream it to the specified WebSocket endpoint.
+   * Prefer using {@link tapAudio} if you only need to tap audio.
+   *
+   * @example
+   *
+   * ```js
+   * const tap = await call.tapAudio({
+   *   audio: {
+   *     direction: 'both',
+   *   },
+   *   device: {
+   *     type: 'ws',
+   *     uri: 'wss://example.domain.com/endpoint',
+   *   },
+   * })
+   *
+   * await tap.stop()
+   * ```
+   */
   tap(params: VoiceCallTapMethodParams): Promise<VoiceCallTapContract>
+
+  /**
+   * Intercept call audio and stream it to the specified WebSocket endpoint.
+   *
+   * @example
+   *
+   * ```js
+   * const tap = await call.tapAudio({
+   *   direction: 'both',
+   *   device: {
+   *     type: 'ws',
+   *     uri: 'wss://example.domain.com/endpoint',
+   *   },
+   * })
+   *
+   * await tap.stop()
+   * ```
+   */
   tapAudio(params: {
+    /** Destination device. Can be either WebSocket or RTP. */
     device: TapDevice
+    /** Direction to tap. Can be `listen` (what the caller hears), `speak` (what the caller says), or `both`. */
     direction: 'listen' | 'speak' | 'both'
   }): Promise<VoiceCallTapContract>
+
   connect(
     params:
       | VoiceDeviceBuilder
