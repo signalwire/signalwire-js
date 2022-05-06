@@ -141,178 +141,90 @@ describe('Helpers browser functions', () => {
     })
   })
 
-  describe('getDevicesWithPermissions', () => {
-    beforeEach(() => {
-      // @ts-ignore
-      navigator.mediaDevices.getUserMedia.mockClear()
-    })
-
-    it('should return the device list removing the duplicates', async () => {
-      const devices = await getDevicesWithPermissions()
-      expect(devices).toHaveLength(5)
-    })
-
-    it('should return the full device list', async () => {
-      const devices = await getDevicesWithPermissions(undefined, true)
-      expect(devices).toHaveLength(7)
-    })
-
-    it('should return the audioIn device list with kind microphone', async () => {
-      const devices = await getDevicesWithPermissions('microphone')
-      expect(devices).toHaveLength(2)
-      expect(devices[0].deviceId).toEqual('default')
-    })
-
-    it('should return the video device list with kind camera', async () => {
-      const devices = await getDevicesWithPermissions('camera')
-      expect(devices).toHaveLength(2)
-      expect(devices[0].deviceId).toEqual(
-        '2060bf50ab9c29c12598bf4eafeafa71d4837c667c7c172bb4407ec6c5150206'
-      )
-    })
-
-    it('should return the audioOut device list with kind speaker', async () => {
-      const devices = await getDevicesWithPermissions('speaker')
-      expect(devices).toHaveLength(1)
-      expect(devices[0].deviceId).toEqual('default')
-    })
-
-    describe('without camera permissions', () => {
-      it('should invoke getUserMedia to request camera permissions and return device list removing duplicates', async () => {
-        ;(WebRTC.stopStream as jest.Mock) = jest.fn()
-
+  const getDeviceMethods = [getDevices, getDevicesWithPermissions] as const
+  getDeviceMethods.forEach((getDeviceMethod) => {
+    describe(getDeviceMethod, () => {
+      beforeEach(() => {
         // @ts-ignore
-        navigator.permissions.query.mockResolvedValueOnce()
-        // @ts-ignore
-        navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(
-          DEVICES_CAMERA_NO_LABELS
-        )
-        const devices = await getDevicesWithPermissions('camera')
-        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(1)
-        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith({
-          audio: false,
-          video: true,
-        })
-        expect(WebRTC.stopStream).toHaveBeenCalledTimes(1)
-        expect(devices).toHaveLength(2)
-        expect(devices[0].label).toEqual('FaceTime HD Camera')
-        expect(devices.every((d) => d.deviceId && d.label)).toBe(true)
-      })
-    })
-
-    describe('without microphone permissions', () => {
-      it('should invoke getUserMedia to request microphone permissions and return device list removing duplicates', async () => {
-        // @ts-ignore
-        navigator.permissions.query.mockResolvedValueOnce()
-
-        // @ts-ignore
-        navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(
-          DEVICES_MICROPHONE_NO_LABELS
-        )
-        const devices = await getDevicesWithPermissions('microphone')
-        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(1)
-        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith({
-          audio: true,
-          video: false,
-        })
-        expect(devices).toHaveLength(2)
-        expect(devices[0].label).toEqual(
-          'Default - External Microphone (Built-in)'
-        )
-        expect(devices.every((d) => d.deviceId && d.label)).toBe(true)
-      })
-    })
-  })
-
-  describe('getDevices', () => {
-    beforeEach(() => {
-      // @ts-ignore
-      navigator.mediaDevices.getUserMedia.mockClear()
-    })
-
-    it('should return the device list removing the duplicates', async () => {
-      const devices = await getDevices()
-      expect(devices).toHaveLength(5)
-    })
-
-    it('should return the full device list', async () => {
-      const devices = await getDevices(undefined, true)
-      expect(devices).toHaveLength(7)
-    })
-
-    it('should return the audioIn device list with kind microphone', async () => {
-      const devices = await getDevices('microphone')
-      expect(devices).toHaveLength(2)
-      expect(devices[0].deviceId).toEqual('default')
-    })
-
-    it('should return the video device list with kind camera', async () => {
-      const devices = await getDevices('camera')
-      expect(devices).toHaveLength(2)
-      expect(devices[0].deviceId).toEqual(
-        '2060bf50ab9c29c12598bf4eafeafa71d4837c667c7c172bb4407ec6c5150206'
-      )
-    })
-
-    it('should return the audioOut device list with kind speaker', async () => {
-      const devices = await getDevices('speaker')
-      expect(devices).toHaveLength(1)
-      expect(devices[0].deviceId).toEqual('default')
-    })
-
-    describe('without camera permissions', () => {
-      const mockedDevices = DEVICES_CAMERA_NO_LABELS.map((d) => ({
-        ...d,
-        // Set deviceId empty if there's no label
-        deviceId: d.label ? d.deviceId : '',
-      }))
-      it('should return device list removing devices without deviceId and label', async () => {
-        // @ts-ignore
-        navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(
-          mockedDevices
-        )
-        const devices = await getDevices()
-        expect(devices).toHaveLength(3)
-        expect(devices.every((d) => d.deviceId && d.label)).toBe(true)
+        navigator.mediaDevices.getUserMedia.mockClear()
       })
 
-      it('should return the devices with at least deviceId - even w/o label', async () => {
-        // @ts-ignore
-        navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(
-          DEVICES_CAMERA_NO_LABELS
-        )
-        const devices = await getDevices()
+      it('should return the device list removing the duplicates', async () => {
+        const devices = await getDeviceMethod()
         expect(devices).toHaveLength(5)
-        expect(devices.every((d) => d.deviceId)).toBe(true)
-        expect(devices.filter((d) => !d.label)).toHaveLength(2)
-      })
-    })
-
-    describe('without microphone permissions', () => {
-      const mockedDevices = DEVICES_MICROPHONE_NO_LABELS.map((d) => ({
-        ...d,
-        // Set deviceId empty if there's no label
-        deviceId: d.label ? d.deviceId : '',
-      }))
-      it('should return device list removing devices without deviceId and label', async () => {
-        // @ts-ignore
-        navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(
-          mockedDevices
-        )
-        const devices = await getDevices()
-        expect(devices).toHaveLength(3)
-        expect(devices.every((d) => d.deviceId && d.label)).toBe(true)
       })
 
-      it('should return the devices with at least deviceId - even w/o label', async () => {
-        // @ts-ignore
-        navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(
-          DEVICES_MICROPHONE_NO_LABELS
+      it('should return the full device list', async () => {
+        const devices = await getDeviceMethod(undefined, true)
+        expect(devices).toHaveLength(7)
+      })
+
+      it('should return the audioIn device list with kind microphone', async () => {
+        const devices = await getDeviceMethod('microphone')
+        expect(devices).toHaveLength(2)
+        expect(devices[0].deviceId).toEqual('default')
+      })
+
+      it('should return the video device list with kind camera', async () => {
+        const devices = await getDeviceMethod('camera')
+        expect(devices).toHaveLength(2)
+        expect(devices[0].deviceId).toEqual(
+          '2060bf50ab9c29c12598bf4eafeafa71d4837c667c7c172bb4407ec6c5150206'
         )
-        const devices = await getDevices()
-        expect(devices).toHaveLength(5)
-        expect(devices.every((d) => d.deviceId)).toBe(true)
-        expect(devices.filter((d) => !d.label)).toHaveLength(2)
+      })
+
+      it('should return the audioOut device list with kind speaker', async () => {
+        const devices = await getDeviceMethod('speaker')
+        expect(devices).toHaveLength(1)
+        expect(devices[0].deviceId).toEqual('default')
+      })
+
+      describe('without camera permissions', () => {
+        it('should invoke getUserMedia to request camera permissions and return device list removing duplicates', async () => {
+          // @ts-ignore
+          navigator.mediaDevices.getUserMedia.mockClear()
+          ;(WebRTC.stopStream as jest.Mock) = jest.fn()
+          // @ts-ignore
+          navigator.permissions.query.mockResolvedValueOnce()
+          // @ts-ignore
+          navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(
+            DEVICES_CAMERA_NO_LABELS
+          )
+          const devices = await getDeviceMethod('camera')
+          expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(1)
+          expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith({
+            audio: false,
+            video: true,
+          })
+          expect(WebRTC.stopStream).toHaveBeenCalledTimes(1)
+          expect(devices).toHaveLength(2)
+          expect(devices[0].label).toEqual('FaceTime HD Camera')
+          expect(devices.every((d) => d.deviceId && d.label)).toBe(true)
+        })
+      })
+
+      describe('without microphone permissions', () => {
+        it('should invoke getUserMedia to request microphone permissions and return device list removing duplicates', async () => {
+          // @ts-ignore
+          navigator.mediaDevices.getUserMedia.mockClear()
+          // @ts-ignore
+          navigator.permissions.query.mockResolvedValueOnce()
+          // @ts-ignore
+          navigator.mediaDevices.enumerateDevices.mockResolvedValueOnce(
+            DEVICES_MICROPHONE_NO_LABELS
+          )
+          const devices = await getDeviceMethod('microphone')
+          expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(1)
+          expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith({
+            audio: true,
+            video: false,
+          })
+          expect(devices).toHaveLength(2)
+          expect(devices[0].label).toEqual(
+            'Default - External Microphone (Built-in)'
+          )
+          expect(devices.every((d) => d.deviceId && d.label)).toBe(true)
+        })
       })
     })
   })
