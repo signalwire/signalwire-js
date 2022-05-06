@@ -21,7 +21,13 @@ import type {
 import type { RealTimeCallApiEvents } from '../types'
 import type { Call } from './Call'
 
-type InheritedMembers = 'tag' | 'callId' | 'nodeId' | 'state' | 'context'
+type InheritedMembers =
+  | 'tag'
+  | 'callId'
+  | 'nodeId'
+  | 'state'
+  | 'context'
+  | 'disconnect'
 
 export interface CallDocs
   extends Pick<VoiceCallContract<Call>, InheritedMembers>,
@@ -617,24 +623,78 @@ export interface CallDocs
   waitFor(
     params: ('ending' | 'ended') | ('ending' | 'ended')[]
   ): Promise<boolean>
-  disconnect(): Promise<void>
+
+  /**
+   * TODO
+   */
   detect(params: VoiceCallDetectMethodParams): Promise<VoiceCallDetectContract>
+
+  /**
+   * Detects the presence of an answering machine.
+   *
+   * @example
+   *
+   * ```js
+   * const detect = await call.amd()
+   * const result = await detect.waitForResult()
+   *
+   * console.log('Detect result:', result.type)
+   * ```
+   */
   amd(params?: {
+    /** Number of seconds to run the detector for. Defaults to 30.0. */
     timeout?: number
+    /** Whether to wait until the device is ready for voicemail delivery. Defaults to false. */
     waitForBeep?: boolean
+    /** Number of seconds to wait for initial voice before giving up. Defaults to 4.5. */
     initialTimeout?: number
+    /** Number of seconds to wait for voice to finish. Defaults to 1.0. */
     endSilenceTimeout?: number
+    /** How many seconds of voice to decide it is a machine. Defaults to 1.25. */
     machineVoiceThreshold?: number
+    /** How many words to count to decide it is a machine. Defaults to 6. */
     machineWordsThreshold?: number
   }): Promise<VoiceCallDetectContract>
+
+  /**
+   * Detects the presence of a fax machine.
+   *
+   * @example
+   *
+   * ```js
+   * const detect = await call.detectFax()
+   * const result = await detect.waitForResult()
+   *
+   * console.log('Detect result:', result.type)
+   * ```
+   */
   detectFax(params?: {
+    /** Number of seconds to run the detector for. Defaults to 30.0. */
     timeout?: number
+    /** Whether to wait until the device is ready for voicemail delivery. Defaults to false. */
     waitForBeep?: boolean
+    /** The fax tone to detect: `CED` or `CNG`. Defaults to `CED`. */
     tone?: 'CED' | 'CNG'
   }): Promise<VoiceCallDetectContract>
+
+  /**
+   * Detects digits in the audio stream.
+   *
+   * @example
+   *
+   * ```js
+   * const detect = await call.detectDigit()
+   * const result = await detect.waitForResult()
+   *
+   * console.log('Detect result:', result.type)
+   * ```
+   */
   detectDigit(params?: {
+    /** Number of seconds to run the detector for. Defaults to 30.0. */
     timeout?: number
+    /** Whether to wait until the device is ready for voicemail delivery. Defaults to false. */
     waitForBeep?: boolean
+    /** The digits to detect. Defaults to "0123456789#*". */
     digits?: string
   }): Promise<VoiceCallDetectContract>
 }
