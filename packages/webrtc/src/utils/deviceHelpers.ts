@@ -143,7 +143,7 @@ const _constraintsByKind = (
  * //   }
  * // ]
  * ```
- * @deprecated Use {@link getDevices} instead.
+ * @deprecated Use {@link getDevices} for better cross browser compatibility.
  */
 export const getDevicesWithPermissions = async (
   kind?: DevicePermissionName,
@@ -165,7 +165,7 @@ export const getDevicesWithPermissions = async (
  * //   }
  * // ]
  * ```
- * * @deprecated Use {@link getCameraDevices} instead.
+ * @deprecated Use {@link getCameraDevices} for better cross browser compatibility.
  */
 export const getCameraDevicesWithPermissions = () =>
   getDevicesWithPermissions('camera')
@@ -185,7 +185,7 @@ export const getCameraDevicesWithPermissions = () =>
  * //   }
  * // ]
  * ```
- * * @deprecated Use {@link getMicrophoneDevices} instead.
+ * @deprecated Use {@link getMicrophoneDevices} for better cross browser compatibility.
  */
 export const getMicrophoneDevicesWithPermissions = () =>
   getDevicesWithPermissions('microphone')
@@ -205,7 +205,7 @@ export const getMicrophoneDevicesWithPermissions = () =>
  * //   }
  * // ]
  * ```
- * * @deprecated Use {@link getSpeakerDevices} instead.
+ * @deprecated Use {@link getSpeakerDevices} for better cross browser compatibility.
  */
 export const getSpeakerDevicesWithPermissions = () =>
   getDevicesWithPermissions('speaker')
