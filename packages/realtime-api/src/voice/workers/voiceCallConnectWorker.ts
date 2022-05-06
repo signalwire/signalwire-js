@@ -24,16 +24,32 @@ export const voiceCallConnectWorker: SDKWorker<Call> = function* (
       yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
         return (
           action.type === 'calling.call.connect' &&
-          action.payload.tag === instance.tag
+          (action.payload.tag === instance.tag ||
+            /**
+             * This branch applies for Inbound calls that
+             * don't have a `tag` at the payload's root
+             * level.
+             */
+            action.payload.peer?.tag === instance.tag)
         )
       })
+
+    /**
+     * Add `tag` to the payload to allow pubSubSaga to match
+     * it with the Call namespace
+     */
+    const payloadWithTag = {
+      // @ts-expect-error
+      tag: instance.tag,
+      ...action.payload,
+    }
 
     /**
      * Dispatch public events for each connect_state
      */
     yield sagaEffects.put(pubSubChannel, {
       type: `calling.connect.${action.payload.connect_state}`,
-      payload: action.payload,
+      payload: payloadWithTag,
     })
 
     switch (action.payload.connect_state) {
