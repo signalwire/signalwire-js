@@ -15,13 +15,22 @@ const handler = () => {
       project: process.env.VOICE_PROJECT as string,
       token: process.env.VOICE_TOKEN as string,
       contexts: [process.env.VOICE_CONTEXT as string],
+      // logLevel: "trace",
       // debug: {
       //   logWsTraffic: true,
       // },
     })
 
+    let callsReceived = new Set()
     client.on('call.received', async (call) => {
-      console.log('Got call', call.id, call.from, call.to, call.direction)
+      callsReceived.add(call.id)
+      console.log(
+        `Got call number: ${callsReceived.size}`,
+        call.id,
+        call.from,
+        call.to,
+        call.direction
+      )
 
       try {
         const resultAnswer = await call.answer()
@@ -31,6 +40,13 @@ const handler = () => {
           resultAnswer.id,
           'Call answered gets the same instance'
         )
+
+        if (callsReceived.size === 2) {
+          await sleep()
+          console.log(`Sending digits from call: ${call.id}`)
+          await call.sendDigits('1#')
+          return
+        }
 
         const recording = await call.recordAudio()
         tap.ok(recording.id, 'Recording started')
@@ -73,7 +89,44 @@ const handler = () => {
         tap.equal(prompt.id, result.id, 'Instances are the same')
         tap.equal(result.digits, '123', 'Correct Digits were entered')
 
-        console.log('Finishing the call.')
+        console.log(
+          `Connecting ${process.env.VOICE_DIAL_FROM_NUMBER} to ${process.env.VOICE_DIAL_CONNECT_TO_NUMBER}`
+        )
+        const peer = await call.connect({
+          devices: new Voice.DeviceBuilder().add(
+            Voice.DeviceBuilder.Phone({
+              from: process.env.VOICE_DIAL_FROM_NUMBER!,
+              to: process.env.VOICE_DIAL_CONNECT_TO_NUMBER!,
+              timeout: 30,
+            })
+          ),
+          ringback: new Voice.Playlist().add(
+            Voice.Playlist.Ringtone({
+              name: 'it',
+            })
+          ),
+        })
+
+        console.log('Peer:', peer.id, peer.type, peer.from, peer.to)
+        console.log('Main:', call.id, call.type, call.from, call.to)
+
+        const detector = await call.detectDigit({
+          digits: '1',
+        })
+
+        const resultDetector = await detector.waitForResult()
+
+        // TODO: update this once the backend can send us
+        // the actual result
+        tap.equal(
+          // @ts-expect-error
+          resultDetector.detect.params.event,
+          'finished',
+          'Detect digit is finished'
+        )
+
+        console.log('Finishing the calls.')
+        await peer.hangup()
         await call.hangup()
       } catch (error) {
         console.error('Error', error)
@@ -116,7 +169,7 @@ async function main() {
   const runner = createTestRunner({
     name: 'Voice E2E',
     testHandler: handler,
-    executionTime: 30_000,
+    executionTime: 60_000,
   })
 
   await runner.run()
