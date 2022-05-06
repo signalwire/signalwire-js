@@ -451,13 +451,13 @@ export type VoiceCallRecordingMethods =
  * Public Contract for a VoiceCallDetect
  */
 export interface VoiceCallDetectContract {
-  /** Unique id for this recording */
+  /** Unique id for this detection */
   readonly id: string
   /** @ignore */
   readonly callId: string
   /** @ignore */
   readonly controlId: string
-  /** @ignore */
+  /** @ignore The result of the detection. */
   readonly type?: CallingCallDetectType
 
   stop(): Promise<this>
