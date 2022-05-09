@@ -162,7 +162,7 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
     return super.subscribe()
   }
 
-  async unsubscribe(channels: ChatChannel) {
+  async unsubscribe(channels: ChatChannel): Promise<void> {
     if (
       this._sessionAuthStatus === 'unknown' ||
       this._sessionAuthStatus === 'unauthorized'
@@ -195,7 +195,7 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
         )
       }
 
-      return resolve(undefined)
+      return resolve()
     })
   }
 
