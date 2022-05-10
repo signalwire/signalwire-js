@@ -23,16 +23,16 @@ export interface PubSubPublishParams {
   meta?: Record<any, any>
 }
 
-export interface ChatContract {
+export interface PubSubContract {
   updateToken(token: string): Promise<void>
   subscribe(channels: PubSubChannel): Promise<void>
   unsubscribe(channels: PubSubChannel): Promise<void>
   publish(params: PubSubPublishParams): Promise<void>
 }
 
-export type PubSubEntity = OnlyStateProperties<ChatContract>
+export type PubSubEntity = OnlyStateProperties<PubSubContract>
 export type PubSubMethods = Omit<
-  OnlyFunctionProperties<ChatContract>,
+  OnlyFunctionProperties<PubSubContract>,
   'subscribe' | 'unsubscribe' | 'updateToken'
 >
 

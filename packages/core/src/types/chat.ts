@@ -6,6 +6,7 @@ import type {
 } from '..'
 import type { MapToPubSubShape } from '../redux/interfaces'
 import { PRODUCT_PREFIX_CHAT } from '../utils/constants'
+import { PubSubContract } from './pubSub'
 
 export type ChatCursor =
   | {
@@ -60,11 +61,7 @@ export interface ChatChannelState {
 
 export type ChatChannelName = string
 
-export interface ChatContract {
-  updateToken(token: string): Promise<void>
-  subscribe(channels: ChatChannel): Promise<void>
-  unsubscribe(channels: ChatChannel): Promise<void>
-  publish(params: ChatPublishParams): Promise<void>
+export interface ChatContract extends PubSubContract {
   getMessages(params: ChatGetMessagesParams): Promise<{
     messages: ChatMessageEntity[]
     cursor: ChatCursor
