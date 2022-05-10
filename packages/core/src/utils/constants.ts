@@ -24,7 +24,9 @@ export const PRODUCT_PREFIX_VIDEO = 'video'
  * video-manager is an [internal] superset of the video apis
  */
 export const PRODUCT_PREFIX_VIDEO_MANAGER = 'video-manager'
-export const PRODUCT_PREFIX_CHAT = 'chat'
+export const PRODUCT_PREFIX_CHAT = 'chat' as const
+// TODO:
+export const PRODUCT_PREFIX_PUBSUB = 'chat' as const
 export const PRODUCT_PREFIX_TASK = 'tasking'
 export const PRODUCT_PREFIX_MESSAGING = 'messaging'
 export const PRODUCT_PREFIX_VOICE = 'voice'
@@ -36,6 +38,7 @@ export const PRODUCT_PREFIXES = [
   PRODUCT_PREFIX_VIDEO,
   PRODUCT_PREFIX_VIDEO_MANAGER,
   PRODUCT_PREFIX_CHAT,
+  PRODUCT_PREFIX_PUBSUB,
   PRODUCT_PREFIX_TASK,
   PRODUCT_PREFIX_MESSAGING,
   PRODUCT_PREFIX_VOICE,
