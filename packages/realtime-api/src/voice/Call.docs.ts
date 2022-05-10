@@ -184,13 +184,9 @@ export interface CallDocs
     volume?: number
   }): Promise<VoiceCallPlaybackContract>
 
+  // TODO
   /**
-   * Records the call.  TODO
-   *
-   * @example
-   *
-   * ```js
-   * ```
+   * Generic method to record a call. Please see {@link recordAudio}.
    */
   record(
     params: VoiceCallRecordMethodParams
@@ -223,9 +219,9 @@ export interface CallDocs
     terminators?: string
   }): Promise<VoiceCallRecordingContract>
 
+  // TODO
   /**
-   * TODO
-   * @param params
+   * Generic method to prompt the user for input. Please see {@link promptAudio}, {@link promptRingtone}, {@link promptTTS}.
    */
   prompt(params: {
     playlist: VoicePlaylist
@@ -624,8 +620,9 @@ export interface CallDocs
     params: ('ending' | 'ended') | ('ending' | 'ended')[]
   ): Promise<boolean>
 
+  // TODO
   /**
-   * TODO
+   * Generic method. Please see {@link amd}, {@link detectFax}, {@link detectDigit}.
    */
   detect(params: VoiceCallDetectMethodParams): Promise<VoiceCallDetectContract>
 
