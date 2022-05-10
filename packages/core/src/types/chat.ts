@@ -54,15 +54,28 @@ interface ChatGetMessagesParams {
 interface ChatGetMembersParams {
   channel: string
 }
+export interface ChatChannelState {
+  state: Record<string, any> | Array<Record<string, any>>
+}
+
+export type ChatChannelName = string
+
 export interface ChatContract {
   updateToken(token: string): Promise<void>
-  subscribe(channels: ChatChannel): Promise<any>
-  unsubscribe(channels: ChatChannel): Promise<any>
-  publish(params: ChatPublishParams): Promise<any>
-  getMessages(params: ChatGetMessagesParams): Promise<any>
-  getMembers(params: ChatGetMembersParams): Promise<any>
-  setMemberState(params: ChatSetMemberStateParams): Promise<any>
-  getMemberState(params: ChatGetMemberStateParams): Promise<any>
+  subscribe(channels: ChatChannel): Promise<void>
+  unsubscribe(channels: ChatChannel): Promise<void>
+  publish(params: ChatPublishParams): Promise<void>
+  getMessages(params: ChatGetMessagesParams): Promise<{
+    messages: ChatMessageEntity[]
+    cursor: ChatCursor
+  }>
+  getMembers(params: ChatGetMembersParams): Promise<{
+    members: ChatMemberEntity[]
+  }>
+  setMemberState(params: ChatSetMemberStateParams): Promise<void>
+  getMemberState(params: ChatGetMemberStateParams): Promise<{
+    channels: Record<ChatChannelName, ChatChannelState>
+  }>
 }
 
 export type ChatEntity = OnlyStateProperties<ChatContract>

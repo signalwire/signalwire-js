@@ -1,5 +1,13 @@
-import { Chat, ChatCursor, ConsumerContract } from "@signalwire/core";
-import { ChatClientApiEvents, ClientFullState } from "./ChatClient";
+import {
+  Chat,
+  ChatChannelName,
+  ChatChannelState,
+  ChatCursor,
+  ChatMemberEntity,
+  ChatMessageEntity,
+  ConsumerContract,
+} from '@signalwire/core'
+import { ChatClientApiEvents, ClientFullState } from './ChatClient'
 import { RealtimeClient } from '../client/index'
 
 export interface ClientDocs extends
@@ -51,7 +59,7 @@ Omit<ConsumerContract<ChatClientApiEvents, ClientFullState>, 'subscribe'> {
    * await chatClient.subscribe(["chan-2", "chan-3"])
    * ```
    */
-  subscribe(channels: string | string[]): Promise<any>
+  subscribe(channels: string | string[]): Promise<void>
 
   /**
    * List of channels from which you want to unsubscribe.
@@ -65,7 +73,7 @@ Omit<ConsumerContract<ChatClientApiEvents, ClientFullState>, 'subscribe'> {
    * await chatClient.unsubscribe(["chan-2", "chan-3"])
    * ```
    */
-  unsubscribe(channels: string | string[]): Promise<any>
+  unsubscribe(channels: string | string[]): Promise<void>
 
   /**
    * Publish a message into the specified channel.
@@ -99,7 +107,7 @@ Omit<ConsumerContract<ChatClientApiEvents, ClientFullState>, 'subscribe'> {
      * content of metadata.
      */
     meta?: Record<any, any>
-  }): Promise<any>
+  }): Promise<void>
 
   /**
    * Returns the list of messages that were sent to the specified channel.
@@ -130,7 +138,10 @@ Omit<ConsumerContract<ChatClientApiEvents, ClientFullState>, 'subscribe'> {
     channel: string
     /** Cursor for pagination. */
     cursor?: ChatCursor
-  }): Promise<any>
+  }): Promise<{
+    messages: ChatMessageEntity[]
+    cursor: ChatCursor
+  }>
 
   /**
    * Returns the list of members in the given channel.
@@ -146,7 +157,9 @@ Omit<ConsumerContract<ChatClientApiEvents, ClientFullState>, 'subscribe'> {
   getMembers(params: {
     /** The channel for which to get the list of members. */
     channel: string
-  }): Promise<any>
+  }): Promise<{
+    members: ChatMemberEntity[]
+  }>
 
   /**
    * Sets a state object for a member, for the specified channels. The
@@ -172,7 +185,7 @@ Omit<ConsumerContract<ChatClientApiEvents, ClientFullState>, 'subscribe'> {
      * The state to set. There are no requirements on the content of the state.
      */
     state: Record<any, any>
-  }): Promise<any>
+  }): Promise<void>
 
   /**
    * Returns the states of a member in the specified channels.
@@ -193,7 +206,9 @@ Omit<ConsumerContract<ChatClientApiEvents, ClientFullState>, 'subscribe'> {
     memberId: string
     /** Channels for which to get the state. */
     channels: string | string[]
-  }): Promise<any>
+  }): Promise<{
+    channels: Record<ChatChannelName, ChatChannelState>
+  }>
 
   /** @ignore */
   _session: RealtimeClient
