@@ -220,9 +220,7 @@ export interface ClientDocs
      * The state to set. There are no requirements on the content of the state.
      */
     state: Record<any, any>
-  }): Promise<{
-    channels: Record<ChatChannelName, ChatChannelState>
-  }>
+  }): Promise<void>
 
   /**
    * Returns the states of a member in the specified channels.
@@ -243,7 +241,9 @@ export interface ClientDocs
     channels: string | string[]
     /** Id of the member for which to get the state. */
     memberId: string
-  }): Promise<any>
+  }): Promise<{
+    channels: Record<ChatChannelName, ChatChannelState>
+  }>
 }
 
 export interface ClientApiEventsDocs {
