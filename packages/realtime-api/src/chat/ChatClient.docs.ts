@@ -2,7 +2,7 @@ import {
   Chat,
   ChatChannelName,
   ChatChannelState,
-  ChatCursor,
+  PubSubPagingCursor,
   ChatMemberEntity,
   ChatMessageEntity,
   ConsumerContract,
@@ -137,10 +137,10 @@ Omit<ConsumerContract<ChatClientApiEvents, ClientFullState>, 'subscribe'> {
     /** Channel for which to retrieve the messages. */
     channel: string
     /** Cursor for pagination. */
-    cursor?: ChatCursor
+    cursor?: PubSubPagingCursor
   }): Promise<{
     messages: ChatMessageEntity[]
-    cursor: ChatCursor
+    cursor: PubSubPagingCursor
   }>
 
   /**
