@@ -1,7 +1,7 @@
 import type { OnlyStateProperties, OnlyFunctionProperties } from '..'
 import { PRODUCT_PREFIX_PUBSUB } from '../utils/constants'
 
-export type PubSubCursor =
+export type PubSubPagingCursor =
   | {
       before: string
       after?: never

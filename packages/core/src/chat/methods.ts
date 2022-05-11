@@ -1,11 +1,11 @@
 import type {
   ChatJSONRPCMethod,
-  ChatCursor,
   InternalChatMessageEntity,
   ChatMessageEntity,
   InternalChatMemberEntity,
   ChatMemberEntity,
 } from '../types/chat'
+import { PubSubPagingCursor } from '../types/pubSub'
 import type { BaseChatConsumer } from './BaseChat'
 import type { ExecuteExtendedOptions, BaseRPCResult } from '../utils/interfaces'
 import { toExternalJSON } from '../utils'
@@ -85,11 +85,11 @@ const createChatMemberMethod = <
  */
 interface GetMessagesInput extends BaseRPCResult {
   messages: InternalChatMessageEntity[]
-  cursor: ChatCursor
+  cursor: PubSubPagingCursor
 }
 interface GetMessagesOutput {
   messages: ChatMessageEntity[]
-  cursor: ChatCursor
+  cursor: PubSubPagingCursor
 }
 export const getMessages = createChatMethod<
   GetMessagesInput,

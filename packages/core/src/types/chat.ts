@@ -5,18 +5,11 @@ import type {
   CamelToSnakeCase,
 } from '..'
 import type { MapToPubSubShape } from '../redux/interfaces'
+import type { PubSubContract, PubSubPagingCursor } from './pubSub'
 import { PRODUCT_PREFIX_CHAT } from '../utils/constants'
-import { PubSubContract } from './pubSub'
 
-export type ChatCursor =
-  | {
-      before: string
-      after?: never
-    }
-  | {
-      before?: never
-      after: string
-    }
+/** @deprecated use {@link PubSubPagingCursor} */
+export type ChatCursor = PubSubPagingCursor
 
 type ToInternalChatEvent<T extends string> = `${ChatNamespace}.${T}`
 export type ChatNamespace = typeof PRODUCT_PREFIX_CHAT
@@ -45,7 +38,7 @@ interface ChatGetMemberStateParams {
 }
 interface ChatGetMessagesParams {
   channel: string
-  cursor?: ChatCursor
+  cursor?: PubSubPagingCursor
 }
 interface ChatGetMembersParams {
   channel: string
@@ -59,7 +52,7 @@ export type ChatChannelName = string
 export interface ChatContract extends PubSubContract {
   getMessages(params: ChatGetMessagesParams): Promise<{
     messages: ChatMessageEntity[]
-    cursor: ChatCursor
+    cursor: PubSubPagingCursor
   }>
   getMembers(params: ChatGetMembersParams): Promise<{
     members: ChatMemberEntity[]
