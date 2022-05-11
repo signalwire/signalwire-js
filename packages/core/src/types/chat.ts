@@ -34,11 +34,6 @@ export type ChatEventNames = ChatMessageEventName | ChatMemberEventNames
 
 export type ChatChannel = string | string[]
 
-interface ChatPublishParams {
-  content: any
-  channel: string
-  meta?: Record<any, any>
-}
 interface ChatSetMemberStateParams {
   memberId: string
   channels: ChatChannel
