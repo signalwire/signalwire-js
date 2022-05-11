@@ -2,16 +2,13 @@ import {
   BaseComponentOptions,
   BaseConsumer,
   connect,
-  // extendComponent,
   JSONRPCSubscribeMethod,
   ExecuteParams,
   actions,
   SessionEvents,
   EventEmitter,
 } from '..'
-// import * as pubSubMethods from './methods'
 import type {
-  // PubSubMethods,
   PubSubChannel,
   InternalPubSubChannel,
   PubSubEventNames,
@@ -163,18 +160,11 @@ export class BasePubSubConsumer<
 
   publish(params: PubSubPublishParams) {
     this.execute({
-      method: 'chat.publish',
+      method: `${PRODUCT_PREFIX_PUBSUB}.publish`,
       params,
     })
   }
 }
-
-// export const BasePubSubAPI = extendComponent<BasePubSubConsumer, PubSubMethods>(
-//   BasePubSubConsumer,
-//   {
-//     publish: pubSubMethods.publish,
-//   }
-// )
 
 export const createBasePubSubObject = <PubSubType>(
   params: BaseComponentOptions<PubSubEventNames>
