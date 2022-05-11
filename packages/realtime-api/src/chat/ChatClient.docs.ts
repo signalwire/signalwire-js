@@ -205,7 +205,7 @@ Omit<ConsumerContract<ChatClientApiEvents, ClientFullState>, 'subscribe'> {
     /** Id of the member for which to get the state. */
     memberId: string
     /** Channels for which to get the state. */
-    channels: string | string[]
+    channels?: string | string[]
   }): Promise<{
     channels: Record<ChatChannelName, ChatChannelState>
   }>
