@@ -93,15 +93,16 @@ export class BaseChatConsumer extends BasePubSubConsumer<BaseChatApiEvents> {
   }
 }
 
-export const BaseChatAPI = extendComponent<
+export const BaseChatAPI = extendComponent<BaseChatConsumer, ChatMethods>(
   BaseChatConsumer,
-  Omit<ChatMethods, 'publish'>
->(BaseChatConsumer, {
-  getMembers: chatMethods.getMembers,
-  getMessages: chatMethods.getMessages,
-  setMemberState: chatMethods.setMemberState,
-  getMemberState: chatMethods.getMemberState,
-})
+  {
+    publish: chatMethods.publish,
+    getMembers: chatMethods.getMembers,
+    getMessages: chatMethods.getMessages,
+    setMemberState: chatMethods.setMemberState,
+    getMemberState: chatMethods.getMemberState,
+  }
+)
 
 export const createBaseChatObject = <ChatType>(
   params: BaseComponentOptions<ChatEventNames>

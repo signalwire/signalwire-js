@@ -83,6 +83,10 @@ const createChatMemberMethod = <
 /**
  * Chat Methods
  */
+export const publish = createChatMethod<BaseRPCResult, void>('chat.publish', {
+  transformResolve: baseCodeTransform,
+})
+
 interface GetMessagesInput extends BaseRPCResult {
   messages: InternalChatMessageEntity[]
   cursor: PubSubPagingCursor
