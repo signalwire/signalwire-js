@@ -3,8 +3,11 @@ import { PubSubMessageContract } from '..'
 /**
  * Represents a message in a chat.
  */
-export class PubSubMessage implements PubSubMessageContract {
-  constructor(private payload: PubSubMessageContract) {}
+export class PubSubMessage<
+  PayloadType extends PubSubMessageContract = PubSubMessageContract
+> implements PubSubMessageContract
+{
+  constructor(protected payload: PayloadType) {}
 
   /** The id of this message */
   get id(): string {
