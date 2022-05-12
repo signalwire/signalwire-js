@@ -74,19 +74,24 @@ export class BasePubSubConsumer<
         ['message'],
         {
           type: 'chatMessage',
-          instanceFactory: (payload: PubSubChannelMessageEvent) => {
-            const { channel, message } = payload.params
-            return new PubSubMessage(
-              toExternalJSON({
-                ...message,
-                channel,
-              })
-            )
+          instanceFactory: () => {
+            return new PubSubMessage({} as any)
           },
           payloadTransform: (payload: PubSubChannelMessageEvent) => {
-            const { channel, message } = payload.params
+            const {
+              channel,
+              /**
+               * Since we're using the same event as `Chat`
+               * the payload comes with a `member` prop. To
+               * avoid confusion (since `PubSub` doesn't
+               * have members) we'll remove it from the
+               * payload sent to the end user.
+               */
+              // @ts-expect-error
+              message: { member, ...restMessage },
+            } = payload.params
             return toExternalJSON({
-              ...message,
+              ...restMessage,
               channel,
             })
           },
