@@ -5,7 +5,7 @@ import type {
   CamelToSnakeCase,
 } from '..'
 import type { MapToPubSubShape } from '../redux/interfaces'
-import type { PubSubContract, PubSubPagingCursor } from './pubSub'
+import type { PubSubContract, PubSubMessageEntity, PubSubPagingCursor } from './pubSub'
 import { PRODUCT_PREFIX_CHAT } from '../utils/constants'
 
 /** @deprecated use {@link PubSubPagingCursor} */
@@ -69,13 +69,8 @@ export type ChatMethods = Omit<
   'subscribe' | 'unsubscribe' | 'updateToken'
 >
 
-export interface ChatMessageContract {
-  id: string
-  channel: string
+export interface ChatMessageContract extends PubSubMessageEntity {
   member: ChatMemberContract
-  content: any
-  publishedAt: Date
-  meta?: any
 }
 export type ChatMessageEntity = Omit<
   OnlyStateProperties<ChatMessageContract>,

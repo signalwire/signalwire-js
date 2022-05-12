@@ -7,19 +7,25 @@ import {
   actions,
   SessionEvents,
   EventEmitter,
+  EventTransform,
+  toExternalJSON,
 } from '..'
 import type {
   PubSubChannel,
   InternalPubSubChannel,
   PubSubEventNames,
   PubSubPublishParams,
+  PubSubMessageEventName,
+  PubSubChannelMessageEvent,
 } from '../types/pubSub'
 import { PRODUCT_PREFIX_PUBSUB } from '../utils/constants'
+import { PubSubMessage } from './PubSubMessage'
 
 export type BasePubSubApiEventsHandlerMapping = Record<
-  Extract<SessionEvents, 'session.expiring'>,
-  () => void
->
+  PubSubMessageEventName,
+  (message: PubSubMessage) => void
+> &
+  Record<Extract<SessionEvents, 'session.expiring'>, () => void>
 
 /**
  * @privateRemarks
@@ -55,6 +61,35 @@ export class BasePubSubConsumer<
      */
     this._attachListeners('')
   }
+
+  /** @internal */
+  protected getEmitterTransforms() {
+    return new Map<any, EventTransform>([
+      [
+        ['message'],
+        {
+          type: 'chatMessage',
+          instanceFactory: (payload: PubSubChannelMessageEvent) => {
+            const { channel, message } = payload.params
+            return new PubSubMessage(
+              toExternalJSON({
+                ...message,
+                channel,
+              })
+            )
+          },
+          payloadTransform: (payload: PubSubChannelMessageEvent) => {
+            const { channel, message, } = payload.params
+            return toExternalJSON({
+              ...message,
+              channel,
+            })
+          },
+        },
+      ],
+    ])
+  }
+
 
   private _getChannelsParam(
     channels: string | string[] | undefined,
@@ -159,7 +194,7 @@ export class BasePubSubConsumer<
   }
 
   publish(params: PubSubPublishParams) {
-    this.execute({
+    return this.execute({
       method: `${PRODUCT_PREFIX_PUBSUB}.publish`,
       params,
     })

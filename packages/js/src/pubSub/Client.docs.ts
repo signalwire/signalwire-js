@@ -1,4 +1,4 @@
-import type { ConsumerContract, PubSubPagingCursor } from '@signalwire/core'
+import type { ConsumerContract, PubSubPagingCursor, PubSub } from '@signalwire/core'
 
 import type { ClientApiEvents, ClientFullState } from './Client'
 
@@ -137,4 +137,9 @@ export interface ClientApiEventsDocs {
    * Use the `updateToken` method to refresh your token.
    */
   'session.expiring': () => void
+
+  /**
+   * A new message has been received.
+   */
+  message: (message: PubSub.PubSubMessage) => void
 }

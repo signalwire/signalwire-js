@@ -139,7 +139,7 @@ export class ClientAPI<
   }
 
   get pubSub() {
-    if (!this._chat) {
+    if (!this._pubSub) {
       this._pubSub = PubSubNamespace.createBasePubSubObject<PubSubClient>({
         store: this.store,
         // Emitter is now typed but we share it across objects

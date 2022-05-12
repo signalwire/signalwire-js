@@ -1,4 +1,4 @@
-import { ConsumerContract } from '@signalwire/core'
+import { ConsumerContract, PubSub } from '@signalwire/core'
 import { PubSubClientApiEvents, ClientFullState } from './PubSubClient'
 import { RealtimeClient } from '../client/index'
 
@@ -109,4 +109,9 @@ export interface ClientDocs
 export interface PubSubClientApiEventsDocs {
   /** @ignore */
   'session.expiring': () => void
+
+  /**
+   * A new message has been received.
+   */
+   message: (message: PubSub.PubSubMessage) => void
 }

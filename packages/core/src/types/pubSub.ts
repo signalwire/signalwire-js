@@ -1,4 +1,4 @@
-import type { OnlyStateProperties, OnlyFunctionProperties } from '..'
+import type { OnlyStateProperties, OnlyFunctionProperties, CamelToSnakeCase, SwEvent } from '..'
 import { PRODUCT_PREFIX_PUBSUB } from '../utils/constants'
 
 export type PubSubPagingCursor =
@@ -11,9 +11,12 @@ export type PubSubPagingCursor =
       after: string
     }
 
+type ToInternalPubSubEvent<T extends string> = `${PubSubNamespace}.${T}`
 export type PubSubNamespace = typeof PRODUCT_PREFIX_PUBSUB
 
-export type PubSubEventNames = ''
+export type PubSubMessageEventName = 'message'
+
+export type PubSubEventNames = PubSubMessageEventName
 
 export type PubSubChannel = string | string[]
 
@@ -36,6 +39,22 @@ export type PubSubMethods = Omit<
   'subscribe' | 'unsubscribe' | 'updateToken'
 >
 
+export interface PubSubMessageContract {
+  id: string
+  channel: string
+  content: any
+  publishedAt: Date
+  meta?: any
+}
+
+export type PubSubMessageEntity = OnlyStateProperties<PubSubMessageContract>
+
+export type InternalPubSubMessageEntity = {
+  [K in NonNullable<
+    keyof PubSubMessageEntity
+  > as CamelToSnakeCase<K>]: PubSubMessageEntity[K]
+}
+
 /**
  * ==========
  * ==========
@@ -43,6 +62,19 @@ export type PubSubMethods = Omit<
  * ==========
  * ==========
  */
+
+/**
+ * 'chat.channel.message'
+ */
+ export interface PubSubChannelMessageEventParams {
+  channel: string
+  message: InternalPubSubMessageEntity
+}
+
+export interface PubSubChannelMessageEvent extends SwEvent {
+  event_type: ToInternalPubSubEvent<PubSubMessageEventName>
+  params: PubSubChannelMessageEventParams
+}
 
 export interface InternalPubSubChannel {
   name: string

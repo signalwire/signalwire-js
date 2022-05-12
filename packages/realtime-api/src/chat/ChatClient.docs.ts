@@ -10,8 +10,11 @@ import {
 import { ChatClientApiEvents, ClientFullState } from './ChatClient'
 import { RealtimeClient } from '../client/index'
 
-export interface ClientDocs extends
-Omit<ConsumerContract<ChatClientApiEvents, ClientFullState>, 'subscribe'> {
+export interface ClientDocs
+  extends Omit<
+    ConsumerContract<ChatClientApiEvents, ClientFullState>,
+    'subscribe'
+  > {
   /**
    * Creates a new Chat client.
    *
@@ -26,7 +29,7 @@ Omit<ConsumerContract<ChatClientApiEvents, ClientFullState>, 'subscribe'> {
    * })
    * ```
    */
-   new (chatOptions: {
+  new (chatOptions: {
     /** SignalWire project id, e.g. `a10d8a9f-2166-4e82-56ff-118bc3a4840f` */
     project: string
     /** SignalWire API token */
