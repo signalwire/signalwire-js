@@ -1,5 +1,6 @@
 import { BaseChatConsumer } from './BaseChat'
 import { sagaEffects, SagaIterator, SDKWorker, getLogger, ChatAction } from '..'
+import { PRODUCT_PREFIX_PUBSUB, PRODUCT_PREFIX_CHAT } from '../utils/constants'
 
 export const chatWorker: SDKWorker<BaseChatConsumer> = function* chatWorker({
   channels: { pubSubChannel },
@@ -12,6 +13,17 @@ export const chatWorker: SDKWorker<BaseChatConsumer> = function* chatWorker({
 
     switch (action.type) {
       case 'chat.channel.message': {
+        /**
+         * Since `Chat` is built on top of `PubSub` (which
+         * also has a worker) and for the time being both
+         * are using the exact same set of events (`chat.x`)
+         * we'll add this clause as a safe guard to avoid
+         * executing the same events more than once
+         */
+        if (PRODUCT_PREFIX_CHAT === PRODUCT_PREFIX_PUBSUB) {
+          break
+        }
+
         yield sagaEffects.put(pubSubChannel, {
           /**
            * FIXME: This is a hack to get the message to the

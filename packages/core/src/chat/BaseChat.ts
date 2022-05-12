@@ -47,7 +47,7 @@ export class BaseChatConsumer extends BasePubSubConsumer<BaseChatApiEvents> {
   constructor(options: BaseComponentOptions<BaseChatApiEvents>) {
     super(options)
 
-    this.setWorker('chat', { worker: workers.chatWorker })
+    this.runWorker('chat', { worker: workers.chatWorker })
   }
 
   /** @internal */

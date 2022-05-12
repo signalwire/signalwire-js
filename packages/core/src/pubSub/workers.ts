@@ -19,7 +19,7 @@ export const pubSubWorker: SDKWorker<BasePubSubConsumer> =
       getLogger().debug('pubSubWorker:', action)
 
       switch (action.type) {
-        case 'chat.channel.message': {
+        case `${PRODUCT_PREFIX_PUBSUB}.channel.message`: {
           yield sagaEffects.put(pubSubChannel, {
             /**
              * FIXME: This is a hack to get the message to the
