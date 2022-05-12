@@ -53,6 +53,8 @@ export type RoomDevice = VideoMemberEntity & { type: 'device' }
  */
 export * as Chat from './chat'
 
+export * as PubSub from './pubSub'
+
 /**
  * The Video namespace contains the classes and functions that you need to
  * create a video conferencing application.
