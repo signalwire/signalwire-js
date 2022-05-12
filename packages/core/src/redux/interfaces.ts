@@ -17,6 +17,7 @@ import type {
   SwEventParams,
   VoiceCallAction,
   VideoManagerAction,
+  PubSubEventAction,
 } from '../types'
 import { SDKRunSaga } from '.'
 import { END, MulticastChannel } from '@redux-saga/core'
@@ -111,6 +112,7 @@ export type PubSubAction =
     }
   | VideoManagerAction
   | ChatAction
+  | PubSubEventAction
   | TaskAction
   | MessagingAction
   | VoiceCallAction

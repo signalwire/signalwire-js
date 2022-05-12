@@ -1,4 +1,10 @@
-import type { OnlyStateProperties, OnlyFunctionProperties, CamelToSnakeCase, SwEvent } from '..'
+import type {
+  OnlyStateProperties,
+  OnlyFunctionProperties,
+  CamelToSnakeCase,
+  SwEvent,
+  MapToPubSubShape,
+} from '..'
 import { PRODUCT_PREFIX_PUBSUB } from '../utils/constants'
 
 export type PubSubPagingCursor =
@@ -63,18 +69,26 @@ export type InternalPubSubMessageEntity = {
  * ==========
  */
 
+type ChannelMessageEventName = 'channel.message'
+
 /**
  * 'chat.channel.message'
  */
- export interface PubSubChannelMessageEventParams {
+export interface PubSubChannelMessageEventParams {
   channel: string
   message: InternalPubSubMessageEntity
 }
 
 export interface PubSubChannelMessageEvent extends SwEvent {
-  event_type: ToInternalPubSubEvent<PubSubMessageEventName>
+  event_type: ToInternalPubSubEvent<ChannelMessageEventName>
   params: PubSubChannelMessageEventParams
 }
+
+export type PubSubEvent = PubSubChannelMessageEvent
+
+export type PubSubEventParams = PubSubChannelMessageEventParams
+
+export type PubSubEventAction = MapToPubSubShape<PubSubEvent>
 
 export interface InternalPubSubChannel {
   name: string
@@ -84,4 +98,3 @@ export type PubSubJSONRPCMethod =
   | 'chat.subscribe'
   | 'chat.publish'
   | 'chat.unsubscribe'
-

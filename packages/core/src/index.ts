@@ -83,3 +83,4 @@ export const selectors = {
   ...sessionSelectors,
 }
 export { ChatMember, ChatMessage } from './chat'
+export { PubSubMessage } from './pubSub'

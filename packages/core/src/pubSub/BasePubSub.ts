@@ -20,6 +20,7 @@ import type {
 } from '../types/pubSub'
 import { PRODUCT_PREFIX_PUBSUB } from '../utils/constants'
 import { PubSubMessage } from './PubSubMessage'
+import * as workers from './workers'
 
 export type BasePubSubApiEventsHandlerMapping = Record<
   PubSubMessageEventName,
@@ -37,7 +38,9 @@ export type BasePubSubApiEvents<T = BasePubSubApiEventsHandlerMapping> = {
   [k in keyof T]: T[k]
 }
 
-const toInternalPubSubChannels = (channels: string[]): InternalPubSubChannel[] => {
+const toInternalPubSubChannels = (
+  channels: string[]
+): InternalPubSubChannel[] => {
   return channels.map((name) => {
     return {
       name,
@@ -60,6 +63,8 @@ export class BasePubSubConsumer<
      * registered in the Redux store.
      */
     this._attachListeners('')
+
+    this.runWorker('pubSub', { worker: workers.pubSubWorker })
   }
 
   /** @internal */
@@ -79,7 +84,7 @@ export class BasePubSubConsumer<
             )
           },
           payloadTransform: (payload: PubSubChannelMessageEvent) => {
-            const { channel, message, } = payload.params
+            const { channel, message } = payload.params
             return toExternalJSON({
               ...message,
               channel,
@@ -89,7 +94,6 @@ export class BasePubSubConsumer<
       ],
     ])
   }
-
 
   private _getChannelsParam(
     channels: string | string[] | undefined,
