@@ -140,10 +140,6 @@ const handler = async () => {
     host: process.env.RELAY_HOST,
     // @ts-expect-error
     token: CRT.token,
-    logLevel: 'trace',
-    debug: {
-      logWsTraffic: true,
-    },
   })
 
   console.log('Created jsPubSub')
@@ -154,10 +150,6 @@ const handler = async () => {
     host: process.env.RELAY_HOST,
     project: process.env.RELAY_PROJECT as string,
     token: process.env.RELAY_TOKEN as string,
-    logLevel: 'trace',
-    debug: {
-      logWsTraffic: true,
-    },
   })
 
   console.log('Created rtPubSub')
