@@ -9,9 +9,14 @@ import {
 } from '..'
 import { BasePubSubConsumer } from '../pubSub'
 import type {
-  ChatChannelMessageEvent, ChatEventNames,
+  ChatChannelMessageEvent,
+  ChatEventNames,
   ChatMemberEventNames,
-  ChatMemberJoinedEvent, ChatMemberLeftEvent, ChatMemberUpdatedEvent, ChatMessageEventName, ChatMethods
+  ChatMemberJoinedEvent,
+  ChatMemberLeftEvent,
+  ChatMemberUpdatedEvent,
+  ChatMessageEventName,
+  ChatMethods,
 } from '../types/chat'
 import { PRODUCT_PREFIX_CHAT } from '../utils/constants'
 import { ChatMember } from './ChatMember'
