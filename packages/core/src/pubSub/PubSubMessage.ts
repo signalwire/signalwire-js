@@ -1,7 +1,7 @@
 import { PubSubMessageContract } from '..'
 
 /**
- * Represents a message in a chat.
+ * Represents a message in a pubSub context.
  */
 export class PubSubMessage<
   PayloadType extends PubSubMessageContract = PubSubMessageContract
