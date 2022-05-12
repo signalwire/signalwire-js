@@ -1,19 +1,18 @@
-import type {
-  ChatJSONRPCMethod,
-} from '../types/chat'
+import type { PubSubJSONRPCMethod } from '../types/pubSub'
 import type { BasePubSubConsumer } from './BasePubSub'
 import type { ExecuteExtendedOptions, BaseRPCResult } from '../utils/interfaces'
+import { PRODUCT_PREFIX_PUBSUB } from '../utils/constants'
 
-type ChatMethodParams = Record<string, unknown>
+type PubSubMethodParams = Record<string, unknown>
 
-interface ChatMethodPropertyDescriptor<OutputType, ParamsType>
+interface PubSubMethodPropertyDescriptor<OutputType, ParamsType>
   extends PropertyDescriptor {
   value: (params: ParamsType) => Promise<OutputType>
 }
-type ChatMethodDescriptor<
+type PubSubMethodDescriptor<
   OutputType = unknown,
-  ParamsType = ChatMethodParams
-> = ChatMethodPropertyDescriptor<OutputType, ParamsType> &
+  ParamsType = PubSubMethodParams
+> = PubSubMethodPropertyDescriptor<OutputType, ParamsType> &
   ThisType<BasePubSubConsumer>
 
 /**
@@ -27,11 +26,11 @@ const baseCodeTransform = () => {}
 const createPubSubMethod = <
   InputType,
   OutputType = InputType,
-  ParamsType extends ChatMethodParams = ChatMethodParams
+  ParamsType extends PubSubMethodParams = PubSubMethodParams
 >(
-  method: ChatJSONRPCMethod,
+  method: PubSubJSONRPCMethod,
   options: ExecuteExtendedOptions<InputType, OutputType, ParamsType> = {}
-): ChatMethodDescriptor<OutputType> => ({
+): PubSubMethodDescriptor<OutputType> => ({
   value: function (params = {}): Promise<OutputType> {
     return this.execute(
       {
@@ -46,7 +45,9 @@ const createPubSubMethod = <
 /**
  * PubSub Methods
  */
-export const publish = createPubSubMethod<BaseRPCResult, void>('chat.publish', {
-  transformResolve: baseCodeTransform,
-})
-
+export const publish = createPubSubMethod<BaseRPCResult, void>(
+  `${PRODUCT_PREFIX_PUBSUB}.publish`,
+  {
+    transformResolve: baseCodeTransform,
+  }
+)
