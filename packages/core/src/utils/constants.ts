@@ -25,7 +25,10 @@ export const PRODUCT_PREFIX_VIDEO = 'video'
  */
 export const PRODUCT_PREFIX_VIDEO_MANAGER = 'video-manager'
 export const PRODUCT_PREFIX_CHAT = 'chat' as const
-// TODO:
+/**
+ * For now both, `PubSub` and `Chat` share the same
+ * namespace but this might change in the future.
+ */
 export const PRODUCT_PREFIX_PUBSUB = 'chat' as const
 export const PRODUCT_PREFIX_TASK = 'tasking'
 export const PRODUCT_PREFIX_MESSAGING = 'messaging'
