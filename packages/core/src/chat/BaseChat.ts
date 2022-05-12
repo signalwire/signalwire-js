@@ -51,7 +51,7 @@ export class BaseChatConsumer extends BasePubSubConsumer<BaseChatApiEvents> {
   }
 
   /** @internal */
-  protected getEmitterTransforms() {
+  protected override getEmitterTransforms() {
     return new Map<ChatEventNames | ChatEventNames[], EventTransform>([
       [
         ['message'],
