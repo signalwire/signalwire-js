@@ -74,6 +74,28 @@ export * from './createClient'
  */
 export * as Chat from './chat/Chat'
 
+/**
+ * Access the PubSub API Consumer. You can instantiate a {@link PubSub.Client} to
+ * subscribe to PubSub events. Please check {@link PubSub.PubSubClientApiEvents}
+ * for the full list of events that a {@link PubSub.Client} can subscribe to.
+ *
+ * @example
+ *
+ * The following example logs the messages sent to the "welcome" channel.
+ *
+ * ```javascript
+ * const pubSubClient = new PubSub.Client({
+ *   project: '<project-id>',
+ *   token: '<api-token>'
+ * })
+ *
+ * pubSubClient.on('message', m => console.log(m))
+ *
+ * await pubSubClient.subscribe("welcome")
+ * ```
+ */
+export * as PubSub from './pubSub/PubSub'
+
 /** @ignore */
 export * from './configure'
 
