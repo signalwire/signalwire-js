@@ -1,11 +1,9 @@
-import { Chat } from '@signalwire/core'
-import ChatMember = Chat.ChatMember
-import ChatMessage = Chat.ChatMessage
+import { PubSub } from '@signalwire/core'
+import PubSubMessage = PubSub.PubSubMessage
 
 export * from './Client'
 export { PagingCursor } from './Client.docs'
 
 export {
-  ChatMember,
-  ChatMessage,
+  PubSubMessage,
 }

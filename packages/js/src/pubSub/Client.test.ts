@@ -55,14 +55,14 @@ describe('PubSubClient Object', () => {
   })
 
   it('should automatically connect when calling either .subscribe() or .publish()', async () => {
-    const chat = new Client({
+    const pubSub = new Client({
       host,
       token,
     })
 
-    chat.on('message', () => {})
-    await chat.subscribe(['test'])
-    await chat.publish({
+    pubSub.on('message', () => {})
+    await pubSub.subscribe(['test'])
+    await pubSub.publish({
       channel: 'test',
       content: 'test',
     })
@@ -75,15 +75,15 @@ describe('PubSubClient Object', () => {
   })
 
   it('should emit a single "signalwire.connect" at most when subscribing/publishing at the same time', async () => {
-    const chat = new Client({
+    const pubSub = new Client({
       host,
       token,
     })
 
-    chat.on('message', () => {})
+    pubSub.on('message', () => {})
     await Promise.all([
-      chat.subscribe(['test']),
-      chat.publish({
+      pubSub.subscribe(['test']),
+      pubSub.publish({
         channel: 'test',
         content: 'test',
       }),
@@ -102,13 +102,13 @@ describe('PubSubClient Object', () => {
 
   describe('Subscribe', () => {
     it('should convert channels into the internal channel notation when calling .subscribe()', async () => {
-      const chat = new Client({
+      const pubSub = new Client({
         host,
         token,
       })
 
-      chat.on('message', () => {})
-      await chat.subscribe(['test1', 'test2', 'test3'])
+      pubSub.on('message', () => {})
+      await pubSub.subscribe(['test1', 'test2', 'test3'])
 
       const subscribeMsg = JSON.parse(server.messages[1].toString())
       expect(subscribeMsg.params.channels).toStrictEqual([
@@ -121,7 +121,7 @@ describe('PubSubClient Object', () => {
 
   describe('Publish', () => {
     it('should support publishing-only mode', async () => {
-      const chat = new Client({
+      const pubSub = new Client({
         host,
         token,
       })
@@ -131,7 +131,7 @@ describe('PubSubClient Object', () => {
         content: 'test',
       }
 
-      await chat.publish(params)
+      await pubSub.publish(params)
 
       server.messages.forEach((message, i) => {
         const parsedMessage = JSON.parse(message.toString())
@@ -148,14 +148,14 @@ describe('PubSubClient Object', () => {
 
   describe('Unsubscribe', () => {
     it('should convert channels into the internal channel notation', async () => {
-      const chat = new Client({
+      const pubSub = new Client({
         host,
         token,
       })
 
-      chat.on('message', () => {})
-      await chat.subscribe(['test1', 'test2', 'test3'])
-      await chat.unsubscribe(['test1', 'test2', 'test3'])
+      pubSub.on('message', () => {})
+      await pubSub.subscribe(['test1', 'test2', 'test3'])
+      await pubSub.unsubscribe(['test1', 'test2', 'test3'])
 
       const unsubscribeMsg = JSON.parse(server.messages[1].toString())
       expect(unsubscribeMsg.params.channels).toStrictEqual([
@@ -167,33 +167,33 @@ describe('PubSubClient Object', () => {
 
     it('should allow the user to .unsubscribe() from any subgroup of subscribed channels', async () => {
       expect.assertions(4)
-      const chat = new Client({
+      const pubSub = new Client({
         host,
         token,
       })
 
-      chat.on('message', () => {})
+      pubSub.on('message', () => {})
 
-      await chat.subscribe(['test1', 'test2', 'test3'])
-      expect(await chat.unsubscribe(['test1', 'test3'])).toBeUndefined()
-      expect(await chat.unsubscribe(['test1', 'test2'])).toBeUndefined()
-      expect(await chat.unsubscribe(['test2', 'test3'])).toBeUndefined()
+      await pubSub.subscribe(['test1', 'test2', 'test3'])
+      expect(await pubSub.unsubscribe(['test1', 'test3'])).toBeUndefined()
+      expect(await pubSub.unsubscribe(['test1', 'test2'])).toBeUndefined()
+      expect(await pubSub.unsubscribe(['test2', 'test3'])).toBeUndefined()
       expect(
-        await chat.unsubscribe(['test1', 'test2', 'test3'])
+        await pubSub.unsubscribe(['test1', 'test2', 'test3'])
       ).toBeUndefined()
     })
 
     it('should reject if its called before the session is authorized', async () => {
       expect.assertions(1)
-      const chat = new Client({
+      const pubSub = new Client({
         host,
         token,
       })
 
-      chat.on('message', () => {})
+      pubSub.on('message', () => {})
 
       try {
-        await chat.unsubscribe(['test1'])
+        await pubSub.unsubscribe(['test1'])
       } catch (err) {
         expect(err.message).toBe(
           'You must be authenticated to unsubscribe from a channel'
@@ -203,35 +203,35 @@ describe('PubSubClient Object', () => {
 
     it("should reject if it's called without channels", async () => {
       expect.assertions(1)
-      const chat = new Client({
+      const pubSub = new Client({
         host,
         token,
       })
 
-      chat.on('message', () => {})
+      pubSub.on('message', () => {})
 
       // This is to force the session to be connected when
       // calling unsubscribe()
-      await chat.publish({
+      await pubSub.publish({
         channel: 'test',
         content: 'test',
       })
 
-      await expect(() => chat.unsubscribe(['test1_error'])).rejects.toBeTruthy()
+      await expect(() => pubSub.unsubscribe(['test1_error'])).rejects.toBeTruthy()
     })
 
     it('should reject if the user calls .unsubscribe() with channels different than the ones they are subscribed to', async () => {
       expect.assertions(1)
-      const chat = new Client({
+      const pubSub = new Client({
         host,
         token,
       })
 
-      chat.on('message', () => {})
+      pubSub.on('message', () => {})
 
-      await chat.subscribe(['test1', 'test2', 'test3', 'test4'])
+      await pubSub.subscribe(['test1', 'test2', 'test3', 'test4'])
       await expect(() =>
-        chat.unsubscribe(['test1', 'test5_error'])
+        pubSub.unsubscribe(['test1', 'test5_error'])
       ).rejects.toBeTruthy()
     })
   })
