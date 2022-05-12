@@ -94,8 +94,6 @@ const testPubSubClientPublish = (
       secondClient.subscribe(channel),
     ])
 
-    console.log('---> executing publish')
-
     await firstClient.publish({
       content: 'Hello There',
       channel,
