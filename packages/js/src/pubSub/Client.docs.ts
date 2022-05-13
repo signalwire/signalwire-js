@@ -1,9 +1,9 @@
-import type { ConsumerContract, PubSubPagingCursor, PubSub } from '@signalwire/core'
+import type { ConsumerContract, PaginationCursor, PubSub } from '@signalwire/core'
 
 import type { ClientApiEvents, ClientFullState } from './Client'
 
-/** @deprecated use {@link PubSubPagingCursor} */
-export type PagingCursor = PubSubPagingCursor
+/** @deprecated use {@link PaginationCursor} */
+export type PagingCursor = PaginationCursor
 
 export interface ClientDocs
   extends Omit<

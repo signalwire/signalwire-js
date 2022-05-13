@@ -7,16 +7,6 @@ import type {
 } from '..'
 import { PRODUCT_PREFIX_PUBSUB } from '../utils/constants'
 
-export type PubSubPagingCursor =
-  | {
-      before: string
-      after?: never
-    }
-  | {
-      before?: never
-      after: string
-    }
-
 type ToInternalPubSubEvent<T extends string> = `${PubSubNamespace}.${T}`
 export type PubSubNamespace = typeof PRODUCT_PREFIX_PUBSUB
 

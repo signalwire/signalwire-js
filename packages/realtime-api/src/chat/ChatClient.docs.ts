@@ -2,7 +2,7 @@ import {
   Chat,
   ChatChannelName,
   ChatChannelState,
-  PubSubPagingCursor,
+  PaginationCursor,
   ChatMemberEntity,
   ChatMessageEntity,
   ConsumerContract,
@@ -140,10 +140,10 @@ export interface ClientDocs
     /** Channel for which to retrieve the messages. */
     channel: string
     /** Cursor for pagination. */
-    cursor?: PubSubPagingCursor
+    cursor?: PaginationCursor
   }): Promise<{
     messages: ChatMessageEntity[]
-    cursor: PubSubPagingCursor
+    cursor: PaginationCursor
   }>
 
   /**
