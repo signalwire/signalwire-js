@@ -108,6 +108,12 @@ export type InternalChatMemberEntity = {
  * ==========
  */
 
+/**
+ * Internally we're mapping/converting this event to
+ * `message` so the end user can register their event
+ * handlers as `client.on('message', handler)` instead of
+ * `client.on('channel.message', handler)`
+ */
 type ChannelMessageEventName = 'channel.message'
 
 /**
