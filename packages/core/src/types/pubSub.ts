@@ -95,6 +95,8 @@ export interface InternalPubSubChannel {
 }
 
 export type PubSubJSONRPCMethod =
-  | 'chat.subscribe'
-  | 'chat.publish'
-  | 'chat.unsubscribe'
+  | `${typeof PRODUCT_PREFIX_PUBSUB}.subscribe`
+  | `${typeof PRODUCT_PREFIX_PUBSUB}.publish`
+  | `${typeof PRODUCT_PREFIX_PUBSUB}.unsubscribe`
+
+export type PubSubTransformType = 'pubSubMessage'

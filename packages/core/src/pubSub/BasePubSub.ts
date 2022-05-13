@@ -73,7 +73,7 @@ export class BasePubSubConsumer<
       [
         ['message'],
         {
-          type: 'chatMessage',
+          type: 'pubSubMessage',
           instanceFactory: () => {
             return new PubSubMessage({} as any)
           },

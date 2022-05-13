@@ -18,6 +18,7 @@ import {
   CallingTransformType,
   ChatJSONRPCMethod,
   ChatTransformType,
+  PubSubTransformType,
   MessagingJSONRPCMethod,
   MessagingTransformType,
   VoiceJSONRPCMethod,
@@ -343,6 +344,7 @@ export type EventTransformType =
   | 'roomSessionRecording'
   | 'roomSessionPlayback'
   | ChatTransformType
+  | PubSubTransformType
   | MessagingTransformType
   | CallingTransformType
 
