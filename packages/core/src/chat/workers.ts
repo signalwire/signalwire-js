@@ -16,9 +16,13 @@ export const chatWorker: SDKWorker<BaseChatConsumer> = function* chatWorker({
         /**
          * Since `Chat` is built on top of `PubSub` (which
          * also has a worker) and for the time being both
-         * are using the exact same set of events (`chat.x`)
-         * we'll add this clause as a safe guard to avoid
-         * executing the same events more than once
+         * namespaces are using the same PRODUCT_PREFIX
+         * there is an overlap on the `chat.channel.message`
+         * event which is automatically handled by
+         * `pubSubWorker`. This means that as long as both
+         * namespace share the same PRODUCT_PREFIX the
+         * `chat.channel.message` event will be a no-op for
+         * `Chat`.
          */
         if (PRODUCT_PREFIX_CHAT === PRODUCT_PREFIX_PUBSUB) {
           break
