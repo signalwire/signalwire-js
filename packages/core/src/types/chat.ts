@@ -5,7 +5,11 @@ import type {
   CamelToSnakeCase,
 } from '..'
 import type { MapToPubSubShape } from '../redux/interfaces'
-import type { PubSubContract, PubSubMessageEntity, PubSubPagingCursor } from './pubSub'
+import type {
+  PubSubContract,
+  PubSubMessageEntity,
+  PubSubPagingCursor,
+} from './pubSub'
 import { PRODUCT_PREFIX_CHAT } from '../utils/constants'
 
 /** @deprecated use {@link PubSubPagingCursor} */
@@ -185,4 +189,4 @@ export type ChatJSONRPCMethod =
   | 'chat.members.get'
   | 'chat.messages.get'
 
-export type ChatTransformType = 'chatMessage'
+export type ChatTransformType = 'chatMessage' | 'chatMember'

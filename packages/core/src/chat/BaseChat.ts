@@ -77,7 +77,7 @@ export class BaseChatConsumer extends BasePubSubConsumer<BaseChatApiEvents> {
       [
         ['member.joined', 'member.left', 'member.updated'],
         {
-          type: 'chatMessage',
+          type: 'chatMember',
           instanceFactory: (payload: ChatMemberEvent) => {
             const { member } = payload.params
             return new ChatMember(toExternalJSON(member))
