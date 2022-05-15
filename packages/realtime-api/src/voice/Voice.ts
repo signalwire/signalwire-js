@@ -30,6 +30,7 @@ export interface VoiceClientApiEvents extends RealTimeCallApiEvents {}
 
 type EmitterTransformsEvents = 'calling.call.received'
 
+/** @ignore */
 export interface Voice
   extends DisconnectableClientContract<Voice, VoiceClientApiEvents> {
   /** @internal */

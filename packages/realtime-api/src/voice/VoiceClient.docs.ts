@@ -60,6 +60,8 @@ export interface VoiceClientDocs extends Pick<Voice, InheritedMembers> {
    * Makes an outbound call to a PSTN number.
    *
    * @example
+   * 
+   * ```js
    * try {
    *   const call = await client.dialPhone({
    *     from: '+YYYYYYYYYY',
@@ -69,6 +71,7 @@ export interface VoiceClientDocs extends Pick<Voice, InheritedMembers> {
    * } catch (e) {
    *   console.log("Call not answered.")
    * }
+   * ```
    *
    * @returns A call object.
    */
@@ -91,6 +94,8 @@ export interface VoiceClientDocs extends Pick<Voice, InheritedMembers> {
    * Makes an outbound call to a SIP endpoint.
    *
    * @example
+   * 
+   * ```js
    * try {
    *   const call = await client.dialPhone({
    *     from: 'sip:xxx@yyy.zz',
@@ -100,6 +105,7 @@ export interface VoiceClientDocs extends Pick<Voice, InheritedMembers> {
    * } catch (e) {
    *   console.log("Call not answered.")
    * }
+   * ```
    *
    * @returns A call object.
    */
