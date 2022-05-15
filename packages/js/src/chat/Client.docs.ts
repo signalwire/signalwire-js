@@ -1,4 +1,11 @@
-import type { ConsumerContract, Chat } from '@signalwire/core'
+import type {
+  ConsumerContract,
+  ChatMemberEntity,
+  ChatMessageEntity,
+  Chat,
+  ChatChannelName,
+  ChatChannelState,
+} from '@signalwire/core'
 
 import type { ClientApiEvents, ClientFullState } from './Client'
 
@@ -87,7 +94,7 @@ export interface ClientDocs
    * await chatClient.subscribe(["chan-2", "chan-3"])
    * ```
    */
-  subscribe(channels: string | string[]): Promise<any>
+  subscribe(channels: string | string[]): Promise<void>
 
   /**
    * List of channels from which you want to unsubscribe.
@@ -101,7 +108,7 @@ export interface ClientDocs
    * await chatClient.unsubscribe(["chan-2", "chan-3"])
    * ```
    */
-  unsubscribe(channels: string | string[]): Promise<any>
+  unsubscribe(channels: string | string[]): Promise<void>
 
   /**
    * Publish a message into the specified channel.
@@ -135,7 +142,7 @@ export interface ClientDocs
      * content of metadata.
      */
     meta?: Record<any, any>
-  }): Promise<any>
+  }): Promise<void>
 
   /**
    * Returns the list of messages that were sent to the specified channel.
@@ -166,7 +173,10 @@ export interface ClientDocs
     channel: string
     /** Cursor for pagination. */
     cursor?: PagingCursor
-  }): Promise<any>
+  }): Promise<{
+    messages: ChatMessageEntity[]
+    cursor: PagingCursor
+  }>
 
   /**
    * Returns the list of members in the given channel.
@@ -182,7 +192,9 @@ export interface ClientDocs
   getMembers(params: {
     /** The channel for which to get the list of members. */
     channel: string
-  }): Promise<any>
+  }): Promise<{
+    members: ChatMemberEntity[]
+  }>
 
   /**
    * Sets a state object for a member, for the specified channels. The
@@ -208,7 +220,7 @@ export interface ClientDocs
      * The state to set. There are no requirements on the content of the state.
      */
     state: Record<any, any>
-  }): Promise<any>
+  }): Promise<void>
 
   /**
    * Returns the states of a member in the specified channels.
@@ -229,7 +241,9 @@ export interface ClientDocs
     channels: string | string[]
     /** Id of the member for which to get the state. */
     memberId: string
-  }): Promise<any>
+  }): Promise<{
+    channels: Record<ChatChannelName, ChatChannelState>
+  }>
 }
 
 export interface ClientApiEventsDocs {
