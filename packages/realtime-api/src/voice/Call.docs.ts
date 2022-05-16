@@ -98,7 +98,7 @@ export interface CallDocs
    * {@link playAudio}, {@link playSilence}, {@link playTTS} or
    * {@link playRingtone} for more specific usages.
    *
-   * @param params a media playlist.  // FIXME
+   * @param params a media playlist. See {@link Voice.Playlist}.
    *
    * @example
    *
