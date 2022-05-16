@@ -37,6 +37,13 @@ const RestClient = function (
   client.fax.v1._version = `2010-04-01/Accounts/${client.accountSid}`
 
   return client
+  // For consistency with other constructors we'll make TS force the use of `new`
+} as unknown as {
+  new (
+    username: string,
+    token: string,
+    opts?: CompatibilityAPIRestClientOptions
+  ): Twilio
 }
 
 // Define old properties
