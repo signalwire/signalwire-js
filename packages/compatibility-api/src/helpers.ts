@@ -10,7 +10,7 @@ function Reject(reject: any) {
 Reject.prototype = Object.create(twilio.twiml.FaxResponse.prototype)
 Reject.prototype.constructor = 'Reject'
 
-const getHost = (opts: Record<string, string> = {}): string => {
+const getHost = (opts: { signalwireSpaceUrl?: string } = {}): string => {
   const { signalwireSpaceUrl } = opts
   if (signalwireSpaceUrl) {
     return signalwireSpaceUrl

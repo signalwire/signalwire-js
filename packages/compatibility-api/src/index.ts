@@ -1,17 +1,21 @@
 import twilio from 'twilio'
+import type { Twilio, TwimlInterface, JwtInterface } from 'twilio'
 import { getHost, Reject } from './helpers'
 
 twilio.twiml.FaxResponse.prototype.reject = function (attributes: any) {
   // @ts-expect-error
   return new Reject(this.response.ele('Reject', attributes))
 }
+interface CompatibilityAPIRestClientOptions extends Twilio.TwilioClientOptions {
+  signalwireSpaceUrl?: string
+}
 
 /* tslint:disable-next-line */
 const RestClient = function (
   username: string,
   token: string,
-  opts?: Record<string, string>
-) {
+  opts?: CompatibilityAPIRestClientOptions
+): Twilio {
   const host = getHost(opts)
   // "AC" prefix because twilio-node requires it
   const client = twilio('AC' + username, token, opts)
@@ -44,3 +48,9 @@ for (let i = 0; i < properties.length; i++) {
 }
 
 export default RestClient
+export type {
+  CompatibilityAPIRestClientOptions,
+  Twilio,
+  TwimlInterface,
+  JwtInterface,
+}
