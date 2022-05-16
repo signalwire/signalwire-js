@@ -1,16 +1,13 @@
 import twilio from 'twilio'
-import type { Twilio, TwimlInterface, JwtInterface } from 'twilio'
 import { getHost, Reject } from './helpers'
+import type { Twilio, TwimlInterface, JwtInterface } from 'twilio'
+import type { CompatibilityAPIRestClientOptions } from './types'
 
 twilio.twiml.FaxResponse.prototype.reject = function (attributes: any) {
   // @ts-expect-error
   return new Reject(this.response.ele('Reject', attributes))
 }
-interface CompatibilityAPIRestClientOptions extends Twilio.TwilioClientOptions {
-  signalwireSpaceUrl?: string
-}
 
-/* tslint:disable-next-line */
 const RestClient = function (
   username: string,
   token: string,
@@ -37,21 +34,16 @@ const RestClient = function (
   client.fax.v1._version = `2010-04-01/Accounts/${client.accountSid}`
 
   return client
-  // For consistency with other constructors we'll make TS force the use of `new`
-} as unknown as {
-  new (
-    username: string,
-    token: string,
-    opts?: CompatibilityAPIRestClientOptions
-  ): Twilio
 }
 
 // Define old properties
 const properties = Object.getOwnPropertyNames(twilio)
 for (let i = 0; i < properties.length; i++) {
   const newProp = properties[i] === 'twiml' ? 'LaML' : properties[i]
-  // @ts-expect-error
-  Object.defineProperty(RestClient, newProp, { value: twilio[properties[i]] })
+  Object.defineProperty(RestClient, newProp, {
+    // @ts-expect-error
+    value: twilio[properties[i]],
+  })
 }
 
 export default RestClient

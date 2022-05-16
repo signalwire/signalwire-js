@@ -1,11 +1,10 @@
-import RestClient from './'
+import RestClientImpl from '@signalwire/compatibility-api'
 
 describe('It generate LaML', () => {
   const FROM = '+11111111119'
 
   it('should generate LaML', () => {
-    // @ts-ignore
-    const response = new RestClient.LaML.VoiceResponse()
+    const response = new RestClientImpl.LaML.VoiceResponse()
     response.dial({ callerId: FROM }, '+11111111111')
     expect(response.toString()).toEqual(
       `<?xml version="1.0" encoding="UTF-8"?><Response><Dial callerId="${FROM}">+11111111111</Dial></Response>`
@@ -13,8 +12,7 @@ describe('It generate LaML', () => {
   })
 
   it('LaML to receive a fax', () => {
-    // @ts-ignore
-    const response = new RestClient.LaML.FaxResponse()
+    const response = new RestClientImpl.LaML.FaxResponse()
     response.receive({ action: '/receive/fax' })
     expect(response.toString()).toEqual(
       '<?xml version="1.0" encoding="UTF-8"?><Response><Receive action="/receive/fax"/></Response>'
@@ -22,8 +20,8 @@ describe('It generate LaML', () => {
   })
 
   it('LaML to reject a fax', () => {
+    const response = new RestClientImpl.LaML.FaxResponse()
     // @ts-ignore
-    const response = new RestClient.LaML.FaxResponse()
     response.reject()
     expect(response.toString()).toEqual(
       '<?xml version="1.0" encoding="UTF-8"?><Response><Reject/></Response>'

@@ -39,5 +39,5 @@
   "dependencies": {
     "twilio": "^3.77.0"
   },
-  "types": "dist/compatibility-api/src/index.d.ts"
+  "types": "compatibility-api.d.ts"
 }
