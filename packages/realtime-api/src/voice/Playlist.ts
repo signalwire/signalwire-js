@@ -14,8 +14,8 @@ import type {
 
 /**
  * A Playlist object allows you to specify a series of media which should be
- * played in sequence. You can then use the playlist to the methods that support
- * it, for example {@link Call.play}.
+ * played in sequence. You can then pass the playlist to the methods that
+ * support it, for example {@link Call.play}.
  *
  * @example
  *
