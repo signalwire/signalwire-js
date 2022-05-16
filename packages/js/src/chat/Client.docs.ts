@@ -238,7 +238,7 @@ export interface ClientDocs
    */
   getMemberState(params: {
     /** Channels for which to get the state. */
-    channels: string | string[]
+    channels?: string | string[]
     /** Id of the member for which to get the state. */
     memberId: string
   }): Promise<{

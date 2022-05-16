@@ -5,17 +5,15 @@ import type {
   CamelToSnakeCase,
 } from '..'
 import type { MapToPubSubShape } from '../redux/interfaces'
+import type {
+  PubSubContract,
+  PubSubMessageEntity,
+} from './pubSub'
+import type { PaginationCursor } from './common'
 import { PRODUCT_PREFIX_CHAT } from '../utils/constants'
 
-export type ChatCursor =
-  | {
-      before: string
-      after?: never
-    }
-  | {
-      before?: never
-      after: string
-    }
+/** @deprecated use {@link PaginationCursor} */
+export type ChatCursor = PaginationCursor
 
 type ToInternalChatEvent<T extends string> = `${ChatNamespace}.${T}`
 export type ChatNamespace = typeof PRODUCT_PREFIX_CHAT
@@ -33,11 +31,6 @@ export type ChatEventNames = ChatMessageEventName | ChatMemberEventNames
 
 export type ChatChannel = string | string[]
 
-interface ChatPublishParams {
-  content: any
-  channel: string
-  meta?: Record<any, any>
-}
 interface ChatSetMemberStateParams {
   memberId: string
   channels: ChatChannel
@@ -49,7 +42,7 @@ interface ChatGetMemberStateParams {
 }
 interface ChatGetMessagesParams {
   channel: string
-  cursor?: ChatCursor
+  cursor?: PaginationCursor
 }
 interface ChatGetMembersParams {
   channel: string
@@ -60,14 +53,10 @@ export interface ChatChannelState {
 
 export type ChatChannelName = string
 
-export interface ChatContract {
-  updateToken(token: string): Promise<void>
-  subscribe(channels: ChatChannel): Promise<void>
-  unsubscribe(channels: ChatChannel): Promise<void>
-  publish(params: ChatPublishParams): Promise<void>
+export interface ChatContract extends PubSubContract {
   getMessages(params: ChatGetMessagesParams): Promise<{
     messages: ChatMessageEntity[]
-    cursor: ChatCursor
+    cursor: PaginationCursor
   }>
   getMembers(params: ChatGetMembersParams): Promise<{
     members: ChatMemberEntity[]
@@ -84,13 +73,8 @@ export type ChatMethods = Omit<
   'subscribe' | 'unsubscribe' | 'updateToken'
 >
 
-export interface ChatMessageContract {
-  id: string
-  channel: string
+export interface ChatMessageContract extends PubSubMessageEntity {
   member: ChatMemberContract
-  content: any
-  publishedAt: Date
-  meta?: any
 }
 export type ChatMessageEntity = Omit<
   OnlyStateProperties<ChatMessageContract>,
@@ -124,6 +108,12 @@ export type InternalChatMemberEntity = {
  * ==========
  */
 
+/**
+ * Internally we're mapping/converting this event to
+ * `message` so the end user can register their event
+ * handlers as `client.on('message', handler)` instead of
+ * `client.on('channel.message', handler)`
+ */
 type ChannelMessageEventName = 'channel.message'
 
 /**
@@ -205,4 +195,4 @@ export type ChatJSONRPCMethod =
   | 'chat.members.get'
   | 'chat.messages.get'
 
-export type ChatTransformType = 'chatMessage'
+export type ChatTransformType = 'chatMessage' | 'chatMember'

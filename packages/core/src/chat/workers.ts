@@ -1,5 +1,6 @@
 import { BaseChatConsumer } from './BaseChat'
 import { sagaEffects, SagaIterator, SDKWorker, getLogger, ChatAction } from '..'
+import { PRODUCT_PREFIX_PUBSUB, PRODUCT_PREFIX_CHAT } from '../utils/constants'
 
 export const chatWorker: SDKWorker<BaseChatConsumer> = function* chatWorker({
   channels: { pubSubChannel },
@@ -12,6 +13,21 @@ export const chatWorker: SDKWorker<BaseChatConsumer> = function* chatWorker({
 
     switch (action.type) {
       case 'chat.channel.message': {
+        /**
+         * Since `Chat` is built on top of `PubSub` (which
+         * also has a worker) and for the time being both
+         * namespaces are using the same PRODUCT_PREFIX
+         * there is an overlap on the `chat.channel.message`
+         * event which is automatically handled by
+         * `pubSubWorker`. This means that as long as both
+         * namespace share the same PRODUCT_PREFIX the
+         * `chat.channel.message` event will be a no-op for
+         * `Chat`.
+         */
+        if (PRODUCT_PREFIX_CHAT === PRODUCT_PREFIX_PUBSUB) {
+          break
+        }
+
         yield sagaEffects.put(pubSubChannel, {
           /**
            * FIXME: This is a hack to get the message to the

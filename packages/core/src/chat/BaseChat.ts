@@ -1,31 +1,28 @@
 import {
   BaseComponentOptions,
-  BaseConsumer,
   connect,
+  EventTransform,
   extendComponent,
   JSONRPCSubscribeMethod,
-  toExternalJSON,
-  InternalChatChannel,
-  EventTransform,
-  ExecuteParams,
-  actions,
   SessionEvents,
+  toExternalJSON,
 } from '..'
-import { ChatMessage } from './ChatMessage'
-import { ChatMember } from './ChatMember'
-import * as chatMethods from './methods'
-import * as workers from './workers'
+import { BasePubSubConsumer } from '../pubSub'
 import type {
   ChatChannelMessageEvent,
-  ChatMethods,
-  ChatMessageEventName,
   ChatEventNames,
   ChatMemberEventNames,
   ChatMemberJoinedEvent,
-  ChatMemberUpdatedEvent,
   ChatMemberLeftEvent,
-  ChatChannel,
+  ChatMemberUpdatedEvent,
+  ChatMessageEventName,
+  ChatMethods,
 } from '../types/chat'
+import { PRODUCT_PREFIX_CHAT } from '../utils/constants'
+import { ChatMember } from './ChatMember'
+import { ChatMessage } from './ChatMessage'
+import * as chatMethods from './methods'
+import * as workers from './workers'
 
 type ChatMemberEvent =
   | ChatMemberJoinedEvent
@@ -48,85 +45,25 @@ export type BaseChatApiEvents<T = BaseChatApiEventsHandlerMapping> = {
   [k in keyof T]: T[k]
 }
 
-const toInternalChatChannels = (channels: string[]): InternalChatChannel[] => {
-  return channels.map((name) => {
-    return {
-      name,
-    }
-  })
-}
-
-export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
-  protected override _eventsPrefix = 'chat' as const
-  protected override subscribeMethod: JSONRPCSubscribeMethod = 'chat.subscribe'
+export class BaseChatConsumer extends BasePubSubConsumer<BaseChatApiEvents> {
+  protected override _eventsPrefix = PRODUCT_PREFIX_CHAT
+  protected override subscribeMethod: JSONRPCSubscribeMethod = `${PRODUCT_PREFIX_CHAT}.subscribe`
 
   constructor(options: BaseComponentOptions<BaseChatApiEvents>) {
     super(options)
 
-    /**
-     * Since we don't need a namespace for these events
-     * we'll attach them as soon as the Client has been
-     * registered in the Redux store.
-     */
-    this._attachListeners('')
-
-    this.setWorker('chat', { worker: workers.chatWorker })
-  }
-
-  private _getChannelsParam(
-    channels: string | string[] | undefined,
-    method: 'subscribe' | 'unsubscribe'
-  ) {
-    const _channels =
-      !channels || Array.isArray(channels) ? channels : [channels]
-
-    if (!Array.isArray(_channels) || _channels.length === 0) {
-      throw new Error(
-        `Please specify one or more channels when calling .${method}()`
-      )
-    }
-
-    return {
-      channels: toInternalChatChannels(_channels),
-    }
-  }
-
-  private _setSubscribeParams(params: Record<string, any>) {
-    this.subscribeParams = {
-      ...this.subscribeParams,
-      ...params,
-    }
-  }
-
-  private _getSubscribeParams({ channels }: { channels?: ChatChannel }) {
-    return {
-      ...this._getChannelsParam(channels, 'subscribe'),
-    }
-  }
-
-  private _getUnsubscribeParams({ channels }: { channels?: ChatChannel }) {
-    const channelsParam = this._getChannelsParam(channels, 'unsubscribe')
-
-    return {
-      ...channelsParam,
-    }
+    this.runWorker('chat', { worker: workers.chatWorker })
   }
 
   /** @internal */
-  protected getEmitterTransforms() {
+  protected override getEmitterTransforms() {
     return new Map<ChatEventNames | ChatEventNames[], EventTransform>([
       [
         ['message'],
         {
           type: 'chatMessage',
-          instanceFactory: (payload: ChatChannelMessageEvent) => {
-            const { channel, message } = payload.params
-            return new ChatMessage(
-              toExternalJSON({
-                ...message,
-                channel,
-              })
-            )
+          instanceFactory: () => {
+            return new ChatMessage({} as any)
           },
           payloadTransform: (payload: ChatChannelMessageEvent) => {
             const { channel, message } = payload.params
@@ -140,7 +77,7 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
       [
         ['member.joined', 'member.left', 'member.updated'],
         {
-          type: 'chatMessage',
+          type: 'chatMember',
           instanceFactory: (payload: ChatMemberEvent) => {
             const { member } = payload.params
             return new ChatMember(toExternalJSON(member))
@@ -152,66 +89,6 @@ export class BaseChatConsumer extends BaseConsumer<BaseChatApiEvents> {
         },
       ],
     ])
-  }
-
-  async subscribe(channels?: ChatChannel) {
-    const params = this._getSubscribeParams({ channels })
-
-    this._setSubscribeParams(params)
-
-    return super.subscribe()
-  }
-
-  async unsubscribe(channels: ChatChannel): Promise<void> {
-    if (
-      this._sessionAuthStatus === 'unknown' ||
-      this._sessionAuthStatus === 'unauthorized'
-    ) {
-      throw new Error('You must be authenticated to unsubscribe from a channel')
-    }
-
-    const params = this._getUnsubscribeParams({ channels })
-
-    return new Promise(async (resolve, reject) => {
-      const subscriptions = this.getSubscriptions()
-
-      if (subscriptions.length > 0) {
-        const execParams: ExecuteParams = {
-          method: 'chat.unsubscribe',
-          params: {
-            ...params,
-            events: subscriptions,
-          },
-        }
-
-        try {
-          await this.execute(execParams)
-        } catch (error) {
-          return reject(error)
-        }
-      } else {
-        this.logger.warn(
-          '`unsubscribe()` was called without any listeners attached.'
-        )
-      }
-
-      return resolve()
-    })
-  }
-
-  updateToken(token: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      // @ts-expect-error
-      this.once('session.auth_error', (error) => {
-        reject(error)
-      })
-      // @ts-expect-error
-      this.once('session.connected', () => {
-        resolve()
-      })
-
-      this.store.dispatch(actions.reauthAction({ token }))
-    })
   }
 }
 

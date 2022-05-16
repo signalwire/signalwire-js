@@ -4,6 +4,7 @@ import {
   ClientContract,
   actions,
   Chat as ChatNamespace,
+  PubSub as PubSubNamespace,
 } from '@signalwire/core'
 import type { CustomSaga } from '@signalwire/core'
 import { ConnectionOptions } from '@signalwire/webrtc'
@@ -18,11 +19,13 @@ import {
 } from './BaseRoomSession'
 import { VideoManager, createVideoManagerObject } from './cantina'
 import type { Client as ChatClient } from './chat/Client'
+import type { Client as PubSubClient } from './pubSub/Client'
 
 export interface Client<RoomSessionType = RoomSession>
   extends ClientContract<Client<RoomSessionType>, ClientEvents> {
   rooms: ClientAPI<RoomSessionType>['rooms']
   chat: ClientAPI<RoomSessionType>['chat']
+  pubSub: ClientAPI<RoomSessionType>['pubSub']
 }
 
 export interface MakeRoomOptions extends ConnectionOptions {
@@ -37,6 +40,7 @@ export class ClientAPI<
 > extends BaseClient<ClientEvents> {
   private _videoManager: VideoManager
   private _chat: ChatClient
+  private _pubSub: PubSubClient
 
   get rooms() {
     return {
@@ -132,6 +136,19 @@ export class ClientAPI<
       })
     }
     return this._chat
+  }
+
+  get pubSub() {
+    if (!this._pubSub) {
+      this._pubSub = PubSubNamespace.createBasePubSubObject<PubSubClient>({
+        store: this.store,
+        // Emitter is now typed but we share it across objects
+        // so types won't match
+        // @ts-expect-error
+        emitter: this.options.emitter,
+      })
+    }
+    return this._pubSub
   }
 
   /** @internal */
