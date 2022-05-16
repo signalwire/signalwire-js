@@ -17,6 +17,7 @@ import type {
   CollectDigitsConfig,
   CollectSpeechConfig,
   VoiceCallConnectMethodParams,
+  SipCodec,
 } from '@signalwire/core'
 import type { RealTimeCallApiEvents } from '../types'
 import type { Call } from './Call'
@@ -540,8 +541,10 @@ export interface CallDocs
    * Attempt to connect an existing call to a new outbound call. You can wait
    * until the call is connected by calling {@link waitUntilConnected}.
    *
-   * You can connect to multiple devices in series, parallel, or combinations of
-   * both with the use of a {@link Voice.DeviceBuilder}.
+   * This is a generic method that allows you to connect to multiple devices in
+   * series, parallel, or combinations of both with the use of a
+   * {@link Voice.DeviceBuilder}. For simpler use cases, prefer using
+   * {@link connectPhone} or {@link connectSip}.
    *
    * @example
    *
@@ -584,6 +587,87 @@ export interface CallDocs
    * ```
    */
   connect(params: VoiceCallConnectMethodParams): Promise<VoiceCallContract>
+
+  /**
+   * Attempt to connect an existing call to a new outbound phone call. You can
+   * wait until the call is connected by calling {@link waitUntilConnected}.
+   *
+   * @example
+   *
+   * ```js
+   * const peer = await call.connectPhone({
+   *   from: '+xxxxxx',
+   *   to: '+yyyyyy',
+   *   timeout: 30
+   * })
+   * ```
+   */
+  connectPhone(params: {
+    /**
+     * The party the call is coming from. Must be a SignalWire number or SIP
+     * endpoint that you own.
+     */
+    from?: string
+    /** The party you are attempting to call. */
+    to: string
+    /**
+     * The time, in seconds, the call will ring before it is considered
+     * unanswered.
+     */
+    timeout?: number
+    /**
+     * Ringback audio to play to call leg. You can play audio, tts, silence or
+     * ringtone. See {@link VoicePlaylist} for details.
+     */
+    ringback?: VoicePlaylist
+  }): Promise<VoiceCallContract>
+
+  /**
+   * Attempt to connect an existing call to a new outbound SIP call. You can
+   * wait until the call is connected by calling {@link waitUntilConnected}.
+   *
+   * @example
+   *
+   * ```js
+   * const peer = await call.connectPhone({
+   *   from: 'sip:user1@domain.com',
+   *   to: 'sip:user2@domain.com',
+   *   timeout: 30
+   * })
+   * ```
+   */
+  connectSip(params: {
+    /**
+     * The party the call is coming from. Must be a SignalWire number or SIP
+     * endpoint that you own.
+     */
+    from: string
+    /** The party you are attempting to call. */
+    to: string
+    /**
+     * The time, in seconds, the call will ring before it is considered
+     * unanswered.
+     */
+    timeout?: number
+    /**
+     * Array of `SipHeader` objects like: `{ name: string, value: string }`.
+     * Must be X- headers only, see example below.
+     */
+    headers?: SipHeader[]
+    /**
+     * Optional array of desired codecs in order of preference. Supported values
+     * are PCMU, PCMA, OPUS, G729, G722, VP8, H264. Default is parent leg
+     * codec(s).
+     */
+    codecs?: SipCodec[]
+    /** If true, WebRTC media is negotiated. Default is parent leg setting. */
+    webrtcMedia?: boolean
+    /**
+     * Ringback audio to play to call leg. You can play audio, tts, silence or
+     * ringtone. See {@link VoicePlaylist} for details.
+     */
+    ringback?: VoicePlaylist
+  }): Promise<VoiceCallContract>
 
   /**
    * Returns a promise that is resolved only after the current call has been
