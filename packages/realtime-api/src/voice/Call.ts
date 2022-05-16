@@ -90,6 +90,10 @@ interface CallMain
   extends VoiceCallContract<Call>,
     EmitterContract<RealTimeCallApiEvents> {}
 
+/**
+ * A Call object represents an active call. You can get instances of a Call
+ * object from a {@link Voice.Client}, by answering or initiating calls.
+ */
 export interface Call extends AssertSameType<CallMain, CallDocs> {}
 
 export interface CallFullState extends Call {}

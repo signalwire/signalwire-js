@@ -548,15 +548,15 @@ export interface CallDocs
    * Connecting to a new SIP call.
    *
    * ```js
-   * const peer = await call.connect(
-   *   new Voice.DeviceBuilder().add(
-   *     Voice.DeviceBuilder.Sip({
-   *       from: 'sip:user1@domain.com',
-   *       to: 'sip:user2@domain.com',
-   *       timeout: 30,
-   *     })
-   *   )
+   * const plan = new Voice.DeviceBuilder().add(
+   *   Voice.DeviceBuilder.Sip({
+   *     from: 'sip:user1@domain.com',
+   *     to: 'sip:user2@domain.com',
+   *     timeout: 30,
+   *   })
    * )
+   *
+   * const peer = await call.connect(plan)
    * ```
    *
    * @example
@@ -564,19 +564,22 @@ export interface CallDocs
    * Connecting to a new SIP call, while playing ringback audio.
    *
    * ```js
+   * const plan = new Voice.DeviceBuilder().add(
+   *   Voice.DeviceBuilder.Sip({
+   *     from: 'sip:user1@domain.com',
+   *     to: 'sip:user2@domain.com',
+   *     timeout: 30,
+   *   })
+   * )
+   *
+   * const ringback = new Voice.Playlist().add(
+   *   Voice.Playlist.Ringtone({
+   *     name: 'it',
+   *   })
+   * )
    * const peer = await call.connect({
-   *   devices: new Voice.DeviceBuilder().add(
-   *     Voice.DeviceBuilder.Sip({
-   *       from: 'sip:user1@domain.com',
-   *       to: 'sip:user2@domain.com',
-   *       timeout: 30,
-   *     })
-   *   ),
-   *   ringback: new Voice.Playlist().add(
-   *     Voice.Playlist.Ringtone({
-   *       name: 'it',
-   *     })
-   *   ),
+   *   devices: plan,
+   *   ringback: ringback
    * })
    * ```
    */
@@ -589,15 +592,15 @@ export interface CallDocs
    * @example
    *
    * ```js
-   * const peer = await call.connect(
-   *   new Voice.DeviceBuilder().add(
-   *     Voice.DeviceBuilder.Sip({
-   *       from: 'sip:user1@domain.com',
-   *       to: 'sip:user2@domain.com',
-   *       timeout: 30,
-   *     })
-   *   )
+   * const plan = new Voice.DeviceBuilder().add(
+   *   Voice.DeviceBuilder.Sip({
+   *     from: 'sip:user1@domain.com',
+   *     to: 'sip:user2@domain.com',
+   *     timeout: 30,
+   *   })
    * )
+   *
+   * const peer = await call.connect(plan)
    * await call.waitUntilConnected()
    * ```
    */

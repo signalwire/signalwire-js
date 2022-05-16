@@ -8,6 +8,55 @@ interface VoiceClientMain extends Voice {
   new (opts: VoiceClientOptions): this
 }
 
+/**
+ * You can use instances of this class to initiate or receive calls. Please see
+ * {@link VoiceClientApiEvents} for the full list of events you can subscribe to.
+ * 
+ * @example
+ *
+ * The following example answers any call in the "office" context.
+ *
+ * ```javascript
+ * const client = new Voice.Client({
+ *   project: "<project-id>",
+ *   token: "<api-token>",
+ *   contexts: ['office']
+ * })
+ *
+ * client.on('call.received', async (call) => {
+ *   console.log('Got call', call.from, call.to)
+ *
+ *   try {
+ *     await call.answer()
+ *     console.log('Inbound call answered')
+ *   } catch (error) {
+ *     console.error('Error answering inbound call', error)
+ *   }
+ * })
+ * ```
+ * 
+ * @example
+ *
+ * The following example initiates a new call.
+ *
+ * ```javascript
+ * const client = new Voice.Client({
+ *   project: "<project-id>",
+ *   token: "<api-token>",
+ *   contexts: ['office']
+ * })
+ *
+ * try {
+ *   const call = await client.dialPhone({
+ *     from: '+YYYYYYYYYY',
+ *     to: '+XXXXXXXXXX',
+ *     timeout: 30,
+ *   })
+ * } catch (e) {
+ *   console.log("Call not answered.")
+ * }
+ * ```
+ */
 interface VoiceClient
   extends AssertSameType<VoiceClientMain, VoiceClientDocs> {}
 

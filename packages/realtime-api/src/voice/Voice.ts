@@ -22,6 +22,13 @@ export * from './VoiceClient'
 export { Call } from './Call'
 export { DeviceBuilder }
 export { Playlist } from './Playlist'
+export {
+  VoiceCallPlayParams,
+  VoiceCallPlayAudioMethodParams,
+  VoiceCallPlayTTSMethodParams,
+  VoiceCallPlaySilenceMethodParams,
+  VoiceCallPlayRingtoneMethodParams,
+} from '@signalwire/core'
 
 /**
  * List of events for {@link Voice.Call}.

@@ -371,6 +371,7 @@ export interface VoiceDeviceBuilder {
 }
 
 export interface CreateVoicePlaylistParams {
+  /** Default volume for the audio in the playlist. */
   volume?: number
 }
 
