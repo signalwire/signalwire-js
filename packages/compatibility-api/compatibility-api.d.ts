@@ -1,5 +1,6 @@
-import type { Twilio as TwilioClient, TwimlInterface } from 'twilio'
+import type { Twilio, TwimlInterface } from 'twilio'
 import * as webhookTools from 'twilio/lib/webhooks/webhooks'
+import TwilioClient from 'twilio/lib/rest/Twilio'
 import type { CompatibilityAPIRestClientOptions } from './src/types'
 
 declare function RestClient(
