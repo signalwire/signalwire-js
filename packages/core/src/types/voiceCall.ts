@@ -300,6 +300,13 @@ export type VoiceCallConnectMethodParams =
       devices: VoiceDeviceBuilder
       ringback?: VoicePlaylist
     }
+
+export type VoiceCallConnectPhoneMethodParams =
+  OmitType<VoiceCallPhoneParams> & { ringback?: VoicePlaylist }
+export type VoiceCallConnectSipMethodParams = OmitType<VoiceCallSipParams> & {
+  ringback?: VoicePlaylist
+}
+
 interface VoiceCallDetectBaseParams {
   timeout?: number
   waitForBeep?: boolean // SDK-side only
@@ -591,6 +598,12 @@ export interface VoiceCallContract<T = any> {
   tap(params: VoiceCallTapMethodParams): Promise<VoiceCallTapContract>
   tapAudio(params: VoiceCallTapAudioMethodParams): Promise<VoiceCallTapContract>
   connect(params: VoiceCallConnectMethodParams): Promise<VoiceCallContract>
+  connectPhone(
+    params: VoiceCallConnectPhoneMethodParams
+  ): Promise<VoiceCallContract>
+  connectSip(
+    params: VoiceCallConnectSipMethodParams
+  ): Promise<VoiceCallContract>
   waitUntilConnected(): Promise<this>
   waitFor(
     params: CallingCallWaitForState | CallingCallWaitForState[]
