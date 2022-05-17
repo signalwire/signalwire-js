@@ -92,19 +92,16 @@ const handler = () => {
         console.log(
           `Connecting ${process.env.VOICE_DIAL_FROM_NUMBER} to ${process.env.VOICE_DIAL_CONNECT_TO_NUMBER}`
         )
-        const peer = await call.connect({
-          devices: new Voice.DeviceBuilder().add(
-            Voice.DeviceBuilder.Phone({
-              from: process.env.VOICE_DIAL_FROM_NUMBER!,
-              to: process.env.VOICE_DIAL_CONNECT_TO_NUMBER!,
-              timeout: 30,
-            })
-          ),
-          ringback: new Voice.Playlist().add(
-            Voice.Playlist.Ringtone({
-              name: 'it',
-            })
-          ),
+        const ringback = new Voice.Playlist().add(
+          Voice.Playlist.Ringtone({
+            name: 'it',
+          })
+        )
+        const peer = await call.connectPhone({
+          from: process.env.VOICE_DIAL_FROM_NUMBER!,
+          to: process.env.VOICE_DIAL_CONNECT_TO_NUMBER!,
+          timeout: 30,
+          ringback, // optional
         })
 
         console.log('Peer:', peer.id, peer.type, peer.from, peer.to)

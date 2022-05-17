@@ -31,6 +31,8 @@ import {
   CallingCallState,
   CallingCallStateEventParams,
   VoiceCallConnectMethodParams,
+  VoiceCallConnectPhoneMethodParams,
+  VoiceCallConnectSipMethodParams,
   CallingCallConnectEventParams,
   VoiceCallDetectMethodParams,
   VoiceCallDetectMachineParams,
@@ -185,7 +187,6 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       // @ts-expect-error
       return this.device?.params?.from ?? ''
     }
-    this.logger.warn('Unknow Call type', this.type)
     // @ts-expect-error
     return this.device?.params?.from ?? ''
   }
@@ -198,7 +199,6 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       // @ts-expect-error
       return this.device?.params?.to ?? ''
     }
-    this.logger.warn('Unknow Call type', this.type)
     // @ts-expect-error
     return this.device?.params?.to ?? ''
   }
@@ -868,6 +868,16 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         reject(e)
       })
     })
+  }
+
+  connectPhone({ ringback, ...params }: VoiceCallConnectPhoneMethodParams) {
+    const devices = new DeviceBuilder().add(DeviceBuilder.Phone(params))
+    return this.connect({ devices, ringback })
+  }
+
+  connectSip({ ringback, ...params }: VoiceCallConnectSipMethodParams) {
+    const devices = new DeviceBuilder().add(DeviceBuilder.Sip(params))
+    return this.connect({ devices, ringback })
   }
 
   disconnect() {

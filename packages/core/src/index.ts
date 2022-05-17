@@ -76,9 +76,11 @@ export * as sagaEffects from '@redux-saga/core/effects'
 export type { SagaIterator, Task, Saga } from '@redux-saga/types'
 export * as Rooms from './rooms'
 export * as Chat from './chat'
+export * as PubSub from './pubSub'
 export * as MemberPosition from './memberPosition'
 export type { RoomSessionRecording, RoomSessionPlayback } from './rooms'
 export const selectors = {
   ...sessionSelectors,
 }
 export { ChatMember, ChatMessage } from './chat'
+export { PubSubMessage } from './pubSub'
