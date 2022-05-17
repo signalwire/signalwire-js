@@ -26,13 +26,13 @@ declare namespace FaxResponse {
   }
 }
 
-interface ConstructableType<T> {
+interface TwimlConstructor<T> {
   new (): T;
 }
 
 declare namespace RestClient {
   export interface RestClientLaMLInterface extends TwimlInterface {
-    FaxResponse: ConstructableType<FaxResponse>;
+    FaxResponse: TwimlConstructor<FaxResponse>;
   }
 
   export import Twilio = TwilioClient
