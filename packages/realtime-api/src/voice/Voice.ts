@@ -57,6 +57,7 @@ class VoiceAPI extends AutoApplyTransformsConsumer<RealTimeVoiceApiEvents> {
       [
         'calling.call.received',
         {
+          mode: 'no-cache',
           type: 'voiceCallReceived',
           instanceFactory: (_payload: any) => {
             return createCallObject({
