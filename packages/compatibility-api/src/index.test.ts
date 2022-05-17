@@ -21,7 +21,6 @@ describe('It generate LaML', () => {
 
   it('LaML to reject a fax', () => {
     const response = new RestClientImpl.LaML.FaxResponse()
-    // @ts-ignore
     response.reject()
     expect(response.toString()).toEqual(
       '<?xml version="1.0" encoding="UTF-8"?><Response><Reject/></Response>'
