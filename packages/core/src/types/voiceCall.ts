@@ -604,7 +604,7 @@ export interface VoiceCallContract<T = any> {
   connectSip(
     params: VoiceCallConnectSipMethodParams
   ): Promise<VoiceCallContract>
-  waitUntilConnected(): Promise<this>
+  waitForDisconnect(): Promise<this>
   waitFor(
     params: CallingCallWaitForState | CallingCallWaitForState[]
   ): Promise<boolean>

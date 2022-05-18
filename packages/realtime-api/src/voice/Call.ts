@@ -906,7 +906,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     })
   }
 
-  waitUntilConnected() {
+  waitForDisconnect() {
     return new Promise<this>((resolve) => {
       const resolveHandler = () => {
         resolve(this)
