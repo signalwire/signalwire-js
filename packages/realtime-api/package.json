@@ -32,7 +32,7 @@
   },
   "homepage": "https://github.com/signalwire/signalwire-js/tree/master/packages/realtime-api",
   "scripts": {
-    "start": "sw-build --dev --node",
+    "start": "sw-build --dev --node --watchFormat=cjs",
     "build": "tsc --project tsconfig.build.json && sw-build --node",
     "test": "NODE_ENV=test jest --detectOpenHandles --forceExit",
     "prepublishOnly": "npm run build",
