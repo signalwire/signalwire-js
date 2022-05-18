@@ -50,12 +50,14 @@ const VoiceClient = function (options?: VoiceClientOptions) {
 
     return call
   }
+  const disconnect = () => client.disconnect()
 
   const interceptors = {
     on: clientOn,
     once: clientOnce,
     dial: callDial,
     _session: client,
+    disconnect,
   } as const
 
   return new Proxy<Omit<Voice, 'new'>>(voice, {
