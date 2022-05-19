@@ -41,7 +41,7 @@
     "docs:watch": "npm run docs -- --watch"
   },
   "dependencies": {
-    "@signalwire/core": "3.7.1",
+    "@signalwire/core": "3.8.0",
     "ws": "^8.5.0"
   },
   "devDependencies": {

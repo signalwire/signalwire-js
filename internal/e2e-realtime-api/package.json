@@ -1,6 +1,6 @@
 {
   "name": "@sw-internal/e2e-realtime-api",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "private": true,
   "main": "index.js",
   "scripts": {
