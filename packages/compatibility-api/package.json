@@ -1,11 +1,11 @@
 {
-  "name": "@signalwire/realtime-api",
-  "description": "SignalWire RealTime SDK for Node.js",
+  "name": "@signalwire/compatibility-api",
+  "private": true,
+  "description": "SignalWire Compatibility API",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
-  "version": "3.0.0-beta.9",
+  "version": "0.0.0",
   "main": "dist/index.node.js",
-  "beta": true,
   "exports": {
     "require": "./dist/index.node.js",
     "default": "./dist/index.node.mjs"
@@ -18,10 +18,7 @@
     "node": ">=12"
   },
   "keywords": [
-    "signalwire",
-    "video",
-    "relay",
-    "sip"
+    "signalwire"
   ],
   "repository": {
     "type": "git",
@@ -30,23 +27,17 @@
   "bugs": {
     "url": "https://github.com/signalwire/signalwire-js/issues"
   },
-  "homepage": "https://github.com/signalwire/signalwire-js/tree/master/packages/realtime-api",
+  "homepage": "https://github.com/signalwire/signalwire-js/tree/master/packages/compatibility-api",
   "scripts": {
-    "start": "sw-build --dev --node --watchFormat=cjs",
+    "start": "sw-build --dev --node",
     "build": "tsc --project tsconfig.build.json && sw-build --node",
     "test": "NODE_ENV=test jest --detectOpenHandles --forceExit",
     "prepublishOnly": "npm run build",
-    "docs": "npm run docs:md && npm run docs:html",
-    "docs:md": "typedoc --options typedoc.md.js",
-    "docs:html": "typedoc --options typedoc.html.js",
+    "docs": "typedoc --options typedoc.js --readme README.md",
     "docs:watch": "npm run docs -- --watch"
   },
   "dependencies": {
-    "@signalwire/core": "3.7.1",
-    "ws": "^8.5.0"
+    "twilio": "^3.77.0"
   },
-  "devDependencies": {
-    "@types/ws": "^8.5.3"
-  },
-  "types": "dist/realtime-api/src/index.d.ts"
+  "types": "compatibility-api.d.ts"
 }

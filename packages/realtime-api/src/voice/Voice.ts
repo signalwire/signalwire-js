@@ -1,10 +1,6 @@
-import {
-  connect,
-  BaseComponentOptions,
-  toExternalJSON,
-  DisconnectableClientContract,
-} from '@signalwire/core'
+import { connect, BaseComponentOptions, toExternalJSON } from '@signalwire/core'
 import type {
+  DisconnectableClientContract,
   EventTransform,
   CallingCallReceiveEventParams,
   VoiceDeviceBuilder,

@@ -4,13 +4,13 @@ This [monorepo](https://en.wikipedia.org/wiki/Monorepo) contains different imple
 
 ### Packages
 
-| Project                      | Package                                                                  | README                                         | CHANGELOG                                              |
-| ---------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------- | ------------------------------------------------------ |
-| **@signalwire/core**         | [`@signalwire/core`](https://www.npmjs.com/package/@signalwire/core)     | [`README.md`](packages/node/README.md)         | [`CHANGELOG.md`](packages/node/CHANGELOG.md)           |
-| **@signalwire/js**           | [`@signalwire/js`](https://www.npmjs.com/package/@signalwire/js)         | [`README.md`](packages/js/README.md)           | [`CHANGELOG.md`](packages/js/CHANGELOG.md)             |
-| **@signalwire/node**         | _WIP_                                                                    | [`README.md`](packages/node/README.md)         | [`CHANGELOG.md`](packages/node/CHANGELOG.md)           |
-| **@signalwire/react-native** | _WIP_                                                                    | [`README.md`](packages/react-native/README.md) | [`CHANGELOG.md`](packages/react-native/CHANGELOG.md)   |
-| **@signalwire/webrtc**       | [`@signalwire/webrtc`](https://www.npmjs.com/package/@signalwire/webrtc) | [`README.md`](packages/webrtc/README.md)       | [`CHANGELOG.md`](packages/webrtc/CHANGELOG.md)         |
+| Project                      | Package                                                                  | README                                         | CHANGELOG                                            |
+| ---------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------- | ---------------------------------------------------- |
+| **@signalwire/core**         | [`@signalwire/core`](https://www.npmjs.com/package/@signalwire/core)     | [`README.md`](packages/node/README.md)         | [`CHANGELOG.md`](packages/node/CHANGELOG.md)         |
+| **@signalwire/js**           | [`@signalwire/js`](https://www.npmjs.com/package/@signalwire/js)         | [`README.md`](packages/js/README.md)           | [`CHANGELOG.md`](packages/js/CHANGELOG.md)           |
+| **@signalwire/node**         | _WIP_                                                                    | [`README.md`](packages/node/README.md)         | [`CHANGELOG.md`](packages/node/CHANGELOG.md)         |
+| **@signalwire/react-native** | _WIP_                                                                    | [`README.md`](packages/react-native/README.md) | [`CHANGELOG.md`](packages/react-native/CHANGELOG.md) |
+| **@signalwire/webrtc**       | [`@signalwire/webrtc`](https://www.npmjs.com/package/@signalwire/webrtc) | [`README.md`](packages/webrtc/README.md)       | [`CHANGELOG.md`](packages/webrtc/CHANGELOG.md)       |
 
 Refer to the README of each package for further details.
 
@@ -38,4 +38,4 @@ The normal flow should look to something like this:
 
 ## License
 
-Copyright © 2018-2021 SignalWire. It is free software, and may be redistributed under the terms specified in the [MIT-LICENSE](https://github.com/signalwire/signalwire-js/blob/master/LICENSE) file.
+Copyright © 2018-2022 SignalWire. It is free software, and may be redistributed under the terms specified in the [MIT-LICENSE](https://github.com/signalwire/signalwire-js/blob/master/LICENSE) file.

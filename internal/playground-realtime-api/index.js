@@ -4,6 +4,7 @@
  * load of the example code using `-r esbuild-register`
  */
 const inquirer = require('inquirer')
+const watch = require('node-watch')
 const path = require('node:path')
 const fs = require('node:fs')
 const { spawn } = require('node:child_process')
@@ -77,6 +78,20 @@ const getRunParams = (script) => {
   }
 }
 
+const runScript = (scriptFile) => {
+  const child = spawn(...getRunParams(scriptFile))
+
+  child.stdout.on('data', (data) => {
+    console.log(data.toString())
+  })
+
+  child.stderr.on('data', (data) => {
+    console.error(`stderr: ${data}`)
+  })
+
+  return child
+}
+
 async function main() {
   const answer = await inquirer.prompt([
     {
@@ -87,19 +102,27 @@ async function main() {
     },
   ])
 
-  const child = spawn(...getRunParams(answer.script))
+  let child
+  watch(
+    path.join(__dirname, '../../', 'packages/realtime-api/dist'),
+    { recursive: true },
+    (_evt, name) => {
+      if (name.endsWith('map')) {
+        return
+      }
 
-  child.stdout.on('data', (data) => {
-    console.log(data.toString())
-  })
+      const newChild = runScript(answer.script)
 
-  child.stderr.on('data', (data) => {
-    console.error(`stderr: ${data}`)
-  })
+      if (child) {
+        child.stdin.pause();
+        child.kill()
+      }
 
-  child.on('close', () => {
-    process.exit(0)
-  })
+      child = newChild
+    }
+  )
+
+  child = runScript(answer.script)
 }
 
 main(process.argv)

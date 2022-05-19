@@ -112,16 +112,16 @@ async function run() {
         console.log('Main:', call.id, call.type, call.from, call.to)
 
         // Wait until Main and Peer are connected
-        await call.waitUntilConnected()
+        await call.waitForDisconnected()
 
         const playlist = new Voice.Playlist({ volume: 2 }).add(
           Voice.Playlist.TTS({
             text: 'Thank you, you are now disconnected from the peer',
           })
         )
-        await call.play(playlist)
+        const pb = await call.play(playlist)
 
-        await sleep()
+        await pb.waitForEnded()
       } catch (error) {
         console.error('Connect Error', error)
       }
@@ -268,6 +268,8 @@ async function run() {
     } catch (error) {
       console.log('Error:', error)
     }
+
+    client.disconnect()
   } catch (error) {
     console.log('<Error>', error)
   }
