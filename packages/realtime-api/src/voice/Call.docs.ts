@@ -539,7 +539,7 @@ export interface CallDocs
 
   /**
    * Attempt to connect an existing call to a new outbound call. You can wait
-   * until the call is connected by calling {@link waitUntilConnected}.
+   * until the call is disconnected by calling {@link waitForDisconnected}.
    *
    * This is a generic method that allows you to connect to multiple devices in
    * series, parallel, or combinations of both with the use of a
@@ -590,7 +590,7 @@ export interface CallDocs
 
   /**
    * Attempt to connect an existing call to a new outbound phone call. You can
-   * wait until the call is connected by calling {@link waitUntilConnected}.
+   * wait until the call is disconnected by calling {@link waitForDisconnected}.
    *
    * @example
    *
@@ -624,7 +624,7 @@ export interface CallDocs
 
   /**
    * Attempt to connect an existing call to a new outbound SIP call. You can
-   * wait until the call is connected by calling {@link waitUntilConnected}.
+   * wait until the call is disconnected by calling {@link waitForDisconnected}.
    *
    * @example
    *
@@ -685,10 +685,10 @@ export interface CallDocs
    * )
    *
    * const peer = await call.connect(plan)
-   * await call.waitUntilConnected()
+   * await call.waitForDisconnected()
    * ```
    */
-  waitUntilConnected(): Promise<this>
+  waitForDisconnected(): Promise<this>
 
   /**
    * Returns a promise that is resolved only after the current call is in one of
