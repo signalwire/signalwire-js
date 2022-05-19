@@ -64,6 +64,7 @@ import { CallPrompt, createCallPromptObject } from './CallPrompt'
 import { CallTap, createCallTapObject } from './CallTap'
 import { CallDetect, createCallDetectObject } from './CallDetect'
 import { DeviceBuilder } from './DeviceBuilder'
+import { CallDocs } from './Call.docs'
 
 type EmitterTransformsEvents =
   | 'calling.playback.start'
@@ -91,8 +92,10 @@ interface CallMain
   extends VoiceCallContract<Call>,
     EmitterContract<RealTimeCallApiEvents> {}
 
-interface CallDocs extends CallMain {}
-
+/**
+ * A Call object represents an active call. You can get instances of a Call
+ * object from a {@link Voice.Client}, by answering or initiating calls.
+ */
 export interface Call extends AssertSameType<CallMain, CallDocs> {}
 
 export interface CallFullState extends Call {}

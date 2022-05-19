@@ -9,7 +9,7 @@ import type {
 
 type ToInternalVoiceEvent<T extends string> = `${VoiceNamespace}.${T}`
 export type VoiceNamespace = typeof PRODUCT_PREFIX_VOICE_CALL
-type RingtoneName =
+export type RingtoneName =
   | 'at'
   | 'au'
   | 'bg'
@@ -125,7 +125,7 @@ export type VoiceCallEventNames =
 // export type InternalVoiceCallEventNames =
 //   ToInternalVoiceEvent<VoiceCallEventNames>
 
-type SipCodec = 'PCMU' | 'PCMA' | 'OPUS' | 'G729' | 'G722' | 'VP8' | 'H264'
+export type SipCodec = 'PCMU' | 'PCMA' | 'OPUS' | 'G729' | 'G722' | 'VP8' | 'H264'
 
 export interface SipHeader {
   name: string
@@ -223,23 +223,34 @@ export interface VoiceCallRecordMethodParams {
   }
 }
 
+export type CollectDigitsConfig = {
+  /** Max number of digits to collect. */
+  max: number
+  /** Timeout in seconds between each digit. */
+  digitTimeout?: number
+  /** DTMF digits that will end the collection. Default not set. */
+  terminators?: string
+}
+
+export type CollectSpeechConfig = {
+  /** How much silence to wait for end of speech. Default to 1 second. */
+  endSilenceTimeout?: number
+  /** Maximum time to collect speech. Default to 60 seconds. */
+  speechTimeout?: number
+  /** Language to detect. Default to `en-US`. */
+  language?: number
+  /** Array of expected phrases to detect. */
+  hints?: string[]
+}
+
 type SpeechOrDigits =
   | {
-      digits: {
-        max: number
-        digitTimeout?: number
-        terminators?: string
-      }
+      digits: CollectDigitsConfig
       speech?: never
     }
   | {
       digits?: never
-      speech: {
-        endSilenceTimeout: number
-        speechTimeout: number
-        language: number
-        hints: string[]
-      }
+      speech: CollectSpeechConfig
     }
 export type VoiceCallPromptMethodParams = SpeechOrDigits & {
   playlist: VoicePlaylist
@@ -280,7 +291,7 @@ interface TapDeviceRTP {
   ptime?: number
 }
 
-type TapDevice = TapDeviceWS | TapDeviceRTP
+export type TapDevice = TapDeviceWS | TapDeviceRTP
 type TapDirection = 'listen' | 'speak' | 'both'
 export interface VoiceCallTapMethodParams {
   device: TapDevice
@@ -367,6 +378,7 @@ export interface VoiceDeviceBuilder {
 }
 
 export interface CreateVoicePlaylistParams {
+  /** Default volume for the audio in the playlist. */
   volume?: number
 }
 
@@ -447,13 +459,13 @@ export type VoiceCallRecordingMethods =
  * Public Contract for a VoiceCallDetect
  */
 export interface VoiceCallDetectContract {
-  /** Unique id for this recording */
+  /** Unique id for this detection */
   readonly id: string
   /** @ignore */
   readonly callId: string
   /** @ignore */
   readonly controlId: string
-  /** @ignore */
+  /** @ignore The result of the detection. */
   readonly type?: CallingCallDetectType
 
   stop(): Promise<this>

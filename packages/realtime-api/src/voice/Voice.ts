@@ -15,18 +15,27 @@ import type { RealTimeCallApiEvents } from '../types'
 import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
 
 export * from './VoiceClient'
+export { Call } from './Call'
 export { DeviceBuilder }
 export { Playlist } from './Playlist'
+export {
+  VoiceCallPlayParams,
+  VoiceCallPlayAudioMethodParams,
+  VoiceCallPlayTTSMethodParams,
+  VoiceCallPlaySilenceMethodParams,
+  VoiceCallPlayRingtoneMethodParams,
+} from '@signalwire/core'
 
 /**
  * List of events for {@link Voice.Call}.
  */
-export interface RealTimeVoiceApiEvents extends RealTimeCallApiEvents {}
+export interface VoiceClientApiEvents extends RealTimeCallApiEvents {}
 
 type EmitterTransformsEvents = 'calling.call.received'
 
+/** @ignore */
 export interface Voice
-  extends DisconnectableClientContract<Voice, RealTimeVoiceApiEvents> {
+  extends DisconnectableClientContract<Voice, VoiceClientApiEvents> {
   /** @internal */
   _session: RealtimeClient
   dial(dialer: VoiceDeviceBuilder): Promise<Call>
@@ -35,11 +44,11 @@ export interface Voice
 }
 
 /** @internal */
-class VoiceAPI extends AutoApplyTransformsConsumer<RealTimeVoiceApiEvents> {
+class VoiceAPI extends AutoApplyTransformsConsumer<VoiceClientApiEvents> {
   /** @internal */
   protected _eventsPrefix = 'calling' as const
 
-  constructor(options: BaseComponentOptions<RealTimeVoiceApiEvents>) {
+  constructor(options: BaseComponentOptions<VoiceClientApiEvents>) {
     super(options)
 
     this.runWorker('voiceCallReceiveWorker', {
@@ -98,9 +107,9 @@ class VoiceAPI extends AutoApplyTransformsConsumer<RealTimeVoiceApiEvents> {
 
 /** @internal */
 export const createVoiceObject = (
-  params: BaseComponentOptions<RealTimeVoiceApiEvents>
+  params: BaseComponentOptions<VoiceClientApiEvents>
 ): Voice => {
-  const voice = connect<RealTimeVoiceApiEvents, VoiceAPI, Voice>({
+  const voice = connect<VoiceClientApiEvents, VoiceAPI, Voice>({
     store: params.store,
     Component: VoiceAPI,
     componentListeners: {
