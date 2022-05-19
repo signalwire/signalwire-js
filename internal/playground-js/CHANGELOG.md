@@ -1,5 +1,17 @@
 # @sw-internal/playground-js
 
+## 0.0.4
+
+### Patch Changes
+
+- [#512](https://github.com/signalwire/signalwire-js/pull/512) [`f69ef584`](https://github.com/signalwire/signalwire-js/commit/f69ef5848eebf8c4c1901fda5ea1d3c8a92b6a84) - [internal] fix parse nested fields
+
+* [#520](https://github.com/signalwire/signalwire-js/pull/520) [`2c3145b7`](https://github.com/signalwire/signalwire-js/commit/2c3145b70379a5b4f66b362b98e75900fce32a9c) - Fix `getDevicesWithPermissions` for Firefox.
+
+- [#501](https://github.com/signalwire/signalwire-js/pull/501) [`5c96bf85`](https://github.com/signalwire/signalwire-js/commit/5c96bf85a0d584d8467450144b0bbe97c863a571) - [internal] Review parsing of nested fields in our EE transform pipeline
+
+* [#506](https://github.com/signalwire/signalwire-js/pull/506) [`05bb3c31`](https://github.com/signalwire/signalwire-js/commit/05bb3c31fc7527c17814535b59e926db09d34f43) - [internal] Skip BaseComponents and Proxies in toExternalJSON
+
 ## 0.0.3
 
 ### Patch Changes
