@@ -62,6 +62,8 @@ export interface VideoRoomSessionContract {
   hideVideoMuted: boolean
   /** URL to the room preview. */
   previewUrl?: string
+  /** Current layout name used in the room. */
+  layoutName: string
   /** Metadata associated to this room session. */
   meta: Record<string, unknown>
 
