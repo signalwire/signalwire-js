@@ -112,6 +112,13 @@ const makeLayoutChangedHandler =
 
         const localVideo = buildVideo()
         localVideo.srcObject = localStream
+        /**
+         * By default `video` has `object-fit: contain` but
+         * under certain timing conditions + certain cameras
+         * in Chrome, the video element didn't fill up the
+         * entirety of its parent.
+         */
+        localVideo.style.objectFit = 'fill'
         localVideo.style.width = '100%'
         localVideo.style.height = '100%'
 
@@ -139,17 +146,6 @@ const makeLayoutChangedHandler =
       myLayer.style.left = left
       myLayer.style.width = width
       myLayer.style.height = height
-
-      /**
-       * Try to force a repaint so the browser put the video in the correct location.
-       * We saw some cases where it updates only with a CSS change and/or window resize.
-       */
-      setTimeout(() => {
-        const myVideo = myLayer!.querySelector('video')
-        if (myVideo) {
-          myVideo.style.objectFit = 'contain'
-        }
-      }, 100)
     } catch (error) {
       getLogger().error('Layout Changed Error', error)
     }
