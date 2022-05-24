@@ -61,13 +61,13 @@ export const makeVideoElementSaga = ({
           if (!this.domElement) {
             return getLogger().warn('Missing localOverlay to hide')
           }
-          this.domElement.style.display = 'none'
+          this.domElement.style.opacity = '0'
         },
         show() {
           if (!this.domElement) {
             return getLogger().warn('Missing localOverlay to show')
           }
-          this.domElement.style.display = 'block'
+          this.domElement.style.opacity = '1'
         },
       }
 

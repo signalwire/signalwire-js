@@ -133,23 +133,12 @@ const makeLayoutChangedHandler =
        * Show myLayer only if the localStream has a valid video track
        */
       if (localStream.getVideoTracks().length > 0) {
-        myLayer.style.display = 'block'
+        myLayer.style.opacity = '1'
       }
       myLayer.style.top = top
       myLayer.style.left = left
       myLayer.style.width = width
       myLayer.style.height = height
-
-      /**
-       * Try to force a repaint so the browser put the video in the correct location.
-       * We saw some cases where it updates only with a CSS change and/or window resize.
-       */
-      setTimeout(() => {
-        const myVideo = myLayer!.querySelector('video')
-        if (myVideo) {
-          myVideo.style.objectFit = 'contain'
-        }
-      }, 100)
     } catch (error) {
       getLogger().error('Layout Changed Error', error)
     }
