@@ -550,9 +550,17 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     }
   }
 
-  /** @internal */
+  /**
+   * Send the `verto.invite` only if the state is either `new` or `requesting`
+   *   - new: the first time we send out the offer.
+   *   - requesting: we received a redirect to a different node so need to send
+   *     again the offer with a different nodeId.
+   *
+   * @internal
+   */
   async executeInvite(sdp: string) {
-    if (this.state !== 'new') {
+    const validStates: BaseConnectionState[] = ['new', 'requesting']
+    if (!validStates.includes(this.state)) {
       /**
        * Something bad happened. Either App logic invoking
        * methods in a wrong order or events are not correct.
@@ -561,7 +569,10 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         `Invalid state: '${this.state}' for connection id: ${this.id}`
       )
     }
-    this.setState('requesting')
+    // Set state to `requesting` only when `new`, otherwise keep it as `requesting`.
+    if (this.state === 'new') {
+      this.setState('requesting')
+    }
     try {
       const ssOpts = this.options.screenShare
         ? {
