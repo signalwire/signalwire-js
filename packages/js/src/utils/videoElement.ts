@@ -112,13 +112,6 @@ const makeLayoutChangedHandler =
 
         const localVideo = buildVideo()
         localVideo.srcObject = localStream
-        /**
-         * By default `video` has `object-fit: contain` but
-         * under certain timing conditions + certain cameras
-         * in Chrome, the video element didn't fill up the
-         * entirety of its parent.
-         */
-        localVideo.style.objectFit = 'fill'
         localVideo.style.width = '100%'
         localVideo.style.height = '100%'
 
@@ -140,7 +133,7 @@ const makeLayoutChangedHandler =
        * Show myLayer only if the localStream has a valid video track
        */
       if (localStream.getVideoTracks().length > 0) {
-        myLayer.style.display = 'block'
+        myLayer.style.opacity = '1'
       }
       myLayer.style.top = top
       myLayer.style.left = left
