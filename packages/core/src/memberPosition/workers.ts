@@ -136,14 +136,14 @@ export const memberPositionWorker: SDKWorker<any> =
   function* memberPositionWorker({
     instance,
     channels,
-    payload,
+    initialState,
   }): SagaIterator {
-    if (!payload) {
+    if (!initialState) {
       return
     }
 
     const { swEventChannel } = channels
-    let memberList = initializeMemberList(payload)
+    let memberList = initializeMemberList(initialState)
 
     while (true) {
       const action = yield sagaEffects.take(swEventChannel, (action: any) => {
