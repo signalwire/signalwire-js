@@ -53,10 +53,9 @@ class MessagingAPI extends BaseComponent<MessagingClientApiEvents> {
   constructor(options: BaseComponentOptions<MessagingClientApiEvents>) {
     super(options)
 
-    this.setWorker('messagingWorker', {
+    this.runWorker('messagingWorker', {
       worker: messagingWorker,
     })
-    this.attachWorkers()
     this._attachListeners('')
   }
 
