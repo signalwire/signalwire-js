@@ -44,7 +44,8 @@
   },
   "dependencies": {
     "@signalwire/core": "3.8.0",
-    "@signalwire/webrtc": "3.5.0"
+    "@signalwire/webrtc": "3.5.0",
+    "jwt-decode": "^3.1.2"
   },
   "types": "dist/js/src/index.d.ts"
 }
