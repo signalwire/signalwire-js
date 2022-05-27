@@ -1,10 +1,10 @@
 # @signalwire/js
 
-# SignalWire JavaScript SDK
+# RELAY Browser SDK
 
 [![Build Status](https://ci.signalwire.com/api/badges/signalwire/signalwire-js/status.svg)](https://ci.signalwire.com/signalwire/signalwire-js) ![NPM](https://img.shields.io/npm/v/@signalwire/js.svg?color=brightgreen)
 
-The SignalWire JavaScript SDK transforms your standard browser into a realtime media engine, enabling developers to directly make audio and video calls to phone numbers, SIP endpoints, and other browsers. Using the JavaScript SDK you can add immersive, scalable communication - from video conferences and softphones to click-to-call and mobile gaming - all available right in your own web pages and applications.
+The RELAY Browser SDK transforms your standard browser into a realtime media engine, enabling developers to directly make audio and video calls to phone numbers, SIP endpoints, and other browsers. Using the JavaScript SDK you can add immersive, scalable communication - from video conferences and softphones to click-to-call and mobile gaming - all available right in your own web pages and applications.
 
 SignalWire's simple and powerful authentication system, using JWT, allows you to set granular permissions, enabling some of your users to only join conference calls, while others could list on-going calls and jump in to assist from a support dashboard... the possibilities are endless.
 

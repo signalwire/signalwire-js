@@ -1,6 +1,6 @@
 # @signalwire/realtime-api
 
-# SignalWire RealTime SDK
+# RELAY RealTime SDK
 
 [![Build Status](https://ci.signalwire.com/api/badges/signalwire/signalwire-js/status.svg)](https://ci.signalwire.com/signalwire/signalwire-js) ![NPM](https://img.shields.io/npm/v/@signalwire/realtime-api.svg?color=brightgreen)
 
@@ -8,7 +8,7 @@ The RealTime SDK enables Node.js developers to connect and use SignalWire's Real
 
 ## Getting Started
 
-Read the implementation documentation, guides and API Reference at the official [SignalWire RealTime SDK Documentation](https://developer.signalwire.com/client-sdk/docs/getting-started) site.
+Read the implementation documentation, guides and API Reference at the official [RELAY RealTime SDK Documentation](https://developer.signalwire.com/client-sdk/docs/getting-started) site.
 
 ---
 
