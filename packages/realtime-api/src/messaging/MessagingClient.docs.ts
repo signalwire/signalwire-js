@@ -65,4 +65,7 @@ export interface MessagingClientDocs extends Pick<Messaging, InheritedMembers> {
     /** Array of URLs to send in the message. Optional if `body` is present. */
     media?: string[]
   }): Promise<MessagingSendResult>
+
+  addContexts(contexts: string[]): Promise<{ message: string; code: number }>
+  removeContexts(contexts: string[]): Promise<{ message: string; code: number }>
 }
