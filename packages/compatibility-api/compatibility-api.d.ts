@@ -10,31 +10,31 @@ declare function RestClient(
 ): Twilio
 
 declare class FaxResponse {
-  constructor();
-  receive(attributes?: FaxResponse.ReceiveAttributes): void;
-  toString(): string;
+  constructor()
+  receive(attributes?: FaxResponse.ReceiveAttributes): void
+  toString(): string
   reject(): void
 }
 
 declare namespace FaxResponse {
-  type ReceiveMediaType = 'application/pdf'|'image/tiff';
-  type ReceivePageSize = 'letter'|'legal'|'a4';
+  type ReceiveMediaType = 'application/pdf' | 'image/tiff'
+  type ReceivePageSize = 'letter' | 'legal' | 'a4'
   export interface ReceiveAttributes {
-    action?: string;
-    mediaType?: ReceiveMediaType;
-    method?: string;
-    pageSize?: ReceivePageSize;
-    storeMedia?: boolean;
+    action?: string
+    mediaType?: ReceiveMediaType
+    method?: string
+    pageSize?: ReceivePageSize
+    storeMedia?: boolean
   }
 }
 
 interface TwimlConstructor<T> {
-  new (): T;
+  new (): T
 }
 
 declare namespace RestClient {
   export interface RestClientLaMLInterface extends TwimlInterface {
-    FaxResponse: TwimlConstructor<FaxResponse>;
+    FaxResponse: TwimlConstructor<FaxResponse>
   }
 
   export import Twilio = TwilioClient
