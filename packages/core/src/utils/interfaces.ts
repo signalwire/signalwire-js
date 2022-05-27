@@ -22,6 +22,7 @@ import {
   MessagingJSONRPCMethod,
   MessagingTransformType,
   VoiceJSONRPCMethod,
+  ClientContextMethod,
 } from '..'
 
 type JSONRPCParams = Record<string, any>
@@ -63,6 +64,7 @@ export type JSONRPCMethod =
   | ChatJSONRPCMethod
   | MessagingJSONRPCMethod
   | VoiceJSONRPCMethod
+  | ClientContextMethod
 
 export type JSONRPCSubscribeMethod = Extract<
   JSONRPCMethod,
