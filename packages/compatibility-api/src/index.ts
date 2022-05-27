@@ -8,11 +8,15 @@ twilio.twiml.FaxResponse.prototype.reject = function (attributes: any) {
   return new Reject(this.response.ele('Reject', attributes))
 }
 
+/**
+ * TBD:
+ * @remarks See compatibility-api.d.ts for types
+ */
 const RestClient = function (
   username: string,
   token: string,
   opts?: CompatibilityAPIRestClientOptions
-): Twilio {
+) {
   const host = getHost(opts)
   // "AC" prefix because twilio-node requires it
   const client = twilio('AC' + username, token, opts)
