@@ -18,6 +18,7 @@ import type {
   CollectSpeechConfig,
   VoiceCallConnectMethodParams,
   SipCodec,
+  SpeechOrDigits,
 } from '@signalwire/core'
 import type { RealTimeCallApiEvents } from '../types'
 import type { Call } from './Call'
@@ -224,7 +225,7 @@ export interface CallDocs
   /**
    * Generic method to prompt the user for input. Please see {@link promptAudio}, {@link promptRingtone}, {@link promptTTS}.
    */
-  prompt(params: {
+  prompt(params: SpeechOrDigits & {
     playlist: VoicePlaylist
     initialTimeout?: number
     partialResults?: boolean
