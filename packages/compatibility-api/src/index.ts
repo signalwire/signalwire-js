@@ -16,7 +16,7 @@ const RestClient = function (
   username: string,
   token: string,
   opts?: CompatibilityAPIRestClientOptions
-) {
+): Twilio {
   const host = getHost(opts)
   // "AC" prefix because twilio-node requires it
   const client = twilio('AC' + username, token, opts)

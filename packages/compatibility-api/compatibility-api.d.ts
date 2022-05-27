@@ -3,13 +3,11 @@ import * as webhookTools from 'twilio/lib/webhooks/webhooks'
 import TwilioClient from 'twilio/lib/rest/Twilio'
 import type { CompatibilityAPIRestClientOptions } from './src/types'
 
-declare class RestClient extends Twilio {
-  constructor(
-    username: string,
-    token: string,
-    opts?: CompatibilityAPIRestClientOptions
-  )
-}
+declare function RestClient(
+  username: string,
+  token: string,
+  opts?: CompatibilityAPIRestClientOptions
+): Twilio
 
 declare class FaxResponse {
   constructor()

@@ -36,7 +36,7 @@ describe('It is constructable', () => {
   )
 
   it('should expose all the properties', () => {
-    const client = new RestClientImpl('a', 'b', {
+    const client = RestClientImpl('a', 'b', {
       signalwireSpaceUrl: 'example.domain.com',
     })
     Object.keys(twilioProperties).forEach((prop) => {
@@ -47,7 +47,7 @@ describe('It is constructable', () => {
   it('should read the spaceUrl from SIGNALWIRE_SPACE_URL variable', () => {
     process.env.SIGNALWIRE_SPACE_URL = 'example.domain.com'
 
-    const client = new RestClientImpl('a', 'b')
+    const client = RestClientImpl('a', 'b')
     Object.keys(twilioProperties).forEach((prop) => {
       expect(client[prop as keyof Twilio]).toBeDefined()
     })
@@ -58,7 +58,7 @@ describe('It is constructable', () => {
   it('should read the spaceUrl from SIGNALWIRE_API_HOSTNAME variable', () => {
     process.env.SIGNALWIRE_API_HOSTNAME = 'example.domain.com'
 
-    const client = new RestClientImpl('a', 'b')
+    const client = RestClientImpl('a', 'b')
     Object.keys(twilioProperties).forEach((prop) => {
       expect(client[prop as keyof Twilio]).toBeDefined()
     })
