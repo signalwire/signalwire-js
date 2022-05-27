@@ -2,4 +2,4 @@
 '@signalwire/compatibility-api': patch
 ---
 
-Fix types to have `RestClient` constructable
+[internal] Improve test coverage for `RestClient`.
