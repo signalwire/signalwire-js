@@ -962,28 +962,6 @@ export class BaseComponent<
     this._attachWorker(name, def)
   }
 
-  /**
-   * @internal
-   * @deprecated use {@link runWorker} instead
-   */
-  protected setWorker(name: string, def: SDKWorkerDefinition) {
-    this._setWorker(name, def)
-  }
-
-  /**
-   * @internal
-   * @deprecated use {@link runWorker} instead
-   */
-  protected attachWorkers(params: AttachSDKWorkerParams<any> = {}) {
-    return this._workers.forEach(({ worker, ...workerOptions }, name) => {
-      this._attachWorker(name, {
-        worker,
-        ...workerOptions,
-        ...params,
-      })
-    })
-  }
-
   private _setWorker<Hooks extends SDKWorkerHooks = SDKWorkerHooks>(
     name: string,
     def: SDKWorkerDefinition<Hooks>
