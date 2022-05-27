@@ -3,6 +3,7 @@ import { setupClient, clientConnect } from '../client/index'
 import { createCallObject, Call } from './Call'
 import { VoiceClientDocs } from './VoiceClient.docs'
 import { createVoiceObject, Voice } from './Voice'
+import { clientContextInterceptorsFactory } from '../common/clientContext'
 
 interface VoiceClientMain extends Voice {
   new (opts: VoiceClientOptions): this
@@ -102,6 +103,7 @@ const VoiceClient = function (options?: VoiceClientOptions) {
   const disconnect = () => client.disconnect()
 
   const interceptors = {
+    ...clientContextInterceptorsFactory(client),
     on: clientOn,
     once: clientOnce,
     dial: callDial,

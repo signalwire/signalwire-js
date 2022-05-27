@@ -1,4 +1,4 @@
-import { connect, BaseComponentOptions, toExternalJSON } from '@signalwire/core'
+import { connect, BaseComponentOptions, toExternalJSON, ClientContextContract } from '@signalwire/core'
 import type {
   DisconnectableClientContract,
   EventTransform,
@@ -35,7 +35,7 @@ type EmitterTransformsEvents = 'calling.call.received'
 
 /** @ignore */
 export interface Voice
-  extends DisconnectableClientContract<Voice, VoiceClientApiEvents> {
+  extends DisconnectableClientContract<Voice, VoiceClientApiEvents>, ClientContextContract {
   /** @internal */
   _session: RealtimeClient
   dial(dialer: VoiceDeviceBuilder): Promise<Call>
