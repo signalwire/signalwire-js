@@ -160,11 +160,9 @@ export class RoomSessionConnection
    * @internal
    */
   protected attachPreConnectWorkers() {
-    this.setWorker('memberListUpdated', {
+    this.runWorker('memberListUpdated', {
       worker: workers.memberListUpdatedWorker,
     })
-
-    this.attachWorkers()
   }
 
   /**
@@ -173,11 +171,10 @@ export class RoomSessionConnection
    * @internal
    */
   protected attachOnSubscribedWorkers(payload: VideoRoomEventParams) {
-    this.setWorker('memberPositionWorker', {
+    this.runWorker('memberPositionWorker', {
       worker: workers.memberPositionWorker,
+      initialState: payload
     })
-
-    this.attachWorkers({ payload })
   }
 
   /** @deprecated Use {@link startScreenShare} instead. */

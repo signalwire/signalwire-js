@@ -19,10 +19,9 @@ class TaskAPI extends BaseComponent<TaskClientApiEvents> {
   constructor(options: BaseComponentOptions<TaskClientApiEvents>) {
     super(options)
 
-    this.setWorker('taskWorker', {
+    this.runWorker('taskWorker', {
       worker: taskWorker,
     })
-    this.attachWorkers()
     this._attachListeners('')
   }
 }

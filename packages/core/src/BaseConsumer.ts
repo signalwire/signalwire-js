@@ -70,7 +70,6 @@ export class BaseConsumer<
     return new Promise(async (resolve, reject) => {
       try {
         this.applyEmitterTransforms()
-        this.attachWorkers()
         await this.execute(execParams)
         return resolve(undefined)
       } catch (error) {

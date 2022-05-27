@@ -478,8 +478,6 @@ export type SDKWorkerParams<
   Hooks extends SDKWorkerHooks = SDKWorkerHooks
 > = SDKWorkerBaseParams<T> & Hooks
 
-export type AttachSDKWorkerParams<T> = Partial<SDKWorkerBaseParams<T>>
-
 export type SDKWorker<T, Hooks extends SDKWorkerHooks = SDKWorkerHooks> = (
   params: SDKWorkerParams<T, Hooks>
 ) => SagaIterator<any>

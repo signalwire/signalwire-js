@@ -606,10 +606,9 @@ class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     super(options)
 
     this.debouncedSubscribe = debounce(this.subscribe, 100)
-    this.setWorker('memberPositionWorker', {
+    this.runWorker('memberPositionWorker', {
       worker: memberPositionWorker,
     })
-    this.attachWorkers()
   }
 
   /** @internal */

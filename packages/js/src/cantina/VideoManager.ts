@@ -30,10 +30,9 @@ export class VideoManagerAPI extends BaseConsumer<VideoManagerEvents> {
   constructor(options: BaseComponentOptions<VideoManagerEvents>) {
     super(options)
 
-    this.setWorker('videoManagerWorker', {
+    this.runWorker('videoManagerWorker', {
       worker: videoManagerWorker,
     })
-    this.attachWorkers()
   }
 
   /** @internal */
