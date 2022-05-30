@@ -9,7 +9,7 @@ import {
 } from '@redux-saga/core/effects'
 import type { PayloadAction } from '../../toolkit'
 import { BaseSession } from '../../../BaseSession'
-import { VertoResult } from '../../../RPCMessages'
+import { VertoResult, VertoPong } from '../../../RPCMessages'
 import { JSONRPCRequest, JSONRPCResponse } from '../../../utils/interfaces'
 import type {
   VideoAPIEventParams,
@@ -206,17 +206,18 @@ export function* sessionChannelWatcher({
         )
         break
       }
-      case 'verto.ping':
+      case 'verto.ping': {
         yield put(
           executeAction({
             method: 'video.message',
             params: {
-              message: VertoResult(id, method),
+              message: VertoPong(params),
               node_id: nodeId,
             },
           })
         )
         break
+      }
       case 'verto.punt':
         return session.disconnect()
       case 'verto.mediaParams': {

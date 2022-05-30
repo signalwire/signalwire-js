@@ -52,6 +52,7 @@ export const VertoAttach = buildVertoRPCMessage('verto.attach')
 export const VertoModify = buildVertoRPCMessage('verto.modify')
 export const VertoInfo = buildVertoRPCMessage('verto.info')
 export const VertoAnswer = buildVertoRPCMessage('verto.answer')
+export const VertoPong = buildVertoRPCMessage('verto.pong')
 export const VertoResult = (id: string, method: VertoMethod) => {
   return makeRPCResponse({
     id,
