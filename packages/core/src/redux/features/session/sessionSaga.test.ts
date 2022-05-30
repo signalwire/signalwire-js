@@ -1,10 +1,16 @@
 import { eventChannel } from '@redux-saga/core'
 import { expectSaga } from 'redux-saga-test-plan'
-import { VertoResult } from '../../../RPCMessages'
+import { VertoResult, VertoPong } from '../../../RPCMessages'
 import { socketMessageAction, executeAction } from '../../actions'
 import { componentActions } from '../'
 import { sessionChannelWatcher, createSessionChannel } from './sessionSaga'
 import { createPubSubChannel, createSwEventChannel } from '../../../testUtils'
+
+jest.mock('uuid', () => {
+  return {
+    v4: jest.fn(() => 'mocked-uuid'),
+  }
+})
 
 describe('sessionChannelWatcher', () => {
   describe('videoAPIWorker', () => {
@@ -602,7 +608,7 @@ describe('sessionChannelWatcher', () => {
     describe('verto.ping', () => {
       it('should handle verto.ping event', () => {
         const jsonrpc = JSON.parse(
-          '{"jsonrpc":"2.0","id":"580a9555-ec98-4054-8288-859457da7797","method":"signalwire.event","params":{"event_type":"webrtc.message","event_channel":"signalwire_d71f0159c3734a51cd53e2c5e56e65a0b808e3e9865e561379c3af173aad3487_b3c11bb3-5b5f-4a22-820a-c8bd6d7fb10e_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","timestamp":1627374894.011822,"project_id":"78429ef1-283b-4fa9-8ebc-16b59f95bb1f","node_id":"44c606b1-b951-4959-810a-ffa1ddc9ac4f@","params":{"jsonrpc":"2.0","id":"40","method":"verto.ping","params":{"serno":1}}}}'
+          '{"jsonrpc":"2.0","id":"580a9555-ec98-4054-8288-859457da7797","method":"signalwire.event","params":{"event_type":"webrtc.message","event_channel":"signalwire_d71f0159c3734a51cd53e2c5e56e65a0b808e3e9865e561379c3af173aad3487_b3c11bb3-5b5f-4a22-820a-c8bd6d7fb10e_78429ef1-283b-4fa9-8ebc-16b59f95bb1f","timestamp":1627374894.011822,"project_id":"78429ef1-283b-4fa9-8ebc-16b59f95bb1f","node_id":"44c606b1-b951-4959-810a-ffa1ddc9ac4f@","params":{"jsonrpc":"2.0","id":"40","method":"verto.ping","params":{"dialogParams":{"callID":"call-uuid"}}}}}'
         )
         let runSaga = true
         const session = {
@@ -640,7 +646,11 @@ describe('sessionChannelWatcher', () => {
             executeAction({
               method: 'video.message',
               params: {
-                message: VertoResult('40', 'verto.ping'),
+                message: VertoPong({
+                  dialogParams: {
+                    callID: 'call-uuid',
+                  },
+                }),
                 node_id: '44c606b1-b951-4959-810a-ffa1ddc9ac4f@',
               },
             })
