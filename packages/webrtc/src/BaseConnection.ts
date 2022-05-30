@@ -161,6 +161,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         userVariables,
         screenShare,
         additionalDevice,
+        pingSupported: true,
       },
     }
   }
