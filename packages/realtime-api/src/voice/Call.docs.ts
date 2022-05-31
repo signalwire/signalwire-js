@@ -18,7 +18,6 @@ import type {
   CollectSpeechConfig,
   VoiceCallConnectMethodParams,
   SipCodec,
-  SpeechOrDigits,
 } from '@signalwire/core'
 import type { RealTimeCallApiEvents } from '../types'
 import type { Call } from './Call'

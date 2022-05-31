@@ -243,7 +243,7 @@ export type CollectSpeechConfig = {
   hints?: string[]
 }
 
-export type SpeechOrDigits =
+type SpeechOrDigits =
   | {
       digits: CollectDigitsConfig
       speech?: never
