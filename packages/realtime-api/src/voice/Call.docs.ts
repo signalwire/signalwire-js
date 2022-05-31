@@ -221,14 +221,23 @@ export interface CallDocs
     terminators?: string
   }): Promise<VoiceCallRecordingContract>
 
-  // TODO
   /**
    * Generic method to prompt the user for input. Please see {@link promptAudio}, {@link promptRingtone}, {@link promptTTS}.
    */
-  prompt(params: SpeechOrDigits & {
+  prompt(params: {
+    /** Playlist defining the media to play. */
     playlist: VoicePlaylist
+    /** Initial timeout in seconds. Default is 4 seconds. */
     initialTimeout?: number
+    /** If true, partial result events are fired. Default is false. */
     partialResults?: boolean
+    /** Configuration for collecting digits. You must either set this, or `speech`. */
+    digits?: CollectDigitsConfig
+    /**
+     * Configuration for collecting speech. You must either set this, or
+     * `digits`. Pass an empty object to use the default configuration.
+     */
+    speech?: CollectSpeechConfig
   }): Promise<VoiceCallPromptContract>
 
   /**
