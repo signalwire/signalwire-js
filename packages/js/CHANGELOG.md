@@ -4,13 +4,11 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.12.0] - 2022-06-01
-
-### Added
-
-- [#547](https://github.com/signalwire/signalwire-js/pull/547) [`b0f9aa5f`](https://github.com/signalwire/signalwire-js/commit/b0f9aa5f432992343b57e450d12dfc83e7591459) - Add ability to read a custom host from the JWT.
+## [3.11.1] - 2022-06-01
 
 ### Changed
+
+- [#547](https://github.com/signalwire/signalwire-js/pull/547) [`b0f9aa5f`](https://github.com/signalwire/signalwire-js/commit/b0f9aa5f432992343b57e450d12dfc83e7591459) - Add ability to read a custom host from the JWT.
 
 - [#546](https://github.com/signalwire/signalwire-js/pull/546) [`fc4689df`](https://github.com/signalwire/signalwire-js/commit/fc4689dfd1955f03d59fb8a0ae8e530d4ef8f79d) - Internal changes to migrate from `setWorker`/`attachWorker` to `runWorkers` and from `payload` to `initialState`.
 
