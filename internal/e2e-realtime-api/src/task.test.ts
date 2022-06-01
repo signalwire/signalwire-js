@@ -4,9 +4,13 @@ import { createTestRunner } from './utils'
 const handler = () => {
   return new Promise<number>(async (resolve, reject) => {
     const context = 'task-e2e'
-    const jobPayload = {
+    const firstPayload = {
       id: Date.now(),
-      item: 'foo',
+      item: 'first',
+    }
+    const lastPayload = {
+      id: Date.now(),
+      item: 'last',
     }
 
     const client = new Task.Client({
@@ -16,8 +20,16 @@ const handler = () => {
       contexts: [context],
     })
 
+    let counter = 0
+
     client.on('task.received', (payload) => {
-      if (payload.id === jobPayload.id && payload.item === 'foo') {
+      if (payload.id === firstPayload.id && payload.item === 'foo') {
+        return counter++
+      }
+      if (payload.id === firstPayload.id && payload.item === 'foo') {
+        return counter++
+      }
+      if (counter === 2) {
         return resolve(0)
       }
       console.error('Invalid payload on `task.received`', payload)
@@ -29,7 +41,15 @@ const handler = () => {
       project: process.env.RELAY_PROJECT as string,
       token: process.env.RELAY_TOKEN as string,
       context,
-      message: jobPayload,
+      message: firstPayload,
+    })
+
+    await Task.send({
+      host: process.env.RELAY_HOST as string,
+      project: process.env.RELAY_PROJECT as string,
+      token: process.env.RELAY_TOKEN as string,
+      context,
+      message: lastPayload,
     })
   })
 }
