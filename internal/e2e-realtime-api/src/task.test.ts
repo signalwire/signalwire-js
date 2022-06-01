@@ -24,16 +24,17 @@ const handler = () => {
 
     client.on('task.received', (payload) => {
       if (payload.id === firstPayload.id && payload.item === 'first') {
-        return counter++
+        counter++
       } else if (payload.id === lastPayload.id && payload.item === 'last') {
-        return counter++
+        counter++
+      } else {
+        console.error('Invalid payload on `task.received`', payload)
+        return reject(4)
       }
 
       if (counter === 2) {
         return resolve(0)
       }
-      console.error('Invalid payload on `task.received`', payload)
-      return reject(4)
     })
 
     await Task.send({
