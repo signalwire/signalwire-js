@@ -26,7 +26,6 @@ export const INTERNAL_MEMBER_UPDATABLE_PROPS = {
   input_volume: 1,
   output_volume: 1,
   input_sensitivity: 1,
-  meta: {},
 }
 export type InternalVideoMemberUpdatableProps =
   typeof INTERNAL_MEMBER_UPDATABLE_PROPS
@@ -65,7 +64,7 @@ type VideoMemberUpdatableProps = AssertSameType<
      * essentially muted) to 100 (highest sensitivity). */
     inputSensitivity: number
     /** Metadata associated to this member. */
-    meta: Record<string, unknown>
+    meta?: Record<string, unknown>
   }
 >
 

@@ -88,6 +88,33 @@ export const makeVideoElementSaga = ({
         }
       })
 
+      /**
+       * If the user joins with `join_video_muted: true` or
+       * `join_audio_muted: true` we'll stop the streams
+       * right away.
+       */
+      room.once('room.subscribed', (params) => {
+        const member = params.room_session.members?.find(
+          (m) => m.id === room.memberId
+        )
+
+        if (member?.audio_muted) {
+          try {
+            room.stopOutboundAudio()
+          } catch (error) {
+            getLogger().error('Error handling audio_muted', error)
+          }
+        }
+
+        if (member?.video_muted) {
+          try {
+            room.stopOutboundVideo()
+          } catch (error) {
+            getLogger().error('Error handling video_muted', error)
+          }
+        }
+      })
+
       room.on('member.updated.video_muted', (params) => {
         try {
           const { member } = params
