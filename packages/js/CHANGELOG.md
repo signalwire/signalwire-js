@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.11.1] - 2022-06-01
+
+### Changed
+
+- [#547](https://github.com/signalwire/signalwire-js/pull/547) [`b0f9aa5f`](https://github.com/signalwire/signalwire-js/commit/b0f9aa5f432992343b57e450d12dfc83e7591459) - Add ability to read a custom host from the JWT.
+
+- [#546](https://github.com/signalwire/signalwire-js/pull/546) [`fc4689df`](https://github.com/signalwire/signalwire-js/commit/fc4689dfd1955f03d59fb8a0ae8e530d4ef8f79d) - Internal changes to migrate from `setWorker`/`attachWorker` to `runWorkers` and from `payload` to `initialState`.
+
+### Fixed
+
+- [#541](https://github.com/signalwire/signalwire-js/pull/541) [`4ad09354`](https://github.com/signalwire/signalwire-js/commit/4ad093543424479214460e9e1cc29f65f6ae5d38) - Try to force a browser repaint to move the local video overlay in the correct position
+
+* [#554](https://github.com/signalwire/signalwire-js/pull/554) [`1b95b93b`](https://github.com/signalwire/signalwire-js/commit/1b95b93ba30f7c226d99c6c667604bcce8349d26) - Fix issue with local streams for when the user joined with a token with `join_audio_muted` or `join_video_muted`. Update typings.
+
+### Dependencies
+
+- Updated dependencies [[`875b2bb8`](https://github.com/signalwire/signalwire-js/commit/875b2bb844cc34d0b173b8544a5c34f0d39fc9c3), [`fc4689df`](https://github.com/signalwire/signalwire-js/commit/fc4689dfd1955f03d59fb8a0ae8e530d4ef8f79d), [`78d1aea6`](https://github.com/signalwire/signalwire-js/commit/78d1aea6536008f5fd7885e23f0eaed2c431b6e0), [`1b95b93b`](https://github.com/signalwire/signalwire-js/commit/1b95b93ba30f7c226d99c6c667604bcce8349d26)]:
+  - @signalwire/core@3.8.1
+  - @signalwire/webrtc@3.5.1
+
 ## [3.11.0] - 2022-05-19
 
 ### Added
