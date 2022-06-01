@@ -1,5 +1,11 @@
 # @sw-internal/e2e-realtime-api
 
+## 0.1.1
+
+### Patch Changes
+
+- [#553](https://github.com/signalwire/signalwire-js/pull/553) [`47ed1712`](https://github.com/signalwire/signalwire-js/commit/47ed17129422201edd4782137b0e7017f26dda00) - Fix `task.received` handler on the Task namespace.
+
 ## 0.1.0
 
 ### Minor Changes

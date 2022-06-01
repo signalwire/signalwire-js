@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.1] - 2022-06-01
+
+### Changed
+
+- [#546](https://github.com/signalwire/signalwire-js/pull/546) [`fc4689df`](https://github.com/signalwire/signalwire-js/commit/fc4689dfd1955f03d59fb8a0ae8e530d4ef8f79d) - Internal changes to migrated from `setWorker`/`attachWorker` to `runWorkers` and from `payload` to `initialState`.
+
+* [#554](https://github.com/signalwire/signalwire-js/pull/554) [`1b95b93b`](https://github.com/signalwire/signalwire-js/commit/1b95b93ba30f7c226d99c6c667604bcce8349d26) - Update typings.
+
+### Fixed
+
+- [#553](https://github.com/signalwire/signalwire-js/pull/553) [`47ed1712`](https://github.com/signalwire/signalwire-js/commit/47ed17129422201edd4782137b0e7017f26dda00) - Fix `task.received` handler on the Task namespace.
+
+### Dependencies
+
+- Updated dependencies [[`875b2bb8`](https://github.com/signalwire/signalwire-js/commit/875b2bb844cc34d0b173b8544a5c34f0d39fc9c3), [`fc4689df`](https://github.com/signalwire/signalwire-js/commit/fc4689dfd1955f03d59fb8a0ae8e530d4ef8f79d), [`1b95b93b`](https://github.com/signalwire/signalwire-js/commit/1b95b93ba30f7c226d99c6c667604bcce8349d26)]:
+  - @signalwire/core@3.8.1
+
 ## [3.1.0] - 2022-05-19
 
 ### Added
