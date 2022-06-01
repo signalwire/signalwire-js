@@ -26,7 +26,7 @@ const handler = () => {
       if (payload.id === firstPayload.id && payload.item === 'first') {
         return counter++
       }
-      if (payload.id === firstPayload.id && payload.item === 'last') {
+      if (payload.id === lastPayload.id && payload.item === 'last') {
         return counter++
       }
       if (counter === 2) {
