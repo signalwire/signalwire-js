@@ -132,9 +132,8 @@ const makeLayoutChangedHandler =
       /**
        * Show myLayer only if the localStream has a valid video track
        */
-      if (localStream.getVideoTracks().length > 0) {
-        myLayer.style.opacity = '1'
-      }
+      const hasVideo = localStream.getVideoTracks().length > 0
+      myLayer.style.opacity = hasVideo ? '1' : '0'
       myLayer.style.top = top
       myLayer.style.left = left
       myLayer.style.width = width
