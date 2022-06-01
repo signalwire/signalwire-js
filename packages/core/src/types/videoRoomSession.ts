@@ -66,6 +66,7 @@ export interface VideoRoomSessionContract {
   layoutName: string
   /** Metadata associated to this room session. */
   meta?: Record<string, unknown>
+  /** List of members that are part of this room session */
   members?: InternalVideoMemberEntity[]
 
   audioMute(params?: MemberCommandParams): Rooms.AudioMuteMember
