@@ -1,4 +1,3 @@
-import { sessionStorage } from './utils/storage/'
 import {
   RPCConnect,
   RPCConnectParams,
@@ -66,15 +65,28 @@ export class BaseJWTSession extends BaseSession {
 
     if (this._relayProtocolIsValid()) {
       params.protocol = this.relayProtocol
-    } else if (this.signature) {
-      const prevProtocol = await sessionStorage.getItem(this.signature)
+    } else {
+      /**
+       * TODO: Find out a better way to get the prevProtocol
+       */
+      const prevProtocol = await this.retrieveRelayProtocol()
       if (prevProtocol) {
         params.protocol = prevProtocol
       }
     }
 
     this._rpcConnectResult = await this.execute(RPCConnect(params))
+    await this.persistRelayProtocol()
     this._checkTokenExpiration()
+  }
+
+  async retrieveRelayProtocol() {
+    // no-op
+    return ''
+  }
+
+  async persistRelayProtocol() {
+    // no-op
   }
 
   /**
