@@ -45,6 +45,8 @@ steps:
         from_secret: VOICE_DIAL_TO_NUMBER
       VOICE_DIAL_CONNECT_TO_NUMBER:
         from_secret: VOICE_DIAL_CONNECT_TO_NUMBER
+      VOICE_DIAL_CONNECT_CONTEXT:
+        from_secret: VOICE_DIAL_CONNECT_CONTEXT
 
 trigger:
   event: push
