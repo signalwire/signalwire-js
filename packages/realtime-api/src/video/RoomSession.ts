@@ -586,9 +586,9 @@ export interface RoomSession
   extends AssertSameType<RoomSessionMain, RoomSessionDocs> {}
 
 export type RoomSessionUpdated = EntityUpdated<RoomSession>
-export interface RoomSessionFullState extends RoomSession {
+export interface RoomSessionFullState extends Omit<RoomSession, "members"> {
   /** List of members that are part of this room session */
-  members: RoomSessionMember[]
+  members?: RoomSessionMember[]
 }
 
 class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
