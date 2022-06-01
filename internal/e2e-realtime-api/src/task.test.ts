@@ -23,10 +23,10 @@ const handler = () => {
     let counter = 0
 
     client.on('task.received', (payload) => {
-      if (payload.id === firstPayload.id && payload.item === 'foo') {
+      if (payload.id === firstPayload.id && payload.item === 'first') {
         return counter++
       }
-      if (payload.id === firstPayload.id && payload.item === 'foo') {
+      if (payload.id === firstPayload.id && payload.item === 'last') {
         return counter++
       }
       if (counter === 2) {
