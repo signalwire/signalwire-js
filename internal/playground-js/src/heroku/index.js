@@ -208,6 +208,7 @@ window.connect = () => {
     audio: true,
     video: true,
     logLevel: 'debug',
+    _hijack: true,
   })
 
   roomObj = roomSession
