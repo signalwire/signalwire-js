@@ -155,7 +155,7 @@ export interface SessionRequestObject {
   reject: (value: unknown) => void
 }
 
-interface Authorization {
+export interface Authorization {
   type: 'video'
   project: string
   scopes: string[]
@@ -168,6 +168,9 @@ interface Authorization {
   }
   signature: string
   expires_at?: number
+  // TODO: check if these are required.
+  audio_allowed: boolean
+  video_allowed: boolean
 }
 
 export interface RPCConnectResult {
