@@ -1,4 +1,9 @@
-import { UserOptions, AssertSameType, getLogger } from '@signalwire/core'
+import {
+  UserOptions,
+  AssertSameType,
+  getLogger,
+  Authorization,
+} from '@signalwire/core'
 import { createClient } from './createClient'
 import type { MakeRoomOptions } from './Client'
 import { BaseRoomSession } from './BaseRoomSession'
@@ -149,8 +154,38 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     })
   }
 
+  const joinAudience = () => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // @ts-expect-error
+        room.attachPreConnectWorkers()
+
+        const session = await client.connect()
+
+        // @ts-expect-error
+        const authState: Authorization = session._sessionAuthState
+        // TODO: make use of the authState to define media options.
+
+        room.once('room.subscribed', (payload) => {
+          // @ts-expect-error
+          room.attachOnSubscribedWorkers(payload)
+          resolve(room)
+        })
+
+        await room.join()
+      } catch (error) {
+        getLogger().error('RoomSession JoinAudience', error)
+        // Disconnect the underlay client in case of media/signaling errors
+        client.disconnect()
+
+        reject(error)
+      }
+    })
+  }
+
   const interceptors = {
     join,
+    joinAudience,
   } as const
 
   return new Proxy<Omit<RoomSession, 'new'>>(room, {
