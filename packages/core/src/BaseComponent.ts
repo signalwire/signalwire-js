@@ -21,6 +21,7 @@ import {
   SDKWorkerDefinition,
   SessionAuthStatus,
   SDKWorkerHooks,
+  Authorization,
 } from './utils/interfaces'
 import { EventEmitter } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
@@ -32,6 +33,7 @@ import {
 } from './types'
 import {
   getAuthError,
+  getAuthState,
   getAuthStatus,
 } from './redux/features/session/sessionSelectors'
 import { compoundEventAttachAction } from './redux/actions'
@@ -833,6 +835,11 @@ export class BaseComponent<
   /** @internal */
   protected get _sessionAuthStatus(): SessionAuthStatus {
     return getAuthStatus(this.store.getState())
+  }
+
+  /** @internal */
+  protected get _sessionAuthState(): Authorization | undefined {
+    return getAuthState(this.store.getState())
   }
 
   /** @internal */

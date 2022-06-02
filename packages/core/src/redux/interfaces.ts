@@ -7,6 +7,7 @@ import {
   SessionEvents,
   JSONRPCMethod,
   BaseConnectionState,
+  Authorization,
 } from '../utils/interfaces'
 import type {
   VideoAPIEventParams,
@@ -62,6 +63,7 @@ export interface SessionState {
   protocol: string
   iceServers?: RTCIceServer[]
   authStatus: SessionAuthStatus
+  authState?: Authorization
   authError?: SessionAuthError
   authCount: number
 }
