@@ -60,6 +60,8 @@ export const rpcConnectResultVRT: RPCConnectResult = {
     },
     signature:
       'SGZtkRD9fvuBAOUp1UF56zESxdEvGT6qSGZtkRD9fvuBAOUp1UF56zESxdEvGT6q',
+    audio_allowed: true,
+    video_allowed: true,
   },
   protocol:
     'signalwire_SGZtkRD9fvuBAOUp1UF56zESxdEvGT6qSGZtkRD9fvuBAOUp1UF56zESxdEvGT6q_03e8c927-8ea3-4661-86d5-778c3e03296a_8f0a119a-cda7-4497-a47d-c81493b824d4',
