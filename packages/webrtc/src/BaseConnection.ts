@@ -692,6 +692,17 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     }
   }
 
+  // TODO: find a better name for this. maybe narrow it to just media options?
+  /** @internal */
+  updateOptions(
+    options: BaseConnectionOptions<EventTypes & BaseConnectionStateEventTypes>
+  ) {
+    this.options = {
+      ...this.options,
+      ...options,
+    }
+  }
+
   /** @internal */
   private _hangup(params: any = {}) {
     const {

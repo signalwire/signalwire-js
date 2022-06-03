@@ -199,3 +199,8 @@ export interface RoomSessionDeviceMethods
 
 export interface RoomScreenShareMethods
   extends RoomMemberSelfMethodsInterface {}
+
+export interface RoomSessionJoinAudience {
+  audio?: boolean
+  video?: boolean
+}

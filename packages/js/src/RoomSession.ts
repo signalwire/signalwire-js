@@ -8,6 +8,7 @@ import { createClient } from './createClient'
 import type { MakeRoomOptions } from './Client'
 import { BaseRoomSession } from './BaseRoomSession'
 import { RoomSessionDocs } from './RoomSession.docs'
+import { RoomSessionJoinAudience } from './utils/interfaces'
 
 const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
   aspectRatio: { ideal: 16 / 9 },
@@ -154,7 +155,9 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     })
   }
 
-  const joinAudience = () => {
+  const joinAudience = (
+    options: RoomSessionJoinAudience = { audio: true, video: true }
+  ) => {
     return new Promise(async (resolve, reject) => {
       try {
         // @ts-expect-error
@@ -164,7 +167,22 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
 
         // @ts-expect-error
         const authState: Authorization = session._sessionAuthState
-        // TODO: make use of the authState to define media options.
+        const mediaOptions = getJoinAudienceMediaOptions({
+          authState,
+          ...options,
+        })
+
+        if (!isValidJoinAudienceMediaOptions(mediaOptions)) {
+          await session.disconnect()
+          return reject(
+            new Error(
+              '[joinAudience] Either (or both) `audio` and `video` must be `true` when calling this method.'
+            )
+          )
+        }
+
+        // @ts-expect-error
+        room.updateOptions(mediaOptions)
 
         room.once('room.subscribed', (payload) => {
           // @ts-expect-error
@@ -206,3 +224,51 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
   })
   // For consistency with other constructors we'll make TS force the use of `new`
 } as unknown as { new (roomOptions: RoomSessionOptions): RoomSession }
+
+// `joinAudience` utils
+const getJoinAudienceMediaOptions = ({
+  authState,
+  audio,
+  video,
+}: RoomSessionJoinAudience & {
+  authState: Authorization
+}) => {
+  const getMediaValue = ({
+    remote,
+    local,
+    kind,
+  }: {
+    remote?: boolean
+    local?: boolean
+    kind: 'audio' | 'video'
+  }) => {
+    if (!remote && local) {
+      getLogger().warn(
+        `[joinAudience] ${kind} is currently not allowed on this room.`
+      )
+    }
+
+    return !!(remote && local)
+  }
+
+  return {
+    audio: false,
+    video: false,
+    negotiateAudio: getMediaValue({
+      remote: authState.audio_allowed,
+      local: audio,
+      kind: 'audio',
+    }),
+    negotiateVideo: getMediaValue({
+      remote: authState.video_allowed,
+      local: video,
+      kind: 'video',
+    }),
+  }
+}
+const isValidJoinAudienceMediaOptions = (
+  options: Record<string, boolean | undefined>
+) => {
+  // At least one value must be true
+  return Object.values(options).some((v) => !!v)
+}
