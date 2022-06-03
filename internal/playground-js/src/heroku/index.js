@@ -187,6 +187,10 @@ function meter(el, val) {
 }
 
 const initializeMicAnalyzer = async (stream) => {
+  if (!stream) {
+    return
+  }
+
   const el = document.getElementById('mic-meter')
   micAnalyzer = await createMicrophoneAnalyzer(stream)
   micAnalyzer.on('volumeChanged', (vol) => {
@@ -314,7 +318,7 @@ window.connect = () => {
   })
 
   roomObj
-    .join()
+    .joinAudience()
     .then(async (result) => {
       console.log('>> Room Joined', result)
 
