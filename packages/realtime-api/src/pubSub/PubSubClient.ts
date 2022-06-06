@@ -4,7 +4,6 @@ import {
   UserOptions,
   PubSub as PubSubNamespace,
 } from '@signalwire/core'
-import { getLogger } from '@signalwire/core'
 import { PubSubContract } from 'packages/core/src/types/pubSub'
 import { clientConnect, setupClient, RealtimeClient } from '../client/index'
 import { PubSubClientApiEventsDocs, ClientDocs } from './PubSubClient.docs'
@@ -38,11 +37,6 @@ const INTERCEPTED_METHODS: ClientMethods[] = [
 
 /** @ignore */
 const PubSubClient = function (options?: PubSubClientOptions) {
-  if ('production' === process.env.NODE_ENV) {
-    getLogger().warn(
-      '`PubSub` is still under development and may change in the future without prior notice.'
-    )
-  }
   const { client, store, emitter } = setupClient(options)
   const pubSub = PubSubNamespace.createBasePubSubObject<PubSubClient>({
     store,
