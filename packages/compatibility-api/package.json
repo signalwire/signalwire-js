@@ -1,6 +1,5 @@
 {
   "name": "@signalwire/compatibility-api",
-  "private": true,
   "description": "SignalWire Compatibility API",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
