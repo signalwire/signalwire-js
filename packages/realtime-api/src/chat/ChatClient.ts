@@ -35,7 +35,7 @@ interface ClientMain
  *   project: '<project-id>',
  *   token: '<api-token>'
  * })
- * 
+ *
  * await chatClient.subscribe([ 'mychannel1', 'mychannel2' ])
  *
  * chatClient.on('message', (message) => {
@@ -69,11 +69,6 @@ const INTERCEPTED_METHODS: ClientMethods[] = [
 
 /** @ignore */
 const ChatClient = function (options?: ChatClientOptions) {
-  if ('production' === process.env.NODE_ENV) {
-    getLogger().warn(
-      '`Chat` is still under development and may change in the future without prior notice.'
-    )
-  }
   const { client, store, emitter } = setupClient(options)
   const chat = ChatNamespace.createBaseChatObject<ChatClient>({
     store,
