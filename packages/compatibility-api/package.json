@@ -3,7 +3,7 @@
   "description": "SignalWire Compatibility API",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
-  "version": "0.0.0",
+  "version": "3.0.0",
   "main": "dist/index.node.js",
   "exports": {
     "require": "./dist/index.node.js",
