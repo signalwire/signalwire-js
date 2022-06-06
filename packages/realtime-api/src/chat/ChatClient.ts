@@ -5,7 +5,6 @@ import {
   UserOptions,
   Chat as ChatNamespace,
 } from '@signalwire/core'
-import { getLogger } from '@signalwire/core'
 import { clientConnect, setupClient, RealtimeClient } from '../client/index'
 import { ChatClientApiEventsDocs, ClientDocs } from './ChatClient.docs'
 

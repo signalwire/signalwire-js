@@ -4,7 +4,6 @@ import {
   UserOptions,
   PubSub as PubSubNamespace,
 } from '@signalwire/core'
-import { getLogger } from '@signalwire/core'
 import { PubSubContract } from 'packages/core/src/types/pubSub'
 import { clientConnect, setupClient, RealtimeClient } from '../client/index'
 import { PubSubClientApiEventsDocs, ClientDocs } from './PubSubClient.docs'
