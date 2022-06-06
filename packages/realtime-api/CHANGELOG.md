@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.2] - 2022-06-06
+
+### Changed
+
+- [#558](https://github.com/signalwire/signalwire-js/pull/558) [`3a2b7883`](https://github.com/signalwire/signalwire-js/commit/3a2b7883f7e85aea9a38727b793085fc16a0885b) - Remove under development warnings for `Chat` and `PubSub` namespaces.
+
 ## [3.0.1] - 2022-06-01
 
 ### Changed
