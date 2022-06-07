@@ -51,6 +51,7 @@ const playbackElements = [
   pausePlaybackBtn,
   resumePlaybackBtn,
   playbackVolumeControl,
+  playbackSeekAbsoluteGroup,
 ]
 
 window.playbackStarted = () => {
@@ -625,6 +626,54 @@ window.resumePlayback = () => {
     })
     .catch((error) => {
       console.error('Failed to resume playback:', error)
+    })
+}
+
+window.seekPlayback = () => {
+  const value = document.getElementById('playbackSeekAbsolute').value
+  if (!value) {
+    return console.warn('Invalid Seek Value')
+  } else if (!playbackObj) {
+    return console.warn("playbackObj doesn't exist")
+  }
+  console.debug('>> seekPlaybackBtn', value)
+  playbackObj
+    .seek(value)
+    .then(() => {
+      console.log('Playback.seek was successful')
+    })
+    .catch((error) => {
+      console.error('Failed to seek playback:', error)
+    })
+}
+
+window.seekRewindPlayback = () => {
+  if (!playbackObj) {
+    return console.warn("playbackObj doesn't exist")
+  }
+  console.debug('>> seekRewindPlayback')
+  playbackObj
+    .rewind(1000)
+    .then(() => {
+      console.log('Playback.rewind was successful')
+    })
+    .catch((error) => {
+      console.error('Failed to rewind playback:', error)
+    })
+}
+
+window.seekForwardPlayback = () => {
+  if (!playbackObj) {
+    return console.warn("playbackObj doesn't exist")
+  }
+  console.debug('>> seekForwardPlayback')
+  playbackObj
+    .forward(1000)
+    .then(() => {
+      console.log('Playback.forward was successful')
+    })
+    .catch((error) => {
+      console.error('Failed to forward playback:', error)
     })
 }
 

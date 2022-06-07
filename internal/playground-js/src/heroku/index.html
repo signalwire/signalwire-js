@@ -394,6 +394,43 @@
                   Stop Playback
                 </button>
               </div>
+              <div class="col-12 py-2 d-none" id="playbackSeekAbsoluteGroup">
+                <h6>Playback Seek</h6>
+                <div class="row g-2 align-items-center col-auto">
+                  <div class="col-auto">
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="playbackSeekAbsolute"
+                    />
+                  </div>
+                  <div class="col-auto">
+                    <button
+                      id="seekPlaybackBtn"
+                      class="btn btn-danger"
+                      onClick="seekPlayback()"
+                    >
+                      Seek
+                    </button>
+                  </div>
+                  <div class="btn-group col-auto">
+                    <button
+                      id="seekRewindPlaybackBtn"
+                      class="btn btn-info"
+                      onClick="seekRewindPlayback()"
+                    >
+                      Rewind
+                    </button>
+                    <button
+                      id="seekForwardPlaybackBtn"
+                      class="btn btn-success"
+                      onClick="seekForwardPlayback()"
+                    >
+                      Forward
+                    </button>
+                  </div>
+                </div>
+              </div>
               <div id="playbackVolumeControl" class="col-12 d-none">
                 <label for="playbackVolume" class="form-label">
                   Playback Volume
