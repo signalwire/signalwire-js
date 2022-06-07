@@ -186,7 +186,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
         }
 
         // @ts-expect-error
-        room.updateOptions(mediaOptions)
+        room.updateMediaOptions(mediaOptions)
 
         room.once('room.subscribed', (payload) => {
           // @ts-expect-error

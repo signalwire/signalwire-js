@@ -692,11 +692,13 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     }
   }
 
-  // TODO: find a better name for this. maybe narrow it to just media options?
   /** @internal */
-  updateOptions(
-    options: BaseConnectionOptions<EventTypes & BaseConnectionStateEventTypes>
-  ) {
+  updateMediaOptions(options: {
+    audio?: boolean
+    video?: boolean
+    negotiateAudio?: boolean
+    negotiateVideo?: boolean
+  }) {
     this.options = {
       ...this.options,
       ...options,
