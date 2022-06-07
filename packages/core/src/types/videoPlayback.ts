@@ -72,6 +72,12 @@ export interface VideoPlaybackContract {
    * default of 0.
    */
   setVolume(volume: number): Promise<void>
+
+  seek(timecode: number): Promise<void>
+
+  forward(offset: number): Promise<void>
+
+  rewind(offset: number): Promise<void>
 }
 
 /**
