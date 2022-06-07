@@ -41,6 +41,9 @@ export interface VideoPlaybackContract {
   /** Current state of the playback */
   state: 'playing' | 'paused' | 'completed'
 
+  /** Whether the seek function can be used for this playback. */
+  seekable: boolean
+
   /** Url of the file reproduced by this playback */
   url: string
 
