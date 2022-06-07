@@ -5,10 +5,14 @@ import {
   Authorization,
 } from '@signalwire/core'
 import { createClient } from './createClient'
-import type { MakeRoomOptions } from './Client'
 import { BaseRoomSession } from './BaseRoomSession'
-import { RoomSessionDocs } from './RoomSession.docs'
-import { RoomSessionJoinAudience } from './utils/interfaces'
+import {
+  getJoinAudienceMediaParams,
+  isValidJoinAudienceMediaParams,
+} from './utils/roomSession'
+import type { MakeRoomOptions } from './Client'
+import type { RoomSessionDocs } from './RoomSession.docs'
+import type { RoomSessionJoinAudienceParams } from './utils/interfaces'
 
 const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
   aspectRatio: { ideal: 16 / 9 },
@@ -156,7 +160,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
   }
 
   const joinAudience = (
-    options: RoomSessionJoinAudience = { audio: true, video: true }
+    params: RoomSessionJoinAudienceParams = { audio: true, video: true }
   ) => {
     return new Promise(async (resolve, reject) => {
       try {
@@ -167,12 +171,12 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
 
         // @ts-expect-error
         const authState: Authorization = session._sessionAuthState
-        const mediaOptions = getJoinAudienceMediaOptions({
+        const mediaOptions = getJoinAudienceMediaParams({
           authState,
-          ...options,
+          ...params,
         })
 
-        if (!isValidJoinAudienceMediaOptions(mediaOptions)) {
+        if (!isValidJoinAudienceMediaParams(mediaOptions)) {
           await session.disconnect()
           return reject(
             new Error(
@@ -224,51 +228,3 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
   })
   // For consistency with other constructors we'll make TS force the use of `new`
 } as unknown as { new (roomOptions: RoomSessionOptions): RoomSession }
-
-// `joinAudience` utils
-const getJoinAudienceMediaOptions = ({
-  authState,
-  audio,
-  video,
-}: RoomSessionJoinAudience & {
-  authState: Authorization
-}) => {
-  const getMediaValue = ({
-    remote,
-    local,
-    kind,
-  }: {
-    remote?: boolean
-    local?: boolean
-    kind: 'audio' | 'video'
-  }) => {
-    if (!remote && local) {
-      getLogger().warn(
-        `[joinAudience] ${kind} is currently not allowed on this room.`
-      )
-    }
-
-    return !!(remote && local)
-  }
-
-  return {
-    audio: false,
-    video: false,
-    negotiateAudio: getMediaValue({
-      remote: authState.audio_allowed,
-      local: audio,
-      kind: 'audio',
-    }),
-    negotiateVideo: getMediaValue({
-      remote: authState.video_allowed,
-      local: video,
-      kind: 'video',
-    }),
-  }
-}
-const isValidJoinAudienceMediaOptions = (
-  options: Record<string, boolean | undefined>
-) => {
-  // At least one value must be true
-  return Object.values(options).some((v) => !!v)
-}
