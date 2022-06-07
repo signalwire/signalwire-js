@@ -5,8 +5,8 @@ import type { RoomSessionJoinAudienceParams } from './interfaces'
 // `joinAudience` utils
 const getJoinAudienceMediaParams = ({
   authState,
-  audio,
-  video,
+  audio = true,
+  video = true,
 }: RoomSessionJoinAudienceParams & {
   authState: Authorization
 }) => {

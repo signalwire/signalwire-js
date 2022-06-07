@@ -160,7 +160,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
   }
 
   const joinAudience = (
-    params: RoomSessionJoinAudienceParams = { audio: true, video: true }
+    params?: RoomSessionJoinAudienceParams
   ) => {
     return new Promise(async (resolve, reject) => {
       try {
