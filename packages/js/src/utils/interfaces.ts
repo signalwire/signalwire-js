@@ -6,11 +6,11 @@ import type {
   VideoRoomSessionEventNames,
   VideoRoomEventParams,
   InternalVideoMemberEntity,
+  InternalVideoMemberEntityUpdated,
   VideoMemberEventNames,
   MemberUpdated,
   MemberUpdatedEventNames,
   MemberTalkingEventNames,
-  VideoMemberEntityUpdated,
   VideoMemberTalkingEventParams,
   RTCTrackEventName,
   InternalVideoMemberUpdatableProps,
@@ -36,11 +36,14 @@ import { RoomMemberSelfMethodsInterfaceDocs } from './interfaces.docs'
  * transforming the server payload into something else, with
  * the most significant change being converting properties
  * from snake to camel case. The `js` package, on the other
- * hand, exposes the server payload pretty much as is (as as
+ * hand, exposes the server payload pretty much as is (as of
  * v3) so what we consider internal (sdk and server) in
- * other packages is external (user facing) for `js`.
+ * other packages is external (user facing) for `js`. Same
+ * applies to `VideoMemberEntityUpdated` since it's just a
+ * derived type.
  */
 type VideoMemberEntity = InternalVideoMemberEntity
+type VideoMemberEntityUpdated = InternalVideoMemberEntityUpdated
 
 const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
   INTERNAL_MEMBER_UPDATABLE_PROPS
