@@ -871,6 +871,10 @@ interface RoomControlMethodsInterfaceDocs {
      * special keywork `self` to refer to the id of the playback.
      */
     positions?: VideoPositions
+    /**
+     * Layout to change to for the duration of the playback.
+     */
+    layout?: string
   }): Promise<Rooms.RoomSessionPlayback>
 
   /**

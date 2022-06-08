@@ -421,6 +421,10 @@ interface RoomSessionDocs extends RoomSessionMain {
      * special keywork `self` to refer to the id of the playback.
      */
     positions?: VideoPositions
+    /**
+     * Layout to change to for the duration of the playback.
+     */
+    layout?: string
   }): Promise<Rooms.RoomSessionPlayback>
 
   /**
@@ -586,7 +590,7 @@ export interface RoomSession
   extends AssertSameType<RoomSessionMain, RoomSessionDocs> {}
 
 export type RoomSessionUpdated = EntityUpdated<RoomSession>
-export interface RoomSessionFullState extends Omit<RoomSession, "members"> {
+export interface RoomSessionFullState extends Omit<RoomSession, 'members'> {
   /** List of members that are part of this room session */
   members?: RoomSessionMember[]
 }
