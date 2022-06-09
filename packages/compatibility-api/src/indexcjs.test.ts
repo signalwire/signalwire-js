@@ -1,5 +1,5 @@
 const twilio = require('twilio')
-const RestClient = require('@signalwire/compatibility-api')
+const { RestClient } = require('@signalwire/compatibility-api')
 
 describe('It generate LaML', () => {
   const FROM = '+11111111119'
