@@ -1,11 +1,11 @@
 import twilio, { Twilio } from 'twilio'
-import RestClientImpl from '@signalwire/compatibility-api'
+import { RestClient } from '@signalwire/compatibility-api'
 
 describe('It generate LaML', () => {
   const FROM = '+11111111119'
 
   it('should generate LaML', () => {
-    const response = new RestClientImpl.LaML.VoiceResponse()
+    const response = new RestClient.LaML.VoiceResponse()
     response.dial({ callerId: FROM }, '+11111111111')
     expect(response.toString()).toEqual(
       `<?xml version="1.0" encoding="UTF-8"?><Response><Dial callerId="${FROM}">+11111111111</Dial></Response>`
@@ -13,7 +13,7 @@ describe('It generate LaML', () => {
   })
 
   it('LaML to receive a fax', () => {
-    const response = new RestClientImpl.LaML.FaxResponse()
+    const response = new RestClient.LaML.FaxResponse()
     response.receive({ action: '/receive/fax' })
     expect(response.toString()).toEqual(
       '<?xml version="1.0" encoding="UTF-8"?><Response><Receive action="/receive/fax"/></Response>'
@@ -21,7 +21,7 @@ describe('It generate LaML', () => {
   })
 
   it('LaML to reject a fax', () => {
-    const response = new RestClientImpl.LaML.FaxResponse()
+    const response = new RestClient.LaML.FaxResponse()
     response.reject()
     expect(response.toString()).toEqual(
       '<?xml version="1.0" encoding="UTF-8"?><Response><Reject/></Response>'
@@ -36,7 +36,7 @@ describe('It is constructable', () => {
   )
 
   it('should expose all the properties', () => {
-    const client = RestClientImpl('a', 'b', {
+    const client = RestClient('a', 'b', {
       signalwireSpaceUrl: 'example.domain.com',
     })
     Object.keys(twilioProperties).forEach((prop) => {
@@ -47,7 +47,7 @@ describe('It is constructable', () => {
   it('should read the spaceUrl from SIGNALWIRE_SPACE_URL variable', () => {
     process.env.SIGNALWIRE_SPACE_URL = 'example.domain.com'
 
-    const client = RestClientImpl('a', 'b')
+    const client = RestClient('a', 'b')
     Object.keys(twilioProperties).forEach((prop) => {
       expect(client[prop as keyof Twilio]).toBeDefined()
     })
@@ -58,7 +58,7 @@ describe('It is constructable', () => {
   it('should read the spaceUrl from SIGNALWIRE_API_HOSTNAME variable', () => {
     process.env.SIGNALWIRE_API_HOSTNAME = 'example.domain.com'
 
-    const client = RestClientImpl('a', 'b')
+    const client = RestClient('a', 'b')
     Object.keys(twilioProperties).forEach((prop) => {
       expect(client[prop as keyof Twilio]).toBeDefined()
     })
