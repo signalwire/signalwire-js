@@ -13,7 +13,7 @@ const TARGET_ROOT_PATH: Record<
     port: number
   }
 > = {
-  blank: { path: './templates/local', port: 1337 },
+  blank: { path: './templates/blank', port: 1337 },
   heroku: {
     path: path.dirname(
       require.resolve('@sw-internal/playground-js/src/heroku/index.html')
