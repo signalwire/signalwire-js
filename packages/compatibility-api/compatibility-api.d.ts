@@ -47,4 +47,4 @@ declare namespace RestClient {
   export const LaML: RestClientLaMLInterface
 }
 
-export = RestClient
+export { RestClient }

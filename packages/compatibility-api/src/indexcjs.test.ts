@@ -1,5 +1,5 @@
-import twilio, { Twilio } from 'twilio'
-import { RestClient } from '@signalwire/compatibility-api'
+const twilio = require('twilio')
+const { RestClient } = require('@signalwire/compatibility-api')
 
 describe('It generate LaML', () => {
   const FROM = '+11111111119'
@@ -40,7 +40,7 @@ describe('It is constructable', () => {
       signalwireSpaceUrl: 'example.domain.com',
     })
     Object.keys(twilioProperties).forEach((prop) => {
-      expect(client[prop as keyof Twilio]).toBeDefined()
+      expect(client[prop]).toBeDefined()
     })
   })
 
@@ -49,7 +49,7 @@ describe('It is constructable', () => {
 
     const client = RestClient('a', 'b')
     Object.keys(twilioProperties).forEach((prop) => {
-      expect(client[prop as keyof Twilio]).toBeDefined()
+      expect(client[prop]).toBeDefined()
     })
 
     delete process.env.SIGNALWIRE_SPACE_URL
@@ -60,7 +60,7 @@ describe('It is constructable', () => {
 
     const client = RestClient('a', 'b')
     Object.keys(twilioProperties).forEach((prop) => {
-      expect(client[prop as keyof Twilio]).toBeDefined()
+      expect(client[prop]).toBeDefined()
     })
 
     delete process.env.SIGNALWIRE_API_HOSTNAME

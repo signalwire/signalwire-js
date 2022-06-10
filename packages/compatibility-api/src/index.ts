@@ -50,7 +50,8 @@ for (let i = 0; i < properties.length; i++) {
   })
 }
 
-export default RestClient
+export { RestClient }
+
 export type {
   CompatibilityAPIRestClientOptions,
   Twilio,
