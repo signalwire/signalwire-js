@@ -217,6 +217,7 @@ export type PlayParams = {
   url: string
   volume?: number
   positions?: Record<string, VideoPosition>
+  layout?: string
 }
 export const play: RoomMethodDescriptor<any, PlayParams> = {
   value: function (params) {
