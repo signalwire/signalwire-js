@@ -1,0 +1,17 @@
+{
+  "name": "@sw-internal/e2e-js",
+  "version": "0.0.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "dev": "playwright test"
+  },
+  "dependencies": {
+    "@sw-internal/playground-js": "0.0.4",
+    "vite": "^2.9.9"
+  },
+  "devDependencies": {
+    "dotenv": "^16.0.0",
+    "@playwright/test": "^1.22.2"
+  }
+}
