@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.12.0] - 2022-06-10
+
+### Added
+
+- [#562](https://github.com/signalwire/signalwire-js/pull/562) [`02d97ded`](https://github.com/signalwire/signalwire-js/commit/02d97ded0295fa6cf75dd154eabd64871a17f7d6) - Add `layout` property to RoomSession.play().
+
+### Fixed
+
+- [#561](https://github.com/signalwire/signalwire-js/pull/561) [`e6e75067`](https://github.com/signalwire/signalwire-js/commit/e6e7506710af9016a693d129fb34e4e5975aa51a) - Fix typings for `member.updated` event.
+
+### Dependencies
+
+- Updated dependencies [[`02d97ded`](https://github.com/signalwire/signalwire-js/commit/02d97ded0295fa6cf75dd154eabd64871a17f7d6)]:
+  - @signalwire/core@3.9.0
+  - @signalwire/webrtc@3.5.2
+
 ## [3.11.1] - 2022-06-01
 
 ### Changed
