@@ -13,12 +13,35 @@ test.describe('RoomSession', () => {
     await server.close()
   })
 
-  test('should handle joining a room', async ({
-    page,
-  }) => {
+  test('should handle joining a room', async ({ page }) => {
     await page.goto(server.url)
 
-    await createTestRoomSession(page)
+    await createTestRoomSession(page, {
+      vrt: {
+        room_name: 'another',
+        user_name: 'e2e_test',
+        auto_create_room: true,
+        permissions: [
+          'room.self.audio_mute',
+          'room.self.audio_unmute',
+          'room.self.video_mute',
+          'room.self.video_unmute',
+          'room.member.audio_mute',
+          'room.member.video_mute',
+          'room.member.set_input_volume',
+          'room.member.set_output_volume',
+          'room.member.set_input_sensitivity',
+          'room.member.remove',
+          'room.set_layout',
+          'room.list_available_layouts',
+          'room.recording',
+          'room.hide_video_muted',
+          'room.show_video_muted',
+          'room.playback.seek',
+          'room.playback',
+        ],
+      },
+    })
 
     // Joining a room
     await page.evaluate(() => {

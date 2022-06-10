@@ -1,6 +1,7 @@
 import { createServer } from 'vite'
 import path from 'path'
 import { Page } from '@playwright/test'
+import fetch from 'node-fetch'
 
 type CreateTestServerOptions = {
   target: 'heroku' | 'blank'
@@ -45,7 +46,11 @@ export const createTestServer = async (
   }
 }
 
-export const createTestRoomSession = (page: Page) => {
+export const createTestRoomSession = async (
+  page: Page,
+  options: { vrt: CreateTestVRTOptions }
+) => {
+  const vrt = await createTestVRTToken(options.vrt)
   return page.evaluate(
     (env) => {
       // @ts-expect-error
@@ -65,6 +70,35 @@ export const createTestRoomSession = (page: Page) => {
 
       return Promise.resolve(roomSession)
     },
-    { RELAY_HOST: process.env.RELAY_HOST, API_TOKEN: process.env.API_TOKEN }
+    { RELAY_HOST: process.env.RELAY_HOST, API_TOKEN: vrt }
   )
+}
+
+interface CreateTestVRTOptions {
+  room_name: string
+  user_name: string
+  room_display_name?: string
+  permissions?: string[]
+  join_from?: number | string
+  join_until?: number | string
+  remove_at?: number | string
+  remove_after_seconds_elapsed?: number
+  auto_create_room?: boolean
+}
+
+export const createTestVRTToken = async (body: CreateTestVRTOptions) => {
+  const authCreds = `${process.env.RELAY_PROJECT}:${process.env.RELAY_TOKEN}`
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/video/room_tokens`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${Buffer.from(authCreds).toString('base64')}`,
+      },
+      body: JSON.stringify(body),
+    }
+  )
+  const data = await response.json()
+  return data.token
 }
