@@ -4,7 +4,8 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "dev": "playwright test"
+    "dev": "playwright test",
+    "test": ""
   },
   "dependencies": {
     "@sw-internal/playground-js": "0.0.4",
