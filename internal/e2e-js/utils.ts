@@ -51,7 +51,7 @@ export const createTestRoomSession = (page: Page) => {
       // @ts-expect-error
       const Video = window._SWJS.Video
       const roomSession = new Video.RoomSession({
-        host: env.API_HOST,
+        host: env.RELAY_HOST,
         token: env.API_TOKEN,
         rootElement: document.getElementById('rootElement'),
         audio: true,
@@ -65,6 +65,6 @@ export const createTestRoomSession = (page: Page) => {
 
       return Promise.resolve(roomSession)
     },
-    { API_HOST: process.env.API_HOST, API_TOKEN: process.env.API_TOKEN }
+    { RELAY_HOST: process.env.RELAY_HOST, API_TOKEN: process.env.API_TOKEN }
   )
 }
