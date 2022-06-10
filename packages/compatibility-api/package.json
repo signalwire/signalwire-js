@@ -36,7 +36,7 @@
     "docs:watch": "npm run docs -- --watch"
   },
   "dependencies": {
-    "twilio": "^3.77.0"
+    "twilio": "3.77.0"
   },
   "types": "compatibility-api.d.ts"
 }
