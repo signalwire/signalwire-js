@@ -48,21 +48,32 @@ export const createTestServer = async (
 
 export const createTestRoomSession = async (
   page: Page,
-  options: { vrt: CreateTestVRTOptions }
+  options: {
+    vrt: CreateTestVRTOptions
+    /** set of events to automatically subscribe before room.join() */
+    initialEvents?: string[]
+  }
 ) => {
   const vrt = await createTestVRTToken(options.vrt)
   return page.evaluate(
-    (env) => {
+    (options) => {
       // @ts-expect-error
       const Video = window._SWJS.Video
       const roomSession = new Video.RoomSession({
-        host: env.RELAY_HOST,
-        token: env.API_TOKEN,
+        host: options.RELAY_HOST,
+        token: options.API_TOKEN,
         rootElement: document.getElementById('rootElement'),
         audio: true,
         video: true,
-        logLevel: 'debug',
+        logLevel: 'trace',
         _hijack: true,
+        debug: {
+          logWsTraffic: true,
+        },
+      })
+
+      options.initialEvents?.forEach((event) => {
+        roomSession.once(event, () => {})
       })
 
       // @ts-expect-error
@@ -70,7 +81,11 @@ export const createTestRoomSession = async (
 
       return Promise.resolve(roomSession)
     },
-    { RELAY_HOST: process.env.RELAY_HOST, API_TOKEN: vrt }
+    {
+      RELAY_HOST: process.env.RELAY_HOST,
+      API_TOKEN: vrt,
+      initialEvents: options.initialEvents,
+    }
   )
 }
 
