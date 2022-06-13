@@ -9,7 +9,7 @@ steps:
       - npm run build
       - npm test
 
-  - name: e2e-tests
+  - name: e2e-realtime-api
     image: node:16-alpine
     commands:
       - npm install
@@ -45,6 +45,22 @@ steps:
         from_secret: VOICE_DIAL_TO_NUMBER
       VOICE_DIAL_CONNECT_TO_NUMBER:
         from_secret: VOICE_DIAL_CONNECT_TO_NUMBER
+
+  - name: e2e-js
+    image: mcr.microsoft.com/playwright:v1.22.2-focal
+    commands:
+      - npm install
+      - npm run build
+      - npm run -w=@sw-internal/e2e-js dev
+    environment:
+      API_HOST:
+        from_secret: API_HOST
+      RELAY_HOST:
+        from_secret: RELAY_HOST
+      RELAY_PROJECT:
+        from_secret: RELAY_PROJECT
+      RELAY_TOKEN:
+        from_secret: RELAY_TOKEN
 
 trigger:
   event: push
