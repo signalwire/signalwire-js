@@ -44,6 +44,12 @@ test.describe('RoomSession', () => {
           'room.playback',
         ],
       },
+      initialEvents: [
+        'recording.started',
+        'recording.ended',
+        'room.updated',
+        'member.updated',
+      ],
     })
 
     // Joining the room
@@ -58,7 +64,11 @@ test.describe('RoomSession', () => {
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
-    expect(joinParams.room.members.length).toBe(1)
+    expect(
+      joinParams.room.members.some(
+        (member: any) => member.id === joinParams.member_id
+      )
+    ).toBeTruthy()
     expect(joinParams.room.name).toBe(roomName)
 
     // Checks that the video is visible
@@ -141,79 +151,61 @@ test.describe('RoomSession', () => {
     )
 
     // Session Recording
-    // await page.evaluate(async () => {
-    //   // @ts-expect-error
-    //   const roomObj = window._roomObj
+    await page.evaluate(async () => {
+      // @ts-expect-error
+      const roomObj = window._roomObj
 
-    //   const recordingStarted = new Promise((resolve, reject) => {
-    //     roomObj.on('recording.started', (params: any) => {
-    //       if (params.state === 'recording') {
-    //         resolve(true)
-    //       } else {
-    //         reject()
-    //       }
-    //     })
-    //   })
+      const recordingStarted = new Promise((resolve, reject) => {
+        roomObj.on('recording.started', (params: any) => {
+          if (params.state === 'recording') {
+            resolve(true)
+          } else {
+            reject(new Error('[recording.started] state is not "recording"'))
+          }
+        })
+      })
 
-    //   const roomUpdatedStarted = new Promise((resolve, reject) => {
-    //     roomObj.on('room.updated', (params: any) => {
-    //       if (
-    //         params.room.recording === true &&
-    //         params.room.updated.includes['recording']
-    //       ) {
-    //         resolve(true)
-    //       } else {
-    //         reject()
-    //       }
-    //     })
-    //   })
+      const roomUpdatedStarted = new Promise((resolve, reject) => {
+        roomObj.on('room.updated', (params: any) => {
+          if (
+            params.room.recording === true &&
+            params.room.updated.includes('recording')
+          ) {
+            resolve(true)
+          } else {
+            reject(new Error('[room.updated] state is not "recording"'))
+          }
+        })
+      })
 
-    //   const recordingEnded = new Promise((resolve, reject) => {
-    //     roomObj.on('recording.ended', (params: any) => {
-    //       if (params.state === 'completed') {
-    //         resolve(true)
-    //       } else {
-    //         reject()
-    //       }
-    //     })
-    //   })
+      const recordingEnded = new Promise((resolve, reject) => {
+        roomObj.on('recording.ended', (params: any) => {
+          if (params.state === 'completed') {
+            resolve(true)
+          } else {
+            reject(new Error('[recording.ended] state is not "completed"'))
+          }
+        })
+      })
 
-    //   const roomUpdatedEnded = new Promise((resolve, reject) => {
-    //     roomObj.on('room.updated', (params: any) => {
-    //       if (
-    //         params.room.recording === false &&
-    //         params.room.updated.includes['recording']
-    //       ) {
-    //         resolve(true)
-    //       } else {
-    //         reject()
-    //       }
-    //     })
-    //   })
+      let recObj: any
+      setTimeout(() => {
+        roomObj
+          .startRecording()
+          .then((obj: any) => {
+            recObj = obj
+          })
+          .catch(() => {
+            throw new Error("Couldn't start recording")
+          })
+      }, 500)
 
-    //   let recObj: any
-    //   setTimeout(() => {
-    //     roomObj
-    //       .startRecording()
-    //       .then((obj: any) => {
-    //         recObj = obj
-    //       })
-    //       .catch(() => {
-    //         throw new Error("Couldn't start recording")
-    //       })
-    //   }, 500)
+      await new Promise((r) => setTimeout(r, 1000))
 
-    //   await new Promise((r) => setTimeout(r, 1000))
+      queueMicrotask(() => recObj.stop())
 
-    //   queueMicrotask(() => recObj.stop())
-
-    //   return Promise.all([
-    //     recordingStarted,
-    //     roomUpdatedStarted,
-    //     recordingEnded,
-    //     roomUpdatedEnded,
-    //   ])
-    // })
+      return Promise.all([recordingStarted, roomUpdatedStarted, recordingEnded])
+    })
 
     // Leaving the room
     await page.evaluate(() => {
