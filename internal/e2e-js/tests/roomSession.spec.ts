@@ -140,6 +140,81 @@ test.describe('RoomSession', () => {
       { joinParams }
     )
 
+    // Session Recording
+    // await page.evaluate(async () => {
+    //   // @ts-expect-error
+    //   const roomObj = window._roomObj
+
+    //   const recordingStarted = new Promise((resolve, reject) => {
+    //     roomObj.on('recording.started', (params: any) => {
+    //       if (params.state === 'recording') {
+    //         resolve(true)
+    //       } else {
+    //         reject()
+    //       }
+    //     })
+    //   })
+
+    //   const roomUpdatedStarted = new Promise((resolve, reject) => {
+    //     roomObj.on('room.updated', (params: any) => {
+    //       if (
+    //         params.room.recording === true &&
+    //         params.room.updated.includes['recording']
+    //       ) {
+    //         resolve(true)
+    //       } else {
+    //         reject()
+    //       }
+    //     })
+    //   })
+
+    //   const recordingEnded = new Promise((resolve, reject) => {
+    //     roomObj.on('recording.ended', (params: any) => {
+    //       if (params.state === 'completed') {
+    //         resolve(true)
+    //       } else {
+    //         reject()
+    //       }
+    //     })
+    //   })
+
+    //   const roomUpdatedEnded = new Promise((resolve, reject) => {
+    //     roomObj.on('room.updated', (params: any) => {
+    //       if (
+    //         params.room.recording === false &&
+    //         params.room.updated.includes['recording']
+    //       ) {
+    //         resolve(true)
+    //       } else {
+    //         reject()
+    //       }
+    //     })
+    //   })
+
+    //   let recObj: any
+    //   setTimeout(() => {
+    //     roomObj
+    //       .startRecording()
+    //       .then((obj: any) => {
+    //         recObj = obj
+    //       })
+    //       .catch(() => {
+    //         throw new Error("Couldn't start recording")
+    //       })
+    //   }, 500)
+
+    //   await new Promise((r) => setTimeout(r, 1000))
+
+    //   queueMicrotask(() => recObj.stop())
+
+    //   return Promise.all([
+    //     recordingStarted,
+    //     roomUpdatedStarted,
+    //     recordingEnded,
+    //     roomUpdatedEnded,
+    //   ])
+    // })
+
     // Leaving the room
     await page.evaluate(() => {
       // @ts-expect-error
