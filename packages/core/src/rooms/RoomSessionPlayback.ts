@@ -64,6 +64,39 @@ export class RoomSessionPlaybackAPI
       },
     })
   }
+
+  async seek(timecode: number) {
+    await this.execute({
+      method: 'video.playback.seek_absolute',
+      params: {
+        room_session_id: this.getStateProperty('roomSessionId'),
+        playback_id: this.getStateProperty('id'),
+        position: Math.abs(timecode),
+      },
+    })
+  }
+
+  async forward(offset: number = 5000) {
+    await this.execute({
+      method: 'video.playback.seek_relative',
+      params: {
+        room_session_id: this.getStateProperty('roomSessionId'),
+        playback_id: this.getStateProperty('id'),
+        position: Math.abs(offset),
+      },
+    })
+  }
+
+  async rewind(offset: number = 5000) {
+    await this.execute({
+      method: 'video.playback.seek_relative',
+      params: {
+        room_session_id: this.getStateProperty('roomSessionId'),
+        playback_id: this.getStateProperty('id'),
+        position: -Math.abs(offset),
+      },
+    })
+  }
 }
 
 export const createRoomSessionPlaybackObject = (
