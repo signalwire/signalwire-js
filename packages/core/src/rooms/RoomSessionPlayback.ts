@@ -71,12 +71,12 @@ export class RoomSessionPlaybackAPI
       params: {
         room_session_id: this.getStateProperty('roomSessionId'),
         playback_id: this.getStateProperty('id'),
-        position: timecode,
+        position: Math.abs(timecode),
       },
     })
   }
 
-  async forward(offset: number) {
+  async forward(offset: number = 5000) {
     await this.execute({
       method: 'video.playback.seek_relative',
       params: {
@@ -87,7 +87,7 @@ export class RoomSessionPlaybackAPI
     })
   }
 
-  async rewind(offset: number) {
+  async rewind(offset: number = 5000) {
     await this.execute({
       method: 'video.playback.seek_relative',
       params: {
