@@ -52,7 +52,7 @@ test.describe('RoomSession', () => {
       ],
     })
 
-    // Joining the room
+    // --------------- Joining the room ---------------
     const joinParams: any = await page.evaluate(() => {
       return new Promise((r) => {
         // @ts-expect-error
@@ -74,23 +74,13 @@ test.describe('RoomSession', () => {
     // Checks that the video is visible
     await page.waitForSelector('div[id^="sw-sdk-"] > video', { timeout: 5000 })
 
-    // Muting Audio (self)
+    // --------------- Muting Audio (self) ---------------
     await page.evaluate(
-      ({ joinParams }) => {
+      async ({ joinParams }) => {
         // @ts-expect-error
         const roomObj = window._roomObj
 
-        const memberUpdatedAudioMuted = new Promise((resolve, reject) => {
-          roomObj.on('member.updated.audio_muted', (params: any) => {
-            if (params.member.id === joinParams.member_id) {
-              resolve(true)
-            } else {
-              reject()
-            }
-          })
-        })
-
-        const memberUpdated = new Promise((resolve, reject) => {
+        const memberUpdatedMuted = new Promise((resolve) => {
           roomObj.on('member.updated', (params: any) => {
             if (
               params.member.id === joinParams.member_id &&
@@ -98,36 +88,38 @@ test.describe('RoomSession', () => {
               params.member.audio_muted === true
             ) {
               resolve(true)
-            } else {
-              reject()
+            }
+          })
+        })
+
+        const memberUpdatedUnmuted = new Promise((resolve) => {
+          roomObj.on('member.updated', (params: any) => {
+            if (
+              params.member.id === joinParams.member_id &&
+              params.member.updated.includes('audio_muted') &&
+              params.member.audio_muted === false
+            ) {
+              resolve(true)
             }
           })
         })
 
         queueMicrotask(() => roomObj.audioMute())
+        await new Promise((r) => setTimeout(r, 1000))
+        queueMicrotask(() => roomObj.audioUnmute())
 
-        return Promise.all([memberUpdatedAudioMuted, memberUpdated])
+        return Promise.all([memberUpdatedMuted, memberUpdatedUnmuted])
       },
       { joinParams }
     )
 
-    // Muting Video (self)
+    // --------------- Muting Video (self) ---------------
     await page.evaluate(
-      ({ joinParams }) => {
+      async ({ joinParams }) => {
         // @ts-expect-error
         const roomObj = window._roomObj
 
-        const memberUpdatedVideoMuted = new Promise((resolve, reject) => {
-          roomObj.on('member.updated.video_muted', (params: any) => {
-            if (params.member.id === joinParams.member_id) {
-              resolve(true)
-            } else {
-              reject()
-            }
-          })
-        })
-
-        const memberUpdated = new Promise((resolve, reject) => {
+        const memberUpdatedMuted = new Promise((resolve, reject) => {
           roomObj.on('member.updated', (params: any) => {
             if (
               params.member.id === joinParams.member_id &&
@@ -137,20 +129,34 @@ test.describe('RoomSession', () => {
               params.member.visible === false
             ) {
               resolve(true)
-            } else {
-              reject()
+            }
+          })
+        })
+
+        const memberUpdatedUnnuted = new Promise((resolve) => {
+          roomObj.on('member.updated', (params: any) => {
+            if (
+              params.member.id === joinParams.member_id &&
+              params.member.updated.includes('video_muted') &&
+              params.member.updated.includes('visible') &&
+              params.member.video_muted === true &&
+              params.member.visible === false
+            ) {
+              resolve(true)
             }
           })
         })
 
         queueMicrotask(() => roomObj.videoMute())
+        await new Promise((r) => setTimeout(r, 1000))
+        queueMicrotask(() => roomObj.videoUnmute())
 
-        return Promise.all([memberUpdatedVideoMuted, memberUpdated])
+        return Promise.all([memberUpdatedMuted, memberUpdatedUnnuted])
       },
       { joinParams }
     )
 
-    // Session Recording
+    // --------------- Session Recording ---------------
     await page.evaluate(async () => {
       // @ts-expect-error
       const roomObj = window._roomObj
@@ -207,7 +213,7 @@ test.describe('RoomSession', () => {
       return Promise.all([recordingStarted, roomUpdatedStarted, recordingEnded])
     })
 
-    // Leaving the room
+    // --------------- Leaving the room ---------------
     await page.evaluate(() => {
       // @ts-expect-error
       return window._roomObj.hangup()
