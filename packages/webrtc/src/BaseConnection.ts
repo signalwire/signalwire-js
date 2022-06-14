@@ -161,7 +161,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         userVariables,
         screenShare,
         additionalDevice,
-        pingSupported: true,
+        // TODO: Uncomment when backend supports ping/pong
+        // pingSupported: true,
       },
     }
   }
