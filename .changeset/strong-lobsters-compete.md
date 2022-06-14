@@ -2,4 +2,4 @@
 '@signalwire/js': minor
 ---
 
-Add RoomSession.joinAudience method
+[internal] Add RoomSession.joinAudience method

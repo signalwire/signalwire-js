@@ -52,6 +52,7 @@ export interface BaseRoomSession<T>
     BaseComponentContract,
     BaseConnectionContract<RoomSessionObjectEvents> {
   join(): Promise<T>
+  /** @internal */
   joinAudience(options?: { audio?: boolean; video?: boolean }): Promise<T>
   leave(): Promise<void>
 }

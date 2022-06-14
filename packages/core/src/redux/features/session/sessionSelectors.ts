@@ -1,5 +1,4 @@
 import { SDKState } from '../../interfaces'
-import { Authorization } from '../../../utils/interfaces'
 
 export const getIceServers = ({ session }: SDKState) => {
   return session?.iceServers ?? []
@@ -18,16 +17,5 @@ export const getAuthError = ({ session }: SDKState) => {
 }
 
 export const getAuthState = ({ session }: SDKState) => {
-  if (!session.authState) {
-    return undefined
-  }
-
-  const authState: Authorization = {
-    ...session.authState,
-    // TODO: these are just for testing purposes until the BE starts sending them
-    audio_allowed: true,
-    video_allowed: true,
-  }
-
-  return authState
+  return session.authState
 }

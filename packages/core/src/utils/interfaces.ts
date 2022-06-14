@@ -168,9 +168,8 @@ export interface Authorization {
   }
   signature: string
   expires_at?: number
-  // TODO: check if these are required.
-  audio_allowed: boolean
-  video_allowed: boolean
+  audio_allowed?: boolean
+  video_allowed?: boolean
 }
 
 export interface RPCConnectResult {
