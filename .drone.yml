@@ -45,6 +45,8 @@ steps:
         from_secret: VOICE_DIAL_TO_NUMBER
       VOICE_DIAL_CONNECT_TO_NUMBER:
         from_secret: VOICE_DIAL_CONNECT_TO_NUMBER
+      VOICE_DIAL_CONNECT_CONTEXT:
+        from_secret: VOICE_DIAL_CONNECT_CONTEXT
 
   - name: e2e-js
     image: mcr.microsoft.com/playwright:v1.22.2-focal

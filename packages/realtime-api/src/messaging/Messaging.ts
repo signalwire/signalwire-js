@@ -3,6 +3,7 @@ import {
   BaseComponentOptions,
   EventTransform,
   toExternalJSON,
+  ClientContextContract,
 } from '@signalwire/core'
 import { connect, BaseComponent } from '@signalwire/core'
 import type { MessagingClientApiEvents } from '../types'
@@ -40,7 +41,8 @@ interface MessagingSendError {
 
 /** @internal */
 export interface Messaging
-  extends DisconnectableClientContract<Messaging, MessagingClientApiEvents> {
+  extends DisconnectableClientContract<Messaging, MessagingClientApiEvents>,
+    ClientContextContract {
   /** @internal */
   _session: RealtimeClient
   send(params: MessagingSendParams): Promise<MessagingSendResult>

@@ -3,6 +3,7 @@ import { setupClient, clientConnect } from '../client/index'
 import { TaskClientDocs } from './TaskClient.docs'
 import type { Task } from './Task'
 import { createTaskObject } from './Task'
+import { clientContextInterceptorsFactory } from '../common/clientContext'
 
 interface TaskClientMain extends Task {
   new (opts: TaskClientOptions): this
@@ -38,6 +39,7 @@ const TaskClient = function (options?: TaskClientOptions) {
   const disconnect = () => client.disconnect()
 
   const interceptors = {
+    ...clientContextInterceptorsFactory(client),
     on: taskOn,
     once: taskOnce,
     _session: client,

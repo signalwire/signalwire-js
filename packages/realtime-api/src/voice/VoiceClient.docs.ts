@@ -136,4 +136,9 @@ export interface VoiceClientDocs extends Pick<Voice, InheritedMembers> {
     /** If true, WebRTC media is negotiated. Default is parent leg setting. */
     webrtcMedia?: boolean | undefined
   }): Promise<Call>
+
+  /** @internal */
+  addContexts(contexts: string[]): Promise<{ message: string; code: number }>
+  /** @internal */
+  removeContexts(contexts: string[]): Promise<{ message: string; code: number }>
 }

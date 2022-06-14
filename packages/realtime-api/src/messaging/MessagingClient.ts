@@ -3,6 +3,7 @@ import { setupClient, clientConnect } from '../client/index'
 import { MessagingClientDocs } from './MessagingClient.docs'
 import type { Messaging } from './Messaging'
 import { createMessagingObject } from './Messaging'
+import { clientContextInterceptorsFactory } from '../common/clientContext'
 export { MessagingClientApiEvents } from '../types'
 
 interface MessagingClientMain extends Messaging {
@@ -74,6 +75,7 @@ const MessagingClient = function (options?: MessagingClientOptions) {
   const disconnect = () => client.disconnect()
 
   const interceptors = {
+    ...clientContextInterceptorsFactory(client),
     on: messagingOn,
     once: messagingOnce,
     send: send,

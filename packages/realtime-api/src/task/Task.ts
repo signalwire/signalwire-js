@@ -2,6 +2,7 @@ import {
   DisconnectableClientContract,
   BaseComponentOptions,
   BaseComponent,
+  ClientContextContract,
 } from '@signalwire/core'
 import { connect } from '@signalwire/core'
 import type { TaskClientApiEvents } from '../types'
@@ -9,7 +10,8 @@ import { RealtimeClient } from '../client/index'
 import { taskWorker } from './workers'
 
 export interface Task
-  extends DisconnectableClientContract<Task, TaskClientApiEvents> {
+  extends DisconnectableClientContract<Task, TaskClientApiEvents>,
+    ClientContextContract {
   /** @internal */
   _session: RealtimeClient
 }
