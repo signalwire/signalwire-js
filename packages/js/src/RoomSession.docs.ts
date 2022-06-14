@@ -88,6 +88,9 @@ export interface RoomSessionDocs<T>
    */
   join(): Promise<this>
 
+  /** @internal */
+  joinAudience(options?: { audio?: boolean; video?: boolean }): Promise<this>
+
   /**
    * Leaves the room. This detaches all the locally originating streams from the
    * room.

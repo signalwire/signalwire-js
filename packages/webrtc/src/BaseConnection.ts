@@ -695,6 +695,19 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /** @internal */
+  updateMediaOptions(options: {
+    audio?: boolean
+    video?: boolean
+    negotiateAudio?: boolean
+    negotiateVideo?: boolean
+  }) {
+    this.options = {
+      ...this.options,
+      ...options,
+    }
+  }
+
+  /** @internal */
   private _hangup(params: any = {}) {
     const {
       byeCause = 'NORMAL_CLEARING',

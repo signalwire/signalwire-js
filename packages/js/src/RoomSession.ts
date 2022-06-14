@@ -1,8 +1,18 @@
-import { UserOptions, AssertSameType, getLogger } from '@signalwire/core'
+import {
+  UserOptions,
+  AssertSameType,
+  getLogger,
+  Authorization,
+} from '@signalwire/core'
 import { createClient } from './createClient'
-import type { MakeRoomOptions } from './Client'
 import { BaseRoomSession } from './BaseRoomSession'
-import { RoomSessionDocs } from './RoomSession.docs'
+import {
+  getJoinAudienceMediaParams,
+  isValidJoinAudienceMediaParams,
+} from './utils/roomSession'
+import type { MakeRoomOptions } from './Client'
+import type { RoomSessionDocs } from './RoomSession.docs'
+import type { RoomSessionJoinAudienceParams } from './utils/interfaces'
 
 const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
   aspectRatio: { ideal: 16 / 9 },
@@ -149,8 +159,55 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     })
   }
 
+  const joinAudience = (
+    params?: RoomSessionJoinAudienceParams
+  ) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // @ts-expect-error
+        room.attachPreConnectWorkers()
+
+        const session = await client.connect()
+
+        // @ts-expect-error
+        const authState: Authorization = session._sessionAuthState
+        const mediaOptions = getJoinAudienceMediaParams({
+          authState,
+          ...params,
+        })
+
+        if (!isValidJoinAudienceMediaParams(mediaOptions)) {
+          await session.disconnect()
+          return reject(
+            new Error(
+              '[joinAudience] Either (or both) `audio` and `video` must be `true` when calling this method.'
+            )
+          )
+        }
+
+        // @ts-expect-error
+        room.updateMediaOptions(mediaOptions)
+
+        room.once('room.subscribed', (payload) => {
+          // @ts-expect-error
+          room.attachOnSubscribedWorkers(payload)
+          resolve(room)
+        })
+
+        await room.join()
+      } catch (error) {
+        getLogger().error('RoomSession JoinAudience', error)
+        // Disconnect the underlay client in case of media/signaling errors
+        client.disconnect()
+
+        reject(error)
+      }
+    })
+  }
+
   const interceptors = {
     join,
+    joinAudience,
   } as const
 
   return new Proxy<Omit<RoomSession, 'new'>>(room, {

@@ -13,6 +13,7 @@ export const initialSessionState: DeepReadonly<SessionState> = {
   protocol: '',
   iceServers: [],
   authStatus: 'unknown',
+  authState: undefined,
   authError: undefined,
   authCount: 0,
 }
@@ -25,6 +26,7 @@ const sessionSlice = createDestroyableSlice({
       return {
         ...state,
         authStatus: 'authorized',
+        authState: payload?.authorization,
         authCount: state.authCount + 1,
         protocol: payload?.protocol ?? '',
         iceServers: payload?.ice_servers ?? [],

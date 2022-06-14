@@ -52,6 +52,8 @@ export interface BaseRoomSession<T>
     BaseComponentContract,
     BaseConnectionContract<RoomSessionObjectEvents> {
   join(): Promise<T>
+  /** @internal */
+  joinAudience(options?: { audio?: boolean; video?: boolean }): Promise<T>
   leave(): Promise<void>
 }
 
@@ -173,7 +175,7 @@ export class RoomSessionConnection
   protected attachOnSubscribedWorkers(payload: VideoRoomEventParams) {
     this.runWorker('memberPositionWorker', {
       worker: workers.memberPositionWorker,
-      initialState: payload
+      initialState: payload,
     })
   }
 

@@ -43,6 +43,7 @@ describe('componentCleanupSaga', () => {
           protocol: '',
           iceServers: [],
           authStatus: 'unknown',
+          authState: undefined,
           authError: undefined,
           authCount: 0,
         },
