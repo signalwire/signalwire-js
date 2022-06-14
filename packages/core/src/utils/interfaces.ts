@@ -49,6 +49,7 @@ export type VertoMethod =
   | 'jsapi'
   | 'verto.stats'
   | 'verto.ping'
+  | 'verto.pong'
   | 'verto.announce'
 
 export type JSONRPCMethod =
