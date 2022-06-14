@@ -66,6 +66,8 @@ export interface MessagingClientDocs extends Pick<Messaging, InheritedMembers> {
     media?: string[]
   }): Promise<MessagingSendResult>
 
+  /** @internal */
   addContexts(contexts: string[]): Promise<{ message: string; code: number }>
+  /** @internal */
   removeContexts(contexts: string[]): Promise<{ message: string; code: number }>
 }

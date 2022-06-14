@@ -15,6 +15,8 @@ export interface TaskClientDocs extends DisconnectableClientContract<Task, TaskC
   /** @ignore */
   _session: RealtimeClient
 
+  /** @internal */
   addContexts(contexts: string[]): Promise<{ message: string; code: number }>
+  /** @internal */
   removeContexts(contexts: string[]): Promise<{ message: string; code: number }>
 }
