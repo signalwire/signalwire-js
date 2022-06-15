@@ -61,6 +61,8 @@ steps:
         from_secret: RELAY_PROJECT
       RELAY_TOKEN:
         from_secret: RELAY_TOKEN
+      PLAYBACK_URL:
+        from_secret: PLAYBACK_URL
 
 trigger:
   event: push
