@@ -1273,6 +1273,11 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
   }
 
   /**
+   * Alias for amd()
+   */
+  detectAnsweringMachine = this.amd
+
+  /**
    * Detects the presence of a fax machine.
    *
    * @example
