@@ -45,10 +45,13 @@ test.describe('RoomSession', () => {
         ],
       },
       initialEvents: [
-        'recording.started',
-        'recording.ended',
-        'room.updated',
         'member.updated',
+        'playback.ended',
+        'playback.started',
+        'playback.updated',
+        'recording.ended',
+        'recording.started',
+        'room.updated',
       ],
     })
 
@@ -104,9 +107,8 @@ test.describe('RoomSession', () => {
           })
         })
 
-        queueMicrotask(() => roomObj.audioMute())
-        await new Promise((r) => setTimeout(r, 1000))
-        queueMicrotask(() => roomObj.audioUnmute())
+        await roomObj.audioMute()
+        await roomObj.audioUnmute()
 
         return Promise.all([memberUpdatedMuted, memberUpdatedUnmuted])
       },
@@ -119,7 +121,7 @@ test.describe('RoomSession', () => {
         // @ts-expect-error
         const roomObj = window._roomObj
 
-        const memberUpdatedMuted = new Promise((resolve, reject) => {
+        const memberUpdatedMuted = new Promise((resolve) => {
           roomObj.on('member.updated', (params: any) => {
             if (
               params.member.id === joinParams.member_id &&
@@ -147,9 +149,8 @@ test.describe('RoomSession', () => {
           })
         })
 
-        queueMicrotask(() => roomObj.videoMute())
-        await new Promise((r) => setTimeout(r, 1000))
-        queueMicrotask(() => roomObj.videoUnmute())
+        await roomObj.videoMute()
+        await roomObj.videoUnmute()
 
         return Promise.all([memberUpdatedMuted, memberUpdatedUnnuted])
       },
@@ -194,24 +195,53 @@ test.describe('RoomSession', () => {
         })
       })
 
-      let recObj: any
-      setTimeout(() => {
-        roomObj
-          .startRecording()
-          .then((obj: any) => {
-            recObj = obj
-          })
-          .catch(() => {
-            throw new Error("Couldn't start recording")
-          })
-      }, 500)
+      const recObj = await roomObj.startRecording()
 
       await new Promise((r) => setTimeout(r, 1000))
 
-      queueMicrotask(() => recObj.stop())
+      await recObj.stop()
 
       return Promise.all([recordingStarted, roomUpdatedStarted, recordingEnded])
     })
+
+    // --------------- Playback ---------------
+    await page.evaluate(
+      async ({ PLAYBACK_URL }) => {
+        // @ts-expect-error
+        const roomObj = window._roomObj
+
+        const playbackStarted = new Promise((resolve, reject) => {
+          roomObj.on('playback.started', (params: any) => {
+            if (params.state === 'playing') {
+              resolve(true)
+            } else {
+              reject(new Error('[playback.started] state is not "recording"'))
+            }
+          })
+        })
+
+        const playbackEnded = new Promise((resolve, reject) => {
+          roomObj.on('playback.ended', (params: any) => {
+            if (params.state === 'completed') {
+              resolve(true)
+            } else {
+              reject(new Error('[playback.ended] state is not "completed"'))
+            }
+          })
+        })
+
+        const playbackObj = await roomObj.play({
+          url: PLAYBACK_URL,
+        })
+
+        await new Promise((r) => setTimeout(r, 500))
+
+        await playbackObj.stop()
+
+        return Promise.all([playbackStarted, playbackEnded])
+      },
+      { PLAYBACK_URL: process.env.PLAYBACK_URL }
+    )
 
     // --------------- Leaving the room ---------------
     await page.evaluate(() => {
