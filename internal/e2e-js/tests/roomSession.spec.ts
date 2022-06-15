@@ -230,15 +230,38 @@ test.describe('RoomSession', () => {
           })
         })
 
+        let hasPaused = false
+        const playbackPaused = new Promise((resolve) => {
+          roomObj.on('playback.updated', (params: any) => {
+            if (params.state === 'paused') {
+              hasPaused = true
+              resolve(true)
+            }
+          })
+        })
+
+        const playbackResume = new Promise((resolve) => {
+          roomObj.on('playback.updated', (params: any) => {
+            if (params.state === 'playing' && hasPaused) {
+              resolve(true)
+            }
+          })
+        })
+
         const playbackObj = await roomObj.play({
           url: PLAYBACK_URL,
         })
 
-        await new Promise((r) => setTimeout(r, 500))
-
+        await playbackObj.pause()
+        await playbackObj.resume()
         await playbackObj.stop()
 
-        return Promise.all([playbackStarted, playbackEnded])
+        return Promise.all([
+          playbackStarted,
+          playbackEnded,
+          playbackPaused,
+          playbackResume,
+        ])
       },
       { PLAYBACK_URL: process.env.PLAYBACK_URL }
     )
