@@ -28,7 +28,7 @@
     "@types/jest": "^27.5.1",
     "babel-jest": "^28.1.0",
     "concurrently": "^6.5.1",
-    "esbuild": "^0.14.43",
+    "esbuild": "0.14.43",
     "jest": "^28.1.0",
     "jest-environment-jsdom": "^28.1.0",
     "prettier": "^2.6.2",
