@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.1] - 2022-06-15
+
+### Fixed
+
+- [#570](https://github.com/signalwire/signalwire-js/pull/570) [`b97ffcbe`](https://github.com/signalwire/signalwire-js/commit/b97ffcbef266bef91158c3553a81832e5790e240) - Fix internal bundling to allow the usage of the `esm` output.
+
 ## [3.1.0] - 2022-06-10
 
 ### Added
