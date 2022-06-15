@@ -45,6 +45,8 @@ test.describe('RoomSession', () => {
         ],
       },
       initialEvents: [
+        'member.joined',
+        'member.left',
         'member.updated',
         'playback.ended',
         'playback.started',
@@ -265,6 +267,44 @@ test.describe('RoomSession', () => {
       },
       { PLAYBACK_URL: process.env.PLAYBACK_URL }
     )
+
+    // --------------- Screenshare ---------------
+    await page.evaluate(async () => {
+      // @ts-expect-error
+      const roomObj = window._roomObj
+
+      let screenMemberId: string
+      const screenJoined = new Promise((resolve) => {
+        roomObj.on('member.joined', (params: any) => {
+          if (params.member.type === 'screen') {
+            screenMemberId = params.member.id
+            resolve(true)
+          }
+        })
+      })
+
+      const screenLeft = new Promise((resolve) => {
+        roomObj.on('member.left', (params: any) => {
+          if (
+            params.member.type === 'screen' &&
+            params.member.id === screenMemberId
+          ) {
+            resolve(true)
+          }
+        })
+      })
+
+      const screenShareObj = await roomObj.startScreenShare({
+        audio: true,
+        video: true,
+      })
+
+      await new Promise((r) => setTimeout(r, 1000))
+
+      await screenShareObj.hangup()
+
+      return Promise.all([screenJoined, screenLeft])
+    })
 
     // --------------- Leaving the room ---------------
     await page.evaluate(() => {
