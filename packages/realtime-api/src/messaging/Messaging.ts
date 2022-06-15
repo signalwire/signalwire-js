@@ -140,4 +140,4 @@ export const createMessagingObject = (
 
 export * from './MessagingClient'
 export * from './Message'
-export { MessagingMessageState } from '@signalwire/core'
+export type { MessagingMessageState } from '@signalwire/core'
