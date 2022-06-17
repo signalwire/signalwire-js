@@ -1,0 +1,13 @@
+{
+  "name": "stack-tests-basic",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build:cjs": "tsc app.ts --rootDir ./ --skipLibCheck --esModuleInterop --lib DOM --lib ES2015 --target ESNext --moduleResolution node --module CommonJS --outDir dist/cjs",
+    "build:esm": "tsc app.ts --rootDir ./ --skipLibCheck --esModuleInterop --lib DOM --lib ES2015 --target ESNext --moduleResolution node --module ESNext --outDir dist/esm"
+  },
+  "dependencies": {
+    "@signalwire/realtime-api": "^3.1.1"
+  }
+}
