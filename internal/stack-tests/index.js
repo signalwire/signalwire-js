@@ -46,10 +46,12 @@ async function main() {
   const packages = getPackages({ pathname: 'src' })
 
   // --------------- Build examples ---------------
+  console.log('🛠  Building the examples', packages.map(pkg => pkg.name))
   await Promise.all(packages.map(pkg => buildExamples(pkg)))
 
   // --------------- Run examples ---------------
   for (const pkg of packages) {
+    console.log('🏃‍♂️ Running example ->', pkg.name)
     await executeExamples(pkg)
   }
 }
