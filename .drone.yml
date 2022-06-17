@@ -10,6 +10,8 @@ steps:
       - npm test
 
   - name: stack-tests
+    depends_on:
+      - test
     image: node:16-alpine
     commands:
       - npm install
