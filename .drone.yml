@@ -12,7 +12,10 @@ steps:
   - name: stack-tests
     depends_on:
       - test
+    image: node:16-alpine
     commands:
+      - npm install
+      - npm run build
       - npm run -w=@sw-internal/stack-tests dev
     environment:
       RELAY_HOST:
@@ -48,7 +51,10 @@ steps:
   - name: e2e-realtime-api
     depends_on:
       - stack-tests
+    image: node:16-alpine
     commands:
+      - npm install
+      - npm run build
       - npm run -w=@sw-internal/e2e-realtime-api dev
     environment:
       API_HOST:
@@ -86,7 +92,10 @@ steps:
   - name: e2e-js
     depends_on:
       - stack-tests
+    image: mcr.microsoft.com/playwright:v1.22.2-focal
     commands:
+      - npm install
+      - npm run build
       - npm run -w=@sw-internal/e2e-js dev
     environment:
       API_HOST:
