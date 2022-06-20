@@ -162,6 +162,7 @@ export const makeAudioElementSaga = ({ speakerId }: { speakerId?: string }) => {
     runSaga,
   }: CustomSagaParams<RoomSessionConnection>): SagaIterator {
     if (typeof Audio === 'undefined') {
+      getLogger().warn('`Audio` is not supported on this environment.')
       return
     }
 
