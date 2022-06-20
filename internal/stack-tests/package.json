@@ -1,0 +1,11 @@
+{
+  "name": "@sw-internal/stack-tests",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node index.js",
+    "test": ""
+  }
+}

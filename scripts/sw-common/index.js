@@ -31,6 +31,7 @@ const _scan = (pathname, level = 0, acc = []) => {
       acc.push({
         version: pkgJson.version,
         name: pkgJson.name,
+        scripts: pkgJson.scripts,
         // To be able to have packages in beta within the
         // same branch as other prod-ready packages we opted
         // for having a non-standard field that let us
