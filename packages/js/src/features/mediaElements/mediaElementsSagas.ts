@@ -161,6 +161,10 @@ export const makeAudioElementSaga = ({ speakerId }: { speakerId?: string }) => {
     instance: room,
     runSaga,
   }: CustomSagaParams<RoomSessionConnection>): SagaIterator {
+    if (typeof Audio === 'undefined') {
+      return
+    }
+
     try {
       const audioEl = new Audio()
       let audioTask: Task | undefined
