@@ -60,9 +60,28 @@ export const stopStream = (stream: RNMediaStream) => {
   stream = null
 }
 
+/**
+ * This class in implemented by `react-native-webrtc` but
+ * it's not exported directly. To avoid dealing with manual
+ * file imports and having (potential) issues of mixing
+ * commonjs/esm we ported it here since it's just a few
+ * lines of code.
+ */
+class MediaStreamTrackEvent {
+  type: string
+  track: any
+  constructor(type: string, eventInitDict: { track: any }) {
+    this.type = type.toString()
+    this.track = eventInitDict.track
+  }
+}
+
 export const stopTrack = (track: MediaStreamTrack) => {
   if (track && track.readyState === 'live') {
     track.stop()
-    track.dispatchEvent(new Event('ended'))
+    track.dispatchEvent(
+      // @ts-expect-error
+      new MediaStreamTrackEvent('ended', { track })
+    )
   }
 }
