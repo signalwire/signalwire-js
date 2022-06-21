@@ -396,14 +396,24 @@ window.ready = (callback) => {
 
 let screenShareObj
 window.startScreenShare = async () => {
+  let opts = {}
+  const ssPos = document.getElementById('ssPosition')?.value || ''
+  if (ssPos.trim()) {
+    opts = {
+      positions: {
+        self: ssPos.trim(),
+      },
+    }
+  }
+  const layout = document.getElementById('ssLayout').value.trim()
+  if (layout) {
+    opts.layout = layout
+  }
   screenShareObj = await roomObj
     .startScreenShare({
       audio: true,
       video: true,
-      layout: document.getElementById('ssLayout').value,
-      positions: {
-        self: 'reserved-1',
-      },
+      ...opts,
     })
     .catch((error) => {
       console.error('ScreenShare Error', error)
