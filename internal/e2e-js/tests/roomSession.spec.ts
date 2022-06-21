@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import type { Video } from '@signalwire/js'
 import { createTestServer, createTestRoomSession } from '../utils'
 
 test.describe('RoomSession', () => {
@@ -83,10 +84,10 @@ test.describe('RoomSession', () => {
     await page.evaluate(
       async ({ joinParams }) => {
         // @ts-expect-error
-        const roomObj = window._roomObj
+        const roomObj: Video.RoomSession = window._roomObj
 
         const memberUpdatedMuted = new Promise((resolve) => {
-          roomObj.on('member.updated', (params: any) => {
+          roomObj.on('member.updated', (params) => {
             if (
               params.member.id === joinParams.member_id &&
               params.member.updated.includes('audio_muted') &&
@@ -98,7 +99,7 @@ test.describe('RoomSession', () => {
         })
 
         const memberUpdatedUnmuted = new Promise((resolve) => {
-          roomObj.on('member.updated', (params: any) => {
+          roomObj.on('member.updated', (params) => {
             if (
               params.member.id === joinParams.member_id &&
               params.member.updated.includes('audio_muted') &&
@@ -121,10 +122,10 @@ test.describe('RoomSession', () => {
     await page.evaluate(
       async ({ joinParams }) => {
         // @ts-expect-error
-        const roomObj = window._roomObj
+        const roomObj: Video.RoomSession = window._roomObj
 
         const memberUpdatedMuted = new Promise((resolve) => {
-          roomObj.on('member.updated', (params: any) => {
+          roomObj.on('member.updated', (params) => {
             if (
               params.member.id === joinParams.member_id &&
               params.member.updated.includes('video_muted') &&
@@ -138,7 +139,7 @@ test.describe('RoomSession', () => {
         })
 
         const memberUpdatedUnnuted = new Promise((resolve) => {
-          roomObj.on('member.updated', (params: any) => {
+          roomObj.on('member.updated', (params) => {
             if (
               params.member.id === joinParams.member_id &&
               params.member.updated.includes('video_muted') &&
@@ -162,10 +163,10 @@ test.describe('RoomSession', () => {
     // --------------- Session Recording ---------------
     await page.evaluate(async () => {
       // @ts-expect-error
-      const roomObj = window._roomObj
+      const roomObj: Video.RoomSession = window._roomObj
 
       const recordingStarted = new Promise((resolve, reject) => {
-        roomObj.on('recording.started', (params: any) => {
+        roomObj.on('recording.started', (params) => {
           if (params.state === 'recording') {
             resolve(true)
           } else {
@@ -175,10 +176,15 @@ test.describe('RoomSession', () => {
       })
 
       const roomUpdatedStarted = new Promise((resolve, reject) => {
-        roomObj.on('room.updated', (params: any) => {
+        roomObj.on('room.updated', (params) => {
           if (
             params.room.recording === true &&
-            params.room.updated.includes('recording')
+            // The type is incorrectly inferred within this
+            // test. `params` is being inferred as
+            // `VideoRoomEventParams` instead of
+            // `RoomSessionUpdated`
+            // @ts-expect-error
+            params.room?.updated.includes('recording')
           ) {
             resolve(true)
           } else {
@@ -188,7 +194,7 @@ test.describe('RoomSession', () => {
       })
 
       const recordingEnded = new Promise((resolve, reject) => {
-        roomObj.on('recording.ended', (params: any) => {
+        roomObj.on('recording.ended', (params) => {
           if (params.state === 'completed') {
             resolve(true)
           } else {
@@ -210,10 +216,10 @@ test.describe('RoomSession', () => {
     await page.evaluate(
       async ({ PLAYBACK_URL }) => {
         // @ts-expect-error
-        const roomObj = window._roomObj
+        const roomObj: Video.RoomSession = window._roomObj
 
         const playbackStarted = new Promise((resolve, reject) => {
-          roomObj.on('playback.started', (params: any) => {
+          roomObj.on('playback.started', (params) => {
             if (params.state === 'playing') {
               resolve(true)
             } else {
@@ -223,7 +229,7 @@ test.describe('RoomSession', () => {
         })
 
         const playbackEnded = new Promise((resolve, reject) => {
-          roomObj.on('playback.ended', (params: any) => {
+          roomObj.on('playback.ended', (params) => {
             if (params.state === 'completed') {
               resolve(true)
             } else {
@@ -234,7 +240,7 @@ test.describe('RoomSession', () => {
 
         let hasPaused = false
         const playbackPaused = new Promise((resolve) => {
-          roomObj.on('playback.updated', (params: any) => {
+          roomObj.on('playback.updated', (params) => {
             if (params.state === 'paused') {
               hasPaused = true
               resolve(true)
@@ -243,23 +249,33 @@ test.describe('RoomSession', () => {
         })
 
         const playbackResume = new Promise((resolve) => {
-          roomObj.on('playback.updated', (params: any) => {
+          roomObj.on('playback.updated', (params) => {
             if (params.state === 'playing' && hasPaused) {
               resolve(true)
             }
           })
         })
 
-        const playbackObj = await roomObj.play({
-          url: PLAYBACK_URL,
+        const playbackVolume = new Promise((resolve) => {
+          roomObj.on('playback.updated', (params) => {
+            if (params.volume === -50) {
+              resolve(true)
+            }
+          })
         })
 
+        const playbackObj = await roomObj.play({
+          url: PLAYBACK_URL!,
+        })
+
+        await playbackObj.setVolume(-50)
         await playbackObj.pause()
         await playbackObj.resume()
         await playbackObj.stop()
 
         return Promise.all([
           playbackStarted,
+          playbackVolume,
           playbackEnded,
           playbackPaused,
           playbackResume,
@@ -271,7 +287,7 @@ test.describe('RoomSession', () => {
     // --------------- Screenshare ---------------
     await page.evaluate(async () => {
       // @ts-expect-error
-      const roomObj = window._roomObj
+      const roomObj: Video.RoomSession = window._roomObj
 
       let screenMemberId: string
       const screenJoined = new Promise((resolve) => {
@@ -284,7 +300,7 @@ test.describe('RoomSession', () => {
       })
 
       const screenLeft = new Promise((resolve) => {
-        roomObj.on('member.left', (params: any) => {
+        roomObj.on('member.left', (params) => {
           if (
             params.member.type === 'screen' &&
             params.member.id === screenMemberId
@@ -301,7 +317,7 @@ test.describe('RoomSession', () => {
 
       await new Promise((r) => setTimeout(r, 1000))
 
-      await screenShareObj.hangup()
+      await screenShareObj.leave()
 
       return Promise.all([screenJoined, screenLeft])
     })
