@@ -34,7 +34,9 @@ async function executeExamples(pkg) {
 
   for (const scriptName of allScripts) {
     const scriptType = getScriptType(scriptName)
-    const { stdout } = await execa('node', [`dist/${scriptType}/app.js`], {
+    const command = ['node', [`dist/${scriptType}/app.js`]]
+    console.log(`🏃‍♂️ Command ⇢ "${command.join(' ')}"`)
+    const { stdout } = await execa(...command, {
       cwd: pkg.pathname,
       env: process.env,
     })
@@ -46,12 +48,15 @@ async function main() {
   const packages = getPackages({ pathname: 'src' })
 
   // --------------- Build examples ---------------
-  console.log('🛠  Building the examples', packages.map(pkg => pkg.name))
-  await Promise.all(packages.map(pkg => buildExamples(pkg)))
+  console.log(
+    '🛠  Building the examples',
+    packages.map((pkg) => pkg.name)
+  )
+  await Promise.all(packages.map((pkg) => buildExamples(pkg)))
 
   // --------------- Run examples ---------------
   for (const pkg of packages) {
-    console.log('🏃‍♂️ Running example ->', pkg.name)
+    console.log(`💻 Example ⇢ "${pkg.name}"`)
     await executeExamples(pkg)
   }
 }
