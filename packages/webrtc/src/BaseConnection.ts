@@ -32,6 +32,7 @@ const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   requestTimeout: 10 * 1000,
   autoApplyMediaParams: true,
   iceGatheringTimeout: 2 * 1000,
+  pingSupported: true,
 }
 
 type EventsHandlerMapping = Record<BaseConnectionState, () => void> &
@@ -147,6 +148,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       userVariables,
       screenShare,
       additionalDevice,
+      pingSupported = true,
     } = this.options
     return {
       sessid: this.options.sessionid,
@@ -161,8 +163,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         userVariables,
         screenShare,
         additionalDevice,
-        // TODO: Uncomment when backend supports ping/pong
-        // pingSupported: true,
+        pingSupported,
       },
     }
   }
