@@ -56,14 +56,86 @@ export interface ChatChannelState {
 export type ChatChannelName = string
 
 export interface ChatContract extends PubSubContract {
+  /**
+   * Returns the list of messages that were sent to the specified channel.
+   *
+   * @param params - {@link ChatGetMessagesParams}
+   *
+   * @example
+   * ```js
+   * const m = await chatClient.getMessages({ channel: 'chan1' })
+   *
+   * m.messages.length;  // 23
+   * m.messages[0];  // the most recent message
+   * m.messages[0].member;  // the sender
+   * m.messages[0].content;  // the content
+   * m.messages[0].meta;  // the metadata (if any)
+   *
+   * m.cursor.next;  // if not null, there are more messages.
+   *
+   * // Get the next page using the cursor
+   * const next = await chatClient.getMessages({
+   *   channel: 'chan1',
+   *   cursor: {
+   *     after: m.cursor.after
+   *   }
+   * })
+   * ```
+   */
   getMessages(params: ChatGetMessagesParams): Promise<{
     messages: ChatMessageEntity[]
     cursor: PaginationCursor
   }>
+  /**
+   * Returns the list of members in the given channel.
+   *
+   * @param params - {@link ChatGetMembersParams}
+   *
+   * @example
+   * ```js
+   * const m = await chatClient.getMembers({ channel: 'my-channel' })
+   *
+   * m.members.length;  // 7
+   * m.members[0];  // { id: ..., channel: ..., state: ... }
+   * ```
+   */
   getMembers(params: ChatGetMembersParams): Promise<{
     members: ChatMemberEntity[]
   }>
+  /**
+   * Sets a state object for a member, for the specified channels. The
+   * previous state object will be completely replaced.
+   *
+   * @param params - {@link ChatSetMemberStateParams}
+   *
+   * @example
+   * ```js
+   * await chatClient.setMemberState({
+   *   channels: ['chan1', 'chan2'],
+   *   state: {
+   *     online: true,
+   *     typing: false
+   *   }
+   * })
+   * ```
+   */
   setMemberState(params: ChatSetMemberStateParams): Promise<void>
+  /**
+   * Returns the states of a member in the specified channels.
+   *
+   * @param params - {@link ChatGetMemberStateParams}
+   *
+   * @example
+   * ```js
+   * const s = await chatClient.getMemberState({
+   *   channels: ['chan1', 'chan2'],
+   *   memberId: 'my-member-id'
+   * })
+   *
+   * s.channels.length;  // 2
+   * s.channels.chan1.state;  // the state object for chan1
+   * ```
+   */
   getMemberState(params: ChatGetMemberStateParams): Promise<{
     channels: Record<ChatChannelName, ChatChannelState>
   }>
