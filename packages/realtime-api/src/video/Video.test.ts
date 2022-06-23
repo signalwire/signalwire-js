@@ -1,5 +1,6 @@
 import { actions } from '@signalwire/core'
 import { configureFullStack } from '../testUtils'
+import { RoomSessionConsumer } from './RoomSession'
 import { createVideoObject, Video } from './Video'
 
 describe('Video Object', () => {
@@ -187,6 +188,166 @@ describe('Video Object', () => {
       video.subscribe().then(() => {
         session.dispatch(actions.socketMessageAction(roomEndedEvent))
       })
+    })
+  })
+
+  describe('getRoomSessionsInProgress', () => {
+    it('should be defined', () => {
+      expect(video.getRoomSessionsInProgress).toBeDefined()
+      expect(video.getRoomSessionsInProgress).toBeInstanceOf(Function)
+    })
+
+    it('should return an obj with a list of RoomSession objects', async () => {
+      // @ts-expect-error
+      ;(video.execute as jest.Mock).mockResolvedValueOnce({
+        code: '200',
+        message: 'OK',
+        rooms: [
+          {
+            room_id: '776f0ece-75ce-4f84-8ce6-bd5677f2cbb9',
+            id: '25ab8daa-2639-45ed-bc73-69b664f55eff',
+            event_channel: 'EC_2404d4b8-fed1-48cc-8e84-9fd55d8cbd40',
+            name: 'room-1',
+            recording: true,
+            hide_video_muted: false,
+            layout_name: 'grid-responsive',
+            display_name: 'themes',
+            meta: {},
+            members: [
+              {
+                id: 'f8e8be92-a2e7-4e00-84f5-f50322ee37d0',
+                room_id: '776f0ece-75ce-4f84-8ce6-bd5677f2cbb9',
+                room_session_id: '25ab8daa-2639-45ed-bc73-69b664f55eff',
+                name: 'Tester',
+                type: 'member',
+                parent_id: '',
+                requested_position: 'auto',
+                visible: false,
+                audio_muted: true,
+                video_muted: true,
+                deaf: false,
+                input_volume: 0,
+                output_volume: 0,
+                input_sensitivity: 11.11111111111111,
+                meta: null,
+              },
+            ],
+          },
+          {
+            room_id: '088811be-8ecf-4f11-bfc1-45caa905130d',
+            id: 'c22fa141-a3f0-4923-b44c-e49aa318c3dd',
+            event_channel: 'EC_d28d0ec6-e233-46b0-8dac-5f1b33e95cf0',
+            name: 'room-2',
+            recording: false,
+            hide_video_muted: false,
+            layout_name: 'grid-responsive',
+            display_name: 'sdk-room',
+            meta: {},
+            members: [
+              {
+                id: '725b616b-754f-4aaf-9517-fb5d1b358497',
+                room_id: '088811be-8ecf-4f11-bfc1-45caa905130d',
+                room_session_id: 'c22fa141-a3f0-4923-b44c-e49aa318c3dd',
+                name: 'Testing',
+                type: 'member',
+                parent_id: '',
+                requested_position: 'auto',
+                visible: false,
+                audio_muted: true,
+                video_muted: true,
+                deaf: false,
+                input_volume: 0,
+                output_volume: 0,
+                input_sensitivity: 11.11111111111111,
+                meta: null,
+              },
+            ],
+          },
+        ],
+      })
+
+      const result = await video.getRoomSessionsInProgress()
+
+      expect(result.roomSessions).toHaveLength(2)
+      expect(result.roomSessions[0]).toBeInstanceOf(RoomSessionConsumer)
+      expect(result.roomSessions[0].id).toBe(
+        '25ab8daa-2639-45ed-bc73-69b664f55eff'
+      )
+      expect(result.roomSessions[0].roomId).toBe(
+        '776f0ece-75ce-4f84-8ce6-bd5677f2cbb9'
+      )
+      expect(result.roomSessions[0].displayName).toBe('themes')
+      expect(result.roomSessions[0].recording).toBe(true)
+      expect(result.roomSessions[0].members).toHaveLength(1)
+
+      expect(result.roomSessions[1]).toBeInstanceOf(RoomSessionConsumer)
+      expect(result.roomSessions[1].id).toBe(
+        'c22fa141-a3f0-4923-b44c-e49aa318c3dd'
+      )
+      expect(result.roomSessions[1].roomId).toBe(
+        '088811be-8ecf-4f11-bfc1-45caa905130d'
+      )
+      expect(result.roomSessions[1].displayName).toBe('sdk-room')
+      expect(result.roomSessions[1].recording).toBe(false)
+      expect(result.roomSessions[1].members).toHaveLength(1)
+    })
+  })
+
+  describe('getRoomSession', () => {
+    it('should be defined', () => {
+      expect(video.getRoomSession).toBeDefined()
+      expect(video.getRoomSession).toBeInstanceOf(Function)
+    })
+
+    it('should return an obj with a list of RoomSession objects', async () => {
+      // @ts-expect-error
+      ;(video.execute as jest.Mock).mockResolvedValueOnce({
+        room: {
+          room_id: '776f0ece-75ce-4f84-8ce6-bd5677f2cbb9',
+          id: '25ab8daa-2639-45ed-bc73-69b664f55eff',
+          event_channel: 'EC_2404d4b8-fed1-48cc-8e84-9fd55d8cbd40',
+          name: 'room-1',
+          recording: true,
+          hide_video_muted: false,
+          layout_name: 'grid-responsive',
+          display_name: 'themes',
+          meta: {},
+          members: [
+            {
+              id: 'f8e8be92-a2e7-4e00-84f5-f50322ee37d0',
+              room_id: '776f0ece-75ce-4f84-8ce6-bd5677f2cbb9',
+              room_session_id: '25ab8daa-2639-45ed-bc73-69b664f55eff',
+              name: 'Tester',
+              type: 'member',
+              parent_id: '',
+              requested_position: 'auto',
+              visible: false,
+              audio_muted: true,
+              video_muted: true,
+              deaf: false,
+              input_volume: 0,
+              output_volume: 0,
+              input_sensitivity: 11.11111111111111,
+              meta: null,
+            },
+          ],
+        },
+        code: '200',
+        message: 'OK',
+      })
+
+      const result = await video.getRoomSession({
+        id: '25ab8daa-2639-45ed-bc73-69b664f55eff',
+      })
+
+      expect(result.roomSession).toBeInstanceOf(RoomSessionConsumer)
+      expect(result.roomSession.id).toBe('25ab8daa-2639-45ed-bc73-69b664f55eff')
+      expect(result.roomSession.roomId).toBe(
+        '776f0ece-75ce-4f84-8ce6-bd5677f2cbb9'
+      )
+      expect(result.roomSession.displayName).toBe('themes')
+      expect(result.roomSession.recording).toBe(true)
+      expect(result.roomSession.members).toHaveLength(1)
     })
   })
 })
