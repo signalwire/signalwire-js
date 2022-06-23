@@ -1,28 +1,26 @@
 import {
-  AssertSameType,
   ConsumerContract,
   UserOptions,
   PubSub as PubSubNamespace,
+  PubSubContract,
 } from '@signalwire/core'
-import { PubSubContract } from 'packages/core/src/types/pubSub'
 import { clientConnect, setupClient, RealtimeClient } from '../client/index'
-import { PubSubClientApiEventsDocs, ClientDocs } from './PubSubClient.docs'
 
-export interface PubSubClientApiEventsMain extends PubSubNamespace.BasePubSubApiEvents {}
-export interface PubSubClientApiEvents extends AssertSameType<PubSubClientApiEventsMain, PubSubClientApiEventsDocs> {}
+export interface PubSubClientApiEvents
+  extends PubSubNamespace.BasePubSubApiEvents {}
 
 export interface ClientFullState extends PubSubClient {}
-interface ClientMain
+interface PubSubClient
   extends PubSubContract,
-    Omit<ConsumerContract<PubSubClientApiEvents, ClientFullState>, 'subscribe'> {
-
+    Omit<
+      ConsumerContract<PubSubClientApiEvents, ClientFullState>,
+      'subscribe'
+    > {
   new (opts: PubSubClientOptions): this
 
   /** @internal */
   _session: RealtimeClient
 }
-
-interface PubSubClient extends AssertSameType<ClientMain, ClientDocs> {}
 
 interface PubSubClientOptions
   extends Omit<UserOptions, 'host' | '_onRefreshToken' | 'token'> {
@@ -30,12 +28,24 @@ interface PubSubClientOptions
 }
 
 type ClientMethods = Exclude<keyof PubSubClient, '_session'>
-const INTERCEPTED_METHODS: ClientMethods[] = [
-  'subscribe',
-  'publish',
-]
+const INTERCEPTED_METHODS: ClientMethods[] = ['subscribe', 'publish']
 
-/** @ignore */
+/**
+ * Creates a new PubSub client.
+ *
+ * @param options - {@link PubSubClientOptions}
+ *
+ * @example
+ *
+ * ```js
+ * import { PubSub } from '@signalwire/realtime-api'
+ *
+ * const pubSubClient = new PubSub.Client({
+ *   project: '<project-id>',
+ *   token: '<api-token>'
+ * })
+ * ```
+ */
 const PubSubClient = function (options?: PubSubClientOptions) {
   const { client, store, emitter } = setupClient(options)
   const pubSub = PubSubNamespace.createBasePubSubObject<PubSubClient>({

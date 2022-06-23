@@ -154,11 +154,6 @@ export interface ChatContract extends PubSubContract {
    *
    * @example
    * ```js
-   * const chatClient = new Chat.Client({
-   *   project: '<project-id>',
-   *   token: '<api-token>'
-   * })
-   *
    * chatClient.on('message', m => console.log(m))
    *
    * await chatClient.subscribe("my-channel")
