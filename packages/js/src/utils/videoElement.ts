@@ -70,6 +70,7 @@ const _buildLayer = ({ location }: { location: InternalVideoLayoutLayer }) => {
 
 export interface LocalOverlay {
   readonly id: string
+  status: 'hidden' | 'visible'
   domElement: HTMLDivElement | undefined
   hide(): void
   show(): void
@@ -95,6 +96,8 @@ const makeLayoutChangedHandler =
       const location = layers.find(({ member_id }) => member_id === myMemberId)
 
       let myLayer = localOverlay.domElement
+      // Update localOverlay.status if a location has been found
+      localOverlay.status = location ? 'visible' : 'hidden'
       if (!location) {
         getLogger().debug('Location not found')
         if (myLayer) {

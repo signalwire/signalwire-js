@@ -42,6 +42,8 @@ export const makeVideoElementSaga = ({
        * Instead of querying the `document`, let's use our `layerMap`.
        */
       const localOverlay: LocalOverlay = {
+        // Each `layout.changed` event will update `status`
+        status: 'hidden',
         get id() {
           return addSDKPrefix(room.memberId)
         },
@@ -66,6 +68,9 @@ export const makeVideoElementSaga = ({
         show() {
           if (!this.domElement) {
             return getLogger().warn('Missing localOverlay to show')
+          }
+          if (this.status === 'hidden') {
+            return getLogger().info('localOverlay not visible')
           }
           this.domElement.style.opacity = '1'
         },
