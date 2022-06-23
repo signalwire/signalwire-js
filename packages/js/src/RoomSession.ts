@@ -15,6 +15,8 @@ import type { RoomSessionDocs } from './RoomSession.docs'
 import type { RoomSessionJoinAudienceParams } from './utils/interfaces'
 
 const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
+  width: { ideal: 1280, min: 320 },
+  height: { ideal: 720, min: 180 },
   aspectRatio: { ideal: 16 / 9 },
 }
 
@@ -159,9 +161,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     })
   }
 
-  const joinAudience = (
-    params?: RoomSessionJoinAudienceParams
-  ) => {
+  const joinAudience = (params?: RoomSessionJoinAudienceParams) => {
     return new Promise(async (resolve, reject) => {
       try {
         // @ts-expect-error
