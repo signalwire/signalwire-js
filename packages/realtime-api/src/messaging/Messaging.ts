@@ -45,6 +45,31 @@ export interface Messaging
     ClientContextContract {
   /** @internal */
   _session: RealtimeClient
+
+  /**
+   * Send an outbound SMS or MMS message.
+   *
+   * @param params - {@link MessagingSendParams}
+   *
+   * @returns - {@link MessagingSendResult}
+   *
+   * @example
+   *
+   * > Send a message.
+   *
+   * ```js
+   * try {
+   *   const sendResult = await client.send({
+   *     from: '+1xxx',
+   *     to: '+1yyy',
+   *     body: 'Hello World!'
+   *   })
+   *   console.log('Message ID: ', sendResult.messageId)
+   * } catch (e) {
+   *   console.error(e.message)
+   * }
+   * ```
+   */
   send(params: MessagingSendParams): Promise<MessagingSendResult>
 }
 
