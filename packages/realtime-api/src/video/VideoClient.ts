@@ -93,11 +93,7 @@ const VideoClient = function (options?: VideoClientOptions) {
   } as const
 
   return new Proxy<Omit<VideoClient, 'new'>>(video, {
-    get(
-      target: VideoClient,
-      prop: keyof VideoClient,
-      receiver: any
-    ) {
+    get(target: VideoClient, prop: keyof VideoClient, receiver: any) {
       if (prop in interceptors) {
         // @ts-expect-error
         return interceptors[prop]
