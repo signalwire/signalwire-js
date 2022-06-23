@@ -232,6 +232,8 @@ export type SessionAuthError = {
  * List of all Room methods
  */
 export type RoomMethod =
+  | 'video.room.get'
+  | 'video.rooms.get'
   | 'video.list_available_layouts'
   | 'video.hide_video_muted'
   | 'video.show_video_muted'
