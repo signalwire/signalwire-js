@@ -40,6 +40,8 @@ const INTERCEPTED_METHODS: ClientMethods[] = [
  *
  * @param options - {@link ChatClientOptions}
  *
+ * @returns - {@link ChatClient}
+ *
  * @example
  *
  * ```javascript
