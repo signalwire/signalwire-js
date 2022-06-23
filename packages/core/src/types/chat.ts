@@ -6,8 +6,10 @@ import type {
 } from '..'
 import type { MapToPubSubShape } from '../redux/interfaces'
 import type {
+  PubSubChannel,
   PubSubContract,
   PubSubMessageEntity,
+  PubSubPublishParams,
 } from './pubSub'
 import type { PaginationCursor } from './common'
 import { PRODUCT_PREFIX_CHAT } from '../utils/constants'
@@ -65,6 +67,72 @@ export interface ChatContract extends PubSubContract {
   getMemberState(params: ChatGetMemberStateParams): Promise<{
     channels: Record<ChatChannelName, ChatChannelState>
   }>
+   /**
+   * List of channels for which you want to receive
+   * messages.
+   *
+   * Note that the `subscribe` function is idempotent, and
+   * calling it again with a different set of channels _will
+   * not_ unsubscribe you from the old ones. To unsubscribe,
+   * use {@link unsubscribe}.
+   *
+   * @param channels - {@link PubSubChannel} the channels to
+   * subscribe to, either in the form of a string (for one
+   * channel) or an array of strings.
+   *
+   * @example
+   * ```js
+   * const chatClient = new Chat.Client({
+   *   project: '<project-id>',
+   *   token: '<api-token>'
+   * })
+   *
+   * chatClient.on('message', m => console.log(m))
+   *
+   * await chatClient.subscribe("my-channel")
+   * await chatClient.subscribe(["chan-2", "chan-3"])
+   * ```
+   */
+  subscribe(channels: PubSubChannel): Promise<void>
+  /**
+   * List of channels from which you want to unsubscribe.
+   *
+   * @param channels - {@link PubSubChannel} the channels to
+   * unsubscribe from, either in the form of a string (for
+   * one channel) or an array of strings.
+   *
+   * @example
+   * ```js
+   * await chatClient.unsubscribe("my-channel")
+   * await chatClient.unsubscribe(["chan-2", "chan-3"])
+   * ```
+   */
+  unsubscribe(channels: PubSubChannel): Promise<void>
+  /**
+   * Publish a message into the specified channel.
+   *
+   * @param params - {@link PubSubPublishParams}
+   *
+   * @example Publishing a message as a string:
+   * ```js
+   * await chatClient.publish({
+   *   channel: 'my-channel',
+   *   content: 'Hello, world.'
+   * })
+   * ```
+   *
+   * @example Publishing a message as an object:
+   * ```js
+   * await chatClient.publish({
+   *   channel: 'my-channel',
+   *   content: {
+   *     field_one: 'value_one',
+   *     field_two: 'value_two',
+   *   }
+   * })
+   * ```
+   */
+  publish(params: PubSubPublishParams): Promise<void>
 }
 
 export type ChatEntity = OnlyStateProperties<ChatContract>

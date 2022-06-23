@@ -1,18 +1,15 @@
 import {
-  AssertSameType,
   ChatContract,
   ConsumerContract,
   UserOptions,
   Chat as ChatNamespace,
 } from '@signalwire/core'
 import { clientConnect, setupClient, RealtimeClient } from '../client/index'
-import { ChatClientApiEventsDocs, ClientDocs } from './ChatClient.docs'
 
-export interface ChatClientApiEventsMain extends ChatNamespace.BaseChatApiEvents {}
-export interface ChatClientApiEvents extends AssertSameType<ChatClientApiEventsMain, ChatClientApiEventsDocs> {}
+export interface ChatClientApiEvents extends ChatNamespace.BaseChatApiEvents {}
 
 export interface ClientFullState extends ChatClient {}
-interface ClientMain
+interface ChatClient
   extends ChatContract,
     Omit<ConsumerContract<ChatClientApiEvents, ClientFullState>, 'subscribe'> {
 
@@ -21,11 +18,27 @@ interface ClientMain
   /** @internal */
   _session: RealtimeClient
 }
+interface ChatClientOptions
+  extends Omit<UserOptions, 'host' | '_onRefreshToken' | 'token'> {
+  token?: string
+}
+
+type ClientMethods = Exclude<keyof ChatClient, '_session'>
+const INTERCEPTED_METHODS: ClientMethods[] = [
+  'subscribe',
+  'publish',
+  'getMessages',
+  'getMembers',
+  'getMemberState',
+  'setMemberState',
+]
 
 /**
  * You can use instances of this class to control the chat and subscribe to its
  * events. Please see {@link ChatClientApiEvents} for the full list of events
  * you can subscribe to.
+ *
+ * @param options - {@link ChatClientOptions}
  *
  * @example
  *
@@ -49,24 +62,6 @@ interface ClientMain
  * })
  * ```
  */
-interface ChatClient extends AssertSameType<ClientMain, ClientDocs> {}
-
-interface ChatClientOptions
-  extends Omit<UserOptions, 'host' | '_onRefreshToken' | 'token'> {
-  token?: string
-}
-
-type ClientMethods = Exclude<keyof ChatClient, '_session'>
-const INTERCEPTED_METHODS: ClientMethods[] = [
-  'subscribe',
-  'publish',
-  'getMessages',
-  'getMembers',
-  'getMemberState',
-  'setMemberState',
-]
-
-/** @ignore */
 const ChatClient = function (options?: ChatClientOptions) {
   const { client, store, emitter } = setupClient(options)
   const chat = ChatNamespace.createBaseChatObject<ChatClient>({
