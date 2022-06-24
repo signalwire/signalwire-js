@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.9.1] - 2022-06-24
+
+### Patch Changes
+
+- [#580](https://github.com/signalwire/signalwire-js/pull/580) [`e8a54a63`](https://github.com/signalwire/signalwire-js/commit/e8a54a63003ddd1f07302b2fae140296135ad666) - Add `video.rooms.get` and `video.room.get` as possible RPC methods
+
+* [#557](https://github.com/signalwire/signalwire-js/pull/557) [`f15032f1`](https://github.com/signalwire/signalwire-js/commit/f15032f180503453c49d10cbf2a8ef5e24e27dc3) - Add ability to track the Authorization state.
+
+* [#552](https://github.com/signalwire/signalwire-js/pull/552) [`b168fc4f`](https://github.com/signalwire/signalwire-js/commit/b168fc4f92411bff70c50009f4a326171c886a55) - Add support for _internal_ ping/pong at the signaling level.
+
 ## [3.9.0] - 2022-06-10
 
 ### Added

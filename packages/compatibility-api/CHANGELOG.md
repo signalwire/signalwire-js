@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.2] - 2022-06-24
+
+### Changed
+
+- [#575](https://github.com/signalwire/signalwire-js/pull/575) [`5062a322`](https://github.com/signalwire/signalwire-js/commit/5062a32270209a102e0ded2a65459efd563bceb0) - Include `JwtInterface` in compatibility-api declaration file.
+
 ## [3.0.1] - 2022-06-10
 
 ### Fixed

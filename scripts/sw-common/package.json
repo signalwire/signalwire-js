@@ -1,6 +1,6 @@
 {
   "name": "@sw-internal/common",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "CLI utilities",
   "main": "index.js",
   "type": "module",

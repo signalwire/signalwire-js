@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.12.1] - 2022-06-24
+
+### Fixed
+
+- [#574](https://github.com/signalwire/signalwire-js/pull/574) [`4e35e0ac`](https://github.com/signalwire/signalwire-js/commit/4e35e0ac7f93f574c4c62e631c9408fb749e81da) - Fix issue with missing constructors on `react-native`.
+
+* [#579](https://github.com/signalwire/signalwire-js/pull/579) [`3cd2bab2`](https://github.com/signalwire/signalwire-js/commit/3cd2bab292cb59e8fc973eeb2ad3369b8cd5ea75) - Fix a possible condition where the localVideo overlay shows up after a video mute and video unmute in sequence without any layout changes in between.
+
+- [#578](https://github.com/signalwire/signalwire-js/pull/578) [`2bd390de`](https://github.com/signalwire/signalwire-js/commit/2bd390dea1cadaddc25d559c1bed7eaa4c170b2b) - Add default width/height for video constraints.
+
+### Dependencies
+
+- Updated dependencies [[`e8a54a63`](https://github.com/signalwire/signalwire-js/commit/e8a54a63003ddd1f07302b2fae140296135ad666), [`4e35e0ac`](https://github.com/signalwire/signalwire-js/commit/4e35e0ac7f93f574c4c62e631c9408fb749e81da), [`43b29191`](https://github.com/signalwire/signalwire-js/commit/43b2919101564da45ba7f9e1a8a4ef3fd62b6696), [`f15032f1`](https://github.com/signalwire/signalwire-js/commit/f15032f180503453c49d10cbf2a8ef5e24e27dc3), [`14c08b89`](https://github.com/signalwire/signalwire-js/commit/14c08b899bfd763be87a63580ee94a00ed514856), [`b168fc4f`](https://github.com/signalwire/signalwire-js/commit/b168fc4f92411bff70c50009f4a326171c886a55), [`f15032f1`](https://github.com/signalwire/signalwire-js/commit/f15032f180503453c49d10cbf2a8ef5e24e27dc3)]:
+  - @signalwire/core@3.9.1
+  - @signalwire/webrtc@3.5.3
+
 ## [3.12.0] - 2022-06-10
 
 ### Added

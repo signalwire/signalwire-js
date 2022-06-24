@@ -1,5 +1,11 @@
 # @sw-internal/common
 
+## 0.0.3
+
+### Patch Changes
+
+- [#573](https://github.com/signalwire/signalwire-js/pull/573) [`eaed3706`](https://github.com/signalwire/signalwire-js/commit/eaed3706aff7ba009885b13f845096a3b21eca03) - [internal] Add infra for testing usages of the SDK with node
+
 ## 0.0.2
 
 ### Patch Changes
