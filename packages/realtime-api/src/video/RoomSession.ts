@@ -595,7 +595,7 @@ export interface RoomSessionFullState extends Omit<RoomSession, 'members'> {
   members?: RoomSessionMember[]
 }
 
-class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
+export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   protected _eventsPrefix = 'video' as const
 
   /** @internal */

@@ -7,18 +7,15 @@ async function run() {
       host: process.env.HOST || 'relay.swire.io',
       project: process.env.PROJECT as string,
       token: process.env.TOKEN as string,
+      debug: {
+        logWsTraffic: true,
+      },
     })
 
-    video.on('room.started', (room) => {
-      console.log('Room started --->', room.id, room.name)
+    const roomSessionHandler = (room: Video.RoomSession) => {
+      console.log('Room started --->', room.id, room.name, room.members)
       room.on('room.subscribed', (room) => {
-        console.log(
-          'Room Subscribed --->',
-          room.id,
-          room.members[0].id,
-          room.members[0].name
-        )
-        room.members[0].audioMute()
+        console.log('Room Subscribed --->', room.id, room.members)
       })
 
       room.on('member.updated', () => {
@@ -32,7 +29,8 @@ async function run() {
       room.on('member.left', (member) => {
         console.log('Member left --->', member.id, member.name)
       })
-    })
+    }
+    video.on('room.started', roomSessionHandler)
 
     video.on('room.ended', (room) => {
       console.log('🔴 ROOOM ENDED 🔴', `${room}`, room.name)
@@ -43,6 +41,16 @@ async function run() {
     })
 
     console.log('Client Running..')
+
+    const { roomSessions } = await video.getRoomSessions()
+
+    roomSessions.forEach(async (room: any) => {
+      console.log('>> Room Session: ', room.id, room.displayName)
+      roomSessionHandler(room)
+
+      const { roomSession } = await video.getRoomSession(room.id)
+      console.log('Room Session By ID:', roomSession.displayName)
+    })
   } catch (error) {
     console.log('<Error>', error)
   }

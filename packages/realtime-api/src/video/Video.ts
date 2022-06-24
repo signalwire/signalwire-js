@@ -9,6 +9,7 @@ import {
   RoomSessionRecording,
   VideoRoomEventParams,
   RoomSessionPlayback,
+  toLocalEvent,
 } from '@signalwire/core'
 import type { RealtimeClient } from '../client/Client'
 
@@ -20,16 +21,23 @@ import {
 } from './RoomSession'
 import type { RoomSessionMember } from './RoomSessionMember'
 
-type TransformEvent = Extract<
-  InternalVideoRoomSessionEventNames,
-  'video.room.started' | 'video.room.ended'
->
+const videoRoomGetTriggerEvent = toLocalEvent<TransformEvent>('video.room.get')
+
+type TransformEvent =
+  | Extract<
+      InternalVideoRoomSessionEventNames,
+      'video.room.started' | 'video.room.ended'
+    >
+  | 'video.__local__.room.get'
 
 export interface Video extends ConsumerContract<RealTimeVideoApiEvents> {
   /** @internal */
   subscribe(): Promise<void>
   /** @internal */
   _session: RealtimeClient
+
+  getRoomSessions(): Promise<{ roomSessions: RoomSession[] }>
+  getRoomSessionById(id: string): Promise<{ roomSession: RoomSession }>
 }
 export type {
   RoomSession,
@@ -53,7 +61,7 @@ class VideoAPI extends BaseConsumer<RealTimeVideoApiEvents> {
   protected getEmitterTransforms() {
     return new Map<TransformEvent | TransformEvent[], EventTransform>([
       [
-        ['video.room.started', 'video.room.ended'],
+        [videoRoomGetTriggerEvent, 'video.room.started', 'video.room.ended'],
         {
           // TODO: create a new key or use `roomSession`?
           type: 'roomSession',
@@ -80,6 +88,62 @@ class VideoAPI extends BaseConsumer<RealTimeVideoApiEvents> {
         },
       ],
     ])
+  }
+
+  async getRoomSessions() {
+    return new Promise<{ roomSessions: RoomSession[] }>(
+      async (resolve, reject) => {
+        try {
+          const { rooms = [] }: any = await this.execute({
+            method: 'video.rooms.get',
+            params: {},
+          })
+          const roomSessions: RoomSession[] = []
+          const handler = (instance: RoomSession) => roomSessions.push(instance)
+
+          // @ts-expect-error
+          this.on(videoRoomGetTriggerEvent, handler)
+
+          rooms.forEach((room_session: any) => {
+            // @ts-expect-error
+            this.emit(videoRoomGetTriggerEvent, { room_session })
+          })
+
+          // @ts-expect-error
+          this.off(videoRoomGetTriggerEvent, handler)
+          resolve({ roomSessions })
+        } catch (error) {
+          console.error('Error listing room sessions', error)
+          reject(error)
+        }
+      }
+    )
+  }
+
+  async getRoomSessionById(id: string) {
+    return new Promise<{ roomSession: RoomSession }>(
+      async (resolve, reject) => {
+        try {
+          const { room }: any = await this.execute({
+            method: 'video.room.get',
+            params: {
+              room_session_id: id,
+            },
+          })
+
+          // @ts-expect-error
+          this.once(videoRoomGetTriggerEvent, (instance: RoomSession) => {
+            resolve({ roomSession: instance })
+          })
+
+          // @ts-expect-error
+          this.emit(videoRoomGetTriggerEvent, { room_session: room })
+        } catch (error) {
+          console.error('Error retrieving the room session', error)
+          reject(error)
+        }
+      }
+    )
   }
 }
 
