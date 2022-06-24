@@ -191,10 +191,10 @@ describe('Video Object', () => {
     })
   })
 
-  describe('getRoomSessionsInProgress', () => {
+  describe('getRoomSessions()', () => {
     it('should be defined', () => {
-      expect(video.getRoomSessionsInProgress).toBeDefined()
-      expect(video.getRoomSessionsInProgress).toBeInstanceOf(Function)
+      expect(video.getRoomSessions).toBeDefined()
+      expect(video.getRoomSessions).toBeInstanceOf(Function)
     })
 
     it('should return an obj with a list of RoomSession objects', async () => {
@@ -266,7 +266,7 @@ describe('Video Object', () => {
         ],
       })
 
-      const result = await video.getRoomSessionsInProgress()
+      const result = await video.getRoomSessions()
 
       expect(result.roomSessions).toHaveLength(2)
       expect(result.roomSessions[0]).toBeInstanceOf(RoomSessionConsumer)
@@ -293,10 +293,10 @@ describe('Video Object', () => {
     })
   })
 
-  describe('getRoomSession', () => {
+  describe('getRoomSessionById()', () => {
     it('should be defined', () => {
-      expect(video.getRoomSession).toBeDefined()
-      expect(video.getRoomSession).toBeInstanceOf(Function)
+      expect(video.getRoomSessionById).toBeDefined()
+      expect(video.getRoomSessionById).toBeInstanceOf(Function)
     })
 
     it('should return a RoomSession object', async () => {
@@ -336,9 +336,9 @@ describe('Video Object', () => {
         message: 'OK',
       })
 
-      const result = await video.getRoomSession({
-        id: '25ab8daa-2639-45ed-bc73-69b664f55eff',
-      })
+      const result = await video.getRoomSessionById(
+        '25ab8daa-2639-45ed-bc73-69b664f55eff'
+      )
 
       expect(result.roomSession).toBeInstanceOf(RoomSessionConsumer)
       expect(result.roomSession.id).toBe('25ab8daa-2639-45ed-bc73-69b664f55eff')

@@ -36,8 +36,8 @@ export interface Video extends ConsumerContract<RealTimeVideoApiEvents> {
   /** @internal */
   _session: RealtimeClient
 
-  getRoomSessionsInProgress(): Promise<{ roomSessions: RoomSession[] }>
-  getRoomSession(params: { id: string }): Promise<{ roomSession: RoomSession }>
+  getRoomSessions(): Promise<{ roomSessions: RoomSession[] }>
+  getRoomSessionById(id: string): Promise<{ roomSession: RoomSession }>
 }
 export type {
   RoomSession,
@@ -90,7 +90,7 @@ class VideoAPI extends BaseConsumer<RealTimeVideoApiEvents> {
     ])
   }
 
-  async getRoomSessionsInProgress() {
+  async getRoomSessions() {
     return new Promise<{ roomSessions: RoomSession[] }>(
       async (resolve, reject) => {
         try {
@@ -120,7 +120,7 @@ class VideoAPI extends BaseConsumer<RealTimeVideoApiEvents> {
     )
   }
 
-  async getRoomSession({ id }: { id: string }) {
+  async getRoomSessionById(id: string) {
     return new Promise<{ roomSession: RoomSession }>(
       async (resolve, reject) => {
         try {

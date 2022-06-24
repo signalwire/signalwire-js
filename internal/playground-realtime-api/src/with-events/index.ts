@@ -42,15 +42,13 @@ async function run() {
 
     console.log('Client Running..')
 
-    const { roomSessions } = await video.getRoomSessionsInProgress()
+    const { roomSessions } = await video.getRoomSessions()
 
     roomSessions.forEach(async (room: any) => {
       console.log('>> Room Session: ', room.id, room.displayName)
       roomSessionHandler(room)
 
-      const { roomSession } = await video.getRoomSession({
-        id: room.id,
-      })
+      const { roomSession } = await video.getRoomSession(room.id)
       console.log('Room Session By ID:', roomSession.displayName)
     })
   } catch (error) {
