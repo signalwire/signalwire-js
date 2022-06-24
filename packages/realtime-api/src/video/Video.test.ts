@@ -299,7 +299,7 @@ describe('Video Object', () => {
       expect(video.getRoomSession).toBeInstanceOf(Function)
     })
 
-    it('should return an obj with a list of RoomSession objects', async () => {
+    it('should return a RoomSession object', async () => {
       // @ts-expect-error
       ;(video.execute as jest.Mock).mockResolvedValueOnce({
         room: {
