@@ -36,8 +36,8 @@ export interface Video extends ConsumerContract<RealTimeVideoApiEvents> {
   /** @internal */
   _session: RealtimeClient
 
-  getRoomSessionsInProgress(): Promise<any> // FIXME: any
-  getRoomSession(params: { id: string }): Promise<any> // FIXME: any
+  getRoomSessionsInProgress(): Promise<{ roomSessions: RoomSession[] }>
+  getRoomSession(params: { id: string }): Promise<{ roomSession: RoomSession }>
 }
 export type {
   RoomSession,
@@ -91,55 +91,59 @@ class VideoAPI extends BaseConsumer<RealTimeVideoApiEvents> {
   }
 
   async getRoomSessionsInProgress() {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const { rooms = [] }: any = await this.execute({
-          method: 'video.rooms.get',
-          params: {},
-        })
-        const roomSessions: any[] = []
-        const handler = (instance: any) => roomSessions.push(instance)
+    return new Promise<{ roomSessions: RoomSession[] }>(
+      async (resolve, reject) => {
+        try {
+          const { rooms = [] }: any = await this.execute({
+            method: 'video.rooms.get',
+            params: {},
+          })
+          const roomSessions: RoomSession[] = []
+          const handler = (instance: RoomSession) => roomSessions.push(instance)
 
-        // @ts-expect-error
-        this.on(videoRoomGetTriggerEvent, handler)
-
-        rooms.forEach((room_session: any) => {
           // @ts-expect-error
-          this.emit(videoRoomGetTriggerEvent, { room_session })
-        })
+          this.on(videoRoomGetTriggerEvent, handler)
 
-        // @ts-expect-error
-        this.off(videoRoomGetTriggerEvent, handler)
-        resolve({ roomSessions })
-      } catch (error) {
-        console.error('Error listing room sessions', error)
-        reject(error)
+          rooms.forEach((room_session: any) => {
+            // @ts-expect-error
+            this.emit(videoRoomGetTriggerEvent, { room_session })
+          })
+
+          // @ts-expect-error
+          this.off(videoRoomGetTriggerEvent, handler)
+          resolve({ roomSessions })
+        } catch (error) {
+          console.error('Error listing room sessions', error)
+          reject(error)
+        }
       }
-    })
+    )
   }
 
   async getRoomSession({ id }: { id: string }) {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const { room }: any = await this.execute({
-          method: 'video.room.get',
-          params: {
-            room_session_id: id,
-          },
-        })
+    return new Promise<{ roomSession: RoomSession }>(
+      async (resolve, reject) => {
+        try {
+          const { room }: any = await this.execute({
+            method: 'video.room.get',
+            params: {
+              room_session_id: id,
+            },
+          })
 
-        // @ts-expect-error
-        this.once(videoRoomGetTriggerEvent, (instance: any) => {
-          resolve({ roomSession: instance })
-        })
+          // @ts-expect-error
+          this.once(videoRoomGetTriggerEvent, (instance: RoomSession) => {
+            resolve({ roomSession: instance })
+          })
 
-        // @ts-expect-error
-        this.emit(videoRoomGetTriggerEvent, { room_session: room })
-      } catch (error) {
-        console.error('Error retrieving the room session', error)
-        reject(error)
+          // @ts-expect-error
+          this.emit(videoRoomGetTriggerEvent, { room_session: room })
+        } catch (error) {
+          console.error('Error retrieving the room session', error)
+          reject(error)
+        }
       }
-    })
+    )
   }
 }
 
