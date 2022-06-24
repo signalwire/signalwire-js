@@ -73,6 +73,8 @@ export interface ConnectionOptions {
   rtcPeerConfig?: { [key: string]: any }
   /** @internal */
   iceGatheringTimeout?: number
+  /** @internal */
+  pingSupported?: boolean
 
   layout?: string
   positions?: VideoPositions
