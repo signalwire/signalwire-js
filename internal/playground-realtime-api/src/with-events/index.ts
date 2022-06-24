@@ -48,7 +48,11 @@ async function run() {
       console.log('>> Room Session: ', room.id, room.displayName)
       roomSessionHandler(room)
 
-      const { roomSession } = await video.getRoomSession(room.id)
+      const r = await room.getMembers()
+      console.log('Members:', r)
+      // await room.removeAllMembers()
+
+      const { roomSession } = await video.getRoomSessionById(room.id)
       console.log('Room Session By ID:', roomSession.displayName)
     })
   } catch (error) {
