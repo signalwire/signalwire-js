@@ -19,6 +19,10 @@ test.describe('RoomSession', () => {
   }) => {
     await page.goto(server.url)
 
+    page.on('console', (log) => {
+      console.log(log)
+    })
+
     const roomName = 'another'
     await createTestRoomSession(page, {
       vrt: {
@@ -315,7 +319,7 @@ test.describe('RoomSession', () => {
         video: true,
       })
 
-      await new Promise((r) => setTimeout(r, 1000))
+      await new Promise((r) => setTimeout(r, 2000))
 
       await screenShareObj.leave()
 
