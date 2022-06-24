@@ -393,6 +393,7 @@ export const RoomSessionAPI = extendComponent<
   setSpeakerVolume: Rooms.setOutputVolumeMember,
   setInputSensitivity: Rooms.setInputSensitivityMember,
   removeMember: Rooms.removeMember,
+  removeAllMembers: Rooms.removeAllMembers,
   getMembers: Rooms.getMembers,
   getLayouts: Rooms.getLayouts,
   setLayout: Rooms.setLayout,

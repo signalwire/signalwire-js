@@ -708,6 +708,23 @@ interface RoomControlMethodsInterfaceDocs {
   removeMember(params: { memberId: string }): Promise<void>
 
   /**
+   * Removes all the participants from the room.
+   *
+   * @permissions
+   *  - `room.member.remove`: to remove a remote member
+   *
+   * You need to specify the permissions when [creating the Video Room
+   * Token](https://developer.signalwire.com/apis/reference/create_room_token)
+   * on the server side.
+   *
+   * @example
+   * ```typescript
+   * await room.removeAllMembers()
+   * ```
+   */
+  removeAllMembers(): Promise<void>
+
+  /**
    * Do not show muted videos in the room layout.
    *
    * @deprecated Use {@link setHideVideoMuted} instead.
