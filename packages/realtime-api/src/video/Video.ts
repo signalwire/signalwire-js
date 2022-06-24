@@ -109,8 +109,8 @@ class VideoAPI extends BaseConsumer<RealTimeVideoApiEvents> {
             this.emit(videoRoomGetTriggerEvent, { room_session })
           })
 
-          // @ts-expect-error
-          this.off(videoRoomGetTriggerEvent, handler)
+          // // @ts-expect-error
+          // this.off(videoRoomGetTriggerEvent, handler)
           resolve({ roomSessions })
         } catch (error) {
           console.error('Error listing room sessions', error)

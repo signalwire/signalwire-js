@@ -382,6 +382,23 @@ export const removeMember: RoomMethodDescriptor<
   },
 }
 
+export const removeAllMembers: RoomMethodDescriptor<void, void> = {
+  value: function () {
+    return this.execute(
+      {
+        method: 'video.member.remove',
+        params: {
+          room_session_id: this.roomSessionId,
+          member_id: 'all',
+        },
+      },
+      {
+        transformResolve: baseCodeTransform,
+      }
+    )
+  },
+}
+
 export interface SetMemberMetaParams extends MemberCommandParams {
   meta: Record<string, unknown>
 }
@@ -410,5 +427,6 @@ export type SetInputSensitivityMember = ReturnType<
 >
 export type SetMemberPosition = ReturnType<typeof setMemberPosition.value>
 export type RemoveMember = ReturnType<typeof removeMember.value>
+export type RemoveAllMembers = ReturnType<typeof removeAllMembers.value>
 export type SetMemberMeta = ReturnType<typeof setMemberMeta.value>
 // End Room Member Methods

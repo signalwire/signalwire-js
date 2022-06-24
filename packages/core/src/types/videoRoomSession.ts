@@ -94,6 +94,7 @@ export interface VideoRoomSessionContract {
     params: MemberCommandWithVolumeParams
   ): Rooms.SetOutputVolumeMember
   removeMember(params: Required<MemberCommandParams>): Rooms.RemoveMember
+  removeAllMembers(): Rooms.RemoveAllMembers
   setHideVideoMuted(value: boolean): Rooms.SetHideVideoMuted
   getLayouts(): Rooms.GetLayouts
   setLayout(params: Rooms.SetLayoutParams): Rooms.SetLayout
