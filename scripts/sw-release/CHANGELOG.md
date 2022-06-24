@@ -1,5 +1,12 @@
 # @sw-internal/release
 
+## 0.0.3
+
+### Patch Changes
+
+- Updated dependencies [[`eaed3706`](https://github.com/signalwire/signalwire-js/commit/eaed3706aff7ba009885b13f845096a3b21eca03)]:
+  - @sw-internal/common@0.0.3
+
 ## 0.0.2
 
 ### Patch Changes

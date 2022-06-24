@@ -1,5 +1,15 @@
 # @sw-internal/playground-realtime-api
 
+## 0.3.0
+
+### Minor Changes
+
+- [#580](https://github.com/signalwire/signalwire-js/pull/580) [`e8a54a63`](https://github.com/signalwire/signalwire-js/commit/e8a54a63003ddd1f07302b2fae140296135ad666) - Expose `getRoomSessions()` and `getRoomSessionById()` on the VideoClient to retrieve in-progress RoomSessions.
+
+### Patch Changes
+
+- [#581](https://github.com/signalwire/signalwire-js/pull/581) [`14c08b89`](https://github.com/signalwire/signalwire-js/commit/14c08b899bfd763be87a63580ee94a00ed514856) - Expose `removeAllMembers()` on RoomSession
+
 ## 0.2.0
 
 ### Minor Changes

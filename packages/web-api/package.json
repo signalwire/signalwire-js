@@ -40,7 +40,7 @@
     "docs:watch": "npm run docs -- --watch"
   },
   "dependencies": {
-    "@signalwire/core": "3.9.0",
+    "@signalwire/core": "3.9.1",
     "node-abort-controller": "^2.0.0",
     "node-fetch": "^2.6.1"
   },
