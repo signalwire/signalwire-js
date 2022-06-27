@@ -11,7 +11,7 @@ export interface VideoClientApiEvents extends RealTimeVideoApiEvents {}
 
 export interface VideoApiFullState extends VideoClient {}
 
-export interface VideoClient extends Video {
+interface VideoClient extends Video {
   new (opts: VideoClientOptions): this
 }
 
@@ -24,6 +24,8 @@ export interface VideoClientOptions
  * You can use instances of this class to subscribe to video events. Please see
  * {@link VideoClientApiEvents} for the full list of events you can subscribe
  * to.
+ *
+ * @param options - {@link VideoClientOptions}
  *
  * @example
  *

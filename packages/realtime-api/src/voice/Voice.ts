@@ -44,8 +44,86 @@ export interface Voice
     ClientContextContract {
   /** @internal */
   _session: RealtimeClient
+  /**
+   * Makes an outbound Call and waits until it has been answered or hung up.
+   * This is an advanced method that lets you call multiple devices in parallel
+   * or series: for simpler use cases, see {@link dialPhone} and
+   * {@link dialSip}.
+   *
+   * With this method you can specify a configuration of devices to call in
+   * series and/or in parallel: as soon as one device answers the call, the
+   * returned promise is resolved. You specify a configuration through a
+   * {@link VoiceDeviceBuilder} object.
+   *
+   * @param dialer - {@link VoiceDeviceBuilder}
+   *
+   * @example Calls a phone number. If the number doesn't answer within 30
+   * seconds, calls two different SIP endpoints in parallel.
+   *
+   * ```js
+   * const devices = new Voice.DeviceBuilder()
+   *   .add(Voice.DeviceBuilder.Phone({ from: '+XXXXXX', to: '+YYYYYY', timeout: 30 }))
+   *   .add([
+   *     Voice.DeviceBuilder.Sip({ from: 'sip:aaa@bbb.cc', to: 'sip:xxx@yyy.zz' }),
+   *     Voice.DeviceBuilder.Sip({ from: 'sip:aaa@bbb.cc', to: 'sip:ppp@qqq.rr' })
+   *   ])
+   *
+   * try {
+   *   const call = await client.dial(devices)
+   *   console.log("Call answered")
+   * } catch (e) {
+   *   console.log("Call not answered")
+   * }
+   * ```
+   *
+   * @param dialer The Dialer specifying the devices to call.
+   *
+   * @returns A call object.
+   */
   dial(dialer: VoiceDeviceBuilder): Promise<Call>
+  /**
+   * Makes an outbound call to a PSTN number.
+   *
+   * @param params - {@link VoiceCallDialPhoneMethodParams}
+   *
+   * @example
+   *
+   * ```js
+   * try {
+   *   const call = await client.dialPhone({
+   *     from: '+YYYYYYYYYY',
+   *     to: '+XXXXXXXXXX',
+   *     timeout: 30,
+   *   })
+   * } catch (e) {
+   *   console.log("Call not answered.")
+   * }
+   * ```
+   *
+   * @returns A call object.
+   */
   dialPhone(params: VoiceCallDialPhoneMethodParams): Promise<Call>
+  /**
+   * Makes an outbound call to a SIP endpoint.
+   *
+   * @param params - {@link VoiceCallDialSipMethodParams}
+   *
+   * @example
+   *
+   * ```js
+   * try {
+   *   const call = await client.dialPhone({
+   *     from: 'sip:xxx@yyy.zz',
+   *     to: 'sip:ppp@qqq.rr',
+   *     timeout: 30,
+   *   })
+   * } catch (e) {
+   *   console.log("Call not answered.")
+   * }
+   * ```
+   *
+   * @returns A call object.
+   */
   dialSip(params: VoiceCallDialSipMethodParams): Promise<Call>
 }
 
