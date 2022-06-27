@@ -11,7 +11,7 @@ export interface VideoClientApiEvents extends RealTimeVideoApiEvents {}
 
 export interface VideoApiFullState extends VideoClient {}
 
-interface VideoClient extends Video {
+export interface VideoClient extends Video {
   new (opts: VideoClientOptions): this
 }
 
