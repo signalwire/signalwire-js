@@ -13,14 +13,12 @@ import type {
   CallPromptFailed,
   CallTapStarted,
   CallTapEnded,
-  AssertSameType,
 } from '@signalwire/core'
 import type { Call } from '../voice/Call'
 import type { CallPlayback } from '../voice/CallPlayback'
 import type { CallRecording } from '../voice/CallRecording'
 import type { CallPrompt } from '../voice/CallPrompt'
 import type { CallTap } from '../voice/CallTap'
-import { RealTimeCallApiEventsDocs } from './voice.docs'
 
 export type RealTimeCallApiEventsHandlerMapping = Record<
   CallReceived,
@@ -43,8 +41,6 @@ export type RealTimeCallApiEventsHandlerMapping = Record<
   > &
   Record<CallTapStarted | CallTapEnded, (tap: CallTap) => void>
 
-type RealTimeCallApiEventsMain = {
+export type RealTimeCallApiEvents = {
   [k in keyof RealTimeCallApiEventsHandlerMapping]: RealTimeCallApiEventsHandlerMapping[k]
 }
-
-export type RealTimeCallApiEvents = AssertSameType<RealTimeCallApiEventsMain, RealTimeCallApiEventsDocs>

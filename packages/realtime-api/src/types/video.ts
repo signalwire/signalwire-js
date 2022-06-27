@@ -10,7 +10,6 @@ import type {
   Rooms,
   MemberUpdated,
   MemberUpdatedEventNames,
-  AssertSameType,
 } from '@signalwire/core'
 import type {
   RoomSession,
@@ -21,21 +20,15 @@ import type {
   RoomSessionMember,
   RoomSessionMemberUpdated,
 } from '../video/RoomSessionMember'
-import { RealTimeVideoApiEventsDocs } from './video.docs'
 
 export type RealTimeVideoApiEventsHandlerMapping = Record<
   GlobalVideoEvents,
   (room: RoomSession) => void
 >
 
-type RealTimeVideoApiEventsMain = {
+export type RealTimeVideoApiEvents = {
   [k in keyof RealTimeVideoApiEventsHandlerMapping]: RealTimeVideoApiEventsHandlerMapping[k]
 }
-
-export type RealTimeVideoApiEvents = AssertSameType<
-  RealTimeVideoApiEventsMain,
-  RealTimeVideoApiEventsDocs
->
 
 // TODO: replace `any` with proper types.
 export type RealTimeRoomApiEventsHandlerMapping = Record<
