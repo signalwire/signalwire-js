@@ -18,7 +18,7 @@ interface ChatClient
   /** @internal */
   _session: RealtimeClient
 }
-interface ChatClientOptions
+export interface ChatClientOptions
   extends Omit<UserOptions, 'host' | '_onRefreshToken' | 'token'> {
   token?: string
 }

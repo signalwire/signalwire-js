@@ -33,20 +33,20 @@ export type ChatEventNames = ChatMessageEventName | ChatMemberEventNames
 
 export type ChatChannel = string | string[]
 
-interface ChatSetMemberStateParams {
+export interface ChatSetMemberStateParams {
   memberId: string
   channels: ChatChannel
   state: Record<any, any>
 }
-interface ChatGetMemberStateParams {
+export interface ChatGetMemberStateParams {
   memberId: string
   channels?: ChatChannel
 }
-interface ChatGetMessagesParams {
+export interface ChatGetMessagesParams {
   channel: string
   cursor?: PaginationCursor
 }
-interface ChatGetMembersParams {
+export interface ChatGetMembersParams {
   channel: string
 }
 export interface ChatChannelState {
@@ -139,7 +139,7 @@ export interface ChatContract extends PubSubContract {
   getMemberState(params: ChatGetMemberStateParams): Promise<{
     channels: Record<ChatChannelName, ChatChannelState>
   }>
-   /**
+  /**
    * List of channels for which you want to receive
    * messages.
    *

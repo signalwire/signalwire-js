@@ -21,14 +21,68 @@ import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
 
 export * from './VoiceClient'
 export { Call } from './Call'
-export { DeviceBuilder }
+export type { DeviceBuilder, RealTimeCallApiEvents }
 export { Playlist } from './Playlist'
+export type { CallPlayback } from './CallPlayback'
+export type { CallPrompt } from './CallPrompt'
+export type { CallRecording } from './CallRecording'
+export type { CallTap } from './CallTap'
 export type {
-  VoiceCallPlayParams,
+  CallingCallDirection,
+  CallingCallState,
+  CallingCallWaitForState,
+  ClientEvents,
+  CollectDigitsConfig,
+  CollectSpeechConfig,
+  CreateVoicePlaylistParams,
+  NestedArray,
+  RingtoneName,
+  SipCodec,
+  SipHeader,
+  SpeechOrDigits,
+  TapDevice,
+  TapDeviceRTP,
+  TapDeviceWS,
+  TapDirection,
+  VoiceCallConnectMethodParams,
+  VoiceCallConnectPhoneMethodParams,
+  VoiceCallConnectSipMethodParams,
+  VoiceCallContract,
+  VoiceCallDetectContract,
+  VoiceCallDetectDigitParams,
+  VoiceCallDetectFaxParams,
+  VoiceCallDetectMachineParams,
+  VoiceCallDetectMethodParams,
+  VoiceCallDeviceParams,
+  VoiceCallDialPhoneMethodParams,
+  VoiceCallDialRegionParams,
+  VoiceCallDialSipMethodParams,
+  VoiceCallDisconnectReason,
+  VoiceCallPhoneParams,
   VoiceCallPlayAudioMethodParams,
-  VoiceCallPlayTTSMethodParams,
-  VoiceCallPlaySilenceMethodParams,
+  VoiceCallPlayAudioParams,
+  VoiceCallPlaybackContract,
+  VoiceCallPlayParams,
   VoiceCallPlayRingtoneMethodParams,
+  VoiceCallPlayRingtoneParams,
+  VoiceCallPlaySilenceMethodParams,
+  VoiceCallPlaySilenceParams,
+  VoiceCallPlayTTSMethodParams,
+  VoiceCallPlayTTSParams,
+  VoiceCallPromptAudioMethodParams,
+  VoiceCallPromptContract,
+  VoiceCallPromptMethodParams,
+  VoiceCallPromptRingtoneMethodParams,
+  VoiceCallPromptTTSMethodParams,
+  VoiceCallRecordingContract,
+  VoiceCallRecordMethodParams,
+  VoiceCallSipParams,
+  VoiceCallTapAudioMethodParams,
+  VoiceCallTapContract,
+  VoiceCallTapMethodParams,
+  VoiceDeviceBuilder,
+  VoiceDialerParams,
+  VoicePlaylist,
 } from '@signalwire/core'
 
 /**
@@ -38,7 +92,6 @@ export interface VoiceClientApiEvents extends RealTimeCallApiEvents {}
 
 type EmitterTransformsEvents = 'calling.call.received'
 
-/** @ignore */
 export interface Voice
   extends DisconnectableClientContract<Voice, VoiceClientApiEvents>,
     ClientContextContract {

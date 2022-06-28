@@ -3,7 +3,14 @@ import { setupClient, clientConnect } from '../client/index'
 import type { Messaging } from './Messaging'
 import { createMessagingObject } from './Messaging'
 import { clientContextInterceptorsFactory } from '../common/clientContext'
-export { MessagingClientApiEvents } from '../types'
+export type {
+  MessagingClientApiEvents,
+  RealTimeMessagingApiEventsHandlerMapping,
+} from '../types'
+export type {
+  MessageReceivedEventName,
+  MessageUpdatedEventName,
+} from '@signalwire/core'
 
 interface MessagingClient extends Messaging {
   new (opts: MessagingClientOptions): this

@@ -46,4 +46,8 @@ export const createTaskObject = (
 
 export * from './TaskClient'
 export * from './send'
-export { TaskClientApiEvents } from '../types'
+export type { TaskReceivedEventName } from '@signalwire/core'
+export type {
+  TaskClientApiEvents,
+  RealTimeTaskApiEventsHandlerMapping,
+} from '../types'

@@ -13,13 +13,22 @@ import {
 } from '@signalwire/core'
 import type { RealtimeClient } from '../client/Client'
 
-import { RealTimeVideoApiEvents } from '../types/video'
+import {
+  RealTimeRoomApiEvents,
+  RealTimeVideoApiEvents,
+  RealTimeVideoApiEventsHandlerMapping,
+  RealTimeRoomApiEventsHandlerMapping,
+} from '../types/video'
 import {
   createRoomSessionObject,
   RoomSession,
   RoomSessionFullState,
+  RoomSessionUpdated,
 } from './RoomSession'
-import type { RoomSessionMember } from './RoomSessionMember'
+import type {
+  RoomSessionMember,
+  RoomSessionMemberUpdated,
+} from './RoomSessionMember'
 
 const videoRoomGetTriggerEvent = toLocalEvent<TransformEvent>('video.room.get')
 
@@ -40,12 +49,61 @@ export interface Video extends ConsumerContract<RealTimeVideoApiEvents> {
   getRoomSessionById(id: string): Promise<{ roomSession: RoomSession }>
 }
 export type {
+  RealTimeRoomApiEvents,
+  RealTimeRoomApiEventsHandlerMapping,
+  RealTimeVideoApiEvents,
+  RealTimeVideoApiEventsHandlerMapping,
   RoomSession,
   RoomSessionFullState,
   RoomSessionMember,
-  RoomSessionRecording,
+  RoomSessionMemberUpdated,
   RoomSessionPlayback,
+  RoomSessionRecording,
+  RoomSessionUpdated,
 }
+
+export type {
+  ClientEvents,
+  EmitterContract,
+  EntityUpdated,
+  GlobalVideoEvents,
+  InternalVideoMemberEntity,
+  LayoutChanged,
+  MEMBER_UPDATED_EVENTS,
+  MemberCommandParams,
+  MemberCommandWithValueParams,
+  MemberCommandWithVolumeParams,
+  MemberJoined,
+  MemberLeft,
+  MemberListUpdated,
+  MemberTalking,
+  MemberTalkingEnded,
+  MemberTalkingEventNames,
+  MemberTalkingStart,
+  MemberTalkingStarted,
+  MemberTalkingStop,
+  MemberUpdated,
+  MemberUpdatedEventNames,
+  PlaybackEnded,
+  PlaybackStarted,
+  PlaybackUpdated,
+  RecordingEnded,
+  RecordingStarted,
+  RecordingUpdated,
+  RoomEnded,
+  RoomStarted,
+  RoomSubscribed,
+  RoomUpdated,
+  SipCodec,
+  VideoLayoutEventNames,
+  VideoMemberContract,
+  VideoMemberEntity,
+  VideoMemberEventNames,
+  VideoMemberType,
+  VideoPlaybackEventNames,
+  VideoPosition,
+  VideoRecordingEventNames,
+} from '@signalwire/core'
 
 /** @internal */
 class VideoAPI extends BaseConsumer<RealTimeVideoApiEvents> {
