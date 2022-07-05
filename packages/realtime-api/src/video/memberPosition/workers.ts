@@ -21,6 +21,6 @@ export const memberPositionWorker: SDKWorker<any> =
 
     yield sagaEffects.fork(MemberPosition.memberPositionWorker, {
       ...options,
-      payload: action.payload,
+      initialState: action.payload,
     })
   }
