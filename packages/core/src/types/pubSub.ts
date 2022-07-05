@@ -23,6 +23,12 @@ export interface PubSubPublishParams {
 }
 
 export interface PubSubContract {
+  /**
+   * Replaces the token used by the client with a new one.
+   * You can use this method to replace the token when for
+   * example it is expiring, in order to keep the session
+   * alive.
+   */
   updateToken(token: string): Promise<void>
   /**
    * List of channels for which you want to receive messages.
