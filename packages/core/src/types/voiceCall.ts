@@ -199,16 +199,29 @@ export interface VoiceCallPlayAudioMethodParams
   volume?: number
 }
 
+export interface VoicePlaylistAudioParams
+  extends OmitType<VoiceCallPlayAudioParams> {}
+
 export interface VoiceCallPlaySilenceMethodParams
+  extends OmitType<VoiceCallPlaySilenceParams> {}
+
+export interface VoicePlaylistSilenceParams
   extends OmitType<VoiceCallPlaySilenceParams> {}
 
 export interface VoiceCallPlayRingtoneMethodParams
   extends OmitType<VoiceCallPlayRingtoneParams> {
   volume?: number
 }
+export interface VoicePlaylistRingtoneParams
+  extends OmitType<VoiceCallPlayRingtoneParams> {
+}
+
 export interface VoiceCallPlayTTSMethodParams
   extends OmitType<VoiceCallPlayTTSParams> {
   volume?: number
+}
+export interface VoicePlaylistTTSParams
+  extends OmitType<VoiceCallPlayTTSParams> {
 }
 
 export interface VoiceCallRecordMethodParams {

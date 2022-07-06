@@ -3,13 +3,13 @@ import type {
   VoicePlaylist,
   VoiceCallPlayParams,
   VoiceCallPlayAudioParams,
-  VoiceCallPlayAudioMethodParams,
   VoiceCallPlayTTSParams,
-  VoiceCallPlayTTSMethodParams,
   VoiceCallPlaySilenceParams,
-  VoiceCallPlaySilenceMethodParams,
   VoiceCallPlayRingtoneParams,
-  VoiceCallPlayRingtoneMethodParams,
+  VoicePlaylistAudioParams,
+  VoicePlaylistTTSParams,
+  VoicePlaylistSilenceParams,
+  VoicePlaylistRingtoneParams,
 } from '@signalwire/core'
 
 /**
@@ -56,26 +56,26 @@ export class Playlist implements VoicePlaylist {
 
   /** An audio media. */
   static Audio(
-    params: VoiceCallPlayAudioMethodParams
+    params: VoicePlaylistAudioParams
   ): VoiceCallPlayAudioParams {
     return { type: 'audio', ...params }
   }
 
   /** A TTS media. */
-  static TTS(params: VoiceCallPlayTTSMethodParams): VoiceCallPlayTTSParams {
+  static TTS(params: VoicePlaylistTTSParams): VoiceCallPlayTTSParams {
     return { type: 'tts', ...params }
   }
 
   /** A silence interval. */
   static Silence(
-    params: VoiceCallPlaySilenceMethodParams
+    params: VoicePlaylistSilenceParams
   ): VoiceCallPlaySilenceParams {
     return { type: 'silence', ...params }
   }
 
   /** A ringtone media. */
   static Ringtone(
-    params: VoiceCallPlayRingtoneMethodParams
+    params: VoicePlaylistRingtoneParams
   ): VoiceCallPlayRingtoneParams {
     return { type: 'ringtone', ...params }
   }
