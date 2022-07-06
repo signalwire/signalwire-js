@@ -54,26 +54,40 @@ export class Playlist implements VoicePlaylist {
     return this
   }
 
-  /** An audio media. */
-  static Audio(
-    params: VoicePlaylistAudioParams
-  ): VoiceCallPlayAudioParams {
+  /**
+   * An audio media.
+   * @params params - {@link VoicePlaylistAudioParams}
+   * @returns - {@link VoiceCallPlayAudioParams}
+   **/
+  static Audio(params: VoicePlaylistAudioParams): VoiceCallPlayAudioParams {
     return { type: 'audio', ...params }
   }
 
-  /** A TTS media. */
+  /**
+   * A TTS media.
+   * @params params - {@link VoicePlaylistTTSParams}
+   * @returns - {@link VoiceCallPlayTTSParams}
+   **/
   static TTS(params: VoicePlaylistTTSParams): VoiceCallPlayTTSParams {
     return { type: 'tts', ...params }
   }
 
-  /** A silence interval. */
+  /**
+   * A silence interval.
+   * @params params - {@link VoicePlaylistSilenceParams}
+   * @returns - {@link VoiceCallPlaySilenceParams}
+   **/
   static Silence(
     params: VoicePlaylistSilenceParams
   ): VoiceCallPlaySilenceParams {
     return { type: 'silence', ...params }
   }
 
-  /** A ringtone media. */
+  /**
+   * A ringtone media.
+   * @params param - {@link VoicePlaylistRingtoneParams}
+   * @returns - {@link VoiceCallPlayRingtoneParams}
+   **/
   static Ringtone(
     params: VoicePlaylistRingtoneParams
   ): VoiceCallPlayRingtoneParams {
