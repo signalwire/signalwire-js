@@ -79,11 +79,6 @@ export interface RoomSession extends BaseRoomSession<RoomSession> {
  *
  * roomSession.join()
  * ```
- *
- * ## Events
- *
- * Please see {@link RoomSessionEvents} for the list of events emitted by a
- * RoomSession object.
  */
 export const RoomSession = function (roomOptions: RoomSessionOptions) {
   const {
