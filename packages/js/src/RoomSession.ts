@@ -133,6 +133,8 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
 
   // WebRTC connection left the room.
   room.once('destroy', () => {
+    // @ts-expect-error
+    room.emit('room.left')
     client.disconnect()
   })
 
