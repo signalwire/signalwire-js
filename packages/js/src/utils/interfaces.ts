@@ -103,8 +103,11 @@ export type RoomSessionObjectEvents = {
 }
 
 export type StartScreenShareOptions = {
+  /** Whether the screen share object should automatically join the room */
   autoJoin?: boolean
+  /** Audio constraints to use when joining the room. Default: `true`. */
   audio?: MediaStreamConstraints['audio']
+  /** Video constraints to use when joining the room. Default: `true`. */
   video?: MediaStreamConstraints['video']
   layout?: string
   positions?: VideoPositions
@@ -184,16 +187,93 @@ export interface RoomMethods
 export interface RoomSessionConnectionContract {
   screenShareList: RoomSessionScreenShare[]
   deviceList: RoomSessionDevice[]
-  /** @deprecated Use {@link startScreenShare} instead. */
+  /**
+   * Adds a screen sharing instance to the room. You can create multiple screen
+   * sharing instances and add all of them to the room.
+   * @param opts - {@link CreateScreenShareObjectOptions}
+   * @returns - {@link RoomSessionScreenShare}
+   *
+   * @deprecated Use {@link startScreenShare} instead.
+   */
   createScreenShareObject(
     opts?: CreateScreenShareObjectOptions
   ): Promise<RoomSessionScreenShare>
+  /**
+   * Adds a screen sharing instance to the room. You can create multiple screen
+   * sharing instances and add all of them to the room.
+   * @param opts - {@link StartScreenShareOptions}
+   * @returns - {@link RoomSessionScreenShare}
+   *
+   * @example Sharing the screen together with the associated audio:
+   * ```js
+   * await roomSession.startScreenShare({ audio: true, video: true })
+   * ```
+   */
   startScreenShare(
     opts?: StartScreenShareOptions
   ): Promise<RoomSessionScreenShare>
+  /**
+   * Adds a camera device to the room. Using this method, a user can stream
+   * multiple video sources at the same time.
+   *
+   * @param opts - Specify the constraints for the device. In addition, you can
+   * add the `autoJoin` key to specify whether the device should immediately
+   * join the room or joining will be performed manually later. {@link AddCameraOptions}
+   * @returns - {@link RoomSessionDevice}
+   *
+   * @example Adding a specific camera:
+   * ```typescript
+   * await roomSession.addCamera({deviceId: "gOtMHwZdoA6wMlAnhbfTmeRgPAsqa7iw1OwgKYtbTLA="})
+   * ```
+   */
   addCamera(opts: AddCameraOptions): Promise<RoomSessionDevice>
+  /**
+   * Adds a microphone device to the room. Using this method, a user can stream
+   * multiple video sources at the same time.
+   *
+   * @param opts Specify the constraints for the device. In addition, you can
+   * add the `autoJoin` key to specify whether the device should immediately
+   * join the room or joining will be performed manually later. {@link AddMicrophoneOptions}
+   * @returns - {@link RoomSessionDevice}
+   *
+   * @example Adding a specific microphone:
+   * ```typescript
+   * await roomSession.addMicrophone({deviceId: "PIn/IIDDgBUHzJkhRncv1m85hX1gC67xYIgJvvThB3Q="})
+   * ```
+   */
   addMicrophone(opts: AddMicrophoneOptions): Promise<RoomSessionDevice>
+  /**
+   * Adds a device to the room. Using this method, a user can stream multiple
+   * sources at the same time. If you need to add a camera device or a
+   * microphone device, you can alternatively use the more specific methods
+   * {@link addCamera} and {@link addMicrophone}.
+   *
+   * @param opts Specify the constraints for the device. In addition, you can
+   * add the `autoJoin` key to specify whether the device should immediately
+   * join the room or joining will be performed manually later. {@link AddDeviceOptions}
+   * @returns - {@link RoomSessionDevice}
+   *
+   * @example Adding any of the microphone devices to the room (duplicate
+   * streams are possible):
+   * ```typescript
+   * await roomSession.addDevice({audio: true})
+   * ```
+   */
   addDevice(opts: AddDeviceOptions): Promise<RoomSessionDevice>
+  /**
+   * Replaces the current speaker with a different one.
+   *
+   * > 📘
+   * > Some browsers do not support output device selection. You can check by calling {@link WebRTC.supportsMediaOutput}.
+   *
+   * @param opts
+   * @param opts.deviceId id of the new speaker device
+   *
+   * @example Replaces the current speaker:
+   * ```typescript
+   * await room.updateSpeaker({deviceId: "/o4ZeWzroh+8q0Ds/CFfmn9XpqaHzmW3L/5ZBC22CRg="})
+   * ```
+   */
   updateSpeaker(opts: { deviceId: string }): Promise<undefined>
 }
 

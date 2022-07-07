@@ -51,9 +51,16 @@ export interface BaseRoomSession<T>
     RoomSessionConnectionContract,
     BaseComponentContract,
     BaseConnectionContract<RoomSessionObjectEvents> {
+  /**
+   * Joins the room session.
+   */
   join(): Promise<T>
   /** @internal */
   joinAudience(options?: { audio?: boolean; video?: boolean }): Promise<T>
+  /**
+   * Leaves the room. This detaches all the locally originating streams from the
+   * room.
+   */
   leave(): Promise<void>
 }
 

@@ -36,6 +36,10 @@ export interface EmitterContract<
 }
 
 export interface BaseComponentContract {
+  /**
+   * Destroys the room object. This only destroys the JavaScript object: it has
+   * no effect on the server-side room.
+   */
   destroy(): void
 }
 
@@ -77,7 +81,32 @@ export interface BaseConnectionContract<
   /** The preview_url for the room. Only with "enable_room_previews: true" on Room configuration. */
   readonly previewUrl?: string
 
+  /**
+   * Replaces the current camera stream with the one coming from a different
+   * device.
+   * @param constraints Specify the constraints that the device should satisfy. {@link MediaTrackConstraints}
+   * See
+   * [MediaTrackConstraints](https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints).
+   *
+   * @example Replaces the current camera stream with the one coming from the specified deviceId:
+   * ```typescript
+   * await room.updateCamera({deviceId: "/o4ZeWzroh+8q0Ds/CFfmn9XpqaHzmW3L/5ZBC22CRg="})
+   * ```
+   */
   updateCamera(constraints: MediaTrackConstraints): Promise<void>
+  /**
+   * Replaces the current microphone stream with the one coming from a different
+   * device.
+   * @param constraints Specify the constraints that the device should satisfy. {@link MediaTrackConstraints}
+   * See
+   * [MediaTrackConstraints](https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints).
+   *
+   * @example Replaces the current microphone stream with the one coming from
+   * the specified deviceId:
+   * ```typescript
+   * await room.updateMicrophone({deviceId: "/o4ZeWzroh+8q0Ds/CFfmn9XpqaHzmW3L/5ZBC22CRg="})
+   * ```
+   */
   updateMicrophone(constraints: MediaTrackConstraints): Promise<void>
 
   /** @internal */
