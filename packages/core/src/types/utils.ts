@@ -29,59 +29,6 @@ export type OnlyFunctionProperties<T> = Pick<T, OnlyFunctionPropertyNames<T>>
 
 export type OnlyStateProperties<T> = Pick<T, OnlyStatePropertyNames<T>>
 
-type ShapeOf<T> = Omit<T, never>
-
-/**
- * This type fails to be evaluated if the two type parameters don't match. If
- * they match, it is equal to one of the two types.
- *
- * Motivation: we use this type for documentation purposes. Some of the types
- * and interfaces that we want to publicly expose have several layers of
- * indirection and are not detected correctly by TypeDoc. To workaround the
- * problem, we additionally write a fully documented explicit type and we use
- * `AssertSameType` to ensure that the two are equal at compile-time. Of the two
- * input types, `AssertSameType` returns the documented one (which, apart from
- * documentation, is indistinguishable from the other one).
- *
- * As an example, say we want to expose an interface named `RoomSession`, whose
- * methods are not currently getting picked up by TypeDoc:
- *
- * ```typescript
- * export interface RoomSession { ... }
- * ```
- *
- * To make `RoomSession` documentable, we rename it (as a convention) into
- * `RoomSessionMain` and we also add an equivalent `RoomSessionDocs` with
- * explicit types:
- *
- * ```typescript
- * interface RoomSessionMain { ... }
- *
- * interface RoomSessionDocs {
- *   // doc string ...
- *   audioMute(params: { memberId: string }): Promise<void>
- *
- *   // doc string ...
- *   audioUnmute(params: { memberId: string }): Promise<void>
- * }
- * ```
- *
- * Then, we export a new interface which extends AssertSameType:
- *
- * ```typescript
- * export interface RoomSession extends
- *                          AssertSameType<RoomSessionMain, RoomSessionDocs> {}
- * ```
- *
- * If `RoomSessionMain` and `RoomSessionDocs` are not equal, we get a
- * compile-time error. If they are equal, `RoomSession` will refer to the
- * documented version of the methods.
- */
-export type AssertSameType<
-  ExpectedType extends ShapeOf<Output>,
-  Output extends ShapeOf<ExpectedType>
-> = Output
-
 type IsTimestampProperty<Property> = Property extends `${string}_at`
   ? Property
   : never
