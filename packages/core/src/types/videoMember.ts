@@ -8,7 +8,6 @@ import type {
   ToInternalVideoEvent,
   OnlyStateProperties,
   OnlyFunctionProperties,
-  AssertSameType,
 } from './utils'
 import * as Rooms from '../rooms'
 
@@ -38,35 +37,9 @@ export const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
   }` as const
 })
 
-type VideoMemberUpdatablePropsMain = {
+type VideoMemberUpdatableProps = {
   [K in keyof InternalVideoMemberUpdatableProps as SnakeToCamelCase<K>]: InternalVideoMemberUpdatableProps[K]
 }
-
-type VideoMemberUpdatableProps = AssertSameType<
-  VideoMemberUpdatablePropsMain,
-  {
-    /** Whether the outbound audio is muted (e.g., from the microphone) */
-    audioMuted: boolean
-    /** Whether the outbound video is muted */
-    videoMuted: boolean
-    /** Whether the inbound audio is muted */
-    deaf: boolean
-    /** Whether the member is on hold */
-    onHold: boolean
-    /** Whether the member is visible */
-    visible: boolean
-    /** Input volume (e.g., of the microphone). Values range from -50 to 50, with a default of 0. */
-    inputVolume: number
-    /** Output volume (e.g., of the speaker). Values range from -50 to 50, with a default of 0. */
-    outputVolume: number
-    /** Input level at which the participant is identified as currently speaking.
-     * The default value is 30 and the scale goes from 0 (lowest sensitivity,
-     * essentially muted) to 100 (highest sensitivity). */
-    inputSensitivity: number
-    /** Metadata associated to this member. */
-    meta?: Record<string, unknown>
-  }
->
 
 export const MEMBER_UPDATABLE_PROPS: VideoMemberUpdatableProps = toExternalJSON(
   INTERNAL_MEMBER_UPDATABLE_PROPS
