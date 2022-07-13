@@ -52,7 +52,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     Rooms.BaseRoomInterface<EventTypes & BaseConnectionStateEventTypes>,
     BaseConnectionContract<EventTypes & BaseConnectionStateEventTypes>
 {
-  public nodeId = ''
+  public _nodeId: string
   public direction: 'inbound' | 'outbound'
   public peer: RTCPeer<EventTypes>
   public options: BaseConnectionOptions<
@@ -135,6 +135,26 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     return this.options?.iceServers ?? this.select(selectors.getIceServers)
   }
 
+  get component() {
+    // TODO: use selector from core
+    return this.select((state) => state.components.byId?.[this.id])
+  }
+
+  get nodeId() {
+    // This is only set during `hangup` when
+    // `redirectDestination` is present
+    if (this._nodeId) {
+      return this._nodeId
+    }
+
+    // @ts-expect-error
+    return this.component?.nodeId ?? ''
+  }
+
+  set nodeId(id: string) {
+    this._nodeId = id
+  }
+
   /** @internal */
   get messagePayload() {
     const {
@@ -147,7 +167,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       userVariables,
       screenShare,
       additionalDevice,
-      pingSupported = true,
+      pingSupported,
     } = this.options
     return {
       sessid: this.options.sessionid,
@@ -267,7 +287,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   /** @internal */
   public onRoomSubscribed(component: any) {
     this.logger.debug('onRoomSubscribed', component)
-    this.nodeId = component.nodeId
     this._roomId = component.roomId
     this._roomSessionId = component.roomSessionId
     this._memberId = component.memberId
