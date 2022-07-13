@@ -16,9 +16,9 @@ const handler = () => {
       token: process.env.VOICE_TOKEN as string,
       contexts: [process.env.VOICE_CONTEXT as string],
       // logLevel: "trace",
-      // debug: {
-      //   logWsTraffic: true,
-      // },
+      debug: {
+        logWsTraffic: true,
+      },
     })
 
     let callsReceived = new Set()
