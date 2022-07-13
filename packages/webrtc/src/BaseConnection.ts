@@ -74,11 +74,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   private state: BaseConnectionState = 'new'
   private prevState: BaseConnectionState = 'new'
 
-  private _roomId: string
-  private _roomSessionId: string
-  private _memberId: string
-  private _previewUrl: string
-
   constructor(
     options: BaseConnectionOptions<EventTypes & BaseConnectionStateEventTypes>
   ) {
@@ -108,19 +103,23 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   get memberId() {
-    return this._memberId
+    // @ts-expect-error
+    return this.component.memberId
   }
 
   get previewUrl() {
-    return this._previewUrl
+    // @ts-expect-error
+    return this.component.previewUrl
   }
 
   get roomId() {
-    return this._roomId
+    // @ts-expect-error
+    return this.component.roomId
   }
 
   get roomSessionId() {
-    return this._roomSessionId
+    // @ts-expect-error
+    return this.component.roomSessionId
   }
 
   get localStream() {
@@ -287,10 +286,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   /** @internal */
   public onRoomSubscribed(component: any) {
     this.logger.debug('onRoomSubscribed', component)
-    this._roomId = component.roomId
-    this._roomSessionId = component.roomSessionId
-    this._memberId = component.memberId
-    this._previewUrl = component.previewUrl
 
     /**
      * For screenShare/additionalDevice we're using
