@@ -21,8 +21,11 @@ export interface ConnectionOptions {
   localStream?: MediaStream
   /** @internal */
   remoteStream?: MediaStream
+  /** List of ICE servers. */
   iceServers?: RTCIceServer[]
+  /** Audio constraints to use when joining the room. Default: `true`. */
   audio?: MediaStreamConstraints['audio']
+  /** Video constraints to use when joining the room. Default: `true`. */
   video?: MediaStreamConstraints['video']
   /** @internal */
   attach?: boolean
@@ -36,6 +39,7 @@ export interface ConnectionOptions {
   camId?: string
   /** @internal */
   camLabel?: string
+  /** Id of the speaker device to use for audio output. If undefined, picks a default speaker. */
   speakerId?: string
   /** @internal */
   userVariables?: { [key: string]: any }

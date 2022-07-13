@@ -1,6 +1,5 @@
 import {
   UserOptions,
-  AssertSameType,
   getLogger,
   Authorization,
 } from '@signalwire/core'
@@ -11,7 +10,6 @@ import {
   isValidJoinAudienceMediaParams,
 } from './utils/roomSession'
 import type { MakeRoomOptions } from './Client'
-import type { RoomSessionDocs } from './RoomSession.docs'
 import type { RoomSessionJoinAudienceParams } from './utils/interfaces'
 
 const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
@@ -57,7 +55,7 @@ export const UNSAFE_PROP_ACCESS = [
 
 export interface RoomSessionOptions extends UserOptions, MakeRoomOptions {}
 
-interface RoomSessionMain extends BaseRoomSession<RoomSessionMain> {
+export interface RoomSession extends BaseRoomSession<RoomSession> {
   new (opts: RoomSessionOptions): this
 }
 
@@ -81,28 +79,6 @@ interface RoomSessionMain extends BaseRoomSession<RoomSessionMain> {
  *
  * roomSession.join()
  * ```
- *
- * ## Events
- *
- * Please see {@link RoomSessionEvents} for the list of events emitted by a
- * RoomSession object.
- */
-export interface RoomSession
-  extends AssertSameType<RoomSessionMain, RoomSessionDocs<RoomSessionMain>> {}
-
-/**
- * @ignore
- * @privateRemarks
- *
- * The use of a function expression as a contructor instead
- * of a class was picked because it made a couple things
- * simpler for this use case.
- * 1. Making classes behave as factories can be tricky when
- *    working with TypeScript since it's non trivial to
- *    switch the type returned by the constructor
- * 2. It also generates more verbose code (once transpiled)
- *    if we want to have private fields to store `room` and
- *    `client`.
  */
 export const RoomSession = function (roomOptions: RoomSessionOptions) {
   const {
