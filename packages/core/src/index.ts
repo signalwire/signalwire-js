@@ -66,6 +66,7 @@ export type {
   CustomSagaParams,
   CustomSaga,
   PubSubChannel,
+  PubSubAction,
   MapToPubSubShape,
   SDKActions,
 } from './redux/interfaces'

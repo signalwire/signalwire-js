@@ -1,22 +1,33 @@
 import type {
-  AssertSameType,
   ChatContract,
   ConsumerContract,
   UserOptions,
   Chat as ChatNamespace,
 } from '@signalwire/core'
 import { createClient } from '../createClient'
-import { ClientApiEventsDocs, ClientDocs } from './Client.docs'
 
-interface ClientApiEventsMain extends ChatNamespace.BaseChatApiEvents {}
-export interface ClientApiEvents
-  extends AssertSameType<ClientApiEventsMain, ClientApiEventsDocs> {}
+export interface ClientApiEvents extends ChatNamespace.BaseChatApiEvents {}
 
 /** @ignore */
 export interface ClientFullState extends Client {}
-interface ClientMain
+export interface Client
   extends ChatContract,
     Omit<ConsumerContract<ClientApiEvents, ClientFullState>, 'subscribe'> {}
+
+
+/** @ignore */
+export interface ClientOptions extends UserOptions {}
+
+type ClientMethods = keyof Client
+const INTERCEPTED_METHODS: ClientMethods[] = [
+  'subscribe',
+  'publish',
+  'updateToken',
+  'getMessages',
+  'getMembers',
+  'getMemberState',
+  'setMemberState',
+]
 
 /**
  * You can use the Client object to build a messaging system into the browser.
@@ -49,22 +60,6 @@ interface ClientMain
  * Please see {@link ClientApiEvents} for the list of events emitted by a chat
  * Client object.
  */
-export interface Client extends AssertSameType<ClientMain, ClientDocs> {}
-
-/** @ignore */
-export interface ClientOptions extends UserOptions {}
-
-type ClientMethods = keyof Client
-const INTERCEPTED_METHODS: ClientMethods[] = [
-  'subscribe',
-  'publish',
-  'updateToken',
-  'getMessages',
-  'getMembers',
-  'getMemberState',
-  'setMemberState',
-]
-
 export const Client = function (chatOptions: ClientOptions) {
   const client = createClient<Client>(chatOptions)
 

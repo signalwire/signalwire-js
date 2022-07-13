@@ -1,4 +1,4 @@
-interface GlobalConfig {
+export interface GlobalConfig {
   token?: string
   project?: string
 }

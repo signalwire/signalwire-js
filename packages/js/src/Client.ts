@@ -12,7 +12,6 @@ import {
   makeVideoElementSaga,
   makeAudioElementSaga,
 } from './features/mediaElements/mediaElementsSagas'
-import { RoomSession } from './RoomSession'
 import {
   createBaseRoomSessionObject,
   RoomSessionConnection,
@@ -20,6 +19,7 @@ import {
 import { VideoManager, createVideoManagerObject } from './cantina'
 import type { Client as ChatClient } from './chat/Client'
 import type { Client as PubSubClient } from './pubSub/Client'
+import type { RoomSession } from './RoomSession'
 
 export interface Client<RoomSessionType = RoomSession>
   extends ClientContract<Client<RoomSessionType>, ClientEvents> {
@@ -29,9 +29,13 @@ export interface Client<RoomSessionType = RoomSession>
 }
 
 export interface MakeRoomOptions extends ConnectionOptions {
+  /** HTML element in which to display the video stream */
   rootElement?: HTMLElement
+  /** Whether to apply the local-overlay on top of your video. Default: `true`. */
   applyLocalVideoOverlay?: boolean
+  /** Whether to stop the camera when the member is muted. Default: `true`. */
   stopCameraWhileMuted?: boolean
+  /** Whether to stop the microphone when the member is muted. Default: `true`. */
   stopMicrophoneWhileMuted?: boolean
 }
 

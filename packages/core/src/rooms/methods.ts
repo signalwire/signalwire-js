@@ -157,7 +157,7 @@ export const setHideVideoMuted: RoomMethodDescriptor<void, boolean> = {
 interface GetRecordingsInput extends BaseRPCResult {
   recordings: InternalVideoRecordingEntity[]
 }
-interface GetRecordingsOutput {
+export interface GetRecordingsOutput {
   recordings: VideoRecordingEntity[]
 }
 
@@ -200,7 +200,7 @@ export const startRecording: RoomMethodDescriptor<void> = {
 interface GetPlaybacksInput extends BaseRPCResult {
   playbacks: InternalVideoPlaybackEntity[]
 }
-interface GetPlaybacksOutput {
+export interface GetPlaybacksOutput {
   playbacks: VideoPlaybackEntity[]
 }
 

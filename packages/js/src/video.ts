@@ -43,4 +43,3 @@ export type {
   RoomSessionPlayback,
 } from '@signalwire/core'
 
-export type { RoomSessionEvents } from './RoomSession.docs'

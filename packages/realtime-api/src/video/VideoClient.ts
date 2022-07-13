@@ -1,25 +1,31 @@
-import type { AssertSameType, UserOptions } from '@signalwire/core'
+import type { UserOptions } from '@signalwire/core'
 import type { RealTimeVideoApiEvents } from '../types'
 import { getLogger } from '@signalwire/core'
 import { setupClient, clientConnect } from '../client/index'
 import { createVideoObject, Video } from './Video'
-import { VideoClientDocs } from './VideoClient.docs'
 
 /**
  * List of events for {@link Video.Client}.
  */
 export interface VideoClientApiEvents extends RealTimeVideoApiEvents {}
 
-/** @ignore */
 export interface VideoApiFullState extends VideoClient {}
-interface VideoClientMain extends Video {
+
+interface VideoClient extends Video {
   new (opts: VideoClientOptions): this
+}
+
+export interface VideoClientOptions
+  extends Omit<UserOptions, 'host' | '_onRefreshToken' | 'token'> {
+  token?: string
 }
 
 /**
  * You can use instances of this class to subscribe to video events. Please see
  * {@link VideoClientApiEvents} for the full list of events you can subscribe
  * to.
+ *
+ * @param options - {@link VideoClientOptions}
  *
  * @example
  *
@@ -38,16 +44,6 @@ interface VideoClientMain extends Video {
  * });
  * ```
  */
-interface VideoClient
-  extends AssertSameType<VideoClientMain, VideoClientDocs> {}
-
-/** @ignore */
-export interface VideoClientOptions
-  extends Omit<UserOptions, 'host' | '_onRefreshToken' | 'token'> {
-  token?: string
-}
-
-/** @ignore */
 const VideoClient = function (options?: VideoClientOptions) {
   const { client, store, emitter } = setupClient(options)
 

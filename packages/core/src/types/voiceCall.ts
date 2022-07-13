@@ -125,7 +125,14 @@ export type VoiceCallEventNames =
 // export type InternalVoiceCallEventNames =
 //   ToInternalVoiceEvent<VoiceCallEventNames>
 
-export type SipCodec = 'PCMU' | 'PCMA' | 'OPUS' | 'G729' | 'G722' | 'VP8' | 'H264'
+export type SipCodec =
+  | 'PCMU'
+  | 'PCMA'
+  | 'OPUS'
+  | 'G729'
+  | 'G722'
+  | 'VP8'
+  | 'H264'
 
 export interface SipHeader {
   name: string
@@ -243,7 +250,7 @@ export type CollectSpeechConfig = {
   hints?: string[]
 }
 
-type SpeechOrDigits =
+export type SpeechOrDigits =
   | {
       digits: CollectDigitsConfig
       speech?: never
@@ -276,14 +283,14 @@ export type VoiceCallPromptTTSMethodParams = SpeechOrDigits &
     partialResults?: boolean
   }
 type TapCodec = 'OPUS' | 'PCMA' | 'PCMU'
-interface TapDeviceWS {
+export interface TapDeviceWS {
   type: 'ws'
   uri: string
   codec?: TapCodec
   rate?: number
 }
 
-interface TapDeviceRTP {
+export interface TapDeviceRTP {
   type: 'rtp'
   addr: string
   port: string
@@ -292,7 +299,7 @@ interface TapDeviceRTP {
 }
 
 export type TapDevice = TapDeviceWS | TapDeviceRTP
-type TapDirection = 'listen' | 'speak' | 'both'
+export type TapDirection = 'listen' | 'speak' | 'both'
 export interface VoiceCallTapMethodParams {
   device: TapDevice
   audio: {
@@ -685,7 +692,7 @@ interface CallingCallSIPDevice {
 }
 
 type CallingCallDevice = CallingCallPhoneDevice | CallingCallSIPDevice
-type CallingCallDirection = 'inbound' | 'outbound'
+export type CallingCallDirection = 'inbound' | 'outbound'
 export type CallingCallState =
   | 'created'
   | 'ringing'

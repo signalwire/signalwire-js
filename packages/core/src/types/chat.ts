@@ -6,8 +6,10 @@ import type {
 } from '..'
 import type { MapToPubSubShape } from '../redux/interfaces'
 import type {
+  PubSubChannel,
   PubSubContract,
   PubSubMessageEntity,
+  PubSubPublishParams,
 } from './pubSub'
 import type { PaginationCursor } from './common'
 import { PRODUCT_PREFIX_CHAT } from '../utils/constants'
@@ -31,20 +33,20 @@ export type ChatEventNames = ChatMessageEventName | ChatMemberEventNames
 
 export type ChatChannel = string | string[]
 
-interface ChatSetMemberStateParams {
+export interface ChatSetMemberStateParams {
   memberId: string
   channels: ChatChannel
   state: Record<any, any>
 }
-interface ChatGetMemberStateParams {
+export interface ChatGetMemberStateParams {
   memberId: string
   channels?: ChatChannel
 }
-interface ChatGetMessagesParams {
+export interface ChatGetMessagesParams {
   channel: string
   cursor?: PaginationCursor
 }
-interface ChatGetMembersParams {
+export interface ChatGetMembersParams {
   channel: string
 }
 export interface ChatChannelState {
@@ -54,17 +56,150 @@ export interface ChatChannelState {
 export type ChatChannelName = string
 
 export interface ChatContract extends PubSubContract {
+  /**
+   * Returns the list of messages that were sent to the specified channel.
+   *
+   * @param params - {@link ChatGetMessagesParams}
+   *
+   * @example
+   * ```js
+   * const m = await chatClient.getMessages({ channel: 'chan1' })
+   *
+   * m.messages.length;  // 23
+   * m.messages[0];  // the most recent message
+   * m.messages[0].member;  // the sender
+   * m.messages[0].content;  // the content
+   * m.messages[0].meta;  // the metadata (if any)
+   *
+   * m.cursor.next;  // if not null, there are more messages.
+   *
+   * // Get the next page using the cursor
+   * const next = await chatClient.getMessages({
+   *   channel: 'chan1',
+   *   cursor: {
+   *     after: m.cursor.after
+   *   }
+   * })
+   * ```
+   */
   getMessages(params: ChatGetMessagesParams): Promise<{
     messages: ChatMessageEntity[]
     cursor: PaginationCursor
   }>
+  /**
+   * Returns the list of members in the given channel.
+   *
+   * @param params - {@link ChatGetMembersParams}
+   *
+   * @example
+   * ```js
+   * const m = await chatClient.getMembers({ channel: 'my-channel' })
+   *
+   * m.members.length;  // 7
+   * m.members[0];  // { id: ..., channel: ..., state: ... }
+   * ```
+   */
   getMembers(params: ChatGetMembersParams): Promise<{
     members: ChatMemberEntity[]
   }>
+  /**
+   * Sets a state object for a member, for the specified channels. The
+   * previous state object will be completely replaced.
+   *
+   * @param params - {@link ChatSetMemberStateParams}
+   *
+   * @example
+   * ```js
+   * await chatClient.setMemberState({
+   *   channels: ['chan1', 'chan2'],
+   *   state: {
+   *     online: true,
+   *     typing: false
+   *   }
+   * })
+   * ```
+   */
   setMemberState(params: ChatSetMemberStateParams): Promise<void>
+  /**
+   * Returns the states of a member in the specified channels.
+   *
+   * @param params - {@link ChatGetMemberStateParams}
+   *
+   * @example
+   * ```js
+   * const s = await chatClient.getMemberState({
+   *   channels: ['chan1', 'chan2'],
+   *   memberId: 'my-member-id'
+   * })
+   *
+   * s.channels.length;  // 2
+   * s.channels.chan1.state;  // the state object for chan1
+   * ```
+   */
   getMemberState(params: ChatGetMemberStateParams): Promise<{
     channels: Record<ChatChannelName, ChatChannelState>
   }>
+  /**
+   * List of channels for which you want to receive
+   * messages.
+   *
+   * Note that the `subscribe` function is idempotent, and
+   * calling it again with a different set of channels _will
+   * not_ unsubscribe you from the old ones. To unsubscribe,
+   * use {@link unsubscribe}.
+   *
+   * @param channels - {@link PubSubChannel} the channels to
+   * subscribe to, either in the form of a string (for one
+   * channel) or an array of strings.
+   *
+   * @example
+   * ```js
+   * chatClient.on('message', m => console.log(m))
+   *
+   * await chatClient.subscribe("my-channel")
+   * await chatClient.subscribe(["chan-2", "chan-3"])
+   * ```
+   */
+  subscribe(channels: PubSubChannel): Promise<void>
+  /**
+   * List of channels from which you want to unsubscribe.
+   *
+   * @param channels - {@link PubSubChannel} the channels to
+   * unsubscribe from, either in the form of a string (for
+   * one channel) or an array of strings.
+   *
+   * @example
+   * ```js
+   * await chatClient.unsubscribe("my-channel")
+   * await chatClient.unsubscribe(["chan-2", "chan-3"])
+   * ```
+   */
+  unsubscribe(channels: PubSubChannel): Promise<void>
+  /**
+   * Publish a message into the specified channel.
+   *
+   * @param params - {@link PubSubPublishParams}
+   *
+   * @example Publishing a message as a string:
+   * ```js
+   * await chatClient.publish({
+   *   channel: 'my-channel',
+   *   content: 'Hello, world.'
+   * })
+   * ```
+   *
+   * @example Publishing a message as an object:
+   * ```js
+   * await chatClient.publish({
+   *   channel: 'my-channel',
+   *   content: {
+   *     field_one: 'value_one',
+   *     field_two: 'value_two',
+   *   }
+   * })
+   * ```
+   */
+  publish(params: PubSubPublishParams): Promise<void>
 }
 
 export type ChatEntity = OnlyStateProperties<ChatContract>

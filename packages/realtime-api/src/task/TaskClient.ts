@@ -1,23 +1,35 @@
-import type { AssertSameType, UserOptions } from '@signalwire/core'
+import type { UserOptions } from '@signalwire/core'
 import { setupClient, clientConnect } from '../client/index'
-import { TaskClientDocs } from './TaskClient.docs'
 import type { Task } from './Task'
 import { createTaskObject } from './Task'
 import { clientContextInterceptorsFactory } from '../common/clientContext'
 
-interface TaskClientMain extends Task {
+interface TaskClient extends Task {
   new (opts: TaskClientOptions): this
 }
 
-interface TaskClient extends AssertSameType<TaskClientMain, TaskClientDocs> {}
-
-/** @ignore */
 export interface TaskClientOptions
   extends Omit<UserOptions, '_onRefreshToken'> {
   contexts: string[]
 }
 
-/** @ignore */
+/**
+ * Creates a new Task client.
+ *
+ * @param options - {@link TaskClientOptions}
+ *
+ * @example
+ *
+ * ```js
+ * import { Task } from '@signalwire/realtime-api'
+ *
+ * const taskClient = new Task.Client({
+ *   project: '<project-id>',
+ *   token: '<api-token>',
+ *   contexts: ['<context-name>'],
+ * })
+ * ```
+ */
 const TaskClient = function (options?: TaskClientOptions) {
   const { client, store, emitter } = setupClient(options)
 

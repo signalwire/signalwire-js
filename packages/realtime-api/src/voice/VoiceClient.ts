@@ -1,18 +1,24 @@
-import type { AssertSameType, UserOptions } from '@signalwire/core'
+import type { UserOptions } from '@signalwire/core'
 import { setupClient, clientConnect } from '../client/index'
 import { createCallObject, Call } from './Call'
-import { VoiceClientDocs } from './VoiceClient.docs'
 import { createVoiceObject, Voice } from './Voice'
 import { clientContextInterceptorsFactory } from '../common/clientContext'
 
-interface VoiceClientMain extends Voice {
+interface VoiceClient extends Voice {
   new (opts: VoiceClientOptions): this
+}
+
+export interface VoiceClientOptions
+  extends Omit<UserOptions, '_onRefreshToken'> {
+  contexts: string[]
 }
 
 /**
  * You can use instances of this class to initiate or receive calls. Please see
  * {@link VoiceClientApiEvents} for the full list of events you can subscribe to.
- * 
+ *
+ * @params options - {@link VoiceClientOptions}
+ *
  * @example
  *
  * The following example answers any call in the "office" context.
@@ -35,7 +41,7 @@ interface VoiceClientMain extends Voice {
  *   }
  * })
  * ```
- * 
+ *
  * @example
  *
  * The following example initiates a new call.
@@ -58,16 +64,6 @@ interface VoiceClientMain extends Voice {
  * }
  * ```
  */
-interface VoiceClient
-  extends AssertSameType<VoiceClientMain, VoiceClientDocs> {}
-
-/** @ignore */
-export interface VoiceClientOptions
-  extends Omit<UserOptions, '_onRefreshToken'> {
-  contexts: string[]
-}
-
-/** @ignore */
 const VoiceClient = function (options?: VoiceClientOptions) {
   const { client, store, emitter } = setupClient(options)
 

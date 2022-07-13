@@ -1,6 +1,5 @@
 import {
   uuid,
-  AssertSameType,
   BaseComponentOptions,
   connect,
   EmitterContract,
@@ -64,7 +63,6 @@ import { CallPrompt, createCallPromptObject } from './CallPrompt'
 import { CallTap, createCallTapObject } from './CallTap'
 import { CallDetect, createCallDetectObject } from './CallDetect'
 import { DeviceBuilder } from './DeviceBuilder'
-import { CallDocs } from './Call.docs'
 
 type EmitterTransformsEvents =
   | 'calling.playback.start'
@@ -88,17 +86,13 @@ type EmitterTransformsEvents =
   | 'calling.detect.updated'
   | 'calling.connect.connected'
 
-interface CallMain
-  extends VoiceCallContract<Call>,
-    EmitterContract<RealTimeCallApiEvents> {}
-
 /**
  * A Call object represents an active call. You can get instances of a Call
  * object from a {@link Voice.Client}, by answering or initiating calls.
  */
-export interface Call extends AssertSameType<CallMain, CallDocs> {}
-
-export interface CallFullState extends Call {}
+export interface Call
+  extends VoiceCallContract<Call>,
+    EmitterContract<RealTimeCallApiEvents> {}
 
 /**
  * Used to resolve the play() method and to update the CallPlayback object through the EmitterTransform
@@ -166,6 +160,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     })
   }
 
+  /** Unique id for this voice call */
   get id() {
     return this.callId
   }
@@ -174,11 +169,13 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     return this.__uuid
   }
 
+  /** The type of call. Only phone and sip are currently supported. */
   get type() {
     // @ts-expect-error
     return this.device?.type ?? ''
   }
 
+  /** The phone number that the call is coming from. */
   get from() {
     if (this.type === 'phone') {
       // @ts-expect-error
@@ -191,6 +188,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     return this.device?.params?.from ?? ''
   }
 
+  /** The phone number you are attempting to call. */
   get to() {
     if (this.type === 'phone') {
       // @ts-expect-error
@@ -388,6 +386,16 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     })
   }
 
+  /**
+   * Hangs up the call.
+   * @param reason Optional reason for hanging up
+   *
+   * @example
+   *
+   * ```js
+   * call.hangup();
+   * ```
+   */
   hangup(reason: VoiceCallDisconnectReason = 'hangup') {
     return new Promise((resolve, reject) => {
       if (!this.callId || !this.nodeId) {
@@ -418,6 +426,22 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     })
   }
 
+  /**
+   * Answers the incoming call.
+   *
+   * @example
+   *
+   * ```js
+   * client.on('call.received', async (call) => {
+   *   try {
+   *     await call.answer()
+   *     console.log('Inbound call answered')
+   *   } catch (error) {
+   *     console.error('Error answering inbound call', error)
+   *   }
+   * })
+   * ```
+   */
   answer() {
     return new Promise<this>((resolve, reject) => {
       if (!this.callId || !this.nodeId) {
@@ -445,6 +469,25 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     })
   }
 
+  /**
+   * Play one or multiple media in a Call and waits until the playing has ended.
+   *
+   * The play method is a generic method for all types of media, see
+   * {@link playAudio}, {@link playSilence}, {@link playTTS} or
+   * {@link playRingtone} for more specific usages.
+   *
+   * @param params a media playlist. See {@link Voice.Playlist}.
+   *
+   * @example
+   *
+   * ```js
+   * await call.play(new Voice.Playlist({ volume: 1.0 }).add(
+   *   Voice.Playlist.TTS({
+   *     text: 'Welcome to SignalWire! Please enter your 4 digits PIN',
+   *   })
+   * ))
+   * ```
+   */
   play(params: VoicePlaylist) {
     return new Promise<CallPlayback>((resolve, reject) => {
       if (!this.callId || !this.nodeId) {
@@ -495,29 +538,72 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     })
   }
 
+  /**
+   * Plays an audio file.
+   *
+   * @example
+   *
+   * ```js
+   * const playback = await call.playAudio({ url: 'https://cdn.signalwire.com/default-music/welcome.mp3' });
+   * await playback.waitForEnded();
+   * ```
+   */
   playAudio(params: VoiceCallPlayAudioMethodParams) {
     const { volume, ...rest } = params
     const playlist = new Playlist({ volume }).add(Playlist.Audio(rest))
     return this.play(playlist)
   }
 
+  /**
+   * Plays some silence.
+   *
+   * @example
+   *
+   * ```js
+   * const playback = await call.playSilence({ duration: 3 });
+   * await playback.waitForEnded();
+   * ```
+   */
   playSilence(params: VoiceCallPlaySilenceMethodParams) {
     const playlist = new Playlist().add(Playlist.Silence(params))
     return this.play(playlist)
   }
 
+  /**
+   * Plays a ringtone.
+   *
+   * @example
+   *
+   * ```js
+   * const playback = await call.playRingtone({ name: 'it' });
+   * await playback.waitForEnded();
+   * ```
+   */
   playRingtone(params: VoiceCallPlayRingtoneMethodParams) {
     const { volume, ...rest } = params
     const playlist = new Playlist({ volume }).add(Playlist.Ringtone(rest))
     return this.play(playlist)
   }
 
+  /**
+   * Plays text-to-speech.
+   *
+   * @example
+   *
+   * ```js
+   * const playback = await call.playTTS({ text: 'Welcome to SignalWire!' });
+   * await playback.waitForEnded();
+   * ```
+   */
   playTTS(params: VoiceCallPlayTTSMethodParams) {
     const { volume, ...rest } = params
     const playlist = new Playlist({ volume }).add(Playlist.TTS(rest))
     return this.play(playlist)
   }
 
+  /**
+   * Generic method to record a call. Please see {@link recordAudio}.
+   */
   record(params: VoiceCallRecordMethodParams) {
     return new Promise<CallRecording>((resolve, reject) => {
       if (!this.callId || !this.nodeId) {
@@ -569,12 +655,25 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     })
   }
 
+  /**
+   * Records the audio from the call.
+   *
+   * @example
+   *
+   * ```js
+   * const recording = await call.recordAudio({ direction: 'both' })
+   * await recording.stop()
+   * ```
+   */
   recordAudio(params: VoiceCallRecordMethodParams['audio'] = {}) {
     return this.record({
       audio: params,
     })
   }
 
+  /**
+   * Generic method to prompt the user for input. Please see {@link promptAudio}, {@link promptRingtone}, {@link promptTTS}.
+   */
   prompt(params: VoiceCallPromptMethodParams) {
     return new Promise<CallPrompt>((resolve, reject) => {
       if (!this.callId || !this.nodeId) {
@@ -642,6 +741,25 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     })
   }
 
+  /**
+   * Play an audio while collecting user input from the call, such as `digits` or `speech`.
+   *
+   * @example
+   *
+   * Prompting for digits and waiting for a result:
+   *
+   * ```js
+   * const prompt = await call.promptAudio({
+   *   url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
+   *   digits: {
+   *     max: 5,
+   *     digitTimeout: 2,
+   *     terminators: '#*'
+   *   }
+   * })
+   * const { type, digits, terminator } = await prompt.waitForResult()
+   * ```
+   */
   promptAudio(params: VoiceCallPromptAudioMethodParams) {
     const { url, volume, ...rest } = params
     const playlist = new Playlist({ volume }).add(Playlist.Audio({ url }))
@@ -652,6 +770,26 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     })
   }
 
+  /**
+   * Play a ringtone while collecting user input from the call, such as `digits` or `speech`.
+   *
+   * @example
+   *
+   * Prompting for digits and waiting for a result:
+   *
+   * ```js
+   * const prompt = await call.promptRingtone({
+   *   name: 'it',
+   *   duration: 10,
+   *   digits: {
+   *     max: 5,
+   *     digitTimeout: 2,
+   *     terminators: '#*'
+   *   }
+   * })
+   * const { type, digits, terminator } = await prompt.waitForResult()
+   * ```
+   */
   promptRingtone(params: VoiceCallPromptRingtoneMethodParams) {
     const { name, duration, volume, ...rest } = params
     const playlist = new Playlist({ volume }).add(
@@ -664,6 +802,25 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     })
   }
 
+  /**
+   * Play a ringtone while collecting user input from the call, such as `digits` or `speech`.
+   *
+   * @example
+   *
+   * Prompting for digits and waiting for a result:
+   *
+   * ```js
+   * const prompt = await call.promptTTS({
+   *   text: 'Please enter your PIN',
+   *   digits: {
+   *     max: 5,
+   *     digitTimeout: 2,
+   *     terminators: '#*'
+   *   }
+   * })
+   * const { type, digits, terminator } = await prompt.waitForResult()
+   * ```
+   */
   promptTTS(params: VoiceCallPromptTTSMethodParams) {
     const { text, language, gender, volume, ...rest } = params
     const playlist = new Playlist({ volume }).add(
@@ -676,6 +833,15 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     })
   }
 
+  /**
+   * Play DTMF digits to the other party on the call.
+   *
+   * @example
+   *
+   * ```js
+   * await call.sendDigits('123')
+   * ```
+   */
   sendDigits(digits: string) {
     return new Promise((resolve, reject) => {
       if (!this.callId || !this.nodeId) {
@@ -735,6 +901,26 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     })
   }
 
+  /**
+   * Intercept call media and stream it to the specified WebSocket endpoint.
+   * Prefer using {@link tapAudio} if you only need to tap audio.
+   *
+   * @example
+   *
+   * ```js
+   * const tap = await call.tapAudio({
+   *   audio: {
+   *     direction: 'both',
+   *   },
+   *   device: {
+   *     type: 'ws',
+   *     uri: 'wss://example.domain.com/endpoint',
+   *   },
+   * })
+   *
+   * await tap.stop()
+   * ```
+   */
   tap(params: VoiceCallTapMethodParams) {
     return new Promise<CallTap>((resolve, reject) => {
       if (!this.callId || !this.nodeId) {
@@ -799,11 +985,53 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     })
   }
 
+  /**
+   * Intercept call audio and stream it to the specified WebSocket endpoint.
+   *
+   * @example
+   *
+   * ```js
+   * const tap = await call.tapAudio({
+   *   direction: 'both',
+   *   device: {
+   *     type: 'ws',
+   *     uri: 'wss://example.domain.com/endpoint',
+   *   },
+   * })
+   *
+   * await tap.stop()
+   * ```
+   */
   tapAudio(params: VoiceCallTapAudioMethodParams) {
     const { direction, device } = params
     return this.tap({ audio: { direction }, device })
   }
 
+   /**
+   * Attempt to connect an existing call to a new outbound call. You can wait
+   * until the call is disconnected by calling {@link waitForDisconnected}.
+   *
+   * This is a generic method that allows you to connect to multiple devices in
+   * series, parallel, or combinations of both with the use of a
+   * {@link Voice.DeviceBuilder}. For simpler use cases, prefer using
+   * {@link connectPhone} or {@link connectSip}.
+   *
+   * @example
+   *
+   * Connecting to a new SIP call.
+   *
+   * ```js
+   * const plan = new Voice.DeviceBuilder().add(
+   *   Voice.DeviceBuilder.Sip({
+   *     from: 'sip:user1@domain.com',
+   *     to: 'sip:user2@domain.com',
+   *     timeout: 30,
+   *   })
+   * )
+   *
+   * const peer = await call.connect(plan)
+   * ```
+   */
   connect(params: VoiceCallConnectMethodParams) {
     return new Promise<any>((resolve, reject) => {
       if (!this.callId || !this.nodeId) {
@@ -870,11 +1098,39 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     })
   }
 
+  /**
+   * Attempt to connect an existing call to a new outbound phone call. You can
+   * wait until the call is disconnected by calling {@link waitForDisconnected}.
+   *
+   * @example
+   *
+   * ```js
+   * const peer = await call.connectPhone({
+   *   from: '+xxxxxx',
+   *   to: '+yyyyyy',
+   *   timeout: 30
+   * })
+   * ```
+   */
   connectPhone({ ringback, ...params }: VoiceCallConnectPhoneMethodParams) {
     const devices = new DeviceBuilder().add(DeviceBuilder.Phone(params))
     return this.connect({ devices, ringback })
   }
 
+  /**
+   * Attempt to connect an existing call to a new outbound SIP call. You can
+   * wait until the call is disconnected by calling {@link waitForDisconnected}.
+   *
+   * @example
+   *
+   * ```js
+   * const peer = await call.connectPhone({
+   *   from: 'sip:user1@domain.com',
+   *   to: 'sip:user2@domain.com',
+   *   timeout: 30
+   * })
+   * ```
+   */
   connectSip({ ringback, ...params }: VoiceCallConnectSipMethodParams) {
     const devices = new DeviceBuilder().add(DeviceBuilder.Sip(params))
     return this.connect({ devices, ringback })
@@ -909,6 +1165,25 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     })
   }
 
+  /**
+   * Returns a promise that is resolved only after the current call has been
+   * connected. Also see {@link connect}.
+   *
+   * @example
+   *
+   * ```js
+   * const plan = new Voice.DeviceBuilder().add(
+   *   Voice.DeviceBuilder.Sip({
+   *     from: 'sip:user1@domain.com',
+   *     to: 'sip:user2@domain.com',
+   *     timeout: 30,
+   *   })
+   * )
+   *
+   * const peer = await call.connect(plan)
+   * await call.waitForDisconnected()
+   * ```
+   */
   waitForDisconnected() {
     return new Promise<this>((resolve) => {
       const resolveHandler = () => {
@@ -921,6 +1196,9 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     })
   }
 
+  /**
+   * Generic method. Please see {@link amd}, {@link detectFax}, {@link detectDigit}.
+   */
   detect(params: VoiceCallDetectMethodParams) {
     return new Promise<CallDetect>((resolve, reject) => {
       if (!this.callId || !this.nodeId) {
@@ -976,6 +1254,18 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     })
   }
 
+  /**
+   * Detects the presence of an answering machine.
+   *
+   * @example
+   *
+   * ```js
+   * const detect = await call.amd()
+   * const result = await detect.waitForResult()
+   *
+   * console.log('Detect result:', result.type)
+   * ```
+   */
   amd(params: Omit<VoiceCallDetectMachineParams, 'type'> = {}) {
     return this.detect({
       ...params,
@@ -983,6 +1273,18 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     })
   }
 
+  /**
+   * Detects the presence of a fax machine.
+   *
+   * @example
+   *
+   * ```js
+   * const detect = await call.detectFax()
+   * const result = await detect.waitForResult()
+   *
+   * console.log('Detect result:', result.type)
+   * ```
+   */
   detectFax(params: Omit<VoiceCallDetectFaxParams, 'type'> = {}) {
     return this.detect({
       ...params,
@@ -990,6 +1292,18 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     })
   }
 
+  /**
+   * Detects digits in the audio stream.
+   *
+   * @example
+   *
+   * ```js
+   * const detect = await call.detectDigit()
+   * const result = await detect.waitForResult()
+   *
+   * console.log('Detect result:', result.type)
+   * ```
+   */
   detectDigit(params: Omit<VoiceCallDetectDigitParams, 'type'> = {}) {
     return this.detect({
       ...params,
@@ -997,6 +1311,19 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     })
   }
 
+  /**
+   * Returns a promise that is resolved only after the current call is in one of
+   * the specified states.
+   *
+   * @returns true if the requested states have been reached, false if they
+   * won't be reached because the call ended.
+   *
+   * @example
+   *
+   * ```js
+   * await call.waitFor('ended')
+   * ```
+   */
   waitFor(params: CallingCallState | CallingCallState[]) {
     return new Promise((resolve) => {
       if (!params) {

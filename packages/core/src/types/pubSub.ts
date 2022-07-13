@@ -23,9 +23,65 @@ export interface PubSubPublishParams {
 }
 
 export interface PubSubContract {
+  /**
+   * Replaces the token used by the client with a new one.
+   * You can use this method to replace the token when for
+   * example it is expiring, in order to keep the session
+   * alive.
+   */
   updateToken(token: string): Promise<void>
+  /**
+   * List of channels for which you want to receive messages.
+   *
+   * Note that the `subscribe` function is idempotent, and calling it again with
+   * a different set of channels _will not_ unsubscribe you from the old ones.
+   * To unsubscribe, use {@link unsubscribe}.
+   *
+   * @param channels - {@link PubSubChannel}
+   *
+   * @example
+   * ```js
+   * await pubSubClient.subscribe("my-channel")
+   * await pubSubClient.subscribe(["chan-2", "chan-3"])
+   * ```
+   */
   subscribe(channels: PubSubChannel): Promise<void>
+  /**
+   * List of channels from which you want to unsubscribe.
+   *
+   * @param channels - {@link PubSubChannel}
+   *
+   * @example
+   * ```js
+   * await pubSubClient.unsubscribe("my-channel")
+   * await pubSubClient.unsubscribe(["chan-2", "chan-3"])
+   * ```
+   */
   unsubscribe(channels: PubSubChannel): Promise<void>
+  /**
+   * Publish a message into the specified channel.
+   *
+   * @param params - {@link PubSubPublishParams}
+   *
+   * @example Publishing a message as a string:
+   * ```js
+   * await pubSubClient.publish({
+   *   channel: 'my-channel',
+   *   content: 'Hello, world.'
+   * })
+   * ```
+   *
+   * @example Publishing a message as an object:
+   * ```js
+   * await pubSubClient.publish({
+   *   channel: 'my-channel',
+   *   content: {
+   *     field_one: 'value_one',
+   *     field_two: 'value_two',
+   *   }
+   * })
+   * ```
+   */
   publish(params: PubSubPublishParams): Promise<void>
 }
 
