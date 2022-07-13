@@ -37,8 +37,8 @@ export interface EmitterContract<
 
 export interface BaseComponentContract {
   /**
-   * Destroys the room object. This only destroys the JavaScript object: it has
-   * no effect on the server-side room.
+   * This only destroys the JavaScript object: it has no
+   * effect on the server-side room.
    */
   destroy(): void
 }

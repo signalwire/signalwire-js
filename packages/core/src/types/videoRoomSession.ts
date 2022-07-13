@@ -258,41 +258,6 @@ export interface VideoRoomSessionContract {
    * @example
    * ```typescript
    * await room.getMembers()
-   * // returns:
-   * {
-   * "members": [
-   *   {
-   *     "visible": true,
-   *     "room_session_id": "fde15619-13c1-4cb5-899d-96afaca2c52a",
-   *     "input_volume": 0,
-   *     "id": "1bf4d4fb-a3e4-4d46-80a8-3ebfdceb2a60",
-   *     "input_sensitivity": 50,
-   *     "output_volume": 0,
-   *     "audio_muted": false,
-   *     "on_hold": false,
-   *     "name": "Mark",
-   *     "deaf": false,
-   *     "video_muted": false,
-   *     "room_id": "aae25822-892c-4832-b0b3-34aac3a0e8d1",
-   *     "type": "member"
-   *   },
-   *   {
-   *     "visible": true,
-   *     "room_session_id": "fde15619-13c1-4cb5-899d-96afaca2c52a",
-   *     "input_volume": 0,
-   *     "id": "e0c5be44-d6c7-438f-8cda-f859a1a0b1e7",
-   *     "input_sensitivity": 50,
-   *     "output_volume": 0,
-   *     "audio_muted": false,
-   *     "on_hold": false,
-   *     "name": "David",
-   *     "deaf": false,
-   *     "video_muted": false,
-   *     "room_id": "aae25822-892c-4832-b0b3-34aac3a0e8d1",
-   *     "type": "member"
-   *   }
-   * ]
-   * }
    * ```
    */
   getMembers(): Rooms.GetMembers
@@ -469,14 +434,6 @@ export interface VideoRoomSessionContract {
    * @example
    * ```typescript
    * await room.getLayouts()
-   * // returns:
-   * {
-   *   "layouts": [
-   *     "8x8", "2x1", "1x1", "5up", "5x5",
-   *     "4x4", "10x10", "2x2", "6x6", "3x3",
-   *     "grid-responsive", "highlight-1-responsive"
-   *   ]
-   * }
    * ```
    */
   getLayouts(): Rooms.GetLayouts
@@ -556,18 +513,6 @@ export interface VideoRoomSessionContract {
    * @example
    * ```typescript
    * await room.getRecordings()
-   * // returns:
-   * {
-   *   "recordings": [
-   *     {
-   *       "id": "94ec917c-ff9c-4d57-9111-7d93a8f6e3e8",
-   *       "state": "completed",
-   *       "duration": 4.66,
-   *       "started_at": 1630681129.936,
-   *       "ended_at": 1630681133.7655
-   *     }
-   *   ]
-   * }
    * ```
    *
    * From your server, you can obtain the mp4 file using the [REST API](https://developer.signalwire.com/apis/reference/overview):
