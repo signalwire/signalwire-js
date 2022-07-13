@@ -28,7 +28,10 @@ function* memberPositionLayoutChangedWorker(options: any) {
 
     const memberEventParams = memberList.get(memberId)
 
-    if (layer.position !== memberEventParams.member?.current_position) {
+    if (
+      memberEventParams &&
+      layer.position !== memberEventParams.member?.current_position
+    ) {
       mutateMemberCurrentPosition({
         memberList,
         memberId,
