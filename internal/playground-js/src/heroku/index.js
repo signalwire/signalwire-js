@@ -202,6 +202,17 @@ const initializeMicAnalyzer = async (stream) => {
   })
 }
 
+function restoreUI() {
+  btnConnect.classList.remove('d-none')
+  btnDisconnect.classList.add('d-none')
+  connectStatus.innerHTML = 'Not Connected'
+
+  inCallElements.forEach((button) => {
+    button.classList.add('d-none')
+    button.disabled = true
+  })
+}
+
 /**
  * Connect with Relay creating a client and attaching all the event handler.
  */
@@ -252,6 +263,10 @@ window.connect = () => {
       button.disabled = false
     })
     loadLayouts()
+  })
+  roomObj.on('destroy', () => {
+    console.debug('>> destroy')
+    restoreUI()
   })
   roomObj.on('room.updated', (params) =>
     console.debug('>> room.updated', params)
@@ -364,14 +379,7 @@ window.hangup = () => {
     roomObj.hangup()
   }
 
-  btnConnect.classList.remove('d-none')
-  btnDisconnect.classList.add('d-none')
-  connectStatus.innerHTML = 'Not Connected'
-
-  inCallElements.forEach((button) => {
-    button.classList.add('d-none')
-    button.disabled = true
-  })
+  restoreUI()
 }
 
 window.saveInLocalStorage = (e) => {
