@@ -1,6 +1,6 @@
 ---
 '@signalwire/core': patch
-'@signalwire/js': patch
+'@signalwire/realtime-api': patch
 ---
 
-Fix issue with missing member.update events
+Fix issue with missing `member.update` events in Realtime-API SDK.

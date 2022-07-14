@@ -4,4 +4,4 @@
 '@signalwire/js': patch
 ---
 
-[internal] migration out of .doc files + intellisense improvements
+Remove all the internal docs.ts files and overall intellisense improvements.

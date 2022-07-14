@@ -4,4 +4,4 @@
 '@signalwire/webrtc': patch
 ---
 
-[internal] changed how BaseConnection retrieves and handle local state (roomSessionId, roomId, nodeId, etc)
+Internal changes on how `BaseConnection` retrieves and handle local state properties.
