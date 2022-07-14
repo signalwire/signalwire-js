@@ -1,5 +1,11 @@
 # @sw-internal/playground-js
 
+## 0.0.5
+
+### Patch Changes
+
+- [#587](https://github.com/signalwire/signalwire-js/pull/587) [`4300716e`](https://github.com/signalwire/signalwire-js/commit/4300716e57c83584dcfdd10ecddb8e1121084269) - Restore the UI when the server removes the user from the room
+
 ## 0.0.4
 
 ### Patch Changes
