@@ -158,6 +158,11 @@ export interface SessionRequestObject {
   reject: (value: unknown) => void
 }
 
+export type MediaAllowed = 'all' | 'audio-only' | 'video-only'
+export type MediaDirectionAllowed = 'none' | 'receive' | 'both'
+export type AudioAllowed = MediaDirectionAllowed
+export type VideoAllowed = MediaDirectionAllowed
+
 export interface Authorization {
   type: 'video'
   project: string
@@ -171,8 +176,9 @@ export interface Authorization {
   }
   signature: string
   expires_at?: number
-  audio_allowed?: boolean
-  video_allowed?: boolean
+  media_allowed: MediaAllowed
+  audio_allowed: AudioAllowed
+  video_allowed: VideoAllowed
 }
 
 export interface RPCConnectResult {

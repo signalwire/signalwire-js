@@ -1,5 +1,5 @@
 import { getLogger } from '@signalwire/core'
-import type { Authorization } from '@signalwire/core'
+import type { Authorization, MediaDirectionAllowed } from '@signalwire/core'
 import type { RoomSessionJoinAudienceParams } from './interfaces'
 
 // `joinAudience` utils
@@ -15,17 +15,18 @@ const getJoinAudienceMediaParams = ({
     local,
     kind,
   }: {
-    remote?: boolean
-    local?: boolean
+    remote: MediaDirectionAllowed
+    local: boolean
     kind: 'audio' | 'video'
   }) => {
-    if (!remote && local) {
+    const remoteAllowed = remote !== 'none'
+    if (!remoteAllowed && local) {
       getLogger().warn(
         `[joinAudience] ${kind} is currently not allowed on this room.`
       )
     }
 
-    return !!(remote && local)
+    return !!(remoteAllowed && local)
   }
 
   return {
