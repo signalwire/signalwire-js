@@ -169,7 +169,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       userVariables,
       screenShare,
       additionalDevice,
-      pingSupported,
+      pingSupported = true,
     } = this.options
     return {
       sessid: this.options.sessionid,
