@@ -28,6 +28,7 @@ import type {
   RoomMethods,
   StartScreenShareOptions,
   RoomSessionConnectionContract,
+  RoomSessionJoinAudienceParams,
 } from './utils/interfaces'
 import {
   ROOM_COMPONENT_LISTENERS,
@@ -56,7 +57,7 @@ export interface BaseRoomSession<T>
    */
   join(): Promise<T>
   /** @internal */
-  joinAudience(options?: { audio?: boolean; video?: boolean }): Promise<T>
+  joinAudience(options?: RoomSessionJoinAudienceParams): Promise<T>
   /**
    * Leaves the room. This detaches all the locally originating streams from the
    * room.

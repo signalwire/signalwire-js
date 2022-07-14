@@ -24,7 +24,9 @@ export const createMockedLogger = (): InternalSDKLogger => ({
  *
  * @returns Redux Store
  */
-export const configureJestStore = (options?: Partial<ConfigureStoreOptions>) => {
+export const configureJestStore = (
+  options?: Partial<ConfigureStoreOptions>
+) => {
   return configureStore({
     userOptions: {
       project: PROJECT_ID,
@@ -60,8 +62,9 @@ export const rpcConnectResultVRT: RPCConnectResult = {
     },
     signature:
       'SGZtkRD9fvuBAOUp1UF56zESxdEvGT6qSGZtkRD9fvuBAOUp1UF56zESxdEvGT6q',
-    audio_allowed: true,
-    video_allowed: true,
+    media_allowed: 'all',
+    audio_allowed: 'both',
+    video_allowed: 'both',
   },
   protocol:
     'signalwire_SGZtkRD9fvuBAOUp1UF56zESxdEvGT6qSGZtkRD9fvuBAOUp1UF56zESxdEvGT6q_03e8c927-8ea3-4661-86d5-778c3e03296a_8f0a119a-cda7-4497-a47d-c81493b824d4',

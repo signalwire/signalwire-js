@@ -18,7 +18,8 @@ describe('SessionState Tests', () => {
       iceServers: rpcConnectResultVRT.ice_servers,
       authStatus: 'authorized',
       authState: {
-        audio_allowed: true,
+        media_allowed: 'all',
+        audio_allowed: 'both',
         project: '8f0a119a-cda7-4497-a47d-c81493b824d4',
         resource: '9c80f1e8-9430-4070-a043-937eb3a96b38',
         room: {
@@ -31,7 +32,7 @@ describe('SessionState Tests', () => {
           'SGZtkRD9fvuBAOUp1UF56zESxdEvGT6qSGZtkRD9fvuBAOUp1UF56zESxdEvGT6q',
         type: 'video',
         user_name: 'Joe',
-        video_allowed: true,
+        video_allowed: 'both',
       },
       authError: undefined,
       authCount: 1,
