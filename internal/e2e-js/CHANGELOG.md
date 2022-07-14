@@ -1,5 +1,12 @@
 # @sw-internal/e2e-js
 
+## 0.0.2
+
+### Patch Changes
+
+- Updated dependencies [[`4300716e`](https://github.com/signalwire/signalwire-js/commit/4300716e57c83584dcfdd10ecddb8e1121084269)]:
+  - @sw-internal/playground-js@0.0.5
+
 ## 0.0.1
 
 ### Patch Changes
