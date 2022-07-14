@@ -11,6 +11,7 @@ import {
   EventEmitter,
   BaseConnectionContract,
   VertoModify,
+  componentSelectors,
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import { ConnectionOptions } from './utils/interfaces'
@@ -135,8 +136,10 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   get component() {
-    // TODO: use selector from core
-    return this.select((state) => state.components.byId?.[this.id])
+    return (
+      this.select((state) => componentSelectors.getComponent(state, this.id)) ||
+      {}
+    )
   }
 
   get nodeId() {
@@ -292,9 +295,9 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
      * the `memberId` to namespace the object.
      **/
     if (this.options.additionalDevice || this.options.screenShare) {
-      this._attachListeners(component.memberId)
+      this._attachListeners(this.memberId)
     } else {
-      this._attachListeners(component.roomSessionId)
+      this._attachListeners(this.roomSessionId)
     }
     // FIXME: Move to a better place when rework _attachListeners too.
     this.applyEmitterTransforms()

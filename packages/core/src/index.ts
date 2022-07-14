@@ -57,6 +57,8 @@ export {
   timeoutPromise,
 }
 
+export * from './redux/features/component/componentSlice'
+export * as componentSelectors from './redux/features/component/componentSelectors'
 export * from './RPCMessages'
 export * from './utils/interfaces'
 export * from './types'
