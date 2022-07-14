@@ -18,6 +18,7 @@ describe('SessionState Tests', () => {
       iceServers: rpcConnectResultVRT.ice_servers,
       authStatus: 'authorized',
       authState: {
+        media_allowed: 'all',
         audio_allowed: 'both',
         project: '8f0a119a-cda7-4497-a47d-c81493b824d4',
         resource: '9c80f1e8-9430-4070-a043-937eb3a96b38',
