@@ -669,7 +669,9 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    * await recording.stop()
    * ```
    */
-  recordAudio(params: VoiceCallRecordMethodParams['audio'] = {}) {
+  recordAudio(
+    params: VoiceCallRecordMethodParams['audio'] = {}
+  ): Promise<CallRecordingPromise> {
     const callRecordingPromise = new Promise<CallRecording>(
       (resolve, reject) => {
         this.record({
@@ -683,18 +685,18 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
           })
       }
     )
-    const getProp = (prop: keyof CallRecording) => {
-      return callRecordingPromise.then((callRecording) => callRecording[prop])
-    }
-    const interceptors: Record<keyof CallRecording, typeof getProp> = {
-      id: getProp,
-      callId: getProp,
-      controlId: getProp,
-      state: getProp,
-      url: getProp,
-      size: getProp,
-      duration: getProp,
-      stop: getProp,
+    const getProp = (prop: keyof CallRecording) => ({
+      value: callRecordingPromise.then((callRecording) => callRecording[prop]),
+    })
+    const descriptors: PropertyDescriptorMap = {
+      id: getProp('id'),
+      callId: getProp('callId'),
+      controlId: getProp('controlId'),
+      state: getProp('state'),
+      url: getProp('url'),
+      size: getProp('size'),
+      duration: getProp('duration'),
+      stop: getProp('stop'),
     }
     const recordAudioPromise = new Promise((resolve, reject) => {
       const onRecordingEnded = () => {
@@ -710,15 +712,8 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       this.once('recording.failed', onRecordingFailed)
     })
 
-    return new Proxy<CallRecordingPromise>(recordAudioPromise as any, {
-      get(target: any, prop: keyof CallRecording, receiver: any) {
-        if (prop in interceptors) {
-          return interceptors[prop]
-        }
-
-        return Reflect.get(target, prop, receiver)
-      },
-    })
+    Object.defineProperties(recordAudioPromise, descriptors)
+    return recordAudioPromise as Promise<CallRecordingPromise>
   }
 
   /**
