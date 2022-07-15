@@ -1,4 +1,5 @@
 import { getLogger, timeoutPromise } from '@signalwire/core'
+import { checkCameraPermissions, checkMicrophonePermissions } from '..'
 
 const GUM_TIMEOUT = 5_000
 
@@ -33,6 +34,33 @@ export const getMediaDevicesApi = () => {
   }
 
   return navigator.mediaDevices
+}
+
+/**
+ * Check if we need to set a timeout on the gUM request.
+ * In case the user needs to go through the browser prompt
+ * for permissions we can't set a timer but instead just wait for
+ * the user and/or the UA to solve the promise.
+ * If we have the permissions already, set the timeout because we
+ * had some cases where the UA is stuck reading from the device
+ * and the gUM request was never resolved.
+ *
+ * @internal
+ * @returns True/False whether the timeout should be used
+ */
+const _useTimeoutForGUM = async (constraints: MediaStreamConstraints) => {
+  const promises = []
+  if (constraints?.audio) {
+    promises.push(checkMicrophonePermissions())
+  }
+  if (constraints?.video) {
+    promises.push(checkCameraPermissions())
+  }
+  if (promises.length) {
+    const results = await Promise.all(promises)
+    return results.every(Boolean)
+  }
+  return false
 }
 
 /**
@@ -73,10 +101,13 @@ export const getUserMedia = async (
 ) => {
   try {
     const promise = getMediaDevicesApi().getUserMedia(constraints)
-    const exception = new Error(
-      "Looks like it's not possible to read from your devices"
-    )
-    return await timeoutPromise<MediaStream>(promise, GUM_TIMEOUT, exception)
+    const useTimeout = await _useTimeoutForGUM(constraints)
+    if (useTimeout) {
+      const exception = new Error('Timeout reading from your devices')
+      return await timeoutPromise<MediaStream>(promise, GUM_TIMEOUT, exception)
+    }
+
+    return await promise
   } catch (error) {
     switch (error.name) {
       case 'Error': {
