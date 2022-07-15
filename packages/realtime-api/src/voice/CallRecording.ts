@@ -4,6 +4,7 @@ import {
   BaseComponentOptions,
   VoiceCallRecordingContract,
   CallingCallRecordState,
+  VoiceCallRecordingPromise,
 } from '@signalwire/core'
 
 /**
@@ -13,6 +14,8 @@ import {
  * {@link Call.record})
  */
 export interface CallRecording extends VoiceCallRecordingContract {}
+
+export type CallRecordingPromise = VoiceCallRecordingPromise<CallRecording>
 
 export type CallRecordingEventsHandlerMapping = {}
 

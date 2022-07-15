@@ -128,3 +128,9 @@ export type DeepReadonly<T> = T extends Builtin
 export type AllOrNone<T extends Record<any, any>> =
   | T
   | Partial<Record<keyof T, never>>
+
+export type ToAsync<T> = {
+  [k in keyof T]: T[k] extends Promise<any> | (() => Promise<any>)
+    ? T[k]
+    : Promise<T[k]>
+}

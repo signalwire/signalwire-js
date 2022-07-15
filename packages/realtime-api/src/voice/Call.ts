@@ -58,7 +58,11 @@ import {
   VoiceCallSendDigitsWorkerHooks,
 } from './workers'
 import { CallPlayback, createCallPlaybackObject } from './CallPlayback'
-import { CallRecording, createCallRecordingObject } from './CallRecording'
+import {
+  CallRecording,
+  createCallRecordingObject,
+  CallRecordingPromise,
+} from './CallRecording'
 import { CallPrompt, createCallPromptObject } from './CallPrompt'
 import { CallTap, createCallTapObject } from './CallTap'
 import { CallDetect, createCallDetectObject } from './CallDetect'
@@ -666,8 +670,54 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    * ```
    */
   recordAudio(params: VoiceCallRecordMethodParams['audio'] = {}) {
-    return this.record({
-      audio: params,
+    const callRecordingPromise = new Promise<CallRecording>(
+      (resolve, reject) => {
+        this.record({
+          audio: params,
+        })
+          .then((callRecording) => {
+            resolve(callRecording)
+          })
+          .catch((e) => {
+            reject(e)
+          })
+      }
+    )
+    const getProp = (prop: keyof CallRecording) => {
+      return callRecordingPromise.then((callRecording) => callRecording[prop])
+    }
+    const interceptors: Record<keyof CallRecording, typeof getProp> = {
+      id: getProp,
+      callId: getProp,
+      controlId: getProp,
+      state: getProp,
+      url: getProp,
+      size: getProp,
+      duration: getProp,
+      stop: getProp,
+    }
+    const recordAudioPromise = new Promise((resolve, reject) => {
+      const onRecordingEnded = () => {
+        this.off('recording.failed', onRecordingFailed)
+        resolve(callRecordingPromise)
+      }
+      const onRecordingFailed = (e: any) => {
+        this.off('recording.ended', onRecordingEnded)
+        reject(e)
+      }
+
+      this.once('recording.ended', onRecordingEnded)
+      this.once('recording.failed', onRecordingFailed)
+    })
+
+    return new Proxy<CallRecordingPromise>(recordAudioPromise as any, {
+      get(target: any, prop: keyof CallRecording, receiver: any) {
+        if (prop in interceptors) {
+          return interceptors[prop]
+        }
+
+        return Reflect.get(target, prop, receiver)
+      },
     })
   }
 
@@ -1007,7 +1057,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     return this.tap({ audio: { direction }, device })
   }
 
-   /**
+  /**
    * Attempt to connect an existing call to a new outbound call. You can wait
    * until the call is disconnected by calling {@link waitForDisconnected}.
    *

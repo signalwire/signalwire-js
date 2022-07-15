@@ -5,6 +5,7 @@ import type {
   CamelToSnakeCase,
   OnlyFunctionProperties,
   OnlyStateProperties,
+  ToAsync,
 } from './utils'
 
 type ToInternalVoiceEvent<T extends string> = `${VoiceNamespace}.${T}`
@@ -220,16 +221,14 @@ export interface VoiceCallPlayRingtoneMethodParams
   volume?: number
 }
 export interface VoicePlaylistRingtoneParams
-  extends OmitType<VoiceCallPlayRingtoneParams> {
-}
+  extends OmitType<VoiceCallPlayRingtoneParams> {}
 
 export interface VoiceCallPlayTTSMethodParams
   extends OmitType<VoiceCallPlayTTSParams> {
   volume?: number
 }
 export interface VoicePlaylistTTSParams
-  extends OmitType<VoiceCallPlayTTSParams> {
-}
+  extends OmitType<VoiceCallPlayTTSParams> {}
 
 export interface VoiceCallRecordMethodParams {
   audio: {
@@ -569,6 +568,9 @@ export type CallingCallWaitForState = Extract<
   'ending' | 'ended'
 >
 
+export type VoiceCallRecordingPromise<T = VoiceCallRecordingContract> =
+  Promise<T> & ToAsync<T>
+
 /**
  * Public Contract for a VoiceCall
  */
@@ -614,7 +616,7 @@ export interface VoiceCallContract<T = any> {
   ): Promise<VoiceCallRecordingContract>
   recordAudio(
     params?: VoiceCallRecordMethodParams['audio']
-  ): Promise<VoiceCallRecordingContract>
+  ): VoiceCallRecordingPromise
   prompt(params: VoiceCallPromptMethodParams): Promise<VoiceCallPromptContract>
   promptAudio(
     params: VoiceCallPromptAudioMethodParams
