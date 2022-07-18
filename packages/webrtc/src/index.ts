@@ -7,15 +7,10 @@ export {
   getCameraDevicesWithPermissions,
   getMicrophoneDevicesWithPermissions,
   getSpeakerDevicesWithPermissions,
-  checkPermissions,
-  checkCameraPermissions,
-  checkMicrophonePermissions,
-  checkSpeakerPermissions,
   assureDeviceId,
   assureVideoDevice,
   assureAudioInDevice,
   assureAudioOutDevice,
-  requestPermissions,
   createDeviceWatcher,
   createMicrophoneDeviceWatcher,
   createSpeakerDeviceWatcher,
@@ -26,10 +21,6 @@ export {
   supportsMediaDevices,
   supportsGetUserMedia,
   supportsGetDisplayMedia,
-  getUserMedia,
-  getDisplayMedia,
-  enumerateDevices,
-  enumerateDevicesByKind,
   getSupportedConstraints,
   streamIsValid,
   supportsMediaOutput,
@@ -37,6 +28,7 @@ export {
   stopStream,
   stopTrack,
 } from './utils/webrtcHelpers'
+export * from './utils'
 export * from './utils/interfaces'
 export {
   BaseConnection,

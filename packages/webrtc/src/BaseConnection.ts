@@ -15,7 +15,7 @@ import {
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import { ConnectionOptions } from './utils/interfaces'
-import { stopStream, stopTrack, getUserMedia } from './utils/webrtcHelpers'
+import { stopStream, stopTrack, getUserMedia } from './utils'
 
 const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   destinationNumber: 'room',
