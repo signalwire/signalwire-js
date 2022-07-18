@@ -2,8 +2,8 @@ import {
   getDevices,
   getDevicesWithPermissions,
   assureDeviceId,
-  checkPermissions,
 } from './deviceHelpers'
+import { checkPermissions } from './index'
 import * as WebRTC from './webrtcHelpers'
 
 describe('Helpers browser functions', () => {
