@@ -1,5 +1,5 @@
 import { getLogger } from '@signalwire/core'
-import { getUserMedia } from './webrtcHelpers'
+import { getUserMedia } from './getUserMedia'
 
 describe('WebRTC Helpers', () => {
   describe('getUserMedia', () => {

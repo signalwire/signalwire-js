@@ -1,8 +1,9 @@
 import { getLogger } from '@signalwire/core'
-import * as WebRTC from './webrtcHelpers'
+import { getUserMedia as _getUserMedia } from './getUserMedia'
 import { assureDeviceId } from './deviceHelpers'
 import { ConnectionOptions } from './interfaces'
 
+// FIXME: Remove and use getUserMedia directly
 export const getUserMedia = (constraints: MediaStreamConstraints) => {
   getLogger().info('RTCService.getUserMedia', constraints)
   const { audio, video } = constraints
@@ -10,7 +11,7 @@ export const getUserMedia = (constraints: MediaStreamConstraints) => {
     return
   }
 
-  return WebRTC.getUserMedia(constraints)
+  return _getUserMedia(constraints)
 }
 
 export const getMediaConstraints = async (
