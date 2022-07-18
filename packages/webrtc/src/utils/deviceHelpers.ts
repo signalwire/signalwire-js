@@ -1,5 +1,9 @@
 import { getLogger, EventEmitter } from '@signalwire/core'
-import * as WebRTC from './webrtcHelpers'
+import {
+  getMediaDevicesApi,
+  stopStream,
+  supportsMediaOutput,
+} from './primitives'
 import type { DevicePermissionName } from './index'
 import {
   getUserMedia,
@@ -182,7 +186,7 @@ export const getDevices = async (
    * so we need to stop it after `WebRTC.enumerateDevicesByKind`
    */
   if (stream) {
-    WebRTC.stopStream(stream)
+    stopStream(stream)
   }
 
   if (fullList === true) {
@@ -365,7 +369,7 @@ type TargetPermission = Record<
 
 const CHECK_SUPPORT_MAP: Partial<Record<DevicePermissionName, () => boolean>> =
   {
-    speaker: WebRTC.supportsMediaOutput,
+    speaker: supportsMediaOutput,
   }
 
 const checkTargetPermissions = async (options: {
@@ -617,10 +621,7 @@ export const createDeviceWatcher = async (
       })
     }
   }
-  WebRTC.getMediaDevicesApi().addEventListener(
-    'devicechange',
-    deviceChangeHandler
-  )
+  getMediaDevicesApi().addEventListener('devicechange', deviceChangeHandler)
 
   return emitter
 }

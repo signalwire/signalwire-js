@@ -17,17 +17,6 @@ export {
   createCameraDeviceWatcher,
   createMicrophoneAnalyzer,
 } from './utils/deviceHelpers'
-export {
-  supportsMediaDevices,
-  supportsGetUserMedia,
-  supportsGetDisplayMedia,
-  getSupportedConstraints,
-  streamIsValid,
-  supportsMediaOutput,
-  setMediaElementSinkId,
-  stopStream,
-  stopTrack,
-} from './utils/webrtcHelpers'
 export * from './utils'
 export * from './utils/interfaces'
 export {
