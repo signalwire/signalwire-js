@@ -48,7 +48,7 @@ const handler = () => {
           return
         }
 
-        const recording = await call.recordAudio()
+        const recording = call.recordAudio()
         tap.ok(recording.id, 'Recording started')
 
         const playlist = new Voice.Playlist({ volume: 2 }).add(

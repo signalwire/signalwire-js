@@ -665,7 +665,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    * @example
    *
    * ```js
-   * const recording = await call.recordAudio({ direction: 'both' })
+   * const recording = call.recordAudio({ direction: 'both' })
    * await recording.stop()
    * ```
    */

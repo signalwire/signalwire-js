@@ -207,7 +207,7 @@ async function run() {
         )
       })
 
-      const recording = await call.recordAudio()
+      const recording = call.recordAudio()
       console.log('Recording STARTED!', recording.id)
 
       call.on('playback.started', (p) => {
