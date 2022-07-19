@@ -5,6 +5,13 @@ import {
 } from './deviceHelpers'
 import { checkPermissions, stopStream } from './index'
 
+jest.mock('./index', () => {
+  return {
+    ...(jest.requireActual('./index') as any),
+    stopStream: jest.fn(),
+  }
+})
+
 describe('Helpers browser functions', () => {
   const group1 = 'group1'
   const group2 = 'group2'
@@ -182,7 +189,8 @@ describe('Helpers browser functions', () => {
         it('should invoke getUserMedia to request camera permissions and return device list removing duplicates', async () => {
           // @ts-ignore
           navigator.mediaDevices.getUserMedia.mockClear()
-          ;(stopStream as jest.Mock) = jest.fn()
+          // @ts-ignore
+          stopStream.mockClear()
           // @ts-ignore
           navigator.permissions.query.mockResolvedValueOnce()
           // @ts-ignore

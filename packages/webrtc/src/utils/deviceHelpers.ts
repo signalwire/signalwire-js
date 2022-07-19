@@ -1,9 +1,4 @@
 import { getLogger, EventEmitter } from '@signalwire/core'
-import {
-  getMediaDevicesApi,
-  stopStream,
-  supportsMediaOutput,
-} from './primitives'
 import type { DevicePermissionName } from './index'
 import {
   getUserMedia,
@@ -14,6 +9,9 @@ import {
   checkMicrophonePermissions,
   checkSpeakerPermissions,
   _getMediaDeviceKindByName,
+  stopStream,
+  supportsMediaOutput,
+  getMediaDevicesApi,
 } from './index'
 
 const _constraintsByKind = (
