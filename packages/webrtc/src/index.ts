@@ -17,7 +17,26 @@ export {
   createCameraDeviceWatcher,
   createMicrophoneAnalyzer,
 } from './utils/deviceHelpers'
-export * from './utils'
+export {
+  supportsMediaDevices,
+  supportsGetUserMedia,
+  supportsGetDisplayMedia,
+  getUserMedia,
+  getDisplayMedia,
+  enumerateDevices,
+  enumerateDevicesByKind,
+  getSupportedConstraints,
+  streamIsValid,
+  supportsMediaOutput,
+  setMediaElementSinkId,
+  stopStream,
+  stopTrack,
+  checkPermissions,
+  checkCameraPermissions,
+  checkMicrophonePermissions,
+  checkSpeakerPermissions,
+  requestPermissions,
+} from './utils'
 export * from './utils/interfaces'
 export {
   BaseConnection,
