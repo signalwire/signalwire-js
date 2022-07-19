@@ -7,15 +7,10 @@ export {
   getCameraDevicesWithPermissions,
   getMicrophoneDevicesWithPermissions,
   getSpeakerDevicesWithPermissions,
-  checkPermissions,
-  checkCameraPermissions,
-  checkMicrophonePermissions,
-  checkSpeakerPermissions,
   assureDeviceId,
   assureVideoDevice,
   assureAudioInDevice,
   assureAudioOutDevice,
-  requestPermissions,
   createDeviceWatcher,
   createMicrophoneDeviceWatcher,
   createSpeakerDeviceWatcher,
@@ -36,7 +31,12 @@ export {
   setMediaElementSinkId,
   stopStream,
   stopTrack,
-} from './utils/webrtcHelpers'
+  checkPermissions,
+  checkCameraPermissions,
+  checkMicrophonePermissions,
+  checkSpeakerPermissions,
+  requestPermissions,
+} from './utils'
 export * from './utils/interfaces'
 export {
   BaseConnection,

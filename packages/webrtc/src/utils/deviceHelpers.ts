@@ -1,109 +1,18 @@
 import { getLogger, EventEmitter } from '@signalwire/core'
-import * as WebRTC from './webrtcHelpers'
-
-/**
- * Maps permission's names from `DevicePermissionDescriptor["name"]`
- * to `MediaDeviceKind`
- */
-const PERMISSIONS_MAPPING: Record<DevicePermissionName, MediaDeviceKind> = {
-  camera: 'videoinput',
-  microphone: 'audioinput',
-  speaker: 'audiooutput',
-}
-
-const _getMediaDeviceKindByName = (name?: DevicePermissionName) => {
-  if (!name) {
-    return undefined
-  }
-
-  return PERMISSIONS_MAPPING[name]
-}
-
-/**
- * For browsers not supporting the Permissions API
- * @param {string} kind
- * @returns
- */
-const _legacyCheckPermissions = async (kind?: MediaDeviceKind) => {
-  const devices: MediaDeviceInfo[] = await WebRTC.enumerateDevicesByKind(kind)
-  if (!devices.length) {
-    getLogger().warn(`No ${kind} devices to check for permissions!`)
-    return null
-  }
-  return devices.every(({ deviceId, label }) => Boolean(deviceId && label))
-}
-
-// DevicePermissionDescriptor['name]
-type DevicePermissionName = 'camera' | 'microphone' | 'speaker'
-
-/**
- * Asynchronously returns whether we have permissions to access the specified
- * resource. Some common parameter values for `name` are `"camera"`,
- * `"microphone"`, and `"speaker"`. In those cases, prefer the dedicated methods
- * {@link checkCameraPermissions}, {@link checkMicrophonePermissions}, and
- * {@link checkSpeakerPermissions}.
- * @param name name of the resource
- *
- * @example
- * ```typescript
- * await SignalWire.WebRTC.checkPermissions("camera")
- * // true: we have permission for using the camera
- * ```
- */
-export const checkPermissions = async (name?: DevicePermissionName) => {
-  if (
-    'permissions' in navigator &&
-    typeof navigator.permissions.query === 'function' &&
-    name
-  ) {
-    try {
-      /**
-       * `navigator.permissions.query` can throw if `name` is not a
-       * valid enumation value for `PermissionName`. As of today, some
-       * browsers like Fireforx will throw with `name: "camera"`
-       */
-      // @ts-expect-error
-      const status = await navigator.permissions.query({ name })
-
-      return status.state === 'granted'
-    } catch (e) {}
-  }
-
-  return _legacyCheckPermissions(_getMediaDeviceKindByName(name))
-}
-
-/**
- * Asynchronously returns whether we have permissions to access the camera.
- *
- * @example
- * ```typescript
- * await SignalWire.WebRTC.checkCameraPermissions()
- * // true
- * ```
- */
-export const checkCameraPermissions = () => checkPermissions('camera')
-
-/**
- * Asynchronously returns whether we have permissions to access the microphone.
- *
- * @example
- * ```typescript
- * await SignalWire.WebRTC.checkMicrophonePermissions()
- * // true
- * ```
- */
-export const checkMicrophonePermissions = () => checkPermissions('microphone')
-
-/**
- * Asynchronously returns whether we have permissions to access the speakers.
- *
- * @example
- * ```typescript
- * await SignalWire.WebRTC.checkSpeakerPermissions()
- * // true
- * ```
- */
-export const checkSpeakerPermissions = () => checkPermissions('speaker')
+import type { DevicePermissionName } from './index'
+import {
+  getUserMedia,
+  enumerateDevices,
+  enumerateDevicesByKind,
+  checkPermissions,
+  checkCameraPermissions,
+  checkMicrophonePermissions,
+  checkSpeakerPermissions,
+  _getMediaDeviceKindByName,
+  stopStream,
+  supportsMediaOutput,
+  getMediaDevicesApi,
+} from './index'
 
 const _constraintsByKind = (
   kind?: DevicePermissionName | 'all'
@@ -265,19 +174,17 @@ export const getDevices = async (
   let stream: MediaStream | undefined = undefined
   if (hasPerms === false) {
     const constraints = _constraintsByKind(name)
-    stream = await WebRTC.getUserMedia(constraints)
+    stream = await getUserMedia(constraints)
   }
 
-  const devices = await WebRTC.enumerateDevicesByKind(
-    _getMediaDeviceKindByName(name)
-  )
+  const devices = await enumerateDevicesByKind(_getMediaDeviceKindByName(name))
 
   /**
    * Firefox requires an active stream at the time of `enumerateDevices`
    * so we need to stop it after `WebRTC.enumerateDevicesByKind`
    */
   if (stream) {
-    WebRTC.stopStream(stream)
+    stopStream(stream)
   }
 
   if (fullList === true) {
@@ -371,42 +278,6 @@ export const assureAudioInDevice = (id: string, label: string) =>
 export const assureAudioOutDevice = (id: string, label: string) =>
   assureDeviceId(id, label, 'speaker')
 
-/**
- * Prompts the user to grant permissions for the devices matching the specified set of constraints.
- * @param constraints an optional [MediaStreamConstraints](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamConstraints)
- *                    object specifying requirements for the returned [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream).
- *
- * @example
- * To only request audio permissions:
- *
- * ```typescript
- * await SignalWire.WebRTC.requestPermissions({audio: true, video: false})
- * ```
- *
- * @example
- * To request permissions for both audio and video, specifying constraints for the video:
- * ```typescript
- * const constraints = {
- *   audio: true,
- *   video: {
- *     width: { min: 1024, ideal: 1280, max: 1920 },
- *     height: { min: 576, ideal: 720, max: 1080 }
- *   }
- * }
- * await SignalWire.WebRTC.requestPermissions(constraints)
- * ```
- */
-export const requestPermissions = async (
-  constraints: MediaStreamConstraints
-) => {
-  try {
-    const stream = await WebRTC.getUserMedia(constraints)
-    WebRTC.stopStream(stream)
-  } catch (error) {
-    throw error
-  }
-}
-
 const _deviceInfoToMap = (devices: MediaDeviceInfo[]) => {
   const map = new Map<string, MediaDeviceInfo>()
 
@@ -474,6 +345,7 @@ const TARGET_PERMISSIONS_MAP: Record<
   DevicePermissionName,
   () => Promise<boolean | null>
 > = {
+  // FIXME: Replace this object with just checkPermissions(<target>)
   camera: checkCameraPermissions,
   microphone: checkMicrophonePermissions,
   speaker: checkSpeakerPermissions,
@@ -495,7 +367,7 @@ type TargetPermission = Record<
 
 const CHECK_SUPPORT_MAP: Partial<Record<DevicePermissionName, () => boolean>> =
   {
-    speaker: WebRTC.supportsMediaOutput,
+    speaker: supportsMediaOutput,
   }
 
 const checkTargetPermissions = async (options: {
@@ -645,6 +517,8 @@ interface DeviceWatcherEvents {
   }) => void
 }
 
+// FIXME: Move createDeviceWatcher and all related helpers/derived methods to its own module
+
 /**
  * Asynchronously returns an event emitter that notifies changes in the devices.
  * The possible events are:
@@ -691,7 +565,7 @@ export const createDeviceWatcher = async (
 ) => {
   const targets = await validateTargets({ targets: options.targets })
   const emitter = new EventEmitter<DeviceWatcherEvents>()
-  const currentDevices = await WebRTC.enumerateDevices()
+  const currentDevices = await enumerateDevices()
   const kinds = targets?.reduce((reducer, name) => {
     const kind = _getMediaDeviceKindByName(name)
 
@@ -708,7 +582,7 @@ export const createDeviceWatcher = async (
   })
 
   const deviceChangeHandler = async () => {
-    const currentDevices = await WebRTC.enumerateDevices()
+    const currentDevices = await enumerateDevices()
     const oldDevices = knownDevices
     const newDevices = _filterDevices(currentDevices, {
       excludeDefault: true,
@@ -745,10 +619,7 @@ export const createDeviceWatcher = async (
       })
     }
   }
-  WebRTC.getMediaDevicesApi().addEventListener(
-    'devicechange',
-    deviceChangeHandler
-  )
+  getMediaDevicesApi().addEventListener('devicechange', deviceChangeHandler)
 
   return emitter
 }
@@ -787,6 +658,8 @@ const isMediaStream = (options: any): options is MediaStream => {
   return typeof options?.getTracks === 'function'
 }
 
+// FIXME: Move getMicrophoneAnalyzerMediaStream and all related helpers/derived methods to its own module
+
 const getMicrophoneAnalyzerMediaStream = async (
   options: string | MediaTrackConstraints | MediaStream
 ) => {
@@ -807,7 +680,7 @@ const getMicrophoneAnalyzerMediaStream = async (
     }
   }
 
-  return WebRTC.getUserMedia(constraints)
+  return getUserMedia(constraints)
 }
 
 const createAnalyzer = (audioContext: AudioContext) => {

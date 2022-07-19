@@ -2,9 +2,15 @@ import {
   getDevices,
   getDevicesWithPermissions,
   assureDeviceId,
-  checkPermissions,
 } from './deviceHelpers'
-import * as WebRTC from './webrtcHelpers'
+import { checkPermissions, stopStream } from './index'
+
+jest.mock('./index', () => {
+  return {
+    ...(jest.requireActual('./index') as any),
+    stopStream: jest.fn(),
+  }
+})
 
 describe('Helpers browser functions', () => {
   const group1 = 'group1'
@@ -183,7 +189,8 @@ describe('Helpers browser functions', () => {
         it('should invoke getUserMedia to request camera permissions and return device list removing duplicates', async () => {
           // @ts-ignore
           navigator.mediaDevices.getUserMedia.mockClear()
-          ;(WebRTC.stopStream as jest.Mock) = jest.fn()
+          // @ts-ignore
+          stopStream.mockClear()
           // @ts-ignore
           navigator.permissions.query.mockResolvedValueOnce()
           // @ts-ignore
@@ -196,7 +203,7 @@ describe('Helpers browser functions', () => {
             audio: false,
             video: true,
           })
-          expect(WebRTC.stopStream).toHaveBeenCalledTimes(1)
+          expect(stopStream).toHaveBeenCalledTimes(1)
           expect(devices).toHaveLength(2)
           expect(devices[0].label).toEqual('FaceTime HD Camera')
           expect(devices.every((d) => d.deviceId && d.label)).toBe(true)

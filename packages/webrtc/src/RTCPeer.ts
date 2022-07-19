@@ -11,7 +11,7 @@ import {
   RTCPeerConnection,
   streamIsValid,
   stopTrack,
-} from './utils/webrtcHelpers'
+} from './utils'
 import { ConnectionOptions } from './utils/interfaces'
 
 export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
