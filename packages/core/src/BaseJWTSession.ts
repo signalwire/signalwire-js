@@ -46,7 +46,7 @@ export class BaseJWTSession extends BaseSession {
   }
 
   get expired() {
-    return this.expiresIn <= this._expiredDiffSeconds
+    return this.expiresAt > 0 && this.expiresIn <= this._expiredDiffSeconds
   }
 
   /**
@@ -96,6 +96,7 @@ export class BaseJWTSession extends BaseSession {
    * @return Promise<void>
    */
   async reauthenticate() {
+    this.logger.debug('Session Reauthenticate', this.expired)
     if (this.expired) {
       return this.connect()
     }
