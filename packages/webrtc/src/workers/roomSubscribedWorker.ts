@@ -48,7 +48,7 @@ export const roomSubscribedWorker: SDKWorker<
      * On video.member.joined with a parent_id, check if we are the
      * owner of the object comparing parent_id in the state.
      * If so update the state with the room values to update the
-     * object (= trigger `onRoomSubscribed`).
+     * object.
      */
     const { member } = action.payload
     if (member?.parent_id) {
