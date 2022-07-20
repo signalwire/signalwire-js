@@ -1,4 +1,4 @@
-import { EventEmitter, getLogger } from '@signalwire/core'
+import { EventEmitter, getLogger, uuid } from '@signalwire/core'
 import { getUserMedia, getMediaConstraints } from './utils/helpers'
 import {
   sdpStereoHack,
@@ -15,6 +15,8 @@ import {
 import { ConnectionOptions } from './utils/interfaces'
 
 export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
+  public uuid = uuid()
+
   public instance: RTCPeerConnection
 
   private options: ConnectionOptions
