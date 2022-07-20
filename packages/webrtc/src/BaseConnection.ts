@@ -156,8 +156,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       worker: vertoWorker,
       initialState: {},
     })
-    this.runWorker('roomSubscribedWorker', {
-      worker: workers.roomSubscribedWorker,
+    this.runWorker('videoEventWorker', {
+      worker: workers.videoEventWorker,
     })
   }
 
