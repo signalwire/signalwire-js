@@ -29,7 +29,6 @@ import { componentActions } from '../'
 import { RPCExecute } from '../../../RPCMessages'
 import { getLogger, toInternalAction } from '../../../utils'
 import { getAuthStatus } from '../session/sessionSelectors'
-import { getComponent } from '../component/componentSelectors'
 import { SessionAuthStatus } from '../../../utils/interfaces'
 
 type SessionSagaParams = {
@@ -277,29 +276,6 @@ export function* sessionChannelWatcher({
           type: 'video.room.joined',
           payload: params.params,
         })
-        break
-      }
-      case 'video.member.joined': {
-        /**
-         * On video.member.joined with a parent_id, check if we are the
-         * owner of the object comparing parent_id in the state.
-         * If so update the state with the room values to update the
-         * object (= trigger `onRoomSubscribed`).
-         */
-        const { member } = params.params
-        if (member?.parent_id) {
-          const parent = yield select(getComponent, member.parent_id)
-          if (parent) {
-            yield put(
-              componentActions.upsert({
-                id: member.id,
-                roomId: params.params.room_id,
-                roomSessionId: params.params.room_session_id,
-                memberId: member.id,
-              })
-            )
-          }
-        }
         break
       }
       case 'video.member.talking': {
