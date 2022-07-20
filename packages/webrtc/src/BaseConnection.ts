@@ -12,10 +12,70 @@ import {
   BaseConnectionContract,
   VertoModify,
   componentSelectors,
+  actions,
+  SDKWorker,
+  SagaIterator,
+  getLogger,
+  sagaEffects,
+  componentActions,
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import { ConnectionOptions } from './utils/interfaces'
 import { stopStream, stopTrack, getUserMedia } from './utils'
+
+const vertoWorker: SDKWorker<BaseConnection<any>> = function* (
+  options
+): SagaIterator {
+  getLogger().debug('vertoWorker started')
+  const { channels, instance } = options
+  const { swEventChannel, pubSubChannel } = channels
+
+  while (true) {
+    const action = yield sagaEffects.take(swEventChannel, (action: any) => {
+      return (
+        action.type === 'webrtc.message' ||
+        action.type === 'video.room.subscribed'
+      )
+    })
+
+    if (action.type === 'video.room.subscribed') {
+      const { payload: params } = action
+      getLogger().info('room.subscribed', JSON.stringify(action, null, 2))
+      yield sagaEffects.put(
+        componentActions.upsert({
+          id: instance.__uuid,
+          roomId: params.room_session.room_id,
+          roomSessionId: params.room_session.id,
+          memberId: params.member_id,
+          previewUrl: params.room_session.preview_url,
+        })
+      )
+      // Rename "room.subscribed" with "room.joined" for the end-user
+      yield sagaEffects.put(pubSubChannel, {
+        type: 'video.room.joined',
+        payload: params,
+      })
+    } else {
+      const { method, params = {} } = action.payload
+      getLogger().warn('vertoWorker', method, params)
+      switch (method) {
+        case 'verto.answer':
+        case 'verto.media': {
+          const peer = instance.__currentPeer
+          // const peer = instance.rtcPeerMap.get(params.callID)
+
+          getLogger().debug('GOT PEER', peer)
+          if (peer) {
+            peer.onRemoteSdp(params.sdp)
+          }
+          break
+        }
+      }
+    }
+  }
+
+  getLogger().trace('vertoWorker ended')
+}
 
 const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   destinationNumber: 'room',
@@ -74,6 +134,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   private state: BaseConnectionState = 'new'
   private prevState: BaseConnectionState = 'new'
+  public rtcPeerMap = new Map<'MAIN' | 'PROMOTE', RTCPeer<EventTypes>>()
 
   constructor(
     options: BaseConnectionOptions<EventTypes & BaseConnectionStateEventTypes>
@@ -89,6 +150,11 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     this.logger.debug('New Call with Options:', this.options)
 
     this.applyEmitterTransforms({ local: true })
+
+    this.runWorker('vertoWorker', {
+      worker: vertoWorker,
+      initialState: {},
+    })
   }
 
   get id() {
@@ -171,10 +237,15 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       additionalDevice,
       pingSupported = true,
     } = this.options
+
+    // FIXME: figure out a way to grab the correct peer
+    const peer = this.__currentPeer
     return {
       sessid: this.options.sessionid,
       dialogParams: {
-        id: this.__uuid,
+        // FIXME: the id must be RTCPeer.id
+        // id: this.__uuid,
+        id: peer?.uuid,
         destinationNumber,
         attach,
         callerName,
@@ -235,11 +306,12 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
    * request and sent using the 'video.message' method.
    */
   private vertoExecute(vertoMessage: JSONRPCRequest) {
+    const isInvite = vertoMessage.method === 'verto.invite'
     const params: any = {
       message: vertoMessage,
-      node_id: this.nodeId,
+      node_id: isInvite ? '' : this.nodeId,
     }
-    if (vertoMessage.method === 'verto.invite') {
+    if (isInvite) {
       if (this.options.screenShare) {
         /** Only being used for debugging purposes */
         params.subscribe = ['video.room.screenshare']
@@ -301,6 +373,34 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     }
     // FIXME: Move to a better place when rework _attachListeners too.
     this.applyEmitterTransforms()
+  }
+
+  public _tryToPromote = false
+
+  get __currentPeer() {
+    // FIXME:
+    return this._tryToPromote
+      ? this.rtcPeerMap.get('PROMOTE')
+      : this.rtcPeerMap.get('MAIN')
+  }
+
+  async __promote({ token }: { token: string }) {
+    this.logger.debug('Start Promotion', token)
+    try {
+      // TODO: remove when we have the event from the server
+      this.logger.debug('Trigger reauthAction to reauthenticate with backend')
+      this.store.dispatch(actions.reauthAction({ token }))
+      this._tryToPromote = true
+      this.logger.debug('Build a new RTCPeer')
+      const rtcPeerPromoted = new RTCPeer(this, 'offer')
+      this.rtcPeerMap.set('PROMOTE', rtcPeerPromoted)
+      this.logger.debug('Trigger start for the new RTCPeer..')
+      await this.__currentPeer?.start()
+
+      // TODO: teardown the previous peer
+    } catch (error) {
+      this.logger.error('__promote', error)
+    }
   }
 
   /** @internal */
@@ -519,6 +619,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     return new Promise(async (resolve, reject) => {
       this.direction = 'outbound'
       this.peer = new RTCPeer(this, 'offer')
+      this.logger.debug('Set the MAIN RTCPeer!')
+      this.rtcPeerMap.set('MAIN', this.peer)
       try {
         await this.peer.start()
         resolve(this as any as T)
@@ -551,6 +653,11 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     this.logger.debug('MUNGED SDP \n', `Type: ${type}`, '\n\n', mungedSDP)
     switch (type) {
       case 'offer':
+        // FIXME: just force invite for now
+        if (this._tryToPromote) {
+          return this.executeInvite(mungedSDP)
+        }
+
         // If we have a remoteDescription already, send reinvite
         if (this.peer.instance?.remoteDescription) {
           return this.executeUpdateMedia(mungedSDP)
@@ -577,15 +684,18 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
    * @internal
    */
   async executeInvite(sdp: string) {
-    const validStates: BaseConnectionState[] = ['new', 'requesting']
-    if (!validStates.includes(this.state)) {
-      /**
-       * Something bad happened. Either App logic invoking
-       * methods in a wrong order or events are not correct.
-       */
-      throw new Error(
-        `Invalid state: '${this.state}' for connection id: ${this.id}`
-      )
+    if (!this._tryToPromote) {
+      // FIXME: just skip this check for now
+      const validStates: BaseConnectionState[] = ['new', 'requesting']
+      if (!validStates.includes(this.state)) {
+        /**
+         * Something bad happened. Either App logic invoking
+         * methods in a wrong order or events are not correct.
+         */
+        throw new Error(
+          `Invalid state: '${this.state}' for connection id: ${this.id}`
+        )
+      }
     }
     // Set state to `requesting` only when `new`, otherwise keep it as `requesting`.
     if (this.state === 'new') {
