@@ -1,1 +1,1 @@
-export * from './roomSubscribedWorker'
+export * from './videoEventWorker'
