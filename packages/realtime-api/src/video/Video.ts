@@ -1,6 +1,5 @@
 import {
   BaseComponentOptions,
-  BaseConsumer,
   connect,
   EventTransform,
   InternalVideoRoomSessionEventNames,
@@ -11,6 +10,7 @@ import {
   RoomSessionPlayback,
   toLocalEvent,
 } from '@signalwire/core'
+import { AutoSubscribeConsumer } from '../AutoSubscribeConsumer'
 import type { RealtimeClient } from '../client/Client'
 
 import {
@@ -106,7 +106,7 @@ export type {
 } from '@signalwire/core'
 
 /** @internal */
-class VideoAPI extends BaseConsumer<RealTimeVideoApiEvents> {
+class VideoAPI extends AutoSubscribeConsumer<RealTimeVideoApiEvents> {
   /** @internal */
   protected _eventsPrefix = 'video' as const
 

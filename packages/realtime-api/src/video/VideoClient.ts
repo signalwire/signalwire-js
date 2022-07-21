@@ -1,6 +1,5 @@
 import type { UserOptions } from '@signalwire/core'
 import type { RealTimeVideoApiEvents } from '../types'
-import { getLogger } from '@signalwire/core'
 import { setupClient, clientConnect } from '../client/index'
 import { createVideoObject, Video } from './Video'
 
@@ -68,18 +67,6 @@ const VideoClient = function (options?: VideoClientOptions) {
 
     return video.subscribe()
   }
-
-  client.on('session.connected', async () => {
-    try {
-      await video.subscribe()
-    } catch (e) {
-      // TODO: In the future we'll provide a
-      // `onSubscribedError` (or similar) to allow the user
-      // customize this behavior.
-      getLogger().error('Client subscription failed.')
-      client.disconnect()
-    }
-  })
 
   const interceptors = {
     on: videoOn,
