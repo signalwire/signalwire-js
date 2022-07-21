@@ -41,6 +41,8 @@ export class BaseConsumer<
   }
 
   async subscribe() {
+    await this._waitUntilSessionAuthorized()
+
     const subscriptions = this.getSubscriptions()
 
     if (subscriptions.length === 0) {
