@@ -1,18 +1,15 @@
 import { EventEmitter, actions, componentActions } from '@signalwire/core'
 import { BaseRoomSession, createBaseRoomSessionObject } from './BaseRoomSession'
 import type { RoomSession } from './RoomSession'
-import {
-  configureJestStore,
-  configureFullStack,
-  dispatchMockedRoomSubscribed,
-} from './testUtils'
+import { configureFullStack, dispatchMockedRoomSubscribed } from './testUtils'
 
 describe('Room Object', () => {
   let store: any
   let room: BaseRoomSession<RoomSession>
 
   beforeEach(() => {
-    store = configureJestStore()
+    const stack = configureFullStack()
+    store = stack.store
     room = createBaseRoomSessionObject<RoomSession>({
       store,
       emitter: new EventEmitter(),
@@ -29,6 +26,15 @@ describe('Room Object', () => {
     )
     // @ts-expect-error
     room.execute = jest.fn()
+    // mock a room.subscribed event
+    dispatchMockedRoomSubscribed({
+      session: stack.session,
+      // @ts-expect-error
+      callId: room.id,
+      roomId: 'room-id',
+      roomSessionId: 'room-session-id',
+      memberId: 'member-id',
+    })
   })
 
   it('should have all the custom methods defined', () => {
@@ -102,7 +108,7 @@ describe('Room Object', () => {
     })
   })
 
-  describe.skip('startRecording', () => {
+  describe('startRecording', () => {
     it('should return an interactive object', async () => {
       // @ts-expect-error
       ;(room.execute as jest.Mock).mockResolvedValueOnce({
@@ -200,7 +206,7 @@ describe('Room Object', () => {
     })
   })
 
-  describe.skip('playback methods', () => {
+  describe('playback methods', () => {
     it('getPlaybacks should return an array of playbacks', async () => {
       const { store, session, emitter, destroy } = configureFullStack()
       const playbacks = [{ id: 'playbackOne' }, { id: 'playbackTwo' }]
