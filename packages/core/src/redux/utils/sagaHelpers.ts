@@ -35,3 +35,5 @@ export const createCatchableSaga = <Args = any>(
     }
   }
 }
+
+export { eventChannel } from '@redux-saga/core'
