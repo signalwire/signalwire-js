@@ -653,13 +653,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     this.logger.debug('MUNGED SDP \n', `Type: ${type}`, '\n\n', mungedSDP)
     switch (type) {
       case 'offer':
-        // FIXME: just force invite for now
-        if (this._tryToPromote) {
-          return this.executeInvite(mungedSDP)
-        }
-
         // If we have a remoteDescription already, send reinvite
-        if (this.peer.instance?.remoteDescription) {
+        if (this.__currentPeer?.instance?.remoteDescription) {
           return this.executeUpdateMedia(mungedSDP)
         } else {
           return this.executeInvite(mungedSDP)
