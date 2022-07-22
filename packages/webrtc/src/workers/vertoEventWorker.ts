@@ -37,7 +37,7 @@ export const vertoEventWorker: SDKWorker<
       })
 
     const { id: jsonrpcId, method, params = {} } = action.payload
-    const { callID, nodeId } = params
+    const { callID, node_id: nodeId } = params
 
     /**
      * TODO:
@@ -47,41 +47,22 @@ export const vertoEventWorker: SDKWorker<
 
     getLogger().warn('vertoEventWorker', method, params)
     switch (method) {
-      // case 'verto.answer':
-      // case 'verto.media': {
-      //   const peer = instance.__currentPeer
-      //   // const peer = instance.rtcPeerMap.get(params.callID)
-
-      //   getLogger().debug('GOT PEER', peer)
-      //   if (peer) {
-      //     peer.onRemoteSdp(params.sdp)
-      //   }
-      //   break
-      // }
-
       case 'verto.media': {
         /**
-         * TODO:
+         * TODO: set nodeId on instance
          * Always invoke peer.onRemoteSdp(params.sdp) on the proper RTCPeer
          * If the `params.callID` is the current ACTIVE peer, set the BaseConnection state to "early"
          * If the `params.callID` is NOT the current peer, but it's there from promote/demote process just setup the media
          * and wait for the join event to swap RTCPeers
          */
-        const peer = instance.rtcPeerMap.get(callID)
+        const peer = instance.getRTCPeerById(callID)
         if (peer) {
-          // if (peerIsTheActiveOne) {
-          instance.setState('early')
-          // }
-          yield sagaEffects.call(peer.onRemoteSdp, params.sdp)
+          // TODO: Improve
+          if (peer.uuid === instance.peer?.uuid) {
+            instance.setState('early')
+          }
+          peer.onRemoteSdp(params.sdp)
         }
-
-        // const component = {
-        //   id: params.callID,
-        //   state: 'early',
-        //   remoteSDP: params.sdp,
-        //   nodeId,
-        // }
-        // yield sagaEffects.put(componentActions.upsert(component))
 
         yield sagaEffects.put(
           actions.executeAction({
@@ -96,31 +77,22 @@ export const vertoEventWorker: SDKWorker<
       }
       case 'verto.answer': {
         /**
-         * TODO:
+         * TODO: set nodeId on instance
          * IF WE HAVE `params.sdp`: always invoke peer.onRemoteSdp(params.sdp) on the proper RTCPeer
          * If the `params.callID` is the current ACTIVE peer, set the BaseConnection state to "active"
          * If the `params.callID` is NOT the current peer, but it's there from promote/demote process just setup the media
          * and wait for the join event to swap RTCPeers
          */
-        const peer = instance.rtcPeerMap.get(callID)
+        const peer = instance.getRTCPeerById(callID)
         if (peer) {
-          // if (peerIsTheActiveOne) {
-          instance.setState('active')
-          // }
+          // TODO: Improve
+          if (peer.uuid === instance.peer?.uuid) {
+            instance.setState('active')
+          }
           if (params?.sdp) {
-            yield sagaEffects.call(peer.onRemoteSdp, params.sdp)
+            peer.onRemoteSdp(params.sdp)
           }
         }
-
-        // const component: WebRTCCall = {
-        //   id: params.callID,
-        //   state: 'active',
-        //   nodeId,
-        // }
-        // if (params?.sdp) {
-        //   component.remoteSDP = params.sdp
-        // }
-        // yield sagaEffects.put(componentActions.upsert(component))
 
         yield sagaEffects.put(
           actions.executeAction({
@@ -134,27 +106,19 @@ export const vertoEventWorker: SDKWorker<
         break
       }
       case 'verto.bye': {
-        // const component: WebRTCCall = {
-        //   id: params.callID,
-        //   state: 'hangup',
-        //   nodeId,
-        //   byeCause: params?.cause ?? '',
-        //   byeCauseCode: params?.causeCode ?? 0,
-        //   redirectDestination: params?.redirectDestination,
-        // }
-        // yield sagaEffects.put(componentActions.upsert(component))
+        /**
+         * TODO: make sure to have nodeId on instance
+         * If the `params.callID` is the current ACTIVE peer, stop everything and destroy the BaseConnection
+         * If the `params.callID` is NOT the current peer, but is there from promote/demote process stop/destroy just the peer
+         */
 
         instance._hangup({
+          rtcPeerId: callID,
           byeCause: params?.cause ?? '',
           byeCauseCode: params?.causeCode ?? 0,
           redirectDestination: params?.redirectDestination,
         })
 
-        /**
-         * TODO:
-         * If the `params.callID` is the current ACTIVE peer, stop everything and destroy the BaseConnection
-         * If the `params.callID` is NOT the current peer, but is there from promote/demote process stop/destroy just the peer
-         */
         yield sagaEffects.put(
           actions.executeAction({
             method: 'video.message',
@@ -168,11 +132,13 @@ export const vertoEventWorker: SDKWorker<
       }
       case 'verto.ping': {
         // TODO: test
+        // Remove nodeId from params
+        const { nodeId, ...pongParams } = params
         yield sagaEffects.put(
           actions.executeAction({
             method: 'video.message',
             params: {
-              message: VertoPong(params),
+              message: VertoPong(pongParams),
               node_id: nodeId,
             },
           })
@@ -185,7 +151,7 @@ export const vertoEventWorker: SDKWorker<
           break
         }
         // TODO: test
-        const peer = instance.rtcPeerMap.get(callID)
+        const peer = instance.getRTCPeerById(callID)
         const { audio, video } = params.mediaParams
         if (peer && video) {
           peer.applyMediaConstraints('video', video)
@@ -197,18 +163,6 @@ export const vertoEventWorker: SDKWorker<
       }
       default:
         return getLogger().warn(`Unknown Verto method: ${method}`, params)
-
-      // case 'verto.media': {
-      // case 'verto.answer': {
-      // case 'verto.bye': {
-      // case 'verto.ping': {
-      // case 'verto.punt':
-      // case 'verto.mediaParams': {
-      // case 'verto.invite':
-      // case 'verto.attach':
-      // case 'verto.info':
-      // case 'verto.clientReady':
-      // case 'verto.announce':
     }
   }
 

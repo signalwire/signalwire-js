@@ -446,6 +446,12 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     })
   }
 
+  stop() {
+    if (this.instance) {
+      this.instance.close()
+    }
+  }
+
   private _checkMediaToNegotiate(kind: string) {
     // addTransceiver of 'kind' if not present
     const sender = this._getSenderByKind(kind)
@@ -473,7 +479,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     this.instance.removeEventListener('icecandidate', this._onIce)
 
     try {
-      await this.call.onLocalSDPReady(this.instance.localDescription)
+      await this.call.onLocalSDPReady(this)
     } catch (error) {
       this._rejectStartMethod(error)
     }
