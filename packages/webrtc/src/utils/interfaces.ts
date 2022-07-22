@@ -14,8 +14,6 @@ export interface ConnectionOptions {
   callerNumber?: string
   // --
   /** @internal */
-  sessionid?: string
-  /** @internal */
   remoteSdp?: string
   /** @internal */
   localStream?: MediaStream
