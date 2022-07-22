@@ -1,6 +1,11 @@
 import WS from 'jest-websocket-mock'
 import { Client } from './VideoClient'
-import * as Video from './Video'
+
+jest.mock('uuid', () => {
+  return {
+    v4: jest.fn(() => 'mocked-uuid'),
+  }
+})
 
 describe('VideoClient', () => {
   describe('Client', () => {
@@ -14,7 +19,7 @@ describe('VideoClient', () => {
     }
 
     beforeEach(async () => {
-      server = new WS(host)
+      server = new WS(host, { jsonProtocol: true })
       server.on('connection', (socket: any) => {
         socket.on('message', (data: any) => {
           const parsedData = JSON.parse(data)
@@ -64,31 +69,8 @@ describe('VideoClient', () => {
           done()
         })
       })
-    })
 
-    describe('Automatic subscribe', () => {
-      let createVideoObjectMock: jest.SpyInstance
-      const mockedVideo: any = {
-        subscribe: jest.fn(() => Promise.resolve()),
-        on: jest.fn(),
-      }
-      beforeEach(async () => {
-        createVideoObjectMock = jest
-          .spyOn(Video, 'createVideoObject')
-          .mockImplementationOnce(() => {
-            return mockedVideo
-          })
-      })
-      afterEach(() => {
-        createVideoObjectMock.mockRestore()
-        Object.values(mockedVideo).forEach((mock: any) => {
-          if (typeof mock.mockRestore === 'function') {
-            mock.mockRestore()
-          }
-        })
-      })
-
-      it('should automatically call subscribe the moment the client is connected', async () => {
+      it('should automatically connect the underlying client and send subscribe', async () => {
         const video = new Client({
           // @ts-expect-error
           host,
@@ -96,64 +78,32 @@ describe('VideoClient', () => {
           token,
         })
 
-        video.on('room.started', () => {})
+        video.once('room.started', () => {})
 
-        // Artificial timer to wait for the connect() to happen
-        await new Promise((r) => setTimeout(r, 1000))
+        await server.connected
 
-        expect(mockedVideo.subscribe).toHaveBeenCalledTimes(1)
-
-        video._session.disconnect()
-      })
-    })
-
-    describe('Subscribe error', () => {
-      let createVideoObjectMock: jest.SpyInstance
-      const mockedVideo: any = {
-        subscribe: jest.fn(() => Promise.reject()),
-        on: jest.fn(),
-      }
-      beforeEach(async () => {
-        createVideoObjectMock = jest
-          .spyOn(Video, 'createVideoObject')
-          .mockImplementationOnce(() => {
-            return mockedVideo
-          })
-      })
-      afterEach(() => {
-        createVideoObjectMock.mockRestore()
-        Object.values(mockedVideo).forEach((mock: any) => {
-          if (typeof mock.mockRestore === 'function') {
-            mock.mockRestore()
-          }
+        await expect(server).toReceiveMessage({
+          jsonrpc: '2.0',
+          id: 'mocked-uuid',
+          method: 'signalwire.connect',
+          params: {
+            version: { major: 3, minor: 0, revision: 0 },
+            authentication: { project: 'some-project-x', token: '<jwt>' },
+          },
         })
-      })
-
-      it('should show an error message if the call to subscribe fails', async () => {
-        const logger = {
-          error: jest.fn(),
-          trace: jest.fn(),
-          debug: jest.fn(),
-          warn: jest.fn(),
-        }
-        const video = new Client({
-          // @ts-expect-error
-          host,
-          project: 'some-project-t',
-          token,
-          logger: logger as any,
+        await expect(server).toReceiveMessage({
+          id: 'mocked-uuid',
+          jsonrpc: '2.0',
+          method: 'signalwire.subscribe',
+          params: {
+            event_channel: 'video.rooms',
+            events: ['video.room.started'],
+            get_initial_state: true,
+          },
         })
 
-        try {
-          // It's not neccessary to call `subcribe()`
-          // manually. We're doing it here to avoid creating
-          // a timer for the `connect()`
-          await video.subscribe()
-        } catch (e) {
-          expect(logger.error).toHaveBeenCalledWith(
-            'Client subscription failed.'
-          )
-        }
+        // FIXME: video.once start something async in background so we need to wait before disconnecting
+        await new Promise((r) => setTimeout(r, 100))
 
         video._session.disconnect()
       })
@@ -174,15 +124,18 @@ describe('VideoClient', () => {
         logger: logger as any,
       })
 
-      await video.subscribe()
-
-      expect(logger.error).toHaveBeenNthCalledWith(1, 'Auth Error', {
-        code: -32002,
-        message:
-          'Authentication service failed with status ProtocolError, 401 Unauthorized: {}',
-      })
-
-      video._session.disconnect()
+      try {
+        await video.subscribe()
+      } catch (error) {
+        expect(error).toStrictEqual(new Error('Unauthorized'))
+        expect(logger.error).toHaveBeenNthCalledWith(1, 'Auth Error', {
+          code: -32002,
+          message:
+            'Authentication service failed with status ProtocolError, 401 Unauthorized: {}',
+        })
+      } finally {
+        video._session.disconnect()
+      }
     })
   })
 })

@@ -1,6 +1,12 @@
 import WS from 'jest-websocket-mock'
 import { Client } from './ChatClient'
 
+jest.mock('uuid', () => {
+  return {
+    v4: jest.fn(() => 'mocked-uuid'),
+  }
+})
+
 describe('ChatClient', () => {
   describe('Client', () => {
     const host = 'ws://localhost:1234'
@@ -13,7 +19,7 @@ describe('ChatClient', () => {
     }
 
     beforeEach(async () => {
-      server = new WS(host)
+      server = new WS(host, { jsonProtocol: true })
       server.on('connection', (socket: any) => {
         socket.on('message', (data: any) => {
           const parsedData = JSON.parse(data)
@@ -58,6 +64,18 @@ describe('ChatClient', () => {
         chat.once('member.joined', () => {})
 
         chat._session.on('session.connected', () => {
+          expect(server).toHaveReceivedMessages([
+            {
+              jsonrpc: '2.0',
+              id: 'mocked-uuid',
+              method: 'signalwire.connect',
+              params: {
+                version: { major: 3, minor: 0, revision: 0 },
+                authentication: { project: 'some-project', token: '<jwt>' },
+              },
+            },
+          ])
+
           chat._session.disconnect()
 
           done()
@@ -68,6 +86,7 @@ describe('ChatClient', () => {
     it('should show an error if client.connect failed to connect', async () => {
       const logger = {
         error: jest.fn(),
+        info: jest.fn(),
         trace: jest.fn(),
         debug: jest.fn(),
         warn: jest.fn(),
@@ -80,15 +99,18 @@ describe('ChatClient', () => {
         logger: logger as any,
       })
 
-      await chat.subscribe('some-channel')
-
-      expect(logger.error).toHaveBeenNthCalledWith(1, 'Auth Error', {
-        code: -32002,
-        message:
-          'Authentication service failed with status ProtocolError, 401 Unauthorized: {}',
-      })
-
-      chat._session.disconnect()
+      try {
+        await chat.subscribe('some-channel')
+      } catch (error) {
+        expect(error).toStrictEqual(new Error('Unauthorized'))
+        expect(logger.error).toHaveBeenNthCalledWith(1, 'Auth Error', {
+          code: -32002,
+          message:
+            'Authentication service failed with status ProtocolError, 401 Unauthorized: {}',
+        })
+      } finally {
+        chat._session.disconnect()
+      }
     })
   })
 })
