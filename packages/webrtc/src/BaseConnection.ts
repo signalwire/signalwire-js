@@ -355,14 +355,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /** @internal */
-  public onRemoteSDP(component: any) {
-    this.logger.debug('onRemoteSDP', component)
-    if (component.remoteSDP) {
-      this.peer.onRemoteSdp(component.remoteSDP)
-    }
-  }
-
-  /** @internal */
   public _tryToPromote = false
 
   get __currentPeer() {
@@ -388,22 +380,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       // TODO: teardown the previous peer
     } catch (error) {
       this.logger.error('__promote', error)
-    }
-  }
-
-  /** @internal */
-  onVideoConstraints(component: any) {
-    this.logger.debug('onVideoConstraints', component)
-    if (component?.videoConstraints) {
-      this.peer.applyMediaConstraints('video', component.videoConstraints)
-    }
-  }
-
-  /** @internal */
-  onAudioConstraints(component: any) {
-    this.logger.debug('onAudioConstraints', component)
-    if (component?.audioConstraints) {
-      this.peer.applyMediaConstraints('audio', component.audioConstraints)
     }
   }
 
