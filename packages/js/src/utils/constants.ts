@@ -1,8 +1,5 @@
 export const ROOM_COMPONENT_LISTENERS = {
   state: 'onStateChange',
-  remoteSDP: 'onRemoteSDP',
-  videoConstraints: 'onVideoConstraints',
-  audioConstraints: 'onAudioConstraints',
   errors: 'onError',
   responses: 'onSuccess',
 }
