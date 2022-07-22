@@ -13,70 +13,11 @@ import {
   VertoModify,
   componentSelectors,
   actions,
-  SDKWorker,
-  SagaIterator,
-  getLogger,
-  sagaEffects,
-  componentActions,
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import { ConnectionOptions } from './utils/interfaces'
 import { stopStream, stopTrack, getUserMedia } from './utils'
 import * as workers from './workers'
-
-const vertoWorker: SDKWorker<BaseConnection<any>> = function* (
-  options
-): SagaIterator {
-  getLogger().debug('vertoWorker started')
-  const { channels, instance } = options
-  const { swEventChannel, pubSubChannel } = channels
-
-  while (true) {
-    const action = yield sagaEffects.take(swEventChannel, (action: any) => {
-      return (
-        action.type === 'webrtc.message' ||
-        action.type === 'video.room.subscribed'
-      )
-    })
-
-    if (action.type === 'video.room.subscribed') {
-      const { payload: params } = action
-      getLogger().info('room.subscribed', JSON.stringify(action, null, 2))
-      yield sagaEffects.put(
-        componentActions.upsert({
-          id: instance.__uuid,
-          roomId: params.room_session.room_id,
-          roomSessionId: params.room_session.id,
-          memberId: params.member_id,
-          previewUrl: params.room_session.preview_url,
-        })
-      )
-      // Rename "room.subscribed" with "room.joined" for the end-user
-      yield sagaEffects.put(pubSubChannel, {
-        type: 'video.room.joined',
-        payload: params,
-      })
-    } else {
-      const { method, params = {} } = action.payload
-      getLogger().warn('vertoWorker', method, params)
-      switch (method) {
-        case 'verto.answer':
-        case 'verto.media': {
-          const peer = instance.__currentPeer
-          // const peer = instance.rtcPeerMap.get(params.callID)
-
-          getLogger().debug('GOT PEER', peer)
-          if (peer) {
-            peer.onRemoteSdp(params.sdp)
-          }
-          break
-        }
-      }
-    }
-  }
-
-  getLogger().trace('vertoWorker ended')
-}
 
 const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   destinationNumber: 'room',
@@ -152,9 +93,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
     this.applyEmitterTransforms({ local: true })
 
-    this.runWorker('vertoWorker', {
-      worker: vertoWorker,
-      initialState: {},
+    this.runWorker('vertoEventWorker', {
+      worker: workers.vertoEventWorker,
     })
     this.runWorker('videoEventWorker', {
       worker: workers.videoEventWorker,
