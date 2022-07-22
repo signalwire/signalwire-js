@@ -1,5 +1,4 @@
 export const ROOM_COMPONENT_LISTENERS = {
-  state: 'onStateChange',
   errors: 'onError',
   responses: 'onSuccess',
 }

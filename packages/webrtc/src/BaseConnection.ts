@@ -282,19 +282,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /** @internal */
-  public onStateChange(component: any) {
-    this.logger.debug('onStateChange', component)
-    switch (component.state) {
-      case 'hangup':
-        this._hangup(component)
-        break
-      default:
-        this.setState(component.state)
-        break
-    }
-  }
-
-  /** @internal */
   public _tryToPromote = false
 
   get __currentPeer() {
