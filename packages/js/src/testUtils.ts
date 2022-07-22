@@ -60,3 +60,37 @@ export const configureFullStack = () => {
     destroy: () => store.dispatch(actions.destroyAction()),
   }
 }
+
+export const dispatchMockedRoomSubscribed = ({
+  session,
+  roomId,
+  roomSessionId,
+  memberId,
+  callId,
+}: {
+  session: any
+  roomSessionId: string
+  roomId: string
+  memberId: string
+  callId: string
+}) => {
+  const payload: any = {
+    jsonrpc: '2.0',
+    id: 'd8a9fb9a-ad28-4a0a-8caa-5e06ec22f856',
+    method: 'signalwire.event',
+    params: {
+      event_type: 'video.room.subscribed',
+      event_channel: 'EC_4d2c491d-bf96-4802-9008-c360a51155a2',
+      params: {
+        call_id: callId,
+        member_id: memberId,
+        room_session: {
+          room_id: roomId,
+          id: roomSessionId,
+        },
+      },
+    },
+  }
+
+  session.dispatch(actions.socketMessageAction(payload))
+}

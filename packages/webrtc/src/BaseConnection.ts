@@ -22,6 +22,7 @@ import {
 import RTCPeer from './RTCPeer'
 import { ConnectionOptions } from './utils/interfaces'
 import { stopStream, stopTrack, getUserMedia } from './utils'
+import * as workers from './workers'
 
 const vertoWorker: SDKWorker<BaseConnection<any>> = function* (
   options
@@ -154,6 +155,9 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     this.runWorker('vertoWorker', {
       worker: vertoWorker,
       initialState: {},
+    })
+    this.runWorker('videoEventWorker', {
+      worker: workers.videoEventWorker,
     })
   }
 
@@ -359,22 +363,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /** @internal */
-  public onRoomSubscribed(component: any) {
-    this.logger.debug('onRoomSubscribed', component)
-
-    /**
-     * For screenShare/additionalDevice we're using
-     * the `memberId` to namespace the object.
-     **/
-    if (this.options.additionalDevice || this.options.screenShare) {
-      this._attachListeners(this.memberId)
-    } else {
-      this._attachListeners(this.roomSessionId)
-    }
-    // FIXME: Move to a better place when rework _attachListeners too.
-    this.applyEmitterTransforms()
-  }
-
   public _tryToPromote = false
 
   get __currentPeer() {

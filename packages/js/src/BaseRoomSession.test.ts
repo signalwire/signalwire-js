@@ -1,31 +1,40 @@
 import { EventEmitter, actions, componentActions } from '@signalwire/core'
 import { BaseRoomSession, createBaseRoomSessionObject } from './BaseRoomSession'
 import type { RoomSession } from './RoomSession'
-import { configureJestStore, configureFullStack } from './testUtils'
+import { configureFullStack, dispatchMockedRoomSubscribed } from './testUtils'
 
 describe('Room Object', () => {
   let store: any
   let room: BaseRoomSession<RoomSession>
 
   beforeEach(() => {
-    store = configureJestStore()
+    const stack = configureFullStack()
+    store = stack.store
     room = createBaseRoomSessionObject<RoomSession>({
       store,
       emitter: new EventEmitter(),
     })
-    store.dispatch(componentActions.upsert({
-      // @ts-expect-error
-      id: room.id,
-      nodeId: 'node-id',
-      roomId: 'room-id',
-      roomSessionId: 'room-session-id',
-      memberId: 'member-id',
-    }))
+    store.dispatch(
+      componentActions.upsert({
+        // @ts-expect-error
+        id: room.id,
+        nodeId: 'node-id',
+        roomId: 'room-id',
+        roomSessionId: 'room-session-id',
+        memberId: 'member-id',
+      })
+    )
     // @ts-expect-error
     room.execute = jest.fn()
     // mock a room.subscribed event
-    // @ts-expect-error
-    room.onRoomSubscribed()
+    dispatchMockedRoomSubscribed({
+      session: stack.session,
+      // @ts-expect-error
+      callId: room.id,
+      roomId: 'room-id',
+      roomSessionId: 'room-session-id',
+      memberId: 'member-id',
+    })
   })
 
   it('should have all the custom methods defined', () => {
@@ -70,17 +79,25 @@ describe('Room Object', () => {
         // @ts-expect-error
         emitter,
       })
-      store.dispatch(componentActions.upsert({
+      store.dispatch(
+        componentActions.upsert({
+          // @ts-expect-error
+          id: room.id,
+          nodeId: 'node-id',
+          roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
+          roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
+          memberId: 'member-id',
+        })
+      )
+      // mock a room.subscribed event
+      dispatchMockedRoomSubscribed({
+        session,
         // @ts-expect-error
-        id: room.id,
-        nodeId: 'node-id',
+        callId: room.id,
         roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
         roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
         memberId: 'member-id',
-      }))
-      // mock a room.subscribed event
-      // @ts-expect-error
-      room.onRoomSubscribed()
+      })
 
       const result = await room.getRecordings()
       expect(result).toStrictEqual({
@@ -205,17 +222,25 @@ describe('Room Object', () => {
         // @ts-expect-error
         emitter,
       })
-      store.dispatch(componentActions.upsert({
+      store.dispatch(
+        componentActions.upsert({
+          // @ts-expect-error
+          id: room.id,
+          nodeId: 'node-id',
+          roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
+          roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
+          memberId: 'member-id',
+        })
+      )
+      // mock a room.subscribed event
+      dispatchMockedRoomSubscribed({
+        session,
         // @ts-expect-error
-        id: room.id,
-        nodeId: 'node-id',
+        callId: room.id,
         roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
         roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
         memberId: 'member-id',
-      }))
-      // mock a room.subscribed event
-      // @ts-expect-error
-      room.onRoomSubscribed()
+      })
 
       const result = await room.getPlaybacks()
       expect(result).toStrictEqual({
@@ -366,17 +391,25 @@ describe('Room Object', () => {
       })
       // @ts-expect-error
       room.execute = jest.fn()
-      store.dispatch(componentActions.upsert({
+      store.dispatch(
+        componentActions.upsert({
+          // @ts-expect-error
+          id: room.id,
+          nodeId: 'node-id',
+          roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
+          roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
+          memberId: 'member-id',
+        })
+      )
+      // mock a room.subscribed event
+      dispatchMockedRoomSubscribed({
+        session,
         // @ts-expect-error
-        id: room.id,
-        nodeId: 'node-id',
+        callId: room.id,
         roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
         roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
         memberId: 'member-id',
-      }))
-      // mock a room.subscribed event
-      // @ts-expect-error
-      room.onRoomSubscribed()
+      })
 
       const startedHandler = jest.fn()
       room.on('member.talking.started', startedHandler)
@@ -545,17 +578,25 @@ describe('Room Object', () => {
         // @ts-expect-error
         emitter,
       })
-      store.dispatch(componentActions.upsert({
+      store.dispatch(
+        componentActions.upsert({
+          // @ts-expect-error
+          id: room.id,
+          nodeId: 'node-id',
+          roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
+          roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
+          memberId: 'member-id',
+        })
+      )
+      // mock a room.subscribed event
+      dispatchMockedRoomSubscribed({
+        session,
         // @ts-expect-error
-        id: room.id,
-        nodeId: 'node-id',
+        callId: room.id,
         roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
         roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
         memberId: 'member-id',
-      }))
-      // mock a room.subscribed event
-      // @ts-expect-error
-      room.onRoomSubscribed()
+      })
 
       const result = await room.setMeta({ foo: 'bar' })
       expect(result).toBeUndefined()
@@ -586,17 +627,25 @@ describe('Room Object', () => {
         // @ts-expect-error
         emitter,
       })
-      store.dispatch(componentActions.upsert({
+      store.dispatch(
+        componentActions.upsert({
+          // @ts-expect-error
+          id: room.id,
+          nodeId: 'node-id',
+          roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
+          roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
+          memberId: 'member-id',
+        })
+      )
+      // mock a room.subscribed event
+      dispatchMockedRoomSubscribed({
+        session,
         // @ts-expect-error
-        id: room.id,
-        nodeId: 'node-id',
+        callId: room.id,
         roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
         roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
         memberId: 'member-id',
-      }))
-      // mock a room.subscribed event
-      // @ts-expect-error
-      room.onRoomSubscribed()
+      })
 
       const result = await room.setMemberMeta({
         memberId: 'uuid',
