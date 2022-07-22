@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { createTestServer, createTestCRTToken } from '../utils'
 
-test.describe('RoomSession', () => {
+test.describe('PubSub', () => {
   let server: any = null
 
   test.beforeAll(async () => {
@@ -13,7 +13,7 @@ test.describe('RoomSession', () => {
     await server.close()
   })
 
-  test('should handle joining a room, perform actions and then leave the room', async ({
+  test('should subscribe to a PubSub channel and publish a message', async ({
     page,
   }) => {
     await page.goto(server.url)
@@ -23,7 +23,7 @@ test.describe('RoomSession', () => {
     })
 
     const channel = 'js-e2e'
-    const messageContent = Date.now()
+    const messageContent = Date.now().toString()
 
     const crt = await createTestCRTToken({
       ttl: 30,
@@ -39,24 +39,26 @@ test.describe('RoomSession', () => {
     const chatMessage: any = await page.evaluate(
       (options) => {
         return new Promise(async (resolve) => {
-          // @ts-expect-error
-          const PubSub = window._SWJS.PubSub
+          try {
+            // @ts-expect-error
+            const PubSub = window._SWJS.PubSub
+            const pubSubClient = new PubSub.Client({
+              host: options.RELAY_HOST,
+              token: options.API_TOKEN,
+            })
+            // .subscribe should be after .on but i left here for test.
+            await pubSubClient.subscribe([options.channel])
+            pubSubClient.on('message', (message: any) => {
+              resolve(message)
+            })
 
-          const pubSubClient = new PubSub.Client({
-            host: options.RELAY_HOST,
-            token: options.API_TOKEN,
-          })
-          // .subscribe should be after .on but i left here for test.
-          await pubSubClient.subscribe([options.channel, 'another'])
-
-          pubSubClient.on('message', (message: any) => {
-            resolve(message)
-          })
-
-          await pubSubClient.publish({
-            channel: options.channel,
-            content: messageContent,
-          })
+            await pubSubClient.publish({
+              channel: options.channel,
+              content: options.messageContent,
+            })
+          } catch (error) {
+            console.log('PubSub Error', error)
+          }
         })
       },
       {
