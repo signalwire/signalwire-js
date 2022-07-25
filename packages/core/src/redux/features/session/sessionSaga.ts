@@ -9,7 +9,7 @@ import {
 } from '@redux-saga/core/effects'
 import type { PayloadAction } from '../../toolkit'
 import { BaseSession } from '../../../BaseSession'
-import { VertoResult, VertoPong } from '../../../RPCMessages'
+// import { VertoResult, VertoPong } from '../../../RPCMessages'
 import { JSONRPCRequest, JSONRPCResponse } from '../../../utils/interfaces'
 import type {
   VideoAPIEventParams,
@@ -19,7 +19,7 @@ import type {
 } from '../../../types'
 import type {
   ExecuteActionParams,
-  WebRTCCall,
+  // WebRTCCall,
   PubSubChannel,
   SwEventChannel,
 } from '../../interfaces'
@@ -38,10 +38,10 @@ type SessionSagaParams = {
   swEventChannel: SwEventChannel
 }
 
-type VertoWorkerParams = {
-  jsonrpc: JSONRPCRequest
-  nodeId: string
-}
+// type VertoWorkerParams = {
+//   jsonrpc: JSONRPCRequest
+//   nodeId: string
+// }
 
 // TODO: Move TypeGuards to its own module
 const isWebrtcEvent = (e: SwEventParams): e is WebRTCMessageParams => {
@@ -135,120 +135,120 @@ export function* executeActionWatcher(session: BaseSession): SagaIterator {
 }
 
 export function* sessionChannelWatcher({
-  session,
+  // session,
   sessionChannel,
   pubSubChannel,
   swEventChannel,
 }: SessionSagaParams): SagaIterator {
-  function* vertoWorker({ jsonrpc, nodeId }: VertoWorkerParams) {
-    const { id, method, params = {} } = jsonrpc
+  // function* vertoWorker({ jsonrpc, nodeId }: VertoWorkerParams) {
+  //   const { id, method, params = {} } = jsonrpc
 
-    switch (method) {
-      case 'verto.media': {
-        const component = {
-          id: params.callID,
-          state: 'early',
-          remoteSDP: params.sdp,
-          nodeId,
-        }
-        yield put(componentActions.upsert(component))
-        yield put(
-          executeAction({
-            method: 'video.message',
-            params: {
-              message: VertoResult(id, method),
-              node_id: nodeId,
-            },
-          })
-        )
-        break
-      }
-      case 'verto.answer': {
-        const component: WebRTCCall = {
-          id: params.callID,
-          state: 'active',
-          nodeId,
-        }
-        if (params?.sdp) {
-          component.remoteSDP = params.sdp
-        }
-        yield put(componentActions.upsert(component))
-        yield put(
-          executeAction({
-            method: 'video.message',
-            params: {
-              message: VertoResult(id, method),
-              node_id: nodeId,
-            },
-          })
-        )
-        break
-      }
-      case 'verto.bye': {
-        const component: WebRTCCall = {
-          id: params.callID,
-          state: 'hangup',
-          nodeId,
-          byeCause: params?.cause ?? '',
-          byeCauseCode: params?.causeCode ?? 0,
-          redirectDestination: params?.redirectDestination,
-        }
-        yield put(componentActions.upsert(component))
-        yield put(
-          executeAction({
-            method: 'video.message',
-            params: {
-              message: VertoResult(id, method),
-              node_id: nodeId,
-            },
-          })
-        )
-        break
-      }
-      case 'verto.ping': {
-        yield put(
-          executeAction({
-            method: 'video.message',
-            params: {
-              message: VertoPong(params),
-              node_id: nodeId,
-            },
-          })
-        )
-        break
-      }
-      case 'verto.punt':
-        return session.disconnect()
-      case 'verto.mediaParams': {
-        const { callID, mediaParams = {} } = params
-        if (!callID) {
-          getLogger().debug(`Invalid mediaParams event`, params)
-          break
-        }
-        const component: WebRTCCall = { id: callID }
-        if (mediaParams?.video) {
-          component.videoConstraints = mediaParams.video
-        }
-        if (mediaParams?.audio) {
-          component.audioConstraints = mediaParams.audio
-        }
-        yield put(componentActions.upsert(component))
-        break
-      }
-      // case 'verto.invite':
-      //   break
-      // case 'verto.attach':
-      //   break
-      case 'verto.info':
-        return getLogger().debug('Verto Info', params)
-      case 'verto.clientReady':
-        return getLogger().debug('Verto ClientReady', params)
-      case 'verto.announce':
-        return getLogger().debug('Verto Announce', params)
-      default:
-        return getLogger().debug(`Unknown Verto method: ${method}`, params)
-    }
-  }
+  //   switch (method) {
+  //     case 'verto.media': {
+  //       const component = {
+  //         id: params.callID,
+  //         state: 'early',
+  //         remoteSDP: params.sdp,
+  //         nodeId,
+  //       }
+  //       yield put(componentActions.upsert(component))
+  //       yield put(
+  //         executeAction({
+  //           method: 'video.message',
+  //           params: {
+  //             message: VertoResult(id, method),
+  //             node_id: nodeId,
+  //           },
+  //         })
+  //       )
+  //       break
+  //     }
+  //     case 'verto.answer': {
+  //       const component: WebRTCCall = {
+  //         id: params.callID,
+  //         state: 'active',
+  //         nodeId,
+  //       }
+  //       if (params?.sdp) {
+  //         component.remoteSDP = params.sdp
+  //       }
+  //       yield put(componentActions.upsert(component))
+  //       yield put(
+  //         executeAction({
+  //           method: 'video.message',
+  //           params: {
+  //             message: VertoResult(id, method),
+  //             node_id: nodeId,
+  //           },
+  //         })
+  //       )
+  //       break
+  //     }
+  //     case 'verto.bye': {
+  //       const component: WebRTCCall = {
+  //         id: params.callID,
+  //         state: 'hangup',
+  //         nodeId,
+  //         byeCause: params?.cause ?? '',
+  //         byeCauseCode: params?.causeCode ?? 0,
+  //         redirectDestination: params?.redirectDestination,
+  //       }
+  //       yield put(componentActions.upsert(component))
+  //       yield put(
+  //         executeAction({
+  //           method: 'video.message',
+  //           params: {
+  //             message: VertoResult(id, method),
+  //             node_id: nodeId,
+  //           },
+  //         })
+  //       )
+  //       break
+  //     }
+  //     case 'verto.ping': {
+  //       yield put(
+  //         executeAction({
+  //           method: 'video.message',
+  //           params: {
+  //             message: VertoPong(params),
+  //             node_id: nodeId,
+  //           },
+  //         })
+  //       )
+  //       break
+  //     }
+  //     case 'verto.punt':
+  //       return session.disconnect()
+  //     case 'verto.mediaParams': {
+  //       const { callID, mediaParams = {} } = params
+  //       if (!callID) {
+  //         getLogger().debug(`Invalid mediaParams event`, params)
+  //         break
+  //       }
+  //       const component: WebRTCCall = { id: callID }
+  //       if (mediaParams?.video) {
+  //         component.videoConstraints = mediaParams.video
+  //       }
+  //       if (mediaParams?.audio) {
+  //         component.audioConstraints = mediaParams.audio
+  //       }
+  //       yield put(componentActions.upsert(component))
+  //       break
+  //     }
+  //     // case 'verto.invite':
+  //     //   break
+  //     // case 'verto.attach':
+  //     //   break
+  //     case 'verto.info':
+  //       return getLogger().debug('Verto Info', params)
+  //     case 'verto.clientReady':
+  //       return getLogger().debug('Verto ClientReady', params)
+  //     case 'verto.announce':
+  //       return getLogger().debug('Verto Announce', params)
+  //     default:
+  //       return getLogger().debug(`Unknown Verto method: ${method}`, params)
+  //   }
+  // }
 
   function* videoAPIWorker(params: VideoAPIEventParams): SagaIterator {
     switch (params.event_type) {
@@ -309,10 +309,10 @@ export function* sessionChannelWatcher({
     yield put(swEventChannel, toInternalAction(broadcastParams))
 
     if (isWebrtcEvent(broadcastParams)) {
-      yield fork(vertoWorker, {
-        jsonrpc: broadcastParams.params,
-        nodeId: broadcastParams.node_id,
-      })
+      // yield fork(vertoWorker, {
+      //   jsonrpc: broadcastParams.params,
+      //   nodeId: broadcastParams.node_id,
+      // })
       return
     }
     if (isVideoEvent(broadcastParams)) {
