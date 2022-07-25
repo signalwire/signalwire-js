@@ -111,8 +111,7 @@ export const vertoEventWorker: SDKWorker<
          * If the `params.callID` is the current ACTIVE peer, stop everything and destroy the BaseConnection
          * If the `params.callID` is NOT the current peer, but is there from promote/demote process stop/destroy just the peer
          */
-
-        instance._hangup({
+        yield sagaEffects.call(instance.onVertoBye, {
           rtcPeerId: callID,
           byeCause: params?.cause ?? '',
           byeCauseCode: params?.causeCode ?? 0,

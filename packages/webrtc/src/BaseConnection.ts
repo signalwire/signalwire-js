@@ -19,15 +19,11 @@ import { ConnectionOptions } from './utils/interfaces'
 import { stopStream, stopTrack, getUserMedia } from './utils'
 import * as workers from './workers'
 
-type InternalHangupParams = {
+type OnVertoByeParams = {
   byeCause: string
   byeCauseCode: string
-  rtcPeerId?: string
+  rtcPeerId: string
   redirectDestination?: string
-}
-const DEFAULT_HANGUP_PARAMS: InternalHangupParams = {
-  byeCause: 'NORMAL_CLEARING',
-  byeCauseCode: '16',
 }
 
 const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
@@ -668,7 +664,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     } catch (error) {
       this.logger.error('Hangup error:', error)
     } finally {
-      this._hangup()
+      this.setState('hangup')
     }
   }
 
@@ -753,23 +749,37 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /** @internal */
-  public _hangup(params: InternalHangupParams = DEFAULT_HANGUP_PARAMS) {
+  public onVertoBye = (params: OnVertoByeParams) => {
     const {
-      byeCause,
-      byeCauseCode,
+      rtcPeerId,
+      byeCause = 'NORMAL_CLEARING',
+      byeCauseCode = '16',
       redirectDestination,
-      rtcPeerId = '',
     } = params
-    this.cause = byeCause
-    this.causeCode = byeCauseCode
+    this.cause = String(byeCause)
+    this.causeCode = String(byeCauseCode)
     const rtcPeer = this.getRTCPeerById(rtcPeerId)
-    if (redirectDestination && rtcPeer && rtcPeer.localSdp) {
-      this.logger.debug('Redirect Destination to:', redirectDestination)
+    if (!rtcPeer) {
+      return this.logger.warn('Invalid RTCPeer to hangup', params)
+    }
+    if (redirectDestination && rtcPeer.localSdp) {
+      this.logger.debug(
+        'Redirect Destination to:',
+        redirectDestination,
+        'for RTCPeer:',
+        rtcPeer.uuid
+      )
       this.nodeId = redirectDestination
       this.executeInvite(rtcPeer.localSdp, rtcPeer.uuid)
-    } else if (this.peer?.uuid === rtcPeer?.uuid) {
-      // TODO: improve this check
-      // Set state to hangup only if the rtcPeer is the current one
+      return
+    }
+
+    // Notify RTCPeer for the bad signaling error
+    rtcPeer.onRemoteBye({ code: this.causeCode, message: this.cause })
+
+    // TODO: improve this check
+    // Set state to hangup only if the rtcPeer is the current one
+    if (this.peer?.uuid === rtcPeer?.uuid) {
       this.setState('hangup')
     }
   }
@@ -780,6 +790,13 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
    * @internal
    * */
   private _mungeSDP(sdp: string) {
+    // const pattern = /^a=candidate.*/
+    // const cleaned =
+    //   sdp
+    //     .split('\r\n')
+    //     .filter((line) => !pattern.test(line))
+    //     .join('\r\n') + '\r\n'
+    // return cleaned
     return sdp
   }
 
