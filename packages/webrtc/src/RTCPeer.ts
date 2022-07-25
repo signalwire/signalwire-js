@@ -318,6 +318,15 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
   }
 
+  onRemoteBye({ code, message }: { code: string; message: string }) {
+    // It could be a negotiation/signaling error so reject the "startMethod"
+    this._rejectStartMethod({
+      code,
+      message,
+    })
+    this.stop()
+  }
+
   async onRemoteSdp(sdp: string) {
     try {
       const type = this.isOffer ? 'answer' : 'offer'
