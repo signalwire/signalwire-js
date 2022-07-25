@@ -10,6 +10,7 @@ import {
   extendComponent,
   validateEventsToSubscribe,
   toInternalEventName,
+  toInternalAction,
   serializeableProxy,
   timeoutPromise,
 } from './utils'
@@ -48,6 +49,7 @@ export {
   toSnakeCaseKeys,
   toLocalEvent,
   toInternalEventName,
+  toInternalAction,
   serializeableProxy,
   toSyntheticEvent,
   GLOBAL_VIDEO_EVENTS,
