@@ -14,19 +14,19 @@ import {
 
 import { BaseConnection } from '../BaseConnection'
 
-type RoomSubscribedWorkerOnDone = (args: BaseConnection<any>) => void
-type RoomSubscribedWorkerOnFail = (args: { error: Error }) => void
+type VideoEventWorkerOnDone = (args: BaseConnection<any>) => void
+type VideoEventWorkerOnFail = (args: { error: Error }) => void
 
-export type RoomSubscribedWorkerHooks = SDKWorkerHooks<
-  RoomSubscribedWorkerOnDone,
-  RoomSubscribedWorkerOnFail
+export type VideoEventWorkerHooks = SDKWorkerHooks<
+  VideoEventWorkerOnDone,
+  VideoEventWorkerOnFail
 >
 
 export const videoEventWorker: SDKWorker<
   BaseConnection<any>,
-  RoomSubscribedWorkerHooks
+  VideoEventWorkerHooks
 > = function* (options): SagaIterator {
-  getLogger().trace('roomSubscribedWorker started')
+  getLogger().trace('videoEventWorker started')
   const { channels, instance } = options
   const { swEventChannel } = channels
 
@@ -81,14 +81,14 @@ export const videoEventWorker: SDKWorker<
      **/
     if (instance.options.additionalDevice || instance.options.screenShare) {
       if (!memberId) {
-        throw new Error('[roomSubscribedWorker] missing memberId')
+        throw new Error('[videoEventWorker] missing memberId')
       }
 
       // @ts-expect-error
       instance._attachListeners(memberId)
     } else {
       if (!roomSessionId) {
-        throw new Error('[roomSubscribedWorker] missing roomSessionId')
+        throw new Error('[videoEventWorker] missing roomSessionId')
       }
 
       // @ts-expect-error
