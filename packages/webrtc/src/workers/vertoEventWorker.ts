@@ -113,8 +113,8 @@ export const vertoEventWorker: SDKWorker<
          */
         yield sagaEffects.call(instance.onVertoBye, {
           rtcPeerId: callID,
-          byeCause: params?.cause ?? '',
-          byeCauseCode: params?.causeCode ?? 0,
+          byeCause: params?.cause,
+          byeCauseCode: params?.causeCode,
           redirectDestination: params?.redirectDestination,
         })
 
