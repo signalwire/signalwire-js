@@ -75,16 +75,8 @@ steps:
       - npm run build
       - npm run -w=@sw-internal/e2e-js dev
     environment:
-      API_HOST:
-        from_secret: API_HOST
-      RELAY_HOST:
-        from_secret: RELAY_HOST
-      RELAY_PROJECT:
-        from_secret: RELAY_PROJECT
-      RELAY_TOKEN:
-        from_secret: RELAY_TOKEN
-      PLAYBACK_URL:
-        from_secret: PLAYBACK_URL
+      SW_TEST_CONFIG:
+        from_secret: STAGING_E2E_JS_SW_TEST_CONFIG
 
 trigger:
   event: push
