@@ -523,7 +523,7 @@ describe('vertoEventWorker', () => {
   })
 
   describe('verto.bye', () => {
-    it('should handle verto.answer (without SDP) for the active peer', () => {
+    it('should handle verto.bye for the active peer', () => {
       let runSaga = true
       const session = {} as any
       const pubSubChannel = createPubSubChannel()
@@ -539,6 +539,7 @@ describe('vertoEventWorker', () => {
           uuid: 'active',
         },
         getRTCPeerById: jest.fn((_id: string) => mockPeer),
+        onVertoBye: jest.fn(),
         setState: jest.fn(),
       } as any
 
@@ -561,15 +562,17 @@ describe('vertoEventWorker', () => {
                 return toInternalAction({
                   event_type: 'webrtc.message',
                   event_channel: 'event_channel',
-                  timestamp: 1627374894.010822,
+                  timestamp: 1658741088.079189,
                   project_id: 'project_id',
                   node_id: 'node_id',
                   params: {
                     jsonrpc: '2.0',
-                    id: '40',
-                    method: 'verto.answer',
+                    id: '1907',
+                    method: 'verto.bye',
                     params: {
-                      callID: '66e4b610-8d26-4835-8bd8-7022a42ee9bc',
+                      callID: '42f4f654-64c6-40e1-b86d-50a73a8363b9',
+                      causeCode: '88',
+                      cause: 'INCOMPATIBLE_DESTINATION',
                     },
                   },
                 })
@@ -589,7 +592,7 @@ describe('vertoEventWorker', () => {
           actions.executeAction({
             method: 'video.message',
             params: {
-              message: VertoResult('40', 'verto.answer'),
+              message: VertoResult('1907', 'verto.bye'),
               node_id: 'node_id',
             },
           })
@@ -597,13 +600,13 @@ describe('vertoEventWorker', () => {
         .silentRun()
         .finally(() => {
           expect(dispatchedActions).toHaveLength(1)
-          expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
-          expect(instance.getRTCPeerById).toHaveBeenCalledWith(
-            '66e4b610-8d26-4835-8bd8-7022a42ee9bc'
-          )
-          expect(instance.setState).toHaveBeenCalledTimes(1)
-          expect(instance.setState).toHaveBeenCalledWith('active')
-          expect(mockPeer.onRemoteSdp).toHaveBeenCalledTimes(0)
+          expect(instance.onVertoBye).toHaveBeenCalledTimes(1)
+          expect(instance.onVertoBye).toHaveBeenCalledWith({
+            rtcPeerId: '42f4f654-64c6-40e1-b86d-50a73a8363b9',
+            byeCause: 'INCOMPATIBLE_DESTINATION',
+            byeCauseCode: '88',
+            redirectDestination: undefined,
+          })
         })
     })
   })
