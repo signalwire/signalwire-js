@@ -4,6 +4,10 @@ const { exec } = require('node:child_process')
 const { runNodeScript } = require('./runNodeScript')
 
 const getIgnoredTests = (ignoreTests, mode) => {
+  if (!ignoreTests) {
+    return []
+  }
+
   if (mode === 'jest') {
     return ['-t', `^(?!(${ignoreTests.join('|')})).*`]
   } else if (mode === 'playwright') {
@@ -73,6 +77,7 @@ const runTests = (mode, config) => {
       child.stderr.on('data', (data) => {
         console.error(`stderr: ${data}`)
       })
+      break;
     }
     case 'custom-node': {
       return runNodeScript(config)
