@@ -2,12 +2,13 @@ require('dotenv').config({ path: '.env.test' })
 const jestCli = require('jest-cli')
 const { exec } = require('node:child_process')
 
-const getIgnoredTests = (ignoreTests) => {
-  if (!ignoreTests) {
-    return []
+const getIgnoredTests = (ignoreTests, mode) => {
+  if (mode === 'jest') {
+    return ['-t', `^(?!(${ignoreTests.join('|')})).*`]
+  } else if (mode === 'playwright') {
+    return ['--grep-invert', `(${ignoreTests.join('|')})`]
   }
-
-  return ['-t', `^(?!(${ignoreTests.join('|')})).*`]
+  return []
 }
 
 const injectEnvVariables = (env) => {
@@ -54,12 +55,17 @@ const runTests = (mode, config) => {
   switch (mode) {
     case 'jest': {
       injectEnvVariables(config.env)
-      return jestCli.run([...getIgnoredTests(config.ignoreTests)])
+      return jestCli.run([...getIgnoredTests(config.ignoreTests, mode)])
     }
     case 'playwright': {
       const runCommand = 'npx playwright test'
+      const ignoredTests = getIgnoredTests(config.ignoreTests, mode)
       injectEnvVariables(config.env)
-      const child = exec(runCommand)
+      const command =
+        ignoredTests.length > 0
+          ? `${runCommand} ${ignoredTests[0]} "${ignoredTests[1]}"`
+          : runCommand
+      const child = exec(command)
 
       child.stdout.on('data', (data) => {
         console.log(data.toString())
