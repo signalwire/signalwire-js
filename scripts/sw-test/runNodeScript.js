@@ -9,12 +9,17 @@ const { spawn } = require('node:child_process')
 
 const ALLOWED_SCRIPT_EXTENSIONS = ['js', 'ts']
 
-const getScriptOptions = (pathname) => {
+const getScriptOptions = (pathname, config) => {
   const list = fs.readdirSync(pathname)
+  const ignoreFiles = config.ignoreFiles || []
   let acc = []
   list.forEach(function (item) {
     const itemPath = pathname + '/' + item
-    if (fs.lstatSync(itemPath).isFile() && item.includes('.test.')) {
+    if (
+      fs.lstatSync(itemPath).isFile() &&
+      item.includes('.test.') &&
+      !ignoreFiles.includes(item)
+    ) {
       acc.push({
         name: item,
         type: getScriptType(itemPath),
@@ -50,8 +55,8 @@ const getRunParams = (script) => {
   }
 }
 
-async function runNodeScript() {
-  const tests = getScriptOptions(path.join(process.cwd(), './src'))
+async function runNodeScript(config) {
+  const tests = getScriptOptions(path.join(process.cwd(), './src'), config)
   try {
     for await (const test of tests) {
       await new Promise((resolve, reject) => {

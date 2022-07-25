@@ -75,7 +75,7 @@ const runTests = (mode, config) => {
       })
     }
     case 'custom-node': {
-      return runNodeScript()
+      return runNodeScript(config)
     }
   }
 }
