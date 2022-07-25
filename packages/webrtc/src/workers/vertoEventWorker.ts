@@ -38,12 +38,17 @@ export const vertoEventWorker: SDKWorker<
 
     const { id: jsonrpcId, method, params = {} } = action.payload
     const { callID, nodeId } = params
+    const peer = instance.getRTCPeerById(callID)
+    if (!peer) {
+      getLogger().warn(
+        `RTCPeer '${callID}' not found for method: '${method}'`,
+        params
+      )
+      continue
+    }
 
-    /**
-     * TODO:
-     *
-     * Set nodeId on the RTCPeer and then use it for verto.bye?
-     */
+    // Set nodeId for each RTCPeer
+    peer.nodeId = nodeId
 
     // getLogger().warn('vertoEventWorker', method, params)
     switch (method) {
@@ -55,14 +60,11 @@ export const vertoEventWorker: SDKWorker<
          * If the `params.callID` is NOT the current peer, but it's there from promote/demote process just setup the media
          * and wait for the join event to swap RTCPeers
          */
-        const peer = instance.getRTCPeerById(callID)
-        if (peer) {
-          // TODO: Improve
-          if (peer.uuid === instance.peer?.uuid) {
-            instance.setState('early')
-          }
-          peer.onRemoteSdp(params.sdp)
+        // TODO: Improve
+        if (peer.uuid === instance.peer?.uuid) {
+          instance.setState('early')
         }
+        peer.onRemoteSdp(params.sdp)
 
         yield sagaEffects.put(
           actions.executeAction({
@@ -83,15 +85,12 @@ export const vertoEventWorker: SDKWorker<
          * If the `params.callID` is NOT the current peer, but it's there from promote/demote process just setup the media
          * and wait for the join event to swap RTCPeers
          */
-        const peer = instance.getRTCPeerById(callID)
-        if (peer) {
-          // TODO: Improve
-          if (peer.uuid === instance.peer?.uuid) {
-            instance.setState('active')
-          }
-          if (params?.sdp) {
-            peer.onRemoteSdp(params.sdp)
-          }
+        // TODO: Improve
+        if (peer.uuid === instance.peer?.uuid) {
+          instance.setState('active')
+        }
+        if (params?.sdp) {
+          peer.onRemoteSdp(params.sdp)
         }
 
         yield sagaEffects.put(
@@ -150,7 +149,6 @@ export const vertoEventWorker: SDKWorker<
           break
         }
         // TODO: test
-        const peer = instance.getRTCPeerById(callID)
         const { audio, video } = params.mediaParams
         if (peer && video) {
           peer.applyMediaConstraints('video', video)
