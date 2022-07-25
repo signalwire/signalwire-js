@@ -1,6 +1,7 @@
 require('dotenv').config({ path: '.env.test' })
 const jestCli = require('jest-cli')
 const { exec } = require('node:child_process')
+const { runNodeScript } = require('./runNodeScript')
 
 const getIgnoredTests = (ignoreTests, mode) => {
   if (mode === 'jest') {
@@ -21,7 +22,7 @@ const injectEnvVariables = (env) => {
   })
 }
 
-const TEST_MODES = ['jest', 'playwright']
+const TEST_MODES = ['jest', 'playwright', 'custom-node']
 
 const getMode = (flags) => {
   const modeFlag = flags.find((f) => f.startsWith('--mode'))
@@ -54,13 +55,11 @@ const getMode = (flags) => {
 const runTests = (mode, config) => {
   switch (mode) {
     case 'jest': {
-      injectEnvVariables(config.env)
       return jestCli.run([...getIgnoredTests(config.ignoreTests, mode)])
     }
     case 'playwright': {
       const runCommand = 'npx playwright test'
       const ignoredTests = getIgnoredTests(config.ignoreTests, mode)
-      injectEnvVariables(config.env)
       const command =
         ignoredTests.length > 0
           ? `${runCommand} ${ignoredTests[0]} "${ignoredTests[1]}"`
@@ -75,6 +74,9 @@ const runTests = (mode, config) => {
         console.error(`stderr: ${data}`)
       })
     }
+    case 'custom-node': {
+      return runNodeScript()
+    }
   }
 }
 
@@ -82,6 +84,7 @@ exports.cli = (args) => {
   const config = process.env.SW_TEST_CONFIG
     ? JSON.parse(process.env.SW_TEST_CONFIG)
     : {}
+  injectEnvVariables(config.env)
   const flags = args.slice(2)
   const mode = getMode(flags)
   return runTests(mode, config)
