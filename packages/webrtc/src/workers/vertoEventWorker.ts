@@ -37,7 +37,7 @@ export const vertoEventWorker: SDKWorker<
       })
 
     const { id: jsonrpcId, method, params = {} } = action.payload
-    const { callID, node_id: nodeId } = params
+    const { callID, nodeId } = params
 
     /**
      * TODO:
@@ -45,7 +45,7 @@ export const vertoEventWorker: SDKWorker<
      * Set nodeId on the RTCPeer and then use it for verto.bye?
      */
 
-    getLogger().warn('vertoEventWorker', method, params)
+    // getLogger().warn('vertoEventWorker', method, params)
     switch (method) {
       case 'verto.media': {
         /**
