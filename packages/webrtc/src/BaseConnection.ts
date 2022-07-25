@@ -62,7 +62,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     Rooms.BaseRoomInterface<EventTypes & BaseConnectionStateEventTypes>,
     BaseConnectionContract<EventTypes & BaseConnectionStateEventTypes>
 {
-  public _nodeId: string
   public direction: 'inbound' | 'outbound'
   // public peer: RTCPeer<EventTypes>
   public options: BaseConnectionOptions<
@@ -158,21 +157,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       this.select((state) => componentSelectors.getComponent(state, this.id)) ||
       {}
     )
-  }
-
-  get nodeId() {
-    // This is only set during `hangup` when
-    // `redirectDestination` is present
-    if (this._nodeId) {
-      return this._nodeId
-    }
-
-    // @ts-expect-error
-    return this.component?.nodeId ?? ''
-  }
-
-  set nodeId(id: string) {
-    this._nodeId = id
   }
 
   /** @internal */
@@ -272,6 +256,15 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /**
+   * TODO: To improve
+   */
+  private getNodeIdFromVertoMessage(vertoMessage: JSONRPCRequest) {
+    const rtcPeerId: string =
+      vertoMessage.params?.dialogParams?.id ?? this.peer?.uuid
+    return this.getRTCPeerById(rtcPeerId)?.nodeId ?? ''
+  }
+
+  /**
    * @internal
    * Verto messages have to be wrapped into an execute
    * request and sent using the 'video.message' method.
@@ -280,7 +273,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     const isInvite = vertoMessage.method === 'verto.invite'
     const params: any = {
       message: vertoMessage,
-      node_id: isInvite ? '' : this.nodeId,
+      node_id: isInvite ? '' : this.getNodeIdFromVertoMessage(vertoMessage),
     }
     if (isInvite) {
       if (this.options.screenShare) {
@@ -294,7 +287,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       }
     } else {
       // nodeId is required for all the requests (except for verto.invite)
-      if (!this.nodeId) {
+      if (!params.node_id) {
         this.logger.warn(
           `Skip Request. Missing nodeId for '${vertoMessage.method}'.`
         )
@@ -769,7 +762,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         'for RTCPeer:',
         rtcPeer.uuid
       )
-      this.nodeId = redirectDestination
+      rtcPeer.nodeId = redirectDestination
       this.executeInvite(rtcPeer.localSdp, rtcPeer.uuid)
       return
     }
