@@ -153,14 +153,14 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   get component() {
+    const id = this.peer?.uuid ?? ''
     return (
-      this.select((state) => componentSelectors.getComponent(state, this.id)) ||
-      {}
+      this.select((state) => componentSelectors.getComponent(state, id)) || {}
     )
   }
 
   /** @internal */
-  dialogParams(callId?: string) {
+  dialogParams(rtcPeerId?: string) {
     const {
       destinationNumber,
       attach,
@@ -177,7 +177,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     return {
       dialogParams: {
         // TODO: figure out a better way
-        id: callId ?? this.peer?.uuid,
+        id: rtcPeerId ?? this.peer?.uuid,
         destinationNumber,
         attach,
         callerName,
@@ -315,6 +315,14 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       const rtcPeerPromoted = new RTCPeer(this, 'offer')
       this.appendRTCPeer(rtcPeerPromoted)
       this.logger.debug('Trigger start for the new RTCPeer..')
+
+      this.runWorker('roomSubscribedWorker', {
+        worker: workers.roomSubscribedWorker,
+        initialState: {
+          rtcPeerId: rtcPeerPromoted.uuid,
+        },
+      })
+
       await rtcPeerPromoted.start()
 
       // TODO: teardown the previous peer when the promoted one is good
@@ -527,6 +535,13 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       this.direction = 'outbound'
       this.peer = new RTCPeer(this, 'offer')
       try {
+        this.runWorker('roomSubscribedWorker', {
+          worker: workers.roomSubscribedWorker,
+          initialState: {
+            rtcPeerId: this.peer.uuid,
+          },
+        })
+
         await this.peer.start()
         resolve(this as any as T)
       } catch (error) {
