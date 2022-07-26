@@ -165,24 +165,3 @@ export const vertoEventWorker: SDKWorker<
 
   getLogger().trace('vertoEventWorker ended')
 }
-
-// if (action.type === 'video.room.subscribed') {
-//   const { payload: params } = action
-//   getLogger().info('room.subscribed', JSON.stringify(action, null, 2))
-//   yield sagaEffects.put(
-//     componentActions.upsert({
-//       id: instance.__uuid,
-//       roomId: params.room_session.room_id,
-//       roomSessionId: params.room_session.id,
-//       memberId: params.member_id,
-//       previewUrl: params.room_session.preview_url,
-//     })
-//   )
-//   // Rename "room.subscribed" with "room.joined" for the end-user
-//   yield sagaEffects.put(pubSubChannel, {
-//     type: 'video.room.joined',
-//     payload: params,
-//   })
-// } else {
-
-// }
