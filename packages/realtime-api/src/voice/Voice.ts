@@ -21,7 +21,8 @@ import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
 
 export * from './VoiceClient'
 export { Call } from './Call'
-export type { DeviceBuilder, RealTimeCallApiEvents }
+export type { RealTimeCallApiEvents }
+export { DeviceBuilder }
 export { Playlist } from './Playlist'
 export type { CallPlayback } from './CallPlayback'
 export type { CallPrompt } from './CallPrompt'
