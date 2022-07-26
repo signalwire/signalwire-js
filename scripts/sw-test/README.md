@@ -4,12 +4,19 @@ Internal cli tool for running unit tests (Jest), Playwright tests (Chromium), an
 
 ## Features
 
+You can use the `--mode` flag to specify which mode you want to use. There are currently 3 supported modes: `jest`, `playwright`, and `custom-node`.
+
+Example:
+```
+$ sw-test --mode=jest
+```
+
 ### JSON Configuration
 By default we'll use the `SW_TEST_CONFIG` environment variable to load the configuration.
 
 **Important**: The value assigned to `SW_TEST_CONFIG` must be a valid JSON string.
 
-### Features
+### Configuration Options
 
 |               | Unit | Playwright | Custom Node |
 | ------------- | ------------- | ------------- | ------------- |

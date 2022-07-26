@@ -66,7 +66,7 @@ steps:
       VOICE_DIAL_CONNECT_CONTEXT:
         from_secret: VOICE_DIAL_CONNECT_CONTEXT
 
-  - name: e2e-js
+  - name: stage-e2e-js
     depends_on:
       - stack-tests
     image: mcr.microsoft.com/playwright:v1.22.2-focal
@@ -77,6 +77,18 @@ steps:
     environment:
       SW_TEST_CONFIG:
         from_secret: STAGING_E2E_JS_SW_TEST_CONFIG
+
+  - name: prod-e2e-js
+    depends_on:
+      - stack-tests
+    image: mcr.microsoft.com/playwright:v1.22.2-focal
+    commands:
+      - npm install
+      - npm run build
+      - npm run -w=@sw-internal/e2e-js dev
+    environment:
+      SW_TEST_CONFIG:
+        from_secret: PRODUCTION_E2E_JS_SW_TEST_CONFIG
 
 trigger:
   event: push
