@@ -142,7 +142,20 @@ export class BasePubSubConsumer<
     }
   }
 
+  private _checkMissingSubscriptions() {
+    const subscriptions = this.getSubscriptions()
+    if (subscriptions.length === 0) {
+      this.logger.info(
+        'Subscribe was called before any listeners were attached. Move `.subscribe()` right after your event listeners to suppress this message.'
+      )
+      // @ts-ignore
+      this.once('message', () => {})
+    }
+  }
+
   async subscribe(channels?: PubSubChannel) {
+    this._checkMissingSubscriptions()
+
     const params = this._getSubscribeParams({ channels })
 
     this._setSubscribeParams(params)

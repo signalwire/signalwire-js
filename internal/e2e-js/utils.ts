@@ -117,3 +117,27 @@ export const createTestVRTToken = async (body: CreateTestVRTOptions) => {
   const data = await response.json()
   return data.token
 }
+
+interface CreateTestCRTOptions {
+  ttl: number
+  member_id: string
+  state: Record<string, any>
+  channels: Record<string, { read?: boolean; write?: boolean }>
+}
+
+export const createTestCRTToken = async (body: CreateTestCRTOptions) => {
+  const authCreds = `${process.env.RELAY_PROJECT}:${process.env.RELAY_TOKEN}`
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/chat/tokens`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${Buffer.from(authCreds).toString('base64')}`,
+      },
+      body: JSON.stringify(body),
+    }
+  )
+  const data = await response.json()
+  return data.token
+}

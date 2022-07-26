@@ -132,6 +132,7 @@ export const validateEventsToSubscribe = <T = string>(events: T[]): T[] => {
       if (
         CLIENT_SIDE_EVENT_NAMES.includes(event) ||
         isSyntheticEvent(event) ||
+        isLocalEvent(event) ||
         isSessionEvent(event)
       ) {
         return null

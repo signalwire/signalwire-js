@@ -4,6 +4,7 @@ import { PubSubChannel, SwEventChannel } from './redux/interfaces'
 import { BaseSession } from './BaseSession'
 import { RPCConnectResult, InternalSDKLogger } from './utils/interfaces'
 import { EventEmitter } from './utils/EventEmitter'
+import { actions } from '.'
 
 const PROJECT_ID = '8f0a119a-cda7-4497-a47d-c81493b824d4'
 const TOKEN = '<VRT>'
@@ -38,6 +39,44 @@ export const configureJestStore = (
     runSagaMiddleware: false,
     ...options,
   }) as SDKStore
+}
+
+/**
+ * Helper method to configure a Store with a rootSaga
+ * and a mocked Session object.
+ * This allow to write integration tests.
+ *
+ * @returns { store, session, emitter, destroy }
+ */
+export const configureFullStack = () => {
+  const session = {
+    dispatch: console.log,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    execute: jest.fn(),
+  }
+  const emitter = new EventEmitter()
+  const store = configureStore({
+    userOptions: {
+      project: PROJECT_ID,
+      token: TOKEN,
+      devTools: false,
+      emitter,
+    },
+    SessionConstructor: jest.fn().mockImplementation(() => {
+      return session
+    }),
+  })
+
+  store.dispatch(actions.initAction())
+  store.dispatch(actions.authSuccessAction())
+
+  return {
+    store,
+    session,
+    emitter,
+    destroy: () => store.dispatch(actions.destroyAction()),
+  }
 }
 
 export const wait = (ms: number) => {
