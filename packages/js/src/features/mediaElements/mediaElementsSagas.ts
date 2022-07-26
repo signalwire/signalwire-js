@@ -83,7 +83,8 @@ export const makeVideoElementSaga = ({
 
       room.on('layout.changed', (params) => {
         getLogger().debug('Received layout.changed')
-        if (room.peer.hasVideoSender && room.localStream) {
+        // FIXME: expose a method on BaseConnection
+        if (room.peer?.hasVideoSender && room.localStream) {
           layoutChangedHandler({
             // @ts-expect-error
             layout: params.layout,
