@@ -4,7 +4,7 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "dev": "node -r dotenv/config index.js",
+    "dev": "sw-test --mode=custom-node",
     "test": ""
   },
   "devDependencies": {

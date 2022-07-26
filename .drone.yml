@@ -25,7 +25,7 @@ steps:
       RELAY_TOKEN:
         from_secret: RELAY_TOKEN
 
-  - name: e2e-realtime-api
+  - name: stage-e2e-realtime-api
     depends_on:
       - stack-tests
     image: node:16-alpine
@@ -34,37 +34,20 @@ steps:
       - npm run build
       - npm run -w=@sw-internal/e2e-realtime-api dev
     environment:
-      API_HOST:
-        from_secret: API_HOST
-      RELAY_HOST:
-        from_secret: RELAY_HOST
-      RELAY_PROJECT:
-        from_secret: RELAY_PROJECT
-      RELAY_TOKEN:
-        from_secret: RELAY_TOKEN
-      RELAY_CONTEXT:
-        from_secret: RELAY_CONTEXT
-      RELAY_FROM_NUMBER:
-        from_secret: RELAY_FROM_NUMBER
-      RELAY_TO_NUMBER:
-        from_secret: RELAY_TO_NUMBER
-      # Scoped value for Voice tests
-      VOICE_HOST:
-        from_secret: VOICE_HOST
-      VOICE_PROJECT:
-        from_secret: VOICE_PROJECT
-      VOICE_TOKEN:
-        from_secret: VOICE_TOKEN
-      VOICE_CONTEXT:
-        from_secret: VOICE_CONTEXT
-      VOICE_DIAL_FROM_NUMBER:
-        from_secret: VOICE_DIAL_FROM_NUMBER
-      VOICE_DIAL_TO_NUMBER:
-        from_secret: VOICE_DIAL_TO_NUMBER
-      VOICE_DIAL_CONNECT_TO_NUMBER:
-        from_secret: VOICE_DIAL_CONNECT_TO_NUMBER
-      VOICE_DIAL_CONNECT_CONTEXT:
-        from_secret: VOICE_DIAL_CONNECT_CONTEXT
+      SW_TEST_CONFIG:
+        from_secret: STAGING_E2E_REALTIME_SW_TEST_CONFIG
+
+  - name: prod-e2e-realtime-api
+    depends_on:
+      - stack-tests
+    image: node:16-alpine
+    commands:
+      - npm install
+      - npm run build
+      - npm run -w=@sw-internal/e2e-realtime-api dev
+    environment:
+      SW_TEST_CONFIG:
+        from_secret: PRODUCTION_E2E_REALTIME_SW_TEST_CONFIG
 
   - name: stage-e2e-js
     depends_on:
