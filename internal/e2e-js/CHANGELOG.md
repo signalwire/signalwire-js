@@ -1,5 +1,16 @@
 # @sw-internal/e2e-js
 
+## 0.0.3
+
+### Patch Changes
+
+- [#598](https://github.com/signalwire/signalwire-js/pull/598) [`06d16780`](https://github.com/signalwire/signalwire-js/commit/06d1678074b72cbfcd26d098d90c8a3b7f406469) - [internal] added sw-test to e2e-js and e2e-realtime-api
+
+* [#596](https://github.com/signalwire/signalwire-js/pull/596) [`6bc89d81`](https://github.com/signalwire/signalwire-js/commit/6bc89d81fe6ffa7530f60ed90482db1e7a39d6ac) - [internal] Add `PubSub` playground and e2e-tests.
+
+* Updated dependencies [[`6bc89d81`](https://github.com/signalwire/signalwire-js/commit/6bc89d81fe6ffa7530f60ed90482db1e7a39d6ac)]:
+  - @sw-internal/playground-js@0.0.6
+
 ## 0.0.2
 
 ### Patch Changes
