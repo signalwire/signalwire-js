@@ -2,6 +2,9 @@
 
 Internal cli tool for running unit tests (Jest), Playwright tests (Chromium), and our custom node test runner for E2E tests.
 
+## Running tests locally
+You can run the tests locally the same way you would in CI. Only difference is that locally you could load the global `SW_TEST_CONFIG` environment variable by defining an `env.test` file.
+
 ## Features
 
 You can use the `--mode` flag to specify which mode you want to use. There are currently 3 supported modes: `jest`, `playwright`, and `custom-node`.
