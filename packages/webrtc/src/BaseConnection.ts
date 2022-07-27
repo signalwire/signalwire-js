@@ -100,9 +100,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
     this.applyEmitterTransforms({ local: true })
 
-    this.runWorker('vertoEventWorker', {
-      worker: workers.vertoEventWorker,
-    })
     this.runWorker('videoEventWorker', {
       worker: workers.videoEventWorker,
     })
@@ -316,11 +313,18 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       this.appendRTCPeer(rtcPeerPromoted)
       this.logger.debug('Trigger start for the new RTCPeer..')
 
+      const initialState = {
+        rtcPeerId: rtcPeerPromoted.uuid,
+      }
+
+      this.runWorker('vertoEventWorker', {
+        worker: workers.vertoEventWorker,
+        initialState,
+      })
+
       this.runWorker('roomSubscribedWorker', {
         worker: workers.roomSubscribedWorker,
-        initialState: {
-          rtcPeerId: rtcPeerPromoted.uuid,
-        },
+        initialState,
       })
 
       await rtcPeerPromoted.start()
@@ -535,11 +539,18 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       this.direction = 'outbound'
       this.peer = new RTCPeer(this, 'offer')
       try {
+        const initialState = {
+          rtcPeerId: this.peer.uuid,
+        }
+
+        this.runWorker('vertoEventWorker', {
+          worker: workers.vertoEventWorker,
+          initialState,
+        })
+
         this.runWorker('roomSubscribedWorker', {
           worker: workers.roomSubscribedWorker,
-          initialState: {
-            rtcPeerId: this.peer.uuid,
-          },
+          initialState,
         })
 
         await this.peer.start()

@@ -27,13 +27,20 @@ export const vertoEventWorker: SDKWorker<
   VertoEventWorkerHooks
 > = function* (options): SagaIterator {
   getLogger().debug('vertoEventWorker started')
-  const { channels, instance } = options
+  const { channels, instance, initialState } = options
   const { swEventChannel } = channels //pubSubChannel
+  const { rtcPeerId } = initialState
+  if (!rtcPeerId) {
+    throw new Error('Missing rtcPeerId for roomSubscribedWorker')
+  }
 
   while (true) {
     const action: MapToPubSubShape<WebRTCMessageParams> =
       yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
-        return action.type === 'webrtc.message'
+        if (action.type === 'webrtc.message') {
+          return action.payload.params?.callID === rtcPeerId
+        }
+        return false
       })
 
     const { id: jsonrpcId, method, params = {} } = action.payload
