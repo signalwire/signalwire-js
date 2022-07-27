@@ -99,10 +99,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     this.logger.debug('New Call with Options:', this.options)
 
     this.applyEmitterTransforms({ local: true })
-
-    this.runWorker('videoEventWorker', {
-      worker: workers.videoEventWorker,
-    })
   }
 
   get id() {
