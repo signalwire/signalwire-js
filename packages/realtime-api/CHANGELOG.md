@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.1]- 2022-07-27
+
+### Changed
+
+- [#596](https://github.com/signalwire/signalwire-js/pull/596) [`6bc89d81`](https://github.com/signalwire/signalwire-js/commit/6bc89d81fe6ffa7530f60ed90482db1e7a39d6ac) - Improve auto-subscribe logic in `Video` and `PubSub` namespaces.
+
+### Fixed
+
+- [#597](https://github.com/signalwire/signalwire-js/pull/597) [`b2abd7ac`](https://github.com/signalwire/signalwire-js/commit/b2abd7ac3a21b058beba0689ddbe8af3b83a6b40) - Fix missing export for `DeviceBuilder`
+
+### Dependencies
+
+- Updated dependencies [[`6bc89d81`](https://github.com/signalwire/signalwire-js/commit/6bc89d81fe6ffa7530f60ed90482db1e7a39d6ac)]:
+  - @signalwire/core@3.10.1
+
 ## [3.3.0]- 2022-07-14
 
 ### Added

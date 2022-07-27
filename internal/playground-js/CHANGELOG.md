@@ -1,5 +1,11 @@
 # @sw-internal/playground-js
 
+## 0.0.6
+
+### Patch Changes
+
+- [#596](https://github.com/signalwire/signalwire-js/pull/596) [`6bc89d81`](https://github.com/signalwire/signalwire-js/commit/6bc89d81fe6ffa7530f60ed90482db1e7a39d6ac) - [internal] Add `PubSub` playground and e2e-tests.
+
 ## 0.0.5
 
 ### Patch Changes
