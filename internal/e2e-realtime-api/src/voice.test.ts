@@ -11,9 +11,9 @@ const sleep = (ms = 3000) => {
 const handler = () => {
   return new Promise<number>(async (resolve, reject) => {
     const client = new Voice.Client({
-      host: process.env.VOICE_HOST || 'relay.swire.io',
-      project: process.env.VOICE_PROJECT as string,
-      token: process.env.VOICE_TOKEN as string,
+      host: process.env.RELAY_HOST || 'relay.swire.io',
+      project: process.env.RELAY_PROJECT as string,
+      token: process.env.RELAY_TOKEN as string,
       contexts: [process.env.VOICE_CONTEXT as string],
       // logLevel: "trace",
       debug: {
@@ -90,7 +90,7 @@ const handler = () => {
         tap.equal(result.digits, '123', 'Correct Digits were entered')
 
         console.log(
-          `Connecting ${process.env.VOICE_DIAL_FROM_NUMBER} to ${process.env.VOICE_DIAL_CONNECT_TO_NUMBER}`
+          `Connecting ${process.env.VOICE_DIAL_FROM_NUMBER} to ${process.env.VOICE_CONNECT_TO_NUMBER}`
         )
         const ringback = new Voice.Playlist().add(
           Voice.Playlist.Ringtone({
@@ -99,7 +99,7 @@ const handler = () => {
         )
         const peer = await call.connectPhone({
           from: process.env.VOICE_DIAL_FROM_NUMBER!,
-          to: process.env.VOICE_DIAL_CONNECT_TO_NUMBER!,
+          to: process.env.VOICE_CONNECT_TO_NUMBER!,
           timeout: 30,
           ringback, // optional
         })

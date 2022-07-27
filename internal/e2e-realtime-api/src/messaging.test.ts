@@ -3,7 +3,7 @@ import { createTestRunner } from './utils'
 
 const handler = () => {
   return new Promise<number>(async (resolve, reject) => {
-    const context = 'messaging-e2e'
+    const context = process.env.MESSAGING_CONTEXT
 
     const client = new Messaging.Client({
       host: process.env.RELAY_HOST as string,
@@ -28,8 +28,8 @@ const handler = () => {
 
     const response = await client.send({
       context,
-      from: process.env.RELAY_FROM_NUMBER as string,
-      to: process.env.RELAY_TO_NUMBER as string,
+      from: process.env.MESSAGING_FROM_NUMBER as string,
+      to: process.env.MESSAGING_TO_NUMBER as string,
       body: 'Hello e2e!',
     })
 
