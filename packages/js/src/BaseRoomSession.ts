@@ -249,6 +249,13 @@ export class RoomSessionConnection
     })
 
     try {
+      this.runWorker('childMemberJoinedWorker', {
+        worker: workers.childMemberJoinedWorker,
+        initialState: {
+          parentId: this.memberId,
+        },
+      })
+
       this._screenShareList.add(screenShare)
       if (autoJoin) {
         await screenShare.join()
@@ -323,6 +330,13 @@ export class RoomSessionConnection
     })
 
     try {
+      this.runWorker('childMemberJoinedWorker', {
+        worker: workers.childMemberJoinedWorker,
+        initialState: {
+          parentId: this.memberId,
+        },
+      })
+
       this._deviceList.add(roomDevice)
       if (autoJoin) {
         await roomDevice.join()
