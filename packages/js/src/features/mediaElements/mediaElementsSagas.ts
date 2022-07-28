@@ -291,6 +291,10 @@ function* videoElementSetupWorker({
       rootElement.appendChild(element)
       return
     }
+    if (rootElement.querySelector('.mcuContent')) {
+      getLogger().debug('MCU Content already there')
+      return
+    }
 
     const mcuWrapper = document.createElement('div')
     mcuWrapper.style.position = 'absolute'
@@ -310,6 +314,7 @@ function* videoElementSetupWorker({
     paddingWrapper.appendChild(layersWrapper)
 
     const relativeWrapper = document.createElement('div')
+    relativeWrapper.classList.add('mcuContent')
     relativeWrapper.style.position = 'relative'
     relativeWrapper.style.width = '100%'
     relativeWrapper.style.margin = '0 auto'
