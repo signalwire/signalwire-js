@@ -466,10 +466,23 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     })
   }
 
-  stop() {
-    if (this.instance) {
-      this.instance.close()
+  detachAndStop() {
+    if (!this.instance.getTransceivers) {
+      this.instance.getTransceivers().forEach((transceiver) => {
+        if (transceiver.sender.track) {
+          transceiver.sender.track.stop()
+        }
+        if (transceiver.receiver.track) {
+          transceiver.receiver.track.stop()
+        }
+      })
     }
+
+    // this.stop()
+  }
+
+  stop() {
+    this.instance?.close()
   }
 
   private _checkMediaToNegotiate(kind: string) {

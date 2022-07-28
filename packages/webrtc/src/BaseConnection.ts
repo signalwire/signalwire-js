@@ -233,10 +233,12 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
     // TODO: test logic to swap between two RTCPeers
 
-    if (this.peer) {
-      this.peer.stop()
+    if (this.peer && this.peer?.uuid !== rtcPeer.uuid) {
+      this.logger.info('>>> Stop previous one', this.peer.uuid)
+      this.peer.detachAndStop()
     }
 
+    this.logger.info('>>> Replace RTCPeer with', rtcPeer.uuid)
     this.activeRTCPeerId = rtcPeer.uuid
   }
 
@@ -246,6 +248,10 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   appendRTCPeer(rtcPeer: RTCPeer<EventTypes>) {
     return this.rtcPeerMap.set(rtcPeer.uuid, rtcPeer)
+  }
+
+  setActiveRTCPeer(rtcPeerId: string) {
+    this.peer = this.rtcPeerMap.get(rtcPeerId)
   }
 
   /**
@@ -305,6 +311,13 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       this.store.dispatch(actions.reauthAction({ token }))
       this._tryToPromote = true
       this.logger.debug('Build a new RTCPeer')
+      this.updateMediaOptions({
+        // TODO: update audio/video reading from auth block
+        audio: true,
+        video: true,
+        negotiateAudio: true,
+        negotiateVideo: true,
+      })
       const rtcPeerPromoted = new RTCPeer(this, 'offer')
       this.appendRTCPeer(rtcPeerPromoted)
       this.logger.debug('Trigger start for the new RTCPeer..')
