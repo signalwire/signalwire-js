@@ -16,7 +16,7 @@ import {
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import { ConnectionOptions } from './utils/interfaces'
-import { stopStream, stopTrack, getUserMedia } from './utils'
+import { stopTrack, getUserMedia } from './utils'
 import * as workers from './workers'
 
 type OnVertoByeParams = {
@@ -134,11 +134,11 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   get localStream() {
-    return this.options.localStream
+    return this.peer?.localStream
   }
 
   get remoteStream() {
-    return this.options.remoteStream
+    return this.peer?.remoteStream
   }
 
   get iceServers() {
@@ -822,9 +822,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     })
     this.rtcPeerMap.clear()
 
-    const { remoteStream, localStream } = this.options
-    stopStream(remoteStream)
-    stopStream(localStream)
     this.destroy()
   }
 }
