@@ -68,9 +68,9 @@ export const roomSubscribedWorker: SDKWorker<
   instance.applyEmitterTransforms()
 
   /**
-   * TODO: In here we joined a room_session so we can swap between RTCPeers
+   * In here we joined a room_session so we can swap between RTCPeers
    */
-  // instance.setActiveRTCPeer(rtcPeerId)
+  instance.setActiveRTCPeer(rtcPeerId)
 
   /**
    * TODO: Replace the redux action/component with properties on RTCPeer instance?
