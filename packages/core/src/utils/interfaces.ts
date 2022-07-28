@@ -272,6 +272,8 @@ export type RoomMethod =
   | 'video.playback.set_volume'
   | 'video.playback.seek_absolute'
   | 'video.playback.seek_relative'
+  | 'video.member.demote'
+  | 'video.member.promote'
 
 export interface WebSocketClient {
   addEventListener: WebSocket['addEventListener']
