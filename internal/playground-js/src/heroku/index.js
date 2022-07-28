@@ -334,7 +334,8 @@ window.connect = () => {
   })
 
   roomObj
-    .join()
+    // .join()
+    .joinAudience()
     .then(async (result) => {
       console.log('>> Room Joined', result)
 
