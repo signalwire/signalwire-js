@@ -817,11 +817,11 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   /** @internal */
   protected _finalize() {
-    if (this.peer && this.peer.instance) {
-      this.peer.instance.close()
-      // @ts-ignore
-      delete this.peer
-    }
+    this.rtcPeerMap.forEach((rtcPeer) => {
+      rtcPeer.stop()
+    })
+    this.rtcPeerMap.clear()
+
     const { remoteStream, localStream } = this.options
     stopStream(remoteStream)
     stopStream(localStream)
