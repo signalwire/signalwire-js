@@ -144,7 +144,7 @@ export const makeVideoElementSaga = ({
               element: videoEl,
             })
             // Remove listener when done with video
-            room.off('track', trackHandler)
+            // room.off('track', trackHandler)
             break
           }
         }
@@ -186,7 +186,7 @@ export const makeAudioElementSaga = ({ speakerId }: { speakerId?: string }) => {
               room,
             })
             // Remove listener when done with audio
-            room.off('track', trackHandler)
+            // room.off('track', trackHandler)
             break
           }
         }
