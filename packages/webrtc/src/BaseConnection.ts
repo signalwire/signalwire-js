@@ -236,6 +236,9 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       // Invoke hangup to make sure backend closes
       this.hangup(oldPeerId).then(console.warn).catch(console.error)
       this.peer.detachAndStop()
+
+      // Remove RTCPeer from local cache to stop answering to ping/pong
+      // this.rtcPeerMap.delete(oldPeerId)
     }
 
     this.logger.info('>>> Replace RTCPeer with', rtcPeer.uuid)
@@ -273,15 +276,12 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /** @internal */
-  public _tryToPromote = false
-
   async __promote({ token }: { token: string }) {
     this.logger.debug('Start Promotion', token)
     try {
       // TODO: remove when we have the event from the server
       this.logger.debug('Trigger reauthAction to reauthenticate with backend')
       this.store.dispatch(actions.reauthAction({ token }))
-      this._tryToPromote = true
       this.logger.debug('Build a new RTCPeer')
       this.updateMediaOptions({
         // TODO: update audio/video reading from auth block
@@ -309,8 +309,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       })
 
       await rtcPeerPromoted.start()
-
-      // TODO: teardown the previous peer when the promoted one is good
     } catch (error) {
       this.logger.error('__promote', error)
     }
@@ -595,18 +593,11 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
    * @internal
    */
   async executeInvite(sdp: string, rtcPeerId: string, nodeId?: string) {
-    if (!this._tryToPromote) {
-      // FIXME: just skip this check for now
-      const validStates: BaseConnectionState[] = ['new', 'requesting']
-      if (!validStates.includes(this.state)) {
-        /**
-         * Something bad happened. Either App logic invoking
-         * methods in a wrong order or events are not correct.
-         */
-        throw new Error(
-          `Invalid state: '${this.state}' for connection id: ${this.id}`
-        )
-      }
+    const rtcPeer = this.getRTCPeerById(rtcPeerId)
+    if (!rtcPeer || !rtcPeer.instance.remoteDescription) {
+      throw new Error(
+        `RTCPeer '${rtcPeerId}' already has a remoteDescription. Invalid invite.`
+      )
     }
     // Set state to `requesting` only when `new`, otherwise keep it as `requesting`.
     if (this.state === 'new') {
