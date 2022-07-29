@@ -6,9 +6,23 @@ import { configureFullStack, dispatchMockedRoomSubscribed } from './testUtils'
 describe('Room Object', () => {
   let store: any
   let room: BaseRoomSession<RoomSession>
+  let stack: ReturnType<typeof configureFullStack>
+  const callId = 'call-id'
+
+  const setupRoomForTests = () => {
+    const mockPeer = {
+      uuid: callId,
+      onRemoteSdp: jest.fn(),
+    }
+    // @ts-expect-error
+    room.getRTCPeerById = jest.fn((_id: string) => mockPeer)
+
+    // @ts-expect-error
+    room.runRTCPeerWorkers(callId)
+  }
 
   beforeEach(() => {
-    const stack = configureFullStack()
+    stack = configureFullStack()
     store = stack.store
     room = createBaseRoomSessionObject<RoomSession>({
       store,
@@ -16,8 +30,7 @@ describe('Room Object', () => {
     })
     store.dispatch(
       componentActions.upsert({
-        // @ts-expect-error
-        id: room.id,
+        id: callId,
         nodeId: 'node-id',
         roomId: 'room-id',
         roomSessionId: 'room-session-id',
@@ -26,15 +39,21 @@ describe('Room Object', () => {
     )
     // @ts-expect-error
     room.execute = jest.fn()
+
+    setupRoomForTests()
+
     // mock a room.subscribed event
     dispatchMockedRoomSubscribed({
       session: stack.session,
-      // @ts-expect-error
-      callId: room.id,
+      callId,
       roomId: 'room-id',
       roomSessionId: 'room-session-id',
       memberId: 'member-id',
     })
+  })
+
+  afterEach(() => {
+    stack.destroy()
   })
 
   it('should have all the custom methods defined', () => {
@@ -81,8 +100,7 @@ describe('Room Object', () => {
       })
       store.dispatch(
         componentActions.upsert({
-          // @ts-expect-error
-          id: room.id,
+          id: callId,
           nodeId: 'node-id',
           roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
           roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
@@ -92,8 +110,7 @@ describe('Room Object', () => {
       // mock a room.subscribed event
       dispatchMockedRoomSubscribed({
         session,
-        // @ts-expect-error
-        callId: room.id,
+        callId,
         roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
         roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
         memberId: 'member-id',
@@ -120,6 +137,14 @@ describe('Room Object', () => {
       })
 
       const recording = await room.startRecording()
+      // @ts-expect-error
+      expect(room.execute).toHaveBeenLastCalledWith({
+        method: 'video.recording.start',
+        params: {
+          room_session_id: 'room-session-id',
+        },
+      })
+
       // @ts-expect-error
       recording.execute = jest.fn()
       expect(recording.id).toEqual('c22d7223-5a01-49fe-8da0-46bec8e75e32')
@@ -224,8 +249,7 @@ describe('Room Object', () => {
       })
       store.dispatch(
         componentActions.upsert({
-          // @ts-expect-error
-          id: room.id,
+          id: callId,
           nodeId: 'node-id',
           roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
           roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
@@ -235,8 +259,7 @@ describe('Room Object', () => {
       // mock a room.subscribed event
       dispatchMockedRoomSubscribed({
         session,
-        // @ts-expect-error
-        callId: room.id,
+        callId,
         roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
         roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
         memberId: 'member-id',
@@ -393,19 +416,20 @@ describe('Room Object', () => {
       room.execute = jest.fn()
       store.dispatch(
         componentActions.upsert({
-          // @ts-expect-error
-          id: room.id,
+          id: callId,
           nodeId: 'node-id',
           roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
           roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
           memberId: 'member-id',
         })
       )
+
+      setupRoomForTests()
+
       // mock a room.subscribed event
       dispatchMockedRoomSubscribed({
         session,
-        // @ts-expect-error
-        callId: room.id,
+        callId,
         roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
         roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
         memberId: 'member-id',
@@ -465,6 +489,9 @@ describe('Room Object', () => {
       })
       // @ts-expect-error
       room.execute = jest.fn()
+
+      setupRoomForTests()
+
       // const startedHandler = jest.fn()
       room.on('room.joined', (params) => {
         /** Test same keys between room_session and room for backwards compat. */
@@ -556,8 +583,7 @@ describe('Room Object', () => {
        * Mock `call_id` to match the event with "room.__uuid"
        */
       const roomSubscribed = JSON.parse(
-        // @ts-expect-error
-        `{"jsonrpc":"2.0","id":"d8a9fb9a-ad28-4a0a-8caa-5e06ec22f856","method":"signalwire.event","params":{"event_type":"video.room.subscribed","timestamp":1650960870.216,"event_channel":"EC_4d2c491d-bf96-4802-9008-c360a51155a2","params":{"call_id":"${room.id}","member_id":"465ea212-c456-423b-9bcc-838c5e1b2851","room_session":{"room_id":"d8caec4b-ddc9-4806-b2d0-e7c7d5cefe79","id":"638a54a7-61d8-4db0-bc24-426aee5cebcd","event_channel":"EC_4d2c491d-bf96-4802-9008-c360a51155a2","name":"bu","recording":true,"hide_video_muted":false,"display_name":"bu","meta":{},"recordings":[{"id":"d1ae1822-5a5d-4950-8693-e59dc5dd96e0","state":"recording","duration":null,"started_at":1650960870.033,"ended_at":null}],"members":[{"id":"465ea212-c456-423b-9bcc-838c5e1b2851","room_id":"d8caec4b-ddc9-4806-b2d0-e7c7d5cefe79","room_session_id":"638a54a7-61d8-4db0-bc24-426aee5cebcd","name":"edo","type":"member","parent_id":"","requested_position":"auto","visible":false,"audio_muted":false,"video_muted":false,"deaf":false,"input_volume":0,"output_volume":0,"input_sensitivity":11.11111111111111,"meta":{}}]},"room":{"room_id":"d8caec4b-ddc9-4806-b2d0-e7c7d5cefe79","event_channel":"EC_4d2c491d-bf96-4802-9008-c360a51155a2","name":"bu","recording":true,"hide_video_muted":false,"display_name":"bu","meta":{},"recordings":[{"id":"d1ae1822-5a5d-4950-8693-e59dc5dd96e0","state":"recording","duration":null,"started_at":1650960870.033,"ended_at":null}],"members":[{"id":"465ea212-c456-423b-9bcc-838c5e1b2851","room_id":"d8caec4b-ddc9-4806-b2d0-e7c7d5cefe79","room_session_id":"638a54a7-61d8-4db0-bc24-426aee5cebcd","name":"edo","type":"member","parent_id":"","requested_position":"auto","visible":false,"audio_muted":false,"video_muted":false,"deaf":false,"input_volume":0,"output_volume":0,"input_sensitivity":11.11111111111111,"meta":{}}],"room_session_id":"638a54a7-61d8-4db0-bc24-426aee5cebcd"}}}}`
+        `{"jsonrpc":"2.0","id":"d8a9fb9a-ad28-4a0a-8caa-5e06ec22f856","method":"signalwire.event","params":{"event_type":"video.room.subscribed","timestamp":1650960870.216,"event_channel":"EC_4d2c491d-bf96-4802-9008-c360a51155a2","params":{"call_id":"${callId}","member_id":"465ea212-c456-423b-9bcc-838c5e1b2851","room_session":{"room_id":"d8caec4b-ddc9-4806-b2d0-e7c7d5cefe79","id":"638a54a7-61d8-4db0-bc24-426aee5cebcd","event_channel":"EC_4d2c491d-bf96-4802-9008-c360a51155a2","name":"bu","recording":true,"hide_video_muted":false,"display_name":"bu","meta":{},"recordings":[{"id":"d1ae1822-5a5d-4950-8693-e59dc5dd96e0","state":"recording","duration":null,"started_at":1650960870.033,"ended_at":null}],"members":[{"id":"465ea212-c456-423b-9bcc-838c5e1b2851","room_id":"d8caec4b-ddc9-4806-b2d0-e7c7d5cefe79","room_session_id":"638a54a7-61d8-4db0-bc24-426aee5cebcd","name":"edo","type":"member","parent_id":"","requested_position":"auto","visible":false,"audio_muted":false,"video_muted":false,"deaf":false,"input_volume":0,"output_volume":0,"input_sensitivity":11.11111111111111,"meta":{}}]},"room":{"room_id":"d8caec4b-ddc9-4806-b2d0-e7c7d5cefe79","event_channel":"EC_4d2c491d-bf96-4802-9008-c360a51155a2","name":"bu","recording":true,"hide_video_muted":false,"display_name":"bu","meta":{},"recordings":[{"id":"d1ae1822-5a5d-4950-8693-e59dc5dd96e0","state":"recording","duration":null,"started_at":1650960870.033,"ended_at":null}],"members":[{"id":"465ea212-c456-423b-9bcc-838c5e1b2851","room_id":"d8caec4b-ddc9-4806-b2d0-e7c7d5cefe79","room_session_id":"638a54a7-61d8-4db0-bc24-426aee5cebcd","name":"edo","type":"member","parent_id":"","requested_position":"auto","visible":false,"audio_muted":false,"video_muted":false,"deaf":false,"input_volume":0,"output_volume":0,"input_sensitivity":11.11111111111111,"meta":{}}],"room_session_id":"638a54a7-61d8-4db0-bc24-426aee5cebcd"}}}}`
       )
       // mock a room.subscribed event
       session.dispatch(actions.socketMessageAction(roomSubscribed))
@@ -580,19 +606,18 @@ describe('Room Object', () => {
       })
       store.dispatch(
         componentActions.upsert({
-          // @ts-expect-error
-          id: room.id,
+          id: callId,
           nodeId: 'node-id',
           roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
           roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
           memberId: 'member-id',
         })
       )
+      setupRoomForTests()
       // mock a room.subscribed event
       dispatchMockedRoomSubscribed({
         session,
-        // @ts-expect-error
-        callId: room.id,
+        callId,
         roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
         roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
         memberId: 'member-id',
@@ -629,19 +654,20 @@ describe('Room Object', () => {
       })
       store.dispatch(
         componentActions.upsert({
-          // @ts-expect-error
-          id: room.id,
+          id: callId,
           nodeId: 'node-id',
           roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
           roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
           memberId: 'member-id',
         })
       )
+
+      setupRoomForTests()
+
       // mock a room.subscribed event
       dispatchMockedRoomSubscribed({
         session,
-        // @ts-expect-error
-        callId: room.id,
+        callId,
         roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
         roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
         memberId: 'member-id',
