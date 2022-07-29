@@ -15,9 +15,11 @@ jest.mock('uuid', () => {
   }
 })
 
-const { createPubSubChannel, createSwEventChannel } = testUtils
-
 describe('vertoEventWorker', () => {
+  const { createPubSubChannel, createSwEventChannel } = testUtils
+  const rtcPeerId = 'rtc-peer-id'
+  const initialState = { rtcPeerId }
+
   it('should handle verto.ping method', () => {
     let runSaga = true
     const session = {} as any
@@ -25,6 +27,17 @@ describe('vertoEventWorker', () => {
     const swEventChannel = createSwEventChannel()
     const sessionChannel = sagaHelpers.eventChannel(() => () => {})
     const dispatchedActions: unknown[] = []
+    const mockPeer = {
+      uuid: rtcPeerId,
+      onRemoteSdp: jest.fn(),
+    }
+    const instance = {
+      peer: {
+        uuid: rtcPeerId,
+      },
+      getRTCPeerById: jest.fn((_id: string) => mockPeer),
+      setState: jest.fn(),
+    } as any
 
     return expectSaga(vertoEventWorker, {
       // @ts-expect-error
@@ -34,11 +47,8 @@ describe('vertoEventWorker', () => {
         swEventChannel,
       },
       sessionChannel,
-      instance: {
-        options: {} as any,
-        _attachListeners: () => {},
-        applyEmitterTransforms: () => {},
-      } as any,
+      instance,
+      initialState,
     })
       .provide([
         {
@@ -58,7 +68,7 @@ describe('vertoEventWorker', () => {
                   method: 'verto.ping',
                   params: {
                     dialogParams: {
-                      callID: 'call-uuid',
+                      callID: rtcPeerId,
                     },
                   },
                 },
@@ -81,7 +91,7 @@ describe('vertoEventWorker', () => {
           params: {
             message: VertoPong({
               dialogParams: {
-                callID: 'call-uuid',
+                callID: rtcPeerId,
               },
             }),
             node_id: 'node_id',
@@ -103,12 +113,12 @@ describe('vertoEventWorker', () => {
       const sessionChannel = sagaHelpers.eventChannel(() => () => {})
       const dispatchedActions: unknown[] = []
       const mockPeer = {
-        uuid: 'active',
+        uuid: rtcPeerId,
         onRemoteSdp: jest.fn(),
       }
       const instance = {
         peer: {
-          uuid: 'active',
+          uuid: rtcPeerId,
         },
         getRTCPeerById: jest.fn((_id: string) => mockPeer),
         setState: jest.fn(),
@@ -123,6 +133,7 @@ describe('vertoEventWorker', () => {
         },
         sessionChannel,
         instance,
+        initialState,
       })
         .provide([
           {
@@ -141,7 +152,7 @@ describe('vertoEventWorker', () => {
                     id: '40',
                     method: 'verto.media',
                     params: {
-                      callID: '66e4b610-8d26-4835-8bd8-7022a42ee9bc',
+                      callID: rtcPeerId,
                       sdp: 'MEDIA-SDP',
                     },
                   },
@@ -171,9 +182,7 @@ describe('vertoEventWorker', () => {
         .finally(() => {
           expect(dispatchedActions).toHaveLength(1)
           expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
-          expect(instance.getRTCPeerById).toHaveBeenCalledWith(
-            '66e4b610-8d26-4835-8bd8-7022a42ee9bc'
-          )
+          expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
           expect(instance.setState).toHaveBeenCalledTimes(1)
           expect(instance.setState).toHaveBeenCalledWith('early')
           expect(mockPeer.onRemoteSdp).toHaveBeenCalledTimes(1)
@@ -194,7 +203,7 @@ describe('vertoEventWorker', () => {
       }
       const instance = {
         peer: {
-          uuid: 'active',
+          uuid: rtcPeerId,
         },
         getRTCPeerById: jest.fn((_id: string) => mockPeer),
         setState: jest.fn(),
@@ -209,6 +218,7 @@ describe('vertoEventWorker', () => {
         },
         sessionChannel,
         instance,
+        initialState,
       })
         .provide([
           {
@@ -227,7 +237,7 @@ describe('vertoEventWorker', () => {
                     id: '40',
                     method: 'verto.media',
                     params: {
-                      callID: '66e4b610-8d26-4835-8bd8-7022a42ee9bc',
+                      callID: rtcPeerId,
                       sdp: 'MEDIA-SDP',
                     },
                   },
@@ -257,9 +267,7 @@ describe('vertoEventWorker', () => {
         .finally(() => {
           expect(dispatchedActions).toHaveLength(1)
           expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
-          expect(instance.getRTCPeerById).toHaveBeenCalledWith(
-            '66e4b610-8d26-4835-8bd8-7022a42ee9bc'
-          )
+          expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
           expect(instance.setState).toHaveBeenCalledTimes(0)
           expect(mockPeer.onRemoteSdp).toHaveBeenCalledTimes(1)
           expect(mockPeer.onRemoteSdp).toHaveBeenCalledWith('MEDIA-SDP')
@@ -296,6 +304,7 @@ describe('vertoEventWorker', () => {
         },
         sessionChannel,
         instance,
+        initialState,
       })
         .provide([
           {
@@ -314,7 +323,7 @@ describe('vertoEventWorker', () => {
                     id: '40',
                     method: 'verto.answer',
                     params: {
-                      callID: '66e4b610-8d26-4835-8bd8-7022a42ee9bc',
+                      callID: rtcPeerId,
                     },
                   },
                 })
@@ -343,9 +352,7 @@ describe('vertoEventWorker', () => {
         .finally(() => {
           expect(dispatchedActions).toHaveLength(1)
           expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
-          expect(instance.getRTCPeerById).toHaveBeenCalledWith(
-            '66e4b610-8d26-4835-8bd8-7022a42ee9bc'
-          )
+          expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
           expect(instance.setState).toHaveBeenCalledTimes(1)
           expect(instance.setState).toHaveBeenCalledWith('active')
           expect(mockPeer.onRemoteSdp).toHaveBeenCalledTimes(0)
@@ -380,6 +387,7 @@ describe('vertoEventWorker', () => {
         },
         sessionChannel,
         instance,
+        initialState,
       })
         .provide([
           {
@@ -398,7 +406,7 @@ describe('vertoEventWorker', () => {
                     id: '40',
                     method: 'verto.answer',
                     params: {
-                      callID: '66e4b610-8d26-4835-8bd8-7022a42ee9bc',
+                      callID: rtcPeerId,
                       sdp: 'MEDIA-SDP',
                     },
                   },
@@ -428,9 +436,7 @@ describe('vertoEventWorker', () => {
         .finally(() => {
           expect(dispatchedActions).toHaveLength(1)
           expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
-          expect(instance.getRTCPeerById).toHaveBeenCalledWith(
-            '66e4b610-8d26-4835-8bd8-7022a42ee9bc'
-          )
+          expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
           expect(instance.setState).toHaveBeenCalledTimes(1)
           expect(instance.setState).toHaveBeenCalledWith('active')
           expect(mockPeer.onRemoteSdp).toHaveBeenCalledTimes(1)
@@ -466,6 +472,7 @@ describe('vertoEventWorker', () => {
         },
         sessionChannel,
         instance,
+        initialState,
       })
         .provide([
           {
@@ -484,7 +491,7 @@ describe('vertoEventWorker', () => {
                     id: '40',
                     method: 'verto.answer',
                     params: {
-                      callID: '66e4b610-8d26-4835-8bd8-7022a42ee9bc',
+                      callID: rtcPeerId,
                     },
                   },
                 })
@@ -513,9 +520,7 @@ describe('vertoEventWorker', () => {
         .finally(() => {
           expect(dispatchedActions).toHaveLength(1)
           expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
-          expect(instance.getRTCPeerById).toHaveBeenCalledWith(
-            '66e4b610-8d26-4835-8bd8-7022a42ee9bc'
-          )
+          expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
           expect(instance.setState).toHaveBeenCalledTimes(0)
           expect(mockPeer.onRemoteSdp).toHaveBeenCalledTimes(0)
         })
@@ -552,6 +557,7 @@ describe('vertoEventWorker', () => {
         },
         sessionChannel,
         instance,
+        initialState,
       })
         .provide([
           {
@@ -570,7 +576,7 @@ describe('vertoEventWorker', () => {
                     id: '1907',
                     method: 'verto.bye',
                     params: {
-                      callID: '42f4f654-64c6-40e1-b86d-50a73a8363b9',
+                      callID: rtcPeerId,
                       causeCode: '88',
                       cause: 'INCOMPATIBLE_DESTINATION',
                     },
@@ -602,7 +608,7 @@ describe('vertoEventWorker', () => {
           expect(dispatchedActions).toHaveLength(1)
           expect(instance.onVertoBye).toHaveBeenCalledTimes(1)
           expect(instance.onVertoBye).toHaveBeenCalledWith({
-            rtcPeerId: '42f4f654-64c6-40e1-b86d-50a73a8363b9',
+            rtcPeerId,
             byeCause: 'INCOMPATIBLE_DESTINATION',
             byeCauseCode: '88',
             redirectDestination: undefined,
@@ -640,6 +646,7 @@ describe('vertoEventWorker', () => {
         },
         sessionChannel,
         instance,
+        initialState,
       })
         .provide([
           {
@@ -658,7 +665,7 @@ describe('vertoEventWorker', () => {
                     id: 3600,
                     method: 'verto.mediaParams',
                     params: {
-                      callID: '0d30dd2e-dbec-4daa-81cb-c34e322f50e6',
+                      callID: rtcPeerId,
                       mediaParams: {
                         audio: {
                           autoGainControl: true,
@@ -685,9 +692,7 @@ describe('vertoEventWorker', () => {
         .finally(() => {
           expect(dispatchedActions).toHaveLength(0)
           expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
-          expect(instance.getRTCPeerById).toHaveBeenCalledWith(
-            '0d30dd2e-dbec-4daa-81cb-c34e322f50e6'
-          )
+          expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
           expect(mockPeer.applyMediaConstraints).toHaveBeenCalledTimes(1)
           expect(mockPeer.applyMediaConstraints).toHaveBeenCalledWith('audio', {
             autoGainControl: true,
@@ -725,6 +730,7 @@ describe('vertoEventWorker', () => {
         },
         sessionChannel,
         instance,
+        initialState,
       })
         .provide([
           {
@@ -743,7 +749,7 @@ describe('vertoEventWorker', () => {
                     id: 3600,
                     method: 'verto.mediaParams',
                     params: {
-                      callID: '0d30dd2e-dbec-4daa-81cb-c34e322f50e6',
+                      callID: rtcPeerId,
                       mediaParams: {
                         video: {
                           frameRate: 30,
@@ -771,9 +777,7 @@ describe('vertoEventWorker', () => {
         .finally(() => {
           expect(dispatchedActions).toHaveLength(0)
           expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
-          expect(instance.getRTCPeerById).toHaveBeenCalledWith(
-            '0d30dd2e-dbec-4daa-81cb-c34e322f50e6'
-          )
+          expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
           expect(mockPeer.applyMediaConstraints).toHaveBeenCalledTimes(1)
           expect(mockPeer.applyMediaConstraints).toHaveBeenCalledWith('video', {
             frameRate: 30,
