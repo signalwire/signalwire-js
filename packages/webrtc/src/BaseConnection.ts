@@ -153,7 +153,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /** @internal */
-  dialogParams(rtcPeerId?: string) {
+  dialogParams(rtcPeerId: string) {
     const {
       destinationNumber,
       attach,
@@ -169,8 +169,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
     return {
       dialogParams: {
-        // TODO: figure out a better way
-        id: rtcPeerId ?? this.peer?.uuid,
+        id: rtcPeerId,
         destinationNumber,
         attach,
         callerName,
@@ -231,10 +230,11 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     this.logger.debug('Set RTCPeer', rtcPeer.uuid, rtcPeer)
     this.rtcPeerMap.set(rtcPeer.uuid, rtcPeer)
 
-    // TODO: test logic to swap between two RTCPeers
-
     if (this.peer && this.peer?.uuid !== rtcPeer.uuid) {
-      this.logger.info('>>> Stop previous one', this.peer.uuid)
+      const oldPeerId = this.peer.uuid
+      this.logger.info('>>> Stop old RTCPeer', oldPeerId)
+      // Invoke hangup to make sure backend closes
+      this.hangup(oldPeerId).then(console.warn).catch(console.error)
       this.peer.detachAndStop()
     }
 
@@ -685,7 +685,12 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     }
   }
 
-  async hangup(rtcPeerId: string) {
+  async hangup(id?: string) {
+    const rtcPeerId = id ?? this.peer?.uuid
+    if (!rtcPeerId) {
+      throw new Error('Invalid RTCPeer ID to hangup')
+    }
+
     try {
       const bye = VertoBye(this.dialogParams(rtcPeerId))
       await this.vertoExecute(bye)

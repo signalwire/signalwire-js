@@ -361,7 +361,7 @@ export class RoomSessionConnection
   }
 
   /** @internal */
-  async hangup() {
+  override async hangup(id?: string) {
     this._screenShareList.forEach((screenShare) => {
       screenShare.leave()
     })
@@ -369,7 +369,7 @@ export class RoomSessionConnection
       device.leave()
     })
 
-    return super.hangup()
+    return super.hangup(id)
   }
 
   /** @internal */
