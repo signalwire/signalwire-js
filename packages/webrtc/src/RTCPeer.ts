@@ -502,13 +502,12 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     if (!this.instance.localDescription) {
       return
     }
-    const { sdp, type } = this.instance.localDescription
+    const { sdp } = this.instance.localDescription
     if (sdp.indexOf('candidate') === -1) {
       this.logger.debug('No candidate - retry \n')
       this.startNegotiation(true)
       return
     }
-    this.logger.debug('LOCAL SDP \n', `Type: ${type}`, '\n\n', sdp)
     this.instance.removeEventListener('icecandidate', this._onIce)
 
     try {
@@ -558,12 +557,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       )
     }
 
-    this.logger.debug(
-      'LOCAL SDP \n',
-      `Type: ${localDescription.type}`,
-      '\n\n',
-      localDescription.sdp
-    )
     return this.instance.setLocalDescription(localDescription)
   }
 
