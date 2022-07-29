@@ -594,7 +594,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     }
     const { type, sdp } = rtcPeer.instance.localDescription
     const mungedSDP = this._mungeSDP(sdp)
-    this.logger.debug('MUNGED SDP \n', `Type: ${type}`, '\n\n', mungedSDP)
+    this.logger.debug('LOCAL SDP \n', `Type: ${type}`, '\n\n', mungedSDP)
     switch (type) {
       case 'offer':
         // If we have a remoteDescription already, send reinvite
