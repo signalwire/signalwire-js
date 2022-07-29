@@ -255,45 +255,17 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /**
-   * TODO: To improve
-   */
-  private getNodeIdFromVertoMessage(vertoMessage: JSONRPCRequest) {
-    const rtcPeerId: string =
-      vertoMessage.params?.dialogParams?.id ?? this.peer?.uuid
-    return this.getRTCPeerById(rtcPeerId)?.nodeId ?? ''
-  }
-
-  /**
    * @internal
    * Verto messages have to be wrapped into an execute
    * request and sent using the 'video.message' method.
    */
-  private vertoExecute(vertoMessage: JSONRPCRequest) {
-    const isInvite = vertoMessage.method === 'verto.invite'
-    const params: any = {
-      message: vertoMessage,
-      node_id: isInvite ? '' : this.getNodeIdFromVertoMessage(vertoMessage),
-    }
-    if (isInvite) {
-      if (this.options.screenShare) {
-        /** Only being used for debugging purposes */
-        params.subscribe = ['video.room.screenshare']
-      } else if (this.options.additionalDevice) {
-        /** Only being used for debugging purposes */
-        params.subscribe = ['video.room.additionaldevice']
-      } else {
-        params.subscribe = this.getSubscriptions()
-      }
-    } else {
-      // nodeId is required for all the requests (except for verto.invite)
-      if (!params.node_id) {
-        this.logger.warn(
-          `Skip Request. Missing nodeId for '${vertoMessage.method}'.`
-        )
-        return
-      }
-    }
-
+  private vertoExecute(params: {
+    message: JSONRPCRequest
+    node_id?: string
+    subscribe?: EventEmitter.EventNames<
+      EventTypes & BaseConnectionStateEventTypes
+    >[]
+  }) {
     return this.execute({
       method: 'video.message',
       params,
@@ -617,12 +589,12 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   /**
    * Send the `verto.invite` only if the state is either `new` or `requesting`
    *   - new: the first time we send out the offer.
-   *   - requesting: we received a redirect to a different node so need to send
-   *     again the offer with a different nodeId.
+   *   - requesting: we received a redirectDestination so need to send it again
+   *     specifying nodeId.
    *
    * @internal
    */
-  async executeInvite(sdp: string, rtcPeerId: string) {
+  async executeInvite(sdp: string, rtcPeerId: string, nodeId?: string) {
     if (!this._tryToPromote) {
       // FIXME: just skip this check for now
       const validStates: BaseConnectionState[] = ['new', 'requesting']
@@ -647,12 +619,28 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
             positions: this.options.positions,
           }
         : {}
-      const msg = VertoInvite({
+      const message = VertoInvite({
         ...this.dialogParams(rtcPeerId),
         ...ssOpts,
         sdp,
       })
-      const response = await this.vertoExecute(msg)
+      let subscribe: EventEmitter.EventNames<
+        EventTypes & BaseConnectionStateEventTypes
+      >[] = []
+      if (this.options.screenShare) {
+        /** @ts-expect-error - Only being used for debugging purposes */
+        subscribe = ['video.room.screenshare']
+      } else if (this.options.additionalDevice) {
+        /** @ts-expect-error - Only being used for debugging purposes */
+        subscribe = ['video.room.additionaldevice']
+      } else {
+        subscribe = this.getSubscriptions()
+      }
+      const response = await this.vertoExecute({
+        message,
+        node_id: nodeId,
+        subscribe,
+      })
       this.logger.debug('Invite response', response)
     } catch (error) {
       this.setState('hangup')
@@ -663,12 +651,12 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   /** @internal */
   async executeUpdateMedia(sdp: string, rtcPeerId: string) {
     try {
-      const msg = VertoModify({
+      const message = VertoModify({
         ...this.dialogParams(rtcPeerId),
         sdp,
         action: 'updateMedia',
       })
-      const response: any = await this.vertoExecute(msg)
+      const response: any = await this.vertoExecute({ message })
       if (!response.sdp) {
         this.logger.error('UpdateMedia invalid SDP answer', response)
       }
@@ -692,8 +680,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     }
 
     try {
-      const bye = VertoBye(this.dialogParams(rtcPeerId))
-      await this.vertoExecute(bye)
+      const message = VertoBye(this.dialogParams(rtcPeerId))
+      await this.vertoExecute({ message })
     } catch (error) {
       this.logger.error('Hangup error:', error)
     } finally {
@@ -714,8 +702,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     if (!rtcPeerId) {
       throw new Error('Invalid RTCPeer ID to send DTMF')
     }
-    const msg = VertoInfo({ ...this.dialogParams(rtcPeerId), dtmf })
-    this.vertoExecute(msg)
+    const message = VertoInfo({ ...this.dialogParams(rtcPeerId), dtmf })
+    this.vertoExecute({ message })
   }
 
   /** @internal */
@@ -813,8 +801,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         'for RTCPeer:',
         rtcPeer.uuid
       )
-      rtcPeer.nodeId = redirectDestination
-      this.executeInvite(rtcPeer.localSdp, rtcPeer.uuid)
+      // Force nodeId to redirectDestination
+      this.executeInvite(rtcPeer.localSdp, rtcPeer.uuid, redirectDestination)
       return
     }
 

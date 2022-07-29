@@ -54,14 +54,10 @@ export const vertoEventWorker: SDKWorker<
       continue
     }
 
-    // Set nodeId for each RTCPeer
-    peer.nodeId = nodeId
-
     // getLogger().warn('vertoEventWorker', method, params)
     switch (method) {
       case 'verto.media': {
         /**
-         * TODO: set nodeId on instance
          * Always invoke peer.onRemoteSdp(params.sdp) on the proper RTCPeer
          * If the `params.callID` is the current ACTIVE peer, set the BaseConnection state to "early"
          * If the `params.callID` is NOT the current peer, but it's there from promote/demote process just setup the media
@@ -86,7 +82,6 @@ export const vertoEventWorker: SDKWorker<
       }
       case 'verto.answer': {
         /**
-         * TODO: set nodeId on instance
          * IF WE HAVE `params.sdp`: always invoke peer.onRemoteSdp(params.sdp) on the proper RTCPeer
          * If the `params.callID` is the current ACTIVE peer, set the BaseConnection state to "active"
          * If the `params.callID` is NOT the current peer, but it's there from promote/demote process just setup the media
@@ -113,7 +108,6 @@ export const vertoEventWorker: SDKWorker<
       }
       case 'verto.bye': {
         /**
-         * TODO: make sure to have nodeId on instance
          * If the `params.callID` is the current ACTIVE peer, stop everything and destroy the BaseConnection
          * If the `params.callID` is NOT the current peer, but is there from promote/demote process stop/destroy just the peer
          */
@@ -136,7 +130,6 @@ export const vertoEventWorker: SDKWorker<
         break
       }
       case 'verto.ping': {
-        // TODO: test
         // Remove nodeId from params
         const { nodeId, ...pongParams } = params
         yield sagaEffects.put(
