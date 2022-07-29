@@ -685,20 +685,31 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     }
   }
 
-  async hangup() {
+  async hangup(rtcPeerId: string) {
     try {
-      const bye = VertoBye(this.dialogParams())
+      const bye = VertoBye(this.dialogParams(rtcPeerId))
       await this.vertoExecute(bye)
     } catch (error) {
       this.logger.error('Hangup error:', error)
     } finally {
+      if (rtcPeerId !== this.peer?.uuid) {
+        return this.logger.warn(
+          'Prevent setState hangup',
+          rtcPeerId,
+          this.peer?.uuid
+        )
+      }
       this.setState('hangup')
     }
   }
 
   /** @internal */
   dtmf(dtmf: string) {
-    const msg = VertoInfo({ ...this.dialogParams(), dtmf })
+    const rtcPeerId = this.peer?.uuid
+    if (!rtcPeerId) {
+      throw new Error('Invalid RTCPeer ID to send DTMF')
+    }
+    const msg = VertoInfo({ ...this.dialogParams(rtcPeerId), dtmf })
     this.vertoExecute(msg)
   }
 
