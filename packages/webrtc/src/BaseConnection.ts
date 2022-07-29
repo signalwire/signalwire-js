@@ -314,6 +314,45 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     }
   }
 
+  /** @internal */
+  async __demote({ token }: { token: string }) {
+    this.logger.debug('Start Demotion', token)
+    try {
+      // TODO: remove when we have the event from the server
+      this.logger.debug('Trigger reauthAction to reauthenticate with backend')
+      this.store.dispatch(actions.reauthAction({ token }))
+      this.logger.debug('Build a new RTCPeer')
+      this.updateMediaOptions({
+        // TODO: update audio/video reading from auth block
+        audio: false,
+        video: false,
+        negotiateAudio: true,
+        negotiateVideo: true,
+      })
+      const rtcPeerDemoted = new RTCPeer(this, 'offer')
+      this.appendRTCPeer(rtcPeerDemoted)
+      this.logger.debug('Trigger start for the new RTCPeer..')
+
+      const initialState = {
+        rtcPeerId: rtcPeerDemoted.uuid,
+      }
+
+      this.runWorker('vertoEventWorker', {
+        worker: workers.vertoEventWorker,
+        initialState,
+      })
+
+      this.runWorker('roomSubscribedWorker', {
+        worker: workers.roomSubscribedWorker,
+        initialState,
+      })
+
+      await rtcPeerDemoted.start()
+    } catch (error) {
+      this.logger.error('__promote', error)
+    }
+  }
+
   updateCamera(constraints: MediaTrackConstraints) {
     return this.updateConstraints({
       video: {
