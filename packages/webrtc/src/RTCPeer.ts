@@ -16,7 +16,6 @@ import { ConnectionOptions } from './utils/interfaces'
 
 export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   public uuid = uuid()
-  public nodeId: string = ''
 
   public instance: RTCPeerConnection
 
