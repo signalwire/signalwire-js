@@ -298,19 +298,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       this.appendRTCPeer(rtcPeerPromoted)
       this.logger.debug('Trigger start for the new RTCPeer..')
 
-      const initialState = {
-        rtcPeerId: rtcPeerPromoted.uuid,
-      }
-
-      this.runWorker('vertoEventWorker', {
-        worker: workers.vertoEventWorker,
-        initialState,
-      })
-
-      this.runWorker('roomSubscribedWorker', {
-        worker: workers.roomSubscribedWorker,
-        initialState,
-      })
+      this.runRTCPeerWorkers(rtcPeerPromoted.uuid)
 
       await rtcPeerPromoted.start()
     } catch (error) {
@@ -337,19 +325,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       this.appendRTCPeer(rtcPeerDemoted)
       this.logger.debug('Trigger start for the new RTCPeer..')
 
-      const initialState = {
-        rtcPeerId: rtcPeerDemoted.uuid,
-      }
-
-      this.runWorker('vertoEventWorker', {
-        worker: workers.vertoEventWorker,
-        initialState,
-      })
-
-      this.runWorker('roomSubscribedWorker', {
-        worker: workers.roomSubscribedWorker,
-        initialState,
-      })
+      this.runRTCPeerWorkers(rtcPeerDemoted.uuid)
 
       await rtcPeerDemoted.start()
     } catch (error) {
@@ -555,25 +531,25 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     })
   }
 
+  runRTCPeerWorkers(rtcPeerId: string) {
+    this.runWorker('vertoEventWorker', {
+      worker: workers.vertoEventWorker,
+      initialState: { rtcPeerId },
+    })
+
+    this.runWorker('roomSubscribedWorker', {
+      worker: workers.roomSubscribedWorker,
+      initialState: { rtcPeerId },
+    })
+  }
+
   /** @internal */
   invite<T>(): Promise<T> {
     return new Promise(async (resolve, reject) => {
       this.direction = 'outbound'
       this.peer = new RTCPeer(this, 'offer')
       try {
-        const initialState = {
-          rtcPeerId: this.peer.uuid,
-        }
-
-        this.runWorker('vertoEventWorker', {
-          worker: workers.vertoEventWorker,
-          initialState,
-        })
-
-        this.runWorker('roomSubscribedWorker', {
-          worker: workers.roomSubscribedWorker,
-          initialState,
-        })
+        this.runRTCPeerWorkers(this.peer.uuid)
 
         await this.peer.start()
         resolve(this as any as T)
