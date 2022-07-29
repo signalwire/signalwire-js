@@ -185,37 +185,37 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   get cameraId() {
-    return this.peer?.getDeviceId('video') || null
+    return this.peer ? this.peer.getDeviceId('video') : null
   }
 
   get cameraLabel() {
-    return this.peer?.getDeviceLabel('video') || null
+    return this.peer ? this.peer.getDeviceLabel('video') : null
   }
 
   get microphoneId() {
-    return this.peer?.getDeviceId('audio') || null
+    return this.peer ? this.peer.getDeviceId('audio') : null
   }
 
   get microphoneLabel() {
-    return this.peer?.getDeviceLabel('audio') || null
+    return this.peer ? this.peer.getDeviceLabel('audio') : null
   }
 
   /** @internal */
   get withAudio() {
-    return this.peer?.hasAudioReceiver
+    return Boolean(this.peer?.hasAudioReceiver)
   }
 
   /** @internal */
   get withVideo() {
-    return this.peer?.hasVideoReceiver
+    return Boolean(this.peer?.hasVideoReceiver)
   }
 
   get localVideoTrack() {
-    return this.peer?.localVideoTrack
+    return this.peer ? this.peer.localVideoTrack : null
   }
 
   get localAudioTrack() {
-    return this.peer?.localAudioTrack
+    return this.peer ? this.peer.localAudioTrack : null
   }
 
   get peer() {
@@ -246,7 +246,11 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   getRTCPeerById(rtcPeerId: string) {
-    return this.rtcPeerMap.get(rtcPeerId)
+    const rtcPeer = this.rtcPeerMap.get(rtcPeerId)
+    if ('development' === process.env.NODE_ENV && !rtcPeer) {
+      throw new Error(`Unknown rtcPeerId '${rtcPeerId}'`)
+    }
+    return rtcPeer
   }
 
   appendRTCPeer(rtcPeer: RTCPeer<EventTypes>) {

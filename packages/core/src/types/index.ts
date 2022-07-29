@@ -54,14 +54,14 @@ export interface BaseConnectionContract<
    * Provides access to the local audio
    * [MediaStreamTrack](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack).
    */
-  readonly localAudioTrack?: MediaStreamTrack | null
+  readonly localAudioTrack: MediaStreamTrack | null
   /** Provides access to the local [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream) */
   readonly localStream: MediaStream | undefined
   /**
    * Provides access to the local video
    * [MediaStreamTrack](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack).
    */
-  readonly localVideoTrack?: MediaStreamTrack | null
+  readonly localVideoTrack: MediaStreamTrack | null
   /** The id of the audio input device, or null if not available */
   readonly microphoneId: string | null
   /** The label of the audio input device, or null if not available */
