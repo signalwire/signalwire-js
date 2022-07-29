@@ -363,7 +363,7 @@ const createMemberPromoteDemoteMethod = <
   method: 'video.member.promote' | 'video.member.demote'
 ): RoomMethodDescriptor<OutputType, ParamsType> => {
   return {
-    value: function ({ memberId, mediaAllowed, ...rest }) {
+    value: function ({ memberId, mediaAllowed, permissions }) {
       return this.execute<unknown, OutputType, ParamsType>(
         {
           method,
@@ -371,7 +371,7 @@ const createMemberPromoteDemoteMethod = <
             room_session_id: this.roomSessionId,
             member_id: memberId,
             media_allowed: mediaAllowed,
-            ...rest,
+            permissions,
           },
         },
         {
