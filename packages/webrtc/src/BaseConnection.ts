@@ -247,9 +247,9 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   getRTCPeerById(rtcPeerId: string) {
     const rtcPeer = this.rtcPeerMap.get(rtcPeerId)
-    if ('development' === process.env.NODE_ENV && !rtcPeer) {
-      throw new Error(`Unknown rtcPeerId '${rtcPeerId}'`)
-    }
+    // if ('development' === process.env.NODE_ENV && !rtcPeer) {
+    //   throw new Error(`Unknown rtcPeerId '${rtcPeerId}'`)
+    // }
     return rtcPeer
   }
 
@@ -613,7 +613,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
    */
   async executeInvite(sdp: string, rtcPeerId: string, nodeId?: string) {
     const rtcPeer = this.getRTCPeerById(rtcPeerId)
-    if (!rtcPeer || !rtcPeer.instance.remoteDescription) {
+    if (!rtcPeer || rtcPeer.instance.remoteDescription) {
       throw new Error(
         `RTCPeer '${rtcPeerId}' already has a remoteDescription. Invalid invite.`
       )
