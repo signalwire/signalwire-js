@@ -1,7 +1,7 @@
 import {
   UserOptions,
   getLogger,
-  Authorization,
+  VideoAuthorization,
 } from '@signalwire/core'
 import { createClient } from './createClient'
 import { BaseRoomSession } from './BaseRoomSession'
@@ -148,7 +148,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
         const session = await client.connect()
 
         // @ts-expect-error
-        const authState: Authorization = session._sessionAuthState
+        const authState: VideoAuthorization = session._sessionAuthState
         const mediaOptions = getJoinAudienceMediaParams({
           authState,
           ...params,

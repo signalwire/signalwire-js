@@ -1,5 +1,5 @@
 import { getLogger } from '@signalwire/core'
-import type { Authorization, MediaDirectionAllowed } from '@signalwire/core'
+import type { VideoAuthorization, MediaDirectionAllowed } from '@signalwire/core'
 import type { RoomSessionJoinAudienceParams } from './interfaces'
 
 // `joinAudience` utils
@@ -8,7 +8,7 @@ const getJoinAudienceMediaParams = ({
   receiveAudio = true,
   receiveVideo = true,
 }: RoomSessionJoinAudienceParams & {
-  authState: Authorization
+  authState: VideoAuthorization
 }) => {
   const getMediaValue = ({
     remote,
