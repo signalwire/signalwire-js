@@ -10,6 +10,7 @@ import {
   EventTransform,
   toExternalJSON,
 } from '..'
+import { getAuthState } from '../redux/features/session/sessionSelectors'
 import type {
   PubSubChannel,
   InternalPubSubChannel,
@@ -220,6 +221,16 @@ export class BasePubSubConsumer<
       method: `${PRODUCT_PREFIX_PUBSUB}.publish`,
       params,
     })
+  }
+
+  getSubscribedChannels() {
+    const authState = this.select(getAuthState)
+
+    if (authState?.type === 'chat') {
+      return authState.channels
+    }
+
+    return []
   }
 }
 
