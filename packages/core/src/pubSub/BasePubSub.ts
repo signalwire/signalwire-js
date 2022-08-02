@@ -225,12 +225,10 @@ export class BasePubSubConsumer<
 
   getSubscribedChannels() {
     const authState = this.select(getAuthState)
-
     if (authState?.type === 'chat') {
       return authState.channels
     }
-
-    return []
+    return {}
   }
 }
 
