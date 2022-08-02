@@ -434,5 +434,3 @@ export type VideoMemberEventParams =
   | VideoMemberLeftEventParams
   | VideoMemberUpdatedEventParams
   | VideoMemberTalkingEventParams
-  | VideoMemberPromotedEventParams
-  | VideoMemberDemotedEventParams
