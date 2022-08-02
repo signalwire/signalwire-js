@@ -45,7 +45,8 @@ export const makeVideoElementSaga = ({
         // Each `layout.changed` event will update `status`
         status: 'hidden',
         get id() {
-          return addSDKPrefix(room.memberId)
+          // FIXME: Use `id` until the `memberId` is stable between promote/demote
+          return addSDKPrefix(room.id)
         },
         get domElement() {
           return layerMap.get(this.id)
@@ -74,6 +75,17 @@ export const makeVideoElementSaga = ({
           }
           this.domElement.style.opacity = '1'
         },
+        setLocalOverlayMediaStream(stream: MediaStream) {
+          if (!this.domElement) {
+            return getLogger().warn(
+              'Missing localOverlay to set the local overlay stream'
+            )
+          }
+          const localVideo = this.domElement.querySelector('video')
+          if (localVideo) {
+            localVideo.srcObject = stream
+          }
+        },
       }
 
       const layoutChangedHandler = makeLayoutChangedHandler({
@@ -91,6 +103,8 @@ export const makeVideoElementSaga = ({
             localStream: room.localStream,
             myMemberId: room.memberId,
           })
+        } else {
+          localOverlay.hide()
         }
       })
 
@@ -118,6 +132,10 @@ export const makeVideoElementSaga = ({
           } catch (error) {
             getLogger().error('Error handling video_muted', error)
           }
+        }
+
+        if (room.localStream) {
+          localOverlay.setLocalOverlayMediaStream(room.localStream)
         }
       })
 
