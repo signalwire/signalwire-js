@@ -181,11 +181,11 @@ export interface VideoAuthorization {
   video_allowed: VideoAllowed
 }
 
-export type ChatAuthorizationChannel = Record<string, { read?: boolean; write?: boolean }>
+export type ChatAuthorizationChannels = Record<string, { read?: boolean; write?: boolean }>
 
 export interface ChatAuthorization {
   type: 'chat'
-  channels: ChatAuthorizationChannel[]
+  channels: ChatAuthorizationChannels
   expires_at: number
   member_id: string
   project: string

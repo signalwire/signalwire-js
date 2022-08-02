@@ -3,7 +3,6 @@ import type {
   OnlyFunctionProperties,
   SwEvent,
   CamelToSnakeCase,
-  ChatAuthorizationChannel,
 } from '..'
 import type { MapToPubSubShape } from '../redux/interfaces'
 import type {
@@ -201,8 +200,6 @@ export interface ChatContract extends PubSubContract {
    * ```
    */
   publish(params: PubSubPublishParams): Promise<void>
-  /** @internal */
-  getSubscribedChannels(): Promise<ChatAuthorizationChannel[]>
 }
 
 export type ChatEntity = OnlyStateProperties<ChatContract>
