@@ -158,7 +158,7 @@ export interface SessionRequestObject {
   reject: (value: unknown) => void
 }
 
-type MediaAllowed = 'all' | 'audio-only' | 'video-only'
+export type MediaAllowed = 'all' | 'audio-only' | 'video-only'
 export type MediaDirectionAllowed = 'none' | 'receive' | 'both'
 type AudioAllowed = MediaDirectionAllowed
 type VideoAllowed = MediaDirectionAllowed
