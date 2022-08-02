@@ -640,9 +640,7 @@ export interface VideoRoomSessionContract {
    * ```
    */
   setMemberMeta(params: Rooms.SetMemberMetaParams): Rooms.SetMemberMeta
-  /** @internal */
   promote(params: Rooms.PromoteMemberParams): Rooms.PromoteMember
-  /** @internal */
   demote(params: Rooms.DemoteMemberParams): Rooms.DemoteMember
 }
 

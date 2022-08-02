@@ -352,7 +352,7 @@ export const setInputSensitivityMember = createRoomMemberMethod<
 })
 
 interface PromoteDemoteMemberParams extends Required<MemberCommandParams> {
-  mediaAllowed: MediaAllowed
+  mediaAllowed?: MediaAllowed
   permissions?: string[]
 }
 
