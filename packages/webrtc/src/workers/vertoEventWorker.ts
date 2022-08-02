@@ -28,7 +28,7 @@ export const vertoEventWorker: SDKWorker<
 > = function* (options): SagaIterator {
   getLogger().debug('vertoEventWorker started')
   const { channels, instance, initialState } = options
-  const { swEventChannel } = channels //pubSubChannel
+  const { swEventChannel } = channels
   const { rtcPeerId } = initialState
   if (!rtcPeerId) {
     throw new Error('Missing rtcPeerId for roomSubscribedWorker')
@@ -53,43 +53,22 @@ export const vertoEventWorker: SDKWorker<
       )
       continue
     }
+    const activeRTCPeer = instance.peer
 
     // getLogger().warn('vertoEventWorker', method, params)
     switch (method) {
-      case 'verto.media': {
-        /**
-         * Always invoke peer.onRemoteSdp(params.sdp) on the proper RTCPeer
-         * If the `params.callID` is the current ACTIVE peer, set the BaseConnection state to "early"
-         * If the `params.callID` is NOT the current peer, but it's there from promote/demote process just setup the media
-         * and wait for the join event to swap RTCPeers
-         */
-        // TODO: Improve
-        if (peer.uuid === instance.peer?.uuid) {
-          instance.setState('early')
-        }
-        peer.onRemoteSdp(params.sdp)
-
-        yield sagaEffects.put(
-          actions.executeAction({
-            method: 'video.message',
-            params: {
-              message: VertoResult(jsonrpcId, method),
-              node_id: nodeId,
-            },
-          })
-        )
-        break
-      }
+      case 'verto.media':
       case 'verto.answer': {
         /**
-         * IF WE HAVE `params.sdp`: always invoke peer.onRemoteSdp(params.sdp) on the proper RTCPeer
-         * If the `params.callID` is the current ACTIVE peer, set the BaseConnection state to "active"
-         * If the `params.callID` is NOT the current peer, but it's there from promote/demote process just setup the media
-         * and wait for the join event to swap RTCPeers
+         * verto.media and verto.answer share the same logic
+         *
+         * Always invoke peer.onRemoteSdp(params.sdp) on the proper RTCPeer
+         * If the `params.callID` is the current ACTIVE peer, set the BaseConnection state to 'early' | 'active'
+         * If the `params.callID` is NOT the current peer just setup the media (ie: promote/demote)
          */
-        // TODO: Improve
-        if (peer.uuid === instance.peer?.uuid) {
-          instance.setState('active')
+        if (peer.uuid === activeRTCPeer?.uuid) {
+          const state = method === 'verto.media' ? 'early' : 'active'
+          instance.setState(state)
         }
         if (params?.sdp) {
           peer.onRemoteSdp(params.sdp)
@@ -148,7 +127,6 @@ export const vertoEventWorker: SDKWorker<
           getLogger().warn(`Invalid mediaParams event`, params)
           break
         }
-        // TODO: test
         const { audio, video } = params.mediaParams
         if (peer && video) {
           peer.applyMediaConstraints('video', video)
