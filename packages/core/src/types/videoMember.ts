@@ -429,6 +429,11 @@ export type VideoMemberEvent =
   | VideoMemberPromotedEvent
   | VideoMemberDemotedEvent
 
+/**
+ * VideoMemberPromotedEventParams and VideoMemberDemotedEventParams
+ * are special events without the full `member` object so we avoid
+ * them in VideoMemberEventParams
+ */
 export type VideoMemberEventParams =
   | VideoMemberJoinedEventParams
   | VideoMemberLeftEventParams
