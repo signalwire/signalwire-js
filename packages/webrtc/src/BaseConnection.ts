@@ -12,7 +12,6 @@ import {
   BaseConnectionContract,
   VertoModify,
   componentSelectors,
-  actions,
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import { ConnectionOptions } from './utils/interfaces'
@@ -279,56 +278,18 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /** @internal */
-  async __promote({ token }: { token: string }) {
-    this.logger.debug('Start Promotion', token)
+  async _triggerNewRTCPeer() {
+    this.logger.debug('_triggerNewRTCPeer Start')
     try {
-      // TODO: remove when we have the event from the server
-      this.logger.debug('Trigger reauthAction to reauthenticate with backend')
-      this.store.dispatch(actions.reauthAction({ token }))
       this.logger.debug('Build a new RTCPeer')
-      this.updateMediaOptions({
-        // TODO: update audio/video reading from auth block
-        audio: true,
-        video: true,
-        negotiateAudio: true,
-        negotiateVideo: true,
-      })
-      const rtcPeerPromoted = new RTCPeer(this, 'offer')
-      this.appendRTCPeer(rtcPeerPromoted)
-      this.logger.debug('Trigger start for the new RTCPeer..')
-
-      this.runRTCPeerWorkers(rtcPeerPromoted.uuid)
-
-      await rtcPeerPromoted.start()
+      const rtcPeer = new RTCPeer(this, 'offer')
+      this.appendRTCPeer(rtcPeer)
+      this.logger.debug('Run workers for the new RTCPeer', rtcPeer.uuid)
+      this.runRTCPeerWorkers(rtcPeer.uuid)
+      this.logger.debug('Trigger start for the new RTCPeer!')
+      await rtcPeer.start()
     } catch (error) {
-      this.logger.error('__promote', error)
-    }
-  }
-
-  /** @internal */
-  async __demote({ token }: { token: string }) {
-    this.logger.debug('Start Demotion', token)
-    try {
-      // TODO: remove when we have the event from the server
-      this.logger.debug('Trigger reauthAction to reauthenticate with backend')
-      this.store.dispatch(actions.reauthAction({ token }))
-      this.logger.debug('Build a new RTCPeer')
-      this.updateMediaOptions({
-        // TODO: update audio/video reading from auth block
-        audio: false,
-        video: false,
-        negotiateAudio: true,
-        negotiateVideo: true,
-      })
-      const rtcPeerDemoted = new RTCPeer(this, 'offer')
-      this.appendRTCPeer(rtcPeerDemoted)
-      this.logger.debug('Trigger start for the new RTCPeer..')
-
-      this.runRTCPeerWorkers(rtcPeerDemoted.uuid)
-
-      await rtcPeerDemoted.start()
-    } catch (error) {
-      this.logger.error('__promote', error)
+      this.logger.error('Error building new RTCPeer to promote/demote', error)
     }
   }
 
@@ -538,6 +499,11 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
     this.runWorker('roomSubscribedWorker', {
       worker: workers.roomSubscribedWorker,
+      initialState: { rtcPeerId },
+    })
+
+    this.runWorker('promoteDemoteWorker', {
+      worker: workers.promoteDemoteWorker,
       initialState: { rtcPeerId },
     })
   }

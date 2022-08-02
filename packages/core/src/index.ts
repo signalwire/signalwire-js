@@ -60,6 +60,7 @@ export {
 }
 
 export * from './redux/features/component/componentSlice'
+export * from './redux/features/session/sessionSlice'
 export * as componentSelectors from './redux/features/component/componentSelectors'
 export * from './RPCMessages'
 export * from './utils/interfaces'
