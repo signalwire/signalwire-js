@@ -19,6 +19,7 @@ export interface ClientOptions extends UserOptions {}
 
 type ClientMethods = keyof Client
 const INTERCEPTED_METHODS: ClientMethods[] = [
+  'getSubscribedChannels',
   'subscribe',
   'publish',
   'updateToken',
