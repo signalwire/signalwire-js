@@ -26,7 +26,7 @@ const INTERCEPTED_METHODS: ClientMethods[] = [
   'getMessages',
   'getMembers',
   'getMemberState',
-  'getSubscribedChannels',
+  'getAllowedChannels',
   'setMemberState',
 ]
 

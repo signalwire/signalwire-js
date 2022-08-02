@@ -11,7 +11,7 @@ export interface PubSubClientApiEvents
 
 export interface ClientFullState extends PubSubClient {}
 interface PubSubClient
-  extends PubSubContract,
+  extends Omit<PubSubContract, 'getAllowedChannels'>,
     Omit<
       ConsumerContract<PubSubClientApiEvents, ClientFullState>,
       'subscribe'
@@ -29,6 +29,7 @@ interface PubSubClientOptions
 
 type ClientMethods = Exclude<keyof PubSubClient, '_session'>
 const INTERCEPTED_METHODS: ClientMethods[] = ['subscribe', 'publish']
+const UNSUPPORTED_METHODS = ['getAllowedChannels']
 
 /**
  * Creates a new PubSub client.
@@ -88,6 +89,8 @@ const PubSubClient = function (options?: PubSubClientOptions) {
       // FIXME: types and _session check
       if (prop !== '_session' && INTERCEPTED_METHODS.includes(prop)) {
         return createInterceptor(prop)
+      } else if (UNSUPPORTED_METHODS.includes(prop)) {
+        return undefined
       }
 
       return Reflect.get(target, prop, receiver)

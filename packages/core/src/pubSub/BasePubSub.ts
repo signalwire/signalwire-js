@@ -223,9 +223,9 @@ export class BasePubSubConsumer<
     })
   }
 
-  getSubscribedChannels() {
+  getAllowedChannels() {
     const authState = this.select(getAuthState)
-    if (authState?.type === 'chat') {
+    if (authState && 'channels' in authState && authState.channels) {
       return authState.channels
     }
     return {}

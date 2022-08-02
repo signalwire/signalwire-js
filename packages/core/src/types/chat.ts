@@ -205,7 +205,7 @@ export interface ChatContract extends PubSubContract {
 export type ChatEntity = OnlyStateProperties<ChatContract>
 export type ChatMethods = Omit<
   OnlyFunctionProperties<ChatContract>,
-  'subscribe' | 'unsubscribe' | 'updateToken' | 'getSubscribedChannels'
+  'subscribe' | 'unsubscribe' | 'updateToken' | 'getAllowedChannels'
 >
 
 export interface ChatMessageContract extends PubSubMessageEntity {

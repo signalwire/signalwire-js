@@ -49,7 +49,7 @@ test.describe('PubSub', () => {
                 token: options.API_TOKEN,
               })
               const subscribedChannels =
-                await pubSubClient.getSubscribedChannels()
+                await pubSubClient.getAllowedChannels()
               // .subscribe should be after .on but i left here for test.
               await pubSubClient.subscribe([options.channel])
               pubSubClient.on('message', (message: any) => {
