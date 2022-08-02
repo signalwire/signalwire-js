@@ -19,7 +19,7 @@ import { ConnectionOptions } from './utils/interfaces'
 import { stopTrack, getUserMedia } from './utils'
 import * as workers from './workers'
 
-type OnVertoByeParams = {
+interface OnVertoByeParams {
   byeCause: string
   byeCauseCode: string
   rtcPeerId: string
