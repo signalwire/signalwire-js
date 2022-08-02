@@ -164,4 +164,86 @@ describe('Room Custom Methods', () => {
       })
     })
   })
+
+  describe('promote', () => {
+    it('should execute with proper params', async () => {
+      ;(instance.execute as jest.Mock).mockResolvedValueOnce({})
+      instance.roomSessionId = 'mocked'
+
+      await instance.promote({
+        memberId: 'c22d7124-5a01-49fe-8da0-46bec8e75f12',
+        mediaAllowed: 'all',
+        permissions: [
+          'room.self.audio_mute',
+          'room.self.audio_unmute',
+          'room.self.video_mute',
+          'room.self.video_unmute',
+          'room.list_available_layouts',
+        ],
+      })
+
+      expect(instance.execute).toHaveBeenCalledTimes(1)
+      expect(instance.execute).toHaveBeenCalledWith(
+        {
+          method: 'video.member.promote',
+          params: {
+            room_session_id: 'mocked',
+            member_id: 'c22d7124-5a01-49fe-8da0-46bec8e75f12',
+            media_allowed: 'all',
+            permissions: [
+              'room.self.audio_mute',
+              'room.self.audio_unmute',
+              'room.self.video_mute',
+              'room.self.video_unmute',
+              'room.list_available_layouts',
+            ],
+          },
+        },
+        {
+          transformResolve: expect.anything(),
+        }
+      )
+    })
+  })
+
+  describe('demote', () => {
+    it('should execute with proper params', async () => {
+      ;(instance.execute as jest.Mock).mockResolvedValueOnce({})
+      instance.roomSessionId = 'mocked'
+
+      await instance.demote({
+        memberId: 'c22d7124-5a01-49fe-8da0-46bec8e75f12',
+        mediaAllowed: 'all',
+        permissions: [
+          'room.self.audio_mute',
+          'room.self.audio_unmute',
+          'room.self.video_mute',
+          'room.self.video_unmute',
+          'room.list_available_layouts',
+        ],
+      })
+
+      expect(instance.execute).toHaveBeenCalledTimes(1)
+      expect(instance.execute).toHaveBeenCalledWith(
+        {
+          method: 'video.member.demote',
+          params: {
+            room_session_id: 'mocked',
+            member_id: 'c22d7124-5a01-49fe-8da0-46bec8e75f12',
+            media_allowed: 'all',
+            permissions: [
+              'room.self.audio_mute',
+              'room.self.audio_unmute',
+              'room.self.video_mute',
+              'room.self.video_unmute',
+              'room.list_available_layouts',
+            ],
+          },
+        },
+        {
+          transformResolve: expect.anything(),
+        }
+      )
+    })
+  })
 })

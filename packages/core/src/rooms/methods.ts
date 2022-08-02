@@ -9,10 +9,11 @@ import type {
   VideoPosition,
 } from '../types'
 import { toLocalEvent, toExternalJSON } from '../utils'
-import {
+import type {
   ExecuteExtendedOptions,
   RoomMethod,
   BaseRPCResult,
+  MediaAllowed,
 } from '../utils/interfaces'
 
 type RoomMethodParams = Record<string, unknown>
@@ -349,6 +350,43 @@ export const setInputSensitivityMember = createRoomMemberMethod<
 >('video.member.set_input_sensitivity', {
   transformResolve: baseCodeTransform,
 })
+
+interface PromoteDemoteMemberParams extends Required<MemberCommandParams> {
+  mediaAllowed?: MediaAllowed
+  permissions?: string[]
+}
+
+const createMemberPromoteDemoteMethod = <
+  OutputType,
+  ParamsType extends PromoteDemoteMemberParams
+>(
+  method: 'video.member.promote' | 'video.member.demote'
+): RoomMethodDescriptor<OutputType, ParamsType> => {
+  return {
+    value: function ({ memberId, mediaAllowed, permissions }) {
+      return this.execute<unknown, OutputType, ParamsType>(
+        {
+          method,
+          params: {
+            room_session_id: this.roomSessionId,
+            member_id: memberId,
+            media_allowed: mediaAllowed,
+            permissions,
+          },
+        },
+        {
+          transformResolve: baseCodeTransform as any,
+        }
+      )
+    },
+  }
+}
+export interface PromoteMemberParams extends PromoteDemoteMemberParams {}
+export const promote: RoomMethodDescriptor<void, PromoteMemberParams> =
+  createMemberPromoteDemoteMethod('video.member.promote')
+
+export interface DemoteMemberParams extends PromoteDemoteMemberParams {}
+export const demote = createMemberPromoteDemoteMethod('video.member.demote')
 export interface SetMemberPositionParams extends MemberCommandParams {
   position: VideoPosition
 }
@@ -429,4 +467,6 @@ export type SetMemberPosition = ReturnType<typeof setMemberPosition.value>
 export type RemoveMember = ReturnType<typeof removeMember.value>
 export type RemoveAllMembers = ReturnType<typeof removeAllMembers.value>
 export type SetMemberMeta = ReturnType<typeof setMemberMeta.value>
+export type PromoteMember = ReturnType<typeof promote.value>
+export type DemoteMember = ReturnType<typeof demote.value>
 // End Room Member Methods

@@ -327,6 +327,8 @@ export const RoomSessionAPI = extendComponent<
   play: Rooms.play,
   setMeta: Rooms.setMeta,
   setMemberMeta: Rooms.setMemberMeta,
+  promote: Rooms.promote,
+  demote: Rooms.demote,
 })
 
 export const createRoomSessionObject = (
