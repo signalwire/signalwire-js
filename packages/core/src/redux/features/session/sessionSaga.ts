@@ -30,7 +30,6 @@ import { getAuthStatus } from '../session/sessionSelectors'
 import { SessionAuthStatus } from '../../../utils/interfaces'
 
 type SessionSagaParams = {
-  session: BaseSession
   sessionChannel: EventChannel<unknown>
   pubSubChannel: PubSubChannel
   swEventChannel: SwEventChannel
@@ -128,7 +127,6 @@ export function* executeActionWatcher(session: BaseSession): SagaIterator {
 }
 
 export function* sessionChannelWatcher({
-  // session,
   sessionChannel,
   pubSubChannel,
   swEventChannel,
