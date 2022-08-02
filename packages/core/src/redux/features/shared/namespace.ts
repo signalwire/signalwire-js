@@ -9,6 +9,7 @@ import type {
   VideoRoomEvent,
   VideoRoomAudienceCountEvent,
   VoiceCallEvent,
+  InternalVideoRoomAudienceCountEvent,
 } from '../../../types'
 import { getLogger } from '../../../utils'
 import type { MapToPubSubShape, PubSubAction } from '../../interfaces'
@@ -31,8 +32,13 @@ const isVideoRoomEvent = (
 
 const isVideoRoomAudienceCountEvent = (
   action: PubSubAction
-): action is MapToPubSubShape<VideoRoomAudienceCountEvent> => {
-  return action.type === 'video.room.audience_count'
+): action is MapToPubSubShape<
+  VideoRoomAudienceCountEvent | InternalVideoRoomAudienceCountEvent
+> => {
+  return (
+    action.type === 'video.room.audience_count' ||
+    action.type === 'video.room.audienceCount'
+  )
 }
 
 const isVideoLayoutEvent = (

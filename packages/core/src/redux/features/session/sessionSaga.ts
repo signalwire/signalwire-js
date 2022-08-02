@@ -133,6 +133,14 @@ export function* sessionChannelWatcher({
 }: SessionSagaParams): SagaIterator {
   function* videoAPIWorker(params: VideoAPIEventParams): SagaIterator {
     switch (params.event_type) {
+      case 'video.room.audience_count': {
+        /** Rename event to be camelCase */
+        yield put(pubSubChannel, {
+          type: `video.room.audienceCount`,
+          payload: params.params,
+        })
+        return
+      }
       case 'video.member.updated': {
         /**
          * `video.member.updated` is handled by the

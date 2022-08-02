@@ -24,6 +24,7 @@ import type {
   VideoPositions,
   RoomAudienceCount,
   VideoRoomAudienceCountEventParams,
+  RoomAudienceCountCamelCase,
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
 import type { RoomSession } from '../RoomSession'
@@ -94,7 +95,7 @@ export type RoomSessionObjectEventsHandlerMap = Record<
   > &
   Record<VideoRoomSessionEventNames, (params: VideoRoomEventParams) => void> &
   Record<
-    RoomAudienceCount,
+    RoomAudienceCount | RoomAudienceCountCamelCase,
     (params: VideoRoomAudienceCountEventParams) => void
   > &
   Record<RTCTrackEventName, (event: RTCTrackEvent) => void> &
