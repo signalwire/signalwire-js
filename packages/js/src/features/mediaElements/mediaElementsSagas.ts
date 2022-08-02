@@ -143,12 +143,15 @@ export const makeVideoElementSaga = ({
               track: event.track,
               element: videoEl,
             })
-            // Remove listener when done with video
-            // room.off('track', trackHandler)
             break
           }
         }
       }
+      /**
+       * Using `on` instead of `once` (or `off` within trackHandler) because
+       * there are cases (promote/demote) where we need to handle multiple `track`
+       * events and update the videoEl with the new track.
+       */
       room.on('track', trackHandler)
 
       room.once('destroy', () => {
@@ -185,12 +188,15 @@ export const makeAudioElementSaga = ({ speakerId }: { speakerId?: string }) => {
               speakerId,
               room,
             })
-            // Remove listener when done with audio
-            // room.off('track', trackHandler)
             break
           }
         }
       }
+      /**
+       * Using `on` instead of `once` (or `off` within trackHandler) because
+       * there are cases (promote/demote) where we need to handle multiple `track`
+       * events and update the audioEl with the new track.
+       */
       room.on('track', trackHandler)
 
       room.once('destroy', () => {
