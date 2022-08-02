@@ -468,6 +468,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   detachAndStop() {
     if (!this.instance.getTransceivers) {
       this.instance.getTransceivers().forEach((transceiver) => {
+        // Do not use `stopTrack` util to not dispatch the `ended` event
         if (transceiver.sender.track) {
           transceiver.sender.track.stop()
         }
@@ -475,9 +476,14 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           transceiver.receiver.track.stop()
         }
       })
+    } else {
+      // Legacy APIs for older browsers / RN
+      // Do not use `stopTrack` util to not dispatch the `ended` event
+      this._localStream?.getTracks().forEach((track) => track.stop())
+      this._remoteStream?.getTracks().forEach((track) => track.stop())
     }
 
-    // this.stop()
+    this.stop()
   }
 
   stop() {
