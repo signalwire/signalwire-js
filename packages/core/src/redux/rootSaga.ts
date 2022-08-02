@@ -91,7 +91,6 @@ export function* initSessionSaga({
   }
 
   yield fork(sessionChannelWatcher, {
-    session,
     sessionChannel,
     pubSubChannel,
     swEventChannel,

@@ -10,6 +10,7 @@ import {
   extendComponent,
   validateEventsToSubscribe,
   toInternalEventName,
+  toInternalAction,
   serializeableProxy,
   timeoutPromise,
 } from './utils'
@@ -48,6 +49,7 @@ export {
   toSnakeCaseKeys,
   toLocalEvent,
   toInternalEventName,
+  toInternalAction,
   serializeableProxy,
   toSyntheticEvent,
   GLOBAL_VIDEO_EVENTS,
@@ -58,6 +60,7 @@ export {
 }
 
 export * from './redux/features/component/componentSlice'
+export * from './redux/features/session/sessionSlice'
 export * as componentSelectors from './redux/features/component/componentSelectors'
 export * from './RPCMessages'
 export * from './utils/interfaces'
@@ -87,3 +90,4 @@ export const selectors = {
 }
 export { ChatMember, ChatMessage } from './chat'
 export { PubSubMessage } from './pubSub'
+export * as testUtils from './testUtils'

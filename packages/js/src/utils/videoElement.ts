@@ -74,6 +74,7 @@ export interface LocalOverlay {
   domElement: HTMLDivElement | undefined
   hide(): void
   show(): void
+  setLocalOverlayMediaStream(stream: MediaStream): void
 }
 
 interface MakeLayoutChangedHandlerParams {

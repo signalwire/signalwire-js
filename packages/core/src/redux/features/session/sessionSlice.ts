@@ -1,6 +1,7 @@
 import type { PayloadAction } from '../../toolkit'
 import type { SessionState } from '../../interfaces'
 import type {
+  Authorization,
   RPCConnectResult,
   SessionAuthError,
   SessionAuthStatus,
@@ -36,6 +37,12 @@ const sessionSlice = createDestroyableSlice({
       return {
         ...state,
         authStatus: payload,
+      }
+    },
+    updateAuthState: (state, { payload }: PayloadAction<Authorization>) => {
+      return {
+        ...state,
+        authState: payload,
       }
     },
   },

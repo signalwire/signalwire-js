@@ -215,7 +215,7 @@ export class RoomSessionConnection
       remoteStream: undefined,
       userVariables: {
         ...(this.options?.userVariables || {}),
-        memberCallId: this.__uuid,
+        memberCallId: this.memberId,
         memberId: this.memberId,
       },
       layout,
@@ -249,6 +249,13 @@ export class RoomSessionConnection
     })
 
     try {
+      this.runWorker('childMemberJoinedWorker', {
+        worker: workers.childMemberJoinedWorker,
+        initialState: {
+          parentId: this.memberId,
+        },
+      })
+
       this._screenShareList.add(screenShare)
       if (autoJoin) {
         await screenShare.join()
@@ -303,7 +310,7 @@ export class RoomSessionConnection
       recoverCall: false,
       userVariables: {
         ...(this.options?.userVariables || {}),
-        memberCallId: this.__uuid,
+        memberCallId: this.memberId,
         memberId: this.memberId,
       },
     }
@@ -323,6 +330,13 @@ export class RoomSessionConnection
     })
 
     try {
+      this.runWorker('childMemberJoinedWorker', {
+        worker: workers.childMemberJoinedWorker,
+        initialState: {
+          parentId: this.memberId,
+        },
+      })
+
       this._deviceList.add(roomDevice)
       if (autoJoin) {
         await roomDevice.join()
@@ -347,7 +361,7 @@ export class RoomSessionConnection
   }
 
   /** @internal */
-  async hangup() {
+  override async hangup(id?: string) {
     this._screenShareList.forEach((screenShare) => {
       screenShare.leave()
     })
@@ -355,7 +369,7 @@ export class RoomSessionConnection
       device.leave()
     })
 
-    return super.hangup()
+    return super.hangup(id)
   }
 
   /** @internal */

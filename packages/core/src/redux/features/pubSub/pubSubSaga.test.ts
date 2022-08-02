@@ -4,7 +4,7 @@ import { pubSubSaga } from './pubSubSaga'
 import { EventEmitter } from '../../../utils/EventEmitter'
 import { createPubSubChannel } from '../../../testUtils'
 
-describe('sessionChannelWatcher', () => {
+describe('pubSubSaga', () => {
   const logger = getLogger()
   const originalError = logger.error
 

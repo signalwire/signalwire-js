@@ -45,7 +45,8 @@ export const makeVideoElementSaga = ({
         // Each `layout.changed` event will update `status`
         status: 'hidden',
         get id() {
-          return addSDKPrefix(room.memberId)
+          // FIXME: Use `id` until the `memberId` is stable between promote/demote
+          return addSDKPrefix(room.id)
         },
         get domElement() {
           return layerMap.get(this.id)
@@ -74,6 +75,17 @@ export const makeVideoElementSaga = ({
           }
           this.domElement.style.opacity = '1'
         },
+        setLocalOverlayMediaStream(stream: MediaStream) {
+          if (!this.domElement) {
+            return getLogger().warn(
+              'Missing localOverlay to set the local overlay stream'
+            )
+          }
+          const localVideo = this.domElement.querySelector('video')
+          if (localVideo) {
+            localVideo.srcObject = stream
+          }
+        },
       }
 
       const layoutChangedHandler = makeLayoutChangedHandler({
@@ -83,13 +95,16 @@ export const makeVideoElementSaga = ({
 
       room.on('layout.changed', (params) => {
         getLogger().debug('Received layout.changed')
-        if (room.peer.hasVideoSender && room.localStream) {
+        // FIXME: expose a method on BaseConnection
+        if (room.peer?.hasVideoSender && room.localStream) {
           layoutChangedHandler({
             // @ts-expect-error
             layout: params.layout,
             localStream: room.localStream,
             myMemberId: room.memberId,
           })
+        } else {
+          localOverlay.hide()
         }
       })
 
@@ -118,6 +133,10 @@ export const makeVideoElementSaga = ({
             getLogger().error('Error handling video_muted', error)
           }
         }
+
+        if (room.localStream) {
+          localOverlay.setLocalOverlayMediaStream(room.localStream)
+        }
       })
 
       room.on('member.updated.video_muted', (params) => {
@@ -142,12 +161,15 @@ export const makeVideoElementSaga = ({
               track: event.track,
               element: videoEl,
             })
-            // Remove listener when done with video
-            room.off('track', trackHandler)
             break
           }
         }
       }
+      /**
+       * Using `on` instead of `once` (or `off` within trackHandler) because
+       * there are cases (promote/demote) where we need to handle multiple `track`
+       * events and update the videoEl with the new track.
+       */
       room.on('track', trackHandler)
 
       room.once('destroy', () => {
@@ -184,12 +206,15 @@ export const makeAudioElementSaga = ({ speakerId }: { speakerId?: string }) => {
               speakerId,
               room,
             })
-            // Remove listener when done with audio
-            room.off('track', trackHandler)
             break
           }
         }
       }
+      /**
+       * Using `on` instead of `once` (or `off` within trackHandler) because
+       * there are cases (promote/demote) where we need to handle multiple `track`
+       * events and update the audioEl with the new track.
+       */
       room.on('track', trackHandler)
 
       room.once('destroy', () => {
@@ -290,6 +315,10 @@ function* videoElementSetupWorker({
       rootElement.appendChild(element)
       return
     }
+    if (rootElement.querySelector('.mcuContent')) {
+      getLogger().debug('MCU Content already there')
+      return
+    }
 
     const mcuWrapper = document.createElement('div')
     mcuWrapper.style.position = 'absolute'
@@ -309,6 +338,7 @@ function* videoElementSetupWorker({
     paddingWrapper.appendChild(layersWrapper)
 
     const relativeWrapper = document.createElement('div')
+    relativeWrapper.classList.add('mcuContent')
     relativeWrapper.style.position = 'relative'
     relativeWrapper.style.width = '100%'
     relativeWrapper.style.margin = '0 auto'

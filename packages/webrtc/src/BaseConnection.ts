@@ -15,7 +15,15 @@ import {
 } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import { ConnectionOptions } from './utils/interfaces'
-import { stopStream, stopTrack, getUserMedia } from './utils'
+import { stopTrack, getUserMedia } from './utils'
+import * as workers from './workers'
+
+interface OnVertoByeParams {
+  byeCause: string
+  byeCauseCode: string
+  rtcPeerId: string
+  redirectDestination?: string
+}
 
 const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   destinationNumber: 'room',
@@ -53,9 +61,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     Rooms.BaseRoomInterface<EventTypes & BaseConnectionStateEventTypes>,
     BaseConnectionContract<EventTypes & BaseConnectionStateEventTypes>
 {
-  public _nodeId: string
   public direction: 'inbound' | 'outbound'
-  public peer: RTCPeer<EventTypes>
   public options: BaseConnectionOptions<
     EventTypes & BaseConnectionStateEventTypes
   >
@@ -74,6 +80,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   private state: BaseConnectionState = 'new'
   private prevState: BaseConnectionState = 'new'
+  private activeRTCPeerId: string
+  private rtcPeerMap = new Map<string, RTCPeer<EventTypes>>()
 
   constructor(
     options: BaseConnectionOptions<EventTypes & BaseConnectionStateEventTypes>
@@ -124,11 +132,11 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   get localStream() {
-    return this.options.localStream
+    return this.peer?.localStream
   }
 
   get remoteStream() {
-    return this.options.remoteStream
+    return this.peer?.remoteStream
   }
 
   get iceServers() {
@@ -136,29 +144,14 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   get component() {
+    const id = this.peer?.uuid ?? ''
     return (
-      this.select((state) => componentSelectors.getComponent(state, this.id)) ||
-      {}
+      this.select((state) => componentSelectors.getComponent(state, id)) || {}
     )
   }
 
-  get nodeId() {
-    // This is only set during `hangup` when
-    // `redirectDestination` is present
-    if (this._nodeId) {
-      return this._nodeId
-    }
-
-    // @ts-expect-error
-    return this.component?.nodeId ?? ''
-  }
-
-  set nodeId(id: string) {
-    this._nodeId = id
-  }
-
   /** @internal */
-  get messagePayload() {
+  dialogParams(rtcPeerId: string) {
     const {
       destinationNumber,
       attach,
@@ -171,10 +164,10 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       additionalDevice,
       pingSupported = true,
     } = this.options
+
     return {
-      sessid: this.options.sessionid,
       dialogParams: {
-        id: this.__uuid,
+        id: rtcPeerId,
         destinationNumber,
         attach,
         callerName,
@@ -207,26 +200,63 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   /** @internal */
   get withAudio() {
-    // TODO: use peer to check audio tracks
-    return this.remoteStream
-      ? this.remoteStream.getAudioTracks().length > 0
-      : false
+    return Boolean(this.peer?.hasAudioReceiver)
   }
 
   /** @internal */
   get withVideo() {
-    // TODO: use peer to check video tracks
-    return this.remoteStream
-      ? this.remoteStream.getVideoTracks().length > 0
-      : false
+    return Boolean(this.peer?.hasVideoReceiver)
   }
 
   get localVideoTrack() {
-    return this.peer.localVideoTrack
+    return this.peer ? this.peer.localVideoTrack : null
   }
 
   get localAudioTrack() {
-    return this.peer.localAudioTrack
+    return this.peer ? this.peer.localAudioTrack : null
+  }
+
+  get peer() {
+    return this.getRTCPeerById(this.activeRTCPeerId)
+  }
+
+  set peer(rtcPeer: RTCPeer<EventTypes> | undefined) {
+    if (!rtcPeer) {
+      this.logger.warn('Invalid RTCPeer', rtcPeer)
+      return
+    }
+    this.logger.debug('Set RTCPeer', rtcPeer.uuid, rtcPeer)
+    this.rtcPeerMap.set(rtcPeer.uuid, rtcPeer)
+
+    if (this.peer && this.peer?.uuid !== rtcPeer.uuid) {
+      const oldPeerId = this.peer.uuid
+      this.logger.info('>>> Stop old RTCPeer', oldPeerId)
+      // Invoke hangup to make sure backend closes
+      this.hangup(oldPeerId).then(console.warn).catch(console.error)
+      this.peer.detachAndStop()
+
+      // Remove RTCPeer from local cache to stop answering to ping/pong
+      // this.rtcPeerMap.delete(oldPeerId)
+    }
+
+    this.logger.info('>>> Replace RTCPeer with', rtcPeer.uuid)
+    this.activeRTCPeerId = rtcPeer.uuid
+  }
+
+  getRTCPeerById(rtcPeerId: string) {
+    const rtcPeer = this.rtcPeerMap.get(rtcPeerId)
+    // if ('development' === process.env.NODE_ENV && !rtcPeer) {
+    //   throw new Error(`Unknown rtcPeerId '${rtcPeerId}'`)
+    // }
+    return rtcPeer
+  }
+
+  appendRTCPeer(rtcPeer: RTCPeer<EventTypes>) {
+    return this.rtcPeerMap.set(rtcPeer.uuid, rtcPeer)
+  }
+
+  setActiveRTCPeer(rtcPeerId: string) {
+    this.peer = this.rtcPeerMap.get(rtcPeerId)
   }
 
   /**
@@ -234,31 +264,13 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
    * Verto messages have to be wrapped into an execute
    * request and sent using the 'video.message' method.
    */
-  private vertoExecute(vertoMessage: JSONRPCRequest) {
-    const params: any = {
-      message: vertoMessage,
-      node_id: this.nodeId,
-    }
-    if (vertoMessage.method === 'verto.invite') {
-      if (this.options.screenShare) {
-        /** Only being used for debugging purposes */
-        params.subscribe = ['video.room.screenshare']
-      } else if (this.options.additionalDevice) {
-        /** Only being used for debugging purposes */
-        params.subscribe = ['video.room.additionaldevice']
-      } else {
-        params.subscribe = this.getSubscriptions()
-      }
-    } else {
-      // nodeId is required for all the requests (except for verto.invite)
-      if (!this.nodeId) {
-        this.logger.warn(
-          `Skip Request. Missing nodeId for '${vertoMessage.method}'.`
-        )
-        return
-      }
-    }
-
+  private vertoExecute(params: {
+    message: JSONRPCRequest
+    node_id?: string
+    subscribe?: EventEmitter.EventNames<
+      EventTypes & BaseConnectionStateEventTypes
+    >[]
+  }) {
     return this.execute({
       method: 'video.message',
       params,
@@ -266,56 +278,18 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /** @internal */
-  public onStateChange(component: any) {
-    this.logger.debug('onStateChange', component)
-    switch (component.state) {
-      case 'hangup':
-        this._hangup(component)
-        break
-      default:
-        this.setState(component.state)
-        break
-    }
-  }
-
-  /** @internal */
-  public onRemoteSDP(component: any) {
-    this.logger.debug('onRemoteSDP', component)
-    if (component.remoteSDP) {
-      this.peer.onRemoteSdp(component.remoteSDP)
-    }
-  }
-
-  /** @internal */
-  public onRoomSubscribed(component: any) {
-    this.logger.debug('onRoomSubscribed', component)
-
-    /**
-     * For screenShare/additionalDevice we're using
-     * the `memberId` to namespace the object.
-     **/
-    if (this.options.additionalDevice || this.options.screenShare) {
-      this._attachListeners(this.memberId)
-    } else {
-      this._attachListeners(this.roomSessionId)
-    }
-    // FIXME: Move to a better place when rework _attachListeners too.
-    this.applyEmitterTransforms()
-  }
-
-  /** @internal */
-  onVideoConstraints(component: any) {
-    this.logger.debug('onVideoConstraints', component)
-    if (component?.videoConstraints) {
-      this.peer.applyMediaConstraints('video', component.videoConstraints)
-    }
-  }
-
-  /** @internal */
-  onAudioConstraints(component: any) {
-    this.logger.debug('onAudioConstraints', component)
-    if (component?.audioConstraints) {
-      this.peer.applyMediaConstraints('audio', component.audioConstraints)
+  async _triggerNewRTCPeer() {
+    this.logger.debug('_triggerNewRTCPeer Start')
+    try {
+      this.logger.debug('Build a new RTCPeer')
+      const rtcPeer = new RTCPeer(this, 'offer')
+      this.appendRTCPeer(rtcPeer)
+      this.logger.debug('Run workers for the new RTCPeer', rtcPeer.uuid)
+      this.runRTCPeerWorkers(rtcPeer.uuid)
+      this.logger.debug('Trigger start for the new RTCPeer!')
+      await rtcPeer.start()
+    } catch (error) {
+      this.logger.error('Error building new RTCPeer to promote/demote', error)
     }
   }
 
@@ -362,6 +336,9 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
     return new Promise(async (resolve, reject) => {
       try {
+        if (!this.peer) {
+          return reject(new Error('Invalid RTCPeerConnection.'))
+        }
         if (!Object.keys(constraints).length) {
           return reject(new Error('Invalid audio/video constraints.'))
         }
@@ -514,12 +491,31 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     })
   }
 
+  runRTCPeerWorkers(rtcPeerId: string) {
+    this.runWorker('vertoEventWorker', {
+      worker: workers.vertoEventWorker,
+      initialState: { rtcPeerId },
+    })
+
+    this.runWorker('roomSubscribedWorker', {
+      worker: workers.roomSubscribedWorker,
+      initialState: { rtcPeerId },
+    })
+
+    this.runWorker('promoteDemoteWorker', {
+      worker: workers.promoteDemoteWorker,
+      initialState: { rtcPeerId },
+    })
+  }
+
   /** @internal */
   invite<T>(): Promise<T> {
     return new Promise(async (resolve, reject) => {
       this.direction = 'outbound'
       this.peer = new RTCPeer(this, 'offer')
       try {
+        this.runRTCPeerWorkers(this.peer.uuid)
+
         await this.peer.start()
         resolve(this as any as T)
       } catch (error) {
@@ -545,17 +541,21 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /** @internal */
-  onLocalSDPReady(localDescription: RTCSessionDescription) {
-    const { type, sdp } = localDescription
+  onLocalSDPReady(rtcPeer: RTCPeer<EventTypes>) {
+    if (!rtcPeer.instance.localDescription) {
+      this.logger.error('Missing localDescription', rtcPeer)
+      throw new Error('Invalid RTCPeerConnection localDescription')
+    }
+    const { type, sdp } = rtcPeer.instance.localDescription
     const mungedSDP = this._mungeSDP(sdp)
-    this.logger.debug('MUNGED SDP \n', `Type: ${type}`, '\n\n', mungedSDP)
+    this.logger.debug('LOCAL SDP \n', `Type: ${type}`, '\n\n', mungedSDP)
     switch (type) {
       case 'offer':
         // If we have a remoteDescription already, send reinvite
-        if (this.peer.instance?.remoteDescription) {
-          return this.executeUpdateMedia(mungedSDP)
+        if (rtcPeer.instance.remoteDescription) {
+          return this.executeUpdateMedia(mungedSDP, rtcPeer.uuid)
         } else {
-          return this.executeInvite(mungedSDP)
+          return this.executeInvite(mungedSDP, rtcPeer.uuid)
         }
       case 'answer':
         this.logger.warn('Unhandled verto.answer')
@@ -571,20 +571,16 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   /**
    * Send the `verto.invite` only if the state is either `new` or `requesting`
    *   - new: the first time we send out the offer.
-   *   - requesting: we received a redirect to a different node so need to send
-   *     again the offer with a different nodeId.
+   *   - requesting: we received a redirectDestination so need to send it again
+   *     specifying nodeId.
    *
    * @internal
    */
-  async executeInvite(sdp: string) {
-    const validStates: BaseConnectionState[] = ['new', 'requesting']
-    if (!validStates.includes(this.state)) {
-      /**
-       * Something bad happened. Either App logic invoking
-       * methods in a wrong order or events are not correct.
-       */
+  async executeInvite(sdp: string, rtcPeerId: string, nodeId?: string) {
+    const rtcPeer = this.getRTCPeerById(rtcPeerId)
+    if (!rtcPeer || rtcPeer.instance.remoteDescription) {
       throw new Error(
-        `Invalid state: '${this.state}' for connection id: ${this.id}`
+        `RTCPeer '${rtcPeerId}' already has a remoteDescription. Invalid invite.`
       )
     }
     // Set state to `requesting` only when `new`, otherwise keep it as `requesting`.
@@ -598,12 +594,28 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
             positions: this.options.positions,
           }
         : {}
-      const msg = VertoInvite({
-        ...this.messagePayload,
+      const message = VertoInvite({
+        ...this.dialogParams(rtcPeerId),
         ...ssOpts,
         sdp,
       })
-      const response = await this.vertoExecute(msg)
+      let subscribe: EventEmitter.EventNames<
+        EventTypes & BaseConnectionStateEventTypes
+      >[] = []
+      if (this.options.screenShare) {
+        /** @ts-expect-error - Only being used for debugging purposes */
+        subscribe = ['video.room.screenshare']
+      } else if (this.options.additionalDevice) {
+        /** @ts-expect-error - Only being used for debugging purposes */
+        subscribe = ['video.room.additionaldevice']
+      } else {
+        subscribe = this.getSubscriptions()
+      }
+      const response = await this.vertoExecute({
+        message,
+        node_id: nodeId,
+        subscribe,
+      })
       this.logger.debug('Invite response', response)
     } catch (error) {
       this.setState('hangup')
@@ -612,19 +624,22 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /** @internal */
-  async executeUpdateMedia(sdp: string) {
+  async executeUpdateMedia(sdp: string, rtcPeerId: string) {
     try {
-      const msg = VertoModify({
-        ...this.messagePayload,
+      const message = VertoModify({
+        ...this.dialogParams(rtcPeerId),
         sdp,
         action: 'updateMedia',
       })
-      const response: any = await this.vertoExecute(msg)
+      const response: any = await this.vertoExecute({ message })
       if (!response.sdp) {
         this.logger.error('UpdateMedia invalid SDP answer', response)
       }
 
       this.logger.debug('UpdateMedia response', response)
+      if (!this.peer) {
+        return this.logger.error('Invalid RTCPeer to updateMedia')
+      }
       await this.peer.onRemoteSdp(response.sdp)
     } catch (error) {
       this.logger.error('UpdateMedia error', error)
@@ -633,21 +648,37 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     }
   }
 
-  async hangup() {
+  async hangup(id?: string) {
+    const rtcPeerId = id ?? this.peer?.uuid
+    if (!rtcPeerId) {
+      throw new Error('Invalid RTCPeer ID to hangup')
+    }
+
     try {
-      const bye = VertoBye(this.messagePayload)
-      await this.vertoExecute(bye)
+      const message = VertoBye(this.dialogParams(rtcPeerId))
+      await this.vertoExecute({ message })
     } catch (error) {
       this.logger.error('Hangup error:', error)
     } finally {
-      this._hangup()
+      if (rtcPeerId !== this.peer?.uuid) {
+        return this.logger.warn(
+          'Prevent setState hangup',
+          rtcPeerId,
+          this.peer?.uuid
+        )
+      }
+      this.setState('hangup')
     }
   }
 
   /** @internal */
   dtmf(dtmf: string) {
-    const msg = VertoInfo({ ...this.messagePayload, dtmf })
-    this.vertoExecute(msg)
+    const rtcPeerId = this.peer?.uuid
+    if (!rtcPeerId) {
+      throw new Error('Invalid RTCPeer ID to send DTMF')
+    }
+    const message = VertoInfo({ ...this.dialogParams(rtcPeerId), dtmf })
+    this.vertoExecute({ message })
   }
 
   /** @internal */
@@ -725,20 +756,38 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /** @internal */
-  private _hangup(params: any = {}) {
+  public onVertoBye = (params: OnVertoByeParams) => {
     const {
+      rtcPeerId,
       byeCause = 'NORMAL_CLEARING',
       byeCauseCode = '16',
       redirectDestination,
     } = params
-    this.cause = byeCause
-    this.causeCode = byeCauseCode
-    if (redirectDestination && this.peer.localSdp) {
-      this.logger.debug('Redirect Destination to:', redirectDestination)
-      this.nodeId = redirectDestination
-      return this.executeInvite(this.peer.localSdp)
+    this.cause = String(byeCause)
+    this.causeCode = String(byeCauseCode)
+    const rtcPeer = this.getRTCPeerById(rtcPeerId)
+    if (!rtcPeer) {
+      return this.logger.warn('Invalid RTCPeer to hangup', params)
     }
-    return this.setState('hangup')
+    if (redirectDestination && rtcPeer.localSdp) {
+      this.logger.debug(
+        'Redirect Destination to:',
+        redirectDestination,
+        'for RTCPeer:',
+        rtcPeer.uuid
+      )
+      // Force nodeId to redirectDestination
+      this.executeInvite(rtcPeer.localSdp, rtcPeer.uuid, redirectDestination)
+      return
+    }
+
+    // Notify RTCPeer for the bad signaling error
+    rtcPeer.onRemoteBye({ code: this.causeCode, message: this.cause })
+
+    // Set state to hangup only if the rtcPeer is the current one
+    if (this.activeRTCPeerId === rtcPeer?.uuid) {
+      this.setState('hangup')
+    }
   }
 
   /**
@@ -747,19 +796,23 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
    * @internal
    * */
   private _mungeSDP(sdp: string) {
+    // const pattern = /^a=candidate.*/
+    // const cleaned =
+    //   sdp
+    //     .split('\r\n')
+    //     .filter((line) => !pattern.test(line))
+    //     .join('\r\n') + '\r\n'
+    // return cleaned
     return sdp
   }
 
   /** @internal */
   protected _finalize() {
-    if (this.peer && this.peer.instance) {
-      this.peer.instance.close()
-      // @ts-ignore
-      delete this.peer
-    }
-    const { remoteStream, localStream } = this.options
-    stopStream(remoteStream)
-    stopStream(localStream)
+    this.rtcPeerMap.forEach((rtcPeer) => {
+      rtcPeer.stop()
+    })
+    this.rtcPeerMap.clear()
+
     this.destroy()
   }
 }
