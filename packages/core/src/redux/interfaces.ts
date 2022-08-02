@@ -10,8 +10,7 @@ import {
   Authorization,
 } from '../utils/interfaces'
 import type {
-  VideoAPIEventParams,
-  InternalVideoAPIEvent,
+  VideoAction,
   ChatAction,
   TaskAction,
   MessagingAction,
@@ -107,7 +106,7 @@ export type MapToPubSubShape<T> = {
 }
 
 export type PubSubAction =
-  | MapToPubSubShape<VideoAPIEventParams | InternalVideoAPIEvent>
+  | VideoAction
   | {
       type: SessionEvents
       payload: Error | undefined
