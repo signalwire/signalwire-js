@@ -63,7 +63,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     BaseConnectionContract<EventTypes & BaseConnectionStateEventTypes>
 {
   public direction: 'inbound' | 'outbound'
-  // public peer: RTCPeer<EventTypes>
   public options: BaseConnectionOptions<
     EventTypes & BaseConnectionStateEventTypes
   >
@@ -819,9 +818,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     // Notify RTCPeer for the bad signaling error
     rtcPeer.onRemoteBye({ code: this.causeCode, message: this.cause })
 
-    // TODO: improve this check
     // Set state to hangup only if the rtcPeer is the current one
-    if (this.peer?.uuid === rtcPeer?.uuid) {
+    if (this.activeRTCPeerId === rtcPeer?.uuid) {
       this.setState('hangup')
     }
   }
