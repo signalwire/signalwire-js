@@ -476,17 +476,16 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           transceiver.receiver.track.stop()
         }
       })
-    } else {
-      // Legacy APIs for older browsers / RN
-      // Do not use `stopTrack` util to not dispatch the `ended` event
-      this._localStream?.getTracks().forEach((track) => track.stop())
-      this._remoteStream?.getTracks().forEach((track) => track.stop())
     }
 
     this.stop()
   }
 
   stop() {
+    // Do not use `stopTrack` util to not dispatch the `ended` event
+    this._localStream?.getTracks().forEach((track) => track.stop())
+    this._remoteStream?.getTracks().forEach((track) => track.stop())
+
     this.instance?.close()
   }
 
