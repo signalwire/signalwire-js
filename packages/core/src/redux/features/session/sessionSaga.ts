@@ -136,7 +136,7 @@ export function* sessionChannelWatcher({
       case 'video.room.audience_count': {
         /** Rename event to be camelCase */
         yield put(pubSubChannel, {
-          type: `video.room.audienceCount`,
+          type: 'video.room.audienceCount',
           payload: params.params,
         })
         return
