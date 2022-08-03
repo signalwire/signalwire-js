@@ -25,6 +25,8 @@ import {
   VideoPlaybackEvent,
   InternalVideoPlaybackEventNames,
 } from './videoPlayback'
+import { VideoRoomAudienceCountEvent } from '.'
+import { MapToPubSubShape } from '..'
 
 export * from './videoRoomSession'
 export * from './videoMember'
@@ -109,3 +111,8 @@ export type VideoAPIEventParams =
   | VideoLayoutEvent
   | VideoRecordingEvent
   | VideoPlaybackEvent
+  | VideoRoomAudienceCountEvent
+
+export type VideoAction = MapToPubSubShape<
+  InternalVideoAPIEvent | VideoAPIEventParams | VideoRoomAudienceCountEvent
+>

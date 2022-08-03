@@ -10,6 +10,8 @@ import {
   toLocalEvent,
   VideoMemberEventParams,
   InternalVideoRoomSessionEventNames,
+  VideoRoomAudienceCountEventNames,
+  VideoRoomAudienceCountEventParams,
   VideoRoomUpdatedEventParams,
   VideoRoomSubscribedEventParams,
   InternalVideoLayoutEventNames,
@@ -35,6 +37,7 @@ import { memberPositionWorker } from './memberPosition/workers'
 
 type EmitterTransformsEvents =
   | InternalVideoRoomSessionEventNames
+  | VideoRoomAudienceCountEventNames
   | InternalVideoMemberEventNames
   | InternalVideoLayoutEventNames
   | InternalVideoRecordingEventNames
@@ -291,6 +294,18 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
               ...payload.playback,
               room_session_id: payload.room_session_id,
             })
+          },
+        },
+      ],
+      [
+        ['video.room.audience_count', 'video.room.audienceCount'],
+        {
+          type: 'roomSessionAudienceCount',
+          instanceFactory: (_payload: VideoRoomAudienceCountEventParams) => {
+            return {}
+          },
+          payloadTransform: (payload: VideoRoomAudienceCountEventParams) => {
+            return toExternalJSON(payload)
           },
         },
       ],

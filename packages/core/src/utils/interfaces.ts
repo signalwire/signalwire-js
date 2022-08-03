@@ -360,6 +360,7 @@ export type EventTransformType =
   | 'roomSessionLayout'
   | 'roomSessionRecording'
   | 'roomSessionPlayback'
+  | 'roomSessionAudienceCount'
   | ChatTransformType
   | PubSubTransformType
   | MessagingTransformType
