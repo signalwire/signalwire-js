@@ -25,6 +25,10 @@ export type InternalRoomAudienceCount = 'room.audience_count'
 export type RoomJoined = 'room.joined'
 export type RoomAudienceCount = 'room.audienceCount'
 
+export type VideoRoomAudienceCountEventNames = ToInternalVideoEvent<
+  InternalRoomAudienceCount | RoomAudienceCount
+>
+
 /**
  * List of public event names
  */
