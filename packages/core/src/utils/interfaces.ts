@@ -163,7 +163,7 @@ export type MediaDirectionAllowed = 'none' | 'receive' | 'both'
 type AudioAllowed = MediaDirectionAllowed
 type VideoAllowed = MediaDirectionAllowed
 
-export interface Authorization {
+export interface VideoAuthorization {
   type: 'video'
   project: string
   scopes: string[]
@@ -180,6 +180,25 @@ export interface Authorization {
   audio_allowed: AudioAllowed
   video_allowed: VideoAllowed
 }
+
+export type ChatAuthorizationChannels = Record<string, { read?: boolean; write?: boolean }>
+
+export interface ChatAuthorization {
+  type: 'chat'
+  channels: ChatAuthorizationChannels
+  expires_at: number
+  member_id: string
+  project: string
+  project_id: string
+  resource: string
+  scope_id: string
+  scopes: string[]
+  signature: string
+  space_id: string
+  ttl: number
+}
+
+export type Authorization = VideoAuthorization | ChatAuthorization
 
 export interface RPCConnectResult {
   identity: string

@@ -10,9 +10,8 @@ export interface ChatClientApiEvents extends ChatNamespace.BaseChatApiEvents {}
 
 export interface ClientFullState extends ChatClient {}
 interface ChatClient
-  extends ChatContract,
+  extends Omit<ChatContract, 'getAllowedChannels'>,
     Omit<ConsumerContract<ChatClientApiEvents, ClientFullState>, 'subscribe'> {
-
   new (opts: ChatClientOptions): this
 
   /** @internal */
@@ -32,6 +31,7 @@ const INTERCEPTED_METHODS: ClientMethods[] = [
   'getMemberState',
   'setMemberState',
 ]
+const UNSUPPORTED_METHODS = ['getAllowedChannels']
 
 /**
  * You can use instances of this class to control the chat and subscribe to its
@@ -106,6 +106,8 @@ const ChatClient = function (options?: ChatClientOptions) {
       // FIXME: types and _session check
       if (prop !== '_session' && INTERCEPTED_METHODS.includes(prop)) {
         return createInterceptor(prop)
+      } else if (UNSUPPORTED_METHODS.includes(prop)) {
+        return undefined
       }
 
       return Reflect.get(target, prop, receiver)

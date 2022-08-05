@@ -4,6 +4,7 @@ import type {
   CamelToSnakeCase,
   SwEvent,
   MapToPubSubShape,
+  ChatAuthorizationChannels,
 } from '..'
 import { PRODUCT_PREFIX_PUBSUB } from '../utils/constants'
 
@@ -83,6 +84,8 @@ export interface PubSubContract {
    * ```
    */
   publish(params: PubSubPublishParams): Promise<void>
+  /** @internal */
+  getAllowedChannels(): Promise<ChatAuthorizationChannels>
 }
 
 export type PubSubEntity = OnlyStateProperties<PubSubContract>

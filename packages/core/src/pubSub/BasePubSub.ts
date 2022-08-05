@@ -10,6 +10,7 @@ import {
   EventTransform,
   toExternalJSON,
 } from '..'
+import { getAuthState } from '../redux/features/session/sessionSelectors'
 import type {
   PubSubChannel,
   InternalPubSubChannel,
@@ -220,6 +221,17 @@ export class BasePubSubConsumer<
       method: `${PRODUCT_PREFIX_PUBSUB}.publish`,
       params,
     })
+  }
+
+  // Currently only `js` supports this features and it's
+  // being ignored (filtered at the Proxy level) within
+  // `realtime-api`
+  getAllowedChannels() {
+    const authState = this.select(getAuthState)
+    if (authState && 'channels' in authState && authState.channels) {
+      return authState.channels
+    }
+    return {}
   }
 }
 
