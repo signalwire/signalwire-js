@@ -5,9 +5,10 @@ import {
   PubSubContract,
 } from '@signalwire/core'
 import { clientConnect, setupClient, RealtimeClient } from '../client/index'
+import type { RealTimePubSubApiEventsHandlerMapping } from '../types/pubSub'
 
 export interface PubSubClientApiEvents
-  extends PubSubNamespace.BasePubSubApiEvents {}
+  extends PubSubNamespace.BasePubSubApiEvents<RealTimePubSubApiEventsHandlerMapping> {}
 
 export interface ClientFullState extends PubSubClient {}
 interface PubSubClient

@@ -5,8 +5,10 @@ import {
   Chat as ChatNamespace,
 } from '@signalwire/core'
 import { clientConnect, setupClient, RealtimeClient } from '../client/index'
+import type { RealTimeChatApiEventsHandlerMapping } from '../types/chat'
 
-export interface ChatClientApiEvents extends ChatNamespace.BaseChatApiEvents {}
+export interface ChatClientApiEvents
+  extends ChatNamespace.BaseChatApiEvents<RealTimeChatApiEventsHandlerMapping> {}
 
 export interface ClientFullState extends ChatClient {}
 interface ChatClient
