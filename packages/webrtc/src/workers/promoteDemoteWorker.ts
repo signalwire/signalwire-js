@@ -10,6 +10,7 @@ import {
   VideoMemberDemotedEvent,
   sessionActions,
   selectors,
+  VideoAuthorization,
 } from '@signalwire/core'
 
 import { BaseConnection } from '../BaseConnection'
@@ -52,14 +53,10 @@ export const promoteDemoteWorker: SDKWorker<
   yield sagaEffects.put(
     sessionActions.updateAuthState(action.payload.authorization)
   )
-  const authState: ReturnType<typeof selectors.getAuthState> =
+  const authState: VideoAuthorization =
     yield sagaEffects.select(selectors.getAuthState)
   if (!authState) {
     throw new Error(`Invalid authState for '${action.type}'`)
-  }
-
-  if (authState?.type !== 'video') {
-    return
   }
 
   instance.updateMediaOptions({
