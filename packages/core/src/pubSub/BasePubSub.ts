@@ -201,6 +201,9 @@ export class BasePubSubConsumer<
     })
   }
 
+  // Currently only `js` supports this features and it's
+  // being ignored (filtered at the Proxy level) within
+  // `realtime-api`
   updateToken(token: string): Promise<void> {
     return new Promise((resolve, reject) => {
       // @ts-expect-error
