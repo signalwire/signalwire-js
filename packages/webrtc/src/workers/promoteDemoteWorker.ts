@@ -58,6 +58,10 @@ export const promoteDemoteWorker: SDKWorker<
     throw new Error(`Invalid authState for '${action.type}'`)
   }
 
+  if (authState?.type !== 'video') {
+    return
+  }
+
   instance.updateMediaOptions({
     audio: isPromoted && authState.audio_allowed !== 'none',
     video: isPromoted && authState.video_allowed !== 'none',
