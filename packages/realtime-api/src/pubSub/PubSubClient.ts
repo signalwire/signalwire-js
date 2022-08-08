@@ -5,13 +5,14 @@ import {
   PubSubContract,
 } from '@signalwire/core'
 import { clientConnect, setupClient, RealtimeClient } from '../client/index'
+import type { RealTimePubSubApiEventsHandlerMapping } from '../types/pubSub'
 
 export interface PubSubClientApiEvents
-  extends PubSubNamespace.BasePubSubApiEvents {}
+  extends PubSubNamespace.BasePubSubApiEvents<RealTimePubSubApiEventsHandlerMapping> {}
 
 export interface ClientFullState extends PubSubClient {}
 interface PubSubClient
-  extends Omit<PubSubContract, 'getAllowedChannels'>,
+  extends Omit<PubSubContract, 'getAllowedChannels' | 'updateToken'>,
     Omit<
       ConsumerContract<PubSubClientApiEvents, ClientFullState>,
       'subscribe'
@@ -29,7 +30,7 @@ interface PubSubClientOptions
 
 type ClientMethods = Exclude<keyof PubSubClient, '_session'>
 const INTERCEPTED_METHODS: ClientMethods[] = ['subscribe', 'publish']
-const UNSUPPORTED_METHODS = ['getAllowedChannels']
+const UNSUPPORTED_METHODS = ['getAllowedChannels', 'updateToken']
 
 /**
  * Creates a new PubSub client.

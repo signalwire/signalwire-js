@@ -5,12 +5,14 @@ import {
   Chat as ChatNamespace,
 } from '@signalwire/core'
 import { clientConnect, setupClient, RealtimeClient } from '../client/index'
+import type { RealTimeChatApiEventsHandlerMapping } from '../types/chat'
 
-export interface ChatClientApiEvents extends ChatNamespace.BaseChatApiEvents {}
+export interface ChatClientApiEvents
+  extends ChatNamespace.BaseChatApiEvents<RealTimeChatApiEventsHandlerMapping> {}
 
 export interface ClientFullState extends ChatClient {}
 interface ChatClient
-  extends Omit<ChatContract, 'getAllowedChannels'>,
+  extends Omit<ChatContract, 'getAllowedChannels' | 'updateToken'>,
     Omit<ConsumerContract<ChatClientApiEvents, ClientFullState>, 'subscribe'> {
   new (opts: ChatClientOptions): this
 
@@ -31,7 +33,7 @@ const INTERCEPTED_METHODS: ClientMethods[] = [
   'getMemberState',
   'setMemberState',
 ]
-const UNSUPPORTED_METHODS = ['getAllowedChannels']
+const UNSUPPORTED_METHODS = ['getAllowedChannels', 'updateToken']
 
 /**
  * You can use instances of this class to control the chat and subscribe to its
