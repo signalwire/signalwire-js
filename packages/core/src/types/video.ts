@@ -1,27 +1,22 @@
 import {
-  VideoRoomSessionEventNames,
   VideoRoomEvent,
   InternalVideoRoomSessionEventNames,
   InternalVideoRoomEvent,
 } from './videoRoomSession'
 import {
-  VideoMemberEventNames,
   VideoMemberEvent,
   InternalVideoMemberEventNames,
   InternalVideoMemberEvent,
 } from './videoMember'
 import {
-  VideoLayoutEventNames,
   InternalVideoLayoutEventNames,
   VideoLayoutEvent,
 } from './videoLayout'
 import {
-  VideoRecordingEventNames,
   VideoRecordingEvent,
   InternalVideoRecordingEventNames,
 } from './videoRecording'
 import {
-  VideoPlaybackEventNames,
   VideoPlaybackEvent,
   InternalVideoPlaybackEventNames,
 } from './videoPlayback'
@@ -76,17 +71,6 @@ export type VideoPosition =
  * ```
  */
 export type VideoPositions = Record<string, VideoPosition>
-
-/**
- * List of all the events a RoomObject can listen to
- */
-export type RoomEventNames =
-  | VideoRoomSessionEventNames
-  | VideoMemberEventNames
-  | VideoLayoutEventNames
-  | VideoRecordingEventNames
-  | VideoPlaybackEventNames
-  | RTCTrackEventName
 
 /**
  * List of all the internal events

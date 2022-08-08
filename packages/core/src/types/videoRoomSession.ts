@@ -36,10 +36,10 @@ export type VideoRoomAudienceCountEventNames = ToInternalVideoEvent<
 export type VideoRoomSessionEventNames =
   | RoomStarted
   | RoomSubscribed
-  | RoomJoined
-  | RoomLeft
   | RoomUpdated
   | RoomEnded
+  | RoomJoined // only used in `js` (emitted by `webrtc`)
+  | RoomLeft // only used in `js`
 
 /**
  * List of internal events
