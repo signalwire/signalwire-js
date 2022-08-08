@@ -18,7 +18,6 @@ async function run() {
     tap.ok(pubSub.publish, 'pubSub.publish is defined')
     tap.ok(pubSub.subscribe, 'pubSub.subscribe is defined')
     tap.ok(pubSub.unsubscribe, 'pubSub.unsubscribe is defined')
-    tap.ok(pubSub.updateToken, 'pubSub.updateToken is defined')
 
     process.exit(0)
   } catch (error) {
