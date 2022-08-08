@@ -344,10 +344,13 @@ function* videoElementSetupWorker({
     relativeWrapper.style.margin = '0 auto'
     relativeWrapper.appendChild(paddingWrapper)
 
-    rootElement.style.display = 'flex'
-    rootElement.style.alignItems = 'center'
-    rootElement.style.justifyContent = 'center'
-    rootElement.appendChild(relativeWrapper)
+    const contentWrapper = document.createElement('div')
+    contentWrapper.style.display = 'flex'
+    contentWrapper.style.alignItems = 'center'
+    contentWrapper.style.justifyContent = 'center'
+    contentWrapper.appendChild(relativeWrapper)
+
+    rootElement.appendChild(contentWrapper)
 
     if (element.readyState === HTMLMediaElement.HAVE_NOTHING) {
       getLogger().debug('Wait for the MCU to be ready')
