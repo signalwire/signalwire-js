@@ -8,13 +8,14 @@ import type {
 
 const datetime = () => new Date().toISOString()
 const defaultLogger = log.getLogger('signalwire')
+const isWindowUndefined = typeof window === 'undefined'
 
 const originalFactory = defaultLogger.methodFactory
 defaultLogger.methodFactory = (methodName, logLevel, loggerName) => {
   const rawMethod = originalFactory(methodName, logLevel, loggerName)
 
   return function (...args: any[]) {
-    if (typeof window === 'undefined') {
+    if (isWindowUndefined) {
       args.unshift(datetime(), '-')
     }
     rawMethod.apply(undefined, args)
