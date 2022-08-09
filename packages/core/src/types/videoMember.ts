@@ -21,7 +21,6 @@ export const INTERNAL_MEMBER_UPDATABLE_PROPS = {
   audio_muted: true,
   video_muted: true,
   deaf: true,
-  on_hold: true,
   visible: true,
   input_volume: 1,
   output_volume: 1,
@@ -147,6 +146,8 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
   requestedPosition: VideoPosition
   /** Current position of this member in the layout. */
   currentPosition?: VideoPosition
+  /** Metadata associated to this member. */
+  meta?: Record<string, unknown>
 
   /**
    * Mutes the outbound audio for this member (e.g., the one coming from a

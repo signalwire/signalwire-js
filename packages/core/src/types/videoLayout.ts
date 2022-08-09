@@ -36,6 +36,8 @@ export interface VideoLayoutLayer {
   zIndex: number
   reservation: string
   position: VideoPosition
+  playingFile: boolean
+  visible: boolean
 }
 
 /**
