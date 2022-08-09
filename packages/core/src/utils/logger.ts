@@ -6,20 +6,19 @@ import type {
   UserOptions,
 } from '..'
 
-const datetime = () =>
-  new Date().toISOString().replace('T', ' ').replace('Z', '')
+const datetime = () => new Date().toISOString()
 const defaultLogger = log.getLogger('signalwire')
+const isWindowUndefined = typeof window === 'undefined'
 
 const originalFactory = defaultLogger.methodFactory
 defaultLogger.methodFactory = (methodName, logLevel, loggerName) => {
   const rawMethod = originalFactory(methodName, logLevel, loggerName)
 
-  return function () {
-    const messages = [datetime(), '-']
-    for (let i = 0; i < arguments.length; i++) {
-      messages.push(arguments[i])
+  return function (...args: any[]) {
+    if (isWindowUndefined) {
+      args.unshift(datetime(), '-')
     }
-    rawMethod.apply(undefined, messages)
+    rawMethod.apply(undefined, args)
   }
 }
 
