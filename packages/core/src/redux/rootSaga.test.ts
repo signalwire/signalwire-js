@@ -1,5 +1,7 @@
 import { eventChannel } from '@redux-saga/core'
 import { expectSaga, testSaga } from 'redux-saga-test-plan'
+import type { Task } from '@redux-saga/types'
+import { createMockTask } from '@redux-saga/testing-utils'
 import rootSaga, {
   socketClosedWorker,
   sessionStatusWatcher,
@@ -37,7 +39,7 @@ import { createPubSubChannel, createSwEventChannel } from '../testUtils'
 // import { componentCleanupSaga } from './features/component/componentSaga'
 
 describe('socketClosedWorker', () => {
-  it('should try to reconnect when session status is reconnecting', async () => {
+  it('should try to reconnect when session status is reconnecting', () => {
     const session = {
       closed: true,
       status: 'reconnecting',
@@ -56,7 +58,7 @@ describe('socketClosedWorker', () => {
       .run(timeout)
   })
 
-  it('should close the session when session status is not reconnecting', async () => {
+  it('should close the session when session status is not reconnecting', () => {
     const session = {
       closed: true,
       status: 'disconnected',
@@ -106,7 +108,14 @@ describe('sessionStatusWatcher', () => {
     saga.next().take(actions)
     saga.next(authSuccessAction()).fork(startSaga, options)
     // Saga waits again for actions due to the while loop
-    saga.next().take(actions)
+    const firstSagaTask: Task = createMockTask()
+    saga.next(firstSagaTask).take(actions)
+    // Should cancel the previous startSaga task
+    saga.next(authSuccessAction()).cancel(firstSagaTask)
+    saga.next().fork(startSaga, options)
+    const secondSagaTask: Task = createMockTask()
+    // Saga waits again for actions due to the while loop
+    saga.next(secondSagaTask).take(actions)
   })
 
   it('should throw Auth Error on authError action', () => {
@@ -244,6 +253,7 @@ describe('startSaga', () => {
     saga.next().fork(flushExecuteQueueWorker)
 
     saga.next(executeQueueCallTask).take(closeConnectionAction.type)
+    saga.next().cancelled()
     saga.next().isDone()
 
     expect(pubSubTask.cancel).toHaveBeenCalledTimes(1)

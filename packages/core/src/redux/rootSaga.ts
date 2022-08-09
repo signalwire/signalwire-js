@@ -8,6 +8,7 @@ import {
   delay,
   all,
   cancelled,
+  cancel,
 } from '@redux-saga/core/effects'
 import {
   SessionConstructor,
@@ -194,8 +195,10 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
     getLogger().debug('sessionStatusWatcher', action.type, action.payload)
     switch (action.type) {
       case authSuccessAction.type: {
-        // Cancel previous task in case of reconnect
-        startSagaTask?.cancel()
+        if (startSagaTask) {
+          // Cancel previous task in case of reconnect
+          yield cancel(startSagaTask)
+        }
         startSagaTask = yield fork(startSaga, options)
         break
       }
