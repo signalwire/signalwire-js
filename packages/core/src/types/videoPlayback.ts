@@ -41,6 +41,9 @@ export interface VideoPlaybackContract {
   /** Current state of the playback */
   state: 'playing' | 'paused' | 'completed'
 
+  /** The current playback position, in milliseconds. */
+  position: number;
+
   /** Whether the seek function can be used for this playback. */
   seekable: boolean
 
