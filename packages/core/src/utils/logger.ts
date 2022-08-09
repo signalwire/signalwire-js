@@ -13,12 +13,11 @@ const originalFactory = defaultLogger.methodFactory
 defaultLogger.methodFactory = (methodName, logLevel, loggerName) => {
   const rawMethod = originalFactory(methodName, logLevel, loggerName)
 
-  return function () {
-    const messages = [datetime(), '-']
-    for (let i = 0; i < arguments.length; i++) {
-      messages.push(arguments[i])
+  return function (...args: any[]) {
+    if (typeof window === 'undefined') {
+      args.unshift(datetime(), '-')
     }
-    rawMethod.apply(undefined, messages)
+    rawMethod.apply(undefined, args)
   }
 }
 
