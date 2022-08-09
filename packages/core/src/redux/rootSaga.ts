@@ -1,6 +1,14 @@
 import type { Task, SagaIterator } from '@redux-saga/types'
 import { EventChannel } from '@redux-saga/core'
-import { fork, call, take, put, delay, all } from '@redux-saga/core/effects'
+import {
+  fork,
+  call,
+  take,
+  put,
+  delay,
+  all,
+  cancelled,
+} from '@redux-saga/core/effects'
 import {
   SessionConstructor,
   InternalUserOptions,
@@ -171,6 +179,8 @@ export function* reauthenticateWorker({
 }
 
 export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
+  let startSagaTask: Task | undefined = undefined
+
   while (true) {
     const action = yield take([
       authSuccessAction.type,
@@ -183,9 +193,12 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
 
     getLogger().debug('sessionStatusWatcher', action.type, action.payload)
     switch (action.type) {
-      case authSuccessAction.type:
-        yield fork(startSaga, options)
+      case authSuccessAction.type: {
+        // Cancel previous task in case of reconnect
+        startSagaTask?.cancel()
+        startSagaTask = yield fork(startSaga, options)
         break
+      }
       case authErrorAction.type: {
         yield fork(sessionAuthErrorSaga, {
           action,
@@ -221,36 +234,43 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
 }
 
 export function* startSaga(options: StartSagaOptions): SagaIterator {
-  const { session, pubSubChannel, userOptions } = options
+  getLogger().debug('startSaga [started]')
+  try {
+    const { session, pubSubChannel, userOptions } = options
 
-  const pubSubTask: Task = yield fork(pubSubSaga, {
-    pubSubChannel,
-    emitter: userOptions.emitter!,
-  })
-  /**
-   * Fork the watcher for all the execute requests
-   */
-  const executeActionTask: Task = yield fork(executeActionWatcher, session)
+    const pubSubTask: Task = yield fork(pubSubSaga, {
+      pubSubChannel,
+      emitter: userOptions.emitter!,
+    })
+    /**
+     * Fork the watcher for all the execute requests
+     */
+    const executeActionTask: Task = yield fork(executeActionWatcher, session)
 
-  yield put(sessionActions.connected(session.rpcConnectResult))
-  yield put(pubSubChannel, sessionConnectedAction())
+    yield put(sessionActions.connected(session.rpcConnectResult))
+    yield put(pubSubChannel, sessionConnectedAction())
 
-  /**
-   * Will take care of executing any pending JSONRPC we have in
-   * the queue
-   */
-  const flushExecuteQueueTask: Task = yield fork(flushExecuteQueueWorker)
+    /**
+     * Will take care of executing any pending JSONRPC we have in
+     * the queue
+     */
+    const flushExecuteQueueTask: Task = yield fork(flushExecuteQueueWorker)
 
-  /**
-   * When `closeConnectionAction` is dispatched we'll teardown all the
-   * tasks created by this saga since `startSaga` is meant to be
-   * re-executed every time the user reconnects.
-   */
-  yield take(closeConnectionAction.type)
+    /**
+     * When `closeConnectionAction` is dispatched we'll teardown all the
+     * tasks created by this saga since `startSaga` is meant to be
+     * re-executed every time the user reconnects.
+     */
+    yield take(closeConnectionAction.type)
 
-  pubSubTask.cancel()
-  executeActionTask.cancel()
-  flushExecuteQueueTask.cancel()
+    pubSubTask.cancel()
+    executeActionTask.cancel()
+    flushExecuteQueueTask.cancel()
+  } finally {
+    if (yield cancelled()) {
+      getLogger().debug('startSaga [cancelled]')
+    }
+  }
 }
 
 interface SessionAuthErrorOptions {
