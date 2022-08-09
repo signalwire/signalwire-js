@@ -6,8 +6,7 @@ import type {
   UserOptions,
 } from '..'
 
-const datetime = () =>
-  new Date().toISOString().replace('T', ' ').replace('Z', '')
+const datetime = () => new Date().toISOString()
 const defaultLogger = log.getLogger('signalwire')
 
 const originalFactory = defaultLogger.methodFactory
