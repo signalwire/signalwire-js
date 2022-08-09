@@ -80,7 +80,6 @@ export type {
   BaseConnectionState,
   ClientEvents,
   EmitterContract,
-  RoomEventNames,
   RTCTrackEventName,
   UserOptions,
   SessionStatus,
@@ -109,4 +108,5 @@ export type {
   // Just to keep backwards compatibility.
   RoomSessionObjectEventsHandlerMap as RoomObjectEventsHandlerMap,
   RoomSessionObjectEvents as RoomObjectEvents,
+  RoomEventNames
 } from './utils/interfaces'

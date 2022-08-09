@@ -24,6 +24,7 @@ import type {
   VideoPositions,
   RoomAudienceCount,
   VideoRoomAudienceCountEventParams,
+  RoomLeft,
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
 import type { RoomSession } from '../RoomSession'
@@ -65,6 +66,17 @@ export type VideoMemberUpdatedHandlerParams = {
 }
 export type VideoMemberListUpdatedParams = { members: VideoMemberEntity[] }
 
+/**
+ * List of all the events a RoomObject can listen to
+ */
+export type RoomEventNames =
+  | VideoRoomSessionEventNames
+  | VideoMemberEventNames
+  | VideoLayoutEventNames
+  | VideoRecordingEventNames
+  | VideoPlaybackEventNames
+  | RTCTrackEventName
+
 export type RoomSessionObjectEventsHandlerMap = Record<
   VideoLayoutEventNames,
   (params: { layout: VideoLayout }) => void
@@ -92,7 +104,11 @@ export type RoomSessionObjectEventsHandlerMap = Record<
     MemberTalkingEventNames,
     (params: VideoMemberTalkingEventParams) => void
   > &
-  Record<VideoRoomSessionEventNames, (params: VideoRoomEventParams) => void> &
+  Record<
+    Exclude<VideoRoomSessionEventNames, RoomLeft>,
+    (params: VideoRoomEventParams) => void
+  > &
+  Record<RoomLeft, (params: void) => void> &
   Record<
     RoomAudienceCount,
     (params: VideoRoomAudienceCountEventParams) => void
