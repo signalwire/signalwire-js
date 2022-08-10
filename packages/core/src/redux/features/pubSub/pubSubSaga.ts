@@ -18,6 +18,8 @@ export function* pubSubSaga({
   pubSubChannel,
   emitter,
 }: PubSubSagaParams): SagaIterator<any> {
+  getLogger().debug('pubSubSaga [started]')
+
   try {
     while (true) {
       const pubSubAction: PubSubAction = yield take(pubSubChannel, '*')
