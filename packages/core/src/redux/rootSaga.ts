@@ -181,58 +181,64 @@ export function* reauthenticateWorker({
 }
 
 export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
+  getLogger().debug('sessionStatusWatcher [started]')
   let startSagaTask: Task | undefined = undefined
 
-  while (true) {
-    const action = yield take([
-      authSuccessAction.type,
-      authErrorAction.type,
-      authExpiringAction.type,
-      socketErrorAction.type,
-      socketClosedAction.type,
-      reauthAction.type,
-    ])
+  try {
+    while (true) {
+      const action = yield take([
+        authSuccessAction.type,
+        authErrorAction.type,
+        authExpiringAction.type,
+        socketErrorAction.type,
+        socketClosedAction.type,
+        reauthAction.type,
+      ])
 
-    getLogger().debug('sessionStatusWatcher', action.type, action.payload)
-    switch (action.type) {
-      case authSuccessAction.type: {
-        if (startSagaTask) {
-          // Cancel previous task in case of reconnect
-          yield cancel(startSagaTask)
+      getLogger().debug('sessionStatusWatcher', action.type, action.payload)
+      switch (action.type) {
+        case authSuccessAction.type: {
+          if (startSagaTask) {
+            // Cancel previous task in case of reconnect
+            yield cancel(startSagaTask)
+          }
+          startSagaTask = yield fork(startSaga, options)
+          break
         }
-        startSagaTask = yield fork(startSaga, options)
-        break
+        case authErrorAction.type: {
+          yield fork(sessionAuthErrorSaga, {
+            ...options,
+            action,
+          })
+          break
+        }
+        case authExpiringAction.type: {
+          yield put(options.pubSubChannel, sessionExpiringAction())
+          break
+        }
+        case socketErrorAction.type:
+          // TODO: define if we want to emit external events here.
+          // yield put(pubSubChannel, {
+          //   type: 'socket.error',
+          //   payload: {},
+          // })
+          break
+        case socketClosedAction.type:
+          yield fork(socketClosedWorker, options)
+          break
+        case reauthAction.type: {
+          yield fork(reauthenticateWorker, {
+            session: options.session,
+            token: action.payload.token,
+            pubSubChannel: options.pubSubChannel,
+          })
+          break
+        }
       }
-      case authErrorAction.type: {
-        yield fork(sessionAuthErrorSaga, {
-          action,
-          userOptions: options.userOptions,
-          pubSubChannel: options.pubSubChannel,
-        })
-        break
-      }
-      case authExpiringAction.type: {
-        yield put(options.pubSubChannel, sessionExpiringAction())
-        break
-      }
-      case socketErrorAction.type:
-        // TODO: define if we want to emit external events here.
-        // yield put(pubSubChannel, {
-        //   type: 'socket.error',
-        //   payload: {},
-        // })
-        break
-      case socketClosedAction.type:
-        yield fork(socketClosedWorker, options)
-        break
-      case reauthAction.type: {
-        yield fork(reauthenticateWorker, {
-          session: options.session,
-          token: action.payload.token,
-          pubSubChannel: options.pubSubChannel,
-        })
-        break
-      }
+    }
+  } finally {
+    if (yield cancelled()) {
+      getLogger().debug('sessionStatusWatcher [cancelled]')
     }
   }
 }
@@ -277,31 +283,37 @@ export function* startSaga(options: StartSagaOptions): SagaIterator {
   }
 }
 
-interface SessionAuthErrorOptions {
-  pubSubChannel: PubSubChannel
-  userOptions: InternalUserOptions
+interface SessionAuthErrorOptions extends StartSagaOptions {
   action: any
 }
-export function* sessionAuthErrorSaga(options: SessionAuthErrorOptions) {
-  const { pubSubChannel, userOptions, action } = options
-  const { error: authError } = action.payload
-  const error = authError
-    ? new AuthError(authError.code, authError.message)
-    : new Error('Unauthorized')
+export function* sessionAuthErrorSaga(
+  options: SessionAuthErrorOptions
+): SagaIterator {
+  getLogger().debug('sessionAuthErrorSaga [started]')
+  let pubSubTask: Task | undefined
 
-  const pubSubTask: Task = yield fork(pubSubSaga, {
-    pubSubChannel,
-    emitter: userOptions.emitter!,
-  })
+  try {
+    const { pubSubChannel, userOptions, action } = options
+    const { error: authError } = action.payload
+    const error = authError
+      ? new AuthError(authError.code, authError.message)
+      : new Error('Unauthorized')
 
-  yield put(pubSubChannel, sessionAuthErrorAction(error))
-  /**
-   * Wait for `session.disconnected` to cancel all the tasks
-   */
-  yield take(sessionDisconnectedAction)
-  pubSubTask.cancel()
+    pubSubTask = yield fork(pubSubSaga, {
+      pubSubChannel,
+      emitter: userOptions.emitter!,
+    })
 
-  throw error
+    yield put(pubSubChannel, sessionAuthErrorAction(error))
+
+    // Destroy everything
+    yield put(destroyAction())
+  } finally {
+    if (yield cancelled()) {
+      getLogger().debug('sessionAuthErrorSaga [cancelled]')
+    }
+    pubSubTask?.isCancelled()
+  }
 }
 
 interface RootSagaOptions {
