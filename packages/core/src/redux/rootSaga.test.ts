@@ -37,6 +37,7 @@ import {
 import { AuthError } from '../CustomErrors'
 import { createPubSubChannel, createSwEventChannel } from '../testUtils'
 // import { componentCleanupSaga } from './features/component/componentSaga'
+import { sessionAuthErrorAction } from '.'
 
 describe('socketClosedWorker', () => {
   it('should try to reconnect when session status is reconnecting', () => {
@@ -92,9 +93,12 @@ describe('sessionStatusWatcher', () => {
   } as any
   const pubSubChannel = createPubSubChannel()
   const sessionChannel = eventChannel(() => () => {})
+  const mockEmitter = {
+    emit: jest.fn(),
+  } as any
   const userOptions = {
     token: '',
-    emitter: jest.fn() as any,
+    emitter: mockEmitter,
   }
   const options = {
     session,
@@ -118,27 +122,28 @@ describe('sessionStatusWatcher', () => {
     saga.next(secondSagaTask).take(actions)
   })
 
-  it('should throw Auth Error on authError action', () => {
-    const saga = testSaga(sessionStatusWatcher, options)
-    saga.next().take(actions)
+  it('should fork sessionAuthErrorSaga on authError action and put destroyAction', () => {
+    let runSaga = true
     const action = authErrorAction({
       error: { code: 123, message: 'Protocol Error' },
     })
-    try {
-      saga
-        .next(action)
-        .fork(sessionAuthErrorSaga, {
-          pubSubChannel,
-          userOptions,
-          action,
-        })
-        .throw(new AuthError(123, 'Protocol Error'))
-    } catch (error) {
-      expect(error).toBeInstanceOf(AuthError)
-      expect(error.message).toEqual('Protocol Error')
-    }
-    // Saga terminated due to the error
-    saga.next().isDone()
+    const error = new AuthError(123, 'Protocol Error')
+    return expectSaga(sessionStatusWatcher, options)
+      .provide([
+        {
+          take(_opts, next) {
+            if (runSaga) {
+              runSaga = false
+              return action
+            }
+            return next()
+          },
+        },
+      ])
+      .fork(sessionAuthErrorSaga, { ...options, action })
+      .put(pubSubChannel, sessionAuthErrorAction(error))
+      .put(destroyAction())
+      .silentRun()
   })
 
   it('should fork socketClosedWorker on socketClosed action', () => {
@@ -203,9 +208,12 @@ describe('initSessionSaga', () => {
       pubSubChannel,
       userOptions,
     })
-    // saga.next().fork(componentCleanupSaga)
-    saga.next().take(destroyAction.type)
+    const sessionStatusTask = createMockTask()
+    sessionStatusTask.cancel = jest.fn()
+    // saga.next(sessionStatusTask).fork(componentCleanupSaga)
+    saga.next(sessionStatusTask).take(destroyAction.type)
     saga.next().isDone()
+    expect(sessionStatusTask.cancel).toHaveBeenCalledTimes(1)
     expect(pubSubChannel.close).toHaveBeenCalledTimes(1)
     expect(sessionChannel.close).toHaveBeenCalledTimes(1)
     saga.next().isDone()
