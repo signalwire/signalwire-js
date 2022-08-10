@@ -15,6 +15,8 @@ describe('ChatClient Object', () => {
 
   let server: WS
   beforeEach(async () => {
+    WS.clean()
+
     server = new WS(host)
     server.on('connection', (socket) => {
       socket.on('message', (data: any) => {
@@ -537,6 +539,7 @@ describe('ChatClient Object', () => {
         cursor: { before: 'before' },
       })
 
+      console.log('BBBB', server.messages)
       const request = JSON.parse(server.messages[2].toString())
       expect(request.method).toEqual('chat.messages.get')
       expect(request.params).toStrictEqual({
@@ -576,6 +579,7 @@ describe('ChatClient Object', () => {
         state: { typing: true },
       })
 
+      console.log('aaa', server.messages)
       const request = JSON.parse(server.messages[2].toString())
       expect(request.method).toEqual('chat.member.set_state')
       expect(request.params).toStrictEqual({
@@ -602,6 +606,7 @@ describe('ChatClient Object', () => {
         channels: 'test1',
       })
 
+      console.log('XXX', server.messages)
       const request = JSON.parse(server.messages[2].toString())
       expect(request.method).toEqual('chat.member.get_state')
       expect(request.params).toStrictEqual({
@@ -632,6 +637,7 @@ describe('ChatClient Object', () => {
         memberId: 'memberId',
       })
 
+      console.log('XXX', server.messages)
       const request = JSON.parse(server.messages[2].toString())
       expect(request.method).toEqual('chat.member.get_state')
       expect(request.params).toStrictEqual({
