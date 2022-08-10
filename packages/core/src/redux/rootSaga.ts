@@ -108,7 +108,7 @@ export function* initSessionSaga({
   /**
    * Fork the watcher for the session status
    */
-  yield fork(sessionStatusWatcher, {
+  const sessionStatusTask: Task = yield fork(sessionStatusWatcher, {
     session,
     sessionChannel,
     pubSubChannel,
@@ -126,6 +126,7 @@ export function* initSessionSaga({
    * destroyed, most likely because it's using a timer.
    */
   // compCleanupTask?.cancel()
+  sessionStatusTask.cancel()
   pubSubChannel.close()
   sessionChannel.close()
   swEventChannel.close()
