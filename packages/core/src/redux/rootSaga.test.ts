@@ -34,7 +34,7 @@ import {
 } from './actions'
 import { AuthError } from '../CustomErrors'
 import { createPubSubChannel, createSwEventChannel } from '../testUtils'
-import { componentCleanupSaga } from './features/component/componentSaga'
+// import { componentCleanupSaga } from './features/component/componentSaga'
 
 describe('socketClosedWorker', () => {
   it('should try to reconnect when session status is reconnecting', async () => {
@@ -194,7 +194,7 @@ describe('initSessionSaga', () => {
       pubSubChannel,
       userOptions,
     })
-    saga.next().fork(componentCleanupSaga)
+    // saga.next().fork(componentCleanupSaga)
     saga.next().take(destroyAction.type)
     saga.next().isDone()
     expect(pubSubChannel.close).toHaveBeenCalledTimes(1)
