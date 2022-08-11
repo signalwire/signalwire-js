@@ -1,4 +1,4 @@
-import { BaseRoomInterface } from '.'
+import type { BaseRoomInterface, RoomSessionRecording } from '.'
 import type {
   VideoMemberEntity,
   InternalVideoRecordingEntity,
@@ -155,21 +155,36 @@ export const setHideVideoMuted: RoomMethodDescriptor<void, boolean> = {
   },
 }
 
-interface GetRecordingsInput extends BaseRPCResult {
-  recordings: InternalVideoRecordingEntity[]
-}
 export interface GetRecordingsOutput {
-  recordings: VideoRecordingEntity[]
+  recordings: RoomSessionRecording[]
 }
 
-export const getRecordings = createRoomMethod<
-  GetRecordingsInput,
-  GetRecordingsOutput
->('video.recording.list', {
-  transformResolve: (payload) => ({
-    recordings: payload.recordings.map((row) => toExternalJSON(row)),
-  }),
-})
+export const getRecordings: RoomMethodDescriptor<GetRecordingsOutput> = {
+  value: function () {
+    return new Promise(async (resolve) => {
+      const handler = (instance: any) => {
+        resolve(instance)
+      }
+      this.on(toLocalEvent('video.recording.list'), handler)
+
+      try {
+        const payload = await this.execute({
+          method: 'video.recording.list',
+          params: {
+            room_session_id: this.roomSessionId,
+          },
+        })
+        this.emit(toLocalEvent('video.recording.list'), {
+          ...(payload as object),
+          room_session_id: this.roomSessionId,
+        })
+      } catch (error) {
+        this.off(toLocalEvent('video.recording.list'), handler)
+        throw error
+      }
+    })
+  },
+}
 
 export const startRecording: RoomMethodDescriptor<void> = {
   value: function () {

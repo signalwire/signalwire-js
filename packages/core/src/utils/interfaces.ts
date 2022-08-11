@@ -378,6 +378,7 @@ export type EventTransformType =
   | 'roomSessionMember'
   | 'roomSessionLayout'
   | 'roomSessionRecording'
+  | 'roomSessionRecordingList'
   | 'roomSessionPlayback'
   | 'roomSessionAudienceCount'
   | ChatTransformType
