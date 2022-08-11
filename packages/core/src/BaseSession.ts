@@ -385,7 +385,11 @@ export class BaseSession {
     status: Extract<SessionStatus, 'reconnecting' | 'disconnected'>
   ) {
     this._status = status
-    this.dispatch(sessionActions.authStatus('unknown'))
+    this.dispatch(
+      sessionActions.authStatus(
+        status === 'disconnected' ? 'unauthorized' : 'unknown'
+      )
+    )
     this.dispatch(closeConnectionAction())
     if (this._socket) {
       this._socket.close()

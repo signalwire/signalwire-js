@@ -293,7 +293,7 @@ export function* sessionAuthErrorSaga(
   let pubSubTask: Task | undefined
 
   try {
-    const { pubSubChannel, userOptions, action } = options
+    const { pubSubChannel, userOptions, sessionChannel, action } = options
     const { error: authError } = action.payload
     const error = authError
       ? new AuthError(authError.code, authError.message)
@@ -306,13 +306,19 @@ export function* sessionAuthErrorSaga(
 
     yield put(pubSubChannel, sessionAuthErrorAction(error))
 
-    // Destroy everything
-    yield put(destroyAction())
+    /**
+     * Force-close the sessionChannel to disconnect the Session
+     */
+    sessionChannel.close()
   } finally {
     if (yield cancelled()) {
-      getLogger().debug('sessionAuthErrorSaga [cancelled]')
+      getLogger().debug(
+        'sessionAuthErrorSaga [cancelled]',
+        pubSubTask?.isCancelled()
+      )
     }
-    pubSubTask?.isCancelled()
+    yield delay(10)
+    yield put(destroyAction())
   }
 }
 
