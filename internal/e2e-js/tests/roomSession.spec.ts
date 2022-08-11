@@ -343,7 +343,7 @@ test.describe('RoomSession', () => {
     expect(targetElementsCount.rootEl).toBe(0)
   })
 
-  test.only('should allow retrieving the room session recordings', async ({
+  test(`should allow retrieving the room session recordings and playbacks`, async ({
     context,
   }) => {
     const pageOne = await context.newPage()
@@ -417,25 +417,45 @@ test.describe('RoomSession', () => {
       timeout: 5000,
     })
 
-    // --------------- Start Session Recording on 1st room ---------------
-    await pageOne.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
+    // --------------- Start recording and playback from 1st room ---------------
+    await pageOne.evaluate(
+      async ({ PLAYBACK_URL }) => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
 
-      const recordingStarted = new Promise((resolve, reject) => {
-        roomObj.on('recording.started', (params) => {
-          if (params.state === 'recording') {
-            resolve(true)
-          } else {
-            reject(new Error('[recording.started] state is not "recording"'))
-          }
+        const recordingStarted = new Promise((resolve, reject) => {
+          roomObj.on('recording.started', (params) => {
+            if (params.state === 'recording') {
+              resolve(true)
+            } else {
+              reject(new Error('[recording.started] state is not "recording"'))
+            }
+          })
         })
-      })
 
-      await roomObj.startRecording()
+        const playbackStarted = new Promise((resolve, reject) => {
+          roomObj.on('playback.started', (params) => {
+            if (params.state === 'playing') {
+              resolve(true)
+            } else {
+              reject(new Error('[playback.started] state is not "recording"'))
+            }
+          })
+        })
 
-      return Promise.all([recordingStarted])
-    })
+        await roomObj.startRecording()
+        const playbackObj = await roomObj.play({
+          url: PLAYBACK_URL!,
+        })
+
+        // setTimeout(() => {
+        //   playbackObj.stop()
+        // }, 2000)
+
+        return Promise.all([recordingStarted, playbackStarted])
+      },
+      { PLAYBACK_URL: process.env.PLAYBACK_URL }
+    )
 
     // --------------- Joining the 2nd room ---------------
     await pageTwo.evaluate(() => {
@@ -487,6 +507,54 @@ test.describe('RoomSession', () => {
       expect(recording.id).toBeDefined()
       expect(recording.roomSessionId).toBeDefined()
       expect(recording.state).toBeDefined()
+    })
+
+    // --------------- Getting the playbacks from the 2nd room ---------------
+    const playbacks = await pageTwo.evaluate(async () => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      const payload = await roomObj.getPlaybacks()
+
+      return Promise.all(
+        payload.playbacks.map((playback) => {
+          const playbackEnded = new Promise((resolve) => {
+            roomObj.on('playback.ended', (params) => {
+              if (params.id === playback.id) {
+                resolve(params)
+              }
+            })
+          })
+
+          new Promise((r) => setTimeout(r, 100)).then(() => {
+            playback.stop().then(() => {
+              console.log(`Playback ${playback.id} ended!`)
+            })
+          })
+
+          return playbackEnded
+        })
+      ) as any as Video.RoomSessionPlayback[]
+    })
+
+    playbacks.forEach((playback) => {
+      // Since functions can't be serialized back to this
+      // thread (from the previous step) we just check that
+      // the property is there.
+      expect('forward' in playback).toBeTruthy()
+      expect('pause' in playback).toBeTruthy()
+      expect('resume' in playback).toBeTruthy()
+      expect('rewind' in playback).toBeTruthy()
+      expect('seek' in playback).toBeTruthy()
+      expect('setVolume' in playback).toBeTruthy()
+      expect('stop' in playback).toBeTruthy()
+      expect(playback.id).toBeDefined()
+      expect(playback.roomSessionId).toBeDefined()
+      // expect(playback.last_position).toBeDefined()
+      expect(playback.seekable).toBeDefined()
+      expect(playback.startedAt).toBeDefined()
+      expect(playback.state).toBeDefined()
+      expect(playback.url).toBeDefined()
+      expect(playback.volume).toBeDefined()
     })
 
     await new Promise((r) => setTimeout(r, 1000))
