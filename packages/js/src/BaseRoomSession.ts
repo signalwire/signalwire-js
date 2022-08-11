@@ -100,7 +100,7 @@ export class RoomSessionConnection
             },
             playbacks: {
               eventTransformType: 'roomSessionPlayback',
-              processInstancePayload: (payload) => ({ member: payload }),
+              processInstancePayload: (payload) => ({ playback: payload }),
             },
           },
         },
