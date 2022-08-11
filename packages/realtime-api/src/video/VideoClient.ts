@@ -81,7 +81,7 @@ const VideoClient = function (options?: VideoClientOptions) {
         // @ts-expect-error
         return interceptors[prop]
       }
-
+      clientConnect(client)
       return Reflect.get(target, prop, receiver)
     },
   })
