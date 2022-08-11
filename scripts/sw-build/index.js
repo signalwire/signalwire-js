@@ -11,6 +11,7 @@ import license from 'rollup-plugin-license'
 import replace from '@rollup/plugin-replace'
 import { visualizer } from 'rollup-plugin-visualizer'
 import typescript from 'rollup-plugin-typescript2'
+import swConfig from '../../sw.config.js'
 
 const COMMON_NODE = {
   entryPoints: ['./src/index.ts'],
@@ -122,9 +123,29 @@ const getWatchFormatFlag = (flags) => {
   return flagWatchFormat.split('=')[1]
 }
 const getPackageAgentName = (pkgJson) => {
-  const name = pkgJson.agent || pkgJson.name
+  const pkgName = pkgJson.name
+  const agentName = swConfig.agents.byName[pkgName]
 
-  return `${name}/${pkgJson.version}`
+  /**
+   * Only private packages or utility packages are allowed
+   * to not have an agent.
+   */
+  const requiresAgent =
+    !pkgJson.private && !swConfig.utilityPackages.includes(pkgName)
+
+  if (!requiresAgent) {
+    return ''
+  }
+
+  /**
+   * We'll break the build if we detect that a public
+   * package doesn't have an agent name defined.
+   */
+  if (!agentName) {
+    throw new Error(`[getPackageAgentName] Missing agent name for ${pkgName}`)
+  }
+
+  return `@signalwire/${agentName}/${pkgJson.version}`
 }
 const getBuildOptions = ({ flags, pkgJson }) => {
   const optionsFlags = flags.filter(
@@ -145,7 +166,12 @@ const getBuildOptions = ({ flags, pkgJson }) => {
   const sdkEnvVariables = {
     'process.env.SDK_PKG_NAME': JSON.stringify(pkgJson.name),
     'process.env.SDK_PKG_DESCRIPTION': JSON.stringify(pkgJson.description),
-    'process.env.SDK_PKG_AGENT': JSON.stringify(getPackageAgentName(pkgJson)),
+  }
+  const sdkPackageAgent = getPackageAgentName(pkgJson)
+  if (sdkPackageAgent) {
+    sdkEnvVariables['process.env.SDK_PKG_AGENT'] = JSON.stringify(
+      getPackageAgentName(pkgJson)
+    )
   }
 
   /**
