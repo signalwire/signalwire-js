@@ -124,6 +124,24 @@ export class RoomSessionConnection
         },
       ],
       [
+        [toLocalEvent('video.playback.list')],
+        {
+          type: 'roomSessionPlaybackList',
+          instanceFactory: (_payload: any) => {
+            return {}
+          },
+          payloadTransform: (payload: any) => {
+            return payload
+          },
+          nestedFieldsToProcess: {
+            playbacks: {
+              eventTransformType: 'roomSessionPlayback',
+              processInstancePayload: (payload) => ({ playback: payload }),
+            },
+          },
+        },
+      ],
+      [
         [
           toLocalEvent('video.recording.start'),
           'video.recording.started',
