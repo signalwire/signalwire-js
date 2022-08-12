@@ -329,7 +329,7 @@ test.describe('RoomSession', () => {
     // --------------- Leaving the room ---------------
     await page.evaluate(() => {
       // @ts-expect-error
-      return window._roomObj.hangup()
+      return window._roomObj.leave()
     })
 
     // Checks that all the elements added by the SDK are gone.
@@ -563,11 +563,11 @@ test.describe('RoomSession', () => {
     await Promise.all([
       pageOne.evaluate(() => {
         // @ts-expect-error
-        return window._roomObj.hangup()
+        return window._roomObj.leave()
       }),
       pageTwo.evaluate(() => {
         // @ts-expect-error
-        return window._roomObj.hangup()
+        return window._roomObj.leave()
       }),
     ])
   })
