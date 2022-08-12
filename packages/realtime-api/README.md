@@ -8,7 +8,7 @@ The RealTime SDK enables Node.js developers to connect and use SignalWire's Real
 
 ## Getting Started
 
-Read the implementation documentation, guides and API Reference at the official [RELAY RealTime SDK Documentation]([https://developer.signalwire.com/client-sdk/docs/getting-started](https://developer.signalwire.com/sdks/reference/realtime-sdk)) site.
+Read the implementation documentation, guides and API Reference at the official [RELAY RealTime SDK Documentation](https://developer.signalwire.com/sdks/reference/realtime-sdk) site.
 
 ---
 
