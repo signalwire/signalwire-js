@@ -329,7 +329,7 @@ test.describe('RoomSession', () => {
     // --------------- Leaving the room ---------------
     await page.evaluate(() => {
       // @ts-expect-error
-      return window._roomObj.hangup()
+      return window._roomObj.leave()
     })
 
     // Checks that all the elements added by the SDK are gone.
@@ -341,5 +341,234 @@ test.describe('RoomSession', () => {
     })
     expect(targetElementsCount.videos).toBe(0)
     expect(targetElementsCount.rootEl).toBe(0)
+  })
+
+  test(`should allow retrieving the room session recordings and playbacks`, async ({
+    context,
+  }) => {
+    const pageOne = await context.newPage()
+    const pageTwo = await context.newPage()
+
+    pageOne.on('console', (log) => {
+      console.log('[pageOne]', log)
+    })
+    pageTwo.on('console', (log) => {
+      console.log('[pageTwo]', log)
+    })
+
+    await Promise.all([pageOne.goto(server.url), pageTwo.goto(server.url)])
+
+    const roomName = 'another'
+    const connectionSettings = {
+      vrt: {
+        room_name: roomName,
+        user_name: 'e2e_test',
+        auto_create_room: true,
+        permissions: [
+          'room.self.audio_mute',
+          'room.self.audio_unmute',
+          'room.self.video_mute',
+          'room.self.video_unmute',
+          'room.member.audio_mute',
+          'room.member.video_mute',
+          'room.member.set_input_volume',
+          'room.member.set_output_volume',
+          'room.member.set_input_sensitivity',
+          'room.member.remove',
+          'room.set_layout',
+          'room.list_available_layouts',
+          'room.recording',
+          'room.hide_video_muted',
+          'room.show_video_muted',
+          'room.playback.seek',
+          'room.playback',
+        ],
+      },
+      initialEvents: [
+        'member.joined',
+        'member.left',
+        'member.updated',
+        'playback.ended',
+        'playback.started',
+        'playback.updated',
+        'recording.ended',
+        'recording.started',
+        'room.updated',
+      ],
+    }
+
+    await Promise.all([
+      createTestRoomSession(pageOne, connectionSettings),
+      createTestRoomSession(pageTwo, connectionSettings),
+    ])
+
+    // --------------- Joining the 1st room ---------------
+    await pageOne.evaluate(() => {
+      return new Promise((r) => {
+        // @ts-expect-error
+        const roomObj = window._roomObj
+        roomObj.on('room.joined', (params: any) => r(params))
+        roomObj.join()
+      })
+    })
+
+    // Checks that the video is visible
+    await pageOne.waitForSelector('div[id^="sw-sdk-"] > video', {
+      timeout: 5000,
+    })
+
+    // --------------- Start recording and playback from 1st room ---------------
+    await pageOne.evaluate(
+      async ({ PLAYBACK_URL }) => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+
+        const recordingStarted = new Promise((resolve, reject) => {
+          roomObj.on('recording.started', (params) => {
+            if (params.state === 'recording') {
+              resolve(true)
+            } else {
+              reject(new Error('[recording.started] state is not "recording"'))
+            }
+          })
+        })
+
+        const playbackStarted = new Promise((resolve, reject) => {
+          roomObj.on('playback.started', (params) => {
+            if (params.state === 'playing') {
+              resolve(true)
+            } else {
+              reject(new Error('[playback.started] state is not "recording"'))
+            }
+          })
+        })
+
+        await roomObj.startRecording()
+        const playbackObj = await roomObj.play({
+          url: PLAYBACK_URL!,
+        })
+
+        // setTimeout(() => {
+        //   playbackObj.stop()
+        // }, 2000)
+
+        return Promise.all([recordingStarted, playbackStarted])
+      },
+      { PLAYBACK_URL: process.env.PLAYBACK_URL }
+    )
+
+    // --------------- Joining the 2nd room ---------------
+    await pageTwo.evaluate(() => {
+      return new Promise((r) => {
+        // @ts-expect-error
+        const roomObj = window._roomObj
+        roomObj.on('room.joined', (params: any) => r(params))
+        roomObj.join()
+      })
+    })
+
+    // Checks that the video is visible
+    await pageTwo.waitForSelector('div[id^="sw-sdk-"] > video', {
+      timeout: 5000,
+    })
+
+    // --------------- Getting the recordings from the 2nd room ---------------
+    const recordings: any = await pageTwo.evaluate(async () => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      const payload = await roomObj.getRecordings()
+
+      return Promise.all(
+        payload.recordings.map((recording: any) => {
+          const recordingEnded = new Promise((resolve) => {
+            roomObj.on('recording.ended', (params) => {
+              if (params.id === recording.id) {
+                resolve(params)
+              }
+            })
+          })
+
+          recording.stop().then(() => {
+            console.log(`Recording ${recording.id} stopped!`)
+          })
+
+          return recordingEnded
+        })
+      )
+    })
+
+    recordings.forEach((recording: any) => {
+      // Since functions can't be serialized back to this
+      // thread (from the previous step) we just check that
+      // the property is there.
+      expect('pause' in recording).toBeTruthy()
+      expect('resume' in recording).toBeTruthy()
+      expect('stop' in recording).toBeTruthy()
+      expect(recording.id).toBeDefined()
+      expect(recording.roomSessionId).toBeDefined()
+      expect(recording.state).toBeDefined()
+    })
+
+    // --------------- Getting the playbacks from the 2nd room ---------------
+    const playbacks = await pageTwo.evaluate(async () => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      const payload = await roomObj.getPlaybacks()
+
+      return Promise.all(
+        payload.playbacks.map((playback) => {
+          const playbackEnded = new Promise((resolve) => {
+            roomObj.on('playback.ended', (params) => {
+              if (params.id === playback.id) {
+                resolve(params)
+              }
+            })
+          })
+
+          new Promise((r) => setTimeout(r, 100)).then(() => {
+            playback.stop().then(() => {
+              console.log(`Playback ${playback.id} ended!`)
+            })
+          })
+
+          return playbackEnded
+        })
+      ) as any as Video.RoomSessionPlayback[]
+    })
+
+    playbacks.forEach((playback) => {
+      // Since functions can't be serialized back to this
+      // thread (from the previous step) we just check that
+      // the property is there.
+      expect('forward' in playback).toBeTruthy()
+      expect('pause' in playback).toBeTruthy()
+      expect('resume' in playback).toBeTruthy()
+      expect('rewind' in playback).toBeTruthy()
+      expect('seek' in playback).toBeTruthy()
+      expect('setVolume' in playback).toBeTruthy()
+      expect('stop' in playback).toBeTruthy()
+      expect(playback.id).toBeDefined()
+      expect(playback.roomSessionId).toBeDefined()
+      // expect(playback.last_position).toBeDefined()
+      expect(playback.seekable).toBeDefined()
+      expect(playback.startedAt).toBeDefined()
+      expect(playback.state).toBeDefined()
+      expect(playback.url).toBeDefined()
+      expect(playback.volume).toBeDefined()
+    })
+
+    await new Promise((r) => setTimeout(r, 1000))
+
+    // --------------- Leaving the rooms ---------------
+    await Promise.all([
+      pageOne.evaluate(() => {
+        // @ts-expect-error
+        return window._roomObj.leave()
+      }),
+      pageTwo.evaluate(() => {
+        // @ts-expect-error
+        return window._roomObj.leave()
+      }),
+    ])
   })
 })

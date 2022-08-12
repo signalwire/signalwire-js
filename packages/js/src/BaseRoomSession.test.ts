@@ -84,20 +84,13 @@ describe('Room Object', () => {
 
   describe('getRecordings', () => {
     it('should return an array of recordings', async () => {
-      const { store, session, emitter, destroy } = configureFullStack()
       const recordingList = [{ id: 'recordingOne' }, { id: 'recordingTwo' }]
 
-      session.execute = jest.fn().mockResolvedValue({
-        code: '200',
-        message: 'OK',
+      // @ts-expect-error
+      ;(room.execute as jest.Mock).mockResolvedValueOnce({
         recordings: recordingList,
       })
 
-      room = createBaseRoomSessionObject({
-        store,
-        // @ts-expect-error
-        emitter,
-      })
       store.dispatch(
         componentActions.upsert({
           id: callId,
@@ -107,21 +100,14 @@ describe('Room Object', () => {
           memberId: 'member-id',
         })
       )
-      // mock a room.subscribed event
-      dispatchMockedRoomSubscribed({
-        session,
-        callId,
-        roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
-        roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
-        memberId: 'member-id',
-      })
 
       const result = await room.getRecordings()
-      expect(result).toStrictEqual({
-        recordings: recordingList,
+      result.recordings.forEach((recording, index) => {
+        expect(recording.id).toEqual(recordingList[index].id)
+        expect(typeof recording.pause).toBe('function')
+        expect(typeof recording.resume).toBe('function')
+        expect(typeof recording.stop).toBe('function')
       })
-
-      destroy()
     })
   })
 
@@ -233,20 +219,13 @@ describe('Room Object', () => {
 
   describe('playback methods', () => {
     it('getPlaybacks should return an array of playbacks', async () => {
-      const { store, session, emitter, destroy } = configureFullStack()
       const playbacks = [{ id: 'playbackOne' }, { id: 'playbackTwo' }]
 
-      session.execute = jest.fn().mockResolvedValue({
-        code: '200',
-        message: 'OK',
+      // @ts-expect-error
+      ;(room.execute as jest.Mock).mockResolvedValueOnce({
         playbacks,
       })
 
-      room = createBaseRoomSessionObject({
-        store,
-        // @ts-expect-error
-        emitter,
-      })
       store.dispatch(
         componentActions.upsert({
           id: callId,
@@ -256,21 +235,18 @@ describe('Room Object', () => {
           memberId: 'member-id',
         })
       )
-      // mock a room.subscribed event
-      dispatchMockedRoomSubscribed({
-        session,
-        callId,
-        roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
-        roomSessionId: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
-        memberId: 'member-id',
-      })
 
       const result = await room.getPlaybacks()
-      expect(result).toStrictEqual({
-        playbacks,
+      result.playbacks.forEach((playback, index) => {
+        expect(playback.id).toEqual(playbacks[index].id)
+        expect(typeof playback.forward).toBe('function')
+        expect(typeof playback.pause).toBe('function')
+        expect(typeof playback.resume).toBe('function')
+        expect(typeof playback.rewind).toBe('function')
+        expect(typeof playback.seek).toBe('function')
+        expect(typeof playback.setVolume).toBe('function')
+        expect(typeof playback.stop).toBe('function')
       })
-
-      destroy()
     })
 
     it('play should return an interactive object', async () => {
