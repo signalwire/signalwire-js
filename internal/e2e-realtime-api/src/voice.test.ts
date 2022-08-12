@@ -19,6 +19,9 @@ const handler = () => {
       debug: {
         logWsTraffic: true,
       },
+      // httpOptions: {
+      //   proxy: "http://localhost:8888"
+      // }
     })
 
     let callsReceived = new Set()

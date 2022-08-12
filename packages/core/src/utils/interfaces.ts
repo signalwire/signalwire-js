@@ -120,6 +120,10 @@ export interface UserOptions extends SessionOptions {
   }
   /** @internal */
   logger?: SDKLogger
+  /** @internal */
+  httpOptions?: {
+    proxy?: string
+  }
 }
 
 export interface InternalUserOptions extends UserOptions {

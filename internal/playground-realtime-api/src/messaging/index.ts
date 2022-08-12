@@ -10,6 +10,9 @@ async function run() {
       debug: {
         logWsTraffic: true,
       },
+      // httpOptions: {
+      //   proxy: "http://localhost:8888"
+      // }
     })
 
     client.on('message.received', (message) => {

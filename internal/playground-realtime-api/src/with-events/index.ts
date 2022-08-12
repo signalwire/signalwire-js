@@ -10,6 +10,9 @@ async function run() {
       debug: {
         logWsTraffic: true,
       },
+      // httpOptions: {
+      //   proxy: "http://localhost:8888"
+      // }
     })
 
     const roomSessionHandler = (room: Video.RoomSession) => {

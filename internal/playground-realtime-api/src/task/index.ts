@@ -8,6 +8,9 @@ const client = new Task.Client({
   debug: {
     logWsTraffic: true,
   },
+  // httpOptions: {
+  //   proxy: "http://localhost:8888"
+  // }
 })
 
 client.on('task.received', (payload) => {

@@ -70,6 +70,9 @@ export const createTestRoomSession = async (
         debug: {
           logWsTraffic: true,
         },
+        // httpOptions: {
+        //   proxy: "http://localhost:8888"
+        // }
       })
 
       options.initialEvents?.forEach((event) => {
