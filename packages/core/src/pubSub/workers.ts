@@ -34,7 +34,7 @@ export const pubSubWorker: SDKWorker<BasePubSubConsumer> =
         }
 
         default: {
-          getLogger().warn('[pubSubWorker] Unrecognized Action', action)
+          getLogger().debug('[pubSubWorker] Unrecognized Action', action)
           break
         }
       }

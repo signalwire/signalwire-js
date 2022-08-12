@@ -19,6 +19,7 @@ describe('VideoClient', () => {
     }
 
     beforeEach(async () => {
+      WS.clean()
       server = new WS(host, { jsonProtocol: true })
       server.on('connection', (socket: any) => {
         socket.on('message', (data: any) => {
@@ -53,59 +54,47 @@ describe('VideoClient', () => {
     })
 
     describe('Automatic connect', () => {
-      it('should automatically connect the underlying client', (done) => {
-        const video = new Client({
-          // @ts-expect-error
-          host,
-          project: 'some-project',
-          token,
-        })
-
-        video.once('room.started', () => {})
-
-        video._session.on('session.connected', () => {
-          video._session.disconnect()
-
-          done()
-        })
-      })
-
-      it('should automatically connect the underlying client and send subscribe', async () => {
+      it('should automatically connect the underlying client and send subscribe', (done) => {
         const video = new Client({
           // @ts-expect-error
           host,
           project: 'some-project-x',
           token,
         })
-
+        const sleep = () => new Promise((r) => setTimeout(r, 100))
         video.once('room.started', () => {})
 
-        await server.connected
-
-        await expect(server).toReceiveMessage({
-          jsonrpc: '2.0',
-          id: 'mocked-uuid',
-          method: 'signalwire.connect',
-          params: {
-            version: { major: 3, minor: 0, revision: 0 },
-            authentication: { project: 'some-project-x', token: '<jwt>' },
-          },
+        server.connected.then(() => {
+          return expect(server)
+            .toReceiveMessage({
+              jsonrpc: '2.0',
+              id: 'mocked-uuid',
+              method: 'signalwire.connect',
+              params: {
+                version: { major: 3, minor: 0, revision: 0 },
+                authentication: { project: 'some-project-x', token: '<jwt>' },
+              },
+            })
+            .then(() => {
+              expect(server).toReceiveMessage({
+                id: 'mocked-uuid',
+                jsonrpc: '2.0',
+                method: 'signalwire.subscribe',
+                params: {
+                  event_channel: 'video.rooms',
+                  events: ['video.room.started'],
+                  get_initial_state: true,
+                },
+              })
+            })
+            .then(async () => {
+              // FIXME: auto-subscribe has a debounce of 100ms so it makes unit-tests hard
+              await sleep()
+              video._session.disconnect()
+              await sleep()
+              done()
+            })
         })
-        await expect(server).toReceiveMessage({
-          id: 'mocked-uuid',
-          jsonrpc: '2.0',
-          method: 'signalwire.subscribe',
-          params: {
-            event_channel: 'video.rooms',
-            events: ['video.room.started'],
-            get_initial_state: true,
-          },
-        })
-
-        // FIXME: video.once start something async in background so we need to wait before disconnecting
-        await new Promise((r) => setTimeout(r, 100))
-
-        video._session.disconnect()
       })
     })
 

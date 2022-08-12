@@ -11,7 +11,7 @@ export class JWTSession extends BaseJWTSession {
       decodedJwt = jwtDecode<{ ch?: string }>(options.token, { header: true })
     } catch (e) {
       if (process.env.NODE_ENV !== 'production') {
-        getLogger().error('[JWTSession] error decoding the JWT')
+        getLogger().debug('[JWTSession] error decoding the JWT')
       }
     }
 

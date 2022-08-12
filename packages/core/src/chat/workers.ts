@@ -47,7 +47,7 @@ export const chatWorker: SDKWorker<BaseChatConsumer> = function* chatWorker({
         break
 
       default: {
-        getLogger().warn('[chatWorker] Unrecognized Action', action)
+        getLogger().debug('[chatWorker] Unrecognized Action', action)
         break
       }
     }

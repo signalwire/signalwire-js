@@ -164,7 +164,7 @@ describe('ChatClient Object', () => {
 
   describe('message handler', () => {
     it('should return a ChatMessage object', (done) => {
-      WS.clean()
+      const host = 'ws://localhost:1233'
       server = new WS(host)
       server.on('connection', (socket) => {
         socket.on('message', (data: any) => {
@@ -231,8 +231,7 @@ describe('ChatClient Object', () => {
   })
 
   describe('member event handlers', () => {
-    const _setupMockWS = (eventPayload: any) => {
-      WS.clean()
+    const _setupMockWS = (host: string, eventPayload: any) => {
       server = new WS(host)
       server.on('connection', (socket) => {
         socket.on('message', (data: any) => {
@@ -253,7 +252,8 @@ describe('ChatClient Object', () => {
     }
 
     it('should return a ChatMember object on member.joined', (done) => {
-      _setupMockWS({
+      const host = 'ws://localhost:1235'
+      _setupMockWS(host, {
         jsonrpc: '2.0',
         id: '45266133-cdfe-4e99-a257-1ea77572f1d9',
         method: 'signalwire.event',
@@ -288,7 +288,8 @@ describe('ChatClient Object', () => {
     })
 
     it('should return a ChatMember object on member.updated', (done) => {
-      _setupMockWS({
+      const host = 'ws://localhost:1236'
+      _setupMockWS(host, {
         jsonrpc: '2.0',
         id: 'f734e59a-dea2-4de2-8369-7f6df4bf3016',
         method: 'signalwire.event',
@@ -327,7 +328,8 @@ describe('ChatClient Object', () => {
     })
 
     it('should return a ChatMember object on member.left', (done) => {
-      _setupMockWS({
+      const host = 'ws://localhost:1237'
+      _setupMockWS(host, {
         jsonrpc: '2.0',
         id: '45266133-cdfe-4e99-a257-1ea77572f1d9',
         method: 'signalwire.event',

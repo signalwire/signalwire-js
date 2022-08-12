@@ -294,8 +294,11 @@ export class BaseSession {
 
   protected _onSocketClose(event: CloseEvent) {
     this.logger.debug('_onSocketClose', event.type, event.code, event.reason)
-    this._status =
-      event.code >= 1006 && event.code <= 1014 ? 'reconnecting' : 'disconnected'
+    // We're gonna have to revisit this logic once we have a
+    // `disconnect` method in constructors like `Chat`. We
+    // left it like this because multiple tests were failing
+    // because of some race conditions.
+    this._status = event.code == 1000 ? 'disconnected' : 'reconnecting'
     this.dispatch(socketClosedAction())
     this._socket = null
   }
@@ -386,7 +389,11 @@ export class BaseSession {
     status: Extract<SessionStatus, 'reconnecting' | 'disconnected'>
   ) {
     this._status = status
-    this.dispatch(sessionActions.authStatus('unknown'))
+    this.dispatch(
+      sessionActions.authStatus(
+        status === 'disconnected' ? 'unauthorized' : 'unknown'
+      )
+    )
     this.dispatch(closeConnectionAction())
     if (this._socket) {
       this._socket.close()
