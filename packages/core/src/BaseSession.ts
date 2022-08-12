@@ -294,7 +294,11 @@ export class BaseSession {
 
   protected _onSocketClose(event: CloseEvent) {
     this.logger.debug('_onSocketClose', event.type, event.code, event.reason)
-    this._status = 'reconnecting'
+    // We're gonna have to revisit this logic once we have a
+    // `disconnect` method in constructors like `Chat`. We
+    // left it like this because multiple tests were failing
+    // because of some race conditions.
+    this._status = event.code == 1000 ? 'disconnected' : 'reconnecting'
     this.dispatch(socketClosedAction())
     this._socket = null
   }
