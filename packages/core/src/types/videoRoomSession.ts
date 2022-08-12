@@ -64,7 +64,10 @@ export interface VideoRoomSessionContract {
   name: string
   /** Whether recording is active */
   recording: boolean
-  /** List of active recordings in the room */
+  /**
+   * List of active recordings in the room
+   * @deprecated Use {@link getRecordings}
+   **/
   recordings?: any[]
   /** Whether muted videos are shown in the room layout. See {@link setHideVideoMuted} */
   hideVideoMuted: boolean
@@ -74,8 +77,13 @@ export interface VideoRoomSessionContract {
   layoutName: string
   /** Metadata associated to this room session. */
   meta?: Record<string, unknown>
-  /** List of members that are part of this room session */
+  /**
+   * List of members that are part of this room session
+   * @deprecated Use {@link getMembers}
+   **/
   members?: InternalVideoMemberEntity[]
+  /** Fields that have changed in this room session */
+  updated?: Array<Exclude<keyof VideoRoomSessionContract, 'updated'>>
 
   /**
    * Puts the microphone on mute. The other participants will not hear audio

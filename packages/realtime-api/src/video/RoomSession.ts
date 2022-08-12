@@ -175,6 +175,42 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
         },
       ],
       [
+        [toLocalEvent<EmitterTransformsEvents>('video.recording.list')],
+        {
+          type: 'roomSessionRecordingList',
+          instanceFactory: (_payload: any) => {
+            return {}
+          },
+          payloadTransform: (payload: any) => {
+            return payload
+          },
+          nestedFieldsToProcess: {
+            recordings: {
+              eventTransformType: 'roomSessionRecording',
+              processInstancePayload: (payload) => ({ recording: payload }),
+            },
+          },
+        },
+      ],
+      [
+        [toLocalEvent<EmitterTransformsEvents>('video.playback.list')],
+        {
+          type: 'roomSessionPlaybackList',
+          instanceFactory: (_payload: any) => {
+            return {}
+          },
+          payloadTransform: (payload: any) => {
+            return payload
+          },
+          nestedFieldsToProcess: {
+            playbacks: {
+              eventTransformType: 'roomSessionPlayback',
+              processInstancePayload: (payload) => ({ playback: payload }),
+            },
+          },
+        },
+      ],
+      [
         'video.room.updated',
         {
           type: 'roomSession',
