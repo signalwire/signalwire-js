@@ -45,6 +45,17 @@ export interface Messaging
     ClientContextContract {
   /** @internal */
   _session: RealtimeClient
+  /**
+   * Disconnects this client. The client will stop receiving events and you will
+   * need to create a new instance if you want to use it again.
+   *
+   * @example
+   *
+   * ```js
+   * client.disconnect()
+   * ```
+   */
+  disconnect(): void
 
   /**
    * Send an outbound SMS or MMS message.

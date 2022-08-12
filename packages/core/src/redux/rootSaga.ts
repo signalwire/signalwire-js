@@ -120,6 +120,9 @@ export function* initSessionSaga({
   session.connect()
 
   yield take(destroyAction.type)
+
+  // leave a bit of space to other sagas to finish
+  yield delay(300)
   /**
    * We have to manually cancel the fork because it is not
    * being automatically cleaned up when the session is

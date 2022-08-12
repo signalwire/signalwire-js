@@ -73,17 +73,6 @@ const VoiceClient = function (options?: VoiceClientOptions) {
     ...options,
   })
 
-  const clientOn: Voice['on'] = (...args) => {
-    clientConnect(client)
-
-    return voice.on(...args)
-  }
-  const clientOnce: Voice['once'] = (...args) => {
-    clientConnect(client)
-
-    return voice.once(...args)
-  }
-
   const callDial: Call['dial'] = async (dialer) => {
     await clientConnect(client)
 
@@ -100,8 +89,6 @@ const VoiceClient = function (options?: VoiceClientOptions) {
 
   const interceptors = {
     ...clientContextInterceptorsFactory(client),
-    on: clientOn,
-    once: clientOnce,
     dial: callDial,
     _session: client,
     disconnect,
@@ -113,6 +100,9 @@ const VoiceClient = function (options?: VoiceClientOptions) {
         // @ts-expect-error
         return interceptors[prop]
       }
+
+      // Always connect the underlying client
+      clientConnect(client)
 
       return Reflect.get(target, prop, receiver)
     },

@@ -38,22 +38,10 @@ const TaskClient = function (options?: TaskClientOptions) {
     emitter,
   })
 
-  const taskOn: TaskClient['on'] = (...args) => {
-    clientConnect(client)
-
-    return task.on(...args)
-  }
-  const taskOnce: TaskClient['once'] = (...args) => {
-    clientConnect(client)
-
-    return task.once(...args)
-  }
   const disconnect = () => client.disconnect()
 
   const interceptors = {
     ...clientContextInterceptorsFactory(client),
-    on: taskOn,
-    once: taskOnce,
     _session: client,
     disconnect,
   } as const
@@ -64,6 +52,9 @@ const TaskClient = function (options?: TaskClientOptions) {
         // @ts-expect-error
         return interceptors[prop]
       }
+
+      // Always connect the underline client
+      clientConnect(client)
 
       return Reflect.get(target, prop, receiver)
     },

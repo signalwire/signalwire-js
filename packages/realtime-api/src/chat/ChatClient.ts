@@ -72,16 +72,6 @@ const ChatClient = function (options?: ChatClientOptions) {
     store,
     emitter,
   })
-  const chatOn: ChatClient['on'] = (...args) => {
-    clientConnect(client)
-
-    return chat.on(...args)
-  }
-  const chatOnce: ChatClient['once'] = (...args) => {
-    clientConnect(client)
-
-    return chat.once(...args)
-  }
 
   const createInterceptor = <K extends ClientMethods>(prop: K) => {
     return async (...params: Parameters<ChatClient[K]>) => {
@@ -93,9 +83,8 @@ const ChatClient = function (options?: ChatClientOptions) {
   }
 
   const interceptors = {
-    on: chatOn,
-    once: chatOnce,
     _session: client,
+    disconnect: () => client.disconnect(),
   } as const
 
   return new Proxy<ChatClient>(chat, {
@@ -111,6 +100,9 @@ const ChatClient = function (options?: ChatClientOptions) {
       } else if (UNSUPPORTED_METHODS.includes(prop)) {
         return undefined
       }
+
+      // Always connect the underlying client
+      clientConnect(client)
 
       return Reflect.get(target, prop, receiver)
     },
