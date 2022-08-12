@@ -66,6 +66,7 @@ const PubSubClient = function (options?: PubSubClientOptions) {
 
   const interceptors = {
     _session: client,
+    disconnect: () => client.disconnect(),
   } as const
 
   return new Proxy<PubSubClient>(pubSub, {

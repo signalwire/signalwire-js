@@ -61,6 +61,7 @@ const VideoClient = function (options?: VideoClientOptions) {
     // keep subscribe in here to await clientConnect
     subscribe: videoSubscribe,
     _session: client,
+    disconnect: () => client.disconnect(),
   } as const
 
   return new Proxy<Omit<VideoClient, 'new'>>(video, {

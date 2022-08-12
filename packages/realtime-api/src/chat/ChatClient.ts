@@ -84,6 +84,7 @@ const ChatClient = function (options?: ChatClientOptions) {
 
   const interceptors = {
     _session: client,
+    disconnect: () => client.disconnect(),
   } as const
 
   return new Proxy<ChatClient>(chat, {
