@@ -98,6 +98,19 @@ export interface Voice
     ClientContextContract {
   /** @internal */
   _session: RealtimeClient
+
+  /**
+   * Disconnects this client. The client will stop receiving events and you will
+   * need to create a new instance if you want to use it again.
+   *
+   * @example
+   *
+   * ```js
+   * client.disconnect()
+   * ```
+   */
+  disconnect(): void
+
   /**
    * Makes an outbound Call and waits until it has been answered or hung up.
    * This is an advanced method that lets you call multiple devices in parallel
