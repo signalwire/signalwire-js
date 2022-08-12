@@ -54,16 +54,6 @@ const PubSubClient = function (options?: PubSubClientOptions) {
     store,
     emitter,
   })
-  const pubSubOn: PubSubClient['on'] = (...args) => {
-    clientConnect(client)
-
-    return pubSub.on(...args)
-  }
-  const pubSubOnce: PubSubClient['once'] = (...args) => {
-    clientConnect(client)
-
-    return pubSub.once(...args)
-  }
 
   const createInterceptor = <K extends ClientMethods>(prop: K) => {
     return async (...params: Parameters<PubSubClient[K]>) => {
@@ -75,8 +65,6 @@ const PubSubClient = function (options?: PubSubClientOptions) {
   }
 
   const interceptors = {
-    on: pubSubOn,
-    once: pubSubOnce,
     _session: client,
   } as const
 
@@ -93,6 +81,9 @@ const PubSubClient = function (options?: PubSubClientOptions) {
       } else if (UNSUPPORTED_METHODS.includes(prop)) {
         return undefined
       }
+
+      // Always connect the underlying client
+      clientConnect(client)
 
       return Reflect.get(target, prop, receiver)
     },

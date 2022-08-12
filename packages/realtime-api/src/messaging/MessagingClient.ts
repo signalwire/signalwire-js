@@ -60,16 +60,6 @@ const MessagingClient = function (options?: MessagingClientOptions) {
     messaging.applyEmitterTransforms()
   })
 
-  const messagingOn: Messaging['on'] = (...args) => {
-    clientConnect(client)
-
-    return messaging.on(...args)
-  }
-  const messagingOnce: Messaging['once'] = (...args) => {
-    clientConnect(client)
-
-    return messaging.once(...args)
-  }
   const send: Messaging['send'] = async (...args) => {
     await clientConnect(client)
 
@@ -79,9 +69,7 @@ const MessagingClient = function (options?: MessagingClientOptions) {
 
   const interceptors = {
     ...clientContextInterceptorsFactory(client),
-    on: messagingOn,
-    once: messagingOnce,
-    send: send,
+    send,
     _session: client,
     disconnect,
   } as const
@@ -92,6 +80,9 @@ const MessagingClient = function (options?: MessagingClientOptions) {
         // @ts-expect-error
         return interceptors[prop]
       }
+
+      // Always connect the underlying client
+      clientConnect(client)
 
       return Reflect.get(target, prop, receiver)
     },
