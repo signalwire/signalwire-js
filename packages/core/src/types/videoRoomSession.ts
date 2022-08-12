@@ -77,10 +77,11 @@ export interface VideoRoomSessionContract {
   layoutName: string
   /** Metadata associated to this room session. */
   meta?: Record<string, unknown>
-  /** List of members that are part of this room session */
+  /**
+   * List of members that are part of this room session
+   * @deprecated Use {@link getMembers}
+   **/
   members?: InternalVideoMemberEntity[]
-  /** Fields that have changed in this room session */
-  updated?: Array<Exclude<keyof VideoRoomSessionContract, 'updated'>>
 
   /**
    * Puts the microphone on mute. The other participants will not hear audio
