@@ -229,7 +229,8 @@ export class BasePubSubConsumer<
   // Currently only `js` supports this features and it's
   // being ignored (filtered at the Proxy level) within
   // `realtime-api`
-  getAllowedChannels() {
+  async getAllowedChannels() {
+    await this._waitUntilSessionAuthorized()
     const authState = this.select(getAuthState)
     if (authState && 'channels' in authState && authState.channels) {
       return authState.channels
