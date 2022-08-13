@@ -42,9 +42,11 @@
   },
   "dependencies": {
     "@signalwire/core": "3.10.1",
-    "ws": "^8.5.0",
+    "https-proxy-agent": "^5.0.1",
     "proxy": "^1.0.2",
-    "socksv5": "^0.0.6"
+    "socks-proxy-agent": "^7.0.0",
+    "socksv5": "^0.0.6",
+    "ws": "^8.5.0"
   },
   "devDependencies": {
     "@types/ws": "^8.5.3"
