@@ -659,7 +659,7 @@ export interface VideoRoomSessionContract {
    */
   setMemberMeta(params: Rooms.SetMemberMetaParams): Rooms.SetMemberMeta
   updateMemberMeta(params: Rooms.UpdateMemberMetaParams): Rooms.UpdateMemberMeta
-  deletetMemberMeta(params: Rooms.SetMemberMetaParams): Rooms.SetMemberMeta
+  deleteMemberMeta(params: Rooms.DeleteMemberMetaParams): Rooms.DeleteMemberMeta
   promote(params: Rooms.PromoteMemberParams): Rooms.PromoteMember
   demote(params: Rooms.DemoteMemberParams): Rooms.DemoteMember
 }

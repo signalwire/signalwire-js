@@ -298,9 +298,18 @@ export interface UpdateMetaParams extends Record<string, unknown> {}
 export const updateMeta =
   createRoomMetaMethod<UpdateMetaParams>('video.update_meta')
 
-export interface DeleteMetaParams extends Record<string, unknown> {}
-export const deleteMeta =
-  createRoomMetaMethod<DeleteMetaParams>('video.delete_meta')
+export type DeleteMetaParams = string[]
+export const deleteMeta: RoomMethodDescriptor<any, DeleteMetaParams> = {
+  value: function (params) {
+    return this.execute({
+      method: 'video.delete_meta',
+      params: {
+        room_session_id: this.roomSessionId,
+        keys: params,
+      },
+    })
+  },
+}
 
 export type GetLayouts = ReturnType<typeof getLayouts.value>
 export type GetMembers = ReturnType<typeof getMembers.value>
@@ -500,7 +509,7 @@ export const updateMemberMeta = createRoomMemberMethod<BaseRPCResult, void>(
   }
 )
 export interface DeleteMemberMetaParams extends MemberCommandParams {
-  meta: Record<string, unknown>
+  keys: string[]
 }
 export const deleteMemberMeta = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.delete_meta',

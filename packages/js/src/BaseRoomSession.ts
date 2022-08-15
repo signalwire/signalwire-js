@@ -469,7 +469,7 @@ export const RoomSessionAPI = extendComponent<
   deleteMeta: Rooms.deleteMeta,
   setMemberMeta: Rooms.setMemberMeta,
   updateMemberMeta: Rooms.updateMemberMeta,
-  deletetMemberMeta: Rooms.deleteMemberMeta,
+  deleteMemberMeta: Rooms.deleteMemberMeta,
   promote: Rooms.promote,
   demote: Rooms.demote,
 })
