@@ -377,7 +377,11 @@ export const RoomSessionAPI = extendComponent<
   getPlaybacks: Rooms.getPlaybacks,
   play: Rooms.play,
   setMeta: Rooms.setMeta,
+  updateMeta: Rooms.updateMeta,
+  deleteMeta: Rooms.deleteMeta,
   setMemberMeta: Rooms.setMemberMeta,
+  updateMemberMeta: Rooms.updateMemberMeta,
+  deletetMemberMeta: Rooms.deleteMemberMeta,
   promote: Rooms.promote,
   demote: Rooms.demote,
 })
