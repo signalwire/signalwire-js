@@ -517,7 +517,7 @@ test.describe('RoomSession', () => {
     expect(targetElementsCount.rootEl).toBe(0)
   })
 
-  test.skip(`should allow retrieving the room session recordings and playbacks`, async ({
+  test(`should allow retrieving the room session recordings and playbacks`, async ({
     context,
   }) => {
     const pageOne = await context.newPage()
