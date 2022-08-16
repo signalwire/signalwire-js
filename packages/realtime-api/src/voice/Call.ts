@@ -1167,7 +1167,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
   /**
    * Returns a promise that is resolved only after the current call has been
-   * connected. Also see {@link connect}.
+   * disconnected. Also see {@link connect}.
    *
    * @example
    *
