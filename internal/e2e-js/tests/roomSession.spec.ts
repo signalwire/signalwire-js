@@ -47,6 +47,8 @@ test.describe('RoomSession', () => {
           'room.show_video_muted',
           'room.playback.seek',
           'room.playback',
+          'room.set_meta',
+          'room.member.set_meta',
         ],
       },
       initialEvents: [
@@ -325,6 +327,178 @@ test.describe('RoomSession', () => {
 
       return Promise.all([screenJoined, screenLeft])
     })
+
+    // --------------- Set Room Meta ---------------
+    const meta = { something: 'xx-yy-zzz' }
+    const resultMeta = await page.evaluate(
+      async ({ meta }) => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+
+        const setRoomMeta = new Promise((resolve) => {
+          roomObj.on('room.updated', (params) => {
+            if (params.room_session.updated?.includes('meta')) {
+              resolve(params.room_session.meta)
+            }
+          })
+        })
+
+        await roomObj.setMeta(meta)
+
+        return setRoomMeta
+      },
+      {
+        meta,
+      }
+    )
+    expect(meta).toStrictEqual(resultMeta)
+
+    // --------------- Update Room Meta ---------------
+    const metaUpdate = { updatedKey: 'ii-oo' }
+    const resultMetaUpdate = await page.evaluate(
+      async ({ meta }) => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+
+        const setRoomMeta = new Promise((resolve) => {
+          roomObj.on('room.updated', (params) => {
+            if (params.room_session.updated?.includes('meta')) {
+              resolve(params.room_session.meta)
+            }
+          })
+        })
+
+        await roomObj.updateMeta(meta)
+
+        return setRoomMeta
+      },
+      {
+        meta: metaUpdate,
+      }
+    )
+    // Updates should be partial. In this case we're testing
+    // that on top of having the newly added key via
+    // `updateMeta` we also have the keys set via `setMeta`
+    // (previous step) untouched.
+    expect({
+      ...meta,
+      ...metaUpdate,
+    }).toStrictEqual(resultMetaUpdate)
+
+    // --------------- Delete Room Meta ---------------
+    const metaDelete = ['updatedKey']
+    const resultMetaDelete = await page.evaluate(
+      async ({ keys }) => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+
+        const deleteRoomMeta = new Promise((resolve) => {
+          roomObj.on('room.updated', (params) => {
+            if (params.room_session.updated?.includes('meta')) {
+              resolve(params.room_session.meta)
+            }
+          })
+        })
+
+        await roomObj.deleteMeta(keys)
+
+        return deleteRoomMeta
+      },
+      {
+        keys: metaDelete,
+      }
+    )
+    // Deletions should be partial. In this case we're
+    // checking that we are only deleting the key added on
+    // the "update" step and other keys remain untouched.
+    expect(meta).toStrictEqual(resultMetaDelete)
+
+    // --------------------------
+    // --------------- Set Member Meta ---------------
+    const memberMeta = { memMeta: 'xx-yy-zzz' }
+    const resultMemberMeta = await page.evaluate(
+      async ({ meta }) => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+
+        const setMemberMeta = new Promise((resolve) => {
+          roomObj.on('member.updated', (params) => {
+            if (params.member.updated?.includes('meta')) {
+              resolve(params.member.meta)
+            }
+          })
+        })
+
+        await roomObj.setMemberMeta({ meta })
+
+        return setMemberMeta
+      },
+      {
+        meta: memberMeta,
+      }
+    )
+    expect(memberMeta).toStrictEqual(resultMemberMeta)
+
+    // --------------- Update Member Meta ---------------
+    const memberMetaUpdate = { updatedMemberKey: 'ii-oo' }
+    const resultMemberMetaUpdate = await page.evaluate(
+      async ({ meta }) => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+
+        const updateMemberMeta = new Promise((resolve) => {
+          roomObj.on('member.updated', (params) => {
+            if (params.member.updated?.includes('meta')) {
+              resolve(params.member.meta)
+            }
+          })
+        })
+
+        await roomObj.updateMemberMeta({ meta })
+
+        return updateMemberMeta
+      },
+      {
+        meta: memberMetaUpdate,
+      }
+    )
+    // Updates should be partial. In this case we're testing
+    // that on top of having the newly added key via
+    // `updateMeta` we also have the keys set via `setMeta`
+    // (previous step) untouched.
+    expect({
+      ...memberMeta,
+      ...memberMetaUpdate,
+    }).toStrictEqual(resultMemberMetaUpdate)
+
+    // --------------- Delete Room Meta ---------------
+    const memberMetaDelete = ['updatedMemberKey']
+    const resultMemberMetaDelete = await page.evaluate(
+      async ({ keys }) => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+
+        const deleteMemberRoomMeta = new Promise((resolve) => {
+          roomObj.on('member.updated', (params) => {
+            if (params.member.updated?.includes('meta')) {
+              resolve(params.member.meta)
+            }
+          })
+        })
+
+        await roomObj.deleteMemberMeta({ keys })
+
+        return deleteMemberRoomMeta
+      },
+      {
+        keys: memberMetaDelete,
+      }
+    )
+    // Deletions should be partial. In this case we're
+    // checking that we are only deleting the key added on
+    // the "update" step and other keys remain untouched.
+    expect(memberMeta).toStrictEqual(resultMemberMetaDelete)
+    // --------------------------
 
     // --------------- Leaving the room ---------------
     await page.evaluate(() => {

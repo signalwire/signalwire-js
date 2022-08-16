@@ -614,6 +614,8 @@ export interface VideoRoomSessionContract {
    * ```
    */
   setMeta(params: Rooms.SetMetaParams): Rooms.SetMeta
+  updateMeta(params: Rooms.UpdateMetaParams): Rooms.UpdateMeta
+  deleteMeta(params: Rooms.DeleteMetaParams): Rooms.DeleteMeta
   /**
    * Assigns custom metadata to the specified RoomSession member. You can use
    * this to store metadata whose meaning is entirely defined by your
@@ -656,6 +658,8 @@ export interface VideoRoomSessionContract {
    * ```
    */
   setMemberMeta(params: Rooms.SetMemberMetaParams): Rooms.SetMemberMeta
+  updateMemberMeta(params: Rooms.UpdateMemberMetaParams): Rooms.UpdateMemberMeta
+  deleteMemberMeta(params: Rooms.DeleteMemberMetaParams): Rooms.DeleteMemberMeta
   promote(params: Rooms.PromoteMemberParams): Rooms.PromoteMember
   demote(params: Rooms.DemoteMemberParams): Rooms.DemoteMember
 }

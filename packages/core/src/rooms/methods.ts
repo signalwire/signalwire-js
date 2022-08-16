@@ -1,4 +1,8 @@
-import type { BaseRoomInterface, RoomSessionRecording, RoomSessionPlayback } from '.'
+import type {
+  BaseRoomInterface,
+  RoomSessionRecording,
+  RoomSessionPlayback,
+} from '.'
 import type {
   VideoMemberEntity,
   MemberCommandParams,
@@ -275,17 +279,37 @@ export const play: RoomMethodDescriptor<any, PlayParams> = {
   },
 }
 
-export interface SetMetaParams extends Record<string, unknown> {}
-export const setMeta = createRoomMethod<BaseRPCResult, void, SetMetaParams>(
-  'video.set_meta',
-  {
+const createRoomMetaMethod = <ParamsType extends RoomMethodParams>(
+  method: RoomMethod
+) => {
+  return createRoomMethod<BaseRPCResult, void, ParamsType>(method, {
     transformResolve: baseCodeTransform,
     transformParams: (params) => {
       const { room_session_id, ...meta } = params
       return { room_session_id, meta }
     },
-  }
-)
+  })
+}
+
+export interface SetMetaParams extends Record<string, unknown> {}
+export const setMeta = createRoomMetaMethod<SetMetaParams>('video.set_meta')
+
+export interface UpdateMetaParams extends Record<string, unknown> {}
+export const updateMeta =
+  createRoomMetaMethod<UpdateMetaParams>('video.update_meta')
+
+export type DeleteMetaParams = string[]
+export const deleteMeta: RoomMethodDescriptor<any, DeleteMetaParams> = {
+  value: function (params) {
+    return this.execute({
+      method: 'video.delete_meta',
+      params: {
+        room_session_id: this.roomSessionId,
+        keys: params,
+      },
+    })
+  },
+}
 
 export type GetLayouts = ReturnType<typeof getLayouts.value>
 export type GetMembers = ReturnType<typeof getMembers.value>
@@ -299,6 +323,8 @@ export type StartRecording = ReturnType<typeof startRecording.value>
 export type GetPlaybacks = ReturnType<typeof getPlaybacks.value>
 export type Play = ReturnType<typeof play.value>
 export type SetMeta = ReturnType<typeof setMeta.value>
+export type UpdateMeta = ReturnType<typeof updateMeta.value>
+export type DeleteMeta = ReturnType<typeof deleteMeta.value>
 // End Room Methods
 
 /**
@@ -473,6 +499,25 @@ export const setMemberMeta = createRoomMemberMethod<BaseRPCResult, void>(
   }
 )
 
+export interface UpdateMemberMetaParams extends MemberCommandParams {
+  meta: Record<string, unknown>
+}
+export const updateMemberMeta = createRoomMemberMethod<BaseRPCResult, void>(
+  'video.member.update_meta',
+  {
+    transformResolve: baseCodeTransform,
+  }
+)
+export interface DeleteMemberMetaParams extends MemberCommandParams {
+  keys: string[]
+}
+export const deleteMemberMeta = createRoomMemberMethod<BaseRPCResult, void>(
+  'video.member.delete_meta',
+  {
+    transformResolve: baseCodeTransform,
+  }
+)
+
 export type AudioMuteMember = ReturnType<typeof audioMuteMember.value>
 export type AudioUnmuteMember = ReturnType<typeof audioUnmuteMember.value>
 export type VideoMuteMember = ReturnType<typeof videoMuteMember.value>
@@ -493,6 +538,8 @@ export type SetMemberPosition = ReturnType<typeof setMemberPosition.value>
 export type RemoveMember = ReturnType<typeof removeMember.value>
 export type RemoveAllMembers = ReturnType<typeof removeAllMembers.value>
 export type SetMemberMeta = ReturnType<typeof setMemberMeta.value>
+export type UpdateMemberMeta = ReturnType<typeof updateMemberMeta.value>
+export type DeleteMemberMeta = ReturnType<typeof deleteMemberMeta.value>
 export type PromoteMember = ReturnType<typeof promote.value>
 export type DemoteMember = ReturnType<typeof demote.value>
 // End Room Member Methods
