@@ -177,6 +177,7 @@ export interface VoiceCallPlayTTSParams {
   text: string
   language?: string
   gender?: 'male' | 'female'
+  voice?: string
 }
 
 export interface VoiceCallPlaySilenceParams {
@@ -220,16 +221,14 @@ export interface VoiceCallPlayRingtoneMethodParams
   volume?: number
 }
 export interface VoicePlaylistRingtoneParams
-  extends OmitType<VoiceCallPlayRingtoneParams> {
-}
+  extends OmitType<VoiceCallPlayRingtoneParams> {}
 
 export interface VoiceCallPlayTTSMethodParams
   extends OmitType<VoiceCallPlayTTSParams> {
   volume?: number
 }
 export interface VoicePlaylistTTSParams
-  extends OmitType<VoiceCallPlayTTSParams> {
-}
+  extends OmitType<VoiceCallPlayTTSParams> {}
 
 export interface VoiceCallRecordMethodParams {
   audio: {
