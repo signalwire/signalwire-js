@@ -98,7 +98,12 @@ export class CallPlaybackAPI
     return this
   }
 
+  /** @deprecated */
   waitForEnded() {
+    return this.ended()
+  }
+
+  ended() {
     return new Promise<this>((resolve) => {
       this._attachListeners(this.controlId)
 

@@ -425,7 +425,11 @@ export interface VoiceCallPlaybackContract {
   resume(): Promise<this>
   stop(): Promise<this>
   setVolume(volume: number): Promise<this>
+  /**
+   * @deprecated use {@link ended} instead.
+   */
   waitForEnded(): Promise<this>
+  ended(): Promise<this>
 }
 
 /**

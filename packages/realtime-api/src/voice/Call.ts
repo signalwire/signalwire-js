@@ -545,7 +545,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    *
    * ```js
    * const playback = await call.playAudio({ url: 'https://cdn.signalwire.com/default-music/welcome.mp3' });
-   * await playback.waitForEnded();
+   * await playback.ended();
    * ```
    */
   playAudio(params: VoiceCallPlayAudioMethodParams) {
@@ -561,7 +561,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    *
    * ```js
    * const playback = await call.playSilence({ duration: 3 });
-   * await playback.waitForEnded();
+   * await playback.ended();
    * ```
    */
   playSilence(params: VoiceCallPlaySilenceMethodParams) {
@@ -576,7 +576,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    *
    * ```js
    * const playback = await call.playRingtone({ name: 'it' });
-   * await playback.waitForEnded();
+   * await playback.ended();
    * ```
    */
   playRingtone(params: VoiceCallPlayRingtoneMethodParams) {
@@ -592,7 +592,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    *
    * ```js
    * const playback = await call.playTTS({ text: 'Welcome to SignalWire!' });
-   * await playback.waitForEnded();
+   * await playback.ended();
    * ```
    */
   playTTS(params: VoiceCallPlayTTSMethodParams) {

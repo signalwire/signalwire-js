@@ -60,8 +60,7 @@ const handler = () => {
         tap.ok(playback.id, 'Playback')
 
         console.log('Waiting for Playback to end')
-        // TODO: waitForEnded should probably accept a timeout
-        await playback.waitForEnded()
+        await playback.ended()
         tap.pass('Playback ended')
 
         call.on('prompt.started', (p) => {

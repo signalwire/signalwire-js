@@ -24,7 +24,7 @@ async function run() {
           text: "Hello! Welcome to Knee Rub's Weather Helpline. What place would you like to know the weather of?",
           gender: 'male',
         })
-        await pb.waitForEnded()
+        await pb.ended()
         console.log('Welcome text ok')
 
         const prompt = await call.promptTTS({

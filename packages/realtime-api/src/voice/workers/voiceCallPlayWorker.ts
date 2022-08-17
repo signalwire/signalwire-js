@@ -71,7 +71,7 @@ export const voiceCallPlayWorker: SDKWorker<Call> = function* (
         })
 
         /**
-         * Dispatch an event to resolve `waitForEnded` in CallPlayback
+         * Dispatch an event to resolve `ended()` in CallPlayback
          * when ended
          */
         yield sagaEffects.put(pubSubChannel, {

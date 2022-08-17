@@ -121,7 +121,7 @@ async function run() {
         )
         const pb = await call.play(playlist)
 
-        await pb.waitForEnded()
+        await pb.ended()
       } catch (error) {
         console.error('Connect Error', error)
       }
@@ -239,7 +239,7 @@ async function run() {
       const playback = await call.play(playlist)
 
       // To wait for the playback to end (without pause/resume/stop it)
-      // await playback.waitForEnded()
+      // await playback.ended()
 
       console.log('Playback STARTED!', playback.id)
 
