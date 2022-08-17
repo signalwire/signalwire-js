@@ -181,7 +181,7 @@ async function run() {
       })
 
       /** Wait for the result - sync way */
-      // const { type, digits, terminator } = await prompt.waitForResult()
+      // const { type, digits, terminator } = await prompt.ended()
       // console.log('Prompt Output:', type, digits, terminator)
 
       console.log('Prompt STARTED!', prompt.id)

@@ -34,7 +34,7 @@ async function run() {
             digitTimeout: 15,
           },
         })
-        const { type, digits, terminator } = await prompt.waitForResult()
+        const { type, digits, terminator } = await prompt.ended()
         console.log('Received digits', type, digits, terminator)
       } catch (error) {
         console.error('Error answering inbound call', error)

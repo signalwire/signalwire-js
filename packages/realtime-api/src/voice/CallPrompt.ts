@@ -141,11 +141,16 @@ export class CallPromptAPI
     return this
   }
 
+  /** @deprecated */
   waitForResult() {
-    return new Promise<CallPrompt>((resolve) => {
+    return this.ended()
+  }
+
+  ended() {
+    return new Promise<this>((resolve) => {
       this._attachListeners(this.controlId)
 
-      const handler = (callPrompt: CallPrompt) => {
+      const handler = (callPrompt: this) => {
         // @ts-expect-error
         this.off('prompt.ended', handler)
         // @ts-expect-error

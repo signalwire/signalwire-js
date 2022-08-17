@@ -528,7 +528,11 @@ export interface VoiceCallPromptContract {
 
   stop(): Promise<this>
   setVolume(volume: number): Promise<this>
+  /**
+   * @deprecated use {@link ended} instead.
+   */
   waitForResult(): Promise<VoiceCallPromptContract>
+  ended(): Promise<this>
 }
 
 /**

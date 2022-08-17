@@ -83,7 +83,7 @@ const handler = () => {
           },
         })
 
-        const result = await prompt.waitForResult()
+        const result = await prompt.ended()
 
         tap.equal(prompt.id, result.id, 'Instances are the same')
         tap.equal(result.digits, '123', 'Correct Digits were entered')

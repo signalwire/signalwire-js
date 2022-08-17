@@ -757,7 +757,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    *     terminators: '#*'
    *   }
    * })
-   * const { type, digits, terminator } = await prompt.waitForResult()
+   * const { type, digits, terminator } = await prompt.ended()
    * ```
    */
   promptAudio(params: VoiceCallPromptAudioMethodParams) {
@@ -787,7 +787,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    *     terminators: '#*'
    *   }
    * })
-   * const { type, digits, terminator } = await prompt.waitForResult()
+   * const { type, digits, terminator } = await prompt.ended()
    * ```
    */
   promptRingtone(params: VoiceCallPromptRingtoneMethodParams) {
@@ -818,7 +818,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    *     terminators: '#*'
    *   }
    * })
-   * const { type, digits, terminator } = await prompt.waitForResult()
+   * const { type, digits, terminator } = await prompt.ended()
    * ```
    */
   promptTTS(params: VoiceCallPromptTTSMethodParams) {
