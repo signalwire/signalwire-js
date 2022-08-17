@@ -40,8 +40,8 @@
     "docs:watch": "npm run docs -- --watch"
   },
   "dependencies": {
-    "@signalwire/realtime-api": "^3.0.0-beta.0",
-    "@signalwire/web-api": "^0.0.1-beta.4"
+    "@signalwire/realtime-api": "^3.4.0",
+    "@signalwire/web-api": "^0.0.1"
   },
   "types": "dist/node/src/index.d.ts"
 }

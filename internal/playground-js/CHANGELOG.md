@@ -1,5 +1,11 @@
 # @sw-internal/playground-js
 
+## 0.0.7
+
+### Patch Changes
+
+- [#594](https://github.com/signalwire/signalwire-js/pull/594) [`819a6772`](https://github.com/signalwire/signalwire-js/commit/819a67725a62e51ce1f21b624b35f19722b89120) - Refactoring to allow multiple RTCPeer instances on a BaseConnection.
+
 ## 0.0.6
 
 ### Patch Changes
