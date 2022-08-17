@@ -110,7 +110,7 @@ const handler = () => {
           digits: '1',
         })
 
-        const resultDetector = await detector.waitForResult()
+        const resultDetector = await detector.ended()
 
         // TODO: update this once the backend can send us
         // the actual result

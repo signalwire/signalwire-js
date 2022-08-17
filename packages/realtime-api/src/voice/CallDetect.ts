@@ -53,7 +53,12 @@ export class CallDetectAPI
     return this
   }
 
+  /** @deprecated */
   waitForResult() {
+    return this.ended()
+  }
+
+  ended() {
     return new Promise<this>((resolve) => {
       this._attachListeners(this.controlId)
 

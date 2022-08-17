@@ -1261,7 +1261,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    *
    * ```js
    * const detect = await call.amd()
-   * const result = await detect.waitForResult()
+   * const result = await detect.ended()
    *
    * console.log('Detect result:', result.type)
    * ```
@@ -1280,7 +1280,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    *
    * ```js
    * const detect = await call.detectFax()
-   * const result = await detect.waitForResult()
+   * const result = await detect.ended()
    *
    * console.log('Detect result:', result.type)
    * ```
@@ -1299,7 +1299,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    *
    * ```js
    * const detect = await call.detectDigit()
-   * const result = await detect.waitForResult()
+   * const result = await detect.ended()
    *
    * console.log('Detect result:', result.type)
    * ```

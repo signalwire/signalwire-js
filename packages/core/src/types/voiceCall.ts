@@ -493,7 +493,11 @@ export interface VoiceCallDetectContract {
   readonly type?: CallingCallDetectType
 
   stop(): Promise<this>
+  /**
+   * @deprecated use {@link ended} instead.
+   */
   waitForResult(): Promise<this>
+  ended(): Promise<this>
 }
 
 /**

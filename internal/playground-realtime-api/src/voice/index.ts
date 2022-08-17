@@ -85,7 +85,7 @@ async function run() {
       if (RUN_DETECTOR) {
         // See the `call.received` handler
         const detect = await call.detectDigit()
-        const result = await detect.waitForResult()
+        const result = await detect.ended()
         console.log('Detect Result', result.type)
 
         await sleep()
