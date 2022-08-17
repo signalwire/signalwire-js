@@ -53,15 +53,16 @@ export const promoteDemoteWorker: SDKWorker<
   yield sagaEffects.put(
     sessionActions.updateAuthState(action.payload.authorization)
   )
-  const authState: VideoAuthorization =
-    yield sagaEffects.select(selectors.getAuthState)
+  const authState: VideoAuthorization = yield sagaEffects.select(
+    selectors.getAuthState
+  )
   if (!authState) {
     throw new Error(`Invalid authState for '${action.type}'`)
   }
 
   instance.updateMediaOptions({
-    audio: isPromoted && authState.audio_allowed !== 'none',
-    video: isPromoted && authState.video_allowed !== 'none',
+    audio: isPromoted && authState.audio_allowed === 'both',
+    video: isPromoted && authState.video_allowed === 'both',
     negotiateAudio: true,
     negotiateVideo: true,
   })
