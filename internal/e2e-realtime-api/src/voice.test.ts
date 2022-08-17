@@ -121,7 +121,7 @@ const handler = () => {
           'Detect digit is finished'
         )
 
-        // TODO: not currently working
+        // TODO: currently not working
         // console.log('Stopping the recording.')
         // recording.stop()
         // await recording.ended()
