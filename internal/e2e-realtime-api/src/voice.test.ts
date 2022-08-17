@@ -121,6 +121,11 @@ const handler = () => {
           'Detect digit is finished'
         )
 
+        // TODO: not currently working
+        // console.log('Stopping the recording.')
+        // recording.stop()
+        // await recording.ended()
+
         console.log('Finishing the calls.')
         await peer.hangup()
         await call.hangup()

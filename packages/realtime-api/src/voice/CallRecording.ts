@@ -49,6 +49,25 @@ export class CallRecordingAPI
 
     return this
   }
+
+  ended() {
+    return new Promise<this>((resolve) => {
+      this._attachListeners(this.controlId)
+      const handler = (instance: this) => {
+        // @ts-expect-error
+        this.off('recording.ended', handler)
+        // @ts-expect-error
+        this.off('recording.failed', handler)
+
+        resolve(instance)
+      }
+      // @ts-expect-error
+      this.once('recording.ended', handler)
+      // TODO: review what else to return when `recording.failed` happens.
+      // @ts-expect-error
+      this.once('recording.failed', handler)
+    })
+  }
 }
 
 export const createCallRecordingObject = (

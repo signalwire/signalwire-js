@@ -464,6 +464,7 @@ export interface VoiceCallRecordingContract {
   readonly duration?: number
 
   stop(): Promise<this>
+  ended(): Promise<this>
 }
 
 /**
