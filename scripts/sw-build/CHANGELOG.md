@@ -1,5 +1,11 @@
 # @sw-internal/build
 
+## 0.0.3
+
+### Patch Changes
+
+- [#605](https://github.com/signalwire/signalwire-js/pull/605) [`2f909c9e`](https://github.com/signalwire/signalwire-js/commit/2f909c9ef670eeaed7b3444b9d4bf703bfbc3a1b) - Change how the SDK agent is defined.
+
 ## 0.0.2
 
 ### Patch Changes
