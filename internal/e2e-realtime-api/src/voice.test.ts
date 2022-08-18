@@ -60,7 +60,9 @@ const handler = () => {
         tap.ok(playback.id, 'Playback')
 
         console.log('Waiting for Playback to end')
-        await playback.ended()
+        const endedResult = await playback.ended()
+        tap.equal(playback.id, endedResult.id, 'Instances are the same')
+        tap.ok(endedResult.state, 'finished')
         tap.pass('Playback ended')
 
         call.on('prompt.started', (p) => {
@@ -83,10 +85,9 @@ const handler = () => {
           },
         })
 
-        const result = await prompt.ended()
-
-        tap.equal(prompt.id, result.id, 'Instances are the same')
-        tap.equal(result.digits, '123', 'Correct Digits were entered')
+        const promptResult = await prompt.ended()
+        tap.equal(prompt.id, promptResult.id, 'Instances are the same')
+        tap.equal(promptResult.digits, '123', 'Correct Digits were entered')
 
         console.log(
           `Connecting ${process.env.VOICE_DIAL_FROM_NUMBER} to ${process.env.VOICE_CONNECT_TO_NUMBER}`

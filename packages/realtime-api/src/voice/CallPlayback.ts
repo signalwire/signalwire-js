@@ -4,6 +4,7 @@ import {
   BaseComponentOptions,
   VoiceCallPlaybackContract,
   CallingCallPlayState,
+  CallPlaybackEndedEvent,
 } from '@signalwire/core'
 
 /**
@@ -107,7 +108,17 @@ export class CallPlaybackAPI
     return new Promise<this>((resolve) => {
       this._attachListeners(this.controlId)
 
-      const handler = () => resolve(this)
+      const handler = (payload: CallPlaybackEndedEvent['params']) => {
+        // This object gets created every time we call
+        // `Call.play()`, instead of creating a brand new
+        // object through the Emitter Transform we're
+        // reusing that same instance created from `Call`
+        // (and its Emitter Transform). Only thing we're
+        // doing is to update the state of this object with
+        // the lastes payload received from the server.
+        this.state = payload.state
+        resolve(this)
+      }
       // @ts-expect-error
       this.once('playback.ended', handler)
       // // @ts-expect-error

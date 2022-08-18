@@ -521,11 +521,12 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         },
       })
         .then(() => {
-          const startEvent: CallingCallPlayEventParams = {
+          // We intentionally omit `state` since that
+          // property is handled internally by the instance.
+          const startEvent: Omit<CallingCallPlayEventParams, 'state'>= {
             control_id: controlId,
             call_id: this.id,
             node_id: this.nodeId,
-            state: 'playing',
           }
           // @ts-expect-error
           this.emit(callingPlaybackTriggerEvent, startEvent)
