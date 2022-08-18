@@ -120,6 +120,13 @@ export class CallPromptAPI
       this._attachListeners(this.controlId)
 
       const handler = (callPrompt: CallPromptEndedEvent['params']) => {
+        // This object gets created every time we call
+        // `Call.prompt()`, instead of creating a brand new
+        // object through the Emitter Transform we're
+        // reusing that same instance created from `Call`
+        // (and its Emitter Transform). Only thing we're
+        // doing is to update the state of this object with
+        // the lastes payload received from the server.
         this.result = callPrompt.result
         resolve(this)
       }
