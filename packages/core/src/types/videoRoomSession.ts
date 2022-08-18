@@ -614,6 +614,15 @@ export interface VideoRoomSessionContract {
    * ```
    */
   setMeta(params: Rooms.SetMetaParams): Rooms.SetMeta
+  /**
+   * Retrieve the custom metadata for the RoomSession.
+   *
+   * @example
+   * ```js
+   * const { meta } = await roomSession.getMeta()
+   * ```
+   */
+  getMeta(): Rooms.GetMeta
   updateMeta(params: Rooms.UpdateMetaParams): Rooms.UpdateMeta
   deleteMeta(params: Rooms.DeleteMetaParams): Rooms.DeleteMeta
   /**
@@ -658,6 +667,17 @@ export interface VideoRoomSessionContract {
    * ```
    */
   setMemberMeta(params: Rooms.SetMemberMetaParams): Rooms.SetMemberMeta
+  /**
+   * Retrieve the custom metadata for the specified RoomSession member.
+   *
+   * @param params.memberId Id of the member to retrieve the meta. If omitted, fallback to the current memberId.
+   *
+   * @example
+   * ```js
+   * const { meta } = await roomSession.getMemberMeta({ memberId: 'de550c0c-3fac-4efd-b06f-b5b8614b8966' })
+   * ```
+   */
+  getMemberMeta(params?: MemberCommandParams): Rooms.GetMemberMeta
   updateMemberMeta(params: Rooms.UpdateMemberMetaParams): Rooms.UpdateMemberMeta
   deleteMemberMeta(params: Rooms.DeleteMemberMetaParams): Rooms.DeleteMemberMeta
   promote(params: Rooms.PromoteMemberParams): Rooms.PromoteMember
