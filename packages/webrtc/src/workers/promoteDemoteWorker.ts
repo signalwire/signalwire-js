@@ -49,7 +49,6 @@ export const promoteDemoteWorker: SDKWorker<
 
   getLogger().debug('promoteDemoteWorker:', action.type, action.payload)
 
-  const isPromoted = action.type === 'video.member.promoted'
   yield sagaEffects.put(
     sessionActions.updateAuthState(action.payload.authorization)
   )
@@ -60,12 +59,32 @@ export const promoteDemoteWorker: SDKWorker<
     throw new Error(`Invalid authState for '${action.type}'`)
   }
 
-  instance.updateMediaOptions({
-    audio: isPromoted && authState.audio_allowed === 'both',
-    video: isPromoted && authState.video_allowed === 'both',
-    negotiateAudio: true,
-    negotiateVideo: true,
-  })
+  switch (action.type) {
+    case 'video.member.promoted':
+      /**
+       * Promote means enable the media allowed and keep the
+       * same recv settings. (do not force recv media)
+       */
+      instance.updateMediaOptions({
+        audio: authState.audio_allowed === 'both',
+        video: authState.video_allowed === 'both',
+        // negotiateAudio: true,
+        // negotiateVideo: true,
+      })
+      break
+    case 'video.member.demoted':
+      /**
+       * Demote means force recvonly and receive only the media allowed.
+       */
+      instance.updateMediaOptions({
+        audio: false,
+        video: false,
+        negotiateAudio: authState.audio_allowed !== 'none',
+        negotiateVideo: authState.video_allowed !== 'none',
+      })
+      break
+  }
+
   instance._triggerNewRTCPeer()
 
   getLogger().debug('promoteDemoteWorker ended', rtcPeerId)
