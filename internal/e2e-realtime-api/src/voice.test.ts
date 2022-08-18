@@ -62,7 +62,7 @@ const handler = () => {
         console.log('Waiting for Playback to end')
         const endedResult = await playback.ended()
         tap.equal(playback.id, endedResult.id, 'Instances are the same')
-        tap.ok(endedResult.state, 'finished')
+        tap.equal(endedResult.state, 'finished', 'Playback state is "finished"')
         tap.pass('Playback ended')
 
         call.on('prompt.started', (p) => {
