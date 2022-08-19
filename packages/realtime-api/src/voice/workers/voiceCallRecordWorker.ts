@@ -58,29 +58,16 @@ export const voiceCallRecordWorker: SDKWorker<Call> = function* (
         })
         break
       }
+
       case 'no_input':
-        yield sagaEffects.put(pubSubChannel, {
-          type: 'calling.recording.failed',
-          payload: payloadWithTag,
-        })
-
-        /**
-         * Dispatch an event to resolve `ended()` in CallRecord
-         * when ended
-         */
-         yield sagaEffects.put(pubSubChannel, {
-          type: 'calling.recording.failed',
-          payload: {
-            tag: controlId,
-            ...action.payload,
-          },
-        })
-
-        done()
-        break
       case 'finished': {
+        const typeToEmit =
+          action.payload.state === 'finished'
+            ? 'calling.recording.ended'
+            : 'calling.recording.failed'
+
         yield sagaEffects.put(pubSubChannel, {
-          type: 'calling.recording.ended',
+          type: typeToEmit,
           payload: payloadWithTag,
         })
 
@@ -89,7 +76,7 @@ export const voiceCallRecordWorker: SDKWorker<Call> = function* (
          * when ended
          */
         yield sagaEffects.put(pubSubChannel, {
-          type: 'calling.recording.ended',
+          type: typeToEmit,
           payload: {
             tag: controlId,
             ...action.payload,
