@@ -523,7 +523,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         .then(() => {
           // We intentionally omit `state` since that
           // property is handled internally by the instance.
-          const startEvent: Omit<CallingCallPlayEventParams, 'state'>= {
+          const startEvent: Omit<CallingCallPlayEventParams, 'state'> = {
             control_id: controlId,
             call_id: this.id,
             node_id: this.nodeId,
@@ -1008,7 +1008,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     return this.tap({ audio: { direction }, device })
   }
 
-   /**
+  /**
    * Attempt to connect an existing call to a new outbound call. You can wait
    * until the call is disconnected by calling {@link waitForDisconnected}.
    *

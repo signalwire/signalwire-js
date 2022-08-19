@@ -74,7 +74,7 @@ export class BaseComponent<
   private readonly uuid = uuid()
 
   /** @internal */
-  private _proxyFactoryCache = new WeakMap<any, any>()
+  // private _proxyFactoryCache = new WeakMap<any, any>()
 
   /** @internal */
   get __uuid() {
@@ -417,20 +417,20 @@ export class BaseComponent<
       // transforms and creating a brand new Proxy for each
       // handler we'll cache the computed value and pass
       // that computed value instead to each handler.
-      if (this._proxyFactoryCache.has(payload)) {
-        proxiedObj = this._proxyFactoryCache.get(payload)
-      } else {
-        const transformedPayload = this._parseNestedFields(payload, transform)
+      // if (this._proxyFactoryCache.has(payload)) {
+      //   proxiedObj = this._proxyFactoryCache.get(payload)
+      // } else {
+      const transformedPayload = this._parseNestedFields(payload, transform)
 
-        proxiedObj = proxyFactory({
-          instance: cachedInstance,
-          payload,
-          transformedPayload,
-          transform,
-        })
+      proxiedObj = proxyFactory({
+        instance: cachedInstance,
+        payload,
+        transformedPayload,
+        transform,
+      })
 
-        this._proxyFactoryCache.set(payload, proxiedObj)
-      }
+      // this._proxyFactoryCache.set(payload, proxiedObj)
+      // }
 
       // @ts-expect-error
       return fn(proxiedObj)
