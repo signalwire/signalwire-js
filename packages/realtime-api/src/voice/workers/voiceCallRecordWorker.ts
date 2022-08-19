@@ -64,12 +64,36 @@ export const voiceCallRecordWorker: SDKWorker<Call> = function* (
           payload: payloadWithTag,
         })
 
+        /**
+         * Dispatch an event to resolve `ended()` in CallRecord
+         * when ended
+         */
+         yield sagaEffects.put(pubSubChannel, {
+          type: 'calling.recording.failed',
+          payload: {
+            tag: controlId,
+            ...action.payload,
+          },
+        })
+
         done()
         break
       case 'finished': {
         yield sagaEffects.put(pubSubChannel, {
           type: 'calling.recording.ended',
           payload: payloadWithTag,
+        })
+
+        /**
+         * Dispatch an event to resolve `ended()` in CallRecord
+         * when ended
+         */
+        yield sagaEffects.put(pubSubChannel, {
+          type: 'calling.recording.ended',
+          payload: {
+            tag: controlId,
+            ...action.payload,
+          },
         })
 
         done()
