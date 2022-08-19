@@ -1168,25 +1168,13 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
   }
 
   /**
-   * Returns a promise that is resolved only after the current call has been
-   * disconnected. Also see {@link connect}.
-   *
-   * @example
-   *
-   * ```js
-   * const plan = new Voice.DeviceBuilder().add(
-   *   Voice.DeviceBuilder.Sip({
-   *     from: 'sip:user1@domain.com',
-   *     to: 'sip:user2@domain.com',
-   *     timeout: 30,
-   *   })
-   * )
-   *
-   * const peer = await call.connect(plan)
-   * await call.waitForDisconnected()
-   * ```
+   * @deprectated use {@link disconnected} instead.
    */
   waitForDisconnected() {
+    return this.disconnect
+  }
+
+  disconnected() {
     return new Promise<this>((resolve) => {
       const resolveHandler = () => {
         resolve(this)

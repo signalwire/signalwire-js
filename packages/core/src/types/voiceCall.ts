@@ -648,7 +648,30 @@ export interface VoiceCallContract<T = any> {
   connectSip(
     params: VoiceCallConnectSipMethodParams
   ): Promise<VoiceCallContract>
+  /**
+   * @deprectated use {@link disconnected} instead.
+   */
   waitForDisconnected(): Promise<this>
+   /**
+   * Returns a promise that is resolved only after the current call has been
+   * disconnected. Also see {@link connect}.
+   *
+   * @example
+   *
+   * ```js
+   * const plan = new Voice.DeviceBuilder().add(
+   *   Voice.DeviceBuilder.Sip({
+   *     from: 'sip:user1@domain.com',
+   *     to: 'sip:user2@domain.com',
+   *     timeout: 30,
+   *   })
+   * )
+   *
+   * const peer = await call.connect(plan)
+   * await call.disconnected()
+   * ```
+   */
+  disconnected(): Promise<this>
   waitFor(
     params: CallingCallWaitForState | CallingCallWaitForState[]
   ): Promise<boolean>
