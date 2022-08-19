@@ -108,15 +108,17 @@ export class CallPlaybackAPI
     return new Promise<this>((resolve) => {
       this._attachListeners(this.controlId)
 
-      const handler = (payload: CallPlaybackEndedEvent['params']) => {
-        // This object gets created every time we call
-        // `Call.play()`, instead of creating a brand new
-        // object through the Emitter Transform we're
-        // reusing that same instance created from `Call`
-        // (and its Emitter Transform). Only thing we're
-        // doing is to update the state of this object with
-        // the lastes payload received from the server.
-        this.state = payload.state
+      const handler = () => {
+        // @ts-expect-error
+        this.off('playback.ended', handler)
+        // It's important to notice that we're returning
+        // `this` instead of creating a brand new instance
+        // using the payload + EventEmitter Transform
+        // pipeline. `this` is the instance created by the
+        // `Call` Emitter Transform pipeline (singleton per
+        // `Call.play()`) that gets auto updated (using
+        // the latest payload per event) by the
+        // `voiceCallPlayWorker`
         resolve(this)
       }
       // @ts-expect-error
