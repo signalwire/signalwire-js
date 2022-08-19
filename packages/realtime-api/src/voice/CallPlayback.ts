@@ -109,8 +109,6 @@ export class CallPlaybackAPI
       this._attachListeners(this.controlId)
 
       const handler = () => {
-        // @ts-expect-error
-        this.off('playback.ended', handler)
         // It's important to notice that we're returning
         // `this` instead of creating a brand new instance
         // using the payload + EventEmitter Transform
