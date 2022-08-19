@@ -1188,6 +1188,10 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       this.once('connect.disconnected', resolveHandler)
       // @ts-expect-error
       this.once('connect.failed', resolveHandler)
+
+      if (this.state === 'ended' || this.state === 'ending') {
+        return resolveHandler()
+      }
     })
   }
 
