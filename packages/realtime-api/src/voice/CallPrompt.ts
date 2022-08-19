@@ -118,16 +118,19 @@ export class CallPromptAPI
   ended() {
     return new Promise<this>((resolve) => {
       this._attachListeners(this.controlId)
-
-      const handler = (callPrompt: CallPromptEndedEvent['params']) => {
-        // This object gets created every time we call
-        // `Call.prompt()`, instead of creating a brand new
-        // object through the Emitter Transform we're
-        // reusing that same instance created from `Call`
-        // (and its Emitter Transform). Only thing we're
-        // doing is to update the state of this object with
-        // the lastes payload received from the server.
-        this.result = callPrompt.result
+      const handler = (_callPrompt: CallPromptEndedEvent['params']) => {
+        // @ts-expect-error
+        this.off('prompt.ended', handler)
+        // @ts-expect-error
+        this.off('prompt.failed', handler)
+        // It's important to notice that we're returning
+        // `this` instead of creating a brand new instance
+        // using the payload + EventEmitter Transform
+        // pipeline. `this` is the instance created by the
+        // `Call` Emitter Transform pipeline (singleton per
+        // `Call.prompt()`) that gets auto updated (using
+        // the latest payload per event) by the
+        // `voiceCallPromptWorker`
         resolve(this)
       }
       // @ts-expect-error
