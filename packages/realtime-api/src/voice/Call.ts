@@ -39,6 +39,7 @@ import {
   VoiceCallDetectDigitParams,
   CallingCallDetectEventParams,
   VoiceDialerParams,
+  CallingCallWaitForState,
 } from '@signalwire/core'
 import { RealTimeCallApiEvents } from '../types'
 import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
@@ -1325,7 +1326,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    * await call.waitFor('ended')
    * ```
    */
-  waitFor(params: CallingCallState | CallingCallState[]) {
+  waitFor(params: CallingCallWaitForState | CallingCallWaitForState[]) {
     return new Promise((resolve) => {
       if (!params) {
         resolve(true)
