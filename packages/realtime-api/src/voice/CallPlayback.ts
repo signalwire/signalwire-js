@@ -4,7 +4,6 @@ import {
   BaseComponentOptions,
   VoiceCallPlaybackContract,
   CallingCallPlayState,
-  CallPlaybackEndedEvent,
 } from '@signalwire/core'
 
 /**
