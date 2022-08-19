@@ -112,7 +112,7 @@ async function run() {
         console.log('Main:', call.id, call.type, call.from, call.to)
 
         // Wait until Main and Peer are connected
-        await call.waitForDisconnected()
+        await call.disconnected()
 
         const playlist = new Voice.Playlist({ volume: 2 }).add(
           Voice.Playlist.TTS({
