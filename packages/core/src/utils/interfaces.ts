@@ -181,7 +181,10 @@ export interface VideoAuthorization {
   video_allowed: VideoAllowed
 }
 
-export type ChatAuthorizationChannels = Record<string, { read?: boolean; write?: boolean }>
+export type ChatAuthorizationChannels = Record<
+  string,
+  { read?: boolean; write?: boolean }
+>
 
 export interface ChatAuthorization {
   type: 'chat'
@@ -274,9 +277,11 @@ export type RoomMethod =
   | 'video.member.set_input_sensitivity'
   | 'video.member.set_position'
   | 'video.member.remove'
+  | 'video.member.get_meta'
   | 'video.member.set_meta'
   | 'video.member.update_meta'
   | 'video.member.delete_meta'
+  | 'video.get_meta'
   | 'video.set_meta'
   | 'video.update_meta'
   | 'video.delete_meta'

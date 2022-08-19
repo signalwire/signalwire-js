@@ -328,6 +328,18 @@ test.describe('RoomSession', () => {
       return Promise.all([screenJoined, screenLeft])
     })
 
+    const expectRoomMeta = async (expected: any) => {
+      // --------------- Get Room Meta ---------------
+      const initialMeta = await page.evaluate(() => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+        return roomObj.getMeta()
+      })
+      expect(initialMeta).toStrictEqual(expected)
+    }
+
+    await expectRoomMeta({})
+
     // --------------- Set Room Meta ---------------
     const meta = { something: 'xx-yy-zzz' }
     const resultMeta = await page.evaluate(
@@ -352,6 +364,8 @@ test.describe('RoomSession', () => {
       }
     )
     expect(meta).toStrictEqual(resultMeta)
+
+    await expectRoomMeta(resultMeta)
 
     // --------------- Update Room Meta ---------------
     const metaUpdate = { updatedKey: 'ii-oo' }
@@ -385,6 +399,8 @@ test.describe('RoomSession', () => {
       ...metaUpdate,
     }).toStrictEqual(resultMetaUpdate)
 
+    await expectRoomMeta(resultMetaUpdate)
+
     // --------------- Delete Room Meta ---------------
     const metaDelete = ['updatedKey']
     const resultMetaDelete = await page.evaluate(
@@ -413,7 +429,22 @@ test.describe('RoomSession', () => {
     // the "update" step and other keys remain untouched.
     expect(meta).toStrictEqual(resultMetaDelete)
 
+    await expectRoomMeta(resultMetaDelete)
+
     // --------------------------
+
+    const expectRoomMemberMeta = async (expected: any) => {
+      // --------------- Get Room Meta ---------------
+      const initialMeta = await page.evaluate(() => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+        return roomObj.getMemberMeta()
+      })
+      expect(initialMeta).toStrictEqual(expected)
+    }
+
+    expectRoomMemberMeta({})
+
     // --------------- Set Member Meta ---------------
     const memberMeta = { memMeta: 'xx-yy-zzz' }
     const resultMemberMeta = await page.evaluate(
@@ -438,6 +469,8 @@ test.describe('RoomSession', () => {
       }
     )
     expect(memberMeta).toStrictEqual(resultMemberMeta)
+
+    expectRoomMemberMeta(resultMemberMeta)
 
     // --------------- Update Member Meta ---------------
     const memberMetaUpdate = { updatedMemberKey: 'ii-oo' }
@@ -471,6 +504,8 @@ test.describe('RoomSession', () => {
       ...memberMetaUpdate,
     }).toStrictEqual(resultMemberMetaUpdate)
 
+    expectRoomMemberMeta(resultMemberMetaUpdate)
+
     // --------------- Delete Room Meta ---------------
     const memberMetaDelete = ['updatedMemberKey']
     const resultMemberMetaDelete = await page.evaluate(
@@ -498,6 +533,8 @@ test.describe('RoomSession', () => {
     // checking that we are only deleting the key added on
     // the "update" step and other keys remain untouched.
     expect(memberMeta).toStrictEqual(resultMemberMetaDelete)
+
+    expectRoomMemberMeta(resultMemberMetaDelete)
     // --------------------------
 
     // --------------- Leaving the room ---------------
@@ -618,7 +655,7 @@ test.describe('RoomSession', () => {
         })
 
         await roomObj.startRecording()
-        const playbackObj = await roomObj.play({
+        await roomObj.play({
           url: PLAYBACK_URL!,
         })
 

@@ -1,8 +1,4 @@
-import {
-  UserOptions,
-  getLogger,
-  VideoAuthorization,
-} from '@signalwire/core'
+import { UserOptions, getLogger, VideoAuthorization } from '@signalwire/core'
 import { createClient } from './createClient'
 import { BaseRoomSession } from './BaseRoomSession'
 import {
@@ -49,8 +45,16 @@ export const UNSAFE_PROP_ACCESS = [
   'videoUnmute',
   'setMicrophoneVolume',
   'setSpeakerVolume',
+  'getMeta',
   'setMeta',
+  'updateMeta',
+  'deleteMeta',
+  'getMemberMeta',
   'setMemberMeta',
+  'updateMemberMeta',
+  'deleteMemberMeta',
+  'promote',
+  'demote',
 ]
 
 export interface RoomSessionOptions extends UserOptions, MakeRoomOptions {}
