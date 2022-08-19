@@ -135,6 +135,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
   public callId: string
   public nodeId: string
   public peer: string
+  public callState: string
 
   constructor(options: BaseComponentOptions<RealTimeCallApiEvents>) {
     super(options)
@@ -164,6 +165,10 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
   /** Unique id for this voice call */
   get id() {
     return this.callId
+  }
+
+  get state() {
+    return this.callState
   }
 
   get tag() {
