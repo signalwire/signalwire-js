@@ -66,15 +66,15 @@ test.describe('RoomSession', () => {
 
     // --------------- Joining the room ---------------
     const joinParams: any = await page.evaluate(() => {
-      return new Promise((r) => {
+      return new Promise((resolve) => {
         // @ts-expect-error
         const roomObj = window._roomObj
-        roomObj.on('room.joined', (params: any) => r(params))
+        roomObj.on('room.joined', (params: any) => resolve(params))
         roomObj.join()
       })
     })
 
-    expect(joinParams.room).toBeDefined()
+    expect(joinParams.room).toBeDefined() // backwards
     expect(joinParams.room_session).toBeDefined()
     expect(
       joinParams.room.members.some(
