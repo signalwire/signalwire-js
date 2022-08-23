@@ -13,6 +13,7 @@ import {
   VertoModify,
   componentSelectors,
 } from '@signalwire/core'
+import type { ReduxComponent } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import { ConnectionOptions } from './utils/interfaces'
 import { stopTrack, getUserMedia } from './utils'
@@ -143,7 +144,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     return this.options?.iceServers ?? this.select(selectors.getIceServers)
   }
 
-  get component() {
+  get component(): ReduxComponent {
     const id = this.peer?.uuid ?? ''
     return (
       this.select((state) => componentSelectors.getComponent(state, id)) || {}
