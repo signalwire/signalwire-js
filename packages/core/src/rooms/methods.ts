@@ -410,7 +410,6 @@ export const setInputSensitivityMember = createRoomMemberMethod<
 
 interface PromoteDemoteMemberParams extends Required<MemberCommandParams> {
   mediaAllowed?: MediaAllowed
-  permissions?: string[]
 }
 
 const createMemberPromoteDemoteMethod = <
@@ -420,7 +419,7 @@ const createMemberPromoteDemoteMethod = <
   method: 'video.member.promote' | 'video.member.demote'
 ): RoomMethodDescriptor<OutputType, ParamsType> => {
   return {
-    value: function ({ memberId, mediaAllowed, permissions }) {
+    value: function ({ memberId, mediaAllowed, ...rest }) {
       return this.execute<unknown, OutputType, ParamsType>(
         {
           method,
@@ -428,7 +427,7 @@ const createMemberPromoteDemoteMethod = <
             room_session_id: this.roomSessionId,
             member_id: memberId,
             media_allowed: mediaAllowed,
-            permissions,
+            ...rest,
           },
         },
         {
@@ -438,12 +437,15 @@ const createMemberPromoteDemoteMethod = <
     },
   }
 }
-export interface PromoteMemberParams extends PromoteDemoteMemberParams {}
+export interface PromoteMemberParams extends PromoteDemoteMemberParams {
+  permissions?: string[]
+}
 export const promote: RoomMethodDescriptor<void, PromoteMemberParams> =
   createMemberPromoteDemoteMethod('video.member.promote')
 
 export interface DemoteMemberParams extends PromoteDemoteMemberParams {}
-export const demote = createMemberPromoteDemoteMethod('video.member.demote')
+export const demote: RoomMethodDescriptor<void, DemoteMemberParams> =
+  createMemberPromoteDemoteMethod('video.member.demote')
 export interface SetMemberPositionParams extends MemberCommandParams {
   position: VideoPosition
 }
