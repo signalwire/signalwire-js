@@ -74,6 +74,7 @@ export type {
   PubSubAction,
   MapToPubSubShape,
   SDKActions,
+  ReduxComponent,
 } from './redux/interfaces'
 export type { ToExternalJSONResult } from './utils'
 export * as actions from './redux/actions'
