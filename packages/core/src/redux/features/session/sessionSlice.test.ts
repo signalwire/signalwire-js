@@ -20,11 +20,14 @@ describe('SessionState Tests', () => {
       authState: {
         media_allowed: 'all',
         audio_allowed: 'both',
+        join_as: 'member',
         project: '8f0a119a-cda7-4497-a47d-c81493b824d4',
         resource: '9c80f1e8-9430-4070-a043-937eb3a96b38',
         room: {
           name: 'lobby',
+          display_name: 'Lobby',
           scopes: ['room.self.audio_mute', 'room.self.audio_unmute'],
+          meta: {},
         },
         scope_id: '26675883-8499-4ee9-85eb-691c4aa209f8',
         scopes: ['video'],
@@ -33,6 +36,7 @@ describe('SessionState Tests', () => {
         type: 'video',
         user_name: 'Joe',
         video_allowed: 'both',
+        meta: {},
       },
       authError: undefined,
       authCount: 1,
