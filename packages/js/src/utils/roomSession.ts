@@ -3,10 +3,48 @@ import type {
   VideoAuthorization,
   MediaDirectionAllowed,
 } from '@signalwire/core'
-import type { RoomSessionJoinAudienceParams } from './interfaces'
+import type {
+  RoomSessionJoinAudienceParams,
+  BaseRoomSessionJoinParams,
+} from './interfaces'
+
+type GetJoinMediaParamsOptions = BaseRoomSessionJoinParams & {
+  authState: VideoAuthorization
+}
+
+export const getJoinMediaParams = (options: GetJoinMediaParamsOptions) => {
+  const {
+    authState,
+    audio = true,
+    video = true,
+    sendAudio,
+    sendVideo,
+    receiveAudio,
+    receiveVideo,
+  } = options
+  const { audio_allowed, video_allowed, join_as } = authState
+  const canSend = join_as === 'member'
+
+  const canSendAudio = audio_allowed === 'both'
+  const canSendVideo = video_allowed === 'both'
+  const canReceiveAudio = audio_allowed !== 'none'
+  const canReceiveVideo = video_allowed !== 'none'
+
+  const reqToSendAudio = Boolean(sendAudio ?? audio)
+  const reqToSendVideo = Boolean(sendVideo ?? video)
+  const reqToReceiveAudio = Boolean(receiveAudio ?? audio)
+  const reqToReceiveVideo = Boolean(receiveVideo ?? video)
+
+  return {
+    audio: canSend && canSendAudio && reqToSendAudio,
+    video: canSend && canSendVideo && reqToSendVideo,
+    negotiateAudio: canReceiveAudio && reqToReceiveAudio,
+    negotiateVideo: canReceiveVideo && reqToReceiveVideo,
+  }
+}
 
 // `joinAudience` utils
-const getJoinAudienceMediaParams = ({
+export const getJoinAudienceMediaParams = ({
   authState,
   receiveAudio = true,
   receiveVideo = true,
@@ -48,11 +86,9 @@ const getJoinAudienceMediaParams = ({
   }
 }
 
-const isValidJoinAudienceMediaParams = (
+export const isValidJoinAudienceMediaParams = (
   options: Record<string, boolean | undefined>
 ) => {
   // At least one value must be true
   return Object.values(options).some(Boolean)
 }
-
-export { getJoinAudienceMediaParams, isValidJoinAudienceMediaParams }
