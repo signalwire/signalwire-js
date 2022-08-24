@@ -416,11 +416,6 @@ export interface BaseRoomSessionJoinParams {
   sendVideo?: boolean
 }
 
-export interface RoomSessionJoinAudienceParams {
-  receiveAudio?: boolean
-  receiveVideo?: boolean
-}
-
 export type PagingCursor =
   | {
       before: string
