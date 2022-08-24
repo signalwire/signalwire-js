@@ -5,7 +5,14 @@ import type { BaseRoomSessionJoinParams } from './interfaces'
 type GetJoinMediaParamsOptions = BaseRoomSessionJoinParams & {
   authState: VideoAuthorization
 }
-
+/**
+ * getJoinMediaParams returns whether the Join method must send/recv
+ * audio and video.
+ * Based on values on the Auth block (media allowed and join_as type)
+ * it matches the user's preferences and return an object that tells
+ * if the negotiation has to include sendrecv/sendonly or recvonly
+ * for audio and video.
+ */
 export const getJoinMediaParams = (options: GetJoinMediaParamsOptions) => {
   const {
     authState,
@@ -50,10 +57,10 @@ export const getJoinMediaParams = (options: GetJoinMediaParamsOptions) => {
     )
   }
   return {
-    audio: canSendAudio && reqToSendAudio,
-    video: canSendVideo && reqToSendVideo,
-    negotiateAudio: canReceiveAudio && reqToReceiveAudio,
-    negotiateVideo: canReceiveVideo && reqToReceiveVideo,
+    mustSendAudio: canSendAudio && reqToSendAudio,
+    mustSendVideo: canSendVideo && reqToSendVideo,
+    mustRecvAudio: canReceiveAudio && reqToReceiveAudio,
+    mustRecvVideo: canReceiveVideo && reqToReceiveVideo,
   }
 }
 

@@ -77,8 +77,8 @@ export interface RoomSession extends BaseRoomSession<RoomSession> {
  */
 export const RoomSession = function (roomOptions: RoomSessionOptions) {
   const {
-    audio,
-    video,
+    audio: audioFromConstructor,
+    video: videoFromConstructor,
     iceServers,
     rootElement,
     applyLocalVideoOverlay = true,
@@ -126,6 +126,10 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
 
         await client.connect()
 
+        // Fallback to the constructor values for backwards compat.
+        const audio = params?.audio ?? audioFromConstructor
+        const video = params?.video ?? videoFromConstructor
+
         // @ts-expect-error
         const authState: VideoAuthorization = client._sessionAuthState
         const mediaOptions = getJoinMediaParams({
@@ -146,8 +150,20 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
           )
         }
 
+        /**
+         * audio and video might be objects with MediaStreamConstraints
+         * so if we must send media, we make sure to use the user's
+         * preferences.
+         * Note: params.sendAudio: `true` will override audio: `false` so
+         * we're using `||` instead of `??` for that reason.
+         */
         // @ts-expect-error
-        room.updateMediaOptions(mediaOptions)
+        room.updateMediaOptions({
+          audio: mediaOptions.mustSendAudio ? audio || true : false,
+          video: mediaOptions.mustSendVideo ? video || true : false,
+          negotiateAudio: mediaOptions.mustRecvAudio,
+          negotiateVideo: mediaOptions.mustRecvVideo,
+        })
 
         room.once('room.subscribed', (payload) => {
           // @ts-expect-error
