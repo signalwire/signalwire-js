@@ -134,7 +134,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
           client.disconnect()
           return reject(
             new Error(
-              '[join] At least one argument between `audio`, `video`, `sendAudio`, `sendVideo`, `receiveAudio` or `receiveVideo` must be `true` when calling this method.'
+              `Invalid arguments used in relation to the '${authState.join_as}' token in use.`
             )
           )
         }
