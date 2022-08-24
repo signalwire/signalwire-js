@@ -149,17 +149,17 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
         // @ts-expect-error
         room.attachPreConnectWorkers()
 
-        const session = await client.connect()
+        await client.connect()
 
         // @ts-expect-error
-        const authState: VideoAuthorization = session._sessionAuthState
+        const authState: VideoAuthorization = client._sessionAuthState
         const mediaOptions = getJoinAudienceMediaParams({
           authState,
           ...params,
         })
 
         if (!isValidJoinAudienceMediaParams(mediaOptions)) {
-          await session.disconnect()
+          await client.disconnect()
           return reject(
             new Error(
               '[joinAudience] Either (or both) `audio` and `video` must be `true` when calling this method.'
