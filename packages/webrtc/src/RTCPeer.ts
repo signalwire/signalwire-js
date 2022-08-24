@@ -400,7 +400,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         ) {
           // Use addTransceiver
           const audioTransceiverParams: RTCRtpTransceiverInit = {
-            direction: 'sendrecv',
+            direction: this.options.negotiateAudio ? 'sendrecv' : 'sendonly',
             streams: [this._localStream],
           }
           this.logger.debug(
@@ -412,7 +412,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           })
 
           const videoTransceiverParams: RTCRtpTransceiverInit = {
-            direction: 'sendrecv',
+            direction: this.options.negotiateVideo ? 'sendrecv' : 'sendonly',
             streams: [this._localStream],
           }
           if (this.isSimulcast) {
