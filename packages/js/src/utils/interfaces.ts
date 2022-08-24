@@ -408,8 +408,8 @@ export interface RoomScreenShareMethods
   extends RoomMemberSelfMethodsInterface {}
 
 export interface BaseRoomSessionJoinParams {
-  audio?: boolean
-  video?: boolean
+  audio?: MediaStreamConstraints['audio']
+  video?: MediaStreamConstraints['video']
   receiveAudio?: boolean
   receiveVideo?: boolean
   sendAudio?: boolean

@@ -5,12 +5,6 @@ import { checkMediaParams, getJoinMediaParams } from './utils/roomSession'
 import type { MakeRoomOptions } from './Client'
 import type { BaseRoomSessionJoinParams } from './utils/interfaces'
 
-const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
-  width: { ideal: 1280, min: 320 },
-  height: { ideal: 720, min: 180 },
-  aspectRatio: { ideal: 16 / 9 },
-}
-
 /**
  * List of properties/methods the user shouldn't be able to
  * use until they sucessfully call `roomSession.join()`.
@@ -83,8 +77,8 @@ export interface RoomSession extends BaseRoomSession<RoomSession> {
  */
 export const RoomSession = function (roomOptions: RoomSessionOptions) {
   const {
-    audio = true,
-    video = true,
+    audio,
+    video,
     iceServers,
     rootElement,
     applyLocalVideoOverlay = true,
@@ -94,10 +88,19 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     ...userOptions
   } = roomOptions
 
+  const deprecatedParams = ['audio', 'video']
+  deprecatedParams.forEach((param) => {
+    if (param in roomOptions) {
+      getLogger().warn(
+        `The '${param}' parameter on the RoomSession constructor is deprecated. Set it on the '.join()' function instead.`
+      )
+    }
+  })
+
   const client = createClient<RoomSession>(userOptions)
   const room = client.rooms.makeRoomObject({
-    audio,
-    video: video === true ? VIDEO_CONSTRAINTS : video,
+    // audio,
+    // video: video === true ? VIDEO_CONSTRAINTS : video,
     negotiateAudio: true,
     negotiateVideo: true,
     iceServers,
@@ -127,6 +130,8 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
         const authState: VideoAuthorization = client._sessionAuthState
         const mediaOptions = getJoinMediaParams({
           authState,
+          audio,
+          video,
           ...params,
         })
 
@@ -134,7 +139,9 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
           client.disconnect()
           return reject(
             new Error(
-              `Invalid arguments used in relation to the '${authState.join_as}' token in use.`
+              `Invalid arguments to join the room. The token used has join_as: '${
+                authState.join_as
+              }'. \n${JSON.stringify(params, null, 2)}\n`
             )
           )
         }
