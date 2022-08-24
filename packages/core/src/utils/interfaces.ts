@@ -159,7 +159,7 @@ export interface SessionRequestObject {
 }
 
 export type MediaAllowed = 'all' | 'audio-only' | 'video-only'
-export type MediaDirectionAllowed = 'none' | 'receive' | 'both'
+type MediaDirectionAllowed = 'none' | 'receive' | 'both'
 type AudioAllowed = MediaDirectionAllowed
 type VideoAllowed = MediaDirectionAllowed
 
