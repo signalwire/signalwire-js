@@ -59,6 +59,8 @@ export const promoteDemoteWorker: SDKWorker<
     throw new Error(`Invalid authState for '${action.type}'`)
   }
 
+  // TODO: use the new getJoinMediaParams in here
+  const { audio_allowed, video_allowed } = authState
   switch (action.type) {
     case 'video.member.promoted':
       /**
@@ -66,10 +68,10 @@ export const promoteDemoteWorker: SDKWorker<
        * same recv settings. (do not force recv media)
        */
       instance.updateMediaOptions({
-        audio: authState.audio_allowed === 'both',
-        video: authState.video_allowed === 'both',
-        // negotiateAudio: true,
-        // negotiateVideo: true,
+        audio: audio_allowed === 'both',
+        video: video_allowed === 'both',
+        negotiateAudio: audio_allowed !== 'none',
+        negotiateVideo: video_allowed !== 'none',
       })
       break
     case 'video.member.demoted':
@@ -79,8 +81,8 @@ export const promoteDemoteWorker: SDKWorker<
       instance.updateMediaOptions({
         audio: false,
         video: false,
-        negotiateAudio: authState.audio_allowed !== 'none',
-        negotiateVideo: authState.video_allowed !== 'none',
+        negotiateAudio: audio_allowed !== 'none',
+        negotiateVideo: video_allowed !== 'none',
       })
       break
   }
