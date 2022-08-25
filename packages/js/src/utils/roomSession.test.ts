@@ -124,11 +124,11 @@ describe('getJoinMediaParams', () => {
 
               expect(result).toStrictEqual({
                 // prettier-ignore
-                audio: joinType === 'member' && direction !== 'video-only' && reqToSendAudio,
+                mustSendAudio: joinType === 'member' && direction !== 'video-only' && reqToSendAudio,
                 // prettier-ignore
-                video: joinType === 'member' && direction !== 'audio-only' && reqToSendVideo,
-                negotiateAudio: direction !== 'video-only' && reqToRecvAudio,
-                negotiateVideo: direction !== 'audio-only' && reqToRecvVideo,
+                mustSendVideo: joinType === 'member' && direction !== 'audio-only' && reqToSendVideo,
+                mustRecvAudio: direction !== 'video-only' && reqToRecvAudio,
+                mustRecvVideo: direction !== 'audio-only' && reqToRecvVideo,
               })
             })
           })
