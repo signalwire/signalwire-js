@@ -54,7 +54,8 @@ export type RealTimeRoomApiEventsHandlerMapping = Record<
   > &
   Record<RoomSubscribed, (roomSessionFull: RoomSessionFullState) => void> &
   Rooms.RoomSessionRecordingEventsHandlerMapping &
-  Rooms.RoomSessionPlaybackEventsHandlerMapping
+  Rooms.RoomSessionPlaybackEventsHandlerMapping &
+  Rooms.RoomSessionStreamingEventsHandlerMapping
 
 export type RealTimeRoomApiEvents = {
   [k in keyof RealTimeRoomApiEventsHandlerMapping]: RealTimeRoomApiEventsHandlerMapping[k]
