@@ -84,6 +84,10 @@ export interface VideoRoomSessionContract {
   members?: InternalVideoMemberEntity[]
   /** Fields that have changed in this room session */
   updated?: Array<Exclude<keyof VideoRoomSessionContract, 'updated'>>
+  /** Whether the room is streaming */
+  streaming: boolean
+  /** List of active streamings in the room session. */
+  streams?: Rooms.RoomSessionStreaming[]
 
   /**
    * Puts the microphone on mute. The other participants will not hear audio
@@ -682,6 +686,42 @@ export interface VideoRoomSessionContract {
   deleteMemberMeta(params: Rooms.DeleteMemberMetaParams): Rooms.DeleteMemberMeta
   promote(params: Rooms.PromoteMemberParams): Rooms.PromoteMember
   demote(params: Rooms.DemoteMemberParams): Rooms.DemoteMember
+  /**
+   * Obtains a list of streams for the current room session.
+   *
+   * @permissions
+   *  - `room.stream`
+   *
+   * You need to specify the permissions when [creating the Video Room
+   * Token](https://developer.signalwire.com/apis/reference/create_room_token)
+   * on the server side.
+   *
+   * @example
+   * ```typescript
+   * await room.getStreams()
+   * ```
+   */
+  getStreamings(): Rooms.GetStreamings
+  /**
+   * Starts to stream the room to the provided URL. You can use the returned
+   * {@link RoomSessionStreaming} object to then stop the streaming.
+   *
+   * @permissions
+   *  - `room.stream.start` or `room.stream`
+   *
+   * You need to specify the permissions when [creating the Video Room
+   * Token](https://developer.signalwire.com/apis/reference/create_room_token)
+   * on the server side.
+   *
+   * @example
+   * ```typescript
+   * const streaming = await room.startStreaming({ url: 'rtmp://example.com' })
+   * await streaming.stop()
+   * ```
+   */
+  startStreaming(
+    params: Rooms.StartStreamingParams
+  ): Promise<Rooms.RoomSessionStreaming>
 }
 
 /**
