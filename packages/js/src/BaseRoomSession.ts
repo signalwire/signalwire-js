@@ -102,6 +102,10 @@ export class RoomSessionConnection
               eventTransformType: 'roomSessionPlayback',
               processInstancePayload: (payload) => ({ playback: payload }),
             },
+            streams: {
+              eventTransformType: 'roomSessionStreaming',
+              processInstancePayload: (payload) => ({ stream: payload }),
+            },
           },
         },
       ],
@@ -184,6 +188,49 @@ export class RoomSessionConnection
           payloadTransform: (payload: any) => {
             return toExternalJSON({
               ...payload.playback,
+              room_session_id: this.roomSessionId,
+            })
+          },
+        },
+      ],
+      [
+        [toLocalEvent('video.stream.list')],
+        {
+          type: 'roomSessionStreamingList',
+          instanceFactory: (_payload: any) => {
+            return {}
+          },
+          payloadTransform: (payload: any) => {
+            return payload
+          },
+          nestedFieldsToProcess: {
+            streams: {
+              eventTransformType: 'roomSessionStreaming',
+              processInstancePayload: (payload) => {
+                return { stream: payload }
+              },
+            },
+          },
+        },
+      ],
+      [
+        [
+          toLocalEvent('video.stream.start'),
+          'video.stream.started',
+          'video.stream.ended',
+        ],
+        {
+          type: 'roomSessionStreaming',
+          instanceFactory: (_payload: any) => {
+            return Rooms.createRoomSessionStreamingObject({
+              store: this.store,
+              // @ts-expect-error
+              emitter: this.emitter,
+            })
+          },
+          payloadTransform: (payload: any) => {
+            return toExternalJSON({
+              ...payload.stream,
               room_session_id: this.roomSessionId,
             })
           },
@@ -474,6 +521,8 @@ export const RoomSessionAPI = extendComponent<
   deleteMemberMeta: Rooms.deleteMemberMeta,
   promote: Rooms.promote,
   demote: Rooms.demote,
+  getStreamings: Rooms.getStreamings,
+  startStreaming: Rooms.startStreaming,
 })
 
 type RoomSessionObjectEventsHandlerMapping = RoomSessionObjectEvents &
