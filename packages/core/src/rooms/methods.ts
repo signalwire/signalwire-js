@@ -2,7 +2,7 @@ import type {
   BaseRoomInterface,
   RoomSessionRecording,
   RoomSessionPlayback,
-  RoomSessionStreaming,
+  RoomSessionStream,
 } from '.'
 import type {
   VideoMemberEntity,
@@ -316,15 +316,14 @@ export const deleteMeta: RoomMethodDescriptor<any, DeleteMetaParams> = {
   },
 }
 
-export interface GetStreamingsOutput {
-  streams: RoomSessionStreaming[]
+export interface GetStreamsOutput {
+  streams: RoomSessionStream[]
 }
 
-export const getStreamings: RoomMethodDescriptor<GetStreamingsOutput> = {
+export const getStreams: RoomMethodDescriptor<GetStreamsOutput> = {
   value: function () {
     return new Promise(async (resolve) => {
       const handler = (instance: any) => {
-        console.log('>>> Resolve getStreamings??', instance)
         resolve(instance)
       }
       this.on(toLocalEvent('video.stream.list'), handler)
@@ -348,10 +347,10 @@ export const getStreamings: RoomMethodDescriptor<GetStreamingsOutput> = {
   },
 }
 
-export interface StartStreamingParams {
+export interface StartStreamParams {
   url: string
 }
-export const startStreaming: RoomMethodDescriptor<any, StartStreamingParams> = {
+export const startStream: RoomMethodDescriptor<any, StartStreamParams> = {
   value: function (params) {
     return new Promise(async (resolve) => {
       const handler = (instance: any) => {
@@ -395,8 +394,8 @@ export type SetMeta = ReturnType<typeof setMeta.value>
 export type UpdateMeta = ReturnType<typeof updateMeta.value>
 export type DeleteMeta = ReturnType<typeof deleteMeta.value>
 
-export type GetStreamings = ReturnType<typeof getStreamings.value>
-export type StartStreaming = ReturnType<typeof startStreaming.value>
+export type GetStreams = ReturnType<typeof getStreams.value>
+export type StartStream = ReturnType<typeof startStream.value>
 // End Room Methods
 
 /**

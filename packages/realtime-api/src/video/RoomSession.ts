@@ -17,7 +17,7 @@ import {
   InternalVideoLayoutEventNames,
   InternalVideoRecordingEventNames,
   InternalVideoPlaybackEventNames,
-  InternalVideoStreamingEventNames,
+  InternalVideoStreamEventNames,
   VideoPlaybackEventParams,
   VideoLayoutChangedEventParams,
   VideoRoomSessionContract,
@@ -45,7 +45,7 @@ type EmitterTransformsEvents =
   | 'video.__local__.recording.start'
   | InternalVideoPlaybackEventNames
   | 'video.__local__.playback.start'
-  | InternalVideoStreamingEventNames
+  | InternalVideoStreamEventNames
   | 'video.__local__.stream.start'
 
 export interface RoomSession
@@ -165,7 +165,7 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
               processInstancePayload: (payload) => ({ recording: payload }),
             },
             streams: {
-              eventTransformType: 'roomSessionStreaming',
+              eventTransformType: 'roomSessionStream',
               processInstancePayload: (payload) => ({ stream: payload }),
             },
           },
@@ -355,7 +355,7 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
       [
         [toLocalEvent<EmitterTransformsEvents>('video.stream.list')],
         {
-          type: 'roomSessionStreamingList',
+          type: 'roomSessionStreamList',
           instanceFactory: (_payload: any) => {
             return {}
           },
@@ -364,7 +364,7 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
           },
           nestedFieldsToProcess: {
             streams: {
-              eventTransformType: 'roomSessionStreaming',
+              eventTransformType: 'roomSessionStream',
               processInstancePayload: (payload) => ({ stream: payload }),
             },
           },
@@ -377,9 +377,9 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
           'video.stream.ended',
         ],
         {
-          type: 'roomSessionStreaming',
+          type: 'roomSessionStream',
           instanceFactory: (_payload: any) => {
-            return Rooms.createRoomSessionStreamingObject({
+            return Rooms.createRoomSessionStreamObject({
               store: this.store,
               // @ts-expect-error
               emitter: this.emitter,
@@ -434,8 +434,8 @@ export const RoomSessionAPI = extendComponent<
   deleteMemberMeta: Rooms.deleteMemberMeta,
   promote: Rooms.promote,
   demote: Rooms.demote,
-  getStreamings: Rooms.getStreamings,
-  startStreaming: Rooms.startStreaming,
+  getStreams: Rooms.getStreams,
+  startStream: Rooms.startStream,
 })
 
 export const createRoomSessionObject = (

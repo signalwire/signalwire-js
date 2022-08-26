@@ -86,8 +86,8 @@ export interface VideoRoomSessionContract {
   updated?: Array<Exclude<keyof VideoRoomSessionContract, 'updated'>>
   /** Whether the room is streaming */
   streaming: boolean
-  /** List of active streamings in the room session. */
-  streams?: Rooms.RoomSessionStreaming[]
+  /** List of active streams in the room session. */
+  streams?: Rooms.RoomSessionStream[]
 
   /**
    * Puts the microphone on mute. The other participants will not hear audio
@@ -701,10 +701,10 @@ export interface VideoRoomSessionContract {
    * await room.getStreams()
    * ```
    */
-  getStreamings(): Rooms.GetStreamings
+  getStreams(): Rooms.GetStreams
   /**
    * Starts to stream the room to the provided URL. You can use the returned
-   * {@link RoomSessionStreaming} object to then stop the streaming.
+   * {@link RoomSessionStream} object to then stop the stream.
    *
    * @permissions
    *  - `room.stream.start` or `room.stream`
@@ -715,13 +715,11 @@ export interface VideoRoomSessionContract {
    *
    * @example
    * ```typescript
-   * const streaming = await room.startStreaming({ url: 'rtmp://example.com' })
-   * await streaming.stop()
+   * const stream = await room.startStream({ url: 'rtmp://example.com' })
+   * await stream.stop()
    * ```
    */
-  startStreaming(
-    params: Rooms.StartStreamingParams
-  ): Promise<Rooms.RoomSessionStreaming>
+  startStream(params: Rooms.StartStreamParams): Promise<Rooms.RoomSessionStream>
 }
 
 /**

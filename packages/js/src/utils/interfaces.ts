@@ -25,8 +25,8 @@ import type {
   RoomAudienceCount,
   VideoRoomAudienceCountEventParams,
   RoomLeft,
-  VideoStreamingEventNames,
-  RoomSessionStreaming,
+  VideoStreamEventNames,
+  RoomSessionStream,
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
 import type { RoomSession } from '../RoomSession'
@@ -77,7 +77,7 @@ export type RoomEventNames =
   | VideoLayoutEventNames
   | VideoRecordingEventNames
   | VideoPlaybackEventNames
-  | VideoStreamingEventNames
+  | VideoStreamEventNames
   | RTCTrackEventName
 
 export type RoomSessionObjectEventsHandlerMap = Record<
@@ -120,7 +120,7 @@ export type RoomSessionObjectEventsHandlerMap = Record<
   Record<VideoRecordingEventNames, (recording: RoomSessionRecording) => void> &
   Record<VideoPlaybackEventNames, (recording: RoomSessionPlayback) => void> &
   Record<BaseConnectionState, (params: RoomSession) => void> &
-  Record<VideoStreamingEventNames, (streaming: RoomSessionStreaming) => void>
+  Record<VideoStreamEventNames, (stream: RoomSessionStream) => void>
 
 export type RoomSessionObjectEvents = {
   [k in keyof RoomSessionObjectEventsHandlerMap]: RoomSessionObjectEventsHandlerMap[k]

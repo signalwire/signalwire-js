@@ -14,7 +14,7 @@ test.describe('RoomSession', () => {
     await server.close()
   })
 
-  test('should handle streaming events and methods', async ({ context }) => {
+  test('should handle Stream events and methods', async ({ context }) => {
     const pageOne = await context.newPage()
     const pageTwo = await context.newPage()
     const pageThree = await context.newPage()
@@ -46,7 +46,7 @@ test.describe('RoomSession', () => {
     ])
 
     // --------------- Joining from the 2nd tab and resolve on 'stream.started' ---------------
-    const pageTwoStreamingPromise = pageTwo.evaluate(() => {
+    const pageTwoStreamPromise = pageTwo.evaluate(() => {
       return new Promise((resolve) => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
@@ -70,27 +70,27 @@ test.describe('RoomSession', () => {
       timeout: 5000,
     })
 
-    // --------------- Start streaming from 1st room ---------------
+    // --------------- Start stream from 1st room ---------------
     await pageOne.evaluate(
       async ({ STREAMING_URL }) => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
 
-        const streamingStarted = new Promise((resolve, reject) => {
+        const streamStarted = new Promise((resolve, reject) => {
           roomObj.on('stream.started', (params) => {
             if (params.state === 'streaming') {
               resolve(true)
             } else {
-              reject(new Error('[stream.started] state is not "streaming"'))
+              reject(new Error('[stream.started] state is not "stream"'))
             }
           })
         })
 
-        await roomObj.startStreaming({
+        await roomObj.startStream({
           url: STREAMING_URL!,
         })
 
-        return streamingStarted
+        return streamStarted
       },
       { STREAMING_URL: process.env.STREAMING_URL }
     )
@@ -100,38 +100,38 @@ test.describe('RoomSession', () => {
       timeout: 5000,
     })
 
-    // --------------- Joining from the 3rd tab and get the active streamings ---------------
-    const { streamingsOnJoined, streamingsOnGet, streamingOnEnd }: any =
+    // --------------- Joining from the 3rd tab and get the active streams ---------------
+    const { streamsOnJoined, streamsOnGet, streamOnEnd }: any =
       await pageThree.evaluate(() => {
         return new Promise((resolve) => {
           // @ts-expect-error
           const roomObj: Video.RoomSession = window._roomObj
 
           roomObj.on('room.joined', async (params) => {
-            const result = await roomObj.getStreamings()
+            const result = await roomObj.getStreams()
 
-            const streamingOnEnd = await Promise.all(
-              result.streams.map((streaming: any) => {
-                const streamingEnded = new Promise((resolve) => {
+            const streamOnEnd = await Promise.all(
+              result.streams.map((stream: any) => {
+                const streamEnded = new Promise((resolve) => {
                   roomObj.on('stream.ended', (params) => {
-                    if (params.id === streaming.id) {
+                    if (params.id === stream.id) {
                       resolve(params)
                     }
                   })
                 })
 
-                streaming.stop().then(() => {
-                  console.log(`Streaming ${streaming.id} stopped!`)
+                stream.stop().then(() => {
+                  console.log(`Stream ${stream.id} stopped!`)
                 })
 
-                return streamingEnded
+                return streamEnded
               })
             )
 
             resolve({
-              streamingsOnJoined: params.room_session.streams,
-              streamingsOnGet: result.streams,
-              streamingOnEnd,
+              streamsOnJoined: params.room_session.streams,
+              streamsOnGet: result.streams,
+              streamOnEnd,
             })
           })
 
@@ -139,25 +139,23 @@ test.describe('RoomSession', () => {
         })
       })
 
-    expect(streamingsOnJoined.length).toEqual(streamingsOnGet.length)
-    expect(streamingsOnGet.length).toEqual(streamingOnEnd.length)
-    ;[streamingsOnJoined, streamingsOnGet, streamingsOnGet].forEach(
-      (streamings: any[]) => {
-        streamings.forEach((streaming) => {
-          // Since functions can't be serialized back to this
-          // thread (from the previous step) we just check that
-          // the property is there.
-          expect('stop' in streaming).toBeTruthy()
-          expect(streaming.id).toBeDefined()
-          expect(streaming.roomSessionId).toBeDefined()
-          expect(streaming.state).toBeDefined()
-          expect(streaming.url).toEqual(process.env.STREAMING_URL)
-        })
-      }
-    )
+    expect(streamsOnJoined.length).toEqual(streamsOnGet.length)
+    expect(streamsOnGet.length).toEqual(streamOnEnd.length)
+    ;[streamsOnJoined, streamsOnGet, streamsOnGet].forEach((streams: any[]) => {
+      streams.forEach((stream) => {
+        // Since functions can't be serialized back to this
+        // thread (from the previous step) we just check that
+        // the property is there.
+        expect('stop' in stream).toBeTruthy()
+        expect(stream.id).toBeDefined()
+        expect(stream.roomSessionId).toBeDefined()
+        expect(stream.state).toBeDefined()
+        expect(stream.url).toEqual(process.env.STREAMING_URL)
+      })
+    })
 
     // --------------- Make sure pageTwo got the `stream.started` event ---------------
-    await pageTwoStreamingPromise
+    await pageTwoStreamPromise
 
     await new Promise((r) => setTimeout(r, 1000))
 

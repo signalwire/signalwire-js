@@ -10,7 +10,7 @@ import type {
   VideoRoomAudienceCountEvent,
   VoiceCallEvent,
   InternalVideoRoomAudienceCountEvent,
-  VideoStreamingEvent,
+  VideoStreamEvent,
 } from '../../../types'
 import { getLogger } from '../../../utils'
 import type { MapToPubSubShape, PubSubAction } from '../../interfaces'
@@ -60,9 +60,9 @@ const isVideoPlaybackEvent = (
   return action.type.startsWith('video.playback.')
 }
 
-const isVideoStreamingEvent = (
+const isVideoStreamEvent = (
   action: PubSubAction
-): action is MapToPubSubShape<VideoStreamingEvent> => {
+): action is MapToPubSubShape<VideoStreamEvent> => {
   return action.type.startsWith('video.stream.')
 }
 
@@ -86,7 +86,7 @@ export const findNamespaceInPayload = (action: PubSubAction): string => {
     isVideoLayoutEvent(action) ||
     isVideoRecordingEvent(action) ||
     isVideoPlaybackEvent(action) ||
-    isVideoStreamingEvent(action) ||
+    isVideoStreamEvent(action) ||
     isVideoRoomAudienceCountEvent(action)
   ) {
     return action.payload.room_session_id

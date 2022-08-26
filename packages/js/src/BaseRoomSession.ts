@@ -103,7 +103,7 @@ export class RoomSessionConnection
               processInstancePayload: (payload) => ({ playback: payload }),
             },
             streams: {
-              eventTransformType: 'roomSessionStreaming',
+              eventTransformType: 'roomSessionStream',
               processInstancePayload: (payload) => ({ stream: payload }),
             },
           },
@@ -196,7 +196,7 @@ export class RoomSessionConnection
       [
         [toLocalEvent('video.stream.list')],
         {
-          type: 'roomSessionStreamingList',
+          type: 'roomSessionStreamList',
           instanceFactory: (_payload: any) => {
             return {}
           },
@@ -205,7 +205,7 @@ export class RoomSessionConnection
           },
           nestedFieldsToProcess: {
             streams: {
-              eventTransformType: 'roomSessionStreaming',
+              eventTransformType: 'roomSessionStream',
               processInstancePayload: (payload) => {
                 return { stream: payload }
               },
@@ -220,9 +220,9 @@ export class RoomSessionConnection
           'video.stream.ended',
         ],
         {
-          type: 'roomSessionStreaming',
+          type: 'roomSessionStream',
           instanceFactory: (_payload: any) => {
-            return Rooms.createRoomSessionStreamingObject({
+            return Rooms.createRoomSessionStreamObject({
               store: this.store,
               // @ts-expect-error
               emitter: this.emitter,
@@ -521,8 +521,8 @@ export const RoomSessionAPI = extendComponent<
   deleteMemberMeta: Rooms.deleteMemberMeta,
   promote: Rooms.promote,
   demote: Rooms.demote,
-  getStreamings: Rooms.getStreamings,
-  startStreaming: Rooms.startStreaming,
+  getStreams: Rooms.getStreams,
+  startStream: Rooms.startStream,
 })
 
 type RoomSessionObjectEventsHandlerMapping = RoomSessionObjectEvents &

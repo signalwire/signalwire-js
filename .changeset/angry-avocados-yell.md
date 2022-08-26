@@ -3,4 +3,4 @@
 '@signalwire/realtime-api': minor
 ---
 
-Expose `getStreamings` and `startStreaming` on RoomSession.
+Expose `getStreams` and `startStream` on RoomSession.
