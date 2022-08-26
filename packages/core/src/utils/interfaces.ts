@@ -393,8 +393,8 @@ export type EventTransformType =
   | 'roomSessionRecordingList'
   | 'roomSessionPlaybackList'
   | 'roomSessionPlayback'
-  | 'roomSessionStreaming'
-  | 'roomSessionStreamingList'
+  | 'roomSessionStream'
+  | 'roomSessionStreamList'
   | 'roomSessionAudienceCount'
   | ChatTransformType
   | PubSubTransformType
