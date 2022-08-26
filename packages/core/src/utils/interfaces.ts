@@ -159,7 +159,7 @@ export interface SessionRequestObject {
 }
 
 export type MediaAllowed = 'all' | 'audio-only' | 'video-only'
-export type MediaDirectionAllowed = 'none' | 'receive' | 'both'
+type MediaDirectionAllowed = 'none' | 'receive' | 'both'
 type AudioAllowed = MediaDirectionAllowed
 type VideoAllowed = MediaDirectionAllowed
 
@@ -169,16 +169,20 @@ export interface VideoAuthorization {
   scopes: string[]
   scope_id: string
   resource: string
+  join_as: 'member' | 'audience'
   user_name: string
   room?: {
     name: string
+    display_name: string
     scopes: string[]
+    meta: Record<any, any>
   }
   signature: string
   expires_at?: number
-  media_allowed: MediaAllowed
+  media_allowed?: MediaAllowed
   audio_allowed: AudioAllowed
   video_allowed: VideoAllowed
+  meta: Record<any, any>
 }
 
 export type ChatAuthorizationChannels = Record<

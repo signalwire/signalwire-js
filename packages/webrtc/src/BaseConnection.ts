@@ -26,6 +26,12 @@ interface OnVertoByeParams {
   redirectDestination?: string
 }
 
+const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
+  width: { ideal: 1280, min: 320 },
+  height: { ideal: 720, min: 180 },
+  aspectRatio: { ideal: 16 / 9 },
+}
+
 const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   destinationNumber: 'room',
   remoteCallerName: 'Outbound Call',
@@ -33,7 +39,7 @@ const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   callerName: '',
   callerNumber: '',
   audio: true,
-  video: { aspectRatio: 16 / 9 },
+  video: VIDEO_CONSTRAINTS,
   useStereo: false,
   attach: false,
   screenShare: false,
@@ -93,6 +99,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       ...DEFAULT_CALL_OPTIONS,
       ...options,
     }
+    this._checkDefaultVideoOptions()
 
     this.setState('new')
     this.logger.debug('New Call with Options:', this.options)
@@ -754,6 +761,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       ...this.options,
       ...options,
     }
+    this._checkDefaultVideoOptions()
   }
 
   /** @internal */
@@ -805,6 +813,17 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     //     .join('\r\n') + '\r\n'
     // return cleaned
     return sdp
+  }
+
+  /**
+   * Always use VIDEO_CONSTRAINTS if video: true
+   *
+   * @internal
+   */
+  private _checkDefaultVideoOptions() {
+    if (this.options.video === true) {
+      this.options.video = VIDEO_CONSTRAINTS
+    }
   }
 
   /** @internal */

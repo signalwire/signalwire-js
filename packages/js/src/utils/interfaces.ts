@@ -407,9 +407,13 @@ export interface RoomSessionDeviceMethods
 export interface RoomScreenShareMethods
   extends RoomMemberSelfMethodsInterface {}
 
-export interface RoomSessionJoinAudienceParams {
+export interface BaseRoomSessionJoinParams {
+  audio?: MediaStreamConstraints['audio']
+  video?: MediaStreamConstraints['video']
   receiveAudio?: boolean
   receiveVideo?: boolean
+  sendAudio?: boolean
+  sendVideo?: boolean
 }
 
 export type PagingCursor =

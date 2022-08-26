@@ -1,18 +1,9 @@
 import { UserOptions, getLogger, VideoAuthorization } from '@signalwire/core'
 import { createClient } from './createClient'
 import { BaseRoomSession } from './BaseRoomSession'
-import {
-  getJoinAudienceMediaParams,
-  isValidJoinAudienceMediaParams,
-} from './utils/roomSession'
+import { checkMediaParams, getJoinMediaParams } from './utils/roomSession'
 import type { MakeRoomOptions } from './Client'
-import type { RoomSessionJoinAudienceParams } from './utils/interfaces'
-
-const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
-  width: { ideal: 1280, min: 320 },
-  height: { ideal: 720, min: 180 },
-  aspectRatio: { ideal: 16 / 9 },
-}
+import type { BaseRoomSessionJoinParams } from './utils/interfaces'
 
 /**
  * List of properties/methods the user shouldn't be able to
@@ -86,8 +77,8 @@ export interface RoomSession extends BaseRoomSession<RoomSession> {
  */
 export const RoomSession = function (roomOptions: RoomSessionOptions) {
   const {
-    audio = true,
-    video = true,
+    audio: audioFromConstructor,
+    video: videoFromConstructor,
     iceServers,
     rootElement,
     applyLocalVideoOverlay = true,
@@ -97,10 +88,19 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     ...userOptions
   } = roomOptions
 
+  const deprecatedParams = ['audio', 'video']
+  deprecatedParams.forEach((param) => {
+    if (param in roomOptions) {
+      getLogger().warn(
+        `The '${param}' parameter on the RoomSession constructor is deprecated. Set it on the '.join()' function instead.`
+      )
+    }
+  })
+
   const client = createClient<RoomSession>(userOptions)
   const room = client.rooms.makeRoomObject({
-    audio,
-    video: video === true ? VIDEO_CONSTRAINTS : video,
+    // audio,
+    // video: video === true ? VIDEO_CONSTRAINTS : video,
     negotiateAudio: true,
     negotiateVideo: true,
     iceServers,
@@ -118,13 +118,52 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     client.disconnect()
   })
 
-  const join = () => {
+  const join = (params?: BaseRoomSessionJoinParams) => {
     return new Promise(async (resolve, reject) => {
       try {
         // @ts-expect-error
         room.attachPreConnectWorkers()
 
         await client.connect()
+
+        // Fallback to the constructor values for backwards compat.
+        const audio = params?.audio ?? audioFromConstructor
+        const video = params?.video ?? videoFromConstructor
+
+        // @ts-expect-error
+        const authState: VideoAuthorization = client._sessionAuthState
+        const mediaOptions = getJoinMediaParams({
+          authState,
+          audio,
+          video,
+          ...params,
+        })
+
+        if (!checkMediaParams(mediaOptions)) {
+          client.disconnect()
+          return reject(
+            new Error(
+              `Invalid arguments to join the room. The token used has join_as: '${
+                authState.join_as
+              }'. \n${JSON.stringify(params, null, 2)}\n`
+            )
+          )
+        }
+
+        /**
+         * audio and video might be objects with MediaStreamConstraints
+         * so if we must send media, we make sure to use the user's
+         * preferences.
+         * Note: params.sendAudio: `true` will override audio: `false` so
+         * we're using `||` instead of `??` for that reason.
+         */
+        // @ts-expect-error
+        room.updateMediaOptions({
+          audio: mediaOptions.mustSendAudio ? audio || true : false,
+          video: mediaOptions.mustSendVideo ? video || true : false,
+          negotiateAudio: mediaOptions.mustRecvAudio,
+          negotiateVideo: mediaOptions.mustRecvVideo,
+        })
 
         room.once('room.subscribed', (payload) => {
           // @ts-expect-error
@@ -143,48 +182,12 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     })
   }
 
-  const joinAudience = (params?: RoomSessionJoinAudienceParams) => {
-    return new Promise(async (resolve, reject) => {
-      try {
-        // @ts-expect-error
-        room.attachPreConnectWorkers()
-
-        const session = await client.connect()
-
-        // @ts-expect-error
-        const authState: VideoAuthorization = session._sessionAuthState
-        const mediaOptions = getJoinAudienceMediaParams({
-          authState,
-          ...params,
-        })
-
-        if (!isValidJoinAudienceMediaParams(mediaOptions)) {
-          await session.disconnect()
-          return reject(
-            new Error(
-              '[joinAudience] Either (or both) `audio` and `video` must be `true` when calling this method.'
-            )
-          )
-        }
-
-        // @ts-expect-error
-        room.updateMediaOptions(mediaOptions)
-
-        room.once('room.subscribed', (payload) => {
-          // @ts-expect-error
-          room.attachOnSubscribedWorkers(payload)
-          resolve(room)
-        })
-
-        await room.join()
-      } catch (error) {
-        getLogger().error('RoomSession JoinAudience', error)
-        // Disconnect the underlay client in case of media/signaling errors
-        client.disconnect()
-
-        reject(error)
-      }
-    })
+  /** @deprecated */
+  const joinAudience = (params?: BaseRoomSessionJoinParams) => {
+    getLogger().warn(
+      `The 'joinAudience(params)' method is deprecated. Please, use 'join(params)' instead.`
+    )
+    return join(params)
   }
 
   const interceptors = {
