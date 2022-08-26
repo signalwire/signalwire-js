@@ -2,7 +2,7 @@ import { configureFullStack } from '../testUtils'
 import { getClient } from './getClient'
 
 describe('getClient', () => {
-  it('should cache clients by project and key', () => {
+  it.skip('should cache clients by project and key', () => {
     const { store, emitter, destroy } = configureFullStack()
     const options = {
       project: 'a-proj',

@@ -18,15 +18,15 @@ export type ClientCache = Map<string, ClientConfig>
 
 const CLIENTS_MAP: ClientCache = new Map()
 
-const getClientKey = ({
-  project,
-  token,
-}: {
-  project: string
-  token: string
-}) => {
-  return `${project}:${token}`
-}
+// const getClientKey = ({
+//   project,
+//   token,
+// }: {
+//   project: string
+//   token: string
+// }) => {
+//   return `${project}:${token}`
+// }
 
 const createClient = (userOptions: {
   project: string
@@ -56,27 +56,27 @@ export const getClient = ({
   logLevel?: UserOptions['logLevel']
   cache?: ClientCache
 }): ClientConfig => {
-  const clientKey = getClientKey({
-    project: userOptions.project,
-    token: userOptions.token,
-  })
+  // const clientKey = getClientKey({
+  //   project: userOptions.project,
+  //   token: userOptions.token,
+  // })
 
-  if (cache.has(clientKey)) {
-    // @ts-expect-error
-    return cache.get(clientKey)
-  } else {
-    const { emitter, store } = setupInternals(userOptions)
-    const client = createClient({
-      ...userOptions,
-      store,
-      emitter,
-    })
-    const config: ClientConfig = {
-      client,
-      store,
-      emitter,
-    }
-    cache.set(clientKey, config)
-    return config
+  // if (cache.has(clientKey)) {
+  //   // @ts-expect-error
+  //   return cache.get(clientKey)
+  // } else {
+  const { emitter, store } = setupInternals(userOptions)
+  const client = createClient({
+    ...userOptions,
+    store,
+    emitter,
+  })
+  const config: ClientConfig = {
+    client,
+    store,
+    emitter,
   }
+  // cache.set(clientKey, config)
+  return config
+  // }
 }
