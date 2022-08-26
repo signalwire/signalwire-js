@@ -85,7 +85,11 @@ export * as Rooms from './rooms'
 export * as Chat from './chat'
 export * as PubSub from './pubSub'
 export * as MemberPosition from './memberPosition'
-export type { RoomSessionRecording, RoomSessionPlayback } from './rooms'
+export type {
+  RoomSessionRecording,
+  RoomSessionPlayback,
+  RoomSessionStream,
+} from './rooms'
 export const selectors = {
   ...sessionSelectors,
 }

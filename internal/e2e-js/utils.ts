@@ -66,7 +66,6 @@ export const createTestRoomSession = async (
         audio: true,
         video: true,
         logLevel: 'trace',
-        _hijack: true,
         debug: {
           logWsTraffic: true,
         },

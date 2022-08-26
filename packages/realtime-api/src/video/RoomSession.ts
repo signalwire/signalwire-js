@@ -17,6 +17,7 @@ import {
   InternalVideoLayoutEventNames,
   InternalVideoRecordingEventNames,
   InternalVideoPlaybackEventNames,
+  InternalVideoStreamEventNames,
   VideoPlaybackEventParams,
   VideoLayoutChangedEventParams,
   VideoRoomSessionContract,
@@ -44,6 +45,8 @@ type EmitterTransformsEvents =
   | 'video.__local__.recording.start'
   | InternalVideoPlaybackEventNames
   | 'video.__local__.playback.start'
+  | InternalVideoStreamEventNames
+  | 'video.__local__.stream.start'
 
 export interface RoomSession
   extends VideoRoomSessionContract,
@@ -160,6 +163,10 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
             recordings: {
               eventTransformType: 'roomSessionRecording',
               processInstancePayload: (payload) => ({ recording: payload }),
+            },
+            streams: {
+              eventTransformType: 'roomSessionStream',
+              processInstancePayload: (payload) => ({ stream: payload }),
             },
           },
           getInstanceEventNamespace: (
@@ -345,6 +352,47 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
           },
         },
       ],
+      [
+        [toLocalEvent<EmitterTransformsEvents>('video.stream.list')],
+        {
+          type: 'roomSessionStreamList',
+          instanceFactory: (_payload: any) => {
+            return {}
+          },
+          payloadTransform: (payload: any) => {
+            return payload
+          },
+          nestedFieldsToProcess: {
+            streams: {
+              eventTransformType: 'roomSessionStream',
+              processInstancePayload: (payload) => ({ stream: payload }),
+            },
+          },
+        },
+      ],
+      [
+        [
+          toLocalEvent<EmitterTransformsEvents>('video.stream.start'),
+          'video.stream.started',
+          'video.stream.ended',
+        ],
+        {
+          type: 'roomSessionStream',
+          instanceFactory: (_payload: any) => {
+            return Rooms.createRoomSessionStreamObject({
+              store: this.store,
+              // @ts-expect-error
+              emitter: this.emitter,
+            })
+          },
+          payloadTransform: (payload: any) => {
+            return toExternalJSON({
+              ...payload.stream,
+              room_session_id: payload.room_session_id,
+            })
+          },
+        },
+      ],
     ])
   }
 }
@@ -386,6 +434,8 @@ export const RoomSessionAPI = extendComponent<
   deleteMemberMeta: Rooms.deleteMemberMeta,
   promote: Rooms.promote,
   demote: Rooms.demote,
+  getStreams: Rooms.getStreams,
+  startStream: Rooms.startStream,
 })
 
 export const createRoomSessionObject = (

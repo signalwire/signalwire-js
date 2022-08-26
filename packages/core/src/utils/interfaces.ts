@@ -302,6 +302,9 @@ export type RoomMethod =
   | 'video.playback.seek_relative'
   | 'video.member.demote'
   | 'video.member.promote'
+  | 'video.stream.list'
+  | 'video.stream.start'
+  | 'video.stream.stop'
 
 export interface WebSocketClient {
   addEventListener: WebSocket['addEventListener']
@@ -390,6 +393,8 @@ export type EventTransformType =
   | 'roomSessionRecordingList'
   | 'roomSessionPlaybackList'
   | 'roomSessionPlayback'
+  | 'roomSessionStream'
+  | 'roomSessionStreamList'
   | 'roomSessionAudienceCount'
   | ChatTransformType
   | PubSubTransformType

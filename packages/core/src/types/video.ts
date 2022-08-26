@@ -8,10 +8,7 @@ import {
   InternalVideoMemberEventNames,
   InternalVideoMemberEvent,
 } from './videoMember'
-import {
-  InternalVideoLayoutEventNames,
-  VideoLayoutEvent,
-} from './videoLayout'
+import { InternalVideoLayoutEventNames, VideoLayoutEvent } from './videoLayout'
 import {
   VideoRecordingEvent,
   InternalVideoRecordingEventNames,
@@ -20,6 +17,7 @@ import {
   VideoPlaybackEvent,
   InternalVideoPlaybackEventNames,
 } from './videoPlayback'
+import { VideoStreamEvent, InternalVideoStreamEventNames } from './videoStream'
 import { VideoRoomAudienceCountEvent } from '.'
 import { MapToPubSubShape } from '..'
 
@@ -28,6 +26,7 @@ export * from './videoMember'
 export * from './videoLayout'
 export * from './videoRecording'
 export * from './videoPlayback'
+export * from './videoStream'
 
 export type RTCTrackEventName = 'track'
 
@@ -83,6 +82,7 @@ export type InternalVideoEventNames =
   | InternalVideoLayoutEventNames
   | InternalVideoRecordingEventNames
   | InternalVideoPlaybackEventNames
+  | InternalVideoStreamEventNames
   | RTCTrackEventName
 
 export type InternalVideoAPIEvent =
@@ -95,6 +95,7 @@ export type VideoAPIEventParams =
   | VideoLayoutEvent
   | VideoRecordingEvent
   | VideoPlaybackEvent
+  | VideoStreamEvent
   | VideoRoomAudienceCountEvent
 
 export type VideoAction = MapToPubSubShape<

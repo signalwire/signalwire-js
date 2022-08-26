@@ -2,6 +2,7 @@ import type {
   BaseRoomInterface,
   RoomSessionRecording,
   RoomSessionPlayback,
+  RoomSessionStream,
 } from '.'
 import type {
   VideoMemberEntity,
@@ -315,6 +316,68 @@ export const deleteMeta: RoomMethodDescriptor<any, DeleteMetaParams> = {
   },
 }
 
+export interface GetStreamsOutput {
+  streams: RoomSessionStream[]
+}
+
+export const getStreams: RoomMethodDescriptor<GetStreamsOutput> = {
+  value: function () {
+    return new Promise(async (resolve) => {
+      const handler = (instance: any) => {
+        resolve(instance)
+      }
+      this.on(toLocalEvent('video.stream.list'), handler)
+
+      try {
+        const payload = await this.execute({
+          method: 'video.stream.list',
+          params: {
+            room_session_id: this.roomSessionId,
+          },
+        })
+        this.emit(toLocalEvent('video.stream.list'), {
+          ...(payload as object),
+          room_session_id: this.roomSessionId,
+        })
+      } catch (error) {
+        this.off(toLocalEvent('video.stream.list'), handler)
+        throw error
+      }
+    })
+  },
+}
+
+export interface StartStreamParams {
+  url: string
+}
+export const startStream: RoomMethodDescriptor<any, StartStreamParams> = {
+  value: function (params) {
+    return new Promise(async (resolve) => {
+      const handler = (instance: any) => {
+        resolve(instance)
+      }
+      this.on(toLocalEvent('video.stream.start'), handler)
+
+      try {
+        const payload = await this.execute({
+          method: 'video.stream.start',
+          params: {
+            room_session_id: this.roomSessionId,
+            ...params,
+          },
+        })
+        this.emit(toLocalEvent('video.stream.start'), {
+          ...(payload as object),
+          room_session_id: this.roomSessionId,
+        })
+      } catch (error) {
+        this.off(toLocalEvent('video.stream.start'), handler)
+        throw error
+      }
+    })
+  },
+}
+
 export type GetLayouts = ReturnType<typeof getLayouts.value>
 export type GetMembers = ReturnType<typeof getMembers.value>
 export type HideVideoMuted = ReturnType<typeof hideVideoMuted.value>
@@ -330,6 +393,9 @@ export type GetMeta = ReturnType<typeof getMeta.value>
 export type SetMeta = ReturnType<typeof setMeta.value>
 export type UpdateMeta = ReturnType<typeof updateMeta.value>
 export type DeleteMeta = ReturnType<typeof deleteMeta.value>
+
+export type GetStreams = ReturnType<typeof getStreams.value>
+export type StartStream = ReturnType<typeof startStream.value>
 // End Room Methods
 
 /**

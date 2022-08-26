@@ -11,3 +11,4 @@ export interface BaseRoomInterface<
 export * from './methods'
 export * from './RoomSessionRecording'
 export * from './RoomSessionPlayback'
+export * from './RoomSessionStream'
