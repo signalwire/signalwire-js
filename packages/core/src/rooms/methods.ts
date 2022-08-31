@@ -15,6 +15,7 @@ import type {
   RoomMethod,
   BaseRPCResult,
   MediaAllowed,
+  VideoMeta,
 } from '../utils/interfaces'
 
 type RoomMethodParams = Record<string, unknown>
@@ -292,8 +293,12 @@ const createRoomMetaMethod = <ParamsType extends RoomMethodParams>(
   })
 }
 
-export const getMeta = createRoomMethod<BaseRPCResult, void>('video.get_meta', {
-  transformResolve: baseCodeTransform,
+interface GetMetaOutput {
+  meta: VideoMeta
+}
+
+export const getMeta = createRoomMethod<GetMetaOutput>('video.get_meta', {
+  transformResolve: ({ meta }) => ({ meta }),
 })
 
 export interface SetMetaParams extends Record<string, unknown> {}
@@ -562,14 +567,18 @@ export const removeAllMembers: RoomMethodDescriptor<void, void> = {
   },
 }
 
-export const getMemberMeta = createRoomMemberMethod<BaseRPCResult, void>(
-  'video.member.get_meta',
-  {
-    transformResolve: baseCodeTransform,
-  }
-)
+interface GetMemberMetaOutput {
+  meta: VideoMeta
+}
+
+export const getMemberMeta = createRoomMemberMethod<
+  BaseRPCResult & VideoMeta,
+  GetMemberMetaOutput
+>('video.member.get_meta', {
+  transformResolve: ({ meta }) => ({ meta }),
+})
 export interface SetMemberMetaParams extends MemberCommandParams {
-  meta: Record<string, unknown>
+  meta: VideoMeta
 }
 export const setMemberMeta = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.set_meta',
@@ -579,7 +588,7 @@ export const setMemberMeta = createRoomMemberMethod<BaseRPCResult, void>(
 )
 
 export interface UpdateMemberMetaParams extends MemberCommandParams {
-  meta: Record<string, unknown>
+  meta: VideoMeta
 }
 export const updateMemberMeta = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.update_meta',

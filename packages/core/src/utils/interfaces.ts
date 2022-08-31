@@ -163,6 +163,7 @@ type MediaDirectionAllowed = 'none' | 'receive' | 'both'
 type AudioAllowed = MediaDirectionAllowed
 type VideoAllowed = MediaDirectionAllowed
 
+export type VideoMeta = Record<string, any>
 export interface VideoAuthorization {
   type: 'video'
   project: string
@@ -175,14 +176,14 @@ export interface VideoAuthorization {
     name: string
     display_name: string
     scopes: string[]
-    meta: Record<any, any>
+    meta: VideoMeta
   }
   signature: string
   expires_at?: number
   media_allowed?: MediaAllowed
   audio_allowed: AudioAllowed
   video_allowed: VideoAllowed
-  meta: Record<any, any>
+  meta: VideoMeta
 }
 
 export type ChatAuthorizationChannels = Record<
