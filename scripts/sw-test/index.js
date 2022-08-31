@@ -18,7 +18,7 @@ const getIgnoredTests = (ignoreTests, mode) => {
 
 const injectEnvVariables = (env) => {
   if (!env || typeof env !== 'object') {
-    return
+    throw 'Invalid config.env. Double check ENV variables'
   }
 
   Object.entries(env).forEach(([key, value]) => {
@@ -77,7 +77,7 @@ const runTests = (mode, config) => {
       child.stderr.on('data', (data) => {
         console.error(`stderr: ${data}`)
       })
-      break;
+      break
     }
     case 'custom-node': {
       return runNodeScript(config)
@@ -86,9 +86,10 @@ const runTests = (mode, config) => {
 }
 
 exports.cli = (args) => {
-  const config = process.env.SW_TEST_CONFIG
-    ? JSON.parse(process.env.SW_TEST_CONFIG)
-    : {}
+  const config = JSON.parse(process.env.SW_TEST_CONFIG)
+  if (!config) {
+    throw 'Missing ENV variable: "SW_TEST_CONFIG"'
+  }
   injectEnvVariables(config.env)
   const flags = args.slice(2)
   const mode = getMode(flags)
