@@ -282,7 +282,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
        * additionalDevice and screenShare are `sendonly`
        */
       if (this.options.additionalDevice || this.options.screenShare) {
-        this.instance.getTransceivers?.().forEach((tr) => {
+        this.instance?.getTransceivers?.().forEach((tr) => {
           tr.direction = 'sendonly'
         })
       }
@@ -398,7 +398,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           this.isOffer &&
           typeof this.instance.addTransceiver === 'function'
         ) {
-          // Use addTransceiver
           const audioTransceiverParams: RTCRtpTransceiverInit = {
             direction: this.options.negotiateAudio ? 'sendrecv' : 'sendonly',
             streams: [this._localStream],
@@ -466,7 +465,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   detachAndStop() {
-    if (!this.instance.getTransceivers) {
+    if (typeof this.instance?.getTransceivers === 'function') {
       this.instance.getTransceivers().forEach((transceiver) => {
         // Do not use `stopTrack` util to not dispatch the `ended` event
         if (transceiver.sender.track) {
@@ -492,7 +491,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _checkMediaToNegotiate(kind: string) {
     // addTransceiver of 'kind' if not present
     const sender = this._getSenderByKind(kind)
-    if (!sender && this.instance.addTransceiver) {
+    if (!sender && typeof this.instance.addTransceiver === 'function') {
       const transceiver = this.instance.addTransceiver(kind, {
         direction: 'recvonly',
       })
