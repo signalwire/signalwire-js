@@ -292,8 +292,12 @@ const createRoomMetaMethod = <ParamsType extends RoomMethodParams>(
   })
 }
 
-export const getMeta = createRoomMethod<BaseRPCResult, void>('video.get_meta', {
-  transformResolve: baseCodeTransform,
+interface GetMetaOutput {
+  meta: Record<any, any>
+}
+
+export const getMeta = createRoomMethod<GetMetaOutput>('video.get_meta', {
+  transformResolve: ({ meta }) => ({ meta }),
 })
 
 export interface SetMetaParams extends Record<string, unknown> {}
@@ -562,12 +566,16 @@ export const removeAllMembers: RoomMethodDescriptor<void, void> = {
   },
 }
 
-export const getMemberMeta = createRoomMemberMethod<BaseRPCResult, void>(
-  'video.member.get_meta',
-  {
-    transformResolve: baseCodeTransform,
-  }
-)
+interface GetMemberMetaOutput {
+  meta: Record<any, any>
+}
+
+export const getMemberMeta = createRoomMemberMethod<
+  BaseRPCResult & { meta: Record<any, any> },
+  GetMemberMetaOutput
+>('video.member.get_meta', {
+  transformResolve: ({ meta }) => ({ meta }),
+})
 export interface SetMemberMetaParams extends MemberCommandParams {
   meta: Record<string, unknown>
 }
