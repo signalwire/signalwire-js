@@ -24,7 +24,9 @@ export const getJoinMediaParams = (options: GetJoinMediaParamsOptions) => {
     receiveVideo,
   } = options
   const { audio_allowed, video_allowed, join_as } = authState
-  const canSend = join_as === 'member'
+  // Fallback to 'member' in case of null/undefined
+  const joinAs = join_as ?? 'member'
+  const canSend = joinAs === 'member'
 
   const canSendAudio = canSend && audio_allowed === 'both'
   const canSendVideo = canSend && video_allowed === 'both'
