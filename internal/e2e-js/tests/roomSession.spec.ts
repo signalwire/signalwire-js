@@ -23,7 +23,7 @@ test.describe('RoomSession', () => {
       console.log(log)
     })
 
-    const roomName = 'another'
+    const roomName = 'e2e-room-one'
     await createTestRoomSession(page, {
       vrt: {
         room_name: roomName,
@@ -330,12 +330,12 @@ test.describe('RoomSession', () => {
 
     const expectRoomMeta = async (expected: any) => {
       // --------------- Get Room Meta ---------------
-      const initialMeta = await page.evaluate(() => {
+      const currentMeta: any = await page.evaluate(() => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
         return roomObj.getMeta()
       })
-      expect(initialMeta).toStrictEqual(expected)
+      expect(currentMeta.meta).toStrictEqual(expected)
     }
 
     await expectRoomMeta({})
@@ -435,12 +435,12 @@ test.describe('RoomSession', () => {
 
     const expectRoomMemberMeta = async (expected: any) => {
       // --------------- Get Room Meta ---------------
-      const initialMeta = await page.evaluate(() => {
+      const initialMeta: any = await page.evaluate(() => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
         return roomObj.getMemberMeta()
       })
-      expect(initialMeta).toStrictEqual(expected)
+      expect(initialMeta.meta).toStrictEqual(expected)
     }
 
     expectRoomMemberMeta({})
@@ -569,7 +569,7 @@ test.describe('RoomSession', () => {
 
     await Promise.all([pageOne.goto(server.url), pageTwo.goto(server.url)])
 
-    const roomName = 'another'
+    const roomName = 'e2e-room-two'
     const connectionSettings = {
       vrt: {
         room_name: roomName,
