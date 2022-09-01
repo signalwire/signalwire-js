@@ -345,6 +345,7 @@ function* videoElementSetupWorker({
     relativeWrapper.appendChild(paddingWrapper)
 
     const contentWrapper = document.createElement('div')
+    contentWrapper.style.width = '100%'
     contentWrapper.style.display = 'flex'
     contentWrapper.style.alignItems = 'center'
     contentWrapper.style.justifyContent = 'center'
