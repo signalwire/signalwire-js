@@ -143,6 +143,7 @@ export function* sessionChannelWatcher({
       }
       case 'video.member.updated': {
         /**
+         * @see memberUpdatedWorker in packages/core/src/memberPosition/workers.ts
          * `video.member.updated` is handled by the
          * layoutWorker so to avoid dispatching the event
          * twice (or with incomplete data) we'll early
