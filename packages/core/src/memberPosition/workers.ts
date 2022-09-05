@@ -148,6 +148,16 @@ export const memberPositionWorker: SDKWorker<any> =
     const { swEventChannel } = channels
     let memberList = initializeMemberList(initialState)
 
+    const addToMemberList = (payload: VideoMemberUpdatedEventParams) => {
+      /**
+       * Add to memberList for both `member.joined` and `member.updated`
+       * note: changes made for audience users.
+       */
+      if (!memberList.has(payload.member.id)) {
+        memberList.set(payload.member.id, payload)
+      }
+    }
+
     while (true) {
       const action = yield sagaEffects.take(swEventChannel, (action: any) => {
         const istargetEvent =
@@ -164,6 +174,7 @@ export const memberPositionWorker: SDKWorker<any> =
 
       switch (action.type) {
         case 'video.member.updated': {
+          addToMemberList(action.payload)
           yield fork(memberUpdatedWorker, {
             action,
             channels,
@@ -173,8 +184,7 @@ export const memberPositionWorker: SDKWorker<any> =
           break
         }
         case 'video.member.joined': {
-          const member = action.payload.member
-          memberList.set(member.id, action.payload)
+          addToMemberList(action.payload)
           break
         }
         case 'video.member.left': {
