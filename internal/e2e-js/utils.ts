@@ -98,6 +98,8 @@ interface CreateTestVRTOptions {
   remove_at?: number | string
   remove_after_seconds_elapsed?: number
   auto_create_room?: boolean
+  join_as?: 'member' | 'audience'
+  media_allowed?: 'audio-only' | 'audio-only' | 'all'
 }
 
 export const createTestVRTToken = async (body: CreateTestVRTOptions) => {
