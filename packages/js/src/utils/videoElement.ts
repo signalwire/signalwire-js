@@ -156,15 +156,48 @@ const cleanupElement = (rootElement: HTMLElement) => {
 const setVideoMediaTrack = ({
   track,
   element,
+  getDimensionsFromResize,
 }: {
   track: MediaStreamTrack
   element: HTMLVideoElement
+  getDimensionsFromResize: ({
+    width,
+    height,
+  }: {
+    width: number
+    height: number
+  }) => void
 }) => {
   element.srcObject = new MediaStream([track])
+
+  const rsObserver = new ResizeObserver((entries) => {
+    entries.forEach((entry) => {
+      // newer api but less supported
+      if (entry.contentBoxSize?.length > 0) {
+        getDimensionsFromResize({
+          width: entry.contentBoxSize[0].inlineSize,
+          height: entry.contentBoxSize[0].blockSize,
+        })
+      }
+      // fallback to older api may eventually be deprecated
+      else if (
+        entry.contentRect.width !== 0 &&
+        entry.contentRect.height !== 0
+      ) {
+        getDimensionsFromResize({
+          width: entry.contentRect.width,
+          height: entry.contentRect.height,
+        })
+      }
+    })
+  })
+
+  rsObserver.observe(element)
 
   track.addEventListener('ended', () => {
     element.srcObject = null
     element.remove()
+    rsObserver.disconnect()
   })
 }
 
