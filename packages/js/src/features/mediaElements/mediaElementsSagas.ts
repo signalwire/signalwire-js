@@ -307,8 +307,22 @@ function* videoElementSetupWorker({
   element: HTMLVideoElement
 }): SagaIterator {
   const handleVideoTrack = async (track: MediaStreamTrack) => {
-    setVideoMediaTrack({ element, track })
+    setVideoMediaTrack({
+      element,
+      track,
+      getDimensionsFromResize({ height, width }) {
+        // resize the padding as aspect ratio may change with viewport
+        const paddingWrapper = rootElement.querySelector(
+          '.padding-wrapper'
+        ) as HTMLElement
 
+        if (paddingWrapper) {
+          paddingWrapper.style.paddingBottom = `${(height / width) * 100}%`
+        }
+      },
+    })
+
+    element.style.height = '100%'
     element.style.width = '100%'
 
     if (!applyLocalVideoOverlay) {
@@ -330,6 +344,7 @@ function* videoElementSetupWorker({
 
     const paddingWrapper = document.createElement('div')
     paddingWrapper.style.paddingBottom = '56.25%'
+    paddingWrapper.classList.add('padding-wrapper')
     paddingWrapper.appendChild(mcuWrapper)
 
     const layersWrapper = document.createElement('div')
@@ -342,6 +357,7 @@ function* videoElementSetupWorker({
     relativeWrapper.style.position = 'relative'
     relativeWrapper.style.width = '100%'
     relativeWrapper.style.margin = '0 auto'
+    relativeWrapper.style.height = '100%'
     relativeWrapper.appendChild(paddingWrapper)
 
     const contentWrapper = document.createElement('div')
@@ -349,6 +365,7 @@ function* videoElementSetupWorker({
     contentWrapper.style.display = 'flex'
     contentWrapper.style.alignItems = 'center'
     contentWrapper.style.justifyContent = 'center'
+    contentWrapper.style.height = '100%'
     contentWrapper.appendChild(relativeWrapper)
 
     rootElement.appendChild(contentWrapper)
