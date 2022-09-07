@@ -170,11 +170,27 @@ const setVideoMediaTrack = ({
 }) => {
   element.srcObject = new MediaStream([track])
 
+  const debounce = <F extends (...args: any[]) => any>(
+    func: F,
+    timeout = 250
+  ) => {
+    let timer!: ReturnType<typeof setTimeout>
+
+    return (...args: Parameters<F>): Promise<ReturnType<F>> =>
+      new Promise((resolve) => {
+        if (timer) clearTimeout(timer)
+        timer = setTimeout(() => resolve(func(...args)), timeout)
+      })
+  }
+
+  // debounce to avoid multiple calls
+  const debounceGetDimensionsFromResize = debounce(getDimensionsFromResize, 150)
+
   const rsObserver = new ResizeObserver((entries) => {
     entries.forEach((entry) => {
       // newer api but less supported
       if (entry.contentBoxSize?.length > 0) {
-        getDimensionsFromResize({
+        debounceGetDimensionsFromResize({
           width: entry.contentBoxSize[0].inlineSize,
           height: entry.contentBoxSize[0].blockSize,
         })
@@ -184,7 +200,7 @@ const setVideoMediaTrack = ({
         entry.contentRect.width !== 0 &&
         entry.contentRect.height !== 0
       ) {
-        getDimensionsFromResize({
+        debounceGetDimensionsFromResize({
           width: entry.contentRect.width,
           height: entry.contentRect.height,
         })
