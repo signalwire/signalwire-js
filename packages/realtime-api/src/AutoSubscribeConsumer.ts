@@ -2,9 +2,8 @@ import {
   BaseComponentOptions,
   BaseConsumer,
   EventEmitter,
+  debounce,
 } from '@signalwire/core'
-
-import { debounce } from './utils/debounce'
 
 export class AutoSubscribeConsumer<
   EventTypes extends EventEmitter.ValidEventTypes

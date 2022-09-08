@@ -18,6 +18,7 @@ export * from './toSnakeCaseKeys'
 export * from './extendComponent'
 export * from './eventTransformUtils'
 export * from './proxyUtils'
+export * from './debounce'
 
 export const mutateStorageKey = (key: string) => `${STORAGE_PREFIX}${key}`
 

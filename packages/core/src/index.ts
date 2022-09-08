@@ -13,6 +13,7 @@ import {
   toInternalAction,
   serializeableProxy,
   timeoutPromise,
+  debounce,
 } from './utils'
 import { BaseSession } from './BaseSession'
 import { BaseJWTSession } from './BaseJWTSession'
@@ -57,6 +58,7 @@ export {
   INTERNAL_MEMBER_UPDATED_EVENTS,
   findNamespaceInPayload,
   timeoutPromise,
+  debounce,
 }
 
 export * from './redux/features/component/componentSlice'

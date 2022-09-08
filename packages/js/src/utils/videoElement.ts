@@ -2,6 +2,7 @@ import {
   getLogger,
   InternalVideoLayoutLayer,
   InternalVideoLayout,
+  debounce,
 } from '@signalwire/core'
 
 const addSDKPrefix = (input: string) => {
@@ -168,6 +169,65 @@ const setVideoMediaTrack = ({
   })
 }
 
+const createRootElementResizeObserver = ({
+  video,
+  rootElement,
+  paddingWrapper,
+}: {
+  video: HTMLVideoElement
+  rootElement: HTMLElement
+  paddingWrapper: HTMLDivElement
+}) => {
+  const getWX = () => {
+    const nativeVideoRatio = video.videoWidth / video.videoHeight
+    const clientSideRatio = rootElement.clientWidth / rootElement.clientHeight
+    if (nativeVideoRatio > clientSideRatio) {
+      return { width: '100%' }
+    } else {
+      return { width: `${rootElement.clientHeight * nativeVideoRatio}px` }
+    }
+  }
+
+  const maxPaddingBottom = (video.videoHeight / video.videoWidth) * 100
+  // debounce to avoid multiple calls
+  const update = debounce(
+    ({ width, height }: { width: number; height: number }) => {
+      if (paddingWrapper) {
+        const pb = (height / width) * 100
+        paddingWrapper.style.paddingBottom = `${
+          pb > maxPaddingBottom ? maxPaddingBottom : pb
+        }%`
+        const coords = getWX()
+        paddingWrapper.style.width = coords.width
+      }
+    },
+    100
+  )
+
+  const observer = new ResizeObserver((entries) => {
+    entries.forEach((entry) => {
+      // newer api but less supported
+      if (entry.contentBoxSize?.length) {
+        update({
+          width: entry.contentBoxSize[0].inlineSize,
+          height: entry.contentBoxSize[0].blockSize,
+        })
+      } else if (entry?.contentRect) {
+        // fallback to older api may eventually be deprecated
+        update({
+          width: entry.contentRect.width,
+          height: entry.contentRect.height,
+        })
+      }
+    })
+  })
+
+  return {
+    start: () => observer.observe(rootElement),
+    stop: () => observer.disconnect(),
+  }
+}
+
 export {
   buildVideo,
   cleanupElement,
@@ -175,4 +235,5 @@ export {
   setVideoMediaTrack,
   waitForVideoReady,
   addSDKPrefix,
+  createRootElementResizeObserver,
 }
