@@ -505,7 +505,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private _supportsAddTransceiver() {
-    return typeof this.instance.addTransceiver !== 'function'
+    return typeof this.instance.addTransceiver === 'function'
   }
 
   private _checkMediaToNegotiate(kind: string) {
