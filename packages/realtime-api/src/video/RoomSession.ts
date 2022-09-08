@@ -27,9 +27,9 @@ import {
   BaseConsumer,
   EventEmitter,
   MemberPosition,
+  debounce,
 } from '@signalwire/core'
 import { RealTimeRoomApiEvents } from '../types'
-import { debounce } from '../utils/debounce'
 import {
   createRoomSessionMemberObject,
   RoomSessionMember,
