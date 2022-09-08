@@ -292,7 +292,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
       if (this.isOffer) {
         this.logger.debug('Trying to generate offer')
-        const offer = await this.instance.createOffer({
+        const offerOptions: RTCOfferOptions = {
           /**
            * While this property is deprected, on Browsers where this
            * is still supported this avoids conflicting with the VAD
@@ -300,7 +300,12 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
            */
           // @ts-ignore
           voiceActivityDetection: false,
-        })
+        }
+        if (!this._supportsAddTransceiver()) {
+          offerOptions.offerToReceiveAudio = this.options.negotiateAudio
+          offerOptions.offerToReceiveVideo = this.options.negotiateVideo
+        }
+        const offer = await this.instance.createOffer(offerOptions)
         await this._setLocalDescription(offer)
       }
 
@@ -388,12 +393,15 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
        */
       this._setupRTCPeerConnection()
 
+      let hasLocalTracks = false
       if (this._localStream && streamIsValid(this._localStream)) {
         const audioTracks = this._localStream.getAudioTracks()
         this.logger.debug('Local audio tracks: ', audioTracks)
         const videoTracks = this._localStream.getVideoTracks()
         this.logger.debug('Local video tracks: ', videoTracks)
-        // FIXME: use transceivers way only for offer - when answer gotta match mid from the ones from SRD
+        hasLocalTracks = Boolean(audioTracks.length || videoTracks.length)
+
+        // TODO: use transceivers way only for offer - when answer gotta match mid from the ones from SRD
         if (
           this.isOffer &&
           typeof this.instance.addTransceiver === 'function'
@@ -458,6 +466,14 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         if (this.options.negotiateVideo) {
           this._checkMediaToNegotiate('video')
         }
+
+        /**
+         * If it does not support unified-plan stuff (senders/receivers/transceivers)
+         * invoke manually startNegotiation and use the RTCOfferOptions
+         */
+        if (!this._supportsAddTransceiver() && !hasLocalTracks) {
+          this.startNegotiation()
+        }
       } else {
         this.startNegotiation()
       }
@@ -488,10 +504,14 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     this.instance?.close()
   }
 
+  private _supportsAddTransceiver() {
+    return typeof this.instance.addTransceiver !== 'function'
+  }
+
   private _checkMediaToNegotiate(kind: string) {
     // addTransceiver of 'kind' if not present
     const sender = this._getSenderByKind(kind)
-    if (!sender && typeof this.instance.addTransceiver === 'function') {
+    if (!sender && this._supportsAddTransceiver()) {
       const transceiver = this.instance.addTransceiver(kind, {
         direction: 'recvonly',
       })
