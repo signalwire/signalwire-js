@@ -2,6 +2,7 @@ import {
   getLogger,
   InternalVideoLayoutLayer,
   InternalVideoLayout,
+  debounce,
 } from '@signalwire/core'
 
 const addSDKPrefix = (input: string) => {
@@ -156,51 +157,64 @@ const cleanupElement = (rootElement: HTMLElement) => {
 const setVideoMediaTrack = ({
   track,
   element,
-  getDimensionsFromResize,
 }: {
   track: MediaStreamTrack
   element: HTMLVideoElement
-  getDimensionsFromResize: ({
-    width,
-    height,
-  }: {
-    width: number
-    height: number
-  }) => void
 }) => {
   element.srcObject = new MediaStream([track])
 
-  const debounce = <F extends (...args: any[]) => any>(
-    func: F,
-    timeout = 250
-  ) => {
-    let timer!: ReturnType<typeof setTimeout>
+  track.addEventListener('ended', () => {
+    element.srcObject = null
+    element.remove()
+  })
+}
 
-    return (...args: Parameters<F>): Promise<ReturnType<F>> =>
-      new Promise((resolve) => {
-        if (timer) clearTimeout(timer)
-        timer = setTimeout(() => resolve(func(...args)), timeout)
-      })
+const createRootElementResizeObserver = ({
+  video,
+  rootElement,
+  paddingWrapper,
+}: {
+  video: HTMLVideoElement
+  rootElement: HTMLElement
+  paddingWrapper: HTMLDivElement
+}) => {
+  const getWX = () => {
+    const nativeVideoRatio = video.videoWidth / video.videoHeight
+    const clientSideRatio = rootElement.clientWidth / rootElement.clientHeight
+    if (nativeVideoRatio > clientSideRatio) {
+      return { width: '100%' }
+    } else {
+      return { width: `${rootElement.clientHeight * nativeVideoRatio}px` }
+    }
   }
 
+  const maxPaddingBottom = (video.videoHeight / video.videoWidth) * 100
   // debounce to avoid multiple calls
-  const debounceGetDimensionsFromResize = debounce(getDimensionsFromResize, 150)
+  const update = debounce(
+    ({ width, height }: { width: number; height: number }) => {
+      if (paddingWrapper) {
+        const pb = (height / width) * 100
+        paddingWrapper.style.paddingBottom = `${
+          pb > maxPaddingBottom ? maxPaddingBottom : pb
+        }%`
+        const coords = getWX()
+        paddingWrapper.style.width = coords.width
+      }
+    },
+    100
+  )
 
-  const rsObserver = new ResizeObserver((entries) => {
+  const observer = new ResizeObserver((entries) => {
     entries.forEach((entry) => {
       // newer api but less supported
-      if (entry.contentBoxSize?.length > 0) {
-        debounceGetDimensionsFromResize({
+      if (entry.contentBoxSize?.length) {
+        update({
           width: entry.contentBoxSize[0].inlineSize,
           height: entry.contentBoxSize[0].blockSize,
         })
-      }
-      // fallback to older api may eventually be deprecated
-      else if (
-        entry.contentRect.width !== 0 &&
-        entry.contentRect.height !== 0
-      ) {
-        debounceGetDimensionsFromResize({
+      } else if (entry?.contentRect) {
+        // fallback to older api may eventually be deprecated
+        update({
           width: entry.contentRect.width,
           height: entry.contentRect.height,
         })
@@ -208,13 +222,10 @@ const setVideoMediaTrack = ({
     })
   })
 
-  rsObserver.observe(element)
-
-  track.addEventListener('ended', () => {
-    element.srcObject = null
-    element.remove()
-    rsObserver.disconnect()
-  })
+  return {
+    start: () => observer.observe(rootElement),
+    stop: () => observer.disconnect(),
+  }
 }
 
 export {
@@ -224,4 +235,5 @@ export {
   setVideoMediaTrack,
   waitForVideoReady,
   addSDKPrefix,
+  createRootElementResizeObserver,
 }
