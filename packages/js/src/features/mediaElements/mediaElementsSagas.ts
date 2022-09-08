@@ -14,6 +14,7 @@ import {
   waitForVideoReady,
   LocalOverlay,
   addSDKPrefix,
+  createRootElementResizeObserver,
 } from '../../utils/videoElement'
 import { setAudioMediaTrack } from '../../utils/audioElement'
 import { audioSetSpeakerAction } from '../actions'
@@ -307,23 +308,10 @@ function* videoElementSetupWorker({
   element: HTMLVideoElement
 }): SagaIterator {
   const handleVideoTrack = async (track: MediaStreamTrack) => {
-    setVideoMediaTrack({
-      element,
-      track,
-      getDimensionsFromResize({ height, width }) {
-        // resize the padding as aspect ratio may change with viewport
-        const paddingWrapper = rootElement.querySelector(
-          '.padding-wrapper'
-        ) as HTMLElement
+    setVideoMediaTrack({ element, track })
 
-        if (paddingWrapper) {
-          paddingWrapper.style.paddingBottom = `${(height / width) * 100}%`
-        }
-      },
-    })
-
-    element.style.height = '100%'
     element.style.width = '100%'
+    element.style.maxHeight = '100%'
 
     if (!applyLocalVideoOverlay) {
       rootElement.appendChild(element)
@@ -343,8 +331,10 @@ function* videoElementSetupWorker({
     mcuWrapper.appendChild(element)
 
     const paddingWrapper = document.createElement('div')
+    paddingWrapper.classList.add('paddingWrapper')
     paddingWrapper.style.paddingBottom = '56.25%'
-    paddingWrapper.classList.add('padding-wrapper')
+    paddingWrapper.style.position = 'relative'
+    paddingWrapper.style.width = '100%'
     paddingWrapper.appendChild(mcuWrapper)
 
     const layersWrapper = document.createElement('div')
@@ -357,23 +347,26 @@ function* videoElementSetupWorker({
     relativeWrapper.style.position = 'relative'
     relativeWrapper.style.width = '100%'
     relativeWrapper.style.margin = '0 auto'
-    relativeWrapper.style.height = '100%'
+    relativeWrapper.style.display = 'flex'
+    relativeWrapper.style.alignItems = 'center'
+    relativeWrapper.style.justifyContent = 'center'
     relativeWrapper.appendChild(paddingWrapper)
 
-    const contentWrapper = document.createElement('div')
-    contentWrapper.style.width = '100%'
-    contentWrapper.style.display = 'flex'
-    contentWrapper.style.alignItems = 'center'
-    contentWrapper.style.justifyContent = 'center'
-    contentWrapper.style.height = '100%'
-    contentWrapper.appendChild(relativeWrapper)
-
-    rootElement.appendChild(contentWrapper)
+    rootElement.appendChild(relativeWrapper)
 
     if (element.readyState === HTMLMediaElement.HAVE_NOTHING) {
       getLogger().debug('Wait for the MCU to be ready')
       await waitForVideoReady({ element })
     }
+
+    const observer = createRootElementResizeObserver({
+      rootElement,
+      video: element,
+      paddingWrapper,
+    })
+    observer.start()
+    track.addEventListener('ended', () => observer.stop())
+
     layersWrapper.style.display = 'block'
   }
 
