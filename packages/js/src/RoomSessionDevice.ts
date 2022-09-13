@@ -16,6 +16,8 @@ export interface RoomSessionDevice
     BaseConnectionContract<BaseConnectionStateEventTypes> {
   join(): Promise<void>
   leave(): Promise<void>
+  /** @internal */
+  runWorker: BaseConnection<BaseConnectionStateEventTypes>['runWorker']
 }
 
 export class RoomSessionDeviceConnection extends BaseConnection<BaseConnectionStateEventTypes> {

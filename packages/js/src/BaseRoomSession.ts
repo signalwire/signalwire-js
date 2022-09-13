@@ -334,7 +334,7 @@ export class RoomSessionConnection
     })
 
     try {
-      this.runWorker('childMemberJoinedWorker', {
+      screenShare.runWorker('childMemberJoinedWorker', {
         worker: workers.childMemberJoinedWorker,
         initialState: {
           parentId: this.memberId,
@@ -415,7 +415,7 @@ export class RoomSessionConnection
     })
 
     try {
-      this.runWorker('childMemberJoinedWorker', {
+      roomDevice.runWorker('childMemberJoinedWorker', {
         worker: workers.childMemberJoinedWorker,
         initialState: {
           parentId: this.memberId,
