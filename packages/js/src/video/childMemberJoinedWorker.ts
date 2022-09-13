@@ -11,9 +11,9 @@ import {
   componentActions,
 } from '@signalwire/core'
 
-import type { BaseRoomSession } from '../BaseRoomSession'
+import type { BaseConnection } from '@signalwire/webrtc'
 
-type ChildMemberJoinedWorkerOnDone = (args: BaseRoomSession<any>) => void
+type ChildMemberJoinedWorkerOnDone = (args: BaseConnection<any>) => void
 type ChildMemberJoinedWorkerOnFail = (args: { error: Error }) => void
 
 export type ChildMemberJoinedWorkerHooks = SDKWorkerHooks<
@@ -22,7 +22,7 @@ export type ChildMemberJoinedWorkerHooks = SDKWorkerHooks<
 >
 
 export const childMemberJoinedWorker: SDKWorker<
-  BaseRoomSession<any>,
+  BaseConnection<any>,
   ChildMemberJoinedWorkerHooks
 > = function* (options): SagaIterator {
   getLogger().trace('childMemberJoinedWorker started')
@@ -30,7 +30,7 @@ export const childMemberJoinedWorker: SDKWorker<
   const { swEventChannel } = channels
   const { parentId } = initialState
   if (!parentId) {
-    throw new Error('Missing parentId for roomSubscribedWorker')
+    throw new Error('Missing parentId for childMemberJoinedWorker')
   }
 
   const action: MapToPubSubShape<VideoMemberJoinedEvent> =
