@@ -329,7 +329,9 @@ export class RoomSessionConnection
       })
     })
 
-    screenShare.on('destroy', () => {
+    screenShare.once('destroy', () => {
+      // @ts-expect-error
+      screenShare.emit('room.left')
       this._screenShareList.delete(screenShare)
     })
 
@@ -410,7 +412,9 @@ export class RoomSessionConnection
       componentListeners: ROOM_COMPONENT_LISTENERS,
     })(options)
 
-    roomDevice.on('destroy', () => {
+    roomDevice.once('destroy', () => {
+      // @ts-expect-error
+      roomDevice.emit('room.left')
       this._deviceList.delete(roomDevice)
     })
 
