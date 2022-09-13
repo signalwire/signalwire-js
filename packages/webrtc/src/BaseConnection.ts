@@ -505,15 +505,19 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       initialState: { rtcPeerId },
     })
 
-    this.runWorker('roomSubscribedWorker', {
-      worker: workers.roomSubscribedWorker,
-      initialState: { rtcPeerId },
-    })
+    const main = !(this.options.additionalDevice || this.options.screenShare)
 
-    this.runWorker('promoteDemoteWorker', {
-      worker: workers.promoteDemoteWorker,
-      initialState: { rtcPeerId },
-    })
+    if (main) {
+      this.runWorker('roomSubscribedWorker', {
+        worker: workers.roomSubscribedWorker,
+        initialState: { rtcPeerId },
+      })
+
+      this.runWorker('promoteDemoteWorker', {
+        worker: workers.promoteDemoteWorker,
+        initialState: { rtcPeerId },
+      })
+    }
   }
 
   /** @internal */
