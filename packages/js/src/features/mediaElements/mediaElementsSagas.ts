@@ -45,8 +45,7 @@ export const makeVideoElementSaga = ({
         // Each `layout.changed` event will update `status`
         status: 'hidden',
         get id() {
-          // FIXME: Use `id` until the `memberId` is stable between promote/demote
-          return addSDKPrefix(room.id)
+          return addSDKPrefix(room.memberId)
         },
         get domElement() {
           return layerMap.get(this.id)
