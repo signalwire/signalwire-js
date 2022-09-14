@@ -65,7 +65,7 @@ export const childMemberJoinedWorker: SDKWorker<
     if (parent) {
       yield sagaEffects.put(
         componentActions.upsert({
-          id: member.id,
+          id: instance.id,
           roomId: action.payload.room_id,
           roomSessionId: action.payload.room_session_id,
           memberId: member.id,

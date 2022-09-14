@@ -157,9 +157,9 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   get component(): ReduxComponent {
-    const id = this.peer?.uuid ?? ''
     return (
-      this.select((state) => componentSelectors.getComponent(state, id)) || {}
+      this.select((state) => componentSelectors.getComponent(state, this.id)) ||
+      {}
     )
   }
 
