@@ -26,7 +26,7 @@ export const childMemberJoinedWorker: SDKWorker<
   ChildMemberJoinedWorkerHooks
 > = function* (options): SagaIterator {
   getLogger().trace('childMemberJoinedWorker started')
-  const { channels, initialState } = options
+  const { channels, instance, initialState } = options
   const { swEventChannel } = channels
   const { parentId } = initialState
   if (!parentId) {
@@ -49,6 +49,15 @@ export const childMemberJoinedWorker: SDKWorker<
    */
   const { member } = action.payload
   if (member?.parent_id) {
+    /**
+     * For screenShare/additionalDevice we're using
+     * the `memberId` to namespace the object.
+     **/
+    // @ts-expect-error
+    instance._attachListeners(member.id)
+    // @ts-expect-error
+    instance.applyEmitterTransforms()
+
     const parent = yield sagaEffects.select(
       componentSelectors.getComponent,
       member.parent_id
