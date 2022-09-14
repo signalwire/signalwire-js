@@ -14,7 +14,6 @@ import {
   waitForVideoReady,
   LocalOverlay,
   addSDKPrefix,
-  createRootElementResizeObserver,
 } from '../../utils/videoElement'
 import { setAudioMediaTrack } from '../../utils/audioElement'
 import { audioSetSpeakerAction } from '../actions'
@@ -359,13 +358,13 @@ function* videoElementSetupWorker({
       await waitForVideoReady({ element })
     }
 
-    const observer = createRootElementResizeObserver({
-      rootElement,
-      video: element,
-      paddingWrapper,
-    })
-    observer.start()
-    track.addEventListener('ended', () => observer.stop())
+    // const observer = createRootElementResizeObserver({
+    //   rootElement,
+    //   video: element,
+    //   paddingWrapper,
+    // })
+    // observer.start()
+    // track.addEventListener('ended', () => observer.stop())
 
     layersWrapper.style.display = 'block'
   }
