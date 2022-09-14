@@ -39,11 +39,13 @@ import {
   RoomSessionScreenShareAPI,
   RoomSessionScreenShareConnection,
   RoomSessionScreenShare,
+  RoomSessionScreenShareEvents,
 } from './RoomSessionScreenShare'
 import {
   RoomSessionDeviceAPI,
   RoomSessionDeviceConnection,
   RoomSessionDevice,
+  RoomSessionDeviceEvents,
 } from './RoomSessionDevice'
 import * as workers from './video/workers'
 
@@ -308,7 +310,7 @@ export class RoomSessionConnection
     }
 
     const screenShare = connect<
-      BaseConnectionStateEventTypes,
+      RoomSessionScreenShareEvents,
       RoomSessionScreenShareConnection,
       RoomSessionScreenShare
     >({
@@ -329,12 +331,14 @@ export class RoomSessionConnection
       })
     })
 
-    screenShare.on('destroy', () => {
+    screenShare.once('destroy', () => {
+      // @ts-expect-error
+      screenShare.emit('room.left')
       this._screenShareList.delete(screenShare)
     })
 
     try {
-      this.runWorker('childMemberJoinedWorker', {
+      screenShare.runWorker('childMemberJoinedWorker', {
         worker: workers.childMemberJoinedWorker,
         initialState: {
           parentId: this.memberId,
@@ -401,7 +405,7 @@ export class RoomSessionConnection
     }
 
     const roomDevice = connect<
-      BaseConnectionStateEventTypes,
+      RoomSessionDeviceEvents,
       RoomSessionDeviceConnection,
       RoomSessionDevice
     >({
@@ -410,12 +414,14 @@ export class RoomSessionConnection
       componentListeners: ROOM_COMPONENT_LISTENERS,
     })(options)
 
-    roomDevice.on('destroy', () => {
+    roomDevice.once('destroy', () => {
+      // @ts-expect-error
+      roomDevice.emit('room.left')
       this._deviceList.delete(roomDevice)
     })
 
     try {
-      this.runWorker('childMemberJoinedWorker', {
+      roomDevice.runWorker('childMemberJoinedWorker', {
         worker: workers.childMemberJoinedWorker,
         initialState: {
           parentId: this.memberId,

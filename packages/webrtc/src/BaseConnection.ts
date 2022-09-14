@@ -50,8 +50,7 @@ const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   iceGatheringTimeout: 2 * 1000,
 }
 
-type EventsHandlerMapping = Record<BaseConnectionState, () => void> &
-  Record<string, () => void>
+type EventsHandlerMapping = Record<BaseConnectionState, (params: any) => void>
 
 export type BaseConnectionStateEventTypes = {
   [k in BaseConnectionState]: EventsHandlerMapping[k]
@@ -505,15 +504,19 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       initialState: { rtcPeerId },
     })
 
-    this.runWorker('roomSubscribedWorker', {
-      worker: workers.roomSubscribedWorker,
-      initialState: { rtcPeerId },
-    })
+    const main = !(this.options.additionalDevice || this.options.screenShare)
 
-    this.runWorker('promoteDemoteWorker', {
-      worker: workers.promoteDemoteWorker,
-      initialState: { rtcPeerId },
-    })
+    if (main) {
+      this.runWorker('roomSubscribedWorker', {
+        worker: workers.roomSubscribedWorker,
+        initialState: { rtcPeerId },
+      })
+
+      this.runWorker('promoteDemoteWorker', {
+        worker: workers.promoteDemoteWorker,
+        initialState: { rtcPeerId },
+      })
+    }
   }
 
   /** @internal */

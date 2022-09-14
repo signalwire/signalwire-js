@@ -2,23 +2,34 @@ import {
   Rooms,
   extendComponent,
   BaseConnectionContract,
+  BaseConnectionState,
+  RoomLeft,
 } from '@signalwire/core'
-import {
-  BaseConnection,
-  BaseConnectionStateEventTypes,
-} from '@signalwire/webrtc'
+import { BaseConnection } from '@signalwire/webrtc'
 import { RoomSessionDeviceMethods } from './utils/interfaces'
+
+type RoomSessionDeviceEventsHandlerMap = Record<
+  BaseConnectionState,
+  (params: RoomSessionDevice) => void
+> &
+  Record<RoomLeft, (params: void) => void>
+
+export type RoomSessionDeviceEvents = {
+  [k in keyof RoomSessionDeviceEventsHandlerMap]: RoomSessionDeviceEventsHandlerMap[k]
+}
 
 /** @deprecated Use {@link RoomSessionDevice} instead */
 export interface RoomDevice extends RoomSessionDevice {}
 export interface RoomSessionDevice
   extends RoomSessionDeviceMethods,
-    BaseConnectionContract<BaseConnectionStateEventTypes> {
+    BaseConnectionContract<RoomSessionDeviceEvents> {
   join(): Promise<void>
   leave(): Promise<void>
+  /** @internal */
+  runWorker: BaseConnection<RoomSessionDeviceEvents>['runWorker']
 }
 
-export class RoomSessionDeviceConnection extends BaseConnection<BaseConnectionStateEventTypes> {
+export class RoomSessionDeviceConnection extends BaseConnection<RoomSessionDeviceEvents> {
   join() {
     return super.invite()
   }

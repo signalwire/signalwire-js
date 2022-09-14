@@ -11,9 +11,9 @@ import {
   componentActions,
 } from '@signalwire/core'
 
-import type { BaseRoomSession } from '../BaseRoomSession'
+import type { BaseConnection } from '@signalwire/webrtc'
 
-type ChildMemberJoinedWorkerOnDone = (args: BaseRoomSession<any>) => void
+type ChildMemberJoinedWorkerOnDone = (args: BaseConnection<any>) => void
 type ChildMemberJoinedWorkerOnFail = (args: { error: Error }) => void
 
 export type ChildMemberJoinedWorkerHooks = SDKWorkerHooks<
@@ -22,15 +22,15 @@ export type ChildMemberJoinedWorkerHooks = SDKWorkerHooks<
 >
 
 export const childMemberJoinedWorker: SDKWorker<
-  BaseRoomSession<any>,
+  BaseConnection<any>,
   ChildMemberJoinedWorkerHooks
 > = function* (options): SagaIterator {
   getLogger().trace('childMemberJoinedWorker started')
-  const { channels, initialState } = options
+  const { channels, instance, initialState } = options
   const { swEventChannel } = channels
   const { parentId } = initialState
   if (!parentId) {
-    throw new Error('Missing parentId for roomSubscribedWorker')
+    throw new Error('Missing parentId for childMemberJoinedWorker')
   }
 
   const action: MapToPubSubShape<VideoMemberJoinedEvent> =
@@ -49,6 +49,15 @@ export const childMemberJoinedWorker: SDKWorker<
    */
   const { member } = action.payload
   if (member?.parent_id) {
+    /**
+     * For screenShare/additionalDevice we're using
+     * the `memberId` to namespace the object.
+     **/
+    // @ts-expect-error
+    instance._attachListeners(member.id)
+    // @ts-expect-error
+    instance.applyEmitterTransforms()
+
     const parent = yield sagaEffects.select(
       componentSelectors.getComponent,
       member.parent_id
