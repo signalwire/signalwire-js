@@ -60,6 +60,14 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     return this._remoteStream
   }
 
+  get haveLocalOffer() {
+    return this.instance.signalingState === 'have-local-offer'
+  }
+
+  get hasStableState() {
+    return this.instance.signalingState === 'stable'
+  }
+
   get isOffer() {
     return this.type === 'offer'
   }
