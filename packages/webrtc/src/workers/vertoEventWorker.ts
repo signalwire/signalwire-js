@@ -27,32 +27,20 @@ export const vertoEventWorker: SDKWorker<
   VertoEventWorkerHooks
 > = function* (options): SagaIterator {
   getLogger().debug('vertoEventWorker started')
-  const { channels, instance, initialState } = options
+  const { channels, instance } = options
   const { swEventChannel } = channels
-  const { rtcPeerId } = initialState
-  if (!rtcPeerId) {
-    throw new Error('Missing rtcPeerId for roomSubscribedWorker')
-  }
 
   while (true) {
     const action: MapToPubSubShape<WebRTCMessageParams> =
       yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
         if (action.type === 'webrtc.message') {
-          return action.payload.params?.callID === rtcPeerId
+          return action.payload.params?.callID === instance.callId
         }
         return false
       })
 
     const { id: jsonrpcId, method, params = {} } = action.payload
     const { callID, nodeId } = params
-    const peer = instance.getRTCPeerById(callID)
-    if (!peer) {
-      getLogger().warn(
-        `RTCPeer '${callID}' not found for method: '${method}'`,
-        params
-      )
-      continue
-    }
     const activeRTCPeer = instance.peer
 
     // getLogger().warn('vertoEventWorker', method, params)
@@ -62,10 +50,17 @@ export const vertoEventWorker: SDKWorker<
         /**
          * verto.media and verto.answer share the same logic
          *
-         * Always invoke peer.onRemoteSdp(params.sdp) on the proper RTCPeer
-         * If the `params.callID` is the current ACTIVE peer, set the BaseConnection state to 'early' | 'active'
-         * If the `params.callID` is NOT the current peer just setup the media (ie: promote/demote)
+         * Always invoke peer.onRemoteSdp(params.sdp) on the proper RTCPeer.
+         * Looking for the RTCPeer with have-local-offer and set the remote SDP on it.
          */
+        const peer = instance.getRTCPeerWithLocalOffer()
+        if (!peer) {
+          getLogger().warn(
+            `RTCPeer not found for method: '${method}'. No Peer with 'have-local-offer' state.`,
+            params
+          )
+          break
+        }
         if (peer.uuid === activeRTCPeer?.uuid) {
           const state = method === 'verto.media' ? 'early' : 'active'
           instance.setState(state)
@@ -91,7 +86,7 @@ export const vertoEventWorker: SDKWorker<
          * If the `params.callID` is NOT the current peer, but is there from promote/demote process stop/destroy just the peer
          */
         yield sagaEffects.call(instance.onVertoBye, {
-          rtcPeerId: callID,
+          rtcPeerId: callID, // FIXME:
           byeCause: params?.cause,
           byeCauseCode: params?.causeCode,
           redirectDestination: params?.redirectDestination,
@@ -128,11 +123,11 @@ export const vertoEventWorker: SDKWorker<
           break
         }
         const { audio, video } = params.mediaParams
-        if (peer && video) {
-          peer.applyMediaConstraints('video', video)
+        if (activeRTCPeer && video) {
+          activeRTCPeer.applyMediaConstraints('video', video)
         }
-        if (peer && audio) {
-          peer.applyMediaConstraints('audio', audio)
+        if (activeRTCPeer && audio) {
+          activeRTCPeer.applyMediaConstraints('audio', audio)
         }
         break
       }
