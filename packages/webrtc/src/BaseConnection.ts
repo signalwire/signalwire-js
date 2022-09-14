@@ -106,6 +106,10 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     this.logger.debug('New Call with Options:', this.options)
 
     this.applyEmitterTransforms({ local: true })
+
+    this.runWorker('vertoEventWorker', {
+      worker: workers.vertoEventWorker,
+    })
   }
 
   get id() {
@@ -501,11 +505,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   runRTCPeerWorkers(rtcPeerId: string) {
-    this.runWorker('vertoEventWorker', {
-      worker: workers.vertoEventWorker,
-      initialState: { rtcPeerId },
-    })
-
     const main = !(this.options.additionalDevice || this.options.screenShare)
 
     if (main) {
