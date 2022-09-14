@@ -25,17 +25,13 @@ export const roomSubscribedWorker: SDKWorker<
   RoomSubscribedWorkerHooks
 > = function* (options): SagaIterator {
   getLogger().debug('roomSubscribedWorker started')
-  const { channels, instance, initialState } = options
+  const { channels, instance } = options
   const { swEventChannel, pubSubChannel } = channels
-  const { rtcPeerId } = initialState
-  if (!rtcPeerId) {
-    throw new Error('Missing rtcPeerId for roomSubscribedWorker')
-  }
 
   const action: MapToPubSubShape<VideoRoomSubscribedEvent> =
     yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
       if (action.type === 'video.room.subscribed') {
-        return action.payload.call_id === rtcPeerId
+        return action.payload.call_id === instance.callId
       }
       return false
     })
@@ -49,7 +45,7 @@ export const roomSubscribedWorker: SDKWorker<
   /**
    * In here we joined a room_session so we can swap between RTCPeers
    */
-  instance.setActiveRTCPeer(rtcPeerId)
+  instance.setActiveRTCPeer()
 
   /**
    * TODO: Replace the redux action/component with properties on RTCPeer instance?
@@ -70,5 +66,5 @@ export const roomSubscribedWorker: SDKWorker<
     payload: action.payload,
   })
 
-  getLogger().debug('roomSubscribedWorker ended', rtcPeerId)
+  getLogger().debug('roomSubscribedWorker ended')
 }

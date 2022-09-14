@@ -244,12 +244,12 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     if (this.peer && this.peer?.uuid !== rtcPeer.uuid) {
       const oldPeerId = this.peer.uuid
       this.logger.info('>>> Stop old RTCPeer', oldPeerId)
-      // Invoke hangup to make sure backend closes
-      this.hangup(oldPeerId).then(console.warn).catch(console.error)
+      // Invoke hangup to make sure backend closes FIXME: remove lines
+      // this.hangup(oldPeerId).then(console.warn).catch(console.error)
       this.peer.detachAndStop()
 
-      // Remove RTCPeer from local cache to stop answering to ping/pong
-      // this.rtcPeerMap.delete(oldPeerId)
+      // Remove RTCPeer from local cache
+      this.rtcPeerMap.delete(oldPeerId)
     }
 
     this.logger.info('>>> Replace RTCPeer with', rtcPeer.uuid)
@@ -264,12 +264,30 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     return rtcPeer
   }
 
+  getRTCPeerWithLocalOffer() {
+    for (const row of this.rtcPeerMap.values()) {
+      if (row.haveLocalOffer) {
+        return row
+      }
+    }
+    return undefined
+  }
+
   appendRTCPeer(rtcPeer: RTCPeer<EventTypes>) {
     return this.rtcPeerMap.set(rtcPeer.uuid, rtcPeer)
   }
 
-  setActiveRTCPeer(rtcPeerId: string) {
-    this.peer = this.rtcPeerMap.get(rtcPeerId)
+  setActiveRTCPeer() {
+    let peer: RTCPeer<EventTypes> | undefined = undefined
+    for (const row of this.rtcPeerMap.values()) {
+      if (row.hasStableState) {
+        peer = row
+      }
+    }
+    if (!peer) {
+      throw new Error(`RTCPeer not found. No Peer with 'stable' state.`)
+    }
+    this.peer = peer
   }
 
   /**
@@ -586,13 +604,13 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
    *
    * @internal
    */
-  async executeInvite(sdp: string, rtcPeerId: string, nodeId?: string) {
-    const rtcPeer = this.getRTCPeerById(rtcPeerId)
-    if (!rtcPeer || rtcPeer.instance.remoteDescription) {
-      throw new Error(
-        `RTCPeer '${rtcPeerId}' already has a remoteDescription. Invalid invite.`
-      )
-    }
+  async executeInvite(sdp: string, _rtcPeerId: string, nodeId?: string) {
+    // const rtcPeer = this.getRTCPeerById(rtcPeerId)
+    // if (!rtcPeer || rtcPeer.instance.remoteDescription) {
+    //   throw new Error(
+    //     `RTCPeer '${rtcPeerId}' already has a remoteDescription. Invalid invite.`
+    //   )
+    // }
     // Set state to `requesting` only when `new`, otherwise keep it as `requesting`.
     if (this.state === 'new') {
       this.setState('requesting')
@@ -670,13 +688,14 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     } catch (error) {
       this.logger.error('Hangup error:', error)
     } finally {
-      if (rtcPeerId !== this.peer?.uuid) {
-        return this.logger.warn(
-          'Prevent setState hangup',
-          rtcPeerId,
-          this.peer?.uuid
-        )
-      }
+      this.logger.warn('Check hangup setState', rtcPeerId)
+      // if (rtcPeerId !== this.peer?.uuid) {
+      //   return this.logger.warn(
+      //     'Prevent setState hangup',
+      //     rtcPeerId,
+      //     this.peer?.uuid
+      //   )
+      // }
       this.setState('hangup')
     }
   }
