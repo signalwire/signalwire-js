@@ -298,7 +298,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       const rtcPeer = new RTCPeer(this, 'offer')
       this.appendRTCPeer(rtcPeer)
       this.logger.debug('Run workers for the new RTCPeer', rtcPeer.uuid)
-      this.runRTCPeerWorkers(rtcPeer.uuid)
+      this.runRTCPeerWorkers()
       this.logger.debug('Trigger start for the new RTCPeer!')
       await rtcPeer.start()
     } catch (error) {
@@ -504,18 +504,16 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     })
   }
 
-  runRTCPeerWorkers(rtcPeerId: string) {
+  runRTCPeerWorkers() {
     const main = !(this.options.additionalDevice || this.options.screenShare)
 
     if (main) {
       this.runWorker('roomSubscribedWorker', {
         worker: workers.roomSubscribedWorker,
-        initialState: { rtcPeerId },
       })
 
       this.runWorker('promoteDemoteWorker', {
         worker: workers.promoteDemoteWorker,
-        initialState: { rtcPeerId },
       })
     }
   }
@@ -526,7 +524,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       this.direction = 'outbound'
       this.peer = new RTCPeer(this, 'offer')
       try {
-        this.runRTCPeerWorkers(this.peer.uuid)
+        this.runRTCPeerWorkers()
 
         await this.peer.start()
         resolve(this as any as T)

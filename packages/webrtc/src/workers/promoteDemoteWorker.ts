@@ -28,12 +28,8 @@ export const promoteDemoteWorker: SDKWorker<
   PromoteDemoteWorkerHooks
 > = function* (options): SagaIterator {
   getLogger().debug('promoteDemoteWorker started')
-  const { channels, instance, initialState } = options
+  const { channels, instance } = options
   const { swEventChannel } = channels // pubSubChannel
-  const { rtcPeerId } = initialState
-  if (!rtcPeerId) {
-    throw new Error('Missing rtcPeerId for promoteDemoteWorker')
-  }
 
   const action: MapToPubSubShape<
     VideoMemberPromotedEvent | VideoMemberDemotedEvent
@@ -42,7 +38,7 @@ export const promoteDemoteWorker: SDKWorker<
       action.type === 'video.member.promoted' ||
       action.type === 'video.member.demoted'
     ) {
-      return action.payload.member_id === rtcPeerId
+      return action.payload.member_id === instance.callId // callId is the member_id
     }
     return false
   })
@@ -89,5 +85,5 @@ export const promoteDemoteWorker: SDKWorker<
 
   instance._triggerNewRTCPeer()
 
-  getLogger().debug('promoteDemoteWorker ended', rtcPeerId)
+  getLogger().debug('promoteDemoteWorker ended')
 }
