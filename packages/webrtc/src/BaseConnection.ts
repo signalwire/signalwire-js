@@ -164,7 +164,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /** @internal */
-  dialogParams(rtcPeerId: string) {
+  dialogParams() {
     const {
       destinationNumber,
       attach,
@@ -180,7 +180,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
     return {
       dialogParams: {
-        id: rtcPeerId,
+        id: this.callId,
         destinationNumber,
         attach,
         callerName,
@@ -605,7 +605,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
           }
         : {}
       const message = VertoInvite({
-        ...this.dialogParams(rtcPeerId),
+        ...this.dialogParams(),
         ...ssOpts,
         sdp,
       })
@@ -634,10 +634,10 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /** @internal */
-  async executeUpdateMedia(sdp: string, rtcPeerId: string) {
+  async executeUpdateMedia(sdp: string, _rtcPeerId: string) {
     try {
       const message = VertoModify({
-        ...this.dialogParams(rtcPeerId),
+        ...this.dialogParams(),
         sdp,
         action: 'updateMedia',
       })
@@ -665,7 +665,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     }
 
     try {
-      const message = VertoBye(this.dialogParams(rtcPeerId))
+      const message = VertoBye(this.dialogParams())
       await this.vertoExecute({ message })
     } catch (error) {
       this.logger.error('Hangup error:', error)
@@ -683,11 +683,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   /** @internal */
   dtmf(dtmf: string) {
-    const rtcPeerId = this.peer?.uuid
-    if (!rtcPeerId) {
-      throw new Error('Invalid RTCPeer ID to send DTMF')
-    }
-    const message = VertoInfo({ ...this.dialogParams(rtcPeerId), dtmf })
+    const message = VertoInfo({ ...this.dialogParams(), dtmf })
     this.vertoExecute({ message })
   }
 
