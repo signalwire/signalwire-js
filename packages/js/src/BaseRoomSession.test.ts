@@ -12,13 +12,17 @@ describe('Room Object', () => {
   const setupRoomForTests = () => {
     const mockPeer = {
       uuid: callId,
+      hasStableState: true,
       onRemoteSdp: jest.fn(),
     }
-    // @ts-expect-error
-    room.getRTCPeerById = jest.fn((_id: string) => mockPeer)
+    // // @ts-expect-error
+    // room.getRTCPeerById = jest.fn((_id: string) => mockPeer)
 
     // @ts-expect-error
-    room.runRTCPeerWorkers(callId)
+    room.peer = mockPeer
+
+    // @ts-expect-error
+    room.runRTCPeerWorkers()
   }
 
   beforeEach(() => {
@@ -37,6 +41,8 @@ describe('Room Object', () => {
         memberId: 'member-id',
       })
     )
+    // @ts-expect-error
+    room.callId = callId
     // @ts-expect-error
     room.execute = jest.fn()
 
@@ -389,6 +395,8 @@ describe('Room Object', () => {
         emitter,
       })
       // @ts-expect-error
+      room.callId = callId
+      // @ts-expect-error
       room.execute = jest.fn()
       store.dispatch(
         componentActions.upsert({
@@ -463,6 +471,8 @@ describe('Room Object', () => {
         // @ts-expect-error
         emitter,
       })
+      // @ts-expect-error
+      room.callId = callId
       // @ts-expect-error
       room.execute = jest.fn()
 
