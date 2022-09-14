@@ -481,42 +481,61 @@ export const setInputSensitivityMember = createRoomMemberMethod<
 
 interface PromoteDemoteMemberParams extends Required<MemberCommandParams> {
   mediaAllowed?: MediaAllowed
+  meta?: VideoMeta
 }
 
-const createMemberPromoteDemoteMethod = <
-  OutputType,
-  ParamsType extends PromoteDemoteMemberParams
->(
-  method: 'video.member.promote' | 'video.member.demote'
-): RoomMethodDescriptor<OutputType, ParamsType> => {
-  return {
-    value: function ({ memberId, mediaAllowed, ...rest }) {
-      return this.execute<unknown, OutputType, ParamsType>(
-        {
-          method,
-          params: {
-            room_session_id: this.roomSessionId,
-            member_id: memberId,
-            media_allowed: mediaAllowed,
-            ...rest,
-          },
-        },
-        {
-          transformResolve: baseCodeTransform as any,
-        }
-      )
-    },
-  }
-}
 export interface PromoteMemberParams extends PromoteDemoteMemberParams {
   permissions?: string[]
+  joinAudioMuted?: boolean
+  joinVideoMuted?: boolean
 }
-export const promote: RoomMethodDescriptor<void, PromoteMemberParams> =
-  createMemberPromoteDemoteMethod('video.member.promote')
+export const promote: RoomMethodDescriptor<void, PromoteMemberParams> = {
+  value: function ({
+    memberId,
+    mediaAllowed,
+    joinAudioMuted,
+    joinVideoMuted,
+    ...rest
+  }) {
+    return this.execute<unknown, void, PromoteMemberParams>(
+      {
+        method: 'video.member.promote',
+        params: {
+          room_session_id: this.roomSessionId,
+          member_id: memberId,
+          media_allowed: mediaAllowed,
+          join_audio_muted: joinAudioMuted,
+          join_video_muted: joinVideoMuted,
+          ...rest,
+        },
+      },
+      {
+        transformResolve: baseCodeTransform as any,
+      }
+    )
+  },
+}
 
 export interface DemoteMemberParams extends PromoteDemoteMemberParams {}
-export const demote: RoomMethodDescriptor<void, DemoteMemberParams> =
-  createMemberPromoteDemoteMethod('video.member.demote')
+export const demote: RoomMethodDescriptor<void, DemoteMemberParams> = {
+  value: function ({ memberId, mediaAllowed, ...rest }) {
+    return this.execute<unknown, void, DemoteMemberParams>(
+      {
+        method: 'video.member.demote',
+        params: {
+          room_session_id: this.roomSessionId,
+          member_id: memberId,
+          media_allowed: mediaAllowed,
+          ...rest,
+        },
+      },
+      {
+        transformResolve: baseCodeTransform as any,
+      }
+    )
+  },
+}
+
 export interface SetMemberPositionParams extends MemberCommandParams {
   position: VideoPosition
 }
