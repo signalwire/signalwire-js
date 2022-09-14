@@ -38,7 +38,10 @@ describe('childMemberJoinedWorker', () => {
         swEventChannel,
       },
       sessionChannel,
-      instance: {} as any,
+      instance: {
+        _attachListeners: jest.fn(),
+        applyEmitterTransforms: jest.fn(),
+      } as any,
       initialState: {
         parentId,
       },
