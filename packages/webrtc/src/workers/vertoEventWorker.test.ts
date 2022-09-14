@@ -18,7 +18,6 @@ jest.mock('uuid', () => {
 describe('vertoEventWorker', () => {
   const { createPubSubChannel, createSwEventChannel } = testUtils
   const rtcPeerId = 'rtc-peer-id'
-  const initialState = { rtcPeerId }
 
   it('should handle verto.ping method', () => {
     let runSaga = true
@@ -27,15 +26,10 @@ describe('vertoEventWorker', () => {
     const swEventChannel = createSwEventChannel()
     const sessionChannel = sagaHelpers.eventChannel(() => () => {})
     const dispatchedActions: unknown[] = []
-    const mockPeer = {
-      uuid: rtcPeerId,
-      onRemoteSdp: jest.fn(),
-    }
     const instance = {
       peer: {
         uuid: rtcPeerId,
       },
-      getRTCPeerById: jest.fn((_id: string) => mockPeer),
       setState: jest.fn(),
     } as any
 
@@ -48,7 +42,6 @@ describe('vertoEventWorker', () => {
       },
       sessionChannel,
       instance,
-      initialState,
     })
       .provide([
         {
@@ -120,7 +113,7 @@ describe('vertoEventWorker', () => {
         peer: {
           uuid: rtcPeerId,
         },
-        getRTCPeerById: jest.fn((_id: string) => mockPeer),
+        getRTCPeerWithLocalOffer: jest.fn(() => mockPeer),
         setState: jest.fn(),
       } as any
 
@@ -133,7 +126,6 @@ describe('vertoEventWorker', () => {
         },
         sessionChannel,
         instance,
-        initialState,
       })
         .provide([
           {
@@ -181,8 +173,8 @@ describe('vertoEventWorker', () => {
         .silentRun()
         .finally(() => {
           expect(dispatchedActions).toHaveLength(1)
-          expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
-          expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
+          expect(instance.getRTCPeerWithLocalOffer).toHaveBeenCalledTimes(1)
+          expect(instance.getRTCPeerWithLocalOffer).toHaveBeenCalledWith()
           expect(instance.setState).toHaveBeenCalledTimes(1)
           expect(instance.setState).toHaveBeenCalledWith('early')
           expect(mockPeer.onRemoteSdp).toHaveBeenCalledTimes(1)
@@ -205,7 +197,7 @@ describe('vertoEventWorker', () => {
         peer: {
           uuid: rtcPeerId,
         },
-        getRTCPeerById: jest.fn((_id: string) => mockPeer),
+        getRTCPeerWithLocalOffer: jest.fn(() => mockPeer),
         setState: jest.fn(),
       } as any
 
@@ -218,7 +210,6 @@ describe('vertoEventWorker', () => {
         },
         sessionChannel,
         instance,
-        initialState,
       })
         .provide([
           {
@@ -266,8 +257,8 @@ describe('vertoEventWorker', () => {
         .silentRun()
         .finally(() => {
           expect(dispatchedActions).toHaveLength(1)
-          expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
-          expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
+          expect(instance.getRTCPeerWithLocalOffer).toHaveBeenCalledTimes(1)
+          expect(instance.getRTCPeerWithLocalOffer).toHaveBeenCalledWith()
           expect(instance.setState).toHaveBeenCalledTimes(0)
           expect(mockPeer.onRemoteSdp).toHaveBeenCalledTimes(1)
           expect(mockPeer.onRemoteSdp).toHaveBeenCalledWith('MEDIA-SDP')
@@ -291,7 +282,7 @@ describe('vertoEventWorker', () => {
         peer: {
           uuid: 'active',
         },
-        getRTCPeerById: jest.fn((_id: string) => mockPeer),
+        getRTCPeerWithLocalOffer: jest.fn(() => mockPeer),
         setState: jest.fn(),
       } as any
 
@@ -304,7 +295,6 @@ describe('vertoEventWorker', () => {
         },
         sessionChannel,
         instance,
-        initialState,
       })
         .provide([
           {
@@ -351,8 +341,8 @@ describe('vertoEventWorker', () => {
         .silentRun()
         .finally(() => {
           expect(dispatchedActions).toHaveLength(1)
-          expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
-          expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
+          expect(instance.getRTCPeerWithLocalOffer).toHaveBeenCalledTimes(1)
+          expect(instance.getRTCPeerWithLocalOffer).toHaveBeenCalledWith()
           expect(instance.setState).toHaveBeenCalledTimes(1)
           expect(instance.setState).toHaveBeenCalledWith('active')
           expect(mockPeer.onRemoteSdp).toHaveBeenCalledTimes(0)
@@ -374,7 +364,7 @@ describe('vertoEventWorker', () => {
         peer: {
           uuid: 'active',
         },
-        getRTCPeerById: jest.fn((_id: string) => mockPeer),
+        getRTCPeerWithLocalOffer: jest.fn(() => mockPeer),
         setState: jest.fn(),
       } as any
 
@@ -387,7 +377,6 @@ describe('vertoEventWorker', () => {
         },
         sessionChannel,
         instance,
-        initialState,
       })
         .provide([
           {
@@ -435,8 +424,8 @@ describe('vertoEventWorker', () => {
         .silentRun()
         .finally(() => {
           expect(dispatchedActions).toHaveLength(1)
-          expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
-          expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
+          expect(instance.getRTCPeerWithLocalOffer).toHaveBeenCalledTimes(1)
+          expect(instance.getRTCPeerWithLocalOffer).toHaveBeenCalledWith()
           expect(instance.setState).toHaveBeenCalledTimes(1)
           expect(instance.setState).toHaveBeenCalledWith('active')
           expect(mockPeer.onRemoteSdp).toHaveBeenCalledTimes(1)
@@ -459,7 +448,7 @@ describe('vertoEventWorker', () => {
         peer: {
           uuid: 'active',
         },
-        getRTCPeerById: jest.fn((_id: string) => mockPeer),
+        getRTCPeerWithLocalOffer: jest.fn(() => mockPeer),
         setState: jest.fn(),
       } as any
 
@@ -472,7 +461,6 @@ describe('vertoEventWorker', () => {
         },
         sessionChannel,
         instance,
-        initialState,
       })
         .provide([
           {
@@ -519,8 +507,8 @@ describe('vertoEventWorker', () => {
         .silentRun()
         .finally(() => {
           expect(dispatchedActions).toHaveLength(1)
-          expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
-          expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
+          expect(instance.getRTCPeerWithLocalOffer).toHaveBeenCalledTimes(1)
+          expect(instance.getRTCPeerWithLocalOffer).toHaveBeenCalledWith()
           expect(instance.setState).toHaveBeenCalledTimes(0)
           expect(mockPeer.onRemoteSdp).toHaveBeenCalledTimes(0)
         })
@@ -557,7 +545,6 @@ describe('vertoEventWorker', () => {
         },
         sessionChannel,
         instance,
-        initialState,
       })
         .provide([
           {
@@ -630,10 +617,7 @@ describe('vertoEventWorker', () => {
         applyMediaConstraints: jest.fn(),
       }
       const instance = {
-        peer: {
-          uuid: 'active',
-        },
-        getRTCPeerById: jest.fn((_id: string) => mockPeer),
+        peer: mockPeer,
         setState: jest.fn(),
       } as any
 
@@ -646,7 +630,6 @@ describe('vertoEventWorker', () => {
         },
         sessionChannel,
         instance,
-        initialState,
       })
         .provide([
           {
@@ -691,8 +674,6 @@ describe('vertoEventWorker', () => {
         .silentRun()
         .finally(() => {
           expect(dispatchedActions).toHaveLength(0)
-          expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
-          expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
           expect(mockPeer.applyMediaConstraints).toHaveBeenCalledTimes(1)
           expect(mockPeer.applyMediaConstraints).toHaveBeenCalledWith('audio', {
             autoGainControl: true,
@@ -714,9 +695,7 @@ describe('vertoEventWorker', () => {
         applyMediaConstraints: jest.fn(),
       }
       const instance = {
-        peer: {
-          uuid: 'active',
-        },
+        peer: mockPeer,
         getRTCPeerById: jest.fn((_id: string) => mockPeer),
         setState: jest.fn(),
       } as any
@@ -730,7 +709,6 @@ describe('vertoEventWorker', () => {
         },
         sessionChannel,
         instance,
-        initialState,
       })
         .provide([
           {
@@ -776,8 +754,7 @@ describe('vertoEventWorker', () => {
         .silentRun()
         .finally(() => {
           expect(dispatchedActions).toHaveLength(0)
-          expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
-          expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
+          expect(instance.getRTCPeerById).not.toHaveBeenCalled()
           expect(mockPeer.applyMediaConstraints).toHaveBeenCalledTimes(1)
           expect(mockPeer.applyMediaConstraints).toHaveBeenCalledWith('video', {
             frameRate: 30,
