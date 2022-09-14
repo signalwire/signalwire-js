@@ -40,30 +40,9 @@ export const roomSubscribedWorker: SDKWorker<
       return false
     })
 
-  const memberId = action.payload.member_id
-  const roomSessionId = action.payload.room_session.id
-
-  /**
-   * For screenShare/additionalDevice we're using
-   * the `memberId` to namespace the object.
-   **/
-  if (instance.options.additionalDevice || instance.options.screenShare) {
-    if (!memberId) {
-      throw new Error('[roomSubscribedWorker] missing memberId')
-    }
-
-    // @ts-expect-error
-    instance._attachListeners(memberId)
-  } else {
-    if (!roomSessionId) {
-      throw new Error('[roomSubscribedWorker] missing roomSessionId')
-    }
-
-    // @ts-expect-error
-    instance._attachListeners(roomSessionId)
-  }
-
   // FIXME: Move to a better place when rework _attachListeners too.
+  // @ts-expect-error
+  instance._attachListeners(action.payload.room_session.id)
   // @ts-expect-error
   instance.applyEmitterTransforms()
 
