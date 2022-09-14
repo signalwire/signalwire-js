@@ -1,4 +1,5 @@
 import {
+  uuid,
   VertoBye,
   VertoInfo,
   VertoInvite,
@@ -67,6 +68,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     Rooms.BaseRoomInterface<EventTypes & BaseConnectionStateEventTypes>,
     BaseConnectionContract<EventTypes & BaseConnectionStateEventTypes>
 {
+  public callId = uuid()
   public direction: 'inbound' | 'outbound'
   public options: BaseConnectionOptions<
     EventTypes & BaseConnectionStateEventTypes
