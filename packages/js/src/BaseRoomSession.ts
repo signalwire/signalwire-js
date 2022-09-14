@@ -39,11 +39,13 @@ import {
   RoomSessionScreenShareAPI,
   RoomSessionScreenShareConnection,
   RoomSessionScreenShare,
+  RoomSessionScreenShareEvents,
 } from './RoomSessionScreenShare'
 import {
   RoomSessionDeviceAPI,
   RoomSessionDeviceConnection,
   RoomSessionDevice,
+  RoomSessionDeviceEvents,
 } from './RoomSessionDevice'
 import * as workers from './video/workers'
 
@@ -308,7 +310,7 @@ export class RoomSessionConnection
     }
 
     const screenShare = connect<
-      BaseConnectionStateEventTypes,
+      RoomSessionScreenShareEvents,
       RoomSessionScreenShareConnection,
       RoomSessionScreenShare
     >({
@@ -403,7 +405,7 @@ export class RoomSessionConnection
     }
 
     const roomDevice = connect<
-      BaseConnectionStateEventTypes,
+      RoomSessionDeviceEvents,
       RoomSessionDeviceConnection,
       RoomSessionDevice
     >({

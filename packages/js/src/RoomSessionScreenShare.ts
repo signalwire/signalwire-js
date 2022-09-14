@@ -2,25 +2,34 @@ import {
   Rooms,
   extendComponent,
   BaseConnectionContract,
+  BaseConnectionState,
+  RoomLeft,
 } from '@signalwire/core'
-import {
-  BaseConnection,
-  BaseConnectionStateEventTypes,
-} from '@signalwire/webrtc'
+import { BaseConnection } from '@signalwire/webrtc'
 import { RoomScreenShareMethods } from './utils/interfaces'
+
+type RoomSessionScreenShareEventsHandlerMap = Record<
+  BaseConnectionState,
+  (params: RoomSessionScreenShare) => void
+> &
+  Record<RoomLeft, (params: void) => void>
+
+export type RoomSessionScreenShareEvents = {
+  [k in keyof RoomSessionScreenShareEventsHandlerMap]: RoomSessionScreenShareEventsHandlerMap[k]
+}
 
 /** @deprecated Use {@link RoomSessionScreenShare} instead */
 export interface RoomScreenShare extends RoomSessionScreenShare {}
 export interface RoomSessionScreenShare
   extends RoomScreenShareMethods,
-    BaseConnectionContract<BaseConnectionStateEventTypes> {
+    BaseConnectionContract<RoomSessionScreenShareEvents> {
   join(): Promise<void>
   leave(): Promise<void>
   /** @internal */
-  runWorker: BaseConnection<BaseConnectionStateEventTypes>['runWorker']
+  runWorker: BaseConnection<RoomSessionScreenShareEvents>['runWorker']
 }
 
-export class RoomSessionScreenShareConnection extends BaseConnection<BaseConnectionStateEventTypes> {
+export class RoomSessionScreenShareConnection extends BaseConnection<RoomSessionScreenShareEvents> {
   join() {
     return super.invite()
   }

@@ -50,8 +50,7 @@ const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   iceGatheringTimeout: 2 * 1000,
 }
 
-type EventsHandlerMapping = Record<BaseConnectionState, () => void> &
-  Record<string, () => void>
+type EventsHandlerMapping = Record<BaseConnectionState, (params: any) => void>
 
 export type BaseConnectionStateEventTypes = {
   [k in BaseConnectionState]: EventsHandlerMapping[k]
