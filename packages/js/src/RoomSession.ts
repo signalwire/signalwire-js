@@ -134,8 +134,9 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
         const authState: VideoAuthorization = client._sessionAuthState
         const mediaOptions = getJoinMediaParams({
           authState,
-          audio,
-          video,
+          // constructor values override the send
+          sendAudio: Boolean(audioFromConstructor),
+          sendVideo: Boolean(videoFromConstructor),
           ...params,
         })
 
