@@ -760,6 +760,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     negotiateAudio?: boolean
     negotiateVideo?: boolean
   }) {
+    this.logger.debug('updateMediaOptions', { ...options })
     this.options = {
       ...this.options,
       ...options,

@@ -23,6 +23,7 @@ export const getJoinMediaParams = (options: GetJoinMediaParamsOptions) => {
     receiveAudio,
     receiveVideo,
   } = options
+  getLogger().debug('getJoinMediaParams options', { ...options })
   const { audio_allowed, video_allowed, join_as } = authState
   // Fallback to 'member' in case of null/undefined
   const joinAs = join_as ?? 'member'
