@@ -39,6 +39,7 @@ describe('childMemberJoinedWorker', () => {
       },
       sessionChannel,
       instance: {
+        id: 'instance-id',
         _attachListeners: jest.fn(),
         applyEmitterTransforms: jest.fn(),
       } as any,
@@ -78,7 +79,7 @@ describe('childMemberJoinedWorker', () => {
       ])
       .put(
         componentActions.upsert({
-          id: 'b8912cc5-4248-4345-b53c-d53b2761748d',
+          id: 'instance-id',
           roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
           roomSessionId: '313bedbe-edc9-4653-b332-34fbf43e8289',
           memberId: 'b8912cc5-4248-4345-b53c-d53b2761748d',

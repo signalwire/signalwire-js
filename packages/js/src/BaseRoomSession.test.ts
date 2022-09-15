@@ -590,6 +590,8 @@ describe('Room Object', () => {
         // @ts-expect-error
         emitter,
       })
+      // @ts-expect-error
+      room.callId = callId
       store.dispatch(
         componentActions.upsert({
           id: callId,
@@ -638,6 +640,8 @@ describe('Room Object', () => {
         // @ts-expect-error
         emitter,
       })
+      // @ts-expect-error
+      room.callId = callId
       store.dispatch(
         componentActions.upsert({
           id: callId,
