@@ -77,8 +77,8 @@ export interface RoomSession extends BaseRoomSession<RoomSession> {
  */
 export const RoomSession = function (roomOptions: RoomSessionOptions) {
   const {
-    audio: audioFromConstructor,
-    video: videoFromConstructor,
+    audio: audioFromConstructor = true,
+    video: videoFromConstructor = true,
     iceServers,
     rootElement,
     applyLocalVideoOverlay = true,
