@@ -26,6 +26,19 @@ interface OnVertoByeParams {
   redirectDestination?: string
 }
 
+const AUDIO_CONSTRAINTS: MediaTrackConstraints = {
+  echoCancellation: true,
+  noiseSuppression: true,
+  autoGainControl: true,
+}
+const AUDIO_CONSTRAINTS_SCREENSHARE: MediaTrackConstraints = {
+  ...AUDIO_CONSTRAINTS,
+  noiseSuppression: false,
+  autoGainControl: false,
+  // @ts-expect-error
+  googAutoGainControl: false,
+}
+
 const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
   width: { ideal: 1280, min: 320 },
   height: { ideal: 720, min: 180 },
@@ -38,7 +51,7 @@ const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   remoteCallerNumber: '',
   callerName: '',
   callerNumber: '',
-  audio: true,
+  audio: AUDIO_CONSTRAINTS,
   video: VIDEO_CONSTRAINTS,
   useStereo: false,
   attach: false,
@@ -98,7 +111,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       ...DEFAULT_CALL_OPTIONS,
       ...options,
     }
-    this._checkDefaultVideoOptions()
+    this._checkDefaultMediaConstraints()
 
     this.setState('new')
     this.logger.debug('New Call with Options:', this.options)
@@ -765,7 +778,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       ...this.options,
       ...options,
     }
-    this._checkDefaultVideoOptions()
+    this._checkDefaultMediaConstraints()
   }
 
   /** @internal */
@@ -821,12 +834,18 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   /**
    * Always use VIDEO_CONSTRAINTS if video: true
+   * Always use AUDIO_CONSTRAINTS (or the SS one) if audio: true
    *
    * @internal
    */
-  private _checkDefaultVideoOptions() {
+  private _checkDefaultMediaConstraints() {
     if (this.options.video === true) {
       this.options.video = VIDEO_CONSTRAINTS
+    }
+    if (this.options.audio === true) {
+      this.options.audio = this.options.screenShare
+        ? AUDIO_CONSTRAINTS_SCREENSHARE
+        : AUDIO_CONSTRAINTS
     }
   }
 
