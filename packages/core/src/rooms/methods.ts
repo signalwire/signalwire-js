@@ -481,11 +481,11 @@ export const setInputSensitivityMember = createRoomMemberMethod<
 
 interface PromoteDemoteMemberParams extends Required<MemberCommandParams> {
   mediaAllowed?: MediaAllowed
-  meta?: VideoMeta
 }
 
 export interface PromoteMemberParams extends PromoteDemoteMemberParams {
   permissions?: string[]
+  meta?: VideoMeta
   joinAudioMuted?: boolean
   joinVideoMuted?: boolean
 }
@@ -518,7 +518,7 @@ export const promote: RoomMethodDescriptor<void, PromoteMemberParams> = {
 
 export interface DemoteMemberParams extends PromoteDemoteMemberParams {}
 export const demote: RoomMethodDescriptor<void, DemoteMemberParams> = {
-  value: function ({ memberId, mediaAllowed, ...rest }) {
+  value: function ({ memberId, mediaAllowed }) {
     return this.execute<unknown, void, DemoteMemberParams>(
       {
         method: 'video.member.demote',
@@ -526,7 +526,6 @@ export const demote: RoomMethodDescriptor<void, DemoteMemberParams> = {
           room_session_id: this.roomSessionId,
           member_id: memberId,
           media_allowed: mediaAllowed,
-          ...rest,
         },
       },
       {

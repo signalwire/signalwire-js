@@ -214,13 +214,6 @@ describe('Room Custom Methods', () => {
       await instance.demote({
         memberId: 'c22d7124-5a01-49fe-8da0-46bec8e75f12',
         mediaAllowed: 'all',
-        permissions: [
-          'room.self.audio_mute',
-          'room.self.audio_unmute',
-          'room.self.video_mute',
-          'room.self.video_unmute',
-          'room.list_available_layouts',
-        ],
       })
 
       expect(instance.execute).toHaveBeenCalledTimes(1)
@@ -231,13 +224,6 @@ describe('Room Custom Methods', () => {
             room_session_id: 'mocked',
             member_id: 'c22d7124-5a01-49fe-8da0-46bec8e75f12',
             media_allowed: 'all',
-            permissions: [
-              'room.self.audio_mute',
-              'room.self.audio_unmute',
-              'room.self.video_mute',
-              'room.self.video_unmute',
-              'room.list_available_layouts',
-            ],
           },
         },
         {
