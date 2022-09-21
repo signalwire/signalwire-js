@@ -244,6 +244,7 @@ export function* sessionChannelWatcher({
 export function createSessionChannel(session: BaseSession) {
   return eventChannel((emit) => {
     session.dispatch = (payload: PayloadAction<any>) => {
+      getLogger().debug('[session.dispatch]', payload)
       emit(payload)
     }
 

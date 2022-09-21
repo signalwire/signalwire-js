@@ -129,6 +129,14 @@ export class BaseSession {
     return this._status
   }
 
+  get idle() {
+    return this._status === 'idle'
+  }
+
+  get ready() {
+    return !Boolean(this.idle || !this.connected)
+  }
+
   set token(token: string) {
     this.options.token = token
   }
@@ -197,7 +205,7 @@ export class BaseSession {
      * if it's already in closing state.
      */
     if (!this._socket || this.closing) {
-      this.logger.warn('Session not connected or already in closing state.')
+      this.logger.debug('Session not connected or already in closing state.')
       return
     }
 
@@ -211,7 +219,7 @@ export class BaseSession {
    * @return Promise that will resolve/reject depending on the server response
    */
   execute(msg: JSONRPCRequest | JSONRPCResponse): Promise<any> {
-    if (this._status === 'idle' || !this.connected) {
+    if (!this.ready) {
       return Promise.reject(
         "Can't call `execute` when Session is not authorized."
       )
