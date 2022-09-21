@@ -2,4 +2,4 @@
 '@signalwire/js': patch
 ---
 
-Disable createRootElementResizeObserver
+[internal] Disable createRootElementResizeObserver.

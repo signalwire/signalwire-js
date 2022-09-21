@@ -3,4 +3,4 @@
 '@sw-internal/playground-js': patch
 ---
 
-Add check for room.left in screenShare objects.
+Add check for `room.left` in screenShare objects.

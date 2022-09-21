@@ -2,4 +2,4 @@
 '@signalwire/js': patch
 ---
 
-Disable PiP on the local video overlay
+Disable Picture-in-Picture on the local video overlay.

@@ -2,4 +2,4 @@
 '@signalwire/js': patch
 ---
 
-Fix bug on RoomSession screenShare leave/hangup logic.
+Fix bug on the `RoomSession` screenShare leave logic.

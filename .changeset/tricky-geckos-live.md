@@ -2,4 +2,4 @@
 '@signalwire/core': patch
 ---
 
-Update internal interfaces for the Authorization block
+[internal] Update interfaces for the Authorization block.
