@@ -139,10 +139,14 @@ export function* initSessionSaga({
   // compCleanupTask?.cancel()
   pubSubTask.cancel()
   sessionStatusTask.cancel()
-  pubSubChannel.close()
   sessionChannel.close()
-  swEventChannel.close()
   customTasks.forEach((task) => task.cancel())
+  /**
+   * Do not close pubSubChannel and swEventChannel
+   * since we may need them again in case of reauth/reconnect
+   * // pubSubChannel.close()
+   * // swEventChannel.close()
+   */
 }
 
 export function* socketClosedWorker({
