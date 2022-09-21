@@ -106,6 +106,14 @@ export function* initSessionSaga({
   })
 
   /**
+   * Fork the watcher for the pubSubChannel
+   */
+  const pubSubTask: Task = yield fork(pubSubSaga, {
+    pubSubChannel,
+    emitter: userOptions.emitter!,
+  })
+
+  /**
    * Fork the watcher for the session status
    */
   const sessionStatusTask: Task = yield fork(sessionStatusWatcher, {
@@ -129,6 +137,7 @@ export function* initSessionSaga({
    * destroyed, most likely because it's using a timer.
    */
   // compCleanupTask?.cancel()
+  pubSubTask.cancel()
   sessionStatusTask.cancel()
   pubSubChannel.close()
   sessionChannel.close()
@@ -249,12 +258,8 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
 export function* startSaga(options: StartSagaOptions): SagaIterator {
   getLogger().debug('startSaga [started]')
   try {
-    const { session, pubSubChannel, userOptions } = options
+    const { session, pubSubChannel } = options
 
-    const pubSubTask: Task = yield fork(pubSubSaga, {
-      pubSubChannel,
-      emitter: userOptions.emitter!,
-    })
     /**
      * Fork the watcher for all the execute requests
      */
@@ -276,7 +281,6 @@ export function* startSaga(options: StartSagaOptions): SagaIterator {
      */
     yield take(closeConnectionAction.type)
 
-    pubSubTask.cancel()
     executeActionTask.cancel()
     flushExecuteQueueTask.cancel()
   } finally {
@@ -293,19 +297,13 @@ export function* sessionAuthErrorSaga(
   options: SessionAuthErrorOptions
 ): SagaIterator {
   getLogger().debug('sessionAuthErrorSaga [started]')
-  let pubSubTask: Task | undefined
 
   try {
-    const { pubSubChannel, userOptions, sessionChannel, action } = options
+    const { pubSubChannel, session, action } = options
     const { error: authError } = action.payload
     const error = authError
       ? new AuthError(authError.code, authError.message)
       : new Error('Unauthorized')
-
-    pubSubTask = yield fork(pubSubSaga, {
-      pubSubChannel,
-      emitter: userOptions.emitter!,
-    })
 
     yield put(pubSubChannel, sessionAuthErrorAction(error))
 
