@@ -312,16 +312,11 @@ export function* sessionAuthErrorSaga(
     /**
      * Force-close the sessionChannel to disconnect the Session
      */
-    sessionChannel.close()
+    yield call([session, session.disconnect])
   } finally {
     if (yield cancelled()) {
-      getLogger().debug(
-        'sessionAuthErrorSaga [cancelled]',
-        pubSubTask?.isCancelled()
-      )
+      getLogger().debug('sessionAuthErrorSaga [cancelled]')
     }
-    yield delay(10)
-    yield put(destroyAction())
   }
 }
 
