@@ -184,6 +184,8 @@ export function* reauthenticateWorker({
     if (session.reauthenticate) {
       session.token = token
       yield call(session.reauthenticate)
+      // Update the store with the new "connect result"
+      yield put(sessionActions.connected(session.rpcConnectResult))
       yield put(pubSubChannel, sessionConnectedAction())
     }
   } catch (error) {
