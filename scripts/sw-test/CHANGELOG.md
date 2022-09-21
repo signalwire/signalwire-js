@@ -1,5 +1,11 @@
 # @sw-internal/test
 
+## 0.0.2
+
+### Patch Changes
+
+- [#637](https://github.com/signalwire/signalwire-js/pull/637) [`5c3abab6`](https://github.com/signalwire/signalwire-js/commit/5c3abab6f2b9e47b17417f4378898cf240d12dba) - [internal] Tests now throw errors if/when config values are missing.
+
 ## 0.0.1
 
 ### Patch Changes

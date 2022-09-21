@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.7] - 2022-09-21
+
+### Changed
+
+- [#643](https://github.com/signalwire/signalwire-js/pull/643) [`1d2fd5f8`](https://github.com/signalwire/signalwire-js/commit/1d2fd5f8836c94df23ee421fffe2fec67d74c57d) - Update `RTCPeer` to support environments where Unified-Plan and all the related RTC apis are not supported yet.
+
+* [#636](https://github.com/signalwire/signalwire-js/pull/636) [`b9fb5deb`](https://github.com/signalwire/signalwire-js/commit/b9fb5deb967ab77f54731cd83a10726cd01f1a40) - Improve WebRTC feature detection.
+
+- [#631](https://github.com/signalwire/signalwire-js/pull/631) [`c00b343e`](https://github.com/signalwire/signalwire-js/commit/c00b343ed48305c12fcc599e46e76f2116ab2706) - Allow RTC connection with sendonly direction.
+
+- [#650](https://github.com/signalwire/signalwire-js/pull/650) [`39ff2060`](https://github.com/signalwire/signalwire-js/commit/39ff2060ef2b13e4e83a8cba2a4433fb552af38e) - Use default audio constraints if `true` is passed.
+
+* [#645](https://github.com/signalwire/signalwire-js/pull/645) [`c76d6387`](https://github.com/signalwire/signalwire-js/commit/c76d638753678421680b183468f3bf2ad5932a41) - Internal changes to run the _roomSubscribed_ worker only for the main connection.
+
+### Dependencies
+
+- Updated dependencies [[`569213c8`](https://github.com/signalwire/signalwire-js/commit/569213c874b30d7c1452eb56775ee5aa9d370252), [`6cf01e1c`](https://github.com/signalwire/signalwire-js/commit/6cf01e1cecfc30395691aae68b6be15de140bd41), [`577e81d3`](https://github.com/signalwire/signalwire-js/commit/577e81d31cd237e87518a61532148c8c8563c3f6), [`0e7bffdd`](https://github.com/signalwire/signalwire-js/commit/0e7bffdd8ace2233c90c48fde925215e8753d53b), [`f1102bb6`](https://github.com/signalwire/signalwire-js/commit/f1102bb6817f119b2f7b063c7e1e5ab2be4e8ec5), [`5c3abab6`](https://github.com/signalwire/signalwire-js/commit/5c3abab6f2b9e47b17417f4378898cf240d12dba), [`577e81d3`](https://github.com/signalwire/signalwire-js/commit/577e81d31cd237e87518a61532148c8c8563c3f6), [`c00b343e`](https://github.com/signalwire/signalwire-js/commit/c00b343ed48305c12fcc599e46e76f2116ab2706)]:
+  - @signalwire/core@3.12.0
+
 ## [3.5.6] - 2022-08-17
 
 ### Changed

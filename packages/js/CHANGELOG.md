@@ -4,6 +4,32 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.15.0] - 2022-09-21
+
+### Added
+
+- [#633](https://github.com/signalwire/signalwire-js/pull/633) [`f1102bb6`](https://github.com/signalwire/signalwire-js/commit/f1102bb6817f119b2f7b063c7e1e5ab2be4e8ec5) - Expose `getStreams` and `startStream` on the `RoomSession` object.
+
+* [#627](https://github.com/signalwire/signalwire-js/pull/627) [`6cf01e1c`](https://github.com/signalwire/signalwire-js/commit/6cf01e1cecfc30395691aae68b6be15de140bd41) - Expose `getMeta` and `getMemberMeta` methods on the RoomSession.
+
+### Changed
+
+- [#652](https://github.com/signalwire/signalwire-js/pull/652) [`7febdb3e`](https://github.com/signalwire/signalwire-js/commit/7febdb3eb4c058737387e27ed7835ce69b6b71ce) - Disable Picture-in-Picture on the local video overlay.
+
+### Fixed
+
+- [#645](https://github.com/signalwire/signalwire-js/pull/645) [`c76d6387`](https://github.com/signalwire/signalwire-js/commit/c76d638753678421680b183468f3bf2ad5932a41) - Fix bug on the `RoomSession` screenShare leave logic.
+
+* [#641](https://github.com/signalwire/signalwire-js/pull/641) [`569213c8`](https://github.com/signalwire/signalwire-js/commit/569213c874b30d7c1452eb56775ee5aa9d370252) - Fix video render for RoomSession in certain aspect ratio related to the rootElement.
+
+- [#638](https://github.com/signalwire/signalwire-js/pull/638) [`1ba9daa6`](https://github.com/signalwire/signalwire-js/commit/1ba9daa60a2c543ab57ff4f33210567e8ddc384e) - Set `width: 100%` on contentWrapper to always give size to the MCU.
+
+### Dependencies
+
+- Updated dependencies [[`1d2fd5f8`](https://github.com/signalwire/signalwire-js/commit/1d2fd5f8836c94df23ee421fffe2fec67d74c57d), [`569213c8`](https://github.com/signalwire/signalwire-js/commit/569213c874b30d7c1452eb56775ee5aa9d370252), [`b9fb5deb`](https://github.com/signalwire/signalwire-js/commit/b9fb5deb967ab77f54731cd83a10726cd01f1a40), [`6cf01e1c`](https://github.com/signalwire/signalwire-js/commit/6cf01e1cecfc30395691aae68b6be15de140bd41), [`c00b343e`](https://github.com/signalwire/signalwire-js/commit/c00b343ed48305c12fcc599e46e76f2116ab2706), [`577e81d3`](https://github.com/signalwire/signalwire-js/commit/577e81d31cd237e87518a61532148c8c8563c3f6), [`0e7bffdd`](https://github.com/signalwire/signalwire-js/commit/0e7bffdd8ace2233c90c48fde925215e8753d53b), [`f1102bb6`](https://github.com/signalwire/signalwire-js/commit/f1102bb6817f119b2f7b063c7e1e5ab2be4e8ec5), [`5c3abab6`](https://github.com/signalwire/signalwire-js/commit/5c3abab6f2b9e47b17417f4378898cf240d12dba), [`577e81d3`](https://github.com/signalwire/signalwire-js/commit/577e81d31cd237e87518a61532148c8c8563c3f6), [`39ff2060`](https://github.com/signalwire/signalwire-js/commit/39ff2060ef2b13e4e83a8cba2a4433fb552af38e), [`c00b343e`](https://github.com/signalwire/signalwire-js/commit/c00b343ed48305c12fcc599e46e76f2116ab2706), [`c76d6387`](https://github.com/signalwire/signalwire-js/commit/c76d638753678421680b183468f3bf2ad5932a41)]:
+  - @signalwire/webrtc@3.5.7
+  - @signalwire/core@3.12.0
+
 ## [3.14.0] - 2022-08-17
 
 ### Added

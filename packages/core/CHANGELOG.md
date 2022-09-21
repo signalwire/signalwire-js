@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.12.0] - 2022-09-21
+
+### Added
+
+- [#627](https://github.com/signalwire/signalwire-js/pull/627) [`6cf01e1c`](https://github.com/signalwire/signalwire-js/commit/6cf01e1cecfc30395691aae68b6be15de140bd41) - Expose `getMeta` and `getMemberMeta` methods on the RoomSession.
+
+* [#633](https://github.com/signalwire/signalwire-js/pull/633) [`f1102bb6`](https://github.com/signalwire/signalwire-js/commit/f1102bb6817f119b2f7b063c7e1e5ab2be4e8ec5) - Add methods, interfaces and utils to support the Stream APIs.
+
+### Changed
+
+- [#641](https://github.com/signalwire/signalwire-js/pull/641) [`569213c8`](https://github.com/signalwire/signalwire-js/commit/569213c874b30d7c1452eb56775ee5aa9d370252) - Move debounce implementation from `realtime-api` to `core`.
+
+- [#630](https://github.com/signalwire/signalwire-js/pull/630) [`577e81d3`](https://github.com/signalwire/signalwire-js/commit/577e81d31cd237e87518a61532148c8c8563c3f6) - Restore timestamps on browser logs.
+
+- [#630](https://github.com/signalwire/signalwire-js/pull/630) [`577e81d3`](https://github.com/signalwire/signalwire-js/commit/577e81d31cd237e87518a61532148c8c8563c3f6) - [internal] Export ReduxComponent from core and use it on webrtc to make explicit.
+
+- [#631](https://github.com/signalwire/signalwire-js/pull/631) [`c00b343e`](https://github.com/signalwire/signalwire-js/commit/c00b343ed48305c12fcc599e46e76f2116ab2706) - [internal] Update interfaces for the Authorization block.
+
+### Fixed
+
+- [#640](https://github.com/signalwire/signalwire-js/pull/640) [`0e7bffdd`](https://github.com/signalwire/signalwire-js/commit/0e7bffdd8ace2233c90c48fde925215e8753d53b) - Dispatch `member.updated` event in case of the local cache is empty.
+
+* [#637](https://github.com/signalwire/signalwire-js/pull/637) [`5c3abab6`](https://github.com/signalwire/signalwire-js/commit/5c3abab6f2b9e47b17417f4378898cf240d12dba) - Fix `getMeta`/`getMemberMeta` return values.
+
 ## [3.11.0] - 2022-08-17
 
 ### Added

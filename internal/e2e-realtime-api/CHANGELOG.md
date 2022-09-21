@@ -1,5 +1,11 @@
 # @sw-internal/e2e-realtime-api
 
+## 0.1.3
+
+### Patch Changes
+
+- [#628](https://github.com/signalwire/signalwire-js/pull/628) [`139ab264`](https://github.com/signalwire/signalwire-js/commit/139ab2648ed97369976e42ca63eed6c5295fca6b) - [internal] remove unused file.
+
 ## 0.1.2
 
 ### Patch Changes
