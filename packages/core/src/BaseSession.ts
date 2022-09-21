@@ -306,7 +306,8 @@ export class BaseSession {
     // `disconnect` method in constructors like `Chat`. We
     // left it like this because multiple tests were failing
     // because of some race conditions.
-    this._status = event.code == 1000 ? 'disconnected' : 'reconnecting'
+    this._status =
+      event.code == 1000 || event.code == 1002 ? 'disconnected' : 'reconnecting'
     this.dispatch(socketClosedAction())
     this._socket = null
   }
