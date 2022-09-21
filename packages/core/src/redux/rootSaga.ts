@@ -346,24 +346,31 @@ export default (options: RootSagaOptions) => {
 
     yield fork(executeQueueWatcher)
 
+    while (true) {
+      getLogger().warn('Wait for rootSaga to init...')
     /**
      * Wait for an initAction to start
      */
     yield take(initAction.type)
 
-    /**
-     * Create Session and related sessionChannel to
-     * send/receive websocket messages
-     */
-    try {
-      yield call(initSessionSaga, {
-        ...options,
-        userOptions,
-        channels,
-      })
-    } catch (error) {
-      getLogger().error('RootSaga Error:', error)
-      return
+      /**
+       * Create Session and related sessionChannel to
+       * send/receive websocket messages
+       */
+      try {
+        yield call(initSessionSaga, {
+          ...options,
+          userOptions,
+          channels,
+        })
+      } catch (error) {
+        getLogger().error('RootSaga Error:', error)
+      } finally {
+        if (yield cancelled()) {
+          getLogger().debug('rootSaga [cancelled]')
+        }
+        getLogger().debug('Reboot rootSaga')
+      }
     }
   }
 }
