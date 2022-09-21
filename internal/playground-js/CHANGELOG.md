@@ -1,5 +1,13 @@
 # @sw-internal/playground-js
 
+## 0.0.8
+
+### Patch Changes
+
+- [#645](https://github.com/signalwire/signalwire-js/pull/645) [`c76d6387`](https://github.com/signalwire/signalwire-js/commit/c76d638753678421680b183468f3bf2ad5932a41) - Add check for `room.left` in screenShare objects.
+
+* [#641](https://github.com/signalwire/signalwire-js/pull/641) [`569213c8`](https://github.com/signalwire/signalwire-js/commit/569213c874b30d7c1452eb56775ee5aa9d370252) - Update playground-js to allow resize of the rootElement.
+
 ## 0.0.7
 
 ### Patch Changes

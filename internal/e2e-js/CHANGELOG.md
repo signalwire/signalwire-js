@@ -1,5 +1,18 @@
 # @sw-internal/e2e-js
 
+## 0.0.5
+
+### Patch Changes
+
+- [#645](https://github.com/signalwire/signalwire-js/pull/645) [`c76d6387`](https://github.com/signalwire/signalwire-js/commit/c76d638753678421680b183468f3bf2ad5932a41) - Add check for `room.left` in screenShare objects.
+
+* [#633](https://github.com/signalwire/signalwire-js/pull/633) [`f1102bb6`](https://github.com/signalwire/signalwire-js/commit/f1102bb6817f119b2f7b063c7e1e5ab2be4e8ec5) - Add e2e for the Stream APIs.
+
+- [#637](https://github.com/signalwire/signalwire-js/pull/637) [`5c3abab6`](https://github.com/signalwire/signalwire-js/commit/5c3abab6f2b9e47b17417f4378898cf240d12dba) - [internal] Tests now throw errors if/when config values are missing.
+
+- Updated dependencies [[`c76d6387`](https://github.com/signalwire/signalwire-js/commit/c76d638753678421680b183468f3bf2ad5932a41), [`569213c8`](https://github.com/signalwire/signalwire-js/commit/569213c874b30d7c1452eb56775ee5aa9d370252)]:
+  - @sw-internal/playground-js@0.0.8
+
 ## 0.0.4
 
 ### Patch Changes
