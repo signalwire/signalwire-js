@@ -72,7 +72,7 @@ export interface RoomSession extends BaseRoomSession<RoomSession> {
  *   console.log(`${e.member.name} joined`)
  * })
  *
- * roomSession.join()
+ * roomSession.join({ receiveAudio: true, sendVideo: false })
  * ```
  */
 export const RoomSession = function (roomOptions: RoomSessionOptions) {
@@ -88,14 +88,14 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     ...userOptions
   } = roomOptions
 
-  const deprecatedParams = ['audio', 'video']
-  deprecatedParams.forEach((param) => {
-    if (param in roomOptions) {
-      getLogger().warn(
-        `The '${param}' parameter on the RoomSession constructor is deprecated. Set it on the '.join()' function instead.`
-      )
-    }
-  })
+  // const deprecatedParams = ['audio', 'video']
+  // deprecatedParams.forEach((param) => {
+  //   if (param in roomOptions) {
+  //     getLogger().warn(
+  //       `The '${param}' parameter on the RoomSession constructor is deprecated. Set it on the '.join()' function instead.`
+  //     )
+  //   }
+  // })
 
   const client = createClient<RoomSession>(userOptions)
   const room = client.rooms.makeRoomObject({
