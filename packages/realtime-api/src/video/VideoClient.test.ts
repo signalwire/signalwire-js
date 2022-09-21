@@ -76,7 +76,7 @@ describe('VideoClient', () => {
               },
             })
             .then(() => {
-              expect(server).toReceiveMessage({
+              return expect(server).toReceiveMessage({
                 id: 'mocked-uuid',
                 jsonrpc: '2.0',
                 method: 'signalwire.subscribe',
@@ -103,6 +103,7 @@ describe('VideoClient', () => {
         error: jest.fn(),
         trace: jest.fn(),
         debug: jest.fn(),
+        info: jest.fn(),
         warn: jest.fn(),
       }
       const video = new Client({
