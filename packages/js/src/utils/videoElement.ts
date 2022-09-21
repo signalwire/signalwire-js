@@ -117,8 +117,10 @@ const makeLayoutChangedHandler =
 
         const localVideo = buildVideo()
         localVideo.srcObject = localStream
+        localVideo.disablePictureInPicture = true
         localVideo.style.width = '100%'
         localVideo.style.height = '100%'
+        localVideo.style.pointerEvents = 'none'
 
         myLayer.appendChild(localVideo)
 
