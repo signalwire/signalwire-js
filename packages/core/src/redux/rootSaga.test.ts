@@ -90,6 +90,7 @@ describe('sessionStatusWatcher', () => {
   const session = {
     closed: true,
     connect: jest.fn(),
+    disconnect: jest.fn(),
   } as any
   const pubSubChannel = createPubSubChannel()
   const sessionChannel = eventChannel(() => () => {})
@@ -128,22 +129,24 @@ describe('sessionStatusWatcher', () => {
       error: { code: 123, message: 'Protocol Error' },
     })
     const error = new AuthError(123, 'Protocol Error')
-    return expectSaga(sessionStatusWatcher, options)
-      .provide([
-        {
-          take(_opts, next) {
-            if (runSaga) {
-              runSaga = false
-              return action
-            }
-            return next()
+    return (
+      expectSaga(sessionStatusWatcher, options)
+        .provide([
+          {
+            take(_opts, next) {
+              if (runSaga) {
+                runSaga = false
+                return action
+              }
+              return next()
+            },
           },
-        },
-      ])
-      .fork(sessionAuthErrorSaga, { ...options, action })
-      .put(pubSubChannel, sessionAuthErrorAction(error))
-      .put(destroyAction())
-      .silentRun()
+        ])
+        .fork(sessionAuthErrorSaga, { ...options, action })
+        .put(pubSubChannel, sessionAuthErrorAction(error))
+        // .put(destroyAction())
+        .silentRun()
+    )
   })
 
   it('should fork socketClosedWorker on socketClosed action', () => {
@@ -187,8 +190,9 @@ describe('initSessionSaga', () => {
 
   it('should create the session, the sessionChannel and fork watchers', () => {
     const pubSubChannel = createPubSubChannel()
-    const swEventChannel = createSwEventChannel()
     pubSubChannel.close = jest.fn()
+    const swEventChannel = createSwEventChannel()
+    swEventChannel.close = jest.fn()
     const sessionChannel = eventChannel(() => () => {})
     sessionChannel.close = jest.fn()
     const saga = testSaga(initSessionSaga, {
@@ -202,7 +206,13 @@ describe('initSessionSaga', () => {
       pubSubChannel,
       swEventChannel,
     })
-    saga.next().fork(sessionStatusWatcher, {
+    saga.next().fork(pubSubSaga, {
+      pubSubChannel,
+      emitter: userOptions.emitter,
+    })
+    const pubSubTask = createMockTask()
+    pubSubTask.cancel = jest.fn()
+    saga.next(pubSubTask).fork(sessionStatusWatcher, {
       session,
       sessionChannel,
       pubSubChannel,
@@ -212,12 +222,12 @@ describe('initSessionSaga', () => {
     sessionStatusTask.cancel = jest.fn()
     // saga.next().fork(componentCleanupSaga)
     saga.next(sessionStatusTask).take(destroyAction.type)
-    saga.next().delay(300)
     saga.next().isDone()
+    expect(pubSubTask.cancel).toHaveBeenCalledTimes(1)
     expect(sessionStatusTask.cancel).toHaveBeenCalledTimes(1)
-    expect(pubSubChannel.close).toHaveBeenCalledTimes(1)
+    expect(pubSubChannel.close).not.toHaveBeenCalled()
+    expect(swEventChannel.close).not.toHaveBeenCalled()
     expect(sessionChannel.close).toHaveBeenCalledTimes(1)
-    saga.next().isDone()
     expect(session.connect).toHaveBeenCalledTimes(1)
   })
 })
@@ -243,16 +253,11 @@ describe('startSaga', () => {
   }
 
   it('should put actions and fork watchers', () => {
-    const pubSubTask = { cancel: jest.fn() }
     const executeActionTask = { cancel: jest.fn() }
     const executeQueueCallTask = { cancel: jest.fn() }
 
     const saga = testSaga(startSaga, options)
-    saga.next().fork(pubSubSaga, {
-      pubSubChannel,
-      emitter: userOptions.emitter,
-    })
-    saga.next(pubSubTask).fork(executeActionWatcher, session)
+    saga.next().fork(executeActionWatcher, session)
 
     saga
       .next(executeActionTask)
@@ -265,13 +270,12 @@ describe('startSaga', () => {
     saga.next().cancelled()
     saga.next().isDone()
 
-    expect(pubSubTask.cancel).toHaveBeenCalledTimes(1)
     expect(executeActionTask.cancel).toHaveBeenCalledTimes(1)
     expect(executeQueueCallTask.cancel).toHaveBeenCalledTimes(1)
   })
 })
 
-describe('rootSaga', () => {
+describe('rootSaga as restartable', () => {
   const pubSubChannel = createPubSubChannel()
   const swEventChannel = createSwEventChannel()
   it('wait for initAction and fork initSessionSaga', () => {
@@ -294,12 +298,13 @@ describe('rootSaga', () => {
     )
 
     saga.next().fork(executeQueueWatcher)
-    saga.next().take(initAction.type)
+    saga.next().take([initAction.type, reauthAction.type])
     saga.next().call(initSessionSaga, {
       SessionConstructor,
       userOptions,
       channels,
     })
-    saga.next().isDone()
+    saga.next().cancelled()
+    saga.next().take([initAction.type, reauthAction.type])
   })
 })

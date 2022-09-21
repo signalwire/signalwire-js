@@ -129,8 +129,6 @@ export function* initSessionSaga({
 
   yield take(destroyAction.type)
 
-  // leave a bit of space to other sagas to finish
-  yield delay(300)
   /**
    * We have to manually cancel the fork because it is not
    * being automatically cleaned up when the session is
@@ -349,7 +347,6 @@ export default (options: RootSagaOptions) => {
     yield fork(executeQueueWatcher)
 
     while (true) {
-      getLogger().warn('Wait for rootSaga to init...')
       /**
        * Wait for an initAction to start
        */
