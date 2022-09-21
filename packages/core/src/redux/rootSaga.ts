@@ -348,10 +348,18 @@ export default (options: RootSagaOptions) => {
 
     while (true) {
       getLogger().warn('Wait for rootSaga to init...')
-    /**
-     * Wait for an initAction to start
-     */
-    yield take(initAction.type)
+      /**
+       * Wait for an initAction to start
+       */
+      const action = yield take([initAction.type, reauthAction.type])
+
+      /**
+       * Update token only if the action contains a `token`
+       * (case of reauthAction with a new token)
+       */
+      if (action?.payload?.token) {
+        userOptions.token = action.payload.token
+      }
 
       /**
        * Create Session and related sessionChannel to
