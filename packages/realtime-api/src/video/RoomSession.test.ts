@@ -69,6 +69,48 @@ describe('RoomSession Object', () => {
     expect(roomSession.play).toBeDefined()
   })
 
+  describe('getRecordings', () => {
+    it('should return an array of recordings', async () => {
+      const recordingList = [
+        {
+          id: '6dfd0d76-b68f-4eef-bdee-08100fe03f4e',
+          state: 'completed',
+          started_at: 1663858327.847,
+          duration: 6.04,
+          ended_at: 1663858334.343,
+        },
+        {
+          id: 'e69d456b-4191-4dbb-8618-28d477734d65',
+          state: 'recording',
+          started_at: 1663858425.548,
+        },
+      ]
+
+      // @ts-expect-error
+      ;(roomSession.execute as jest.Mock).mockResolvedValueOnce({
+        recordings: recordingList,
+      })
+
+      const { recordings } = await roomSession.getRecordings()
+      recordings.forEach((recording, index) => {
+        expect(recording.id).toEqual(recordingList[index].id)
+        expect(recording.roomSessionId).toEqual(roomSessionId)
+        expect(recording.state).toEqual(recordingList[index].state)
+        expect(recording.startedAt).toEqual(
+          new Date(recordingList[index].started_at! * 1000)
+        )
+        if (recordingList[index].ended_at) {
+          expect(recording.endedAt).toEqual(
+            new Date(recordingList[index].ended_at! * 1000)
+          )
+        }
+        expect(typeof recording.pause).toBe('function')
+        expect(typeof recording.resume).toBe('function')
+        expect(typeof recording.stop).toBe('function')
+      })
+    })
+  })
+
   it('startRecording should return a recording object', async () => {
     // @ts-expect-error
     roomSession.execute = jest.fn().mockResolvedValue({
