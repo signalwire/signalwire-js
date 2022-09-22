@@ -26,7 +26,7 @@ const handler = () => {
 
     await new Promise((r) => setTimeout(r, 2000))
 
-    if (roomSessions.length === 0) {
+    if (Array.isArray(roomSessions)) {
       return resolve(0)
     }
 
