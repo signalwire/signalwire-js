@@ -47,14 +47,16 @@ const TaskClient = function (options?: TaskClientOptions) {
   } as const
 
   return new Proxy<Omit<TaskClient, 'new'>>(task, {
-    get(target, prop, receiver) {
+    get(target: TaskClient, prop: keyof TaskClient, receiver: any) {
       if (prop in interceptors) {
         // @ts-expect-error
         return interceptors[prop]
       }
 
-      // Always connect the underline client
-      clientConnect(client)
+      // Always connect the underlying client if the user call a function on the Proxy
+      if (typeof target[prop] === 'function') {
+        clientConnect(client)
+      }
 
       return Reflect.get(target, prop, receiver)
     },
