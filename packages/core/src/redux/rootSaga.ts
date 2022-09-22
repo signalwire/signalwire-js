@@ -106,6 +106,14 @@ export function* initSessionSaga({
   })
 
   /**
+   * Fork the watcher for the pubSubChannel
+   */
+  const pubSubTask: Task = yield fork(pubSubSaga, {
+    pubSubChannel,
+    emitter: userOptions.emitter!,
+  })
+
+  /**
    * Fork the watcher for the session status
    */
   const sessionStatusTask: Task = yield fork(sessionStatusWatcher, {
@@ -121,24 +129,26 @@ export function* initSessionSaga({
 
   yield take(destroyAction.type)
 
-  // leave a bit of space to other sagas to finish
-  yield delay(300)
   /**
    * We have to manually cancel the fork because it is not
    * being automatically cleaned up when the session is
    * destroyed, most likely because it's using a timer.
    */
   // compCleanupTask?.cancel()
+  pubSubTask.cancel()
   sessionStatusTask.cancel()
-  pubSubChannel.close()
   sessionChannel.close()
-  swEventChannel.close()
   customTasks.forEach((task) => task.cancel())
+  /**
+   * Do not close pubSubChannel and swEventChannel
+   * since we may need them again in case of reauth/reconnect
+   * // pubSubChannel.close()
+   * // swEventChannel.close()
+   */
 }
 
 export function* socketClosedWorker({
   session,
-  sessionChannel,
   pubSubChannel,
 }: {
   session: BaseSession
@@ -152,7 +162,11 @@ export function* socketClosedWorker({
     yield call(session.connect)
   } else if (session.status === 'disconnected') {
     yield put(pubSubChannel, sessionDisconnectedAction())
-    sessionChannel.close()
+    /**
+     * Don't invoke the sessionChannel.close() in here because
+     * we still need to dispatch/emit actions from Session to our Sagas
+     * // sessionChannel.close()
+     */
   } else {
     getLogger().warn('Unhandled Session Status', session.status)
 
@@ -175,6 +189,8 @@ export function* reauthenticateWorker({
     if (session.reauthenticate) {
       session.token = token
       yield call(session.reauthenticate)
+      // Update the store with the new "connect result"
+      yield put(sessionActions.connected(session.rpcConnectResult))
       yield put(pubSubChannel, sessionConnectedAction())
     }
   } catch (error) {
@@ -249,12 +265,8 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
 export function* startSaga(options: StartSagaOptions): SagaIterator {
   getLogger().debug('startSaga [started]')
   try {
-    const { session, pubSubChannel, userOptions } = options
+    const { session, pubSubChannel } = options
 
-    const pubSubTask: Task = yield fork(pubSubSaga, {
-      pubSubChannel,
-      emitter: userOptions.emitter!,
-    })
     /**
      * Fork the watcher for all the execute requests
      */
@@ -276,7 +288,6 @@ export function* startSaga(options: StartSagaOptions): SagaIterator {
      */
     yield take(closeConnectionAction.type)
 
-    pubSubTask.cancel()
     executeActionTask.cancel()
     flushExecuteQueueTask.cancel()
   } finally {
@@ -293,35 +304,24 @@ export function* sessionAuthErrorSaga(
   options: SessionAuthErrorOptions
 ): SagaIterator {
   getLogger().debug('sessionAuthErrorSaga [started]')
-  let pubSubTask: Task | undefined
 
   try {
-    const { pubSubChannel, userOptions, sessionChannel, action } = options
+    const { pubSubChannel, session, action } = options
     const { error: authError } = action.payload
     const error = authError
       ? new AuthError(authError.code, authError.message)
       : new Error('Unauthorized')
-
-    pubSubTask = yield fork(pubSubSaga, {
-      pubSubChannel,
-      emitter: userOptions.emitter!,
-    })
 
     yield put(pubSubChannel, sessionAuthErrorAction(error))
 
     /**
      * Force-close the sessionChannel to disconnect the Session
      */
-    sessionChannel.close()
+    yield call([session, session.disconnect])
   } finally {
     if (yield cancelled()) {
-      getLogger().debug(
-        'sessionAuthErrorSaga [cancelled]',
-        pubSubTask?.isCancelled()
-      )
+      getLogger().debug('sessionAuthErrorSaga [cancelled]')
     }
-    yield delay(10)
-    yield put(destroyAction())
   }
 }
 
@@ -346,24 +346,38 @@ export default (options: RootSagaOptions) => {
 
     yield fork(executeQueueWatcher)
 
-    /**
-     * Wait for an initAction to start
-     */
-    yield take(initAction.type)
+    while (true) {
+      /**
+       * Wait for an initAction to start
+       */
+      const action = yield take([initAction.type, reauthAction.type])
 
-    /**
-     * Create Session and related sessionChannel to
-     * send/receive websocket messages
-     */
-    try {
-      yield call(initSessionSaga, {
-        ...options,
-        userOptions,
-        channels,
-      })
-    } catch (error) {
-      getLogger().error('RootSaga Error:', error)
-      return
+      /**
+       * Update token only if the action contains a `token`
+       * (case of reauthAction with a new token)
+       */
+      if (action?.payload?.token) {
+        userOptions.token = action.payload.token
+      }
+
+      /**
+       * Create Session and related sessionChannel to
+       * send/receive websocket messages
+       */
+      try {
+        yield call(initSessionSaga, {
+          ...options,
+          userOptions,
+          channels,
+        })
+      } catch (error) {
+        getLogger().error('RootSaga Error:', error)
+      } finally {
+        if (yield cancelled()) {
+          getLogger().debug('rootSaga [cancelled]')
+        }
+        getLogger().debug('Reboot rootSaga')
+      }
     }
   }
 }
