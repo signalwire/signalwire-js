@@ -158,15 +158,30 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
           nestedFieldsToProcess: {
             members: {
               eventTransformType: 'roomSessionMember',
-              processInstancePayload: (payload) => ({ member: payload }),
+              processInstancePayload: (payload) => {
+                return {
+                  room_session_id: this.getStateProperty('roomSessionId'),
+                  member: payload,
+                }
+              },
             },
             recordings: {
               eventTransformType: 'roomSessionRecording',
-              processInstancePayload: (payload) => ({ recording: payload }),
+              processInstancePayload: (payload) => {
+                return {
+                  room_session_id: this.getStateProperty('roomSessionId'),
+                  recording: payload,
+                }
+              },
             },
             streams: {
               eventTransformType: 'roomSessionStream',
-              processInstancePayload: (payload) => ({ stream: payload }),
+              processInstancePayload: (payload) => {
+                return {
+                  room_session_id: this.getStateProperty('roomSessionId'),
+                  stream: payload,
+                }
+              },
             },
           },
           getInstanceEventNamespace: (
@@ -194,7 +209,12 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
           nestedFieldsToProcess: {
             recordings: {
               eventTransformType: 'roomSessionRecording',
-              processInstancePayload: (payload) => ({ recording: payload }),
+              processInstancePayload: (payload) => {
+                return {
+                  room_session_id: this.getStateProperty('roomSessionId'),
+                  recording: payload,
+                }
+              },
             },
           },
         },
@@ -212,7 +232,12 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
           nestedFieldsToProcess: {
             playbacks: {
               eventTransformType: 'roomSessionPlayback',
-              processInstancePayload: (payload) => ({ playback: payload }),
+              processInstancePayload: (payload) => {
+                return {
+                  room_session_id: this.getStateProperty('roomSessionId'),
+                  playback: payload,
+                }
+              },
             },
           },
         },
@@ -365,7 +390,12 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
           nestedFieldsToProcess: {
             streams: {
               eventTransformType: 'roomSessionStream',
-              processInstancePayload: (payload) => ({ stream: payload }),
+              processInstancePayload: (payload) => {
+                return {
+                  room_session_id: this.getStateProperty('roomSessionId'),
+                  stream: payload,
+                }
+              },
             },
           },
         },
