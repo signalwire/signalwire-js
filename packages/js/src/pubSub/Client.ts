@@ -68,8 +68,18 @@ export const Client = function (pubSubOptions: ClientOptions) {
     }
   }
 
+  const interceptors = {
+    _session: client,
+    disconnect: () => client.disconnect(),
+  } as const
+
   return new Proxy<Client>(client.pubSub, {
     get(target: Client, prop: keyof Client, receiver: any) {
+      if (prop in interceptors) {
+        // @ts-expect-error
+        return interceptors[prop]
+      }
+
       if (INTERCEPTED_METHODS.includes(prop)) {
         return createInterceptor(prop)
       }

@@ -14,7 +14,6 @@ export interface Client
   extends ChatContract,
     Omit<ConsumerContract<ClientApiEvents, ClientFullState>, 'subscribe'> {}
 
-
 /** @ignore */
 export interface ClientOptions extends UserOptions {}
 
@@ -73,8 +72,18 @@ export const Client = function (chatOptions: ClientOptions) {
     }
   }
 
+  const interceptors = {
+    _session: client,
+    disconnect: () => client.disconnect(),
+  } as const
+
   return new Proxy<Client>(client.chat, {
     get(target: Client, prop: keyof Client, receiver: any) {
+      if (prop in interceptors) {
+        // @ts-expect-error
+        return interceptors[prop]
+      }
+
       if (INTERCEPTED_METHODS.includes(prop)) {
         return createInterceptor(prop)
       }

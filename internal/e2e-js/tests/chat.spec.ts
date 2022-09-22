@@ -1,7 +1,7 @@
 import { test, expect, WebSocket } from '@playwright/test'
 import { createTestServer, createTestCRTToken } from '../utils'
 
-test.describe('PubSub', () => {
+test.describe('Chat', () => {
   let server: any = null
 
   test.beforeAll(async () => {
@@ -13,7 +13,7 @@ test.describe('PubSub', () => {
     await server.close()
   })
 
-  test('should subscribe to a PubSub channel and publish a message', async ({
+  test('should subscribe to a Chat channel and publish a message', async ({
     page,
   }) => {
     await page.goto(server.url)
@@ -42,24 +42,24 @@ test.describe('PubSub', () => {
         return new Promise(async (resolve) => {
           try {
             // @ts-expect-error
-            const PubSub = window._SWJS.PubSub
-            const pubSubClient = new PubSub.Client({
+            const Chat = window._SWJS.Chat
+            const client = new Chat.Client({
               host: options.RELAY_HOST,
               token: options.API_TOKEN,
             })
-            const allowedChannels = await pubSubClient.getAllowedChannels()
+            const allowedChannels = await client.getAllowedChannels()
             // .subscribe should be after .on but i left here for test.
-            await pubSubClient.subscribe([options.channel])
-            pubSubClient.on('message', (message: any) => {
+            await client.subscribe([options.channel])
+            client.on('message', (message: any) => {
               resolve({ allowedChannels, message })
             })
 
-            await pubSubClient.publish({
+            await client.publish({
               channel: options.channel,
               content: options.messageContent,
             })
           } catch (error) {
-            console.log('PubSub Error', error)
+            console.log('Chat Error', error)
           }
         })
       },
@@ -105,16 +105,16 @@ test.describe('PubSub', () => {
     await page.evaluate(
       (options) => {
         // @ts-expect-error
-        const PubSub = window._SWJS.PubSub
-        const pubSubClient = new PubSub.Client({
+        const Chat = window._SWJS.Chat
+        const client = new Chat.Client({
           host: options.RELAY_HOST,
           token: options.API_TOKEN,
         })
 
         // @ts-expect-error
-        window.__pubSubClient = pubSubClient
+        window.__client = client
 
-        return pubSubClient.subscribe([options.channel])
+        return client.subscribe([options.channel])
       },
       {
         RELAY_HOST: process.env.RELAY_HOST,
@@ -132,7 +132,7 @@ test.describe('PubSub', () => {
 
     await page.evaluate(() => {
       // @ts-expect-error
-      window.__pubSubClient.disconnect()
+      window.__client.disconnect()
     })
 
     await closePromise
