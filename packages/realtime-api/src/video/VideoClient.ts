@@ -71,8 +71,10 @@ const VideoClient = function (options?: VideoClientOptions) {
         return interceptors[prop]
       }
 
-      // Always connect the underlying client
-      clientConnect(client)
+      // Always connect the underlying client if the user call a function on the Proxy
+      if (typeof target[prop] === 'function') {
+        clientConnect(client)
+      }
 
       return Reflect.get(target, prop, receiver)
     },

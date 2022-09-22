@@ -75,14 +75,16 @@ const MessagingClient = function (options?: MessagingClientOptions) {
   } as const
 
   return new Proxy<Omit<MessagingClient, 'new'>>(messaging, {
-    get(target, prop, receiver) {
+    get(target: MessagingClient, prop: keyof MessagingClient, receiver: any) {
       if (prop in interceptors) {
         // @ts-expect-error
         return interceptors[prop]
       }
 
-      // Always connect the underlying client
-      clientConnect(client)
+      // Always connect the underlying client if the user call a function on the Proxy
+      if (typeof target[prop] === 'function') {
+        clientConnect(client)
+      }
 
       return Reflect.get(target, prop, receiver)
     },
