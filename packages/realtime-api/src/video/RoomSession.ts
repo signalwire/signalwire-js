@@ -117,6 +117,14 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
       const handler = (payload: RoomSessionFullState) => {
         resolve(payload)
       }
+      const subscriptions = this.getSubscriptions()
+      if (subscriptions.length === 0) {
+        this.logger.debug(
+          '`subscribe()` was called without any listeners attached.'
+        )
+        return
+      }
+
       try {
         /**
          * Note that we're using `super.once` (instead of
