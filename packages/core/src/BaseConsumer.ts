@@ -46,7 +46,7 @@ export class BaseConsumer<
     const subscriptions = this.getSubscriptions()
 
     if (subscriptions.length === 0) {
-      this.logger.warn(
+      this.logger.debug(
         '`subscribe()` was called without any listeners attached.'
       )
       return
