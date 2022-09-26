@@ -56,6 +56,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     return this._localStream
   }
 
+  set localStream(stream) {
+    this._localStream = stream
+  }
+
   get remoteStream() {
     return this._remoteStream
   }

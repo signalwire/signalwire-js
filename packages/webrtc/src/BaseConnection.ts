@@ -155,6 +155,12 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     return this.peer?.localStream
   }
 
+  set localStream(stream) {
+    if (this.peer) {
+      this.peer.localStream = stream
+    }
+  }
+
   get remoteStream() {
     return this.peer?.remoteStream
   }
@@ -399,7 +405,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
             error.message === 'Concurrent mic process limit.'
           ) {
             let oldConstraints: MediaStreamConstraints = {}
-            this.options.localStream?.getTracks().forEach((track) => {
+            this.localStream?.getTracks().forEach((track) => {
               /**
                * We'll keep a reference of the original
                * constraints so if something fails we should
@@ -414,7 +420,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
                   'updateConstraints stop old tracks to retrieve new ones'
                 )
                 stopTrack(track)
-                this.options.localStream?.removeTrack(track)
+                this.localStream?.removeTrack(track)
               }
             })
 
@@ -439,8 +445,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         }
 
         this.logger.debug('updateConstraints got stream', newStream)
-        if (!this.options.localStream) {
-          this.options.localStream = new MediaStream()
+        if (!this.localStream) {
+          this.localStream = new MediaStream()
         }
         const { instance } = this.peer
         const tracks = newStream.getTracks()
@@ -475,25 +481,25 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
             this.logger.debug('updateConstraints replaceTrack')
             transceiver.direction = 'sendrecv'
             this.logger.debug('updateConstraints set to sendrecv')
-            this.options.localStream.getTracks().forEach((track) => {
+            this.localStream.getTracks().forEach((track) => {
               if (track.kind === newTrack.kind && track.id !== newTrack.id) {
                 this.logger.debug(
                   'updateConstraints stop old track and apply new one - '
                 )
                 stopTrack(track)
-                this.options.localStream?.removeTrack(track)
+                this.localStream?.removeTrack(track)
               }
             })
 
-            this.options.localStream.addTrack(newTrack)
+            this.localStream.addTrack(newTrack)
           } else {
             this.logger.debug(
               'updateConstraints no transceiver found. addTrack and start dancing!'
             )
             this.peer.type = 'offer'
             this.doReinvite = true
-            this.options.localStream.addTrack(newTrack)
-            instance.addTrack(newTrack, this.options.localStream)
+            this.localStream.addTrack(newTrack)
+            instance.addTrack(newTrack, this.localStream)
           }
           this.logger.debug('updateConstraints simply update mic/cam')
           if (newTrack.kind === 'audio') {
