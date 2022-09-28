@@ -1,4 +1,4 @@
-import type { PayloadAction } from '../../toolkit'
+import type { PayloadAction, AnyAction } from '../../toolkit'
 import type { SessionState } from '../../interfaces'
 import type {
   Authorization,
@@ -8,7 +8,7 @@ import type {
 } from '../../../utils/interfaces'
 import type { DeepReadonly } from '../../../types'
 import { createDestroyableSlice } from '../../utils/createDestroyableSlice'
-import { authErrorAction } from '../../actions'
+import { authErrorAction, initAction, reauthAction } from '../../actions'
 
 export const initialSessionState: DeepReadonly<SessionState> = {
   protocol: '',
@@ -17,6 +17,11 @@ export const initialSessionState: DeepReadonly<SessionState> = {
   authState: undefined,
   authError: undefined,
   authCount: 0,
+}
+
+type AuthorizingAction = typeof initAction | typeof reauthAction
+function authorizingAction(action: AnyAction): action is AuthorizingAction {
+  return [initAction.type, reauthAction.type].includes(action.type)
 }
 
 const sessionSlice = createDestroyableSlice({
@@ -57,6 +62,12 @@ const sessionSlice = createDestroyableSlice({
         }
       }
     )
+    builder.addMatcher(authorizingAction, (state) => {
+      return {
+        ...state,
+        authStatus: 'authorizing',
+      }
+    })
   },
 })
 
