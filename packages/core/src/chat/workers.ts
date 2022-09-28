@@ -9,7 +9,6 @@ export const chatWorker: SDKWorker<BaseChatConsumer> = function* chatWorker({
     const action: ChatAction = yield sagaEffects.take((action: any) => {
       return action.type.startsWith('chat.')
     })
-    getLogger().debug('chatWorker:', action)
 
     switch (action.type) {
       case 'chat.channel.message': {
