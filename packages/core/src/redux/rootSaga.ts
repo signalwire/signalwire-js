@@ -162,6 +162,7 @@ export function* socketClosedWorker({
     yield call(session.connect)
   } else if (session.status === 'disconnected') {
     yield put(pubSubChannel, sessionDisconnectedAction())
+    yield put(destroyAction())
     /**
      * Don't invoke the sessionChannel.close() in here because
      * we still need to dispatch/emit actions from Session to our Sagas

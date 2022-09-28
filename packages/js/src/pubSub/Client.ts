@@ -22,7 +22,6 @@ const INTERCEPTED_METHODS: ClientMethods[] = [
   'getAllowedChannels',
   'subscribe',
   'publish',
-  'updateToken',
 ]
 
 /**

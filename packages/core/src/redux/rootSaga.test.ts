@@ -74,6 +74,7 @@ describe('socketClosedWorker', () => {
       sessionChannel,
     })
       .put(pubSubChannel, sessionDisconnectedAction())
+      .put(destroyAction())
       .run()
   })
 })

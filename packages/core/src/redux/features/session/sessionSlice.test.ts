@@ -1,7 +1,8 @@
 import { Store } from 'redux'
 import { configureJestStore, rpcConnectResultVRT } from '../../../testUtils'
 import { sessionActions, initialSessionState } from './sessionSlice'
-import { destroyAction } from '../../actions'
+import { getAuthStatus } from './sessionSelectors'
+import { destroyAction, initAction, reauthAction } from '../../actions'
 
 describe('SessionState Tests', () => {
   let store: Store
@@ -48,5 +49,16 @@ describe('SessionState Tests', () => {
 
     store.dispatch(destroyAction())
     expect(store.getState().session).toStrictEqual(initialSessionState)
+  })
+
+  it('should set authStatus to authorizing on initAction and reauthAction', () => {
+    store.dispatch(initAction())
+    expect(getAuthStatus(store.getState())).toEqual('authorizing')
+
+    store.dispatch(sessionActions.connected(rpcConnectResultVRT))
+    expect(getAuthStatus(store.getState())).toEqual('authorized')
+
+    store.dispatch(reauthAction({ token: 'foo' }))
+    expect(getAuthStatus(store.getState())).toEqual('authorizing')
   })
 })

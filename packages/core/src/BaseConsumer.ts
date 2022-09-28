@@ -18,7 +18,7 @@ export class BaseConsumer<
 > extends BaseComponent<EventTypes> {
   protected subscribeMethod: JSONRPCSubscribeMethod = 'signalwire.subscribe'
   protected subscribeParams?: Record<string, any> = {}
-  private _latestExecuteParams: ExecuteParams
+  private _latestExecuteParams?: ExecuteParams
 
   constructor(public options: BaseComponentOptions<EventTypes>) {
     super(options)
@@ -31,6 +31,21 @@ export class BaseConsumer<
      * the `subscribe()` happen.
      */
     this.applyEmitterTransforms({ local: true })
+
+    /**
+     * TODO: To Review
+     * Reset _latestExecuteParams when on session connect/disconnet
+     * so a reconnected client can send subscribe again.
+     */
+    const resetLatestExecuteParams = () => {
+      this._latestExecuteParams = undefined
+    }
+    // @ts-expect-error
+    super.on('session.connected', resetLatestExecuteParams)
+    // @ts-expect-error
+    super.on('session.disconnected', resetLatestExecuteParams)
+    // @ts-expect-error
+    super.on('session.reconnecting', resetLatestExecuteParams)
   }
 
   private shouldExecuteSubscribe(execParams: ExecuteParams) {

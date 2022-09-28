@@ -16,7 +16,6 @@ export const pubSubWorker: SDKWorker<BasePubSubConsumer> =
           return action.type.startsWith(`${PRODUCT_PREFIX_PUBSUB}.`)
         }
       )
-      getLogger().debug('pubSubWorker:', action)
 
       switch (action.type) {
         case `${PRODUCT_PREFIX_PUBSUB}.channel.message`: {
