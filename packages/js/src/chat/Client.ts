@@ -21,7 +21,6 @@ type ClientMethods = keyof Client
 const INTERCEPTED_METHODS: ClientMethods[] = [
   'subscribe',
   'publish',
-  'updateToken',
   'getMessages',
   'getMembers',
   'getMemberState',
