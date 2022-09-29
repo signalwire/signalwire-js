@@ -26,6 +26,7 @@ interface OnVertoByeParams {
   redirectDestination?: string
 }
 
+const INVITE_VERSION = 1000
 const AUDIO_CONSTRAINTS: MediaTrackConstraints = {
   echoCancellation: true,
   noiseSuppression: true,
@@ -204,6 +205,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         screenShare,
         additionalDevice,
         pingSupported,
+        version: INVITE_VERSION,
       },
     }
   }
