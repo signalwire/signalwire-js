@@ -152,6 +152,10 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     return this.component.roomSessionId
   }
 
+  get callId() {
+    return this.peer?.uuid || ''
+  }
+
   get localStream() {
     return this.peer?.localStream
   }
@@ -171,9 +175,10 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   get component(): ReduxComponent {
-    const id = this.peer?.uuid ?? ''
     return (
-      this.select((state) => componentSelectors.getComponent(state, id)) || {}
+      this.select((state) =>
+        componentSelectors.getComponent(state, this.callId)
+      ) || {}
     )
   }
 
@@ -256,7 +261,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     this.logger.debug('Set RTCPeer', rtcPeer.uuid, rtcPeer)
     this.rtcPeerMap.set(rtcPeer.uuid, rtcPeer)
 
-    if (this.peer && this.peer?.uuid !== rtcPeer.uuid) {
+    if (this.peer && this.callId !== rtcPeer.uuid) {
       const oldPeerId = this.peer.uuid
       this.logger.info('>>> Stop old RTCPeer', oldPeerId)
       // Invoke hangup to make sure backend closes
@@ -681,7 +686,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   async hangup(id?: string) {
-    const rtcPeerId = id ?? this.peer?.uuid
+    const rtcPeerId = id ?? this.callId
     if (!rtcPeerId) {
       throw new Error('Invalid RTCPeer ID to hangup')
     }
@@ -692,11 +697,11 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     } catch (error) {
       this.logger.error('Hangup error:', error)
     } finally {
-      if (rtcPeerId !== this.peer?.uuid) {
+      if (rtcPeerId !== this.callId) {
         return this.logger.warn(
           'Prevent setState hangup',
           rtcPeerId,
-          this.peer?.uuid
+          this.callId
         )
       }
       this.setState('hangup')
@@ -705,7 +710,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   /** @internal */
   dtmf(dtmf: string) {
-    const rtcPeerId = this.peer?.uuid
+    const rtcPeerId = this.callId
     if (!rtcPeerId) {
       throw new Error('Invalid RTCPeer ID to send DTMF')
     }
