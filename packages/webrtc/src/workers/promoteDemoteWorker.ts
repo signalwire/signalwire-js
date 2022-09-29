@@ -42,7 +42,7 @@ export const promoteDemoteWorker: SDKWorker<
       action.type === 'video.member.promoted' ||
       action.type === 'video.member.demoted'
     ) {
-      return action.payload.member_id === rtcPeerId
+      return action.payload.member_id === instance.memberId
     }
     return false
   })
