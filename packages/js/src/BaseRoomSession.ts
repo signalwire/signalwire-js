@@ -302,7 +302,7 @@ export class RoomSessionConnection
       remoteStream: undefined,
       userVariables: {
         ...(this.options?.userVariables || {}),
-        memberCallId: this.memberId,
+        memberCallId: this.callId,
         memberId: this.memberId,
       },
       layout,
@@ -399,7 +399,7 @@ export class RoomSessionConnection
       recoverCall: false,
       userVariables: {
         ...(this.options?.userVariables || {}),
-        memberCallId: this.memberId,
+        memberCallId: this.callId,
         memberId: this.memberId,
       },
     }
