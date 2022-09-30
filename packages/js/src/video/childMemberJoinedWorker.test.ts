@@ -7,6 +7,7 @@ const { createPubSubChannel, createSwEventChannel } = testUtils
 describe('childMemberJoinedWorker', () => {
   it('should handle video.member.joined with parent_id', () => {
     const parentId = 'd815d293-f8d0-49e8-aec2-3a4cc3729af8'
+    const memberId = 'b8912cc5-4248-4345-b53c-d53b2761748d'
     let runSaga = true
     const session = {} as any
     const pubSubChannel = createPubSubChannel()
@@ -39,6 +40,7 @@ describe('childMemberJoinedWorker', () => {
       },
       sessionChannel,
       instance: {
+        callId: 'callId',
         _attachListeners: jest.fn(),
         applyEmitterTransforms: jest.fn(),
       } as any,
@@ -59,8 +61,8 @@ describe('childMemberJoinedWorker', () => {
                   room_session_id: '313bedbe-edc9-4653-b332-34fbf43e8289',
                   room_id: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
                   member: {
+                    id: memberId,
                     parent_id: parentId,
-                    id: 'b8912cc5-4248-4345-b53c-d53b2761748d',
                   },
                 },
               }
@@ -78,10 +80,10 @@ describe('childMemberJoinedWorker', () => {
       ])
       .put(
         componentActions.upsert({
-          id: 'b8912cc5-4248-4345-b53c-d53b2761748d',
+          id: 'callId',
           roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
           roomSessionId: '313bedbe-edc9-4653-b332-34fbf43e8289',
-          memberId: 'b8912cc5-4248-4345-b53c-d53b2761748d',
+          memberId,
         })
       )
       .silentRun()
