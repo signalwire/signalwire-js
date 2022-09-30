@@ -1173,7 +1173,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
   }
 
   /**
-   * @deprectated use {@link disconnected} instead.
+   * @deprecated use {@link disconnected} instead.
    */
   waitForDisconnected() {
     return this.disconnect

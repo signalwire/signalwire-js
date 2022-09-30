@@ -649,10 +649,10 @@ export interface VoiceCallContract<T = any> {
     params: VoiceCallConnectSipMethodParams
   ): Promise<VoiceCallContract>
   /**
-   * @deprectated use {@link disconnected} instead.
+   * @deprecated use {@link disconnected} instead.
    */
   waitForDisconnected(): Promise<this>
-   /**
+  /**
    * Returns a promise that is resolved only after the current call has been
    * disconnected. Also see {@link connect}.
    *
