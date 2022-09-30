@@ -63,6 +63,17 @@ export const voiceCallTapWorker: SDKWorker<Call> = function* (
           payload: payloadWithTag,
         })
 
+        /**
+         * Dispatch an event to resolve `ended()` in CallTap when ended
+         */
+        yield sagaEffects.put(pubSubChannel, {
+          type: 'calling.tap.ended',
+          payload: {
+            tag: controlId,
+            ...action.payload,
+          },
+        })
+
         done()
         break
       }

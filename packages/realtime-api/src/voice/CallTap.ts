@@ -46,6 +46,26 @@ export class CallTapAPI
 
     return this
   }
+
+  ended() {
+    return new Promise<this>((resolve) => {
+      this._attachListeners(this.controlId)
+
+      const handler = () => {
+        // It's important to notice that we're returning
+        // `this` instead of creating a brand new instance
+        // using the payload + EventEmitter Transform
+        // pipeline. `this` is the instance created by the
+        // `Call` Emitter Transform pipeline (singleton per
+        // `Call.tap()`) that gets auto updated (using
+        // the latest payload per event) by the
+        // `voiceCallTapWorker`
+        resolve(this)
+      }
+      // @ts-expect-error
+      this.once('tap.ended', handler)
+    })
+  }
 }
 
 export const createCallTapObject = (params: CallTapOptions): CallTap => {

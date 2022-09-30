@@ -564,6 +564,7 @@ export interface VoiceCallTapContract {
   readonly state: CallingCallTapState
 
   stop(): Promise<this>
+  ended(): Promise<this>
 }
 
 /**
