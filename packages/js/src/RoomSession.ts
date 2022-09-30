@@ -88,14 +88,14 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     ...userOptions
   } = roomOptions
 
-  // const deprecatedParams = ['audio', 'video']
-  // deprecatedParams.forEach((param) => {
-  //   if (param in roomOptions) {
-  //     getLogger().warn(
-  //       `The '${param}' parameter on the RoomSession constructor is deprecated. Set it on the '.join()' function instead.`
-  //     )
-  //   }
-  // })
+  const deprecatedParams = ['audio', 'video']
+  deprecatedParams.forEach((param) => {
+    if (param in roomOptions) {
+      getLogger().warn(
+        `The '${param}' parameter on the RoomSession constructor is deprecated. Set it on the '.join()' function instead.`
+      )
+    }
+  })
 
   const client = createClient<RoomSession>(userOptions)
   const room = client.rooms.makeRoomObject({
@@ -183,17 +183,8 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     })
   }
 
-  /** @deprecated */
-  const joinAudience = (params?: BaseRoomSessionJoinParams) => {
-    getLogger().warn(
-      `The 'joinAudience(params)' method is deprecated. Please, use 'join(params)' instead.`
-    )
-    return join(params)
-  }
-
   const interceptors = {
     join,
-    joinAudience,
   } as const
 
   return new Proxy<Omit<RoomSession, 'new'>>(room, {
