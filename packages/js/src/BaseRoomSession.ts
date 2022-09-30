@@ -59,9 +59,6 @@ export interface BaseRoomSession<T>
    */
   join(options?: BaseRoomSessionJoinParams): Promise<T>
 
-  /** @deprecated Use {@link join} instead. */
-  joinAudience(options?: BaseRoomSessionJoinParams): Promise<T>
-
   /**
    * Leaves the room. This detaches all the locally originating streams from the
    * room.
