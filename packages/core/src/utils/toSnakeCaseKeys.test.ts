@@ -111,4 +111,34 @@ describe('toSnakeCaseKeys', () => {
       },
     })
   })
+
+  it('should allow passing arrays in params', () => {
+    expect(
+      toSnakeCaseKeys({
+        playlist: {
+          test: 'foo',
+          nullValue: null,
+          undefValue: undefined,
+        },
+        speech: {
+          endSilenceTimeout: 1,
+          speechTimeout: 60,
+          language: 'en-US',
+          hints: ['office', 'hello'],
+        },
+      })
+    ).toStrictEqual({
+      playlist: {
+        test: 'foo',
+        null_value: null,
+        undef_value: undefined,
+      },
+      speech: {
+        end_silence_timeout: 1,
+        speech_timeout: 60,
+        language: 'en-US',
+        hints: ['office', 'hello'],
+      },
+    })
+  })
 })
