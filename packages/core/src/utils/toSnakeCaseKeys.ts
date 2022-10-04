@@ -13,9 +13,12 @@ export const toSnakeCaseKeys = <T extends Record<string, any>>(
   result: Record<string, any> = {}
 ) => {
   if (Array.isArray(obj)) {
-    result = obj.map((item: any, index: number) =>
-      toSnakeCaseKeys(item, transform, result[index])
-    )
+    result = obj.map((item: any, index: number) => {
+      if (typeof item === 'object') {
+        return toSnakeCaseKeys(item, transform, result[index])
+      }
+      return item
+    })
   } else {
     Object.keys(obj).forEach((key) => {
       const newKey = fromCamelToSnakeCase(key)

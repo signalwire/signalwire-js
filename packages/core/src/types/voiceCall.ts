@@ -257,7 +257,7 @@ export type CollectSpeechConfig = {
   /** Maximum time to collect speech. Default to 60 seconds. */
   speechTimeout?: number
   /** Language to detect. Default to `en-US`. */
-  language?: number
+  language?: string
   /** Array of expected phrases to detect. */
   hints?: string[]
 }
