@@ -148,8 +148,7 @@ export class BaseSession {
    */
   connect(): void {
     if (!this?.WebSocketConstructor) {
-      this.logger.error('Missing WebSocketConstructor')
-      return
+      throw new Error('Missing WebSocketConstructor')
     }
     /**
      * Return if there is already a _socket instance.
