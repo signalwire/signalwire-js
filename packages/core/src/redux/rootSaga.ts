@@ -8,7 +8,6 @@ import {
   delay,
   all,
   cancelled,
-  cancel,
 } from '@redux-saga/core/effects'
 import {
   SessionConstructor,
@@ -26,7 +25,6 @@ import { pubSubSaga } from './features/pubSub/pubSubSaga'
 import {
   initAction,
   destroyAction,
-  closeConnectionAction,
   sessionReconnectingAction,
   sessionDisconnectedAction,
   sessionConnectedAction,
@@ -119,6 +117,11 @@ export function* initSessionSaga({
     userOptions,
   })
 
+  /**
+   * Fork the watcher for all the execute requests
+   */
+  const executeActionTask: Task = yield fork(executeActionWatcher, session)
+
   // const compCleanupTask = yield fork(componentCleanupSaga)
 
   session.connect()
@@ -133,6 +136,7 @@ export function* initSessionSaga({
   // compCleanupTask?.cancel()
   pubSubTask.cancel()
   sessionStatusTask.cancel()
+  executeActionTask.cancel()
   sessionChannel.close()
   customTasks.forEach((task) => task.cancel())
   /**
@@ -198,7 +202,6 @@ export function* reauthenticateWorker({
 
 export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
   getLogger().debug('sessionStatusWatcher [started]')
-  let startSagaTask: Task | undefined = undefined
 
   try {
     while (true) {
@@ -214,11 +217,9 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
       getLogger().debug('sessionStatusWatcher', action.type, action.payload)
       switch (action.type) {
         case authSuccessAction.type: {
-          if (startSagaTask) {
-            // Cancel previous task in case of reconnect
-            yield cancel(startSagaTask)
-          }
-          startSagaTask = yield fork(startSaga, options)
+          const { session, pubSubChannel } = options
+          yield put(sessionActions.connected(session.rpcConnectResult))
+          yield put(pubSubChannel, sessionConnectedAction())
           break
         }
         case authErrorAction.type: {
@@ -255,34 +256,6 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
   } finally {
     if (yield cancelled()) {
       getLogger().debug('sessionStatusWatcher [cancelled]')
-    }
-  }
-}
-
-export function* startSaga(options: StartSagaOptions): SagaIterator {
-  getLogger().debug('startSaga [started]')
-  try {
-    const { session, pubSubChannel } = options
-
-    /**
-     * Fork the watcher for all the execute requests
-     */
-    const executeActionTask: Task = yield fork(executeActionWatcher, session)
-
-    yield put(sessionActions.connected(session.rpcConnectResult))
-    yield put(pubSubChannel, sessionConnectedAction())
-
-    /**
-     * When `closeConnectionAction` is dispatched we'll teardown all the
-     * tasks created by this saga since `startSaga` is meant to be
-     * re-executed every time the user reconnects.
-     */
-    yield take(closeConnectionAction.type)
-
-    executeActionTask.cancel()
-  } finally {
-    if (yield cancelled()) {
-      getLogger().debug('startSaga [cancelled]')
     }
   }
 }
