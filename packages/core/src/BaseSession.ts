@@ -403,6 +403,10 @@ export class BaseSession {
       )
     )
     this.dispatch(closeConnectionAction())
+    this._destroySocket()
+  }
+
+  private _destroySocket() {
     if (this._socket) {
       this._socket.close()
       this._socket = null
