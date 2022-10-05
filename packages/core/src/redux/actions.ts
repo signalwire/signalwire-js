@@ -10,7 +10,6 @@ import { EventEmitter } from '..'
 
 export const initAction = createAction('swSdk/init')
 export const destroyAction = createAction('swSdk/destroy')
-export const closeConnectionAction = createAction('swSdk/closeConnection')
 /**
  * Used to trigger a `signalwire.reauthenticate`
  */
@@ -23,8 +22,9 @@ export const executeAction = createAction<ExecuteActionParams>(
   'swSdk/executeRequest'
 )
 
-export const authErrorAction =
-  createAction<{ error: SessionAuthError }>('auth/error')
+export const authErrorAction = createAction<{ error: SessionAuthError }>(
+  'auth/error'
+)
 export const authSuccessAction = createAction('auth/success')
 export const authExpiringAction = createAction('auth/expiring')
 

@@ -28,7 +28,6 @@ import {
   SessionStatus,
 } from './utils/interfaces'
 import {
-  closeConnectionAction,
   authErrorAction,
   authSuccessAction,
   socketClosedAction,
@@ -57,10 +56,14 @@ export class BaseSession {
 
   private _executeTimeoutMs = 10 * 1000
   private _executeTimeoutError = Symbol.for('sw-execute-timeout')
+  private _executeQueue: Set<JSONRPCRequest | JSONRPCResponse> = new Set()
 
   private _checkPingDelay = 15 * 1000
   private _checkPingTimer: any = null
   private _status: SessionStatus = 'unknown'
+  private wsOpenHandler: (event: Event) => void
+  private wsCloseHandler: (event: CloseEvent) => void
+  private wsErrorHandler: (event: Event) => void
 
   constructor(public options: SessionOptions) {
     const { host, logLevel = 'info' } = options
@@ -85,6 +88,20 @@ export class BaseSession {
     this._onSocketMessage = this._onSocketMessage.bind(this)
     this.execute = this.execute.bind(this)
     this.connect = this.connect.bind(this)
+
+    /** Listen on socket events once */
+    this.wsOpenHandler = (event) => {
+      this._socket?.removeEventListener('open', this.wsOpenHandler)
+      this._onSocketOpen(event)
+    }
+    this.wsCloseHandler = (event) => {
+      this._socket?.removeEventListener('close', this.wsCloseHandler)
+      this._onSocketClose(event)
+    }
+    this.wsErrorHandler = (event) => {
+      this._socket?.removeEventListener('error', this.wsErrorHandler)
+      this._onSocketError(event)
+    }
   }
 
   get host() {
@@ -151,39 +168,21 @@ export class BaseSession {
       throw new Error('Missing WebSocketConstructor')
     }
     /**
-     * Return if there is already a _socket instance.
+     * Return if already connecting or connected
      * This prevents issues if "connect()" is called multiple times.
      */
-    if (this._socket) {
+    if (this.connecting || this.connected) {
       this.logger.warn('Session already connected.')
       return
     }
+
+    /** In case of reconnect: remove listeners and then destroy it */
+    this._removeSocketListeners()
+    this.destroySocket()
+    this._clearCheckPingTimer()
+
     this._socket = this._createSocket()
-
-    /** Handle 'open' once */
-    const openHandler = (event: Event) => {
-      this._socket?.removeEventListener('open', openHandler)
-      this._onSocketOpen(event)
-    }
-    this._socket.addEventListener('open', openHandler)
-
-    /** Handle 'close' once */
-    const closeHandler = (event: CloseEvent) => {
-      this._socket?.removeEventListener('close', closeHandler)
-      this._onSocketClose(event)
-    }
-    this._socket.addEventListener('close', closeHandler)
-
-    /** Handle 'error' once */
-    const errorHandler = (event: Event) => {
-      this._socket?.removeEventListener('error', errorHandler)
-      this._onSocketError(event)
-    }
-    this._socket.addEventListener('error', errorHandler)
-
-    /** Remove previous 'message' listener in case of reconnect */
-    this._socket.removeEventListener('message', this._onSocketMessage)
-    this._socket.addEventListener('message', this._onSocketMessage)
+    this._addSocketListeners()
   }
 
   /**
@@ -192,6 +191,35 @@ export class BaseSession {
    */
   protected _createSocket() {
     return new this.WebSocketConstructor(this._host)
+  }
+
+  /** Allow children classes to override it. */
+  protected destroySocket() {
+    if (this._socket) {
+      this._socket.close()
+      this._socket = null
+    }
+  }
+
+  protected _addSocketListeners() {
+    if (!this._socket) {
+      return this.logger.debug('Invalid socket instance to add listeners')
+    }
+    this._removeSocketListeners()
+    this._socket.addEventListener('open', this.wsOpenHandler)
+    this._socket.addEventListener('close', this.wsCloseHandler)
+    this._socket.addEventListener('error', this.wsErrorHandler)
+    this._socket.addEventListener('message', this._onSocketMessage)
+  }
+
+  protected _removeSocketListeners() {
+    if (!this._socket) {
+      return this.logger.debug('Invalid socket instance to remove listeners')
+    }
+    this._socket.removeEventListener('open', this.wsOpenHandler)
+    this._socket.removeEventListener('close', this.wsCloseHandler)
+    this._socket.removeEventListener('error', this.wsErrorHandler)
+    this._socket.removeEventListener('message', this._onSocketMessage)
   }
 
   /**
@@ -208,7 +236,7 @@ export class BaseSession {
       return
     }
 
-    clearTimeout(this._checkPingTimer)
+    this._clearCheckPingTimer()
     this._requests.clear()
     this._closeConnection('disconnected')
   }
@@ -218,24 +246,23 @@ export class BaseSession {
    * @return Promise that will resolve/reject depending on the server response
    */
   execute(msg: JSONRPCRequest | JSONRPCResponse): Promise<any> {
-    if (!this.ready) {
-      return Promise.reject(
-        "Can't call `execute` when Session is not authorized."
-      )
-    }
-    let promise: Promise<unknown>
+    // In case of a response don't wait for a result
+    let promise: Promise<unknown> = Promise.resolve()
     if ('params' in msg) {
       // This is a request so save the "id" to resolve the Promise later
       promise = new Promise((resolve, reject) => {
         this._requests.set(msg.id, { rpcRequest: msg, resolve, reject })
       })
-    } else {
-      // This is a response so don't wait for a result
-      promise = Promise.resolve()
     }
 
-    this.logger.wsTraffic({ type: 'send', payload: msg })
-    this._socket!.send(this.encode(msg))
+    if (!this.ready) {
+      this._addToExecuteQueue(msg)
+      this.connect()
+
+      return promise
+    }
+
+    this._send(msg)
 
     return timeoutPromise(
       promise,
@@ -287,6 +314,7 @@ export class BaseSession {
     try {
       await this.authenticate()
       this._status = 'connected'
+      this._flushExecuteQueue()
       this.dispatch(authSuccessAction())
     } catch (error) {
       this.logger.error('Auth Error', error)
@@ -383,10 +411,42 @@ export class BaseSession {
     return safeParseJson(input)
   }
 
-  private async _pingHandler(payload: JSONRPCRequest) {
+  private _send(msg: JSONRPCRequest | JSONRPCResponse) {
+    this.logger.wsTraffic({ type: 'send', payload: msg })
+    this._socket!.send(this.encode(msg))
+  }
+
+  private _addToExecuteQueue(msg: JSONRPCRequest | JSONRPCResponse) {
+    this.logger.warn('Request queued waiting for session to reconnect', msg)
+    this._executeQueue.add(msg)
+  }
+
+  private _flushExecuteQueue() {
+    if (!this._executeQueue.size) {
+      return
+    }
+    if (!this.ready) {
+      this.logger.warn(`Session not ready to flush the queue.`)
+      this._closeConnection('reconnecting')
+      return
+    }
+    this.logger.debug(`${this._executeQueue.size} messages to flush`)
+    this._executeQueue.forEach((msg) => {
+      this._send(msg)
+      this._executeQueue.delete(msg)
+    })
+    this._executeQueue.clear()
+  }
+
+  private _clearCheckPingTimer() {
     clearTimeout(this._checkPingTimer)
+  }
+
+  private async _pingHandler(payload: JSONRPCRequest) {
+    this._clearCheckPingTimer()
     this._checkPingTimer = setTimeout(() => {
       // Possibly half-open connection so force close our side
+      this.logger.warn('HALF OPEN')
       this._closeConnection('reconnecting')
     }, this._checkPingDelay)
 
@@ -396,20 +456,14 @@ export class BaseSession {
   private _closeConnection(
     status: Extract<SessionStatus, 'reconnecting' | 'disconnected'>
   ) {
+    this._clearCheckPingTimer()
+    this.logger.warn('_closeConnection')
     this._status = status
     this.dispatch(
       sessionActions.authStatus(
         status === 'disconnected' ? 'unauthorized' : 'unknown'
       )
     )
-    this.dispatch(closeConnectionAction())
-    this._destroySocket()
-  }
-
-  private _destroySocket() {
-    if (this._socket) {
-      this._socket.close()
-      this._socket = null
-    }
+    this.destroySocket()
   }
 }
