@@ -24,10 +24,6 @@ import {
 } from './features/session/sessionSaga'
 import { pubSubSaga } from './features/pubSub/pubSubSaga'
 import {
-  flushExecuteQueueWorker,
-  executeQueueWatcher,
-} from './features/executeQueue/executeQueueSaga'
-import {
   initAction,
   destroyAction,
   closeConnectionAction,
@@ -277,12 +273,6 @@ export function* startSaga(options: StartSagaOptions): SagaIterator {
     yield put(pubSubChannel, sessionConnectedAction())
 
     /**
-     * Will take care of executing any pending JSONRPC we have in
-     * the queue
-     */
-    const flushExecuteQueueTask: Task = yield fork(flushExecuteQueueWorker)
-
-    /**
      * When `closeConnectionAction` is dispatched we'll teardown all the
      * tasks created by this saga since `startSaga` is meant to be
      * re-executed every time the user reconnects.
@@ -290,7 +280,6 @@ export function* startSaga(options: StartSagaOptions): SagaIterator {
     yield take(closeConnectionAction.type)
 
     executeActionTask.cancel()
-    flushExecuteQueueTask.cancel()
   } finally {
     if (yield cancelled()) {
       getLogger().debug('startSaga [cancelled]')
@@ -344,8 +333,6 @@ export default (options: RootSagaOptions) => {
     if (userOptions.debug) {
       setDebugOptions(userOptions.debug)
     }
-
-    yield fork(executeQueueWatcher)
 
     while (true) {
       /**

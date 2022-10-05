@@ -14,10 +14,6 @@ import {
   sessionChannelWatcher,
   executeActionWatcher,
 } from './features/session/sessionSaga'
-import {
-  executeQueueWatcher,
-  flushExecuteQueueWorker,
-} from './features/executeQueue/executeQueueSaga'
 import { pubSubSaga } from './features/pubSub/pubSubSaga'
 import { sessionActions } from './features'
 import {
@@ -265,8 +261,6 @@ describe('startSaga', () => {
       .put(sessionActions.connected(session.rpcConnectResult))
     saga.next().put(pubSubChannel, sessionConnectedAction())
 
-    saga.next().fork(flushExecuteQueueWorker)
-
     saga.next(executeQueueCallTask).take(closeConnectionAction.type)
     saga.next().cancelled()
     saga.next().isDone()
@@ -298,7 +292,6 @@ describe('rootSaga as restartable', () => {
       }
     )
 
-    saga.next().fork(executeQueueWatcher)
     saga.next().take([initAction.type, reauthAction.type])
     saga.next().call(initSessionSaga, {
       SessionConstructor,
