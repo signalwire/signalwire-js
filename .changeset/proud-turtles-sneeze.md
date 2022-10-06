@@ -2,4 +2,4 @@
 '@signalwire/realtime-api': patch
 ---
 
-Fix race condition on auto-connect Clients
+Fix race condition on auto-connect Clients.
