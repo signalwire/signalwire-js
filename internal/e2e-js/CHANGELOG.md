@@ -1,5 +1,11 @@
 # @sw-internal/e2e-js
 
+## 0.0.6
+
+### Patch Changes
+
+- [#656](https://github.com/signalwire/signalwire-js/pull/656) [`8132100c`](https://github.com/signalwire/signalwire-js/commit/8132100cb237dfe69136ef175c235690cfe577db) - Add e2e tests for Chat and disconnect method for PubSub.
+
 ## 0.0.5
 
 ### Patch Changes

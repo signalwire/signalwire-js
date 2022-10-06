@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.8] - 2022-10-06
+
+### Fixed
+
+- [#659](https://github.com/signalwire/signalwire-js/pull/659) [`64e13ec6`](https://github.com/signalwire/signalwire-js/commit/64e13ec60a812ba3dbab941ea3d2bfa5f27ad5fe) - Fix `updateCamera` and `updateMicrophone` logic to apply changes on the localStream.
+
+### Dependencies
+
+- Updated dependencies [[`b765449b`](https://github.com/signalwire/signalwire-js/commit/b765449bb22604b7f116a365027e17b10984d0af), [`021d9b83`](https://github.com/signalwire/signalwire-js/commit/021d9b8364777e493aa8d320d5b03a4275f640bb), [`e3453977`](https://github.com/signalwire/signalwire-js/commit/e3453977b7df3cd34939ee8e6f15c6d83fb08134), [`be8b8dea`](https://github.com/signalwire/signalwire-js/commit/be8b8deadb8652d4ea54bd2b4c3cfd29d2f94662)]:
+  - @signalwire/core@3.12.1
+
 ## [3.5.7] - 2022-09-21
 
 ### Changed
