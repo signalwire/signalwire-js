@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.1] - 2022-10-06
+
+### Fixed
+
+- [#658](https://github.com/signalwire/signalwire-js/pull/658) [`b765449b`](https://github.com/signalwire/signalwire-js/commit/b765449bb22604b7f116a365027e17b10984d0af) - Skip auto-subscribe logic for a RoomSession without valid subscriptions.
+
+* [#657](https://github.com/signalwire/signalwire-js/pull/657) [`50f2e07f`](https://github.com/signalwire/signalwire-js/commit/50f2e07f2e51a11b202d30b38cd37bc0d2270dc6) - Hotfix for `getRecordings`, `getPlaybacks` and `getStreams` return objects without room_session_id.
+
+- [#655](https://github.com/signalwire/signalwire-js/pull/655) [`31af8209`](https://github.com/signalwire/signalwire-js/commit/31af820961f6c1cdc810b3b42a4dcf543610fcb4) - Fix race condition on auto-connect Clients.
+
+### Dependencies
+
+- Updated dependencies [[`b765449b`](https://github.com/signalwire/signalwire-js/commit/b765449bb22604b7f116a365027e17b10984d0af), [`021d9b83`](https://github.com/signalwire/signalwire-js/commit/021d9b8364777e493aa8d320d5b03a4275f640bb), [`e3453977`](https://github.com/signalwire/signalwire-js/commit/e3453977b7df3cd34939ee8e6f15c6d83fb08134), [`be8b8dea`](https://github.com/signalwire/signalwire-js/commit/be8b8deadb8652d4ea54bd2b4c3cfd29d2f94662)]:
+  - @signalwire/core@3.12.1
+
 ## [3.5.0] - 2022-09-21
 
 ### Added

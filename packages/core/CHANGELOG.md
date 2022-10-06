@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.12.1] - 2022-10-06
+
+### Changed
+
+- [#658](https://github.com/signalwire/signalwire-js/pull/658) [`b765449b`](https://github.com/signalwire/signalwire-js/commit/b765449bb22604b7f116a365027e17b10984d0af) - Change log level of an internal message.
+
+* [#653](https://github.com/signalwire/signalwire-js/pull/653) [`be8b8dea`](https://github.com/signalwire/signalwire-js/commit/be8b8deadb8652d4ea54bd2b4c3cfd29d2f94662) - Internal review of `rootSaga` logic.
+
+### Fixed
+
+- [`021d9b83`](https://github.com/signalwire/signalwire-js/commit/021d9b8364777e493aa8d320d5b03a4275f640bb) - Fix `toSnakeCaseKeys` util and fix `language` type in the Prompt params.
+
+* [#660](https://github.com/signalwire/signalwire-js/pull/660) [`e3453977`](https://github.com/signalwire/signalwire-js/commit/e3453977b7df3cd34939ee8e6f15c6d83fb08134) - Fix how Chat/PubSub client can be reused after a `.disconnect()`.
+
 ## [3.12.0] - 2022-09-21
 
 ### Added

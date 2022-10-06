@@ -1,5 +1,11 @@
 # @sw-internal/e2e-realtime-api
 
+## 0.1.4
+
+### Patch Changes
+
+- [#655](https://github.com/signalwire/signalwire-js/pull/655) [`31af8209`](https://github.com/signalwire/signalwire-js/commit/31af820961f6c1cdc810b3b42a4dcf543610fcb4) - Add e2e-test for Video.
+
 ## 0.1.3
 
 ### Patch Changes
