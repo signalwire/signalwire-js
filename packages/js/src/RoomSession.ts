@@ -117,7 +117,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
       // @ts-expect-error
       if (roomOptions._hijack) {
         // @ts-expect-error
-        window.sessionStorage.setItem('callId', room.__uuid)
+        window.sessionStorage.setItem('callId', room.callId)
       }
     },
     init: () => {
@@ -126,7 +126,18 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
         const prevCallId = window.sessionStorage.getItem('callId')
         if (prevCallId) {
           // @ts-expect-error
-          room.uuid = prevCallId
+          const dialogParamsRef = room.dialogParams
+          // @ts-expect-error
+          room.dialogParams = (rtcPeerId: string) => {
+            console.debug('Forcing version to 1000')
+            const tmp = dialogParamsRef.call(room, rtcPeerId)
+            return {
+              dialogParams: {
+                ...tmp.dialogParams,
+                id: prevCallId,
+              },
+            }
+          }
         }
       }
     },
