@@ -810,7 +810,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
   }
 
   /**
-   * Play a ringtone while collecting user input from the call, such as `digits` or `speech`.
+   * Say some text while collecting user input from the call, such as `digits` or `speech`.
    *
    * @example
    *
