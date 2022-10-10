@@ -74,7 +74,7 @@ export const voiceCallPromptWorker: SDKWorker<Call> = function* (
       })
 
       /**
-       * Dispatch an event to resolve `waitForResult` in CallPrompt
+       * Dispatch an event to resolve `ended` in CallPrompt
        * when ended
        */
       yield sagaEffects.put(pubSubChannel, {

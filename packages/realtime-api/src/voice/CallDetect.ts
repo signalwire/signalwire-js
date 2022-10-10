@@ -53,12 +53,25 @@ export class CallDetectAPI
     return this
   }
 
+  /** @deprecated */
   waitForResult() {
+    return this.ended()
+  }
+
+  ended() {
     return new Promise<this>((resolve) => {
       this._attachListeners(this.controlId)
 
       // @ts-expect-error
       this.once('detect.ended', () => {
+        // It's important to notice that we're returning
+        // `this` instead of creating a brand new instance
+        // using the payload + EventEmitter Transform
+        // pipeline. `this` is the instance created by the
+        // `Call` Emitter Transform pipeline (singleton per
+        // `Call.detect()`) that gets auto updated (using
+        // the latest payload per event) by the
+        // `voiceCallDetectWorker`
         resolve(this)
       })
     })

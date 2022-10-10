@@ -23,10 +23,12 @@ export class CallRecordingAPI
   extends BaseComponent<CallRecordingEventsHandlerMapping>
   implements VoiceCallRecordingContract
 {
+  protected _eventsPrefix = 'calling' as const
+
   callId: string
   nodeId: string
   controlId: string
-  state: CallingCallRecordState
+  state: CallingCallRecordState = 'recording'
 
   get id() {
     return this.controlId
@@ -48,6 +50,32 @@ export class CallRecordingAPI
      */
 
     return this
+  }
+
+  ended() {
+    return new Promise<this>((resolve) => {
+      this._attachListeners(this.controlId)
+      const handler = () => {
+        // @ts-expect-error
+        this.off('recording.ended', handler)
+        // @ts-expect-error
+        this.off('recording.failed', handler)
+        // It's important to notice that we're returning
+        // `this` instead of creating a brand new instance
+        // using the payload + EventEmitter Transform
+        // pipeline. `this` is the instance created by the
+        // `Call` Emitter Transform pipeline (singleton per
+        // `Call.record()`) that gets auto updated (using
+        // the latest payload per event) by the
+        // `voiceCallRecordWorker`
+        resolve(this)
+      }
+      // @ts-expect-error
+      this.once('recording.ended', handler)
+      // TODO: review what else to return when `recording.failed` happens.
+      // @ts-expect-error
+      this.once('recording.failed', handler)
+    })
   }
 }
 

@@ -85,7 +85,7 @@ async function run() {
       if (RUN_DETECTOR) {
         // See the `call.received` handler
         const detect = await call.detectDigit()
-        const result = await detect.waitForResult()
+        const result = await detect.ended()
         console.log('Detect Result', result.type)
 
         await sleep()
@@ -112,7 +112,7 @@ async function run() {
         console.log('Main:', call.id, call.type, call.from, call.to)
 
         // Wait until Main and Peer are connected
-        await call.waitForDisconnected()
+        await call.disconnected()
 
         const playlist = new Voice.Playlist({ volume: 2 }).add(
           Voice.Playlist.TTS({
@@ -121,7 +121,7 @@ async function run() {
         )
         const pb = await call.play(playlist)
 
-        await pb.waitForEnded()
+        await pb.ended()
       } catch (error) {
         console.error('Connect Error', error)
       }
@@ -181,7 +181,7 @@ async function run() {
       })
 
       /** Wait for the result - sync way */
-      // const { type, digits, terminator } = await prompt.waitForResult()
+      // const { type, digits, terminator } = await prompt.ended()
       // console.log('Prompt Output:', type, digits, terminator)
 
       console.log('Prompt STARTED!', prompt.id)
@@ -239,7 +239,7 @@ async function run() {
       const playback = await call.play(playlist)
 
       // To wait for the playback to end (without pause/resume/stop it)
-      // await playback.waitForEnded()
+      // await playback.ended()
 
       console.log('Playback STARTED!', playback.id)
 

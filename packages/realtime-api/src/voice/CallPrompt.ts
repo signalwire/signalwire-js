@@ -3,16 +3,9 @@ import {
   BaseComponentOptions,
   VoiceCallPromptContract,
   CallingCallCollectResult,
-  EventTransform,
-  toExternalJSON,
+  BaseComponent,
+  CallPromptEndedEvent,
 } from '@signalwire/core'
-import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
-
-type EmitterTransformsEvents =
-  | 'calling.prompt.started'
-  | 'calling.prompt.updated'
-  | 'calling.prompt.ended'
-  | 'calling.prompt.failed'
 
 /**
  * Instances of this class allow you to control (e.g., resume) the
@@ -28,7 +21,7 @@ export interface CallPromptOptions
   extends BaseComponentOptions<CallPromptEventsHandlerMapping> {}
 
 export class CallPromptAPI
-  extends AutoApplyTransformsConsumer<CallPromptEventsHandlerMapping>
+  extends BaseComponent<CallPromptEventsHandlerMapping>
   implements VoiceCallPromptContract
 {
   protected _eventsPrefix = 'calling' as const
@@ -37,30 +30,6 @@ export class CallPromptAPI
   nodeId: string
   controlId: string
   result?: CallingCallCollectResult
-
-  /** @internal */
-  protected getEmitterTransforms() {
-    return new Map<
-      EmitterTransformsEvents | EmitterTransformsEvents[],
-      EventTransform
-    >([
-      [
-        ['calling.prompt.ended', 'calling.prompt.failed'],
-        {
-          type: 'voiceCallPrompt',
-          instanceFactory: (_payload: any) => {
-            return createCallPromptObject({
-              store: this.store,
-              emitter: this.emitter,
-            })
-          },
-          payloadTransform: (payload: any) => {
-            return toExternalJSON(payload)
-          },
-        },
-      ],
-    ])
-  }
 
   get id() {
     return this.controlId
@@ -141,19 +110,29 @@ export class CallPromptAPI
     return this
   }
 
+  /** @deprecated */
   waitForResult() {
-    return new Promise<CallPrompt>((resolve) => {
-      this._attachListeners(this.controlId)
+    return this.ended()
+  }
 
-      const handler = (callPrompt: CallPrompt) => {
+  ended() {
+    return new Promise<this>((resolve) => {
+      this._attachListeners(this.controlId)
+      const handler = (_callPrompt: CallPromptEndedEvent['params']) => {
         // @ts-expect-error
         this.off('prompt.ended', handler)
         // @ts-expect-error
         this.off('prompt.failed', handler)
-
-        resolve(callPrompt)
+        // It's important to notice that we're returning
+        // `this` instead of creating a brand new instance
+        // using the payload + EventEmitter Transform
+        // pipeline. `this` is the instance created by the
+        // `Call` Emitter Transform pipeline (singleton per
+        // `Call.prompt()`) that gets auto updated (using
+        // the latest payload per event) by the
+        // `voiceCallPromptWorker`
+        resolve(this)
       }
-
       // @ts-expect-error
       this.once('prompt.ended', handler)
       // @ts-expect-error

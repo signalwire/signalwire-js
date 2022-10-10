@@ -425,7 +425,11 @@ export interface VoiceCallPlaybackContract {
   resume(): Promise<this>
   stop(): Promise<this>
   setVolume(volume: number): Promise<this>
+  /**
+   * @deprecated use {@link ended} instead.
+   */
   waitForEnded(): Promise<this>
+  ended(): Promise<this>
 }
 
 /**
@@ -460,6 +464,7 @@ export interface VoiceCallRecordingContract {
   readonly duration?: number
 
   stop(): Promise<this>
+  ended(): Promise<this>
 }
 
 /**
@@ -488,7 +493,11 @@ export interface VoiceCallDetectContract {
   readonly type?: CallingCallDetectType
 
   stop(): Promise<this>
+  /**
+   * @deprecated use {@link ended} instead.
+   */
   waitForResult(): Promise<this>
+  ended(): Promise<this>
 }
 
 /**
@@ -523,7 +532,11 @@ export interface VoiceCallPromptContract {
 
   stop(): Promise<this>
   setVolume(volume: number): Promise<this>
+  /**
+   * @deprecated use {@link ended} instead.
+   */
   waitForResult(): Promise<VoiceCallPromptContract>
+  ended(): Promise<this>
 }
 
 /**
@@ -551,6 +564,7 @@ export interface VoiceCallTapContract {
   readonly state: CallingCallTapState
 
   stop(): Promise<this>
+  ended(): Promise<this>
 }
 
 /**
@@ -635,7 +649,30 @@ export interface VoiceCallContract<T = any> {
   connectSip(
     params: VoiceCallConnectSipMethodParams
   ): Promise<VoiceCallContract>
+  /**
+   * @deprecated use {@link disconnected} instead.
+   */
   waitForDisconnected(): Promise<this>
+  /**
+   * Returns a promise that is resolved only after the current call has been
+   * disconnected. Also see {@link connect}.
+   *
+   * @example
+   *
+   * ```js
+   * const plan = new Voice.DeviceBuilder().add(
+   *   Voice.DeviceBuilder.Sip({
+   *     from: 'sip:user1@domain.com',
+   *     to: 'sip:user2@domain.com',
+   *     timeout: 30,
+   *   })
+   * )
+   *
+   * const peer = await call.connect(plan)
+   * await call.disconnected()
+   * ```
+   */
+  disconnected(): Promise<this>
   waitFor(
     params: CallingCallWaitForState | CallingCallWaitForState[]
   ): Promise<boolean>

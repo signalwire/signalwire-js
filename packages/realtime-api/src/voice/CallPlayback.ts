@@ -98,11 +98,26 @@ export class CallPlaybackAPI
     return this
   }
 
+  /** @deprecated */
   waitForEnded() {
+    return this.ended()
+  }
+
+  ended() {
     return new Promise<this>((resolve) => {
       this._attachListeners(this.controlId)
 
-      const handler = () => resolve(this)
+      const handler = () => {
+        // It's important to notice that we're returning
+        // `this` instead of creating a brand new instance
+        // using the payload + EventEmitter Transform
+        // pipeline. `this` is the instance created by the
+        // `Call` Emitter Transform pipeline (singleton per
+        // `Call.play()`) that gets auto updated (using
+        // the latest payload per event) by the
+        // `voiceCallPlayWorker`
+        resolve(this)
+      }
       // @ts-expect-error
       this.once('playback.ended', handler)
       // // @ts-expect-error

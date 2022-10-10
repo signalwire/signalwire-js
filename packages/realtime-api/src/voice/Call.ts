@@ -39,6 +39,7 @@ import {
   VoiceCallDetectDigitParams,
   CallingCallDetectEventParams,
   VoiceDialerParams,
+  CallingCallWaitForState,
 } from '@signalwire/core'
 import { RealTimeCallApiEvents } from '../types'
 import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
@@ -134,6 +135,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
   public callId: string
   public nodeId: string
   public peer: string
+  public callState: string
 
   constructor(options: BaseComponentOptions<RealTimeCallApiEvents>) {
     super(options)
@@ -163,6 +165,10 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
   /** Unique id for this voice call */
   get id() {
     return this.callId
+  }
+
+  get state() {
+    return this.callState
   }
 
   get tag() {
@@ -521,11 +527,12 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         },
       })
         .then(() => {
-          const startEvent: CallingCallPlayEventParams = {
+          // We intentionally omit `state` since that
+          // property is handled internally by the instance.
+          const startEvent: Omit<CallingCallPlayEventParams, 'state'> = {
             control_id: controlId,
             call_id: this.id,
             node_id: this.nodeId,
-            state: 'playing',
           }
           // @ts-expect-error
           this.emit(callingPlaybackTriggerEvent, startEvent)
@@ -545,7 +552,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    *
    * ```js
    * const playback = await call.playAudio({ url: 'https://cdn.signalwire.com/default-music/welcome.mp3' });
-   * await playback.waitForEnded();
+   * await playback.ended();
    * ```
    */
   playAudio(params: VoiceCallPlayAudioMethodParams) {
@@ -561,7 +568,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    *
    * ```js
    * const playback = await call.playSilence({ duration: 3 });
-   * await playback.waitForEnded();
+   * await playback.ended();
    * ```
    */
   playSilence(params: VoiceCallPlaySilenceMethodParams) {
@@ -576,7 +583,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    *
    * ```js
    * const playback = await call.playRingtone({ name: 'it' });
-   * await playback.waitForEnded();
+   * await playback.ended();
    * ```
    */
   playRingtone(params: VoiceCallPlayRingtoneMethodParams) {
@@ -592,7 +599,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    *
    * ```js
    * const playback = await call.playTTS({ text: 'Welcome to SignalWire!' });
-   * await playback.waitForEnded();
+   * await playback.ended();
    * ```
    */
   playTTS(params: VoiceCallPlayTTSMethodParams) {
@@ -757,7 +764,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    *     terminators: '#*'
    *   }
    * })
-   * const { type, digits, terminator } = await prompt.waitForResult()
+   * const { type, digits, terminator } = await prompt.ended()
    * ```
    */
   promptAudio(params: VoiceCallPromptAudioMethodParams) {
@@ -787,7 +794,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    *     terminators: '#*'
    *   }
    * })
-   * const { type, digits, terminator } = await prompt.waitForResult()
+   * const { type, digits, terminator } = await prompt.ended()
    * ```
    */
   promptRingtone(params: VoiceCallPromptRingtoneMethodParams) {
@@ -818,7 +825,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    *     terminators: '#*'
    *   }
    * })
-   * const { type, digits, terminator } = await prompt.waitForResult()
+   * const { type, digits, terminator } = await prompt.ended()
    * ```
    */
   promptTTS(params: VoiceCallPromptTTSMethodParams) {
@@ -1007,7 +1014,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     return this.tap({ audio: { direction }, device })
   }
 
-   /**
+  /**
    * Attempt to connect an existing call to a new outbound call. You can wait
    * until the call is disconnected by calling {@link waitForDisconnected}.
    *
@@ -1166,25 +1173,13 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
   }
 
   /**
-   * Returns a promise that is resolved only after the current call has been
-   * disconnected. Also see {@link connect}.
-   *
-   * @example
-   *
-   * ```js
-   * const plan = new Voice.DeviceBuilder().add(
-   *   Voice.DeviceBuilder.Sip({
-   *     from: 'sip:user1@domain.com',
-   *     to: 'sip:user2@domain.com',
-   *     timeout: 30,
-   *   })
-   * )
-   *
-   * const peer = await call.connect(plan)
-   * await call.waitForDisconnected()
-   * ```
+   * @deprecated use {@link disconnected} instead.
    */
   waitForDisconnected() {
+    return this.disconnect
+  }
+
+  disconnected() {
     return new Promise<this>((resolve) => {
       const resolveHandler = () => {
         resolve(this)
@@ -1193,6 +1188,10 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       this.once('connect.disconnected', resolveHandler)
       // @ts-expect-error
       this.once('connect.failed', resolveHandler)
+
+      if (this.state === 'ended' || this.state === 'ending') {
+        return resolveHandler()
+      }
     })
   }
 
@@ -1261,7 +1260,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    *
    * ```js
    * const detect = await call.amd()
-   * const result = await detect.waitForResult()
+   * const result = await detect.ended()
    *
    * console.log('Detect result:', result.type)
    * ```
@@ -1280,7 +1279,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    *
    * ```js
    * const detect = await call.detectFax()
-   * const result = await detect.waitForResult()
+   * const result = await detect.ended()
    *
    * console.log('Detect result:', result.type)
    * ```
@@ -1299,7 +1298,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    *
    * ```js
    * const detect = await call.detectDigit()
-   * const result = await detect.waitForResult()
+   * const result = await detect.ended()
    *
    * console.log('Detect result:', result.type)
    * ```
@@ -1324,7 +1323,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    * await call.waitFor('ended')
    * ```
    */
-  waitFor(params: CallingCallState | CallingCallState[]) {
+  waitFor(params: CallingCallWaitForState | CallingCallWaitForState[]) {
     return new Promise((resolve) => {
       if (!params) {
         resolve(true)

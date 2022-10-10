@@ -8,6 +8,7 @@ import {
   MapToPubSubShape,
 } from '@signalwire/core'
 import type { Call } from '../Call'
+import { callingPlaybackTriggerEvent } from '../Call'
 
 export const voiceCallPlayWorker: SDKWorker<Call> = function* (
   options
@@ -38,6 +39,17 @@ export const voiceCallPlayWorker: SDKWorker<Call> = function* (
       tag: instance.tag,
       ...action.payload,
     }
+
+    /**
+     * Update the original CallPlayback object using the
+     * transform pipeline
+     */
+     yield sagaEffects.put(pubSubChannel, {
+      // @ts-ignore
+      type: callingPlaybackTriggerEvent,
+      // @ts-ignore
+      payload: payloadWithTag,
+    })
 
     switch (action.payload.state) {
       case 'playing': {
@@ -71,7 +83,7 @@ export const voiceCallPlayWorker: SDKWorker<Call> = function* (
         })
 
         /**
-         * Dispatch an event to resolve `waitForEnded` in CallPlayback
+         * Dispatch an event to resolve `ended()` in CallPlayback
          * when ended
          */
         yield sagaEffects.put(pubSubChannel, {

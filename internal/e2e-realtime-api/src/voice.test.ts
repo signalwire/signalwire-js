@@ -51,6 +51,15 @@ const handler = () => {
         const recording = await call.recordAudio()
         tap.ok(recording.id, 'Recording started')
 
+        console.log('Stopping the recording.')
+        recording.stop()
+        const recordingEndedResult = await recording.ended()
+        tap.equal(
+          recordingEndedResult.state,
+          'finished',
+          'Recording state is "finished"'
+        )
+
         const playlist = new Voice.Playlist({ volume: 2 }).add(
           Voice.Playlist.TTS({
             text: 'Message is getting recorded',
@@ -60,8 +69,13 @@ const handler = () => {
         tap.ok(playback.id, 'Playback')
 
         console.log('Waiting for Playback to end')
-        // TODO: waitForEnded should probably accept a timeout
-        await playback.waitForEnded()
+        const playbackEndedResult = await playback.ended()
+        tap.equal(playback.id, playbackEndedResult.id, 'Instances are the same')
+        tap.equal(
+          playbackEndedResult.state,
+          'finished',
+          'Playback state is "finished"'
+        )
         tap.pass('Playback ended')
 
         call.on('prompt.started', (p) => {
@@ -84,10 +98,13 @@ const handler = () => {
           },
         })
 
-        const result = await prompt.waitForResult()
-
-        tap.equal(prompt.id, result.id, 'Instances are the same')
-        tap.equal(result.digits, '123', 'Correct Digits were entered')
+        const promptEndedResult = await prompt.ended()
+        tap.equal(prompt.id, promptEndedResult.id, 'Instances are the same')
+        tap.equal(
+          promptEndedResult.digits,
+          '123',
+          'Correct Digits were entered'
+        )
 
         console.log(
           `Connecting ${process.env.VOICE_DIAL_FROM_NUMBER} to ${process.env.VOICE_CONNECT_TO_NUMBER}`
@@ -111,7 +128,7 @@ const handler = () => {
           digits: '1',
         })
 
-        const resultDetector = await detector.waitForResult()
+        const resultDetector = await detector.ended()
 
         // TODO: update this once the backend can send us
         // the actual result

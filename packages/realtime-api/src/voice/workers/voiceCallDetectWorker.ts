@@ -102,7 +102,7 @@ export const voiceCallDetectWorker: SDKWorker<Call> = function* (
 
   if (lastAction) {
     /**
-     * On endef, dispatch an event to resolve `waitForResult` in CallDetect
+     * On endef, dispatch an event to resolve `ended` in CallDetect
      * overriding the `tag` to be the controlId
      */
     yield sagaEffects.put(pubSubChannel, {
