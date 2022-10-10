@@ -681,6 +681,10 @@ export interface VoiceCallContract<T = any> {
   amd(
     params?: Omit<VoiceCallDetectMachineParams, 'type'>
   ): Promise<VoiceCallDetectContract>
+  // amd alias
+  detectAnsweringMachine(
+    params?: Omit<VoiceCallDetectMachineParams, 'type'>
+  ): Promise<VoiceCallDetectContract>
   detectFax(
     params?: Omit<VoiceCallDetectFaxParams, 'type'>
   ): Promise<VoiceCallDetectContract>
