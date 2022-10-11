@@ -139,7 +139,13 @@ const makeLayoutChangedHandler =
       /**
        * Show myLayer only if the localStream has a valid video track
        */
-      const hasVideo = localStream.getVideoTracks().length > 0
+      const hasVideo =
+        localStream
+          .getVideoTracks()
+          .filter((t) => t.enabled && t.readyState === 'live').length > 0
+      if (hasVideo) {
+        localOverlay.setLocalOverlayMediaStream(localStream)
+      }
       myLayer.style.opacity = hasVideo ? '1' : '0'
       myLayer.style.top = top
       myLayer.style.left = left
