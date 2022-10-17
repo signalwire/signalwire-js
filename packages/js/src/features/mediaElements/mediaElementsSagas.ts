@@ -98,7 +98,6 @@ export const makeVideoElementSaga = ({
         // FIXME: expose a method on BaseConnection
         if (room.peer?.hasVideoSender && room.localStream) {
           layoutChangedHandler({
-            // @ts-expect-error
             layout: params.layout,
             localStream: room.localStream,
             myMemberId: room.memberId,
