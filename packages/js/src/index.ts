@@ -69,10 +69,7 @@ export * as Video from './video'
  */
 export * as WebRTC from './webrtc'
 
-export type {
-  VideoPosition,
-  VideoPositions,
-} from '@signalwire/core'
+export type { VideoPosition, VideoPositions } from '@signalwire/core'
 
 /** @ignore */
 export type {
@@ -85,6 +82,7 @@ export type {
   SessionStatus,
   SessionEvents,
   VideoLayout,
+  InternalVideoLayout,
   VideoLayoutEventNames,
   VideoRoomSessionEventNames,
   VideoRoomEventParams,
@@ -108,5 +106,5 @@ export type {
   // Just to keep backwards compatibility.
   RoomSessionObjectEventsHandlerMap as RoomObjectEventsHandlerMap,
   RoomSessionObjectEvents as RoomObjectEvents,
-  RoomEventNames
+  RoomEventNames,
 } from './utils/interfaces'

@@ -1,7 +1,7 @@
 import type {
   Rooms,
   BaseConnectionState,
-  VideoLayout,
+  InternalVideoLayout,
   VideoLayoutEventNames,
   VideoRoomSessionEventNames,
   VideoRoomEventParams,
@@ -47,6 +47,7 @@ import type { RoomSessionScreenShare } from '../RoomSessionScreenShare'
  */
 type VideoMemberEntity = InternalVideoMemberEntity
 type VideoMemberEntityUpdated = InternalVideoMemberEntityUpdated
+type VideoLayout = InternalVideoLayout
 
 const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
   INTERNAL_MEMBER_UPDATABLE_PROPS
