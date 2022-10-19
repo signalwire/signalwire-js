@@ -48,7 +48,10 @@ const handler = () => {
           return
         }
 
-        const recording = await call.recordAudio()
+        const recording = await call.recordAudio({
+          direction: 'speak',
+          inputSensitivity: 60,
+        })
         tap.ok(recording.id, 'Recording started')
 
         console.log('Stopping the recording.')

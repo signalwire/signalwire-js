@@ -239,6 +239,7 @@ export interface VoiceCallRecordMethodParams {
     initialTimeout?: number
     endSilenceTimeout?: number
     terminators?: string
+    inputSensitivity?: number
   }
 }
 
