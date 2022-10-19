@@ -27,6 +27,9 @@ import type {
   RoomLeft,
   VideoStreamEventNames,
   RoomSessionStream,
+  RoomJoined,
+  RoomSubscribed,
+  VideoRoomSubscribedEventParams,
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
 import type { RoomSession } from '../RoomSession'
@@ -109,8 +112,12 @@ export type RoomSessionObjectEventsHandlerMap = Record<
     (params: VideoMemberTalkingEventParams) => void
   > &
   Record<
-    Exclude<VideoRoomSessionEventNames, RoomLeft>,
+    Exclude<VideoRoomSessionEventNames, RoomLeft | RoomJoined | RoomSubscribed>,
     (params: VideoRoomEventParams) => void
+  > &
+  Record<
+    RoomJoined | RoomSubscribed,
+    (params: VideoRoomSubscribedEventParams) => void
   > &
   Record<RoomLeft, (params: void) => void> &
   Record<
