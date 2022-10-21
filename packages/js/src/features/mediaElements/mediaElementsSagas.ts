@@ -14,6 +14,7 @@ import {
   waitForVideoReady,
   LocalOverlay,
   addSDKPrefix,
+  createRootElementResizeObserver,
 } from '../../utils/videoElement'
 import { setAudioMediaTrack } from '../../utils/audioElement'
 import { audioSetSpeakerAction } from '../actions'
@@ -305,7 +306,7 @@ function* videoElementSetupWorker({
   track: MediaStreamTrack
   element: HTMLVideoElement
 }): SagaIterator {
-  const handleVideoTrack = async (track: MediaStreamTrack) => {
+  try {
     setVideoMediaTrack({ element, track })
 
     element.style.width = '100%'
@@ -344,33 +345,36 @@ function* videoElementSetupWorker({
     relativeWrapper.classList.add('mcuContent')
     relativeWrapper.style.position = 'relative'
     relativeWrapper.style.width = '100%'
+    relativeWrapper.style.height = '100%'
     relativeWrapper.style.margin = '0 auto'
     relativeWrapper.style.display = 'flex'
     relativeWrapper.style.alignItems = 'center'
     relativeWrapper.style.justifyContent = 'center'
     relativeWrapper.appendChild(paddingWrapper)
 
+    rootElement.style.width = '100%'
+    rootElement.style.height = '100%'
     rootElement.appendChild(relativeWrapper)
 
     if (element.readyState === HTMLMediaElement.HAVE_NOTHING) {
       getLogger().debug('Wait for the MCU to be ready')
-      await waitForVideoReady({ element })
+      yield sagaEffects.call(waitForVideoReady, { element })
     }
 
-    // const observer = createRootElementResizeObserver({
-    //   rootElement,
-    //   video: element,
-    //   paddingWrapper,
-    // })
-    // observer.start()
-    // track.addEventListener('ended', () => observer.stop())
+    const rootElementResizeObserver = createRootElementResizeObserver({
+      rootElement,
+      video: element,
+      paddingWrapper,
+    })
+    rootElementResizeObserver.start()
+    track.addEventListener('ended', () => {
+      if (rootElementResizeObserver) {
+        rootElementResizeObserver.stop()
+      }
+    })
 
     layersWrapper.style.display = 'block'
-  }
-
-  handleVideoTrack(track).catch((error) => {
+  } catch (error) {
     getLogger().error('Handle video track error', error)
-  })
-
-  // TODO: take destroy
+  }
 }

@@ -186,13 +186,13 @@ const createRootElementResizeObserver = ({
   rootElement: HTMLElement
   paddingWrapper: HTMLDivElement
 }) => {
-  const getWX = () => {
+  const computePaddingWrapperWidth = (width: number, height: number) => {
     const nativeVideoRatio = video.videoWidth / video.videoHeight
-    const clientSideRatio = rootElement.clientWidth / rootElement.clientHeight
-    if (nativeVideoRatio > clientSideRatio) {
-      return { width: '100%' }
+    const rootElementRatio = width / height
+    if (nativeVideoRatio > rootElementRatio) {
+      return '100%'
     } else {
-      return { width: `${rootElement.clientHeight * nativeVideoRatio}px` }
+      return `${height * nativeVideoRatio}px`
     }
   }
 
@@ -205,8 +205,7 @@ const createRootElementResizeObserver = ({
         paddingWrapper.style.paddingBottom = `${
           pb > maxPaddingBottom ? maxPaddingBottom : pb
         }%`
-        const coords = getWX()
-        paddingWrapper.style.width = coords.width
+        paddingWrapper.style.width = computePaddingWrapperWidth(width, height)
       }
     },
     100
@@ -214,14 +213,13 @@ const createRootElementResizeObserver = ({
 
   const observer = new ResizeObserver((entries) => {
     entries.forEach((entry) => {
-      // newer api but less supported
-      if (entry.contentBoxSize?.length) {
-        update({
-          width: entry.contentBoxSize[0].inlineSize,
-          height: entry.contentBoxSize[0].blockSize,
-        })
-      } else if (entry?.contentRect) {
-        // fallback to older api may eventually be deprecated
+      if (entry.contentBoxSize) {
+        // Firefox implements `contentBoxSize` as a single content rect, rather than an array
+        const { inlineSize, blockSize } = Array.isArray(entry.contentBoxSize)
+          ? entry.contentBoxSize[0]
+          : entry.contentBoxSize
+        update({ width: inlineSize, height: blockSize })
+      } else if (entry.contentRect) {
         update({
           width: entry.contentRect.width,
           height: entry.contentRect.height,
