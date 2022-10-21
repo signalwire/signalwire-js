@@ -306,10 +306,6 @@ function* videoElementSetupWorker({
   track: MediaStreamTrack
   element: HTMLVideoElement
 }): SagaIterator {
-  let rootElementResizeObserver:
-    | ReturnType<typeof createRootElementResizeObserver>
-    | undefined = undefined
-
   try {
     setVideoMediaTrack({ element, track })
 
@@ -365,7 +361,7 @@ function* videoElementSetupWorker({
       yield sagaEffects.call(waitForVideoReady, { element })
     }
 
-    rootElementResizeObserver = createRootElementResizeObserver({
+    const rootElementResizeObserver = createRootElementResizeObserver({
       rootElement,
       video: element,
       paddingWrapper,
