@@ -380,9 +380,5 @@ function* videoElementSetupWorker({
     layersWrapper.style.display = 'block'
   } catch (error) {
     getLogger().error('Handle video track error', error)
-  } finally {
-    if (rootElementResizeObserver) {
-      rootElementResizeObserver.stop()
-    }
   }
 }
