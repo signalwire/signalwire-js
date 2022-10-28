@@ -321,6 +321,7 @@ export interface RoomSessionConnectionContract {
   screenShareList: RoomSessionScreenShare[]
   deviceList: RoomSessionDevice[]
   interactivityMode: VideoAuthorization['join_as']
+  permissions: VideoAuthorization['scopes']
   /**
    * Adds a screen sharing instance to the room. You can create multiple screen
    * sharing instances and add all of them to the room.

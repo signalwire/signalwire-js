@@ -24,32 +24,33 @@ test.describe('RoomSession', () => {
     })
 
     const roomName = 'e2e-room-one'
+    const permissions = [
+      'room.self.audio_mute',
+      'room.self.audio_unmute',
+      'room.self.video_mute',
+      'room.self.video_unmute',
+      'room.member.audio_mute',
+      'room.member.video_mute',
+      'room.member.set_input_volume',
+      'room.member.set_output_volume',
+      'room.member.set_input_sensitivity',
+      'room.member.remove',
+      'room.set_layout',
+      'room.list_available_layouts',
+      'room.recording',
+      'room.hide_video_muted',
+      'room.show_video_muted',
+      'room.playback.seek',
+      'room.playback',
+      'room.set_meta',
+      'room.member.set_meta',
+    ]
     await createTestRoomSession(page, {
       vrt: {
         room_name: roomName,
         user_name: 'e2e_test',
         auto_create_room: true,
-        permissions: [
-          'room.self.audio_mute',
-          'room.self.audio_unmute',
-          'room.self.video_mute',
-          'room.self.video_unmute',
-          'room.member.audio_mute',
-          'room.member.video_mute',
-          'room.member.set_input_volume',
-          'room.member.set_output_volume',
-          'room.member.set_input_sensitivity',
-          'room.member.remove',
-          'room.set_layout',
-          'room.list_available_layouts',
-          'room.recording',
-          'room.hide_video_muted',
-          'room.show_video_muted',
-          'room.playback.seek',
-          'room.playback',
-          'room.set_meta',
-          'room.member.set_meta',
-        ],
+        permissions,
       },
       initialEvents: [
         'member.joined',
@@ -85,6 +86,13 @@ test.describe('RoomSession', () => {
 
     // Checks that the video is visible
     await page.waitForSelector('div[id^="sw-sdk-"] > video', { timeout: 5000 })
+
+    const roomPermissions: any = await page.evaluate(() => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      return roomObj.permissions
+    })
+    expect(roomPermissions).toStrictEqual(permissions)
 
     // --------------- Muting Audio (self) ---------------
     await page.evaluate(

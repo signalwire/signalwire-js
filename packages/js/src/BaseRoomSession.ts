@@ -89,6 +89,13 @@ export class RoomSessionConnection
     })
   }
 
+  get permissions() {
+    return this.select(({ session }) => {
+      const { authState } = session
+      return (authState as VideoAuthorization)?.scopes ?? []
+    })
+  }
+
   /** @internal */
   protected getEmitterTransforms() {
     return new Map<string | string[], EventTransform>([
