@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, Page } from '@playwright/test'
 import type { Video } from '@signalwire/js'
 import { createTestServer, createTestRoomSession } from '../utils'
 
@@ -61,6 +61,19 @@ test.describe('RoomSession promote/demote methods', () => {
       expect(pageTwoSDP.split('m=')[2].includes(direction)).toBe(value)
     }
 
+    const expectInteractivityMode = async (
+      page: Page,
+      mode: 'member' | 'audience'
+    ) => {
+      const interactivityMode = await page.evaluate(async () => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+        return roomObj.interactivityMode
+      })
+
+      expect(interactivityMode).toEqual(mode)
+    }
+
     // --------------- Joining from the 1st tab as member and resolve on 'room.joined' ---------------
     await pageOne.evaluate(() => {
       return new Promise((resolve) => {
@@ -70,6 +83,9 @@ test.describe('RoomSession promote/demote methods', () => {
         roomObj.join()
       })
     })
+
+    // --------------- Make sure on pageOne we have a member ---------------
+    await expectInteractivityMode(pageOne, 'member')
 
     // Checks that the video is visible on pageOne
     await pageOne.waitForSelector('div[id^="sw-sdk-"] > video', {
@@ -86,8 +102,11 @@ test.describe('RoomSession promote/demote methods', () => {
       })
     })
 
+    // --------------- Make sure on pageTwo we have a audience ---------------
+    await expectInteractivityMode(pageTwo, 'audience')
+
     // --------------- Check SDP/RTCPeer on audience (recvonly since audience) ---------------
-    expectAudienceSDP('recvonly', true)
+    await expectAudienceSDP('recvonly', true)
 
     // Checks that the video is visible on pageTwo
     await pageTwo.waitForSelector('#rootElement video', {
@@ -122,8 +141,11 @@ test.describe('RoomSession promote/demote methods', () => {
 
     await pageTwo.waitForTimeout(2000)
 
+    // --------------- Make sure on pageTwo we have a member now ---------------
+    await expectInteractivityMode(pageTwo, 'member')
+
     // --------------- Check SDP/RTCPeer on audience (now member so sendrecv) ---------------
-    expectAudienceSDP('sendrecv', true)
+    await expectAudienceSDP('sendrecv', true)
 
     await pageTwo.waitForTimeout(2000)
 
@@ -160,8 +182,11 @@ test.describe('RoomSession promote/demote methods', () => {
 
     await pageTwo.waitForTimeout(2000)
 
+    // --------------- Make sure on pageTwo he got back to audience ---------------
+    await expectInteractivityMode(pageTwo, 'audience')
+
     // --------------- Check SDP/RTCPeer on audience (audience again so recvonly) ---------------
-    expectAudienceSDP('recvonly', true)
+    await expectAudienceSDP('recvonly', true)
 
     await pageTwo.waitForTimeout(2000)
 
