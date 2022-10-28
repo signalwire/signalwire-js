@@ -115,7 +115,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     this._checkDefaultMediaConstraints()
 
     this.setState('new')
-    this.logger.debug('New Call with Options:', this.options)
+    this.logger.trace('New Call with Options:', this.options)
 
     this.applyEmitterTransforms({ local: true })
   }
@@ -263,7 +263,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
     if (this.peer && this.callId !== rtcPeer.uuid) {
       const oldPeerId = this.peer.uuid
-      this.logger.info('>>> Stop old RTCPeer', oldPeerId)
+      this.logger.debug('>>> Stop old RTCPeer', oldPeerId)
       // Invoke hangup to make sure backend closes
       this.hangup(oldPeerId).then(console.warn).catch(console.error)
       this.peer.detachAndStop()
@@ -272,7 +272,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       // this.rtcPeerMap.delete(oldPeerId)
     }
 
-    this.logger.info('>>> Replace RTCPeer with', rtcPeer.uuid)
+    this.logger.debug('>>> Replace RTCPeer with', rtcPeer.uuid)
     this.activeRTCPeerId = rtcPeer.uuid
   }
 
@@ -757,7 +757,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   setState(state: BaseConnectionState) {
     this.prevState = this.state
     this.state = state
-    this.logger.debug(
+    this.logger.trace(
       `Call ${this.id} state change from ${this.prevState} to ${this.state}`
     )
 
