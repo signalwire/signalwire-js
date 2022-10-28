@@ -30,6 +30,7 @@ import type {
   RoomJoined,
   RoomSubscribed,
   VideoRoomSubscribedEventParams,
+  VideoAuthorization,
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
 import type { RoomSession } from '../RoomSession'
@@ -319,6 +320,7 @@ export interface RoomMethods
 export interface RoomSessionConnectionContract {
   screenShareList: RoomSessionScreenShare[]
   deviceList: RoomSessionDevice[]
+  interactivityMode: VideoAuthorization['join_as']
   /**
    * Adds a screen sharing instance to the room. You can create multiple screen
    * sharing instances and add all of them to the room.
