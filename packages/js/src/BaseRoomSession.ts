@@ -11,6 +11,7 @@ import {
   VideoRoomEventParams,
   MemberPosition,
   VideoRoomSubscribedEventParams,
+  VideoAuthorization,
 } from '@signalwire/core'
 import {
   getDisplayMedia,
@@ -79,6 +80,13 @@ export class RoomSessionConnection
 
   get deviceList() {
     return Array.from(this._deviceList)
+  }
+
+  get interactivityMode() {
+    return this.select(({ session }) => {
+      const { authState } = session
+      return (authState as VideoAuthorization)?.join_as ?? ''
+    })
   }
 
   /** @internal */
