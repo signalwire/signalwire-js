@@ -14,8 +14,11 @@ import {
   sessionChannelWatcher,
 } from './features/session/sessionSaga'
 import { pubSubSaga } from './features/pubSub/pubSubSaga'
+import { sessionActions } from './features'
 import {
+  sessionConnectedAction,
   sessionDisconnectedAction,
+  sessionAuthErrorAction,
   sessionExpiringAction,
   authSuccessAction,
   authErrorAction,
@@ -28,8 +31,6 @@ import {
 } from './actions'
 import { AuthError } from '../CustomErrors'
 import { createPubSubChannel, createSwEventChannel } from '../testUtils'
-import { sessionAuthErrorAction, sessionConnectedAction } from '.'
-import { sessionActions } from '..'
 
 describe('socketClosedWorker', () => {
   it('should try to reconnect when session status is reconnecting', () => {
