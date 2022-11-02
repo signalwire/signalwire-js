@@ -5,24 +5,20 @@ import { createMockTask } from '@redux-saga/testing-utils'
 import rootSaga, {
   socketClosedWorker,
   sessionStatusWatcher,
-  startSaga,
   initSessionSaga,
   sessionAuthErrorSaga,
 } from './rootSaga'
 import {
   createSessionChannel,
-  sessionChannelWatcher,
   executeActionWatcher,
+  sessionChannelWatcher,
 } from './features/session/sessionSaga'
-import {
-  executeQueueWatcher,
-  flushExecuteQueueWorker,
-} from './features/executeQueue/executeQueueSaga'
 import { pubSubSaga } from './features/pubSub/pubSubSaga'
 import { sessionActions } from './features'
 import {
   sessionConnectedAction,
   sessionDisconnectedAction,
+  sessionAuthErrorAction,
   sessionExpiringAction,
   authSuccessAction,
   authErrorAction,
@@ -31,13 +27,10 @@ import {
   socketClosedAction,
   destroyAction,
   initAction,
-  closeConnectionAction,
   reauthAction,
 } from './actions'
 import { AuthError } from '../CustomErrors'
 import { createPubSubChannel, createSwEventChannel } from '../testUtils'
-// import { componentCleanupSaga } from './features/component/componentSaga'
-import { sessionAuthErrorAction } from '.'
 
 describe('socketClosedWorker', () => {
   it('should try to reconnect when session status is reconnecting', () => {
@@ -112,16 +105,14 @@ describe('sessionStatusWatcher', () => {
   it('should fork startSaga on authSuccess action', () => {
     const saga = testSaga(sessionStatusWatcher, options)
     saga.next().take(actions)
-    saga.next(authSuccessAction()).fork(startSaga, options)
+    saga
+      .next(authSuccessAction())
+      .put(sessionActions.connected(session.rpcConnectResult))
+    saga.next().put(pubSubChannel, sessionConnectedAction())
+
     // Saga waits again for actions due to the while loop
     const firstSagaTask: Task = createMockTask()
     saga.next(firstSagaTask).take(actions)
-    // Should cancel the previous startSaga task
-    saga.next(authSuccessAction()).cancel(firstSagaTask)
-    saga.next().fork(startSaga, options)
-    const secondSagaTask: Task = createMockTask()
-    // Saga waits again for actions due to the while loop
-    saga.next(secondSagaTask).take(actions)
   })
 
   it('should fork sessionAuthErrorSaga on authError action and put destroyAction', () => {
@@ -221,8 +212,11 @@ describe('initSessionSaga', () => {
     })
     const sessionStatusTask = createMockTask()
     sessionStatusTask.cancel = jest.fn()
-    // saga.next().fork(componentCleanupSaga)
-    saga.next(sessionStatusTask).take(destroyAction.type)
+    saga.next(sessionStatusTask).fork(executeActionWatcher, session)
+
+    const executeActionTask = createMockTask()
+    executeActionTask.cancel = jest.fn()
+    saga.next(executeActionTask).take(destroyAction.type)
     saga.next().isDone()
     expect(pubSubTask.cancel).toHaveBeenCalledTimes(1)
     expect(sessionStatusTask.cancel).toHaveBeenCalledTimes(1)
@@ -230,49 +224,6 @@ describe('initSessionSaga', () => {
     expect(swEventChannel.close).not.toHaveBeenCalled()
     expect(sessionChannel.close).toHaveBeenCalledTimes(1)
     expect(session.connect).toHaveBeenCalledTimes(1)
-  })
-})
-
-describe('startSaga', () => {
-  const session = {
-    rpcConnectResult: { key: 'value' },
-    connect: jest.fn(),
-  } as any
-  const pubSubChannel = createPubSubChannel()
-  pubSubChannel.close = jest.fn()
-  const sessionChannel = eventChannel(() => () => {})
-  sessionChannel.close = jest.fn()
-  const userOptions = {
-    token: '',
-    emitter: jest.fn() as any,
-  }
-  const options = {
-    session,
-    pubSubChannel,
-    sessionChannel,
-    userOptions,
-  }
-
-  it('should put actions and fork watchers', () => {
-    const executeActionTask = { cancel: jest.fn() }
-    const executeQueueCallTask = { cancel: jest.fn() }
-
-    const saga = testSaga(startSaga, options)
-    saga.next().fork(executeActionWatcher, session)
-
-    saga
-      .next(executeActionTask)
-      .put(sessionActions.connected(session.rpcConnectResult))
-    saga.next().put(pubSubChannel, sessionConnectedAction())
-
-    saga.next().fork(flushExecuteQueueWorker)
-
-    saga.next(executeQueueCallTask).take(closeConnectionAction.type)
-    saga.next().cancelled()
-    saga.next().isDone()
-
-    expect(executeActionTask.cancel).toHaveBeenCalledTimes(1)
-    expect(executeQueueCallTask.cancel).toHaveBeenCalledTimes(1)
   })
 })
 
@@ -298,7 +249,6 @@ describe('rootSaga as restartable', () => {
       }
     )
 
-    saga.next().fork(executeQueueWatcher)
     saga.next().take([initAction.type, reauthAction.type])
     saga.next().call(initSessionSaga, {
       SessionConstructor,
