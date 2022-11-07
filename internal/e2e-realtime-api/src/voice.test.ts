@@ -143,8 +143,12 @@ const handler = () => {
         )
 
         console.log('Finishing the calls.')
+        call.disconnected().then(async () => {
+          console.log('Call has been disconnected')
+          await call.hangup()
+        })
+
         await peer.hangup()
-        await call.hangup()
       } catch (error) {
         console.error('Error', error)
         reject(4)

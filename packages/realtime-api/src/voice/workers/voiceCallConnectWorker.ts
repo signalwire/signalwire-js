@@ -24,7 +24,8 @@ export const voiceCallConnectWorker: SDKWorker<Call> = function* (
       yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
         return (
           action.type === 'calling.call.connect' &&
-          (action.payload.tag === instance.tag ||
+          (action.payload.call_id === instance.callId ||
+            action.payload.tag === instance.tag ||
             /**
              * This branch applies for Inbound calls that
              * don't have a `tag` at the payload's root
