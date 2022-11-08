@@ -113,6 +113,50 @@ test.describe('RoomSession promote/demote methods', () => {
       timeout: 10000,
     })
 
+    // --------------- Check that the audience member on pageTwo is receiving non-silence ---------------
+    async function getAudioStats() {
+      const audioStats = await pageTwo.evaluate(async () => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj;
+
+        // @ts-expect-error
+        const stats = await roomObj.peer.instance.getStats(null);
+
+        const filter = {
+          'inbound-rtp': ['audioLevel', 'totalAudioEnergy', 'totalSamplesDuration'],
+        }
+        let result = {};
+        Object.keys(filter).forEach(entry => {
+          result[entry] = {};
+        });
+
+        stats.forEach(report => {
+          for (const [key, value] of Object.entries(filter)) {
+          //console.log(key, value, report.type)
+            if (report.type == key) {
+              value.forEach(entry => {
+                //console.log(key, entry, report[entry])
+                if (report[entry]) {
+                  result[key][entry] = report[entry];
+                }
+              })
+            }
+          }
+        }, {});
+        return result;
+      });
+      return audioStats;
+    }
+
+    await pageOne.waitForTimeout(2000);
+    let audioLevelStats: any = await getAudioStats();
+    console.log("audience audioLevelStats 1", audioLevelStats);
+    expect(audioLevelStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(0.1);
+    await pageOne.waitForTimeout(5000);
+    audioLevelStats = await getAudioStats();
+    console.log("audience audioLevelStats 2", audioLevelStats);
+    expect(audioLevelStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(0.1);
+
     // --------------- Promote audience from pageOne and resolve on `member.joined` ---------------
     await pageOne.evaluate(
       async ({ promoteMemberId }) => {
