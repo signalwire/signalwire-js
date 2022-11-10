@@ -155,20 +155,36 @@ test.describe('RoomSession promote/demote methods', () => {
       return roomObj.memberId
     })
 
-    // --------------- Demote to audience again from pageOne and resolve on `member.left` ---------------
+    // TODO: We still need member.left to be generated in the future, after a participant is demoted and has in fact left the room
+    // --------------- Demote to audience again from pageOne and resolve on `member.updated` with position off-canvas ---------------
     await pageOne.evaluate(
       async ({ demoteMemberId }) => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
 
         const waitForMemberLeft = new Promise((resolve, reject) => {
-          roomObj.on('member.left', ({ member }) => {
+          roomObj.on('member.updated', ({ member }) => {
+            if (member.name === 'e2e_audience') {
+              if (member.updated.includes("visible")) {
+                if (member.visible === false) {
+                  resolve(true)
+                }
+                else {
+                  reject(new Error('[member.updated] "e2e_audience" member is still visible'))
+                }
+              }
+            } else {
+              reject(new Error('[member.updated] Name is not "e2e_audience"'))
+            }
+          })
+/*          roomObj.on('member.left', ({ member }) => {
             if (member.name === 'e2e_audience') {
               resolve(true)
             } else {
               reject(new Error('[member.left] Name is not "e2e_audience"'))
             }
           })
+*/
         })
 
         await roomObj.demote({
