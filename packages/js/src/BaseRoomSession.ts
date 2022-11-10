@@ -92,7 +92,7 @@ export class RoomSessionConnection
   get permissions() {
     return this.select(({ session }) => {
       const { authState } = session
-      return (authState as VideoAuthorization)?.scopes ?? []
+      return (authState as VideoAuthorization)?.room?.scopes ?? []
     })
   }
 
