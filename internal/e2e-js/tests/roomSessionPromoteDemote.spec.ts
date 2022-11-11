@@ -97,7 +97,7 @@ test.describe('RoomSession promote/demote methods', () => {
       return new Promise((resolve) => {
         // @ts-expect-error
         const roomObj = window._roomObj
-        roomObj.on('room.joined', resolve)
+        roomObj.once('room.joined', resolve)
         roomObj.join()
       })
     })
