@@ -70,6 +70,11 @@ const runTests = (mode, config) => {
           : runCommand
       const child = exec(command)
 
+      child.on('exit', (code, signal) => {
+        console.log(`Playwright exitCode: ${code} - signal: ${signal}`)
+        process.exit(code)
+      })
+
       child.stdout.on('data', (data) => {
         console.log(data.toString())
       })

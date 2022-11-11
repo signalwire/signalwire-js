@@ -446,7 +446,7 @@ export class BaseSession {
     this._clearCheckPingTimer()
     this._checkPingTimer = setTimeout(() => {
       // Possibly half-open connection so force close our side
-      this.logger.warn('HALF OPEN')
+      this.logger.debug('Timeout waiting for ping')
       this._closeConnection('reconnecting')
     }, this._checkPingDelay)
 
@@ -457,7 +457,7 @@ export class BaseSession {
     status: Extract<SessionStatus, 'reconnecting' | 'disconnected'>
   ) {
     this._clearCheckPingTimer()
-    this.logger.warn('_closeConnection')
+    this.logger.debug('Close Connection')
     this._status = status
     this.dispatch(
       sessionActions.authStatus(
