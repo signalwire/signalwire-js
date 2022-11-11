@@ -162,17 +162,26 @@ test.describe('RoomSession promote/demote methods', () => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
 
-        const waitForLayoutChangedDemotedInvisible = new Promise((resolve, reject) => {
-          roomObj.on('layout.changed', ({ layout }) => {
-            for (const layer of layout.layers) {
-              console.log("Layer member ID:", layer.member_id, "Demoted member ID:", demoteMemberId, " Position:", layer.position)
-              if (layer.member_id === demoteMemberId && layer.visible === true) {
-                reject(new Error('[layout.changed] Demoted member is still visible'))
+        const waitForLayoutChangedDemotedInvisible = new Promise(
+          (resolve, reject) => {
+            roomObj.on('layout.changed', ({ layout }) => {
+              for (const layer of layout.layers) {
+                // console.log("Layer member ID:", layer.member_id, "Demoted member ID:", demoteMemberId, " Position:", layer.position)
+                if (
+                  layer.member_id === demoteMemberId &&
+                  layer.visible === true
+                ) {
+                  reject(
+                    new Error(
+                      '[layout.changed] Demoted member is still visible'
+                    )
+                  )
+                }
               }
-            }
-            resolve(true)
-          })
-        })
+              resolve(true)
+            })
+          }
+        )
 
         /*
         const waitForMemberLeft = new Promise((resolve, reject) => {
