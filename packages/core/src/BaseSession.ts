@@ -26,6 +26,7 @@ import {
   NodeSocketAdapter,
   WebSocketClient,
   SessionStatus,
+  SessionAuthError,
 } from './utils/interfaces'
 import {
   authErrorAction,
@@ -309,6 +310,14 @@ export class BaseSession {
     this._rpcConnectResult = await this.execute(RPCConnect(params))
   }
 
+  authError(error: SessionAuthError) {
+    this.logger.error('Auth Error', error)
+    /** Ignore WS events after the auth error and just disconnect */
+    this._removeSocketListeners()
+
+    this.dispatch(authErrorAction({ error }))
+  }
+
   protected async _onSocketOpen(event: Event) {
     this.logger.debug('_onSocketOpen', event.type)
     try {
@@ -317,8 +326,7 @@ export class BaseSession {
       this._flushExecuteQueue()
       this.dispatch(authSuccessAction())
     } catch (error) {
-      this.logger.error('Auth Error', error)
-      this.dispatch(authErrorAction({ error }))
+      this.authError(error) // FIXME: Use autherror on reauth too
     }
   }
 
@@ -329,12 +337,9 @@ export class BaseSession {
 
   protected _onSocketClose(event: CloseEvent) {
     this.logger.debug('_onSocketClose', event.type, event.code, event.reason)
-    // We're gonna have to revisit this logic once we have a
-    // `disconnect` method in constructors like `Chat`. We
-    // left it like this because multiple tests were failing
-    // because of some race conditions.
-    this._status =
-      event.code == 1000 || event.code == 1002 ? 'disconnected' : 'reconnecting'
+    // this.logger.warn('_onSocketClose', Date.now())
+    this._status = 'reconnecting'
+    // this._status = event.code == 1002 ? 'disconnected' : 'reconnecting'
     this.dispatch(socketClosedAction())
     this._socket = null
   }
