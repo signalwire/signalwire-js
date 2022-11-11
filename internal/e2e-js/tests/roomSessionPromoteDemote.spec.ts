@@ -155,9 +155,17 @@ test.describe('RoomSession promote/demote methods', () => {
       return roomObj.memberId
     })
 
+    const promiseAudienceRoomJoined = pageTwo.evaluate(() => {
+      return new Promise((resolve) => {
+        // @ts-expect-error
+        const roomObj = window._roomObj
+        roomObj.once('room.joined', resolve)
+      })
+    })
+
     // TODO: We still need member.left to be generated in the future, after a participant is demoted and has in fact left the room
     // --------------- Demote to audience again from pageOne and resolve on `member.updated` with position off-canvas ---------------
-    await pageOne.evaluate(
+    const promiseMemberWaitingForMemberLeft = pageOne.evaluate(
       async ({ demoteMemberId }) => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
@@ -204,6 +212,11 @@ test.describe('RoomSession promote/demote methods', () => {
       },
       { demoteMemberId: pageTwoMemberId }
     )
+
+    await Promise.all([
+      promiseAudienceRoomJoined,
+      promiseMemberWaitingForMemberLeft,
+    ])
 
     await pageTwo.waitForTimeout(2000)
 
