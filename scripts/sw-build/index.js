@@ -9,7 +9,7 @@ import * as rollup from 'rollup'
 import commonjs from '@rollup/plugin-commonjs'
 import license from 'rollup-plugin-license'
 import replace from '@rollup/plugin-replace'
-import { visualizer } from 'rollup-plugin-visualizer'
+// import { visualizer } from 'rollup-plugin-visualizer'
 import typescript from 'rollup-plugin-typescript2'
 import swConfig from '../../sw.config.js'
 
@@ -275,7 +275,7 @@ const buildUmd = async (options) => {
         },
         mangle: true,
       }),
-      visualizer(),
+      // visualizer(), // temporarily disabled
     ],
   })
   return instance.write({
