@@ -36,7 +36,7 @@ test.describe('RoomSession promote updating member meta', () => {
     const audienceSettings = {
       vrt: {
         room_name: 'promotion-room',
-        user_name: 'e2e_audience',
+        user_name: 'e2e_audience_meta',
         join_as: 'audience' as const,
         auto_create_room: true,
         permissions: [],
@@ -121,16 +121,16 @@ test.describe('RoomSession promote updating member meta', () => {
 
         roomObj.on('room.joined', ({ room_session }) => {
           for (let member of room_session.members) {
-            if (member.name === 'e2e_audience') {
+            if (member.name === 'e2e_audience_meta') {
               if (member.meta && member.meta["vip"] === true) {
                 resolve(true)
               }
               else {
-                reject(new Error('[room.subscribed] missing meta'))
+                reject(new Error('[room.joined] missing meta'))
               }
             }
           }
-          reject(new Error('[room.subscribed] missing meta after checking all members'))
+          reject(new Error('[room.joined] missing meta after checking all members'))
         })
       })
     })
@@ -142,7 +142,7 @@ test.describe('RoomSession promote updating member meta', () => {
 
         const waitForMemberJoined = new Promise((resolve, reject) => {
           roomObj.on('member.joined', ({ member }) => {
-            if (member.name === 'e2e_audience') {
+            if (member.name === 'e2e_audience_meta') {
               if (member.meta && member.meta["vip"] === true) {
                 resolve(true)
               }
@@ -150,7 +150,7 @@ test.describe('RoomSession promote updating member meta', () => {
                 reject(new Error('[member.joined] missing meta'))
               }
             } else {
-              reject(new Error('[member.joined] Name is not "e2e_audience"'))
+              reject(new Error('[member.joined] Name is not "e2e_audience_meta"'))
             }
           })
         })
