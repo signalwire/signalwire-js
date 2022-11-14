@@ -55,6 +55,10 @@ export const createTestRoomSession = async (
   }
 ) => {
   const vrt = await createTestVRTToken(options.vrt)
+  if (!vrt) {
+    console.error('Invalid VRT. Exiting..')
+    process.exit(4)
+  }
   return page.evaluate(
     (options) => {
       // @ts-expect-error
@@ -116,6 +120,7 @@ export const createTestVRTToken = async (body: CreateTestVRTOptions) => {
     }
   )
   const data = await response.json()
+  console.log('VRT Response', data)
   return data.token
 }
 
