@@ -4,7 +4,11 @@ import { PlaywrightTestConfig, devices } from '@playwright/test'
 
 const config: PlaywrightTestConfig = {
   testDir: 'tests',
-  timeout: 30000,
+  timeout: 60000,
+  expect: {
+    // Default is 5000
+    timeout: 10000,
+  },
   // Forbid test.only on CI
   forbidOnly: !!process.env.CI,
   workers: 1,
