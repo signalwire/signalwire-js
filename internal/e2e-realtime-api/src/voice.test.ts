@@ -53,14 +53,10 @@ const handler = () => {
           inputSensitivity: 60,
         })
         tap.ok(recording.id, 'Recording started')
-
-        console.log('Stopping the recording.')
-        recording.stop()
-        const recordingEndedResult = await recording.ended()
         tap.equal(
-          recordingEndedResult.state,
-          'finished',
-          'Recording state is "finished"'
+          recording.state,
+          'recording',
+          'Recording state is "recording"'
         )
 
         const playlist = new Voice.Playlist({ volume: 2 }).add(
@@ -80,6 +76,15 @@ const handler = () => {
           'Playback state is "finished"'
         )
         tap.pass('Playback ended')
+
+        console.log('Stopping the recording')
+        recording.stop()
+        const recordingEndedResult = await recording.ended()
+        tap.equal(
+          recordingEndedResult.state,
+          'finished',
+          'Recording state is "finished"'
+        )
 
         call.on('prompt.started', (p) => {
           tap.ok(p.id, 'Prompt has started')
