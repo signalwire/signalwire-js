@@ -25,8 +25,8 @@ test.describe('RoomSession promote updating member meta', () => {
 
     const memberSettings = {
       vrt: {
-        room_name: 'promotion-room',
-        user_name: 'e2e_member',
+        room_name: 'promotion-room-meta',
+        user_name: 'e2e_participant_meta',
         auto_create_room: true,
         permissions: ['room.member.demote', 'room.member.promote'],
       },
@@ -35,7 +35,7 @@ test.describe('RoomSession promote updating member meta', () => {
 
     const audienceSettings = {
       vrt: {
-        room_name: 'promotion-room',
+        room_name: 'promotion-room-meta',
         user_name: 'e2e_audience_meta',
         join_as: 'audience' as const,
         auto_create_room: true,
