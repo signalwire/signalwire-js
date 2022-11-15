@@ -134,6 +134,8 @@ describe('ChatClient Object', () => {
     const connectMsg = JSON.parse(server.messages[0].toString())
     expect(connectMsg.method).toBe('signalwire.connect')
     expect(server.messages.length).toBe(3)
+
+    chat.disconnect()
   })
 
   it('should emit a single "signalwire.connect" at most when subscribing/publishing at the same time', async () => {
@@ -160,6 +162,8 @@ describe('ChatClient Object', () => {
         return parsedMessage.method === 'signalwire.connect'
       }).length
     ).toBe(1)
+
+    chat.disconnect()
   })
 
   describe('message handler', () => {
@@ -226,7 +230,9 @@ describe('ChatClient Object', () => {
 
         done()
       })
-      chat.subscribe(['test1'])
+      chat.subscribe(['test1']).then(() => {
+        chat.disconnect()
+      })
     })
   })
 
@@ -284,7 +290,9 @@ describe('ChatClient Object', () => {
         done()
       })
 
-      chat.subscribe(['test1'])
+      chat.subscribe(['test1']).then(() => {
+        chat.disconnect()
+      })
     })
 
     it('should return a ChatMember object on member.updated', (done) => {
@@ -324,7 +332,9 @@ describe('ChatClient Object', () => {
         done()
       })
 
-      chat.subscribe(['test1'])
+      chat.subscribe(['test1']).then(() => {
+        chat.disconnect()
+      })
     })
 
     it('should return a ChatMember object on member.left', (done) => {
@@ -360,7 +370,9 @@ describe('ChatClient Object', () => {
         done()
       })
 
-      chat.subscribe(['test1'])
+      chat.subscribe(['test1']).then(() => {
+        chat.disconnect()
+      })
     })
   })
 
@@ -380,6 +392,7 @@ describe('ChatClient Object', () => {
         { name: 'test2' },
         { name: 'test3' },
       ])
+      chat.disconnect()
     })
   })
 
@@ -407,6 +420,8 @@ describe('ChatClient Object', () => {
           expect(parsedMessage.params).toStrictEqual(params)
         }
       })
+
+      chat.disconnect()
     })
   })
 
@@ -427,6 +442,8 @@ describe('ChatClient Object', () => {
         { name: 'test2' },
         { name: 'test3' },
       ])
+
+      chat.disconnect()
     })
 
     it('should allow the user to .unsubscribe() from any subgroup of subscribed channels', async () => {
@@ -445,6 +462,8 @@ describe('ChatClient Object', () => {
       expect(
         await chat.unsubscribe(['test1', 'test2', 'test3'])
       ).toBeUndefined()
+
+      chat.disconnect()
     })
 
     it('should reject if its called before the session is authorized', async () => {
@@ -463,6 +482,8 @@ describe('ChatClient Object', () => {
           'You must be authenticated to unsubscribe from a channel'
         )
       }
+
+      chat.disconnect()
     })
 
     it("should reject if it's called without channels", async () => {
@@ -482,6 +503,8 @@ describe('ChatClient Object', () => {
       })
 
       await expect(() => chat.unsubscribe(['test1_error'])).rejects.toBeTruthy()
+
+      chat.disconnect()
     })
 
     it('should reject if the user calls .unsubscribe() with channels different than the ones they are subscribed to', async () => {
@@ -497,6 +520,8 @@ describe('ChatClient Object', () => {
       await expect(() =>
         chat.unsubscribe(['test1', 'test5_error'])
       ).rejects.toBeTruthy()
+
+      chat.disconnect()
     })
   })
 
@@ -522,6 +547,7 @@ describe('ChatClient Object', () => {
           },
         ],
       })
+      chat.disconnect()
     })
   })
 
@@ -560,6 +586,7 @@ describe('ChatClient Object', () => {
           after: 'after',
         },
       })
+      chat.disconnect()
     })
   })
 
@@ -587,6 +614,7 @@ describe('ChatClient Object', () => {
       })
 
       expect(response).toStrictEqual(undefined)
+      chat.disconnect()
     })
   })
 
@@ -620,6 +648,7 @@ describe('ChatClient Object', () => {
           },
         },
       })
+      chat.disconnect()
     })
 
     it('should send the proper RPC without (optional) channels', async () => {
@@ -649,6 +678,7 @@ describe('ChatClient Object', () => {
           },
         },
       })
+      chat.disconnect()
     })
   })
 })
