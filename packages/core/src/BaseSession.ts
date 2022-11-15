@@ -251,8 +251,6 @@ export class BaseSession {
     this._closeConnection('disconnected')
 
     this.dispatch(sessionDisconnectedAction())
-    // yield put(pubSubChannel, sessionDisconnectedAction())
-    // yield put(destroyAction())
   }
 
   /**
@@ -349,7 +347,7 @@ export class BaseSession {
   }
 
   protected _onSocketClose(event: CloseEvent) {
-    this.logger.warn('_onSocketClose', event.type, event.code, event.reason)
+    this.logger.debug('_onSocketClose', event.type, event.code, event.reason)
     if (this._status !== 'disconnected') {
       this._status = 'reconnecting'
       this.dispatch(sessionReconnectingAction())
