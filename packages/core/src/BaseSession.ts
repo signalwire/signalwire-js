@@ -31,12 +31,20 @@ import {
 import {
   authErrorAction,
   authSuccessAction,
-  socketClosedAction,
   socketMessageAction,
+  sessionDisconnectedAction,
+  sessionReconnectingAction,
 } from './redux/actions'
 import { sessionActions } from './redux/features/session/sessionSlice'
 
 export const SW_SYMBOL = Symbol('BaseSession')
+
+const randomInt = (min: number, max: number) => {
+  return Math.floor(Math.random() * (max - min + 1) + min)
+}
+const reconnectDelay = () => {
+  return randomInt(1, 4) * 1000
+}
 
 export class BaseSession {
   /** @internal */
@@ -60,6 +68,7 @@ export class BaseSession {
 
   private _checkPingDelay = 15 * 1000
   private _checkPingTimer: any = null
+  private _reconnectTimer: ReturnType<typeof setTimeout>
   private _status: SessionStatus = 'unknown'
   private wsOpenHandler: (event: Event) => void
   private wsCloseHandler: (event: CloseEvent) => void
@@ -167,6 +176,7 @@ export class BaseSession {
     if (!this?.WebSocketConstructor) {
       throw new Error('Missing WebSocketConstructor')
     }
+    this._clearTimers()
     /**
      * Return if already connecting or connected
      * This prevents issues if "connect()" is called multiple times.
@@ -239,6 +249,10 @@ export class BaseSession {
     this._clearCheckPingTimer()
     this._requests.clear()
     this._closeConnection('disconnected')
+
+    this.dispatch(sessionDisconnectedAction())
+    // yield put(pubSubChannel, sessionDisconnectedAction())
+    // yield put(destroyAction())
   }
 
   /**
@@ -320,6 +334,7 @@ export class BaseSession {
   protected async _onSocketOpen(event: Event) {
     this.logger.debug('_onSocketOpen', event.type)
     try {
+      this._clearTimers()
       await this.authenticate()
       this._status = 'connected'
       this._flushExecuteQueue()
@@ -334,12 +349,21 @@ export class BaseSession {
   }
 
   protected _onSocketClose(event: CloseEvent) {
-    this.logger.debug('_onSocketClose', event.type, event.code, event.reason)
-    // this.logger.warn('_onSocketClose', Date.now())
-    this._status = 'reconnecting'
-    // this._status = event.code == 1002 ? 'disconnected' : 'reconnecting'
-    this.dispatch(socketClosedAction())
+    this.logger.warn('_onSocketClose', event.type, event.code, event.reason)
+    if (this._status !== 'disconnected') {
+      this._status = 'reconnecting'
+      this.dispatch(sessionReconnectingAction())
+      // yield put(pubSubChannel, sessionReconnectingAction())
+      this._clearTimers()
+      this._reconnectTimer = setTimeout(() => {
+        this.connect()
+      }, reconnectDelay())
+    }
     this._socket = null
+  }
+
+  private _clearTimers() {
+    clearTimeout(this._reconnectTimer)
   }
 
   protected _onSocketMessage(event: MessageEvent) {

@@ -1,14 +1,6 @@
 import type { Task, SagaIterator } from '@redux-saga/types'
 import { EventChannel } from '@redux-saga/core'
-import {
-  fork,
-  call,
-  take,
-  put,
-  delay,
-  all,
-  cancelled,
-} from '@redux-saga/core/effects'
+import { fork, call, take, put, all, cancelled } from '@redux-saga/core/effects'
 import {
   SessionConstructor,
   InternalUserOptions,
@@ -37,7 +29,6 @@ import {
   authErrorAction,
   authSuccessAction,
   authExpiringAction,
-  socketClosedAction,
 } from './actions'
 import { AuthError } from '../CustomErrors'
 import { PubSubChannel } from './interfaces'
@@ -146,36 +137,6 @@ export function* initSessionSaga({
    */
 }
 
-export function* socketClosedWorker({
-  session,
-  pubSubChannel,
-}: {
-  session: BaseSession
-  sessionChannel: EventChannel<unknown>
-  pubSubChannel: PubSubChannel
-}) {
-  getLogger().debug('socketClosedWorker', session.status)
-  if (session.status === 'reconnecting') {
-    yield put(pubSubChannel, sessionReconnectingAction())
-    yield delay(Math.random() * 2000)
-    yield call(session.connect)
-  } else if (session.status === 'disconnected') {
-    yield put(pubSubChannel, sessionDisconnectedAction())
-    yield put(destroyAction())
-    /**
-     * Don't invoke the sessionChannel.close() in here because
-     * we still need to dispatch/emit actions from Session to our Sagas
-     * // sessionChannel.close()
-     */
-  } else {
-    getLogger().warn('Unhandled Session Status', session.status)
-
-    if ('development' === process.env.NODE_ENV) {
-      throw new Error(`Unhandled Session Status: '${session.status}'`)
-    }
-  }
-}
-
 export function* reauthenticateWorker({
   session,
   token,
@@ -208,8 +169,9 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
         authSuccessAction.type,
         authErrorAction.type,
         authExpiringAction.type,
-        socketClosedAction.type,
         reauthAction.type,
+        sessionReconnectingAction.type,
+        sessionDisconnectedAction.type,
       ])
 
       getLogger().debug('sessionStatusWatcher', action.type, action.payload)
@@ -231,15 +193,21 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
           yield put(options.pubSubChannel, sessionExpiringAction())
           break
         }
-        case socketClosedAction.type:
-          yield fork(socketClosedWorker, options)
-          break
         case reauthAction.type: {
           yield fork(reauthenticateWorker, {
             session: options.session,
             token: action.payload.token,
             pubSubChannel: options.pubSubChannel,
           })
+          break
+        }
+        case sessionReconnectingAction.type: {
+          yield put(options.pubSubChannel, sessionReconnectingAction())
+          break
+        }
+        case sessionDisconnectedAction.type: {
+          yield put(options.pubSubChannel, sessionDisconnectedAction())
+          yield put(destroyAction())
           break
         }
       }
