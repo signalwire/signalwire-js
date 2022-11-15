@@ -155,7 +155,7 @@ test.describe('RoomSession promote/demote methods', () => {
     await pageOne.waitForTimeout(5000);
     audioLevelStats = await getAudioStats();
     console.log("audience audioLevelStats 2", audioLevelStats);
-    expect(audioLevelStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(0.1);
+    expect(audioLevelStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(0.5);
 
     // --------------- Promote audience from pageOne and resolve on `member.joined` ---------------
     await pageOne.evaluate(

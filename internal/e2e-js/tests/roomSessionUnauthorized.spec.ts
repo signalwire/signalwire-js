@@ -23,13 +23,13 @@ test.describe('RoomSession unauthorized methods for audience', () => {
       console.log(log)
     })
 
-    const roomName = 'e2e-room-one'
+    const roomName = 'e2e-room-403'
     const audience_permissions: string[] = []
 
     await createTestRoomSession(page, {
       vrt: {
         room_name: roomName,
-        user_name: 'e2e_test',
+        user_name: 'e2e_test_403',
         join_as: 'audience' as const,
         auto_create_room: true,
         permissions: audience_permissions,
