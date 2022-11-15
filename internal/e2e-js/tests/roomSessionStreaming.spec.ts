@@ -31,7 +31,7 @@ test.describe('RoomSession', () => {
 
     const connectionSettings = {
       vrt: {
-        room_name: 'another',
+        room_name: 'streaming-room',
         user_name: 'e2e_test',
         auto_create_room: true,
         permissions: ['room.stream'],
