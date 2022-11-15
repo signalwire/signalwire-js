@@ -156,7 +156,7 @@ export function* reauthenticateWorker({
     }
   } catch (error) {
     getLogger().error('Reauthenticate Error', error)
-    yield put(authErrorAction({ error }))
+    session.authError(error)
   }
 }
 

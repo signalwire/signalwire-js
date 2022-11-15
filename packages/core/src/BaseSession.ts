@@ -322,7 +322,6 @@ export class BaseSession {
   }
 
   authError(error: SessionAuthError) {
-    this.logger.error('Auth Error', error)
     /** Ignore WS events after the auth error and just disconnect */
     this._removeSocketListeners()
 
@@ -338,7 +337,8 @@ export class BaseSession {
       this._flushExecuteQueue()
       this.dispatch(authSuccessAction())
     } catch (error) {
-      this.authError(error) // FIXME: Use autherror on reauth too
+      this.logger.error('Auth Error', error)
+      this.authError(error)
     }
   }
 
