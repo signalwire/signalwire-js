@@ -23,7 +23,6 @@ import {
   authSuccessAction,
   authErrorAction,
   authExpiringAction,
-  socketErrorAction,
   socketClosedAction,
   destroyAction,
   initAction,
@@ -77,7 +76,6 @@ describe('sessionStatusWatcher', () => {
     authSuccessAction.type,
     authErrorAction.type,
     authExpiringAction.type,
-    socketErrorAction.type,
     socketClosedAction.type,
     reauthAction.type,
   ]

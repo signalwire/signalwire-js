@@ -38,7 +38,6 @@ import {
   authSuccessAction,
   authExpiringAction,
   socketClosedAction,
-  socketErrorAction,
 } from './actions'
 import { AuthError } from '../CustomErrors'
 import { PubSubChannel } from './interfaces'
@@ -209,7 +208,6 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
         authSuccessAction.type,
         authErrorAction.type,
         authExpiringAction.type,
-        socketErrorAction.type,
         socketClosedAction.type,
         reauthAction.type,
       ])
@@ -233,13 +231,6 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
           yield put(options.pubSubChannel, sessionExpiringAction())
           break
         }
-        case socketErrorAction.type:
-          // TODO: define if we want to emit external events here.
-          // yield put(pubSubChannel, {
-          //   type: 'socket.error',
-          //   payload: {},
-          // })
-          break
         case socketClosedAction.type:
           yield fork(socketClosedWorker, options)
           break

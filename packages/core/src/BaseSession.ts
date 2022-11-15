@@ -32,7 +32,6 @@ import {
   authErrorAction,
   authSuccessAction,
   socketClosedAction,
-  socketErrorAction,
   socketMessageAction,
 } from './redux/actions'
 import { sessionActions } from './redux/features/session/sessionSlice'
@@ -332,7 +331,6 @@ export class BaseSession {
 
   protected _onSocketError(event: Event) {
     this.logger.debug('_onSocketError', event)
-    this.dispatch(socketErrorAction())
   }
 
   protected _onSocketClose(event: CloseEvent) {
