@@ -19,7 +19,7 @@ const config: PlaywrightTestConfig = {
       use: {
         ...devices['Desktop Chrome'],
         launchOptions: {
-          headless: false,
+          // headless: false,
           // devtools: true,
           args: [
             '--use-fake-ui-for-media-stream',
