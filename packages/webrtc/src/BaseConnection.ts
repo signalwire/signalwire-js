@@ -289,7 +289,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   setActiveRTCPeer(rtcPeerId: string) {
-    this.peer = this.rtcPeerMap.get(rtcPeerId)
+    this.peer = this.getRTCPeerById(rtcPeerId)
   }
 
   /**
