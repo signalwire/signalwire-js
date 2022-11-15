@@ -34,6 +34,7 @@ describe('createClient', () => {
               error: authError,
             })
           )
+          return
         }
 
         socket.send(
