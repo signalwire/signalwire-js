@@ -66,6 +66,7 @@ describe('createClient', () => {
     } catch (e) {
       expect(e).toBeInstanceOf(AuthError)
     }
+    client.disconnect()
   })
 
   it('should resolve `connect()` when the client is authorized', async () => {
@@ -82,6 +83,7 @@ describe('createClient', () => {
     })
 
     await client.connect()
+    client.disconnect()
   })
 
   it('should automatically resolve (without hitting the network) when calling `.connect()` if the session was already authorized', async () => {
@@ -113,5 +115,6 @@ describe('createClient', () => {
     await Promise.all([client.connect(), client.connect(), client.connect()])
 
     expect(messageHandler).toHaveBeenCalledTimes(1)
+    client.disconnect()
   })
 })
