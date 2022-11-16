@@ -1,23 +1,12 @@
 import { test, expect } from '@playwright/test'
 import type { Video } from '@signalwire/js'
-import { createTestServer, createTestRoomSession } from '../utils'
+import { SERVER_URL, createTestRoomSession } from '../utils'
 
 test.describe('RoomSession', () => {
-  let server: any = null
-
-  test.beforeAll(async () => {
-    server = await createTestServer()
-    await server.start()
-  })
-
-  test.afterAll(async () => {
-    await server.close()
-  })
-
   test('should handle joining a room, perform actions and then leave the room', async ({
     page,
   }) => {
-    await page.goto(server.url)
+    await page.goto(SERVER_URL)
 
     page.on('console', (log) => {
       console.log(log)
@@ -582,7 +571,7 @@ test.describe('RoomSession', () => {
       console.log('[pageTwo]', log)
     })
 
-    await Promise.all([pageOne.goto(server.url), pageTwo.goto(server.url)])
+    await Promise.all([pageOne.goto(SERVER_URL), pageTwo.goto(SERVER_URL)])
 
     const roomName = 'e2e-room-two'
     const connectionSettings = {

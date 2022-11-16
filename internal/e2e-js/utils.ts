@@ -23,6 +23,8 @@ const TARGET_ROOT_PATH: Record<
   },
 }
 
+export const SERVER_URL = 'http://localhost:1337'
+
 export const createTestServer = async (
   options: CreateTestServerOptions = { target: 'blank' }
 ) => {

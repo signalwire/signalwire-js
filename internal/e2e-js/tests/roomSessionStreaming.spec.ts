@@ -1,19 +1,8 @@
 import { test, expect } from '@playwright/test'
 import type { Video } from '@signalwire/js'
-import { createTestServer, createTestRoomSession } from '../utils'
+import { SERVER_URL, createTestRoomSession } from '../utils'
 
 test.describe('RoomSession', () => {
-  let server: any = null
-
-  test.beforeAll(async () => {
-    server = await createTestServer()
-    await server.start()
-  })
-
-  test.afterAll(async () => {
-    await server.close()
-  })
-
   test('should handle Stream events and methods', async ({ context }) => {
     const pageOne = await context.newPage()
     const pageTwo = await context.newPage()
@@ -24,9 +13,9 @@ test.describe('RoomSession', () => {
     pageThree.on('console', (log) => console.log('[pageThree]', log))
 
     await Promise.all([
-      pageOne.goto(server.url),
-      pageTwo.goto(server.url),
-      pageThree.goto(server.url),
+      pageOne.goto(SERVER_URL),
+      pageTwo.goto(SERVER_URL),
+      pageThree.goto(SERVER_URL),
     ])
 
     const connectionSettings = {

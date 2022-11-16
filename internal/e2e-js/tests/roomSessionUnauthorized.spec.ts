@@ -1,23 +1,12 @@
 import { test, expect } from '@playwright/test'
 import type { Video } from '@signalwire/js'
-import { createTestServer, createTestRoomSession } from '../utils'
+import { SERVER_URL, createTestRoomSession } from '../utils'
 
 test.describe('RoomSession unauthorized methods for audience', () => {
-  let server: any = null
-
-  test.beforeAll(async () => {
-    server = await createTestServer()
-    await server.start()
-  })
-
-  test.afterAll(async () => {
-    await server.close()
-  })
-
   test('should handle joining a room, try to perform unauthorized actions and then leave the room', async ({
     page,
   }) => {
-    await page.goto(server.url)
+    await page.goto(SERVER_URL)
 
     page.on('console', (log) => {
       console.log(log)
@@ -77,11 +66,15 @@ test.describe('RoomSession unauthorized methods for audience', () => {
     const errorCode: any = await page.evaluate(async () => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
-      const error = await roomObj.audioUnmute().catch((error) => error);
-      console.log('audioUnmute error', error.jsonrpc.code, error.jsonrpc.message);
-      return error.jsonrpc.code;
+      const error = await roomObj.audioUnmute().catch((error) => error)
+      console.log(
+        'audioUnmute error',
+        error.jsonrpc.code,
+        error.jsonrpc.message
+      )
+      return error.jsonrpc.code
     })
-    expect(errorCode).toBe("403");
+    expect(errorCode).toBe('403')
 
     // --------------- Leaving the room ---------------
     await page.evaluate(() => {

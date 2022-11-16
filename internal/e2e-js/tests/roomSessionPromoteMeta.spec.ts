@@ -1,27 +1,18 @@
 import { test, expect, Page } from '@playwright/test'
 import type { Video } from '@signalwire/js'
-import { createTestServer, createTestRoomSession } from '../utils'
+import { SERVER_URL, createTestRoomSession } from '../utils'
 
 test.describe('RoomSession promote updating member meta', () => {
-  let server: any = null
-
-  test.beforeAll(async () => {
-    server = await createTestServer()
-    await server.start()
-  })
-
-  test.afterAll(async () => {
-    await server.close()
-  })
-
-  test('should promote audience setting the meta field', async ({ context }) => {
+  test('should promote audience setting the meta field', async ({
+    context,
+  }) => {
     const pageOne = await context.newPage()
     const pageTwo = await context.newPage()
 
     pageOne.on('console', (log) => console.log('[pageOne]', log))
     pageTwo.on('console', (log) => console.log('[pageTwo]', log))
 
-    await Promise.all([pageOne.goto(server.url), pageTwo.goto(server.url)])
+    await Promise.all([pageOne.goto(SERVER_URL), pageTwo.goto(SERVER_URL)])
 
     const memberSettings = {
       vrt: {
@@ -122,15 +113,16 @@ test.describe('RoomSession promote updating member meta', () => {
         roomObj.on('room.joined', ({ room_session }) => {
           for (let member of room_session.members) {
             if (member.name === 'e2e_audience_meta') {
-              if (member.meta && member.meta["vip"] === true) {
+              if (member.meta && member.meta['vip'] === true) {
                 resolve(true)
-              }
-              else {
+              } else {
                 reject(new Error('[room.joined] missing meta'))
               }
             }
           }
-          reject(new Error('[room.joined] missing meta after checking all members'))
+          reject(
+            new Error('[room.joined] missing meta after checking all members')
+          )
         })
       })
     })
@@ -143,14 +135,15 @@ test.describe('RoomSession promote updating member meta', () => {
         const waitForMemberJoined = new Promise((resolve, reject) => {
           roomObj.on('member.joined', ({ member }) => {
             if (member.name === 'e2e_audience_meta') {
-              if (member.meta && member.meta["vip"] === true) {
+              if (member.meta && member.meta['vip'] === true) {
                 resolve(true)
-              }
-              else {
+              } else {
                 reject(new Error('[member.joined] missing meta'))
               }
             } else {
-              reject(new Error('[member.joined] Name is not "e2e_audience_meta"'))
+              reject(
+                new Error('[member.joined] Name is not "e2e_audience_meta"')
+              )
             }
           })
         })
@@ -158,7 +151,7 @@ test.describe('RoomSession promote updating member meta', () => {
         await roomObj.promote({
           memberId: promoteMemberId,
           permissions: ['room.list_available_layouts'],
-          meta: {"vip": true},
+          meta: { vip: true },
         })
 
         return waitForMemberJoined
@@ -168,7 +161,7 @@ test.describe('RoomSession promote updating member meta', () => {
 
     await Promise.all([
       promiseAudienceRoomSubscribed,
-      promisePromoterRoomJoined
+      promisePromoterRoomJoined,
     ])
 
     await pageTwo.waitForTimeout(2000)

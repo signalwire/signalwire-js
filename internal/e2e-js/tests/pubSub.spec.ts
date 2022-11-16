@@ -1,22 +1,11 @@
 import { test, expect, WebSocket } from '@playwright/test'
-import { createTestServer, createTestCRTToken } from '../utils'
+import { SERVER_URL, createTestCRTToken } from '../utils'
 
 test.describe('PubSub', () => {
-  let server: any = null
-
-  test.beforeAll(async () => {
-    server = await createTestServer()
-    await server.start()
-  })
-
-  test.afterAll(async () => {
-    await server.close()
-  })
-
   test('should subscribe to a PubSub channel and publish a message', async ({
     page,
   }) => {
-    await page.goto(server.url)
+    await page.goto(SERVER_URL)
 
     page.on('console', (log) => {
       console.log(log)
@@ -78,7 +67,7 @@ test.describe('PubSub', () => {
   })
 
   test('should expose disconnect()', async ({ page }) => {
-    await page.goto(server.url)
+    await page.goto(SERVER_URL)
 
     page.on('console', (log) => {
       console.log(log)
