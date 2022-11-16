@@ -228,18 +228,13 @@ export function* sessionAuthErrorSaga(
   getLogger().debug('sessionAuthErrorSaga [started]')
 
   try {
-    const { pubSubChannel, session, action } = options
+    const { pubSubChannel, action } = options
     const { error: authError } = action.payload
     const error = authError
       ? new AuthError(authError.code, authError.message)
       : new Error('Unauthorized')
 
     yield put(pubSubChannel, sessionAuthErrorAction(error))
-
-    /**
-     * Force-close the sessionChannel to disconnect the Session
-     */
-    yield call([session, session.disconnect])
   } finally {
     if (yield cancelled()) {
       getLogger().debug('sessionAuthErrorSaga [cancelled]')

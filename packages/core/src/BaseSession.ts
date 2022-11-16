@@ -250,6 +250,7 @@ export class BaseSession {
     this._requests.clear()
     this._closeConnection('disconnected')
 
+    /** sessionDisconnectedAction() will destroy the rootSaga too */
     this.dispatch(sessionDisconnectedAction())
   }
 
