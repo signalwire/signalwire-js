@@ -4,14 +4,6 @@ import { Client } from './Client'
 describe('PubSubClient Object', () => {
   const host = 'ws://localhost:1234'
   const token = '<jwt>'
-  const messages = [
-    {
-      id: '5fdc8fc5-b7fe-4fbd-8204-f2310dec2614',
-      sender_id: '1507e5f9-075c-463d-94ba-a8f9ec0c7d4e',
-      content: 'hello world',
-      published_at: 1641393396.153,
-    },
-  ]
 
   let server: WS
   beforeEach(async () => {
@@ -69,9 +61,9 @@ describe('PubSubClient Object', () => {
 
     const connectMsg = JSON.parse(server.messages[0].toString())
     expect(connectMsg.method).toBe('signalwire.connect')
-    console.log('server.messages--_>', server.messages);
 
     expect(server.messages.length).toBe(3)
+    pubSub.disconnect()
   })
 
   it('should emit a single "signalwire.connect" at most when subscribing/publishing at the same time', async () => {
@@ -98,6 +90,7 @@ describe('PubSubClient Object', () => {
         return parsedMessage.method === 'signalwire.connect'
       }).length
     ).toBe(1)
+    pubSub.disconnect()
   })
 
   describe('Subscribe', () => {
@@ -116,6 +109,7 @@ describe('PubSubClient Object', () => {
         { name: 'test2' },
         { name: 'test3' },
       ])
+      pubSub.disconnect()
     })
   })
 
@@ -143,6 +137,8 @@ describe('PubSubClient Object', () => {
           expect(parsedMessage.params).toStrictEqual(params)
         }
       })
+
+      pubSub.disconnect()
     })
   })
 
@@ -163,6 +159,7 @@ describe('PubSubClient Object', () => {
         { name: 'test2' },
         { name: 'test3' },
       ])
+      pubSub.disconnect()
     })
 
     it('should allow the user to .unsubscribe() from any subgroup of subscribed channels', async () => {
@@ -181,6 +178,7 @@ describe('PubSubClient Object', () => {
       expect(
         await pubSub.unsubscribe(['test1', 'test2', 'test3'])
       ).toBeUndefined()
+      pubSub.disconnect()
     })
 
     it('should reject if its called before the session is authorized', async () => {
@@ -199,6 +197,7 @@ describe('PubSubClient Object', () => {
           'You must be authenticated to unsubscribe from a channel'
         )
       }
+      pubSub.disconnect()
     })
 
     it("should reject if it's called without channels", async () => {
@@ -217,7 +216,10 @@ describe('PubSubClient Object', () => {
         content: 'test',
       })
 
-      await expect(() => pubSub.unsubscribe(['test1_error'])).rejects.toBeTruthy()
+      await expect(() =>
+        pubSub.unsubscribe(['test1_error'])
+      ).rejects.toBeTruthy()
+      pubSub.disconnect()
     })
 
     it('should reject if the user calls .unsubscribe() with channels different than the ones they are subscribed to', async () => {
@@ -233,6 +235,7 @@ describe('PubSubClient Object', () => {
       await expect(() =>
         pubSub.unsubscribe(['test1', 'test5_error'])
       ).rejects.toBeTruthy()
+      pubSub.disconnect()
     })
   })
 })

@@ -26,17 +26,25 @@ import {
   NodeSocketAdapter,
   WebSocketClient,
   SessionStatus,
+  SessionAuthError,
 } from './utils/interfaces'
 import {
   authErrorAction,
   authSuccessAction,
-  socketClosedAction,
-  socketErrorAction,
   socketMessageAction,
+  sessionDisconnectedAction,
+  sessionReconnectingAction,
 } from './redux/actions'
 import { sessionActions } from './redux/features/session/sessionSlice'
 
 export const SW_SYMBOL = Symbol('BaseSession')
+
+const randomInt = (min: number, max: number) => {
+  return Math.floor(Math.random() * (max - min + 1) + min)
+}
+const reconnectDelay = () => {
+  return randomInt(1, 4) * 1000
+}
 
 export class BaseSession {
   /** @internal */
@@ -60,6 +68,7 @@ export class BaseSession {
 
   private _checkPingDelay = 15 * 1000
   private _checkPingTimer: any = null
+  private _reconnectTimer: ReturnType<typeof setTimeout>
   private _status: SessionStatus = 'unknown'
   private wsOpenHandler: (event: Event) => void
   private wsCloseHandler: (event: CloseEvent) => void
@@ -167,6 +176,7 @@ export class BaseSession {
     if (!this?.WebSocketConstructor) {
       throw new Error('Missing WebSocketConstructor')
     }
+    this._clearTimers()
     /**
      * Return if already connecting or connected
      * This prevents issues if "connect()" is called multiple times.
@@ -239,6 +249,9 @@ export class BaseSession {
     this._clearCheckPingTimer()
     this._requests.clear()
     this._closeConnection('disconnected')
+
+    /** sessionDisconnectedAction() will destroy the rootSaga too */
+    this.dispatch(sessionDisconnectedAction())
   }
 
   /**
@@ -309,34 +322,47 @@ export class BaseSession {
     this._rpcConnectResult = await this.execute(RPCConnect(params))
   }
 
+  authError(error: SessionAuthError) {
+    /** Ignore WS events after the auth error and just disconnect */
+    this._removeSocketListeners()
+
+    this.dispatch(authErrorAction({ error }))
+  }
+
   protected async _onSocketOpen(event: Event) {
     this.logger.debug('_onSocketOpen', event.type)
     try {
+      this._clearTimers()
       await this.authenticate()
       this._status = 'connected'
       this._flushExecuteQueue()
       this.dispatch(authSuccessAction())
     } catch (error) {
       this.logger.error('Auth Error', error)
-      this.dispatch(authErrorAction({ error }))
+      this.authError(error)
     }
   }
 
   protected _onSocketError(event: Event) {
     this.logger.debug('_onSocketError', event)
-    this.dispatch(socketErrorAction())
   }
 
   protected _onSocketClose(event: CloseEvent) {
     this.logger.debug('_onSocketClose', event.type, event.code, event.reason)
-    // We're gonna have to revisit this logic once we have a
-    // `disconnect` method in constructors like `Chat`. We
-    // left it like this because multiple tests were failing
-    // because of some race conditions.
-    this._status =
-      event.code == 1000 || event.code == 1002 ? 'disconnected' : 'reconnecting'
-    this.dispatch(socketClosedAction())
+    if (this._status !== 'disconnected') {
+      this._status = 'reconnecting'
+      this.dispatch(sessionReconnectingAction())
+      // yield put(pubSubChannel, sessionReconnectingAction())
+      this._clearTimers()
+      this._reconnectTimer = setTimeout(() => {
+        this.connect()
+      }, reconnectDelay())
+    }
     this._socket = null
+  }
+
+  private _clearTimers() {
+    clearTimeout(this._reconnectTimer)
   }
 
   protected _onSocketMessage(event: MessageEvent) {

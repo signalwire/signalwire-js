@@ -3,7 +3,6 @@ import { expectSaga, testSaga } from 'redux-saga-test-plan'
 import type { Task } from '@redux-saga/types'
 import { createMockTask } from '@redux-saga/testing-utils'
 import rootSaga, {
-  socketClosedWorker,
   sessionStatusWatcher,
   initSessionSaga,
   sessionAuthErrorSaga,
@@ -18,13 +17,12 @@ import { sessionActions } from './features'
 import {
   sessionConnectedAction,
   sessionDisconnectedAction,
+  sessionReconnectingAction,
   sessionAuthErrorAction,
   sessionExpiringAction,
   authSuccessAction,
   authErrorAction,
   authExpiringAction,
-  socketErrorAction,
-  socketClosedAction,
   destroyAction,
   initAction,
   reauthAction,
@@ -32,54 +30,14 @@ import {
 import { AuthError } from '../CustomErrors'
 import { createPubSubChannel, createSwEventChannel } from '../testUtils'
 
-describe('socketClosedWorker', () => {
-  it('should try to reconnect when session status is reconnecting', () => {
-    const session = {
-      closed: true,
-      status: 'reconnecting',
-      connect: jest.fn(),
-    } as any
-    const timeout = 3000
-    const pubSubChannel = createPubSubChannel()
-    const sessionChannel = eventChannel(() => () => {})
-
-    return expectSaga(socketClosedWorker, {
-      session,
-      pubSubChannel,
-      sessionChannel,
-    })
-      .call(session.connect)
-      .run(timeout)
-  })
-
-  it('should close the session when session status is not reconnecting', () => {
-    const session = {
-      closed: true,
-      status: 'disconnected',
-      connect: jest.fn(),
-    } as any
-    const pubSubChannel = createPubSubChannel()
-    const sessionChannel = eventChannel(() => () => {})
-
-    return expectSaga(socketClosedWorker, {
-      session,
-      pubSubChannel,
-      sessionChannel,
-    })
-      .put(pubSubChannel, sessionDisconnectedAction())
-      .put(destroyAction())
-      .run()
-  })
-})
-
 describe('sessionStatusWatcher', () => {
   const actions = [
     authSuccessAction.type,
     authErrorAction.type,
     authExpiringAction.type,
-    socketErrorAction.type,
-    socketClosedAction.type,
     reauthAction.type,
+    sessionReconnectingAction.type,
+    sessionDisconnectedAction.type,
   ]
   const session = {
     closed: true,
@@ -141,15 +99,6 @@ describe('sessionStatusWatcher', () => {
     )
   })
 
-  it('should fork socketClosedWorker on socketClosed action', () => {
-    const saga = testSaga(sessionStatusWatcher, options)
-
-    saga.next().take(actions)
-    saga.next(socketClosedAction()).fork(socketClosedWorker, options)
-    // Saga waits again for actions due to the while loop
-    saga.next().take(actions)
-  })
-
   it('should put sessionExpiringAction on authExpiringAction', () => {
     const saga = testSaga(sessionStatusWatcher, options)
 
@@ -157,6 +106,29 @@ describe('sessionStatusWatcher', () => {
     saga
       .next(authExpiringAction())
       .put(options.pubSubChannel, sessionExpiringAction())
+    // Saga waits again for actions due to the while loop
+    saga.next().take(actions)
+  })
+
+  it('should put sessionReconnectingAction on the pubSubChannel', () => {
+    const saga = testSaga(sessionStatusWatcher, options)
+
+    saga.next().take(actions)
+    saga
+      .next(sessionReconnectingAction())
+      .put(options.pubSubChannel, sessionReconnectingAction())
+    // Saga waits again for actions due to the while loop
+    saga.next().take(actions)
+  })
+
+  it('should put sessionDisconnectedAction on the pubSubChannel and put destroyAction', () => {
+    const saga = testSaga(sessionStatusWatcher, options)
+
+    saga.next().take(actions)
+    saga
+      .next(sessionDisconnectedAction())
+      .put(options.pubSubChannel, sessionDisconnectedAction())
+    saga.next().put(destroyAction())
     // Saga waits again for actions due to the while loop
     saga.next().take(actions)
   })

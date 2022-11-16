@@ -28,8 +28,6 @@ export const authErrorAction = createAction<{ error: SessionAuthError }>(
 export const authSuccessAction = createAction('auth/success')
 export const authExpiringAction = createAction('auth/expiring')
 
-export const socketClosedAction = createAction('socket/closed')
-export const socketErrorAction = createAction('socket/error')
 export const socketMessageAction = createAction<JSONRPCRequest, string>(
   'socket/message'
 )

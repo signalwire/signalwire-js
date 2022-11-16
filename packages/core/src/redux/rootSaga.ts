@@ -1,14 +1,6 @@
 import type { Task, SagaIterator } from '@redux-saga/types'
 import { EventChannel } from '@redux-saga/core'
-import {
-  fork,
-  call,
-  take,
-  put,
-  delay,
-  all,
-  cancelled,
-} from '@redux-saga/core/effects'
+import { fork, call, take, put, all, cancelled } from '@redux-saga/core/effects'
 import {
   SessionConstructor,
   InternalUserOptions,
@@ -37,8 +29,6 @@ import {
   authErrorAction,
   authSuccessAction,
   authExpiringAction,
-  socketClosedAction,
-  socketErrorAction,
 } from './actions'
 import { AuthError } from '../CustomErrors'
 import { PubSubChannel } from './interfaces'
@@ -147,36 +137,6 @@ export function* initSessionSaga({
    */
 }
 
-export function* socketClosedWorker({
-  session,
-  pubSubChannel,
-}: {
-  session: BaseSession
-  sessionChannel: EventChannel<unknown>
-  pubSubChannel: PubSubChannel
-}) {
-  getLogger().debug('socketClosedWorker', session.status)
-  if (session.status === 'reconnecting') {
-    yield put(pubSubChannel, sessionReconnectingAction())
-    yield delay(Math.random() * 2000)
-    yield call(session.connect)
-  } else if (session.status === 'disconnected') {
-    yield put(pubSubChannel, sessionDisconnectedAction())
-    yield put(destroyAction())
-    /**
-     * Don't invoke the sessionChannel.close() in here because
-     * we still need to dispatch/emit actions from Session to our Sagas
-     * // sessionChannel.close()
-     */
-  } else {
-    getLogger().warn('Unhandled Session Status', session.status)
-
-    if ('development' === process.env.NODE_ENV) {
-      throw new Error(`Unhandled Session Status: '${session.status}'`)
-    }
-  }
-}
-
 export function* reauthenticateWorker({
   session,
   token,
@@ -196,7 +156,7 @@ export function* reauthenticateWorker({
     }
   } catch (error) {
     getLogger().error('Reauthenticate Error', error)
-    yield put(authErrorAction({ error }))
+    session.authError(error)
   }
 }
 
@@ -209,9 +169,9 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
         authSuccessAction.type,
         authErrorAction.type,
         authExpiringAction.type,
-        socketErrorAction.type,
-        socketClosedAction.type,
         reauthAction.type,
+        sessionReconnectingAction.type,
+        sessionDisconnectedAction.type,
       ])
 
       getLogger().debug('sessionStatusWatcher', action.type, action.payload)
@@ -233,22 +193,21 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
           yield put(options.pubSubChannel, sessionExpiringAction())
           break
         }
-        case socketErrorAction.type:
-          // TODO: define if we want to emit external events here.
-          // yield put(pubSubChannel, {
-          //   type: 'socket.error',
-          //   payload: {},
-          // })
-          break
-        case socketClosedAction.type:
-          yield fork(socketClosedWorker, options)
-          break
         case reauthAction.type: {
           yield fork(reauthenticateWorker, {
             session: options.session,
             token: action.payload.token,
             pubSubChannel: options.pubSubChannel,
           })
+          break
+        }
+        case sessionReconnectingAction.type: {
+          yield put(options.pubSubChannel, sessionReconnectingAction())
+          break
+        }
+        case sessionDisconnectedAction.type: {
+          yield put(options.pubSubChannel, sessionDisconnectedAction())
+          yield put(destroyAction())
           break
         }
       }
@@ -269,18 +228,13 @@ export function* sessionAuthErrorSaga(
   getLogger().debug('sessionAuthErrorSaga [started]')
 
   try {
-    const { pubSubChannel, session, action } = options
+    const { pubSubChannel, action } = options
     const { error: authError } = action.payload
     const error = authError
       ? new AuthError(authError.code, authError.message)
       : new Error('Unauthorized')
 
     yield put(pubSubChannel, sessionAuthErrorAction(error))
-
-    /**
-     * Force-close the sessionChannel to disconnect the Session
-     */
-    yield call([session, session.disconnect])
   } finally {
     if (yield cancelled()) {
       getLogger().debug('sessionAuthErrorSaga [cancelled]')
