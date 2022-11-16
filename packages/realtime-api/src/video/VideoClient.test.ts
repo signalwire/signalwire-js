@@ -36,6 +36,7 @@ describe('VideoClient', () => {
                 error: authError,
               })
             )
+            return
           }
 
           socket.send(
@@ -123,8 +124,6 @@ describe('VideoClient', () => {
           message:
             'Authentication service failed with status ProtocolError, 401 Unauthorized: {}',
         })
-      } finally {
-        video._session.disconnect()
       }
     })
   })
