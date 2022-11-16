@@ -653,10 +653,6 @@ test.describe('RoomSession', () => {
           url: PLAYBACK_URL!,
         })
 
-        // setTimeout(() => {
-        //   playbackObj.stop()
-        // }, 2000)
-
         return Promise.all([recordingStarted, playbackStarted])
       },
       { PLAYBACK_URL: process.env.PLAYBACK_URL }
