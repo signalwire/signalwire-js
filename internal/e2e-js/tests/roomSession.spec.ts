@@ -1,6 +1,11 @@
 import { test, expect } from '@playwright/test'
 import type { Video } from '@signalwire/js'
-import { SERVER_URL, createTestRoomSession, enablePageLogs } from '../utils'
+import {
+  SERVER_URL,
+  createTestRoomSession,
+  enablePageLogs,
+  randomizeRoomName,
+} from '../utils'
 
 test.describe('RoomSession', () => {
   test('should handle joining a room, perform actions and then leave the room', async ({
@@ -9,7 +14,7 @@ test.describe('RoomSession', () => {
     await page.goto(SERVER_URL)
     enablePageLogs(page)
 
-    const roomName = 'e2e-room-one'
+    const roomName = randomizeRoomName()
     const permissions = [
       'room.self.audio_mute',
       'room.self.audio_unmute',

@@ -2,6 +2,7 @@ import { createServer } from 'vite'
 import path from 'path'
 import { Page, expect } from '@playwright/test'
 import fetch from 'node-fetch'
+import { v4 as uuid } from 'uuid'
 
 type CreateTestServerOptions = {
   target: 'heroku' | 'blank'
@@ -180,4 +181,8 @@ export const expectInteractivityMode = async (
   })
 
   expect(interactivityMode).toEqual(mode)
+}
+
+export const randomizeRoomName = (prefix: string = 'e2e') => {
+  return `${prefix}${uuid()}`
 }
