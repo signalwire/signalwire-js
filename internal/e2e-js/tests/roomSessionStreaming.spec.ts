@@ -1,16 +1,15 @@
 import { test, expect } from '@playwright/test'
 import type { Video } from '@signalwire/js'
-import { SERVER_URL, createTestRoomSession } from '../utils'
+import { SERVER_URL, createTestRoomSession, enablePageLogs } from '../utils'
 
 test.describe('RoomSession', () => {
   test('should handle Stream events and methods', async ({ context }) => {
     const pageOne = await context.newPage()
+    enablePageLogs(pageOne, '[pageOne]')
     const pageTwo = await context.newPage()
+    enablePageLogs(pageTwo, '[pageTwo]')
     const pageThree = await context.newPage()
-
-    pageOne.on('console', (log) => console.log('[pageOne]', log))
-    pageTwo.on('console', (log) => console.log('[pageTwo]', log))
-    pageThree.on('console', (log) => console.log('[pageThree]', log))
+    enablePageLogs(pageThree, '[pageThree]')
 
     await Promise.all([
       pageOne.goto(SERVER_URL),

@@ -1,15 +1,12 @@
 import { test, expect, WebSocket } from '@playwright/test'
-import { SERVER_URL, createTestCRTToken } from '../utils'
+import { SERVER_URL, createTestCRTToken, enablePageLogs } from '../utils'
 
 test.describe('PubSub', () => {
   test('should subscribe to a PubSub channel and publish a message', async ({
     page,
   }) => {
     await page.goto(SERVER_URL)
-
-    page.on('console', (log) => {
-      console.log(log)
-    })
+    enablePageLogs(page)
 
     const channel = 'js-e2e'
     const messageContent = Date.now().toString()
@@ -68,10 +65,7 @@ test.describe('PubSub', () => {
 
   test('should expose disconnect()', async ({ page }) => {
     await page.goto(SERVER_URL)
-
-    page.on('console', (log) => {
-      console.log(log)
-    })
+    enablePageLogs(page)
 
     const webSocketPromise = new Promise<WebSocket>((resolve) => {
       page.on('websocket', (ws) => resolve(ws))

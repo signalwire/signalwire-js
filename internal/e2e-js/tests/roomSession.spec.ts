@@ -1,16 +1,13 @@
 import { test, expect } from '@playwright/test'
 import type { Video } from '@signalwire/js'
-import { SERVER_URL, createTestRoomSession } from '../utils'
+import { SERVER_URL, createTestRoomSession, enablePageLogs } from '../utils'
 
 test.describe('RoomSession', () => {
   test('should handle joining a room, perform actions and then leave the room', async ({
     page,
   }) => {
     await page.goto(SERVER_URL)
-
-    page.on('console', (log) => {
-      console.log(log)
-    })
+    enablePageLogs(page)
 
     const roomName = 'e2e-room-one'
     const permissions = [
@@ -562,14 +559,9 @@ test.describe('RoomSession', () => {
     context,
   }) => {
     const pageOne = await context.newPage()
+    enablePageLogs(pageOne, '[pageOne]')
     const pageTwo = await context.newPage()
-
-    pageOne.on('console', (log) => {
-      console.log('[pageOne]', log)
-    })
-    pageTwo.on('console', (log) => {
-      console.log('[pageTwo]', log)
-    })
+    enablePageLogs(pageOne, '[pageTwo]')
 
     await Promise.all([pageOne.goto(SERVER_URL), pageTwo.goto(SERVER_URL)])
 

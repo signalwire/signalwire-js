@@ -1,6 +1,6 @@
 import { createServer } from 'vite'
 import path from 'path'
-import { Page } from '@playwright/test'
+import type { Page } from '@playwright/test'
 import fetch from 'node-fetch'
 
 type CreateTestServerOptions = {
@@ -148,4 +148,8 @@ export const createTestCRTToken = async (body: CreateTestCRTOptions) => {
   )
   const data = await response.json()
   return data.token
+}
+
+export const enablePageLogs = (page: Page, customMsg: string = '[page]') => {
+  page.on('console', (log) => console.log(customMsg, log))
 }
