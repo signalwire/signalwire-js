@@ -108,8 +108,6 @@ describe('ChatClient', () => {
           message:
             'Authentication service failed with status ProtocolError, 401 Unauthorized: {}',
         })
-      } finally {
-        chat._session.disconnect()
       }
     })
   })
