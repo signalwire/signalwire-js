@@ -1,6 +1,11 @@
 import { test, expect, Page } from '@playwright/test'
 import type { Video } from '@signalwire/js'
-import { SERVER_URL, createTestRoomSession, enablePageLogs } from '../utils'
+import {
+  SERVER_URL,
+  createTestRoomSession,
+  enablePageLogs,
+  expectSDPDirection,
+} from '../utils'
 
 test.describe('RoomSession promote updating member meta', () => {
   test('should promote audience setting the meta field', async ({
@@ -38,18 +43,6 @@ test.describe('RoomSession promote updating member meta', () => {
       createTestRoomSession(pageOne, memberSettings),
       createTestRoomSession(pageTwo, audienceSettings),
     ])
-
-    const expectAudienceSDP = async (direction: string, value: boolean) => {
-      const pageTwoSDP = await pageTwo.evaluate(async () => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        // @ts-expect-error
-        return roomObj.peer.localSdp
-      })
-
-      expect(pageTwoSDP.split('m=')[1].includes(direction)).toBe(value)
-      expect(pageTwoSDP.split('m=')[2].includes(direction)).toBe(value)
-    }
 
     const expectInteractivityMode = async (
       page: Page,
@@ -96,7 +89,7 @@ test.describe('RoomSession promote updating member meta', () => {
     await expectInteractivityMode(pageTwo, 'audience')
 
     // --------------- Check SDP/RTCPeer on audience (recvonly since audience) ---------------
-    await expectAudienceSDP('recvonly', true)
+    await expectSDPDirection(pageTwo, 'recvonly', true)
 
     // Checks that the video is visible on pageTwo
     await pageTwo.waitForSelector('#rootElement video', {
@@ -169,7 +162,7 @@ test.describe('RoomSession promote updating member meta', () => {
     await expectInteractivityMode(pageTwo, 'member')
 
     // --------------- Check SDP/RTCPeer on audience (now member so sendrecv) ---------------
-    await expectAudienceSDP('sendrecv', true)
+    await expectSDPDirection(pageTwo, 'sendrecv', true)
 
     await pageTwo.waitForTimeout(2000)
 

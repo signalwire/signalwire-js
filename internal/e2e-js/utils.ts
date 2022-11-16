@@ -153,3 +153,18 @@ export const createTestCRTToken = async (body: CreateTestCRTOptions) => {
 export const enablePageLogs = (page: Page, customMsg: string = '[page]') => {
   page.on('console', (log) => console.log(customMsg, log))
 }
+
+export const expectSDPDirection = async (
+  page: Page,
+  direction: string,
+  value: boolean
+) => {
+  const peerSDP = await page.evaluate(async () => {
+    // @ts-expect-error
+    const roomObj: Video.RoomSession = window._roomObj
+    return roomObj.peer.localSdp
+  })
+
+  expect(peerSDP.split('m=')[1].includes(direction)).toBe(value)
+  expect(peerSDP.split('m=')[2].includes(direction)).toBe(value)
+}
