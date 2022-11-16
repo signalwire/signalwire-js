@@ -1,6 +1,6 @@
 import { createServer } from 'vite'
 import path from 'path'
-import type { Page } from '@playwright/test'
+import { Page, expect } from '@playwright/test'
 import fetch from 'node-fetch'
 
 type CreateTestServerOptions = {
