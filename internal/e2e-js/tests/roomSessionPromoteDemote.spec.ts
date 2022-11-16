@@ -1,10 +1,11 @@
-import { test, expect, Page } from '@playwright/test'
+import { test, expect } from '@playwright/test'
 import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
   enablePageLogs,
   expectSDPDirection,
+  expectInteractivityMode,
 } from '../utils'
 
 test.describe('RoomSession promote/demote methods', () => {
@@ -41,19 +42,6 @@ test.describe('RoomSession promote/demote methods', () => {
       createTestRoomSession(pageOne, memberSettings),
       createTestRoomSession(pageTwo, audienceSettings),
     ])
-
-    const expectInteractivityMode = async (
-      page: Page,
-      mode: 'member' | 'audience'
-    ) => {
-      const interactivityMode = await page.evaluate(async () => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        return roomObj.interactivityMode
-      })
-
-      expect(interactivityMode).toEqual(mode)
-    }
 
     // --------------- Joining from the 1st tab as member and resolve on 'room.joined' ---------------
     await pageOne.evaluate(() => {

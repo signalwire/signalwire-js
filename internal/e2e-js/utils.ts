@@ -168,3 +168,16 @@ export const expectSDPDirection = async (
   expect(peerSDP.split('m=')[1].includes(direction)).toBe(value)
   expect(peerSDP.split('m=')[2].includes(direction)).toBe(value)
 }
+
+export const expectInteractivityMode = async (
+  page: Page,
+  mode: 'member' | 'audience'
+) => {
+  const interactivityMode = await page.evaluate(async () => {
+    // @ts-expect-error
+    const roomObj: Video.RoomSession = window._roomObj
+    return roomObj.interactivityMode
+  })
+
+  expect(interactivityMode).toEqual(mode)
+}
