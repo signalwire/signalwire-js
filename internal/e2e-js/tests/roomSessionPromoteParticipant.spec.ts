@@ -77,11 +77,7 @@ test.describe('RoomSession promote method', () => {
           permissions: ['room.member.promote', 'room.member.demote'],
         })
         .catch((error) => error)
-      console.log(
-        'audioUnmute error',
-        error.jsonrpc.code,
-        error.jsonrpc.message
-      )
+      console.log('promote error', error.jsonrpc.code, error.jsonrpc.message)
       return error.jsonrpc.code
     })
 
