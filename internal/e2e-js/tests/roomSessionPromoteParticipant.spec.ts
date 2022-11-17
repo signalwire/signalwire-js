@@ -16,12 +16,10 @@ test.describe('RoomSession promote method', () => {
 
   test('should not be able to promote participant', async ({ context }) => {
     const pageOne = await context.newPage()
-    const pageTwo = await context.newPage()
 
     pageOne.on('console', (log) => console.log('[pageOne]', log))
-    pageTwo.on('console', (log) => console.log('[pageTwo]', log))
 
-    await Promise.all([pageOne.goto(server.url), pageTwo.goto(server.url)])
+    await pageOne.goto(server.url)
 
     const memberSettings = {
       vrt: {
@@ -33,33 +31,7 @@ test.describe('RoomSession promote method', () => {
       initialEvents: ['member.joined', 'member.updated', 'member.left'],
     }
 
-    const audienceSettings = {
-      vrt: {
-        room_name: 'promotion-room',
-        user_name: 'e2e_audience',
-        join_as: 'audience' as const,
-        auto_create_room: true,
-        permissions: [],
-      },
-      initialEvents: ['member.joined', 'member.updated', 'member.left'],
-    }
-
-    await Promise.all([
-      createTestRoomSession(pageOne, memberSettings),
-      createTestRoomSession(pageTwo, audienceSettings),
-    ])
-
-    const expectAudienceSDP = async (direction: string, value: boolean) => {
-      const pageTwoSDP = await pageTwo.evaluate(async () => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        // @ts-expect-error
-        return roomObj.peer.localSdp
-      })
-
-      expect(pageTwoSDP.split('m=')[1].includes(direction)).toBe(value)
-      expect(pageTwoSDP.split('m=')[2].includes(direction)).toBe(value)
-    }
+    await createTestRoomSession(pageOne, memberSettings)
 
     const expectInteractivityMode = async (
       page: Page,
@@ -92,78 +64,7 @@ test.describe('RoomSession promote method', () => {
       timeout: 5000,
     })
 
-    // --------------- Joining from the 2st tab as audience and resolve on 'room.joined' ---------------
-    const pageTwoRoomJoined: any = await pageTwo.evaluate(() => {
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
-        roomObj.once('room.joined', resolve)
-        roomObj.join()
-      })
-    })
-
-    // --------------- Make sure on pageTwo we have a audience ---------------
-    await expectInteractivityMode(pageTwo, 'audience')
-
-    // --------------- Check SDP/RTCPeer on audience (recvonly since audience) ---------------
-    await expectAudienceSDP('recvonly', true)
-
-    // Checks that the video is visible on pageTwo
-    await pageTwo.waitForSelector('#rootElement video', {
-      timeout: 10000,
-    })
-
-    // --------------- Check that the audience member on pageTwo is receiving non-silence ---------------
-    async function getAudioStats() {
-      const audioStats = await pageTwo.evaluate(async () => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-
-        // @ts-expect-error
-        const stats = await roomObj.peer.instance.getStats(null)
-
-        const filter = {
-          'inbound-rtp': [
-            'audioLevel',
-            'totalAudioEnergy',
-            'totalSamplesDuration',
-          ],
-        }
-        let result = {}
-        Object.keys(filter).forEach((entry) => {
-          result[entry] = {}
-        })
-
-        stats.forEach((report) => {
-          for (const [key, value] of Object.entries(filter)) {
-            //console.log(key, value, report.type)
-            if (report.type == key) {
-              value.forEach((entry) => {
-                //console.log(key, entry, report[entry])
-                if (report[entry]) {
-                  result[key][entry] = report[entry]
-                }
-              })
-            }
-          }
-        }, {})
-        return result
-      })
-      return audioStats
-    }
-
     await pageOne.waitForTimeout(2000)
-    let audioLevelStats: any = await getAudioStats()
-    console.log('audience audioLevelStats 1', audioLevelStats)
-    expect(audioLevelStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(
-      0.1
-    )
-    await pageOne.waitForTimeout(5000)
-    audioLevelStats = await getAudioStats()
-    console.log('audience audioLevelStats 2', audioLevelStats)
-    expect(audioLevelStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(
-      0.5
-    )
 
     // --------------- Promote participant from pageOne and resolve on error ---------------
     await pageOne.evaluate(async () => {
@@ -189,11 +90,7 @@ test.describe('RoomSession promote method', () => {
     })
 
     // --------------- Leaving the rooms ---------------
-    await Promise.all([
-      // @ts-expect-error
-      pageOne.evaluate(() => window._roomObj.leave()),
-      // @ts-expect-error
-      pageTwo.evaluate(() => window._roomObj.leave()),
-    ])
+    // @ts-expect-error
+    await pageOne.evaluate(() => window._roomObj.leave())
   })
 })
