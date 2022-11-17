@@ -67,27 +67,25 @@ test.describe('RoomSession promote method', () => {
     await pageOne.waitForTimeout(2000)
 
     // --------------- Promote participant from pageOne and resolve on error ---------------
-    await pageOne.evaluate(async () => {
+    const errorCode: any = await pageOne.evaluate(async () => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
 
-      return new Promise((resolve, reject) => {
-        roomObj
-          .promote({
-            memberId: roomObj.memberId,
-            permissions: ['room.member.promote', 'room.member.demote'],
-          })
-          .then(() => {
-            reject(new Error('Should not be able to promote participant'))
-          })
-          .catch((e) => {
-            console.log('promote error', e)
-            return resolve(true)
-          })
-      })
-
-      // return waitForMemberJoined
+      const error = await roomObj
+        .promote({
+          memberId: roomObj.memberId,
+          permissions: ['room.member.promote', 'room.member.demote'],
+        })
+        .catch((error) => error)
+      console.log(
+        'audioUnmute error',
+        error.jsonrpc.code,
+        error.jsonrpc.message
+      )
+      return error.jsonrpc.code
     })
+
+    expect(errorCode).toBe('403')
 
     // --------------- Leaving the rooms ---------------
     // @ts-expect-error
