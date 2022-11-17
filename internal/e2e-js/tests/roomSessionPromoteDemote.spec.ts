@@ -1,27 +1,21 @@
-import { test, expect, Page } from '@playwright/test'
+import { test, expect } from '@playwright/test'
 import type { Video } from '@signalwire/js'
-import { createTestServer, createTestRoomSession } from '../utils'
+import {
+  SERVER_URL,
+  createTestRoomSession,
+  enablePageLogs,
+  expectSDPDirection,
+  expectInteractivityMode,
+} from '../utils'
 
 test.describe('RoomSession promote/demote methods', () => {
-  let server: any = null
-
-  test.beforeAll(async () => {
-    server = await createTestServer()
-    await server.start()
-  })
-
-  test.afterAll(async () => {
-    await server.close()
-  })
-
   test('should promote/demote audience', async ({ context }) => {
     const pageOne = await context.newPage()
+    enablePageLogs(pageOne, '[pageOne]')
     const pageTwo = await context.newPage()
+    enablePageLogs(pageTwo, '[pageTwo]')
 
-    pageOne.on('console', (log) => console.log('[pageOne]', log))
-    pageTwo.on('console', (log) => console.log('[pageTwo]', log))
-
-    await Promise.all([pageOne.goto(server.url), pageTwo.goto(server.url)])
+    await Promise.all([pageOne.goto(SERVER_URL), pageTwo.goto(SERVER_URL)])
 
     const memberSettings = {
       vrt: {
@@ -48,31 +42,6 @@ test.describe('RoomSession promote/demote methods', () => {
       createTestRoomSession(pageOne, memberSettings),
       createTestRoomSession(pageTwo, audienceSettings),
     ])
-
-    const expectAudienceSDP = async (direction: string, value: boolean) => {
-      const pageTwoSDP = await pageTwo.evaluate(async () => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        // @ts-expect-error
-        return roomObj.peer.localSdp
-      })
-
-      expect(pageTwoSDP.split('m=')[1].includes(direction)).toBe(value)
-      expect(pageTwoSDP.split('m=')[2].includes(direction)).toBe(value)
-    }
-
-    const expectInteractivityMode = async (
-      page: Page,
-      mode: 'member' | 'audience'
-    ) => {
-      const interactivityMode = await page.evaluate(async () => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        return roomObj.interactivityMode
-      })
-
-      expect(interactivityMode).toEqual(mode)
-    }
 
     // --------------- Joining from the 1st tab as member and resolve on 'room.joined' ---------------
     await pageOne.evaluate(() => {
@@ -106,7 +75,7 @@ test.describe('RoomSession promote/demote methods', () => {
     await expectInteractivityMode(pageTwo, 'audience')
 
     // --------------- Check SDP/RTCPeer on audience (recvonly since audience) ---------------
-    await expectAudienceSDP('recvonly', true)
+    await expectSDPDirection(pageTwo, 'recvonly', true)
 
     // Checks that the video is visible on pageTwo
     await pageTwo.waitForSelector('#rootElement video', {
@@ -117,45 +86,53 @@ test.describe('RoomSession promote/demote methods', () => {
     async function getAudioStats() {
       const audioStats = await pageTwo.evaluate(async () => {
         // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj;
+        const roomObj: Video.RoomSession = window._roomObj
 
         // @ts-expect-error
-        const stats = await roomObj.peer.instance.getStats(null);
+        const stats = await roomObj.peer.instance.getStats(null)
 
         const filter = {
-          'inbound-rtp': ['audioLevel', 'totalAudioEnergy', 'totalSamplesDuration'],
+          'inbound-rtp': [
+            'audioLevel',
+            'totalAudioEnergy',
+            'totalSamplesDuration',
+          ],
         }
-        let result = {};
-        Object.keys(filter).forEach(entry => {
-          result[entry] = {};
-        });
+        let result: any = {}
+        Object.keys(filter).forEach((entry) => {
+          result[entry] = {}
+        })
 
-        stats.forEach(report => {
+        stats.forEach((report: any) => {
           for (const [key, value] of Object.entries(filter)) {
-          //console.log(key, value, report.type)
+            //console.log(key, value, report.type)
             if (report.type == key) {
-              value.forEach(entry => {
+              value.forEach((entry) => {
                 //console.log(key, entry, report[entry])
                 if (report[entry]) {
-                  result[key][entry] = report[entry];
+                  result[key][entry] = report[entry]
                 }
               })
             }
           }
-        }, {});
-        return result;
-      });
-      return audioStats;
+        }, {})
+        return result
+      })
+      return audioStats
     }
 
-    await pageOne.waitForTimeout(2000);
-    let audioLevelStats: any = await getAudioStats();
-    console.log("audience audioLevelStats 1", audioLevelStats);
-    expect(audioLevelStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(0.1);
-    await pageOne.waitForTimeout(5000);
-    audioLevelStats = await getAudioStats();
-    console.log("audience audioLevelStats 2", audioLevelStats);
-    expect(audioLevelStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(0.5);
+    await pageOne.waitForTimeout(2000)
+    let audioLevelStats: any = await getAudioStats()
+    console.log('audience audioLevelStats 1', audioLevelStats)
+    expect(audioLevelStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(
+      0.1
+    )
+    await pageOne.waitForTimeout(5000)
+    audioLevelStats = await getAudioStats()
+    console.log('audience audioLevelStats 2', audioLevelStats)
+    expect(audioLevelStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(
+      0.5
+    )
 
     // --------------- Promote audience from pageOne and resolve on `member.joined` ---------------
     await pageOne.evaluate(
@@ -189,7 +166,7 @@ test.describe('RoomSession promote/demote methods', () => {
     await expectInteractivityMode(pageTwo, 'member')
 
     // --------------- Check SDP/RTCPeer on audience (now member so sendrecv) ---------------
-    await expectAudienceSDP('sendrecv', true)
+    await expectSDPDirection(pageTwo, 'sendrecv', true)
 
     await pageTwo.waitForTimeout(2000)
 
@@ -268,7 +245,7 @@ test.describe('RoomSession promote/demote methods', () => {
     await expectInteractivityMode(pageTwo, 'audience')
 
     // --------------- Check SDP/RTCPeer on audience (audience again so recvonly) ---------------
-    await expectAudienceSDP('recvonly', true)
+    await expectSDPDirection(pageTwo, 'recvonly', true)
 
     await pageTwo.waitForTimeout(2000)
 

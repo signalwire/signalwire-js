@@ -4,6 +4,7 @@ import { PlaywrightTestConfig, devices } from '@playwright/test'
 
 const config: PlaywrightTestConfig = {
   testDir: 'tests',
+  globalSetup: require.resolve('./global-setup'),
   timeout: 60000,
   expect: {
     // Default is 5000

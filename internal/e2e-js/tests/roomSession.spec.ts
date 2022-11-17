@@ -1,29 +1,20 @@
 import { test, expect } from '@playwright/test'
 import type { Video } from '@signalwire/js'
-import { createTestServer, createTestRoomSession } from '../utils'
+import {
+  SERVER_URL,
+  createTestRoomSession,
+  enablePageLogs,
+  randomizeRoomName,
+} from '../utils'
 
 test.describe('RoomSession', () => {
-  let server: any = null
-
-  test.beforeAll(async () => {
-    server = await createTestServer()
-    await server.start()
-  })
-
-  test.afterAll(async () => {
-    await server.close()
-  })
-
   test('should handle joining a room, perform actions and then leave the room', async ({
     page,
   }) => {
-    await page.goto(server.url)
+    await page.goto(SERVER_URL)
+    enablePageLogs(page)
 
-    page.on('console', (log) => {
-      console.log(log)
-    })
-
-    const roomName = 'e2e-room-one'
+    const roomName = randomizeRoomName()
     const permissions = [
       'room.self.audio_mute',
       'room.self.audio_unmute',
@@ -82,10 +73,8 @@ test.describe('RoomSession', () => {
         (member: any) => member.id === joinParams.member_id
       )
     ).toBeTruthy()
-
-    // FIXME: Restore these tests
-    // expect(joinParams.room_session.name).toBe(roomName)
-    // expect(joinParams.room.name).toBe(roomName)
+    expect(joinParams.room_session.name).toBe(roomName)
+    expect(joinParams.room.name).toBe(roomName)
 
     // Checks that the video is visible
     await page.waitForSelector('div[id^="sw-sdk-"] > video', { timeout: 5000 })
@@ -573,16 +562,11 @@ test.describe('RoomSession', () => {
     context,
   }) => {
     const pageOne = await context.newPage()
+    enablePageLogs(pageOne, '[pageOne]')
     const pageTwo = await context.newPage()
+    enablePageLogs(pageOne, '[pageTwo]')
 
-    pageOne.on('console', (log) => {
-      console.log('[pageOne]', log)
-    })
-    pageTwo.on('console', (log) => {
-      console.log('[pageTwo]', log)
-    })
-
-    await Promise.all([pageOne.goto(server.url), pageTwo.goto(server.url)])
+    await Promise.all([pageOne.goto(SERVER_URL), pageTwo.goto(SERVER_URL)])
 
     const roomName = 'e2e-room-two'
     const connectionSettings = {
@@ -673,10 +657,6 @@ test.describe('RoomSession', () => {
         await roomObj.play({
           url: PLAYBACK_URL!,
         })
-
-        // setTimeout(() => {
-        //   playbackObj.stop()
-        // }, 2000)
 
         return Promise.all([recordingStarted, playbackStarted])
       },

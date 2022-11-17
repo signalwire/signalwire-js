@@ -1,32 +1,20 @@
 import { test, expect } from '@playwright/test'
 import type { Video } from '@signalwire/js'
-import { createTestServer, createTestRoomSession } from '../utils'
+import { SERVER_URL, createTestRoomSession, enablePageLogs } from '../utils'
 
 test.describe('RoomSession', () => {
-  let server: any = null
-
-  test.beforeAll(async () => {
-    server = await createTestServer()
-    await server.start()
-  })
-
-  test.afterAll(async () => {
-    await server.close()
-  })
-
   test('should handle Stream events and methods', async ({ context }) => {
     const pageOne = await context.newPage()
+    enablePageLogs(pageOne, '[pageOne]')
     const pageTwo = await context.newPage()
+    enablePageLogs(pageTwo, '[pageTwo]')
     const pageThree = await context.newPage()
-
-    pageOne.on('console', (log) => console.log('[pageOne]', log))
-    pageTwo.on('console', (log) => console.log('[pageTwo]', log))
-    pageThree.on('console', (log) => console.log('[pageThree]', log))
+    enablePageLogs(pageThree, '[pageThree]')
 
     await Promise.all([
-      pageOne.goto(server.url),
-      pageTwo.goto(server.url),
-      pageThree.goto(server.url),
+      pageOne.goto(SERVER_URL),
+      pageTwo.goto(SERVER_URL),
+      pageThree.goto(SERVER_URL),
     ])
 
     const connectionSettings = {

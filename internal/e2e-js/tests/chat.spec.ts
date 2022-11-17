@@ -1,26 +1,12 @@
 import { test, expect, WebSocket } from '@playwright/test'
-import { createTestServer, createTestCRTToken } from '../utils'
+import { SERVER_URL, createTestCRTToken, enablePageLogs } from '../utils'
 
 test.describe('Chat', () => {
-  let server: any = null
-
-  test.beforeAll(async () => {
-    server = await createTestServer()
-    await server.start()
-  })
-
-  test.afterAll(async () => {
-    await server.close()
-  })
-
   test('should subscribe to a Chat channel and publish a message', async ({
     page,
   }) => {
-    await page.goto(server.url)
-
-    page.on('console', (log) => {
-      console.log(log)
-    })
+    await page.goto(SERVER_URL)
+    enablePageLogs(page)
 
     const channel = 'js-e2e'
     const messageContent = Date.now().toString()
@@ -78,11 +64,8 @@ test.describe('Chat', () => {
   })
 
   test('should expose disconnect()', async ({ page }) => {
-    await page.goto(server.url)
-
-    page.on('console', (log) => {
-      console.log(log)
-    })
+    await page.goto(SERVER_URL)
+    enablePageLogs(page)
 
     const webSocketPromise = new Promise<WebSocket>((resolve) => {
       page.on('websocket', (ws) => resolve(ws))

@@ -1,27 +1,23 @@
-import { test, expect, Page } from '@playwright/test'
+import { test } from '@playwright/test'
 import type { Video } from '@signalwire/js'
-import { createTestServer, createTestRoomSession } from '../utils'
+import {
+  SERVER_URL,
+  createTestRoomSession,
+  enablePageLogs,
+  expectSDPDirection,
+  expectInteractivityMode,
+} from '../utils'
 
 test.describe('RoomSession promote updating member meta', () => {
-  let server: any = null
-
-  test.beforeAll(async () => {
-    server = await createTestServer()
-    await server.start()
-  })
-
-  test.afterAll(async () => {
-    await server.close()
-  })
-
-  test('should promote audience setting the meta field', async ({ context }) => {
+  test('should promote audience setting the meta field', async ({
+    context,
+  }) => {
     const pageOne = await context.newPage()
+    enablePageLogs(pageOne, '[pageOne]')
     const pageTwo = await context.newPage()
+    enablePageLogs(pageTwo, '[pageTwo]')
 
-    pageOne.on('console', (log) => console.log('[pageOne]', log))
-    pageTwo.on('console', (log) => console.log('[pageTwo]', log))
-
-    await Promise.all([pageOne.goto(server.url), pageTwo.goto(server.url)])
+    await Promise.all([pageOne.goto(SERVER_URL), pageTwo.goto(SERVER_URL)])
 
     const memberSettings = {
       vrt: {
@@ -48,31 +44,6 @@ test.describe('RoomSession promote updating member meta', () => {
       createTestRoomSession(pageOne, memberSettings),
       createTestRoomSession(pageTwo, audienceSettings),
     ])
-
-    const expectAudienceSDP = async (direction: string, value: boolean) => {
-      const pageTwoSDP = await pageTwo.evaluate(async () => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        // @ts-expect-error
-        return roomObj.peer.localSdp
-      })
-
-      expect(pageTwoSDP.split('m=')[1].includes(direction)).toBe(value)
-      expect(pageTwoSDP.split('m=')[2].includes(direction)).toBe(value)
-    }
-
-    const expectInteractivityMode = async (
-      page: Page,
-      mode: 'member' | 'audience'
-    ) => {
-      const interactivityMode = await page.evaluate(async () => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        return roomObj.interactivityMode
-      })
-
-      expect(interactivityMode).toEqual(mode)
-    }
 
     // --------------- Joining from the 1st tab as member and resolve on 'room.joined' ---------------
     await pageOne.evaluate(() => {
@@ -106,7 +77,7 @@ test.describe('RoomSession promote updating member meta', () => {
     await expectInteractivityMode(pageTwo, 'audience')
 
     // --------------- Check SDP/RTCPeer on audience (recvonly since audience) ---------------
-    await expectAudienceSDP('recvonly', true)
+    await expectSDPDirection(pageTwo, 'recvonly', true)
 
     // Checks that the video is visible on pageTwo
     await pageTwo.waitForSelector('#rootElement video', {
@@ -122,15 +93,16 @@ test.describe('RoomSession promote updating member meta', () => {
         roomObj.on('room.joined', ({ room_session }) => {
           for (let member of room_session.members) {
             if (member.name === 'e2e_audience_meta') {
-              if (member.meta && member.meta["vip"] === true) {
+              if (member.meta && member.meta['vip'] === true) {
                 resolve(true)
-              }
-              else {
+              } else {
                 reject(new Error('[room.joined] missing meta'))
               }
             }
           }
-          reject(new Error('[room.joined] missing meta after checking all members'))
+          reject(
+            new Error('[room.joined] missing meta after checking all members')
+          )
         })
       })
     })
@@ -143,14 +115,15 @@ test.describe('RoomSession promote updating member meta', () => {
         const waitForMemberJoined = new Promise((resolve, reject) => {
           roomObj.on('member.joined', ({ member }) => {
             if (member.name === 'e2e_audience_meta') {
-              if (member.meta && member.meta["vip"] === true) {
+              if (member.meta && member.meta['vip'] === true) {
                 resolve(true)
-              }
-              else {
+              } else {
                 reject(new Error('[member.joined] missing meta'))
               }
             } else {
-              reject(new Error('[member.joined] Name is not "e2e_audience_meta"'))
+              reject(
+                new Error('[member.joined] Name is not "e2e_audience_meta"')
+              )
             }
           })
         })
@@ -158,7 +131,7 @@ test.describe('RoomSession promote updating member meta', () => {
         await roomObj.promote({
           memberId: promoteMemberId,
           permissions: ['room.list_available_layouts'],
-          meta: {"vip": true},
+          meta: { vip: true },
         })
 
         return waitForMemberJoined
@@ -168,7 +141,7 @@ test.describe('RoomSession promote updating member meta', () => {
 
     await Promise.all([
       promiseAudienceRoomSubscribed,
-      promisePromoterRoomJoined
+      promisePromoterRoomJoined,
     ])
 
     await pageTwo.waitForTimeout(2000)
@@ -177,7 +150,7 @@ test.describe('RoomSession promote updating member meta', () => {
     await expectInteractivityMode(pageTwo, 'member')
 
     // --------------- Check SDP/RTCPeer on audience (now member so sendrecv) ---------------
-    await expectAudienceSDP('sendrecv', true)
+    await expectSDPDirection(pageTwo, 'sendrecv', true)
 
     await pageTwo.waitForTimeout(2000)
 

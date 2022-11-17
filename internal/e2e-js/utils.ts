@@ -1,7 +1,8 @@
 import { createServer } from 'vite'
 import path from 'path'
-import { Page } from '@playwright/test'
+import { Page, expect } from '@playwright/test'
 import fetch from 'node-fetch'
+import { v4 as uuid } from 'uuid'
 
 type CreateTestServerOptions = {
   target: 'heroku' | 'blank'
@@ -22,6 +23,8 @@ const TARGET_ROOT_PATH: Record<
     port: 1336,
   },
 }
+
+export const SERVER_URL = 'http://localhost:1337'
 
 export const createTestServer = async (
   options: CreateTestServerOptions = { target: 'blank' }
@@ -146,4 +149,40 @@ export const createTestCRTToken = async (body: CreateTestCRTOptions) => {
   )
   const data = await response.json()
   return data.token
+}
+
+export const enablePageLogs = (page: Page, customMsg: string = '[page]') => {
+  page.on('console', (log) => console.log(customMsg, log))
+}
+
+export const expectSDPDirection = async (
+  page: Page,
+  direction: string,
+  value: boolean
+) => {
+  const peerSDP = await page.evaluate(async () => {
+    // @ts-expect-error
+    const roomObj: Video.RoomSession = window._roomObj
+    return roomObj.peer.localSdp
+  })
+
+  expect(peerSDP.split('m=')[1].includes(direction)).toBe(value)
+  expect(peerSDP.split('m=')[2].includes(direction)).toBe(value)
+}
+
+export const expectInteractivityMode = async (
+  page: Page,
+  mode: 'member' | 'audience'
+) => {
+  const interactivityMode = await page.evaluate(async () => {
+    // @ts-expect-error
+    const roomObj: Video.RoomSession = window._roomObj
+    return roomObj.interactivityMode
+  })
+
+  expect(interactivityMode).toEqual(mode)
+}
+
+export const randomizeRoomName = (prefix: string = 'e2e') => {
+  return `${prefix}${uuid()}`
 }

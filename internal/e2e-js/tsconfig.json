@@ -5,5 +5,5 @@
     "outDir": "dist",
     "rootDir": "../../"
   },
-  "include": ["./**/*.ts", "../../packages/js/src/**/*.ts"],
+  "include": ["./**/*.ts", "../../packages/js/src/**/*.ts", "./utils.ts"]
 }
