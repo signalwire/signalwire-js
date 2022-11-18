@@ -6,6 +6,7 @@ import {
   enablePageLogs,
   expectSDPDirection,
   expectInteractivityMode,
+  expectMemberId,
 } from '../utils'
 
 test.describe('RoomSession promote/demote methods', () => {
@@ -71,6 +72,12 @@ test.describe('RoomSession promote/demote methods', () => {
       })
     })
 
+    // Stable ref of the initial memberId for the audience
+    const audienceId = pageTwoRoomJoined.member_id
+
+    // --------------- Make sure pageTwo exposes the correct memberId  ---------------
+    await expectMemberId(pageTwo, audienceId)
+
     // --------------- Make sure on pageTwo we have a audience ---------------
     await expectInteractivityMode(pageTwo, 'audience')
 
@@ -121,7 +128,8 @@ test.describe('RoomSession promote/demote methods', () => {
       return audioStats
     }
 
-    await pageOne.waitForTimeout(2000)
+    // --------------- Wait a bit for the media to flow ---------------
+    await pageOne.waitForTimeout(5000)
     let audioLevelStats: any = await getAudioStats()
     console.log('audience audioLevelStats 1', audioLevelStats)
     expect(audioLevelStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(
@@ -157,10 +165,13 @@ test.describe('RoomSession promote/demote methods', () => {
 
         return waitForMemberJoined
       },
-      { promoteMemberId: pageTwoRoomJoined.member_id }
+      { promoteMemberId: audienceId }
     )
 
     await pageTwo.waitForTimeout(2000)
+
+    // --------------- Make sure pageTwo exposes the correct memberId  ---------------
+    await expectMemberId(pageTwo, audienceId)
 
     // --------------- Make sure on pageTwo we have a member now ---------------
     await expectInteractivityMode(pageTwo, 'member')
@@ -170,13 +181,7 @@ test.describe('RoomSession promote/demote methods', () => {
 
     await pageTwo.waitForTimeout(2000)
 
-    const pageTwoMemberId = await pageTwo.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      return roomObj.memberId
-    })
-
-    const promiseAudienceRoomJoined = pageTwo.evaluate(() => {
+    const promiseAudienceRoomJoined = pageTwo.evaluate<any>(() => {
       return new Promise((resolve) => {
         // @ts-expect-error
         const roomObj = window._roomObj
@@ -231,15 +236,18 @@ test.describe('RoomSession promote/demote methods', () => {
         return waitForLayoutChangedDemotedInvisible
         //return waitForMemberLeft
       },
-      { demoteMemberId: pageTwoMemberId }
+      { demoteMemberId: audienceId }
     )
 
-    await Promise.all([
-      promiseAudienceRoomJoined,
-      promiseMemberWaitingForMemberLeft,
-    ])
+    const [audienceRoomJoined, _memberWaitingForMemberLeft] = await Promise.all(
+      [promiseAudienceRoomJoined, promiseMemberWaitingForMemberLeft]
+    )
 
     await pageTwo.waitForTimeout(2000)
+
+    // --------------- Make sure member_id is the same after promote and demote on pageTwo ---------------
+    await expectMemberId(pageTwo, audienceId) // before promote
+    await expectMemberId(pageTwo, audienceRoomJoined.member_id) // after promote and demote process
 
     // --------------- Make sure on pageTwo he got back to audience ---------------
     await expectInteractivityMode(pageTwo, 'audience')
