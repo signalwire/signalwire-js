@@ -211,7 +211,6 @@ test.describe('RoomSession promote/demote methods', () => {
                   )
                 }
               }
-              console.log('>>>> layout.changed resolve')
               resolve(true)
             })
           }
@@ -219,9 +218,7 @@ test.describe('RoomSession promote/demote methods', () => {
 
         const waitForMemberLeft = new Promise((resolve, reject) => {
           roomObj.on('member.left', ({ member }) => {
-            console.log('>>>> member.left received', member)
             if (member.name === 'e2e_audience') {
-              console.log('>>>> member.left resolve')
               resolve(true)
             } else {
               reject(new Error('[member.left] Name is not "e2e_audience"'))
@@ -241,7 +238,6 @@ test.describe('RoomSession promote/demote methods', () => {
       { demoteMemberId: audienceId }
     )
 
-    console.log('>>>> Before Promise All')
     const [audienceRoomJoined, _] = await Promise.all([
       promiseAudienceRoomJoined,
       promiseMemberWaitingForMemberLeft,
