@@ -186,3 +186,13 @@ export const expectInteractivityMode = async (
 export const randomizeRoomName = (prefix: string = 'e2e') => {
   return `${prefix}${uuid()}`
 }
+
+export const expectMemberId = async (page: Page, memberId: string) => {
+  const roomMemberId = await page.evaluate(async () => {
+    // @ts-expect-error
+    const roomObj: Video.RoomSession = window._roomObj
+    return roomObj.memberId
+  })
+
+  expect(roomMemberId).toEqual(memberId)
+}
