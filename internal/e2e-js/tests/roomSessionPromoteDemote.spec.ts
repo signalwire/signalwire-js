@@ -128,7 +128,8 @@ test.describe('RoomSession promote/demote methods', () => {
       return audioStats
     }
 
-    await pageOne.waitForTimeout(2000)
+    // --------------- Wait a bit for the media to flow ---------------
+    await pageOne.waitForTimeout(5000)
     let audioLevelStats: any = await getAudioStats()
     console.log('audience audioLevelStats 1', audioLevelStats)
     expect(audioLevelStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(
