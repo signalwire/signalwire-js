@@ -247,5 +247,16 @@ export const createOrUpdateRoom = async (body: CreateOrUpdateRoomOptions) => {
   )
   const data = await response.json()
   // console.log('Room Data', data)
-  return data.token
+  return data
+}
+
+export const deleteRoom = async (id: string) => {
+  const authCreds = `${process.env.RELAY_PROJECT}:${process.env.RELAY_TOKEN}`
+  return await fetch(`https://${process.env.API_HOST}/api/video/rooms${id}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Basic ${Buffer.from(authCreds).toString('base64')}`,
+    },
+  })
 }
