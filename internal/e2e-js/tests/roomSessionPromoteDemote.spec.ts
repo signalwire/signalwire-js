@@ -189,8 +189,7 @@ test.describe('RoomSession promote/demote methods', () => {
       })
     })
 
-    // TODO: We still need member.left to be generated in the future, after a participant is demoted and has in fact left the room
-    // --------------- Demote to audience again from pageOne and resolve on `member.updated` with position off-canvas ---------------
+    // --------------- Demote to audience again from pageOne and resolve on `member.left` amd `layout.changed` with position off-canvas ---------------
     const promiseMemberWaitingForMemberLeft = pageOne.evaluate(
       async ({ demoteMemberId }) => {
         // @ts-expect-error
@@ -217,7 +216,6 @@ test.describe('RoomSession promote/demote methods', () => {
           }
         )
 
-        /*
         const waitForMemberLeft = new Promise((resolve, reject) => {
           roomObj.on('member.left', ({ member }) => {
             if (member.name === 'e2e_audience') {
@@ -227,21 +225,23 @@ test.describe('RoomSession promote/demote methods', () => {
             }
           })
         })
-        */
 
         await roomObj.demote({
           memberId: demoteMemberId,
         })
 
-        return waitForLayoutChangedDemotedInvisible
-        //return waitForMemberLeft
+        return Promise.all([
+          waitForLayoutChangedDemotedInvisible,
+          waitForMemberLeft,
+        ])
       },
       { demoteMemberId: audienceId }
     )
 
-    const [audienceRoomJoined, _memberWaitingForMemberLeft] = await Promise.all(
-      [promiseAudienceRoomJoined, promiseMemberWaitingForMemberLeft]
-    )
+    const [audienceRoomJoined, _] = await Promise.all([
+      promiseAudienceRoomJoined,
+      promiseMemberWaitingForMemberLeft,
+    ])
 
     await pageTwo.waitForTimeout(2000)
 
