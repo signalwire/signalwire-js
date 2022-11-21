@@ -1,25 +1,18 @@
-import { test, expect, Page } from '@playwright/test'
+import { test, expect } from '@playwright/test'
 import type { Video } from '@signalwire/js'
-import { createTestServer, createTestRoomSession } from '../utils'
+import {
+  createTestRoomSession,
+  enablePageLogs,
+  expectInteractivityMode,
+  SERVER_URL,
+} from '../utils'
 
 test.describe('RoomSession promote method', () => {
-  let server: any = null
-
-  test.beforeAll(async () => {
-    server = await createTestServer()
-    await server.start()
-  })
-
-  test.afterAll(async () => {
-    await server.close()
-  })
-
   test('should not be able to promote participant', async ({ context }) => {
     const pageOne = await context.newPage()
+    enablePageLogs(pageOne, '[pageOne]')
 
-    pageOne.on('console', (log) => console.log('[pageOne]', log))
-
-    await pageOne.goto(server.url)
+    await pageOne.goto(SERVER_URL)
 
     const memberSettings = {
       vrt: {
@@ -32,19 +25,6 @@ test.describe('RoomSession promote method', () => {
     }
 
     await createTestRoomSession(pageOne, memberSettings)
-
-    const expectInteractivityMode = async (
-      page: Page,
-      mode: 'member' | 'audience'
-    ) => {
-      const interactivityMode = await page.evaluate(async () => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        return roomObj.interactivityMode
-      })
-
-      expect(interactivityMode).toEqual(mode)
-    }
 
     // --------------- Joining from the 1st tab as member and resolve on 'room.joined' ---------------
     await pageOne.evaluate(() => {
