@@ -196,3 +196,67 @@ export const expectMemberId = async (page: Page, memberId: string) => {
 
   expect(roomMemberId).toEqual(memberId)
 }
+
+const getRoomByName = async (roomName: string) => {
+  const authCreds = `${process.env.RELAY_PROJECT}:${process.env.RELAY_TOKEN}`
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/video/rooms/${roomName}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${Buffer.from(authCreds).toString('base64')}`,
+      },
+    }
+  )
+  if (response.status === 200) {
+    return await response.json()
+  }
+  return undefined
+}
+
+interface CreateOrUpdateRoomOptions {
+  name: string
+  display_name?: string
+  max_members?: number
+  quality?: '720p' | '1080p'
+  join_from?: string
+  join_until?: string
+  remove_at?: string
+  remove_after_seconds_elapsed?: number
+  layout?: string
+  record_on_start?: boolean
+  enable_room_previews?: boolean
+}
+
+export const createOrUpdateRoom = async (body: CreateOrUpdateRoomOptions) => {
+  const room = await getRoomByName(body.name)
+  const authCreds = `${process.env.RELAY_PROJECT}:${process.env.RELAY_TOKEN}`
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/video/rooms${
+      room ? `/${room.id}` : ''
+    }`,
+    {
+      method: room ? 'PUT' : 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${Buffer.from(authCreds).toString('base64')}`,
+      },
+      body: JSON.stringify(body),
+    }
+  )
+  const data = await response.json()
+  // console.log('Room Data', data)
+  return data
+}
+
+export const deleteRoom = async (id: string) => {
+  const authCreds = `${process.env.RELAY_PROJECT}:${process.env.RELAY_TOKEN}`
+  return await fetch(`https://${process.env.API_HOST}/api/video/rooms${id}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Basic ${Buffer.from(authCreds).toString('base64')}`,
+    },
+  })
+}
