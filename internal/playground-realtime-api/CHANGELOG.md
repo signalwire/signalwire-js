@@ -1,5 +1,11 @@
 # @sw-internal/playground-realtime-api
 
+## 0.3.1
+
+### Patch Changes
+
+- [#623](https://github.com/signalwire/signalwire-js/pull/623) [`3e7ce646`](https://github.com/signalwire/signalwire-js/commit/3e7ce6461a423e5b1014f16bf69b53793dfe1024) - Update playground and e2e tests to use the new `ended` notation.
+
 ## 0.3.0
 
 ### Minor Changes
