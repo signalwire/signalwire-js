@@ -1,5 +1,11 @@
 # @sw-internal/test
 
+## 0.0.3
+
+### Patch Changes
+
+- [#679](https://github.com/signalwire/signalwire-js/pull/679) [`b47989b6`](https://github.com/signalwire/signalwire-js/commit/b47989b633c65a724e39609d3cd0e9b38eb863ee) - [internal] Bubble up exitCode from the child process to the main one for playwright.
+
 ## 0.0.2
 
 ### Patch Changes

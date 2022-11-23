@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.9] - 2022-11-23
+
+### Changed
+
+- [#667](https://github.com/signalwire/signalwire-js/pull/667) [`bf68ad40`](https://github.com/signalwire/signalwire-js/commit/bf68ad40a090a73b1212eb1c0b2d88b7f9d0cdfd) - Enable `version` in BaseConnection dialogParams.
+
+* [#686](https://github.com/signalwire/signalwire-js/pull/686) [`c82e6576`](https://github.com/signalwire/signalwire-js/commit/c82e65765555eecf0fd82b5e981ea928d133607e) - Review internals to always reconnect the SDKs expect for when the user disconnects the clients.
+
+- [#674](https://github.com/signalwire/signalwire-js/pull/674) [`e26f84e5`](https://github.com/signalwire/signalwire-js/commit/e26f84e503493c7cb79f43bb57fc8b03f5c282f0) - Reduce some verbose logs
+
+### Dependencies
+
+- Updated dependencies [[`583ef730`](https://github.com/signalwire/signalwire-js/commit/583ef730675884b51045784980a12d80fc573b3b), [`3e7ce646`](https://github.com/signalwire/signalwire-js/commit/3e7ce6461a423e5b1014f16bf69b53793dfe1024), [`c82e6576`](https://github.com/signalwire/signalwire-js/commit/c82e65765555eecf0fd82b5e981ea928d133607e), [`a32413d8`](https://github.com/signalwire/signalwire-js/commit/a32413d89f9dc155be91aa148c4c56edec7e8413), [`aa5a469c`](https://github.com/signalwire/signalwire-js/commit/aa5a469ca1e33ca7bca6edb68f45f9edc3faf361)]:
+  - @signalwire/core@3.12.2
+
 ## [3.5.8] - 2022-10-06
 
 ### Fixed

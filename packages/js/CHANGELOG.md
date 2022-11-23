@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.17.0] - 2022-11-23
+
+### Added
+
+- [#675](https://github.com/signalwire/signalwire-js/pull/675) [`c1b5025e`](https://github.com/signalwire/signalwire-js/commit/c1b5025e508d2352e51287693afa2abab2ced4c0) - Add `permissions` to the RoomSession object.
+
+### Fixed
+
+- [#669](https://github.com/signalwire/signalwire-js/pull/669) [`7a867dce`](https://github.com/signalwire/signalwire-js/commit/7a867dce9e3ec67a5403cb177afdb2a9da40ffde) - Fix `layout.changed` types.
+
+* [#672](https://github.com/signalwire/signalwire-js/pull/672) [`8dc3d43a`](https://github.com/signalwire/signalwire-js/commit/8dc3d43acc79ae8b309535df27848033513ed03e) - Use a `ResizeObserver` to detect `rootElement` changes and adapt the MCU.
+
+- [#686](https://github.com/signalwire/signalwire-js/pull/686) [`c82e6576`](https://github.com/signalwire/signalwire-js/commit/c82e65765555eecf0fd82b5e981ea928d133607e) - Review internals to always reconnect the SDKs expect for when the user disconnects the clients.
+
+* [#668](https://github.com/signalwire/signalwire-js/pull/668) [`37ab859d`](https://github.com/signalwire/signalwire-js/commit/37ab859d2883efcef34d7d594ad241ee0a9cbef4) - Fix localVideo overlay updates joining and leaving the same room.
+
+- [#670](https://github.com/signalwire/signalwire-js/pull/670) [`6239655b`](https://github.com/signalwire/signalwire-js/commit/6239655b14775da9aa3cb9d0bd3b8e5178fb4b97) - Correct types for `room.joined` event.
+
+### Dependencies
+
+- Updated dependencies [[`583ef730`](https://github.com/signalwire/signalwire-js/commit/583ef730675884b51045784980a12d80fc573b3b), [`bf68ad40`](https://github.com/signalwire/signalwire-js/commit/bf68ad40a090a73b1212eb1c0b2d88b7f9d0cdfd), [`3e7ce646`](https://github.com/signalwire/signalwire-js/commit/3e7ce6461a423e5b1014f16bf69b53793dfe1024), [`c82e6576`](https://github.com/signalwire/signalwire-js/commit/c82e65765555eecf0fd82b5e981ea928d133607e), [`e26f84e5`](https://github.com/signalwire/signalwire-js/commit/e26f84e503493c7cb79f43bb57fc8b03f5c282f0), [`a32413d8`](https://github.com/signalwire/signalwire-js/commit/a32413d89f9dc155be91aa148c4c56edec7e8413), [`aa5a469c`](https://github.com/signalwire/signalwire-js/commit/aa5a469ca1e33ca7bca6edb68f45f9edc3faf361)]:
+  - @signalwire/core@3.12.2
+  - @signalwire/webrtc@3.5.9
+
 ## [3.16.0] - 2022-10-06
 
 ### Changed

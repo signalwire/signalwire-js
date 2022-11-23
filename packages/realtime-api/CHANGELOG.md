@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.6.0] - 2022-11-23
+
+### Added
+
+- [#571](https://github.com/signalwire/signalwire-js/pull/571) [`a32413d8`](https://github.com/signalwire/signalwire-js/commit/a32413d89f9dc155be91aa148c4c56edec7e8413) - Add `detectAnsweringMachine(params)` as an alias to `amd(params)` in Voice Call.
+
+### Changed
+
+- [#623](https://github.com/signalwire/signalwire-js/pull/623) [`3e7ce646`](https://github.com/signalwire/signalwire-js/commit/3e7ce6461a423e5b1014f16bf69b53793dfe1024) - Review the Voice namespace interface: deprecate `waitForEnded` and add `ended`.
+
+### Fixed
+
+- [#666](https://github.com/signalwire/signalwire-js/pull/666) [`f4c340a3`](https://github.com/signalwire/signalwire-js/commit/f4c340a3afb23f7a135275cc19f30c4fcad5759a) - Correct promptTTS description.
+
+- [#676](https://github.com/signalwire/signalwire-js/pull/676) [`45248ff2`](https://github.com/signalwire/signalwire-js/commit/45248ff253894b7b208d39f17cd24b68e1f1f0b5) - Fix `disconnected` method on Voice Call.
+
+### Dependencies
+
+- Updated dependencies [[`583ef730`](https://github.com/signalwire/signalwire-js/commit/583ef730675884b51045784980a12d80fc573b3b), [`3e7ce646`](https://github.com/signalwire/signalwire-js/commit/3e7ce6461a423e5b1014f16bf69b53793dfe1024), [`c82e6576`](https://github.com/signalwire/signalwire-js/commit/c82e65765555eecf0fd82b5e981ea928d133607e), [`a32413d8`](https://github.com/signalwire/signalwire-js/commit/a32413d89f9dc155be91aa148c4c56edec7e8413), [`aa5a469c`](https://github.com/signalwire/signalwire-js/commit/aa5a469ca1e33ca7bca6edb68f45f9edc3faf361)]:
+  - @signalwire/core@3.12.2
+
 ## [3.5.1] - 2022-10-06
 
 ### Fixed

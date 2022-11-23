@@ -1,5 +1,11 @@
 # @sw-internal/playground-js
 
+## 0.0.9
+
+### Patch Changes
+
+- [#672](https://github.com/signalwire/signalwire-js/pull/672) [`8dc3d43a`](https://github.com/signalwire/signalwire-js/commit/8dc3d43acc79ae8b309535df27848033513ed03e) - Use a `ResizeObserver` to detect rootElement changes and adapt the MCU.
+
 ## 0.0.8
 
 ### Patch Changes

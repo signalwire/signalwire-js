@@ -1,5 +1,15 @@
 # @sw-internal/e2e-realtime-api
 
+## 0.1.5
+
+### Patch Changes
+
+- [#671](https://github.com/signalwire/signalwire-js/pull/671) [`583ef730`](https://github.com/signalwire/signalwire-js/commit/583ef730675884b51045784980a12d80fc573b3b) - Add `inputSensitivity` type for Call recordAudio and record methods.
+
+* [#623](https://github.com/signalwire/signalwire-js/pull/623) [`3e7ce646`](https://github.com/signalwire/signalwire-js/commit/3e7ce6461a423e5b1014f16bf69b53793dfe1024) - Update playground and e2e tests to use the new `ended` notation.
+
+* [#682](https://github.com/signalwire/signalwire-js/pull/682) [`14d71f5e`](https://github.com/signalwire/signalwire-js/commit/14d71f5e15d615a471bf6e7309619e2a5b9ca981) - [internal] Stop recording after playback ended
+
 ## 0.1.4
 
 ### Patch Changes

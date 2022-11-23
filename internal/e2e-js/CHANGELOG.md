@@ -1,5 +1,14 @@
 # @sw-internal/e2e-js
 
+## 0.0.7
+
+### Patch Changes
+
+- [#687](https://github.com/signalwire/signalwire-js/pull/687) [`bfb25ed2`](https://github.com/signalwire/signalwire-js/commit/bfb25ed28873dc283c6829d804ea4b25d4247f91) - [internal] dry a bit our e2e tests setup.
+
+* Updated dependencies [[`8dc3d43a`](https://github.com/signalwire/signalwire-js/commit/8dc3d43acc79ae8b309535df27848033513ed03e)]:
+  - @sw-internal/playground-js@0.0.9
+
 ## 0.0.6
 
 ### Patch Changes
