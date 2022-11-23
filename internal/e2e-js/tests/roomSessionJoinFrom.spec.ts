@@ -109,19 +109,9 @@ test.describe('RoomSession join_from', () => {
       await page.waitForTimeout(3000)
 
       // --------------- Leaving the room ---------------
-      await page.evaluate(async () => {
+      await page.evaluate(() => {
         // @ts-expect-error
-        window._roomObj.on('room.left', () => {
-          console.log('>>>> PD room.left')
-        })
-        // @ts-expect-error
-        window._roomObj.on('hangup', () => {
-          console.log('>>>> PD hangup')
-        })
-        // @ts-expect-error
-        await window._roomObj.leave()
-        console.log('>>> LEFT')
-        return
+        return window._roomObj.leave()
       })
 
       // Checks that all the elements added by the SDK are gone.
