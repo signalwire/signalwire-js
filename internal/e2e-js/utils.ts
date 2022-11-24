@@ -249,6 +249,29 @@ export const createOrUpdateRoom = async (body: CreateOrUpdateRoomOptions) => {
   return data
 }
 
+export const createStreamForRoom = async (name: string, url: string) => {
+  const room = await getRoomByName(name)
+  if (!room) {
+    throw new Error('Room not found')
+  }
+  const authCreds = `${process.env.RELAY_PROJECT}:${process.env.RELAY_TOKEN}`
+
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/video/rooms/${room.id}/streams`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${Buffer.from(authCreds).toString('base64')}`,
+      },
+      body: JSON.stringify({ url }),
+    }
+  )
+  const data = await response.json()
+  // console.log('Room Data', data)
+  return data
+}
+
 export const deleteRoom = async (id: string) => {
   const authCreds = `${process.env.RELAY_PROJECT}:${process.env.RELAY_TOKEN}`
   return await fetch(`https://${process.env.API_HOST}/api/video/rooms/${id}`, {
@@ -258,4 +281,13 @@ export const deleteRoom = async (id: string) => {
       Authorization: `Basic ${Buffer.from(authCreds).toString('base64')}`,
     },
   })
+}
+
+export const tick = async function* (ms: number) {
+  let elasped = 0
+  while (true) {
+    await new Promise((resolve) => setTimeout(resolve, ms))
+    elasped += ms
+    yield elasped
+  }
 }
