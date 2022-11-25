@@ -1,4 +1,5 @@
 import { createHttpClient } from './httpClient'
+import { buildCall } from './buildCall'
 
 interface ClientOptions {
   host?: string
@@ -47,13 +48,23 @@ export class Client {
     return buildResult(body)
   }
 
-  async dial(params: { uri: string; rootElement: HTMLElement }) {
+  async createCall({
+    uri,
+    ...userParams
+  }: {
+    uri: string
+    rootElement: HTMLElement
+  }) {
     const path = '/api/fabric/call' as const
     const { body } = await this.httpClient<any>(path, {
       method: 'POST',
-      body: { uri: params.uri },
+      body: { uri },
     })
 
     console.log('Dial Response', body)
+    return buildCall({
+      ...body,
+      userParams,
+    })
   }
 }
