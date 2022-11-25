@@ -170,7 +170,6 @@ export const getUrl = ({
   path: string
   searchParams?: Record<string, any>
 }) => {
-  console.log('1', { path, baseUrl })
   const url = new URL(path, baseUrl)
 
   if (searchParams) {
@@ -180,6 +179,5 @@ export const getUrl = ({
       }
     })
   }
-  console.log('1', { a: url.toString() })
   return url.toString()
 }
