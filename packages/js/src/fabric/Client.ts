@@ -1,7 +1,7 @@
 import { createHttpClient } from './httpClient'
 
 interface ClientOptions {
-  spaceHost: string
+  host?: string
   accessToken: string
 }
 
@@ -10,11 +10,15 @@ export class Client {
 
   constructor(public options: ClientOptions) {
     this.httpClient = createHttpClient({
-      baseUrl: `https://${this.options.spaceHost}`,
+      baseUrl: `https://${this.host}`,
       headers: {
         Authorization: `Bearer ${this.options.accessToken}`,
       },
     })
+  }
+
+  get host() {
+    return this.options.host ?? 'fabric.signalwire.com'
   }
 
   async getAddresses() {
