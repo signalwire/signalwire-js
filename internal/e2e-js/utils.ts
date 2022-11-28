@@ -215,7 +215,7 @@ const getRoomByName = async (roomName: string) => {
   return undefined
 }
 
-interface CreateOrUpdateRoomOptions {
+export interface CreateOrUpdateRoomOptions {
   name: string
   display_name?: string
   max_members?: number
@@ -252,7 +252,7 @@ export const createOrUpdateRoom = async (body: CreateOrUpdateRoomOptions) => {
 
 export const deleteRoom = async (id: string) => {
   const authCreds = `${process.env.RELAY_PROJECT}:${process.env.RELAY_TOKEN}`
-  return await fetch(`https://${process.env.API_HOST}/api/video/rooms${id}`, {
+  return await fetch(`https://${process.env.API_HOST}/api/video/rooms/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
