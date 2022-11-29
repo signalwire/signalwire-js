@@ -353,18 +353,18 @@ test.describe('RoomSession methods on non existing members', () => {
     expect(errorCode).toBe('404')
 
     // --------------- promote member and expecting 404 ---------------
-    errorCode = await page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      const error = await roomObj
-        .promote({
-          memberId: 'non-exisisting-member',
-        })
-        .catch((error) => error)
-      console.log('promote error', error.jsonrpc.code, error.jsonrpc.message)
-      return error.jsonrpc.code
-    })
-    expect(errorCode).toBe('404')
+    // errorCode = await page.evaluate(async () => {
+    //   // @ts-expect-error
+    //   const roomObj: Video.RoomSession = window._roomObj
+    //   const error = await roomObj
+    //     .promote({
+    //       memberId: 'non-exisisting-member',
+    //     })
+    //     .catch((error) => error)
+    //   console.log('promote error', error.jsonrpc.code, error.jsonrpc.message)
+    //   return error.jsonrpc.code
+    // })
+    // expect(errorCode).toBe('404')
 
     // --------------- demote member and expecting 404 ---------------
     errorCode = await page.evaluate(async () => {
