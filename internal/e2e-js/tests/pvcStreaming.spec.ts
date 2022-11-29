@@ -39,7 +39,7 @@ test.describe('PVC Room Streaming', () => {
 
     const data = await createStreamForRoom(
       room_name,
-      process.env.STREAMING_URL!
+      process.env.PVC_STREAMING_URL!
     )
     console.log(data)
 
@@ -60,6 +60,7 @@ test.describe('PVC Room Streaming', () => {
       timeout: 5000,
     })
 
+    // go to twitch channel on pageTwo
     const STREAM_CHECK_URL = process.env.STREAM_CHECK_URL!
     await pageTwo.goto(STREAM_CHECK_URL, { waitUntil: 'networkidle' })
     // Refresh page until it see live indicator
@@ -68,12 +69,17 @@ test.describe('PVC Room Streaming', () => {
         console.log(elasped)
         await pageTwo.reload({ waitUntil: 'networkidle' })
         const isLive = await pageTwo
-          .locator('span[aria-label="LIVE"]')
+          .locator(
+            'div.live-indicator-container > div.ScChannelStatusTextIndicatorMask > div.tw-channel-status-text-indicator > p',
+            {
+              hasText: 'LIVE',
+            }
+          )
           .isVisible()
         if (isLive) {
           return resolve(true)
         }
-        if (elasped >= 15000) {
+        if (elasped >= 10000) {
           return reject(new Error('Timeout'))
         }
       }
