@@ -65,21 +65,18 @@ test.describe('PVC Room Streaming', () => {
     await pageTwo.goto(STREAM_CHECK_URL, { waitUntil: 'networkidle' })
     // Refresh page until it see live indicator
     const result = await new Promise(async (resolve, reject) => {
-      for await (let elasped of tick(500)) {
+      for await (let elasped of tick(1000)) {
         console.log(elasped)
         await pageTwo.reload({ waitUntil: 'networkidle' })
         const isLive = await pageTwo
-          .locator(
-            'div.live-indicator-container > div.ScChannelStatusTextIndicatorMask > div.tw-channel-status-text-indicator > p',
-            {
-              hasText: 'LIVE',
-            }
-          )
+          .locator('span[aria-label="LIVE"]', {
+            hasText: 'LIVE',
+          })
           .isVisible()
         if (isLive) {
           return resolve(true)
         }
-        if (elasped >= 10000) {
+        if (elasped >= 20000) {
           return reject(new Error('Timeout'))
         }
       }
