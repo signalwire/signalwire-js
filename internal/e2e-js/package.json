@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "sw-test --mode=playwright",
+    "dev:new": "playwright test",
     "test": ""
   },
   "dependencies": {
@@ -13,7 +14,7 @@
     "vite": "^2.9.9"
   },
   "devDependencies": {
-    "dotenv": "^16.0.0",
-    "@playwright/test": "^1.22.2"
+    "@playwright/test": "^1.28.1",
+    "dotenv": "^16.0.0"
   }
 }
