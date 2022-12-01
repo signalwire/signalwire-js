@@ -5,6 +5,11 @@ import { PlaywrightTestConfig, devices } from '@playwright/test'
 const config: PlaywrightTestConfig = {
   testDir: 'tests',
   globalSetup: require.resolve('./global-setup'),
+  // testMatch: ['roomSessionRemoveAfterSecondsElapsed.spec.ts'],
+  testIgnore: [
+    'roomSessionPromoteParticipant.spec.ts',
+    //   'roomSessionStreaming.spec.ts',
+  ],
   timeout: 120_000,
   expect: {
     // Default is 5000
