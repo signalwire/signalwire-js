@@ -7,7 +7,6 @@ const config: PlaywrightTestConfig = {
   globalSetup: require.resolve('./global-setup'),
   // testMatch: ['roomSessionRemoveAfterSecondsElapsed.spec.ts'],
   testIgnore: [
-    'roomSessionPromoteParticipant.spec.ts',
     //   'roomSessionStreaming.spec.ts',
   ],
   timeout: 120_000,

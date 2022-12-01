@@ -61,7 +61,7 @@ test.describe('RoomSession promote method', () => {
       return error.jsonrpc.code
     })
 
-    expect(errorCode).toBe('403')
+    expect(errorCode).toBe('202')
 
     // --------------- Leaving the rooms ---------------
     // @ts-expect-error
