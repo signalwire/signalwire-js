@@ -1,6 +1,6 @@
 require('dotenv').config({ path: '.env.test' })
 const jestCli = require('jest-cli')
-const { exec } = require('node:child_process')
+const { execSync } = require('node:child_process')
 const { runNodeScript } = require('./runNodeScript')
 
 const getIgnoredTests = (ignoreTests, mode) => {
@@ -68,20 +68,18 @@ const runTests = (mode, config) => {
         ignoredTests.length > 0
           ? `${runCommand} ${ignoredTests[0]} "${ignoredTests[1]}"`
           : runCommand
-      const child = exec(command)
-
-      child.on('exit', (code, signal) => {
-        console.log(`Playwright exitCode: ${code} - signal: ${signal}`)
-        process.exit(code)
-      })
-
-      child.stdout.on('data', (data) => {
-        console.log(data.toString())
-      })
-
-      child.stderr.on('data', (data) => {
-        console.error(`stderr: ${data}`)
-      })
+      try {
+        console.time('Playwright Tests')
+        execSync(command, { stdio: 'inherit' })
+        console.log('\n')
+        console.timeEnd('Playwright Tests')
+        console.log(`Playwright Done ${new Date().toISOString()}`)
+      } catch (error) {
+        console.log(
+          `Playwright exitCode: ${error.status}. Message: '${error.message}'`
+        )
+        process.exit(error.status)
+      }
       break
     }
     case 'custom-node': {

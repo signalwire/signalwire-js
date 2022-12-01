@@ -36,6 +36,7 @@ export const createTestServer = async (
     server: {
       port: targetOptions.port,
     },
+    logLevel: 'silent',
   })
 
   return {
@@ -72,10 +73,10 @@ export const createTestRoomSession = async (
         rootElement: document.getElementById('rootElement'),
         audio: true,
         video: true,
-        logLevel: 'trace',
-        debug: {
-          logWsTraffic: true,
-        },
+        logLevel: 'warn',
+        // debug: {
+        //   logWsTraffic: true,
+        // },
       })
 
       options.initialEvents?.forEach((event) => {
@@ -123,7 +124,6 @@ export const createTestVRTToken = async (body: CreateTestVRTOptions) => {
     }
   )
   const data = await response.json()
-  console.log('VRT Response', data)
   return data.token
 }
 
@@ -246,7 +246,6 @@ export const createOrUpdateRoom = async (body: CreateOrUpdateRoomOptions) => {
     }
   )
   const data = await response.json()
-  // console.log('Room Data', data)
   return data
 }
 

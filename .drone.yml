@@ -52,7 +52,7 @@ steps:
   - name: stage-e2e-js
     depends_on:
       - stack-tests
-    image: mcr.microsoft.com/playwright:v1.22.2-focal
+    image: mcr.microsoft.com/playwright:v1.28.1-focal
     commands:
       - npm install
       - npm run build
@@ -64,7 +64,7 @@ steps:
   - name: prod-e2e-js
     depends_on:
       - stack-tests
-    image: mcr.microsoft.com/playwright:v1.22.2-focal
+    image: mcr.microsoft.com/playwright:v1.28.1-focal
     commands:
       - npm install
       - npm run build
