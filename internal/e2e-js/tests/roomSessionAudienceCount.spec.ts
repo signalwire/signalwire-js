@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
@@ -55,13 +56,13 @@ test.describe('RoomSession Audience Count', () => {
     const joinPromiseOne = pageOne.evaluate(() => {
       return new Promise((r) => {
         // @ts-expect-error
-        const roomObj = window._roomObj
+        const roomObj: Video.RoomSession = window._roomObj
         // Need to keep lastAudienceCounter on window in here
         // we don't have access to parent scope since this closure is ran
         // inside page context.
         // @ts-expect-error
         window.__audienceCount = 0
-        roomObj.on('room.audienceCount', (params: any) => {
+        roomObj.on('room.audienceCount', (params) => {
           // @ts-expect-error
           window.__audienceCount = params.total
           //@ts-expect-error
@@ -77,7 +78,7 @@ test.describe('RoomSession Audience Count', () => {
     const joinTwoParams: any = await pageTwo.evaluate(() => {
       return new Promise((resolve) => {
         // @ts-expect-error
-        const roomObj = window._roomObj
+        const roomObj: Video.RoomSession = window._roomObj
         roomObj.on('room.joined', resolve)
         roomObj.join()
       })
