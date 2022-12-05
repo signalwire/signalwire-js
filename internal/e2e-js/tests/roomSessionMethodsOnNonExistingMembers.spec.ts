@@ -16,10 +16,6 @@ test.describe('RoomSession methods on non existing members', () => {
 
     const roomName = randomizeRoomName('e2e-non-existing-member')
     const member_permissions: string[] = [
-      'room.self.audio_mute',
-      'room.self.audio_unmute',
-      'room.self.video_mute',
-      'room.self.video_unmute',
       'room.member.audio_mute',
       'room.member.video_mute',
       'room.member.set_input_volume',
@@ -29,14 +25,6 @@ test.describe('RoomSession methods on non existing members', () => {
       'room.member.remove',
       'room.member.promote',
       'room.member.demote',
-      'room.set_layout',
-      'room.set_position',
-      'room.list_available_layouts',
-      'room.recording',
-      'room.hide_video_muted',
-      'room.show_video_muted',
-      'room.playback_seek',
-      'room.playback',
     ]
 
     await createTestRoomSession(page, {
@@ -48,15 +36,6 @@ test.describe('RoomSession methods on non existing members', () => {
         permissions: member_permissions,
       },
       initialEvents: [
-        'member.joined',
-        'member.left',
-        'member.updated',
-        'playback.ended',
-        'playback.started',
-        'playback.updated',
-        'recording.ended',
-        'recording.started',
-        'room.updated',
       ],
     })
 
@@ -109,11 +88,6 @@ test.describe('RoomSession methods on non existing members', () => {
           memberId: 'non-exisisting-member',
         })
         .catch((error) => error)
-      console.log(
-        'audioUnmute error',
-        error.jsonrpc.code,
-        error.jsonrpc.message
-      )
       return error.jsonrpc.code
     })
     expect(errorCode).toBe('403')
