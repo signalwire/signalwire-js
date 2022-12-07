@@ -721,6 +721,7 @@ window.ready(async function () {
     (localStorage.getItem('relay.example.video') || '1') === '1'
 
   const client = new Fabric.Client({
+    // host: 'dev.swire.io',
     accessToken: '<ACCESS_TOKEN>',
   })
   const { addresses, nextPage, prevPage } = await client.getAddresses()
