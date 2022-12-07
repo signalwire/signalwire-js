@@ -135,8 +135,8 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
         const mediaOptions = getJoinMediaParams({
           authState,
           // constructor values override the send
-          sendAudio: Boolean(audioFromConstructor),
-          sendVideo: Boolean(videoFromConstructor),
+          sendAudio: Boolean(audio),
+          sendVideo: Boolean(video),
           ...params,
         })
 
@@ -150,6 +150,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
             )
           )
         }
+        getLogger().debug('Set mediaOptions', mediaOptions)
 
         /**
          * audio and video might be objects with MediaStreamConstraints
