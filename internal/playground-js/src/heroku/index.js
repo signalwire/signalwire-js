@@ -750,7 +750,7 @@ window.ready(async function () {
   call.on('member.left', ({ member }) => {
     console.log('member.left', member)
   })
-  await call.start({ audio, video })
+  await call.start({ audio: true, video: true })
 
   window.__call = call
 })
