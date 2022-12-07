@@ -731,7 +731,7 @@ window.ready(async function () {
 
   // Call the first address/channel
   const call = await client.createCall({
-    uri: addresses[0].channels[0],
+    uri: addresses[0].channels.video,
     rootElement: document.getElementById('rootElement'),
   })
 
