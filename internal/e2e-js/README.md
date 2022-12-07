@@ -14,7 +14,7 @@ npm run build
 Create a new file in `internal/e2e-js/.env.test` with a content like:
 
 ```
-SW_TEST_CONFIG='{"ignoreFiles":[],"env":{"API_HOST":"xyz.signalwire.com","RELAY_HOST":"relay.signalwire.com","RELAY_PROJECT":"xyz","RELAY_TOKEN":"PTxyz","VOICE_CONTEXT":"office","VOICE_DIAL_FROM_NUMBER":"+1111111111","VOICE_DIAL_TO_NUMBER":"+111111111","VOICE_CONNECT_TO_NUMBER":"+111111111111","VOICE_CONNECT_CONTEXT":"office","MESSAGING_FROM_NUMBER":"+10000000000","MESSAGING_TO_NUMBER":"+10000000001","MESSAGING_CONTEXT":"messaging-e2e","PLAYBACK_URL":"http://xyz.test.mp4","STREAMING_URL":"rtmp://a.rtmp.youtube.com/live2/xyz","STREAM_CHECK_URL":"https://youtube.com/channel/streams","PVC_STREAMING_URL":"rtmp://a.rtmp.youtube.com/live2"}}'
+SW_TEST_CONFIG='{"ignoreFiles":[],"env":{"API_HOST":"xyz.signalwire.com","RELAY_HOST":"relay.signalwire.com","RELAY_PROJECT":"xyz","RELAY_TOKEN":"PTxyz","VOICE_CONTEXT":"office","VOICE_DIAL_FROM_NUMBER":"+1111111111","VOICE_DIAL_TO_NUMBER":"+111111111","VOICE_CONNECT_TO_NUMBER":"+111111111111","VOICE_CONNECT_CONTEXT":"office","MESSAGING_FROM_NUMBER":"+10000000000","MESSAGING_TO_NUMBER":"+10000000001","MESSAGING_CONTEXT":"messaging-e2e","PLAYBACK_URL":"http://xyz.test.mp4","STREAMING_URL":"rtmp://a.rtmp.youtube.com/live2/xyz","STREAM_CHECK_URL":"https://rtmp.swire.io:5443/stats","PVC_RTMP_SERVER":"rtmp://rtmp.swire.io/live/", "PVC_STREAM_NAME": "pvc-e2e-stream"}}'
 ```
 
 ### API_HOST

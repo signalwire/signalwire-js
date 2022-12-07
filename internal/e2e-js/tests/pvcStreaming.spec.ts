@@ -37,9 +37,11 @@ test.describe('PVC Room Streaming', () => {
     })
     console.log('HERE', roomData)
 
+    const streamName = process.env.PVC_STREAM_NAME!
+    const streamServer = process.env.PVC_RTMP_SERVER!
     const data = await createStreamForRoom(
       room_name,
-      process.env.PVC_STREAMING_URL!
+      `${streamServer}${streamName}`
     )
     console.log(data)
 
@@ -69,8 +71,8 @@ test.describe('PVC Room Streaming', () => {
         console.log(elasped)
         await pageTwo.reload({ waitUntil: 'networkidle' })
         const isLive = await pageTwo
-          .locator('span[aria-label="LIVE"]', {
-            hasText: 'LIVE',
+          .locator('a', {
+            hasText: streamName,
           })
           .isVisible()
         if (isLive) {
