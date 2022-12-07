@@ -64,7 +64,10 @@ export class Client {
     console.log('Dial Response', body)
     return buildCall({
       ...body,
-      userParams,
+      userParams: {
+        host: this.host.includes('swire') ? 'relay.swire.io' : undefined,
+        ...userParams,
+      },
     })
   }
 }
