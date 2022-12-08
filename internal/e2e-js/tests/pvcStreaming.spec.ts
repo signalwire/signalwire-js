@@ -7,7 +7,6 @@ import {
   randomizeRoomName,
   createStreamForRoom,
   deleteRoom,
-  tick,
 } from '../utils'
 
 test.describe('PVC Room Streaming', () => {
@@ -35,15 +34,10 @@ test.describe('PVC Room Streaming', () => {
     const roomData = await createOrUpdateRoom({
       name: room_name,
     })
-    console.log('HERE', roomData)
 
     const streamName = process.env.PVC_STREAM_NAME!
     const streamServer = process.env.PVC_RTMP_SERVER!
-    const data = await createStreamForRoom(
-      room_name,
-      `${streamServer}${streamName}`
-    )
-    console.log(data)
+    await createStreamForRoom(room_name, `${streamServer}${streamName}`)
 
     await createTestRoomSession(pageOne, connectionSettings)
 
@@ -64,24 +58,26 @@ test.describe('PVC Room Streaming', () => {
 
     // go to twitch channel on pageTwo
     const STREAM_CHECK_URL = process.env.STREAM_CHECK_URL!
-    await pageTwo.goto(STREAM_CHECK_URL, { waitUntil: 'networkidle' })
+    await pageTwo.goto(STREAM_CHECK_URL, { waitUntil: 'domcontentloaded' })
     // Refresh page until it see live indicator
     const result = await new Promise(async (resolve, reject) => {
-      for await (let elasped of tick(1000)) {
-        console.log(elasped)
-        await pageTwo.reload({ waitUntil: 'networkidle' })
-        const isLive = await pageTwo
-          .locator('a', {
-            hasText: streamName,
-          })
-          .isVisible()
+      let elasped = 0
+      const interval = setInterval(async () => {
+        elasped += 1000
+        await pageTwo.goto(STREAM_CHECK_URL, { waitUntil: 'domcontentloaded' })
+        // NOTE: without wait we get "execution context destroyed probably due to navigation"
+        // error for `isVisible()`
+        await pageTwo.waitForTimeout(100)
+        const isLive = await pageTwo.getByText(streamName).isVisible()
         if (isLive) {
+          clearInterval(interval)
           return resolve(true)
         }
         if (elasped >= 20000) {
+          clearInterval(interval)
           return reject(new Error('Timeout'))
         }
-      }
+      }, 1000)
     })
 
     expect(result).toBe(true)

@@ -282,12 +282,3 @@ export const deleteRoom = async (id: string) => {
     },
   })
 }
-
-export const tick = async function* (ms: number) {
-  let elasped = 0
-  while (true) {
-    await new Promise((resolve) => setTimeout(resolve, ms))
-    elasped += ms
-    yield elasped
-  }
-}
