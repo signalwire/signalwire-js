@@ -8,7 +8,7 @@ export const getAddresses = async ({
   spaceHost,
   accessToken,
 }: GetAddressesParams) => {
-  const path = '/api/fabric/addresses' as const
+  const path = '/addresses' as const
   const client = createHttpClient({
     baseUrl: `https://${spaceHost}`,
     headers: {

@@ -23,7 +23,7 @@ export class Client {
   }
 
   async getAddresses() {
-    const path = '/api/fabric/addresses' as const
+    const path = '/addresses' as const
     const { body } = await this.httpClient<any>(path)
     const anotherPage = async (url: string) => {
       const { search } = new URL(url)
@@ -55,7 +55,7 @@ export class Client {
     uri: string
     rootElement: HTMLElement
   }) {
-    const path = '/api/fabric/call' as const
+    const path = '/call' as const
     const { body } = await this.httpClient<any>(path, {
       method: 'POST',
       body: { uri },
