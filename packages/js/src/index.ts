@@ -56,6 +56,12 @@ export * as Chat from './chat'
 export * as PubSub from './pubSub'
 
 /**
+ * CallFabric namespace
+ * @internal
+ */
+export * as Fabric from './fabric'
+
+/**
  * The Video namespace contains the classes and functions that you need to
  * create a video conferencing application.
  */
