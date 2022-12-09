@@ -50,6 +50,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     )
 
     this._onIce = this._onIce.bind(this)
+    if (this.options.prevCallId) {
+      this.uuid = this.options.prevCallId
+    }
+    this.options.prevCallId = undefined
   }
 
   get localStream() {
