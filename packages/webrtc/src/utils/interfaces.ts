@@ -77,6 +77,8 @@ export interface ConnectionOptions {
   iceGatheringTimeout?: number
   /** @internal */
   pingSupported?: boolean
+  /** @internal */
+  prevCallId?: string
 
   layout?: string
   positions?: VideoPositions
