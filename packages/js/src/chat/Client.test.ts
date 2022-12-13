@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import WS from 'jest-websocket-mock'
 import { Client } from './Client'
 
