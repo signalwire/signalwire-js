@@ -17,7 +17,7 @@ export class JWTSession extends BaseJWTSession {
 
     super({
       ...options,
-      host: decodedJwt?.ch || options.host,
+      host: options.host || decodedJwt?.ch,
     })
   }
 
