@@ -720,38 +720,38 @@ window.ready(async function () {
   document.getElementById('video').checked =
     (localStorage.getItem('relay.example.video') || '1') === '1'
 
-  const client = new Fabric.Client({
-    // host: 'dev.swire.io',
-    accessToken: '<ACCESS_TOKEN>',
-  })
-  const { addresses, nextPage, prevPage } = await client.getAddresses()
+  // const client = new Fabric.Client({
+  //   // host: 'dev.swire.io',
+  //   accessToken: '<ACCESS_TOKEN>',
+  // })
+  // const { addresses, nextPage, prevPage } = await client.getAddresses()
 
-  // Navigate throught pages
-  const next = await nextPage()
-  const prev = await prevPage()
+  // // Navigate throught pages
+  // const next = await nextPage()
+  // const prev = await prevPage()
 
-  // Call the first address/channel
-  const call = await client.createCall({
-    uri: addresses[0].channels.video,
-    rootElement: document.getElementById('rootElement'),
-  })
+  // // Call the first address/channel
+  // const call = await client.createCall({
+  //   uri: addresses[0].channels.video,
+  //   rootElement: document.getElementById('rootElement'),
+  // })
 
-  call.on('room.joined', (params) => {
-    console.log('room.joined', params)
-  })
-  call.on('member.joined', ({ member }) => {
-    console.log('member.joined', member)
-  })
-  call.on('member.updated', ({ member }) => {
-    console.log('member.updated', member)
-  })
-  call.on('member.talking', ({ member }) => {
-    console.log('member.talking', member)
-  })
-  call.on('member.left', ({ member }) => {
-    console.log('member.left', member)
-  })
-  await call.start({ audio: true, video: true })
+  // call.on('room.joined', (params) => {
+  //   console.log('room.joined', params)
+  // })
+  // call.on('member.joined', ({ member }) => {
+  //   console.log('member.joined', member)
+  // })
+  // call.on('member.updated', ({ member }) => {
+  //   console.log('member.updated', member)
+  // })
+  // call.on('member.talking', ({ member }) => {
+  //   console.log('member.talking', member)
+  // })
+  // call.on('member.left', ({ member }) => {
+  //   console.log('member.left', member)
+  // })
+  // await call.start({ audio: true, video: true })
 
-  window.__call = call
+  // window.__call = call
 })
