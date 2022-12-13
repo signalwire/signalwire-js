@@ -8,6 +8,7 @@ export type RPCConnectParams = {
   version?: typeof DEFAULT_CONNECT_VERSION
   agent?: string
   protocol?: string
+  authorization_state?: string
   contexts?: string[]
 }
 

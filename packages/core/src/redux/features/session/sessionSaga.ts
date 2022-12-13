@@ -177,6 +177,10 @@ export function* sessionChannelWatcher({
        */
       return
     }
+    if (isSwAuthorizationState(broadcastParams)) {
+      session.onSwAuthorizationState(broadcastParams.params.authorization_state)
+      return
+    }
     if (isVideoEvent(broadcastParams)) {
       yield fork(videoAPIWorker, broadcastParams)
       return

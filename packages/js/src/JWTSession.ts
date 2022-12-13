@@ -1,5 +1,12 @@
 import jwtDecode from 'jwt-decode'
-import { BaseJWTSession, getLogger, SessionOptions } from '@signalwire/core'
+import {
+  BaseJWTSession,
+  getLogger,
+  SessionOptions,
+  SwAuthorizationState,
+} from '@signalwire/core'
+
+const AUTH_STATE_KEY = 'swAuthState'
 
 export class JWTSession extends BaseJWTSession {
   public WebSocketConstructor = WebSocket
@@ -53,6 +60,18 @@ export class JWTSession extends BaseJWTSession {
       )
       window.sessionStorage.setItem(roomName, this.relayProtocol)
     }
+  }
+
+  protected override async retrieveSwAuthorizationState() {
+    // TODO: use an unique key derived from JWT (?)
+    return window.sessionStorage.getItem(AUTH_STATE_KEY) ?? ''
+  }
+
+  protected override async persistSwAuthorizationState(
+    state: SwAuthorizationState
+  ) {
+    // TODO: use an unique key derived from JWT (?)
+    window.sessionStorage.setItem(AUTH_STATE_KEY, state)
   }
 
   private getRoomNameFromJWT() {
