@@ -7,6 +7,7 @@ import type {
   VideoAPIEventParams,
   SwEventParams,
   WebRTCMessageParams,
+  SwAuthorizationStateParams,
   MemberTalkingEventNames,
 } from '../../../types'
 import type {
@@ -21,6 +22,7 @@ import { RPCExecute } from '../../../RPCMessages'
 import { getLogger, toInternalAction } from '../../../utils'
 
 type SessionSagaParams = {
+  session: BaseSession
   sessionChannel: EventChannel<unknown>
   pubSubChannel: PubSubChannel
   swEventChannel: SwEventChannel
@@ -32,6 +34,11 @@ const isWebrtcEvent = (e: SwEventParams): e is WebRTCMessageParams => {
 }
 const isVideoEvent = (e: SwEventParams): e is VideoAPIEventParams => {
   return !!e?.event_type?.startsWith('video.')
+}
+const isSwAuthorizationState = (
+  e: SwEventParams
+): e is SwAuthorizationStateParams => {
+  return e?.event_type === 'signalwire.authorization.state'
 }
 
 /**
@@ -111,6 +118,7 @@ export function* sessionChannelWatcher({
   sessionChannel,
   pubSubChannel,
   swEventChannel,
+  session,
 }: SessionSagaParams): SagaIterator {
   function* videoAPIWorker(params: VideoAPIEventParams): SagaIterator {
     switch (params.event_type) {
