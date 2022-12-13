@@ -36,6 +36,7 @@ import {
   sessionReconnectingAction,
 } from './redux/actions'
 import { sessionActions } from './redux/features/session/sessionSlice'
+import { SwAuthorizationState } from '.'
 
 export const SW_SYMBOL = Symbol('BaseSession')
 
@@ -428,6 +429,19 @@ export class BaseSession {
 
   protected decode<T>(input: any): T {
     return safeParseJson(input)
+  }
+
+  async onSwAuthorizationState(state: SwAuthorizationState) {
+    this.persistSwAuthorizationState(state)
+  }
+
+  protected async retrieveSwAuthorizationState() {
+    // no-op : allow override
+    return ''
+  }
+
+  protected async persistSwAuthorizationState(_: SwAuthorizationState) {
+    // no-op : allow override
   }
 
   private _send(msg: JSONRPCRequest | JSONRPCResponse) {

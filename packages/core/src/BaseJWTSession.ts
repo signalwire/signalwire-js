@@ -74,6 +74,10 @@ export class BaseJWTSession extends BaseSession {
         params.protocol = prevProtocol
       }
     }
+    const authorizationState = await this.retrieveSwAuthorizationState()
+    if (authorizationState) {
+      params.authorization_state = authorizationState
+    }
 
     this._rpcConnectResult = await this.execute(RPCConnect(params))
     await this.persistRelayProtocol()
