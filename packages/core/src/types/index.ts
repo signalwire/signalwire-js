@@ -168,6 +168,14 @@ export interface WebRTCMessageParams extends SwEvent {
   params: JSONRPCRequest
 }
 
+export type SwAuthorizationState = string
+export interface SwAuthorizationStateParams {
+  event_type: 'signalwire.authorization.state'
+  params: {
+    authorization_state: SwAuthorizationState
+  }
+}
+
 // prettier-ignore
 export type SwEventParams =
   | VideoAPIEventParams
@@ -177,6 +185,7 @@ export type SwEventParams =
   | TaskEvent
   | MessagingEvent
   | VoiceCallEvent
+  | SwAuthorizationStateParams
 
 // prettier-ignore
 export type PubSubChannelEvents =
