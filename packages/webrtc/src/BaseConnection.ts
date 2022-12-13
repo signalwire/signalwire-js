@@ -264,8 +264,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     if (this.peer && this.callId !== rtcPeer.uuid) {
       const oldPeerId = this.peer.uuid
       this.logger.debug('>>> Stop old RTCPeer', oldPeerId)
-      // Invoke hangup to make sure backend closes
-      // this.hangup(oldPeerId).then(console.warn).catch(console.error)
+      // Hangup the previous RTCPeer
+      this.hangup(oldPeerId).catch(console.error)
       this.peer.detachAndStop()
 
       // Remove RTCPeer from local cache to stop answering to ping/pong
