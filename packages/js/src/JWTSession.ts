@@ -6,8 +6,6 @@ import {
   SwAuthorizationState,
 } from '@signalwire/core'
 
-const AUTH_STATE_KEY = 'swAuthState'
-
 export class JWTSession extends BaseJWTSession {
   public WebSocketConstructor = WebSocket
   public agent = process.env.SDK_PKG_AGENT!
@@ -38,10 +36,10 @@ export class JWTSession extends BaseJWTSession {
       return ''
     }
 
-    const roomName = this.getRoomNameFromJWT()
-    if (roomName) {
-      this.logger.info('Hijacking: search protocol for', roomName)
-      return window.sessionStorage.getItem(roomName) ?? ''
+    const key = this.getProtocolSessionStorageKey()
+    if (key) {
+      this.logger.info('Hijacking: search protocol for', key)
+      return window.sessionStorage.getItem(key) ?? ''
     }
     return ''
   }
@@ -51,36 +49,48 @@ export class JWTSession extends BaseJWTSession {
       return
     }
 
-    const roomName = this.getRoomNameFromJWT()
-    if (roomName) {
-      this.logger.info(
-        'Hijacking: persist protocol',
-        roomName,
-        this.relayProtocol
-      )
-      window.sessionStorage.setItem(roomName, this.relayProtocol)
+    const key = this.getProtocolSessionStorageKey()
+    if (key) {
+      this.logger.info('Hijacking: persist protocol', key, this.relayProtocol)
+      window.sessionStorage.setItem(key, this.relayProtocol)
     }
   }
 
   protected override async retrieveSwAuthorizationState() {
-    // TODO: use an unique key derived from JWT (?)
-    return window.sessionStorage.getItem(AUTH_STATE_KEY) ?? ''
+    const key = this.getAuthStateSessionStorageKey()
+    if (key) {
+      return window.sessionStorage.getItem(key) ?? ''
+    }
+    return ''
   }
 
   protected override async persistSwAuthorizationState(
     state: SwAuthorizationState
   ) {
-    // TODO: use an unique key derived from JWT (?)
-    window.sessionStorage.setItem(AUTH_STATE_KEY, state)
+    const key = this.getAuthStateSessionStorageKey()
+    if (key) {
+      this.logger.info('Hijacking: persist auth state', key, state)
+      window.sessionStorage.setItem(key, state)
+    }
   }
 
-  private getRoomNameFromJWT() {
+  private getAuthStateSessionStorageKey() {
+    return `as-${this.getSessionStorageKey()}`
+  }
+
+  private getProtocolSessionStorageKey() {
+    return `pt-${this.getSessionStorageKey()}`
+  }
+
+  private getSessionStorageKey() {
     try {
-      const jwtPayload = jwtDecode<{ r: string }>(this.options.token)
-      return jwtPayload?.r
+      const jwtPayload = jwtDecode<{ r: string; ja: string }>(
+        this.options.token
+      )
+      return `${jwtPayload?.r}-${jwtPayload?.ja}`
     } catch (e) {
       if (process.env.NODE_ENV !== 'production') {
-        getLogger().error('[getRoomNameFromJWT] error decoding the JWT')
+        getLogger().error('[getSessionStorageKey] error decoding the JWT')
       }
       return ''
     }
