@@ -268,6 +268,10 @@ export const createStreamForRoom = async (name: string, url: string) => {
     }
   )
   const data = await response.json()
+  if (response.status !== 200) {
+    throw data
+  }
+
   // console.log('Room Data', data)
   return data
 }
