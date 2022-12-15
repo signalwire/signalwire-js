@@ -21,7 +21,7 @@ test.describe('RoomSessionReattach', () => {
         room_name: roomName,
         user_name: 'e2e_reattach_test',
         auto_create_room: true,
-        permissions: [],
+        permissions,
       },
       initialEvents: [],
     }
