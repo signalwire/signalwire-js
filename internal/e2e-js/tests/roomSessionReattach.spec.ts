@@ -24,6 +24,13 @@ test.describe('RoomSessionReattach', () => {
         permissions,
       },
       initialEvents: [],
+      roomSessionOptions: {
+        _hijack: true,
+        logLevel: 'debug',
+        debug: {
+          logWsTraffic: true,
+        },
+      },
     }
     await createTestRoomSession(page, connectionSettings)
 
