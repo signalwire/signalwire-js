@@ -58,6 +58,7 @@ export const createTestRoomSession = async (
     /** set of events to automatically subscribe before room.join() */
     initialEvents?: string[]
     expectToJoin?: boolean
+    roomSessionOptions?: Record<string, any>
   }
 ) => {
   const vrt = await createTestVRTToken(options.vrt)
@@ -77,6 +78,7 @@ export const createTestRoomSession = async (
         debug: {
           logWsTraffic: !options.CI,
         },
+        ...options.roomSessionOptions,
       })
 
       options.initialEvents?.forEach((event) => {
@@ -93,6 +95,7 @@ export const createTestRoomSession = async (
       API_TOKEN: vrt,
       initialEvents: options.initialEvents,
       CI: process.env.CI,
+      roomSessionOptions: options.roomSessionOptions,
     }
   )
 
