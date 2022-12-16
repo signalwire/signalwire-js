@@ -67,6 +67,10 @@ export class JWTSession extends BaseJWTSession {
   protected override async persistSwAuthorizationState(
     state: SwAuthorizationState
   ) {
+    if (!this.allowHijack) {
+      return
+    }
+
     const key = this.getAuthStateSessionStorageKey()
     if (key) {
       this.logger.info('Hijacking: persist auth state', key, state)
