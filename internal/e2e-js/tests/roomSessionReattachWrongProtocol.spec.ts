@@ -7,8 +7,8 @@ import {
   randomizeRoomName,
 } from '../utils'
 
-test.describe('RoomSessionReattachFail', () => {
-  test('should handle joining a room, reattaching with bogus authorization_state and then leaving the room', async ({
+test.describe('RoomSessionReattachWrongProtocol', () => {
+  test('should handle joining a room, reattaching with wrong protocol ID and then leaving the room', async ({
     page,
   }) => {
     await page.goto(SERVER_URL)
@@ -19,7 +19,7 @@ test.describe('RoomSessionReattachFail', () => {
     const connectionSettings = {
       vrt: {
         room_name: roomName,
-        user_name: 'e2e_reattach_test_fail',
+        user_name: 'e2e_reattach_test_wrong_protocol',
         auto_create_room: true,
         permissions,
       },
@@ -79,11 +79,11 @@ test.describe('RoomSessionReattachFail', () => {
         const roomObj = window._roomObj
         roomObj.on('room.joined', (params: any) => r(params))
 
-        // Inject wrong values for authorization_state
-        const key = "as-" + room_name + "-member"
-        const state = btoa("bogus")
+        // Inject wrong values for protocol ID
+        const key = "pt-" + room_name + "-member"
+        const state = btoa("wrong protocol")
         window.sessionStorage.setItem(key, state)
-        console.log("Injected bogus authorization_state for " + key + " with value " + state)
+        console.log("Injected protocol ID for " + key + " with value " + state)
 
         roomObj.join()
       })
