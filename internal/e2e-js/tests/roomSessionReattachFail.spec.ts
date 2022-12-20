@@ -7,8 +7,8 @@ import {
   randomizeRoomName,
 } from '../utils'
 
-test.describe('RoomSessionReattach', () => {
-  test('should handle joining a room, reattaching and then leaving the room', async ({
+test.describe('RoomSessionReattachFail', () => {
+  test('should handle joining a room, reattaching with bogus authorization_state and then leaving the room', async ({
     page,
   }) => {
     await page.goto(SERVER_URL)
@@ -19,7 +19,7 @@ test.describe('RoomSessionReattach', () => {
     const connectionSettings = {
       vrt: {
         room_name: roomName,
-        user_name: 'e2e_reattach_test',
+        user_name: 'e2e_reattach_test_fail',
         auto_create_room: true,
         permissions,
       },
@@ -63,6 +63,8 @@ test.describe('RoomSessionReattach', () => {
       return roomObj.permissions
     })
     expect(roomPermissions).toStrictEqual(permissions)
+    const room_name = joinParams.room_session.name
+    expect(room_name).toBeDefined()
 
     // --------------- Reattaching ---------------
     await page.reload()
@@ -70,14 +72,22 @@ test.describe('RoomSessionReattach', () => {
     await createTestRoomSession(page, connectionSettings)
 
     // Join again
-    const reattachParams: any = await page.evaluate(() => {
+    const reattachParams: any = await page.evaluate((room_name) => {
+      console.log("Joining room " + room_name)
       return new Promise((r) => {
         // @ts-expect-error
         const roomObj = window._roomObj
         roomObj.on('room.joined', (params: any) => r(params))
+
+        // Inject wrong values for authorization_state
+        const key = "as-" + room_name + "-member"
+        const state = btoa("bogus")
+        window.sessionStorage.setItem(key, state)
+        console.log("Injected bogus authorization_state for member " + key + " with value " + state)
+
         roomObj.join()
       })
-    })
+    }, room_name)
 
     expect(reattachParams.room).toBeDefined()
     expect(reattachParams.room_session).toBeDefined()
@@ -88,8 +98,9 @@ test.describe('RoomSessionReattach', () => {
     ).toBeTruthy()
     expect(reattachParams.room_session.name).toBe(roomName)
     expect(reattachParams.room.name).toBe(roomName)
-    // Make sure the member_id is stable
-    expect(reattachParams.member_id).toBe(joinParams.member_id)
+
+    // The member id must be different because the reattach failed
+    expect(reattachParams.member_id).not.toBe(joinParams.member_id)
 
     // Checks that the video is visible
     await page.waitForSelector('div[id^="sw-sdk-"] > video', { timeout: 5000 })
