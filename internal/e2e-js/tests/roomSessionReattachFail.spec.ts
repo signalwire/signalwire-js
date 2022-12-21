@@ -3,6 +3,7 @@ import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
+  createTestRoomSessionWithJWT,
   enablePageLogs,
   randomizeRoomName,
 } from '../utils'
@@ -66,10 +67,16 @@ test.describe('RoomSessionReattachFail', () => {
     const room_name = joinParams.room_session.name
     expect(room_name).toBeDefined()
 
+    const jwtToken: string = await page.evaluate(() => {
+      // @ts-expect-error
+      return window.jwt_token
+    })
+
+
     // --------------- Reattaching ---------------
     await page.reload()
 
-    await createTestRoomSession(page, connectionSettings)
+    await createTestRoomSessionWithJWT(page, connectionSettings, jwtToken)
 
     // Join again
     const reattachParams: any = await page.evaluate((room_name) => {

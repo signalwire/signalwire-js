@@ -86,6 +86,9 @@ export const createTestRoomSession = async (
       })
 
       // @ts-expect-error
+      window.jwt_token = options.API_TOKEN
+
+      // @ts-expect-error
       window._roomObj = roomSession
 
       return Promise.resolve(roomSession)
@@ -112,6 +115,59 @@ export const createTestRoomSession = async (
   }
 
   return roomSession
+}
+
+
+export const createTestRoomSessionWithJWT = async (
+  page: Page,
+  options: {
+    vrt: CreateTestVRTOptions
+    /** set of events to automatically subscribe before room.join() */
+    initialEvents?: string[]
+    roomSessionOptions?: Record<string, any>
+  },
+  jwt: string
+) => {
+  if (!jwt) {
+    console.error('Invalid JWT. Exiting..')
+    process.exit(4)
+  }
+  return page.evaluate(
+    (options) => {
+      // @ts-expect-error
+      const Video = window._SWJS.Video
+      const roomSession = new Video.RoomSession({
+        host: options.RELAY_HOST,
+        token: options.API_TOKEN,
+        rootElement: document.getElementById('rootElement'),
+        audio: true,
+        video: true,
+        logLevel: 'warn',
+        // debug: {
+        //   logWsTraffic: true,
+        // },
+        ...options.roomSessionOptions,
+      })
+
+      options.initialEvents?.forEach((event) => {
+        roomSession.once(event, () => {})
+      })
+
+      // @ts-expect-error
+      window.jwt_token = options.API_TOKEN
+
+      // @ts-expect-error
+      window._roomObj = roomSession
+
+      return Promise.resolve(roomSession)
+    },
+    {
+      RELAY_HOST: process.env.RELAY_HOST,
+      API_TOKEN: jwt,
+      initialEvents: options.initialEvents,
+      roomSessionOptions: options.roomSessionOptions,
+    }
+  )
 }
 
 interface CreateTestVRTOptions {
