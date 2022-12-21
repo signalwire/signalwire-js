@@ -56,6 +56,9 @@ test.describe('RoomSession demote participant', () => {
     // --------------- Make sure on pageOne we have a member ---------------
     await expectInteractivityMode(pageOne, 'member')
 
+    // --------------- Check SDP/RTCPeer on participant ---------------
+    await expectSDPDirection(pageOne, 'sendrecv', true)
+
     // Checks that the video is visible on pageOne
     await pageOne.waitForSelector('div[id^="sw-sdk-"] > video', {
       timeout: 5000,
@@ -73,6 +76,10 @@ test.describe('RoomSession demote participant', () => {
 
     // Stable ref of the initial memberId
     const participant2Id = pageTwoRoomJoined.member_id
+    console.log('>> participant2Id', participant2Id)
+
+    // --------------- Make sure on pageOne we have a member ---------------
+    await expectInteractivityMode(pageTwo, 'member')
 
     // --------------- Make sure pageTwo exposes the correct memberId  ---------------
     await expectMemberId(pageTwo, participant2Id)
@@ -138,7 +145,7 @@ test.describe('RoomSession demote participant', () => {
       0.5
     )
 
-    // --------------- Demote participant on pageTwo to audience from pageOne 
+    // --------------- Demote participant on pageTwo to audience from pageOne
     // and resolve on `member.left` amd `layout.changed` with position off-canvas ---------------
     const promiseMemberWaitingForMemberLeft = pageOne.evaluate(
       async ({ demoteMemberId }) => {
@@ -171,7 +178,11 @@ test.describe('RoomSession demote participant', () => {
             if (member.name === 'e2e_participant_to_demote') {
               resolve(true)
             } else {
-              reject(new Error('[member.left] Name is not "e2e_participant_to_demote"'))
+              reject(
+                new Error(
+                  '[member.left] Name is not "e2e_participant_to_demote"'
+                )
+              )
             }
           })
         })
@@ -190,10 +201,17 @@ test.describe('RoomSession demote participant', () => {
 
     await promiseMemberWaitingForMemberLeft
 
-    await pageTwo.waitForTimeout(2000)
+    const promiseAudienceRoomJoined = await pageTwo.evaluate<any>(() => {
+      return new Promise((resolve) => {
+        // @ts-expect-error
+        const roomObj = window._roomObj
+        roomObj.once('room.joined', resolve)
+      })
+    })
 
     // --------------- Make sure member_id is the same after promote and demote on pageTwo ---------------
     await expectMemberId(pageTwo, participant2Id) // before promote
+    await expectMemberId(pageTwo, promiseAudienceRoomJoined.member_id) // before promote
 
     // --------------- Make sure on pageTwo he is an audience member ---------------
     await expectInteractivityMode(pageTwo, 'audience')
@@ -201,7 +219,7 @@ test.describe('RoomSession demote participant', () => {
     // --------------- Check SDP/RTCPeer on audience (audience again so recvonly) ---------------
     await expectSDPDirection(pageTwo, 'recvonly', true)
 
-    await pageTwo.waitForTimeout(2000)
+    // await pageTwo.waitForTimeout(2000)
 
     // --------------- Leaving the rooms ---------------
     await Promise.all([
