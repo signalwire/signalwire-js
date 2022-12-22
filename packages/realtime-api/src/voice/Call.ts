@@ -28,6 +28,7 @@ import {
   VoiceCallTapAudioMethodParams,
   CallingCallTapEventParams,
   CallingCallState,
+  CallingCallConnectState,
   CallingCallStateEventParams,
   VoiceCallConnectMethodParams,
   VoiceCallConnectPhoneMethodParams,
@@ -135,7 +136,8 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
   public callId: string
   public nodeId: string
   public peer: string
-  public callState: string
+  public callState: CallingCallState
+  public connectState: CallingCallConnectState
 
   constructor(options: BaseComponentOptions<RealTimeCallApiEvents>) {
     super(options)
@@ -209,6 +211,14 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
   get headers() {
     // @ts-expect-error
     return this.device?.params?.headers ?? []
+  }
+
+  get active() {
+    return this.callState === 'answered'
+  }
+
+  get connected() {
+    return this.connectState === 'connected'
   }
 
   /** @internal */
@@ -328,7 +338,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
              * Call object to use its own tag value set to `this.__uuid`.
              */
             const { tag, ...peerParams } = payload.peer
-            return toExternalJSON(peerParams)
+            return toExternalJSON({ ...peerParams, connect_state: 'connected' })
           },
         },
       ],

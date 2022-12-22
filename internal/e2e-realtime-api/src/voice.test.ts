@@ -131,6 +131,14 @@ const handler = () => {
           ringback, // optional
         })
 
+        tap.equal(peer.connected, true, 'Peer connected is true')
+        tap.equal(call.connected, true, 'Call connected is true')
+        tap.equal(
+          call.connectState,
+          'connected',
+          'Call connected is "connected"'
+        )
+
         console.log('Peer:', peer.id, peer.type, peer.from, peer.to)
         console.log('Main:', call.id, call.type, call.from, call.to)
 
