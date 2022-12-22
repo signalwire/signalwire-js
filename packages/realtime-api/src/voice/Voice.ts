@@ -14,7 +14,7 @@ import type {
 } from '@signalwire/core'
 import { RealtimeClient } from '../client/index'
 import { createCallObject, Call } from './Call'
-import { voiceCallReceiveWorker } from './workers'
+import { voiceCallReceiveWorker, voiceClientWorker } from './workers'
 import { DeviceBuilder } from './DeviceBuilder'
 import type { RealTimeCallApiEvents } from '../types'
 import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
@@ -205,6 +205,9 @@ class VoiceAPI extends AutoApplyTransformsConsumer<VoiceClientApiEvents> {
     this.runWorker('voiceCallReceiveWorker', {
       worker: voiceCallReceiveWorker,
     })
+    this.runWorker('voiceClientWorker', {
+      worker: voiceClientWorker,
+    })
 
     this._attachListeners('')
   }
@@ -220,6 +223,23 @@ class VoiceAPI extends AutoApplyTransformsConsumer<VoiceClientApiEvents> {
         {
           mode: 'no-cache',
           type: 'voiceCallReceived',
+          afterCreateHook: (instance: Call) => {
+            const eventName = `call.state.${instance.id}`
+            const callStateHandler = (payload: any) => {
+              // if (instance.id === payload.call_id) {
+              // @ts-expect-error
+              instance.__sw_update_payload(toExternalJSON(payload))
+
+              if (payload.call_state === 'ended') {
+                // @ts-expect-error
+                this.off(eventName, callStateHandler)
+              }
+              // }
+            }
+
+            // @ts-expect-error
+            this.on(eventName, callStateHandler)
+          },
           instanceFactory: (_payload: any) => {
             return createCallObject({
               store: this.store,
