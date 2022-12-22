@@ -429,6 +429,10 @@ export class BaseComponent<
         transform,
       })
 
+      if (transform.afterCreateHook) {
+        transform.afterCreateHook(proxiedObj)
+      }
+
       // this._proxyFactoryCache.set(payload, proxiedObj)
       // }
 
