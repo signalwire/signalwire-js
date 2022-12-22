@@ -82,8 +82,8 @@ type EmitterTransformsEvents =
   | 'calling.tap.ended'
   | 'calling.detect.started'
   | 'calling.detect.ended'
-  // events not exposed
   | 'calling.call.state'
+  // events not exposed
   | 'calling.detect.updated'
   | 'calling.connect.connected'
 
@@ -142,7 +142,6 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     this._attachListeners(this.__uuid)
     this.applyEmitterTransforms({ local: true })
 
-    // @ts-expect-error
     this.on('call.state', () => {
       /**
        * FIXME: this no-op listener is required for our EE transforms to
@@ -412,7 +411,6 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         )
       }
 
-      // @ts-expect-error
       this.on('call.state', (params) => {
         if (params.callState === 'ended') {
           resolve(new Error('Failed to hangup the call.'))
@@ -454,7 +452,6 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         reject(new Error(`Can't call answer() on a call without callId.`))
       }
 
-      // @ts-expect-error
       this.on('call.state', (params) => {
         if (params.callState === 'answered') {
           resolve(this)
@@ -860,7 +857,6 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       const controlId = uuid()
 
       const cleanup = () => {
-        // @ts-expect-error
         this.off('call.state', callStateHandler)
       }
 
@@ -891,7 +887,6 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
           )
         }
       }
-      // @ts-expect-error
       this.once('call.state', callStateHandler)
 
       this.execute({
@@ -1345,7 +1340,6 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         return !shouldWaitForEnded && state === 'ended'
       }
 
-      // @ts-expect-error
       this.on('call.state', (params) => {
         if (events.includes(params.callState)) {
           emittedCallStates.add(params.callState)
