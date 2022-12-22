@@ -117,6 +117,12 @@ export const proxyFactory = ({
         return true
       }
 
+      if (prop === '__sw_update_payload') {
+        return function (newPayload: any) {
+          transformedPayload = newPayload
+        }
+      }
+
       if (prop === 'toString') {
         return proxyToString({
           property: target[prop],
