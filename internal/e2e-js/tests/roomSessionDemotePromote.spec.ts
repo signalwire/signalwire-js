@@ -162,7 +162,7 @@ test.describe('RoomSession demote participant and then promote again', () => {
     await pageTwo.waitForTimeout(2000)
     
     // --------------- Promote audience from pageOne and resolve on `member.joined` ---------------
-    await pageOne.evaluate(
+    const promiseMemberWaitingForMemberJoin = pageOne.evaluate(
       async ({ promoteMemberId }) => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
@@ -188,14 +188,16 @@ test.describe('RoomSession demote participant and then promote again', () => {
       { promoteMemberId: participant2Id }
     )
 
-    const promisePromotedRoomJoined = await pageTwo.evaluate<any>(() => {
+    const promisePromotedRoomJoined = pageTwo.evaluate<any>(() => {
       return new Promise((resolve) => {
         // @ts-expect-error
         const roomObj = window._roomObj
         roomObj.once('room.joined', resolve)
       })
     })
-    await expectMemberId(pageTwo, promisePromotedRoomJoined.member_id)
+
+    await Promise.all([promiseMemberWaitingForMemberJoin, promisePromotedRoomJoined])
+
     await expectMemberId(pageTwo, participant2Id)
     await expectInteractivityMode(pageTwo, 'member')
     await expectSDPDirection(pageTwo, 'sendrecv', true)
