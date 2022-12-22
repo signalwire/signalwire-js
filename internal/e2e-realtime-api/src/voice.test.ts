@@ -33,7 +33,9 @@ const handler = () => {
       )
 
       try {
+        tap.equal(call.state, 'created', 'Inbound call state is "created"')
         const resultAnswer = await call.answer()
+        tap.equal(call.state, 'answered', 'Inbound call state is "answered"')
         tap.ok(resultAnswer.id, 'Inboud call answered')
         tap.equal(
           call.id,
@@ -151,6 +153,7 @@ const handler = () => {
         call.disconnected().then(async () => {
           console.log('Call has been disconnected')
           await call.hangup()
+          tap.equal(call.state, 'ended', 'Inbound call state is "ended"')
         })
 
         await peer.hangup()
@@ -166,6 +169,7 @@ const handler = () => {
       timeout: 30,
     })
     tap.ok(call.id, 'Call resolved')
+    tap.equal(call.state, 'answered', 'Outbound call state is "answered"')
 
     await sleep(3000)
 
@@ -187,6 +191,7 @@ const handler = () => {
         tap.ok(results[i], `${JSON.stringify(value)}: completed successfully.`)
       }
     })
+    tap.equal(call.state, 'ended', 'Outbound call state is "ended"')
     resolve(0)
   })
 }
