@@ -226,7 +226,6 @@ class VoiceAPI extends AutoApplyTransformsConsumer<VoiceClientApiEvents> {
           afterCreateHook: (instance: Call) => {
             const eventName = `call.state.${instance.id}`
             const callStateHandler = (payload: any) => {
-              // if (instance.id === payload.call_id) {
               // @ts-expect-error
               instance.__sw_update_payload(toExternalJSON(payload))
 
@@ -234,7 +233,6 @@ class VoiceAPI extends AutoApplyTransformsConsumer<VoiceClientApiEvents> {
                 // @ts-expect-error
                 this.off(eventName, callStateHandler)
               }
-              // }
             }
 
             // @ts-expect-error
