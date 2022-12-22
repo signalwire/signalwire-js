@@ -171,7 +171,7 @@ const handler = () => {
     tap.ok(call.id, 'Call resolved')
     tap.equal(call.state, 'answered', 'Outbound call state is "answered"')
 
-    await sleep(3000)
+    await sleep(5000)
 
     const sendDigitResult = await call.sendDigits('1w2w3w#')
     tap.equal(
