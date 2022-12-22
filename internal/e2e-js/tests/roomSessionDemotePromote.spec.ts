@@ -7,6 +7,7 @@ import {
   expectSDPDirection,
   expectInteractivityMode,
   expectMemberId,
+  randomizeRoomName
 } from '../utils'
 
 test.describe('RoomSession demote participant and then promote again', () => {
@@ -18,9 +19,11 @@ test.describe('RoomSession demote participant and then promote again', () => {
 
     await Promise.all([pageOne.goto(SERVER_URL), pageTwo.goto(SERVER_URL)])
 
+    const room_name = randomizeRoomName()
+
     const participant1Settings = {
       vrt: {
-        room_name: 'demotion-promotion-room',
+        room_name: room_name,
         user_name: 'e2e_participant',
         auto_create_room: true,
         permissions: ['room.member.demote', 'room.member.promote'],
@@ -30,7 +33,7 @@ test.describe('RoomSession demote participant and then promote again', () => {
 
     const participant2Settings = {
       vrt: {
-        room_name: 'demotion-promotion-room',
+        room_name: room_name,
         user_name: 'e2e_target_participant',
         auto_create_room: true,
         permissions: [],
@@ -155,6 +158,8 @@ test.describe('RoomSession demote participant and then promote again', () => {
     await expectSDPDirection(pageTwo, 'recvonly', true)
 
     // --------------- Time to promote again at PageTwo ---------------
+
+    await pageTwo.waitForTimeout(2000)
     
     // --------------- Promote audience from pageOne and resolve on `member.joined` ---------------
     await pageOne.evaluate(
@@ -164,7 +169,8 @@ test.describe('RoomSession demote participant and then promote again', () => {
 
         const waitForMemberJoined = new Promise((resolve, reject) => {
           roomObj.on('member.joined', ({ member }) => {
-            if (member.name === 'e2e_target_participant') {
+            if (member.name === 'e2e_target_participant' && member.id === promoteMemberId) {
+              console.log("=======================> Member joined:", member.name)
               resolve(true)
             } else {
               reject(new Error('[member.joined] Name is not "e2e_target_participant"'))
@@ -181,10 +187,22 @@ test.describe('RoomSession demote participant and then promote again', () => {
       },
       { promoteMemberId: participant2Id }
     )
+
+    const promisePromotedRoomJoined = await pageTwo.evaluate<any>(() => {
+      return new Promise((resolve) => {
+        // @ts-expect-error
+        const roomObj = window._roomObj
+        roomObj.once('room.joined', resolve)
+      })
+    })
+    await expectMemberId(pageTwo, promisePromotedRoomJoined.member_id)
     await expectMemberId(pageTwo, participant2Id)
     await expectInteractivityMode(pageTwo, 'member')
     await expectSDPDirection(pageTwo, 'sendrecv', true)
-
+    // Checks that the video is visible on pageTwo
+    await pageTwo.waitForSelector('div[id^="sw-sdk-"] > video', {
+      timeout: 10000,
+    })
 
     // --------------- Leaving the rooms ---------------
     await Promise.all([
