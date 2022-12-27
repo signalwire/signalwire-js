@@ -50,7 +50,10 @@ export const voiceCallPromptWorker: SDKWorker<Call> = function* (
     })
 
     if (action.payload.result) {
-      let typeToEmit: 'calling.prompt.failed' | 'calling.prompt.ended'
+      let typeToEmit:
+        | 'calling.prompt.failed'
+        | 'calling.prompt.ended'
+        | 'calling.prompt.startOfInput'
       switch (action.payload.result.type) {
         case 'no_match':
         case 'no_input':
@@ -63,9 +66,17 @@ export const voiceCallPromptWorker: SDKWorker<Call> = function* (
           typeToEmit = 'calling.prompt.ended'
           break
         }
-        // case 'start_of_speech': { TODO:
-        //   break
-        // }
+        case 'start_of_input': {
+          typeToEmit = 'calling.prompt.startOfInput'
+          break
+        }
+      }
+
+      if (!typeToEmit) {
+        getLogger().info(
+          `Unknown prompt result type: "${action.payload.result.type}"`
+        )
+        continue
       }
 
       yield sagaEffects.put(pubSubChannel, {

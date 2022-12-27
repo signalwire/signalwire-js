@@ -19,6 +19,7 @@ import {
   VoiceCallPromptAudioMethodParams,
   VoiceCallPromptRingtoneMethodParams,
   VoiceCallPromptTTSMethodParams,
+  VoiceCallCollectMethodParams,
   EventTransform,
   toLocalEvent,
   toExternalJSON,
@@ -58,12 +59,14 @@ import {
   voiceCallDetectWorker,
   VoiceCallDialWorkerHooks,
   VoiceCallSendDigitsWorkerHooks,
+  voiceCallCollectWorker,
 } from './workers'
 import { CallPlayback, createCallPlaybackObject } from './CallPlayback'
 import { CallRecording, createCallRecordingObject } from './CallRecording'
 import { CallPrompt, createCallPromptObject } from './CallPrompt'
 import { CallTap, createCallTapObject } from './CallTap'
 import { CallDetect, createCallDetectObject } from './CallDetect'
+import { CallCollect, createCallCollectObject } from './CallCollect'
 import { DeviceBuilder } from './DeviceBuilder'
 
 type EmitterTransformsEvents =
@@ -83,6 +86,10 @@ type EmitterTransformsEvents =
   | 'calling.tap.ended'
   | 'calling.detect.started'
   | 'calling.detect.ended'
+  | 'calling.collect.started'
+  | 'calling.collect.updated'
+  | 'calling.collect.ended'
+  | 'calling.collect.failed'
   | 'calling.call.state'
   // events not exposed
   | 'calling.detect.updated'
@@ -128,6 +135,13 @@ export const callingTapTriggerEvent = toLocalEvent<EmitterTransformsEvents>(
  */
 export const callingDetectTriggerEvent = toLocalEvent<EmitterTransformsEvents>(
   'calling.detect.trigger'
+)
+
+/**
+ * Used to resolve the collect() method and to update the CallCollect object through the EmitterTransform
+ */
+export const callingCollectTriggerEvent = toLocalEvent<EmitterTransformsEvents>(
+  'calling.collect.trigger'
 )
 
 export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEvents> {
@@ -359,6 +373,28 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
             })
           },
           payloadTransform: (payload: CallingCallDetectEventParams) => {
+            return toExternalJSON(payload)
+          },
+        },
+      ],
+      [
+        [
+          callingCollectTriggerEvent,
+          'calling.collect.started',
+          'calling.collect.updated',
+          'calling.collect.ended',
+          'calling.collect.failed',
+        ],
+        {
+          type: 'voiceCallCollect',
+          instanceFactory: (_payload: any) => {
+            return createCallCollectObject({
+              store: this.store,
+              // @ts-expect-error
+              emitter: this.emitter,
+            })
+          },
+          payloadTransform: (payload: CallingCallCollectEventParams) => {
             return toExternalJSON(payload)
           },
         },
@@ -1361,6 +1397,93 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
           resolve(true)
         }
       })
+    })
+  }
+
+  /**
+   * Collect user input from the call, such as `digits` or `speech`.
+   *
+   * @example
+   *
+   * Collect digits and waiting for a result:
+   *
+   * ```js
+   * const collectObj = await call.collect({
+   *   digits: {
+   *     max: 5,
+   *     digitTimeout: 2,
+   *     terminators: '#*'
+   *   }
+   * })
+   * const { digits, terminator } = await collectObj.ended()
+   * ```
+   */
+  collect(params: VoiceCallCollectMethodParams) {
+    return new Promise<CallCollect>((resolve, reject) => {
+      if (!this.callId || !this.nodeId) {
+        reject(new Error(`Can't call collect() on a call not established yet.`))
+      }
+
+      const controlId = uuid()
+
+      this.runWorker('voiceCallCollectWorker', {
+        worker: voiceCallCollectWorker,
+        initialState: {
+          controlId,
+        },
+      })
+
+      const resolveHandler = (callCollect: CallCollect) => {
+        resolve(callCollect)
+      }
+      // @ts-expect-error
+      this.on(callingCollectTriggerEvent, resolveHandler)
+
+      // TODO: move this to a method to build the params
+      const {
+        initial_timeout,
+        partial_results,
+        digits,
+        speech,
+        continuous,
+        send_start_of_input,
+        start_input_timers,
+      } = toSnakeCaseKeys(params)
+
+      this.execute({
+        method: 'calling.collect',
+        params: {
+          node_id: this.nodeId,
+          call_id: this.callId,
+          control_id: controlId,
+          initial_timeout,
+          digits,
+          speech,
+          partial_results,
+          continuous,
+          send_start_of_input,
+          start_input_timers,
+        },
+      })
+        .then(() => {
+          const startEvent: Omit<CallingCallCollectEventParams, 'result'> = {
+            control_id: controlId,
+            call_id: this.id,
+            node_id: this.nodeId,
+          }
+          // TODO: (review) There's no event for collect started so we generate it here
+          this.emit('collect.started', startEvent)
+
+          // @ts-expect-error
+          this.emit(callingCollectTriggerEvent, startEvent)
+        })
+        .catch((e) => {
+          this.off('collect.started', resolveHandler)
+
+          // @ts-expect-error
+          this.off(callingCollectTriggerEvent, resolveHandler)
+          reject(e)
+        })
     })
   }
 }

@@ -77,9 +77,15 @@ export type CallRecordingUpdated = 'recording.updated'
 export type CallRecordingEnded = 'recording.ended'
 export type CallRecordingFailed = 'recording.failed'
 export type CallPromptStarted = 'prompt.started'
+export type CallPromptStartOfInput = 'prompt.startOfInput'
 export type CallPromptUpdated = 'prompt.updated'
 export type CallPromptEnded = 'prompt.ended'
 export type CallPromptFailed = 'prompt.failed'
+export type CallCollectStarted = 'collect.started'
+export type CallCollectStartOfInput = 'collect.startOfInput'
+export type CallCollectUpdated = 'collect.updated'
+export type CallCollectEnded = 'collect.ended'
+export type CallCollectFailed = 'collect.failed'
 export type CallTapStarted = 'tap.started'
 export type CallTapEnded = 'tap.ended'
 // Not exposed yet to the public-side
@@ -117,6 +123,10 @@ export type VoiceCallEventNames =
   | CallDetectStarted
   | CallDetectUpdated
   | CallDetectEnded
+  | CallCollectStarted
+  | CallCollectUpdated
+  | CallCollectEnded
+  | CallCollectFailed
 
 /**
  * List of internal events
@@ -323,6 +333,14 @@ export interface VoiceCallTapMethodParams {
 export interface VoiceCallTapAudioMethodParams {
   device: TapDevice
   direction: TapDirection
+}
+
+export type VoiceCallCollectMethodParams = SpeechOrDigits & {
+  initialTimeout?: number
+  partialResults?: boolean
+  continuous: boolean
+  sendStartOfInput: boolean
+  startInputTimers: boolean
 }
 
 export type VoiceCallConnectMethodParams =
@@ -552,6 +570,42 @@ export type VoiceCallPromptMethods =
   OnlyFunctionProperties<VoiceCallPromptContract>
 
 /**
+ * Public Contract for a VoiceCallCollect
+ */
+export interface VoiceCallCollectContract {
+  /** Unique id for this recording */
+  readonly id: string
+  /** @ignore */
+  readonly callId: string
+  /** @ignore */
+  readonly controlId: string
+
+  readonly type?: CallingCallCollectResult['type']
+  /** Alias for type in case of errors */
+  readonly reason?: string
+  readonly digits?: string
+  readonly terminator?: string
+  readonly text?: string
+  readonly confidence?: number
+
+  stop(): Promise<this>
+  startInputTimers(): Promise<this>
+  ended(): Promise<this>
+}
+
+/**
+ * VoiceCallCollect properties
+ */
+export type VoiceCallCollectEntity =
+  OnlyStateProperties<VoiceCallCollectContract>
+
+/**
+ * VoiceCallCollect methods
+ */
+export type VoiceCallCollectMethods =
+  OnlyFunctionProperties<VoiceCallCollectContract>
+
+/**
  * Public Contract for a VoiceCallTap
  */
 export interface VoiceCallTapContract {
@@ -694,6 +748,9 @@ export interface VoiceCallContract<T = any> {
   detectDigit(
     params?: Omit<VoiceCallDetectDigitParams, 'type'>
   ): Promise<VoiceCallDetectContract>
+  collect(
+    params: VoiceCallCollectMethodParams
+  ): Promise<VoiceCallCollectContract>
 }
 
 /**
@@ -875,6 +932,9 @@ interface CallingCallCollectResultNoInput {
 interface CallingCallCollectResultNoMatch {
   type: 'no_match'
 }
+interface CallingCallCollectResultStartOfInput {
+  type: 'start_of_input'
+}
 interface CallingCallCollectResultDigit {
   type: 'digit'
   params: {
@@ -893,6 +953,7 @@ export type CallingCallCollectResult =
   | CallingCallCollectResultError
   | CallingCallCollectResultNoInput
   | CallingCallCollectResultNoMatch
+  | CallingCallCollectResultStartOfInput
   | CallingCallCollectResultDigit
   | CallingCallCollectResultSpeech
 
@@ -1130,6 +1191,14 @@ export interface CallPromptStartedEvent extends SwEvent {
   params: CallingCallCollectEventParams & { tag: string }
 }
 /**
+ * 'calling.prompt.startOfInput'
+ * Different from `started` because it's from the server
+ */
+export interface CallPromptStartOfInputEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallPromptStartOfInput>
+  params: CallingCallCollectEventParams & { tag: string }
+}
+/**
  * 'calling.prompt.updated'
  */
 export interface CallPromptUpdatedEvent extends SwEvent {
@@ -1217,6 +1286,43 @@ export interface CallDetectEndedEvent extends SwEvent {
   params: CallingCallDetectEventParams & { tag: string }
 }
 
+/**
+ * 'calling.collect.started'
+ */
+export interface CallCollectStartedEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallCollectStarted>
+  params: CallingCallCollectEventParams & { tag: string }
+}
+/**
+ * 'calling.collect.startOfInput'
+ * Different from `started` because it's from the server
+ */
+export interface CallCollectStartOfInputEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallCollectStartOfInput>
+  params: CallingCallCollectEventParams & { tag: string }
+}
+/**
+ * 'calling.collect.updated'
+ */
+export interface CallCollectUpdatedEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallCollectUpdated>
+  params: CallingCallCollectEventParams & { tag: string }
+}
+/**
+ * 'calling.collect.ended'
+ */
+export interface CallCollectEndedEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallCollectEnded>
+  params: CallingCallCollectEventParams & { tag: string }
+}
+/**
+ * 'calling.collect.failed'
+ */
+export interface CallCollectFailedEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallCollectFailed>
+  params: CallingCallCollectEventParams & { tag: string }
+}
+
 // interface VoiceCallStateEvent {
 //   call_id: string
 //   node_id: string
@@ -1265,6 +1371,7 @@ export type VoiceCallEvent =
   | CallRecordingEndedEvent
   | CallRecordingFailedEvent
   | CallPromptStartedEvent
+  | CallPromptStartOfInputEvent
   | CallPromptUpdatedEvent
   | CallPromptEndedEvent
   | CallPromptFailedEvent
@@ -1277,6 +1384,11 @@ export type VoiceCallEvent =
   | CallDetectStartedEvent
   | CallDetectUpdatedEvent
   | CallDetectEndedEvent
+  | CallCollectStartedEvent
+  | CallCollectStartOfInputEvent
+  | CallCollectUpdatedEvent
+  | CallCollectEndedEvent
+  | CallCollectFailedEvent
 
 export type VoiceCallEventParams =
   // Server Event Params
@@ -1300,6 +1412,7 @@ export type VoiceCallEventParams =
   | CallRecordingEndedEvent['params']
   | CallRecordingFailedEvent['params']
   | CallPromptStartedEvent['params']
+  | CallPromptStartOfInputEvent['params']
   | CallPromptUpdatedEvent['params']
   | CallPromptEndedEvent['params']
   | CallPromptFailedEvent['params']
@@ -1312,6 +1425,11 @@ export type VoiceCallEventParams =
   | CallDetectStartedEvent['params']
   | CallDetectUpdatedEvent['params']
   | CallDetectEndedEvent['params']
+  | CallCollectStartedEvent['params']
+  | CallCollectStartOfInputEvent['params']
+  | CallCollectUpdatedEvent['params']
+  | CallCollectEndedEvent['params']
+  | CallCollectFailedEvent['params']
 
 export type VoiceCallAction = MapToPubSubShape<VoiceCallEvent>
 
@@ -1336,6 +1454,9 @@ export type VoiceCallJSONRPCMethod =
   | 'calling.send_digits'
   | 'calling.detect'
   | 'calling.detect.stop'
+  | 'calling.collect'
+  | 'calling.collect.stop'
+  | 'calling.collect.start_input_timers'
 
 export type CallingTransformType =
   | 'voiceCallReceived'
@@ -1346,3 +1467,4 @@ export type CallingTransformType =
   | 'voiceCallConnect'
   | 'voiceCallState'
   | 'voiceCallDetect'
+  | 'voiceCallCollect'
