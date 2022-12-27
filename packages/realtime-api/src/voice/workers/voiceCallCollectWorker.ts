@@ -99,14 +99,15 @@ export const voiceCallCollectWorker: SDKWorker<Call> = function* (
          */
         yield sagaEffects.put(pubSubChannel, {
           type: typeToEmit,
-          // @ts-ignore
           payload: {
             tag: controlId,
             ...action.payload,
           },
         })
 
-        done()
+        if (action.payload.result.type !== 'start_of_input') {
+          done()
+        }
       }
     }
   }
