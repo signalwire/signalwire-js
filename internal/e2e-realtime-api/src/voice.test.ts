@@ -33,7 +33,9 @@ const handler = () => {
       )
 
       try {
+        tap.equal(call.state, 'created', 'Inbound call state is "created"')
         const resultAnswer = await call.answer()
+        tap.equal(call.state, 'answered', 'Inbound call state is "answered"')
         tap.ok(resultAnswer.id, 'Inboud call answered')
         tap.equal(
           call.id,
@@ -129,6 +131,14 @@ const handler = () => {
           ringback, // optional
         })
 
+        tap.equal(peer.connected, true, 'Peer connected is true')
+        tap.equal(call.connected, true, 'Call connected is true')
+        tap.equal(
+          call.connectState,
+          'connected',
+          'Call connected is "connected"'
+        )
+
         console.log('Peer:', peer.id, peer.type, peer.from, peer.to)
         console.log('Main:', call.id, call.type, call.from, call.to)
 
@@ -151,6 +161,7 @@ const handler = () => {
         call.disconnected().then(async () => {
           console.log('Call has been disconnected')
           await call.hangup()
+          tap.equal(call.state, 'ended', 'Inbound call state is "ended"')
         })
 
         await peer.hangup()
@@ -166,8 +177,9 @@ const handler = () => {
       timeout: 30,
     })
     tap.ok(call.id, 'Call resolved')
+    tap.equal(call.state, 'answered', 'Outbound call state is "answered"')
 
-    await sleep(3000)
+    await sleep(5000)
 
     const sendDigitResult = await call.sendDigits('1w2w3w#')
     tap.equal(
@@ -187,6 +199,7 @@ const handler = () => {
         tap.ok(results[i], `${JSON.stringify(value)}: completed successfully.`)
       }
     })
+    tap.equal(call.state, 'ended', 'Outbound call state is "ended"')
     resolve(0)
   })
 }

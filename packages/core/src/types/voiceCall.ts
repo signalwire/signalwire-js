@@ -606,6 +606,8 @@ export interface VoiceCallContract<T = any> {
   to: string
   direction: CallingCallDirection
   headers?: SipHeader[]
+  active: boolean
+  connected: boolean
 
   dial(params: VoiceDialerParams): Promise<T>
   hangup(reason?: VoiceCallDisconnectReason): Promise<void>

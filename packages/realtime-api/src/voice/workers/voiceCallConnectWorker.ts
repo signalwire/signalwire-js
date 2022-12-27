@@ -69,12 +69,33 @@ export const voiceCallConnectWorker: SDKWorker<Call> = function* (
             device: instance.device,
             node_id: instance.nodeId,
             peer: action.payload.peer,
+            // @ts-expect-error
+            connect_state: 'connected',
           },
         })
         break
       }
       case 'disconnected':
       case 'failed': {
+        /**
+         * Update the Call object payload with the new state
+         */
+        yield sagaEffects.put(pubSubChannel, {
+          type: 'calling.call.state',
+          payload: {
+            call_id: instance.callId,
+            call_state: instance.state,
+            context: instance.context,
+            tag: instance.tag,
+            direction: instance.direction,
+            device: instance.device,
+            node_id: instance.nodeId,
+            peer: undefined,
+            // @ts-expect-error
+            connect_state: 'disconnected',
+          },
+        })
+
         done()
         break
       }

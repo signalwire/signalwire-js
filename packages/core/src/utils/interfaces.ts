@@ -464,6 +464,7 @@ export interface EventTransform {
    * for the **stateless** object returned by `instanceFactory`
    */
   type: EventTransformType
+  afterCreateHook?: (instance: any) => void
   /**
    * Must return an **stateless** object. Think of it as a
    * set of APIs representing the behavior you want to

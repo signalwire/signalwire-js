@@ -31,7 +31,7 @@ export type VoiceCallDialWorkerHooks = SDKWorkerHooks<
 export const voiceCallDialWorker: SDKWorker<Call, VoiceCallDialWorkerHooks> =
   function* (options): SagaIterator {
     const { channels, instance, onDone, onFail } = options
-    const { swEventChannel } = channels
+    const { swEventChannel, pubSubChannel } = channels
     getLogger().trace('voiceCallDialWorker started')
 
     const action: MapToPubSubShape<CallingCallDialEvent> =
@@ -46,6 +46,10 @@ export const voiceCallDialWorker: SDKWorker<Call, VoiceCallDialWorkerHooks> =
       })
 
     if (action.payload.dial_state === 'answered') {
+      yield sagaEffects.put(pubSubChannel, {
+        type: 'calling.call.state',
+        payload: action.payload.call,
+      })
       onDone?.(instance)
     } else if (action.payload.dial_state === 'failed') {
       onFail?.(toExternalJSON(action.payload))
