@@ -1401,16 +1401,28 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
   }
 
   /**
-   * FIXME: Docs line
+   * Collect user input from the call, such as `digits` or `speech`.
+   *
+   * @example
+   *
+   * Collect digits and waiting for a result:
+   *
+   * ```js
+   * const collectObj = await call.collect({
+   *   digits: {
+   *     max: 5,
+   *     digitTimeout: 2,
+   *     terminators: '#*'
+   *   }
+   * })
+   * const { digits, terminator } = await collectObj.ended()
+   * ```
    */
   collect(params: VoiceCallCollectMethodParams) {
     return new Promise<CallCollect>((resolve, reject) => {
       if (!this.callId || !this.nodeId) {
         reject(new Error(`Can't call collect() on a call not established yet.`))
       }
-      // if (!params.playlist) {
-      //   reject(new Error(`Missing 'playlist' params.`))
-      // }
 
       const controlId = uuid()
 
