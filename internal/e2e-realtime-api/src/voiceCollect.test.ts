@@ -55,7 +55,7 @@ const handler = () => {
             terminators: '#',
           },
           partialResults: true,
-          continue: false,
+          continuous: false,
           sendStartOfInput: true,
           startInputTimers: false,
         })

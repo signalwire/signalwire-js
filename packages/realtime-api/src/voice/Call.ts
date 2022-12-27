@@ -1433,7 +1433,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         partial_results,
         digits,
         speech,
-        // continue, // FIXME: rename the reserved keyword
+        continuous,
         send_start_of_input,
         start_input_timers,
       } = toSnakeCaseKeys(params)
@@ -1448,7 +1448,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
           digits,
           speech,
           partial_results,
-          // continue, // FIXME: rename the reserved keyword
+          continuous,
           send_start_of_input,
           start_input_timers,
         },

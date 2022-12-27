@@ -336,7 +336,7 @@ export interface VoiceCallTapAudioMethodParams {
 export type VoiceCallCollectMethodParams = SpeechOrDigits & {
   initialTimeout?: number
   partialResults?: boolean
-  continue: boolean // FIXME: cant expose continue since reserved keyword
+  continuous: boolean
   sendStartOfInput: boolean
   startInputTimers: boolean
 }
