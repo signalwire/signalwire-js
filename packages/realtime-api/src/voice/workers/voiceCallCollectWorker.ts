@@ -83,7 +83,9 @@ export const voiceCallCollectWorker: SDKWorker<Call> = function* (
         }
 
         if (!typeToEmit) {
-          console.log('>>>> NO typeToEmit')
+          getLogger().info(
+            `Unknown collect result type: "${action.payload.result.type}"`
+          )
           continue
         }
 
