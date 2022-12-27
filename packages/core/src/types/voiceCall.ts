@@ -77,6 +77,7 @@ export type CallRecordingUpdated = 'recording.updated'
 export type CallRecordingEnded = 'recording.ended'
 export type CallRecordingFailed = 'recording.failed'
 export type CallPromptStarted = 'prompt.started'
+export type CallPromptStartOfInput = 'prompt.startOfInput'
 export type CallPromptUpdated = 'prompt.updated'
 export type CallPromptEnded = 'prompt.ended'
 export type CallPromptFailed = 'prompt.failed'
@@ -1190,6 +1191,14 @@ export interface CallPromptStartedEvent extends SwEvent {
   params: CallingCallCollectEventParams & { tag: string }
 }
 /**
+ * 'calling.prompt.startOfInput'
+ * Different from `started` because it's from the server
+ */
+export interface CallPromptStartOfInputEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallPromptStartOfInput>
+  params: CallingCallCollectEventParams & { tag: string }
+}
+/**
  * 'calling.prompt.updated'
  */
 export interface CallPromptUpdatedEvent extends SwEvent {
@@ -1362,6 +1371,7 @@ export type VoiceCallEvent =
   | CallRecordingEndedEvent
   | CallRecordingFailedEvent
   | CallPromptStartedEvent
+  | CallPromptStartOfInputEvent
   | CallPromptUpdatedEvent
   | CallPromptEndedEvent
   | CallPromptFailedEvent
@@ -1402,6 +1412,7 @@ export type VoiceCallEventParams =
   | CallRecordingEndedEvent['params']
   | CallRecordingFailedEvent['params']
   | CallPromptStartedEvent['params']
+  | CallPromptStartOfInputEvent['params']
   | CallPromptUpdatedEvent['params']
   | CallPromptEndedEvent['params']
   | CallPromptFailedEvent['params']
