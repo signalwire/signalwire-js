@@ -15,6 +15,7 @@ import type {
   CallTapStarted,
   CallTapEnded,
   CallCollectStarted,
+  CallCollectStartOfInput,
   CallCollectUpdated,
   CallCollectEnded,
   CallCollectFailed,
@@ -49,6 +50,7 @@ export type RealTimeCallApiEventsHandlerMapping = Record<
   Record<CallTapStarted | CallTapEnded, (tap: CallTap) => void> &
   Record<
     | CallCollectStarted
+    | CallCollectStartOfInput
     | CallCollectUpdated
     | CallCollectEnded
     | CallCollectFailed,

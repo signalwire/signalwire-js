@@ -81,6 +81,7 @@ export type CallPromptUpdated = 'prompt.updated'
 export type CallPromptEnded = 'prompt.ended'
 export type CallPromptFailed = 'prompt.failed'
 export type CallCollectStarted = 'collect.started'
+export type CallCollectStartOfInput = 'collect.startOfInput'
 export type CallCollectUpdated = 'collect.updated'
 export type CallCollectEnded = 'collect.ended'
 export type CallCollectFailed = 'collect.failed'
@@ -930,6 +931,9 @@ interface CallingCallCollectResultNoInput {
 interface CallingCallCollectResultNoMatch {
   type: 'no_match'
 }
+interface CallingCallCollectResultStartOfInput {
+  type: 'start_of_input'
+}
 interface CallingCallCollectResultDigit {
   type: 'digit'
   params: {
@@ -948,6 +952,7 @@ export type CallingCallCollectResult =
   | CallingCallCollectResultError
   | CallingCallCollectResultNoInput
   | CallingCallCollectResultNoMatch
+  | CallingCallCollectResultStartOfInput
   | CallingCallCollectResultDigit
   | CallingCallCollectResultSpeech
 
@@ -1272,13 +1277,19 @@ export interface CallDetectEndedEvent extends SwEvent {
   params: CallingCallDetectEventParams & { tag: string }
 }
 
-// EDO
-
 /**
  * 'calling.collect.started'
  */
 export interface CallCollectStartedEvent extends SwEvent {
   event_type: ToInternalVoiceEvent<CallCollectStarted>
+  params: CallingCallCollectEventParams & { tag: string }
+}
+/**
+ * 'calling.collect.startOfInput'
+ * Different from `started` because it's from the server
+ */
+export interface CallCollectStartOfInputEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallCollectStartOfInput>
   params: CallingCallCollectEventParams & { tag: string }
 }
 /**
@@ -1364,6 +1375,7 @@ export type VoiceCallEvent =
   | CallDetectUpdatedEvent
   | CallDetectEndedEvent
   | CallCollectStartedEvent
+  | CallCollectStartOfInputEvent
   | CallCollectUpdatedEvent
   | CallCollectEndedEvent
   | CallCollectFailedEvent
@@ -1403,6 +1415,7 @@ export type VoiceCallEventParams =
   | CallDetectUpdatedEvent['params']
   | CallDetectEndedEvent['params']
   | CallCollectStartedEvent['params']
+  | CallCollectStartOfInputEvent['params']
   | CallCollectUpdatedEvent['params']
   | CallCollectEndedEvent['params']
   | CallCollectFailedEvent['params']

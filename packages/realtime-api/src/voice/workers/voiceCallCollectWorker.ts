@@ -62,7 +62,7 @@ export const voiceCallCollectWorker: SDKWorker<Call> = function* (
         let typeToEmit:
           | 'calling.collect.failed'
           | 'calling.collect.ended'
-          | 'calling.collect.startOfSpeech'
+          | 'calling.collect.startOfInput'
         switch (action.payload.result.type) {
           case 'no_match':
           case 'no_input':
@@ -75,11 +75,10 @@ export const voiceCallCollectWorker: SDKWorker<Call> = function* (
             typeToEmit = 'calling.collect.ended'
             break
           }
-          // case 'start_of_speech': {
-          //   // TODO:
-          //   typeToEmit = 'calling.collect.startOfSpeech'
-          //   break
-          // }
+          case 'start_of_input': {
+            typeToEmit = 'calling.collect.startOfInput'
+            break
+          }
         }
 
         if (!typeToEmit) {
