@@ -8,7 +8,7 @@ import {
   randomizeRoomName,
 } from '../utils'
 
-test.describe('RoomSessionReattachFail', () => {
+test.describe('RoomSessionReattachBadAuth', () => {
   test('should handle joining a room, reattaching with bogus authorization_state and then leaving the room', async ({
     page,
   }) => {
@@ -20,7 +20,7 @@ test.describe('RoomSessionReattachFail', () => {
     const connectionSettings = {
       vrt: {
         room_name: roomName,
-        user_name: 'e2e_reattach_test_fail',
+        user_name: 'e2e_reattach_test_bad_auth',
         auto_create_room: true,
         permissions,
       },
