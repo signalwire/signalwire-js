@@ -541,6 +541,23 @@ test.describe('RoomSession', () => {
     expectRoomMemberMeta(resultMemberMetaDelete)
     // --------------------------
 
+    // --------------- Set layout ---------------
+    const result = await page.evaluate(
+      async () => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+
+        const result = await roomObj
+          .setLayout({ name: "3x1"})
+          .then(() => {return 200})
+
+        return result
+      }
+    )
+    expect(result).toBe(200)
+
+    // --------------------------
+
     // --------------- Leaving the room ---------------
     await page.evaluate(() => {
       // @ts-expect-error
