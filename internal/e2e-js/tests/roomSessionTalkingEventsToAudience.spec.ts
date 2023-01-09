@@ -1,5 +1,4 @@
-import { test, expect } from '@playwright/test'
-import type { Video } from '@signalwire/js'
+import { test } from '@playwright/test'
 import {
   SERVER_URL,
   createTestRoomSession,
@@ -23,9 +22,9 @@ test.describe('RoomSession talking events to audience', () => {
         room_name: 'talking-room',
         user_name: 'e2e_member',
         auto_create_room: true,
-        permissions: ['room.member.demote', 'room.member.promote'],
+        permissions: [],
       },
-      initialEvents: ['member.joined', 'member.updated', 'member.left'],
+      initialEvents: ['member.talking'],
     }
 
     const audienceSettings = {
@@ -36,7 +35,7 @@ test.describe('RoomSession talking events to audience', () => {
         auto_create_room: true,
         permissions: [],
       },
-      initialEvents: ['member.joined', 'member.updated', 'member.left'],
+      initialEvents: ['member.talking'],
     }
 
     await Promise.all([
@@ -56,6 +55,9 @@ test.describe('RoomSession talking events to audience', () => {
 
     // --------------- Make sure on pageOne we have a member ---------------
     await expectInteractivityMode(pageOne, 'member')
+
+    // --------------- Check SDP/RTCPeer on member (sendrecv since member) ---------------
+    await expectSDPDirection(pageOne, 'sendrecv', true)
 
     // Checks that the video is visible on pageOne
     await pageOne.waitForSelector('div[id^="sw-sdk-"] > video', {
@@ -91,10 +93,10 @@ test.describe('RoomSession talking events to audience', () => {
 
     // --------------- Resolve when audience receives member.talking ----------
     await pageTwo.evaluate(async () => {
-      return new Promise((r) => {
+      return new Promise((resolve) => {
         // @ts-expect-error
         const roomObj = window._roomObj
-        roomObj.on('member.talking', (params: any) => r(params))
+        roomObj.on('member.talking', resolve)
       })
     })
 
