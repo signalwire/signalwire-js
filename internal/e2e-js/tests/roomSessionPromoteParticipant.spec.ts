@@ -7,8 +7,8 @@ import {
   SERVER_URL,
 } from '../utils'
 
-test.describe('RoomSession promote method', () => {
-  test('should not be able to promote participant', async ({ context }) => {
+test.describe('RoomSession promote myself', () => {
+  test('should get 202 on trying to promote a member', async ({ context }) => {
     const pageOne = await context.newPage()
     enablePageLogs(pageOne, '[pageOne]')
 
@@ -57,11 +57,11 @@ test.describe('RoomSession promote method', () => {
           permissions: ['room.member.promote', 'room.member.demote'],
         })
         .catch((error) => error)
-      console.log('promote error', error.jsonrpc.code, error.jsonrpc.message)
+
       return error.jsonrpc.code
     })
 
-    expect(errorCode).toBe('403')
+    expect(errorCode).toBe('202')
 
     // --------------- Leaving the rooms ---------------
     // @ts-expect-error
