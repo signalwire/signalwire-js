@@ -7,8 +7,8 @@ import {
   SERVER_URL,
 } from '../utils'
 
-test.describe('RoomSession promote method', () => {
-  test('should not be able to promote participant', async ({ context }) => {
+test.describe('RoomSession promote myself', () => {
+  test('should get 202 on trying to promote a member', async ({ context }) => {
     const pageOne = await context.newPage()
     enablePageLogs(pageOne, '[pageOne]')
 
@@ -47,21 +47,20 @@ test.describe('RoomSession promote method', () => {
     await pageOne.waitForTimeout(2000)
 
     // --------------- Promote participant from pageOne and resolve on error ---------------
-    const errorCode: any = await pageOne.evaluate(async () => {
+    const promoteResponse: any = await pageOne.evaluate(() => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
 
-      const error = await roomObj
+      return roomObj
         .promote({
           memberId: roomObj.memberId,
           permissions: ['room.member.promote', 'room.member.demote'],
         })
-        .catch((error) => error)
-      console.log('promote error', error.jsonrpc.code, error.jsonrpc.message)
-      return error.jsonrpc.code
+        .then(() => true)
+        .catch(() => false)
     })
 
-    expect(errorCode).toBe('403')
+    expect(promoteResponse).toBe(true)
 
     // --------------- Leaving the rooms ---------------
     // @ts-expect-error

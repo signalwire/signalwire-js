@@ -23,6 +23,8 @@ export const parseRPCResponse = ({
   }
 }
 
+const SUCCESS_CODES = ['200', '202']
+
 /**
  * From the socket we can get:
  * - JSON-RPC msg with 1 level of 'result' or 'error'
@@ -40,7 +42,7 @@ const parseResponse = (
     return { error }
   }
   const { code, node_id, result: nestedResult = null } = result
-  if (code && code !== '200') {
+  if (code && !SUCCESS_CODES.includes(code)) {
     return { error: result }
   }
   if (nestedResult === null) {
