@@ -1,10 +1,12 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, Page } from '@playwright/test'
 import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
   enablePageLogs,
   randomizeRoomName,
+  setLayoutOnPage,
+  expectLayoutChanged,
 } from '../utils'
 
 test.describe('RoomSession', () => {
@@ -44,6 +46,7 @@ test.describe('RoomSession', () => {
         permissions,
       },
       initialEvents: [
+        'layout.changed',
         'member.joined',
         'member.left',
         'member.updated',
@@ -539,6 +542,15 @@ test.describe('RoomSession', () => {
     expect(memberMeta).toStrictEqual(resultMemberMetaDelete)
 
     expectRoomMemberMeta(resultMemberMetaDelete)
+    // --------------------------
+
+    const layoutName = '3x3'
+    // --------------- Expect layout to change ---------------
+    const layoutChangedPromise = expectLayoutChanged(page, layoutName)
+    // --------------- Set layout ---------------
+    await setLayoutOnPage(page, layoutName)
+    expect(await layoutChangedPromise).toBe(true)
+
     // --------------------------
 
     // --------------- Leaving the room ---------------

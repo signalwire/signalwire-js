@@ -183,6 +183,34 @@ export const expectInteractivityMode = async (
   expect(interactivityMode).toEqual(mode)
 }
 
+export const expectLayoutChanged = (page: Page, layoutName: string) => {
+  return page.evaluate(
+    (options) => {
+      return new Promise((resolve) => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+        roomObj.on('layout.changed', ({ layout }: any) => {
+          if (layout.name === options.layoutName) {
+            resolve(true)
+          }
+        })
+      })
+    },
+    { layoutName }
+  )
+}
+
+export const setLayoutOnPage = (page: Page, layoutName: string) => {
+  return page.evaluate(
+    async (options) => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      return await roomObj.setLayout({ name: options.layoutName })
+    },
+    { layoutName }
+  )
+}
+
 export const randomizeRoomName = (prefix: string = 'e2e') => {
   return `${prefix}${uuid()}`
 }
