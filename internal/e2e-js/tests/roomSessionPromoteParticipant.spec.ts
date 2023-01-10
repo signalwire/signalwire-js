@@ -47,21 +47,20 @@ test.describe('RoomSession promote myself', () => {
     await pageOne.waitForTimeout(2000)
 
     // --------------- Promote participant from pageOne and resolve on error ---------------
-    const errorCode: any = await pageOne.evaluate(async () => {
+    const promoteResponse: any = await pageOne.evaluate(() => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
 
-      const error = await roomObj
+      return roomObj
         .promote({
           memberId: roomObj.memberId,
           permissions: ['room.member.promote', 'room.member.demote'],
         })
-        .catch((error) => error)
-
-      return error.jsonrpc.code
+        .then(() => true)
+        .catch(() => false)
     })
 
-    expect(errorCode).toBe('202')
+    expect(promoteResponse).toBe(true)
 
     // --------------- Leaving the rooms ---------------
     // @ts-expect-error
