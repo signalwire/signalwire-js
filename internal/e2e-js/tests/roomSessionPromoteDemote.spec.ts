@@ -7,6 +7,8 @@ import {
   expectSDPDirection,
   expectInteractivityMode,
   expectMemberId,
+  expectLayoutChanged,
+  setLayoutOnPage,
 } from '../utils'
 
 test.describe('RoomSession promote/demote methods', () => {
@@ -141,6 +143,22 @@ test.describe('RoomSession promote/demote methods', () => {
     expect(audioLevelStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(
       0.5
     )
+
+    // --------------- Make sure a `layout.changed` reached both member and audience --------------
+
+    const layoutName = '3x3'
+    // --------------- Expect layout to change ---------------
+    const layoutChangedPageOne = expectLayoutChanged(pageOne, layoutName)
+    const layoutChangedPageTwo = expectLayoutChanged(pageTwo, layoutName)
+
+    // --------------- Set layout ---------------
+    await setLayoutOnPage(pageOne, layoutName)
+
+    const layoutChangedResults = await Promise.all([
+      layoutChangedPageOne,
+      layoutChangedPageTwo,
+    ])
+    expect(layoutChangedResults).toStrictEqual([true, true])
 
     // --------------- Promote audience from pageOne and resolve on `member.joined` ---------------
     await pageOne.evaluate(
