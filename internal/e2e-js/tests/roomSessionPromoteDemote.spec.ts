@@ -25,9 +25,18 @@ test.describe('RoomSession promote/demote methods', () => {
         room_name: 'promotion-room',
         user_name: 'e2e_member',
         auto_create_room: true,
-        permissions: ['room.member.demote', 'room.member.promote'],
+        permissions: [
+          'room.member.demote',
+          'room.member.promote',
+          'room.set_layout',
+        ],
       },
-      initialEvents: ['member.joined', 'member.updated', 'member.left'],
+      initialEvents: [
+        'member.joined',
+        'member.updated',
+        'member.left',
+        'layout.changed',
+      ],
     }
 
     const audienceSettings = {
@@ -38,7 +47,12 @@ test.describe('RoomSession promote/demote methods', () => {
         auto_create_room: true,
         permissions: [],
       },
-      initialEvents: ['member.joined', 'member.updated', 'member.left'],
+      initialEvents: [
+        'member.joined',
+        'member.updated',
+        'member.left',
+        'layout.changed',
+      ],
     }
 
     await Promise.all([
