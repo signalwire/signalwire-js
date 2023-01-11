@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../fixtures'
 import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
@@ -38,10 +38,11 @@ test.describe('RoomSession join_until', () => {
 
   tests.forEach((row) => {
     test(`should not be possible to join a room after the join_until [${row.testName}]`, async ({
-      page,
+      createCustomPage,
     }) => {
       let roomData: any = {}
 
+      const page = await createCustomPage({ name: '[joinUntilPage]' })
       await page.goto(SERVER_URL)
 
       const delay = 5_000
@@ -78,7 +79,7 @@ test.describe('RoomSession join_until', () => {
       expect(joinError.code).toEqual('403')
       expect(joinError.message).toEqual('Unauthorized')
 
-      // Checks that all the elements added by the SDK are gone.
+      // Checks that all the elements added by the SDK are not there.
       const targetElementsCount = await page.evaluate(() => {
         return {
           videos: Array.from(document.querySelectorAll('video')).length,

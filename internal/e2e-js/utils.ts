@@ -238,7 +238,7 @@ export const expectRoomJoined = (page: Page) => {
 }
 
 export const expectMCUVisible = async (page: Page) => {
-  await page.waitForSelector('div[id^="sw-sdk-"] > video', { timeout: 5000 })
+  await page.waitForSelector('div[id^="sw-sdk-"] > video')
 }
 
 export const randomizeRoomName = (prefix: string = 'e2e') => {

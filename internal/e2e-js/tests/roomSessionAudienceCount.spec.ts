@@ -1,17 +1,22 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../fixtures'
 import { Video } from '@signalwire/js'
-import { SERVER_URL, createTestRoomSession, randomizeRoomName } from '../utils'
+import {
+  SERVER_URL,
+  createTestRoomSession,
+  randomizeRoomName,
+  expectRoomJoined,
+} from '../utils'
 
 test.describe('RoomSession Audience Count', () => {
   test('should receive correct audience_count in events', async ({
-    context,
+    createCustomPage,
   }) => {
     const allPages = await Promise.all([
-      context.newPage(),
-      context.newPage(),
-      context.newPage(),
-      context.newPage(),
-      context.newPage(),
+      createCustomPage({ name: '[page1]' }),
+      createCustomPage({ name: '[page2]' }),
+      createCustomPage({ name: '[page3]' }),
+      createCustomPage({ name: '[page4]' }),
+      createCustomPage({ name: '[page5]' }),
     ])
     const [pageOne, pageTwo, pageThree, pageFour, pageFive] = allPages
     const audiencePages = [pageTwo, pageThree, pageFour, pageFive]
@@ -47,7 +52,7 @@ test.describe('RoomSession Audience Count', () => {
     )
     // --------------- Joining the room and resolve on room.audienceCount ---------------
     const joinPromiseOne = pageOne.evaluate(() => {
-      return new Promise((r) => {
+      return new Promise(async (resolve) => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
         // Need to keep lastAudienceCounter on window in here
@@ -60,22 +65,16 @@ test.describe('RoomSession Audience Count', () => {
           window.__audienceCount = params.total
           //@ts-expect-error
           if (window.__audienceCount == 1) {
-            r(params)
+            resolve(params)
           }
         })
-        roomObj.join()
+
+        await roomObj.join()
       })
     })
 
     // join as audience on pageTwo and resolve on `room.joined`
-    const joinTwoParams: any = await pageTwo.evaluate(() => {
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        roomObj.on('room.joined', resolve)
-        roomObj.join()
-      })
-    })
+    const joinTwoParams: any = await expectRoomJoined(pageTwo)
 
     expect(joinTwoParams.room_session.audience_count).toBe(1)
 
@@ -93,32 +92,11 @@ test.describe('RoomSession Audience Count', () => {
 
     const [_, ...pageThreeToFive] = audiencePages
     // join as audiences on pageThree to pageFive and resolve on `room.joined`
-    await Promise.all(
-      pageThreeToFive.map((page) => {
-        return page.evaluate(() => {
-          return new Promise((resolve) => {
-            // @ts-expect-error
-            const roomObj = window._roomObj
-            roomObj.on('room.joined', resolve)
-            roomObj.join()
-          })
-        })
-      })
-    )
+    await Promise.all(pageThreeToFive.map(expectRoomJoined))
 
     // Need to wait for the room.audienceCount event that is throttled
     await pageOne.waitForTimeout(30000)
 
     await expectAudienceCountFromPageOne(4)
-
-    // --------------- Leaving the room ---------------
-    await Promise.all(
-      allPages.map((page) => {
-        return page.evaluate(() => {
-          // @ts-expect-error
-          return window._roomObj.leave()
-        })
-      })
-    )
   })
 })

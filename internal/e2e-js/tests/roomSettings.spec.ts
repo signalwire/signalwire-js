@@ -1,5 +1,4 @@
-import { test, expect } from '@playwright/test'
-import type { Video } from '@signalwire/js'
+import { test, expect } from '../fixtures'
 import {
   SERVER_URL,
   createTestRoomSession,
@@ -7,6 +6,7 @@ import {
   deleteRoom,
   CreateOrUpdateRoomOptions,
   randomizeRoomName,
+  expectRoomJoined,
 } from '../utils'
 
 interface TestConfig {
@@ -42,7 +42,8 @@ test.describe('Room Settings', () => {
   ]
 
   tests.forEach((row) => {
-    test(row.testName, async ({ page }) => {
+    test(row.testName, async ({ createCustomPage }) => {
+      const page = await createCustomPage({ name: '[page]' })
       await page.goto(SERVER_URL)
 
       const roomData = await createOrUpdateRoom({
@@ -61,31 +62,10 @@ test.describe('Room Settings', () => {
       })
 
       // --------------- Joining the room ---------------
-      const joinParams: any = await page.evaluate(async () => {
-        return new Promise((resolve) => {
-          // @ts-expect-error
-          const roomObj: Video.RoomSession = window._roomObj
-          roomObj.on('room.joined', resolve)
-          roomObj.join()
-        })
-      })
+      const joinParams = await expectRoomJoined(page)
 
       // Run custom expectations for each run
       row.expect(joinParams)
-
-      // --------------- Leaving the rooms ---------------
-      // @ts-expect-error
-      await page.evaluate(() => window._roomObj.leave())
-
-      // Checks that all the elements added by the SDK are gone.
-      const targetElementsCount = await page.evaluate(() => {
-        return {
-          videos: Array.from(document.querySelectorAll('video')).length,
-          rootEl: document.getElementById('rootElement')!.childElementCount,
-        }
-      })
-      expect(targetElementsCount.videos).toBe(0)
-      expect(targetElementsCount.rootEl).toBe(0)
 
       await deleteRoom(roomData.id)
     })

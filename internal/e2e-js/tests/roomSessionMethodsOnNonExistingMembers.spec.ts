@@ -1,11 +1,18 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../fixtures'
 import type { Video } from '@signalwire/js'
-import { SERVER_URL, createTestRoomSession, randomizeRoomName } from '../utils'
+import {
+  SERVER_URL,
+  createTestRoomSession,
+  randomizeRoomName,
+  expectRoomJoined,
+  expectMCUVisible,
+} from '../utils'
 
 test.describe('RoomSession methods on non existing members', () => {
   test('should handle joining a room, try to perform actions on members that does not exist and then leave the room', async ({
-    page,
+    createCustomPage,
   }) => {
+    const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
     const roomName = randomizeRoomName('e2e-non-existing-member')
@@ -25,7 +32,6 @@ test.describe('RoomSession methods on non existing members', () => {
       vrt: {
         room_name: roomName,
         user_name: 'e2e_test_403',
-        join_as: 'member' as const,
         auto_create_room: true,
         permissions: member_permissions,
       },
@@ -33,23 +39,14 @@ test.describe('RoomSession methods on non existing members', () => {
     })
 
     // --------------- Joining the room ---------------
-    const joinParams: any = await page.evaluate(() => {
-      return new Promise((r) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
-        roomObj.on('room.joined', (params: any) => r(params))
-        roomObj.join()
-      })
-    })
+    const joinParams: any = await expectRoomJoined(page)
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
     expect(joinParams.room.name).toBe(roomName)
 
     // Checks that the video is visible, as audience
-    await page.waitForSelector('#rootElement video', {
-      timeout: 10000,
-    })
+    await expectMCUVisible(page)
 
     const roomPermissions: any = await page.evaluate(() => {
       // @ts-expect-error
@@ -67,7 +64,7 @@ test.describe('RoomSession methods on non existing members', () => {
           memberId: 'non-exisisting-member',
         })
         .catch((error) => error)
-      console.log('audioMute error', error.jsonrpc.code, error.jsonrpc.message)
+
       return error.jsonrpc.code
     })
     expect(errorCode).toBe('404')
@@ -81,6 +78,7 @@ test.describe('RoomSession methods on non existing members', () => {
           memberId: 'non-exisisting-member',
         })
         .catch((error) => error)
+
       return error.jsonrpc.code
     })
     expect(errorCode).toBe('403')
@@ -94,7 +92,7 @@ test.describe('RoomSession methods on non existing members', () => {
           memberId: 'non-exisisting-member',
         })
         .catch((error) => error)
-      console.log('videoMute error', error.jsonrpc.code, error.jsonrpc.message)
+
       return error.jsonrpc.code
     })
     expect(errorCode).toBe('404')
@@ -108,11 +106,7 @@ test.describe('RoomSession methods on non existing members', () => {
           memberId: 'non-exisisting-member',
         })
         .catch((error) => error)
-      console.log(
-        'videoUnmute error',
-        error.jsonrpc.code,
-        error.jsonrpc.message
-      )
+
       return error.jsonrpc.code
     })
     expect(errorCode).toBe('403')
@@ -126,7 +120,7 @@ test.describe('RoomSession methods on non existing members', () => {
           memberId: 'non-exisisting-member',
         })
         .catch((error) => error)
-      console.log('deaf error', error.jsonrpc.code, error.jsonrpc.message)
+
       return error.jsonrpc.code
     })
     expect(errorCode).toBe('403')
@@ -140,7 +134,7 @@ test.describe('RoomSession methods on non existing members', () => {
           memberId: 'non-exisisting-member',
         })
         .catch((error) => error)
-      console.log('undeaf error', error.jsonrpc.code, error.jsonrpc.message)
+
       return error.jsonrpc.code
     })
     expect(errorCode).toBe('403')
@@ -155,11 +149,7 @@ test.describe('RoomSession methods on non existing members', () => {
           volume: 25,
         })
         .catch((error) => error)
-      console.log(
-        'setInputVolume error',
-        error.jsonrpc.code,
-        error.jsonrpc.message
-      )
+
       return error.jsonrpc.code
     })
     expect(errorCode).toBe('404')
@@ -174,11 +164,7 @@ test.describe('RoomSession methods on non existing members', () => {
           volume: 25,
         })
         .catch((error) => error)
-      console.log(
-        'setOutputVolume error',
-        error.jsonrpc.code,
-        error.jsonrpc.message
-      )
+
       return error.jsonrpc.code
     })
     expect(errorCode).toBe('404')
@@ -193,11 +179,7 @@ test.describe('RoomSession methods on non existing members', () => {
           value: 60,
         })
         .catch((error) => error)
-      console.log(
-        'setInputSensitivity error',
-        error.jsonrpc.code,
-        error.jsonrpc.message
-      )
+
       return error.jsonrpc.code
     })
     expect(errorCode).toBe('404')
@@ -212,11 +194,7 @@ test.describe('RoomSession methods on non existing members', () => {
           position: 'reserved-1',
         })
         .catch((error) => error)
-      console.log(
-        'setMemberPosition error',
-        error.jsonrpc.code,
-        error.jsonrpc.message
-      )
+
       return error.jsonrpc.code
     })
     expect(errorCode).toBe('403')
@@ -233,11 +211,7 @@ test.describe('RoomSession methods on non existing members', () => {
           },
         })
         .catch((error) => error)
-      console.log(
-        'setMemberMeta error',
-        error.jsonrpc.code,
-        error.jsonrpc.message
-      )
+
       return error.jsonrpc.code
     })
     expect(errorCode).toBe('404')
@@ -252,11 +226,7 @@ test.describe('RoomSession methods on non existing members', () => {
         })
         .then(console.log)
         .catch((error) => error)
-      console.log(
-        'getMemberMeta error',
-        error.jsonrpc.code,
-        error.jsonrpc.message
-      )
+
       return error.jsonrpc.code
     })
     expect(errorCode).toBe('404')
@@ -273,11 +243,7 @@ test.describe('RoomSession methods on non existing members', () => {
           },
         })
         .catch((error) => error)
-      console.log(
-        'updateMemberMeta error',
-        error.jsonrpc.code,
-        error.jsonrpc.message
-      )
+
       return error.jsonrpc.code
     })
     expect(errorCode).toBe('404')
@@ -292,11 +258,7 @@ test.describe('RoomSession methods on non existing members', () => {
           keys: ['foo', 'foo2'],
         })
         .catch((error) => error)
-      console.log(
-        'deleteMemberMeta error',
-        error.jsonrpc.code,
-        error.jsonrpc.message
-      )
+
       return error.jsonrpc.code
     })
     expect(errorCode).toBe('404')
@@ -310,11 +272,7 @@ test.describe('RoomSession methods on non existing members', () => {
           memberId: 'non-exisisting-member',
         })
         .catch((error) => error)
-      console.log(
-        'removeMember error',
-        error.jsonrpc.code,
-        error.jsonrpc.message
-      )
+
       return error.jsonrpc.code
     })
     expect(errorCode).toBe('404')
@@ -342,25 +300,9 @@ test.describe('RoomSession methods on non existing members', () => {
           memberId: 'non-exisisting-member',
         })
         .catch((error) => error)
-      console.log('demote error', error.jsonrpc.code, error.jsonrpc.message)
+
       return error.jsonrpc.code
     })
     expect(errorCode).toBe('404')
-
-    // --------------- Leaving the room ---------------
-    await page.evaluate(() => {
-      // @ts-expect-error
-      return window._roomObj.leave()
-    })
-
-    // Checks that all the elements added by the SDK are gone.
-    const targetElementsCount = await page.evaluate(() => {
-      return {
-        videos: Array.from(document.querySelectorAll('video')).length,
-        rootEl: document.getElementById('rootElement')!.childElementCount,
-      }
-    })
-    expect(targetElementsCount.videos).toBe(0)
-    expect(targetElementsCount.rootEl).toBe(0)
   })
 })
