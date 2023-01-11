@@ -11,7 +11,7 @@ import {
   expectRoomJoined,
   expectMCUVisible,
   expectMCUVisibleForAudience,
-  expectPageReceiveAudio
+  expectPageReceiveAudio,
 } from '../utils'
 
 test.describe('RoomSession promote/demote methods', () => {
