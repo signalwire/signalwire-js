@@ -73,10 +73,10 @@ export const createTestRoomSession = async (
         rootElement: document.getElementById('rootElement'),
         audio: true,
         video: true,
-        logLevel: 'warn',
-        // debug: {
-        //   logWsTraffic: true,
-        // },
+        logLevel: process.env.CI ? 'warn' : 'debug',
+        debug: {
+          logWsTraffic: !process.env.CI,
+        },
       })
 
       options.initialEvents?.forEach((event) => {
