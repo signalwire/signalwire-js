@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test'
+import { test, expect } from '@playwright/test'
 import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
