@@ -1,3 +1,4 @@
+import type { Video } from '@signalwire/js'
 import { createServer } from 'vite'
 import path from 'path'
 import { Page, expect } from '@playwright/test'
@@ -63,7 +64,7 @@ export const createTestRoomSession = async (
     console.error('Invalid VRT. Exiting..')
     process.exit(4)
   }
-  return page.evaluate(
+  const roomSession: Video.RoomSession = await page.evaluate(
     (options) => {
       // @ts-expect-error
       const Video = window._SWJS.Video
@@ -95,6 +96,18 @@ export const createTestRoomSession = async (
       CI: process.env.CI,
     }
   )
+
+  expectRoomJoined(page).then(async (params) => {
+    await expectMemberId(page, params.member_id)
+
+    const dir = options.vrt.join_as === 'audience' ? 'recvonly' : 'sendrecv'
+    await expectSDPDirection(page, dir, true)
+
+    const mode = options.vrt.join_as === 'audience' ? 'audience' : 'member'
+    await expectInteractivityMode(page, mode)
+  })
+
+  return roomSession
 }
 
 interface CreateTestVRTOptions {
@@ -164,6 +177,7 @@ export const expectSDPDirection = async (
   const peerSDP = await page.evaluate(async () => {
     // @ts-expect-error
     const roomObj: Video.RoomSession = window._roomObj
+    // @ts-expect-error
     return roomObj.peer.localSdp
   })
 
