@@ -37,14 +37,17 @@ test.describe('RoomSessionReattachAudience', () => {
     await createTestRoomSession(page, connectionSettings)
 
     // --------------- Joining the room as audience ---------------
-    await page.evaluate(() => {
-      return new Promise((resolve) => {
+    const joinParams: any = await page.evaluate(() => {
+      return new Promise((r) => {
         // @ts-expect-error
         const roomObj = window._roomObj
-        roomObj.once('room.joined', resolve)
+        roomObj.on('room.joined', (params: any) => r(params))
         roomObj.join()
       })
     })
+
+    console.log("----------- joinParams: ", joinParams)
+    expect(joinParams.room).toBeDefined()
 
     // --------------- Make sure on page we have a audience ---------------
     await expectInteractivityMode(page, 'audience')
@@ -63,14 +66,19 @@ test.describe('RoomSessionReattachAudience', () => {
     console.log("Page reloaded, reattaching")
     await createTestRoomSession(page, connectionSettings)
 
-    await page.evaluate(() => {
-      return new Promise((resolve) => {
+    const reattachParams: any = await page.evaluate(() => {
+      return new Promise((r) => {
         // @ts-expect-error
         const roomObj = window._roomObj
-        roomObj.once('room.joined', resolve)
+        roomObj.on('room.joined', (params: any) => r(params))
         roomObj.join()
       })
     })
+
+    console.log("----------- reattachParams: ", reattachParams)
+    expect(reattachParams.room).toBeDefined()
+
+
 
     // --------------- Make sure on page we have a audience ---------------
     await expectInteractivityMode(page, 'audience')
