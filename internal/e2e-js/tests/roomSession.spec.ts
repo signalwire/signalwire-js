@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../fixtures'
 import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
@@ -7,12 +7,15 @@ import {
   randomizeRoomName,
   setLayoutOnPage,
   expectLayoutChanged,
+  expectRoomJoined,
+  expectMCUVisible,
 } from '../utils'
 
 test.describe('RoomSession', () => {
   test('should handle joining a room, perform actions and then leave the room', async ({
-    page,
+    createCustomPage,
   }) => {
+    const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
     enablePageLogs(page)
 
@@ -60,14 +63,7 @@ test.describe('RoomSession', () => {
     })
 
     // --------------- Joining the room ---------------
-    const joinParams: any = await page.evaluate(() => {
-      return new Promise((r) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
-        roomObj.on('room.joined', (params: any) => r(params))
-        roomObj.join()
-      })
-    })
+    const joinParams = await expectRoomJoined(page)
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
@@ -80,7 +76,7 @@ test.describe('RoomSession', () => {
     expect(joinParams.room.name).toBe(roomName)
 
     // Checks that the video is visible
-    await page.waitForSelector('div[id^="sw-sdk-"] > video', { timeout: 5000 })
+    await expectMCUVisible(page)
 
     const roomPermissions: any = await page.evaluate(() => {
       // @ts-expect-error
@@ -550,33 +546,13 @@ test.describe('RoomSession', () => {
     // --------------- Set layout ---------------
     await setLayoutOnPage(page, layoutName)
     expect(await layoutChangedPromise).toBe(true)
-
-    // --------------------------
-
-    // --------------- Leaving the room ---------------
-    await page.evaluate(() => {
-      // @ts-expect-error
-      return window._roomObj.leave()
-    })
-
-    // Checks that all the elements added by the SDK are gone.
-    const targetElementsCount = await page.evaluate(() => {
-      return {
-        videos: Array.from(document.querySelectorAll('video')).length,
-        rootEl: document.getElementById('rootElement')!.childElementCount,
-      }
-    })
-    expect(targetElementsCount.videos).toBe(0)
-    expect(targetElementsCount.rootEl).toBe(0)
   })
 
-  test(`should allow retrieving the room session recordings and playbacks`, async ({
-    context,
+  test('should allow retrieving the room session recordings and playbacks', async ({
+    createCustomPage,
   }) => {
-    const pageOne = await context.newPage()
-    enablePageLogs(pageOne, '[pageOne]')
-    const pageTwo = await context.newPage()
-    enablePageLogs(pageOne, '[pageTwo]')
+    const pageOne = await createCustomPage({ name: '[pageOne]' })
+    const pageTwo = await createCustomPage({ name: '[pageTwo]' })
 
     await Promise.all([pageOne.goto(SERVER_URL), pageTwo.goto(SERVER_URL)])
 
@@ -586,30 +562,9 @@ test.describe('RoomSession', () => {
         room_name: roomName,
         user_name: 'e2e_test',
         auto_create_room: true,
-        permissions: [
-          'room.self.audio_mute',
-          'room.self.audio_unmute',
-          'room.self.video_mute',
-          'room.self.video_unmute',
-          'room.member.audio_mute',
-          'room.member.video_mute',
-          'room.member.set_input_volume',
-          'room.member.set_output_volume',
-          'room.member.set_input_sensitivity',
-          'room.member.remove',
-          'room.set_layout',
-          'room.list_available_layouts',
-          'room.recording',
-          'room.hide_video_muted',
-          'room.show_video_muted',
-          'room.playback_seek',
-          'room.playback',
-        ],
+        permissions: ['room.recording', 'room.playback_seek', 'room.playback'],
       },
       initialEvents: [
-        'member.joined',
-        'member.left',
-        'member.updated',
         'playback.ended',
         'playback.started',
         'playback.updated',
@@ -625,19 +580,10 @@ test.describe('RoomSession', () => {
     ])
 
     // --------------- Joining the 1st room ---------------
-    await pageOne.evaluate(() => {
-      return new Promise((r) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
-        roomObj.on('room.joined', (params: any) => r(params))
-        roomObj.join()
-      })
-    })
+    await expectRoomJoined(pageOne)
 
     // Checks that the video is visible
-    await pageOne.waitForSelector('div[id^="sw-sdk-"] > video', {
-      timeout: 5000,
-    })
+    await expectMCUVisible(pageOne)
 
     // --------------- Start recording and playback from 1st room ---------------
     await pageOne.evaluate(
@@ -676,19 +622,10 @@ test.describe('RoomSession', () => {
     )
 
     // --------------- Joining the 2nd room ---------------
-    await pageTwo.evaluate(() => {
-      return new Promise((r) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
-        roomObj.on('room.joined', (params: any) => r(params))
-        roomObj.join()
-      })
-    })
+    await expectRoomJoined(pageTwo)
 
     // Checks that the video is visible
-    await pageTwo.waitForSelector('div[id^="sw-sdk-"] > video', {
-      timeout: 5000,
-    })
+    await expectMCUVisible(pageTwo)
 
     // --------------- Getting the recordings from the 2nd room ---------------
     const recordings: any = await pageTwo.evaluate(async () => {
@@ -774,19 +711,5 @@ test.describe('RoomSession', () => {
       expect(playback.url).toBeDefined()
       expect(playback.volume).toBeDefined()
     })
-
-    await new Promise((r) => setTimeout(r, 1000))
-
-    // --------------- Leaving the rooms ---------------
-    await Promise.all([
-      pageOne.evaluate(() => {
-        // @ts-expect-error
-        return window._roomObj.leave()
-      }),
-      pageTwo.evaluate(() => {
-        // @ts-expect-error
-        return window._roomObj.leave()
-      }),
-    ])
   })
 })
