@@ -5,7 +5,7 @@ import { PlaywrightTestConfig, devices } from '@playwright/test'
 const config: PlaywrightTestConfig = {
   testDir: 'tests',
   globalSetup: require.resolve('./global-setup'),
-  // testMatch: ['roomSessionStreamingAPI.spec.ts'],
+  testMatch: process.argv.slice(3),
   testIgnore: [
     //   'roomSessionStreaming.spec.ts',
   ],
