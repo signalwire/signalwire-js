@@ -37,16 +37,18 @@ npm run -w=@sw-internal/e2e-js dev
 
 ## Launch a specific test
 
-Add a `testMatch` element inside the `projects` field of `PlaywrightTestConfig` in `playwright.config.ts` like:
-
 ```
-testMatch: ['roomSessionPromoteMeta.spec.ts'],
+npm run -w=@sw-internal/e2e-js dev -- <file1> <file2> <file3>
 ```
 
-Then you can use the usual command:
+> Example
 
 ```
-npm run -w=@sw-internal/e2e-js dev
+npm run -w=@sw-internal/e2e-js dev -- roomSession.spec.ts
 ```
 
-but only the one matching will be launched.
+Only `roomSession.spec.ts` will run.
+
+## Ignore a specific test
+
+Add the test you want to ignore within the `playwright.config.ts` > `testIgnore` array.
