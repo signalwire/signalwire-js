@@ -73,9 +73,9 @@ export const createTestRoomSession = async (
         rootElement: document.getElementById('rootElement'),
         audio: true,
         video: true,
-        logLevel: process.env.CI ? 'warn' : 'debug',
+        logLevel: options.CI ? 'warn' : 'debug',
         debug: {
-          logWsTraffic: !process.env.CI,
+          logWsTraffic: !options.CI,
         },
       })
 
@@ -92,6 +92,7 @@ export const createTestRoomSession = async (
       RELAY_HOST: process.env.RELAY_HOST,
       API_TOKEN: vrt,
       initialEvents: options.initialEvents,
+      CI: process.env.CI,
     }
   )
 }
@@ -209,6 +210,21 @@ export const setLayoutOnPage = (page: Page, layoutName: string) => {
     },
     { layoutName }
   )
+}
+
+export const expectRoomJoined = (page: Page) => {
+  return page.evaluate(() => {
+    return new Promise<any>(async (resolve) => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      roomObj.on('room.joined', resolve)
+      await roomObj.join()
+    })
+  })
+}
+
+export const expectMCUVisible = async (page: Page) => {
+  await page.waitForSelector('div[id^="sw-sdk-"] > video', { timeout: 5000 })
 }
 
 export const randomizeRoomName = (prefix: string = 'e2e') => {
