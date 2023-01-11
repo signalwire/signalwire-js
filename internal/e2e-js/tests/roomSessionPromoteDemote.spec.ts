@@ -182,13 +182,8 @@ test.describe('RoomSession promote/demote methods', () => {
 
     await pageTwo.waitForTimeout(2000)
 
-    // FIXME: method to wait for room.joined only
-    const promiseAudienceRoomJoined = pageTwo.evaluate<any>(() => {
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
-        roomObj.once('room.joined', resolve)
-      })
+    const promiseAudienceRoomJoined = expectRoomJoined(pageTwo, {
+      invokeJoin: false,
     })
 
     // --------------- Demote to audience again from pageOne and resolve on `member.left` amd `layout.changed` with position off-canvas ---------------

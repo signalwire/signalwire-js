@@ -167,13 +167,8 @@ test.describe('RoomSession demote participant', () => {
       { demoteMemberId: participant2Id }
     )
 
-    // FIXME: method to wait for room.joined only
-    const promiseAudienceRoomJoined = await pageTwo.evaluate<any>(() => {
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
-        roomObj.once('room.joined', resolve)
-      })
+    const promiseAudienceRoomJoined = await expectRoomJoined(pageTwo, {
+      invokeJoin: false,
     })
 
     // --------------- Make sure member_id is the same after promote and demote on pageTwo ---------------

@@ -226,15 +226,21 @@ export const setLayoutOnPage = (page: Page, layoutName: string) => {
   )
 }
 
-export const expectRoomJoined = (page: Page) => {
-  return page.evaluate(() => {
+export const expectRoomJoined = (
+  page: Page,
+  options: { invokeJoin: boolean } = { invokeJoin: true }
+) => {
+  return page.evaluate(({ invokeJoin }) => {
     return new Promise<any>(async (resolve) => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
       roomObj.once('room.joined', resolve)
-      await roomObj.join()
+
+      if (invokeJoin) {
+        await roomObj.join()
+      }
     })
-  })
+  }, options)
 }
 
 export const expectMCUVisible = async (page: Page) => {

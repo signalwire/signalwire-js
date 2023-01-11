@@ -170,13 +170,8 @@ test.describe('RoomSession demote participant and then promote again', () => {
       { promoteMemberId: participant2Id }
     )
 
-    // FIXME: method to wait for room.joined only
-    const promisePromotedRoomJoined = pageTwo.evaluate<any>(() => {
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
-        roomObj.once('room.joined', resolve)
-      })
+    const promisePromotedRoomJoined = expectRoomJoined(pageTwo, {
+      invokeJoin: false,
     })
 
     await Promise.all([
