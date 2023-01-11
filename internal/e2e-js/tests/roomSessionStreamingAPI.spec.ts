@@ -2,7 +2,6 @@ import { test } from '@playwright/test'
 import {
   SERVER_URL,
   createTestRoomSession,
-  enablePageLogs,
   createOrUpdateRoom,
   randomizeRoomName,
   createStreamForRoom,
@@ -13,8 +12,6 @@ test.describe('Room Streaming from REST API', () => {
   test('should start a stream using the REST API', async ({ context }) => {
     const pageOne = await context.newPage()
     const pageTwo = await context.newPage()
-    enablePageLogs(pageOne, '[pageOne]')
-    enablePageLogs(pageTwo, '[pageTwo]')
 
     await pageOne.goto(SERVER_URL)
 

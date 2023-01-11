@@ -5,7 +5,6 @@ import {
   createTestRoomSession,
   createOrUpdateRoom,
   deleteRoom,
-  enablePageLogs,
   randomizeRoomName,
 } from '../utils'
 
@@ -44,7 +43,6 @@ test.describe('RoomSession remove_at', () => {
       let roomData: any = {}
 
       await page.goto(SERVER_URL)
-      enablePageLogs(page)
 
       const delay = 10_000
       const removeAt = new Date(Date.now() + delay).toISOString()

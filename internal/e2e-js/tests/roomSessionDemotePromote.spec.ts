@@ -1,21 +1,20 @@
-import { test, expect } from '@playwright/test'
+import { test } from '@playwright/test'
 import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
-  enablePageLogs,
   expectSDPDirection,
   expectInteractivityMode,
   expectMemberId,
-  randomizeRoomName
+  randomizeRoomName,
 } from '../utils'
 
 test.describe('RoomSession demote participant and then promote again', () => {
-  test('should demote participant and then promote again', async ({ context }) => {
+  test('should demote participant and then promote again', async ({
+    context,
+  }) => {
     const pageOne = await context.newPage()
-    enablePageLogs(pageOne, '[pageOne]')
     const pageTwo = await context.newPage()
-    enablePageLogs(pageTwo, '[pageTwo]')
 
     await Promise.all([pageOne.goto(SERVER_URL), pageTwo.goto(SERVER_URL)])
 
@@ -120,9 +119,7 @@ test.describe('RoomSession demote participant and then promote again', () => {
               resolve(true)
             } else {
               reject(
-                new Error(
-                  '[member.left] Name is not "e2e_target_participant"'
-                )
+                new Error('[member.left] Name is not "e2e_target_participant"')
               )
             }
           })
@@ -160,7 +157,7 @@ test.describe('RoomSession demote participant and then promote again', () => {
     // --------------- Time to promote again at PageTwo ---------------
 
     await pageTwo.waitForTimeout(2000)
-    
+
     // --------------- Promote audience from pageOne and resolve on `member.joined` ---------------
     const promiseMemberWaitingForMemberJoin = pageOne.evaluate(
       async ({ promoteMemberId }) => {
@@ -169,11 +166,21 @@ test.describe('RoomSession demote participant and then promote again', () => {
 
         const waitForMemberJoined = new Promise((resolve, reject) => {
           roomObj.on('member.joined', ({ member }) => {
-            if (member.name === 'e2e_target_participant' && member.id === promoteMemberId) {
-              console.log("=======================> Member joined:", member.name)
+            if (
+              member.name === 'e2e_target_participant' &&
+              member.id === promoteMemberId
+            ) {
+              console.log(
+                '=======================> Member joined:',
+                member.name
+              )
               resolve(true)
             } else {
-              reject(new Error('[member.joined] Name is not "e2e_target_participant"'))
+              reject(
+                new Error(
+                  '[member.joined] Name is not "e2e_target_participant"'
+                )
+              )
             }
           })
         })
@@ -196,7 +203,10 @@ test.describe('RoomSession demote participant and then promote again', () => {
       })
     })
 
-    await Promise.all([promiseMemberWaitingForMemberJoin, promisePromotedRoomJoined])
+    await Promise.all([
+      promiseMemberWaitingForMemberJoin,
+      promisePromotedRoomJoined,
+    ])
 
     await expectMemberId(pageTwo, participant2Id)
     await expectInteractivityMode(pageTwo, 'member')

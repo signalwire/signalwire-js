@@ -3,7 +3,6 @@ import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
-  enablePageLogs,
   expectSDPDirection,
   expectInteractivityMode,
 } from '../utils'
@@ -11,9 +10,7 @@ import {
 test.describe('RoomSession demote method', () => {
   test('should not be able to to demote audience', async ({ context }) => {
     const pageOne = await context.newPage()
-    enablePageLogs(pageOne, '[pageOne]')
     const pageTwo = await context.newPage()
-    enablePageLogs(pageTwo, '[pageTwo]')
 
     await Promise.all([pageOne.goto(SERVER_URL), pageTwo.goto(SERVER_URL)])
 

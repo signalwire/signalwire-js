@@ -2,7 +2,6 @@ import { test } from '@playwright/test'
 import {
   SERVER_URL,
   createTestRoomSession,
-  enablePageLogs,
   expectSDPDirection,
   expectInteractivityMode,
   expectMemberId,
@@ -11,9 +10,7 @@ import {
 test.describe('RoomSession talking events to audience', () => {
   test('audience should receive talking events', async ({ context }) => {
     const pageOne = await context.newPage()
-    enablePageLogs(pageOne, '[pageOne]')
     const pageTwo = await context.newPage()
-    enablePageLogs(pageTwo, '[pageTwo]')
 
     await Promise.all([pageOne.goto(SERVER_URL), pageTwo.goto(SERVER_URL)])
 

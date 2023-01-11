@@ -3,7 +3,6 @@ import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
-  enablePageLogs,
   expectSDPDirection,
   expectInteractivityMode,
 } from '../utils'
@@ -13,9 +12,7 @@ test.describe('RoomSession promote updating member meta', () => {
     context,
   }) => {
     const pageOne = await context.newPage()
-    enablePageLogs(pageOne, '[pageOne]')
     const pageTwo = await context.newPage()
-    enablePageLogs(pageTwo, '[pageTwo]')
 
     await Promise.all([pageOne.goto(SERVER_URL), pageTwo.goto(SERVER_URL)])
 

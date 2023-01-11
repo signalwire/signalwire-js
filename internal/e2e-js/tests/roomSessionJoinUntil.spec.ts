@@ -5,7 +5,6 @@ import {
   createTestRoomSession,
   createOrUpdateRoom,
   deleteRoom,
-  enablePageLogs,
   randomizeRoomName,
 } from '../utils'
 
@@ -44,7 +43,6 @@ test.describe('RoomSession join_until', () => {
       let roomData: any = {}
 
       await page.goto(SERVER_URL)
-      enablePageLogs(page)
 
       const delay = 5_000
       const joinUntil = new Date(Date.now() + delay).toISOString()

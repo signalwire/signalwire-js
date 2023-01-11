@@ -1,11 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { Video } from '@signalwire/js'
-import {
-  SERVER_URL,
-  createTestRoomSession,
-  enablePageLogs,
-  randomizeRoomName,
-} from '../utils'
+import { SERVER_URL, createTestRoomSession, randomizeRoomName } from '../utils'
 
 test.describe('RoomSession Audience Count', () => {
   test('should receive correct audience_count in events', async ({
@@ -21,8 +16,6 @@ test.describe('RoomSession Audience Count', () => {
     const [pageOne, pageTwo, pageThree, pageFour, pageFive] = allPages
     const audiencePages = [pageTwo, pageThree, pageFour, pageFive]
     await Promise.all(allPages.map((page) => page.goto(SERVER_URL)))
-    enablePageLogs(pageOne, '[pageOne]')
-    //enablePageLogs(pageTwo, '[pageTwo]')
 
     const room_name = randomizeRoomName()
 

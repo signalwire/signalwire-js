@@ -5,7 +5,6 @@ import {
   createTestRoomSession,
   createOrUpdateRoom,
   deleteRoom,
-  enablePageLogs,
   CreateOrUpdateRoomOptions,
   randomizeRoomName,
 } from '../utils'
@@ -45,7 +44,6 @@ test.describe('Room Settings', () => {
   tests.forEach((row) => {
     test(row.testName, async ({ page }) => {
       await page.goto(SERVER_URL)
-      enablePageLogs(page)
 
       const roomData = await createOrUpdateRoom({
         name: row.roomName,

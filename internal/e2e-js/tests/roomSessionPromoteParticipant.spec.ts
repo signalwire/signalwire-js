@@ -2,7 +2,6 @@ import { test, expect } from '@playwright/test'
 import type { Video } from '@signalwire/js'
 import {
   createTestRoomSession,
-  enablePageLogs,
   expectInteractivityMode,
   SERVER_URL,
 } from '../utils'
@@ -10,7 +9,6 @@ import {
 test.describe('RoomSession promote myself', () => {
   test('should get 202 on trying to promote a member', async ({ context }) => {
     const pageOne = await context.newPage()
-    enablePageLogs(pageOne, '[pageOne]')
 
     await pageOne.goto(SERVER_URL)
 

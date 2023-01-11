@@ -5,7 +5,6 @@ import {
   createTestRoomSession,
   createOrUpdateRoom,
   deleteRoom,
-  enablePageLogs,
   randomizeRoomName,
 } from '../utils'
 
@@ -44,7 +43,6 @@ test.describe('RoomSession remove_after_seconds_elapsed', () => {
       let roomData: any = {}
 
       await page.goto(SERVER_URL)
-      enablePageLogs(page)
 
       const removeAfter = 5
       if (!row.autoCreateRoom) {

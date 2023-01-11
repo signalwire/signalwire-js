@@ -1,18 +1,12 @@
 import { test, expect } from '@playwright/test'
 import type { Video } from '@signalwire/js'
-import {
-  SERVER_URL,
-  createTestRoomSession,
-  enablePageLogs,
-  randomizeRoomName,
-} from '../utils'
+import { SERVER_URL, createTestRoomSession, randomizeRoomName } from '../utils'
 
 test.describe('RoomSession unauthorized methods for audience', () => {
   test('should handle joining a room, try to perform unauthorized actions and then leave the room', async ({
     page,
   }) => {
     await page.goto(SERVER_URL)
-    enablePageLogs(page)
 
     const roomName = randomizeRoomName('e2e-403')
     const audience_permissions: string[] = []
