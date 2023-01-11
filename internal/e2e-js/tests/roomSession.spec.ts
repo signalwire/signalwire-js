@@ -3,7 +3,6 @@ import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
-  enablePageLogs,
   randomizeRoomName,
   setLayoutOnPage,
   expectLayoutChanged,
@@ -17,7 +16,6 @@ test.describe('RoomSession', () => {
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
-    enablePageLogs(page)
 
     const roomName = randomizeRoomName()
     const permissions = [
