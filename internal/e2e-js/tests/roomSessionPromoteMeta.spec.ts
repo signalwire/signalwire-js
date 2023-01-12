@@ -7,6 +7,7 @@ import {
   expectInteractivityMode,
   expectRoomJoined,
   expectMCUVisible,
+  expectMCUVisibleForAudience,
 } from '../utils'
 
 test.describe('RoomSession promote updating member meta', () => {
@@ -54,7 +55,7 @@ test.describe('RoomSession promote updating member meta', () => {
     const pageTwoRoomJoined = await expectRoomJoined(pageTwo)
 
     // Checks that the video is visible on pageTwo
-    await expectMCUVisible(pageTwo)
+    await expectMCUVisibleForAudience(pageTwo)
 
     // ------- Promote audience from pageOne and resolve on `member.joined` and pageTwo room.joined ----
     const promiseAudienceRoomSubscribed = pageTwo.evaluate(() => {

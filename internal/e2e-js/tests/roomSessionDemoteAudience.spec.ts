@@ -7,6 +7,7 @@ import {
   expectInteractivityMode,
   expectRoomJoined,
   expectMCUVisible,
+  expectMCUVisibleForAudience,
 } from '../utils'
 
 test.describe('RoomSession demote method', () => {
@@ -54,7 +55,7 @@ test.describe('RoomSession demote method', () => {
     const pageTwoRoomJoined: any = await expectRoomJoined(pageTwo)
 
     // Checks that the video is visible on pageTwo
-    await expectMCUVisible(pageTwo)
+    await expectMCUVisibleForAudience(pageTwo)
 
     // --------------- Demote audience from pageOne and resolve on 404 ---------------
     const errorCode = await pageOne.evaluate(

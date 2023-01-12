@@ -10,6 +10,7 @@ import {
   setLayoutOnPage,
   expectRoomJoined,
   expectMCUVisible,
+  expectMCUVisibleForAudience,
   expectTotalAudioEnergyToBeGreaterThan,
 } from '../utils'
 
@@ -73,7 +74,7 @@ test.describe('RoomSession promote/demote methods', () => {
     const audienceId = pageTwoRoomJoined.member_id
 
     // Checks that the video is visible on pageTwo
-    await expectMCUVisible(pageTwo)
+    await expectMCUVisibleForAudience(pageTwo)
 
     // --------------- Check that the audience member on pageTwo is receiving non-silence ---------------
     await pageOne.waitForTimeout(5000)

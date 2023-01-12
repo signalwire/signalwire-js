@@ -5,7 +5,7 @@ import {
   createTestRoomSession,
   randomizeRoomName,
   expectRoomJoined,
-  expectMCUVisible,
+  expectMCUVisibleForAudience,
 } from '../utils'
 
 test.describe('RoomSession unauthorized methods for audience', () => {
@@ -47,7 +47,7 @@ test.describe('RoomSession unauthorized methods for audience', () => {
     expect(joinParams.room.name).toBe(roomName)
 
     // Checks that the video is visible, as audience
-    await expectMCUVisible(page)
+    await expectMCUVisibleForAudience(page)
 
     const roomPermissions: any = await page.evaluate(() => {
       // @ts-expect-error

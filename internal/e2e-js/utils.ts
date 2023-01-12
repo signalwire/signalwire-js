@@ -250,6 +250,10 @@ export const expectMCUVisible = async (page: Page) => {
   await page.waitForSelector('div[id^="sw-sdk-"] > video')
 }
 
+export const expectMCUVisibleForAudience = async (page: Page) => {
+  await page.waitForSelector('#rootElement video')
+}
+
 export const randomizeRoomName = (prefix: string = 'e2e') => {
   return `${prefix}${uuid()}`
 }

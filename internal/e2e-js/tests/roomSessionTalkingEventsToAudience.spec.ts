@@ -4,6 +4,7 @@ import {
   createTestRoomSession,
   expectRoomJoined,
   expectMCUVisible,
+  expectMCUVisibleForAudience,
 } from '../utils'
 
 test.describe('RoomSession talking events to audience', () => {
@@ -45,7 +46,7 @@ test.describe('RoomSession talking events to audience', () => {
     await expectRoomJoined(pageTwo)
 
     // Checks that the video is visible on pageTwo
-    await expectMCUVisible(pageTwo)
+    await expectMCUVisibleForAudience(pageTwo)
 
     // --------------- Resolve when audience receives member.talking ----------
     const audienceMemberTalkingPromise = pageTwo.evaluate(async () => {
