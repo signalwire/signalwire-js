@@ -264,6 +264,44 @@ export const expectMemberId = async (page: Page, memberId: string) => {
   expect(roomMemberId).toEqual(memberId)
 }
 
+export const expectTotalAudioEnergyToBeGreaterThan = async (
+  page: Page,
+  value: number
+) => {
+  const audioStats = await page.evaluate(async () => {
+    // @ts-expect-error
+    const roomObj: Video.RoomSession = window._roomObj
+    // @ts-expect-error
+    const stats = await roomObj.peer.instance.getStats(null)
+    const filter = {
+      'inbound-rtp': ['audioLevel', 'totalAudioEnergy', 'totalSamplesDuration'],
+    }
+    const result: any = {}
+    Object.keys(filter).forEach((entry) => {
+      result[entry] = {}
+    })
+
+    stats.forEach((report: any) => {
+      for (const [key, value] of Object.entries(filter)) {
+        //console.log(key, value, report.type)
+        if (report.type == key) {
+          value.forEach((entry) => {
+            //console.log(key, entry, report[entry])
+            if (report[entry]) {
+              result[key][entry] = report[entry]
+            }
+          })
+        }
+      }
+    }, {})
+
+    return result
+  })
+  console.log('audioStats', audioStats)
+
+  expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(value)
+}
+
 const getRoomByName = async (roomName: string) => {
   const authCreds = `${process.env.RELAY_PROJECT}:${process.env.RELAY_TOKEN}`
   const response = await fetch(

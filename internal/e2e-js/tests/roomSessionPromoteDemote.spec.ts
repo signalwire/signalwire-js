@@ -10,6 +10,7 @@ import {
   setLayoutOnPage,
   expectRoomJoined,
   expectMCUVisible,
+  expectTotalAudioEnergyToBeGreaterThan,
 } from '../utils'
 
 test.describe('RoomSession promote/demote methods', () => {
@@ -75,57 +76,11 @@ test.describe('RoomSession promote/demote methods', () => {
     await expectMCUVisible(pageTwo)
 
     // --------------- Check that the audience member on pageTwo is receiving non-silence ---------------
-    async function getAudioStats() {
-      const audioStats = await pageTwo.evaluate(async () => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-
-        // @ts-expect-error
-        const stats = await roomObj.peer.instance.getStats(null)
-
-        const filter = {
-          'inbound-rtp': [
-            'audioLevel',
-            'totalAudioEnergy',
-            'totalSamplesDuration',
-          ],
-        }
-        let result: any = {}
-        Object.keys(filter).forEach((entry) => {
-          result[entry] = {}
-        })
-
-        stats.forEach((report: any) => {
-          for (const [key, value] of Object.entries(filter)) {
-            //console.log(key, value, report.type)
-            if (report.type == key) {
-              value.forEach((entry) => {
-                //console.log(key, entry, report[entry])
-                if (report[entry]) {
-                  result[key][entry] = report[entry]
-                }
-              })
-            }
-          }
-        }, {})
-        return result
-      })
-      return audioStats
-    }
-
-    // --------------- Wait a bit for the media to flow ---------------
     await pageOne.waitForTimeout(5000)
-    let audioLevelStats: any = await getAudioStats()
-    console.log('audience audioLevelStats 1', audioLevelStats)
-    expect(audioLevelStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(
-      0.1
-    )
+    await expectTotalAudioEnergyToBeGreaterThan(pageTwo, 0.1)
+
     await pageOne.waitForTimeout(5000)
-    audioLevelStats = await getAudioStats()
-    console.log('audience audioLevelStats 2', audioLevelStats)
-    expect(audioLevelStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(
-      0.5
-    )
+    await expectTotalAudioEnergyToBeGreaterThan(pageTwo, 0.5)
 
     // --------------- Make sure a `layout.changed` reached both member and audience --------------
 
