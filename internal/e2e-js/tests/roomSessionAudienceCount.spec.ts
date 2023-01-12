@@ -20,9 +20,9 @@ test.describe('RoomSession Audience Count', () => {
     ])
     const [pageOne, pageTwo, pageThree, pageFour, pageFive] = allPages
     const audiencePages = [pageTwo, pageThree, pageFour, pageFive]
+    const expectedAudienceCount = audiencePages.length
     await Promise.all(allPages.map((page) => page.goto(SERVER_URL)))
     enablePageLogs(pageOne, '[pageOne]')
-    //enablePageLogs(pageTwo, '[pageTwo]')
 
     const room_name = randomizeRoomName()
 
@@ -52,6 +52,9 @@ test.describe('RoomSession Audience Count', () => {
         })
       })
     )
+
+    console.time('getFirstAudienceCount')
+
     // --------------- Joining the room and resolve on room.audienceCount ---------------
     const joinPromiseOne = pageOne.evaluate(() => {
       return new Promise((r) => {
@@ -88,6 +91,8 @@ test.describe('RoomSession Audience Count', () => {
 
     await joinPromiseOne
 
+    console.timeEnd('getFirstAudienceCount')
+
     const expectAudienceCountFromPageOne = async (count: number) => {
       const audienceCount = await pageOne.evaluate(() => {
         // @ts-expect-error
@@ -97,6 +102,7 @@ test.describe('RoomSession Audience Count', () => {
     }
 
     await expectAudienceCountFromPageOne(1)
+    let currentCount = 1
 
     const [_, ...pageThreeToFive] = audiencePages
     // join as audiences on pageThree to pageFive and resolve on `room.joined`
@@ -113,10 +119,22 @@ test.describe('RoomSession Audience Count', () => {
       })
     )
 
-    // Need to wait for the room.audienceCount event that is throttled
-    await pageOne.waitForTimeout(30000)
+    console.time('getFinalAudienceCount')
 
-    await expectAudienceCountFromPageOne(4)
+    const currentCountPromise: any = await pageOne.evaluate(() => {
+      return new Promise((resolve) => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+        roomObj.on('room.audienceCount', (params) => {
+          resolve(params.total)
+        })
+      })
+    })
+
+    while (currentCount !== expectedAudienceCount) {
+      currentCount = await currentCountPromise
+    }
+    console.timeEnd('getFinalAudienceCount')
 
     // --------------- Leaving the room ---------------
     await Promise.all(
