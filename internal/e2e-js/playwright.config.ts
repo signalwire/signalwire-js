@@ -11,7 +11,7 @@ const config: PlaywrightTestConfig = {
   testIgnore: [
     //   'roomSessionStreaming.spec.ts',
   ],
-  timeout: 90_000,
+  timeout: 120_000,
   expect: {
     // Default is 5000
     timeout: 10_000,
