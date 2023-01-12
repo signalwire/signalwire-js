@@ -92,7 +92,7 @@ test.describe('RoomSession Audience Count', () => {
 
     const [_, ...pageThreeToFive] = audiencePages
     // join as audiences on pageThree to pageFive and resolve on `room.joined`
-    await Promise.all(pageThreeToFive.map(expectRoomJoined))
+    await Promise.all(pageThreeToFive.map((page) => expectRoomJoined(page)))
 
     // Need to wait for the room.audienceCount event that is throttled
     await pageOne.waitForTimeout(30000)
