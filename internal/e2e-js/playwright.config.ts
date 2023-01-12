@@ -35,6 +35,5 @@ const config: PlaywrightTestConfig = {
       },
     },
   ],
-  testMatch: ['roomSessionReattachWrongProtocol.spec.ts'],
 }
 export default config

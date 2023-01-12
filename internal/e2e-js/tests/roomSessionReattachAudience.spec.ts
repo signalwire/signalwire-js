@@ -9,7 +9,8 @@ import {
 } from '../utils'
 
 test.describe('RoomSessionReattachAudience', () => {
-  test('should handle joining a room, reattaching and then leaving the room, for audience', async ({
+  test('audience should join a room, reattach and then leave the room',
+  async ({
     page,
   }) => {
     await page.goto(SERVER_URL)
@@ -28,15 +29,15 @@ test.describe('RoomSessionReattachAudience', () => {
       initialEvents: [],
       roomSessionOptions: {
         _hijack: true,
-        logLevel: 'debug',
-        debug: {
-          logWsTraffic: true,
-        },
+        logLevel: 'warn',
+        // debug: {
+        //   logWsTraffic: true,
+        // },
       },
     }
     await createTestRoomSession(page, connectionSettings)
 
-    // --------------- Joining the room as audience ---------------
+    // --------------- Join the room as audience ---------------
     const joinParams: any = await page.evaluate(() => {
       return new Promise((r) => {
         // @ts-expect-error
@@ -46,24 +47,22 @@ test.describe('RoomSessionReattachAudience', () => {
       })
     })
 
-    console.log("----------- joinParams: ", joinParams)
     expect(joinParams.room).toBeDefined()
 
     // --------------- Make sure on page we have a audience ---------------
     await expectInteractivityMode(page, 'audience')
 
-    // --------------- Check SDP/RTCPeer on audience (recvonly since audience) ---------------
+    // --------------- Check SDP/RTCPeer on audience (recvonly for audience) 
     await expectSDPDirection(page, 'recvonly', true)
 
-    // Checks that the video is visible on page
+    // --------------- Check that the video is visible on page
     await page.waitForSelector('#rootElement video', {
       timeout: 10000,
     })
 
-    // --------------- Reattaching ---------------
+    // --------------- Reattach ---------------
     await page.reload()
 
-    console.log("Page reloaded, reattaching")
     await createTestRoomSession(page, connectionSettings)
 
     const reattachParams: any = await page.evaluate(() => {
@@ -75,25 +74,27 @@ test.describe('RoomSessionReattachAudience', () => {
       })
     })
 
-    console.log("----------- reattachParams: ", reattachParams)
     expect(reattachParams.room).toBeDefined()
-
-
+    expect(reattachParams.room_session).toBeDefined()
+    expect(reattachParams.room_session.id).toEqual(joinParams.room_session.id)
+    expect(reattachParams.call_id).toBeDefined()
+    expect(reattachParams.call_id).toEqual(joinParams.call_id)
+    expect(reattachParams.member_id).toBeDefined()
+    expect(reattachParams.member_id).toEqual(joinParams.member_id)
 
     // --------------- Make sure on page we have a audience ---------------
     await expectInteractivityMode(page, 'audience')
 
-    // --------------- Check SDP/RTCPeer on audience (recvonly since audience) ---------------
+    // --------------- Check SDP/RTCPeer on audience (recvonly for audience)
     await expectSDPDirection(page, 'recvonly', true)
 
-    // Checks that the video is visible on page
+    // --------------- Check that the video is visible on page
     await page.waitForSelector('#rootElement video', {
       timeout: 10000,
     })
+    // --------------- DONE -------------------------
 
-// TODO: Check the call ID and member ID haven't changed
-
-    // --------------- Leaving the room ---------------
+    // --------------- Leave the room ---------------
     await page.evaluate(() => {
       // @ts-expect-error
       return window._roomObj.leave()

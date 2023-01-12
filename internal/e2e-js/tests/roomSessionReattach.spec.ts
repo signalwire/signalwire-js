@@ -26,10 +26,10 @@ test.describe('RoomSessionReattach', () => {
       initialEvents: [],
       roomSessionOptions: {
         _hijack: true,
-        logLevel: 'debug',
-        debug: {
-          logWsTraffic: true,
-        },
+        logLevel: 'warn',
+        // debug: {
+        //   logWsTraffic: true,
+        // },
       },
     }
     await createTestRoomSession(page, connectionSettings)
@@ -89,7 +89,11 @@ test.describe('RoomSessionReattach', () => {
     expect(reattachParams.room_session.name).toBe(roomName)
     expect(reattachParams.room.name).toBe(roomName)
     // Make sure the member_id is stable
+    expect(reattachParams.member_id).toBeDefined()
     expect(reattachParams.member_id).toBe(joinParams.member_id)
+    // Also call_id must remain the same
+    expect(reattachParams.call_id).toBeDefined()
+    expect(reattachParams.call_id).toBe(joinParams.call_id)
 
     // Checks that the video is visible
     await page.waitForSelector('div[id^="sw-sdk-"] > video', { timeout: 5000 })
