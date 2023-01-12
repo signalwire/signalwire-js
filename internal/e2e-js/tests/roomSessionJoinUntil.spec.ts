@@ -63,6 +63,7 @@ test.describe('RoomSession join_until', () => {
           join_until: row.autoCreateRoom ? joinUntil : undefined,
         },
         initialEvents: [],
+        expectToJoin: false,
       })
 
       await page.waitForTimeout(delay)

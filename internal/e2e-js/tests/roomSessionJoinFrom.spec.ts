@@ -41,7 +41,7 @@ test.describe('RoomSession join_from', () => {
     test(`should not be possible to join a room before the join_from [${row.testName}]`, async ({
       createCustomPage,
     }) => {
-      const buildRoomSession = () => {
+      const buildRoomSession = (opts = { expectToJoin: true }) => {
         return createTestRoomSession(page, {
           vrt: {
             room_name: row.roomName,
@@ -51,6 +51,7 @@ test.describe('RoomSession join_from', () => {
             join_from: row.autoCreateRoom ? joinFrom : undefined,
           },
           initialEvents: [],
+          expectToJoin: opts.expectToJoin,
         })
       }
       let roomData: any = {}
@@ -58,7 +59,7 @@ test.describe('RoomSession join_from', () => {
       const page = await createCustomPage({ name: '[joinFromPage]' })
       await page.goto(SERVER_URL)
 
-      const delay = 5_000
+      const delay = 10_000
       const joinFrom = new Date(Date.now() + delay).toISOString()
       if (!row.autoCreateRoom) {
         roomData = await createOrUpdateRoom({
@@ -67,7 +68,7 @@ test.describe('RoomSession join_from', () => {
         })
       }
 
-      await buildRoomSession()
+      await buildRoomSession({ expectToJoin: false })
 
       // --------------- Joining the room and expect an error ---------------
       const joinError: any = await page.evaluate(async () => {
