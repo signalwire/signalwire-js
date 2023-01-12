@@ -9,7 +9,8 @@ import {
 } from '../utils'
 
 test.describe('RoomSessionReattachBadAuth', () => {
-  test('should handle joining a room, reattaching with bogus authorization_state and then leaving the room', async ({
+  test('join a room, reattach with invalid authorization_state and then leave the room',
+  async ({
     page,
   }) => {
     await page.goto(SERVER_URL)
@@ -27,10 +28,10 @@ test.describe('RoomSessionReattachBadAuth', () => {
       initialEvents: [],
       roomSessionOptions: {
         _hijack: true,
-        logLevel: 'debug',
-        debug: {
-          logWsTraffic: true,
-        },
+        logLevel: 'warn',
+        // debug: {
+        //   logWsTraffic: true,
+        // },
       },
     }
     await createTestRoomSession(page, connectionSettings)
@@ -79,23 +80,23 @@ test.describe('RoomSessionReattachBadAuth', () => {
     await createTestRoomSessionWithJWT(page, connectionSettings, jwtToken)
 
     // Join again but with a bogus authorization_state
-    const joinResponse: any = await page.evaluate(() => {
+    const joinResponse: any = await page.evaluate(async (room_name) => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
 
+      // Inject wrong values for authorization state
+      const key = "as-" + room_name + "-member"
+      const state = btoa("just wrong")
+      window.sessionStorage.setItem(key, state)
+      console.log("Injected authorization state for " + key + " with value " + state)
+
+      // Now try to reattach, which should not succeed
       return roomObj.join()
         .then(() => true)
         .catch(() => false)
-    })
+    }, room_name)
 
-    console.log("------> joinResponse: ", joinResponse)
     expect(joinResponse).toBe(false)
-
-    // --------------- Leaving the room ---------------
-    await page.evaluate(() => {
-      // @ts-expect-error
-      return window._roomObj.leave()
-    })
 
     // Checks that all the elements added by the SDK are gone.
     const targetElementsCount = await page.evaluate(() => {

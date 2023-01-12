@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import type { Video } from '@signalwire/js'
+import { EventEmitter } from 'eventemitter3'
 import {
   SERVER_URL,
   createTestRoomSession,
@@ -71,13 +72,21 @@ test.describe('RoomSessionReattachWrongProtocol', () => {
 
     await createTestRoomSession(page, connectionSettings)
 
-    // Join again
-    const reattachParams: any = await page.evaluate((room_name) => {
+    // Try to join but expect it to fail due to wrong Protocol
+    await page.evaluate((room_name) => {
       console.log("Joining room " + room_name)
-      return new Promise((r) => {
+      return new Promise((resolve, reject) => {
         // @ts-expect-error
         const roomObj = window._roomObj
-        roomObj.on('room.joined', (params: any) => r(params))
+        roomObj.on('room.joined', () => {
+          clearTimeout(to)
+          reject(" room.joined should not have happened")
+        })
+
+        let to = setTimeout(() => {
+          roomObj.off('room.joined', reject)
+          resolve(" room.joined didn't happen within a reasonable time")
+        }, 5000)
 
         // Inject wrong values for protocol ID
         const key = "pt-" + room_name + "-member"
@@ -88,28 +97,6 @@ test.describe('RoomSessionReattachWrongProtocol', () => {
         roomObj.join()
       })
     }, room_name)
-
-    expect(reattachParams.room).toBeDefined()
-    expect(reattachParams.room_session).toBeDefined()
-    expect(
-      reattachParams.room.members.some(
-        (member: any) => member.id === reattachParams.member_id
-      )
-    ).toBeTruthy()
-    expect(reattachParams.room_session.name).toBe(roomName)
-    expect(reattachParams.room.name).toBe(roomName)
-
-    // The member id must be different because the reattach failed
-    expect(reattachParams.member_id).not.toBe(joinParams.member_id)
-
-    // Checks that the video is visible
-    await page.waitForSelector('div[id^="sw-sdk-"] > video', { timeout: 5000 })
-
-    // --------------- Leaving the room ---------------
-    await page.evaluate(() => {
-      // @ts-expect-error
-      return window._roomObj.leave()
-    })
 
     // Checks that all the elements added by the SDK are gone.
     const targetElementsCount = await page.evaluate(() => {

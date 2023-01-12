@@ -69,6 +69,7 @@ test.describe('RoomSessionReattach', () => {
 
     await createTestRoomSession(page, connectionSettings)
 
+    console.time('reattach')
     // Join again
     const reattachParams: any = await page.evaluate(() => {
       return new Promise((r) => {
@@ -78,6 +79,7 @@ test.describe('RoomSessionReattach', () => {
         roomObj.join()
       })
     })
+    console.timeEnd('reattach')
 
     expect(reattachParams.room).toBeDefined()
     expect(reattachParams.room_session).toBeDefined()
