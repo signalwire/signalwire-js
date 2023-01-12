@@ -1,3 +1,4 @@
+import type { Video } from '@signalwire/js'
 import { test as baseTest, expect, type Page } from '@playwright/test'
 import { enablePageLogs } from './utils'
 
@@ -20,16 +21,16 @@ const test = baseTest.extend<CustomFixture>({
     /**
      * If we have a __roomObj in the page means we tested the VideoAPI
      * so we must leave the room.
+     * Invoke `.leave()` only if we have a valid `roomSessionId`.
      * Then double check the SDK elements got properly removed from the DOM.
      */
     const results = await Promise.all(
       context.pages().map((page) => {
         return page.evaluate(async () => {
           // @ts-expect-error
-          if (window._roomObj) {
-            console.log('Fixture has room')
-            // @ts-expect-error
-            const roomObj: Video.RoomSession = window._roomObj
+          const roomObj: Video.RoomSession = window._roomObj
+          if (roomObj && roomObj.roomSessionId) {
+            console.log('Fixture has room', roomObj.roomSessionId)
             await roomObj.leave()
           }
 

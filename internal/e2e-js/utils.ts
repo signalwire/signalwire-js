@@ -57,6 +57,7 @@ export const createTestRoomSession = async (
     vrt: CreateTestVRTOptions
     /** set of events to automatically subscribe before room.join() */
     initialEvents?: string[]
+    expectToJoin?: boolean
   }
 ) => {
   const vrt = await createTestVRTToken(options.vrt)
@@ -97,15 +98,17 @@ export const createTestRoomSession = async (
     }
   )
 
-  expectRoomJoined(page).then(async (params) => {
-    await expectMemberId(page, params.member_id)
+  if (options.expectToJoin !== false) {
+    expectRoomJoined(page, { invokeJoin: false }).then(async (params) => {
+      await expectMemberId(page, params.member_id)
 
-    const dir = options.vrt.join_as === 'audience' ? 'recvonly' : 'sendrecv'
-    await expectSDPDirection(page, dir, true)
+      const dir = options.vrt.join_as === 'audience' ? 'recvonly' : 'sendrecv'
+      await expectSDPDirection(page, dir, true)
 
-    const mode = options.vrt.join_as === 'audience' ? 'audience' : 'member'
-    await expectInteractivityMode(page, mode)
-  })
+      const mode = options.vrt.join_as === 'audience' ? 'audience' : 'member'
+      await expectInteractivityMode(page, mode)
+    })
+  }
 
   return roomSession
 }
