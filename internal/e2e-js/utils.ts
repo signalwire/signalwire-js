@@ -122,7 +122,7 @@ interface CreateTestVRTOptions {
   remove_after_seconds_elapsed?: number
   auto_create_room?: boolean
   join_as?: 'member' | 'audience'
-  media_allowed?: 'audio-only' | 'audio-only' | 'all'
+  media_allowed?: 'audio-only' | 'video-only' | 'all'
 }
 
 export const createTestVRTToken = async (body: CreateTestVRTOptions) => {
