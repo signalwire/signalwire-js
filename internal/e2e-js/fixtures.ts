@@ -36,7 +36,8 @@ const test = baseTest.extend<CustomFixture>({
 
           return {
             videos: Array.from(document.querySelectorAll('video')).length,
-            rootEl: document.getElementById('rootElement')!.childElementCount,
+            rootEl:
+              document.getElementById('rootElement')?.childElementCount ?? 0,
           }
         })
       })
