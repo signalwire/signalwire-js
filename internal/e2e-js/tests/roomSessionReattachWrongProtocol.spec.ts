@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test'
 import type { Video } from '@signalwire/js'
-import { EventEmitter } from 'eventemitter3'
 import {
   SERVER_URL,
   createTestRoomSession,
@@ -27,10 +26,10 @@ test.describe('RoomSessionReattachWrongProtocol', () => {
       initialEvents: [],
       roomSessionOptions: {
         _hijack: true,
-        logLevel: 'debug',
-        debug: {
-          logWsTraffic: true,
-        },
+        logLevel: 'warn',
+        // debug: {
+        //   logWsTraffic: true,
+        // },
       },
     }
     await createTestRoomSession(page, connectionSettings)
