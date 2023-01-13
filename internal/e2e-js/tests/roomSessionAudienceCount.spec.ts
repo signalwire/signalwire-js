@@ -20,6 +20,7 @@ test.describe('RoomSession Audience Count', () => {
     ])
     const [pageOne, pageTwo, pageThree, pageFour, pageFive] = allPages
     const audiencePages = [pageTwo, pageThree, pageFour, pageFive]
+    const expectedAudienceCount = audiencePages.length
     await Promise.all(allPages.map((page) => page.goto(SERVER_URL)))
 
     const room_name = randomizeRoomName()
@@ -89,14 +90,24 @@ test.describe('RoomSession Audience Count', () => {
     }
 
     await expectAudienceCountFromPageOne(1)
+    let currentCount = 1
 
     const [_, ...pageThreeToFive] = audiencePages
     // join as audiences on pageThree to pageFive and resolve on `room.joined`
     await Promise.all(pageThreeToFive.map((page) => expectRoomJoined(page)))
 
-    // Need to wait for the room.audienceCount event that is throttled
-    await pageOne.waitForTimeout(30000)
+    const currentCountPromise: any = await pageOne.evaluate(() => {
+      return new Promise((resolve) => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+        roomObj.on('room.audienceCount', (params) => {
+          resolve(params.total)
+        })
+      })
+    })
 
-    await expectAudienceCountFromPageOne(4)
+    while (currentCount !== expectedAudienceCount) {
+      currentCount = await currentCountPromise
+    }
   })
 })
