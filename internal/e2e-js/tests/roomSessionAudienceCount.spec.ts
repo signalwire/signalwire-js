@@ -1,5 +1,6 @@
+import type { Page } from '@playwright/test'
+import type { Video } from '@signalwire/js'
 import { test, expect } from '../fixtures'
-import { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
@@ -52,22 +53,52 @@ test.describe('RoomSession Audience Count', () => {
       })
     )
 
-    // Joining the room and resolve when the total from room.audienceCount is equal to expectedAudienceCount
-    const audienceCountPromise = pageOne.evaluate(
-      ({ expectedAudienceCount }) => {
-        return new Promise(async (resolve) => {
-          // @ts-expect-error
-          const roomObj: Video.RoomSession = window._roomObj
-          roomObj.on('room.audienceCount', (params) => {
-            if (params.total === expectedAudienceCount) {
-              resolve(params)
+    const expectAudienceCount = (page: Page) => {
+      return {
+        getTotals: () => {
+          return page.evaluate(() => {
+            return {
+              // @ts-expect-error
+              totalFromAudienceCount: window.__totalFromAudienceCount,
             }
           })
+        },
+        waitFor: (count: number) => {
+          return page.evaluate(
+            ({ count }) => {
+              return new Promise(async (resolve) => {
+                // @ts-expect-error
+                window.__totalFromAudienceCount = 0
 
-          await roomObj.join()
-        })
-      },
-      { expectedAudienceCount }
+                // @ts-expect-error
+                const roomObj: Video.RoomSession = window._roomObj
+
+                roomObj.on('room.audienceCount', (params) => {
+                  // @ts-expect-error
+                  window.__totalFromAudienceCount = params.total
+                  if (params.total === count) {
+                    resolve(params)
+                  }
+                })
+              })
+            },
+            { count }
+          )
+        },
+      }
+    }
+
+    // Joining the room and resolve when the total from room.audienceCount is equal to expectedAudienceCount
+    const expectorPageOne = expectAudienceCount(pageOne)
+    const audienceCountPageOnePromise = expectorPageOne.waitFor(
+      expectedAudienceCount
+    )
+
+    await expectRoomJoined(pageOne)
+
+    const expectorPageTwo = expectAudienceCount(pageTwo)
+    const audienceCountPageTwoPromise = expectorPageTwo.waitFor(
+      expectedAudienceCount
     )
 
     // join as audience on pageTwo and resolve on `room.joined`
@@ -80,6 +111,17 @@ test.describe('RoomSession Audience Count', () => {
     await Promise.all(pageThreeToFive.map((page) => expectRoomJoined(page)))
 
     // wait for all the room.audienceCount
-    await audienceCountPromise
+    await Promise.all([
+      audienceCountPageOnePromise,
+      audienceCountPageTwoPromise,
+    ])
+
+    await pageOne.waitForTimeout(20_000)
+
+    const totalsPageOne = await expectorPageOne.getTotals()
+    expect(totalsPageOne.totalFromAudienceCount).toBe(expectedAudienceCount)
+
+    const totalsPageTwo = await expectorPageTwo.getTotals()
+    expect(totalsPageTwo.totalFromAudienceCount).toBe(expectedAudienceCount)
   })
 })
