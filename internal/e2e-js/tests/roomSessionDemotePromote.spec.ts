@@ -1,21 +1,22 @@
-import { test, expect } from '@playwright/test'
+import { test } from '../fixtures'
 import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
-  enablePageLogs,
   expectSDPDirection,
   expectInteractivityMode,
   expectMemberId,
-  randomizeRoomName
+  randomizeRoomName,
+  expectRoomJoined,
+  expectMCUVisible,
 } from '../utils'
 
 test.describe('RoomSession demote participant and then promote again', () => {
-  test('should demote participant and then promote again', async ({ context }) => {
-    const pageOne = await context.newPage()
-    enablePageLogs(pageOne, '[pageOne]')
-    const pageTwo = await context.newPage()
-    enablePageLogs(pageTwo, '[pageTwo]')
+  test('should demote participant and then promote again', async ({
+    createCustomPage,
+  }) => {
+    const pageOne = await createCustomPage({ name: 'pageOne' })
+    const pageTwo = await createCustomPage({ name: 'pageTwo' })
 
     await Promise.all([pageOne.goto(SERVER_URL), pageTwo.goto(SERVER_URL)])
 
@@ -47,48 +48,27 @@ test.describe('RoomSession demote participant and then promote again', () => {
     ])
 
     // --------------- Joining from the 1st tab as member and resolve on 'room.joined' ---------------
-    await pageOne.evaluate(() => {
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
-        roomObj.on('room.joined', resolve)
-        roomObj.join()
-      })
-    })
-    await expectInteractivityMode(pageOne, 'member')
-    await expectSDPDirection(pageOne, 'sendrecv', true)
+    await expectRoomJoined(pageOne)
 
     // Checks that the video is visible on pageOne
-    await pageOne.waitForSelector('div[id^="sw-sdk-"] > video', {
-      timeout: 5000,
-    })
+    await expectMCUVisible(pageOne)
 
     // --------------- Joining from the 2nd tab as member and resolve on 'room.joined' ---------------
-    const pageTwoRoomJoined: any = await pageTwo.evaluate(() => {
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
-        roomObj.once('room.joined', resolve)
-        roomObj.join()
-      })
-    })
+    const pageTwoRoomJoined: any = await expectRoomJoined(pageTwo)
 
     const participant2Id = pageTwoRoomJoined.member_id
-    await expectInteractivityMode(pageTwo, 'member')
     await expectMemberId(pageTwo, participant2Id)
-    await expectSDPDirection(pageTwo, 'sendrecv', true)
 
     // Checks that the video is visible on pageTwo
-    await pageTwo.waitForSelector('div[id^="sw-sdk-"] > video', {
-      timeout: 10000,
-    })
+    await expectMCUVisible(pageTwo)
+
     // --------------- Sessions established ---------------
 
-    await pageTwo.waitForTimeout(2000)
+    await pageTwo.waitForTimeout(1000)
 
     // --------------- Demote participant on pageTwo to audience from pageOne
     // and resolve on `member.left` amd `layout.changed` with position off-canvas ---------------
-    const promiseMemberWaitingForMemberLeft = pageOne.evaluate(
+    await pageOne.evaluate(
       async ({ demoteMemberId }) => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
@@ -120,9 +100,7 @@ test.describe('RoomSession demote participant and then promote again', () => {
               resolve(true)
             } else {
               reject(
-                new Error(
-                  '[member.left] Name is not "e2e_target_participant"'
-                )
+                new Error('[member.left] Name is not "e2e_target_participant"')
               )
             }
           })
@@ -139,8 +117,6 @@ test.describe('RoomSession demote participant and then promote again', () => {
       },
       { demoteMemberId: participant2Id }
     )
-
-    await promiseMemberWaitingForMemberLeft
 
     const promiseAudienceRoomJoined = await pageTwo.evaluate<any>(() => {
       return new Promise((resolve) => {
@@ -159,8 +135,8 @@ test.describe('RoomSession demote participant and then promote again', () => {
 
     // --------------- Time to promote again at PageTwo ---------------
 
-    await pageTwo.waitForTimeout(2000)
-    
+    await pageTwo.waitForTimeout(1000)
+
     // --------------- Promote audience from pageOne and resolve on `member.joined` ---------------
     const promiseMemberWaitingForMemberJoin = pageOne.evaluate(
       async ({ promoteMemberId }) => {
@@ -169,11 +145,17 @@ test.describe('RoomSession demote participant and then promote again', () => {
 
         const waitForMemberJoined = new Promise((resolve, reject) => {
           roomObj.on('member.joined', ({ member }) => {
-            if (member.name === 'e2e_target_participant' && member.id === promoteMemberId) {
-              console.log("=======================> Member joined:", member.name)
+            if (
+              member.name === 'e2e_target_participant' &&
+              member.id === promoteMemberId
+            ) {
               resolve(true)
             } else {
-              reject(new Error('[member.joined] Name is not "e2e_target_participant"'))
+              reject(
+                new Error(
+                  '[member.joined] Name is not "e2e_target_participant"'
+                )
+              )
             }
           })
         })
@@ -188,30 +170,19 @@ test.describe('RoomSession demote participant and then promote again', () => {
       { promoteMemberId: participant2Id }
     )
 
-    const promisePromotedRoomJoined = pageTwo.evaluate<any>(() => {
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
-        roomObj.once('room.joined', resolve)
-      })
+    const promisePromotedRoomJoined = expectRoomJoined(pageTwo, {
+      invokeJoin: false,
     })
 
-    await Promise.all([promiseMemberWaitingForMemberJoin, promisePromotedRoomJoined])
+    await Promise.all([
+      promiseMemberWaitingForMemberJoin,
+      promisePromotedRoomJoined,
+    ])
 
     await expectMemberId(pageTwo, participant2Id)
     await expectInteractivityMode(pageTwo, 'member')
     await expectSDPDirection(pageTwo, 'sendrecv', true)
     // Checks that the video is visible on pageTwo
-    await pageTwo.waitForSelector('div[id^="sw-sdk-"] > video', {
-      timeout: 10000,
-    })
-
-    // --------------- Leaving the rooms ---------------
-    await Promise.all([
-      // @ts-expect-error
-      pageOne.evaluate(() => window._roomObj.leave()),
-      // @ts-expect-error
-      pageTwo.evaluate(() => window._roomObj.leave()),
-    ])
+    await expectMCUVisible(pageTwo)
   })
 })

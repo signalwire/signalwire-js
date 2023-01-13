@@ -2,10 +2,12 @@ require('dotenv').config()
 
 import { PlaywrightTestConfig, devices } from '@playwright/test'
 
+const testMatch = process.argv.slice(3)
+
 const config: PlaywrightTestConfig = {
   testDir: 'tests',
   globalSetup: require.resolve('./global-setup'),
-  // testMatch: ['roomSessionStreamingAPI.spec.ts'],
+  testMatch: testMatch.length ? testMatch : undefined,
   testIgnore: [
     //   'roomSessionStreaming.spec.ts',
   ],

@@ -1,11 +1,10 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../fixtures'
 import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
   createOrUpdateRoom,
   deleteRoom,
-  enablePageLogs,
   randomizeRoomName,
 } from '../utils'
 
@@ -39,12 +38,14 @@ test.describe('RoomSession remove_at', () => {
 
   tests.forEach((row) => {
     test(`should remove all members after the remove_at value [${row.testName}]`, async ({
-      page,
+      createCustomPage,
     }) => {
       let roomData: any = {}
 
+      const page = await createCustomPage({
+        name: '[removeAtPage]',
+      })
       await page.goto(SERVER_URL)
-      enablePageLogs(page)
 
       const delay = 10_000
       const removeAt = new Date(Date.now() + delay).toISOString()

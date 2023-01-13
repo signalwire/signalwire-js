@@ -1,16 +1,17 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../fixtures'
 import type { Video } from '@signalwire/js'
 import {
   createTestRoomSession,
-  enablePageLogs,
-  expectInteractivityMode,
   SERVER_URL,
+  expectRoomJoined,
+  expectMCUVisible,
 } from '../utils'
 
 test.describe('RoomSession promote myself', () => {
-  test('should get 202 on trying to promote a member', async ({ context }) => {
-    const pageOne = await context.newPage()
-    enablePageLogs(pageOne, '[pageOne]')
+  test('should get 202 on trying to promote a member', async ({
+    createCustomPage,
+  }) => {
+    const pageOne = await createCustomPage({ name: '[page]' })
 
     await pageOne.goto(SERVER_URL)
 
@@ -27,24 +28,10 @@ test.describe('RoomSession promote myself', () => {
     await createTestRoomSession(pageOne, memberSettings)
 
     // --------------- Joining from the 1st tab as member and resolve on 'room.joined' ---------------
-    await pageOne.evaluate(() => {
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
-        roomObj.on('room.joined', resolve)
-        roomObj.join()
-      })
-    })
-
-    // --------------- Make sure on pageOne we have a member ---------------
-    await expectInteractivityMode(pageOne, 'member')
+    await expectRoomJoined(pageOne)
 
     // Checks that the video is visible on pageOne
-    await pageOne.waitForSelector('div[id^="sw-sdk-"] > video', {
-      timeout: 5000,
-    })
-
-    await pageOne.waitForTimeout(2000)
+    await expectMCUVisible(pageOne)
 
     // --------------- Promote participant from pageOne and resolve on error ---------------
     const promoteResponse: any = await pageOne.evaluate(() => {
@@ -61,9 +48,5 @@ test.describe('RoomSession promote myself', () => {
     })
 
     expect(promoteResponse).toBe(true)
-
-    // --------------- Leaving the rooms ---------------
-    // @ts-expect-error
-    await pageOne.evaluate(() => window._roomObj.leave())
   })
 })

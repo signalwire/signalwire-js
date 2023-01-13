@@ -70,7 +70,9 @@ const runTests = (mode, config) => {
           : runCommand
       try {
         console.time('Playwright Tests')
-        execSync(command, { stdio: 'inherit' })
+        execSync(`${command} ${process.argv.slice(3).join(' ')}`, {
+          stdio: 'inherit',
+        })
         console.log('\n')
         console.timeEnd('Playwright Tests')
         console.log(`Playwright Done ${new Date().toISOString()}`)

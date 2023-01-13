@@ -1,3 +1,4 @@
+import type { Video } from '@signalwire/js'
 import { createServer } from 'vite'
 import path from 'path'
 import { Page, expect } from '@playwright/test'
@@ -56,6 +57,7 @@ export const createTestRoomSession = async (
     vrt: CreateTestVRTOptions
     /** set of events to automatically subscribe before room.join() */
     initialEvents?: string[]
+    expectToJoin?: boolean
   }
 ) => {
   const vrt = await createTestVRTToken(options.vrt)
@@ -63,7 +65,7 @@ export const createTestRoomSession = async (
     console.error('Invalid VRT. Exiting..')
     process.exit(4)
   }
-  return page.evaluate(
+  const roomSession: Video.RoomSession = await page.evaluate(
     (options) => {
       // @ts-expect-error
       const Video = window._SWJS.Video
@@ -71,12 +73,10 @@ export const createTestRoomSession = async (
         host: options.RELAY_HOST,
         token: options.API_TOKEN,
         rootElement: document.getElementById('rootElement'),
-        audio: true,
-        video: true,
-        logLevel: 'warn',
-        // debug: {
-        //   logWsTraffic: true,
-        // },
+        logLevel: options.CI ? 'warn' : 'debug',
+        debug: {
+          logWsTraffic: !options.CI,
+        },
       })
 
       options.initialEvents?.forEach((event) => {
@@ -92,8 +92,23 @@ export const createTestRoomSession = async (
       RELAY_HOST: process.env.RELAY_HOST,
       API_TOKEN: vrt,
       initialEvents: options.initialEvents,
+      CI: process.env.CI,
     }
   )
+
+  if (options.expectToJoin !== false) {
+    expectRoomJoined(page, { invokeJoin: false }).then(async (params) => {
+      await expectMemberId(page, params.member_id)
+
+      const dir = options.vrt.join_as === 'audience' ? 'recvonly' : 'sendrecv'
+      await expectSDPDirection(page, dir, true)
+
+      const mode = options.vrt.join_as === 'audience' ? 'audience' : 'member'
+      await expectInteractivityMode(page, mode)
+    })
+  }
+
+  return roomSession
 }
 
 interface CreateTestVRTOptions {
@@ -107,7 +122,7 @@ interface CreateTestVRTOptions {
   remove_after_seconds_elapsed?: number
   auto_create_room?: boolean
   join_as?: 'member' | 'audience'
-  media_allowed?: 'audio-only' | 'audio-only' | 'all'
+  media_allowed?: 'audio-only' | 'video-only' | 'all'
 }
 
 export const createTestVRTToken = async (body: CreateTestVRTOptions) => {
@@ -163,6 +178,7 @@ export const expectSDPDirection = async (
   const peerSDP = await page.evaluate(async () => {
     // @ts-expect-error
     const roomObj: Video.RoomSession = window._roomObj
+    // @ts-expect-error
     return roomObj.peer.localSdp
   })
 
@@ -211,6 +227,31 @@ export const setLayoutOnPage = (page: Page, layoutName: string) => {
   )
 }
 
+export const expectRoomJoined = (
+  page: Page,
+  options: { invokeJoin: boolean } = { invokeJoin: true }
+) => {
+  return page.evaluate(({ invokeJoin }) => {
+    return new Promise<any>(async (resolve) => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      roomObj.once('room.joined', resolve)
+
+      if (invokeJoin) {
+        await roomObj.join()
+      }
+    })
+  }, options)
+}
+
+export const expectMCUVisible = async (page: Page) => {
+  await page.waitForSelector('div[id^="sw-sdk-"] > video')
+}
+
+export const expectMCUVisibleForAudience = async (page: Page) => {
+  await page.waitForSelector('#rootElement video')
+}
+
 export const randomizeRoomName = (prefix: string = 'e2e') => {
   return `${prefix}${uuid()}`
 }
@@ -223,6 +264,44 @@ export const expectMemberId = async (page: Page, memberId: string) => {
   })
 
   expect(roomMemberId).toEqual(memberId)
+}
+
+export const expectTotalAudioEnergyToBeGreaterThan = async (
+  page: Page,
+  value: number
+) => {
+  const audioStats = await page.evaluate(async () => {
+    // @ts-expect-error
+    const roomObj: Video.RoomSession = window._roomObj
+    // @ts-expect-error
+    const stats = await roomObj.peer.instance.getStats(null)
+    const filter = {
+      'inbound-rtp': ['audioLevel', 'totalAudioEnergy', 'totalSamplesDuration'],
+    }
+    const result: any = {}
+    Object.keys(filter).forEach((entry) => {
+      result[entry] = {}
+    })
+
+    stats.forEach((report: any) => {
+      for (const [key, value] of Object.entries(filter)) {
+        //console.log(key, value, report.type)
+        if (report.type == key) {
+          value.forEach((entry) => {
+            //console.log(key, entry, report[entry])
+            if (report[entry]) {
+              result[key][entry] = report[entry]
+            }
+          })
+        }
+      }
+    }, {})
+
+    return result
+  })
+  console.log('audioStats', audioStats)
+
+  expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(value)
 }
 
 const getRoomByName = async (roomName: string) => {

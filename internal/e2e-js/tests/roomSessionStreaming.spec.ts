@@ -1,15 +1,19 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../fixtures'
 import type { Video } from '@signalwire/js'
-import { SERVER_URL, createTestRoomSession, enablePageLogs } from '../utils'
+import {
+  SERVER_URL,
+  createTestRoomSession,
+  expectRoomJoined,
+  expectMCUVisible,
+} from '../utils'
 
 test.describe('RoomSession', () => {
-  test('should handle Stream events and methods', async ({ context }) => {
-    const pageOne = await context.newPage()
-    enablePageLogs(pageOne, '[pageOne]')
-    const pageTwo = await context.newPage()
-    enablePageLogs(pageTwo, '[pageTwo]')
-    const pageThree = await context.newPage()
-    enablePageLogs(pageThree, '[pageThree]')
+  test('should handle Stream events and methods', async ({
+    createCustomPage,
+  }) => {
+    const pageOne = await createCustomPage({ name: '[pageOne]' })
+    const pageTwo = await createCustomPage({ name: '[pageTwo]' })
+    const pageThree = await createCustomPage({ name: '[pageThree]' })
 
     await Promise.all([
       pageOne.goto(SERVER_URL),
@@ -44,19 +48,10 @@ test.describe('RoomSession', () => {
     })
 
     // --------------- Joining from the 1st tab and resolve on 'room.joined' ---------------
-    await pageOne.evaluate(() => {
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
-        roomObj.on('room.joined', resolve)
-        roomObj.join()
-      })
-    })
+    await expectRoomJoined(pageOne)
 
     // Checks that the video is visible on pageOne
-    await pageOne.waitForSelector('div[id^="sw-sdk-"] > video', {
-      timeout: 5000,
-    })
+    await expectMCUVisible(pageOne)
 
     // --------------- Start stream from 1st room ---------------
     await pageOne.evaluate(
@@ -84,9 +79,7 @@ test.describe('RoomSession', () => {
     )
 
     // Checks that the video is visible on pageTwo
-    await pageTwo.waitForSelector('div[id^="sw-sdk-"] > video', {
-      timeout: 5000,
-    })
+    await expectMCUVisible(pageTwo)
 
     // --------------- Joining from the 3rd tab and get the active streams ---------------
     const { streamsOnJoined, streamsOnGet, streamOnEnd }: any =
@@ -144,17 +137,5 @@ test.describe('RoomSession', () => {
 
     // --------------- Make sure pageTwo got the `stream.started` event ---------------
     await pageTwoStreamPromise
-
-    await new Promise((r) => setTimeout(r, 1000))
-
-    // --------------- Leaving the rooms ---------------
-    await Promise.all([
-      // @ts-expect-error
-      pageOne.evaluate(() => window._roomObj.leave()),
-      // @ts-expect-error
-      pageTwo.evaluate(() => window._roomObj.leave()),
-      // @ts-expect-error
-      pageThree.evaluate(() => window._roomObj.leave()),
-    ])
   })
 })
