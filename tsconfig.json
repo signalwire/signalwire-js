@@ -31,5 +31,6 @@
     "useUnknownInCatchVariables": false,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
-  }
+  },
+  "include": ["packages"]
 }
