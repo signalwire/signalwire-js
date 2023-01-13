@@ -57,6 +57,25 @@ test.describe('RoomSession talking events to audience', () => {
       })
     })
 
+    const waitForMemberJoined = pageTwo.evaluate(async() => {
+      return new Promise((resolve, reject) => {
+        // @ts-expect-error
+        const roomObj = window._roomObj
+        roomObj.on('member.joined', ({ member }) => {
+          if (member.name === 'e2e_member') {
+            resolve(true)
+          } else {
+            reject(
+              new Error(
+                '[member.joined] Name is not "e2e_member"'
+              )
+            )
+          }
+        })
+      })
+    })
+
+
     await pageTwo.waitForTimeout(1000)
 
     // --------------- Joining from the 1st tab as member and resolve on 'room.joined' ---------------
@@ -65,7 +84,6 @@ test.describe('RoomSession talking events to audience', () => {
     // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)
 
-    // Wait for `member.talking` on pageTwo
-    await audienceMemberTalkingPromise
+    await Promise.all([audienceMemberTalkingPromise, waitForMemberJoined])
   })
 })

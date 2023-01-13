@@ -55,6 +55,7 @@ test.describe('RoomSession', () => {
         'playback.started',
         'playback.updated',
         'recording.ended',
+        'recording.updated',
         'recording.started',
         'room.updated',
       ],
@@ -196,6 +197,30 @@ test.describe('RoomSession', () => {
         })
       })
 
+      let recordingPaused = false
+      const roomUpdatedPaused = new Promise((resolve, reject) => {
+        roomObj.on('recording.updated', (params) => {
+          if (params.state === 'paused' && recordingPaused === false) {
+            recordingPaused = true
+            resolve(true)
+          } else {
+            reject(new Error('[recording.updated] state is not "paused"'))
+          }
+        })
+      })
+
+      const roomUpdatedResumed = new Promise((resolve, reject) => {
+        roomObj.on('recording.updated', (params) => {
+          if (params.state === 'recording' && recordingPaused === true) {
+            resolve(true)
+          } else if (params.state === 'paused' && recordingPaused === true) {
+            console.log("[recording.updated] Still waiting for recording to resume...")
+          } else {
+            reject(new Error('[recording.updated] state is not "paused" or "recording"'))
+          }
+        })
+      })
+
       const recordingEnded = new Promise((resolve, reject) => {
         roomObj.on('recording.ended', (params) => {
           if (params.state === 'completed') {
@@ -209,10 +234,19 @@ test.describe('RoomSession', () => {
       const recObj = await roomObj.startRecording()
 
       await new Promise((r) => setTimeout(r, 1000))
-
+      await recObj.pause()
+      await new Promise((r) => setTimeout(r, 1000))
+      await recObj.resume()
+      await new Promise((r) => setTimeout(r, 1000))
       await recObj.stop()
 
-      return Promise.all([recordingStarted, roomUpdatedStarted, recordingEnded])
+      return Promise.all([
+        recordingStarted,
+        roomUpdatedStarted,
+        roomUpdatedPaused,
+        roomUpdatedResumed,
+        recordingEnded
+      ])
     })
 
     // --------------- Playback ---------------
