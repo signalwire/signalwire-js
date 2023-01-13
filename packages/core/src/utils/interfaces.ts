@@ -319,7 +319,7 @@ export interface WebSocketClient {
   readyState: WebSocket['readyState']
 }
 
-interface NodeSocketClient extends WebSocketClient {
+export interface NodeSocketClient extends WebSocketClient {
   addEventListener(
     method: 'open' | 'close' | 'error' | 'message',
     cb: (event: any) => void,
@@ -329,6 +329,7 @@ interface NodeSocketClient extends WebSocketClient {
     method: 'open' | 'close' | 'error' | 'message',
     cb: (event: any) => void
   ): void
+  send(data: any, cb?: (err?: Error) => void): void
 }
 
 /**
