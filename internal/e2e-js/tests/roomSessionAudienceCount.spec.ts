@@ -51,63 +51,35 @@ test.describe('RoomSession Audience Count', () => {
         })
       })
     )
-    // --------------- Joining the room and resolve on room.audienceCount ---------------
-    const joinPromiseOne = pageOne.evaluate(() => {
-      return new Promise(async (resolve) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        // Need to keep lastAudienceCounter on window in here
-        // we don't have access to parent scope since this closure is ran
-        // inside page context.
-        // @ts-expect-error
-        window.__audienceCount = 0
-        roomObj.on('room.audienceCount', (params) => {
-          // @ts-expect-error
-          window.__audienceCount = params.total
-          //@ts-expect-error
-          if (window.__audienceCount == 1) {
-            resolve(params)
-          }
-        })
 
-        await roomObj.join()
-      })
-    })
+    // Joining the room and resolve when the total from room.audienceCount is equal to expectedAudienceCount
+    const audienceCountPromise = pageOne.evaluate(
+      ({ expectedAudienceCount }) => {
+        return new Promise(async (resolve) => {
+          // @ts-expect-error
+          const roomObj: Video.RoomSession = window._roomObj
+          roomObj.on('room.audienceCount', (params) => {
+            if (params.total === expectedAudienceCount) {
+              resolve(params)
+            }
+          })
+
+          await roomObj.join()
+        })
+      },
+      { expectedAudienceCount }
+    )
 
     // join as audience on pageTwo and resolve on `room.joined`
     const joinTwoParams: any = await expectRoomJoined(pageTwo)
-
+    // expect to have only 1 audience in the room at the moment
     expect(joinTwoParams.room_session.audience_count).toBe(1)
-
-    await joinPromiseOne
-
-    const expectAudienceCountFromPageOne = async (count: number) => {
-      const audienceCount = await pageOne.evaluate(() => {
-        // @ts-expect-error
-        return window.__audienceCount
-      })
-      expect(audienceCount).toBe(count)
-    }
-
-    await expectAudienceCountFromPageOne(1)
-    let currentCount = 1
 
     const [_, ...pageThreeToFive] = audiencePages
     // join as audiences on pageThree to pageFive and resolve on `room.joined`
     await Promise.all(pageThreeToFive.map((page) => expectRoomJoined(page)))
 
-    const currentCountPromise: any = await pageOne.evaluate(() => {
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        roomObj.on('room.audienceCount', (params) => {
-          resolve(params.total)
-        })
-      })
-    })
-
-    while (currentCount !== expectedAudienceCount) {
-      currentCount = await currentCountPromise
-    }
+    // wait for all the room.audienceCount
+    await audienceCountPromise
   })
 })
