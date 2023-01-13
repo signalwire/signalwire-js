@@ -11,7 +11,7 @@ import {
   expectRoomJoined,
   expectMCUVisible,
   expectMCUVisibleForAudience,
-  expectTotalAudioEnergyToBeGreaterThan,
+  expectPageReceiveAudio
 } from '../utils'
 
 test.describe('RoomSession promote/demote methods', () => {
@@ -61,27 +61,13 @@ test.describe('RoomSession promote/demote methods', () => {
       createTestRoomSession(pageTwo, audienceSettings),
     ])
 
-    // --------------- Joining from the 1st tab as member and resolve on 'room.joined' ---------------
     await expectRoomJoined(pageOne)
-
-    // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)
 
-    // --------------- Joining from the 2st tab as audience and resolve on 'room.joined' ---------------
     const pageTwoRoomJoined = await expectRoomJoined(pageTwo)
-
-    // Stable ref of the initial memberId for the audience
     const audienceId = pageTwoRoomJoined.member_id
-
-    // Checks that the video is visible on pageTwo
     await expectMCUVisibleForAudience(pageTwo)
-
-    // --------------- Check that the audience member on pageTwo is receiving non-silence ---------------
-    await pageOne.waitForTimeout(5000)
-    await expectTotalAudioEnergyToBeGreaterThan(pageTwo, 0.1)
-
-    await pageOne.waitForTimeout(5000)
-    await expectTotalAudioEnergyToBeGreaterThan(pageTwo, 0.5)
+    await expectPageReceiveAudio(pageTwo)
 
     // --------------- Make sure a `layout.changed` reached both member and audience --------------
 
