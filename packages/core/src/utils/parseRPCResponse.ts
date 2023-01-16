@@ -23,6 +23,8 @@ export const parseRPCResponse = ({
   }
 }
 
+const whitelistCodeRegex = /^2[0-9][0-9]$/
+
 /**
  * From the socket we can get:
  * - JSON-RPC msg with 1 level of 'result' or 'error'
@@ -40,9 +42,8 @@ const parseResponse = (
     return { error }
   }
   const { code, node_id, result: nestedResult = null } = result
-  // Throw error if the code is not 2xx
-  const regex = /^2[0-9][0-9]$/
-  if (code && !regex.test(code)) {
+  // Throw error if the code is not whitelisted (2xx)
+  if (code && !whitelistCodeRegex.test(code)) {
     return { error: result }
   }
   if (nestedResult === null) {
