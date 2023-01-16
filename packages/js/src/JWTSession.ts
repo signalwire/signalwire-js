@@ -31,6 +31,13 @@ export class JWTSession extends BaseJWTSession {
     return this.options._hijack
   }
 
+  get storage() {
+    if (window && window.sessionStorage) {
+      return window.sessionStorage
+    }
+    return undefined
+  }
+
   override async retrieveRelayProtocol() {
     if (!this.allowHijack) {
       return ''
@@ -39,7 +46,7 @@ export class JWTSession extends BaseJWTSession {
     const key = this.getProtocolSessionStorageKey()
     if (key) {
       this.logger.info('Hijacking: search protocol for', key)
-      return window.sessionStorage.getItem(key) ?? ''
+      return this.storage?.getItem(key) ?? ''
     }
     return ''
   }
@@ -52,14 +59,14 @@ export class JWTSession extends BaseJWTSession {
     const key = this.getProtocolSessionStorageKey()
     if (key) {
       this.logger.info('Hijacking: persist protocol', key, this.relayProtocol)
-      window.sessionStorage.setItem(key, this.relayProtocol)
+      this.storage?.setItem(key, this.relayProtocol)
     }
   }
 
   protected override async retrieveSwAuthorizationState() {
     const key = this.getAuthStateSessionStorageKey()
     if (key) {
-      return window.sessionStorage.getItem(key) ?? ''
+      return this.storage?.getItem(key) ?? ''
     }
     return ''
   }
@@ -74,7 +81,7 @@ export class JWTSession extends BaseJWTSession {
     const key = this.getAuthStateSessionStorageKey()
     if (key) {
       this.logger.info('Hijacking: persist auth state', key, state)
-      window.sessionStorage.setItem(key, state)
+      this.storage?.setItem(key, state)
     }
   }
 
