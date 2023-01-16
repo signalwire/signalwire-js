@@ -284,6 +284,9 @@ export class BaseSession {
       this._executeTimeoutError
     ).catch((error) => {
       if (error === this._executeTimeoutError) {
+        if ('method' in msg && msg.method === 'signalwire.connect') {
+          return this.logger.debug('Previous signalwire.connect timeout')
+        }
         this.logger.error('Request Timeout', msg)
         if (this.status === 'disconnected') {
           return this.logger.debug(
