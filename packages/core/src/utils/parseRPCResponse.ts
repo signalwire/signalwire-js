@@ -40,7 +40,9 @@ const parseResponse = (
     return { error }
   }
   const { code, node_id, result: nestedResult = null } = result
-  if (code && code !== '200') {
+  // Throw error if the code is not 2xx
+  const regex = /^2[0-9][0-9]$/
+  if (code && !regex.test(code)) {
     return { error: result }
   }
   if (nestedResult === null) {
