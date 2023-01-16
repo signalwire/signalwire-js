@@ -1,12 +1,12 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../fixtures'
 import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
   createOrUpdateRoom,
   deleteRoom,
-  enablePageLogs,
   randomizeRoomName,
+  expectRoomJoined,
 } from '../utils'
 
 interface TestConfig {
@@ -39,9 +39,9 @@ test.describe('RoomSession join_from', () => {
 
   tests.forEach((row) => {
     test(`should not be possible to join a room before the join_from [${row.testName}]`, async ({
-      page,
+      createCustomPage,
     }) => {
-      const buildRoomSession = () => {
+      const buildRoomSession = (opts = { expectToJoin: true }) => {
         return createTestRoomSession(page, {
           vrt: {
             room_name: row.roomName,
@@ -51,14 +51,15 @@ test.describe('RoomSession join_from', () => {
             join_from: row.autoCreateRoom ? joinFrom : undefined,
           },
           initialEvents: [],
+          expectToJoin: opts.expectToJoin,
         })
       }
       let roomData: any = {}
 
+      const page = await createCustomPage({ name: '[joinFromPage]' })
       await page.goto(SERVER_URL)
-      enablePageLogs(page)
 
-      const delay = 5_000
+      const delay = 10_000
       const joinFrom = new Date(Date.now() + delay).toISOString()
       if (!row.autoCreateRoom) {
         roomData = await createOrUpdateRoom({
@@ -67,7 +68,7 @@ test.describe('RoomSession join_from', () => {
         })
       }
 
-      await buildRoomSession()
+      await buildRoomSession({ expectToJoin: false })
 
       // --------------- Joining the room and expect an error ---------------
       const joinError: any = await page.evaluate(async () => {
@@ -87,14 +88,7 @@ test.describe('RoomSession join_from', () => {
       await buildRoomSession()
 
       // --------------- Joining the room ---------------
-      const joinParams: any = await page.evaluate(async () => {
-        return new Promise((r) => {
-          // @ts-expect-error
-          const roomObj = window._roomObj
-          roomObj.on('room.joined', (params: any) => r(params))
-          roomObj.join()
-        })
-      })
+      const joinParams: any = await expectRoomJoined(page)
 
       expect(joinParams.room).toBeDefined()
       expect(joinParams.room_session).toBeDefined()
@@ -106,23 +100,7 @@ test.describe('RoomSession join_from', () => {
       expect(joinParams.room_session.name).toBe(row.roomName)
       expect(joinParams.room.name).toBe(row.roomName)
 
-      await page.waitForTimeout(3000)
-
-      // --------------- Leaving the room ---------------
-      await page.evaluate(() => {
-        // @ts-expect-error
-        return window._roomObj.leave()
-      })
-
-      // Checks that all the elements added by the SDK are gone.
-      const targetElementsCount = await page.evaluate(() => {
-        return {
-          videos: Array.from(document.querySelectorAll('video')).length,
-          rootEl: document.getElementById('rootElement')!.childElementCount,
-        }
-      })
-      expect(targetElementsCount.videos).toBe(0)
-      expect(targetElementsCount.rootEl).toBe(0)
+      await page.waitForTimeout(1000)
 
       if (row.cleanup) {
         await deleteRoom(roomData.id)

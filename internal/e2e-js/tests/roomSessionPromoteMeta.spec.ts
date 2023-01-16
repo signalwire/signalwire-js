@@ -1,21 +1,21 @@
-import { test } from '@playwright/test'
+import { test } from '../fixtures'
 import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
-  enablePageLogs,
   expectSDPDirection,
   expectInteractivityMode,
+  expectRoomJoined,
+  expectMCUVisible,
+  expectMCUVisibleForAudience,
 } from '../utils'
 
 test.describe('RoomSession promote updating member meta', () => {
   test('should promote audience setting the meta field', async ({
-    context,
+    createCustomPage,
   }) => {
-    const pageOne = await context.newPage()
-    enablePageLogs(pageOne, '[pageOne]')
-    const pageTwo = await context.newPage()
-    enablePageLogs(pageTwo, '[pageTwo]')
+    const pageOne = await createCustomPage({ name: '[pageOne]' })
+    const pageTwo = await createCustomPage({ name: '[pageTwo]' })
 
     await Promise.all([pageOne.goto(SERVER_URL), pageTwo.goto(SERVER_URL)])
 
@@ -46,43 +46,16 @@ test.describe('RoomSession promote updating member meta', () => {
     ])
 
     // --------------- Joining from the 1st tab as member and resolve on 'room.joined' ---------------
-    await pageOne.evaluate(() => {
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
-        roomObj.on('room.joined', resolve)
-        roomObj.join()
-      })
-    })
-
-    // --------------- Make sure on pageOne we have a member ---------------
-    await expectInteractivityMode(pageOne, 'member')
+    await expectRoomJoined(pageOne)
 
     // Checks that the video is visible on pageOne
-    await pageOne.waitForSelector('div[id^="sw-sdk-"] > video', {
-      timeout: 5000,
-    })
+    await expectMCUVisible(pageOne)
 
     // --------------- Joining from the 2st tab as audience and resolve on 'room.joined' ---------------
-    const pageTwoRoomJoined: any = await pageTwo.evaluate(() => {
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
-        roomObj.once('room.joined', resolve)
-        roomObj.join()
-      })
-    })
-
-    // --------------- Make sure on pageTwo we have a audience ---------------
-    await expectInteractivityMode(pageTwo, 'audience')
-
-    // --------------- Check SDP/RTCPeer on audience (recvonly since audience) ---------------
-    await expectSDPDirection(pageTwo, 'recvonly', true)
+    const pageTwoRoomJoined = await expectRoomJoined(pageTwo)
 
     // Checks that the video is visible on pageTwo
-    await pageTwo.waitForSelector('#rootElement video', {
-      timeout: 10000,
-    })
+    await expectMCUVisibleForAudience(pageTwo)
 
     // ------- Promote audience from pageOne and resolve on `member.joined` and pageTwo room.joined ----
     const promiseAudienceRoomSubscribed = pageTwo.evaluate(() => {
@@ -90,7 +63,7 @@ test.describe('RoomSession promote updating member meta', () => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
 
-        roomObj.on('room.joined', ({ room_session }) => {
+        roomObj.once('room.joined', ({ room_session }) => {
           for (let member of room_session.members) {
             if (member.name === 'e2e_audience_meta') {
               if (member.meta && member.meta['vip'] === true) {
@@ -151,15 +124,5 @@ test.describe('RoomSession promote updating member meta', () => {
 
     // --------------- Check SDP/RTCPeer on audience (now member so sendrecv) ---------------
     await expectSDPDirection(pageTwo, 'sendrecv', true)
-
-    await pageTwo.waitForTimeout(2000)
-
-    // --------------- Leaving the rooms ---------------
-    await Promise.all([
-      // @ts-expect-error
-      pageOne.evaluate(() => window._roomObj.leave()),
-      // @ts-expect-error
-      pageTwo.evaluate(() => window._roomObj.leave()),
-    ])
   })
 })

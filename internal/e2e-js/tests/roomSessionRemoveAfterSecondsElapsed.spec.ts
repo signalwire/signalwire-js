@@ -1,11 +1,10 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../fixtures'
 import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
   createOrUpdateRoom,
   deleteRoom,
-  enablePageLogs,
   randomizeRoomName,
 } from '../utils'
 
@@ -39,12 +38,14 @@ test.describe('RoomSession remove_after_seconds_elapsed', () => {
 
   tests.forEach((row) => {
     test(`should remove the member after X seconds elapsed [${row.testName}]`, async ({
-      page,
+      createCustomPage,
     }) => {
       let roomData: any = {}
 
+      const page = await createCustomPage({
+        name: '[removeAfterSecElapsedPage]',
+      })
       await page.goto(SERVER_URL)
-      enablePageLogs(page)
 
       const removeAfter = 5
       if (!row.autoCreateRoom) {
@@ -69,7 +70,7 @@ test.describe('RoomSession remove_after_seconds_elapsed', () => {
 
       // --------------- Joining the room and wait first `room.joined` and then `room.left` ---------------
       await page.evaluate(async () => {
-        return new Promise((resolve) => {
+        return new Promise(async (resolve) => {
           // @ts-expect-error
           const roomObj: Video.RoomSession = window._roomObj
           roomObj.on('room.joined', () => {
@@ -78,7 +79,7 @@ test.describe('RoomSession remove_after_seconds_elapsed', () => {
             })
           })
 
-          roomObj.join()
+          await roomObj.join()
         })
       })
 
