@@ -85,6 +85,22 @@ export class JWTSession extends BaseJWTSession {
     }
   }
 
+  protected override _onSocketClose(event: CloseEvent) {
+    if (this.status === 'unknown') {
+      this.logger.info('Hijacking: invalid values - cleaning up storage')
+      const protocolKey = this.getProtocolSessionStorageKey()
+      if (protocolKey) {
+        this.storage?.removeItem(protocolKey)
+      }
+      const authStatekey = this.getAuthStateSessionStorageKey()
+      if (authStatekey) {
+        this.storage?.removeItem(authStatekey)
+      }
+    }
+
+    super._onSocketClose(event)
+  }
+
   private getAuthStateSessionStorageKey() {
     return `as-${this.getSessionStorageKey()}`
   }
