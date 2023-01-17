@@ -127,19 +127,6 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
         if (prevCallId) {
           // @ts-expect-error
           room.options.prevCallId = prevCallId
-          // // @ts-expect-error
-          // const dialogParamsRef = room.dialogParams
-          // // @ts-expect-error
-          // room.dialogParams = (rtcPeerId: string) => {
-          //   console.debug('Forcing version to 1000')
-          //   const tmp = dialogParamsRef.call(room, rtcPeerId)
-          //   return {
-          //     dialogParams: {
-          //       ...tmp.dialogParams,
-          //       id: prevCallId,
-          //     },
-          //   }
-          // }
         }
       }
     },
