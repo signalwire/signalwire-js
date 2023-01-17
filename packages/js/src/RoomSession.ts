@@ -151,9 +151,6 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     },
   }
 
-  // Hijack previous callId if present
-  hijackManager.init()
-
   // WebRTC connection left the room.
   room.once('destroy', () => {
     // @ts-expect-error
@@ -220,6 +217,9 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
           room.attachOnSubscribedWorkers(payload)
           resolve(room)
         })
+
+        // Hijack previous callId if present
+        hijackManager.init()
 
         await room.join()
       } catch (error) {
