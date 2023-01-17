@@ -96,6 +96,8 @@ export class JWTSession extends BaseJWTSession {
       if (authStatekey) {
         this.storage?.removeItem(authStatekey)
       }
+      // Remove also the previous callId
+      this.storage?.removeItem('callId')
     }
 
     super._onSocketClose(event)
