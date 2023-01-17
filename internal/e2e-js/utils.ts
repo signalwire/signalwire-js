@@ -273,10 +273,25 @@ export const expectTotalAudioEnergyToBeGreaterThan = async (
   const audioStats = await page.evaluate(async () => {
     // @ts-expect-error
     const roomObj: Video.RoomSession = window._roomObj
+
+    // @ts-expect-error
+    const audioTrackId = roomObj.peer._getReceiverByKind('audio').track.id
+
     // @ts-expect-error
     const stats = await roomObj.peer.instance.getStats(null)
     const filter = {
-      'inbound-rtp': ['audioLevel', 'totalAudioEnergy', 'totalSamplesDuration'],
+      'inbound-rtp': [
+        'audioLevel',
+        'totalAudioEnergy',
+        'totalSamplesDuration',
+        'totalSamplesReceived',
+        'packetsDiscarded',
+        'lastPacketReceivedTimestamp',
+        'bytesReceived',
+        'packetsReceived',
+        'packetsLost',
+        'packetsRetransmitted',
+      ],
     }
     const result: any = {}
     Object.keys(filter).forEach((entry) => {
@@ -285,10 +300,10 @@ export const expectTotalAudioEnergyToBeGreaterThan = async (
 
     stats.forEach((report: any) => {
       for (const [key, value] of Object.entries(filter)) {
-        //console.log(key, value, report.type)
-        if (report.type == key) {
+        if (report.type == key &&
+          report["mediaType"] === "audio" &&
+          report["trackIdentifier"] === audioTrackId) {
           value.forEach((entry) => {
-            //console.log(key, entry, report[entry])
             if (report[entry]) {
               result[key][entry] = report[entry]
             }
@@ -392,4 +407,9 @@ export const deleteRoom = async (id: string) => {
       Authorization: `Basic ${Buffer.from(authCreds).toString('base64')}`,
     },
   })
+}
+
+export const expectPageReceiveAudio = async (page: Page) => {
+  await page.waitForTimeout(10000)
+  await expectTotalAudioEnergyToBeGreaterThan(page, 0.5)
 }
