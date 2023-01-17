@@ -62,6 +62,18 @@ describe('parseRPCResponse', () => {
       })
     })
 
+    it.each([200, 201, 202, 226])(
+      'should handle all the 2xx codes: %p',
+      (code) => {
+        const response = JSON.parse(
+          `{"jsonrpc":"2.0","id":"uuid","result":{"code":${code},"message":"Playing","call_id":"call-id"}}`
+        )
+        expect(parseRPCResponse({ request, response })).toEqual({
+          result: { code, message: 'Playing', call_id: 'call-id' },
+        })
+      }
+    )
+
     it('should handle Verto result wrapped in JSONRPC', () => {
       const vertoResponse = JSON.parse(
         '{"jsonrpc":"2.0","id":"uuid","result":{"code":"200","node_id":"node-id","result":{"jsonrpc":"2.0","id":"verto-uuid","result":{"message":"CALL CREATED","callID":"call-id"}}}}'

@@ -23,7 +23,7 @@ export const parseRPCResponse = ({
   }
 }
 
-const SUCCESS_CODES = ['200', '202']
+const whitelistCodeRegex = /^2[0-9][0-9]$/
 
 /**
  * From the socket we can get:
@@ -42,7 +42,8 @@ const parseResponse = (
     return { error }
   }
   const { code, node_id, result: nestedResult = null } = result
-  if (code && !SUCCESS_CODES.includes(code)) {
+  // Throw error if the code is not whitelisted (2xx)
+  if (code && !whitelistCodeRegex.test(code)) {
     return { error: result }
   }
   if (nestedResult === null) {
