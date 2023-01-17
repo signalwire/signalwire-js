@@ -63,6 +63,7 @@ export class BaseSession {
   private _socket: WebSocketClient | null = null
   private _host: string = DEFAULT_HOST
 
+  protected _swConnectError = Symbol.for('sw-connect-error')
   private _executeTimeoutMs = 10 * 1000
   private _executeTimeoutError = Symbol.for('sw-execute-timeout')
   private _executeQueue: Set<JSONRPCRequest | JSONRPCResponse> = new Set()
@@ -285,7 +286,7 @@ export class BaseSession {
     ).catch((error) => {
       if (error === this._executeTimeoutError) {
         if ('method' in msg && msg.method === 'signalwire.connect') {
-          return this.logger.debug('Previous signalwire.connect timeout')
+          throw this._swConnectError
         }
         this.logger.error('Request Timeout', msg)
         if (this.status === 'disconnected') {

@@ -83,9 +83,17 @@ export class BaseJWTSession extends BaseSession {
       }
     }
 
-    this._rpcConnectResult = await this.execute(RPCConnect(params))
-    await this.persistRelayProtocol()
-    this._checkTokenExpiration()
+    try {
+      this._rpcConnectResult = await this.execute(RPCConnect(params))
+      await this.persistRelayProtocol()
+      this._checkTokenExpiration()
+    } catch (error) {
+      if (error === this._swConnectError) {
+        this.logger.debug('Invalid connect response?')
+        return
+      }
+      throw error
+    }
   }
 
   async retrieveRelayProtocol() {
