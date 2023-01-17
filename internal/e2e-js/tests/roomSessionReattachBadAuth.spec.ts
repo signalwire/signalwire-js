@@ -1,20 +1,20 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../fixtures'
 import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
   createTestRoomSessionWithJWT,
-  enablePageLogs,
   randomizeRoomName,
+  expectRoomJoined,
+  expectMCUVisible,
 } from '../utils'
 
 test.describe('RoomSessionReattachBadAuth', () => {
-  test('join a room, reattach with invalid authorization_state and then leave the room',
-  async ({
-    page,
+  test('join a room, reattach with invalid authorization_state and then leave the room', async ({
+    createCustomPage,
   }) => {
+    const page = await createCustomPage({ name: '[reattach-bad-auth]' })
     await page.goto(SERVER_URL)
-    enablePageLogs(page)
 
     const roomName = randomizeRoomName()
     const permissions: any = []
@@ -27,24 +27,13 @@ test.describe('RoomSessionReattachBadAuth', () => {
       },
       initialEvents: [],
       roomSessionOptions: {
-        _hijack: true,
-        logLevel: 'warn',
-        // debug: {
-        //   logWsTraffic: true,
-        // },
+        _hijack: true, // FIXME: to remove
       },
     }
     await createTestRoomSession(page, connectionSettings)
 
     // --------------- Joining the room ---------------
-    const joinParams: any = await page.evaluate(() => {
-      return new Promise((r) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
-        roomObj.on('room.joined', (params: any) => r(params))
-        roomObj.join()
-      })
-    })
+    const joinParams: any = await expectRoomJoined(page)
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
@@ -57,7 +46,7 @@ test.describe('RoomSessionReattachBadAuth', () => {
     expect(joinParams.room.name).toBe(roomName)
 
     // Checks that the video is visible
-    await page.waitForSelector('div[id^="sw-sdk-"] > video', { timeout: 5000 })
+    await expectMCUVisible(page)
 
     const roomPermissions: any = await page.evaluate(() => {
       // @ts-expect-error
@@ -65,14 +54,11 @@ test.describe('RoomSessionReattachBadAuth', () => {
       return roomObj.permissions
     })
     expect(roomPermissions).toStrictEqual(permissions)
-    const room_name = joinParams.room_session.name
-    expect(room_name).toBeDefined()
 
     const jwtToken: string = await page.evaluate(() => {
       // @ts-expect-error
       return window.jwt_token
     })
-
 
     // --------------- Reattaching ---------------
     await page.reload()
@@ -80,32 +66,25 @@ test.describe('RoomSessionReattachBadAuth', () => {
     await createTestRoomSessionWithJWT(page, connectionSettings, jwtToken)
 
     // Join again but with a bogus authorization_state
-    const joinResponse: any = await page.evaluate(async (room_name) => {
+    const joinResponse: any = await page.evaluate(async (roomName) => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
 
       // Inject wrong values for authorization state
-      const key = "as-" + room_name + "-member"
-      const state = btoa("just wrong")
+      const key = `as-${roomName}-member`
+      const state = btoa('just wrong')
       window.sessionStorage.setItem(key, state)
-      console.log("Injected authorization state for " + key + " with value " + state)
+      console.log(`Injected authorization state for ${key} with value ${state}`)
 
       // Now try to reattach, which should not succeed
-      return roomObj.join()
-        .then(() => true)
-        .catch(() => false)
-    }, room_name)
+      return roomObj.join().catch((error) => error)
+    }, joinParams.room_session.name)
 
-    expect(joinResponse).toBe(false)
-
-    // Checks that all the elements added by the SDK are gone.
-    const targetElementsCount = await page.evaluate(() => {
-      return {
-        videos: Array.from(document.querySelectorAll('video')).length,
-        rootEl: document.getElementById('rootElement')!.childElementCount,
-      }
+    expect(joinResponse).toStrictEqual({
+      message: 'CALL ERROR',
+      causeCode: 95,
+      cause: 'INVALID_MSG_UNSPECIFIED',
+      code: -32002,
     })
-    expect(targetElementsCount.videos).toBe(0)
-    expect(targetElementsCount.rootEl).toBe(0)
   })
 })

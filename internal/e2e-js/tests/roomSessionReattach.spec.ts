@@ -1,119 +1,97 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../fixtures'
 import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
-  enablePageLogs,
   randomizeRoomName,
+  expectRoomJoined,
+  expectMCUVisible,
 } from '../utils'
 
 test.describe('RoomSessionReattach', () => {
-  test('should handle joining a room, reattaching and then leaving the room', async ({
-    page,
-  }) => {
-    await page.goto(SERVER_URL)
-    enablePageLogs(page)
+  /**
+   * Test both member and audience
+   */
+  const tests: { join_as: 'member' | 'audience' }[] = [
+    { join_as: 'member' },
+    { join_as: 'audience' },
+  ]
 
-    const roomName = randomizeRoomName()
-    const permissions: any = []
-    const connectionSettings = {
-      vrt: {
-        room_name: roomName,
-        user_name: 'e2e_reattach_test',
-        auto_create_room: true,
-        permissions,
-      },
-      initialEvents: [],
-      roomSessionOptions: {
-        _hijack: true,
-        logLevel: 'warn',
-        // debug: {
-        //   logWsTraffic: true,
-        // },
-      },
-    }
-    await createTestRoomSession(page, connectionSettings)
+  tests.forEach((row) => {
+    test(`should allow reattaching to a room for ${row.join_as}`, async ({
+      createCustomPage,
+    }) => {
+      const page = await createCustomPage({ name: `[reattach-${row.join_as}]` })
+      await page.goto(SERVER_URL)
 
-    // --------------- Joining the room ---------------
-    const joinParams: any = await page.evaluate(() => {
-      return new Promise((r) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
-        roomObj.on('room.joined', (params: any) => r(params))
-        roomObj.join()
-      })
-    })
-
-    expect(joinParams.room).toBeDefined()
-    expect(joinParams.room_session).toBeDefined()
-    expect(
-      joinParams.room.members.some(
-        (member: any) => member.id === joinParams.member_id
-      )
-    ).toBeTruthy()
-    expect(joinParams.room_session.name).toBe(roomName)
-    expect(joinParams.room.name).toBe(roomName)
-
-    // Checks that the video is visible
-    await page.waitForSelector('div[id^="sw-sdk-"] > video', { timeout: 5000 })
-
-    const roomPermissions: any = await page.evaluate(() => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      return roomObj.permissions
-    })
-    expect(roomPermissions).toStrictEqual(permissions)
-
-    // --------------- Reattaching ---------------
-    await page.reload()
-
-    await createTestRoomSession(page, connectionSettings)
-
-    console.time('reattach')
-    // Join again
-    const reattachParams: any = await page.evaluate(() => {
-      return new Promise((r) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
-        roomObj.on('room.joined', (params: any) => r(params))
-        roomObj.join()
-      })
-    })
-    console.timeEnd('reattach')
-
-    expect(reattachParams.room).toBeDefined()
-    expect(reattachParams.room_session).toBeDefined()
-    expect(
-      reattachParams.room.members.some(
-        (member: any) => member.id === reattachParams.member_id
-      )
-    ).toBeTruthy()
-    expect(reattachParams.room_session.name).toBe(roomName)
-    expect(reattachParams.room.name).toBe(roomName)
-    // Make sure the member_id is stable
-    expect(reattachParams.member_id).toBeDefined()
-    expect(reattachParams.member_id).toBe(joinParams.member_id)
-    // Also call_id must remain the same
-    expect(reattachParams.call_id).toBeDefined()
-    expect(reattachParams.call_id).toBe(joinParams.call_id)
-
-    // Checks that the video is visible
-    await page.waitForSelector('div[id^="sw-sdk-"] > video', { timeout: 5000 })
-
-    // --------------- Leaving the room ---------------
-    await page.evaluate(() => {
-      // @ts-expect-error
-      return window._roomObj.leave()
-    })
-
-    // Checks that all the elements added by the SDK are gone.
-    const targetElementsCount = await page.evaluate(() => {
-      return {
-        videos: Array.from(document.querySelectorAll('video')).length,
-        rootEl: document.getElementById('rootElement')!.childElementCount,
+      const roomName = randomizeRoomName()
+      const permissions: any = []
+      const connectionSettings = {
+        vrt: {
+          room_name: roomName,
+          user_name: `e2e_reattach_test_${row.join_as}`,
+          join_as: row.join_as,
+          auto_create_room: true,
+          permissions,
+        },
+        initialEvents: [],
+        roomSessionOptions: {
+          _hijack: true, // FIXME: to remove
+        },
       }
+      await createTestRoomSession(page, connectionSettings)
+
+      // --------------- Joining the room ---------------
+      const joinParams: any = await expectRoomJoined(page)
+
+      expect(joinParams.room).toBeDefined()
+      expect(joinParams.room_session).toBeDefined()
+      expect(
+        joinParams.room.members.some(
+          (member: any) => member.id === joinParams.member_id
+        )
+      ).toBeTruthy()
+      expect(joinParams.room_session.name).toBe(roomName)
+      expect(joinParams.room.name).toBe(roomName)
+
+      // Checks that the video is visible
+      await expectMCUVisible(page)
+
+      const roomPermissions: any = await page.evaluate(() => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+        return roomObj.permissions
+      })
+      expect(roomPermissions).toStrictEqual(permissions)
+
+      // --------------- Reattaching ---------------
+      await page.reload()
+
+      await createTestRoomSession(page, connectionSettings)
+
+      console.time('reattach')
+      // Join again
+      const reattachParams: any = await expectRoomJoined(page)
+      console.timeEnd('reattach')
+
+      expect(reattachParams.room).toBeDefined()
+      expect(reattachParams.room_session).toBeDefined()
+      expect(
+        reattachParams.room.members.some(
+          (member: any) => member.id === reattachParams.member_id
+        )
+      ).toBeTruthy()
+      expect(reattachParams.room_session.name).toBe(roomName)
+      expect(reattachParams.room.name).toBe(roomName)
+      // Make sure the member_id is stable
+      expect(reattachParams.member_id).toBeDefined()
+      expect(reattachParams.member_id).toBe(joinParams.member_id)
+      // Also call_id must remain the same
+      expect(reattachParams.call_id).toBeDefined()
+      expect(reattachParams.call_id).toBe(joinParams.call_id)
+
+      // Checks that the video is visible
+      await expectMCUVisible(page)
     })
-    expect(targetElementsCount.videos).toBe(0)
-    expect(targetElementsCount.rootEl).toBe(0)
   })
 })

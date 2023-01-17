@@ -1,18 +1,19 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../fixtures'
 import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
-  enablePageLogs,
   randomizeRoomName,
+  expectRoomJoined,
+  expectMCUVisible,
 } from '../utils'
 
 test.describe('RoomSessionReattachWrongProtocol', () => {
   test('should handle joining a room, reattaching with wrong protocol ID and then leaving the room', async ({
-    page,
+    createCustomPage,
   }) => {
+    const page = await createCustomPage({ name: '[reattach-bad-auth]' })
     await page.goto(SERVER_URL)
-    enablePageLogs(page)
 
     const roomName = randomizeRoomName()
     const permissions: any = []
@@ -25,24 +26,13 @@ test.describe('RoomSessionReattachWrongProtocol', () => {
       },
       initialEvents: [],
       roomSessionOptions: {
-        _hijack: true,
-        logLevel: 'warn',
-        // debug: {
-        //   logWsTraffic: true,
-        // },
+        _hijack: true, // FIXME: to remove
       },
     }
     await createTestRoomSession(page, connectionSettings)
 
     // --------------- Joining the room ---------------
-    const joinParams: any = await page.evaluate(() => {
-      return new Promise((r) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
-        roomObj.on('room.joined', (params: any) => r(params))
-        roomObj.join()
-      })
-    })
+    const joinParams: any = await expectRoomJoined(page)
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
@@ -55,7 +45,7 @@ test.describe('RoomSessionReattachWrongProtocol', () => {
     expect(joinParams.room.name).toBe(roomName)
 
     // Checks that the video is visible
-    await page.waitForSelector('div[id^="sw-sdk-"] > video', { timeout: 5000 })
+    await expectMCUVisible(page)
 
     const roomPermissions: any = await page.evaluate(() => {
       // @ts-expect-error
@@ -63,48 +53,52 @@ test.describe('RoomSessionReattachWrongProtocol', () => {
       return roomObj.permissions
     })
     expect(roomPermissions).toStrictEqual(permissions)
-    const room_name = joinParams.room_session.name
-    expect(room_name).toBeDefined()
 
     // --------------- Reattaching ---------------
     await page.reload()
 
     await createTestRoomSession(page, connectionSettings)
 
-    // Try to join but expect it to fail due to wrong Protocol
-    await page.evaluate((room_name) => {
-      console.log("Joining room " + room_name)
-      return new Promise((resolve, reject) => {
+    // TODO: this test is gonna fail: needs to check:
+    // - different memberId
+    // - different callId
+    // - same room session id
+
+    // Try to join but expect to join with a different callId/memberId
+    const reattachParams: any = await page.evaluate((roomName) => {
+      console.log('Joining again room:', roomName)
+      return new Promise((resolve) => {
         // @ts-expect-error
         const roomObj = window._roomObj
-        roomObj.on('room.joined', () => {
-          clearTimeout(to)
-          reject(" room.joined should not have happened")
-        })
-
-        let to = setTimeout(() => {
-          roomObj.off('room.joined', reject)
-          resolve(" room.joined didn't happen within a reasonable time")
-        }, 5000)
+        roomObj.on('room.joined', resolve)
 
         // Inject wrong values for protocol ID
-        const key = "pt-" + room_name + "-member"
-        const state = btoa("wrong protocol")
+        const key = `pt-${roomName}-member`
+        const state = btoa('wrong protocol')
         window.sessionStorage.setItem(key, state)
-        console.log("Injected protocol ID for " + key + " with value " + state)
+        console.log(`Injected protocol for ${key} with value ${state}`)
 
-        roomObj.join()
+        return roomObj.join()
       })
-    }, room_name)
+    }, joinParams.room_session.name)
 
-    // Checks that all the elements added by the SDK are gone.
-    const targetElementsCount = await page.evaluate(() => {
-      return {
-        videos: Array.from(document.querySelectorAll('video')).length,
-        rootEl: document.getElementById('rootElement')!.childElementCount,
-      }
-    })
-    expect(targetElementsCount.videos).toBe(0)
-    expect(targetElementsCount.rootEl).toBe(0)
+    expect(reattachParams.room).toBeDefined()
+    expect(reattachParams.room_session).toBeDefined()
+    expect(
+      reattachParams.room.members.some(
+        (member: any) => member.id === reattachParams.member_id
+      )
+    ).toBeTruthy()
+    expect(reattachParams.room_session.name).toBe(roomName)
+    expect(reattachParams.room.name).toBe(roomName)
+
+    // Same room_session_id
+    expect(reattachParams.room_session.id).toBe(joinParams.room_session.id)
+    // Different memberId and callId
+    expect(reattachParams.member_id).not.toBe(joinParams.member_id)
+    expect(reattachParams.call_id).not.toBe(joinParams.call_id)
+
+    // Checks that the video is visible
+    await expectMCUVisible(page)
   })
 })
