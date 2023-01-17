@@ -39,5 +39,8 @@
   "dependencies": {
     "twilio": "3.77.0"
   },
+  "overrides": {
+    "jsonwebtoken": "9.0.0"
+  },
   "types": "compatibility-api.d.ts"
 }

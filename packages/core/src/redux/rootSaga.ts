@@ -37,7 +37,7 @@ import { createRestartableSaga } from './utils/sagaHelpers'
 
 interface StartSagaOptions {
   session: BaseSession
-  sessionChannel: EventChannel<unknown>
+  sessionChannel: EventChannel<any>
   pubSubChannel: PubSubChannel
   userOptions: InternalUserOptions
 }
@@ -53,7 +53,7 @@ export function* initSessionSaga({
 }): SagaIterator {
   const session = new SessionConstructor(userOptions)
 
-  const sessionChannel: EventChannel<unknown> = yield call(
+  const sessionChannel: EventChannel<any> = yield call(
     createSessionChannel,
     session
   )

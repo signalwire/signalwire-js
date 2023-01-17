@@ -21,7 +21,7 @@ import { RPCExecute } from '../../../RPCMessages'
 import { getLogger, toInternalAction } from '../../../utils'
 
 type SessionSagaParams = {
-  sessionChannel: EventChannel<unknown>
+  sessionChannel: EventChannel<any>
   pubSubChannel: PubSubChannel
   swEventChannel: SwEventChannel
 }

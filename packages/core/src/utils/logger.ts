@@ -37,7 +37,7 @@ const setDebugOptions = (options: any) => {
     debugOptions = {}
     return
   }
-  Object.assign(debugOptions, options)
+  Object.assign(debugOptions!, options)
 }
 
 const getLoggerInstance = (): SDKLogger => {
