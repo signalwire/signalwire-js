@@ -1,5 +1,6 @@
+import type { Page } from '@playwright/test'
+import type { Video } from '@signalwire/js'
 import { test, expect } from '../fixtures'
-import { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
@@ -20,6 +21,7 @@ test.describe('RoomSession Audience Count', () => {
     ])
     const [pageOne, pageTwo, pageThree, pageFour, pageFive] = allPages
     const audiencePages = [pageTwo, pageThree, pageFour, pageFive]
+    const expectedAudienceCount = audiencePages.length
     await Promise.all(allPages.map((page) => page.goto(SERVER_URL)))
 
     const room_name = randomizeRoomName()
@@ -50,53 +52,77 @@ test.describe('RoomSession Audience Count', () => {
         })
       })
     )
-    // --------------- Joining the room and resolve on room.audienceCount ---------------
-    const joinPromiseOne = pageOne.evaluate(() => {
-      return new Promise(async (resolve) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        // Need to keep lastAudienceCounter on window in here
-        // we don't have access to parent scope since this closure is ran
-        // inside page context.
-        // @ts-expect-error
-        window.__audienceCount = 0
-        roomObj.on('room.audienceCount', (params) => {
-          // @ts-expect-error
-          window.__audienceCount = params.total
-          //@ts-expect-error
-          if (window.__audienceCount == 1) {
-            resolve(params)
-          }
-        })
 
-        await roomObj.join()
-      })
-    })
+    const expectAudienceCount = (page: Page) => {
+      return {
+        getTotals: () => {
+          return page.evaluate(() => {
+            return {
+              // @ts-expect-error
+              totalFromAudienceCount: window.__totalFromAudienceCount,
+            }
+          })
+        },
+        waitFor: (count: number) => {
+          return page.evaluate(
+            ({ count }) => {
+              return new Promise(async (resolve) => {
+                // @ts-expect-error
+                window.__totalFromAudienceCount = 0
+
+                // @ts-expect-error
+                const roomObj: Video.RoomSession = window._roomObj
+
+                roomObj.on('room.audienceCount', (params) => {
+                  // @ts-expect-error
+                  window.__totalFromAudienceCount = params.total
+                  if (params.total === count) {
+                    resolve(params)
+                  }
+                })
+              })
+            },
+            { count }
+          )
+        },
+      }
+    }
+
+    // Joining the room and resolve when the total from room.audienceCount is equal to expectedAudienceCount
+    const expectorPageOne = expectAudienceCount(pageOne)
+    const audienceCountPageOnePromise = expectorPageOne.waitFor(
+      expectedAudienceCount
+    )
+
+    await expectRoomJoined(pageOne)
+
+    const expectorPageTwo = expectAudienceCount(pageTwo)
+    const audienceCountPageTwoPromise = expectorPageTwo.waitFor(
+      expectedAudienceCount
+    )
 
     // join as audience on pageTwo and resolve on `room.joined`
     const joinTwoParams: any = await expectRoomJoined(pageTwo)
-
+    // expect to have only 1 audience in the room at the moment
     expect(joinTwoParams.room_session.audience_count).toBe(1)
-
-    await joinPromiseOne
-
-    const expectAudienceCountFromPageOne = async (count: number) => {
-      const audienceCount = await pageOne.evaluate(() => {
-        // @ts-expect-error
-        return window.__audienceCount
-      })
-      expect(audienceCount).toBe(count)
-    }
-
-    await expectAudienceCountFromPageOne(1)
 
     const [_, ...pageThreeToFive] = audiencePages
     // join as audiences on pageThree to pageFive and resolve on `room.joined`
     await Promise.all(pageThreeToFive.map((page) => expectRoomJoined(page)))
 
-    // Need to wait for the room.audienceCount event that is throttled
-    await pageOne.waitForTimeout(30000)
+    // wait for all the room.audienceCount
+    await Promise.all([
+      audienceCountPageOnePromise,
+      audienceCountPageTwoPromise,
+    ])
 
-    await expectAudienceCountFromPageOne(4)
+    // audience_count events come "every" 20s so wait for 25s to avoid race
+    await pageOne.waitForTimeout(25_000)
+
+    const totalsPageOne = await expectorPageOne.getTotals()
+    expect(totalsPageOne.totalFromAudienceCount).toBe(expectedAudienceCount)
+
+    const totalsPageTwo = await expectorPageTwo.getTotals()
+    expect(totalsPageTwo.totalFromAudienceCount).toBe(expectedAudienceCount)
   })
 })
