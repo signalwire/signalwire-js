@@ -6,7 +6,6 @@ import type { ChatEvent } from './chat'
 import type { TaskEvent } from './task'
 import type { MessagingEvent } from './messaging'
 import type { VoiceCallEvent } from './voice'
-import { BaseConnectionOptions } from '@signalwire/webrtc'
 
 export interface SwEvent {
   event_channel: string
@@ -48,7 +47,7 @@ export interface BaseConnectionContract<
   EventTypes extends EventEmitter.ValidEventTypes
 > extends EmitterContract<EventTypes> {
   /** @internal The BaseConnection options  */
-  readonly options: BaseConnectionOptions<EventTypes>
+  readonly options: Record<any, any>
 
   /** The id of the video device, or null if not available */
   readonly cameraId: string | null
