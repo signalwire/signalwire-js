@@ -1,9 +1,10 @@
-import { test } from '../fixtures'
+import { test, expect } from '../fixtures'
 import {
   SERVER_URL,
   createTestRoomSession,
   expectRoomJoined,
   expectMCUVisible,
+  expectMemberTalkingEvent,
 } from '../utils'
 
 test.describe('RoomSession talking events to participant', () => {
@@ -20,17 +21,19 @@ test.describe('RoomSession talking events to participant', () => {
         room_name: 'talking-room',
         user_name: 'e2e_member1',
         auto_create_room: true,
-        permissions: [],
+        permissions: ['room.self.audio_mute', 'room.self.audio_unmute'],
       },
       initialEvents: ['member.talking'],
     }
 
+    // member2 will join audio_muted
     const member2Settings = {
       vrt: {
         room_name: 'talking-room',
         user_name: 'e2e_member2',
         auto_create_room: true,
-        permissions: [],
+        permissions: ['room.self.audio_mute', 'room.self.audio_unmute'],
+        join_audio_muted: true,
       },
       initialEvents: ['member.talking'],
     }
@@ -40,30 +43,70 @@ test.describe('RoomSession talking events to participant', () => {
       createTestRoomSession(pageTwo, member2Settings),
     ])
 
-    // --------------- Join from the 2nd and resolve on 'room.joined' ---------
     await expectRoomJoined(pageTwo)
 
-    // Checks that the video is visible on pageTwo
     await expectMCUVisible(pageTwo)
 
-    // --------------- Resolve when member2 receives member.talking ----------
-    const member2TalkingPromise = pageTwo.evaluate(async () => {
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
-        roomObj.on('member.talking', resolve)
-      })
-    })
+    const talkingTruePromisePageTwo = expectMemberTalkingEvent(pageTwo)
 
-    await pageTwo.waitForTimeout(1000)
+    const joinParams: any = await expectRoomJoined(pageOne)
 
-    // --------------- Joining from the 1st tab as member and resolve on 'room.joined' ---------------
-    await expectRoomJoined(pageOne)
-
-    // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)
 
-    // Wait for `member.talking` on pageTwo
-    await member2TalkingPromise
+    // Wait 5 seconds for the audio to stabilize
+    await pageOne.waitForTimeout(5000)
+
+    const talkingTrueEvent = await talkingTruePromisePageTwo
+
+    expect(talkingTrueEvent).toStrictEqual({
+      room_id: joinParams.room_session.room_id,
+      room_session_id: joinParams.room_session.id,
+      member: {
+        id: joinParams.member_id,
+        talking: true,
+      },
+    })
+
+    const talkingFalsePromisePageTwo = expectMemberTalkingEvent(pageTwo)
+
+    // --------------- Muting Member on pageOne ---------------
+    await pageOne.evaluate(async () => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+
+      await roomObj.audioMute()
+    })
+
+    const talkingFalseEvent = await talkingFalsePromisePageTwo
+
+    expect(talkingFalseEvent).toStrictEqual({
+      room_id: joinParams.room_session.room_id,
+      room_session_id: joinParams.room_session.id,
+      member: {
+        id: joinParams.member_id,
+        talking: false,
+      },
+    })
+
+    const talkingTrueAgainPromisePageTwo = expectMemberTalkingEvent(pageTwo)
+
+    // --------------- Unmuting Member on pageOne ---------------
+    await pageOne.evaluate(async () => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+
+      await roomObj.audioUnmute()
+    })
+
+    const talkingTrueAgainEvent = await talkingTrueAgainPromisePageTwo
+
+    expect(talkingTrueAgainEvent).toStrictEqual({
+      room_id: joinParams.room_session.room_id,
+      room_session_id: joinParams.room_session.id,
+      member: {
+        id: joinParams.member_id,
+        talking: true,
+      },
+    })
   })
 })

@@ -123,6 +123,8 @@ interface CreateTestVRTOptions {
   auto_create_room?: boolean
   join_as?: 'member' | 'audience'
   media_allowed?: 'audio-only' | 'video-only' | 'all'
+  join_audio_muted?: boolean
+  join_video_muted?: boolean
 }
 
 export const createTestVRTToken = async (body: CreateTestVRTOptions) => {
@@ -264,6 +266,16 @@ export const expectMemberId = async (page: Page, memberId: string) => {
   })
 
   expect(roomMemberId).toEqual(memberId)
+}
+
+export const expectMemberTalkingEvent = (page: Page) => {
+  return page.evaluate(async () => {
+    return new Promise((resolve) => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      roomObj.on('member.talking', resolve)
+    })
+  })
 }
 
 export const expectTotalAudioEnergyToBeGreaterThan = async (
