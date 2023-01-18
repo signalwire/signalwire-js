@@ -9,6 +9,7 @@ import { BaseRoomSession } from './BaseRoomSession'
 import { checkMediaParams, getJoinMediaParams } from './utils/roomSession'
 import type { MakeRoomOptions } from './Client'
 import type { BaseRoomSessionJoinParams } from './utils/interfaces'
+import { getStorage, CALL_ID } from './utils/storage'
 
 /**
  * List of properties/methods the user shouldn't be able to
@@ -118,19 +119,19 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
 
   const hijackManager = {
     joined: ({ call_id }: VideoRoomSubscribedEventParams) => {
-      window.sessionStorage.setItem('callId', call_id)
+      getStorage()?.setItem(CALL_ID, call_id)
     },
     init: () => {
       room.on('room.subscribed', hijackManager.joined)
 
-      const prevCallId = window.sessionStorage.getItem('callId')
+      const prevCallId = getStorage()?.getItem(CALL_ID)
       if (prevCallId) {
         room.options.prevCallId = prevCallId
       }
     },
     destroy: () => {
       room.off('room.subscribed', hijackManager.joined)
-      window.sessionStorage.removeItem('callId')
+      getStorage()?.removeItem(CALL_ID)
     },
   }
 

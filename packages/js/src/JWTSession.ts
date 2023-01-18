@@ -5,6 +5,7 @@ import {
   SessionOptions,
   SwAuthorizationState,
 } from '@signalwire/core'
+import { getStorage, CALL_ID } from './utils/storage'
 
 export class JWTSession extends BaseJWTSession {
   public WebSocketConstructor = WebSocket
@@ -31,13 +32,6 @@ export class JWTSession extends BaseJWTSession {
     return this.options._hijack
   }
 
-  get storage() {
-    if (window && window.sessionStorage) {
-      return window.sessionStorage
-    }
-    return undefined
-  }
-
   override async retrieveRelayProtocol() {
     if (!this.allowHijack) {
       return ''
@@ -46,7 +40,7 @@ export class JWTSession extends BaseJWTSession {
     const key = this.getProtocolSessionStorageKey()
     if (key) {
       this.logger.info('Hijacking: search protocol for', key)
-      return this.storage?.getItem(key) ?? ''
+      return getStorage()?.getItem(key) ?? ''
     }
     return ''
   }
@@ -59,14 +53,14 @@ export class JWTSession extends BaseJWTSession {
     const key = this.getProtocolSessionStorageKey()
     if (key) {
       this.logger.info('Hijacking: persist protocol', key, this.relayProtocol)
-      this.storage?.setItem(key, this.relayProtocol)
+      getStorage()?.setItem(key, this.relayProtocol)
     }
   }
 
   protected override async retrieveSwAuthorizationState() {
     const key = this.getAuthStateSessionStorageKey()
     if (key) {
-      return this.storage?.getItem(key) ?? ''
+      return getStorage()?.getItem(key) ?? ''
     }
     return ''
   }
@@ -81,7 +75,7 @@ export class JWTSession extends BaseJWTSession {
     const key = this.getAuthStateSessionStorageKey()
     if (key) {
       this.logger.info('Hijacking: persist auth state', key, state)
-      this.storage?.setItem(key, state)
+      getStorage()?.setItem(key, state)
     }
   }
 
@@ -90,14 +84,14 @@ export class JWTSession extends BaseJWTSession {
       this.logger.info('Hijacking: invalid values - cleaning up storage')
       const protocolKey = this.getProtocolSessionStorageKey()
       if (protocolKey) {
-        this.storage?.removeItem(protocolKey)
+        getStorage()?.removeItem(protocolKey)
       }
       const authStatekey = this.getAuthStateSessionStorageKey()
       if (authStatekey) {
-        this.storage?.removeItem(authStatekey)
+        getStorage()?.removeItem(authStatekey)
       }
       // Remove also the previous callId
-      this.storage?.removeItem('callId')
+      getStorage()?.removeItem(CALL_ID)
     }
 
     super._onSocketClose(event)
