@@ -1,4 +1,9 @@
-import { UserOptions, getLogger, VideoAuthorization } from '@signalwire/core'
+import {
+  UserOptions,
+  getLogger,
+  VideoAuthorization,
+  VideoRoomSubscribedEventParams,
+} from '@signalwire/core'
 import { createClient } from './createClient'
 import { BaseRoomSession } from './BaseRoomSession'
 import { checkMediaParams, getJoinMediaParams } from './utils/roomSession'
@@ -111,30 +116,21 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     speakerId,
   })
 
-  console.log('roomOptions', JSON.stringify(roomOptions, null, 2))
   const hijackManager = {
-    joined: () => {
-      // @ts-expect-error
-      if (roomOptions._hijack) {
-        // @ts-expect-error
-        window.sessionStorage.setItem('callId', room.callId)
-      }
+    joined: ({ call_id }: VideoRoomSubscribedEventParams) => {
+      window.sessionStorage.setItem('callId', call_id)
     },
     init: () => {
-      // @ts-expect-error
-      if (roomOptions._hijack) {
-        const prevCallId = window.sessionStorage.getItem('callId')
-        if (prevCallId) {
-          // @ts-expect-error
-          room.options.prevCallId = prevCallId
-        }
+      room.on('room.subscribed', hijackManager.joined)
+
+      const prevCallId = window.sessionStorage.getItem('callId')
+      if (prevCallId) {
+        room.options.prevCallId = prevCallId
       }
     },
     destroy: () => {
-      // @ts-expect-error
-      if (roomOptions._hijack) {
-        window.sessionStorage.removeItem('callId')
-      }
+      room.off('room.subscribed', hijackManager.joined)
+      window.sessionStorage.removeItem('callId')
     },
   }
 
@@ -198,8 +194,6 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
         })
 
         room.once('room.subscribed', (payload) => {
-          hijackManager.joined()
-
           // @ts-expect-error
           room.attachOnSubscribedWorkers(payload)
           resolve(room)
