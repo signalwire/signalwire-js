@@ -6,15 +6,21 @@ import {
   randomizeRoomName,
   expectRoomJoined,
   expectMCUVisible,
+  expectMCUVisibleForAudience,
 } from '../utils'
+
+type Test = {
+  join_as: 'member' | 'audience'
+  expectMCU: typeof expectMCUVisible | typeof expectMCUVisibleForAudience
+}
 
 test.describe('RoomSessionReattach', () => {
   /**
    * Test both member and audience
    */
-  const tests: { join_as: 'member' | 'audience' }[] = [
-    { join_as: 'member' },
-    { join_as: 'audience' },
+  const tests: Test[] = [
+    { join_as: 'member', expectMCU: expectMCUVisible },
+    { join_as: 'audience', expectMCU: expectMCUVisibleForAudience },
   ]
 
   tests.forEach((row) => {
@@ -46,16 +52,18 @@ test.describe('RoomSessionReattach', () => {
 
       expect(joinParams.room).toBeDefined()
       expect(joinParams.room_session).toBeDefined()
-      expect(
-        joinParams.room.members.some(
-          (member: any) => member.id === joinParams.member_id
-        )
-      ).toBeTruthy()
+      if (row.join_as === 'member') {
+        expect(
+          joinParams.room.members.some(
+            (member: any) => member.id === joinParams.member_id
+          )
+        ).toBeTruthy()
+      }
       expect(joinParams.room_session.name).toBe(roomName)
       expect(joinParams.room.name).toBe(roomName)
 
       // Checks that the video is visible
-      await expectMCUVisible(page)
+      await row.expectMCU(page)
 
       const roomPermissions: any = await page.evaluate(() => {
         // @ts-expect-error
@@ -76,11 +84,13 @@ test.describe('RoomSessionReattach', () => {
 
       expect(reattachParams.room).toBeDefined()
       expect(reattachParams.room_session).toBeDefined()
-      expect(
-        reattachParams.room.members.some(
-          (member: any) => member.id === reattachParams.member_id
-        )
-      ).toBeTruthy()
+      if (row.join_as === 'member') {
+        expect(
+          reattachParams.room.members.some(
+            (member: any) => member.id === reattachParams.member_id
+          )
+        ).toBeTruthy()
+      }
       expect(reattachParams.room_session.name).toBe(roomName)
       expect(reattachParams.room.name).toBe(roomName)
       // Make sure the member_id is stable
@@ -91,7 +101,7 @@ test.describe('RoomSessionReattach', () => {
       expect(reattachParams.call_id).toBe(joinParams.call_id)
 
       // Checks that the video is visible
-      await expectMCUVisible(page)
+      await row.expectMCU(page)
     })
   })
 })
