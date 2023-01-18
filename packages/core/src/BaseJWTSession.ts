@@ -75,9 +75,25 @@ export class BaseJWTSession extends BaseSession {
       }
     }
 
-    this._rpcConnectResult = await this.execute(RPCConnect(params))
-    await this.persistRelayProtocol()
-    this._checkTokenExpiration()
+    // Try to set authorization_state only if we have a valid protocol
+    if (params.protocol) {
+      const authorizationState = await this.retrieveSwAuthorizationState()
+      if (authorizationState) {
+        params.authorization_state = authorizationState
+      }
+    }
+
+    try {
+      this._rpcConnectResult = await this.execute(RPCConnect(params))
+      await this.persistRelayProtocol()
+      this._checkTokenExpiration()
+    } catch (error) {
+      if (error === this._swConnectError) {
+        this.logger.debug('Invalid connect response?')
+        return
+      }
+      throw error
+    }
   }
 
   async retrieveRelayProtocol() {

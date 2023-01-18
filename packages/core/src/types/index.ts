@@ -46,6 +46,9 @@ export interface BaseComponentContract {
 export interface BaseConnectionContract<
   EventTypes extends EventEmitter.ValidEventTypes
 > extends EmitterContract<EventTypes> {
+  /** @internal The BaseConnection options  */
+  readonly options: Record<any, any>
+
   /** The id of the video device, or null if not available */
   readonly cameraId: string | null
   /** The label of the video device, or null if not available */
@@ -72,6 +75,8 @@ export interface BaseConnectionContract<
   readonly remoteStream: MediaStream | undefined
   /** The unique identifier for the room */
   readonly roomId: string
+  /** @internal The underlying connection id - callId  */
+  readonly callId: string
   /** The unique identifier for the room session */
   readonly roomSessionId: string
   /** Whether the connection is currently active */
@@ -168,6 +173,14 @@ export interface WebRTCMessageParams extends SwEvent {
   params: JSONRPCRequest
 }
 
+export type SwAuthorizationState = string
+export interface SwAuthorizationStateParams {
+  event_type: 'signalwire.authorization.state'
+  params: {
+    authorization_state: SwAuthorizationState
+  }
+}
+
 // prettier-ignore
 export type SwEventParams =
   | VideoAPIEventParams
@@ -177,6 +190,7 @@ export type SwEventParams =
   | TaskEvent
   | MessagingEvent
   | VoiceCallEvent
+  | SwAuthorizationStateParams
 
 // prettier-ignore
 export type PubSubChannelEvents =

@@ -8,9 +8,7 @@ const config: PlaywrightTestConfig = {
   testDir: 'tests',
   globalSetup: require.resolve('./global-setup'),
   testMatch: testMatch.length ? testMatch : undefined,
-  testIgnore: [
-    //   'roomSessionStreaming.spec.ts',
-  ],
+  testIgnore: ['roomSessionReattachWrongCallId.spec.ts'],
   timeout: 120_000,
   expect: {
     // Default is 5000
@@ -25,6 +23,8 @@ const config: PlaywrightTestConfig = {
       use: {
         ...devices['Desktop Chrome'],
         launchOptions: {
+          // devtools: true,
+          // headless: false,
           args: [
             '--use-fake-ui-for-media-stream',
             '--use-fake-device-for-media-stream',

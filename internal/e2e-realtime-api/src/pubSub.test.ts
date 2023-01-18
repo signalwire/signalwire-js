@@ -10,10 +10,12 @@ import { timeoutPromise } from '@signalwire/core'
 import { PubSub as RealtimeAPIPubSub } from '@signalwire/realtime-api'
 import { PubSub as JSPubSub } from '@signalwire/js'
 import { WebSocket } from 'ws'
-import { createTestRunner, createCRT } from './utils'
+import { createTestRunner, createCRT, sessionStorageMock } from './utils'
 
 // @ts-ignore
 global.WebSocket = WebSocket
+// @ts-ignore
+global.window = { sessionStorage: sessionStorageMock() }
 
 const promiseTimeout = 4_000
 const promiseException = 4 // error code to identify the Promise timeout

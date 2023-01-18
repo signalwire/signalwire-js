@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import WS from 'jest-websocket-mock'
 import { AuthError } from '@signalwire/core'
 import { createClient } from './createClient'

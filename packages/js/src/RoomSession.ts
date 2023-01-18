@@ -1,9 +1,15 @@
-import { UserOptions, getLogger, VideoAuthorization } from '@signalwire/core'
+import {
+  UserOptions,
+  getLogger,
+  VideoAuthorization,
+  VideoRoomSubscribedEventParams,
+} from '@signalwire/core'
 import { createClient } from './createClient'
 import { BaseRoomSession } from './BaseRoomSession'
 import { checkMediaParams, getJoinMediaParams } from './utils/roomSession'
 import type { MakeRoomOptions } from './Client'
 import type { BaseRoomSessionJoinParams } from './utils/interfaces'
+import { getStorage, CALL_ID } from './utils/storage'
 
 /**
  * List of properties/methods the user shouldn't be able to
@@ -111,10 +117,43 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     speakerId,
   })
 
+  // @ts-expect-error
+  const allowReattach = Boolean(roomOptions.reattach)
+
+  const reattachManager = {
+    joined: ({ call_id }: VideoRoomSubscribedEventParams) => {
+      if (allowReattach) {
+        getStorage()?.setItem(CALL_ID, call_id)
+      }
+    },
+    init: () => {
+      if (!allowReattach) {
+        return
+      }
+      room.on('room.subscribed', reattachManager.joined)
+
+      const prevCallId = getStorage()?.getItem(CALL_ID)
+      if (prevCallId) {
+        room.options.prevCallId = prevCallId
+      }
+    },
+    destroy: () => {
+      if (!allowReattach) {
+        return
+      }
+
+      room.off('room.subscribed', reattachManager.joined)
+      getStorage()?.removeItem(CALL_ID)
+    },
+  }
+
   // WebRTC connection left the room.
   room.once('destroy', () => {
     // @ts-expect-error
     room.emit('room.left')
+
+    // Remove callId to reattach
+    reattachManager.destroy()
     client.disconnect()
   })
 
@@ -172,6 +211,9 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
           room.attachOnSubscribedWorkers(payload)
           resolve(room)
         })
+
+        // Hijack previous callId if present
+        reattachManager.init()
 
         await room.join()
       } catch (error) {

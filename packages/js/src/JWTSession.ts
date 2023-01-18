@@ -1,5 +1,11 @@
 import jwtDecode from 'jwt-decode'
-import { BaseJWTSession, getLogger, SessionOptions } from '@signalwire/core'
+import {
+  BaseJWTSession,
+  getLogger,
+  SessionOptions,
+  SwAuthorizationState,
+} from '@signalwire/core'
+import { getStorage, CALL_ID } from './utils/storage'
 
 export class JWTSession extends BaseJWTSession {
   public WebSocketConstructor = WebSocket
@@ -21,47 +27,93 @@ export class JWTSession extends BaseJWTSession {
     })
   }
 
-  get allowHijack() {
+  get allowReattach() {
     // @ts-expect-error
-    return this.options._hijack
+    return this.options.reattach
   }
 
   override async retrieveRelayProtocol() {
-    if (!this.allowHijack) {
+    if (!this.allowReattach) {
       return ''
     }
 
-    const roomName = this.getRoomNameFromJWT()
-    if (roomName) {
-      this.logger.info('Hijacking: search protocol for', roomName)
-      return window.sessionStorage.getItem(roomName) ?? ''
+    const key = this.getProtocolSessionStorageKey()
+    if (key) {
+      this.logger.info('Hijacking: search protocol for', key)
+      return getStorage()?.getItem(key) ?? ''
     }
     return ''
   }
 
   override async persistRelayProtocol() {
-    if (!this.allowHijack) {
+    if (!this.allowReattach) {
       return
     }
 
-    const roomName = this.getRoomNameFromJWT()
-    if (roomName) {
-      this.logger.info(
-        'Hijacking: persist protocol',
-        roomName,
-        this.relayProtocol
-      )
-      window.sessionStorage.setItem(roomName, this.relayProtocol)
+    const key = this.getProtocolSessionStorageKey()
+    if (key) {
+      this.logger.info('Hijacking: persist protocol', key, this.relayProtocol)
+      getStorage()?.setItem(key, this.relayProtocol)
     }
   }
 
-  private getRoomNameFromJWT() {
+  protected override async retrieveSwAuthorizationState() {
+    const key = this.getAuthStateSessionStorageKey()
+    if (key) {
+      return getStorage()?.getItem(key) ?? ''
+    }
+    return ''
+  }
+
+  protected override async persistSwAuthorizationState(
+    state: SwAuthorizationState
+  ) {
+    if (!this.allowReattach) {
+      return
+    }
+
+    const key = this.getAuthStateSessionStorageKey()
+    if (key) {
+      this.logger.info('Hijacking: persist auth state', key, state)
+      getStorage()?.setItem(key, state)
+    }
+  }
+
+  protected override _onSocketClose(event: CloseEvent) {
+    if (this.status === 'unknown') {
+      this.logger.info('Hijacking: invalid values - cleaning up storage')
+      const protocolKey = this.getProtocolSessionStorageKey()
+      if (protocolKey) {
+        getStorage()?.removeItem(protocolKey)
+      }
+      const authStatekey = this.getAuthStateSessionStorageKey()
+      if (authStatekey) {
+        getStorage()?.removeItem(authStatekey)
+      }
+      // Remove also the previous callId
+      getStorage()?.removeItem(CALL_ID)
+    }
+
+    super._onSocketClose(event)
+  }
+
+  private getAuthStateSessionStorageKey() {
+    return `as-${this.getSessionStorageKey()}`
+  }
+
+  private getProtocolSessionStorageKey() {
+    return `pt-${this.getSessionStorageKey()}`
+  }
+
+  private getSessionStorageKey() {
     try {
-      const jwtPayload = jwtDecode<{ r: string }>(this.options.token)
-      return jwtPayload?.r
+      const jwtPayload = jwtDecode<{ r: string; ja: string }>(
+        this.options.token
+      )
+      return `${jwtPayload?.r}-${jwtPayload?.ja}`
     } catch (e) {
       if (process.env.NODE_ENV !== 'production') {
-        getLogger().error('[getRoomNameFromJWT] error decoding the JWT')
+        getLogger().error('[getSessionStorageKey] error decoding the JWT')
       }
       return ''
     }
