@@ -14,7 +14,9 @@
   "dependencies": {
     "@sw-internal/common": "^0.0.3",
     "execa": "^6.1.0",
-    "inquirer": "^8.2.1",
     "listr2": "^4.0.5"
+  },
+  "devDependencies": {
+    "inquirer": "^8.2.5"
   }
 }
