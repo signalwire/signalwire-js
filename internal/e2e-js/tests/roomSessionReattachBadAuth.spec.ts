@@ -27,7 +27,7 @@ test.describe('RoomSessionReattachBadAuth', () => {
       },
       initialEvents: [],
       roomSessionOptions: {
-        _hijack: true, // FIXME: to remove
+        reattach: true, // FIXME: to remove
       },
     }
     await createTestRoomSession(page, connectionSettings)

@@ -117,12 +117,20 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     speakerId,
   })
 
-  const hijackManager = {
+  // @ts-expect-error
+  const allowReattach = Boolean(roomOptions.reattach)
+
+  const reattachManager = {
     joined: ({ call_id }: VideoRoomSubscribedEventParams) => {
-      getStorage()?.setItem(CALL_ID, call_id)
+      if (allowReattach) {
+        getStorage()?.setItem(CALL_ID, call_id)
+      }
     },
     init: () => {
-      room.on('room.subscribed', hijackManager.joined)
+      if (!allowReattach) {
+        return
+      }
+      room.on('room.subscribed', reattachManager.joined)
 
       const prevCallId = getStorage()?.getItem(CALL_ID)
       if (prevCallId) {
@@ -130,7 +138,11 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
       }
     },
     destroy: () => {
-      room.off('room.subscribed', hijackManager.joined)
+      if (!allowReattach) {
+        return
+      }
+
+      room.off('room.subscribed', reattachManager.joined)
       getStorage()?.removeItem(CALL_ID)
     },
   }
@@ -140,8 +152,8 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     // @ts-expect-error
     room.emit('room.left')
 
-    // Remove callId to hijack
-    hijackManager.destroy()
+    // Remove callId to reattach
+    reattachManager.destroy()
     client.disconnect()
   })
 
@@ -201,7 +213,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
         })
 
         // Hijack previous callId if present
-        hijackManager.init()
+        reattachManager.init()
 
         await room.join()
       } catch (error) {

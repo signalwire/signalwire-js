@@ -27,13 +27,13 @@ export class JWTSession extends BaseJWTSession {
     })
   }
 
-  get allowHijack() {
+  get allowReattach() {
     // @ts-expect-error
-    return this.options._hijack
+    return this.options.reattach
   }
 
   override async retrieveRelayProtocol() {
-    if (!this.allowHijack) {
+    if (!this.allowReattach) {
       return ''
     }
 
@@ -46,7 +46,7 @@ export class JWTSession extends BaseJWTSession {
   }
 
   override async persistRelayProtocol() {
-    if (!this.allowHijack) {
+    if (!this.allowReattach) {
       return
     }
 
@@ -68,7 +68,7 @@ export class JWTSession extends BaseJWTSession {
   protected override async persistSwAuthorizationState(
     state: SwAuthorizationState
   ) {
-    if (!this.allowHijack) {
+    if (!this.allowReattach) {
       return
     }
 
