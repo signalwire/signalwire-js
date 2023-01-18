@@ -75,7 +75,7 @@ export class BaseJWTSession extends BaseSession {
       }
     }
 
-    // Try to set authorization_state only we have a valid protocol
+    // Try to set authorization_state only if we have a valid protocol
     if (params.protocol) {
       const authorizationState = await this.retrieveSwAuthorizationState()
       if (authorizationState) {
