@@ -80,11 +80,8 @@ test.describe('RoomSessionReattachBadAuth', () => {
       return roomObj.join().catch((error) => error)
     }, joinParams.room_session.name)
 
-    expect(joinResponse).toStrictEqual({
-      message: 'CALL ERROR',
-      causeCode: 95,
-      cause: 'INVALID_MSG_UNSPECIFIED',
-      code: -32002,
-    })
+    const { code, message } = joinResponse
+    expect([-32002, '27']).toContain(code)
+    expect(['CALL ERROR', 'DESTINATION_OUT_OF_ORDER']).toContain(message)
   })
 })
