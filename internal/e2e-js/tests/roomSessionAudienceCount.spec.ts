@@ -116,7 +116,8 @@ test.describe('RoomSession Audience Count', () => {
       audienceCountPageTwoPromise,
     ])
 
-    await pageOne.waitForTimeout(20_000)
+    // audience_count events come "every" 20s so wait for 25s to avoid race
+    await pageOne.waitForTimeout(25_000)
 
     const totalsPageOne = await expectorPageOne.getTotals()
     expect(totalsPageOne.totalFromAudienceCount).toBe(expectedAudienceCount)
