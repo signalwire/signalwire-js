@@ -166,6 +166,7 @@ export interface VoiceCallSipParams {
   headers?: SipHeader[]
   codecs?: SipCodec[]
   webrtcMedia?: boolean
+  sessionTimeout?: number
 }
 
 export interface NestedArray<T> extends Array<T | NestedArray<T>> {}
