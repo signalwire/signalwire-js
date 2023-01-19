@@ -28,7 +28,9 @@ test.describe('RoomSessionReattachWrongCallId', () => {
     test(`should try reattaching to a room with a wrong call Id for ${row.join_as}`, async ({
       createCustomPage,
     }) => {
-      const page = await createCustomPage({ name: `[reattach-callid-${row.join_as}]` })
+      const page = await createCustomPage({
+        name: `[reattach-callid-${row.join_as}]`,
+      })
       await page.goto(SERVER_URL)
 
       const roomName = randomizeRoomName()
@@ -74,47 +76,41 @@ test.describe('RoomSessionReattachWrongCallId', () => {
       expect(roomPermissions).toStrictEqual(permissions)
 
       // --------------- Reattaching ---------------
+      await page.waitForTimeout(2000)
+
       await page.reload()
 
-      await createTestRoomSession(page, connectionSettings)
-
-      console.time('reattach')
-      // Try to join but expect to join with a different callId
-      const reattachParams: any = await page.evaluate(() => {
-        return new Promise((resolve) => {
-          // @ts-expect-error
-          const roomObj = window._roomObj
-          roomObj.on('room.joined', resolve)
-
-          const mockId = uuid()
-          window.sessionStorage.setItem('callId', mockId)
-          console.log('Injected callId with value', mockId)
-
-          return roomObj.join()
-        })
-      })
-      console.timeEnd('reattach')
-
-      expect(reattachParams.room).toBeDefined()
-      expect(reattachParams.room_session).toBeDefined()
-      if (row.join_as === 'member') {
-        expect(
-          reattachParams.room.members.some(
-            (member: any) => member.id === reattachParams.member_id
-          )
-        ).toBeTruthy()
+      const reattachConnectionSettings = {
+        vrt: {
+          room_name: roomName,
+          user_name: `e2e_reattach_wrong_callid_${row.join_as}`,
+          join_as: row.join_as,
+          auto_create_room: true,
+          permissions,
+        },
+        initialEvents: [],
+        roomSessionOptions: {
+          reattach: true, // FIXME: to remove
+        },
+        expectToJoin: false,
       }
-      expect(reattachParams.room_session.name).toBe(roomName)
-      expect(reattachParams.room.name).toBe(roomName)
-      // Make sure the member_id is stable
-      expect(reattachParams.member_id).toBeDefined()
-      expect(reattachParams.member_id).toBe(joinParams.member_id)
-      // Also call_id must remain the same
-      expect(reattachParams.call_id).toBeDefined()
-      expect(reattachParams.call_id).toBe(joinParams.call_id)
+      await createTestRoomSession(page, reattachConnectionSettings)
 
-      // Checks that the video is visible
-      await row.expectMCU(page)
+      // ----- Join the room with a bogus call ID and expect an error --
+      const joinError: any = await page.evaluate(async ({ mockId }) => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+        window.sessionStorage.setItem('callId', mockId)
+        console.log('Injected callId with value', mockId)
+        const error = await roomObj.join().catch((error) => error)
+
+        return error
+      },
+      { mockId: uuid() }
+      )
+
+      expect(joinError.code).toBe('81')
+      expect(joinError.message).toBe('INVALID_CALL_REFERENCE')
     })
   })
 })
