@@ -28,7 +28,9 @@ test.describe('RoomSessionReattachWrongCallId', () => {
     test(`should try reattaching to a room with a wrong call Id for ${row.join_as}`, async ({
       createCustomPage,
     }) => {
-      const page = await createCustomPage({ name: `[reattach-callid-${row.join_as}]` })
+      const page = await createCustomPage({
+        name: `[reattach-callid-${row.join_as}]`,
+      })
       await page.goto(SERVER_URL)
 
       const roomName = randomizeRoomName()
@@ -80,19 +82,21 @@ test.describe('RoomSessionReattachWrongCallId', () => {
 
       console.time('reattach')
       // Try to join but expect to join with a different callId
-      const reattachParams: any = await page.evaluate(() => {
-        return new Promise((resolve) => {
-          // @ts-expect-error
-          const roomObj = window._roomObj
-          roomObj.on('room.joined', resolve)
+      const reattachParams: any = await page.evaluate(
+        ({ mockId }) => {
+          return new Promise((resolve) => {
+            // @ts-expect-error
+            const roomObj = window._roomObj
+            roomObj.on('room.joined', resolve)
 
-          const mockId = uuid()
-          window.sessionStorage.setItem('callId', mockId)
-          console.log('Injected callId with value', mockId)
+            window.sessionStorage.setItem('callId', mockId)
+            console.log('Injected callId with value', mockId)
 
-          return roomObj.join()
-        })
-      })
+            return roomObj.join()
+          })
+        },
+        { mockId: uuid() }
+      )
       console.timeEnd('reattach')
 
       expect(reattachParams.room).toBeDefined()
