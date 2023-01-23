@@ -339,9 +339,9 @@ export interface VoiceCallTapAudioMethodParams {
 export type VoiceCallCollectMethodParams = SpeechOrDigits & {
   initialTimeout?: number
   partialResults?: boolean
-  continuous: boolean
-  sendStartOfInput: boolean
-  startInputTimers: boolean
+  continuous?: boolean
+  sendStartOfInput?: boolean
+  startInputTimers?: boolean
 }
 
 export type VoiceCallConnectMethodParams =
