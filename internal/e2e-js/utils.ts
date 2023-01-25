@@ -94,7 +94,7 @@ export const createTestRoomSession = async (
       return Promise.resolve(roomSession)
     },
     {
-      RELAY_HOST: process.env.RELAY_HOST,
+      RELAY_HOST: (options.vrt.join_as === 'audience') ? process.env.RELAY_AUDIENCE_HOST: process.env.RELAY_HOST,
       API_TOKEN: vrt,
       initialEvents: options.initialEvents,
       CI: process.env.CI,
@@ -142,10 +142,10 @@ export const createTestRoomSessionWithJWT = async (
         rootElement: document.getElementById('rootElement'),
         audio: true,
         video: true,
-        logLevel: 'warn',
-        // debug: {
-        //   logWsTraffic: true,
-        // },
+        logLevel: options.CI ? 'warn' : 'debug',
+        debug: {
+          logWsTraffic: !options.CI,
+        },
         ...options.roomSessionOptions,
       })
 
@@ -162,9 +162,10 @@ export const createTestRoomSessionWithJWT = async (
       return Promise.resolve(roomSession)
     },
     {
-      RELAY_HOST: process.env.RELAY_HOST,
+      RELAY_HOST: (options.vrt.join_as === 'audience') ? process.env.RELAY_AUDIENCE_HOST: process.env.RELAY_HOST,
       API_TOKEN: jwt,
       initialEvents: options.initialEvents,
+      CI: process.env.CI,
       roomSessionOptions: options.roomSessionOptions,
     }
   )
