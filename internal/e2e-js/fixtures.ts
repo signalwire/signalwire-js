@@ -2,8 +2,12 @@ import type { Video } from '@signalwire/js'
 import { test as baseTest, expect, type Page } from '@playwright/test'
 import { enablePageLogs } from './utils'
 
+type CustomPage = Page & {
+  swNetworkDown: () => Promise<void>
+  swNetworkUp: () => Promise<void>
+}
 type CustomFixture = {
-  createCustomPage(options: { name: string }): Promise<Page>
+  createCustomPage(options: { name: string }): Promise<CustomPage>
 }
 
 const test = baseTest.extend<CustomFixture>({
@@ -12,7 +16,17 @@ const test = baseTest.extend<CustomFixture>({
       const page = await context.newPage()
       enablePageLogs(page, options.name)
 
-      return page
+      return {
+        ...page,
+        swNetworkDown: () => {
+          console.log('Simulate network down..')
+          return context.setOffline(true)
+        },
+        swNetworkUp: () => {
+          console.log('Simulate network up..')
+          return context.setOffline(false)
+        },
+      }
     }
     await use(maker)
 
