@@ -12,6 +12,7 @@ import {
   BaseConnectionContract,
   VertoModify,
   componentSelectors,
+  actions,
 } from '@signalwire/core'
 import type { ReduxComponent } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
@@ -62,6 +63,11 @@ const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   requestTimeout: 10 * 1000,
   autoApplyMediaParams: true,
   iceGatheringTimeout: 2 * 1000,
+  maxIceGatheringTimeout: 5 * 1000,
+  maxConnectionStateTimeout: 3 * 1000,
+  watchMediaPackets: true,
+  watchMediaPacketsTimeout: 2 * 1000,
+  watchMediaPacketsInitialDelay: 10 * 1000,
 }
 
 type EventsHandlerMapping = Record<BaseConnectionState, (params: any) => void>
@@ -602,6 +608,25 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         return this.logger.error(
           `Unknown SDP type: '${type}' on call ${this.id}`
         )
+    }
+  }
+
+  /** @internal */
+  _closeWSConnection() {
+    this.store.dispatch(actions.sessionForceCloseAction())
+  }
+
+  /** @internal */
+  async resume() {
+    this.logger.debug(`[resume] Call ${this.id}`)
+    if (this.peer?.instance) {
+      const { connectionState } = this.peer.instance
+      this.logger.debug(
+        `[resume] connectionState for ${this.id} is '${connectionState}'`
+      )
+      if (connectionState !== 'closed') {
+        this.peer.restartIce()
+      }
     }
   }
 
