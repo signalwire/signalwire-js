@@ -277,7 +277,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     this.logger.info('Probably half-open so force close from client')
     this.clearTimers()
     this.needResume = true
-    this.logger.warn('>> FORCE CLOSE WS CONNECTION')
     this.call._closeWSConnection()
   }
 

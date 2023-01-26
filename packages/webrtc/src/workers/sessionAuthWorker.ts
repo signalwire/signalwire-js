@@ -32,10 +32,10 @@ export const sessionAuthWorker: SDKWorker<
 
   switch (action.type) {
     case actions.authSuccessAction.type:
-      yield sagaEffects.call(instance.resume)
+      yield sagaEffects.call([instance, instance.resume])
       break
     case actions.authErrorAction.type:
-      yield sagaEffects.call(instance.setState, 'hangup')
+      yield sagaEffects.call([instance, instance.setState], 'hangup')
       break
   }
 

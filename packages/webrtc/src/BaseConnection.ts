@@ -613,6 +613,10 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   /** @internal */
   _closeWSConnection() {
+    this.runWorker('sessionAuthWorker', {
+      worker: workers.sessionAuthWorker,
+    })
+
     this.store.dispatch(actions.sessionForceCloseAction())
   }
 
