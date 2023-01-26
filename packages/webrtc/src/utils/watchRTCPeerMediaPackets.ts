@@ -16,6 +16,7 @@ export const watchRTCPeerMediaPackets = <
   let previousAudioValue = 0
   let previousVideoValue = 0
 
+  let run = true
   let timer: ReturnType<typeof setTimeout>
   const clearTimer = () => {
     clearTimeout(timer)
@@ -59,11 +60,21 @@ export const watchRTCPeerMediaPackets = <
         previousAudioValue = audioPacketsReceived ?? previousAudioValue
         previousVideoValue = videoPacketsReceived ?? previousVideoValue
         clearTimer()
-        timer = setTimeout(() => meter(), rtcPeer.watchMediaPacketsTimeout)
+        if (run && rtcPeer.instance.connectionState !== 'closed') {
+          timer = setTimeout(() => meter(), rtcPeer.watchMediaPacketsTimeout)
+        }
       }
     }
   }
 
-  clearTimer()
-  meter()
+  return {
+    start: () => {
+      clearTimer()
+      meter()
+    },
+    stop: () => {
+      run = false
+      clearTimer()
+    },
+  }
 }
