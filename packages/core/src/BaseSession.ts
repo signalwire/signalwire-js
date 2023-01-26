@@ -334,6 +334,10 @@ export class BaseSession {
     this.dispatch(authErrorAction({ error }))
   }
 
+  forceClose() {
+    return this._closeConnection('reconnecting')
+  }
+
   protected async _onSocketOpen(event: Event) {
     this.logger.debug('_onSocketOpen', event.type)
     try {
@@ -502,5 +506,15 @@ export class BaseSession {
       )
     )
     this.destroySocket()
+
+    if (this._status === 'reconnecting') {
+      /**
+       * Since the real `close` event can be delayed by OS/Browser,
+       * trigger it manually to start the reconnect process if required.
+       */
+      this.wsCloseHandler(
+        new CloseEvent('close', { reason: 'Client-side closed' })
+      )
+    }
   }
 }

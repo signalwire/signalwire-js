@@ -23,6 +23,7 @@ import {
   sessionAuthErrorAction,
   sessionExpiringAction,
   reauthAction,
+  sessionForceCloseAction,
 } from './actions'
 import { sessionActions } from './features'
 import {
@@ -173,6 +174,7 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
         reauthAction.type,
         sessionReconnectingAction.type,
         sessionDisconnectedAction.type,
+        sessionForceCloseAction.type,
       ])
 
       getLogger().debug('sessionStatusWatcher', action.type, action.payload)
@@ -209,6 +211,10 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
         case sessionDisconnectedAction.type: {
           yield put(options.pubSubChannel, sessionDisconnectedAction())
           yield put(destroyAction())
+          break
+        }
+        case sessionForceCloseAction.type: {
+          options.session.forceClose()
           break
         }
       }
