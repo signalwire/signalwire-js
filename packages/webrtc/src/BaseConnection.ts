@@ -13,6 +13,7 @@ import {
   VertoModify,
   componentSelectors,
   actions,
+  Task,
 } from '@signalwire/core'
 import type { ReduxComponent } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
@@ -108,6 +109,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   private prevState: BaseConnectionState = 'new'
   private activeRTCPeerId: string
   private rtcPeerMap = new Map<string, RTCPeer<EventTypes>>()
+  private sessionAuthTask: Task
 
   constructor(
     options: BaseConnectionOptions<EventTypes & BaseConnectionStateEventTypes>
@@ -594,6 +596,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     this.logger.debug('LOCAL SDP \n', `Type: ${type}`, '\n\n', mungedSDP)
     switch (type) {
       case 'offer':
+        this._watchSessionAuth()
         // If we have a remoteDescription already, send reinvite
         if (rtcPeer.instance.remoteDescription) {
           return this.executeUpdateMedia(mungedSDP, rtcPeer.uuid)
@@ -613,11 +616,17 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   /** @internal */
   _closeWSConnection() {
-    this.runWorker('sessionAuthWorker', {
+    this._watchSessionAuth()
+    this.store.dispatch(actions.sessionForceCloseAction())
+  }
+
+  private _watchSessionAuth() {
+    if (this.sessionAuthTask) {
+      this.sessionAuthTask.cancel()
+    }
+    this.sessionAuthTask = this.runWorker('sessionAuthWorker', {
       worker: workers.sessionAuthWorker,
     })
-
-    this.store.dispatch(actions.sessionForceCloseAction())
   }
 
   /** @internal */
