@@ -525,3 +525,66 @@ export const expectScreenShareJoined = async (page: Page) => {
     })
   })
 }
+
+export const getStats = async (page: Page) => {
+  const stats = await page.evaluate(async () => {
+    // @ts-expect-error
+    const roomObj: Video.RoomSession = window._roomObj
+    // @ts-expect-error
+    const rtcPeer = roomObj.peer
+    const stats = await rtcPeer.instance.getStats(null)
+    const result: {
+      inboundRTP: Record<any, any>
+      outboundRTP: Record<any, any>
+    } = { inboundRTP: {}, outboundRTP: {} }
+
+    const inboundRTPFilters = {
+      audio: ['packetsReceived', 'packetsLost', 'packetsDiscarded'],
+      video: ['packetsReceived', 'packetsLost', 'packetsDiscarded'],
+    } as const
+
+    const inboundRTPHandler = (report: any) => {
+      const media = report.mediaType as 'video' | 'audio'
+      const trackId = rtcPeer._getReceiverByKind(media).track.id
+      if (report.trackIdentifier !== trackId) {
+        console.log(
+          `trackIdentifier "${report.trackIdentifier}" and trackId "${trackId}" are different`
+        )
+        return
+      }
+      result.inboundRTP[media] = result.inboundRTP[media] || {}
+      inboundRTPFilters[media].forEach((key) => {
+        result.inboundRTP[media][key] = report[key]
+      })
+    }
+
+    const outboundRTPFilters = {
+      audio: ['active', 'packetsSent', 'targetBitrate', 'totalPacketSendDelay'],
+      video: ['active', 'packetsSent', 'targetBitrate', 'totalPacketSendDelay'],
+    } as const
+
+    const outboundRTPHandler = (report: any) => {
+      const media = report.mediaType as 'video' | 'audio'
+      result.outboundRTP[media] = result.outboundRTP[media] || {}
+      outboundRTPFilters[media].forEach((key) => {
+        result.outboundRTP[media][key] = report[key]
+      })
+    }
+
+    stats.forEach((report: any) => {
+      switch (report.type) {
+        case 'inbound-rtp':
+          inboundRTPHandler(report)
+          break
+        case 'outbound-rtp':
+          outboundRTPHandler(report)
+          break
+      }
+    })
+
+    return result
+  })
+  console.log('RTC Stats', stats)
+
+  return stats
+}

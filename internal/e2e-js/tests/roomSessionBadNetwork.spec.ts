@@ -7,6 +7,7 @@ import {
   expectRoomJoined,
   expectMCUVisible,
   expectMCUVisibleForAudience,
+  getStats,
 } from '../utils'
 
 type Test = {
@@ -74,10 +75,20 @@ test.describe('roomSessionBadNetwork', () => {
       })
       expect(roomPermissions).toStrictEqual(permissions)
 
+      console.log('First')
+      await getStats(page)
+
       // --------------- Simulate Network Down and Up ---------------
       await page.swNetworkDown()
-      await page.waitForTimeout(5_000)
+      await page.waitForTimeout(15_000)
+      console.log('Second')
+      await getStats(page)
+
       await page.swNetworkUp()
+
+      await page.waitForTimeout(15_000)
+      console.log('Third')
+      await getStats(page)
     })
   })
 })
