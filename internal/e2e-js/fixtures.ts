@@ -12,21 +12,22 @@ type CustomFixture = {
 
 const test = baseTest.extend<CustomFixture>({
   createCustomPage: async ({ context }, use) => {
-    const maker = async (options: { name: string }) => {
+    const maker = async (options: { name: string }): Promise<CustomPage> => {
       const page = await context.newPage()
       enablePageLogs(page, options.name)
 
-      return {
-        ...page,
-        swNetworkDown: () => {
-          console.log('Simulate network down..')
-          return context.setOffline(true)
-        },
-        swNetworkUp: () => {
-          console.log('Simulate network up..')
-          return context.setOffline(false)
-        },
+      // @ts-expect-error
+      page.swNetworkDown = () => {
+        console.log('Simulate network down..')
+        return context.setOffline(true)
       }
+      // @ts-expect-error
+      page.swNetworkUp = () => {
+        console.log('Simulate network up..')
+        return context.setOffline(false)
+      }
+      // @ts-expect-error
+      return page
     }
     await use(maker)
 
