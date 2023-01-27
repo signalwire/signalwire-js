@@ -104,6 +104,10 @@ export class CallPlaybackAPI
   }
 
   ended() {
+    if (['finished', 'error'].includes(this.state)) {
+      return Promise.resolve(this)
+    }
+
     return new Promise<this>((resolve) => {
       this._attachListeners(this.controlId)
 

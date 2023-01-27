@@ -72,6 +72,7 @@ export type CallReceived = 'call.received'
 export type CallPlaybackStarted = 'playback.started'
 export type CallPlaybackUpdated = 'playback.updated'
 export type CallPlaybackEnded = 'playback.ended'
+export type CallPlaybackFailed = 'playback.failed'
 export type CallRecordingStarted = 'recording.started'
 export type CallRecordingUpdated = 'recording.updated'
 export type CallRecordingEnded = 'recording.ended'
@@ -106,6 +107,7 @@ export type VoiceCallEventNames =
   | CallPlaybackStarted
   | CallPlaybackUpdated
   | CallPlaybackEnded
+  | CallPlaybackFailed
   | CallRecordingStarted
   | CallRecordingUpdated
   | CallRecordingEnded
@@ -1148,6 +1150,14 @@ export interface CallPlaybackEndedEvent extends SwEvent {
   params: CallingCallPlayEventParams & { tag: string }
 }
 /**
+ * 'calling.playback.failed'
+ */
+export interface CallPlaybackFailedEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallPlaybackFailed>
+  params: CallingCallPlayEventParams & { tag: string }
+}
+
+/**
  * 'calling.call.received'
  */
 export interface CallReceivedEvent extends SwEvent {
@@ -1367,6 +1377,7 @@ export type VoiceCallEvent =
   | CallPlaybackStartedEvent
   | CallPlaybackUpdatedEvent
   | CallPlaybackEndedEvent
+  | CallPlaybackFailedEvent
   | CallRecordingStartedEvent
   | CallRecordingUpdatedEvent
   | CallRecordingEndedEvent
@@ -1408,6 +1419,7 @@ export type VoiceCallEventParams =
   | CallPlaybackStartedEvent['params']
   | CallPlaybackUpdatedEvent['params']
   | CallPlaybackEndedEvent['params']
+  | CallPlaybackFailedEvent['params']
   | CallRecordingStartedEvent['params']
   | CallRecordingUpdatedEvent['params']
   | CallRecordingEndedEvent['params']
