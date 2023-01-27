@@ -74,6 +74,7 @@ type EmitterTransformsEvents =
   | 'calling.playback.started'
   | 'calling.playback.updated'
   | 'calling.playback.ended'
+  | 'calling.playback.failed'
   | 'calling.recording.started'
   | 'calling.recording.updated'
   | 'calling.recording.ended'
@@ -247,6 +248,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
           'calling.playback.started',
           'calling.playback.updated',
           'calling.playback.ended',
+          'calling.playback.failed',
         ],
         {
           type: 'voiceCallPlayback',

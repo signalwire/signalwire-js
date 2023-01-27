@@ -4,6 +4,7 @@ import type {
   CallPlaybackStarted,
   CallPlaybackUpdated,
   CallPlaybackEnded,
+  CallPlaybackFailed,
   CallRecordingStarted,
   CallRecordingUpdated,
   CallRecordingEnded,
@@ -33,7 +34,10 @@ export type RealTimeCallApiEventsHandlerMapping = Record<
 > &
   Record<CallState, (call: Call) => void> &
   Record<
-    CallPlaybackStarted | CallPlaybackUpdated | CallPlaybackEnded,
+    | CallPlaybackStarted
+    | CallPlaybackUpdated
+    | CallPlaybackEnded
+    | CallPlaybackFailed,
     (playback: CallPlayback) => void
   > &
   Record<

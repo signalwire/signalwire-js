@@ -44,7 +44,7 @@ export const voiceCallPlayWorker: SDKWorker<Call> = function* (
      * Update the original CallPlayback object using the
      * transform pipeline
      */
-     yield sagaEffects.put(pubSubChannel, {
+    yield sagaEffects.put(pubSubChannel, {
       // @ts-ignore
       type: callingPlaybackTriggerEvent,
       // @ts-ignore
@@ -73,9 +73,27 @@ export const voiceCallPlayWorker: SDKWorker<Call> = function* (
         })
         break
       }
-      case 'error':
-        // TODO: dispatch calling.playback.error ?
+      case 'error': {
+        yield sagaEffects.put(pubSubChannel, {
+          type: 'calling.playback.failed',
+          payload: payloadWithTag,
+        })
+
+        /**
+         * Dispatch an event to resolve `ended()` in CallPlayback
+         * when ended
+         */
+        yield sagaEffects.put(pubSubChannel, {
+          type: 'calling.playback.ended',
+          payload: {
+            tag: controlId,
+            ...action.payload,
+          },
+        })
+
+        done()
         break
+      }
       case 'finished': {
         yield sagaEffects.put(pubSubChannel, {
           type: 'calling.playback.ended',
