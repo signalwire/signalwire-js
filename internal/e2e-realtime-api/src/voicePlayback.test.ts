@@ -23,6 +23,7 @@ const handler = () => {
           'Call answered gets the same instance'
         )
 
+        // Play an invalid audio
         const handle = await call.playAudio({
           url: 'https://cdn.fake.com/default-music/fake.mp3',
         })
@@ -33,15 +34,16 @@ const handler = () => {
           'Inbound playback returns the same instance'
         )
 
-        const waitForPlaybackFailed = new Promise(async (resolve) => {
+        const waitForPlaybackFailed = new Promise((resolve) => {
           call.on('playback.failed', (playback) => {
             tap.equal(playback.state, 'error', 'Inbound playback has failed')
             resolve(true)
           })
         })
-
+        // Wait for the inbound audio to failed
         await waitForPlaybackFailed
 
+        // Callee hangs up a call
         await call.hangup()
       } catch (error) {
         console.error('Error', error)
@@ -56,6 +58,7 @@ const handler = () => {
     })
     tap.ok(call.id, 'Call resolved')
 
+    // Play an audio
     const handle = await call.playAudio({
       url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
     })
@@ -66,20 +69,22 @@ const handler = () => {
       'Outbound playback returns the same instance'
     )
 
-    const waitForPlaybackStarted = new Promise(async (resolve) => {
+    const waitForPlaybackStarted = new Promise((resolve) => {
       call.on('playback.started', (playback) => {
         tap.equal(playback.state, 'playing', 'Outbound playback has started')
         resolve(true)
       })
     })
+    // Wait for the outbound audio to start
     await waitForPlaybackStarted
 
-    const waitForPlaybackEnded = new Promise(async (resolve) => {
+    const waitForPlaybackEnded = new Promise((resolve) => {
       call.on('playback.ended', (playback) => {
         tap.equal(playback.state, 'finished', 'Outbound playback has finished')
         resolve(true)
       })
     })
+    // Wait for the outbound audio to end (callee hung up the call or audio ended)
     await waitForPlaybackEnded
 
     const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const

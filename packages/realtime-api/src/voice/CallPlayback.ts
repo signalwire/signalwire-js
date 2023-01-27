@@ -104,7 +104,8 @@ export class CallPlaybackAPI
   }
 
   ended() {
-    if (['finished', 'error'].includes(this.state)) {
+    const ENDED_STATES = ['finished', 'error']
+    if (ENDED_STATES.includes(this.state)) {
       return Promise.resolve(this)
     }
 
