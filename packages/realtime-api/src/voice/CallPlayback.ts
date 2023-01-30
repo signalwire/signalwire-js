@@ -23,6 +23,8 @@ export type CallPlaybackEventsHandlerMapping = {}
 export interface CallPlaybackOptions
   extends BaseComponentOptions<CallPlaybackEventsHandlerMapping> {}
 
+const ENDED_STATES: string[] = ['finished', 'error']
+
 export class CallPlaybackAPI
   extends BaseComponent<CallPlaybackEventsHandlerMapping>
   implements VoiceCallPlaybackContract
@@ -104,7 +106,6 @@ export class CallPlaybackAPI
   }
 
   ended() {
-    const ENDED_STATES = ['finished', 'error']
     if (ENDED_STATES.includes(this.state)) {
       return Promise.resolve(this)
     }
