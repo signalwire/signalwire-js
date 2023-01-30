@@ -10,7 +10,7 @@ import {
 } from '../utils'
 
 test.describe('RoomSessionReattachBadAuth', () => {
-  test('join a room, reattach with invalid authorization_state and then leave the room', async ({
+  test('should join a room, reattach with invalid authorization_state and then leave the room', async ({
     createCustomPage,
   }) => {
     const page = await createCustomPage({ name: '[reattach-bad-auth]' })

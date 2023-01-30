@@ -11,7 +11,7 @@ import {
 } from '../utils'
 
 test.describe('RoomSession demote method', () => {
-  test('should not be able to to demote audience', async ({
+  test('should not be able to demote audience', async ({
     createCustomPage,
   }) => {
     const pageOne = await createCustomPage({ name: '[pageOne]' })

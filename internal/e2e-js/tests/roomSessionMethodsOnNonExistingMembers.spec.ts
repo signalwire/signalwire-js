@@ -9,7 +9,7 @@ import {
 } from '../utils'
 
 test.describe('RoomSession methods on non existing members', () => {
-  test('should handle joining a room, try to perform actions on members that does not exist and then leave the room', async ({
+  test('should handle joining a room, try to perform actions on members that do not exist and then leave the room', async ({
     createCustomPage,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
