@@ -546,6 +546,7 @@ export const getStats = async (page: Page) => {
     const inboundRTPHandler = (report: any) => {
       const media = report.mediaType as 'video' | 'audio'
       const trackId = rtcPeer._getReceiverByKind(media).track.id
+      console.log(`getStats trackId "${trackId}" for media ${media}`)
       if (report.trackIdentifier !== trackId) {
         console.log(
           `trackIdentifier "${report.trackIdentifier}" and trackId "${trackId}" are different`
