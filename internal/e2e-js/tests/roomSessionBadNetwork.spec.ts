@@ -7,7 +7,7 @@ import {
   expectRoomJoined,
   expectMCUVisible,
   expectMCUVisibleForAudience,
-  getStats,
+  expectPageReceiveMedia,
 } from '../utils'
 
 type Test = {
@@ -34,7 +34,7 @@ test.describe('roomSessionBadNetwork', () => {
       await page.goto(SERVER_URL)
 
       const roomName = randomizeRoomName()
-      const permissions: any = []
+      const permissions = ['room.self.audio_mute', 'room.self.audio_unmute']
       const connectionSettings = {
         vrt: {
           room_name: roomName,
@@ -43,7 +43,7 @@ test.describe('roomSessionBadNetwork', () => {
           auto_create_room: true,
           permissions,
         },
-        initialEvents: [],
+        initialEvents: ['member.talking'],
         roomSessionOptions: {
           reattach: true, // FIXME: to remove
         },
@@ -75,22 +75,50 @@ test.describe('roomSessionBadNetwork', () => {
       })
       expect(roomPermissions).toStrictEqual(permissions)
 
-      console.log('First')
-      await getStats(page)
+      await expectPageReceiveMedia(page)
 
-      // --------------- Simulate Network Down and Up ---------------
+      // --------------- Simulate Network Down and Up in 15s ---------------
       await page.swNetworkDown()
       await page.waitForTimeout(15_000)
-      console.log('Second')
-      await getStats(page)
-
       await page.swNetworkUp()
 
-      await page.waitForTimeout(15_000)
-      console.log('Third')
-      await getStats(page)
+      await expectPageReceiveMedia(page)
 
-      await page.waitForTimeout(30_000)
+      await page.waitForTimeout(10_000)
+
+      await expectPageReceiveMedia(page)
+
+      // Make sure we still receive events from the room
+      const makeMemberTalkingPromise = () =>
+        page.evaluate(async () => {
+          return new Promise((resolve) => {
+            // @ts-expect-error
+            const roomObj: Video.RoomSession = window._roomObj
+            roomObj.on('member.talking', resolve)
+          })
+        })
+
+      const promise1 = makeMemberTalkingPromise()
+
+      // --------------- Muting Member ---------------
+      await page.evaluate(async () => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+        await roomObj.audioMute()
+      })
+
+      await promise1
+
+      const promise2 = makeMemberTalkingPromise()
+
+      // --------------- Muting Member ---------------
+      await page.evaluate(async () => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+        await roomObj.audioUnmute()
+      })
+
+      await promise2
     })
   })
 })

@@ -588,3 +588,16 @@ export const getStats = async (page: Page) => {
 
   return stats
 }
+
+export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
+  const first = await getStats(page)
+  await page.waitForTimeout(delay)
+  const last = await getStats(page)
+
+  expect(last.inboundRTP.video.packetsReceived).toBeGreaterThan(
+    first.inboundRTP.video.packetsReceived
+  )
+  expect(last.inboundRTP.audio.packetsReceived).toBeGreaterThan(
+    first.inboundRTP.audio.packetsReceived
+  )
+}
