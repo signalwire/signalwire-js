@@ -27,15 +27,26 @@ export const watchRTCPeerMediaPackets = <
     let videoPacketsReceived = 0
     try {
       const stats = await rtcPeer.instance.getStats(null)
+      const audioTrackId = rtcPeer.remoteAudioTrack?.id
+      const videoTrackId = rtcPeer.remoteVideoTrack?.id
+
       stats.forEach((report) => {
-        if (report.type === 'inbound-rtp' && report.kind === 'audio') {
-          getLogger().debug(
+        if (
+          report.type === 'inbound-rtp' &&
+          report.kind === 'audio' &&
+          report.trackIdentifier === audioTrackId
+        ) {
+          getLogger().trace(
             `audio inbound-rtp: packetsReceived: ${report.packetsReceived} (at ${report.lastPacketReceivedTimestamp})`
           )
           audioPacketsReceived = report.packetsReceived
         }
-        if (report.type === 'inbound-rtp' && report.kind === 'video') {
-          getLogger().debug(
+        if (
+          report.type === 'inbound-rtp' &&
+          report.kind === 'video' &&
+          report.trackIdentifier === videoTrackId
+        ) {
+          getLogger().trace(
             `video inbound-rtp: packetsReceived: ${report.packetsReceived} (at ${report.lastPacketReceivedTimestamp})`
           )
           videoPacketsReceived = report.packetsReceived

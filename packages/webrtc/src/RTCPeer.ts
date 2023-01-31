@@ -107,6 +107,16 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     return audioSender?.track || null
   }
 
+  get remoteVideoTrack() {
+    const videoReceiver = this._getReceiverByKind('video')
+    return videoReceiver?.track || null
+  }
+
+  get remoteAudioTrack() {
+    const audioReceiver = this._getReceiverByKind('audio')
+    return audioReceiver?.track || null
+  }
+
   get hasAudioSender() {
     return this._getSenderByKind('audio') ? true : false
   }
