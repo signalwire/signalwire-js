@@ -66,6 +66,7 @@ export class BaseSession {
   protected _swConnectError = Symbol.for('sw-connect-error')
   private _executeTimeoutMs = 10 * 1000
   private _executeTimeoutError = Symbol.for('sw-execute-timeout')
+  private _executeConnectionClosed = Symbol.for('sw-execute-connection-closed')
   private _executeQueue: Set<JSONRPCRequest | JSONRPCResponse> = new Set()
 
   private _checkPingDelay = 15 * 1000
@@ -284,7 +285,11 @@ export class BaseSession {
       this._executeTimeoutMs,
       this._executeTimeoutError
     ).catch((error) => {
-      if (error === this._executeTimeoutError) {
+      if (error === this._executeConnectionClosed) {
+        return this.logger.debug(
+          'Request rejected because the connection was closed. Retry later'
+        )
+      } else if (error === this._executeTimeoutError) {
         if ('method' in msg && msg.method === 'signalwire.connect') {
           throw this._swConnectError
         }
@@ -335,6 +340,8 @@ export class BaseSession {
   }
 
   forceClose() {
+    this._removeSocketListeners()
+
     return this._closeConnection('reconnecting')
   }
 
@@ -363,6 +370,7 @@ export class BaseSession {
       this.dispatch(sessionReconnectingAction())
       // yield put(pubSubChannel, sessionReconnectingAction())
       this._clearTimers()
+      this._clearPendingRequests()
       this._reconnectTimer = setTimeout(() => {
         this.connect()
       }, reconnectDelay())
@@ -372,6 +380,13 @@ export class BaseSession {
 
   private _clearTimers() {
     clearTimeout(this._reconnectTimer)
+  }
+
+  private _clearPendingRequests() {
+    this.logger.debug('_clearPendingRequests', this._requests.size)
+    this._requests.forEach(({ reject }) => {
+      reject(this._executeConnectionClosed)
+    })
   }
 
   protected _onSocketMessage(event: MessageEvent) {
