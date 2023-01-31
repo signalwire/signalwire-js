@@ -89,6 +89,8 @@ test.describe('roomSessionBadNetwork', () => {
       await page.waitForTimeout(15_000)
       console.log('Third')
       await getStats(page)
+
+      await page.waitForTimeout(30_000)
     })
   })
 })
