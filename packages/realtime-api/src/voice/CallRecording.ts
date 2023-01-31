@@ -19,6 +19,8 @@ export type CallRecordingEventsHandlerMapping = {}
 export interface CallRecordingOptions
   extends BaseComponentOptions<CallRecordingEventsHandlerMapping> {}
 
+const ENDED_STATES: string[] = ['finished', 'no_input']
+
 export class CallRecordingAPI
   extends BaseComponent<CallRecordingEventsHandlerMapping>
   implements VoiceCallRecordingContract
@@ -53,6 +55,11 @@ export class CallRecordingAPI
   }
 
   ended() {
+    // Resolve the promise if the recording has already ended
+    if (ENDED_STATES.includes(this.state)) {
+      return Promise.resolve(this)
+    }
+
     return new Promise<this>((resolve) => {
       this._attachListeners(this.controlId)
       const handler = () => {

@@ -106,6 +106,7 @@ export class CallPlaybackAPI
   }
 
   ended() {
+    // Resolve the promise if the playback has already ended
     if (ENDED_STATES.includes(this.state)) {
       return Promise.resolve(this)
     }

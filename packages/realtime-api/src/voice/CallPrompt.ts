@@ -124,6 +124,7 @@ export class CallPromptAPI
   }
 
   ended() {
+    // Resolve the promise if the prompt has already ended
     if (ENDED_STATES.includes(this.result?.type as string)) {
       return Promise.resolve(this)
     }
