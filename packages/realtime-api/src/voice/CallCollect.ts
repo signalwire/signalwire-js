@@ -20,6 +20,14 @@ export type CallCollectEventsHandlerMapping = {}
 export interface CallCollectOptions
   extends BaseComponentOptions<CallCollectEventsHandlerMapping> {}
 
+const ENDED_STATES: string[] = [
+  'error',
+  'no_input',
+  'no_match',
+  'digit',
+  'speech',
+]
+
 export class CallCollectAPI
   extends BaseComponent<CallCollectEventsHandlerMapping>
   implements VoiceCallCollectContract
@@ -110,6 +118,11 @@ export class CallCollectAPI
   }
 
   ended() {
+    // Resolve the promise if the collect has already ended
+    if (ENDED_STATES.includes(this.result?.type as string)) {
+      return Promise.resolve(this)
+    }
+
     return new Promise<this>((resolve) => {
       this._attachListeners(this.controlId)
       const handler = (_callCollect: CallCollectEndedEvent['params']) => {
