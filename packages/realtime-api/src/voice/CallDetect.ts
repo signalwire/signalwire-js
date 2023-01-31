@@ -4,6 +4,7 @@ import {
   BaseComponentOptions,
   VoiceCallDetectContract,
   Detector,
+  CallingCallDetectEndState,
 } from '@signalwire/core'
 
 /**
@@ -19,7 +20,7 @@ export type CallDetectEventsHandlerMapping = {}
 export interface CallDetectOptions
   extends BaseComponentOptions<CallDetectEventsHandlerMapping> {}
 
-const ENDED_STATES: string[] = ['finished', 'error']
+const ENDED_STATES: CallingCallDetectEndState[] = ['finished', 'error']
 
 export class CallDetectAPI
   extends BaseComponent<CallDetectEventsHandlerMapping>
@@ -62,7 +63,11 @@ export class CallDetectAPI
 
   ended() {
     // Resolve the promise if the detect has already ended
-    if (ENDED_STATES.includes(this.detect?.params?.event as string)) {
+    if (
+      ENDED_STATES.includes(
+        this.detect?.params?.event as CallingCallDetectEndState
+      )
+    ) {
       return Promise.resolve(this)
     }
 

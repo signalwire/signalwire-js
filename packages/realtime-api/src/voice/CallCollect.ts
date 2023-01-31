@@ -3,6 +3,7 @@ import {
   BaseComponentOptions,
   VoiceCallCollectContract,
   CallingCallCollectResult,
+  CallingCallCollectEndState,
   BaseComponent,
   CallCollectEndedEvent,
 } from '@signalwire/core'
@@ -20,7 +21,7 @@ export type CallCollectEventsHandlerMapping = {}
 export interface CallCollectOptions
   extends BaseComponentOptions<CallCollectEventsHandlerMapping> {}
 
-const ENDED_STATES: string[] = [
+const ENDED_STATES: CallingCallCollectEndState[] = [
   'error',
   'no_input',
   'no_match',
@@ -119,7 +120,9 @@ export class CallCollectAPI
 
   ended() {
     // Resolve the promise if the collect has already ended
-    if (ENDED_STATES.includes(this.result?.type as string)) {
+    if (
+      ENDED_STATES.includes(this.result?.type as CallingCallCollectEndState)
+    ) {
       return Promise.resolve(this)
     }
 

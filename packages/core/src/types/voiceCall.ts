@@ -891,6 +891,12 @@ export interface CallingCallReceiveEvent extends SwEvent {
  * 'calling.call.play'
  */
 export type CallingCallPlayState = 'playing' | 'paused' | 'error' | 'finished'
+
+export type CallingCallPlayEndState = Exclude<
+  CallingCallPlayState,
+  'playing' | 'paused'
+>
+
 export interface CallingCallPlayEventParams {
   node_id: string
   call_id: string
@@ -907,6 +913,12 @@ export interface CallingCallPlayEvent extends SwEvent {
  * 'calling.call.record'
  */
 export type CallingCallRecordState = 'recording' | 'no_input' | 'finished'
+
+export type CallingCallRecordEndState = Exclude<
+  CallingCallRecordState,
+  'recording'
+>
+
 export interface CallingCallRecordEventParams {
   node_id: string
   call_id: string
@@ -960,6 +972,11 @@ export type CallingCallCollectResult =
   | CallingCallCollectResultDigit
   | CallingCallCollectResultSpeech
 
+export type CallingCallCollectEndState = Exclude<
+  CallingCallCollectResult['type'],
+  'start_of_input'
+>
+
 export interface CallingCallCollectEventParams {
   node_id: string
   call_id: string
@@ -977,6 +994,8 @@ export interface CallingCallCollectEvent extends SwEvent {
  * 'calling.call.tap'
  */
 export type CallingCallTapState = 'tapping' | 'finished'
+
+export type CallingCallTapEndState = Exclude<CallingCallTapState, 'tapping'>
 
 interface CallingCallTapDeviceRTP {
   type: 'rtp'
@@ -1066,6 +1085,7 @@ export interface CallingCallSendDigitsEvent extends SwEvent {
  * 'calling.call.detect'
  */
 type CallingCallDetectState = 'finished' | 'error'
+export type CallingCallDetectEndState = CallingCallDetectState
 interface CallingCallDetectFax {
   type: 'fax'
   params: {

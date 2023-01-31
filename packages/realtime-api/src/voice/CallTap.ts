@@ -4,6 +4,7 @@ import {
   BaseComponentOptions,
   VoiceCallTapContract,
   CallingCallTapState,
+  CallingCallTapEndState,
 } from '@signalwire/core'
 
 /**
@@ -18,6 +19,8 @@ export type CallTapEventsHandlerMapping = {}
 
 export interface CallTapOptions
   extends BaseComponentOptions<CallTapEventsHandlerMapping> {}
+
+const ENDED_STATES: CallingCallTapEndState[] = ['finished']
 
 export class CallTapAPI
   extends BaseComponent<CallTapEventsHandlerMapping>
@@ -48,6 +51,11 @@ export class CallTapAPI
   }
 
   ended() {
+    // Resolve the promise if the tap has already ended
+    if (ENDED_STATES.includes(this.state as CallingCallTapEndState)) {
+      return Promise.resolve(this)
+    }
+
     return new Promise<this>((resolve) => {
       this._attachListeners(this.controlId)
 

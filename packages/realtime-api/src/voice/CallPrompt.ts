@@ -3,6 +3,7 @@ import {
   BaseComponentOptions,
   VoiceCallPromptContract,
   CallingCallCollectResult,
+  CallingCallCollectEndState,
   BaseComponent,
   CallPromptEndedEvent,
 } from '@signalwire/core'
@@ -20,7 +21,7 @@ export type CallPromptEventsHandlerMapping = {}
 export interface CallPromptOptions
   extends BaseComponentOptions<CallPromptEventsHandlerMapping> {}
 
-const ENDED_STATES: string[] = [
+const ENDED_STATES: CallingCallCollectEndState[] = [
   'no_input',
   'error',
   'no_match',
@@ -125,7 +126,9 @@ export class CallPromptAPI
 
   ended() {
     // Resolve the promise if the prompt has already ended
-    if (ENDED_STATES.includes(this.result?.type as string)) {
+    if (
+      ENDED_STATES.includes(this.result?.type as CallingCallCollectEndState)
+    ) {
       return Promise.resolve(this)
     }
 
