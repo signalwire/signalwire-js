@@ -83,8 +83,6 @@ export interface ConnectionOptions {
   watchMediaPackets?: boolean
   /** @internal */
   watchMediaPacketsTimeout?: number
-  /** @internal */
-  watchMediaPacketsInitialDelay?: number
 
   /** @internal */
   pingSupported?: boolean

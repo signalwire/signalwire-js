@@ -68,7 +68,6 @@ const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   maxConnectionStateTimeout: 3 * 1000,
   watchMediaPackets: true,
   watchMediaPacketsTimeout: 2 * 1000,
-  watchMediaPacketsInitialDelay: 10 * 1000,
 }
 
 type EventsHandlerMapping = Record<BaseConnectionState, (params: any) => void>
