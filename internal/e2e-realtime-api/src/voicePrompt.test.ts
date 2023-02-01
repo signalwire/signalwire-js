@@ -29,25 +29,13 @@ const handler = () => {
           'Inbound - Call answered gets the same instance'
         )
 
-        // Play an invalid audio
-        const handle = await call.playAudio({
-          url: 'https://cdn.fake.com/default-music/fake.mp3',
-        })
-
+        // Send digits 1234 to the caller
+        const sendDigitResult = await call.sendDigits('1w2w3w4w#')
         tap.equal(
           call.id,
-          handle.callId,
-          'Inbound - playback returns the same instance'
+          sendDigitResult.id,
+          'Inbound - sendDigit returns the same instance'
         )
-
-        const waitForPlaybackFailed = new Promise((resolve) => {
-          call.on('playback.failed', (playback) => {
-            tap.equal(playback.state, 'error', 'Inbound - playback has failed')
-            resolve(true)
-          })
-        })
-        // Wait for the inbound audio to failed
-        await waitForPlaybackFailed
 
         // Callee hangs up a call
         await call.hangup()
@@ -64,38 +52,29 @@ const handler = () => {
     })
     tap.ok(call.id, 'Outbound - Call resolved')
 
-    // Play an audio
-    const handle = await call.playAudio({
-      url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
+    // Start a prompt
+    const prompt = await call.prompt({
+      playlist: new Voice.Playlist({ volume: 1.0 }).add(
+        Voice.Playlist.TTS({
+          text: 'Welcome to SignalWire! Please enter your 4 digits PIN',
+        })
+      ),
+      digits: {
+        max: 4,
+        digitTimeout: 10,
+        terminators: '#',
+      },
     })
 
     tap.equal(
       call.id,
-      handle.callId,
-      'Outbound - Playback returns the same instance'
+      prompt.callId,
+      'Outbound - Prompt returns the same instance'
     )
 
-    const waitForPlaybackStarted = new Promise((resolve) => {
-      call.on('playback.started', (playback) => {
-        tap.equal(playback.state, 'playing', 'Outbound - Playback has started')
-        resolve(true)
-      })
-    })
-    // Wait for the outbound audio to start
-    await waitForPlaybackStarted
+    const { digits } = await prompt.ended()
 
-    const waitForPlaybackEnded = new Promise((resolve) => {
-      call.on('playback.ended', (playback) => {
-        tap.equal(
-          playback.state,
-          'finished',
-          'Outbound - Playback has finished'
-        )
-        resolve(true)
-      })
-    })
-    // Wait for the outbound audio to end (callee hung up the call or audio ended)
-    await waitForPlaybackEnded
+    tap.equal(digits, '1234', 'Outbound - Received the same digit')
 
     const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
     const results = await Promise.all(
@@ -115,7 +94,7 @@ const handler = () => {
 
 async function main() {
   const runner = createTestRunner({
-    name: 'Voice Playback E2E',
+    name: 'Voice Prompt E2E',
     testHandler: handler,
     executionTime: 60_000,
   })
