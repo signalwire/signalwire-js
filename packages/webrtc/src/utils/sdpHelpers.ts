@@ -128,6 +128,7 @@ export const sdpBitrateHack = (
 
 /**
  * Check for srflx, prflx or relay candidates
+ * TODO: improve the logic check private/public IP for typ host
  *
  * @param sdp string
  * @returns boolean
