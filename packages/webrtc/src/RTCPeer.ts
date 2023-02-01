@@ -280,19 +280,23 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   triggerResume() {
+    this.logger.info('Probably half-open so force close from client')
     if (this.needResume) {
       this.logger.info('[skipped] Already in "resume" state')
       return
     }
-    this.logger.info('Probably half-open so force close from client')
+    // @ts-expect-error
+    this.call.emit('media.disconnected')
+
+    // @ts-expect-error
+    this.call.emit('media.reconnecting')
     this.clearTimers()
     this.needResume = true
     this.call._closeWSConnection()
   }
 
-  resetNeedResume() {
+  private resetNeedResume() {
     this.needResume = false
-
     if (this.options.watchMediaPackets) {
       this.startWatchMediaPackets()
     }
@@ -834,7 +838,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           break
         case 'connected':
           this.clearConnectionStateTimer()
-          // this.call.setState(State.Active)
+          // @ts-expect-error
+          this.call.emit('media.connected')
           break
         // case 'closed':
         //   break
