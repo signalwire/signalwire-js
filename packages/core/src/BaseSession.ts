@@ -53,6 +53,7 @@ export class BaseSession {
 
   public uuid = uuid()
   public WebSocketConstructor: NodeSocketAdapter | WebSocketAdapter
+  public CloseEventConstructor: typeof CloseEvent
   public agent: string
   public connectVersion = DEFAULT_CONNECT_VERSION
   public reauthenticate?(): Promise<void>
@@ -178,6 +179,9 @@ export class BaseSession {
   connect(): void {
     if (!this?.WebSocketConstructor) {
       throw new Error('Missing WebSocketConstructor')
+    }
+    if (!this?.CloseEventConstructor) {
+      throw new Error('Missing CloseEventConstructor')
     }
     this._clearTimers()
     /**
@@ -528,7 +532,9 @@ export class BaseSession {
        * trigger it manually to start the reconnect process if required.
        */
       this.wsCloseHandler(
-        new CloseEvent('close', { reason: 'Client-side closed' })
+        new this.CloseEventConstructor('close', {
+          reason: 'Client-side closed',
+        })
       )
     }
   }

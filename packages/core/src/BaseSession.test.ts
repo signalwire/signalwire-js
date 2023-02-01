@@ -1,5 +1,4 @@
 import WS from 'jest-websocket-mock'
-
 import { BaseSession } from './BaseSession'
 import { socketMessageAction } from './redux/actions'
 import {
@@ -8,6 +7,7 @@ import {
   RPCPingResponse,
   RPCDisconnectResponse,
 } from './RPCMessages'
+import { CloseEvent } from './utils'
 import { wait } from './testUtils'
 
 jest.mock('uuid', () => {
@@ -37,6 +37,7 @@ describe('BaseSession', () => {
       token,
     })
     session.WebSocketConstructor = WebSocket
+    session.CloseEventConstructor = CloseEvent
     session.dispatch = jest.fn()
   })
   afterEach(() => {

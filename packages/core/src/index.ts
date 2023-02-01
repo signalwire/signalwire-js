@@ -14,6 +14,7 @@ import {
   serializeableProxy,
   timeoutPromise,
   debounce,
+  CloseEvent,
 } from './utils'
 import { BaseSession } from './BaseSession'
 import { BaseJWTSession } from './BaseJWTSession'
@@ -59,6 +60,7 @@ export {
   findNamespaceInPayload,
   timeoutPromise,
   debounce,
+  CloseEvent,
 }
 
 export * from './redux/features/component/componentSlice'
