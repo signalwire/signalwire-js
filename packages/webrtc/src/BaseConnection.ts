@@ -70,10 +70,15 @@ const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   watchMediaPacketsTimeout: 2 * 1000,
 }
 
-type EventsHandlerMapping = Record<BaseConnectionState, (params: any) => void>
+export type MediaEvent =
+  | 'media.connected'
+  | 'media.reconnecting'
+  | 'media.disconnected'
+type EventsHandlerMapping = Record<BaseConnectionState, (params: any) => void> &
+  Record<MediaEvent, () => void>
 
 export type BaseConnectionStateEventTypes = {
-  [k in BaseConnectionState]: EventsHandlerMapping[k]
+  [k in keyof EventsHandlerMapping]: EventsHandlerMapping[k]
 }
 
 export type BaseConnectionOptions<
