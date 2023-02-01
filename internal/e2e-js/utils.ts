@@ -484,3 +484,14 @@ export const expectPageReceiveAudio = async (page: Page) => {
   await page.waitForTimeout(10000)
   await expectTotalAudioEnergyToBeGreaterThan(page, 0.5)
 }
+
+export const getRemoteMediaIP = async (page: Page) => {
+  const remoteIP: string = await page.evaluate(() => {
+    // @ts-expect-error
+    const peer: Video.RoomSessionPeer = window._roomObj.peer
+    const lines = peer.instance?.remoteDescription?.sdp?.split('\r\n')
+    const ipLine = lines?.find((line: any) => line.includes('c=IN IP4'))
+    return ipLine?.split(' ')[2]
+  })
+  return remoteIP
+}
