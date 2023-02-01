@@ -1,4 +1,5 @@
 import type { Video } from '@signalwire/js'
+import type { MediaEvent } from '@signalwire/webrtc'
 import { createServer } from 'vite'
 import path from 'path'
 import { Page, expect } from '@playwright/test'
@@ -343,6 +344,19 @@ export const expectMemberTalkingEvent = (page: Page) => {
       roomObj.on('member.talking', resolve)
     })
   })
+}
+
+export const expectMediaEvent = (page: Page, event: MediaEvent) => {
+  return page.evaluate(
+    ({ event }) => {
+      return new Promise<void>((resolve) => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+        roomObj.on(event, resolve)
+      })
+    },
+    { event }
+  )
 }
 
 export const expectTotalAudioEnergyToBeGreaterThan = async (

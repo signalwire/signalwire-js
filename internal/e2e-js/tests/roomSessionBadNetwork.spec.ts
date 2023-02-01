@@ -8,6 +8,7 @@ import {
   expectMCUVisible,
   expectMCUVisibleForAudience,
   expectPageReceiveMedia,
+  expectMediaEvent,
 } from '../utils'
 
 type Test = {
@@ -50,6 +51,11 @@ test.describe('roomSessionBadNetwork', () => {
       }
       await createTestRoomSession(page, connectionSettings)
 
+      const firstMediaConnectedPromise = expectMediaEvent(
+        page,
+        'media.connected'
+      )
+
       // --------------- Joining the room ---------------
       const joinParams: any = await expectRoomJoined(page)
 
@@ -75,8 +81,14 @@ test.describe('roomSessionBadNetwork', () => {
       })
       expect(roomPermissions).toStrictEqual(permissions)
 
+      await firstMediaConnectedPromise
+
       await expectPageReceiveMedia(page)
 
+      const secondMediaConnectedPromise = expectMediaEvent(
+        page,
+        'media.connected'
+      )
       // --------------- Simulate Network Down and Up in 15s ---------------
       await page.swNetworkDown()
       await page.waitForTimeout(15_000)
@@ -87,6 +99,8 @@ test.describe('roomSessionBadNetwork', () => {
       await page.waitForTimeout(10_000)
 
       await expectPageReceiveMedia(page)
+
+      await secondMediaConnectedPromise
 
       // Make sure we still receive events from the room
       const makeMemberTalkingPromise = () =>

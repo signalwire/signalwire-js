@@ -232,6 +232,16 @@ window.connect = () => {
 
   console.debug('Video SDK roomObj', roomObj)
 
+  roomObj.on('media.connected', () => {
+    console.debug('>> media.connected')
+  })
+  roomObj.on('media.reconnecting', () => {
+    console.debug('>> media.reconnecting')
+  })
+  roomObj.on('media.disconnected', () => {
+    console.debug('>> media.disconnected')
+  })
+
   roomObj.on('room.started', (params) =>
     console.debug('>> room.started', params)
   )
