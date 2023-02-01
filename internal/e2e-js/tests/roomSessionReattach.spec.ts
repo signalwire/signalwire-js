@@ -7,6 +7,7 @@ import {
   expectRoomJoined,
   expectMCUVisible,
   expectMCUVisibleForAudience,
+  getRemoteMediaIP,
 } from '../utils'
 
 type Test = {
@@ -72,6 +73,8 @@ test.describe('RoomSessionReattach', () => {
       })
       expect(roomPermissions).toStrictEqual(permissions)
 
+      const initialRemoteIP = await getRemoteMediaIP(page)
+
       // --------------- Reattaching ---------------
       await page.reload()
 
@@ -102,6 +105,9 @@ test.describe('RoomSessionReattach', () => {
 
       // Checks that the video is visible
       await row.expectMCU(page)
+
+      const reattachedRemoteIP = await getRemoteMediaIP(page)
+      expect(reattachedRemoteIP).toBe(initialRemoteIP)
     })
   })
 })
