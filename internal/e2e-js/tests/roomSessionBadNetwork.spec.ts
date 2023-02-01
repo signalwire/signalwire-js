@@ -26,7 +26,7 @@ test.describe('roomSessionBadNetwork', () => {
   ]
 
   tests.forEach((row) => {
-    test(`should allow survive to a WS blip for ${row.join_as}`, async ({
+    test(`should survive to a network switch for ${row.join_as}`, async ({
       createCustomPage,
     }) => {
       const page = await createCustomPage({
@@ -93,6 +93,8 @@ test.describe('roomSessionBadNetwork', () => {
       await page.swNetworkDown()
       await page.waitForTimeout(15_000)
       await page.swNetworkUp()
+
+      await page.waitForTimeout(5_000)
 
       await expectPageReceiveMedia(page)
 
