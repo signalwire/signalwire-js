@@ -609,10 +609,14 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
   await page.waitForTimeout(delay)
   const last = await getStats(page)
 
+  const seconds = delay / 1000
+  const minAudioPacketsExpected = 40 * seconds
+  const minVideoPacketsExpected = 80 * seconds
+
   expect(last.inboundRTP.video.packetsReceived).toBeGreaterThan(
-    first.inboundRTP.video.packetsReceived
+    first.inboundRTP.video.packetsReceived + minVideoPacketsExpected
   )
   expect(last.inboundRTP.audio.packetsReceived).toBeGreaterThan(
-    first.inboundRTP.audio.packetsReceived
+    first.inboundRTP.audio.packetsReceived + minAudioPacketsExpected
   )
 }
