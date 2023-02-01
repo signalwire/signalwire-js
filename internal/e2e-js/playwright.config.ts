@@ -2,7 +2,7 @@ require('dotenv').config()
 
 import { PlaywrightTestConfig, devices } from '@playwright/test'
 
-// const testMatch = process.argv.slice(3)
+const testMatch = process.argv.slice(3)
 
 const config: PlaywrightTestConfig = {
   testDir: 'tests',
