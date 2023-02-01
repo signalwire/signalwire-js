@@ -20,6 +20,7 @@ import {
   sessionReconnectingAction,
   sessionAuthErrorAction,
   sessionExpiringAction,
+  sessionForceCloseAction,
   authSuccessAction,
   authErrorAction,
   authExpiringAction,
@@ -38,6 +39,7 @@ describe('sessionStatusWatcher', () => {
     reauthAction.type,
     sessionReconnectingAction.type,
     sessionDisconnectedAction.type,
+    sessionForceCloseAction.type,
   ]
   const session = {
     closed: true,
