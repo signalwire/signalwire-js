@@ -74,9 +74,11 @@ export const createTestRoomSession = async (
         host: options.RELAY_HOST,
         token: options.API_TOKEN,
         rootElement: document.getElementById('rootElement'),
-        logLevel: options.CI ? 'warn' : 'debug',
+        // logLevel: options.CI ? 'warn' : 'debug',
+        logLevel: 'debug',
         debug: {
-          logWsTraffic: !options.CI,
+          // logWsTraffic: !options.CI,
+          logWsTraffic: true,
         },
         ...options.roomSessionOptions,
       })
@@ -94,7 +96,10 @@ export const createTestRoomSession = async (
       return Promise.resolve(roomSession)
     },
     {
-      RELAY_HOST: (options.vrt.join_as === 'audience') ? process.env.RELAY_AUDIENCE_HOST: process.env.RELAY_HOST,
+      RELAY_HOST:
+        options.vrt.join_as === 'audience'
+          ? process.env.RELAY_AUDIENCE_HOST
+          : process.env.RELAY_HOST,
       API_TOKEN: vrt,
       initialEvents: options.initialEvents,
       CI: process.env.CI,
@@ -116,7 +121,6 @@ export const createTestRoomSession = async (
 
   return roomSession
 }
-
 
 export const createTestRoomSessionWithJWT = async (
   page: Page,
@@ -162,7 +166,10 @@ export const createTestRoomSessionWithJWT = async (
       return Promise.resolve(roomSession)
     },
     {
-      RELAY_HOST: (options.vrt.join_as === 'audience') ? process.env.RELAY_AUDIENCE_HOST: process.env.RELAY_HOST,
+      RELAY_HOST:
+        options.vrt.join_as === 'audience'
+          ? process.env.RELAY_AUDIENCE_HOST
+          : process.env.RELAY_HOST,
       API_TOKEN: jwt,
       initialEvents: options.initialEvents,
       CI: process.env.CI,
@@ -372,9 +379,11 @@ export const expectTotalAudioEnergyToBeGreaterThan = async (
 
     stats.forEach((report: any) => {
       for (const [key, value] of Object.entries(filter)) {
-        if (report.type == key &&
-          report["mediaType"] === "audio" &&
-          report["trackIdentifier"] === audioTrackId) {
+        if (
+          report.type == key &&
+          report['mediaType'] === 'audio' &&
+          report['trackIdentifier'] === audioTrackId
+        ) {
           value.forEach((entry) => {
             if (report[entry]) {
               result[key][entry] = report[entry]
