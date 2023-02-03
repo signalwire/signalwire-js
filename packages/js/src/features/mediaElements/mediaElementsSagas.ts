@@ -94,8 +94,10 @@ export const makeVideoElementSaga = ({
         localOverlay,
       })
 
-      room.on('layout.changed', (params) => {
-        getLogger().debug('Received layout.changed')
+      let hasVideoTrack = false
+      let lastLayoutChanged: any = null
+
+      const _processLayoutChanged = (params: any) => {
         // FIXME: expose a method on BaseConnection
         if (room.peer?.hasVideoSender && room.localStream) {
           layoutChangedHandler({
@@ -106,6 +108,16 @@ export const makeVideoElementSaga = ({
         } else {
           localOverlay.hide()
         }
+      }
+
+      room.on('layout.changed', (params) => {
+        getLogger().debug('Received layout.changed - videoTrack', hasVideoTrack)
+        if (hasVideoTrack) {
+          _processLayoutChanged(params)
+          return
+        }
+
+        lastLayoutChanged = params
       })
 
       /**
@@ -161,6 +173,11 @@ export const makeVideoElementSaga = ({
               track: event.track,
               element: videoEl,
             })
+
+            hasVideoTrack = true
+            if (lastLayoutChanged) {
+              _processLayoutChanged(lastLayoutChanged)
+            }
             break
           }
         }
@@ -356,10 +373,12 @@ function* videoElementSetupWorker({
     rootElement.style.height = '100%'
     rootElement.appendChild(relativeWrapper)
 
+    getLogger().debug('MCU readyState 1 >>', element.readyState)
     if (element.readyState === HTMLMediaElement.HAVE_NOTHING) {
       getLogger().debug('Wait for the MCU to be ready')
       yield sagaEffects.call(waitForVideoReady, { element })
     }
+    getLogger().debug('MCU is ready..')
 
     const rootElementResizeObserver = createRootElementResizeObserver({
       rootElement,
