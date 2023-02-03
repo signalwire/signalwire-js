@@ -27,10 +27,12 @@ test.describe('RoomSessionReattach', () => {
     test(`should allow reattaching to a room for ${row.join_as}`, async ({
       createCustomPage,
     }) => {
-      const page = await createCustomPage({ name: `[reattach-${row.join_as}]` })
+      const page = await createCustomPage({
+        name: `[reattach-multiple-${row.join_as}]`,
+      })
       await page.goto(SERVER_URL)
 
-      const roomName = randomizeRoomName()
+      const roomName = `multiple-${randomizeRoomName()}`
       const permissions: any = []
       const connectionSettings = {
         vrt: {
