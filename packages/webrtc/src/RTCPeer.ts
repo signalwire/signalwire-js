@@ -127,6 +127,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     return this.instance?.localDescription?.sdp
   }
 
+  get remoteSdp() {
+    return this.instance?.remoteDescription?.sdp
+  }
+
   stopTrackSender(kind: string) {
     try {
       const sender = this._getSenderByKind(kind)
@@ -352,6 +356,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   async onRemoteSdp(sdp: string) {
+    if (this.remoteSdp && this.remoteSdp === sdp) {
+      this.logger.warn('Ignore same remote SDP', sdp)
+      return
+    }
+
     try {
       const type = this.isOffer ? 'answer' : 'offer'
       await this._setRemoteDescription({ sdp, type })
