@@ -2,56 +2,56 @@ kind: pipeline
 name: default
 
 steps:
-  # - name: test
-  #   image: node:16-alpine
-  #   commands:
-  #     - npm install
-  #     - npm run build
-  #     - npm test
+  - name: test
+    image: node:16-alpine
+    commands:
+      - npm install
+      - npm run build
+      - npm test
 
-  # - name: stack-tests
-  #   depends_on:
-  #     - test
-  #   image: node:16-alpine
-  #   commands:
-  #     - npm install
-  #     - npm run build
-  #     - npm run -w=@sw-internal/stack-tests dev
-  #   environment:
-  #     RELAY_HOST:
-  #       from_secret: RELAY_HOST
-  #     RELAY_PROJECT:
-  #       from_secret: RELAY_PROJECT
-  #     RELAY_TOKEN:
-  #       from_secret: RELAY_TOKEN
+  - name: stack-tests
+    depends_on:
+      - test
+    image: node:16-alpine
+    commands:
+      - npm install
+      - npm run build
+      - npm run -w=@sw-internal/stack-tests dev
+    environment:
+      RELAY_HOST:
+        from_secret: RELAY_HOST
+      RELAY_PROJECT:
+        from_secret: RELAY_PROJECT
+      RELAY_TOKEN:
+        from_secret: RELAY_TOKEN
 
-  # - name: stage-e2e-realtime-api
-  #   depends_on:
-  #     - stack-tests
-  #   image: node:16-alpine
-  #   commands:
-  #     - npm install
-  #     - npm run build
-  #     - npm run -w=@sw-internal/e2e-realtime-api dev
-  #   environment:
-  #     SW_TEST_CONFIG:
-  #       from_secret: STAGING_E2E_REALTIME_SW_TEST_CONFIG
+  - name: stage-e2e-realtime-api
+    depends_on:
+      - stack-tests
+    image: node:16-alpine
+    commands:
+      - npm install
+      - npm run build
+      - npm run -w=@sw-internal/e2e-realtime-api dev
+    environment:
+      SW_TEST_CONFIG:
+        from_secret: STAGING_E2E_REALTIME_SW_TEST_CONFIG
 
-  # - name: prod-e2e-realtime-api
-  #   depends_on:
-  #     - stack-tests
-  #   image: node:16-alpine
-  #   commands:
-  #     - npm install
-  #     - npm run build
-  #     - npm run -w=@sw-internal/e2e-realtime-api dev
-  #   environment:
-  #     SW_TEST_CONFIG:
-  #       from_secret: PRODUCTION_E2E_REALTIME_SW_TEST_CONFIG
+  - name: prod-e2e-realtime-api
+    depends_on:
+      - stack-tests
+    image: node:16-alpine
+    commands:
+      - npm install
+      - npm run build
+      - npm run -w=@sw-internal/e2e-realtime-api dev
+    environment:
+      SW_TEST_CONFIG:
+        from_secret: PRODUCTION_E2E_REALTIME_SW_TEST_CONFIG
 
   - name: stage-e2e-js
-    # depends_on:
-    #   - stack-tests
+    depends_on:
+      - stack-tests
     image: mcr.microsoft.com/playwright:v1.29.2-focal
     commands:
       - npm install
@@ -61,17 +61,17 @@ steps:
       SW_TEST_CONFIG:
         from_secret: STAGING_E2E_JS_SW_TEST_CONFIG
 
-  # - name: prod-e2e-js
-  #   depends_on:
-  #     - stack-tests
-  #   image: mcr.microsoft.com/playwright:v1.29.2-focal
-  #   commands:
-  #     - npm install
-  #     - npm run build
-  #     - npm run -w=@sw-internal/e2e-js dev
-  #   environment:
-  #     SW_TEST_CONFIG:
-  #       from_secret: PRODUCTION_E2E_JS_SW_TEST_CONFIG
+  - name: prod-e2e-js
+    depends_on:
+      - stack-tests
+    image: mcr.microsoft.com/playwright:v1.29.2-focal
+    commands:
+      - npm install
+      - npm run build
+      - npm run -w=@sw-internal/e2e-js dev
+    environment:
+      SW_TEST_CONFIG:
+        from_secret: PRODUCTION_E2E_JS_SW_TEST_CONFIG
 
 trigger:
   event: push
