@@ -127,10 +127,13 @@ const makeLayoutChangedHandler =
         const mcuLayers = rootElement.querySelector('.mcuLayers')
         const exists = mcuLayers?.querySelector(`#${myLayer.id}`)
         if (mcuLayers && !exists) {
+          getLogger().debug('Build myLayer append it')
           mcuLayers.appendChild(myLayer)
           localOverlay.domElement = myLayer
+          return
         }
 
+        getLogger().debug('Build myLayer >> wait next')
         return
       }
 
