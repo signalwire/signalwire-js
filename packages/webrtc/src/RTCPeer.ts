@@ -22,6 +22,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private options: ConnectionOptions
   private _iceTimeout: any
   private _negotiating = false
+  private _processingRemoteSDP = false
   /**
    * Both of these properties are used to have granular
    * control over when to `resolve` and when `reject` the
@@ -356,14 +357,19 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   async onRemoteSdp(sdp: string) {
-    if (this.remoteSdp && this.remoteSdp === sdp) {
+    if (
+      this._processingRemoteSDP ||
+      (this.remoteSdp && this.remoteSdp === sdp)
+    ) {
       this.logger.warn('Ignore same remote SDP', sdp)
       return
     }
 
     try {
+      this._processingRemoteSDP = true
       const type = this.isOffer ? 'answer' : 'offer'
       await this._setRemoteDescription({ sdp, type })
+      this._processingRemoteSDP = false
 
       /**
        * Resolve the start() method only for Offer because for Answer
