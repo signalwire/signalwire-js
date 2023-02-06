@@ -12,7 +12,7 @@ import {
   expectMCUVisible,
   expectMCUVisibleForAudience,
   expectPageReceiveAudio,
-  randomizeRoomName
+  randomizeRoomName,
 } from '../utils'
 
 test.describe('RoomSession promote/demote methods', () => {
@@ -49,7 +49,7 @@ test.describe('RoomSession promote/demote methods', () => {
         user_name: 'e2e_audience',
         join_as: 'audience' as const,
         auto_create_room: true,
-        permissions: [],
+        permissions: [],          
       },
       initialEvents: [
         'member.joined',
@@ -57,6 +57,9 @@ test.describe('RoomSession promote/demote methods', () => {
         'member.left',
         'layout.changed',
       ],
+      roomSessionOptions: {
+        reattach: true, // FIXME: to remove
+      },
     }
 
     await Promise.all([
@@ -68,7 +71,7 @@ test.describe('RoomSession promote/demote methods', () => {
     await expectMCUVisible(pageOne)
 
     const pageTwoRoomJoined = await expectRoomJoined(pageTwo)
-    const audienceId = pageTwoRoomJoined.member_id
+    const pageTwoMemberId = pageTwoRoomJoined.member_id
     await expectMCUVisibleForAudience(pageTwo)
     await expectPageReceiveAudio(pageTwo)
 
@@ -106,18 +109,67 @@ test.describe('RoomSession promote/demote methods', () => {
 
         return waitForMemberJoined
       },
-      { promoteMemberId: audienceId }
+      { promoteMemberId: pageTwoMemberId }
     )
 
-    await pageTwo.waitForTimeout(2000)
+    await pageTwo.waitForTimeout(1000)
 
-    await expectMemberId(pageTwo, audienceId)
+    await expectMemberId(pageTwo, pageTwoMemberId)
     await expectInteractivityMode(pageTwo, 'member')
     await expectSDPDirection(pageTwo, 'sendrecv', true)
-
+    const pageTwoPromotedCallId = await pageTwo.evaluate(() => {
+      // @ts-expect-error
+      return window._roomObj.callId
+    })
     // Promotion done.
 
-    await pageTwo.waitForTimeout(2000)
+    await pageTwo.waitForTimeout(1000)
+
+    // Reattach now
+    await pageTwo.reload()
+
+    // pageTwo reattaches as member, since it was promoted
+    const promotedSettings = {
+      vrt: {
+        room_name: roomName,
+        user_name: 'e2e_audience',
+        auto_create_room: true,
+        permissions: [],
+      },
+      initialEvents: [
+        'member.joined',
+        'member.updated',
+        'member.left',
+        'layout.changed'
+      ],
+      roomSessionOptions: {
+        reattach: true, // FIXME: to remove
+      },
+    }
+
+    await createTestRoomSession(pageTwo, promotedSettings)
+
+    console.time('reattach')
+    const reattachParams: any = await expectRoomJoined(pageTwo)
+    console.timeEnd('reattach')
+
+    expect(reattachParams.room).toBeDefined()
+    expect(reattachParams.room_session).toBeDefined()
+    expect(
+      reattachParams.room.members.some(
+        (member: any) => member.id === reattachParams.member_id
+      )
+    ).toBeTruthy()
+    expect(reattachParams.room_session.name).toBe(roomName)
+    expect(reattachParams.room.name).toBe(roomName)
+    // Make sure the member_id is stable
+    expect(reattachParams.member_id).toBeDefined()
+    expect(reattachParams.member_id).toBe(pageTwoMemberId)
+    // Also call_id must remain the same
+    expect(reattachParams.call_id).toBeDefined()
+    expect(reattachParams.call_id).toBe(pageTwoPromotedCallId)
+    await expectMCUVisible(pageTwo)
+// Reattach done
 
     // Demote to audience again from pageOne
     // and resolve on `member.left`
@@ -172,7 +224,7 @@ test.describe('RoomSession promote/demote methods', () => {
           waitForMemberLeft,
         ])
       },
-      { demoteMemberId: audienceId }
+      { demoteMemberId: pageTwoMemberId }
     )
 
     const [audienceRoomJoined, _] = await Promise.all([
@@ -182,7 +234,7 @@ test.describe('RoomSession promote/demote methods', () => {
 
     await pageTwo.waitForTimeout(2000)
 
-    await expectMemberId(pageTwo, audienceId) // before promote
+    await expectMemberId(pageTwo, pageTwoMemberId) // before promote
     await expectMemberId(pageTwo, audienceRoomJoined.member_id) // after promote and demote process
     await expectInteractivityMode(pageTwo, 'audience')
     await expectSDPDirection(pageTwo, 'recvonly', true)

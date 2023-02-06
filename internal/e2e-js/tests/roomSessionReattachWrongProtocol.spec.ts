@@ -73,7 +73,7 @@ test.describe('RoomSessionReattachWrongProtocol', () => {
         roomObj.on('room.joined', resolve)
 
         // Inject wrong values for protocol ID
-        const key = `pt-${roomName}-member`
+        const key = `pt-${roomName}`
         const state = btoa('wrong protocol')
         window.sessionStorage.setItem(key, state)
         console.log(`Injected protocol for ${key} with value ${state}`)

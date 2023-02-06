@@ -10,7 +10,7 @@ import {
 } from '../utils'
 
 test.describe('RoomSessionReattachBadAuth', () => {
-  test('join a room, reattach with invalid authorization_state and then leave the room', async ({
+  test('should join a room, reattach with invalid authorization_state and then leave the room', async ({
     createCustomPage,
   }) => {
     const page = await createCustomPage({ name: '[reattach-bad-auth]' })
@@ -71,7 +71,7 @@ test.describe('RoomSessionReattachBadAuth', () => {
       const roomObj: Video.RoomSession = window._roomObj
 
       // Inject wrong values for authorization state
-      const key = `as-${roomName}-member`
+      const key = `as-${roomName}`
       const state = btoa('just wrong')
       window.sessionStorage.setItem(key, state)
       console.log(`Injected authorization state for ${key} with value ${state}`)

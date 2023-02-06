@@ -7,7 +7,6 @@ import {
   expectRoomJoined,
   expectMCUVisible,
   expectMCUVisibleForAudience,
-  getRemoteMediaIP,
 } from '../utils'
 
 type Test = {
@@ -28,10 +27,12 @@ test.describe('RoomSessionReattach', () => {
     test(`should allow reattaching to a room for ${row.join_as}`, async ({
       createCustomPage,
     }) => {
-      const page = await createCustomPage({ name: `[reattach-${row.join_as}]` })
+      const page = await createCustomPage({
+        name: `[reattach-multiple-${row.join_as}]`,
+      })
       await page.goto(SERVER_URL)
 
-      const roomName = randomizeRoomName()
+      const roomName = `multiple-${randomizeRoomName()}`
       const permissions: any = []
       const connectionSettings = {
         vrt: {
@@ -48,7 +49,6 @@ test.describe('RoomSessionReattach', () => {
       }
       await createTestRoomSession(page, connectionSettings)
 
-      // --------------- Joining the room ---------------
       const joinParams: any = await expectRoomJoined(page)
 
       expect(joinParams.room).toBeDefined()
@@ -62,8 +62,6 @@ test.describe('RoomSessionReattach', () => {
       }
       expect(joinParams.room_session.name).toBe(roomName)
       expect(joinParams.room.name).toBe(roomName)
-
-      // Checks that the video is visible
       await row.expectMCU(page)
 
       const roomPermissions: any = await page.evaluate(() => {
@@ -72,8 +70,6 @@ test.describe('RoomSessionReattach', () => {
         return roomObj.permissions
       })
       expect(roomPermissions).toStrictEqual(permissions)
-
-      const initialRemoteIP = await getRemoteMediaIP(page)
 
       // --------------- Reattaching ---------------
       await page.reload()
@@ -102,17 +98,36 @@ test.describe('RoomSessionReattach', () => {
       // Also call_id must remain the same
       expect(reattachParams.call_id).toBeDefined()
       expect(reattachParams.call_id).toBe(joinParams.call_id)
-
-      // Checks that the video is visible
       await row.expectMCU(page)
 
-      const reattachedRemoteIP = await getRemoteMediaIP(page)
+      // --------------- Reattaching again ---------------
+      await page.reload()
 
-      if (reattachedRemoteIP !== initialRemoteIP) {
-        console.warn('\n\n\n\n --- IPS ARE DIFFERENT --- \n\n\n\n')
+      await createTestRoomSession(page, connectionSettings)
+
+      console.time('reattach')
+      // Join again
+      const reattachParams2: any = await expectRoomJoined(page)
+      console.timeEnd('reattach')
+
+      expect(reattachParams2.room).toBeDefined()
+      expect(reattachParams2.room_session).toBeDefined()
+      if (row.join_as === 'member') {
+        expect(
+          reattachParams2.room.members.some(
+            (member: any) => member.id === reattachParams2.member_id
+          )
+        ).toBeTruthy()
       }
-      // TODO: restore expect
-      // expect(reattachedRemoteIP).toBe(initialRemoteIP)
+      expect(reattachParams2.room_session.name).toBe(roomName)
+      expect(reattachParams2.room.name).toBe(roomName)
+      // Make sure the member_id is stable
+      expect(reattachParams2.member_id).toBeDefined()
+      expect(reattachParams2.member_id).toBe(joinParams.member_id)
+      // Also call_id must remain the same
+      expect(reattachParams2.call_id).toBeDefined()
+      expect(reattachParams2.call_id).toBe(joinParams.call_id)
+      await row.expectMCU(page)
     })
   })
 })

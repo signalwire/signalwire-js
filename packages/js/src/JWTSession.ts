@@ -110,7 +110,7 @@ export class JWTSession extends BaseJWTSession {
       const jwtPayload = jwtDecode<{ r: string; ja: string }>(
         this.options.token
       )
-      return `${jwtPayload?.r}-${jwtPayload?.ja}`
+      return `${jwtPayload?.r}`
     } catch (e) {
       if (process.env.NODE_ENV !== 'production') {
         getLogger().error('[getSessionStorageKey] error decoding the JWT')
