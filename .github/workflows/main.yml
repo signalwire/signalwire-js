@@ -7,21 +7,41 @@ on:
     branches: [main]
 
 jobs:
- build_and_test:
-  name: Build and run unit tests
-  runs-on: ubuntu-latest
+  build_and_test:
+    name: Build and run unit tests
+    runs-on: ubuntu-latest
 
-  strategy:
-    matrix:
-      node-version: [18.x]
+    strategy:
+      matrix:
+        node-version: [18.x]
 
-  steps:
-    - uses: actions/checkout@v3
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-    - run: npm i
-    - run: npm run build
-    - name: Run Unit Tests
-      run: npm test
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm i
+      - run: npm run build
+      - name: Run Unit Tests
+        run: npm test
+
+  stack_tests:
+    name: Build and run stack tests
+    runs-on: ubuntu-latest
+    needs: build_and_test
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm i
+      - run: npm run build
+      - name: Run Stack Tests
+        run: npm run -w=@sw-internal/stack-tests dev
+        env:
+          RELAY_HOST: ${{ secrets.RELAY_HOST }}
+          RELAY_PROJECT: ${{ secrets.RELAY_PROJECT }}
+          RELAY_TOKEN: ${{ secrets.RELAY_TOKEN }}
