@@ -78,3 +78,39 @@ jobs:
       - run: npm run -w=@sw-internal/e2e-realtime-api dev
         env:
           SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_REALTIME_SW_TEST_CONFIG }}
+
+  stage-e2e-js:
+    name: E2E tests JS - Staging
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.28.1-focal
+    needs: stack-tests
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm i
+      - run: npm run build
+      - run: npm run -w=@sw-internal/e2e-js dev
+        env:
+          SW_TEST_CONFIG: ${{ secrets.STAGING_E2E_JS_SW_TEST_CONFIG }}
+
+  prod-e2e-js:
+    name: E2E tests JS - Production
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.28.1-focal
+    needs: stack-tests
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm i
+      - run: npm run build
+      - run: npm run -w=@sw-internal/e2e-realtime-api dev
+        env:
+          SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_JS_SW_TEST_CONFIG }}
