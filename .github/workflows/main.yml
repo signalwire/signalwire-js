@@ -21,7 +21,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
       - run: npm i
       - run: npm run build
       - run: npm test
@@ -37,7 +36,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
       - run: npm i
       - run: npm run build
       - run: npm run -w=@sw-internal/stack-tests dev
@@ -57,7 +55,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
       - run: npm i
       - run: npm run build
       - run: npm run -w=@sw-internal/e2e-realtime-api dev
@@ -75,7 +72,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
       - run: npm i
       - run: npm run build
       - run: npm run -w=@sw-internal/e2e-realtime-api dev
@@ -94,7 +90,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
       - run: npm i
       - run: npm run build
       - run: npm run -w=@sw-internal/e2e-js dev
@@ -113,7 +108,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
       - run: npm i
       - run: npm run build
       - run: npm run -w=@sw-internal/e2e-realtime-api dev
