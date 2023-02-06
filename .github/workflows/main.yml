@@ -37,6 +37,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: 'npm'
       - run: npm i
       - run: npm run build
       - run: npm run -w=@sw-internal/stack-tests dev
@@ -56,6 +57,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: 'npm'
       - run: npm i
       - run: npm run build
       - run: npm run -w=@sw-internal/e2e-realtime-api dev
@@ -73,6 +75,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: 'npm'
       - run: npm i
       - run: npm run build
       - run: npm run -w=@sw-internal/e2e-realtime-api dev
@@ -82,7 +85,7 @@ jobs:
   stage-e2e-js:
     name: E2E tests JS - Staging
     runs-on: ubuntu-latest
-    container: mcr.microsoft.com/playwright:v1.28.1-focal
+    container: mcr.microsoft.com/playwright:v1.29.2-focal
     needs: stack-tests
 
     steps:
@@ -91,6 +94,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: 'npm'
       - run: npm i
       - run: npm run build
       - run: npm run -w=@sw-internal/e2e-js dev
@@ -100,7 +104,7 @@ jobs:
   prod-e2e-js:
     name: E2E tests JS - Production
     runs-on: ubuntu-latest
-    container: mcr.microsoft.com/playwright:v1.28.1-focal
+    container: mcr.microsoft.com/playwright:v1.29.2-focal
     needs: stack-tests
 
     steps:
@@ -109,6 +113,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: 'npm'
       - run: npm i
       - run: npm run build
       - run: npm run -w=@sw-internal/e2e-realtime-api dev
