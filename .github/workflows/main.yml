@@ -85,8 +85,8 @@ jobs:
   stage-e2e-js:
     name: E2E tests JS - Staging
     runs-on: ubuntu-latest
-    container: 
-      image: mcr.microsoft.com/playwright:v1.30.0-focal
+    # container: 
+    #   image: mcr.microsoft.com/playwright:v1.30.0-focal
     needs: stack-tests
 
     steps:
@@ -105,8 +105,8 @@ jobs:
   prod-e2e-js:
     name: E2E tests JS - Production
     runs-on: ubuntu-latest
-    container: 
-      image: mcr.microsoft.com/playwright:v1.30.0-focal
+    # container: 
+    #   image: mcr.microsoft.com/playwright:v1.30.0-focal
     needs: stack-tests
 
     steps:
