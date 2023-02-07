@@ -8,6 +8,9 @@ on:
 
 jobs:
   unit-test:
+    uses: signalwire/signalwire-js/.github/workflows/build.yml@aa/gh-actions
+    with:
+      node-version: 18.x
     name: Unit tests
     runs-on: ubuntu-latest
 
@@ -16,30 +19,17 @@ jobs:
         node-version: [18.x]
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - run: npm i
-      - run: npm run build
       - run: npm test
 
   stack-tests:
+    uses: signalwire/signalwire-js/.github/workflows/build.yml@aa/gh-actions
+    with:
+      node-version: 18.x
     name: Stack tests
     runs-on: ubuntu-latest
     needs: unit-test
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - run: npm i
-      - run: npm run build
       - run: npm run -w=@sw-internal/stack-tests dev
         env:
           RELAY_HOST: ${{ secrets.RELAY_HOST }}
@@ -47,42 +37,35 @@ jobs:
           RELAY_TOKEN: ${{ secrets.RELAY_TOKEN }}
 
   stage-e2e-realtime-api:
+    uses: signalwire/signalwire-js/.github/workflows/build.yml@aa/gh-actions
+    with:
+      node-version: 18.x
     name: E2E tests Realtime API - Staging
     runs-on: ubuntu-latest
     needs: stack-tests
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - run: npm i
-      - run: npm run build
       - run: npm run -w=@sw-internal/e2e-realtime-api dev
         env:
           SW_TEST_CONFIG: ${{ secrets.STAGING_E2E_REALTIME_SW_TEST_CONFIG }}
 
   prod-e2e-realtime-api:
+    uses: signalwire/signalwire-js/.github/workflows/build.yml@aa/gh-actions
+    with:
+      node-version: 18.x 
     name: E2E tests Realtime API - Production
     runs-on: ubuntu-latest
     needs: stack-tests
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - run: npm i
-      - run: npm run build
       - run: npm run -w=@sw-internal/e2e-realtime-api dev
         env:
           SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_REALTIME_SW_TEST_CONFIG }}
 
   stage-e2e-js:
+    uses: signalwire/signalwire-js/.github/workflows/build.yml@aa/gh-actions
+    with:
+      node-version: 18.x
     name: E2E tests JS - Staging
     runs-on: ubuntu-latest
     container: 
@@ -90,19 +73,14 @@ jobs:
     needs: stack-tests
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - run: npm i
-      - run: npm run build
       - run: npm run -w=@sw-internal/e2e-js dev
         env:
           SW_TEST_CONFIG: ${{ secrets.STAGING_E2E_JS_SW_TEST_CONFIG }}
 
   prod-e2e-js:
+    uses: signalwire/signalwire-js/.github/workflows/build.yml@aa/gh-actions
+    with:
+      node-version: 18.x
     name: E2E tests JS - Production
     runs-on: ubuntu-latest
     container: 
@@ -110,14 +88,6 @@ jobs:
     needs: stack-tests
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - run: npm i
-      - run: npm run build
       - run: npm run -w=@sw-internal/e2e-js dev
         env:
           SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_JS_SW_TEST_CONFIG }}
