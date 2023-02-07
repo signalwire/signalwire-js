@@ -1,10 +1,21 @@
 name: Run Tests
+    
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_call:
+    - name: Install dependency and build
+    - uses: actions/checkout@v3
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    - run: npm i
+    - run: npm run build
 
 jobs:
   unit-test:
@@ -16,14 +27,7 @@ jobs:
         node-version: [18.x]
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - run: npm i
-      - run: npm run build
+      - uses: ./.github/workflows/main.yml
       - run: npm test
 
   stack-tests:
@@ -32,14 +36,7 @@ jobs:
     needs: unit-test
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - run: npm i
-      - run: npm run build
+      - uses: ./.github/workflows/main.yml
       - run: npm run -w=@sw-internal/stack-tests dev
         env:
           RELAY_HOST: ${{ secrets.RELAY_HOST }}
@@ -52,14 +49,7 @@ jobs:
     needs: stack-tests
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - run: npm i
-      - run: npm run build
+      - uses: ./.github/workflows/main.yml
       - run: npm run -w=@sw-internal/e2e-realtime-api dev
         env:
           SW_TEST_CONFIG: ${{ secrets.STAGING_E2E_REALTIME_SW_TEST_CONFIG }}
@@ -70,14 +60,7 @@ jobs:
     needs: stack-tests
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - run: npm i
-      - run: npm run build
+      - uses: ./.github/workflows/main.yml
       - run: npm run -w=@sw-internal/e2e-realtime-api dev
         env:
           SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_REALTIME_SW_TEST_CONFIG }}
@@ -90,14 +73,7 @@ jobs:
     needs: stack-tests
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - run: npm i
-      - run: npm run build
+      - uses: ./.github/workflows/main.yml
       - run: npm run -w=@sw-internal/e2e-js dev
         env:
           SW_TEST_CONFIG: ${{ secrets.STAGING_E2E_JS_SW_TEST_CONFIG }}
@@ -109,14 +85,7 @@ jobs:
     needs: stack-tests
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - run: npm i
-      - run: npm run build
+      - uses: ./.github/workflows/main.yml
       - run: npm run -w=@sw-internal/e2e-js dev
         env:
           SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_JS_SW_TEST_CONFIG }}
