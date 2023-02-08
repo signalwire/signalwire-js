@@ -17,8 +17,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
@@ -33,8 +32,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
@@ -53,8 +51,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
@@ -71,8 +68,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
@@ -85,17 +81,18 @@ jobs:
   stage-e2e-js:
     name: E2E tests JS - Staging
     runs-on: ubuntu-latest
-    container: mcr.microsoft.com/playwright:v1.29.2-focal 
+    # container: mcr.microsoft.com/playwright:v1.29.2-focal 
     needs: stack-tests
 
     steps:
       - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
       - run: npm i
+      - name: Install Playwright
+        run: npx playwright install --with-deps
       - run: npm run build
       - run: npm run -w=@sw-internal/e2e-js dev
         env:
@@ -104,17 +101,18 @@ jobs:
   prod-e2e-js:
     name: E2E tests JS - Production
     runs-on: ubuntu-latest
-    container: mcr.microsoft.com/playwright:v1.29.2-focal 
+    # container: mcr.microsoft.com/playwright:v1.29.2-focal 
     needs: stack-tests
 
     steps:
       - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
       - run: npm i
+      - name: Install Playwright
+        run: npx playwright install --with-deps
       - run: npm run build
       - run: npm run -w=@sw-internal/e2e-js dev
         env:
