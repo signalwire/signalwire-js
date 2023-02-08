@@ -121,3 +121,9 @@ export const sessionStorageMock = () => {
     },
   }
 }
+
+export const sleep = (ms = 3000) => {
+  return new Promise((r) => {
+    setTimeout(r, ms)
+  })
+}

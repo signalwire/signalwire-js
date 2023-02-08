@@ -2,11 +2,6 @@ import tap from 'tap'
 import { Voice } from '@signalwire/realtime-api'
 import { createTestRunner } from './utils'
 
-const sleep = (ms = 3000) => {
-  return new Promise((r) => {
-    setTimeout(r, ms)
-  })
-}
 const handler = () => {
   return new Promise<number>(async (resolve, reject) => {
     const client = new Voice.Client({
