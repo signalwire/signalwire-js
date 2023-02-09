@@ -505,3 +505,23 @@ export const getRemoteMediaIP = async (page: Page) => {
   })
   return remoteIP
 }
+
+export const expectScreenShareJoined = async (page: Page) => {
+  return page.evaluate(() => {
+    return new Promise<any>(async (resolve) => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+
+      roomObj.on('member.joined', (params: any) => {
+        if (params.member.type === 'screen') {
+          resolve(true)
+        }
+      })
+
+      await roomObj.startScreenShare({
+        audio: true,
+        video: true,
+      })
+    })
+  })
+}
