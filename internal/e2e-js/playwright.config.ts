@@ -9,7 +9,6 @@ const config: PlaywrightTestConfig = {
   globalSetup: require.resolve('./global-setup'),
   testMatch: testMatch.length ? testMatch : undefined,
   testIgnore: [
-    'roomSessionReattachWrongCallId.spec.ts',
     'roomSessionStreamingAPI.spec.ts',
   ],
   timeout: 120_000,
