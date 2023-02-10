@@ -44,7 +44,7 @@ test.describe('roomSessionBadNetwork', () => {
           auto_create_room: true,
           permissions,
         },
-        initialEvents: ['member.talking'],
+        initialEvents: ['member.updated'],
         roomSessionOptions: {
           reattach: true, // FIXME: to remove
         },
@@ -96,25 +96,25 @@ test.describe('roomSessionBadNetwork', () => {
 
       await page.waitForTimeout(5_000)
 
+      await secondMediaConnectedPromise
+
       await expectPageReceiveMedia(page)
 
       await page.waitForTimeout(10_000)
 
       await expectPageReceiveMedia(page)
 
-      await secondMediaConnectedPromise
-
       // Make sure we still receive events from the room
-      const makeMemberTalkingPromise = () =>
+      const makeMemberUpdatedPromise = () =>
         page.evaluate(async () => {
           return new Promise((resolve) => {
             // @ts-expect-error
             const roomObj: Video.RoomSession = window._roomObj
-            roomObj.on('member.talking', resolve)
+            roomObj.on('member.updated', resolve)
           })
         })
 
-      const promise1 = makeMemberTalkingPromise()
+      const promise1 = makeMemberUpdatedPromise()
 
       // --------------- Muting Member ---------------
       await page.evaluate(async () => {
@@ -123,9 +123,11 @@ test.describe('roomSessionBadNetwork', () => {
         await roomObj.audioMute()
       })
 
-      await promise1
+      const memberMuted: any = await promise1
+      console.log('WWW', memberMuted)
+      expect(memberMuted.member.audio_mute).toBe(true)
 
-      const promise2 = makeMemberTalkingPromise()
+      const promise2 = makeMemberUpdatedPromise()
 
       // --------------- Muting Member ---------------
       await page.evaluate(async () => {
@@ -134,7 +136,9 @@ test.describe('roomSessionBadNetwork', () => {
         await roomObj.audioUnmute()
       })
 
-      await promise2
+      const memberUnmuted: any = await promise2
+      console.log('WWW', memberUnmuted)
+      expect(memberUnmuted.member.audio_mute).toBe(false)
     })
   })
 })
