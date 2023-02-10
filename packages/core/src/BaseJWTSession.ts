@@ -88,10 +88,7 @@ export class BaseJWTSession extends BaseSession {
       await this.persistRelayProtocol()
       this._checkTokenExpiration()
     } catch (error) {
-      if (error === this._swConnectError) {
-        this.logger.debug('Invalid connect response?')
-        return
-      }
+      this.logger.debug('BaseJWTSession authenticate error', error)
       throw error
     }
   }

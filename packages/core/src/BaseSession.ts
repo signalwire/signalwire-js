@@ -64,11 +64,11 @@ export class BaseSession {
   private _socket: WebSocketClient | null = null
   private _host: string = DEFAULT_HOST
 
-  protected _swConnectError = Symbol.for('sw-connect-error')
   private _executeTimeoutMs = 10 * 1000
   private _executeTimeoutError = Symbol.for('sw-execute-timeout')
-  private _executeConnectionClosed = Symbol.for('sw-execute-connection-closed')
   private _executeQueue: Set<JSONRPCRequest | JSONRPCResponse> = new Set()
+  private _swConnectError = Symbol.for('sw-connect-error')
+  private _executeConnectionClosed = Symbol.for('sw-execute-connection-closed')
 
   private _checkPingDelay = 15 * 1000
   private _checkPingTimer: any = null
@@ -290,9 +290,7 @@ export class BaseSession {
       this._executeTimeoutError
     ).catch((error) => {
       if (error === this._executeConnectionClosed) {
-        return this.logger.debug(
-          'Request rejected because the connection was closed. Retry later'
-        )
+        throw this._executeConnectionClosed
       } else if (error === this._executeTimeoutError) {
         if ('method' in msg && msg.method === 'signalwire.connect') {
           throw this._swConnectError
@@ -358,6 +356,16 @@ export class BaseSession {
       this._flushExecuteQueue()
       this.dispatch(authSuccessAction())
     } catch (error) {
+      if (
+        error === this._swConnectError ||
+        error === this._executeConnectionClosed
+      ) {
+        this.logger.debug(
+          'Invalid connect or connection closed. Waiting for retry.'
+        )
+        return
+      }
+
       this.logger.error('Auth Error', error)
       this.authError(error)
     }
