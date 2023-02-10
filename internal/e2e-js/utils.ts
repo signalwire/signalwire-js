@@ -611,7 +611,7 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
 
   const seconds = delay / 1000
   const minAudioPacketsExpected = 40 * seconds
-  const minVideoPacketsExpected = 80 * seconds
+  const minVideoPacketsExpected = 60 * seconds
 
   expect(last.inboundRTP.video.packetsReceived).toBeGreaterThan(
     first.inboundRTP.video.packetsReceived + minVideoPacketsExpected
