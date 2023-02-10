@@ -809,6 +809,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           // Chrome bug: https://bugs.chromium.org/p/chromium/issues/detail?id=740501
           this._negotiating = false
           this.resetNeedResume()
+
+          if (this.instance.connectionState === 'connected') {
+            this.emitMediaConnected()
+          }
           break
         case 'have-local-offer': {
           if (this.instance.iceGatheringState === 'complete') {
@@ -838,8 +842,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           break
         case 'connected':
           this.clearConnectionStateTimer()
-          // @ts-expect-error
-          this.call.emit('media.connected')
+          this.emitMediaConnected()
           break
         // case 'closed':
         //   break
@@ -904,5 +907,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   private clearWatchMediaPacketsTimer() {
     clearTimeout(this._watchMediaPacketsTimer)
+  }
+
+  private emitMediaConnected() {
+    // @ts-expect-error
+    this.call.emit('media.connected')
   }
 }
