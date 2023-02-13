@@ -1,11 +1,7 @@
 import type { Task, SagaIterator } from '@redux-saga/types'
 import { EventChannel } from '@redux-saga/core'
 import { fork, call, take, put, all, cancelled } from '@redux-saga/core/effects'
-import {
-  SessionConstructor,
-  InternalUserOptions,
-  InternalChannels,
-} from '../utils/interfaces'
+import { InternalUserOptions, InternalChannels } from '../utils/interfaces'
 import { getLogger, setDebugOptions, setLogger } from '../utils'
 import { BaseSession } from '../BaseSession'
 import {
@@ -44,15 +40,15 @@ interface StartSagaOptions {
 }
 
 export function* initSessionSaga({
-  SessionConstructor,
+  initSession,
   userOptions,
   channels,
 }: {
-  SessionConstructor: SessionConstructor
+  initSession: () => BaseSession
   userOptions: InternalUserOptions
   channels: InternalChannels
 }): SagaIterator {
-  const session = new SessionConstructor(userOptions)
+  const session = initSession()
 
   const sessionChannel: EventChannel<any> = yield call(
     createSessionChannel,
@@ -250,7 +246,7 @@ export function* sessionAuthErrorSaga(
 }
 
 interface RootSagaOptions {
-  SessionConstructor: SessionConstructor
+  initSession: () => BaseSession
 }
 
 export default (options: RootSagaOptions) => {

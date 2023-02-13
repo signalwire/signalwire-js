@@ -552,6 +552,7 @@ type SDKWorkerBaseParams<T> = {
    */
   payload?: any
   initialState?: any
+  getSession: () => BaseSession | undefined
 }
 
 export type SDKWorkerParams<
