@@ -2,4 +2,4 @@
 '@signalwire/core': patch
 ---
 
-Make base session accessible to custom saga worker
+Make base session accessible to custom saga workers
