@@ -375,13 +375,13 @@ export type APIMethodsMap<T> = {
 
 export type RoomCustomMethods<T> = APIMethodsMap<T>
 
-export type EventsPrefix = '' | typeof PRODUCT_PREFIXES[number]
+export type EventsPrefix = '' | (typeof PRODUCT_PREFIXES)[number]
 /**
  * See {@link GLOBAL_VIDEO_EVENTS} for the full list of events.
  */
-export type GlobalVideoEvents = typeof GLOBAL_VIDEO_EVENTS[number]
+export type GlobalVideoEvents = (typeof GLOBAL_VIDEO_EVENTS)[number]
 export type InternalGlobalVideoEvents =
-  typeof INTERNAL_GLOBAL_VIDEO_EVENTS[number]
+  (typeof INTERNAL_GLOBAL_VIDEO_EVENTS)[number]
 
 /**
  * NOTE: `EventTransformType` is not tied to a constructor but more on
@@ -533,6 +533,7 @@ type SDKWorkerBaseParams<T> = {
    */
   payload?: any
   initialState?: any
+  getSession: () => BaseSession | undefined
 }
 
 export type SDKWorkerParams<

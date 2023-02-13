@@ -14,6 +14,8 @@ import {
   SessionConstructor,
   InternalChannels,
 } from '../utils/interfaces'
+import { BaseSession } from '../BaseSession'
+import { getLogger } from '../utils'
 
 export interface ConfigureStoreOptions {
   userOptions: InternalUserOptions
@@ -58,6 +60,20 @@ const configureStore = (options: ConfigureStoreOptions) => {
       // @see https://redux-toolkit.js.org/api/getDefaultMiddleware#intended-usage
       getDefaultMiddleware().concat(sagaMiddleware),
   }) as Store
+
+  let session: BaseSession
+  const initSession = () => {
+    session = new SessionConstructor(userOptions)
+    return session
+  }
+
+  const getSession = () => {
+    if (!session) {
+      getLogger().warn('Custom worker started without the session')
+    }
+    return session
+  }
+
   const runSaga = <T>(
     saga: Saga,
     args: {
@@ -68,12 +84,13 @@ const configureStore = (options: ConfigureStoreOptions) => {
     return sagaMiddleware.run(saga, {
       ...args,
       channels,
+      getSession,
     })
   }
 
   if (runSagaMiddleware) {
     const saga = rootSaga({
-      SessionConstructor,
+      initSession,
     })
     sagaMiddleware.run(saga, { userOptions, channels })
   }
