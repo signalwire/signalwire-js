@@ -43,6 +43,10 @@ describe('memberPositionWorker', () => {
         },
       ],
     ])
+    const session = {
+      connect: jest.fn(),
+    } as any
+    const getSession = jest.fn().mockImplementation(() => session)
 
     return expectSaga(memberUpdatedWorker, {
       action,
@@ -52,6 +56,7 @@ describe('memberPositionWorker', () => {
       },
       memberList,
       instance: {},
+      getSession,
     })
       .provide([
         {
