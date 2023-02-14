@@ -363,7 +363,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   async startNegotiation(force = false) {
-    if (this._negotiating || this._restartingIce) {
+    if (this._negotiating) {
       return this.logger.warn('Skip twice onnegotiationneeded!')
     }
     this._negotiating = true
