@@ -29,7 +29,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _restartingIce = false
   private _watchMediaPacketsTimer: ReturnType<typeof setTimeout>
   private _connectionStateTimer: ReturnType<typeof setTimeout>
-  private _restartingIceTimer: ReturnType<typeof setTimeout>
   private _mediaWatcher: ReturnType<typeof watchRTCPeerMediaPackets>
   /**
    * Both of these properties are used to have granular
@@ -272,11 +271,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     this.type = 'offer'
     // @ts-ignore
     this.instance.restartIce()
-
-    this.clearRestartingIceTimer()
-    this._restartingIceTimer = setTimeout(() => {
-      this._restartingIce = false
-    }, this.options.watchMediaPacketsTimeout ?? 2_000 * 2)
   }
 
   triggerResume() {
@@ -369,7 +363,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   async startNegotiation(force = false) {
-    if (this._negotiating) {
+    if (this._negotiating || this._restartingIce) {
       return this.logger.warn('Skip twice onnegotiationneeded!')
     }
     this._negotiating = true
@@ -808,6 +802,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           // Workaround to skip nested negotiations
           // Chrome bug: https://bugs.chromium.org/p/chromium/issues/detail?id=740501
           this._negotiating = false
+          this._restartingIce = false
           this.resetNeedResume()
 
           if (this.instance.connectionState === 'connected') {
@@ -895,12 +890,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private clearTimers() {
     this.clearWatchMediaPacketsTimer()
     this.clearConnectionStateTimer()
-    this.clearRestartingIceTimer()
-  }
-
-  private clearRestartingIceTimer() {
-    clearTimeout(this._restartingIceTimer)
-    this._restartingIce = false
   }
 
   private clearConnectionStateTimer() {
