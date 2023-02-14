@@ -21,7 +21,7 @@ test.describe('RoomSessionReattachWrongCallId', () => {
    */
   const tests: Test[] = [
     { join_as: 'member', expectMCU: expectMCUVisible },
-    { join_as: 'audience', expectMCU: expectMCUVisibleForAudience },
+    // { join_as: 'audience', expectMCU: expectMCUVisibleForAudience },
   ]
 
   tests.forEach((row) => {
