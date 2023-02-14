@@ -81,7 +81,6 @@ jobs:
   stage-e2e-js:
     name: E2E tests JS - Staging
     runs-on: ubuntu-latest
-    # container: mcr.microsoft.com/playwright:v1.29.2-focal 
     needs: stack-tests
 
     steps:
@@ -92,7 +91,7 @@ jobs:
           cache: 'npm'
       - run: npm i
       - name: Install Playwright
-        run: npx playwright install --with-deps
+        run: npx playwright@^1.28.1 install --with-deps
       - run: npm run build
       - run: npm run -w=@sw-internal/e2e-js dev
         env:
@@ -101,7 +100,6 @@ jobs:
   prod-e2e-js:
     name: E2E tests JS - Production
     runs-on: ubuntu-latest
-    # container: mcr.microsoft.com/playwright:v1.29.2-focal 
     needs: stack-tests
 
     steps:
@@ -112,7 +110,7 @@ jobs:
           cache: 'npm'
       - run: npm i
       - name: Install Playwright
-        run: npx playwright install --with-deps
+        run: npx playwright@^1.28.1 install --with-deps
       - run: npm run build
       - run: npm run -w=@sw-internal/e2e-js dev
         env:
