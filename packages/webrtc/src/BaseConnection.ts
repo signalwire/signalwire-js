@@ -697,18 +697,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         subscribe,
       })
       this.logger.debug('Invite response', response)
-
-      /**
-       * With `response.sdp` it means the call has been reattached
-       * to a previous session so we can set the remote SDP right away
-       * to establish the connection
-       */
-      if (response?.sdp) {
-        if (!this.peer) {
-          return this.logger.warn('Missing RTCPeer')
-        }
-        await this.peer.onRemoteSdp(response.sdp)
-      }
     } catch (error) {
       this.setState('hangup')
       throw error.jsonrpc
