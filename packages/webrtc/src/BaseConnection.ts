@@ -114,6 +114,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   private activeRTCPeerId: string
   private rtcPeerMap = new Map<string, RTCPeer<EventTypes>>()
   private sessionAuthTask: Task
+  private resuming = false
 
   constructor(
     options: BaseConnectionOptions<EventTypes & BaseConnectionStateEventTypes>
@@ -602,7 +603,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       case 'offer':
         this._watchSessionAuth()
         // If we have a remoteDescription already, send reinvite
-        if (rtcPeer.instance.remoteDescription) {
+        if (!this.resuming && rtcPeer.instance.remoteDescription) {
           return this.executeUpdateMedia(mungedSDP, rtcPeer.uuid)
         } else {
           return this.executeInvite(mungedSDP, rtcPeer.uuid)
@@ -642,6 +643,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         `[resume] connectionState for ${this.id} is '${connectionState}'`
       )
       if (connectionState !== 'closed') {
+        this.resuming = true
         this.peer.restartIce()
       }
     }
@@ -657,7 +659,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
    */
   async executeInvite(sdp: string, rtcPeerId: string, nodeId?: string) {
     const rtcPeer = this.getRTCPeerById(rtcPeerId)
-    if (!rtcPeer || rtcPeer.instance.remoteDescription) {
+    if (!rtcPeer || (rtcPeer.instance.remoteDescription && !this.resuming)) {
       throw new Error(
         `RTCPeer '${rtcPeerId}' already has a remoteDescription. Invalid invite.`
       )
@@ -697,6 +699,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         subscribe,
       })
       this.logger.debug('Invite response', response)
+
+      this.resuming = false
     } catch (error) {
       this.setState('hangup')
       throw error.jsonrpc
