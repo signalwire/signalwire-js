@@ -140,9 +140,7 @@ describe('initSessionSaga', () => {
   const session = {
     connect: jest.fn(),
   } as any
-  const SessionConstructor = jest.fn().mockImplementation(() => {
-    return session
-  })
+  const initSession = jest.fn().mockImplementation(() => session)
   const pubSubChannel = createPubSubChannel()
   const userOptions = {
     token: '',
@@ -162,7 +160,7 @@ describe('initSessionSaga', () => {
     const sessionChannel = eventChannel(() => () => {})
     sessionChannel.close = jest.fn()
     const saga = testSaga(initSessionSaga, {
-      SessionConstructor,
+      initSession,
       userOptions,
       channels: { pubSubChannel, swEventChannel },
     })
@@ -209,14 +207,12 @@ describe('rootSaga as restartable', () => {
     const session = {
       connect: jest.fn(),
     } as any
-    const SessionConstructor = jest.fn().mockImplementation(() => {
-      return session
-    })
+    const initSession = jest.fn().mockImplementation(() => session)
     const userOptions = { token: '', emitter: jest.fn() as any }
     const channels = { pubSubChannel, swEventChannel }
     const saga = testSaga(
       rootSaga({
-        SessionConstructor,
+        initSession,
       }),
       {
         userOptions,
@@ -226,7 +222,7 @@ describe('rootSaga as restartable', () => {
 
     saga.next().take([initAction.type, reauthAction.type])
     saga.next().call(initSessionSaga, {
-      SessionConstructor,
+      initSession,
       userOptions,
       channels,
     })
