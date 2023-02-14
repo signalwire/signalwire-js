@@ -140,6 +140,7 @@ export const memberPositionWorker: SDKWorker<any> =
     instance,
     channels,
     initialState,
+    getSession,
   }): SagaIterator {
     if (!initialState) {
       return
@@ -180,6 +181,7 @@ export const memberPositionWorker: SDKWorker<any> =
             channels,
             memberList,
             instance,
+            getSession,
           })
           break
         }
