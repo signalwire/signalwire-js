@@ -1,3 +1,6 @@
+import { getLogger } from '@signalwire/core'
+import SDPUtils from 'sdp'
+
 const _isAudioLine = (line: string) => /^m=audio/.test(line)
 const _isVideoLine = (line: string) => /^m=video/.test(line)
 const _getCodecPayloadType = (line: string) => {
@@ -122,3 +125,31 @@ export const sdpBitrateHack = (
 //   ]
 //   return sdpAudioRemoveRTPExtensions(sdp, extensionsToFilter)
 // }
+
+/**
+ * Check for srflx, prflx or relay candidates
+ * TODO: improve the logic check private/public IP for typ host
+ *
+ * @param sdp string
+ * @returns boolean
+ */
+export const sdpHasValidCandidates = (sdp: string) => {
+  try {
+    const regex = /typ (?:srflx|prflx|relay)/
+    const sections = SDPUtils.getMediaSections(sdp)
+    for (const section of sections) {
+      const lines = SDPUtils.splitLines(section)
+      const valid = lines.some((line) => {
+        return line.indexOf('a=candidate') === 0 && regex.test(line)
+      })
+      if (!valid) {
+        return false
+      }
+    }
+
+    return true
+  } catch (error) {
+    getLogger().error('Error checking SDP', error)
+    return false
+  }
+}

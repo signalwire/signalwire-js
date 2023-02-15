@@ -234,6 +234,8 @@ export type SessionStatus =
 
 export type SessionEvents = `session.${SessionStatus}`
 
+export type SessionActions = 'session.forceClose'
+
 export type CompoundEvents = 'compound_event:attach'
 
 /**

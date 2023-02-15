@@ -4,6 +4,7 @@ import {
   sdpStereoHack,
   sdpBitrateHack,
   sdpMediaOrderHack,
+  sdpHasValidCandidates,
 } from './utils/sdpHelpers'
 import { BaseConnection } from './BaseConnection'
 import {
@@ -13,6 +14,7 @@ import {
   stopTrack,
 } from './utils'
 import { ConnectionOptions } from './utils/interfaces'
+import { watchRTCPeerMediaPackets } from './utils/watchRTCPeerMediaPackets'
 
 export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   public uuid = uuid()
@@ -23,6 +25,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _iceTimeout: any
   private _negotiating = false
   private _processingRemoteSDP = false
+  private needResume = false
+  private _restartingIce = false
+  private _watchMediaPacketsTimer: ReturnType<typeof setTimeout>
+  private _connectionStateTimer: ReturnType<typeof setTimeout>
+  private _mediaWatcher: ReturnType<typeof watchRTCPeerMediaPackets>
   /**
    * Both of these properties are used to have granular
    * control over when to `resolve` and when `reject` the
@@ -55,6 +62,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       this.uuid = this.options.prevCallId
     }
     this.options.prevCallId = undefined
+  }
+
+  get watchMediaPacketsTimeout() {
+    return this.options.watchMediaPacketsTimeout ?? 2_000
   }
 
   get localStream() {
@@ -95,6 +106,16 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     return audioSender?.track || null
   }
 
+  get remoteVideoTrack() {
+    const videoReceiver = this._getReceiverByKind('video')
+    return videoReceiver?.track || null
+  }
+
+  get remoteAudioTrack() {
+    const audioReceiver = this._getReceiverByKind('audio')
+    return audioReceiver?.track || null
+  }
+
   get hasAudioSender() {
     return this._getSenderByKind('audio') ? true : false
   }
@@ -130,6 +151,14 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   get remoteSdp() {
     return this.instance?.remoteDescription?.sdp
+  }
+
+  get hasIceServers() {
+    if (this.instance) {
+      const { iceServers = [] } = this.instance.getConfiguration()
+      return Boolean(iceServers?.length)
+    }
+    return false
   }
 
   stopTrackSender(kind: string) {
@@ -227,8 +256,56 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       // @ts-ignore
       this.instance.restartIce()
     } catch (error) {
-      this.logger.error('RTCPeer restartIce error', error)
+      this.logger.error('restartIceWithRelayOnly', error)
     }
+  }
+
+  restartIce() {
+    if (this._negotiating || this._restartingIce) {
+      this.logger.warn('Skip restartIce')
+    }
+    this._restartingIce = true
+
+    this.logger.debug('Restart ICE')
+    // Type must be Offer to send reinvite.
+    this.type = 'offer'
+    // @ts-ignore
+    this.instance.restartIce()
+  }
+
+  triggerResume() {
+    this.logger.info('Probably half-open so force close from client')
+    if (this.needResume) {
+      this.logger.info('[skipped] Already in "resume" state')
+      return
+    }
+    // @ts-expect-error
+    this.call.emit('media.disconnected')
+
+    // @ts-expect-error
+    this.call.emit('media.reconnecting')
+    this.clearTimers()
+    this.needResume = true
+    this.call._closeWSConnection()
+  }
+
+  private resetNeedResume() {
+    this.needResume = false
+    if (this.options.watchMediaPackets) {
+      this.startWatchMediaPackets()
+    }
+  }
+
+  stopWatchMediaPackets() {
+    if (this._mediaWatcher) {
+      this._mediaWatcher.stop()
+    }
+  }
+
+  startWatchMediaPackets() {
+    this.stopWatchMediaPackets()
+    this._mediaWatcher = watchRTCPeerMediaPackets(this)
+    this._mediaWatcher?.start()
   }
 
   async applyMediaConstraints(
@@ -342,6 +419,13 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       if (force) {
         this._sdpReady()
       }
+
+      this.logger.info('iceGatheringState', this.instance.iceGatheringState)
+      if (this.instance.iceGatheringState === 'gathering') {
+        this._iceTimeout = setTimeout(() => {
+          this._onIceTimeout()
+        }, this.options.maxIceGatheringTimeout)
+      }
     } catch (error) {
       this.logger.error(`Error creating ${this.type}:`, error)
     }
@@ -378,6 +462,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       if (this.isOffer) {
         this._resolveStartMethod()
       }
+
+      this.resetNeedResume()
     } catch (error) {
       this.logger.error(
         `Error handling remote SDP on call ${this.call.id}:`,
@@ -525,6 +611,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     this._remoteStream?.getTracks().forEach((track) => track.stop())
 
     this.instance?.close()
+
+    this.stopWatchMediaPackets()
   }
 
   private _supportsAddTransceiver() {
@@ -544,8 +632,9 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   private async _sdpReady() {
     clearTimeout(this._iceTimeout)
-    this._iceTimeout = null
+
     if (!this.instance.localDescription) {
+      this.logger.error('Missing localDescription', this.instance)
       return
     }
     const { sdp } = this.instance.localDescription
@@ -554,6 +643,13 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       this.startNegotiation(true)
       return
     }
+
+    if (!this._sdpIsValid()) {
+      this.logger.info('SDP ready but not valid')
+      this._onIceTimeout()
+      return
+    }
+
     this.instance.removeEventListener('icecandidate', this._onIce)
 
     try {
@@ -563,19 +659,82 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
   }
 
-  private _onIce(event: RTCPeerConnectionIceEvent) {
-    if (!this._iceTimeout) {
-      this._iceTimeout = setTimeout(
-        () => this._sdpReady(),
-        this.options.iceGatheringTimeout
-      )
+  private _sdpIsValid() {
+    if (this.localSdp && this.hasIceServers) {
+      return sdpHasValidCandidates(this.localSdp)
     }
-    if (event.candidate) {
-      this.logger.debug('IceCandidate:', event.candidate)
-      // @ts-expect-error
-      this.call.emit('icecandidate', event)
-    } else {
+
+    return false
+  }
+
+  private _forceNegotiation() {
+    this.logger.info('Force negotiation again')
+    this._negotiating = false
+    this.startNegotiation()
+  }
+
+  private _onIceTimeout() {
+    if (this._sdpIsValid()) {
       this._sdpReady()
+      return
+    }
+    this.logger.info('ICE gathering timeout')
+    const config = this.instance.getConfiguration()
+    if (config.iceTransportPolicy === 'relay') {
+      this.logger.info('RTCPeer already with "iceTransportPolicy: relay"')
+      this._rejectStartMethod({
+        code: 'ICE_GATHERING_FAILED',
+        message: 'Ice gathering timeout',
+      })
+      this.call.setState('destroy')
+      return
+    }
+    this.instance.setConfiguration({
+      ...config,
+      iceTransportPolicy: 'relay',
+    })
+
+    this._forceNegotiation()
+  }
+
+  private _onIce(event: RTCPeerConnectionIceEvent) {
+    /**
+     * Clear _iceTimeout on each single candidate
+     */
+    if (this._iceTimeout) {
+      clearTimeout(this._iceTimeout)
+    }
+
+    /**
+     * Following spec: no candidate means the gathering is completed.
+     */
+    if (!event.candidate) {
+      this.instance.removeEventListener('icecandidate', this._onIce)
+      this._sdpReady()
+      return
+    }
+
+    this.logger.debug('RTCPeer Candidate:', event.candidate)
+    if (event.candidate.type === 'host') {
+      /**
+       * With `host` candidate set timeout to
+       * maxIceGatheringTimeout and then invoke
+       * _onIceTimeout to check if the SDP is valid
+       */
+      this._iceTimeout = setTimeout(() => {
+        this.instance.removeEventListener('icecandidate', this._onIce)
+        this._onIceTimeout()
+      }, this.options.maxIceGatheringTimeout)
+    } else {
+      /**
+       * With `srflx`, `prflx` or `relay` candidates
+       * set timeout to iceGatheringTimeout and then invoke
+       * _sdpReady since at least one candidate is valid.
+       */
+      this._iceTimeout = setTimeout(() => {
+        this.instance.removeEventListener('icecandidate', this._onIce)
+        this._sdpReady()
+      }, this.options.iceGatheringTimeout)
     }
   }
 
@@ -643,6 +802,14 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           // Workaround to skip nested negotiations
           // Chrome bug: https://bugs.chromium.org/p/chromium/issues/detail?id=740501
           this._negotiating = false
+          this._restartingIce = false
+          this.resetNeedResume()
+
+          if (this.instance.connectionState === 'connected') {
+            // An ice restart won't change the connectionState so we emit the same event in here
+            // since the signalingState is "stable" again.
+            this.emitMediaConnected()
+          }
           break
         case 'have-local-offer': {
           if (this.instance.iceGatheringState === 'complete') {
@@ -656,6 +823,31 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           break
         default:
           this._negotiating = true
+      }
+    })
+
+    this.instance.addEventListener('connectionstatechange', () => {
+      this.logger.debug('connectionState:', this.instance.connectionState)
+      switch (this.instance.connectionState) {
+        // case 'new':
+        //   break
+        case 'connecting':
+          this._connectionStateTimer = setTimeout(() => {
+            this.logger.warn('connectionState timed out')
+            this.restartIceWithRelayOnly()
+          }, this.options.maxConnectionStateTimeout)
+          break
+        case 'connected':
+          this.clearConnectionStateTimer()
+          this.emitMediaConnected()
+          break
+        // case 'closed':
+        //   break
+        case 'disconnected':
+        case 'failed': {
+          this.triggerResume()
+          break
+        }
       }
     })
 
@@ -693,5 +885,23 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         this._remoteStream = event.stream
       }
     })
+  }
+
+  private clearTimers() {
+    this.clearWatchMediaPacketsTimer()
+    this.clearConnectionStateTimer()
+  }
+
+  private clearConnectionStateTimer() {
+    clearTimeout(this._connectionStateTimer)
+  }
+
+  private clearWatchMediaPacketsTimer() {
+    clearTimeout(this._watchMediaPacketsTimer)
+  }
+
+  private emitMediaConnected() {
+    // @ts-expect-error
+    this.call.emit('media.connected')
   }
 }

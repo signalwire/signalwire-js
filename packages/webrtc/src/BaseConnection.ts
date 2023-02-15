@@ -12,6 +12,8 @@ import {
   BaseConnectionContract,
   VertoModify,
   componentSelectors,
+  actions,
+  Task,
 } from '@signalwire/core'
 import type { ReduxComponent } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
@@ -62,12 +64,21 @@ const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   requestTimeout: 10 * 1000,
   autoApplyMediaParams: true,
   iceGatheringTimeout: 2 * 1000,
+  maxIceGatheringTimeout: 5 * 1000,
+  maxConnectionStateTimeout: 3 * 1000,
+  watchMediaPackets: true,
+  watchMediaPacketsTimeout: 2 * 1000,
 }
 
-type EventsHandlerMapping = Record<BaseConnectionState, (params: any) => void>
+export type MediaEvent =
+  | 'media.connected'
+  | 'media.reconnecting'
+  | 'media.disconnected'
+type EventsHandlerMapping = Record<BaseConnectionState, (params: any) => void> &
+  Record<MediaEvent, () => void>
 
 export type BaseConnectionStateEventTypes = {
-  [k in BaseConnectionState]: EventsHandlerMapping[k]
+  [k in keyof EventsHandlerMapping]: EventsHandlerMapping[k]
 }
 
 export type BaseConnectionOptions<
@@ -102,6 +113,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   private prevState: BaseConnectionState = 'new'
   private activeRTCPeerId: string
   private rtcPeerMap = new Map<string, RTCPeer<EventTypes>>()
+  private sessionAuthTask: Task
+  private resuming = false
 
   constructor(
     options: BaseConnectionOptions<EventTypes & BaseConnectionStateEventTypes>
@@ -588,8 +601,9 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     this.logger.debug('LOCAL SDP \n', `Type: ${type}`, '\n\n', mungedSDP)
     switch (type) {
       case 'offer':
+        this._watchSessionAuth()
         // If we have a remoteDescription already, send reinvite
-        if (rtcPeer.instance.remoteDescription) {
+        if (!this.resuming && rtcPeer.instance.remoteDescription) {
           return this.executeUpdateMedia(mungedSDP, rtcPeer.uuid)
         } else {
           return this.executeInvite(mungedSDP, rtcPeer.uuid)
@@ -605,6 +619,36 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     }
   }
 
+  /** @internal */
+  _closeWSConnection() {
+    this._watchSessionAuth()
+    this.store.dispatch(actions.sessionForceCloseAction())
+  }
+
+  private _watchSessionAuth() {
+    if (this.sessionAuthTask) {
+      this.sessionAuthTask.cancel()
+    }
+    this.sessionAuthTask = this.runWorker('sessionAuthWorker', {
+      worker: workers.sessionAuthWorker,
+    })
+  }
+
+  /** @internal */
+  async resume() {
+    this.logger.debug(`[resume] Call ${this.id}`)
+    if (this.peer?.instance) {
+      const { connectionState } = this.peer.instance
+      this.logger.debug(
+        `[resume] connectionState for ${this.id} is '${connectionState}'`
+      )
+      if (connectionState !== 'closed') {
+        this.resuming = true
+        this.peer.restartIce()
+      }
+    }
+  }
+
   /**
    * Send the `verto.invite` only if the state is either `new` or `requesting`
    *   - new: the first time we send out the offer.
@@ -615,7 +659,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
    */
   async executeInvite(sdp: string, rtcPeerId: string, nodeId?: string) {
     const rtcPeer = this.getRTCPeerById(rtcPeerId)
-    if (!rtcPeer || rtcPeer.instance.remoteDescription) {
+    if (!rtcPeer || (rtcPeer.instance.remoteDescription && !this.resuming)) {
       throw new Error(
         `RTCPeer '${rtcPeerId}' already has a remoteDescription. Invalid invite.`
       )
@@ -656,17 +700,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       })
       this.logger.debug('Invite response', response)
 
-      /**
-       * With `response.sdp` it means the call has been reattached
-       * to a previous session so we can set the remote SDP right away
-       * to establish the connection
-       */
-      if (response?.sdp) {
-        if (!this.peer) {
-          return this.logger.warn('Missing RTCPeer')
-        }
-        await this.peer.onRemoteSdp(response.sdp)
-      }
+      this.resuming = false
     } catch (error) {
       this.setState('hangup')
       throw error.jsonrpc

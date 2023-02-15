@@ -33,6 +33,7 @@ import type {
   VideoAuthorization,
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
+import type { MediaEvent } from '@signalwire/webrtc'
 import type { RoomSession } from '../RoomSession'
 import type { RoomSessionDevice } from '../RoomSessionDevice'
 import type { RoomSessionScreenShare } from '../RoomSessionScreenShare'
@@ -62,7 +63,7 @@ const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
 })
 /** @deprecated */
 export type DeprecatedMemberUpdatableProps =
-  typeof INTERNAL_MEMBER_UPDATED_EVENTS[number]
+  (typeof INTERNAL_MEMBER_UPDATED_EVENTS)[number]
 /** @deprecated */
 export type DeprecatedVideoMemberHandlerParams = {
   member: InternalVideoMemberEntity
@@ -121,6 +122,7 @@ export type RoomSessionObjectEventsHandlerMap = Record<
     (params: VideoRoomSubscribedEventParams) => void
   > &
   Record<RoomLeft, (params: void) => void> &
+  Record<MediaEvent, () => void> &
   Record<
     RoomAudienceCount,
     (params: VideoRoomAudienceCountEventParams) => void

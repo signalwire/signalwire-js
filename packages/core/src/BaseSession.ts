@@ -53,6 +53,7 @@ export class BaseSession {
 
   public uuid = uuid()
   public WebSocketConstructor: NodeSocketAdapter | WebSocketAdapter
+  public CloseEventConstructor: typeof CloseEvent
   public agent: string
   public connectVersion = DEFAULT_CONNECT_VERSION
   public reauthenticate?(): Promise<void>
@@ -63,10 +64,11 @@ export class BaseSession {
   private _socket: WebSocketClient | null = null
   private _host: string = DEFAULT_HOST
 
-  protected _swConnectError = Symbol.for('sw-connect-error')
   private _executeTimeoutMs = 10 * 1000
   private _executeTimeoutError = Symbol.for('sw-execute-timeout')
   private _executeQueue: Set<JSONRPCRequest | JSONRPCResponse> = new Set()
+  private _swConnectError = Symbol.for('sw-connect-error')
+  private _executeConnectionClosed = Symbol.for('sw-execute-connection-closed')
 
   private _checkPingDelay = 15 * 1000
   private _checkPingTimer: any = null
@@ -178,6 +180,9 @@ export class BaseSession {
     if (!this?.WebSocketConstructor) {
       throw new Error('Missing WebSocketConstructor')
     }
+    if (!this?.CloseEventConstructor) {
+      throw new Error('Missing CloseEventConstructor')
+    }
     this._clearTimers()
     /**
      * Return if already connecting or connected
@@ -284,7 +289,9 @@ export class BaseSession {
       this._executeTimeoutMs,
       this._executeTimeoutError
     ).catch((error) => {
-      if (error === this._executeTimeoutError) {
+      if (error === this._executeConnectionClosed) {
+        throw this._executeConnectionClosed
+      } else if (error === this._executeTimeoutError) {
         if ('method' in msg && msg.method === 'signalwire.connect') {
           throw this._swConnectError
         }
@@ -334,6 +341,12 @@ export class BaseSession {
     this.dispatch(authErrorAction({ error }))
   }
 
+  forceClose() {
+    this._removeSocketListeners()
+
+    return this._closeConnection('reconnecting')
+  }
+
   protected async _onSocketOpen(event: Event) {
     this.logger.debug('_onSocketOpen', event.type)
     try {
@@ -343,6 +356,16 @@ export class BaseSession {
       this._flushExecuteQueue()
       this.dispatch(authSuccessAction())
     } catch (error) {
+      if (
+        error === this._swConnectError ||
+        error === this._executeConnectionClosed
+      ) {
+        this.logger.debug(
+          'Invalid connect or connection closed. Waiting for retry.'
+        )
+        return
+      }
+
       this.logger.error('Auth Error', error)
       this.authError(error)
     }
@@ -359,6 +382,7 @@ export class BaseSession {
       this.dispatch(sessionReconnectingAction())
       // yield put(pubSubChannel, sessionReconnectingAction())
       this._clearTimers()
+      this._clearPendingRequests()
       this._reconnectTimer = setTimeout(() => {
         this.connect()
       }, reconnectDelay())
@@ -368,6 +392,13 @@ export class BaseSession {
 
   private _clearTimers() {
     clearTimeout(this._reconnectTimer)
+  }
+
+  private _clearPendingRequests() {
+    this.logger.debug('_clearPendingRequests', this._requests.size)
+    this._requests.forEach(({ reject }) => {
+      reject(this._executeConnectionClosed)
+    })
   }
 
   protected _onSocketMessage(event: MessageEvent) {
@@ -502,5 +533,17 @@ export class BaseSession {
       )
     )
     this.destroySocket()
+
+    if (this._status === 'reconnecting') {
+      /**
+       * Since the real `close` event can be delayed by OS/Browser,
+       * trigger it manually to start the reconnect process if required.
+       */
+      this.wsCloseHandler(
+        new this.CloseEventConstructor('close', {
+          reason: 'Client-side closed',
+        })
+      )
+    }
   }
 }

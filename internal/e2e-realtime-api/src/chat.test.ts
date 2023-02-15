@@ -4,7 +4,7 @@
  * The `handler` method grab a CRT and connects a JS ChatClient and a RealtimeAPI ChatClient
  * and the consume all the methods asserting both SDKs receive the proper events.
  */
-import { timeoutPromise } from '@signalwire/core'
+import { timeoutPromise, CloseEvent } from '@signalwire/core'
 import { Chat as RealtimeAPIChat } from '@signalwire/realtime-api'
 import { Chat as JSChat } from '@signalwire/js'
 import { WebSocket } from 'ws'
@@ -12,6 +12,8 @@ import { createTestRunner, createCRT, sessionStorageMock } from './utils'
 
 // @ts-ignore
 global.WebSocket = WebSocket
+// @ts-ignore
+global.CloseEvent = CloseEvent
 // @ts-ignore
 global.window = { sessionStorage: sessionStorageMock() }
 

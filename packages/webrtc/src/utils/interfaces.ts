@@ -76,6 +76,15 @@ export interface ConnectionOptions {
   /** @internal */
   iceGatheringTimeout?: number
   /** @internal */
+  maxIceGatheringTimeout?: number
+  /** @internal */
+  maxConnectionStateTimeout?: number
+  /** @internal */
+  watchMediaPackets?: boolean
+  /** @internal */
+  watchMediaPacketsTimeout?: number
+
+  /** @internal */
   pingSupported?: boolean
   /** @internal */
   prevCallId?: string

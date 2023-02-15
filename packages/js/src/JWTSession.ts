@@ -9,6 +9,7 @@ import { getStorage, CALL_ID } from './utils/storage'
 
 export class JWTSession extends BaseJWTSession {
   public WebSocketConstructor = WebSocket
+  public CloseEventConstructor = CloseEvent
   public agent = process.env.SDK_PKG_AGENT!
 
   constructor(public options: SessionOptions) {

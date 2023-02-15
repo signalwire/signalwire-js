@@ -1,8 +1,9 @@
 import { createAction, Action } from './toolkit'
-import {
+import type {
   JSONRPCRequest,
   SessionAuthError,
   SessionEvents,
+  SessionActions,
   CompoundEvents,
 } from '../utils/interfaces'
 import { ExecuteActionParams } from './interfaces'
@@ -47,6 +48,9 @@ export const sessionAuthErrorAction = createAction<Error, SessionEvents>(
 )
 export const sessionExpiringAction = createAction<void, SessionEvents>(
   'session.expiring'
+)
+export const sessionForceCloseAction = createAction<void, SessionActions>(
+  'session.forceClose'
 )
 const formatCustomSagaAction = (id: string, action: Action) => {
   return `${action.type}/${id}`

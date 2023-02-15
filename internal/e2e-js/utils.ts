@@ -1,4 +1,5 @@
 import type { Video } from '@signalwire/js'
+import type { MediaEvent } from '@signalwire/webrtc'
 import { createServer } from 'vite'
 import path from 'path'
 import { Page, expect } from '@playwright/test'
@@ -345,6 +346,19 @@ export const expectMemberTalkingEvent = (page: Page) => {
   })
 }
 
+export const expectMediaEvent = (page: Page, event: MediaEvent) => {
+  return page.evaluate(
+    ({ event }) => {
+      return new Promise<void>((resolve) => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+        roomObj.on(event, resolve)
+      })
+    },
+    { event }
+  )
+}
+
 export const expectTotalAudioEnergyToBeGreaterThan = async (
   page: Page,
   value: number
@@ -524,4 +538,85 @@ export const expectScreenShareJoined = async (page: Page) => {
       })
     })
   })
+}
+
+export const getStats = async (page: Page) => {
+  const stats = await page.evaluate(async () => {
+    // @ts-expect-error
+    const roomObj: Video.RoomSession = window._roomObj
+    // @ts-expect-error
+    const rtcPeer = roomObj.peer
+    const stats = await rtcPeer.instance.getStats(null)
+    const result: {
+      inboundRTP: Record<any, any>
+      outboundRTP: Record<any, any>
+    } = { inboundRTP: {}, outboundRTP: {} }
+
+    const inboundRTPFilters = {
+      audio: ['packetsReceived', 'packetsLost', 'packetsDiscarded'],
+      video: ['packetsReceived', 'packetsLost', 'packetsDiscarded'],
+    } as const
+
+    const inboundRTPHandler = (report: any) => {
+      const media = report.mediaType as 'video' | 'audio'
+      const trackId = rtcPeer._getReceiverByKind(media).track.id
+      console.log(`getStats trackId "${trackId}" for media ${media}`)
+      if (report.trackIdentifier !== trackId) {
+        console.log(
+          `trackIdentifier "${report.trackIdentifier}" and trackId "${trackId}" are different`
+        )
+        return
+      }
+      result.inboundRTP[media] = result.inboundRTP[media] || {}
+      inboundRTPFilters[media].forEach((key) => {
+        result.inboundRTP[media][key] = report[key]
+      })
+    }
+
+    const outboundRTPFilters = {
+      audio: ['active', 'packetsSent', 'targetBitrate', 'totalPacketSendDelay'],
+      video: ['active', 'packetsSent', 'targetBitrate', 'totalPacketSendDelay'],
+    } as const
+
+    const outboundRTPHandler = (report: any) => {
+      const media = report.mediaType as 'video' | 'audio'
+      result.outboundRTP[media] = result.outboundRTP[media] || {}
+      outboundRTPFilters[media].forEach((key) => {
+        result.outboundRTP[media][key] = report[key]
+      })
+    }
+
+    stats.forEach((report: any) => {
+      switch (report.type) {
+        case 'inbound-rtp':
+          inboundRTPHandler(report)
+          break
+        case 'outbound-rtp':
+          outboundRTPHandler(report)
+          break
+      }
+    })
+
+    return result
+  })
+  console.log('RTC Stats', stats)
+
+  return stats
+}
+
+export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
+  const first = await getStats(page)
+  await page.waitForTimeout(delay)
+  const last = await getStats(page)
+
+  const seconds = delay / 1000
+  const minAudioPacketsExpected = 40 * seconds
+  const minVideoPacketsExpected = 25 * seconds
+
+  expect(last.inboundRTP.video.packetsReceived).toBeGreaterThan(
+    first.inboundRTP.video.packetsReceived + minVideoPacketsExpected
+  )
+  expect(last.inboundRTP.audio.packetsReceived).toBeGreaterThan(
+    first.inboundRTP.audio.packetsReceived + minAudioPacketsExpected
+  )
 }

@@ -42,4 +42,5 @@ export {
   BaseConnection,
   BaseConnectionOptions,
   BaseConnectionStateEventTypes,
+  MediaEvent,
 } from './BaseConnection'

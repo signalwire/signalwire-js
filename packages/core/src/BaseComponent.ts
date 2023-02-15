@@ -969,7 +969,7 @@ export class BaseComponent<
       this._setWorker(name, def)
     }
 
-    this._attachWorker(name, def)
+    return this._attachWorker(name, def)
   }
 
   private _setWorker<Hooks extends SDKWorkerHooks = SDKWorkerHooks>(
@@ -995,6 +995,7 @@ export class BaseComponent<
      * queue.
      */
     this._workers.delete(name)
+    return task
   }
 
   private detachWorkers() {
