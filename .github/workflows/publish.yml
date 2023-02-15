@@ -1,0 +1,29 @@
+name: Publish to NPM
+
+on:
+  workflow_run:
+    workflows: [Run Tests]
+    branches: [main]
+    types:
+      - completed
+
+jobs:
+  release_dev:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm i
+      - run: npm run release:dev --dry-run
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
