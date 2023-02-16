@@ -4,6 +4,7 @@ import {
   BaseComponentOptions,
   VoiceCallPlaybackContract,
   CallingCallPlayState,
+  CallingCallPlayEndState,
 } from '@signalwire/core'
 
 /**
@@ -22,6 +23,8 @@ export type CallPlaybackEventsHandlerMapping = {}
 
 export interface CallPlaybackOptions
   extends BaseComponentOptions<CallPlaybackEventsHandlerMapping> {}
+
+const ENDED_STATES: CallingCallPlayEndState[] = ['finished', 'error']
 
 export class CallPlaybackAPI
   extends BaseComponent<CallPlaybackEventsHandlerMapping>
@@ -104,6 +107,11 @@ export class CallPlaybackAPI
   }
 
   ended() {
+    // Resolve the promise if the playback has already ended
+    if (ENDED_STATES.includes(this.state as CallingCallPlayEndState)) {
+      return Promise.resolve(this)
+    }
+
     return new Promise<this>((resolve) => {
       this._attachListeners(this.controlId)
 

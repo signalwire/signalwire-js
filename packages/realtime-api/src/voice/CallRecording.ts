@@ -4,6 +4,7 @@ import {
   BaseComponentOptions,
   VoiceCallRecordingContract,
   CallingCallRecordState,
+  CallingCallRecordEndState,
 } from '@signalwire/core'
 
 /**
@@ -18,6 +19,8 @@ export type CallRecordingEventsHandlerMapping = {}
 
 export interface CallRecordingOptions
   extends BaseComponentOptions<CallRecordingEventsHandlerMapping> {}
+
+const ENDED_STATES: CallingCallRecordEndState[] = ['finished', 'no_input']
 
 export class CallRecordingAPI
   extends BaseComponent<CallRecordingEventsHandlerMapping>
@@ -53,6 +56,11 @@ export class CallRecordingAPI
   }
 
   ended() {
+    // Resolve the promise if the recording has already ended
+    if (ENDED_STATES.includes(this.state as CallingCallRecordEndState)) {
+      return Promise.resolve(this)
+    }
+
     return new Promise<this>((resolve) => {
       this._attachListeners(this.controlId)
       const handler = () => {
