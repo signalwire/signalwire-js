@@ -96,6 +96,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: stack-tests
 
+    strategy:
+      matrix:
+        node-version: [18.x]
+        project: [default, streaming, slow]
+
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -106,7 +111,7 @@ jobs:
       - name: Install Playwright
         run: npx playwright@^1.28.1 install --with-deps
       - run: npm run build
-      - run: npm run -w=@sw-internal/e2e-js dev
+      - run: npm run -w=@sw-internal/e2e-js dev -- --project ${{ matrix.project }}
         env:
           SW_TEST_CONFIG: ${{ secrets.STAGING_E2E_JS_SW_TEST_CONFIG }}
 
@@ -115,6 +120,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: stack-tests
 
+    strategy:
+      matrix:
+        node-version: [18.x]
+        project: [default, streaming, slow]
+
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -125,6 +135,6 @@ jobs:
       - name: Install Playwright
         run: npx playwright@^1.28.1 install --with-deps
       - run: npm run build
-      - run: npm run -w=@sw-internal/e2e-js dev
+      - run: npm run -w=@sw-internal/e2e-js dev -- --project ${{ matrix.project }}
         env:
           SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_JS_SW_TEST_CONFIG }}
