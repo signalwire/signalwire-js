@@ -11,9 +11,9 @@ import type { ExecuteActionParams } from '../redux/interfaces'
 export const executeActionWorker: SDKWorker<ExecuteActionParams> = function* (
   options
 ): SagaIterator {
-  const { payload, onDone, onFail, getSession } = options
+  const { initialState, onDone, onFail, getSession } = options
 
-  const { requestId, method, params } = payload
+  const { requestId, method, params } = initialState
 
   const session = getSession()
 

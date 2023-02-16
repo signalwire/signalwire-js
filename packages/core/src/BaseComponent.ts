@@ -711,7 +711,7 @@ export class BaseComponent<
         worker: executeActionWorker,
         onDone: (data) => resolve(transformResolve(data)),
         onFail: (error) => resolve(transformReject(error)),
-        payload: {
+        initialState: {
           requestId,
           componentId: this.__uuid,
           method,
