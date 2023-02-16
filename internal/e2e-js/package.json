@@ -5,7 +5,6 @@
   "main": "index.js",
   "scripts": {
     "dev": "sw-test --mode=playwright",
-    "dev:new": "playwright test",
     "test": ""
   },
   "dependencies": {
