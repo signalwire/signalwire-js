@@ -159,12 +159,10 @@ export const sdpHasValidCandidates = (sdp: string) => {
  * https://bloggeek.me/psa-mdns-and-local-ice-candidates-are-coming/
  */
 export const sdpRemoveLocalCandidates = (sdp: string) => {
-  const pattern = /^a=candidate.*[\.local ].*/
+  const pattern = /^a=candidate.*.local\ .*/
   const endOfLine = '\r\n'
-  return (
-    sdp
-      .split(endOfLine)
-      .filter((line) => !pattern.test(line))
-      .join(endOfLine) + endOfLine
-  )
+  return sdp
+    .split(endOfLine)
+    .filter((line) => !pattern.test(line))
+    .join(endOfLine)
 }
