@@ -752,11 +752,9 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
       const { volume, media } = params.playlist
       // TODO: move this to a method to build `collect`
-      const { initial_timeout, partial_results, digits, speech } =
-        toSnakeCaseKeys(params)
+      const { initial_timeout, digits, speech } = toSnakeCaseKeys(params)
       const collect = {
         initial_timeout,
-        partial_results,
         digits,
         speech,
       }
