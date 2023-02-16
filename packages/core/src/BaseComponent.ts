@@ -8,7 +8,7 @@ import {
   getLogger,
   isSessionEvent,
 } from './utils'
-import { executeAction, Action } from './redux'
+import { Action } from './redux'
 import {
   ExecuteParams,
   ExecuteTransform,
@@ -39,6 +39,7 @@ import {
 import { compoundEventAttachAction } from './redux/actions'
 import { AuthError } from './CustomErrors'
 import { proxyFactory } from './utils/proxyUtils'
+import { executeActionWorker } from './workers'
 
 type EventRegisterHandlers<EventTypes extends EventEmitter.ValidEventTypes> =
   | {
@@ -706,14 +707,17 @@ export class BaseComponent<
         transformReject,
       })
 
-      this.store.dispatch(
-        executeAction({
+      this.runWorker('executeActionWorker', {
+        worker: executeActionWorker,
+        onDone: (data) => resolve(transformResolve(data)),
+        onFail: (error) => resolve(transformReject(error)),
+        payload: {
           requestId,
           componentId: this.__uuid,
           method,
           params: transformParams(params as ParamsType),
-        })
-      )
+        },
+      })
     })
   }
 
