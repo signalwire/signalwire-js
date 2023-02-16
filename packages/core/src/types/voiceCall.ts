@@ -288,25 +288,21 @@ export type SpeechOrDigits =
 export type VoiceCallPromptMethodParams = SpeechOrDigits & {
   playlist: VoicePlaylist
   initialTimeout?: number
-  partialResults?: boolean
 }
 export type VoiceCallPromptAudioMethodParams = SpeechOrDigits &
   OmitType<VoiceCallPlayAudioParams> & {
     volume?: number
     initialTimeout?: number
-    partialResults?: boolean
   }
 export type VoiceCallPromptRingtoneMethodParams = SpeechOrDigits &
   OmitType<VoiceCallPlayRingtoneParams> & {
     volume?: number
     initialTimeout?: number
-    partialResults?: boolean
   }
 export type VoiceCallPromptTTSMethodParams = SpeechOrDigits &
   OmitType<VoiceCallPlayTTSParams> & {
     volume?: number
     initialTimeout?: number
-    partialResults?: boolean
   }
 type TapCodec = 'OPUS' | 'PCMA' | 'PCMU'
 export interface TapDeviceWS {
