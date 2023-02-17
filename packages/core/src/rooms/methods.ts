@@ -163,7 +163,7 @@ export interface GetRecordingsOutput {
 
 export const getRecordings: RoomMethodDescriptor<GetRecordingsOutput> = {
   value: function () {
-    return new Promise(async (resolve) => {
+    return new Promise(async (resolve, reject) => {
       const handler = (instance: any) => {
         resolve(instance)
       }
@@ -182,7 +182,7 @@ export const getRecordings: RoomMethodDescriptor<GetRecordingsOutput> = {
         })
       } catch (error) {
         this.off(toLocalEvent('video.recording.list'), handler)
-        throw error
+        reject(error)
       }
     })
   },
@@ -190,7 +190,7 @@ export const getRecordings: RoomMethodDescriptor<GetRecordingsOutput> = {
 
 export const startRecording: RoomMethodDescriptor<void> = {
   value: function () {
-    return new Promise(async (resolve) => {
+    return new Promise(async (resolve, reject) => {
       const handler = (instance: any) => {
         resolve(instance)
       }
@@ -209,7 +209,7 @@ export const startRecording: RoomMethodDescriptor<void> = {
         })
       } catch (error) {
         this.off(toLocalEvent('video.recording.start'), handler)
-        throw error
+        reject(error)
       }
     })
   },
@@ -221,7 +221,7 @@ export interface GetPlaybacksOutput {
 
 export const getPlaybacks: RoomMethodDescriptor<GetPlaybacksOutput> = {
   value: function () {
-    return new Promise(async (resolve) => {
+    return new Promise(async (resolve, reject) => {
       const handler = (instance: any) => {
         resolve(instance)
       }
@@ -240,7 +240,7 @@ export const getPlaybacks: RoomMethodDescriptor<GetPlaybacksOutput> = {
         })
       } catch (error) {
         this.off(toLocalEvent('video.playback.list'), handler)
-        throw error
+        reject(error)
       }
     })
   },
@@ -255,7 +255,7 @@ export type PlayParams = {
 }
 export const play: RoomMethodDescriptor<any, PlayParams> = {
   value: function (params) {
-    return new Promise(async (resolve) => {
+    return new Promise(async (resolve, reject) => {
       const handler = (instance: any) => {
         resolve(instance)
       }
@@ -275,7 +275,7 @@ export const play: RoomMethodDescriptor<any, PlayParams> = {
         })
       } catch (error) {
         this.off(toLocalEvent('video.playback.start'), handler)
-        throw error
+        reject(error)
       }
     })
   },
@@ -327,7 +327,7 @@ export interface GetStreamsOutput {
 
 export const getStreams: RoomMethodDescriptor<GetStreamsOutput> = {
   value: function () {
-    return new Promise(async (resolve) => {
+    return new Promise(async (resolve, reject) => {
       const handler = (instance: any) => {
         resolve(instance)
       }
@@ -346,7 +346,7 @@ export const getStreams: RoomMethodDescriptor<GetStreamsOutput> = {
         })
       } catch (error) {
         this.off(toLocalEvent('video.stream.list'), handler)
-        throw error
+        reject(error)
       }
     })
   },
@@ -357,7 +357,7 @@ export interface StartStreamParams {
 }
 export const startStream: RoomMethodDescriptor<any, StartStreamParams> = {
   value: function (params) {
-    return new Promise(async (resolve) => {
+    return new Promise(async (resolve, reject) => {
       const handler = (instance: any) => {
         resolve(instance)
       }
@@ -377,7 +377,7 @@ export const startStream: RoomMethodDescriptor<any, StartStreamParams> = {
         })
       } catch (error) {
         this.off(toLocalEvent('video.stream.start'), handler)
-        throw error
+        reject(error)
       }
     })
   },
