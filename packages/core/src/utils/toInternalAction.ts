@@ -21,7 +21,7 @@ export const toInternalAction = <
   }
 
   /**
-   * webrtc.message needs to carry with him the node_id
+   * `webrtc.*` events need to carry the node_id with them
    */
   if (isWebrtcEventType(event_type) && (params as JSONRPCRequest)?.jsonrpc) {
     const vertoRPC = params as JSONRPCRequest

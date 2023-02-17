@@ -209,7 +209,7 @@ export const isJSONRPCResponse = (
 
 export const WEBRTC_EVENT_TYPES: WebRTCEventType[] = [
   'webrtc.message',
-  'webrtc.verto',
+  // 'webrtc.verto',
 ]
 export const isWebrtcEventType = (
   eventType: string

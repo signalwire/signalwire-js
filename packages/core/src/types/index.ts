@@ -166,7 +166,7 @@ export interface DisconnectableClientContract<
   EventTypes extends EventEmitter.ValidEventTypes
 > extends Omit<ClientContract<ClientInstance, EventTypes>, 'connect'> {}
 
-export type WebRTCEventType = 'webrtc.message' | 'webrtc.verto'
+export type WebRTCEventType = 'webrtc.message' // | 'webrtc.verto'
 export interface WebRTCMessageParams extends SwEvent {
   event_type: WebRTCEventType
   project_id: string

@@ -172,7 +172,7 @@ export function* sessionChannelWatcher({
 
     if (isWebrtcEvent(broadcastParams)) {
       /**
-       * Skip `webrtc.message` | `webrtc.verto` events.
+       * Skip `webrtc.*` events.
        * There are custom workers handling them through `swEventChannel`
        */
       return
