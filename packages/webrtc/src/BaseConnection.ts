@@ -19,6 +19,7 @@ import type { ReduxComponent } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import { ConnectionOptions } from './utils/interfaces'
 import { stopTrack, getUserMedia } from './utils'
+import { sdpRemoveLocalCandidates } from './utils/sdpHelpers'
 import * as workers from './workers'
 
 interface OnVertoByeParams {
@@ -882,14 +883,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
    * @internal
    * */
   private _mungeSDP(sdp: string) {
-    // const pattern = /^a=candidate.*/
-    // const cleaned =
-    //   sdp
-    //     .split('\r\n')
-    //     .filter((line) => !pattern.test(line))
-    //     .join('\r\n') + '\r\n'
-    // return cleaned
-    return sdp
+    return sdpRemoveLocalCandidates(sdp)
   }
 
   /**
