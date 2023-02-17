@@ -37,6 +37,7 @@ import {
 } from './redux/actions'
 import { sessionActions } from './redux/features/session/sessionSlice'
 import { SwAuthorizationState } from '.'
+import { SessionChannel } from './redux/interfaces'
 
 export const SW_SYMBOL = Symbol('BaseSession')
 
@@ -74,14 +75,19 @@ export class BaseSession {
   private _checkPingTimer: any = null
   private _reconnectTimer: ReturnType<typeof setTimeout>
   private _status: SessionStatus = 'unknown'
+  private _sessionChannel: SessionChannel
   private wsOpenHandler: (event: Event) => void
   private wsCloseHandler: (event: CloseEvent) => void
   private wsErrorHandler: (event: Event) => void
 
   constructor(public options: SessionOptions) {
-    const { host, logLevel = 'info' } = options
+    const { host, logLevel = 'info', channel } = options
     if (host) {
       this._host = checkWebSocketHost(host)
+    }
+
+    if (channel) {
+      this._sessionChannel = channel
     }
 
     if (logLevel) {
@@ -167,8 +173,16 @@ export class BaseSession {
     return !Boolean(this.idle || !this.connected)
   }
 
+  get sessionChannel() {
+    return this._sessionChannel
+  }
+
   set token(token: string) {
     this.options.token = token
+  }
+
+  set sessionChannel(channel) {
+    this._sessionChannel = channel
   }
 
   /**
@@ -444,7 +458,14 @@ export class BaseSession {
   }
 
   public dispatch(_payload: PayloadAction<any>) {
-    throw new Error('Method not implemented')
+    if (!this.sessionChannel) {
+      throw new Error('Session channel does not exist')
+    }
+    this.sessionChannel.put(_payload)
+  }
+
+  public setChannel(channel: SessionChannel) {
+    this._sessionChannel = channel
   }
 
   /**

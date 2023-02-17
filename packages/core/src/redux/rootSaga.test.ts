@@ -1,4 +1,3 @@
-import { eventChannel } from '@redux-saga/core'
 import { expectSaga, testSaga } from 'redux-saga-test-plan'
 import type { Task } from '@redux-saga/types'
 import { createMockTask } from '@redux-saga/testing-utils'
@@ -8,7 +7,6 @@ import rootSaga, {
   sessionAuthErrorSaga,
 } from './rootSaga'
 import {
-  createSessionChannel,
   executeActionWatcher,
   sessionChannelWatcher,
 } from './features/session/sessionSaga'
@@ -29,7 +27,11 @@ import {
   reauthAction,
 } from './actions'
 import { AuthError } from '../CustomErrors'
-import { createPubSubChannel, createSwEventChannel } from '../testUtils'
+import {
+  createPubSubChannel,
+  createSwEventChannel,
+  createSessionChannel,
+} from '../testUtils'
 
 describe('sessionStatusWatcher', () => {
   const actions = [
@@ -47,7 +49,7 @@ describe('sessionStatusWatcher', () => {
     disconnect: jest.fn(),
   } as any
   const pubSubChannel = createPubSubChannel()
-  const sessionChannel = eventChannel(() => () => {})
+  const sessionChannel = createSessionChannel()
   const mockEmitter = {
     emit: jest.fn(),
   } as any
@@ -157,14 +159,13 @@ describe('initSessionSaga', () => {
     pubSubChannel.close = jest.fn()
     const swEventChannel = createSwEventChannel()
     swEventChannel.close = jest.fn()
-    const sessionChannel = eventChannel(() => () => {})
+    const sessionChannel = createSessionChannel()
     sessionChannel.close = jest.fn()
     const saga = testSaga(initSessionSaga, {
       initSession,
       userOptions,
-      channels: { pubSubChannel, swEventChannel },
+      channels: { pubSubChannel, swEventChannel, sessionChannel },
     })
-    saga.next(sessionChannel).call(createSessionChannel, session)
     saga.next(sessionChannel).fork(sessionChannelWatcher, {
       session,
       sessionChannel,
@@ -195,7 +196,7 @@ describe('initSessionSaga', () => {
     expect(sessionStatusTask.cancel).toHaveBeenCalledTimes(1)
     expect(pubSubChannel.close).not.toHaveBeenCalled()
     expect(swEventChannel.close).not.toHaveBeenCalled()
-    expect(sessionChannel.close).toHaveBeenCalledTimes(1)
+    expect(sessionChannel.close).not.toHaveBeenCalled()
     expect(session.connect).toHaveBeenCalledTimes(1)
   })
 })
@@ -203,13 +204,14 @@ describe('initSessionSaga', () => {
 describe('rootSaga as restartable', () => {
   const pubSubChannel = createPubSubChannel()
   const swEventChannel = createSwEventChannel()
+  const sessionChannel = createSessionChannel()
   it('wait for initAction and fork initSessionSaga', () => {
     const session = {
       connect: jest.fn(),
     } as any
     const initSession = jest.fn().mockImplementation(() => session)
     const userOptions = { token: '', emitter: jest.fn() as any }
-    const channels = { pubSubChannel, swEventChannel }
+    const channels = { pubSubChannel, swEventChannel, sessionChannel }
     const saga = testSaga(
       rootSaga({
         initSession,

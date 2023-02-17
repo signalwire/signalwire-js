@@ -1,4 +1,5 @@
-import type { SagaIterator } from '@redux-saga/types'
+import type { Channel, SagaIterator } from '@redux-saga/types'
+import { END, MulticastChannel } from '@redux-saga/core'
 import type { PayloadAction } from './toolkit'
 import {
   JSONRPCResponse,
@@ -20,7 +21,6 @@ import type {
   PubSubEventAction,
 } from '../types'
 import { SDKRunSaga } from '.'
-import { END, MulticastChannel } from '@redux-saga/core'
 
 interface SWComponent {
   id: string
@@ -120,5 +120,6 @@ export type PubSubAction =
 
 export type PubSubChannel = MulticastChannel<PubSubAction>
 export type SwEventChannel = MulticastChannel<MapToPubSubShape<SwEventParams>>
+export type SessionChannel = Channel<PayloadAction>
 
 export type SDKActions = MapToPubSubShape<SwEventParams> | END

@@ -1,4 +1,4 @@
-import { SagaIterator, eventChannel, EventChannel } from '@redux-saga/core'
+import { SagaIterator, eventChannel } from '@redux-saga/core'
 import { call, put, take, fork, cancelled } from '@redux-saga/core/effects'
 import type { PayloadAction } from '../../toolkit'
 import { BaseSession } from '../../../BaseSession'
@@ -13,6 +13,7 @@ import type {
 import type {
   ExecuteActionParams,
   PubSubChannel,
+  SessionChannel,
   SwEventChannel,
 } from '../../interfaces'
 import { createCatchableSaga } from '../../utils/sagaHelpers'
@@ -23,7 +24,7 @@ import { getLogger, toInternalAction } from '../../../utils'
 
 type SessionSagaParams = {
   session: BaseSession
-  sessionChannel: EventChannel<any>
+  sessionChannel: SessionChannel
   pubSubChannel: PubSubChannel
   swEventChannel: SwEventChannel
 }
