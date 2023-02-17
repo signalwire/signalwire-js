@@ -15,6 +15,8 @@ import {
   timeoutPromise,
   debounce,
   CloseEvent,
+  WEBRTC_EVENT_TYPES,
+  isWebrtcEventType,
 } from './utils'
 import { BaseSession } from './BaseSession'
 import { BaseJWTSession } from './BaseJWTSession'
@@ -61,6 +63,8 @@ export {
   timeoutPromise,
   debounce,
   CloseEvent,
+  WEBRTC_EVENT_TYPES,
+  isWebrtcEventType,
 }
 
 export * from './redux/features/component/componentSlice'

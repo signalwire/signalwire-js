@@ -1,8 +1,9 @@
+import { isWebrtcEventType } from '.'
 import { JSONRPCRequest } from '..'
 import { MapToPubSubShape } from '../redux/interfaces'
 
 export const toInternalAction = <
-  T extends { event_type: unknown; params?: unknown; node_id?: string }
+  T extends { event_type: string; params?: unknown; node_id?: string }
 >(
   event: T
 ) => {
@@ -22,7 +23,7 @@ export const toInternalAction = <
   /**
    * webrtc.message needs to carry with him the node_id
    */
-  if (event_type === 'webrtc.message' && (params as JSONRPCRequest)?.jsonrpc) {
+  if (isWebrtcEventType(event_type) && (params as JSONRPCRequest)?.jsonrpc) {
     const vertoRPC = params as JSONRPCRequest
     if (vertoRPC.params) {
       vertoRPC.params.nodeId = node_id

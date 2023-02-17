@@ -1,4 +1,4 @@
-import { JSONRPCRequest, JSONRPCResponse } from '..'
+import { JSONRPCRequest, JSONRPCResponse, WebRTCEventType } from '..'
 import {
   STORAGE_PREFIX,
   GLOBAL_VIDEO_EVENTS,
@@ -205,4 +205,15 @@ export const isJSONRPCResponse = (
   e: JSONRPCRequest | JSONRPCResponse
 ): e is JSONRPCResponse => {
   return !isJSONRPCRequest(e)
+}
+
+export const WEBRTC_EVENT_TYPES: WebRTCEventType[] = [
+  'webrtc.message',
+  'webrtc.verto',
+]
+export const isWebrtcEventType = (
+  eventType: string
+): eventType is WebRTCEventType => {
+  // @ts-expect-error
+  return WEBRTC_EVENT_TYPES.includes(eventType)
 }
