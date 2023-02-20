@@ -83,7 +83,7 @@ export const vertoEventWorker: SDKWorker<
 
         yield sagaEffects.put(
           actions.executeAction({
-            method: 'video.message',
+            method: instance._getRPCMethod(),
             params: {
               message: VertoResult(jsonrpcId, method),
               node_id: nodeId,
@@ -106,7 +106,7 @@ export const vertoEventWorker: SDKWorker<
 
         yield sagaEffects.put(
           actions.executeAction({
-            method: 'video.message',
+            method: instance._getRPCMethod(),
             params: {
               message: VertoResult(jsonrpcId, method),
               node_id: nodeId,
@@ -120,7 +120,7 @@ export const vertoEventWorker: SDKWorker<
         const { nodeId, ...pongParams } = params
         yield sagaEffects.put(
           actions.executeAction({
-            method: 'video.message',
+            method: instance._getRPCMethod(),
             params: {
               message: VertoPong(pongParams),
               node_id: nodeId,

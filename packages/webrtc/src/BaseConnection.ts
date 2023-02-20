@@ -14,6 +14,8 @@ import {
   componentSelectors,
   actions,
   Task,
+  isSATAuth,
+  WebRTCMethod,
 } from '@signalwire/core'
 import type { ReduxComponent } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
@@ -309,7 +311,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   /**
    * @internal
    * Verto messages have to be wrapped into an execute
-   * request and sent using the 'video.message' method.
+   * request and sent using the proper RPC WebRTCMethod.
    */
   private vertoExecute(params: {
     message: JSONRPCRequest
@@ -320,9 +322,18 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     >[]
   }) {
     return this.execute({
-      method: 'video.message',
+      method: this._getRPCMethod(),
       params,
     })
+  }
+
+  /** @internal */
+  _getRPCMethod(): WebRTCMethod {
+    const authState = this.select(selectors.getAuthState)
+    if (authState && isSATAuth(authState)) {
+      return 'webrtc.verto'
+    }
+    return 'video.message'
   }
 
   /** @internal */
