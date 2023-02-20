@@ -710,7 +710,7 @@ export class BaseComponent<
       this.runWorker('executeActionWorker', {
         worker: executeActionWorker,
         onDone: (data) => resolve(transformResolve(data)),
-        onFail: (error) => resolve(transformReject(error)),
+        onFail: (error) => reject(transformReject(error)),
         initialState: {
           requestId,
           componentId: this.__uuid,
