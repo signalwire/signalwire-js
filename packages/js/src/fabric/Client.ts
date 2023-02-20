@@ -1,5 +1,6 @@
 import { createHttpClient } from './httpClient'
 import { buildCall } from './buildCall'
+import { RoomSession } from '../video'
 
 interface ClientOptions {
   host?: string
@@ -69,5 +70,20 @@ export class Client {
         ...userParams,
       },
     })
+  }
+
+  async createSATCall(params: {
+    destinationNumber: string
+    rootElement: HTMLElement
+  }) {
+    console.log('createSATCall to', params)
+
+    const obj = new RoomSession({
+      host: this.host.includes('swire') ? 'relay.swire.io' : undefined,
+      token: this.options.accessToken,
+      ...params,
+    })
+
+    return obj
   }
 }

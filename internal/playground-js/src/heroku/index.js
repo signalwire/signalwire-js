@@ -730,38 +730,43 @@ window.ready(async function () {
   document.getElementById('video').checked =
     (localStorage.getItem('relay.example.video') || '1') === '1'
 
-  // const client = new Fabric.Client({
-  //   // host: 'dev.swire.io',
-  //   accessToken: '<ACCESS_TOKEN>',
-  // })
+  const client = new Fabric.Client({
+    host: 'dev.swire.io',
+    accessToken:
+      'eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIiwidHlwIjoiU0FUIn0..2U1wdPMrdZigUL6Q.pfgvOBKg413Np0kISN1xDCZX2yzecDP1Ku102w4Wgc7wS9sWrfZDQxUSL7g7kuf93ImwrY3FXxLOtdk11MAGbrRvE5EcEug6WEYhfTh9qaNZuuu8zc49cro2wQ-NGuFOG5xGgtytkqX5NnRCXCqFehGL7poJUzVpoEIpqL3opo67Dv_SwNw4OsDNB_UD_XLCNCNBhcNCdytXi0HQQJxPkcMJyQ1vHkKAwDwNHw-55O01PMOVAcCEo1XmqCJI6tVu8qdJvIbG8UvpXLdiJazoDv0r7nKukO5JmQ991VpT4uACVB3rBs9PlJQNYaWlyyrif9QkbjLoqvrjp7hpnJyEfu_WJdOEAjIvwoUMUEDEmhmWNAH7Mx8WKqeu4OHJ22u0Jl9Nb9UtTKPj_BnV4Qnsusz6Fx74bM67sYiFKbPsK07OGHUq-s7gHZ6yMbnPcPlo-2TEIQ8RNIQOB5lnN0ZzmbrJwAWbflI49JujmnqIEdI1.2l-tHbE-XbqMRXOKekKy-g',
+  })
   // const { addresses, nextPage, prevPage } = await client.getAddresses()
 
-  // // Navigate throught pages
+  // Navigate throught pages
   // const next = await nextPage()
   // const prev = await prevPage()
 
-  // // Call the first address/channel
+  // Call the first address/channel
   // const call = await client.createCall({
   //   uri: addresses[0].channels.video,
   //   rootElement: document.getElementById('rootElement'),
   // })
+  const call = await client.createSATCall({
+    destinationNumber: 'wanna join this room',
+    rootElement: document.getElementById('rootElement'),
+  })
 
-  // call.on('room.joined', (params) => {
-  //   console.log('room.joined', params)
-  // })
-  // call.on('member.joined', ({ member }) => {
-  //   console.log('member.joined', member)
-  // })
-  // call.on('member.updated', ({ member }) => {
-  //   console.log('member.updated', member)
-  // })
-  // call.on('member.talking', ({ member }) => {
-  //   console.log('member.talking', member)
-  // })
-  // call.on('member.left', ({ member }) => {
-  //   console.log('member.left', member)
-  // })
-  // await call.start({ audio: true, video: true })
+  call.on('room.joined', (params) => {
+    console.log('room.joined', params)
+  })
+  call.on('member.joined', ({ member }) => {
+    console.log('member.joined', member)
+  })
+  call.on('member.updated', ({ member }) => {
+    console.log('member.updated', member)
+  })
+  call.on('member.talking', ({ member }) => {
+    console.log('member.talking', member)
+  })
+  call.on('member.left', ({ member }) => {
+    console.log('member.left', member)
+  })
+  await call.join({ audio: true, video: true })
 
-  // window.__call = call
+  window.__call = call
 })
