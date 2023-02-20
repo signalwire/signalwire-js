@@ -225,5 +225,5 @@ export const isWebrtcEventType = (
 }
 
 export const isSATAuth = (e: Authorization): e is SATAuthorization => {
-  return 'jit' in e
+  return 'jti' in e
 }
