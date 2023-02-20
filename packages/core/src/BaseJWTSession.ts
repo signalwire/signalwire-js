@@ -7,6 +7,7 @@ import {
 import { SessionOptions } from './utils/interfaces'
 import { BaseSession } from './BaseSession'
 import { authExpiringAction } from './redux/actions'
+import { isSATAuth } from './utils'
 
 export class BaseJWTSession extends BaseSession {
   /**
@@ -30,7 +31,14 @@ export class BaseJWTSession extends BaseSession {
   }
 
   get expiresAt() {
-    const expiresAt = this?._rpcConnectResult?.authorization?.expires_at ?? 0
+    if (!this?._rpcConnectResult) {
+      return 0
+    }
+    const { authorization } = this._rpcConnectResult
+    const expiresAt =
+      (isSATAuth(authorization)
+        ? authorization.fabric_subscriber.expires_at
+        : authorization.expires_at) ?? 0
     if (typeof expiresAt === 'string') {
       const parsed = Date.parse(expiresAt)
       if (!isNaN(parsed)) {
@@ -118,7 +126,7 @@ export class BaseJWTSession extends BaseSession {
     }
 
     const params: RPCReauthenticateParams = {
-      project: this._rpcConnectResult.authorization.project,
+      project: this._rpcConnectResult.authorization.project_id,
       jwt_token: this.options.token,
     }
 

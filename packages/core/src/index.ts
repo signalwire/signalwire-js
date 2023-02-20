@@ -17,6 +17,7 @@ import {
   CloseEvent,
   WEBRTC_EVENT_TYPES,
   isWebrtcEventType,
+  isSATAuth,
 } from './utils'
 import { BaseSession } from './BaseSession'
 import { BaseJWTSession } from './BaseJWTSession'
@@ -65,6 +66,7 @@ export {
   CloseEvent,
   WEBRTC_EVENT_TYPES,
   isWebrtcEventType,
+  isSATAuth,
 }
 
 export * from './redux/features/component/componentSlice'

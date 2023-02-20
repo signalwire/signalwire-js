@@ -52,6 +52,7 @@ export type VertoMethod =
   | 'verto.pong'
   | 'verto.announce'
 
+export type WebRTCMethod = 'video.message' | 'webrtc.verto'
 export type JSONRPCMethod =
   | 'signalwire.connect'
   | 'signalwire.ping'
@@ -59,7 +60,7 @@ export type JSONRPCMethod =
   | 'signalwire.event'
   | 'signalwire.reauthenticate'
   | 'signalwire.subscribe'
-  | 'video.message'
+  | WebRTCMethod
   | RoomMethod
   | VertoMethod
   | ChatJSONRPCMethod
@@ -167,6 +168,7 @@ export type VideoMeta = Record<string, any>
 export interface VideoAuthorization {
   type: 'video'
   project: string
+  project_id: string
   scopes: string[]
   scope_id: string
   resource: string
@@ -206,7 +208,24 @@ export interface ChatAuthorization {
   ttl: number
 }
 
-export type Authorization = VideoAuthorization | ChatAuthorization
+export interface SATAuthorization {
+  jti: string
+  project_id: string
+  fabric_subscriber: {
+    // TODO: public ?
+    version: number
+    expires_at: number
+    subscriber_id: string
+    application_id: string
+    project_id: string
+    space_id: string
+  }
+}
+
+export type Authorization =
+  | VideoAuthorization
+  | ChatAuthorization
+  | SATAuthorization
 
 export interface RPCConnectResult {
   identity: string
@@ -375,13 +394,13 @@ export type APIMethodsMap<T> = {
 
 export type RoomCustomMethods<T> = APIMethodsMap<T>
 
-export type EventsPrefix = '' | typeof PRODUCT_PREFIXES[number]
+export type EventsPrefix = '' | (typeof PRODUCT_PREFIXES)[number]
 /**
  * See {@link GLOBAL_VIDEO_EVENTS} for the full list of events.
  */
-export type GlobalVideoEvents = typeof GLOBAL_VIDEO_EVENTS[number]
+export type GlobalVideoEvents = (typeof GLOBAL_VIDEO_EVENTS)[number]
 export type InternalGlobalVideoEvents =
-  typeof INTERNAL_GLOBAL_VIDEO_EVENTS[number]
+  (typeof INTERNAL_GLOBAL_VIDEO_EVENTS)[number]
 
 /**
  * NOTE: `EventTransformType` is not tied to a constructor but more on

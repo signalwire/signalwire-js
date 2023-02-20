@@ -1,4 +1,10 @@
-import { JSONRPCRequest, JSONRPCResponse, WebRTCEventType } from '..'
+import {
+  Authorization,
+  JSONRPCRequest,
+  JSONRPCResponse,
+  SATAuthorization,
+  WebRTCEventType,
+} from '..'
 import {
   STORAGE_PREFIX,
   GLOBAL_VIDEO_EVENTS,
@@ -216,4 +222,8 @@ export const isWebrtcEventType = (
 ): eventType is WebRTCEventType => {
   // @ts-expect-error
   return WEBRTC_EVENT_TYPES.includes(eventType)
+}
+
+export const isSATAuth = (e: Authorization): e is SATAuthorization => {
+  return 'jit' in e
 }
