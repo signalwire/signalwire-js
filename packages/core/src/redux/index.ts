@@ -73,7 +73,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
   const initSession = () => {
     session = new SessionConstructor({
       ...userOptions,
-      channel: sessionChannel,
+      sessionChannel,
     })
     return session
   }

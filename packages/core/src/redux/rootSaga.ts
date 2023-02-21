@@ -130,6 +130,8 @@ export function* initSessionSaga({
    * // swEventChannel.close()
    * // sessionChannel.close()
    */
+
+  session.disconnect()
 }
 
 export function* reauthenticateWorker({

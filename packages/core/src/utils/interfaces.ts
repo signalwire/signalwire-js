@@ -111,7 +111,7 @@ export interface SessionOptions {
    * @internal
    * */
   _onRefreshToken?(): void
-  channel?: SessionChannel
+  sessionChannel?: SessionChannel
 }
 export interface UserOptions extends SessionOptions {
   /** @internal */

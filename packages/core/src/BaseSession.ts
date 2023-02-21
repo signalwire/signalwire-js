@@ -7,7 +7,6 @@ import {
   safeParseJson,
   isJSONRPCResponse,
 } from './utils'
-import { PayloadAction } from './redux'
 import { DEFAULT_HOST, WebSocketState } from './utils/constants'
 import {
   RPCConnect,
@@ -37,7 +36,7 @@ import {
 } from './redux/actions'
 import { sessionActions } from './redux/features/session/sessionSlice'
 import { SwAuthorizationState } from '.'
-import { SessionChannel } from './redux/interfaces'
+import { SessionChannel, SessionChannelAction } from './redux/interfaces'
 
 export const SW_SYMBOL = Symbol('BaseSession')
 
@@ -81,13 +80,13 @@ export class BaseSession {
   private wsErrorHandler: (event: Event) => void
 
   constructor(public options: SessionOptions) {
-    const { host, logLevel = 'info', channel } = options
+    const { host, logLevel = 'info', sessionChannel } = options
     if (host) {
       this._host = checkWebSocketHost(host)
     }
 
-    if (channel) {
-      this._sessionChannel = channel
+    if (sessionChannel) {
+      this._sessionChannel = sessionChannel
     }
 
     if (logLevel) {
@@ -173,16 +172,8 @@ export class BaseSession {
     return !Boolean(this.idle || !this.connected)
   }
 
-  get sessionChannel() {
-    return this._sessionChannel
-  }
-
   set token(token: string) {
     this.options.token = token
-  }
-
-  set sessionChannel(channel) {
-    this._sessionChannel = channel
   }
 
   /**
@@ -457,15 +448,11 @@ export class BaseSession {
     }
   }
 
-  public dispatch(_payload: PayloadAction<any>) {
-    if (!this.sessionChannel) {
+  public dispatch(_payload: SessionChannelAction) {
+    if (!this._sessionChannel) {
       throw new Error('Session channel does not exist')
     }
-    this.sessionChannel.put(_payload)
-  }
-
-  public setChannel(channel: SessionChannel) {
-    this._sessionChannel = channel
+    this._sessionChannel.put(_payload)
   }
 
   /**

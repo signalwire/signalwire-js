@@ -3,6 +3,7 @@ import { END, MulticastChannel } from '@redux-saga/core'
 import type { PayloadAction } from './toolkit'
 import {
   JSONRPCResponse,
+  JSONRPCRequest,
   SessionAuthError,
   SessionAuthStatus,
   SessionEvents,
@@ -118,8 +119,16 @@ export type PubSubAction =
   | MessagingAction
   | VoiceCallAction
 
+export type SessionChannelAction =
+  | PayloadAction<void, SessionEvents>
+  | PayloadAction<JSONRPCRequest>
+  | PayloadAction<void, 'auth/success'>
+  | PayloadAction<void, 'auth/expiring'>
+  | PayloadAction<{ error: SessionAuthError }>
+  | PayloadAction<SessionAuthStatus>
+
 export type PubSubChannel = MulticastChannel<PubSubAction>
 export type SwEventChannel = MulticastChannel<MapToPubSubShape<SwEventParams>>
-export type SessionChannel = Channel<PayloadAction>
+export type SessionChannel = Channel<SessionChannelAction>
 
 export type SDKActions = MapToPubSubShape<SwEventParams> | END

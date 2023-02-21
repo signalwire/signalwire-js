@@ -141,6 +141,7 @@ describe('sessionStatusWatcher', () => {
 describe('initSessionSaga', () => {
   const session = {
     connect: jest.fn(),
+    disconnect: jest.fn(),
   } as any
   const initSession = jest.fn().mockImplementation(() => session)
   const pubSubChannel = createPubSubChannel()
@@ -196,8 +197,8 @@ describe('initSessionSaga', () => {
     expect(sessionStatusTask.cancel).toHaveBeenCalledTimes(1)
     expect(pubSubChannel.close).not.toHaveBeenCalled()
     expect(swEventChannel.close).not.toHaveBeenCalled()
-    expect(sessionChannel.close).not.toHaveBeenCalled()
     expect(session.connect).toHaveBeenCalledTimes(1)
+    expect(session.disconnect).toHaveBeenCalledTimes(1)
   })
 })
 
