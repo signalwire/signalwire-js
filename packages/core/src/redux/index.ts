@@ -1,5 +1,6 @@
 import { Store } from 'redux'
 import createSagaMiddleware, {
+  channel,
   multicastChannel,
   Saga,
   Task,
@@ -7,7 +8,12 @@ import createSagaMiddleware, {
 import { configureStore as rtConfigureStore } from './toolkit'
 import { rootReducer } from './rootReducer'
 import rootSaga from './rootSaga'
-import { PubSubChannel, SDKState, SwEventChannel } from './interfaces'
+import {
+  PubSubChannel,
+  SDKState,
+  SessionChannel,
+  SwEventChannel,
+} from './interfaces'
 import { connect } from './connect'
 import {
   InternalUserOptions,
@@ -40,6 +46,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
   const sagaMiddleware = createSagaMiddleware()
   const pubSubChannel: PubSubChannel = multicastChannel()
   const swEventChannel: SwEventChannel = multicastChannel()
+  const sessionChannel: SessionChannel = channel()
   /**
    * List of channels that are gonna be shared across all
    * sagas.
@@ -47,6 +54,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
   const channels: InternalChannels = {
     pubSubChannel,
     swEventChannel,
+    sessionChannel,
   }
   const store = rtConfigureStore({
     devTools: userOptions?.devTools ?? true,
@@ -63,7 +71,10 @@ const configureStore = (options: ConfigureStoreOptions) => {
 
   let session: BaseSession
   const initSession = () => {
-    session = new SessionConstructor(userOptions)
+    session = new SessionConstructor({
+      ...userOptions,
+      sessionChannel,
+    })
     return session
   }
 

@@ -10,6 +10,7 @@ import {
 import type {
   CustomSaga,
   PubSubChannel,
+  SessionChannel,
   SwEventChannel,
 } from '../redux/interfaces'
 import type { URL as NodeURL } from 'node:url'
@@ -110,6 +111,7 @@ export interface SessionOptions {
    * @internal
    * */
   _onRefreshToken?(): void
+  sessionChannel?: SessionChannel
 }
 export interface UserOptions extends SessionOptions {
   /** @internal */
@@ -512,6 +514,7 @@ export type BaseEventHandler = (...args: any[]) => void
 export type InternalChannels = {
   pubSubChannel: PubSubChannel
   swEventChannel: SwEventChannel
+  sessionChannel: SessionChannel
 }
 
 export type SDKWorkerHooks<

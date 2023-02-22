@@ -7,7 +7,6 @@ import {
   safeParseJson,
   isJSONRPCResponse,
 } from './utils'
-import { PayloadAction } from './redux'
 import { DEFAULT_HOST, WebSocketState } from './utils/constants'
 import {
   RPCConnect,
@@ -37,6 +36,7 @@ import {
 } from './redux/actions'
 import { sessionActions } from './redux/features/session/sessionSlice'
 import { SwAuthorizationState } from '.'
+import { SessionChannel, SessionChannelAction } from './redux/interfaces'
 
 export const SW_SYMBOL = Symbol('BaseSession')
 
@@ -74,14 +74,19 @@ export class BaseSession {
   private _checkPingTimer: any = null
   private _reconnectTimer: ReturnType<typeof setTimeout>
   private _status: SessionStatus = 'unknown'
+  private _sessionChannel: SessionChannel
   private wsOpenHandler: (event: Event) => void
   private wsCloseHandler: (event: CloseEvent) => void
   private wsErrorHandler: (event: Event) => void
 
   constructor(public options: SessionOptions) {
-    const { host, logLevel = 'info' } = options
+    const { host, logLevel = 'info', sessionChannel } = options
     if (host) {
       this._host = checkWebSocketHost(host)
+    }
+
+    if (sessionChannel) {
+      this._sessionChannel = sessionChannel
     }
 
     if (logLevel) {
@@ -443,8 +448,11 @@ export class BaseSession {
     }
   }
 
-  public dispatch(_payload: PayloadAction<any>) {
-    throw new Error('Method not implemented')
+  public dispatch(_payload: SessionChannelAction) {
+    if (!this._sessionChannel) {
+      throw new Error('Session channel does not exist')
+    }
+    this._sessionChannel.put(_payload)
   }
 
   /**
