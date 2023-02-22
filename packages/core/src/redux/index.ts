@@ -109,6 +109,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
   return {
     ...store,
     runSaga,
+    channels,
   }
 }
 

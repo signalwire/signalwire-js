@@ -1,6 +1,5 @@
 import {
   testUtils,
-  sagaHelpers,
   toInternalAction,
   actions,
   VertoPong,
@@ -16,7 +15,8 @@ jest.mock('uuid', () => {
 })
 
 describe('vertoEventWorker', () => {
-  const { createPubSubChannel, createSwEventChannel } = testUtils
+  const { createPubSubChannel, createSwEventChannel, createSessionChannel } =
+    testUtils
   const rtcPeerId = 'rtc-peer-id'
   const initialState = { rtcPeerId }
 
@@ -25,7 +25,7 @@ describe('vertoEventWorker', () => {
     const session = {} as any
     const pubSubChannel = createPubSubChannel()
     const swEventChannel = createSwEventChannel()
-    const sessionChannel = sagaHelpers.eventChannel(() => () => {})
+    const sessionChannel = createSessionChannel()
     const dispatchedActions: unknown[] = []
     const mockPeer = {
       uuid: rtcPeerId,
@@ -45,8 +45,8 @@ describe('vertoEventWorker', () => {
       channels: {
         pubSubChannel,
         swEventChannel,
+        sessionChannel,
       },
-      sessionChannel,
       instance,
       initialState,
     })
@@ -110,7 +110,7 @@ describe('vertoEventWorker', () => {
       const session = {} as any
       const pubSubChannel = createPubSubChannel()
       const swEventChannel = createSwEventChannel()
-      const sessionChannel = sagaHelpers.eventChannel(() => () => {})
+      const sessionChannel = createSessionChannel()
       const dispatchedActions: unknown[] = []
       const mockPeer = {
         uuid: rtcPeerId,
@@ -130,8 +130,8 @@ describe('vertoEventWorker', () => {
         channels: {
           pubSubChannel,
           swEventChannel,
+          sessionChannel,
         },
-        sessionChannel,
         instance,
         initialState,
       })
@@ -195,7 +195,7 @@ describe('vertoEventWorker', () => {
       const session = {} as any
       const pubSubChannel = createPubSubChannel()
       const swEventChannel = createSwEventChannel()
-      const sessionChannel = sagaHelpers.eventChannel(() => () => {})
+      const sessionChannel = createSessionChannel()
       const dispatchedActions: unknown[] = []
       const mockPeer = {
         uuid: 'mocked',
@@ -215,8 +215,8 @@ describe('vertoEventWorker', () => {
         channels: {
           pubSubChannel,
           swEventChannel,
+          sessionChannel,
         },
-        sessionChannel,
         instance,
         initialState,
       })
@@ -281,7 +281,7 @@ describe('vertoEventWorker', () => {
       const session = {} as any
       const pubSubChannel = createPubSubChannel()
       const swEventChannel = createSwEventChannel()
-      const sessionChannel = sagaHelpers.eventChannel(() => () => {})
+      const sessionChannel = createSessionChannel()
       const dispatchedActions: unknown[] = []
       const mockPeer = {
         uuid: 'active',
@@ -301,8 +301,8 @@ describe('vertoEventWorker', () => {
         channels: {
           pubSubChannel,
           swEventChannel,
+          sessionChannel,
         },
-        sessionChannel,
         instance,
         initialState,
       })
@@ -364,7 +364,7 @@ describe('vertoEventWorker', () => {
       const session = {} as any
       const pubSubChannel = createPubSubChannel()
       const swEventChannel = createSwEventChannel()
-      const sessionChannel = sagaHelpers.eventChannel(() => () => {})
+      const sessionChannel = createSessionChannel()
       const dispatchedActions: unknown[] = []
       const mockPeer = {
         uuid: 'active',
@@ -384,8 +384,8 @@ describe('vertoEventWorker', () => {
         channels: {
           pubSubChannel,
           swEventChannel,
+          sessionChannel,
         },
-        sessionChannel,
         instance,
         initialState,
       })
@@ -449,7 +449,7 @@ describe('vertoEventWorker', () => {
       const session = {} as any
       const pubSubChannel = createPubSubChannel()
       const swEventChannel = createSwEventChannel()
-      const sessionChannel = sagaHelpers.eventChannel(() => () => {})
+      const sessionChannel = createSessionChannel()
       const dispatchedActions: unknown[] = []
       const mockPeer = {
         uuid: 'mocked',
@@ -469,8 +469,8 @@ describe('vertoEventWorker', () => {
         channels: {
           pubSubChannel,
           swEventChannel,
+          sessionChannel,
         },
-        sessionChannel,
         instance,
         initialState,
       })
@@ -533,7 +533,7 @@ describe('vertoEventWorker', () => {
       const session = {} as any
       const pubSubChannel = createPubSubChannel()
       const swEventChannel = createSwEventChannel()
-      const sessionChannel = sagaHelpers.eventChannel(() => () => {})
+      const sessionChannel = createSessionChannel()
       const dispatchedActions: unknown[] = []
       const mockPeer = {
         uuid: 'active',
@@ -554,8 +554,8 @@ describe('vertoEventWorker', () => {
         channels: {
           pubSubChannel,
           swEventChannel,
+          sessionChannel,
         },
-        sessionChannel,
         instance,
         initialState,
       })
@@ -623,7 +623,7 @@ describe('vertoEventWorker', () => {
       const session = {} as any
       const pubSubChannel = createPubSubChannel()
       const swEventChannel = createSwEventChannel()
-      const sessionChannel = sagaHelpers.eventChannel(() => () => {})
+      const sessionChannel = createSessionChannel()
       const dispatchedActions: unknown[] = []
       const mockPeer = {
         uuid: 'active',
@@ -643,8 +643,8 @@ describe('vertoEventWorker', () => {
         channels: {
           pubSubChannel,
           swEventChannel,
+          sessionChannel,
         },
-        sessionChannel,
         instance,
         initialState,
       })
@@ -707,7 +707,7 @@ describe('vertoEventWorker', () => {
       const session = {} as any
       const pubSubChannel = createPubSubChannel()
       const swEventChannel = createSwEventChannel()
-      const sessionChannel = sagaHelpers.eventChannel(() => () => {})
+      const sessionChannel = createSessionChannel()
       const dispatchedActions: unknown[] = []
       const mockPeer = {
         uuid: 'active',
@@ -727,8 +727,8 @@ describe('vertoEventWorker', () => {
         channels: {
           pubSubChannel,
           swEventChannel,
+          sessionChannel,
         },
-        sessionChannel,
         instance,
         initialState,
       })
