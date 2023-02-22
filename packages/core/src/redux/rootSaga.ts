@@ -1,5 +1,4 @@
 import type { Task, SagaIterator } from '@redux-saga/types'
-import { EventChannel } from '@redux-saga/core'
 import { fork, call, take, put, all, cancelled } from '@redux-saga/core/effects'
 import { InternalUserOptions, InternalChannels } from '../utils/interfaces'
 import { getLogger, setDebugOptions, setLogger } from '../utils'
@@ -7,7 +6,6 @@ import { BaseSession } from '../BaseSession'
 import {
   executeActionWatcher,
   sessionChannelWatcher,
-  createSessionChannel,
 } from './features/session/sessionSaga'
 import { pubSubSaga } from './features/pubSub/pubSubSaga'
 import {
@@ -28,13 +26,13 @@ import {
   authExpiringAction,
 } from './actions'
 import { AuthError } from '../CustomErrors'
-import { PubSubChannel } from './interfaces'
+import { PubSubChannel, SessionChannel } from './interfaces'
 import { createRestartableSaga } from './utils/sagaHelpers'
 // import { componentCleanupSaga } from './features/component/componentSaga'
 
 interface StartSagaOptions {
   session: BaseSession
-  sessionChannel: EventChannel<any>
+  sessionChannel: SessionChannel
   pubSubChannel: PubSubChannel
   userOptions: InternalUserOptions
 }
@@ -50,11 +48,6 @@ export function* initSessionSaga({
 }): SagaIterator {
   const session = initSession()
 
-  const sessionChannel: EventChannel<any> = yield call(
-    createSessionChannel,
-    session
-  )
-
   /**
    * Channel to communicate between sagas and emit events to
    * the public
@@ -64,6 +57,10 @@ export function* initSessionSaga({
    * Channel to broadcast all the events sent by the server
    */
   const swEventChannel = channels.swEventChannel
+  /**
+   * Channel to communicate with base session
+   */
+  const sessionChannel = channels.sessionChannel
 
   /**
    * Start all the custom workers on startup
@@ -125,14 +122,16 @@ export function* initSessionSaga({
   pubSubTask.cancel()
   sessionStatusTask.cancel()
   executeActionTask.cancel()
-  sessionChannel.close()
   customTasks.forEach((task) => task.cancel())
   /**
-   * Do not close pubSubChannel and swEventChannel
+   * Do not close pubSubChannel, swEventChannel, and sessionChannel
    * since we may need them again in case of reauth/reconnect
    * // pubSubChannel.close()
    * // swEventChannel.close()
+   * // sessionChannel.close()
    */
+
+  session.disconnect()
 }
 
 export function* reauthenticateWorker({
