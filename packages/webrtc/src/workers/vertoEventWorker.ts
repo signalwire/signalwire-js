@@ -1,7 +1,6 @@
 import {
   getLogger,
   sagaEffects,
-  actions,
   VertoResult,
   VertoPong,
   SagaIterator,
@@ -74,15 +73,14 @@ export const vertoEventWorker: SDKWorker<
           peer.onRemoteSdp(params.sdp)
         }
 
-        yield sagaEffects.put(
-          actions.executeAction({
-            method: 'video.message',
-            params: {
-              message: VertoResult(jsonrpcId, method),
-              node_id: nodeId,
-            },
-          })
-        )
+        yield sagaEffects.call(instance.execute, {
+          method: 'video.message',
+          params: {
+            message: VertoResult(jsonrpcId, method),
+            node_id: nodeId,
+          },
+        })
+
         break
       }
       case 'verto.bye': {
@@ -97,29 +95,25 @@ export const vertoEventWorker: SDKWorker<
           redirectDestination: params?.redirectDestination,
         })
 
-        yield sagaEffects.put(
-          actions.executeAction({
-            method: 'video.message',
-            params: {
-              message: VertoResult(jsonrpcId, method),
-              node_id: nodeId,
-            },
-          })
-        )
+        yield sagaEffects.call(instance.execute, {
+          method: 'video.message',
+          params: {
+            message: VertoResult(jsonrpcId, method),
+            node_id: nodeId,
+          },
+        })
         break
       }
       case 'verto.ping': {
         // Remove nodeId from params
         const { nodeId, ...pongParams } = params
-        yield sagaEffects.put(
-          actions.executeAction({
-            method: 'video.message',
-            params: {
-              message: VertoPong(pongParams),
-              node_id: nodeId,
-            },
-          })
-        )
+        yield sagaEffects.call(instance.execute, {
+          method: 'video.message',
+          params: {
+            message: VertoPong(pongParams),
+            node_id: nodeId,
+          },
+        })
         break
       }
       case 'verto.mediaParams': {

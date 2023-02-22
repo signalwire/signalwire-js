@@ -1,8 +1,8 @@
 import { SagaIterator, eventChannel } from '@redux-saga/core'
-import { call, put, take, fork, cancelled } from '@redux-saga/core/effects'
+import { put, take, fork } from '@redux-saga/core/effects'
 import type { PayloadAction } from '../../toolkit'
 import { BaseSession } from '../../../BaseSession'
-import { JSONRPCRequest, JSONRPCResponse } from '../../../utils/interfaces'
+import { JSONRPCRequest } from '../../../utils/interfaces'
 import type {
   VideoAPIEventParams,
   SwEventParams,
@@ -11,15 +11,12 @@ import type {
   MemberTalkingEventNames,
 } from '../../../types'
 import type {
-  ExecuteActionParams,
   PubSubChannel,
   SessionChannel,
   SwEventChannel,
 } from '../../interfaces'
 import { createCatchableSaga } from '../../utils/sagaHelpers'
-import { executeAction, socketMessageAction } from '../../actions'
-import { componentActions } from '../'
-import { RPCExecute } from '../../../RPCMessages'
+import { socketMessageAction } from '../../actions'
 import { getLogger, toInternalAction } from '../../../utils'
 
 type SessionSagaParams = {
@@ -40,79 +37,6 @@ const isSwAuthorizationState = (
   e: SwEventParams
 ): e is SwAuthorizationStateParams => {
   return e?.event_type === 'signalwire.authorization.state'
-}
-
-/**
- * Watch every "executeAction" and fork the worker to send
- * a JSONRPC over the wire and then update the state
- * with "componentActions.executeSuccess" or "componentActions.executeFailure"
- * actions if a componentId is provided.
- */
-export function* executeActionWatcher(session: BaseSession): SagaIterator {
-  function* worker(action: PayloadAction<ExecuteActionParams>): SagaIterator {
-    const { componentId, requestId, method, params } = action.payload
-    try {
-      const message = RPCExecute({
-        id: requestId,
-        method,
-        params,
-      })
-      const response = yield call(session.execute, message)
-      if (componentId && requestId) {
-        yield put(
-          componentActions.executeSuccess({
-            componentId,
-            requestId,
-            response,
-          })
-        )
-      }
-    } catch (error) {
-      getLogger().warn('Execute error:', error)
-      if (componentId && requestId) {
-        yield put(
-          componentActions.executeFailure({
-            componentId,
-            requestId,
-            action,
-            error,
-          })
-        )
-      }
-    } finally {
-      const isCancelled = yield cancelled()
-
-      if (isCancelled && componentId && requestId) {
-        const error: JSONRPCResponse = {
-          jsonrpc: '2.0',
-          id: requestId,
-          error: {
-            // Invalid Request
-            code: -32600,
-            message: 'Cancelled task',
-          },
-        }
-        getLogger().debug('executeActionWorker cancelled', {
-          requestId,
-          componentId,
-          error,
-        })
-        yield put(
-          componentActions.executeFailure({
-            componentId,
-            requestId,
-            action,
-            error,
-          })
-        )
-      }
-    }
-  }
-
-  while (true) {
-    const action = yield take(executeAction.type)
-    yield fork(worker, action)
-  }
 }
 
 export function* sessionChannelWatcher({

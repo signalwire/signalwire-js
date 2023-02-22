@@ -6,10 +6,7 @@ import rootSaga, {
   initSessionSaga,
   sessionAuthErrorSaga,
 } from './rootSaga'
-import {
-  executeActionWatcher,
-  sessionChannelWatcher,
-} from './features/session/sessionSaga'
+import { sessionChannelWatcher } from './features/session/sessionSaga'
 import { pubSubSaga } from './features/pubSub/pubSubSaga'
 import { sessionActions } from './features'
 import {
@@ -185,16 +182,11 @@ describe('initSessionSaga', () => {
       pubSubChannel,
       userOptions,
     })
-    const sessionStatusTask = createMockTask()
-    sessionStatusTask.cancel = jest.fn()
-    saga.next(sessionStatusTask).fork(executeActionWatcher, session)
-
     const executeActionTask = createMockTask()
     executeActionTask.cancel = jest.fn()
     saga.next(executeActionTask).take(destroyAction.type)
     saga.next().isDone()
     expect(pubSubTask.cancel).toHaveBeenCalledTimes(1)
-    expect(sessionStatusTask.cancel).toHaveBeenCalledTimes(1)
     expect(pubSubChannel.close).not.toHaveBeenCalled()
     expect(swEventChannel.close).not.toHaveBeenCalled()
     expect(session.connect).toHaveBeenCalledTimes(1)

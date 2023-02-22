@@ -91,7 +91,6 @@ export class BaseComponent<
     EventEmitter.EventNames<EventTypes>,
     BaseComponent<EventTypes>
   >()
-  private _requests = new Map()
   private _customSagaTriggers = new Map()
   private _destroyer?: () => void
 
@@ -700,12 +699,6 @@ export class BaseComponent<
   ) {
     return new Promise<OutputType>((resolve, reject) => {
       const requestId = uuid()
-      this._requests.set(requestId, {
-        resolve,
-        reject,
-        transformResolve,
-        transformReject,
-      })
 
       this.runWorker('executeActionWorker', {
         worker: executeActionWorker,
@@ -754,34 +747,6 @@ export class BaseComponent<
   /** @internal */
   select<T>(selectorFn: (state: SDKState) => T) {
     return selectorFn(this.store.getState())
-  }
-
-  /** @internal */
-  onError(component: any) {
-    this._requests.forEach((value, key) => {
-      /**
-       * If component.errors[key] is undefined it means that the
-       * request hasn't failed
-       */
-      if (component?.errors[key] !== undefined) {
-        value.reject(value.transformReject(component.errors[key]))
-        this._requests.delete(key)
-      }
-    })
-  }
-
-  /** @internal */
-  onSuccess(component: any) {
-    this._requests.forEach((value, key) => {
-      /**
-       * If component.responses[key] is undefined it means that the
-       * request is not ready yet.
-       */
-      if (component?.responses[key] !== undefined) {
-        value.resolve(value.transformResolve(component.responses[key]))
-        this._requests.delete(key)
-      }
-    })
   }
 
   /** @internal */

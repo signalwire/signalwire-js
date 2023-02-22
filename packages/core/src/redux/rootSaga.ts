@@ -3,10 +3,7 @@ import { fork, call, take, put, all, cancelled } from '@redux-saga/core/effects'
 import { InternalUserOptions, InternalChannels } from '../utils/interfaces'
 import { getLogger, setDebugOptions, setLogger } from '../utils'
 import { BaseSession } from '../BaseSession'
-import {
-  executeActionWatcher,
-  sessionChannelWatcher,
-} from './features/session/sessionSaga'
+import { sessionChannelWatcher } from './features/session/sessionSaga'
 import { pubSubSaga } from './features/pubSub/pubSubSaga'
 import {
   initAction,
@@ -102,11 +99,6 @@ export function* initSessionSaga({
     userOptions,
   })
 
-  /**
-   * Fork the watcher for all the execute requests
-   */
-  const executeActionTask: Task = yield fork(executeActionWatcher, session)
-
   // const compCleanupTask = yield fork(componentCleanupSaga)
 
   session.connect()
@@ -121,7 +113,6 @@ export function* initSessionSaga({
   // compCleanupTask?.cancel()
   pubSubTask.cancel()
   sessionStatusTask.cancel()
-  executeActionTask.cancel()
   customTasks.forEach((task) => task.cancel())
   /**
    * Do not close pubSubChannel, swEventChannel, and sessionChannel

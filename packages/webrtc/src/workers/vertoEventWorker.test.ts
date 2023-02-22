@@ -1,7 +1,6 @@
 import {
   testUtils,
   toInternalAction,
-  actions,
   VertoPong,
   VertoResult,
 } from '@signalwire/core'
@@ -26,7 +25,6 @@ describe('vertoEventWorker', () => {
     const pubSubChannel = createPubSubChannel()
     const swEventChannel = createSwEventChannel()
     const sessionChannel = createSessionChannel()
-    const dispatchedActions: unknown[] = []
     const mockPeer = {
       uuid: rtcPeerId,
       onRemoteSdp: jest.fn(),
@@ -37,6 +35,7 @@ describe('vertoEventWorker', () => {
       },
       getRTCPeerById: jest.fn((_id: string) => mockPeer),
       setState: jest.fn(),
+      execute: jest.fn(),
     } as any
 
     return expectSaga(vertoEventWorker, {
@@ -79,29 +78,20 @@ describe('vertoEventWorker', () => {
             }
             return next()
           },
-          put(action, next) {
-            dispatchedActions.push(action)
-            return next()
-          },
         },
       ])
-      .put(
-        actions.executeAction({
-          method: 'video.message',
-          params: {
-            message: VertoPong({
-              dialogParams: {
-                callID: rtcPeerId,
-              },
-            }),
-            node_id: 'node_id',
-          },
-        })
-      )
-      .silentRun()
-      .finally(() => {
-        expect(dispatchedActions).toHaveLength(1)
+      .call(instance.execute, {
+        method: 'video.message',
+        params: {
+          message: VertoPong({
+            dialogParams: {
+              callID: rtcPeerId,
+            },
+          }),
+          node_id: 'node_id',
+        },
       })
+      .silentRun()
   })
 
   describe('verto.media', () => {
@@ -111,7 +101,6 @@ describe('vertoEventWorker', () => {
       const pubSubChannel = createPubSubChannel()
       const swEventChannel = createSwEventChannel()
       const sessionChannel = createSessionChannel()
-      const dispatchedActions: unknown[] = []
       const mockPeer = {
         uuid: rtcPeerId,
         onRemoteSdp: jest.fn(),
@@ -122,6 +111,7 @@ describe('vertoEventWorker', () => {
         },
         getRTCPeerById: jest.fn((_id: string) => mockPeer),
         setState: jest.fn(),
+        execute: jest.fn(),
       } as any
 
       return expectSaga(vertoEventWorker, {
@@ -163,24 +153,17 @@ describe('vertoEventWorker', () => {
               }
               return next()
             },
-            put(action, next) {
-              dispatchedActions.push(action)
-              return next()
-            },
           },
         ])
-        .put(
-          actions.executeAction({
-            method: 'video.message',
-            params: {
-              message: VertoResult('40', 'verto.media'),
-              node_id: 'node_id',
-            },
-          })
-        )
+        .call(instance.execute, {
+          method: 'video.message',
+          params: {
+            message: VertoResult('40', 'verto.media'),
+            node_id: 'node_id',
+          },
+        })
         .silentRun()
         .finally(() => {
-          expect(dispatchedActions).toHaveLength(1)
           expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
           expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
           expect(instance.setState).toHaveBeenCalledTimes(1)
@@ -196,7 +179,6 @@ describe('vertoEventWorker', () => {
       const pubSubChannel = createPubSubChannel()
       const swEventChannel = createSwEventChannel()
       const sessionChannel = createSessionChannel()
-      const dispatchedActions: unknown[] = []
       const mockPeer = {
         uuid: 'mocked',
         onRemoteSdp: jest.fn(),
@@ -207,6 +189,7 @@ describe('vertoEventWorker', () => {
         },
         getRTCPeerById: jest.fn((_id: string) => mockPeer),
         setState: jest.fn(),
+        execute: jest.fn(),
       } as any
 
       return expectSaga(vertoEventWorker, {
@@ -248,24 +231,17 @@ describe('vertoEventWorker', () => {
               }
               return next()
             },
-            put(action, next) {
-              dispatchedActions.push(action)
-              return next()
-            },
           },
         ])
-        .put(
-          actions.executeAction({
-            method: 'video.message',
-            params: {
-              message: VertoResult('40', 'verto.media'),
-              node_id: 'node_id',
-            },
-          })
-        )
+        .call(instance.execute, {
+          method: 'video.message',
+          params: {
+            message: VertoResult('40', 'verto.media'),
+            node_id: 'node_id',
+          },
+        })
         .silentRun()
         .finally(() => {
-          expect(dispatchedActions).toHaveLength(1)
           expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
           expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
           expect(instance.setState).toHaveBeenCalledTimes(0)
@@ -282,7 +258,6 @@ describe('vertoEventWorker', () => {
       const pubSubChannel = createPubSubChannel()
       const swEventChannel = createSwEventChannel()
       const sessionChannel = createSessionChannel()
-      const dispatchedActions: unknown[] = []
       const mockPeer = {
         uuid: 'active',
         onRemoteSdp: jest.fn(),
@@ -293,6 +268,7 @@ describe('vertoEventWorker', () => {
         },
         getRTCPeerById: jest.fn((_id: string) => mockPeer),
         setState: jest.fn(),
+        execute: jest.fn(),
       } as any
 
       return expectSaga(vertoEventWorker, {
@@ -333,24 +309,17 @@ describe('vertoEventWorker', () => {
               }
               return next()
             },
-            put(action, next) {
-              dispatchedActions.push(action)
-              return next()
-            },
           },
         ])
-        .put(
-          actions.executeAction({
-            method: 'video.message',
-            params: {
-              message: VertoResult('40', 'verto.answer'),
-              node_id: 'node_id',
-            },
-          })
-        )
+        .call(instance.execute, {
+          method: 'video.message',
+          params: {
+            message: VertoResult('40', 'verto.answer'),
+            node_id: 'node_id',
+          },
+        })
         .silentRun()
         .finally(() => {
-          expect(dispatchedActions).toHaveLength(1)
           expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
           expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
           expect(instance.setState).toHaveBeenCalledTimes(1)
@@ -365,7 +334,6 @@ describe('vertoEventWorker', () => {
       const pubSubChannel = createPubSubChannel()
       const swEventChannel = createSwEventChannel()
       const sessionChannel = createSessionChannel()
-      const dispatchedActions: unknown[] = []
       const mockPeer = {
         uuid: 'active',
         onRemoteSdp: jest.fn(),
@@ -376,6 +344,7 @@ describe('vertoEventWorker', () => {
         },
         getRTCPeerById: jest.fn((_id: string) => mockPeer),
         setState: jest.fn(),
+        execute: jest.fn(),
       } as any
 
       return expectSaga(vertoEventWorker, {
@@ -417,24 +386,17 @@ describe('vertoEventWorker', () => {
               }
               return next()
             },
-            put(action, next) {
-              dispatchedActions.push(action)
-              return next()
-            },
           },
         ])
-        .put(
-          actions.executeAction({
-            method: 'video.message',
-            params: {
-              message: VertoResult('40', 'verto.answer'),
-              node_id: 'node_id',
-            },
-          })
-        )
+        .call(instance.execute, {
+          method: 'video.message',
+          params: {
+            message: VertoResult('40', 'verto.answer'),
+            node_id: 'node_id',
+          },
+        })
         .silentRun()
         .finally(() => {
-          expect(dispatchedActions).toHaveLength(1)
           expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
           expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
           expect(instance.setState).toHaveBeenCalledTimes(1)
@@ -450,7 +412,6 @@ describe('vertoEventWorker', () => {
       const pubSubChannel = createPubSubChannel()
       const swEventChannel = createSwEventChannel()
       const sessionChannel = createSessionChannel()
-      const dispatchedActions: unknown[] = []
       const mockPeer = {
         uuid: 'mocked',
         onRemoteSdp: jest.fn(),
@@ -461,6 +422,7 @@ describe('vertoEventWorker', () => {
         },
         getRTCPeerById: jest.fn((_id: string) => mockPeer),
         setState: jest.fn(),
+        execute: jest.fn(),
       } as any
 
       return expectSaga(vertoEventWorker, {
@@ -501,24 +463,17 @@ describe('vertoEventWorker', () => {
               }
               return next()
             },
-            put(action, next) {
-              dispatchedActions.push(action)
-              return next()
-            },
           },
         ])
-        .put(
-          actions.executeAction({
-            method: 'video.message',
-            params: {
-              message: VertoResult('40', 'verto.answer'),
-              node_id: 'node_id',
-            },
-          })
-        )
+        .call(instance.execute, {
+          method: 'video.message',
+          params: {
+            message: VertoResult('40', 'verto.answer'),
+            node_id: 'node_id',
+          },
+        })
         .silentRun()
         .finally(() => {
-          expect(dispatchedActions).toHaveLength(1)
           expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
           expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
           expect(instance.setState).toHaveBeenCalledTimes(0)
@@ -534,7 +489,6 @@ describe('vertoEventWorker', () => {
       const pubSubChannel = createPubSubChannel()
       const swEventChannel = createSwEventChannel()
       const sessionChannel = createSessionChannel()
-      const dispatchedActions: unknown[] = []
       const mockPeer = {
         uuid: 'active',
         onRemoteSdp: jest.fn(),
@@ -546,6 +500,7 @@ describe('vertoEventWorker', () => {
         getRTCPeerById: jest.fn((_id: string) => mockPeer),
         onVertoBye: jest.fn(),
         setState: jest.fn(),
+        execute: jest.fn(),
       } as any
 
       return expectSaga(vertoEventWorker, {
@@ -588,24 +543,17 @@ describe('vertoEventWorker', () => {
               }
               return next()
             },
-            put(action, next) {
-              dispatchedActions.push(action)
-              return next()
-            },
           },
         ])
-        .put(
-          actions.executeAction({
-            method: 'video.message',
-            params: {
-              message: VertoResult('1907', 'verto.bye'),
-              node_id: 'node_id',
-            },
-          })
-        )
+        .call(instance.execute, {
+          method: 'video.message',
+          params: {
+            message: VertoResult('1907', 'verto.bye'),
+            node_id: 'node_id',
+          },
+        })
         .silentRun()
         .finally(() => {
-          expect(dispatchedActions).toHaveLength(1)
           expect(instance.onVertoBye).toHaveBeenCalledTimes(1)
           expect(instance.onVertoBye).toHaveBeenCalledWith({
             rtcPeerId,
@@ -635,6 +583,7 @@ describe('vertoEventWorker', () => {
         },
         getRTCPeerById: jest.fn((_id: string) => mockPeer),
         setState: jest.fn(),
+        execute: jest.fn(),
       } as any
 
       return expectSaga(vertoEventWorker, {
@@ -642,8 +591,8 @@ describe('vertoEventWorker', () => {
         session,
         channels: {
           pubSubChannel,
-          swEventChannel,
           sessionChannel,
+          swEventChannel,
         },
         instance,
         initialState,
