@@ -1,7 +1,6 @@
 import {
   testUtils,
   toInternalAction,
-  actions,
   VertoPong,
   VertoResult,
   WEBRTC_EVENT_TYPES,
@@ -30,10 +29,10 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
       const pubSubChannel = createPubSubChannel()
       const swEventChannel = createSwEventChannel()
       const sessionChannel = createSessionChannel()
-      const dispatchedActions: unknown[] = []
       const mockPeer = {
         uuid: rtcPeerId,
         onRemoteSdp: jest.fn(),
+        execute: jest.fn(),
       }
       const instance = {
         peer: {
@@ -84,29 +83,20 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
               }
               return next()
             },
-            put(action, next) {
-              dispatchedActions.push(action)
-              return next()
-            },
           },
         ])
-        .put(
-          actions.executeAction({
-            method: 'video.message',
-            params: {
-              message: VertoPong({
-                dialogParams: {
-                  callID: rtcPeerId,
-                },
-              }),
-              node_id: 'node_id',
-            },
-          })
-        )
-        .silentRun()
-        .finally(() => {
-          expect(dispatchedActions).toHaveLength(1)
+        .call([instance, instance.execute], {
+          method: _getRPCMethod(),
+          params: {
+            message: VertoPong({
+              dialogParams: {
+                callID: rtcPeerId,
+              },
+            }),
+            node_id: 'node_id',
+          },
         })
+        .silentRun()
     })
 
     describe('verto.media', () => {
@@ -116,7 +106,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         const pubSubChannel = createPubSubChannel()
         const swEventChannel = createSwEventChannel()
         const sessionChannel = createSessionChannel()
-        const dispatchedActions: unknown[] = []
         const mockPeer = {
           uuid: rtcPeerId,
           onRemoteSdp: jest.fn(),
@@ -169,24 +158,17 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
                 }
                 return next()
               },
-              put(action, next) {
-                dispatchedActions.push(action)
-                return next()
-              },
             },
           ])
-          .put(
-            actions.executeAction({
-              method: 'video.message',
-              params: {
-                message: VertoResult('40', 'verto.media'),
-                node_id: 'node_id',
-              },
-            })
-          )
+          .call([instance, instance.execute], {
+            method: _getRPCMethod(),
+            params: {
+              message: VertoResult('40', 'verto.media'),
+              node_id: 'node_id',
+            },
+          })
           .silentRun()
           .finally(() => {
-            expect(dispatchedActions).toHaveLength(1)
             expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
             expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
             expect(instance.setState).toHaveBeenCalledTimes(1)
@@ -202,7 +184,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         const pubSubChannel = createPubSubChannel()
         const swEventChannel = createSwEventChannel()
         const sessionChannel = createSessionChannel()
-        const dispatchedActions: unknown[] = []
         const mockPeer = {
           uuid: 'mocked',
           onRemoteSdp: jest.fn(),
@@ -255,24 +236,17 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
                 }
                 return next()
               },
-              put(action, next) {
-                dispatchedActions.push(action)
-                return next()
-              },
             },
           ])
-          .put(
-            actions.executeAction({
-              method: 'video.message',
-              params: {
-                message: VertoResult('40', 'verto.media'),
-                node_id: 'node_id',
-              },
-            })
-          )
+          .call([instance, instance.execute], {
+            method: _getRPCMethod(),
+            params: {
+              message: VertoResult('40', 'verto.media'),
+              node_id: 'node_id',
+            },
+          })
           .silentRun()
           .finally(() => {
-            expect(dispatchedActions).toHaveLength(1)
             expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
             expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
             expect(instance.setState).toHaveBeenCalledTimes(0)
@@ -289,7 +263,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         const pubSubChannel = createPubSubChannel()
         const swEventChannel = createSwEventChannel()
         const sessionChannel = createSessionChannel()
-        const dispatchedActions: unknown[] = []
         const mockPeer = {
           uuid: 'active',
           onRemoteSdp: jest.fn(),
@@ -341,24 +314,17 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
                 }
                 return next()
               },
-              put(action, next) {
-                dispatchedActions.push(action)
-                return next()
-              },
             },
           ])
-          .put(
-            actions.executeAction({
-              method: 'video.message',
-              params: {
-                message: VertoResult('40', 'verto.answer'),
-                node_id: 'node_id',
-              },
-            })
-          )
+          .call([instance, instance.execute], {
+            method: _getRPCMethod(),
+            params: {
+              message: VertoResult('40', 'verto.answer'),
+              node_id: 'node_id',
+            },
+          })
           .silentRun()
           .finally(() => {
-            expect(dispatchedActions).toHaveLength(1)
             expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
             expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
             expect(instance.setState).toHaveBeenCalledTimes(1)
@@ -373,7 +339,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         const pubSubChannel = createPubSubChannel()
         const swEventChannel = createSwEventChannel()
         const sessionChannel = createSessionChannel()
-        const dispatchedActions: unknown[] = []
         const mockPeer = {
           uuid: 'active',
           onRemoteSdp: jest.fn(),
@@ -426,24 +391,17 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
                 }
                 return next()
               },
-              put(action, next) {
-                dispatchedActions.push(action)
-                return next()
-              },
             },
           ])
-          .put(
-            actions.executeAction({
-              method: 'video.message',
-              params: {
-                message: VertoResult('40', 'verto.answer'),
-                node_id: 'node_id',
-              },
-            })
-          )
+          .call([instance, instance.execute], {
+            method: _getRPCMethod(),
+            params: {
+              message: VertoResult('40', 'verto.answer'),
+              node_id: 'node_id',
+            },
+          })
           .silentRun()
           .finally(() => {
-            expect(dispatchedActions).toHaveLength(1)
             expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
             expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
             expect(instance.setState).toHaveBeenCalledTimes(1)
@@ -459,7 +417,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         const pubSubChannel = createPubSubChannel()
         const swEventChannel = createSwEventChannel()
         const sessionChannel = createSessionChannel()
-        const dispatchedActions: unknown[] = []
         const mockPeer = {
           uuid: 'mocked',
           onRemoteSdp: jest.fn(),
@@ -511,24 +468,17 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
                 }
                 return next()
               },
-              put(action, next) {
-                dispatchedActions.push(action)
-                return next()
-              },
             },
           ])
-          .put(
-            actions.executeAction({
-              method: 'video.message',
-              params: {
-                message: VertoResult('40', 'verto.answer'),
-                node_id: 'node_id',
-              },
-            })
-          )
+          .call([instance, instance.execute], {
+            method: _getRPCMethod(),
+            params: {
+              message: VertoResult('40', 'verto.answer'),
+              node_id: 'node_id',
+            },
+          })
           .silentRun()
           .finally(() => {
-            expect(dispatchedActions).toHaveLength(1)
             expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
             expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
             expect(instance.setState).toHaveBeenCalledTimes(0)
@@ -544,7 +494,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         const pubSubChannel = createPubSubChannel()
         const swEventChannel = createSwEventChannel()
         const sessionChannel = createSessionChannel()
-        const dispatchedActions: unknown[] = []
         const mockPeer = {
           uuid: 'active',
           onRemoteSdp: jest.fn(),
@@ -599,24 +548,17 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
                 }
                 return next()
               },
-              put(action, next) {
-                dispatchedActions.push(action)
-                return next()
-              },
             },
           ])
-          .put(
-            actions.executeAction({
-              method: 'video.message',
-              params: {
-                message: VertoResult('1907', 'verto.bye'),
-                node_id: 'node_id',
-              },
-            })
-          )
+          .call([instance, instance.execute], {
+            method: _getRPCMethod(),
+            params: {
+              message: VertoResult('1907', 'verto.bye'),
+              node_id: 'node_id',
+            },
+          })
           .silentRun()
           .finally(() => {
-            expect(dispatchedActions).toHaveLength(1)
             expect(instance.onVertoBye).toHaveBeenCalledTimes(1)
             expect(instance.onVertoBye).toHaveBeenCalledWith({
               rtcPeerId,
@@ -635,7 +577,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         const pubSubChannel = createPubSubChannel()
         const swEventChannel = createSwEventChannel()
         const sessionChannel = createSessionChannel()
-        const dispatchedActions: unknown[] = []
         const mockPeer = {
           uuid: 'active',
           applyMediaConstraints: jest.fn(),
@@ -694,15 +635,10 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
                 }
                 return next()
               },
-              put(action, next) {
-                dispatchedActions.push(action)
-                return next()
-              },
             },
           ])
           .silentRun()
           .finally(() => {
-            expect(dispatchedActions).toHaveLength(0)
             expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
             expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
             expect(mockPeer.applyMediaConstraints).toHaveBeenCalledTimes(1)
@@ -723,7 +659,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         const pubSubChannel = createPubSubChannel()
         const swEventChannel = createSwEventChannel()
         const sessionChannel = createSessionChannel()
-        const dispatchedActions: unknown[] = []
         const mockPeer = {
           uuid: 'active',
           applyMediaConstraints: jest.fn(),
@@ -783,15 +718,10 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
                 }
                 return next()
               },
-              put(action, next) {
-                dispatchedActions.push(action)
-                return next()
-              },
             },
           ])
           .silentRun()
           .finally(() => {
-            expect(dispatchedActions).toHaveLength(0)
             expect(instance.getRTCPeerById).toHaveBeenCalledTimes(1)
             expect(instance.getRTCPeerById).toHaveBeenCalledWith(rtcPeerId)
             expect(mockPeer.applyMediaConstraints).toHaveBeenCalledTimes(1)
