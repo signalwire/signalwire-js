@@ -50,6 +50,10 @@ export const configureFullStack = () => {
     }),
   })
 
+  session.dispatch = (payload) => {
+    store.channels.sessionChannel.put(payload)
+  }
+
   store.dispatch(actions.initAction())
   store.dispatch(actions.authSuccessAction())
 

@@ -1,6 +1,5 @@
 import {
   testUtils,
-  sagaHelpers,
   toInternalAction,
   actions,
   VertoPong,
@@ -20,7 +19,8 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
   const _getRPCMethod = () => 'video.message'
 
   describe(`vertoEventWorker with '${eventType}'`, () => {
-    const { createPubSubChannel, createSwEventChannel } = testUtils
+    const { createPubSubChannel, createSwEventChannel, createSessionChannel } =
+      testUtils
     const rtcPeerId = 'rtc-peer-id'
     const initialState = { rtcPeerId }
 
@@ -29,7 +29,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
       const session = {} as any
       const pubSubChannel = createPubSubChannel()
       const swEventChannel = createSwEventChannel()
-      const sessionChannel = sagaHelpers.eventChannel(() => () => {})
+      const sessionChannel = createSessionChannel()
       const dispatchedActions: unknown[] = []
       const mockPeer = {
         uuid: rtcPeerId,
@@ -50,8 +50,8 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         channels: {
           pubSubChannel,
           swEventChannel,
+          sessionChannel,
         },
-        sessionChannel,
         instance,
         initialState,
       })
@@ -115,7 +115,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         const session = {} as any
         const pubSubChannel = createPubSubChannel()
         const swEventChannel = createSwEventChannel()
-        const sessionChannel = sagaHelpers.eventChannel(() => () => {})
+        const sessionChannel = createSessionChannel()
         const dispatchedActions: unknown[] = []
         const mockPeer = {
           uuid: rtcPeerId,
@@ -136,8 +136,8 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           channels: {
             pubSubChannel,
             swEventChannel,
+            sessionChannel,
           },
-          sessionChannel,
           instance,
           initialState,
         })
@@ -201,7 +201,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         const session = {} as any
         const pubSubChannel = createPubSubChannel()
         const swEventChannel = createSwEventChannel()
-        const sessionChannel = sagaHelpers.eventChannel(() => () => {})
+        const sessionChannel = createSessionChannel()
         const dispatchedActions: unknown[] = []
         const mockPeer = {
           uuid: 'mocked',
@@ -222,8 +222,8 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           channels: {
             pubSubChannel,
             swEventChannel,
+            sessionChannel,
           },
-          sessionChannel,
           instance,
           initialState,
         })
@@ -288,7 +288,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         const session = {} as any
         const pubSubChannel = createPubSubChannel()
         const swEventChannel = createSwEventChannel()
-        const sessionChannel = sagaHelpers.eventChannel(() => () => {})
+        const sessionChannel = createSessionChannel()
         const dispatchedActions: unknown[] = []
         const mockPeer = {
           uuid: 'active',
@@ -309,8 +309,8 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           channels: {
             pubSubChannel,
             swEventChannel,
+            sessionChannel,
           },
-          sessionChannel,
           instance,
           initialState,
         })
@@ -372,7 +372,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         const session = {} as any
         const pubSubChannel = createPubSubChannel()
         const swEventChannel = createSwEventChannel()
-        const sessionChannel = sagaHelpers.eventChannel(() => () => {})
+        const sessionChannel = createSessionChannel()
         const dispatchedActions: unknown[] = []
         const mockPeer = {
           uuid: 'active',
@@ -393,8 +393,8 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           channels: {
             pubSubChannel,
             swEventChannel,
+            sessionChannel,
           },
-          sessionChannel,
           instance,
           initialState,
         })
@@ -458,7 +458,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         const session = {} as any
         const pubSubChannel = createPubSubChannel()
         const swEventChannel = createSwEventChannel()
-        const sessionChannel = sagaHelpers.eventChannel(() => () => {})
+        const sessionChannel = createSessionChannel()
         const dispatchedActions: unknown[] = []
         const mockPeer = {
           uuid: 'mocked',
@@ -479,8 +479,8 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           channels: {
             pubSubChannel,
             swEventChannel,
+            sessionChannel,
           },
-          sessionChannel,
           instance,
           initialState,
         })
@@ -543,7 +543,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         const session = {} as any
         const pubSubChannel = createPubSubChannel()
         const swEventChannel = createSwEventChannel()
-        const sessionChannel = sagaHelpers.eventChannel(() => () => {})
+        const sessionChannel = createSessionChannel()
         const dispatchedActions: unknown[] = []
         const mockPeer = {
           uuid: 'active',
@@ -565,8 +565,8 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           channels: {
             pubSubChannel,
             swEventChannel,
+            sessionChannel,
           },
-          sessionChannel,
           instance,
           initialState,
         })
@@ -634,7 +634,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         const session = {} as any
         const pubSubChannel = createPubSubChannel()
         const swEventChannel = createSwEventChannel()
-        const sessionChannel = sagaHelpers.eventChannel(() => () => {})
+        const sessionChannel = createSessionChannel()
         const dispatchedActions: unknown[] = []
         const mockPeer = {
           uuid: 'active',
@@ -655,8 +655,8 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           channels: {
             pubSubChannel,
             swEventChannel,
+            sessionChannel,
           },
-          sessionChannel,
           instance,
           initialState,
         })
@@ -722,7 +722,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         const session = {} as any
         const pubSubChannel = createPubSubChannel()
         const swEventChannel = createSwEventChannel()
-        const sessionChannel = sagaHelpers.eventChannel(() => () => {})
+        const sessionChannel = createSessionChannel()
         const dispatchedActions: unknown[] = []
         const mockPeer = {
           uuid: 'active',
@@ -743,8 +743,8 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           channels: {
             pubSubChannel,
             swEventChannel,
+            sessionChannel,
           },
-          sessionChannel,
           instance,
           initialState,
         })
