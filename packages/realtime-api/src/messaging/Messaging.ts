@@ -165,10 +165,6 @@ export const createMessagingObject = (
   const messaging = connect<MessagingClientApiEvents, MessagingAPI, Messaging>({
     store: params.store,
     Component: MessagingAPI,
-    componentListeners: {
-      errors: 'onError',
-      responses: 'onSuccess',
-    },
   })(params)
 
   return messaging

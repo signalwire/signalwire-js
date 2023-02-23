@@ -71,7 +71,6 @@ export interface SessionState {
 export interface SDKState {
   components: ComponentState
   session: SessionState
-  executeQueue: ExecuteQueueState
 }
 
 export interface ExecuteActionParams {
@@ -79,10 +78,6 @@ export interface ExecuteActionParams {
   componentId?: string
   method: JSONRPCMethod
   params: Record<string, any>
-}
-
-export interface ExecuteQueueState {
-  queue: ExecuteActionParams[]
 }
 
 export interface CustomSagaParams<T> {

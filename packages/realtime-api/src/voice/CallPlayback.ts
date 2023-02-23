@@ -144,10 +144,6 @@ export const createCallPlaybackObject = (
   >({
     store: params.store,
     Component: CallPlaybackAPI,
-    componentListeners: {
-      errors: 'onError',
-      responses: 'onSuccess',
-    },
   })(params)
 
   return playback

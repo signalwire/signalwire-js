@@ -223,10 +223,6 @@ export const createVideoObject = (
   const video = connect<RealTimeVideoApiEvents, VideoAPI, Video>({
     store: params.store,
     Component: VideoAPI,
-    componentListeners: {
-      errors: 'onError',
-      responses: 'onSuccess',
-    },
   })(params)
 
   const proxy = new Proxy<Video>(video, {

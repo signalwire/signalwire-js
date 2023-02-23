@@ -52,10 +52,6 @@ export const createClient: (userOptions: {
     const client = connect<ClientEvents, Client, RealtimeClient>({
       store,
       Component: Client,
-      componentListeners: {
-        errors: 'onError',
-        responses: 'onSuccess',
-      },
       sessionListeners: {
         authStatus: 'onAuth',
       },

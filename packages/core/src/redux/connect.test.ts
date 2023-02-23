@@ -28,12 +28,6 @@ describe('Connect', () => {
     store = configureJestStore()
     instance = connect({
       store,
-      componentListeners: {
-        state: 'emit',
-        remoteSDP: mockOnRemoteSDP,
-        raceOne: 'checkRaceOne',
-        raceTwo: 'checkRaceTwo',
-      },
       sessionListeners: {
         authStatus: 'onAuth',
       },
@@ -56,19 +50,8 @@ describe('Connect', () => {
     })
   })
 
-  it('should invoke the instance method if onStateChangeListeners provided a string name', () => {
-    store.dispatch(updateStateAction)
-
-    expect(instance.emit).toHaveBeenCalledTimes(1)
-    expect(instance.emit).toHaveBeenCalledWith({
-      id: instance.__uuid,
-      state: 'active',
-    })
-  })
-
   it('should unsubscribe after destroy', () => {
     store.dispatch(updateStateAction)
-    expect(instance.emit).toHaveBeenCalledTimes(1)
 
     instance.destroy()
     instance.emit.mockClear()
@@ -82,16 +65,6 @@ describe('Connect', () => {
     expect(instance.emit).not.toHaveBeenCalled()
   })
 
-  it('should invoke the function within onStateChangeListeners', () => {
-    store.dispatch(updateRemoteSDPAction)
-
-    expect(mockOnRemoteSDP).toHaveBeenCalledTimes(1)
-    expect(mockOnRemoteSDP).toHaveBeenCalledWith({
-      id: instance.__uuid,
-      remoteSDP: '<SDP>',
-    })
-  })
-
   it('should invoke the function within sessionListeners', () => {
     store.dispatch(sessionActions.authStatus('authorized'))
 
@@ -103,41 +76,5 @@ describe('Connect', () => {
       authError: undefined,
       authCount: 0,
     })
-  })
-
-  it('should not invoke the instance method after destroyer', () => {
-    /**
-     * First update will set the component in the
-     * store and invoke both listeners
-     */
-    const firstUpdate = {
-      id: instance.__uuid,
-      raceOne: 'something',
-      raceTwo: 'wrong',
-    }
-    instance.checkRaceOne.mockImplementationOnce((comp: any) => {
-      expect(comp).toStrictEqual(firstUpdate)
-    })
-    store.dispatch(componentActions.upsert(firstUpdate))
-    expect(instance.checkRaceOne).toHaveBeenCalledTimes(1)
-    expect(instance.checkRaceTwo).toHaveBeenCalledTimes(1)
-
-    /**
-     * Second update we intentionally `destroy` the component
-     * to unsubscribe from redux updates.
-     * It should invoke only `checkRaceOne` and skip `checkRaceTwo`
-     */
-    instance.checkRaceOne.mockImplementationOnce(() => {
-      instance.destroy()
-    })
-    const secondUpdate = {
-      id: instance.__uuid,
-      raceOne: 'got this race',
-      raceTwo: 'and fix it',
-    }
-    store.dispatch(componentActions.upsert(secondUpdate))
-
-    expect(instance.checkRaceOne).toHaveBeenCalledTimes(2)
-    expect(instance.checkRaceTwo).toHaveBeenCalledTimes(1)
   })
 })
