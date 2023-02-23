@@ -18,13 +18,25 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - run: npm i
-      - run: npm run build
-      - run: npm test
+      - name: Cache Node Modules
+        id: node-cache
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Install Dependencies
+        if: steps.node-cache.outputs.cache-hit != 'true'
+        run: npm install
+      - name: Build
+        run: npm run build
+      - name: Test
+        run: npm test
 
   stack-tests:
     name: Stack tests
@@ -40,10 +52,21 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - run: npm i
-      - run: npm run build
-      - run: npm run -w=@sw-internal/stack-tests dev
+      - name: Cache Node Modules
+        id: node-cache
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Install Dependencies
+        if: steps.node-cache.outputs.cache-hit != 'true'
+        run: npm install
+      - name: Build
+        run: npm run build
+      - name: Test
+        run: npm run -w=@sw-internal/stack-tests dev
         env:
           RELAY_HOST: ${{ secrets.RELAY_HOST }}
           RELAY_PROJECT: ${{ secrets.RELAY_PROJECT }}
