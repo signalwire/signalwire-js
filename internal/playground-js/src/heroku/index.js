@@ -732,8 +732,7 @@ window.ready(async function () {
 
   const client = new Fabric.Client({
     host: 'dev.swire.io',
-    accessToken:
-      'eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIiwidHlwIjoiU0FUIn0..2U1wdPMrdZigUL6Q.pfgvOBKg413Np0kISN1xDCZX2yzecDP1Ku102w4Wgc7wS9sWrfZDQxUSL7g7kuf93ImwrY3FXxLOtdk11MAGbrRvE5EcEug6WEYhfTh9qaNZuuu8zc49cro2wQ-NGuFOG5xGgtytkqX5NnRCXCqFehGL7poJUzVpoEIpqL3opo67Dv_SwNw4OsDNB_UD_XLCNCNBhcNCdytXi0HQQJxPkcMJyQ1vHkKAwDwNHw-55O01PMOVAcCEo1XmqCJI6tVu8qdJvIbG8UvpXLdiJazoDv0r7nKukO5JmQ991VpT4uACVB3rBs9PlJQNYaWlyyrif9QkbjLoqvrjp7hpnJyEfu_WJdOEAjIvwoUMUEDEmhmWNAH7Mx8WKqeu4OHJ22u0Jl9Nb9UtTKPj_BnV4Qnsusz6Fx74bM67sYiFKbPsK07OGHUq-s7gHZ6yMbnPcPlo-2TEIQ8RNIQOB5lnN0ZzmbrJwAWbflI49JujmnqIEdI1.2l-tHbE-XbqMRXOKekKy-g',
+    accessToken: '',
   })
   // const { addresses, nextPage, prevPage } = await client.getAddresses()
 
@@ -749,6 +748,8 @@ window.ready(async function () {
   const call = await client.createSATCall({
     destinationNumber: 'wanna join this room',
     rootElement: document.getElementById('rootElement'),
+    logLevel: 'debug',
+    debug: { logWsTraffic: true },
   })
 
   call.on('room.joined', (params) => {
