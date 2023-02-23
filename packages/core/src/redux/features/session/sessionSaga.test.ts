@@ -1,9 +1,6 @@
 import { expectSaga } from 'redux-saga-test-plan'
 import { socketMessageAction } from '../../actions'
-import {
-  sessionChannelWatcher,
-  createSessionChannel as createSessionChannelEmitter,
-} from './sessionSaga'
+import { sessionChannelWatcher } from './sessionSaga'
 import {
   createPubSubChannel,
   createSwEventChannel,
@@ -219,24 +216,5 @@ describe('sessionChannelWatcher', () => {
           expect(dispatchedActions).toHaveLength(2)
         })
     })
-  })
-})
-
-describe('createSessionChannel', () => {
-  it('should override session.dispatch to pass actions and invoke session.disconnect on close', () => {
-    const session = {
-      disconnect: jest.fn(),
-    } as any
-
-    const sessionChannelEmitter = createSessionChannelEmitter(session)
-
-    expect(session.dispatch).toBeDefined()
-    sessionChannelEmitter.take((param) => {
-      expect(param).toStrictEqual('Triggered!')
-    })
-    session.dispatch('Triggered!')
-
-    sessionChannelEmitter.close()
-    expect(session.disconnect).toHaveBeenCalledTimes(1)
   })
 })

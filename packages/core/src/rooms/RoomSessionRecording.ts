@@ -62,10 +62,6 @@ export const createRoomSessionRecordingObject = (
   >({
     store: params.store,
     Component: RoomSessionRecordingAPI,
-    componentListeners: {
-      errors: 'onError',
-      responses: 'onSuccess',
-    },
   })(params)
 
   return recording

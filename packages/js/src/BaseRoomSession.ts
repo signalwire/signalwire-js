@@ -31,10 +31,7 @@ import type {
   RoomSessionConnectionContract,
   BaseRoomSessionJoinParams,
 } from './utils/interfaces'
-import {
-  ROOM_COMPONENT_LISTENERS,
-  SCREENSHARE_AUDIO_CONSTRAINTS,
-} from './utils/constants'
+import { SCREENSHARE_AUDIO_CONSTRAINTS } from './utils/constants'
 import { audioSetSpeakerAction } from './features/actions'
 import {
   RoomSessionScreenShareAPI,
@@ -328,7 +325,6 @@ export class RoomSessionConnection
     >({
       store: this.store,
       Component: RoomSessionScreenShareAPI,
-      componentListeners: ROOM_COMPONENT_LISTENERS,
     })(options)
 
     /**
@@ -423,7 +419,6 @@ export class RoomSessionConnection
     >({
       store: this.store,
       Component: RoomSessionDeviceAPI,
-      componentListeners: ROOM_COMPONENT_LISTENERS,
     })(options)
 
     roomDevice.once('destroy', () => {
@@ -560,7 +555,6 @@ export const createBaseRoomSessionObject = <RoomSessionType>(
     store: params.store,
     customSagas: params.customSagas,
     Component: RoomSessionAPI,
-    componentListeners: ROOM_COMPONENT_LISTENERS,
   })(params)
 
   return room

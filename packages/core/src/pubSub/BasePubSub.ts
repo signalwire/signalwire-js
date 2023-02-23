@@ -245,10 +245,6 @@ export const createBasePubSubObject = <PubSubType>(
   const pubSub = connect<BasePubSubApiEvents, BasePubSubConsumer, PubSubType>({
     store: params.store,
     Component: BasePubSubConsumer,
-    componentListeners: {
-      errors: 'onError',
-      responses: 'onSuccess',
-    },
   })(params)
 
   return pubSub

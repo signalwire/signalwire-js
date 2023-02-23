@@ -161,10 +161,6 @@ export const createCallCollectObject = (
   >({
     store: params.store,
     Component: CallCollectAPI,
-    componentListeners: {
-      errors: 'onError',
-      responses: 'onSuccess',
-    },
   })(params)
 
   return collect

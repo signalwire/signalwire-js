@@ -42,10 +42,6 @@ export const createRoomSessionStreamObject = (
   >({
     store: params.store,
     Component: RoomSessionStreamAPI,
-    componentListeners: {
-      errors: 'onError',
-      responses: 'onSuccess',
-    },
   })(params)
 
   return stream

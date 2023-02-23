@@ -1,4 +1,4 @@
-import { SagaIterator, eventChannel } from '@redux-saga/core'
+import { SagaIterator } from '@redux-saga/core'
 import { put, take, fork } from '@redux-saga/core/effects'
 import type { PayloadAction } from '../../toolkit'
 import { BaseSession } from '../../../BaseSession'
@@ -157,20 +157,4 @@ export function* sessionChannelWatcher({
       getLogger().debug('sessionChannelWorker finally')
     }
   }
-}
-
-export function createSessionChannel(session: BaseSession) {
-  return eventChannel((emit) => {
-    session.dispatch = (payload: PayloadAction<any>) => {
-      emit(payload)
-    }
-
-    // this will be invoked when the saga calls `channel.close()` method
-    const unsubscribe = () => {
-      getLogger().debug('sessionChannel unsubscribe')
-      session.disconnect()
-    }
-
-    return unsubscribe
-  })
 }

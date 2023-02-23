@@ -14,10 +14,6 @@ describe('Room Custom Methods', () => {
     store = configureJestStore()
     instance = connect({
       store,
-      componentListeners: {
-        errors: 'onError',
-        responses: 'onSuccess',
-      },
       Component: BaseComponent,
     })({
       emitter: new EventEmitter(),

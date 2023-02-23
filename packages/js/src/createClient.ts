@@ -46,10 +46,6 @@ export const createClient = <RoomSessionType>(userOptions: UserOptions) => {
   >({
     store,
     Component: ClientAPI,
-    componentListeners: {
-      errors: 'onError',
-      responses: 'onSuccess',
-    },
   })(baseUserOptions)
 
   return client

@@ -97,10 +97,6 @@ export const createCallRecordingObject = (
   >({
     store: params.store,
     Component: CallRecordingAPI,
-    componentListeners: {
-      errors: 'onError',
-      responses: 'onSuccess',
-    },
   })(params)
 
   return record

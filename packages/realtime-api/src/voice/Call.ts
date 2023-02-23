@@ -1500,10 +1500,6 @@ export const createCallObject = (
   const call = connect<RealTimeCallApiEvents, CallConsumer, Call>({
     store: params.store,
     Component: CallAPI,
-    componentListeners: {
-      errors: 'onError',
-      responses: 'onSuccess',
-    },
   })(params)
 
   return call

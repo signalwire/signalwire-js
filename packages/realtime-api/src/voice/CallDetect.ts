@@ -100,10 +100,6 @@ export const createCallDetectObject = (
   >({
     store: params.store,
     Component: CallDetectAPI,
-    componentListeners: {
-      errors: 'onError',
-      responses: 'onSuccess',
-    },
   })(params)
 
   return detect

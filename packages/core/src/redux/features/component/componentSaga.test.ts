@@ -47,7 +47,6 @@ describe('componentCleanupSaga', () => {
           authError: undefined,
           authCount: 0,
         },
-        executeQueue: { queue: [] },
       })
       .run()
   })

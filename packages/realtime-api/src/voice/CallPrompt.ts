@@ -167,10 +167,6 @@ export const createCallPromptObject = (
   >({
     store: params.store,
     Component: CallPromptAPI,
-    componentListeners: {
-      errors: 'onError',
-      responses: 'onSuccess',
-    },
   })(params)
 
   return record

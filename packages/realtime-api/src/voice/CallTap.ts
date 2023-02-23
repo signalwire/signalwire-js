@@ -80,10 +80,6 @@ export const createCallTapObject = (params: CallTapOptions): CallTap => {
   const tap = connect<CallTapEventsHandlerMapping, CallTapAPI, CallTap>({
     store: params.store,
     Component: CallTapAPI,
-    componentListeners: {
-      errors: 'onError',
-      responses: 'onSuccess',
-    },
   })(params)
 
   return tap
