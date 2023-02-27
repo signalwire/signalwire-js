@@ -1,7 +1,14 @@
 import { mediaDevices, RTCPeerConnection, MediaStream } from 'wrtc'
+import { CloseEvent } from '@signalwire/core'
 import { Video } from '@signalwire/js'
+import { WebSocket } from 'ws'
 import { request } from 'node:https'
 import { getAuthorization } from './utils'
+
+// @ts-expect-error
+mediaDevices.enumerateDevices = () => {
+  return Promise.resolve([])
+}
 
 const PERMISSIONS = [
   'room.self.audio_mute',
@@ -18,6 +25,9 @@ const PERMISSIONS = [
   'room.member.video_mute',
   'room.member.audio_mute',
   'room.member.remove',
+  'room.recording',
+  'room.playback',
+  'room.playback_seek',
 ]
 type CreateVRTParams = {
   roomName: string
@@ -66,61 +76,60 @@ export const createRoomSession = (
   params: CreateRoomSessionParams
 ): Promise<Video.RoomSession> => {
   return new Promise(async (resolve, reject) => {
-    const { token } = await createVRT(params)
+    try {
+      const { token } = await createVRT(params)
 
-    global.MediaStream = MediaStream
-    // @ts-expect-error
-    global.Audio = function () {
-      console.log('using audio')
-    }
-    global.WebSocket = WebSocket
-    // @ts-expect-error
-    global.navigator = {
-      mediaDevices,
-    }
-    // @ts-expect-error
-    global.window = {
-      RTCPeerConnection,
-    }
+      global.MediaStream = MediaStream
+      // @ts-expect-error
+      global.Audio = function () {
+        console.log('using audio')
+      }
+      global.CloseEvent = CloseEvent
+      global.WebSocket = WebSocket
+      // @ts-expect-error
+      global.navigator = {
+        mediaDevices,
+      }
+      // @ts-expect-error
+      global.window = {
+        RTCPeerConnection,
+      }
 
-    const roomSession = new Video.RoomSession({
-      host: process.env.RELAY_HOST || 'relay.signalwire.com',
-      token: token,
-      audio: true,
-      video: true,
-      logLevel: 'debug',
-      debug: {
-        logWsTraffic: true,
-      },
-    })
+      const roomSession = new Video.RoomSession({
+        host: process.env.RELAY_HOST || 'relay.signalwire.com',
+        token: token,
+        audio: true,
+        video: true,
+        // logLevel: 'error',
+        // debug: {
+        //   logWsTraffic: true,
+        // },
+      })
 
-    // @ts-expect-error
-    roomSession._mungeSDP = (sdp: string) => {
-      console.log('SDP', sdp)
-      const newLine = '\r\n'
-      return (
-        sdp
-          .split(newLine)
-          .filter((line) => {
-            if (line.startsWith('a=candidate')) {
-              // return !(line.includes('127.0.0.1') || line.includes('172.'))
-              return !line.includes('127.0.0.1')
-            }
-            return true
-          })
-          .join(newLine) + newLine
-      )
-    }
+      // @ts-expect-error
+      roomSession._mungeSDP = (sdp: string) => {
+        console.log('SDP', sdp)
+        const newLine = '\r\n'
+        return (
+          sdp
+            .split(newLine)
+            .filter((line) => {
+              if (line.startsWith('a=candidate')) {
+                return !line.includes('127.0.0.1')
+              }
+              return true
+            })
+            .join(newLine) + newLine
+        )
+      }
 
-    roomSession
-      .join()
-      .then((roomSession) => {
-        console.error('CreateRoomSession OK', roomSession)
+      roomSession.join().then((roomSession) => {
+        // console.log('CreateRoomSession OK', roomSession)
         resolve(roomSession)
       })
-      .catch((error) => {
-        console.error('CreateRoomSession Error', error)
-        reject(error)
-      })
+    } catch (error) {
+      console.error('CreateRoomSession Error', error)
+      reject(error)
+    }
   })
 }
