@@ -124,8 +124,7 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x]
-        # project: [default, streaming, slow]
-        project: [default, slow]
+        project: [default, streaming, slow]
 
     steps:
       - uses: actions/checkout@v3
