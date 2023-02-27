@@ -51,7 +51,7 @@ export const createTestRunner = ({
   }
 }
 
-const getAuthorization = () => {
+export const getAuthorization = () => {
   const auth = `${process.env.RELAY_PROJECT}:${process.env.RELAY_TOKEN}`
   return 'Basic ' + Buffer.from(auth).toString('base64')
 }
