@@ -108,7 +108,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-      - run: npm i && npx playwright install-deps chromium
+      - run: npm i # && npx playwright install-deps chromium
       - run: npm run build
       - run: npm run -w=@sw-internal/e2e-js dev -- --project ${{ matrix.project }}
         env:
@@ -131,7 +131,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-      - run: npm i && npx playwright install-deps chromium
+      - run: npm i # && npx playwright install-deps chromium
       - run: npm run build
       - run: npm run -w=@sw-internal/e2e-js dev -- --project ${{ matrix.project }}
         env:
