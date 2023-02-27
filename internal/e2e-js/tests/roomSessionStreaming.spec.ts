@@ -53,6 +53,8 @@ test.describe('RoomSession', () => {
     // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)
 
+    const streamingURL = `${process.env.RTMP_SERVER}${process.env.RTMP_STREAM_NAME}`
+
     // --------------- Start stream from 1st room ---------------
     await pageOne.evaluate(
       async ({ STREAMING_URL }) => {
@@ -75,7 +77,7 @@ test.describe('RoomSession', () => {
 
         return streamStarted
       },
-      { STREAMING_URL: process.env.STREAMING_URL }
+      { STREAMING_URL: streamingURL}
     )
 
     // Checks that the video is visible on pageTwo
@@ -131,7 +133,7 @@ test.describe('RoomSession', () => {
         expect(stream.id).toBeDefined()
         expect(stream.roomSessionId).toBeDefined()
         expect(stream.state).toBeDefined()
-        expect(stream.url).toEqual(process.env.STREAMING_URL)
+        expect(stream.url).toEqual(streamingURL)
       })
     })
 
