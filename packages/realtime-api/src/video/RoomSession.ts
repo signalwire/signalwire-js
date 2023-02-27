@@ -334,7 +334,6 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
         ],
         {
           type: 'roomSessionRecording',
-          // mode: 'no-cache', // TODO:
           instanceFactory: (_payload: any) => {
             return Rooms.createRoomSessionRecordingObject({
               store: this.store,
