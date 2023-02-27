@@ -1,5 +1,6 @@
 import { Video } from '@signalwire/realtime-api'
-import { createTestRunner } from './utils'
+import { createTestRunner, sleep } from './utils'
+import { createRoomSession } from './videoUtils'
 
 const handler = () => {
   return new Promise<number>(async (resolve, reject) => {
@@ -10,12 +11,16 @@ const handler = () => {
       token: process.env.RELAY_TOKEN as string,
     })
 
+    const roomSessionCreated = new Set()
+
     video.on('room.started', async (roomSession) => {
       console.log('Room started', roomSession.id)
 
-      roomSession.on('member.updated', async (member) => {
-        console.log(member)
-      })
+      roomSessionCreated.add(roomSession)
+
+      // roomSession.on('member.updated', async (member) => {
+      //   console.log(member)
+      // })
     })
 
     video.on('room.ended', async (roomSession) => {
@@ -24,13 +29,25 @@ const handler = () => {
 
     const { roomSessions } = await video.getRoomSessions()
 
-    await new Promise((r) => setTimeout(r, 2000))
+    if (roomSessions.length > 0) {
+      return reject(4)
+    }
+    const roomSessionPromises = Array(3).map((_, index) => {
+      return createRoomSession({
+        roomName: `e2e-rt-api-${index}`,
+        userName: `e2e-rt-api-member-${index}`,
+      })
+    })
 
-    if (Array.isArray(roomSessions)) {
+    await Promise.all(roomSessionPromises)
+
+    await sleep(3000)
+
+    if (roomSessionCreated.size === 3) {
       return resolve(0)
     }
 
-    return reject(4)
+    reject(4)
   })
 }
 
