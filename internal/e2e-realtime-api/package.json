@@ -8,12 +8,14 @@
     "test": ""
   },
   "devDependencies": {
+    "@types/tap": "^15.0.7",
     "dotenv": "^16.0.0",
-    "esbuild-register": "^3.3.2",
-    "@types/tap": "^15.0.7"
+    "esbuild-register": "^3.3.2"
   },
   "dependencies": {
-    "ws": "^8.5.0",
-    "tap": "^16.2.0"
+    "@mapbox/node-pre-gyp": "^1.0.10",
+    "tap": "^16.2.0",
+    "wrtc": "^0.4.7",
+    "ws": "^8.5.0"
   }
 }
