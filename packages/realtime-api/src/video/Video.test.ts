@@ -70,7 +70,7 @@ describe('Video Object', () => {
       })
     })
 
-    it('should destroy the cached obj when an event has no longer handlers attached', async () => {
+    it('should *not* destroy the cached obj when an event has no longer handlers attached', async () => {
       const destroyer = jest.fn()
       const h = (room: any) => {
         room._destroyer = destroyer
@@ -81,7 +81,7 @@ describe('Video Object', () => {
       session.dispatch(actions.socketMessageAction(firstRoom))
 
       video.off('room.started', h)
-      expect(destroyer).toHaveBeenCalled()
+      expect(destroyer).not.toHaveBeenCalled()
     })
 
     it('should *not* destroy the cached obj when there are existing listeners attached', async () => {
@@ -99,7 +99,7 @@ describe('Video Object', () => {
       expect(destroyer).not.toHaveBeenCalled()
     })
 
-    it('should destroy the cached obj when .off is called with no handler', async () => {
+    it('should *not* destroy the cached obj when .off is called with no handler', async () => {
       const destroyer = jest.fn()
       const h = (room: any) => {
         room._destroyer = destroyer
@@ -112,7 +112,7 @@ describe('Video Object', () => {
       session.dispatch(actions.socketMessageAction(firstRoom))
 
       video.off('room.started')
-      expect(destroyer).toHaveBeenCalled()
+      expect(destroyer).not.toHaveBeenCalled()
     })
 
     it('each room object should use its own payload from the Proxy', async () => {
