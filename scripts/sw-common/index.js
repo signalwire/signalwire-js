@@ -109,21 +109,28 @@ const isCleanGitStatus = async ({ executer }) => {
 }
 
 const isPackagePublished = async ({ name, version, executer }) => {
-  const packageName = version ? `${name}@${version}` : name
-  const status = await executer(
-    'npm',
-    ['show', packageName, 'versions'],
-    undefined,
-    {
-      stdout: '',
+  try {
+    const packageName = version ? `${name}@${version}` : name
+    const status = await executer(
+      'npm',
+      ['view', '--json', '--silent', packageName, 'versions'],
+      undefined,
+      {
+        stdout: '',
+      }
+    )
+
+    const versions = JSON.parse(status.stdout)
+    return versions.includes(version)
+  } catch (error) {
+    const response = JSON.parse(error.stdout)
+    if (response.error.code === 'E404') {
+      // If 404, the package has not been published yet.
+      return false
     }
-  )
-
-  if (status.stdout) {
-    return true
+    // Throw for all the other errors
+    throw error
   }
-
-  return false
 }
 
 const getNpmTag = (options) => {
