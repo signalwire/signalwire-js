@@ -132,8 +132,8 @@ class VideoAPI extends AutoSubscribeConsumer<RealTimeVideoApiEvents> {
       [
         [videoRoomGetTriggerEvent, 'video.room.started', 'video.room.ended'],
         {
-          // TODO: create a new key or use `roomSession`?
           type: 'roomSession',
+          mode: 'no-cache',
           instanceFactory: () => {
             return createRoomSessionObject({
               store: this.store,
