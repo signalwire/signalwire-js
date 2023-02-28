@@ -1,0 +1,27 @@
+name: Setup and Build JS
+description: Setup app, install JS dependencies and build
+
+inputs:
+  NODE_VERSION:
+    required: false
+    default: "18.x"
+    description: "Default node version"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup node
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ inputs.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: '**/package-lock.json'
+    - name: Install Dependencies
+      shell: bash
+      run: npm install
+    - name: Install Playwright
+      shell: bash
+      run: npx playwright@^1.28.1 install --with-deps
+    - name: Build
+      shell: bash
+      run: npm run build

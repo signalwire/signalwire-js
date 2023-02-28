@@ -1,0 +1,24 @@
+name: Setup and Build Node
+description: Setup app, install node dependencies and build
+
+inputs:
+  NODE_VERSION:
+    required: false
+    default: "18.x"
+    description: "Default node version"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup node
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ inputs.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: '**/package-lock.json'
+    - name: Install Dependencies
+      shell: bash
+      run: npm install
+    - name: Build
+      shell: bash
+      run: npm run build
