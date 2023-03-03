@@ -80,7 +80,7 @@ export const vertoEventWorker: SDKWorker<
           peer.onRemoteSdp(params.sdp)
         }
 
-        yield sagaEffects.call(instance.execute, {
+        yield sagaEffects.call([instance, instance.execute], {
           method: instance._getRPCMethod(),
           params: {
             message: VertoResult(jsonrpcId, method),
@@ -94,14 +94,14 @@ export const vertoEventWorker: SDKWorker<
          * If the `params.callID` is the current ACTIVE peer, stop everything and destroy the BaseConnection
          * If the `params.callID` is NOT the current peer, but is there from promote/demote process stop/destroy just the peer
          */
-        yield sagaEffects.call(instance.onVertoBye, {
+        yield sagaEffects.call([instance, instance.onVertoBye], {
           rtcPeerId: callID,
           byeCause: params?.cause,
           byeCauseCode: params?.causeCode,
           redirectDestination: params?.redirectDestination,
         })
 
-        yield sagaEffects.call(instance.execute, {
+        yield sagaEffects.call([instance, instance.execute], {
           method: instance._getRPCMethod(),
           params: {
             message: VertoResult(jsonrpcId, method),
@@ -113,7 +113,7 @@ export const vertoEventWorker: SDKWorker<
       case 'verto.ping': {
         // Remove nodeId from params
         const { nodeId, ...pongParams } = params
-        yield sagaEffects.call(instance.execute, {
+        yield sagaEffects.call([instance, instance.execute], {
           method: instance._getRPCMethod(),
           params: {
             message: VertoPong(pongParams),
