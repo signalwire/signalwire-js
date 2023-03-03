@@ -69,7 +69,7 @@ test.describe('RoomSession demote method', () => {
           })
           .catch((error) => error)
 
-        return error.jsonrpc.code
+        return error.code
       },
       { demoteMemberId: pageTwoRoomJoined.member_id }
     )
