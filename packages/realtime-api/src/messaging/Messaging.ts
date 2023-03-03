@@ -152,8 +152,8 @@ class MessagingAPI extends BaseComponent<MessagingClientApiEvents> {
 
       return toExternalJSON<MessagingSendResult>(response)
     } catch (error) {
-      this.logger.error('Error sending message', error.jsonrpc)
-      throw error.jsonrpc as MessagingSendError
+      this.logger.error('Error sending message', error)
+      throw error as MessagingSendError
     }
   }
 }

@@ -717,7 +717,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       this.resuming = false
     } catch (error) {
       this.setState('hangup')
-      throw error.jsonrpc
+      throw error
     }
   }
 
@@ -745,7 +745,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     } catch (error) {
       this.logger.error('UpdateMedia error', error)
       // this.setState('hangup')
-      throw error.jsonrpc
+      throw error
     }
   }
 
