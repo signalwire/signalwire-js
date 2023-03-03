@@ -10,6 +10,7 @@ import {
   SDKWorkerHooks,
   WebRTCMessageParams,
   isWebrtcEventType,
+  sagaHelpers,
 } from '@signalwire/core'
 
 import { BaseConnection } from '../BaseConnection'
@@ -40,15 +41,7 @@ export const vertoEventWorker: SDKWorker<
     throw new Error('Missing rtcPeerId for roomSubscribedWorker')
   }
 
-  while (true) {
-    const action: MapToPubSubShape<WebRTCMessageParams> =
-      yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
-        if (isWebrtcAction(action)) {
-          return action.payload.params?.callID === rtcPeerId
-        }
-        return false
-      })
-
+  const worker = function* (action: MapToPubSubShape<WebRTCMessageParams>) {
     const { id: jsonrpcId, method, params = {} } = action.payload
     const { callID, nodeId } = params
     const peer = instance.getRTCPeerById(callID)
@@ -57,7 +50,7 @@ export const vertoEventWorker: SDKWorker<
         `RTCPeer '${callID}' not found for method: '${method}'`,
         params
       )
-      continue
+      return
     }
     const activeRTCPeer = instance.peer
 
@@ -139,6 +132,22 @@ export const vertoEventWorker: SDKWorker<
       default:
         return getLogger().warn(`Unknown Verto method: ${method}`, params)
     }
+  }
+  const catchableWorker = sagaHelpers.createCatchableSaga<
+    MapToPubSubShape<WebRTCMessageParams>
+  >(worker, (error) => {
+    getLogger().error('Verto Error', error)
+  })
+
+  while (true) {
+    const action: MapToPubSubShape<WebRTCMessageParams> =
+      yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
+        if (isWebrtcAction(action)) {
+          return action.payload.params?.callID === rtcPeerId
+        }
+        return false
+      })
+    yield sagaEffects.fork(catchableWorker, action)
   }
 
   getLogger().trace('vertoEventWorker ended')
