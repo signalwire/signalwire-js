@@ -216,21 +216,33 @@ function restoreUI() {
 /**
  * Connect with Relay creating a client and attaching all the event handler.
  */
-window.connect = () => {
-  const roomSession = new Video.RoomSession({
+window.connect = async () => {
+  const client = new Fabric.Client({
     host: document.getElementById('host').value,
-    token: document.getElementById('token').value,
+    accessToken: document.getElementById('token').value,
+  })
+  // const { addresses, nextPage, prevPage } = await client.getAddresses()
+
+  // Navigate throught pages
+  // const next = await nextPage()
+  // const prev = await prevPage()
+
+  // Call the first address/channel
+  // const call = await client.createCall({
+  //   uri: addresses[0].channels.video,
+  //   rootElement: document.getElementById('rootElement'),
+  // })
+  const call = await client.createSATCall({
+    destinationNumber: document.getElementById('destination').value,
     rootElement: document.getElementById('rootElement'),
-    audio: true,
-    video: true,
     logLevel: 'debug',
-    reattach: true,
+    debug: { logWsTraffic: true },
   })
 
-  roomObj = roomSession
-  window._roomObj = roomSession
+  console.debug('Call Obj', call)
 
-  console.debug('Video SDK roomObj', roomObj)
+  window.__call = call
+  roomObj = call
 
   roomObj.on('media.connected', () => {
     console.debug('>> media.connected')
@@ -344,7 +356,7 @@ window.connect = () => {
   })
 
   roomObj
-    .join()
+    .join({ audio: true, video: true })
     .then(async (result) => {
       console.log('>> Room Joined', result)
 
