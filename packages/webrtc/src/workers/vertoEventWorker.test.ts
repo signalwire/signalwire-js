@@ -17,6 +17,8 @@ jest.mock('uuid', () => {
 })
 
 WEBRTC_EVENT_TYPES.forEach((eventType) => {
+  const _getRPCMethod = () => 'video.message'
+
   describe(`vertoEventWorker with '${eventType}'`, () => {
     const { createPubSubChannel, createSwEventChannel } = testUtils
     const rtcPeerId = 'rtc-peer-id'
@@ -39,6 +41,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         },
         getRTCPeerById: jest.fn((_id: string) => mockPeer),
         setState: jest.fn(),
+        _getRPCMethod,
       } as any
 
       return expectSaga(vertoEventWorker, {
@@ -124,6 +127,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           },
           getRTCPeerById: jest.fn((_id: string) => mockPeer),
           setState: jest.fn(),
+          _getRPCMethod,
         } as any
 
         return expectSaga(vertoEventWorker, {
@@ -209,6 +213,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           },
           getRTCPeerById: jest.fn((_id: string) => mockPeer),
           setState: jest.fn(),
+          _getRPCMethod,
         } as any
 
         return expectSaga(vertoEventWorker, {
@@ -295,6 +300,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           },
           getRTCPeerById: jest.fn((_id: string) => mockPeer),
           setState: jest.fn(),
+          _getRPCMethod,
         } as any
 
         return expectSaga(vertoEventWorker, {
@@ -378,6 +384,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           },
           getRTCPeerById: jest.fn((_id: string) => mockPeer),
           setState: jest.fn(),
+          _getRPCMethod,
         } as any
 
         return expectSaga(vertoEventWorker, {
@@ -463,6 +470,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           },
           getRTCPeerById: jest.fn((_id: string) => mockPeer),
           setState: jest.fn(),
+          _getRPCMethod,
         } as any
 
         return expectSaga(vertoEventWorker, {
@@ -548,6 +556,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           getRTCPeerById: jest.fn((_id: string) => mockPeer),
           onVertoBye: jest.fn(),
           setState: jest.fn(),
+          _getRPCMethod,
         } as any
 
         return expectSaga(vertoEventWorker, {
@@ -637,6 +646,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           },
           getRTCPeerById: jest.fn((_id: string) => mockPeer),
           setState: jest.fn(),
+          _getRPCMethod,
         } as any
 
         return expectSaga(vertoEventWorker, {
@@ -724,6 +734,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           },
           getRTCPeerById: jest.fn((_id: string) => mockPeer),
           setState: jest.fn(),
+          _getRPCMethod,
         } as any
 
         return expectSaga(vertoEventWorker, {
