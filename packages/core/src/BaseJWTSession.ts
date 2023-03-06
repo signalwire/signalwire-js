@@ -38,7 +38,7 @@ export class BaseJWTSession extends BaseSession {
     const expiresAt =
       (isSATAuth(authorization)
         ? authorization.fabric_subscriber.expires_at
-        : authorization.expires_at) ?? 0
+        : authorization?.expires_at) ?? 0
     if (typeof expiresAt === 'string') {
       const parsed = Date.parse(expiresAt)
       if (!isNaN(parsed)) {
