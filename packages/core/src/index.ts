@@ -15,10 +15,9 @@ import {
   timeoutPromise,
   debounce,
   CloseEvent,
-  WEBRTC_EVENT_TYPES,
-  isWebrtcEventType,
   isSATAuth,
 } from './utils'
+import { WEBRTC_EVENT_TYPES, isWebrtcEventType } from './utils/common'
 import { BaseSession } from './BaseSession'
 import { BaseJWTSession } from './BaseJWTSession'
 import { configureStore, connect } from './redux'

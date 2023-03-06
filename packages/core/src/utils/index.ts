@@ -3,7 +3,6 @@ import {
   JSONRPCRequest,
   JSONRPCResponse,
   SATAuthorization,
-  WebRTCEventType,
 } from '..'
 import {
   STORAGE_PREFIX,
@@ -14,6 +13,7 @@ import {
   SYNTHETIC_EVENT_PREFIX,
 } from './constants'
 export { setLogger, getLogger, setDebugOptions } from './logger'
+export { isWebrtcEventType, WEBRTC_EVENT_TYPES } from './common'
 
 export { v4 as uuid } from 'uuid'
 export * from './parseRPCResponse'
@@ -211,17 +211,6 @@ export const isJSONRPCResponse = (
   e: JSONRPCRequest | JSONRPCResponse
 ): e is JSONRPCResponse => {
   return !isJSONRPCRequest(e)
-}
-
-export const WEBRTC_EVENT_TYPES: WebRTCEventType[] = [
-  'webrtc.message',
-  // 'webrtc.verto',
-]
-export const isWebrtcEventType = (
-  eventType: string
-): eventType is WebRTCEventType => {
-  // @ts-expect-error
-  return WEBRTC_EVENT_TYPES.includes(eventType)
 }
 
 export const isSATAuth = (e: Authorization): e is SATAuthorization => {

@@ -1,5 +1,5 @@
-import { WEBRTC_EVENT_TYPES } from '.'
 import { toInternalAction } from './toInternalAction'
+import { WEBRTC_EVENT_TYPES } from './common'
 
 describe('toInternalAction', () => {
   it('should translate event_type and params to an action with type and payload', () => {
