@@ -4,6 +4,42 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.13.0] - 2023-03-07
+
+### Changed
+
+- [#747](https://github.com/signalwire/signalwire-js/pull/747) [`95325ec9`](https://github.com/signalwire/signalwire-js/commit/95325ec9d1f3c98bd478eb799abefb1dabbd7759) - Changes to support connecting using SAT and join a video room.
+
+- [#722](https://github.com/signalwire/signalwire-js/pull/722) [`bbb9544c`](https://github.com/signalwire/signalwire-js/commit/bbb9544cf41d9825a84cff825e8c1c0ceda4920b) - Consider all 2xx codes as a success response
+
+- [#727](https://github.com/signalwire/signalwire-js/pull/727) [`bb216980`](https://github.com/signalwire/signalwire-js/commit/bb21698019ef5db7e4cd0376f1cd6bfec66fea98) - Valid typescript interface for `call.collect` method.
+
+- [#569](https://github.com/signalwire/signalwire-js/pull/569) [`0bdda948`](https://github.com/signalwire/signalwire-js/commit/0bdda94824e9ffefa5830b951488899e0dbd8d85) - Internal changes to persist and use `authorization.state` events.
+
+### Fixed
+
+- [#732](https://github.com/signalwire/signalwire-js/pull/732) [`9ad158b9`](https://github.com/signalwire/signalwire-js/commit/9ad158b90f73bed038d18f7f8b745931c266c3cf) - Emit `playback.failed` event on playback failure
+  Resolve the playback `.ended()` promise in case of Playback failure
+  Resolve the playback `.ended()` promise in case of Prompt failure
+  Resolve the playback `.ended()` promise in case of Recording failure
+  Resolve the playback `.ended()` promise in case of Detect failure
+  Resolve the playback `.ended()` promise in case of Collect failure
+  Resolve the playback `.ended()` promise in case of Tap failure
+
+- [#711](https://github.com/signalwire/signalwire-js/pull/711) [`45536d5f`](https://github.com/signalwire/signalwire-js/commit/45536d5fb6a8e474a2f5b511ddf12fb474566b19) - Fix error on exposing the `state` property on the Voice Call object.
+
+- [#745](https://github.com/signalwire/signalwire-js/pull/745) [`55a309f8`](https://github.com/signalwire/signalwire-js/commit/55a309f8d6189c97941a55d8396bfe0e0e588fc8) - Use `reject` instead of throw within Promise for Video methods.
+
+### Added
+
+- [#729](https://github.com/signalwire/signalwire-js/pull/729) [`41482813`](https://github.com/signalwire/signalwire-js/commit/414828131a81f5bf2e57d786d8002d96e25f7597) - Allow WebRTC connection to reconnect after a network change or temporary blip.
+
+- [#706](https://github.com/signalwire/signalwire-js/pull/706) [`a937768a`](https://github.com/signalwire/signalwire-js/commit/a937768a0b965d35b8468324a5d85273fc46e638) - Add types for `calling.collect` API
+
+- [#713](https://github.com/signalwire/signalwire-js/pull/713) [`e1e1e336`](https://github.com/signalwire/signalwire-js/commit/e1e1e336df952429126eea2c2b8aaea8e55d29d7) - Accept 202 as valid response code
+
+- [#723](https://github.com/signalwire/signalwire-js/pull/723) [`e2c475a7`](https://github.com/signalwire/signalwire-js/commit/e2c475a7ceb4e9eea6438b1d3dbb8457b7ad3e70) - Accept sessionTimeout as a SIP call parameter
+
 ## [3.12.2] - 2022-11-23
 
 ### Changed

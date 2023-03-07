@@ -1,5 +1,17 @@
 # @sw-internal/playground-js
 
+## 0.0.10
+
+### Patch Changes
+
+- [#699](https://github.com/signalwire/signalwire-js/pull/699) [`b774abc3`](https://github.com/signalwire/signalwire-js/commit/b774abc3128250c97121c0808688b3f4ae043c5f) - [internal] Initial PoC for the Fabric namespace.
+
+- [#755](https://github.com/signalwire/signalwire-js/pull/755) [`09bd387d`](https://github.com/signalwire/signalwire-js/commit/09bd387d022e4124f4ed4ef9a159bdbebe31775a) - Remove usage of `reattach` flag
+
+- [#729](https://github.com/signalwire/signalwire-js/pull/729) [`41482813`](https://github.com/signalwire/signalwire-js/commit/414828131a81f5bf2e57d786d8002d96e25f7597) - [internal] Update playground and e2e tests for resume
+
+- [#747](https://github.com/signalwire/signalwire-js/pull/747) [`95325ec9`](https://github.com/signalwire/signalwire-js/commit/95325ec9d1f3c98bd478eb799abefb1dabbd7759) - Move fabric to its own module
+
 ## 0.0.9
 
 ### Patch Changes

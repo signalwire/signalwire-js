@@ -1,5 +1,13 @@
 # @sw-internal/e2e-realtime-api
 
+## 0.1.6
+
+### Patch Changes
+
+- [#706](https://github.com/signalwire/signalwire-js/pull/706) [`a937768a`](https://github.com/signalwire/signalwire-js/commit/a937768a0b965d35b8468324a5d85273fc46e638) - Expose calling.collect API
+
+- [#711](https://github.com/signalwire/signalwire-js/pull/711) [`45536d5f`](https://github.com/signalwire/signalwire-js/commit/45536d5fb6a8e474a2f5b511ddf12fb474566b19) - Fix error on exposing the `state` property on the Voice Call object.
+
 ## 0.1.5
 
 ### Patch Changes

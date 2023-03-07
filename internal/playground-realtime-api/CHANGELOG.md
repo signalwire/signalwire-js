@@ -1,5 +1,11 @@
 # @sw-internal/playground-realtime-api
 
+## 0.3.2
+
+### Patch Changes
+
+- [#724](https://github.com/signalwire/signalwire-js/pull/724) [`bf1a32ac`](https://github.com/signalwire/signalwire-js/commit/bf1a32acb31ca213f00ee26482c5df00051d3446) - [internal] Fix inquirer dependencies
+
 ## 0.3.1
 
 ### Patch Changes
