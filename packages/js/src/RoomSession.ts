@@ -119,8 +119,8 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     destinationNumber,
   })
 
-  // @ts-expect-error
-  const allowReattach = Boolean(roomOptions.reattach)
+  // @ts-expect-error - true by default
+  const allowReattach = roomOptions?.reattach !== false
 
   const reattachManager = {
     joined: ({ call_id }: VideoRoomSubscribedEventParams) => {

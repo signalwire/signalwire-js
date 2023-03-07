@@ -20,9 +20,7 @@ test.describe('RoomSessionReattach', () => {
   /**
    * Test both member and audience
    */
-  const tests: Test[] = [
-    { join_as: 'member', expectMCU: expectMCUVisible },
-  ]
+  const tests: Test[] = [{ join_as: 'member', expectMCU: expectMCUVisible }]
 
   tests.forEach((row) => {
     test(`should allow reattaching to a room for ${row.join_as} after screensharing`, async ({
@@ -41,12 +39,7 @@ test.describe('RoomSessionReattach', () => {
           auto_create_room: true,
           permissions,
         },
-        initialEvents: [
-          'member.joined',
-        ],
-        roomSessionOptions: {
-          reattach: true, // FIXME: to remove
-        },
+        initialEvents: ['member.joined'],
       }
       await createTestRoomSession(page, connectionSettings)
 

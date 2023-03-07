@@ -30,7 +30,7 @@ export class JWTSession extends BaseJWTSession {
 
   get allowReattach() {
     // @ts-expect-error
-    return this.options.reattach
+    return this.options?.reattach !== false
   }
 
   override async retrieveRelayProtocol() {

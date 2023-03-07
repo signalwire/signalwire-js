@@ -25,9 +25,6 @@ test.describe('RoomSessionReattachWrongProtocol', () => {
         permissions,
       },
       initialEvents: [],
-      roomSessionOptions: {
-        reattach: true, // FIXME: to remove
-      },
     }
     await createTestRoomSession(page, connectionSettings)
 
