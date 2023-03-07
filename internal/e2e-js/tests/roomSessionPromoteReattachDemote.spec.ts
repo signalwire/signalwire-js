@@ -49,7 +49,7 @@ test.describe('RoomSession promote/demote methods', () => {
         user_name: 'e2e_audience',
         join_as: 'audience' as const,
         auto_create_room: true,
-        permissions: [],          
+        permissions: [],
       },
       initialEvents: [
         'member.joined',
@@ -57,9 +57,6 @@ test.describe('RoomSession promote/demote methods', () => {
         'member.left',
         'layout.changed',
       ],
-      roomSessionOptions: {
-        reattach: true, // FIXME: to remove
-      },
     }
 
     await Promise.all([
@@ -140,11 +137,8 @@ test.describe('RoomSession promote/demote methods', () => {
         'member.joined',
         'member.updated',
         'member.left',
-        'layout.changed'
+        'layout.changed',
       ],
-      roomSessionOptions: {
-        reattach: true, // FIXME: to remove
-      },
     }
 
     await createTestRoomSession(pageTwo, promotedSettings)
@@ -169,7 +163,7 @@ test.describe('RoomSession promote/demote methods', () => {
     expect(reattachParams.call_id).toBeDefined()
     expect(reattachParams.call_id).toBe(pageTwoPromotedCallId)
     await expectMCUVisible(pageTwo)
-// Reattach done
+    // Reattach done
 
     // Demote to audience again from pageOne
     // and resolve on `member.left`

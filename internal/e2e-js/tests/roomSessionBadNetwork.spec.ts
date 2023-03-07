@@ -45,9 +45,6 @@ test.describe('roomSessionBadNetwork', () => {
           permissions,
         },
         initialEvents: ['member.updated'],
-        roomSessionOptions: {
-          reattach: true, // FIXME: to remove
-        },
       }
       await createTestRoomSession(page, connectionSettings)
 

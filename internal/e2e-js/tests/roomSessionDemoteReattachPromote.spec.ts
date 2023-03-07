@@ -39,14 +39,8 @@ test.describe('RoomSession demote participant, reattach and then promote again',
         user_name: 'e2e_target_participant',
         auto_create_room: true,
         permissions: [],
-        roomSessionOptions: {
-          reattach: true, // FIXME: to remove
-        },  
       },
       initialEvents: ['member.joined', 'member.updated', 'member.left'],
-      roomSessionOptions: {
-        reattach: true, // FIXME: to remove
-      },
     }
 
     await Promise.all([
@@ -148,9 +142,6 @@ test.describe('RoomSession demote participant, reattach and then promote again',
         permissions: [],
       },
       initialEvents: ['member.joined', 'member.updated', 'member.left'],
-      roomSessionOptions: {
-        reattach: true, // FIXME: to remove
-      },
     }
 
     await createTestRoomSession(pageTwo, participant2DemotedSettings)

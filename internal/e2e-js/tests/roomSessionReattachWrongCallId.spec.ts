@@ -44,9 +44,6 @@ test.describe('RoomSessionReattachWrongCallId', () => {
           permissions,
         },
         initialEvents: [],
-        roomSessionOptions: {
-          reattach: true, // FIXME: to remove
-        },
       }
       await createTestRoomSession(page, connectionSettings)
 
@@ -89,24 +86,22 @@ test.describe('RoomSessionReattachWrongCallId', () => {
           permissions,
         },
         initialEvents: [],
-        roomSessionOptions: {
-          reattach: true, // FIXME: to remove
-        },
         expectToJoin: false,
       }
       await createTestRoomSession(page, reattachConnectionSettings)
 
       // ----- Join the room with a bogus call ID and expect an error --
-      const joinError: any = await page.evaluate(async ({ mockId }) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        window.sessionStorage.setItem('callId', mockId)
-        console.log('Injected callId with value', mockId)
-        const error = await roomObj.join().catch((error) => error)
+      const joinError: any = await page.evaluate(
+        async ({ mockId }) => {
+          // @ts-expect-error
+          const roomObj: Video.RoomSession = window._roomObj
+          window.sessionStorage.setItem('callId', mockId)
+          console.log('Injected callId with value', mockId)
+          const error = await roomObj.join().catch((error) => error)
 
-        return error
-      },
-      { mockId: uuid() }
+          return error
+        },
+        { mockId: uuid() }
       )
 
       expect(joinError.code).toBe('81')
