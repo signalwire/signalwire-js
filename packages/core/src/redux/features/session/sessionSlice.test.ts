@@ -23,6 +23,7 @@ describe('SessionState Tests', () => {
         audio_allowed: 'both',
         join_as: 'member',
         project: '8f0a119a-cda7-4497-a47d-c81493b824d4',
+        project_id: '8f0a119a-cda7-4497-a47d-c81493b824d4',
         resource: '9c80f1e8-9430-4070-a043-937eb3a96b38',
         room: {
           name: 'lobby',

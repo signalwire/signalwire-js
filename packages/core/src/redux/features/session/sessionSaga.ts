@@ -19,7 +19,7 @@ import { createCatchableSaga } from '../../utils/sagaHelpers'
 import { executeAction, socketMessageAction } from '../../actions'
 import { componentActions } from '../'
 import { RPCExecute } from '../../../RPCMessages'
-import { getLogger, toInternalAction } from '../../../utils'
+import { getLogger, isWebrtcEventType, toInternalAction } from '../../../utils'
 
 type SessionSagaParams = {
   session: BaseSession
@@ -30,7 +30,7 @@ type SessionSagaParams = {
 
 // TODO: Move TypeGuards to its own module
 const isWebrtcEvent = (e: SwEventParams): e is WebRTCMessageParams => {
-  return e?.event_type === 'webrtc.message'
+  return isWebrtcEventType(e?.event_type)
 }
 const isVideoEvent = (e: SwEventParams): e is VideoAPIEventParams => {
   return !!e?.event_type?.startsWith('video.')
@@ -172,7 +172,7 @@ export function* sessionChannelWatcher({
 
     if (isWebrtcEvent(broadcastParams)) {
       /**
-       * Skip `webrtc.message` events.
+       * Skip `webrtc.*` events.
        * There are custom workers handling them through `swEventChannel`
        */
       return

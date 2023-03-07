@@ -10,6 +10,7 @@ import {
   MapToPubSubShape,
   SDKWorkerHooks,
   WebRTCMessageParams,
+  isWebrtcEventType,
 } from '@signalwire/core'
 
 import { BaseConnection } from '../BaseConnection'
@@ -21,6 +22,12 @@ export type VertoEventWorkerHooks = SDKWorkerHooks<
   VertoEventWorkerOnDone,
   VertoEventWorkerOnFail
 >
+
+const isWebrtcAction = (
+  action: SDKActions
+): action is MapToPubSubShape<WebRTCMessageParams> => {
+  return isWebrtcEventType(action.type)
+}
 
 export const vertoEventWorker: SDKWorker<
   BaseConnection<any>,
@@ -37,7 +44,7 @@ export const vertoEventWorker: SDKWorker<
   while (true) {
     const action: MapToPubSubShape<WebRTCMessageParams> =
       yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
-        if (action.type === 'webrtc.message') {
+        if (isWebrtcAction(action)) {
           return action.payload.params?.callID === rtcPeerId
         }
         return false
@@ -76,7 +83,7 @@ export const vertoEventWorker: SDKWorker<
 
         yield sagaEffects.put(
           actions.executeAction({
-            method: 'video.message',
+            method: instance._getRPCMethod(),
             params: {
               message: VertoResult(jsonrpcId, method),
               node_id: nodeId,
@@ -99,7 +106,7 @@ export const vertoEventWorker: SDKWorker<
 
         yield sagaEffects.put(
           actions.executeAction({
-            method: 'video.message',
+            method: instance._getRPCMethod(),
             params: {
               message: VertoResult(jsonrpcId, method),
               node_id: nodeId,
@@ -113,7 +120,7 @@ export const vertoEventWorker: SDKWorker<
         const { nodeId, ...pongParams } = params
         yield sagaEffects.put(
           actions.executeAction({
-            method: 'video.message',
+            method: instance._getRPCMethod(),
             params: {
               message: VertoPong(pongParams),
               node_id: nodeId,

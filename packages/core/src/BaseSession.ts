@@ -6,6 +6,7 @@ import {
   parseRPCResponse,
   safeParseJson,
   isJSONRPCResponse,
+  isSATAuth,
 } from './utils'
 import { PayloadAction } from './redux'
 import { DEFAULT_HOST, WebSocketState } from './utils/constants'
@@ -130,7 +131,13 @@ export class BaseSession {
   }
 
   get signature() {
-    return this._rpcConnectResult?.authorization?.signature
+    if (this._rpcConnectResult) {
+      const { authorization } = this._rpcConnectResult
+      return isSATAuth(authorization)
+        ? authorization.jti
+        : authorization.signature
+    }
+    return undefined
   }
 
   protected get logger() {

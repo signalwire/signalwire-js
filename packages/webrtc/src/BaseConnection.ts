@@ -14,6 +14,8 @@ import {
   componentSelectors,
   actions,
   Task,
+  isSATAuth,
+  WebRTCMethod,
 } from '@signalwire/core'
 import type { ReduxComponent } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
@@ -309,19 +311,29 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   /**
    * @internal
    * Verto messages have to be wrapped into an execute
-   * request and sent using the 'video.message' method.
+   * request and sent using the proper RPC WebRTCMethod.
    */
   private vertoExecute(params: {
     message: JSONRPCRequest
+    callID?: string
     node_id?: string
     subscribe?: EventEmitter.EventNames<
       EventTypes & BaseConnectionStateEventTypes
     >[]
   }) {
     return this.execute({
-      method: 'video.message',
+      method: this._getRPCMethod(),
       params,
     })
+  }
+
+  /** @internal */
+  _getRPCMethod(): WebRTCMethod {
+    const authState = this.select(selectors.getAuthState)
+    if (authState && isSATAuth(authState)) {
+      return 'webrtc.verto'
+    }
+    return 'video.message'
   }
 
   /** @internal */
@@ -696,6 +708,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       }
       const response: any = await this.vertoExecute({
         message,
+        callID: rtcPeerId,
         node_id: nodeId,
         subscribe,
       })
@@ -716,7 +729,10 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         sdp,
         action: 'updateMedia',
       })
-      const response: any = await this.vertoExecute({ message })
+      const response: any = await this.vertoExecute({
+        message,
+        callID: rtcPeerId,
+      })
       if (!response.sdp) {
         this.logger.error('UpdateMedia invalid SDP answer', response)
       }
@@ -741,7 +757,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
     try {
       const message = VertoBye(this.dialogParams(rtcPeerId))
-      await this.vertoExecute({ message })
+      await this.vertoExecute({ message, callID: rtcPeerId })
     } catch (error) {
       this.logger.error('Hangup error:', error)
     } finally {
@@ -763,7 +779,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       throw new Error('Invalid RTCPeer ID to send DTMF')
     }
     const message = VertoInfo({ ...this.dialogParams(rtcPeerId), dtmf })
-    this.vertoExecute({ message })
+    this.vertoExecute({ message, callID: rtcPeerId })
   }
 
   /** @internal */

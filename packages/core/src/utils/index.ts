@@ -1,4 +1,9 @@
-import { JSONRPCRequest, JSONRPCResponse } from '..'
+import {
+  Authorization,
+  JSONRPCRequest,
+  JSONRPCResponse,
+  SATAuthorization,
+} from '..'
 import {
   STORAGE_PREFIX,
   GLOBAL_VIDEO_EVENTS,
@@ -8,6 +13,7 @@ import {
   SYNTHETIC_EVENT_PREFIX,
 } from './constants'
 export { setLogger, getLogger, setDebugOptions } from './logger'
+export { isWebrtcEventType, WEBRTC_EVENT_TYPES } from './common'
 
 export { v4 as uuid } from 'uuid'
 export * from './parseRPCResponse'
@@ -205,4 +211,8 @@ export const isJSONRPCResponse = (
   e: JSONRPCRequest | JSONRPCResponse
 ): e is JSONRPCResponse => {
   return !isJSONRPCRequest(e)
+}
+
+export const isSATAuth = (e?: Authorization): e is SATAuthorization => {
+  return typeof e !== 'undefined' && 'jti' in e
 }
