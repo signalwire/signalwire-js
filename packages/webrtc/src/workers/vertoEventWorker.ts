@@ -11,6 +11,7 @@ import {
   WebRTCMessageParams,
   isWebrtcEventType,
   sagaHelpers,
+  componentActions,
 } from '@signalwire/core'
 
 import { BaseConnection } from '../BaseConnection'
@@ -35,7 +36,7 @@ export const vertoEventWorker: SDKWorker<
 > = function* (options): SagaIterator {
   getLogger().debug('vertoEventWorker started')
   const { channels, instance, initialState } = options
-  const { swEventChannel } = channels
+  const { swEventChannel, pubSubChannel } = channels
   const { rtcPeerId } = initialState
   if (!rtcPeerId) {
     throw new Error('Missing rtcPeerId for roomSubscribedWorker')
@@ -127,6 +128,39 @@ export const vertoEventWorker: SDKWorker<
         if (peer && audio) {
           peer.applyMediaConstraints('audio', audio)
         }
+        break
+      }
+      case 'verto.display': {
+        // @ts-expect-error
+        instance._attachListeners('')
+        // @ts-expect-error
+        instance.applyEmitterTransforms()
+
+        /**
+         * In here we joined a room_session so we can swap between RTCPeers
+         */
+        instance.setActiveRTCPeer(rtcPeerId)
+
+        /**
+         * TODO: Replace the redux action/component with properties on RTCPeer instance?
+         */
+        yield sagaEffects.put(
+          componentActions.upsert({
+            id: action.payload.params?.callID,
+            roomId: '',
+            roomSessionId: '',
+            memberId: '',
+            previewUrl: '',
+          })
+        )
+
+        // Rename "room.subscribed" with "room.joined" for the end-user
+        yield sagaEffects.put(pubSubChannel, {
+          // @ts-ignore
+          type: 'verto.display',
+          // @ts-ignore
+          payload: action.payload.params,
+        })
         break
       }
       default:

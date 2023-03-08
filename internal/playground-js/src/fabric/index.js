@@ -264,17 +264,8 @@ window.connect = async () => {
   roomObj.on('room.joined', handler)
   roomObj.on('room.joined', console.log)
   roomObj.on('room.joined', console.warn)
-  roomObj.on('room.joined', (params) => {
-    console.debug(
-      '>> room.joined',
-      params,
-      params.room_session.recordings,
-      params.room_session.members
-    )
-
-    if (params.room_session.recordings) {
-      window.__recording = params.room_session.recordings[0]
-    }
+  const joinHandler = (params) => {
+    console.debug('>> room.joined', params)
 
     btnConnect.classList.add('d-none')
     btnDisconnect.classList.remove('d-none')
@@ -285,7 +276,9 @@ window.connect = async () => {
       button.disabled = false
     })
     loadLayouts()
-  })
+  }
+  roomObj.on('room.joined', joinHandler)
+  roomObj.emitter.on('verto.display', joinHandler)
   roomObj.on('destroy', () => {
     console.debug('>> destroy')
     restoreUI()
@@ -356,7 +349,7 @@ window.connect = async () => {
   })
 
   roomObj
-    .join({ audio: true, video: true })
+    .start({ audio: true, video: true })
     .then(async (result) => {
       console.log('>> Room Joined', result)
 
