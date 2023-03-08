@@ -24,11 +24,17 @@ export const buildCall = ({
       obj = new RoomSession({
         // host: document.getElementById('host').value,
         token: params.token,
+        debug: {
+          logWsTraffic: true,
+        },
+        logLevel: 'trace',
         ...userParams,
       })
       start = (joinParams: any) => {
         return new Promise((resolve, reject) => {
-          obj.on('room.joined', (params) => resolve(params))
+          obj.once('room.joined', (params) => resolve(params))
+          // @ts-ignore
+          obj.emitter.once('verto.display', (params) => resolve(params))
           return obj.join(joinParams).catch((error) => reject(error))
         })
       }

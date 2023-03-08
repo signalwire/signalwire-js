@@ -1,6 +1,6 @@
 import { createHttpClient } from './httpClient'
 import { buildCall } from './buildCall'
-import { RoomSession } from '../video'
+// import { RoomSession } from '../video'
 
 interface ClientOptions {
   host?: string
@@ -78,12 +78,16 @@ export class Client {
   }) {
     console.log('createSATCall to', params)
 
-    const obj = new RoomSession({
-      host: this.host.includes('swire') ? 'relay.swire.io' : undefined,
-      token: this.options.accessToken,
-      ...params,
+    return buildCall({
+      strategy: 'room',
+      params: {
+        token: this.options.accessToken,
+      },
+      userParams: {
+        // @ts-expect-error
+        host: this.host.includes('swire') ? 'relay.swire.io' : undefined,
+        ...params,
+      },
     })
-
-    return obj
   }
 }
