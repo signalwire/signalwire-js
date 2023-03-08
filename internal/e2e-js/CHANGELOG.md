@@ -1,5 +1,26 @@
 # @sw-internal/e2e-js
 
+## 0.0.8
+
+### Patch Changes
+
+- [#701](https://github.com/signalwire/signalwire-js/pull/701) [`a9ae0323`](https://github.com/signalwire/signalwire-js/commit/a9ae0323b8906fd61669cfafd6dcc6faa212e307) - Add tests for remove_at and remove_after_seconds_elapsed
+
+- [#755](https://github.com/signalwire/signalwire-js/pull/755) [`09bd387d`](https://github.com/signalwire/signalwire-js/commit/09bd387d022e4124f4ed4ef9a159bdbebe31775a) - Remove usage of `reattach` flag
+
+- [#695](https://github.com/signalwire/signalwire-js/pull/695) [`1aba6e37`](https://github.com/signalwire/signalwire-js/commit/1aba6e37abdbf5b5f9e9ee4a5d32e0e46cbed4b6) - [internal] add e2e test for join_from.
+
+- [#715](https://github.com/signalwire/signalwire-js/pull/715) [`d8fa0053`](https://github.com/signalwire/signalwire-js/commit/d8fa005300e57c4616f87bda1b17688c0a3f35b1) - [internal] e2e dx improvement
+
+- [#729](https://github.com/signalwire/signalwire-js/pull/729) [`41482813`](https://github.com/signalwire/signalwire-js/commit/414828131a81f5bf2e57d786d8002d96e25f7597) - [internal] Update playground and e2e tests for resume
+
+- [#702](https://github.com/signalwire/signalwire-js/pull/702) [`20b0d38c`](https://github.com/signalwire/signalwire-js/commit/20b0d38cf564fe38d72d23ec2aa74e7d6d6a590d) - [internal] improve how we run playwright and upgrade it.
+
+- [#700](https://github.com/signalwire/signalwire-js/pull/700) [`b16076cb`](https://github.com/signalwire/signalwire-js/commit/b16076cbacb102edbe5afdae3db550c0cca43e3a) - tests for initial layout and record-on-start
+
+- Updated dependencies [[`b774abc3`](https://github.com/signalwire/signalwire-js/commit/b774abc3128250c97121c0808688b3f4ae043c5f), [`09bd387d`](https://github.com/signalwire/signalwire-js/commit/09bd387d022e4124f4ed4ef9a159bdbebe31775a), [`41482813`](https://github.com/signalwire/signalwire-js/commit/414828131a81f5bf2e57d786d8002d96e25f7597), [`95325ec9`](https://github.com/signalwire/signalwire-js/commit/95325ec9d1f3c98bd478eb799abefb1dabbd7759)]:
+  - @sw-internal/playground-js@0.0.10
+
 ## 0.0.7
 
 ### Patch Changes

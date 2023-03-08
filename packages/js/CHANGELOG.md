@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.18.0] - 2023-03-07
+
+### Added
+
+- [#729](https://github.com/signalwire/signalwire-js/pull/729) [`41482813`](https://github.com/signalwire/signalwire-js/commit/414828131a81f5bf2e57d786d8002d96e25f7597) - Expose new events on the RoomSession to detect the media state: `media.connected`, `media.disconnected` and `media.reconnecting`.
+
+- [#747](https://github.com/signalwire/signalwire-js/pull/747) [`95325ec9`](https://github.com/signalwire/signalwire-js/commit/95325ec9d1f3c98bd478eb799abefb1dabbd7759) - Changes to support connecting using SAT and join a video room.
+
+### Changed
+
+- [#755](https://github.com/signalwire/signalwire-js/pull/755) [`09bd387d`](https://github.com/signalwire/signalwire-js/commit/09bd387d022e4124f4ed4ef9a159bdbebe31775a) - Set internal `reattach` flag `true` by default.
+
+- [#569](https://github.com/signalwire/signalwire-js/pull/569) [`0bdda948`](https://github.com/signalwire/signalwire-js/commit/0bdda94824e9ffefa5830b951488899e0dbd8d85) - Internal changes to persist and use `authorization.state` events.
+
+- [#697](https://github.com/signalwire/signalwire-js/pull/697) [`9349ba45`](https://github.com/signalwire/signalwire-js/commit/9349ba455aec041e64fa404aa4de8f5361673c9e) - Allow override for connection host from JWT.
+
+### Dependencies
+
+- Updated dependencies [[`41482813`](https://github.com/signalwire/signalwire-js/commit/414828131a81f5bf2e57d786d8002d96e25f7597), [`a937768a`](https://github.com/signalwire/signalwire-js/commit/a937768a0b965d35b8468324a5d85273fc46e638), [`90d9776a`](https://github.com/signalwire/signalwire-js/commit/90d9776acd2dad58dded5036ec04b073efef2c65), [`5b002eab`](https://github.com/signalwire/signalwire-js/commit/5b002eab500142c97777c16e7aab846282eca656), [`bbb9544c`](https://github.com/signalwire/signalwire-js/commit/bbb9544cf41d9825a84cff825e8c1c0ceda4920b), [`45536d5f`](https://github.com/signalwire/signalwire-js/commit/45536d5fb6a8e474a2f5b511ddf12fb474566b19), [`95325ec9`](https://github.com/signalwire/signalwire-js/commit/95325ec9d1f3c98bd478eb799abefb1dabbd7759), [`bb216980`](https://github.com/signalwire/signalwire-js/commit/bb21698019ef5db7e4cd0376f1cd6bfec66fea98), [`9ad158b9`](https://github.com/signalwire/signalwire-js/commit/9ad158b90f73bed038d18f7f8b745931c266c3cf), [`0bdda948`](https://github.com/signalwire/signalwire-js/commit/0bdda94824e9ffefa5830b951488899e0dbd8d85), [`e1e1e336`](https://github.com/signalwire/signalwire-js/commit/e1e1e336df952429126eea2c2b8aaea8e55d29d7), [`55a309f8`](https://github.com/signalwire/signalwire-js/commit/55a309f8d6189c97941a55d8396bfe0e0e588fc8), [`4728ee55`](https://github.com/signalwire/signalwire-js/commit/4728ee555c6a2400877dccb986cbfc1408c7fb28), [`e2c475a7`](https://github.com/signalwire/signalwire-js/commit/e2c475a7ceb4e9eea6438b1d3dbb8457b7ad3e70)]:
+  - @signalwire/webrtc@3.6.0
+  - @signalwire/core@3.13.0
+
 ## [3.17.0] - 2022-11-23
 
 ### Added

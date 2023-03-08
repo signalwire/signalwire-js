@@ -1,5 +1,15 @@
 # @sw-internal/test
 
+## 0.0.4
+
+### Patch Changes
+
+- [#715](https://github.com/signalwire/signalwire-js/pull/715) [`d8fa0053`](https://github.com/signalwire/signalwire-js/commit/d8fa005300e57c4616f87bda1b17688c0a3f35b1) - [internal] e2e dx improvement
+
+- [#711](https://github.com/signalwire/signalwire-js/pull/711) [`45536d5f`](https://github.com/signalwire/signalwire-js/commit/45536d5fb6a8e474a2f5b511ddf12fb474566b19) - Fix error on exposing the `state` property on the Voice Call object.
+
+- [#702](https://github.com/signalwire/signalwire-js/pull/702) [`20b0d38c`](https://github.com/signalwire/signalwire-js/commit/20b0d38cf564fe38d72d23ec2aa74e7d6d6a590d) - [internal] improve how we run playwright and upgrade it.
+
 ## 0.0.3
 
 ### Patch Changes
