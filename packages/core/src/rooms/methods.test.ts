@@ -146,8 +146,10 @@ describe('Room Custom Methods', () => {
     it('should execute with proper params', async () => {
       ;(instance.execute as jest.Mock).mockResolvedValueOnce({})
       instance.roomSessionId = 'mocked'
+      const url = 'https://example.com/foo.mp4'
 
       await instance.play({
+        url,
         positions: {
           'c22d7124-5a01-49fe-8da0-46bec8e75f12': 'reserved',
         },
@@ -157,9 +159,32 @@ describe('Room Custom Methods', () => {
         method: 'video.playback.start',
         params: {
           room_session_id: 'mocked',
+          url,
           positions: {
             'c22d7124-5a01-49fe-8da0-46bec8e75f12': 'reserved',
           },
+        },
+      })
+
+      await instance.play({ url, currentTimecode: 10000 })
+      expect(instance.execute).toHaveBeenCalledTimes(2)
+      expect(instance.execute).toHaveBeenCalledWith({
+        method: 'video.playback.start',
+        params: {
+          room_session_id: 'mocked',
+          url,
+          seek_position: 10000,
+        },
+      })
+
+      await instance.play({ url, seekPosition: 10000 })
+      expect(instance.execute).toHaveBeenCalledTimes(3)
+      expect(instance.execute).toHaveBeenCalledWith({
+        method: 'video.playback.start',
+        params: {
+          room_session_id: 'mocked',
+          url,
+          seek_position: 10000,
         },
       })
     })
