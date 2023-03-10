@@ -251,10 +251,15 @@ export type PlayParams = {
   volume?: number
   positions?: Record<string, VideoPosition>
   layout?: string
+  seekPosition?: number
+  /**
+   * @deprecated Use {@link seekPosition} instead.
+   * `currentTimecode` will be removed in v4.0.0
+   */
   currentTimecode?: number
 }
 export const play: RoomMethodDescriptor<any, PlayParams> = {
-  value: function (params) {
+  value: function ({ seekPosition, currentTimecode, ...params }) {
     return new Promise(async (resolve, reject) => {
       const handler = (instance: any) => {
         resolve(instance)
@@ -262,10 +267,12 @@ export const play: RoomMethodDescriptor<any, PlayParams> = {
       this.on(toLocalEvent('video.playback.start'), handler)
 
       try {
+        const seek_position = seekPosition || currentTimecode
         const payload = await this.execute({
           method: 'video.playback.start',
           params: {
             room_session_id: this.roomSessionId,
+            seek_position,
             ...params,
           },
         })
