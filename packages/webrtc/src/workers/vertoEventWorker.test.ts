@@ -17,9 +17,10 @@ jest.mock('uuid', () => {
 WEBRTC_EVENT_TYPES.forEach((eventType) => {
   const _getRPCMethod = () => 'video.message'
 
+  const { createPubSubChannel, createSwEventChannel, createSessionChannel } =
+    testUtils
+
   describe(`vertoEventWorker with '${eventType}'`, () => {
-    const { createPubSubChannel, createSwEventChannel, createSessionChannel } =
-      testUtils
     const rtcPeerId = 'rtc-peer-id'
     const initialState = { rtcPeerId }
 
@@ -40,6 +41,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         },
         getRTCPeerById: jest.fn((_id: string) => mockPeer),
         setState: jest.fn(),
+        execute: jest.fn(),
         _getRPCMethod,
       } as any
 
@@ -116,6 +118,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           },
           getRTCPeerById: jest.fn((_id: string) => mockPeer),
           setState: jest.fn(),
+          execute: jest.fn(),
           _getRPCMethod,
         } as any
 
@@ -194,6 +197,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           },
           getRTCPeerById: jest.fn((_id: string) => mockPeer),
           setState: jest.fn(),
+          execute: jest.fn(),
           _getRPCMethod,
         } as any
 
@@ -273,6 +277,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           },
           getRTCPeerById: jest.fn((_id: string) => mockPeer),
           setState: jest.fn(),
+          execute: jest.fn(),
           _getRPCMethod,
         } as any
 
@@ -349,6 +354,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           },
           getRTCPeerById: jest.fn((_id: string) => mockPeer),
           setState: jest.fn(),
+          execute: jest.fn(),
           _getRPCMethod,
         } as any
 
@@ -427,6 +433,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           },
           getRTCPeerById: jest.fn((_id: string) => mockPeer),
           setState: jest.fn(),
+          execute: jest.fn(),
           _getRPCMethod,
         } as any
 
@@ -505,6 +512,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           getRTCPeerById: jest.fn((_id: string) => mockPeer),
           onVertoBye: jest.fn(),
           setState: jest.fn(),
+          execute: jest.fn(),
           _getRPCMethod,
         } as any
 
@@ -587,6 +595,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           },
           getRTCPeerById: jest.fn((_id: string) => mockPeer),
           setState: jest.fn(),
+          execute: jest.fn(),
           _getRPCMethod,
         } as any
 
@@ -669,6 +678,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           },
           getRTCPeerById: jest.fn((_id: string) => mockPeer),
           setState: jest.fn(),
+          execute: jest.fn(),
           _getRPCMethod,
         } as any
 
