@@ -109,10 +109,6 @@ export const createBaseChatObject = <ChatType>(
   const chat = connect<BaseChatApiEvents, BaseChatConsumer, ChatType>({
     store: params.store,
     Component: BaseChatAPI,
-    componentListeners: {
-      errors: 'onError',
-      responses: 'onSuccess',
-    },
   })(params)
 
   return chat

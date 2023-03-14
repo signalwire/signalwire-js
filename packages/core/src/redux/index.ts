@@ -1,5 +1,6 @@
 import { Store } from 'redux'
 import createSagaMiddleware, {
+  channel,
   multicastChannel,
   Saga,
   Task,
@@ -7,13 +8,20 @@ import createSagaMiddleware, {
 import { configureStore as rtConfigureStore } from './toolkit'
 import { rootReducer } from './rootReducer'
 import rootSaga from './rootSaga'
-import { PubSubChannel, SDKState, SwEventChannel } from './interfaces'
+import {
+  PubSubChannel,
+  SDKState,
+  SessionChannel,
+  SwEventChannel,
+} from './interfaces'
 import { connect } from './connect'
 import {
   InternalUserOptions,
   SessionConstructor,
   InternalChannels,
 } from '../utils/interfaces'
+import { BaseSession } from '../BaseSession'
+import { getLogger } from '../utils'
 
 export interface ConfigureStoreOptions {
   userOptions: InternalUserOptions
@@ -38,6 +46,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
   const sagaMiddleware = createSagaMiddleware()
   const pubSubChannel: PubSubChannel = multicastChannel()
   const swEventChannel: SwEventChannel = multicastChannel()
+  const sessionChannel: SessionChannel = channel()
   /**
    * List of channels that are gonna be shared across all
    * sagas.
@@ -45,6 +54,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
   const channels: InternalChannels = {
     pubSubChannel,
     swEventChannel,
+    sessionChannel,
   }
   const store = rtConfigureStore({
     devTools: userOptions?.devTools ?? true,
@@ -58,6 +68,23 @@ const configureStore = (options: ConfigureStoreOptions) => {
       // @see https://redux-toolkit.js.org/api/getDefaultMiddleware#intended-usage
       getDefaultMiddleware().concat(sagaMiddleware),
   }) as Store
+
+  let session: BaseSession
+  const initSession = () => {
+    session = new SessionConstructor({
+      ...userOptions,
+      sessionChannel,
+    })
+    return session
+  }
+
+  const getSession = () => {
+    if (!session) {
+      getLogger().warn('Custom worker started without the session')
+    }
+    return session
+  }
+
   const runSaga = <T>(
     saga: Saga,
     args: {
@@ -68,12 +95,13 @@ const configureStore = (options: ConfigureStoreOptions) => {
     return sagaMiddleware.run(saga, {
       ...args,
       channels,
+      getSession,
     })
   }
 
   if (runSagaMiddleware) {
     const saga = rootSaga({
-      SessionConstructor,
+      initSession,
     })
     sagaMiddleware.run(saga, { userOptions, channels })
   }
@@ -81,6 +109,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
   return {
     ...store,
     runSaga,
+    channels,
   }
 }
 

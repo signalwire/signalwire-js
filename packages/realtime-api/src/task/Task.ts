@@ -46,10 +46,6 @@ export const createTaskObject = (
   const task = connect<TaskClientApiEvents, TaskAPI, Task>({
     store: params.store,
     Component: TaskAPI,
-    componentListeners: {
-      errors: 'onError',
-      responses: 'onSuccess',
-    },
   })(params)
 
   return task

@@ -1,7 +1,11 @@
 import util from 'util'
 import { expectSaga } from 'redux-saga-test-plan'
 import { memberUpdatedWorker } from '.'
-import { createPubSubChannel, createSwEventChannel } from '../testUtils'
+import {
+  createPubSubChannel,
+  createSwEventChannel,
+  createSessionChannel,
+} from '../testUtils'
 
 describe('memberPositionWorker', () => {
   util.inspect.defaultOptions.depth = null
@@ -25,6 +29,7 @@ describe('memberPositionWorker', () => {
     }
     const pubSubChannel = createPubSubChannel()
     const swEventChannel = createSwEventChannel()
+    const sessionChannel = createSessionChannel()
     const dispatchedActions: unknown[] = []
     const memberList = new Map([
       [
@@ -43,15 +48,21 @@ describe('memberPositionWorker', () => {
         },
       ],
     ])
+    const session = {
+      connect: jest.fn(),
+    } as any
+    const getSession = jest.fn().mockImplementation(() => session)
 
     return expectSaga(memberUpdatedWorker, {
       action,
       channels: {
         pubSubChannel,
         swEventChannel,
+        sessionChannel,
       },
       memberList,
       instance: {},
+      getSession,
     })
       .provide([
         {

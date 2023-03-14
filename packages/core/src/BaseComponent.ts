@@ -8,7 +8,7 @@ import {
   getLogger,
   isSessionEvent,
 } from './utils'
-import { executeAction, Action } from './redux'
+import { Action } from './redux'
 import {
   ExecuteParams,
   ExecuteTransform,
@@ -39,6 +39,7 @@ import {
 import { compoundEventAttachAction } from './redux/actions'
 import { AuthError } from './CustomErrors'
 import { proxyFactory } from './utils/proxyUtils'
+import { executeActionWorker } from './workers'
 
 type EventRegisterHandlers<EventTypes extends EventEmitter.ValidEventTypes> =
   | {
@@ -90,7 +91,6 @@ export class BaseComponent<
     EventEmitter.EventNames<EventTypes>,
     BaseComponent<EventTypes>
   >()
-  private _requests = new Map()
   private _customSagaTriggers = new Map()
   private _destroyer?: () => void
 
@@ -699,21 +699,18 @@ export class BaseComponent<
   ) {
     return new Promise<OutputType>((resolve, reject) => {
       const requestId = uuid()
-      this._requests.set(requestId, {
-        resolve,
-        reject,
-        transformResolve,
-        transformReject,
-      })
 
-      this.store.dispatch(
-        executeAction({
+      this.runWorker('executeActionWorker', {
+        worker: executeActionWorker,
+        onDone: (data) => resolve(transformResolve(data)),
+        onFail: (error) => reject(transformReject(error)),
+        initialState: {
           requestId,
           componentId: this.__uuid,
           method,
           params: transformParams(params as ParamsType),
-        })
-      )
+        },
+      })
     })
   }
 
@@ -750,34 +747,6 @@ export class BaseComponent<
   /** @internal */
   select<T>(selectorFn: (state: SDKState) => T) {
     return selectorFn(this.store.getState())
-  }
-
-  /** @internal */
-  onError(component: any) {
-    this._requests.forEach((value, key) => {
-      /**
-       * If component.errors[key] is undefined it means that the
-       * request hasn't failed
-       */
-      if (component?.errors[key] !== undefined) {
-        value.reject(value.transformReject(component.errors[key]))
-        this._requests.delete(key)
-      }
-    })
-  }
-
-  /** @internal */
-  onSuccess(component: any) {
-    this._requests.forEach((value, key) => {
-      /**
-       * If component.responses[key] is undefined it means that the
-       * request is not ready yet.
-       */
-      if (component?.responses[key] !== undefined) {
-        value.resolve(value.transformResolve(component.responses[key]))
-        this._requests.delete(key)
-      }
-    })
   }
 
   /** @internal */

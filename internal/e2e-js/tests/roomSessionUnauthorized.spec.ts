@@ -62,7 +62,7 @@ test.describe('RoomSession unauthorized methods for audience', () => {
       const roomObj: Video.RoomSession = window._roomObj
       const error = await roomObj.audioUnmute().catch((error) => error)
 
-      return error.jsonrpc.code
+      return error.code
     })
     expect(errorCode).toBe('403')
   })

@@ -38,10 +38,6 @@ const createClient = (userOptions: {
   const client = connect<ClientEvents, Client, RealtimeClient>({
     store: userOptions.store,
     Component: Client,
-    componentListeners: {
-      errors: 'onError',
-      responses: 'onSuccess',
-    },
   })(userOptions)
 
   return client

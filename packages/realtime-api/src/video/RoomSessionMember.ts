@@ -60,10 +60,6 @@ export const createRoomSessionMemberObject = (
   const member = connect<{}, RoomSessionMemberComponent, RoomSessionMember>({
     store: params.store,
     Component: RoomSessionMemberAPI,
-    componentListeners: {
-      errors: 'onError',
-      responses: 'onSuccess',
-    },
   })(params)
 
   return member

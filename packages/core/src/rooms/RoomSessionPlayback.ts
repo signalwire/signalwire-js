@@ -109,10 +109,6 @@ export const createRoomSessionPlaybackObject = (
   >({
     store: params.store,
     Component: RoomSessionPlaybackAPI,
-    componentListeners: {
-      errors: 'onError',
-      responses: 'onSuccess',
-    },
   })(params)
 
   return playback

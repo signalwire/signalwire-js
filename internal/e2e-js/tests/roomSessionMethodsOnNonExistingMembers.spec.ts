@@ -65,7 +65,7 @@ test.describe('RoomSession methods on non existing members', () => {
         })
         .catch((error) => error)
 
-      return error.jsonrpc.code
+      return error.code
     })
     expect(errorCode).toBe('404')
 
@@ -79,7 +79,7 @@ test.describe('RoomSession methods on non existing members', () => {
         })
         .catch((error) => error)
 
-      return error.jsonrpc.code
+      return error.code
     })
     expect(errorCode).toBe('403')
 
@@ -93,7 +93,7 @@ test.describe('RoomSession methods on non existing members', () => {
         })
         .catch((error) => error)
 
-      return error.jsonrpc.code
+      return error.code
     })
     expect(errorCode).toBe('404')
 
@@ -107,7 +107,7 @@ test.describe('RoomSession methods on non existing members', () => {
         })
         .catch((error) => error)
 
-      return error.jsonrpc.code
+      return error.code
     })
     expect(errorCode).toBe('403')
 
@@ -121,7 +121,7 @@ test.describe('RoomSession methods on non existing members', () => {
         })
         .catch((error) => error)
 
-      return error.jsonrpc.code
+      return error.code
     })
     expect(errorCode).toBe('403')
 
@@ -135,7 +135,7 @@ test.describe('RoomSession methods on non existing members', () => {
         })
         .catch((error) => error)
 
-      return error.jsonrpc.code
+      return error.code
     })
     expect(errorCode).toBe('403')
 
@@ -150,7 +150,7 @@ test.describe('RoomSession methods on non existing members', () => {
         })
         .catch((error) => error)
 
-      return error.jsonrpc.code
+      return error.code
     })
     expect(errorCode).toBe('404')
 
@@ -165,7 +165,7 @@ test.describe('RoomSession methods on non existing members', () => {
         })
         .catch((error) => error)
 
-      return error.jsonrpc.code
+      return error.code
     })
     expect(errorCode).toBe('404')
 
@@ -180,7 +180,7 @@ test.describe('RoomSession methods on non existing members', () => {
         })
         .catch((error) => error)
 
-      return error.jsonrpc.code
+      return error.code
     })
     expect(errorCode).toBe('404')
 
@@ -195,7 +195,7 @@ test.describe('RoomSession methods on non existing members', () => {
         })
         .catch((error) => error)
 
-      return error.jsonrpc.code
+      return error.code
     })
     expect(errorCode).toBe('403')
 
@@ -212,7 +212,7 @@ test.describe('RoomSession methods on non existing members', () => {
         })
         .catch((error) => error)
 
-      return error.jsonrpc.code
+      return error.code
     })
     expect(errorCode).toBe('404')
 
@@ -227,7 +227,7 @@ test.describe('RoomSession methods on non existing members', () => {
         .then(console.log)
         .catch((error) => error)
 
-      return error.jsonrpc.code
+      return error.code
     })
     expect(errorCode).toBe('404')
 
@@ -244,7 +244,7 @@ test.describe('RoomSession methods on non existing members', () => {
         })
         .catch((error) => error)
 
-      return error.jsonrpc.code
+      return error.code
     })
     expect(errorCode).toBe('404')
 
@@ -259,7 +259,7 @@ test.describe('RoomSession methods on non existing members', () => {
         })
         .catch((error) => error)
 
-      return error.jsonrpc.code
+      return error.code
     })
     expect(errorCode).toBe('404')
 
@@ -273,7 +273,7 @@ test.describe('RoomSession methods on non existing members', () => {
         })
         .catch((error) => error)
 
-      return error.jsonrpc.code
+      return error.code
     })
     expect(errorCode).toBe('404')
 
@@ -286,8 +286,8 @@ test.describe('RoomSession methods on non existing members', () => {
     //       memberId: 'non-exisisting-member',
     //     })
     //     .catch((error) => error)
-    //   console.log('promote error', error.jsonrpc.code, error.jsonrpc.message)
-    //   return error.jsonrpc.code
+    //   console.log('promote error', error.code, error.message)
+    //   return error.code
     // })
     // expect(errorCode).toBe('404')
 
@@ -301,7 +301,7 @@ test.describe('RoomSession methods on non existing members', () => {
         })
         .catch((error) => error)
 
-      return error.jsonrpc.code
+      return error.code
     })
     expect(errorCode).toBe('404')
   })

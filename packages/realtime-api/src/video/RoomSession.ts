@@ -486,10 +486,6 @@ export const createRoomSessionObject = (
   >({
     store: params.store,
     Component: RoomSessionAPI,
-    componentListeners: {
-      errors: 'onError',
-      responses: 'onSuccess',
-    },
   })(params)
 
   return roomSession

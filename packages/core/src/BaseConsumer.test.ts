@@ -11,10 +11,6 @@ describe('BaseConsumer', () => {
 
       instance = connect({
         store: fullStack.store,
-        componentListeners: {
-          errors: 'onError',
-          responses: 'onSuccess',
-        },
         Component: BaseConsumer,
       })({
         emitter: fullStack.emitter,

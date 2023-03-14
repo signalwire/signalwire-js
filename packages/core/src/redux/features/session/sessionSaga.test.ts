@@ -1,8 +1,11 @@
-import { eventChannel } from '@redux-saga/core'
 import { expectSaga } from 'redux-saga-test-plan'
 import { socketMessageAction } from '../../actions'
-import { sessionChannelWatcher, createSessionChannel } from './sessionSaga'
-import { createPubSubChannel, createSwEventChannel } from '../../../testUtils'
+import { sessionChannelWatcher } from './sessionSaga'
+import {
+  createPubSubChannel,
+  createSwEventChannel,
+  createSessionChannel,
+} from '../../../testUtils'
 
 jest.mock('uuid', () => {
   return {
@@ -20,7 +23,7 @@ describe('sessionChannelWatcher', () => {
       let runSaga = true
       const pubSubChannel = createPubSubChannel()
       const swEventChannel = createSwEventChannel()
-      const sessionChannel = eventChannel(() => () => {})
+      const sessionChannel = createSessionChannel()
       const dispatchedActions: unknown[] = []
       const payload = JSON.parse(
         '{"member":{"id":"a3693340-6f42-4cab-b18e-8e2a22695698","talking":true,"room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426"},"room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426"}'
@@ -75,7 +78,7 @@ describe('sessionChannelWatcher', () => {
       let runSaga = true
       const pubSubChannel = createPubSubChannel()
       const swEventChannel = createSwEventChannel()
-      const sessionChannel = eventChannel(() => () => {})
+      const sessionChannel = createSessionChannel()
       const dispatchedActions: unknown[] = []
       const payload = JSON.parse(
         '{"member":{"id":"a3693340-6f42-4cab-b18e-8e2a22695698","talking":false,"room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426"},"room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426"}'
@@ -130,7 +133,7 @@ describe('sessionChannelWatcher', () => {
       let runSaga = true
       const pubSubChannel = createPubSubChannel()
       const swEventChannel = createSwEventChannel()
-      const sessionChannel = eventChannel(() => () => {})
+      const sessionChannel = createSessionChannel()
       const dispatchedActions: unknown[] = []
       const payload = JSON.parse(
         '{"room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","layout":{"layers":[],"room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","name":"4x4"}}'
@@ -177,7 +180,7 @@ describe('sessionChannelWatcher', () => {
       let runSaga = true
       const pubSubChannel = createPubSubChannel()
       const swEventChannel = createSwEventChannel()
-      const sessionChannel = eventChannel(() => () => {})
+      const sessionChannel = createSessionChannel()
       const dispatchedActions: unknown[] = []
 
       return expectSaga(sessionChannelWatcher, {
@@ -213,24 +216,5 @@ describe('sessionChannelWatcher', () => {
           expect(dispatchedActions).toHaveLength(2)
         })
     })
-  })
-})
-
-describe('createSessionChannel', () => {
-  it('should override session.dispatch to pass actions and invoke session.disconnect on close', () => {
-    const session = {
-      disconnect: jest.fn(),
-    } as any
-
-    const sessionChannel = createSessionChannel(session)
-
-    expect(session.dispatch).toBeDefined()
-    sessionChannel.take((param) => {
-      expect(param).toStrictEqual('Triggered!')
-    })
-    session.dispatch('Triggered!')
-
-    sessionChannel.close()
-    expect(session.disconnect).toHaveBeenCalledTimes(1)
   })
 })

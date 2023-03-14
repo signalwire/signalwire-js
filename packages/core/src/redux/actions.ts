@@ -6,7 +6,6 @@ import type {
   SessionActions,
   CompoundEvents,
 } from '../utils/interfaces'
-import { ExecuteActionParams } from './interfaces'
 import { EventEmitter } from '..'
 
 export const initAction = createAction('swSdk/init')
@@ -15,13 +14,6 @@ export const destroyAction = createAction('swSdk/destroy')
  * Used to trigger a `signalwire.reauthenticate`
  */
 export const reauthAction = createAction<{ token: string }>('swSdk/reauth')
-
-/**
- * Trigger saga to send a JSONRPC over the wire
- */
-export const executeAction = createAction<ExecuteActionParams>(
-  'swSdk/executeRequest'
-)
 
 export const authErrorAction = createAction<{ error: SessionAuthError }>(
   'auth/error'

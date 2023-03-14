@@ -1,7 +1,6 @@
 import {
   getLogger,
   sagaEffects,
-  actions,
   VertoResult,
   VertoPong,
   SagaIterator,
@@ -11,6 +10,7 @@ import {
   SDKWorkerHooks,
   WebRTCMessageParams,
   isWebrtcEventType,
+  sagaHelpers,
 } from '@signalwire/core'
 
 import { BaseConnection } from '../BaseConnection'
@@ -41,15 +41,7 @@ export const vertoEventWorker: SDKWorker<
     throw new Error('Missing rtcPeerId for roomSubscribedWorker')
   }
 
-  while (true) {
-    const action: MapToPubSubShape<WebRTCMessageParams> =
-      yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
-        if (isWebrtcAction(action)) {
-          return action.payload.params?.callID === rtcPeerId
-        }
-        return false
-      })
-
+  const worker = function* (action: MapToPubSubShape<WebRTCMessageParams>) {
     const { id: jsonrpcId, method, params = {} } = action.payload
     const { callID, nodeId } = params
     const peer = instance.getRTCPeerById(callID)
@@ -58,7 +50,7 @@ export const vertoEventWorker: SDKWorker<
         `RTCPeer '${callID}' not found for method: '${method}'`,
         params
       )
-      continue
+      return
     }
     const activeRTCPeer = instance.peer
 
@@ -81,15 +73,13 @@ export const vertoEventWorker: SDKWorker<
           peer.onRemoteSdp(params.sdp)
         }
 
-        yield sagaEffects.put(
-          actions.executeAction({
-            method: instance._getRPCMethod(),
-            params: {
-              message: VertoResult(jsonrpcId, method),
-              node_id: nodeId,
-            },
-          })
-        )
+        yield sagaEffects.call([instance, instance.execute], {
+          method: instance._getRPCMethod(),
+          params: {
+            message: VertoResult(jsonrpcId, method),
+            node_id: nodeId,
+          },
+        })
         break
       }
       case 'verto.bye': {
@@ -97,36 +87,32 @@ export const vertoEventWorker: SDKWorker<
          * If the `params.callID` is the current ACTIVE peer, stop everything and destroy the BaseConnection
          * If the `params.callID` is NOT the current peer, but is there from promote/demote process stop/destroy just the peer
          */
-        yield sagaEffects.call(instance.onVertoBye, {
+        yield sagaEffects.call([instance, instance.onVertoBye], {
           rtcPeerId: callID,
           byeCause: params?.cause,
           byeCauseCode: params?.causeCode,
           redirectDestination: params?.redirectDestination,
         })
 
-        yield sagaEffects.put(
-          actions.executeAction({
-            method: instance._getRPCMethod(),
-            params: {
-              message: VertoResult(jsonrpcId, method),
-              node_id: nodeId,
-            },
-          })
-        )
+        yield sagaEffects.call([instance, instance.execute], {
+          method: instance._getRPCMethod(),
+          params: {
+            message: VertoResult(jsonrpcId, method),
+            node_id: nodeId,
+          },
+        })
         break
       }
       case 'verto.ping': {
         // Remove nodeId from params
         const { nodeId, ...pongParams } = params
-        yield sagaEffects.put(
-          actions.executeAction({
-            method: instance._getRPCMethod(),
-            params: {
-              message: VertoPong(pongParams),
-              node_id: nodeId,
-            },
-          })
-        )
+        yield sagaEffects.call([instance, instance.execute], {
+          method: instance._getRPCMethod(),
+          params: {
+            message: VertoPong(pongParams),
+            node_id: nodeId,
+          },
+        })
         break
       }
       case 'verto.mediaParams': {
@@ -146,6 +132,22 @@ export const vertoEventWorker: SDKWorker<
       default:
         return getLogger().warn(`Unknown Verto method: ${method}`, params)
     }
+  }
+  const catchableWorker = sagaHelpers.createCatchableSaga<
+    MapToPubSubShape<WebRTCMessageParams>
+  >(worker, (error) => {
+    getLogger().error('Verto Error', error)
+  })
+
+  while (true) {
+    const action: MapToPubSubShape<WebRTCMessageParams> =
+      yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
+        if (isWebrtcAction(action)) {
+          return action.payload.params?.callID === rtcPeerId
+        }
+        return false
+      })
+    yield sagaEffects.fork(catchableWorker, action)
   }
 
   getLogger().trace('vertoEventWorker ended')

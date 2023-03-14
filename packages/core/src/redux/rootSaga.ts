@@ -1,18 +1,9 @@
 import type { Task, SagaIterator } from '@redux-saga/types'
-import { EventChannel } from '@redux-saga/core'
 import { fork, call, take, put, all, cancelled } from '@redux-saga/core/effects'
-import {
-  SessionConstructor,
-  InternalUserOptions,
-  InternalChannels,
-} from '../utils/interfaces'
+import { InternalUserOptions, InternalChannels } from '../utils/interfaces'
 import { getLogger, setDebugOptions, setLogger } from '../utils'
 import { BaseSession } from '../BaseSession'
-import {
-  executeActionWatcher,
-  sessionChannelWatcher,
-  createSessionChannel,
-} from './features/session/sessionSaga'
+import { sessionChannelWatcher } from './features/session/sessionSaga'
 import { pubSubSaga } from './features/pubSub/pubSubSaga'
 import {
   initAction,
@@ -32,32 +23,27 @@ import {
   authExpiringAction,
 } from './actions'
 import { AuthError } from '../CustomErrors'
-import { PubSubChannel } from './interfaces'
+import { PubSubChannel, SessionChannel } from './interfaces'
 import { createRestartableSaga } from './utils/sagaHelpers'
 // import { componentCleanupSaga } from './features/component/componentSaga'
 
 interface StartSagaOptions {
   session: BaseSession
-  sessionChannel: EventChannel<any>
+  sessionChannel: SessionChannel
   pubSubChannel: PubSubChannel
   userOptions: InternalUserOptions
 }
 
 export function* initSessionSaga({
-  SessionConstructor,
+  initSession,
   userOptions,
   channels,
 }: {
-  SessionConstructor: SessionConstructor
+  initSession: () => BaseSession
   userOptions: InternalUserOptions
   channels: InternalChannels
 }): SagaIterator {
-  const session = new SessionConstructor(userOptions)
-
-  const sessionChannel: EventChannel<any> = yield call(
-    createSessionChannel,
-    session
-  )
+  const session = initSession()
 
   /**
    * Channel to communicate between sagas and emit events to
@@ -68,6 +54,10 @@ export function* initSessionSaga({
    * Channel to broadcast all the events sent by the server
    */
   const swEventChannel = channels.swEventChannel
+  /**
+   * Channel to communicate with base session
+   */
+  const sessionChannel = channels.sessionChannel
 
   /**
    * Start all the custom workers on startup
@@ -109,11 +99,6 @@ export function* initSessionSaga({
     userOptions,
   })
 
-  /**
-   * Fork the watcher for all the execute requests
-   */
-  const executeActionTask: Task = yield fork(executeActionWatcher, session)
-
   // const compCleanupTask = yield fork(componentCleanupSaga)
 
   session.connect()
@@ -128,15 +113,16 @@ export function* initSessionSaga({
   // compCleanupTask?.cancel()
   pubSubTask.cancel()
   sessionStatusTask.cancel()
-  executeActionTask.cancel()
-  sessionChannel.close()
   customTasks.forEach((task) => task.cancel())
   /**
-   * Do not close pubSubChannel and swEventChannel
+   * Do not close pubSubChannel, swEventChannel, and sessionChannel
    * since we may need them again in case of reauth/reconnect
    * // pubSubChannel.close()
    * // swEventChannel.close()
+   * // sessionChannel.close()
    */
+
+  session.disconnect()
 }
 
 export function* reauthenticateWorker({
@@ -250,7 +236,7 @@ export function* sessionAuthErrorSaga(
 }
 
 interface RootSagaOptions {
-  SessionConstructor: SessionConstructor
+  initSession: () => BaseSession
 }
 
 export default (options: RootSagaOptions) => {

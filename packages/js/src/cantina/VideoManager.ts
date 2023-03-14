@@ -83,10 +83,6 @@ export const createVideoManagerObject = (
   const manager = connect<VideoManagerEvents, VideoManagerAPI, VideoManager>({
     store: params.store,
     Component: VideoManagerAPI,
-    componentListeners: {
-      errors: 'onError',
-      responses: 'onSuccess',
-    },
   })(params)
 
   const proxy = new Proxy<VideoManager>(manager, {

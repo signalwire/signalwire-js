@@ -281,10 +281,6 @@ export const createVoiceObject = (
   const voice = connect<VoiceClientApiEvents, VoiceAPI, Voice>({
     store: params.store,
     Component: VoiceAPI,
-    componentListeners: {
-      errors: 'onError',
-      responses: 'onSuccess',
-    },
   })(params)
 
   return voice
