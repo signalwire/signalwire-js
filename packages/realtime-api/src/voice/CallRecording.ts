@@ -3,8 +3,9 @@ import {
   BaseComponent,
   BaseComponentOptions,
   VoiceCallRecordingContract,
-  CallingCallRecordState,
   CallingCallRecordEndState,
+  CallingCallRecordEventParams,
+  EventEmitter,
 } from '@signalwire/core'
 
 /**
@@ -13,7 +14,11 @@ import {
  * starting a recording from the desired {@link Call} (see
  * {@link Call.record})
  */
-export interface CallRecording extends VoiceCallRecordingContract {}
+export interface CallRecording extends VoiceCallRecordingContract {
+  setPayload: (payload: CallingCallRecordEventParams) => void
+  _paused: boolean
+  baseEmitter: EventEmitter
+}
 
 export type CallRecordingEventsHandlerMapping = {}
 
@@ -28,13 +33,37 @@ export class CallRecordingAPI
 {
   protected _eventsPrefix = 'calling' as const
 
-  callId: string
-  nodeId: string
-  controlId: string
-  state: CallingCallRecordState = 'recording'
+  private _payload: CallingCallRecordEventParams
+
+  constructor(options: BaseComponentOptions<any>) {
+    super(options)
+
+    this._payload = options.payload
+  }
 
   get id() {
-    return this.controlId
+    return this._payload?.control_id
+  }
+
+  get callId() {
+    return this._payload?.call_id
+  }
+
+  get nodeId() {
+    return this._payload?.node_id
+  }
+
+  get controlId() {
+    return this._payload?.control_id
+  }
+
+  get state() {
+    return this._payload?.state
+  }
+
+  /** @internal */
+  protected setPayload(payload: CallingCallRecordEventParams) {
+    this._payload = payload
   }
 
   async stop() {
@@ -58,11 +87,12 @@ export class CallRecordingAPI
   ended() {
     return new Promise<this>((resolve) => {
       this._attachListeners(this.controlId)
+
       const handler = () => {
         // @ts-expect-error
-        this.off('recording.ended', handler)
+        this._off('recording.ended', handler)
         // @ts-expect-error
-        this.off('recording.failed', handler)
+        this._off('recording.failed', handler)
         // It's important to notice that we're returning
         // `this` instead of creating a brand new instance
         // using the payload + EventEmitter Transform
@@ -74,15 +104,10 @@ export class CallRecordingAPI
         resolve(this)
       }
       // @ts-expect-error
-      this.once('recording.ended', handler)
+      this._once('recording.ended', handler)
       // TODO: review what else to return when `recording.failed` happens.
       // @ts-expect-error
-      this.once('recording.failed', handler)
-
-      // Resolve the promise if the recording has already ended
-      if (ENDED_STATES.includes(this.state as CallingCallRecordEndState)) {
-        handler()
-      }
+      this._once('recording.failed', handler)
     })
   }
 }

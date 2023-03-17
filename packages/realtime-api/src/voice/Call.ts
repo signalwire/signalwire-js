@@ -42,6 +42,9 @@ import {
   CallingCallDetectEventParams,
   VoiceDialerParams,
   CallingCallWaitForState,
+  CallingCall,
+  EventEmitter,
+  configureStore,
 } from '@signalwire/core'
 import { RealTimeCallApiEvents } from '../types'
 import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
@@ -49,8 +52,6 @@ import { toInternalDevices, toInternalPlayParams } from './utils'
 import { Playlist } from './Playlist'
 import {
   voiceCallStateWorker,
-  voiceCallPlayWorker,
-  voiceCallRecordWorker,
   voiceCallPromptWorker,
   voiceCallTapWorker,
   voiceCallConnectWorker,
@@ -69,7 +70,7 @@ import { CallDetect, createCallDetectObject } from './CallDetect'
 import { CallCollect, createCallCollectObject } from './CallCollect'
 import { DeviceBuilder } from './DeviceBuilder'
 
-type EmitterTransformsEvents =
+export type EmitterTransformsEvents =
   | 'calling.playback.start'
   | 'calling.playback.started'
   | 'calling.playback.updated'
@@ -102,20 +103,11 @@ type EmitterTransformsEvents =
  */
 export interface Call
   extends VoiceCallContract<Call>,
-    EmitterContract<RealTimeCallApiEvents> {}
-
-/**
- * Used to resolve the play() method and to update the CallPlayback object through the EmitterTransform
- */
-export const callingPlaybackTriggerEvent =
-  toLocalEvent<EmitterTransformsEvents>('calling.playback.trigger')
-
-/**
- * Used to resolve the record() method and to update the CallRecording object through the EmitterTransform
- */
-export const callingRecordTriggerEvent = toLocalEvent<EmitterTransformsEvents>(
-  'calling.recording.trigger'
-)
+    EmitterContract<RealTimeCallApiEvents> {
+  store: ReturnType<typeof configureStore>
+  setPayload: (payload: CallingCall) => void
+  baseEmitter: EventEmitter
+}
 
 /**
  * Used to resolve the prompt() method and to update the CallPrompt object through the EmitterTransform
@@ -153,11 +145,13 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
   public peer: string
   public callState: CallingCallState
   public connectState: CallingCallConnectState
+  private _payload: CallingCall
 
   constructor(options: BaseComponentOptions<RealTimeCallApiEvents>) {
     super(options)
 
     if (options.payload) {
+      this._payload = options.payload
       this.callId = options.payload.call_id
       this.nodeId = options.payload.node_id
       this.callState = options.payload.call_state
@@ -187,11 +181,11 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
   /** Unique id for this voice call */
   get id() {
-    return this.callId
+    return this.callId || this._payload?.call_id
   }
 
   get state() {
-    return this.callState
+    return this.callState || this._payload?.call_state
   }
 
   get tag() {
@@ -201,33 +195,51 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
   /** The type of call. Only phone and sip are currently supported. */
   get type() {
     // @ts-expect-error
-    return this.device?.type ?? ''
+    return (this.device?.type || this._payload?.device?.type) ?? ''
   }
 
   /** The phone number that the call is coming from. */
   get from() {
     if (this.type === 'phone') {
-      // @ts-expect-error
-      return this.device?.params?.fromNumber ?? ''
+      return (
+        // @ts-expect-error
+        (this.device?.params?.fromNumber ||
+          // @ts-expect-error
+          this._payload?.device?.params?.from_number) ??
+        ''
+      )
     } else if (this.type === 'sip') {
-      // @ts-expect-error
-      return this.device?.params?.from ?? ''
+      return (
+        // @ts-expect-error
+        (this.device?.params?.from || this._payload?.device?.params?.from) ?? ''
+      )
     }
-    // @ts-expect-error
-    return this.device?.params?.from ?? ''
+    return (
+      // @ts-expect-error
+      (this.device?.params?.from || this._payload?.device?.params?.from) ?? ''
+    )
   }
 
   /** The phone number you are attempting to call. */
   get to() {
     if (this.type === 'phone') {
-      // @ts-expect-error
-      return this.device?.params?.toNumber ?? ''
+      return (
+        // @ts-expect-error
+        (this.device?.params?.toNumber ||
+          // @ts-expect-error
+          this._payload?.device?.params?.to_number) ??
+        ''
+      )
     } else if (this.type === 'sip') {
-      // @ts-expect-error
-      return this.device?.params?.to ?? ''
+      return (
+        // @ts-expect-error
+        (this.device?.params?.to || this._payload?.device?.params?.to) ?? ''
+      )
     }
-    // @ts-expect-error
-    return this.device?.params?.to ?? ''
+    return (
+      // @ts-expect-error
+      (this.device?.params?.to || this._payload?.device?.params?.to) ?? ''
+    )
   }
 
   get headers() {
@@ -243,6 +255,15 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     return this.connectState === 'connected'
   }
 
+  get direction() {
+    return this._payload?.direction
+  }
+
+  /** @internal */
+  protected setPayload(payload: CallingCall) {
+    this._payload = payload
+  }
+
   /** @internal */
   protected getEmitterTransforms() {
     return new Map<
@@ -251,7 +272,6 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     >([
       [
         [
-          callingPlaybackTriggerEvent,
           'calling.playback.started',
           'calling.playback.updated',
           'calling.playback.ended',
@@ -289,7 +309,6 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       ],
       [
         [
-          callingRecordTriggerEvent,
           'calling.recording.started',
           'calling.recording.updated',
           'calling.recording.ended',
@@ -584,21 +603,20 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         reject(new Error(`Can't call play() on a call not established yet.`))
       }
 
-      const controlId = uuid()
-
-      this.runWorker('voiceCallPlayWorker', {
-        worker: voiceCallPlayWorker,
-        initialState: {
-          controlId,
-        },
-      })
-
-      const resolveHandler = (callPlayback: any) => {
+      const resolveHandler = (callPlayback: CallPlayback) => {
+        this._off('playback.failed', rejectHandler)
         resolve(callPlayback)
       }
 
-      // @ts-expect-error
-      this.on(callingPlaybackTriggerEvent, resolveHandler)
+      const rejectHandler = (callPlayback: CallPlayback) => {
+        this._off('playback.started', resolveHandler)
+        reject(callPlayback)
+      }
+
+      this._once('playback.started', resolveHandler)
+      this._once('playback.failed', rejectHandler)
+
+      const controlId = uuid()
 
       this.execute({
         method: 'calling.play',
@@ -611,19 +629,11 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         },
       })
         .then(() => {
-          // We intentionally omit `state` since that
-          // property is handled internally by the instance.
-          const startEvent: Omit<CallingCallPlayEventParams, 'state'> = {
-            control_id: controlId,
-            call_id: this.id,
-            node_id: this.nodeId,
-          }
-          // @ts-expect-error
-          this.emit(callingPlaybackTriggerEvent, startEvent)
+          // TODO: handle then?
         })
         .catch((e) => {
-          // @ts-expect-error
-          this.off(callingPlaybackTriggerEvent, resolveHandler)
+          this._off('playback.started', resolveHandler)
+          this._off('playback.failed', rejectHandler)
           reject(e)
         })
     })
@@ -701,23 +711,22 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         reject(new Error(`Can't call record() on a call not established yet.`))
       }
 
-      const controlId = uuid()
-
-      this.runWorker('voiceCallRecordWorker', {
-        worker: voiceCallRecordWorker,
-        initialState: {
-          controlId,
-        },
-      })
-
       const resolveHandler = (callRecording: CallRecording) => {
+        this._off('recording.failed', rejectHandler)
         resolve(callRecording)
       }
 
-      // @ts-expect-error
-      this.on(callingRecordTriggerEvent, resolveHandler)
+      const rejectHandler = (callRecording: CallRecording) => {
+        this._off('recording.started', resolveHandler)
+        reject(callRecording)
+      }
 
+      this._once('recording.started', resolveHandler)
+      this._once('recording.failed', rejectHandler)
+
+      const controlId = uuid()
       const record = toSnakeCaseKeys(params)
+
       this.execute({
         method: 'calling.record',
         params: {
@@ -728,19 +737,11 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         },
       })
         .then(() => {
-          const startEvent: Omit<CallingCallRecordEventParams, 'state'> = {
-            control_id: controlId,
-            call_id: this.id,
-            node_id: this.nodeId,
-            // state: 'recording',
-            record,
-          }
-          // @ts-expect-error
-          this.emit(callingRecordTriggerEvent, startEvent)
+          // TODO: handle then?
         })
         .catch((e) => {
-          // @ts-expect-error
-          this.off(callingRecordTriggerEvent, resolveHandler)
+          this._off('recording.started', resolveHandler)
+          this._off('recording.failed', rejectHandler)
           reject(e)
         })
     })

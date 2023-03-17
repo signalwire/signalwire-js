@@ -62,6 +62,7 @@ describe('memberPositionWorker', () => {
       },
       memberList,
       instance: {},
+      instanceMap: { get: jest.fn(), set: jest.fn() },
       getSession,
     })
       .provide([

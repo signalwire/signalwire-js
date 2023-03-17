@@ -85,6 +85,21 @@ const configureStore = (options: ConfigureStoreOptions) => {
     return session
   }
 
+  // Generic map stores multiple instance
+  // For eg;
+  // callId => CallInstance
+  // controlId => PlaybackInstance | RecordingInstance
+  const instanceMap = new Map<string, unknown>()
+
+  const getInstance = <T extends unknown>(id: string): T => {
+    return instanceMap.get(id) as T
+  }
+
+  const setInstance = <T>(key: string, value: T) => {
+    instanceMap.set(key, value)
+    return instanceMap
+  }
+
   const runSaga = <T>(
     saga: Saga,
     args: {
@@ -96,6 +111,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
       ...args,
       channels,
       getSession,
+      instanceMap: { get: getInstance, set: setInstance },
     })
   }
 

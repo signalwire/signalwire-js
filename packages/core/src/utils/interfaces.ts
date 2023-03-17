@@ -24,7 +24,6 @@ import {
   MessagingTransformType,
   VoiceJSONRPCMethod,
   ClientContextMethod,
-  CallingCall,
 } from '..'
 
 type JSONRPCParams = Record<string, any>
@@ -154,7 +153,8 @@ export interface BaseComponentOptions<
   store: SDKStore
   emitter: EventEmitter<EventTypes>
   customSagas?: CustomSaga<any>[]
-  payload?: CallingCall
+  // @TODO: proper type for payload?
+  payload?: any
 }
 
 export interface SessionRequestObject {
@@ -547,6 +547,11 @@ export type SDKWorkerHooks<
   onFail: OnFail
 }>
 
+export type InstanceMap = {
+  get: (key: string) => unknown
+  set: (key: string, value: unknown) => void
+}
+
 type SDKWorkerBaseParams<T> = {
   channels: InternalChannels
   instance: T
@@ -559,6 +564,13 @@ type SDKWorkerBaseParams<T> = {
   payload?: any
   initialState?: any
   getSession: () => BaseSession | undefined
+  instanceMap: InstanceMap
+}
+
+type SDKCallWorkerBaseParams<T, U> = {
+  payload: T
+  client: U
+  instanceMap: InstanceMap
 }
 
 export type SDKWorkerParams<
@@ -568,6 +580,10 @@ export type SDKWorkerParams<
 
 export type SDKWorker<T, Hooks extends SDKWorkerHooks = SDKWorkerHooks> = (
   params: SDKWorkerParams<T, Hooks>
+) => SagaIterator<any>
+
+export type SDKCallWorker<T, U = any> = (
+  params: SDKCallWorkerBaseParams<T, U>
 ) => SagaIterator<any>
 
 export type SDKWorkerDefinition<Hooks extends SDKWorkerHooks = SDKWorkerHooks> =

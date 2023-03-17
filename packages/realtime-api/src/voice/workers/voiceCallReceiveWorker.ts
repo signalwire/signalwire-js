@@ -1,44 +1,44 @@
 import {
   CallingCall,
   getLogger,
-  sagaEffects,
   SagaIterator,
-  SDKWorker,
+  SDKCallWorker,
 } from '@signalwire/core'
-import { fork } from '@redux-saga/core/effects'
-import type { Client } from '../../client/index'
 import { createCallObject } from '../Call'
+import type { Call } from '../Call'
+import type { Client } from '../../client/index'
 
-export const voiceCallReceiveWorker: SDKWorker<Client> = function* (
-  options
-): SagaIterator {
-  getLogger().trace('voiceCallReceiveWorker started')
-  const { channels, instance } = options
-  const { swEventChannel } = channels
-  // contexts is required
-  const { contexts = [] } = instance?.options ?? {}
-  if (!contexts.length) {
-    throw new Error('Invalid contexts to receive inbound calls')
-  }
+export const voiceCallReceiveWorker: SDKCallWorker<CallingCall, Client> =
+  function* (options): SagaIterator {
+    getLogger().trace('voiceCallReceiveWorker started')
 
-  function* worker(payload: CallingCall) {
-    const callInstance = createCallObject({
-      store: instance.store,
-      // @ts-expect-error
-      emitter: instance.emitter,
+    const {
+      client,
       payload,
-    })
-    instance.baseEmitter.emit('call.received', callInstance)
-  }
+      instanceMap: { get, set },
+    } = options
 
-  while (true) {
-    const action = yield sagaEffects.take(swEventChannel, (action: any) => {
-      return (
-        action.type === 'calling.call.receive' &&
-        contexts.includes(action.payload.context)
-      )
-    })
+    // Contexts is required
+    const { contexts = [] } = client?.options ?? {}
+    if (!contexts.length) {
+      throw new Error('Invalid contexts to receive inbound calls')
+    }
 
-    yield fork(worker, action.payload)
+    // REVIEW: At the time of call receive, should CallInstance be exist in the instanceMap?
+    let callInstance = get(payload.call_id) as Call
+    if (!callInstance) {
+      callInstance = createCallObject({
+        store: client.store,
+        // @ts-expect-error
+        emitter: client.emitter,
+        payload: payload,
+      })
+    } else {
+      callInstance.setPayload(payload)
+    }
+
+    set(payload.call_id, callInstance)
+    client.baseEmitter.emit('call.received', callInstance)
+
+    getLogger().trace('voiceCallReceiveWorker ended')
   }
-}

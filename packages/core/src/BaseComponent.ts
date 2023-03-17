@@ -606,6 +606,21 @@ export class BaseComponent<
     return this.baseEmitter.on(event, fn)
   }
 
+  _once<T extends EventEmitter.EventNames<EventTypes>>(
+    event: T,
+    fn: EventEmitter.EventListener<any, T>
+  ) {
+    console.log('once', event, this.__uuid)
+    return this.baseEmitter.once(event, fn)
+  }
+
+  _off<T extends EventEmitter.EventNames<EventTypes>>(
+    event: T,
+    fn?: EventEmitter.EventListener<any, T>
+  ) {
+    return this.baseEmitter.off(event, fn)
+  }
+
   once<T extends EventEmitter.EventNames<EventTypes>>(
     event: T,
     fn: EventEmitter.EventListener<EventTypes, T>
