@@ -610,7 +610,6 @@ export class BaseComponent<
     event: T,
     fn: EventEmitter.EventListener<any, T>
   ) {
-    console.log('once', event, this.__uuid)
     return this.baseEmitter.once(event, fn)
   }
 

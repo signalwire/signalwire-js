@@ -100,6 +100,11 @@ const configureStore = (options: ConfigureStoreOptions) => {
     return instanceMap
   }
 
+  const deleteInstance = <T>(key: string) => {
+    instanceMap.delete(key) as T
+    return instanceMap
+  }
+
   const runSaga = <T>(
     saga: Saga,
     args: {
@@ -111,7 +116,11 @@ const configureStore = (options: ConfigureStoreOptions) => {
       ...args,
       channels,
       getSession,
-      instanceMap: { get: getInstance, set: setInstance },
+      instanceMap: {
+        get: getInstance,
+        set: setInstance,
+        remove: deleteInstance,
+      },
     })
   }
 

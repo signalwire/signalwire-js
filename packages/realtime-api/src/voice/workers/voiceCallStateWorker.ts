@@ -1,69 +1,50 @@
 import {
   getLogger,
-  sagaEffects,
   SagaIterator,
-  SDKWorker,
-  SDKActions,
-  CallingCallStateEvent,
-  MapToPubSubShape,
+  SDKCallWorker,
+  CallingCallStateEventParams,
 } from '@signalwire/core'
-import type { Call } from '../Call'
+import { Call, createCallObject } from '../Call'
 
-export const voiceCallStateWorker: SDKWorker<Call> = function* (
-  options
-): SagaIterator {
-  const { channels, instance } = options
-  const { swEventChannel, pubSubChannel } = channels
-  getLogger().trace('voiceCallStateWorker started', instance.id, instance.tag)
+export const voiceCallStateWorker: SDKCallWorker<CallingCallStateEventParams> =
+  function* (options): SagaIterator {
+    getLogger().trace('voiceCallStateWorker started')
 
-  let run = true
-  const done = () => (run = false)
+    const {
+      client,
+      payload,
+      instanceMap: { get, set, remove },
+    } = options
 
-  while (run) {
-    const action: MapToPubSubShape<CallingCallStateEvent> =
-      yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
-        if (action.type === 'calling.call.state') {
-          // To avoid mixing events on `connect` we check
-          // for `instance.id` if there's already a callId
-          // value.
-          if (instance.id) {
-            return instance.id === action.payload.call_id
-          }
-          return instance.tag === action.payload.tag
+    // TODO: Why are we getting an undefined payload?
+    if (!payload) return
+
+    switch (payload.call_state) {
+      case 'created':
+      case 'ringing':
+      case 'answered': {
+        let callInstance = get(payload.call_id) as Call
+        if (!callInstance) {
+          callInstance = createCallObject({
+            store: client.store,
+            emitter: client.emitter,
+            payload,
+          })
+        } else {
+          callInstance.setPayload(payload)
         }
-        return false
-      })
-
-    /**
-     * Override (or inject) "tag" with `instance.tag`
-     * because we use it as namespace in the EE and:
-     * - all the inbound legs have no "tag" in the
-     *   `calling.call.state` events
-     * - all the legs created by a "connect" RPC will share
-     *   the same "tag" of the originator leg to allow the
-     *   SDK to make a relation
-     *
-     * Since in the SDK each Call has its own "tag"
-     * (__uuid), we need to target them through the EE with
-     * the right "tag".
-     */
-    const newPayload = {
-      ...action.payload,
-      tag: instance.tag,
+        set(payload.call_id, callInstance)
+        // FIXME: Client is not getting the call.state event on the outbound call.
+        callInstance.baseEmitter.emit('call.state', callInstance)
+        break
+      }
+      case 'ended': {
+        remove(payload.call_id)
+        break
+      }
+      default:
+        break
     }
 
-    /**
-     * Update the Call object payload with the new state
-     */
-    yield sagaEffects.put(pubSubChannel, {
-      type: 'calling.call.state',
-      payload: newPayload,
-    })
-
-    if (newPayload.call_state === 'ended') {
-      done()
-    }
+    getLogger().trace('voiceCallStateWorker ended')
   }
-
-  getLogger().trace('voiceCallStateWorker ended', instance.id, instance.tag)
-}

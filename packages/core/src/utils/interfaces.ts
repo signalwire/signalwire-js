@@ -549,7 +549,8 @@ export type SDKWorkerHooks<
 
 export type InstanceMap = {
   get: (key: string) => unknown
-  set: (key: string, value: unknown) => void
+  set: (key: string, value: unknown) => Map<string, unknown>
+  remove: (key: string) => Map<string, unknown>
 }
 
 type SDKWorkerBaseParams<T> = {

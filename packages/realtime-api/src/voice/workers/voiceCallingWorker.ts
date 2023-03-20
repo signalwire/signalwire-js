@@ -4,12 +4,15 @@ import {
   getLogger,
   sagaEffects,
   SDKActions,
+  MapToPubSubShape,
+  SwEventParams,
 } from '@signalwire/core'
 import { fork } from '@redux-saga/core/effects'
 import type { Client } from '../../client/index'
 import { voiceCallReceiveWorker } from './voiceCallReceiveWorker'
 import { voiceCallPlayWorker } from './voiceCallPlayWorker'
 import { voiceCallRecordWorker } from './voiceCallRecordWorker'
+import { voiceCallStateWorker } from './voiceCallStateWorker'
 
 export const voiceCallingWroker: SDKWorker<Client> = function* (
   options
@@ -18,16 +21,15 @@ export const voiceCallingWroker: SDKWorker<Client> = function* (
   const { channels, instance, instanceMap } = options
   const { swEventChannel } = channels
 
-  while (true) {
-    // @TODO: Proper TS
-    const action = yield sagaEffects.take(
-      swEventChannel,
-      (action: SDKActions) => {
-        return action.type.startsWith('calling.')
-      }
-    )
-
+  function* worker(action: MapToPubSubShape<SwEventParams>) {
     switch (action.type) {
+      case 'calling.call.state':
+        yield fork(voiceCallStateWorker, {
+          client: instance,
+          instanceMap,
+          payload: action.payload,
+        })
+        break
       case 'calling.call.receive':
         yield fork(voiceCallReceiveWorker, {
           client: instance,
@@ -53,4 +55,17 @@ export const voiceCallingWroker: SDKWorker<Client> = function* (
         break
     }
   }
+
+  while (true) {
+    const action: MapToPubSubShape<SwEventParams> = yield sagaEffects.take(
+      swEventChannel,
+      (action: SDKActions) => {
+        return action.type.startsWith('calling.')
+      }
+    )
+
+    yield sagaEffects.fork(worker, action)
+  }
+
+  getLogger().trace('voiceCallingWroker ended')
 }

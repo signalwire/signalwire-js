@@ -24,7 +24,6 @@ export const voiceCallReceiveWorker: SDKCallWorker<CallingCall, Client> =
       throw new Error('Invalid contexts to receive inbound calls')
     }
 
-    // REVIEW: At the time of call receive, should CallInstance be exist in the instanceMap?
     let callInstance = get(payload.call_id) as Call
     if (!callInstance) {
       callInstance = createCallObject({

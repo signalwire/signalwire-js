@@ -51,7 +51,6 @@ import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
 import { toInternalDevices, toInternalPlayParams } from './utils'
 import { Playlist } from './Playlist'
 import {
-  voiceCallStateWorker,
   voiceCallPromptWorker,
   voiceCallTapWorker,
   voiceCallConnectWorker,
@@ -174,18 +173,15 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
      * server. Changes will be available to the consumer via
      * our Proxy API.
      */
-    this.runWorker('voiceCallStateWorker', {
-      worker: voiceCallStateWorker,
-    })
   }
 
   /** Unique id for this voice call */
   get id() {
-    return this.callId || this._payload?.call_id
+    return this._payload?.call_id || this.callId
   }
 
   get state() {
-    return this.callState || this._payload?.call_state
+    return this._payload?.call_state || this.callState
   }
 
   get tag() {
@@ -195,7 +191,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
   /** The type of call. Only phone and sip are currently supported. */
   get type() {
     // @ts-expect-error
-    return (this.device?.type || this._payload?.device?.type) ?? ''
+    return (this._payload?.device?.type || this.device?.type) ?? ''
   }
 
   /** The phone number that the call is coming from. */
@@ -203,20 +199,20 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     if (this.type === 'phone') {
       return (
         // @ts-expect-error
-        (this.device?.params?.fromNumber ||
+        (this._payload?.device?.params?.from_number ||
           // @ts-expect-error
-          this._payload?.device?.params?.from_number) ??
+          this.device?.params?.fromNumber) ??
         ''
       )
     } else if (this.type === 'sip') {
       return (
         // @ts-expect-error
-        (this.device?.params?.from || this._payload?.device?.params?.from) ?? ''
+        (this._payload?.device?.params?.from || this.device?.params?.from) ?? ''
       )
     }
     return (
       // @ts-expect-error
-      (this.device?.params?.from || this._payload?.device?.params?.from) ?? ''
+      (this._payload?.device?.params?.from || this.device?.params?.from) ?? ''
     )
   }
 
@@ -225,20 +221,20 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     if (this.type === 'phone') {
       return (
         // @ts-expect-error
-        (this.device?.params?.toNumber ||
+        (this._payload?.device?.params?.to_number ||
           // @ts-expect-error
-          this._payload?.device?.params?.to_number) ??
+          this.device?.params?.toNumber) ??
         ''
       )
     } else if (this.type === 'sip') {
       return (
         // @ts-expect-error
-        (this.device?.params?.to || this._payload?.device?.params?.to) ?? ''
+        (this._payload?.device?.params?.to || this.device?.params?.to) ?? ''
       )
     }
     return (
       // @ts-expect-error
-      (this.device?.params?.to || this._payload?.device?.params?.to) ?? ''
+      (this._payload?.device?.params?.to || this.device?.params?.to) ?? ''
     )
   }
 
