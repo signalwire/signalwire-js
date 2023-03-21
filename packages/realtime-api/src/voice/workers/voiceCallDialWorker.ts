@@ -1,22 +1,15 @@
 import {
   getLogger,
-  sagaEffects,
   SagaIterator,
-  SDKWorker,
-  SDKActions,
-  MapToPubSubShape,
-  CallingCallDialEvent,
+  SDKCallWorker,
   SDKWorkerHooks,
   ToExternalJSONResult,
   CallingCallDialFailedEventParams,
   toExternalJSON,
+  CallingCallDialEventParams,
 } from '@signalwire/core'
 import type { Call } from '../Call'
-
-const TARGET_DIAL_STATES: CallingCallDialEvent['params']['dial_state'][] = [
-  'answered',
-  'failed',
-]
+import type { Client } from '../../client/index'
 
 type VoiceCallDialWorkerOnDone = (args: Call) => void
 type VoiceCallDialWorkerOnFail = (
@@ -28,34 +21,38 @@ export type VoiceCallDialWorkerHooks = SDKWorkerHooks<
   VoiceCallDialWorkerOnFail
 >
 
-export const voiceCallDialWorker: SDKWorker<Call, VoiceCallDialWorkerHooks> =
-  function* (options): SagaIterator {
-    const { channels, instance, onDone, onFail } = options
-    const { swEventChannel, pubSubChannel } = channels
-    getLogger().trace('voiceCallDialWorker started')
+export const voiceCallDialWorker: SDKCallWorker<
+  CallingCallDialEventParams,
+  Client
+> = function* (options): SagaIterator {
+  getLogger().trace('voiceCallDialWorker started')
+  const {
+    client,
+    payload,
+    instanceMap: { get },
+    initialState,
+  } = options
 
-    const action: MapToPubSubShape<CallingCallDialEvent> =
-      yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
-        if (
-          action.type === 'calling.call.dial' &&
-          TARGET_DIAL_STATES.includes(action.payload.dial_state)
-        ) {
-          return instance.tag === action.payload.tag
-        }
-        return false
-      })
+  // Inbound calls do not have the tag
+  if (payload.tag && payload.tag !== initialState.tag) return
 
-    if (action.payload.dial_state === 'answered') {
-      yield sagaEffects.put(pubSubChannel, {
-        type: 'calling.call.state',
-        payload: action.payload.call,
-      })
-      onDone?.(instance)
-    } else if (action.payload.dial_state === 'failed') {
-      onFail?.(toExternalJSON(action.payload))
-    } else {
-      throw new Error('[voiceCallDialWorker] unhandled call_state')
+  switch (payload.dial_state) {
+    case 'dialing': {
+      break
     }
-
-    getLogger().trace('voiceCallDialWorker ended')
+    case 'failed': {
+      client.baseEmitter.emit('dial.failed', toExternalJSON(payload))
+      break
+    }
+    case 'answered': {
+      const callInstance = get(payload.call.call_id) as Call
+      client.baseEmitter.emit('dial.answered', callInstance)
+      callInstance.baseEmitter.emit('call.state', payload.call)
+      break
+    }
+    default:
+      break
   }
+
+  getLogger().trace('voiceCallDialWorker ended')
+}

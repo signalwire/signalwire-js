@@ -100,8 +100,8 @@ const configureStore = (options: ConfigureStoreOptions) => {
     return instanceMap
   }
 
-  const deleteInstance = <T>(key: string) => {
-    instanceMap.delete(key) as T
+  const deleteInstance = (key: string) => {
+    instanceMap.delete(key)
     return instanceMap
   }
 

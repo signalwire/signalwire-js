@@ -572,6 +572,7 @@ type SDKCallWorkerBaseParams<T, U> = {
   payload: T
   client: U
   instanceMap: InstanceMap
+  initialState?: any
 }
 
 export type SDKWorkerParams<

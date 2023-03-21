@@ -12,13 +12,14 @@ import type { Client } from '../../client/index'
 import { voiceCallReceiveWorker } from './voiceCallReceiveWorker'
 import { voiceCallPlayWorker } from './voiceCallPlayWorker'
 import { voiceCallRecordWorker } from './voiceCallRecordWorker'
+import { voiceCallDialWorker } from './voiceCallDialWorker'
 import { voiceCallStateWorker } from './voiceCallStateWorker'
 
 export const voiceCallingWroker: SDKWorker<Client> = function* (
   options
 ): SagaIterator {
   getLogger().trace('voiceCallingWroker started')
-  const { channels, instance, instanceMap } = options
+  const { channels, instance, instanceMap, initialState } = options
   const { swEventChannel } = channels
 
   function* worker(action: MapToPubSubShape<SwEventParams>) {
@@ -26,6 +27,15 @@ export const voiceCallingWroker: SDKWorker<Client> = function* (
       case 'calling.call.state':
         yield fork(voiceCallStateWorker, {
           client: instance,
+          initialState,
+          instanceMap,
+          payload: action.payload,
+        })
+        break
+      case 'calling.call.dial':
+        yield fork(voiceCallDialWorker, {
+          client: instance,
+          initialState,
           instanceMap,
           payload: action.payload,
         })

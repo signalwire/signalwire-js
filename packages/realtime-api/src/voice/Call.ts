@@ -40,7 +40,6 @@ import {
   VoiceCallDetectFaxParams,
   VoiceCallDetectDigitParams,
   CallingCallDetectEventParams,
-  VoiceDialerParams,
   CallingCallWaitForState,
   CallingCall,
   EventEmitter,
@@ -54,10 +53,8 @@ import {
   voiceCallPromptWorker,
   voiceCallTapWorker,
   voiceCallConnectWorker,
-  voiceCallDialWorker,
   voiceCallSendDigitsWorker,
   voiceCallDetectWorker,
-  VoiceCallDialWorkerHooks,
   VoiceCallSendDigitsWorkerHooks,
   voiceCallCollectWorker,
 } from './workers'
@@ -456,41 +453,6 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         },
       ],
     ])
-  }
-
-  dial(params: VoiceDialerParams) {
-    return new Promise((resolve, reject) => {
-      this.runWorker<VoiceCallDialWorkerHooks>('voiceCallDialWorker', {
-        worker: voiceCallDialWorker,
-        onDone: resolve,
-        onFail: reject,
-      })
-
-      let executeParams: Record<string, any>
-      if (params instanceof DeviceBuilder) {
-        const { devices } = params
-        executeParams = {
-          tag: this.__uuid,
-          devices: toInternalDevices(devices),
-        }
-      } else if ('region' in params) {
-        const { region, devices: deviceBuilder } = params
-        executeParams = {
-          tag: this.__uuid,
-          region,
-          devices: toInternalDevices(deviceBuilder.devices),
-        }
-      } else {
-        throw new Error('[dial] Invalid input')
-      }
-
-      this.execute({
-        method: 'calling.dial',
-        params: executeParams,
-      }).catch((e) => {
-        reject(e)
-      })
-    })
   }
 
   /**

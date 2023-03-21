@@ -3,6 +3,7 @@ import {
   BaseComponentOptions,
   toExternalJSON,
   ClientContextContract,
+  uuid,
 } from '@signalwire/core'
 import type {
   DisconnectableClientContract,
@@ -11,6 +12,9 @@ import type {
   VoiceDeviceBuilder,
   VoiceCallDialPhoneMethodParams,
   VoiceCallDialSipMethodParams,
+  ToExternalJSONResult,
+  CallingCallDialFailedEventParams,
+  VoiceDialerParams,
 } from '@signalwire/core'
 import { RealtimeClient } from '../client/index'
 import { createCallObject, Call } from './Call'
@@ -18,6 +22,7 @@ import { voiceCallingWroker, voiceClientWorker } from './workers'
 import { DeviceBuilder } from './DeviceBuilder'
 import type { RealTimeCallApiEvents } from '../types'
 import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
+import { toInternalDevices } from './utils'
 
 export * from './VoiceClient'
 export { Call } from './Call'
@@ -199,11 +204,18 @@ class VoiceAPI extends AutoApplyTransformsConsumer<VoiceClientApiEvents> {
   /** @internal */
   protected _eventsPrefix = 'calling' as const
 
+  private _tag: string
+
   constructor(options: BaseComponentOptions<VoiceClientApiEvents>) {
     super(options)
 
+    this._tag = uuid()
+
     this.runWorker('voiceCallingWorker', {
       worker: voiceCallingWroker,
+      initialState: {
+        tag: this._tag,
+      },
     })
     this.runWorker('voiceClientWorker', {
       worker: voiceClientWorker,
@@ -253,10 +265,57 @@ class VoiceAPI extends AutoApplyTransformsConsumer<VoiceClientApiEvents> {
     ])
   }
 
+  dial(params: VoiceDialerParams) {
+    return new Promise((resolve, reject) => {
+      const resolveHandler = (call: Call) => {
+        // @ts-expect-error
+        this._off('dial.failed', rejectHandler)
+        resolve(call)
+      }
+
+      const rejectHandler = (
+        error: ToExternalJSONResult<CallingCallDialFailedEventParams>
+      ) => {
+        // @ts-expect-error
+        this._off('dial.answered', resolveHandler)
+        reject(error)
+      }
+
+      // @ts-expect-error
+      this._once('dial.answered', resolveHandler)
+      // @ts-expect-error
+      this._once('dial.failed', rejectHandler)
+
+      let executeParams: Record<string, any>
+      if (params instanceof DeviceBuilder) {
+        const { devices } = params
+        executeParams = {
+          tag: this._tag,
+          devices: toInternalDevices(devices),
+        }
+      } else if ('region' in params) {
+        const { region, devices: deviceBuilder } = params
+        executeParams = {
+          tag: this._tag,
+          region,
+          devices: toInternalDevices(deviceBuilder.devices),
+        }
+      } else {
+        throw new Error('[dial] Invalid input')
+      }
+
+      this.execute({
+        method: 'calling.dial',
+        params: executeParams,
+      }).catch((e) => {
+        reject(e)
+      })
+    })
+  }
+
   dialPhone({ region, ...params }: VoiceCallDialPhoneMethodParams) {
     const devices = new DeviceBuilder().add(DeviceBuilder.Phone(params))
     // dial is available through the VoiceClient Proxy
-    // @ts-expect-error
     return this.dial({
       region,
       devices,
@@ -266,7 +325,6 @@ class VoiceAPI extends AutoApplyTransformsConsumer<VoiceClientApiEvents> {
   dialSip({ region, ...params }: VoiceCallDialSipMethodParams) {
     const devices = new DeviceBuilder().add(DeviceBuilder.Sip(params))
     // dial is available through the VoiceClient Proxy
-    // @ts-expect-error
     return this.dial({
       region,
       devices,

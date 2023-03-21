@@ -14,10 +14,11 @@ export const voiceCallStateWorker: SDKCallWorker<CallingCallStateEventParams> =
       client,
       payload,
       instanceMap: { get, set, remove },
+      initialState,
     } = options
 
-    // TODO: Why are we getting an undefined payload?
-    if (!payload) return
+    // Inbound calls do not have the tag
+    if (payload.tag && payload.tag !== initialState.tag) return
 
     switch (payload.call_state) {
       case 'created':
@@ -34,7 +35,6 @@ export const voiceCallStateWorker: SDKCallWorker<CallingCallStateEventParams> =
           callInstance.setPayload(payload)
         }
         set(payload.call_id, callInstance)
-        // FIXME: Client is not getting the call.state event on the outbound call.
         callInstance.baseEmitter.emit('call.state', callInstance)
         break
       }
