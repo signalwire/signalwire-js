@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@sw-internal/common": "^0.0.3",
-    "execa": "^6.1.0",
+    "execa": "^7.1.1",
     "listr2": "^4.0.5"
   },
   "devDependencies": {

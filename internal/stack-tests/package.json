@@ -9,6 +9,6 @@
     "test": ""
   },
   "dependencies": {
-    "execa": "^6.1.0"
+    "execa": "^7.1.1"
   }
 }
