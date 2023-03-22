@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.6.1] - 2023-03-22
+
+### Changed
+
+- [#661](https://github.com/signalwire/signalwire-js/pull/661) [`ef18e7ef`](https://github.com/signalwire/signalwire-js/commit/ef18e7ef8b2c4121d7693a2683f1f190dd08f112) - Internal changes to keep the member_id stable across promote/demote.
+
+- [#738](https://github.com/signalwire/signalwire-js/pull/738) [`ba39c819`](https://github.com/signalwire/signalwire-js/commit/ba39c819fa5cccd97deaa9135696ed70a289296a) - Remove executeActionWatcher and related functions
+
+- [#664](https://github.com/signalwire/signalwire-js/pull/664) [`bc56cc42`](https://github.com/signalwire/signalwire-js/commit/bc56cc42497220d43085adea8f3834fbce60444b) - Add worker to handle promoted/demoted events and trigger the proper renegotiation.
+
+### Fixed
+
+- [#664](https://github.com/signalwire/signalwire-js/pull/664) [`bc56cc42`](https://github.com/signalwire/signalwire-js/commit/bc56cc42497220d43085adea8f3834fbce60444b) - Fix check for media to enable on promotion process.
+
+### Dependencies
+
+- Updated dependencies [[`bc56cc42`](https://github.com/signalwire/signalwire-js/commit/bc56cc42497220d43085adea8f3834fbce60444b), [`ba39c819`](https://github.com/signalwire/signalwire-js/commit/ba39c819fa5cccd97deaa9135696ed70a289296a), [`bc56cc42`](https://github.com/signalwire/signalwire-js/commit/bc56cc42497220d43085adea8f3834fbce60444b), [`bc56cc42`](https://github.com/signalwire/signalwire-js/commit/bc56cc42497220d43085adea8f3834fbce60444b), [`ba39c819`](https://github.com/signalwire/signalwire-js/commit/ba39c819fa5cccd97deaa9135696ed70a289296a), [`688306f4`](https://github.com/signalwire/signalwire-js/commit/688306f4a5bd157dee40c13ce757001cfa30e832), [`bc56cc42`](https://github.com/signalwire/signalwire-js/commit/bc56cc42497220d43085adea8f3834fbce60444b), [`ba39c819`](https://github.com/signalwire/signalwire-js/commit/ba39c819fa5cccd97deaa9135696ed70a289296a), [`bc56cc42`](https://github.com/signalwire/signalwire-js/commit/bc56cc42497220d43085adea8f3834fbce60444b), [`bc56cc42`](https://github.com/signalwire/signalwire-js/commit/bc56cc42497220d43085adea8f3834fbce60444b), [`bc56cc42`](https://github.com/signalwire/signalwire-js/commit/bc56cc42497220d43085adea8f3834fbce60444b), [`ba39c819`](https://github.com/signalwire/signalwire-js/commit/ba39c819fa5cccd97deaa9135696ed70a289296a)]:
+  - @signalwire/core@3.14.0
+
 ## [3.6.0] - 2023-03-07
 
 ### Changed

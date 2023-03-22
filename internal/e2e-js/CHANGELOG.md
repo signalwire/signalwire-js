@@ -1,5 +1,15 @@
 # @sw-internal/e2e-js
 
+## 0.0.9
+
+### Patch Changes
+
+- [#691](https://github.com/signalwire/signalwire-js/pull/691) [`72b3f65f`](https://github.com/signalwire/signalwire-js/commit/72b3f65fcf2d7fb6325fdbf2d6bb71266c694b90) - [internal] check memberId stable across promote/demote process
+
+- [#681](https://github.com/signalwire/signalwire-js/pull/681) [`bb6ecbf4`](https://github.com/signalwire/signalwire-js/commit/bb6ecbf4574ee72f0e4e8e7b42b5ccc832042fff) - [internal] Review promote/demote e2e tests.
+
+- [#673](https://github.com/signalwire/signalwire-js/pull/673) [`6c4d4b3d`](https://github.com/signalwire/signalwire-js/commit/6c4d4b3dbba722537653a9f6b11fb516c107d5f2) - Add `interactivityMode` to the RoomSession object.
+
 ## 0.0.8
 
 ### Patch Changes
