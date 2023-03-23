@@ -10,7 +10,7 @@ import {
   randomizeRoomName
 } from '../utils'
 
-test.describe('RoomSession', () => {
+test.describe('Room Session Multiple Streams', () => {
 
   const MAX_STREAM_FOR_ENTERPRIZE = 5;
 

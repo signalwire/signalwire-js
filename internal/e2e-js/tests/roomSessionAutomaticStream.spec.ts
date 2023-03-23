@@ -10,7 +10,7 @@ import {
   randomizeRoomName
 } from '../utils'
 
-test.describe('RoomSession', () => {
+test.describe('Room Session Auto Stream', () => {
 
   const streamingURL = `${process.env.RTMP_SERVER}${process.env.RTMP_STREAM_NAME}`
 

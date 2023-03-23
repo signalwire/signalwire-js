@@ -8,7 +8,7 @@ import {
   createOrUpdateRoom,
 } from '../utils'
 
-test.describe('RoomSessionMaxMembers', () => {
+test.describe('Room Session Max Members', () => {
 
 test('Should fail to join when max_member is reached', async ({
     createCustomPage,
