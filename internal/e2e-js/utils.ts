@@ -305,6 +305,7 @@ export const expectRoomJoined = (
     return new Promise<any>(async (resolve) => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
+      
       roomObj.once('room.joined', resolve)
 
       if (invokeJoin) {
@@ -619,4 +620,17 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
   expect(last.inboundRTP.audio.packetsReceived).toBeGreaterThan(
     first.inboundRTP.audio.packetsReceived + minAudioPacketsExpected
   )
+}
+
+export const expectRoomLeft = (page: Page) => {
+  return page.evaluate(() => {
+    return new Promise<any>(async (resolve) => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      
+      roomObj.once('room.left', resolve)
+      await roomObj.leave()
+    
+    })
+  })
 }

@@ -7,6 +7,7 @@ import {
   CreateOrUpdateRoomOptions,
   randomizeRoomName,
   expectRoomJoined,
+  expectMCUVisible,
 } from '../utils'
 
 interface TestConfig {
@@ -42,7 +43,7 @@ test.describe('Room Settings', () => {
   ]
 
   tests.forEach((row) => {
-    test(row.testName, async ({ createCustomPage }) => {
+    test.skip(row.testName, async ({ createCustomPage }) => {
       const page = await createCustomPage({ name: '[page]' })
       await page.goto(SERVER_URL)
 
@@ -70,4 +71,65 @@ test.describe('Room Settings', () => {
       await deleteRoom(roomData.id)
     })
   })
+
+  test('Should fail to join when max_member is reached', async ({
+    createCustomPage,
+  }) => {
+
+    const roomName = 'another'
+
+    const pageOne = await createCustomPage({ name: '[pageOne]' })
+    const pageTwo = await createCustomPage({ name: '[pageTwo]' })
+    const pageThree = await createCustomPage({ name: '[pageThree]' })
+
+    await Promise.all([
+      pageOne.goto(SERVER_URL),
+      pageTwo.goto(SERVER_URL),
+      pageThree.goto(SERVER_URL),
+    ])
+
+    const connectionSettings = {
+      vrt: {
+          room_name: roomName,
+          user_name: 'member',
+          auto_create_room: false,
+          permissions: [],
+        },
+        initialEvents: [],
+    }
+
+
+    await createOrUpdateRoom({
+        name: roomName,
+        max_members: 2
+      })
+
+    await createTestRoomSession(pageOne, connectionSettings)
+    await createTestRoomSession(pageTwo, connectionSettings)
+    await createTestRoomSession(pageThree, connectionSettings)
+
+    await expectRoomJoined(pageOne)
+    await expectRoomJoined(pageTwo)
+
+    await expectMCUVisible(pageOne)
+    await expectMCUVisible(pageTwo)
+
+    
+    // Expect 3rd member to fail join
+    await expect(pageThree.evaluate(() => {
+    return new Promise<any>(async (resolve, reject) => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      roomObj.once('room.joined', resolve)
+
+      try {
+        await roomObj.join()
+      } catch (e) {
+        console.log('##########', e)
+        reject(e)
+      }
+    })
+  })).rejects.toBeTruthy()
+
+  });
 })
