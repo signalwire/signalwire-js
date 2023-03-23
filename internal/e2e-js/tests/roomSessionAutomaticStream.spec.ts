@@ -7,17 +7,15 @@ import {
   expectMCUVisible,
   createOrUpdateRoom,
   createStreamForRoom,
-  randomizeRoomName
+  randomizeRoomName,
 } from '../utils'
 
 test.describe('Room Session Auto Stream', () => {
-
   const streamingURL = `${process.env.RTMP_SERVER}${process.env.RTMP_STREAM_NAME}`
 
   test('Should Join a Room with existing stream', async ({
     createCustomPage,
   }) => {
-
     const roomName = randomizeRoomName()
 
     const connectionSettings = {
@@ -29,7 +27,7 @@ test.describe('Room Session Auto Stream', () => {
       },
       initialEvents: ['stream.started', 'stream.ended'],
     }
-    
+
     const pageOne = await createCustomPage({ name: '[pageOne]' })
     pageOne.goto(SERVER_URL)
 
@@ -42,13 +40,12 @@ test.describe('Room Session Auto Stream', () => {
 
     await expectMCUVisible(pageOne)
 
-    let streamsResult  = await pageOne.evaluate(() => {
+    let streamsResult = await pageOne.evaluate(() => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
       return roomObj.getStreams()
     })
 
     expect(streamsResult.streams).toHaveLength(1)
-
-  });
+  })
 })

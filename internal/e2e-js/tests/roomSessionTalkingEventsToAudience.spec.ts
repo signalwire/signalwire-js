@@ -57,7 +57,7 @@ test.describe('RoomSession talking events to audience', () => {
       })
     })
 
-    const waitForMemberJoined = pageTwo.evaluate(async() => {
+    const waitForMemberJoined = pageTwo.evaluate(async () => {
       return new Promise((resolve, reject) => {
         // @ts-expect-error
         const roomObj = window._roomObj
@@ -65,16 +65,11 @@ test.describe('RoomSession talking events to audience', () => {
           if (member.name === 'e2e_member') {
             resolve(true)
           } else {
-            reject(
-              new Error(
-                '[member.joined] Name is not "e2e_member"'
-              )
-            )
+            reject(new Error('[member.joined] Name is not "e2e_member"'))
           }
         })
       })
     })
-
 
     await pageTwo.waitForTimeout(1000)
 

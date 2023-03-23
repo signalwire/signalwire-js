@@ -7,40 +7,38 @@ import {
   expectMCUVisible,
   createOrUpdateRoom,
   createStreamForRoom,
-  randomizeRoomName
+  randomizeRoomName,
 } from '../utils'
 
 test.describe('Room Session Multiple Streams', () => {
-
-  const MAX_STREAM_FOR_ENTERPRIZE = 5;
+  const MAX_STREAM_FOR_ENTERPRIZE = 5
 
   const streamingURL = `${process.env.RTMP_SERVER}${process.env.RTMP_STREAM_NAME}`
 
-  const createStream = async ({ STREAMING_URL}:{STREAMING_URL: string}) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+  const createStream = async ({ STREAMING_URL }: { STREAMING_URL: string }) => {
+    // @ts-expect-error
+    const roomObj: Video.RoomSession = window._roomObj
 
-        const streamStarted = new Promise((resolve, reject) => {
-          roomObj.on('stream.started', (params) => {
-            if (params.state === 'streaming') {
-              resolve(true)
-            } else {
-              reject(new Error('[stream.started] state is not "stream"'))
-            }
-          })
-        })
+    const streamStarted = new Promise((resolve, reject) => {
+      roomObj.on('stream.started', (params) => {
+        if (params.state === 'streaming') {
+          resolve(true)
+        } else {
+          reject(new Error('[stream.started] state is not "stream"'))
+        }
+      })
+    })
 
-        await roomObj.startStream({
-          url: STREAMING_URL!,
-        })
+    await roomObj.startStream({
+      url: STREAMING_URL!,
+    })
 
-        return streamStarted
-      }
+    return streamStarted
+  }
 
   test('Should create multiple streams and and list data bout them all', async ({
     createCustomPage,
   }) => {
-
     const pageOne = await createCustomPage({ name: '[pageOnes]' })
     await pageOne.goto(SERVER_URL)
 
@@ -59,30 +57,28 @@ test.describe('Room Session Multiple Streams', () => {
     await expectRoomJoined(pageOne)
 
     await expectMCUVisible(pageOne)
-    
-  await pageOne.evaluate(createStream, { STREAMING_URL: `${streamingURL}_a`})
-  let streamsResult  = await pageOne.evaluate(() => {
-    // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
-    return roomObj.getStreams()
-  })
-  expect(streamsResult.streams).toHaveLength(1)
 
-  // This call will fail if test is executed using a "FREE" account, check this first in case of failures
-  await pageOne.evaluate(createStream, { STREAMING_URL: `${streamingURL}_b`})
-  streamsResult  = await pageOne.evaluate(() => {
-    // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
-    return roomObj.getStreams()
-  })
-  expect(streamsResult.streams).toHaveLength(2)
-  
+    await pageOne.evaluate(createStream, { STREAMING_URL: `${streamingURL}_a` })
+    let streamsResult = await pageOne.evaluate(() => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      return roomObj.getStreams()
+    })
+    expect(streamsResult.streams).toHaveLength(1)
+
+    // This call will fail if test is executed using a "FREE" account, check this first in case of failures
+    await pageOne.evaluate(createStream, { STREAMING_URL: `${streamingURL}_b` })
+    streamsResult = await pageOne.evaluate(() => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      return roomObj.getStreams()
+    })
+    expect(streamsResult.streams).toHaveLength(2)
   })
 
   test('Should create more the MAX_STREAM_FOR_ENTERPRIZE streams', async ({
     createCustomPage,
   }) => {
-
     const pageOne = await createCustomPage({ name: '[pageOnes]' })
     await pageOne.goto(SERVER_URL)
 
@@ -102,11 +98,16 @@ test.describe('Room Session Multiple Streams', () => {
 
     await expectMCUVisible(pageOne)
 
-    const streamNumbers = Array.from({ length: MAX_STREAM_FOR_ENTERPRIZE }, (_, i) => i+1)
+    const streamNumbers = Array.from(
+      { length: MAX_STREAM_FOR_ENTERPRIZE },
+      (_, i) => i + 1
+    )
 
-    for(let streamNumber of streamNumbers) {
-      await pageOne.evaluate(createStream, { STREAMING_URL: `${streamingURL}_${streamNumber}`})
-      let streamsResult  = await pageOne.evaluate(() => {
+    for (let streamNumber of streamNumbers) {
+      await pageOne.evaluate(createStream, {
+        STREAMING_URL: `${streamingURL}_${streamNumber}`,
+      })
+      let streamsResult = await pageOne.evaluate(() => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
         return roomObj.getStreams()
@@ -115,9 +116,10 @@ test.describe('Room Session Multiple Streams', () => {
       expect(streamsResult.streams).toHaveLength(streamNumber)
     }
 
-    await expect(pageOne.evaluate(createStream, { STREAMING_URL: `${streamingURL}_${MAX_STREAM_FOR_ENTERPRIZE+1}`}))
-    .rejects.toBeTruthy()
-  
+    await expect(
+      pageOne.evaluate(createStream, {
+        STREAMING_URL: `${streamingURL}_${MAX_STREAM_FOR_ENTERPRIZE + 1}`,
+      })
+    ).rejects.toBeTruthy()
   })
-
 })

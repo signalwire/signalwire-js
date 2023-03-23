@@ -77,7 +77,7 @@ test.describe('RoomSession', () => {
 
         return streamStarted
       },
-      { STREAMING_URL: streamingURL}
+      { STREAMING_URL: streamingURL }
     )
 
     // Checks that the video is visible on pageTwo

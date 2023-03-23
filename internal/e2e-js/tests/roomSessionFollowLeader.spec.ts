@@ -6,11 +6,13 @@ import {
   expectRoomJoined,
   expectMCUVisible,
   expectPageReceiveAudio,
-  randomizeRoomName
+  randomizeRoomName,
 } from '../utils'
 
 test.describe('RoomSession removeAllMembers method', () => {
-  test('should remove all members from a room', async ({ createCustomPage }) => {
+  test('should remove all members from a room', async ({
+    createCustomPage,
+  }) => {
     const allPages = await Promise.all([
       createCustomPage({ name: '[page1]' }),
       createCustomPage({ name: '[page2]' }),
@@ -29,7 +31,7 @@ test.describe('RoomSession removeAllMembers method', () => {
             user_name: `e2e_follow_leader_${i + 1}`,
             permissions: [],
             end_room_session_on_leave: i === 0, // make 1st the "leader"
-            join_as: i === allPages.length-1 ? 'audience' : 'member' // makes last audience
+            join_as: i === allPages.length - 1 ? 'audience' : 'member', // makes last audience
           },
           initialEvents: [
             'member.joined',
@@ -67,21 +69,19 @@ test.describe('RoomSession removeAllMembers method', () => {
       })
     })
 
-    await pageOne.evaluate(
-      async () => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+    await pageOne.evaluate(async () => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
 
-        const promiseWaitForMember1Left = new Promise((resolve) => {
-          roomObj.on('room.left', () => {
-            resolve(true)
-          })
+      const promiseWaitForMember1Left = new Promise((resolve) => {
+        roomObj.on('room.left', () => {
+          resolve(true)
         })
+      })
 
-        await roomObj.leave()
-        return await promiseWaitForMember1Left
-      }
-    )
+      await roomObj.leave()
+      return await promiseWaitForMember1Left
+    })
 
     await Promise.all([promiseWaitForMember2Left, promiseWaitForMember3Left])
   })

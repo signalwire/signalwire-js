@@ -214,9 +214,15 @@ test.describe('RoomSession', () => {
           if (params.state === 'recording' && recordingPaused === true) {
             resolve(true)
           } else if (params.state === 'paused' && recordingPaused === true) {
-            console.log("[recording.updated] Still waiting for recording to resume...")
+            console.log(
+              '[recording.updated] Still waiting for recording to resume...'
+            )
           } else {
-            reject(new Error('[recording.updated] state is not "paused" or "recording"'))
+            reject(
+              new Error(
+                '[recording.updated] state is not "paused" or "recording"'
+              )
+            )
           }
         })
       })
@@ -245,7 +251,7 @@ test.describe('RoomSession', () => {
         roomUpdatedStarted,
         roomUpdatedPaused,
         roomUpdatedResumed,
-        recordingEnded
+        recordingEnded,
       ])
     })
 

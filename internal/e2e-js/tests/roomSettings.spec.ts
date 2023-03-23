@@ -75,7 +75,6 @@ test.describe('Room Settings', () => {
   test('Should fail to join when max_member is reached', async ({
     createCustomPage,
   }) => {
-
     const roomName = 'another'
 
     const pageOne = await createCustomPage({ name: '[pageOne]' })
@@ -90,19 +89,18 @@ test.describe('Room Settings', () => {
 
     const connectionSettings = {
       vrt: {
-          room_name: roomName,
-          user_name: 'member',
-          auto_create_room: false,
-          permissions: [],
-        },
-        initialEvents: [],
+        room_name: roomName,
+        user_name: 'member',
+        auto_create_room: false,
+        permissions: [],
+      },
+      initialEvents: [],
     }
 
-
     await createOrUpdateRoom({
-        name: roomName,
-        max_members: 2
-      })
+      name: roomName,
+      max_members: 2,
+    })
 
     await createTestRoomSession(pageOne, connectionSettings)
     await createTestRoomSession(pageTwo, connectionSettings)
@@ -114,22 +112,22 @@ test.describe('Room Settings', () => {
     await expectMCUVisible(pageOne)
     await expectMCUVisible(pageTwo)
 
-    
     // Expect 3rd member to fail join
-    await expect(pageThree.evaluate(() => {
-    return new Promise<any>(async (resolve, reject) => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      roomObj.once('room.joined', resolve)
+    await expect(
+      pageThree.evaluate(() => {
+        return new Promise<any>(async (resolve, reject) => {
+          // @ts-expect-error
+          const roomObj: Video.RoomSession = window._roomObj
+          roomObj.once('room.joined', resolve)
 
-      try {
-        await roomObj.join()
-      } catch (e) {
-        console.log('##########', e)
-        reject(e)
-      }
-    })
-  })).rejects.toBeTruthy()
-
-  });
+          try {
+            await roomObj.join()
+          } catch (e) {
+            console.log('##########', e)
+            reject(e)
+          }
+        })
+      })
+    ).rejects.toBeTruthy()
+  })
 })
