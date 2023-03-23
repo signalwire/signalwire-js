@@ -136,10 +136,7 @@ export const callingCollectTriggerEvent = toLocalEvent<EmitterTransformsEvents>(
 export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEvents> {
   protected _eventsPrefix = 'calling' as const
 
-  public callId: string
-  public nodeId: string
   public peer: string
-  public callState: CallingCallState
   public connectState: CallingCallConnectState
   private _payload: CallingCall
 
@@ -148,9 +145,6 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
     if (options.payload) {
       this._payload = options.payload
-      this.callId = options.payload.call_id
-      this.nodeId = options.payload.node_id
-      this.callState = options.payload.call_state
     }
 
     this._attachListeners(this.__uuid)
@@ -174,15 +168,27 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
   /** Unique id for this voice call */
   get id() {
-    return this._payload?.call_id || this.callId
+    return this._payload?.call_id
+  }
+
+  get callId() {
+    return this._payload?.call_id
   }
 
   get state() {
-    return this._payload?.call_state || this.callState
+    return this._payload?.call_state
+  }
+
+  get callState() {
+    return this._payload?.call_state
   }
 
   get tag() {
     return this.__uuid
+  }
+
+  get nodeId() {
+    return this._payload.node_id
   }
 
   /** The type of call. Only phone and sip are currently supported. */
@@ -241,7 +247,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
   }
 
   get active() {
-    return this.callState === 'answered'
+    return this.state === 'answered'
   }
 
   get connected() {
@@ -516,7 +522,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         reject(new Error(`Can't call answer() on a call without callId.`))
       }
 
-      this.on('call.state', (params) => {
+      this._on('call.state', (params) => {
         if (params.callState === 'answered') {
           resolve(this)
         } else if (params.callState === 'ended') {
