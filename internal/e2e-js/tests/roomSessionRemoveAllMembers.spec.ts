@@ -6,11 +6,13 @@ import {
   expectRoomJoined,
   expectMCUVisible,
   expectPageReceiveAudio,
-  randomizeRoomName
+  randomizeRoomName,
 } from '../utils'
 
 test.describe('RoomSession removeAllMembers method', () => {
-  test('should remove all members from a room', async ({ createCustomPage }) => {
+  test('should remove all members from a room', async ({
+    createCustomPage,
+  }) => {
     const allPages = await Promise.all([
       createCustomPage({ name: '[page1]' }),
       createCustomPage({ name: '[page2]' }),
@@ -65,22 +67,22 @@ test.describe('RoomSession removeAllMembers method', () => {
       })
     })
 
-    await pageOne.evaluate(
-      async () => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+    await pageOne.evaluate(async () => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
 
-        const promiseWaitForMember1Left = new Promise((resolve) => {
-          roomObj.on('room.left', () => {
-            resolve(true)
-          })
+      const promiseWaitForMember1Left = new Promise((resolve) => {
+        roomObj.on('room.left', () => {
+          resolve(true)
         })
+      })
 
-        await roomObj.removeAllMembers()
-        return await promiseWaitForMember1Left
-      }
-    )
+      await roomObj.removeAllMembers()
+      return promiseWaitForMember1Left
+    })
 
     await Promise.all([promiseWaitForMember2Left, promiseWaitForMember3Left])
+
+    await pageOne.waitForTimeout(5_000)
   })
 })
