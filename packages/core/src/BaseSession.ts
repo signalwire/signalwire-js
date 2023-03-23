@@ -580,7 +580,7 @@ export class BaseSession {
     status: Extract<SessionStatus, 'reconnecting' | 'disconnected'>
   ) {
     this._clearCheckPingTimer()
-    this.logger.debug('Close Connection')
+    this.logger.debug('Close Connection:', status)
     this._status = status
     this.dispatch(
       sessionActions.authStatus(
