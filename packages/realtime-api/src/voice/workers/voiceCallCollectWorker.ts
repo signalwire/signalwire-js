@@ -1,116 +1,79 @@
 import {
   getLogger,
-  sagaEffects,
   SagaIterator,
-  SDKWorker,
-  SDKActions,
-  CallingCallCollectEvent,
-  MapToPubSubShape,
+  SDKCallWorker,
+  CallingCallCollectEventParams,
 } from '@signalwire/core'
-import { callingCollectTriggerEvent } from '../Call'
 import type { Call } from '../Call'
+import { CallCollect, createCallCollectObject } from '../CallCollect'
 
-export const voiceCallCollectWorker: SDKWorker<Call> = function* (
-  options
-): SagaIterator {
-  getLogger().trace('voiceCallCollectWorker started')
-  const { channels, instance, initialState } = options
-  const { swEventChannel, pubSubChannel } = channels
-  const { controlId } = initialState
-  if (!controlId) {
-    throw new Error('Missing controlId for collect')
-  }
+export const voiceCallCollectWorker: SDKCallWorker<CallingCallCollectEventParams> =
+  function* (options): SagaIterator {
+    getLogger().trace('voiceCallCollectWorker started')
+    const {
+      payload,
+      instanceMap: { get, set },
+    } = options
 
-  let run = true
-  const done = () => (run = false)
-
-  while (run) {
-    const action: MapToPubSubShape<CallingCallCollectEvent> =
-      yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
-        return (
-          action.type === 'calling.call.collect' &&
-          action.payload.control_id === controlId
-        )
-      })
-
-    /** Add `tag` to the payload to allow pubSubSaga to match it with the Call namespace */
-    const payloadWithTag = {
-      tag: instance.tag,
-      ...action.payload,
+    const callInstance = get(payload.call_id) as Call
+    if (!callInstance) {
+      throw new Error('Missing call instance for collect')
     }
 
-    /**
-     * Update the original CallPrompt object using the transform pipeline
-     */
-    yield sagaEffects.put(pubSubChannel, {
-      // @ts-expect-error
-      type: callingCollectTriggerEvent,
-      // @ts-ignore
-      payload: payloadWithTag,
-    })
+    let collectInstance = get(payload.control_id) as CallCollect
+    if (!collectInstance) {
+      collectInstance = createCallCollectObject({
+        store: callInstance.store,
+        // @ts-expect-error
+        emitter: callInstance.emitter,
+        payload,
+      })
+    } else {
+      collectInstance.setPayload(payload)
+    }
+    set(payload.control_id, collectInstance)
 
     /**
      * Only when partial_results: true
      */
-    if (action.payload.final === false) {
-      yield sagaEffects.put(pubSubChannel, {
-        type: 'calling.collect.updated',
-        payload: payloadWithTag,
-      })
+    if (payload.final === false) {
+      callInstance.baseEmitter.emit('collect.updated', collectInstance)
     } else {
-      if (action.payload.result) {
-        let typeToEmit:
-          | 'calling.collect.failed'
-          | 'calling.collect.ended'
-          | 'calling.collect.startOfInput'
-        switch (action.payload.result.type) {
+      if (payload.result) {
+        switch (payload.result.type) {
+          case 'start_of_input': {
+            callInstance.baseEmitter.emit(
+              'collect.startOfInput',
+              collectInstance
+            )
+            break
+          }
           case 'no_match':
           case 'no_input':
           case 'error': {
-            typeToEmit = 'calling.collect.failed'
+            callInstance.baseEmitter.emit('collect.failed', collectInstance)
+
+            // To resolve the ended() promise in CallCollect
+            collectInstance.baseEmitter.emit('collect.failed', collectInstance)
             break
           }
           case 'speech':
           case 'digit': {
-            typeToEmit = 'calling.collect.ended'
+            callInstance.baseEmitter.emit('collect.ended', collectInstance)
+
+            // To resolve the ended() promise in CallCollect
+            collectInstance.baseEmitter.emit('collect.ended', collectInstance)
             break
           }
-          case 'start_of_input': {
-            typeToEmit = 'calling.collect.startOfInput'
+          default:
+            getLogger().info(
+              // @ts-expect-error
+              `Unknown collect result type: "${payload.result.type}"`
+            )
             break
-          }
-        }
-
-        if (!typeToEmit) {
-          getLogger().info(
-            `Unknown collect result type: "${action.payload.result.type}"`
-          )
-          continue
-        }
-
-        yield sagaEffects.put(pubSubChannel, {
-          type: typeToEmit,
-          payload: payloadWithTag,
-        })
-
-        /**
-         * Dispatch an event to resolve `ended` in CallPrompt
-         * when ended
-         */
-        yield sagaEffects.put(pubSubChannel, {
-          type: typeToEmit,
-          payload: {
-            tag: controlId,
-            ...action.payload,
-          },
-        })
-
-        if (action.payload.result.type !== 'start_of_input') {
-          done()
         }
       }
     }
-  }
 
-  getLogger().trace('voiceCallCollectWorker ended')
-}
+    getLogger().trace('voiceCallCollectWorker ended')
+  }

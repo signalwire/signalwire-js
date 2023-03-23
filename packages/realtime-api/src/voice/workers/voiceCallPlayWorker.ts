@@ -16,11 +16,11 @@ export const voiceCallPlayWorker: SDKCallWorker<CallingCallPlayEventParams> =
     } = options
 
     const callInstance = get(payload.call_id) as Call
-    let playbackInstance = get(payload.control_id) as CallPlayback
     if (!callInstance) {
       throw new Error('Missing call instance for playback')
     }
 
+    let playbackInstance = get(payload.control_id) as CallPlayback
     if (!playbackInstance) {
       playbackInstance = createCallPlaybackObject({
         store: callInstance.store,
@@ -49,6 +49,9 @@ export const voiceCallPlayWorker: SDKCallWorker<CallingCallPlayEventParams> =
       }
       case 'error': {
         callInstance.baseEmitter.emit('playback.failed', playbackInstance)
+
+        // To resolve the ended() promise in CallPlayback
+        playbackInstance.baseEmitter.emit('playback.failed', playbackInstance)
         break
       }
       case 'finished': {

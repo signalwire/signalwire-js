@@ -2,10 +2,11 @@ import {
   connect,
   BaseComponentOptions,
   VoiceCallCollectContract,
-  CallingCallCollectResult,
   CallingCallCollectEndState,
   BaseComponent,
   CallCollectEndedEvent,
+  CallingCallCollectEventParams,
+  EventEmitter,
 } from '@signalwire/core'
 
 /**
@@ -14,7 +15,11 @@ import {
  * starting a Prompt from the desired {@link Call} (see
  * {@link Call.prompt})
  */
-export interface CallCollect extends VoiceCallCollectContract {}
+export interface CallCollect extends VoiceCallCollectContract {
+  setPayload: (payload: CallingCallCollectEventParams) => void
+  _paused: boolean
+  baseEmitter: EventEmitter
+}
 
 export type CallCollectEventsHandlerMapping = {}
 
@@ -35,13 +40,32 @@ export class CallCollectAPI
 {
   protected _eventsPrefix = 'calling' as const
 
-  callId: string
-  nodeId: string
-  controlId: string
-  result?: CallingCallCollectResult
+  private _payload: CallingCallCollectEventParams
+
+  constructor(options: BaseComponentOptions<CallCollectEventsHandlerMapping>) {
+    super(options)
+
+    this._payload = options.payload
+  }
 
   get id() {
-    return this.controlId
+    return this._payload.control_id
+  }
+
+  get controlId() {
+    return this._payload.control_id
+  }
+
+  get callId() {
+    return this._payload.call_id
+  }
+
+  get nodeId() {
+    return this._payload.node_id
+  }
+
+  get result() {
+    return this._payload.result
   }
 
   get type() {
@@ -82,6 +106,11 @@ export class CallCollectAPI
       return this.result.params.confidence
     }
     return undefined
+  }
+
+  /** @internal */
+  protected setPayload(payload: CallingCallCollectEventParams) {
+    this._payload = payload
   }
 
   async stop() {
@@ -128,11 +157,12 @@ export class CallCollectAPI
 
     return new Promise<this>((resolve) => {
       this._attachListeners(this.controlId)
+
       const handler = (_callCollect: CallCollectEndedEvent['params']) => {
         // @ts-expect-error
-        this.off('collect.ended', handler)
+        this._off('collect.ended', handler)
         // @ts-expect-error
-        this.off('collect.failed', handler)
+        this._off('collect.failed', handler)
         // It's important to notice that we're returning
         // `this` instead of creating a brand new instance
         // using the payload + EventEmitter Transform
@@ -144,9 +174,9 @@ export class CallCollectAPI
         resolve(this)
       }
       // @ts-expect-error
-      this.once('collect.ended', handler)
+      this._once('collect.ended', handler)
       // @ts-expect-error
-      this.once('collect.failed', handler)
+      this._once('collect.failed', handler)
     })
   }
 }

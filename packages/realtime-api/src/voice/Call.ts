@@ -56,7 +56,6 @@ import {
   voiceCallSendDigitsWorker,
   voiceCallDetectWorker,
   VoiceCallSendDigitsWorkerHooks,
-  voiceCallCollectWorker,
 } from './workers'
 import { CallPlayback, createCallPlaybackObject } from './CallPlayback'
 import { CallRecording, createCallRecordingObject } from './CallRecording'
@@ -1428,20 +1427,20 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         reject(new Error(`Can't call collect() on a call not established yet.`))
       }
 
-      const controlId = uuid()
-
-      this.runWorker('voiceCallCollectWorker', {
-        worker: voiceCallCollectWorker,
-        initialState: {
-          controlId,
-        },
-      })
-
       const resolveHandler = (callCollect: CallCollect) => {
+        this._off('collect.failed', rejectHandler)
         resolve(callCollect)
       }
-      // @ts-expect-error
-      this.on(callingCollectTriggerEvent, resolveHandler)
+
+      const rejectHandler = (callCollect: CallCollect) => {
+        this._off('collect.startOfInput', resolveHandler)
+        reject(callCollect)
+      }
+
+      this._once('collect.startOfInput', resolveHandler)
+      this._once('collect.failed', rejectHandler)
+
+      const controlId = uuid()
 
       // TODO: move this to a method to build the params
       const {
@@ -1470,22 +1469,11 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         },
       })
         .then(() => {
-          const startEvent: Omit<CallingCallCollectEventParams, 'result'> = {
-            control_id: controlId,
-            call_id: this.id,
-            node_id: this.nodeId,
-          }
-          // TODO: (review) There's no event for collect started so we generate it here
-          this.emit('collect.started', startEvent)
-
-          // @ts-expect-error
-          this.emit(callingCollectTriggerEvent, startEvent)
+          // TODO: handle then?
         })
         .catch((e) => {
-          this.off('collect.started', resolveHandler)
-
-          // @ts-expect-error
-          this.off(callingCollectTriggerEvent, resolveHandler)
+          this._off('collect.started', resolveHandler)
+          this._off('collect.failed', rejectHandler)
           reject(e)
         })
     })
