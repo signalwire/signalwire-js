@@ -15,6 +15,7 @@ import { voiceCallRecordWorker } from './voiceCallRecordWorker'
 import { voiceCallDialWorker } from './voiceCallDialWorker'
 import { voiceCallStateWorker } from './voiceCallStateWorker'
 import { voiceCallCollectWorker } from './voiceCallCollectWorker'
+import { voiceCallSendDigitsWorker } from './VoiceCallSendDigitWorker'
 
 export const voiceCallingWroker: SDKWorker<Client> = function* (
   options
@@ -69,7 +70,15 @@ export const voiceCallingWroker: SDKWorker<Client> = function* (
           payload: action.payload,
         })
         break
+      case 'calling.call.send_digits':
+        yield fork(voiceCallSendDigitsWorker, {
+          client: instance,
+          instanceMap,
+          payload: action.payload,
+        })
+        break
       default:
+        getLogger().info(`Unknown call event: "${action.type}"`)
         break
     }
   }

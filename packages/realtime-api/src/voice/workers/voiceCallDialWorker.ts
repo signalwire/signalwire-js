@@ -2,24 +2,11 @@ import {
   getLogger,
   SagaIterator,
   SDKCallWorker,
-  SDKWorkerHooks,
-  ToExternalJSONResult,
-  CallingCallDialFailedEventParams,
   toExternalJSON,
   CallingCallDialEventParams,
 } from '@signalwire/core'
 import type { Call } from '../Call'
 import type { Client } from '../../client/index'
-
-type VoiceCallDialWorkerOnDone = (args: Call) => void
-type VoiceCallDialWorkerOnFail = (
-  args: ToExternalJSONResult<CallingCallDialFailedEventParams>
-) => void
-
-export type VoiceCallDialWorkerHooks = SDKWorkerHooks<
-  VoiceCallDialWorkerOnDone,
-  VoiceCallDialWorkerOnFail
->
 
 export const voiceCallDialWorker: SDKCallWorker<
   CallingCallDialEventParams,

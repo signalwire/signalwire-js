@@ -53,9 +53,7 @@ import {
   voiceCallPromptWorker,
   voiceCallTapWorker,
   voiceCallConnectWorker,
-  voiceCallSendDigitsWorker,
   voiceCallDetectWorker,
-  VoiceCallSendDigitsWorkerHooks,
 } from './workers'
 import { CallPlayback, createCallPlaybackObject } from './CallPlayback'
 import { CallRecording, createCallRecordingObject } from './CallRecording'
@@ -903,30 +901,6 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         )
       }
 
-      const controlId = uuid()
-
-      const cleanup = () => {
-        this.off('call.state', callStateHandler)
-      }
-
-      this.runWorker<VoiceCallSendDigitsWorkerHooks>(
-        'voiceCallSendDigitsWorker',
-        {
-          worker: voiceCallSendDigitsWorker,
-          initialState: {
-            controlId,
-          },
-          onDone: (args) => {
-            cleanup()
-            resolve(args)
-          },
-          onFail: ({ error }) => {
-            cleanup()
-            reject(error)
-          },
-        }
-      )
-
       const callStateHandler = (params: any) => {
         if (params.callState === 'ended' || params.callState === 'ending') {
           reject(
@@ -936,7 +910,33 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
           )
         }
       }
-      this.once('call.state', callStateHandler)
+
+      this._once('call.state', callStateHandler)
+
+      const cleanup = () => {
+        this._off('call.state', callStateHandler)
+      }
+
+      const resolveHandler = (call: Call) => {
+        cleanup()
+        // @ts-expect-error
+        this._off('send_digits.failed', rejectHandler)
+        resolve(call)
+      }
+
+      const rejectHandler = (error: Error) => {
+        cleanup()
+        // @ts-expect-error
+        this._off('send_digits.finished', resolveHandler)
+        reject(error)
+      }
+
+      // @ts-expect-error
+      this._once('send_digits.finished', resolveHandler)
+      // @ts-expect-error
+      this._once('send_digits.failed', rejectHandler)
+
+      const controlId = uuid()
 
       this.execute({
         method: 'calling.send_digits',
