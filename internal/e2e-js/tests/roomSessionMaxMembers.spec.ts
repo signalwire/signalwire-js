@@ -6,6 +6,7 @@ import {
   expectRoomJoined,
   expectMCUVisible,
   createOrUpdateRoom,
+  randomizeRoomName
 } from '../utils'
 
 test.describe('Room Session Max Members', () => {
@@ -14,18 +15,19 @@ test('Should fail to join when max_member is reached', async ({
     createCustomPage,
   }) => {
 
-    const roomName = 'another'
+    
 
-    const pageOne = await createCustomPage({ name: '[pageOne]' })
-    const pageTwo = await createCustomPage({ name: '[pageTwo]' })
-    const pageThree = await createCustomPage({ name: '[pageThree]' })
-
-
-    await Promise.all([
-      pageOne.goto(SERVER_URL),
-      pageTwo.goto(SERVER_URL),
-      pageThree.goto(SERVER_URL),
+    const allPages = await Promise.all([
+      createCustomPage({ name: '[pageOne]' }),
+      createCustomPage({ name: '[pageTwo]' }),
+      createCustomPage({ name: '[pageThree]' })
     ])
+    
+    const [pageOne ,pageTwo, pageThree] = allPages;  
+    
+    await Promise.all(allPages.map((page) => page.goto(SERVER_URL)))
+    
+    const roomName = randomizeRoomName()
 
     const connectionSettings = {
       vrt: {
@@ -37,18 +39,22 @@ test('Should fail to join when max_member is reached', async ({
       initialEvents: ['stream.started', 'stream.ended'],
     }
 
-
     await createOrUpdateRoom({
         name: roomName,
         max_members: 2
       })
 
-    await Promise.all([
-      createTestRoomSession(pageOne, connectionSettings),
-      createTestRoomSession(pageTwo, connectionSettings),
-      createTestRoomSession(pageThree, connectionSettings),
-    ])
-
+    await Promise.all(
+      allPages.map((page, i) => createTestRoomSession(page, {
+        vrt: {
+          room_name: roomName,
+          user_name: `member_${i+i}`,
+          auto_create_room: true,
+          permissions: ['room.stream'],
+        },
+        initialEvents: ['stream.started', 'stream.ended'],
+      }))
+    )  
 
     await Promise.all([
       expectRoomJoined(pageOne),
