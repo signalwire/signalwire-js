@@ -313,6 +313,7 @@ export class BaseSession {
         if ('method' in msg && msg.method === 'signalwire.connect') {
           throw this._swConnectError
         }
+        this._checkCurrentStatus()
         this.logger.error('Request Timeout', msg)
         if (this.status === 'disconnected') {
           return this.logger.debug(
