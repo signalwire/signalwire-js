@@ -27,6 +27,19 @@ describe('JWTSession', () => {
   let session: JWTSession
   beforeEach(() => {
     ws = new WS(host)
+    // Respond to RPCs
+    ws.on('connection', (socket: any) => {
+      socket.on('message', (data: any) => {
+        const parsedData = JSON.parse(data)
+        socket.send(
+          JSON.stringify({
+            jsonrpc: '2.0',
+            id: parsedData.id,
+            result: {},
+          })
+        )
+      })
+    })
     session = new JWTSession({
       host,
       token,
@@ -42,6 +55,8 @@ describe('JWTSession', () => {
     await ws.connected
 
     expect(session.connected).toBe(true)
+
+    await expect(ws).toReceiveMessage(JSON.stringify(rpcConnect))
 
     session.disconnect()
 

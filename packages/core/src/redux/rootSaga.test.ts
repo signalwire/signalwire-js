@@ -37,7 +37,6 @@ describe('sessionStatusWatcher', () => {
     authExpiringAction.type,
     reauthAction.type,
     sessionReconnectingAction.type,
-    sessionDisconnectedAction.type,
     sessionForceCloseAction.type,
   ]
   const session = {
@@ -121,18 +120,6 @@ describe('sessionStatusWatcher', () => {
     // Saga waits again for actions due to the while loop
     saga.next().take(actions)
   })
-
-  it('should put sessionDisconnectedAction on the pubSubChannel and put destroyAction', () => {
-    const saga = testSaga(sessionStatusWatcher, options)
-
-    saga.next().take(actions)
-    saga
-      .next(sessionDisconnectedAction())
-      .put(options.pubSubChannel, sessionDisconnectedAction())
-    saga.next().put(destroyAction())
-    // Saga waits again for actions due to the while loop
-    saga.next().take(actions)
-  })
 })
 
 describe('initSessionSaga', () => {
@@ -182,11 +169,14 @@ describe('initSessionSaga', () => {
       pubSubChannel,
       userOptions,
     })
-    const executeActionTask = createMockTask()
-    executeActionTask.cancel = jest.fn()
-    saga.next(executeActionTask).take(destroyAction.type)
+    const sessionStatusTask = createMockTask()
+    sessionStatusTask.cancel = jest.fn()
+    saga.next(sessionStatusTask).take(destroyAction.type)
+    saga.next().take(sessionDisconnectedAction.type)
+    saga.next().put(pubSubChannel, sessionDisconnectedAction())
     saga.next().isDone()
     expect(pubSubTask.cancel).toHaveBeenCalledTimes(1)
+    expect(sessionStatusTask.cancel).toHaveBeenCalledTimes(1)
     expect(pubSubChannel.close).not.toHaveBeenCalled()
     expect(swEventChannel.close).not.toHaveBeenCalled()
     expect(session.connect).toHaveBeenCalledTimes(1)
