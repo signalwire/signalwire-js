@@ -38,10 +38,10 @@ test('Should fail to join when max_member is reached', async ({
     }
 
 
-    // await createOrUpdateRoom({
-    //     name: roomName,
-    //     max_members: 2
-    //   })
+    await createOrUpdateRoom({
+        name: roomName,
+        max_members: 2
+      })
 
     await Promise.all([
       createTestRoomSession(pageOne, connectionSettings),
