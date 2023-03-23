@@ -16,6 +16,7 @@ import { voiceCallDialWorker } from './voiceCallDialWorker'
 import { voiceCallStateWorker } from './voiceCallStateWorker'
 import { voiceCallCollectWorker } from './voiceCallCollectWorker'
 import { voiceCallSendDigitsWorker } from './VoiceCallSendDigitWorker'
+import { voiceCallDetectWorker } from './voiceCallDetectWorker'
 
 export const voiceCallingWroker: SDKWorker<Client> = function* (
   options
@@ -72,6 +73,13 @@ export const voiceCallingWroker: SDKWorker<Client> = function* (
         break
       case 'calling.call.send_digits':
         yield fork(voiceCallSendDigitsWorker, {
+          client: instance,
+          instanceMap,
+          payload: action.payload,
+        })
+        break
+      case 'calling.call.detect':
+        yield fork(voiceCallDetectWorker, {
           client: instance,
           instanceMap,
           payload: action.payload,

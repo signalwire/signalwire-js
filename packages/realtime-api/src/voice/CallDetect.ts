@@ -3,8 +3,9 @@ import {
   BaseComponent,
   BaseComponentOptions,
   VoiceCallDetectContract,
-  Detector,
   CallingCallDetectEndState,
+  CallingCallDetectEventParams,
+  EventEmitter,
 } from '@signalwire/core'
 
 /**
@@ -13,7 +14,10 @@ import {
  * starting a Detect from the desired {@link Call} (see
  * {@link Call.detect})
  */
-export interface CallDetect extends VoiceCallDetectContract {}
+export interface CallDetect extends VoiceCallDetectContract {
+  setPayload: (payload: CallingCallDetectEventParams) => void
+  baseEmitter: EventEmitter
+}
 
 export type CallDetectEventsHandlerMapping = {}
 
@@ -27,18 +31,41 @@ export class CallDetectAPI
   implements VoiceCallDetectContract
 {
   protected _eventsPrefix = 'calling' as const
+  private _payload: CallingCallDetectEventParams
 
-  callId: string
-  nodeId: string
-  controlId: string
-  detect?: Detector
+  constructor(options: BaseComponentOptions<CallDetectEventsHandlerMapping>) {
+    super(options)
+
+    this._payload = options.payload
+  }
 
   get id() {
-    return this.controlId
+    return this._payload.control_id
+  }
+
+  get controlId() {
+    return this._payload.control_id
+  }
+
+  get callId() {
+    return this._payload.call_id
+  }
+
+  get nodeId() {
+    return this._payload.node_id
+  }
+
+  get detect() {
+    return this._payload.detect
   }
 
   get type() {
     return this?.detect?.type
+  }
+
+  /** @internal */
+  protected setPayload(payload: CallingCallDetectEventParams) {
+    this._payload = payload
   }
 
   async stop() {
@@ -75,7 +102,7 @@ export class CallDetectAPI
       this._attachListeners(this.controlId)
 
       // @ts-expect-error
-      this.once('detect.ended', () => {
+      this._once('detect.ended', () => {
         // It's important to notice that we're returning
         // `this` instead of creating a brand new instance
         // using the payload + EventEmitter Transform

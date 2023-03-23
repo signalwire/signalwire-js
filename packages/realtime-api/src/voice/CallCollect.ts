@@ -17,7 +17,6 @@ import {
  */
 export interface CallCollect extends VoiceCallCollectContract {
   setPayload: (payload: CallingCallCollectEventParams) => void
-  _paused: boolean
   baseEmitter: EventEmitter
 }
 
@@ -39,7 +38,6 @@ export class CallCollectAPI
   implements VoiceCallCollectContract
 {
   protected _eventsPrefix = 'calling' as const
-
   private _payload: CallingCallCollectEventParams
 
   constructor(options: BaseComponentOptions<CallCollectEventsHandlerMapping>) {

@@ -1,118 +1,73 @@
 import {
   getLogger,
-  sagaEffects,
   SagaIterator,
-  SDKWorker,
-  SDKActions,
-  CallingCallDetectEvent,
-  MapToPubSubShape,
+  SDKCallWorker,
+  CallingCallDetectEventParams,
 } from '@signalwire/core'
-import { callingDetectTriggerEvent } from '../Call'
 import type { Call } from '../Call'
+import { CallDetect, createCallDetectObject } from '../CallDetect'
 
-export const voiceCallDetectWorker: SDKWorker<Call> = function* (
-  options
-): SagaIterator {
-  getLogger().trace('voiceCallDetectWorker started')
-  const { channels, instance, initialState } = options
-  const { swEventChannel, pubSubChannel } = channels
-  const { controlId, waitForBeep = false } = initialState
-  if (!controlId) {
-    throw new Error('Missing controlId for tapping')
-  }
+let waitingForReady = false
 
-  let waitingForReady = false
-  let run = true
-  let lastAction!: MapToPubSubShape<CallingCallDetectEvent>
-  const done = () => (run = false)
+export const voiceCallDetectWorker: SDKCallWorker<CallingCallDetectEventParams> =
+  function* (options): SagaIterator {
+    getLogger().trace('voiceCallDetectWorker started')
+    const {
+      payload,
+      instanceMap: { get, set },
+    } = options
 
-  while (run) {
-    const action: MapToPubSubShape<CallingCallDetectEvent> =
-      yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
-        return (
-          action.type === 'calling.call.detect' &&
-          action.payload.control_id === controlId
-        )
+    const callInstance = get(payload.call_id) as Call
+    if (!callInstance) {
+      throw new Error('Missing call instance for collect')
+    }
+
+    let detectInstance = get(payload.control_id) as CallDetect
+    if (!detectInstance) {
+      detectInstance = createCallDetectObject({
+        store: callInstance.store,
+        // @ts-expect-error
+        emitter: callInstance.emitter,
+        payload,
       })
-
-    const { detect } = action.payload
-    if (!detect) {
-      // Ignore events without detect and (also) make TS happy
-      continue
+    } else {
+      detectInstance.setPayload(payload)
     }
-    lastAction = action
+    set(payload.control_id, detectInstance)
 
-    /** Add `tag` to the payload to allow pubSubSaga to match it with the Call namespace */
-    const payloadWithTag = {
-      tag: instance.tag,
-      ...action.payload,
-    }
-
-    /**
-     * Update the original CallDetect object using the transform pipeline
-     */
-    yield sagaEffects.put(pubSubChannel, {
-      // @ts-ignore
-      type: callingDetectTriggerEvent,
-      // @ts-ignore
-      payload: payloadWithTag,
-    })
+    const { detect } = payload
+    if (!detect) return
 
     const {
       type,
       params: { event },
     } = detect
 
-    if (event === 'error' || event === 'finished') {
-      yield sagaEffects.put(pubSubChannel, {
-        type: 'calling.detect.ended',
-        payload: payloadWithTag,
-      })
-
-      done()
-      continue
+    switch (event) {
+      case 'finished':
+        callInstance.baseEmitter.emit('detect.ended', detectInstance)
+        break
+      case 'error': {
+        callInstance.baseEmitter.emit('detect.ended', payload)
+        break
+      }
+      default:
+        callInstance.baseEmitter.emit('detect.updated', detectInstance)
+        break
     }
 
-    yield sagaEffects.put(pubSubChannel, {
-      type: 'calling.detect.updated',
-      payload: payloadWithTag,
-    })
-
     switch (type) {
-      // case 'digit':
-      // case 'fax': {
-      //   break
-      // }
-      case 'machine': {
+      case 'machine':
         if (waitingForReady && event === 'READY') {
-          yield sagaEffects.put(pubSubChannel, {
-            type: 'calling.detect.ended',
-            payload: payloadWithTag,
-          })
-
-          done()
+          callInstance.baseEmitter.emit('detect.ended', detectInstance)
         }
-        if (waitForBeep) {
+        if (callInstance._waitForCallDetectMachineBeep) {
           waitingForReady = true
         }
         break
-      }
+      default:
+        break
     }
-  }
 
-  if (lastAction) {
-    /**
-     * On endef, dispatch an event to resolve `ended` in CallDetect
-     * overriding the `tag` to be the controlId
-     */
-    yield sagaEffects.put(pubSubChannel, {
-      type: 'calling.detect.ended',
-      payload: {
-        ...lastAction.payload,
-        tag: controlId,
-      },
-    })
+    getLogger().trace('voiceCallDetectWorker ended')
   }
-
-  getLogger().trace('voiceCallDetectWorker ended')
-}
