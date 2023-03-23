@@ -249,6 +249,7 @@ export type SessionStatus =
   | 'idle'
   | 'reconnecting'
   | 'connected'
+  | 'disconnecting'
   | 'disconnected'
   | 'auth_error'
   | 'expiring'
