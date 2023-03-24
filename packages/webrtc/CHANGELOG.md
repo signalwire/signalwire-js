@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.6.2] - 2023-03-24
+
+### Fixed
+
+- [#764](https://github.com/signalwire/signalwire-js/pull/764) [`a491dbff`](https://github.com/signalwire/signalwire-js/commit/a491dbffac6540a81ea22054dd97f2139d489651) - Add missing `sdp` dependency.
+
+### Dependencies
+
+- Updated dependencies [[`e299b048`](https://github.com/signalwire/signalwire-js/commit/e299b048fbcf876f2409335a98de1295fba70480)]:
+  - @signalwire/core@3.14.1
+
 ## [3.6.1] - 2023-03-22
 
 ### Changed
