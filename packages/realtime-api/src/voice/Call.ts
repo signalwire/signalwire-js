@@ -49,11 +49,7 @@ import { RealTimeCallApiEvents } from '../types'
 import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
 import { toInternalDevices, toInternalPlayParams } from './utils'
 import { Playlist } from './Playlist'
-import {
-  voiceCallPromptWorker,
-  voiceCallTapWorker,
-  voiceCallConnectWorker,
-} from './workers'
+import { voiceCallPromptWorker, voiceCallConnectWorker } from './workers'
 import { CallPlayback, createCallPlaybackObject } from './CallPlayback'
 import { CallRecording, createCallRecordingObject } from './CallRecording'
 import { CallPrompt, createCallPromptObject } from './CallPrompt'
@@ -980,21 +976,20 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         reject(new Error(`Can't call tap() on a call not established yet.`))
       }
 
-      const controlId = uuid()
-
-      this.runWorker('voiceCallTapWorker', {
-        worker: voiceCallTapWorker,
-        initialState: {
-          controlId,
-        },
-      })
-
       const resolveHandler = (callTap: CallTap) => {
+        this._off('tap.ended', rejectHandler)
         resolve(callTap)
       }
 
-      // @ts-expect-error
-      this.on(callingTapTriggerEvent, resolveHandler)
+      const rejectHandler = (callTap: CallTap) => {
+        this._off('tap.started', resolveHandler)
+        reject(callTap)
+      }
+
+      this._once('tap.started', resolveHandler)
+      this._once('tap.ended', rejectHandler)
+
+      const controlId = uuid()
 
       // TODO: Move to a method to build the objects and transform camelCase to snake_case
       const {
@@ -1019,20 +1014,11 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         },
       })
         .then(() => {
-          const startEvent: Omit<
-            CallingCallTapEventParams,
-            'state' | 'tap' | 'device'
-          > = {
-            control_id: controlId,
-            call_id: this.id,
-            node_id: this.nodeId,
-          }
-          // @ts-expect-error
-          this.emit(callingTapTriggerEvent, startEvent)
+          // TODO: handle then?
         })
         .catch((e) => {
-          // @ts-expect-error
-          this.off(callingTapTriggerEvent, resolveHandler)
+          this._off('tap.started', resolveHandler)
+          this._off('tap.ended', rejectHandler)
           reject(e)
         })
     })

@@ -46,9 +46,15 @@ export const voiceCallDetectWorker: SDKCallWorker<CallingCallDetectEventParams> 
     switch (event) {
       case 'finished':
         callInstance.baseEmitter.emit('detect.ended', detectInstance)
+
+        // To resolve the ended() promise in CallDetect
+        detectInstance.baseEmitter.emit('detect.ended', detectInstance)
         break
       case 'error': {
         callInstance.baseEmitter.emit('detect.ended', payload)
+
+        // To resolve the ended() promise in CallDetect
+        detectInstance.baseEmitter.emit('detect.ended', payload)
         break
       }
       default:
@@ -60,6 +66,9 @@ export const voiceCallDetectWorker: SDKCallWorker<CallingCallDetectEventParams> 
       case 'machine':
         if (waitingForReady && event === 'READY') {
           callInstance.baseEmitter.emit('detect.ended', detectInstance)
+
+          // To resolve the ended() promise in CallDetect
+          detectInstance.baseEmitter.emit('detect.ended', detectInstance)
         }
         if (callInstance._waitForCallDetectMachineBeep) {
           waitingForReady = true

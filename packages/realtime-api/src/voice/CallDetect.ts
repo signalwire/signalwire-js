@@ -101,8 +101,9 @@ export class CallDetectAPI
     return new Promise<this>((resolve) => {
       this._attachListeners(this.controlId)
 
-      // @ts-expect-error
-      this._once('detect.ended', () => {
+      const handler = () => {
+        // @ts-expect-error
+        this._off('detect.ended', handler)
         // It's important to notice that we're returning
         // `this` instead of creating a brand new instance
         // using the payload + EventEmitter Transform
@@ -112,7 +113,10 @@ export class CallDetectAPI
         // the latest payload per event) by the
         // `voiceCallDetectWorker`
         resolve(this)
-      })
+      }
+
+      // @ts-expect-error
+      this._once('detect.ended', handler)
     })
   }
 }
