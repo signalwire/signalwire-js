@@ -9,11 +9,12 @@ import {
   VideoMemberJoinedEvent,
   componentSelectors,
   componentActions,
+  type ReduxComponent,
 } from '@signalwire/core'
 
 import type { BaseConnection } from '@signalwire/webrtc'
 
-type ChildMemberJoinedWorkerOnDone = (args: BaseConnection<any>) => void
+type ChildMemberJoinedWorkerOnDone = () => void
 type ChildMemberJoinedWorkerOnFail = (args: { error: Error }) => void
 
 export type ChildMemberJoinedWorkerHooks = SDKWorkerHooks<
@@ -26,7 +27,7 @@ export const childMemberJoinedWorker: SDKWorker<
   ChildMemberJoinedWorkerHooks
 > = function* (options): SagaIterator {
   getLogger().trace('childMemberJoinedWorker started')
-  const { channels, instance, initialState } = options
+  const { channels, instance, initialState, onDone, onFail } = options
   const { swEventChannel } = channels
   const { parentId } = initialState
   if (!parentId) {
@@ -49,20 +50,22 @@ export const childMemberJoinedWorker: SDKWorker<
    */
   const { member } = action.payload
   if (member?.parent_id) {
-    /**
-     * For screenShare/additionalDevice we're using
-     * the `memberId` to namespace the object.
-     **/
-    // @ts-expect-error
-    instance._attachListeners(member.id)
-    // @ts-expect-error
-    instance.applyEmitterTransforms()
-
-    const parent = yield sagaEffects.select(
-      componentSelectors.getComponent,
-      member.parent_id
+    const byId: Record<string, ReduxComponent> = yield sagaEffects.select(
+      componentSelectors.getComponentsById
     )
+    const parent = Object.values(byId).find((row) => {
+      return 'memberId' in row && row.memberId === member.parent_id
+    })
     if (parent) {
+      /**
+       * For screenShare/additionalDevice we're using the `memberId` to
+       * namespace the object.
+       **/
+      // @ts-expect-error
+      instance._attachListeners(member.id)
+      // @ts-expect-error
+      instance.applyEmitterTransforms()
+
       yield sagaEffects.put(
         componentActions.upsert({
           id: instance.callId,
@@ -71,6 +74,10 @@ export const childMemberJoinedWorker: SDKWorker<
           memberId: member.id,
         })
       )
+
+      onDone?.()
+    } else {
+      onFail?.({ error: new Error('Unknown parent_id') })
     }
   }
   getLogger().trace('childMemberJoinedWorker ended')

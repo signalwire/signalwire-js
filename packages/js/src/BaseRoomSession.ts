@@ -292,76 +292,80 @@ export class RoomSessionConnection
    * Allow sharing the screen within the room.
    */
   async startScreenShare(opts: StartScreenShareOptions = {}) {
-    const {
-      autoJoin = true,
-      audio = false,
-      video = true,
-      layout,
-      positions,
-    } = opts
-    const displayStream: MediaStream = await getDisplayMedia({
-      audio: audio === true ? SCREENSHARE_AUDIO_CONSTRAINTS : audio,
-      video,
-    })
-    const options: BaseConnectionOptions<RoomSessionObjectEvents> = {
-      ...this.options,
-      screenShare: true,
-      recoverCall: false,
-      localStream: displayStream,
-      remoteStream: undefined,
-      userVariables: {
-        ...(this.options?.userVariables || {}),
-        memberCallId: this.callId,
-        memberId: this.memberId,
-      },
-      layout,
-      positions,
-    }
-
-    const screenShare = connect<
-      RoomSessionScreenShareEvents,
-      RoomSessionScreenShareConnection,
-      RoomSessionScreenShare
-    >({
-      store: this.store,
-      Component: RoomSessionScreenShareAPI,
-    })(options)
-
-    /**
-     * Hangup if the user stop the screenShare from the
-     * native browser button or if the videoTrack ends.
-     */
-    displayStream.getVideoTracks().forEach((t) => {
-      t.addEventListener('ended', () => {
-        if (screenShare && screenShare.active) {
-          screenShare.leave()
-        }
+    return new Promise<RoomSessionScreenShare>(async (resolve, reject) => {
+      const {
+        autoJoin = true,
+        audio = false,
+        video = true,
+        layout,
+        positions,
+      } = opts
+      const displayStream: MediaStream = await getDisplayMedia({
+        audio: audio === true ? SCREENSHARE_AUDIO_CONSTRAINTS : audio,
+        video,
       })
-    })
-
-    screenShare.once('destroy', () => {
-      // @ts-expect-error
-      screenShare.emit('room.left')
-      this._screenShareList.delete(screenShare)
-    })
-
-    try {
-      screenShare.runWorker('childMemberJoinedWorker', {
-        worker: workers.childMemberJoinedWorker,
-        initialState: {
-          parentId: this.memberId,
+      const options: BaseConnectionOptions<RoomSessionObjectEvents> = {
+        ...this.options,
+        screenShare: true,
+        recoverCall: false,
+        localStream: displayStream,
+        remoteStream: undefined,
+        userVariables: {
+          ...(this.options?.userVariables || {}),
+          memberCallId: this.callId,
+          memberId: this.memberId,
         },
+        layout,
+        positions,
+      }
+
+      const screenShare = connect<
+        RoomSessionScreenShareEvents,
+        RoomSessionScreenShareConnection,
+        RoomSessionScreenShare
+      >({
+        store: this.store,
+        Component: RoomSessionScreenShareAPI,
+      })(options)
+
+      /**
+       * Hangup if the user stop the screenShare from the
+       * native browser button or if the videoTrack ends.
+       */
+      displayStream.getVideoTracks().forEach((t) => {
+        t.addEventListener('ended', () => {
+          if (screenShare && screenShare.active) {
+            screenShare.leave()
+          }
+        })
       })
 
-      this._screenShareList.add(screenShare)
-      if (autoJoin) {
-        await screenShare.join()
+      screenShare.once('destroy', () => {
+        // @ts-expect-error
+        screenShare.emit('room.left')
+        this._screenShareList.delete(screenShare)
+      })
+
+      try {
+        screenShare.runWorker('childMemberJoinedWorker', {
+          worker: workers.childMemberJoinedWorker,
+          onDone: () => resolve(screenShare),
+          onFail: reject,
+          initialState: {
+            parentId: this.memberId,
+          },
+        })
+
+        this._screenShareList.add(screenShare)
+        if (autoJoin) {
+          return await screenShare.join()
+        }
+        return resolve(screenShare)
+      } catch (error) {
+        this.logger.error('ScreenShare Error', error)
+        reject(error)
       }
-      return screenShare
-    } catch (error) {
-      this.logger.error('ScreenShare Error', error)
-      throw error
-    }
+    })
   }
 
   /**
@@ -390,60 +394,64 @@ export class RoomSessionConnection
    * Allow to add additional devices to the room like cameras or microphones.
    */
   async addDevice(opts: AddDeviceOptions = {}) {
-    const { autoJoin = true, audio = false, video = false } = opts
-    if (!audio && !video) {
-      throw new TypeError(
-        'At least one of `audio` or `video` must be requested.'
-      )
-    }
+    return new Promise<RoomSessionDevice>(async (resolve, reject) => {
+      const { autoJoin = true, audio = false, video = false } = opts
+      if (!audio && !video) {
+        throw new TypeError(
+          'At least one of `audio` or `video` must be requested.'
+        )
+      }
 
-    const options: BaseConnectionOptions<RoomSessionObjectEvents> = {
-      ...this.options,
-      localStream: undefined,
-      remoteStream: undefined,
-      audio,
-      video,
-      additionalDevice: true,
-      recoverCall: false,
-      userVariables: {
-        ...(this.options?.userVariables || {}),
-        memberCallId: this.callId,
-        memberId: this.memberId,
-      },
-    }
-
-    const roomDevice = connect<
-      RoomSessionDeviceEvents,
-      RoomSessionDeviceConnection,
-      RoomSessionDevice
-    >({
-      store: this.store,
-      Component: RoomSessionDeviceAPI,
-    })(options)
-
-    roomDevice.once('destroy', () => {
-      // @ts-expect-error
-      roomDevice.emit('room.left')
-      this._deviceList.delete(roomDevice)
-    })
-
-    try {
-      roomDevice.runWorker('childMemberJoinedWorker', {
-        worker: workers.childMemberJoinedWorker,
-        initialState: {
-          parentId: this.memberId,
+      const options: BaseConnectionOptions<RoomSessionObjectEvents> = {
+        ...this.options,
+        localStream: undefined,
+        remoteStream: undefined,
+        audio,
+        video,
+        additionalDevice: true,
+        recoverCall: false,
+        userVariables: {
+          ...(this.options?.userVariables || {}),
+          memberCallId: this.callId,
+          memberId: this.memberId,
         },
+      }
+
+      const roomDevice = connect<
+        RoomSessionDeviceEvents,
+        RoomSessionDeviceConnection,
+        RoomSessionDevice
+      >({
+        store: this.store,
+        Component: RoomSessionDeviceAPI,
+      })(options)
+
+      roomDevice.once('destroy', () => {
+        // @ts-expect-error
+        roomDevice.emit('room.left')
+        this._deviceList.delete(roomDevice)
       })
 
-      this._deviceList.add(roomDevice)
-      if (autoJoin) {
-        await roomDevice.join()
+      try {
+        roomDevice.runWorker('childMemberJoinedWorker', {
+          worker: workers.childMemberJoinedWorker,
+          onDone: () => resolve(roomDevice),
+          onFail: reject,
+          initialState: {
+            parentId: this.memberId,
+          },
+        })
+
+        this._deviceList.add(roomDevice)
+        if (autoJoin) {
+          return await roomDevice.join()
+        }
+        return resolve(roomDevice)
+      } catch (error) {
+        this.logger.error('RoomDevice Error', error)
+        reject(error)
       }
-      return roomDevice
-    } catch (error) {
-      this.logger.error('RoomDevice Error', error)
-      throw error
-    }
+    })
   }
 
   join() {
