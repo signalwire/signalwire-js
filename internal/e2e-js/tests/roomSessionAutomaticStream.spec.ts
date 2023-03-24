@@ -16,7 +16,7 @@ test.describe('Room Session Auto Stream', () => {
   test('Should Join a Room with existing stream', async ({
     createCustomPage,
   }) => {
-    const roomName = randomizeRoomName()
+    const roomName = randomizeRoomName('auto-stream-e2e')
 
     const connectionSettings = {
       vrt: {

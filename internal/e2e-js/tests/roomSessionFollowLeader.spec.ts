@@ -5,12 +5,13 @@ import {
   createTestRoomSession,
   expectRoomJoined,
   expectMCUVisible,
+  expectMCUVisibleForAudience,
   expectPageReceiveAudio,
   randomizeRoomName,
 } from '../utils'
 
-test.describe('RoomSession removeAllMembers method', () => {
-  test('should remove all members from a room', async ({
+test.describe('RoomSession end_room_session_on_leave feature', () => {
+  test('should remove all members from a room once the leader leave', async ({
     createCustomPage,
   }) => {
     const allPages = await Promise.all([
@@ -21,7 +22,7 @@ test.describe('RoomSession removeAllMembers method', () => {
     const [pageOne, pageTwo, pageThree] = allPages
     await Promise.all(allPages.map((page) => page.goto(SERVER_URL)))
 
-    const room_name = randomizeRoomName()
+    const room_name = randomizeRoomName('follow-leader-e2e')
 
     await Promise.all(
       allPages.map((page, i) => {
@@ -44,7 +45,8 @@ test.describe('RoomSession removeAllMembers method', () => {
     )
 
     await Promise.all(allPages.map((page) => expectRoomJoined(page)))
-    await Promise.all(allPages.map((page) => expectMCUVisible(page)))
+    // last page is audience                                            
+    await Promise.all(allPages.map((page, i) => i === allPages.length - 1 ? expectMCUVisibleForAudience(page) : expectMCUVisible(page)))
     await Promise.all(allPages.map((page) => expectPageReceiveAudio(page)))
 
     await pageOne.waitForTimeout(2000)

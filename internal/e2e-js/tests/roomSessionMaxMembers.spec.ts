@@ -23,17 +23,7 @@ test.describe('Room Session Max Members', () => {
 
     await Promise.all(allPages.map((page) => page.goto(SERVER_URL)))
 
-    const roomName = randomizeRoomName()
-
-    const connectionSettings = {
-      vrt: {
-        room_name: roomName,
-        user_name: 'member',
-        auto_create_room: true,
-        permissions: ['room.stream'],
-      },
-      initialEvents: ['stream.started', 'stream.ended'],
-    }
+    const roomName = randomizeRoomName('max_member_e2e')
 
     await createOrUpdateRoom({
       name: roomName,
@@ -41,16 +31,17 @@ test.describe('Room Session Max Members', () => {
     })
 
     await Promise.all(
-      allPages.map((page, i) =>
-        createTestRoomSession(page, {
+      allPages.map((page, i) => {
+        return createTestRoomSession(page, {
           vrt: {
             room_name: roomName,
             user_name: `member_${i + i}`,
-            auto_create_room: true,
+            auto_create_room: false,
             permissions: ['room.stream'],
           },
           initialEvents: ['stream.started', 'stream.ended'],
-        })
+          expectToJoin: false,
+        })}
       )
     )
 
@@ -58,7 +49,9 @@ test.describe('Room Session Max Members', () => {
 
     await Promise.all([expectMCUVisible(pageOne), expectMCUVisible(pageTwo)])
 
-    // setting up am expected rejection for the 3rd member
+    await pageOne.waitForTimeout(2000)
+
+    // setting up an expected rejection for the 3rd member
     const joinRoom = pageThree.evaluate(() => {
       return new Promise<any>(async (resolve, reject) => {
         // @ts-expect-error

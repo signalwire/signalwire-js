@@ -43,7 +43,7 @@ test.describe('Room Settings', () => {
   ]
 
   tests.forEach((row) => {
-    test.skip(row.testName, async ({ createCustomPage }) => {
+    test(row.testName, async ({ createCustomPage }) => {
       const page = await createCustomPage({ name: '[page]' })
       await page.goto(SERVER_URL)
 
@@ -123,7 +123,6 @@ test.describe('Room Settings', () => {
           try {
             await roomObj.join()
           } catch (e) {
-            console.log('##########', e)
             reject(e)
           }
         })
