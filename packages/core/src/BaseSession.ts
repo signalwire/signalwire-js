@@ -265,12 +265,8 @@ export class BaseSession {
       return
     }
 
-    this._clearCheckPingTimer()
-    this._requests.clear()
-    this._closeConnection('disconnected')
-
-    /** sessionDisconnectedAction() will destroy the rootSaga too */
-    this.dispatch(sessionDisconnectedAction())
+    this._status = 'disconnecting'
+    this._checkCurrentStatus()
   }
 
   /**
@@ -278,6 +274,16 @@ export class BaseSession {
    * @return Promise that will resolve/reject depending on the server response
    */
   execute(msg: JSONRPCRequest | JSONRPCResponse): Promise<any> {
+    if (this._status === 'disconnecting') {
+      this.logger.warn(
+        'Reject request because the session is disconnecting',
+        msg
+      )
+      return Promise.reject({
+        code: '400',
+        message: 'The SDK session is disconnecting',
+      })
+    }
     // In case of a response don't wait for a result
     let promise: Promise<unknown> = Promise.resolve()
     if ('params' in msg) {
@@ -307,6 +313,7 @@ export class BaseSession {
         if ('method' in msg && msg.method === 'signalwire.connect') {
           throw this._swConnectError
         }
+        this._checkCurrentStatus()
         this.logger.error('Request Timeout', msg)
         if (this.status === 'disconnected') {
           return this.logger.debug(
@@ -426,6 +433,9 @@ export class BaseSession {
           response: payload,
           request: rpcRequest,
         })
+
+        this._checkCurrentStatus()
+
         return error ? reject(error) : resolve(result)
       }
 
@@ -536,11 +546,42 @@ export class BaseSession {
     await this.execute(RPCPingResponse(payload.id, payload?.params?.timestamp))
   }
 
+  /**
+   * Do something based on the current `this._status`
+   */
+  private _checkCurrentStatus() {
+    switch (this._status) {
+      // Only close the WS connection if there are no pending requests
+      case 'disconnecting':
+        if (this._requests.size > 0) {
+          return
+        }
+        this._requests.clear()
+        this._closeConnection('disconnected')
+        break
+      case 'disconnected':
+        // Will destroy the rootSaga too
+        this.dispatch(sessionDisconnectedAction())
+        break
+      case 'reconnecting':
+        /**
+         * Since the real `close` event can be delayed by OS/Browser,
+         * trigger it manually to start the reconnect process if required.
+         */
+        this.wsCloseHandler(
+          new this.CloseEventConstructor('close', {
+            reason: 'Client-side closed',
+          })
+        )
+        break
+    }
+  }
+
   private _closeConnection(
     status: Extract<SessionStatus, 'reconnecting' | 'disconnected'>
   ) {
     this._clearCheckPingTimer()
-    this.logger.debug('Close Connection')
+    this.logger.debug('Close Connection:', status)
     this._status = status
     this.dispatch(
       sessionActions.authStatus(
@@ -548,17 +589,6 @@ export class BaseSession {
       )
     )
     this.destroySocket()
-
-    if (this._status === 'reconnecting') {
-      /**
-       * Since the real `close` event can be delayed by OS/Browser,
-       * trigger it manually to start the reconnect process if required.
-       */
-      this.wsCloseHandler(
-        new this.CloseEventConstructor('close', {
-          reason: 'Client-side closed',
-        })
-      )
-    }
+    this._checkCurrentStatus()
   }
 }

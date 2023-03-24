@@ -105,6 +105,11 @@ export function* initSessionSaga({
 
   yield take(destroyAction.type)
 
+  session.disconnect()
+
+  yield take(sessionDisconnectedAction.type)
+  yield put(pubSubChannel, sessionDisconnectedAction())
+
   /**
    * We have to manually cancel the fork because it is not
    * being automatically cleaned up when the session is
@@ -121,8 +126,6 @@ export function* initSessionSaga({
    * // swEventChannel.close()
    * // sessionChannel.close()
    */
-
-  session.disconnect()
 }
 
 export function* reauthenticateWorker({
@@ -159,7 +162,6 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
         authExpiringAction.type,
         reauthAction.type,
         sessionReconnectingAction.type,
-        sessionDisconnectedAction.type,
         sessionForceCloseAction.type,
       ])
 
@@ -192,11 +194,6 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
         }
         case sessionReconnectingAction.type: {
           yield put(options.pubSubChannel, sessionReconnectingAction())
-          break
-        }
-        case sessionDisconnectedAction.type: {
-          yield put(options.pubSubChannel, sessionDisconnectedAction())
-          yield put(destroyAction())
           break
         }
         case sessionForceCloseAction.type: {

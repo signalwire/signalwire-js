@@ -925,7 +925,5 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       rtcPeer.stop()
     })
     this.rtcPeerMap.clear()
-
-    this.destroy()
   }
 }

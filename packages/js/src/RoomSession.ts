@@ -159,6 +159,10 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     client.disconnect()
   })
 
+  client.once('session.disconnected', () => {
+    room.destroy()
+  })
+
   const join = (params?: BaseRoomSessionJoinParams) => {
     return new Promise(async (resolve, reject) => {
       try {
