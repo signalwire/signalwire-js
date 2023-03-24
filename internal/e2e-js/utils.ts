@@ -193,6 +193,7 @@ interface CreateTestVRTOptions {
   media_allowed?: 'audio-only' | 'video-only' | 'all'
   join_audio_muted?: boolean
   join_video_muted?: boolean
+  end_room_session_on_leave?: boolean,
 }
 
 export const createTestVRTToken = async (body: CreateTestVRTOptions) => {
