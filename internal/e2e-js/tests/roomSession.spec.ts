@@ -214,9 +214,15 @@ test.describe('RoomSession', () => {
           if (params.state === 'recording' && recordingPaused === true) {
             resolve(true)
           } else if (params.state === 'paused' && recordingPaused === true) {
-            console.log("[recording.updated] Still waiting for recording to resume...")
+            console.log(
+              '[recording.updated] Still waiting for recording to resume...'
+            )
           } else {
-            reject(new Error('[recording.updated] state is not "paused" or "recording"'))
+            reject(
+              new Error(
+                '[recording.updated] state is not "paused" or "recording"'
+              )
+            )
           }
         })
       })
@@ -245,7 +251,7 @@ test.describe('RoomSession', () => {
         roomUpdatedStarted,
         roomUpdatedPaused,
         roomUpdatedResumed,
-        recordingEnded
+        recordingEnded,
       ])
     })
 
@@ -352,6 +358,10 @@ test.describe('RoomSession', () => {
         video: true,
       })
 
+      const screenShareIdCheckPromise = new Promise((resolve) => {
+        resolve(screenMemberId === screenShareObj.memberId)
+      })
+
       const screenRoomLeft = new Promise((resolve) => {
         screenShareObj.on('room.left', () => resolve(true))
       })
@@ -360,7 +370,12 @@ test.describe('RoomSession', () => {
 
       await screenShareObj.leave()
 
-      return Promise.all([screenJoined, screenLeft, screenRoomLeft])
+      return Promise.all([
+        screenJoined,
+        screenLeft,
+        screenRoomLeft,
+        screenShareIdCheckPromise,
+      ])
     })
 
     const expectRoomMeta = async (expected: any) => {
