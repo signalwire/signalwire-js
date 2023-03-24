@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.19.1] - 2023-03-24
+
+### Fixed
+
+- [#767](https://github.com/signalwire/signalwire-js/pull/767) [`a1321a63`](https://github.com/signalwire/signalwire-js/commit/a1321a6349bac0febcf8c948dd31a1ed2ef4133e) - Fix missing roomSessionId/memberId on screenShare/additionalDevice objects and expose those variables right after `.join()`.
+
+### Dependencies
+
+- Updated dependencies [[`e299b048`](https://github.com/signalwire/signalwire-js/commit/e299b048fbcf876f2409335a98de1295fba70480), [`e299b048`](https://github.com/signalwire/signalwire-js/commit/e299b048fbcf876f2409335a98de1295fba70480), [`a491dbff`](https://github.com/signalwire/signalwire-js/commit/a491dbffac6540a81ea22054dd97f2139d489651)]:
+  - @signalwire/core@3.14.1
+  - @signalwire/webrtc@3.6.2
+
 ## [3.19.0] - 2023-03-22
 
 ### Added

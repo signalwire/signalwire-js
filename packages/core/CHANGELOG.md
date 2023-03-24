@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.14.1] - 2023-03-24
+
+### Fixed
+
+- [#766](https://github.com/signalwire/signalwire-js/pull/766) [`e299b048`](https://github.com/signalwire/signalwire-js/commit/e299b048fbcf876f2409335a98de1295fba70480) - Wait for the pending requests before closing the WebSocket connection.
+
 ## [3.14.0] - 2023-03-22
 
 ### Added
