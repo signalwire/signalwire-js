@@ -5,6 +5,7 @@ import {
   createTestRoomSession,
   expectRoomJoined,
   expectMCUVisible,
+  randomizeRoomName,
 } from '../utils'
 
 test.describe('RoomSession', () => {
@@ -23,7 +24,7 @@ test.describe('RoomSession', () => {
 
     const connectionSettings = {
       vrt: {
-        room_name: 'another',
+        room_name: randomizeRoomName('room_session'),
         user_name: 'e2e_test',
         auto_create_room: true,
         permissions: ['room.stream'],
