@@ -5,7 +5,8 @@ import {
   CallingCallCollectEventParams,
 } from '@signalwire/core'
 import type { Call } from '../Call'
-import { CallCollect, createCallCollectObject } from '../CallCollect'
+import { CallPrompt, CallPromptAPI } from '../CallPrompt'
+import { CallCollect } from '../CallCollect'
 
 export const voiceCallCollectWorker: SDKCallWorker<CallingCallCollectEventParams> =
   function* (options): SagaIterator {
@@ -20,55 +21,66 @@ export const voiceCallCollectWorker: SDKCallWorker<CallingCallCollectEventParams
       throw new Error('Missing call instance for collect')
     }
 
-    let collectInstance = get(payload.control_id) as CallCollect
-    if (!collectInstance) {
-      collectInstance = createCallCollectObject({
-        store: callInstance.store,
-        // @ts-expect-error
-        emitter: callInstance.emitter,
-        payload,
-      })
-    } else {
-      collectInstance.setPayload(payload)
+    const actionInstance = get(payload.control_id) as CallPrompt | CallCollect
+    if (!actionInstance) {
+      throw new Error('Missing the instance')
     }
-    set(payload.control_id, collectInstance)
+    actionInstance.setPayload(payload)
+    set(payload.control_id, actionInstance)
+
+    let eventPrefix = 'collect'
+    if (actionInstance instanceof CallPromptAPI) {
+      eventPrefix = 'prompt'
+    }
 
     /**
      * Only when partial_results: true
      */
     if (payload.final === false) {
-      callInstance.baseEmitter.emit('collect.updated', collectInstance)
+      callInstance.baseEmitter.emit(`${eventPrefix}.updated`, actionInstance)
     } else {
       if (payload.result) {
         switch (payload.result.type) {
           case 'start_of_input': {
             callInstance.baseEmitter.emit(
-              'collect.startOfInput',
-              collectInstance
+              `${eventPrefix}.startOfInput`,
+              actionInstance
             )
             break
           }
-          case 'no_match':
           case 'no_input':
+          case 'no_match':
           case 'error': {
-            callInstance.baseEmitter.emit('collect.failed', collectInstance)
+            callInstance.baseEmitter.emit(
+              `${eventPrefix}.failed`,
+              actionInstance
+            )
 
-            // To resolve the ended() promise in CallCollect
-            collectInstance.baseEmitter.emit('collect.failed', collectInstance)
+            // To resolve the ended() promise in CallPrompt or CallCollect
+            actionInstance.baseEmitter.emit(
+              `${eventPrefix}.failed`,
+              actionInstance
+            )
             break
           }
           case 'speech':
           case 'digit': {
-            callInstance.baseEmitter.emit('collect.ended', collectInstance)
+            callInstance.baseEmitter.emit(
+              `${eventPrefix}.ended`,
+              actionInstance
+            )
 
-            // To resolve the ended() promise in CallCollect
-            collectInstance.baseEmitter.emit('collect.ended', collectInstance)
+            // To resolve the ended() promise in CallPrompt or CallCollect
+            actionInstance.baseEmitter.emit(
+              `${eventPrefix}.ended`,
+              actionInstance
+            )
             break
           }
           default:
             getLogger().info(
               // @ts-expect-error
-              `Unknown collect result type: "${payload.result.type}"`
+              `Unknown prompt result type: "${payload.result.type}"`
             )
             break
         }

@@ -97,6 +97,9 @@ export type CallConnectFailed = 'connect.failed'
 export type CallDetectStarted = 'detect.started'
 export type CallDetectUpdated = 'detect.updated'
 export type CallDetectEnded = 'detect.ended'
+// Internal SDK events
+export type CallSDKPrompt = 'sdk.prompt'
+export type CallSDKCollect = 'sdk.collect'
 
 /**
  * List of public event names
@@ -1350,6 +1353,27 @@ export interface CallCollectFailedEvent extends SwEvent {
   params: CallingCallCollectEventParams & { tag: string }
 }
 
+export interface CallingCallSDKEventParams {
+  node_id: string
+  call_id: string
+  control_id: string
+}
+/**
+ * 'calling.sdk.prompt'
+ */
+export interface CallSDKPromptEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallSDKPrompt>
+  params: CallingCallSDKEventParams
+}
+
+/**
+ * 'calling.sdk.collect'
+ */
+export interface CallSDKCollectEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallSDKCollect>
+  params: CallingCallSDKEventParams
+}
+
 // interface VoiceCallStateEvent {
 //   call_id: string
 //   node_id: string
@@ -1417,6 +1441,9 @@ export type VoiceCallEvent =
   | CallCollectUpdatedEvent
   | CallCollectEndedEvent
   | CallCollectFailedEvent
+  // Internal Events
+  | CallSDKPromptEvent
+  | CallSDKCollectEvent
 
 export type VoiceCallEventParams =
   // Server Event Params
@@ -1430,6 +1457,8 @@ export type VoiceCallEventParams =
   | CallingCallConnectEventParams
   | CallingCallSendDigitsEventParams
   | CallingCallDetectEventParams
+  // Internal Event Params
+  | CallingCallSDKEventParams
   // SDK Event Params
   | CallReceivedEvent['params']
   | CallPlaybackStartedEvent['params']
@@ -1459,6 +1488,8 @@ export type VoiceCallEventParams =
   | CallCollectUpdatedEvent['params']
   | CallCollectEndedEvent['params']
   | CallCollectFailedEvent['params']
+  | CallSDKPromptEvent['params']
+  | CallSDKCollectEvent['params']
 
 export type VoiceCallAction = MapToPubSubShape<VoiceCallEvent>
 

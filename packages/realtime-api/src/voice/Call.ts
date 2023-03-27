@@ -49,7 +49,7 @@ import { RealTimeCallApiEvents } from '../types'
 import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
 import { toInternalDevices, toInternalPlayParams } from './utils'
 import { Playlist } from './Playlist'
-import { voiceCallPromptWorker, voiceCallConnectWorker } from './workers'
+import { voiceCallConnectWorker } from './workers'
 import { CallPlayback, createCallPlaybackObject } from './CallPlayback'
 import { CallRecording, createCallRecordingObject } from './CallRecording'
 import { CallPrompt, createCallPromptObject } from './CallPrompt'
@@ -734,20 +734,30 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         reject(new Error(`Missing 'playlist' params.`))
       }
 
+      const resolveHandler = (callPrompt: CallPrompt) => {
+        this._off('prompt.failed', rejectHandler)
+        resolve(callPrompt)
+      }
+
+      const rejectHandler = (callPrompt: CallPrompt) => {
+        this._off('prompt.started', resolveHandler)
+        reject(callPrompt)
+      }
+
+      this._once('prompt.started', resolveHandler)
+      this._once('prompt.failed', rejectHandler)
+
       const controlId = uuid()
 
-      this.runWorker('voiceCallPromptWorker', {
-        worker: voiceCallPromptWorker,
-        initialState: {
-          controlId,
+      // Put the internal SDK event on SW channel to create an instance
+      this.store.channels.swEventChannel.put({
+        type: 'calling.sdk.prompt',
+        payload: {
+          control_id: controlId,
+          call_id: this.id,
+          node_id: this.nodeId,
         },
       })
-
-      const resolveHandler = (callRecording: CallPrompt) => {
-        resolve(callRecording)
-      }
-      // @ts-expect-error
-      this.on(callingPromptTriggerEvent, resolveHandler)
 
       const { volume, media } = params.playlist
       // TODO: move this to a method to build `collect`
@@ -757,6 +767,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         digits,
         speech,
       }
+
       this.execute({
         method: 'calling.play_and_collect',
         params: {
@@ -769,22 +780,11 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         },
       })
         .then(() => {
-          const startEvent: Omit<CallingCallCollectEventParams, 'result'> = {
-            control_id: controlId,
-            call_id: this.id,
-            node_id: this.nodeId,
-          }
-          // TODO: (review) There's no event for prompt started so we generate it here
-          this.emit('prompt.started', startEvent)
-
-          // @ts-expect-error
-          this.emit(callingPromptTriggerEvent, startEvent)
+          // TODO: handle then?
         })
         .catch((e) => {
-          this.off('prompt.started', resolveHandler)
-
-          // @ts-expect-error
-          this.off(callingPromptTriggerEvent, resolveHandler)
+          this._off('prompt.started', resolveHandler)
+          this._off('prompt.failed', rejectHandler)
           reject(e)
         })
     })
@@ -1420,14 +1420,24 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       }
 
       const rejectHandler = (callCollect: CallCollect) => {
-        this._off('collect.startOfInput', resolveHandler)
+        this._off('collect.started', resolveHandler)
         reject(callCollect)
       }
 
-      this._once('collect.startOfInput', resolveHandler)
+      this._once('collect.started', resolveHandler)
       this._once('collect.failed', rejectHandler)
 
       const controlId = uuid()
+
+      // Put the internal SDK event on SW channel to create an instance
+      this.store.channels.swEventChannel.put({
+        type: 'calling.sdk.collect',
+        payload: {
+          control_id: controlId,
+          call_id: this.id,
+          node_id: this.nodeId,
+        },
+      })
 
       // TODO: move this to a method to build the params
       const {

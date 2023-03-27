@@ -155,7 +155,6 @@ export class CallCollectAPI
 
     return new Promise<this>((resolve) => {
       this._attachListeners(this.controlId)
-
       const handler = (_callCollect: CallCollectEndedEvent['params']) => {
         // @ts-expect-error
         this._off('collect.ended', handler)

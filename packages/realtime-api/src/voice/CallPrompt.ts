@@ -2,10 +2,11 @@ import {
   connect,
   BaseComponentOptions,
   VoiceCallPromptContract,
-  CallingCallCollectResult,
   CallingCallCollectEndState,
   BaseComponent,
   CallPromptEndedEvent,
+  CallingCallCollectEventParams,
+  EventEmitter,
 } from '@signalwire/core'
 
 /**
@@ -14,7 +15,10 @@ import {
  * starting a Prompt from the desired {@link Call} (see
  * {@link Call.prompt})
  */
-export interface CallPrompt extends VoiceCallPromptContract {}
+export interface CallPrompt extends VoiceCallPromptContract {
+  setPayload: (payload: CallingCallCollectEventParams) => void
+  baseEmitter: EventEmitter
+}
 
 export type CallPromptEventsHandlerMapping = {}
 
@@ -34,14 +38,32 @@ export class CallPromptAPI
   implements VoiceCallPromptContract
 {
   protected _eventsPrefix = 'calling' as const
+  private _payload: CallingCallCollectEventParams
 
-  callId: string
-  nodeId: string
-  controlId: string
-  result?: CallingCallCollectResult
+  constructor(options: BaseComponentOptions<CallPromptEventsHandlerMapping>) {
+    super(options)
+
+    this._payload = options.payload
+  }
 
   get id() {
-    return this.controlId
+    return this._payload.control_id
+  }
+
+  get controlId() {
+    return this._payload.control_id
+  }
+
+  get callId() {
+    return this._payload.call_id
+  }
+
+  get nodeId() {
+    return this._payload.node_id
+  }
+
+  get result() {
+    return this._payload.result
   }
 
   get type() {
@@ -82,6 +104,11 @@ export class CallPromptAPI
       return this.result.params.confidence
     }
     return undefined
+  }
+
+  /** @internal */
+  protected setPayload(payload: CallingCallCollectEventParams) {
+    this._payload = payload
   }
 
   async stop() {
@@ -136,9 +163,9 @@ export class CallPromptAPI
       this._attachListeners(this.controlId)
       const handler = (_callPrompt: CallPromptEndedEvent['params']) => {
         // @ts-expect-error
-        this.off('prompt.ended', handler)
+        this._off('prompt.ended', handler)
         // @ts-expect-error
-        this.off('prompt.failed', handler)
+        this._off('prompt.failed', handler)
         // It's important to notice that we're returning
         // `this` instead of creating a brand new instance
         // using the payload + EventEmitter Transform
@@ -150,9 +177,9 @@ export class CallPromptAPI
         resolve(this)
       }
       // @ts-expect-error
-      this.once('prompt.ended', handler)
+      this._once('prompt.ended', handler)
       // @ts-expect-error
-      this.once('prompt.failed', handler)
+      this._once('prompt.failed', handler)
     })
   }
 }

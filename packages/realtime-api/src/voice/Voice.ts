@@ -18,7 +18,7 @@ import type {
 } from '@signalwire/core'
 import { RealtimeClient } from '../client/index'
 import { createCallObject, Call } from './Call'
-import { voiceCallingWroker, voiceClientWorker } from './workers'
+import { voiceCallingWroker } from './workers'
 import { DeviceBuilder } from './DeviceBuilder'
 import type { RealTimeCallApiEvents } from '../types'
 import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
@@ -216,9 +216,6 @@ class VoiceAPI extends AutoApplyTransformsConsumer<VoiceClientApiEvents> {
       initialState: {
         tag: this._tag,
       },
-    })
-    this.runWorker('voiceClientWorker', {
-      worker: voiceClientWorker,
     })
 
     this._attachListeners('')
