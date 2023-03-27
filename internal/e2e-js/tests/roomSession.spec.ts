@@ -358,6 +358,10 @@ test.describe('RoomSession', () => {
         video: true,
       })
 
+      const screenShareIdCheckPromise = new Promise((resolve) => {
+        resolve(screenMemberId === screenShareObj.memberId)
+      })
+
       const screenRoomLeft = new Promise((resolve) => {
         screenShareObj.on('room.left', () => resolve(true))
       })
@@ -366,7 +370,12 @@ test.describe('RoomSession', () => {
 
       await screenShareObj.leave()
 
-      return Promise.all([screenJoined, screenLeft, screenRoomLeft])
+      return Promise.all([
+        screenJoined,
+        screenLeft,
+        screenRoomLeft,
+        screenShareIdCheckPromise,
+      ])
     })
 
     const expectRoomMeta = async (expected: any) => {
