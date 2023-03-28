@@ -8,7 +8,10 @@ import { createClient } from './createClient'
 import { BaseRoomSession } from './BaseRoomSession'
 import { checkMediaParams, getJoinMediaParams } from './utils/roomSession'
 import type { MakeRoomOptions } from './Client'
-import type { BaseRoomSessionJoinParams } from './utils/interfaces'
+import type {
+  BaseRoomSessionJoinParams,
+  RoomSessionObjectEvents,
+} from './utils/interfaces'
 import { getStorage, CALL_ID } from './utils/storage'
 
 /**
@@ -53,6 +56,16 @@ export const UNSAFE_PROP_ACCESS = [
   'promote',
   'demote',
 ]
+
+/**
+ * List of events that the SDK must subscribe at the invite time.
+ * ie. ScreenShare/AdditionaDevice are based on the member.joined logic.
+ */
+const REQUIRED_EVENTS: (keyof RoomSessionObjectEvents)[] = [
+  'member.joined',
+  'layout.changed',
+]
+const noop = () => {}
 
 export interface RoomSessionOptions extends UserOptions, MakeRoomOptions {}
 
@@ -220,6 +233,8 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
 
         // Hijack previous callId if present
         reattachManager.init()
+
+        REQUIRED_EVENTS.forEach((event) => room.once(event, noop))
 
         await room.join()
       } catch (error) {
