@@ -21,7 +21,7 @@ test.describe('Room Session Auto Stream', () => {
     const connectionSettings = {
       vrt: {
         room_name: roomName,
-        user_name: 'e2e_test',
+        user_name: 'e2e_auto-stream',
         auto_create_room: false,
         permissions: ['room.stream'],
       },
