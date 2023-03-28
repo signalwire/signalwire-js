@@ -7,7 +7,6 @@ import {
   CreateOrUpdateRoomOptions,
   randomizeRoomName,
   expectRoomJoined,
-  expectMCUVisible,
 } from '../utils'
 
 interface TestConfig {

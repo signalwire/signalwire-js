@@ -5,8 +5,6 @@ import {
   createTestRoomSession,
   expectRoomJoined,
   expectMCUVisible,
-  createOrUpdateRoom,
-  createStreamForRoom,
   randomizeRoomName,
 } from '../utils'
 
@@ -36,7 +34,7 @@ test.describe('Room Session Multiple Streams', () => {
     return streamStarted
   }
 
-  test('Should create multiple streams and and list data about them all', async ({
+  test('Should create multiple streams and list data about them all', async ({
     createCustomPage,
   }) => {
     const pageOne = await createCustomPage({ name: '[pageOnes]' })
@@ -76,7 +74,7 @@ test.describe('Room Session Multiple Streams', () => {
     expect(streamsResult.streams).toHaveLength(2)
   })
 
-  test('Should create more the MAX_STREAM_FOR_ENTERPRIZE streams', async ({
+  test('Should not create more the MAX_STREAM_FOR_ENTERPRIZE streams', async ({
     createCustomPage,
   }) => {
     const pageOne = await createCustomPage({ name: '[pageOnes]' })
@@ -84,7 +82,7 @@ test.describe('Room Session Multiple Streams', () => {
 
     const connectionSettings = {
       vrt: {
-        room_name: randomizeRoomName(),
+        room_name: randomizeRoomName('max_multi_stream_e2e'),
         user_name: 'e2e_test',
         auto_create_room: true,
         permissions: ['room.stream'],
