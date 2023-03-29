@@ -2,12 +2,33 @@ import type { Twilio, TwimlInterface, JwtInterface } from 'twilio'
 import * as webhookTools from 'twilio/lib/webhooks/webhooks'
 import TwilioClient from 'twilio/lib/rest/Twilio'
 import type { CompatibilityAPIRestClientOptions } from './src/types'
+import {
+  CallListInstance,
+  CallInstance,
+  CallListInstanceCreateOptions,
+} from 'twilio/lib/rest/api/v2010/account/call'
 
 declare function RestClient(
   username: string,
   token: string,
   opts?: CompatibilityAPIRestClientOptions
-): Twilio
+): CompatibilityApi
+
+interface CompatibilityApiCallListInstanceCreateOptions
+  extends CallListInstanceCreateOptions {
+  machineWordsThreshold?: number
+}
+
+interface CompatibilityApiCallListInstance extends CallListInstance {
+  create(
+    opts: CompatibilityApiCallListInstanceCreateOptions,
+    callback?: (error: Error | null, item: CallInstance) => any
+  ): Promise<CallInstance>
+}
+
+declare class CompatibilityApi extends Twilio {
+  calls: CompatibilityApiCallListInstance
+}
 
 declare class FaxResponse {
   constructor()
