@@ -112,7 +112,7 @@ test.describe('RoomSession demote participant', () => {
       invokeJoin: false,
     })
 
-     // Expect same member ID as before demote
+    // Expect same member ID as before demote
     await expectMemberId(pageTwo, participant2Id)
     await expectMemberId(pageTwo, promiseAudienceRoomJoined.member_id)
     await expectInteractivityMode(pageTwo, 'audience')

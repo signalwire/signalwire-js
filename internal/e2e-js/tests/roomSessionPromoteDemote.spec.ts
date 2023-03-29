@@ -12,7 +12,7 @@ import {
   expectMCUVisible,
   expectMCUVisibleForAudience,
   expectPageReceiveAudio,
-  randomizeRoomName
+  randomizeRoomName,
 } from '../utils'
 
 test.describe('RoomSession promote/demote methods', () => {

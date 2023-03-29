@@ -17,7 +17,7 @@ test.describe('RoomSession', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const roomName = randomizeRoomName()
+    const roomName = randomizeRoomName('join-leave-e2e')
     const permissions = [
       'room.self.audio_mute',
       'room.self.audio_unmute',

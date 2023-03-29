@@ -193,6 +193,7 @@ interface CreateTestVRTOptions {
   media_allowed?: 'audio-only' | 'video-only' | 'all'
   join_audio_muted?: boolean
   join_video_muted?: boolean
+  end_room_session_on_leave?: boolean,
 }
 
 export const createTestVRTToken = async (body: CreateTestVRTOptions) => {
@@ -305,6 +306,7 @@ export const expectRoomJoined = (
     return new Promise<any>(async (resolve) => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
+      
       roomObj.once('room.joined', resolve)
 
       if (invokeJoin) {
