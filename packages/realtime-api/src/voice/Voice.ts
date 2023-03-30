@@ -201,9 +201,7 @@ export interface Voice
 }
 
 /** @internal */
-class VoiceAPI<
-  EventTypes extends EventEmitter.ValidEventTypes
-> extends AutoApplyTransformsConsumer<VoiceClientApiEvents> {
+class VoiceAPI extends AutoApplyTransformsConsumer<VoiceClientApiEvents> {
   /** @internal */
   protected _eventsPrefix = 'calling' as const
 
@@ -331,30 +329,25 @@ class VoiceAPI<
     })
   }
 
-  // @ts-expect-error
+  // TODO: Move these overrides to AutoApplyTransformsConsumer
   override on(
-    event: EventEmitter.EventNames<EventTypes>,
-    fn: EventEmitter.EventListener<EventTypes, any>
+    event: EventEmitter.EventNames<VoiceClientApiEvents>,
+    fn: EventEmitter.EventListener<VoiceClientApiEvents, any>
   ) {
-    // @ts-expect-error
     return super._on(event, fn)
   }
 
-  // @ts-expect-error
   override once(
-    event: EventEmitter.EventNames<EventTypes>,
-    fn: EventEmitter.EventListener<EventTypes, any>
+    event: EventEmitter.EventNames<VoiceClientApiEvents>,
+    fn: EventEmitter.EventListener<VoiceClientApiEvents, any>
   ) {
-    // @ts-expect-error
     return super._once(event, fn)
   }
 
-  // @ts-expect-error
   override off(
-    event: EventEmitter.EventNames<EventTypes>,
-    fn: EventEmitter.EventListener<EventTypes, any>
+    event: EventEmitter.EventNames<VoiceClientApiEvents>,
+    fn: EventEmitter.EventListener<VoiceClientApiEvents, any>
   ) {
-    // @ts-expect-error
     return super._off(event, fn)
   }
 }
@@ -363,7 +356,6 @@ class VoiceAPI<
 export const createVoiceObject = (
   params: BaseComponentOptions<VoiceClientApiEvents>
 ): Voice => {
-  // @ts-expect-error
   const voice = connect<VoiceClientApiEvents, VoiceAPI, Voice>({
     store: params.store,
     Component: VoiceAPI,

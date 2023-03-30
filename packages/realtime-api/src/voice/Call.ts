@@ -90,7 +90,6 @@ export type EmitterTransformsEvents =
 export interface Call
   extends VoiceCallContract<Call>,
     EmitterContract<RealTimeCallApiEvents> {
-  segmentId?: string
   store: ReturnType<typeof configureStore>
   setPayload: (payload: CallingCall) => void
   setConnectPayload: (payload: CallingCallConnectEventParams) => void
@@ -1492,6 +1491,28 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
           reject(e)
         })
     })
+  }
+
+  // TODO: Move these overrides to AutoApplyTransformsConsumer
+  override on(
+    event: EventEmitter.EventNames<RealTimeCallApiEvents>,
+    fn: EventEmitter.EventListener<RealTimeCallApiEvents, any>
+  ) {
+    return super._on(event, fn)
+  }
+
+  override once(
+    event: EventEmitter.EventNames<RealTimeCallApiEvents>,
+    fn: EventEmitter.EventListener<RealTimeCallApiEvents, any>
+  ) {
+    return super._once(event, fn)
+  }
+
+  override off(
+    event: EventEmitter.EventNames<RealTimeCallApiEvents>,
+    fn: EventEmitter.EventListener<RealTimeCallApiEvents, any>
+  ) {
+    return super._off(event, fn)
   }
 }
 
