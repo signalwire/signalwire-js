@@ -94,8 +94,8 @@ export const voiceCallPlayWorker: SDKWorker<Call> = function* (
         yield sagaEffects.put(pubSubChannel, {
           type: 'calling.playback.ended',
           payload: {
-            tag: controlId,
             ...action.payload,
+            tag: controlId,
           },
         })
 
