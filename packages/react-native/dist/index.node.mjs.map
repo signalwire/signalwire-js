@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../src/index.ts"],
+  "sourcesContent": ["import { uuid, getLogger } from '@signalwire/core'\nimport * as webrtc from '@signalwire/webrtc'\n\nexport const sum = (a: number, b: number) => {\n  if ('development' === process.env.NODE_ENV) {\n    getLogger().info('Core feature', uuid())\n    getLogger().info('WebRTC feature', webrtc)\n  }\n\n  return a + b\n}\n"],
+  "mappings": ";AAAA;AACA;AAEO,IAAM,MAAM,CAAC,GAAW,MAAc;AAC3C,MAAI,AAAkB,QAAQ,IAAI,aAA9B,eAAwC;AAC1C,cAAU,EAAE,KAAK,gBAAgB,KAAK,CAAC;AACvC,cAAU,EAAE,KAAK,kBAAkB,MAAM;AAAA,EAC3C;AAEA,SAAO,IAAI;AACb;",
+  "names": []
+}

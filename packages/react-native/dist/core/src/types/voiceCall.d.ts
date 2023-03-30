@@ -1,0 +1,1097 @@
+import type { SwEvent } from '.';
+import { MapToPubSubShape } from '..';
+import { PRODUCT_PREFIX_VOICE_CALL } from '../utils/constants';
+import type { CamelToSnakeCase, OnlyFunctionProperties, OnlyStateProperties } from './utils';
+declare type ToInternalVoiceEvent<T extends string> = `${VoiceNamespace}.${T}`;
+export declare type VoiceNamespace = typeof PRODUCT_PREFIX_VOICE_CALL;
+export declare type RingtoneName = 'at' | 'au' | 'bg' | 'br' | 'be' | 'ch' | 'cl' | 'cn' | 'cz' | 'de' | 'dk' | 'ee' | 'es' | 'fi' | 'fr' | 'gr' | 'hu' | 'il' | 'in' | 'it' | 'lt' | 'jp' | 'mx' | 'my' | 'nl' | 'no' | 'nz' | 'ph' | 'pl' | 'pt' | 'ru' | 'se' | 'sg' | 'th' | 'uk' | 'us' | 'tw' | 've' | 'za';
+/**
+ * Private event types
+ */
+export declare type CallDial = 'call.dial';
+export declare type CallState = 'call.state';
+export declare type CallReceive = 'call.receive';
+export declare type CallPlay = 'call.play';
+export declare type CallRecord = 'call.record';
+export declare type CallCollect = 'call.collect';
+export declare type CallTap = 'call.tap';
+export declare type CallConnect = 'call.connect';
+export declare type CallSendDigits = 'call.send_digits';
+export declare type CallDetect = 'call.detect';
+/**
+ * Public event types
+ */
+export declare type CallCreated = 'call.created';
+export declare type CallEnded = 'call.ended';
+export declare type CallReceived = 'call.received';
+export declare type CallPlaybackStarted = 'playback.started';
+export declare type CallPlaybackUpdated = 'playback.updated';
+export declare type CallPlaybackEnded = 'playback.ended';
+export declare type CallPlaybackFailed = 'playback.failed';
+export declare type CallRecordingStarted = 'recording.started';
+export declare type CallRecordingUpdated = 'recording.updated';
+export declare type CallRecordingEnded = 'recording.ended';
+export declare type CallRecordingFailed = 'recording.failed';
+export declare type CallPromptStarted = 'prompt.started';
+export declare type CallPromptStartOfInput = 'prompt.startOfInput';
+export declare type CallPromptUpdated = 'prompt.updated';
+export declare type CallPromptEnded = 'prompt.ended';
+export declare type CallPromptFailed = 'prompt.failed';
+export declare type CallCollectStarted = 'collect.started';
+export declare type CallCollectStartOfInput = 'collect.startOfInput';
+export declare type CallCollectUpdated = 'collect.updated';
+export declare type CallCollectEnded = 'collect.ended';
+export declare type CallCollectFailed = 'collect.failed';
+export declare type CallTapStarted = 'tap.started';
+export declare type CallTapEnded = 'tap.ended';
+export declare type CallConnectConnecting = 'connect.connecting';
+export declare type CallConnectConnected = 'connect.connected';
+export declare type CallConnectDisconnected = 'connect.disconnected';
+export declare type CallConnectFailed = 'connect.failed';
+export declare type CallDetectStarted = 'detect.started';
+export declare type CallDetectUpdated = 'detect.updated';
+export declare type CallDetectEnded = 'detect.ended';
+export declare type CallSDKPrompt = 'sdk.prompt';
+export declare type CallSDKCollect = 'sdk.collect';
+/**
+ * List of public event names
+ */
+export declare type VoiceCallEventNames = CallCreated | CallEnded | CallPlaybackStarted | CallPlaybackUpdated | CallPlaybackEnded | CallPlaybackFailed | CallRecordingStarted | CallRecordingUpdated | CallRecordingEnded | CallRecordingFailed | CallPromptStarted | CallPromptUpdated | CallPromptEnded | CallPromptFailed | CallTapStarted | CallTapEnded | CallConnectConnecting | CallConnectConnected | CallConnectDisconnected | CallConnectFailed | CallDetectStarted | CallDetectUpdated | CallDetectEnded | CallCollectStarted | CallCollectUpdated | CallCollectEnded | CallCollectFailed;
+/**
+ * List of internal events
+ * @internal
+ */
+export declare type SipCodec = 'PCMU' | 'PCMA' | 'OPUS' | 'G729' | 'G722' | 'VP8' | 'H264';
+export interface SipHeader {
+    name: string;
+    value: string;
+}
+export interface VoiceCallPhoneParams {
+    type: 'phone';
+    from?: string;
+    to: string;
+    timeout?: number;
+}
+export declare type OmitType<T> = Omit<T, 'type'>;
+export interface VoiceCallSipParams {
+    type: 'sip';
+    from: string;
+    to: string;
+    timeout?: number;
+    headers?: SipHeader[];
+    codecs?: SipCodec[];
+    webrtcMedia?: boolean;
+    sessionTimeout?: number;
+}
+export interface NestedArray<T> extends Array<T | NestedArray<T>> {
+}
+export declare type VoiceCallDeviceParams = VoiceCallPhoneParams | VoiceCallSipParams;
+export interface VoiceCallDialMethodParams {
+    region?: string;
+    devices: NestedArray<VoiceCallDeviceParams>;
+}
+export interface VoiceCallPlayAudioParams {
+    type: 'audio';
+    url: string;
+}
+export interface VoiceCallPlayTTSParams {
+    type: 'tts';
+    text: string;
+    language?: string;
+    gender?: 'male' | 'female';
+    voice?: string;
+}
+export interface VoiceCallPlaySilenceParams {
+    type: 'silence';
+    duration: number;
+}
+export interface VoiceCallPlayRingtoneParams {
+    type: 'ringtone';
+    name: RingtoneName;
+    duration?: number;
+}
+export declare type VoiceCallPlayParams = VoiceCallPlayAudioParams | VoiceCallPlayTTSParams | VoiceCallPlaySilenceParams | VoiceCallPlayRingtoneParams;
+export interface VoiceCallPlayMethodParams {
+    media: NestedArray<VoiceCallPlayParams>;
+    volume?: number;
+}
+export interface VoiceCallPlayAudioMethodParams extends OmitType<VoiceCallPlayAudioParams> {
+    volume?: number;
+}
+export interface VoicePlaylistAudioParams extends OmitType<VoiceCallPlayAudioParams> {
+}
+export interface VoiceCallPlaySilenceMethodParams extends OmitType<VoiceCallPlaySilenceParams> {
+}
+export interface VoicePlaylistSilenceParams extends OmitType<VoiceCallPlaySilenceParams> {
+}
+export interface VoiceCallPlayRingtoneMethodParams extends OmitType<VoiceCallPlayRingtoneParams> {
+    volume?: number;
+}
+export interface VoicePlaylistRingtoneParams extends OmitType<VoiceCallPlayRingtoneParams> {
+}
+export interface VoiceCallPlayTTSMethodParams extends OmitType<VoiceCallPlayTTSParams> {
+    volume?: number;
+}
+export interface VoicePlaylistTTSParams extends OmitType<VoiceCallPlayTTSParams> {
+}
+export interface VoiceCallRecordMethodParams {
+    audio: {
+        beep?: boolean;
+        format?: 'mp3' | 'wav';
+        stereo?: boolean;
+        direction?: 'listen' | 'speak' | 'both';
+        initialTimeout?: number;
+        endSilenceTimeout?: number;
+        terminators?: string;
+        inputSensitivity?: number;
+    };
+}
+export declare type CollectDigitsConfig = {
+    /** Max number of digits to collect. */
+    max: number;
+    /** Timeout in seconds between each digit. */
+    digitTimeout?: number;
+    /** DTMF digits that will end the collection. Default not set. */
+    terminators?: string;
+};
+export declare type CollectSpeechConfig = {
+    /** How much silence to wait for end of speech. Default to 1 second. */
+    endSilenceTimeout?: number;
+    /** Maximum time to collect speech. Default to 60 seconds. */
+    speechTimeout?: number;
+    /** Language to detect. Default to `en-US`. */
+    language?: string;
+    /** Array of expected phrases to detect. */
+    hints?: string[];
+};
+export declare type SpeechOrDigits = {
+    digits: CollectDigitsConfig;
+    speech?: never;
+} | {
+    digits?: never;
+    speech: CollectSpeechConfig;
+};
+export declare type VoiceCallPromptMethodParams = SpeechOrDigits & {
+    playlist: VoicePlaylist;
+    initialTimeout?: number;
+};
+export declare type VoiceCallPromptAudioMethodParams = SpeechOrDigits & OmitType<VoiceCallPlayAudioParams> & {
+    volume?: number;
+    initialTimeout?: number;
+};
+export declare type VoiceCallPromptRingtoneMethodParams = SpeechOrDigits & OmitType<VoiceCallPlayRingtoneParams> & {
+    volume?: number;
+    initialTimeout?: number;
+};
+export declare type VoiceCallPromptTTSMethodParams = SpeechOrDigits & OmitType<VoiceCallPlayTTSParams> & {
+    volume?: number;
+    initialTimeout?: number;
+};
+declare type TapCodec = 'OPUS' | 'PCMA' | 'PCMU';
+export interface TapDeviceWS {
+    type: 'ws';
+    uri: string;
+    codec?: TapCodec;
+    rate?: number;
+}
+export interface TapDeviceRTP {
+    type: 'rtp';
+    addr: string;
+    port: string;
+    codec?: TapCodec;
+    ptime?: number;
+}
+export declare type TapDevice = TapDeviceWS | TapDeviceRTP;
+export declare type TapDirection = 'listen' | 'speak' | 'both';
+export interface VoiceCallTapMethodParams {
+    device: TapDevice;
+    audio: {
+        direction: TapDirection;
+    };
+}
+export interface VoiceCallTapAudioMethodParams {
+    device: TapDevice;
+    direction: TapDirection;
+}
+export declare type VoiceCallCollectMethodParams = SpeechOrDigits & {
+    initialTimeout?: number;
+    partialResults?: boolean;
+    continuous?: boolean;
+    sendStartOfInput?: boolean;
+    startInputTimers?: boolean;
+};
+export declare type VoiceCallConnectMethodParams = VoiceDeviceBuilder | {
+    devices: VoiceDeviceBuilder;
+    ringback?: VoicePlaylist;
+};
+export declare type VoiceCallConnectPhoneMethodParams = OmitType<VoiceCallPhoneParams> & {
+    ringback?: VoicePlaylist;
+};
+export declare type VoiceCallConnectSipMethodParams = OmitType<VoiceCallSipParams> & {
+    ringback?: VoicePlaylist;
+};
+interface VoiceCallDetectBaseParams {
+    timeout?: number;
+    waitForBeep?: boolean;
+}
+export interface VoiceCallDetectMachineParams extends VoiceCallDetectBaseParams {
+    type: 'machine';
+    initialTimeout?: number;
+    endSilenceTimeout?: number;
+    machineVoiceThreshold?: number;
+    machineWordsThreshold?: number;
+}
+export interface VoiceCallDetectFaxParams extends VoiceCallDetectBaseParams {
+    type: 'fax';
+    tone?: 'CED' | 'CNG';
+}
+export interface VoiceCallDetectDigitParams extends VoiceCallDetectBaseParams {
+    type: 'digit';
+    digits?: string;
+}
+export declare type VoiceCallDetectMethodParams = VoiceCallDetectMachineParams | VoiceCallDetectFaxParams | VoiceCallDetectDigitParams;
+export declare type VoiceCallDisconnectReason = 'hangup' | 'cancel' | 'busy' | 'noAnswer' | 'decline' | 'error';
+export interface VoiceCallDialRegionParams {
+    region?: VoiceRegion;
+}
+export declare type VoiceCallDialPhoneMethodParams = OmitType<VoiceCallPhoneParams> & VoiceCallDialRegionParams;
+export declare type VoiceCallDialSipMethodParams = OmitType<VoiceCallSipParams> & VoiceCallDialRegionParams;
+declare type VoiceRegion = string;
+export declare type VoiceDialerParams = VoiceDeviceBuilder | ({
+    devices: VoiceDeviceBuilder;
+} & VoiceCallDialRegionParams);
+export interface VoiceDeviceBuilder {
+    devices: VoiceCallDialMethodParams['devices'];
+    add(params: VoiceCallDeviceParams | VoiceCallDeviceParams[]): this;
+}
+export interface CreateVoicePlaylistParams {
+    /** Default volume for the audio in the playlist. */
+    volume?: number;
+}
+export interface VoicePlaylist extends CreateVoicePlaylistParams {
+    media: VoiceCallPlayMethodParams['media'];
+    add(params: VoiceCallPlayParams): this;
+}
+/**
+ * Public Contract for a VoiceCall
+ */
+export interface VoiceCallPlaybackContract {
+    /** Unique id for this playback */
+    readonly id: string;
+    /** @ignore */
+    readonly callId: string;
+    /** @ignore */
+    readonly controlId: string;
+    /** @ignore */
+    readonly volume: number;
+    /** @ignore */
+    readonly state: CallingCallPlayState;
+    pause(): Promise<this>;
+    resume(): Promise<this>;
+    stop(): Promise<this>;
+    setVolume(volume: number): Promise<this>;
+    /**
+     * @deprecated use {@link ended} instead.
+     */
+    waitForEnded(): Promise<this>;
+    ended(): Promise<this>;
+}
+/**
+ * VoiceCallPlayback properties
+ */
+export declare type VoiceCallPlaybackEntity = OnlyStateProperties<VoiceCallPlaybackContract>;
+/**
+ * VoiceCallPlayback methods
+ */
+export declare type VoiceCallPlaybackMethods = OnlyFunctionProperties<VoiceCallPlaybackContract>;
+/**
+ * Public Contract for a VoiceCallRecording
+ */
+export interface VoiceCallRecordingContract {
+    /** Unique id for this recording */
+    readonly id: string;
+    /** @ignore */
+    readonly callId: string;
+    /** @ignore */
+    readonly controlId: string;
+    /** @ignore */
+    readonly state?: CallingCallRecordState;
+    /** @ignore */
+    readonly url?: string;
+    /** @ignore */
+    readonly size?: number;
+    /** @ignore */
+    readonly duration?: number;
+    stop(): Promise<this>;
+    ended(): Promise<this>;
+}
+/**
+ * VoiceCallRecording properties
+ */
+export declare type VoiceCallRecordingEntity = OnlyStateProperties<VoiceCallRecordingContract>;
+/**
+ * VoiceCallRecording methods
+ */
+export declare type VoiceCallRecordingMethods = OnlyFunctionProperties<VoiceCallRecordingContract>;
+/**
+ * Public Contract for a VoiceCallDetect
+ */
+export interface VoiceCallDetectContract {
+    /** Unique id for this detection */
+    readonly id: string;
+    /** @ignore */
+    readonly callId: string;
+    /** @ignore */
+    readonly controlId: string;
+    /** @ignore The result of the detection. */
+    readonly type?: CallingCallDetectType;
+    stop(): Promise<this>;
+    /**
+     * @deprecated use {@link ended} instead.
+     */
+    waitForResult(): Promise<this>;
+    ended(): Promise<this>;
+}
+/**
+ * VoiceCallDetect properties
+ */
+export declare type VoiceCallDetectEntity = OnlyStateProperties<VoiceCallDetectContract>;
+/**
+ * VoiceCallDetect methods
+ */
+export declare type VoiceCallDetectMethods = OnlyFunctionProperties<VoiceCallDetectContract>;
+/**
+ * Public Contract for a VoiceCallPrompt
+ */
+export interface VoiceCallPromptContract {
+    /** Unique id for this recording */
+    readonly id: string;
+    /** @ignore */
+    readonly callId: string;
+    /** @ignore */
+    readonly controlId: string;
+    readonly type?: CallingCallCollectResult['type'];
+    /** Alias for type in case of errors */
+    readonly reason?: string;
+    readonly digits?: string;
+    readonly terminator?: string;
+    readonly text?: string;
+    readonly confidence?: number;
+    stop(): Promise<this>;
+    setVolume(volume: number): Promise<this>;
+    /**
+     * @deprecated use {@link ended} instead.
+     */
+    waitForResult(): Promise<VoiceCallPromptContract>;
+    ended(): Promise<this>;
+}
+/**
+ * VoiceCallPrompt properties
+ */
+export declare type VoiceCallPromptEntity = OnlyStateProperties<VoiceCallPromptContract>;
+/**
+ * VoiceCallPrompt methods
+ */
+export declare type VoiceCallPromptMethods = OnlyFunctionProperties<VoiceCallPromptContract>;
+/**
+ * Public Contract for a VoiceCallCollect
+ */
+export interface VoiceCallCollectContract {
+    /** Unique id for this recording */
+    readonly id: string;
+    /** @ignore */
+    readonly callId: string;
+    /** @ignore */
+    readonly controlId: string;
+    readonly type?: CallingCallCollectResult['type'];
+    /** Alias for type in case of errors */
+    readonly reason?: string;
+    readonly digits?: string;
+    readonly terminator?: string;
+    readonly text?: string;
+    readonly confidence?: number;
+    stop(): Promise<this>;
+    startInputTimers(): Promise<this>;
+    ended(): Promise<this>;
+}
+/**
+ * VoiceCallCollect properties
+ */
+export declare type VoiceCallCollectEntity = OnlyStateProperties<VoiceCallCollectContract>;
+/**
+ * VoiceCallCollect methods
+ */
+export declare type VoiceCallCollectMethods = OnlyFunctionProperties<VoiceCallCollectContract>;
+/**
+ * Public Contract for a VoiceCallTap
+ */
+export interface VoiceCallTapContract {
+    /** Unique id for this recording */
+    readonly id: string;
+    /** @ignore */
+    readonly callId: string;
+    /** @ignore */
+    readonly controlId: string;
+    /** @ignore */
+    readonly state: CallingCallTapState;
+    stop(): Promise<this>;
+    ended(): Promise<this>;
+}
+/**
+ * VoiceCallTap properties
+ */
+export declare type VoiceCallTapEntity = OnlyStateProperties<VoiceCallTapContract>;
+/**
+ * VoiceCallTap methods
+ */
+export declare type VoiceCallTapMethods = OnlyFunctionProperties<VoiceCallTapContract>;
+export declare type CallingCallWaitForState = Extract<CallingCallState, 'ending' | 'ended'>;
+/**
+ * Public Contract for a VoiceCall
+ */
+export interface VoiceCallContract<T = any> {
+    /** Unique id for this voice call */
+    readonly id: string;
+    /** @ignore */
+    tag: string;
+    /** @ignore */
+    callId: string;
+    /** @ignore */
+    nodeId: string;
+    /** @ignore */
+    state: CallingCallState;
+    /** @ignore */
+    context?: string;
+    type: 'phone' | 'sip';
+    device: any;
+    from: string;
+    to: string;
+    direction: CallingCallDirection;
+    headers?: SipHeader[];
+    active: boolean;
+    connected: boolean;
+    peer: T | undefined;
+    dial(params: VoiceDialerParams): Promise<T>;
+    hangup(reason?: VoiceCallDisconnectReason): Promise<void>;
+    answer(): Promise<T>;
+    play(params: VoicePlaylist): Promise<VoiceCallPlaybackContract>;
+    playAudio(params: VoiceCallPlayAudioMethodParams): Promise<VoiceCallPlaybackContract>;
+    playSilence(params: VoiceCallPlaySilenceMethodParams): Promise<VoiceCallPlaybackContract>;
+    playRingtone(params: VoiceCallPlayRingtoneMethodParams): Promise<VoiceCallPlaybackContract>;
+    playTTS(params: VoiceCallPlayTTSMethodParams): Promise<VoiceCallPlaybackContract>;
+    record(params: VoiceCallRecordMethodParams): Promise<VoiceCallRecordingContract>;
+    recordAudio(params?: VoiceCallRecordMethodParams['audio']): Promise<VoiceCallRecordingContract>;
+    prompt(params: VoiceCallPromptMethodParams): Promise<VoiceCallPromptContract>;
+    promptAudio(params: VoiceCallPromptAudioMethodParams): Promise<VoiceCallPromptContract>;
+    promptRingtone(params: VoiceCallPromptRingtoneMethodParams): Promise<VoiceCallPromptContract>;
+    promptTTS(params: VoiceCallPromptTTSMethodParams): Promise<VoiceCallPromptContract>;
+    sendDigits(digits: string): Promise<T>;
+    tap(params: VoiceCallTapMethodParams): Promise<VoiceCallTapContract>;
+    tapAudio(params: VoiceCallTapAudioMethodParams): Promise<VoiceCallTapContract>;
+    connect(params: VoiceCallConnectMethodParams): Promise<T>;
+    connectPhone(params: VoiceCallConnectPhoneMethodParams): Promise<VoiceCallContract>;
+    connectSip(params: VoiceCallConnectSipMethodParams): Promise<VoiceCallContract>;
+    /**
+     * @deprecated use {@link disconnected} instead.
+     */
+    waitForDisconnected(): Promise<this>;
+    /**
+     * Returns a promise that is resolved only after the current call has been
+     * disconnected. Also see {@link connect}.
+     *
+     * @example
+     *
+     * ```js
+     * const plan = new Voice.DeviceBuilder().add(
+     *   Voice.DeviceBuilder.Sip({
+     *     from: 'sip:user1@domain.com',
+     *     to: 'sip:user2@domain.com',
+     *     timeout: 30,
+     *   })
+     * )
+     *
+     * const peer = await call.connect(plan)
+     * await call.disconnected()
+     * ```
+     */
+    disconnected(): Promise<this>;
+    waitFor(params: CallingCallWaitForState | CallingCallWaitForState[]): Promise<boolean>;
+    disconnect(): Promise<void>;
+    detect(params: VoiceCallDetectMethodParams): Promise<VoiceCallDetectContract>;
+    amd(params?: Omit<VoiceCallDetectMachineParams, 'type'>): Promise<VoiceCallDetectContract>;
+    detectAnsweringMachine(params?: Omit<VoiceCallDetectMachineParams, 'type'>): Promise<VoiceCallDetectContract>;
+    detectFax(params?: Omit<VoiceCallDetectFaxParams, 'type'>): Promise<VoiceCallDetectContract>;
+    detectDigit(params?: Omit<VoiceCallDetectDigitParams, 'type'>): Promise<VoiceCallDetectContract>;
+    collect(params: VoiceCallCollectMethodParams): Promise<VoiceCallCollectContract>;
+}
+/**
+ * VoiceCall properties
+ */
+export declare type VoiceCallEntity = OnlyStateProperties<VoiceCallContract>;
+/**
+ * VoiceCall methods
+ */
+export declare type VoiceCallMethods = OnlyFunctionProperties<VoiceCallContract>;
+/**
+ * VoiceCallEntity for internal usage (converted to snake_case)
+ * @internal
+ */
+export declare type InternalVoiceCallEntity = {
+    [K in NonNullable<keyof VoiceCallEntity> as CamelToSnakeCase<K>]: VoiceCallEntity[K];
+};
+/**
+ * ==========
+ * ==========
+ * Server-Side Events
+ * ==========
+ * ==========
+ */
+export interface CallingCallPhoneDevice {
+    type: 'phone';
+    params: {
+        from_number: string;
+        to_number: string;
+        timeout: number;
+        max_duration: number;
+    };
+}
+export interface CallingCallSIPDevice {
+    type: 'sip';
+    params: {
+        from: string;
+        from_name?: string;
+        to: string;
+        timeout?: number;
+        max_duration?: number;
+        headers?: SipHeader[];
+        codecs?: SipCodec[];
+        webrtc_media?: boolean;
+    };
+}
+declare type CallingCallDevice = CallingCallPhoneDevice | CallingCallSIPDevice;
+export declare type CallingCallDirection = 'inbound' | 'outbound';
+export declare type CallingCallState = 'created' | 'ringing' | 'answered' | 'ending' | 'ended';
+export interface CallingCall {
+    call_id: string;
+    call_state: CallingCallState;
+    context?: string;
+    tag?: string;
+    direction: CallingCallDirection;
+    device: CallingCallDevice;
+    node_id: string;
+    segment_id?: string;
+}
+interface CallingCallDial extends CallingCall {
+    dial_winner: 'true' | 'false';
+}
+/**
+ * 'calling.call.dial'
+ */
+export declare type CallingCallDialDialingEventParams = {
+    node_id: string;
+    tag: string;
+    dial_state: 'dialing';
+};
+export declare type CallingCallDialAnsweredEventParams = {
+    node_id: string;
+    tag: string;
+    dial_state: 'answered';
+    call: CallingCallDial;
+};
+export declare type CallingCallDialFailedEventParams = {
+    node_id: string;
+    tag: string;
+    dial_state: 'failed';
+    reason: string;
+    source: CallingCallDirection;
+};
+export declare type CallingCallDialEventParams = CallingCallDialDialingEventParams | CallingCallDialAnsweredEventParams | CallingCallDialFailedEventParams;
+export interface CallingCallDialEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallDial>;
+    params: CallingCallDialEventParams;
+}
+/**
+ * 'calling.call.state'
+ */
+export interface CallingCallStateEventParams extends CallingCall {
+    peer?: {
+        call_id: string;
+        node_id: string;
+    };
+}
+export interface CallingCallStateEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallState>;
+    params: CallingCallStateEventParams;
+}
+/**
+ * 'calling.call.receive'
+ */
+export interface CallingCallReceiveEventParams extends CallingCall {
+}
+export interface CallingCallReceiveEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallReceive>;
+    params: CallingCallReceiveEventParams;
+}
+/**
+ * 'calling.call.play'
+ */
+export declare type CallingCallPlayState = 'playing' | 'paused' | 'error' | 'finished';
+export declare type CallingCallPlayEndState = Exclude<CallingCallPlayState, 'playing' | 'paused'>;
+export interface CallingCallPlayEventParams {
+    node_id: string;
+    call_id: string;
+    control_id: string;
+    state: CallingCallPlayState;
+}
+export interface CallingCallPlayEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallPlay>;
+    params: CallingCallPlayEventParams;
+}
+/**
+ * 'calling.call.record'
+ */
+export declare type CallingCallRecordState = 'recording' | 'no_input' | 'finished';
+export declare type CallingCallRecordEndState = Exclude<CallingCallRecordState, 'recording'>;
+export interface CallingCallRecordEventParams {
+    node_id: string;
+    call_id: string;
+    control_id: string;
+    state: CallingCallRecordState;
+    url?: string;
+    duration?: number;
+    size?: number;
+    record: any;
+}
+export interface CallingCallRecordEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallRecord>;
+    params: CallingCallRecordEventParams;
+}
+/**
+ * 'calling.call.collect'
+ */
+interface CallingCallCollectResultError {
+    type: 'error';
+}
+interface CallingCallCollectResultNoInput {
+    type: 'no_input';
+}
+interface CallingCallCollectResultNoMatch {
+    type: 'no_match';
+}
+interface CallingCallCollectResultStartOfInput {
+    type: 'start_of_input';
+}
+interface CallingCallCollectResultDigit {
+    type: 'digit';
+    params: {
+        digits: string;
+        terminator: string;
+    };
+}
+interface CallingCallCollectResultSpeech {
+    type: 'speech';
+    params: {
+        text: string;
+        confidence: number;
+    };
+}
+export declare type CallingCallCollectResult = CallingCallCollectResultError | CallingCallCollectResultNoInput | CallingCallCollectResultNoMatch | CallingCallCollectResultStartOfInput | CallingCallCollectResultDigit | CallingCallCollectResultSpeech;
+export declare type CallingCallCollectEndState = Exclude<CallingCallCollectResult['type'], 'start_of_input'>;
+export interface CallingCallCollectEventParams {
+    node_id: string;
+    call_id: string;
+    control_id: string;
+    result: CallingCallCollectResult;
+    final?: boolean;
+}
+export interface CallingCallCollectEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallCollect>;
+    params: CallingCallCollectEventParams;
+}
+/**
+ * 'calling.call.tap'
+ */
+export declare type CallingCallTapState = 'tapping' | 'finished';
+export declare type CallingCallTapEndState = Exclude<CallingCallTapState, 'tapping'>;
+interface CallingCallTapDeviceRTP {
+    type: 'rtp';
+    params: {
+        addr: string;
+        port: number;
+        codec?: TapCodec;
+        ptime?: number;
+    };
+}
+interface CallingCallTapDeviceWS {
+    type: 'ws';
+    params: {
+        uri: string;
+        codec?: TapCodec;
+        rate?: number;
+    };
+}
+interface CallingCallTapAudio {
+    type: 'audio';
+    params: {
+        direction?: TapDirection;
+    };
+}
+export interface CallingCallTapEventParams {
+    node_id: string;
+    call_id: string;
+    control_id: string;
+    state: CallingCallTapState;
+    tap: CallingCallTapAudio;
+    device: CallingCallTapDeviceRTP | CallingCallTapDeviceWS;
+}
+export interface CallingCallTapEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallTap>;
+    params: CallingCallTapEventParams;
+}
+/**
+ * 'calling.call.connect'
+ */
+export declare type CallingCallConnectState = 'connecting' | 'connected' | 'failed' | 'disconnected';
+export interface CallingCallConnectEventParams {
+    node_id: string;
+    call_id: string;
+    tag: string;
+    connect_state: CallingCallConnectState;
+    failed_reason?: string;
+    peer: {
+        node_id: string;
+        call_id: string;
+        tag: string;
+        device: CallingCallDevice;
+    };
+}
+export interface CallingCallConnectEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallConnect>;
+    params: CallingCallConnectEventParams;
+}
+/**
+ * 'calling.call.send_digits
+ */
+export declare type CallingCallSendDigitsState = 'finished';
+export interface CallingCallSendDigitsEventParams {
+    node_id: string;
+    call_id: string;
+    control_id: string;
+    state: CallingCallSendDigitsState;
+}
+export interface CallingCallSendDigitsEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallSendDigits>;
+    params: CallingCallSendDigitsEventParams;
+}
+/**
+ * 'calling.call.detect'
+ */
+declare type CallingCallDetectState = 'finished' | 'error';
+export declare type CallingCallDetectEndState = CallingCallDetectState;
+interface CallingCallDetectFax {
+    type: 'fax';
+    params: {
+        event: 'CED' | 'CNG' | CallingCallDetectState;
+    };
+}
+interface CallingCallDetectMachine {
+    type: 'machine';
+    params: {
+        event: 'MACHINE' | 'HUMAN' | 'UNKNOWN' | 'READY' | 'NOT_READY' | CallingCallDetectState;
+    };
+}
+interface CallingCallDetectDigit {
+    type: 'digit';
+    params: {
+        event: '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '#' | '*' | CallingCallDetectState;
+    };
+}
+export declare type Detector = CallingCallDetectFax | CallingCallDetectMachine | CallingCallDetectDigit;
+declare type CallingCallDetectType = Detector['type'];
+export interface CallingCallDetectEventParams {
+    node_id: string;
+    call_id: string;
+    control_id: string;
+    detect?: Detector;
+}
+export interface CallingCallDetectEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallDetect>;
+    params: CallingCallDetectEventParams;
+}
+/**
+ * ==========
+ * ==========
+ * SDK-Side Events
+ * ==========
+ * ==========
+ */
+/**
+ * 'calling.playback.started'
+ */
+export interface CallPlaybackStartedEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallPlaybackStarted>;
+    params: CallingCallPlayEventParams & {
+        tag: string;
+    };
+}
+/**
+ * 'calling.playback.updated'
+ */
+export interface CallPlaybackUpdatedEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallPlaybackUpdated>;
+    params: CallingCallPlayEventParams & {
+        tag: string;
+    };
+}
+/**
+ * 'calling.playback.ended'
+ */
+export interface CallPlaybackEndedEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallPlaybackEnded>;
+    params: CallingCallPlayEventParams & {
+        tag: string;
+    };
+}
+/**
+ * 'calling.playback.failed'
+ */
+export interface CallPlaybackFailedEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallPlaybackFailed>;
+    params: CallingCallPlayEventParams & {
+        tag: string;
+    };
+}
+/**
+ * 'calling.call.received'
+ */
+export interface CallReceivedEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallReceived>;
+    params: CallingCallReceiveEventParams;
+}
+/**
+ * 'calling.recording.started'
+ */
+export interface CallRecordingStartedEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallRecordingStarted>;
+    params: CallingCallRecordEventParams & {
+        tag: string;
+    };
+}
+/**
+ * 'calling.recording.updated'
+ */
+export interface CallRecordingUpdatedEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallRecordingUpdated>;
+    params: CallingCallRecordEventParams & {
+        tag: string;
+    };
+}
+/**
+ * 'calling.recording.ended'
+ */
+export interface CallRecordingEndedEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallRecordingEnded>;
+    params: CallingCallRecordEventParams & {
+        tag: string;
+    };
+}
+/**
+ * 'calling.recording.failed'
+ */
+export interface CallRecordingFailedEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallRecordingFailed>;
+    params: CallingCallRecordEventParams & {
+        tag: string;
+    };
+}
+/**
+ * 'calling.prompt.started'
+ */
+export interface CallPromptStartedEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallPromptStarted>;
+    params: CallingCallCollectEventParams & {
+        tag: string;
+    };
+}
+/**
+ * 'calling.prompt.startOfInput'
+ * Different from `started` because it's from the server
+ */
+export interface CallPromptStartOfInputEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallPromptStartOfInput>;
+    params: CallingCallCollectEventParams & {
+        tag: string;
+    };
+}
+/**
+ * 'calling.prompt.updated'
+ */
+export interface CallPromptUpdatedEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallPromptUpdated>;
+    params: CallingCallCollectEventParams & {
+        tag: string;
+    };
+}
+/**
+ * 'calling.prompt.ended'
+ */
+export interface CallPromptEndedEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallPromptEnded>;
+    params: CallingCallCollectEventParams & {
+        tag: string;
+    };
+}
+/**
+ * 'calling.prompt.failed'
+ */
+export interface CallPromptFailedEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallPromptFailed>;
+    params: CallingCallCollectEventParams & {
+        tag: string;
+    };
+}
+/**
+ * 'calling.tap.started'
+ */
+export interface CallTapStartedEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallTapStarted>;
+    params: CallingCallTapEventParams & {
+        tag: string;
+    };
+}
+/**
+ * 'calling.tap.ended'
+ */
+export interface CallTapEndedEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallTapEnded>;
+    params: CallingCallTapEventParams & {
+        tag: string;
+    };
+}
+/**
+ * 'calling.connect.connecting'
+ */
+export interface CallConnectConnectingEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallConnectConnecting>;
+    params: CallingCallConnectEventParams;
+}
+/**
+ * 'calling.connect.connected'
+ */
+export interface CallConnectConnectedEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallConnectConnected>;
+    params: CallingCallConnectEventParams;
+}
+/**
+ * 'calling.connect.disconnected'
+ */
+export interface CallConnectDisconnectedEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallConnectDisconnected>;
+    params: CallingCallConnectEventParams;
+}
+/**
+ * 'calling.connect.failed'
+ */
+export interface CallConnectFailedEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallConnectFailed>;
+    params: CallingCallConnectEventParams;
+}
+/**
+ * 'calling.detect.started'
+ */
+export interface CallDetectStartedEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallDetectStarted>;
+    params: CallingCallDetectEventParams & {
+        tag: string;
+    };
+}
+/**
+ * 'calling.detect.updated'
+ */
+export interface CallDetectUpdatedEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallDetectUpdated>;
+    params: CallingCallDetectEventParams & {
+        tag: string;
+    };
+}
+/**
+ * 'calling.detect.ended'
+ */
+export interface CallDetectEndedEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallDetectEnded>;
+    params: CallingCallDetectEventParams & {
+        tag: string;
+    };
+}
+/**
+ * 'calling.collect.started'
+ */
+export interface CallCollectStartedEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallCollectStarted>;
+    params: CallingCallCollectEventParams & {
+        tag: string;
+    };
+}
+/**
+ * 'calling.collect.startOfInput'
+ * Different from `started` because it's from the server
+ */
+export interface CallCollectStartOfInputEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallCollectStartOfInput>;
+    params: CallingCallCollectEventParams & {
+        tag: string;
+    };
+}
+/**
+ * 'calling.collect.updated'
+ */
+export interface CallCollectUpdatedEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallCollectUpdated>;
+    params: CallingCallCollectEventParams & {
+        tag: string;
+    };
+}
+/**
+ * 'calling.collect.ended'
+ */
+export interface CallCollectEndedEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallCollectEnded>;
+    params: CallingCallCollectEventParams & {
+        tag: string;
+    };
+}
+/**
+ * 'calling.collect.failed'
+ */
+export interface CallCollectFailedEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallCollectFailed>;
+    params: CallingCallCollectEventParams & {
+        tag: string;
+    };
+}
+export interface CallingCallSDKEventParams {
+    node_id: string;
+    call_id: string;
+    control_id: string;
+}
+/**
+ * 'calling.sdk.prompt'
+ */
+export interface CallSDKPromptEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallSDKPrompt>;
+    params: CallingCallSDKEventParams;
+}
+/**
+ * 'calling.sdk.collect'
+ */
+export interface CallSDKCollectEvent extends SwEvent {
+    event_type: ToInternalVoiceEvent<CallSDKCollect>;
+    params: CallingCallSDKEventParams;
+}
+export declare type VoiceCallEvent = CallingCallDialEvent | CallingCallStateEvent | CallingCallReceiveEvent | CallingCallPlayEvent | CallingCallRecordEvent | CallingCallCollectEvent | CallingCallTapEvent | CallingCallConnectEvent | CallingCallSendDigitsEvent | CallingCallDetectEvent | CallReceivedEvent | CallPlaybackStartedEvent | CallPlaybackUpdatedEvent | CallPlaybackEndedEvent | CallPlaybackFailedEvent | CallRecordingStartedEvent | CallRecordingUpdatedEvent | CallRecordingEndedEvent | CallRecordingFailedEvent | CallPromptStartedEvent | CallPromptStartOfInputEvent | CallPromptUpdatedEvent | CallPromptEndedEvent | CallPromptFailedEvent | CallTapStartedEvent | CallTapEndedEvent | CallConnectConnectingEvent | CallConnectConnectedEvent | CallConnectDisconnectedEvent | CallConnectFailedEvent | CallDetectStartedEvent | CallDetectUpdatedEvent | CallDetectEndedEvent | CallCollectStartedEvent | CallCollectStartOfInputEvent | CallCollectUpdatedEvent | CallCollectEndedEvent | CallCollectFailedEvent | CallSDKPromptEvent | CallSDKCollectEvent;
+export declare type VoiceCallEventParams = CallingCallDialEventParams | CallingCallStateEventParams | CallingCallReceiveEventParams | CallingCallPlayEventParams | CallingCallRecordEventParams | CallingCallCollectEventParams | CallingCallTapEventParams | CallingCallConnectEventParams | CallingCallSendDigitsEventParams | CallingCallDetectEventParams | CallingCallSDKEventParams | CallReceivedEvent['params'] | CallPlaybackStartedEvent['params'] | CallPlaybackUpdatedEvent['params'] | CallPlaybackEndedEvent['params'] | CallPlaybackFailedEvent['params'] | CallRecordingStartedEvent['params'] | CallRecordingUpdatedEvent['params'] | CallRecordingEndedEvent['params'] | CallRecordingFailedEvent['params'] | CallPromptStartedEvent['params'] | CallPromptStartOfInputEvent['params'] | CallPromptUpdatedEvent['params'] | CallPromptEndedEvent['params'] | CallPromptFailedEvent['params'] | CallTapStartedEvent['params'] | CallTapEndedEvent['params'] | CallConnectConnectingEvent['params'] | CallConnectConnectedEvent['params'] | CallConnectDisconnectedEvent['params'] | CallConnectFailedEvent['params'] | CallDetectStartedEvent['params'] | CallDetectUpdatedEvent['params'] | CallDetectEndedEvent['params'] | CallCollectStartedEvent['params'] | CallCollectStartOfInputEvent['params'] | CallCollectUpdatedEvent['params'] | CallCollectEndedEvent['params'] | CallCollectFailedEvent['params'] | CallSDKPromptEvent['params'] | CallSDKCollectEvent['params'];
+export declare type VoiceCallAction = MapToPubSubShape<VoiceCallEvent>;
+export declare type VoiceCallJSONRPCMethod = 'calling.dial' | 'calling.end' | 'calling.answer' | 'calling.play' | 'calling.play.pause' | 'calling.play.resume' | 'calling.play.volume' | 'calling.play.stop' | 'calling.record' | 'calling.record.stop' | 'calling.play_and_collect' | 'calling.play_and_collect.stop' | 'calling.play_and_collect.volume' | 'calling.tap' | 'calling.tap.stop' | 'calling.connect' | 'calling.disconnect' | 'calling.send_digits' | 'calling.detect' | 'calling.detect.stop' | 'calling.collect' | 'calling.collect.stop' | 'calling.collect.start_input_timers';
+export declare type CallingTransformType = 'voiceCallReceived' | 'voiceCallPlayback' | 'voiceCallRecord' | 'voiceCallPrompt' | 'voiceCallTap' | 'voiceCallConnect' | 'voiceCallState' | 'voiceCallDetect' | 'voiceCallCollect';
+export {};
+//# sourceMappingURL=voiceCall.d.ts.map
