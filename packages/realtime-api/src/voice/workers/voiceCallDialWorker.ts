@@ -24,15 +24,14 @@ export const voiceCallDialWorker: SDKCallWorker<
   if (payload.tag && payload.tag !== initialState.tag) return
 
   switch (payload.dial_state) {
-    case 'dialing': {
-      break
-    }
     case 'failed': {
+      // @ts-expect-error
       client.baseEmitter.emit('dial.failed', toExternalJSON(payload))
       break
     }
     case 'answered': {
       const callInstance = get(payload.call.call_id) as Call
+      // @ts-expect-error
       client.baseEmitter.emit('dial.answered', callInstance)
       callInstance.baseEmitter.emit('call.state', payload.call)
       break

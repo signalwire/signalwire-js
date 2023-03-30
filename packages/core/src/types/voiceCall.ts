@@ -664,6 +664,7 @@ export interface VoiceCallContract<T = any> {
   headers?: SipHeader[]
   active: boolean
   connected: boolean
+  peer: T | undefined
 
   dial(params: VoiceDialerParams): Promise<T>
   hangup(reason?: VoiceCallDisconnectReason): Promise<void>
@@ -701,7 +702,7 @@ export interface VoiceCallContract<T = any> {
   sendDigits(digits: string): Promise<T>
   tap(params: VoiceCallTapMethodParams): Promise<VoiceCallTapContract>
   tapAudio(params: VoiceCallTapAudioMethodParams): Promise<VoiceCallTapContract>
-  connect(params: VoiceCallConnectMethodParams): Promise<VoiceCallContract>
+  connect(params: VoiceCallConnectMethodParams): Promise<T>
   connectPhone(
     params: VoiceCallConnectPhoneMethodParams
   ): Promise<VoiceCallContract>
@@ -782,7 +783,7 @@ export type InternalVoiceCallEntity = {
  * ==========
  */
 
-interface CallingCallPhoneDevice {
+export interface CallingCallPhoneDevice {
   type: 'phone'
   params: {
     from_number: string
@@ -792,7 +793,7 @@ interface CallingCallPhoneDevice {
   }
 }
 
-interface CallingCallSIPDevice {
+export interface CallingCallSIPDevice {
   type: 'sip'
   params: {
     from: string

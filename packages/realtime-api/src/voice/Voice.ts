@@ -15,6 +15,7 @@ import type {
   ToExternalJSONResult,
   CallingCallDialFailedEventParams,
   VoiceDialerParams,
+  EventEmitter,
 } from '@signalwire/core'
 import { RealtimeClient } from '../client/index'
 import { createCallObject, Call } from './Call'
@@ -200,7 +201,9 @@ export interface Voice
 }
 
 /** @internal */
-class VoiceAPI extends AutoApplyTransformsConsumer<VoiceClientApiEvents> {
+class VoiceAPI<
+  EventTypes extends EventEmitter.ValidEventTypes
+> extends AutoApplyTransformsConsumer<VoiceClientApiEvents> {
   /** @internal */
   protected _eventsPrefix = 'calling' as const
 
@@ -327,12 +330,40 @@ class VoiceAPI extends AutoApplyTransformsConsumer<VoiceClientApiEvents> {
       devices,
     })
   }
+
+  // @ts-expect-error
+  override on(
+    event: EventEmitter.EventNames<EventTypes>,
+    fn: EventEmitter.EventListener<EventTypes, any>
+  ) {
+    // @ts-expect-error
+    return super._on(event, fn)
+  }
+
+  // @ts-expect-error
+  override once(
+    event: EventEmitter.EventNames<EventTypes>,
+    fn: EventEmitter.EventListener<EventTypes, any>
+  ) {
+    // @ts-expect-error
+    return super._once(event, fn)
+  }
+
+  // @ts-expect-error
+  override off(
+    event: EventEmitter.EventNames<EventTypes>,
+    fn: EventEmitter.EventListener<EventTypes, any>
+  ) {
+    // @ts-expect-error
+    return super._off(event, fn)
+  }
 }
 
 /** @internal */
 export const createVoiceObject = (
   params: BaseComponentOptions<VoiceClientApiEvents>
 ): Voice => {
+  // @ts-expect-error
   const voice = connect<VoiceClientApiEvents, VoiceAPI, Voice>({
     store: params.store,
     Component: VoiceAPI,

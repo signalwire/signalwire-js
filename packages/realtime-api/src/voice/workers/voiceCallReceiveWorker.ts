@@ -11,7 +11,6 @@ import type { Client } from '../../client/index'
 export const voiceCallReceiveWorker: SDKCallWorker<CallingCall, Client> =
   function* (options): SagaIterator {
     getLogger().trace('voiceCallReceiveWorker started')
-
     const {
       client,
       payload,
@@ -37,6 +36,7 @@ export const voiceCallReceiveWorker: SDKCallWorker<CallingCall, Client> =
     }
 
     set(payload.call_id, callInstance)
+    // @ts-expect-error
     client.baseEmitter.emit('call.received', callInstance)
 
     getLogger().trace('voiceCallReceiveWorker ended')

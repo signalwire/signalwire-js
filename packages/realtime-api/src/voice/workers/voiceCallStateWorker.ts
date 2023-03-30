@@ -5,46 +5,45 @@ import {
   CallingCallStateEventParams,
 } from '@signalwire/core'
 import { Call, createCallObject } from '../Call'
+import type { Client } from '../../client/index'
 
-export const voiceCallStateWorker: SDKCallWorker<CallingCallStateEventParams> =
-  function* (options): SagaIterator {
-    getLogger().trace('voiceCallStateWorker started')
+export const voiceCallStateWorker: SDKCallWorker<
+  CallingCallStateEventParams,
+  Client
+> = function* (options): SagaIterator {
+  getLogger().trace('voiceCallStateWorker started')
+  const {
+    client,
+    payload,
+    instanceMap: { get, set, remove },
+  } = options
 
-    const {
-      client,
+  let callInstance = get(payload.call_id) as Call
+  if (!callInstance) {
+    callInstance = createCallObject({
+      store: client.store,
+      // @ts-expect-error
+      emitter: client.emitter,
       payload,
-      instanceMap: { get, set, remove },
-      initialState,
-    } = options
-
-    // Inbound calls do not have the tag
-    if (payload.tag && payload.tag !== initialState.tag) return
-
-    switch (payload.call_state) {
-      case 'created':
-      case 'ringing':
-      case 'answered': {
-        let callInstance = get(payload.call_id) as Call
-        if (!callInstance) {
-          callInstance = createCallObject({
-            store: client.store,
-            emitter: client.emitter,
-            payload,
-          })
-        } else {
-          callInstance.setPayload(payload)
-        }
-        set(payload.call_id, callInstance)
-        callInstance.baseEmitter.emit('call.state', callInstance)
-        break
-      }
-      case 'ended': {
-        remove(payload.call_id)
-        break
-      }
-      default:
-        break
-    }
-
-    getLogger().trace('voiceCallStateWorker ended')
+    })
+  } else {
+    callInstance.setPayload(payload)
   }
+  set(payload.call_id, callInstance)
+
+  switch (payload.call_state) {
+    case 'ended': {
+      callInstance.baseEmitter.emit('call.state', callInstance)
+
+      // Resolves the promise when user disconnects using a peer call instance
+      callInstance.baseEmitter.emit('connect.disconnected', callInstance)
+      remove(payload.call_id)
+      break
+    }
+    default:
+      callInstance.baseEmitter.emit('call.state', callInstance)
+      break
+  }
+
+  getLogger().trace('voiceCallStateWorker ended')
+}

@@ -94,7 +94,7 @@ export class BaseComponent<
   private _customSagaTriggers = new Map()
   private _destroyer?: () => void
   // TODO: change variable name
-  private baseEventEmitter: EventEmitter<any, any>
+  private baseEventEmitter: EventEmitter<EventTypes>
 
   private _handleCompoundEvents(event: EventEmitter.EventNames<EventTypes>) {
     const internalEvent = this._getInternalEvent(event)
@@ -601,21 +601,21 @@ export class BaseComponent<
 
   _on<T extends EventEmitter.EventNames<EventTypes>>(
     event: T,
-    fn: EventEmitter.EventListener<any, T>
+    fn: EventEmitter.EventListener<EventTypes, T>
   ) {
     return this.baseEmitter.on(event, fn)
   }
 
   _once<T extends EventEmitter.EventNames<EventTypes>>(
     event: T,
-    fn: EventEmitter.EventListener<any, T>
+    fn: EventEmitter.EventListener<EventTypes, T>
   ) {
     return this.baseEmitter.once(event, fn)
   }
 
   _off<T extends EventEmitter.EventNames<EventTypes>>(
     event: T,
-    fn?: EventEmitter.EventListener<any, T>
+    fn?: EventEmitter.EventListener<EventTypes, T>
   ) {
     return this.baseEmitter.off(event, fn)
   }

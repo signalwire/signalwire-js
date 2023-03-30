@@ -29,7 +29,6 @@ import {
   VoiceCallTapAudioMethodParams,
   CallingCallTapEventParams,
   CallingCallState,
-  CallingCallConnectState,
   CallingCallStateEventParams,
   VoiceCallConnectMethodParams,
   VoiceCallConnectPhoneMethodParams,
@@ -49,7 +48,6 @@ import { RealTimeCallApiEvents } from '../types'
 import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
 import { toInternalDevices, toInternalPlayParams } from './utils'
 import { Playlist } from './Playlist'
-import { voiceCallConnectWorker } from './workers'
 import { CallPlayback, createCallPlaybackObject } from './CallPlayback'
 import { CallRecording, createCallRecordingObject } from './CallRecording'
 import { CallPrompt, createCallPromptObject } from './CallPrompt'
@@ -92,8 +90,10 @@ export type EmitterTransformsEvents =
 export interface Call
   extends VoiceCallContract<Call>,
     EmitterContract<RealTimeCallApiEvents> {
+  segmentId?: string
   store: ReturnType<typeof configureStore>
   setPayload: (payload: CallingCall) => void
+  setConnectPayload: (payload: CallingCallConnectEventParams) => void
   baseEmitter: EventEmitter
   _waitForCallDetectMachineBeep: boolean
 }
@@ -130,9 +130,9 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
   protected _eventsPrefix = 'calling' as const
 
   public _waitForCallDetectMachineBeep: boolean
-  public peer: string
-  public connectState: CallingCallConnectState
+  private _peer: Call | undefined
   private _payload: CallingCall
+  private _connectPayload: CallingCallConnectEventParams
 
   constructor(options: BaseComponentOptions<RealTimeCallApiEvents>) {
     super(options)
@@ -186,9 +186,12 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     return this._payload.node_id
   }
 
+  get device() {
+    return this._payload.device
+  }
+
   /** The type of call. Only phone and sip are currently supported. */
   get type() {
-    // @ts-expect-error
     return (this._payload?.device?.type || this.device?.type) ?? ''
   }
 
@@ -253,9 +256,30 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     return this._payload?.direction
   }
 
+  get context() {
+    return this._payload.context
+  }
+
+  get connectState() {
+    return this._connectPayload.connect_state
+  }
+
+  get peer() {
+    return this._peer
+  }
+
+  set peer(callInstance: Call | undefined) {
+    this._peer = callInstance
+  }
+
   /** @internal */
   protected setPayload(payload: CallingCall) {
     this._payload = payload
+  }
+
+  /** @internal */
+  protected setConnectPayload(payload: CallingCallConnectEventParams) {
+    this._connectPayload = payload
   }
 
   /** @internal */
@@ -518,9 +542,9 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       }
 
       this._on('call.state', (params) => {
-        if (params.callState === 'answered') {
+        if (params.state === 'answered') {
           resolve(this)
-        } else if (params.callState === 'ended') {
+        } else if (params.state === 'ended') {
           reject(new Error('Failed to answer the call.'))
         }
       })
@@ -1095,28 +1119,22 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         throw new Error('[connect] Invalid input')
       }
 
-      this.runWorker('voiceCallConnectWorker', {
-        worker: voiceCallConnectWorker,
-      })
-
-      const resolveHandler = (payload: CallingCallConnectEventParams) => {
+      const resolveHandler = (payload: Call) => {
         // @ts-expect-error
-        this.off('connect.failed', rejectHandler)
-
+        this._off('connect.failed', rejectHandler)
         resolve(payload)
       }
 
-      const rejectHandler = (payload: CallingCallConnectEventParams) => {
+      const rejectHandler = (payload: Call) => {
         // @ts-expect-error
-        this.off('connect.connected', resolveHandler)
-
+        this._off('connect.connected', resolveHandler)
         reject(toExternalJSON(payload))
       }
 
       // @ts-expect-error
-      this.once('connect.connected', resolveHandler)
+      this._once('connect.connected', resolveHandler)
       // @ts-expect-error
-      this.once('connect.failed', rejectHandler)
+      this._once('connect.failed', rejectHandler)
 
       this.execute({
         method: 'calling.connect',
@@ -1128,9 +1146,9 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         },
       }).catch((e) => {
         // @ts-expect-error
-        this.off('connect.connected', resolveHandler)
+        this._off('connect.connected', resolveHandler)
         // @ts-expect-error
-        this.off('connect.failed', rejectHandler)
+        this._off('connect.failed', rejectHandler)
 
         reject(e)
       })
@@ -1187,7 +1205,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         resolve()
       }
       // @ts-expect-error
-      this.once('connect.disconnected', resolveHandler)
+      this._once('connect.disconnected', resolveHandler)
 
       this.execute({
         method: 'calling.disconnect',
@@ -1197,7 +1215,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         },
       }).catch((e) => {
         // @ts-expect-error
-        this.off('connect.disconnected', resolveHandler)
+        this._off('connect.disconnected', resolveHandler)
 
         reject(e)
       })
@@ -1217,9 +1235,9 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         resolve(this)
       }
       // @ts-expect-error
-      this.once('connect.disconnected', resolveHandler)
+      this._once('connect.disconnected', resolveHandler)
       // @ts-expect-error
-      this.once('connect.failed', resolveHandler)
+      this._once('connect.failed', resolveHandler)
 
       if (this.state === 'ended' || this.state === 'ending') {
         return resolveHandler()
