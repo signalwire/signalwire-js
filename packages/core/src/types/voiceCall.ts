@@ -656,6 +656,7 @@ export interface VoiceCallContract<T = any> {
   /** @ignore */
   context?: string
 
+  connectState: CallingCallConnectState
   type: 'phone' | 'sip'
   device: any // FIXME:
   from: string

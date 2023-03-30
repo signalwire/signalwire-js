@@ -16,7 +16,7 @@ const handler = () => {
     })
 
     let callsReceived = new Set()
-    client._on('call.received', async (call) => {
+    client.on('call.received', async (call) => {
       callsReceived.add(call.id)
       console.log(
         `Got call number: ${callsReceived.size}`,
