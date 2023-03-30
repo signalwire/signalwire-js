@@ -289,7 +289,23 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
           'calling.recording.failed',
         ],
         {
+          mode: 'no-cache',
           type: 'voiceCallRecord',
+          afterCreateHook: (instance: CallRecording) => {
+            const eventName = `call.record.${instance.controlId}`
+            const handler = (payload: any) => {
+              // @ts-expect-error
+              instance.__sw_update_payload(toExternalJSON(payload))
+
+              if (['finished', 'no_input'].includes(payload.state)) {
+                // @ts-expect-error
+                this.off(eventName, handler)
+              }
+            }
+
+            // @ts-expect-error
+            this.on(eventName, handler)
+          },
           instanceFactory: (_payload: any) => {
             return createCallRecordingObject({
               store: this.store,
