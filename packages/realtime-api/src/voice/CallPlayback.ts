@@ -107,11 +107,6 @@ export class CallPlaybackAPI
   }
 
   ended() {
-    // Resolve the promise if the playback has already ended
-    if (ENDED_STATES.includes(this.state as CallingCallPlayEndState)) {
-      return Promise.resolve(this)
-    }
-
     return new Promise<this>((resolve) => {
       this._attachListeners(this.controlId)
 
@@ -130,6 +125,11 @@ export class CallPlaybackAPI
       this.once('playback.ended', handler)
       // // @ts-expect-error
       // this.on('prompt.failed', handler)
+
+      // Resolve the promise if the playback has already ended
+      if (ENDED_STATES.includes(this.state as CallingCallPlayEndState)) {
+        handler()
+      }
     })
   }
 }
