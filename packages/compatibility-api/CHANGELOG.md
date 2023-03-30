@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.5] - 2023-03-30
+
+### Changed
+
+- [#772](https://github.com/signalwire/signalwire-js/pull/772) [`b8f18e7f`](https://github.com/signalwire/signalwire-js/commit/b8f18e7fb30a850faaf65991fd0d420b716eaa1f) - Include machineWordsThreshold parameter to `calls.create()` function.
+
 ## [3.0.4] - 2023-03-07
 
 ### Changed
