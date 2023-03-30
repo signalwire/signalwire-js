@@ -50,6 +50,14 @@ export const voiceCallRecordWorker: SDKWorker<Call> = function* (
       payload: payloadWithTag,
     })
 
+    /** Update the original CallRecording object through the control_id */
+    yield sagaEffects.put(pubSubChannel, {
+      // @ts-ignore
+      type: `calling.call.record.${action.payload.control_id}`,
+      // @ts-ignore
+      payload: payloadWithTag,
+    })
+
     switch (action.payload.state) {
       case 'recording': {
         yield sagaEffects.put(pubSubChannel, {
@@ -78,8 +86,8 @@ export const voiceCallRecordWorker: SDKWorker<Call> = function* (
         yield sagaEffects.put(pubSubChannel, {
           type: typeToEmit,
           payload: {
-            tag: controlId,
             ...action.payload,
+            tag: controlId,
           },
         })
 

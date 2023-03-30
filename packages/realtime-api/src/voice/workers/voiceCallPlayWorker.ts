@@ -51,6 +51,14 @@ export const voiceCallPlayWorker: SDKWorker<Call> = function* (
       payload: payloadWithTag,
     })
 
+    /** Update the original CallPlayback object through the control_id */
+    yield sagaEffects.put(pubSubChannel, {
+      // @ts-ignore
+      type: `calling.call.play.${action.payload.control_id}`,
+      // @ts-ignore
+      payload: payloadWithTag,
+    })
+
     switch (action.payload.state) {
       case 'playing': {
         const type = paused
@@ -86,8 +94,8 @@ export const voiceCallPlayWorker: SDKWorker<Call> = function* (
         yield sagaEffects.put(pubSubChannel, {
           type: 'calling.playback.ended',
           payload: {
-            tag: controlId,
             ...action.payload,
+            tag: controlId,
           },
         })
 

@@ -56,11 +56,6 @@ export class CallRecordingAPI
   }
 
   ended() {
-    // Resolve the promise if the recording has already ended
-    if (ENDED_STATES.includes(this.state as CallingCallRecordEndState)) {
-      return Promise.resolve(this)
-    }
-
     return new Promise<this>((resolve) => {
       this._attachListeners(this.controlId)
       const handler = () => {
@@ -83,6 +78,11 @@ export class CallRecordingAPI
       // TODO: review what else to return when `recording.failed` happens.
       // @ts-expect-error
       this.once('recording.failed', handler)
+
+      // Resolve the promise if the recording has already ended
+      if (ENDED_STATES.includes(this.state as CallingCallRecordEndState)) {
+        handler()
+      }
     })
   }
 }
