@@ -1,5 +1,11 @@
 # @sw-internal/e2e-realtime-api
 
+## 0.1.7
+
+### Patch Changes
+
+- [#774](https://github.com/signalwire/signalwire-js/pull/774) [`09af75aa`](https://github.com/signalwire/signalwire-js/commit/09af75aaa7b4f02b1d372bb6a225dadce9ab50ef) Thanks [@edolix](https://github.com/edolix)! - [internal] Improve realtime-api tests.
+
 ## 0.1.6
 
 ### Patch Changes

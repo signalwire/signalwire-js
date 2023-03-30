@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.8.2] - 2023-03-30
+
+### Fixed
+
+- [#774](https://github.com/signalwire/signalwire-js/pull/774) [`09af75aa`](https://github.com/signalwire/signalwire-js/commit/09af75aaa7b4f02b1d372bb6a225dadce9ab50ef) - Fix issue with simultaneous `CallPlayback` and `CallRecording`.
+
 ## [3.8.1] - 2023-03-24
 
 ### Dependencies
