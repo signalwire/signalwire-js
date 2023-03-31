@@ -11,7 +11,7 @@ const handler = () => {
       contexts: [process.env.VOICE_CONTEXT as string],
     })
 
-    client.on('call.received', async (call) => {
+    client._on('call.received', async (call) => {
       console.log(
         'Inbound - Got call',
         call.id,

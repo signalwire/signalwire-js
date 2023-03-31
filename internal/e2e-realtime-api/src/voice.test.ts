@@ -16,7 +16,7 @@ const handler = () => {
     })
 
     let callsReceived = new Set()
-    client.on('call.received', async (call) => {
+    client._on('call.received', async (call) => {
       callsReceived.add(call.id)
       console.log(
         `Got call number: ${callsReceived.size}`,
@@ -145,7 +145,6 @@ const handler = () => {
         // TODO: update this once the backend can send us
         // the actual result
         tap.equal(
-          // @ts-expect-error
           resultDetector.detect.params.event,
           'finished',
           'Detect digit is finished'
