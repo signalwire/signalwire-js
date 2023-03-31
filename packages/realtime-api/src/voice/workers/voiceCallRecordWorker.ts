@@ -10,14 +10,17 @@ import { Call } from '../Voice'
 export const voiceCallRecordWorker: SDKCallWorker<CallingCallRecordEventParams> =
   function* (options): SagaIterator {
     getLogger().trace('voiceCallRecordWorker started')
-    const { payload, instanceMap } = options
+    const {
+      payload,
+      instanceMap: { get, set },
+    } = options
 
-    const callInstance = instanceMap.get(payload.call_id) as Call
+    const callInstance = get<Call>(payload.call_id)
     if (!callInstance) {
       throw new Error('Missing call instance for recording')
     }
 
-    let recordingInstance = instanceMap.get(payload.control_id) as CallRecording
+    let recordingInstance = get<CallRecording>(payload.control_id)
     if (!recordingInstance) {
       recordingInstance = createCallRecordingObject({
         store: callInstance.store,
@@ -28,7 +31,7 @@ export const voiceCallRecordWorker: SDKCallWorker<CallingCallRecordEventParams> 
     } else {
       recordingInstance.setPayload(payload)
     }
-    instanceMap.set(payload.control_id, recordingInstance)
+    set<CallRecording>(payload.control_id, recordingInstance)
 
     switch (payload.state) {
       case 'recording': {
@@ -46,6 +49,7 @@ export const voiceCallRecordWorker: SDKCallWorker<CallingCallRecordEventParams> 
         break
       }
       default:
+        getLogger().warn(`Unknown recording state: "${payload.state}"`)
         break
     }
 

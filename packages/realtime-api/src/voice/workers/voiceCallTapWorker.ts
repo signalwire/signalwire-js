@@ -44,6 +44,7 @@ export const voiceCallTapWorker: SDKCallWorker<CallingCallTapEventParams> =
         tapInstance.baseEmitter.emit('tap.ended', tapInstance)
         break
       default:
+        getLogger().warn(`Unknown tap state: "${payload.state}"`)
         break
     }
 

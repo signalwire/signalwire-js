@@ -17,7 +17,7 @@ export const voiceCallSendDigitsWorker: SDKCallWorker<
     instanceMap: { get },
   } = options
 
-  const callInstance = get(payload.call_id) as Call
+  const callInstance = get<Call>(payload.call_id)
   if (!callInstance) {
     throw new Error('Missing call instance for send digits')
   }

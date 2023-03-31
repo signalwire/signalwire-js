@@ -95,7 +95,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
     return instanceMap.get(id) as T
   }
 
-  const setInstance = <T>(key: string, value: T) => {
+  const setInstance = <T extends unknown>(key: string, value: T) => {
     instanceMap.set(key, value)
     return instanceMap
   }

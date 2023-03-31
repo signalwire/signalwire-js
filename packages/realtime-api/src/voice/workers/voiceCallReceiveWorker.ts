@@ -23,7 +23,7 @@ export const voiceCallReceiveWorker: SDKCallWorker<CallingCall, Client> =
       throw new Error('Invalid contexts to receive inbound calls')
     }
 
-    let callInstance = get(payload.call_id) as Call
+    let callInstance = get<Call>(payload.call_id)
     if (!callInstance) {
       callInstance = createCallObject({
         store: client.store,
@@ -35,7 +35,7 @@ export const voiceCallReceiveWorker: SDKCallWorker<CallingCall, Client> =
       callInstance.setPayload(payload)
     }
 
-    set(payload.call_id, callInstance)
+    set<Call>(payload.call_id, callInstance)
     // @ts-expect-error
     client.baseEmitter.emit('call.received', callInstance)
 

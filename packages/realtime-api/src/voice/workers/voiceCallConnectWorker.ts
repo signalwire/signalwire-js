@@ -18,9 +18,12 @@ export const voiceCallConnectWorker: SDKCallWorker<
     instanceMap: { get, set },
   } = options
 
-  const callInstance = get(payload.call_id) as Call
+  const callInstance = get<Call>(payload.call_id)
+  if (!callInstance) {
+    throw new Error('Missing call instance for connect')
+  }
   callInstance.setConnectPayload(payload)
-  set(payload.call_id, callInstance)
+  set<Call>(payload.call_id, callInstance)
 
   switch (payload.connect_state) {
     case 'connecting': {
@@ -28,7 +31,7 @@ export const voiceCallConnectWorker: SDKCallWorker<
       break
     }
     case 'connected': {
-      let peerCallInstance = get(payload.peer.call_id) as Call
+      let peerCallInstance = get<Call>(payload.peer.call_id)
       if (!peerCallInstance) {
         peerCallInstance = createCallObject({
           store: client.store,
@@ -37,7 +40,7 @@ export const voiceCallConnectWorker: SDKCallWorker<
           payload: payload.peer,
         })
       } else {
-        set(payload.peer.call_id, peerCallInstance)
+        set<Call>(payload.peer.call_id, peerCallInstance)
       }
       callInstance.peer = peerCallInstance
       peerCallInstance.peer = callInstance
@@ -46,7 +49,7 @@ export const voiceCallConnectWorker: SDKCallWorker<
     }
     case 'disconnected':
     case 'failed': {
-      const peerCallInstance = get(payload.peer.call_id) as Call
+      const peerCallInstance = get<Call>(payload.peer.call_id)
       callInstance.baseEmitter.emit(
         `connect.${payload.connect_state}`,
         peerCallInstance
@@ -64,6 +67,7 @@ export const voiceCallConnectWorker: SDKCallWorker<
       break
     }
     default:
+      getLogger().warn(`Unknown connect state: "${payload.connect_state}"`)
       break
   }
 

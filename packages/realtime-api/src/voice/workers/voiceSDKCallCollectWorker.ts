@@ -5,7 +5,7 @@ import {
   CallingCallSDKEventParams,
 } from '@signalwire/core'
 import type { Call } from '../Call'
-import { createCallCollectObject } from '../CallCollect'
+import { CallCollect, createCallCollectObject } from '../CallCollect'
 
 export const voiceSDKCallCollectWorker: SDKCallWorker<CallingCallSDKEventParams> =
   function* (options): SagaIterator {
@@ -15,7 +15,7 @@ export const voiceSDKCallCollectWorker: SDKCallWorker<CallingCallSDKEventParams>
       instanceMap: { get, set },
     } = options
 
-    const callInstance = get(payload.call_id) as Call
+    const callInstance = get<Call>(payload.call_id)
     if (!callInstance) {
       throw new Error('Missing call instance for collect')
     }
@@ -27,7 +27,7 @@ export const voiceSDKCallCollectWorker: SDKCallWorker<CallingCallSDKEventParams>
       payload,
     })
 
-    set(payload.control_id, collectInstance)
+    set<CallCollect>(payload.control_id, collectInstance)
 
     callInstance.baseEmitter.emit('collect.started', collectInstance)
 

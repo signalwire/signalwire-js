@@ -16,17 +16,17 @@ export const voiceCallCollectWorker: SDKCallWorker<CallingCallCollectEventParams
       instanceMap: { get, set },
     } = options
 
-    const callInstance = get(payload.call_id) as Call
+    const callInstance = get<Call>(payload.call_id)
     if (!callInstance) {
       throw new Error('Missing call instance for collect')
     }
 
-    const actionInstance = get(payload.control_id) as CallPrompt | CallCollect
+    const actionInstance = get<CallPrompt | CallCollect>(payload.control_id)
     if (!actionInstance) {
       throw new Error('Missing the instance')
     }
     actionInstance.setPayload(payload)
-    set(payload.control_id, actionInstance)
+    set<CallPrompt | CallCollect>(payload.control_id, actionInstance)
 
     let eventPrefix = 'collect'
     if (actionInstance instanceof CallPromptAPI) {
@@ -78,7 +78,7 @@ export const voiceCallCollectWorker: SDKCallWorker<CallingCallCollectEventParams
             break
           }
           default:
-            getLogger().info(
+            getLogger().warn(
               // @ts-expect-error
               `Unknown prompt result type: "${payload.result.type}"`
             )

@@ -17,12 +17,12 @@ export const voiceCallDetectWorker: SDKCallWorker<CallingCallDetectEventParams> 
       instanceMap: { get, set },
     } = options
 
-    const callInstance = get(payload.call_id) as Call
+    const callInstance = get<Call>(payload.call_id)
     if (!callInstance) {
       throw new Error('Missing call instance for collect')
     }
 
-    let detectInstance = get(payload.control_id) as CallDetect
+    let detectInstance = get<CallDetect>(payload.control_id)
     if (!detectInstance) {
       detectInstance = createCallDetectObject({
         store: callInstance.store,
@@ -33,7 +33,7 @@ export const voiceCallDetectWorker: SDKCallWorker<CallingCallDetectEventParams> 
     } else {
       detectInstance.setPayload(payload)
     }
-    set(payload.control_id, detectInstance)
+    set<CallDetect>(payload.control_id, detectInstance)
 
     const { detect } = payload
     if (!detect) return
@@ -51,10 +51,10 @@ export const voiceCallDetectWorker: SDKCallWorker<CallingCallDetectEventParams> 
         detectInstance.baseEmitter.emit('detect.ended', detectInstance)
         break
       case 'error': {
-        callInstance.baseEmitter.emit('detect.ended', payload)
+        callInstance.baseEmitter.emit('detect.ended', detectInstance)
 
         // To resolve the ended() promise in CallDetect
-        detectInstance.baseEmitter.emit('detect.ended', payload)
+        detectInstance.baseEmitter.emit('detect.ended', detectInstance)
         break
       }
       default:
@@ -75,6 +75,7 @@ export const voiceCallDetectWorker: SDKCallWorker<CallingCallDetectEventParams> 
         }
         break
       default:
+        getLogger().warn(`Unknown detect type: "${type}"`)
         break
     }
 

@@ -47,7 +47,7 @@ export class CallCollectAPI
   }
 
   get id() {
-    return this._payload.control_id
+    return this._payload?.control_id.split('.')[0]
   }
 
   get controlId() {

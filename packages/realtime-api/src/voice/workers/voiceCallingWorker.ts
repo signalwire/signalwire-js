@@ -118,17 +118,18 @@ export const voiceCallingWroker: SDKWorker<Client> = function* (
         })
         break
       default:
-        getLogger().info(`Unknown call event: "${action.type}"`)
+        getLogger().warn(`Unknown call event: "${action.type}"`)
         break
     }
   }
 
+  const isCallingEvent = (action: SDKActions) =>
+    action.type.startsWith('calling.')
+
   while (true) {
     const action: MapToPubSubShape<SwEventParams> = yield sagaEffects.take(
       swEventChannel,
-      (action: SDKActions) => {
-        return action.type.startsWith('calling.')
-      }
+      isCallingEvent
     )
 
     yield sagaEffects.fork(worker, action)

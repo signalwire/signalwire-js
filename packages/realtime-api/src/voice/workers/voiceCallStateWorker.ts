@@ -18,7 +18,7 @@ export const voiceCallStateWorker: SDKCallWorker<
     instanceMap: { get, set, remove },
   } = options
 
-  let callInstance = get(payload.call_id) as Call
+  let callInstance = get<Call>(payload.call_id)
   if (!callInstance) {
     callInstance = createCallObject({
       store: client.store,
@@ -29,7 +29,7 @@ export const voiceCallStateWorker: SDKCallWorker<
   } else {
     callInstance.setPayload(payload)
   }
-  set(payload.call_id, callInstance)
+  set<Call>(payload.call_id, callInstance)
 
   switch (payload.call_state) {
     case 'ended': {
@@ -37,7 +37,7 @@ export const voiceCallStateWorker: SDKCallWorker<
 
       // Resolves the promise when user disconnects using a peer call instance
       callInstance.baseEmitter.emit('connect.disconnected', callInstance)
-      remove(payload.call_id)
+      remove<Call>(payload.call_id)
       break
     }
     default:

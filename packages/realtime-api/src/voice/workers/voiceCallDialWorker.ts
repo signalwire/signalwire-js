@@ -30,10 +30,9 @@ export const voiceCallDialWorker: SDKCallWorker<
       break
     }
     case 'answered': {
-      const callInstance = get(payload.call.call_id) as Call
+      const callInstance = get<Call>(payload.call.call_id)
       // @ts-expect-error
       client.baseEmitter.emit('dial.answered', callInstance)
-      callInstance.baseEmitter.emit('call.state', payload.call)
       break
     }
     default:

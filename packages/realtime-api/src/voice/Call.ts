@@ -191,7 +191,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
   /** The type of call. Only phone and sip are currently supported. */
   get type() {
-    return (this._payload?.device?.type || this.device?.type) ?? ''
+    return this.device?.type ?? ''
   }
 
   /** The phone number that the call is coming from. */
@@ -199,20 +199,13 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     if (this.type === 'phone') {
       return (
         // @ts-expect-error
-        (this._payload?.device?.params?.from_number ||
-          // @ts-expect-error
-          this.device?.params?.fromNumber) ??
+        (this.device?.params?.from_number || this.device?.params?.fromNumber) ??
         ''
-      )
-    } else if (this.type === 'sip') {
-      return (
-        // @ts-expect-error
-        (this._payload?.device?.params?.from || this.device?.params?.from) ?? ''
       )
     }
     return (
       // @ts-expect-error
-      (this._payload?.device?.params?.from || this.device?.params?.from) ?? ''
+      this.device?.params?.from ?? ''
     )
   }
 
@@ -221,20 +214,12 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     if (this.type === 'phone') {
       return (
         // @ts-expect-error
-        (this._payload?.device?.params?.to_number ||
-          // @ts-expect-error
-          this.device?.params?.toNumber) ??
-        ''
-      )
-    } else if (this.type === 'sip') {
-      return (
-        // @ts-expect-error
-        (this._payload?.device?.params?.to || this.device?.params?.to) ?? ''
+        (this.device?.params?.to_number || this.device?.params?.toNumber) ?? ''
       )
     }
     return (
       // @ts-expect-error
-      (this._payload?.device?.params?.to || this.device?.params?.to) ?? ''
+      this.device?.params?.to ?? ''
     )
   }
 
@@ -540,7 +525,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         reject(new Error(`Can't call answer() on a call without callId.`))
       }
 
-      this._on('call.state', (params) => {
+      this.on('call.state', (params) => {
         if (params.state === 'answered') {
           resolve(this)
         } else if (params.state === 'ended') {
@@ -586,17 +571,17 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       }
 
       const resolveHandler = (callPlayback: CallPlayback) => {
-        this._off('playback.failed', rejectHandler)
+        this.off('playback.failed', rejectHandler)
         resolve(callPlayback)
       }
 
       const rejectHandler = (callPlayback: CallPlayback) => {
-        this._off('playback.started', resolveHandler)
+        this.off('playback.started', resolveHandler)
         reject(callPlayback)
       }
 
-      this._once('playback.started', resolveHandler)
-      this._once('playback.failed', rejectHandler)
+      this.once('playback.started', resolveHandler)
+      this.once('playback.failed', rejectHandler)
 
       const controlId = uuid()
 
@@ -614,8 +599,8 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
           // TODO: handle then?
         })
         .catch((e) => {
-          this._off('playback.started', resolveHandler)
-          this._off('playback.failed', rejectHandler)
+          this.off('playback.started', resolveHandler)
+          this.off('playback.failed', rejectHandler)
           reject(e)
         })
     })
@@ -694,17 +679,17 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       }
 
       const resolveHandler = (callRecording: CallRecording) => {
-        this._off('recording.failed', rejectHandler)
+        this.off('recording.failed', rejectHandler)
         resolve(callRecording)
       }
 
       const rejectHandler = (callRecording: CallRecording) => {
-        this._off('recording.started', resolveHandler)
+        this.off('recording.started', resolveHandler)
         reject(callRecording)
       }
 
-      this._once('recording.started', resolveHandler)
-      this._once('recording.failed', rejectHandler)
+      this.once('recording.started', resolveHandler)
+      this.once('recording.failed', rejectHandler)
 
       const controlId = uuid()
       const record = toSnakeCaseKeys(params)
@@ -722,8 +707,8 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
           // TODO: handle then?
         })
         .catch((e) => {
-          this._off('recording.started', resolveHandler)
-          this._off('recording.failed', rejectHandler)
+          this.off('recording.started', resolveHandler)
+          this.off('recording.failed', rejectHandler)
           reject(e)
         })
     })
@@ -758,19 +743,19 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       }
 
       const resolveHandler = (callPrompt: CallPrompt) => {
-        this._off('prompt.failed', rejectHandler)
+        this.off('prompt.failed', rejectHandler)
         resolve(callPrompt)
       }
 
       const rejectHandler = (callPrompt: CallPrompt) => {
-        this._off('prompt.started', resolveHandler)
+        this.off('prompt.started', resolveHandler)
         reject(callPrompt)
       }
 
-      this._once('prompt.started', resolveHandler)
-      this._once('prompt.failed', rejectHandler)
+      this.once('prompt.started', resolveHandler)
+      this.once('prompt.failed', rejectHandler)
 
-      const controlId = uuid()
+      const controlId = `${uuid()}.prompt`
 
       // Put the internal SDK event on SW channel to create an instance
       this.store.channels.swEventChannel.put({
@@ -806,8 +791,8 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
           // TODO: handle then?
         })
         .catch((e) => {
-          this._off('prompt.started', resolveHandler)
-          this._off('prompt.failed', rejectHandler)
+          this.off('prompt.started', resolveHandler)
+          this.off('prompt.failed', rejectHandler)
           reject(e)
         })
     })
@@ -932,30 +917,30 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         }
       }
 
-      this._once('call.state', callStateHandler)
+      this.once('call.state', callStateHandler)
 
       const cleanup = () => {
-        this._off('call.state', callStateHandler)
+        this.off('call.state', callStateHandler)
       }
 
       const resolveHandler = (call: Call) => {
         cleanup()
         // @ts-expect-error
-        this._off('send_digits.failed', rejectHandler)
+        this.off('send_digits.failed', rejectHandler)
         resolve(call)
       }
 
       const rejectHandler = (error: Error) => {
         cleanup()
         // @ts-expect-error
-        this._off('send_digits.finished', resolveHandler)
+        this.off('send_digits.finished', resolveHandler)
         reject(error)
       }
 
       // @ts-expect-error
-      this._once('send_digits.finished', resolveHandler)
+      this.once('send_digits.finished', resolveHandler)
       // @ts-expect-error
-      this._once('send_digits.failed', rejectHandler)
+      this.once('send_digits.failed', rejectHandler)
 
       const controlId = uuid()
 
@@ -1000,17 +985,17 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       }
 
       const resolveHandler = (callTap: CallTap) => {
-        this._off('tap.ended', rejectHandler)
+        this.off('tap.ended', rejectHandler)
         resolve(callTap)
       }
 
       const rejectHandler = (callTap: CallTap) => {
-        this._off('tap.started', resolveHandler)
+        this.off('tap.started', resolveHandler)
         reject(callTap)
       }
 
-      this._once('tap.started', resolveHandler)
-      this._once('tap.ended', rejectHandler)
+      this.once('tap.started', resolveHandler)
+      this.once('tap.ended', rejectHandler)
 
       const controlId = uuid()
 
@@ -1040,8 +1025,8 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
           // TODO: handle then?
         })
         .catch((e) => {
-          this._off('tap.started', resolveHandler)
-          this._off('tap.ended', rejectHandler)
+          this.off('tap.started', resolveHandler)
+          this.off('tap.ended', rejectHandler)
           reject(e)
         })
     })
@@ -1120,20 +1105,20 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
       const resolveHandler = (payload: Call) => {
         // @ts-expect-error
-        this._off('connect.failed', rejectHandler)
+        this.off('connect.failed', rejectHandler)
         resolve(payload)
       }
 
       const rejectHandler = (payload: Call) => {
         // @ts-expect-error
-        this._off('connect.connected', resolveHandler)
+        this.off('connect.connected', resolveHandler)
         reject(toExternalJSON(payload))
       }
 
       // @ts-expect-error
-      this._once('connect.connected', resolveHandler)
+      this.once('connect.connected', resolveHandler)
       // @ts-expect-error
-      this._once('connect.failed', rejectHandler)
+      this.once('connect.failed', rejectHandler)
 
       this.execute({
         method: 'calling.connect',
@@ -1145,9 +1130,9 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         },
       }).catch((e) => {
         // @ts-expect-error
-        this._off('connect.connected', resolveHandler)
+        this.off('connect.connected', resolveHandler)
         // @ts-expect-error
-        this._off('connect.failed', rejectHandler)
+        this.off('connect.failed', rejectHandler)
 
         reject(e)
       })
@@ -1204,7 +1189,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         resolve()
       }
       // @ts-expect-error
-      this._once('connect.disconnected', resolveHandler)
+      this.once('connect.disconnected', resolveHandler)
 
       this.execute({
         method: 'calling.disconnect',
@@ -1214,7 +1199,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         },
       }).catch((e) => {
         // @ts-expect-error
-        this._off('connect.disconnected', resolveHandler)
+        this.off('connect.disconnected', resolveHandler)
 
         reject(e)
       })
@@ -1234,9 +1219,9 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         resolve(this)
       }
       // @ts-expect-error
-      this._once('connect.disconnected', resolveHandler)
+      this.once('connect.disconnected', resolveHandler)
       // @ts-expect-error
-      this._once('connect.failed', resolveHandler)
+      this.once('connect.failed', resolveHandler)
 
       if (this.state === 'ended' || this.state === 'ending') {
         return resolveHandler()
@@ -1255,20 +1240,20 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
       const resolveHandler = (callDetect: CallDetect) => {
         // @ts-expect-error
-        this._off('detect.ended', rejectHandler)
+        this.off('detect.ended', rejectHandler)
         resolve(callDetect)
       }
 
       const rejectHandler = (callDetect: CallDetect) => {
         // @ts-expect-error
-        this._off('detect.updated', resolveHandler)
+        this.off('detect.updated', resolveHandler)
         reject(callDetect)
       }
 
       // @ts-expect-error
-      this._once('detect.updated', resolveHandler)
+      this.once('detect.updated', resolveHandler)
       // @ts-expect-error
-      this._once('detect.ended', rejectHandler)
+      this.once('detect.ended', rejectHandler)
 
       // TODO: build params in a method
       if (params.waitForBeep) this._waitForCallDetectMachineBeep = true
@@ -1293,9 +1278,9 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         })
         .catch((e) => {
           // @ts-expect-error
-          this._off('detect.updated', resolveHandler)
+          this.off('detect.updated', resolveHandler)
           // @ts-expect-error
-          this._off('detect.ended', rejectHandler)
+          this.off('detect.ended', rejectHandler)
           reject(e)
         })
     })
@@ -1432,19 +1417,19 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       }
 
       const resolveHandler = (callCollect: CallCollect) => {
-        this._off('collect.failed', rejectHandler)
+        this.off('collect.failed', rejectHandler)
         resolve(callCollect)
       }
 
       const rejectHandler = (callCollect: CallCollect) => {
-        this._off('collect.started', resolveHandler)
+        this.off('collect.started', resolveHandler)
         reject(callCollect)
       }
 
-      this._once('collect.started', resolveHandler)
-      this._once('collect.failed', rejectHandler)
+      this.once('collect.started', resolveHandler)
+      this.once('collect.failed', rejectHandler)
 
-      const controlId = uuid()
+      const controlId = `${uuid()}.collect`
 
       // Put the internal SDK event on SW channel to create an instance
       this.store.channels.swEventChannel.put({
@@ -1486,8 +1471,8 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
           // TODO: handle then?
         })
         .catch((e) => {
-          this._off('collect.started', resolveHandler)
-          this._off('collect.failed', rejectHandler)
+          this.off('collect.started', resolveHandler)
+          this.off('collect.failed', rejectHandler)
           reject(e)
         })
     })
@@ -1498,6 +1483,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     event: EventEmitter.EventNames<RealTimeCallApiEvents>,
     fn: EventEmitter.EventListener<RealTimeCallApiEvents, any>
   ) {
+    // console.log('call on', event)
     return super._on(event, fn)
   }
 

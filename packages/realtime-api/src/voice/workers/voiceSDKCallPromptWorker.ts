@@ -5,7 +5,7 @@ import {
   CallingCallSDKEventParams,
 } from '@signalwire/core'
 import type { Call } from '../Call'
-import { createCallPromptObject } from '../CallPrompt'
+import { CallPrompt, createCallPromptObject } from '../CallPrompt'
 
 export const voiceSDKCallPromptWorker: SDKCallWorker<CallingCallSDKEventParams> =
   function* (options): SagaIterator {
@@ -15,7 +15,7 @@ export const voiceSDKCallPromptWorker: SDKCallWorker<CallingCallSDKEventParams> 
       instanceMap: { get, set },
     } = options
 
-    const callInstance = get(payload.call_id) as Call
+    const callInstance = get<Call>(payload.call_id)
     if (!callInstance) {
       throw new Error('Missing call instance for prompt')
     }
@@ -27,7 +27,7 @@ export const voiceSDKCallPromptWorker: SDKCallWorker<CallingCallSDKEventParams> 
       payload,
     })
 
-    set(payload.control_id, promptInstance)
+    set<CallPrompt>(payload.control_id, promptInstance)
 
     callInstance.baseEmitter.emit('prompt.started', promptInstance)
 

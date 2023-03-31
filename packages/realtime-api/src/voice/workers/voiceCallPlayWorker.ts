@@ -15,12 +15,15 @@ export const voiceCallPlayWorker: SDKCallWorker<CallingCallPlayEventParams> =
       instanceMap: { get, set },
     } = options
 
-    const callInstance = get(payload.call_id) as Call
+    const callInstance = get<Call>(payload.call_id)
     if (!callInstance) {
       throw new Error('Missing call instance for playback')
     }
 
-    let playbackInstance = get(payload.control_id) as CallPlayback
+    // Playback events control id for prompt contains `.prompt` keyword at the end of the string
+    const [controlId] = payload.control_id.split('.')
+
+    let playbackInstance = get<CallPlayback>(controlId)
     if (!playbackInstance) {
       playbackInstance = createCallPlaybackObject({
         store: callInstance.store,
@@ -31,7 +34,7 @@ export const voiceCallPlayWorker: SDKCallWorker<CallingCallPlayEventParams> =
     } else {
       playbackInstance.setPayload(payload)
     }
-    set(payload.control_id, playbackInstance)
+    set<CallPlayback>(controlId, playbackInstance)
 
     switch (payload.state) {
       case 'playing': {
@@ -39,6 +42,7 @@ export const voiceCallPlayWorker: SDKCallWorker<CallingCallPlayEventParams> =
           ? 'playback.updated'
           : 'playback.started'
         playbackInstance._paused = false
+
         callInstance.baseEmitter.emit(type, playbackInstance)
         break
       }
@@ -62,6 +66,7 @@ export const voiceCallPlayWorker: SDKCallWorker<CallingCallPlayEventParams> =
         break
       }
       default:
+        getLogger().warn(`Unknown playback state: "${payload.state}"`)
         break
     }
 
