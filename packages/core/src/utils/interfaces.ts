@@ -24,6 +24,7 @@ import {
   MessagingTransformType,
   VoiceJSONRPCMethod,
   ClientContextMethod,
+  CallingCall,
 } from '..'
 
 type JSONRPCParams = Record<string, any>
@@ -153,6 +154,7 @@ export interface BaseComponentOptions<
   store: SDKStore
   emitter: EventEmitter<EventTypes>
   customSagas?: CustomSaga<any>[]
+  payload?: CallingCall
 }
 
 export interface SessionRequestObject {

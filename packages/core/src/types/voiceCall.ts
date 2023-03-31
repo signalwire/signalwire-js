@@ -816,7 +816,7 @@ export type CallingCallState =
   | 'ending'
   | 'ended'
 
-interface CallingCall {
+export interface CallingCall {
   call_id: string
   call_state: CallingCallState
   context?: string
