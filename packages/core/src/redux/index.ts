@@ -24,6 +24,7 @@ import {
 import { BaseSession } from '../BaseSession'
 import { getLogger } from '../utils'
 import { SwEventParams } from '..'
+import { createSWStore } from './swStore'
 
 export interface ConfigureStoreOptions {
   userOptions: InternalUserOptions
@@ -46,6 +47,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
     runSagaMiddleware = true,
   } = options
   const sagaMiddleware = createSagaMiddleware()
+  const rootChannel: PubSubChannel = multicastChannel()
   const pubSubChannel: PubSubChannel = multicastChannel()
   const swEventChannel: SwEventChannel = multicastChannel()
   const sessionChannel: SessionChannel = channel()
@@ -54,6 +56,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
    * sagas.
    */
   const channels: InternalChannels = {
+    rootChannel,
     pubSubChannel,
     swEventChannel,
     sessionChannel,
@@ -70,6 +73,8 @@ const configureStore = (options: ConfigureStoreOptions) => {
       // @see https://redux-toolkit.js.org/api/getDefaultMiddleware#intended-usage
       getDefaultMiddleware().concat(sagaMiddleware),
   }) as Store
+
+  const swStore = createSWStore({ channels })
 
   let session: BaseSession
   const initSession = () => {
@@ -114,7 +119,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
       runSaga: any
     }
   ) => {
-    return sagaMiddleware.run(saga, {
+    return swStore.runWorker(saga, {
       ...args,
       channels,
       getSession,
@@ -124,13 +129,22 @@ const configureStore = (options: ConfigureStoreOptions) => {
         remove: deleteInstance,
       },
     })
+
+    // return sagaMiddleware.run(saga, {
+    //   ...args,
+    //   channels,
+    //   getSession,
+    // })
   }
 
   if (runSagaMiddleware) {
     const saga = rootSaga({
       initSession,
     })
-    sagaMiddleware.run(saga, { userOptions, channels })
+
+    swStore.start(saga, { userOptions, channels })
+
+    // sagaMiddleware.run(saga, { userOptions, channels })
   }
 
   return {
@@ -139,6 +153,14 @@ const configureStore = (options: ConfigureStoreOptions) => {
     channels,
     putOnSwEventChannel: (arg: MapToPubSubShape<SwEventParams>) => {
       swEventChannel.put(arg)
+    },
+    dispatch: (action: any) => {
+      swStore.rootPut(action)
+      // store.dispatch(action)
+    },
+    getState: () => {
+      return swStore.getState()
+      // return store.getState()
     },
   }
 }

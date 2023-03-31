@@ -874,21 +874,35 @@ export class BaseComponent<
        */
       case 'authorizing':
         return new Promise((resolve, reject) => {
-          const unsubscribe = this.store.subscribe(() => {
-            const authStatus = getAuthStatus(this.store.getState())
-            const authError = getAuthError(this.store.getState())
-
-            if (authStatus === 'authorized') {
-              resolve(this)
-              unsubscribe()
-            } else if (authStatus === 'unauthorized') {
-              const error = authError
-                ? new AuthError(authError.code, authError.message)
-                : new Error('Unauthorized')
-              reject(error)
-              unsubscribe()
-            }
+          // @ts-expect-error
+          this.once('session.connected', (event: any) => {
+            console.log('session.connected', event)
+            resolve(this)
           })
+          // @ts-expect-error
+          this.once('session.auth_error', (event: any) => {
+            console.log('session.auth_error', event)
+            // const error = authError
+            //   ? new AuthError(authError.code, authError.message)
+            //   : new Error('Unauthorized')
+            //   reject(error)
+            reject(new Error('Unauthorized'))
+          })
+          // const unsubscribe = this.store.subscribe(() => {
+          //   const authStatus = getAuthStatus(this.store.getState())
+          //   const authError = getAuthError(this.store.getState())
+
+          //   if (authStatus === 'authorized') {
+          //     resolve(this)
+          //     unsubscribe()
+          //   } else if (authStatus === 'unauthorized') {
+          //     const error = authError
+          //       ? new AuthError(authError.code, authError.message)
+          //       : new Error('Unauthorized')
+          //     reject(error)
+          //     unsubscribe()
+          //   }
+          // })
         })
 
       case 'unauthorized':

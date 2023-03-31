@@ -122,6 +122,7 @@ export type SessionChannelAction =
   | PayloadAction<{ error: SessionAuthError }>
   | PayloadAction<SessionAuthStatus>
 
+export type RootChannel = MulticastChannel<any>
 export type PubSubChannel = MulticastChannel<PubSubAction>
 export type SwEventChannel = MulticastChannel<MapToPubSubShape<SwEventParams>>
 export type SessionChannel = Channel<SessionChannelAction>

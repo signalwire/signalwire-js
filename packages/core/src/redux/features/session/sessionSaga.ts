@@ -12,6 +12,7 @@ import type {
 } from '../../../types'
 import type {
   PubSubChannel,
+  RootChannel,
   SessionChannel,
   SwEventChannel,
 } from '../../interfaces'
@@ -21,6 +22,7 @@ import { getLogger, isWebrtcEventType, toInternalAction } from '../../../utils'
 
 type SessionSagaParams = {
   session: BaseSession
+  rootChannel: RootChannel
   sessionChannel: SessionChannel
   pubSubChannel: PubSubChannel
   swEventChannel: SwEventChannel
@@ -43,6 +45,7 @@ export function* sessionChannelWatcher({
   sessionChannel,
   pubSubChannel,
   swEventChannel,
+  rootChannel,
   session,
 }: SessionSagaParams): SagaIterator {
   function* videoAPIWorker(params: VideoAPIEventParams): SagaIterator {
@@ -116,14 +119,17 @@ export function* sessionChannelWatcher({
      * This should replace all the isWebrtcEvent/isVideoEvent guards below
      * since we'll move that logic on a separate package.
      */
-    yield put({ type: broadcastParams.event_type, payload: broadcastParams })
+    yield put(rootChannel, {
+      type: broadcastParams.event_type,
+      payload: broadcastParams,
+    })
   }
 
   function* sessionChannelWorker(
     action: PayloadAction<JSONRPCRequest>
   ): SagaIterator {
     if (action.type !== socketMessageAction.type) {
-      yield put(action)
+      yield put(rootChannel, action)
       return
     }
     const { method, params } = action.payload
