@@ -156,6 +156,13 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
   constructor(options: BaseComponentOptions<RealTimeCallApiEvents>) {
     super(options)
+
+    if (options.payload) {
+      this.callId = options.payload.call_id
+      this.nodeId = options.payload.node_id
+      this.callState = options.payload.call_state
+    }
+
     this._attachListeners(this.__uuid)
     this.applyEmitterTransforms({ local: true })
 
