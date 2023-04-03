@@ -155,8 +155,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
       swEventChannel.put(arg)
     },
     dispatch: (action: any) => {
-      swStore.rootPut(action)
-      // store.dispatch(action)
+      return swStore.dispatch(action)
     },
     getState: () => {
       return swStore.getState()

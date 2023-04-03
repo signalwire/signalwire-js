@@ -4,6 +4,7 @@ import {
   PubSubChannel,
   SwEventChannel,
   SessionChannel,
+  RootChannel,
 } from './redux/interfaces'
 import { BaseSession } from './BaseSession'
 import { RPCConnectResult, InternalSDKLogger } from './utils/interfaces'
@@ -120,12 +121,14 @@ export const rpcConnectResultVRT: RPCConnectResult = {
     {
       urls: 'turn.swire.io:443',
       credential: 'sFTwvi8ShXcYNOcyYjFy3ATIUpQ=',
+      // @ts-ignore
       credentialType: 'password',
       username: '1619521908:8f0a119a-cda7-4497-a47d-c81493b824d4',
     },
   ],
 }
 
+export const createRootChannel = (): RootChannel => multicastChannel()
 export const createPubSubChannel = (): PubSubChannel => multicastChannel()
 export const createSwEventChannel = (): SwEventChannel => multicastChannel()
 export const createSessionChannel = (): SessionChannel => channel()

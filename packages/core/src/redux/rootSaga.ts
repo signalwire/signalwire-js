@@ -25,6 +25,7 @@ import {
 import { AuthError } from '../CustomErrors'
 import { PubSubChannel, RootChannel, SessionChannel } from './interfaces'
 import { createRestartableSaga } from './utils/sagaHelpers'
+import { Action } from 'redux'
 // import { componentCleanupSaga } from './features/component/componentSaga'
 
 interface StartSagaOptions {
@@ -138,12 +139,10 @@ export function* initSessionSaga({
 export function* reauthenticateWorker({
   session,
   token,
-  rootChannel,
   pubSubChannel,
 }: {
   session: BaseSession
   token: string
-  rootChannel: RootChannel
   pubSubChannel: PubSubChannel
 }) {
   try {
@@ -151,7 +150,7 @@ export function* reauthenticateWorker({
       session.token = token
       yield call(session.reauthenticate)
       // Update the store with the new "connect result"
-      yield put(rootChannel, sessionActions.connected(session.rpcConnectResult))
+      yield put(sessionActions.connected(session.rpcConnectResult))
       yield put(pubSubChannel, sessionConnectedAction())
     }
   } catch (error) {
@@ -180,11 +179,8 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
       getLogger().info('sessionStatusWatcher', action.type, action.payload)
       switch (action.type) {
         case authSuccessAction.type: {
-          const { session, pubSubChannel, rootChannel } = options
-          yield put(
-            rootChannel,
-            sessionActions.connected(session.rpcConnectResult)
-          )
+          const { session, pubSubChannel } = options
+          yield put(sessionActions.connected(session.rpcConnectResult))
           yield put(pubSubChannel, sessionConnectedAction())
           break
         }
@@ -203,7 +199,6 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
           yield fork(reauthenticateWorker, {
             session: options.session,
             token: action.payload.token,
-            rootChannel: options.rootChannel,
             pubSubChannel: options.pubSubChannel,
           })
           break
@@ -267,12 +262,14 @@ export default (options: RootSagaOptions) => {
       setDebugOptions(userOptions.debug)
     }
 
+    const actions: string[] = [initAction.type, reauthAction.type]
+    const filter = (action: Action) => actions.includes(action.type)
     while (true) {
       /**
        * Wait for an initAction to start
        */
       getLogger().info('RootSaga WAIT INIT')
-      const action = yield take(channels.rootChannel, initAction.type)
+      const action = yield take(channels.rootChannel, filter)
       getLogger().info('RootSaga GO ...')
 
       /**
