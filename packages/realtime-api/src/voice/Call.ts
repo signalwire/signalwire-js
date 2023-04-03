@@ -94,7 +94,6 @@ export interface Call
   setPayload: (payload: CallingCall) => void
   setConnectPayload: (payload: CallingCallConnectEventParams) => void
   baseEmitter: EventEmitter
-  _waitForCallDetectMachineBeep: boolean
 }
 
 /**
@@ -128,7 +127,6 @@ export const callingCollectTriggerEvent = toLocalEvent<EmitterTransformsEvents>(
 export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEvents> {
   protected _eventsPrefix = 'calling' as const
 
-  public _waitForCallDetectMachineBeep: boolean
   private _peer: Call | undefined
   private _payload: CallingCall
   private _connectPayload: CallingCallConnectEventParams
@@ -139,7 +137,6 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
     if (options.payload) {
       this._payload = options.payload
     }
-    this._waitForCallDetectMachineBeep = false
 
     this._attachListeners(this.__uuid)
     this.applyEmitterTransforms({ local: true })
@@ -757,8 +754,8 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
       const controlId = `${uuid()}.prompt`
 
-      // Put the internal SDK event on SW channel to create an instance
-      this.store.channels.swEventChannel.put({
+      // Put the internal SDK event on SW channel to create a Prompt instance and emit `prompt.started` event
+      this.store.putOnSwEventChannel({
         type: 'calling.sdk.prompt',
         payload: {
           control_id: controlId,
@@ -1246,19 +1243,30 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
 
       const rejectHandler = (callDetect: CallDetect) => {
         // @ts-expect-error
-        this.off('detect.updated', resolveHandler)
+        this.off('detect.started', resolveHandler)
         reject(callDetect)
       }
 
       // @ts-expect-error
-      this.once('detect.updated', resolveHandler)
+      this.once('detect.started', resolveHandler)
       // @ts-expect-error
       this.once('detect.ended', rejectHandler)
 
-      // TODO: build params in a method
-      if (params.waitForBeep) this._waitForCallDetectMachineBeep = true
-      const { timeout, type, ...rest } = params
       const controlId = uuid()
+
+      // Put the internal SDK event on SW channel to pass the `waitForBeep` param while creating a Detect instance and emit `detect.started` event
+      this.store.putOnSwEventChannel({
+        type: 'calling.sdk.detect',
+        payload: {
+          control_id: controlId,
+          call_id: this.id,
+          node_id: this.nodeId,
+          waitForBeep: params.waitForBeep ?? false,
+        },
+      })
+
+      // TODO: build params in a method
+      const { timeout, type, ...rest } = params
 
       this.execute({
         method: 'calling.detect',
@@ -1278,7 +1286,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         })
         .catch((e) => {
           // @ts-expect-error
-          this.off('detect.updated', resolveHandler)
+          this.off('detect.started', resolveHandler)
           // @ts-expect-error
           this.off('detect.ended', rejectHandler)
           reject(e)
@@ -1429,10 +1437,10 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       this.once('collect.started', resolveHandler)
       this.once('collect.failed', rejectHandler)
 
-      const controlId = `${uuid()}.collect`
+      const controlId = uuid()
 
-      // Put the internal SDK event on SW channel to create an instance
-      this.store.channels.swEventChannel.put({
+      // Put the internal SDK event on SW channel to create a Collect instance and emit `collect.started` event
+      this.store.putOnSwEventChannel({
         type: 'calling.sdk.collect',
         payload: {
           control_id: controlId,

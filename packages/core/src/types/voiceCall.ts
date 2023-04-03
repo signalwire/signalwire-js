@@ -100,6 +100,7 @@ export type CallDetectEnded = 'detect.ended'
 // Internal SDK events
 export type CallSDKPrompt = 'sdk.prompt'
 export type CallSDKCollect = 'sdk.collect'
+export type CallSDKDetect = 'sdk.detect'
 
 /**
  * List of public event names
@@ -1134,6 +1135,7 @@ export interface CallingCallDetectEventParams {
   call_id: string
   control_id: string
   detect?: Detector
+  waitForBeep?: any
 }
 
 export interface CallingCallDetectEvent extends SwEvent {
@@ -1360,6 +1362,11 @@ export interface CallingCallSDKEventParams {
   call_id: string
   control_id: string
 }
+export interface CallingCallSDKDetectEventParams
+  extends CallingCallSDKEventParams {
+  waitForBeep: boolean
+}
+
 /**
  * 'calling.sdk.prompt'
  */
@@ -1367,13 +1374,19 @@ export interface CallSDKPromptEvent extends SwEvent {
   event_type: ToInternalVoiceEvent<CallSDKPrompt>
   params: CallingCallSDKEventParams
 }
-
 /**
  * 'calling.sdk.collect'
  */
 export interface CallSDKCollectEvent extends SwEvent {
   event_type: ToInternalVoiceEvent<CallSDKCollect>
   params: CallingCallSDKEventParams
+}
+/**
+ * 'calling.sdk.detect'
+ */
+export interface CallSDKDetectEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallSDKDetect>
+  params: CallingCallSDKDetectEventParams
 }
 
 // interface VoiceCallStateEvent {
@@ -1446,6 +1459,7 @@ export type VoiceCallEvent =
   // Internal Events
   | CallSDKPromptEvent
   | CallSDKCollectEvent
+  | CallSDKDetectEvent
 
 export type VoiceCallEventParams =
   // Server Event Params
@@ -1492,6 +1506,7 @@ export type VoiceCallEventParams =
   | CallCollectFailedEvent['params']
   | CallSDKPromptEvent['params']
   | CallSDKCollectEvent['params']
+  | CallSDKDetectEvent['params']
 
 export type VoiceCallAction = MapToPubSubShape<VoiceCallEvent>
 

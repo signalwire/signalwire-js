@@ -18,9 +18,10 @@ import { voiceCallCollectWorker } from './voiceCallCollectWorker'
 import { voiceCallSendDigitsWorker } from './VoiceCallSendDigitWorker'
 import { voiceCallDetectWorker } from './voiceCallDetectWorker'
 import { voiceCallTapWorker } from './voiceCallTapWorker'
+import { voiceCallConnectWorker } from './voiceCallConnectWorker'
 import { voiceSDKCallPromptWorker } from './voiceSDKCallPromptWorker'
 import { voiceSDKCallCollectWorker } from './voiceSDKCallCollectWorker'
-import { voiceCallConnectWorker } from './voiceCallConnectWorker'
+import { voiceSDKCallDetectWorker } from './voiceSDKCallDetectWorker'
 
 export const voiceCallingWroker: SDKWorker<Client> = function* (
   options
@@ -112,6 +113,13 @@ export const voiceCallingWroker: SDKWorker<Client> = function* (
         break
       case 'calling.sdk.collect':
         yield fork(voiceSDKCallCollectWorker, {
+          client: instance,
+          instanceMap,
+          payload: action.payload,
+        })
+        break
+      case 'calling.sdk.detect':
+        yield fork(voiceSDKCallDetectWorker, {
           client: instance,
           instanceMap,
           payload: action.payload,

@@ -276,7 +276,7 @@ class VoiceAPI extends AutoApplyTransformsConsumer<VoiceClientApiEvents> {
       ) => {
         // @ts-expect-error
         this._off('dial.answered', resolveHandler)
-        reject(error)
+        reject(toExternalJSON(error))
       }
 
       // @ts-expect-error

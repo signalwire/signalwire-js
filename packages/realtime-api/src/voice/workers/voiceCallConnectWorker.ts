@@ -50,19 +50,13 @@ export const voiceCallConnectWorker: SDKCallWorker<
     case 'disconnected':
     case 'failed': {
       const peerCallInstance = get<Call>(payload.peer.call_id)
-      callInstance.baseEmitter.emit(
-        `connect.${payload.connect_state}`,
-        peerCallInstance
-      )
-      callInstance.peer = peerCallInstance
+      callInstance.baseEmitter.emit(`connect.${payload.connect_state}`)
+      callInstance.peer = undefined
 
       // Add a check because peer call can be removed from the instance map throgh voiceCallStateWorker
       if (peerCallInstance) {
-        peerCallInstance.baseEmitter.emit(
-          `connect.${payload.connect_state}`,
-          peerCallInstance
-        )
-        peerCallInstance.peer = callInstance
+        peerCallInstance.baseEmitter.emit(`connect.${payload.connect_state}`)
+        peerCallInstance.peer = undefined
       }
       break
     }

@@ -7,8 +7,6 @@ import {
 import type { Call } from '../Call'
 import { CallDetect, createCallDetectObject } from '../CallDetect'
 
-let waitingForReady = false
-
 export const voiceCallDetectWorker: SDKCallWorker<CallingCallDetectEventParams> =
   function* (options): SagaIterator {
     getLogger().trace('voiceCallDetectWorker started')
@@ -64,14 +62,14 @@ export const voiceCallDetectWorker: SDKCallWorker<CallingCallDetectEventParams> 
 
     switch (type) {
       case 'machine':
-        if (waitingForReady && event === 'READY') {
+        if (detectInstance.waitingForReady && event === 'READY') {
           callInstance.baseEmitter.emit('detect.ended', detectInstance)
 
           // To resolve the ended() promise in CallDetect
           detectInstance.baseEmitter.emit('detect.ended', detectInstance)
         }
-        if (callInstance._waitForCallDetectMachineBeep) {
-          waitingForReady = true
+        if (detectInstance.waitForBeep) {
+          detectInstance.waitingForReady = true
         }
         break
       default:

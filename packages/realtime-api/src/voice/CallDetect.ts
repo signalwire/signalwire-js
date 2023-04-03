@@ -17,6 +17,8 @@ import {
 export interface CallDetect extends VoiceCallDetectContract {
   setPayload: (payload: CallingCallDetectEventParams) => void
   baseEmitter: EventEmitter
+  waitingForReady: boolean
+  waitForBeep: boolean
 }
 
 export type CallDetectEventsHandlerMapping = {}
@@ -32,11 +34,15 @@ export class CallDetectAPI
 {
   protected _eventsPrefix = 'calling' as const
   private _payload: CallingCallDetectEventParams
+  private _waitForBeep: boolean
+  private _waitingForReady: boolean
 
   constructor(options: BaseComponentOptions<CallDetectEventsHandlerMapping>) {
     super(options)
 
     this._payload = options.payload
+    this._waitForBeep = options.payload.waitForBeep
+    this._waitingForReady = false
   }
 
   get id() {
@@ -61,6 +67,18 @@ export class CallDetectAPI
 
   get type() {
     return this?.detect?.type
+  }
+
+  get waitForBeep() {
+    return this._waitForBeep
+  }
+
+  get waitingForReady() {
+    return this._waitingForReady
+  }
+
+  set waitingForReady(ready: boolean) {
+    this._waitingForReady = ready
   }
 
   /** @internal */

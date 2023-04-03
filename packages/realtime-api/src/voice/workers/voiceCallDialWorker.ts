@@ -2,7 +2,6 @@ import {
   getLogger,
   SagaIterator,
   SDKCallWorker,
-  toExternalJSON,
   CallingCallDialEventParams,
 } from '@signalwire/core'
 import type { Call } from '../Call'
@@ -26,7 +25,7 @@ export const voiceCallDialWorker: SDKCallWorker<
   switch (payload.dial_state) {
     case 'failed': {
       // @ts-expect-error
-      client.baseEmitter.emit('dial.failed', toExternalJSON(payload))
+      client.baseEmitter.emit('dial.failed', payload)
       break
     }
     case 'answered': {
