@@ -145,6 +145,7 @@ const handler = () => {
         // TODO: update this once the backend can send us
         // the actual result
         tap.equal(
+          // @ts-expect-error
           resultDetector.detect.params.event,
           'finished',
           'Detect digit is finished'
