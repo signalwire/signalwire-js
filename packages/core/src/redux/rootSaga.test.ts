@@ -28,6 +28,7 @@ import {
   createPubSubChannel,
   createSwEventChannel,
   createSessionChannel,
+  createRootChannel,
 } from '../testUtils'
 
 describe('sessionStatusWatcher', () => {
@@ -44,6 +45,7 @@ describe('sessionStatusWatcher', () => {
     connect: jest.fn(),
     disconnect: jest.fn(),
   } as any
+  const rootChannel = createRootChannel()
   const pubSubChannel = createPubSubChannel()
   const sessionChannel = createSessionChannel()
   const mockEmitter = {
@@ -55,6 +57,7 @@ describe('sessionStatusWatcher', () => {
   }
   const options = {
     session,
+    rootChannel,
     pubSubChannel,
     sessionChannel,
     userOptions,
@@ -140,6 +143,8 @@ describe('initSessionSaga', () => {
   })
 
   it('should create the session, the sessionChannel and fork watchers', () => {
+    const rootChannel = createRootChannel()
+    rootChannel.close = jest.fn()
     const pubSubChannel = createPubSubChannel()
     pubSubChannel.close = jest.fn()
     const swEventChannel = createSwEventChannel()
@@ -149,7 +154,7 @@ describe('initSessionSaga', () => {
     const saga = testSaga(initSessionSaga, {
       initSession,
       userOptions,
-      channels: { pubSubChannel, swEventChannel, sessionChannel },
+      channels: { rootChannel, pubSubChannel, swEventChannel, sessionChannel },
     })
     saga.next(sessionChannel).fork(sessionChannelWatcher, {
       session,
@@ -185,6 +190,7 @@ describe('initSessionSaga', () => {
 })
 
 describe('rootSaga as restartable', () => {
+  const rootChannel = createRootChannel()
   const pubSubChannel = createPubSubChannel()
   const swEventChannel = createSwEventChannel()
   const sessionChannel = createSessionChannel()
@@ -194,7 +200,12 @@ describe('rootSaga as restartable', () => {
     } as any
     const initSession = jest.fn().mockImplementation(() => session)
     const userOptions = { token: '', emitter: jest.fn() as any }
-    const channels = { pubSubChannel, swEventChannel, sessionChannel }
+    const channels = {
+      rootChannel,
+      pubSubChannel,
+      swEventChannel,
+      sessionChannel,
+    }
     const saga = testSaga(
       rootSaga({
         initSession,

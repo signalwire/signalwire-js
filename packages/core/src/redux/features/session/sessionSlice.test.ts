@@ -1,11 +1,11 @@
-import { Store } from 'redux'
 import { configureJestStore, rpcConnectResultVRT } from '../../../testUtils'
 import { sessionActions, initialSessionState } from './sessionSlice'
 import { getAuthStatus } from './sessionSelectors'
 import { destroyAction, initAction, reauthAction } from '../../actions'
+import { SDKStore } from '../..'
 
 describe('SessionState Tests', () => {
-  let store: Store
+  let store: SDKStore
 
   beforeEach(() => {
     store = configureJestStore()

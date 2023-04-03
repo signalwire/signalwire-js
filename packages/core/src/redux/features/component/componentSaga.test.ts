@@ -1,11 +1,11 @@
-import { Store } from 'redux'
 import { expectSaga } from 'redux-saga-test-plan'
 import { configureJestStore } from '../../../testUtils'
 import { componentCleanupSagaWorker } from './componentSaga'
 import { rootReducer } from '../../rootReducer'
+import { SDKStore } from '../..'
 
 describe('componentCleanupSaga', () => {
-  let store: Store
+  let store: SDKStore
 
   beforeEach(() => {
     store = configureJestStore({

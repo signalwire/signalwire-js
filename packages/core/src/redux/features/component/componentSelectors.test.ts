@@ -1,9 +1,9 @@
-import { Store } from 'redux'
 import { configureJestStore } from '../../../testUtils'
 import { getComponentsToCleanup } from './componentSelectors'
+import { SDKStore } from '../..'
 
 describe('componentSelectors', () => {
-  let store: Store
+  let store: SDKStore
 
   beforeEach(() => {
     store = configureJestStore({

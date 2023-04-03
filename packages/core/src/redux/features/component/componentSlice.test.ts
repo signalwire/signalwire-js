@@ -1,12 +1,12 @@
-import { Store } from 'redux'
 import { configureJestStore } from '../../../testUtils'
 import { componentActions, initialComponentState } from './componentSlice'
 import { getComponent, getComponentsById } from './componentSelectors'
 import { destroyAction } from '../../actions'
 import { ReduxComponent } from '../../interfaces'
+import { SDKStore } from '../..'
 
 describe('ComponentState Tests', () => {
-  let store: Store
+  let store: SDKStore
   const componentId = '268b4cf8-a3c5-4003-8666-3b7a4f0a5af9'
   const component: ReduxComponent = {
     id: componentId,

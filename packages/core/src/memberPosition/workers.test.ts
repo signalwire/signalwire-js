@@ -5,6 +5,7 @@ import {
   createPubSubChannel,
   createSwEventChannel,
   createSessionChannel,
+  createRootChannel,
 } from '../testUtils'
 
 describe('memberPositionWorker', () => {
@@ -27,6 +28,7 @@ describe('memberPositionWorker', () => {
         } as any,
       },
     }
+    const rootChannel = createRootChannel()
     const pubSubChannel = createPubSubChannel()
     const swEventChannel = createSwEventChannel()
     const sessionChannel = createSessionChannel()
@@ -56,6 +58,7 @@ describe('memberPositionWorker', () => {
     return expectSaga(memberUpdatedWorker, {
       action,
       channels: {
+        rootChannel,
         pubSubChannel,
         swEventChannel,
         sessionChannel,
