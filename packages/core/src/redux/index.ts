@@ -1,5 +1,4 @@
 import { channel, multicastChannel, Saga, Task } from '@redux-saga/core'
-// import { configureStore as rtConfigureStore } from './toolkit'
 import rootSaga from './rootSaga'
 import {
   MapToPubSubShape,

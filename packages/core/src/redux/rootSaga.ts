@@ -15,8 +15,8 @@ import {
   sessionExpiringAction,
   reauthAction,
   sessionForceCloseAction,
+  sessionAuthorizedAction,
 } from './actions'
-import { sessionActions } from './features'
 import {
   authErrorAction,
   authSuccessAction,
@@ -26,7 +26,6 @@ import { AuthError } from '../CustomErrors'
 import { PubSubChannel, RootChannel, SessionChannel } from './interfaces'
 import { createRestartableSaga } from './utils/sagaHelpers'
 import { Action } from 'redux'
-// import { componentCleanupSaga } from './features/component/componentSaga'
 
 interface StartSagaOptions {
   session: BaseSession
@@ -107,8 +106,6 @@ export function* initSessionSaga({
     userOptions,
   })
 
-  // const compCleanupTask = yield fork(componentCleanupSaga)
-
   session.connect()
 
   yield take(channels.rootChannel, destroyAction.type)
@@ -123,7 +120,6 @@ export function* initSessionSaga({
    * being automatically cleaned up when the session is
    * destroyed, most likely because it's using a timer.
    */
-  // compCleanupTask?.cancel()
   pubSubTask.cancel()
   sessionStatusTask.cancel()
   customTasks.forEach((task) => task.cancel())
@@ -150,7 +146,7 @@ export function* reauthenticateWorker({
       session.token = token
       yield call(session.reauthenticate)
       // Update the store with the new "connect result"
-      yield put(sessionActions.connected(session.rpcConnectResult))
+      yield put(sessionAuthorizedAction(session.rpcConnectResult))
       yield put(pubSubChannel, sessionConnectedAction())
     }
   } catch (error) {
@@ -180,7 +176,7 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
       switch (action.type) {
         case authSuccessAction.type: {
           const { session, pubSubChannel } = options
-          yield put(sessionActions.connected(session.rpcConnectResult))
+          yield put(sessionAuthorizedAction(session.rpcConnectResult))
           yield put(pubSubChannel, sessionConnectedAction())
           break
         }

@@ -34,8 +34,8 @@ import {
   socketMessageAction,
   sessionDisconnectedAction,
   sessionReconnectingAction,
+  sessionAuthStatusAction,
 } from './redux/actions'
-import { sessionActions } from './redux/features/session/sessionSlice'
 import { SwAuthorizationState } from '.'
 import { SessionChannel, SessionChannelAction } from './redux/interfaces'
 
@@ -584,7 +584,7 @@ export class BaseSession {
     this.logger.debug('Close Connection:', status)
     this._status = status
     this.dispatch(
-      sessionActions.authStatus(
+      sessionAuthStatusAction(
         status === 'disconnected' ? 'unauthorized' : 'unknown'
       )
     )

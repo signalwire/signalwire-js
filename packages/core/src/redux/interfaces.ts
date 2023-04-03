@@ -52,7 +52,8 @@ export interface Message extends SWComponent {
 }
 
 export type ReduxComponent = WebRTCCall | Message
-
+export type UpdateComponent = Partial<ReduxComponent> &
+  Pick<ReduxComponent, 'id'>
 export interface ComponentState {
   byId: {
     [key: string]: ReduxComponent

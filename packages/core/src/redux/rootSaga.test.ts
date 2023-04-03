@@ -8,7 +8,6 @@ import rootSaga, {
 } from './rootSaga'
 import { sessionChannelWatcher } from './features/session/sessionSaga'
 import { pubSubSaga } from './features/pubSub/pubSubSaga'
-import { sessionActions } from './features'
 import {
   sessionConnectedAction,
   sessionDisconnectedAction,
@@ -22,6 +21,7 @@ import {
   destroyAction,
   initAction,
   reauthAction,
+  sessionAuthorizedAction,
 } from './actions'
 import { AuthError } from '../CustomErrors'
 import {
@@ -68,7 +68,7 @@ describe('sessionStatusWatcher', () => {
     saga.next().take(actions)
     saga
       .next(authSuccessAction())
-      .put(sessionActions.connected(session.rpcConnectResult))
+      .put(sessionAuthorizedAction(session.rpcConnectResult))
     saga.next().put(pubSubChannel, sessionConnectedAction())
 
     // Saga waits again for actions due to the while loop

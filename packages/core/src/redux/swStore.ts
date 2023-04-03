@@ -4,10 +4,33 @@ import { getLogger } from '../utils'
 import { SDKState } from './interfaces'
 import { InternalChannels } from '../utils/interfaces'
 import { AnyAction } from './toolkit'
+import {
+  authErrorAction,
+  componentUpsertAction,
+  destroyAction,
+  initAction,
+  reauthAction,
+  sessionAuthStateAction,
+  sessionAuthStatusAction,
+  sessionAuthorizedAction,
+} from './actions'
 
 interface CreateSwStoreParams {
   channels: InternalChannels
   preloadedState: Partial<SDKState>
+}
+const initialState: SDKState = {
+  components: {
+    byId: {},
+  },
+  session: {
+    protocol: '',
+    iceServers: [],
+    authStatus: 'unknown',
+    authState: undefined,
+    authError: undefined,
+    authCount: 0,
+  },
 }
 
 export const createSWStore = ({
@@ -16,18 +39,8 @@ export const createSWStore = ({
 }: CreateSwStoreParams) => {
   const logger = getLogger()
   let rootTask: Task
-  const state: SDKState = {
-    components: {
-      byId: {},
-    },
-    session: {
-      protocol: '',
-      iceServers: [],
-      authStatus: 'unknown',
-      authState: undefined,
-      authError: undefined,
-      authCount: 0,
-    },
+  let state: SDKState = {
+    ...initialState,
     ...preloadedState,
   }
 
@@ -45,7 +58,24 @@ export const createSWStore = ({
 
       // Process the action within reducers
       switch (action.type) {
-        case 'session/connected':
+        case initAction.type:
+        case reauthAction.type:
+          state.session = {
+            ...state.session,
+            authStatus: 'authorizing',
+          }
+          break
+        case destroyAction.type:
+          state = { ...initialState }
+          break
+        case authErrorAction.type:
+          state.session = {
+            ...state.session,
+            authStatus: 'unauthorized',
+            authError: action.payload.error,
+          }
+          break
+        case sessionAuthorizedAction.type:
           state.session = {
             ...state.session,
             authStatus: 'authorized',
@@ -55,7 +85,19 @@ export const createSWStore = ({
             iceServers: action.payload?.ice_servers ?? [],
           }
           break
-        case 'components/upsert':
+        case sessionAuthStatusAction.type:
+          state.session = {
+            ...state.session,
+            authStatus: action.payload,
+          }
+          break
+        case sessionAuthStateAction.type:
+          state.session = {
+            ...state.session,
+            authState: action.payload,
+          }
+          break
+        case componentUpsertAction.type:
           if (action.payload.id in state.components.byId) {
             state.components = {
               ...state,

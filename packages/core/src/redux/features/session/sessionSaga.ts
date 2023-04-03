@@ -120,6 +120,7 @@ export function* sessionChannelWatcher({
      * since we'll move that logic on a separate package.
      */
     yield put(rootChannel, {
+      // FIXME:
       type: broadcastParams.event_type,
       payload: broadcastParams,
     })
