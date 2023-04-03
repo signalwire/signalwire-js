@@ -7,9 +7,13 @@ import { AnyAction } from './toolkit'
 
 interface CreateSwStoreParams {
   channels: InternalChannels
+  preloadedState: Partial<SDKState>
 }
 
-export const createSWStore = ({ channels }: CreateSwStoreParams) => {
+export const createSWStore = ({
+  channels,
+  preloadedState,
+}: CreateSwStoreParams) => {
   const logger = getLogger()
   let rootTask: Task
   const state: SDKState = {
@@ -24,6 +28,7 @@ export const createSWStore = ({ channels }: CreateSwStoreParams) => {
       authError: undefined,
       authCount: 0,
     },
+    ...preloadedState,
   }
 
   const getState = () => {

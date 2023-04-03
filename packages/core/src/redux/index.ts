@@ -1,12 +1,5 @@
-import { Store } from 'redux'
-import createSagaMiddleware, {
-  channel,
-  multicastChannel,
-  Saga,
-  Task,
-} from '@redux-saga/core'
-import { configureStore as rtConfigureStore } from './toolkit'
-import { rootReducer } from './rootReducer'
+import { channel, multicastChannel, Saga, Task } from '@redux-saga/core'
+// import { configureStore as rtConfigureStore } from './toolkit'
 import rootSaga from './rootSaga'
 import {
   MapToPubSubShape,
@@ -46,7 +39,6 @@ const configureStore = (options: ConfigureStoreOptions) => {
     preloadedState = {},
     runSagaMiddleware = true,
   } = options
-  const sagaMiddleware = createSagaMiddleware()
   const rootChannel: PubSubChannel = multicastChannel()
   const pubSubChannel: PubSubChannel = multicastChannel()
   const swEventChannel: SwEventChannel = multicastChannel()
@@ -61,20 +53,8 @@ const configureStore = (options: ConfigureStoreOptions) => {
     swEventChannel,
     sessionChannel,
   }
-  const store = rtConfigureStore({
-    devTools: userOptions?.devTools ?? true,
-    reducer: rootReducer,
-    preloadedState,
-    middleware: (getDefaultMiddleware) =>
-      // It is preferrable to use the chainable .concat(...) and
-      // .prepend(...) methods of the returned MiddlewareArray instead
-      // of the array spread operator, as the latter can lose valuable
-      // type information under some circumstances.
-      // @see https://redux-toolkit.js.org/api/getDefaultMiddleware#intended-usage
-      getDefaultMiddleware().concat(sagaMiddleware),
-  }) as Store
 
-  const swStore = createSWStore({ channels })
+  const swStore = createSWStore({ channels, preloadedState })
 
   let session: BaseSession
   const initSession = () => {
@@ -148,18 +128,11 @@ const configureStore = (options: ConfigureStoreOptions) => {
   }
 
   return {
-    ...store,
+    ...swStore,
     runSaga,
     channels,
     putOnSwEventChannel: (arg: MapToPubSubShape<SwEventParams>) => {
       swEventChannel.put(arg)
-    },
-    dispatch: (action: any) => {
-      return swStore.dispatch(action)
-    },
-    getState: () => {
-      return swStore.getState()
-      // return store.getState()
     },
   }
 }
