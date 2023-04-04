@@ -107,6 +107,11 @@ export class CallRecordingAPI
       // TODO: review what else to return when `recording.failed` happens.
       // @ts-expect-error
       this._once('recording.failed', handler)
+
+      // Resolve the promise if the recording has already ended
+      if (ENDED_STATES.includes(this.state as CallingCallRecordEndState)) {
+        handler()
+      }
     })
   }
 }

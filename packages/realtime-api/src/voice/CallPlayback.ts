@@ -160,6 +160,11 @@ export class CallPlaybackAPI
       this._once('playback.ended', handler)
       // @ts-expect-error
       this._once('playback.failed', handler)
+
+      // Resolve the promise if the recording has already ended
+      if (ENDED_STATES.includes(this.state as CallingCallPlayEndState)) {
+        handler()
+      }
     })
   }
 }
