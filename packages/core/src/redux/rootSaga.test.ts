@@ -1,6 +1,6 @@
-import { expectSaga, testSaga } from 'redux-saga-test-plan'
-import type { Task } from '@redux-saga/types'
-import { createMockTask } from '@redux-saga/testing-utils'
+import { expectSaga } from 'redux-saga-test-plan'
+import * as matchers from 'redux-saga-test-plan/matchers'
+import { throwError } from 'redux-saga-test-plan/providers'
 import rootSaga, {
   sessionStatusWatcher,
   initSessionSaga,
@@ -32,18 +32,11 @@ import {
 } from '../testUtils'
 
 describe('sessionStatusWatcher', () => {
-  const actions = [
-    authSuccessAction.type,
-    authErrorAction.type,
-    authExpiringAction.type,
-    reauthAction.type,
-    sessionReconnectingAction.type,
-    sessionForceCloseAction.type,
-  ]
   const session = {
     closed: true,
     connect: jest.fn(),
     disconnect: jest.fn(),
+    forceClose: jest.fn(),
   } as any
   const rootChannel = createRootChannel()
   const pubSubChannel = createPubSubChannel()
@@ -64,16 +57,23 @@ describe('sessionStatusWatcher', () => {
   }
 
   it('should fork startSaga on authSuccess action', () => {
-    const saga = testSaga(sessionStatusWatcher, options)
-    saga.next().take(actions)
-    saga
-      .next(authSuccessAction())
+    let runSaga = true
+    const action = authSuccessAction()
+    return expectSaga(sessionStatusWatcher, options)
+      .provide([
+        {
+          take(_opts, next) {
+            if (runSaga) {
+              runSaga = false
+              return action
+            }
+            return next()
+          },
+        },
+      ])
       .put(sessionAuthorizedAction(session.rpcConnectResult))
-    saga.next().put(pubSubChannel, sessionConnectedAction())
-
-    // Saga waits again for actions due to the while loop
-    const firstSagaTask: Task = createMockTask()
-    saga.next(firstSagaTask).take(actions)
+      .put(pubSubChannel, sessionConnectedAction())
+      .silentRun()
   })
 
   it('should fork sessionAuthErrorSaga on authError action and put destroyAction', () => {
@@ -82,46 +82,81 @@ describe('sessionStatusWatcher', () => {
       error: { code: 123, message: 'Protocol Error' },
     })
     const error = new AuthError(123, 'Protocol Error')
-    return (
-      expectSaga(sessionStatusWatcher, options)
-        .provide([
-          {
-            take(_opts, next) {
-              if (runSaga) {
-                runSaga = false
-                return action
-              }
-              return next()
-            },
+    return expectSaga(sessionStatusWatcher, options)
+      .provide([
+        {
+          take(_opts, next) {
+            if (runSaga) {
+              runSaga = false
+              return action
+            }
+            return next()
           },
-        ])
-        .fork(sessionAuthErrorSaga, { ...options, action })
-        .put(pubSubChannel, sessionAuthErrorAction(error))
-        // .put(destroyAction())
-        .silentRun()
-    )
+        },
+      ])
+      .fork(sessionAuthErrorSaga, { ...options, action })
+      .put(pubSubChannel, sessionAuthErrorAction(error))
+      .silentRun()
   })
 
   it('should put sessionExpiringAction on authExpiringAction', () => {
-    const saga = testSaga(sessionStatusWatcher, options)
-
-    saga.next().take(actions)
-    saga
-      .next(authExpiringAction())
-      .put(options.pubSubChannel, sessionExpiringAction())
-    // Saga waits again for actions due to the while loop
-    saga.next().take(actions)
+    let runSaga = true
+    const action = authExpiringAction()
+    return expectSaga(sessionStatusWatcher, options)
+      .provide([
+        {
+          take(_opts, next) {
+            if (runSaga) {
+              runSaga = false
+              return action
+            }
+            return next()
+          },
+        },
+      ])
+      .put(pubSubChannel, sessionExpiringAction())
+      .silentRun()
   })
 
   it('should put sessionReconnectingAction on the pubSubChannel', () => {
-    const saga = testSaga(sessionStatusWatcher, options)
+    let runSaga = true
+    const action = sessionReconnectingAction()
 
-    saga.next().take(actions)
-    saga
-      .next(sessionReconnectingAction())
-      .put(options.pubSubChannel, sessionReconnectingAction())
-    // Saga waits again for actions due to the while loop
-    saga.next().take(actions)
+    return expectSaga(sessionStatusWatcher, options)
+      .provide([
+        {
+          take(_opts, next) {
+            if (runSaga) {
+              runSaga = false
+              return action
+            }
+            return next()
+          },
+        },
+      ])
+      .put(pubSubChannel, sessionReconnectingAction())
+      .silentRun()
+  })
+
+  it('should invoke session.forceClose() on sessionForceCloseAction', async () => {
+    let runSaga = true
+    const action = sessionForceCloseAction()
+
+    await expectSaga(sessionStatusWatcher, options)
+      .provide([
+        {
+          take(_opts, next) {
+            if (runSaga) {
+              runSaga = false
+              return action
+            }
+            return next()
+          },
+        },
+      ])
+      .silentRun()
+
+    expect(session.forceClose).toHaveBeenCalledTimes(1)
   })
 })
 
@@ -132,9 +167,12 @@ describe('initSessionSaga', () => {
   } as any
   const initSession = jest.fn().mockImplementation(() => session)
   const pubSubChannel = createPubSubChannel()
+  const mockEmitter = {
+    emit: jest.fn(),
+  } as any
   const userOptions = {
     token: '',
-    emitter: jest.fn() as any,
+    emitter: mockEmitter,
     pubSubChannel,
   }
 
@@ -142,7 +180,7 @@ describe('initSessionSaga', () => {
     session.connect.mockClear()
   })
 
-  it('should create the session, the sessionChannel and fork watchers', () => {
+  it('should create the session, the sessionChannel and fork watchers', async () => {
     const rootChannel = createRootChannel()
     rootChannel.close = jest.fn()
     const pubSubChannel = createPubSubChannel()
@@ -151,41 +189,65 @@ describe('initSessionSaga', () => {
     swEventChannel.close = jest.fn()
     const sessionChannel = createSessionChannel()
     sessionChannel.close = jest.fn()
-    const saga = testSaga(initSessionSaga, {
+    const takes: string[] = []
+
+    await expectSaga(initSessionSaga, {
       initSession,
       userOptions,
-      channels: { rootChannel, pubSubChannel, swEventChannel, sessionChannel },
+      channels: {
+        rootChannel,
+        pubSubChannel,
+        swEventChannel,
+        sessionChannel,
+      },
     })
-    saga.next(sessionChannel).fork(sessionChannelWatcher, {
-      session,
-      sessionChannel,
-      pubSubChannel,
-      swEventChannel,
-    })
-    saga.next().fork(pubSubSaga, {
-      pubSubChannel,
-      emitter: userOptions.emitter,
-    })
-    const pubSubTask = createMockTask()
-    pubSubTask.cancel = jest.fn()
-    saga.next(pubSubTask).fork(sessionStatusWatcher, {
-      session,
-      sessionChannel,
-      pubSubChannel,
-      userOptions,
-    })
-    const sessionStatusTask = createMockTask()
-    sessionStatusTask.cancel = jest.fn()
-    saga.next(sessionStatusTask).take(destroyAction.type)
-    saga.next().take(sessionDisconnectedAction.type)
-    saga.next().put(pubSubChannel, sessionDisconnectedAction())
-    saga.next().isDone()
-    expect(pubSubTask.cancel).toHaveBeenCalledTimes(1)
-    expect(sessionStatusTask.cancel).toHaveBeenCalledTimes(1)
+      .provide([
+        {
+          take(_opts, next) {
+            if (typeof _opts.pattern === 'string') {
+              if (_opts.pattern === destroyAction.type) {
+                takes.push(_opts.pattern)
+                return destroyAction()
+              }
+              if (_opts.pattern === sessionDisconnectedAction.type) {
+                takes.push(_opts.pattern)
+                return sessionDisconnectedAction()
+              }
+            }
+            return next()
+          },
+        },
+      ])
+      .fork(sessionChannelWatcher, {
+        session,
+        rootChannel,
+        sessionChannel,
+        pubSubChannel,
+        swEventChannel,
+      })
+      .fork(pubSubSaga, {
+        pubSubChannel,
+        emitter: userOptions.emitter,
+      })
+      .fork(sessionStatusWatcher, {
+        session,
+        rootChannel,
+        sessionChannel,
+        pubSubChannel,
+        userOptions,
+      })
+      .silentRun()
+
+    expect(rootChannel.close).not.toHaveBeenCalled()
     expect(pubSubChannel.close).not.toHaveBeenCalled()
     expect(swEventChannel.close).not.toHaveBeenCalled()
     expect(session.connect).toHaveBeenCalledTimes(1)
     expect(session.disconnect).toHaveBeenCalledTimes(1)
+
+    expect(takes).toStrictEqual([
+      destroyAction.type,
+      sessionDisconnectedAction.type,
+    ])
   })
 })
 
@@ -194,35 +256,54 @@ describe('rootSaga as restartable', () => {
   const pubSubChannel = createPubSubChannel()
   const swEventChannel = createSwEventChannel()
   const sessionChannel = createSessionChannel()
-  it('wait for initAction and fork initSessionSaga', () => {
-    const session = {
-      connect: jest.fn(),
-    } as any
-    const initSession = jest.fn().mockImplementation(() => session)
-    const userOptions = { token: '', emitter: jest.fn() as any }
-    const channels = {
-      rootChannel,
-      pubSubChannel,
-      swEventChannel,
-      sessionChannel,
-    }
-    const saga = testSaga(
-      rootSaga({
-        initSession,
-      }),
-      {
-        userOptions,
-        channels,
-      }
-    )
+  const channels = {
+    rootChannel,
+    pubSubChannel,
+    swEventChannel,
+    sessionChannel,
+  }
+  const actions = [initAction, reauthAction]
+  actions.forEach((action) => {
+    it(`wait for ${action.type} and fork initSessionSaga - in case of error it reboots`, async () => {
+      const session = {
+        connect: jest.fn(),
+      } as any
+      const initSession = jest.fn().mockImplementation(() => session)
+      const userOptions = { token: '', emitter: jest.fn() as any }
+      let runSaga = true
 
-    saga.next().take([initAction.type, reauthAction.type])
-    saga.next().call(initSessionSaga, {
-      initSession,
-      userOptions,
-      channels,
+      await expectSaga(
+        rootSaga({
+          initSession,
+        }),
+        {
+          userOptions,
+          channels,
+        }
+      )
+        .provide([
+          [matchers.call.fn(initSessionSaga), throwError(new Error('Random'))],
+          {
+            take(_opts, next) {
+              if (runSaga) {
+                runSaga = false
+                return action({ token: 'a' })
+              }
+              return next()
+            },
+          },
+        ])
+        .call(initSessionSaga, {
+          initSession,
+          userOptions,
+          channels,
+        })
+        .silentRun()
+        .then((result) => {
+          const { allEffects } = result
+          // 2 take since rootSaga restarted
+          expect(allEffects.filter((t) => t.type === 'TAKE').length).toBe(2)
+        })
     })
-    saga.next().cancelled()
-    saga.next().take([initAction.type, reauthAction.type])
   })
 })
