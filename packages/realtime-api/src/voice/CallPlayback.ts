@@ -143,9 +143,9 @@ export class CallPlaybackAPI
 
       const handler = () => {
         // @ts-expect-error
-        this._off('playback.ended', handler)
+        this.off('playback.ended', handler)
         // @ts-expect-error
-        this._off('playback.failed', handler)
+        this.off('playback.failed', handler)
         // It's important to notice that we're returning
         // `this` instead of creating a brand new instance
         // using the payload + EventEmitter Transform
@@ -157,9 +157,9 @@ export class CallPlaybackAPI
         resolve(this)
       }
       // @ts-expect-error
-      this._once('playback.ended', handler)
+      this.once('playback.ended', handler)
       // @ts-expect-error
-      this._once('playback.failed', handler)
+      this.once('playback.failed', handler)
 
       // Resolve the promise if the recording has already ended
       if (ENDED_STATES.includes(this.state as CallingCallPlayEndState)) {

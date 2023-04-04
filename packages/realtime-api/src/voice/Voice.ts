@@ -267,7 +267,7 @@ class VoiceAPI extends AutoApplyTransformsConsumer<VoiceClientApiEvents> {
     return new Promise((resolve, reject) => {
       const resolveHandler = (call: Call) => {
         // @ts-expect-error
-        this._off('dial.failed', rejectHandler)
+        this.off('dial.failed', rejectHandler)
         resolve(call)
       }
 
@@ -275,14 +275,14 @@ class VoiceAPI extends AutoApplyTransformsConsumer<VoiceClientApiEvents> {
         error: ToExternalJSONResult<CallingCallDialFailedEventParams>
       ) => {
         // @ts-expect-error
-        this._off('dial.answered', resolveHandler)
+        this.off('dial.answered', resolveHandler)
         reject(toExternalJSON(error))
       }
 
       // @ts-expect-error
-      this._once('dial.answered', resolveHandler)
+      this.once('dial.answered', resolveHandler)
       // @ts-expect-error
-      this._once('dial.failed', rejectHandler)
+      this.once('dial.failed', rejectHandler)
 
       let executeParams: Record<string, any>
       if (params instanceof DeviceBuilder) {

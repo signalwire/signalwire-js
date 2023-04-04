@@ -163,9 +163,9 @@ export class CallPromptAPI
       this._attachListeners(this.controlId)
       const handler = (_callPrompt: CallPromptEndedEvent['params']) => {
         // @ts-expect-error
-        this._off('prompt.ended', handler)
+        this.off('prompt.ended', handler)
         // @ts-expect-error
-        this._off('prompt.failed', handler)
+        this.off('prompt.failed', handler)
         // It's important to notice that we're returning
         // `this` instead of creating a brand new instance
         // using the payload + EventEmitter Transform
@@ -177,9 +177,9 @@ export class CallPromptAPI
         resolve(this)
       }
       // @ts-expect-error
-      this._once('prompt.ended', handler)
+      this.once('prompt.ended', handler)
       // @ts-expect-error
-      this._once('prompt.failed', handler)
+      this.once('prompt.failed', handler)
     })
   }
 }

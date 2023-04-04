@@ -89,9 +89,9 @@ export class CallRecordingAPI
 
       const handler = () => {
         // @ts-expect-error
-        this._off('recording.ended', handler)
+        this.off('recording.ended', handler)
         // @ts-expect-error
-        this._off('recording.failed', handler)
+        this.off('recording.failed', handler)
         // It's important to notice that we're returning
         // `this` instead of creating a brand new instance
         // using the payload + EventEmitter Transform
@@ -103,10 +103,10 @@ export class CallRecordingAPI
         resolve(this)
       }
       // @ts-expect-error
-      this._once('recording.ended', handler)
+      this.once('recording.ended', handler)
       // TODO: review what else to return when `recording.failed` happens.
       // @ts-expect-error
-      this._once('recording.failed', handler)
+      this.once('recording.failed', handler)
 
       // Resolve the promise if the recording has already ended
       if (ENDED_STATES.includes(this.state as CallingCallRecordEndState)) {

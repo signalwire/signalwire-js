@@ -121,7 +121,7 @@ export class CallDetectAPI
 
       const handler = () => {
         // @ts-expect-error
-        this._off('detect.ended', handler)
+        this.off('detect.ended', handler)
         // It's important to notice that we're returning
         // `this` instead of creating a brand new instance
         // using the payload + EventEmitter Transform
@@ -134,7 +134,7 @@ export class CallDetectAPI
       }
 
       // @ts-expect-error
-      this._once('detect.ended', handler)
+      this.once('detect.ended', handler)
     })
   }
 }

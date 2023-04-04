@@ -157,9 +157,9 @@ export class CallCollectAPI
       this._attachListeners(this.controlId)
       const handler = (_callCollect: CallCollectEndedEvent['params']) => {
         // @ts-expect-error
-        this._off('collect.ended', handler)
+        this.off('collect.ended', handler)
         // @ts-expect-error
-        this._off('collect.failed', handler)
+        this.off('collect.failed', handler)
         // It's important to notice that we're returning
         // `this` instead of creating a brand new instance
         // using the payload + EventEmitter Transform
@@ -171,9 +171,9 @@ export class CallCollectAPI
         resolve(this)
       }
       // @ts-expect-error
-      this._once('collect.ended', handler)
+      this.once('collect.ended', handler)
       // @ts-expect-error
-      this._once('collect.failed', handler)
+      this.once('collect.failed', handler)
     })
   }
 }

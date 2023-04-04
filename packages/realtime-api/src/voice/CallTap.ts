@@ -85,7 +85,7 @@ export class CallTapAPI
 
       const handler = () => {
         // @ts-expect-error
-        this._off('tap.ended', handler)
+        this.off('tap.ended', handler)
         // It's important to notice that we're returning
         // `this` instead of creating a brand new instance
         // using the payload + EventEmitter Transform
@@ -97,7 +97,7 @@ export class CallTapAPI
         resolve(this)
       }
       // @ts-expect-error
-      this._once('tap.ended', handler)
+      this.once('tap.ended', handler)
     })
   }
 }
