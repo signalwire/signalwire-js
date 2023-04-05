@@ -342,19 +342,21 @@ export type VoiceCallCollectMethodParams = SpeechOrDigits & {
   startInputTimers?: boolean
 }
 
+export interface VoiceCallConnectAdditionalParams {
+  ringback?: VoicePlaylist
+  maxPricePerMinute?: number
+}
+
 export type VoiceCallConnectMethodParams =
   | VoiceDeviceBuilder
-  | {
+  | ({
       devices: VoiceDeviceBuilder
-      ringback?: VoicePlaylist
-      maxPricePerMinute?: number
-    }
+    } & VoiceCallConnectAdditionalParams)
 
-export type VoiceCallConnectPhoneMethodParams =
-  OmitType<VoiceCallPhoneParams> & { ringback?: VoicePlaylist }
-export type VoiceCallConnectSipMethodParams = OmitType<VoiceCallSipParams> & {
-  ringback?: VoicePlaylist
-}
+export type VoiceCallConnectPhoneMethodParams = OmitType<VoiceCallPhoneParams> &
+  VoiceCallConnectAdditionalParams
+export type VoiceCallConnectSipMethodParams = OmitType<VoiceCallSipParams> &
+  VoiceCallConnectAdditionalParams
 
 interface VoiceCallDetectBaseParams {
   timeout?: number
