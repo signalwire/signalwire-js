@@ -141,6 +141,7 @@ export const memberPositionWorker: SDKWorker<any> =
     channels,
     initialState,
     getSession,
+    instanceMap,
   }): SagaIterator {
     if (!initialState) {
       return
@@ -182,7 +183,7 @@ export const memberPositionWorker: SDKWorker<any> =
             memberList,
             instance,
             getSession,
-            instanceMap: { get: jest.fn(), set: jest.fn(), remove: jest.fn() },
+            instanceMap,
           })
           break
         }
