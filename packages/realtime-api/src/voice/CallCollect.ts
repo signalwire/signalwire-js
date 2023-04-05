@@ -2,10 +2,11 @@ import {
   connect,
   BaseComponentOptions,
   VoiceCallCollectContract,
-  CallingCallCollectResult,
   CallingCallCollectEndState,
   BaseComponent,
   CallCollectEndedEvent,
+  CallingCallCollectEventParams,
+  EventEmitter,
 } from '@signalwire/core'
 
 /**
@@ -14,7 +15,10 @@ import {
  * starting a Prompt from the desired {@link Call} (see
  * {@link Call.prompt})
  */
-export interface CallCollect extends VoiceCallCollectContract {}
+export interface CallCollect extends VoiceCallCollectContract {
+  setPayload: (payload: CallingCallCollectEventParams) => void
+  baseEmitter: EventEmitter
+}
 
 export type CallCollectEventsHandlerMapping = {}
 
@@ -34,14 +38,32 @@ export class CallCollectAPI
   implements VoiceCallCollectContract
 {
   protected _eventsPrefix = 'calling' as const
+  private _payload: CallingCallCollectEventParams
 
-  callId: string
-  nodeId: string
-  controlId: string
-  result?: CallingCallCollectResult
+  constructor(options: BaseComponentOptions<CallCollectEventsHandlerMapping>) {
+    super(options)
+
+    this._payload = options.payload
+  }
 
   get id() {
-    return this.controlId
+    return this._payload?.control_id.split('.')[0]
+  }
+
+  get controlId() {
+    return this._payload.control_id
+  }
+
+  get callId() {
+    return this._payload.call_id
+  }
+
+  get nodeId() {
+    return this._payload.node_id
+  }
+
+  get result() {
+    return this._payload.result
   }
 
   get type() {
@@ -82,6 +104,11 @@ export class CallCollectAPI
       return this.result.params.confidence
     }
     return undefined
+  }
+
+  /** @internal */
+  protected setPayload(payload: CallingCallCollectEventParams) {
+    this._payload = payload
   }
 
   async stop() {
