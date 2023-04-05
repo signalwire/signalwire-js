@@ -1,116 +1,91 @@
 import {
   getLogger,
-  sagaEffects,
   SagaIterator,
-  SDKWorker,
-  SDKActions,
-  CallingCallCollectEvent,
-  MapToPubSubShape,
+  SDKCallWorker,
+  CallingCallCollectEventParams,
 } from '@signalwire/core'
-import { callingCollectTriggerEvent } from '../Call'
 import type { Call } from '../Call'
+import { CallPrompt, CallPromptAPI } from '../CallPrompt'
+import { CallCollect } from '../CallCollect'
 
-export const voiceCallCollectWorker: SDKWorker<Call> = function* (
-  options
-): SagaIterator {
-  getLogger().trace('voiceCallCollectWorker started')
-  const { channels, instance, initialState } = options
-  const { swEventChannel, pubSubChannel } = channels
-  const { controlId } = initialState
-  if (!controlId) {
-    throw new Error('Missing controlId for collect')
-  }
+export const voiceCallCollectWorker: SDKCallWorker<CallingCallCollectEventParams> =
+  function* (options): SagaIterator {
+    getLogger().trace('voiceCallCollectWorker started')
+    const {
+      payload,
+      instanceMap: { get, set },
+    } = options
 
-  let run = true
-  const done = () => (run = false)
-
-  while (run) {
-    const action: MapToPubSubShape<CallingCallCollectEvent> =
-      yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
-        return (
-          action.type === 'calling.call.collect' &&
-          action.payload.control_id === controlId
-        )
-      })
-
-    /** Add `tag` to the payload to allow pubSubSaga to match it with the Call namespace */
-    const payloadWithTag = {
-      tag: instance.tag,
-      ...action.payload,
+    const callInstance = get<Call>(payload.call_id)
+    if (!callInstance) {
+      throw new Error('Missing call instance for collect')
     }
 
-    /**
-     * Update the original CallPrompt object using the transform pipeline
-     */
-    yield sagaEffects.put(pubSubChannel, {
-      // @ts-expect-error
-      type: callingCollectTriggerEvent,
-      // @ts-ignore
-      payload: payloadWithTag,
-    })
+    const actionInstance = get<CallPrompt | CallCollect>(payload.control_id)
+    if (!actionInstance) {
+      throw new Error('Missing the instance')
+    }
+    actionInstance.setPayload(payload)
+    set<CallPrompt | CallCollect>(payload.control_id, actionInstance)
+
+    let eventPrefix = 'collect'
+    if (actionInstance instanceof CallPromptAPI) {
+      eventPrefix = 'prompt'
+    }
 
     /**
      * Only when partial_results: true
      */
-    if (action.payload.final === false) {
-      yield sagaEffects.put(pubSubChannel, {
-        type: 'calling.collect.updated',
-        payload: payloadWithTag,
-      })
+    if (payload.final === false) {
+      callInstance.baseEmitter.emit(`${eventPrefix}.updated`, actionInstance)
     } else {
-      if (action.payload.result) {
-        let typeToEmit:
-          | 'calling.collect.failed'
-          | 'calling.collect.ended'
-          | 'calling.collect.startOfInput'
-        switch (action.payload.result.type) {
-          case 'no_match':
+      if (payload.result) {
+        switch (payload.result.type) {
+          case 'start_of_input': {
+            callInstance.baseEmitter.emit(
+              `${eventPrefix}.startOfInput`,
+              actionInstance
+            )
+            break
+          }
           case 'no_input':
+          case 'no_match':
           case 'error': {
-            typeToEmit = 'calling.collect.failed'
+            callInstance.baseEmitter.emit(
+              `${eventPrefix}.failed`,
+              actionInstance
+            )
+
+            // To resolve the ended() promise in CallPrompt or CallCollect
+            actionInstance.baseEmitter.emit(
+              `${eventPrefix}.failed`,
+              actionInstance
+            )
             break
           }
           case 'speech':
           case 'digit': {
-            typeToEmit = 'calling.collect.ended'
+            callInstance.baseEmitter.emit(
+              `${eventPrefix}.ended`,
+              actionInstance
+            )
+
+            // To resolve the ended() promise in CallPrompt or CallCollect
+            actionInstance.baseEmitter.emit(
+              `${eventPrefix}.ended`,
+              actionInstance
+            )
             break
           }
-          case 'start_of_input': {
-            typeToEmit = 'calling.collect.startOfInput'
+          default:
+            getLogger().warn(
+              // @ts-expect-error
+              `Unknown prompt result type: "${payload.result.type}"`
+            )
             break
-          }
-        }
-
-        if (!typeToEmit) {
-          getLogger().info(
-            `Unknown collect result type: "${action.payload.result.type}"`
-          )
-          continue
-        }
-
-        yield sagaEffects.put(pubSubChannel, {
-          type: typeToEmit,
-          payload: payloadWithTag,
-        })
-
-        /**
-         * Dispatch an event to resolve `ended` in CallPrompt
-         * when ended
-         */
-        yield sagaEffects.put(pubSubChannel, {
-          type: typeToEmit,
-          payload: {
-            tag: controlId,
-            ...action.payload,
-          },
-        })
-
-        if (action.payload.result.type !== 'start_of_input') {
-          done()
         }
       }
     }
-  }
 
-  getLogger().trace('voiceCallCollectWorker ended')
-}
+    getLogger().trace('voiceCallCollectWorker ended')
+  }

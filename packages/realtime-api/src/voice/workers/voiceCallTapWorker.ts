@@ -1,84 +1,52 @@
 import {
   getLogger,
-  sagaEffects,
   SagaIterator,
-  SDKWorker,
-  SDKActions,
-  CallingCallTapEvent,
-  MapToPubSubShape,
+  SDKCallWorker,
+  CallingCallTapEventParams,
 } from '@signalwire/core'
-import { callingTapTriggerEvent } from '../Call'
 import type { Call } from '../Call'
+import { CallTap, createCallTapObject } from '../CallTap'
 
-export const voiceCallTapWorker: SDKWorker<Call> = function* (
-  options
-): SagaIterator {
-  getLogger().trace('voiceCallTapWorker started')
-  const { channels, instance, initialState } = options
-  const { swEventChannel, pubSubChannel } = channels
-  const { controlId } = initialState
-  if (!controlId) {
-    throw new Error('Missing controlId for tapping')
-  }
+export const voiceCallTapWorker: SDKCallWorker<CallingCallTapEventParams> =
+  function* (options): SagaIterator {
+    getLogger().trace('voiceCallTapWorker started')
+    const {
+      payload,
+      instanceMap: { get, set },
+    } = options
 
-  let run = true
-  const done = () => (run = false)
+    const callInstance = get(payload.call_id) as Call
+    if (!callInstance) {
+      throw new Error('Missing call instance for tap')
+    }
 
-  while (run) {
-    const action: MapToPubSubShape<CallingCallTapEvent> =
-      yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
-        return (
-          action.type === 'calling.call.tap' &&
-          action.payload.control_id === controlId
-        )
+    let tapInstance = get(payload.control_id) as CallTap
+    if (!tapInstance) {
+      tapInstance = createCallTapObject({
+        store: callInstance.store,
+        // @ts-expect-error
+        emitter: callInstance.emitter,
+        payload,
       })
+    } else {
+      tapInstance.setPayload(payload)
+    }
+    set(payload.control_id, tapInstance)
 
-    /** Add `tag` to the payload to allow pubSubSaga to match it with the Call namespace */
-    const payloadWithTag = {
-      tag: instance.tag,
-      ...action.payload,
+    switch (payload.state) {
+      case 'tapping':
+        callInstance.baseEmitter.emit('tap.started', tapInstance)
+        break
+      case 'finished':
+        callInstance.baseEmitter.emit('tap.ended', tapInstance)
+
+        // To resolve the ended() promise in CallTap
+        tapInstance.baseEmitter.emit('tap.ended', tapInstance)
+        break
+      default:
+        getLogger().warn(`Unknown tap state: "${payload.state}"`)
+        break
     }
 
-    /**
-     * Update the original CallTap object using the transform pipeline
-     */
-    yield sagaEffects.put(pubSubChannel, {
-      // @ts-ignore
-      type: callingTapTriggerEvent,
-      // @ts-ignore
-      payload: payloadWithTag,
-    })
-
-    switch (action.payload.state) {
-      case 'tapping': {
-        yield sagaEffects.put(pubSubChannel, {
-          type: 'calling.tap.started',
-          payload: payloadWithTag,
-        })
-        break
-      }
-      case 'finished': {
-        yield sagaEffects.put(pubSubChannel, {
-          type: 'calling.tap.ended',
-          payload: payloadWithTag,
-        })
-
-        /**
-         * Dispatch an event to resolve `ended()` in CallTap when ended
-         */
-        yield sagaEffects.put(pubSubChannel, {
-          type: 'calling.tap.ended',
-          payload: {
-            tag: controlId,
-            ...action.payload,
-          },
-        })
-
-        done()
-        break
-      }
-    }
+    getLogger().trace('voiceCallTapWorker ended')
   }
-
-  getLogger().trace('voiceCallTapWorker ended')
-}

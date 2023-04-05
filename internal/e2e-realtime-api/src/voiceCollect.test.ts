@@ -15,7 +15,7 @@ const handler = () => {
       },
     })
 
-    client._on('call.received', async (call) => {
+    client.on('call.received', async (call) => {
       console.log('Got call', call.id, call.from, call.to, call.direction)
 
       try {

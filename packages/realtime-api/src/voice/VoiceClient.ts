@@ -1,6 +1,5 @@
 import type { UserOptions } from '@signalwire/core'
 import { setupClient, clientConnect } from '../client/index'
-import { createCallObject, Call } from './Call'
 import { createVoiceObject, Voice } from './Voice'
 import { clientContextInterceptorsFactory } from '../common/clientContext'
 
@@ -73,23 +72,16 @@ const VoiceClient = function (options?: VoiceClientOptions) {
     ...options,
   })
 
-  const callDial: Call['dial'] = async (dialer) => {
+  const dial: Voice['dial'] = async (dialer) => {
     await clientConnect(client)
 
-    const call = createCallObject({
-      store,
-      emitter,
-    })
-
-    await call.dial(dialer)
-
-    return call
+    return voice.dial(dialer)
   }
   const disconnect = () => client.disconnect()
 
   const interceptors = {
     ...clientContextInterceptorsFactory(client),
-    dial: callDial,
+    dial,
     _session: client,
     disconnect,
   } as const
