@@ -347,6 +347,7 @@ export type VoiceCallConnectMethodParams =
   | {
       devices: VoiceDeviceBuilder
       ringback?: VoicePlaylist
+      maxPricePerMinute?: number
     }
 
 export type VoiceCallConnectPhoneMethodParams =
@@ -394,6 +395,7 @@ export type VoiceCallDisconnectReason =
 
 export interface VoiceCallDialRegionParams {
   region?: VoiceRegion
+  maxPricePerMinute?: number
 }
 
 export type VoiceCallDialPhoneMethodParams = OmitType<VoiceCallPhoneParams> &

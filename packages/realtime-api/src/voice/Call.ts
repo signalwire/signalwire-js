@@ -444,22 +444,17 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         onFail: reject,
       })
 
-      let executeParams: Record<string, any>
+      const { devices, ...rest } = params
+      const executeParams: Record<string, any> = {
+        tag: this.__uuid,
+        ...rest,
+      }
       if (params instanceof DeviceBuilder) {
-        const { devices } = params
-        executeParams = {
-          tag: this.__uuid,
-          devices: toInternalDevices(devices),
-        }
-      } else if ('region' in params) {
-        const { region, devices: deviceBuilder } = params
-        executeParams = {
-          tag: this.__uuid,
-          region,
-          devices: toInternalDevices(deviceBuilder.devices),
-        }
+        executeParams.devices = toInternalDevices(params.devices)
+      } else if (devices instanceof DeviceBuilder) {
+        executeParams.devices = toInternalDevices(devices.devices)
       } else {
-        throw new Error('[dial] Invalid input')
+        throw new Error('[dial] Invalid "devices" parameter.')
       }
 
       this.execute({
@@ -1118,22 +1113,25 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
         reject(new Error(`Can't call connect() on a call not established yet.`))
       }
 
-      let executeParams: Record<string, any>
+      // We can ignore the "ringback" error since we just want to cleanup "...rest"
+      // @ts-expect-error
+      const { devices, ringback, ...rest } = params
+      const executeParams: Record<string, any> = {
+        tag: this.__uuid,
+        ...rest,
+      }
+      if ('ringback' in params) {
+        executeParams.ringback = toInternalPlayParams(
+          params.ringback?.media ?? []
+        )
+      }
+
       if (params instanceof DeviceBuilder) {
-        const { devices } = params
-        executeParams = {
-          tag: this.__uuid,
-          devices: toInternalDevices(devices),
-        }
-      } else if ('ringback' in params) {
-        const { ringback, devices: deviceBuilder } = params
-        executeParams = {
-          tag: this.__uuid,
-          ringback: toInternalPlayParams(ringback?.media ?? []),
-          devices: toInternalDevices(deviceBuilder.devices),
-        }
+        executeParams.devices = toInternalDevices(params.devices)
+      } else if (devices instanceof DeviceBuilder) {
+        executeParams.devices = toInternalDevices(devices.devices)
       } else {
-        throw new Error('[connect] Invalid input')
+        throw new Error('[connect] Invalid "devices" parameter.')
       }
 
       this.runWorker('voiceCallConnectWorker', {
