@@ -9,6 +9,7 @@ import { configureStore as rtConfigureStore } from './toolkit'
 import { rootReducer } from './rootReducer'
 import rootSaga from './rootSaga'
 import {
+  MapToPubSubShape,
   PubSubChannel,
   SDKState,
   SessionChannel,
@@ -22,6 +23,7 @@ import {
 } from '../utils/interfaces'
 import { BaseSession } from '../BaseSession'
 import { getLogger } from '../utils'
+import { SwEventParams } from '..'
 
 export interface ConfigureStoreOptions {
   userOptions: InternalUserOptions
@@ -85,6 +87,26 @@ const configureStore = (options: ConfigureStoreOptions) => {
     return session
   }
 
+  // Generic map stores multiple instance
+  // For eg;
+  // callId => CallInstance
+  // controlId => PlaybackInstance | RecordingInstance
+  const instanceMap = new Map<string, unknown>()
+
+  const getInstance = <T extends unknown>(key: string): T => {
+    return instanceMap.get(key) as T
+  }
+
+  const setInstance = <T extends unknown>(key: string, value: T) => {
+    instanceMap.set(key, value)
+    return instanceMap
+  }
+
+  const deleteInstance = (key: string) => {
+    instanceMap.delete(key)
+    return instanceMap
+  }
+
   const runSaga = <T>(
     saga: Saga,
     args: {
@@ -96,6 +118,11 @@ const configureStore = (options: ConfigureStoreOptions) => {
       ...args,
       channels,
       getSession,
+      instanceMap: {
+        get: getInstance,
+        set: setInstance,
+        remove: deleteInstance,
+      },
     })
   }
 
@@ -110,6 +137,9 @@ const configureStore = (options: ConfigureStoreOptions) => {
     ...store,
     runSaga,
     channels,
+    putOnSwEventChannel: (arg: MapToPubSubShape<SwEventParams>) => {
+      swEventChannel.put(arg)
+    },
   }
 }
 
