@@ -17,6 +17,7 @@ declare function RestClient(
 interface CompatibilityApiCallListInstanceCreateOptions
   extends CallListInstanceCreateOptions {
   machineWordsThreshold?: number
+  maxPricePerMinute?: number
 }
 
 interface CompatibilityApiCallListInstance extends CallListInstance {
