@@ -447,7 +447,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       const { devices, ...rest } = params
       const executeParams: Record<string, any> = {
         tag: this.__uuid,
-        ...rest,
+        ...toSnakeCaseKeys(rest),
       }
       if (params instanceof DeviceBuilder) {
         executeParams.devices = toInternalDevices(params.devices)
@@ -1118,7 +1118,7 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
       const { devices, ringback, ...rest } = params
       const executeParams: Record<string, any> = {
         tag: this.__uuid,
-        ...rest,
+        ...toSnakeCaseKeys(rest),
       }
       if ('ringback' in params) {
         executeParams.ringback = toInternalPlayParams(
@@ -1190,9 +1190,13 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    * })
    * ```
    */
-  connectPhone({ ringback, ...params }: VoiceCallConnectPhoneMethodParams) {
+  connectPhone({
+    ringback,
+    maxPricePerMinute,
+    ...params
+  }: VoiceCallConnectPhoneMethodParams) {
     const devices = new DeviceBuilder().add(DeviceBuilder.Phone(params))
-    return this.connect({ devices, ringback })
+    return this.connect({ devices, maxPricePerMinute, ringback })
   }
 
   /**
@@ -1209,9 +1213,13 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
    * })
    * ```
    */
-  connectSip({ ringback, ...params }: VoiceCallConnectSipMethodParams) {
+  connectSip({
+    ringback,
+    maxPricePerMinute,
+    ...params
+  }: VoiceCallConnectSipMethodParams) {
     const devices = new DeviceBuilder().add(DeviceBuilder.Sip(params))
-    return this.connect({ devices, ringback })
+    return this.connect({ devices, maxPricePerMinute, ringback })
   }
 
   disconnect() {

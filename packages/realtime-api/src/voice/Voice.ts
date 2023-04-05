@@ -253,21 +253,31 @@ class VoiceAPI extends AutoApplyTransformsConsumer<VoiceClientApiEvents> {
     ])
   }
 
-  dialPhone({ region, ...params }: VoiceCallDialPhoneMethodParams) {
+  dialPhone({
+    region,
+    maxPricePerMinute,
+    ...params
+  }: VoiceCallDialPhoneMethodParams) {
     const devices = new DeviceBuilder().add(DeviceBuilder.Phone(params))
     // dial is available through the VoiceClient Proxy
     // @ts-expect-error
     return this.dial({
+      maxPricePerMinute,
       region,
       devices,
     })
   }
 
-  dialSip({ region, ...params }: VoiceCallDialSipMethodParams) {
+  dialSip({
+    region,
+    maxPricePerMinute,
+    ...params
+  }: VoiceCallDialSipMethodParams) {
     const devices = new DeviceBuilder().add(DeviceBuilder.Sip(params))
     // dial is available through the VoiceClient Proxy
     // @ts-expect-error
     return this.dial({
+      maxPricePerMinute,
       region,
       devices,
     })
