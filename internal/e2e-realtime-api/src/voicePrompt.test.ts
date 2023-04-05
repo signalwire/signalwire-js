@@ -14,7 +14,7 @@ const handler = () => {
       },
     })
 
-    client._on('call.received', async (call) => {
+    client.on('call.received', async (call) => {
       console.log(
         'Inbound - Got call',
         call.id,

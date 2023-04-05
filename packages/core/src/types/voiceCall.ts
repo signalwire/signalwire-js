@@ -97,6 +97,10 @@ export type CallConnectFailed = 'connect.failed'
 export type CallDetectStarted = 'detect.started'
 export type CallDetectUpdated = 'detect.updated'
 export type CallDetectEnded = 'detect.ended'
+// Internal SDK events
+export type CallSDKPrompt = 'sdk.prompt'
+export type CallSDKCollect = 'sdk.collect'
+export type CallSDKDetect = 'sdk.detect'
 
 /**
  * List of public event names
@@ -659,6 +663,7 @@ export interface VoiceCallContract<T = any> {
   /** @ignore */
   context?: string
 
+  connectState: CallingCallConnectState
   type: 'phone' | 'sip'
   device: any // FIXME:
   from: string
@@ -667,6 +672,7 @@ export interface VoiceCallContract<T = any> {
   headers?: SipHeader[]
   active: boolean
   connected: boolean
+  peer: T | undefined
 
   dial(params: VoiceDialerParams): Promise<T>
   hangup(reason?: VoiceCallDisconnectReason): Promise<void>
@@ -704,7 +710,7 @@ export interface VoiceCallContract<T = any> {
   sendDigits(digits: string): Promise<T>
   tap(params: VoiceCallTapMethodParams): Promise<VoiceCallTapContract>
   tapAudio(params: VoiceCallTapAudioMethodParams): Promise<VoiceCallTapContract>
-  connect(params: VoiceCallConnectMethodParams): Promise<VoiceCallContract>
+  connect(params: VoiceCallConnectMethodParams): Promise<T>
   connectPhone(
     params: VoiceCallConnectPhoneMethodParams
   ): Promise<VoiceCallContract>
@@ -785,7 +791,7 @@ export type InternalVoiceCallEntity = {
  * ==========
  */
 
-interface CallingCallPhoneDevice {
+export interface CallingCallPhoneDevice {
   type: 'phone'
   params: {
     from_number: string
@@ -795,7 +801,7 @@ interface CallingCallPhoneDevice {
   }
 }
 
-interface CallingCallSIPDevice {
+export interface CallingCallSIPDevice {
   type: 'sip'
   params: {
     from: string
@@ -1135,6 +1141,7 @@ export interface CallingCallDetectEventParams {
   call_id: string
   control_id: string
   detect?: Detector
+  waitForBeep?: any
 }
 
 export interface CallingCallDetectEvent extends SwEvent {
@@ -1356,6 +1363,38 @@ export interface CallCollectFailedEvent extends SwEvent {
   params: CallingCallCollectEventParams & { tag: string }
 }
 
+export interface CallingCallSDKEventParams {
+  node_id: string
+  call_id: string
+  control_id: string
+}
+export interface CallingCallSDKDetectEventParams
+  extends CallingCallSDKEventParams {
+  waitForBeep: boolean
+}
+
+/**
+ * 'calling.sdk.prompt'
+ */
+export interface CallSDKPromptEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallSDKPrompt>
+  params: CallingCallSDKEventParams
+}
+/**
+ * 'calling.sdk.collect'
+ */
+export interface CallSDKCollectEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallSDKCollect>
+  params: CallingCallSDKEventParams
+}
+/**
+ * 'calling.sdk.detect'
+ */
+export interface CallSDKDetectEvent extends SwEvent {
+  event_type: ToInternalVoiceEvent<CallSDKDetect>
+  params: CallingCallSDKDetectEventParams
+}
+
 // interface VoiceCallStateEvent {
 //   call_id: string
 //   node_id: string
@@ -1423,6 +1462,10 @@ export type VoiceCallEvent =
   | CallCollectUpdatedEvent
   | CallCollectEndedEvent
   | CallCollectFailedEvent
+  // Internal Events
+  | CallSDKPromptEvent
+  | CallSDKCollectEvent
+  | CallSDKDetectEvent
 
 export type VoiceCallEventParams =
   // Server Event Params
@@ -1436,6 +1479,8 @@ export type VoiceCallEventParams =
   | CallingCallConnectEventParams
   | CallingCallSendDigitsEventParams
   | CallingCallDetectEventParams
+  // Internal Event Params
+  | CallingCallSDKEventParams
   // SDK Event Params
   | CallReceivedEvent['params']
   | CallPlaybackStartedEvent['params']
@@ -1465,6 +1510,9 @@ export type VoiceCallEventParams =
   | CallCollectUpdatedEvent['params']
   | CallCollectEndedEvent['params']
   | CallCollectFailedEvent['params']
+  | CallSDKPromptEvent['params']
+  | CallSDKCollectEvent['params']
+  | CallSDKDetectEvent['params']
 
 export type VoiceCallAction = MapToPubSubShape<VoiceCallEvent>
 
