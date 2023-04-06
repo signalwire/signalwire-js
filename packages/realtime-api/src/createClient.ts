@@ -52,9 +52,6 @@ export const createClient: (userOptions: {
     const client = connect<ClientEvents, Client, RealtimeClient>({
       store,
       Component: Client,
-      sessionListeners: {
-        authStatus: 'onAuth',
-      },
     })(baseUserOptions)
 
     return client
