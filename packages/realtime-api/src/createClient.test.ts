@@ -10,6 +10,13 @@ describe('createClient', () => {
     message:
       'Authentication service failed with status ProtocolError, 401 Unauthorized: {}',
   }
+  const logger: any = {
+    error: jest.fn(),
+    info: jest.fn(),
+    trace: jest.fn(),
+    debug: jest.fn(),
+    warn: jest.fn(),
+  }
 
   let server: WS
   beforeEach(async () => {
@@ -53,6 +60,7 @@ describe('createClient', () => {
       // @ts-expect-error
       host,
       token: '<invalid-token>',
+      logger,
     })
 
     try {
@@ -69,6 +77,7 @@ describe('createClient', () => {
       // @ts-expect-error
       host,
       token,
+      logger,
     })
 
     // @ts-expect-error
@@ -106,6 +115,7 @@ describe('createClient', () => {
       // @ts-expect-error
       host: h,
       token,
+      logger,
     })
 
     await Promise.all([client.connect(), client.connect(), client.connect()])
