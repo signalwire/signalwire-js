@@ -121,7 +121,7 @@ export const createSWStore = ({
           break
         default:
           if ('development' === process.env.NODE_ENV) {
-            getLogger().warn('Unhandled dispatch', action.type)
+            getLogger().error('Unhandled dispatch', action.type)
           }
       }
 
