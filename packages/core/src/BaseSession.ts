@@ -256,15 +256,6 @@ export class BaseSession {
    * @return void
    */
   async disconnect() {
-    /**
-     * Return if there is not a _socket instance or
-     * if it's already in closing state.
-     */
-    if (!this._socket || this.closing) {
-      this.logger.debug('Session not connected or already in closing state.')
-      return
-    }
-
     this._status = 'disconnecting'
     this._checkCurrentStatus()
   }
