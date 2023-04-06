@@ -3,7 +3,7 @@
  */
 
 import WS from 'jest-websocket-mock'
-import { AuthError } from '@signalwire/core'
+import { AuthError, testUtils } from '@signalwire/core'
 import { createClient } from './createClient'
 
 describe('createClient', () => {
@@ -14,13 +14,7 @@ describe('createClient', () => {
     message:
       'Authentication service failed with status ProtocolError, 401 Unauthorized: {}',
   }
-  const logger: any = {
-    error: jest.fn(),
-    info: jest.fn(),
-    trace: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-  }
+  const logger = testUtils.createMockedLogger()
 
   let server: WS
   let consoleMock: jest.SpyInstance

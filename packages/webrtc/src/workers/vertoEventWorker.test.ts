@@ -22,7 +22,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
     createPubSubChannel,
     createSwEventChannel,
     createSessionChannel,
-    instanceMap,
+    instanceMapMocked,
   } = testUtils
 
   const rootChannel = createRootChannel()
@@ -62,7 +62,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
 
       return expectSaga(vertoEventWorker, {
         getSession,
-        instanceMap,
+        instanceMap: instanceMapMocked(),
         runSaga: jest.fn(),
         channels,
         instance,
@@ -132,7 +132,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
 
         return expectSaga(vertoEventWorker, {
           getSession,
-          instanceMap,
+          instanceMap: instanceMapMocked(),
           runSaga: jest.fn(),
           channels,
           instance,
@@ -204,7 +204,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
 
         return expectSaga(vertoEventWorker, {
           getSession,
-          instanceMap,
+          instanceMap: instanceMapMocked(),
           runSaga: jest.fn(),
           channels,
           instance,
@@ -277,7 +277,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
 
         return expectSaga(vertoEventWorker, {
           getSession,
-          instanceMap,
+          instanceMap: instanceMapMocked(),
           runSaga: jest.fn(),
           channels,
           instance,
@@ -347,7 +347,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
 
         return expectSaga(vertoEventWorker, {
           getSession,
-          instanceMap,
+          instanceMap: instanceMapMocked(),
           runSaga: jest.fn(),
           channels,
           instance,
@@ -419,7 +419,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
 
         return expectSaga(vertoEventWorker, {
           getSession,
-          instanceMap,
+          instanceMap: instanceMapMocked(),
           runSaga: jest.fn(),
           channels,
           instance,
@@ -491,7 +491,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
 
         return expectSaga(vertoEventWorker, {
           getSession,
-          instanceMap,
+          instanceMap: instanceMapMocked(),
           runSaga: jest.fn(),
           channels,
           instance,
@@ -567,7 +567,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
 
         return expectSaga(vertoEventWorker, {
           getSession,
-          instanceMap,
+          instanceMap: instanceMapMocked(),
           runSaga: jest.fn(),
           channels,
           instance,
@@ -643,7 +643,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
 
         return expectSaga(vertoEventWorker, {
           getSession,
-          instanceMap,
+          instanceMap: instanceMapMocked(),
           runSaga: jest.fn(),
           channels,
           instance,

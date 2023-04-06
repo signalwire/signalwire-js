@@ -1,4 +1,5 @@
 import WS from 'jest-websocket-mock'
+import { testUtils } from '@signalwire/core'
 import { Client } from './MessagingClient'
 import { Message } from './Message'
 
@@ -11,14 +12,7 @@ describe('MessagingClient', () => {
       message:
         'Authentication service failed with status ProtocolError, 401 Unauthorized: {}',
     }
-
-    const logger: any = {
-      error: jest.fn(),
-      trace: jest.fn(),
-      debug: jest.fn(),
-      info: jest.fn(),
-      warn: jest.fn(),
-    }
+    const logger = testUtils.createMockedLogger()
 
     beforeEach(async () => {
       server = new WS(host)

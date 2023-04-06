@@ -2,19 +2,14 @@
  * @jest-environment jsdom
  */
 
+import { testUtils } from '@signalwire/core'
 import WS from 'jest-websocket-mock'
 import { Client } from './Client'
 
 describe('PubSubClient Object', () => {
   const host = 'ws://localhost:1234'
   const token = '<jwt>'
-  const logger: any = {
-    error: jest.fn(),
-    info: jest.fn(),
-    trace: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-  }
+  const logger = testUtils.createMockedLogger()
 
   let server: WS
   beforeEach(async () => {

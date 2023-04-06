@@ -3,6 +3,7 @@
  */
 
 import WS from 'jest-websocket-mock'
+import { testUtils } from '@signalwire/core'
 import { Client } from './Client'
 
 describe('ChatClient Object', () => {
@@ -16,13 +17,7 @@ describe('ChatClient Object', () => {
       published_at: 1641393396.153,
     },
   ]
-  const logger: any = {
-    error: jest.fn(),
-    info: jest.fn(),
-    trace: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
-  }
+  const logger = testUtils.createMockedLogger()
 
   let server: WS
   beforeEach(async () => {

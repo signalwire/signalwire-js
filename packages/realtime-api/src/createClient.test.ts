@@ -1,5 +1,5 @@
 import WS from 'jest-websocket-mock'
-import { AuthError } from '@signalwire/core'
+import { AuthError, testUtils } from '@signalwire/core'
 import { createClient } from './createClient'
 
 describe('createClient', () => {
@@ -9,13 +9,6 @@ describe('createClient', () => {
     code: -32002,
     message:
       'Authentication service failed with status ProtocolError, 401 Unauthorized: {}',
-  }
-  const logger: any = {
-    error: jest.fn(),
-    info: jest.fn(),
-    trace: jest.fn(),
-    debug: jest.fn(),
-    warn: jest.fn(),
   }
 
   let server: WS
@@ -60,7 +53,7 @@ describe('createClient', () => {
       // @ts-expect-error
       host,
       token: '<invalid-token>',
-      logger,
+      logger: testUtils.createMockedLogger(),
     })
 
     try {
@@ -77,7 +70,7 @@ describe('createClient', () => {
       // @ts-expect-error
       host,
       token,
-      logger,
+      logger: testUtils.createMockedLogger(),
     })
 
     // @ts-expect-error
@@ -115,7 +108,7 @@ describe('createClient', () => {
       // @ts-expect-error
       host: h,
       token,
-      logger,
+      logger: testUtils.createMockedLogger(),
     })
 
     await Promise.all([client.connect(), client.connect(), client.connect()])
