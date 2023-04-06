@@ -31,7 +31,7 @@
   "scripts": {
     "start": "sw-build --dev --node",
     "build": "tsc --project tsconfig.build.json && sw-build --node",
-    "test": "NODE_ENV=test jest --detectOpenHandles --forceExit",
+    "test": "NODE_ENV=test jest",
     "prepublishOnly": "npm run build",
     "docs": "typedoc --options typedoc.js --readme README.md",
     "docs:watch": "npm run docs -- --watch"

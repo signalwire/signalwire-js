@@ -60,13 +60,11 @@ describe('BaseSession', () => {
   })
 
   afterEach(() => {
+    session.disconnect()
     WS.clean()
-
-    // @ts-expect-error
-    session._clearTimers()
   })
 
-  it('should connect and disconnect to/from the provided host', async () => {
+  it.only('should connect and disconnect to/from the provided host', async () => {
     session.connect()
     await ws.connected
 

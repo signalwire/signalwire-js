@@ -48,10 +48,8 @@ describe('JWTSession', () => {
   })
 
   afterEach(() => {
+    session.disconnect()
     WS.clean()
-
-    // @ts-expect-error
-    session._clearTimers()
   })
 
   it('should connect connect and disconnect to/from the provided host', async () => {

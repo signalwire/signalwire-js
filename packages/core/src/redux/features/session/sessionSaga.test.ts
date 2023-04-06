@@ -68,7 +68,7 @@ describe('sessionChannelWatcher', () => {
           type: 'video.member.talking',
           payload,
         })
-        .run()
+        .silentRun()
         .finally(() => {
           expect(dispatchedActions).toHaveLength(4)
         })
@@ -125,7 +125,7 @@ describe('sessionChannelWatcher', () => {
           type: 'video.member.talking',
           payload,
         })
-        .run()
+        .silentRun()
         .finally(() => {
           expect(dispatchedActions).toHaveLength(4)
         })
@@ -174,7 +174,7 @@ describe('sessionChannelWatcher', () => {
           type: 'video.layout.changed',
           payload,
         })
-        .run()
+        .silentRun()
         .finally(() => {
           expect(dispatchedActions).toHaveLength(2)
         })
@@ -220,7 +220,7 @@ describe('sessionChannelWatcher', () => {
           type: 'video.member.joined',
           payload: jsonrpc.params.params,
         })
-        .run()
+        .silentRun()
         .finally(() => {
           expect(dispatchedActions).toHaveLength(2)
         })
