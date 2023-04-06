@@ -18,6 +18,14 @@ describe('VideoClient', () => {
         'Authentication service failed with status ProtocolError, 401 Unauthorized: {}',
     }
 
+    const logger: any = {
+      error: jest.fn(),
+      trace: jest.fn(),
+      debug: jest.fn(),
+      info: jest.fn(),
+      warn: jest.fn(),
+    }
+
     beforeEach(async () => {
       WS.clean()
       server = new WS(host, { jsonProtocol: true })
@@ -61,6 +69,7 @@ describe('VideoClient', () => {
           host,
           project: 'some-project-x',
           token,
+          logger,
         })
         const sleep = () => new Promise((r) => setTimeout(r, 100))
         video.once('room.started', () => {})
@@ -100,19 +109,12 @@ describe('VideoClient', () => {
     })
 
     it('should show an error if client.connect failed to connect', async () => {
-      const logger = {
-        error: jest.fn(),
-        trace: jest.fn(),
-        debug: jest.fn(),
-        info: jest.fn(),
-        warn: jest.fn(),
-      }
       const video = new Client({
         // @ts-expect-error
         host,
         project: 'some-project',
         token: '<invalid-token>',
-        logger: logger as any,
+        logger,
       })
 
       try {

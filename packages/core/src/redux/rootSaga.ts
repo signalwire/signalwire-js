@@ -161,7 +161,6 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
   try {
     while (true) {
       const action = yield take(options.rootChannel, (action: any) => {
-        getLogger().info('sessionStatusWatcher [action]', action)
         return [
           authSuccessAction.type,
           authErrorAction.type,
@@ -181,6 +180,7 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
           break
         }
         case authErrorAction.type: {
+          yield put(action)
           yield fork(sessionAuthErrorSaga, {
             ...options,
             action,
