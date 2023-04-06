@@ -45,7 +45,7 @@ export const createSWStore = ({
   }
 
   const getState = () => {
-    logger.info('swStore >> getState', state)
+    // logger.info('swStore >> getState', state)
     return state
   }
 

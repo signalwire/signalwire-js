@@ -12,6 +12,14 @@ describe('MessagingClient', () => {
         'Authentication service failed with status ProtocolError, 401 Unauthorized: {}',
     }
 
+    const logger: any = {
+      error: jest.fn(),
+      trace: jest.fn(),
+      debug: jest.fn(),
+      info: jest.fn(),
+      warn: jest.fn(),
+    }
+
     beforeEach(async () => {
       server = new WS(host)
       server.on('connection', (socket: any) => {
@@ -65,6 +73,7 @@ describe('MessagingClient', () => {
           project: 'some-project',
           token: 'some-token',
           contexts: ['foo'],
+          logger,
         })
 
         messaging.on('message.received', (message) => {
@@ -119,6 +128,7 @@ describe('MessagingClient', () => {
           project: 'some-project',
           token: 'some-other-token',
           contexts: ['foo'],
+          logger,
         })
 
         messaging.on('message.updated', (message) => {
@@ -154,17 +164,11 @@ describe('MessagingClient', () => {
       })
 
       it('should show an error if client.connect failed to connect', (done) => {
-        const logger = {
-          error: jest.fn(),
-          trace: jest.fn(),
-          debug: jest.fn(),
-          warn: jest.fn(),
-        }
         const messaging = new Client({
           host,
           project: 'some-project',
           token: '<invalid-token>',
-          logger: logger as any,
+          logger,
         })
 
         messaging.on('message.received', (_message) => {})
