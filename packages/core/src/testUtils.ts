@@ -132,3 +132,4 @@ export const createRootChannel = (): RootChannel => multicastChannel()
 export const createPubSubChannel = (): PubSubChannel => multicastChannel()
 export const createSwEventChannel = (): SwEventChannel => multicastChannel()
 export const createSessionChannel = (): SessionChannel => channel()
+export const instanceMap = { get: jest.fn(), set: jest.fn(), remove: jest.fn() }
