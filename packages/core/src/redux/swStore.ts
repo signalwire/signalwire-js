@@ -45,7 +45,7 @@ export const createSWStore = ({
   }
 
   const getState = () => {
-    logger.warn('swStore >> getState', state)
+    logger.info('swStore >> getState', state)
     return state
   }
 
@@ -54,7 +54,7 @@ export const createSWStore = ({
     channel: channels.rootChannel,
     // this will be used to resolve put Effects
     dispatch(action: AnyAction) {
-      logger.warn('swStore >> Dispatch', action)
+      logger.info('swStore >> Dispatch', action)
 
       // Process the action within reducers
       switch (action.type) {
@@ -136,10 +136,10 @@ export const createSWStore = ({
 
   return {
     init: () => {
-      logger.warn('swStore >> Init Store?')
+      logger.info('swStore >> Init Store?')
     },
     start: (rootSaga: Saga, options: any) => {
-      logger.warn('swStore >> Start')
+      logger.info('swStore >> Start')
       rootTask = runSaga(myIO, rootSaga, options)
       return rootTask
     },
@@ -147,12 +147,12 @@ export const createSWStore = ({
       rootTask.cancel()
     },
     runWorker: (worker: Saga, options: any) => {
-      // logger.warn('swStore >> runWorker', worker, options)
+      // logger.info('swStore >> runWorker', worker, options)
       return runSaga(myIO, worker, options)
     },
     dispatch: (action: AnyAction) => myIO.dispatch(action),
     rootPut: (action: AnyAction) => {
-      logger.warn('swStore >> rootPut', action)
+      logger.info('swStore >> rootPut', action)
       channels.rootChannel.put(action)
     },
     getState,

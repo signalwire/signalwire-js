@@ -35,6 +35,10 @@ describe('BaseSession', () => {
     ws.on('connection', (socket: any) => {
       socket.on('message', (data: any) => {
         const parsedData = JSON.parse(data)
+        if (parsedData.result) {
+          // Do nothing in case of client responses
+          return
+        }
         socket.send(
           JSON.stringify({
             jsonrpc: '2.0',
@@ -54,8 +58,12 @@ describe('BaseSession', () => {
     session.CloseEventConstructor = CloseEvent
     session.dispatch = jest.fn()
   })
+
   afterEach(() => {
     WS.clean()
+
+    // @ts-expect-error
+    session._clearTimers()
   })
 
   it('should connect and disconnect to/from the provided host', async () => {
