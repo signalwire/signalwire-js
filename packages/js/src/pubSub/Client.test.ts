@@ -8,6 +8,13 @@ import { Client } from './Client'
 describe('PubSubClient Object', () => {
   const host = 'ws://localhost:1234'
   const token = '<jwt>'
+  const logger: any = {
+    error: jest.fn(),
+    info: jest.fn(),
+    trace: jest.fn(),
+    debug: jest.fn(),
+    warn: jest.fn(),
+  }
 
   let server: WS
   beforeEach(async () => {
@@ -54,6 +61,7 @@ describe('PubSubClient Object', () => {
     const pubSub = new Client({
       host,
       token,
+      logger,
     })
 
     pubSub.on('message', () => {})
@@ -74,6 +82,7 @@ describe('PubSubClient Object', () => {
     const pubSub = new Client({
       host,
       token,
+      logger,
     })
 
     pubSub.on('message', () => {})
@@ -102,6 +111,7 @@ describe('PubSubClient Object', () => {
       const pubSub = new Client({
         host,
         token,
+        logger,
       })
 
       pubSub.on('message', () => {})
@@ -122,6 +132,7 @@ describe('PubSubClient Object', () => {
       const pubSub = new Client({
         host,
         token,
+        logger,
       })
 
       const params = {
@@ -151,6 +162,7 @@ describe('PubSubClient Object', () => {
       const pubSub = new Client({
         host,
         token,
+        logger,
       })
 
       pubSub.on('message', () => {})
@@ -171,6 +183,7 @@ describe('PubSubClient Object', () => {
       const pubSub = new Client({
         host,
         token,
+        logger,
       })
 
       pubSub.on('message', () => {})
@@ -190,6 +203,7 @@ describe('PubSubClient Object', () => {
       const pubSub = new Client({
         host,
         token,
+        logger,
       })
 
       pubSub.on('message', () => {})
@@ -209,6 +223,7 @@ describe('PubSubClient Object', () => {
       const pubSub = new Client({
         host,
         token,
+        logger,
       })
 
       pubSub.on('message', () => {})
@@ -231,6 +246,7 @@ describe('PubSubClient Object', () => {
       const pubSub = new Client({
         host,
         token,
+        logger,
       })
 
       pubSub.on('message', () => {})
