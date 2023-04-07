@@ -4,7 +4,8 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "dev": "sw-test --mode=custom-node",
+    "dev:playwright": "sw-test --mode=playwright",
+    "dev": "sw-test --mode=custom-node && npm run dev:playwright",
     "test": ""
   },
   "devDependencies": {
@@ -15,7 +16,6 @@
   "dependencies": {
     "@mapbox/node-pre-gyp": "^1.0.10",
     "tap": "^16.2.0",
-    "wrtc": "^0.4.7",
     "ws": "^8.5.0"
   }
 }
