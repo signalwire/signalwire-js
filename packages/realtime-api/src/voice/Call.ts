@@ -12,24 +12,17 @@ import {
   VoiceCallPlaySilenceMethodParams,
   VoiceCallPlayRingtoneMethodParams,
   VoiceCallPlayTTSMethodParams,
-  CallingCallRecordEventParams,
   VoiceCallRecordMethodParams,
-  CallingCallCollectEventParams,
   VoiceCallPromptMethodParams,
   VoiceCallPromptAudioMethodParams,
   VoiceCallPromptRingtoneMethodParams,
   VoiceCallPromptTTSMethodParams,
   VoiceCallCollectMethodParams,
-  EventTransform,
-  toLocalEvent,
   toExternalJSON,
   toSnakeCaseKeys,
-  CallingCallPlayEventParams,
   VoiceCallTapMethodParams,
   VoiceCallTapAudioMethodParams,
-  CallingCallTapEventParams,
   CallingCallState,
-  CallingCallStateEventParams,
   VoiceCallConnectMethodParams,
   VoiceCallConnectPhoneMethodParams,
   VoiceCallConnectSipMethodParams,
@@ -38,22 +31,21 @@ import {
   VoiceCallDetectMachineParams,
   VoiceCallDetectFaxParams,
   VoiceCallDetectDigitParams,
-  CallingCallDetectEventParams,
   CallingCallWaitForState,
   CallingCall,
   EventEmitter,
   configureStore,
 } from '@signalwire/core'
 import { RealTimeCallApiEvents } from '../types'
-import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
+import { ApplyEventListeners } from '../ApplyEventListeners'
 import { toInternalDevices, toInternalPlayParams } from './utils'
 import { Playlist } from './Playlist'
-import { CallPlayback, createCallPlaybackObject } from './CallPlayback'
-import { CallRecording, createCallRecordingObject } from './CallRecording'
-import { CallPrompt, createCallPromptObject } from './CallPrompt'
-import { CallTap, createCallTapObject } from './CallTap'
-import { CallDetect, createCallDetectObject } from './CallDetect'
-import { CallCollect, createCallCollectObject } from './CallCollect'
+import { CallPlayback } from './CallPlayback'
+import { CallRecording } from './CallRecording'
+import { CallPrompt } from './CallPrompt'
+import { CallTap } from './CallTap'
+import { CallDetect } from './CallDetect'
+import { CallCollect } from './CallCollect'
 import { DeviceBuilder } from './DeviceBuilder'
 
 export type EmitterTransformsEvents =
@@ -96,35 +88,7 @@ export interface Call
   baseEmitter: EventEmitter
 }
 
-/**
- * Used to resolve the prompt() method and to update the CallPrompt object through the EmitterTransform
- */
-export const callingPromptTriggerEvent = toLocalEvent<EmitterTransformsEvents>(
-  'calling.prompt.trigger'
-)
-
-/**
- * Used to resolve the tap() method and to update the CallTap object through the EmitterTransform
- */
-export const callingTapTriggerEvent = toLocalEvent<EmitterTransformsEvents>(
-  'calling.tap.trigger'
-)
-
-/**
- * Used to resolve the detect() method and to update the CallDetect object through the EmitterTransform
- */
-export const callingDetectTriggerEvent = toLocalEvent<EmitterTransformsEvents>(
-  'calling.detect.trigger'
-)
-
-/**
- * Used to resolve the collect() method and to update the CallCollect object through the EmitterTransform
- */
-export const callingCollectTriggerEvent = toLocalEvent<EmitterTransformsEvents>(
-  'calling.collect.trigger'
-)
-
-export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEvents> {
+export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
   protected _eventsPrefix = 'calling' as const
 
   private _peer: Call | undefined
@@ -261,204 +225,6 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
   /** @internal */
   protected setConnectPayload(payload: CallingCallConnectEventParams) {
     this._connectPayload = payload
-  }
-
-  /** @internal */
-  protected getEmitterTransforms() {
-    return new Map<
-      EmitterTransformsEvents | EmitterTransformsEvents[],
-      EventTransform
-    >([
-      [
-        [
-          'calling.playback.started',
-          'calling.playback.updated',
-          'calling.playback.ended',
-          'calling.playback.failed',
-        ],
-        {
-          mode: 'no-cache',
-          type: 'voiceCallPlayback',
-          afterCreateHook: (instance: CallPlayback) => {
-            const eventName = `call.play.${instance.controlId}`
-            const handler = (payload: any) => {
-              // @ts-expect-error
-              instance.__sw_update_payload(toExternalJSON(payload))
-
-              if (['finished', 'error'].includes(payload.state)) {
-                // @ts-expect-error
-                this.off(eventName, handler)
-              }
-            }
-
-            // @ts-expect-error
-            this.on(eventName, handler)
-          },
-          instanceFactory: (_payload: any) => {
-            return createCallPlaybackObject({
-              store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
-            })
-          },
-          payloadTransform: (payload: CallingCallPlayEventParams) => {
-            return toExternalJSON(payload)
-          },
-        },
-      ],
-      [
-        [
-          'calling.recording.started',
-          'calling.recording.updated',
-          'calling.recording.ended',
-          'calling.recording.failed',
-        ],
-        {
-          mode: 'no-cache',
-          type: 'voiceCallRecord',
-          afterCreateHook: (instance: CallRecording) => {
-            const eventName = `call.record.${instance.controlId}`
-            const handler = (payload: any) => {
-              // @ts-expect-error
-              instance.__sw_update_payload(toExternalJSON(payload))
-
-              if (['finished', 'no_input'].includes(payload.state)) {
-                // @ts-expect-error
-                this.off(eventName, handler)
-              }
-            }
-
-            // @ts-expect-error
-            this.on(eventName, handler)
-          },
-          instanceFactory: (_payload: any) => {
-            return createCallRecordingObject({
-              store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
-            })
-          },
-          payloadTransform: (payload: CallingCallRecordEventParams) => {
-            return toExternalJSON(payload)
-          },
-        },
-      ],
-      [
-        [
-          callingPromptTriggerEvent,
-          'calling.prompt.started',
-          'calling.prompt.updated',
-          'calling.prompt.ended',
-          'calling.prompt.failed',
-        ],
-        {
-          type: 'voiceCallPrompt',
-          instanceFactory: (_payload: any) => {
-            return createCallPromptObject({
-              store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
-            })
-          },
-          payloadTransform: (payload: CallingCallCollectEventParams) => {
-            return toExternalJSON(payload)
-          },
-        },
-      ],
-      [
-        [callingTapTriggerEvent, 'calling.tap.started', 'calling.tap.ended'],
-        {
-          type: 'voiceCallTap',
-          instanceFactory: (_payload: any) => {
-            return createCallTapObject({
-              store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
-            })
-          },
-          payloadTransform: (payload: CallingCallTapEventParams) => {
-            return toExternalJSON(payload)
-          },
-        },
-      ],
-      [
-        ['calling.call.state'],
-        {
-          type: 'voiceCallState',
-          instanceFactory: (_payload: any) => {
-            return this
-          },
-          payloadTransform: (payload: CallingCallStateEventParams) => {
-            return toExternalJSON(payload)
-          },
-        },
-      ],
-      [
-        ['calling.connect.connected'],
-        {
-          type: 'voiceCallConnect',
-          instanceFactory: (_payload: any) => {
-            return createCallObject({
-              store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
-            })
-          },
-          payloadTransform: (payload: CallingCallConnectEventParams) => {
-            /**
-             * Within a `calling.connect` process `tag` refers to the originator leg.
-             * We need to remove tag from the server payload to let the new (connected)
-             * Call object to use its own tag value set to `this.__uuid`.
-             */
-            const { tag, ...peerParams } = payload.peer
-            return toExternalJSON({ ...peerParams, connect_state: 'connected' })
-          },
-        },
-      ],
-      [
-        [
-          callingDetectTriggerEvent,
-          'calling.detect.started',
-          'calling.detect.updated',
-          'calling.detect.ended',
-        ],
-        {
-          type: 'voiceCallDetect',
-          instanceFactory: (_payload: any) => {
-            return createCallDetectObject({
-              store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
-            })
-          },
-          payloadTransform: (payload: CallingCallDetectEventParams) => {
-            return toExternalJSON(payload)
-          },
-        },
-      ],
-      [
-        [
-          callingCollectTriggerEvent,
-          'calling.collect.started',
-          'calling.collect.updated',
-          'calling.collect.ended',
-          'calling.collect.failed',
-        ],
-        {
-          type: 'voiceCallCollect',
-          instanceFactory: (_payload: any) => {
-            return createCallCollectObject({
-              store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
-            })
-          },
-          payloadTransform: (payload: CallingCallCollectEventParams) => {
-            return toExternalJSON(payload)
-          },
-        },
-      ],
-    ])
   }
 
   /**
@@ -1484,29 +1250,6 @@ export class CallConsumer extends AutoApplyTransformsConsumer<RealTimeCallApiEve
           reject(e)
         })
     })
-  }
-
-  // TODO: Move these overrides to AutoApplyTransformsConsumer
-  override on(
-    event: EventEmitter.EventNames<RealTimeCallApiEvents>,
-    fn: EventEmitter.EventListener<RealTimeCallApiEvents, any>
-  ) {
-    // console.log('call on', event)
-    return super._on(event, fn)
-  }
-
-  override once(
-    event: EventEmitter.EventNames<RealTimeCallApiEvents>,
-    fn: EventEmitter.EventListener<RealTimeCallApiEvents, any>
-  ) {
-    return super._once(event, fn)
-  }
-
-  override off(
-    event: EventEmitter.EventNames<RealTimeCallApiEvents>,
-    fn: EventEmitter.EventListener<RealTimeCallApiEvents, any>
-  ) {
-    return super._off(event, fn)
   }
 }
 

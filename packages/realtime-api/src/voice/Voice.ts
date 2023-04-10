@@ -7,22 +7,19 @@ import {
 } from '@signalwire/core'
 import type {
   DisconnectableClientContract,
-  EventTransform,
-  CallingCallReceiveEventParams,
   VoiceDeviceBuilder,
   VoiceCallDialPhoneMethodParams,
   VoiceCallDialSipMethodParams,
   ToExternalJSONResult,
   CallingCallDialFailedEventParams,
   VoiceDialerParams,
-  EventEmitter,
 } from '@signalwire/core'
 import { RealtimeClient } from '../client/index'
-import { createCallObject, Call } from './Call'
+import { Call } from './Call'
 import { voiceCallingWroker } from './workers'
 import { DeviceBuilder } from './DeviceBuilder'
 import type { RealTimeCallApiEvents } from '../types'
-import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
+import { ApplyEventListeners } from '../ApplyEventListeners'
 import { toInternalDevices } from './utils'
 
 export * from './VoiceClient'
@@ -96,8 +93,6 @@ export type {
  * List of events for {@link Voice.Call}.
  */
 export interface VoiceClientApiEvents extends RealTimeCallApiEvents {}
-
-type EmitterTransformsEvents = 'calling.call.received'
 
 export interface Voice
   extends DisconnectableClientContract<Voice, VoiceClientApiEvents>,
@@ -201,7 +196,7 @@ export interface Voice
 }
 
 /** @internal */
-class VoiceAPI extends AutoApplyTransformsConsumer<VoiceClientApiEvents> {
+class VoiceAPI extends ApplyEventListeners<VoiceClientApiEvents> {
   /** @internal */
   protected _eventsPrefix = 'calling' as const
 
@@ -220,47 +215,6 @@ class VoiceAPI extends AutoApplyTransformsConsumer<VoiceClientApiEvents> {
     })
 
     this._attachListeners('')
-  }
-
-  /** @internal */
-  protected getEmitterTransforms() {
-    return new Map<
-      EmitterTransformsEvents | EmitterTransformsEvents[],
-      EventTransform
-    >([
-      [
-        'calling.call.received',
-        {
-          mode: 'no-cache',
-          type: 'voiceCallReceived',
-          afterCreateHook: (instance: Call) => {
-            const eventName = `call.state.${instance.id}`
-            const callStateHandler = (payload: any) => {
-              // @ts-expect-error
-              instance.__sw_update_payload(toExternalJSON(payload))
-
-              if (payload.call_state === 'ended') {
-                // @ts-expect-error
-                this.off(eventName, callStateHandler)
-              }
-            }
-
-            // @ts-expect-error
-            this.on(eventName, callStateHandler)
-          },
-          instanceFactory: (_payload: any) => {
-            return createCallObject({
-              store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
-            })
-          },
-          payloadTransform: (payload: CallingCallReceiveEventParams) => {
-            return toExternalJSON(payload)
-          },
-        },
-      ],
-    ])
   }
 
   dial(params: VoiceDialerParams) {
@@ -327,28 +281,6 @@ class VoiceAPI extends AutoApplyTransformsConsumer<VoiceClientApiEvents> {
       region,
       devices,
     })
-  }
-
-  // TODO: Move these overrides to AutoApplyTransformsConsumer
-  override on(
-    event: EventEmitter.EventNames<VoiceClientApiEvents>,
-    fn: EventEmitter.EventListener<VoiceClientApiEvents, any>
-  ) {
-    return super._on(event, fn)
-  }
-
-  override once(
-    event: EventEmitter.EventNames<VoiceClientApiEvents>,
-    fn: EventEmitter.EventListener<VoiceClientApiEvents, any>
-  ) {
-    return super._once(event, fn)
-  }
-
-  override off(
-    event: EventEmitter.EventNames<VoiceClientApiEvents>,
-    fn: EventEmitter.EventListener<VoiceClientApiEvents, any>
-  ) {
-    return super._off(event, fn)
   }
 }
 
