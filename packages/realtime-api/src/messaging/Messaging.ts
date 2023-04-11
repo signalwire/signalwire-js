@@ -4,12 +4,14 @@ import {
   EventTransform,
   toExternalJSON,
   ClientContextContract,
+  EventEmitter,
 } from '@signalwire/core'
-import { connect, BaseComponent } from '@signalwire/core'
+import { connect } from '@signalwire/core'
 import type { MessagingClientApiEvents } from '../types'
 import { RealtimeClient } from '../client/index'
 import { messagingWorker } from './workers'
 import { MessageContract, Message } from './Message'
+import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
 
 interface MessagingSendParams {
   context?: string
@@ -85,7 +87,7 @@ export interface Messaging
 }
 
 /** @internal */
-class MessagingAPI extends BaseComponent<MessagingClientApiEvents> {
+class MessagingAPI extends AutoApplyTransformsConsumer<MessagingClientApiEvents> {
   /** @internal */
 
   constructor(options: BaseComponentOptions<MessagingClientApiEvents>) {
@@ -94,6 +96,7 @@ class MessagingAPI extends BaseComponent<MessagingClientApiEvents> {
     this.runWorker('messagingWorker', {
       worker: messagingWorker,
     })
+
     this._attachListeners('')
   }
 
@@ -155,6 +158,28 @@ class MessagingAPI extends BaseComponent<MessagingClientApiEvents> {
       this.logger.error('Error sending message', error)
       throw error as MessagingSendError
     }
+  }
+
+  // TODO: Move these overrides to AutoApplyTransformsConsumer
+  override on(
+    event: EventEmitter.EventNames<MessagingClientApiEvents>,
+    fn: EventEmitter.EventListener<MessagingClientApiEvents, any>
+  ) {
+    return super._on(event, fn)
+  }
+
+  override once(
+    event: EventEmitter.EventNames<MessagingClientApiEvents>,
+    fn: EventEmitter.EventListener<MessagingClientApiEvents, any>
+  ) {
+    return super._once(event, fn)
+  }
+
+  override off(
+    event: EventEmitter.EventNames<MessagingClientApiEvents>,
+    fn: EventEmitter.EventListener<MessagingClientApiEvents, any>
+  ) {
+    return super._off(event, fn)
   }
 }
 
