@@ -52,9 +52,7 @@ export class BasePubSubConsumer<
   protected override _eventsPrefix = PRODUCT_PREFIX_PUBSUB
   protected override subscribeMethod: JSONRPCSubscribeMethod = `${PRODUCT_PREFIX_PUBSUB}.subscribe`
 
-  constructor(
-    options: BaseComponentOptions<EventTypes> & { isChatAPI?: boolean }
-  ) {
+  constructor(options: BaseComponentOptions<EventTypes>) {
     super(options)
 
     /**
@@ -64,9 +62,12 @@ export class BasePubSubConsumer<
      */
     this._attachListeners('')
 
-    if (!options.isChatAPI) {
-      this.runWorker('pubSub', { worker: pubSubWorker })
-    }
+    // Initialize worker through a function so that it can be override by the BaseChatConsumer
+    this.initWorker()
+  }
+
+  protected initWorker() {
+    this.runWorker('pubSub', { worker: pubSubWorker })
   }
 
   private _getChannelsParam(

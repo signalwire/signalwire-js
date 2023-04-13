@@ -40,8 +40,10 @@ export class BaseChatConsumer extends BasePubSubConsumer<BaseChatApiEvents> {
   protected override subscribeMethod: JSONRPCSubscribeMethod = `${PRODUCT_PREFIX_CHAT}.subscribe`
 
   constructor(options: BaseComponentOptions<BaseChatApiEvents>) {
-    super({ ...options, isChatAPI: true })
+    super(options)
+  }
 
+  protected override initWorker() {
     this.runWorker('chat', { worker: chatWorker })
   }
 }
