@@ -37,7 +37,7 @@ test.describe('PubSub', () => {
             // .subscribe should be after .on but i left here for test.
             await pubSubClient.subscribe([options.channel])
             pubSubClient.on('message', (message: any) => {
-              resolve({ allowedChannels, message })
+              resolve({ allowedChannels, message: message.payload })
             })
 
             await pubSubClient.publish({

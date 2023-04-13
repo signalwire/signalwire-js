@@ -37,7 +37,7 @@ test.describe('Chat', () => {
             // .subscribe should be after .on but i left here for test.
             await client.subscribe([options.channel])
             client.on('message', (message: any) => {
-              resolve({ allowedChannels, message })
+              resolve({ allowedChannels, message: message.payload })
             })
 
             await client.publish({
