@@ -1,17 +1,14 @@
 import {
   DisconnectableClientContract,
   BaseComponentOptions,
-  EventTransform,
   toExternalJSON,
   ClientContextContract,
-  EventEmitter,
 } from '@signalwire/core'
 import { connect } from '@signalwire/core'
 import type { MessagingClientApiEvents } from '../types'
 import { RealtimeClient } from '../client/index'
 import { messagingWorker } from './workers'
-import { MessageContract, Message } from './Message'
-import { AutoApplyTransformsConsumer } from '../AutoApplyTransformsConsumer'
+import { ApplyEventListeners } from '../ApplyEventListeners'
 
 interface MessagingSendParams {
   context?: string
@@ -87,7 +84,7 @@ export interface Messaging
 }
 
 /** @internal */
-class MessagingAPI extends AutoApplyTransformsConsumer<MessagingClientApiEvents> {
+class MessagingAPI extends ApplyEventListeners<MessagingClientApiEvents> {
   /** @internal */
 
   constructor(options: BaseComponentOptions<MessagingClientApiEvents>) {
@@ -98,45 +95,6 @@ class MessagingAPI extends AutoApplyTransformsConsumer<MessagingClientApiEvents>
     })
 
     this._attachListeners('')
-  }
-
-  /** @internal */
-  protected getEmitterTransforms() {
-    return new Map<string | string[], EventTransform>([
-      [
-        [
-          'messaging.state',
-          'messaging.receive',
-          'message.updated',
-          'message.received',
-        ],
-        {
-          type: 'messagingMessage',
-          instanceFactory: (payload: any) => {
-            return new Message(payload)
-          },
-          payloadTransform: (payload: any): MessageContract => {
-            /** Building a MessageContract to conform with our Proxy API */
-            const {
-              message_id,
-              message_state,
-              from_number,
-              to_number,
-              tag,
-              ...rest
-            } = payload
-
-            return toExternalJSON<MessageContract>({
-              ...rest,
-              id: message_id,
-              state: message_state,
-              from: from_number,
-              to: to_number,
-            })
-          },
-        },
-      ],
-    ])
   }
 
   async send(params: MessagingSendParams): Promise<any> {
@@ -158,28 +116,6 @@ class MessagingAPI extends AutoApplyTransformsConsumer<MessagingClientApiEvents>
       this.logger.error('Error sending message', error)
       throw error as MessagingSendError
     }
-  }
-
-  // TODO: Move these overrides to AutoApplyTransformsConsumer
-  override on(
-    event: EventEmitter.EventNames<MessagingClientApiEvents>,
-    fn: EventEmitter.EventListener<MessagingClientApiEvents, any>
-  ) {
-    return super._on(event, fn)
-  }
-
-  override once(
-    event: EventEmitter.EventNames<MessagingClientApiEvents>,
-    fn: EventEmitter.EventListener<MessagingClientApiEvents, any>
-  ) {
-    return super._once(event, fn)
-  }
-
-  override off(
-    event: EventEmitter.EventNames<MessagingClientApiEvents>,
-    fn: EventEmitter.EventListener<MessagingClientApiEvents, any>
-  ) {
-    return super._off(event, fn)
   }
 }
 
