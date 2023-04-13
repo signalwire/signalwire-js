@@ -7,8 +7,6 @@ import {
   actions,
   SessionEvents,
   EventEmitter,
-  EventTransform,
-  toExternalJSON,
 } from '..'
 import { getAuthState } from '../redux/features/session/sessionSelectors'
 import type {
@@ -17,11 +15,10 @@ import type {
   PubSubEventNames,
   PubSubPublishParams,
   PubSubMessageEventName,
-  PubSubChannelMessageEvent,
 } from '../types/pubSub'
 import { PRODUCT_PREFIX_PUBSUB } from '../utils/constants'
 import { PubSubMessage } from './PubSubMessage'
-import * as workers from './workers'
+import { pubSubWorker } from './workers/pubSubWorker'
 
 export type BasePubSubApiEventsHandlerMapping = Record<
   PubSubMessageEventName,
@@ -55,7 +52,9 @@ export class BasePubSubConsumer<
   protected override _eventsPrefix = PRODUCT_PREFIX_PUBSUB
   protected override subscribeMethod: JSONRPCSubscribeMethod = `${PRODUCT_PREFIX_PUBSUB}.subscribe`
 
-  constructor(options: BaseComponentOptions<EventTypes>) {
+  constructor(
+    options: BaseComponentOptions<EventTypes> & { isChatAPI?: boolean }
+  ) {
     super(options)
 
     /**
@@ -65,40 +64,9 @@ export class BasePubSubConsumer<
      */
     this._attachListeners('')
 
-    this.runWorker('pubSub', { worker: workers.pubSubWorker })
-  }
-
-  /** @internal */
-  protected getEmitterTransforms() {
-    return new Map<any, EventTransform>([
-      [
-        ['message'],
-        {
-          type: 'pubSubMessage',
-          instanceFactory: () => {
-            return new PubSubMessage({} as any)
-          },
-          payloadTransform: (payload: PubSubChannelMessageEvent) => {
-            const {
-              channel,
-              /**
-               * Since we're using the same event as `Chat`
-               * the payload comes with a `member` prop. To
-               * avoid confusion (since `PubSub` doesn't
-               * have members) we'll remove it from the
-               * payload sent to the end user.
-               */
-              // @ts-expect-error
-              message: { member, ...restMessage },
-            } = payload.params
-            return toExternalJSON({
-              ...restMessage,
-              channel,
-            })
-          },
-        },
-      ],
-    ])
+    if (!options.isChatAPI) {
+      this.runWorker('pubSub', { worker: pubSubWorker })
+    }
   }
 
   private _getChannelsParam(
@@ -236,6 +204,30 @@ export class BasePubSubConsumer<
       return authState.channels
     }
     return {}
+  }
+
+  override on(
+    event: EventEmitter.EventNames<EventTypes>,
+    fn: EventEmitter.EventListener<EventTypes, any>
+  ) {
+    // @ts-expect-error
+    return super._on(`chat.${event}`, fn)
+  }
+
+  override once(
+    event: EventEmitter.EventNames<EventTypes>,
+    fn: EventEmitter.EventListener<EventTypes, any>
+  ) {
+    // @ts-expect-error
+    return super._once(`chat.${event}`, fn)
+  }
+
+  override off(
+    event: EventEmitter.EventNames<EventTypes>,
+    fn: EventEmitter.EventListener<EventTypes, any>
+  ) {
+    // @ts-expect-error
+    return super._off(`chat.${event}`, fn)
   }
 }
 

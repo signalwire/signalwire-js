@@ -130,8 +130,12 @@ type ChannelMessageEventName = 'channel.message'
  * 'chat.channel.message'
  */
 export interface PubSubChannelMessageEventParams {
-  channel: string
-  message: InternalPubSubMessageEntity
+  event_type: string
+  event_channel: string
+  params: {
+    channel: string
+    message: InternalPubSubMessageEntity
+  }
 }
 
 export interface PubSubChannelMessageEvent extends SwEvent {
@@ -140,8 +144,6 @@ export interface PubSubChannelMessageEvent extends SwEvent {
 }
 
 export type PubSubEvent = PubSubChannelMessageEvent
-
-export type PubSubEventParams = PubSubChannelMessageEventParams
 
 export type PubSubEventAction = MapToPubSubShape<PubSubEvent>
 
