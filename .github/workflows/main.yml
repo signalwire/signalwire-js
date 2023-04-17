@@ -53,7 +53,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies and build
-        uses: ./.github/actions/setup-node-app
+        uses: ./.github/actions/setup-js-app
         with:
           NODE_VERSION: ${{ matrix.node-version }}
       - name: Test
@@ -71,7 +71,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies and build
-        uses: ./.github/actions/setup-node-app
+        uses: ./.github/actions/setup-js-app
         with:
           NODE_VERSION: ${{ matrix.node-version }}
       - name: Test
