@@ -1,15 +1,14 @@
 import {
   DisconnectableClientContract,
   BaseComponentOptions,
-  EventTransform,
   toExternalJSON,
   ClientContextContract,
 } from '@signalwire/core'
-import { connect, BaseComponent } from '@signalwire/core'
+import { connect } from '@signalwire/core'
 import type { MessagingClientApiEvents } from '../types'
 import { RealtimeClient } from '../client/index'
 import { messagingWorker } from './workers'
-import { MessageContract, Message } from './Message'
+import { ApplyEventListeners } from '../ApplyEventListeners'
 
 interface MessagingSendParams {
   context?: string
@@ -85,7 +84,7 @@ export interface Messaging
 }
 
 /** @internal */
-class MessagingAPI extends BaseComponent<MessagingClientApiEvents> {
+class MessagingAPI extends ApplyEventListeners<MessagingClientApiEvents> {
   /** @internal */
 
   constructor(options: BaseComponentOptions<MessagingClientApiEvents>) {
@@ -94,46 +93,8 @@ class MessagingAPI extends BaseComponent<MessagingClientApiEvents> {
     this.runWorker('messagingWorker', {
       worker: messagingWorker,
     })
+
     this._attachListeners('')
-  }
-
-  /** @internal */
-  protected getEmitterTransforms() {
-    return new Map<string | string[], EventTransform>([
-      [
-        [
-          'messaging.state',
-          'messaging.receive',
-          'message.updated',
-          'message.received',
-        ],
-        {
-          type: 'messagingMessage',
-          instanceFactory: (payload: any) => {
-            return new Message(payload)
-          },
-          payloadTransform: (payload: any): MessageContract => {
-            /** Building a MessageContract to conform with our Proxy API */
-            const {
-              message_id,
-              message_state,
-              from_number,
-              to_number,
-              tag,
-              ...rest
-            } = payload
-
-            return toExternalJSON<MessageContract>({
-              ...rest,
-              id: message_id,
-              state: message_state,
-              from: from_number,
-              to: to_number,
-            })
-          },
-        },
-      ],
-    ])
   }
 
   async send(params: MessagingSendParams): Promise<any> {

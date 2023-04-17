@@ -4,8 +4,7 @@ import {
   getLogger,
   sagaEffects,
   SDKActions,
-  MapToPubSubShape,
-  SwEventParams,
+  VoiceCallAction,
 } from '@signalwire/core'
 import { fork } from '@redux-saga/core/effects'
 import type { Client } from '../../client/index'
@@ -30,7 +29,7 @@ export const voiceCallingWroker: SDKWorker<Client> = function* (
   const { channels, instance, instanceMap, initialState } = options
   const { swEventChannel } = channels
 
-  function* worker(action: MapToPubSubShape<SwEventParams>) {
+  function* worker(action: VoiceCallAction) {
     switch (action.type) {
       case 'calling.call.state':
         yield fork(voiceCallStateWorker, {
@@ -135,7 +134,7 @@ export const voiceCallingWroker: SDKWorker<Client> = function* (
     action.type.startsWith('calling.')
 
   while (true) {
-    const action: MapToPubSubShape<SwEventParams> = yield sagaEffects.take(
+    const action: VoiceCallAction = yield sagaEffects.take(
       swEventChannel,
       isCallingEvent
     )

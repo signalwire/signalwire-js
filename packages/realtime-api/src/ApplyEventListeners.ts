@@ -1,9 +1,7 @@
 import { BaseConsumer, EventEmitter } from '@signalwire/core'
 
 /**
- * This class is extended by Call and Voice since they use
- * `_on`, `_once`, and `_off` instead of
- * `on`, `once`, and `off`
+ * Override all old listeners with new listeners that uses BaseComponent's new even emitter
  */
 export class ApplyEventListeners<
   EventTypes extends EventEmitter.ValidEventTypes
