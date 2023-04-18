@@ -9,6 +9,7 @@ import {
   VideoRoomEventParams,
   RoomSessionPlayback,
   toLocalEvent,
+  EventEmitter,
 } from '@signalwire/core'
 import { AutoSubscribeConsumer } from '../AutoSubscribeConsumer'
 import type { RealtimeClient } from '../client/Client'
@@ -29,6 +30,7 @@ import type {
   RoomSessionMember,
   RoomSessionMemberUpdated,
 } from './RoomSessionMember'
+import { videoCallingWorker } from './workers'
 
 const videoRoomGetTriggerEvent = toLocalEvent<TransformEvent>('video.room.get')
 
@@ -44,6 +46,8 @@ export interface Video extends ConsumerContract<RealTimeVideoApiEvents> {
   subscribe(): Promise<void>
   /** @internal */
   _session: RealtimeClient
+  /** @internal */
+  baseEmitter: EventEmitter
   /**
    * Disconnects this client. The client will stop receiving events and you will
    * need to create a new instance if you want to use it again.
@@ -118,6 +122,12 @@ export type {
 
 /** @internal */
 class VideoAPI extends AutoSubscribeConsumer<RealTimeVideoApiEvents> {
+  constructor(options: BaseComponentOptions<RealTimeVideoApiEvents>) {
+    super(options)
+
+    this.runWorker('videoCallWorker', { worker: videoCallingWorker })
+  }
+
   /** @internal */
   protected _eventsPrefix = 'video' as const
 
@@ -168,18 +178,18 @@ class VideoAPI extends AutoSubscribeConsumer<RealTimeVideoApiEvents> {
             params: {},
           })
           const roomSessions: RoomSession[] = []
-          const handler = (instance: RoomSession) => roomSessions.push(instance)
-
-          // @ts-expect-error
-          this.on(videoRoomGetTriggerEvent, handler)
 
           rooms.forEach((room_session: any) => {
-            // @ts-expect-error
-            this.emit(videoRoomGetTriggerEvent, { room_session })
+            roomSessions.push(
+              createRoomSessionObject({
+                store: this.store,
+                // @ts-expect-error
+                emitter: this.options.emitter,
+                payload: { room_session },
+              })
+            )
           })
 
-          // // @ts-expect-error
-          // this.off(videoRoomGetTriggerEvent, handler)
           resolve({ roomSessions })
         } catch (error) {
           console.error('Error listing room sessions', error)
@@ -200,13 +210,14 @@ class VideoAPI extends AutoSubscribeConsumer<RealTimeVideoApiEvents> {
             },
           })
 
-          // @ts-expect-error
-          this.once(videoRoomGetTriggerEvent, (instance: RoomSession) => {
-            resolve({ roomSession: instance })
+          resolve({
+            roomSession: createRoomSessionObject({
+              store: this.store,
+              // @ts-expect-error
+              emitter: this.options.emitter,
+              payload: { room_session: room },
+            }),
           })
-
-          // @ts-expect-error
-          this.emit(videoRoomGetTriggerEvent, { room_session: room })
         } catch (error) {
           console.error('Error retrieving the room session', error)
           reject(error)

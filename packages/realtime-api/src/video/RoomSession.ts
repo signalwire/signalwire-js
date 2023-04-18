@@ -28,6 +28,7 @@ import {
   EventEmitter,
   MemberPosition,
   debounce,
+  VideoRoomEventParams,
 } from '@signalwire/core'
 import { RealTimeRoomApiEvents } from '../types'
 import {
@@ -50,7 +51,10 @@ type EmitterTransformsEvents =
 
 export interface RoomSession
   extends VideoRoomSessionContract,
-    ConsumerContract<RealTimeRoomApiEvents, RoomSessionFullState> {}
+    ConsumerContract<RealTimeRoomApiEvents, RoomSessionFullState> {
+  baseEmitter: EventEmitter
+  setPayload(payload: VideoRoomEventParams): void
+}
 
 export type RoomSessionUpdated = EntityUpdated<RoomSession>
 export interface RoomSessionFullState extends Omit<RoomSession, 'members'> {
@@ -60,6 +64,7 @@ export interface RoomSessionFullState extends Omit<RoomSession, 'members'> {
 
 export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   protected _eventsPrefix = 'video' as const
+  private _payload: VideoRoomEventParams
 
   /** @internal */
   protected subscribeParams = {
@@ -72,10 +77,51 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   constructor(options: BaseComponentOptions<RealTimeRoomApiEvents>) {
     super(options)
 
+    if (options.payload) {
+      this._payload = options.payload
+    }
+
     this.debouncedSubscribe = debounce(this.subscribe, 100)
+
     this.runWorker('memberPositionWorker', {
       worker: memberPositionWorker,
     })
+  }
+
+  get id() {
+    return this._payload.room_session.id
+  }
+
+  get roomId() {
+    return this._payload.room_session.room_id
+  }
+
+  get name() {
+    return this._payload.room_session.name
+  }
+
+  get displayName() {
+    return this._payload.room_session.display_name
+  }
+
+  get hideVideoMuted() {
+    return this._payload.room_session.hide_video_muted
+  }
+
+  get layoutName() {
+    return this._payload.room_session.layout_name
+  }
+
+  get meta() {
+    return this._payload.room_session.meta
+  }
+
+  get previewUrl() {
+    return this._payload.room_session.preview_url
+  }
+
+  get recording() {
+    return this._payload.room_session.recording
   }
 
   /** @internal */
@@ -432,6 +478,11 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
         },
       ],
     ])
+  }
+
+  /** @internal */
+  protected setPayload(payload: VideoRoomEventParams) {
+    this._payload = payload
   }
 }
 
