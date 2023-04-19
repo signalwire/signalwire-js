@@ -1,19 +1,19 @@
 import {
   getLogger,
   SagaIterator,
-  SDKCallWorker,
+  SDKChildWorker,
   CallingCallSendDigitsEventParams,
 } from '@signalwire/core'
 import type { Call } from '../Call'
 import type { Client } from '../../client/index'
 
-export const voiceCallSendDigitsWorker: SDKCallWorker<
+export const voiceCallSendDigitsWorker: SDKChildWorker<
   CallingCallSendDigitsEventParams,
   Client
 > = function* (options): SagaIterator {
   getLogger().trace('voiceCallSendDigitsWorker started')
   const {
-    payload,
+    action: { payload },
     instanceMap: { get },
   } = options
 

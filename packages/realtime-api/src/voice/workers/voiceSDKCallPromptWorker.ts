@@ -1,17 +1,17 @@
 import {
   getLogger,
   SagaIterator,
-  SDKCallWorker,
+  SDKChildWorker,
   CallingCallSDKEventParams,
 } from '@signalwire/core'
 import type { Call } from '../Call'
 import { CallPrompt, createCallPromptObject } from '../CallPrompt'
 
-export const voiceSDKCallPromptWorker: SDKCallWorker<CallingCallSDKEventParams> =
+export const voiceSDKCallPromptWorker: SDKChildWorker<CallingCallSDKEventParams> =
   function* (options): SagaIterator {
     getLogger().trace('voiceSDKCallPromptWorker started')
     const {
-      payload,
+      action: { payload },
       instanceMap: { get, set },
     } = options
 

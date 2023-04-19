@@ -30,13 +30,15 @@ export const voiceCallingWroker: SDKWorker<Client> = function* (
   const { swEventChannel } = channels
 
   function* worker(action: VoiceCallAction) {
-    switch (action.type) {
+    const { type } = action
+
+    switch (type) {
       case 'calling.call.state':
         yield fork(voiceCallStateWorker, {
           client: instance,
           initialState,
           instanceMap,
-          payload: action.payload,
+          action,
         })
         break
       case 'calling.call.dial':
@@ -44,88 +46,88 @@ export const voiceCallingWroker: SDKWorker<Client> = function* (
           client: instance,
           initialState,
           instanceMap,
-          payload: action.payload,
+          action,
         })
         break
       case 'calling.call.receive':
         yield fork(voiceCallReceiveWorker, {
           client: instance,
           instanceMap,
-          payload: action.payload,
+          action,
         })
         break
       case 'calling.call.play':
         yield fork(voiceCallPlayWorker, {
           client: instance,
           instanceMap,
-          payload: action.payload,
+          action,
         })
         break
       case 'calling.call.record':
         yield fork(voiceCallRecordWorker, {
           client: instance,
           instanceMap,
-          payload: action.payload,
+          action,
         })
         break
       case 'calling.call.collect':
         yield fork(voiceCallCollectWorker, {
           client: instance,
           instanceMap,
-          payload: action.payload,
+          action,
         })
         break
       case 'calling.call.send_digits':
         yield fork(voiceCallSendDigitsWorker, {
           client: instance,
           instanceMap,
-          payload: action.payload,
+          action,
         })
         break
       case 'calling.call.detect':
         yield fork(voiceCallDetectWorker, {
           client: instance,
           instanceMap,
-          payload: action.payload,
+          action,
         })
         break
       case 'calling.call.tap':
         yield fork(voiceCallTapWorker, {
           client: instance,
           instanceMap,
-          payload: action.payload,
+          action,
         })
         break
       case 'calling.call.connect':
         yield fork(voiceCallConnectWorker, {
           client: instance,
           instanceMap,
-          payload: action.payload,
+          action,
         })
         break
       case 'calling.sdk.prompt':
         yield fork(voiceSDKCallPromptWorker, {
           client: instance,
           instanceMap,
-          payload: action.payload,
+          action,
         })
         break
       case 'calling.sdk.collect':
         yield fork(voiceSDKCallCollectWorker, {
           client: instance,
           instanceMap,
-          payload: action.payload,
+          action,
         })
         break
       case 'calling.sdk.detect':
         yield fork(voiceSDKCallDetectWorker, {
           client: instance,
           instanceMap,
-          payload: action.payload,
+          action,
         })
         break
       default:
-        getLogger().warn(`Unknown call event: "${action.type}"`)
+        getLogger().warn(`Unknown call event: "${type}"`)
         break
     }
   }
