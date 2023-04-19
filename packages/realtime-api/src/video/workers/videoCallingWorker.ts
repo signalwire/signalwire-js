@@ -3,32 +3,38 @@ import {
   SDKActions,
   SDKWorker,
   SagaIterator,
-  SwEventParams,
+  VideoAPIEventParams,
   getLogger,
   sagaEffects,
 } from '@signalwire/core'
 import { fork } from '@redux-saga/core/effects'
 import { Client } from '../VideoClient'
 import { videoRoomWorker } from './videoRoomWorker'
+import { videoMemberWorker } from './videoMemberWorker'
 
 export const videoCallingWorker: SDKWorker<Client> = function* (
   options
 ): SagaIterator {
   getLogger().trace('videoCallingWorker started')
-  const { channels, instance, initialState, instanceMap } = options
+  const { channels, instance: client, instanceMap, initialState } = options
   const { swEventChannel } = channels
 
-  // @TODO: proper action type
-  function* worker(action: any) {
+  function* worker(action: MapToPubSubShape<VideoAPIEventParams>) {
     const { type } = action
 
     if (type.startsWith('video.room.')) {
-      // @ts-expect-error
       yield fork(videoRoomWorker, {
-        client: instance,
-        initialState,
-        instanceMap,
         action,
+        client,
+        instanceMap,
+        initialState,
+      })
+    } else if (type.startsWith('video.member.')) {
+      yield fork(videoMemberWorker, {
+        action,
+        client,
+        instanceMap,
+        initialState,
       })
     }
   }
@@ -36,10 +42,8 @@ export const videoCallingWorker: SDKWorker<Client> = function* (
   const isVideoEvent = (action: SDKActions) => action.type.startsWith('video.')
 
   while (true) {
-    const action: MapToPubSubShape<SwEventParams> = yield sagaEffects.take(
-      swEventChannel,
-      isVideoEvent
-    )
+    const action: MapToPubSubShape<VideoAPIEventParams> =
+      yield sagaEffects.take(swEventChannel, isVideoEvent)
 
     yield fork(worker, action)
   }

@@ -92,6 +92,10 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     return this._payload.room_session.id
   }
 
+  get roomSessionId() {
+    return this._payload.room_session.id
+  }
+
   get roomId() {
     return this._payload.room_session.room_id
   }
@@ -124,6 +128,10 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     return this._payload.room_session.recording
   }
 
+  get eventChannel() {
+    return this._payload.room_session.event_channel
+  }
+
   /** @internal */
   protected _internal_on(
     event: keyof RealTimeRoomApiEvents,
@@ -136,7 +144,8 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     event: keyof RealTimeRoomApiEvents,
     fn: EventEmitter.EventListener<RealTimeRoomApiEvents, any>
   ) {
-    const instance = super.on(event, fn)
+    // @ts-expect-error
+    const instance = super._on(`video.${event}`, fn)
     this.debouncedSubscribe()
     return instance
   }
@@ -145,8 +154,18 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     event: keyof RealTimeRoomApiEvents,
     fn: EventEmitter.EventListener<RealTimeRoomApiEvents, any>
   ) {
-    const instance = super.once(event, fn)
+    // @ts-expect-error
+    const instance = super._on(`video.${event}`, fn)
     this.debouncedSubscribe()
+    return instance
+  }
+
+  off(
+    event: keyof RealTimeRoomApiEvents,
+    fn: EventEmitter.EventListener<RealTimeRoomApiEvents, any>
+  ) {
+    // @ts-expect-error
+    const instance = super.off(`video.${event}`, fn)
     return instance
   }
 

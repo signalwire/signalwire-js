@@ -11,11 +11,23 @@ import {
 } from '..'
 import { findNamespaceInPayload } from '../redux/features/shared/namespace'
 
+const defaultDispatcher = function* (
+  type: string,
+  payload: any,
+  channel?: any
+) {
+  yield put(channel, {
+    type,
+    payload,
+  })
+}
+
 function* memberPositionLayoutChangedWorker(options: any) {
   const {
     action,
     memberList,
     channels: { pubSubChannel },
+    dispatcher = defaultDispatcher,
   } = options
   const layers = action.payload.layout.layers
   const processedMembers: Record<string, boolean> = {}
@@ -46,10 +58,7 @@ function* memberPositionLayoutChangedWorker(options: any) {
 
   for (const [memberId, payload] of memberList) {
     if (processedMembers[memberId]) {
-      yield put(pubSubChannel, {
-        type: 'video.member.updated',
-        payload,
-      })
+      dispatcher?.('video.member.updated', payload, pubSubChannel)
 
       /**
        * `undefined` means that we couldn't find the
@@ -67,10 +76,11 @@ function* memberPositionLayoutChangedWorker(options: any) {
         return
       }
 
-      yield put(pubSubChannel, {
-        type: 'video.member.updated',
-        payload: updatedMemberEventParams,
-      })
+      dispatcher?.(
+        'video.member.updated',
+        updatedMemberEventParams,
+        pubSubChannel
+      )
     }
   }
 }
@@ -79,6 +89,7 @@ export function* memberUpdatedWorker({
   action,
   channels,
   memberList,
+  dispatcher = defaultDispatcher,
 }: Omit<SDKWorkerParams<any>, 'runSaga'> & {
   memberList: MemberEventParamsList
   action: any
@@ -110,16 +121,10 @@ export function* memberUpdatedWorker({
 
   for (const key of updated) {
     const type = `${action.type}.${key}` as InternalMemberUpdatedEventNames
-    yield put(channels.pubSubChannel, {
-      type,
-      payload: memberUpdatedPayload,
-    })
+    dispatcher?.(type, memberUpdatedPayload, channels.pubSubChannel)
   }
 
-  yield put(channels.pubSubChannel, {
-    type: action.type,
-    payload: memberUpdatedPayload,
-  })
+  dispatcher?.(action.type, memberUpdatedPayload, channels.pubSubChannel)
 }
 
 export const MEMBER_POSITION_COMPOUND_EVENTS = new Map<any, any>([

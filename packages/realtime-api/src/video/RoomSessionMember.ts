@@ -7,6 +7,9 @@ import {
   VideoMemberContract,
   VideoMemberMethods,
   EntityUpdated,
+  VideoMemberJoinedEventParams,
+  VideoMemberLeftEventParams,
+  VideoMemberUpdatedEventParams,
 } from '@signalwire/core'
 
 /**
@@ -20,12 +23,102 @@ import {
  * > listeners, the state of the member always refers to that specific point in
  * > time and remains fixed for the whole lifetime of the object.
  */
-export interface RoomSessionMember extends VideoMemberContract {}
+export interface RoomSessionMember extends VideoMemberContract {
+  isTalking: boolean
+  setPayload(payload: RoomSessionMemberEventParams): void
+}
 export type RoomSessionMemberUpdated = EntityUpdated<RoomSessionMember>
+
+export type RoomSessionMemberEventParams =
+  | VideoMemberJoinedEventParams
+  | VideoMemberLeftEventParams
+  | VideoMemberUpdatedEventParams
 
 // TODO: Extend from a variant of `BaseComponent` that
 // doesn't expose EventEmitter methods
 class RoomSessionMemberComponent extends BaseComponent<{}> {
+  private _payload: RoomSessionMemberEventParams
+  public isTalking: boolean
+
+  constructor(options: BaseComponentOptions<any>) {
+    super(options)
+
+    this.isTalking = false
+
+    if (options.payload) {
+      this._payload = options.payload
+    }
+  }
+
+  get id() {
+    return this._payload.member.id
+  }
+
+  get memberId() {
+    return this._payload.member.id
+  }
+
+  get roomSessionId() {
+    return this._payload.member.room_session_id
+  }
+
+  get roomId() {
+    return this._payload.member.room_id
+  }
+
+  get parentId() {
+    return this._payload.member.parent_id
+  }
+
+  get name() {
+    return this._payload.member.name
+  }
+
+  get type() {
+    return this._payload.member.type
+  }
+
+  get meta() {
+    return this._payload.member.meta
+  }
+
+  get requestedPosition() {
+    return this._payload.member.requested_position
+  }
+
+  get visible() {
+    return this._payload.member.visible
+  }
+
+  get audioMuted() {
+    return this._payload.member.audio_muted
+  }
+
+  get videoMuted() {
+    return this._payload.member.video_muted
+  }
+
+  get deaf() {
+    return this._payload.member.deaf
+  }
+
+  get inputVolume() {
+    return this._payload.member.input_volume
+  }
+
+  get outputVolume() {
+    return this._payload.member.output_volume
+  }
+
+  get inputSensitivity() {
+    return this._payload.member.input_sensitivity
+  }
+
+  /** @internal */
+  protected setPayload(payload: RoomSessionMemberEventParams) {
+    this._payload = payload
+  }
+
   async remove() {
     await this.execute({
       method: 'video.member.remove',
