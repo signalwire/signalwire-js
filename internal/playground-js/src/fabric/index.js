@@ -239,15 +239,13 @@ window.connect = async () => {
     debug: { logWsTraffic: true },
   })
 
-  const executeInviteRef = call.executeInvite
-  call.executeInvite = (sdp, rtcPeerId, nodeId) => {
-    console.log('Change invite - inject nodeId for steering')
-    executeInviteRef.call(
-      call,
-      sdp,
-      rtcPeerId,
-      '3f2bfa9b-069c-4f13-b109-340aea9ee503@'
-    )
+  const steeringId = ''
+  if (steeringId) {
+    const executeInviteRef = call.executeInvite
+    call.executeInvite = (sdp, rtcPeerId, nodeId) => {
+      console.log('Change invite - inject nodeId for steering')
+      executeInviteRef.call(call, sdp, rtcPeerId, steeringId)
+    }
   }
   console.debug('Call Obj', call)
 
