@@ -5,6 +5,7 @@ import {
   sagaEffects,
   SDKActions,
   VoiceCallAction,
+  SDKWorkerParams,
 } from '@signalwire/core'
 import { fork } from '@redux-saga/core/effects'
 import type { Client } from '../../client/index'
@@ -22,108 +23,99 @@ import { voiceSDKCallPromptWorker } from './voiceSDKCallPromptWorker'
 import { voiceSDKCallCollectWorker } from './voiceSDKCallCollectWorker'
 import { voiceSDKCallDetectWorker } from './voiceSDKCallDetectWorker'
 
+export type VoiceCallWorkerParams<T> = Omit<
+  SDKWorkerParams<Client>,
+  'runSaga' | 'getSession' | 'payload'
+> & { payload: T }
+
 export const voiceCallingWroker: SDKWorker<Client> = function* (
   options
 ): SagaIterator {
   getLogger().trace('voiceCallingWroker started')
-  const { channels, instance, instanceMap, initialState } = options
-  const { swEventChannel } = channels
+  const {
+    channels: { swEventChannel },
+  } = options
 
   function* worker(action: VoiceCallAction) {
-    const { type } = action
+    const { type, payload } = action
 
     switch (type) {
       case 'calling.call.state':
         yield fork(voiceCallStateWorker, {
-          client: instance,
-          initialState,
-          instanceMap,
-          action,
+          ...options,
+          payload,
         })
         break
       case 'calling.call.dial':
         yield fork(voiceCallDialWorker, {
-          client: instance,
-          initialState,
-          instanceMap,
-          action,
+          ...options,
+          payload,
         })
         break
       case 'calling.call.receive':
         yield fork(voiceCallReceiveWorker, {
-          client: instance,
-          instanceMap,
-          action,
+          ...options,
+          payload,
         })
         break
       case 'calling.call.play':
         yield fork(voiceCallPlayWorker, {
-          client: instance,
-          instanceMap,
-          action,
+          ...options,
+          payload,
         })
         break
       case 'calling.call.record':
         yield fork(voiceCallRecordWorker, {
-          client: instance,
-          instanceMap,
-          action,
+          ...options,
+          payload,
         })
         break
       case 'calling.call.collect':
         yield fork(voiceCallCollectWorker, {
-          client: instance,
-          instanceMap,
-          action,
+          ...options,
+          payload,
         })
         break
       case 'calling.call.send_digits':
         yield fork(voiceCallSendDigitsWorker, {
-          client: instance,
-          instanceMap,
-          action,
+          ...options,
+          payload,
         })
         break
       case 'calling.call.detect':
         yield fork(voiceCallDetectWorker, {
-          client: instance,
-          instanceMap,
-          action,
+          ...options,
+          payload,
         })
         break
       case 'calling.call.tap':
         yield fork(voiceCallTapWorker, {
-          client: instance,
-          instanceMap,
-          action,
+          ...options,
+          payload,
         })
         break
       case 'calling.call.connect':
         yield fork(voiceCallConnectWorker, {
-          client: instance,
-          instanceMap,
-          action,
+          ...options,
+          payload,
         })
         break
       case 'calling.sdk.prompt':
         yield fork(voiceSDKCallPromptWorker, {
-          client: instance,
-          instanceMap,
-          action,
+          ...options,
+          payload,
         })
         break
       case 'calling.sdk.collect':
         yield fork(voiceSDKCallCollectWorker, {
-          client: instance,
-          instanceMap,
-          action,
+          ...options,
+          payload,
         })
         break
       case 'calling.sdk.detect':
         yield fork(voiceSDKCallDetectWorker, {
-          client: instance,
-          instanceMap,
-          action,
+          ...options,
+          payload,
         })
         break
       default:

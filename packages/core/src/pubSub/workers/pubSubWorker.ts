@@ -14,7 +14,10 @@ export const pubSubWorker: SDKWorker<BasePubSubConsumer> = function* (
   options
 ): SagaIterator {
   getLogger().trace('pubSubWorker started')
-  const { instance: client } = options
+  const {
+    instance: client,
+    channels: { swEventChannel },
+  } = options
 
   function* worker(action: PubSubEventAction) {
     const { type, payload } = action
@@ -32,7 +35,7 @@ export const pubSubWorker: SDKWorker<BasePubSubConsumer> = function* (
            */
           // @ts-expect-error
           message: { member, ...restMessage },
-        } = payload.params
+        } = payload
         const externalJSON = toExternalJSON({
           ...restMessage,
           channel,
@@ -56,7 +59,10 @@ export const pubSubWorker: SDKWorker<BasePubSubConsumer> = function* (
     action.type.startsWith(`${PRODUCT_PREFIX_PUBSUB}.`)
 
   while (true) {
-    const action: PubSubEventAction = yield sagaEffects.take(isPubSubEvent)
+    const action: PubSubEventAction = yield sagaEffects.take(
+      swEventChannel,
+      isPubSubEvent
+    )
 
     yield sagaEffects.fork(worker, action)
   }

@@ -255,12 +255,8 @@ type ChannelMessageEventName = 'channel.message'
  * 'chat.channel.message'
  */
 export interface ChatChannelMessageEventParams {
-  event_type: ToInternalChatEvent<ChannelMessageEventName>
-  event_channel: string
-  params: {
-    channel: string
-    message: InternalChatMessageEntity
-  }
+  channel: string
+  message: InternalChatMessageEntity
 }
 
 export interface ChatChannelMessageEvent extends SwEvent {
@@ -272,12 +268,8 @@ export interface ChatChannelMessageEvent extends SwEvent {
  * 'chat.member.joined'
  */
 export interface ChatMemberJoinedEventParams {
-  event_type: ToInternalChatEvent<ChatMemberJoinedEventName>
-  event_channel: string
-  params: {
-    channel: string
-    member: InternalChatMemberEntity
-  }
+  channel: string
+  member: InternalChatMemberEntity
 }
 
 export interface ChatMemberJoinedEvent extends SwEvent {
@@ -289,12 +281,8 @@ export interface ChatMemberJoinedEvent extends SwEvent {
  * 'chat.member.updated'
  */
 export interface ChatMemberUpdatedEventParams {
-  event_type: ToInternalChatEvent<ChatMemberUpdatedEventName>
-  event_channel: string
-  params: {
-    channel: string
-    member: InternalChatMemberEntity
-  }
+  channel: string
+  member: InternalChatMemberEntity
 }
 
 export interface ChatMemberUpdatedEvent extends SwEvent {
@@ -306,12 +294,8 @@ export interface ChatMemberUpdatedEvent extends SwEvent {
  * 'chat.member.left'
  */
 export interface ChatMemberLeftEventParams {
-  event_type: ToInternalChatEvent<ChatMemberLeftEventName>
-  event_channel: string
-  params: {
-    channel: string
-    member: InternalChatMemberEntity
-  }
+  channel: string
+  member: InternalChatMemberEntity
 }
 
 export interface ChatMemberLeftEvent extends SwEvent {
@@ -324,6 +308,12 @@ export type ChatEvent =
   | ChatMemberJoinedEvent
   | ChatMemberUpdatedEvent
   | ChatMemberLeftEvent
+
+export type ChatEventParams =
+  | ChatChannelMessageEventParams
+  | ChatMemberJoinedEventParams
+  | ChatMemberUpdatedEventParams
+  | ChatMemberLeftEventParams
 
 export type ChatAction = MapToPubSubShape<ChatEvent>
 

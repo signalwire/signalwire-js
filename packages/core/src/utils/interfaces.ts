@@ -568,13 +568,6 @@ type SDKWorkerBaseParams<T> = {
   instanceMap: InstanceMap
 }
 
-type SDKChildWorkerBaseParams<T, U> = {
-  action: { type: string; payload: T }
-  client: U
-  instanceMap: InstanceMap
-  initialState?: any
-}
-
 export type SDKWorkerParams<
   T,
   Hooks extends SDKWorkerHooks = SDKWorkerHooks
@@ -582,10 +575,6 @@ export type SDKWorkerParams<
 
 export type SDKWorker<T, Hooks extends SDKWorkerHooks = SDKWorkerHooks> = (
   params: SDKWorkerParams<T, Hooks>
-) => SagaIterator<any>
-
-export type SDKChildWorker<T, U = any> = (
-  params: SDKChildWorkerBaseParams<T, U>
 ) => SagaIterator<any>
 
 export type SDKWorkerDefinition<Hooks extends SDKWorkerHooks = SDKWorkerHooks> =
