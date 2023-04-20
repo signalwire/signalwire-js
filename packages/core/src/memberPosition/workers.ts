@@ -147,6 +147,7 @@ export const memberPositionWorker: SDKWorker<any> =
     initialState,
     getSession,
     instanceMap,
+    dispatcher = defaultDispatcher,
   }): SagaIterator {
     if (!initialState) {
       return
@@ -189,6 +190,7 @@ export const memberPositionWorker: SDKWorker<any> =
             instance,
             getSession,
             instanceMap,
+            dispatcher,
           })
           break
         }
@@ -207,6 +209,7 @@ export const memberPositionWorker: SDKWorker<any> =
             channels,
             memberList,
             instance,
+            dispatcher,
           })
           break
         }

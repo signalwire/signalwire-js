@@ -26,6 +26,10 @@ export type RoomJoined = 'room.joined'
 export type RoomLeft = 'room.left'
 export type RoomAudienceCount = 'room.audienceCount'
 
+// Internal SDK events
+export type SDKRoomSessions = 'sdk.room.sessions'
+export type SDKRoomSession = 'sdk.room.session'
+
 export type VideoRoomAudienceCountEventNames = ToInternalVideoEvent<
   InternalRoomAudienceCount | RoomAudienceCount
 >
@@ -879,6 +883,26 @@ export interface VideoRoomAudienceCountEvent extends SwEvent {
   params: VideoRoomAudienceCountEventParams
 }
 
+/**
+ * 'video.sdk.room.sessions'
+ */
+export interface VideoSDKRoomSessionsEventParams {}
+
+export interface VideoSDKRoomSessionsEvent extends SwEvent {
+  event_type: ToInternalVideoEvent<SDKRoomSessions>
+  params: VideoSDKRoomSessionsEventParams
+}
+
+/**
+ * 'video.sdk.room.session'
+ */
+export interface VideoSDKRoomSessionEventParams {}
+
+export interface VideoSDKRoomSessionEvent extends SwEvent {
+  event_type: ToInternalVideoEvent<SDKRoomSession>
+  params: VideoSDKRoomSessionEventParams
+}
+
 export type VideoRoomEvent =
   | VideoRoomStartedEvent
   | VideoRoomSubscribedEvent
@@ -890,3 +914,11 @@ export type VideoRoomEventParams =
   | VideoRoomSubscribedEventParams
   | VideoRoomUpdatedEventParams
   | VideoRoomEndedEventParams
+
+export type VideoSDKRoomEvent =
+  | VideoSDKRoomSessionsEvent
+  | VideoSDKRoomSessionEvent
+
+export type VideoSDKRoomEventParams =
+  | VideoSDKRoomSessionsEventParams
+  | VideoSDKRoomSessionEventParams

@@ -35,7 +35,6 @@ import {
   createRoomSessionMemberObject,
   RoomSessionMember,
 } from './RoomSessionMember'
-import { memberPositionWorker } from './memberPosition/workers'
 
 type EmitterTransformsEvents =
   | InternalVideoRoomSessionEventNames
@@ -82,10 +81,6 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     }
 
     this.debouncedSubscribe = debounce(this.subscribe, 100)
-
-    this.runWorker('memberPositionWorker', {
-      worker: memberPositionWorker,
-    })
   }
 
   get id() {

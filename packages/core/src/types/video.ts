@@ -2,6 +2,7 @@ import {
   VideoRoomEvent,
   InternalVideoRoomSessionEventNames,
   InternalVideoRoomEvent,
+  VideoSDKRoomEvent,
 } from './videoRoomSession'
 import {
   VideoMemberEvent,
@@ -97,6 +98,8 @@ export type VideoAPIEventParams =
   | VideoPlaybackEvent
   | VideoStreamEvent
   | VideoRoomAudienceCountEvent
+
+export type VideoAPISDKEventParams = VideoSDKRoomEvent
 
 export type VideoAction = MapToPubSubShape<
   InternalVideoAPIEvent | VideoAPIEventParams | VideoRoomAudienceCountEvent
