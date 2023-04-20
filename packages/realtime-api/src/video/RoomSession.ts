@@ -29,6 +29,7 @@ import {
   MemberPosition,
   debounce,
   VideoRoomEventParams,
+  Optional,
 } from '@signalwire/core'
 import { RealTimeRoomApiEvents } from '../types'
 import {
@@ -52,7 +53,7 @@ export interface RoomSession
   extends VideoRoomSessionContract,
     ConsumerContract<RealTimeRoomApiEvents, RoomSessionFullState> {
   baseEmitter: EventEmitter
-  setPayload(payload: VideoRoomEventParams): void
+  setPayload(payload: Optional<VideoRoomEventParams, 'room'>): void
 }
 
 export type RoomSessionUpdated = EntityUpdated<RoomSession>
@@ -63,7 +64,7 @@ export interface RoomSessionFullState extends Omit<RoomSession, 'members'> {
 
 export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   protected _eventsPrefix = 'video' as const
-  private _payload: VideoRoomEventParams
+  private _payload: Optional<VideoRoomEventParams, 'room'>
 
   /** @internal */
   protected subscribeParams = {
@@ -495,7 +496,7 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   }
 
   /** @internal */
-  protected setPayload(payload: VideoRoomEventParams) {
+  protected setPayload(payload: Optional<VideoRoomEventParams, 'room'>) {
     this._payload = payload
   }
 }

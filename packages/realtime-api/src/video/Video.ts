@@ -210,13 +210,18 @@ class VideoAPI extends AutoSubscribeConsumer<RealTimeVideoApiEvents> {
             },
           })
 
-          resolve({
-            roomSession: createRoomSessionObject({
-              store: this.store,
-              // @ts-expect-error
-              emitter: this.options.emitter,
-              payload: { room_session: room },
-            }),
+          const resolveHandler = (roomSession: RoomSession) => {
+            resolve({ roomSession })
+          }
+
+          // @ts-expect-error
+          this.once('room.session', resolveHandler)
+
+          // Put the internal SDK event on SW channel to create or update a RoomSession instance
+          this.store.putOnSwEventChannel({
+            // @ts-expect-error
+            type: 'video.sdk.room.session',
+            payload: room,
           })
         } catch (error) {
           console.error('Error retrieving the room session', error)
