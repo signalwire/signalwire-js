@@ -861,6 +861,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         // case 'closed':
         //   break
         case 'disconnected':
+          this.logger.debug('[test] Prevent reattach!')
+          break
         case 'failed': {
           this.triggerResume()
           break
