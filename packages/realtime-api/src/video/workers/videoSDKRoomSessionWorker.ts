@@ -2,23 +2,17 @@ import {
   getLogger,
   SagaIterator,
   SDKWorkerParams,
-  SDKRoomSessions,
-  SDKRoomSession,
-  ToInternalVideoEvent,
   InternalVideoRoomSessionEntity,
+  MapToPubSubShape,
+  VideoSDKRoomSessionsEvent,
+  VideoSDKRoomSessionEvent,
 } from '@signalwire/core'
 import { createRoomSessionObject, RoomSession } from '../RoomSession'
 import type { Client } from '../VideoClient'
 
-type VideoSDKRoomSessionEvents =
-  | {
-      type: ToInternalVideoEvent<SDKRoomSessions>
-      payload: any[]
-    }
-  | {
-      type: ToInternalVideoEvent<SDKRoomSession>
-      payload: InternalVideoRoomSessionEntity
-    }
+type VideoSDKRoomSessionEvents = MapToPubSubShape<
+  VideoSDKRoomSessionsEvent | VideoSDKRoomSessionEvent
+>
 
 export const videoSDKRoomSessionWorker = function* (
   options: SDKWorkerParams<Client> & {

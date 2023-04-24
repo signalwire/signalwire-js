@@ -5,6 +5,9 @@ import type {
   VideoPlaybackContract,
   VideoPlaybackMethods,
   VideoPlaybackEventNames,
+  VideoPlaybackStartedEventParams,
+  VideoPlaybackUpdatedEventParams,
+  VideoPlaybackEndedEventParams,
 } from '../types/videoPlayback'
 
 /**
@@ -13,17 +16,79 @@ import type {
  * starting a playback from the desired {@link RoomSession} (see
  * {@link RoomSession.play})
  */
-export interface RoomSessionPlayback extends VideoPlaybackContract {}
+export interface RoomSessionPlayback extends VideoPlaybackContract {
+  setPayload(payload: VideoPlaybackEventParams): void
+}
 
 export type RoomSessionPlaybackEventsHandlerMapping = Record<
   VideoPlaybackEventNames,
   (playback: RoomSessionPlayback) => void
 >
 
+type VideoPlaybackEventParams =
+  | VideoPlaybackStartedEventParams
+  | VideoPlaybackUpdatedEventParams
+  | VideoPlaybackEndedEventParams
+
 export class RoomSessionPlaybackAPI
   extends BaseComponent<RoomSessionPlaybackEventsHandlerMapping>
   implements VideoPlaybackMethods
 {
+  private _payload: VideoPlaybackEventParams
+
+  constructor(
+    options: BaseComponentOptions<RoomSessionPlaybackEventsHandlerMapping>
+  ) {
+    super(options)
+
+    this._payload = options.payload
+  }
+
+  /** @internal */
+  protected setPayload(payload: VideoPlaybackEventParams) {
+    this._payload = payload
+  }
+
+  get id() {
+    return this._payload.playback.id
+  }
+
+  get roomId() {
+    return this._payload.room_id
+  }
+
+  get roomSessionId() {
+    return this._payload.room_session_id
+  }
+
+  get url() {
+    return this._payload.playback.id
+  }
+
+  get state() {
+    return this._payload.playback.state
+  }
+
+  get volume() {
+    return this._payload.playback.volume
+  }
+
+  get startedAt() {
+    return this._payload.playback.started_at
+  }
+
+  get endedAt() {
+    return this._payload.playback.ended_at
+  }
+
+  get position() {
+    return this._payload.playback.position
+  }
+
+  get seekable() {
+    return this._payload.playback.seekable
+  }
+
   async pause() {
     await this.execute({
       method: 'video.playback.pause',
