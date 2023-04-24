@@ -65,6 +65,7 @@ const handler = () => {
 
         console.log('Waiting for Playback to end')
         const playbackEndedResult = await playback.ended()
+        console.log('>> Playback ENDED')
         tap.equal(playback.id, playbackEndedResult.id, 'Instances are the same')
         tap.equal(
           playbackEndedResult.state,
@@ -172,6 +173,7 @@ const handler = () => {
       timeout: 30,
       maxPricePerMinute: 10,
     })
+    console.log('>> CALL', call)
     tap.ok(call.id, 'Call resolved')
     tap.equal(call.state, 'answered', 'Outbound call state is "answered"')
 
