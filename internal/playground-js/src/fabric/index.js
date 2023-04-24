@@ -246,6 +246,13 @@ window.connect = async () => {
       console.log('Change invite - inject nodeId for steering')
       executeInviteRef.call(call, sdp, rtcPeerId, steeringId)
     }
+
+    const vertoExecuteRef = call.vertoExecute
+    call.vertoExecute = (params) => {
+      console.log('Change vertoExecute - inject nodeId for steering')
+      params.node_id = steeringId
+      vertoExecuteRef.call(call, params)
+    }
   }
   console.debug('Call Obj', call)
 
