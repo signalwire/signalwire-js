@@ -123,6 +123,7 @@ const handler = () => {
           to: process.env.VOICE_CONNECT_TO_NUMBER!,
           timeout: 30,
           ringback, // optional
+          maxPricePerMinute: 10,
         })
 
         tap.equal(peer.connected, true, 'Peer connected is true')
@@ -169,6 +170,7 @@ const handler = () => {
       to: process.env.VOICE_DIAL_TO_NUMBER as string,
       from: process.env.VOICE_DIAL_FROM_NUMBER as string,
       timeout: 30,
+      maxPricePerMinute: 10,
     })
     tap.ok(call.id, 'Call resolved')
     tap.equal(call.state, 'answered', 'Outbound call state is "answered"')
