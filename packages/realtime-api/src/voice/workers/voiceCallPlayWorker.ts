@@ -10,7 +10,7 @@ import type { VoiceCallWorkerParams } from './voiceCallingWorker'
 export const voiceCallPlayWorker = function* (
   options: VoiceCallWorkerParams<CallingCallPlayEventParams>
 ): SagaIterator {
-  getLogger().trace('voiceCallPlayWorker started')
+  getLogger().info('voiceCallPlayWorker started')
   const {
     payload,
     instanceMap: { get, set },
@@ -23,9 +23,11 @@ export const voiceCallPlayWorker = function* (
 
   // Playback events control id for prompt contains `.prompt` keyword at the end of the string
   const [controlId] = payload.control_id.split('.')
+  getLogger().info('voiceCallPlayWorker controlId', controlId)
 
   let playbackInstance = get<CallPlayback>(controlId)
   if (!playbackInstance) {
+    getLogger().info('voiceCallPlayWorker create instance')
     playbackInstance = createCallPlaybackObject({
       store: callInstance.store,
       // @ts-expect-error
@@ -33,6 +35,7 @@ export const voiceCallPlayWorker = function* (
       payload,
     })
   } else {
+    getLogger().info('voiceCallPlayWorker GOT instance')
     playbackInstance.setPayload(payload)
   }
   set<CallPlayback>(controlId, playbackInstance)
@@ -71,5 +74,5 @@ export const voiceCallPlayWorker = function* (
       break
   }
 
-  getLogger().trace('voiceCallPlayWorker ended')
+  getLogger().info('voiceCallPlayWorker ended')
 }
