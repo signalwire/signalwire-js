@@ -1,12 +1,12 @@
 import {
   connect,
-  BaseComponent,
   BaseComponentOptions,
   VoiceCallTapContract,
   CallingCallTapEndState,
   CallingCallTapEventParams,
   EventEmitter,
 } from '@signalwire/core'
+import { ApplyEventListeners } from '../ApplyEventListeners'
 
 /**
  * Instances of this class allow you to control (e.g., resume) the
@@ -28,7 +28,7 @@ export interface CallTapOptions
 const ENDED_STATES: CallingCallTapEndState[] = ['finished']
 
 export class CallTapAPI
-  extends BaseComponent<CallTapEventsHandlerMapping>
+  extends ApplyEventListeners<CallTapEventsHandlerMapping>
   implements VoiceCallTapContract
 {
   private _payload: CallingCallTapEventParams

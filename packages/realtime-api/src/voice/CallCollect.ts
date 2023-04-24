@@ -3,11 +3,11 @@ import {
   BaseComponentOptions,
   VoiceCallCollectContract,
   CallingCallCollectEndState,
-  BaseComponent,
   CallCollectEndedEvent,
   CallingCallCollectEventParams,
   EventEmitter,
 } from '@signalwire/core'
+import { ApplyEventListeners } from '../ApplyEventListeners'
 
 /**
  * Instances of this class allow you to control (e.g., resume) the
@@ -34,7 +34,7 @@ const ENDED_STATES: CallingCallCollectEndState[] = [
 ]
 
 export class CallCollectAPI
-  extends BaseComponent<CallCollectEventsHandlerMapping>
+  extends ApplyEventListeners<CallCollectEventsHandlerMapping>
   implements VoiceCallCollectContract
 {
   protected _eventsPrefix = 'calling' as const

@@ -1,12 +1,12 @@
 import {
   connect,
-  BaseComponent,
   BaseComponentOptions,
   VoiceCallRecordingContract,
   CallingCallRecordEndState,
   CallingCallRecordEventParams,
   EventEmitter,
 } from '@signalwire/core'
+import { ApplyEventListeners } from '../ApplyEventListeners'
 
 /**
  * Instances of this class allow you to control (e.g., resume) the
@@ -28,7 +28,7 @@ export interface CallRecordingOptions
 const ENDED_STATES: CallingCallRecordEndState[] = ['finished', 'no_input']
 
 export class CallRecordingAPI
-  extends BaseComponent<CallRecordingEventsHandlerMapping>
+  extends ApplyEventListeners<CallRecordingEventsHandlerMapping>
   implements VoiceCallRecordingContract
 {
   protected _eventsPrefix = 'calling' as const
