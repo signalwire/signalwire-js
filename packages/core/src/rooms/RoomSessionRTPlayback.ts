@@ -1,3 +1,11 @@
+/**
+ * `RoomSessionPlayback.ts`   -> Uses old event emitter - being used in browser SDK
+ * `RoomSessionRTPlayback.ts` -> Uses new event emitter - being used in realtime SDK
+ *
+ * The `RoomSessionPlayback.ts` file should be removed when we start using the new event emitter in browser sdk.
+ * We will also need to rename the new file and remove the letters RT from all the variables/classes/functions.
+ */
+
 import { connect } from '../redux'
 import { BaseComponent } from '../BaseComponent'
 import { BaseComponentOptions } from '../utils/interfaces'
@@ -5,6 +13,9 @@ import type {
   VideoPlaybackContract,
   VideoPlaybackMethods,
   VideoPlaybackEventNames,
+  VideoPlaybackStartedEventParams,
+  VideoPlaybackUpdatedEventParams,
+  VideoPlaybackEndedEventParams,
 } from '../types/videoPlayback'
 
 /**
@@ -13,17 +24,79 @@ import type {
  * starting a playback from the desired {@link RoomSession} (see
  * {@link RoomSession.play})
  */
-export interface RoomSessionPlayback extends VideoPlaybackContract {}
+export interface RoomSessionRTPlayback extends VideoPlaybackContract {
+  setPayload(payload: VideoPlaybackEventParams): void
+}
 
-export type RoomSessionPlaybackEventsHandlerMapping = Record<
+export type RoomSessionRTPlaybackEventsHandlerMapping = Record<
   VideoPlaybackEventNames,
-  (playback: RoomSessionPlayback) => void
+  (playback: RoomSessionRTPlayback) => void
 >
 
-export class RoomSessionPlaybackAPI
-  extends BaseComponent<RoomSessionPlaybackEventsHandlerMapping>
+type VideoPlaybackEventParams =
+  | VideoPlaybackStartedEventParams
+  | VideoPlaybackUpdatedEventParams
+  | VideoPlaybackEndedEventParams
+
+export class RoomSessionRTPlaybackAPI
+  extends BaseComponent<RoomSessionRTPlaybackEventsHandlerMapping>
   implements VideoPlaybackMethods
 {
+  private _payload: VideoPlaybackEventParams
+
+  constructor(
+    options: BaseComponentOptions<RoomSessionRTPlaybackEventsHandlerMapping>
+  ) {
+    super(options)
+
+    this._payload = options.payload
+  }
+
+  get id() {
+    return this._payload.playback.id
+  }
+
+  get roomId() {
+    return this._payload.room_id
+  }
+
+  get roomSessionId() {
+    return this._payload.room_session_id
+  }
+
+  get url() {
+    return this._payload.playback.url
+  }
+
+  get state() {
+    return this._payload.playback.state
+  }
+
+  get volume() {
+    return this._payload.playback.volume
+  }
+
+  get startedAt() {
+    return this._payload.playback.started_at
+  }
+
+  get endedAt() {
+    return this._payload.playback.ended_at
+  }
+
+  get position() {
+    return this._payload.playback.position
+  }
+
+  get seekable() {
+    return this._payload.playback.seekable
+  }
+
+  /** @internal */
+  protected setPayload(payload: VideoPlaybackEventParams) {
+    this._payload = payload
+  }
+
   async pause() {
     await this.execute({
       method: 'video.playback.pause',
@@ -99,16 +172,16 @@ export class RoomSessionPlaybackAPI
   }
 }
 
-export const createRoomSessionPlaybackObject = (
-  params: BaseComponentOptions<RoomSessionPlaybackEventsHandlerMapping>
-): RoomSessionPlayback => {
+export const createRoomSessionRTPlaybackObject = (
+  params: BaseComponentOptions<RoomSessionRTPlaybackEventsHandlerMapping>
+): RoomSessionRTPlayback => {
   const playback = connect<
-    RoomSessionPlaybackEventsHandlerMapping,
-    RoomSessionPlaybackAPI,
-    RoomSessionPlayback
+    RoomSessionRTPlaybackEventsHandlerMapping,
+    RoomSessionRTPlaybackAPI,
+    RoomSessionRTPlayback
   >({
     store: params.store,
-    Component: RoomSessionPlaybackAPI,
+    Component: RoomSessionRTPlaybackAPI,
   })(params)
 
   return playback

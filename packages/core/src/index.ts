@@ -97,6 +97,7 @@ export * as MemberPosition from './memberPosition'
 export type {
   RoomSessionRecording,
   RoomSessionPlayback,
+  RoomSessionRTPlayback,
   RoomSessionStream,
 } from './rooms'
 export const selectors = {
