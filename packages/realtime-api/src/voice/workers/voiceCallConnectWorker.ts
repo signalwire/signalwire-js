@@ -35,11 +35,12 @@ export const voiceCallConnectWorker = function* (
           store: client.store,
           // @ts-expect-error
           emitter: client.emitter,
-          payload: payload.peer,
+          payload,
         })
       } else {
-        set<Call>(payload.peer.call_id, peerCallInstance)
+        peerCallInstance.setConnectPayload(payload)
       }
+      set<Call>(payload.peer.call_id, peerCallInstance)
       callInstance.peer = peerCallInstance
       peerCallInstance.peer = callInstance
       callInstance.baseEmitter.emit('connect.connected', peerCallInstance)
