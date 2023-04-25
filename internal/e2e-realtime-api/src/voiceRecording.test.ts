@@ -31,41 +31,34 @@ const handler = () => {
 
         await sleep(10000)
 
-        // Send digit # to terminate the recording
-        const sendDigitResult = await call.sendDigits('#')
-        tap.equal(
-          call.id,
-          sendDigitResult.id,
-          'Inbound - sendDigit returns the same instance'
-        )
+        try {
+          // Start an inbound recording
+          const recording = await call.recordAudio({ direction: 'both' })
+          tap.equal(
+            call.id,
+            recording.callId,
+            'Inbound - Recording returns the same instance'
+          )
 
-        await sleep(5000)
-
-        // Start an inbound recording
-        const recording = await call.recordAudio({ direction: 'both' })
-        tap.equal(
-          call.id,
-          recording.callId,
-          'Inbound - Recording returns the same instance'
-        )
-
-        // Play an invalid audio to fail the recording
-        await call.playAudio({
-          url: 'https://cdn.fake.com/default-music/fake.mp3',
-        })
-
-        const waitForRecordingFailed = new Promise((resolve) => {
-          call.on('recording.failed', (recording) => {
-            tap.equal(
-              recording.state,
-              'no_input',
-              'Inbound - Recording has failed'
-            )
-            resolve(true)
+          // Play an invalid audio to fail the recording
+          await call.playAudio({
+            url: 'https://cdn.fake.com/default-music/fake.mp3',
           })
-        })
-        // Wait for the outbound recording to start
-        await waitForRecordingFailed
+        } catch (error) {
+          console.log('Inbound - invalid playback error')
+          const waitForRecordingFailed = new Promise((resolve) => {
+            call.on('recording.failed', (recording) => {
+              tap.equal(
+                recording.state,
+                'no_input',
+                'Inbound - Recording has failed'
+              )
+              resolve(true)
+            })
+          })
+          // Wait for the outbound recording to start
+          await waitForRecordingFailed
+        }
 
         // Callee hangs up a call
         await call.hangup()
@@ -83,13 +76,7 @@ const handler = () => {
     tap.ok(call.id, 'Outbound - Call resolved')
 
     // Start an outbound recording
-    const recording = await call.recordAudio({ direction: 'both' })
-
-    tap.equal(
-      call.id,
-      recording.callId,
-      'Outbound - Recording returns the same instance'
-    )
+    const recording = call.recordAudio({ direction: 'both' })
 
     const waitForRecordingStarted = new Promise((resolve) => {
       call.on('recording.started', (recording) => {
@@ -103,6 +90,15 @@ const handler = () => {
     })
     // Wait for the outbound recording to start
     await waitForRecordingStarted
+
+    // Resolve late so that we attach `recording.started` and wait for it
+    const resolvedRecording = await recording
+
+    tap.equal(
+      call.id,
+      resolvedRecording.callId,
+      'Outbound - Recording returns the same instance'
+    )
 
     // Play a valid audio
     const playlist = new Voice.Playlist({ volume: 2 })

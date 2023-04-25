@@ -29,25 +29,35 @@ const handler = () => {
           'Inbound - Call answered gets the same instance'
         )
 
-        // Play an invalid audio
-        const handle = await call.playAudio({
-          url: 'https://cdn.fake.com/default-music/fake.mp3',
-        })
-
-        tap.equal(
-          call.id,
-          handle.callId,
-          'Inbound - playback returns the same instance'
-        )
-
-        const waitForPlaybackFailed = new Promise((resolve) => {
-          call.on('playback.failed', (playback) => {
-            tap.equal(playback.state, 'error', 'Inbound - playback has failed')
-            resolve(true)
+        try {
+          // Play an invalid audio
+          const handle = call.playAudio({
+            url: 'https://cdn.fake.com/default-music/fake.mp3',
           })
-        })
-        // Wait for the inbound audio to failed
-        await waitForPlaybackFailed
+
+          const waitForPlaybackFailed = new Promise((resolve) => {
+            call.on('playback.failed', (playback) => {
+              tap.equal(
+                playback.state,
+                'error',
+                'Inbound - playback has failed'
+              )
+              resolve(true)
+            })
+          })
+          // Wait for the inbound audio to failed
+          await waitForPlaybackFailed
+
+          // Resolve late so that we attach `playback.failed` and wait for it
+          await handle
+        } catch (error) {
+          console.log('Inbound - invalid playback error')
+          tap.equal(
+            call.id,
+            error.callId,
+            'Inbound - playback returns the same instance'
+          )
+        }
 
         // Callee hangs up a call
         await call.hangup()
@@ -65,15 +75,9 @@ const handler = () => {
     tap.ok(call.id, 'Outbound - Call resolved')
 
     // Play an audio
-    const handle = await call.playAudio({
+    const handle = call.playAudio({
       url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
     })
-
-    tap.equal(
-      call.id,
-      handle.callId,
-      'Outbound - Playback returns the same instance'
-    )
 
     const waitForPlaybackStarted = new Promise((resolve) => {
       call.on('playback.started', (playback) => {
@@ -83,6 +87,15 @@ const handler = () => {
     })
     // Wait for the outbound audio to start
     await waitForPlaybackStarted
+
+    // Resolve late so that we attach `playback.started` and wait for it
+    const resolvedHandle = await handle
+
+    tap.equal(
+      call.id,
+      resolvedHandle.callId,
+      'Outbound - Playback returns the same instance'
+    )
 
     const waitForPlaybackEnded = new Promise((resolve) => {
       call.on('playback.ended', (playback) => {
