@@ -1,19 +1,13 @@
 import {
   BaseComponentOptions,
   connect,
-  EventTransform,
-  InternalVideoRoomSessionEventNames,
-  toExternalJSON,
   ConsumerContract,
   RoomSessionRecording,
-  VideoRoomEventParams,
   RoomSessionPlayback,
-  toLocalEvent,
   EventEmitter,
 } from '@signalwire/core'
 import { AutoSubscribeConsumer } from '../AutoSubscribeConsumer'
 import type { RealtimeClient } from '../client/Client'
-
 import {
   RealTimeRoomApiEvents,
   RealTimeVideoApiEvents,
@@ -21,7 +15,6 @@ import {
   RealTimeRoomApiEventsHandlerMapping,
 } from '../types/video'
 import {
-  createRoomSessionObject,
   RoomSession,
   RoomSessionFullState,
   RoomSessionUpdated,
@@ -31,15 +24,6 @@ import type {
   RoomSessionMemberUpdated,
 } from './RoomSessionMember'
 import { videoCallingWorker } from './workers'
-
-const videoRoomGetTriggerEvent = toLocalEvent<TransformEvent>('video.room.get')
-
-type TransformEvent =
-  | Extract<
-      InternalVideoRoomSessionEventNames,
-      'video.room.started' | 'video.room.ended'
-    >
-  | 'video.__local__.room.get'
 
 export interface Video extends ConsumerContract<RealTimeVideoApiEvents> {
   /** @internal */
@@ -120,7 +104,6 @@ export type {
   VideoRecordingEventNames,
 } from '@signalwire/core'
 
-/** @internal */
 class VideoAPI extends AutoSubscribeConsumer<RealTimeVideoApiEvents> {
   constructor(options: BaseComponentOptions<RealTimeVideoApiEvents>) {
     super(options)
@@ -134,39 +117,6 @@ class VideoAPI extends AutoSubscribeConsumer<RealTimeVideoApiEvents> {
   /** @internal */
   protected subscribeParams = {
     get_initial_state: true,
-  }
-
-  /** @internal */
-  protected getEmitterTransforms() {
-    return new Map<TransformEvent | TransformEvent[], EventTransform>([
-      [
-        [videoRoomGetTriggerEvent, 'video.room.started', 'video.room.ended'],
-        {
-          type: 'roomSession',
-          mode: 'no-cache',
-          instanceFactory: () => {
-            return createRoomSessionObject({
-              store: this.store,
-              // Emitter is now typed.
-              // @ts-expect-error
-              emitter: this.options.emitter,
-            })
-          },
-          payloadTransform: (payload: VideoRoomEventParams) => {
-            return toExternalJSON({
-              ...payload.room_session,
-              room_session_id: payload.room_session.id,
-            })
-          },
-          getInstanceEventNamespace: (payload: VideoRoomEventParams) => {
-            return payload.room_session.id
-          },
-          getInstanceEventChannel: (payload: VideoRoomEventParams) => {
-            return payload.room_session.event_channel
-          },
-        },
-      ],
-    ])
   }
 
   async getRoomSessions() {

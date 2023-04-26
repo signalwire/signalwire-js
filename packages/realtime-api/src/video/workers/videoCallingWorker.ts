@@ -14,6 +14,7 @@ import { videoRoomWorker } from './videoRoomWorker'
 import { videoMemberWorker } from './videoMemberWorker'
 import { videoSDKRoomSessionWorker } from './videoSDKRoomSessionWorker'
 import { videoPlaybackWorker } from './videoPlaybackWorker'
+import { videoRecordingWorker } from './videoRecordingWorker'
 
 export const videoCallingWorker: SDKWorker<Client> = function* (
   options
@@ -50,6 +51,14 @@ export const videoCallingWorker: SDKWorker<Client> = function* (
       case 'video.playback.updated':
       case 'video.playback.ended':
         yield fork(videoPlaybackWorker, {
+          action,
+          ...options,
+        })
+        break
+      case 'video.recording.started':
+      case 'video.recording.updated':
+      case 'video.recording.ended':
+        yield fork(videoRecordingWorker, {
           action,
           ...options,
         })

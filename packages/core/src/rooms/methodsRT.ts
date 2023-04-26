@@ -9,8 +9,10 @@
 
 import {
   BaseRoomInterface,
-  RoomSessionPlayback,
+  RoomSessionRTPlayback,
+  RoomSessionRTRecording,
   createRoomSessionRTPlaybackObject,
+  createRoomSessionRTRecordingObject,
 } from '.'
 import { VideoPosition } from '../types'
 
@@ -53,7 +55,7 @@ export const playRT: RoomMethodDescriptor<any, PlayRTParams> = {
     return new Promise(async (resolve, reject) => {
       try {
         const seek_position = seekPosition || currentTimecode
-        const { playback } = await this.execute<unknown, PlayRTOutput>({
+        const { playback } = await this.execute<void, PlayRTOutput>({
           method: 'video.playback.start',
           params: {
             room_session_id: this.roomSessionId,
@@ -61,7 +63,6 @@ export const playRT: RoomMethodDescriptor<any, PlayRTParams> = {
             ...params,
           },
         })
-
         const playbackInstance = createRoomSessionRTPlaybackObject({
           store: this.store,
           // @ts-expect-error
@@ -72,7 +73,6 @@ export const playRT: RoomMethodDescriptor<any, PlayRTParams> = {
             playback,
           },
         })
-
         resolve({ playback: playbackInstance })
       } catch (error) {
         reject(error)
@@ -82,7 +82,7 @@ export const playRT: RoomMethodDescriptor<any, PlayRTParams> = {
 }
 
 export interface GetPlaybacksRTOutput {
-  playbacks: RoomSessionPlayback[]
+  playbacks: RoomSessionRTPlayback[]
 }
 
 export const getRTPlaybacks: RoomMethodDescriptor<GetPlaybacksRTOutput> = {
@@ -97,7 +97,6 @@ export const getRTPlaybacks: RoomMethodDescriptor<GetPlaybacksRTOutput> = {
             },
           }
         )
-
         const playbackInstances = playbacks.map((playback) =>
           createRoomSessionRTPlaybackObject({
             store: this.store,
@@ -110,7 +109,6 @@ export const getRTPlaybacks: RoomMethodDescriptor<GetPlaybacksRTOutput> = {
             },
           })
         )
-
         resolve({ playbacks: playbackInstances })
       } catch (error) {
         reject(error)
@@ -118,3 +116,91 @@ export const getRTPlaybacks: RoomMethodDescriptor<GetPlaybacksRTOutput> = {
     })
   },
 }
+
+export type StartRecordingRTParams = {
+  id: string
+  state: string
+  duration: number
+  started_at: Date
+  ended_at: Date
+}
+export interface StartRecordingRTOutput {
+  recording: StartRecordingRTParams
+  code: string
+  message: string
+  recording_id: string
+}
+export const startRTRecording: RoomMethodDescriptor<
+  any,
+  StartRecordingRTParams
+> = {
+  value: function () {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const { recording } = await this.execute<void, StartRecordingRTOutput>({
+          method: 'video.recording.start',
+          params: {
+            room_session_id: this.roomSessionId,
+          },
+        })
+        const recordingInstance = createRoomSessionRTRecordingObject({
+          store: this.store,
+          // @ts-expect-error
+          emitter: this.emitter,
+          payload: {
+            room_id: this.roomId,
+            room_session_id: this.roomSessionId,
+            recording,
+          },
+        })
+        resolve({ recording: recordingInstance })
+      } catch (error) {
+        reject(error)
+      }
+    })
+  },
+}
+export interface GetRecordingsRTOutput {
+  recordings: RoomSessionRTRecording[]
+}
+
+export const getRTRecordings: RoomMethodDescriptor<GetRecordingsRTOutput> = {
+  value: function () {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const { recordings } = await this.execute<
+          unknown,
+          GetRecordingsRTOutput
+        >({
+          method: 'video.recording.list',
+          params: {
+            room_session_id: this.roomSessionId,
+          },
+        })
+        console.log('recordings', recordings)
+        const recordingInstances = recordings.map((recording) =>
+          createRoomSessionRTRecordingObject({
+            store: this.store,
+            // @ts-expect-error
+            emitter: this.emitter,
+            payload: {
+              room_id: this.roomId,
+              room_session_id: this.roomSessionId,
+              recording,
+            },
+          })
+        )
+        console.log('recordingInstances', recordingInstances?.[0]?.state)
+        resolve({ recordings: recordingInstances })
+      } catch (error) {
+        reject(error)
+      }
+    })
+  },
+}
+
+export type GetRTPlaybacks = ReturnType<typeof getRTPlaybacks.value>
+export type PlayRT = ReturnType<typeof playRT.value>
+
+export type GetRTRecordings = ReturnType<typeof getRTRecordings.value>
+export type StartRTRecording = ReturnType<typeof startRTRecording.value>

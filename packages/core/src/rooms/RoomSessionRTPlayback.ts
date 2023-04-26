@@ -3,7 +3,7 @@
  * `RoomSessionRTPlayback.ts` -> Uses new event emitter - being used in realtime SDK
  *
  * The `RoomSessionPlayback.ts` file should be removed when we start using the new event emitter in browser sdk.
- * We will also need to rename the new file and remove the letters RT from all the variables/classes/functions.
+ * We will also need to rename the new file and remove the letters `RT` from all the variables/classes/functions/types.
  */
 
 import { connect } from '../redux'
