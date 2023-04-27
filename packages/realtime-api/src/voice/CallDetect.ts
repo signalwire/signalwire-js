@@ -1,12 +1,12 @@
 import {
   connect,
-  BaseComponent,
   BaseComponentOptions,
   VoiceCallDetectContract,
   CallingCallDetectEndState,
   CallingCallDetectEventParams,
   EventEmitter,
 } from '@signalwire/core'
+import { ApplyEventListeners } from '../ApplyEventListeners'
 
 /**
  * Instances of this class allow you to control (e.g., resume) the
@@ -29,7 +29,7 @@ export interface CallDetectOptions
 const ENDED_STATES: CallingCallDetectEndState[] = ['finished', 'error']
 
 export class CallDetectAPI
-  extends BaseComponent<CallDetectEventsHandlerMapping>
+  extends ApplyEventListeners<CallDetectEventsHandlerMapping>
   implements VoiceCallDetectContract
 {
   protected _eventsPrefix = 'calling' as const

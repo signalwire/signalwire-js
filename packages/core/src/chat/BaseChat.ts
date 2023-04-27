@@ -1,20 +1,14 @@
 import {
   BaseComponentOptions,
   connect,
-  EventTransform,
   extendComponent,
   JSONRPCSubscribeMethod,
   SessionEvents,
-  toExternalJSON,
 } from '..'
 import { BasePubSubConsumer } from '../pubSub'
 import type {
-  ChatChannelMessageEvent,
   ChatEventNames,
   ChatMemberEventNames,
-  ChatMemberJoinedEvent,
-  ChatMemberLeftEvent,
-  ChatMemberUpdatedEvent,
   ChatMessageEventName,
   ChatMethods,
 } from '../types/chat'
@@ -22,12 +16,8 @@ import { PRODUCT_PREFIX_CHAT } from '../utils/constants'
 import { ChatMember } from './ChatMember'
 import { ChatMessage } from './ChatMessage'
 import * as chatMethods from './methods'
-import * as workers from './workers'
+import { chatWorker } from './workers/chatWorker'
 
-type ChatMemberEvent =
-  | ChatMemberJoinedEvent
-  | ChatMemberLeftEvent
-  | ChatMemberUpdatedEvent
 export type BaseChatApiEventsHandlerMapping = Record<
   ChatMessageEventName,
   (message: ChatMessage) => void
@@ -51,44 +41,10 @@ export class BaseChatConsumer extends BasePubSubConsumer<BaseChatApiEvents> {
 
   constructor(options: BaseComponentOptions<BaseChatApiEvents>) {
     super(options)
-
-    this.runWorker('chat', { worker: workers.chatWorker })
   }
 
-  /** @internal */
-  protected override getEmitterTransforms() {
-    return new Map<ChatEventNames | ChatEventNames[], EventTransform>([
-      [
-        ['message'],
-        {
-          type: 'chatMessage',
-          instanceFactory: () => {
-            return new ChatMessage({} as any)
-          },
-          payloadTransform: (payload: ChatChannelMessageEvent) => {
-            const { channel, message } = payload.params
-            return toExternalJSON({
-              ...message,
-              channel,
-            })
-          },
-        },
-      ],
-      [
-        ['member.joined', 'member.left', 'member.updated'],
-        {
-          type: 'chatMember',
-          instanceFactory: (payload: ChatMemberEvent) => {
-            const { member } = payload.params
-            return new ChatMember(toExternalJSON(member))
-          },
-          payloadTransform: (payload: ChatMemberEvent) => {
-            const { member } = payload.params
-            return toExternalJSON(member)
-          },
-        },
-      ],
-    ])
+  protected override initWorker() {
+    this.runWorker('chat', { worker: chatWorker })
   }
 }
 
