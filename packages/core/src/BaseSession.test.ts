@@ -64,7 +64,7 @@ describe('BaseSession', () => {
     WS.clean()
   })
 
-  it.only('should connect and disconnect to/from the provided host', async () => {
+  it('should connect and disconnect to/from the provided host', async () => {
     session.connect()
     await ws.connected
 
