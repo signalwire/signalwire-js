@@ -33,7 +33,7 @@ export const videoRoomWorker = function* (
   }
 ): SagaIterator {
   getLogger().trace('videoRoomWorker started')
-  const { instance, action, ...memberPositionWorkerParams } = options
+  const { instance: client, action, ...memberPositionWorkerParams } = options
   const { type, payload } = action
   const { get, set, remove } = options.instanceMap
 
@@ -41,9 +41,9 @@ export const videoRoomWorker = function* (
   if (!roomSessionInstance) {
     roomSessionInstance = createRoomSessionObject({
       // @ts-expect-error
-      store: instance.store,
+      store: client.store,
       // @ts-expect-error
-      emitter: instance.emitter,
+      emitter: client.emitter,
       payload,
     })
   } else {
@@ -59,9 +59,9 @@ export const videoRoomWorker = function* (
         if (!memberInstance) {
           memberInstance = createRoomSessionMemberObject({
             // @ts-expect-error
-            store: instance.store,
+            store: client.store,
             // @ts-expect-error
-            emitter: instance.emitter,
+            emitter: client.emitter,
             payload: {
               room_id: payload.room_session.room_id,
               room_session_id: payload.room_session.id,
@@ -83,11 +83,13 @@ export const videoRoomWorker = function* (
   switch (type) {
     case 'video.room.started':
     case 'video.room.updated': {
-      instance.baseEmitter.emit(type, roomSessionInstance)
+      client.baseEmitter.emit(type, roomSessionInstance)
+      roomSessionInstance.baseEmitter.emit(type, roomSessionInstance)
       break
     }
     case 'video.room.ended': {
-      instance.baseEmitter.emit(type, roomSessionInstance)
+      client.baseEmitter.emit(type, roomSessionInstance)
+      roomSessionInstance.baseEmitter.emit(type, roomSessionInstance)
       remove<RoomSession>(payload.room_session.id)
       break
     }
