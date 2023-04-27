@@ -1,12 +1,12 @@
 import {
   connect,
-  BaseComponent,
   BaseComponentOptions,
   VoiceCallPlaybackContract,
   CallingCallPlayEndState,
   CallingCallPlayEventParams,
   EventEmitter,
 } from '@signalwire/core'
+import { ApplyEventListeners } from '../ApplyEventListeners'
 
 /**
  * Instances of this class allow you to control (e.g., pause, resume, stop) the
@@ -32,7 +32,7 @@ export interface CallPlaybackOptions
 const ENDED_STATES: CallingCallPlayEndState[] = ['finished', 'error']
 
 export class CallPlaybackAPI
-  extends BaseComponent<CallPlaybackEventsHandlerMapping>
+  extends ApplyEventListeners<CallPlaybackEventsHandlerMapping>
   implements VoiceCallPlaybackContract
 {
   protected _eventsPrefix = 'calling' as const

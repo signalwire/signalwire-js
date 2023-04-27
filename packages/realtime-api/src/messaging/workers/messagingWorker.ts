@@ -13,8 +13,10 @@ export const messagingWorker: SDKWorker<Client> = function* (
   options
 ): SagaIterator {
   getLogger().trace('messagingWorker started')
-  const { channels, instance: client } = options
-  const { swEventChannel } = channels
+  const {
+    instance: client,
+    channels: { swEventChannel },
+  } = options
 
   function* worker(action: MessagingAction) {
     const { payload, type } = action

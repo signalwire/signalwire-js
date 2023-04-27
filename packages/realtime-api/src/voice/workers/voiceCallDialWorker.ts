@@ -1,19 +1,17 @@
 import {
   getLogger,
   SagaIterator,
-  SDKCallWorker,
   CallingCallDialEventParams,
 } from '@signalwire/core'
 import type { Call } from '../Call'
-import type { Client } from '../../client/index'
+import type { VoiceCallWorkerParams } from './voiceCallingWorker'
 
-export const voiceCallDialWorker: SDKCallWorker<
-  CallingCallDialEventParams,
-  Client
-> = function* (options): SagaIterator {
+export const voiceCallDialWorker = function* (
+  options: VoiceCallWorkerParams<CallingCallDialEventParams>
+): SagaIterator {
   getLogger().trace('voiceCallDialWorker started')
   const {
-    client,
+    instance: client,
     payload,
     instanceMap: { get },
     initialState,
@@ -24,12 +22,14 @@ export const voiceCallDialWorker: SDKCallWorker<
 
   switch (payload.dial_state) {
     case 'failed': {
+      // TODO: same in the failed  case?
       // @ts-expect-error
       client.baseEmitter.emit('dial.failed', payload)
       break
     }
     case 'answered': {
       const callInstance = get<Call>(payload.call.call_id)
+      callInstance.setPayload(payload.call)
       // @ts-expect-error
       client.baseEmitter.emit('dial.answered', callInstance)
       break

@@ -23,44 +23,49 @@ test.describe('PubSub', () => {
       },
     })
 
-    const { message: chatMessage, allowedChannels }: any = await page.evaluate(
-      (options) => {
-        return new Promise(async (resolve) => {
-          try {
-            // @ts-expect-error
-            const PubSub = window._SWJS.PubSub
-            const pubSubClient = new PubSub.Client({
-              host: options.RELAY_HOST,
-              token: options.API_TOKEN,
-            })
-            const allowedChannels = await pubSubClient.getAllowedChannels()
-            // .subscribe should be after .on but i left here for test.
-            await pubSubClient.subscribe([options.channel])
-            pubSubClient.on('message', (message: any) => {
-              resolve({ allowedChannels, message })
-            })
+    const { msgContent, msgChannel, allowedChannels }: any =
+      await page.evaluate(
+        (options) => {
+          return new Promise(async (resolve) => {
+            try {
+              // @ts-expect-error
+              const PubSub = window._SWJS.PubSub
+              const pubSubClient = new PubSub.Client({
+                host: options.RELAY_HOST,
+                token: options.API_TOKEN,
+              })
+              const allowedChannels = await pubSubClient.getAllowedChannels()
+              // .subscribe should be after .on but i left here for test.
+              await pubSubClient.subscribe([options.channel])
+              pubSubClient.on('message', (message: any) => {
+                resolve({
+                  allowedChannels,
+                  msgContent: message.content,
+                  msgChannel: message.channel,
+                })
+              })
 
-            await pubSubClient.publish({
-              channel: options.channel,
-              content: options.messageContent,
-            })
-          } catch (error) {
-            console.log('PubSub Error', error)
-          }
-        })
-      },
-      {
-        RELAY_HOST: process.env.RELAY_HOST,
-        API_TOKEN: crt,
-        channel,
-        messageContent,
-      }
-    )
+              await pubSubClient.publish({
+                channel: options.channel,
+                content: options.messageContent,
+              })
+            } catch (error) {
+              console.log('PubSub Error', error)
+            }
+          })
+        },
+        {
+          RELAY_HOST: process.env.RELAY_HOST,
+          API_TOKEN: crt,
+          channel,
+          messageContent,
+        }
+      )
     expect(allowedChannels).toStrictEqual({
       'js-e2e': { read: true, write: true },
     })
-    expect(chatMessage.content).toBe(messageContent)
-    expect(chatMessage.channel).toBe(channel)
+    expect(msgContent).toBe(messageContent)
+    expect(msgChannel).toBe(channel)
   })
 
   test('should expose disconnect()', async ({ page }) => {

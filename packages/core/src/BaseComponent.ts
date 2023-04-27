@@ -683,8 +683,15 @@ export class BaseComponent<
     return this._trackedEvents
   }
 
+  /** @internal */
+  baseEventNames() {
+    return this.baseEmitter.eventNames()
+  }
+
   protected getSubscriptions() {
-    return validateEventsToSubscribe(this.eventNames())
+    return validateEventsToSubscribe(
+      this.eventNames().concat(this.baseEventNames())
+    )
   }
 
   /** @internal */

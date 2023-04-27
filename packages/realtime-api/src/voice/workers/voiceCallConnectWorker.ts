@@ -1,19 +1,17 @@
 import {
   getLogger,
   SagaIterator,
-  SDKCallWorker,
   CallingCallConnectEventParams,
 } from '@signalwire/core'
 import { Call, createCallObject } from '../Call'
-import type { Client } from '../../client/index'
+import type { VoiceCallWorkerParams } from './voiceCallingWorker'
 
-export const voiceCallConnectWorker: SDKCallWorker<
-  CallingCallConnectEventParams,
-  Client
-> = function* (options): SagaIterator {
+export const voiceCallConnectWorker = function* (
+  options: VoiceCallWorkerParams<CallingCallConnectEventParams>
+): SagaIterator {
   getLogger().trace('voiceCallConnectWorker started')
   const {
-    client,
+    instance: client,
     payload,
     instanceMap: { get, set },
   } = options
@@ -37,11 +35,12 @@ export const voiceCallConnectWorker: SDKCallWorker<
           store: client.store,
           // @ts-expect-error
           emitter: client.emitter,
-          payload: payload.peer,
+          payload,
         })
       } else {
-        set<Call>(payload.peer.call_id, peerCallInstance)
+        peerCallInstance.setConnectPayload(payload)
       }
+      set<Call>(payload.peer.call_id, peerCallInstance)
       callInstance.peer = peerCallInstance
       peerCallInstance.peer = callInstance
       callInstance.baseEmitter.emit('connect.connected', peerCallInstance)
