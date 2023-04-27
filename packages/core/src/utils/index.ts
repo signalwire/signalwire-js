@@ -126,6 +126,9 @@ const CLIENT_SIDE_EVENT_NAMES = [
   'video.requesting',
   'video.ringing',
   'video.trying',
+  'video.media.connected',
+  'video.media.reconnecting',
+  'video.media.disconnected',
 ]
 /**
  * Check and filter the events the user attached returning only the valid ones
