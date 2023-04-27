@@ -72,7 +72,7 @@ export const videoRoomWorker = function* (
           memberInstance.setPayload({
             room_id: payload.room_session.room_id,
             room_session_id: payload.room_session.id,
-            member,
+            member: member as InternalVideoMemberEntity & { talking: boolean },
           })
         }
         set<RoomSessionMember>(member.id, memberInstance)
@@ -94,12 +94,15 @@ export const videoRoomWorker = function* (
     case 'video.room.subscribed': {
       yield spawn(MemberPosition.memberPositionWorker, {
         ...memberPositionWorkerParams,
-        instance: instance as any,
+        instance: roomSessionInstance,
         initialState: payload,
-        dispatcher: function* (type: InternalMemberUpdatedEventNames, payload) {
+        dispatcher: function* (
+          subType: InternalMemberUpdatedEventNames,
+          subPayload
+        ) {
           yield fork(videoMemberWorker, {
             ...options,
-            action: { type, payload },
+            action: { type: subType, payload: subPayload },
           })
         },
       })

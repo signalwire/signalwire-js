@@ -8,6 +8,7 @@ import {
   VideoMemberUpdatedEvent,
   VideoMemberTalkingEvent,
   InternalVideoMemberUpdatedEvent,
+  fromSnakeToCamelCase,
 } from '@signalwire/core'
 import type { Client } from '../VideoClient'
 import { RoomSession } from '../RoomSession'
@@ -56,31 +57,29 @@ export const videoMemberWorker = function* (
   }
   set<RoomSessionMember>(payload.member.id, memberInstance)
 
+  if (type.startsWith('video.member.updated.')) {
+    const clientType = fromSnakeToCamelCase(type)
+    roomSessionInstance.baseEmitter.emit(clientType, memberInstance)
+  }
+
   switch (type) {
-    case 'video.member.joined': {
+    case 'video.member.joined':
+    case 'video.member.updated':
       roomSessionInstance.baseEmitter.emit(type, memberInstance)
       break
-    }
-    case 'video.member.left': {
+    case 'video.member.left':
       roomSessionInstance.baseEmitter.emit(type, memberInstance)
       remove<RoomSessionMember>(payload.member.id)
       break
-    }
-    case 'video.member.updated': {
-      roomSessionInstance.baseEmitter.emit(type, memberInstance)
-      break
-    }
-    case 'video.member.talking': {
+    case 'video.member.talking':
       if ('talking' in payload.member) {
         const suffix = payload.member.talking ? 'started' : 'ended'
-        memberInstance.isTalking = payload.member.talking
         roomSessionInstance.baseEmitter.emit(
           `${type}.${suffix}`,
           memberInstance
         )
       }
       break
-    }
     default:
       break
   }

@@ -10,6 +10,7 @@ import {
   VideoMemberJoinedEventParams,
   VideoMemberLeftEventParams,
   VideoMemberUpdatedEventParams,
+  VideoMemberTalkingEventParams,
 } from '@signalwire/core'
 
 /**
@@ -24,26 +25,25 @@ import {
  * > time and remains fixed for the whole lifetime of the object.
  */
 export interface RoomSessionMember extends VideoMemberContract {
-  isTalking: boolean
   setPayload(payload: RoomSessionMemberEventParams): void
 }
 export type RoomSessionMemberUpdated = EntityUpdated<RoomSessionMember>
 
 export type RoomSessionMemberEventParams =
-  | VideoMemberJoinedEventParams
-  | VideoMemberLeftEventParams
-  | VideoMemberUpdatedEventParams
+  | (
+      | VideoMemberJoinedEventParams
+      | VideoMemberLeftEventParams
+      | VideoMemberUpdatedEventParams
+    ) &
+      VideoMemberTalkingEventParams
 
 // TODO: Extend from a variant of `BaseComponent` that
 // doesn't expose EventEmitter methods
 class RoomSessionMemberComponent extends BaseComponent<{}> {
   private _payload: RoomSessionMemberEventParams
-  public isTalking: boolean
 
   constructor(options: BaseComponentOptions<any>) {
     super(options)
-
-    this.isTalking = false
 
     if (options.payload) {
       this._payload = options.payload
@@ -114,9 +114,21 @@ class RoomSessionMemberComponent extends BaseComponent<{}> {
     return this._payload.member.input_sensitivity
   }
 
+  get talking() {
+    return this._payload.member.talking
+  }
+
   /** @internal */
   protected setPayload(payload: RoomSessionMemberEventParams) {
-    this._payload = payload
+    // Reshape the payload since the `video.member.talking` event does not return all the parameters of a member
+    const newPayload = {
+      ...payload,
+      member: {
+        ...this._payload.member,
+        ...payload.member,
+      },
+    }
+    this._payload = newPayload
   }
 
   async remove() {
