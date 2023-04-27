@@ -116,6 +116,7 @@ export class BaseComponent<
       })
     )
 
+    const noop = () => {}
     compoundEvents.forEach((compoundEvent) => {
       /**
        * In the future we might want to support defining
@@ -127,7 +128,8 @@ export class BaseComponent<
        * handler).
        */
       if (typeof compoundEvent === 'string') {
-        this._trackEvent(compoundEvent)
+        // @ts-expect-error
+        this.once(compoundEvent, noop)
       }
     })
   }
@@ -564,7 +566,6 @@ export class BaseComponent<
     this._handleCompoundEvents(event)
 
     const internalEvent = this._getInternalEvent(event)
-    this._trackEvent(internalEvent)
 
     const type: EventRegisterHandlers<EventTypes>['type'] = once ? 'once' : 'on'
     if (this.shouldAddToQueue()) {
@@ -574,6 +575,7 @@ export class BaseComponent<
       })
       return this.emitter as EventEmitter<EventTypes>
     }
+    this._trackEvent(internalEvent)
     const wrappedHandler = this.getOrCreateStableEventHandler(
       internalEvent,
       fn as any
@@ -649,6 +651,7 @@ export class BaseComponent<
 
   /** @internal */
   eventNames() {
+    this.logger.info('_trackedEvents', this._trackedEvents)
     return this._trackedEvents
   }
 
