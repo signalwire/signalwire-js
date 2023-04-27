@@ -70,6 +70,7 @@ export class RoomSessionConnection
 {
   private _screenShareList = new Set<RoomSessionScreenShare>()
   private _deviceList = new Set<RoomSessionDevice>()
+  private __eventChannel: string
 
   get screenShareList() {
     return Array.from(this._screenShareList)
@@ -277,9 +278,22 @@ export class RoomSessionConnection
    * @internal
    */
   protected attachOnSubscribedWorkers(payload: VideoRoomEventParams) {
+    this.__eventChannel = payload.room_session.event_channel
     this.runWorker('memberPositionWorker', {
       worker: workers.memberPositionWorker,
       initialState: payload,
+    })
+  }
+
+  /** @internal */
+  protected async __updateEventsSubscription() {
+    await this.execute({
+      method: 'signalwire.subscribe',
+      params: {
+        get_initial_state: false,
+        event_channel: this.__eventChannel,
+        events: this.getSubscriptions(),
+      },
     })
   }
 
