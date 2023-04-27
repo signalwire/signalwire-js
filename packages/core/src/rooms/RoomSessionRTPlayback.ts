@@ -13,9 +13,7 @@ import type {
   VideoPlaybackContract,
   VideoPlaybackMethods,
   VideoPlaybackEventNames,
-  VideoPlaybackStartedEventParams,
-  VideoPlaybackUpdatedEventParams,
-  VideoPlaybackEndedEventParams,
+  VideoPlaybackEventParams,
 } from '../types/videoPlayback'
 
 /**
@@ -32,11 +30,6 @@ export type RoomSessionRTPlaybackEventsHandlerMapping = Record<
   VideoPlaybackEventNames,
   (playback: RoomSessionRTPlayback) => void
 >
-
-type VideoPlaybackEventParams =
-  | VideoPlaybackStartedEventParams
-  | VideoPlaybackUpdatedEventParams
-  | VideoPlaybackEndedEventParams
 
 export class RoomSessionRTPlaybackAPI
   extends BaseComponent<RoomSessionRTPlaybackEventsHandlerMapping>

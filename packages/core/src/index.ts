@@ -102,6 +102,7 @@ export type {
   RoomSessionPlayback,
   RoomSessionRTPlayback,
   RoomSessionStream,
+  RoomSessionRTStream,
 } from './rooms'
 export const selectors = {
   ...sessionSelectors,

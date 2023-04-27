@@ -11,8 +11,10 @@ import {
   BaseRoomInterface,
   RoomSessionRTPlayback,
   RoomSessionRTRecording,
+  RoomSessionRTStream,
   createRoomSessionRTPlaybackObject,
   createRoomSessionRTRecordingObject,
+  createRoomSessionRTStreamObject,
 } from '.'
 import { VideoPosition } from '../types'
 
@@ -46,11 +48,9 @@ export type PlayRTParams = {
   currentTimecode?: number
 }
 export interface PlayRTOutput {
-  playback: PlayRTParams
-  code: string
-  message: string
+  playback: RoomSessionRTPlayback
 }
-export const playRT: RoomMethodDescriptor<any, PlayRTParams> = {
+export const playRT: RoomMethodDescriptor<PlayRTOutput, PlayRTParams> = {
   value: function ({ seekPosition, currentTimecode, ...params }) {
     return new Promise(async (resolve, reject) => {
       try {
@@ -81,15 +81,14 @@ export const playRT: RoomMethodDescriptor<any, PlayRTParams> = {
   },
 }
 
-export interface GetPlaybacksRTOutput {
+export interface GetRTPlaybacksOutput {
   playbacks: RoomSessionRTPlayback[]
 }
-
-export const getRTPlaybacks: RoomMethodDescriptor<GetPlaybacksRTOutput> = {
+export const getRTPlaybacks: RoomMethodDescriptor<GetRTPlaybacksOutput> = {
   value: function () {
     return new Promise(async (resolve, reject) => {
       try {
-        const { playbacks } = await this.execute<unknown, GetPlaybacksRTOutput>(
+        const { playbacks } = await this.execute<unknown, GetRTPlaybacksOutput>(
           {
             method: 'video.playback.list',
             params: {
@@ -117,27 +116,14 @@ export const getRTPlaybacks: RoomMethodDescriptor<GetPlaybacksRTOutput> = {
   },
 }
 
-export type StartRecordingRTParams = {
-  id: string
-  state: string
-  duration: number
-  started_at: Date
-  ended_at: Date
+export interface StartRTRecordingOutput {
+  recording: RoomSessionRTRecording
 }
-export interface StartRecordingRTOutput {
-  recording: StartRecordingRTParams
-  code: string
-  message: string
-  recording_id: string
-}
-export const startRTRecording: RoomMethodDescriptor<
-  any,
-  StartRecordingRTParams
-> = {
+export const startRTRecording: RoomMethodDescriptor<StartRTRecordingOutput> = {
   value: function () {
     return new Promise(async (resolve, reject) => {
       try {
-        const { recording } = await this.execute<void, StartRecordingRTOutput>({
+        const { recording } = await this.execute<void, StartRTRecordingOutput>({
           method: 'video.recording.start',
           params: {
             room_session_id: this.roomSessionId,
@@ -160,24 +146,20 @@ export const startRTRecording: RoomMethodDescriptor<
     })
   },
 }
-export interface GetRecordingsRTOutput {
+
+export interface GetRTRecordingsOutput {
   recordings: RoomSessionRTRecording[]
 }
-
-export const getRTRecordings: RoomMethodDescriptor<GetRecordingsRTOutput> = {
+export const getRTRecordings: RoomMethodDescriptor<GetRTRecordingsOutput> = {
   value: function () {
     return new Promise(async (resolve, reject) => {
       try {
-        const { recordings } = await this.execute<
-          unknown,
-          GetRecordingsRTOutput
-        >({
+        const { recordings } = await this.execute<void, GetRTRecordingsOutput>({
           method: 'video.recording.list',
           params: {
             room_session_id: this.roomSessionId,
           },
         })
-        console.log('recordings', recordings)
         const recordingInstances = recordings.map((recording) =>
           createRoomSessionRTRecordingObject({
             store: this.store,
@@ -190,8 +172,81 @@ export const getRTRecordings: RoomMethodDescriptor<GetRecordingsRTOutput> = {
             },
           })
         )
-        console.log('recordingInstances', recordingInstances?.[0]?.state)
         resolve({ recordings: recordingInstances })
+      } catch (error) {
+        reject(error)
+      }
+    })
+  },
+}
+
+export interface StartRTStreamParams {
+  url: string
+}
+export interface StartRTStreamOutput {
+  stream: RoomSessionRTStream
+}
+export const startRTStream: RoomMethodDescriptor<
+  StartRTStreamOutput,
+  StartRTStreamParams
+> = {
+  value: function (params) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const { stream } = await this.execute<
+          StartRTStreamParams,
+          StartRTStreamOutput
+        >({
+          method: 'video.stream.start',
+          params: {
+            room_session_id: this.roomSessionId,
+            ...params,
+          },
+        })
+        const streamInstance = createRoomSessionRTStreamObject({
+          store: this.store,
+          // @ts-expect-error
+          emitter: this.emitter,
+          payload: {
+            room_id: this.roomId,
+            room_session_id: this.roomSessionId,
+            stream,
+          },
+        })
+        resolve({ stream: streamInstance })
+      } catch (error) {
+        reject(error)
+      }
+    })
+  },
+}
+
+export interface GetRTStreamsOutput {
+  streams: RoomSessionRTStream[]
+}
+export const getRTStreams: RoomMethodDescriptor<GetRTStreamsOutput> = {
+  value: function () {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const { streams } = await this.execute<void, GetRTStreamsOutput>({
+          method: 'video.stream.list',
+          params: {
+            room_session_id: this.roomSessionId,
+          },
+        })
+        const streamInstances = streams.map((stream) =>
+          createRoomSessionRTStreamObject({
+            store: this.store,
+            // @ts-expect-error
+            emitter: this.emitter,
+            payload: {
+              room_id: this.roomId,
+              room_session_id: this.roomSessionId,
+              stream,
+            },
+          })
+        )
+        resolve({ streams: streamInstances })
       } catch (error) {
         reject(error)
       }
@@ -204,3 +259,6 @@ export type PlayRT = ReturnType<typeof playRT.value>
 
 export type GetRTRecordings = ReturnType<typeof getRTRecordings.value>
 export type StartRTRecording = ReturnType<typeof startRTRecording.value>
+
+export type GetRTStreams = ReturnType<typeof getRTStreams.value>
+export type StartRTStream = ReturnType<typeof startRTStream.value>

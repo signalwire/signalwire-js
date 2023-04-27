@@ -11,11 +11,9 @@ import { BaseComponent } from '../BaseComponent'
 import { BaseComponentOptions } from '../utils/interfaces'
 import type {
   VideoRecordingContract,
-  VideoRecordingEndedEventParams,
   VideoRecordingEventNames,
+  VideoRecordingEventParams,
   VideoRecordingMethods,
-  VideoRecordingStartedEventParams,
-  VideoRecordingUpdatedEventParams,
 } from '../types/videoRecording'
 
 /**
@@ -29,11 +27,6 @@ export type RoomSessionRTRecordingEventsHandlerMapping = Record<
   VideoRecordingEventNames,
   (recording: RoomSessionRTRecording) => void
 >
-
-type VideoRecordingEventParams =
-  | VideoRecordingStartedEventParams
-  | VideoRecordingUpdatedEventParams
-  | VideoRecordingEndedEventParams
 
 export class RoomSessionRTRecordingAPI
   extends BaseComponent<RoomSessionRTRecordingEventsHandlerMapping>

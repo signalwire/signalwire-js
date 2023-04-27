@@ -538,8 +538,8 @@ export const RoomSessionAPI = extendComponent<
   deleteMemberMeta: Rooms.deleteMemberMeta,
   promote: Rooms.promote,
   demote: Rooms.demote,
-  getStreams: Rooms.getStreams,
-  startStream: Rooms.startStream,
+  getStreams: Rooms.getRTStreams,
+  startStream: Rooms.startRTStream,
 })
 
 export const createRoomSessionObject = (

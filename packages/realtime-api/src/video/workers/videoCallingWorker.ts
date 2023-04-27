@@ -15,6 +15,7 @@ import { videoMemberWorker } from './videoMemberWorker'
 import { videoSDKRoomSessionWorker } from './videoSDKRoomSessionWorker'
 import { videoPlaybackWorker } from './videoPlaybackWorker'
 import { videoRecordingWorker } from './videoRecordingWorker'
+import { videoStreamWorker } from './videoStreamWorker'
 
 export const videoCallingWorker: SDKWorker<Client> = function* (
   options
@@ -63,6 +64,13 @@ export const videoCallingWorker: SDKWorker<Client> = function* (
           ...options,
         })
         break
+      case 'video.stream.started':
+      case 'video.stream.ended':
+        yield fork(videoStreamWorker, {
+          action,
+          ...options,
+        })
+        break
       case 'video.sdk.room.sessions':
       case 'video.sdk.room.session':
         yield fork(videoSDKRoomSessionWorker, {
@@ -71,6 +79,7 @@ export const videoCallingWorker: SDKWorker<Client> = function* (
         })
         break
       default:
+        getLogger().warn(`Unknown video event: "${type}"`)
         break
     }
   }
