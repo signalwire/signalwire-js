@@ -17,6 +17,7 @@ import { videoPlaybackWorker } from './videoPlaybackWorker'
 import { videoRecordingWorker } from './videoRecordingWorker'
 import { videoStreamWorker } from './videoStreamWorker'
 import { videoLayoutWorker } from './videoLayoutWorker'
+import { videoRoomAudienceWorker } from './videoRoomAudienceWorker'
 
 export const videoCallingWorker: SDKWorker<Client> = function* (
   options
@@ -74,6 +75,12 @@ export const videoCallingWorker: SDKWorker<Client> = function* (
         break
       case 'video.layout.changed':
         yield fork(videoLayoutWorker, {
+          action,
+          ...options,
+        })
+        break
+      case 'video.room.audience_count':
+        yield fork(videoRoomAudienceWorker, {
           action,
           ...options,
         })
