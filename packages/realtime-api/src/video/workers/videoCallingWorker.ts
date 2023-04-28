@@ -7,6 +7,7 @@ import {
   VideoAPISDKEventParams,
   getLogger,
   sagaEffects,
+  SDKWorkerParams,
 } from '@signalwire/core'
 import { fork } from '@redux-saga/core/effects'
 import { Client } from '../VideoClient'
@@ -18,6 +19,10 @@ import { videoRecordingWorker } from './videoRecordingWorker'
 import { videoStreamWorker } from './videoStreamWorker'
 import { videoLayoutWorker } from './videoLayoutWorker'
 import { videoRoomAudienceWorker } from './videoRoomAudienceWorker'
+
+export type VideoCallWorkerParams<T> = SDKWorkerParams<Client> & {
+  action: T
+}
 
 export const videoCallingWorker: SDKWorker<Client> = function* (
   options

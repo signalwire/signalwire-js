@@ -1,7 +1,6 @@
 import {
   getLogger,
   SagaIterator,
-  SDKWorkerParams,
   MapToPubSubShape,
   VideoMemberJoinedEvent,
   VideoMemberLeftEvent,
@@ -10,13 +9,13 @@ import {
   InternalVideoMemberUpdatedEvent,
   fromSnakeToCamelCase,
 } from '@signalwire/core'
-import type { Client } from '../VideoClient'
 import { RoomSession } from '../RoomSession'
 import {
   createRoomSessionMemberObject,
   RoomSessionMember,
   RoomSessionMemberEventParams,
 } from '../RoomSessionMember'
+import { VideoCallWorkerParams } from './videoCallingWorker'
 
 type VideoMemberEvents = MapToPubSubShape<
   | VideoMemberJoinedEvent
@@ -27,9 +26,7 @@ type VideoMemberEvents = MapToPubSubShape<
 >
 
 export const videoMemberWorker = function* (
-  options: SDKWorkerParams<Client> & {
-    action: VideoMemberEvents
-  }
+  options: VideoCallWorkerParams<VideoMemberEvents>
 ): SagaIterator {
   getLogger().trace('videoMemberWorker started')
   const {

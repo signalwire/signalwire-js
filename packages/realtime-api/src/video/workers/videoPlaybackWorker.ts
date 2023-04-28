@@ -1,21 +1,16 @@
 import {
   getLogger,
   SagaIterator,
-  SDKWorkerParams,
   MapToPubSubShape,
   VideoPlaybackEvent,
   RoomSessionRTPlayback,
   Rooms,
 } from '@signalwire/core'
-import type { Client } from '../VideoClient'
 import { RoomSession } from '../RoomSession'
-
-type VideoPlaybackEvents = MapToPubSubShape<VideoPlaybackEvent>
+import { VideoCallWorkerParams } from './videoCallingWorker'
 
 export const videoPlaybackWorker = function* (
-  options: SDKWorkerParams<Client> & {
-    action: VideoPlaybackEvents
-  }
+  options: VideoCallWorkerParams<MapToPubSubShape<VideoPlaybackEvent>>
 ): SagaIterator {
   getLogger().trace('videoPlaybackWorker started')
   const {

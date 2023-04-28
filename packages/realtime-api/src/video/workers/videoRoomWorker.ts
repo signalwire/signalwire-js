@@ -3,34 +3,21 @@ import {
   InternalVideoMemberEntity,
   SagaIterator,
   MemberPosition,
-  SDKWorkerParams,
-  VideoRoomStartedEvent,
-  VideoRoomSubscribedEvent,
-  VideoRoomUpdatedEvent,
-  VideoRoomEndedEvent,
   MapToPubSubShape,
   InternalMemberUpdatedEventNames,
+  VideoRoomEvent,
 } from '@signalwire/core'
 import { spawn, fork } from '@redux-saga/core/effects'
-import type { Client } from '../VideoClient'
 import { createRoomSessionObject, RoomSession } from '../RoomSession'
 import { videoMemberWorker } from './videoMemberWorker'
 import {
   createRoomSessionMemberObject,
   RoomSessionMember,
 } from '../RoomSessionMember'
-
-type VideoRoomEvents = MapToPubSubShape<
-  | VideoRoomStartedEvent
-  | VideoRoomSubscribedEvent
-  | VideoRoomUpdatedEvent
-  | VideoRoomEndedEvent
->
+import { VideoCallWorkerParams } from './videoCallingWorker'
 
 export const videoRoomWorker = function* (
-  options: SDKWorkerParams<Client> & {
-    action: VideoRoomEvents
-  }
+  options: VideoCallWorkerParams<MapToPubSubShape<VideoRoomEvent>>
 ): SagaIterator {
   getLogger().trace('videoRoomWorker started')
   const { instance: client, action, ...memberPositionWorkerParams } = options

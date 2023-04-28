@@ -73,6 +73,9 @@ export const playRT: RoomMethodDescriptor<PlayRTOutput, PlayRTParams> = {
             playback,
           },
         })
+        await this.injectInInstanceMap<RoomSessionRTPlayback>([
+          playbackInstance,
+        ])
         resolve({ playback: playbackInstance })
       } catch (error) {
         reject(error)
@@ -108,6 +111,7 @@ export const getRTPlaybacks: RoomMethodDescriptor<GetRTPlaybacksOutput> = {
             },
           })
         )
+        await this.injectInInstanceMap<RoomSessionRTPlayback>(playbackInstances)
         resolve({ playbacks: playbackInstances })
       } catch (error) {
         reject(error)
@@ -139,6 +143,9 @@ export const startRTRecording: RoomMethodDescriptor<StartRTRecordingOutput> = {
             recording,
           },
         })
+        await this.injectInInstanceMap<RoomSessionRTRecording>([
+          recordingInstance,
+        ])
         resolve({ recording: recordingInstance })
       } catch (error) {
         reject(error)
@@ -171,6 +178,9 @@ export const getRTRecordings: RoomMethodDescriptor<GetRTRecordingsOutput> = {
               recording,
             },
           })
+        )
+        await this.injectInInstanceMap<RoomSessionRTRecording>(
+          recordingInstances
         )
         resolve({ recordings: recordingInstances })
       } catch (error) {
@@ -213,6 +223,7 @@ export const startRTStream: RoomMethodDescriptor<
             stream,
           },
         })
+        await this.injectInInstanceMap<RoomSessionRTStream>([streamInstance])
         resolve({ stream: streamInstance })
       } catch (error) {
         reject(error)
@@ -246,6 +257,7 @@ export const getRTStreams: RoomMethodDescriptor<GetRTStreamsOutput> = {
             },
           })
         )
+        await this.injectInInstanceMap<RoomSessionRTStream>(streamInstances)
         resolve({ streams: streamInstances })
       } catch (error) {
         reject(error)
