@@ -10,6 +10,10 @@ export const injectInInstanceMapWorker: SDKWorker<any> = function* (
   const { initialState, instanceMap } = options
   const { instances, callback } = initialState
 
+  if (!Array.isArray(instances)) {
+    throw new Error('Instances should be an array')
+  }
+
   instances.forEach((pInstance: any) => {
     if (callback) {
       callback(instanceMap, pInstance)
