@@ -59,11 +59,15 @@ export class RoomSessionRTStreamAPI
   }
 
   get startedAt() {
-    return this._payload.stream.started_at
+    if (!this._payload.stream.started_at) return undefined
+    return new Date(
+      (this._payload.stream.started_at as unknown as number) * 1000
+    )
   }
 
   get endedAt() {
-    return this._payload.stream.ended_at
+    if (!this._payload.stream.ended_at) return undefined
+    return new Date((this._payload.stream.ended_at as unknown as number) * 1000)
   }
 
   /** @internal */

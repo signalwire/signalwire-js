@@ -63,11 +63,17 @@ export class RoomSessionRTRecordingAPI
   }
 
   get startedAt() {
-    return this._payload.recording.started_at
+    if (!this._payload.recording.started_at) return undefined
+    return new Date(
+      (this._payload.recording.started_at as unknown as number) * 1000
+    )
   }
 
   get endedAt() {
-    return this._payload.recording.ended_at
+    if (!this._payload.recording.ended_at) return undefined
+    return new Date(
+      (this._payload.recording.ended_at as unknown as number) * 1000
+    )
   }
 
   /** @internal */

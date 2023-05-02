@@ -70,11 +70,17 @@ export class RoomSessionRTPlaybackAPI
   }
 
   get startedAt() {
-    return this._payload.playback.started_at
+    if (!this._payload.playback.started_at) return undefined
+    return new Date(
+      (this._payload.playback.started_at as unknown as number) * 1000
+    )
   }
 
   get endedAt() {
-    return this._payload.playback.ended_at
+    if (!this._payload.playback.ended_at) return undefined
+    return new Date(
+      (this._payload.playback.ended_at as unknown as number) * 1000
+    )
   }
 
   get position() {
