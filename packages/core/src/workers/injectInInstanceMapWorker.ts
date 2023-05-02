@@ -18,7 +18,13 @@ export const injectInInstanceMapWorker: SDKWorker<any> = function* (
     if (callback) {
       callback(instanceMap, pInstance)
     } else {
-      instanceMap.set(pInstance.id, pInstance)
+      const instance: any = instanceMap.get(pInstance.id)
+      if (!instance) {
+        instanceMap.set(pInstance.id, pInstance)
+      } else {
+        instance.setPayload(pInstance.payload)
+        instanceMap.set(pInstance.id, instance)
+      }
     }
   })
 }
