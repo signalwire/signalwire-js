@@ -2,7 +2,7 @@
  * `RoomSessionRecording.ts`   -> Uses old event emitter - being used in browser SDK
  * `RoomSessionRTRecording.ts` -> Uses new event emitter - being used in realtime SDK
  *
- * The `RoomSessionRTRecording.ts` file should be removed when we start using the new event emitter in browser sdk.
+ * The `RoomSessionRecording.ts` file should be removed when we start using the new event emitter in browser sdk.
  * We will also need to rename the new file and remove the letters `RT` from all the variables/classes/functions/types.
  */
 

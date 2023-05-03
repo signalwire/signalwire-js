@@ -1,3 +1,11 @@
+/**
+ * `RoomSessionStream.ts`   -> Uses old event emitter - being used in browser SDK
+ * `RoomSessionRTStream.ts` -> Uses new event emitter - being used in realtime SDK
+ *
+ * The `RoomSessionStream.ts` file should be removed when we start using the new event emitter in browser sdk.
+ * We will also need to rename the new file and remove the letters `RT` from all the variables/classes/functions/types.
+ */
+
 import { connect } from '../redux'
 import { BaseComponent } from '../BaseComponent'
 import { BaseComponentOptions } from '../utils/interfaces'
