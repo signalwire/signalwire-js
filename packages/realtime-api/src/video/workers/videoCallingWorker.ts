@@ -4,7 +4,6 @@ import {
   SDKWorker,
   SagaIterator,
   VideoAPIEventParams,
-  VideoAPISDKEventParams,
   getLogger,
   sagaEffects,
   SDKWorkerParams,
@@ -13,7 +12,6 @@ import { fork } from '@redux-saga/core/effects'
 import { Client } from '../VideoClient'
 import { videoRoomWorker } from './videoRoomWorker'
 import { videoMemberWorker } from './videoMemberWorker'
-import { videoSDKRoomSessionWorker } from './videoSDKRoomSessionWorker'
 import { videoPlaybackWorker } from './videoPlaybackWorker'
 import { videoRecordingWorker } from './videoRecordingWorker'
 import { videoStreamWorker } from './videoStreamWorker'
@@ -31,9 +29,7 @@ export const videoCallingWorker: SDKWorker<Client> = function* (
   const { channels } = options
   const { swEventChannel } = channels
 
-  function* worker(
-    action: MapToPubSubShape<VideoAPIEventParams | VideoAPISDKEventParams>
-  ) {
+  function* worker(action: MapToPubSubShape<VideoAPIEventParams>) {
     const { type } = action
 
     switch (type) {
@@ -86,13 +82,6 @@ export const videoCallingWorker: SDKWorker<Client> = function* (
         break
       case 'video.room.audience_count':
         yield fork(videoRoomAudienceWorker, {
-          action,
-          ...options,
-        })
-        break
-      case 'video.sdk.room.sessions':
-      case 'video.sdk.room.session':
-        yield fork(videoSDKRoomSessionWorker, {
           action,
           ...options,
         })
