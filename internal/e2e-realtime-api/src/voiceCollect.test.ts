@@ -15,6 +15,32 @@ const handler = () => {
       },
     })
 
+    let outboundCall: Voice.Call
+
+    const startSendingDigits = async () => {
+      const sendDigitResult = await outboundCall.sendDigits('1w2w3w#')
+      tap.equal(
+        outboundCall.id,
+        sendDigitResult.id,
+        'sendDigit returns the same instance'
+      )
+
+      const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
+      const results = await Promise.all(
+        waitForParams.map((params) => outboundCall.waitFor(params as any))
+      )
+      waitForParams.forEach((value, i) => {
+        if (typeof value === 'string') {
+          tap.ok(results[i], `"${value}": completed successfully.`)
+        } else {
+          tap.ok(
+            results[i],
+            `${JSON.stringify(value)}: completed successfully.`
+          )
+        }
+      })
+    }
+
     client.on('call.received', async (call) => {
       console.log('Got call', call.id, call.from, call.to, call.direction)
 
@@ -26,6 +52,8 @@ const handler = () => {
           resultAnswer.id,
           'Call answered gets the same instance'
         )
+
+        await sleep(2000)
 
         call.on('collect.started', (collect) => {
           console.log('>>> collect.started', collect)
@@ -54,6 +82,15 @@ const handler = () => {
           startInputTimers: false,
         })
 
+        startSendingDigits()
+          .then(() => {
+            resolve(0)
+          })
+          .catch((error) => {
+            console.error('StartSendingDigits Error', error)
+            reject(4)
+          })
+
         await callCollect.ended() // block the script until the collect ended
 
         tap.equal(callCollect.digits, '123', 'Collect the correct digits')
@@ -67,35 +104,13 @@ const handler = () => {
       }
     })
 
-    const call = await client.dialPhone({
+    outboundCall = await client.dialPhone({
       // make an outbound call to an `office` context to trigger the `call.received` event above
       to: process.env.VOICE_DIAL_TO_NUMBER as string,
       from: process.env.VOICE_DIAL_FROM_NUMBER as string,
       timeout: 30,
     })
-    tap.ok(call.id, 'Call resolved')
-
-    await sleep(3000)
-
-    const sendDigitResult = await call.sendDigits('1w2w3w#')
-    tap.equal(
-      call.id,
-      sendDigitResult.id,
-      'sendDigit returns the same instance'
-    )
-
-    const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
-    const results = await Promise.all(
-      waitForParams.map((params) => call.waitFor(params as any))
-    )
-    waitForParams.forEach((value, i) => {
-      if (typeof value === 'string') {
-        tap.ok(results[i], `"${value}": completed successfully.`)
-      } else {
-        tap.ok(results[i], `${JSON.stringify(value)}: completed successfully.`)
-      }
-    })
-    resolve(0)
+    tap.ok(outboundCall.id, 'Call resolved')
   })
 }
 

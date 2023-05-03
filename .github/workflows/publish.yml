@@ -28,6 +28,6 @@ jobs:
           node-version: ${{ matrix.node-version }}
           registry-url: 'https://registry.npmjs.org'
       - run: npm i
-      - run: npm run release:dev --dry-run
+      - run: npm run release:dev
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

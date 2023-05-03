@@ -313,7 +313,7 @@ const getModifierFlags = (flags = []) => {
   return flags.filter((f) => MODIFIERS.includes(f))
 }
 const isCI = (flags = []) => {
-  return getModifierFlags(flags).includes('--ci')
+  return !!process.env.CI || getModifierFlags(flags).includes('--ci')
 }
 const isSkipDeps = (flags = []) => {
   return getModifierFlags(flags).includes('--skip-deps')
