@@ -9,6 +9,9 @@ const handler = () => {
       project: process.env.RELAY_PROJECT as string,
       token: process.env.RELAY_TOKEN as string,
       contexts: [process.env.VOICE_CONTEXT as string],
+      debug: {
+        logWsTraffic: true,
+      },
     })
 
     client.on('call.received', async (call) => {
