@@ -18,6 +18,7 @@ import {
   RoomSession,
   RoomSessionFullState,
   RoomSessionUpdated,
+  createRoomSessionObject,
 } from './RoomSession'
 import type {
   RoomSessionMember,
@@ -128,19 +129,26 @@ class VideoAPI extends AutoSubscribeConsumer<RealTimeVideoApiEvents> {
             params: {},
           })
 
-          const resolveHandler = (roomSessions: RoomSession[]) => {
-            resolve({ roomSessions })
-          }
-
-          // @ts-expect-error
-          this.once('room.sessions', resolveHandler)
-
-          // Put the internal SDK event on SW channel to create a RoomSession instance
-          this.store.putOnSwEventChannel({
-            // @ts-expect-error
-            type: 'video.sdk.room.sessions',
-            payload: rooms,
+          const roomInstances: RoomSession[] = []
+          rooms.forEach((room: any) => {
+            let roomInstance = this.instanceMap.get<RoomSession>(room.id)
+            if (!roomInstance) {
+              roomInstance = createRoomSessionObject({
+                store: this.store,
+                // @ts-expect-error
+                emitter: this.emitter,
+                payload: { room_session: room },
+              })
+            } else {
+              roomInstance.setPayload({
+                room_session: room,
+              })
+            }
+            roomInstances.push(roomInstance)
+            this.instanceMap.set<RoomSession>(roomInstance.id, roomInstance)
           })
+
+          resolve({ roomSessions: roomInstances })
         } catch (error) {
           console.error('Error listing room sessions', error)
           reject(error)
@@ -160,19 +168,22 @@ class VideoAPI extends AutoSubscribeConsumer<RealTimeVideoApiEvents> {
             },
           })
 
-          const resolveHandler = (roomSession: RoomSession) => {
-            resolve({ roomSession })
+          let roomInstance = this.instanceMap.get<RoomSession>(room.id)
+          if (!roomInstance) {
+            roomInstance = createRoomSessionObject({
+              store: this.store,
+              // @ts-expect-error
+              emitter: this.emitter,
+              payload: { room_session: room },
+            })
+          } else {
+            roomInstance.setPayload({
+              room_session: room,
+            })
           }
+          this.instanceMap.set<RoomSession>(roomInstance.id, roomInstance)
 
-          // @ts-expect-error
-          this.once('room.session', resolveHandler)
-
-          // Put the internal SDK event on SW channel to create or update a RoomSession instance
-          this.store.putOnSwEventChannel({
-            // @ts-expect-error
-            type: 'video.sdk.room.session',
-            payload: room,
-          })
+          resolve({ roomSession: roomInstance })
         } catch (error) {
           console.error('Error retrieving the room session', error)
           reject(error)

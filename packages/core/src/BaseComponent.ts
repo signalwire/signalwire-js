@@ -22,7 +22,6 @@ import {
   SessionAuthStatus,
   SDKWorkerHooks,
   Authorization,
-  InstanceMap,
 } from './utils/interfaces'
 import { EventEmitter } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
@@ -40,7 +39,7 @@ import {
 import { compoundEventAttachAction } from './redux/actions'
 import { AuthError } from './CustomErrors'
 import { proxyFactory } from './utils/proxyUtils'
-import { executeActionWorker, injectInInstanceMapWorker } from './workers'
+import { executeActionWorker } from './workers'
 
 type EventRegisterHandlers<EventTypes extends EventEmitter.ValidEventTypes> =
   | {
@@ -249,6 +248,11 @@ export class BaseComponent<
   /** @internal */
   get store() {
     return this.options.store
+  }
+
+  /** @internal */
+  get instanceMap() {
+    return this.options.store.instanceMap
   }
 
   /** @internal */
@@ -1011,21 +1015,5 @@ export class BaseComponent<
       task.cancel()
     })
     this._runningWorkers = []
-  }
-
-  /** @internal */
-  injectInInstanceMap<T>(
-    instances: T[],
-    callback?: (map: InstanceMap, instance: T) => void
-  ) {
-    const task = this.runWorker('injectInInstanceMapWorker', {
-      worker: injectInInstanceMapWorker,
-      initialState: {
-        instances,
-        callback,
-      },
-    })
-
-    return task.toPromise()
   }
 }
