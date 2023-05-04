@@ -8,15 +8,21 @@ import {
 import { getStorage, CALL_ID } from './utils/storage'
 import { SwCloseEvent } from './utils/CloseEvent'
 
+type JWTHeader = { ch?: string; typ?: string }
+
 export class JWTSession extends BaseJWTSession {
   public WebSocketConstructor = WebSocket
   public CloseEventConstructor = SwCloseEvent
   public agent = process.env.SDK_PKG_AGENT!
 
+  private tokenTyp: string
+
   constructor(public options: SessionOptions) {
-    let decodedJwt
+    let decodedJwt: JWTHeader = {}
     try {
-      decodedJwt = jwtDecode<{ ch?: string }>(options.token, { header: true })
+      decodedJwt = jwtDecode<{ ch?: string; typ: string }>(options.token, {
+        header: true,
+      })
     } catch (e) {
       if (process.env.NODE_ENV !== 'production') {
         getLogger().debug('[JWTSession] error decoding the JWT')
@@ -27,11 +33,12 @@ export class JWTSession extends BaseJWTSession {
       ...options,
       host: options.host || decodedJwt?.ch,
     })
+    this.tokenTyp = decodedJwt.typ ?? 'VRT'
   }
 
   get allowReattach() {
     // @ts-expect-error
-    return this.options?.reattach !== false
+    return this.options?.reattach !== false && this.isVRT()
   }
 
   override async retrieveRelayProtocol() {
@@ -107,7 +114,14 @@ export class JWTSession extends BaseJWTSession {
     return `pt-${this.getSessionStorageKey()}`
   }
 
+  private isVRT() {
+    return this.tokenTyp === 'VRT'
+  }
+
   private getSessionStorageKey() {
+    if (!this.isVRT()) {
+      return ''
+    }
     try {
       const jwtPayload = jwtDecode<{ r: string; ja: string }>(
         this.options.token
