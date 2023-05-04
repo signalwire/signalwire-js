@@ -10,6 +10,7 @@ import {
 import type {
   CustomSaga,
   PubSubChannel,
+  RootChannel,
   SessionChannel,
   SwEventChannel,
 } from '../redux/interfaces'
@@ -534,6 +535,7 @@ export interface EventTransform {
 export type BaseEventHandler = (...args: any[]) => void
 
 export type InternalChannels = {
+  rootChannel: RootChannel
   pubSubChannel: PubSubChannel
   swEventChannel: SwEventChannel
   sessionChannel: SessionChannel

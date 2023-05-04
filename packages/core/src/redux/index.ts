@@ -1,12 +1,4 @@
-import { Store } from 'redux'
-import createSagaMiddleware, {
-  channel,
-  multicastChannel,
-  Saga,
-  Task,
-} from '@redux-saga/core'
-import { configureStore as rtConfigureStore } from './toolkit'
-import { rootReducer } from './rootReducer'
+import { channel, multicastChannel, Saga, Task } from '@redux-saga/core'
 import rootSaga from './rootSaga'
 import {
   MapToPubSubShape,
@@ -24,6 +16,7 @@ import {
 import { BaseSession } from '../BaseSession'
 import { getLogger } from '../utils'
 import { SwEventParams } from '..'
+import { createSWStore } from './swStore'
 
 export interface ConfigureStoreOptions {
   userOptions: InternalUserOptions
@@ -45,7 +38,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
     preloadedState = {},
     runSagaMiddleware = true,
   } = options
-  const sagaMiddleware = createSagaMiddleware()
+  const rootChannel: PubSubChannel = multicastChannel()
   const pubSubChannel: PubSubChannel = multicastChannel()
   const swEventChannel: SwEventChannel = multicastChannel()
   const sessionChannel: SessionChannel = channel()
@@ -54,22 +47,13 @@ const configureStore = (options: ConfigureStoreOptions) => {
    * sagas.
    */
   const channels: InternalChannels = {
+    rootChannel,
     pubSubChannel,
     swEventChannel,
     sessionChannel,
   }
-  const store = rtConfigureStore({
-    devTools: userOptions?.devTools ?? true,
-    reducer: rootReducer,
-    preloadedState,
-    middleware: (getDefaultMiddleware) =>
-      // It is preferrable to use the chainable .concat(...) and
-      // .prepend(...) methods of the returned MiddlewareArray instead
-      // of the array spread operator, as the latter can lose valuable
-      // type information under some circumstances.
-      // @see https://redux-toolkit.js.org/api/getDefaultMiddleware#intended-usage
-      getDefaultMiddleware().concat(sagaMiddleware),
-  }) as Store
+
+  const swStore = createSWStore({ channels, preloadedState })
 
   let session: BaseSession
   const initSession = () => {
@@ -114,7 +98,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
       runSaga: any
     }
   ) => {
-    return sagaMiddleware.run(saga, {
+    return swStore.runWorker(saga, {
       ...args,
       channels,
       getSession,
@@ -124,17 +108,26 @@ const configureStore = (options: ConfigureStoreOptions) => {
         remove: deleteInstance,
       },
     })
+
+    // return sagaMiddleware.run(saga, {
+    //   ...args,
+    //   channels,
+    //   getSession,
+    // })
   }
 
   if (runSagaMiddleware) {
     const saga = rootSaga({
       initSession,
     })
-    sagaMiddleware.run(saga, { userOptions, channels })
+
+    swStore.start(saga, { userOptions, channels })
+
+    // sagaMiddleware.run(saga, { userOptions, channels })
   }
 
   return {
-    ...store,
+    ...swStore,
     runSaga,
     channels,
     putOnSwEventChannel: (arg: MapToPubSubShape<SwEventParams>) => {

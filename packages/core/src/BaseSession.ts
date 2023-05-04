@@ -34,8 +34,8 @@ import {
   socketMessageAction,
   sessionDisconnectedAction,
   sessionReconnectingAction,
+  sessionAuthStatusAction,
 } from './redux/actions'
-import { sessionActions } from './redux/features/session/sessionSlice'
 import { SwAuthorizationState } from '.'
 import { SessionChannel, SessionChannelAction } from './redux/interfaces'
 
@@ -256,15 +256,6 @@ export class BaseSession {
    * @return void
    */
   async disconnect() {
-    /**
-     * Return if there is not a _socket instance or
-     * if it's already in closing state.
-     */
-    if (!this._socket || this.closing) {
-      this.logger.debug('Session not connected or already in closing state.')
-      return
-    }
-
     this._status = 'disconnecting'
     this._checkCurrentStatus()
   }
@@ -584,7 +575,7 @@ export class BaseSession {
     this.logger.debug('Close Connection:', status)
     this._status = status
     this.dispatch(
-      sessionActions.authStatus(
+      sessionAuthStatusAction(
         status === 'disconnected' ? 'unauthorized' : 'unknown'
       )
     )

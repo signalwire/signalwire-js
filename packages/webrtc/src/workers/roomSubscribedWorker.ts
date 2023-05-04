@@ -7,7 +7,7 @@ import {
   MapToPubSubShape,
   SDKWorkerHooks,
   VideoRoomSubscribedEvent,
-  componentActions,
+  actions,
 } from '@signalwire/core'
 
 import { BaseConnection } from '../BaseConnection'
@@ -55,7 +55,7 @@ export const roomSubscribedWorker: SDKWorker<
    * TODO: Replace the redux action/component with properties on RTCPeer instance?
    */
   yield sagaEffects.put(
-    componentActions.upsert({
+    actions.componentUpsertAction({
       id: action.payload.call_id,
       roomId: action.payload.room_session.room_id,
       roomSessionId: action.payload.room_session.id,

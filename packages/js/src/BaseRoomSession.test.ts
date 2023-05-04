@@ -1,4 +1,4 @@
-import { EventEmitter, actions, componentActions } from '@signalwire/core'
+import { EventEmitter, actions } from '@signalwire/core'
 import { BaseRoomSession, createBaseRoomSessionObject } from './BaseRoomSession'
 import type { RoomSession } from './RoomSession'
 import { configureFullStack, dispatchMockedRoomSubscribed } from './testUtils'
@@ -29,7 +29,7 @@ describe('Room Object', () => {
       emitter: new EventEmitter(),
     })
     store.dispatch(
-      componentActions.upsert({
+      actions.componentUpsertAction({
         id: callId,
         nodeId: 'node-id',
         roomId: 'room-id',
@@ -92,7 +92,7 @@ describe('Room Object', () => {
       })
 
       store.dispatch(
-        componentActions.upsert({
+        actions.componentUpsertAction({
           id: callId,
           nodeId: 'node-id',
           roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
@@ -227,7 +227,7 @@ describe('Room Object', () => {
       })
 
       store.dispatch(
-        componentActions.upsert({
+        actions.componentUpsertAction({
           id: callId,
           nodeId: 'node-id',
           roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
@@ -391,7 +391,7 @@ describe('Room Object', () => {
       // @ts-expect-error
       room.execute = jest.fn()
       store.dispatch(
-        componentActions.upsert({
+        actions.componentUpsertAction({
           id: callId,
           nodeId: 'node-id',
           roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
@@ -581,7 +581,7 @@ describe('Room Object', () => {
         emitter,
       })
       store.dispatch(
-        componentActions.upsert({
+        actions.componentUpsertAction({
           id: callId,
           nodeId: 'node-id',
           roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
@@ -629,7 +629,7 @@ describe('Room Object', () => {
         emitter,
       })
       store.dispatch(
-        componentActions.upsert({
+        actions.componentUpsertAction({
           id: callId,
           nodeId: 'node-id',
           roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',

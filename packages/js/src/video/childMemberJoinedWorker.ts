@@ -8,7 +8,7 @@ import {
   SDKWorkerHooks,
   VideoMemberJoinedEvent,
   componentSelectors,
-  componentActions,
+  actions,
   type ReduxComponent,
 } from '@signalwire/core'
 
@@ -67,7 +67,7 @@ export const childMemberJoinedWorker: SDKWorker<
       instance.applyEmitterTransforms()
 
       yield sagaEffects.put(
-        componentActions.upsert({
+        actions.componentUpsertAction({
           id: instance.callId,
           roomId: action.payload.room_id,
           roomSessionId: action.payload.room_session_id,

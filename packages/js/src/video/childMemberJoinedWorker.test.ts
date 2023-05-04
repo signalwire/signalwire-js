@@ -1,4 +1,4 @@
-import { testUtils, componentActions, sagaHelpers } from '@signalwire/core'
+import { testUtils, actions, sagaHelpers } from '@signalwire/core'
 import { expectSaga } from 'redux-saga-test-plan'
 import { childMemberJoinedWorker } from './childMemberJoinedWorker'
 
@@ -79,7 +79,7 @@ describe('childMemberJoinedWorker', () => {
         },
       ])
       .put(
-        componentActions.upsert({
+        actions.componentUpsertAction({
           id: 'callId',
           roomId: '6e83849b-5cc2-4fc6-80ed-448113c8a426',
           roomSessionId: '313bedbe-edc9-4653-b332-34fbf43e8289',

@@ -1,4 +1,5 @@
 import WS from 'jest-websocket-mock'
+import { testUtils } from '@signalwire/core'
 import { Client } from './MessagingClient'
 import { Message } from './Message'
 
@@ -11,6 +12,7 @@ describe('MessagingClient', () => {
       message:
         'Authentication service failed with status ProtocolError, 401 Unauthorized: {}',
     }
+    const logger = testUtils.createMockedLogger()
 
     beforeEach(async () => {
       server = new WS(host)
@@ -65,6 +67,7 @@ describe('MessagingClient', () => {
           project: 'some-project',
           token: 'some-token',
           contexts: ['foo'],
+          logger,
         })
 
         messaging.on('message.received', (message) => {
@@ -119,6 +122,7 @@ describe('MessagingClient', () => {
           project: 'some-project',
           token: 'some-other-token',
           contexts: ['foo'],
+          logger,
         })
 
         messaging.on('message.updated', (message) => {
@@ -154,17 +158,11 @@ describe('MessagingClient', () => {
       })
 
       it('should show an error if client.connect failed to connect', (done) => {
-        const logger = {
-          error: jest.fn(),
-          trace: jest.fn(),
-          debug: jest.fn(),
-          warn: jest.fn(),
-        }
         const messaging = new Client({
           host,
           project: 'some-project',
           token: '<invalid-token>',
-          logger: logger as any,
+          logger,
         })
 
         messaging.on('message.received', (_message) => {})

@@ -15,20 +15,21 @@ import {
   sessionExpiringAction,
   reauthAction,
   sessionForceCloseAction,
+  sessionAuthorizedAction,
 } from './actions'
-import { sessionActions } from './features'
 import {
   authErrorAction,
   authSuccessAction,
   authExpiringAction,
 } from './actions'
 import { AuthError } from '../CustomErrors'
-import { PubSubChannel, SessionChannel } from './interfaces'
+import { PubSubChannel, RootChannel, SessionChannel } from './interfaces'
 import { createRestartableSaga } from './utils/sagaHelpers'
-// import { componentCleanupSaga } from './features/component/componentSaga'
+import { Action } from 'redux'
 
 interface StartSagaOptions {
   session: BaseSession
+  rootChannel: RootChannel
   sessionChannel: SessionChannel
   pubSubChannel: PubSubChannel
   userOptions: InternalUserOptions
@@ -58,6 +59,10 @@ export function* initSessionSaga({
    * Channel to communicate with base session
    */
   const sessionChannel = channels.sessionChannel
+  /**
+   * Root Channel
+   */
+  const rootChannel = channels.rootChannel
 
   /**
    * Start all the custom workers on startup
@@ -76,6 +81,7 @@ export function* initSessionSaga({
 
   yield fork(sessionChannelWatcher, {
     session,
+    rootChannel,
     sessionChannel,
     pubSubChannel,
     swEventChannel,
@@ -94,20 +100,19 @@ export function* initSessionSaga({
    */
   const sessionStatusTask: Task = yield fork(sessionStatusWatcher, {
     session,
+    rootChannel,
     sessionChannel,
     pubSubChannel,
     userOptions,
   })
 
-  // const compCleanupTask = yield fork(componentCleanupSaga)
-
   session.connect()
 
-  yield take(destroyAction.type)
+  yield take(channels.rootChannel, destroyAction.type)
 
   session.disconnect()
 
-  yield take(sessionDisconnectedAction.type)
+  yield take(channels.rootChannel, sessionDisconnectedAction.type)
   yield put(pubSubChannel, sessionDisconnectedAction())
 
   /**
@@ -115,7 +120,6 @@ export function* initSessionSaga({
    * being automatically cleaned up when the session is
    * destroyed, most likely because it's using a timer.
    */
-  // compCleanupTask?.cancel()
   pubSubTask.cancel()
   sessionStatusTask.cancel()
   customTasks.forEach((task) => task.cancel())
@@ -142,7 +146,7 @@ export function* reauthenticateWorker({
       session.token = token
       yield call(session.reauthenticate)
       // Update the store with the new "connect result"
-      yield put(sessionActions.connected(session.rpcConnectResult))
+      yield put(sessionAuthorizedAction(session.rpcConnectResult))
       yield put(pubSubChannel, sessionConnectedAction())
     }
   } catch (error) {
@@ -152,28 +156,31 @@ export function* reauthenticateWorker({
 }
 
 export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
-  getLogger().debug('sessionStatusWatcher [started]')
+  getLogger().info('sessionStatusWatcher [started]')
 
   try {
     while (true) {
-      const action = yield take([
-        authSuccessAction.type,
-        authErrorAction.type,
-        authExpiringAction.type,
-        reauthAction.type,
-        sessionReconnectingAction.type,
-        sessionForceCloseAction.type,
-      ])
+      const action = yield take(options.rootChannel, (action: any) => {
+        return [
+          authSuccessAction.type,
+          authErrorAction.type,
+          authExpiringAction.type,
+          reauthAction.type,
+          sessionReconnectingAction.type,
+          sessionForceCloseAction.type,
+        ].includes(action.type)
+      })
 
-      getLogger().debug('sessionStatusWatcher', action.type, action.payload)
+      getLogger().info('sessionStatusWatcher', action.type, action.payload)
       switch (action.type) {
         case authSuccessAction.type: {
           const { session, pubSubChannel } = options
-          yield put(sessionActions.connected(session.rpcConnectResult))
+          yield put(sessionAuthorizedAction(session.rpcConnectResult))
           yield put(pubSubChannel, sessionConnectedAction())
           break
         }
         case authErrorAction.type: {
+          yield put(action)
           yield fork(sessionAuthErrorSaga, {
             ...options,
             action,
@@ -251,11 +258,15 @@ export default (options: RootSagaOptions) => {
       setDebugOptions(userOptions.debug)
     }
 
+    const actions: string[] = [initAction.type, reauthAction.type]
+    const filter = (action: Action) => actions.includes(action.type)
     while (true) {
       /**
        * Wait for an initAction to start
        */
-      const action = yield take([initAction.type, reauthAction.type])
+      getLogger().info('RootSaga WAIT INIT')
+      const action = yield take(channels.rootChannel, filter)
+      getLogger().info('RootSaga GO ...')
 
       /**
        * Update token only if the action contains a `token`

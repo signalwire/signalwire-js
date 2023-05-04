@@ -1,9 +1,9 @@
 import {
   BaseClient,
   EventsPrefix,
-  SessionState,
   ClientContract,
   ClientEvents,
+  type BaseClientOptions,
 } from '@signalwire/core'
 import { createVideoObject, Video } from './video/Video'
 
@@ -65,13 +65,19 @@ type ClientNamespaces = Video
 export class Client extends BaseClient<ClientEvents> {
   private _consumers: Map<EventsPrefix, ClientNamespaces> = new Map()
 
-  async onAuth(session: SessionState) {
+  constructor(public options: BaseClientOptions<ClientEvents>) {
+    super(options)
+
+    this.on('session.connected', () => {
+      this.onAuth()
+    })
+  }
+
+  async onAuth() {
     try {
-      if (session.authStatus === 'authorized') {
-        this._consumers.forEach((consumer) => {
-          consumer.subscribe()
-        })
-      }
+      this._consumers.forEach((consumer) => {
+        consumer.subscribe()
+      })
     } catch (error) {
       this.logger.error('Client subscription failed.')
       this.disconnect()

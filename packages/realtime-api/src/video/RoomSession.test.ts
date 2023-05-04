@@ -21,6 +21,8 @@ describe('RoomSession Object', () => {
       })
       // @ts-expect-error
       video.execute = jest.fn()
+      // @ts-expect-error
+      video.debouncedSubscribe = video.subscribe
 
       video.on('room.started', async (newRoom) => {
         // @ts-expect-error

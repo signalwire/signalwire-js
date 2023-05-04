@@ -8,7 +8,7 @@ import {
   SDKWorkerHooks,
   VideoMemberPromotedEvent,
   VideoMemberDemotedEvent,
-  sessionActions,
+  actions,
   selectors,
   VideoAuthorization,
 } from '@signalwire/core'
@@ -50,7 +50,7 @@ export const promoteDemoteWorker: SDKWorker<
   getLogger().debug('promoteDemoteWorker:', action.type, action.payload)
 
   yield sagaEffects.put(
-    sessionActions.updateAuthState(action.payload.authorization)
+    actions.sessionAuthStateAction(action.payload.authorization)
   )
   const authState: VideoAuthorization = yield sagaEffects.select(
     selectors.getAuthState

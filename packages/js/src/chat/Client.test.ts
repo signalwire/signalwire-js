@@ -3,6 +3,7 @@
  */
 
 import WS from 'jest-websocket-mock'
+import { testUtils } from '@signalwire/core'
 import { Client } from './Client'
 
 describe('ChatClient Object', () => {
@@ -16,6 +17,7 @@ describe('ChatClient Object', () => {
       published_at: 1641393396.153,
     },
   ]
+  const logger = testUtils.createMockedLogger()
 
   let server: WS
   beforeEach(async () => {
@@ -126,6 +128,7 @@ describe('ChatClient Object', () => {
     const chat = new Client({
       host,
       token,
+      logger,
     })
 
     chat.on('message', () => {})
@@ -146,6 +149,7 @@ describe('ChatClient Object', () => {
     const chat = new Client({
       host,
       token,
+      logger,
     })
 
     chat.on('message', () => {})
@@ -218,6 +222,7 @@ describe('ChatClient Object', () => {
       const chat = new Client({
         host,
         token,
+        logger,
       })
       chat.on('message', (message) => {
         expect(message.channel).toBe('lobby')
@@ -285,6 +290,7 @@ describe('ChatClient Object', () => {
       const chat = new Client({
         host,
         token,
+        logger,
       })
       chat.on('member.joined', (member) => {
         expect(member.channel).toBe('lobby')
@@ -325,6 +331,7 @@ describe('ChatClient Object', () => {
       const chat = new Client({
         host,
         token,
+        logger,
       })
       chat.on('member.updated', (member) => {
         expect(member.channel).toBe('lobby')
@@ -365,6 +372,7 @@ describe('ChatClient Object', () => {
       const chat = new Client({
         host,
         token,
+        logger,
       })
       chat.on('member.left', (member) => {
         expect(member.channel).toBe('lobby')
@@ -385,6 +393,7 @@ describe('ChatClient Object', () => {
       const chat = new Client({
         host,
         token,
+        logger,
       })
 
       chat.on('message', () => {})
@@ -405,6 +414,7 @@ describe('ChatClient Object', () => {
       const chat = new Client({
         host,
         token,
+        logger,
       })
 
       const params = {
@@ -434,6 +444,7 @@ describe('ChatClient Object', () => {
       const chat = new Client({
         host,
         token,
+        logger,
       })
 
       chat.on('message', () => {})
@@ -455,6 +466,7 @@ describe('ChatClient Object', () => {
       const chat = new Client({
         host,
         token,
+        logger,
       })
 
       chat.on('message', () => {})
@@ -475,6 +487,7 @@ describe('ChatClient Object', () => {
       const chat = new Client({
         host,
         token,
+        logger,
       })
 
       chat.on('message', () => {})
@@ -495,6 +508,7 @@ describe('ChatClient Object', () => {
       const chat = new Client({
         host,
         token,
+        logger,
       })
 
       chat.on('message', () => {})
@@ -516,6 +530,7 @@ describe('ChatClient Object', () => {
       const chat = new Client({
         host,
         token,
+        logger,
       })
 
       chat.on('message', () => {})
@@ -534,6 +549,7 @@ describe('ChatClient Object', () => {
       const chat = new Client({
         host,
         token,
+        logger,
       })
       chat.on('message', () => {})
       await chat.subscribe(['test1'])
@@ -560,6 +576,7 @@ describe('ChatClient Object', () => {
       const chat = new Client({
         host,
         token,
+        logger,
       })
       chat.on('message', () => {})
       await chat.subscribe(['test1'])
@@ -599,6 +616,7 @@ describe('ChatClient Object', () => {
       const chat = new Client({
         host,
         token,
+        logger,
       })
       chat.on('message', () => {})
       await chat.subscribe(['test1'])
@@ -627,6 +645,7 @@ describe('ChatClient Object', () => {
       const chat = new Client({
         host,
         token,
+        logger,
       })
       chat.on('message', () => {})
       await chat.subscribe(['test1'])
@@ -659,6 +678,7 @@ describe('ChatClient Object', () => {
       const chat = new Client({
         host,
         token,
+        logger,
       })
       chat.on('message', () => {})
       await chat.subscribe(['test1'])

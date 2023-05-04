@@ -2,12 +2,14 @@
  * @jest-environment jsdom
  */
 
+import { testUtils } from '@signalwire/core'
 import WS from 'jest-websocket-mock'
 import { Client } from './Client'
 
 describe('PubSubClient Object', () => {
   const host = 'ws://localhost:1234'
   const token = '<jwt>'
+  const logger = testUtils.createMockedLogger()
 
   let server: WS
   beforeEach(async () => {
@@ -54,6 +56,7 @@ describe('PubSubClient Object', () => {
     const pubSub = new Client({
       host,
       token,
+      logger,
     })
 
     pubSub.on('message', () => {})
@@ -74,6 +77,7 @@ describe('PubSubClient Object', () => {
     const pubSub = new Client({
       host,
       token,
+      logger,
     })
 
     pubSub.on('message', () => {})
@@ -102,6 +106,7 @@ describe('PubSubClient Object', () => {
       const pubSub = new Client({
         host,
         token,
+        logger,
       })
 
       pubSub.on('message', () => {})
@@ -122,6 +127,7 @@ describe('PubSubClient Object', () => {
       const pubSub = new Client({
         host,
         token,
+        logger,
       })
 
       const params = {
@@ -151,6 +157,7 @@ describe('PubSubClient Object', () => {
       const pubSub = new Client({
         host,
         token,
+        logger,
       })
 
       pubSub.on('message', () => {})
@@ -171,6 +178,7 @@ describe('PubSubClient Object', () => {
       const pubSub = new Client({
         host,
         token,
+        logger,
       })
 
       pubSub.on('message', () => {})
@@ -190,6 +198,7 @@ describe('PubSubClient Object', () => {
       const pubSub = new Client({
         host,
         token,
+        logger,
       })
 
       pubSub.on('message', () => {})
@@ -209,6 +218,7 @@ describe('PubSubClient Object', () => {
       const pubSub = new Client({
         host,
         token,
+        logger,
       })
 
       pubSub.on('message', () => {})
@@ -231,6 +241,7 @@ describe('PubSubClient Object', () => {
       const pubSub = new Client({
         host,
         token,
+        logger,
       })
 
       pubSub.on('message', () => {})

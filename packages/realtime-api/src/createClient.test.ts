@@ -1,5 +1,5 @@
 import WS from 'jest-websocket-mock'
-import { AuthError } from '@signalwire/core'
+import { AuthError, testUtils } from '@signalwire/core'
 import { createClient } from './createClient'
 
 describe('createClient', () => {
@@ -53,6 +53,7 @@ describe('createClient', () => {
       // @ts-expect-error
       host,
       token: '<invalid-token>',
+      logger: testUtils.createMockedLogger(),
     })
 
     try {
@@ -69,6 +70,7 @@ describe('createClient', () => {
       // @ts-expect-error
       host,
       token,
+      logger: testUtils.createMockedLogger(),
     })
 
     // @ts-expect-error
@@ -106,6 +108,7 @@ describe('createClient', () => {
       // @ts-expect-error
       host: h,
       token,
+      logger: testUtils.createMockedLogger(),
     })
 
     await Promise.all([client.connect(), client.connect(), client.connect()])

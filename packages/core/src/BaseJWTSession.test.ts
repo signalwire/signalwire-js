@@ -46,7 +46,9 @@ describe('JWTSession', () => {
     })
     session.dispatch = jest.fn()
   })
+
   afterEach(() => {
+    session.disconnect()
     WS.clean()
   })
 

@@ -18,6 +18,8 @@ describe('Video Object', () => {
     })
     // @ts-expect-error
     video.execute = jest.fn()
+    // @ts-expect-error
+    video.debouncedSubscribe = video.subscribe
   })
 
   afterAll(() => {

@@ -6,7 +6,13 @@ import type {
   SessionActions,
   CompoundEvents,
 } from '../utils/interfaces'
-import { EventEmitter } from '..'
+import {
+  Authorization,
+  EventEmitter,
+  RPCConnectResult,
+  SessionAuthStatus,
+} from '..'
+import { UpdateComponent } from './interfaces'
 
 export const initAction = createAction('swSdk/init')
 export const destroyAction = createAction('swSdk/destroy')
@@ -44,6 +50,15 @@ export const sessionExpiringAction = createAction<void, SessionEvents>(
 export const sessionForceCloseAction = createAction<void, SessionActions>(
   'session.forceClose'
 )
+export const sessionAuthStateAction = createAction<Authorization, string>(
+  'session/auth_state'
+)
+export const sessionAuthStatusAction = createAction<SessionAuthStatus, string>(
+  'session/auth_status'
+)
+export const sessionAuthorizedAction = createAction<RPCConnectResult, string>(
+  'session/authorized'
+)
 const formatCustomSagaAction = (id: string, action: Action) => {
   return `${action.type}/${id}`
 }
@@ -67,5 +82,9 @@ export const compoundEventAttachAction = createAction<
   },
   CompoundEvents
 >('compound_event:attach')
+
+export const componentUpsertAction = createAction<UpdateComponent, string>(
+  'components/upsert'
+)
 
 export { createAction }

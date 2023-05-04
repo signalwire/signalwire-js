@@ -1,4 +1,5 @@
 import WS from 'jest-websocket-mock'
+import { testUtils } from '@signalwire/core'
 import { Client } from './VideoClient'
 
 jest.mock('uuid', () => {
@@ -17,6 +18,7 @@ describe('VideoClient', () => {
       message:
         'Authentication service failed with status ProtocolError, 401 Unauthorized: {}',
     }
+    const logger = testUtils.createMockedLogger()
 
     beforeEach(async () => {
       WS.clean()
@@ -61,6 +63,7 @@ describe('VideoClient', () => {
           host,
           project: 'some-project-x',
           token,
+          logger,
         })
         const sleep = () => new Promise((r) => setTimeout(r, 100))
         video.once('room.started', () => {})
@@ -100,19 +103,12 @@ describe('VideoClient', () => {
     })
 
     it('should show an error if client.connect failed to connect', async () => {
-      const logger = {
-        error: jest.fn(),
-        trace: jest.fn(),
-        debug: jest.fn(),
-        info: jest.fn(),
-        warn: jest.fn(),
-      }
       const video = new Client({
         // @ts-expect-error
         host,
         project: 'some-project',
         token: '<invalid-token>',
-        logger: logger as any,
+        logger,
       })
 
       try {
