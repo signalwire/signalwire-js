@@ -376,6 +376,39 @@ window.connect = () => {
   connectStatus.innerHTML = 'Connecting...'
 }
 
+window.__updateSubscribe = async () => {
+  roomObj.on('playback.started', (params) => {
+    console.debug('>> playback.started', params)
+
+    playbackStarted()
+  })
+  roomObj.on('playback.ended', (params) => {
+    console.debug('>> playback.ended', params)
+
+    playbackEnded()
+  })
+
+  roomObj.on('member.updated.audio_muted', (params) =>
+    console.debug('>> member.updated.audio_muted', params)
+  )
+  roomObj.on('member.updated.video_muted', (params) =>
+    console.debug('>> member.updated.video_muted', params)
+  )
+
+  await roomObj.__updateEventsSubscription()
+}
+
+window.__updateUnsubscribe = async () => {
+  roomObj.off('playback.started')
+  roomObj.off('playback.ended')
+
+  roomObj.off('member.updated.audio_muted')
+  roomObj.off('member.updated.video_muted')
+  roomObj.off('layout.changed')
+
+  await roomObj.__updateEventsSubscription()
+}
+
 /**
  * Hangup the roomObj if present
  */
