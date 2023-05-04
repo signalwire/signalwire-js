@@ -163,6 +163,10 @@ export const vertoEventWorker: SDKWorker<
         })
         break
       }
+      case 'verto.attach': {
+        getLogger().warn('Handle verto.attach', params)
+        break
+      }
       default:
         return getLogger().warn(`Unknown Verto method: ${method}`, params)
     }
