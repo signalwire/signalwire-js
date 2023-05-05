@@ -305,7 +305,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   startWatchMediaPackets() {
     this.stopWatchMediaPackets()
     this._mediaWatcher = watchRTCPeerMediaPackets(this)
-    this._mediaWatcher?.start()
+    // this._mediaWatcher?.start()
   }
 
   async applyMediaConstraints(
