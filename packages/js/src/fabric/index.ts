@@ -1,4 +1,3 @@
-export * from './getAddresses'
 export * from './Client'
-export * from './registerDevice'
-export * from './unregisterDevice'
+export * from './HTTPClient'
+export * from './WSClient'

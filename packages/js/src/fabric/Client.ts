@@ -1,12 +1,18 @@
-import { createHttpClient } from './httpClient'
+import { createHttpClient } from './createHttpClient'
 import { buildCall } from './buildCall'
-// import { RoomSession } from '../video'
 
 interface ClientOptions {
   host?: string
   accessToken: string
 }
 
+/**
+ *
+ *
+ * // TODO: Remove this file
+ * Replaced by HTTPClient.ts
+ *
+ */
 export class Client {
   private httpClient: ReturnType<typeof createHttpClient>
 
@@ -68,25 +74,6 @@ export class Client {
       userParams: {
         host: this.host.includes('swire') ? 'relay.swire.io' : undefined,
         ...userParams,
-      },
-    })
-  }
-
-  async createSATCall(params: {
-    destinationNumber: string
-    rootElement: HTMLElement
-  }) {
-    console.log('createSATCall to', params)
-
-    return buildCall({
-      strategy: 'room',
-      params: {
-        token: this.options.accessToken,
-      },
-      userParams: {
-        // @ts-expect-error
-        host: this.host.includes('swire') ? 'relay.swire.io' : undefined,
-        ...params,
       },
     })
   }
