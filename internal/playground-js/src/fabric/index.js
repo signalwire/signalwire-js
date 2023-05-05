@@ -1,4 +1,4 @@
-import { Video, Fabric } from '@signalwire/js'
+import { Fabric } from '@signalwire/js'
 import {
   enumerateDevices,
   checkPermissions,
@@ -217,24 +217,16 @@ function restoreUI() {
  * Connect with Relay creating a client and attaching all the event handler.
  */
 window.connect = async () => {
-  const client = new Fabric.Client({
+  const client = new Fabric.WSClient({
     host: document.getElementById('host').value,
-    accessToken: document.getElementById('token').value,
-  })
-  // const { addresses, nextPage, prevPage } = await client.getAddresses()
-
-  // Navigate throught pages
-  // const next = await nextPage()
-  // const prev = await prevPage()
-
-  // Call the first address/channel
-  // const call = await client.createCall({
-  //   uri: addresses[0].channels.video,
-  //   rootElement: document.getElementById('rootElement'),
-  // })
-  const call = await client.createSATCall({
-    destinationNumber: document.getElementById('destination').value,
+    token: document.getElementById('token').value,
     rootElement: document.getElementById('rootElement'),
+  })
+
+  window.__client = client
+
+  const call = await client.dial({
+    to: document.getElementById('destination').value,
     logLevel: 'debug',
     debug: { logWsTraffic: true },
   })
@@ -414,7 +406,7 @@ window.hangup = () => {
 
 window.saveInLocalStorage = (e) => {
   const key = e.target.name || e.target.id
-  localStorage.setItem('relay.example.' + key, e.target.value)
+  localStorage.setItem('fabric.ws.' + key, e.target.value)
 }
 
 // jQuery document.ready equivalent
@@ -759,11 +751,13 @@ window.unregisterDeviceSNS = () => {
  */
 window.ready(async function () {
   document.getElementById('host').value =
-    localStorage.getItem('relay.example.host') || ''
+    localStorage.getItem('fabric.ws.host') || ''
   document.getElementById('token').value =
-    localStorage.getItem('relay.example.token') || ''
+    localStorage.getItem('fabric.ws.token') || ''
+  document.getElementById('destination').value =
+    localStorage.getItem('fabric.ws.destination') || ''
   document.getElementById('audio').checked =
-    (localStorage.getItem('relay.example.audio') || '1') === '1'
+    (localStorage.getItem('fabric.ws.audio') || '1') === '1'
   document.getElementById('video').checked =
-    (localStorage.getItem('relay.example.video') || '1') === '1'
+    (localStorage.getItem('fabric.ws.video') || '1') === '1'
 })
