@@ -74,6 +74,13 @@ export const vertoEventWorker: SDKWorker<
           peer.onRemoteSdp(params.sdp)
         }
 
+        yield sagaEffects.put(
+          componentActions.upsert({
+            id: action.payload.params?.callID,
+            nodeId: action.payload.params?.nodeId,
+          })
+        )
+
         yield sagaEffects.call([instance, instance.execute], {
           method: instance._getRPCMethod(),
           params: {
@@ -140,19 +147,6 @@ export const vertoEventWorker: SDKWorker<
          * In here we joined a room_session so we can swap between RTCPeers
          */
         instance.setActiveRTCPeer(rtcPeerId)
-
-        /**
-         * TODO: Replace the redux action/component with properties on RTCPeer instance?
-         */
-        yield sagaEffects.put(
-          componentActions.upsert({
-            id: action.payload.params?.callID,
-            roomId: '',
-            roomSessionId: '',
-            memberId: '',
-            previewUrl: '',
-          })
-        )
 
         // Rename "room.subscribed" with "room.joined" for the end-user
         yield sagaEffects.put(pubSubChannel, {
