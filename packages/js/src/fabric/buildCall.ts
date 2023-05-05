@@ -22,12 +22,11 @@ export const buildCall = ({
   switch (strategy) {
     case 'room':
       obj = new RoomSession({
-        // host: document.getElementById('host').value,
         token: params.token,
         debug: {
           logWsTraffic: true,
         },
-        logLevel: 'trace',
+        logLevel: 'debug',
         ...userParams,
       })
       start = (joinParams: any) => {
