@@ -172,6 +172,11 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     return this.component.roomSessionId
   }
 
+  get nodeId() {
+    // @ts-expect-error
+    return this.component.nodeId
+  }
+
   get callId() {
     return this.peer?.uuid || ''
   }
@@ -826,6 +831,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       const response: any = await this.vertoExecute({
         message,
         callID: rtcPeerId,
+        node_id: this.nodeId,
       })
       if (!response.sdp) {
         this.logger.error('UpdateMedia invalid SDP answer', response)
@@ -851,7 +857,11 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
     try {
       const message = VertoBye(this.dialogParams(rtcPeerId))
-      await this.vertoExecute({ message, callID: rtcPeerId })
+      await this.vertoExecute({
+        message,
+        callID: rtcPeerId,
+        node_id: this.nodeId,
+      })
     } catch (error) {
       this.logger.error('Hangup error:', error)
     } finally {
@@ -873,7 +883,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       throw new Error('Invalid RTCPeer ID to send DTMF')
     }
     const message = VertoInfo({ ...this.dialogParams(rtcPeerId), dtmf })
-    this.vertoExecute({ message, callID: rtcPeerId })
+    this.vertoExecute({ message, callID: rtcPeerId, node_id: this.nodeId })
   }
 
   /** @internal */
