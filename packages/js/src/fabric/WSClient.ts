@@ -20,6 +20,7 @@ export class WSClient {
       userParams: {
         // @ts-expect-error
         host: this.options.host,
+        destinationNumber: params.to,
         ...params,
       },
     })
