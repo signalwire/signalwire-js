@@ -729,23 +729,6 @@ window.seekForwardPlayback = () => {
     })
 }
 
-window.registerDeviceSNS = () => {
-  Fabric.registerDevice({
-    host: 'fabric.swire.io',
-    accessToken: '<ACCESS-TOKEN>',
-    deviceType: 'iOS',
-    deviceToken: 'foo',
-  })
-}
-
-window.unregisterDeviceSNS = () => {
-  __Fabric.unregisterDevice({
-    host: 'fabric.swire.io',
-    accessToken: '<ACCESS-TOKEN>',
-    id: '<UUID>',
-  })
-}
-
 /**
  * On document ready auto-fill the input values from the localStorage.
  */
