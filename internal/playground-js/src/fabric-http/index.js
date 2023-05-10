@@ -1,10 +1,11 @@
-import { Fabric } from '@signalwire/js'
+import { SWClient } from '@signalwire/js'
 
+let __client = null
 /**
  * Connect with Relay creating a client and attaching all the event handler.
  */
 window.connect = async () => {
-  const client = new Fabric.SWClient({
+  __client = new SWClient({
     httpHost: document.getElementById('host').value,
     accessToken: document.getElementById('token').value,
   })
@@ -12,7 +13,7 @@ window.connect = async () => {
   const addressesDiv = document.getElementById('addresses')
   addressesDiv.innerHTML = ''
   try {
-    const { addresses, nextPage, prevPage } = await client.getAddresses()
+    const { addresses, nextPage, prevPage } = await __client.getAddresses()
     const list = addresses.map((address) => {
       return `<li class="list-group-item">
         <b>${address.display_name}</b> / <span>${
@@ -61,7 +62,7 @@ window.ready = (callback) => {
 }
 
 window.registerDeviceSNS = () => {
-  Fabric.registerDevice({
+  return __client.registerDevice({
     host: 'fabric.swire.io',
     accessToken: '<ACCESS-TOKEN>',
     deviceType: 'iOS',
@@ -70,7 +71,7 @@ window.registerDeviceSNS = () => {
 }
 
 window.unregisterDeviceSNS = () => {
-  __Fabric.unregisterDevice({
+  return __client.unregisterDevice({
     host: 'fabric.swire.io',
     accessToken: '<ACCESS-TOKEN>',
     id: '<UUID>',
