@@ -63,8 +63,6 @@ window.ready = (callback) => {
 
 window.registerDeviceSNS = () => {
   return __client.registerDevice({
-    host: 'fabric.swire.io',
-    accessToken: '<ACCESS-TOKEN>',
     deviceType: 'iOS',
     deviceToken: 'foo',
   })
@@ -72,8 +70,6 @@ window.registerDeviceSNS = () => {
 
 window.unregisterDeviceSNS = () => {
   return __client.unregisterDevice({
-    host: 'fabric.swire.io',
-    accessToken: '<ACCESS-TOKEN>',
     id: '<UUID>',
   })
 }
