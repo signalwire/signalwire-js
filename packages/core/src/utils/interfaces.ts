@@ -566,6 +566,11 @@ type SDKWorkerBaseParams<T> = {
   initialState?: any
   getSession: () => BaseSession | undefined
   instanceMap: InstanceMap
+  dispatcher?: (
+    type: any,
+    payload: any,
+    channel?: PubSubChannel | SwEventChannel | SessionChannel
+  ) => SagaIterator
 }
 
 export type SDKWorkerParams<

@@ -110,7 +110,7 @@ export const toExternalJSON = <T>(
  * Converts values from snake_case to camelCase
  * @internal
  */
-const fromSnakeToCamelCase = (input: string) => {
+export const fromSnakeToCamelCase = (input: string) => {
   if (!input.includes('_')) {
     return input
   }

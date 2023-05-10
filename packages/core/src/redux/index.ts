@@ -107,6 +107,12 @@ const configureStore = (options: ConfigureStoreOptions) => {
     return instanceMap
   }
 
+  const map = {
+    get: getInstance,
+    set: setInstance,
+    remove: deleteInstance,
+  }
+
   const runSaga = <T>(
     saga: Saga,
     args: {
@@ -118,11 +124,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
       ...args,
       channels,
       getSession,
-      instanceMap: {
-        get: getInstance,
-        set: setInstance,
-        remove: deleteInstance,
-      },
+      instanceMap: map,
     })
   }
 
@@ -137,9 +139,11 @@ const configureStore = (options: ConfigureStoreOptions) => {
     ...store,
     runSaga,
     channels,
+    // @TODO: This function can be removed after the inclusion of instanceMap
     putOnSwEventChannel: (arg: MapToPubSubShape<SwEventParams>) => {
       swEventChannel.put(arg)
     },
+    instanceMap: map,
   }
 }
 

@@ -2,9 +2,11 @@ import { actions } from '@signalwire/core'
 import { configureFullStack } from '../testUtils'
 import { createRoomSessionObject } from './RoomSession'
 import { RoomSessionMember } from './RoomSessionMember'
+import { Video, createVideoObject } from './Video'
 
 describe('Member Object', () => {
   let member: RoomSessionMember
+  let video: Video
   const roomSessionId = '3b36a747-e33a-409d-bbb9-1ddffc543b6d'
   const memberId = '483c60ba-b776-4051-834a-5575c4b7cffe'
   const { store, session, emitter, destroy } = configureFullStack()
@@ -13,14 +15,27 @@ describe('Member Object', () => {
     // remove all listeners before each run
     emitter.removeAllListeners()
 
+    video = createVideoObject({
+      store,
+      // @ts-expect-error
+      emitter,
+    })
+    // @ts-expect-error
+    video.execute = jest.fn()
+
     return new Promise(async (resolve) => {
       const roomSession = createRoomSessionObject({
         store,
         // @ts-expect-error
         emitter,
+        payload: {
+          room_session: {
+            id: roomSessionId,
+            eventChannel: 'room.e4b8baff-865d-424b-a210-4a182a3b1451',
+          },
+        },
       })
-      roomSession.eventChannel = 'room.e4b8baff-865d-424b-a210-4a182a3b1451'
-      roomSession.id = roomSessionId
+      store.instanceMap.set(roomSessionId, roomSession)
       roomSession.on('member.joined', (newMember) => {
         // @ts-expect-error
         newMember.execute = jest.fn()
