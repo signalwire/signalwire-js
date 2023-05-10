@@ -4,8 +4,8 @@ import { Fabric } from '@signalwire/js'
  * Connect with Relay creating a client and attaching all the event handler.
  */
 window.connect = async () => {
-  const client = new Fabric.HTTPClient({
-    host: document.getElementById('host').value,
+  const client = new Fabric.SWClient({
+    httpHost: document.getElementById('host').value,
     accessToken: document.getElementById('token').value,
   })
 

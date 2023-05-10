@@ -1,3 +1,3 @@
 export * from './Client'
-export * from './HTTPClient'
+export * from './SWClient'
 export * from './WSClient'
