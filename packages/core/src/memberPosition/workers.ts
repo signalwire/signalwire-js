@@ -11,11 +11,24 @@ import {
 } from '..'
 import { findNamespaceInPayload } from '../redux/features/shared/namespace'
 
+// @TODO: Dispatcher should be removed once we implement new event emitter for Browser SDK
+const defaultDispatcher = function* (
+  type: string,
+  payload: any,
+  channel?: any
+) {
+  yield put(channel, {
+    type,
+    payload,
+  })
+}
+
 function* memberPositionLayoutChangedWorker(options: any) {
   const {
     action,
     memberList,
     channels: { pubSubChannel },
+    dispatcher = defaultDispatcher,
   } = options
   const layers = action.payload.layout.layers
   const processedMembers: Record<string, boolean> = {}
@@ -46,10 +59,7 @@ function* memberPositionLayoutChangedWorker(options: any) {
 
   for (const [memberId, payload] of memberList) {
     if (processedMembers[memberId]) {
-      yield put(pubSubChannel, {
-        type: 'video.member.updated',
-        payload,
-      })
+      yield dispatcher?.('video.member.updated', payload, pubSubChannel)
 
       /**
        * `undefined` means that we couldn't find the
@@ -67,10 +77,11 @@ function* memberPositionLayoutChangedWorker(options: any) {
         return
       }
 
-      yield put(pubSubChannel, {
-        type: 'video.member.updated',
-        payload: updatedMemberEventParams,
-      })
+      yield dispatcher?.(
+        'video.member.updated',
+        updatedMemberEventParams,
+        pubSubChannel
+      )
     }
   }
 }
@@ -79,6 +90,7 @@ export function* memberUpdatedWorker({
   action,
   channels,
   memberList,
+  dispatcher = defaultDispatcher,
 }: Omit<SDKWorkerParams<any>, 'runSaga'> & {
   memberList: MemberEventParamsList
   action: any
@@ -110,16 +122,10 @@ export function* memberUpdatedWorker({
 
   for (const key of updated) {
     const type = `${action.type}.${key}` as InternalMemberUpdatedEventNames
-    yield put(channels.pubSubChannel, {
-      type,
-      payload: memberUpdatedPayload,
-    })
+    yield dispatcher?.(type, memberUpdatedPayload, channels.pubSubChannel)
   }
 
-  yield put(channels.pubSubChannel, {
-    type: action.type,
-    payload: memberUpdatedPayload,
-  })
+  yield dispatcher?.(action.type, memberUpdatedPayload, channels.pubSubChannel)
 }
 
 export const MEMBER_POSITION_COMPOUND_EVENTS = new Map<any, any>([
@@ -142,6 +148,7 @@ export const memberPositionWorker: SDKWorker<any> =
     initialState,
     getSession,
     instanceMap,
+    dispatcher = defaultDispatcher,
   }): SagaIterator {
     if (!initialState) {
       return
@@ -170,7 +177,10 @@ export const memberPositionWorker: SDKWorker<any> =
 
         return (
           istargetEvent &&
-          findNamespaceInPayload(action) === instance._eventsNamespace
+          (findNamespaceInPayload(action) === instance._eventsNamespace ||
+            // @TODO: New event emitter does not need `_eventsNamespace`.
+            // This whole `findNamespaceInPayload` logic should be removed once we implement new event emitter for Browser SDK
+            findNamespaceInPayload(action) === instance.roomSessionId)
         )
       })
 
@@ -184,6 +194,7 @@ export const memberPositionWorker: SDKWorker<any> =
             instance,
             getSession,
             instanceMap,
+            dispatcher,
           })
           break
         }
@@ -202,6 +213,7 @@ export const memberPositionWorker: SDKWorker<any> =
             channels,
             memberList,
             instance,
+            dispatcher,
           })
           break
         }

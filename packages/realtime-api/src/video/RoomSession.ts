@@ -1,25 +1,15 @@
 import {
   BaseComponentOptions,
   connect,
-  EventTransform,
   extendComponent,
   InternalVideoMemberEventNames,
-  INTERNAL_MEMBER_UPDATED_EVENTS,
   Rooms,
-  toExternalJSON,
-  toLocalEvent,
-  VideoMemberEventParams,
   InternalVideoRoomSessionEventNames,
   VideoRoomAudienceCountEventNames,
-  VideoRoomAudienceCountEventParams,
-  VideoRoomUpdatedEventParams,
-  VideoRoomSubscribedEventParams,
   InternalVideoLayoutEventNames,
   InternalVideoRecordingEventNames,
   InternalVideoPlaybackEventNames,
   InternalVideoStreamEventNames,
-  VideoPlaybackEventParams,
-  VideoLayoutChangedEventParams,
   VideoRoomSessionContract,
   VideoRoomSessionMethods,
   ConsumerContract,
@@ -28,13 +18,11 @@ import {
   EventEmitter,
   MemberPosition,
   debounce,
+  VideoRoomEventParams,
+  Optional,
 } from '@signalwire/core'
 import { RealTimeRoomApiEvents } from '../types'
-import {
-  createRoomSessionMemberObject,
-  RoomSessionMember,
-} from './RoomSessionMember'
-import { memberPositionWorker } from './memberPosition/workers'
+import { RoomSessionMember } from './RoomSessionMember'
 
 type EmitterTransformsEvents =
   | InternalVideoRoomSessionEventNames
@@ -50,7 +38,10 @@ type EmitterTransformsEvents =
 
 export interface RoomSession
   extends VideoRoomSessionContract,
-    ConsumerContract<RealTimeRoomApiEvents, RoomSessionFullState> {}
+    ConsumerContract<RealTimeRoomApiEvents, RoomSessionFullState> {
+  baseEmitter: EventEmitter
+  setPayload(payload: Optional<VideoRoomEventParams, 'room'>): void
+}
 
 export type RoomSessionUpdated = EntityUpdated<RoomSession>
 export interface RoomSessionFullState extends Omit<RoomSession, 'members'> {
@@ -60,6 +51,7 @@ export interface RoomSessionFullState extends Omit<RoomSession, 'members'> {
 
 export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   protected _eventsPrefix = 'video' as const
+  private _payload: Optional<VideoRoomEventParams, 'room'>
 
   /** @internal */
   protected subscribeParams = {
@@ -72,10 +64,55 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   constructor(options: BaseComponentOptions<RealTimeRoomApiEvents>) {
     super(options)
 
+    if (options.payload) {
+      this._payload = options.payload
+    }
+
     this.debouncedSubscribe = debounce(this.subscribe, 100)
-    this.runWorker('memberPositionWorker', {
-      worker: memberPositionWorker,
-    })
+  }
+
+  get id() {
+    return this._payload.room_session.id
+  }
+
+  get roomSessionId() {
+    return this._payload.room_session.id
+  }
+
+  get roomId() {
+    return this._payload.room_session.room_id
+  }
+
+  get name() {
+    return this._payload.room_session.name
+  }
+
+  get displayName() {
+    return this._payload.room_session.display_name
+  }
+
+  get hideVideoMuted() {
+    return this._payload.room_session.hide_video_muted
+  }
+
+  get layoutName() {
+    return this._payload.room_session.layout_name
+  }
+
+  get meta() {
+    return this._payload.room_session.meta
+  }
+
+  get previewUrl() {
+    return this._payload.room_session.preview_url
+  }
+
+  get recording() {
+    return this._payload.room_session.recording
+  }
+
+  get eventChannel() {
+    return this._payload.room_session.event_channel
   }
 
   /** @internal */
@@ -90,7 +127,8 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     event: keyof RealTimeRoomApiEvents,
     fn: EventEmitter.EventListener<RealTimeRoomApiEvents, any>
   ) {
-    const instance = super.on(event, fn)
+    // @ts-expect-error
+    const instance = super._on(`video.${event}`, fn)
     this.debouncedSubscribe()
     return instance
   }
@@ -99,8 +137,18 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     event: keyof RealTimeRoomApiEvents,
     fn: EventEmitter.EventListener<RealTimeRoomApiEvents, any>
   ) {
-    const instance = super.once(event, fn)
+    // @ts-expect-error
+    const instance = super._on(`video.${event}`, fn)
     this.debouncedSubscribe()
+    return instance
+  }
+
+  off(
+    event: keyof RealTimeRoomApiEvents,
+    fn: EventEmitter.EventListener<RealTimeRoomApiEvents, any>
+  ) {
+    // @ts-expect-error
+    const instance = super.off(`video.${event}`, fn)
     return instance
   }
 
@@ -148,290 +196,8 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   }
 
   /** @internal */
-  protected getEmitterTransforms() {
-    return new Map<
-      EmitterTransformsEvents | EmitterTransformsEvents[],
-      EventTransform
-    >([
-      [
-        'video.room.subscribed',
-        {
-          type: 'roomSessionSubscribed',
-          instanceFactory: () => {
-            return this
-          },
-          payloadTransform: (payload: VideoRoomSubscribedEventParams) => {
-            return toExternalJSON(payload.room_session)
-          },
-          nestedFieldsToProcess: {
-            members: {
-              eventTransformType: 'roomSessionMember',
-              processInstancePayload: (payload) => {
-                return {
-                  room_session_id: this.getStateProperty('roomSessionId'),
-                  member: payload,
-                }
-              },
-            },
-            recordings: {
-              eventTransformType: 'roomSessionRecording',
-              processInstancePayload: (payload) => {
-                return {
-                  room_session_id: this.getStateProperty('roomSessionId'),
-                  recording: payload,
-                }
-              },
-            },
-            streams: {
-              eventTransformType: 'roomSessionStream',
-              processInstancePayload: (payload) => {
-                return {
-                  room_session_id: this.getStateProperty('roomSessionId'),
-                  stream: payload,
-                }
-              },
-            },
-          },
-          getInstanceEventNamespace: (
-            payload: VideoRoomSubscribedEventParams
-          ) => {
-            return payload.room_session.id
-          },
-          getInstanceEventChannel: (
-            payload: VideoRoomSubscribedEventParams
-          ) => {
-            return payload.room_session.event_channel
-          },
-        },
-      ],
-      [
-        [toLocalEvent<EmitterTransformsEvents>('video.recording.list')],
-        {
-          type: 'roomSessionRecordingList',
-          instanceFactory: (_payload: any) => {
-            return {}
-          },
-          payloadTransform: (payload: any) => {
-            return payload
-          },
-          nestedFieldsToProcess: {
-            recordings: {
-              eventTransformType: 'roomSessionRecording',
-              processInstancePayload: (payload) => {
-                return {
-                  room_session_id: this.getStateProperty('roomSessionId'),
-                  recording: payload,
-                }
-              },
-            },
-          },
-        },
-      ],
-      [
-        [toLocalEvent<EmitterTransformsEvents>('video.playback.list')],
-        {
-          type: 'roomSessionPlaybackList',
-          instanceFactory: (_payload: any) => {
-            return {}
-          },
-          payloadTransform: (payload: any) => {
-            return payload
-          },
-          nestedFieldsToProcess: {
-            playbacks: {
-              eventTransformType: 'roomSessionPlayback',
-              processInstancePayload: (payload) => {
-                return {
-                  room_session_id: this.getStateProperty('roomSessionId'),
-                  playback: payload,
-                }
-              },
-            },
-          },
-        },
-      ],
-      [
-        'video.room.updated',
-        {
-          type: 'roomSession',
-          instanceFactory: () => {
-            return this
-          },
-          payloadTransform: (payload: VideoRoomUpdatedEventParams) => {
-            return toExternalJSON({
-              ...payload.room_session,
-              room_session_id: payload.room_session.id,
-            })
-          },
-          getInstanceEventNamespace: (payload: VideoRoomUpdatedEventParams) => {
-            return payload.room_session.id
-          },
-          getInstanceEventChannel: (payload: VideoRoomUpdatedEventParams) => {
-            return payload.room_session.event_channel
-          },
-        },
-      ],
-      [
-        'video.layout.changed',
-        {
-          type: 'roomSessionLayout',
-          instanceFactory: () => {
-            // TODO: Implement a Layout object when we have a better payload
-            // from the backend
-            return {}
-          },
-          payloadTransform: (payload: VideoLayoutChangedEventParams) => {
-            return toExternalJSON(payload.layout)
-          },
-        },
-      ],
-      [
-        [
-          'video.member.joined',
-          'video.member.left',
-          'video.member.talking',
-          'video.member.talking.start',
-          'video.member.talking.started',
-          'video.member.talking.stop',
-          'video.member.talking.ended',
-          'video.member.updated',
-          ...INTERNAL_MEMBER_UPDATED_EVENTS,
-        ],
-        {
-          type: 'roomSessionMember',
-          instanceFactory: (_payload: VideoMemberEventParams) => {
-            return createRoomSessionMemberObject({
-              store: this.store,
-              // TODO: the emitter is now typed so types
-              // don't match but internally it doesn't
-              // matter that much.
-              // @ts-expect-error
-              emitter: this.options.emitter,
-            })
-          },
-          payloadTransform: (payload: VideoMemberEventParams) => {
-            return toExternalJSON({
-              ...payload.member,
-              /**
-               * The server is sending the member id as `id`
-               * but internally (i.e in CustomMethods) we
-               * reference it as `memberId`. This is needed
-               * because sometimes we have to deal with
-               * multiple ids at once and having them
-               * properly prefixed makes it easier to read.
-               */
-              member_id: payload.member.id,
-            })
-          },
-        },
-      ],
-      [
-        [
-          toLocalEvent<EmitterTransformsEvents>('video.recording.start'),
-          'video.recording.started',
-          'video.recording.updated',
-          'video.recording.ended',
-        ],
-        {
-          type: 'roomSessionRecording',
-          instanceFactory: (_payload: any) => {
-            return Rooms.createRoomSessionRecordingObject({
-              store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
-            })
-          },
-          payloadTransform: (payload: any) => {
-            return toExternalJSON({
-              ...payload.recording,
-              room_session_id: payload.room_session_id,
-            })
-          },
-        },
-      ],
-      [
-        [
-          toLocalEvent<EmitterTransformsEvents>('video.playback.start'),
-          'video.playback.started',
-          'video.playback.updated',
-          'video.playback.ended',
-        ],
-        {
-          type: 'roomSessionPlayback',
-          instanceFactory: (_payload: any) => {
-            return Rooms.createRoomSessionPlaybackObject({
-              store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
-            })
-          },
-          payloadTransform: (payload: VideoPlaybackEventParams) => {
-            return toExternalJSON({
-              ...payload.playback,
-              room_session_id: payload.room_session_id,
-            })
-          },
-        },
-      ],
-      [
-        ['video.room.audience_count', 'video.room.audienceCount'],
-        {
-          type: 'roomSessionAudienceCount',
-          instanceFactory: (_payload: VideoRoomAudienceCountEventParams) => {
-            return {}
-          },
-          payloadTransform: (payload: VideoRoomAudienceCountEventParams) => {
-            return toExternalJSON(payload)
-          },
-        },
-      ],
-      [
-        [toLocalEvent<EmitterTransformsEvents>('video.stream.list')],
-        {
-          type: 'roomSessionStreamList',
-          instanceFactory: (_payload: any) => {
-            return {}
-          },
-          payloadTransform: (payload: any) => {
-            return payload
-          },
-          nestedFieldsToProcess: {
-            streams: {
-              eventTransformType: 'roomSessionStream',
-              processInstancePayload: (payload) => {
-                return {
-                  room_session_id: this.getStateProperty('roomSessionId'),
-                  stream: payload,
-                }
-              },
-            },
-          },
-        },
-      ],
-      [
-        [
-          toLocalEvent<EmitterTransformsEvents>('video.stream.start'),
-          'video.stream.started',
-          'video.stream.ended',
-        ],
-        {
-          type: 'roomSessionStream',
-          instanceFactory: (_payload: any) => {
-            return Rooms.createRoomSessionStreamObject({
-              store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
-            })
-          },
-          payloadTransform: (payload: any) => {
-            return toExternalJSON({
-              ...payload.stream,
-              room_session_id: payload.room_session_id,
-            })
-          },
-        },
-      ],
-    ])
+  protected setPayload(payload: Optional<VideoRoomEventParams, 'room'>) {
+    this._payload = payload
   }
 }
 
@@ -458,10 +224,10 @@ export const RoomSessionAPI = extendComponent<
   setLayout: Rooms.setLayout,
   setPositions: Rooms.setPositions,
   setMemberPosition: Rooms.setMemberPosition,
-  getRecordings: Rooms.getRecordings,
-  startRecording: Rooms.startRecording,
-  getPlaybacks: Rooms.getPlaybacks,
-  play: Rooms.play,
+  getRecordings: Rooms.getRTRecordings,
+  startRecording: Rooms.startRTRecording,
+  getPlaybacks: Rooms.getRTPlaybacks,
+  play: Rooms.playRT,
   getMeta: Rooms.getMeta,
   setMeta: Rooms.setMeta,
   updateMeta: Rooms.updateMeta,
@@ -472,8 +238,8 @@ export const RoomSessionAPI = extendComponent<
   deleteMemberMeta: Rooms.deleteMemberMeta,
   promote: Rooms.promote,
   demote: Rooms.demote,
-  getStreams: Rooms.getStreams,
-  startStream: Rooms.startStream,
+  getStreams: Rooms.getRTStreams,
+  startStream: Rooms.startRTStream,
 })
 
 export const createRoomSessionObject = (

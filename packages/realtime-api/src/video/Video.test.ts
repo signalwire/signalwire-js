@@ -148,17 +148,17 @@ describe('Video Object', () => {
       expect(mockExecute).toHaveBeenNthCalledWith(1, {
         method: 'signalwire.subscribe',
         params: {
-          get_initial_state: true,
           event_channel: eventChannelOne,
-          events: ['video.member.joined', 'video.room.subscribed'],
+          events: ['video.room.subscribed', 'video.member.joined'],
+          get_initial_state: true,
         },
       })
       expect(mockExecute).toHaveBeenNthCalledWith(2, {
         method: 'signalwire.subscribe',
         params: {
-          get_initial_state: true,
           event_channel: eventChannelTwo,
-          events: ['video.member.joined', 'video.room.subscribed'],
+          events: ['video.room.subscribed', 'video.member.joined'],
+          get_initial_state: true,
         },
       })
 
@@ -278,7 +278,7 @@ describe('Video Object', () => {
       )
       expect(result.roomSessions[0].displayName).toBe('themes')
       expect(result.roomSessions[0].recording).toBe(true)
-      expect(result.roomSessions[0].members).toHaveLength(1)
+      expect(result.roomSessions[0].getMembers).toBeDefined()
 
       expect(result.roomSessions[1]).toBeInstanceOf(RoomSessionConsumer)
       expect(result.roomSessions[1].id).toBe(
@@ -289,7 +289,7 @@ describe('Video Object', () => {
       )
       expect(result.roomSessions[1].displayName).toBe('sdk-room')
       expect(result.roomSessions[1].recording).toBe(false)
-      expect(result.roomSessions[1].members).toHaveLength(1)
+      expect(result.roomSessions[1].getMembers).toBeDefined()
     })
   })
 
@@ -347,7 +347,6 @@ describe('Video Object', () => {
       )
       expect(result.roomSession.displayName).toBe('themes')
       expect(result.roomSession.recording).toBe(true)
-      expect(result.roomSession.members).toHaveLength(1)
     })
   })
 })

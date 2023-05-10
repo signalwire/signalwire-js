@@ -251,6 +251,11 @@ export class BaseComponent<
   }
 
   /** @internal */
+  get instanceMap() {
+    return this.options.store.instanceMap
+  }
+
+  /** @internal */
   // TODO: Remove this
   get emitter() {
     return this.options.emitter
