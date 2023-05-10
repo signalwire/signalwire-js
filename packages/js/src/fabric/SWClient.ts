@@ -1,8 +1,9 @@
 import { createHttpClient } from './createHttpClient'
 
-interface HTTPClientOptions {
-  host?: string
+interface SWClientOptions {
+  httpHost?: string
   accessToken: string
+  rootElement?: HTMLElement
 }
 
 interface RegisterDeviceParams {
@@ -10,20 +11,21 @@ interface RegisterDeviceParams {
   deviceToken: string
 }
 
-export class HTTPClient {
+// TODO: extends from a Base class to share from core
+export class SWClient {
   private httpClient: ReturnType<typeof createHttpClient>
 
-  constructor(public options: HTTPClientOptions) {
+  constructor(public options: SWClientOptions) {
     this.httpClient = createHttpClient({
-      baseUrl: `https://${this.host}`,
+      baseUrl: `https://${this.httpHost}`,
       headers: {
         Authorization: `Bearer ${this.options.accessToken}`,
       },
     })
   }
 
-  get host() {
-    return this.options.host ?? 'fabric.signalwire.com'
+  get httpHost() {
+    return this.options.httpHost ?? 'fabric.signalwire.com'
   }
 
   async getAddresses() {

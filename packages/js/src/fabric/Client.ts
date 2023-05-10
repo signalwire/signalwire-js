@@ -10,7 +10,7 @@ interface ClientOptions {
  *
  *
  * // TODO: Remove this file
- * Replaced by HTTPClient.ts
+ * Replaced by SWClient.ts
  *
  */
 export class Client {
