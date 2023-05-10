@@ -27,6 +27,7 @@ export const buildCall = ({
           logWsTraffic: true,
         },
         logLevel: 'debug',
+        watchMediaPackets: false,
         ...userParams,
       })
       start = (joinParams: any) => {
