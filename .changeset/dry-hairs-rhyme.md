@@ -2,4 +2,4 @@
 '@signalwire/realtime-api': patch
 ---
 
-Base event emitter for Messaging API
+[internal] Base event emitter for Messaging API.

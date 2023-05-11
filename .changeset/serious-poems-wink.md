@@ -2,4 +2,4 @@
 '@signalwire/realtime-api': patch
 ---
 
-Remove emitter transform for Voice Call APIs
+[internal] Remove EmitterTransforms for Voice Call APIs.
