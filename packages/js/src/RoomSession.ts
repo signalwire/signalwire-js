@@ -107,6 +107,8 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     speakerId,
     destinationNumber,
     localStream,
+    watchMediaPackets,
+    watchMediaPacketsTimeout,
     ...userOptions
   } = roomOptions
 
@@ -134,6 +136,8 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     speakerId,
     destinationNumber,
     localStream,
+    watchMediaPackets,
+    watchMediaPacketsTimeout,
   })
 
   // @ts-expect-error - true by default
