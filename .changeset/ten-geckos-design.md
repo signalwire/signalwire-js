@@ -3,4 +3,4 @@
 '@signalwire/core': patch
 ---
 
-Event emitter for each Call instance
+[internal] Use Base EventEmitter for each Call instance.
