@@ -6,6 +6,7 @@
   "scripts": {
     "dev:playwright": "sw-test --mode=playwright",
     "dev": "sw-test --mode=custom-node && npm run dev:playwright",
+    "dev:rtonly": "sw-test --mode=custom-node",
     "test": ""
   },
   "devDependencies": {
