@@ -82,6 +82,12 @@ describe('Room Object', () => {
     expect(room.setMemberMeta).toBeDefined()
   })
 
+  it('should mirror the local video stream', () => {
+    expect(room.localOverlay._mirrored).toBeFalsy()
+    expect(() => room.localOverlay.setMirrored(true)).not.toThrow()
+    expect(room.localOverlay._mirrored).toBeTruthy()
+  })
+
   describe('getRecordings', () => {
     it('should return an array of recordings', async () => {
       const recordingList = [{ id: 'recordingOne' }, { id: 'recordingTwo' }]
