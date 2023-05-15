@@ -17,8 +17,9 @@ const handler = () => {
     let inboundCall: Voice.Call
     let outboundCall: Voice.Call
 
-    const startSendingPrompt = async () => {
-      const prompt = await outboundCall.prompt({
+    const startSendingPrompt = async (call) => {
+      console.log('outboundCall', call)
+      const prompt = await call.prompt({
         playlist: new Voice.Playlist({ volume: 1.0 }).add(
           Voice.Playlist.TTS({
             text: 'Welcome to SignalWire! Please enter your 4 digits PIN',
@@ -31,7 +32,7 @@ const handler = () => {
         },
       })
       tap.equal(
-        outboundCall.id,
+        call.id,
         prompt.callId,
         'Outbound - Prompt returns the same instance'
       )
@@ -58,7 +59,7 @@ const handler = () => {
         )
 
         // Wait for the prompt to begin from the caller side
-        const prompt = await startSendingPrompt()
+        const prompt = await startSendingPrompt(outboundCall)
 
         // Send digits 1234 to the caller
         const sendDigitResult = await inboundCall.sendDigits('1w2w3w4w#')
