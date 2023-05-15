@@ -76,6 +76,7 @@ export interface LocalOverlay {
   hide(): void
   show(): void
   setLocalOverlayMediaStream(stream: MediaStream): void
+  setLocalOverlayMirror(mirror?: boolean): void
 }
 
 interface MakeLayoutChangedHandlerParams {
@@ -130,6 +131,7 @@ const makeLayoutChangedHandler =
           getLogger().debug('Build myLayer append it')
           mcuLayers.appendChild(myLayer)
           localOverlay.domElement = myLayer
+          localOverlay.setLocalOverlayMirror()
           return
         }
 

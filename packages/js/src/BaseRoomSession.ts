@@ -30,6 +30,7 @@ import type {
   StartScreenShareOptions,
   RoomSessionConnectionContract,
   BaseRoomSessionJoinParams,
+  LocalOverlay,
 } from './utils/interfaces'
 import { SCREENSHARE_AUDIO_CONSTRAINTS } from './utils/constants'
 import { audioSetSpeakerAction } from './features/actions'
@@ -70,6 +71,12 @@ export class RoomSessionConnection
 {
   private _screenShareList = new Set<RoomSessionScreenShare>()
   private _deviceList = new Set<RoomSessionDevice>()
+  private _mirrored: LocalOverlay['_mirrored']
+
+  constructor(options: BaseConnection<RoomSessionObjectEvents>) {
+    super(options)
+    this._mirrored = false
+  }
 
   get screenShareList() {
     return Array.from(this._screenShareList)
@@ -502,6 +509,22 @@ export class RoomSessionConnection
   getMemberList() {
     // @ts-expect-error
     return this.getMembers()
+  }
+
+  /**
+   * Allow to mirror the local video camera stream.
+   */
+  private setMirrored(value: boolean) {
+    this._mirrored = value
+    // @ts-expect-error
+    this.emit('_internal.mirror.video', this._mirrored)
+  }
+
+  get localOverlay() {
+    return {
+      _mirrored: this._mirrored,
+      setMirrored: this.setMirrored.bind(this),
+    }
   }
 }
 

@@ -30,6 +30,8 @@ const inCallElements = [
   unmuteSelfBtn,
   muteVideoSelfBtn,
   unmuteVideoSelfBtn,
+  mirrorSelfBtn,
+  unmirrorSelfBtn,
   deafSelfBtn,
   undeafSelfBtn,
   controlSliders,
@@ -224,6 +226,7 @@ window.connect = () => {
     audio: true,
     video: true,
     logLevel: 'debug',
+    mirrorLocalVideoOverlay: false,
   })
 
   roomObj = roomSession
@@ -478,6 +481,14 @@ window.muteVideoSelf = () => {
 
 window.unmuteVideoSelf = () => {
   roomObj.videoUnmute()
+}
+
+window.mirrorSelf = () => {
+  roomObj.localOverlay.setMirrored(true)
+}
+
+window.unmirrorSelf = () => {
+  roomObj.localOverlay.setMirrored(false)
 }
 
 window.deafSelf = () => {

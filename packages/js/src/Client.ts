@@ -33,6 +33,8 @@ export interface MakeRoomOptions extends ConnectionOptions {
   rootElement?: HTMLElement
   /** Whether to apply the local-overlay on top of your video. Default: `true`. */
   applyLocalVideoOverlay?: boolean
+  /** Whether to mirror the local video overlay. Default: `false`. */
+  mirrorLocalVideoOverlay?: boolean
   /** Whether to stop the camera when the member is muted. Default: `true`. */
   stopCameraWhileMuted?: boolean
   /** Whether to stop the microphone when the member is muted. Default: `true`. */
@@ -52,6 +54,7 @@ export class ClientAPI<
         const {
           rootElement,
           applyLocalVideoOverlay = true,
+          mirrorLocalVideoOverlay = false,
           stopCameraWhileMuted = true,
           stopMicrophoneWhileMuted = true,
           ...options
@@ -78,6 +81,7 @@ export class ClientAPI<
             makeVideoElementSaga({
               rootElement,
               applyLocalVideoOverlay,
+              mirrorLocalVideoOverlay,
             })
           )
         }
