@@ -48,9 +48,6 @@ const handler = () => {
         // Resolve the answer promise to let the caller know
         waitForTheAnswerResolve()
 
-        // Wait for the outbound call to resolve
-        await outboundCall
-
         // Wait for the prompt to begin from the caller side
         await outboundPrompt
 

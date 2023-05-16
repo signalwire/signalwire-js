@@ -1,6 +1,7 @@
 import tap from 'tap'
 import { Voice } from '@signalwire/realtime-api'
-import { createTestRunner, sleep } from './utils'
+import { createTestRunner } from './utils'
+import { VoiceCallCollectContract } from '@signalwire/core'
 
 const handler = () => {
   return new Promise<number>(async (resolve, reject) => {
@@ -15,31 +16,14 @@ const handler = () => {
       },
     })
 
+    let waitForTheAnswerResolve: (value: void) => void
+    const waitForTheAnswer = new Promise((resolve) => {
+      waitForTheAnswerResolve = resolve
+    })
+
     let outboundCall: Voice.Call
-
-    const startSendingDigits = async () => {
-      const sendDigitResult = await outboundCall.sendDigits('1w2w3w#')
-      tap.equal(
-        outboundCall.id,
-        sendDigitResult.id,
-        'sendDigit returns the same instance'
-      )
-
-      const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
-      const results = await Promise.all(
-        waitForParams.map((params) => outboundCall.waitFor(params as any))
-      )
-      waitForParams.forEach((value, i) => {
-        if (typeof value === 'string') {
-          tap.ok(results[i], `"${value}": completed successfully.`)
-        } else {
-          tap.ok(
-            results[i],
-            `${JSON.stringify(value)}: completed successfully.`
-          )
-        }
-      })
-    }
+    let outboundSendDigits: Voice.Call
+    let inboundCollectDigits: VoiceCallCollectContract | undefined
 
     client.on('call.received', async (call) => {
       console.log('Got call', call.id, call.from, call.to, call.direction)
@@ -53,10 +37,11 @@ const handler = () => {
           'Call answered gets the same instance'
         )
 
-        await sleep(2000)
+        // Resolve the answer promise to let the caller know
+        await waitForTheAnswerResolve()
 
         call.on('collect.started', (collect) => {
-          console.log('>>> collect.started', collect)
+          console.log('>>> collect.started')
         })
         call.on('collect.updated', (collect) => {
           console.log('>>> collect.updated', collect.digits)
@@ -67,9 +52,9 @@ const handler = () => {
         call.on('collect.failed', (collect) => {
           console.log('>>> collect.failed', collect.reason)
         })
-        // call.on('collect.startOfSpeech', (collect) => {})
 
-        const callCollect = await call.collect({
+        // Collects digits from the caller
+        inboundCollectDigits = await call.collect({
           initialTimeout: 4.0,
           digits: {
             max: 4,
@@ -82,21 +67,18 @@ const handler = () => {
           startInputTimers: false,
         })
 
-        startSendingDigits()
-          .then(() => {
-            resolve(0)
-          })
-          .catch((error) => {
-            console.error('StartSendingDigits Error', error)
-            reject(4)
-          })
+        // Wait until the caller completes sending digits
+        await outboundSendDigits
 
-        await callCollect.ended() // block the script until the collect ended
+        // End the digit collection
+        await inboundCollectDigits.ended()
+        tap.equal(
+          inboundCollectDigits.digits,
+          '123',
+          'Collect the correct digits'
+        )
 
-        tap.equal(callCollect.digits, '123', 'Collect the correct digits')
-        // await callCollect.stop()
-        // await callCollect.startInputTimers()
-
+        // Callee hangs up a call
         await call.hangup()
       } catch (error) {
         console.error('Error', error)
@@ -111,6 +93,35 @@ const handler = () => {
       timeout: 30,
     })
     tap.ok(outboundCall.id, 'Call resolved')
+
+    // Wait until callee answers the call
+    await waitForTheAnswer
+
+    // Wait until callee stars listening for the digits
+    await inboundCollectDigits
+
+    // Send digits 1234 to the callee
+    outboundSendDigits = await outboundCall.sendDigits('1w2w3w#')
+    tap.equal(
+      outboundCall.id,
+      outboundSendDigits.id,
+      'sendDigit returns the same instance'
+    )
+
+    // Wait until callee hangs up the call
+    const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
+    const results = await Promise.all(
+      waitForParams.map((params) => outboundCall.waitFor(params as any))
+    )
+    waitForParams.forEach((value, i) => {
+      if (typeof value === 'string') {
+        tap.ok(results[i], `"${value}": completed successfully.`)
+      } else {
+        tap.ok(results[i], `${JSON.stringify(value)}: completed successfully.`)
+      }
+    })
+
+    resolve(0)
   })
 }
 
