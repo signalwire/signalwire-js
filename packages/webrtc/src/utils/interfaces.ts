@@ -88,6 +88,8 @@ export interface ConnectionOptions {
   pingSupported?: boolean
   /** @internal */
   prevCallId?: string
+  /** @internal */
+  nodeId?: string
 
   layout?: string
   positions?: VideoPositions
