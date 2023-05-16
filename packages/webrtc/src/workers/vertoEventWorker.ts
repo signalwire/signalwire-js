@@ -159,6 +159,7 @@ export const vertoEventWorker: SDKWorker<
       }
       case 'verto.attach': {
         getLogger().warn('Handle verto.attach', params)
+        peer.handleAttach(params)
         break
       }
       default:
