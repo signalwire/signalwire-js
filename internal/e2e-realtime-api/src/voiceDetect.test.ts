@@ -73,17 +73,21 @@ const handler = () => {
       await waitForTheAnswer
 
       // Start a detect
-      outboundRecDigits = await call.detectDigit({ digits: '1234' })
-
+      const detectDigit = await call.detectDigit({ digits: '1234' })
       tap.equal(
         call.id,
-        outboundRecDigits.callId,
+        detectDigit.callId,
         'Outbound - Detect returns the same instance'
       )
 
-      const { type } = await outboundRecDigits.ended()
+      await inboundSendDigits
 
-      tap.equal(type, 'digit', 'Outbound - Received the digit')
+      const outboundRecDigits = await detectDigit.ended()
+      tap.equal(
+        outboundRecDigits.type,
+        'digit',
+        'Outbound - Received the digit'
+      )
 
       resolve(0)
     } catch (error) {

@@ -19,11 +19,6 @@ const handler = () => {
       waitForTheAnswerResolve = resolve
     })
 
-    let waitForOutboundRecordEndResolve: any
-    const waitForOutboundRecordEnd = new Promise((resolve) => {
-      waitForOutboundRecordEndResolve = resolve
-    })
-
     client.on('call.received', async (call) => {
       console.log(
         'Inbound - Got call',
@@ -62,9 +57,6 @@ const handler = () => {
           console.log('Inbound - invalid playback error')
           tap.equal(error.state, 'error', 'Inbound - Recording has failed')
         }
-
-        // Wait until the caller recording ends
-        await waitForOutboundRecordEnd
 
         // Callee hangs up a call
         await call.hangup()
@@ -142,10 +134,7 @@ const handler = () => {
       // Resolve late so that we attach `recording.ended` and wait for it
       await playbackEnd
 
-      // Resolve the record ended to inform the callee
-      waitForOutboundRecordEndResolve()
-
-      // Wait until callee hangs up the call
+      // Resolve if the call has ended or ending
       const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
       const results = await Promise.all(
         waitForParams.map((params) => call.waitFor(params as any))

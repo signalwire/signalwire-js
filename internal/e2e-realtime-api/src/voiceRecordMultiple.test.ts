@@ -16,11 +16,6 @@ const handler = () => {
       waitForTheAnswerResolve = resolve
     })
 
-    let waitForOutboundRecordResolve: any
-    const waitForOutboundRecord = new Promise((resolve) => {
-      waitForOutboundRecordResolve = resolve
-    })
-
     client.on('call.received', async (call) => {
       console.log(
         'Inbound - Got call',
@@ -57,15 +52,11 @@ const handler = () => {
         await call.sendDigits('#')
 
         await firstRecording.ended()
-
         tap.match(
           firstRecording.state,
           /finished|no_input/,
           'Inbound - firstRecording state is "finished"'
         )
-
-        // Wait until caller's recording (secondRecording) ends
-        await waitForOutboundRecord
 
         // Callee hangs up a call
         await call.hangup()
@@ -100,15 +91,11 @@ const handler = () => {
       await call.sendDigits('*')
 
       await secondRecording.ended()
-
       tap.match(
         secondRecording.state,
         /finished|no_input/,
         'Outbound - secondRecording state is "finished"'
       )
-
-      // Resolve the recording promise to inform the callee
-      waitForOutboundRecordResolve()
 
       const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
       const results = await Promise.all(

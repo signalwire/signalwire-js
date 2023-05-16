@@ -110,7 +110,7 @@ const handler = () => {
         'sendDigit returns the same instance'
       )
 
-      // Wait until callee hangs up the call
+      // Resolve if the call has ended or ending
       const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
       const results = await Promise.all(
         waitForParams.map((params) => call.waitFor(params as any))
