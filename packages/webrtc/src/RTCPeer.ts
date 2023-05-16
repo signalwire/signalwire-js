@@ -253,6 +253,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   restartIceWithRelayOnly() {
     try {
+      if (this.isAnswer) {
+        return this.logger.warn(
+          'Skip restartIceWithRelayOnly since we need to generate answer'
+        )
+      }
       const config = this.getConfiguration()
       if (config.iceTransportPolicy === 'relay') {
         return this.logger.warn(
@@ -411,7 +416,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
       this.instance.removeEventListener('icecandidate', this._onIce)
       this.instance.addEventListener('icecandidate', this._onIce)
-
       if (this.isOffer) {
         this.logger.debug('Trying to generate offer')
         const offerOptions: RTCOfferOptions = {
@@ -430,7 +434,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         const offer = await this.instance.createOffer(offerOptions)
         await this._setLocalDescription(offer)
       }
-
       if (this.isAnswer) {
         this.logger.debug('Trying to generate answer')
         await this._setRemoteDescription({
@@ -793,7 +796,12 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         googleStartBitrate
       )
     }
-
+    // this.logger.debug(
+    //   'LOCAL SDP \n',
+    //   `Type: ${localDescription.type}`,
+    //   '\n\n',
+    //   localDescription.sdp
+    // )
     return this.instance.setLocalDescription(localDescription)
   }
 
