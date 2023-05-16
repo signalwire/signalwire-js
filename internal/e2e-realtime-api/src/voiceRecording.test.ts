@@ -14,12 +14,10 @@ const handler = () => {
       },
     })
 
-    let waitForTheAnswerResolve
+    let waitForTheAnswerResolve: (value: void) => void
     const waitForTheAnswer = new Promise((resolve) => {
       waitForTheAnswerResolve = resolve
     })
-
-    let outboundCall: Voice.Call
 
     client.on('call.received', async (call) => {
       console.log(
@@ -69,21 +67,21 @@ const handler = () => {
     })
 
     // Make an outbound call
-    outboundCall = await client.dialPhone({
+    const call = await client.dialPhone({
       to: process.env.VOICE_DIAL_TO_NUMBER as string,
       from: process.env.VOICE_DIAL_FROM_NUMBER as string,
       timeout: 30,
     })
-    tap.ok(outboundCall.id, 'Outbound - Call resolved')
+    tap.ok(call.id, 'Outbound - Call resolved')
 
     // Wait until callee answers the call
     await waitForTheAnswer
 
     // Start an outbound recording
-    const recording = outboundCall.recordAudio({ direction: 'both' })
+    const recording = call.recordAudio({ direction: 'both' })
 
     const waitForRecordingStarted = new Promise((resolve) => {
-      outboundCall.on('recording.started', (recording) => {
+      call.on('recording.started', (recording) => {
         tap.equal(
           recording.state,
           'recording',
@@ -99,7 +97,7 @@ const handler = () => {
     const resolvedRecording = await recording
 
     tap.equal(
-      outboundCall.id,
+      call.id,
       resolvedRecording.callId,
       'Outbound - Recording returns the same instance'
     )
@@ -116,12 +114,12 @@ const handler = () => {
           text: 'Thank you, you are now disconnected from the peer',
         })
       )
-    const playback = await outboundCall.play(playlist)
+    const playback = await call.play(playlist)
 
     await playback.ended()
 
     const waitForRecordingEnded = new Promise((resolve) => {
-      outboundCall.on('recording.ended', (recording) => {
+      call.on('recording.ended', (recording) => {
         tap.equal(recording.state, 'finished', 'Outbound - Recording has ended')
         resolve(true)
       })
@@ -131,7 +129,7 @@ const handler = () => {
 
     const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
     const results = await Promise.all(
-      waitForParams.map((params) => outboundCall.waitFor(params as any))
+      waitForParams.map((params) => call.waitFor(params as any))
     )
     waitForParams.forEach((value, i) => {
       if (typeof value === 'string') {

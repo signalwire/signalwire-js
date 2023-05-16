@@ -11,12 +11,10 @@ const handler = () => {
       contexts: [process.env.VOICE_CONTEXT as string],
     })
 
-    let waitForTheAnswerResolve
+    let waitForTheAnswerResolve: (value: void) => void
     const waitForTheAnswer = new Promise((resolve) => {
       waitForTheAnswerResolve = resolve
     })
-
-    let outboundCall: Voice.Call
 
     client.on('call.received', async (call) => {
       console.log(
@@ -37,7 +35,7 @@ const handler = () => {
         )
 
         // Resolve the answer promise to let the caller know
-        await waitForTheAnswerResolve()
+        waitForTheAnswerResolve()
 
         // Callee hangs up a call
         await call.hangup()
@@ -47,19 +45,19 @@ const handler = () => {
       }
     })
 
-    outboundCall = await client.dialPhone({
+    const call = await client.dialPhone({
       to: process.env.VOICE_DIAL_TO_NUMBER as string,
       from: process.env.VOICE_DIAL_FROM_NUMBER as string,
       timeout: 30,
     })
-    tap.ok(outboundCall.id, 'Outbound - Call resolved')
+    tap.ok(call.id, 'Outbound - Call resolved')
 
     // Wait until callee answers the call
     await waitForTheAnswer
 
     try {
       // Start an audio tap
-      const tapAudio = await outboundCall.tapAudio({
+      const tapAudio = await call.tapAudio({
         direction: 'both',
         device: {
           type: 'ws',

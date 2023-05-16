@@ -21,9 +21,11 @@ const handler = () => {
       waitForTheAnswerResolve = resolve
     })
 
-    let outboundCall: Voice.Call
-    let outboundSendDigits: Voice.Call
-    let inboundCollectDigits: VoiceCallCollectContract | undefined
+    let outboundSendDigits: Promise<Voice.Call> | Voice.Call
+    let inboundCollectDigits:
+      | Promise<VoiceCallCollectContract>
+      | VoiceCallCollectContract
+      | undefined
 
     client.on('call.received', async (call) => {
       console.log('Got call', call.id, call.from, call.to, call.direction)
@@ -86,13 +88,13 @@ const handler = () => {
       }
     })
 
-    outboundCall = await client.dialPhone({
+    const call = await client.dialPhone({
       // make an outbound call to an `office` context to trigger the `call.received` event above
       to: process.env.VOICE_DIAL_TO_NUMBER as string,
       from: process.env.VOICE_DIAL_FROM_NUMBER as string,
       timeout: 30,
     })
-    tap.ok(outboundCall.id, 'Call resolved')
+    tap.ok(call.id, 'Call resolved')
 
     // Wait until callee answers the call
     await waitForTheAnswer
@@ -101,9 +103,9 @@ const handler = () => {
     await inboundCollectDigits
 
     // Send digits 1234 to the callee
-    outboundSendDigits = await outboundCall.sendDigits('1w2w3w#')
+    outboundSendDigits = await call.sendDigits('1w2w3w#')
     tap.equal(
-      outboundCall.id,
+      call.id,
       outboundSendDigits.id,
       'sendDigit returns the same instance'
     )
@@ -111,7 +113,7 @@ const handler = () => {
     // Wait until callee hangs up the call
     const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
     const results = await Promise.all(
-      waitForParams.map((params) => outboundCall.waitFor(params as any))
+      waitForParams.map((params) => call.waitFor(params as any))
     )
     waitForParams.forEach((value, i) => {
       if (typeof value === 'string') {

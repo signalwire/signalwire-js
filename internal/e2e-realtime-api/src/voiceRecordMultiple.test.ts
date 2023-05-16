@@ -1,6 +1,7 @@
 import tap from 'tap'
 import { Voice } from '@signalwire/realtime-api'
 import { createTestRunner, sleep } from './utils'
+import { VoiceCallRecordingContract } from '@signalwire/core'
 
 const handler = () => {
   return new Promise<number>(async (resolve, reject) => {
@@ -9,6 +10,16 @@ const handler = () => {
       project: process.env.RELAY_PROJECT as string,
       token: process.env.RELAY_TOKEN as string,
       contexts: [process.env.VOICE_CONTEXT as string],
+    })
+
+    let waitForTheAnswerResolve: (value: void) => void
+    const waitForTheAnswer = new Promise((resolve) => {
+      waitForTheAnswerResolve = resolve
+    })
+
+    let waitForOutboundRecordResolve: any
+    const waitForOutboundRecord = new Promise((resolve) => {
+      waitForOutboundRecordResolve = resolve
     })
 
     client.on('call.received', async (call) => {
@@ -29,6 +40,9 @@ const handler = () => {
           'Inbound - Call answered gets the same instance'
         )
 
+        // Resolve the answer promise to let the caller know
+        waitForTheAnswerResolve()
+
         const firstRecording = await call.recordAudio({ terminators: '#' })
         tap.equal(
           call.id,
@@ -41,7 +55,6 @@ const handler = () => {
           'Inbound - firstRecording state is "recording"'
         )
 
-        await sleep(3000)
         await call.sendDigits('#')
 
         await firstRecording.ended()
@@ -52,7 +65,8 @@ const handler = () => {
           'Inbound - firstRecording state is "finished"'
         )
 
-        await sleep(4_000)
+        // Wait until caller's recording (secondRecording) ends
+        await waitForOutboundRecord
 
         // Callee hangs up a call
         await call.hangup()
@@ -68,6 +82,9 @@ const handler = () => {
     })
     tap.ok(call.id, 'Outbound - Call resolved')
 
+    // Wait until callee answers the call
+    await waitForTheAnswer
+
     const secondRecording = await call.recordAudio({ terminators: '*' })
     tap.equal(
       call.id,
@@ -80,7 +97,6 @@ const handler = () => {
       'Outbound - secondRecording state is "recording"'
     )
 
-    await sleep(3000)
     await call.sendDigits('*')
 
     await secondRecording.ended()
@@ -90,6 +106,9 @@ const handler = () => {
       /finished|no_input/,
       'Outbound - secondRecording state is "finished"'
     )
+
+    // Resolve the recording promise to let the callee know
+    waitForOutboundRecordResolve()
 
     const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
     const results = await Promise.all(
