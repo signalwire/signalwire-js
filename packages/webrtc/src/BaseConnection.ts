@@ -16,6 +16,8 @@ import {
   Task,
   isSATAuth,
   WebRTCMethod,
+  // VertoAttach,
+  VertoAnswer,
 } from '@signalwire/core'
 import type { ReduxComponent } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
@@ -170,7 +172,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   get nodeId() {
     // @ts-expect-error
-    return this.component.nodeId
+    return this.component.nodeId || this.options.nodeId
   }
 
   get callId() {
@@ -594,13 +596,15 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /** @internal */
-  answer() {
+  answer<T>(): Promise<T> {
     return new Promise(async (resolve, reject) => {
       this.direction = 'inbound'
       this.peer = new RTCPeer(this, 'answer')
       try {
+        this.runRTCPeerWorkers(this.peer.uuid)
+
         await this.peer.start()
-        resolve(this)
+        resolve(this as any as T)
       } catch (error) {
         this.logger.error('Answer error', error)
         reject(error)
@@ -627,8 +631,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
           return this.executeInvite(mungedSDP, rtcPeer.uuid)
         }
       case 'answer':
-        this.logger.warn('Unhandled verto.answer')
-        // this.executeAnswer()
+        return this.executeAnswer(mungedSDP, rtcPeer.uuid)
         break
       default:
         return this.logger.error(
@@ -654,17 +657,17 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   /** @internal */
   async resume() {
-    this.logger.debug(`[resume] Call ${this.id}`)
-    if (this.peer?.instance) {
-      const { connectionState } = this.peer.instance
-      this.logger.debug(
-        `[resume] connectionState for ${this.id} is '${connectionState}'`
-      )
-      if (connectionState !== 'closed') {
-        this.resuming = true
-        this.peer.restartIce()
-      }
-    }
+    this.logger.warn(`[resume] Call ${this.id}`)
+    // if (this.peer?.instance) {
+    //   const { connectionState } = this.peer.instance
+    //   this.logger.debug(
+    //     `[resume] connectionState for ${this.id} is '${connectionState}'`
+    //   )
+    //   if (connectionState !== 'closed') {
+    //     this.resuming = true
+    //     this.peer.restartIce()
+    //   }
+    // }
   }
 
   /**
@@ -720,6 +723,54 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       this.logger.debug('Invite response', response)
 
       this.resuming = false
+    } catch (error) {
+      this.setState('hangup')
+      throw error
+    }
+  }
+
+  /**
+   * Send the `verto.answer` only if the state is either `new` or `requesting`
+   *   - new: the first time we send out the offer.
+   *   - requesting: we received a redirectDestination so need to send it again
+   *     specifying nodeId.
+   *
+   * @internal
+   */
+  async executeAnswer(sdp: string, rtcPeerId: string) {
+    // const rtcPeer = this.getRTCPeerById(rtcPeerId)
+    // if (!rtcPeer || (rtcPeer.instance.remoteDescription && !this.resuming)) {
+    //   throw new Error(
+    //     `RTCPeer '${rtcPeerId}' already has a remoteDescription. Invalid invite.`
+    //   )
+    // }
+    // Set state to `answering` only when `new`, otherwise keep it as `answering`.
+    if (this.state === 'new') {
+      this.setState('answering')
+    }
+    try {
+      const message = VertoAnswer({
+        ...this.dialogParams(rtcPeerId),
+        sdp,
+      })
+      const response: any = await this.vertoExecute({
+        message,
+        callID: rtcPeerId,
+        node_id: this.nodeId || 'f6cf30a9-1ff1-4f89-b674-e0208ad5d9cd@',
+        // subscribe, // TODO: subscribe events?
+      })
+      this.logger.debug('Answer response', response)
+
+      this.resuming = false
+
+      // TODO: Review
+      this._attachListeners('')
+      this.applyEmitterTransforms()
+
+      /**
+       * In here we joined a room_session so we can swap between RTCPeers
+       */
+      this.setActiveRTCPeer(rtcPeerId)
     } catch (error) {
       this.setState('hangup')
       throw error
