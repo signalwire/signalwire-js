@@ -57,6 +57,8 @@ export type {
   VoiceCallDetectFaxParams,
   VoiceCallDetectMachineParams,
   VoiceCallDetectMethodParams,
+  VoiceCallCollectContract,
+  VoiceCallCollectMethodParams,
   VoiceCallDeviceParams,
   VoiceCallDialPhoneMethodParams,
   VoiceCallDialRegionParams,

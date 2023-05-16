@@ -1,7 +1,6 @@
 import tap from 'tap'
 import { Voice } from '@signalwire/realtime-api'
 import { createTestRunner } from './utils'
-import { VoiceCallCollectContract } from '@signalwire/core'
 
 const handler = () => {
   return new Promise<number>(async (resolve, reject) => {
@@ -23,8 +22,8 @@ const handler = () => {
 
     let outboundSendDigits: Promise<Voice.Call> | Voice.Call
     let inboundCollectDigits:
-      | Promise<VoiceCallCollectContract>
-      | VoiceCallCollectContract
+      | Promise<Voice.VoiceCallCollectContract>
+      | Voice.VoiceCallCollectContract
       | undefined
 
     client.on('call.received', async (call) => {
@@ -39,7 +38,7 @@ const handler = () => {
           'Call answered gets the same instance'
         )
 
-        // Resolve the answer promise to let the caller know
+        // Resolve the answer promise to inform the caller
         await waitForTheAnswerResolve()
 
         call.on('collect.started', (collect) => {

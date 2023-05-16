@@ -1,7 +1,6 @@
 import tap from 'tap'
 import { Voice } from '@signalwire/realtime-api'
-import { createTestRunner, sleep } from './utils'
-import { VoiceCallRecordingContract } from '@signalwire/core'
+import { createTestRunner } from './utils'
 
 const handler = () => {
   return new Promise<number>(async (resolve, reject) => {
@@ -40,7 +39,7 @@ const handler = () => {
           'Inbound - Call answered gets the same instance'
         )
 
-        // Resolve the answer promise to let the caller know
+        // Resolve the answer promise to inform the caller
         waitForTheAnswerResolve()
 
         const firstRecording = await call.recordAudio({ terminators: '#' })
@@ -107,7 +106,7 @@ const handler = () => {
       'Outbound - secondRecording state is "finished"'
     )
 
-    // Resolve the recording promise to let the callee know
+    // Resolve the recording promise to inform the callee
     waitForOutboundRecordResolve()
 
     const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const

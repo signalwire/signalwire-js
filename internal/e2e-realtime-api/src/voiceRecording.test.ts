@@ -19,6 +19,11 @@ const handler = () => {
       waitForTheAnswerResolve = resolve
     })
 
+    let waitForOutboundRecordEndResolve: any
+    const waitForOutboundRecordEnd = new Promise((resolve) => {
+      waitForOutboundRecordEndResolve = resolve
+    })
+
     client.on('call.received', async (call) => {
       console.log(
         'Inbound - Got call',
@@ -37,7 +42,7 @@ const handler = () => {
           'Inbound - Call answered gets the same instance'
         )
 
-        // Resolve the answer promise to let the caller know
+        // Resolve the answer promise to inform the caller
         waitForTheAnswerResolve()
 
         try {
@@ -57,6 +62,9 @@ const handler = () => {
           console.log('Inbound - invalid playback error')
           tap.equal(error.state, 'error', 'Inbound - Recording has failed')
         }
+
+        // Wait until the caller recording ends
+        await waitForOutboundRecordEnd
 
         // Callee hangs up a call
         await call.hangup()
@@ -95,7 +103,6 @@ const handler = () => {
 
     // Resolve late so that we attach `recording.started` and wait for it
     const resolvedRecording = await recording
-
     tap.equal(
       call.id,
       resolvedRecording.callId,
@@ -116,8 +123,8 @@ const handler = () => {
       )
     const playback = await call.play(playlist)
 
-    await playback.ended()
-
+    // Start ending the recording
+    const playbackEnd = playback.ended()
     const waitForRecordingEnded = new Promise((resolve) => {
       call.on('recording.ended', (recording) => {
         tap.equal(recording.state, 'finished', 'Outbound - Recording has ended')
@@ -127,6 +134,13 @@ const handler = () => {
     // Wait for the outbound recording to end
     await waitForRecordingEnded
 
+    // Resolve late so that we attach `recording.ended` and wait for it
+    await playbackEnd
+
+    // Resolve the record ended to inform the callee
+    waitForOutboundRecordEndResolve()
+
+    // Wait until callee hangs up the call
     const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
     const results = await Promise.all(
       waitForParams.map((params) => call.waitFor(params as any))

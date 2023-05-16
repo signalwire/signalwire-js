@@ -1,6 +1,5 @@
 import tap from 'tap'
 import { Voice } from '@signalwire/realtime-api'
-import { VoiceCallPromptContract } from '@signalwire/core'
 import { createTestRunner } from './utils'
 
 const handler = () => {
@@ -21,12 +20,12 @@ const handler = () => {
     })
 
     let outboundPrompt:
-      | Promise<VoiceCallPromptContract>
-      | VoiceCallPromptContract
+      | Promise<Voice.VoiceCallPromptContract>
+      | Voice.VoiceCallPromptContract
     let inboundSendDigits: Promise<Voice.Call> | Voice.Call | undefined
     let outboundRecDigits:
-      | Promise<VoiceCallPromptContract>
-      | VoiceCallPromptContract
+      | Promise<Voice.VoiceCallPromptContract>
+      | Voice.VoiceCallPromptContract
 
     client.on('call.received', async (call) => {
       console.log(
@@ -46,7 +45,7 @@ const handler = () => {
           'Inbound - Call answered gets the same instance'
         )
 
-        // Resolve the answer promise to let the caller know
+        // Resolve the answer promise to inform the caller
         waitForTheAnswerResolve()
 
         // Wait for the prompt to begin from the caller side

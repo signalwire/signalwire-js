@@ -34,7 +34,7 @@ const handler = () => {
           'Inbound - Call answered gets the same instance'
         )
 
-        // Resolve the answer promise to let the caller know
+        // Resolve the answer promise to inform the caller
         waitForTheAnswerResolve()
 
         // Callee hangs up a call

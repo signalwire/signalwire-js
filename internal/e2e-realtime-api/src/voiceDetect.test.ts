@@ -11,6 +11,16 @@ const handler = () => {
       contexts: [process.env.VOICE_CONTEXT as string],
     })
 
+    let waitForTheAnswerResolve: (value: void) => void
+    const waitForTheAnswer = new Promise((resolve) => {
+      waitForTheAnswerResolve = resolve
+    })
+
+    let inboundSendDigits: Promise<Voice.Call> | Voice.Call | undefined
+    let outboundRecDigits:
+      | Promise<Voice.VoiceCallDetectContract>
+      | Voice.VoiceCallDetectContract
+
     client.on('call.received', async (call) => {
       console.log(
         'Inbound - Got call',
@@ -29,13 +39,19 @@ const handler = () => {
           'Inbound - Call answered gets the same instance'
         )
 
+        // Resolve the answer promise to inform the caller
+        waitForTheAnswerResolve()
+
         // Send digits 1234 to the caller
-        const sendDigitResult = await call.sendDigits('1w2w3w4w#')
+        inboundSendDigits = await call.sendDigits('1w2w3w4w#')
         tap.equal(
           call.id,
-          sendDigitResult.id,
+          inboundSendDigits.id,
           'Inbound - sendDigit returns the same instance'
         )
+
+        // Wait until the caller receives digits
+        await outboundRecDigits
 
         // Callee hangs up a call
         await call.hangup()
@@ -52,16 +68,19 @@ const handler = () => {
     })
     tap.ok(call.id, 'Outbound - Call resolved')
 
+    // Wait until callee answers the call
+    await waitForTheAnswer
+
     // Start a detect
-    const detect = await call.detectDigit({ digits: '1234' })
+    outboundRecDigits = await call.detectDigit({ digits: '1234' })
 
     tap.equal(
       call.id,
-      detect.callId,
+      outboundRecDigits.callId,
       'Outbound - Detect returns the same instance'
     )
 
-    const { type } = await detect.ended()
+    const { type } = await outboundRecDigits.ended()
 
     tap.equal(type, 'digit', 'Outbound - Received the digit')
 
