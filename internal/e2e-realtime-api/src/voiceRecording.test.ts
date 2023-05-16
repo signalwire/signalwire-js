@@ -1,6 +1,6 @@
 import tap from 'tap'
 import { Voice } from '@signalwire/realtime-api'
-import { createTestRunner, sleep } from './utils'
+import { createTestRunner } from './utils'
 
 const handler = () => {
   return new Promise<number>(async (resolve, reject) => {
@@ -13,6 +13,13 @@ const handler = () => {
         logWsTraffic: true,
       },
     })
+
+    let waitForTheAnswerResolve
+    const waitForTheAnswer = new Promise((resolve) => {
+      waitForTheAnswerResolve = resolve
+    })
+
+    let outboundCall: Voice.Call
 
     client.on('call.received', async (call) => {
       console.log(
@@ -32,7 +39,8 @@ const handler = () => {
           'Inbound - Call answered gets the same instance'
         )
 
-        await sleep(10000)
+        // Resolve the answer promise to let the caller know
+        waitForTheAnswerResolve()
 
         try {
           // Start an inbound recording
@@ -49,18 +57,7 @@ const handler = () => {
           })
         } catch (error) {
           console.log('Inbound - invalid playback error')
-          const waitForRecordingFailed = new Promise((resolve) => {
-            call.on('recording.failed', (recording) => {
-              tap.equal(
-                recording.state,
-                'no_input',
-                'Inbound - Recording has failed'
-              )
-              resolve(true)
-            })
-          })
-          // Wait for the outbound recording to start
-          await waitForRecordingFailed
+          tap.equal(error.state, 'error', 'Inbound - Recording has failed')
         }
 
         // Callee hangs up a call
@@ -71,18 +68,22 @@ const handler = () => {
       }
     })
 
-    const call = await client.dialPhone({
+    // Make an outbound call
+    outboundCall = await client.dialPhone({
       to: process.env.VOICE_DIAL_TO_NUMBER as string,
       from: process.env.VOICE_DIAL_FROM_NUMBER as string,
       timeout: 30,
     })
-    tap.ok(call.id, 'Outbound - Call resolved')
+    tap.ok(outboundCall.id, 'Outbound - Call resolved')
+
+    // Wait until callee answers the call
+    await waitForTheAnswer
 
     // Start an outbound recording
-    const recording = call.recordAudio({ direction: 'both' })
+    const recording = outboundCall.recordAudio({ direction: 'both' })
 
     const waitForRecordingStarted = new Promise((resolve) => {
-      call.on('recording.started', (recording) => {
+      outboundCall.on('recording.started', (recording) => {
         tap.equal(
           recording.state,
           'recording',
@@ -98,7 +99,7 @@ const handler = () => {
     const resolvedRecording = await recording
 
     tap.equal(
-      call.id,
+      outboundCall.id,
       resolvedRecording.callId,
       'Outbound - Recording returns the same instance'
     )
@@ -115,12 +116,12 @@ const handler = () => {
           text: 'Thank you, you are now disconnected from the peer',
         })
       )
-    const playback = await call.play(playlist)
+    const playback = await outboundCall.play(playlist)
 
     await playback.ended()
 
     const waitForRecordingEnded = new Promise((resolve) => {
-      call.on('recording.ended', (recording) => {
+      outboundCall.on('recording.ended', (recording) => {
         tap.equal(recording.state, 'finished', 'Outbound - Recording has ended')
         resolve(true)
       })
@@ -130,7 +131,7 @@ const handler = () => {
 
     const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
     const results = await Promise.all(
-      waitForParams.map((params) => call.waitFor(params as any))
+      waitForParams.map((params) => outboundCall.waitFor(params as any))
     )
     waitForParams.forEach((value, i) => {
       if (typeof value === 'string') {

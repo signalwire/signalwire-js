@@ -27,14 +27,14 @@ const handler = () => {
     let outboundRecDigits: VoiceCallPromptContract
 
     client.on('call.received', async (call) => {
+      inboundCall = call
       console.log(
         'Inbound - Got call',
-        call.id,
-        call.from,
-        call.to,
-        call.direction
+        inboundCall.id,
+        inboundCall.from,
+        inboundCall.to,
+        inboundCall.direction
       )
-      inboundCall = call
 
       try {
         const resultAnswer = await inboundCall.answer()
