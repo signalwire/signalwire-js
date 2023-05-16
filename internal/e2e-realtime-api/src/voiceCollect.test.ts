@@ -87,42 +87,50 @@ const handler = () => {
       }
     })
 
-    const call = await client.dialPhone({
-      // make an outbound call to an `office` context to trigger the `call.received` event above
-      to: process.env.VOICE_DIAL_TO_NUMBER as string,
-      from: process.env.VOICE_DIAL_FROM_NUMBER as string,
-      timeout: 30,
-    })
-    tap.ok(call.id, 'Call resolved')
+    try {
+      const call = await client.dialPhone({
+        // make an outbound call to an `office` context to trigger the `call.received` event above
+        to: process.env.VOICE_DIAL_TO_NUMBER as string,
+        from: process.env.VOICE_DIAL_FROM_NUMBER as string,
+        timeout: 30,
+      })
+      tap.ok(call.id, 'Call resolved')
 
-    // Wait until callee answers the call
-    await waitForTheAnswer
+      // Wait until callee answers the call
+      await waitForTheAnswer
 
-    // Wait until callee stars listening for the digits
-    await inboundCollectDigits
+      // Wait until callee stars listening for the digits
+      await inboundCollectDigits
 
-    // Send digits 1234 to the callee
-    outboundSendDigits = await call.sendDigits('1w2w3w#')
-    tap.equal(
-      call.id,
-      outboundSendDigits.id,
-      'sendDigit returns the same instance'
-    )
+      // Send digits 1234 to the callee
+      outboundSendDigits = await call.sendDigits('1w2w3w#')
+      tap.equal(
+        call.id,
+        outboundSendDigits.id,
+        'sendDigit returns the same instance'
+      )
 
-    // Wait until callee hangs up the call
-    const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
-    const results = await Promise.all(
-      waitForParams.map((params) => call.waitFor(params as any))
-    )
-    waitForParams.forEach((value, i) => {
-      if (typeof value === 'string') {
-        tap.ok(results[i], `"${value}": completed successfully.`)
-      } else {
-        tap.ok(results[i], `${JSON.stringify(value)}: completed successfully.`)
-      }
-    })
+      // Wait until callee hangs up the call
+      const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
+      const results = await Promise.all(
+        waitForParams.map((params) => call.waitFor(params as any))
+      )
+      waitForParams.forEach((value, i) => {
+        if (typeof value === 'string') {
+          tap.ok(results[i], `"${value}": completed successfully.`)
+        } else {
+          tap.ok(
+            results[i],
+            `${JSON.stringify(value)}: completed successfully.`
+          )
+        }
+      })
 
-    resolve(0)
+      resolve(0)
+    } catch (error) {
+      console.error('Outbound - voiceCollect error', error)
+      reject(4)
+    }
   })
 }
 

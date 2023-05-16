@@ -61,30 +61,35 @@ const handler = () => {
       }
     })
 
-    const call = await client.dialPhone({
-      to: process.env.VOICE_DIAL_TO_NUMBER as string,
-      from: process.env.VOICE_DIAL_FROM_NUMBER as string,
-      timeout: 30,
-    })
-    tap.ok(call.id, 'Outbound - Call resolved')
+    try {
+      const call = await client.dialPhone({
+        to: process.env.VOICE_DIAL_TO_NUMBER as string,
+        from: process.env.VOICE_DIAL_FROM_NUMBER as string,
+        timeout: 30,
+      })
+      tap.ok(call.id, 'Outbound - Call resolved')
 
-    // Wait until callee answers the call
-    await waitForTheAnswer
+      // Wait until callee answers the call
+      await waitForTheAnswer
 
-    // Start a detect
-    outboundRecDigits = await call.detectDigit({ digits: '1234' })
+      // Start a detect
+      outboundRecDigits = await call.detectDigit({ digits: '1234' })
 
-    tap.equal(
-      call.id,
-      outboundRecDigits.callId,
-      'Outbound - Detect returns the same instance'
-    )
+      tap.equal(
+        call.id,
+        outboundRecDigits.callId,
+        'Outbound - Detect returns the same instance'
+      )
 
-    const { type } = await outboundRecDigits.ended()
+      const { type } = await outboundRecDigits.ended()
 
-    tap.equal(type, 'digit', 'Outbound - Received the digit')
+      tap.equal(type, 'digit', 'Outbound - Received the digit')
 
-    resolve(0)
+      resolve(0)
+    } catch (error) {
+      console.error('Outbound - voiceDetect error', error)
+      reject(4)
+    }
   })
 }
 

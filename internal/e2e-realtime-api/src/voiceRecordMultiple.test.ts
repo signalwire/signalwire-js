@@ -74,54 +74,62 @@ const handler = () => {
       }
     })
 
-    const call = await client.dialPhone({
-      to: process.env.VOICE_DIAL_TO_NUMBER as string,
-      from: process.env.VOICE_DIAL_FROM_NUMBER as string,
-      timeout: 30,
-    })
-    tap.ok(call.id, 'Outbound - Call resolved')
+    try {
+      const call = await client.dialPhone({
+        to: process.env.VOICE_DIAL_TO_NUMBER as string,
+        from: process.env.VOICE_DIAL_FROM_NUMBER as string,
+        timeout: 30,
+      })
+      tap.ok(call.id, 'Outbound - Call resolved')
 
-    // Wait until callee answers the call
-    await waitForTheAnswer
+      // Wait until callee answers the call
+      await waitForTheAnswer
 
-    const secondRecording = await call.recordAudio({ terminators: '*' })
-    tap.equal(
-      call.id,
-      secondRecording.callId,
-      'Outbound - secondRecording returns the same instance'
-    )
-    tap.equal(
-      secondRecording.state,
-      'recording',
-      'Outbound - secondRecording state is "recording"'
-    )
+      const secondRecording = await call.recordAudio({ terminators: '*' })
+      tap.equal(
+        call.id,
+        secondRecording.callId,
+        'Outbound - secondRecording returns the same instance'
+      )
+      tap.equal(
+        secondRecording.state,
+        'recording',
+        'Outbound - secondRecording state is "recording"'
+      )
 
-    await call.sendDigits('*')
+      await call.sendDigits('*')
 
-    await secondRecording.ended()
+      await secondRecording.ended()
 
-    tap.match(
-      secondRecording.state,
-      /finished|no_input/,
-      'Outbound - secondRecording state is "finished"'
-    )
+      tap.match(
+        secondRecording.state,
+        /finished|no_input/,
+        'Outbound - secondRecording state is "finished"'
+      )
 
-    // Resolve the recording promise to inform the callee
-    waitForOutboundRecordResolve()
+      // Resolve the recording promise to inform the callee
+      waitForOutboundRecordResolve()
 
-    const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
-    const results = await Promise.all(
-      waitForParams.map((params) => call.waitFor(params as any))
-    )
-    waitForParams.forEach((value, i) => {
-      if (typeof value === 'string') {
-        tap.ok(results[i], `"${value}": completed successfully.`)
-      } else {
-        tap.ok(results[i], `${JSON.stringify(value)}: completed successfully.`)
-      }
-    })
+      const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
+      const results = await Promise.all(
+        waitForParams.map((params) => call.waitFor(params as any))
+      )
+      waitForParams.forEach((value, i) => {
+        if (typeof value === 'string') {
+          tap.ok(results[i], `"${value}": completed successfully.`)
+        } else {
+          tap.ok(
+            results[i],
+            `${JSON.stringify(value)}: completed successfully.`
+          )
+        }
+      })
 
-    resolve(0)
+      resolve(0)
+    } catch (error) {
+      console.error('Outbound - voiceRecordMultiple error', error)
+      reject(4)
+    }
   })
 }
 

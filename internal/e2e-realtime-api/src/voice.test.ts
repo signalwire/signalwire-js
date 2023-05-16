@@ -166,37 +166,45 @@ const handler = () => {
       }
     })
 
-    const call = await client.dialPhone({
-      to: process.env.VOICE_DIAL_TO_NUMBER as string,
-      from: process.env.VOICE_DIAL_FROM_NUMBER as string,
-      timeout: 30,
-      maxPricePerMinute: 10,
-    })
-    tap.ok(call.id, 'Call resolved')
-    tap.equal(call.state, 'answered', 'Outbound call state is "answered"')
+    try {
+      const call = await client.dialPhone({
+        to: process.env.VOICE_DIAL_TO_NUMBER as string,
+        from: process.env.VOICE_DIAL_FROM_NUMBER as string,
+        timeout: 30,
+        maxPricePerMinute: 10,
+      })
+      tap.ok(call.id, 'Call resolved')
+      tap.equal(call.state, 'answered', 'Outbound call state is "answered"')
 
-    await sleep(5000)
+      await sleep(5000)
 
-    const sendDigitResult = await call.sendDigits('1w2w3w#')
-    tap.equal(
-      call.id,
-      sendDigitResult.id,
-      'sendDigit returns the same instance'
-    )
+      const sendDigitResult = await call.sendDigits('1w2w3w#')
+      tap.equal(
+        call.id,
+        sendDigitResult.id,
+        'sendDigit returns the same instance'
+      )
 
-    const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
-    const results = await Promise.all(
-      waitForParams.map((params) => call.waitFor(params as any))
-    )
-    waitForParams.forEach((value, i) => {
-      if (typeof value === 'string') {
-        tap.ok(results[i], `"${value}": completed successfully.`)
-      } else {
-        tap.ok(results[i], `${JSON.stringify(value)}: completed successfully.`)
-      }
-    })
-    tap.equal(call.state, 'ended', 'Outbound call state is "ended"')
-    resolve(0)
+      const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
+      const results = await Promise.all(
+        waitForParams.map((params) => call.waitFor(params as any))
+      )
+      waitForParams.forEach((value, i) => {
+        if (typeof value === 'string') {
+          tap.ok(results[i], `"${value}": completed successfully.`)
+        } else {
+          tap.ok(
+            results[i],
+            `${JSON.stringify(value)}: completed successfully.`
+          )
+        }
+      })
+      tap.equal(call.state, 'ended', 'Outbound call state is "ended"')
+      resolve(0)
+    } catch (error) {
+      console.error('Outbound - voice error', error)
+      reject(4)
+    }
   })
 }
 

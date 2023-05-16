@@ -45,34 +45,39 @@ const handler = () => {
       }
     })
 
-    const call = await client.dialPhone({
-      to: process.env.VOICE_DIAL_TO_NUMBER as string,
-      from: process.env.VOICE_DIAL_FROM_NUMBER as string,
-      timeout: 30,
-    })
-    tap.ok(call.id, 'Outbound - Call resolved')
-
-    // Wait until callee answers the call
-    await waitForTheAnswer
-
     try {
-      // Start an audio tap
-      const tapAudio = await call.tapAudio({
-        direction: 'both',
-        device: {
-          type: 'ws',
-          uri: 'wss://example.domain.com/endpoint',
-        },
+      const call = await client.dialPhone({
+        to: process.env.VOICE_DIAL_TO_NUMBER as string,
+        from: process.env.VOICE_DIAL_FROM_NUMBER as string,
+        timeout: 30,
       })
+      tap.ok(call.id, 'Outbound - Call resolved')
 
-      // Tap should fail due to wrong WSS
-      reject()
-    } catch (error) {
-      tap.ok(error, 'Outbound - Tap error')
+      // Wait until callee answers the call
+      await waitForTheAnswer
+
+      try {
+        // Start an audio tap
+        const tapAudio = await call.tapAudio({
+          direction: 'both',
+          device: {
+            type: 'ws',
+            uri: 'wss://example.domain.com/endpoint',
+          },
+        })
+
+        // Tap should fail due to wrong WSS
+        reject()
+      } catch (error) {
+        tap.ok(error, 'Outbound - Tap error')
+        resolve(0)
+      }
+
       resolve(0)
+    } catch (error) {
+      console.error('Outbound - voiceTap error', error)
+      reject(4)
     }
-
-    resolve(0)
   })
 }
 

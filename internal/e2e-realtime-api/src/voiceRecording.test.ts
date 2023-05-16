@@ -74,86 +74,98 @@ const handler = () => {
       }
     })
 
-    // Make an outbound call
-    const call = await client.dialPhone({
-      to: process.env.VOICE_DIAL_TO_NUMBER as string,
-      from: process.env.VOICE_DIAL_FROM_NUMBER as string,
-      timeout: 30,
-    })
-    tap.ok(call.id, 'Outbound - Call resolved')
+    try {
+      // Make an outbound call
+      const call = await client.dialPhone({
+        to: process.env.VOICE_DIAL_TO_NUMBER as string,
+        from: process.env.VOICE_DIAL_FROM_NUMBER as string,
+        timeout: 30,
+      })
+      tap.ok(call.id, 'Outbound - Call resolved')
 
-    // Wait until callee answers the call
-    await waitForTheAnswer
+      // Wait until callee answers the call
+      await waitForTheAnswer
 
-    // Start an outbound recording
-    const recording = call.recordAudio({ direction: 'both' })
+      // Start an outbound recording
+      const recording = call.recordAudio({ direction: 'both' })
 
-    const waitForRecordingStarted = new Promise((resolve) => {
-      call.on('recording.started', (recording) => {
-        tap.equal(
-          recording.state,
-          'recording',
-          'Outbound - Recording has started'
+      const waitForRecordingStarted = new Promise((resolve) => {
+        call.on('recording.started', (recording) => {
+          tap.equal(
+            recording.state,
+            'recording',
+            'Outbound - Recording has started'
+          )
+          resolve(true)
+        })
+      })
+      // Wait for the outbound recording to start
+      await waitForRecordingStarted
+
+      // Resolve late so that we attach `recording.started` and wait for it
+      const resolvedRecording = await recording
+      tap.equal(
+        call.id,
+        resolvedRecording.callId,
+        'Outbound - Recording returns the same instance'
+      )
+
+      // Play a valid audio
+      const playlist = new Voice.Playlist({ volume: 2 })
+        .add(
+          Voice.Playlist.Audio({
+            url: 'https://freetestdata.com/wp-content/uploads/2021/09/Free_Test_Data_100KB_MP3.mp3',
+          })
         )
-        resolve(true)
-      })
-    })
-    // Wait for the outbound recording to start
-    await waitForRecordingStarted
+        .add(
+          Voice.Playlist.TTS({
+            text: 'Thank you, you are now disconnected from the peer',
+          })
+        )
+      const playback = await call.play(playlist)
 
-    // Resolve late so that we attach `recording.started` and wait for it
-    const resolvedRecording = await recording
-    tap.equal(
-      call.id,
-      resolvedRecording.callId,
-      'Outbound - Recording returns the same instance'
-    )
-
-    // Play a valid audio
-    const playlist = new Voice.Playlist({ volume: 2 })
-      .add(
-        Voice.Playlist.Audio({
-          url: 'https://freetestdata.com/wp-content/uploads/2021/09/Free_Test_Data_100KB_MP3.mp3',
+      // Start ending the recording
+      const playbackEnd = playback.ended()
+      const waitForRecordingEnded = new Promise((resolve) => {
+        call.on('recording.ended', (recording) => {
+          tap.equal(
+            recording.state,
+            'finished',
+            'Outbound - Recording has ended'
+          )
+          resolve(true)
         })
-      )
-      .add(
-        Voice.Playlist.TTS({
-          text: 'Thank you, you are now disconnected from the peer',
-        })
-      )
-    const playback = await call.play(playlist)
-
-    // Start ending the recording
-    const playbackEnd = playback.ended()
-    const waitForRecordingEnded = new Promise((resolve) => {
-      call.on('recording.ended', (recording) => {
-        tap.equal(recording.state, 'finished', 'Outbound - Recording has ended')
-        resolve(true)
       })
-    })
-    // Wait for the outbound recording to end
-    await waitForRecordingEnded
+      // Wait for the outbound recording to end
+      await waitForRecordingEnded
 
-    // Resolve late so that we attach `recording.ended` and wait for it
-    await playbackEnd
+      // Resolve late so that we attach `recording.ended` and wait for it
+      await playbackEnd
 
-    // Resolve the record ended to inform the callee
-    waitForOutboundRecordEndResolve()
+      // Resolve the record ended to inform the callee
+      waitForOutboundRecordEndResolve()
 
-    // Wait until callee hangs up the call
-    const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
-    const results = await Promise.all(
-      waitForParams.map((params) => call.waitFor(params as any))
-    )
-    waitForParams.forEach((value, i) => {
-      if (typeof value === 'string') {
-        tap.ok(results[i], `"${value}": completed successfully.`)
-      } else {
-        tap.ok(results[i], `${JSON.stringify(value)}: completed successfully.`)
-      }
-    })
+      // Wait until callee hangs up the call
+      const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
+      const results = await Promise.all(
+        waitForParams.map((params) => call.waitFor(params as any))
+      )
+      waitForParams.forEach((value, i) => {
+        if (typeof value === 'string') {
+          tap.ok(results[i], `"${value}": completed successfully.`)
+        } else {
+          tap.ok(
+            results[i],
+            `${JSON.stringify(value)}: completed successfully.`
+          )
+        }
+      })
 
-    resolve(0)
+      resolve(0)
+    } catch (error) {
+      console.error('Outbound - voiceRecording error', error)
+      reject(4)
+    }
   })
 }
 
