@@ -1,6 +1,6 @@
 import tap from 'tap'
 import { Voice } from '@signalwire/realtime-api'
-import { createTestRunner, sleep } from './utils'
+import { createTestRunner } from './utils'
 
 const handler = () => {
   return new Promise<number>(async (resolve, reject) => {
@@ -10,6 +10,13 @@ const handler = () => {
       token: process.env.RELAY_TOKEN as string,
       contexts: [process.env.VOICE_CONTEXT as string],
     })
+
+    let waitForTheAnswerResolve
+    const waitForTheAnswer = new Promise((resolve) => {
+      waitForTheAnswerResolve = resolve
+    })
+
+    let outboundCall: Voice.Call
 
     client.on('call.received', async (call) => {
       console.log(
@@ -29,7 +36,8 @@ const handler = () => {
           'Inbound - Call answered gets the same instance'
         )
 
-        await sleep(10000)
+        // Resolve the answer promise to let the caller know
+        await waitForTheAnswerResolve()
 
         // Callee hangs up a call
         await call.hangup()
@@ -39,16 +47,19 @@ const handler = () => {
       }
     })
 
-    const call = await client.dialPhone({
+    outboundCall = await client.dialPhone({
       to: process.env.VOICE_DIAL_TO_NUMBER as string,
       from: process.env.VOICE_DIAL_FROM_NUMBER as string,
       timeout: 30,
     })
-    tap.ok(call.id, 'Outbound - Call resolved')
+    tap.ok(outboundCall.id, 'Outbound - Call resolved')
+
+    // Wait until callee answers the call
+    await waitForTheAnswer
 
     try {
       // Start an audio tap
-      const tapAudio = await call.tapAudio({
+      const tapAudio = await outboundCall.tapAudio({
         direction: 'both',
         device: {
           type: 'ws',
