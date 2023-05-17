@@ -269,8 +269,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         iceTransportPolicy: 'relay',
       }
       this.setConfiguration(newConfig)
-      // @ts-ignore
-      this.instance.restartIce()
+      this.restartIce()
     } catch (error) {
       this.logger.error('restartIceWithRelayOnly', error)
     }
@@ -278,7 +277,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   restartIce() {
     if (this._negotiating || this._restartingIce) {
-      this.logger.warn('Skip restartIce')
+      return this.logger.warn('Skip restartIce')
     }
     this._restartingIce = true
 
@@ -857,6 +856,12 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           }
           break
         }
+        // case 'have-remote-offer': {
+        //   if (this.instance.iceGatheringState === 'complete') {
+        //     this._sdpReady()
+        //   }
+        //   break
+        // }
         case 'closed':
           // @ts-ignore
           delete this.instance
