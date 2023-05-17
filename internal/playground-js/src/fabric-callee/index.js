@@ -551,7 +551,7 @@ window.ready(async function () {
   });
   const permission = await Notification.requestPermission();
   if (permission === 'granted') {
-    const token = await getToken(messaging, {vapiKey: 'BO5l7RAwyU4ONU6A0iaysf2hO9YRsFiZX5IYfEbDYJeWKfizygF-Dif3J1Jeia6mhiWkWP-nGdqqqc0zPkuocUU'});
+    const token = await getToken(messaging, {vapiKey: ''});
     document.getElementById('pn-token').value = token;
   }
 })
