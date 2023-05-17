@@ -80,9 +80,10 @@ const handler = () => {
         'Outbound - Detect returns the same instance'
       )
 
+      // Wait until the callee send the digits
       await inboundSendDigits
 
-      const outboundRecDigits = await detectDigit.ended()
+      outboundRecDigits = await detectDigit.ended()
       tap.equal(
         outboundRecDigits.type,
         'digit',
