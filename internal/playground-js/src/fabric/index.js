@@ -225,31 +225,37 @@ window.connect = async () => {
 
   window.__client = client
 
+  connectStatus.innerHTML = 'Connecting...'
+
+  // Set a node_id for steering
+  const steeringId = undefined
+
   const call = await client.dial({
     to: document.getElementById('destination').value,
     logLevel: 'debug',
     debug: { logWsTraffic: true },
+    nodeId: steeringId,
   })
 
-  const steeringId = ''
-  if (steeringId) {
-    const executeInviteRef = call.executeInvite
-    call.executeInvite = (sdp, rtcPeerId, nodeId) => {
-      console.log('Change invite - inject nodeId for steering')
-      executeInviteRef.call(call, sdp, rtcPeerId, steeringId)
-    }
-
-    const vertoExecuteRef = call.vertoExecute
-    call.vertoExecute = (params) => {
-      console.log('Change vertoExecute - inject nodeId for steering')
-      params.node_id = steeringId
-      vertoExecuteRef.call(call, params)
-    }
-  }
   console.debug('Call Obj', call)
 
   window.__call = call
   roomObj = call
+
+  const joinHandler = (params) => {
+    console.debug('>> room.joined', params)
+
+    btnConnect.classList.add('d-none')
+    btnDisconnect.classList.remove('d-none')
+    connectStatus.innerHTML = 'Connected'
+
+    inCallElements.forEach((button) => {
+      button.classList.remove('d-none')
+      button.disabled = false
+    })
+    // loadLayouts()
+  }
+  joinHandler()
 
   roomObj.on('media.connected', () => {
     console.debug('>> media.connected')
@@ -264,28 +270,7 @@ window.connect = async () => {
   roomObj.on('room.started', (params) =>
     console.debug('>> room.started', params)
   )
-  const handler = (params) => {
-    console.warn('Debug', params)
-  }
-  roomObj.on('room.joined', handler)
-  roomObj.on('room.joined', handler)
-  roomObj.on('room.joined', console.log)
-  roomObj.on('room.joined', console.warn)
-  const joinHandler = (params) => {
-    console.debug('>> room.joined', params)
 
-    btnConnect.classList.add('d-none')
-    btnDisconnect.classList.remove('d-none')
-    connectStatus.innerHTML = 'Connected'
-
-    inCallElements.forEach((button) => {
-      button.classList.remove('d-none')
-      button.disabled = false
-    })
-    loadLayouts()
-  }
-  roomObj.on('room.joined', joinHandler)
-  roomObj.emitter.on('verto.display', joinHandler)
   roomObj.on('destroy', () => {
     console.debug('>> destroy')
     restoreUI()
@@ -350,43 +335,6 @@ window.connect = async () => {
       document.getElementById('playbackVolume').value = params.volume
     }
   })
-
-  roomObj.on('memberList.updated', (payload) => {
-    console.log('>> members.changed', payload)
-  })
-
-  roomObj
-    .start({ audio: true, video: true })
-    .then(async (result) => {
-      console.log('>> Room Joined', result)
-
-      roomObj.getLayouts().then((layouts) => {
-        console.log('>> Layouts', layouts)
-      })
-
-      enumerateDevices()
-        .then(initDeviceOptions)
-        .catch((error) => {
-          console.error(error)
-        })
-
-      await initializeMicAnalyzer(roomObj.localStream)
-
-      createDeviceWatcher().then((deviceWatcher) => {
-        deviceWatcher.on('changed', () => {
-          initDeviceOptions()
-
-          if (micAnalyzer?.destroy) {
-            micAnalyzer.destroy()
-          }
-        })
-      })
-    })
-    .catch((error) => {
-      console.error('Join error?', error)
-    })
-
-  connectStatus.innerHTML = 'Connecting...'
 }
 
 /**
