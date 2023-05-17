@@ -717,7 +717,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       const response: any = await this.vertoExecute({
         message,
         callID: rtcPeerId,
-        node_id: nodeId,
+        node_id: nodeId ?? this.options.nodeId,
         subscribe,
       })
       this.logger.debug('Invite response', response)
