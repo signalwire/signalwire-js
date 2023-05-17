@@ -36,7 +36,7 @@ export class WSClient {
     return this.wsClient.disconnect()
   }
 
-  async dial(params: { to: string }) {
+  async dial(params: { to: string; nodeId?: string }) {
     return new Promise(async (resolve, reject) => {
       try {
         console.log('WSClient dial with:', params)
@@ -72,6 +72,7 @@ export class WSClient {
           destinationNumber: params.to,
           watchMediaPackets: false,
           // watchMediaPacketsTimeout:,
+          nodeId: params.nodeId,
         })
 
         // WebRTC connection left the room.
@@ -86,12 +87,8 @@ export class WSClient {
         // @ts-expect-error
         call.attachPreConnectWorkers()
 
-        call.once('room.subscribed', (payload) => {
-          // @ts-expect-error
-          call.attachOnSubscribedWorkers(payload)
-
-          resolve(call)
-        })
+        // @ts-expect-error
+        call.emitter.once('verto.display', () => resolve(call))
 
         await call.join()
 
