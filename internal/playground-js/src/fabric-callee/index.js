@@ -1,5 +1,7 @@
 import { Fabric } from '@signalwire/js'
 import { createMicrophoneAnalyzer } from '@signalwire/webrtc'
+import { initializeApp } from 'firebase/app'
+import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
 let roomObj = null
 let micAnalyzer = null
@@ -529,4 +531,28 @@ window.ready(async function () {
     (localStorage.getItem('fabric.callee.audio') || '1') === '1'
   document.getElementById('video').checked =
     (localStorage.getItem('fabric.callee.video') || '1') === '1'
+
+  //Initialize Firebase App
+  const app = initializeApp(
+  {
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: "",
+  measurementId: ""
+  }
+  );
+  const messaging = getMessaging(app);
+  onMessage(messaging, (payload) => {
+    document.getElementById('payload').value = payload.notification.body
+    alert(payload.notification.title);
+  });
+  const permission = await Notification.requestPermission();
+  if (permission === 'granted') {
+    const token = await getToken(messaging, {vapiKey: 'BO5l7RAwyU4ONU6A0iaysf2hO9YRsFiZX5IYfEbDYJeWKfizygF-Dif3J1Jeia6mhiWkWP-nGdqqqc0zPkuocUU'});
+    document.getElementById('pn-token').value = token;
+  }
 })
+
