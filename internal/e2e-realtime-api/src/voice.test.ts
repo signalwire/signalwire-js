@@ -15,71 +15,28 @@ const handler = () => {
       },
     })
 
+    let waitForInboundAnswerResolve: (value: void) => void
+    const waitForInboundAnswer = new Promise((resolve) => {
+      waitForInboundAnswerResolve = resolve
+    })
+    let waitForPeerAnswerResolve: (value: void) => void
+    const waitForPeerAnswer = new Promise((resolve) => {
+      waitForPeerAnswerResolve = resolve
+    })
+    let waitForSendDigitResolve
+    const waitForSendDigit = new Promise((resolve) => {
+      waitForSendDigitResolve = resolve
+    })
+    let waitForPromptStartResolve: (value: void) => void
+    const waitForPromptStart = new Promise((resolve) => {
+      waitForPromptStartResolve = resolve
+    })
+    let waitForPeerSendDigitResolve
+    const waitForPeerSendDigit = new Promise((resolve) => {
+      waitForPeerSendDigitResolve = resolve
+    })
+
     let callsReceived = new Set()
-    let inboundCall: Voice.Call
-    let outboundCall: Voice.Call
-    let peerCall: Voice.Call
-
-    const performDigitDetect = async (
-      caller: Voice.Call,
-      callee: Voice.Call
-    ) => {
-      try {
-        if (!caller || !callee) {
-          throw new Error('One of the calls is not resolved!')
-        }
-
-        const detector = await caller.detectDigit({
-          digits: '1',
-        })
-        const sendDigitResult = await callee.sendDigits('1#')
-        tap.equal(
-          callee.id,
-          sendDigitResult.id,
-          'Peer - sendDigit returns the same instance'
-        )
-        const resultDetector = await detector.ended()
-        tap.equal(
-          // @ts-expect-error
-          resultDetector.detect.params.event,
-          'finished',
-          'Detect digit is finished'
-        )
-      } catch (error) {
-        throw error
-      }
-    }
-
-    const performPromptAndDetect = async (
-      caller: Voice.Call,
-      callee: Voice.Call
-    ) => {
-      if (!caller || !callee) {
-        throw new Error('One of the calls is not resolved!')
-      }
-
-      const prompt = await callee.prompt({
-        playlist: new Voice.Playlist({ volume: 1.0 }).add(
-          Voice.Playlist.TTS({
-            text: 'Welcome to SignalWire! Please enter your 4 digits PIN',
-          })
-        ),
-        digits: {
-          max: 4,
-          digitTimeout: 100,
-          terminators: '#',
-        },
-      })
-      const sendDigitResult = await caller.sendDigits('1w2w3w#')
-      tap.equal(
-        caller.id,
-        sendDigitResult.id,
-        'sendDigit returns the same instance'
-      )
-      const promptEndedResult = await prompt.ended()
-      tap.equal(prompt.id, promptEndedResult.id, 'Instances are the same')
-      tap.equal(promptEndedResult.digits, '123', 'Correct Digits were entered')
-    }
 
     client.on('call.received', async (call) => {
       callsReceived.add(call.id)
@@ -94,38 +51,35 @@ const handler = () => {
       try {
         tap.equal(call.state, 'created', 'Inbound call state is "created"')
         const resultAnswer = await call.answer()
-
-        // Size 2 means this the second (peer) call
-        if (callsReceived.size === 2) {
-          peerCall = call
-
-          tap.equal(peerCall.state, 'answered', 'Peer call state is "answered"')
-          tap.ok(resultAnswer.id, 'Peer call answered')
-          tap.equal(
-            peerCall.id,
-            resultAnswer.id,
-            'Peer call answered gets the same instance'
-          )
-
-          await performDigitDetect(inboundCall, peerCall)
-          return
-        }
-
-        inboundCall = call
-
-        tap.equal(
-          inboundCall.state,
-          'answered',
-          'Inbound call state is "answered"'
-        )
+        tap.equal(call.state, 'answered', 'Inbound call state is "answered"')
         tap.ok(resultAnswer.id, 'Inboud call answered')
         tap.equal(
-          inboundCall.id,
+          call.id,
           resultAnswer.id,
-          'Inbound call answered gets the same instance'
+          'Call answered gets the same instance'
         )
 
-        const recording = await inboundCall.recordAudio({
+        if (callsReceived.size === 2) {
+          // Resolve the 2nd inbound call promise to inform the caller (inbound)
+          waitForPeerAnswerResolve()
+          console.log(`Sending digits from call: ${call.id}`)
+
+          const sendDigitResult = await call.sendDigits('1#')
+          tap.equal(
+            call.id,
+            sendDigitResult.id,
+            'Peer - sendDigit returns the same instance'
+          )
+
+          // Resolve the send digit promise to inform the caller
+          waitForPeerSendDigitResolve()
+          return
+        } else {
+          // Resolve the 1st inbound call promise to inform the caller (outbound)
+          waitForInboundAnswerResolve()
+        }
+
+        const recording = await call.recordAudio({
           direction: 'speak',
           inputSensitivity: 60,
         })
@@ -141,7 +95,7 @@ const handler = () => {
             text: 'Message is getting recorded',
           })
         )
-        const playback = await inboundCall.play(playlist)
+        const playback = await call.play(playlist)
         tap.ok(playback.id, 'Playback')
 
         // console.log('Waiting for Playback to end')
@@ -163,15 +117,39 @@ const handler = () => {
           'Recording state is "finished"'
         )
 
-        inboundCall.on('prompt.started', (p) => {
+        call.on('prompt.started', (p) => {
           tap.ok(p.id, 'Prompt has started')
         })
-        inboundCall.on('prompt.ended', (p) => {
+        call.on('prompt.ended', (p) => {
           tap.ok(p.id, 'Prompt has ended')
         })
 
-        // Start a prompt and detect what caller has sent
-        await performPromptAndDetect(outboundCall, inboundCall)
+        const prompt = await call.prompt({
+          playlist: new Voice.Playlist({ volume: 1.0 }).add(
+            Voice.Playlist.TTS({
+              text: 'Welcome to SignalWire! Please enter your 4 digits PIN',
+            })
+          ),
+          digits: {
+            max: 4,
+            digitTimeout: 100,
+            terminators: '#',
+          },
+        })
+
+        // Resolve the prompt start promise to let the caller know
+        waitForPromptStartResolve()
+
+        // Wait until the caller send digits
+        await waitForSendDigit
+
+        const promptEndedResult = await prompt.ended()
+        tap.equal(prompt.id, promptEndedResult.id, 'Instances are the same')
+        tap.equal(
+          promptEndedResult.digits,
+          '123',
+          'Correct Digits were entered'
+        )
 
         console.log(
           `Connecting ${process.env.VOICE_DIAL_FROM_NUMBER} to ${process.env.VOICE_CONNECT_TO_NUMBER}`
@@ -181,7 +159,7 @@ const handler = () => {
             name: 'it',
           })
         )
-        const peer = await inboundCall.connectPhone({
+        const peer = await call.connectPhone({
           from: process.env.VOICE_DIAL_FROM_NUMBER!,
           to: process.env.VOICE_CONNECT_TO_NUMBER!,
           timeout: 30,
@@ -189,27 +167,40 @@ const handler = () => {
           maxPricePerMinute: 10,
         })
         tap.equal(peer.connected, true, 'Peer connected is true')
-        tap.equal(inboundCall.connected, true, 'Call connected is true')
+        tap.equal(call.connected, true, 'Call connected is true')
         tap.equal(
-          inboundCall.connectState,
+          call.connectState,
           'connected',
           'Call connected is "connected"'
         )
 
         console.log('Peer:', peer.id, peer.type, peer.from, peer.to)
-        console.log(
-          'Main:',
-          inboundCall.id,
-          inboundCall.type,
-          inboundCall.from,
-          inboundCall.to
+        console.log('Main:', call.id, call.type, call.from, call.to)
+
+        // Wait until the peer answers the call
+        await waitForPeerAnswer
+
+        const detector = await call.detectDigit({
+          digits: '1',
+        })
+
+        // Wait until the peer send digits
+        await waitForPeerSendDigit
+
+        const resultDetector = await detector.ended()
+        // TODO: update this once the backend can send us the actual result
+        tap.equal(
+          // @ts-expect-error
+          resultDetector.detect.params.event,
+          'finished',
+          'Detect digit is finished'
         )
 
         console.log('Finishing the calls.')
-        inboundCall.disconnected().then(async () => {
+        call.disconnected().then(async () => {
           console.log('Call has been disconnected')
-          await inboundCall.hangup()
-          tap.equal(inboundCall.state, 'ended', 'Inbound call state is "ended"')
+          await call.hangup()
+          tap.equal(call.state, 'ended', 'Inbound call state is "ended"')
         })
 
         // Peer hangs up a call
@@ -221,23 +212,35 @@ const handler = () => {
     })
 
     try {
-      outboundCall = await client.dialPhone({
+      const call = await client.dialPhone({
         to: process.env.VOICE_DIAL_TO_NUMBER as string,
         from: process.env.VOICE_DIAL_FROM_NUMBER as string,
         timeout: 30,
         maxPricePerMinute: 10,
       })
-      tap.ok(outboundCall.id, 'Call resolved')
+      tap.ok(call.id, 'Call resolved')
+      tap.equal(call.state, 'answered', 'Outbound call state is "answered"')
+
+      // Wait until callee answers the call
+      await waitForInboundAnswer
+
+      // Wait until callee starts the prompt
+      await waitForPromptStart
+
+      const sendDigitResult = await call.sendDigits('1w2w3w#')
       tap.equal(
-        outboundCall.state,
-        'answered',
-        'Outbound call state is "answered"'
+        call.id,
+        sendDigitResult.id,
+        'sendDigit returns the same instance'
       )
+
+      // Resolve the send digit start promise to let the callee know
+      waitForSendDigitResolve()
 
       // Resolve if the call has ended or ending
       const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
       const results = await Promise.all(
-        waitForParams.map((params) => outboundCall.waitFor(params as any))
+        waitForParams.map((params) => call.waitFor(params as any))
       )
       waitForParams.forEach((value, i) => {
         if (typeof value === 'string') {
@@ -249,7 +252,7 @@ const handler = () => {
           )
         }
       })
-      tap.equal(outboundCall.state, 'ended', 'Outbound call state is "ended"')
+      tap.equal(call.state, 'ended', 'Outbound call state is "ended"')
       resolve(0)
     } catch (error) {
       console.error('Outbound - voice error', error)

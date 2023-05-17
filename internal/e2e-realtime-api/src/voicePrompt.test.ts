@@ -14,18 +14,18 @@ const handler = () => {
       },
     })
 
-    let waitForTheAnswerResolve: (value: void) => void
-    const waitForTheAnswer = new Promise((resolve) => {
-      waitForTheAnswerResolve = resolve
+    let waitForCallAnswerResolve: (value: void) => void
+    const waitForCallAnswer = new Promise((resolve) => {
+      waitForCallAnswerResolve = resolve
     })
-
-    let outboundPrompt:
-      | Promise<Voice.VoiceCallPromptContract>
-      | Voice.VoiceCallPromptContract
-    let inboundSendDigits: Promise<Voice.Call> | Voice.Call | undefined
-    let outboundRecDigits:
-      | Promise<Voice.VoiceCallPromptContract>
-      | Voice.VoiceCallPromptContract
+    let waitForPromptStartResolve
+    const waitForPromptStart = new Promise((resolve) => {
+      waitForPromptStartResolve = resolve
+    })
+    let waitForSendDigitsResolve: (value: void) => void
+    const waitForSendDigits = new Promise((resolve) => {
+      waitForSendDigitsResolve = resolve
+    })
 
     client.on('call.received', async (call) => {
       console.log(
@@ -46,21 +46,21 @@ const handler = () => {
         )
 
         // Resolve the answer promise to inform the caller
-        waitForTheAnswerResolve()
+        waitForCallAnswerResolve()
 
         // Wait for the prompt to begin from the caller side
-        await outboundPrompt
+        await waitForPromptStart
 
         // Send digits 1234 to the caller
-        inboundSendDigits = await call.sendDigits('1w2w3w4w#')
+        const sendDigits = await call.sendDigits('1w2w3w4w#')
         tap.equal(
           call.id,
-          inboundSendDigits.id,
+          sendDigits.id,
           'Inbound - sendDigit returns the same instance'
         )
 
-        // Wait for the caller to receive digits
-        await outboundRecDigits
+        // Resolve the send digits promise to inform the caller
+        waitForSendDigitsResolve()
 
         // Callee hangs up a call
         await call.hangup()
@@ -79,10 +79,10 @@ const handler = () => {
       tap.ok(call.id, 'Outbound - Call resolved')
 
       // Wait until callee answers the call
-      await waitForTheAnswer
+      await waitForCallAnswer
 
       // Caller starts a prompt
-      outboundPrompt = await call.prompt({
+      const prompt = await call.prompt({
         playlist: new Voice.Playlist({ volume: 1.0 }).add(
           Voice.Playlist.TTS({
             text: 'Welcome to SignalWire! Please enter your 4 digits PIN',
@@ -96,20 +96,19 @@ const handler = () => {
       })
       tap.equal(
         call.id,
-        outboundPrompt.callId,
+        prompt.callId,
         'Outbound - Prompt returns the same instance'
       )
 
+      // Resolve the prompt promise to inform the callee
+      waitForPromptStartResolve()
+
       // Wait for the callee to send digits
-      await inboundSendDigits
+      await waitForSendDigits
 
       // Compare what caller has received
-      outboundRecDigits = await outboundPrompt.ended()
-      tap.equal(
-        outboundRecDigits.digits,
-        '1234',
-        'Outbound - Received the same digit'
-      )
+      const recDigits = await prompt.ended()
+      tap.equal(recDigits.digits, '1234', 'Outbound - Received the same digit')
 
       // Resolve if the call has ended or ending
       const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const

@@ -11,15 +11,14 @@ const handler = () => {
       contexts: [process.env.VOICE_CONTEXT as string],
     })
 
-    let waitForTheAnswerResolve: (value: void) => void
-    const waitForTheAnswer = new Promise((resolve) => {
-      waitForTheAnswerResolve = resolve
+    let waitForDetectStartResolve
+    const waitForDetectStart = new Promise((resolve) => {
+      waitForDetectStartResolve = resolve
     })
-
-    let inboundSendDigits: Promise<Voice.Call> | Voice.Call | undefined
-    let outboundRecDigits:
-      | Promise<Voice.VoiceCallDetectContract>
-      | Voice.VoiceCallDetectContract
+    let waitForDetectEndResolve: (value: void) => void
+    const waitForDetectEnd = new Promise((resolve) => {
+      waitForDetectEndResolve = resolve
+    })
 
     client.on('call.received', async (call) => {
       console.log(
@@ -39,19 +38,19 @@ const handler = () => {
           'Inbound - Call answered gets the same instance'
         )
 
-        // Resolve the answer promise to inform the caller
-        waitForTheAnswerResolve()
+        // Wait until caller starts detecting digit
+        await waitForDetectStart
 
         // Send digits 1234 to the caller
-        inboundSendDigits = await call.sendDigits('1w2w3w4w#')
+        const sendDigits = await call.sendDigits('1w2w3w4w#')
         tap.equal(
           call.id,
-          inboundSendDigits.id,
+          sendDigits.id,
           'Inbound - sendDigit returns the same instance'
         )
 
-        // Wait until the caller receives digits
-        await outboundRecDigits
+        // Resolve the detect end promise to inform the caller
+        waitForDetectEndResolve()
 
         // Callee hangs up a call
         await call.hangup()
@@ -69,9 +68,6 @@ const handler = () => {
       })
       tap.ok(call.id, 'Outbound - Call resolved')
 
-      // Wait until callee answers the call
-      await waitForTheAnswer
-
       // Start a detect
       const detectDigit = await call.detectDigit({ digits: '1234' })
       tap.equal(
@@ -80,15 +76,14 @@ const handler = () => {
         'Outbound - Detect returns the same instance'
       )
 
-      // Wait until the callee send the digits
-      await inboundSendDigits
+      // Resolve the detect start promise to inform the callee
+      waitForDetectStartResolve()
 
-      outboundRecDigits = await detectDigit.ended()
-      tap.equal(
-        outboundRecDigits.type,
-        'digit',
-        'Outbound - Received the digit'
-      )
+      // Wait until the callee sends the digits
+      await waitForDetectEnd
+
+      const recDigits = await detectDigit.ended()
+      tap.equal(recDigits.type, 'digit', 'Outbound - Received the digit')
 
       resolve(0)
     } catch (error) {

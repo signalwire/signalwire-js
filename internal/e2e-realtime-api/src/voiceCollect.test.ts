@@ -1,6 +1,6 @@
 import tap from 'tap'
 import { Voice } from '@signalwire/realtime-api'
-import { createTestRunner } from './utils'
+import { createTestRunner, sleep } from './utils'
 
 const handler = () => {
   return new Promise<number>(async (resolve, reject) => {
@@ -15,16 +15,14 @@ const handler = () => {
       },
     })
 
-    let waitForTheAnswerResolve: (value: void) => void
-    const waitForTheAnswer = new Promise((resolve) => {
-      waitForTheAnswerResolve = resolve
+    let waitForCollectStartResolve
+    const waitForCollectStart = new Promise((resolve) => {
+      waitForCollectStartResolve = resolve
     })
-
-    let outboundSendDigits: Promise<Voice.Call> | Voice.Call
-    let inboundCollectDigits:
-      | Promise<Voice.VoiceCallCollectContract>
-      | Voice.VoiceCallCollectContract
-      | undefined
+    let waitForCollectEndResolve
+    const waitForCollectEnd = new Promise((resolve) => {
+      waitForCollectEndResolve = resolve
+    })
 
     client.on('call.received', async (call) => {
       console.log('Got call', call.id, call.from, call.to, call.direction)
@@ -38,11 +36,8 @@ const handler = () => {
           'Call answered gets the same instance'
         )
 
-        // Resolve the answer promise to inform the caller
-        await waitForTheAnswerResolve()
-
         call.on('collect.started', (collect) => {
-          console.log('>>> collect.started')
+          console.log('>>> collect.started', collect)
         })
         call.on('collect.updated', (collect) => {
           console.log('>>> collect.updated', collect.digits)
@@ -53,9 +48,9 @@ const handler = () => {
         call.on('collect.failed', (collect) => {
           console.log('>>> collect.failed', collect.reason)
         })
+        // call.on('collect.startOfSpeech', (collect) => {})
 
-        // Collects digits from the caller
-        inboundCollectDigits = await call.collect({
+        const callCollect = await call.collect({
           initialTimeout: 4.0,
           digits: {
             max: 4,
@@ -68,18 +63,18 @@ const handler = () => {
           startInputTimers: false,
         })
 
-        // Wait until the caller completes sending digits
-        await outboundSendDigits
+        // Resolve the answer promise to inform the caller
+        waitForCollectStartResolve()
 
-        // End the digit collection
-        await inboundCollectDigits.ended()
-        tap.equal(
-          inboundCollectDigits.digits,
-          '123',
-          'Collect the correct digits'
-        )
+        // Wait until the caller ends entring the digits
+        await waitForCollectEnd
 
-        // Callee hangs up a call
+        await callCollect.ended() // block the script until the collect ended
+
+        tap.equal(callCollect.digits, '123', 'Collect the correct digits')
+        // await callCollect.stop()
+        // await callCollect.startInputTimers()
+
         await call.hangup()
       } catch (error) {
         console.error('Error', error)
@@ -96,21 +91,19 @@ const handler = () => {
       })
       tap.ok(call.id, 'Call resolved')
 
-      // Wait until callee answers the call
-      await waitForTheAnswer
+      // Wait until the callee answers the call and start collecting digits
+      await waitForCollectStart
 
-      // Wait until callee stars listening for the digits
-      await inboundCollectDigits
-
-      // Send digits 1234 to the callee
-      outboundSendDigits = await call.sendDigits('1w2w3w#')
+      const sendDigitResult = await call.sendDigits('1w2w3w#')
       tap.equal(
         call.id,
-        outboundSendDigits.id,
+        sendDigitResult.id,
         'sendDigit returns the same instance'
       )
 
-      // Resolve if the call has ended or ending
+      // Resolve the collect end promise to inform the callee
+      waitForCollectEndResolve()
+
       const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
       const results = await Promise.all(
         waitForParams.map((params) => call.waitFor(params as any))
@@ -128,7 +121,7 @@ const handler = () => {
 
       resolve(0)
     } catch (error) {
-      console.error('Outbound - voiceCollect error', error)
+      console.error('Outbound - voiceDetect error', error)
       reject(4)
     }
   })
