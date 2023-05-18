@@ -74,10 +74,10 @@ const handler = () => {
           // Resolve the send digit promise to inform the caller
           waitForPeerSendDigitResolve()
           return
-        } else {
-          // Resolve the 1st inbound call promise to inform the caller (outbound)
-          waitForInboundAnswerResolve()
         }
+
+        // Resolve the 1st inbound call promise to inform the caller (outbound)
+        waitForInboundAnswerResolve()
 
         const recording = await call.recordAudio({
           direction: 'speak',
