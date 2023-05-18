@@ -1,6 +1,6 @@
 import tap from 'tap'
 import { Voice } from '@signalwire/realtime-api'
-import { createTestRunner } from './utils'
+import { createTestRunner, sleep } from './utils'
 
 const handler = () => {
   return new Promise<number>(async (resolve, reject) => {
@@ -9,11 +9,18 @@ const handler = () => {
       project: process.env.RELAY_PROJECT as string,
       token: process.env.RELAY_TOKEN as string,
       contexts: [process.env.VOICE_CONTEXT as string],
+      debug: {
+        // logWsTraffic: true,
+      },
     })
 
     let waitForTheAnswerResolve: (value: void) => void
     const waitForTheAnswer = new Promise((resolve) => {
       waitForTheAnswerResolve = resolve
+    })
+    let waitForOutboundRecordFinishResolve
+    const waitForOutboundRecordFinish = new Promise((resolve) => {
+      waitForOutboundRecordFinishResolve = resolve
     })
 
     client.on('call.received', async (call) => {
@@ -58,6 +65,9 @@ const handler = () => {
           'Inbound - firstRecording state is "finished"'
         )
 
+        // Wait till the second recording ends
+        await waitForOutboundRecordFinish
+
         // Callee hangs up a call
         await call.hangup()
       } catch (error) {
@@ -97,6 +107,9 @@ const handler = () => {
         'Outbound - secondRecording state is "finished"'
       )
 
+      // Resolve the record finish promise to inform the callee
+      waitForOutboundRecordFinishResolve()
+
       const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
       const results = await Promise.all(
         waitForParams.map((params) => call.waitFor(params as any))
@@ -122,7 +135,7 @@ const handler = () => {
 
 async function main() {
   const runner = createTestRunner({
-    name: 'Voice Playback E2E',
+    name: 'Voice Recording multiple E2E',
     testHandler: handler,
     executionTime: 60_000,
   })

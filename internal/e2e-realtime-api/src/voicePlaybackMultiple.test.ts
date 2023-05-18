@@ -170,7 +170,7 @@ const handler = () => {
 
 async function main() {
   const runner = createTestRunner({
-    name: 'Voice Playback E2E',
+    name: 'Voice Playback multiple E2E',
     testHandler: handler,
     executionTime: 60_000,
   })
