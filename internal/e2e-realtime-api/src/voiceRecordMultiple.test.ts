@@ -1,6 +1,6 @@
 import tap from 'tap'
 import { Voice } from '@signalwire/realtime-api'
-import { createTestRunner, sleep } from './utils'
+import { createTestRunner } from './utils'
 
 const handler = () => {
   return new Promise<number>(async (resolve, reject) => {
