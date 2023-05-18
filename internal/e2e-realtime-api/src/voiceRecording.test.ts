@@ -10,7 +10,7 @@ const handler = () => {
       token: process.env.RELAY_TOKEN as string,
       contexts: [process.env.VOICE_CONTEXT as string],
       debug: {
-        // logWsTraffic: true,
+        logWsTraffic: true,
       },
     })
 
@@ -98,11 +98,6 @@ const handler = () => {
         waitForRecordStartResolve()
       })
 
-      call.on('recording.ended', (recording) => {
-        tap.equal(recording.state, 'finished', 'Outbound - Recording has ended')
-        waitForRecordEndResolve()
-      })
-
       // Start an outbound recording
       const recording = await call.recordAudio({ direction: 'both' })
       tap.equal(
@@ -127,6 +122,11 @@ const handler = () => {
           })
         )
       await call.play(playlist)
+
+      call.on('recording.ended', (recording) => {
+        tap.equal(recording.state, 'finished', 'Outbound - Recording has ended')
+        waitForRecordEndResolve()
+      })
 
       // Start ending the recording
       await recording.ended()

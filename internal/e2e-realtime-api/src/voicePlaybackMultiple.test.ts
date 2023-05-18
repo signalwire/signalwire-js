@@ -11,6 +11,15 @@ const handler = () => {
       contexts: [process.env.VOICE_CONTEXT as string],
     })
 
+    let waitForOutboundPlaybackStartResolve
+    const waitForOutboundPlaybackStart = new Promise((resolve) => {
+      waitForOutboundPlaybackStartResolve = resolve
+    })
+    let waitForOutboundPlaybackEndResolve
+    const waitForOutboundPlaybackEnd = new Promise((resolve) => {
+      waitForOutboundPlaybackEndResolve = resolve
+    })
+
     client.on('call.received', async (call) => {
       console.log(
         'Inbound - Got call',
@@ -105,45 +114,35 @@ const handler = () => {
       })
       tap.ok(call.id, 'Outbound - Call resolved')
 
+      call.on('playback.started', (playback) => {
+        tap.equal(playback.state, 'playing', 'Outbound - Playback has started')
+        waitForOutboundPlaybackStartResolve()
+      })
+
+      call.on('playback.ended', (playback) => {
+        tap.equal(
+          playback.state,
+          'finished',
+          'Outbound - Playback has finished'
+        )
+        waitForOutboundPlaybackEndResolve()
+      })
+
       // Play an audio
-      const handle = call.playAudio({
+      const playAudio = await call.playAudio({
         url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
       })
-
-      const waitForPlaybackStarted = new Promise((resolve) => {
-        call.on('playback.started', (playback) => {
-          tap.equal(
-            playback.state,
-            'playing',
-            'Outbound - Playback has started'
-          )
-          resolve(true)
-        })
-      })
-      // Wait for the outbound audio to start
-      await waitForPlaybackStarted
-
-      // Resolve late so that we attach `playback.started` and wait for it
-      const resolvedHandle = await handle
-
       tap.equal(
         call.id,
-        resolvedHandle.callId,
+        playAudio.callId,
         'Outbound - Playback returns the same instance'
       )
 
-      const waitForPlaybackEnded = new Promise((resolve) => {
-        call.on('playback.ended', (playback) => {
-          tap.equal(
-            playback.state,
-            'finished',
-            'Outbound - Playback has finished'
-          )
-          resolve(true)
-        })
-      })
+      // Wait for the outbound audio to start
+      await waitForOutboundPlaybackStart
+
       // Wait for the outbound audio to end (callee hung up the call or audio ended)
-      await waitForPlaybackEnded
+      await waitForOutboundPlaybackEnd
 
       const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
       const results = await Promise.all(

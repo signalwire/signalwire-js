@@ -73,6 +73,8 @@ export const createNewTabRoomSession = async (
             debug: { logWsTraffic: true },
           })
 
+          console.log('Room created', roomSession.id)
+
           let waitForRecordStartResolve: (value: void) => void
           const waitForRecordStart = new Promise((resolve) => {
             waitForRecordStartResolve = resolve
@@ -83,10 +85,12 @@ export const createNewTabRoomSession = async (
           })
 
           roomSession.on('recording.started', () => {
+            console.log('Recording has started')
             waitForRecordStartResolve()
           })
 
           roomSession.on('playback.started', () => {
+            console.log('Playback has started')
             waitForPlaybackStartResolve()
           })
 
