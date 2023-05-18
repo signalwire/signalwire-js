@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { uuid } from '@signalwire/core'
 import { Video } from '@signalwire/realtime-api'
-import { sleep } from '../utils'
 import { createNewTabRoomSession } from './videoUtils'
 
 test.describe('Video', () => {
@@ -49,10 +48,8 @@ test.describe('Video', () => {
 
     await Promise.all(roomSessionPromises)
 
-    // Leave time to connect all the room sessions
-    await sleep(5000)
-
     const roomSessionsRunning = await findRoomSessionsByPrefix()
+    expect(roomSessionsRunning).toHaveLength(roomCount)
 
     expect(roomSessionsRunning.filter((r) => r.recording)).toHaveLength(
       roomCount
