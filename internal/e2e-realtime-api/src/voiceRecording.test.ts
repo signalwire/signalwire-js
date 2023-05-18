@@ -10,13 +10,21 @@ const handler = () => {
       token: process.env.RELAY_TOKEN as string,
       contexts: [process.env.VOICE_CONTEXT as string],
       debug: {
-        logWsTraffic: true,
+        // logWsTraffic: true,
       },
     })
 
     let waitForTheAnswerResolve: (value: void) => void
     const waitForTheAnswer = new Promise((resolve) => {
       waitForTheAnswerResolve = resolve
+    })
+    let waitForRecordStartResolve: (value: void) => void
+    const waitForRecordStart = new Promise((resolve) => {
+      waitForRecordStartResolve = resolve
+    })
+    let waitForRecordEndResolve: (value: void) => void
+    const waitForRecordEnd = new Promise((resolve) => {
+      waitForRecordEndResolve = resolve
     })
 
     client.on('call.received', async (call) => {
@@ -58,6 +66,9 @@ const handler = () => {
           tap.equal(error.state, 'error', 'Inbound - Recording has failed')
         }
 
+        // Wait for the outbound recording to end
+        await waitForRecordEnd
+
         // Callee hangs up a call
         await call.hangup()
       } catch (error) {
@@ -78,29 +89,30 @@ const handler = () => {
       // Wait until callee answers the call
       await waitForTheAnswer
 
-      // Start an outbound recording
-      const recording = call.recordAudio({ direction: 'both' })
-
-      const waitForRecordingStarted = new Promise((resolve) => {
-        call.on('recording.started', (recording) => {
-          tap.equal(
-            recording.state,
-            'recording',
-            'Outbound - Recording has started'
-          )
-          resolve(true)
-        })
+      call.on('recording.started', (recording) => {
+        tap.equal(
+          recording.state,
+          'recording',
+          'Outbound - Recording has started'
+        )
+        waitForRecordStartResolve()
       })
-      // Wait for the outbound recording to start
-      await waitForRecordingStarted
 
-      // Resolve late so that we attach `recording.started` and wait for it
-      const resolvedRecording = await recording
+      call.on('recording.ended', (recording) => {
+        tap.equal(recording.state, 'finished', 'Outbound - Recording has ended')
+        waitForRecordEndResolve()
+      })
+
+      // Start an outbound recording
+      const recording = await call.recordAudio({ direction: 'both' })
       tap.equal(
         call.id,
-        resolvedRecording.callId,
+        recording.callId,
         'Outbound - Recording returns the same instance'
       )
+
+      // Wait for the outbound recording to start
+      await waitForRecordStart
 
       // Play a valid audio
       const playlist = new Voice.Playlist({ volume: 2 })
@@ -114,25 +126,13 @@ const handler = () => {
             text: 'Thank you, you are now disconnected from the peer',
           })
         )
-      const playback = await call.play(playlist)
+      await call.play(playlist)
 
       // Start ending the recording
-      const playbackEnd = playback.ended()
-      const waitForRecordingEnded = new Promise((resolve) => {
-        call.on('recording.ended', (recording) => {
-          tap.equal(
-            recording.state,
-            'finished',
-            'Outbound - Recording has ended'
-          )
-          resolve(true)
-        })
-      })
-      // Wait for the outbound recording to end
-      await waitForRecordingEnded
+      await recording.ended()
 
-      // Resolve late so that we attach `recording.ended` and wait for it
-      await playbackEnd
+      // Wait for the outbound recording to end
+      await waitForRecordEnd
 
       // Resolve if the call has ended or ending
       const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const

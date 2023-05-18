@@ -10,7 +10,7 @@ const handler = () => {
       token: process.env.RELAY_TOKEN as string,
       contexts: [process.env.VOICE_CONTEXT as string],
       debug: {
-        // logWsTraffic: true,
+        logWsTraffic: true,
       },
     })
 
