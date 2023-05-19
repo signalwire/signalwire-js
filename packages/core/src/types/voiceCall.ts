@@ -275,12 +275,7 @@ export type CollectSpeechConfig = {
   /** Array of expected phrases to detect. */
   hints?: string[]
   /** Model use for enhance speech recognition */
-  model?:
-    | 'default'
-    | 'enhanced'
-    | 'enhanced.phone_call'
-    | 'enhanced.video'
-    | null
+  model?: 'default' | 'enhanced' | 'enhanced.phone_call' | 'enhanced.video'
 }
 
 export type SpeechOrDigits =
