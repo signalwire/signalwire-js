@@ -71,11 +71,15 @@ export class RoomSessionConnection
 {
   private _screenShareList = new Set<RoomSessionScreenShare>()
   private _deviceList = new Set<RoomSessionDevice>()
-  private _mirrored: LocalOverlay['_mirrored']
+  private _mirrored: LocalOverlay['mirrored']
 
-  constructor(options: BaseConnection<RoomSessionObjectEvents>) {
+  constructor(
+    options: BaseConnection<RoomSessionObjectEvents> & {
+      mirrorLocalVideoOverlay: boolean
+    }
+  ) {
     super(options)
-    this._mirrored = false
+    this._mirrored = options.mirrorLocalVideoOverlay
   }
 
   get screenShareList() {
@@ -512,18 +516,16 @@ export class RoomSessionConnection
   }
 
   /**
-   * Allow to mirror the local video camera stream.
+   * Local video stream overlay
    */
-  private setMirrored(value: boolean) {
-    this._mirrored = value
-    // @ts-expect-error
-    this.emit('_internal.mirror.video', this._mirrored)
-  }
-
   get localOverlay() {
     return {
-      _mirrored: this._mirrored,
-      setMirrored: this.setMirrored.bind(this),
+      mirrored: this._mirrored,
+      setMirrored: (value: boolean) => {
+        this._mirrored = value
+        // @ts-expect-error
+        this.emit('_internal.mirror.video', this._mirrored)
+      },
     }
   }
 }

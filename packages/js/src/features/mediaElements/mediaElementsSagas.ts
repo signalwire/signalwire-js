@@ -23,11 +23,9 @@ import type { RoomSessionConnection } from '../../BaseRoomSession'
 export const makeVideoElementSaga = ({
   rootElement,
   applyLocalVideoOverlay,
-  mirrorLocalVideoOverlay = false,
 }: {
   rootElement: HTMLElement
   applyLocalVideoOverlay?: boolean
-  mirrorLocalVideoOverlay?: boolean
 }) => {
   return function* videoElementSaga({
     instance: room,
@@ -94,7 +92,7 @@ export const makeVideoElementSaga = ({
             return getLogger().warn('Missing localOverlay to set the mirror')
           }
           const videoEl = this.domElement.firstChild as HTMLVideoElement
-          if (mirror ?? mirrorLocalVideoOverlay) {
+          if (mirror ?? room.localOverlay.mirrored) {
             videoEl.style.transform = 'scale(-1, 1)'
             videoEl.style.webkitTransform = 'scale(-1, 1)'
           } else {

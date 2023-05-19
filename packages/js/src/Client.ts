@@ -81,13 +81,13 @@ export class ClientAPI<
             makeVideoElementSaga({
               rootElement,
               applyLocalVideoOverlay,
-              mirrorLocalVideoOverlay,
             })
           )
         }
 
         const room = createBaseRoomSessionObject<RoomSessionType>({
           ...options,
+          mirrorLocalVideoOverlay,
           store: this.store,
           // @ts-expect-error
           emitter: this.emitter,

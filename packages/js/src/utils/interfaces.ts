@@ -183,7 +183,7 @@ export interface BaseRoomInterface {
 }
 
 export interface LocalOverlay {
-  _mirrored: boolean
+  mirrored: boolean
   setMirrored(mirror: boolean): void
 }
 

@@ -83,9 +83,9 @@ describe('Room Object', () => {
   })
 
   it('should mirror the local video stream', () => {
-    expect(room.localOverlay._mirrored).toBeFalsy()
+    expect(room.localOverlay.mirrored).toBeFalsy()
     expect(() => room.localOverlay.setMirrored(true)).not.toThrow()
-    expect(room.localOverlay._mirrored).toBeTruthy()
+    expect(room.localOverlay.mirrored).toBeTruthy()
   })
 
   describe('getRecordings', () => {
