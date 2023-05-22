@@ -7,7 +7,6 @@ module.exports = {
     byName: {
       '@signalwire/realtime-api': 'nodejs/realtime-api',
       '@signalwire/js': 'js/browser',
-      '@signalwire/compatibility-api': 'nodejs/compatibility-api',
     },
   },
   utilityPackages: ['@signalwire/core', '@signalwire/webrtc'],
