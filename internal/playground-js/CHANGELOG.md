@@ -1,5 +1,11 @@
 # @sw-internal/playground-js
 
+## 0.0.11
+
+### Patch Changes
+
+- [#789](https://github.com/signalwire/signalwire-js/pull/789) [`5be0c97a`](https://github.com/signalwire/signalwire-js/commit/5be0c97ab88206d6219c3536dc63e592652fc180) - [internal] Expose registerDevice and unregisterDevice for PushNotifications.
+
 ## 0.0.10
 
 ### Patch Changes

@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.20.0] - 2023-05-22
+
+### Added
+
+- [#790](https://github.com/signalwire/signalwire-js/pull/790) [`2e58a76b`](https://github.com/signalwire/signalwire-js/commit/2e58a76b6b505ca1d7ed5f6711dd33039a7ed84f) - Allow user to mirror the local video stream.
+
+### Dependencies
+
+- Updated dependencies [[`aa31e1a0`](https://github.com/signalwire/signalwire-js/commit/aa31e1a0307e7c1f3927d985ecd48ec06b9a1312), [`4e8e5b0d`](https://github.com/signalwire/signalwire-js/commit/4e8e5b0d859733b9c7455150cd837e42e851ef29), [`9fb4e5f4`](https://github.com/signalwire/signalwire-js/commit/9fb4e5f43640b3e5a3978634e6465562a20ac4a5)]:
+  - @signalwire/core@3.15.0
+  - @signalwire/webrtc@3.6.3
+
 ## [3.19.2] - 2023-03-24
 
 ### Changed

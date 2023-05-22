@@ -1,5 +1,11 @@
 # @sw-internal/stack-tests
 
+## 1.0.2
+
+### Patch Changes
+
+- [#794](https://github.com/signalwire/signalwire-js/pull/794) [`613c00ee`](https://github.com/signalwire/signalwire-js/commit/613c00eec157ad3bb31c980593b8ffcaa4498e42) - [internal] Remove `compatibility-api` folder.
+
 ## 1.0.1
 
 ### Patch Changes
