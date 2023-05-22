@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.15.0] - 2023-05-22
+
+### Added
+
+- [#778](https://github.com/signalwire/signalwire-js/pull/778) [`aa31e1a0`](https://github.com/signalwire/signalwire-js/commit/aa31e1a0307e7c1f3927d985ecd48ec06b9a1312) - Add support for maxPricePerMinute in `dial` and `connect` for the Voice Call object.
+
+- [#793](https://github.com/signalwire/signalwire-js/pull/793) [`4e8e5b0d`](https://github.com/signalwire/signalwire-js/commit/4e8e5b0d859733b9c7455150cd837e42e851ef29) - Update speech interface for Collect and Prompt to set `model`.
+
+### Changed
+
+- [#786](https://github.com/signalwire/signalwire-js/pull/786) [`9fb4e5f4`](https://github.com/signalwire/signalwire-js/commit/9fb4e5f43640b3e5a3978634e6465562a20ac4a5) - Internal change to exclude internal events into the initial subscribe request.
+
 ## [3.14.1] - 2023-03-24
 
 ### Fixed

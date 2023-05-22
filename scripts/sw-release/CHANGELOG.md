@@ -1,5 +1,11 @@
 # @sw-internal/release
 
+## 0.0.5
+
+### Patch Changes
+
+- [#788](https://github.com/signalwire/signalwire-js/pull/788) [`6d091939`](https://github.com/signalwire/signalwire-js/commit/6d091939bee2aa034a5564c7a368f87594919618) - [internal] Enable dev release from CI
+
 ## 0.0.4
 
 ### Patch Changes

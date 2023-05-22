@@ -1,10 +1,16 @@
 # @sw-internal/e2e-realtime-api
 
+## 0.1.8
+
+### Patch Changes
+
+- [#788](https://github.com/signalwire/signalwire-js/pull/788) [`6d091939`](https://github.com/signalwire/signalwire-js/commit/6d091939bee2aa034a5564c7a368f87594919618) - [internal] Enable dev release from CI
+
 ## 0.1.7
 
 ### Patch Changes
 
-- [#774](https://github.com/signalwire/signalwire-js/pull/774) [`09af75aa`](https://github.com/signalwire/signalwire-js/commit/09af75aaa7b4f02b1d372bb6a225dadce9ab50ef) Thanks [@edolix](https://github.com/edolix)! - [internal] Improve realtime-api tests.
+- [#774](https://github.com/signalwire/signalwire-js/pull/774) [`09af75aa`](https://github.com/signalwire/signalwire-js/commit/09af75aaa7b4f02b1d372bb6a225dadce9ab50ef) - [internal] Improve realtime-api tests.
 
 ## 0.1.6
 
