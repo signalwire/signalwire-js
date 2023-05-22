@@ -87,6 +87,19 @@ export const makeVideoElementSaga = ({
             localVideo.srcObject = stream
           }
         },
+        setLocalOverlayMirror(mirror: boolean) {
+          if (!this.domElement || !this.domElement.firstChild) {
+            return getLogger().warn('Missing localOverlay to set the mirror')
+          }
+          const videoEl = this.domElement.firstChild as HTMLVideoElement
+          if (mirror ?? room.localOverlay.mirrored) {
+            videoEl.style.transform = 'scale(-1, 1)'
+            videoEl.style.webkitTransform = 'scale(-1, 1)'
+          } else {
+            videoEl.style.transform = 'scale(1, 1)'
+            videoEl.style.webkitTransform = 'scale(1, 1)'
+          }
+        },
       }
 
       const layoutChangedHandler = makeLayoutChangedHandler({
@@ -109,6 +122,11 @@ export const makeVideoElementSaga = ({
           localOverlay.hide()
         }
       }
+
+      // @ts-expect-error
+      room.on('_internal.mirror.video', (value: boolean) => {
+        localOverlay.setLocalOverlayMirror(value)
+      })
 
       room.on('layout.changed', (params) => {
         getLogger().debug('Received layout.changed - videoTrack', hasVideoTrack)

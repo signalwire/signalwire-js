@@ -182,6 +182,11 @@ export interface BaseRoomInterface {
   leave(): Promise<unknown>
 }
 
+export interface LocalOverlay {
+  mirrored: boolean
+  setMirrored(mirror: boolean): void
+}
+
 interface RoomMemberSelfMethodsInterface {
   /**
    * Puts the microphone on mute. The other participants will not hear audio
@@ -322,6 +327,7 @@ export interface RoomMethods
 export interface RoomSessionConnectionContract {
   screenShareList: RoomSessionScreenShare[]
   deviceList: RoomSessionDevice[]
+  localOverlay: LocalOverlay
   interactivityMode: VideoAuthorization['join_as']
   permissions: VideoAuthorization['scopes']
   /**
