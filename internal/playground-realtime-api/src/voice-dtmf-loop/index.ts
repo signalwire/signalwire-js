@@ -47,6 +47,12 @@ async function run() {
         await playback.ended()
         await call.hangup()
       }
+    } else {
+      const playback = await call.playTTS({
+        text: 'Good choice! Goodbye and thanks',
+      })
+      await playback.ended()
+      await call.hangup()
     }
   }
 
