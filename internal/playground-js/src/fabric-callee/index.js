@@ -521,6 +521,7 @@ window.seekForwardPlayback = () => {
  * On document ready auto-fill the input values from the localStorage.
  */
 window.ready(async function () {
+
   document.getElementById('host').value =
     localStorage.getItem('fabric.callee.host') || ''
   document.getElementById('token').value =
@@ -535,13 +536,13 @@ window.ready(async function () {
   //Initialize Firebase App
   const app = initializeApp(
   {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: "",
-  measurementId: ""
+  apiKey: import.meta.env.VITE_FB_API_KEY,
+  authDomain: import.meta.env.VITE_FB_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FB_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FB_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FB_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FB_APP_ID,
+  measurementId: import.meta.env.VITE_FB_MEASUREMENT_ID
   }
   );
   const messaging = getMessaging(app);
@@ -551,7 +552,7 @@ window.ready(async function () {
   });
   const permission = await Notification.requestPermission();
   if (permission === 'granted') {
-    const token = await getToken(messaging, {vapiKey: ''});
+    const token = await getToken(messaging, {vapiKey: import.meta.env.VITE_FB_VAPI_KEY});
     document.getElementById('pn-token').value = token;
   }
 })
