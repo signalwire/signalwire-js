@@ -1,6 +1,6 @@
 import tap from 'tap'
 import { Voice } from '@signalwire/realtime-api'
-import { createTestRunner, sleep } from './utils'
+import { createTestRunner } from './utils'
 
 const handler = () => {
   return new Promise<number>(async (resolve, reject) => {
@@ -9,6 +9,11 @@ const handler = () => {
       project: process.env.RELAY_PROJECT as string,
       token: process.env.RELAY_TOKEN as string,
       contexts: [process.env.VOICE_CONTEXT as string],
+    })
+
+    let waitForTheAnswerResolve: (value: void) => void
+    const waitForTheAnswer = new Promise((resolve) => {
+      waitForTheAnswerResolve = resolve
     })
 
     client.on('call.received', async (call) => {
@@ -29,7 +34,8 @@ const handler = () => {
           'Inbound - Call answered gets the same instance'
         )
 
-        await sleep(10000)
+        // Resolve the answer promise to inform the caller
+        waitForTheAnswerResolve()
 
         // Callee hangs up a call
         await call.hangup()
@@ -39,31 +45,39 @@ const handler = () => {
       }
     })
 
-    const call = await client.dialPhone({
-      to: process.env.VOICE_DIAL_TO_NUMBER as string,
-      from: process.env.VOICE_DIAL_FROM_NUMBER as string,
-      timeout: 30,
-    })
-    tap.ok(call.id, 'Outbound - Call resolved')
-
     try {
-      // Start an audio tap
-      const tapAudio = await call.tapAudio({
-        direction: 'both',
-        device: {
-          type: 'ws',
-          uri: 'wss://example.domain.com/endpoint',
-        },
+      const call = await client.dialPhone({
+        to: process.env.VOICE_DIAL_TO_NUMBER as string,
+        from: process.env.VOICE_DIAL_FROM_NUMBER as string,
+        timeout: 30,
       })
+      tap.ok(call.id, 'Outbound - Call resolved')
 
-      // Tap should fail due to wrong WSS
-      reject()
-    } catch (error) {
-      tap.ok(error, 'Outbound - Tap error')
+      // Wait until callee answers the call
+      await waitForTheAnswer
+
+      try {
+        // Start an audio tap
+        const tapAudio = await call.tapAudio({
+          direction: 'both',
+          device: {
+            type: 'ws',
+            uri: 'wss://example.domain.com/endpoint',
+          },
+        })
+
+        // Tap should fail due to wrong WSS
+        reject()
+      } catch (error) {
+        tap.ok(error, 'Outbound - Tap error')
+        resolve(0)
+      }
+
       resolve(0)
+    } catch (error) {
+      console.error('Outbound - voiceTap error', error)
+      reject(4)
     }
-
-    resolve(0)
   })
 }
 

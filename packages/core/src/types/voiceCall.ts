@@ -1053,18 +1053,27 @@ export type CallingCallConnectState =
   | 'connected'
   | 'failed'
   | 'disconnected'
-export interface CallingCallConnectEventParams {
+export type CallingCallConnectEventParams =
+  | CallingCallConnectSuccessEventParams
+  | CallingCallConnectFailedEventParams
+export interface CallingCallConnectSuccessEventParams {
   node_id: string
   call_id: string
   tag: string
-  connect_state: CallingCallConnectState
-  failed_reason?: string
+  connect_state: 'connecting' | 'connected' | 'disconnected'
   peer: {
     node_id: string
     call_id: string
     tag: string
     device: CallingCallDevice
   }
+}
+export interface CallingCallConnectFailedEventParams {
+  node_id: string
+  call_id: string
+  tag: string
+  connect_state: 'failed'
+  failed_reason: string
 }
 
 export interface CallingCallConnectEvent extends SwEvent {

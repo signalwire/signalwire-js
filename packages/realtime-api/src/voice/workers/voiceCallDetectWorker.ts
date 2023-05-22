@@ -44,17 +44,12 @@ export const voiceCallDetectWorker = function* (
 
   switch (event) {
     case 'finished':
-      callInstance.baseEmitter.emit('detect.ended', detectInstance)
-
-      // To resolve the ended() promise in CallDetect
-      detectInstance.baseEmitter.emit('detect.ended', detectInstance)
-      break
     case 'error': {
       callInstance.baseEmitter.emit('detect.ended', detectInstance)
 
       // To resolve the ended() promise in CallDetect
       detectInstance.baseEmitter.emit('detect.ended', detectInstance)
-      break
+      return
     }
     default:
       callInstance.baseEmitter.emit('detect.updated', detectInstance)
@@ -72,6 +67,9 @@ export const voiceCallDetectWorker = function* (
       if (detectInstance.waitForBeep) {
         detectInstance.waitingForReady = true
       }
+      break
+    case 'digit':
+    case 'fax':
       break
     default:
       getLogger().warn(`Unknown detect type: "${type}"`)

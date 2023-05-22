@@ -14,6 +14,19 @@ const handler = () => {
       },
     })
 
+    let waitForCallAnswerResolve: (value: void) => void
+    const waitForCallAnswer = new Promise((resolve) => {
+      waitForCallAnswerResolve = resolve
+    })
+    let waitForPromptStartResolve
+    const waitForPromptStart = new Promise((resolve) => {
+      waitForPromptStartResolve = resolve
+    })
+    let waitForSendDigitsResolve: (value: void) => void
+    const waitForSendDigits = new Promise((resolve) => {
+      waitForSendDigitsResolve = resolve
+    })
+
     client.on('call.received', async (call) => {
       console.log(
         'Inbound - Got call',
@@ -32,13 +45,22 @@ const handler = () => {
           'Inbound - Call answered gets the same instance'
         )
 
+        // Resolve the answer promise to inform the caller
+        waitForCallAnswerResolve()
+
+        // Wait for the prompt to begin from the caller side
+        await waitForPromptStart
+
         // Send digits 1234 to the caller
-        const sendDigitResult = await call.sendDigits('1w2w3w4w#')
+        const sendDigits = await call.sendDigits('1w2w3w4w#')
         tap.equal(
           call.id,
-          sendDigitResult.id,
+          sendDigits.id,
           'Inbound - sendDigit returns the same instance'
         )
+
+        // Resolve the send digits promise to inform the caller
+        waitForSendDigitsResolve()
 
         // Callee hangs up a call
         await call.hangup()
@@ -48,50 +70,67 @@ const handler = () => {
       }
     })
 
-    const call = await client.dialPhone({
-      to: process.env.VOICE_DIAL_TO_NUMBER as string,
-      from: process.env.VOICE_DIAL_FROM_NUMBER as string,
-      timeout: 30,
-    })
-    tap.ok(call.id, 'Outbound - Call resolved')
+    try {
+      const call = await client.dialPhone({
+        to: process.env.VOICE_DIAL_TO_NUMBER as string,
+        from: process.env.VOICE_DIAL_FROM_NUMBER as string,
+        timeout: 30,
+      })
+      tap.ok(call.id, 'Outbound - Call resolved')
 
-    // Start a prompt
-    const prompt = await call.prompt({
-      playlist: new Voice.Playlist({ volume: 1.0 }).add(
-        Voice.Playlist.TTS({
-          text: 'Welcome to SignalWire! Please enter your 4 digits PIN',
-        })
-      ),
-      digits: {
-        max: 4,
-        digitTimeout: 10,
-        terminators: '#',
-      },
-    })
+      // Wait until callee answers the call
+      await waitForCallAnswer
 
-    tap.equal(
-      call.id,
-      prompt.callId,
-      'Outbound - Prompt returns the same instance'
-    )
+      // Caller starts a prompt
+      const prompt = await call.prompt({
+        playlist: new Voice.Playlist({ volume: 1.0 }).add(
+          Voice.Playlist.TTS({
+            text: 'Welcome to SignalWire! Please enter your 4 digits PIN',
+          })
+        ),
+        digits: {
+          max: 4,
+          digitTimeout: 10,
+          terminators: '#',
+        },
+      })
+      tap.equal(
+        call.id,
+        prompt.callId,
+        'Outbound - Prompt returns the same instance'
+      )
 
-    const { digits } = await prompt.ended()
+      // Resolve the prompt promise to inform the callee
+      waitForPromptStartResolve()
 
-    tap.equal(digits, '1234', 'Outbound - Received the same digit')
+      // Wait for the callee to send digits
+      await waitForSendDigits
 
-    const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
-    const results = await Promise.all(
-      waitForParams.map((params) => call.waitFor(params as any))
-    )
-    waitForParams.forEach((value, i) => {
-      if (typeof value === 'string') {
-        tap.ok(results[i], `"${value}": completed successfully.`)
-      } else {
-        tap.ok(results[i], `${JSON.stringify(value)}: completed successfully.`)
-      }
-    })
+      // Compare what caller has received
+      const recDigits = await prompt.ended()
+      tap.equal(recDigits.digits, '1234', 'Outbound - Received the same digit')
 
-    resolve(0)
+      // Resolve if the call has ended or ending
+      const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
+      const results = await Promise.all(
+        waitForParams.map((params) => call.waitFor(params as any))
+      )
+      waitForParams.forEach((value, i) => {
+        if (typeof value === 'string') {
+          tap.ok(results[i], `"${value}": completed successfully.`)
+        } else {
+          tap.ok(
+            results[i],
+            `${JSON.stringify(value)}: completed successfully.`
+          )
+        }
+      })
+
+      resolve(0)
+    } catch (error) {
+      console.error('Outbound - voicePrompt error', error)
+      reject(4)
+    }
   })
 }
 

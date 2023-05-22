@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { uuid } from '@signalwire/core'
 import { Video } from '@signalwire/realtime-api'
-import { sleep } from '../utils'
 import { createNewTabRoomSession } from './videoUtils'
 
 test.describe('Video', () => {
@@ -49,23 +48,41 @@ test.describe('Video', () => {
 
     await Promise.all(roomSessionPromises)
 
-    // Leave time to connect all the room sessions
-    await sleep(5000)
-
     const roomSessionsRunning = await findRoomSessionsByPrefix()
+    expect(roomSessionsRunning).toHaveLength(roomCount)
 
     expect(roomSessionsRunning.filter((r) => r.recording)).toHaveLength(
       roomCount
     )
     expect(roomSessionsRunning.filter((r) => r.play)).toHaveLength(roomCount)
 
+    let waitForRecordEndResolve: (value: void) => void
+    const waitForRecordEnd = new Promise((resolve) => {
+      waitForRecordEndResolve = resolve
+    })
+    let waitForPlaybackEndResolve: (value: void) => void
+    const waitForPlaybackEnd = new Promise((resolve) => {
+      waitForPlaybackEndResolve = resolve
+    })
+
     for (let index = 0; index < roomSessionsRunning.length; index++) {
       const rs = roomSessionsRunning[index]
       const { recordings } = await rs.getRecordings()
-      await Promise.all(recordings.map((r) => r.stop()))
 
+      rs.on('recording.ended', () => {
+        console.log('Recording has ended')
+        waitForRecordEndResolve()
+      })
+      await Promise.all(recordings.map((r) => r.stop()))
+      await waitForRecordEnd
+
+      rs.on('playback.ended', () => {
+        console.log('Playback has ended')
+        waitForPlaybackEndResolve()
+      })
       const { playbacks } = await rs.getPlaybacks()
       await Promise.all(playbacks.map((p) => p.stop()))
+      await waitForPlaybackEnd
     }
 
     const roomSessionsAtEnd = await findRoomSessionsByPrefix()

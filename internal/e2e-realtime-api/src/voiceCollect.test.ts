@@ -1,6 +1,6 @@
 import tap from 'tap'
 import { Voice } from '@signalwire/realtime-api'
-import { createTestRunner, sleep } from './utils'
+import { createTestRunner } from './utils'
 
 const handler = () => {
   return new Promise<number>(async (resolve, reject) => {
@@ -15,31 +15,14 @@ const handler = () => {
       },
     })
 
-    let outboundCall: Voice.Call
-
-    const startSendingDigits = async () => {
-      const sendDigitResult = await outboundCall.sendDigits('1w2w3w#')
-      tap.equal(
-        outboundCall.id,
-        sendDigitResult.id,
-        'sendDigit returns the same instance'
-      )
-
-      const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
-      const results = await Promise.all(
-        waitForParams.map((params) => outboundCall.waitFor(params as any))
-      )
-      waitForParams.forEach((value, i) => {
-        if (typeof value === 'string') {
-          tap.ok(results[i], `"${value}": completed successfully.`)
-        } else {
-          tap.ok(
-            results[i],
-            `${JSON.stringify(value)}: completed successfully.`
-          )
-        }
-      })
-    }
+    let waitForCollectStartResolve
+    const waitForCollectStart = new Promise((resolve) => {
+      waitForCollectStartResolve = resolve
+    })
+    let waitForCollectEndResolve
+    const waitForCollectEnd = new Promise((resolve) => {
+      waitForCollectEndResolve = resolve
+    })
 
     client.on('call.received', async (call) => {
       console.log('Got call', call.id, call.from, call.to, call.direction)
@@ -52,8 +35,6 @@ const handler = () => {
           resultAnswer.id,
           'Call answered gets the same instance'
         )
-
-        await sleep(2000)
 
         call.on('collect.started', (collect) => {
           console.log('>>> collect.started', collect)
@@ -82,14 +63,11 @@ const handler = () => {
           startInputTimers: false,
         })
 
-        startSendingDigits()
-          .then(() => {
-            resolve(0)
-          })
-          .catch((error) => {
-            console.error('StartSendingDigits Error', error)
-            reject(4)
-          })
+        // Resolve the answer promise to inform the caller
+        waitForCollectStartResolve()
+
+        // Wait until the caller ends entring the digits
+        await waitForCollectEnd
 
         await callCollect.ended() // block the script until the collect ended
 
@@ -104,13 +82,48 @@ const handler = () => {
       }
     })
 
-    outboundCall = await client.dialPhone({
-      // make an outbound call to an `office` context to trigger the `call.received` event above
-      to: process.env.VOICE_DIAL_TO_NUMBER as string,
-      from: process.env.VOICE_DIAL_FROM_NUMBER as string,
-      timeout: 30,
-    })
-    tap.ok(outboundCall.id, 'Call resolved')
+    try {
+      const call = await client.dialPhone({
+        // make an outbound call to an `office` context to trigger the `call.received` event above
+        to: process.env.VOICE_DIAL_TO_NUMBER as string,
+        from: process.env.VOICE_DIAL_FROM_NUMBER as string,
+        timeout: 30,
+      })
+      tap.ok(call.id, 'Call resolved')
+
+      // Wait until the callee answers the call and start collecting digits
+      await waitForCollectStart
+
+      const sendDigitResult = await call.sendDigits('1w2w3w#')
+      tap.equal(
+        call.id,
+        sendDigitResult.id,
+        'sendDigit returns the same instance'
+      )
+
+      // Resolve the collect end promise to inform the callee
+      waitForCollectEndResolve()
+
+      const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
+      const results = await Promise.all(
+        waitForParams.map((params) => call.waitFor(params as any))
+      )
+      waitForParams.forEach((value, i) => {
+        if (typeof value === 'string') {
+          tap.ok(results[i], `"${value}": completed successfully.`)
+        } else {
+          tap.ok(
+            results[i],
+            `${JSON.stringify(value)}: completed successfully.`
+          )
+        }
+      })
+
+      resolve(0)
+    } catch (error) {
+      console.error('Outbound - voiceDetect error', error)
+      reject(4)
+    }
   })
 }
 

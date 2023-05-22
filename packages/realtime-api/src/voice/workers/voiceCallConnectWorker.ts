@@ -46,20 +46,25 @@ export const voiceCallConnectWorker = function* (
       callInstance.baseEmitter.emit('connect.connected', peerCallInstance)
       break
     }
-    case 'disconnected':
-    case 'failed': {
+    case 'disconnected': {
       const peerCallInstance = get<Call>(payload.peer.call_id)
-      callInstance.baseEmitter.emit(`connect.${payload.connect_state}`)
+      callInstance.baseEmitter.emit('connect.disconnected')
       callInstance.peer = undefined
 
       // Add a check because peer call can be removed from the instance map throgh voiceCallStateWorker
       if (peerCallInstance) {
-        peerCallInstance.baseEmitter.emit(`connect.${payload.connect_state}`)
+        peerCallInstance.baseEmitter.emit('connect.disconnected')
         peerCallInstance.peer = undefined
       }
       break
     }
+    case 'failed': {
+      callInstance.peer = undefined
+      callInstance.baseEmitter.emit('connect.failed')
+      break
+    }
     default:
+      // @ts-expect-error
       getLogger().warn(`Unknown connect state: "${payload.connect_state}"`)
       break
   }
