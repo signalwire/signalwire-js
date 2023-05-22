@@ -2,4 +2,4 @@
 '@signalwire/realtime-api': patch
 ---
 
-Internal refactoring
+[internal] Internal Refactoring

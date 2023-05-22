@@ -2,4 +2,4 @@
 '@signalwire/realtime-api': patch
 ---
 
-[internal] Remove EmitterTransforms for Voice Call APIs.
+[internal] Remove EmitterTransforms pipeline usage for Voice Call APIs.

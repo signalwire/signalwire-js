@@ -1,5 +1,6 @@
 ---
 '@signalwire/core': patch
+'@signalwire/realtime-api': patch
 ---
 
-[internal] Base event emitter for PubSub and Chat APIs.
+[internal] Use baseEventEmitter for PubSub and Chat APIs.

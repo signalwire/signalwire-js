@@ -3,4 +3,4 @@
 '@signalwire/core': patch
 ---
 
-[internal] Use Base EventEmitter for each Call instance.
+[internal] Use baseEventEmitter for Voice APIs.
