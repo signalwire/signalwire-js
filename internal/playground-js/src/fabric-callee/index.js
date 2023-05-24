@@ -166,9 +166,9 @@ window.acceptCall = async () => {
   try {
     const jsonrpc = JSON.parse(payload.value)
     console.debug('Payload is:\n', JSON.stringify(jsonrpc, null, 2))
-    const { node_id, params: inviteRPC } = jsonrpc
+    const { node_id } = jsonrpc
 
-    window.__call = await __client._acceptVertoInvite(inviteRPC, node_id)
+    window.__call = await __client._acceptVertoInvite(jsonrpc, node_id)
 
     uiReady()
     connectStatus.innerHTML = 'Answering...'
