@@ -26,9 +26,9 @@ messaging.onBackgroundMessage((payload) => {
   };
 
   if(window.localStorage) {
-    window.localStorage.setItem('fabric.callee.payload', payload.notification.invite)
+    window.localStorage.setItem('fabric.callee.payload', payload.notification)
   }
-  console.log(payload.notification.body)
+  console.log(payload.notification)
 
   self.registration.showNotification(notificationTitle,
     notificationOptions);
