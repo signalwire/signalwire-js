@@ -4,17 +4,15 @@ importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-comp
 // Initialize the Firebase app in the service worker by passing in
 // your app's Firebase config object.
 // https://firebase.google.com/docs/web/setup#config-object
-const firebaseApp = firebase.initializeApp(
-  {
-  apiKey: import.meta.env.VITE_FB_API_KEY,
-  authDomain: import.meta.env.VITE_FB_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FB_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FB_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FB_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FB_APP_ID,
-  measurementId: import.meta.env.VITE_FB_MEASUREMENT_ID
-  }
-);
+const firebaseApp = firebase.initializeApp({
+  apiKey: '<COPY IT FROM .env CONFIG>',
+  authDomain: '<COPY IT FROM .env CONFIG>',
+  projectId: '<COPY IT FROM .env CONFIG>',
+  storageBucket: '<COPY IT FROM .env CONFIG>',
+  messagingSenderId: '<COPY IT FROM .env CONFIG>',
+  appId: '<COPY IT FROM .env CONFIG>',
+  measurementId: '<COPY IT FROM .env CONFIG>'
+});
 
 // Retrieve an instance of Firebase Messaging so that it can handle background
 // messages.

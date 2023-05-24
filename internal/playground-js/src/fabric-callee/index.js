@@ -534,6 +534,8 @@ window.ready(async function () {
     (localStorage.getItem('fabric.callee.video') || '1') === '1'
 
   //Initialize Firebase App
+  navigator.serviceWorker.register('/src/fabric-callee/firebase-messaging-sw.js');
+  
   const app = initializeApp(
   {
   apiKey: import.meta.env.VITE_FB_API_KEY,
@@ -545,6 +547,7 @@ window.ready(async function () {
   measurementId: import.meta.env.VITE_FB_MEASUREMENT_ID
   }
   );
+
   const messaging = getMessaging(app);
   onMessage(messaging, (payload) => {
     document.getElementById('payload').value = payload.notification.body
