@@ -25,7 +25,10 @@ messaging.onBackgroundMessage((payload) => {
     body: payload.notification.body
   };
 
-  localStorage.setItem('fabric.callee.payload', payload.notification.body)
+  if(window.localStorage) {
+    window.localStorage.setItem('fabric.callee.payload', payload.notification.body)
+  }
+  console.log(payload.notification.body)
 
   self.registration.showNotification(notificationTitle,
     notificationOptions);

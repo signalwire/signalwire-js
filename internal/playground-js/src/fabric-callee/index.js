@@ -534,8 +534,8 @@ window.ready(async function () {
     (localStorage.getItem('fabric.callee.video') || '1') === '1'
 
   //Initialize Firebase App
-  navigator.serviceWorker.register('/src/fabric-callee/firebase-messaging-sw.js');
-  
+  // navigator.serviceWorker.register('/src/fabric-callee/firebase-messaging-sw.js');
+
   const app = initializeApp(
   {
   apiKey: import.meta.env.VITE_FB_API_KEY,
@@ -553,10 +553,12 @@ window.ready(async function () {
     document.getElementById('payload').value = payload.notification.body
     alert(payload.notification.title);
   });
+
   const permission = await Notification.requestPermission();
   if (permission === 'granted') {
     const token = await getToken(messaging, {vapiKey: import.meta.env.VITE_FB_VAPI_KEY});
     document.getElementById('pn-token').value = token;
   }
+
 })
 
