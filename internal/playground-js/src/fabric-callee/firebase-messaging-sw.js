@@ -22,11 +22,11 @@ messaging.onBackgroundMessage((payload) => {
   // Customize notification here
   const notificationTitle = 'Background Freeswitch PN';
   const notificationOptions = {
-    body: payload.notification.body
+    body: payload.notification
   };
 
   if(window.localStorage) {
-    window.localStorage.setItem('fabric.callee.payload', payload.notification.body)
+    window.localStorage.setItem('fabric.callee.payload', payload.notification.invite)
   }
   console.log(payload.notification.body)
 

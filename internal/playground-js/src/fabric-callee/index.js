@@ -551,7 +551,7 @@ window.ready(async function () {
   const messaging = getMessaging(app);
   onMessage(messaging, (payload) => {
     console.log('Push payload', payload);
-    document.getElementById('payload').value = payload.notification.body
+    document.getElementById('payload').value = payload.notification.invite
     alert(payload.notification.title);
   });
 
