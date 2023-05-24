@@ -551,7 +551,7 @@ window.ready(async function () {
   const messaging = getMessaging(app);
   onMessage(messaging, (payload) => {
     console.log('Push payload', payload);
-    document.getElementById('payload').value = payload.notification;
+    document.getElementById('payload').value = JSON.stringify(payload.notification, null, 2);
     alert(payload.notification.title);
   });
 
