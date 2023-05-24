@@ -26,7 +26,7 @@ messaging.onBackgroundMessage((payload) => {
   };
 
   if(window.localStorage) {
-    window.localStorage.setItem('fabric.callee.payload', JSON.stringify(payload))
+    window.localStorage.setItem('fabric.callee.payload', payload.data['gcm.notification.invite'])
   }
   console.log(payload.notification)
 
