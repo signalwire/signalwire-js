@@ -26,7 +26,7 @@ messaging.onBackgroundMessage((payload) => {
   };
 
   if(window.localStorage) {
-    window.localStorage.setItem('fabric.callee.payload', JSON.stringify(payload.notification))
+    window.localStorage.setItem('fabric.callee.payload', JSON.stringify(payload))
   }
   console.log(payload.notification)
 
