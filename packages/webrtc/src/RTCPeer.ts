@@ -474,10 +474,45 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
   }
 
+  _attachTrackListener() {
+    this.localStream?.getTracks().forEach((track) => {
+      track.addEventListener('ended', (event: Event) => {
+        const mediaTrack = event.target as MediaStreamTrack
+        if (
+          mediaTrack.kind === 'audio' &&
+          this.localAudioTrack?.readyState === 'ended'
+        ) {
+          // @ts-expect-error
+          this.call.emit('microphone.disconnected', {
+            deviceId: mediaTrack.id,
+            label: mediaTrack.label,
+          })
+        }
+        if (
+          mediaTrack.kind === 'video' &&
+          this.localVideoTrack?.readyState === 'ended'
+        ) {
+          // @ts-expect-error
+          this.call.emit('camera.disconnected', {
+            deviceId: mediaTrack.id,
+            label: mediaTrack.label,
+          })
+        }
+      })
+    })
+  }
+
+  _removeTrackListener() {
+    this.localStream?.getTracks().forEach((track) => {
+      track.removeEventListener('ended', () => {})
+    })
+  }
+
   private _setupRTCPeerConnection() {
     if (!this.instance) {
       this.instance = RTCPeerConnection(this.config)
       this._attachListeners()
+      this._attachTrackListener()
     }
   }
 

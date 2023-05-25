@@ -77,6 +77,13 @@ export type MediaEvent =
   | 'media.connected'
   | 'media.reconnecting'
   | 'media.disconnected'
+  | 'camera.updated'
+  | 'camera.disconnected'
+  | 'microphone.updated'
+  | 'microphone.disconnected'
+  | 'speaker.updated'
+  | 'speaker.disconnected'
+
 type EventsHandlerMapping = Record<BaseConnectionState, (params: any) => void> &
   Record<MediaEvent, () => void>
 
@@ -477,6 +484,9 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
           return reject(error)
         }
 
+        const prevVideoTrack = this.localVideoTrack
+        const prevAudioTrack = this.localAudioTrack
+
         this.logger.debug('updateConstraints got stream', newStream)
         if (!this.localStream) {
           this.localStream = new MediaStream()
@@ -537,10 +547,33 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
           this.logger.debug('updateConstraints simply update mic/cam')
           if (newTrack.kind === 'audio') {
             this.options.micId = newTrack.getSettings().deviceId
+            // @ts-expect-error
+            this.emit('microphone.updated', {
+              previous: {
+                deviceId: prevAudioTrack?.id,
+                label: prevAudioTrack?.label,
+              },
+              current: {
+                deviceId: newTrack.id,
+                label: newTrack.label,
+              },
+            })
           } else if (newTrack.kind === 'video') {
             this.options.camId = newTrack.getSettings().deviceId
+            // @ts-expect-error
+            this.emit('camera.updated', {
+              previous: {
+                deviceId: prevVideoTrack?.id,
+                label: prevVideoTrack?.label,
+              },
+              current: {
+                deviceId: newTrack.id,
+                label: newTrack.label,
+              },
+            })
           }
         }
+        this.peer._attachTrackListener()
         this.logger.debug('updateConstraints done')
         resolve()
       } catch (error) {

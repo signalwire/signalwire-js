@@ -229,7 +229,7 @@ export const makeAudioElementSaga = ({ speakerId }: { speakerId?: string }) => {
     }
 
     try {
-      const audioEl = new Audio()
+      const audioEl = room.getAudioEl()
       let audioTask: Task | undefined
 
       const trackHandler = function (event: RTCTrackEvent) {
@@ -287,6 +287,10 @@ function* audioElementActionsWatcher({
             element,
             action.payload
           )
+
+          // @ts-expect-error
+          room.emit('_internal.speaker.updated', action.payload)
+
           room.settleCustomSagaTrigger({
             dispatchId: action.dispatchId,
             payload: response,
