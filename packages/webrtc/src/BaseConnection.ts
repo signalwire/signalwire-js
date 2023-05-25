@@ -77,12 +77,6 @@ export type MediaEvent =
   | 'media.connected'
   | 'media.reconnecting'
   | 'media.disconnected'
-  | 'camera.updated'
-  | 'camera.disconnected'
-  | 'microphone.updated'
-  | 'microphone.disconnected'
-  | 'speaker.updated'
-  | 'speaker.disconnected'
 
 type EventsHandlerMapping = Record<BaseConnectionState, (params: any) => void> &
   Record<MediaEvent, () => void>
