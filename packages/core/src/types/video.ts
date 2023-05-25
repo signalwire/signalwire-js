@@ -27,6 +27,7 @@ export * from './videoLayout'
 export * from './videoRecording'
 export * from './videoPlayback'
 export * from './videoStream'
+export * from './videoRoomDevice'
 
 export type RTCTrackEventName = 'track'
 
