@@ -36,7 +36,6 @@ export {
   checkMicrophonePermissions,
   checkSpeakerPermissions,
   requestPermissions,
-  getSinkId,
 } from './utils'
 export * from './utils/interfaces'
 export {

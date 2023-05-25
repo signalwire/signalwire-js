@@ -139,17 +139,3 @@ export const _getMediaDeviceKindByName = (name?: DevicePermissionName) => {
 
   return PERMISSIONS_MAPPING[name]
 }
-
-/**
- * Returns the sinkId if the element has it and it's not empty
- * @param el HTMLMediaElement
- * @returns string | null
- */
-export const getSinkId = (el: HTMLMediaElement) => {
-  if (!supportsMediaOutput()) return null
-
-  // @ts-expect-error
-  if (el.sinkId && el.sinkId?.length > 0) return el.sinkId
-
-  return null
-}
