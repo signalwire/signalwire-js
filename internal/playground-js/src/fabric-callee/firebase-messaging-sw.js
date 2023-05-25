@@ -20,13 +20,13 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
   // Customize notification here
-  const notificationTitle = 'Background Freeswitch PN';
+  const notificationTitle = payload.notification.body?.title;
   const notificationOptions = {
-    body: payload.notification
+    body: payload.notification.body?.incoming_caller_name
   };
 
   if(window.localStorage) {
-    window.localStorage.setItem('fabric.callee.payload', payload.data['gcm.notification.invite'])
+    window.localStorage.setItem('fabric.callee.payload', payload.notification.body)
   }
   console.log(payload.notification)
 

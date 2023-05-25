@@ -165,10 +165,9 @@ window.disconnect = async () => {
 window.acceptCall = async () => {
   try {
     const jsonrpc = JSON.parse(payload.value)
-    console.debug('Payload is:\n', JSON.stringify(jsonrpc, null, 2))
     const { node_id, params: inviteRPC } = jsonrpc
 
-    window.__call = await __client._acceptVertoInvite(JSON.parse(inviteRPC), node_id)
+    window.__call = await __client._acceptVertoInvite(inviteRPC, node_id)
 
     uiReady()
     connectStatus.innerHTML = 'Answering...'
@@ -551,7 +550,7 @@ window.ready(async function () {
   const messaging = getMessaging(app);
   onMessage(messaging, (payload) => {
     console.log('Push payload', payload);
-    document.getElementById('payload').value = payload.data['gcm.notification.invite'];
+    document.getElementById('payload').value = payload.notification.body;
     alert(payload.notification.title);
   });
 
