@@ -20,6 +20,7 @@ import {
   BaseConnectionStateEventTypes,
   createDeviceWatcher,
   getSpeakerDevices,
+  supportsMediaOutput,
 } from '@signalwire/webrtc'
 import type {
   RoomSessionObjectEvents,
@@ -505,7 +506,8 @@ export class RoomSessionConnection
     return this.triggerCustomSaga<undefined>(audioSetSpeakerAction(deviceId))
   }
 
-  private _attachTrackListener() {
+  private _attachSpeakerTrackListener() {
+    if (!supportsMediaOutput()) return
     createDeviceWatcher().then((deviceWatcher) => {
       deviceWatcher.on('removed', async (data) => {
         const disconnectedSpeaker = data.changes.find(
@@ -548,7 +550,7 @@ export class RoomSessionConnection
   getAudioEl() {
     if (this._audioEl) return this._audioEl
     this._audioEl = new Audio()
-    this._attachTrackListener()
+    this._attachSpeakerTrackListener()
     return this._audioEl
   }
 
