@@ -20,15 +20,16 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
   // Customize notification here
-  const notificationTitle = payload.notification.body?.title;
+  const body = JSON.parse(payload.notification.body || '{}');
+  const notificationTitle = body.title;
   const notificationOptions = {
-    body: payload.notification.body?.incoming_caller_name
+    body: body.incoming_caller_name
   };
 
   if(window.localStorage) {
     window.localStorage.setItem('fabric.callee.payload', payload.notification.body)
   }
-  console.log(payload.notification)
+  console.log(payload.notification.body)
 
   self.registration.showNotification(notificationTitle,
     notificationOptions);

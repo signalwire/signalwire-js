@@ -165,7 +165,7 @@ window.disconnect = async () => {
 window.acceptCall = async () => {
   try {
     const jsonrpc = JSON.parse(payload.value)
-    const { node_id, params: inviteRPC } = jsonrpc
+    const { node_id, params: inviteRPC } = jsonrpc.invite
 
     window.__call = await __client._acceptVertoInvite(inviteRPC, node_id)
 
@@ -551,7 +551,8 @@ window.ready(async function () {
   onMessage(messaging, (payload) => {
     console.log('Push payload', payload);
     document.getElementById('payload').value = payload.notification.body;
-    alert(payload.notification.title);
+    const body = JSON.parse(payload.notification.body || '{}');
+    alert(body.title);
   });
 
   const permission = await Notification.requestPermission();
