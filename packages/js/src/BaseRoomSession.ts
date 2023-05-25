@@ -20,7 +20,6 @@ import {
   BaseConnectionStateEventTypes,
   createDeviceWatcher,
   getSpeakerDevices,
-  getSinkId,
 } from '@signalwire/webrtc'
 import type {
   RoomSessionObjectEvents,
@@ -526,9 +525,8 @@ export class RoomSessionConnection
            */
           await this._audioEl.setSinkId?.('')
 
-          const newSpeakers = (await getSpeakerDevices()).find(
-            (audio: MediaDeviceInfo) =>
-              audio.deviceId === (getSinkId(this._audioEl) ?? 'default')
+          const defaultSpeakers = (await getSpeakerDevices()).find(
+            (audio: MediaDeviceInfo) => audio.deviceId === 'default'
           )
 
           // Emit the speaker.updated event since the OS will fallback to the default speaker
@@ -538,8 +536,8 @@ export class RoomSessionConnection
               label: disconnectedSpeaker.payload.label,
             },
             current: {
-              deviceId: newSpeakers?.deviceId,
-              label: newSpeakers?.label,
+              deviceId: defaultSpeakers?.deviceId,
+              label: defaultSpeakers?.label,
             },
           })
         }
