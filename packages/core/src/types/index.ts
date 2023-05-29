@@ -114,6 +114,19 @@ export interface BaseConnectionContract<
    */
   updateMicrophone(constraints: MediaTrackConstraints): Promise<void>
 
+  /**
+   * Replaces the current local media stream with the one coming from the user.
+   * @param stream Specify the media stream that the device should use.
+   * See
+   * [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream).
+   *
+   * @example Replaces the current media stream with the one coming from the user:
+   * ```typescript
+   * room.setLocalStream(new MediaStream)
+   * ```
+   */
+  setLocalStream(stream: MediaStream): void
+
   /** @internal */
   stopOutboundAudio(): void
   /** @internal */

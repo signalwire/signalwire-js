@@ -62,6 +62,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       this.uuid = this.options.prevCallId
     }
     this.options.prevCallId = undefined
+
+    if (this.options.localStream && streamIsValid(this.options.localStream)) {
+      this._localStream = this.options.localStream
+    }
   }
 
   get watchMediaPacketsTimeout() {

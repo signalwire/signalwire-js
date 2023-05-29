@@ -20,7 +20,7 @@ import {
 import type { ReduxComponent } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import { ConnectionOptions } from './utils/interfaces'
-import { stopTrack, getUserMedia } from './utils'
+import { stopTrack, getUserMedia, streamIsValid } from './utils'
 import { sdpRemoveLocalCandidates } from './utils/sdpHelpers'
 import * as workers from './workers'
 
@@ -306,6 +306,41 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   setActiveRTCPeer(rtcPeerId: string) {
     this.peer = this.getRTCPeerById(rtcPeerId)
+  }
+
+  setLocalStream(stream: MediaStream) {
+    if (!this.localStream || !streamIsValid(stream)) return
+
+    const prevAudioTracks = this.localStream.getAudioTracks()
+    const newAudioTracks = stream.getAudioTracks()
+    if (newAudioTracks.length <= 0) {
+      this.logger.warn(
+        'No audio track found in the stream. Falling back to the previous audio track!'
+      )
+    } else {
+      prevAudioTracks.forEach((track) => {
+        stopTrack(track)
+        this.localStream?.removeTrack(track)
+      })
+      newAudioTracks.forEach((track) => {
+        this.localStream?.addTrack(track)
+      })
+    }
+    const prevVideoTracks = this.localStream.getVideoTracks()
+    const newVideoTracks = stream.getVideoTracks()
+    if (newVideoTracks.length <= 0) {
+      this.logger.warn(
+        'No video track found in the stream. Falling back to the previous video track!'
+      )
+    } else {
+      prevVideoTracks.forEach((track) => {
+        stopTrack(track)
+        this.localStream?.removeTrack(track)
+      })
+      newVideoTracks.forEach((track) => {
+        this.localStream?.addTrack(track)
+      })
+    }
   }
 
   /**
