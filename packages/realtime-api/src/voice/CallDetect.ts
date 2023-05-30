@@ -24,7 +24,9 @@ export interface CallDetect extends VoiceCallDetectContract {
 export type CallDetectEventsHandlerMapping = {}
 
 export interface CallDetectOptions
-  extends BaseComponentOptions<CallDetectEventsHandlerMapping> {}
+  extends BaseComponentOptions<CallDetectEventsHandlerMapping> {
+  payload: CallingCallDetectEventParams
+}
 
 const ENDED_STATES: CallingCallDetectEndState[] = ['finished', 'error']
 
@@ -37,7 +39,7 @@ export class CallDetectAPI
   private _waitForBeep: boolean
   private _waitingForReady: boolean
 
-  constructor(options: BaseComponentOptions<CallDetectEventsHandlerMapping>) {
+  constructor(options: CallDetectOptions) {
     super(options)
 
     this._payload = options.payload

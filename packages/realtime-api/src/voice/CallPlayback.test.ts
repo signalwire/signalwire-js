@@ -13,6 +13,7 @@ describe('CallPlayback', () => {
       instance = createCallPlaybackObject({
         store: configureJestStore(),
         emitter: new EventEmitter<CallPlaybackEventsHandlerMapping>(),
+        // @ts-expect-error
         payload: {
           call_id: 'call_id',
           node_id: 'node_id',

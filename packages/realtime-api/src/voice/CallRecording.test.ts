@@ -13,6 +13,7 @@ describe('CallRecording', () => {
       instance = createCallRecordingObject({
         store: configureJestStore(),
         emitter: new EventEmitter<CallRecordingEventsHandlerMapping>(),
+        // @ts-expect-error
         payload: {
           call_id: 'call_id',
           node_id: 'node_id',

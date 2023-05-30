@@ -14,6 +14,7 @@ describe('RoomSessionRTPlayback', () => {
         store: configureJestStore(),
         emitter: new EventEmitter<RoomSessionRTPlaybackEventsHandlerMapping>(),
         payload: {
+          //@ts-expect-error
           playback: {
             id: 'c22d7223-5a01-49fe-8da0-46bec8e75e32',
           },

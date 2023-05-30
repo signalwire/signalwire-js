@@ -14,6 +14,7 @@ describe('RoomSessionRTRecording', () => {
         store: configureJestStore(),
         emitter: new EventEmitter<RoomSessionRTRecordingEventsHandlerMapping>(),
         payload: {
+          // @ts-expect-error
           recording: {
             id: 'c22d7223-5a01-49fe-8da0-46bec8e75e32',
           },

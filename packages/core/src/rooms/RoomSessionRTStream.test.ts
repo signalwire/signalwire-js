@@ -14,6 +14,7 @@ describe('RoomSessionRTStream', () => {
         store: configureJestStore(),
         emitter: new EventEmitter<RoomSessionRTStreamEventsHandlerMapping>(),
         payload: {
+          // @ts-expect-error
           stream: {
             id: 'c22d7223-5a01-49fe-8da0-46bec8e75e32',
           },

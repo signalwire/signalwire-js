@@ -28,15 +28,18 @@ export type RoomSessionRTRecordingEventsHandlerMapping = Record<
   (recording: RoomSessionRTRecording) => void
 >
 
+export interface RoomSessionRTRecordingOptions
+  extends BaseComponentOptions<RoomSessionRTRecordingEventsHandlerMapping> {
+  payload: VideoRecordingEventParams
+}
+
 export class RoomSessionRTRecordingAPI
   extends BaseComponent<RoomSessionRTRecordingEventsHandlerMapping>
   implements VideoRecordingMethods
 {
   private _payload: VideoRecordingEventParams
 
-  constructor(
-    options: BaseComponentOptions<RoomSessionRTRecordingEventsHandlerMapping>
-  ) {
+  constructor(options: RoomSessionRTRecordingOptions) {
     super(options)
 
     this._payload = options.payload
@@ -113,7 +116,7 @@ export class RoomSessionRTRecordingAPI
 }
 
 export const createRoomSessionRTRecordingObject = (
-  params: BaseComponentOptions<RoomSessionRTRecordingEventsHandlerMapping>
+  params: RoomSessionRTRecordingOptions
 ): RoomSessionRTRecording => {
   const recording = connect<
     RoomSessionRTRecordingEventsHandlerMapping,

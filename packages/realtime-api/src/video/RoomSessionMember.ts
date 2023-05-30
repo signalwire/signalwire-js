@@ -37,17 +37,19 @@ export type RoomSessionMemberEventParams =
     ) &
       VideoMemberTalkingEventParams
 
+export interface RoomSessionMemberOptions extends BaseComponentOptions<{}> {
+  payload: RoomSessionMemberEventParams
+}
+
 // TODO: Extend from a variant of `BaseComponent` that
 // doesn't expose EventEmitter methods
 class RoomSessionMemberComponent extends BaseComponent<{}> {
   private _payload: RoomSessionMemberEventParams
 
-  constructor(options: BaseComponentOptions<any>) {
+  constructor(options: RoomSessionMemberOptions) {
     super(options)
 
-    if (options.payload) {
-      this._payload = options.payload
-    }
+    this._payload = options.payload
   }
 
   get id() {
@@ -160,7 +162,7 @@ const RoomSessionMemberAPI = extendComponent<
 })
 
 export const createRoomSessionMemberObject = (
-  params: BaseComponentOptions<{}>
+  params: RoomSessionMemberOptions
 ): RoomSessionMember => {
   const member = connect<{}, RoomSessionMemberComponent, RoomSessionMember>({
     store: params.store,

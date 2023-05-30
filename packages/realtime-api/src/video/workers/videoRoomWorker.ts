@@ -40,31 +40,30 @@ export const videoRoomWorker = function* (
 
   // Create and set member instance if exists
   if ((payload.room_session.members?.length || 0) > 0) {
-    ;(payload.room_session.members || []).forEach(
-      (member: InternalVideoMemberEntity) => {
-        let memberInstance = get<RoomSessionMember>(member.id)
-        if (!memberInstance) {
-          memberInstance = createRoomSessionMemberObject({
-            // @ts-expect-error
-            store: client.store,
-            // @ts-expect-error
-            emitter: client.emitter,
-            payload: {
-              room_id: payload.room_session.room_id,
-              room_session_id: payload.room_session.id,
-              member,
-            },
-          })
-        } else {
-          memberInstance.setPayload({
+    ;(payload.room_session.members || []).forEach((member) => {
+      let memberInstance = get<RoomSessionMember>(member.id)
+      if (!memberInstance) {
+        memberInstance = createRoomSessionMemberObject({
+          // @ts-expect-error
+          store: client.store,
+          // @ts-expect-error
+          emitter: client.emitter,
+          payload: {
             room_id: payload.room_session.room_id,
             room_session_id: payload.room_session.id,
-            member: member as InternalVideoMemberEntity & { talking: boolean },
-          })
-        }
-        set<RoomSessionMember>(member.id, memberInstance)
+            // @ts-expect-error
+            member,
+          },
+        })
+      } else {
+        memberInstance.setPayload({
+          room_id: payload.room_session.room_id,
+          room_session_id: payload.room_session.id,
+          member: member as InternalVideoMemberEntity & { talking: boolean },
+        })
       }
-    )
+      set<RoomSessionMember>(member.id, memberInstance)
+    })
   }
 
   // console.log('videoRoomWorker', type)

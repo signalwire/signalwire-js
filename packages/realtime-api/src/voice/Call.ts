@@ -75,6 +75,12 @@ export type EmitterTransformsEvents =
   | 'calling.detect.updated'
   | 'calling.connect.connected'
 
+export interface CallOptions
+  extends BaseComponentOptions<RealTimeCallApiEvents> {
+  payload: CallingCall
+  connectPayload: CallingCallConnectEventParams
+}
+
 /**
  * A Call object represents an active call. You can get instances of a Call
  * object from a {@link Voice.Client}, by answering or initiating calls.
@@ -95,12 +101,10 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
   private _payload: CallingCall
   private _connectPayload: CallingCallConnectEventParams
 
-  constructor(options: BaseComponentOptions<RealTimeCallApiEvents>) {
+  constructor(options: CallOptions) {
     super(options)
 
-    if (options.payload) {
-      this._payload = options.payload
-    }
+    this._payload = options.payload
 
     this._attachListeners(this.__uuid)
     this.applyEmitterTransforms({ local: true })
@@ -532,6 +536,7 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
             store: this.store,
             // @ts-expect-error
             emitter: this.emitter,
+            // @ts-expect-error
             payload: {
               control_id: controlId,
               call_id: this.id,
@@ -1206,6 +1211,7 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
             store: this.store,
             // @ts-expect-error
             emitter: this.emitter,
+            // @ts-expect-error
             payload: {
               control_id: controlId,
               call_id: this.id,
@@ -1230,9 +1236,7 @@ export const CallAPI = extendComponent<CallConsumer, Partial<VoiceCallMethods>>(
   {}
 )
 
-export const createCallObject = (
-  params: BaseComponentOptions<EmitterTransformsEvents>
-): Call => {
+export const createCallObject = (params: CallOptions): Call => {
   const call = connect<RealTimeCallApiEvents, CallConsumer, Call>({
     store: params.store,
     Component: CallAPI,
