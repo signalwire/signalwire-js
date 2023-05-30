@@ -13,6 +13,7 @@ describe('CallTap', () => {
       instance = createCallTapObject({
         store: configureJestStore(),
         emitter: new EventEmitter<CallTapEventsHandlerMapping>(),
+        // @ts-expect-error
         payload: {
           call_id: 'call_id',
           node_id: 'node_id',

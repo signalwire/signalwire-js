@@ -2,14 +2,7 @@ import {
   BaseComponentOptions,
   connect,
   extendComponent,
-  InternalVideoMemberEventNames,
   Rooms,
-  InternalVideoRoomSessionEventNames,
-  VideoRoomAudienceCountEventNames,
-  InternalVideoLayoutEventNames,
-  InternalVideoRecordingEventNames,
-  InternalVideoPlaybackEventNames,
-  InternalVideoStreamEventNames,
   VideoRoomSessionContract,
   VideoRoomSessionMethods,
   ConsumerContract,
@@ -24,18 +17,6 @@ import {
 import { RealTimeRoomApiEvents } from '../types'
 import { RoomSessionMember } from './RoomSessionMember'
 
-type EmitterTransformsEvents =
-  | InternalVideoRoomSessionEventNames
-  | VideoRoomAudienceCountEventNames
-  | InternalVideoMemberEventNames
-  | InternalVideoLayoutEventNames
-  | InternalVideoRecordingEventNames
-  | 'video.__local__.recording.start'
-  | InternalVideoPlaybackEventNames
-  | 'video.__local__.playback.start'
-  | InternalVideoStreamEventNames
-  | 'video.__local__.stream.start'
-
 export interface RoomSession
   extends VideoRoomSessionContract,
     ConsumerContract<RealTimeRoomApiEvents, RoomSessionFullState> {
@@ -49,9 +30,15 @@ export interface RoomSessionFullState extends Omit<RoomSession, 'members'> {
   members?: RoomSessionMember[]
 }
 
+type RoomSessionPayload = Optional<VideoRoomEventParams, 'room'>
+export interface RoomSessionConsumerOptions
+  extends BaseComponentOptions<RealTimeRoomApiEvents> {
+  payload: RoomSessionPayload
+}
+
 export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   protected _eventsPrefix = 'video' as const
-  private _payload: Optional<VideoRoomEventParams, 'room'>
+  private _payload: RoomSessionPayload
 
   /** @internal */
   protected subscribeParams = {
@@ -61,12 +48,10 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   /** @internal */
   private debouncedSubscribe: ReturnType<typeof debounce>
 
-  constructor(options: BaseComponentOptions<RealTimeRoomApiEvents>) {
+  constructor(options: RoomSessionConsumerOptions) {
     super(options)
 
-    if (options.payload) {
-      this._payload = options.payload
-    }
+    this._payload = options.payload
 
     this.debouncedSubscribe = debounce(this.subscribe, 100)
   }
@@ -243,7 +228,7 @@ export const RoomSessionAPI = extendComponent<
 })
 
 export const createRoomSessionObject = (
-  params: BaseComponentOptions<EmitterTransformsEvents>
+  params: RoomSessionConsumerOptions
 ): RoomSession => {
   const roomSession = connect<
     RealTimeRoomApiEvents,

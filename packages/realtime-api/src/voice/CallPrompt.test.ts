@@ -13,6 +13,7 @@ describe('CallPrompt', () => {
       instance = createCallPromptObject({
         store: configureJestStore(),
         emitter: new EventEmitter<CallPromptEventsHandlerMapping>(),
+        // @ts-expect-error
         payload: {
           call_id: 'call_id',
           node_id: 'node_id',

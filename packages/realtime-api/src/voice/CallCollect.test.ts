@@ -13,6 +13,7 @@ describe('CallCollect', () => {
       instance = createCallCollectObject({
         store: configureJestStore(),
         emitter: new EventEmitter<CallCollectEventsHandlerMapping>(),
+        // @ts-expect-error
         payload: {
           call_id: 'call_id',
           node_id: 'node_id',

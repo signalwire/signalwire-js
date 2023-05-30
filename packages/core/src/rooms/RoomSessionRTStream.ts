@@ -28,15 +28,18 @@ export type RoomSessionRTStreamEventsHandlerMapping = Record<
   (stream: RoomSessionRTStream) => void
 >
 
+export interface RoomSessionRTStreamOptions
+  extends BaseComponentOptions<RoomSessionRTStreamEventsHandlerMapping> {
+  payload: VideoStreamEventParams
+}
+
 export class RoomSessionRTStreamAPI
   extends BaseComponent<RoomSessionRTStreamEventsHandlerMapping>
   implements VideoStreamMethods
 {
   private _payload: VideoStreamEventParams
 
-  constructor(
-    options: BaseComponentOptions<RoomSessionRTStreamEventsHandlerMapping>
-  ) {
+  constructor(options: RoomSessionRTStreamOptions) {
     super(options)
 
     this._payload = options.payload
@@ -95,7 +98,7 @@ export class RoomSessionRTStreamAPI
 }
 
 export const createRoomSessionRTStreamObject = (
-  params: BaseComponentOptions<RoomSessionRTStreamEventsHandlerMapping>
+  params: RoomSessionRTStreamOptions
 ): RoomSessionRTStream => {
   const stream = connect<
     RoomSessionRTStreamEventsHandlerMapping,
