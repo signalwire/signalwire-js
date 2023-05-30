@@ -6,6 +6,7 @@ import {
   expectRoomJoined,
   expectMCUVisible,
   randomizeRoomName,
+  createTestVRTToken,
 } from '../utils'
 
 test.describe('RoomSession', () => {
@@ -140,5 +141,71 @@ test.describe('RoomSession', () => {
 
     // --------------- Make sure pageTwo got the `stream.started` event ---------------
     await pageTwoStreamPromise
+  })
+
+  test('should start the room with user stream', async ({
+    createCustomPage,
+  }) => {
+    const page = await createCustomPage({ name: '[page]' })
+    await page.goto(SERVER_URL)
+
+    const vrt = await createTestVRTToken({
+      room_name: randomizeRoomName('room_session'),
+      user_name: 'e2e_test',
+      auto_create_room: true,
+      permissions: ['room.stream'],
+    })
+    if (!vrt) {
+      console.error('Invalid VRT. Exiting..')
+      process.exit(4)
+    }
+    await page.evaluate(
+      async (options) => {
+        // @ts-expect-error
+        const Video = window._SWJS.Video
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+          video: false,
+        })
+
+        const roomSession = new Video.RoomSession({
+          host: options.RELAY_HOST,
+          token: options.API_TOKEN,
+          rootElement: document.getElementById('rootElement'),
+          logLevel: 'debug',
+          debug: {
+            logWsTraffic: true,
+          },
+          localStream: stream,
+        })
+
+        // @ts-expect-error
+        window._roomObj = roomSession
+
+        return Promise.resolve(roomSession)
+      },
+      {
+        RELAY_HOST: process.env.RELAY_HOST,
+        API_TOKEN: vrt,
+      }
+    )
+
+    const { localVideoTrack, localAudioTrack } = await page.evaluate(
+      async () => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+
+        const room = await roomObj.join()
+
+        return {
+          localVideoTrack: room.localVideoTrack,
+          localAudioTrack: room.localAudioTrack,
+        }
+      }
+    )
+
+    expect(localAudioTrack).toBeDefined()
+    expect(localVideoTrack).toBeNull()
   })
 })
