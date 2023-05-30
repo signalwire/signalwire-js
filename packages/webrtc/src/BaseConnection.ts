@@ -726,7 +726,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         }
       case 'answer':
         return this.executeAnswer(mungedSDP, rtcPeer.uuid)
-        break
       default:
         return this.logger.error(
           `Unknown SDP type: '${type}' on call ${this.id}`
