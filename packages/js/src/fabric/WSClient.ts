@@ -120,10 +120,10 @@ export class WSClient {
   }
 
   // FIXME: params
-  async _acceptVertoInvite(jsonrpc: any, nodeId: string) {
+  async _buildInboundCall(jsonrpc: any, nodeId: string) {
     return new Promise(async (resolve, reject) => {
       try {
-        console.log('WSClient _acceptVertoInvite with:', jsonrpc)
+        console.log('WSClient _buildInboundCall with:', jsonrpc)
 
         // TODO: auto connect?
         // await this.connect()
@@ -171,9 +171,6 @@ export class WSClient {
 
         // @ts-expect-error
         call.attachPreConnectWorkers()
-
-        // @ts-expect-error
-        await call.answer()
 
         // // @ts-expect-error
         // call.attachOnSubscribedWorkers(payload)

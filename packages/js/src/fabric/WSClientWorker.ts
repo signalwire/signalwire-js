@@ -43,7 +43,7 @@ export const WSClientWorker: SDKWorker<
     getLogger().debug('Build new call to answer', action)
 
     // TODO: invoke WSClient function to build and answer the invite
-    // instance._acceptVertoInvite(action)
+    // instance._buildInboundCall(action)
   }
 
   getLogger().trace('WSClientWorker ended')
