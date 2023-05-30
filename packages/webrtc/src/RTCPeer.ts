@@ -688,6 +688,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
     try {
       await this.call.onLocalSDPReady(this)
+
+      if (this.isAnswer) {
+        this._resolveStartMethod()
+      }
     } catch (error) {
       this._rejectStartMethod(error)
     }
