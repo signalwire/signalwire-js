@@ -42,10 +42,10 @@ import { toInternalDevices, toInternalPlayParams } from './utils'
 import { Playlist } from './Playlist'
 import { CallPlayback } from './CallPlayback'
 import { CallRecording } from './CallRecording'
-import { CallPrompt } from './CallPrompt'
+import { CallPrompt, createCallPromptObject } from './CallPrompt'
 import { CallTap } from './CallTap'
-import { CallDetect } from './CallDetect'
-import { CallCollect } from './CallCollect'
+import { CallDetect, createCallDetectObject } from './CallDetect'
+import { CallCollect, createCallCollectObject } from './CallCollect'
 import { DeviceBuilder } from './DeviceBuilder'
 
 export type EmitterTransformsEvents =
@@ -505,30 +505,7 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
         reject(new Error(`Missing 'playlist' params.`))
       }
 
-      const resolveHandler = (callPrompt: CallPrompt) => {
-        this.off('prompt.failed', rejectHandler)
-        resolve(callPrompt)
-      }
-
-      const rejectHandler = (callPrompt: CallPrompt) => {
-        this.off('prompt.started', resolveHandler)
-        reject(callPrompt)
-      }
-
-      this.once('prompt.started', resolveHandler)
-      this.once('prompt.failed', rejectHandler)
-
       const controlId = `${uuid()}.prompt`
-
-      // Put the internal SDK event on SW channel to create a Prompt instance and emit `prompt.started` event
-      this.store.putOnSwEventChannel({
-        type: 'calling.sdk.prompt',
-        payload: {
-          control_id: controlId,
-          call_id: this.id,
-          node_id: this.nodeId,
-        },
-      })
 
       const { volume, media } = params.playlist
       // TODO: move this to a method to build `collect`
@@ -551,11 +528,22 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
         },
       })
         .then(() => {
-          // TODO: handle then?
+          const promptInstance = createCallPromptObject({
+            store: this.store,
+            // @ts-expect-error
+            emitter: this.emitter,
+            payload: {
+              control_id: controlId,
+              call_id: this.id,
+              node_id: this.nodeId,
+            },
+          })
+          this.instanceMap.set<CallPrompt>(controlId, promptInstance)
+          this.baseEmitter.emit('prompt.started', promptInstance)
+          resolve(promptInstance)
         })
         .catch((e) => {
-          this.off('prompt.started', resolveHandler)
-          this.off('prompt.failed', rejectHandler)
+          this.baseEmitter.emit('prompt.failed', e)
           reject(e)
         })
     })
@@ -1012,35 +1000,7 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
         reject(new Error(`Can't call detect() on a call not established yet.`))
       }
 
-      const resolveHandler = (callDetect: CallDetect) => {
-        // @ts-expect-error
-        this.off('detect.ended', rejectHandler)
-        resolve(callDetect)
-      }
-
-      const rejectHandler = (callDetect: CallDetect) => {
-        // @ts-expect-error
-        this.off('detect.started', resolveHandler)
-        reject(callDetect)
-      }
-
-      // @ts-expect-error
-      this.once('detect.started', resolveHandler)
-      // @ts-expect-error
-      this.once('detect.ended', rejectHandler)
-
       const controlId = uuid()
-
-      // Put the internal SDK event on SW channel to pass the `waitForBeep` param while creating a Detect instance and emit `detect.started` event
-      this.store.putOnSwEventChannel({
-        type: 'calling.sdk.detect',
-        payload: {
-          control_id: controlId,
-          call_id: this.id,
-          node_id: this.nodeId,
-          waitForBeep: params.waitForBeep ?? false,
-        },
-      })
 
       // TODO: build params in a method
       const { timeout, type, ...rest } = params
@@ -1059,13 +1019,25 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
         },
       })
         .then(() => {
-          // TODO: handle then?
+          const detectInstance = createCallDetectObject({
+            store: this.store,
+            // @ts-expect-error
+            emitter: this.emitter,
+            payload: {
+              control_id: controlId,
+              call_id: this.id,
+              node_id: this.nodeId,
+              waitForBeep: params.waitForBeep ?? false,
+            },
+          })
+          this.instanceMap.set<CallDetect>(controlId, detectInstance)
+          // @ts-expect-error
+          this.baseEmitter.emit('detect.started', detectInstance)
+          resolve(detectInstance)
         })
         .catch((e) => {
           // @ts-expect-error
-          this.off('detect.started', resolveHandler)
-          // @ts-expect-error
-          this.off('detect.ended', rejectHandler)
+          this.baseEmitter.emit('detect.ended', e)
           reject(e)
         })
     })
@@ -1201,30 +1173,7 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
         reject(new Error(`Can't call collect() on a call not established yet.`))
       }
 
-      const resolveHandler = (callCollect: CallCollect) => {
-        this.off('collect.failed', rejectHandler)
-        resolve(callCollect)
-      }
-
-      const rejectHandler = (callCollect: CallCollect) => {
-        this.off('collect.started', resolveHandler)
-        reject(callCollect)
-      }
-
-      this.once('collect.started', resolveHandler)
-      this.once('collect.failed', rejectHandler)
-
       const controlId = uuid()
-
-      // Put the internal SDK event on SW channel to create a Collect instance and emit `collect.started` event
-      this.store.putOnSwEventChannel({
-        type: 'calling.sdk.collect',
-        payload: {
-          control_id: controlId,
-          call_id: this.id,
-          node_id: this.nodeId,
-        },
-      })
 
       // TODO: move this to a method to build the params
       const {
@@ -1253,11 +1202,22 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
         },
       })
         .then(() => {
-          // TODO: handle then?
+          const collectInstance = createCallCollectObject({
+            store: this.store,
+            // @ts-expect-error
+            emitter: this.emitter,
+            payload: {
+              control_id: controlId,
+              call_id: this.id,
+              node_id: this.nodeId,
+            },
+          })
+          this.instanceMap.set<CallCollect>(controlId, collectInstance)
+          this.baseEmitter.emit('collect.started', collectInstance)
+          resolve(collectInstance)
         })
         .catch((e) => {
-          this.off('collect.started', resolveHandler)
-          this.off('collect.failed', rejectHandler)
+          this.baseEmitter.emit('collect.failed', e)
           reject(e)
         })
     })

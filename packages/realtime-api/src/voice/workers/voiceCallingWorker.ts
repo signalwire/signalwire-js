@@ -19,9 +19,6 @@ import { voiceCallSendDigitsWorker } from './VoiceCallSendDigitWorker'
 import { voiceCallDetectWorker } from './voiceCallDetectWorker'
 import { voiceCallTapWorker } from './voiceCallTapWorker'
 import { voiceCallConnectWorker } from './voiceCallConnectWorker'
-import { voiceSDKCallPromptWorker } from './voiceSDKCallPromptWorker'
-import { voiceSDKCallCollectWorker } from './voiceSDKCallCollectWorker'
-import { voiceSDKCallDetectWorker } from './voiceSDKCallDetectWorker'
 
 export type VoiceCallWorkerParams<T> = Omit<
   SDKWorkerParams<Client>,
@@ -96,24 +93,6 @@ export const voiceCallingWroker: SDKWorker<Client> = function* (
         break
       case 'calling.call.connect':
         yield fork(voiceCallConnectWorker, {
-          ...options,
-          payload,
-        })
-        break
-      case 'calling.sdk.prompt':
-        yield fork(voiceSDKCallPromptWorker, {
-          ...options,
-          payload,
-        })
-        break
-      case 'calling.sdk.collect':
-        yield fork(voiceSDKCallCollectWorker, {
-          ...options,
-          payload,
-        })
-        break
-      case 'calling.sdk.detect':
-        yield fork(voiceSDKCallDetectWorker, {
           ...options,
           payload,
         })
