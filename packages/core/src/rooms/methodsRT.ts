@@ -240,10 +240,7 @@ export const startRTStream: RoomMethodDescriptor<
   value: function (params) {
     return new Promise(async (resolve, reject) => {
       try {
-        const { stream } = await this.execute<
-          StartRTStreamParams,
-          StartRTStreamOutput
-        >({
+        const { stream } = await this.execute<StartRTStreamParams, any>({
           method: 'video.stream.start',
           params: {
             room_session_id: this.roomSessionId,
