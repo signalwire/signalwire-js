@@ -140,6 +140,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     this.logger.trace('New Call with Options:', this.options)
 
     this.applyEmitterTransforms({ local: true })
+
+    this._initPeer()
   }
 
   get id() {
@@ -676,7 +678,9 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   invite<T>(): Promise<T> {
     return new Promise(async (resolve, reject) => {
       this.direction = 'outbound'
-      this.peer = new RTCPeer(this, 'offer')
+      if (!this.peer) {
+        this.peer = new RTCPeer(this, 'offer')
+      }
       try {
         this.runRTCPeerWorkers(this.peer.uuid)
 
@@ -693,7 +697,9 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   answer<T>(): Promise<T> {
     return new Promise(async (resolve, reject) => {
       this.direction = 'inbound'
-      this.peer = new RTCPeer(this, 'answer')
+      if (!this.peer) {
+        this.peer = new RTCPeer(this, 'answer')
+      }
       try {
         this.runRTCPeerWorkers(this.peer.uuid)
 
@@ -1071,6 +1077,11 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         ? AUDIO_CONSTRAINTS_SCREENSHARE
         : AUDIO_CONSTRAINTS
     }
+  }
+
+  private _initPeer() {
+    const rtcType: RTCSdpType = this.options.remoteSdp ? 'answer' : 'offer'
+    this.peer = new RTCPeer(this, rtcType)
   }
 
   /** @internal */
