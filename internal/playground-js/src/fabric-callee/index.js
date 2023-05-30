@@ -1,7 +1,7 @@
 import { Fabric } from '@signalwire/js'
 import { createMicrophoneAnalyzer } from '@signalwire/webrtc'
-import { initializeApp } from 'firebase/app'
-import { getMessaging, getToken, onMessage } from 'firebase/messaging'
+// import { initializeApp } from 'firebase/app'
+// import { getMessaging, getToken, onMessage } from 'firebase/messaging'
 
 let roomObj = null
 let micAnalyzer = null
@@ -26,6 +26,10 @@ const inCallElements = [
   pauseRecordingBtn,
   resumeRecordingBtn,
   controlPlayback,
+
+  tapPushNotificationBtn,
+  acceptCallBtn,
+  rejectCallBtn,
 ]
 
 const playbackElements = [
@@ -93,7 +97,7 @@ const initializeMicAnalyzer = async (stream) => {
 
 function restoreUI() {
   btnConnect.classList.remove('d-none')
-  btnAcceptCall.classList.add('d-none')
+  tapPushNotificationBtn.classList.add('d-none')
   btnDisconnect.classList.add('d-none')
   connectStatus.innerHTML = 'Not Connected'
 
@@ -110,6 +114,16 @@ function uiReady() {
     button.classList.remove('d-none')
     button.disabled = false
   })
+}
+
+function enableCallButtons() {
+  acceptCallBtn.disabled = false
+  rejectCallBtn.disabled = false
+}
+
+function disableCallButtons() {
+  acceptCallBtn.disabled = true
+  rejectCallBtn.disabled = true
 }
 
 /**
@@ -146,7 +160,7 @@ window.connect = async () => {
   connectStatus.innerHTML = 'Connected!'
 
   btnConnect.classList.add('d-none')
-  btnAcceptCall.classList.remove('d-none')
+  tapPushNotificationBtn.classList.remove('d-none')
   btnDisconnect.classList.remove('d-none')
 }
 
@@ -162,18 +176,31 @@ window.disconnect = async () => {
 /**
  * Read the PN payload and accept the inbound call
  */
-window.acceptCall = async () => {
+window.tapPushNotification = async () => {
   try {
     const jsonrpc = JSON.parse(payload.value)
     const { node_id, params: inviteRPC } = jsonrpc.invite
 
-    window.__call = await __client._acceptVertoInvite(inviteRPC, node_id)
+    window.__call = await __client._buildInboundCall(inviteRPC, node_id)
 
-    uiReady()
-    connectStatus.innerHTML = 'Answering...'
+    enableCallButtons()
+
+    connectStatus.innerHTML = 'Ringing...'
   } catch (error) {
     console.error('acceptCall', error)
   }
+}
+
+window.acceptCall = async () => {
+  disableCallButtons()
+  await window.__call.answer()
+  uiReady()
+}
+
+window.rejectCall = async () => {
+  disableCallButtons()
+  await window.__call.hangup()
+  restoreUI()
 }
 
 /**
@@ -532,50 +559,50 @@ window.ready(async function () {
     (localStorage.getItem('fabric.callee.video') || '1') === '1'
 
   //Initialize Firebase App
-  const config = {
-    apiKey: import.meta.env.VITE_FB_API_KEY,
-    authDomain: import.meta.env.VITE_FB_AUTH_DOMAIN,
-    projectId: import.meta.env.VITE_FB_PROJECT_ID,
-    storageBucket: import.meta.env.VITE_FB_STORAGE_BUCKET,
-    messagingSenderId: import.meta.env.VITE_FB_MESSAGING_SENDER_ID,
-    appId: import.meta.env.VITE_FB_APP_ID,
-    measurementId: import.meta.env.VITE_FB_MEASUREMENT_ID,
-  }
-  console.log('Firebase config', config)
+  // const config = {
+  //   apiKey: import.meta.env.VITE_FB_API_KEY,
+  //   authDomain: import.meta.env.VITE_FB_AUTH_DOMAIN,
+  //   projectId: import.meta.env.VITE_FB_PROJECT_ID,
+  //   storageBucket: import.meta.env.VITE_FB_STORAGE_BUCKET,
+  //   messagingSenderId: import.meta.env.VITE_FB_MESSAGING_SENDER_ID,
+  //   appId: import.meta.env.VITE_FB_APP_ID,
+  //   measurementId: import.meta.env.VITE_FB_MEASUREMENT_ID,
+  // }
+  // console.log('Firebase config', config)
 
-  const app = initializeApp(config)
-  const messaging = getMessaging(app)
+  // const app = initializeApp(config)
+  // const messaging = getMessaging(app)
 
-  onMessage(messaging, (payload) => {
-    console.log('Push payload', payload)
-    document.getElementById('payload').value = payload.notification.body
-    const body = JSON.parse(payload.notification.body || '{}')
-    alert(body.title)
-  })
+  // onMessage(messaging, (payload) => {
+  //   console.log('Push payload', payload)
+  //   document.getElementById('payload').value = payload.notification.body
+  //   const body = JSON.parse(payload.notification.body || '{}')
+  //   alert(body.title)
+  // })
 
-  try {
-    const firebaseConfig = window.btoa(JSON.stringify(config))
-    const registration = await navigator.serviceWorker.register(
-      `./sw.js?firebaseConfig=${firebaseConfig}`,
-      {
-        updateViaCache: 'none',
-      }
-    )
+  // try {
+  //   const firebaseConfig = window.btoa(JSON.stringify(config))
+  //   const registration = await navigator.serviceWorker.register(
+  //     `./sw.js?firebaseConfig=${firebaseConfig}`,
+  //     {
+  //       updateViaCache: 'none',
+  //     }
+  //   )
 
-    console.log(
-      'Service Worker registration successful with registration: ',
-      registration
-    )
+  //   console.log(
+  //     'Service Worker registration successful with registration: ',
+  //     registration
+  //   )
 
-    const permission = await Notification.requestPermission()
-    if (permission === 'granted') {
-      const token = await getToken(messaging, {
-        serviceWorkerRegistration: registration,
-        vapiKey: import.meta.env.VITE_FB_VAPI_KEY,
-      })
-      document.getElementById('pn-token').value = token
-    }
-  } catch (error) {
-    console.error('Service Worker registration failed: ', error)
-  }
+  //   const permission = await Notification.requestPermission()
+  //   if (permission === 'granted') {
+  //     const token = await getToken(messaging, {
+  //       serviceWorkerRegistration: registration,
+  //       vapiKey: import.meta.env.VITE_FB_VAPI_KEY,
+  //     })
+  //     document.getElementById('pn-token').value = token
+  //   }
+  // } catch (error) {
+  //   console.error('Service Worker registration failed: ', error)
+  // }
 })

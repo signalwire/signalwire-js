@@ -41,7 +41,7 @@
               <h5>Connect</h5>
               <div class="form-group">
                 <label for="host">Push Notification Token</label>
-                <input type="text" class="form-control" id="pn-token"  />
+                <input type="text" class="form-control" id="pn-token" />
               </div>
               <div class="form-group">
                 <label for="host">Host</label>
@@ -103,21 +103,39 @@
                   class="btn btn-success"
                   onclick="connect()"
                 >
-                  Connect
+                  Connect Client
                 </button>
                 <button
-                  id="btnAcceptCall"
+                  id="tapPushNotificationBtn"
                   class="btn btn-info d-none"
-                  onclick="acceptCall()"
+                  onclick="tapPushNotification()"
                 >
-                  Accept Call
+                  Tap Push Notification
                 </button>
                 <button
                   id="btnDisconnect"
                   class="btn btn-danger d-none"
                   onclick="disconnect()"
                 >
-                  Disconnect
+                  Disconnect Client
+                </button>
+              </div>
+              <div class="btn-group w-100" role="group">
+                <button
+                  id="acceptCallBtn"
+                  class="btn btn-success px-3 mt-2"
+                  onClick="acceptCall()"
+                  disabled="true"
+                >
+                  Accept Call
+                </button>
+                <button
+                  id="rejectCallBtn"
+                  class="btn btn-warning px-3 mt-2"
+                  onClick="rejectCall()"
+                  disabled="true"
+                >
+                  Reject Call
                 </button>
               </div>
 
