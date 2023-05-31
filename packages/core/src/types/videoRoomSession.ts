@@ -273,15 +273,6 @@ export interface VideoRoomSessionContract {
     params: MemberCommandWithValueParams
   ): Rooms.SetInputSensitivityMember
   /**
-   * Returns a list of members currently in the room.
-   *
-   * @example
-   * ```typescript
-   * await room.getMembers()
-   * ```
-   */
-  getMembers(): Rooms.GetMembers
-  /**
    * Mutes the incoming audio. The affected participant will not hear audio
    * from the other participants anymore. You can use this method to make deaf
    * either yourself or another participant in the room.
