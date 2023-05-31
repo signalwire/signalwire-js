@@ -13,7 +13,7 @@ export const voiceCallPlayWorker = function* (
   getLogger().trace('voiceCallPlayWorker started')
   const {
     payload,
-    instanceMap: { get, set },
+    instanceMap: { get, set, remove },
   } = options
 
   const callInstance = get<Call>(payload.call_id)
@@ -60,6 +60,8 @@ export const voiceCallPlayWorker = function* (
 
       // To resolve the ended() promise in CallPlayback
       playbackInstance.baseEmitter.emit('playback.failed', playbackInstance)
+
+      remove<CallPlayback>(controlId)
       break
     }
     case 'finished': {
@@ -67,6 +69,8 @@ export const voiceCallPlayWorker = function* (
 
       // To resolve the ended() promise in CallPlayback
       playbackInstance.baseEmitter.emit('playback.ended', playbackInstance)
+
+      remove<CallPlayback>(controlId)
       break
     }
     default:
