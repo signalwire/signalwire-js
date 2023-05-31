@@ -53,7 +53,7 @@ export interface RoomSession
    * await room.getMembers()
    * ```
    */
-  getMembers(): Rooms.GetMembers
+  getMembers(): Promise<{ members: RoomSessionMember[] }>
 }
 
 export type RoomSessionUpdated = EntityUpdated<RoomSession>
@@ -260,7 +260,7 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
 
 export const RoomSessionAPI = extendComponent<
   RoomSessionConsumer,
-  VideoRoomSessionMethods
+  Omit<VideoRoomSessionMethods, 'getMembers'>
 >(RoomSessionConsumer, {
   videoMute: Rooms.videoMuteMember,
   videoUnmute: Rooms.videoUnmuteMember,
