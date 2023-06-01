@@ -1,7 +1,7 @@
 import {
   connect,
   BaseComponent,
-  BaseComponentOptions,
+  BaseComponentOptionsWithPayload,
   extendComponent,
   Rooms,
   VideoMemberContract,
@@ -37,9 +37,8 @@ export type RoomSessionMemberEventParams =
     ) &
       VideoMemberTalkingEventParams
 
-export interface RoomSessionMemberOptions extends BaseComponentOptions<{}> {
-  payload: RoomSessionMemberEventParams
-}
+export interface RoomSessionMemberOptions
+  extends BaseComponentOptionsWithPayload<{}, RoomSessionMemberEventParams> {}
 
 // TODO: Extend from a variant of `BaseComponent` that
 // doesn't expose EventEmitter methods

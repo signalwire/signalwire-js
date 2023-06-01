@@ -1,6 +1,6 @@
 import {
   uuid,
-  BaseComponentOptions,
+  BaseComponentOptionsWithPayload,
   connect,
   EmitterContract,
   extendComponent,
@@ -76,8 +76,7 @@ export type EmitterTransformsEvents =
   | 'calling.connect.connected'
 
 export interface CallOptions
-  extends BaseComponentOptions<RealTimeCallApiEvents> {
-  payload: CallingCall
+  extends BaseComponentOptionsWithPayload<RealTimeCallApiEvents, CallingCall> {
   connectPayload: CallingCallConnectEventParams
 }
 
@@ -536,6 +535,7 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
             store: this.store,
             // @ts-expect-error
             emitter: this.emitter,
+            // @ts-expect-error
             payload: {
               control_id: controlId,
               call_id: this.id,
@@ -1210,6 +1210,7 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
             store: this.store,
             // @ts-expect-error
             emitter: this.emitter,
+            // @ts-expect-error
             payload: {
               control_id: controlId,
               call_id: this.id,

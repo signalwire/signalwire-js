@@ -1,5 +1,5 @@
 import {
-  BaseComponentOptions,
+  BaseComponentOptionsWithPayload,
   connect,
   extendComponent,
   Rooms,
@@ -32,9 +32,10 @@ export interface RoomSessionFullState extends Omit<RoomSession, 'members'> {
 
 type RoomSessionPayload = Optional<VideoRoomEventParams, 'room'>
 export interface RoomSessionConsumerOptions
-  extends BaseComponentOptions<RealTimeRoomApiEvents> {
-  payload: RoomSessionPayload
-}
+  extends BaseComponentOptionsWithPayload<
+    RealTimeRoomApiEvents,
+    RoomSessionPayload
+  > {}
 
 export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   protected _eventsPrefix = 'video' as const

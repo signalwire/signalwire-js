@@ -1,6 +1,6 @@
 import {
   connect,
-  BaseComponentOptions,
+  BaseComponentOptionsWithPayload,
   VoiceCallRecordingContract,
   CallingCallRecordEndState,
   CallingCallRecordEventParams,
@@ -23,9 +23,10 @@ export interface CallRecording extends VoiceCallRecordingContract {
 export type CallRecordingEventsHandlerMapping = {}
 
 export interface CallRecordingOptions
-  extends BaseComponentOptions<CallRecordingEventsHandlerMapping> {
-  payload: CallingCallRecordEventParams
-}
+  extends BaseComponentOptionsWithPayload<
+    CallRecordingEventsHandlerMapping,
+    CallingCallRecordEventParams
+  > {}
 
 const ENDED_STATES: CallingCallRecordEndState[] = ['finished', 'no_input']
 

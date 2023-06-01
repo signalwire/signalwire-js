@@ -8,7 +8,7 @@
 
 import { connect } from '../redux'
 import { BaseComponent } from '../BaseComponent'
-import { BaseComponentOptions } from '../utils/interfaces'
+import { BaseComponentOptionsWithPayload } from '../utils/interfaces'
 import type {
   VideoPlaybackContract,
   VideoPlaybackMethods,
@@ -32,9 +32,10 @@ export type RoomSessionRTPlaybackEventsHandlerMapping = Record<
 >
 
 export interface RoomSessionRTPlaybackOptions
-  extends BaseComponentOptions<RoomSessionRTPlaybackEventsHandlerMapping> {
-  payload: VideoPlaybackEventParams
-}
+  extends BaseComponentOptionsWithPayload<
+    RoomSessionRTPlaybackEventsHandlerMapping,
+    VideoPlaybackEventParams
+  > {}
 
 export class RoomSessionRTPlaybackAPI
   extends BaseComponent<RoomSessionRTPlaybackEventsHandlerMapping>

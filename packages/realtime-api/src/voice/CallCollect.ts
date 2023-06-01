@@ -1,6 +1,6 @@
 import {
   connect,
-  BaseComponentOptions,
+  BaseComponentOptionsWithPayload,
   VoiceCallCollectContract,
   CallingCallCollectEndState,
   CallCollectEndedEvent,
@@ -23,9 +23,10 @@ export interface CallCollect extends VoiceCallCollectContract {
 export type CallCollectEventsHandlerMapping = {}
 
 export interface CallCollectOptions
-  extends BaseComponentOptions<CallCollectEventsHandlerMapping> {
-  payload: CallingCallCollectEventParams
-}
+  extends BaseComponentOptionsWithPayload<
+    CallCollectEventsHandlerMapping,
+    CallingCallCollectEventParams
+  > {}
 
 const ENDED_STATES: CallingCallCollectEndState[] = [
   'error',

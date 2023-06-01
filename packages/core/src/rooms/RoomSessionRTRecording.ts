@@ -8,7 +8,7 @@
 
 import { connect } from '../redux'
 import { BaseComponent } from '../BaseComponent'
-import { BaseComponentOptions } from '../utils/interfaces'
+import { BaseComponentOptionsWithPayload } from '../utils/interfaces'
 import type {
   VideoRecordingContract,
   VideoRecordingEventNames,
@@ -29,9 +29,10 @@ export type RoomSessionRTRecordingEventsHandlerMapping = Record<
 >
 
 export interface RoomSessionRTRecordingOptions
-  extends BaseComponentOptions<RoomSessionRTRecordingEventsHandlerMapping> {
-  payload: VideoRecordingEventParams
-}
+  extends BaseComponentOptionsWithPayload<
+    RoomSessionRTRecordingEventsHandlerMapping,
+    VideoRecordingEventParams
+  > {}
 
 export class RoomSessionRTRecordingAPI
   extends BaseComponent<RoomSessionRTRecordingEventsHandlerMapping>

@@ -155,6 +155,16 @@ export interface BaseComponentOptions<
   customSagas?: CustomSaga<any>[]
 }
 
+export interface BaseComponentOptionsWithPayload<
+  EventTypes extends EventEmitter.ValidEventTypes,
+  CustomPayload extends unknown
+> {
+  store: SDKStore
+  emitter: EventEmitter<EventTypes>
+  customSagas?: CustomSaga<any>[]
+  payload: CustomPayload
+}
+
 export interface SessionRequestObject {
   rpcRequest: JSONRPCRequest
   resolve: (value: unknown) => void

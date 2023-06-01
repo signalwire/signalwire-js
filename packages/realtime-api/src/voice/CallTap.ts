@@ -1,6 +1,6 @@
 import {
   connect,
-  BaseComponentOptions,
+  BaseComponentOptionsWithPayload,
   VoiceCallTapContract,
   CallingCallTapEndState,
   CallingCallTapEventParams,
@@ -23,9 +23,10 @@ export interface CallTap extends VoiceCallTapContract {
 export type CallTapEventsHandlerMapping = {}
 
 export interface CallTapOptions
-  extends BaseComponentOptions<CallTapEventsHandlerMapping> {
-  payload: CallingCallTapEventParams
-}
+  extends BaseComponentOptionsWithPayload<
+    CallTapEventsHandlerMapping,
+    CallingCallTapEventParams
+  > {}
 
 const ENDED_STATES: CallingCallTapEndState[] = ['finished']
 

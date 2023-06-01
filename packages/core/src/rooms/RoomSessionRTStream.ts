@@ -8,7 +8,7 @@
 
 import { connect } from '../redux'
 import { BaseComponent } from '../BaseComponent'
-import { BaseComponentOptions } from '../utils/interfaces'
+import { BaseComponentOptionsWithPayload } from '../utils/interfaces'
 import type {
   VideoStreamContract,
   VideoStreamEventNames,
@@ -29,9 +29,10 @@ export type RoomSessionRTStreamEventsHandlerMapping = Record<
 >
 
 export interface RoomSessionRTStreamOptions
-  extends BaseComponentOptions<RoomSessionRTStreamEventsHandlerMapping> {
-  payload: VideoStreamEventParams
-}
+  extends BaseComponentOptionsWithPayload<
+    RoomSessionRTStreamEventsHandlerMapping,
+    VideoStreamEventParams
+  > {}
 
 export class RoomSessionRTStreamAPI
   extends BaseComponent<RoomSessionRTStreamEventsHandlerMapping>

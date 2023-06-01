@@ -1,6 +1,6 @@
 import {
   connect,
-  BaseComponentOptions,
+  BaseComponentOptionsWithPayload,
   VoiceCallPromptContract,
   CallingCallCollectEndState,
   CallPromptEndedEvent,
@@ -23,9 +23,10 @@ export interface CallPrompt extends VoiceCallPromptContract {
 export type CallPromptEventsHandlerMapping = {}
 
 export interface CallPromptOptions
-  extends BaseComponentOptions<CallPromptEventsHandlerMapping> {
-  payload: CallingCallCollectEventParams
-}
+  extends BaseComponentOptionsWithPayload<
+    CallPromptEventsHandlerMapping,
+    CallingCallCollectEventParams
+  > {}
 
 const ENDED_STATES: CallingCallCollectEndState[] = [
   'no_input',

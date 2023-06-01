@@ -1,6 +1,6 @@
 import {
   connect,
-  BaseComponentOptions,
+  BaseComponentOptionsWithPayload,
   VoiceCallDetectContract,
   CallingCallDetectEndState,
   CallingCallDetectEventParams,
@@ -24,9 +24,10 @@ export interface CallDetect extends VoiceCallDetectContract {
 export type CallDetectEventsHandlerMapping = {}
 
 export interface CallDetectOptions
-  extends BaseComponentOptions<CallDetectEventsHandlerMapping> {
-  payload: CallingCallDetectEventParams
-}
+  extends BaseComponentOptionsWithPayload<
+    CallDetectEventsHandlerMapping,
+    CallingCallDetectEventParams
+  > {}
 
 const ENDED_STATES: CallingCallDetectEndState[] = ['finished', 'error']
 
