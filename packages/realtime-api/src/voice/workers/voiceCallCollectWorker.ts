@@ -14,7 +14,7 @@ export const voiceCallCollectWorker = function* (
   getLogger().trace('voiceCallCollectWorker started')
   const {
     payload,
-    instanceMap: { get, set },
+    instanceMap: { get, set, remove },
   } = options
 
   const callInstance = get<Call>(payload.call_id)
@@ -59,6 +59,8 @@ export const voiceCallCollectWorker = function* (
             `${eventPrefix}.failed`,
             actionInstance
           )
+
+          remove<CallCollect>(payload.control_id)
           break
         }
         case 'speech':
@@ -70,6 +72,8 @@ export const voiceCallCollectWorker = function* (
             `${eventPrefix}.ended`,
             actionInstance
           )
+
+          remove<CallCollect>(payload.control_id)
           break
         }
         default:

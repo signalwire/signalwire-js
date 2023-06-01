@@ -22,7 +22,6 @@ export const voiceCallDialWorker = function* (
 
   switch (payload.dial_state) {
     case 'failed': {
-      // TODO: same in the failed  case?
       // @ts-expect-error
       client.baseEmitter.emit('dial.failed', payload)
       break

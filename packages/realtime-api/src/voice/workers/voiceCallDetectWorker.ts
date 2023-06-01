@@ -13,7 +13,7 @@ export const voiceCallDetectWorker = function* (
   getLogger().trace('voiceCallDetectWorker started')
   const {
     payload,
-    instanceMap: { get, set },
+    instanceMap: { get, set, remove },
   } = options
 
   const callInstance = get<Call>(payload.call_id)
@@ -49,6 +49,8 @@ export const voiceCallDetectWorker = function* (
 
       // To resolve the ended() promise in CallDetect
       detectInstance.baseEmitter.emit('detect.ended', detectInstance)
+
+      remove<CallDetect>(payload.control_id)
       return
     }
     default:

@@ -67,8 +67,6 @@ export const videoRoomWorker = function* (
     )
   }
 
-  // console.log('videoRoomWorker', type)
-
   switch (type) {
     case 'video.room.started':
     case 'video.room.updated': {

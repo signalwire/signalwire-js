@@ -13,7 +13,7 @@ export const voiceCallRecordWorker = function* (
   getLogger().trace('voiceCallRecordWorker started')
   const {
     payload,
-    instanceMap: { get, set },
+    instanceMap: { get, set, remove },
   } = options
 
   const callInstance = get<Call>(payload.call_id)
@@ -47,6 +47,8 @@ export const voiceCallRecordWorker = function* (
 
       // To resolve the ended() promise in CallRecording
       recordingInstance.baseEmitter.emit(type, recordingInstance)
+
+      remove<CallRecording>(payload.control_id)
       break
     }
     default:

@@ -13,7 +13,7 @@ export const voiceCallTapWorker = function* (
   getLogger().trace('voiceCallTapWorker started')
   const {
     payload,
-    instanceMap: { get, set },
+    instanceMap: { get, set, remove },
   } = options
 
   const callInstance = get(payload.call_id) as Call
@@ -43,6 +43,8 @@ export const voiceCallTapWorker = function* (
 
       // To resolve the ended() promise in CallTap
       tapInstance.baseEmitter.emit('tap.ended', tapInstance)
+
+      remove<CallTap>(payload.control_id)
       break
     default:
       getLogger().warn(`Unknown tap state: "${payload.state}"`)
