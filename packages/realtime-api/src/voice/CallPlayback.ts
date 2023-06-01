@@ -5,8 +5,8 @@ import {
   CallingCallPlayEndState,
   CallingCallPlayEventParams,
   EventEmitter,
+  ApplyEventListeners,
 } from '@signalwire/core'
-import { ApplyEventListeners } from '../ApplyEventListeners'
 
 /**
  * Instances of this class allow you to control (e.g., pause, resume, stop) the

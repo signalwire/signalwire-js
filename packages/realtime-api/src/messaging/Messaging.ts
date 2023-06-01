@@ -3,12 +3,12 @@ import {
   BaseComponentOptions,
   toExternalJSON,
   ClientContextContract,
+  ApplyEventListeners,
 } from '@signalwire/core'
 import { connect } from '@signalwire/core'
 import type { MessagingClientApiEvents } from '../types'
 import { RealtimeClient } from '../client/index'
 import { messagingWorker } from './workers'
-import { ApplyEventListeners } from '../ApplyEventListeners'
 
 interface MessagingSendParams {
   context?: string

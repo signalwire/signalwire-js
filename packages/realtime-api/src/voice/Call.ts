@@ -35,9 +35,9 @@ import {
   CallingCall,
   EventEmitter,
   configureStore,
+  ApplyEventListeners,
 } from '@signalwire/core'
 import { RealTimeCallApiEvents } from '../types'
-import { ApplyEventListeners } from '../ApplyEventListeners'
 import { toInternalDevices, toInternalPlayParams } from './utils'
 import { Playlist } from './Playlist'
 import { CallPlayback } from './CallPlayback'
