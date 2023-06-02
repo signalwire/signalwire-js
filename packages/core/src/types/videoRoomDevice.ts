@@ -26,17 +26,15 @@ export type VideoRoomDeviceDisconnectedEventNames =
   | MicrophoneDisconnected
   | SpeakerDisconnected
 
-export interface DeviceChangeEvent {
-  deviceId: string
-  label: string
-}
+export interface MediaDeviceInfo
+  extends Pick<MediaDeviceInfo, 'deviceId' | 'kind'> {}
 
 export interface DeviceUpdatedEventParams {
-  previous: DeviceChangeEvent
-  current: DeviceChangeEvent
+  previous: MediaDeviceInfo
+  current: MediaDeviceInfo
 }
 
-export type DeviceDisconnectedEventParams = DeviceChangeEvent
+export type DeviceDisconnectedEventParams = MediaDeviceInfo
 
 export type VideoRoomDeviceEventParams =
   | DeviceUpdatedEventParams
