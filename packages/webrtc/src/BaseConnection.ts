@@ -131,6 +131,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     }
     this._checkDefaultMediaConstraints()
 
+    this._onEndedTrackHandler = this._onEndedTrackHandler.bind(this)
+
     this.setState('new')
     this.logger.trace('New Call with Options:', this.options)
 
@@ -1001,25 +1003,25 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   private _attachAudioTrackListener() {
     this.localStream?.getAudioTracks().forEach((track) => {
-      track.addEventListener('ended', this._onEndedTrackHandler.bind(this))
+      track.addEventListener('ended', this._onEndedTrackHandler)
     })
   }
 
   private _attachVideoTrackListener() {
     this.localStream?.getVideoTracks().forEach((track) => {
-      track.addEventListener('ended', this._onEndedTrackHandler.bind(this))
+      track.addEventListener('ended', this._onEndedTrackHandler)
     })
   }
 
   private _detachAudioTrackListener() {
     this.localStream?.getAudioTracks().forEach((track) => {
-      track.removeEventListener('ended', this._onEndedTrackHandler.bind(this))
+      track.removeEventListener('ended', this._onEndedTrackHandler)
     })
   }
 
   private _detachVideoTrackListener() {
     this.localStream?.getVideoTracks().forEach((track) => {
-      track.removeEventListener('ended', this._onEndedTrackHandler.bind(this))
+      track.removeEventListener('ended', this._onEndedTrackHandler)
     })
   }
 }
