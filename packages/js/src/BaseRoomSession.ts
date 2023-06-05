@@ -18,9 +18,9 @@ import {
   BaseConnection,
   BaseConnectionOptions,
   BaseConnectionStateEventTypes,
-  getSpeakerDevices,
   supportsMediaOutput,
   createSpeakerDeviceWatcher,
+  getSpeakerById,
 } from '@signalwire/webrtc'
 import type {
   RoomSessionObjectEvents,
@@ -482,15 +482,11 @@ export class RoomSessionConnection
   }
 
   updateSpeaker({ deviceId }: { deviceId: string }) {
-    const prevId = this._audioEl.sinkId
+    const prevId = this._audioEl.sinkId as string
     // @ts-expect-error
     this.once('_internal.speaker.updated', async (newId) => {
-      const speakers = await getSpeakerDevices()
-      console.log('speakers', speakers)
-      console.log('prevId', prevId)
-      console.log('newId', newId)
-      const prevSpeaker = speakers.find((audio) => audio.deviceId === prevId)
-      const newSpeaker = speakers.find((audio) => audio.deviceId === newId)
+      const prevSpeaker = await getSpeakerById(prevId)
+      const newSpeaker = await getSpeakerById(newId)
 
       const isSame = newSpeaker?.deviceId === prevSpeaker?.deviceId
       if (!newSpeaker?.deviceId || isSame) return
@@ -516,9 +512,16 @@ export class RoomSessionConnection
     // @TODO: Stop the watcher when user leave/disconnects
     createSpeakerDeviceWatcher().then((deviceWatcher) => {
       deviceWatcher.on('removed', async (data) => {
-        const disconnectedSpeaker = data.changes.find(
-          (device) => device.payload.deviceId === this._audioEl.sinkId
-        )
+        const disconnectedSpeaker = data.changes.find((device) => {
+          const payloadDeviceId = device.payload.deviceId
+          const sinkId = this._audioEl.sinkId
+
+          return (
+            payloadDeviceId === sinkId ||
+            (payloadDeviceId === '' && sinkId === 'default') ||
+            (payloadDeviceId === 'default' && sinkId === '')
+          )
+        })
         if (disconnectedSpeaker) {
           this.emit('speaker.disconnected', {
             deviceId: disconnectedSpeaker.payload.deviceId,
@@ -529,11 +532,9 @@ export class RoomSessionConnection
            * In case the currently in-use speaker disconnects, OS by default fallbacks to the default speaker
            * Set the sink id here to make the SDK consistent with the OS
            */
-          await this._audioEl.setSinkId?.('default')
+          await this._audioEl.setSinkId?.('')
 
-          const defaultSpeakers = (await getSpeakerDevices()).find(
-            (audio: MediaDeviceInfo) => audio.deviceId === 'default'
-          )
+          const defaultSpeakers = await getSpeakerById('default')
 
           if (!defaultSpeakers?.deviceId) return
 
@@ -556,12 +557,6 @@ export class RoomSessionConnection
   getAudioEl() {
     if (this._audioEl) return this._audioEl
     this._audioEl = new Audio()
-    /**
-     * By default the sink id of the default speaker is an empty string
-     * But enumerateDevices() returns the id 'default' for the default speaker
-     * To be consistent with the devices, set the sink id to 'default' here
-     */
-    this._audioEl.setSinkId?.('default')
     this._attachSpeakerTrackListener()
     return this._audioEl
   }
