@@ -1,6 +1,5 @@
 import {
   BaseComponentOptions,
-  BaseConsumer,
   connect,
   JSONRPCSubscribeMethod,
   ExecuteParams,
@@ -19,6 +18,7 @@ import type {
 import { PRODUCT_PREFIX_PUBSUB } from '../utils/constants'
 import { PubSubMessage } from './PubSubMessage'
 import { pubSubWorker } from './workers/pubSubWorker'
+import { ApplyEventListeners } from '../ApplyEventListeners'
 
 export type BasePubSubApiEventsHandlerMapping = Record<
   PubSubMessageEventName,
@@ -48,7 +48,7 @@ const toInternalPubSubChannels = (
 
 export class BasePubSubConsumer<
   EventTypes extends EventEmitter.ValidEventTypes = BasePubSubApiEvents
-> extends BaseConsumer<EventTypes> {
+> extends ApplyEventListeners<EventTypes> {
   protected override _eventsPrefix = PRODUCT_PREFIX_PUBSUB
   protected override subscribeMethod: JSONRPCSubscribeMethod = `${PRODUCT_PREFIX_PUBSUB}.subscribe`
 
@@ -207,28 +207,12 @@ export class BasePubSubConsumer<
     return {}
   }
 
-  override on(
-    event: EventEmitter.EventNames<EventTypes>,
-    fn: EventEmitter.EventListener<EventTypes, any>
+  protected override extendEventName(
+    event: EventEmitter.EventNames<EventTypes>
   ) {
-    // @ts-expect-error
-    return super._on(`chat.${event}`, fn)
-  }
-
-  override once(
-    event: EventEmitter.EventNames<EventTypes>,
-    fn: EventEmitter.EventListener<EventTypes, any>
-  ) {
-    // @ts-expect-error
-    return super._once(`chat.${event}`, fn)
-  }
-
-  override off(
-    event: EventEmitter.EventNames<EventTypes>,
-    fn: EventEmitter.EventListener<EventTypes, any>
-  ) {
-    // @ts-expect-error
-    return super._off(`chat.${event}`, fn)
+    return `${PRODUCT_PREFIX_PUBSUB}.${
+      event as string
+    }` as EventEmitter.EventNames<EventTypes>
   }
 }
 

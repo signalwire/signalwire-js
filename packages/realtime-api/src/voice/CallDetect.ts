@@ -5,8 +5,8 @@ import {
   CallingCallDetectEndState,
   CallingCallDetectEventParams,
   EventEmitter,
+  ApplyEventListeners,
 } from '@signalwire/core'
-import { ApplyEventListeners } from '../ApplyEventListeners'
 
 /**
  * Instances of this class allow you to control (e.g., resume) the

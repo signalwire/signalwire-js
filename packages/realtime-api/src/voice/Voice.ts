@@ -4,6 +4,7 @@ import {
   toExternalJSON,
   ClientContextContract,
   uuid,
+  ApplyEventListeners,
 } from '@signalwire/core'
 import type {
   DisconnectableClientContract,
@@ -19,7 +20,6 @@ import { Call } from './Call'
 import { voiceCallingWroker } from './workers'
 import { DeviceBuilder } from './DeviceBuilder'
 import type { RealTimeCallApiEvents } from '../types'
-import { ApplyEventListeners } from '../ApplyEventListeners'
 import { toInternalDevices } from './utils'
 
 export * from './VoiceClient'
