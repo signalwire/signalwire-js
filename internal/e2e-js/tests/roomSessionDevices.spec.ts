@@ -8,7 +8,7 @@ import {
 } from '../utils'
 
 test.describe('RoomSessionDevices', () => {
-  test.only('should emit the microphone, and camera updated event', async ({
+  test('should emit the microphone, and camera updated event', async ({
     createCustomPage,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
