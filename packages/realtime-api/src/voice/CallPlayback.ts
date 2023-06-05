@@ -27,7 +27,9 @@ export interface CallPlayback extends VoiceCallPlaybackContract {
 export type CallPlaybackEventsHandlerMapping = {}
 
 export interface CallPlaybackOptions
-  extends BaseComponentOptions<CallPlaybackEventsHandlerMapping> {}
+  extends BaseComponentOptions<CallPlaybackEventsHandlerMapping> {
+  payload: CallingCallPlayEventParams
+}
 
 const ENDED_STATES: CallingCallPlayEndState[] = ['finished', 'error']
 
@@ -41,7 +43,7 @@ export class CallPlaybackAPI
   private _volume: number
   private _payload: CallingCallPlayEventParams
 
-  constructor(options: BaseComponentOptions<CallPlaybackEventsHandlerMapping>) {
+  constructor(options: CallPlaybackOptions) {
     super(options)
 
     this._payload = options.payload

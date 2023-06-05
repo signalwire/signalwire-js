@@ -153,8 +153,16 @@ export interface BaseComponentOptions<
   store: SDKStore
   emitter: EventEmitter<EventTypes>
   customSagas?: CustomSaga<any>[]
-  // @TODO: proper type for payload?
-  payload?: any
+}
+
+export interface BaseComponentOptionsWithPayload<
+  EventTypes extends EventEmitter.ValidEventTypes,
+  CustomPayload extends unknown
+> {
+  store: SDKStore
+  emitter: EventEmitter<EventTypes>
+  customSagas?: CustomSaga<any>[]
+  payload: CustomPayload
 }
 
 export interface SessionRequestObject {

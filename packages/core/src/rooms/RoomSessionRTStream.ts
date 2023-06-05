@@ -8,7 +8,7 @@
 
 import { connect } from '../redux'
 import { BaseComponent } from '../BaseComponent'
-import { BaseComponentOptions } from '../utils/interfaces'
+import { BaseComponentOptionsWithPayload } from '../utils/interfaces'
 import type {
   VideoStreamContract,
   VideoStreamEventNames,
@@ -28,15 +28,19 @@ export type RoomSessionRTStreamEventsHandlerMapping = Record<
   (stream: RoomSessionRTStream) => void
 >
 
+export interface RoomSessionRTStreamOptions
+  extends BaseComponentOptionsWithPayload<
+    RoomSessionRTStreamEventsHandlerMapping,
+    VideoStreamEventParams
+  > {}
+
 export class RoomSessionRTStreamAPI
   extends BaseComponent<RoomSessionRTStreamEventsHandlerMapping>
   implements VideoStreamMethods
 {
   private _payload: VideoStreamEventParams
 
-  constructor(
-    options: BaseComponentOptions<RoomSessionRTStreamEventsHandlerMapping>
-  ) {
+  constructor(options: RoomSessionRTStreamOptions) {
     super(options)
 
     this._payload = options.payload
@@ -95,7 +99,7 @@ export class RoomSessionRTStreamAPI
 }
 
 export const createRoomSessionRTStreamObject = (
-  params: BaseComponentOptions<RoomSessionRTStreamEventsHandlerMapping>
+  params: RoomSessionRTStreamOptions
 ): RoomSessionRTStream => {
   const stream = connect<
     RoomSessionRTStreamEventsHandlerMapping,

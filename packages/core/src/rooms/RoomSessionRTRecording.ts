@@ -8,7 +8,7 @@
 
 import { connect } from '../redux'
 import { BaseComponent } from '../BaseComponent'
-import { BaseComponentOptions } from '../utils/interfaces'
+import { BaseComponentOptionsWithPayload } from '../utils/interfaces'
 import type {
   VideoRecordingContract,
   VideoRecordingEventNames,
@@ -28,15 +28,19 @@ export type RoomSessionRTRecordingEventsHandlerMapping = Record<
   (recording: RoomSessionRTRecording) => void
 >
 
+export interface RoomSessionRTRecordingOptions
+  extends BaseComponentOptionsWithPayload<
+    RoomSessionRTRecordingEventsHandlerMapping,
+    VideoRecordingEventParams
+  > {}
+
 export class RoomSessionRTRecordingAPI
   extends BaseComponent<RoomSessionRTRecordingEventsHandlerMapping>
   implements VideoRecordingMethods
 {
   private _payload: VideoRecordingEventParams
 
-  constructor(
-    options: BaseComponentOptions<RoomSessionRTRecordingEventsHandlerMapping>
-  ) {
+  constructor(options: RoomSessionRTRecordingOptions) {
     super(options)
 
     this._payload = options.payload
@@ -113,7 +117,7 @@ export class RoomSessionRTRecordingAPI
 }
 
 export const createRoomSessionRTRecordingObject = (
-  params: BaseComponentOptions<RoomSessionRTRecordingEventsHandlerMapping>
+  params: RoomSessionRTRecordingOptions
 ): RoomSessionRTRecording => {
   const recording = connect<
     RoomSessionRTRecordingEventsHandlerMapping,
