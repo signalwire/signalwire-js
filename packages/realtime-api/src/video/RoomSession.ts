@@ -15,13 +15,26 @@ import {
   Optional,
 } from '@signalwire/core'
 import { RealTimeRoomApiEvents } from '../types'
-import { RoomSessionMember } from './RoomSessionMember'
+import {
+  RoomSessionMember,
+  RoomSessionMemberEventParams,
+  createRoomSessionMemberObject,
+} from './RoomSessionMember'
 
 export interface RoomSession
   extends VideoRoomSessionContract,
     ConsumerContract<RealTimeRoomApiEvents, RoomSessionFullState> {
   baseEmitter: EventEmitter
   setPayload(payload: Optional<VideoRoomEventParams, 'room'>): void
+  /**
+   * Returns a list of members currently in the room.
+   *
+   * @example
+   * ```typescript
+   * await room.getMembers()
+   * ```
+   */
+  getMembers(): Promise<{ members: RoomSessionMember[] }>
 }
 
 export type RoomSessionUpdated = EntityUpdated<RoomSession>
@@ -185,15 +198,58 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   protected setPayload(payload: Optional<VideoRoomEventParams, 'room'>) {
     this._payload = payload
   }
+
+  getMembers() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const { members } = await this.execute<
+          void,
+          { members: RoomSessionMemberEventParams['member'][] }
+        >({
+          method: 'video.members.get',
+          params: {
+            room_session_id: this.roomSessionId,
+          },
+        })
+
+        const memberInstances: RoomSessionMember[] = []
+        members.forEach((member) => {
+          let memberInstance = this.instanceMap.get<RoomSessionMember>(
+            member.id
+          )
+          if (!memberInstance) {
+            memberInstance = createRoomSessionMemberObject({
+              store: this.store,
+              // @ts-expect-error
+              emitter: this.emitter,
+              payload: { member },
+            })
+          } else {
+            memberInstance.setPayload({
+              member,
+            } as RoomSessionMemberEventParams)
+          }
+          memberInstances.push(memberInstance)
+          this.instanceMap.set<RoomSessionMember>(
+            memberInstance.id,
+            memberInstance
+          )
+        })
+
+        resolve({ members: memberInstances })
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
 }
 
 export const RoomSessionAPI = extendComponent<
   RoomSessionConsumer,
-  VideoRoomSessionMethods
+  Omit<VideoRoomSessionMethods, 'getMembers'>
 >(RoomSessionConsumer, {
   videoMute: Rooms.videoMuteMember,
   videoUnmute: Rooms.videoUnmuteMember,
-  getMembers: Rooms.getMembers,
   audioMute: Rooms.audioMuteMember,
   audioUnmute: Rooms.audioUnmuteMember,
   deaf: Rooms.deafMember,
