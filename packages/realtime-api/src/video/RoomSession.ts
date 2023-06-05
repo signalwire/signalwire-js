@@ -222,7 +222,11 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
               store: this.store,
               // @ts-expect-error
               emitter: this.emitter,
-              payload: { member },
+              payload: {
+                room_id: this.roomId,
+                room_session_id: this.roomSessionId,
+                member,
+              },
             })
           } else {
             memberInstance.setPayload({
