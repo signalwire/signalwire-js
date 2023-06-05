@@ -125,7 +125,7 @@ export interface BaseConnectionContract<
    * room.setLocalStream(new MediaStream)
    * ```
    */
-  setLocalStream(stream: MediaStream): void
+  setLocalStream(stream: MediaStream): Promise<MediaStream>
 
   /** @internal */
   stopOutboundAudio(): void
