@@ -1,130 +1,81 @@
 import {
   getLogger,
-  sagaEffects,
   SagaIterator,
-  SDKWorker,
-  SDKActions,
-  CallingCallPlayEvent,
-  MapToPubSubShape,
+  CallingCallPlayEventParams,
 } from '@signalwire/core'
-import type { Call } from '../Call'
-import { callingPlaybackTriggerEvent } from '../Call'
+import { CallPlayback, createCallPlaybackObject } from '../CallPlayback'
+import { Call } from '../Voice'
+import type { VoiceCallWorkerParams } from './voiceCallingWorker'
 
-export const voiceCallPlayWorker: SDKWorker<Call> = function* (
-  options
+export const voiceCallPlayWorker = function* (
+  options: VoiceCallWorkerParams<CallingCallPlayEventParams>
 ): SagaIterator {
   getLogger().trace('voiceCallPlayWorker started')
-  const { channels, instance, initialState } = options
-  const { swEventChannel, pubSubChannel } = channels
-  const { controlId } = initialState
-  if (!controlId) {
-    throw new Error('Missing controlId for playback')
+  const {
+    payload,
+    instanceMap: { get, set, remove },
+  } = options
+
+  const callInstance = get<Call>(payload.call_id)
+  if (!callInstance) {
+    throw new Error('Missing call instance for playback')
   }
 
-  let paused = false
-  let run = true
-  const done = () => (run = false)
+  // Playback events control id for prompt contains `.prompt` keyword at the end of the string
+  const [controlId] = payload.control_id.split('.')
+  getLogger().trace('voiceCallPlayWorker controlId', controlId)
 
-  while (run) {
-    const action: MapToPubSubShape<CallingCallPlayEvent> =
-      yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
-        return (
-          action.type === 'calling.call.play' &&
-          action.payload.control_id === controlId
-        )
-      })
-
-    /** Add `tag` to the payload to allow pubSubSaga to match it with the Call namespace */
-    const payloadWithTag = {
-      tag: instance.tag,
-      ...action.payload,
-    }
-
-    /**
-     * Update the original CallPlayback object using the
-     * transform pipeline
-     */
-    yield sagaEffects.put(pubSubChannel, {
-      // @ts-ignore
-      type: callingPlaybackTriggerEvent,
-      // @ts-ignore
-      payload: payloadWithTag,
+  let playbackInstance = get<CallPlayback>(controlId)
+  if (!playbackInstance) {
+    getLogger().trace('voiceCallPlayWorker create instance')
+    playbackInstance = createCallPlaybackObject({
+      store: callInstance.store,
+      // @ts-expect-error
+      emitter: callInstance.emitter,
+      payload,
     })
+  } else {
+    getLogger().trace('voiceCallPlayWorker GOT instance')
+    playbackInstance.setPayload(payload)
+  }
+  set<CallPlayback>(controlId, playbackInstance)
 
-    /** Update the original CallPlayback object through the control_id */
-    yield sagaEffects.put(pubSubChannel, {
-      // @ts-ignore
-      type: `calling.call.play.${action.payload.control_id}`,
-      // @ts-ignore
-      payload: payloadWithTag,
-    })
+  switch (payload.state) {
+    case 'playing': {
+      const type = playbackInstance._paused
+        ? 'playback.updated'
+        : 'playback.started'
+      playbackInstance._paused = false
 
-    switch (action.payload.state) {
-      case 'playing': {
-        const type = paused
-          ? 'calling.playback.updated'
-          : 'calling.playback.started'
-        paused = false
-
-        yield sagaEffects.put(pubSubChannel, {
-          type,
-          payload: payloadWithTag,
-        })
-        break
-      }
-      case 'paused': {
-        paused = true
-
-        yield sagaEffects.put(pubSubChannel, {
-          type: 'calling.playback.updated',
-          payload: payloadWithTag,
-        })
-        break
-      }
-      case 'error': {
-        yield sagaEffects.put(pubSubChannel, {
-          type: 'calling.playback.failed',
-          payload: payloadWithTag,
-        })
-
-        /**
-         * Dispatch an event to resolve `ended()` in CallPlayback
-         * when ended
-         */
-        yield sagaEffects.put(pubSubChannel, {
-          type: 'calling.playback.ended',
-          payload: {
-            ...action.payload,
-            tag: controlId,
-          },
-        })
-
-        done()
-        break
-      }
-      case 'finished': {
-        yield sagaEffects.put(pubSubChannel, {
-          type: 'calling.playback.ended',
-          payload: payloadWithTag,
-        })
-
-        /**
-         * Dispatch an event to resolve `ended()` in CallPlayback
-         * when ended
-         */
-        yield sagaEffects.put(pubSubChannel, {
-          type: 'calling.playback.ended',
-          // @ts-ignore
-          payload: {
-            tag: controlId,
-            ...action.payload,
-          },
-        })
-
-        done()
-        break
-      }
+      callInstance.baseEmitter.emit(type, playbackInstance)
+      break
     }
+    case 'paused': {
+      playbackInstance._paused = true
+      callInstance.baseEmitter.emit('playback.updated', playbackInstance)
+      break
+    }
+    case 'error': {
+      callInstance.baseEmitter.emit('playback.failed', playbackInstance)
+
+      // To resolve the ended() promise in CallPlayback
+      playbackInstance.baseEmitter.emit('playback.failed', playbackInstance)
+
+      remove<CallPlayback>(controlId)
+      break
+    }
+    case 'finished': {
+      callInstance.baseEmitter.emit('playback.ended', playbackInstance)
+
+      // To resolve the ended() promise in CallPlayback
+      playbackInstance.baseEmitter.emit('playback.ended', playbackInstance)
+
+      remove<CallPlayback>(controlId)
+      break
+    }
+    default:
+      getLogger().warn(`Unknown playback state: "${payload.state}"`)
+      break
   }
 
   getLogger().trace('voiceCallPlayWorker ended')

@@ -13,19 +13,18 @@ describe('CallPlayback', () => {
       instance = createCallPlaybackObject({
         store: configureJestStore(),
         emitter: new EventEmitter<CallPlaybackEventsHandlerMapping>(),
+        // @ts-expect-error
+        payload: {
+          call_id: 'call_id',
+          node_id: 'node_id',
+          control_id: 'control_id',
+        },
       })
       // @ts-expect-error
       instance.execute = jest.fn()
     })
 
     it('should control an active playback', async () => {
-      // @ts-expect-error
-      instance.callId = 'call_id'
-      // @ts-expect-error
-      instance.nodeId = 'node_id'
-      // @ts-expect-error
-      instance.controlId = 'control_id'
-
       const baseExecuteParams = {
         method: '',
         params: {

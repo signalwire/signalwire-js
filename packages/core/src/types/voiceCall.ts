@@ -659,6 +659,7 @@ export interface VoiceCallContract<T = any> {
   /** @ignore */
   context?: string
 
+  connectState: CallingCallConnectState
   type: 'phone' | 'sip'
   device: any // FIXME:
   from: string
@@ -667,6 +668,7 @@ export interface VoiceCallContract<T = any> {
   headers?: SipHeader[]
   active: boolean
   connected: boolean
+  peer: T | undefined
 
   dial(params: VoiceDialerParams): Promise<T>
   hangup(reason?: VoiceCallDisconnectReason): Promise<void>
@@ -704,7 +706,7 @@ export interface VoiceCallContract<T = any> {
   sendDigits(digits: string): Promise<T>
   tap(params: VoiceCallTapMethodParams): Promise<VoiceCallTapContract>
   tapAudio(params: VoiceCallTapAudioMethodParams): Promise<VoiceCallTapContract>
-  connect(params: VoiceCallConnectMethodParams): Promise<VoiceCallContract>
+  connect(params: VoiceCallConnectMethodParams): Promise<T>
   connectPhone(
     params: VoiceCallConnectPhoneMethodParams
   ): Promise<VoiceCallContract>
@@ -785,7 +787,7 @@ export type InternalVoiceCallEntity = {
  * ==========
  */
 
-interface CallingCallPhoneDevice {
+export interface CallingCallPhoneDevice {
   type: 'phone'
   params: {
     from_number: string
@@ -795,7 +797,7 @@ interface CallingCallPhoneDevice {
   }
 }
 
-interface CallingCallSIPDevice {
+export interface CallingCallSIPDevice {
   type: 'sip'
   params: {
     from: string
@@ -818,7 +820,7 @@ export type CallingCallState =
   | 'ending'
   | 'ended'
 
-interface CallingCall {
+export interface CallingCall {
   call_id: string
   call_state: CallingCallState
   context?: string
@@ -1047,18 +1049,27 @@ export type CallingCallConnectState =
   | 'connected'
   | 'failed'
   | 'disconnected'
-export interface CallingCallConnectEventParams {
+export type CallingCallConnectEventParams =
+  | CallingCallConnectSuccessEventParams
+  | CallingCallConnectFailedEventParams
+export interface CallingCallConnectSuccessEventParams {
   node_id: string
   call_id: string
   tag: string
-  connect_state: CallingCallConnectState
-  failed_reason?: string
+  connect_state: 'connecting' | 'connected' | 'disconnected'
   peer: {
     node_id: string
     call_id: string
     tag: string
     device: CallingCallDevice
   }
+}
+export interface CallingCallConnectFailedEventParams {
+  node_id: string
+  call_id: string
+  tag: string
+  connect_state: 'failed'
+  failed_reason: string
 }
 
 export interface CallingCallConnectEvent extends SwEvent {
@@ -1135,6 +1146,7 @@ export interface CallingCallDetectEventParams {
   call_id: string
   control_id: string
   detect?: Detector
+  waitForBeep?: any
 }
 
 export interface CallingCallDetectEvent extends SwEvent {

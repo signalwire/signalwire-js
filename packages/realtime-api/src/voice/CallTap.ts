@@ -1,10 +1,11 @@
 import {
   connect,
-  BaseComponent,
-  BaseComponentOptions,
+  BaseComponentOptionsWithPayload,
   VoiceCallTapContract,
-  CallingCallTapState,
   CallingCallTapEndState,
+  CallingCallTapEventParams,
+  EventEmitter,
+  ApplyEventListeners,
 } from '@signalwire/core'
 
 /**
@@ -13,26 +14,52 @@ import {
  * starting a Tap from the desired {@link Call} (see
  * {@link Call.tap})
  */
-export interface CallTap extends VoiceCallTapContract {}
+export interface CallTap extends VoiceCallTapContract {
+  setPayload: (payload: CallingCallTapEventParams) => void
+  _paused: boolean
+  baseEmitter: EventEmitter
+}
 
 export type CallTapEventsHandlerMapping = {}
 
 export interface CallTapOptions
-  extends BaseComponentOptions<CallTapEventsHandlerMapping> {}
+  extends BaseComponentOptionsWithPayload<
+    CallTapEventsHandlerMapping,
+    CallingCallTapEventParams
+  > {}
 
 const ENDED_STATES: CallingCallTapEndState[] = ['finished']
 
 export class CallTapAPI
-  extends BaseComponent<CallTapEventsHandlerMapping>
+  extends ApplyEventListeners<CallTapEventsHandlerMapping>
   implements VoiceCallTapContract
 {
-  callId: string
-  nodeId: string
-  controlId: string
-  state: CallingCallTapState
+  private _payload: CallingCallTapEventParams
+
+  constructor(options: CallTapOptions) {
+    super(options)
+
+    this._payload = options.payload
+  }
 
   get id() {
-    return this.controlId
+    return this._payload.control_id
+  }
+
+  get controlId() {
+    return this._payload.control_id
+  }
+
+  get nodeId() {
+    return this._payload.node_id
+  }
+
+  get callId() {
+    return this._payload.call_id
+  }
+
+  get state() {
+    return this._payload.state
   }
 
   async stop() {
@@ -60,6 +87,8 @@ export class CallTapAPI
       this._attachListeners(this.controlId)
 
       const handler = () => {
+        // @ts-expect-error
+        this.off('tap.ended', handler)
         // It's important to notice that we're returning
         // `this` instead of creating a brand new instance
         // using the payload + EventEmitter Transform

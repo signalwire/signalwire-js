@@ -1,36 +1,39 @@
-import {
-  getLogger,
-  sagaEffects,
-  SagaIterator,
-  SDKWorker,
-} from '@signalwire/core'
-import type { Client } from '../../client/index'
+import { CallingCall, getLogger, SagaIterator } from '@signalwire/core'
+import { createCallObject } from '../Call'
+import type { Call } from '../Call'
+import type { VoiceCallWorkerParams } from './voiceCallingWorker'
 
-export const voiceCallReceiveWorker: SDKWorker<Client> = function* (
-  options
+export const voiceCallReceiveWorker = function* (
+  options: VoiceCallWorkerParams<CallingCall>
 ): SagaIterator {
   getLogger().trace('voiceCallReceiveWorker started')
-  const { channels, instance } = options
-  const { swEventChannel, pubSubChannel } = channels
-  // contexts is required
-  const { contexts = [] } = instance?.options ?? {}
+  const {
+    instance: client,
+    payload,
+    instanceMap: { get, set },
+  } = options
+
+  // Contexts is required
+  const { contexts = [] } = client?.options ?? {}
   if (!contexts.length) {
     throw new Error('Invalid contexts to receive inbound calls')
   }
 
-  while (true) {
-    const action = yield sagaEffects.take(swEventChannel, (action: any) => {
-      return (
-        action.type === 'calling.call.receive' &&
-        contexts.includes(action.payload.context)
-      )
+  let callInstance = get<Call>(payload.call_id)
+  if (!callInstance) {
+    callInstance = createCallObject({
+      store: client.store,
+      // @ts-expect-error
+      emitter: client.emitter,
+      payload: payload,
     })
-
-    yield sagaEffects.put(pubSubChannel, {
-      type: 'calling.call.received',
-      payload: action.payload,
-    })
+  } else {
+    callInstance.setPayload(payload)
   }
+
+  set<Call>(payload.call_id, callInstance)
+  // @ts-expect-error
+  client.baseEmitter.emit('call.received', callInstance)
 
   getLogger().trace('voiceCallReceiveWorker ended')
 }

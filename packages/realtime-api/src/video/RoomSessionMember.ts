@@ -1,12 +1,16 @@
 import {
   connect,
   BaseComponent,
-  BaseComponentOptions,
+  BaseComponentOptionsWithPayload,
   extendComponent,
   Rooms,
   VideoMemberContract,
   VideoMemberMethods,
   EntityUpdated,
+  VideoMemberJoinedEventParams,
+  VideoMemberLeftEventParams,
+  VideoMemberUpdatedEventParams,
+  VideoMemberTalkingEventParams,
 } from '@signalwire/core'
 
 /**
@@ -20,12 +24,114 @@ import {
  * > listeners, the state of the member always refers to that specific point in
  * > time and remains fixed for the whole lifetime of the object.
  */
-export interface RoomSessionMember extends VideoMemberContract {}
+export interface RoomSessionMember extends VideoMemberContract {
+  setPayload(payload: RoomSessionMemberEventParams): void
+}
 export type RoomSessionMemberUpdated = EntityUpdated<RoomSessionMember>
+
+export type RoomSessionMemberEventParams =
+  | (
+      | VideoMemberJoinedEventParams
+      | VideoMemberLeftEventParams
+      | VideoMemberUpdatedEventParams
+    ) &
+      VideoMemberTalkingEventParams
+
+export interface RoomSessionMemberOptions
+  extends BaseComponentOptionsWithPayload<{}, RoomSessionMemberEventParams> {}
 
 // TODO: Extend from a variant of `BaseComponent` that
 // doesn't expose EventEmitter methods
 class RoomSessionMemberComponent extends BaseComponent<{}> {
+  private _payload: RoomSessionMemberEventParams
+
+  constructor(options: RoomSessionMemberOptions) {
+    super(options)
+
+    this._payload = options.payload
+  }
+
+  get id() {
+    return this._payload.member.id
+  }
+
+  get memberId() {
+    return this._payload.member.id
+  }
+
+  get roomSessionId() {
+    return this._payload.member.room_session_id
+  }
+
+  get roomId() {
+    return this._payload.member.room_id
+  }
+
+  get parentId() {
+    return this._payload.member.parent_id
+  }
+
+  get name() {
+    return this._payload.member.name
+  }
+
+  get type() {
+    return this._payload.member.type
+  }
+
+  get meta() {
+    return this._payload.member.meta
+  }
+
+  get requestedPosition() {
+    return this._payload.member.requested_position
+  }
+
+  get visible() {
+    return this._payload.member.visible
+  }
+
+  get audioMuted() {
+    return this._payload.member.audio_muted
+  }
+
+  get videoMuted() {
+    return this._payload.member.video_muted
+  }
+
+  get deaf() {
+    return this._payload.member.deaf
+  }
+
+  get inputVolume() {
+    return this._payload.member.input_volume
+  }
+
+  get outputVolume() {
+    return this._payload.member.output_volume
+  }
+
+  get inputSensitivity() {
+    return this._payload.member.input_sensitivity
+  }
+
+  get talking() {
+    return this._payload.member.talking
+  }
+
+  /** @internal */
+  protected setPayload(payload: RoomSessionMemberEventParams) {
+    // Reshape the payload since the `video.member.talking` event does not return all the parameters of a member
+    const newPayload = {
+      ...payload,
+      member: {
+        ...this._payload.member,
+        ...payload.member,
+      },
+    }
+    this._payload = newPayload
+  }
+
   async remove() {
     await this.execute({
       method: 'video.member.remove',
@@ -55,7 +161,7 @@ const RoomSessionMemberAPI = extendComponent<
 })
 
 export const createRoomSessionMemberObject = (
-  params: BaseComponentOptions<{}>
+  params: RoomSessionMemberOptions
 ): RoomSessionMember => {
   const member = connect<{}, RoomSessionMemberComponent, RoomSessionMember>({
     store: params.store,

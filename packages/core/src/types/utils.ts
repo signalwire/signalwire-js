@@ -128,3 +128,8 @@ export type DeepReadonly<T> = T extends Builtin
 export type AllOrNone<T extends Record<any, any>> =
   | T
   | Partial<Record<keyof T, never>>
+
+/**
+ * Make one or more properties optional
+ */
+export type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>

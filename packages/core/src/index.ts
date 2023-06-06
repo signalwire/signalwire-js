@@ -4,6 +4,7 @@ import {
   getLogger,
   isGlobalEvent,
   toExternalJSON,
+  fromSnakeToCamelCase,
   toSnakeCaseKeys,
   toLocalEvent,
   toSyntheticEvent,
@@ -50,6 +51,7 @@ export {
   getEventEmitter,
   isGlobalEvent,
   toExternalJSON,
+  fromSnakeToCamelCase,
   toSnakeCaseKeys,
   toLocalEvent,
   toInternalEventName,
@@ -96,8 +98,11 @@ export * as PubSub from './pubSub'
 export * as MemberPosition from './memberPosition'
 export type {
   RoomSessionRecording,
+  RoomSessionRTRecording,
   RoomSessionPlayback,
+  RoomSessionRTPlayback,
   RoomSessionStream,
+  RoomSessionRTStream,
 } from './rooms'
 export const selectors = {
   ...sessionSelectors,
@@ -105,3 +110,4 @@ export const selectors = {
 export { ChatMember, ChatMessage } from './chat'
 export { PubSubMessage } from './pubSub'
 export * as testUtils from './testUtils'
+export * from './ApplyEventListeners'

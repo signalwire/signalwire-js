@@ -1,11 +1,12 @@
 import {
   connect,
-  BaseComponentOptions,
+  BaseComponentOptionsWithPayload,
   VoiceCallPromptContract,
-  CallingCallCollectResult,
   CallingCallCollectEndState,
-  BaseComponent,
   CallPromptEndedEvent,
+  CallingCallCollectEventParams,
+  EventEmitter,
+  ApplyEventListeners,
 } from '@signalwire/core'
 
 /**
@@ -14,12 +15,18 @@ import {
  * starting a Prompt from the desired {@link Call} (see
  * {@link Call.prompt})
  */
-export interface CallPrompt extends VoiceCallPromptContract {}
+export interface CallPrompt extends VoiceCallPromptContract {
+  setPayload: (payload: CallingCallCollectEventParams) => void
+  baseEmitter: EventEmitter
+}
 
 export type CallPromptEventsHandlerMapping = {}
 
 export interface CallPromptOptions
-  extends BaseComponentOptions<CallPromptEventsHandlerMapping> {}
+  extends BaseComponentOptionsWithPayload<
+    CallPromptEventsHandlerMapping,
+    CallingCallCollectEventParams
+  > {}
 
 const ENDED_STATES: CallingCallCollectEndState[] = [
   'no_input',
@@ -30,18 +37,36 @@ const ENDED_STATES: CallingCallCollectEndState[] = [
 ]
 
 export class CallPromptAPI
-  extends BaseComponent<CallPromptEventsHandlerMapping>
+  extends ApplyEventListeners<CallPromptEventsHandlerMapping>
   implements VoiceCallPromptContract
 {
   protected _eventsPrefix = 'calling' as const
+  private _payload: CallingCallCollectEventParams
 
-  callId: string
-  nodeId: string
-  controlId: string
-  result?: CallingCallCollectResult
+  constructor(options: CallPromptOptions) {
+    super(options)
+
+    this._payload = options.payload
+  }
 
   get id() {
-    return this.controlId
+    return this._payload?.control_id.split('.')[0]
+  }
+
+  get controlId() {
+    return this._payload.control_id
+  }
+
+  get callId() {
+    return this._payload.call_id
+  }
+
+  get nodeId() {
+    return this._payload.node_id
+  }
+
+  get result() {
+    return this._payload.result
   }
 
   get type() {
@@ -82,6 +107,11 @@ export class CallPromptAPI
       return this.result.params.confidence
     }
     return undefined
+  }
+
+  /** @internal */
+  protected setPayload(payload: CallingCallCollectEventParams) {
+    this._payload = payload
   }
 
   async stop() {

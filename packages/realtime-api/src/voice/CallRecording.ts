@@ -1,10 +1,11 @@
 import {
   connect,
-  BaseComponent,
-  BaseComponentOptions,
+  BaseComponentOptionsWithPayload,
   VoiceCallRecordingContract,
-  CallingCallRecordState,
   CallingCallRecordEndState,
+  CallingCallRecordEventParams,
+  EventEmitter,
+  ApplyEventListeners,
 } from '@signalwire/core'
 
 /**
@@ -13,28 +14,58 @@ import {
  * starting a recording from the desired {@link Call} (see
  * {@link Call.record})
  */
-export interface CallRecording extends VoiceCallRecordingContract {}
+export interface CallRecording extends VoiceCallRecordingContract {
+  setPayload: (payload: CallingCallRecordEventParams) => void
+  _paused: boolean
+  baseEmitter: EventEmitter
+}
 
 export type CallRecordingEventsHandlerMapping = {}
 
 export interface CallRecordingOptions
-  extends BaseComponentOptions<CallRecordingEventsHandlerMapping> {}
+  extends BaseComponentOptionsWithPayload<
+    CallRecordingEventsHandlerMapping,
+    CallingCallRecordEventParams
+  > {}
 
 const ENDED_STATES: CallingCallRecordEndState[] = ['finished', 'no_input']
 
 export class CallRecordingAPI
-  extends BaseComponent<CallRecordingEventsHandlerMapping>
+  extends ApplyEventListeners<CallRecordingEventsHandlerMapping>
   implements VoiceCallRecordingContract
 {
   protected _eventsPrefix = 'calling' as const
+  private _payload: CallingCallRecordEventParams
 
-  callId: string
-  nodeId: string
-  controlId: string
-  state: CallingCallRecordState = 'recording'
+  constructor(options: CallRecordingOptions) {
+    super(options)
+
+    this._payload = options.payload
+  }
 
   get id() {
-    return this.controlId
+    return this._payload?.control_id
+  }
+
+  get callId() {
+    return this._payload?.call_id
+  }
+
+  get nodeId() {
+    return this._payload?.node_id
+  }
+
+  get controlId() {
+    return this._payload?.control_id
+  }
+
+  get state() {
+    return this._payload?.state
+  }
+
+  /** @internal */
+  protected setPayload(payload: CallingCallRecordEventParams) {
+    this._payload = payload
   }
 
   async stop() {
@@ -58,6 +89,7 @@ export class CallRecordingAPI
   ended() {
     return new Promise<this>((resolve) => {
       this._attachListeners(this.controlId)
+
       const handler = () => {
         // @ts-expect-error
         this.off('recording.ended', handler)

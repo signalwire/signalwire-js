@@ -1,14 +1,11 @@
 import {
   BaseComponentOptions,
-  BaseConsumer,
   connect,
   JSONRPCSubscribeMethod,
   ExecuteParams,
   actions,
   SessionEvents,
   EventEmitter,
-  EventTransform,
-  toExternalJSON,
 } from '..'
 import { getAuthState } from '../redux/features/session/sessionSelectors'
 import type {
@@ -17,11 +14,11 @@ import type {
   PubSubEventNames,
   PubSubPublishParams,
   PubSubMessageEventName,
-  PubSubChannelMessageEvent,
 } from '../types/pubSub'
 import { PRODUCT_PREFIX_PUBSUB } from '../utils/constants'
 import { PubSubMessage } from './PubSubMessage'
-import * as workers from './workers'
+import { pubSubWorker } from './workers/pubSubWorker'
+import { ApplyEventListeners } from '../ApplyEventListeners'
 
 export type BasePubSubApiEventsHandlerMapping = Record<
   PubSubMessageEventName,
@@ -51,7 +48,7 @@ const toInternalPubSubChannels = (
 
 export class BasePubSubConsumer<
   EventTypes extends EventEmitter.ValidEventTypes = BasePubSubApiEvents
-> extends BaseConsumer<EventTypes> {
+> extends ApplyEventListeners<EventTypes> {
   protected override _eventsPrefix = PRODUCT_PREFIX_PUBSUB
   protected override subscribeMethod: JSONRPCSubscribeMethod = `${PRODUCT_PREFIX_PUBSUB}.subscribe`
 
@@ -65,40 +62,12 @@ export class BasePubSubConsumer<
      */
     this._attachListeners('')
 
-    this.runWorker('pubSub', { worker: workers.pubSubWorker })
+    // Initialize worker through a function so that it can be override by the BaseChatConsumer
+    this.initWorker()
   }
 
-  /** @internal */
-  protected getEmitterTransforms() {
-    return new Map<any, EventTransform>([
-      [
-        ['message'],
-        {
-          type: 'pubSubMessage',
-          instanceFactory: () => {
-            return new PubSubMessage({} as any)
-          },
-          payloadTransform: (payload: PubSubChannelMessageEvent) => {
-            const {
-              channel,
-              /**
-               * Since we're using the same event as `Chat`
-               * the payload comes with a `member` prop. To
-               * avoid confusion (since `PubSub` doesn't
-               * have members) we'll remove it from the
-               * payload sent to the end user.
-               */
-              // @ts-expect-error
-              message: { member, ...restMessage },
-            } = payload.params
-            return toExternalJSON({
-              ...restMessage,
-              channel,
-            })
-          },
-        },
-      ],
-    ])
+  protected initWorker() {
+    this.runWorker('pubSub', { worker: pubSubWorker })
   }
 
   private _getChannelsParam(
@@ -236,6 +205,14 @@ export class BasePubSubConsumer<
       return authState.channels
     }
     return {}
+  }
+
+  protected override extendEventName(
+    event: EventEmitter.EventNames<EventTypes>
+  ) {
+    return `${PRODUCT_PREFIX_PUBSUB}.${
+      event as string
+    }` as EventEmitter.EventNames<EventTypes>
   }
 }
 

@@ -1,10 +1,11 @@
 import {
   connect,
-  BaseComponent,
   BaseComponentOptions,
   VoiceCallPlaybackContract,
-  CallingCallPlayState,
   CallingCallPlayEndState,
+  CallingCallPlayEventParams,
+  EventEmitter,
+  ApplyEventListeners,
 } from '@signalwire/core'
 
 /**
@@ -13,7 +14,11 @@ import {
  * starting a playback from the desired {@link Call} (see
  * {@link Call.play})
  */
-export interface CallPlayback extends VoiceCallPlaybackContract {}
+export interface CallPlayback extends VoiceCallPlaybackContract {
+  setPayload: (payload: CallingCallPlayEventParams) => void
+  _paused: boolean
+  baseEmitter: EventEmitter
+}
 
 // export type CallPlaybackEventsHandlerMapping = Record<
 //   VideoPlaybackEventNames,
@@ -22,28 +27,56 @@ export interface CallPlayback extends VoiceCallPlaybackContract {}
 export type CallPlaybackEventsHandlerMapping = {}
 
 export interface CallPlaybackOptions
-  extends BaseComponentOptions<CallPlaybackEventsHandlerMapping> {}
+  extends BaseComponentOptions<CallPlaybackEventsHandlerMapping> {
+  payload: CallingCallPlayEventParams
+}
 
 const ENDED_STATES: CallingCallPlayEndState[] = ['finished', 'error']
 
 export class CallPlaybackAPI
-  extends BaseComponent<CallPlaybackEventsHandlerMapping>
+  extends ApplyEventListeners<CallPlaybackEventsHandlerMapping>
   implements VoiceCallPlaybackContract
 {
   protected _eventsPrefix = 'calling' as const
 
-  callId: string
-  nodeId: string
-  controlId: string
-  state: CallingCallPlayState = 'playing'
+  public _paused: boolean
   private _volume: number
+  private _payload: CallingCallPlayEventParams
+
+  constructor(options: CallPlaybackOptions) {
+    super(options)
+
+    this._payload = options.payload
+    this._paused = false
+  }
 
   get id() {
-    return this.controlId
+    return this._payload?.control_id.split('.')[0]
   }
 
   get volume() {
     return this._volume
+  }
+
+  get callId() {
+    return this._payload?.call_id
+  }
+
+  get nodeId() {
+    return this._payload?.node_id
+  }
+
+  get controlId() {
+    return this._payload?.control_id
+  }
+
+  get state() {
+    return this._payload?.state
+  }
+
+  /** @internal */
+  protected setPayload(payload: CallingCallPlayEventParams) {
+    this._payload = payload
   }
 
   async pause() {
@@ -111,6 +144,10 @@ export class CallPlaybackAPI
       this._attachListeners(this.controlId)
 
       const handler = () => {
+        // @ts-expect-error
+        this.off('playback.ended', handler)
+        // @ts-expect-error
+        this.off('playback.failed', handler)
         // It's important to notice that we're returning
         // `this` instead of creating a brand new instance
         // using the payload + EventEmitter Transform
@@ -123,10 +160,10 @@ export class CallPlaybackAPI
       }
       // @ts-expect-error
       this.once('playback.ended', handler)
-      // // @ts-expect-error
-      // this.on('prompt.failed', handler)
+      // @ts-expect-error
+      this.once('playback.failed', handler)
 
-      // Resolve the promise if the playback has already ended
+      // Resolve the promise if the recording has already ended
       if (ENDED_STATES.includes(this.state as CallingCallPlayEndState)) {
         handler()
       }

@@ -1,10 +1,11 @@
 import {
   connect,
-  BaseComponent,
-  BaseComponentOptions,
+  BaseComponentOptionsWithPayload,
   VoiceCallDetectContract,
-  Detector,
   CallingCallDetectEndState,
+  CallingCallDetectEventParams,
+  EventEmitter,
+  ApplyEventListeners,
 } from '@signalwire/core'
 
 /**
@@ -13,32 +14,79 @@ import {
  * starting a Detect from the desired {@link Call} (see
  * {@link Call.detect})
  */
-export interface CallDetect extends VoiceCallDetectContract {}
+export interface CallDetect extends VoiceCallDetectContract {
+  setPayload: (payload: CallingCallDetectEventParams) => void
+  baseEmitter: EventEmitter
+  waitingForReady: boolean
+  waitForBeep: boolean
+}
 
 export type CallDetectEventsHandlerMapping = {}
 
 export interface CallDetectOptions
-  extends BaseComponentOptions<CallDetectEventsHandlerMapping> {}
+  extends BaseComponentOptionsWithPayload<
+    CallDetectEventsHandlerMapping,
+    CallingCallDetectEventParams
+  > {}
 
 const ENDED_STATES: CallingCallDetectEndState[] = ['finished', 'error']
 
 export class CallDetectAPI
-  extends BaseComponent<CallDetectEventsHandlerMapping>
+  extends ApplyEventListeners<CallDetectEventsHandlerMapping>
   implements VoiceCallDetectContract
 {
   protected _eventsPrefix = 'calling' as const
+  private _payload: CallingCallDetectEventParams
+  private _waitForBeep: boolean
+  private _waitingForReady: boolean
 
-  callId: string
-  nodeId: string
-  controlId: string
-  detect?: Detector
+  constructor(options: CallDetectOptions) {
+    super(options)
+
+    this._payload = options.payload
+    this._waitForBeep = options.payload.waitForBeep
+    this._waitingForReady = false
+  }
 
   get id() {
-    return this.controlId
+    return this._payload.control_id
+  }
+
+  get controlId() {
+    return this._payload.control_id
+  }
+
+  get callId() {
+    return this._payload.call_id
+  }
+
+  get nodeId() {
+    return this._payload.node_id
+  }
+
+  get detect() {
+    return this._payload.detect
   }
 
   get type() {
     return this?.detect?.type
+  }
+
+  get waitForBeep() {
+    return this._waitForBeep
+  }
+
+  get waitingForReady() {
+    return this._waitingForReady
+  }
+
+  set waitingForReady(ready: boolean) {
+    this._waitingForReady = ready
+  }
+
+  /** @internal */
+  protected setPayload(payload: CallingCallDetectEventParams) {
+    this._payload = payload
   }
 
   async stop() {
@@ -74,8 +122,9 @@ export class CallDetectAPI
     return new Promise<this>((resolve) => {
       this._attachListeners(this.controlId)
 
-      // @ts-expect-error
-      this.once('detect.ended', () => {
+      const handler = () => {
+        // @ts-expect-error
+        this.off('detect.ended', handler)
         // It's important to notice that we're returning
         // `this` instead of creating a brand new instance
         // using the payload + EventEmitter Transform
@@ -85,7 +134,10 @@ export class CallDetectAPI
         // the latest payload per event) by the
         // `voiceCallDetectWorker`
         resolve(this)
-      })
+      }
+
+      // @ts-expect-error
+      this.once('detect.ended', handler)
     })
   }
 }

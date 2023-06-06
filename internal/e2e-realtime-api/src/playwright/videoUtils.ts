@@ -73,9 +73,34 @@ export const createNewTabRoomSession = async (
             debug: { logWsTraffic: true },
           })
 
+          console.log('Room created', roomSession.id)
+
+          let waitForRecordStartResolve: (value: void) => void
+          const waitForRecordStart = new Promise((resolve) => {
+            waitForRecordStartResolve = resolve
+          })
+          let waitForPlaybackStartResolve: (value: void) => void
+          const waitForPlaybackStart = new Promise((resolve) => {
+            waitForPlaybackStartResolve = resolve
+          })
+
+          roomSession.on('recording.started', () => {
+            console.log('Recording has started')
+            waitForRecordStartResolve()
+          })
+
+          roomSession.on('playback.started', () => {
+            console.log('Playback has started')
+            waitForPlaybackStartResolve()
+          })
+
           roomSession.on('room.joined', async () => {
             await roomSession.startRecording()
+            await waitForRecordStart
+
             await roomSession.play({ url: options.PLAYBACK_URL })
+            await waitForPlaybackStart
+
             resolve()
           })
 

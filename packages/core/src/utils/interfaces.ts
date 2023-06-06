@@ -155,6 +155,16 @@ export interface BaseComponentOptions<
   customSagas?: CustomSaga<any>[]
 }
 
+export interface BaseComponentOptionsWithPayload<
+  EventTypes extends EventEmitter.ValidEventTypes,
+  CustomPayload extends unknown
+> {
+  store: SDKStore
+  emitter: EventEmitter<EventTypes>
+  customSagas?: CustomSaga<any>[]
+  payload: CustomPayload
+}
+
 export interface SessionRequestObject {
   rpcRequest: JSONRPCRequest
   resolve: (value: unknown) => void
@@ -545,6 +555,12 @@ export type SDKWorkerHooks<
   onFail: OnFail
 }>
 
+export type InstanceMap = {
+  get: <T extends unknown>(key: string) => T
+  set: <T extends unknown>(key: string, value: T) => Map<string, T>
+  remove: <T extends unknown>(key: string) => Map<string, T>
+}
+
 type SDKWorkerBaseParams<T> = {
   channels: InternalChannels
   instance: T
@@ -557,6 +573,12 @@ type SDKWorkerBaseParams<T> = {
   payload?: any
   initialState?: any
   getSession: () => BaseSession | undefined
+  instanceMap: InstanceMap
+  dispatcher?: (
+    type: any,
+    payload: any,
+    channel?: PubSubChannel | SwEventChannel | SessionChannel
+  ) => SagaIterator
 }
 
 export type SDKWorkerParams<

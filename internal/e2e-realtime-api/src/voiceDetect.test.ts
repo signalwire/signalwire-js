@@ -11,6 +11,15 @@ const handler = () => {
       contexts: [process.env.VOICE_CONTEXT as string],
     })
 
+    let waitForDetectStartResolve
+    const waitForDetectStart = new Promise((resolve) => {
+      waitForDetectStartResolve = resolve
+    })
+    let waitForDetectEndResolve: (value: void) => void
+    const waitForDetectEnd = new Promise((resolve) => {
+      waitForDetectEndResolve = resolve
+    })
+
     client.on('call.received', async (call) => {
       console.log(
         'Inbound - Got call',
@@ -29,13 +38,19 @@ const handler = () => {
           'Inbound - Call answered gets the same instance'
         )
 
+        // Wait until caller starts detecting digit
+        await waitForDetectStart
+
         // Send digits 1234 to the caller
-        const sendDigitResult = await call.sendDigits('1w2w3w4w#')
+        const sendDigits = await call.sendDigits('1w2w3w4w#')
         tap.equal(
           call.id,
-          sendDigitResult.id,
+          sendDigits.id,
           'Inbound - sendDigit returns the same instance'
         )
+
+        // Resolve the detect end promise to inform the caller
+        waitForDetectEndResolve()
 
         // Callee hangs up a call
         await call.hangup()
@@ -45,27 +60,36 @@ const handler = () => {
       }
     })
 
-    const call = await client.dialPhone({
-      to: process.env.VOICE_DIAL_TO_NUMBER as string,
-      from: process.env.VOICE_DIAL_FROM_NUMBER as string,
-      timeout: 30,
-    })
-    tap.ok(call.id, 'Outbound - Call resolved')
+    try {
+      const call = await client.dialPhone({
+        to: process.env.VOICE_DIAL_TO_NUMBER as string,
+        from: process.env.VOICE_DIAL_FROM_NUMBER as string,
+        timeout: 30,
+      })
+      tap.ok(call.id, 'Outbound - Call resolved')
 
-    // Start a detect
-    const detect = await call.detectDigit({ digits: '1234' })
+      // Start a detect
+      const detectDigit = await call.detectDigit({ digits: '1234' })
+      tap.equal(
+        call.id,
+        detectDigit.callId,
+        'Outbound - Detect returns the same instance'
+      )
 
-    tap.equal(
-      call.id,
-      detect.callId,
-      'Outbound - Detect returns the same instance'
-    )
+      // Resolve the detect start promise to inform the callee
+      waitForDetectStartResolve()
 
-    const { type } = await detect.ended()
+      // Wait until the callee sends the digits
+      await waitForDetectEnd
 
-    tap.equal(type, 'digit', 'Outbound - Received the digit')
+      const recDigits = await detectDigit.ended()
+      tap.equal(recDigits.type, 'digit', 'Outbound - Received the digit')
 
-    resolve(0)
+      resolve(0)
+    } catch (error) {
+      console.error('Outbound - voiceDetect error', error)
+      reject(4)
+    }
   })
 }
 

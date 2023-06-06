@@ -1,100 +1,59 @@
 import {
   getLogger,
-  sagaEffects,
   SagaIterator,
-  SDKWorker,
-  SDKActions,
-  CallingCallRecordEvent,
-  MapToPubSubShape,
+  CallingCallRecordEventParams,
 } from '@signalwire/core'
-import { callingRecordTriggerEvent } from '../Call'
-import type { Call } from '../Call'
+import { CallRecording, createCallRecordingObject } from '../CallRecording'
+import { Call } from '../Voice'
+import type { VoiceCallWorkerParams } from './voiceCallingWorker'
 
-export const voiceCallRecordWorker: SDKWorker<Call> = function* (
-  options
+export const voiceCallRecordWorker = function* (
+  options: VoiceCallWorkerParams<CallingCallRecordEventParams>
 ): SagaIterator {
   getLogger().trace('voiceCallRecordWorker started')
-  const { channels, instance, initialState } = options
-  const { swEventChannel, pubSubChannel } = channels
-  const { controlId } = initialState
-  if (!controlId) {
-    throw new Error('Missing controlId for recording')
+  const {
+    payload,
+    instanceMap: { get, set, remove },
+  } = options
+
+  const callInstance = get<Call>(payload.call_id)
+  if (!callInstance) {
+    throw new Error('Missing call instance for recording')
   }
 
-  let run = true
-  const done = () => (run = false)
-
-  while (run) {
-    const action: MapToPubSubShape<CallingCallRecordEvent> =
-      yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
-        return (
-          action.type === 'calling.call.record' &&
-          action.payload.control_id === controlId
-        )
-      })
-
-    /** Add `tag` to the payload to allow pubSubSaga to match it with the Call namespace */
-    const payloadWithTag = {
-      tag: instance.tag,
-      ...action.payload,
-    }
-
-    /**
-     * Update the original CallRecording object using the
-     * transform pipeline
-     */
-    yield sagaEffects.put(pubSubChannel, {
-      // @ts-ignore
-      type: callingRecordTriggerEvent,
-      // @ts-ignore
-      payload: payloadWithTag,
+  let recordingInstance = get<CallRecording>(payload.control_id)
+  if (!recordingInstance) {
+    recordingInstance = createCallRecordingObject({
+      store: callInstance.store,
+      // @ts-expect-error
+      emitter: callInstance.emitter,
+      payload,
     })
+  } else {
+    recordingInstance.setPayload(payload)
+  }
+  set<CallRecording>(payload.control_id, recordingInstance)
 
-    /** Update the original CallRecording object through the control_id */
-    yield sagaEffects.put(pubSubChannel, {
-      // @ts-ignore
-      type: `calling.call.record.${action.payload.control_id}`,
-      // @ts-ignore
-      payload: payloadWithTag,
-    })
-
-    switch (action.payload.state) {
-      case 'recording': {
-        yield sagaEffects.put(pubSubChannel, {
-          type: 'calling.recording.started',
-          payload: payloadWithTag,
-        })
-        break
-      }
-
-      case 'no_input':
-      case 'finished': {
-        const typeToEmit =
-          action.payload.state === 'finished'
-            ? 'calling.recording.ended'
-            : 'calling.recording.failed'
-
-        yield sagaEffects.put(pubSubChannel, {
-          type: typeToEmit,
-          payload: payloadWithTag,
-        })
-
-        /**
-         * Dispatch an event to resolve `ended()` in CallRecord
-         * when ended
-         */
-        yield sagaEffects.put(pubSubChannel, {
-          type: typeToEmit,
-          payload: {
-            ...action.payload,
-            tag: controlId,
-          },
-        })
-
-        done()
-        break
-      }
+  switch (payload.state) {
+    case 'recording': {
+      callInstance.baseEmitter.emit('recording.started', recordingInstance)
+      break
     }
+    case 'no_input':
+    case 'finished': {
+      const type =
+        payload.state === 'finished' ? 'recording.ended' : 'recording.failed'
+      callInstance.baseEmitter.emit(type, recordingInstance)
+
+      // To resolve the ended() promise in CallRecording
+      recordingInstance.baseEmitter.emit(type, recordingInstance)
+
+      remove<CallRecording>(payload.control_id)
+      break
+    }
+    default:
+      getLogger().warn(`Unknown recording state: "${payload.state}"`)
+      break
   }
 
   getLogger().trace('voiceCallRecordWorker ended')

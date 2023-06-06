@@ -21,7 +21,8 @@ export class AutoSubscribeConsumer<
     event: EventEmitter.EventNames<EventTypes>,
     fn: EventEmitter.EventListener<EventTypes, any>
   ) {
-    const instance = super.on(event, fn)
+    // @ts-expect-error
+    const instance = super._on(`video.${event}`, fn)
     this.debouncedSubscribe()
     return instance
   }
@@ -30,8 +31,18 @@ export class AutoSubscribeConsumer<
     event: EventEmitter.EventNames<EventTypes>,
     fn: EventEmitter.EventListener<EventTypes, any>
   ) {
-    const instance = super.once(event, fn)
+    // @ts-expect-error
+    const instance = super._once(`video.${event}`, fn)
     this.debouncedSubscribe()
+    return instance
+  }
+
+  override off(
+    event: EventEmitter.EventNames<EventTypes>,
+    fn: EventEmitter.EventListener<EventTypes, any>
+  ) {
+    // @ts-expect-error
+    const instance = super._off(`video.${event}`, fn)
     return instance
   }
 }

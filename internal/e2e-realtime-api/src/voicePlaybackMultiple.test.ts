@@ -11,6 +11,15 @@ const handler = () => {
       contexts: [process.env.VOICE_CONTEXT as string],
     })
 
+    let waitForOutboundPlaybackStartResolve
+    const waitForOutboundPlaybackStart = new Promise((resolve) => {
+      waitForOutboundPlaybackStartResolve = resolve
+    })
+    let waitForOutboundPlaybackEndResolve
+    const waitForOutboundPlaybackEnd = new Promise((resolve) => {
+      waitForOutboundPlaybackEndResolve = resolve
+    })
+
     client.on('call.received', async (call) => {
       console.log(
         'Inbound - Got call',
@@ -45,25 +54,34 @@ const handler = () => {
           'Inbound - Call answered gets the same instance'
         )
 
-        // Play an invalid audio
-        const fakePlay = await call.playAudio({
-          url: 'https://cdn.fake.com/default-music/fake.mp3',
-        })
-
-        tap.equal(
-          call.id,
-          fakePlay.callId,
-          'Inbound - fakePlay returns the same instance'
-        )
-
-        const waitForPlaybackFailed = new Promise((resolve) => {
-          call.on('playback.failed', (playback) => {
-            tap.equal(playback.state, 'error', 'Inbound - playback has failed')
-            resolve(true)
+        try {
+          // Play an invalid audio
+          const fakePlay = call.playAudio({
+            url: 'https://cdn.fake.com/default-music/fake.mp3',
           })
-        })
-        // Wait for the inbound audio to failed
-        await waitForPlaybackFailed
+
+          const waitForPlaybackFailed = new Promise((resolve) => {
+            call.on('playback.failed', (playback) => {
+              tap.equal(
+                playback.state,
+                'error',
+                'Inbound - playback has failed'
+              )
+              resolve(true)
+            })
+          })
+          // Wait for the inbound audio to failed
+          await waitForPlaybackFailed
+
+          // Resolve late so that we attach `playback.failed` and wait for it
+          await fakePlay
+        } catch (error) {
+          tap.equal(
+            call.id,
+            error.callId,
+            'Inbound - fakePlay returns the same instance'
+          )
+        }
 
         const playback = await call.playTTS({
           text: 'Random TTS message while the call is up. Thanks and good bye!',
@@ -88,65 +106,70 @@ const handler = () => {
       }
     })
 
-    const call = await client.dialPhone({
-      to: process.env.VOICE_DIAL_TO_NUMBER as string,
-      from: process.env.VOICE_DIAL_FROM_NUMBER as string,
-      timeout: 30,
-    })
-    tap.ok(call.id, 'Outbound - Call resolved')
+    try {
+      const call = await client.dialPhone({
+        to: process.env.VOICE_DIAL_TO_NUMBER as string,
+        from: process.env.VOICE_DIAL_FROM_NUMBER as string,
+        timeout: 30,
+      })
+      tap.ok(call.id, 'Outbound - Call resolved')
 
-    // Play an audio
-    const handle = await call.playAudio({
-      url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
-    })
-
-    tap.equal(
-      call.id,
-      handle.callId,
-      'Outbound - Playback returns the same instance'
-    )
-
-    const waitForPlaybackStarted = new Promise((resolve) => {
       call.on('playback.started', (playback) => {
         tap.equal(playback.state, 'playing', 'Outbound - Playback has started')
-        resolve(true)
+        waitForOutboundPlaybackStartResolve()
       })
-    })
-    // Wait for the outbound audio to start
-    await waitForPlaybackStarted
 
-    const waitForPlaybackEnded = new Promise((resolve) => {
       call.on('playback.ended', (playback) => {
         tap.equal(
           playback.state,
           'finished',
           'Outbound - Playback has finished'
         )
-        resolve(true)
+        waitForOutboundPlaybackEndResolve()
       })
-    })
-    // Wait for the outbound audio to end (callee hung up the call or audio ended)
-    await waitForPlaybackEnded
 
-    const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
-    const results = await Promise.all(
-      waitForParams.map((params) => call.waitFor(params as any))
-    )
-    waitForParams.forEach((value, i) => {
-      if (typeof value === 'string') {
-        tap.ok(results[i], `"${value}": completed successfully.`)
-      } else {
-        tap.ok(results[i], `${JSON.stringify(value)}: completed successfully.`)
-      }
-    })
+      // Play an audio
+      const playAudio = await call.playAudio({
+        url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
+      })
+      tap.equal(
+        call.id,
+        playAudio.callId,
+        'Outbound - Playback returns the same instance'
+      )
 
-    resolve(0)
+      // Wait for the outbound audio to start
+      await waitForOutboundPlaybackStart
+
+      // Wait for the outbound audio to end (callee hung up the call or audio ended)
+      await waitForOutboundPlaybackEnd
+
+      const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
+      const results = await Promise.all(
+        waitForParams.map((params) => call.waitFor(params as any))
+      )
+      waitForParams.forEach((value, i) => {
+        if (typeof value === 'string') {
+          tap.ok(results[i], `"${value}": completed successfully.`)
+        } else {
+          tap.ok(
+            results[i],
+            `${JSON.stringify(value)}: completed successfully.`
+          )
+        }
+      })
+
+      resolve(0)
+    } catch (error) {
+      console.error('Outbound - voicePlaybackMultiple error', error)
+      reject(4)
+    }
   })
 }
 
 async function main() {
   const runner = createTestRunner({
-    name: 'Voice Playback E2E',
+    name: 'Voice Playback multiple E2E',
     testHandler: handler,
     executionTime: 60_000,
   })

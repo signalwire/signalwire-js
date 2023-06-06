@@ -1,106 +1,75 @@
 import {
   getLogger,
-  sagaEffects,
   SagaIterator,
-  SDKWorker,
-  SDKActions,
-  CallingCallConnectEvent,
-  MapToPubSubShape,
+  CallingCallConnectEventParams,
 } from '@signalwire/core'
-import type { Call } from '../Call'
+import { Call, createCallObject } from '../Call'
+import type { VoiceCallWorkerParams } from './voiceCallingWorker'
 
-export const voiceCallConnectWorker: SDKWorker<Call> = function* (
-  options
+export const voiceCallConnectWorker = function* (
+  options: VoiceCallWorkerParams<CallingCallConnectEventParams>
 ): SagaIterator {
   getLogger().trace('voiceCallConnectWorker started')
-  const { channels, instance } = options
-  const { swEventChannel, pubSubChannel } = channels
+  const {
+    instance: client,
+    payload,
+    instanceMap: { get, set },
+  } = options
 
-  let run = true
-  const done = () => (run = false)
-
-  while (run) {
-    const action: MapToPubSubShape<CallingCallConnectEvent> =
-      yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
-        return (
-          action.type === 'calling.call.connect' &&
-          (action.payload.call_id === instance.callId ||
-            action.payload.tag === instance.tag ||
-            /**
-             * This branch applies for Inbound calls that
-             * don't have a `tag` at the payload's root
-             * level.
-             */
-            action.payload.peer?.tag === instance.tag)
-        )
-      })
-
-    /**
-     * Add `tag` to the payload to allow pubSubSaga to match
-     * it with the Call namespace
-     */
-    const payloadWithTag = {
-      // @ts-expect-error
-      tag: instance.tag,
-      ...action.payload,
-    }
-
-    /**
-     * Dispatch public events for each connect_state
-     */
-    yield sagaEffects.put(pubSubChannel, {
-      type: `calling.connect.${action.payload.connect_state}`,
-      payload: payloadWithTag,
-    })
-
-    switch (action.payload.connect_state) {
-      case 'connected': {
-        /**
-         * Update the Call object payload with the new state
-         */
-        yield sagaEffects.put(pubSubChannel, {
-          type: 'calling.call.state',
-          payload: {
-            call_id: instance.callId,
-            call_state: instance.state,
-            context: instance.context,
-            tag: instance.tag,
-            direction: instance.direction,
-            device: instance.device,
-            node_id: instance.nodeId,
-            peer: action.payload.peer,
-            // @ts-expect-error
-            connect_state: 'connected',
-          },
-        })
-        break
-      }
-      case 'disconnected':
-      case 'failed': {
-        /**
-         * Update the Call object payload with the new state
-         */
-        yield sagaEffects.put(pubSubChannel, {
-          type: 'calling.call.state',
-          payload: {
-            call_id: instance.callId,
-            call_state: instance.state,
-            context: instance.context,
-            tag: instance.tag,
-            direction: instance.direction,
-            device: instance.device,
-            node_id: instance.nodeId,
-            peer: undefined,
-            // @ts-expect-error
-            connect_state: 'disconnected',
-          },
-        })
-
-        done()
-        break
-      }
-    }
+  const callInstance = get<Call>(payload.call_id)
+  if (!callInstance) {
+    throw new Error('Missing call instance for connect')
   }
+  callInstance.setConnectPayload(payload)
+  set<Call>(payload.call_id, callInstance)
+
+  switch (payload.connect_state) {
+    case 'connecting': {
+      callInstance.baseEmitter.emit('connect.connecting', callInstance)
+      break
+    }
+    case 'connected': {
+      let peerCallInstance = get<Call>(payload.peer.call_id)
+      if (!peerCallInstance) {
+        peerCallInstance = createCallObject({
+          store: client.store,
+          // @ts-expect-error
+          emitter: client.emitter,
+          connectPayload: payload,
+        })
+      } else {
+        peerCallInstance.setConnectPayload(payload)
+      }
+      set<Call>(payload.peer.call_id, peerCallInstance)
+      callInstance.peer = peerCallInstance
+      peerCallInstance.peer = callInstance
+      callInstance.baseEmitter.emit('connect.connected', peerCallInstance)
+      break
+    }
+    case 'disconnected': {
+      const peerCallInstance = get<Call>(payload.peer.call_id)
+      callInstance.baseEmitter.emit('connect.disconnected')
+      callInstance.peer = undefined
+
+      // Add a check because peer call can be removed from the instance map throgh voiceCallStateWorker
+      if (peerCallInstance) {
+        peerCallInstance.baseEmitter.emit('connect.disconnected')
+        peerCallInstance.peer = undefined
+      }
+      break
+    }
+    case 'failed': {
+      callInstance.peer = undefined
+      callInstance.baseEmitter.emit('connect.failed')
+      break
+    }
+    default:
+      // @ts-expect-error
+      getLogger().warn(`Unknown connect state: "${payload.connect_state}"`)
+      break
+  }
+
+  callInstance.baseEmitter.emit('call.state', callInstance)
 
   getLogger().trace('voiceCallConnectWorker ended')
 }
