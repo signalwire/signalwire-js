@@ -7,18 +7,21 @@ import { SignalWire } from '@signalwire/realtime-api'
   })
 
   const removeOfficeListeners = await client.task.listen({
-    topic: ['office'],
+    topics: ['office'],
     onTaskReceived: (payload) => {
-      console.log('Task received under the "office" context', payload)
+      console.log('Task received under the "office" or "home" context', payload)
     },
   })
 
+  console.log('Sending a message to office..')
   await client.task.send({
     topic: 'office',
     message: { yo: ['bro', 1, true] },
   })
+
   await client.addTopics(['home'])
 
+  console.log('Sending a message to home..')
   await client.task.send({
     topic: 'home',
     message: { yo: ['bro', 2, true] },
