@@ -88,6 +88,13 @@ export class CallCollectAPI
     return undefined
   }
 
+  get speech() {
+    if (this.result?.type === 'speech') {
+      return this.result.params.text
+    }
+    return undefined
+  }
+
   get terminator() {
     if (this.result?.type === 'digit') {
       return this.result.params.terminator
@@ -111,6 +118,7 @@ export class CallCollectAPI
 
   /** @internal */
   protected setPayload(payload: CallingCallCollectEventParams) {
+    console.log('payload', payload)
     this._payload = payload
   }
 
