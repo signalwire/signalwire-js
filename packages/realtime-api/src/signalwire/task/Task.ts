@@ -1,7 +1,7 @@
 import { request } from 'node:https'
 import { TaskInboundEvent } from '@signalwire/core'
 import { SWClient } from '../SWClient'
-import { taskWorker } from '../../task/workers'
+import { taskWorker } from '../../task/workers/taskWorker'
 
 const PATH = '/api/relay/rest/tasks'
 const HOST = 'relay.signalwire.com'

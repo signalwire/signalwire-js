@@ -1,13 +1,13 @@
 import {
   DisconnectableClientContract,
   BaseComponentOptions,
-  BaseComponent,
   ClientContextContract,
+  ApplyEventListeners,
 } from '@signalwire/core'
 import { connect } from '@signalwire/core'
 import type { TaskClientApiEvents } from '../types'
 import { RealtimeClient } from '../client/index'
-import { taskWorker } from './workers'
+import { taskWorker } from './workers/taskWorker'
 
 export interface Task
   extends DisconnectableClientContract<Task, TaskClientApiEvents>,
@@ -28,7 +28,7 @@ export interface Task
 }
 
 /** @internal */
-class TaskAPI extends BaseComponent<TaskClientApiEvents> {
+class TaskAPI extends ApplyEventListeners<TaskClientApiEvents> {
   constructor(options: BaseComponentOptions<TaskClientApiEvents>) {
     super(options)
 

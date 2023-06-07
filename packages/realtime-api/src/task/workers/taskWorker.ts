@@ -6,7 +6,7 @@ import {
   SDKActions,
   TaskAction,
 } from '@signalwire/core'
-import type { Client } from '../client/index'
+import type { Client } from '../../client/index'
 
 export const taskWorker: SDKWorker<Client> = function* (options): SagaIterator {
   getLogger().trace('taskWorker started')
