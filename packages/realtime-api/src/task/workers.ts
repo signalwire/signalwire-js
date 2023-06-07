@@ -4,26 +4,29 @@ import {
   SagaIterator,
   SDKWorker,
   SDKActions,
+  TaskAction,
 } from '@signalwire/core'
-import type { Task } from './Task'
+import type { Client } from '../client/index'
 
-export const taskWorker: SDKWorker<Task> = function* (options): SagaIterator {
+export const taskWorker: SDKWorker<Client> = function* (options): SagaIterator {
   getLogger().trace('taskWorker started')
-  const { channels } = options
-  const { swEventChannel, pubSubChannel } = channels
+  const {
+    instance: client,
+    channels: { swEventChannel },
+  } = options
+
+  function* worker(action: TaskAction) {
+    // @ts-expect-error
+    client.baseEmitter.emit('task.received', action.payload.message)
+  }
+
+  const isTaskEvent = (action: SDKActions) =>
+    action.type === 'queuing.relay.tasks'
 
   while (true) {
-    const action = yield sagaEffects.take(
-      swEventChannel,
-      (action: SDKActions) => {
-        return action.type === 'queuing.relay.tasks'
-      }
-    )
+    const action = yield sagaEffects.take(swEventChannel, isTaskEvent)
 
-    yield sagaEffects.put(pubSubChannel, {
-      type: 'task.received',
-      payload: action.payload.message,
-    })
+    yield sagaEffects.fork(worker, action)
   }
 
   getLogger().trace('taskWorker ended')

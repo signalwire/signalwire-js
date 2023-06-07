@@ -7,7 +7,7 @@ const PATH = '/api/relay/rest/tasks'
 const HOST = 'relay.signalwire.com'
 
 export interface TaskListenOptions {
-  topic: string[]
+  topics: string[]
   onTaskReceived?: (payload: TaskInboundEvent['message']) => unknown
 }
 
@@ -47,8 +47,8 @@ export class Task {
   listen(listenOptions: TaskListenOptions) {
     return new Promise<() => void>(async (resolve, reject) => {
       try {
-        const { topic } = listenOptions
-        await this._sw.addTopics(topic)
+        const { topics } = listenOptions
+        await this._sw.addTopics(topics)
         const unsubscribe = this.subscribeListeners(listenOptions)
         resolve(unsubscribe)
       } catch (error) {
