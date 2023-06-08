@@ -106,6 +106,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     stopMicrophoneWhileMuted = true,
     speakerId,
     destinationNumber,
+    localStream,
     ...userOptions
   } = roomOptions
 
@@ -132,6 +133,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     stopMicrophoneWhileMuted,
     speakerId,
     destinationNumber,
+    localStream,
   })
 
   // @ts-expect-error - true by default

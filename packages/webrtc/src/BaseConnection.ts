@@ -20,7 +20,7 @@ import {
 import type { ReduxComponent } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import { ConnectionOptions } from './utils/interfaces'
-import { stopTrack, getUserMedia } from './utils'
+import { stopTrack, getUserMedia, streamIsValid } from './utils'
 import { sdpRemoveLocalCandidates } from './utils/sdpHelpers'
 import * as workers from './workers'
 
@@ -308,6 +308,55 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     this.peer = this.getRTCPeerById(rtcPeerId)
   }
 
+  setLocalStream(stream: MediaStream): Promise<MediaStream> {
+    return new Promise(async (resolve, reject) => {
+      try {
+        if (!this.peer || !this.localStream) {
+          return reject(new Error('Invalid RTCPeerConnection.'))
+        }
+        if (!streamIsValid(stream)) {
+          return reject(new Error('Invalid stream provided.'))
+        }
+        const prevAudioTracks = this.localStream.getAudioTracks()
+        const newAudioTracks = stream.getAudioTracks()
+        if (newAudioTracks.length <= 0) {
+          this.logger.info(
+            'No audio track found in the stream provided. Audio will be unaffected.'
+          )
+        } else {
+          prevAudioTracks.forEach((track) => {
+            stopTrack(track)
+            this.localStream?.removeTrack(track)
+          })
+          newAudioTracks.forEach((track) => {
+            this.localStream?.addTrack(track)
+          })
+        }
+        const prevVideoTracks = this.localStream.getVideoTracks()
+        const newVideoTracks = stream.getVideoTracks()
+        if (newVideoTracks.length <= 0) {
+          this.logger.info(
+            'No video track found in the stream provided. Video will be unaffected.'
+          )
+        } else {
+          prevVideoTracks.forEach((track) => {
+            stopTrack(track)
+            this.localStream?.removeTrack(track)
+          })
+          newVideoTracks.forEach((track) => {
+            this.localStream?.addTrack(track)
+          })
+        }
+        await this.updateStream(this.localStream)
+        this.logger.debug('setLocalStream done')
+        resolve(this.localStream)
+      } catch (error) {
+        this.logger.error('setLocalStream', error)
+        reject(error)
+      }
+    })
+  }
+
   /**
    * @internal
    * Verto messages have to be wrapped into an execute
@@ -477,70 +526,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
           return reject(error)
         }
 
-        this.logger.debug('updateConstraints got stream', newStream)
-        if (!this.localStream) {
-          this.localStream = new MediaStream()
-        }
-        const { instance } = this.peer
-        const tracks = newStream.getTracks()
-        this.logger.debug(`updateConstraints got ${tracks.length} tracks`)
-        for (let i = 0; i < tracks.length; i++) {
-          const newTrack = tracks[i]
-          this.logger.debug('updateConstraints apply track: ', newTrack)
-          const transceiver = instance
-            .getTransceivers()
-            .find(({ mid, sender, receiver }) => {
-              if (sender.track && sender.track.kind === newTrack.kind) {
-                this.logger.debug('Found transceiver by sender')
-                return true
-              }
-              if (receiver.track && receiver.track.kind === newTrack.kind) {
-                this.logger.debug('Found transceiver by receiver')
-                return true
-              }
-              if (mid === null) {
-                this.logger.debug('Found disassociated transceiver')
-                return true
-              }
-              return false
-            })
-          if (transceiver && transceiver.sender) {
-            this.logger.debug(
-              'updateConstraints got transceiver',
-              transceiver.currentDirection,
-              transceiver.mid
-            )
-            await transceiver.sender.replaceTrack(newTrack)
-            this.logger.debug('updateConstraints replaceTrack')
-            transceiver.direction = 'sendrecv'
-            this.logger.debug('updateConstraints set to sendrecv')
-            this.localStream.getTracks().forEach((track) => {
-              if (track.kind === newTrack.kind && track.id !== newTrack.id) {
-                this.logger.debug(
-                  'updateConstraints stop old track and apply new one - '
-                )
-                stopTrack(track)
-                this.localStream?.removeTrack(track)
-              }
-            })
-
-            this.localStream.addTrack(newTrack)
-          } else {
-            this.logger.debug(
-              'updateConstraints no transceiver found. addTrack and start dancing!'
-            )
-            this.peer.type = 'offer'
-            this.doReinvite = true
-            this.localStream.addTrack(newTrack)
-            instance.addTrack(newTrack, this.localStream)
-          }
-          this.logger.debug('updateConstraints simply update mic/cam')
-          if (newTrack.kind === 'audio') {
-            this.options.micId = newTrack.getSettings().deviceId
-          } else if (newTrack.kind === 'video') {
-            this.options.camId = newTrack.getSettings().deviceId
-          }
-        }
+        await this.updateStream(newStream)
         this.logger.debug('updateConstraints done')
         resolve()
       } catch (error) {
@@ -548,6 +534,77 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         reject(error)
       }
     })
+  }
+
+  private async updateStream(stream: MediaStream) {
+    if (!this.peer) {
+      throw new Error('Invalid RTCPeerConnection.')
+    }
+    this.logger.debug('updateStream got stream', stream)
+    if (!this.localStream) {
+      this.localStream = new MediaStream()
+    }
+    const { instance } = this.peer
+    const tracks = stream.getTracks()
+    this.logger.debug(`updateStream got ${tracks.length} tracks`)
+    for (let i = 0; i < tracks.length; i++) {
+      const newTrack = tracks[i]
+      this.logger.debug('updateStream apply track: ', newTrack)
+      const transceiver = instance
+        .getTransceivers()
+        .find(({ mid, sender, receiver }) => {
+          if (sender.track && sender.track.kind === newTrack.kind) {
+            this.logger.debug('Found transceiver by sender')
+            return true
+          }
+          if (receiver.track && receiver.track.kind === newTrack.kind) {
+            this.logger.debug('Found transceiver by receiver')
+            return true
+          }
+          if (mid === null) {
+            this.logger.debug('Found disassociated transceiver')
+            return true
+          }
+          return false
+        })
+      if (transceiver && transceiver.sender) {
+        this.logger.debug(
+          'updateStream got transceiver',
+          transceiver.currentDirection,
+          transceiver.mid
+        )
+        await transceiver.sender.replaceTrack(newTrack)
+        this.logger.debug('updateStream replaceTrack')
+        transceiver.direction = 'sendrecv'
+        this.logger.debug('updateStream set to sendrecv')
+        this.localStream.getTracks().forEach((track) => {
+          if (track.kind === newTrack.kind && track.id !== newTrack.id) {
+            this.logger.debug(
+              'updateStream stop old track and apply new one - '
+            )
+            stopTrack(track)
+            this.localStream?.removeTrack(track)
+          }
+        })
+
+        this.localStream.addTrack(newTrack)
+      } else {
+        this.logger.debug(
+          'updateStream no transceiver found. addTrack and start dancing!'
+        )
+        this.peer.type = 'offer'
+        this.doReinvite = true
+        this.localStream.addTrack(newTrack)
+        instance.addTrack(newTrack, this.localStream)
+      }
+      this.logger.debug('updateStream simply update mic/cam')
+      if (newTrack.kind === 'audio') {
+        this.options.micId = newTrack.getSettings().deviceId
+      } else if (newTrack.kind === 'video') {
+        this.options.camId = newTrack.getSettings().deviceId
+      }
+    }
+    this.logger.debug('updateStream done')
   }
 
   runRTCPeerWorkers(rtcPeerId: string) {

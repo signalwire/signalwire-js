@@ -39,6 +39,8 @@ export interface MakeRoomOptions extends ConnectionOptions {
   stopCameraWhileMuted?: boolean
   /** Whether to stop the microphone when the member is muted. Default: `true`. */
   stopMicrophoneWhileMuted?: boolean
+  /** Local media stream to override the local video and audio stream tracks */
+  localStream?: MediaStream
 }
 
 export class ClientAPI<
@@ -54,7 +56,6 @@ export class ClientAPI<
         const {
           rootElement,
           applyLocalVideoOverlay = true,
-          mirrorLocalVideoOverlay = false,
           stopCameraWhileMuted = true,
           stopMicrophoneWhileMuted = true,
           ...options
@@ -87,7 +88,6 @@ export class ClientAPI<
 
         const room = createBaseRoomSessionObject<RoomSessionType>({
           ...options,
-          mirrorLocalVideoOverlay,
           store: this.store,
           // @ts-expect-error
           emitter: this.emitter,
