@@ -320,8 +320,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         const prevAudioTracks = this.localStream.getAudioTracks()
         const newAudioTracks = stream.getAudioTracks()
         if (newAudioTracks.length <= 0) {
-          this.logger.warn(
-            'No audio track found in the stream. Falling back to the previous audio track!'
+          this.logger.info(
+            'No audio track found in the stream provided. Audio will be unaffected.'
           )
         } else {
           prevAudioTracks.forEach((track) => {
@@ -335,8 +335,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         const prevVideoTracks = this.localStream.getVideoTracks()
         const newVideoTracks = stream.getVideoTracks()
         if (newVideoTracks.length <= 0) {
-          this.logger.warn(
-            'No video track found in the stream. Falling back to the previous video track!'
+          this.logger.info(
+            'No video track found in the stream provided. Video will be unaffected.'
           )
         } else {
           prevVideoTracks.forEach((track) => {
