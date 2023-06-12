@@ -11,13 +11,14 @@ import type { Client } from '../../client/index'
 export const taskWorker: SDKWorker<Client> = function* (options): SagaIterator {
   getLogger().trace('taskWorker started')
   const {
-    instance: client,
     channels: { swEventChannel },
+    initialState: { emitter },
   } = options
 
   function* worker(action: TaskAction) {
-    // @ts-expect-error
-    client.baseEmitter.emit('task.received', action.payload.message)
+    const { context } = action.payload
+
+    emitter.emit(`${context}.task.received`, action.payload.message)
   }
 
   const isTaskEvent = (action: SDKActions) =>

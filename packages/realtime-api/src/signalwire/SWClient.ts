@@ -2,7 +2,6 @@ import { createClient } from './client/createClient'
 import type { Client } from '../client/Client'
 import { clientConnect } from '../client/clientConnect'
 import { Task } from './task/Task'
-import type { ExecuteParams } from '@signalwire/core'
 
 export interface SWClientOptions {
   host?: string
@@ -28,26 +27,6 @@ export class SWClient {
 
   disconnect() {
     this.client.disconnect()
-  }
-
-  addTopics(topics: string[]) {
-    const executeParams: ExecuteParams = {
-      method: 'signalwire.receive',
-      params: {
-        contexts: topics,
-      },
-    }
-    return this.client.execute(executeParams)
-  }
-
-  removeTopics(topics: string[]) {
-    const executeParams: ExecuteParams = {
-      method: 'signalwire.unreceive',
-      params: {
-        contexts: topics,
-      },
-    }
-    return this.client.execute(executeParams)
   }
 
   get task() {

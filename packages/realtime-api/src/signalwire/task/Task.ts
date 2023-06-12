@@ -1,5 +1,5 @@
 import { request } from 'node:https'
-import { TaskInboundEvent } from '@signalwire/core'
+import { EventEmitter, TaskInboundEvent } from '@signalwire/core'
 import { SWClient } from '../SWClient'
 import { taskWorker } from '../../task/workers/taskWorker'
 import { BaseListenOptions, BaseNamespace } from '../BaseNamespace'
@@ -9,15 +9,14 @@ const HOST = 'relay.signalwire.com'
 
 interface TaskListenOptions extends BaseListenOptions {
   onTaskReceived?: (payload: TaskInboundEvent['message']) => unknown
-  onTaskDeleted?: (payload: TaskInboundEvent['message']) => unknown
 }
 
 type TaskListenersKeys = keyof Omit<TaskListenOptions, 'topics'>
 
 export class Task extends BaseNamespace<TaskListenOptions> {
+  protected emitter = new EventEmitter()
   protected _eventMap: Record<TaskListenersKeys, string> = {
     onTaskReceived: 'task.received',
-    onTaskDeleted: 'task.deleted',
   }
 
   constructor(options: SWClient) {
@@ -25,6 +24,9 @@ export class Task extends BaseNamespace<TaskListenOptions> {
 
     this._client.runWorker('taskWorker', {
       worker: taskWorker,
+      initialState: {
+        emitter: this.emitter,
+      },
     })
   }
 
@@ -35,18 +37,19 @@ export class Task extends BaseNamespace<TaskListenOptions> {
     topic: string
     message: Record<string, unknown>
   }) {
-    if (!this._sw.userOptions.project || !this._sw.userOptions.token) {
+    const { userOptions } = this._sw
+    if (!userOptions.project || !userOptions.token) {
       throw new Error('Invalid options: project and token are required!')
     }
     return new Promise<void>((resolve, reject) => {
       try {
         const Authorization = `Basic ${Buffer.from(
-          `${this._sw.userOptions.project}:${this._sw.userOptions.token}`
+          `${userOptions.project}:${userOptions.token}`
         ).toString('base64')}`
 
         const data = JSON.stringify({ context: topic, message })
         const options = {
-          host: this._sw.userOptions.host ?? HOST,
+          host: userOptions.host ?? HOST,
           port: 443,
           method: 'POST',
           path: PATH,
