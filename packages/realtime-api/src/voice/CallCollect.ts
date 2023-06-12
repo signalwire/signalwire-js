@@ -118,7 +118,6 @@ export class CallCollectAPI
 
   /** @internal */
   protected setPayload(payload: CallingCallCollectEventParams) {
-    console.log('payload', payload)
     this._payload = payload
   }
 
