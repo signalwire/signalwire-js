@@ -8,10 +8,10 @@ export interface BaseListenOptions {
 
 type ListenersKeys = keyof Omit<BaseListenOptions, 'topics'>
 
-interface BaseListeners<T> {
+interface BaseListeners {
   _uuid: string
   topics: BaseListenOptions['topics']
-  listeners: Omit<T, 'topics'>
+  listeners: Omit<BaseListenOptions, 'topics'>
   unsub: () => Promise<void>
 }
 
@@ -20,7 +20,7 @@ export class BaseNamespace<T extends BaseListenOptions> {
   protected _sw: SWClient
   protected _eventMap: Record<ListenersKeys, string>
   protected emitter = new EventEmitter()
-  private _baseListeners: BaseListeners<T>[] = []
+  private _baseListeners: BaseListeners[] = []
 
   constructor(options: SWClient) {
     this._sw = options
