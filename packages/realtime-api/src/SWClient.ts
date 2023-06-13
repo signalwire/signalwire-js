@@ -1,6 +1,6 @@
 import { createClient } from './client/createClient'
-import type { Client } from '../client/Client'
-import { clientConnect } from '../client/clientConnect'
+import type { Client } from './client/Client'
+import { clientConnect } from './client/clientConnect'
 import { Task } from './task/Task'
 
 export interface SWClientOptions {
@@ -8,6 +8,9 @@ export interface SWClientOptions {
   project: string
   token: string
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
+  debug?: {
+    logWsTraffic?: boolean
+  }
 }
 
 export class SWClient {

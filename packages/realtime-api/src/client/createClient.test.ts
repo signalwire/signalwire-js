@@ -49,7 +49,7 @@ describe('createClient', () => {
   it('should throw an error when invalid credentials are provided', async () => {
     expect.assertions(1)
 
-    const client = await createClient({
+    const client = createClient({
       // @ts-expect-error
       host,
       token: '<invalid-token>',
@@ -65,7 +65,7 @@ describe('createClient', () => {
   it('should resolve `connect()` when the client is authorized', async () => {
     expect.assertions(1)
 
-    const client = await createClient({
+    const client = createClient({
       // @ts-expect-error
       host,
       token,
@@ -102,7 +102,7 @@ describe('createClient', () => {
       socket.on('message', messageHandler)
     })
 
-    const client = await createClient({
+    const client = createClient({
       // @ts-expect-error
       host: h,
       token,

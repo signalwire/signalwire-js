@@ -1,5 +1,5 @@
 import { EventEmitter, ExecuteParams, uuid } from '@signalwire/core'
-import type { Client } from '../client/Client'
+import type { Client } from './client/Client'
 import { SWClient } from './SWClient'
 
 export interface BaseListenOptions {

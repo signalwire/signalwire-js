@@ -1,6 +1,6 @@
 import { connect, ClientEvents } from '@signalwire/core'
-import { setupInternals } from '../../utils/internals'
-import { Client } from '../../client/Client'
+import { setupInternals } from '../utils/internals'
+import { Client } from './Client'
 
 export const createClient = (userOptions: {
   project: string

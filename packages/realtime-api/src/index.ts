@@ -50,8 +50,6 @@
  */
 export * as Video from './video/Video'
 
-export * from './createClient'
-
 /**
  * Access the Chat API Consumer. You can instantiate a {@link Chat.Client} to
  * subscribe to Chat events. Please check {@link Chat.ChatClientApiEvents}
@@ -98,42 +96,6 @@ export * as PubSub from './pubSub/PubSub'
 
 /** @ignore */
 export * from './configure'
-
-/**
- * Access the Task API. You can instantiate a {@link Task.Client} to
- * receive tasks from a different application. Please check
- * {@link Task.TaskClientApiEvents} for the full list of events that
- * a {@link Task.Client} can subscribe to.
- *
- * @example
- *
- * The following example listens for incoming tasks.
- *
- * ```javascript
- * const client = new Task.Client({
- *   project: "<project-id>",
- *   token: "<api-token>",
- *   contexts: ['office']
- * })
- *
- * client.on('task.received', (payload) => {
- *   console.log('Task Received', payload)
- *   // Do something with the payload...
- * })
- * ```
- *
- * From a different process, even on a different machine, you can then send tasks:
- *
- * ```js
- * await Task.send({
- *   project: "<project-id>",
- *   token: "<api-token>",
- *   context: 'office',
- *   message: { hello: ['world', true] },
- * })
- * ```
- */
-export * as Task from './task/Task'
 
 /**
  * Access the Messaging API. You can instantiate a {@link Messaging.Client} to
@@ -200,4 +162,4 @@ export * as Messaging from './messaging/Messaging'
  */
 export * as Voice from './voice/Voice'
 
-export * from './signalwire'
+export { SignalWire } from './SignalWire'

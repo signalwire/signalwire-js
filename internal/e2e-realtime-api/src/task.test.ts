@@ -1,9 +1,16 @@
 import { Task } from '@signalwire/realtime-api'
 import { createTestRunner } from './utils'
+import { SignalWire } from '@signalwire/realtime-api'
 
-const handler = () => {
+const handler = async () => {
   return new Promise<number>(async (resolve, reject) => {
-    const context = 'task-e2e'
+    const client = await SignalWire({
+      host: process.env.RELAY_HOST || 'relay.swire.io',
+      project: process.env.RELAY_PROJECT as string,
+      token: process.env.RELAY_TOKEN as string,
+    })
+
+    const topic = 'task-e2e'
     const firstPayload = {
       id: Date.now(),
       item: 'first',
@@ -12,46 +19,37 @@ const handler = () => {
       id: Date.now(),
       item: 'last',
     }
-
-    const client = new Task.Client({
-      host: process.env.RELAY_HOST as string,
-      project: process.env.RELAY_PROJECT as string,
-      token: process.env.RELAY_TOKEN as string,
-      contexts: [context],
-    })
-
     let counter = 0
 
-    client.on('task.received', (payload) => {
-      if (payload.id === firstPayload.id && payload.item === 'first') {
-        counter++
-      } else if (payload.id === lastPayload.id && payload.item === 'last') {
-        counter++
-      } else {
-        console.error('Invalid payload on `task.received`', payload)
-        return reject(4)
-      }
+    const unsub = await client.task.listen({
+      topics: [topic],
+      onTaskReceived: (payload) => {
+        if (payload.id === firstPayload.id && payload.item === 'first') {
+          counter++
+        } else if (payload.id === lastPayload.id && payload.item === 'last') {
+          counter++
+        } else {
+          console.error('Invalid payload on `onTaskReceived`', payload)
+          return reject(4)
+        }
 
-      if (counter === 2) {
-        return resolve(0)
-      }
+        if (counter === 2) {
+          return resolve(0)
+        }
+      },
     })
 
-    await Task.send({
-      host: process.env.RELAY_HOST as string,
-      project: process.env.RELAY_PROJECT as string,
-      token: process.env.RELAY_TOKEN as string,
-      context,
+    await client.task.send({
+      topic: topic,
       message: firstPayload,
     })
 
-    await Task.send({
-      host: process.env.RELAY_HOST as string,
-      project: process.env.RELAY_PROJECT as string,
-      token: process.env.RELAY_TOKEN as string,
-      context,
+    await client.task.send({
+      topic: topic,
       message: lastPayload,
     })
+
+    await unsub()
   })
 }
 
