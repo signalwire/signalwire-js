@@ -31,7 +31,7 @@ test.describe('RoomSessionDevices', () => {
     expect(joinParams.room_session).toBeDefined()
 
     // --------------- Change the microphone & camera ---------------
-    const device = await page.evaluate(async () => {
+    const devices = await page.evaluate(async () => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
 
@@ -60,8 +60,8 @@ test.describe('RoomSessionDevices', () => {
       return Promise.all([microphoneUpdated, cameraUpdated])
     })
 
-    expect(device).toHaveLength(2)
-    device.forEach((item) => {
+    expect(devices).toHaveLength(2)
+    devices.forEach((item) => {
       expect(item).toHaveProperty('previous.deviceId')
       expect(item).toHaveProperty('previous.label')
       expect(item).toHaveProperty('current.deviceId')
@@ -69,7 +69,7 @@ test.describe('RoomSessionDevices', () => {
     })
   })
 
-  test.only('should emit the microphone, and camera disconnected event', async ({
+  test('should emit the microphone, and camera disconnected event', async ({
     createCustomPage,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
@@ -92,13 +92,14 @@ test.describe('RoomSessionDevices', () => {
     expect(joinParams.room_session).toBeDefined()
 
     // --------------- Change the microphone & camera ---------------
-    const device = await page.evaluate(async () => {
+    const devices = await page.evaluate(async () => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
       const stream = roomObj.localStream!
 
       const microphoneDisconnected = new Promise((resolve) => {
         roomObj.on('microphone.disconnected', (payload) => {
+          console.log('microphone.disconnected')
           resolve(payload)
         })
         const track = stream.getAudioTracks()[0]
@@ -108,6 +109,7 @@ test.describe('RoomSessionDevices', () => {
 
       const cameraDisconnected = new Promise((resolve) => {
         roomObj.on('camera.disconnected', (payload) => {
+          console.log('camera.disconnected')
           resolve(payload)
         })
         const track = stream.getVideoTracks()[0]
@@ -118,8 +120,8 @@ test.describe('RoomSessionDevices', () => {
       return Promise.all([microphoneDisconnected, cameraDisconnected])
     })
 
-    expect(device).toHaveLength(2)
-    device.forEach((item) => {
+    expect(devices).toHaveLength(2)
+    devices.forEach((item) => {
       expect(item).toHaveProperty('deviceId')
       expect(item).toHaveProperty('label')
     })
