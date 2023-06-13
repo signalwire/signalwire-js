@@ -546,6 +546,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     if (!this.peer) {
       throw new Error('Invalid RTCPeerConnection.')
     }
+    const prevVideoTrack = this.localVideoTrack
+    const prevAudioTrack = this.localAudioTrack
     this.logger.debug('updateStream got stream', stream)
     if (!this.localStream) {
       this.localStream = new MediaStream()
@@ -592,7 +594,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
             this.localStream?.removeTrack(track)
           }
         })
-
         this.localStream.addTrack(newTrack)
       } else {
         this.logger.debug(
@@ -605,8 +606,32 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       }
       this.logger.debug('updateStream simply update mic/cam')
       if (newTrack.kind === 'audio') {
+        this._detachAudioTrackListener()
+        // @ts-expect-error
+        this.emit('microphone.updated', {
+          previous: {
+            deviceId: prevAudioTrack?.id,
+            label: prevAudioTrack?.label,
+          },
+          current: {
+            deviceId: newTrack?.id,
+            label: newTrack?.label,
+          },
+        })
         this.options.micId = newTrack.getSettings().deviceId
       } else if (newTrack.kind === 'video') {
+        this._detachVideoTrackListener()
+        // @ts-expect-error
+        this.emit('camera.updated', {
+          previous: {
+            deviceId: prevVideoTrack?.id,
+            label: prevVideoTrack?.label,
+          },
+          current: {
+            deviceId: newTrack?.id,
+            label: newTrack?.label,
+          },
+        })
         this.options.camId = newTrack.getSettings().deviceId
       }
     }
