@@ -68,4 +68,60 @@ test.describe('RoomSessionDevices', () => {
       expect(item).toHaveProperty('current.label')
     })
   })
+
+  test.only('should emit the microphone, and camera disconnected event', async ({
+    createCustomPage,
+  }) => {
+    const page = await createCustomPage({ name: '[page]' })
+    await page.goto(SERVER_URL)
+
+    const roomName = randomizeRoomName('join-leave-e2e')
+    await createTestRoomSession(page, {
+      vrt: {
+        room_name: roomName,
+        user_name: 'e2e_test',
+        auto_create_room: true,
+      },
+      initialEvents: [],
+    })
+
+    // --------------- Joining the room ---------------
+    const joinParams = await expectRoomJoined(page)
+
+    expect(joinParams.room).toBeDefined()
+    expect(joinParams.room_session).toBeDefined()
+
+    // --------------- Change the microphone & camera ---------------
+    const device = await page.evaluate(async () => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      const stream = roomObj.localStream!
+
+      const microphoneDisconnected = new Promise((resolve) => {
+        roomObj.on('microphone.disconnected', (payload) => {
+          resolve(payload)
+        })
+        const track = stream.getAudioTracks()[0]
+        const endedEvent = new Event('ended')
+        track.dispatchEvent(endedEvent)
+      })
+
+      const cameraDisconnected = new Promise((resolve) => {
+        roomObj.on('camera.disconnected', (payload) => {
+          resolve(payload)
+        })
+        const track = stream.getVideoTracks()[0]
+        const endedEvent = new Event('ended')
+        track.dispatchEvent(endedEvent)
+      })
+
+      return Promise.all([microphoneDisconnected, cameraDisconnected])
+    })
+
+    expect(device).toHaveLength(2)
+    device.forEach((item) => {
+      expect(item).toHaveProperty('deviceId')
+      expect(item).toHaveProperty('label')
+    })
+  })
 })

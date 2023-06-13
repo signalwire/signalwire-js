@@ -58,6 +58,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     )
 
     this._onIce = this._onIce.bind(this)
+    this._onEndedTrackHandler = this._onEndedTrackHandler.bind(this)
+
     if (this.options.prevCallId) {
       this.uuid = this.options.prevCallId
     }
@@ -889,6 +891,9 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         this._remoteStream = event.stream
       }
     })
+
+    this._attachAudioTrackListener()
+    this._attachVideoTrackListener()
   }
 
   private clearTimers() {
@@ -907,5 +912,39 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private emitMediaConnected() {
     // @ts-expect-error
     this.call.emit('media.connected')
+  }
+
+  private _onEndedTrackHandler(event: Event) {
+    const mediaTrack = event.target as MediaStreamTrack
+    const evt = mediaTrack.kind === 'audio' ? 'microphone' : 'camera'
+    // @ts-expect-error
+    this.call.emit(`${evt}.disconnected`, {
+      deviceId: mediaTrack.id,
+      label: mediaTrack.label,
+    })
+  }
+
+  public _attachAudioTrackListener() {
+    this.localStream?.getAudioTracks().forEach((track) => {
+      track.addEventListener('ended', this._onEndedTrackHandler)
+    })
+  }
+
+  public _attachVideoTrackListener() {
+    this.localStream?.getVideoTracks().forEach((track) => {
+      track.addEventListener('ended', this._onEndedTrackHandler)
+    })
+  }
+
+  public _detachAudioTrackListener() {
+    this.localStream?.getAudioTracks().forEach((track) => {
+      track.removeEventListener('ended', this._onEndedTrackHandler)
+    })
+  }
+
+  public _detachVideoTrackListener() {
+    this.localStream?.getVideoTracks().forEach((track) => {
+      track.removeEventListener('ended', this._onEndedTrackHandler)
+    })
   }
 }

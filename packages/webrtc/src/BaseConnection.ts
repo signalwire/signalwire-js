@@ -131,8 +131,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     }
     this._checkDefaultMediaConstraints()
 
-    this._onEndedTrackHandler = this._onEndedTrackHandler.bind(this)
-
     this.setState('new')
     this.logger.trace('New Call with Options:', this.options)
 
@@ -327,6 +325,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
             'No audio track found in the stream provided. Audio will be unaffected.'
           )
         } else {
+          this.peer?._detachAudioTrackListener()
           prevAudioTracks.forEach((track) => {
             stopTrack(track)
             this.localStream?.removeTrack(track)
@@ -536,8 +535,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         this.logger.error('updateConstraints', error)
         reject(error)
       } finally {
-        this._attachAudioTrackListener()
-        this._attachVideoTrackListener()
+        this.peer?._attachAudioTrackListener()
+        this.peer?._attachVideoTrackListener()
       }
     })
   }
@@ -546,8 +545,15 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     if (!this.peer) {
       throw new Error('Invalid RTCPeerConnection.')
     }
+
+    // Store the previous tracks for device.updated event
     const prevVideoTrack = this.localVideoTrack
     const prevAudioTrack = this.localAudioTrack
+
+    // Detach listeners because updateStream will trigger the track ended event
+    this.peer._detachAudioTrackListener()
+    this.peer._detachVideoTrackListener()
+
     this.logger.debug('updateStream got stream', stream)
     if (!this.localStream) {
       this.localStream = new MediaStream()
@@ -606,7 +612,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       }
       this.logger.debug('updateStream simply update mic/cam')
       if (newTrack.kind === 'audio') {
-        this._detachAudioTrackListener()
         // @ts-expect-error
         this.emit('microphone.updated', {
           previous: {
@@ -620,7 +625,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         })
         this.options.micId = newTrack.getSettings().deviceId
       } else if (newTrack.kind === 'video') {
-        this._detachVideoTrackListener()
         // @ts-expect-error
         this.emit('camera.updated', {
           previous: {
@@ -1013,40 +1017,5 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       rtcPeer.stop()
     })
     this.rtcPeerMap.clear()
-  }
-
-  private _onEndedTrackHandler(event: Event) {
-    const mediaTrack = event.target as MediaStreamTrack
-
-    const evt = mediaTrack.kind === 'audio' ? 'microphone' : 'camera'
-    // @ts-expect-error
-    this.emit(`${evt}.disconnected`, {
-      deviceId: mediaTrack.id,
-      label: mediaTrack.label,
-    })
-  }
-
-  private _attachAudioTrackListener() {
-    this.localStream?.getAudioTracks().forEach((track) => {
-      track.addEventListener('ended', this._onEndedTrackHandler)
-    })
-  }
-
-  private _attachVideoTrackListener() {
-    this.localStream?.getVideoTracks().forEach((track) => {
-      track.addEventListener('ended', this._onEndedTrackHandler)
-    })
-  }
-
-  private _detachAudioTrackListener() {
-    this.localStream?.getAudioTracks().forEach((track) => {
-      track.removeEventListener('ended', this._onEndedTrackHandler)
-    })
-  }
-
-  private _detachVideoTrackListener() {
-    this.localStream?.getVideoTracks().forEach((track) => {
-      track.removeEventListener('ended', this._onEndedTrackHandler)
-    })
   }
 }
