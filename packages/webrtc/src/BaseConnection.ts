@@ -325,7 +325,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
             'No audio track found in the stream provided. Audio will be unaffected.'
           )
         } else {
-          this.peer?._detachAudioTrackListener()
           prevAudioTracks.forEach((track) => {
             stopTrack(track)
             this.localStream?.removeTrack(track)
