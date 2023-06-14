@@ -512,9 +512,9 @@ export class RoomSessionConnection
     // @TODO: Stop the watcher when user leave/disconnects
     createSpeakerDeviceWatcher().then((deviceWatcher) => {
       deviceWatcher.on('removed', async (data) => {
+        const sinkId = this._audioEl.sinkId
         const disconnectedSpeaker = data.changes.find((device) => {
           const payloadDeviceId = device.payload.deviceId
-          const sinkId = this._audioEl.sinkId
 
           return (
             payloadDeviceId === sinkId ||
@@ -557,6 +557,7 @@ export class RoomSessionConnection
   getAudioEl() {
     if (this._audioEl) return this._audioEl
     this._audioEl = new Audio()
+    console.log('listener attached!')
     this._attachSpeakerTrackListener()
     return this._audioEl
   }
