@@ -1,7 +1,7 @@
 import { SignalWire } from '@signalwire/realtime-api'
 import { createTestRunner } from './utils'
 
-const handler = async () => {
+const handler = () => {
   return new Promise<number>(async (resolve, reject) => {
     try {
       const client = await SignalWire({
