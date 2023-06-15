@@ -46,7 +46,6 @@ import { SignalWire } from '@signalwire/realtime-api'
   await removeWorkplaceListeners()
 
   setTimeout(async () => {
-    await removeOfficeListeners()
     console.log('Disconnect the client..')
     client.disconnect()
   }, 2000)

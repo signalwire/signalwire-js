@@ -136,6 +136,10 @@ export class BaseNamespace<T extends ListenOptions> {
     })
   }
 
+  private generateEvent(topic: string, key: ListenersKeys) {
+    return `${topic}.${this._eventMap[key]}`
+  }
+
   private hasOtherListeners(uuid: string, topic: string) {
     for (const [key, listener] of this._listenerMap) {
       if (key === uuid) continue
