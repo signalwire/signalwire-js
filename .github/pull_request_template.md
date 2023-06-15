@@ -9,6 +9,6 @@ Please include a summary of the change and which issue is fixed.
 - [ ] New feature (non-breaking change which adds functionality)
 - [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
 
-# Code snippets
+## Code snippets
 
 In case of new feature or breaking changes, please include code snippets.
