@@ -21,12 +21,16 @@ export class BaseNamespace<T extends ListenOptions> {
   protected _client: Client
   protected _sw: SWClient
   protected _eventMap: Record<ListenersKeys, string>
-  protected emitter = new EventEmitter()
+  private _namespaceEmitter = new EventEmitter()
   private _listenerMap: ListenerMap = new Map()
 
   constructor(options: { swClient: SWClient }) {
     this._sw = options.swClient
     this._client = options.swClient.client
+  }
+
+  get emitter() {
+    return this._namespaceEmitter
   }
 
   private addTopics(topics: string[]) {

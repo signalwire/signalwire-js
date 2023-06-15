@@ -18,7 +18,7 @@ interface TaskListenOptions extends ListenOptions {
 type TaskListenersKeys = keyof Omit<TaskListenOptions, 'topics'>
 
 export class Task extends BaseNamespace<TaskListenOptions> {
-  protected emitter = new EventEmitter()
+  private _taskEmitter = new EventEmitter()
   protected _eventMap: Record<TaskListenersKeys, TaskReceivedEventName> = {
     onTaskReceived: 'task.received',
   }
@@ -29,9 +29,13 @@ export class Task extends BaseNamespace<TaskListenOptions> {
     this._client.runWorker('taskWorker', {
       worker: taskWorker,
       initialState: {
-        emitter: this.emitter,
+        taskEmitter: this._taskEmitter,
       },
     })
+  }
+
+  get emitter() {
+    return this._taskEmitter
   }
 
   send({
