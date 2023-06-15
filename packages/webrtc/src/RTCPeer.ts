@@ -16,6 +16,8 @@ import {
 import { ConnectionOptions } from './utils/interfaces'
 import { watchRTCPeerMediaPackets } from './utils/watchRTCPeerMediaPackets'
 
+const RESUME_TIMEOUT = 10_000
+
 export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   public uuid = uuid()
 
@@ -290,8 +292,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     this.call.emit('media.reconnecting')
     this.clearTimers()
     this._resumeTimer = setTimeout(() => {
-      this.logger.warn('Resume timeout!! Kick out')
-    }, 10_000) // TODO: read from call verto.invite response
+      // @ts-expect-error
+      this.call.emit('media.disconnected')
+      this.call.setState('hangup')
+    }, RESUME_TIMEOUT) // TODO: read from call verto.invite response
     this.call._closeWSConnection()
   }
 
