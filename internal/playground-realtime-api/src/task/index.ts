@@ -13,6 +13,16 @@ import { SignalWire } from '@signalwire/realtime-api'
     },
   })
 
+  const removeWorkplaceListeners = await client.task.listen({
+    topics: ['workplace', 'home'],
+    onTaskReceived: (payload) => {
+      console.log(
+        'Task received under the "workplace" or "home" context',
+        payload
+      )
+    },
+  })
+
   console.log('Sending a message to office..')
   await client.task.send({
     topic: 'office',
@@ -25,8 +35,17 @@ import { SignalWire } from '@signalwire/realtime-api'
     message: { yo: ['bro', 2, true] },
   })
 
+  await removeOfficeListeners()
+
+  console.log('Sending a message to workplace..')
+  await client.task.send({
+    topic: 'workplace',
+    message: { yo: ['bro', 3, true] },
+  })
+
+  await removeWorkplaceListeners()
+
   setTimeout(async () => {
-    await removeOfficeListeners()
     console.log('Disconnect the client..')
     client.disconnect()
   }, 2000)

@@ -2,29 +2,31 @@ import { EventEmitter, ExecuteParams, uuid } from '@signalwire/core'
 import type { Client } from './client/Client'
 import { SWClient } from './SWClient'
 
-export interface BaseListenOptions {
+export interface ListenOptions {
   topics: string[]
 }
 
-type ListenersKeys = keyof Omit<BaseListenOptions, 'topics'>
+type ListenersKeys = keyof Omit<ListenOptions, 'topics'>
 
-interface BaseListeners {
-  _uuid: string
-  topics: BaseListenOptions['topics']
-  listeners: Omit<BaseListenOptions, 'topics'>
-  unsub: () => Promise<void>
-}
+type ListenerMap = Map<
+  string,
+  {
+    topics: Set<string>
+    listeners: Omit<ListenOptions, 'topics'>
+    unsub: () => Promise<void>
+  }
+>
 
-export class BaseNamespace<T extends BaseListenOptions> {
+export class BaseNamespace<T extends ListenOptions> {
   protected _client: Client
   protected _sw: SWClient
   protected _eventMap: Record<ListenersKeys, string>
   protected emitter = new EventEmitter()
-  private _baseListeners: BaseListeners[] = []
+  private _listenerMap: ListenerMap = new Map()
 
-  constructor(options: SWClient) {
-    this._sw = options
-    this._client = options.client
+  constructor(options: { swClient: SWClient }) {
+    this._sw = options.swClient
+    this._client = options.swClient.client
   }
 
   private addTopics(topics: string[]) {
@@ -87,7 +89,7 @@ export class BaseNamespace<T extends BaseListenOptions> {
           this._detachListeners(topics, listeners)
 
           // Remove task from the task listener array
-          this.removeFromBaseListener(_uuid)
+          this.removeFromListenerMap(_uuid)
 
           resolve()
         } catch (error) {
@@ -96,18 +98,21 @@ export class BaseNamespace<T extends BaseListenOptions> {
       })
     }
 
-    this._baseListeners.push({ _uuid, topics, listeners, unsub })
+    this._listenerMap.set(_uuid, {
+      topics: new Set([...topics]),
+      listeners,
+      unsub,
+    })
 
     return unsub
   }
 
   private _attachListeners(topics: string[], listeners: Omit<T, 'topics'>) {
     const listenerKeys = Object.keys(listeners) as Array<ListenersKeys>
-
     topics.forEach((topic) => {
       listenerKeys.forEach((key) => {
         if (typeof listeners[key] === 'function' && this._eventMap[key]) {
-          const event = `${topic}.${this._eventMap[key]}`
+          const event = this.generateEvent(topic, key)
           this.emitter.on(event, listeners[key])
         }
       })
@@ -116,35 +121,36 @@ export class BaseNamespace<T extends BaseListenOptions> {
 
   private _detachListeners(topics: string[], listeners: Omit<T, 'topics'>) {
     const listenerKeys = Object.keys(listeners) as Array<ListenersKeys>
-
     topics.forEach((topic) => {
       listenerKeys.forEach((key) => {
         if (typeof listeners[key] === 'function' && this._eventMap[key]) {
-          const event = `${topic}.${this._eventMap[key]}`
+          const event = this.generateEvent(topic, key)
           this.emitter.off(event, listeners[key])
         }
       })
     })
   }
 
+  private generateEvent(topic: string, key: ListenersKeys) {
+    return `${topic}.${this._eventMap[key]}`
+  }
+
   private hasOtherListeners(uuid: string, topic: string) {
-    const otherTasks = this._baseListeners.filter((task) => task._uuid !== uuid)
-    for (const task of otherTasks) {
-      if (task.topics.includes(topic)) {
-        return true
-      }
+    for (const [key, listener] of this._listenerMap) {
+      if (key === uuid) continue
+      if (listener.topics.has(topic)) return true
     }
     return false
   }
 
-  protected unsubscribeAll() {
-    this._baseListeners.forEach(async ({ unsub }) => await unsub())
-    this._baseListeners = []
+  protected async unsubscribeAll() {
+    await Promise.all(
+      [...this._listenerMap.values()].map(({ unsub }) => unsub())
+    )
+    this._listenerMap.clear()
   }
 
-  private removeFromBaseListener(id: string) {
-    this._baseListeners = this._baseListeners.filter(
-      (listener) => listener._uuid !== id
-    )
+  private removeFromListenerMap(id: string) {
+    return this._listenerMap.delete(id)
   }
 }
