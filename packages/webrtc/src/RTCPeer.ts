@@ -25,10 +25,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _iceTimeout: any
   private _negotiating = false
   private _processingRemoteSDP = false
-  private needResume = false
   private _restartingIce = false
   private _watchMediaPacketsTimer: ReturnType<typeof setTimeout>
   private _connectionStateTimer: ReturnType<typeof setTimeout>
+  private _resumeTimer?: ReturnType<typeof setTimeout>
   private _mediaWatcher: ReturnType<typeof watchRTCPeerMediaPackets>
   /**
    * Both of these properties are used to have granular
@@ -279,7 +279,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   triggerResume() {
     this.logger.info('Probably half-open so force close from client')
-    if (this.needResume) {
+    if (this._resumeTimer) {
       this.logger.info('[skipped] Already in "resume" state')
       return
     }
@@ -289,12 +289,14 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     // @ts-expect-error
     this.call.emit('media.reconnecting')
     this.clearTimers()
-    this.needResume = true
+    this._resumeTimer = setTimeout(() => {
+      this.logger.warn('Resume timeout!! Kick out')
+    }, 10_000) // TODO: read from call verto.invite response
     this.call._closeWSConnection()
   }
 
   private resetNeedResume() {
-    this.needResume = false
+    this.clearResumeTimer()
     if (this.options.watchMediaPackets) {
       this.startWatchMediaPackets()
     }
@@ -892,6 +894,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private clearTimers() {
+    this.clearResumeTimer()
     this.clearWatchMediaPacketsTimer()
     this.clearConnectionStateTimer()
   }
@@ -902,6 +905,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   private clearWatchMediaPacketsTimer() {
     clearTimeout(this._watchMediaPacketsTimer)
+  }
+
+  private clearResumeTimer() {
+    clearTimeout(this._resumeTimer)
+    this._resumeTimer = undefined
   }
 
   private emitMediaConnected() {
