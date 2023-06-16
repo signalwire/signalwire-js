@@ -53,7 +53,7 @@ export class BaseNamespace<T extends ListenOptions> {
     return this._client.execute<unknown, void>(executeParams)
   }
 
-  listen(listenOptions: T) {
+  public listen(listenOptions: T) {
     return new Promise<() => Promise<void>>(async (resolve, reject) => {
       try {
         const { topics } = listenOptions
