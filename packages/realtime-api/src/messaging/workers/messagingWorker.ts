@@ -13,8 +13,8 @@ export const messagingWorker: SDKWorker<Messaging> = function* (
 ): SagaIterator {
   getLogger().trace('messagingWorker started')
   const {
-    instance: client,
     channels: { swEventChannel },
+    initialState: { messagingEmitter },
   } = options
 
   function* worker(action: MessagingAction) {
@@ -25,10 +25,10 @@ export const messagingWorker: SDKWorker<Messaging> = function* (
 
     switch (type) {
       case 'messaging.receive':
-        client.emit('message.received', message)
+        messagingEmitter.emit('message.received', message)
         break
       case 'messaging.state':
-        client.emit('message.updated', message)
+        messagingEmitter.emit('message.updated', message)
         break
       default:
         getLogger().warn(`Unknown message event: "${action.type}"`)

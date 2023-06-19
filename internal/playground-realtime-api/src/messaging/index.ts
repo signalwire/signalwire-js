@@ -1,29 +1,30 @@
-import { Messaging } from '@signalwire/realtime-api'
+import { SignalWire } from '@signalwire/realtime-api'
 
 async function run() {
   try {
-    const client = new Messaging.Client({
+    const client = await SignalWire({
       host: process.env.HOST || 'relay.swire.io',
       project: process.env.PROJECT as string,
       token: process.env.TOKEN as string,
-      contexts: ['office'],
       debug: {
         logWsTraffic: true,
       },
     })
 
-    client.on('message.received', (message) => {
-      console.log('message.received', message)
-    })
-
-    client.on('message.updated', (message) => {
-      console.log('message.updated', message)
+    const unsubHomeListener = await client.messaging.listen({
+      topics: ['home'],
+      onMessageReceived: (payload) => {
+        console.log('Message received under "home" context', payload)
+      },
+      onMessageUpdated: (payload) => {
+        console.log('Message updated under "home" context', payload)
+      },
     })
 
     try {
-      const response = await client.send({
-        from: '+1xxx',
-        to: '+1yyy',
+      const response = await client.messaging.send({
+        from: process.env.FROM_NUMBER_MSG as string,
+        to: process.env.TO_NUMBER_MSG as string,
         body: 'Hello World!',
       })
       console.log('>> send response', response)
@@ -34,6 +35,7 @@ async function run() {
     console.log('Client Running..')
 
     setTimeout(async () => {
+      await unsubHomeListener()
       console.log('Disconnect the client..')
       client.disconnect()
     }, 10_000)
