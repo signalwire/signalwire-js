@@ -49,6 +49,9 @@ export interface BaseConnectionContract<
   /** @internal The BaseConnection options  */
   readonly options: Record<any, any>
 
+  /** @internal */
+  readonly leaveReason: 'RECONNECTION_ATTEMPT_TIMEOUT' | undefined
+
   /** The id of the video device, or null if not available */
   readonly cameraId: string | null
   /** The label of the video device, or null if not available */

@@ -100,6 +100,9 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     EventTypes & BaseConnectionStateEventTypes
   >
   /** @internal */
+  public leaveReason: BaseConnectionContract<EventTypes>['leaveReason'] =
+    undefined
+  /** @internal */
   public cause: string
   /** @internal */
   public causeCode: string
@@ -919,12 +922,12 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   public onVertoBye = (params: OnVertoByeParams) => {
     const {
       rtcPeerId,
-      byeCause = 'NORMAL_CLEARING',
-      byeCauseCode = '16',
+      // byeCause = 'NORMAL_CLEARING',
+      // byeCauseCode = '16',
       redirectDestination,
     } = params
-    this.cause = String(byeCause)
-    this.causeCode = String(byeCauseCode)
+    // this.cause = String(byeCause)
+    // this.causeCode = String(byeCauseCode)
     const rtcPeer = this.getRTCPeerById(rtcPeerId)
     if (!rtcPeer) {
       return this.logger.warn('Invalid RTCPeer to hangup', params)
