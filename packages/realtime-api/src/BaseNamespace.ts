@@ -1,6 +1,7 @@
 import { EventEmitter, ExecuteParams, uuid } from '@signalwire/core'
 import type { Client } from './client/Client'
 import { SWClient } from './SWClient'
+import { prefixEvent } from './utils/internals'
 
 export interface ListenOptions {
   topics: string[]
@@ -116,7 +117,7 @@ export class BaseNamespace<T extends ListenOptions> {
     topics.forEach((topic) => {
       listenerKeys.forEach((key) => {
         if (typeof listeners[key] === 'function' && this._eventMap[key]) {
-          const event = this.generateEvent(topic, key)
+          const event = prefixEvent(topic, this._eventMap[key])
           this.emitter.on(event, listeners[key])
         }
       })
@@ -128,15 +129,11 @@ export class BaseNamespace<T extends ListenOptions> {
     topics.forEach((topic) => {
       listenerKeys.forEach((key) => {
         if (typeof listeners[key] === 'function' && this._eventMap[key]) {
-          const event = this.generateEvent(topic, key)
+          const event = prefixEvent(topic, this._eventMap[key])
           this.emitter.off(event, listeners[key])
         }
       })
     })
-  }
-
-  private generateEvent(topic: string, key: ListenersKeys) {
-    return `${topic}.${this._eventMap[key]}`
   }
 
   private hasOtherListeners(uuid: string, topic: string) {
