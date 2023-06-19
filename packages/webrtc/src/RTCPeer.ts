@@ -292,8 +292,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     this.call.emit('media.reconnecting')
     this.clearTimers()
     this._resumeTimer = setTimeout(() => {
+      this.logger.warn('Disconnecting due to RECONNECTION_ATTEMPT_TIMEOUT')
       // @ts-expect-error
       this.call.emit('media.disconnected')
+      this.call.leaveReason = 'RECONNECTION_ATTEMPT_TIMEOUT'
       this.call.setState('hangup')
     }, RESUME_TIMEOUT) // TODO: read from call verto.invite response
     this.call._closeWSConnection()
