@@ -16,7 +16,7 @@ import {
 import { ConnectionOptions } from './utils/interfaces'
 import { watchRTCPeerMediaPackets } from './utils/watchRTCPeerMediaPackets'
 
-const RESUME_TIMEOUT = 10_000
+const RESUME_TIMEOUT = 12_000
 
 export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   public uuid = uuid()
