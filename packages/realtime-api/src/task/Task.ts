@@ -5,7 +5,7 @@ import {
   TaskReceivedEventName,
 } from '@signalwire/core'
 import { SWClient } from '../SWClient'
-import { taskWorker } from './workers/taskWorker'
+import { taskWorker } from './workers'
 import { ListenOptions, BaseNamespace } from '../BaseNamespace'
 
 const PATH = '/api/relay/rest/tasks'
