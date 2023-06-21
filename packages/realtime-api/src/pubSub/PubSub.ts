@@ -9,7 +9,7 @@ import { pubSubWorker } from './workers'
 import { BaseChat, BaseChatListenOptions } from '../chat/BaseChat'
 
 interface PubSubListenOptions extends BaseChatListenOptions {
-  onMessageReceived?: (payload: PubSubMessage) => unknown
+  onMessageReceived?: (message: PubSubMessage) => unknown
 }
 
 type PubSubListenersKeys = keyof Omit<PubSubListenOptions, 'channels'>

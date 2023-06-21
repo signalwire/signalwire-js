@@ -3,6 +3,7 @@ import type { Client } from './client/Client'
 import { clientConnect } from './client/clientConnect'
 import { Task } from './task/Task'
 import { PubSub } from './pubSub/PubSub'
+import { Chat } from './chat/Chat'
 
 export interface SWClientOptions {
   host?: string
@@ -17,6 +18,7 @@ export interface SWClientOptions {
 export class SWClient {
   private _task: Task
   private _pubSub: PubSub
+  private _chat: Chat
 
   public userOptions: SWClientOptions
   public client: Client
@@ -46,5 +48,12 @@ export class SWClient {
       this._pubSub = new PubSub(this)
     }
     return this._pubSub
+  }
+
+  get chat() {
+    if (!this._chat) {
+      this._chat = new Chat(this)
+    }
+    return this._chat
   }
 }

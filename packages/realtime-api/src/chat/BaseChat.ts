@@ -6,7 +6,7 @@ export interface BaseChatListenOptions {
   channels: string[]
 }
 
-export type ListenersKeys = keyof Omit<BaseChatListenOptions, 'channels'>
+export type BaseChatListenerKeys = keyof Omit<BaseChatListenOptions, 'channels'>
 
 export class BaseChat<
   T extends BaseChatListenOptions
@@ -40,7 +40,7 @@ export class BaseChat<
     // Attach listeners
     this._attachListeners(channels, listeners)
 
-    const listenerKeys = Object.keys(listeners) as Array<ListenersKeys>
+    const listenerKeys = Object.keys(listeners) as Array<BaseChatListenerKeys>
     const events: string[] = []
     listenerKeys.forEach((key) => {
       if (this._eventMap[key]) events.push(this._eventMap[key])
@@ -82,6 +82,7 @@ export class BaseChat<
 
   private addChannels(channels: string[], events: string[]) {
     return new Promise(async (resolve, reject) => {
+      console.log('adding channels')
       try {
         const execParams: ExecuteParams = {
           method: 'chat.subscribe',
@@ -94,6 +95,8 @@ export class BaseChat<
         }
 
         // @TODO: Do not subscribe if the user params are the same
+
+        console.log('execParams', JSON.stringify(execParams))
 
         await this._client.execute(execParams)
         resolve(undefined)
