@@ -301,7 +301,7 @@ export class BaseComponent<
   }
 
   /** @internal */
-  protected runWorker<Hooks extends SDKWorkerHooks = SDKWorkerHooks>(
+  public runWorker<Hooks extends SDKWorkerHooks = SDKWorkerHooks>(
     name: string,
     def: SDKWorkerDefinition<Hooks>
   ) {
