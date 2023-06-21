@@ -1,58 +1,96 @@
 import { randomUUID } from 'node:crypto'
-import { Task } from '@signalwire/realtime-api'
+import { SignalWire } from '@signalwire/realtime-api'
 import { createTestRunner } from './utils'
 
 const handler = () => {
   return new Promise<number>(async (resolve, reject) => {
-    const context = randomUUID()
-    const firstPayload = {
-      id: Date.now(),
-      item: 'first',
-    }
-    const lastPayload = {
-      id: Date.now(),
-      item: 'last',
-    }
+    try {
+      const client = await SignalWire({
+        host: process.env.RELAY_HOST || 'relay.swire.io',
+        project: process.env.RELAY_PROJECT as string,
+        token: process.env.RELAY_TOKEN as string,
+      })
 
-    const client = new Task.Client({
-      host: process.env.RELAY_HOST as string,
-      project: process.env.RELAY_PROJECT as string,
-      token: process.env.RELAY_TOKEN as string,
-      contexts: [context],
-    })
+      const homeTopic = `home-${randomUUID()}`
+      const officeTopic = `office-${randomUUID()}`
 
-    let counter = 0
-
-    client.on('task.received', (payload) => {
-      if (payload.id === firstPayload.id && payload.item === 'first') {
-        counter++
-      } else if (payload.id === lastPayload.id && payload.item === 'last') {
-        counter++
-      } else {
-        console.error('Invalid payload on `task.received`', payload)
-        return reject(4)
+      const firstPayload = {
+        id: Date.now(),
+        topic: homeTopic,
+      }
+      const secondPayload = {
+        id: Date.now(),
+        topic: homeTopic,
+      }
+      const thirdPayload = {
+        id: Date.now(),
+        topic: officeTopic,
       }
 
-      if (counter === 2) {
-        return resolve(0)
-      }
-    })
+      let counter = 0
+      const unsubHomeOffice = await client.task.listen({
+        topics: [homeTopic, officeTopic],
+        onTaskReceived: (payload) => {
+          if (
+            payload.topic !== homeTopic ||
+            payload.id !== firstPayload.id ||
+            payload.id !== secondPayload.id ||
+            counter > 3
+          ) {
+            console.error('Invalid payload on `home` context', payload)
+            return reject(4)
+          }
+          counter++
+        },
+      })
 
-    await Task.send({
-      host: process.env.RELAY_HOST as string,
-      project: process.env.RELAY_PROJECT as string,
-      token: process.env.RELAY_TOKEN as string,
-      context,
-      message: firstPayload,
-    })
+      const unsubOffice = await client.task.listen({
+        topics: [officeTopic],
+        onTaskReceived: (payload) => {
+          if (
+            payload.topic !== officeTopic ||
+            payload.id !== thirdPayload.id ||
+            counter > 3
+          ) {
+            console.error('Invalid payload on `home` context', payload)
+            return reject(4)
+          }
+          counter++
 
-    await Task.send({
-      host: process.env.RELAY_HOST as string,
-      project: process.env.RELAY_PROJECT as string,
-      token: process.env.RELAY_TOKEN as string,
-      context,
-      message: lastPayload,
-    })
+          if (counter === 3) {
+            return resolve(0)
+          }
+        },
+      })
+
+      await client.task.send({
+        topic: homeTopic,
+        message: firstPayload,
+      })
+
+      await client.task.send({
+        topic: homeTopic,
+        message: secondPayload,
+      })
+
+      await unsubHomeOffice()
+
+      // This message should not reach the listener
+      await client.task.send({
+        topic: homeTopic,
+        message: secondPayload,
+      })
+
+      await client.task.send({
+        topic: officeTopic,
+        message: thirdPayload,
+      })
+
+      await unsubOffice()
+    } catch (error) {
+      console.log('Task test error', error)
+      reject(error)
+    }
   })
 }
 

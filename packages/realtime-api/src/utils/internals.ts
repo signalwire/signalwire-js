@@ -62,3 +62,8 @@ export const getCredentials = (options?: GetCredentialsOptions) => {
 
   return { project, token }
 }
+
+export const prefixEvent = (prefix: string, event: string) => {
+  if (typeof prefix !== 'string' || typeof event !== 'string') return event
+  return `${prefix}.${event}`
+}
