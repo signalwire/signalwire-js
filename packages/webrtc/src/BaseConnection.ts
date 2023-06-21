@@ -100,6 +100,9 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     EventTypes & BaseConnectionStateEventTypes
   >
   /** @internal */
+  public leaveReason: BaseConnectionContract<EventTypes>['leaveReason'] =
+    undefined
+  /** @internal */
   public cause: string
   /** @internal */
   public causeCode: string

@@ -369,6 +369,8 @@ export class BaseSession {
   protected async _onSocketOpen(event: Event) {
     this.logger.debug('_onSocketOpen', event.type)
     try {
+      // Reset to "unknown" in case of reconnect
+      this._status = 'unknown'
       this._clearTimers()
       await this.authenticate()
       this._status = 'connected'
@@ -399,7 +401,6 @@ export class BaseSession {
     if (this._status !== 'disconnected') {
       this._status = 'reconnecting'
       this.dispatch(sessionReconnectingAction())
-      // yield put(pubSubChannel, sessionReconnectingAction())
       this._clearTimers()
       this._clearPendingRequests()
       this._reconnectTimer = setTimeout(() => {
@@ -588,6 +589,7 @@ export class BaseSession {
         status === 'disconnected' ? 'unauthorized' : 'unknown'
       )
     )
+    this._removeSocketListeners()
     this.destroySocket()
     this._checkCurrentStatus()
   }
