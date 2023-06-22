@@ -82,7 +82,6 @@ export class BaseChat<
 
   private addChannels(channels: string[], events: string[]) {
     return new Promise(async (resolve, reject) => {
-      console.log('adding channels')
       try {
         const execParams: ExecuteParams = {
           method: 'chat.subscribe',
@@ -95,8 +94,6 @@ export class BaseChat<
         }
 
         // @TODO: Do not subscribe if the user params are the same
-
-        console.log('execParams', JSON.stringify(execParams))
 
         await this._client.execute(execParams)
         resolve(undefined)

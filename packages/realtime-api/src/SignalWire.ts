@@ -12,3 +12,5 @@ export const SignalWire = (options: SWClientOptions): Promise<SWClient> => {
     }
   })
 }
+
+export { SWClient } from './SWClient'
