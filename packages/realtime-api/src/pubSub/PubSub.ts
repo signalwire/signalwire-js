@@ -34,7 +34,7 @@ export class PubSub extends BaseChat<PubSubListenOptions> {
     })
   }
 
-  get emitter() {
+  protected get emitter() {
     return this._pubSubEmitter
   }
 }

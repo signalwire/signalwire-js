@@ -40,7 +40,7 @@ export class Chat extends ChatCore.applyCommonMethods(
     })
   }
 
-  get emitter() {
+  protected get emitter() {
     return this._chatEmitter
   }
 }

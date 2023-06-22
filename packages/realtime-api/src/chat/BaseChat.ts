@@ -32,7 +32,7 @@ export class BaseChat<
     })
   }
 
-  override async subscribe(listenOptions: T) {
+  protected async subscribe(listenOptions: T) {
     const { channels, ...listeners } = listenOptions
 
     const _uuid = uuid()

@@ -34,7 +34,7 @@ export class Task extends BaseNamespace<TaskListenOptions> {
     })
   }
 
-  get emitter() {
+  protected get emitter() {
     return this._taskEmitter
   }
 

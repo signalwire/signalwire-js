@@ -30,7 +30,7 @@ export class BaseNamespace<T extends ListenOptions> {
     this._client = options.swClient.client
   }
 
-  get emitter() {
+  protected get emitter() {
     return this._namespaceEmitter
   }
 
