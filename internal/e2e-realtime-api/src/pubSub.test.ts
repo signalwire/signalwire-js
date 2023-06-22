@@ -7,11 +7,8 @@
  * receive the proper events.
  */
 import { timeoutPromise, SWCloseEvent } from '@signalwire/core'
-import { PubSub as RealtimeAPIPubSub } from '@signalwire/realtime-api'
-import {
-  SignalWire as RealtimeSignalWire,
-  SWClient as RealtimeSWClient,
-} from '@signalwire/realtime-api'
+import { SignalWire as RealtimeSignalWire } from '@signalwire/realtime-api'
+import type { PubSub as RealtimePubSub } from '@signalwire/realtime-api'
 import { PubSub as JSPubSub } from '@signalwire/js'
 import { WebSocket } from 'ws'
 import { createTestRunner, createCRT, sessionStorageMock } from './utils'
@@ -46,11 +43,11 @@ const params = {
 
 interface TestPubSubOptions {
   jsPubSub: JSPubSub.Client
-  rtClient: RealtimeSWClient
+  rtPubSub: RealtimePubSub
   publisher?: 'JS' | 'RT'
 }
 
-const testSubscribe = ({ jsPubSub, rtClient }: TestPubSubOptions) => {
+const testSubscribe = ({ jsPubSub, rtPubSub }: TestPubSubOptions) => {
   const promise = new Promise<number>(async (resolve, reject) => {
     console.log('Running subscribe..')
 
@@ -58,7 +55,7 @@ const testSubscribe = ({ jsPubSub, rtClient }: TestPubSubOptions) => {
     try {
       await Promise.all([
         jsPubSub.subscribe(channel),
-        rtClient.pubSub.listen({ channels: [channel] }),
+        rtPubSub.listen({ channels: [channel] }),
       ])
       resolve(0)
     } catch (e) {
@@ -69,7 +66,7 @@ const testSubscribe = ({ jsPubSub, rtClient }: TestPubSubOptions) => {
   return timeoutPromise(promise, promiseTimeout, promiseException)
 }
 
-const testPublish = ({ jsPubSub, rtClient, publisher }: TestPubSubOptions) => {
+const testPublish = ({ jsPubSub, rtPubSub, publisher }: TestPubSubOptions) => {
   const promise = new Promise<number>(async (resolve) => {
     console.log('Running publish..')
     let events = 0
@@ -90,7 +87,7 @@ const testPublish = ({ jsPubSub, rtClient, publisher }: TestPubSubOptions) => {
 
     await Promise.all([
       jsPubSub.subscribe(channel),
-      rtClient.pubSub.listen({
+      rtPubSub.listen({
         channels: [channel],
         onMessageReceived: (message) => {
           console.log('rtPubSub message', message)
@@ -112,7 +109,7 @@ const testPublish = ({ jsPubSub, rtClient, publisher }: TestPubSubOptions) => {
         },
       })
     } else {
-      await rtClient.pubSub.publish({
+      await rtPubSub.publish({
         content: 'Hello there from RT',
         channel,
         meta: {
@@ -126,13 +123,13 @@ const testPublish = ({ jsPubSub, rtClient, publisher }: TestPubSubOptions) => {
   return timeoutPromise(promise, promiseTimeout, promiseException)
 }
 
-const testUnsubscribe = ({ jsPubSub, rtClient }: TestPubSubOptions) => {
+const testUnsubscribe = ({ jsPubSub, rtPubSub }: TestPubSubOptions) => {
   const promise = new Promise<number>(async (resolve, reject) => {
     console.log('Running unsubscribe..')
 
     try {
       const [unsubRTClient] = await Promise.all([
-        rtClient.pubSub.listen({ channels: [channel] }),
+        rtPubSub.listen({ channels: [channel] }),
         jsPubSub.subscribe(channel),
       ])
 
@@ -164,10 +161,11 @@ const handler = async () => {
     project: process.env.RELAY_PROJECT as string,
     token: process.env.RELAY_TOKEN as string,
   })
+  const rtPubSub = rtClient.pubSub
   console.log('Created rtClient')
 
   // Test Subscribe
-  const subscribeResultCode = await testSubscribe({ jsPubSub, rtClient })
+  const subscribeResultCode = await testSubscribe({ jsPubSub, rtPubSub })
   if (subscribeResultCode !== 0) {
     return subscribeResultCode
   }
@@ -175,7 +173,7 @@ const handler = async () => {
   // Test Publish from JS
   const jsPublishResultCode = await testPublish({
     jsPubSub,
-    rtClient,
+    rtPubSub,
     publisher: 'JS',
   })
   if (jsPublishResultCode !== 0) {
@@ -185,7 +183,7 @@ const handler = async () => {
   // Test Publish from RT
   const rtPublishResultCode = await testPublish({
     jsPubSub,
-    rtClient,
+    rtPubSub,
     publisher: 'RT',
   })
   if (rtPublishResultCode !== 0) {
@@ -193,7 +191,7 @@ const handler = async () => {
   }
 
   // Test Unsubscribe
-  const unsubscribeResultCode = await testUnsubscribe({ jsPubSub, rtClient })
+  const unsubscribeResultCode = await testUnsubscribe({ jsPubSub, rtPubSub })
   if (unsubscribeResultCode !== 0) {
     return unsubscribeResultCode
   }

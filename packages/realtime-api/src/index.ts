@@ -118,4 +118,4 @@ export * as Messaging from './messaging/Messaging'
  */
 export * as Voice from './voice/Voice'
 
-export { SignalWire, SWClient } from './SignalWire'
+export * from './SignalWire'
