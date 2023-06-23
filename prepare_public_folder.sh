@@ -18,7 +18,7 @@ for branch in $(git for-each-ref --format='%(refname:short)' refs/remotes/origin
   echo "\nCreate folder $folder"
   mkdir -p $folder
   echo "Checkout $branch"
-  git git switch -f "$branch"
+  git switch -f "$branch"
   
   echo "NPM install and Build SDK for this branch"
   # TODO: Build only JS/required sdks 
