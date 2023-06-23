@@ -2,10 +2,10 @@
 
 set -e
 mkdir -p public
+echo "<h1>JS SDK Playground</h1>" > public/index.html
 
-branch="eg/gh-workflow-to-pages"
 # ref: https://stackoverflow.com/a/57748047
-# for branch in $(git for-each-ref --format='%(refname:short)' refs/heads); do
+for branch in $(git for-each-ref --format='%(refname:short)' refs/heads); do
   folder="public/$branch"
   echo "\nCreate folder $folder"
   mkdir -p $folder
@@ -22,4 +22,4 @@ branch="eg/gh-workflow-to-pages"
   echo "Move static assets to 'public'"
   cp -R ./internal/playground-js/dist/* $folder
   echo "\n"
-# done
+done
