@@ -19,7 +19,7 @@ export class BaseChat<
     return new Promise<() => Promise<void>>(async (resolve, reject) => {
       try {
         const { channels } = listenOptions
-        if (channels?.length < 1) {
+        if (!Array.isArray(channels) || channels?.length < 1) {
           throw new Error(
             'Invalid options: channels should be an array with at least one channel!'
           )

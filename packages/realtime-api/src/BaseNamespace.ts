@@ -21,7 +21,7 @@ type ListenerMap = Map<
 export class BaseNamespace<T extends ListenOptions> {
   protected _client: Client
   protected _sw: SWClient
-  protected _eventMap: Record<ListenersKeys, string>
+  protected _eventMap: Record<ListenersKeys, string> = {}
   private _namespaceEmitter = new EventEmitter()
   protected _listenerMap: ListenerMap = new Map()
 
@@ -58,7 +58,7 @@ export class BaseNamespace<T extends ListenOptions> {
     return new Promise<() => Promise<void>>(async (resolve, reject) => {
       try {
         const { topics } = listenOptions
-        if (topics?.length < 1) {
+        if (!Array.isArray(topics) || topics?.length < 1) {
           throw new Error(
             'Invalid options: topics should be an array with at least one topic!'
           )
