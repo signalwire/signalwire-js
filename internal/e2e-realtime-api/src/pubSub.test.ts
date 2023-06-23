@@ -8,7 +8,10 @@
  */
 import { timeoutPromise, SWCloseEvent } from '@signalwire/core'
 import { SignalWire as RealtimeSignalWire } from '@signalwire/realtime-api'
-import type { PubSub as RealtimePubSub } from '@signalwire/realtime-api'
+import type {
+  PubSub as RealtimePubSub,
+  SWClient as RealtimeSWClient,
+} from '@signalwire/realtime-api'
 import { PubSub as JSPubSub } from '@signalwire/js'
 import { WebSocket } from 'ws'
 import { createTestRunner, createCRT, sessionStorageMock } from './utils'
@@ -99,25 +102,16 @@ const testPublish = ({ jsPubSub, rtPubSub, publisher }: TestPubSubOptions) => {
       }),
     ])
 
-    if (publisher === 'JS') {
-      await jsPubSub.publish({
-        content: 'Hello there from JS',
-        channel,
-        meta: {
-          now,
-          foo: 'bar',
-        },
-      })
-    } else {
-      await rtPubSub.publish({
-        content: 'Hello there from RT',
-        channel,
-        meta: {
-          now,
-          foo: 'bar',
-        },
-      })
-    }
+    const publishClient = publisher === 'JS' ? jsPubSub : rtPubSub
+
+    await publishClient.publish({
+      content: 'Hello there!',
+      channel,
+      meta: {
+        now,
+        foo: 'bar',
+      },
+    })
   })
 
   return timeoutPromise(promise, promiseTimeout, promiseException)
@@ -139,6 +133,36 @@ const testUnsubscribe = ({ jsPubSub, rtPubSub }: TestPubSubOptions) => {
       resolve(0)
     } catch (e) {
       reject(4)
+    }
+  })
+
+  return timeoutPromise(promise, promiseTimeout, promiseException)
+}
+
+const testDisconnectedRTClient = (rtClient: RealtimeSWClient) => {
+  const promise = new Promise<number>(async (resolve, reject) => {
+    try {
+      await rtClient.pubSub.listen({
+        channels: ['random'],
+        onMessageReceived: (message) => {
+          // Message should not be reached
+          throw undefined
+        },
+      })
+
+      rtClient.disconnect()
+
+      await rtClient.pubSub.publish({
+        content: 'Unreached message!',
+        channel: 'random',
+        meta: {
+          foo: 'bar',
+        },
+      })
+
+      reject(4)
+    } catch (e) {
+      resolve(0)
     }
   })
 
@@ -194,6 +218,12 @@ const handler = async () => {
   const unsubscribeResultCode = await testUnsubscribe({ jsPubSub, rtPubSub })
   if (unsubscribeResultCode !== 0) {
     return unsubscribeResultCode
+  }
+
+  // Test diconnected client
+  const disconnectedRTClient = await testDisconnectedRTClient(rtClient)
+  if (disconnectedRTClient !== 0) {
+    return disconnectedRTClient
   }
 
   return 0

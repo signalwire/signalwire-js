@@ -7,7 +7,10 @@
 import { timeoutPromise, SWCloseEvent } from '@signalwire/core'
 import { Chat as RealtimeAPIChat } from '@signalwire/realtime-api'
 import { SignalWire as RealtimeSignalWire } from '@signalwire/realtime-api'
-import type { Chat as RealtimeChat } from '@signalwire/realtime-api'
+import type {
+  Chat as RealtimeChat,
+  SWClient as RealtimeSWClient,
+} from '@signalwire/realtime-api'
 import { Chat as JSChat } from '@signalwire/js'
 import { WebSocket } from 'ws'
 import { createTestRunner, createCRT, sessionStorageMock, sleep } from './utils'
@@ -117,25 +120,16 @@ const testPublish = ({ jsChat, rtChat, publisher }: TestChatOptions) => {
       }),
     ])
 
-    if (publisher === 'JS') {
-      await jsChat.publish({
-        content: 'Hello there from JS',
-        channel,
-        meta: {
-          now,
-          foo: 'bar',
-        },
-      })
-    } else {
-      await rtChat.publish({
-        content: 'Hello there from RT',
-        channel,
-        meta: {
-          now,
-          foo: 'bar',
-        },
-      })
-    }
+    const publishClient = publisher === 'JS' ? jsChat : rtChat
+
+    await publishClient.publish({
+      content: 'Hello there!',
+      channel,
+      meta: {
+        now,
+        foo: 'bar',
+      },
+    })
   })
 
   return timeoutPromise(promise, promiseTimeout, promiseException)
@@ -257,6 +251,36 @@ const testSetAndGetMemberState = ({
   return timeoutPromise(promise, promiseTimeout, promiseException)
 }
 
+const testDisconnectedRTClient = (rtClient: RealtimeSWClient) => {
+  const promise = new Promise<number>(async (resolve, reject) => {
+    try {
+      await rtClient.chat.listen({
+        channels: ['random'],
+        onMessageReceived: (message) => {
+          // Message should not be reached
+          throw undefined
+        },
+      })
+
+      rtClient.disconnect()
+
+      await rtClient.chat.publish({
+        content: 'Unreached message!',
+        channel: 'random',
+        meta: {
+          foo: 'bar',
+        },
+      })
+
+      reject(4)
+    } catch (e) {
+      resolve(0)
+    }
+  })
+
+  return timeoutPromise(promise, promiseTimeout, promiseException)
+}
+
 const handler = async () => {
   // Create JS Chat Client
   const CRT = await createCRT(params)
@@ -332,6 +356,12 @@ const handler = async () => {
   const unsubscribeResultCode = await testUnsubscribe({ jsChat, rtChat })
   if (unsubscribeResultCode !== 0) {
     return unsubscribeResultCode
+  }
+
+  // Test diconnected client
+  const disconnectedRTClient = await testDisconnectedRTClient(rtClient)
+  if (disconnectedRTClient !== 0) {
+    return disconnectedRTClient
   }
 
   return 0
