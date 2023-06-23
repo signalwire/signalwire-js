@@ -8,7 +8,7 @@ echo $(git for-each-ref --format='%(refname:short)' refs/heads)
 echo "===="
 echo $(git for-each-ref --format='%(refname:short)' origin)
 echo "===="
-git fetch origin
+# git fetch origin
 echo "===="
 echo $(git for-each-ref --format='%(refname:short)' origin)
 
