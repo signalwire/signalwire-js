@@ -7,7 +7,7 @@ echo "<h1>JS SDK Playground</h1>" > public/index.html
 # Fetch origin to list the branches below
 git fetch --no-tags
 
-git for-each-ref --format='%(refname:short)'
+git for-each-ref
 echo "==="
 git for-each-ref --format='%(refname:short)' refs/remotes/origin/
 echo "==="
