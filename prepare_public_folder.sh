@@ -1,16 +1,22 @@
 #!/usr/bin/env bash
 
 set -e
+
+# Create the public folder to be published on Pages
 mkdir -p public
+# Set an entrypoint to avoid 404 on Pages
 echo "<h1>JS SDK Playground</h1>" > public/index.html
 
 # Fetch origin to list the branches below
 git fetch --no-tags
 
-# ref: https://stackoverflow.com/a/57748047
+# Loop all the branches and - for each - build the SDK, build the playground-js
+# and copy the `dist` folder in the global `public` folder.
 for branch_name in $(git for-each-ref --format='%(refname:short)' refs/remotes/origin/); do
+  # Remove `remote/` from refname
   branch=${branch_name/origin\//}
   if [[ $branch == "canary" ]]; then
+    # canary branch is too old!
     echo "Skip canary branch"
     continue
   fi
