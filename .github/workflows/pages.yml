@@ -2,9 +2,7 @@ name: Publish to Pages
 
 on:
   push:
-    branches: ['eg/gh-workflow-to-pages']
-  # pull_request:
-  #   branches: ['*']
+    branches: ['*']
   workflow_dispatch:
 
 # Only one workflow allowed at a time for ALL branches
