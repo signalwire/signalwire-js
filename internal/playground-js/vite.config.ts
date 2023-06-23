@@ -75,4 +75,17 @@ function listPlugin() {
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [listPlugin()],
+  base: process.env.VITE_BASE ?? '/',
+  build: {
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+        heroku: path.resolve(__dirname, 'src/heroku/index.html'),
+        chat: path.resolve(__dirname, 'src/chat/index.html'),
+        fabric: path.resolve(__dirname, 'src/fabric/index.html'),
+        pubSub: path.resolve(__dirname, 'src/pubSub/index.html'),
+        videoManager: path.resolve(__dirname, 'src/videoManager/index.html'),
+      },
+    },
+  },
 })
