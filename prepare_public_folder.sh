@@ -9,11 +9,16 @@ git fetch origin
 
 # ref: https://stackoverflow.com/a/57748047
 for branch in $(git for-each-ref --format='%(refname:short)' refs/remotes/origin/); do
+  if [ "$branch" == "origin/canary" ]; then
+    echo "Skip canary branch"
+    continue
+  fi
+
   folder="public/$branch"
   echo "\nCreate folder $folder"
   mkdir -p $folder
   echo "Checkout $branch"
-  git checkout "$branch"
+  git git switch -f "$branch"
   
   echo "NPM install and Build SDK for this branch"
   # TODO: Build only JS/required sdks 
