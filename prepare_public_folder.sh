@@ -9,6 +9,8 @@ git fetch origin
 echo "===="
 echo $(git for-each-ref --format='%(refname:short)' refs/heads)
 echo "===="
+echo $(git for-each-ref --format='%(refname:short)' refs/remotes/origin/)
+echo "===="
 echo $(git for-each-ref --format='%(refname:short)')
 echo "===="
 
