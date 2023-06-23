@@ -4,13 +4,13 @@ set -e
 mkdir -p public
 echo "<h1>JS SDK Playground</h1>" > public/index.html
 
+git fetch origin
+
+echo "===="
 echo $(git for-each-ref --format='%(refname:short)' refs/heads)
 echo "===="
 echo $(git for-each-ref --format='%(refname:short)' origin)
 echo "===="
-# git fetch origin
-echo "===="
-echo $(git for-each-ref --format='%(refname:short)' origin)
 
 # ref: https://stackoverflow.com/a/57748047
 # for branch in $(git for-each-ref --format='%(refname:short)' refs/heads); do
