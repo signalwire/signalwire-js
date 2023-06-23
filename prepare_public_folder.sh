@@ -9,7 +9,7 @@ git fetch origin
 
 # ref: https://stackoverflow.com/a/57748047
 for branch in $(git for-each-ref --format='%(refname:short)' refs/remotes/origin/); do
-  if [ "$branch" == "origin/canary" ]; then
+  if [[ $branch == "origin/canary" ]]; then
     echo "Skip canary branch"
     continue
   fi
