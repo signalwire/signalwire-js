@@ -17,12 +17,17 @@ for branch in $(git for-each-ref --format='%(refname:short)' refs/remotes/origin
   
   echo "NPM install and Build SDK for this branch"
   # TODO: Build only JS/required sdks 
-  npm i && npm run build
+  # npm i && npm run build
   
   echo "Build playgrounds"
-  VITE_BASE="/$branch/" npm run -w=@sw-internal/playground-js build
+  {
+    # VITE_BASE used in internal/playground-js/vite.config.ts
+    VITE_BASE="/$branch/" npm run -w=@sw-internal/playground-js build
+    echo "Move static assets to 'public'"
+    cp -R ./internal/playground-js/dist/* $folder
+  } || { 
+    echo "Error building $branch"
+  }
 
-  echo "Move static assets to 'public'"
-  cp -R ./internal/playground-js/dist/* $folder
   echo "\n"
 done
