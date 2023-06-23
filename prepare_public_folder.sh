@@ -34,7 +34,7 @@ for branch_name in $(git for-each-ref --format='%(refname:short)' refs/remotes/o
   echo "Build playgrounds"
   {
     # VITE_BASE used in internal/playground-js/vite.config.ts
-    VITE_BASE="/$branch/" npm run -w=@sw-internal/playground-js build
+    VITE_BASE="/signalwire-js/$branch/" npm run -w=@sw-internal/playground-js build
     echo "Move static assets to 'public'"
     cp -R ./internal/playground-js/dist/* $folder
   } || { 
