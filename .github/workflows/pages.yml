@@ -24,11 +24,11 @@ jobs:
       - name: Build static assets for each branch
         run: |
           ./prepare_public_folder.sh
-      # - name: Upload artifact
-      #   uses: actions/upload-pages-artifact@v1
-      #   with:
-      #     # Upload entire repository
-      #     path: './public'
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          # Upload entire repository
+          path: './public'
 
   deploy:
     runs-on: ubuntu-latest
