@@ -8,7 +8,7 @@ import { SWClient } from '../SWClient'
 import { taskWorker } from './workers'
 import { ListenOptions, BaseNamespace } from '../BaseNamespace'
 
-const PATH = '/api/relay/rest/tasks'
+export const PATH = '/api/relay/rest/tasks'
 const HOST = 'relay.signalwire.com'
 
 interface TaskListenOptions extends ListenOptions {
