@@ -34,9 +34,15 @@ describe('Task', () => {
     jest.clearAllMocks()
   })
 
-  it('should have an emitter getter function', () => {
-    // @ts-expect-error
-    expect(task.emitter).toBeInstanceOf(EventEmitter)
+  it('should have an event emitter', () => {
+    expect(task['emitter']).toBeInstanceOf(EventEmitter)
+  })
+
+  it('should declare the correct event map', () => {
+    const expectedEventMap = {
+      onTaskReceived: 'task.received',
+    }
+    expect(task['_eventMap']).toEqual(expectedEventMap)
   })
 
   it('should throw an error when sending a task with invalid options', async () => {
