@@ -5,14 +5,14 @@ import { createClient } from '../client/createClient'
 
 jest.mock('node:https', () => {
   return {
-    request: jest.fn().mockImplementation((options, callback) => {
+    request: jest.fn().mockImplementation((_, callback) => {
       callback({ statusCode: 204 })
     }),
   }
 })
 
 describe('Task', () => {
-  let task: any
+  let task: Task
   const userOptions = {
     host: 'example.com',
     project: 'example.project',
@@ -26,6 +26,7 @@ describe('Task', () => {
   const message = { data: 'Hello from jest!' }
 
   beforeEach(() => {
+    // @ts-expect-error
     task = new Task(swClientMock)
   })
 
@@ -34,12 +35,14 @@ describe('Task', () => {
   })
 
   it('should have an emitter getter function', () => {
+    // @ts-expect-error
     expect(task.emitter).toBeInstanceOf(EventEmitter)
   })
 
   it('should throw an error when sending a task with invalid options', async () => {
     // Create a new instance of Task with invalid options
     const invalidTask = new Task({
+      // @ts-expect-error
       userOptions: {},
       client: createClient(userOptions),
     })
