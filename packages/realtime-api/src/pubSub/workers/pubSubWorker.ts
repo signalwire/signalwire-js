@@ -46,7 +46,7 @@ export const pubSubWorker: SDKWorker<PubSub> = function* (
         break
       }
       default:
-        getLogger().warn(`Unknown pubsub event: "${type}"`)
+        getLogger().warn(`Unknown pubsub event: "${type}"`, payload)
         break
     }
   }
