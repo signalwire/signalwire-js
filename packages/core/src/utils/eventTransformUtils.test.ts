@@ -88,7 +88,7 @@ describe('instanceProxyFactory', () => {
     const proxy = instanceProxyFactory({ transform, payload })
 
     expect(proxy.toString()).toMatchInlineSnapshot(
-      `"{\\"id\\":\\"random\\",\\"snakeCase\\":\\"foo\\",\\"camelCase\\":\\"baz\\",\\"otherTest\\":true,\\"counter\\":0}"`
+      `"{\"id\":\"random\",\"snakeCase\":\"foo\",\"camelCase\":\"baz\",\"otherTest\":true,\"counter\":0}"`
     )
   })
 })
