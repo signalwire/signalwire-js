@@ -11,9 +11,9 @@ import { SWClient } from '../SWClient'
 
 interface ChatListenOptions extends BaseChatListenOptions {
   onMessageReceived?: (message: ChatMessage) => unknown
-  onMmemberJoined?: (member: ChatMember) => unknown
-  onMmemberUpdated?: (member: ChatMember) => unknown
-  onMmemberLeft?: (member: ChatMember) => unknown
+  onMemberJoined?: (member: ChatMember) => unknown
+  onMemberUpdated?: (member: ChatMember) => unknown
+  onMemberLeft?: (member: ChatMember) => unknown
 }
 
 type ChatListenersKeys = keyof Omit<ChatListenOptions, 'channels'>
@@ -24,9 +24,9 @@ export class Chat extends ChatCore.applyCommonMethods(
   private _chatEmitter = new EventEmitter()
   protected _eventMap: Record<ChatListenersKeys, ChatEvents> = {
     onMessageReceived: 'chat.message',
-    onMmemberJoined: 'chat.member.joined',
-    onMmemberUpdated: 'chat.member.updated',
-    onMmemberLeft: 'chat.member.left',
+    onMemberJoined: 'chat.member.joined',
+    onMemberUpdated: 'chat.member.updated',
+    onMemberLeft: 'chat.member.left',
   }
 
   constructor(options: SWClient) {

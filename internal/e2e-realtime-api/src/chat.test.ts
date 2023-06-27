@@ -73,7 +73,7 @@ const testSubscribe = ({ jsChat, rtChat }: TestChatOptions) => {
     ;[unsubRTClient] = await Promise.all([
       rtChat.listen({
         channels: [channel],
-        onMmemberJoined(member) {
+        onMemberJoined(member) {
           // TODO: Check the member payload
           console.log('rtChat member.joined', member)
           events += 1
@@ -142,7 +142,7 @@ const testUnsubscribe = ({ jsChat, rtChat }: TestChatOptions) => {
 
     const resolveIfDone = () => {
       // Both of these events will occur due to the JS chat
-      // RT chat will not trigger the `onMmemberLeft` when we unsubscribe RT client
+      // RT chat will not trigger the `onMemberLeft` when we unsubscribe RT client
       if (events === 2) {
         jsChat.off('member.left')
         resolve(0)
@@ -159,7 +159,7 @@ const testUnsubscribe = ({ jsChat, rtChat }: TestChatOptions) => {
     const [unsubRTClient] = await Promise.all([
       rtChat.listen({
         channels: [channel],
-        onMmemberLeft(member) {
+        onMemberLeft(member) {
           // TODO: Check the member payload
           console.log('rtChat member.left', member)
           events += 1
@@ -227,7 +227,7 @@ const testSetAndGetMemberState = ({
       jsChat.subscribe(channel),
       rtChat.listen({
         channels: [channel],
-        onMmemberUpdated(member) {
+        onMemberUpdated(member) {
           console.log('rtChat member.updated', member)
           if (member.state.email === 'e2e@example.com') {
             events += 1

@@ -13,13 +13,13 @@ async function run() {
       onMessageReceived: (message) => {
         console.log('Message received on "home" channel', message)
       },
-      onMmemberJoined: (member) => {
+      onMemberJoined: (member) => {
         console.log('Member joined on "home" channel', member)
       },
-      onMmemberUpdated: (member) => {
+      onMemberUpdated: (member) => {
         console.log('Member updated on "home" channel', member)
       },
-      onMmemberLeft: (member) => {
+      onMemberLeft: (member) => {
         console.log('Member left on "home" channel', member)
       },
     })

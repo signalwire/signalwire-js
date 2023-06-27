@@ -25,9 +25,12 @@ import { SignalWire } from '@signalwire/realtime-api'
     })
 
   // Send a task
-  await client.task.send({
-    topic: 'office',
-    message: { yo: ['bro', 1, true] },
+  await client.pubSub.publish({
+    content: 'Hello There',
+    channel: 'home',
+    meta: {
+      fooId: 'randomValue',
+    },
   })
   
   // Attach chat listeners
@@ -36,18 +39,18 @@ import { SignalWire } from '@signalwire/realtime-api'
       onMessageReceived: (message) => {
         console.log('Message received on "office" channel', message)
       },
-      onMmemberJoined: (member) => {
+      onMemberJoined: (member) => {
         console.log('Member joined on "office" channel', member)
       },
-      onMmemberUpdated: (member) => {
+      onMemberUpdated: (member) => {
         console.log('Member updated on "office" channel', member)
       },
-      onMmemberLeft: (member) => {
+      onMemberLeft: (member) => {
         console.log('Member left on "office" channel', member)
       },
     })
 
-  // Publish a chat message on the home channel
+  // Publish a chat message on the office channel
   const pubRes = await client.chat.publish({
       content: 'Hello There',
       channel: 'office',

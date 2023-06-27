@@ -30,9 +30,9 @@ describe('Chat', () => {
   it('should declare the correct event map', () => {
     const expectedEventMap = {
       onMessageReceived: 'chat.message',
-      onMmemberJoined: 'chat.member.joined',
-      onMmemberUpdated: 'chat.member.updated',
-      onMmemberLeft: 'chat.member.left',
+      onMemberJoined: 'chat.member.joined',
+      onMemberUpdated: 'chat.member.updated',
+      onMemberLeft: 'chat.member.left',
     }
     expect(chat['_eventMap']).toEqual(expectedEventMap)
   })
