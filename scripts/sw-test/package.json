@@ -11,7 +11,6 @@
     "sw-test": "bin/cli.js"
   },
   "devDependencies": {
-    "dotenv": "^16.0.0",
     "esbuild-register": "^3.3.2"
   }
 }
