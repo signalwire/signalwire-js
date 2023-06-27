@@ -39,9 +39,9 @@ export const chatWorker: SDKWorker<Chat> = function* (options): SagaIterator {
       case 'chat.member.left': {
         const { member, channel } = payload
         const externalJSON = toExternalJSON(member)
-        const chatMessage = new ChatMember(externalJSON)
+        const chatMember = new ChatMember(externalJSON)
 
-        chatEmitter.emit(prefixEvent(channel, type), chatMessage)
+        chatEmitter.emit(prefixEvent(channel, type), chatMember)
         break
       }
       default:
