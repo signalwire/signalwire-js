@@ -757,16 +757,16 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   /** @internal */
   async resume() {
     this.logger.warn(`[resume] Call ${this.id}`)
-    // if (this.peer?.instance) {
-    //   const { connectionState } = this.peer.instance
-    //   this.logger.debug(
-    //     `[resume] connectionState for ${this.id} is '${connectionState}'`
-    //   )
-    //   if (connectionState !== 'closed') {
-    //     this.resuming = true
-    //     this.peer.restartIce()
-    //   }
-    // }
+    if (this.peer?.instance) {
+      const { connectionState } = this.peer.instance
+      this.logger.debug(
+        `[resume] connectionState for ${this.id} is '${connectionState}'`
+      )
+      if (connectionState !== 'closed') {
+        this.resuming = true
+        this.peer.restartIce()
+      }
+    }
   }
 
   /**
@@ -829,20 +829,11 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /**
-   * Send the `verto.answer` only if the state is either `new` or `requesting`
-   *   - new: the first time we send out the offer.
-   *   - requesting: we received a redirectDestination so need to send it again
-   *     specifying nodeId.
-   *
+   * Send the `verto.answer` only if the state is `new`
+   *   - new: the first time we send out the answer.
    * @internal
    */
   async executeAnswer(sdp: string, rtcPeerId: string) {
-    // const rtcPeer = this.getRTCPeerById(rtcPeerId)
-    // if (!rtcPeer || (rtcPeer.instance.remoteDescription && !this.resuming)) {
-    //   throw new Error(
-    //     `RTCPeer '${rtcPeerId}' already has a remoteDescription. Invalid invite.`
-    //   )
-    // }
     // Set state to `answering` only when `new`, otherwise keep it as `answering`.
     if (this.state === 'new') {
       this.setState('answering')
@@ -866,9 +857,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       this._attachListeners('')
       this.applyEmitterTransforms()
 
-      /**
-       * In here we joined a room_session so we can swap between RTCPeers
-       */
+      /** Call is active so set the RTCPeer */
       this.setActiveRTCPeer(rtcPeerId)
     } catch (error) {
       this.setState('hangup')

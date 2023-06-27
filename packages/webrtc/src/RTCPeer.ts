@@ -310,21 +310,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     this.call._closeWSConnection()
   }
 
-  async handleAttach(params: any) {
-    this.type = 'answer'
-    this.options.remoteSdp = params.sdp
-    this.restartIce()
-    // const stream = await getUserMedia({ video: true, audio: true })
-    // if (stream) {
-    //   stream.getVideoTracks().forEach((t) => {
-    //     if (this.localStream) {
-    //       this.localStream.addTrack(t)
-    //       this.instance.addTrack(t, this.localStream)
-    //     }
-    //   })
-    // }
-  }
-
   private resetNeedResume() {
     this.clearResumeTimer()
     if (this.options.watchMediaPackets) {
@@ -860,12 +845,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           }
           break
         }
-        // case 'have-remote-offer': {
-        //   if (this.instance.iceGatheringState === 'complete') {
-        //     this._sdpReady()
-        //   }
-        //   break
-        // }
+        // case 'have-remote-offer': {}
         case 'closed':
           // @ts-ignore
           delete this.instance

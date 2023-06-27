@@ -142,24 +142,15 @@ export const vertoEventWorker: SDKWorker<
         instance._attachListeners('')
         // @ts-expect-error
         instance.applyEmitterTransforms()
-
-        /**
-         * In here we joined a room_session so we can swap between RTCPeers
-         */
+        /** Call is active so set the RTCPeer */
         instance.setActiveRTCPeer(rtcPeerId)
 
-        // Rename "room.subscribed" with "room.joined" for the end-user
         yield sagaEffects.put(pubSubChannel, {
-          // @ts-ignore
+          // @ts-expect-error
           type: 'verto.display',
-          // @ts-ignore
+          // @ts-expect-error
           payload: action.payload.params,
         })
-        break
-      }
-      case 'verto.attach': {
-        getLogger().warn('Handle verto.attach', params)
-        peer.handleAttach(params)
         break
       }
       default:
