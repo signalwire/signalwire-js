@@ -24,7 +24,7 @@ import { SignalWire } from '@signalwire/realtime-api'
       },
     })
 
-  // Send a task
+  // Publish on home channel
   await client.pubSub.publish({
     content: 'Hello There',
     channel: 'home',
