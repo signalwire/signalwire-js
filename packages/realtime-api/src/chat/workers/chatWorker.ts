@@ -45,7 +45,7 @@ export const chatWorker: SDKWorker<Chat> = function* (options): SagaIterator {
         break
       }
       default:
-        getLogger().warn(`Unknown chat event: "${type}"`)
+        getLogger().warn(`Unknown chat event: "${type}"`, payload)
         break
     }
   }
