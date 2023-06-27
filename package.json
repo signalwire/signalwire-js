@@ -19,26 +19,21 @@
     "release:prod": "sw-release --production"
   },
   "dependencies": {
-    "@babel/core": "^7.18.0",
-    "@babel/preset-env": "^7.18.0",
-    "@babel/preset-typescript": "^7.17.12",
-    "@changesets/changelog-github": "^0.4.4",
-    "@changesets/cli": "^2.22.0",
-    "@signalwire/typedoc-readme-api-theme": "^0.7.1",
-    "@types/jest": "^27.5.1",
-    "babel-jest": "^28.1.0",
-    "concurrently": "^6.5.1",
+    "@babel/core": "^7.22.5",
+    "@babel/preset-env": "^7.22.5",
+    "@babel/preset-typescript": "^7.22.5",
+    "@changesets/changelog-github": "^0.4.8",
+    "@changesets/cli": "^2.26.2",
+    "@types/jest": "^29.5.2",
+    "babel-jest": "^29.5.0",
+    "concurrently": "^8.2.0",
     "esbuild": "0.14.43",
-    "jest": "^28.1.0",
-    "jest-environment-jsdom": "^28.1.0",
-    "prettier": "^2.6.2",
-    "typedoc": "^0.22.10",
+    "jest": "^29.5.0",
+    "jest-environment-jsdom": "^29.5.0",
+    "prettier": "^2.8.8",
     "typescript": "^4.5.4"
   },
-  "overrides": {
-    "jsonwebtoken": "9.0.0"
-  },
   "devDependencies": {
-    "@types/node": "^18.11.18"
+    "@types/node": "^20.3.2"
   }
 }
