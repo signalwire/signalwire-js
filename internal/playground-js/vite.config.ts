@@ -85,6 +85,8 @@ export default defineConfig({
         fabric: path.resolve(__dirname, 'src/fabric/index.html'),
         pubSub: path.resolve(__dirname, 'src/pubSub/index.html'),
         videoManager: path.resolve(__dirname, 'src/videoManager/index.html'),
+        fabricHttp: path.resolve(__dirname, 'src/fabric-http/index.html'),
+        fabricCallee: path.resolve(__dirname, 'src/fabric-callee/index.html'),
       },
     },
   },
