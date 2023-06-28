@@ -34,18 +34,14 @@
     "start": "sw-build --dev --node --watchFormat=cjs",
     "build": "tsc --project tsconfig.build.json && sw-build --node",
     "test": "NODE_ENV=test jest --detectOpenHandles --forceExit",
-    "prepublishOnly": "npm run build",
-    "docs": "npm run docs:md && npm run docs:html",
-    "docs:md": "typedoc --options typedoc.md.js",
-    "docs:html": "typedoc --options typedoc.html.js",
-    "docs:watch": "npm run docs -- --watch"
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@signalwire/core": "3.16.0",
-    "ws": "^8.5.0"
+    "ws": "^8.13.0"
   },
   "devDependencies": {
-    "@types/ws": "^8.5.3"
+    "@types/ws": "^8.5.5"
   },
   "types": "dist/realtime-api/src/index.d.ts"
 }

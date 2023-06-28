@@ -8,9 +8,8 @@
     "test": ""
   },
   "devDependencies": {
-    "dotenv": "^16.0.0",
-    "esbuild-register": "^3.3.2",
-    "inquirer": "^8.2.5",
+    "esbuild-register": "^3.4.2",
+    "inquirer": "^9.2.7",
     "node-watch": "^0.7.3"
   }
 }
