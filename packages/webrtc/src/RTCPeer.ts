@@ -679,7 +679,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       return sdpHasValidCandidates(this.localSdp)
     }
 
-    return false
+    return Boolean(this.localSdp)
   }
 
   private _forceNegotiation() {
