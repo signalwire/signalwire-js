@@ -42,7 +42,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   private _localStream?: MediaStream
   private _remoteStream?: MediaStream
-  private rtcConfigPolyfill: RTCConfiguration = {}
+  private rtcConfigPolyfill: RTCConfiguration
 
   private get logger() {
     return getLogger()
@@ -69,6 +69,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     if (this.options.localStream && streamIsValid(this.options.localStream)) {
       this._localStream = this.options.localStream
     }
+
+    this.rtcConfigPolyfill = this.config
   }
 
   get watchMediaPacketsTimeout() {
@@ -951,6 +953,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     ) {
       return this.instance.getConfiguration()
     }
-    return this.rtcConfigPolyfill
+    return this.rtcConfigPolyfill || this.config
   }
 }
