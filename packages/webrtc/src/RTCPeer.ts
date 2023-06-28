@@ -42,6 +42,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   private _localStream?: MediaStream
   private _remoteStream?: MediaStream
+  private rtcConfigPolyfill: RTCConfiguration = {}
 
   private get logger() {
     return getLogger()
@@ -161,7 +162,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   get hasIceServers() {
     if (this.instance) {
-      const { iceServers = [] } = this.instance.getConfiguration()
+      const { iceServers = [] } = this.getConfiguration()
       return Boolean(iceServers?.length)
     }
     return false
@@ -248,7 +249,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   restartIceWithRelayOnly() {
     try {
-      const config = this.instance.getConfiguration()
+      const config = this.getConfiguration()
       if (config.iceTransportPolicy === 'relay') {
         return this.logger.warn(
           'RTCPeer already with iceTransportPolicy relay only'
@@ -258,7 +259,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         ...config,
         iceTransportPolicy: 'relay',
       }
-      this.instance.setConfiguration(newConfig)
+      this.setConfiguration(newConfig)
       // @ts-ignore
       this.instance.restartIce()
     } catch (error) {
@@ -691,7 +692,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       return
     }
     this.logger.info('ICE gathering timeout')
-    const config = this.instance.getConfiguration()
+    const config = this.getConfiguration()
     if (config.iceTransportPolicy === 'relay') {
       this.logger.info('RTCPeer already with "iceTransportPolicy: relay"')
       this._rejectStartMethod({
@@ -701,7 +702,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       this.call.setState('destroy')
       return
     }
-    this.instance.setConfiguration({
+    this.setConfiguration({
       ...config,
       iceTransportPolicy: 'relay',
     })
@@ -921,5 +922,35 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private emitMediaConnected() {
     // @ts-expect-error
     this.call.emit('media.connected')
+  }
+
+  /**
+   * React Native does not support getConfiguration
+   * so we polyfill it using a local `rtcConfigPolyfill` object.
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/setConfiguration#parameters
+   */
+  private setConfiguration(config: RTCConfiguration) {
+    this.rtcConfigPolyfill = config
+    if (
+      this.instance &&
+      typeof this.instance?.setConfiguration === 'function'
+    ) {
+      this.instance.setConfiguration(config)
+    }
+  }
+
+  /**
+   * React Native does not support getConfiguration
+   * so we polyfill it using a local config object.
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/getConfiguration
+   */
+  private getConfiguration() {
+    if (
+      this.instance &&
+      typeof this.instance?.getConfiguration === 'function'
+    ) {
+      return this.instance.getConfiguration()
+    }
+    return this.rtcConfigPolyfill
   }
 }
