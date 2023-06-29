@@ -5,8 +5,6 @@ class SwEvent {
   constructor(public type: string, public options?: EventInit) {}
 }
 
-// const EventClass =
-
 /**
  * Class representing a close event.
  * The `ws` package does not expose it so we can easily create one in here.
