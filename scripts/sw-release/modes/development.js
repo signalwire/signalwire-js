@@ -23,7 +23,7 @@ const getDevVersion = async () => {
 
   await new Promise((r) => setTimeout(r, 3000))
 
-  return `internal.${timestamp}.${sha}`
+  return `dev.${timestamp}.${sha}`
 }
 
 const getDevelopmentTasks = ({ flags, dryRun, executer }) => {
@@ -72,7 +72,7 @@ const getDevelopmentTasks = ({ flags, dryRun, executer }) => {
       },
     },
     ...publishTaskFactory({
-      npmOptions: ['--tag', 'internal'],
+      npmOptions: ['--tag', 'dev'],
       executer,
       dryRun,
     }),
