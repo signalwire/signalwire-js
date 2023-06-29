@@ -348,6 +348,30 @@ window.connect = () => {
     console.log('>> members.changed', payload)
   })
 
+  roomObj.on('microphone.updated', (payload) => {
+    console.debug('>> microphone.updated', payload)
+  })
+
+  roomObj.on('camera.updated', (payload) => {
+    console.debug('>> camera.updated', payload)
+  })
+
+  roomObj.on('speaker.updated', (payload) => {
+    console.debug('>> speaker.updated', payload)
+  })
+
+  roomObj.on('microphone.disconnected', (payload) => {
+    console.debug('>> microphone.disconnected', payload)
+  })
+
+  roomObj.on('camera.disconnected', (payload) => {
+    console.debug('>> camera.disconnected', payload)
+  })
+
+  roomObj.on('speaker.disconnected', (payload) => {
+    console.debug('>> speaker.disconnected', payload)
+  })
+
   roomObj
     .join()
     .then(async (result) => {

@@ -3,6 +3,7 @@ export {
   getCameraDevices,
   getMicrophoneDevices,
   getSpeakerDevices,
+  getSpeakerById,
   getDevicesWithPermissions,
   getCameraDevicesWithPermissions,
   getMicrophoneDevicesWithPermissions,

@@ -831,3 +831,20 @@ export const createMicrophoneAnalyzer = async (
     }
   )
 }
+
+/**
+ * Returns the speaker based on the given id.
+ * @param id string
+ * @returns MediaDevices | undefined
+ */
+export const getSpeakerById = async (
+  id: string
+): Promise<MediaDeviceInfo | undefined> => {
+  const speakers = await getSpeakerDevices()
+  return speakers.find(
+    (audio) =>
+      audio.deviceId === id ||
+      (audio.deviceId === 'default' && id === '') ||
+      (audio.deviceId === '' && id === 'default')
+  )
+}

@@ -77,6 +77,7 @@ export type MediaEvent =
   | 'media.connected'
   | 'media.reconnecting'
   | 'media.disconnected'
+
 type EventsHandlerMapping = Record<BaseConnectionState, (params: any) => void> &
   Record<MediaEvent, () => void>
 
@@ -535,6 +536,9 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       } catch (error) {
         this.logger.error('updateConstraints', error)
         reject(error)
+      } finally {
+        this.peer?._attachAudioTrackListener()
+        this.peer?._attachVideoTrackListener()
       }
     })
   }
@@ -543,6 +547,15 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     if (!this.peer) {
       throw new Error('Invalid RTCPeerConnection.')
     }
+
+    // Store the previous tracks for device.updated event
+    const prevVideoTrack = this.localVideoTrack
+    const prevAudioTrack = this.localAudioTrack
+
+    // Detach listeners because updateStream will trigger the track ended event
+    this.peer._detachAudioTrackListener()
+    this.peer._detachVideoTrackListener()
+
     this.logger.debug('updateStream got stream', stream)
     if (!this.localStream) {
       this.localStream = new MediaStream()
@@ -589,7 +602,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
             this.localStream?.removeTrack(track)
           }
         })
-
         this.localStream.addTrack(newTrack)
       } else {
         this.logger.debug(
@@ -602,8 +614,30 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       }
       this.logger.debug('updateStream simply update mic/cam')
       if (newTrack.kind === 'audio') {
+        // @ts-expect-error
+        this.emit('microphone.updated', {
+          previous: {
+            deviceId: prevAudioTrack?.id,
+            label: prevAudioTrack?.label,
+          },
+          current: {
+            deviceId: newTrack?.id,
+            label: newTrack?.label,
+          },
+        })
         this.options.micId = newTrack.getSettings().deviceId
       } else if (newTrack.kind === 'video') {
+        // @ts-expect-error
+        this.emit('camera.updated', {
+          previous: {
+            deviceId: prevVideoTrack?.id,
+            label: prevVideoTrack?.label,
+          },
+          current: {
+            deviceId: newTrack?.id,
+            label: newTrack?.label,
+          },
+        })
         this.options.camId = newTrack.getSettings().deviceId
       }
     }

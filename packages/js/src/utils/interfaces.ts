@@ -32,6 +32,10 @@ import type {
   RoomSubscribed,
   VideoRoomSubscribedEventParams,
   VideoAuthorization,
+  VideoRoomDeviceUpdatedEventNames,
+  DeviceUpdatedEventParams,
+  VideoRoomDeviceDisconnectedEventNames,
+  DeviceDisconnectedEventParams,
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
 import type { MediaEvent } from '@signalwire/webrtc'
@@ -124,6 +128,14 @@ export type RoomSessionObjectEventsHandlerMap = Record<
   > &
   Record<RoomLeft, (params?: RoomLeftEventParams) => void> &
   Record<MediaEvent, () => void> &
+  Record<
+    VideoRoomDeviceUpdatedEventNames,
+    (params: DeviceUpdatedEventParams) => void
+  > &
+  Record<
+    VideoRoomDeviceDisconnectedEventNames,
+    (params: DeviceDisconnectedEventParams) => void
+  > &
   Record<
     RoomAudienceCount,
     (params: VideoRoomAudienceCountEventParams) => void
