@@ -165,7 +165,7 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
         sessionForceCloseAction.type,
       ])
 
-      getLogger().debug('sessionStatusWatcher', action.type, action.payload)
+      getLogger().trace('sessionStatusWatcher', action.type, action.payload)
       switch (action.type) {
         case authSuccessAction.type: {
           const { session, pubSubChannel } = options

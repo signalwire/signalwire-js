@@ -550,6 +550,7 @@ export interface VoiceCallPromptContract {
   /** Alias for type in case of errors */
   readonly reason?: string
   readonly digits?: string
+  readonly speech?: string
   readonly terminator?: string
   readonly text?: string
   readonly confidence?: number
@@ -589,6 +590,7 @@ export interface VoiceCallCollectContract {
   /** Alias for type in case of errors */
   readonly reason?: string
   readonly digits?: string
+  readonly speech?: string
   readonly terminator?: string
   readonly text?: string
   readonly confidence?: number

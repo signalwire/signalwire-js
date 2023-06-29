@@ -25,6 +25,7 @@ import type {
   RoomAudienceCount,
   VideoRoomAudienceCountEventParams,
   RoomLeft,
+  RoomLeftEventParams,
   VideoStreamEventNames,
   RoomSessionStream,
   RoomJoined,
@@ -125,7 +126,7 @@ export type RoomSessionObjectEventsHandlerMap = Record<
     RoomJoined | RoomSubscribed,
     (params: VideoRoomSubscribedEventParams) => void
   > &
-  Record<RoomLeft, (params: void) => void> &
+  Record<RoomLeft, (params?: RoomLeftEventParams) => void> &
   Record<MediaEvent, () => void> &
   Record<
     VideoRoomDeviceUpdatedEventNames,

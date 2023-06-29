@@ -1,4 +1,4 @@
-import type { SwEvent } from '.'
+import type { BaseConnectionContract, SwEvent } from '.'
 import type {
   CamelToSnakeCase,
   EntityUpdated,
@@ -25,6 +25,10 @@ export type InternalRoomAudienceCount = 'room.audience_count'
 export type RoomJoined = 'room.joined'
 export type RoomLeft = 'room.left'
 export type RoomAudienceCount = 'room.audienceCount'
+
+export type RoomLeftEventParams = {
+  reason?: BaseConnectionContract<any>['leaveReason']
+}
 
 export type VideoRoomAudienceCountEventNames = ToInternalVideoEvent<
   InternalRoomAudienceCount | RoomAudienceCount

@@ -280,6 +280,9 @@ window.connect = () => {
     console.debug('>> destroy')
     restoreUI()
   })
+  roomObj.on('room.left', (payload) => {
+    console.debug('>> room.left', payload)
+  })
   roomObj.on('room.updated', (params) =>
     console.debug('>> room.updated', params)
   )

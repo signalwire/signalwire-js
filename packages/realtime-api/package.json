@@ -3,7 +3,7 @@
   "description": "SignalWire RealTime SDK for Node.js",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
-  "version": "3.9.0",
+  "version": "3.9.1",
   "main": "dist/index.node.js",
   "exports": {
     "require": "./dist/index.node.js",
@@ -34,18 +34,14 @@
     "start": "sw-build --dev --node --watchFormat=cjs",
     "build": "tsc --project tsconfig.build.json && sw-build --node",
     "test": "NODE_ENV=test jest --detectOpenHandles --forceExit",
-    "prepublishOnly": "npm run build",
-    "docs": "npm run docs:md && npm run docs:html",
-    "docs:md": "typedoc --options typedoc.md.js",
-    "docs:html": "typedoc --options typedoc.html.js",
-    "docs:watch": "npm run docs -- --watch"
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@signalwire/core": "3.15.0",
-    "ws": "^8.5.0"
+    "@signalwire/core": "3.16.0",
+    "ws": "^8.13.0"
   },
   "devDependencies": {
-    "@types/ws": "^8.5.3"
+    "@types/ws": "^8.5.5"
   },
   "types": "dist/realtime-api/src/index.d.ts"
 }

@@ -16,6 +16,8 @@ import {
 import { ConnectionOptions } from './utils/interfaces'
 import { watchRTCPeerMediaPackets } from './utils/watchRTCPeerMediaPackets'
 
+const RESUME_TIMEOUT = 12_000
+
 export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   public uuid = uuid()
 
@@ -25,10 +27,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _iceTimeout: any
   private _negotiating = false
   private _processingRemoteSDP = false
-  private needResume = false
   private _restartingIce = false
   private _watchMediaPacketsTimer: ReturnType<typeof setTimeout>
   private _connectionStateTimer: ReturnType<typeof setTimeout>
+  private _resumeTimer?: ReturnType<typeof setTimeout>
   private _mediaWatcher: ReturnType<typeof watchRTCPeerMediaPackets>
   /**
    * Both of these properties are used to have granular
@@ -40,6 +42,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   private _localStream?: MediaStream
   private _remoteStream?: MediaStream
+  private rtcConfigPolyfill: RTCConfiguration
 
   private get logger() {
     return getLogger()
@@ -68,6 +71,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     if (this.options.localStream && streamIsValid(this.options.localStream)) {
       this._localStream = this.options.localStream
     }
+
+    this.rtcConfigPolyfill = this.config
   }
 
   get watchMediaPacketsTimeout() {
@@ -161,7 +166,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   get hasIceServers() {
     if (this.instance) {
-      const { iceServers = [] } = this.instance.getConfiguration()
+      const { iceServers = [] } = this.getConfiguration()
       return Boolean(iceServers?.length)
     }
     return false
@@ -248,7 +253,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   restartIceWithRelayOnly() {
     try {
-      const config = this.instance.getConfiguration()
+      const config = this.getConfiguration()
       if (config.iceTransportPolicy === 'relay') {
         return this.logger.warn(
           'RTCPeer already with iceTransportPolicy relay only'
@@ -258,7 +263,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         ...config,
         iceTransportPolicy: 'relay',
       }
-      this.instance.setConfiguration(newConfig)
+      this.setConfiguration(newConfig)
       // @ts-ignore
       this.instance.restartIce()
     } catch (error) {
@@ -281,7 +286,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   triggerResume() {
     this.logger.info('Probably half-open so force close from client')
-    if (this.needResume) {
+    if (this._resumeTimer) {
       this.logger.info('[skipped] Already in "resume" state')
       return
     }
@@ -291,12 +296,18 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     // @ts-expect-error
     this.call.emit('media.reconnecting')
     this.clearTimers()
-    this.needResume = true
+    this._resumeTimer = setTimeout(() => {
+      this.logger.warn('Disconnecting due to RECONNECTION_ATTEMPT_TIMEOUT')
+      // @ts-expect-error
+      this.call.emit('media.disconnected')
+      this.call.leaveReason = 'RECONNECTION_ATTEMPT_TIMEOUT'
+      this.call.setState('hangup')
+    }, RESUME_TIMEOUT) // TODO: read from call verto.invite response
     this.call._closeWSConnection()
   }
 
   private resetNeedResume() {
-    this.needResume = false
+    this.clearResumeTimer()
     if (this.options.watchMediaPackets) {
       this.startWatchMediaPackets()
     }
@@ -670,7 +681,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       return sdpHasValidCandidates(this.localSdp)
     }
 
-    return false
+    return Boolean(this.localSdp)
   }
 
   private _forceNegotiation() {
@@ -685,7 +696,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       return
     }
     this.logger.info('ICE gathering timeout')
-    const config = this.instance.getConfiguration()
+    const config = this.getConfiguration()
     if (config.iceTransportPolicy === 'relay') {
       this.logger.info('RTCPeer already with "iceTransportPolicy: relay"')
       this._rejectStartMethod({
@@ -695,7 +706,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       this.call.setState('destroy')
       return
     }
-    this.instance.setConfiguration({
+    this.setConfiguration({
       ...config,
       iceTransportPolicy: 'relay',
     })
@@ -897,6 +908,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private clearTimers() {
+    this.clearResumeTimer()
     this.clearWatchMediaPacketsTimer()
     this.clearConnectionStateTimer()
   }
@@ -907,6 +919,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   private clearWatchMediaPacketsTimer() {
     clearTimeout(this._watchMediaPacketsTimer)
+  }
+
+  private clearResumeTimer() {
+    clearTimeout(this._resumeTimer)
+    this._resumeTimer = undefined
   }
 
   private emitMediaConnected() {
@@ -946,5 +963,35 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     this.localStream?.getVideoTracks().forEach((track) => {
       track.removeEventListener('ended', this._onEndedTrackHandler)
     })
+  }
+
+  /**
+   * React Native does not support getConfiguration
+   * so we polyfill it using a local `rtcConfigPolyfill` object.
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/setConfiguration#parameters
+   */
+  private setConfiguration(config: RTCConfiguration) {
+    this.rtcConfigPolyfill = config
+    if (
+      this.instance &&
+      typeof this.instance?.setConfiguration === 'function'
+    ) {
+      this.instance.setConfiguration(config)
+    }
+  }
+
+  /**
+   * React Native does not support getConfiguration
+   * so we polyfill it using a local config object.
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/getConfiguration
+   */
+  private getConfiguration() {
+    if (
+      this.instance &&
+      typeof this.instance?.getConfiguration === 'function'
+    ) {
+      return this.instance.getConfiguration()
+    }
+    return this.rtcConfigPolyfill || this.config
   }
 }

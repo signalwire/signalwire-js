@@ -105,7 +105,8 @@ export async function cli(args) {
       })
 
       console.log('🏃‍♂️ Running ->', n)
-      await concurrently(n)
+      const { result } = concurrently(n)
+      await result
     }
   } catch (e) {
     console.error('Build error', e)

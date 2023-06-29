@@ -1,6 +1,6 @@
 {
   "name": "@sw-internal/e2e-realtime-api",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "private": true,
   "main": "index.js",
   "scripts": {
@@ -10,14 +10,13 @@
     "test": ""
   },
   "devDependencies": {
-    "@playwright/test": "^1.32.2",
-    "@types/tap": "^15.0.7",
-    "dotenv": "^16.0.0",
-    "esbuild-register": "^3.3.2"
+    "@playwright/test": "^1.35.1",
+    "@types/tap": "^15.0.8",
+    "esbuild-register": "^3.4.2"
   },
   "dependencies": {
     "@mapbox/node-pre-gyp": "^1.0.10",
-    "tap": "^16.2.0",
-    "ws": "^8.5.0"
+    "tap": "^16.3.7",
+    "ws": "^8.13.0"
   }
 }

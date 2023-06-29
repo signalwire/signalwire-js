@@ -1,5 +1,11 @@
 # @sw-internal/playground-realtime-api
 
+## 0.3.3
+
+### Patch Changes
+
+- [#776](https://github.com/signalwire/signalwire-js/pull/776) [`602921a6`](https://github.com/signalwire/signalwire-js/commit/602921a61ef2d57675fcb429fd95d85c020c9431) - [internal] Review playground and e2e tests for the EmitterTransform refactoring
+
 ## 0.3.2
 
 ### Patch Changes

@@ -6,10 +6,11 @@ import {
   SwAuthorizationState,
 } from '@signalwire/core'
 import { getStorage, CALL_ID } from './utils/storage'
+import { SwCloseEvent } from './utils/CloseEvent'
 
 export class JWTSession extends BaseJWTSession {
   public WebSocketConstructor = WebSocket
-  public CloseEventConstructor = CloseEvent
+  public CloseEventConstructor = SwCloseEvent
   public agent = process.env.SDK_PKG_AGENT!
 
   constructor(public options: SessionOptions) {
@@ -40,7 +41,7 @@ export class JWTSession extends BaseJWTSession {
 
     const key = this.getProtocolSessionStorageKey()
     if (key) {
-      this.logger.info('Hijacking: search protocol for', key)
+      this.logger.trace('Hijacking: search protocol for', key)
       return getStorage()?.getItem(key) ?? ''
     }
     return ''
@@ -53,7 +54,7 @@ export class JWTSession extends BaseJWTSession {
 
     const key = this.getProtocolSessionStorageKey()
     if (key) {
-      this.logger.info('Hijacking: persist protocol', key, this.relayProtocol)
+      this.logger.trace('Hijacking: persist protocol', key, this.relayProtocol)
       getStorage()?.setItem(key, this.relayProtocol)
     }
   }
@@ -75,14 +76,14 @@ export class JWTSession extends BaseJWTSession {
 
     const key = this.getAuthStateSessionStorageKey()
     if (key) {
-      this.logger.info('Hijacking: persist auth state', key, state)
+      this.logger.trace('Hijacking: persist auth state', key, state)
       getStorage()?.setItem(key, state)
     }
   }
 
   protected override _onSocketClose(event: CloseEvent) {
     if (this.status === 'unknown') {
-      this.logger.info('Hijacking: invalid values - cleaning up storage')
+      this.logger.trace('Hijacking: invalid values - cleaning up storage')
       const protocolKey = this.getProtocolSessionStorageKey()
       if (protocolKey) {
         getStorage()?.removeItem(protocolKey)

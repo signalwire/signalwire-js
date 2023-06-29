@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.16.0] - 2023-06-21
+
+### Minor Changes
+
+- [#798](https://github.com/signalwire/signalwire-js/pull/798) [`aaa07479`](https://github.com/signalwire/signalwire-js/commit/aaa07479db10685e72d96ea43927d759dbac076e) - Allow user to set the local media stream
+
+### Changed
+
+- [#776](https://github.com/signalwire/signalwire-js/pull/776) [`602921a6`](https://github.com/signalwire/signalwire-js/commit/602921a61ef2d57675fcb429fd95d85c020c9431) - Internal changes to opt-out from EmitterTransforms.
+
+- [#776](https://github.com/signalwire/signalwire-js/pull/776) [`602921a6`](https://github.com/signalwire/signalwire-js/commit/602921a61ef2d57675fcb429fd95d85c020c9431) - Use instance map for Voice APIs instance creation.
+
+### Fixed
+
+- [#808](https://github.com/signalwire/signalwire-js/pull/808) [`9fd8f9cb`](https://github.com/signalwire/signalwire-js/commit/9fd8f9cbff5fc03347248795f09e169166aba0f3) - Fix Collect and Prompt APIs' speech
+
+- [#811](https://github.com/signalwire/signalwire-js/pull/811) [`f3711f17`](https://github.com/signalwire/signalwire-js/commit/f3711f1726a9001a4204527b34b452de80e9a0e6) - Improve reconnection under bad network conditions.
+
+- [#776](https://github.com/signalwire/signalwire-js/pull/776) [`602921a6`](https://github.com/signalwire/signalwire-js/commit/602921a61ef2d57675fcb429fd95d85c020c9431) - Handle failed state for `call.connect` events.
+
 ## [3.15.0] - 2023-05-22
 
 ### Added

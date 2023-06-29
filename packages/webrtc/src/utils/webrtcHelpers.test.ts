@@ -33,7 +33,7 @@ describe('WebRTC Helpers', () => {
       const stream = await getUserMedia()
       expect(stream).toMatchInlineSnapshot(`
         MediaStreamMock {
-          "_tracks": Array [
+          "_tracks": [
             MediaStreamTrackMock {
               "enabled": true,
               "id": "uuid",
