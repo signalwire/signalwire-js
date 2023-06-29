@@ -6,10 +6,11 @@ import {
   SwAuthorizationState,
 } from '@signalwire/core'
 import { getStorage, CALL_ID } from './utils/storage'
+import { SwCloseEvent } from './utils/CloseEvent'
 
 export class JWTSession extends BaseJWTSession {
   public WebSocketConstructor = WebSocket
-  public CloseEventConstructor = CloseEvent
+  public CloseEventConstructor = SwCloseEvent
   public agent = process.env.SDK_PKG_AGENT!
 
   constructor(public options: SessionOptions) {
