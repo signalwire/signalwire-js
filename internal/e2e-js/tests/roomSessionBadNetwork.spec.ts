@@ -121,7 +121,6 @@ test.describe('roomSessionBadNetwork', () => {
       })
 
       const memberMuted: any = await promise1
-      console.log('WWW', memberMuted)
       expect(memberMuted.member.audio_muted).toBe(true)
 
       const promise2 = makeMemberUpdatedPromise()
@@ -134,7 +133,6 @@ test.describe('roomSessionBadNetwork', () => {
       })
 
       const memberUnmuted: any = await promise2
-      console.log('WWW', memberUnmuted)
       expect(memberUnmuted.member.audio_muted).toBe(false)
     })
   })
