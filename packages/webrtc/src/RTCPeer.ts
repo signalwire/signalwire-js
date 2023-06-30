@@ -13,7 +13,6 @@ import {
   streamIsValid,
   stopTrack,
 } from './utils'
-import { ConnectionOptions } from './utils/interfaces'
 import { watchRTCPeerMediaPackets } from './utils/watchRTCPeerMediaPackets'
 
 const RESUME_TIMEOUT = 12_000
@@ -23,7 +22,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   public instance: RTCPeerConnection
 
-  private options: ConnectionOptions
   private _iceTimeout: any
   private _negotiating = false
   private _processingRemoteSDP = false
@@ -52,7 +50,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     public call: BaseConnection<EventTypes>,
     public type: RTCSdpType
   ) {
-    this.options = call.options
     this.logger.debug(
       'New Peer with type:',
       this.type,
@@ -73,6 +70,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
 
     this.rtcConfigPolyfill = this.config
+  }
+
+  get options() {
+    return this.call.options
   }
 
   get watchMediaPacketsTimeout() {
@@ -817,6 +818,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     if (streamIsValid(this.options.localStream)) {
       return this.options.localStream
     }
+    console.log('PD 1?', this.options.video, this.options.audio)
+    console.log('PD 2?', this.call.options.video, this.call.options.audio)
     const constraints = await getMediaConstraints(this.options)
     return getUserMedia(constraints)
   }
