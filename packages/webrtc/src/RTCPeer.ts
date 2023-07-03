@@ -818,8 +818,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     if (streamIsValid(this.options.localStream)) {
       return this.options.localStream
     }
-    console.log('PD 1?', this.options.video, this.options.audio)
-    console.log('PD 2?', this.call.options.video, this.call.options.audio)
     const constraints = await getMediaConstraints(this.options)
     return getUserMedia(constraints)
   }
