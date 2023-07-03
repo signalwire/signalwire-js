@@ -151,20 +151,24 @@ export interface SipHeader {
   value: string
 }
 
-export interface VoiceCallPhoneParams {
+interface VoiceCallParams {
+  timeout?: number
+  callStateUrl?: string
+  callStateEvents?: CallingCallState[]
+}
+
+export interface VoiceCallPhoneParams extends VoiceCallParams {
   type: 'phone'
   from?: string
   to: string
-  timeout?: number
 }
 
 export type OmitType<T> = Omit<T, 'type'>
 
-export interface VoiceCallSipParams {
+export interface VoiceCallSipParams extends VoiceCallParams {
   type: 'sip'
   from: string
   to: string
-  timeout?: number
   headers?: SipHeader[]
   codecs?: SipCodec[]
   webrtcMedia?: boolean
@@ -789,14 +793,18 @@ export type InternalVoiceCallEntity = {
  * ==========
  */
 
+type CallDeviceParamsShared = {
+  timeout?: number
+  max_duration?: number
+  call_state_url?: string
+  call_state_events?: string[]
+}
 export interface CallingCallPhoneDevice {
   type: 'phone'
   params: {
     from_number: string
     to_number: string
-    timeout: number
-    max_duration: number
-  }
+  } & CallDeviceParamsShared
 }
 
 export interface CallingCallSIPDevice {
@@ -805,12 +813,10 @@ export interface CallingCallSIPDevice {
     from: string
     from_name?: string
     to: string
-    timeout?: number
-    max_duration?: number
     headers?: SipHeader[]
     codecs?: SipCodec[]
     webrtc_media?: boolean
-  }
+  } & CallDeviceParamsShared
 }
 
 type CallingCallDevice = CallingCallPhoneDevice | CallingCallSIPDevice
