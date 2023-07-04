@@ -12,7 +12,7 @@ import type {
   BaseRoomSessionJoinParams,
   RoomSessionObjectEvents,
 } from './utils/interfaces'
-import { getStorage, CALL_ID } from './utils/storage'
+import { getStorage, sessionStorageManager } from './utils/storage'
 
 /**
  * List of properties/methods the user shouldn't be able to
@@ -124,10 +124,11 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
   // @ts-expect-error - true by default
   const allowReattach = roomOptions?.reattach !== false
 
+  const { callIdKey } = sessionStorageManager(userOptions.token)
   const reattachManager = {
     joined: ({ call_id }: VideoRoomSubscribedEventParams) => {
-      if (allowReattach) {
-        getStorage()?.setItem(CALL_ID, call_id)
+      if (allowReattach && callIdKey) {
+        getStorage()?.setItem(callIdKey, call_id)
       }
     },
     init: () => {
@@ -141,14 +142,16 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
       }
 
       room.off('room.subscribed', reattachManager.joined)
-      getStorage()?.removeItem(CALL_ID)
+      if (callIdKey) {
+        getStorage()?.removeItem(callIdKey)
+      }
     },
     getPrevCallId: () => {
-      if (!allowReattach) {
+      if (!allowReattach || !callIdKey) {
         return
       }
 
-      return getStorage()?.getItem(CALL_ID) ?? undefined
+      return getStorage()?.getItem(callIdKey) ?? undefined
     },
   }
 

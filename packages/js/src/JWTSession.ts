@@ -5,7 +5,7 @@ import {
   SessionOptions,
   SwAuthorizationState,
 } from '@signalwire/core'
-import { getStorage, CALL_ID } from './utils/storage'
+import { getStorage, sessionStorageManager } from './utils/storage'
 import { SwCloseEvent } from './utils/CloseEvent'
 
 type JWTHeader = { ch?: string; typ?: string }
@@ -46,10 +46,10 @@ export class JWTSession extends BaseJWTSession {
       return ''
     }
 
-    const key = this.getProtocolSessionStorageKey()
-    if (key) {
-      this.logger.trace('Hijacking: search protocol for', key)
-      return getStorage()?.getItem(key) ?? ''
+    const { protocolKey } = sessionStorageManager(this.options.token)
+    if (protocolKey) {
+      this.logger.trace('Search protocol for', protocolKey)
+      return getStorage()?.getItem(protocolKey) ?? ''
     }
     return ''
   }
@@ -59,17 +59,17 @@ export class JWTSession extends BaseJWTSession {
       return
     }
 
-    const key = this.getProtocolSessionStorageKey()
-    if (key) {
-      this.logger.trace('Hijacking: persist protocol', key, this.relayProtocol)
-      getStorage()?.setItem(key, this.relayProtocol)
+    const { protocolKey } = sessionStorageManager(this.options.token)
+    if (protocolKey) {
+      this.logger.trace('Persist protocol', protocolKey, this.relayProtocol)
+      getStorage()?.setItem(protocolKey, this.relayProtocol)
     }
   }
 
   protected override async retrieveSwAuthorizationState() {
-    const key = this.getAuthStateSessionStorageKey()
-    if (key) {
-      return getStorage()?.getItem(key) ?? ''
+    const { authStateKey } = sessionStorageManager(this.options.token)
+    if (authStateKey) {
+      return getStorage()?.getItem(authStateKey) ?? ''
     }
     return ''
   }
@@ -81,57 +81,34 @@ export class JWTSession extends BaseJWTSession {
       return
     }
 
-    const key = this.getAuthStateSessionStorageKey()
-    if (key) {
-      this.logger.trace('Hijacking: persist auth state', key, state)
-      getStorage()?.setItem(key, state)
+    const { authStateKey } = sessionStorageManager(this.options.token)
+    if (authStateKey) {
+      this.logger.trace('Persist auth state', authStateKey, state)
+      getStorage()?.setItem(authStateKey, state)
     }
   }
 
   protected override _onSocketClose(event: CloseEvent) {
     if (this.status === 'unknown') {
+      const { protocolKey, authStateKey, callIdKey } = sessionStorageManager(
+        this.options.token
+      )
       this.logger.trace('Hijacking: invalid values - cleaning up storage')
-      const protocolKey = this.getProtocolSessionStorageKey()
       if (protocolKey) {
         getStorage()?.removeItem(protocolKey)
       }
-      const authStatekey = this.getAuthStateSessionStorageKey()
-      if (authStatekey) {
-        getStorage()?.removeItem(authStatekey)
+      if (authStateKey) {
+        getStorage()?.removeItem(authStateKey)
       }
-      // Remove also the previous callId
-      getStorage()?.removeItem(CALL_ID)
+      if (callIdKey) {
+        getStorage()?.removeItem(callIdKey)
+      }
     }
 
     super._onSocketClose(event)
   }
 
-  private getAuthStateSessionStorageKey() {
-    return `as-${this.getSessionStorageKey()}`
-  }
-
-  private getProtocolSessionStorageKey() {
-    return `pt-${this.getSessionStorageKey()}`
-  }
-
   private isVRT() {
     return this.tokenTyp === 'VRT'
-  }
-
-  private getSessionStorageKey() {
-    if (!this.isVRT()) {
-      return ''
-    }
-    try {
-      const jwtPayload = jwtDecode<{ r: string; ja: string }>(
-        this.options.token
-      )
-      return `${jwtPayload?.r}`
-    } catch (e) {
-      if (process.env.NODE_ENV !== 'production') {
-        getLogger().error('[getSessionStorageKey] error decoding the JWT')
-      }
-      return ''
-    }
   }
 }
