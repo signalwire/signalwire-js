@@ -93,14 +93,17 @@ export class JWTSession extends BaseJWTSession {
       const { protocolKey, authStateKey, callIdKey } = sessionStorageManager(
         this.options.token
       )
-      this.logger.trace('Hijacking: invalid values - cleaning up storage')
+      this.logger.debug('Cleaning up storage')
       if (protocolKey) {
+        this.logger.debug('Remove protocolKey', protocolKey)
         getStorage()?.removeItem(protocolKey)
       }
       if (authStateKey) {
+        this.logger.debug('Remove authStateKey', authStateKey)
         getStorage()?.removeItem(authStateKey)
       }
       if (callIdKey) {
+        this.logger.debug('Remove callIdKey', callIdKey)
         getStorage()?.removeItem(callIdKey)
       }
     }
