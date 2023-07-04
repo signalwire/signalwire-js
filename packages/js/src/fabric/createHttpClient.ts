@@ -107,7 +107,7 @@ const getBody = (body: unknown) => {
   return typeof body === 'string' ? body : JSON.stringify(body)
 }
 
-export const getRequestInit = (options: any): RequestInit => {
+const getRequestInit = (options: any): RequestInit => {
   return Object.entries(options).reduce((reducer, [key, value]) => {
     if (key === 'body') {
       return {
@@ -125,7 +125,7 @@ export const getRequestInit = (options: any): RequestInit => {
   }, {} as RequestInit)
 }
 
-export const getUrl = ({
+const getUrl = ({
   path,
   baseUrl,
   searchParams,

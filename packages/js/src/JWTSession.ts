@@ -5,18 +5,24 @@ import {
   SessionOptions,
   SwAuthorizationState,
 } from '@signalwire/core'
-import { getStorage, CALL_ID } from './utils/storage'
+import { getStorage, sessionStorageManager } from './utils/storage'
 import { SwCloseEvent } from './utils/CloseEvent'
+
+type JWTHeader = { ch?: string; typ?: string }
 
 export class JWTSession extends BaseJWTSession {
   public WebSocketConstructor = WebSocket
   public CloseEventConstructor = SwCloseEvent
   public agent = process.env.SDK_PKG_AGENT!
 
+  private tokenTyp: string
+
   constructor(public options: SessionOptions) {
-    let decodedJwt
+    let decodedJwt: JWTHeader = {}
     try {
-      decodedJwt = jwtDecode<{ ch?: string }>(options.token, { header: true })
+      decodedJwt = jwtDecode<{ ch?: string; typ: string }>(options.token, {
+        header: true,
+      })
     } catch (e) {
       if (process.env.NODE_ENV !== 'production') {
         getLogger().debug('[JWTSession] error decoding the JWT')
@@ -27,11 +33,12 @@ export class JWTSession extends BaseJWTSession {
       ...options,
       host: options.host || decodedJwt?.ch,
     })
+    this.tokenTyp = decodedJwt.typ ?? 'VRT'
   }
 
   get allowReattach() {
     // @ts-expect-error
-    return this.options?.reattach !== false
+    return this.options?.reattach !== false && this.isVRT()
   }
 
   override async retrieveRelayProtocol() {
@@ -39,10 +46,10 @@ export class JWTSession extends BaseJWTSession {
       return ''
     }
 
-    const key = this.getProtocolSessionStorageKey()
-    if (key) {
-      this.logger.trace('Hijacking: search protocol for', key)
-      return getStorage()?.getItem(key) ?? ''
+    const { protocolKey } = sessionStorageManager(this.options.token)
+    if (protocolKey) {
+      this.logger.trace('Search protocol for', protocolKey)
+      return getStorage()?.getItem(protocolKey) ?? ''
     }
     return ''
   }
@@ -52,17 +59,17 @@ export class JWTSession extends BaseJWTSession {
       return
     }
 
-    const key = this.getProtocolSessionStorageKey()
-    if (key) {
-      this.logger.trace('Hijacking: persist protocol', key, this.relayProtocol)
-      getStorage()?.setItem(key, this.relayProtocol)
+    const { protocolKey } = sessionStorageManager(this.options.token)
+    if (protocolKey) {
+      this.logger.trace('Persist protocol', protocolKey, this.relayProtocol)
+      getStorage()?.setItem(protocolKey, this.relayProtocol)
     }
   }
 
   protected override async retrieveSwAuthorizationState() {
-    const key = this.getAuthStateSessionStorageKey()
-    if (key) {
-      return getStorage()?.getItem(key) ?? ''
+    const { authStateKey } = sessionStorageManager(this.options.token)
+    if (authStateKey) {
+      return getStorage()?.getItem(authStateKey) ?? ''
     }
     return ''
   }
@@ -74,50 +81,37 @@ export class JWTSession extends BaseJWTSession {
       return
     }
 
-    const key = this.getAuthStateSessionStorageKey()
-    if (key) {
-      this.logger.trace('Hijacking: persist auth state', key, state)
-      getStorage()?.setItem(key, state)
+    const { authStateKey } = sessionStorageManager(this.options.token)
+    if (authStateKey) {
+      this.logger.trace('Persist auth state', authStateKey, state)
+      getStorage()?.setItem(authStateKey, state)
     }
   }
 
   protected override _onSocketClose(event: CloseEvent) {
     if (this.status === 'unknown') {
-      this.logger.trace('Hijacking: invalid values - cleaning up storage')
-      const protocolKey = this.getProtocolSessionStorageKey()
+      const { protocolKey, authStateKey, callIdKey } = sessionStorageManager(
+        this.options.token
+      )
+      this.logger.debug('Cleaning up storage')
       if (protocolKey) {
+        this.logger.debug('Remove protocolKey', protocolKey)
         getStorage()?.removeItem(protocolKey)
       }
-      const authStatekey = this.getAuthStateSessionStorageKey()
-      if (authStatekey) {
-        getStorage()?.removeItem(authStatekey)
+      if (authStateKey) {
+        this.logger.debug('Remove authStateKey', authStateKey)
+        getStorage()?.removeItem(authStateKey)
       }
-      // Remove also the previous callId
-      getStorage()?.removeItem(CALL_ID)
+      if (callIdKey) {
+        this.logger.debug('Remove callIdKey', callIdKey)
+        getStorage()?.removeItem(callIdKey)
+      }
     }
 
     super._onSocketClose(event)
   }
 
-  private getAuthStateSessionStorageKey() {
-    return `as-${this.getSessionStorageKey()}`
-  }
-
-  private getProtocolSessionStorageKey() {
-    return `pt-${this.getSessionStorageKey()}`
-  }
-
-  private getSessionStorageKey() {
-    try {
-      const jwtPayload = jwtDecode<{ r: string; ja: string }>(
-        this.options.token
-      )
-      return `${jwtPayload?.r}`
-    } catch (e) {
-      if (process.env.NODE_ENV !== 'production') {
-        getLogger().error('[getSessionStorageKey] error decoding the JWT')
-      }
-      return ''
-    }
+  private isVRT() {
+    return this.tokenTyp === 'VRT'
   }
 }

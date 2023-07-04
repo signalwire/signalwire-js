@@ -12,7 +12,7 @@ import type {
   BaseRoomSessionJoinParams,
   RoomSessionObjectEvents,
 } from './utils/interfaces'
-import { getStorage, CALL_ID } from './utils/storage'
+import { getStorage, sessionStorageManager } from './utils/storage'
 
 /**
  * List of properties/methods the user shouldn't be able to
@@ -107,6 +107,8 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     speakerId,
     destinationNumber,
     localStream,
+    watchMediaPackets,
+    watchMediaPacketsTimeout,
     ...userOptions
   } = roomOptions
 
@@ -118,6 +120,41 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
       )
     }
   })
+
+  // @ts-expect-error - true by default
+  const allowReattach = roomOptions?.reattach !== false
+
+  const { callIdKey } = sessionStorageManager(userOptions.token)
+  const reattachManager = {
+    joined: ({ call_id }: VideoRoomSubscribedEventParams) => {
+      if (allowReattach && callIdKey) {
+        getStorage()?.setItem(callIdKey, call_id)
+      }
+    },
+    init: () => {
+      if (allowReattach) {
+        room.on('room.subscribed', reattachManager.joined)
+      }
+      room.options.prevCallId = reattachManager.getPrevCallId()
+    },
+    destroy: () => {
+      if (!allowReattach) {
+        return
+      }
+
+      room.off('room.subscribed', reattachManager.joined)
+      if (callIdKey) {
+        getStorage()?.removeItem(callIdKey)
+      }
+    },
+    getPrevCallId: () => {
+      if (!allowReattach || !callIdKey) {
+        return
+      }
+
+      return getStorage()?.getItem(callIdKey) ?? undefined
+    },
+  }
 
   const client = createClient<RoomSession>(userOptions)
   const room = client.rooms.makeRoomObject({
@@ -134,37 +171,10 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     speakerId,
     destinationNumber,
     localStream,
+    watchMediaPackets,
+    watchMediaPacketsTimeout,
+    prevCallId: reattachManager.getPrevCallId(),
   })
-
-  // @ts-expect-error - true by default
-  const allowReattach = roomOptions?.reattach !== false
-
-  const reattachManager = {
-    joined: ({ call_id }: VideoRoomSubscribedEventParams) => {
-      if (allowReattach) {
-        getStorage()?.setItem(CALL_ID, call_id)
-      }
-    },
-    init: () => {
-      if (!allowReattach) {
-        return
-      }
-      room.on('room.subscribed', reattachManager.joined)
-
-      const prevCallId = getStorage()?.getItem(CALL_ID)
-      if (prevCallId) {
-        room.options.prevCallId = prevCallId
-      }
-    },
-    destroy: () => {
-      if (!allowReattach) {
-        return
-      }
-
-      room.off('room.subscribed', reattachManager.joined)
-      getStorage()?.removeItem(CALL_ID)
-    },
-  }
 
   // WebRTC connection left the room.
   room.once('destroy', () => {
@@ -194,40 +204,43 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
 
         // @ts-expect-error
         const authState: VideoAuthorization = client._sessionAuthState
-        const mediaOptions = getJoinMediaParams({
-          authState,
-          // constructor values override the send
-          sendAudio: Boolean(audio),
-          sendVideo: Boolean(video),
-          ...params,
-        })
+        getLogger().debug('getJoinMediaParams authState?', authState)
+        if (authState && authState.type === 'video') {
+          const mediaOptions = getJoinMediaParams({
+            authState,
+            // constructor values override the send
+            sendAudio: Boolean(audio),
+            sendVideo: Boolean(video),
+            ...params,
+          })
 
-        if (!checkMediaParams(mediaOptions)) {
-          client.disconnect()
-          return reject(
-            new Error(
-              `Invalid arguments to join the room. The token used has join_as: '${
-                authState.join_as
-              }'. \n${JSON.stringify(params, null, 2)}\n`
+          if (!checkMediaParams(mediaOptions)) {
+            client.disconnect()
+            return reject(
+              new Error(
+                `Invalid arguments to join the room. The token used has join_as: '${
+                  authState.join_as
+                }'. \n${JSON.stringify(params, null, 2)}\n`
+              )
             )
-          )
-        }
-        getLogger().debug('Set mediaOptions', mediaOptions)
+          }
+          getLogger().debug('Set mediaOptions', mediaOptions)
 
-        /**
-         * audio and video might be objects with MediaStreamConstraints
-         * so if we must send media, we make sure to use the user's
-         * preferences.
-         * Note: params.sendAudio: `true` will override audio: `false` so
-         * we're using `||` instead of `??` for that reason.
-         */
-        // @ts-expect-error
-        room.updateMediaOptions({
-          audio: mediaOptions.mustSendAudio ? audio || true : false,
-          video: mediaOptions.mustSendVideo ? video || true : false,
-          negotiateAudio: mediaOptions.mustRecvAudio,
-          negotiateVideo: mediaOptions.mustRecvVideo,
-        })
+          /**
+           * audio and video might be objects with MediaStreamConstraints
+           * so if we must send media, we make sure to use the user's
+           * preferences.
+           * Note: params.sendAudio: `true` will override audio: `false` so
+           * we're using `||` instead of `??` for that reason.
+           */
+          // @ts-expect-error
+          room.updateMediaOptions({
+            audio: mediaOptions.mustSendAudio ? audio || true : false,
+            video: mediaOptions.mustSendVideo ? video || true : false,
+            negotiateAudio: mediaOptions.mustRecvAudio,
+            negotiateVideo: mediaOptions.mustRecvVideo,
+          })
+        }
 
         room.once('room.subscribed', (payload) => {
           // @ts-expect-error

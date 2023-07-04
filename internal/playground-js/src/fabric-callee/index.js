@@ -1,25 +1,7 @@
 import { Fabric } from '@signalwire/js'
-import {
-  enumerateDevices,
-  checkPermissions,
-  getCameraDevicesWithPermissions,
-  getMicrophoneDevicesWithPermissions,
-  getSpeakerDevicesWithPermissions,
-  getMicrophoneDevices,
-  getCameraDevices,
-  getSpeakerDevices,
-  supportsMediaOutput,
-  createDeviceWatcher,
-  createMicrophoneAnalyzer,
-} from '@signalwire/webrtc'
-
-window.getMicrophoneDevices = getMicrophoneDevices
-window.getCameraDevices = getCameraDevices
-window.getSpeakerDevices = getSpeakerDevices
-window.checkPermissions = checkPermissions
-window.getCameraDevicesWithPermissions = getCameraDevicesWithPermissions
-window.getMicrophoneDevicesWithPermissions = getMicrophoneDevicesWithPermissions
-window.getSpeakerDevicesWithPermissions = getSpeakerDevicesWithPermissions
+import { createMicrophoneAnalyzer } from '@signalwire/webrtc'
+import { initializeApp } from 'firebase/app'
+import { getMessaging, getToken, onMessage } from 'firebase/messaging'
 
 let roomObj = null
 let micAnalyzer = null
@@ -44,6 +26,10 @@ const inCallElements = [
   pauseRecordingBtn,
   resumeRecordingBtn,
   controlPlayback,
+
+  tapPushNotificationBtn,
+  acceptCallBtn,
+  rejectCallBtn,
 ]
 
 const playbackElements = [
@@ -71,99 +57,6 @@ window.playbackEnded = () => {
     button.classList.add('d-none')
     button.disabled = true
   })
-}
-
-async function loadLayouts(currentLayoutId) {
-  try {
-    const { layouts } = await roomObj.getLayoutList()
-    const fillSelectElement = (id) => {
-      const layoutEl = document.getElementById(id)
-      layoutEl.innerHTML = ''
-
-      const defOption = document.createElement('option')
-      defOption.value = ''
-      defOption.innerHTML =
-        id === 'layout' ? 'Change layout..' : 'Select layout for ScreenShare..'
-      layoutEl.appendChild(defOption)
-      for (var i = 0; i < layouts.length; i++) {
-        const layout = layouts[i]
-        var opt = document.createElement('option')
-        opt.value = layout
-        opt.innerHTML = layout
-        layoutEl.appendChild(opt)
-      }
-      if (currentLayoutId) {
-        layoutEl.value = currentLayoutId
-      }
-    }
-
-    fillSelectElement('layout')
-    fillSelectElement('ssLayout')
-  } catch (error) {
-    console.warn('Error listing layout', error)
-  }
-}
-
-function setDeviceOptions({ deviceInfos, el, kind }) {
-  if (!deviceInfos || deviceInfos.length === 0) {
-    return
-  }
-
-  // Store the previously selected value so we could restore it after
-  // re-populating the list
-  const selectedValue = el.value
-
-  // Empty the Select
-  el.innerHTML = ''
-
-  deviceInfos.forEach((deviceInfo) => {
-    const option = document.createElement('option')
-
-    option.value = deviceInfo.deviceId
-    option.text = deviceInfo.label || `${kind} ${el.length + 1}`
-
-    el.appendChild(option)
-  })
-
-  el.value = selectedValue || deviceInfos[0].deviceId
-}
-
-async function setAudioInDevicesOptions() {
-  const micOptions = await getMicrophoneDevices()
-
-  setDeviceOptions({
-    deviceInfos: micOptions,
-    el: microphoneSelect,
-    kind: 'microphone',
-  })
-}
-
-async function setAudioOutDevicesOptions() {
-  if (supportsMediaOutput()) {
-    const options = await getSpeakerDevices()
-
-    setDeviceOptions({
-      deviceInfos: options,
-      el: speakerSelect,
-      kind: 'speaker',
-    })
-  }
-}
-
-async function setVideoDevicesOptions() {
-  const options = await getCameraDevices()
-
-  setDeviceOptions({
-    deviceInfos: options,
-    el: cameraSelect,
-    kind: 'camera',
-  })
-}
-
-function initDeviceOptions() {
-  setAudioInDevicesOptions()
-  setAudioOutDevicesOptions()
-  setVideoDevicesOptions()
 }
 
 function meter(el, val) {
@@ -204,6 +97,7 @@ const initializeMicAnalyzer = async (stream) => {
 
 function restoreUI() {
   btnConnect.classList.remove('d-none')
+  tapPushNotificationBtn.classList.add('d-none')
   btnDisconnect.classList.add('d-none')
   connectStatus.innerHTML = 'Not Connected'
 
@@ -211,6 +105,25 @@ function restoreUI() {
     button.classList.add('d-none')
     button.disabled = true
   })
+}
+
+function uiReady() {
+  connectStatus.innerHTML = 'In Call'
+
+  inCallElements.forEach((button) => {
+    button.classList.remove('d-none')
+    button.disabled = false
+  })
+}
+
+function enableCallButtons() {
+  acceptCallBtn.disabled = false
+  rejectCallBtn.disabled = false
+}
+
+function disableCallButtons() {
+  acceptCallBtn.disabled = true
+  rejectCallBtn.disabled = true
 }
 
 /**
@@ -225,116 +138,69 @@ window.connect = async () => {
 
   window.__client = client
 
+  // const steeringId = ''
+  // if (steeringId) {
+  //   const executeInviteRef = call.executeInvite
+  //   call.executeInvite = (sdp, rtcPeerId, nodeId) => {
+  //     console.log('Change invite - inject nodeId for steering')
+  //     executeInviteRef.call(call, sdp, rtcPeerId, steeringId)
+  //   }
+
+  //   const vertoExecuteRef = call.vertoExecute
+  //   call.vertoExecute = (params) => {
+  //     console.log('Change vertoExecute - inject nodeId for steering')
+  //     params.node_id = steeringId
+  //     vertoExecuteRef.call(call, params)
+  //   }
+  // }
+
   connectStatus.innerHTML = 'Connecting...'
+  await client.connect()
 
-  // Set a node_id for steering
-  const steeringId = undefined
+  connectStatus.innerHTML = 'Connected!'
 
-  const call = await client.dial({
-    to: document.getElementById('destination').value,
-    logLevel: 'debug',
-    debug: { logWsTraffic: true },
-    nodeId: steeringId,
-  })
+  btnConnect.classList.add('d-none')
+  tapPushNotificationBtn.classList.remove('d-none')
+  btnDisconnect.classList.remove('d-none')
+}
 
-  console.debug('Call Obj', call)
+/**
+ * Disconnect the client
+ */
+window.disconnect = async () => {
+  await window.__client.disconnect()
+  connectStatus.innerHTML = 'Disconnected!'
+  restoreUI()
+}
 
-  window.__call = call
-  roomObj = call
+/**
+ * Read the PN payload and accept the inbound call
+ */
+window.tapPushNotification = async () => {
+  try {
+    const jsonrpc = JSON.parse(payload.value)
+    const { node_id, params: inviteRPC } = jsonrpc.invite
 
-  const joinHandler = (params) => {
-    console.debug('>> room.joined', params)
+    window.__call = await __client._buildInboundCall(inviteRPC, node_id)
 
-    btnConnect.classList.add('d-none')
-    btnDisconnect.classList.remove('d-none')
-    connectStatus.innerHTML = 'Connected'
+    enableCallButtons()
 
-    inCallElements.forEach((button) => {
-      button.classList.remove('d-none')
-      button.disabled = false
-    })
-    // loadLayouts()
+    connectStatus.innerHTML = 'Ringing...'
+  } catch (error) {
+    console.error('acceptCall', error)
   }
-  joinHandler()
+}
 
-  roomObj.on('media.connected', () => {
-    console.debug('>> media.connected')
-  })
-  roomObj.on('media.reconnecting', () => {
-    console.debug('>> media.reconnecting')
-  })
-  roomObj.on('media.disconnected', () => {
-    console.debug('>> media.disconnected')
-  })
+window.acceptCall = async () => {
+  disableCallButtons()
+  await window.__call.answer()
+  uiReady()
+}
 
-  roomObj.on('room.started', (params) =>
-    console.debug('>> room.started', params)
-  )
-
-  roomObj.on('destroy', () => {
-    console.debug('>> destroy')
-    restoreUI()
-  })
-  roomObj.on('room.updated', (params) =>
-    console.debug('>> room.updated', params)
-  )
-
-  roomObj.on('recording.started', (params) => {
-    console.debug('>> recording.started', params)
-    document.getElementById('recordingState').innerText = 'recording'
-  })
-  roomObj.on('recording.ended', (params) => {
-    console.debug('>> recording.ended', params)
-    document.getElementById('recordingState').innerText = 'completed'
-  })
-  roomObj.on('recording.updated', (params) => {
-    console.debug('>> recording.updated', params)
-    document.getElementById('recordingState').innerText = params.state
-  })
-  roomObj.on('room.ended', (params) => {
-    console.debug('>> room.ended', params)
-    hangup()
-  })
-  roomObj.on('member.joined', (params) =>
-    console.debug('>> member.joined', params)
-  )
-  roomObj.on('member.updated', (params) =>
-    console.debug('>> member.updated', params)
-  )
-
-  roomObj.on('member.updated.audio_muted', (params) =>
-    console.debug('>> member.updated.audio_muted', params)
-  )
-  roomObj.on('member.updated.video_muted', (params) =>
-    console.debug('>> member.updated.video_muted', params)
-  )
-
-  roomObj.on('member.left', (params) => console.debug('>> member.left', params))
-  roomObj.on('member.talking', (params) =>
-    console.debug('>> member.talking', params)
-  )
-  roomObj.on('layout.changed', (params) =>
-    console.debug('>> layout.changed', params)
-  )
-  roomObj.on('track', (event) => console.debug('>> DEMO track', event))
-
-  roomObj.on('playback.started', (params) => {
-    console.debug('>> playback.started', params)
-
-    playbackStarted()
-  })
-  roomObj.on('playback.ended', (params) => {
-    console.debug('>> playback.ended', params)
-
-    playbackEnded()
-  })
-  roomObj.on('playback.updated', (params) => {
-    console.debug('>> playback.updated', params)
-
-    if (params.volume) {
-      document.getElementById('playbackVolume').value = params.volume
-    }
-  })
+window.rejectCall = async () => {
+  disableCallButtons()
+  await window.__call.hangup()
+  restoreUI()
 }
 
 /**
@@ -354,7 +220,7 @@ window.hangup = () => {
 
 window.saveInLocalStorage = (e) => {
   const key = e.target.name || e.target.id
-  localStorage.setItem('fabric.ws.' + key, e.target.value)
+  localStorage.setItem('fabric.callee.' + key, e.target.value)
 }
 
 // jQuery document.ready equivalent
@@ -682,13 +548,61 @@ window.seekForwardPlayback = () => {
  */
 window.ready(async function () {
   document.getElementById('host').value =
-    localStorage.getItem('fabric.ws.host') || ''
+    localStorage.getItem('fabric.callee.host') || ''
   document.getElementById('token').value =
-    localStorage.getItem('fabric.ws.token') || ''
-  document.getElementById('destination').value =
-    localStorage.getItem('fabric.ws.destination') || ''
+    localStorage.getItem('fabric.callee.token') || ''
+  document.getElementById('payload').value =
+    localStorage.getItem('fabric.callee.payload') || ''
   document.getElementById('audio').checked =
-    (localStorage.getItem('fabric.ws.audio') || '1') === '1'
+    (localStorage.getItem('fabric.callee.audio') || '1') === '1'
   document.getElementById('video').checked =
-    (localStorage.getItem('fabric.ws.video') || '1') === '1'
+    (localStorage.getItem('fabric.callee.video') || '1') === '1'
+
+  //Initialize Firebase App
+  const config = {
+    apiKey: import.meta.env.VITE_FB_API_KEY,
+    authDomain: import.meta.env.VITE_FB_AUTH_DOMAIN,
+    projectId: import.meta.env.VITE_FB_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FB_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FB_MESSAGING_SENDER_ID,
+    appId: import.meta.env.VITE_FB_APP_ID,
+    measurementId: import.meta.env.VITE_FB_MEASUREMENT_ID,
+  }
+  console.log('Firebase config', config)
+
+  const app = initializeApp(config)
+  const messaging = getMessaging(app)
+
+  onMessage(messaging, (payload) => {
+    console.log('Push payload', payload)
+    document.getElementById('payload').value = payload.notification.body
+    const body = JSON.parse(payload.notification.body || '{}')
+    alert(body.title)
+  })
+
+  try {
+    const firebaseConfig = window.btoa(JSON.stringify(config))
+    const registration = await navigator.serviceWorker.register(
+      `./sw.js?firebaseConfig=${firebaseConfig}`,
+      {
+        updateViaCache: 'none',
+      }
+    )
+
+    console.log(
+      'Service Worker registration successful with registration: ',
+      registration
+    )
+
+    const permission = await Notification.requestPermission()
+    if (permission === 'granted') {
+      const token = await getToken(messaging, {
+        serviceWorkerRegistration: registration,
+        vapiKey: import.meta.env.VITE_FB_VAPI_KEY,
+      })
+      document.getElementById('pn-token').value = token
+    }
+  } catch (error) {
+    console.error('Service Worker registration failed: ', error)
+  }
 })

@@ -16,6 +16,8 @@ import {
   Task,
   isSATAuth,
   WebRTCMethod,
+  // VertoAttach,
+  VertoAnswer,
 } from '@signalwire/core'
 import type { ReduxComponent } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
@@ -138,6 +140,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     this.logger.trace('New Call with Options:', this.options)
 
     this.applyEmitterTransforms({ local: true })
+
+    this._initPeer()
   }
 
   get id() {
@@ -170,6 +174,11 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   get roomSessionId() {
     // @ts-expect-error
     return this.component.roomSessionId
+  }
+
+  get nodeId() {
+    // @ts-expect-error
+    return this.component.nodeId || this.options.nodeId
   }
 
   get callId() {
@@ -683,13 +692,15 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /** @internal */
-  answer() {
+  answer<T>(): Promise<T> {
     return new Promise(async (resolve, reject) => {
       this.direction = 'inbound'
       this.peer = new RTCPeer(this, 'answer')
       try {
+        this.runRTCPeerWorkers(this.peer.uuid)
+
         await this.peer.start()
-        resolve(this)
+        resolve(this as any as T)
       } catch (error) {
         this.logger.error('Answer error', error)
         reject(error)
@@ -716,9 +727,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
           return this.executeInvite(mungedSDP, rtcPeer.uuid)
         }
       case 'answer':
-        this.logger.warn('Unhandled verto.answer')
-        // this.executeAnswer()
-        break
+        return this.executeAnswer(mungedSDP, rtcPeer.uuid)
       default:
         return this.logger.error(
           `Unknown SDP type: '${type}' on call ${this.id}`
@@ -743,7 +752,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   /** @internal */
   async resume() {
-    this.logger.debug(`[resume] Call ${this.id}`)
+    this.logger.warn(`[resume] Call ${this.id}`)
     if (this.peer?.instance) {
       const { connectionState } = this.peer.instance
       this.logger.debug(
@@ -803,12 +812,49 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       const response: any = await this.vertoExecute({
         message,
         callID: rtcPeerId,
-        node_id: nodeId,
+        node_id: nodeId ?? this.options.nodeId,
         subscribe,
       })
       this.logger.debug('Invite response', response)
 
       this.resuming = false
+    } catch (error) {
+      this.setState('hangup')
+      throw error
+    }
+  }
+
+  /**
+   * Send the `verto.answer` only if the state is `new`
+   *   - new: the first time we send out the answer.
+   * @internal
+   */
+  async executeAnswer(sdp: string, rtcPeerId: string) {
+    // Set state to `answering` only when `new`, otherwise keep it as `answering`.
+    if (this.state === 'new') {
+      this.setState('answering')
+    }
+    try {
+      const message = VertoAnswer({
+        ...this.dialogParams(rtcPeerId),
+        sdp,
+      })
+      const response: any = await this.vertoExecute({
+        message,
+        callID: rtcPeerId,
+        node_id: this.nodeId || 'f6cf30a9-1ff1-4f89-b674-e0208ad5d9cd@',
+        // subscribe, // TODO: subscribe events?
+      })
+      this.logger.debug('Answer response', response)
+
+      this.resuming = false
+
+      // TODO: Review
+      this._attachListeners('')
+      this.applyEmitterTransforms()
+
+      /** Call is active so set the RTCPeer */
+      this.setActiveRTCPeer(rtcPeerId)
     } catch (error) {
       this.setState('hangup')
       throw error
@@ -826,6 +872,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       const response: any = await this.vertoExecute({
         message,
         callID: rtcPeerId,
+        node_id: this.nodeId,
       })
       if (!response.sdp) {
         this.logger.error('UpdateMedia invalid SDP answer', response)
@@ -851,7 +898,11 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
     try {
       const message = VertoBye(this.dialogParams(rtcPeerId))
-      await this.vertoExecute({ message, callID: rtcPeerId })
+      await this.vertoExecute({
+        message,
+        callID: rtcPeerId,
+        node_id: this.nodeId,
+      })
     } catch (error) {
       this.logger.error('Hangup error:', error)
     } finally {
@@ -873,7 +924,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       throw new Error('Invalid RTCPeer ID to send DTMF')
     }
     const message = VertoInfo({ ...this.dialogParams(rtcPeerId), dtmf })
-    this.vertoExecute({ message, callID: rtcPeerId })
+    this.vertoExecute({ message, callID: rtcPeerId, node_id: this.nodeId })
   }
 
   /** @internal */
@@ -1011,6 +1062,11 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         ? AUDIO_CONSTRAINTS_SCREENSHARE
         : AUDIO_CONSTRAINTS
     }
+  }
+
+  private _initPeer() {
+    const rtcType: RTCSdpType = this.options.remoteSdp ? 'answer' : 'offer'
+    this.peer = new RTCPeer(this, rtcType)
   }
 
   /** @internal */

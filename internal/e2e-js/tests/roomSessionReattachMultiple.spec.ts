@@ -73,10 +73,10 @@ test.describe('RoomSessionReattach', () => {
 
       await createTestRoomSession(page, connectionSettings)
 
-      console.time('reattach')
+      console.time(`time-reattach-${row.join_as}`)
       // Join again
       const reattachParams: any = await expectRoomJoined(page)
-      console.timeEnd('reattach')
+      console.timeEnd(`time-reattach-${row.join_as}`)
 
       expect(reattachParams.room).toBeDefined()
       expect(reattachParams.room_session).toBeDefined()
@@ -102,10 +102,10 @@ test.describe('RoomSessionReattach', () => {
 
       await createTestRoomSession(page, connectionSettings)
 
-      console.time('reattach')
+      console.time(`time-reattach-${row.join_as}-2`)
       // Join again
       const reattachParams2: any = await expectRoomJoined(page)
-      console.timeEnd('reattach')
+      console.timeEnd(`time-reattach-${row.join_as}-2`)
 
       expect(reattachParams2.room).toBeDefined()
       expect(reattachParams2.room_session).toBeDefined()

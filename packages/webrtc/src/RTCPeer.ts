@@ -13,7 +13,6 @@ import {
   streamIsValid,
   stopTrack,
 } from './utils'
-import { ConnectionOptions } from './utils/interfaces'
 import { watchRTCPeerMediaPackets } from './utils/watchRTCPeerMediaPackets'
 
 const RESUME_TIMEOUT = 12_000
@@ -23,7 +22,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   public instance: RTCPeerConnection
 
-  private options: ConnectionOptions
   private _iceTimeout: any
   private _negotiating = false
   private _processingRemoteSDP = false
@@ -52,7 +50,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     public call: BaseConnection<EventTypes>,
     public type: RTCSdpType
   ) {
-    this.options = call.options
     this.logger.debug(
       'New Peer with type:',
       this.type,
@@ -73,6 +70,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
 
     this.rtcConfigPolyfill = this.config
+  }
+
+  get options() {
+    return this.call.options
   }
 
   get watchMediaPacketsTimeout() {
@@ -253,6 +254,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   restartIceWithRelayOnly() {
     try {
+      if (this.isAnswer) {
+        return this.logger.warn(
+          'Skip restartIceWithRelayOnly since we need to generate answer'
+        )
+      }
       const config = this.getConfiguration()
       if (config.iceTransportPolicy === 'relay') {
         return this.logger.warn(
@@ -264,8 +270,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         iceTransportPolicy: 'relay',
       }
       this.setConfiguration(newConfig)
-      // @ts-ignore
-      this.instance.restartIce()
+      this.restartIce()
     } catch (error) {
       this.logger.error('restartIceWithRelayOnly', error)
     }
@@ -273,7 +278,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   restartIce() {
     if (this._negotiating || this._restartingIce) {
-      this.logger.warn('Skip restartIce')
+      return this.logger.warn('Skip restartIce')
     }
     this._restartingIce = true
 
@@ -396,7 +401,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
       this.instance.removeEventListener('icecandidate', this._onIce)
       this.instance.addEventListener('icecandidate', this._onIce)
-
       if (this.isOffer) {
         this.logger.debug('Trying to generate offer')
         const offerOptions: RTCOfferOptions = {
@@ -415,7 +419,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         const offer = await this.instance.createOffer(offerOptions)
         await this._setLocalDescription(offer)
       }
-
       if (this.isAnswer) {
         this.logger.debug('Trying to generate answer')
         await this._setRemoteDescription({
@@ -671,6 +674,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
     try {
       await this.call.onLocalSDPReady(this)
+
+      if (this.isAnswer) {
+        this._resolveStartMethod()
+      }
     } catch (error) {
       this._rejectStartMethod(error)
     }
@@ -778,7 +785,12 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         googleStartBitrate
       )
     }
-
+    // this.logger.debug(
+    //   'LOCAL SDP \n',
+    //   `Type: ${localDescription.type}`,
+    //   '\n\n',
+    //   localDescription.sdp
+    // )
     return this.instance.setLocalDescription(localDescription)
   }
 
@@ -834,6 +846,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           }
           break
         }
+        // case 'have-remote-offer': {}
         case 'closed':
           // @ts-ignore
           delete this.instance
@@ -861,6 +874,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         // case 'closed':
         //   break
         case 'disconnected':
+          this.logger.debug('[test] Prevent reattach!')
+          break
         case 'failed': {
           this.triggerResume()
           break

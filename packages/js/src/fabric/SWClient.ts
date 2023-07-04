@@ -1,32 +1,31 @@
 import { createHttpClient } from './createHttpClient'
-import { buildCall } from './buildCall'
 
-interface ClientOptions {
-  host?: string
+interface SWClientOptions {
+  httpHost?: string
   accessToken: string
+  rootElement?: HTMLElement
 }
 
-/**
- *
- *
- * // TODO: Remove this file
- * Replaced by SWClient.ts
- *
- */
-export class Client {
+interface RegisterDeviceParams {
+  deviceType: 'iOS' | 'Android' | 'Desktop'
+  deviceToken: string
+}
+
+// TODO: extends from a Base class to share from core
+export class SWClient {
   private httpClient: ReturnType<typeof createHttpClient>
 
-  constructor(public options: ClientOptions) {
+  constructor(public options: SWClientOptions) {
     this.httpClient = createHttpClient({
-      baseUrl: `https://${this.host}`,
+      baseUrl: `https://${this.httpHost}`,
       headers: {
         Authorization: `Bearer ${this.options.accessToken}`,
       },
     })
   }
 
-  get host() {
-    return this.options.host ?? 'fabric.signalwire.com'
+  get httpHost() {
+    return this.options.httpHost ?? 'fabric.signalwire.com'
   }
 
   async getAddresses() {
@@ -55,26 +54,23 @@ export class Client {
     return buildResult(body)
   }
 
-  async createCall({
-    uri,
-    ...userParams
-  }: {
-    uri: string
-    rootElement: HTMLElement
-  }) {
-    const path = '/call' as const
+  async registerDevice({ deviceType, deviceToken }: RegisterDeviceParams) {
+    const path = '/subscriber/devices' as const
     const { body } = await this.httpClient<any>(path, {
       method: 'POST',
-      body: { uri },
+      body: {
+        device_type: deviceType,
+        device_token: deviceToken,
+      },
     })
 
-    console.log('Dial Response', body)
-    return buildCall({
-      ...body,
-      userParams: {
-        host: this.host.includes('swire') ? 'relay.swire.io' : undefined,
-        ...userParams,
-      },
+    return body
+  }
+
+  async unregisterDevice({ id }: { id: string }) {
+    const path = `/subscriber/devices/${id}` as const
+    return await this.httpClient<any>(path, {
+      method: 'DELETE',
     })
   }
 }

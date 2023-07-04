@@ -77,6 +77,16 @@ test.describe('RoomSessionReattachWrongCallId', () => {
 
       await page.reload()
 
+      // ----- Inject wrong callId --
+      await page.evaluate(
+        async ({ mockId, roomName }) => {
+          const key = `ci-${roomName}`
+          window.sessionStorage.setItem(key, mockId)
+          console.log(`Injected callId for ${key} with value ${mockId}`)
+        },
+        { mockId: uuid(), roomName }
+      )
+
       const reattachConnectionSettings = {
         vrt: {
           room_name: roomName,
@@ -91,18 +101,13 @@ test.describe('RoomSessionReattachWrongCallId', () => {
       await createTestRoomSession(page, reattachConnectionSettings)
 
       // ----- Join the room with a bogus call ID and expect an error --
-      const joinError: any = await page.evaluate(
-        async ({ mockId }) => {
-          // @ts-expect-error
-          const roomObj: Video.RoomSession = window._roomObj
-          window.sessionStorage.setItem('callId', mockId)
-          console.log('Injected callId with value', mockId)
-          const error = await roomObj.join().catch((error) => error)
+      const joinError: any = await page.evaluate(async () => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+        const error = await roomObj.join().catch((error) => error)
 
-          return error
-        },
-        { mockId: uuid() }
-      )
+        return error
+      })
 
       expect(joinError.code).toBe('81')
       expect(joinError.message).toBe('INVALID_CALL_REFERENCE')
