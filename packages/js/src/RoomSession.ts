@@ -121,6 +121,37 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     }
   })
 
+  // @ts-expect-error - true by default
+  const allowReattach = roomOptions?.reattach !== false
+
+  const reattachManager = {
+    joined: ({ call_id }: VideoRoomSubscribedEventParams) => {
+      if (allowReattach) {
+        getStorage()?.setItem(CALL_ID, call_id)
+      }
+    },
+    init: () => {
+      if (allowReattach) {
+        room.on('room.subscribed', reattachManager.joined)
+      }
+    },
+    destroy: () => {
+      if (!allowReattach) {
+        return
+      }
+
+      room.off('room.subscribed', reattachManager.joined)
+      getStorage()?.removeItem(CALL_ID)
+    },
+    getPrevCallId: () => {
+      if (!allowReattach) {
+        return
+      }
+
+      return getStorage()?.getItem(CALL_ID) ?? undefined
+    },
+  }
+
   const client = createClient<RoomSession>(userOptions)
   const room = client.rooms.makeRoomObject({
     // audio,
@@ -138,37 +169,8 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     localStream,
     watchMediaPackets,
     watchMediaPacketsTimeout,
+    prevCallId: reattachManager.getPrevCallId(),
   })
-
-  // @ts-expect-error - true by default
-  const allowReattach = roomOptions?.reattach !== false
-
-  const reattachManager = {
-    joined: ({ call_id }: VideoRoomSubscribedEventParams) => {
-      if (allowReattach) {
-        getStorage()?.setItem(CALL_ID, call_id)
-      }
-    },
-    init: () => {
-      if (!allowReattach) {
-        return
-      }
-      room.on('room.subscribed', reattachManager.joined)
-
-      const prevCallId = getStorage()?.getItem(CALL_ID)
-      if (prevCallId) {
-        room.options.prevCallId = prevCallId
-      }
-    },
-    destroy: () => {
-      if (!allowReattach) {
-        return
-      }
-
-      room.off('room.subscribed', reattachManager.joined)
-      getStorage()?.removeItem(CALL_ID)
-    },
-  }
 
   // WebRTC connection left the room.
   room.once('destroy', () => {
