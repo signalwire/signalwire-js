@@ -678,9 +678,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   invite<T>(): Promise<T> {
     return new Promise(async (resolve, reject) => {
       this.direction = 'outbound'
-      if (!this.peer) {
-        this.peer = new RTCPeer(this, 'offer')
-      }
+      this.peer = new RTCPeer(this, 'offer')
       try {
         this.runRTCPeerWorkers(this.peer.uuid)
 
@@ -697,9 +695,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   answer<T>(): Promise<T> {
     return new Promise(async (resolve, reject) => {
       this.direction = 'inbound'
-      if (!this.peer) {
-        this.peer = new RTCPeer(this, 'answer')
-      }
+      this.peer = new RTCPeer(this, 'answer')
       try {
         this.runRTCPeerWorkers(this.peer.uuid)
 
