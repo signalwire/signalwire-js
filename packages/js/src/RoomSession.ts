@@ -135,6 +135,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
       if (allowReattach) {
         room.on('room.subscribed', reattachManager.joined)
       }
+      room.options.prevCallId = reattachManager.getPrevCallId()
     },
     destroy: () => {
       if (!allowReattach) {
