@@ -1,11 +1,8 @@
-// import { buildCall } from './buildCall'
+import { type UserOptions, getLogger } from '@signalwire/core'
 import { createClient } from '../createClient'
 import { WSClientWorker } from './WSClientWorker'
-import { getLogger } from '@signalwire/core'
 
-interface WSClientOptions {
-  host?: string
-  token: string
+interface WSClientOptions extends UserOptions {
   rootElement?: HTMLElement
 }
 
@@ -180,6 +177,88 @@ export class WSClient {
       } catch (error) {
         getLogger().error('WSClient dial', error)
 
+        reject(error)
+      }
+    })
+  }
+
+  handlePushNotification({ payload }: { payload: any }) {
+    return new Promise(async (resolve, reject) => {
+      this.logger.debug('handlePushNotification', payload)
+      const { params: jsonrpc, node_id: nodeId } = payload
+      const {
+        params: {
+          callID,
+          sdp,
+          caller_id_name,
+          caller_id_number,
+          callee_id_name,
+          callee_id_number,
+          display_direction,
+        },
+      } = jsonrpc
+      this.logger.debug('handlePushNotification data', {
+        callID,
+        sdp,
+        caller_id_name,
+        caller_id_number,
+        callee_id_name,
+        callee_id_number,
+        display_direction,
+      })
+      try {
+        // Connect the client first
+        await this.connect()
+        // TODO: Send verto.subscribe
+        // await this.vertoSubscribe()
+
+        // Build the Call object and return to the user
+
+        // const {
+        //   audio: audioFromConstructor = true,
+        //   video: videoFromConstructor = true,
+        //   iceServers,
+        //   rootElement,
+        //   applyLocalVideoOverlay = true,
+        //   stopCameraWhileMuted = true,
+        //   stopMicrophoneWhileMuted = true,
+        //   speakerId,
+        //   destinationNumber,
+        //   watchMediaPackets,
+        //   watchMediaPacketsTimeout,
+        //   ...userOptions
+        // } = params
+
+        const call = this.wsClient.rooms.makeRoomObject({
+          negotiateAudio: true,
+          negotiateVideo: true,
+          rootElement: this.options.rootElement,
+          applyLocalVideoOverlay: true,
+          stopCameraWhileMuted: true,
+          stopMicrophoneWhileMuted: true,
+          // speakerId,
+          watchMediaPackets: false,
+          // watchMediaPacketsTimeout:,
+
+          remoteSdp: sdp,
+          prevCallId: callID,
+          nodeId,
+        })
+
+        // WebRTC connection left the room.
+        call.once('destroy', () => {
+          getLogger().debug('RTC Connection Destroyed')
+        })
+
+        // @ts-expect-error
+        call.attachPreConnectWorkers()
+
+        // // @ts-expect-error
+        // call.attachOnSubscribedWorkers(payload)
+
+        getLogger().debug('Resolving Call', call)
+        resolve({ resultType: 'inboundCall', resultObject: call })
+      } catch (error) {
         reject(error)
       }
     })
