@@ -1,4 +1,4 @@
-import { Fabric } from '@signalwire/js'
+import { Fabric, SWClient } from '@signalwire/js'
 import { createMicrophoneAnalyzer } from '@signalwire/webrtc'
 import { initializeApp } from 'firebase/app'
 import { getMessaging, getToken, onMessage } from 'firebase/messaging'
@@ -558,6 +558,13 @@ window.ready(async function () {
   document.getElementById('video').checked =
     (localStorage.getItem('fabric.callee.video') || '1') === '1'
 
+  // Initialize the SignalWire client
+  const swClient = new SWClient({
+    httpHost: 'fabric.swire.io',
+    accessToken: document.getElementById('token').value,
+    rootElement: document.getElementById('rootElement'),
+  })
+
   //Initialize Firebase App
   const config = {
     apiKey: import.meta.env.VITE_FB_API_KEY,
@@ -578,6 +585,9 @@ window.ready(async function () {
     document.getElementById('payload').value = payload.notification.body
     const body = JSON.parse(payload.notification.body || '{}')
     alert(body.title)
+
+    const pushNotificationKey = document.getElementById('pn-key').value
+    // TODO: Decrypt the payload uisng the key and pass it to swClient.handlePushNotification()
   })
 
   try {
@@ -601,6 +611,12 @@ window.ready(async function () {
         vapiKey: import.meta.env.VITE_FB_VAPI_KEY,
       })
       document.getElementById('pn-token').value = token
+
+      const { push_notification_key } = await swClient.registerDevice({
+        deviceType: 'Android',
+        deviceToken: token,
+      })
+      document.getElementById('pn-key').value = push_notification_key
     }
   } catch (error) {
     console.error('Service Worker registration failed: ', error)
