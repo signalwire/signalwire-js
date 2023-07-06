@@ -1,4 +1,4 @@
-import { Fabric, SWClient } from '@signalwire/js'
+import { Fabric } from '@signalwire/js'
 import { createMicrophoneAnalyzer } from '@signalwire/webrtc'
 import { initializeApp } from 'firebase/app'
 import { getMessaging, getToken, onMessage } from 'firebase/messaging'
@@ -559,7 +559,7 @@ window.ready(async function () {
     (localStorage.getItem('fabric.callee.video') || '1') === '1'
 
   // Initialize the SignalWire client
-  const swClient = new SWClient({
+  const swClient = new Fabric.SWClient({
     httpHost: 'fabric.swire.io',
     accessToken: document.getElementById('token').value,
     rootElement: document.getElementById('rootElement'),
