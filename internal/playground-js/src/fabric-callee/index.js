@@ -1,3 +1,4 @@
+import Pako from 'pako'
 import { Fabric } from '@signalwire/js'
 import { createMicrophoneAnalyzer } from '@signalwire/webrtc'
 import { initializeApp } from 'firebase/app'
@@ -178,8 +179,12 @@ window.disconnect = async () => {
  */
 window.tapPushNotification = async () => {
   try {
-    const jsonrpc = JSON.parse(payload.value)
-    const { node_id, params: inviteRPC } = jsonrpc.invite
+    const pnKey = document.getElementById('pn-key').value
+    const pushNotificationPayload = JSON.parse(payload.value)
+    const result = await readPushNotification(pushNotificationPayload, pnKey)
+    console.log('PN', result)
+
+    const { node_id, params: inviteRPC } = result.decrypted
 
     window.__call = await __client._buildInboundCall(inviteRPC, node_id)
 
@@ -543,6 +548,46 @@ window.seekForwardPlayback = () => {
     })
 }
 
+function b642ab(base64string) {
+  return Uint8Array.from(atob(base64string), (c) => c.charCodeAt(0))
+}
+
+async function readPushNotification(payload, pnKey) {
+  console.log('payload', payload)
+
+  const key = b642ab(pnKey)
+  // console.log('key', key)
+  const iv = b642ab(payload.iv)
+  // console.log('iv', iv)
+
+  // Chain invite and tag to have the full enc string
+  const full = atob(payload.invite) + atob(payload.tag)
+  const fullEncrypted = Uint8Array.from(full, (c) => c.charCodeAt(0))
+  // console.log('fullEncrypted', fullEncrypted)
+
+  async function decrypt(keyData, iv, data) {
+    const key = await window.crypto.subtle.importKey(
+      'raw',
+      keyData,
+      { name: 'AES-GCM' },
+      false,
+      ['decrypt']
+    )
+    return window.crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data)
+  }
+
+  const compressed = await decrypt(key, iv, fullEncrypted)
+  // console.log('compressed', compressed)
+
+  const result = Pako.inflate(compressed, { to: 'string' }).toString()
+  console.log('Dec:\n', JSON.stringify(JSON.parse(result), null, 2))
+
+  return {
+    ...payload,
+    decrypted: JSON.parse(result),
+  }
+}
+
 /**
  * On document ready auto-fill the input values from the localStorage.
  */
@@ -562,7 +607,6 @@ window.ready(async function () {
   const swClient = new Fabric.SWClient({
     httpHost: 'fabric.swire.io',
     accessToken: document.getElementById('token').value,
-    rootElement: document.getElementById('rootElement'),
   })
 
   //Initialize Firebase App
@@ -585,9 +629,6 @@ window.ready(async function () {
     document.getElementById('payload').value = payload.notification.body
     const body = JSON.parse(payload.notification.body || '{}')
     alert(body.title)
-
-    const pushNotificationKey = document.getElementById('pn-key').value
-    // TODO: Decrypt the payload uisng the key and pass it to swClient.handlePushNotification()
   })
 
   try {

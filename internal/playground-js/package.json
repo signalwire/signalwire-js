@@ -12,6 +12,7 @@
     "vite": "^4.3.9"
   },
   "dependencies": {
-    "firebase": "^9.22.0"
+    "firebase": "^9.22.0",
+    "pako": "^2.1.0"
   }
 }
