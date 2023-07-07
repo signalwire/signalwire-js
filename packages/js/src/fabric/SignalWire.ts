@@ -11,6 +11,8 @@ interface SignalWireContract {
   getAddresses: HTTPClient['getAddresses']
   registerDevice: HTTPClient['registerDevice']
   unregisterDevice: HTTPClient['unregisterDevice']
+  connect: WSClient['connect']
+  disconnect: WSClient['disconnect']
   dial: WSClient['dial']
   handlePushNotification: WSClient['handlePushNotification']
 }
@@ -25,11 +27,13 @@ export const SignalWire = (
 
       resolve({
         httpHost: httpClient.httpHost,
-        getAddresses: httpClient.getAddresses,
-        registerDevice: httpClient.registerDevice,
-        unregisterDevice: httpClient.unregisterDevice,
-        dial: wsClient.dial,
-        handlePushNotification: wsClient.handlePushNotification,
+        getAddresses: httpClient.getAddresses.bind(httpClient),
+        registerDevice: httpClient.registerDevice.bind(httpClient),
+        unregisterDevice: httpClient.unregisterDevice.bind(httpClient),
+        connect: wsClient.connect.bind(wsClient),
+        disconnect: wsClient.disconnect.bind(wsClient),
+        dial: wsClient.dial.bind(wsClient),
+        handlePushNotification: wsClient.handlePushNotification.bind(wsClient),
       })
     } catch (error) {
       reject(error)
