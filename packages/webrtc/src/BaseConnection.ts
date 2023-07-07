@@ -691,7 +691,9 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   answer<T>(): Promise<T> {
     return new Promise(async (resolve, reject) => {
       this.direction = 'inbound'
-      this.peer = new RTCPeer(this, 'answer')
+      if (!this.peer) {
+        this.peer = new RTCPeer(this, 'answer')
+      }
       try {
         this.runRTCPeerWorkers(this.peer.uuid)
 
