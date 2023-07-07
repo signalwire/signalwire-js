@@ -1,4 +1,4 @@
-import { Fabric } from '@signalwire/js'
+import { SignalWire } from '@signalwire/js'
 import {
   enumerateDevices,
   checkPermissions,
@@ -22,6 +22,7 @@ window.getMicrophoneDevicesWithPermissions = getMicrophoneDevicesWithPermissions
 window.getSpeakerDevicesWithPermissions = getSpeakerDevicesWithPermissions
 
 let roomObj = null
+let client = null
 let micAnalyzer = null
 
 const inCallElements = [
@@ -213,16 +214,23 @@ function restoreUI() {
   })
 }
 
+async function getClient() {
+  if (!client) {
+    client = await SignalWire({
+      host: document.getElementById('host').value,
+      token: document.getElementById('token').value,
+      rootElement: document.getElementById('rootElement'),
+    })
+  }
+
+  return client
+}
+
 /**
  * Connect with Relay creating a client and attaching all the event handler.
  */
 window.connect = async () => {
-  const client = new Fabric.WSClient({
-    host: document.getElementById('host').value,
-    token: document.getElementById('token').value,
-    rootElement: document.getElementById('rootElement'),
-  })
-
+  const client = await getClient()
   window.__client = client
 
   connectStatus.innerHTML = 'Connecting...'
