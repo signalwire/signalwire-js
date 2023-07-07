@@ -2,6 +2,21 @@ import { type UserOptions, getLogger } from '@signalwire/core'
 import { createClient } from '../createClient'
 import { WSClientWorker } from './WSClientWorker'
 
+interface PushNotification {
+  encryption_type: 'aes_256_gcm'
+  notification_uuid: string
+  with_video: 'true' | 'false'
+  incoming_caller_name: string
+  incoming_caller_id: string
+  tag: string
+  invite: string
+  title: string
+  type: 'call_invite'
+  iv: string
+  version: string
+  decrypted: Record<string, any>
+}
+
 interface WSClientOptions extends UserOptions {
   rootElement?: HTMLElement
 }
@@ -182,10 +197,15 @@ export class WSClient {
     })
   }
 
-  handlePushNotification({ payload }: { payload: any }) {
+  handlePushNotification(payload: PushNotification) {
     return new Promise(async (resolve, reject) => {
+      const { decrypted, type } = payload
+      if (type !== 'call_invite') {
+        this.logger.warn('Unknown notification type', payload)
+        return
+      }
       this.logger.debug('handlePushNotification', payload)
-      const { params: jsonrpc, node_id: nodeId } = payload
+      const { params: jsonrpc, node_id: nodeId } = decrypted
       const {
         params: {
           callID,
