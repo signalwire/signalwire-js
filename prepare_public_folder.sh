@@ -29,7 +29,7 @@ for branch_name in $(git for-each-ref --format='%(refname:short)' refs/remotes/o
   
   echo "NPM install and Build SDK for this branch"
   # TODO: Build only JS/required sdks 
-  npm i && npm run build
+  npm ci && npm run build
   
   echo "Build playgrounds"
   {
