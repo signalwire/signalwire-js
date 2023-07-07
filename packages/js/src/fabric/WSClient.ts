@@ -163,8 +163,14 @@ export class WSClient {
       try {
         // Connect the client first
         await this.connect()
-        // Send verto.subscribe
-        await this.executeVertoSubscribe(callID, nodeId)
+
+        // Catch the error temporarly
+        try {
+          // Send verto.subscribe
+          await this.executeVertoSubscribe(callID, nodeId)
+        } catch (error) {
+          this.logger.warn('Verto Subscribe', error)
+        }
 
         // Build the Call object and return to the user
 
