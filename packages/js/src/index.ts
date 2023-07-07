@@ -30,7 +30,7 @@ import type {
   VideoMemberEntity,
 } from '@signalwire/core'
 
-import { SWClient } from './fabric'
+import { SWClient, SignalWire } from './fabric'
 
 /** @ignore @deprecated */
 export type RoomStartedEventName = RoomStarted
@@ -62,7 +62,7 @@ export * as PubSub from './pubSub'
  * @internal
  */
 export * as Fabric from './fabric'
-export { SWClient }
+export { SWClient, SignalWire }
 
 /**
  * The Video namespace contains the classes and functions that you need to

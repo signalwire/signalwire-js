@@ -306,11 +306,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   getRTCPeerById(rtcPeerId: string) {
-    const rtcPeer = this.rtcPeerMap.get(rtcPeerId)
-    // if ('development' === process.env.NODE_ENV && !rtcPeer) {
-    //   throw new Error(`Unknown rtcPeerId '${rtcPeerId}'`)
-    // }
-    return rtcPeer
+    return this.rtcPeerMap.get(rtcPeerId)
   }
 
   appendRTCPeer(rtcPeer: RTCPeer<EventTypes>) {
@@ -695,7 +691,9 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   answer<T>(): Promise<T> {
     return new Promise(async (resolve, reject) => {
       this.direction = 'inbound'
-      this.peer = new RTCPeer(this, 'answer')
+      if (!this.peer) {
+        this.peer = new RTCPeer(this, 'answer')
+      }
       try {
         this.runRTCPeerWorkers(this.peer.uuid)
 

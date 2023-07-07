@@ -1,11 +1,23 @@
-// import { buildCall } from './buildCall'
+import { type UserOptions, getLogger, VertoSubscribe } from '@signalwire/core'
 import { createClient } from '../createClient'
 import { WSClientWorker } from './WSClientWorker'
-import { getLogger } from '@signalwire/core'
 
-interface WSClientOptions {
-  host?: string
-  token: string
+interface PushNotification {
+  encryption_type: 'aes_256_gcm'
+  notification_uuid: string
+  with_video: 'true' | 'false'
+  incoming_caller_name: string
+  incoming_caller_id: string
+  tag: string
+  invite: string
+  title: string
+  type: 'call_invite'
+  iv: string
+  version: string
+  decrypted: Record<string, any>
+}
+
+interface WSClientOptions extends UserOptions {
   rootElement?: HTMLElement
 }
 
@@ -119,14 +131,42 @@ export class WSClient {
     })
   }
 
-  // FIXME: params
-  async _buildInboundCall(jsonrpc: any, nodeId: string) {
+  handlePushNotification(payload: PushNotification) {
     return new Promise(async (resolve, reject) => {
+      const { decrypted, type } = payload
+      if (type !== 'call_invite') {
+        this.logger.warn('Unknown notification type', payload)
+        return
+      }
+      this.logger.debug('handlePushNotification', payload)
+      const { params: jsonrpc, node_id: nodeId } = decrypted
+      const {
+        params: {
+          callID,
+          sdp,
+          caller_id_name,
+          caller_id_number,
+          callee_id_name,
+          callee_id_number,
+          display_direction,
+        },
+      } = jsonrpc
+      this.logger.debug('handlePushNotification data', {
+        callID,
+        sdp,
+        caller_id_name,
+        caller_id_number,
+        callee_id_name,
+        callee_id_number,
+        display_direction,
+      })
       try {
-        console.log('WSClient _buildInboundCall with:', jsonrpc)
+        // Connect the client first
+        await this.connect()
+        // Send verto.subscribe
+        await this.executeVertoSubscribe(callID, nodeId)
 
-        // TODO: auto connect?
-        // await this.connect()
+        // Build the Call object and return to the user
 
         // const {
         //   audio: audioFromConstructor = true,
@@ -143,14 +183,9 @@ export class WSClient {
         //   ...userOptions
         // } = params
 
-        const { params } = jsonrpc
-
         const call = this.wsClient.rooms.makeRoomObject({
-          // audio,
-          // video: video === true ? VIDEO_CONSTRAINTS : video,
           negotiateAudio: true,
           negotiateVideo: true,
-          // iceServers,
           rootElement: this.options.rootElement,
           applyLocalVideoOverlay: true,
           stopCameraWhileMuted: true,
@@ -159,8 +194,8 @@ export class WSClient {
           watchMediaPackets: false,
           // watchMediaPacketsTimeout:,
 
-          remoteSdp: params.sdp,
-          prevCallId: params.callID,
+          remoteSdp: sdp,
+          prevCallId: callID,
           nodeId,
         })
 
@@ -175,13 +210,32 @@ export class WSClient {
         // // @ts-expect-error
         // call.attachOnSubscribedWorkers(payload)
 
-        getLogger().debug('Resolving Call..')
-        resolve(call)
+        getLogger().debug('Resolving Call', call)
+        resolve({ resultType: 'inboundCall', resultObject: call })
       } catch (error) {
-        getLogger().error('WSClient dial', error)
-
         reject(error)
       }
     })
+  }
+
+  private async executeVertoSubscribe(callId: string, nodeId: string) {
+    try {
+      // @ts-expect-error
+      return await this.wsClient.execute({
+        method: 'webrtc.verto',
+        params: {
+          callID: callId,
+          node_id: nodeId,
+          subscribe: [],
+          message: VertoSubscribe({
+            sessid: callId,
+            eventChannel: [],
+          }),
+        },
+      })
+    } catch (error) {
+      this.logger.warn('The call is not available anymore', callId)
+      throw error
+    }
   }
 }

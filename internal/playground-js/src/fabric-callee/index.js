@@ -1,9 +1,11 @@
-import { Fabric } from '@signalwire/js'
+import Pako from 'pako'
+import { SignalWire } from '@signalwire/js'
 import { createMicrophoneAnalyzer } from '@signalwire/webrtc'
 import { initializeApp } from 'firebase/app'
 import { getMessaging, getToken, onMessage } from 'firebase/messaging'
 
 let roomObj = null
+let client = null
 let micAnalyzer = null
 
 const inCallElements = [
@@ -126,16 +128,23 @@ function disableCallButtons() {
   rejectCallBtn.disabled = true
 }
 
+async function getClient() {
+  if (!client) {
+    client = await SignalWire({
+      host: document.getElementById('host').value,
+      token: document.getElementById('token').value,
+      rootElement: document.getElementById('rootElement'),
+    })
+  }
+
+  return client
+}
+
 /**
  * Connect with Relay creating a client and attaching all the event handler.
  */
 window.connect = async () => {
-  const client = new Fabric.WSClient({
-    host: document.getElementById('host').value,
-    token: document.getElementById('token').value,
-    rootElement: document.getElementById('rootElement'),
-  })
-
+  const client = await getClient()
   window.__client = client
 
   // const steeringId = ''
@@ -178,14 +187,24 @@ window.disconnect = async () => {
  */
 window.tapPushNotification = async () => {
   try {
-    const jsonrpc = JSON.parse(payload.value)
-    const { node_id, params: inviteRPC } = jsonrpc.invite
+    const pnKey = document.getElementById('pn-key').value
+    const pushNotificationPayload = JSON.parse(payload.value)
+    const result = await readPushNotification(pushNotificationPayload, pnKey)
+    console.log('PN', result)
+    const { resultType, resultObject } = await client.handlePushNotification(
+      result
+    )
 
-    window.__call = await __client._buildInboundCall(inviteRPC, node_id)
-
-    enableCallButtons()
-
-    connectStatus.innerHTML = 'Ringing...'
+    switch (resultType) {
+      case 'inboundCall':
+        window.__call = resultObject
+        enableCallButtons()
+        connectStatus.innerHTML = 'Ringing...'
+        break
+      default:
+        this.logger.warn('Unknown resultType', resultType, resultObject)
+        return
+    }
   } catch (error) {
     console.error('acceptCall', error)
   }
@@ -543,6 +562,46 @@ window.seekForwardPlayback = () => {
     })
 }
 
+function b642ab(base64string) {
+  return Uint8Array.from(atob(base64string), (c) => c.charCodeAt(0))
+}
+
+async function readPushNotification(payload, pnKey) {
+  console.log('payload', payload)
+
+  const key = b642ab(pnKey)
+  // console.log('key', key)
+  const iv = b642ab(payload.iv)
+  // console.log('iv', iv)
+
+  // Chain invite and tag to have the full enc string
+  const full = atob(payload.invite) + atob(payload.tag)
+  const fullEncrypted = Uint8Array.from(full, (c) => c.charCodeAt(0))
+  // console.log('fullEncrypted', fullEncrypted)
+
+  async function decrypt(keyData, iv, data) {
+    const key = await window.crypto.subtle.importKey(
+      'raw',
+      keyData,
+      { name: 'AES-GCM' },
+      false,
+      ['decrypt']
+    )
+    return window.crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data)
+  }
+
+  const compressed = await decrypt(key, iv, fullEncrypted)
+  // console.log('compressed', compressed)
+
+  const result = Pako.inflate(compressed, { to: 'string' }).toString()
+  console.log('Dec:\n', JSON.stringify(JSON.parse(result), null, 2))
+
+  return {
+    ...payload,
+    decrypted: JSON.parse(result),
+  }
+}
+
 /**
  * On document ready auto-fill the input values from the localStorage.
  */
@@ -557,13 +616,6 @@ window.ready(async function () {
     (localStorage.getItem('fabric.callee.audio') || '1') === '1'
   document.getElementById('video').checked =
     (localStorage.getItem('fabric.callee.video') || '1') === '1'
-
-  // Initialize the SignalWire client
-  const swClient = new Fabric.SWClient({
-    httpHost: 'fabric.swire.io',
-    accessToken: document.getElementById('token').value,
-    rootElement: document.getElementById('rootElement'),
-  })
 
   //Initialize Firebase App
   const config = {
@@ -585,9 +637,6 @@ window.ready(async function () {
     document.getElementById('payload').value = payload.notification.body
     const body = JSON.parse(payload.notification.body || '{}')
     alert(body.title)
-
-    const pushNotificationKey = document.getElementById('pn-key').value
-    // TODO: Decrypt the payload uisng the key and pass it to swClient.handlePushNotification()
   })
 
   try {
@@ -612,7 +661,8 @@ window.ready(async function () {
       })
       document.getElementById('pn-token').value = token
 
-      const { push_notification_key } = await swClient.registerDevice({
+      const client = await getClient()
+      const { push_notification_key } = await client.registerDevice({
         deviceType: 'Android',
         deviceToken: token,
       })
