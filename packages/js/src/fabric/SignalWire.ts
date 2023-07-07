@@ -34,6 +34,9 @@ export const SignalWire = (
         disconnect: wsClient.disconnect.bind(wsClient),
         dial: wsClient.dial.bind(wsClient),
         handlePushNotification: wsClient.handlePushNotification.bind(wsClient),
+        // @ts-expect-error
+        __httpClient: httpClient,
+        __wsClient: wsClient,
       })
     } catch (error) {
       reject(error)
