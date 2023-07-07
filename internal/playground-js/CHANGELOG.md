@@ -1,5 +1,11 @@
 # @sw-internal/playground-js
 
+## 0.0.12
+
+### Patch Changes
+
+- [#757](https://github.com/signalwire/signalwire-js/pull/757) [`c72e7ce4`](https://github.com/signalwire/signalwire-js/commit/c72e7ce4536910a5915000b3a88e2be064fa32a4) - [internal] Initial changes to support CF calling
+
 ## 0.0.11
 
 ### Patch Changes

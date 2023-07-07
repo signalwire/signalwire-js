@@ -1,5 +1,11 @@
 # @sw-internal/playground-realtime-api
 
+## 0.3.4
+
+### Patch Changes
+
+- [#820](https://github.com/signalwire/signalwire-js/pull/820) [`69c8041d`](https://github.com/signalwire/signalwire-js/commit/69c8041d523d5e6f01dc1b43c174bf7b87606237) - Downgrade inquirer to v8
+
 ## 0.3.3
 
 ### Patch Changes

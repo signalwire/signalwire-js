@@ -1,8 +1,26 @@
 # @signalwire/js
 
+## [3.22.0] - 2023-07-07
+
 All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+### Added
+
+- [#805](https://github.com/signalwire/signalwire-js/pull/805) [`e8141c0e`](https://github.com/signalwire/signalwire-js/commit/e8141c0e85e11477e2911e6eccb1e96cff860d58) - Events to keep track of the connected devices status
+
+### Changed
+
+- [#819](https://github.com/signalwire/signalwire-js/pull/819) [`f814685b`](https://github.com/signalwire/signalwire-js/commit/f814685b24964c89510aad687d10f172265c0424) - Improve support for React Native.
+
+- [#757](https://github.com/signalwire/signalwire-js/pull/757) [`c72e7ce4`](https://github.com/signalwire/signalwire-js/commit/c72e7ce4536910a5915000b3a88e2be064fa32a4) - Initial internal changes to support CF calling.
+
+### Dependencies
+
+- Updated dependencies [[`f814685b`](https://github.com/signalwire/signalwire-js/commit/f814685b24964c89510aad687d10f172265c0424), [`c72e7ce4`](https://github.com/signalwire/signalwire-js/commit/c72e7ce4536910a5915000b3a88e2be064fa32a4), [`e8141c0e`](https://github.com/signalwire/signalwire-js/commit/e8141c0e85e11477e2911e6eccb1e96cff860d58), [`4e1116b6`](https://github.com/signalwire/signalwire-js/commit/4e1116b606ad41dc649c44eccf4f8b28d0dfa7d8)]:
+  - @signalwire/webrtc@3.8.0
+  - @signalwire/core@3.17.0
 
 ## [3.21.0] - 2023-05-22
 

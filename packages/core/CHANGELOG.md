@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.17.0] - 2023-07-07
+
+### Added
+
+- [#805](https://github.com/signalwire/signalwire-js/pull/805) [`e8141c0e`](https://github.com/signalwire/signalwire-js/commit/e8141c0e85e11477e2911e6eccb1e96cff860d58) - Events to keep track of the connected devices status
+
+- [#821](https://github.com/signalwire/signalwire-js/pull/821) [`4e1116b6`](https://github.com/signalwire/signalwire-js/commit/4e1116b606ad41dc649c44eccf4f8b28d0dfa7d8) - Add support for `callStateUrl` and `callStateEvents` when dialing and connecting Voice Call.
+
+### Changed
+
+- [#819](https://github.com/signalwire/signalwire-js/pull/819) [`f814685b`](https://github.com/signalwire/signalwire-js/commit/f814685b24964c89510aad687d10f172265c0424) - Improve support for React Native.
+
 ## [3.16.0] - 2023-06-21
 
 ### Minor Changes
