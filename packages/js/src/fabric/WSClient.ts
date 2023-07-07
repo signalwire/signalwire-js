@@ -1,4 +1,4 @@
-import { type UserOptions, getLogger } from '@signalwire/core'
+import { type UserOptions, getLogger, VertoSubscribe } from '@signalwire/core'
 import { createClient } from '../createClient'
 import { WSClientWorker } from './WSClientWorker'
 
@@ -163,8 +163,8 @@ export class WSClient {
       try {
         // Connect the client first
         await this.connect()
-        // TODO: Send verto.subscribe
-        // await this.vertoSubscribe()
+        // Send verto.subscribe
+        await this.executeVertoSubscribe(callID, nodeId)
 
         // Build the Call object and return to the user
 
@@ -216,5 +216,26 @@ export class WSClient {
         reject(error)
       }
     })
+  }
+
+  private async executeVertoSubscribe(callId: string, nodeId: string) {
+    try {
+      // @ts-expect-error
+      return await this.wsClient.execute({
+        method: 'webrtc.verto',
+        params: {
+          callID: callId,
+          node_id: nodeId,
+          subscribe: [],
+          message: VertoSubscribe({
+            sessid: callId,
+            eventChannel: [],
+          }),
+        },
+      })
+    } catch (error) {
+      this.logger.warn('The call is not available anymore', callId)
+      throw error
+    }
   }
 }
