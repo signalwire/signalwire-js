@@ -12,9 +12,10 @@ git fetch --no-tags
 
 # Loop all the branches and - for each - build the SDK, build the playground-js
 # and copy the `dist` folder in the global `public` folder.
-for branch_name in $(git for-each-ref --format='%(refname:short)' refs/remotes/origin/); do
+# for branch_name in $(git for-each-ref --format='%(refname:short)' refs/remotes/origin/); do
+  branch="main"
   # Remove `remote/` from refname
-  branch=${branch_name/origin\//}
+  # branch=${branch_name/origin\//}
   if [[ $branch == "canary" ]]; then
     # canary branch is too old!
     echo "Skip canary branch"
@@ -29,7 +30,7 @@ for branch_name in $(git for-each-ref --format='%(refname:short)' refs/remotes/o
   
   echo "NPM install and Build SDK for this branch"
   # TODO: Build only JS/required sdks 
-  npm i && npm run build
+  npm ci && npm run build
   
   echo "Build playgrounds"
   {
@@ -42,4 +43,4 @@ for branch_name in $(git for-each-ref --format='%(refname:short)' refs/remotes/o
   }
 
   echo "\n"
-done
+# done
