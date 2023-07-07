@@ -306,11 +306,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   getRTCPeerById(rtcPeerId: string) {
-    const rtcPeer = this.rtcPeerMap.get(rtcPeerId)
-    // if ('development' === process.env.NODE_ENV && !rtcPeer) {
-    //   throw new Error(`Unknown rtcPeerId '${rtcPeerId}'`)
-    // }
-    return rtcPeer
+    return this.rtcPeerMap.get(rtcPeerId)
   }
 
   appendRTCPeer(rtcPeer: RTCPeer<EventTypes>) {
