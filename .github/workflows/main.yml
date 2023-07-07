@@ -5,6 +5,8 @@ on:
     branches: [main]
   pull_request:
     branches: [main, dev]
+    branches-ignore:
+      - 'eg/static-assets-ci'
   workflow_dispatch:
 
 concurrency:
