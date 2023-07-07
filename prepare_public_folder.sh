@@ -12,10 +12,9 @@ git fetch --no-tags
 
 # Loop all the branches and - for each - build the SDK, build the playground-js
 # and copy the `dist` folder in the global `public` folder.
-# for branch_name in $(git for-each-ref --format='%(refname:short)' refs/remotes/origin/); do
-  branch="main"
+for branch_name in $(git for-each-ref --format='%(refname:short)' refs/remotes/origin/); do
   # Remove `remote/` from refname
-  # branch=${branch_name/origin\//}
+  branch=${branch_name/origin\//}
   if [[ $branch == "canary" ]]; then
     # canary branch is too old!
     echo "Skip canary branch"
@@ -43,4 +42,4 @@ git fetch --no-tags
   }
 
   echo "\n"
-# done
+done
