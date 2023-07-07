@@ -38,7 +38,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@signalwire/core": "3.16.0",
+    "@signalwire/core": "3.17.0",
     "node-abort-controller": "^2.0.0",
     "node-fetch": "^2.6.1"
   },
