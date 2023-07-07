@@ -151,11 +151,13 @@ export class BaseJWTSession extends BaseSession {
     if (!this.expiresAt) {
       return
     }
+    const refreshTokenFn =
+      this.options._onRefreshToken || this.options.onRefreshToken
     if (this.expiresIn <= this._refreshTokenNotificationDiff) {
       this.dispatch(authExpiringAction())
 
-      if (this.options._onRefreshToken) {
-        this.options._onRefreshToken()
+      if (typeof refreshTokenFn === 'function') {
+        refreshTokenFn()
       } else {
         this.logger.warn('The token is going to expire!')
       }

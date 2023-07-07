@@ -134,6 +134,10 @@ async function getClient() {
       host: document.getElementById('host').value,
       token: document.getElementById('token').value,
       rootElement: document.getElementById('rootElement'),
+      onRefreshToken: async () => {
+        // Fetch the new token and update the client using 👇
+        // await client.updateToken(newToken)
+      },
     })
   }
 

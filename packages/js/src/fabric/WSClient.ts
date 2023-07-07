@@ -244,4 +244,19 @@ export class WSClient {
       throw error
     }
   }
+
+  updateToken(token: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // @ts-expect-error
+      this.wsClient.once('session.auth_error', (error) => {
+        reject(error)
+      })
+      this.wsClient.once('session.connected', () => {
+        resolve()
+      })
+
+      // @ts-expect-error
+      this.wsClient.reauthenticate(token)
+    })
+  }
 }

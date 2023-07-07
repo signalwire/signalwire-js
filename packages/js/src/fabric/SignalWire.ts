@@ -15,6 +15,7 @@ interface SignalWireContract {
   disconnect: WSClient['disconnect']
   dial: WSClient['dial']
   handlePushNotification: WSClient['handlePushNotification']
+  updateToken: WSClient['updateToken']
 }
 
 export const SignalWire = (
@@ -34,6 +35,7 @@ export const SignalWire = (
         disconnect: wsClient.disconnect.bind(wsClient),
         dial: wsClient.dial.bind(wsClient),
         handlePushNotification: wsClient.handlePushNotification.bind(wsClient),
+        updateToken: wsClient.updateToken.bind(wsClient),
         // @ts-expect-error
         __httpClient: httpClient,
         __wsClient: wsClient,
