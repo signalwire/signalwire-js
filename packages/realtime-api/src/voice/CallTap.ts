@@ -62,6 +62,11 @@ export class CallTapAPI
     return this._payload.state
   }
 
+  /** @internal */
+  protected setPayload(payload: CallingCallTapEventParams) {
+    this._payload = payload
+  }
+
   async stop() {
     if (this.state !== 'finished') {
       await this.execute({
