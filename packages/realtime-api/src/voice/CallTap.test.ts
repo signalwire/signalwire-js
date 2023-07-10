@@ -55,8 +55,9 @@ describe('CallTap', () => {
       })
 
       expect(instance.callId).toBe(newCallId)
-      expect(instance.callId).toBe(newNodeId)
-      expect(instance.callId).toBe(newControlId)
+      // @ts-expect-error
+      expect(instance.nodeId).toBe(newNodeId)
+      expect(instance.controlId).toBe(newControlId)
     })
   })
 })
