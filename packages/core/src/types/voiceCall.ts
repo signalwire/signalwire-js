@@ -678,6 +678,7 @@ export interface VoiceCallContract<T = any> {
 
   dial(params: VoiceDialerParams): Promise<T>
   hangup(reason?: VoiceCallDisconnectReason): Promise<void>
+  pass(): Promise<void>
   answer(): Promise<T>
   play(params: VoicePlaylist): Promise<VoiceCallPlaybackContract>
   playAudio(
@@ -1491,6 +1492,7 @@ export type VoiceCallAction = MapToPubSubShape<VoiceCallEvent>
 export type VoiceCallJSONRPCMethod =
   | 'calling.dial'
   | 'calling.end'
+  | 'calling.pass'
   | 'calling.answer'
   | 'calling.play'
   | 'calling.play.pause'
