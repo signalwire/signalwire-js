@@ -28,7 +28,10 @@ export const roomSubscribedWorker: SDKWorker<
 > = function* (options): SagaIterator {
   getLogger().debug('roomSubscribedWorker started')
   const { channels, instance, initialState } = options
-  const { swEventChannel, pubSubChannel } = channels
+  const {
+    swEventChannel,
+    //  pubSubChannel
+  } = channels
   const { rtcPeerId } = initialState
   if (!rtcPeerId) {
     throw new Error('Missing rtcPeerId for roomSubscribedWorker')
