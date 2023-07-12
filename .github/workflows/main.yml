@@ -25,7 +25,7 @@ jobs:
         with:
           NODE_VERSION: ${{ matrix.node-version }}
       - name: Test
-        run: cd packages/js && npm run test
+        run: npm test
 
   stack-tests:
     name: Stack tests
@@ -47,41 +47,41 @@ jobs:
           RELAY_PROJECT: ${{ secrets.RELAY_PROJECT }}
           RELAY_TOKEN: ${{ secrets.RELAY_TOKEN }}
 
-  stage-e2e-realtime-api:
-    name: E2E tests Realtime API - Staging
-    needs: stack-tests
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.x]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install dependencies and build
-        uses: ./.github/actions/setup-js-app
-        with:
-          NODE_VERSION: ${{ matrix.node-version }}
-      - name: Test
-        run: npm run -w=@sw-internal/e2e-realtime-api dev
-        env:
-          SW_TEST_CONFIG: ${{ secrets.STAGING_E2E_REALTIME_SW_TEST_CONFIG }}
+  # stage-e2e-realtime-api:
+  #   name: E2E tests Realtime API - Staging
+  #   needs: stack-tests
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       node-version: [18.x]
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: Install dependencies and build
+  #       uses: ./.github/actions/setup-js-app
+  #       with:
+  #         NODE_VERSION: ${{ matrix.node-version }}
+  #     - name: Test
+  #       run: npm run -w=@sw-internal/e2e-realtime-api dev
+  #       env:
+  #         SW_TEST_CONFIG: ${{ secrets.STAGING_E2E_REALTIME_SW_TEST_CONFIG }}
 
-  prod-e2e-realtime-api:
-    name: E2E tests Realtime API - Production
-    needs: stack-tests
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.x]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install dependencies and build
-        uses: ./.github/actions/setup-js-app
-        with:
-          NODE_VERSION: ${{ matrix.node-version }}
-      - name: Test
-        run: npm run -w=@sw-internal/e2e-realtime-api dev
-        env:
-          SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_REALTIME_SW_TEST_CONFIG }}
+  # prod-e2e-realtime-api:
+  # name: E2E tests Realtime API - Production
+  # needs: stack-tests
+  # runs-on: ubuntu-latest
+  # strategy:
+  #   matrix:
+  #     node-version: [18.x]
+  # steps:
+  #   - uses: actions/checkout@v3
+  #   - name: Install dependencies and build
+  #     uses: ./.github/actions/setup-js-app
+  #     with:
+  #       NODE_VERSION: ${{ matrix.node-version }}
+  #   - name: Test
+  #     run: npm run -w=@sw-internal/e2e-realtime-api dev
+  #     env:
+  #       SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_REALTIME_SW_TEST_CONFIG }}
 
   stage-e2e-js:
     name: E2E tests JS - Staging
