@@ -30,7 +30,7 @@ export const roomSubscribedWorker: SDKWorker<
   const { channels, instance, initialState } = options
   const {
     swEventChannel,
-    //  pubSubChannel
+    // pubSubChannel
   } = channels
   const { rtcPeerId } = initialState
   if (!rtcPeerId) {
@@ -90,43 +90,44 @@ function transformPayload(
   this: BaseConnection<any>,
   payload: VideoRoomSubscribedEventParams
 ) {
-  if (payload.room_session.recordings) {
-    payload.room_session.recordings = payload.room_session.recordings.map(
-      (recording) => {
-        // TODO: Rename and remove 'RT'
-        return Rooms.createRoomSessionRTRecordingObject({
-          store: this.store,
-          emitter: this.emitter,
-          payload: {
-            room_id: payload.room.room_id,
-            room_session_id: payload.room_session.id,
-            recording,
-          },
-        })
-      }
-    )
-  }
+  const keys = ['room_session', 'room'] as const
+  keys.forEach((key) => {
+    if (payload[key].recordings) {
+      payload[key].recordings = (payload[key].recordings || []).map(
+        (recording: any) => {
+          // TODO: Rename and remove 'RT'
+          return Rooms.createRoomSessionRTRecordingObject({
+            store: this.store,
+            emitter: this.emitter,
+            payload: {
+              room_id: payload.room.room_id,
+              room_session_id: payload.room_session.id,
+              recording,
+            },
+          })
+        }
+      )
+    }
 
-  if (payload.room_session.playbacks) {
-    payload.room_session.playbacks = payload.room_session.playbacks.map(
-      (playback) => {
-        // TODO: Rename and remove 'RT'
-        return Rooms.createRoomSessionRTPlaybackObject({
-          store: this.store,
-          emitter: this.emitter,
-          payload: {
-            room_id: payload.room.room_id,
-            room_session_id: payload.room_session.id,
-            playback,
-          },
-        })
-      }
-    )
-  }
+    if (payload[key].playbacks) {
+      payload[key].playbacks = (payload[key].playbacks || []).map(
+        (playback) => {
+          // TODO: Rename and remove 'RT'
+          return Rooms.createRoomSessionRTPlaybackObject({
+            store: this.store,
+            emitter: this.emitter,
+            payload: {
+              room_id: payload.room.room_id,
+              room_session_id: payload.room_session.id,
+              playback,
+            },
+          })
+        }
+      )
+    }
 
-  if (payload.room_session.streams) {
-    payload.room_session.streams = payload.room_session.streams.map(
-      (stream: any) => {
+    if (payload[key].streams) {
+      payload[key].streams = (payload[key].streams || []).map((stream: any) => {
         // TODO: Rename and remove 'RT'
         return Rooms.createRoomSessionRTStreamObject({
           store: this.store,
@@ -137,9 +138,9 @@ function transformPayload(
             stream,
           },
         })
-      }
-    )
-  }
+      })
+    }
+  })
 
   return payload
 }
