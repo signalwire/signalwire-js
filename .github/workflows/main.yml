@@ -25,7 +25,7 @@ jobs:
         with:
           NODE_VERSION: ${{ matrix.node-version }}
       - name: Test
-        run: npm test
+        run: cd packages/js && npm run test
 
   stack-tests:
     name: Stack tests

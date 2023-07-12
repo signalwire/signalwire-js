@@ -770,6 +770,9 @@ type InternalVideoRoomEntity = {
   recording: boolean
   hide_video_muted: boolean
   preview_url?: string
+  recordings?: any[]
+  playbacks?: any[]
+  streams?: any[]
 }
 
 /**
