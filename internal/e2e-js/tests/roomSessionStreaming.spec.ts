@@ -125,7 +125,7 @@ test.describe('RoomSession', () => {
 
     expect(streamsOnJoined.length).toEqual(streamsOnGet.length)
     expect(streamsOnGet.length).toEqual(streamOnEnd.length)
-    ;[streamsOnJoined, streamsOnGet, streamsOnGet].forEach((streams: any[]) => {
+    ;[streamsOnJoined, streamsOnGet, streamOnEnd].forEach((streams: any[]) => {
       streams.forEach((stream) => {
         // Since functions can't be serialized back to this
         // thread (from the previous step) we just check that
