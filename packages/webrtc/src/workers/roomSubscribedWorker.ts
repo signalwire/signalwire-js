@@ -8,8 +8,8 @@ import {
   SDKWorkerHooks,
   VideoRoomSubscribedEvent,
   componentActions,
-  // Rooms,
-  // VideoRoomSubscribedEventParams,
+  VideoRoomSubscribedEventParams,
+  Rooms,
 } from '@signalwire/core'
 
 import { BaseConnection } from '../BaseConnection'
@@ -42,6 +42,9 @@ export const roomSubscribedWorker: SDKWorker<
       return false
     })
 
+  // New emitter should not change the payload by reference
+  const clonedPayload = JSON.parse(JSON.stringify(action.payload))
+
   // FIXME: Move to a better place when rework _attachListeners too.
   // @ts-expect-error
   instance._attachListeners(action.payload.room_session.id)
@@ -67,77 +70,74 @@ export const roomSubscribedWorker: SDKWorker<
     })
   )
 
-  // // TODO: Do we still need to return the proxied object?
-  // instance.baseEmitter.emit(
-  //   'room.joined',
-  //   transformPayload.call(instance, action.payload)
-  // )
-
-  // Rename "room.subscribed" with "room.joined" for the end-user
+  // TODO: Remove it when we have a better logic for memberListUpdatedWorker
   yield sagaEffects.put(pubSubChannel, {
     type: 'video.room.joined',
     payload: action.payload,
   })
 
+  // TODO: Do we still need to return the proxied object? Older emitter does that
+  instance.baseEmitter.emit(
+    'room.joined',
+    transformPayload.call(instance, clonedPayload)
+  )
+
   getLogger().debug('roomSubscribedWorker ended', rtcPeerId)
 }
 
 // TODO: We might not need it since the room_session.recordings (possibly others as well) has been deprecated
-// function transformPayload(
-//   this: BaseConnection<any>,
-//   payload: VideoRoomSubscribedEventParams
-// ) {
-//   const keys = ['room_session', 'room'] as const
-//   keys.forEach((key) => {
-//     if (payload[key].recordings) {
-//       payload[key].recordings = (payload[key].recordings || []).map(
-//         (recording: any) => {
-//           // TODO: Rename and remove 'RT'
-//           return Rooms.createRoomSessionRTRecordingObject({
-//             store: this.store,
-//             emitter: this.emitter,
-//             payload: {
-//               room_id: payload.room.room_id,
-//               room_session_id: payload.room_session.id,
-//               recording,
-//             },
-//           })
-//         }
-//       )
-//     }
+function transformPayload(
+  this: BaseConnection<any>,
+  payload: VideoRoomSubscribedEventParams
+) {
+  const keys = ['room_session', 'room'] as const
+  keys.forEach((key) => {
+    if (payload[key].recordings) {
+      payload[key].recordings = (payload[key].recordings || []).map(
+        (recording: any) => {
+          return Rooms.createRoomSessionRTRecordingObject({
+            store: this.store,
+            emitter: this.emitter,
+            payload: {
+              room_id: payload.room.room_id,
+              room_session_id: payload.room_session.id,
+              recording,
+            },
+          })
+        }
+      )
+    }
 
-//     if (payload[key].playbacks) {
-//       payload[key].playbacks = (payload[key].playbacks || []).map(
-//         (playback) => {
-//           // TODO: Rename and remove 'RT'
-//           return Rooms.createRoomSessionRTPlaybackObject({
-//             store: this.store,
-//             emitter: this.emitter,
-//             payload: {
-//               room_id: payload.room.room_id,
-//               room_session_id: payload.room_session.id,
-//               playback,
-//             },
-//           })
-//         }
-//       )
-//     }
+    if (payload[key].playbacks) {
+      payload[key].playbacks = (payload[key].playbacks || []).map(
+        (playback) => {
+          return Rooms.createRoomSessionRTPlaybackObject({
+            store: this.store,
+            emitter: this.emitter,
+            payload: {
+              room_id: payload.room.room_id,
+              room_session_id: payload.room_session.id,
+              playback,
+            },
+          })
+        }
+      )
+    }
 
-//     if (payload[key].streams) {
-//       payload[key].streams = (payload[key].streams || []).map((stream: any) => {
-//         // TODO: Rename and remove 'RT'
-//         return Rooms.createRoomSessionRTStreamObject({
-//           store: this.store,
-//           emitter: this.emitter,
-//           payload: {
-//             room_id: payload.room.room_id,
-//             room_session_id: payload.room_session.id,
-//             stream,
-//           },
-//         })
-//       })
-//     }
-//   })
+    if (payload[key].streams) {
+      payload[key].streams = (payload[key].streams || []).map((stream: any) => {
+        return Rooms.createRoomSessionRTStreamObject({
+          store: this.store,
+          emitter: this.emitter,
+          payload: {
+            room_id: payload.room.room_id,
+            room_session_id: payload.room_session.id,
+            stream,
+          },
+        })
+      })
+    }
+  })
 
-//   return payload
-// }
+  return payload
+}
