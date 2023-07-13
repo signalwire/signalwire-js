@@ -557,7 +557,6 @@ export class RoomSessionConnection
   getAudioEl() {
     if (this._audioEl) return this._audioEl
     this._audioEl = new Audio()
-    console.log('listener attached!')
     this._attachSpeakerTrackListener()
     return this._audioEl
   }
