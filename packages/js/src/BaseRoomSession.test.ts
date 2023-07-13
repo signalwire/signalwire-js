@@ -474,8 +474,8 @@ describe('Room Object', () => {
 
       setupRoomForTests()
 
-      // const startedHandler = jest.fn()
-      room.on('room.joined', (params) => {
+      // @ts-expect-error
+      room._on('room.joined', (params) => {
         /** Test same keys between room_session and room for backwards compat. */
         const keys = ['room_session', 'room'] as const
         keys.forEach(async (key) => {
@@ -483,9 +483,7 @@ describe('Room Object', () => {
           expect(params[key].room_id).toEqual(roomId)
           expect(params[key].recording).toBe(true)
           expect(params[key].hide_video_muted).toBe(false)
-          // @ts-expect-error
           expect(params[key].meta).toStrictEqual({})
-          // @ts-expect-error
           const { members, recordings } = params[key]
 
           // Test members and member object
@@ -504,11 +502,12 @@ describe('Room Object', () => {
           // Test recordings and recording object
           expect(recordings).toHaveLength(1)
           const recordingObj = recordings[0]
+          console.log('room.joined recordingObj', key, recordingObj)
           expect(recordingObj.id).toEqual(recordingId)
           expect(recordingObj.state).toEqual('recording')
           expect(recordingObj.duration).toBeNull()
           expect(recordingObj.startedAt).toBeInstanceOf(Date)
-          expect(recordingObj.endedAt).toBeInstanceOf(Date)
+          expect(recordingObj.endedAt).toBeUndefined() // When state is recording
 
           const execMock = jest.fn()
           const _clearMock = () => {

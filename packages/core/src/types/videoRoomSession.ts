@@ -73,6 +73,10 @@ export interface VideoRoomSessionContract {
    * @deprecated Use {@link getRecordings}
    **/
   recordings?: any[]
+  /**
+   * List of active playbacks in the room
+   **/
+  playbacks?: any[]
   /** Whether muted videos are shown in the room layout. See {@link setHideVideoMuted} */
   hideVideoMuted: boolean
   /** URL to the room preview. */
@@ -766,6 +770,9 @@ type InternalVideoRoomEntity = {
   recording: boolean
   hide_video_muted: boolean
   preview_url?: string
+  recordings?: any[]
+  playbacks?: any[]
+  streams?: any[]
 }
 
 /**
