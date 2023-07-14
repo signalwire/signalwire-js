@@ -43,7 +43,8 @@ test.describe('RoomSession', () => {
       return new Promise((resolve) => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
-        roomObj.on('stream.started', (stream: any) => resolve(stream))
+        // @ts-expect-error
+        roomObj._on('stream.started', (stream: any) => resolve(stream))
         roomObj.join()
       })
     })
@@ -63,7 +64,8 @@ test.describe('RoomSession', () => {
         const roomObj: Video.RoomSession = window._roomObj
 
         const streamStarted = new Promise((resolve, reject) => {
-          roomObj.on('stream.started', (params) => {
+          // @ts-expect-error
+          roomObj._on('stream.started', (params) => {
             if (params.state === 'streaming') {
               resolve(true)
             } else {
@@ -91,13 +93,15 @@ test.describe('RoomSession', () => {
           // @ts-expect-error
           const roomObj: Video.RoomSession = window._roomObj
 
-          roomObj.on('room.joined', async (params) => {
+          // @ts-expect-error
+          roomObj._on('room.joined', async (params) => {
             const result = await roomObj.getStreams()
 
             const streamOnEnd = await Promise.all(
               result.streams.map((stream: any) => {
                 const streamEnded = new Promise((resolve) => {
-                  roomObj.on('stream.ended', (params) => {
+                  // @ts-expect-error
+                  roomObj._on('stream.ended', (params) => {
                     if (params.id === stream.id) {
                       resolve(params)
                     }
@@ -112,18 +116,21 @@ test.describe('RoomSession', () => {
               })
             )
 
-            const streamSerializer = (stream: any) => ({
-              id: stream.id,
-              roomSessionId: stream.roomSessionId,
-              state: stream.state,
-              url: stream.url,
-              stop: stream.stop
-            })
+            const streamSerializer = (stream: any) => {
+              return {
+                id: stream.id,
+                roomSessionId: stream.roomSessionId,
+                state: stream.state,
+                url: stream.url,
+                stop: stream.stop,
+              }
+            }
 
             resolve({
-              streamsOnJoined: params.room_session.streams?.map(streamSerializer),
+              streamsOnJoined:
+                params.room_session.streams?.map(streamSerializer),
               streamsOnGet: result.streams.map(streamSerializer),
-              streamOnEnd,
+              streamOnEnd: streamOnEnd.map(streamSerializer),
             })
           })
 
