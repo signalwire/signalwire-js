@@ -159,24 +159,24 @@ export class RoomSessionConnection
       //     },
       //   },
       // ],
-      [
-        [toLocalEvent('video.playback.list')],
-        {
-          type: 'roomSessionPlaybackList',
-          instanceFactory: (_payload: any) => {
-            return {}
-          },
-          payloadTransform: (payload: any) => {
-            return payload
-          },
-          nestedFieldsToProcess: {
-            playbacks: {
-              eventTransformType: 'roomSessionPlayback',
-              processInstancePayload: (payload) => ({ playback: payload }),
-            },
-          },
-        },
-      ],
+      // [
+      //   [toLocalEvent('video.playback.list')],
+      //   {
+      //     type: 'roomSessionPlaybackList',
+      //     instanceFactory: (_payload: any) => {
+      //       return {}
+      //     },
+      //     payloadTransform: (payload: any) => {
+      //       return payload
+      //     },
+      //     nestedFieldsToProcess: {
+      //       playbacks: {
+      //         eventTransformType: 'roomSessionPlayback',
+      //         processInstancePayload: (payload) => ({ playback: payload }),
+      //       },
+      //     },
+      //   },
+      // ],
       [
         [
           toLocalEvent('video.recording.start'),
@@ -225,26 +225,26 @@ export class RoomSessionConnection
           },
         },
       ],
-      [
-        [toLocalEvent('video.stream.list')],
-        {
-          type: 'roomSessionStreamList',
-          instanceFactory: (_payload: any) => {
-            return {}
-          },
-          payloadTransform: (payload: any) => {
-            return payload
-          },
-          nestedFieldsToProcess: {
-            streams: {
-              eventTransformType: 'roomSessionStream',
-              processInstancePayload: (payload) => {
-                return { stream: payload }
-              },
-            },
-          },
-        },
-      ],
+      // [
+      //   [toLocalEvent('video.stream.list')],
+      //   {
+      //     type: 'roomSessionStreamList',
+      //     instanceFactory: (_payload: any) => {
+      //       return {}
+      //     },
+      //     payloadTransform: (payload: any) => {
+      //       return payload
+      //     },
+      //     nestedFieldsToProcess: {
+      //       streams: {
+      //         eventTransformType: 'roomSessionStream',
+      //         processInstancePayload: (payload) => {
+      //           return { stream: payload }
+      //         },
+      //       },
+      //     },
+      //   },
+      // ],
       [
         [
           toLocalEvent('video.stream.start'),
@@ -640,7 +640,7 @@ export const RoomSessionAPI = extendComponent<
   showVideoMuted: Rooms.showVideoMuted,
   getRecordings: Rooms.getRTRecordings,
   startRecording: Rooms.startRecording,
-  getPlaybacks: Rooms.getPlaybacks,
+  getPlaybacks: Rooms.getRTPlaybacks,
   play: Rooms.play,
   setHideVideoMuted: Rooms.setHideVideoMuted,
   getMeta: Rooms.getMeta,
@@ -653,7 +653,7 @@ export const RoomSessionAPI = extendComponent<
   deleteMemberMeta: Rooms.deleteMemberMeta,
   promote: Rooms.promote,
   demote: Rooms.demote,
-  getStreams: Rooms.getStreams,
+  getStreams: Rooms.getRTStreams,
   startStream: Rooms.startStream,
 })
 
