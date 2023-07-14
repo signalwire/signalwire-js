@@ -106,6 +106,8 @@ export function* sessionChannelWatcher({
       session.onSwAuthorizationState(broadcastParams.params.authorization_state)
       return
     }
+
+    // TODO: Remove this videoAPIWorker and use new videoWorker initiated by BaseRoomSession
     if (isVideoEvent(broadcastParams)) {
       yield fork(videoAPIWorker, broadcastParams)
       return

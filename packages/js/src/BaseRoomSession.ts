@@ -88,6 +88,10 @@ export class RoomSessionConnection
   ) {
     super(options)
     this._mirrored = options.mirrorLocalVideoOverlay
+
+    this.runWorker('videoWorker', {
+      worker: workers.videoWorker,
+    })
   }
 
   get screenShareList() {
@@ -245,29 +249,29 @@ export class RoomSessionConnection
       //     },
       //   },
       // ],
-      [
-        [
-          toLocalEvent('video.stream.start'),
-          'video.stream.started',
-          'video.stream.ended',
-        ],
-        {
-          type: 'roomSessionStream',
-          instanceFactory: (_payload: any) => {
-            return Rooms.createRoomSessionStreamObject({
-              store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
-            })
-          },
-          payloadTransform: (payload: any) => {
-            return toExternalJSON({
-              ...payload.stream,
-              room_session_id: this.roomSessionId,
-            })
-          },
-        },
-      ],
+      // [
+      //   [
+      //     toLocalEvent('video.stream.start'),
+      //     'video.stream.started',
+      //     'video.stream.ended',
+      //   ],
+      //   {
+      //     type: 'roomSessionStream',
+      //     instanceFactory: (_payload: any) => {
+      //       return Rooms.createRoomSessionStreamObject({
+      //         store: this.store,
+      //         // @ts-expect-error
+      //         emitter: this.emitter,
+      //       })
+      //     },
+      //     payloadTransform: (payload: any) => {
+      //       return toExternalJSON({
+      //         ...payload.stream,
+      //         room_session_id: this.roomSessionId,
+      //       })
+      //     },
+      //   },
+      // ],
     ])
   }
 
