@@ -377,13 +377,6 @@ window.connect = () => {
     .then(async (result) => {
       console.log('>> Room Joined', result)
 
-      // const streamingURL = `rtmp://rtmp.swire.io/live/staging-e2e-stream`
-      // console.log('streamingURL', streamingURL)
-
-      // await roomObj.startStream({
-      //   url: streamingURL,
-      // })
-
       roomObj.getLayouts().then((layouts) => {
         console.log('>> Layouts', layouts)
       })
