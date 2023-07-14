@@ -112,9 +112,17 @@ test.describe('RoomSession', () => {
               })
             )
 
+            const streamSerializer = (stream: any) => ({
+              id: stream.id,
+              roomSessionId: stream.roomSessionId,
+              state: stream.state,
+              url: stream.url,
+              stop: stream.stop
+            })
+
             resolve({
-              streamsOnJoined: params.room_session.streams,
-              streamsOnGet: result.streams,
+              streamsOnJoined: params.room_session.streams?.map(streamSerializer),
+              streamsOnGet: result.streams.map(streamSerializer),
               streamOnEnd,
             })
           })
