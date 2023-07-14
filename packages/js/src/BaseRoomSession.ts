@@ -181,30 +181,30 @@ export class RoomSessionConnection
       //     },
       //   },
       // ],
-      [
-        [
-          toLocalEvent('video.recording.start'),
-          'video.recording.started',
-          'video.recording.updated',
-          'video.recording.ended',
-        ],
-        {
-          type: 'roomSessionRecording',
-          instanceFactory: (_payload: any) => {
-            return Rooms.createRoomSessionRecordingObject({
-              store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
-            })
-          },
-          payloadTransform: (payload: any) => {
-            return toExternalJSON({
-              ...payload.recording,
-              room_session_id: this.roomSessionId,
-            })
-          },
-        },
-      ],
+      // [
+      //   [
+      //     toLocalEvent('video.recording.start'),
+      //     'video.recording.started',
+      //     'video.recording.updated',
+      //     'video.recording.ended',
+      //   ],
+      //   {
+      //     type: 'roomSessionRecording',
+      //     instanceFactory: (_payload: any) => {
+      //       return Rooms.createRoomSessionRecordingObject({
+      //         store: this.store,
+      //         // @ts-expect-error
+      //         emitter: this.emitter,
+      //       })
+      //     },
+      //     payloadTransform: (payload: any) => {
+      //       return toExternalJSON({
+      //         ...payload.recording,
+      //         room_session_id: this.roomSessionId,
+      //       })
+      //     },
+      //   },
+      // ],
       [
         [
           toLocalEvent('video.playback.start'),

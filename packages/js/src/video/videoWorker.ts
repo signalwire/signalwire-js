@@ -10,6 +10,7 @@ import {
 } from '@signalwire/core'
 import { RoomSessionConnection } from '../BaseRoomSession'
 import { videoStreamWorker } from './videoStreamWorker'
+import { videoRecordWorker } from './videoRecordWorker'
 
 export type VideoWorkerParams<T> = SDKWorkerParams<RoomSessionConnection> & {
   action: T
@@ -28,6 +29,14 @@ export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
       case 'video.stream.ended':
       case 'video.stream.started':
         yield sagaEffects.fork(videoStreamWorker, {
+          action,
+          ...options,
+        })
+        break
+      case 'video.recording.started':
+      case 'video.recording.updated':
+      case 'video.recording.ended':
+        yield sagaEffects.fork(videoRecordWorker, {
           action,
           ...options,
         })
