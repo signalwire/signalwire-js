@@ -141,24 +141,24 @@ export class RoomSessionConnection
           },
         },
       ],
-      [
-        [toLocalEvent('video.recording.list')],
-        {
-          type: 'roomSessionRecordingList',
-          instanceFactory: (_payload: any) => {
-            return {}
-          },
-          payloadTransform: (payload: any) => {
-            return payload
-          },
-          nestedFieldsToProcess: {
-            recordings: {
-              eventTransformType: 'roomSessionRecording',
-              processInstancePayload: (payload) => ({ recording: payload }),
-            },
-          },
-        },
-      ],
+      // [
+      //   [toLocalEvent('video.recording.list')],
+      //   {
+      //     type: 'roomSessionRecordingList',
+      //     instanceFactory: (_payload: any) => {
+      //       return {}
+      //     },
+      //     payloadTransform: (payload: any) => {
+      //       return payload
+      //     },
+      //     nestedFieldsToProcess: {
+      //       recordings: {
+      //         eventTransformType: 'roomSessionRecording',
+      //         processInstancePayload: (payload) => ({ recording: payload }),
+      //       },
+      //     },
+      //   },
+      // ],
       [
         [toLocalEvent('video.playback.list')],
         {
@@ -638,7 +638,7 @@ export const RoomSessionAPI = extendComponent<
   setMemberPosition: Rooms.setMemberPosition,
   hideVideoMuted: Rooms.hideVideoMuted,
   showVideoMuted: Rooms.showVideoMuted,
-  getRecordings: Rooms.getRecordings,
+  getRecordings: Rooms.getRTRecordings,
   startRecording: Rooms.startRecording,
   getPlaybacks: Rooms.getPlaybacks,
   play: Rooms.play,
