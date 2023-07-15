@@ -41,5 +41,23 @@ describe('CallTap', () => {
         method: 'calling.tap.stop',
       })
     })
+
+    it('should update the attributes on setPayload call', () => {
+      const newCallId = 'new_call_id'
+      const newNodeId = 'new_node_id'
+      const newControlId = 'new_control_id'
+
+      // @ts-expect-error
+      instance.setPayload({
+        call_id: newCallId,
+        node_id: newNodeId,
+        control_id: newControlId,
+      })
+
+      expect(instance.callId).toBe(newCallId)
+      // @ts-expect-error
+      expect(instance.nodeId).toBe(newNodeId)
+      expect(instance.controlId).toBe(newControlId)
+    })
   })
 })
