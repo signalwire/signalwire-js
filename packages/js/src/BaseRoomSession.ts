@@ -643,7 +643,7 @@ export const RoomSessionAPI = extendComponent<
   hideVideoMuted: Rooms.hideVideoMuted,
   showVideoMuted: Rooms.showVideoMuted,
   getRecordings: Rooms.getRTRecordings,
-  startRecording: Rooms.startRecording,
+  startRecording: Rooms.startRTRecording,
   getPlaybacks: Rooms.getRTPlaybacks,
   play: Rooms.play,
   setHideVideoMuted: Rooms.setHideVideoMuted,
@@ -658,7 +658,7 @@ export const RoomSessionAPI = extendComponent<
   promote: Rooms.promote,
   demote: Rooms.demote,
   getStreams: Rooms.getRTStreams,
-  startStream: Rooms.startStream,
+  startStream: Rooms.startRTStream,
 })
 
 type RoomSessionObjectEventsHandlerMapping = RoomSessionObjectEvents &
