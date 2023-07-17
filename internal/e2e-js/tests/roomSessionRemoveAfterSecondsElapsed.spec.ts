@@ -73,7 +73,8 @@ test.describe('RoomSession remove_after_seconds_elapsed', () => {
         return new Promise(async (resolve) => {
           // @ts-expect-error
           const roomObj: Video.RoomSession = window._roomObj
-          roomObj.on('room.joined', () => {
+          // @ts-expect-error
+          roomObj._on('room.joined', () => {
             roomObj.on('room.left', () => {
               resolve(true)
             })

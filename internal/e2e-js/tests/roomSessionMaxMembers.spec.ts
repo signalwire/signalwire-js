@@ -41,8 +41,8 @@ test.describe('Room Session Max Members', () => {
           },
           initialEvents: ['stream.started', 'stream.ended'],
           expectToJoin: false,
-        })}
-      )
+        })
+      })
     )
 
     await Promise.all([expectRoomJoined(pageOne), expectRoomJoined(pageTwo)])
@@ -56,7 +56,8 @@ test.describe('Room Session Max Members', () => {
       return new Promise<any>(async (resolve, reject) => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
-        roomObj.once('room.joined', resolve)
+        // @ts-expect-error
+        roomObj._once('room.joined', resolve)
 
         try {
           await roomObj.join()

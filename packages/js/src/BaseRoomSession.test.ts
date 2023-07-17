@@ -502,7 +502,6 @@ describe('Room Object', () => {
           // Test recordings and recording object
           expect(recordings).toHaveLength(1)
           const recordingObj = recordings[0]
-          console.log('room.joined recordingObj', key, recordingObj)
           expect(recordingObj.id).toEqual(recordingId)
           expect(recordingObj.state).toEqual('recording')
           expect(recordingObj.duration).toBeNull()
