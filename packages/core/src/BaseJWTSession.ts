@@ -94,7 +94,7 @@ export class BaseJWTSession extends BaseSession {
     try {
       this._rpcConnectResult = await this.execute(RPCConnect(params))
       await this.persistRelayProtocol()
-      this._checkTokenExpiration()
+      await this._checkTokenExpiration()
     } catch (error) {
       this.logger.debug('BaseJWTSession authenticate error', error)
       throw error
@@ -147,7 +147,7 @@ export class BaseJWTSession extends BaseSession {
    * Set a timer to dispatch a notification when the JWT is going to expire.
    * @return void
    */
-  protected _checkTokenExpiration() {
+  protected async _checkTokenExpiration() {
     if (!this.expiresAt) {
       return
     }
@@ -157,7 +157,11 @@ export class BaseJWTSession extends BaseSession {
       this.dispatch(authExpiringAction())
 
       if (typeof refreshTokenFn === 'function') {
-        refreshTokenFn()
+        try {
+          await refreshTokenFn()
+        } catch (error) {
+          this.logger.error(error)
+        }
       } else {
         this.logger.warn('The token is going to expire!')
       }
