@@ -5,9 +5,7 @@ import {
   RoomSessionRTRecording,
   Rooms,
   VideoRecordingEvent,
-  RecordingStarted,
-  RecordingUpdated,
-  RecordingEnded,
+  VideoRecordingEventNames,
 } from '@signalwire/core'
 import { VideoWorkerParams } from './videoWorker'
 
@@ -36,10 +34,7 @@ export const videoRecordWorker = function* (
   }
   set<RoomSessionRTRecording>(payload.recording.id, recordingInstance)
 
-  const event = type.replace(/^video\./, '') as
-    | RecordingStarted
-    | RecordingUpdated
-    | RecordingEnded
+  const event = type.replace(/^video\./, '') as VideoRecordingEventNames
 
   switch (type) {
     case 'video.recording.started':

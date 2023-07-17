@@ -6,8 +6,6 @@ import {
   BaseComponentContract,
   BaseComponentOptions,
   BaseConnectionContract,
-  toLocalEvent,
-  toExternalJSON,
   VideoRoomEventParams,
   MemberPosition,
   VideoRoomSubscribedEventParams,
@@ -205,30 +203,30 @@ export class RoomSessionConnection
       //     },
       //   },
       // ],
-      [
-        [
-          toLocalEvent('video.playback.start'),
-          'video.playback.started',
-          'video.playback.updated',
-          'video.playback.ended',
-        ],
-        {
-          type: 'roomSessionPlayback',
-          instanceFactory: (_payload: any) => {
-            return Rooms.createRoomSessionPlaybackObject({
-              store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
-            })
-          },
-          payloadTransform: (payload: any) => {
-            return toExternalJSON({
-              ...payload.playback,
-              room_session_id: this.roomSessionId,
-            })
-          },
-        },
-      ],
+      // [
+      //   [
+      //     toLocalEvent('video.playback.start'),
+      //     'video.playback.started',
+      //     'video.playback.updated',
+      //     'video.playback.ended',
+      //   ],
+      //   {
+      //     type: 'roomSessionPlayback',
+      //     instanceFactory: (_payload: any) => {
+      //       return Rooms.createRoomSessionPlaybackObject({
+      //         store: this.store,
+      //         // @ts-expect-error
+      //         emitter: this.emitter,
+      //       })
+      //     },
+      //     payloadTransform: (payload: any) => {
+      //       return toExternalJSON({
+      //         ...payload.playback,
+      //         room_session_id: this.roomSessionId,
+      //       })
+      //     },
+      //   },
+      // ],
       // [
       //   [toLocalEvent('video.stream.list')],
       //   {
@@ -645,7 +643,7 @@ export const RoomSessionAPI = extendComponent<
   getRecordings: Rooms.getRTRecordings,
   startRecording: Rooms.startRTRecording,
   getPlaybacks: Rooms.getRTPlaybacks,
-  play: Rooms.play,
+  play: Rooms.playRT,
   setHideVideoMuted: Rooms.setHideVideoMuted,
   getMeta: Rooms.getMeta,
   setMeta: Rooms.setMeta,

@@ -11,6 +11,7 @@ import {
 import { RoomSessionConnection } from '../BaseRoomSession'
 import { videoStreamWorker } from './videoStreamWorker'
 import { videoRecordWorker } from './videoRecordWorker'
+import { videoPlaybackWorker } from './videoPlaybackWorker'
 
 export type VideoWorkerParams<T> = SDKWorkerParams<RoomSessionConnection> & {
   action: T
@@ -26,9 +27,10 @@ export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
     const { type } = action
 
     switch (type) {
-      case 'video.stream.ended':
-      case 'video.stream.started':
-        yield sagaEffects.fork(videoStreamWorker, {
+      case 'video.playback.started':
+      case 'video.playback.updated':
+      case 'video.playback.ended':
+        yield sagaEffects.fork(videoPlaybackWorker, {
           action,
           ...options,
         })
@@ -37,6 +39,13 @@ export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
       case 'video.recording.updated':
       case 'video.recording.ended':
         yield sagaEffects.fork(videoRecordWorker, {
+          action,
+          ...options,
+        })
+        break
+      case 'video.stream.ended':
+      case 'video.stream.started':
+        yield sagaEffects.fork(videoStreamWorker, {
           action,
           ...options,
         })
