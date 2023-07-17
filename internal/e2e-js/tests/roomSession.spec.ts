@@ -266,7 +266,8 @@ test.describe('RoomSession', () => {
         const roomObj: Video.RoomSession = window._roomObj
 
         const playbackStarted = new Promise((resolve, reject) => {
-          roomObj.on('playback.started', (params) => {
+          // @ts-expect-error
+          roomObj._on('playback.started', (params) => {
             if (params.state === 'playing') {
               resolve(true)
             } else {
@@ -276,7 +277,8 @@ test.describe('RoomSession', () => {
         })
 
         const playbackEnded = new Promise((resolve, reject) => {
-          roomObj.on('playback.ended', (params) => {
+          // @ts-expect-error
+          roomObj._on('playback.ended', (params) => {
             if (params.state === 'completed') {
               resolve(true)
             } else {
@@ -287,7 +289,8 @@ test.describe('RoomSession', () => {
 
         let hasPaused = false
         const playbackPaused = new Promise((resolve) => {
-          roomObj.on('playback.updated', (params) => {
+          // @ts-expect-error
+          roomObj._on('playback.updated', (params) => {
             if (params.state === 'paused') {
               hasPaused = true
               resolve(true)
@@ -296,7 +299,8 @@ test.describe('RoomSession', () => {
         })
 
         const playbackResume = new Promise((resolve) => {
-          roomObj.on('playback.updated', (params) => {
+          // @ts-expect-error
+          roomObj._on('playback.updated', (params) => {
             if (params.state === 'playing' && hasPaused) {
               resolve(true)
             }
@@ -304,7 +308,8 @@ test.describe('RoomSession', () => {
         })
 
         const playbackVolume = new Promise((resolve) => {
-          roomObj.on('playback.updated', (params) => {
+          // @ts-expect-error
+          roomObj._on('playback.updated', (params) => {
             if (params.volume === -50) {
               resolve(true)
             }
@@ -654,7 +659,8 @@ test.describe('RoomSession', () => {
         })
 
         const playbackStarted = new Promise((resolve, reject) => {
-          roomObj.on('playback.started', (params) => {
+          // @ts-expect-error
+          roomObj._on('playback.started', (params) => {
             if (params.state === 'playing') {
               resolve(true)
             } else {
@@ -726,7 +732,8 @@ test.describe('RoomSession', () => {
       return Promise.all(
         payload.playbacks.map((playback) => {
           const playbackEnded = new Promise((resolve) => {
-            roomObj.on('playback.ended', (params) => {
+            // @ts-expect-error
+            roomObj._on('playback.ended', (params) => {
               if (params.id === playback.id) {
                 resolve(params)
               }
