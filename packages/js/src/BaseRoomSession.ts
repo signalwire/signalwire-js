@@ -8,7 +8,6 @@ import {
   BaseConnectionContract,
   VideoRoomEventParams,
   MemberPosition,
-  VideoRoomSubscribedEventParams,
   VideoAuthorization,
 } from '@signalwire/core'
 import {
@@ -117,32 +116,32 @@ export class RoomSessionConnection
   /** @internal */
   protected getEmitterTransforms() {
     return new Map<string | string[], EventTransform>([
-      [
-        ['video.room.joined'],
-        {
-          type: 'roomSession',
-          instanceFactory: () => {
-            return {}
-          },
-          payloadTransform: (payload: VideoRoomSubscribedEventParams) => {
-            return payload
-          },
-          nestedFieldsToProcess: {
-            recordings: {
-              eventTransformType: 'roomSessionRecording',
-              processInstancePayload: (payload) => ({ recording: payload }),
-            },
-            playbacks: {
-              eventTransformType: 'roomSessionPlayback',
-              processInstancePayload: (payload) => ({ playback: payload }),
-            },
-            streams: {
-              eventTransformType: 'roomSessionStream',
-              processInstancePayload: (payload) => ({ stream: payload }),
-            },
-          },
-        },
-      ],
+      // [
+      //   ['video.room.joined'],
+      //   {
+      //     type: 'roomSession',
+      //     instanceFactory: () => {
+      //       return {}
+      //     },
+      //     payloadTransform: (payload: VideoRoomSubscribedEventParams) => {
+      //       return payload
+      //     },
+      //     nestedFieldsToProcess: {
+      //       recordings: {
+      //         eventTransformType: 'roomSessionRecording',
+      //         processInstancePayload: (payload) => ({ recording: payload }),
+      //       },
+      //       playbacks: {
+      //         eventTransformType: 'roomSessionPlayback',
+      //         processInstancePayload: (payload) => ({ playback: payload }),
+      //       },
+      //       streams: {
+      //         eventTransformType: 'roomSessionStream',
+      //         processInstancePayload: (payload) => ({ stream: payload }),
+      //       },
+      //     },
+      //   },
+      // ],
       // [
       //   [toLocalEvent('video.recording.list')],
       //   {

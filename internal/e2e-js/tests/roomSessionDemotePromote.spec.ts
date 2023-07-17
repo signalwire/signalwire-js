@@ -122,7 +122,7 @@ test.describe('RoomSession demote participant and then promote again', () => {
       return new Promise((resolve) => {
         // @ts-expect-error
         const roomObj = window._roomObj
-        roomObj.once('room.joined', resolve)
+        roomObj._once('room.joined', resolve)
       })
     })
 

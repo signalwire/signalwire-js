@@ -63,7 +63,8 @@ test.describe('RoomSession promote updating member meta', () => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
 
-        roomObj.once('room.joined', ({ room_session }) => {
+        // @ts-expect-error
+        roomObj._once('room.joined', ({ room_session }) => {
           for (let member of room_session.members) {
             if (member.name === 'e2e_audience_meta') {
               if (member.meta && member.meta['vip'] === true) {
