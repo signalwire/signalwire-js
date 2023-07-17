@@ -18,7 +18,8 @@ test.describe('Room Session Multiple Streams', () => {
     const roomObj: Video.RoomSession = window._roomObj
 
     const streamStarted = new Promise((resolve, reject) => {
-      roomObj.on('stream.started', (params) => {
+      // @ts-expect-error
+      roomObj._on('stream.started', (params) => {
         if (params.state === 'streaming') {
           resolve(true)
         } else {

@@ -170,7 +170,8 @@ test.describe('RoomSession', () => {
       const roomObj: Video.RoomSession = window._roomObj
 
       const recordingStarted = new Promise((resolve, reject) => {
-        roomObj.on('recording.started', (params) => {
+        // @ts-expect-error
+        roomObj._on('recording.started', (params) => {
           if (params.state === 'recording') {
             resolve(true)
           } else {
@@ -199,7 +200,8 @@ test.describe('RoomSession', () => {
 
       let recordingPaused = false
       const roomUpdatedPaused = new Promise((resolve, reject) => {
-        roomObj.on('recording.updated', (params) => {
+        // @ts-expect-error
+        roomObj._on('recording.updated', (params) => {
           if (params.state === 'paused' && recordingPaused === false) {
             recordingPaused = true
             resolve(true)
@@ -210,7 +212,8 @@ test.describe('RoomSession', () => {
       })
 
       const roomUpdatedResumed = new Promise((resolve, reject) => {
-        roomObj.on('recording.updated', (params) => {
+        // @ts-expect-error
+        roomObj._on('recording.updated', (params) => {
           if (params.state === 'recording' && recordingPaused === true) {
             resolve(true)
           } else if (params.state === 'paused' && recordingPaused === true) {
@@ -228,7 +231,8 @@ test.describe('RoomSession', () => {
       })
 
       const recordingEnded = new Promise((resolve, reject) => {
-        roomObj.on('recording.ended', (params) => {
+        // @ts-expect-error
+        roomObj._on('recording.ended', (params) => {
           if (params.state === 'completed') {
             resolve(true)
           } else {
@@ -639,7 +643,8 @@ test.describe('RoomSession', () => {
         const roomObj: Video.RoomSession = window._roomObj
 
         const recordingStarted = new Promise((resolve, reject) => {
-          roomObj.on('recording.started', (params) => {
+          // @ts-expect-error
+          roomObj._on('recording.started', (params) => {
             if (params.state === 'recording') {
               resolve(true)
             } else {
@@ -683,7 +688,8 @@ test.describe('RoomSession', () => {
       return Promise.all(
         payload.recordings.map((recording: any) => {
           const recordingEnded = new Promise((resolve) => {
-            roomObj.on('recording.ended', (params) => {
+            // @ts-expect-error
+            roomObj._on('recording.ended', (params) => {
               if (params.id === recording.id) {
                 resolve(params)
               }

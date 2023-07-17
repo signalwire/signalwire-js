@@ -7,6 +7,7 @@ import {
   VideoRecordingEvent,
   RecordingStarted,
   RecordingUpdated,
+  RecordingEnded,
 } from '@signalwire/core'
 import { VideoWorkerParams } from './videoWorker'
 
@@ -35,17 +36,19 @@ export const videoRecordWorker = function* (
   }
   set<RoomSessionRTRecording>(payload.recording.id, recordingInstance)
 
+  const event = type.replace(/^video\./, '') as
+    | RecordingStarted
+    | RecordingUpdated
+    | RecordingEnded
+
   switch (type) {
     case 'video.recording.started':
     case 'video.recording.updated': {
-      const event = type.replace(/^video\./, '') as
-        | RecordingStarted
-        | RecordingUpdated
       client.baseEmitter.emit(event, recordingInstance)
       break
     }
     case 'video.recording.ended':
-      client.baseEmitter.emit('recording.ended', recordingInstance)
+      client.baseEmitter.emit(event, recordingInstance)
       remove<RoomSessionRTRecording>(payload.recording.id)
       break
     default:
