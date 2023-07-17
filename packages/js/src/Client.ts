@@ -61,6 +61,7 @@ export class ClientAPI<
           ...options
         } = makeRoomOptions
 
+        // TODO: Discuss with Edo: This might not be needed here. We can initiate these sagas in the BaseRoomSession constructor.
         const customSagas: Array<CustomSaga<RoomSessionConnection>> = []
 
         /**
