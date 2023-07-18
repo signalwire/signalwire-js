@@ -22,8 +22,6 @@ export interface VideoManager extends ConsumerContract<VideoManagerEvents> {
 
 /** @internal */
 export class VideoManagerAPI extends ApplyEventListeners<VideoManagerEvents> {
-  protected _eventsPrefix = 'video-manager' as const
-
   constructor(options: BaseComponentOptions<VideoManagerEvents>) {
     super(options)
 
