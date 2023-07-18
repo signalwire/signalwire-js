@@ -472,7 +472,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
           this.logger.debug(
             'Either `video` and `audio` (or both) constraints were set to `false` so their corresponding senders (if any) were stopped'
           )
-          return
+          return resolve()
         }
 
         let newStream!: MediaStream
