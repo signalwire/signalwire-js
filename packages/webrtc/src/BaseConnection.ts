@@ -480,27 +480,28 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
           newStream = await getUserMedia(constraints)
         } catch (error) {
           /**
-           * In Firefox you cannot open more than one
-           * microphone at a time, per process. When this
-           * happens we'll try to do the following:
-           * 1. Stop the current audio track
-           * 2. Try to get another audio track with the new
-           *    constraints
-           * 3. If we get an error: restore the media tracks
-           *    using the previous constraints.
+           * On some devices/browsers you cannot open more than one MediaStream
+           * at a time, per process. When this happens we'll try to do the
+           * following:
+           * 1. Stop the current media tracks
+           * 2. Try to get new media tracks with the new constraints
+           * 3. If we get an error: restore the media tracks using the previous
+           *    constraints.
            * @see
            * https://bugzilla.mozilla.org/show_bug.cgi?id=1238038
+           *
+           * Instead of just replace the track, force-stop the current one to
+           * free up the device
            */
           if (
             error instanceof DOMException &&
-            error.message === 'Concurrent mic process limit.'
+            error.name === 'NotReadableError'
           ) {
             let oldConstraints: MediaStreamConstraints = {}
             this.localStream?.getTracks().forEach((track) => {
               /**
-               * We'll keep a reference of the original
-               * constraints so if something fails we should
-               * be able to restore them.
+               * We'll keep a reference of the original constraints so if
+               * something fails we should be able to restore them.
                */
               // @ts-expect-error
               oldConstraints[track.kind] = track.getConstraints()
