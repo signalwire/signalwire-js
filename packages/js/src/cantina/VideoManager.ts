@@ -1,18 +1,13 @@
 import {
   BaseComponentOptions,
-  BaseConsumer,
   VideoManagerRoomEventNames,
-  InternalVideoManagerRoomEventNames,
   connect,
   ConsumerContract,
-  EventTransform,
-  toExternalJSON,
   VideoManagerRoomEntity,
-  VideoManagerRoomsSubscribedEventParams,
+  EventEmitter,
+  ApplyEventListeners,
 } from '@signalwire/core'
 import { videoManagerWorker } from './workers'
-
-type EmitterTransformsEvents = InternalVideoManagerRoomEventNames
 
 /** @internal */
 export type VideoManagerEvents = Record<
@@ -21,10 +16,12 @@ export type VideoManagerEvents = Record<
 >
 
 /** @internal */
-export interface VideoManager extends ConsumerContract<VideoManagerEvents> {}
+export interface VideoManager extends ConsumerContract<VideoManagerEvents> {
+  baseEmitter: EventEmitter
+}
 
 /** @internal */
-export class VideoManagerAPI extends BaseConsumer<VideoManagerEvents> {
+export class VideoManagerAPI extends ApplyEventListeners<VideoManagerEvents> {
   protected _eventsPrefix = 'video-manager' as const
 
   constructor(options: BaseComponentOptions<VideoManagerEvents>) {
@@ -33,47 +30,6 @@ export class VideoManagerAPI extends BaseConsumer<VideoManagerEvents> {
     this.runWorker('videoManagerWorker', {
       worker: videoManagerWorker,
     })
-  }
-
-  /** @internal */
-  getEmitterTransforms() {
-    return new Map<
-      EmitterTransformsEvents | EmitterTransformsEvents[],
-      EventTransform
-    >([
-      [
-        ['video-manager.rooms.subscribed'],
-        {
-          type: 'roomSession',
-          // For now we expose the transformed payload and not a RoomSession
-          instanceFactory: ({
-            rooms,
-          }: VideoManagerRoomsSubscribedEventParams) => ({
-            rooms: rooms.map((row) => toExternalJSON(row)),
-          }),
-          payloadTransform: ({
-            rooms,
-          }: VideoManagerRoomsSubscribedEventParams) => ({
-            rooms: rooms.map((row) => toExternalJSON(row)),
-          }),
-        },
-      ],
-      [
-        [
-          'video-manager.room.started',
-          'video-manager.room.added',
-          'video-manager.room.updated',
-          'video-manager.room.ended',
-          'video-manager.room.deleted',
-        ],
-        {
-          type: 'roomSession',
-          // For now we expose the transformed payload and not a RoomSession
-          instanceFactory: (payload) => toExternalJSON(payload),
-          payloadTransform: (payload) => toExternalJSON(payload),
-        },
-      ],
-    ])
   }
 }
 
