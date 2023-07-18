@@ -36,7 +36,7 @@ describe('VideoManager namespace', () => {
       method: 'signalwire.subscribe',
       params: {
         event_channel: 'video-manager.rooms',
-        events: ['video-manager.room.started'],
+        events: ['room.started'],
       },
     })
   })
