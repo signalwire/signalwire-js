@@ -472,66 +472,59 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
           this.logger.debug(
             'Either `video` and `audio` (or both) constraints were set to `false` so their corresponding senders (if any) were stopped'
           )
-          return
+          return resolve()
         }
+
+        /**
+         * On some devices/browsers you cannot open more than one MediaStream at
+         * a time, per process. When this happens we'll try to do the following:
+         * 1. Stop the current media tracks
+         * 2. Try to get new media tracks with the new constraints
+         * 3. If we get an error: restore the media tracks using the previous
+         *    constraints.
+         * @see
+         * https://bugzilla.mozilla.org/show_bug.cgi?id=1238038
+         *
+         * Instead of just replace the track, force-stop the current one to free
+         * up the device
+         */
+
+        let oldConstraints: MediaStreamConstraints = {}
+        this.localStream?.getTracks().forEach((track) => {
+          /**
+           * We'll keep a reference of the original constraints so if something
+           * fails we should be able to restore them.
+           */
+          // @ts-expect-error
+          oldConstraints[track.kind] = track.getConstraints()
+
+          // @ts-expect-error
+          if (constraints[track.kind] !== undefined) {
+            this.logger.debug('updateConstraints stop old tracks first?')
+            this.logger.debug('Track readyState:', track.kind, track.readyState)
+            stopTrack(track)
+            track.stop()
+            this.localStream?.removeTrack(track)
+          }
+        })
 
         let newStream!: MediaStream
         try {
+          this.logger.info('updateConstraints with', constraints)
           newStream = await getUserMedia(constraints)
         } catch (error) {
-          /**
-           * In Firefox you cannot open more than one
-           * microphone at a time, per process. When this
-           * happens we'll try to do the following:
-           * 1. Stop the current audio track
-           * 2. Try to get another audio track with the new
-           *    constraints
-           * 3. If we get an error: restore the media tracks
-           *    using the previous constraints.
-           * @see
-           * https://bugzilla.mozilla.org/show_bug.cgi?id=1238038
-           */
-          if (
-            error instanceof DOMException &&
-            error.message === 'Concurrent mic process limit.'
-          ) {
-            let oldConstraints: MediaStreamConstraints = {}
-            this.localStream?.getTracks().forEach((track) => {
-              /**
-               * We'll keep a reference of the original
-               * constraints so if something fails we should
-               * be able to restore them.
-               */
-              // @ts-expect-error
-              oldConstraints[track.kind] = track.getConstraints()
+          this.logger.error(
+            'Error updating device constraints:',
+            error.name,
+            error.message,
+            error
+          )
 
-              // @ts-expect-error
-              if (constraints[track.kind] !== undefined) {
-                this.logger.debug(
-                  'updateConstraints stop old tracks to retrieve new ones'
-                )
-                stopTrack(track)
-                this.localStream?.removeTrack(track)
-              }
-            })
+          this.logger.info('Restoring previous constraints', oldConstraints)
+          await this.updateConstraints(oldConstraints, {
+            attempt: attempt + 1,
+          })
 
-            try {
-              return resolve(
-                this.updateConstraints(constraints, {
-                  attempt: attempt + 1,
-                })
-              )
-            } catch (error) {
-              this.logger.error('Restoring previous constraints')
-              return resolve(
-                this.updateConstraints(oldConstraints, {
-                  attempt: attempt + 1,
-                })
-              )
-            }
-          }
-
-          this.logger.error('updateConstraints', error)
           return reject(error)
         }
 
