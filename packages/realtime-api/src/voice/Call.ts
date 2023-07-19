@@ -270,6 +270,37 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
   }
 
   /**
+   * Pass the incoming call to another consumer.
+   *
+   * @example
+   *
+   * ```js
+   * call.pass();
+   * ```
+   */
+  pass() {
+    return new Promise<void>((resolve, reject) => {
+      if (!this.callId || !this.nodeId) {
+        reject(new Error(`Can't call pass() on a call without callId.`))
+      }
+
+      this.execute({
+        method: 'calling.pass',
+        params: {
+          node_id: this.nodeId,
+          call_id: this.callId,
+        },
+      })
+        .then(() => {
+          resolve()
+        })
+        .catch((e) => {
+          reject(e)
+        })
+    })
+  }
+
+  /**
    * Answers the incoming call.
    *
    * @example
