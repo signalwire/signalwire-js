@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.10.0] - 2023-07-19
+
+### Added
+
+- [#827](https://github.com/signalwire/signalwire-js/pull/827) [`6a35f0a3`](https://github.com/signalwire/signalwire-js/commit/6a35f0a38071160a82f766bd8b73b4718f04108f) - Introduce `await call.pass()` function to pass the call to another consumer.
+
+### Fixed
+
+- [#828](https://github.com/signalwire/signalwire-js/pull/828) [`a7426731`](https://github.com/signalwire/signalwire-js/commit/a7426731f683b7a631fe0bc591b208fd2c21b5c0) - bugfix: Add `setPayload` on CallTap instance.
+
+### Dependencies
+
+- Updated dependencies [[`b44bd6fb`](https://github.com/signalwire/signalwire-js/commit/b44bd6fbd69acd206e43b5b1fefbe7989dc16298), [`6a35f0a3`](https://github.com/signalwire/signalwire-js/commit/6a35f0a38071160a82f766bd8b73b4718f04108f), [`65b0eea5`](https://github.com/signalwire/signalwire-js/commit/65b0eea54346b177e94fd3960e8cc21579c8a9ce)]:
+  - @signalwire/core@3.18.0
+
 ## [3.9.2] - 2023-07-07
 
 ### Dependencies

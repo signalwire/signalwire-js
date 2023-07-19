@@ -1,10 +1,26 @@
 # @signalwire/js
 
-## [3.22.0] - 2023-07-07
-
 All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [3.23.0] - 2023-07-19
+
+### Added
+
+- [#822](https://github.com/signalwire/signalwire-js/pull/822) [`65b0eea5`](https://github.com/signalwire/signalwire-js/commit/65b0eea54346b177e94fd3960e8cc21579c8a9ce) - Initial changes to setup a `SignalWire` client.
+
+### Changed
+
+- [#825](https://github.com/signalwire/signalwire-js/pull/825) [`b44bd6fb`](https://github.com/signalwire/signalwire-js/commit/b44bd6fbd69acd206e43b5b1fefbe7989dc16298) - Added support for user-defined refresh token function to update SAT
+
+### Dependencies
+
+- Updated dependencies [[`b44bd6fb`](https://github.com/signalwire/signalwire-js/commit/b44bd6fbd69acd206e43b5b1fefbe7989dc16298), [`b9283059`](https://github.com/signalwire/signalwire-js/commit/b9283059f7f6633d9b28061efc46dab3bbf31d04), [`6a35f0a3`](https://github.com/signalwire/signalwire-js/commit/6a35f0a38071160a82f766bd8b73b4718f04108f), [`65b0eea5`](https://github.com/signalwire/signalwire-js/commit/65b0eea54346b177e94fd3960e8cc21579c8a9ce), [`f03e60a3`](https://github.com/signalwire/signalwire-js/commit/f03e60a3d2e27403fa14560697bb0ce20918f310)]:
+  - @signalwire/core@3.18.0
+  - @signalwire/webrtc@3.9.0
+
+## [3.22.0] - 2023-07-07
 
 ### Added
 

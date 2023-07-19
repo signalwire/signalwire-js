@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.18.0] - 2023-07-19
+
+### Added
+
+- [#827](https://github.com/signalwire/signalwire-js/pull/827) [`6a35f0a3`](https://github.com/signalwire/signalwire-js/commit/6a35f0a38071160a82f766bd8b73b4718f04108f) - Introduce `await call.pass()` function to pass the call to another consumer
+
+- [#822](https://github.com/signalwire/signalwire-js/pull/822) [`65b0eea5`](https://github.com/signalwire/signalwire-js/commit/65b0eea54346b177e94fd3960e8cc21579c8a9ce) - Initial changes to setup a `SignalWire` client for CF.
+
+### Changed
+
+- [#825](https://github.com/signalwire/signalwire-js/pull/825) [`b44bd6fb`](https://github.com/signalwire/signalwire-js/commit/b44bd6fbd69acd206e43b5b1fefbe7989dc16298) - Added support for user-defined refresh token function to update SAT (_internal_).
+
 ## [3.17.0] - 2023-07-07
 
 ### Added
