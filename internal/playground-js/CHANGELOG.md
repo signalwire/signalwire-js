@@ -1,5 +1,11 @@
 # @sw-internal/playground-js
 
+## 0.0.13
+
+### Patch Changes
+
+- [#822](https://github.com/signalwire/signalwire-js/pull/822) [`65b0eea5`](https://github.com/signalwire/signalwire-js/commit/65b0eea54346b177e94fd3960e8cc21579c8a9ce) - Update playground CF to use new SignalWire function.
+
 ## 0.0.12
 
 ### Patch Changes
