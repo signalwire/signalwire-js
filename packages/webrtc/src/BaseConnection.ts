@@ -290,7 +290,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     this.logger.debug('Set RTCPeer', rtcPeer.uuid, rtcPeer)
     this.rtcPeerMap.set(rtcPeer.uuid, rtcPeer)
 
-    if (this.peer && this.callId !== rtcPeer.uuid) {
+    if (this.peer && this.peer.instance && this.callId !== rtcPeer.uuid) {
       const oldPeerId = this.peer.uuid
       this.logger.debug('>>> Stop old RTCPeer', oldPeerId)
       // Hangup the previous RTCPeer
