@@ -500,8 +500,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
           // @ts-expect-error
           if (constraints[track.kind] !== undefined) {
-            this.logger.info('updateConstraints stop old tracks first?')
-            this.logger.info('Track readyState:', track.kind, track.readyState)
+            this.logger.debug('updateConstraints stop old tracks first?')
+            this.logger.debug('Track readyState:', track.kind, track.readyState)
             stopTrack(track)
             track.stop()
             this.localStream?.removeTrack(track)
@@ -510,6 +510,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
         let newStream!: MediaStream
         try {
+          this.logger.info('updateConstraints with', constraints)
           newStream = await getUserMedia(constraints)
         } catch (error) {
           this.logger.error(
