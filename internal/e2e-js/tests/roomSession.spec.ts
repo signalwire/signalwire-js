@@ -372,7 +372,8 @@ test.describe('RoomSession', () => {
       })
 
       const screenRoomLeft = new Promise((resolve) => {
-        screenShareObj.on('room.left', () => resolve(true))
+        // @ts-expect-error
+        screenShareObj._on('room.left', () => resolve(true))
       })
 
       await new Promise((r) => setTimeout(r, 2000))

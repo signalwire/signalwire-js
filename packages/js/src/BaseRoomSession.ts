@@ -202,7 +202,7 @@ export class RoomSessionConnection
 
       screenShare.once('destroy', () => {
         // @ts-expect-error
-        screenShare.emit('room.left')
+        screenShare.baseEmitter.emit('room.left')
         this._screenShareList.delete(screenShare)
       })
 
@@ -288,7 +288,7 @@ export class RoomSessionConnection
 
       roomDevice.once('destroy', () => {
         // @ts-expect-error
-        roomDevice.emit('room.left')
+        roomDevice.baseEmitter.emit('room.left')
         this._deviceList.delete(roomDevice)
       })
 

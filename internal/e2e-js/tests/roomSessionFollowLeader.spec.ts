@@ -45,8 +45,14 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
     )
 
     await Promise.all(allPages.map((page) => expectRoomJoined(page)))
-    // last page is audience                                            
-    await Promise.all(allPages.map((page, i) => i === allPages.length - 1 ? expectMCUVisibleForAudience(page) : expectMCUVisible(page)))
+    // last page is audience
+    await Promise.all(
+      allPages.map((page, i) =>
+        i === allPages.length - 1
+          ? expectMCUVisibleForAudience(page)
+          : expectMCUVisible(page)
+      )
+    )
     await Promise.all(allPages.map((page) => expectPageReceiveAudio(page)))
 
     await pageOne.waitForTimeout(2000)
@@ -55,7 +61,8 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
       return new Promise((resolve) => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
-        roomObj.on('room.left', () => {
+        // @ts-expect-error
+        roomObj._on('room.left', () => {
           resolve(true)
         })
       })
@@ -65,7 +72,8 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
       return new Promise((resolve) => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
-        roomObj.on('room.left', () => {
+        // @ts-expect-error
+        roomObj._on('room.left', () => {
           resolve(true)
         })
       })
@@ -76,7 +84,8 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
       const roomObj: Video.RoomSession = window._roomObj
 
       const promiseWaitForMember1Left = new Promise((resolve) => {
-        roomObj.on('room.left', () => {
+        // @ts-expect-error
+        roomObj._on('room.left', () => {
           resolve(true)
         })
       })
