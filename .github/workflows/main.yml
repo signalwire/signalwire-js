@@ -12,20 +12,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # unit-test:
-  #   name: Unit tests
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       node-version: [18.x]
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - name: Install dependencies and build
-  #       uses: ./.github/actions/setup-node-app
-  #       with:
-  #         NODE_VERSION: ${{ matrix.node-version }}
-  #     - name: Test
-  #       run: npm test
+  unit-test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies and build
+        uses: ./.github/actions/setup-node-app
+        with:
+          NODE_VERSION: ${{ matrix.node-version }}
+      - name: Test
+        run: npm test
 
   # stack-tests:
   #   name: Stack tests
