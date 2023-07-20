@@ -8,7 +8,6 @@ import type {
   SwEventParams,
   WebRTCMessageParams,
   SwAuthorizationStateParams,
-  MemberTalkingEventNames,
 } from '../../../types'
 import type {
   PubSubChannel,
@@ -48,11 +47,6 @@ export function* sessionChannelWatcher({
   function* videoAPIWorker(params: VideoAPIEventParams): SagaIterator {
     switch (params.event_type) {
       case 'video.room.audience_count': {
-        /** Rename event to be camelCase */
-        yield put(pubSubChannel, {
-          type: 'video.room.audienceCount',
-          payload: params.params,
-        })
         return
       }
       case 'video.member.updated': {
@@ -64,23 +58,6 @@ export function* sessionChannelWatcher({
          * return.
          */
         return
-      }
-      case 'video.member.talking': {
-        const { member } = params.params
-        if ('talking' in member) {
-          const suffix = member.talking ? 'started' : 'ended'
-          yield put(pubSubChannel, {
-            type: `video.member.talking.${suffix}` as MemberTalkingEventNames,
-            payload: params.params,
-          })
-          // Keep for backwards compat.
-          const deprecatedSuffix = member.talking ? 'start' : 'stop'
-          yield put(pubSubChannel, {
-            type: `video.member.talking.${deprecatedSuffix}` as MemberTalkingEventNames,
-            payload: params.params,
-          })
-        }
-        break
       }
     }
 
