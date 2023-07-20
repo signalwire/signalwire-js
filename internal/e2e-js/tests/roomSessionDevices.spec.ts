@@ -36,13 +36,15 @@ test.describe('RoomSessionDevices', () => {
       const roomObj: Video.RoomSession = window._roomObj
 
       const microphoneUpdated = new Promise((resolve) => {
-        roomObj.on('microphone.updated', (payload) => {
+        // @ts-expect-error
+        roomObj._on('microphone.updated', (payload) => {
           resolve(payload)
         })
       })
 
       const cameraUpdated = new Promise((resolve) => {
-        roomObj.on('camera.updated', (payload) => {
+        // @ts-expect-error
+        roomObj._on('camera.updated', (payload) => {
           resolve(payload)
         })
       })
@@ -91,7 +93,8 @@ test.describe('RoomSessionDevices', () => {
       const stream = roomObj.localStream!
 
       const microphoneDisconnected = new Promise((resolve) => {
-        roomObj.on('microphone.disconnected', (payload) => {
+        // @ts-expect-error
+        roomObj._on('microphone.disconnected', (payload) => {
           resolve(payload)
         })
         const track = stream.getAudioTracks()[0]
@@ -100,7 +103,8 @@ test.describe('RoomSessionDevices', () => {
       })
 
       const cameraDisconnected = new Promise((resolve) => {
-        roomObj.on('camera.disconnected', (payload) => {
+        // @ts-expect-error
+        roomObj._on('camera.disconnected', (payload) => {
           resolve(payload)
         })
         const track = stream.getVideoTracks()[0]
@@ -146,7 +150,8 @@ test.describe('RoomSessionDevices', () => {
       const roomObj: Video.RoomSession = window._roomObj
 
       const speakerUpdated = new Promise((resolve) => {
-        roomObj.on('speaker.updated', (payload) => {
+        // @ts-expect-error
+        roomObj._on('speaker.updated', (payload) => {
           resolve(payload)
         })
       })
@@ -215,7 +220,8 @@ test.describe('RoomSessionDevices', () => {
       }
 
       const speakerDisconnected = new Promise((resolve) => {
-        roomObj.on('speaker.disconnected', (payload) => {
+        // @ts-expect-error
+        roomObj._on('speaker.disconnected', (payload) => {
           resolve(payload)
         })
         const event = new Event('devicechange')

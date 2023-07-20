@@ -99,7 +99,8 @@ export class ClientAPI<
          * Stop and Restore outbound audio on audio_muted event
          */
         if (stopMicrophoneWhileMuted) {
-          room.on('member.updated.audio_muted', ({ member }) => {
+          // @ts-expect-error
+          room._on('member.updated.audio_muted', ({ member }) => {
             try {
               if (member.id === room.memberId && 'audio_muted' in member) {
                 member.audio_muted
@@ -116,7 +117,8 @@ export class ClientAPI<
          * Stop and Restore outbound video on video_muted event
          */
         if (stopCameraWhileMuted) {
-          room.on('member.updated.video_muted', ({ member }) => {
+          // @ts-expect-error
+          room._on('member.updated.video_muted', ({ member }) => {
             try {
               if (member.id === room.memberId && 'video_muted' in member) {
                 member.video_muted

@@ -85,7 +85,7 @@ export const createTestRoomSession = async (
       })
 
       options.initialEvents?.forEach((event) => {
-        roomSession.once(event, () => {})
+        roomSession._once(event, () => {})
       })
 
       // @ts-expect-error
@@ -276,7 +276,8 @@ export const expectLayoutChanged = (page: Page, layoutName: string) => {
       return new Promise((resolve) => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
-        roomObj.on('layout.changed', ({ layout }: any) => {
+        // @ts-expect-error
+        roomObj._on('layout.changed', ({ layout }: any) => {
           if (layout.name === options.layoutName) {
             resolve(true)
           }
@@ -356,7 +357,8 @@ export const expectMediaEvent = (page: Page, event: MediaEvent) => {
       return new Promise<void>((resolve) => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
-        roomObj.on(event, resolve)
+        // @ts-expect-error
+        roomObj._on(event, resolve)
       })
     },
     { event }
@@ -530,7 +532,8 @@ export const expectScreenShareJoined = async (page: Page) => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
 
-      roomObj.on('member.joined', (params: any) => {
+      // @ts-expect-error
+      roomObj._on('member.joined', (params: any) => {
         if (params.member.type === 'screen') {
           resolve(true)
         }

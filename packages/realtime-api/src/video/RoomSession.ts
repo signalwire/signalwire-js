@@ -147,7 +147,7 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     fn: EventEmitter.EventListener<RealTimeRoomApiEvents, any>
   ) {
     // @ts-expect-error
-    const instance = super.off(`video.${event}`, fn)
+    const instance = super._off(`video.${event}`, fn)
     return instance
   }
 
@@ -173,15 +173,10 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
       }
 
       try {
-        /**
-         * Note that we're using `super.once` (instead of
-         * `this.once`) here, because we don't want to
-         * re-trigger our added custom behavior.
-         */
-        super.once('room.subscribed', handler)
+        this.once('room.subscribed', handler)
         await super.subscribe()
       } catch (error) {
-        super.off('room.subscribed', handler)
+        this.off('room.subscribed', handler)
         return reject(error)
       }
     })

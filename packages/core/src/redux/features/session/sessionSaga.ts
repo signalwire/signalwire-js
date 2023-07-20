@@ -40,53 +40,21 @@ const isSwAuthorizationState = (
 
 export function* sessionChannelWatcher({
   sessionChannel,
-  pubSubChannel,
   swEventChannel,
   session,
 }: SessionSagaParams): SagaIterator {
-  function* videoAPIWorker(params: VideoAPIEventParams): SagaIterator {
-    switch (params.event_type) {
-      case 'video.room.audience_count': {
-        return
-      }
-      case 'video.member.updated': {
-        /**
-         * @see memberUpdatedWorker in packages/core/src/memberPosition/workers.ts
-         * `video.member.updated` is handled by the
-         * layoutWorker so to avoid dispatching the event
-         * twice (or with incomplete data) we'll early
-         * return.
-         */
-        return
-      }
-    }
-
-    // Emit on the pubSubChannel this "event_type"
-    yield put(pubSubChannel, {
-      type: params.event_type,
-      // @ts-expect-error
-      payload: params.params,
-    })
-  }
-
   function* swEventWorker(broadcastParams: SwEventParams) {
     yield put(swEventChannel, toInternalAction(broadcastParams))
 
-    if (isWebrtcEvent(broadcastParams)) {
+    if (isWebrtcEvent(broadcastParams) || isVideoEvent(broadcastParams)) {
       /**
-       * Skip `webrtc.*` events.
+       * Skip `webrtc.*` & `video.*` events.
        * There are custom workers handling them through `swEventChannel`
        */
       return
     }
     if (isSwAuthorizationState(broadcastParams)) {
       session.onSwAuthorizationState(broadcastParams.params.authorization_state)
-      return
-    }
-
-    // TODO: Remove this videoAPIWorker and use new videoWorker initiated by BaseRoomSession
-    if (isVideoEvent(broadcastParams)) {
-      yield fork(videoAPIWorker, broadcastParams)
       return
     }
 

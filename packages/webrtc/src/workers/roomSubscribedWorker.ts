@@ -31,7 +31,7 @@ export const roomSubscribedWorker: SDKWorker<
 > = function* (options): SagaIterator {
   getLogger().debug('roomSubscribedWorker started')
   const { channels, instance, initialState } = options
-  const { swEventChannel, pubSubChannel } = channels
+  const { swEventChannel } = channels
   const { rtcPeerId } = initialState
   if (!rtcPeerId) {
     throw new Error('Missing rtcPeerId for roomSubscribedWorker')
@@ -72,12 +72,6 @@ export const roomSubscribedWorker: SDKWorker<
       previewUrl: action.payload.room_session.preview_url,
     })
   )
-
-  // TODO: Remove it when we have a better logic for memberListUpdatedWorker
-  yield sagaEffects.put(pubSubChannel, {
-    type: 'video.room.joined',
-    payload: action.payload,
-  })
 
   // TODO: Do we still need to return the proxied object? Older emitter does that
   instance.baseEmitter.emit(

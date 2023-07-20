@@ -296,15 +296,15 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       return
     }
     // @ts-expect-error
-    this.call.emit('media.disconnected')
+    this.call.baseEmitter.emit('media.disconnected')
 
     // @ts-expect-error
-    this.call.emit('media.reconnecting')
+    this.call.baseEmitter.emit('media.reconnecting')
     this.clearTimers()
     this._resumeTimer = setTimeout(() => {
       this.logger.warn('Disconnecting due to RECONNECTION_ATTEMPT_TIMEOUT')
       // @ts-expect-error
-      this.call.emit('media.disconnected')
+      this.call.baseEmitter.emit('media.disconnected')
       this.call.leaveReason = 'RECONNECTION_ATTEMPT_TIMEOUT'
       this.call.setState('hangup')
     }, RESUME_TIMEOUT) // TODO: read from call verto.invite response
@@ -902,7 +902,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
     this.instance.addEventListener('track', (event: RTCTrackEvent) => {
       // @ts-expect-error
-      this.call.emit('track', event)
+      this.call.baseEmitter.emit('track', event)
 
       if (this.isSfu) {
         // const notification = { type: 'trackAdd', event }
@@ -943,14 +943,14 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   private emitMediaConnected() {
     // @ts-expect-error
-    this.call.emit('media.connected')
+    this.call.baseEmitter.emit('media.connected')
   }
 
   private _onEndedTrackHandler(event: Event) {
     const mediaTrack = event.target as MediaStreamTrack
     const evt = mediaTrack.kind === 'audio' ? 'microphone' : 'camera'
     // @ts-expect-error
-    this.call.emit(`${evt}.disconnected`, {
+    this.call.baseEmitter.emit(`${evt}.disconnected`, {
       deviceId: mediaTrack.id,
       label: mediaTrack.label,
     })
