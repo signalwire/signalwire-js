@@ -143,7 +143,7 @@ export const makeVideoElementSaga = ({
        * `join_audio_muted: true` we'll stop the streams
        * right away.
        */
-      room.on('room.subscribed', (params) => {
+      room._on('room.subscribed', (params) => {
         const member = params.room_session.members?.find(
           (m) => m.id === room.memberId
         )

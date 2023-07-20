@@ -112,7 +112,8 @@ export const createRoomObject = (
     const join = () => {
       return new Promise(async (resolve, reject) => {
         try {
-          roomObject.once('room.subscribed', (_payload) => {
+          // @ts-expect-error
+          roomObject_.once('room.subscribed', (_payload) => {
             resolve(roomObject)
           })
 

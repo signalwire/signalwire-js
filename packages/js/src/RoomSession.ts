@@ -133,7 +133,8 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     },
     init: () => {
       if (allowReattach) {
-        room.on('room.subscribed', reattachManager.joined)
+        // @ts-expect-error
+        room._on('room.subscribed', reattachManager.joined)
       }
       room.options.prevCallId = reattachManager.getPrevCallId()
     },
@@ -142,7 +143,8 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
         return
       }
 
-      room.off('room.subscribed', reattachManager.joined)
+      // @ts-expect-error
+      room._off('room.subscribed', reattachManager.joined)
       if (callIdKey) {
         getStorage()?.removeItem(callIdKey)
       }
@@ -242,7 +244,8 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
           })
         }
 
-        room.once('room.subscribed', (payload) => {
+        // @ts-expect-error
+        room._once('room.subscribed', (payload) => {
           // @ts-expect-error
           room.attachOnSubscribedWorkers(payload)
           resolve(room)
