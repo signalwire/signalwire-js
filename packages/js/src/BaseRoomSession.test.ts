@@ -418,17 +418,22 @@ describe('Room Object', () => {
       })
 
       const startedHandler = jest.fn()
-      room.on('member.talking.started', startedHandler)
+      // @ts-expect-error
+      room._on('member.talking.started', startedHandler)
       // deprecated
-      room.on('member.talking.start', startedHandler)
+      // @ts-expect-error
+      room._on('member.talking.start', startedHandler)
 
       const endedHandler = jest.fn()
-      room.on('member.talking.ended', endedHandler)
+      // @ts-expect-error
+      room._on('member.talking.ended', endedHandler)
       // deprecated
-      room.on('member.talking.stop', endedHandler)
+      // @ts-expect-error
+      room._on('member.talking.stop', endedHandler)
 
       const globalHandler = jest.fn()
-      room.on('member.talking', globalHandler)
+      // @ts-expect-error
+      room._on('member.talking', globalHandler)
 
       const talkingTrue = JSON.parse(
         '{"jsonrpc":"2.0","id":"9050e4f8-b08e-4e39-9796-bfb6e83c2a2d","method":"signalwire.event","params":{"params":{"room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","member":{"id":"a3693340-6f42-4cab-b18e-8e2a22695698","room_session_id":"8e03ac25-8622-411a-95fc-f897b34ac9e7","room_id":"6e83849b-5cc2-4fc6-80ed-448113c8a426","talking":true}},"timestamp":1627374612.9585,"event_type":"video.member.talking","event_channel":"room.0a324e3c-5e2f-443a-a333-10bf005f249e"}}'

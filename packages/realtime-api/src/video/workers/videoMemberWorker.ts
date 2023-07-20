@@ -69,10 +69,18 @@ export const videoMemberWorker = function* (
       remove<RoomSessionMember>(payload.member.id)
       break
     case 'video.member.talking':
+      roomSessionInstance.baseEmitter.emit(type, memberInstance)
       if ('talking' in payload.member) {
         const suffix = payload.member.talking ? 'started' : 'ended'
         roomSessionInstance.baseEmitter.emit(
           `${type}.${suffix}`,
+          memberInstance
+        )
+
+        // Keep for backwards compatibility
+        const deprecatedSuffix = payload.member.talking ? 'start' : 'stop'
+        roomSessionInstance.baseEmitter.emit(
+          `${type}.${deprecatedSuffix}`,
           memberInstance
         )
       }

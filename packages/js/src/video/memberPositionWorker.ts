@@ -5,6 +5,7 @@ import {
   sagaEffects,
 } from '@signalwire/core'
 
+// TODO: Why do we need this worker? Why can't we directly call MemberPosition.memberPositionWorker from the BaseRoomSession?
 export const memberPositionWorker: SDKWorker<any> =
   function* memberPositionWorker(options): SagaIterator {
     if (!options.initialState) {
