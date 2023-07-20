@@ -490,6 +490,8 @@ export interface VoiceCallRecordingContract {
   readonly size: number | undefined
   /** @ignore */
   readonly duration: number | undefined
+  /** @ignore */
+  readonly record: CallingCallRecordEventParams['record'] | undefined
 
   stop(): Promise<this>
   ended(): Promise<this>
@@ -552,12 +554,12 @@ export interface VoiceCallPromptContract {
 
   readonly type?: CallingCallCollectResult['type']
   /** Alias for type in case of errors */
-  readonly reason?: string
-  readonly digits?: string
-  readonly speech?: string
-  readonly terminator?: string
-  readonly text?: string
-  readonly confidence?: number
+  readonly reason: string | undefined
+  readonly digits: string | undefined
+  readonly speech: string | undefined
+  readonly terminator: string | undefined
+  readonly text: string | undefined
+  readonly confidence: number | undefined
 
   stop(): Promise<this>
   setVolume(volume: number): Promise<this>
@@ -592,12 +594,12 @@ export interface VoiceCallCollectContract {
 
   readonly type?: CallingCallCollectResult['type']
   /** Alias for type in case of errors */
-  readonly reason?: string
-  readonly digits?: string
-  readonly speech?: string
-  readonly terminator?: string
-  readonly text?: string
-  readonly confidence?: number
+  readonly reason: string | undefined
+  readonly digits: string | undefined
+  readonly speech: string | undefined
+  readonly terminator: string | undefined
+  readonly text: string | undefined
+  readonly confidence: number | undefined
 
   stop(): Promise<this>
   startInputTimers(): Promise<this>

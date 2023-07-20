@@ -75,6 +75,10 @@ export class CallRecordingAPI
     return this._payload?.duration
   }
 
+  get record() {
+    return this._payload?.record
+  }
+
   /** @internal */
   protected setPayload(payload: CallingCallRecordEventParams) {
     this._payload = payload
