@@ -57,7 +57,9 @@ const isMemberListEvent = (
   return MEMBER_LIST_EVENTS.includes(event)
 }
 
-const getMemberListEventsToSubscribe = (subscriptions: MemberListUpdatedTargetActions['type'][]) => {
+const getMemberListEventsToSubscribe = (
+  subscriptions: MemberListUpdatedTargetActions['type'][]
+) => {
   return validateEventsToSubscribe(MEMBER_LIST_EVENTS).filter((event) => {
     return !subscriptions.includes(event)
   })
@@ -120,7 +122,8 @@ const initMemberListSubscriptions = (
      * populated by each of the  event handlers the user
      * attached).
      */
-    room.once(event as any, noop)
+    // @ts-expect-error
+    room._once(event as any, noop)
   })
 
   /**
@@ -129,11 +132,11 @@ const initMemberListSubscriptions = (
    */
   const eventBridgeHandler = ({ members }: VideoMemberListUpdatedParams) => {
     // @ts-expect-error
-    room.emit(EXTERNAL_MEMBER_LIST_UPDATED_EVENT, { members })
+    room.baseEmitter.emit(EXTERNAL_MEMBER_LIST_UPDATED_EVENT, { members })
   }
 
   // @ts-expect-error
-  room.on(SYNTHETIC_MEMBER_LIST_UPDATED_EVENT, eventBridgeHandler)
+  room._on(SYNTHETIC_MEMBER_LIST_UPDATED_EVENT, eventBridgeHandler)
 
   /**
    * Any events attached by the saga should be specified
@@ -141,7 +144,7 @@ const initMemberListSubscriptions = (
    */
   const cleanup = () => {
     // @ts-expect-error
-    room.off(SYNTHETIC_MEMBER_LIST_UPDATED_EVENT, eventBridgeHandler)
+    room._off(SYNTHETIC_MEMBER_LIST_UPDATED_EVENT, eventBridgeHandler)
   }
 
   return {
@@ -151,8 +154,10 @@ const initMemberListSubscriptions = (
 
 function* membersListUpdatedWatcher({
   pubSubChannel,
+  instance,
 }: {
   pubSubChannel: PubSubChannel
+  instance: any
 }): SagaIterator {
   const memberList: MemberList = new Map()
 
@@ -175,10 +180,10 @@ function* membersListUpdatedWatcher({
     }
 
     // TODO: add typings
-    yield sagaEffects.put(pubSubChannel, {
-      type: SYNTHETIC_MEMBER_LIST_UPDATED_EVENT as any,
-      payload: memberListPayload as any,
-    })
+    instance.baseEmitter.emit(
+      SYNTHETIC_MEMBER_LIST_UPDATED_EVENT,
+      memberListPayload
+    )
   }
 
   while (true) {
@@ -209,9 +214,11 @@ export const memberListUpdatedWorker: SDKWorker<RoomSession> =
 
     yield sagaEffects.fork(membersListUpdatedWatcher, {
       pubSubChannel,
+      instance,
     })
 
-    instance.once('destroy', () => {
+    // @ts-expect-error
+    instance._once('destroy', () => {
       cleanup()
     })
   }

@@ -64,7 +64,8 @@ test.describe('RoomSession demote participant', () => {
 
         const waitForLayoutChangedDemotedInvisible = new Promise(
           (resolve, reject) => {
-            roomObj.on('layout.changed', ({ layout }) => {
+            // @ts-expect-error
+            roomObj._on('layout.changed', ({ layout }) => {
               for (const layer of layout.layers) {
                 if (
                   layer.member_id === demoteMemberId &&
@@ -83,7 +84,8 @@ test.describe('RoomSession demote participant', () => {
         )
 
         const waitForMemberLeft = new Promise((resolve, reject) => {
-          roomObj.on('member.left', ({ member }) => {
+          // @ts-expect-error
+          roomObj._on('member.left', ({ member }) => {
             if (member.name === 'e2e_participant_to_demote') {
               resolve(true)
             } else {

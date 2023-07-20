@@ -613,7 +613,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       this.logger.debug('updateStream simply update mic/cam')
       if (newTrack.kind === 'audio') {
         // @ts-expect-error
-        this.emit('microphone.updated', {
+        this.baseEmitter.emit('microphone.updated', {
           previous: {
             deviceId: prevAudioTrack?.id,
             label: prevAudioTrack?.label,
@@ -626,7 +626,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         this.options.micId = newTrack.getSettings().deviceId
       } else if (newTrack.kind === 'video') {
         // @ts-expect-error
-        this.emit('camera.updated', {
+        this.baseEmitter.emit('camera.updated', {
           previous: {
             deviceId: prevVideoTrack?.id,
             label: prevVideoTrack?.label,
@@ -962,7 +962,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     )
 
     // @ts-expect-error
-    this.emit(this.state, this)
+    this.baseEmitter.emit(this.state, this)
 
     switch (state) {
       case 'purge': {

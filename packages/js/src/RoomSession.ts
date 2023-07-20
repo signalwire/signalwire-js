@@ -179,7 +179,8 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
   })
 
   // WebRTC connection left the room.
-  room.once('destroy', () => {
+  // @ts-expect-error
+  room._once('destroy', () => {
     // @ts-expect-error
     room.baseEmitter.emit('room.left', { reason: room.leaveReason })
 
@@ -254,7 +255,8 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
         // Hijack previous callId if present
         reattachManager.init()
 
-        REQUIRED_EVENTS.forEach((event) => room.once(event, noop))
+        // @ts-expect-error
+        REQUIRED_EVENTS.forEach((event) => room._once(event, noop))
 
         await room.join()
       } catch (error) {

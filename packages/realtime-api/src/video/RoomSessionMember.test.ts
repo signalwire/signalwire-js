@@ -29,9 +29,10 @@ describe('Member Object', () => {
         // @ts-expect-error
         emitter,
         payload: {
+          // @ts-expect-error
           room_session: {
             id: roomSessionId,
-            eventChannel: 'room.e4b8baff-865d-424b-a210-4a182a3b1451',
+            event_channel: 'room.e4b8baff-865d-424b-a210-4a182a3b1451',
           },
         },
       })

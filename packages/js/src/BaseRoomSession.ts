@@ -200,7 +200,8 @@ export class RoomSessionConnection
         })
       })
 
-      screenShare.once('destroy', () => {
+      // @ts-expect-error
+      screenShare._once('destroy', () => {
         // @ts-expect-error
         screenShare.baseEmitter.emit('room.left')
         this._screenShareList.delete(screenShare)
@@ -286,7 +287,8 @@ export class RoomSessionConnection
         Component: RoomSessionDeviceAPI,
       })(options)
 
-      roomDevice.once('destroy', () => {
+      // @ts-expect-error
+      roomDevice._once('destroy', () => {
         // @ts-expect-error
         roomDevice.baseEmitter.emit('room.left')
         this._deviceList.delete(roomDevice)
@@ -325,20 +327,23 @@ export class RoomSessionConnection
   updateSpeaker({ deviceId }: { deviceId: string }) {
     const prevId = this._audioEl.sinkId as string
     // @ts-expect-error
-    this.once('_internal.speaker.updated', async (newId) => {
+    this._once('_internal.speaker.updated', async (newId) => {
       const prevSpeaker = await getSpeakerById(prevId)
       const newSpeaker = await getSpeakerById(newId)
 
       const isSame = newSpeaker?.deviceId === prevSpeaker?.deviceId
       if (!newSpeaker?.deviceId || isSame) return
 
-      this.emit('speaker.updated', {
+      this.baseEmitter.emit('speaker.updated', {
+        // @ts-expect-error
         previous: {
           deviceId: prevSpeaker?.deviceId,
+          // @ts-expect-error
           label: prevSpeaker?.label,
         },
         current: {
           deviceId: newSpeaker.deviceId,
+          // @ts-expect-error
           label: newSpeaker.label,
         },
       })
@@ -364,8 +369,9 @@ export class RoomSessionConnection
           )
         })
         if (disconnectedSpeaker) {
-          this.emit('speaker.disconnected', {
+          this.baseEmitter.emit('speaker.disconnected', {
             deviceId: disconnectedSpeaker.payload.deviceId,
+            // @ts-expect-error
             label: disconnectedSpeaker.payload.label,
           })
 
@@ -380,13 +386,15 @@ export class RoomSessionConnection
           if (!defaultSpeakers?.deviceId) return
 
           // Emit the speaker.updated event since the OS will fallback to the default speaker
-          this.emit('speaker.updated', {
+          this.baseEmitter.emit('speaker.updated', {
             previous: {
               deviceId: disconnectedSpeaker.payload.deviceId,
+              // @ts-expect-error
               label: disconnectedSpeaker.payload.label,
             },
             current: {
               deviceId: defaultSpeakers.deviceId,
+              // @ts-expect-error
               label: defaultSpeakers.label,
             },
           })
@@ -449,7 +457,7 @@ export class RoomSessionConnection
       setMirrored: (value: boolean) => {
         this._mirrored = value
         // @ts-expect-error
-        this.emit('_internal.mirror.video', this._mirrored)
+        this.baseEmitter.emit('_internal.mirror.video', this._mirrored)
       },
     }
   }

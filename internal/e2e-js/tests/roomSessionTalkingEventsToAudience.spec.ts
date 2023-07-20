@@ -61,7 +61,8 @@ test.describe('RoomSession talking events to audience', () => {
       return new Promise((resolve, reject) => {
         // @ts-expect-error
         const roomObj = window._roomObj
-        roomObj.on('member.joined', ({ member }) => {
+        // @ts-expect-error
+        roomObj._on('member.joined', ({ member }) => {
           if (member.name === 'e2e_member') {
             resolve(true)
           } else {
