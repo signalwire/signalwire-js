@@ -53,7 +53,7 @@ test.describe('RoomSession talking events to audience', () => {
       return new Promise((resolve) => {
         // @ts-expect-error
         const roomObj = window._roomObj
-        roomObj.on('member.talking', resolve)
+        roomObj._on('member.talking', resolve)
       })
     })
 

@@ -344,7 +344,8 @@ export const expectMemberTalkingEvent = (page: Page) => {
     return new Promise((resolve) => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
-      roomObj.on('member.talking', resolve)
+      // @ts-expect-error
+      roomObj._on('member.talking', resolve)
     })
   })
 }
