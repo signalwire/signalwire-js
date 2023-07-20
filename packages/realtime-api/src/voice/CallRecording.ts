@@ -63,6 +63,18 @@ export class CallRecordingAPI
     return this._payload?.state
   }
 
+  get url() {
+    return this._payload?.url
+  }
+
+  get size() {
+    return this._payload?.size
+  }
+
+  get duration() {
+    return this._payload?.duration
+  }
+
   /** @internal */
   protected setPayload(payload: CallingCallRecordEventParams) {
     this._payload = payload

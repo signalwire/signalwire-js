@@ -483,13 +483,13 @@ export interface VoiceCallRecordingContract {
   /** @ignore */
   readonly controlId: string
   /** @ignore */
-  readonly state?: CallingCallRecordState
+  readonly state: CallingCallRecordState | undefined
   /** @ignore */
-  readonly url?: string
+  readonly url: string | undefined
   /** @ignore */
-  readonly size?: number
+  readonly size: number | undefined
   /** @ignore */
-  readonly duration?: number
+  readonly duration: number | undefined
 
   stop(): Promise<this>
   ended(): Promise<this>
