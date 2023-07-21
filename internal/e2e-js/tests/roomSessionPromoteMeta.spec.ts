@@ -63,8 +63,7 @@ test.describe('RoomSession promote updating member meta', () => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
 
-        // @ts-expect-error
-        roomObj._once('room.joined', ({ room_session }) => {
+        roomObj.once('room.joined', ({ room_session }) => {
           for (let member of room_session.members) {
             if (member.name === 'e2e_audience_meta') {
               if (member.meta && member.meta['vip'] === true) {
@@ -87,8 +86,7 @@ test.describe('RoomSession promote updating member meta', () => {
         const roomObj: Video.RoomSession = window._roomObj
 
         const waitForMemberJoined = new Promise((resolve, reject) => {
-          // @ts-expect-error
-          roomObj._on('member.joined', ({ member }) => {
+          roomObj.on('member.joined', ({ member }) => {
             if (member.name === 'e2e_audience_meta') {
               if (member.meta && member.meta['vip'] === true) {
                 resolve(true)

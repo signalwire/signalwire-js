@@ -133,8 +133,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     },
     init: () => {
       if (allowReattach) {
-        // @ts-expect-error
-        room._on('room.subscribed', reattachManager.joined)
+        room.on('room.subscribed', reattachManager.joined)
       }
       room.options.prevCallId = reattachManager.getPrevCallId()
     },
@@ -143,8 +142,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
         return
       }
 
-      // @ts-expect-error
-      room._off('room.subscribed', reattachManager.joined)
+      room.off('room.subscribed', reattachManager.joined)
       if (callIdKey) {
         getStorage()?.removeItem(callIdKey)
       }
@@ -179,8 +177,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
   })
 
   // WebRTC connection left the room.
-  // @ts-expect-error
-  room._once('destroy', () => {
+  room.once('destroy', () => {
     // @ts-expect-error
     room.baseEmitter.emit('room.left', { reason: room.leaveReason })
 
@@ -245,8 +242,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
           })
         }
 
-        // @ts-expect-error
-        room._once('room.subscribed', (payload) => {
+        room.once('room.subscribed', (payload) => {
           // @ts-expect-error
           room.attachOnSubscribedWorkers(payload)
           resolve(room)
@@ -255,8 +251,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
         // Hijack previous callId if present
         reattachManager.init()
 
-        // @ts-expect-error
-        REQUIRED_EVENTS.forEach((event) => room._once(event, noop))
+        REQUIRED_EVENTS.forEach((event) => room.once(event, noop))
 
         await room.join()
       } catch (error) {

@@ -1067,4 +1067,28 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     })
     this.rtcPeerMap.clear()
   }
+
+  // @ts-expect-error
+  override on(
+    event: EventEmitter.EventNames<EventTypes>,
+    fn: EventEmitter.EventListener<EventTypes, any>
+  ) {
+    return super._on(event, fn)
+  }
+
+  // @ts-expect-error
+  override once(
+    event: EventEmitter.EventNames<EventTypes>,
+    fn: EventEmitter.EventListener<EventTypes, any>
+  ) {
+    return super._once(event, fn)
+  }
+
+  // @ts-expect-error
+  override off(
+    event: EventEmitter.EventNames<EventTypes>,
+    fn: EventEmitter.EventListener<EventTypes, any>
+  ) {
+    return super._off(event, fn)
+  }
 }

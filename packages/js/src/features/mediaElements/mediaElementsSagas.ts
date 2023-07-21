@@ -124,11 +124,11 @@ export const makeVideoElementSaga = ({
       }
 
       // @ts-expect-error
-      room._on('_internal.mirror.video', (value: boolean) => {
+      room.on('_internal.mirror.video', (value: boolean) => {
         localOverlay.setLocalOverlayMirror(value)
       })
 
-      room._on('layout.changed', (params) => {
+      room.on('layout.changed', (params) => {
         getLogger().debug('Received layout.changed - videoTrack', hasVideoTrack)
         if (hasVideoTrack) {
           _processLayoutChanged(params)
@@ -143,7 +143,7 @@ export const makeVideoElementSaga = ({
        * `join_audio_muted: true` we'll stop the streams
        * right away.
        */
-      room._on('room.subscribed', (params) => {
+      room.on('room.subscribed', (params) => {
         const member = params.room_session.members?.find(
           (m) => m.id === room.memberId
         )
@@ -169,7 +169,7 @@ export const makeVideoElementSaga = ({
         }
       })
 
-      room._on('member.updated.video_muted', (params) => {
+      room.on('member.updated.video_muted', (params) => {
         try {
           const { member } = params
           if (member.id === room.memberId && 'video_muted' in member) {
@@ -205,9 +205,9 @@ export const makeVideoElementSaga = ({
        * there are cases (promote/demote) where we need to handle multiple `track`
        * events and update the videoEl with the new track.
        */
-      room._on('track', trackHandler)
+      room.on('track', trackHandler)
 
-      room._once('destroy', () => {
+      room.once('destroy', () => {
         cleanupElement(rootElement)
         layerMap.clear()
         videoTask?.cancel()
@@ -250,9 +250,9 @@ export const makeAudioElementSaga = ({ speakerId }: { speakerId?: string }) => {
        * there are cases (promote/demote) where we need to handle multiple `track`
        * events and update the audioEl with the new track.
        */
-      room._on('track', trackHandler)
+      room.on('track', trackHandler)
 
-      room._once('destroy', () => {
+      room.once('destroy', () => {
         audioTask?.cancel()
       })
     } catch (error) {

@@ -88,8 +88,7 @@ export class WSClient {
         })
 
         // WebRTC connection left the room.
-        // @ts-expect-error
-        call._once('destroy', () => {
+        call.once('destroy', () => {
           this.logger.debug('RTC Connection Destroyed')
         })
 

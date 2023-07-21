@@ -73,8 +73,7 @@ test.describe('RoomSession Audience Count', () => {
                 // @ts-expect-error
                 const roomObj: Video.RoomSession = window._roomObj
 
-                // @ts-expect-error
-                roomObj._on('room.audienceCount', (params) => {
+                roomObj.on('room.audienceCount', (params) => {
                   // @ts-expect-error
                   window.__totalFromAudienceCount = params.total
                   if (params.total === count) {
