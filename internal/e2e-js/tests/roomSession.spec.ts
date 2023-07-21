@@ -91,8 +91,7 @@ test.describe('RoomSession', () => {
         const roomObj: Video.RoomSession = window._roomObj
 
         const memberUpdatedMuted = new Promise((resolve) => {
-          // @ts-expect-error
-          roomObj._on('member.updated', (params) => {
+          roomObj.on('member.updated', (params) => {
             if (
               params.member.id === joinParams.member_id &&
               params.member.updated.includes('audio_muted') &&
@@ -104,8 +103,7 @@ test.describe('RoomSession', () => {
         })
 
         const memberUpdatedUnmuted = new Promise((resolve) => {
-          // @ts-expect-error
-          roomObj._on('member.updated', (params) => {
+          roomObj.on('member.updated', (params) => {
             if (
               params.member.id === joinParams.member_id &&
               params.member.updated.includes('audio_muted') &&
@@ -131,8 +129,7 @@ test.describe('RoomSession', () => {
         const roomObj: Video.RoomSession = window._roomObj
 
         const memberUpdatedMuted = new Promise((resolve) => {
-          // @ts-expect-error
-          roomObj._on('member.updated', (params) => {
+          roomObj.on('member.updated', (params) => {
             if (
               params.member.id === joinParams.member_id &&
               params.member.updated.includes('video_muted') &&
@@ -146,8 +143,7 @@ test.describe('RoomSession', () => {
         })
 
         const memberUpdatedUnnuted = new Promise((resolve) => {
-          // @ts-expect-error
-          roomObj._on('member.updated', (params) => {
+          roomObj.on('member.updated', (params) => {
             if (
               params.member.id === joinParams.member_id &&
               params.member.updated.includes('video_muted') &&
@@ -174,8 +170,7 @@ test.describe('RoomSession', () => {
       const roomObj: Video.RoomSession = window._roomObj
 
       const recordingStarted = new Promise((resolve, reject) => {
-        // @ts-expect-error
-        roomObj._on('recording.started', (params) => {
+        roomObj.on('recording.started', (params) => {
           if (params.state === 'recording') {
             resolve(true)
           } else {
@@ -185,14 +180,14 @@ test.describe('RoomSession', () => {
       })
 
       const roomUpdatedStarted = new Promise((resolve, reject) => {
-        // @ts-expect-error
-        roomObj._on('room.updated', (params) => {
+        roomObj.on('room.updated', (params) => {
           if (
             params.room.recording === true &&
             // The type is incorrectly inferred within this
             // test. `params` is being inferred as
             // `VideoRoomEventParams` instead of
             // `RoomSessionUpdated`
+            // @ts-expect-error
             params.room?.updated.includes('recording')
           ) {
             resolve(true)
@@ -204,8 +199,7 @@ test.describe('RoomSession', () => {
 
       let recordingPaused = false
       const roomUpdatedPaused = new Promise((resolve, reject) => {
-        // @ts-expect-error
-        roomObj._on('recording.updated', (params) => {
+        roomObj.on('recording.updated', (params) => {
           if (params.state === 'paused' && recordingPaused === false) {
             recordingPaused = true
             resolve(true)
@@ -216,8 +210,7 @@ test.describe('RoomSession', () => {
       })
 
       const roomUpdatedResumed = new Promise((resolve, reject) => {
-        // @ts-expect-error
-        roomObj._on('recording.updated', (params) => {
+        roomObj.on('recording.updated', (params) => {
           if (params.state === 'recording' && recordingPaused === true) {
             resolve(true)
           } else if (params.state === 'paused' && recordingPaused === true) {
@@ -235,8 +228,7 @@ test.describe('RoomSession', () => {
       })
 
       const recordingEnded = new Promise((resolve, reject) => {
-        // @ts-expect-error
-        roomObj._on('recording.ended', (params) => {
+        roomObj.on('recording.ended', (params) => {
           if (params.state === 'completed') {
             resolve(true)
           } else {
@@ -270,8 +262,7 @@ test.describe('RoomSession', () => {
         const roomObj: Video.RoomSession = window._roomObj
 
         const playbackStarted = new Promise((resolve, reject) => {
-          // @ts-expect-error
-          roomObj._on('playback.started', (params) => {
+          roomObj.on('playback.started', (params) => {
             if (params.state === 'playing') {
               resolve(true)
             } else {
@@ -281,8 +272,7 @@ test.describe('RoomSession', () => {
         })
 
         const playbackEnded = new Promise((resolve, reject) => {
-          // @ts-expect-error
-          roomObj._on('playback.ended', (params) => {
+          roomObj.on('playback.ended', (params) => {
             if (params.state === 'completed') {
               resolve(true)
             } else {
@@ -293,8 +283,7 @@ test.describe('RoomSession', () => {
 
         let hasPaused = false
         const playbackPaused = new Promise((resolve) => {
-          // @ts-expect-error
-          roomObj._on('playback.updated', (params) => {
+          roomObj.on('playback.updated', (params) => {
             if (params.state === 'paused') {
               hasPaused = true
               resolve(true)
@@ -303,8 +292,7 @@ test.describe('RoomSession', () => {
         })
 
         const playbackResume = new Promise((resolve) => {
-          // @ts-expect-error
-          roomObj._on('playback.updated', (params) => {
+          roomObj.on('playback.updated', (params) => {
             if (params.state === 'playing' && hasPaused) {
               resolve(true)
             }
@@ -312,8 +300,7 @@ test.describe('RoomSession', () => {
         })
 
         const playbackVolume = new Promise((resolve) => {
-          // @ts-expect-error
-          roomObj._on('playback.updated', (params) => {
+          roomObj.on('playback.updated', (params) => {
             if (params.volume === -50) {
               resolve(true)
             }
@@ -347,8 +334,7 @@ test.describe('RoomSession', () => {
 
       let screenMemberId: string
       const screenJoined = new Promise((resolve) => {
-        // @ts-expect-error
-        roomObj._on('member.joined', (params: any) => {
+        roomObj.on('member.joined', (params: any) => {
           if (params.member.type === 'screen') {
             screenMemberId = params.member.id
             resolve(true)
@@ -357,8 +343,7 @@ test.describe('RoomSession', () => {
       })
 
       const screenLeft = new Promise((resolve) => {
-        // @ts-expect-error
-        roomObj._on('member.left', (params) => {
+        roomObj.on('member.left', (params) => {
           if (
             params.member.type === 'screen' &&
             params.member.id === screenMemberId
@@ -378,8 +363,7 @@ test.describe('RoomSession', () => {
       })
 
       const screenRoomLeft = new Promise((resolve) => {
-        // @ts-expect-error
-        screenShareObj._on('room.left', () => resolve(true))
+        screenShareObj.on('room.left', () => resolve(true))
       })
 
       await new Promise((r) => setTimeout(r, 2000))
@@ -414,8 +398,7 @@ test.describe('RoomSession', () => {
         const roomObj: Video.RoomSession = window._roomObj
 
         const setRoomMeta = new Promise((resolve) => {
-          // @ts-expect-error
-          roomObj._on('room.updated', (params) => {
+          roomObj.on('room.updated', (params) => {
             if (params.room_session.updated?.includes('meta')) {
               resolve(params.room_session.meta)
             }
@@ -442,8 +425,7 @@ test.describe('RoomSession', () => {
         const roomObj: Video.RoomSession = window._roomObj
 
         const setRoomMeta = new Promise((resolve) => {
-          // @ts-expect-error
-          roomObj._on('room.updated', (params) => {
+          roomObj.on('room.updated', (params) => {
             if (params.room_session.updated?.includes('meta')) {
               resolve(params.room_session.meta)
             }
@@ -477,8 +459,7 @@ test.describe('RoomSession', () => {
         const roomObj: Video.RoomSession = window._roomObj
 
         const deleteRoomMeta = new Promise((resolve) => {
-          // @ts-expect-error
-          roomObj._on('room.updated', (params) => {
+          roomObj.on('room.updated', (params) => {
             if (params.room_session.updated?.includes('meta')) {
               resolve(params.room_session.meta)
             }
@@ -522,8 +503,7 @@ test.describe('RoomSession', () => {
         const roomObj: Video.RoomSession = window._roomObj
 
         const setMemberMeta = new Promise((resolve) => {
-          // @ts-expect-error
-          roomObj._on('member.updated', (params) => {
+          roomObj.on('member.updated', (params) => {
             if (params.member.updated?.includes('meta')) {
               resolve(params.member.meta)
             }
@@ -550,8 +530,7 @@ test.describe('RoomSession', () => {
         const roomObj: Video.RoomSession = window._roomObj
 
         const updateMemberMeta = new Promise((resolve) => {
-          // @ts-expect-error
-          roomObj._on('member.updated', (params) => {
+          roomObj.on('member.updated', (params) => {
             if (params.member.updated?.includes('meta')) {
               resolve(params.member.meta)
             }
@@ -585,8 +564,7 @@ test.describe('RoomSession', () => {
         const roomObj: Video.RoomSession = window._roomObj
 
         const deleteMemberRoomMeta = new Promise((resolve) => {
-          // @ts-expect-error
-          roomObj._on('member.updated', (params) => {
+          roomObj.on('member.updated', (params) => {
             if (params.member.updated?.includes('meta')) {
               resolve(params.member.meta)
             }
@@ -661,8 +639,7 @@ test.describe('RoomSession', () => {
         const roomObj: Video.RoomSession = window._roomObj
 
         const recordingStarted = new Promise((resolve, reject) => {
-          // @ts-expect-error
-          roomObj._on('recording.started', (params) => {
+          roomObj.on('recording.started', (params) => {
             if (params.state === 'recording') {
               resolve(true)
             } else {
@@ -672,8 +649,7 @@ test.describe('RoomSession', () => {
         })
 
         const playbackStarted = new Promise((resolve, reject) => {
-          // @ts-expect-error
-          roomObj._on('playback.started', (params) => {
+          roomObj.on('playback.started', (params) => {
             if (params.state === 'playing') {
               resolve(true)
             } else {
@@ -707,8 +683,7 @@ test.describe('RoomSession', () => {
       return Promise.all(
         payload.recordings.map((recording: any) => {
           const recordingEnded = new Promise((resolve) => {
-            // @ts-expect-error
-            roomObj._on('recording.ended', (params) => {
+            roomObj.on('recording.ended', (params) => {
               if (params.id === recording.id) {
                 resolve(params)
               }
@@ -745,8 +720,7 @@ test.describe('RoomSession', () => {
       return Promise.all(
         payload.playbacks.map((playback) => {
           const playbackEnded = new Promise((resolve) => {
-            // @ts-expect-error
-            roomObj._on('playback.ended', (params) => {
+            roomObj.on('playback.ended', (params) => {
               if (params.id === playback.id) {
                 resolve(params)
               }

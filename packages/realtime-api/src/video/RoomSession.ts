@@ -137,7 +137,7 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     fn: EventEmitter.EventListener<RealTimeRoomApiEvents, any>
   ) {
     // @ts-expect-error
-    const instance = super._on(`video.${event}`, fn)
+    const instance = super._once(`video.${event}`, fn)
     this.debouncedSubscribe()
     return instance
   }

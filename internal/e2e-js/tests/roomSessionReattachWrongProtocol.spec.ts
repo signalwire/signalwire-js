@@ -67,7 +67,7 @@ test.describe('RoomSessionReattachWrongProtocol', () => {
       return new Promise((resolve) => {
         // @ts-expect-error
         const roomObj = window._roomObj
-        roomObj._on('room.joined', resolve)
+        roomObj.on('room.joined', resolve)
 
         // Inject wrong values for protocol ID
         const key = `pt-${roomName}`

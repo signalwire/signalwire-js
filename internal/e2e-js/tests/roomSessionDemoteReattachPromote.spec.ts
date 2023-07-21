@@ -69,8 +69,7 @@ test.describe('RoomSession demote participant, reattach and then promote again',
 
         const waitForLayoutChangedDemotedInvisible = new Promise(
           (resolve, reject) => {
-            // @ts-expect-error
-            roomObj._on('layout.changed', ({ layout }) => {
+            roomObj.on('layout.changed', ({ layout }) => {
               for (const layer of layout.layers) {
                 if (
                   layer.member_id === demoteMemberId &&
@@ -89,8 +88,7 @@ test.describe('RoomSession demote participant, reattach and then promote again',
         )
 
         const waitForMemberLeft = new Promise((resolve, reject) => {
-          // @ts-expect-error
-          roomObj._on('member.left', ({ member }) => {
+          roomObj.on('member.left', ({ member }) => {
             if (member.name === 'e2e_target_participant') {
               resolve(true)
             } else {
@@ -117,7 +115,7 @@ test.describe('RoomSession demote participant, reattach and then promote again',
       return new Promise((resolve) => {
         // @ts-expect-error
         const roomObj = window._roomObj
-        roomObj._once('room.joined', resolve)
+        roomObj.once('room.joined', resolve)
       })
     })
 
@@ -178,8 +176,7 @@ test.describe('RoomSession demote participant, reattach and then promote again',
         const roomObj: Video.RoomSession = window._roomObj
 
         const waitForMemberJoined = new Promise((resolve, reject) => {
-          // @ts-expect-error
-          roomObj._on('member.joined', ({ member }) => {
+          roomObj.on('member.joined', ({ member }) => {
             if (
               member.name === 'e2e_target_participant' &&
               member.id === promoteMemberId

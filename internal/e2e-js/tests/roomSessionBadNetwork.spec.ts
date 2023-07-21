@@ -107,8 +107,7 @@ test.describe('roomSessionBadNetwork', () => {
           return new Promise((resolve) => {
             // @ts-expect-error
             const roomObj: Video.RoomSession = window._roomObj
-            // @ts-expect-error
-            roomObj._on('member.updated', resolve)
+            roomObj.on('member.updated', resolve)
           })
         })
 

@@ -43,8 +43,7 @@ test.describe('RoomSession', () => {
       return new Promise((resolve) => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
-        // @ts-expect-error
-        roomObj._on('stream.started', (stream: any) => resolve(stream))
+        roomObj.on('stream.started', (stream: any) => resolve(stream))
         roomObj.join()
       })
     })
@@ -64,8 +63,7 @@ test.describe('RoomSession', () => {
         const roomObj: Video.RoomSession = window._roomObj
 
         const streamStarted = new Promise((resolve, reject) => {
-          // @ts-expect-error
-          roomObj._on('stream.started', (params) => {
+          roomObj.on('stream.started', (params) => {
             if (params.state === 'streaming') {
               resolve(true)
             } else {
@@ -93,15 +91,13 @@ test.describe('RoomSession', () => {
           // @ts-expect-error
           const roomObj: Video.RoomSession = window._roomObj
 
-          // @ts-expect-error
-          roomObj._on('room.joined', async (params) => {
+          roomObj.on('room.joined', async (params) => {
             const result = await roomObj.getStreams()
 
             const streamOnEnd = await Promise.all(
               result.streams.map((stream: any) => {
                 const streamEnded = new Promise((resolve) => {
-                  // @ts-expect-error
-                  roomObj._on('stream.ended', (params) => {
+                  roomObj.on('stream.ended', (params) => {
                     if (params.id === stream.id) {
                       resolve(params)
                     }

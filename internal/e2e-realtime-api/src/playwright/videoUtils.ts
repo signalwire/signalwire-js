@@ -84,17 +84,17 @@ export const createNewTabRoomSession = async (
             waitForPlaybackStartResolve = resolve
           })
 
-          roomSession._on('recording.started', () => {
+          roomSession.on('recording.started', () => {
             console.log('Recording has started')
             waitForRecordStartResolve()
           })
 
-          roomSession._on('playback.started', () => {
+          roomSession.on('playback.started', () => {
             console.log('Playback has started')
             waitForPlaybackStartResolve()
           })
 
-          roomSession._on('room.joined', async () => {
+          roomSession.on('room.joined', async () => {
             await roomSession.startRecording()
             await waitForRecordStart
 

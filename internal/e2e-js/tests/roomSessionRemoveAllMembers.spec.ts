@@ -51,8 +51,7 @@ test.describe('RoomSession removeAllMembers method', () => {
       return new Promise((resolve) => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
-        // @ts-expect-error
-        roomObj._on('room.left', () => {
+        roomObj.on('room.left', () => {
           resolve(true)
         })
       })
@@ -62,8 +61,7 @@ test.describe('RoomSession removeAllMembers method', () => {
       return new Promise((resolve) => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
-        // @ts-expect-error
-        roomObj._on('room.left', () => {
+        roomObj.on('room.left', () => {
           resolve(true)
         })
       })
@@ -74,8 +72,7 @@ test.describe('RoomSession removeAllMembers method', () => {
       const roomObj: Video.RoomSession = window._roomObj
 
       const promiseWaitForMember1Left = new Promise((resolve) => {
-        // @ts-expect-error
-        roomObj._on('room.left', () => {
+        roomObj.on('room.left', () => {
           resolve(true)
         })
       })

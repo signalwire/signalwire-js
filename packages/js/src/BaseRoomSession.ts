@@ -200,8 +200,7 @@ export class RoomSessionConnection
         })
       })
 
-      // @ts-expect-error
-      screenShare._once('destroy', () => {
+      screenShare.once('destroy', () => {
         // @ts-expect-error
         screenShare.baseEmitter.emit('room.left')
         this._screenShareList.delete(screenShare)
@@ -287,8 +286,7 @@ export class RoomSessionConnection
         Component: RoomSessionDeviceAPI,
       })(options)
 
-      // @ts-expect-error
-      roomDevice._once('destroy', () => {
+      roomDevice.once('destroy', () => {
         // @ts-expect-error
         roomDevice.baseEmitter.emit('room.left')
         this._deviceList.delete(roomDevice)
@@ -327,7 +325,7 @@ export class RoomSessionConnection
   updateSpeaker({ deviceId }: { deviceId: string }) {
     const prevId = this._audioEl.sinkId as string
     // @ts-expect-error
-    this._once('_internal.speaker.updated', async (newId) => {
+    this.once('_internal.speaker.updated', async (newId) => {
       const prevSpeaker = await getSpeakerById(prevId)
       const newSpeaker = await getSpeakerById(newId)
 

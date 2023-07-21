@@ -72,10 +72,8 @@ test.describe('RoomSession remove_at', () => {
         return new Promise((resolve) => {
           // @ts-expect-error
           const roomObj: Video.RoomSession = window._roomObj
-          // @ts-expect-error
-          roomObj._on('room.joined', () => {
-            // @ts-expect-error
-            roomObj._on('room.left', () => {
+          roomObj.on('room.joined', () => {
+            roomObj.on('room.left', () => {
               resolve(true)
             })
           })

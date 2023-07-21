@@ -122,8 +122,7 @@ const initMemberListSubscriptions = (
      * populated by each of the  event handlers the user
      * attached).
      */
-    // @ts-expect-error
-    room._once(event as any, noop)
+    room.once(event as any, noop)
   })
 
   /**
@@ -136,7 +135,7 @@ const initMemberListSubscriptions = (
   }
 
   // @ts-expect-error
-  room._on(SYNTHETIC_MEMBER_LIST_UPDATED_EVENT, eventBridgeHandler)
+  room.on(SYNTHETIC_MEMBER_LIST_UPDATED_EVENT, eventBridgeHandler)
 
   /**
    * Any events attached by the saga should be specified
@@ -144,7 +143,7 @@ const initMemberListSubscriptions = (
    */
   const cleanup = () => {
     // @ts-expect-error
-    room._off(SYNTHETIC_MEMBER_LIST_UPDATED_EVENT, eventBridgeHandler)
+    room.off(SYNTHETIC_MEMBER_LIST_UPDATED_EVENT, eventBridgeHandler)
   }
 
   return {
@@ -217,8 +216,7 @@ export const memberListUpdatedWorker: SDKWorker<RoomSession> =
       instance,
     })
 
-    // @ts-expect-error
-    instance._once('destroy', () => {
+    instance.once('destroy', () => {
       cleanup()
     })
   }

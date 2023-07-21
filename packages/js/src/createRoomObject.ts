@@ -103,8 +103,7 @@ export const createRoomObject = (
     })
 
     // WebRTC connection left the room.
-    // @ts-expect-error
-    roomObject._once('destroy', () => {
+    roomObject.once('destroy', () => {
       // @ts-expect-error
       roomObject.baseEmitter.emit('room.left')
       client.disconnect()
@@ -113,8 +112,7 @@ export const createRoomObject = (
     const join = () => {
       return new Promise(async (resolve, reject) => {
         try {
-          // @ts-expect-error
-          roomObject._once('room.subscribed', (_payload) => {
+          roomObject.once('room.subscribed', (_payload) => {
             resolve(roomObject)
           })
 
