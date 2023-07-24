@@ -1091,25 +1091,4 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     })
     this.rtcPeerMap.clear()
   }
-
-  override on(
-    event: EventEmitter.EventNames<EventTypes & BaseConnectionStateEventTypes>,
-    fn: EventEmitter.EventListener<EventTypes, any>
-  ) {
-    return super._on(event, fn)
-  }
-
-  override once(
-    event: EventEmitter.EventNames<EventTypes & BaseConnectionStateEventTypes>,
-    fn: EventEmitter.EventListener<EventTypes, any>
-  ) {
-    return super._once(event, fn)
-  }
-
-  override off(
-    event: EventEmitter.EventNames<EventTypes & BaseConnectionStateEventTypes>,
-    fn: EventEmitter.EventListener<EventTypes, any>
-  ) {
-    return super._off(event, fn)
-  }
 }

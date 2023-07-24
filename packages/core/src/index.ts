@@ -17,6 +17,7 @@ import {
   debounce,
   CloseEvent,
   isSATAuth,
+  LOCAL_EVENT_PREFIX,
 } from './utils'
 import { WEBRTC_EVENT_TYPES, isWebrtcEventType } from './utils/common'
 import { BaseSession } from './BaseSession'
@@ -68,6 +69,7 @@ export {
   WEBRTC_EVENT_TYPES,
   isWebrtcEventType,
   isSATAuth,
+  LOCAL_EVENT_PREFIX,
 }
 
 export * from './redux/features/component/componentSlice'

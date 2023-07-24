@@ -26,6 +26,7 @@ export * from './eventTransformUtils'
 export * from './proxyUtils'
 export * from './debounce'
 export * from './CloseEvent'
+export { LOCAL_EVENT_PREFIX }
 
 export const mutateStorageKey = (key: string) => `${STORAGE_PREFIX}${key}`
 
