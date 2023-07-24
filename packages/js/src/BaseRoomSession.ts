@@ -7,6 +7,8 @@ import {
   BaseConnectionContract,
   MemberPosition,
   VideoAuthorization,
+  EventEmitter,
+  LOCAL_EVENT_PREFIX,
 } from '@signalwire/core'
 import {
   getDisplayMedia,
@@ -312,7 +314,7 @@ export class RoomSessionConnection
   updateSpeaker({ deviceId }: { deviceId: string }) {
     const prevId = this._audioEl.sinkId as string
     // @ts-expect-error
-    this.once('_internal.speaker.updated', async (newId) => {
+    this.once(`${LOCAL_EVENT_PREFIX}.speaker.updated`, async (newId) => {
       const prevSpeaker = await getSpeakerById(prevId)
       const newSpeaker = await getSpeakerById(newId)
 
@@ -435,10 +437,37 @@ export class RoomSessionConnection
       mirrored: this._mirrored,
       setMirrored: (value: boolean) => {
         this._mirrored = value
-        // @ts-expect-error
-        this.baseEmitter.emit('_internal.mirror.video', this._mirrored)
+        this.baseEmitter.emit(
+          // @ts-expect-error
+          `${LOCAL_EVENT_PREFIX}.mirror.video`,
+          this._mirrored
+        )
       },
     }
+  }
+
+  override on<T extends EventEmitter.EventNames<RoomSessionObjectEvents>>(
+    event: T,
+    fn: EventEmitter.EventListener<RoomSessionObjectEvents, any>
+  ) {
+    // @ts-expect-error
+    return super._on(`video.${event}`, fn)
+  }
+
+  override once<T extends EventEmitter.EventNames<RoomSessionObjectEvents>>(
+    event: T,
+    fn: EventEmitter.EventListener<RoomSessionObjectEvents, any>
+  ) {
+    // @ts-expect-error
+    return super._once(`video.${event}`, fn)
+  }
+
+  override off<T extends EventEmitter.EventNames<RoomSessionObjectEvents>>(
+    event: T,
+    fn: EventEmitter.EventListener<RoomSessionObjectEvents, any>
+  ) {
+    // @ts-expect-error
+    return super.off(`video.${event}`, fn)
   }
 }
 

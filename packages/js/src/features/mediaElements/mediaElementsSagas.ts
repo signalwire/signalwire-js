@@ -124,7 +124,7 @@ export const makeVideoElementSaga = ({
       }
 
       // @ts-expect-error
-      room.on('_internal.mirror.video', (value: boolean) => {
+      room.on(`${LOCAL_EVENT_PREFIX}.mirror.video`, (value: boolean) => {
         localOverlay.setLocalOverlayMirror(value)
       })
 
@@ -288,8 +288,11 @@ function* audioElementActionsWatcher({
             action.payload
           )
 
-          // @ts-expect-error
-          room.baseEmitter.emit('_internal.speaker.updated', action.payload)
+          room.baseEmitter.emit(
+            // @ts-expect-error
+            `${LOCAL_EVENT_PREFIX}.speaker.updated`,
+            action.payload
+          )
 
           room.settleCustomSagaTrigger({
             dispatchId: action.dispatchId,
