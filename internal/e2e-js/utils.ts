@@ -306,6 +306,7 @@ export const expectRoomJoined = (
     return new Promise<any>(async (resolve) => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
+      
       roomObj.once('room.joined', resolve)
 
       if (invokeJoin) {
