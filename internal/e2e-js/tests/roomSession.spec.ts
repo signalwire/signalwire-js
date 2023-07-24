@@ -685,7 +685,15 @@ test.describe('RoomSession', () => {
           const recordingEnded = new Promise((resolve) => {
             roomObj.on('recording.ended', (params) => {
               if (params.id === recording.id) {
-                resolve(params)
+                const paramWithGetters = {
+                  id: params.id,
+                  roomSessionId: params.roomSessionId,
+                  state: params.state,
+                  pause: params.pause,
+                  resume: params.resume,
+                  stop: params.stop,
+                }
+                resolve(paramWithGetters)
               }
             })
           })
@@ -722,7 +730,23 @@ test.describe('RoomSession', () => {
           const playbackEnded = new Promise((resolve) => {
             roomObj.on('playback.ended', (params) => {
               if (params.id === playback.id) {
-                resolve(params)
+                const paramWithGetters = {
+                  id: params.id,
+                  roomSessionId: params.roomSessionId,
+                  state: params.state,
+                  seekable: params.seekable,
+                  startedAt: params.startedAt,
+                  url: params.url,
+                  volume: params.volume,
+                  forward: params.forward,
+                  pause: params.pause,
+                  resume: params.resume,
+                  rewind: params.rewind,
+                  seek: params.seek,
+                  setVolume: params.setVolume,
+                  stop: params.stop,
+                }
+                resolve(paramWithGetters)
               }
             })
           })
@@ -737,6 +761,8 @@ test.describe('RoomSession', () => {
         })
       ) as any as Video.RoomSessionPlayback[]
     })
+
+    console.log('playbacks', playbacks)
 
     playbacks.forEach((playback) => {
       // Since functions can't be serialized back to this
