@@ -47,14 +47,6 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
     await Promise.all(allPages.map((page) => expectRoomJoined(page)))
     // last page is audience                                            
     await Promise.all(allPages.map((page, i) => i === allPages.length - 1 ? expectMCUVisibleForAudience(page) : expectMCUVisible(page)))
-    // last page is audience
-    await Promise.all(
-      allPages.map((page, i) =>
-        i === allPages.length - 1
-          ? expectMCUVisibleForAudience(page)
-          : expectMCUVisible(page)
-      )
-    )
     await Promise.all(allPages.map((page) => expectPageReceiveAudio(page)))
 
     await pageOne.waitForTimeout(2000)
