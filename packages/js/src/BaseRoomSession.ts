@@ -320,15 +320,12 @@ export class RoomSessionConnection
       if (!newSpeaker?.deviceId || isSame) return
 
       this.baseEmitter.emit('speaker.updated', {
-        // @ts-expect-error
         previous: {
           deviceId: prevSpeaker?.deviceId,
-          // @ts-expect-error
           label: prevSpeaker?.label,
         },
         current: {
           deviceId: newSpeaker.deviceId,
-          // @ts-expect-error
           label: newSpeaker.label,
         },
       })
@@ -356,7 +353,6 @@ export class RoomSessionConnection
         if (disconnectedSpeaker) {
           this.baseEmitter.emit('speaker.disconnected', {
             deviceId: disconnectedSpeaker.payload.deviceId,
-            // @ts-expect-error
             label: disconnectedSpeaker.payload.label,
           })
 
@@ -374,12 +370,10 @@ export class RoomSessionConnection
           this.baseEmitter.emit('speaker.updated', {
             previous: {
               deviceId: disconnectedSpeaker.payload.deviceId,
-              // @ts-expect-error
               label: disconnectedSpeaker.payload.label,
             },
             current: {
               deviceId: defaultSpeakers.deviceId,
-              // @ts-expect-error
               label: defaultSpeakers.label,
             },
           })
