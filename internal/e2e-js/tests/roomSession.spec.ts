@@ -762,8 +762,6 @@ test.describe('RoomSession', () => {
       ) as any as Video.RoomSessionPlayback[]
     })
 
-    console.log('playbacks', playbacks)
-
     playbacks.forEach((playback) => {
       // Since functions can't be serialized back to this
       // thread (from the previous step) we just check that

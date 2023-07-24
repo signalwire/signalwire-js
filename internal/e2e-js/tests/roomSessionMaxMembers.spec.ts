@@ -41,8 +41,8 @@ test.describe('Room Session Max Members', () => {
           },
           initialEvents: ['stream.started', 'stream.ended'],
           expectToJoin: false,
-        })
-      })
+        })}
+      )
     )
 
     await Promise.all([expectRoomJoined(pageOne), expectRoomJoined(pageTwo)])

@@ -82,7 +82,6 @@ export const roomSubscribedWorker: SDKWorker<
   getLogger().debug('roomSubscribedWorker ended', rtcPeerId)
 }
 
-// TODO: We might not need it since the room_session.recordings (possibly others as well) has been deprecated
 function transformPayload(
   this: BaseConnection<any>,
   payload: VideoRoomSubscribedEventParams

@@ -36,6 +36,7 @@ import type {
   DeviceUpdatedEventParams,
   VideoRoomDeviceDisconnectedEventNames,
   DeviceDisconnectedEventParams,
+  VideoRoomDeviceEventNames,
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
 import type { MediaEvent } from '@signalwire/webrtc'
@@ -92,9 +93,10 @@ export type RoomEventNames =
   | RTCTrackEventName
 
 export type RoomSessionObjectEventsHandlerMap = Record<
-  VideoLayoutEventNames,
-  (params: { layout: VideoLayout }) => void
+  VideoRoomDeviceEventNames,
+  (params: DeviceUpdatedEventParams) => void
 > &
+  Record<VideoLayoutEventNames, (params: { layout: VideoLayout }) => void> &
   Record<
     Exclude<
       VideoMemberEventNames,
