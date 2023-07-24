@@ -242,9 +242,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
           })
         }
 
-        room.once('room.subscribed', (payload) => {
-          // @ts-expect-error
-          room.attachOnSubscribedWorkers(payload)
+        room.once('room.subscribed', () => {
           resolve(room)
         })
 

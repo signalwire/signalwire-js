@@ -5,7 +5,6 @@ import {
   BaseComponentContract,
   BaseComponentOptions,
   BaseConnectionContract,
-  VideoRoomEventParams,
   MemberPosition,
   VideoAuthorization,
 } from '@signalwire/core'
@@ -128,18 +127,6 @@ export class RoomSessionConnection
   protected attachPreConnectWorkers() {
     this.runWorker('memberListUpdated', {
       worker: workers.memberListUpdatedWorker,
-    })
-  }
-
-  /**
-   * This method will be called right after
-   * `room.subscribed` happened
-   * @internal
-   */
-  protected attachOnSubscribedWorkers(payload: VideoRoomEventParams) {
-    this.runWorker('memberPositionWorker', {
-      worker: workers.memberPositionWorker,
-      initialState: payload,
     })
   }
 
