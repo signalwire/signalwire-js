@@ -7,6 +7,7 @@ import {
   getLogger,
   sagaEffects,
   SDKWorkerParams,
+  MemberPosition,
 } from '@signalwire/core'
 import { RoomSessionConnection } from '../BaseRoomSession'
 import { videoStreamWorker } from './videoStreamWorker'
@@ -27,6 +28,13 @@ export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
     const { type, payload } = action
 
     switch (type) {
+      case 'video.room.subscribed':
+        yield sagaEffects.spawn(MemberPosition.memberPositionWorker, {
+          ...options,
+          instance: client,
+          initialState: payload,
+        })
+        break
       case 'video.playback.started':
       case 'video.playback.updated':
       case 'video.playback.ended':

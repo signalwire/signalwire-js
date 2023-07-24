@@ -1,4 +1,4 @@
-import { fork, put } from '@redux-saga/core/effects'
+import { fork } from '@redux-saga/core/effects'
 import {
   InternalMemberUpdatedEventNames,
   sagaEffects,
@@ -11,23 +11,25 @@ import {
 } from '..'
 import { findNamespaceInPayload } from '../redux/features/shared/namespace'
 
-// @TODO: Dispatcher should be removed once we implement new event emitter for Browser SDK
+/**
+ * These workers are shared between the realtime-api and the browser SDK
+ * For the realtime-api: we pass the dispatcher function since we emit RoomSessionMember instance
+ * For the browser SDK: we use the default dispatcher function since we emit whatever we get from the server
+ */
+
 const defaultDispatcher = function* (
   type: string,
   payload: any,
-  channel?: any
+  instance?: any
 ) {
-  yield put(channel, {
-    type,
-    payload,
-  })
+  instance.baseEmitter.emit(type, payload)
 }
 
 function* memberPositionLayoutChangedWorker(options: any) {
   const {
     action,
     memberList,
-    channels: { pubSubChannel },
+    instance,
     dispatcher = defaultDispatcher,
   } = options
   const layers = action.payload.layout.layers
@@ -59,7 +61,7 @@ function* memberPositionLayoutChangedWorker(options: any) {
 
   for (const [memberId, payload] of memberList) {
     if (processedMembers[memberId]) {
-      yield dispatcher?.('video.member.updated', payload, pubSubChannel)
+      yield dispatcher?.('video.member.updated', payload, instance)
 
       /**
        * `undefined` means that we couldn't find the
@@ -80,7 +82,7 @@ function* memberPositionLayoutChangedWorker(options: any) {
       yield dispatcher?.(
         'video.member.updated',
         updatedMemberEventParams,
-        pubSubChannel
+        instance
       )
     }
   }
@@ -88,8 +90,8 @@ function* memberPositionLayoutChangedWorker(options: any) {
 
 export function* memberUpdatedWorker({
   action,
-  channels,
   memberList,
+  instance,
   dispatcher = defaultDispatcher,
 }: Omit<SDKWorkerParams<any>, 'runSaga'> & {
   memberList: MemberEventParamsList
@@ -122,10 +124,10 @@ export function* memberUpdatedWorker({
 
   for (const key of updated) {
     const type = `${action.type}.${key}` as InternalMemberUpdatedEventNames
-    yield dispatcher?.(type, memberUpdatedPayload, channels.pubSubChannel)
+    yield dispatcher?.(type, memberUpdatedPayload, instance)
   }
 
-  yield dispatcher?.(action.type, memberUpdatedPayload, channels.pubSubChannel)
+  yield dispatcher?.(action.type, memberUpdatedPayload, instance)
 }
 
 export const MEMBER_POSITION_COMPOUND_EVENTS = new Map<any, any>([
