@@ -908,6 +908,30 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     }
   }
 
+  async hangupAll() {
+    const rtcPeerId = this.callId
+    if (!rtcPeerId) {
+      throw new Error('Invalid RTCPeer ID to hangup')
+    }
+
+    try {
+      const message = VertoBye({
+        cause: 'REJECT_ALL',
+        causeCode: '825',
+        ...this.dialogParams(rtcPeerId),
+      })
+      await this.vertoExecute({
+        message,
+        callID: rtcPeerId,
+        node_id: this.nodeId,
+      })
+    } catch (error) {
+      this.logger.error('HangupAll error:', error)
+    } finally {
+      this.setState('hangup')
+    }
+  }
+
   /** @internal */
   dtmf(dtmf: string) {
     const rtcPeerId = this.callId
