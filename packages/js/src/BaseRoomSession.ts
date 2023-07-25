@@ -464,7 +464,7 @@ export class RoomSessionConnection
     event: T,
     fn: EventEmitter.EventListener<RoomSessionObjectEvents, any>
   ) {
-    return super.off(event, fn)
+    return super._off(event, fn)
   }
 }
 

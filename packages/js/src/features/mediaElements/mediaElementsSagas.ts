@@ -3,6 +3,7 @@ import {
   CustomSagaParams,
   actions,
   sagaEffects,
+  LOCAL_EVENT_PREFIX,
 } from '@signalwire/core'
 import type { SagaIterator, Task } from '@signalwire/core'
 import { setMediaElementSinkId } from '@signalwire/webrtc'
