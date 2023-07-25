@@ -6,6 +6,7 @@ import {
   VideoManagerRoomEntity,
   EventEmitter,
   ApplyEventListeners,
+  validateEventsToSubscribe,
 } from '@signalwire/core'
 import { videoManagerWorker } from './workers'
 
@@ -28,6 +29,13 @@ export class VideoManagerAPI extends ApplyEventListeners<VideoManagerEvents> {
     this.runWorker('videoManagerWorker', {
       worker: videoManagerWorker,
     })
+  }
+
+  protected override getSubscriptions(): any {
+    const eventNamesWithPrefix = this.baseEventNames().map(
+      (event) => `video-manager.${event}`
+    )
+    return validateEventsToSubscribe(eventNamesWithPrefix)
   }
 }
 

@@ -172,10 +172,10 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
       }
 
       try {
-        this.once('room.subscribed', handler)
+        super._once('room.subscribed', handler)
         await super.subscribe()
       } catch (error) {
-        this.off('room.subscribed', handler)
+        super._off('room.subscribed', handler)
         return reject(error)
       }
     })
