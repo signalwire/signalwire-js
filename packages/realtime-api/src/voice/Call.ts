@@ -94,8 +94,6 @@ export interface Call
 }
 
 export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
-  protected _eventsPrefix = 'calling' as const
-
   private _peer: Call | undefined
   private _payload: CallingCall
   private _connectPayload: CallingCallConnectEventParams

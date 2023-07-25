@@ -5,8 +5,6 @@ import { EventEmitter } from './utils/EventEmitter'
 describe('BaseComponent', () => {
   describe('as an event emitter', () => {
     class JestComponent extends BaseComponent<any> {
-      protected _eventsPrefix = 'video' as const
-
       constructor(namespace = '') {
         super({
           store: configureJestStore(),
@@ -48,31 +46,6 @@ describe('BaseComponent', () => {
       expect(
         customInstance.listenerCount('custom:video.test.event_two')
       ).toEqual(1)
-    })
-
-    it('should keep track of the original events with the _eventsPrefix', () => {
-      const firstInstance = new JestComponent('first_namespace')
-      firstInstance.on('first.event_one', () => {})
-      firstInstance.once('video.first.eventOne', () => {})
-      firstInstance.on('first.event_two', () => {})
-      firstInstance.once('video.first.eventTwo', () => {})
-      firstInstance.once('video.first.eventTwoExtra', () => {})
-
-      const secondInstance = new JestComponent('second_namespace')
-      secondInstance.on('second.event_one', () => {})
-      secondInstance.once('video.second.eventOne', () => {})
-      secondInstance.on('second.event_two', () => {})
-      secondInstance.once('video.second.eventTwo', () => {})
-
-      expect(firstInstance.eventNames()).toStrictEqual([
-        'first_namespace:video.first.event_one',
-        'first_namespace:video.first.event_two',
-        'first_namespace:video.first.event_two_extra',
-      ])
-      expect(secondInstance.eventNames()).toStrictEqual([
-        'second_namespace:video.second.event_one',
-        'second_namespace:video.second.event_two',
-      ])
     })
 
     it('should remove the listeners with .off', () => {
