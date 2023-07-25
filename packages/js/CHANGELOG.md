@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.23.1] - 2023-07-25
+
+### Changed
+
+- [#836](https://github.com/signalwire/signalwire-js/pull/836) [`a7a0eb98`](https://github.com/signalwire/signalwire-js/commit/a7a0eb989cd52972ed4b401bde0b960e15fb2b8a) - [cf] Return the Call object without join it to allow attaching event listeners
+
+### Dependencies
+
+- Updated dependencies [[`81beb29a`](https://github.com/signalwire/signalwire-js/commit/81beb29a9bc3c6135df37223fae44445967c1a84), [`a7ae5448`](https://github.com/signalwire/signalwire-js/commit/a7ae5448d0327d68bc4f6c158ac2fe8e8417a581), [`2a2049ba`](https://github.com/signalwire/signalwire-js/commit/2a2049ba37ea786395d9552789f55d00172f165f)]:
+  - @signalwire/core@3.18.1
+  - @signalwire/webrtc@3.10.0
+
 ## [3.23.0] - 2023-07-19
 
 ### Added
