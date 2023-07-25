@@ -245,6 +245,8 @@ window.connect = async () => {
     nodeId: steeringId,
   })
 
+  await call.start()
+
   console.debug('Call Obj', call)
 
   window.__call = call

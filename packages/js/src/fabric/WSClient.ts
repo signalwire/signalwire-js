@@ -100,30 +100,23 @@ export class WSClient {
         call.attachPreConnectWorkers()
 
         // @ts-expect-error
-        call.emitter.once('verto.display', () => resolve(call))
-        call.once('room.subscribed', () => resolve(call))
+        call.start = () => {
+          return new Promise(async (resolve, reject) => {
+            try {
+              // @ts-expect-error
+              call.emitter.once('verto.display', () => resolve(call))
+              call.once('room.subscribed', () => resolve(call))
 
-        await call.join()
+              await call.join()
+            } catch (error) {
+              getLogger().error('WSClient call start', error)
 
-        // call.updateMediaOptions({
-        //   audio,
-        //   video,
-        //   negotiateAudio: audio,
-        //   negotiateVideo: video,
-        // })
+              reject(error)
+            }
+          })
+        }
 
-        // return buildCall({
-        //   strategy: 'room',
-        //   params: {
-        //     token: this.options.token,
-        //   },
-        //   userParams: {
-        //     // @ts-expect-error
-        //     host: this.options.host,
-        //     destinationNumber: params.to,
-        //     ...params,
-        //   },
-        // })
+        resolve(call)
       } catch (error) {
         getLogger().error('WSClient dial', error)
 
