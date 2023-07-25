@@ -36,7 +36,6 @@ export type BaseChatApiEvents<T = BaseChatApiEventsHandlerMapping> = {
 }
 
 export class BaseChatConsumer extends BasePubSubConsumer<BaseChatApiEvents> {
-  protected override _eventsPrefix = PRODUCT_PREFIX_CHAT
   protected override subscribeMethod: JSONRPCSubscribeMethod = `${PRODUCT_PREFIX_CHAT}.subscribe`
 
   constructor(options: BaseComponentOptions<BaseChatApiEvents>) {

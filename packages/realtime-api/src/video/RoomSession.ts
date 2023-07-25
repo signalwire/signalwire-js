@@ -51,7 +51,6 @@ export interface RoomSessionConsumerOptions
   > {}
 
 export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
-  protected _eventsPrefix = 'video' as const
   private _payload: RoomSessionPayload
 
   /** @internal */
