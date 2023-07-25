@@ -5,6 +5,7 @@ import {
   BaseConnectionState,
   RoomLeft,
   RoomLeftEventParams,
+  EventEmitter,
 } from '@signalwire/core'
 import { BaseConnection, MediaEvent } from '@signalwire/webrtc'
 import { RoomSessionDeviceMethods } from './utils/interfaces'
@@ -38,6 +39,27 @@ export class RoomSessionDeviceConnection extends BaseConnection<RoomSessionDevic
 
   leave() {
     return super.hangup()
+  }
+
+  override on<T extends EventEmitter.EventNames<RoomSessionDeviceEvents>>(
+    event: T,
+    fn: EventEmitter.EventListener<RoomSessionDeviceEvents, any>
+  ) {
+    return super._on(event, fn)
+  }
+
+  override once<T extends EventEmitter.EventNames<RoomSessionDeviceEvents>>(
+    event: T,
+    fn: EventEmitter.EventListener<RoomSessionDeviceEvents, any>
+  ) {
+    return super._once(event, fn)
+  }
+
+  override off<T extends EventEmitter.EventNames<RoomSessionDeviceEvents>>(
+    event: T,
+    fn: EventEmitter.EventListener<RoomSessionDeviceEvents, any>
+  ) {
+    return super._off(event, fn)
   }
 }
 
