@@ -19,7 +19,7 @@ import type { VideoMemberListUpdatedParams } from '../utils/interfaces'
 
 const noop = () => {}
 
-const EXTERNAL_MEMBER_LIST_UPDATED_EVENT = 'video.memberList.updated'
+const EXTERNAL_MEMBER_LIST_UPDATED_EVENT = 'memberList.updated'
 
 const INTERNAL_MEMBER_LIST_UPDATED_EVENT = toInternalEventName({
   event: EXTERNAL_MEMBER_LIST_UPDATED_EVENT,
