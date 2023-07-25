@@ -5,6 +5,7 @@ import {
   BaseConnectionState,
   RoomLeft,
   RoomLeftEventParams,
+  EventEmitter,
 } from '@signalwire/core'
 import { BaseConnection, MediaEvent } from '@signalwire/webrtc'
 import { RoomScreenShareMethods } from './utils/interfaces'
@@ -38,6 +39,29 @@ export class RoomSessionScreenShareConnection extends BaseConnection<RoomSession
 
   leave() {
     return super.hangup()
+  }
+
+  override on<T extends EventEmitter.EventNames<RoomSessionScreenShareEvents>>(
+    event: T,
+    fn: EventEmitter.EventListener<RoomSessionScreenShareEvents, any>
+  ) {
+    return super._on(event, fn)
+  }
+
+  override once<
+    T extends EventEmitter.EventNames<RoomSessionScreenShareEvents>
+  >(
+    event: T,
+    fn: EventEmitter.EventListener<RoomSessionScreenShareEvents, any>
+  ) {
+    return super._once(event, fn)
+  }
+
+  override off<T extends EventEmitter.EventNames<RoomSessionScreenShareEvents>>(
+    event: T,
+    fn: EventEmitter.EventListener<RoomSessionScreenShareEvents, any>
+  ) {
+    return super._off(event, fn)
   }
 }
 
