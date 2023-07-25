@@ -9,6 +9,7 @@ import {
   VideoAuthorization,
   EventEmitter,
   LOCAL_EVENT_PREFIX,
+  validateEventsToSubscribe,
 } from '@signalwire/core'
 import {
   getDisplayMedia,
@@ -444,6 +445,13 @@ export class RoomSessionConnection
         )
       },
     }
+  }
+
+  protected override getSubscriptions(): any {
+    const eventNamesWithPrefix = this.baseEventNames().map(
+      (event) => `video.${event}`
+    )
+    return validateEventsToSubscribe(eventNamesWithPrefix)
   }
 
   override on<T extends EventEmitter.EventNames<RoomSessionObjectEvents>>(
