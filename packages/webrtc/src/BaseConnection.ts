@@ -820,7 +820,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
    *   - new: the first time we send out the answer.
    * @internal
    */
-  async executeAnswer(sdp: string, rtcPeerId: string) {
+  async executeAnswer(sdp: string, rtcPeerId: string, nodeId?: string) {
     // Set state to `answering` only when `new`, otherwise keep it as `answering`.
     if (this.state === 'new') {
       this.setState('answering')
@@ -833,8 +833,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       const response: any = await this.vertoExecute({
         message,
         callID: rtcPeerId,
-        node_id: this.nodeId || 'f6cf30a9-1ff1-4f89-b674-e0208ad5d9cd@',
-        // subscribe, // TODO: subscribe events?
+        node_id: nodeId ?? this.options.nodeId,
+        subscribe: this.getSubscriptions(),
       })
       this.logger.debug('Answer response', response)
 
