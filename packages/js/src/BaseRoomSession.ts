@@ -450,24 +450,21 @@ export class RoomSessionConnection
     event: T,
     fn: EventEmitter.EventListener<RoomSessionObjectEvents, any>
   ) {
-    // @ts-expect-error
-    return super._on(`video.${event}`, fn)
+    return super._on(event, fn)
   }
 
   override once<T extends EventEmitter.EventNames<RoomSessionObjectEvents>>(
     event: T,
     fn: EventEmitter.EventListener<RoomSessionObjectEvents, any>
   ) {
-    // @ts-expect-error
-    return super._once(`video.${event}`, fn)
+    return super._once(event, fn)
   }
 
   override off<T extends EventEmitter.EventNames<RoomSessionObjectEvents>>(
     event: T,
     fn: EventEmitter.EventListener<RoomSessionObjectEvents, any>
   ) {
-    // @ts-expect-error
-    return super.off(`video.${event}`, fn)
+    return super.off(event, fn)
   }
 }
 
