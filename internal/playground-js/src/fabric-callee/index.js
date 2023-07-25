@@ -32,6 +32,7 @@ const inCallElements = [
   tapPushNotificationBtn,
   acceptCallBtn,
   rejectCallBtn,
+  rejectAllCallsBtn,
 ]
 
 const playbackElements = [
@@ -121,11 +122,13 @@ function uiReady() {
 function enableCallButtons() {
   acceptCallBtn.disabled = false
   rejectCallBtn.disabled = false
+  rejectAllCallsBtn.disabled = false
 }
 
 function disableCallButtons() {
   acceptCallBtn.disabled = true
   rejectCallBtn.disabled = true
+  rejectAllCallsBtn.disabled = true
 }
 
 async function getClient() {
@@ -223,6 +226,12 @@ window.acceptCall = async () => {
 window.rejectCall = async () => {
   disableCallButtons()
   await window.__call.hangup()
+  restoreUI()
+}
+
+window.rejectAllCalls = async () => {
+  disableCallButtons()
+  await window.__call.hangupAll()
   restoreUI()
 }
 
@@ -606,21 +615,7 @@ async function readPushNotification(payload, pnKey) {
   }
 }
 
-/**
- * On document ready auto-fill the input values from the localStorage.
- */
-window.ready(async function () {
-  document.getElementById('host').value =
-    localStorage.getItem('fabric.callee.host') || ''
-  document.getElementById('token').value =
-    localStorage.getItem('fabric.callee.token') || ''
-  document.getElementById('payload').value =
-    localStorage.getItem('fabric.callee.payload') || ''
-  document.getElementById('audio').checked =
-    (localStorage.getItem('fabric.callee.audio') || '1') === '1'
-  document.getElementById('video').checked =
-    (localStorage.getItem('fabric.callee.video') || '1') === '1'
-
+window.enablePushNotifications = async () => {
   //Initialize Firebase App
   const config = {
     apiKey: import.meta.env.VITE_FB_API_KEY,
@@ -675,4 +670,22 @@ window.ready(async function () {
   } catch (error) {
     console.error('Service Worker registration failed: ', error)
   }
+}
+
+/**
+ * On document ready auto-fill the input values from the localStorage.
+ */
+window.ready(async function () {
+  document.getElementById('host').value =
+    localStorage.getItem('fabric.callee.host') || ''
+  document.getElementById('token').value =
+    localStorage.getItem('fabric.callee.token') || ''
+  document.getElementById('payload').value =
+    localStorage.getItem('fabric.callee.payload') || ''
+  document.getElementById('audio').checked =
+    (localStorage.getItem('fabric.callee.audio') || '1') === '1'
+  document.getElementById('video').checked =
+    (localStorage.getItem('fabric.callee.video') || '1') === '1'
+
+  await window.enablePushNotifications()
 })

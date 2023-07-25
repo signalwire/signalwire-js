@@ -103,6 +103,13 @@
               </div>
               <div class="d-grid gap-2">
                 <button
+                  id="btnPushNotifications"
+                  class="btn btn-info"
+                  onclick="enablePushNotifications()"
+                >
+                  Enable Push Notifications
+                </button>
+                <button
                   id="btnConnect"
                   class="btn btn-success"
                   onclick="connect()"
@@ -140,6 +147,14 @@
                   disabled="true"
                 >
                   Reject Call
+                </button>
+                <button
+                  id="rejectAllCallsBtn"
+                  class="btn btn-danger px-3 mt-2"
+                  onClick="rejectAllCalls()"
+                  disabled="true"
+                >
+                  Reject All Calls
                 </button>
               </div>
 
