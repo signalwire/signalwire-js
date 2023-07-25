@@ -136,8 +136,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     this.setState('new')
     this.logger.trace('New Call with Options:', this.options)
 
-    this.applyEmitterTransforms({ local: true })
-
     this._initPeer()
   }
 
@@ -839,7 +837,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
       // TODO: Review
       this._attachListeners('')
-      this.applyEmitterTransforms()
 
       /** Call is active so set the RTCPeer */
       this.setActiveRTCPeer(rtcPeerId)

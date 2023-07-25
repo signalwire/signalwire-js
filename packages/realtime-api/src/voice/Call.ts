@@ -104,7 +104,6 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
     this._payload = options.payload
 
     this._attachListeners(this.__uuid)
-    this.applyEmitterTransforms({ local: true })
 
     this.on('call.state', () => {
       /**

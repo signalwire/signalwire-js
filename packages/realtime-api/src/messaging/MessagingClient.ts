@@ -55,11 +55,6 @@ const MessagingClient = function (options?: MessagingClientOptions) {
     emitter,
   })
 
-  client.once('session.connected', () => {
-    // @ts-expect-error
-    messaging.applyEmitterTransforms()
-  })
-
   const send: Messaging['send'] = async (...args) => {
     await clientConnect(client)
 

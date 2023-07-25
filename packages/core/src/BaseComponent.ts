@@ -824,16 +824,6 @@ export class BaseComponent<
     return new Map()
   }
 
-  /**
-   * Returns a structure with the emitter transforms that we want to `apply`
-   * for each BaseConsumer. This allow us to define a static structure for
-   * each class and later consume it within `applyEmitterTransforms`.
-   * @internal
-   */
-  protected getEmitterTransforms(): Map<string | string[], EventTransform> {
-    return new Map()
-  }
-
   /** @internal */
   protected get _sessionAuthStatus(): SessionAuthStatus {
     return getAuthStatus(this.store.getState())
@@ -885,73 +875,6 @@ export class BaseComponent<
       case 'unauthorized':
         return Promise.reject(new Error('Unauthorized'))
     }
-  }
-
-  private _setEmitterTransform({
-    event,
-    handler,
-    local,
-  }: {
-    event: string
-    handler: EventTransform
-    local: boolean
-  }) {
-    const internalEvent = this._getInternalEvent(
-      event as EventEmitter.EventNames<EventTypes>
-    )
-
-    if (
-      local
-        ? /**
-           * When `local === true` we filter out `Remote Events`
-           */
-          !isLocalEvent(event)
-        : /**
-           * When `local !== true` we filter out `Local Events` AND
-           * events the user hasn't subscribed to.
-           */
-          isLocalEvent(event) || !this.eventNames().includes(internalEvent)
-    ) {
-      return
-    }
-
-    this._emitterTransforms.set(internalEvent, handler)
-  }
-
-  /**
-   * Loop through the `getEmitterTransforms` Map and translate those into the
-   * internal `_emitterTransforms` Map to quickly select & use the transform starting
-   * from the server-side event.
-   * @internal
-   */
-  protected applyEmitterTransforms(
-    { local = false }: { local: boolean } = { local: false }
-  ) {
-    this.getEmitterTransforms().forEach((handlersObj, key) => {
-      if (Array.isArray(key)) {
-        key.forEach((k) => {
-          this._setEmitterTransform({
-            event: k,
-            handler: handlersObj,
-            local,
-          })
-        })
-      } else {
-        this._setEmitterTransform({
-          event: key,
-          handler: handlersObj,
-          local,
-        })
-      }
-
-      /**
-       * Set a transform using the `key` to select it easily when
-       * creating Proxy objects.
-       * The transform by `type` will be used by nested fields while the top-level
-       * by `internalEvent` for each single event transform.
-       */
-      this._emitterTransforms.set(handlersObj.type, handlersObj)
-    })
   }
 
   /** @internal */
