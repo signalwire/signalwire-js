@@ -5,6 +5,8 @@ import { EventEmitter } from './utils/EventEmitter'
 describe('BaseComponent', () => {
   describe('as an event emitter', () => {
     class JestComponent extends BaseComponent<any> {
+      protected _eventsPrefix = 'video' as const
+
       constructor(namespace = '') {
         super({
           store: configureJestStore(),
