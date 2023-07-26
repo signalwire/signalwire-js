@@ -102,7 +102,6 @@ export type {
   RoomSessionRecording,
   RoomSessionRTRecording,
   RoomSessionPlayback,
-  RoomSessionRTPlayback,
   RoomSessionStream,
   RoomSessionRTStream,
 } from './rooms'

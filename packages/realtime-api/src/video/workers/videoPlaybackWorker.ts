@@ -3,7 +3,7 @@ import {
   SagaIterator,
   MapToPubSubShape,
   VideoPlaybackEvent,
-  RoomSessionRTPlayback,
+  RoomSessionPlayback,
   Rooms,
 } from '@signalwire/core'
 import { RoomSession } from '../RoomSession'
@@ -24,9 +24,9 @@ export const videoPlaybackWorker = function* (
     throw new Error('Missing room session instance for playback')
   }
 
-  let playbackInstance = get<RoomSessionRTPlayback>(payload.playback.id)
+  let playbackInstance = get<RoomSessionPlayback>(payload.playback.id)
   if (!playbackInstance) {
-    playbackInstance = Rooms.createRoomSessionRTPlaybackObject({
+    playbackInstance = Rooms.createRoomSessionPlaybackObject({
       // @ts-expect-error
       store: client.store,
       // @ts-expect-error
@@ -36,7 +36,7 @@ export const videoPlaybackWorker = function* (
   } else {
     playbackInstance.setPayload(payload)
   }
-  set<RoomSessionRTPlayback>(payload.playback.id, playbackInstance)
+  set<RoomSessionPlayback>(payload.playback.id, playbackInstance)
 
   switch (type) {
     case 'video.playback.started':
@@ -45,7 +45,7 @@ export const videoPlaybackWorker = function* (
       break
     case 'video.playback.ended':
       roomSessionInstance.baseEmitter.emit(type, playbackInstance)
-      remove<RoomSessionRTPlayback>(payload.playback.id)
+      remove<RoomSessionPlayback>(payload.playback.id)
       break
     default:
       break

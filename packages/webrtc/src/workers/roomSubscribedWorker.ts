@@ -11,7 +11,7 @@ import {
   VideoRoomSubscribedEventParams,
   Rooms,
   RoomSessionRTStream,
-  RoomSessionRTPlayback,
+  RoomSessionPlayback,
   RoomSessionRTRecording,
 } from '@signalwire/core'
 
@@ -119,11 +119,11 @@ function transformPayload(
     if (payload[key].playbacks) {
       payload[key].playbacks = (payload[key].playbacks || []).map(
         (playback) => {
-          let playbackInstance = this.instanceMap.get<RoomSessionRTPlayback>(
+          let playbackInstance = this.instanceMap.get<RoomSessionPlayback>(
             playback.id
           )
           if (!playbackInstance) {
-            playbackInstance = Rooms.createRoomSessionRTPlaybackObject({
+            playbackInstance = Rooms.createRoomSessionPlaybackObject({
               store: this.store,
               emitter: this.emitter,
               payload: {
@@ -139,7 +139,7 @@ function transformPayload(
               playback,
             })
           }
-          this.instanceMap.set<RoomSessionRTPlayback>(
+          this.instanceMap.set<RoomSessionPlayback>(
             playback.id,
             playbackInstance
           )

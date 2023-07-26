@@ -9,10 +9,10 @@
 
 import {
   BaseRoomInterface,
-  RoomSessionRTPlayback,
+  RoomSessionPlayback,
   RoomSessionRTRecording,
   RoomSessionRTStream,
-  createRoomSessionRTPlaybackObject,
+  createRoomSessionPlaybackObject,
   createRoomSessionRTRecordingObject,
   createRoomSessionRTStreamObject,
 } from '.'
@@ -48,46 +48,45 @@ export type PlayRTParams = {
   currentTimecode?: number
 }
 export interface PlayRTOutput {
-  playback: RoomSessionRTPlayback
+  playback: RoomSessionPlayback
 }
-export const playRT: RoomMethodDescriptor<RoomSessionRTPlayback, PlayRTParams> =
-  {
-    value: function ({ seekPosition, currentTimecode, ...params }) {
-      return new Promise(async (resolve, reject) => {
-        try {
-          const seek_position = seekPosition || currentTimecode
-          const { playback } = await this.execute<void, any>({
-            method: 'video.playback.start',
-            params: {
-              room_session_id: this.roomSessionId,
-              seek_position,
-              ...params,
-            },
-          })
-          const playbackInstance = createRoomSessionRTPlaybackObject({
-            store: this.store,
-            // @ts-expect-error
-            emitter: this.emitter,
-            payload: {
-              room_id: this.roomId,
-              room_session_id: this.roomSessionId,
-              playback,
-            },
-          })
-          this.instanceMap.set<RoomSessionRTPlayback>(
-            playbackInstance.id,
-            playbackInstance
-          )
-          resolve(playbackInstance)
-        } catch (error) {
-          reject(error)
-        }
-      })
-    },
-  }
+export const playRT: RoomMethodDescriptor<RoomSessionPlayback, PlayRTParams> = {
+  value: function ({ seekPosition, currentTimecode, ...params }) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const seek_position = seekPosition || currentTimecode
+        const { playback } = await this.execute<void, any>({
+          method: 'video.playback.start',
+          params: {
+            room_session_id: this.roomSessionId,
+            seek_position,
+            ...params,
+          },
+        })
+        const playbackInstance = createRoomSessionPlaybackObject({
+          store: this.store,
+          // @ts-expect-error
+          emitter: this.emitter,
+          payload: {
+            room_id: this.roomId,
+            room_session_id: this.roomSessionId,
+            playback,
+          },
+        })
+        this.instanceMap.set<RoomSessionPlayback>(
+          playbackInstance.id,
+          playbackInstance
+        )
+        resolve(playbackInstance)
+      } catch (error) {
+        reject(error)
+      }
+    })
+  },
+}
 
 export interface GetRTPlaybacksOutput {
-  playbacks: RoomSessionRTPlayback[]
+  playbacks: RoomSessionPlayback[]
 }
 export const getRTPlaybacks: RoomMethodDescriptor<GetRTPlaybacksOutput> = {
   value: function () {
@@ -100,13 +99,13 @@ export const getRTPlaybacks: RoomMethodDescriptor<GetRTPlaybacksOutput> = {
           },
         })
 
-        const playbackInstances: RoomSessionRTPlayback[] = []
+        const playbackInstances: RoomSessionPlayback[] = []
         playbacks.forEach((playback: any) => {
-          let playbackInstance = this.instanceMap.get<RoomSessionRTPlayback>(
+          let playbackInstance = this.instanceMap.get<RoomSessionPlayback>(
             playback.id
           )
           if (!playbackInstance) {
-            playbackInstance = createRoomSessionRTPlaybackObject({
+            playbackInstance = createRoomSessionPlaybackObject({
               store: this.store,
               // @ts-expect-error
               emitter: this.emitter,
@@ -124,7 +123,7 @@ export const getRTPlaybacks: RoomMethodDescriptor<GetRTPlaybacksOutput> = {
             })
           }
           playbackInstances.push(playbackInstance)
-          this.instanceMap.set<RoomSessionRTPlayback>(
+          this.instanceMap.set<RoomSessionPlayback>(
             playbackInstance.id,
             playbackInstance
           )
