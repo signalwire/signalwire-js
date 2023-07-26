@@ -73,7 +73,6 @@ export const roomSubscribedWorker: SDKWorker<
     })
   )
 
-  // TODO: Do we still need to return the proxied object? Older emitter does that
   instance.baseEmitter.emit(
     'room.joined',
     transformPayload.call(instance, clonedPayload)
