@@ -10,24 +10,27 @@ export class ApplyEventListeners<
     return event
   }
 
-  override on(
-    event: EventEmitter.EventNames<EventTypes>,
-    fn: EventEmitter.EventListener<EventTypes, any>
+  override on<T extends EventEmitter.EventNames<EventTypes>>(
+    event: T,
+    fn: EventEmitter.EventListener<EventTypes, T>
   ) {
+    // @ts-expect-error
     return super._on(this.extendEventName(event), fn)
   }
 
-  override once(
-    event: EventEmitter.EventNames<EventTypes>,
-    fn: EventEmitter.EventListener<EventTypes, any>
+  override once<T extends EventEmitter.EventNames<EventTypes>>(
+    event: T,
+    fn: EventEmitter.EventListener<EventTypes, T>
   ) {
+    // @ts-expect-error
     return super._once(this.extendEventName(event), fn)
   }
 
-  override off(
-    event: EventEmitter.EventNames<EventTypes>,
-    fn: EventEmitter.EventListener<EventTypes, any>
+  override off<T extends EventEmitter.EventNames<EventTypes>>(
+    event: T,
+    fn: EventEmitter.EventListener<EventTypes, T>
   ) {
+    // @ts-expect-error
     return super._off(this.extendEventName(event), fn)
   }
 }

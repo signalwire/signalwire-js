@@ -5,6 +5,7 @@ import {
   VideoManagerRoomsSubscribedEvent,
   toExternalJSON,
 } from '@signalwire/core'
+import { stripNamespacePrefix } from '../../utils/eventUtils'
 import { VideoManagerWorkerParams } from './videoManagerWorker'
 
 export const videoManagerRoomsWorker = function* (
@@ -18,13 +19,11 @@ export const videoManagerRoomsWorker = function* (
     action: { type, payload },
   } = options
 
-  const event = type.replace(/^video-manager\./, '')
-
   // For now we expose the transformed payload and not a RoomSession
   const modPayload = {
     rooms: payload.rooms.map((row) => toExternalJSON(row)),
   }
-  client.baseEmitter.emit(event, modPayload)
+  client.baseEmitter.emit(stripNamespacePrefix(type), modPayload)
 
   getLogger().trace('videoManagerRoomsWorker ended')
 }

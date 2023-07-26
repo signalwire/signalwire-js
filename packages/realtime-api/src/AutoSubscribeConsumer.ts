@@ -17,9 +17,9 @@ export class AutoSubscribeConsumer<
     this.debouncedSubscribe = debounce(this.subscribe, 100)
   }
 
-  override on(
-    event: EventEmitter.EventNames<EventTypes>,
-    fn: EventEmitter.EventListener<EventTypes, any>
+  override on<T extends EventEmitter.EventNames<EventTypes>>(
+    event: T,
+    fn: EventEmitter.EventListener<EventTypes, T>
   ) {
     // @ts-expect-error
     const instance = super._on(`video.${event}`, fn)
@@ -27,9 +27,9 @@ export class AutoSubscribeConsumer<
     return instance
   }
 
-  override once(
-    event: EventEmitter.EventNames<EventTypes>,
-    fn: EventEmitter.EventListener<EventTypes, any>
+  override once<T extends EventEmitter.EventNames<EventTypes>>(
+    event: T,
+    fn: EventEmitter.EventListener<EventTypes, T>
   ) {
     // @ts-expect-error
     const instance = super._once(`video.${event}`, fn)
@@ -37,9 +37,9 @@ export class AutoSubscribeConsumer<
     return instance
   }
 
-  override off(
-    event: EventEmitter.EventNames<EventTypes>,
-    fn: EventEmitter.EventListener<EventTypes, any>
+  override off<T extends EventEmitter.EventNames<EventTypes>>(
+    event: T,
+    fn: EventEmitter.EventListener<EventTypes, T>
   ) {
     // @ts-expect-error
     const instance = super._off(`video.${event}`, fn)

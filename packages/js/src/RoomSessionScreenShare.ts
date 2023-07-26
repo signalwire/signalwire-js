@@ -43,23 +43,20 @@ export class RoomSessionScreenShareConnection extends BaseConnection<RoomSession
 
   override on<T extends EventEmitter.EventNames<RoomSessionScreenShareEvents>>(
     event: T,
-    fn: EventEmitter.EventListener<RoomSessionScreenShareEvents, any>
+    fn: EventEmitter.EventListener<RoomSessionScreenShareEvents, T>
   ) {
     return super._on(event, fn)
   }
 
   override once<
     T extends EventEmitter.EventNames<RoomSessionScreenShareEvents>
-  >(
-    event: T,
-    fn: EventEmitter.EventListener<RoomSessionScreenShareEvents, any>
-  ) {
+  >(event: T, fn: EventEmitter.EventListener<RoomSessionScreenShareEvents, T>) {
     return super._once(event, fn)
   }
 
   override off<T extends EventEmitter.EventNames<RoomSessionScreenShareEvents>>(
     event: T,
-    fn: EventEmitter.EventListener<RoomSessionScreenShareEvents, any>
+    fn: EventEmitter.EventListener<RoomSessionScreenShareEvents, T>
   ) {
     return super._off(event, fn)
   }

@@ -43,21 +43,21 @@ export class RoomSessionDeviceConnection extends BaseConnection<RoomSessionDevic
 
   override on<T extends EventEmitter.EventNames<RoomSessionDeviceEvents>>(
     event: T,
-    fn: EventEmitter.EventListener<RoomSessionDeviceEvents, any>
+    fn: EventEmitter.EventListener<RoomSessionDeviceEvents, T>
   ) {
     return super._on(event, fn)
   }
 
   override once<T extends EventEmitter.EventNames<RoomSessionDeviceEvents>>(
     event: T,
-    fn: EventEmitter.EventListener<RoomSessionDeviceEvents, any>
+    fn: EventEmitter.EventListener<RoomSessionDeviceEvents, T>
   ) {
     return super._once(event, fn)
   }
 
   override off<T extends EventEmitter.EventNames<RoomSessionDeviceEvents>>(
     event: T,
-    fn: EventEmitter.EventListener<RoomSessionDeviceEvents, any>
+    fn: EventEmitter.EventListener<RoomSessionDeviceEvents, T>
   ) {
     return super._off(event, fn)
   }

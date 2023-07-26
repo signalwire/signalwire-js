@@ -9,6 +9,7 @@ import {
   SDKWorkerParams,
   MemberPosition,
 } from '@signalwire/core'
+import { stripNamespacePrefix } from '../utils/eventUtils'
 import { RoomSessionConnection } from '../BaseRoomSession'
 import { videoStreamWorker } from './videoStreamWorker'
 import { videoRecordWorker } from './videoRecordWorker'
@@ -21,7 +22,7 @@ export type VideoWorkerParams<T> = SDKWorkerParams<RoomSessionConnection> & {
 export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
   options
 ): SagaIterator {
-  const { channels, instance: client } = options
+  const { channels, instance: roomSession } = options
   const { swEventChannel } = channels
 
   function* worker(action: MapToPubSubShape<VideoAPIEventParams>) {
@@ -31,7 +32,7 @@ export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
       case 'video.room.subscribed':
         yield sagaEffects.spawn(MemberPosition.memberPositionWorker, {
           ...options,
-          instance: client,
+          instance: roomSession,
           initialState: payload,
         })
         break
@@ -59,18 +60,21 @@ export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
         })
         return
       case 'video.room.audience_count': {
-        client.baseEmitter.emit('room.audienceCount', payload)
+        roomSession.baseEmitter.emit('room.audienceCount', payload)
         return
       }
       case 'video.member.talking': {
         const { member } = payload
         if ('talking' in member) {
           const suffix = member.talking ? 'started' : 'ended'
-          client.baseEmitter.emit(`member.talking.${suffix}`, payload)
+          roomSession.baseEmitter.emit(`member.talking.${suffix}`, payload)
 
           // Keep for backwards compat.
           const deprecatedSuffix = member.talking ? 'start' : 'stop'
-          client.baseEmitter.emit(`member.talking.${deprecatedSuffix}`, payload)
+          roomSession.baseEmitter.emit(
+            `member.talking.${deprecatedSuffix}`,
+            payload
+          )
         }
         break // Break here since we do need the raw event sent to the client
       }
@@ -78,10 +82,8 @@ export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
         break
     }
 
-    const event = type.replace(/^video\./, '')
-
     // @ts-expect-error
-    client.baseEmitter.emit(event, payload)
+    roomSession.baseEmitter.emit(stripNamespacePrefix(type), payload)
   }
 
   const isVideoEvent = (action: SDKActions) => action.type.startsWith('video.')
