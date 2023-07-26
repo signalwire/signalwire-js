@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.10.1] - 2023-07-26
+
+### Fixed
+
+- [#834](https://github.com/signalwire/signalwire-js/pull/834) [`81beb29a`](https://github.com/signalwire/signalwire-js/commit/81beb29a9bc3c6135df37223fae44445967c1a84) - Add missing `CallRecording` getters.
+
+### Dependencies
+
+- Updated dependencies [[`81beb29a`](https://github.com/signalwire/signalwire-js/commit/81beb29a9bc3c6135df37223fae44445967c1a84)]:
+  - @signalwire/core@3.18.1
+
 ## [3.10.0] - 2023-07-19
 
 ### Added

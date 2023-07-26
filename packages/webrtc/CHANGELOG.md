@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.10.0] - 2023-07-26
+
+### Added
+
+- [#838](https://github.com/signalwire/signalwire-js/pull/838) [`a7ae5448`](https://github.com/signalwire/signalwire-js/commit/a7ae5448d0327d68bc4f6c158ac2fe8e8417a581) - Allow to reject all the inbound legs
+
+### Changed
+
+- [#837](https://github.com/signalwire/signalwire-js/pull/837) [`2a2049ba`](https://github.com/signalwire/signalwire-js/commit/2a2049ba37ea786395d9552789f55d00172f165f) - Include `subscribe` in the answer for auto-subscribe events.
+
+### Dependencies
+
+- Updated dependencies [[`81beb29a`](https://github.com/signalwire/signalwire-js/commit/81beb29a9bc3c6135df37223fae44445967c1a84)]:
+  - @signalwire/core@3.18.1
+
 ## [3.9.0] - 2023-07-19
 
 ### Added

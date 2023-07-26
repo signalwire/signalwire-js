@@ -1,5 +1,13 @@
 # @sw-internal/playground-js
 
+## 0.0.14
+
+### Patch Changes
+
+- [#838](https://github.com/signalwire/signalwire-js/pull/838) [`a7ae5448`](https://github.com/signalwire/signalwire-js/commit/a7ae5448d0327d68bc4f6c158ac2fe8e8417a581) - Update callee demo to reject all the calls
+
+- [#836](https://github.com/signalwire/signalwire-js/pull/836) [`a7a0eb98`](https://github.com/signalwire/signalwire-js/commit/a7a0eb989cd52972ed4b401bde0b960e15fb2b8a) - Update js playground to use call.start()
+
 ## 0.0.13
 
 ### Patch Changes

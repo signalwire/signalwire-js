@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.18.1] - 2023-07-26
+
+### Changed
+
+- [#834](https://github.com/signalwire/signalwire-js/pull/834) [`81beb29a`](https://github.com/signalwire/signalwire-js/commit/81beb29a9bc3c6135df37223fae44445967c1a84) - Update internal interfaces contracts to have better type checking.
+
 ## [3.18.0] - 2023-07-19
 
 ### Added
