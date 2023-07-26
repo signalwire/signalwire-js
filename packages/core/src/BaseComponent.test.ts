@@ -5,13 +5,11 @@ import { EventEmitter } from './utils/EventEmitter'
 describe('BaseComponent', () => {
   describe('as an event emitter', () => {
     class JestComponent extends BaseComponent<any> {
-      constructor(namespace = '') {
+      constructor() {
         super({
           store: configureJestStore(),
           emitter: new EventEmitter(),
         })
-
-        this._attachListeners(namespace)
       }
     }
 
@@ -22,7 +20,7 @@ describe('BaseComponent', () => {
     })
 
     it('should remove the listeners with .off', () => {
-      const instance = new JestComponent('custom')
+      const instance = new JestComponent()
       const mockOne = jest.fn()
       instance._on('test.eventOne', mockOne)
       instance._once('test.eventOne', mockOne)
@@ -52,7 +50,7 @@ describe('BaseComponent', () => {
     })
 
     it('should remove all the listeners with .removeAllListeners', () => {
-      const instance = new JestComponent('custom')
+      const instance = new JestComponent()
       const mockOne = jest.fn()
       instance._on('test.eventOne', mockOne)
       instance._once('test.eventOne', mockOne)

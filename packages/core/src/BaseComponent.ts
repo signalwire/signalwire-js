@@ -785,38 +785,6 @@ export class BaseComponent<
   }
 
   /** @internal */
-  private flushEventsRegisterQueue() {
-    this._eventsRegisterQueue.forEach((item) => {
-      // @ts-ignore
-      this[item.type](...item.params)
-      this._eventsRegisterQueue.delete(item)
-    })
-  }
-
-  /** @internal */
-  private flushEventsEmitQueue() {
-    this._eventsEmitQueue.forEach((item) => {
-      const { event, args } = item
-      this.emit(event, ...args)
-      this._eventsEmitQueue.delete(item)
-    })
-  }
-
-  /** @internal */
-  private flushEventsQueue() {
-    this.flushEventsRegisterQueue()
-    this.flushEventsEmitQueue()
-  }
-
-  /** @internal */
-  protected _attachListeners(namespace?: string) {
-    if (typeof namespace === 'string') {
-      this._eventsNamespace = namespace
-    }
-    this.flushEventsQueue()
-  }
-
-  /** @internal */
   protected getCompoundEvents(): Map<
     EventEmitter.EventNames<EventTypes>,
     EventEmitter.EventNames<EventTypes>[]

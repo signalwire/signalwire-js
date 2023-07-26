@@ -16,7 +16,6 @@ describe('BaseConsumer', () => {
         emitter: fullStack.emitter,
       })
       instance.execute = jest.fn()
-      instance._attachListeners(instance.__uuid)
     })
 
     afterEach(() => {

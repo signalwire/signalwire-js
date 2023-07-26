@@ -25,10 +25,7 @@ describe('RoomSession Object', () => {
       video.on('room.started', async (newRoom) => {
         // @ts-expect-error
         newRoom.execute = jest.fn()
-
         roomSession = newRoom
-        // @ts-expect-error
-        roomSession._attachListeners(roomSessionId)
         resolve(roomSession)
       })
 

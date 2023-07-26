@@ -89,8 +89,6 @@ export class CallTapAPI
     }
 
     return new Promise<this>((resolve) => {
-      this._attachListeners(this.controlId)
-
       const handler = () => {
         // @ts-expect-error
         this.off('tap.ended', handler)

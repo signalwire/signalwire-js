@@ -93,8 +93,6 @@ class MessagingAPI extends ApplyEventListeners<MessagingClientApiEvents> {
     this.runWorker('messagingWorker', {
       worker: messagingWorker,
     })
-
-    this._attachListeners('')
   }
 
   async send(params: MessagingSendParams): Promise<any> {

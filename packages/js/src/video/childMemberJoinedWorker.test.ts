@@ -43,7 +43,6 @@ describe('childMemberJoinedWorker', () => {
       },
       instance: {
         callId: 'callId',
-        _attachListeners: jest.fn(),
       } as any,
       initialState: {
         parentId,

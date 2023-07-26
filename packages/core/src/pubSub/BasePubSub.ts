@@ -54,13 +54,6 @@ export class BasePubSubConsumer<
   constructor(options: BaseComponentOptions<EventTypes>) {
     super(options)
 
-    /**
-     * Since we don't need a namespace for these events
-     * we'll attach them as soon as the Client has been
-     * registered in the Redux store.
-     */
-    this._attachListeners('')
-
     // Initialize worker through a function so that it can be override by the BaseChatConsumer
     this.initWorker()
   }
