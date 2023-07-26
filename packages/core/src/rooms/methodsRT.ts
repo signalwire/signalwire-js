@@ -10,11 +10,11 @@
 import {
   BaseRoomInterface,
   RoomSessionPlayback,
-  RoomSessionRTRecording,
-  RoomSessionRTStream,
+  RoomSessionRecording,
+  RoomSessionStream,
   createRoomSessionPlaybackObject,
-  createRoomSessionRTRecordingObject,
-  createRoomSessionRTStreamObject,
+  createRoomSessionRecordingObject,
+  createRoomSessionStreamObject,
 } from '.'
 import { VideoPosition } from '../types'
 
@@ -138,9 +138,9 @@ export const getRTPlaybacks: RoomMethodDescriptor<GetRTPlaybacksOutput> = {
 }
 
 export interface StartRTRecordingOutput {
-  recording: RoomSessionRTRecording
+  recording: RoomSessionRecording
 }
-export const startRTRecording: RoomMethodDescriptor<RoomSessionRTRecording> = {
+export const startRTRecording: RoomMethodDescriptor<RoomSessionRecording> = {
   value: function () {
     return new Promise(async (resolve, reject) => {
       try {
@@ -151,7 +151,7 @@ export const startRTRecording: RoomMethodDescriptor<RoomSessionRTRecording> = {
           },
         })
 
-        const recordingInstance = createRoomSessionRTRecordingObject({
+        const recordingInstance = createRoomSessionRecordingObject({
           store: this.store,
           // @ts-expect-error
           emitter: this.emitter,
@@ -161,7 +161,7 @@ export const startRTRecording: RoomMethodDescriptor<RoomSessionRTRecording> = {
             recording,
           },
         })
-        this.instanceMap.set<RoomSessionRTRecording>(
+        this.instanceMap.set<RoomSessionRecording>(
           recordingInstance.id,
           recordingInstance
         )
@@ -175,7 +175,7 @@ export const startRTRecording: RoomMethodDescriptor<RoomSessionRTRecording> = {
 }
 
 export interface GetRTRecordingsOutput {
-  recordings: RoomSessionRTRecording[]
+  recordings: RoomSessionRecording[]
 }
 export const getRTRecordings: RoomMethodDescriptor<GetRTRecordingsOutput> = {
   value: function () {
@@ -188,13 +188,13 @@ export const getRTRecordings: RoomMethodDescriptor<GetRTRecordingsOutput> = {
           },
         })
 
-        const recordingInstances: RoomSessionRTRecording[] = []
+        const recordingInstances: RoomSessionRecording[] = []
         recordings.forEach((recording: any) => {
-          let recordingInstance = this.instanceMap.get<RoomSessionRTRecording>(
+          let recordingInstance = this.instanceMap.get<RoomSessionRecording>(
             recording.id
           )
           if (!recordingInstance) {
-            recordingInstance = createRoomSessionRTRecordingObject({
+            recordingInstance = createRoomSessionRecordingObject({
               store: this.store,
               // @ts-expect-error
               emitter: this.emitter,
@@ -212,7 +212,7 @@ export const getRTRecordings: RoomMethodDescriptor<GetRTRecordingsOutput> = {
             })
           }
           recordingInstances.push(recordingInstance)
-          this.instanceMap.set<RoomSessionRTRecording>(
+          this.instanceMap.set<RoomSessionRecording>(
             recordingInstance.id,
             recordingInstance
           )
@@ -230,7 +230,7 @@ export interface StartRTStreamParams {
   url: string
 }
 export interface StartRTStreamOutput {
-  stream: RoomSessionRTStream
+  stream: RoomSessionStream
 }
 export const startRTStream: RoomMethodDescriptor<
   StartRTStreamOutput,
@@ -247,7 +247,7 @@ export const startRTStream: RoomMethodDescriptor<
           },
         })
 
-        const streamInstance = createRoomSessionRTStreamObject({
+        const streamInstance = createRoomSessionStreamObject({
           store: this.store,
           // @ts-expect-error
           emitter: this.emitter,
@@ -257,7 +257,7 @@ export const startRTStream: RoomMethodDescriptor<
             stream,
           },
         })
-        this.instanceMap.set<RoomSessionRTStream>(
+        this.instanceMap.set<RoomSessionStream>(
           streamInstance.id,
           streamInstance
         )
@@ -271,7 +271,7 @@ export const startRTStream: RoomMethodDescriptor<
 }
 
 export interface GetRTStreamsOutput {
-  streams: RoomSessionRTStream[]
+  streams: RoomSessionStream[]
 }
 export const getRTStreams: RoomMethodDescriptor<GetRTStreamsOutput> = {
   value: function () {
@@ -284,13 +284,13 @@ export const getRTStreams: RoomMethodDescriptor<GetRTStreamsOutput> = {
           },
         })
 
-        const streamInstances: RoomSessionRTStream[] = []
+        const streamInstances: RoomSessionStream[] = []
         streams.forEach((stream: any) => {
-          let streamInstance = this.instanceMap.get<RoomSessionRTStream>(
+          let streamInstance = this.instanceMap.get<RoomSessionStream>(
             stream.id
           )
           if (!streamInstance) {
-            streamInstance = createRoomSessionRTStreamObject({
+            streamInstance = createRoomSessionStreamObject({
               store: this.store,
               // @ts-expect-error
               emitter: this.emitter,
@@ -308,7 +308,7 @@ export const getRTStreams: RoomMethodDescriptor<GetRTStreamsOutput> = {
             })
           }
           streamInstances.push(streamInstance)
-          this.instanceMap.set<RoomSessionRTStream>(
+          this.instanceMap.set<RoomSessionStream>(
             streamInstance.id,
             streamInstance
           )

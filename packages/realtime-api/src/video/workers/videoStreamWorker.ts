@@ -3,7 +3,7 @@ import {
   SagaIterator,
   MapToPubSubShape,
   Rooms,
-  RoomSessionRTStream,
+  RoomSessionStream,
   VideoStreamEvent,
 } from '@signalwire/core'
 import { RoomSession } from '../RoomSession'
@@ -24,9 +24,9 @@ export const videoStreamWorker = function* (
     throw new Error('Missing room session instance for stream')
   }
 
-  let streamInstance = get<RoomSessionRTStream>(payload.stream.id)
+  let streamInstance = get<RoomSessionStream>(payload.stream.id)
   if (!streamInstance) {
-    streamInstance = Rooms.createRoomSessionRTStreamObject({
+    streamInstance = Rooms.createRoomSessionStreamObject({
       // @ts-expect-error
       store: client.store,
       // @ts-expect-error
@@ -36,7 +36,7 @@ export const videoStreamWorker = function* (
   } else {
     streamInstance.setPayload(payload)
   }
-  set<RoomSessionRTStream>(payload.stream.id, streamInstance)
+  set<RoomSessionStream>(payload.stream.id, streamInstance)
 
   switch (type) {
     case 'video.stream.started':
@@ -44,7 +44,7 @@ export const videoStreamWorker = function* (
       break
     case 'video.stream.ended':
       roomSessionInstance.baseEmitter.emit(type, streamInstance)
-      remove<RoomSessionRTStream>(payload.stream.id)
+      remove<RoomSessionStream>(payload.stream.id)
       break
     default:
       break

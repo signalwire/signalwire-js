@@ -1,26 +1,84 @@
 import { connect } from '../redux'
 import { BaseComponent } from '../BaseComponent'
-import { BaseComponentOptions } from '../utils/interfaces'
-import { OnlyFunctionProperties } from '../types'
+import { BaseComponentOptionsWithPayload } from '../utils/interfaces'
 import type {
   VideoStreamContract,
   VideoStreamEventNames,
+  VideoStreamEventParams,
+  VideoStreamMethods,
 } from '../types/videoStream'
 
 /**
  * Represents a specific Stream of a room session.
  */
-export interface RoomSessionStream extends VideoStreamContract {}
+export interface RoomSessionStream extends VideoStreamContract {
+  setPayload(payload: VideoStreamEventParams): void
+}
 
 export type RoomSessionStreamEventsHandlerMapping = Record<
   VideoStreamEventNames,
   (stream: RoomSessionStream) => void
 >
 
+export interface RoomSessionStreamOptions
+  extends BaseComponentOptionsWithPayload<
+    RoomSessionStreamEventsHandlerMapping,
+    VideoStreamEventParams
+  > {}
+
 export class RoomSessionStreamAPI
   extends BaseComponent<RoomSessionStreamEventsHandlerMapping>
-  implements OnlyFunctionProperties<RoomSessionStream>
+  implements VideoStreamMethods
 {
+  private _payload: VideoStreamEventParams
+
+  constructor(options: RoomSessionStreamOptions) {
+    super(options)
+
+    this._payload = options.payload
+  }
+
+  get id() {
+    return this._payload.stream.id
+  }
+
+  get roomId() {
+    return this._payload.room_id
+  }
+
+  get roomSessionId() {
+    return this._payload.room_session_id
+  }
+
+  get state() {
+    return this._payload.stream.state
+  }
+
+  get duration() {
+    return this._payload.stream.duration
+  }
+
+  get url() {
+    return this._payload.stream.url
+  }
+
+  get startedAt() {
+    if (!this._payload.stream.started_at) return undefined
+    return new Date(
+      (this._payload.stream.started_at as unknown as number) * 1000
+    )
+  }
+
+  get endedAt() {
+    if (!this._payload.stream.ended_at) return undefined
+    return new Date((this._payload.stream.ended_at as unknown as number) * 1000)
+  }
+
+  /** @internal */
+  protected setPayload(payload: VideoStreamEventParams) {
+    this._payload = payload
+  }
+
   async stop() {
     await this.execute({
       method: 'video.stream.stop',
@@ -33,7 +91,7 @@ export class RoomSessionStreamAPI
 }
 
 export const createRoomSessionStreamObject = (
-  params: BaseComponentOptions<RoomSessionStreamEventsHandlerMapping>
+  params: RoomSessionStreamOptions
 ): RoomSessionStream => {
   const stream = connect<
     RoomSessionStreamEventsHandlerMapping,

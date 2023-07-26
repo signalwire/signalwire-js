@@ -100,10 +100,8 @@ export * as PubSub from './pubSub'
 export * as MemberPosition from './memberPosition'
 export type {
   RoomSessionRecording,
-  RoomSessionRTRecording,
   RoomSessionPlayback,
   RoomSessionStream,
-  RoomSessionRTStream,
 } from './rooms'
 export const selectors = {
   ...sessionSelectors,

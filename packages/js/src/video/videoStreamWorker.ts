@@ -3,7 +3,7 @@ import {
   SagaIterator,
   MapToPubSubShape,
   VideoStreamEvent,
-  RoomSessionRTStream,
+  RoomSessionStream,
   Rooms,
 } from '@signalwire/core'
 import { VideoWorkerParams } from './videoWorker'
@@ -18,9 +18,11 @@ export const videoStreamWorker = function* (
     instanceMap: { get, set, remove },
   } = options
 
-  let streamInstance = get<RoomSessionRTStream>(payload.stream.id)
+  // For now, we are not storing the RoomSession object in the instance map
+
+  let streamInstance = get<RoomSessionStream>(payload.stream.id)
   if (!streamInstance) {
-    streamInstance = Rooms.createRoomSessionRTStreamObject({
+    streamInstance = Rooms.createRoomSessionStreamObject({
       store: roomSession.store,
       // @ts-expect-error
       emitter: roomSession.emitter,
@@ -29,7 +31,7 @@ export const videoStreamWorker = function* (
   } else {
     streamInstance.setPayload(payload)
   }
-  set<RoomSessionRTStream>(payload.stream.id, streamInstance)
+  set<RoomSessionStream>(payload.stream.id, streamInstance)
 
   switch (type) {
     case 'video.stream.started':
@@ -37,7 +39,7 @@ export const videoStreamWorker = function* (
       break
     case 'video.stream.ended':
       roomSession.baseEmitter.emit('stream.ended', streamInstance)
-      remove<RoomSessionRTStream>(payload.stream.id)
+      remove<RoomSessionStream>(payload.stream.id)
       break
     default:
       getLogger().warn(`Unknown video.stream event: "${type}"`)
