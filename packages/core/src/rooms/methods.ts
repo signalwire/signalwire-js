@@ -1,15 +1,17 @@
-import type {
-  BaseRoomInterface,
-  RoomSessionRecording,
-  RoomSessionPlayback,
-  RoomSessionStream,
+import {
+  type BaseRoomInterface,
+  type RoomSessionRecording,
+  type RoomSessionPlayback,
+  type RoomSessionStream,
+  createRoomSessionPlaybackObject,
+  createRoomSessionRecordingObject,
+  createRoomSessionStreamObject,
 } from '.'
 import type {
   VideoMemberEntity,
   MemberCommandParams,
   VideoPosition,
 } from '../types'
-import { toLocalEvent } from '../utils'
 import type {
   ExecuteExtendedOptions,
   RoomMethod,
@@ -164,51 +166,80 @@ export interface GetRecordingsOutput {
 export const getRecordings: RoomMethodDescriptor<GetRecordingsOutput> = {
   value: function () {
     return new Promise(async (resolve, reject) => {
-      const handler = (instance: any) => {
-        resolve(instance)
-      }
-      this.on(toLocalEvent('video.recording.list'), handler)
-
       try {
-        const payload = await this.execute({
+        const { recordings } = await this.execute<void, any>({
           method: 'video.recording.list',
           params: {
             room_session_id: this.roomSessionId,
           },
         })
-        this.emit(toLocalEvent('video.recording.list'), {
-          ...(payload as object),
-          room_session_id: this.roomSessionId,
+
+        const recordingInstances: RoomSessionRecording[] = []
+        recordings.forEach((recording: any) => {
+          let recordingInstance = this.instanceMap.get<RoomSessionRecording>(
+            recording.id
+          )
+          if (!recordingInstance) {
+            recordingInstance = createRoomSessionRecordingObject({
+              store: this.store,
+              // @ts-expect-error
+              emitter: this.emitter,
+              payload: {
+                room_id: this.roomId,
+                room_session_id: this.roomSessionId,
+                recording,
+              },
+            })
+          } else {
+            recordingInstance.setPayload({
+              room_id: this.roomId,
+              room_session_id: this.roomSessionId,
+              recording,
+            })
+          }
+          recordingInstances.push(recordingInstance)
+          this.instanceMap.set<RoomSessionRecording>(
+            recordingInstance.id,
+            recordingInstance
+          )
         })
+
+        resolve({ recordings: recordingInstances })
       } catch (error) {
-        this.off(toLocalEvent('video.recording.list'), handler)
         reject(error)
       }
     })
   },
 }
 
-export const startRecording: RoomMethodDescriptor<void> = {
+export const startRecording: RoomMethodDescriptor<RoomSessionRecording> = {
   value: function () {
     return new Promise(async (resolve, reject) => {
-      const handler = (instance: any) => {
-        resolve(instance)
-      }
-      this.on(toLocalEvent('video.recording.start'), handler)
-
       try {
-        const payload = await this.execute({
+        const { recording } = await this.execute<void, any>({
           method: 'video.recording.start',
           params: {
             room_session_id: this.roomSessionId,
           },
         })
-        this.emit(toLocalEvent('video.recording.start'), {
-          ...(payload as object),
-          room_session_id: this.roomSessionId,
+
+        const recordingInstance = createRoomSessionRecordingObject({
+          store: this.store,
+          // @ts-expect-error
+          emitter: this.emitter,
+          payload: {
+            room_id: this.roomId,
+            room_session_id: this.roomSessionId,
+            recording,
+          },
         })
+        this.instanceMap.set<RoomSessionRecording>(
+          recordingInstance.id,
+          recordingInstance
+        )
+
+        resolve(recordingInstance)
       } catch (error) {
-        this.off(toLocalEvent('video.recording.start'), handler)
         reject(error)
       }
     })
@@ -222,24 +253,46 @@ export interface GetPlaybacksOutput {
 export const getPlaybacks: RoomMethodDescriptor<GetPlaybacksOutput> = {
   value: function () {
     return new Promise(async (resolve, reject) => {
-      const handler = (instance: any) => {
-        resolve(instance)
-      }
-      this.on(toLocalEvent('video.playback.list'), handler)
-
       try {
-        const payload = await this.execute({
+        const { playbacks } = await this.execute<void, any>({
           method: 'video.playback.list',
           params: {
             room_session_id: this.roomSessionId,
           },
         })
-        this.emit(toLocalEvent('video.playback.list'), {
-          ...(payload as object),
-          room_session_id: this.roomSessionId,
+
+        const playbackInstances: RoomSessionPlayback[] = []
+        playbacks.forEach((playback: any) => {
+          let playbackInstance = this.instanceMap.get<RoomSessionPlayback>(
+            playback.id
+          )
+          if (!playbackInstance) {
+            playbackInstance = createRoomSessionPlaybackObject({
+              store: this.store,
+              // @ts-expect-error
+              emitter: this.emitter,
+              payload: {
+                room_id: this.roomId,
+                room_session_id: this.roomSessionId,
+                playback,
+              },
+            })
+          } else {
+            playbackInstance.setPayload({
+              room_id: this.roomId,
+              room_session_id: this.roomSessionId,
+              playback,
+            })
+          }
+          playbackInstances.push(playbackInstance)
+          this.instanceMap.set<RoomSessionPlayback>(
+            playbackInstance.id,
+            playbackInstance
+          )
         })
+
+        resolve({ playbacks: playbackInstances })
       } catch (error) {
-        this.off(toLocalEvent('video.playback.list'), handler)
         reject(error)
       }
     })
@@ -261,14 +314,9 @@ export type PlayParams = {
 export const play: RoomMethodDescriptor<any, PlayParams> = {
   value: function ({ seekPosition, currentTimecode, ...params }) {
     return new Promise(async (resolve, reject) => {
-      const handler = (instance: any) => {
-        resolve(instance)
-      }
-      this.on(toLocalEvent('video.playback.start'), handler)
-
       try {
         const seek_position = seekPosition || currentTimecode
-        const payload = await this.execute({
+        const { playback } = await this.execute<void, any>({
           method: 'video.playback.start',
           params: {
             room_session_id: this.roomSessionId,
@@ -276,12 +324,22 @@ export const play: RoomMethodDescriptor<any, PlayParams> = {
             ...params,
           },
         })
-        this.emit(toLocalEvent('video.playback.start'), {
-          ...(payload as object),
-          room_session_id: this.roomSessionId,
+        const playbackInstance = createRoomSessionPlaybackObject({
+          store: this.store,
+          // @ts-expect-error
+          emitter: this.emitter,
+          payload: {
+            room_id: this.roomId,
+            room_session_id: this.roomSessionId,
+            playback,
+          },
         })
+        this.instanceMap.set<RoomSessionPlayback>(
+          playbackInstance.id,
+          playbackInstance
+        )
+        resolve(playbackInstance)
       } catch (error) {
-        this.off(toLocalEvent('video.playback.start'), handler)
         reject(error)
       }
     })
@@ -335,24 +393,46 @@ export interface GetStreamsOutput {
 export const getStreams: RoomMethodDescriptor<GetStreamsOutput> = {
   value: function () {
     return new Promise(async (resolve, reject) => {
-      const handler = (instance: any) => {
-        resolve(instance)
-      }
-      this.on(toLocalEvent('video.stream.list'), handler)
-
       try {
-        const payload = await this.execute({
+        const { streams } = await this.execute<void, any>({
           method: 'video.stream.list',
           params: {
             room_session_id: this.roomSessionId,
           },
         })
-        this.emit(toLocalEvent('video.stream.list'), {
-          ...(payload as object),
-          room_session_id: this.roomSessionId,
+
+        const streamInstances: RoomSessionStream[] = []
+        streams.forEach((stream: any) => {
+          let streamInstance = this.instanceMap.get<RoomSessionStream>(
+            stream.id
+          )
+          if (!streamInstance) {
+            streamInstance = createRoomSessionStreamObject({
+              store: this.store,
+              // @ts-expect-error
+              emitter: this.emitter,
+              payload: {
+                room_id: this.roomId,
+                room_session_id: this.roomSessionId,
+                stream,
+              },
+            })
+          } else {
+            streamInstance.setPayload({
+              room_id: this.roomId,
+              room_session_id: this.roomSessionId,
+              stream,
+            })
+          }
+          streamInstances.push(streamInstance)
+          this.instanceMap.set<RoomSessionStream>(
+            streamInstance.id,
+            streamInstance
+          )
         })
+
+        resolve({ streams: streamInstances })
       } catch (error) {
-        this.off(toLocalEvent('video.stream.list'), handler)
         reject(error)
       }
     })
@@ -365,25 +445,32 @@ export interface StartStreamParams {
 export const startStream: RoomMethodDescriptor<any, StartStreamParams> = {
   value: function (params) {
     return new Promise(async (resolve, reject) => {
-      const handler = (instance: any) => {
-        resolve(instance)
-      }
-      this.on(toLocalEvent('video.stream.start'), handler)
-
       try {
-        const payload = await this.execute({
+        const { stream } = await this.execute<StartStreamParams, any>({
           method: 'video.stream.start',
           params: {
             room_session_id: this.roomSessionId,
             ...params,
           },
         })
-        this.emit(toLocalEvent('video.stream.start'), {
-          ...(payload as object),
-          room_session_id: this.roomSessionId,
+
+        const streamInstance = createRoomSessionStreamObject({
+          store: this.store,
+          // @ts-expect-error
+          emitter: this.emitter,
+          payload: {
+            room_id: this.roomId,
+            room_session_id: this.roomSessionId,
+            stream,
+          },
         })
+        this.instanceMap.set<RoomSessionStream>(
+          streamInstance.id,
+          streamInstance
+        )
+
+        resolve({ stream: streamInstance })
       } catch (error) {
-        this.off(toLocalEvent('video.stream.start'), handler)
         reject(error)
       }
     })

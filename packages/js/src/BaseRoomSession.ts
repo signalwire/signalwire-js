@@ -503,10 +503,10 @@ export const RoomSessionAPI = extendComponent<
   setMemberPosition: Rooms.setMemberPosition,
   hideVideoMuted: Rooms.hideVideoMuted,
   showVideoMuted: Rooms.showVideoMuted,
-  getRecordings: Rooms.getRTRecordings,
-  startRecording: Rooms.startRTRecording,
-  getPlaybacks: Rooms.getRTPlaybacks,
-  play: Rooms.playRT,
+  getRecordings: Rooms.getRecordings,
+  startRecording: Rooms.startRecording,
+  getPlaybacks: Rooms.getPlaybacks,
+  play: Rooms.play,
   setHideVideoMuted: Rooms.setHideVideoMuted,
   getMeta: Rooms.getMeta,
   setMeta: Rooms.setMeta,
@@ -518,8 +518,8 @@ export const RoomSessionAPI = extendComponent<
   deleteMemberMeta: Rooms.deleteMemberMeta,
   promote: Rooms.promote,
   demote: Rooms.demote,
-  getStreams: Rooms.getRTStreams,
-  startStream: Rooms.startRTStream,
+  getStreams: Rooms.getStreams,
+  startStream: Rooms.startStream,
 })
 
 type RoomSessionObjectEventsHandlerMapping = RoomSessionObjectEvents &
