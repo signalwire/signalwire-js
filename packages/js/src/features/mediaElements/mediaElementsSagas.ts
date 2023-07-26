@@ -146,7 +146,7 @@ export const makeVideoElementSaga = ({
        */
       room.on('room.subscribed', (params) => {
         const member = params.room_session.members?.find(
-          (m: any) => m.id === room.memberId
+          (m) => m.id === room.memberId
         )
 
         if (member?.audio_muted) {

@@ -7,6 +7,7 @@ import {
   VideoRecordingEvent,
   VideoRecordingEventNames,
 } from '@signalwire/core'
+import { stripNamespacePrefix } from '../utils/eventUtils'
 import { VideoWorkerParams } from './videoWorker'
 
 export const videoRecordWorker = function* (
@@ -14,19 +15,17 @@ export const videoRecordWorker = function* (
 ): SagaIterator {
   getLogger().trace('videoRecordWorker started')
   const {
-    instance: client,
+    instance: roomSession,
     action: { type, payload },
     instanceMap: { get, set, remove },
   } = options
 
-  // For now, we are not storing the RoomSession object in the instance map
-
   let recordingInstance = get<RoomSessionRTRecording>(payload.recording.id)
   if (!recordingInstance) {
     recordingInstance = Rooms.createRoomSessionRTRecordingObject({
-      store: client.store,
+      store: roomSession.store,
       // @ts-expect-error
-      emitter: client.emitter,
+      emitter: roomSession.emitter,
       payload,
     })
   } else {
@@ -34,16 +33,16 @@ export const videoRecordWorker = function* (
   }
   set<RoomSessionRTRecording>(payload.recording.id, recordingInstance)
 
-  const event = type.replace(/^video\./, '') as VideoRecordingEventNames
+  const event = stripNamespacePrefix(type) as VideoRecordingEventNames
 
   switch (type) {
     case 'video.recording.started':
     case 'video.recording.updated': {
-      client.baseEmitter.emit(event, recordingInstance)
+      roomSession.baseEmitter.emit(event, recordingInstance)
       break
     }
     case 'video.recording.ended':
-      client.baseEmitter.emit(event, recordingInstance)
+      roomSession.baseEmitter.emit(event, recordingInstance)
       remove<RoomSessionRTRecording>(payload.recording.id)
       break
     default:

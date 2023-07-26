@@ -314,25 +314,28 @@ export class RoomSessionConnection
 
   updateSpeaker({ deviceId }: { deviceId: string }) {
     const prevId = this._audioEl.sinkId as string
-    // @ts-expect-error
-    this.once(`${LOCAL_EVENT_PREFIX}.speaker.updated`, async (newId) => {
-      const prevSpeaker = await getSpeakerById(prevId)
-      const newSpeaker = await getSpeakerById(newId)
+    this.once(
+      // @ts-expect-error
+      `${LOCAL_EVENT_PREFIX}.speaker.updated`,
+      async (newId: string) => {
+        const prevSpeaker = await getSpeakerById(prevId)
+        const newSpeaker = await getSpeakerById(newId)
 
-      const isSame = newSpeaker?.deviceId === prevSpeaker?.deviceId
-      if (!newSpeaker?.deviceId || isSame) return
+        const isSame = newSpeaker?.deviceId === prevSpeaker?.deviceId
+        if (!newSpeaker?.deviceId || isSame) return
 
-      this.baseEmitter.emit('speaker.updated', {
-        previous: {
-          deviceId: prevSpeaker?.deviceId,
-          label: prevSpeaker?.label,
-        },
-        current: {
-          deviceId: newSpeaker.deviceId,
-          label: newSpeaker.label,
-        },
-      })
-    })
+        this.baseEmitter.emit('speaker.updated', {
+          previous: {
+            deviceId: prevSpeaker?.deviceId,
+            label: prevSpeaker?.label,
+          },
+          current: {
+            deviceId: newSpeaker.deviceId,
+            label: newSpeaker.label,
+          },
+        })
+      }
+    )
 
     return this.triggerCustomSaga<undefined>(audioSetSpeakerAction(deviceId))
   }
@@ -456,21 +459,21 @@ export class RoomSessionConnection
 
   override on<T extends EventEmitter.EventNames<RoomSessionObjectEvents>>(
     event: T,
-    fn: EventEmitter.EventListener<RoomSessionObjectEvents, any>
+    fn: EventEmitter.EventListener<RoomSessionObjectEvents, T>
   ) {
     return super._on(event, fn)
   }
 
   override once<T extends EventEmitter.EventNames<RoomSessionObjectEvents>>(
     event: T,
-    fn: EventEmitter.EventListener<RoomSessionObjectEvents, any>
+    fn: EventEmitter.EventListener<RoomSessionObjectEvents, T>
   ) {
     return super._once(event, fn)
   }
 
   override off<T extends EventEmitter.EventNames<RoomSessionObjectEvents>>(
     event: T,
-    fn: EventEmitter.EventListener<RoomSessionObjectEvents, any>
+    fn: EventEmitter.EventListener<RoomSessionObjectEvents, T>
   ) {
     return super._off(event, fn)
   }

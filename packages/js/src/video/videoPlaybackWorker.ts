@@ -7,6 +7,7 @@ import {
   VideoPlaybackEvent,
   VideoPlaybackEventNames,
 } from '@signalwire/core'
+import { stripNamespacePrefix } from '../utils/eventUtils'
 import { VideoWorkerParams } from './videoWorker'
 
 export const videoPlaybackWorker = function* (
@@ -14,19 +15,17 @@ export const videoPlaybackWorker = function* (
 ): SagaIterator {
   getLogger().trace('videoPlaybackWorker started')
   const {
-    instance: client,
+    instance: roomSession,
     action: { type, payload },
     instanceMap: { get, set, remove },
   } = options
 
-  // For now, we are not storing the RoomSession object in the instance map
-
   let playbackInstance = get<RoomSessionRTPlayback>(payload.playback.id)
   if (!playbackInstance) {
     playbackInstance = Rooms.createRoomSessionRTPlaybackObject({
-      store: client.store,
+      store: roomSession.store,
       // @ts-expect-error
-      emitter: client.emitter,
+      emitter: roomSession.emitter,
       payload,
     })
   } else {
@@ -34,16 +33,16 @@ export const videoPlaybackWorker = function* (
   }
   set<RoomSessionRTPlayback>(payload.playback.id, playbackInstance)
 
-  const event = type.replace(/^video\./, '') as VideoPlaybackEventNames
+  const event = stripNamespacePrefix(type) as VideoPlaybackEventNames
 
   switch (type) {
     case 'video.playback.started':
     case 'video.playback.updated': {
-      client.baseEmitter.emit(event, playbackInstance)
+      roomSession.baseEmitter.emit(event, playbackInstance)
       break
     }
     case 'video.playback.ended':
-      client.baseEmitter.emit(event, playbackInstance)
+      roomSession.baseEmitter.emit(event, playbackInstance)
       remove<RoomSessionRTPlayback>(payload.playback.id)
       break
     default:
