@@ -251,7 +251,7 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
       }
 
       this.on('call.state', (params) => {
-        if (params.callState === 'ended') {
+        if (params.state === 'ended') {
           resolve(new Error('Failed to hangup the call.'))
         }
       })
@@ -1171,9 +1171,9 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
       }
 
       this.on('call.state', (params) => {
-        if (events.includes(params.callState)) {
-          emittedCallStates.add(params.callState)
-        } else if (shouldResolveUnsuccessful(params.callState)) {
+        if (events.includes(params.state as CallingCallWaitForState)) {
+          emittedCallStates.add(params.state)
+        } else if (shouldResolveUnsuccessful(params.state)) {
           return resolve(false)
         }
 
