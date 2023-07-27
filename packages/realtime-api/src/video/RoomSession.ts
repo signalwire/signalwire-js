@@ -173,10 +173,12 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
       }
 
       try {
-        super._once('room.subscribed', handler)
+        // @ts-expect-error
+        super._once('video.room.subscribed', handler)
         await super.subscribe()
       } catch (error) {
-        super._off('room.subscribed', handler)
+        // @ts-expect-error
+        super._off('video.room.subscribed', handler)
         return reject(error)
       }
     })
