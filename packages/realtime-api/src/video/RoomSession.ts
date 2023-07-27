@@ -122,9 +122,9 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     return super.on(event, fn)
   }
 
-  on(
-    event: keyof RealTimeRoomApiEvents,
-    fn: EventEmitter.EventListener<RealTimeRoomApiEvents, any>
+  on<T extends keyof RealTimeRoomApiEvents>(
+    event: T,
+    fn: EventEmitter.EventListener<RealTimeRoomApiEvents, T>
   ) {
     // @ts-expect-error
     const instance = super._on(`video.${event}`, fn)
@@ -132,9 +132,9 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     return instance
   }
 
-  once(
-    event: keyof RealTimeRoomApiEvents,
-    fn: EventEmitter.EventListener<RealTimeRoomApiEvents, any>
+  once<T extends keyof RealTimeRoomApiEvents>(
+    event: T,
+    fn: EventEmitter.EventListener<RealTimeRoomApiEvents, T>
   ) {
     // @ts-expect-error
     const instance = super._once(`video.${event}`, fn)
@@ -142,9 +142,9 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     return instance
   }
 
-  off(
-    event: keyof RealTimeRoomApiEvents,
-    fn: EventEmitter.EventListener<RealTimeRoomApiEvents, any>
+  off<T extends keyof RealTimeRoomApiEvents>(
+    event: T,
+    fn: EventEmitter.EventListener<RealTimeRoomApiEvents, T>
   ) {
     // @ts-expect-error
     const instance = super._off(`video.${event}`, fn)
