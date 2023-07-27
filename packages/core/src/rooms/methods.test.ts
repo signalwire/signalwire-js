@@ -3,6 +3,7 @@ import { BaseComponent } from '../BaseComponent'
 import { EventEmitter } from '../utils/EventEmitter'
 import { connect, SDKStore } from '../redux'
 import * as CustomMethods from './methods'
+import { RoomSessionRecordingAPI } from './RoomSessionRecording'
 
 describe('Room Custom Methods', () => {
   let store: SDKStore
@@ -28,33 +29,31 @@ describe('Room Custom Methods', () => {
     })
   })
 
-  // TODO: Discuss with Edo
-  // Not fixing delibrately because the return value of startRecording seems different than earlier implementation
-  // describe('startRecording', () => {
-  //   it('should return the raw payload w/o emitterTransforms', async () => {
-  //     ;(instance.execute as jest.Mock).mockResolvedValueOnce({
-  //       code: '200',
-  //       message: 'Recording started',
-  //       recording_id: 'c22d7223-5a01-49fe-8da0-46bec8e75e32',
-  //     })
-  //     instance.roomSessionId = 'mocked'
+  describe('startRecording', () => {
+    it('should return the raw payload w/o emitterTransforms', async () => {
+      ;(instance.execute as jest.Mock).mockResolvedValueOnce({
+        code: '200',
+        message: 'Recording started',
+        recording_id: 'c22d7223-5a01-49fe-8da0-46bec8e75e32',
+        recording: {
+          state: 'recording',
+        },
+      })
+      instance.roomSessionId = 'mocked'
 
-  //     const response = await instance.startRecording()
-  //     expect(instance.execute).toHaveBeenCalledTimes(1)
-  //     expect(instance.execute).toHaveBeenCalledWith({
-  //       method: 'video.recording.start',
-  //       params: {
-  //         room_session_id: 'mocked',
-  //       },
-  //     })
-  //     expect(response).toStrictEqual({
-  //       code: '200',
-  //       message: 'Recording started',
-  //       recording_id: 'c22d7223-5a01-49fe-8da0-46bec8e75e32',
-  //       room_session_id: 'mocked',
-  //     })
-  //   })
-  // })
+      const response = await instance.startRecording()
+      expect(instance.execute).toHaveBeenCalledTimes(1)
+      expect(instance.execute).toHaveBeenCalledWith({
+        method: 'video.recording.start',
+        params: {
+          room_session_id: 'mocked',
+        },
+      })
+      expect(response).toBeInstanceOf(RoomSessionRecordingAPI)
+      expect(response.roomSessionId).toBe('mocked')
+      expect(response.state).toBe('recording')
+    })
+  })
 
   describe('setLayout', () => {
     it('should execute with proper params', async () => {
