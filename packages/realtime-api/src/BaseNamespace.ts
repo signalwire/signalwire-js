@@ -82,6 +82,12 @@ export class BaseNamespace<T extends ListenOptions> {
     const unsub = () => {
       return new Promise<void>(async (resolve, reject) => {
         try {
+          // Remove listeners
+          this._detachListeners(topics, listeners)
+
+          // Remove task from the task listener array
+          this.removeFromListenerMap(_uuid)
+
           // Remove the topics
           const topicsToRemove = topics.filter(
             (topic) => !this.hasOtherListeners(_uuid, topic)
@@ -89,12 +95,6 @@ export class BaseNamespace<T extends ListenOptions> {
           if (topicsToRemove.length > 0) {
             await this.removeTopics(topicsToRemove)
           }
-
-          // Remove listeners
-          this._detachListeners(topics, listeners)
-
-          // Remove task from the task listener array
-          this.removeFromListenerMap(_uuid)
 
           resolve()
         } catch (error) {
@@ -118,6 +118,7 @@ export class BaseNamespace<T extends ListenOptions> {
       listenerKeys.forEach((key) => {
         if (typeof listeners[key] === 'function' && this._eventMap[key]) {
           const event = prefixEvent(topic, this._eventMap[key])
+          console.log('attach on', event)
           this.emitter.on(event, listeners[key])
         }
       })
@@ -130,6 +131,7 @@ export class BaseNamespace<T extends ListenOptions> {
       listenerKeys.forEach((key) => {
         if (typeof listeners[key] === 'function' && this._eventMap[key]) {
           const event = prefixEvent(topic, this._eventMap[key])
+          console.log('detach on', event)
           this.emitter.off(event, listeners[key])
         }
       })

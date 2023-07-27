@@ -3,6 +3,7 @@ import {
   EventEmitter,
   TaskInboundEvent,
   TaskReceivedEventName,
+  getLogger,
 } from '@signalwire/core'
 import { SWClient } from '../SWClient'
 import { taskWorker } from './workers'
@@ -73,6 +74,7 @@ export class Task extends BaseNamespace<TaskListenOptions> {
 
         req.on('error', reject)
 
+        getLogger().info(`SEND: \n`, data)
         req.write(data)
         req.end()
       } catch (error) {
