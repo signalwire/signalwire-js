@@ -202,7 +202,8 @@ describe('rootSaga as restartable', () => {
     const saga = testSaga(
       rootSaga({
         initSession,
-        sessionEmitter: sessionEmitter as any,
+        // @ts-expect-error
+        sessionEmitter,
       }),
       {
         userOptions,
