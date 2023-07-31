@@ -20,8 +20,8 @@ import {
   SessionConstructor,
   InternalChannels,
 } from '../utils/interfaces'
-import { BaseSession } from '../BaseSession'
-import { getLogger } from '../utils'
+import { useSession } from './utils/useSession'
+import { useInstanceMap } from './utils/useInstanceMap'
 
 export interface ConfigureStoreOptions {
   userOptions: InternalUserOptions
@@ -69,47 +69,13 @@ const configureStore = (options: ConfigureStoreOptions) => {
       getDefaultMiddleware().concat(sagaMiddleware),
   }) as Store
 
-  let session: BaseSession
-  const initSession = () => {
-    session = new SessionConstructor({
-      ...userOptions,
-      sessionChannel,
-    })
-    return session
-  }
+  const { initSession, getSession } = useSession({
+    userOptions,
+    sessionChannel,
+    SessionConstructor,
+  })
 
-  const getSession = () => {
-    if (!session) {
-      getLogger().warn('Custom worker started without the session')
-    }
-    return session
-  }
-
-  // Generic map stores multiple instance
-  // For eg;
-  // callId => CallInstance
-  // controlId => PlaybackInstance | RecordingInstance
-  const instanceMap = new Map<string, unknown>()
-
-  const getInstance = <T extends unknown>(key: string): T => {
-    return instanceMap.get(key) as T
-  }
-
-  const setInstance = <T extends unknown>(key: string, value: T) => {
-    instanceMap.set(key, value)
-    return instanceMap
-  }
-
-  const deleteInstance = (key: string) => {
-    instanceMap.delete(key)
-    return instanceMap
-  }
-
-  const map = {
-    get: getInstance,
-    set: setInstance,
-    remove: deleteInstance,
-  }
+  const map = useInstanceMap()
 
   const runSaga = <T>(
     saga: Saga,
