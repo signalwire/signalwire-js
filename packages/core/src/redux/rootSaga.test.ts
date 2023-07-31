@@ -129,6 +129,7 @@ describe('initSessionSaga', () => {
   } as any
   const initSession = jest.fn().mockImplementation(() => session)
   const pubSubChannel = createPubSubChannel()
+  const sessionEmitter = jest.fn()
   const userOptions = {
     token: '',
     emitter: jest.fn() as any,
@@ -150,16 +151,17 @@ describe('initSessionSaga', () => {
       initSession,
       userOptions,
       channels: { pubSubChannel, swEventChannel, sessionChannel },
+      sessionEmitter: sessionEmitter as any,
     })
     saga.next(sessionChannel).fork(sessionChannelWatcher, {
       session,
       sessionChannel,
-      pubSubChannel,
       swEventChannel,
     })
     saga.next().fork(pubSubSaga, {
       pubSubChannel,
       emitter: userOptions.emitter,
+      sessionEmitter,
     })
     const pubSubTask = createMockTask()
     pubSubTask.cancel = jest.fn()
@@ -188,6 +190,8 @@ describe('rootSaga as restartable', () => {
   const pubSubChannel = createPubSubChannel()
   const swEventChannel = createSwEventChannel()
   const sessionChannel = createSessionChannel()
+  const sessionEmitter = jest.fn()
+
   it('wait for initAction and fork initSessionSaga', () => {
     const session = {
       connect: jest.fn(),
@@ -198,6 +202,7 @@ describe('rootSaga as restartable', () => {
     const saga = testSaga(
       rootSaga({
         initSession,
+        sessionEmitter: sessionEmitter as any,
       }),
       {
         userOptions,
@@ -210,6 +215,7 @@ describe('rootSaga as restartable', () => {
       initSession,
       userOptions,
       channels,
+      sessionEmitter,
     })
     saga.next().cancelled()
     saga.next().take([initAction.type, reauthAction.type])
