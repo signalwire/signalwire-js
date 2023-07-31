@@ -10,9 +10,9 @@ import {
   componentActions,
   VideoRoomSubscribedEventParams,
   Rooms,
-  RoomSessionRTStream,
-  RoomSessionRTPlayback,
-  RoomSessionRTRecording,
+  RoomSessionStream,
+  RoomSessionPlayback,
+  RoomSessionRecording,
 } from '@signalwire/core'
 
 import { BaseConnection } from '../BaseConnection'
@@ -87,11 +87,11 @@ function transformPayload(
     if (payload[key].recordings) {
       payload[key].recordings = (payload[key].recordings || []).map(
         (recording: any) => {
-          let recordingInstance = this.instanceMap.get<RoomSessionRTRecording>(
+          let recordingInstance = this.instanceMap.get<RoomSessionRecording>(
             recording.id
           )
           if (!recordingInstance) {
-            recordingInstance = Rooms.createRoomSessionRTRecordingObject({
+            recordingInstance = Rooms.createRoomSessionRecordingObject({
               store: this.store,
               emitter: this.emitter,
               payload: {
@@ -107,7 +107,7 @@ function transformPayload(
               recording,
             })
           }
-          this.instanceMap.set<RoomSessionRTRecording>(
+          this.instanceMap.set<RoomSessionRecording>(
             recording.id,
             recordingInstance
           )
@@ -119,11 +119,11 @@ function transformPayload(
     if (payload[key].playbacks) {
       payload[key].playbacks = (payload[key].playbacks || []).map(
         (playback) => {
-          let playbackInstance = this.instanceMap.get<RoomSessionRTPlayback>(
+          let playbackInstance = this.instanceMap.get<RoomSessionPlayback>(
             playback.id
           )
           if (!playbackInstance) {
-            playbackInstance = Rooms.createRoomSessionRTPlaybackObject({
+            playbackInstance = Rooms.createRoomSessionPlaybackObject({
               store: this.store,
               emitter: this.emitter,
               payload: {
@@ -139,7 +139,7 @@ function transformPayload(
               playback,
             })
           }
-          this.instanceMap.set<RoomSessionRTPlayback>(
+          this.instanceMap.set<RoomSessionPlayback>(
             playback.id,
             playbackInstance
           )
@@ -150,11 +150,9 @@ function transformPayload(
 
     if (payload[key].streams) {
       payload[key].streams = (payload[key].streams || []).map((stream: any) => {
-        let streamInstance = this.instanceMap.get<RoomSessionRTStream>(
-          stream.id
-        )
+        let streamInstance = this.instanceMap.get<RoomSessionStream>(stream.id)
         if (!streamInstance) {
-          streamInstance = Rooms.createRoomSessionRTStreamObject({
+          streamInstance = Rooms.createRoomSessionStreamObject({
             store: this.store,
             emitter: this.emitter,
             payload: {
@@ -170,7 +168,7 @@ function transformPayload(
             stream,
           })
         }
-        this.instanceMap.set<RoomSessionRTStream>(stream.id, streamInstance)
+        this.instanceMap.set<RoomSessionStream>(stream.id, streamInstance)
         return streamInstance
       })
     }

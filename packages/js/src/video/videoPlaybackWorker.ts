@@ -2,7 +2,7 @@ import {
   getLogger,
   SagaIterator,
   MapToPubSubShape,
-  RoomSessionRTPlayback,
+  RoomSessionPlayback,
   Rooms,
   VideoPlaybackEvent,
   VideoPlaybackEventNames,
@@ -20,9 +20,11 @@ export const videoPlaybackWorker = function* (
     instanceMap: { get, set, remove },
   } = options
 
-  let playbackInstance = get<RoomSessionRTPlayback>(payload.playback.id)
+  // For now, we are not storing the RoomSession object in the instance map
+
+  let playbackInstance = get<RoomSessionPlayback>(payload.playback.id)
   if (!playbackInstance) {
-    playbackInstance = Rooms.createRoomSessionRTPlaybackObject({
+    playbackInstance = Rooms.createRoomSessionPlaybackObject({
       store: roomSession.store,
       // @ts-expect-error
       emitter: roomSession.emitter,
@@ -31,7 +33,7 @@ export const videoPlaybackWorker = function* (
   } else {
     playbackInstance.setPayload(payload)
   }
-  set<RoomSessionRTPlayback>(payload.playback.id, playbackInstance)
+  set<RoomSessionPlayback>(payload.playback.id, playbackInstance)
 
   const event = stripNamespacePrefix(type) as VideoPlaybackEventNames
 
@@ -43,7 +45,7 @@ export const videoPlaybackWorker = function* (
     }
     case 'video.playback.ended':
       roomSession.baseEmitter.emit(event, playbackInstance)
-      remove<RoomSessionRTPlayback>(payload.playback.id)
+      remove<RoomSessionPlayback>(payload.playback.id)
       break
     default:
       getLogger().warn(`Unknown video.stream event: "${type}"`)
