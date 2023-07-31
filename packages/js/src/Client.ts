@@ -87,6 +87,7 @@ export class ClientAPI<
           )
         }
 
+        // @ts-expect-error
         const room = createBaseRoomSessionObject<RoomSessionType>({
           ...options,
           store: this.store,
