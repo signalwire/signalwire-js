@@ -25,7 +25,8 @@ import {
 import { AuthError } from '../CustomErrors'
 import { PubSubChannel, SessionChannel } from './interfaces'
 import { createRestartableSaga } from './utils/sagaHelpers'
-// import { componentCleanupSaga } from './features/component/componentSaga'
+import { EventEmitter } from '../utils/EventEmitter'
+import { SessionEventsMap } from './utils/useSession'
 
 interface StartSagaOptions {
   session: BaseSession
@@ -36,10 +37,12 @@ interface StartSagaOptions {
 
 export function* initSessionSaga({
   initSession,
+  sessionEmitter,
   userOptions,
   channels,
 }: {
   initSession: () => BaseSession
+  sessionEmitter: EventEmitter<SessionEventsMap>
   userOptions: InternalUserOptions
   channels: InternalChannels
 }): SagaIterator {
@@ -77,7 +80,6 @@ export function* initSessionSaga({
   yield fork(sessionChannelWatcher, {
     session,
     sessionChannel,
-    pubSubChannel,
     swEventChannel,
   })
 
@@ -87,6 +89,7 @@ export function* initSessionSaga({
   const pubSubTask: Task = yield fork(pubSubSaga, {
     pubSubChannel,
     emitter: userOptions.emitter!,
+    sessionEmitter,
   })
 
   /**
@@ -234,6 +237,7 @@ export function* sessionAuthErrorSaga(
 
 interface RootSagaOptions {
   initSession: () => BaseSession
+  sessionEmitter: EventEmitter<SessionEventsMap>
 }
 
 export default (options: RootSagaOptions) => {

@@ -20,6 +20,7 @@ import {
   SessionAuthStatus,
   SDKWorkerHooks,
   Authorization,
+  SessionEvents,
 } from './utils/interfaces'
 import { EventEmitter } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
@@ -244,6 +245,28 @@ export class BaseComponent<
   /** @internal */
   get baseEmitter() {
     return this.baseEventEmitter
+  }
+
+  /** @internal */
+  get sessionEmitter() {
+    return this.options.store.sessionEmitter
+  }
+
+  get session() {
+    return {
+      emit: (event: SessionEvents, payload: any) => {
+        this.sessionEmitter.emit(event, payload)
+      },
+      on: (event: SessionEvents, fn: any) => {
+        this.sessionEmitter.on(event, fn)
+      },
+      once: (event: SessionEvents, fn: any) => {
+        this.sessionEmitter.once(event, fn)
+      },
+      off: (event: SessionEvents, fn: any) => {
+        this.sessionEmitter.off(event, fn)
+      },
+    }
   }
 
   /** @internal */

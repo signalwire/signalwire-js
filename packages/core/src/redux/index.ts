@@ -69,7 +69,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
       getDefaultMiddleware().concat(sagaMiddleware),
   }) as Store
 
-  const { initSession, getSession } = useSession({
+  const { initSession, getSession, sessionEmitter } = useSession({
     userOptions,
     sessionChannel,
     SessionConstructor,
@@ -95,6 +95,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
   if (runSagaMiddleware) {
     const saga = rootSaga({
       initSession,
+      sessionEmitter,
     })
     sagaMiddleware.run(saga, { userOptions, channels })
   }
@@ -104,6 +105,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
     runSaga,
     channels,
     instanceMap: map,
+    sessionEmitter,
   }
 }
 

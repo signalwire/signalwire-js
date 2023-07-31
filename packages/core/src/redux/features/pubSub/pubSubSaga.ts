@@ -8,15 +8,18 @@ import {
 import type { EventEmitter } from '../../../utils/EventEmitter'
 import type { PubSubChannel, PubSubAction } from '../../interfaces'
 import { findNamespaceInPayload } from '../shared/namespace'
+import { SessionEventsMap } from '../../utils/useSession'
 
 type PubSubSagaParams = {
   pubSubChannel: PubSubChannel
   emitter: EventEmitter<string>
+  sessionEmitter: EventEmitter<SessionEventsMap>
 }
 
 export function* pubSubSaga({
   pubSubChannel,
   emitter,
+  sessionEmitter,
 }: PubSubSagaParams): SagaIterator<any> {
   getLogger().debug('pubSubSaga [started]')
 
@@ -41,8 +44,17 @@ export function* pubSubSaga({
           'Emit:',
           toInternalEventName<string>({ namespace, event: type })
         )
+
         emitter.emit(
           toInternalEventName<string>({ namespace, event: type }),
+          payload
+        )
+
+        sessionEmitter.emit(
+          toInternalEventName<string>({
+            namespace,
+            event: type,
+          }) as any,
           payload
         )
       } catch (error) {

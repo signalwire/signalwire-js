@@ -14,7 +14,7 @@ interface UseSessionOptions {
   sessionChannel: SessionChannel
 }
 
-export type SessionEventsHandlerMapping = Record<SessionEvents, () => void>
+export type SessionEventsHandlerMapping = Record<SessionEvents, any>
 
 export type SessionEventsMap = {
   [k in keyof SessionEventsHandlerMapping]: SessionEventsHandlerMapping[k]
