@@ -1,4 +1,4 @@
-import { createRestClient } from './index'
+import { createRestClient } from './createRestClient'
 
 describe('createRestClient', () => {
   it('should return an object with all the available methods', () => {
