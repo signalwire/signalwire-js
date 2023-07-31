@@ -671,6 +671,10 @@ export class BaseComponent<
       this._off(eventName)
     })
 
+    this.sessionEventNames().forEach((eventName) => {
+      this.sessionEmitter.off(eventName)
+    })
+
     if (this.shouldAddToQueue()) {
       this.addEventToRegisterQueue({
         type: 'removeAllListeners',
@@ -698,6 +702,11 @@ export class BaseComponent<
   /** @internal */
   baseEventNames() {
     return this.baseEmitter.eventNames()
+  }
+
+  /** @internal */
+  sessionEventNames() {
+    return this.sessionEmitter.eventNames()
   }
 
   protected getSubscriptions() {
