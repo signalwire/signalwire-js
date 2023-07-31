@@ -63,8 +63,6 @@ export const childMemberJoinedWorker: SDKWorker<
        **/
       // @ts-expect-error
       instance._attachListeners(member.id)
-      // @ts-expect-error
-      instance.applyEmitterTransforms()
 
       yield sagaEffects.put(
         componentActions.upsert({

@@ -140,8 +140,6 @@ export const vertoEventWorker: SDKWorker<
       case 'verto.display': {
         // @ts-expect-error
         instance._attachListeners('')
-        // @ts-expect-error
-        instance.applyEmitterTransforms()
         /** Call is active so set the RTCPeer */
         instance.setActiveRTCPeer(rtcPeerId)
 
