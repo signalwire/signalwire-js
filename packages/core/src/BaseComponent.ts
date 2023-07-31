@@ -6,7 +6,6 @@ import {
   validateEventsToSubscribe,
   instanceProxyFactory,
   getLogger,
-  isSessionEvent,
 } from './utils'
 import { Action } from './redux'
 import {
@@ -14,7 +13,6 @@ import {
   ExecuteTransform,
   BaseComponentOptions,
   ExecuteExtendedOptions,
-  EventsPrefix,
   EventTransformType,
   EventTransform,
   SDKWorker,
@@ -82,8 +80,6 @@ export class BaseComponent<
     return this.uuid
   }
 
-  /** @internal */
-  protected _eventsPrefix: EventsPrefix = ''
   private _eventsRegisterQueue = new Set<EventRegisterHandlers<EventTypes>>()
   private _eventsEmitQueue = new Set<any>()
   private _eventsNamespace?: string
@@ -165,24 +161,8 @@ export class BaseComponent<
     })
   }
 
-  /**
-   * A prefix is a product, like `video` or `chat`.
-   */
-  private _getPrefixedEvent(event: EventEmitter.EventNames<EventTypes>) {
-    if (
-      this._eventsPrefix &&
-      typeof event === 'string' &&
-      !event.includes(`${this._eventsPrefix}.`) &&
-      !isSessionEvent(event)
-    ) {
-      return `${this._eventsPrefix}.${event}` as EventEmitter.EventNames<EventTypes>
-    }
-
-    return event
-  }
-
   private _getInternalEvent(event: EventEmitter.EventNames<EventTypes>) {
-    return this._getNamespacedEvent(this._getPrefixedEvent(event))
+    return this._getNamespacedEvent(event)
   }
 
   /**
@@ -664,6 +644,10 @@ export class BaseComponent<
   }
 
   removeAllListeners<T extends EventEmitter.EventNames<EventTypes>>(event?: T) {
+    this.baseEventNames().forEach((eventName) => {
+      this._off(eventName)
+    })
+
     if (this.shouldAddToQueue()) {
       this.addEventToRegisterQueue({
         type: 'removeAllListeners',
@@ -714,7 +698,9 @@ export class BaseComponent<
 
   /** @internal */
   listenerCount<T extends EventEmitter.EventNames<EventTypes>>(event: T) {
-    return this.emitter.listenerCount(event)
+    return (
+      this.emitter.listenerCount(event) || this.baseEmitter.listenerCount(event)
+    )
   }
 
   destroy() {

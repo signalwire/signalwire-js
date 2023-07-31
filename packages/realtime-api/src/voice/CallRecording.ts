@@ -34,7 +34,6 @@ export class CallRecordingAPI
   extends ApplyEventListeners<CallRecordingEventsHandlerMapping>
   implements VoiceCallRecordingContract
 {
-  protected _eventsPrefix = 'calling' as const
   private _payload: CallingCallRecordEventParams
 
   constructor(options: CallRecordingOptions) {

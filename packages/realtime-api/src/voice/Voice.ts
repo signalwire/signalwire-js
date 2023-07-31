@@ -199,9 +199,6 @@ export interface Voice
 
 /** @internal */
 class VoiceAPI extends ApplyEventListeners<VoiceClientApiEvents> {
-  /** @internal */
-  protected _eventsPrefix = 'calling' as const
-
   private _tag: string
 
   constructor(options: BaseComponentOptions<VoiceClientApiEvents>) {

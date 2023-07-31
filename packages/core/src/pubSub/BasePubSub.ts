@@ -49,7 +49,6 @@ const toInternalPubSubChannels = (
 export class BasePubSubConsumer<
   EventTypes extends EventEmitter.ValidEventTypes = BasePubSubApiEvents
 > extends ApplyEventListeners<EventTypes> {
-  protected override _eventsPrefix = PRODUCT_PREFIX_PUBSUB
   protected override subscribeMethod: JSONRPCSubscribeMethod = `${PRODUCT_PREFIX_PUBSUB}.subscribe`
 
   constructor(options: BaseComponentOptions<EventTypes>) {
