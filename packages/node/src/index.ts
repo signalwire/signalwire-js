@@ -1,4 +1,4 @@
-import * as RealTimeAPI from '@signalwire/realtime-api'
+import * as RealtimeAPI from '@signalwire/realtime-api'
 import * as WebAPI from '@signalwire/web-api'
 
-export { RealTimeAPI, WebAPI }
+export { RealtimeAPI, WebAPI }
