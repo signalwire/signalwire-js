@@ -52,9 +52,6 @@ export const roomSubscribedWorker: SDKWorker<
   // @ts-expect-error
   instance._attachListeners(action.payload.room_session.id)
 
-  // @ts-expect-error
-  instance.applyEmitterTransforms()
-
   /**
    * In here we joined a room_session so we can swap between RTCPeers
    */

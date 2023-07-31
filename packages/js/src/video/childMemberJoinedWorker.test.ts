@@ -1,18 +1,22 @@
-import { testUtils, componentActions, sagaHelpers } from '@signalwire/core'
+import { testUtils, componentActions } from '@signalwire/core'
 import { expectSaga } from 'redux-saga-test-plan'
 import { childMemberJoinedWorker } from './childMemberJoinedWorker'
 
-const { createPubSubChannel, createSwEventChannel } = testUtils
+const { createPubSubChannel, createSwEventChannel, createSessionChannel } =
+  testUtils
 
 describe('childMemberJoinedWorker', () => {
   it('should handle video.member.joined with parent_id', () => {
     const parentId = 'd815d293-f8d0-49e8-aec2-3a4cc3729af8'
     const memberId = 'b8912cc5-4248-4345-b53c-d53b2761748d'
     let runSaga = true
-    const session = {} as any
     const pubSubChannel = createPubSubChannel()
     const swEventChannel = createSwEventChannel()
-    const sessionChannel = sagaHelpers.eventChannel(() => () => {})
+    const sessionChannel = createSessionChannel()
+    const session = {
+      connect: jest.fn(),
+    } as any
+    const getSession = jest.fn().mockImplementation(() => session)
     const dispatchedActions: unknown[] = []
     const defaultState = {
       components: {
@@ -32,21 +36,21 @@ describe('childMemberJoinedWorker', () => {
     }
 
     return expectSaga(childMemberJoinedWorker, {
-      // @ts-expect-error
-      session,
       channels: {
         pubSubChannel,
         swEventChannel,
+        sessionChannel,
       },
-      sessionChannel,
       instance: {
         callId: 'callId',
         _attachListeners: jest.fn(),
-        applyEmitterTransforms: jest.fn(),
       } as any,
       initialState: {
         parentId,
       },
+      instanceMap: { get: jest.fn(), set: jest.fn(), remove: jest.fn() },
+      getSession,
+      runSaga: jest.fn(),
     })
       .withState(defaultState)
       .provide([
