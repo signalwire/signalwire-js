@@ -2,7 +2,7 @@ import {
   getLogger,
   SagaIterator,
   MapToPubSubShape,
-  RoomSessionRTRecording,
+  RoomSessionRecording,
   Rooms,
   VideoRecordingEvent,
   VideoRecordingEventNames,
@@ -20,9 +20,11 @@ export const videoRecordWorker = function* (
     instanceMap: { get, set, remove },
   } = options
 
-  let recordingInstance = get<RoomSessionRTRecording>(payload.recording.id)
+  // For now, we are not storing the RoomSession object in the instance map
+
+  let recordingInstance = get<RoomSessionRecording>(payload.recording.id)
   if (!recordingInstance) {
-    recordingInstance = Rooms.createRoomSessionRTRecordingObject({
+    recordingInstance = Rooms.createRoomSessionRecordingObject({
       store: roomSession.store,
       // @ts-expect-error
       emitter: roomSession.emitter,
@@ -31,7 +33,7 @@ export const videoRecordWorker = function* (
   } else {
     recordingInstance.setPayload(payload)
   }
-  set<RoomSessionRTRecording>(payload.recording.id, recordingInstance)
+  set<RoomSessionRecording>(payload.recording.id, recordingInstance)
 
   const event = stripNamespacePrefix(type) as VideoRecordingEventNames
 
@@ -43,7 +45,7 @@ export const videoRecordWorker = function* (
     }
     case 'video.recording.ended':
       roomSession.baseEmitter.emit(event, recordingInstance)
-      remove<RoomSessionRTRecording>(payload.recording.id)
+      remove<RoomSessionRecording>(payload.recording.id)
       break
     default:
       getLogger().warn(`Unknown video.stream event: "${type}"`)

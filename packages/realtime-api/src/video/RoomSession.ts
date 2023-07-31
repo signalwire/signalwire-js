@@ -266,10 +266,10 @@ export const RoomSessionAPI = extendComponent<
   setLayout: Rooms.setLayout,
   setPositions: Rooms.setPositions,
   setMemberPosition: Rooms.setMemberPosition,
-  getRecordings: Rooms.getRTRecordings,
-  startRecording: Rooms.startRTRecording,
-  getPlaybacks: Rooms.getRTPlaybacks,
-  play: Rooms.playRT,
+  getRecordings: Rooms.getRecordings,
+  startRecording: Rooms.startRecording,
+  getPlaybacks: Rooms.getPlaybacks,
+  play: Rooms.play,
   getMeta: Rooms.getMeta,
   setMeta: Rooms.setMeta,
   updateMeta: Rooms.updateMeta,
@@ -280,8 +280,8 @@ export const RoomSessionAPI = extendComponent<
   deleteMemberMeta: Rooms.deleteMemberMeta,
   promote: Rooms.promote,
   demote: Rooms.demote,
-  getStreams: Rooms.getRTStreams,
-  startStream: Rooms.startRTStream,
+  getStreams: Rooms.getStreams,
+  startStream: Rooms.startStream,
 })
 
 export const createRoomSessionObject = (
