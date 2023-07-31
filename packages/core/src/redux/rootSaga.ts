@@ -88,7 +88,6 @@ export function* initSessionSaga({
    */
   const pubSubTask: Task = yield fork(pubSubSaga, {
     pubSubChannel,
-    emitter: userOptions.emitter!,
     sessionEmitter,
   })
 

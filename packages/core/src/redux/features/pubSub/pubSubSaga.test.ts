@@ -10,15 +10,13 @@ describe('pubSubSaga', () => {
 
   it('should take from pubSubChannel and emit through the EventEmitter', () => {
     let runSaga = true
-    const emitter = new EventEmitter<string>()
     const sessionEmitter = new EventEmitter<string>()
     const mockFn = jest.fn()
-    emitter.on('event.name', mockFn)
+    sessionEmitter.on('event.name', mockFn)
     const pubSubChannel = createPubSubChannel()
 
     return expectSaga(pubSubSaga, {
       pubSubChannel,
-      emitter,
       sessionEmitter: sessionEmitter as any,
     })
       .provide([
@@ -52,18 +50,16 @@ describe('pubSubSaga', () => {
   it('should be resilient to the end-user errors', () => {
     const logger = getLogger()
     let runSagaCounter = 0
-    const emitter = new EventEmitter<string>()
     const sessionEmitter = new EventEmitter<string>()
     const mockFn = jest.fn()
-    emitter.on('exception', () => {
+    sessionEmitter.on('exception', () => {
       throw 'Jest Error'
     })
-    emitter.on('event.name', mockFn)
+    sessionEmitter.on('event.name', mockFn)
     const pubSubChannel = createPubSubChannel()
 
     return expectSaga(pubSubSaga, {
       pubSubChannel,
-      emitter,
       sessionEmitter: sessionEmitter as any,
     })
       .provide([

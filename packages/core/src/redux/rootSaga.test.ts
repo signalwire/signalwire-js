@@ -160,7 +160,6 @@ describe('initSessionSaga', () => {
     })
     saga.next().fork(pubSubSaga, {
       pubSubChannel,
-      emitter: userOptions.emitter,
       sessionEmitter,
     })
     const pubSubTask = createMockTask()
