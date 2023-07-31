@@ -175,11 +175,10 @@ export class BasePubSubConsumer<
   updateToken(token: string): Promise<void> {
     return new Promise((resolve, reject) => {
       // @ts-expect-error
-      this.once('session.auth_error', (error) => {
+      this.session.once('session.auth_error', (error) => {
         reject(error)
       })
-      // @ts-expect-error
-      this.once('session.connected', () => {
+      this.session.once('session.connected', () => {
         resolve()
       })
 

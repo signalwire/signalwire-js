@@ -186,7 +186,9 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     client.disconnect()
   })
 
-  client.once('session.disconnected', () => {
+  // @ts-expect-error
+  client.session.once('session.disconnected', () => {
+    console.log('pubSub - session - session.disconnected')
     room.destroy()
   })
 

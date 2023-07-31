@@ -30,12 +30,9 @@ export class BaseConsumer<
     const resetLatestExecuteParams = () => {
       this._latestExecuteParams = undefined
     }
-    // @ts-expect-error
-    super.on('session.connected', resetLatestExecuteParams)
-    // @ts-expect-error
-    super.on('session.disconnected', resetLatestExecuteParams)
-    // @ts-expect-error
-    super.on('session.reconnecting', resetLatestExecuteParams)
+    super.session.on('session.connected', resetLatestExecuteParams)
+    super.session.on('session.disconnected', resetLatestExecuteParams)
+    super.session.on('session.reconnecting', resetLatestExecuteParams)
   }
 
   private shouldExecuteSubscribe(execParams: ExecuteParams) {
