@@ -115,9 +115,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   /** @internal */
   public doReinvite = false
 
-  /** @internal */
-  protected _eventsPrefix = 'video' as const
-
   private state: BaseConnectionState = 'new'
   private prevState: BaseConnectionState = 'new'
   private activeRTCPeerId: string

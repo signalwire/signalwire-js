@@ -40,7 +40,6 @@ export class CallCollectAPI
   extends ApplyEventListeners<CallCollectEventsHandlerMapping>
   implements VoiceCallCollectContract
 {
-  protected _eventsPrefix = 'calling' as const
   private _payload: CallingCallCollectEventParams
 
   constructor(options: CallCollectOptions) {

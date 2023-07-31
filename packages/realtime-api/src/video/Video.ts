@@ -113,9 +113,6 @@ class VideoAPI extends AutoSubscribeConsumer<RealTimeVideoApiEvents> {
   }
 
   /** @internal */
-  protected _eventsPrefix = 'video' as const
-
-  /** @internal */
   protected subscribeParams = {
     get_initial_state: true,
   }

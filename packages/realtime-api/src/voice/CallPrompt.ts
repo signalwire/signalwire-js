@@ -40,7 +40,6 @@ export class CallPromptAPI
   extends ApplyEventListeners<CallPromptEventsHandlerMapping>
   implements VoiceCallPromptContract
 {
-  protected _eventsPrefix = 'calling' as const
   private _payload: CallingCallCollectEventParams
 
   constructor(options: CallPromptOptions) {

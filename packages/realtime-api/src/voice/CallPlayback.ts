@@ -37,8 +37,6 @@ export class CallPlaybackAPI
   extends ApplyEventListeners<CallPlaybackEventsHandlerMapping>
   implements VoiceCallPlaybackContract
 {
-  protected _eventsPrefix = 'calling' as const
-
   public _paused: boolean
   private _volume: number
   private _payload: CallingCallPlayEventParams

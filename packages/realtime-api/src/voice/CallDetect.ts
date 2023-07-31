@@ -35,7 +35,6 @@ export class CallDetectAPI
   extends ApplyEventListeners<CallDetectEventsHandlerMapping>
   implements VoiceCallDetectContract
 {
-  protected _eventsPrefix = 'calling' as const
   private _payload: CallingCallDetectEventParams
   private _waitForBeep: boolean
   private _waitingForReady: boolean
