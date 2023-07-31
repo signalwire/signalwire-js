@@ -2,6 +2,7 @@ import {
   ClientEvents,
   configureStore,
   connect,
+  getEventEmitter,
   UserOptions,
 } from '@signalwire/core'
 import { ClientAPI, Client } from './Client'
@@ -32,10 +33,10 @@ import { JWTSession } from './JWTSession'
 export const createClient = <RoomSessionType>(userOptions: UserOptions) => {
   const baseUserOptions = {
     ...userOptions,
+    emitter: getEventEmitter<ClientEvents>(),
   }
   const store = configureStore({
-    // @ts-expect-error
-    userOptions,
+    userOptions: baseUserOptions,
     SessionConstructor: JWTSession,
   })
   const client = connect<
