@@ -18,6 +18,33 @@ describe('validateRequest', () => {
     expect(valid).toBe(false)
   })
 
+  it('should return false if the body is not correct', () => {
+    const valid = validateRequest(validKey, header, url, '{"foo":"bar"}')
+    expect(valid).toBe(false)
+  })
+
+  it('should return false if the url is not correct', () => {
+    const valid = validateRequest(
+      validKey,
+      header,
+      url + 'bar?q=hello',
+      rawBody
+    )
+    expect(valid).toBe(false)
+  })
+
+  it('should return false if the header is not correct', () => {
+    const valid = validateRequest(validKey, 'touched!', url, rawBody)
+    expect(valid).toBe(false)
+  })
+
+  it('should throw an error if the rawBody is not a string', () => {
+    expect(() => {
+      // @ts-expect-error
+      validateRequest(validKey, header, url, {})
+    }).toThrow(TypeError)
+  })
+
   describe('fallback to the compatibility-api check', () => {
     const defaultParams = {
       CallSid: 'CA1234567890ABCDE',
