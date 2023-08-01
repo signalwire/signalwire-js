@@ -31,10 +31,9 @@ export const voiceCallConnectWorker = function* (
     case 'connected': {
       let peerCallInstance = get<Call>(payload.peer.call_id)
       if (!peerCallInstance) {
+        // @ts-expect-error
         peerCallInstance = createCallObject({
           store: client.store,
-          // @ts-expect-error
-          emitter: client.emitter,
           connectPayload: payload,
         })
       } else {

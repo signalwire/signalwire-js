@@ -23,10 +23,7 @@ export interface CallCollect extends VoiceCallCollectContract {
 export type CallCollectEventsHandlerMapping = {}
 
 export interface CallCollectOptions
-  extends BaseComponentOptionsWithPayload<
-    CallCollectEventsHandlerMapping,
-    CallingCallCollectEventParams
-  > {}
+  extends BaseComponentOptionsWithPayload<CallingCallCollectEventParams> {}
 
 const ENDED_STATES: CallingCallCollectEndState[] = [
   'error',

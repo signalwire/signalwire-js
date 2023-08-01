@@ -106,7 +106,7 @@ export type {
 } from '@signalwire/core'
 
 class VideoAPI extends AutoSubscribeConsumer<RealTimeVideoApiEvents> {
-  constructor(options: BaseComponentOptions<RealTimeVideoApiEvents>) {
+  constructor(options: BaseComponentOptions) {
     super(options)
 
     this.runWorker('videoCallWorker', { worker: videoCallingWorker })
@@ -132,8 +132,6 @@ class VideoAPI extends AutoSubscribeConsumer<RealTimeVideoApiEvents> {
             if (!roomInstance) {
               roomInstance = createRoomSessionObject({
                 store: this.store,
-                // @ts-expect-error
-                emitter: this.emitter,
                 payload: { room_session: room },
               })
             } else {
@@ -169,8 +167,6 @@ class VideoAPI extends AutoSubscribeConsumer<RealTimeVideoApiEvents> {
           if (!roomInstance) {
             roomInstance = createRoomSessionObject({
               store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
               payload: { room_session: room },
             })
           } else {
@@ -191,9 +187,7 @@ class VideoAPI extends AutoSubscribeConsumer<RealTimeVideoApiEvents> {
 }
 
 /** @internal */
-export const createVideoObject = (
-  params: BaseComponentOptions<RealTimeVideoApiEvents>
-): Video => {
+export const createVideoObject = (params: BaseComponentOptions): Video => {
   const video = connect<RealTimeVideoApiEvents, VideoAPI, Video>({
     store: params.store,
     Component: VideoAPI,

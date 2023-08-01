@@ -23,7 +23,7 @@ export interface VideoManager extends ConsumerContract<VideoManagerEvents> {
 
 /** @internal */
 export class VideoManagerAPI extends ApplyEventListeners<VideoManagerEvents> {
-  constructor(options: BaseComponentOptions<VideoManagerEvents>) {
+  constructor(options: BaseComponentOptions) {
     super(options)
 
     this.runWorker('videoManagerWorker', {
@@ -39,9 +39,7 @@ export class VideoManagerAPI extends ApplyEventListeners<VideoManagerEvents> {
   }
 }
 
-export const createVideoManagerObject = (
-  params: BaseComponentOptions<VideoManagerEvents>
-) => {
+export const createVideoManagerObject = (params: BaseComponentOptions) => {
   const manager = connect<VideoManagerEvents, VideoManagerAPI, VideoManager>({
     store: params.store,
     Component: VideoManagerAPI,

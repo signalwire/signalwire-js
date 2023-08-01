@@ -11,7 +11,7 @@ export class AutoSubscribeConsumer<
   /** @internal */
   private debouncedSubscribe: ReturnType<typeof debounce>
 
-  constructor(options: BaseComponentOptions<EventTypes>) {
+  constructor(options: BaseComponentOptions) {
     super(options)
 
     this.debouncedSubscribe = debounce(this.subscribe, 100)

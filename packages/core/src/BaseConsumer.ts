@@ -20,7 +20,7 @@ export class BaseConsumer<
   protected subscribeParams?: Record<string, any> = {}
   private _latestExecuteParams?: ExecuteParams
 
-  constructor(public options: BaseComponentOptions<EventTypes>) {
+  constructor(public options: BaseComponentOptions) {
     super(options)
     /**
      * TODO: To Review

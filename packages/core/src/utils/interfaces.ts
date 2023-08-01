@@ -145,20 +145,15 @@ export interface BaseClientOptions<
   emitter: EventEmitter<EventTypes>
 }
 
-export interface BaseComponentOptions<
-  EventTypes extends EventEmitter.ValidEventTypes
-> {
+export interface BaseComponentOptions {
   store: SDKStore
-  emitter: EventEmitter<EventTypes>
   customSagas?: CustomSaga<any>[]
 }
 
 export interface BaseComponentOptionsWithPayload<
-  EventTypes extends EventEmitter.ValidEventTypes,
   CustomPayload extends unknown
 > {
   store: SDKStore
-  emitter: EventEmitter<EventTypes>
   customSagas?: CustomSaga<any>[]
   payload: CustomPayload
 }

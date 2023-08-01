@@ -1,6 +1,5 @@
 import { BaseComponent } from './BaseComponent'
 import { configureJestStore } from './testUtils'
-import { EventEmitter } from './utils/EventEmitter'
 
 describe('BaseComponent', () => {
   describe('as an event emitter', () => {
@@ -8,7 +7,6 @@ describe('BaseComponent', () => {
       constructor() {
         super({
           store: configureJestStore(),
-          emitter: new EventEmitter(),
         })
       }
     }

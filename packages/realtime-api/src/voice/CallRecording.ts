@@ -23,10 +23,7 @@ export interface CallRecording extends VoiceCallRecordingContract {
 export type CallRecordingEventsHandlerMapping = {}
 
 export interface CallRecordingOptions
-  extends BaseComponentOptionsWithPayload<
-    CallRecordingEventsHandlerMapping,
-    CallingCallRecordEventParams
-  > {}
+  extends BaseComponentOptionsWithPayload<CallingCallRecordEventParams> {}
 
 const ENDED_STATES: CallingCallRecordEndState[] = ['finished', 'no_input']
 

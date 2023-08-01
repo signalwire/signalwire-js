@@ -154,7 +154,7 @@ export class RoomSessionConnection
         audio: audio === true ? SCREENSHARE_AUDIO_CONSTRAINTS : audio,
         video,
       })
-      const options: BaseConnectionOptions<RoomSessionObjectEvents> = {
+      const options: BaseConnectionOptions = {
         ...this.options,
         screenShare: true,
         recoverCall: false,
@@ -252,7 +252,7 @@ export class RoomSessionConnection
         )
       }
 
-      const options: BaseConnectionOptions<RoomSessionObjectEvents> = {
+      const options: BaseConnectionOptions = {
         ...this.options,
         localStream: undefined,
         remoteStream: undefined,
@@ -527,7 +527,7 @@ type RoomSessionObjectEventsHandlerMapping = RoomSessionObjectEvents &
 
 /** @internal */
 export const createBaseRoomSessionObject = <RoomSessionType>(
-  params: BaseComponentOptions<RoomSessionObjectEventsHandlerMapping>
+  params: BaseComponentOptions
 ): BaseRoomSession<RoomSessionType> => {
   const room = connect<
     RoomSessionObjectEventsHandlerMapping,

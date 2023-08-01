@@ -23,10 +23,7 @@ export interface CallPrompt extends VoiceCallPromptContract {
 export type CallPromptEventsHandlerMapping = {}
 
 export interface CallPromptOptions
-  extends BaseComponentOptionsWithPayload<
-    CallPromptEventsHandlerMapping,
-    CallingCallCollectEventParams
-  > {}
+  extends BaseComponentOptionsWithPayload<CallingCallCollectEventParams> {}
 
 const ENDED_STATES: CallingCallCollectEndState[] = [
   'no_input',

@@ -29,8 +29,6 @@ export const videoRecordingWorker = function* (
     recordingInstance = Rooms.createRoomSessionRecordingObject({
       // @ts-expect-error
       store: client.store,
-      // @ts-expect-error
-      emitter: client.emitter,
       payload,
     })
   } else {

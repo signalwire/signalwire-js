@@ -25,8 +25,6 @@ export const voiceCallRecordWorker = function* (
   if (!recordingInstance) {
     recordingInstance = createCallRecordingObject({
       store: callInstance.store,
-      // @ts-expect-error
-      emitter: callInstance.emitter,
       payload,
     })
   } else {

@@ -29,8 +29,6 @@ export const videoRoomWorker = function* (
     roomSessionInstance = createRoomSessionObject({
       // @ts-expect-error
       store: client.store,
-      // @ts-expect-error
-      emitter: client.emitter,
       payload,
     })
   } else {
@@ -46,8 +44,6 @@ export const videoRoomWorker = function* (
         memberInstance = createRoomSessionMemberObject({
           // @ts-expect-error
           store: client.store,
-          // @ts-expect-error
-          emitter: client.emitter,
           payload: {
             room_id: payload.room_session.room_id,
             room_session_id: payload.room_session.id,

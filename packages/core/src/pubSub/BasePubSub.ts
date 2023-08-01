@@ -4,14 +4,12 @@ import {
   JSONRPCSubscribeMethod,
   ExecuteParams,
   actions,
-  SessionEvents,
   EventEmitter,
 } from '..'
 import { getAuthState } from '../redux/features/session/sessionSelectors'
 import type {
   PubSubChannel,
   InternalPubSubChannel,
-  PubSubEventNames,
   PubSubPublishParams,
   PubSubMessageEventName,
 } from '../types/pubSub'
@@ -23,8 +21,7 @@ import { ApplyEventListeners } from '../ApplyEventListeners'
 export type BasePubSubApiEventsHandlerMapping = Record<
   PubSubMessageEventName,
   (message: PubSubMessage) => void
-> &
-  Record<Extract<SessionEvents, 'session.expiring'>, () => void>
+>
 
 /**
  * @privateRemarks
@@ -51,7 +48,7 @@ export class BasePubSubConsumer<
 > extends ApplyEventListeners<EventTypes> {
   protected override subscribeMethod: JSONRPCSubscribeMethod = `${PRODUCT_PREFIX_PUBSUB}.subscribe`
 
-  constructor(options: BaseComponentOptions<EventTypes>) {
+  constructor(options: BaseComponentOptions) {
     super(options)
 
     // Initialize worker through a function so that it can be override by the BaseChatConsumer
@@ -207,7 +204,7 @@ export class BasePubSubConsumer<
 }
 
 export const createBasePubSubObject = <PubSubType>(
-  params: BaseComponentOptions<PubSubEventNames>
+  params: BaseComponentOptions
 ) => {
   const pubSub = connect<BasePubSubApiEvents, BasePubSubConsumer, PubSubType>({
     store: params.store,

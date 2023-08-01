@@ -87,10 +87,7 @@ export type BaseConnectionStateEventTypes = {
   [k in keyof EventsHandlerMapping]: EventsHandlerMapping[k]
 }
 
-export type BaseConnectionOptions<
-  EventTypes extends EventEmitter.ValidEventTypes
-> = ConnectionOptions &
-  BaseComponentOptions<EventTypes & BaseConnectionStateEventTypes>
+export type BaseConnectionOptions = ConnectionOptions & BaseComponentOptions
 
 export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   extends BaseComponent<EventTypes & BaseConnectionStateEventTypes>
@@ -99,9 +96,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     BaseConnectionContract<EventTypes & BaseConnectionStateEventTypes>
 {
   public direction: 'inbound' | 'outbound'
-  public options: BaseConnectionOptions<
-    EventTypes & BaseConnectionStateEventTypes
-  >
+  public options: BaseConnectionOptions
   /** @internal */
   public leaveReason: BaseConnectionContract<EventTypes>['leaveReason'] =
     undefined
@@ -122,9 +117,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   private sessionAuthTask: Task
   private resuming = false
 
-  constructor(
-    options: BaseConnectionOptions<EventTypes & BaseConnectionStateEventTypes>
-  ) {
+  constructor(options: BaseConnectionOptions) {
     super(options)
 
     this.options = {

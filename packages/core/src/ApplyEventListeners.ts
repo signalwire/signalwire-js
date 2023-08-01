@@ -3,6 +3,8 @@ import { BaseConsumer, EventEmitter } from '@signalwire/core'
 /**
  * Override all old listeners with new listeners that uses BaseComponent's new even emitter
  */
+
+// TODO: Remove this class once we override the @getSubscriptions method in the child class
 export class ApplyEventListeners<
   EventTypes extends EventEmitter.ValidEventTypes
 > extends BaseConsumer<EventTypes> {

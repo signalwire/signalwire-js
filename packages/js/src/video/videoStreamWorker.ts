@@ -24,8 +24,6 @@ export const videoStreamWorker = function* (
   if (!streamInstance) {
     streamInstance = Rooms.createRoomSessionStreamObject({
       store: roomSession.store,
-      // @ts-expect-error
-      emitter: roomSession.emitter,
       payload,
     })
   } else {

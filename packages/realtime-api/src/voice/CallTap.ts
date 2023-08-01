@@ -23,10 +23,7 @@ export interface CallTap extends VoiceCallTapContract {
 export type CallTapEventsHandlerMapping = {}
 
 export interface CallTapOptions
-  extends BaseComponentOptionsWithPayload<
-    CallTapEventsHandlerMapping,
-    CallingCallTapEventParams
-  > {}
+  extends BaseComponentOptionsWithPayload<CallingCallTapEventParams> {}
 
 const ENDED_STATES: CallingCallTapEndState[] = ['finished']
 

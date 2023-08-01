@@ -25,8 +25,6 @@ export const voiceCallTapWorker = function* (
   if (!tapInstance) {
     tapInstance = createCallTapObject({
       store: callInstance.store,
-      // @ts-expect-error
-      emitter: callInstance.emitter,
       payload,
     })
   } else {

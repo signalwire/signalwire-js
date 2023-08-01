@@ -89,7 +89,6 @@ function transformPayload(
           if (!recordingInstance) {
             recordingInstance = Rooms.createRoomSessionRecordingObject({
               store: this.store,
-              emitter: this.emitter,
               payload: {
                 room_id: payload.room.room_id,
                 room_session_id: payload.room_session.id,
@@ -121,7 +120,6 @@ function transformPayload(
           if (!playbackInstance) {
             playbackInstance = Rooms.createRoomSessionPlaybackObject({
               store: this.store,
-              emitter: this.emitter,
               payload: {
                 room_id: payload.room.room_id,
                 room_session_id: payload.room_session.id,
@@ -150,7 +148,6 @@ function transformPayload(
         if (!streamInstance) {
           streamInstance = Rooms.createRoomSessionStreamObject({
             store: this.store,
-            emitter: this.emitter,
             payload: {
               room_id: payload.room.room_id,
               room_session_id: payload.room_session.id,

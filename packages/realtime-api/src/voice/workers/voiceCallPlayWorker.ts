@@ -30,8 +30,6 @@ export const voiceCallPlayWorker = function* (
     getLogger().trace('voiceCallPlayWorker create instance')
     playbackInstance = createCallPlaybackObject({
       store: callInstance.store,
-      // @ts-expect-error
-      emitter: callInstance.emitter,
       payload,
     })
   } else {

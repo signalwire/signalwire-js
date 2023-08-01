@@ -29,8 +29,6 @@ export const videoPlaybackWorker = function* (
     playbackInstance = Rooms.createRoomSessionPlaybackObject({
       // @ts-expect-error
       store: client.store,
-      // @ts-expect-error
-      emitter: client.emitter,
       payload,
     })
   } else {

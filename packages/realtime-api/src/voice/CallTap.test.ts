@@ -1,10 +1,5 @@
-import { EventEmitter } from '@signalwire/core'
 import { configureJestStore } from '../testUtils'
-import {
-  createCallTapObject,
-  CallTap,
-  CallTapEventsHandlerMapping,
-} from './CallTap'
+import { createCallTapObject, CallTap } from './CallTap'
 
 describe('CallTap', () => {
   describe('createCallTapObject', () => {
@@ -12,7 +7,6 @@ describe('CallTap', () => {
     beforeEach(() => {
       instance = createCallTapObject({
         store: configureJestStore(),
-        emitter: new EventEmitter<CallTapEventsHandlerMapping>(),
         // @ts-expect-error
         payload: {
           call_id: 'call_id',

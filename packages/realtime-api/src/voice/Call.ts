@@ -76,8 +76,8 @@ export type EmitterTransformsEvents =
   | 'calling.connect.connected'
 
 export interface CallOptions
-  extends BaseComponentOptionsWithPayload<RealTimeCallApiEvents, CallingCall> {
-  connectPayload: CallingCallConnectEventParams
+  extends BaseComponentOptionsWithPayload<CallingCall> {
+  connectPayload?: CallingCallConnectEventParams
 }
 
 /**
@@ -204,7 +204,7 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
   }
 
   get connectState() {
-    return this._connectPayload.connect_state
+    return this._connectPayload?.connect_state
   }
 
   get peer() {
@@ -559,8 +559,6 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
         .then(() => {
           const promptInstance = createCallPromptObject({
             store: this.store,
-            // @ts-expect-error
-            emitter: this.emitter,
             // @ts-expect-error
             payload: {
               control_id: controlId,
@@ -1051,8 +1049,6 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
         .then(() => {
           const detectInstance = createCallDetectObject({
             store: this.store,
-            // @ts-expect-error
-            emitter: this.emitter,
             payload: {
               control_id: controlId,
               call_id: this.id,
@@ -1234,8 +1230,6 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
         .then(() => {
           const collectInstance = createCallCollectObject({
             store: this.store,
-            // @ts-expect-error
-            emitter: this.emitter,
             // @ts-expect-error
             payload: {
               control_id: controlId,

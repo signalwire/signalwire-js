@@ -23,8 +23,6 @@ export const voiceCallReceiveWorker = function* (
   if (!callInstance) {
     callInstance = createCallObject({
       store: client.store,
-      // @ts-expect-error
-      emitter: client.emitter,
       payload: payload,
     })
   } else {

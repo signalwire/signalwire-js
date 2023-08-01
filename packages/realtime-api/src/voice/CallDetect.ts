@@ -24,10 +24,7 @@ export interface CallDetect extends VoiceCallDetectContract {
 export type CallDetectEventsHandlerMapping = {}
 
 export interface CallDetectOptions
-  extends BaseComponentOptionsWithPayload<
-    CallDetectEventsHandlerMapping,
-    CallingCallDetectEventParams
-  > {}
+  extends BaseComponentOptionsWithPayload<CallingCallDetectEventParams> {}
 
 const ENDED_STATES: CallingCallDetectEndState[] = ['finished', 'error']
 

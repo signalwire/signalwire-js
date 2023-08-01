@@ -1,9 +1,7 @@
 import { configureJestStore } from '../testUtils'
-import { EventEmitter } from '../utils/EventEmitter'
 import {
   createRoomSessionRecordingObject,
   RoomSessionRecording,
-  RoomSessionRecordingEventsHandlerMapping,
 } from './RoomSessionRecording'
 
 describe('RoomSessionRecording', () => {
@@ -12,7 +10,6 @@ describe('RoomSessionRecording', () => {
     beforeEach(() => {
       instance = createRoomSessionRecordingObject({
         store: configureJestStore(),
-        emitter: new EventEmitter<RoomSessionRecordingEventsHandlerMapping>(),
         payload: {
           // @ts-expect-error
           recording: {

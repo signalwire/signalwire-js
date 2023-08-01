@@ -1,11 +1,11 @@
 import {
   connect,
-  BaseComponentOptions,
   VoiceCallPlaybackContract,
   CallingCallPlayEndState,
   CallingCallPlayEventParams,
   EventEmitter,
   ApplyEventListeners,
+  BaseComponentOptionsWithPayload,
 } from '@signalwire/core'
 
 /**
@@ -27,9 +27,7 @@ export interface CallPlayback extends VoiceCallPlaybackContract {
 export type CallPlaybackEventsHandlerMapping = {}
 
 export interface CallPlaybackOptions
-  extends BaseComponentOptions<CallPlaybackEventsHandlerMapping> {
-  payload: CallingCallPlayEventParams
-}
+  extends BaseComponentOptionsWithPayload<CallingCallPlayEventParams> {}
 
 const ENDED_STATES: CallingCallPlayEndState[] = ['finished', 'error']
 

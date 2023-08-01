@@ -45,10 +45,7 @@ export interface RoomSessionFullState extends Omit<RoomSession, 'members'> {
 
 type RoomSessionPayload = Optional<VideoRoomEventParams, 'room'>
 export interface RoomSessionConsumerOptions
-  extends BaseComponentOptionsWithPayload<
-    RealTimeRoomApiEvents,
-    RoomSessionPayload
-  > {}
+  extends BaseComponentOptionsWithPayload<RoomSessionPayload> {}
 
 export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   private _payload: RoomSessionPayload
@@ -216,8 +213,6 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
           if (!memberInstance) {
             memberInstance = createRoomSessionMemberObject({
               store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
               payload: {
                 room_id: this.roomId,
                 room_session_id: this.roomSessionId,
