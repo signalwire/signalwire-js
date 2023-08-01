@@ -16,6 +16,11 @@ export const validateRequest = (
   url: string,
   rawBody: string
 ): boolean => {
+  if (typeof rawBody !== 'string') {
+    throw new TypeError(
+      `"rawBody" is not a string. You may need to JSON.stringify the request body.`
+    )
+  }
   const hmac = createHmac('sha1', privateKey)
   hmac.update(`${url}${rawBody}`)
   const valid = hmac.digest('hex') === header
