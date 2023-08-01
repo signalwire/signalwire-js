@@ -1,8 +1,29 @@
+import { createHmac } from 'node:crypto'
+import { RestClient } from '@signalwire/compatibility-api'
+
+/**
+ * Utility function to validate an incoming request is indeed from SignalWire
+ *
+ * @param {string} privateKey - The "SIGNING KEY", as seen in the SignalWire API page
+ * @param {string} header - The value of the X-SignalWire-Signature header from the request
+ * @param {string} url - The full URL (with query string) you configured to handle this request
+ * @param {string} rawBody - The raw body of the request (JSON string)
+ * @returns {boolean} - Whether the request is valid or not
+ */
 export const validateRequest = (
   privateKey: string,
   header: string,
-  requestUrl: string,
+  url: string,
   rawBody: string
-) => {
-  console.log('Validate Request with', privateKey, header, requestUrl, rawBody)
+): boolean => {
+  const hmac = createHmac('sha1', privateKey)
+  hmac.update(`${url}${rawBody}`)
+  const valid = hmac.digest('hex') === header
+
+  if (valid) {
+    return true
+  }
+
+  const parsedBody = JSON.parse(rawBody)
+  return RestClient.validateRequest(privateKey, header, url, parsedBody)
 }
