@@ -835,9 +835,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
       this.resuming = false
 
-      // TODO: Review
-      this._attachListeners('')
-
       /** Call is active so set the RTCPeer */
       this.setActiveRTCPeer(rtcPeerId)
     } catch (error) {

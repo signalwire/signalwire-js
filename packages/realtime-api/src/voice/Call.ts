@@ -103,8 +103,6 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
 
     this._payload = options.payload
 
-    this._attachListeners(this.__uuid)
-
     this.on('call.state', () => {
       /**
        * FIXME: this no-op listener is required for our EE transforms to

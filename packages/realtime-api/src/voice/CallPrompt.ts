@@ -169,7 +169,6 @@ export class CallPromptAPI
     }
 
     return new Promise<this>((resolve) => {
-      this._attachListeners(this.controlId)
       const handler = (_callPrompt: CallPromptEndedEvent['params']) => {
         // @ts-expect-error
         this.off('prompt.ended', handler)

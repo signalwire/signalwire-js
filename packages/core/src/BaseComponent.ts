@@ -11,7 +11,6 @@ import {
   SessionAuthStatus,
   SDKWorkerHooks,
   Authorization,
-  SessionEvents,
 } from './utils/interfaces'
 import { EventEmitter } from './utils/EventEmitter'
 import { SDKState } from './redux/interfaces'
@@ -28,24 +27,6 @@ import {
 } from './redux/features/session/sessionSelectors'
 import { AuthError } from './CustomErrors'
 import { executeActionWorker } from './workers'
-
-type EventRegisterHandlers<EventTypes extends EventEmitter.ValidEventTypes> =
-  | {
-      type: 'on'
-      params: Parameters<EmitterContract<EventTypes>['on']>
-    }
-  | {
-      type: 'off'
-      params: Parameters<EmitterContract<EventTypes>['off']>
-    }
-  | {
-      type: 'once'
-      params: Parameters<EmitterContract<EventTypes>['once']>
-    }
-  | {
-      type: 'removeAllListeners'
-      params: [event: EventEmitter.EventNames<EventTypes>]
-    }
 
 const identity: ExecuteTransform<any, any> = (payload) => payload
 
@@ -67,20 +48,10 @@ export class BaseComponent<
     return this.uuid
   }
 
-  private _eventsRegisterQueue = new Set<EventRegisterHandlers<EventTypes>>()
-  private _eventsEmitQueue = new Set<any>()
-  private _eventsNamespace?: string
   private _customSagaTriggers = new Map()
   private _destroyer?: () => void
   // TODO: change variable name
   private baseEventEmitter: EventEmitter<EventTypes>
-
-  /**
-   * List of events being registered through the EventEmitter
-   * instance. These events include the `_eventsPrefix` but not the
-   * `_eventsNamespace`
-   */
-  private _trackedEvents: Array<EventEmitter.EventNames<EventTypes>> = []
 
   /**
    * List of running Tasks to be cancelled on `destroy`.
@@ -135,44 +106,9 @@ export class BaseComponent<
     return this.options.store.sessionEmitter
   }
 
-  get session() {
-    return {
-      emit: (event: SessionEvents, payload: any) => {
-        this.sessionEmitter.emit(event, payload)
-      },
-      on: (event: SessionEvents, fn: any) => {
-        this.sessionEmitter.on(event, fn)
-      },
-      once: (event: SessionEvents, fn: any) => {
-        this.sessionEmitter.once(event, fn)
-      },
-      off: (event: SessionEvents, fn: any) => {
-        this.sessionEmitter.off(event, fn)
-      },
-    }
-  }
-
   /** @internal */
-  private addEventToRegisterQueue(options: EventRegisterHandlers<EventTypes>) {
-    const [event, fn] = options.params
-    this.logger.trace('Adding event to the register queue', { event, fn })
-    // @ts-ignore
-    this._eventsRegisterQueue.add({
-      type: options.type,
-      params: options.params,
-    })
-    return this.emitter as EventEmitter<EventTypes>
-  }
-
-  /**
-   * Take into account that `this._eventsNamespace` can be
-   * intercepted by a wrapping Proxy object. We use this
-   * extensibily for wrapping instances of the BaseConsumer
-   * and event handlers instances.
-   * @internal
-   **/
-  private shouldAddToQueue() {
-    return this._eventsNamespace === undefined
+  get session() {
+    return this.sessionEmitter
   }
 
   on<T extends EventEmitter.EventNames<EventTypes>>(
@@ -218,36 +154,19 @@ export class BaseComponent<
   }
 
   removeAllListeners<T extends EventEmitter.EventNames<EventTypes>>(event?: T) {
+    if (event) {
+      return this.off(event)
+    }
+
     this.baseEventNames().forEach((eventName) => {
-      this._off(eventName)
+      this.off(eventName)
     })
 
     this.sessionEventNames().forEach((eventName) => {
       this.sessionEmitter.off(eventName)
     })
 
-    if (this.shouldAddToQueue()) {
-      this.addEventToRegisterQueue({
-        type: 'removeAllListeners',
-        params: [event] as any,
-      })
-      return this.emitter as EventEmitter<EventTypes>
-    }
-
-    if (event) {
-      return this._off(event)
-    }
-
-    this.eventNames().forEach((eventName) => {
-      this._off(eventName)
-    })
-
-    return this.emitter as EventEmitter<EventTypes>
-  }
-
-  /** @internal */
-  eventNames() {
-    return this._trackedEvents
+    return this.baseEmitter as EventEmitter<EventTypes>
   }
 
   /** @internal */
@@ -261,9 +180,7 @@ export class BaseComponent<
   }
 
   protected getSubscriptions() {
-    return validateEventsToSubscribe(
-      this.eventNames().concat(this.baseEventNames())
-    )
+    return validateEventsToSubscribe(this.baseEventNames())
   }
 
   /** @internal */
@@ -274,9 +191,7 @@ export class BaseComponent<
 
   /** @internal */
   listenerCount<T extends EventEmitter.EventNames<EventTypes>>(event: T) {
-    return (
-      this.emitter.listenerCount(event) || this.baseEmitter.listenerCount(event)
-    )
+    return this.baseEmitter.listenerCount(event)
   }
 
   destroy() {
@@ -358,38 +273,6 @@ export class BaseComponent<
   getStateProperty(param: keyof OnlyStateProperties<StateProperties>) {
     // @ts-expect-error
     return this[param]
-  }
-
-  /** @internal */
-  private flushEventsRegisterQueue() {
-    this._eventsRegisterQueue.forEach((item) => {
-      // @ts-ignore
-      this[item.type](...item.params)
-      this._eventsRegisterQueue.delete(item)
-    })
-  }
-
-  /** @internal */
-  private flushEventsEmitQueue() {
-    this._eventsEmitQueue.forEach((item) => {
-      const { event, args } = item
-      this.emit(event, ...args)
-      this._eventsEmitQueue.delete(item)
-    })
-  }
-
-  /** @internal */
-  private flushEventsQueue() {
-    this.flushEventsRegisterQueue()
-    this.flushEventsEmitQueue()
-  }
-
-  /** @internal */
-  protected _attachListeners(namespace?: string) {
-    if (typeof namespace === 'string') {
-      this._eventsNamespace = namespace
-    }
-    this.flushEventsQueue()
   }
 
   /** @internal */

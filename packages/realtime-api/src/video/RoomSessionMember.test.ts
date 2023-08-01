@@ -45,9 +45,6 @@ describe('Member Object', () => {
       })
       // @ts-expect-error
       roomSession.execute = jest.fn()
-      // tweak "_eventsNamespace" using _attachListeners
-      // @ts-expect-error
-      roomSession._attachListeners(roomSessionId)
       roomSession.subscribe().then(() => {
         // Trigger a member.joined event to resolve the main Promise
         const memberJoinedEvent = JSON.parse(

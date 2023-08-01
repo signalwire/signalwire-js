@@ -139,8 +139,6 @@ export class CallPlaybackAPI
 
   ended() {
     return new Promise<this>((resolve) => {
-      this._attachListeners(this.controlId)
-
       const handler = () => {
         // @ts-expect-error
         this.off('playback.ended', handler)

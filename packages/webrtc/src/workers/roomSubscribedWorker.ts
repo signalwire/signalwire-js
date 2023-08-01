@@ -48,10 +48,6 @@ export const roomSubscribedWorker: SDKWorker<
   // New emitter should not change the payload by reference
   const clonedPayload = JSON.parse(JSON.stringify(action.payload))
 
-  // FIXME: Move to a better place when rework _attachListeners too.
-  // @ts-expect-error
-  instance._attachListeners(action.payload.room_session.id)
-
   /**
    * In here we joined a room_session so we can swap between RTCPeers
    */

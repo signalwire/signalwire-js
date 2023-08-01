@@ -212,8 +212,6 @@ class VoiceAPI extends ApplyEventListeners<VoiceClientApiEvents> {
         tag: this._tag,
       },
     })
-
-    this._attachListeners('')
   }
 
   dial(params: VoiceDialerParams) {

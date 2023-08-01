@@ -27,8 +27,7 @@ describe('RoomSession Object', () => {
         newRoom.execute = jest.fn()
 
         roomSession = newRoom
-        // @ts-expect-error
-        roomSession._attachListeners(roomSessionId)
+
         resolve(roomSession)
       })
 
