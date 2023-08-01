@@ -84,6 +84,7 @@ export type {
   CustomSagaParams,
   CustomSaga,
   PubSubChannel,
+  SwEventChannel,
   PubSubAction,
   MapToPubSubShape,
   SDKActions,

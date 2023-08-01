@@ -5,7 +5,7 @@ import {
   toSyntheticEvent,
   validateEventsToSubscribe,
   toInternalEventName,
-  PubSubChannel,
+  SwEventChannel,
   InternalVideoMemberEntity,
   InternalVideoMemberUpdatedEvent,
   VideoMemberJoinedEvent,
@@ -67,7 +67,7 @@ const getMemberListEventsToSubscribe = (
 
 const shouldHandleMemberList = (subscriptions: string[]) => {
   return subscriptions.some((event) =>
-    event.includes(INTERNAL_MEMBER_LIST_UPDATED_EVENT)
+    event.includes(EXTERNAL_MEMBER_LIST_UPDATED_EVENT)
   )
 }
 
@@ -152,10 +152,10 @@ const initMemberListSubscriptions = (
 }
 
 function* membersListUpdatedWatcher({
-  pubSubChannel,
+  swEventChannel,
   instance,
 }: {
-  pubSubChannel: PubSubChannel
+  swEventChannel: SwEventChannel
   instance: any
 }): SagaIterator {
   const memberList: MemberList = new Map()
@@ -187,7 +187,7 @@ function* membersListUpdatedWatcher({
 
   while (true) {
     const pubSubAction: MemberListUpdatedTargetActions = yield sagaEffects.take(
-      pubSubChannel,
+      swEventChannel,
       ({ type }: any) => {
         return isMemberListEvent(type)
       }
@@ -199,7 +199,7 @@ function* membersListUpdatedWatcher({
 
 export const memberListUpdatedWorker: SDKWorker<RoomSession> =
   function* membersChangedWorker({
-    channels: { pubSubChannel },
+    channels: { swEventChannel },
     instance,
   }): SagaIterator {
     // @ts-expect-error
@@ -212,7 +212,7 @@ export const memberListUpdatedWorker: SDKWorker<RoomSession> =
     const { cleanup } = initMemberListSubscriptions(instance, subscriptions)
 
     yield sagaEffects.fork(membersListUpdatedWatcher, {
-      pubSubChannel,
+      swEventChannel,
       instance,
     })
 
