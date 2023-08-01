@@ -90,8 +90,6 @@ export class ClientAPI<
         const room = createBaseRoomSessionObject<RoomSessionType>({
           ...options,
           store: this.store,
-          // @ts-expect-error
-          emitter: this.emitter,
           customSagas,
         })
 
