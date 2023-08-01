@@ -270,8 +270,6 @@ export type SessionEvents = `session.${SessionStatus}`
 
 export type SessionActions = 'session.forceClose'
 
-export type CompoundEvents = 'compound_event:attach'
-
 /**
  * List of all the events the client can listen to.
  * @internal
