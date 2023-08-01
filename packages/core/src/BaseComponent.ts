@@ -1,20 +1,11 @@
 import type { Task } from '@redux-saga/types'
-import {
-  uuid,
-  toInternalEventName,
-  isLocalEvent,
-  validateEventsToSubscribe,
-  // instanceProxyFactory,
-  getLogger,
-} from './utils'
+import { uuid, validateEventsToSubscribe, getLogger } from './utils'
 import { Action } from './redux'
 import {
   ExecuteParams,
   ExecuteTransform,
   BaseComponentOptions,
   ExecuteExtendedOptions,
-  // EventTransformType,
-  // EventTransform,
   SDKWorker,
   SDKWorkerDefinition,
   SessionAuthStatus,
@@ -36,7 +27,6 @@ import {
   getAuthStatus,
 } from './redux/features/session/sessionSelectors'
 import { AuthError } from './CustomErrors'
-// import { proxyFactory } from './utils/proxyUtils'
 import { executeActionWorker } from './workers'
 
 type EventRegisterHandlers<EventTypes extends EventEmitter.ValidEventTypes> =
@@ -73,9 +63,6 @@ export class BaseComponent<
   private readonly uuid = uuid()
 
   /** @internal */
-  // private _proxyFactoryCache = new WeakMap<any, any>()
-
-  /** @internal */
   get __uuid() {
     return this.uuid
   }
@@ -87,41 +74,6 @@ export class BaseComponent<
   private _destroyer?: () => void
   // TODO: change variable name
   private baseEventEmitter: EventEmitter<EventTypes>
-
-  /**
-   * A Namespace let us scope specific instances inside of a
-   * particular product (like 'video.', 'chat.', etc.). For instance,
-   * when working with a room, the namespace will let us send messages
-   * to that specific room.
-   */
-  private _getNamespacedEvent(event: EventEmitter.EventNames<EventTypes>) {
-    /**
-     * "Remote" events are the events controlled by the
-     * server. In order to be able to attach them we have to
-     * wait for the server to respond.
-     * `this._eventsNamespace` is usually set with some
-     * piece of data coming from the server.
-     */
-    let namespace = this._eventsNamespace
-
-    /**
-     * "Local" events are attached synchronously so in order
-     * to be able to namespaced them properly we must make
-     * use of our locally generated __uuid.
-     */
-    if (typeof event === 'string' && isLocalEvent(event)) {
-      namespace = this.__uuid
-    }
-
-    return toInternalEventName({
-      event,
-      namespace,
-    })
-  }
-
-  private _getInternalEvent(event: EventEmitter.EventNames<EventTypes>) {
-    return this._getNamespacedEvent(event)
-  }
 
   /**
    * List of events being registered through the EventEmitter
@@ -210,15 +162,6 @@ export class BaseComponent<
       params: options.params,
     })
     return this.emitter as EventEmitter<EventTypes>
-  }
-
-  /** @internal */
-  private _addEventToEmitQueue(
-    event: EventEmitter.EventNames<EventTypes>,
-    args: any[]
-  ) {
-    this.logger.trace('Adding to the emit queue', event)
-    this._eventsEmitQueue.add({ event, args })
   }
 
   /**
@@ -325,15 +268,8 @@ export class BaseComponent<
 
   /** @internal */
   emit(event: EventEmitter.EventNames<EventTypes>, ...args: any[]) {
-    if (this.shouldAddToQueue()) {
-      this._addEventToEmitQueue(event, args)
-      return false
-    }
-
-    const internalEvent = this._getInternalEvent(event)
-    this.logger.trace('Emit on event:', internalEvent)
     // @ts-ignore
-    return this.emitter.emit(internalEvent, ...args)
+    return this.baseEmitter.emit(event, ...args)
   }
 
   /** @internal */

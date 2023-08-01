@@ -120,5 +120,3 @@ export type MessagingEventParams =
 export type MessagingAction = MapToPubSubShape<MessagingEvent>
 
 export type MessagingJSONRPCMethod = 'messaging.send'
-
-export type MessagingTransformType = 'messagingMessage'
