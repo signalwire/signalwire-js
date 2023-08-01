@@ -34,7 +34,7 @@
   "scripts": {
     "start": "sw-build --dev --node",
     "build": "tsc --project tsconfig.build.json && sw-build --node",
-    "test": "echo no-tests",
+    "test": "NODE_ENV=test jest --detectOpenHandles --forceExit",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
