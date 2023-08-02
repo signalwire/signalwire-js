@@ -3,6 +3,18 @@ import { SWAIG } from './swaig'
 describe('SWAIG', () => {
   let instance: Awaited<ReturnType<typeof SWAIG>>
 
+  const mockFetch = (body: Record<string, unknown>) => {
+    return fetch('http://localhost:3000/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        version: '2.0',
+        action: 'get_signature',
+        ...body,
+      }),
+    })
+  }
+
   const expectSignatures = async (response: Response, expectedResult: any) => {
     expect(response.status).toBe(200)
     expect(response.headers.get('content-type')).toBe(
@@ -19,14 +31,13 @@ describe('SWAIG', () => {
     instance.close()
   })
 
-  it('should respond to POST / with all the signatures', async () => {
+  it('should respond to POST / with no signatures if "functions" is empty', async () => {
     expect.assertions(3)
 
     await instance.run({ port: 3000 })
 
-    const response = await fetch('http://localhost:3000/', {
-      method: 'POST',
-    })
+    const response = await mockFetch({ functions: [] })
+
     await expectSignatures(response, [])
   })
 
@@ -41,8 +52,8 @@ describe('SWAIG', () => {
           type: 'object',
           properties: {
             location: {
-              description: 'the location to get the coordinates for',
               type: 'string',
+              description: 'the location to get the coordinates for',
             },
           },
           required: ['location'],
@@ -59,9 +70,8 @@ describe('SWAIG', () => {
 
     await instance.run({ port: 3000 })
 
-    const response = await fetch('http://localhost:3000/', {
-      method: 'POST',
-    })
+    const response = await mockFetch({ functions: ['get_location'] })
+
     await expectSignatures(response, [
       {
         function: 'get_location',
@@ -70,14 +80,91 @@ describe('SWAIG', () => {
           type: 'object',
           properties: {
             location: {
-              description: 'the location to get the coordinates for',
               type: 'string',
+              description: 'the location to get the coordinates for',
             },
           },
+          required: ['location'],
+          additionalProperties: false,
         },
         web_hook_url: 'https://example.com/foo/get_location',
         web_hook_auth_user: 'admin',
         web_hook_auth_password: 'password',
+        meta_data_token: 'foo',
+      },
+    ])
+  })
+
+  it('should return only the requested signatures', async () => {
+    expect.assertions(3)
+
+    for (let index = 0; index < 4; index++) {
+      await instance.addFunction(
+        {
+          name: `fn_${index}`,
+          purpose: `describe purpose of this test function ${index}`,
+          argument: {
+            type: 'object',
+            properties: {
+              location: {
+                type: 'string',
+                description: 'the location to get the coordinates for',
+              },
+            },
+            required: ['location'],
+            additionalProperties: false,
+          } as const,
+          username: `admin_${index}`,
+          password: `pwd_${index}`,
+          token: 'foo',
+        },
+        (params) => {
+          return { location: params.location }
+        }
+      )
+    }
+
+    await instance.run({ port: 3000 })
+
+    const response = await mockFetch({ functions: ['fn_0', 'fn_3'] })
+
+    await expectSignatures(response, [
+      {
+        function: 'fn_0',
+        purpose: 'describe purpose of this test function 0',
+        argument: {
+          type: 'object',
+          properties: {
+            location: {
+              type: 'string',
+              description: 'the location to get the coordinates for',
+            },
+          },
+          required: ['location'],
+          additionalProperties: false,
+        },
+        web_hook_url: 'https://example.com/foo/fn_0',
+        web_hook_auth_user: 'admin_0',
+        web_hook_auth_password: 'pwd_0',
+        meta_data_token: 'foo',
+      },
+      {
+        function: 'fn_3',
+        purpose: 'describe purpose of this test function 3',
+        argument: {
+          type: 'object',
+          properties: {
+            location: {
+              type: 'string',
+              description: 'the location to get the coordinates for',
+            },
+          },
+          required: ['location'],
+          additionalProperties: false,
+        },
+        web_hook_url: 'https://example.com/foo/fn_3',
+        web_hook_auth_user: 'admin_3',
+        web_hook_auth_password: 'pwd_3',
         meta_data_token: 'foo',
       },
     ])

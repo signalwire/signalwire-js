@@ -33,6 +33,27 @@ export interface ServerOptions {
   token?: string // TODO: check if needed
 }
 
+const rootBodySchema = {
+  type: 'object',
+  properties: {
+    project_id: { type: 'string' },
+    space_id: { type: 'string' },
+    version: { type: 'string', enum: ['2.0'] },
+    content_type: { type: 'string' },
+    content_disposition: { type: 'string' },
+    functions: {
+      type: 'array',
+      items: {
+        type: 'string',
+      },
+    },
+    action: { type: 'string', enum: ['get_signature'] },
+  },
+  required: ['version', 'action', 'functions'],
+} as const
+
+type RootBody = FromSchema<typeof rootBodySchema>
+
 export class Server {
   instance: FastifyInstance
   private customRoutes: Map<string, Signature>
@@ -72,8 +93,9 @@ export class Server {
     try {
       await this.instance.listen(params)
     } catch (error) {
+      console.log('error', error)
       this.instance.log.error(error, 'Error running the server.')
-      process.exit(1)
+      // process.exit(1)
     }
   }
 
@@ -111,12 +133,23 @@ export class Server {
     /**
      * POST / to retrieve the list of function signatures
      */
-    this.instance.post('/', (_request, _reply) => {
-      // TODO: check "action": "get_signature" in the body
-      // TODO: filter based on "functions" in the body
-      return Array.from(this.customRoutes, ([_key, value]) => {
-        return value
-      })
-    })
+    this.instance.post<{ Body: RootBody }>(
+      '/',
+      {
+        schema: {
+          body: rootBodySchema,
+        },
+      },
+      (request, _reply) => {
+        const result = []
+        for (const fn of request.body.functions) {
+          if (this.customRoutes.has(fn)) {
+            result.push(this.customRoutes.get(fn))
+          }
+        }
+
+        return result
+      }
+    )
   }
 }
