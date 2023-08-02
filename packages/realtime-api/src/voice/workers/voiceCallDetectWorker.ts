@@ -43,26 +43,29 @@ export const voiceCallDetectWorker = function* (
   switch (event) {
     case 'finished':
     case 'error': {
-      callInstance.baseEmitter.emit('detect.ended', detectInstance)
+      // @ts-expect-error
+      callInstance.emit('detect.ended', detectInstance)
 
       // To resolve the ended() promise in CallDetect
-      detectInstance.baseEmitter.emit('detect.ended', detectInstance)
+      detectInstance.emit('detect.ended', detectInstance)
 
       remove<CallDetect>(payload.control_id)
       return
     }
     default:
-      callInstance.baseEmitter.emit('detect.updated', detectInstance)
+      // @ts-expect-error
+      callInstance.emit('detect.updated', detectInstance)
       break
   }
 
   switch (type) {
     case 'machine':
       if (detectInstance.waitingForReady && event === 'READY') {
-        callInstance.baseEmitter.emit('detect.ended', detectInstance)
+        // @ts-expect-error
+        callInstance.emit('detect.ended', detectInstance)
 
         // To resolve the ended() promise in CallDetect
-        detectInstance.baseEmitter.emit('detect.ended', detectInstance)
+        detectInstance.emit('detect.ended', detectInstance)
       }
       if (detectInstance.waitForBeep) {
         detectInstance.waitingForReady = true

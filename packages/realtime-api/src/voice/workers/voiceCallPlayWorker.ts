@@ -45,28 +45,28 @@ export const voiceCallPlayWorker = function* (
         : 'playback.started'
       playbackInstance._paused = false
 
-      callInstance.baseEmitter.emit(type, playbackInstance)
+      callInstance.emit(type, playbackInstance)
       break
     }
     case 'paused': {
       playbackInstance._paused = true
-      callInstance.baseEmitter.emit('playback.updated', playbackInstance)
+      callInstance.emit('playback.updated', playbackInstance)
       break
     }
     case 'error': {
-      callInstance.baseEmitter.emit('playback.failed', playbackInstance)
+      callInstance.emit('playback.failed', playbackInstance)
 
       // To resolve the ended() promise in CallPlayback
-      playbackInstance.baseEmitter.emit('playback.failed', playbackInstance)
+      playbackInstance.emit('playback.failed', playbackInstance)
 
       remove<CallPlayback>(controlId)
       break
     }
     case 'finished': {
-      callInstance.baseEmitter.emit('playback.ended', playbackInstance)
+      callInstance.emit('playback.ended', playbackInstance)
 
       // To resolve the ended() promise in CallPlayback
-      playbackInstance.baseEmitter.emit('playback.ended', playbackInstance)
+      playbackInstance.emit('playback.ended', playbackInstance)
 
       remove<CallPlayback>(controlId)
       break

@@ -29,7 +29,7 @@ describe('BaseComponent', () => {
       expect(instance.listenerCount('test.eventOne')).toEqual(2)
       expect(instance.listenerCount('test.eventTwo')).toEqual(2)
 
-      expect(instance.baseEventNames()).toStrictEqual([
+      expect(instance.eventNames()).toStrictEqual([
         'test.eventOne',
         'test.eventTwo',
       ])
@@ -44,7 +44,7 @@ describe('BaseComponent', () => {
       instance.off('test.eventTwo', mockTwo)
       expect(instance.listenerCount('test.eventTwo')).toEqual(0)
 
-      expect(instance.baseEventNames()).toStrictEqual([])
+      expect(instance.eventNames()).toStrictEqual([])
     })
 
     it('should remove all the listeners with .removeAllListeners', () => {
@@ -59,7 +59,7 @@ describe('BaseComponent', () => {
       expect(instance.listenerCount('test.eventOne')).toEqual(2)
       expect(instance.listenerCount('test.eventTwo')).toEqual(2)
 
-      expect(instance.baseEventNames()).toStrictEqual([
+      expect(instance.eventNames()).toStrictEqual([
         'test.eventOne',
         'test.eventTwo',
       ])
@@ -68,7 +68,7 @@ describe('BaseComponent', () => {
 
       expect(instance.listenerCount('test.eventOne')).toEqual(0)
       expect(instance.listenerCount('test.eventTwo')).toEqual(0)
-      expect(instance.baseEventNames()).toStrictEqual([])
+      expect(instance.eventNames()).toStrictEqual([])
     })
 
     it('should handle snake_case events', (done) => {
@@ -80,7 +80,7 @@ describe('BaseComponent', () => {
         done()
       })
 
-      instance.baseEmitter.emit(serverEvent, payload)
+      instance.emitter.emit(serverEvent, payload)
     })
 
     it('should handle camelCase events', (done) => {
@@ -92,7 +92,7 @@ describe('BaseComponent', () => {
         done()
       })
 
-      instance.baseEmitter.emit(serverEvent, payload)
+      instance.emitter.emit(serverEvent, payload)
     })
   })
 })

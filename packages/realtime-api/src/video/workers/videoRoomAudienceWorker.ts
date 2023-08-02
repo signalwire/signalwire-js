@@ -24,7 +24,8 @@ export const videoRoomAudienceWorker = function* (
 
   switch (type) {
     case 'video.room.audience_count':
-      roomSessionInstance.baseEmitter.emit(
+      roomSessionInstance.emit(
+        // @ts-expect-error
         `video.room.audienceCount`,
         toExternalJSON(payload)
       )

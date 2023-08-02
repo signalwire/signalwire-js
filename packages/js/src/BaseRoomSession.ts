@@ -190,8 +190,7 @@ export class RoomSessionConnection
       })
 
       screenShare.once('destroy', () => {
-        // @ts-expect-error
-        screenShare.baseEmitter.emit('room.left')
+        screenShare.emit('room.left')
         this._screenShareList.delete(screenShare)
       })
 
@@ -276,8 +275,7 @@ export class RoomSessionConnection
       })(options)
 
       roomDevice.once('destroy', () => {
-        // @ts-expect-error
-        roomDevice.baseEmitter.emit('room.left')
+        roomDevice.emit('room.left')
         this._deviceList.delete(roomDevice)
       })
 
@@ -323,7 +321,7 @@ export class RoomSessionConnection
         const isSame = newSpeaker?.deviceId === prevSpeaker?.deviceId
         if (!newSpeaker?.deviceId || isSame) return
 
-        this.baseEmitter.emit('speaker.updated', {
+        this.emit('speaker.updated', {
           previous: {
             deviceId: prevSpeaker?.deviceId,
             label: prevSpeaker?.label,
@@ -356,7 +354,7 @@ export class RoomSessionConnection
           )
         })
         if (disconnectedSpeaker) {
-          this.baseEmitter.emit('speaker.disconnected', {
+          this.emit('speaker.disconnected', {
             deviceId: disconnectedSpeaker.payload.deviceId,
             label: disconnectedSpeaker.payload.label,
           })
@@ -372,7 +370,7 @@ export class RoomSessionConnection
           if (!defaultSpeakers?.deviceId) return
 
           // Emit the speaker.updated event since the OS will fallback to the default speaker
-          this.baseEmitter.emit('speaker.updated', {
+          this.emit('speaker.updated', {
             previous: {
               deviceId: disconnectedSpeaker.payload.deviceId,
               label: disconnectedSpeaker.payload.label,
@@ -440,7 +438,7 @@ export class RoomSessionConnection
       mirrored: this._mirrored,
       setMirrored: (value: boolean) => {
         this._mirrored = value
-        this.baseEmitter.emit(
+        this.emit(
           // @ts-expect-error
           `${LOCAL_EVENT_PREFIX}.mirror.video`,
           this._mirrored
@@ -450,7 +448,7 @@ export class RoomSessionConnection
   }
 
   protected override getSubscriptions(): any {
-    const eventNamesWithPrefix = this.baseEventNames().map(
+    const eventNamesWithPrefix = this.eventNames().map(
       (event) => `video.${event}`
     )
     return validateEventsToSubscribe(eventNamesWithPrefix)

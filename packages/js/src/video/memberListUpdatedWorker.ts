@@ -130,8 +130,7 @@ const initMemberListSubscriptions = (
    * synthetic events and external events.
    */
   const eventBridgeHandler = ({ members }: VideoMemberListUpdatedParams) => {
-    // @ts-expect-error
-    room.baseEmitter.emit(EXTERNAL_MEMBER_LIST_UPDATED_EVENT, { members })
+    room.emit(EXTERNAL_MEMBER_LIST_UPDATED_EVENT, { members })
   }
 
   // @ts-expect-error
@@ -178,11 +177,7 @@ function* membersListUpdatedWatcher({
       members,
     }
 
-    // TODO: add typings
-    instance.baseEmitter.emit(
-      SYNTHETIC_MEMBER_LIST_UPDATED_EVENT,
-      memberListPayload
-    )
+    instance.emit(SYNTHETIC_MEMBER_LIST_UPDATED_EVENT, memberListPayload)
   }
 
   while (true) {

@@ -27,7 +27,7 @@ describe('memberPositionWorker', () => {
   })
 
   afterEach(() => {
-    instance.baseEmitter.removeAllListeners()
+    instance.removeAllListeners()
   })
 
   const memberId = 'ab42641c-e784-42f1-9815-d264105bc24f'
@@ -73,8 +73,8 @@ describe('memberPositionWorker', () => {
   const getSession = jest.fn().mockImplementation(() => session)
 
   it('should handle video.member.updated dispatching the sub-events for what is changed for the user and updating the internal cache', () => {
-    // A spy for the baseEmitter.emit method
-    const emitSpy = jest.spyOn(instance.baseEmitter, 'emit')
+    // A spy for the emitter.emit method
+    const emitSpy = jest.spyOn(instance, 'emit')
 
     return expectSaga(memberUpdatedWorker, {
       action,
@@ -112,8 +112,8 @@ describe('memberPositionWorker', () => {
   })
 
   it('should handle video.member.updated dispatching using the dispatcher function if passed', () => {
-    // A spy for the baseEmitter.emit method
-    const emitSpy = jest.spyOn(instance.baseEmitter, 'emit')
+    // A spy for the emitter.emit method
+    const emitSpy = jest.spyOn(instance, 'emit')
 
     // A mock dispatcher function
     const mockDispatcher = jest.fn()

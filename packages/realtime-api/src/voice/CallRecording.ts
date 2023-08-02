@@ -17,7 +17,8 @@ import {
 export interface CallRecording extends VoiceCallRecordingContract {
   setPayload: (payload: CallingCallRecordEventParams) => void
   _paused: boolean
-  baseEmitter: EventEmitter
+  /** @internal */
+  emit(event: EventEmitter.EventNames<any>, ...args: any[]): void
 }
 
 export type CallRecordingEventsHandlerMapping = {}

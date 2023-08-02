@@ -17,7 +17,8 @@ import {
 export interface CallTap extends VoiceCallTapContract {
   setPayload: (payload: CallingCallTapEventParams) => void
   _paused: boolean
-  baseEmitter: EventEmitter
+  /** @internal */
+  emit(event: EventEmitter.EventNames<any>, ...args: any[]): void
 }
 
 export type CallTapEventsHandlerMapping = {}

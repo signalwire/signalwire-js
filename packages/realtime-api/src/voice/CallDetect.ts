@@ -4,8 +4,8 @@ import {
   VoiceCallDetectContract,
   CallingCallDetectEndState,
   CallingCallDetectEventParams,
-  EventEmitter,
   ApplyEventListeners,
+  EventEmitter,
 } from '@signalwire/core'
 
 /**
@@ -16,9 +16,10 @@ import {
  */
 export interface CallDetect extends VoiceCallDetectContract {
   setPayload: (payload: CallingCallDetectEventParams) => void
-  baseEmitter: EventEmitter
   waitingForReady: boolean
   waitForBeep: boolean
+  /** @internal */
+  emit(event: EventEmitter.EventNames<any>, ...args: any[]): void
 }
 
 export type CallDetectEventsHandlerMapping = {}

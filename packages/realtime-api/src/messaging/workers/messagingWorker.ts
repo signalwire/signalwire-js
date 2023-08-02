@@ -27,11 +27,11 @@ export const messagingWorker: SDKWorker<Client> = function* (
     switch (type) {
       case 'messaging.receive':
         // @ts-expect-error
-        client.baseEmitter.emit('message.received', message)
+        client.emit('message.received', message)
         break
       case 'messaging.state':
         // @ts-expect-error
-        client.baseEmitter.emit('message.updated', message)
+        client.emit('message.updated', message)
         break
       default:
         getLogger().warn(`Unknown message event: "${action.type}"`)

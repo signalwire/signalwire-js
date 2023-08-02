@@ -39,10 +39,12 @@ export const videoRecordingWorker = function* (
   switch (type) {
     case 'video.recording.started':
     case 'video.recording.updated':
-      roomSessionInstance.baseEmitter.emit(type, recordingInstance)
+      // @ts-expect-error
+      roomSessionInstance.emit(type, recordingInstance)
       break
     case 'video.recording.ended':
-      roomSessionInstance.baseEmitter.emit(type, recordingInstance)
+      // @ts-expect-error
+      roomSessionInstance.emit(type, recordingInstance)
       remove<RoomSessionRecording>(payload.recording.id)
       break
     default:

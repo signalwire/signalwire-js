@@ -29,15 +29,16 @@ export const voiceCallStateWorker = function* (
 
   switch (payload.call_state) {
     case 'ended': {
-      callInstance.baseEmitter.emit('call.state', callInstance)
+      callInstance.emit('call.state', callInstance)
 
       // Resolves the promise when user disconnects using a peer call instance
-      callInstance.baseEmitter.emit('connect.disconnected', callInstance)
+      // @ts-expect-error
+      callInstance.emit('connect.disconnected', callInstance)
       remove<Call>(payload.call_id)
       break
     }
     default:
-      callInstance.baseEmitter.emit('call.state', callInstance)
+      callInstance.emit('call.state', callInstance)
       break
   }
 

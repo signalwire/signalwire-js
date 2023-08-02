@@ -104,8 +104,7 @@ export const createRoomObject = (
 
     // WebRTC connection left the room.
     roomObject.once('destroy', () => {
-      // @ts-expect-error
-      roomObject.baseEmitter.emit('room.left')
+      roomObject.emit('room.left')
       client.disconnect()
     })
 

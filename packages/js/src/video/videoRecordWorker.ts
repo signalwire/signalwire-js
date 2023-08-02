@@ -38,11 +38,11 @@ export const videoRecordWorker = function* (
   switch (type) {
     case 'video.recording.started':
     case 'video.recording.updated': {
-      roomSession.baseEmitter.emit(event, recordingInstance)
+      roomSession.emit(event, recordingInstance)
       break
     }
     case 'video.recording.ended':
-      roomSession.baseEmitter.emit(event, recordingInstance)
+      roomSession.emit(event, recordingInstance)
       remove<RoomSessionRecording>(payload.recording.id)
       break
     default:

@@ -65,13 +65,17 @@ export const videoRoomWorker = function* (
   switch (type) {
     case 'video.room.started':
     case 'video.room.updated': {
-      client.baseEmitter.emit(type, roomSessionInstance)
-      roomSessionInstance.baseEmitter.emit(type, roomSessionInstance)
+      // @ts-expect-error
+      client.emit(type, roomSessionInstance)
+      // @ts-expect-error
+      roomSessionInstance.emit(type, roomSessionInstance)
       break
     }
     case 'video.room.ended': {
-      client.baseEmitter.emit(type, roomSessionInstance)
-      roomSessionInstance.baseEmitter.emit(type, roomSessionInstance)
+      // @ts-expect-error
+      client.emit(type, roomSessionInstance)
+      // @ts-expect-error
+      roomSessionInstance.emit(type, roomSessionInstance)
       remove<RoomSession>(payload.room_session.id)
       break
     }
@@ -90,7 +94,8 @@ export const videoRoomWorker = function* (
           })
         },
       })
-      roomSessionInstance.baseEmitter.emit(type, roomSessionInstance)
+      // @ts-expect-error
+      roomSessionInstance.emit(type, roomSessionInstance)
       break
     }
     default:

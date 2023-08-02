@@ -33,7 +33,7 @@ export const chatWorker: SDKWorker<BaseChatConsumer> = function* (
         const chatMessage = new ChatMessage(externalJSON)
 
         // @ts-expect-error
-        client.baseEmitter.emit('chat.message', chatMessage)
+        client.emit('chat.message', chatMessage)
         break
       }
       case 'chat.member.joined':
@@ -44,7 +44,7 @@ export const chatWorker: SDKWorker<BaseChatConsumer> = function* (
         const chatMessage = new ChatMember(externalJSON)
 
         // @ts-expect-error
-        client.baseEmitter.emit(type, chatMessage)
+        client.emit(type, chatMessage)
         break
       }
       default:

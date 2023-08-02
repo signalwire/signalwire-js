@@ -21,7 +21,7 @@ const defaultDispatcher = function* (
   payload: any,
   instance?: any
 ) {
-  instance.baseEmitter.emit(type, payload)
+  instance.emit(type, payload)
 }
 
 function* memberPositionLayoutChangedWorker(options: any) {
