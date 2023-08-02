@@ -96,7 +96,7 @@ export class Server {
     } catch (error) {
       console.log('error', error)
       this.instance.log.error(error, 'Error running the server.')
-      // process.exit(1)
+      process.exit(1)
     }
   }
 
