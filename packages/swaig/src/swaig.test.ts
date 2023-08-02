@@ -16,12 +16,12 @@ describe('SWAIG', () => {
     })
   }
 
-  const expectSignatures = async (response: Response, expectedResult: any) => {
+  const expectResponse = async (response: Response, expectedResponse: any) => {
     expect(response.status).toBe(200)
     expect(response.headers.get('content-type')).toBe(
       'application/json; charset=utf-8'
     )
-    expect(await response.json()).toEqual(expectedResult)
+    expect(await response.json()).toEqual(expectedResponse)
   }
 
   beforeEach(async () => {
@@ -39,7 +39,7 @@ describe('SWAIG', () => {
 
     const response = await mockGetSignature({ functions: [] })
 
-    await expectSignatures(response, [])
+    await expectResponse(response, [])
   })
 
   it('should allow to define custom routes', async () => {
@@ -73,7 +73,7 @@ describe('SWAIG', () => {
 
     const response = await mockGetSignature({ functions: ['get_location'] })
 
-    await expectSignatures(response, [
+    await expectResponse(response, [
       {
         function: 'get_location',
         purpose: 'describe purpose of this test function',
@@ -129,7 +129,7 @@ describe('SWAIG', () => {
 
     const response = await mockGetSignature({ functions: ['fn_0', 'fn_3'] })
 
-    await expectSignatures(response, [
+    await expectResponse(response, [
       {
         function: 'fn_0',
         purpose: 'describe purpose of this test function 0',
@@ -169,5 +169,87 @@ describe('SWAIG', () => {
         meta_data_token: 'foo',
       },
     ])
+  })
+
+  it('should define custom routes and invoke user callback with the right arguments', async () => {
+    expect.assertions(6)
+
+    await instance.addFunction(
+      {
+        name: 'get_location',
+        purpose: 'describe purpose of this test function',
+        argument: {
+          type: 'object',
+          properties: {
+            location: {
+              type: 'string',
+              description: 'the location to get the coordinates for',
+            },
+          },
+          required: ['location'],
+          additionalProperties: false,
+        } as const,
+        username: 'admin',
+        password: 'password',
+        token: 'foo',
+      },
+      (params, extra) => {
+        return {
+          location: `Location is ${params.location}`,
+          raw: `raw is ${extra.raw}`,
+          substituted: `substituted is ${extra.substituted}`,
+        }
+      }
+    )
+
+    await instance.run({ port: 3000 })
+
+    const response = await mockGetSignature({ functions: ['get_location'] })
+
+    await expectResponse(response, [
+      {
+        function: 'get_location',
+        purpose: 'describe purpose of this test function',
+        argument: {
+          type: 'object',
+          properties: {
+            location: {
+              type: 'string',
+              description: 'the location to get the coordinates for',
+            },
+          },
+          required: ['location'],
+          additionalProperties: false,
+        },
+        web_hook_url: `${baseUrl}/get_location`,
+        web_hook_auth_user: 'admin',
+        web_hook_auth_password: 'password',
+        meta_data_token: 'foo',
+      },
+    ])
+
+    const getLocationResponse = await fetch(`${baseUrl}/get_location`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        version: '2.0',
+        function: 'get_location',
+        argument: {
+          parsed: [
+            {
+              location: 'Chicago',
+            },
+          ],
+          raw: '{\n"location":"Chicago"\n}',
+          substituted: '',
+        },
+      }),
+    })
+
+    await expectResponse(getLocationResponse, {
+      location: 'Location is Chicago',
+      raw: 'raw is {\n"location":"Chicago"\n}',
+      substituted: 'substituted is ',
+    })
   })
 })

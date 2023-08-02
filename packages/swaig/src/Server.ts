@@ -24,7 +24,8 @@ export interface ServerDefineRouteParams<T extends JSONSchema> {
   token?: string // TODO: check if needed
 }
 export type CustomRouteHandler<T> = (
-  params: T
+  params: T,
+  extra: any
 ) => void | Record<string, unknown>
 
 export interface ServerOptions {
@@ -55,6 +56,53 @@ const rootBodySchema = {
 
 type RootBody = FromSchema<typeof rootBodySchema>
 
+//   argument_desc: {
+//     type: 'object',
+//     properties: {
+//       account: {
+//         type: 'string',
+//         description: 'the account',
+//       },
+//     },
+//   },
+
+const buildCustomRouteBodySchema = (argument: JSONSchema) => {
+  const customRouteBodySchema = {
+    type: 'object',
+    properties: {
+      app_name: { type: 'string' },
+      project_id: { type: 'string' },
+      space_id: { type: 'string' },
+      version: { type: 'string', enum: ['2.0'] },
+      content_type: { type: 'string' },
+      content_disposition: { type: 'string' },
+      function: { type: 'string' },
+      purpose: { type: 'string' },
+      argument: {
+        type: 'object',
+        properties: {
+          parsed: {
+            type: 'array',
+            items: argument,
+          },
+          raw: { type: 'string' },
+          substituted: { type: 'string' },
+        },
+      },
+      // argument_desc: {},
+      // caller_id_name: { type: 'string' },
+      // caller_id_num: { type: 'string' },
+      // call_id: { type: 'string' },
+      // ai_session_id: { type: 'string' },
+      // meta_data_token: { type: 'string' },
+      // meta_data: { type: 'object' },
+    },
+    required: ['version', 'function', 'argument'],
+  } as const
+
+  return customRouteBodySchema
+}
+
 export class Server {
   instance: FastifyInstance
   private customRoutes: Map<string, Signature>
@@ -77,15 +125,20 @@ export class Server {
   ) {
     this.appendCustomRoute(params)
 
-    this.instance.post<{ Body: Body }>(
+    const schema = buildCustomRouteBodySchema(params.argument)
+
+    this.instance.post<{ Body: FromSchema<typeof schema> }>(
       `/${params.name}`,
       {
         schema: {
-          body: params.argument,
+          body: schema,
         } as const,
       },
       (request, _reply) => {
-        return handler(request.body as Body)
+        const { argument } = request.body
+        const { parsed, ...rest } = argument
+        const value = Array.isArray(parsed) ? parsed[0] : undefined
+        return handler(value as Body, rest)
       }
     )
   }
