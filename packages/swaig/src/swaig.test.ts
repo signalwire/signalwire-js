@@ -4,7 +4,7 @@ describe('SWAIG', () => {
   const baseUrl = 'http://localhost:3000'
   let instance: Awaited<ReturnType<typeof SWAIG>>
 
-  const mockFetch = (body: Record<string, unknown>) => {
+  const mockGetSignature = (body: Record<string, unknown>) => {
     return fetch(`${baseUrl}/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -37,7 +37,7 @@ describe('SWAIG', () => {
 
     await instance.run({ port: 3000 })
 
-    const response = await mockFetch({ functions: [] })
+    const response = await mockGetSignature({ functions: [] })
 
     await expectSignatures(response, [])
   })
@@ -71,7 +71,7 @@ describe('SWAIG', () => {
 
     await instance.run({ port: 3000 })
 
-    const response = await mockFetch({ functions: ['get_location'] })
+    const response = await mockGetSignature({ functions: ['get_location'] })
 
     await expectSignatures(response, [
       {
@@ -127,7 +127,7 @@ describe('SWAIG', () => {
 
     await instance.run({ port: 3000 })
 
-    const response = await mockFetch({ functions: ['fn_0', 'fn_3'] })
+    const response = await mockGetSignature({ functions: ['fn_0', 'fn_3'] })
 
     await expectSignatures(response, [
       {
