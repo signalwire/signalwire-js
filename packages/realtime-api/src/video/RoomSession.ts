@@ -123,7 +123,7 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     fn: EventEmitter.EventListener<RealTimeRoomApiEvents, T>
   ) {
     // @ts-expect-error
-    const instance = super._on(`video.${event}`, fn)
+    const instance = super.on(`video.${event}`, fn)
     this.debouncedSubscribe()
     return instance
   }
@@ -133,7 +133,7 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     fn: EventEmitter.EventListener<RealTimeRoomApiEvents, T>
   ) {
     // @ts-expect-error
-    const instance = super._once(`video.${event}`, fn)
+    const instance = super.once(`video.${event}`, fn)
     this.debouncedSubscribe()
     return instance
   }
@@ -143,7 +143,7 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     fn: EventEmitter.EventListener<RealTimeRoomApiEvents, T>
   ) {
     // @ts-expect-error
-    const instance = super._off(`video.${event}`, fn)
+    const instance = super.off(`video.${event}`, fn)
     return instance
   }
 
@@ -170,11 +170,11 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
 
       try {
         // @ts-expect-error
-        super._once('video.room.subscribed', handler)
+        super.once('video.room.subscribed', handler)
         await super.subscribe()
       } catch (error) {
         // @ts-expect-error
-        super._off('video.room.subscribed', handler)
+        super.off('video.room.subscribed', handler)
         return reject(error)
       }
     })

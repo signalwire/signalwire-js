@@ -126,27 +126,6 @@ export class BaseComponent<
     return this.baseEmitter.off(event, fn)
   }
 
-  _on<T extends EventEmitter.EventNames<EventTypes>>(
-    event: T,
-    fn: EventEmitter.EventListener<EventTypes, T>
-  ) {
-    return this.baseEmitter.on(event, fn)
-  }
-
-  _once<T extends EventEmitter.EventNames<EventTypes>>(
-    event: T,
-    fn: EventEmitter.EventListener<EventTypes, T>
-  ) {
-    return this.baseEmitter.once(event, fn)
-  }
-
-  _off<T extends EventEmitter.EventNames<EventTypes>>(
-    event: T,
-    fn?: EventEmitter.EventListener<EventTypes, T>
-  ) {
-    return this.baseEmitter.off(event, fn)
-  }
-
   removeAllListeners<T extends EventEmitter.EventNames<EventTypes>>(event?: T) {
     if (event) {
       return this.off(event)

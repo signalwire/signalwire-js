@@ -7,7 +7,6 @@ import {
   BaseConnectionContract,
   MemberPosition,
   VideoAuthorization,
-  EventEmitter,
   LOCAL_EVENT_PREFIX,
   validateEventsToSubscribe,
 } from '@signalwire/core'
@@ -455,27 +454,6 @@ export class RoomSessionConnection
       (event) => `video.${event}`
     )
     return validateEventsToSubscribe(eventNamesWithPrefix)
-  }
-
-  override on<T extends EventEmitter.EventNames<RoomSessionObjectEvents>>(
-    event: T,
-    fn: EventEmitter.EventListener<RoomSessionObjectEvents, T>
-  ) {
-    return super._on(event, fn)
-  }
-
-  override once<T extends EventEmitter.EventNames<RoomSessionObjectEvents>>(
-    event: T,
-    fn: EventEmitter.EventListener<RoomSessionObjectEvents, T>
-  ) {
-    return super._once(event, fn)
-  }
-
-  override off<T extends EventEmitter.EventNames<RoomSessionObjectEvents>>(
-    event: T,
-    fn: EventEmitter.EventListener<RoomSessionObjectEvents, T>
-  ) {
-    return super._off(event, fn)
   }
 }
 
