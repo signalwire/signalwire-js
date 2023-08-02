@@ -6,9 +6,9 @@ interface Signature {
   purpose: string
   argument: JSONSchema
   web_hook_url: string
-  web_hook_auth_user?: string // TODO: required?
-  web_hook_auth_password?: string // TODO: required?
-  meta_data_token?: string // TODO: required?
+  web_hook_auth_user?: string
+  web_hook_auth_password?: string
+  meta_data_token?: string
 }
 
 export interface ServerRunParams {
@@ -28,6 +28,7 @@ export type CustomRouteHandler<T> = (
 ) => void | Record<string, unknown>
 
 export interface ServerOptions {
+  baseUrl: string
   username?: string
   password?: string
   token?: string // TODO: check if needed
@@ -58,7 +59,7 @@ export class Server {
   instance: FastifyInstance
   private customRoutes: Map<string, Signature>
 
-  constructor(protected options?: ServerOptions) {
+  constructor(protected options: ServerOptions) {
     this.instance = Fastify({
       logger: true,
     })
@@ -122,7 +123,7 @@ export class Server {
       function: params.name,
       purpose: params.purpose,
       argument: params.argument,
-      web_hook_url: `https://example.com/foo/${params.name}`,
+      web_hook_url: `${this.options?.baseUrl}/${params.name}`,
       web_hook_auth_user: params.username ?? this.options?.username,
       web_hook_auth_password: params.password ?? this.options?.password,
       meta_data_token: params.token ?? this.options?.token,

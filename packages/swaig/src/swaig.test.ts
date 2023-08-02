@@ -1,10 +1,11 @@
 import { SWAIG } from './swaig'
 
 describe('SWAIG', () => {
+  const baseUrl = 'http://localhost:3000'
   let instance: Awaited<ReturnType<typeof SWAIG>>
 
   const mockFetch = (body: Record<string, unknown>) => {
-    return fetch('http://localhost:3000/', {
+    return fetch(`${baseUrl}/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -24,7 +25,7 @@ describe('SWAIG', () => {
   }
 
   beforeEach(async () => {
-    instance = await SWAIG()
+    instance = await SWAIG({ baseUrl })
   })
 
   afterEach(() => {
@@ -87,7 +88,7 @@ describe('SWAIG', () => {
           required: ['location'],
           additionalProperties: false,
         },
-        web_hook_url: 'https://example.com/foo/get_location',
+        web_hook_url: `${baseUrl}/get_location`,
         web_hook_auth_user: 'admin',
         web_hook_auth_password: 'password',
         meta_data_token: 'foo',
@@ -143,7 +144,7 @@ describe('SWAIG', () => {
           required: ['location'],
           additionalProperties: false,
         },
-        web_hook_url: 'https://example.com/foo/fn_0',
+        web_hook_url: `${baseUrl}/fn_0`,
         web_hook_auth_user: 'admin_0',
         web_hook_auth_password: 'pwd_0',
         meta_data_token: 'foo',
@@ -162,7 +163,7 @@ describe('SWAIG', () => {
           required: ['location'],
           additionalProperties: false,
         },
-        web_hook_url: 'https://example.com/foo/fn_3',
+        web_hook_url: `${baseUrl}/fn_3`,
         web_hook_auth_user: 'admin_3',
         web_hook_auth_password: 'pwd_3',
         meta_data_token: 'foo',

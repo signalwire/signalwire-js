@@ -7,7 +7,7 @@ export interface SWAIG {
   close: Server['close']
 }
 
-export async function SWAIG(options?: SWAIGOptions): Promise<SWAIG> {
+export async function SWAIG(options: SWAIGOptions): Promise<SWAIG> {
   const server = new Server(options)
 
   const service = {
