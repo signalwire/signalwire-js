@@ -37,7 +37,8 @@
     "test": "NODE_ENV=test jest --detectOpenHandles --forceExit",
     "prepublishOnly": "npm run build"
   },
-  "dependencies": {},
-  "devDependencies": {},
+  "dependencies": {
+    "fastify": "^4.21.0"
+  },
   "types": "dist/swaig/src/index.d.ts"
 }
