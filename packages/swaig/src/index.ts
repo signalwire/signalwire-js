@@ -1,1 +1,1 @@
-export {}
+export { SWAIG } from './swaig'
