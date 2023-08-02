@@ -45,13 +45,15 @@ describe('SWAIG', () => {
               type: 'string',
             },
           },
-        },
+          required: ['location'],
+          additionalProperties: false,
+        } as const,
         username: 'admin',
         password: 'password',
         token: 'foo',
       },
-      (_params) => {
-        return { result: 1 + 1 }
+      (params) => {
+        return { location: params.location }
       }
     )
 
