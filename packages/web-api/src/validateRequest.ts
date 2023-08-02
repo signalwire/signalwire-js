@@ -30,5 +30,5 @@ export const validateRequest = (
   }
 
   const parsedBody = JSON.parse(rawBody)
-  return RestClient.validateRequest(privateKey, header, url, parsedBody)
+  return RestClient.validateRequest(privateKey, header, url, parsedBody, true) // suppressWarning
 }
