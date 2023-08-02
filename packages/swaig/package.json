@@ -40,5 +40,8 @@
   "dependencies": {
     "fastify": "^4.21.0"
   },
-  "types": "dist/swaig/src/index.d.ts"
+  "types": "dist/swaig/src/index.d.ts",
+  "devDependencies": {
+    "json-schema-to-ts": "^2.9.1"
+  }
 }
