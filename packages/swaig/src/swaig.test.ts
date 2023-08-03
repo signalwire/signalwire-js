@@ -179,7 +179,8 @@ describe('SWAIG', () => {
 
   it('should define custom routes and invoke user callback with the right arguments', async () => {
     expect.assertions(6)
-
+    const username = 'admin'
+    const password = 'password'
     await instance.addFunction(
       {
         name: 'get_location',
@@ -195,8 +196,8 @@ describe('SWAIG', () => {
           required: ['location'],
           additionalProperties: false,
         } as const,
-        username: 'admin',
-        password: 'password',
+        username,
+        password,
         token: 'foo',
       },
       (params, extra) => {
@@ -254,7 +255,12 @@ describe('SWAIG', () => {
     }
     const getLocationResponse = await fetch(`${baseUrl}/get_location`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${Buffer.from(username + ':' + password).toString(
+          'base64'
+        )}`,
+      },
       body: JSON.stringify(requestBody),
     })
 

@@ -1,5 +1,31 @@
-import Fastify, { type FastifyInstance } from 'fastify'
-import { type FromSchema, type JSONSchema } from 'json-schema-to-ts'
+import Fastify, {
+  FastifyRequest,
+  type FastifyInstance,
+  type FastifyReply,
+} from 'fastify'
+import FastifyBasicAuth from '@fastify/basic-auth'
+import type { FromSchema, JSONSchema } from 'json-schema-to-ts'
+
+declare module 'fastify' {
+  interface FastifyRequest {
+    webHookUsername?: string
+    webHookPassword?: string
+  }
+}
+
+async function validate(
+  username: string,
+  password: string,
+  req: FastifyRequest,
+  _reply: FastifyReply
+) {
+  if (
+    (req.webHookUsername && req.webHookUsername !== username) ||
+    (req.webHookPassword && req.webHookPassword !== password)
+  ) {
+    throw new Error('Unauthorized')
+  }
+}
 
 interface Signature {
   function: string
@@ -101,6 +127,7 @@ export class Server {
     this.instance = Fastify({
       logger: true,
     })
+    this.instance.register(FastifyBasicAuth, { validate, authenticate: true })
 
     this.customRoutes = new Map()
     this.defineDefaultRoutes()
@@ -117,9 +144,17 @@ export class Server {
 
     const schema = buildCustomRouteBodySchema(params.argument)
 
-    this.instance.post<{ Body: FromSchema<typeof schema> }>(
+    this.instance.post<{
+      Body: FromSchema<typeof schema>
+      Request: { username?: string }
+    }>(
       `/${params.name}`,
       {
+        onRequest: (request, _reply, done) => {
+          request.webHookUsername = params.username ?? this.options?.username
+          request.webHookPassword = params.password ?? this.options?.password
+          this.instance.basicAuth(request, _reply, done)
+        },
         schema: {
           body: schema,
         } as const,
