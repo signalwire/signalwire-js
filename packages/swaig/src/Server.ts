@@ -26,7 +26,7 @@ export interface ServerDefineRouteParams<T extends JSONSchema> {
 export type CustomRouteHandler<T> = (
   params: T,
   extra: any
-) => void | Record<string, unknown>
+) => void | { response: string; action: Record<string, unknown>[] } // TODO: double check
 
 export interface ServerOptions {
   baseUrl: string
@@ -55,16 +55,6 @@ const rootBodySchema = {
 } as const
 
 type RootBody = FromSchema<typeof rootBodySchema>
-
-//   argument_desc: {
-//     type: 'object',
-//     properties: {
-//       account: {
-//         type: 'string',
-//         description: 'the account',
-//       },
-//     },
-//   },
 
 const buildCustomRouteBodySchema = (argument: JSONSchema) => {
   const customRouteBodySchema = {
@@ -97,7 +87,7 @@ const buildCustomRouteBodySchema = (argument: JSONSchema) => {
       // meta_data_token: { type: 'string' },
       // meta_data: { type: 'object' },
     },
-    required: ['version', 'function', 'argument'],
+    required: ['version', 'argument'],
   } as const
 
   return customRouteBodySchema
@@ -136,9 +126,9 @@ export class Server {
       },
       (request, _reply) => {
         const { argument } = request.body
-        const { parsed, ...rest } = argument
+        const { parsed } = argument
         const value = Array.isArray(parsed) ? parsed[0] : undefined
-        return handler(value as Body, rest)
+        return handler(value as Body, request.body)
       }
     )
   }

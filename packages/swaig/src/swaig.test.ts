@@ -65,7 +65,10 @@ describe('SWAIG', () => {
         token: 'foo',
       },
       (params) => {
-        return { location: params.location }
+        return {
+          response: '',
+          action: [{ location: params.location }],
+        }
       }
     )
 
@@ -120,7 +123,10 @@ describe('SWAIG', () => {
           token: 'foo',
         },
         (params) => {
-          return { location: params.location }
+          return {
+            response: '',
+            action: [{ location: params.location }],
+          }
         }
       )
     }
@@ -195,9 +201,13 @@ describe('SWAIG', () => {
       },
       (params, extra) => {
         return {
-          location: `Location is ${params.location}`,
-          raw: `raw is ${extra.raw}`,
-          substituted: `substituted is ${extra.substituted}`,
+          response: 'Done with success',
+          action: [
+            {
+              location: `Location is ${params.location}`,
+              extra,
+            },
+          ],
         }
       }
     )
@@ -228,28 +238,34 @@ describe('SWAIG', () => {
       },
     ])
 
+    const requestBody = {
+      version: '2.0',
+      function: 'get_location',
+      argument: {
+        parsed: [
+          {
+            location: 'Chicago',
+          },
+        ],
+        raw: '{\n"location":"Chicago"\n}',
+        substituted: '',
+      },
+      foo: 'bar',
+    }
     const getLocationResponse = await fetch(`${baseUrl}/get_location`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        version: '2.0',
-        function: 'get_location',
-        argument: {
-          parsed: [
-            {
-              location: 'Chicago',
-            },
-          ],
-          raw: '{\n"location":"Chicago"\n}',
-          substituted: '',
-        },
-      }),
+      body: JSON.stringify(requestBody),
     })
 
     await expectResponse(getLocationResponse, {
-      location: 'Location is Chicago',
-      raw: 'raw is {\n"location":"Chicago"\n}',
-      substituted: 'substituted is ',
+      response: 'Done with success',
+      action: [
+        {
+          location: 'Location is Chicago',
+          extra: requestBody,
+        },
+      ],
     })
   })
 })
