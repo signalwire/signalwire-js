@@ -47,7 +47,7 @@ export interface ServerDefineRouteParams<T extends JSONSchema> {
   argument: T
   username?: string
   password?: string
-  token?: string // TODO: check if needed
+  token?: string
 }
 export type CustomRouteHandler<T> = (
   params: T,
@@ -58,7 +58,7 @@ export interface ServerOptions {
   baseUrl: string
   username?: string
   password?: string
-  token?: string // TODO: check if needed
+  token?: string
 }
 
 const rootBodySchema = {
