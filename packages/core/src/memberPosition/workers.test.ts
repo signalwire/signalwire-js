@@ -2,7 +2,6 @@ import util from 'util'
 import { expectSaga } from 'redux-saga-test-plan'
 import { memberUpdatedWorker } from '.'
 import {
-  createPubSubChannel,
   createSwEventChannel,
   createSessionChannel,
   configureJestStore,
@@ -47,7 +46,6 @@ describe('memberPositionWorker', () => {
       } as any,
     },
   }
-  const pubSubChannel = createPubSubChannel()
   const swEventChannel = createSwEventChannel()
   const sessionChannel = createSessionChannel()
   const memberList = new Map([
@@ -79,7 +77,6 @@ describe('memberPositionWorker', () => {
     return expectSaga(memberUpdatedWorker, {
       action,
       channels: {
-        pubSubChannel,
         swEventChannel,
         sessionChannel,
       },
@@ -121,7 +118,6 @@ describe('memberPositionWorker', () => {
     return expectSaga(memberUpdatedWorker, {
       action,
       channels: {
-        pubSubChannel,
         swEventChannel,
         sessionChannel,
       },

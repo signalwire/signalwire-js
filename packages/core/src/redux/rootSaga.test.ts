@@ -22,7 +22,7 @@ import {
 import { AuthError } from '../CustomErrors'
 import { createSwEventChannel, createSessionChannel } from '../testUtils'
 
-describe.skip('sessionStatusWatcher', () => {
+describe('sessionStatusWatcher', () => {
   const actions = [
     authSuccessAction.type,
     authErrorAction.type,
@@ -62,7 +62,7 @@ describe.skip('sessionStatusWatcher', () => {
     saga.next(firstSagaTask).take(actions)
   })
 
-  it('should fork sessionAuthErrorSaga on authError action and put destroyAction', () => {
+  it('should fork sessionAuthErrorSaga on authError action and emit destroyAction', () => {
     let runSaga = true
     const action = authErrorAction({
       error: { code: 123, message: 'Protocol Error' },
@@ -90,7 +90,7 @@ describe.skip('sessionStatusWatcher', () => {
       })
   })
 
-  it('should put sessionExpiringAction on authExpiringAction', () => {
+  it('should emit sessionExpiringAction on session emitter', () => {
     const saga = testSaga(sessionStatusWatcher, options)
 
     saga.next().take(actions)
@@ -102,7 +102,7 @@ describe.skip('sessionStatusWatcher', () => {
     saga.next()
   })
 
-  it('should put sessionReconnectingAction on the pubSubChannel', () => {
+  it('should emit sessionReconnectingAction on the session emitter', () => {
     const saga = testSaga(sessionStatusWatcher, options)
 
     saga.next().take(actions)
