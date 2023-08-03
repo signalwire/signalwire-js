@@ -174,6 +174,8 @@ export class Server {
 
   public async run(params: ServerRunParams) {
     try {
+      await this.instance.ready()
+
       await this.instance.listen(params)
     } catch (error) {
       console.log('error', error)
