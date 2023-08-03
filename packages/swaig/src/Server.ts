@@ -133,6 +133,10 @@ export class Server {
     this.defineDefaultRoutes()
   }
 
+  get server() {
+    return this.instance
+  }
+
   public async defineRoute<
     InputSchema extends JSONSchema,
     Body = FromSchema<InputSchema>
