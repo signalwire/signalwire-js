@@ -274,4 +274,186 @@ describe('SWAIG', () => {
       ],
     })
   })
+
+  it('should define custom routes and return unauthorized if basic auth fails', async () => {
+    expect.assertions(9)
+    const username = 'admin'
+    const password = 'password'
+
+    await instance.addFunction(
+      {
+        name: 'get_location',
+        purpose: 'describe purpose of this test function',
+        argument: {
+          type: 'object',
+          properties: {
+            location: {
+              type: 'string',
+              description: 'the location to get the coordinates for',
+            },
+          },
+          required: ['location'],
+          additionalProperties: false,
+        } as const,
+        username,
+        password,
+        token: 'foo',
+      },
+      (params, extra) => {
+        return {
+          response: 'Done with success',
+          action: [
+            {
+              location: `Location is ${params.location}`,
+              extra,
+            },
+          ],
+        }
+      }
+    )
+
+    await instance.run({ port: 3000 })
+
+    const requestBody = {
+      version: '2.0',
+      function: 'get_location',
+      argument: {
+        parsed: [
+          {
+            location: 'Chicago',
+          },
+        ],
+        raw: '{\n"location":"Chicago"\n}',
+        substituted: '',
+      },
+      foo: 'bar',
+    }
+
+    const tests = [
+      {
+        username: 'bad',
+        password: 'creds',
+      },
+      {
+        username: '',
+        password: 'creds',
+      },
+      {
+        username: 'bad',
+        password: '',
+      },
+    ]
+
+    for (const { username, password } of tests) {
+      const response = await fetch(`${baseUrl}/get_location`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Basic ${Buffer.from(
+            username + ':' + password
+          ).toString('base64')}`,
+        },
+        body: JSON.stringify(requestBody),
+      })
+
+      expect(response.status).toBe(401)
+      expect(response.headers.get('content-type')).toBe(
+        'application/json; charset=utf-8'
+      )
+      expect(await response.json()).toEqual({
+        error: 'Unauthorized',
+        message: 'Unauthorized',
+        statusCode: 401,
+      })
+    }
+  })
+
+  it('should define custom routes and allow basic auth with just username or password', async () => {
+    expect.assertions(6)
+    const tests = [
+      {
+        name: 'first',
+        username: 'admin',
+        password: '',
+      },
+      {
+        name: 'second',
+        username: '',
+        password: 'password',
+      },
+    ]
+    for (const { name, username, password } of tests) {
+      await instance.addFunction(
+        {
+          name,
+          purpose: 'describe purpose of this test function',
+          argument: {
+            type: 'object',
+            properties: {
+              location: {
+                type: 'string',
+                description: 'the location to get the coordinates for',
+              },
+            },
+            required: ['location'],
+            additionalProperties: false,
+          } as const,
+          username,
+          password,
+          token: 'foo',
+        },
+        (params, extra) => {
+          return {
+            response: 'Done with success',
+            action: [
+              {
+                location: `Location is ${params.location}`,
+                extra,
+              },
+            ],
+          }
+        }
+      )
+    }
+
+    await instance.run({ port: 3000 })
+
+    const requestBody = {
+      version: '2.0',
+      function: 'get_location',
+      argument: {
+        parsed: [
+          {
+            location: 'Chicago',
+          },
+        ],
+        raw: '{\n"location":"Chicago"\n}',
+        substituted: '',
+      },
+      foo: 'bar',
+    }
+
+    for (const { name, username, password } of tests) {
+      const response = await fetch(`${baseUrl}/${name}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Basic ${Buffer.from(
+            username + ':' + password
+          ).toString('base64')}`,
+        },
+        body: JSON.stringify(requestBody),
+      })
+
+      await expectResponse(response, {
+        response: 'Done with success',
+        action: [
+          {
+            location: 'Location is Chicago',
+            extra: requestBody,
+          },
+        ],
+      })
+    }
+  })
 })
