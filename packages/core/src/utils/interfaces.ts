@@ -409,7 +409,7 @@ export type InternalGlobalVideoEvents =
 export type BaseEventHandler = (...args: any[]) => void
 
 export type InternalChannels = {
-  pubSubChannel: PubSubChannel
+  pubSubChannel?: PubSubChannel
   swEventChannel: SwEventChannel
   sessionChannel: SessionChannel
 }
