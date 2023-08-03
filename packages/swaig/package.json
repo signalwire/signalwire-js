@@ -38,6 +38,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
+    "@fastify/basic-auth": "^5.0.0",
     "fastify": "^4.21.0"
   },
   "types": "dist/swaig/src/index.d.ts",
