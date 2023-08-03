@@ -9,6 +9,7 @@ module.exports = {
       '@signalwire/js': 'js/browser',
       '@signalwire/web-api': 'nodejs/web-api',
       '@signalwire/node': 'nodejs/node',
+      '@signalwire/swaig': 'nodejs/swaig',
     },
   },
   utilityPackages: ['@signalwire/core', '@signalwire/webrtc'],
