@@ -157,7 +157,10 @@ export class Server {
         onRequest: (request, _reply, done) => {
           request.webHookUsername = params.username ?? this.options?.username
           request.webHookPassword = params.password ?? this.options?.password
-          this.instance.basicAuth(request, _reply, done)
+          if (request.webHookUsername || request.webHookPassword) {
+            return this.instance.basicAuth(request, _reply, done)
+          }
+          return done()
         },
         schema: {
           body: schema,
