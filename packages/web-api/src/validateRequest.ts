@@ -30,5 +30,6 @@ export const validateRequest = (
   }
 
   const parsedBody = JSON.parse(rawBody)
-  return RestClient.validateRequest(privateKey, header, url, parsedBody, true) // suppressWarning
+  // @ts-expect-error - add suppressWarning: true
+  return RestClient.validateRequest(privateKey, header, url, parsedBody, true)
 }
