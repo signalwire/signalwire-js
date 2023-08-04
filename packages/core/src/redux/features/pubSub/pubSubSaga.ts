@@ -1,10 +1,10 @@
-import { ClientEvents } from '@signalwire/js'
 import { SagaIterator } from '@redux-saga/core'
 import { take, cancelled } from '@redux-saga/core/effects'
 import { toInternalEventName, getLogger } from '../../../utils'
 import type { EventEmitter } from '../../../utils/EventEmitter'
 import type { PubSubChannel, PubSubAction } from '../../interfaces'
 import { findNamespaceInPayload } from '../shared/namespace'
+import { ClientEvents } from '../../../utils/interfaces'
 
 type PubSubSagaParams = {
   pubSubChannel: PubSubChannel
