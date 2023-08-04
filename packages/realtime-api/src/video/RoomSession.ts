@@ -181,13 +181,6 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   }
 
   /** @internal */
-  protected override getCompoundEvents() {
-    return new Map<any, any>([
-      ...MemberPosition.MEMBER_POSITION_COMPOUND_EVENTS,
-    ])
-  }
-
-  /** @internal */
   protected setPayload(payload: Optional<VideoRoomEventParams, 'room'>) {
     this._payload = payload
   }

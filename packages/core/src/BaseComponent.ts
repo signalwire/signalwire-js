@@ -249,14 +249,6 @@ export class BaseComponent<
   }
 
   /** @internal */
-  protected getCompoundEvents(): Map<
-    EventEmitter.EventNames<EventTypes>,
-    EventEmitter.EventNames<EventTypes>[]
-  > {
-    return new Map()
-  }
-
-  /** @internal */
   protected get _sessionAuthStatus(): SessionAuthStatus {
     return getAuthStatus(this.store.getState())
   }
