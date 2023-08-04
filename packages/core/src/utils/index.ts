@@ -22,7 +22,6 @@ export * from './toInternalEventName'
 export * from './toInternalAction'
 export * from './toSnakeCaseKeys'
 export * from './extendComponent'
-export * from './proxyUtils'
 export * from './debounce'
 export * from './CloseEvent'
 export { LOCAL_EVENT_PREFIX }
