@@ -9,7 +9,6 @@ import {
   EntityUpdated,
   BaseConsumer,
   EventEmitter,
-  MemberPosition,
   debounce,
   VideoRoomEventParams,
   Optional,
