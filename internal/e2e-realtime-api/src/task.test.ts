@@ -8,65 +8,50 @@ const handler = () => {
         host: process.env.RELAY_HOST || 'relay.swire.io',
         project: process.env.RELAY_PROJECT as string,
         token: process.env.RELAY_TOKEN as string,
-        // logLevel: "trace",
-        debug: {
-          logWsTraffic: true,
-        },
       })
 
       const firstPayload = {
-        id: 'id.firstPayload',
+        id: Date.now(),
         topic: 'home',
       }
       const secondPayload = {
-        id: 'id.secondPayload',
+        id: Date.now(),
         topic: 'home',
       }
       const thirdPayload = {
-        id: 'id.thirdPayload',
+        id: Date.now(),
         topic: 'office',
       }
 
       let counter = 0
       const unsubHomeOffice = await client.task.listen({
         topics: ['home', 'office'],
-        onTaskReceived: async (payload) => {
-          counter++
-
-          if (counter === 2) {
-            await unsubHomeOffice()
-          }
-
+        onTaskReceived: (payload) => {
           if (
             payload.topic !== 'home' ||
-            (payload.id !== firstPayload.id &&
-              payload.id !== secondPayload.id) ||
-            counter > 2
+            payload.id !== firstPayload.id ||
+            payload.id !== secondPayload.id ||
+            counter > 3
           ) {
-            console.error(
-              'Invalid payload on ["home", "office"] context',
-              payload
-            )
+            console.error('Invalid payload on `home` context', payload)
             return reject(4)
           }
+          counter++
         },
       })
 
       const unsubOffice = await client.task.listen({
         topics: ['office'],
-        onTaskReceived: async (payload) => {
-          counter++
-
-          await unsubOffice()
-
+        onTaskReceived: (payload) => {
           if (
             payload.topic !== 'office' ||
             payload.id !== thirdPayload.id ||
             counter > 3
           ) {
-            console.error('Invalid payload on ["office"] context', payload)
+            console.error('Invalid payload on `home` context', payload)
             return reject(4)
           }
+          counter++
 
           if (counter === 3) {
             return resolve(0)
@@ -84,7 +69,9 @@ const handler = () => {
         message: secondPayload,
       })
 
-      // This message should not reach the listener since we unsub once we get 2 responses
+      await unsubHomeOffice()
+
+      // This message should not reach the listener
       await client.task.send({
         topic: 'home',
         message: secondPayload,
@@ -94,6 +81,8 @@ const handler = () => {
         topic: 'office',
         message: thirdPayload,
       })
+
+      await unsubOffice()
     } catch (error) {
       console.log('Task test error', error)
       reject(error)
