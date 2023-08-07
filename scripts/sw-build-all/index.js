@@ -66,9 +66,13 @@ export async function cli(args) {
           fs.readFileSync(path.resolve(pathname, 'package.json'), 'utf-8')
         )
 
-        const deps = Object.keys(pkgJson.dependencies || {}).filter((key) =>
-          key.includes('@signalwire')
-        )
+        const deps = Object.keys(pkgJson.dependencies || {}).filter((key) => {
+          return (
+            key.startsWith('@signalwire') &&
+            // compatibility-api is not part of this monorepo
+            key !== '@signalwire/compatibility-api'
+          )
+        })
 
         const pkgName = parsePackageName(pathname)
 
