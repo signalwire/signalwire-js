@@ -9,7 +9,6 @@ import {
   EntityUpdated,
   BaseConsumer,
   EventEmitter,
-  MemberPosition,
   debounce,
   VideoRoomEventParams,
   Optional,
@@ -177,13 +176,6 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
         return reject(error)
       }
     })
-  }
-
-  /** @internal */
-  protected override getCompoundEvents() {
-    return new Map<any, any>([
-      ...MemberPosition.MEMBER_POSITION_COMPOUND_EVENTS,
-    ])
   }
 
   /** @internal */

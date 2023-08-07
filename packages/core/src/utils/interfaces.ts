@@ -264,7 +264,7 @@ export type SessionActions = 'session.forceClose'
  * List of all the events the client can listen to.
  * @internal
  */
-export type ClientEvents = Record<SessionEvents, () => void>
+export type ClientEvents = Record<SessionEvents, (params?: any) => void>
 
 export type BaseConnectionState =
   | 'active'

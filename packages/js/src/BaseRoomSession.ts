@@ -5,7 +5,6 @@ import {
   BaseComponentContract,
   BaseComponentOptions,
   BaseConnectionContract,
-  MemberPosition,
   VideoAuthorization,
   LOCAL_EVENT_PREFIX,
   validateEventsToSubscribe,
@@ -111,13 +110,6 @@ export class RoomSessionConnection
       const { authState } = session
       return (authState as VideoAuthorization)?.room?.scopes ?? []
     })
-  }
-
-  /** @internal */
-  protected override getCompoundEvents() {
-    return new Map<any, any>([
-      ...MemberPosition.MEMBER_POSITION_COMPOUND_EVENTS,
-    ])
   }
 
   /**
