@@ -1,4 +1,5 @@
-import { Server, ServerOptions } from './Server'
+import { Server } from './Server'
+import type { ServerOptions } from './types'
 
 export interface SWAIGOptions extends ServerOptions {}
 export interface SWAIG {

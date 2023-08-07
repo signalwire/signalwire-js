@@ -1,126 +1,25 @@
-import Fastify, {
-  FastifyRequest,
-  type FastifyInstance,
-  type FastifyReply,
-} from 'fastify'
+import Fastify, { type FastifyInstance } from 'fastify'
 import FastifyBasicAuth from '@fastify/basic-auth'
 import type { FromSchema, JSONSchema } from 'json-schema-to-ts'
+import type {
+  Signature,
+  ServerOptions,
+  ServerDefineRouteParams,
+  CustomRouteHandler,
+  ServerRunParams,
+} from './types'
+import {
+  rootBodySchema,
+  type RootBody,
+  buildCustomRouteBodySchema,
+} from './schemas'
+import { validate } from './utils'
 
 declare module 'fastify' {
   interface FastifyRequest {
     webHookUsername?: string
     webHookPassword?: string
   }
-}
-
-async function validate(
-  username: string,
-  password: string,
-  req: FastifyRequest,
-  _reply: FastifyReply
-) {
-  if (
-    (req.webHookUsername && req.webHookUsername !== username) ||
-    (req.webHookPassword && req.webHookPassword !== password)
-  ) {
-    throw new Error('Unauthorized')
-  }
-}
-
-interface Signature {
-  function: string
-  purpose: string
-  argument: JSONSchema
-  web_hook_url: string
-  web_hook_auth_user?: string
-  web_hook_auth_password?: string
-  meta_data_token?: string
-}
-
-export interface ServerRunParams {
-  port?: number
-  host?: string
-}
-export interface ServerDefineRouteParams<T extends JSONSchema> {
-  name: string
-  purpose: string
-  argument: T
-  username?: string
-  password?: string
-  token?: string
-}
-export interface CustomRouteHandlerResponse {
-  response: string
-  action?: Record<string, unknown>[]
-}
-export type CustomRouteHandler<T> = (
-  params: T,
-  extra: any
-) => Promise<CustomRouteHandlerResponse>
-
-export interface ServerOptions {
-  baseUrl: string
-  username?: string
-  password?: string
-  token?: string
-}
-
-const rootBodySchema = {
-  type: 'object',
-  properties: {
-    project_id: { type: 'string' },
-    space_id: { type: 'string' },
-    version: { type: 'string', enum: ['2.0'] },
-    content_type: { type: 'string' },
-    content_disposition: { type: 'string' },
-    functions: {
-      type: 'array',
-      items: {
-        type: 'string',
-      },
-    },
-    action: { type: 'string', enum: ['get_signature'] },
-  },
-  required: ['version', 'action', 'functions'],
-} as const
-
-type RootBody = FromSchema<typeof rootBodySchema>
-
-const buildCustomRouteBodySchema = (argument: JSONSchema) => {
-  const customRouteBodySchema = {
-    type: 'object',
-    properties: {
-      app_name: { type: 'string' },
-      project_id: { type: 'string' },
-      space_id: { type: 'string' },
-      version: { type: 'string', enum: ['2.0'] },
-      content_type: { type: 'string' },
-      content_disposition: { type: 'string' },
-      function: { type: 'string' },
-      purpose: { type: 'string' },
-      argument: {
-        type: 'object',
-        properties: {
-          parsed: {
-            type: 'array',
-            items: argument,
-          },
-          raw: { type: 'string' },
-          substituted: { type: 'string' },
-        },
-      },
-      // argument_desc: {},
-      // caller_id_name: { type: 'string' },
-      // caller_id_num: { type: 'string' },
-      // call_id: { type: 'string' },
-      // ai_session_id: { type: 'string' },
-      // meta_data_token: { type: 'string' },
-      // meta_data: { type: 'object' },
-    },
-    required: ['version', 'argument'],
-  } as const
-
-  return customRouteBodySchema
 }
 
 export class Server {
