@@ -9,8 +9,8 @@ import type { Task } from './Task'
 
 export const taskWorker: SDKWorker<Task> = function* (options): SagaIterator {
   getLogger().trace('taskWorker started')
-  const { channels } = options
-  const { swEventChannel, pubSubChannel } = channels
+  const { channels, instance } = options
+  const { swEventChannel } = channels
 
   while (true) {
     const action = yield sagaEffects.take(
@@ -20,10 +20,7 @@ export const taskWorker: SDKWorker<Task> = function* (options): SagaIterator {
       }
     )
 
-    yield sagaEffects.put(pubSubChannel, {
-      type: 'task.received',
-      payload: action.payload.message,
-    })
+    instance.emit('task.received', action.payload.message)
   }
 
   getLogger().trace('taskWorker ended')

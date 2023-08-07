@@ -29,20 +29,17 @@ export interface Task
 
 /** @internal */
 class TaskAPI extends BaseComponent<TaskClientApiEvents> {
-  constructor(options: BaseComponentOptions<TaskClientApiEvents>) {
+  constructor(options: BaseComponentOptions) {
     super(options)
 
     this.runWorker('taskWorker', {
       worker: taskWorker,
     })
-    this._attachListeners('')
   }
 }
 
 /** @internal */
-export const createTaskObject = (
-  params: BaseComponentOptions<TaskClientApiEvents>
-): Task => {
+export const createTaskObject = (params: BaseComponentOptions): Task => {
   const task = connect<TaskClientApiEvents, TaskAPI, Task>({
     store: params.store,
     Component: TaskAPI,
