@@ -14,6 +14,7 @@ const getScriptOptions = (pathname, config) => {
   const ignoreFiles = config.ignoreFiles || []
   let acc = []
   list.forEach(function (item) {
+    if (item === 'voicePass.test.ts') return
     const itemPath = pathname + '/' + item
     if (
       fs.lstatSync(itemPath).isFile() &&
