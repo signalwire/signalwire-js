@@ -130,7 +130,6 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     fn: EventEmitter.EventListener<RealTimeRoomApiEvents, T>
   ) {
     const instance = super.on(event, fn)
-    // @ts-expect-error
     this.debouncedSubscribe()
     return instance
   }
@@ -140,7 +139,6 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     fn: EventEmitter.EventListener<RealTimeRoomApiEvents, T>
   ) {
     const instance = super.once(event, fn)
-    // @ts-expect-error
     this.debouncedSubscribe()
     return instance
   }

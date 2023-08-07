@@ -31,7 +31,6 @@ export class AutoSubscribeConsumer<
     fn: EventEmitter.EventListener<EventTypes, T>
   ) {
     const instance = super.on(event, fn)
-    // @ts-expect-error
     this.debouncedSubscribe()
     return instance
   }
@@ -41,7 +40,6 @@ export class AutoSubscribeConsumer<
     fn: EventEmitter.EventListener<EventTypes, T>
   ) {
     const instance = super.once(event, fn)
-    // @ts-expect-error
     this.debouncedSubscribe()
     return instance
   }
