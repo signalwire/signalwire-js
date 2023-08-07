@@ -5,7 +5,7 @@ import {
   CallingCallRecordEndState,
   CallingCallRecordEventParams,
   EventEmitter,
-  ApplyEventListeners,
+  BaseConsumer,
 } from '@signalwire/core'
 
 /**
@@ -29,7 +29,7 @@ export interface CallRecordingOptions
 const ENDED_STATES: CallingCallRecordEndState[] = ['finished', 'no_input']
 
 export class CallRecordingAPI
-  extends ApplyEventListeners<CallRecordingEventsHandlerMapping>
+  extends BaseConsumer<CallRecordingEventsHandlerMapping>
   implements VoiceCallRecordingContract
 {
   private _payload: CallingCallRecordEventParams

@@ -8,6 +8,9 @@ import {
   VideoMemberTalkingEvent,
   InternalVideoMemberUpdatedEvent,
   fromSnakeToCamelCase,
+  stripNamespacePrefix,
+  VideoMemberEventNames,
+  MemberTalkingEventNames,
 } from '@signalwire/core'
 import { RoomSession } from '../RoomSession'
 import {
@@ -52,8 +55,10 @@ export const videoMemberWorker = function* (
   }
   set<RoomSessionMember>(payload.member.id, memberInstance)
 
+  const event = stripNamespacePrefix(type) as VideoMemberEventNames
+
   if (type.startsWith('video.member.updated.')) {
-    const clientType = fromSnakeToCamelCase(type)
+    const clientType = fromSnakeToCamelCase(event)
     // @ts-expect-error
     roomSessionInstance.emit(clientType, memberInstance)
   }
@@ -61,26 +66,27 @@ export const videoMemberWorker = function* (
   switch (type) {
     case 'video.member.joined':
     case 'video.member.updated':
-      // @ts-expect-error
-      roomSessionInstance.emit(type, memberInstance)
+      roomSessionInstance.emit(event, memberInstance)
       break
     case 'video.member.left':
-      // @ts-expect-error
-      roomSessionInstance.emit(type, memberInstance)
+      roomSessionInstance.emit(event, memberInstance)
       remove<RoomSessionMember>(payload.member.id)
       break
     case 'video.member.talking':
-      // @ts-expect-error
-      roomSessionInstance.emit(type, memberInstance)
+      roomSessionInstance.emit(event, memberInstance)
       if ('talking' in payload.member) {
         const suffix = payload.member.talking ? 'started' : 'ended'
-        // @ts-expect-error
-        roomSessionInstance.emit(`${type}.${suffix}`, memberInstance)
+        roomSessionInstance.emit(
+          `${event}.${suffix}` as MemberTalkingEventNames,
+          memberInstance
+        )
 
         // Keep for backwards compatibility
         const deprecatedSuffix = payload.member.talking ? 'start' : 'stop'
-        // @ts-expect-error
-        roomSessionInstance.emit(`${type}.${deprecatedSuffix}`, memberInstance)
+        roomSessionInstance.emit(
+          `${event}.${deprecatedSuffix}` as MemberTalkingEventNames,
+          memberInstance
+        )
       }
       break
     default:

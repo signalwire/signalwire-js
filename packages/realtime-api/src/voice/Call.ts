@@ -34,7 +34,7 @@ import {
   CallingCallWaitForState,
   CallingCall,
   configureStore,
-  ApplyEventListeners,
+  BaseConsumer,
 } from '@signalwire/core'
 import { RealTimeCallApiEvents } from '../types'
 import { toInternalDevices, toInternalPlayParams } from './utils'
@@ -91,7 +91,7 @@ export interface Call
   setConnectPayload: (payload: CallingCallConnectEventParams) => void
 }
 
-export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
+export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
   private _peer: Call | undefined
   private _payload: CallingCall
   private _connectPayload: CallingCallConnectEventParams

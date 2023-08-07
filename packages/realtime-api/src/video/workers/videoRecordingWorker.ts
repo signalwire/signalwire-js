@@ -5,6 +5,8 @@ import {
   VideoRecordingEvent,
   RoomSessionRecording,
   Rooms,
+  VideoRecordingEventNames,
+  stripNamespacePrefix,
 } from '@signalwire/core'
 import { RoomSession } from '../RoomSession'
 import { VideoCallWorkerParams } from './videoCallingWorker'
@@ -36,15 +38,15 @@ export const videoRecordingWorker = function* (
   }
   set<RoomSessionRecording>(payload.recording.id, recordingInstance)
 
+  const event = stripNamespacePrefix(type) as VideoRecordingEventNames
+
   switch (type) {
     case 'video.recording.started':
     case 'video.recording.updated':
-      // @ts-expect-error
-      roomSessionInstance.emit(type, recordingInstance)
+      roomSessionInstance.emit(event, recordingInstance)
       break
     case 'video.recording.ended':
-      // @ts-expect-error
-      roomSessionInstance.emit(type, recordingInstance)
+      roomSessionInstance.emit(event, recordingInstance)
       remove<RoomSessionRecording>(payload.recording.id)
       break
     default:

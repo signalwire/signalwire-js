@@ -4,7 +4,7 @@ import {
   toExternalJSON,
   ClientContextContract,
   uuid,
-  ApplyEventListeners,
+  BaseConsumer,
 } from '@signalwire/core'
 import type {
   DisconnectableClientContract,
@@ -198,7 +198,7 @@ export interface Voice
 }
 
 /** @internal */
-class VoiceAPI extends ApplyEventListeners<VoiceClientApiEvents> {
+class VoiceAPI extends BaseConsumer<VoiceClientApiEvents> {
   private _tag: string
 
   constructor(options: BaseComponentOptions) {

@@ -5,6 +5,8 @@ import {
   ExecuteParams,
   actions,
   EventEmitter,
+  validateEventsToSubscribe,
+  BaseConsumer,
 } from '..'
 import { getAuthState } from '../redux/features/session/sessionSelectors'
 import type {
@@ -16,7 +18,6 @@ import type {
 import { PRODUCT_PREFIX_PUBSUB } from '../utils/constants'
 import { PubSubMessage } from './PubSubMessage'
 import { pubSubWorker } from './workers/pubSubWorker'
-import { ApplyEventListeners } from '../ApplyEventListeners'
 
 export type BasePubSubApiEventsHandlerMapping = Record<
   PubSubMessageEventName,
@@ -45,7 +46,7 @@ const toInternalPubSubChannels = (
 
 export class BasePubSubConsumer<
   EventTypes extends EventEmitter.ValidEventTypes = BasePubSubApiEvents
-> extends ApplyEventListeners<EventTypes> {
+> extends BaseConsumer<EventTypes> {
   protected override subscribeMethod: JSONRPCSubscribeMethod = `${PRODUCT_PREFIX_PUBSUB}.subscribe`
 
   constructor(options: BaseComponentOptions) {
@@ -110,6 +111,14 @@ export class BasePubSubConsumer<
       // @ts-ignore
       this.once('message', () => {})
     }
+  }
+
+  /** @internal */
+  protected override getSubscriptions() {
+    const eventNamesWithPrefix = this.eventNames().map(
+      (event) => `${PRODUCT_PREFIX_PUBSUB}.${String(event)}`
+    ) as EventEmitter.EventNames<EventTypes>[]
+    return validateEventsToSubscribe(eventNamesWithPrefix)
   }
 
   async subscribe(channels?: PubSubChannel) {
@@ -192,14 +201,6 @@ export class BasePubSubConsumer<
       return authState.channels
     }
     return {}
-  }
-
-  protected override extendEventName(
-    event: EventEmitter.EventNames<EventTypes>
-  ) {
-    return `${PRODUCT_PREFIX_PUBSUB}.${
-      event as string
-    }` as EventEmitter.EventNames<EventTypes>
   }
 }
 

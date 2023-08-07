@@ -9,6 +9,8 @@ import {
   ChatMessage,
   ChatMember,
   SDKActions,
+  stripNamespacePrefix,
+  ChatMemberEventNames,
 } from '../../index'
 
 export const chatWorker: SDKWorker<BaseChatConsumer> = function* (
@@ -32,8 +34,7 @@ export const chatWorker: SDKWorker<BaseChatConsumer> = function* (
         })
         const chatMessage = new ChatMessage(externalJSON)
 
-        // @ts-expect-error
-        client.emit('chat.message', chatMessage)
+        client.emit('message', chatMessage)
         break
       }
       case 'chat.member.joined':
@@ -43,8 +44,8 @@ export const chatWorker: SDKWorker<BaseChatConsumer> = function* (
         const externalJSON = toExternalJSON(member)
         const chatMessage = new ChatMember(externalJSON)
 
-        // @ts-expect-error
-        client.emit(type, chatMessage)
+        const event = stripNamespacePrefix(type) as ChatMemberEventNames
+        client.emit(event, chatMessage)
         break
       }
       default:
