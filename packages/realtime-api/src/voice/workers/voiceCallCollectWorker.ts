@@ -29,7 +29,7 @@ export const voiceCallCollectWorker = function* (
   actionInstance.setPayload(payload)
   set<CallPrompt | CallCollect>(payload.control_id, actionInstance)
 
-  let eventPrefix = 'collect'
+  let eventPrefix = 'collect' as 'collect' | 'prompt'
   if (actionInstance instanceof CallPromptAPI) {
     eventPrefix = 'prompt'
   }
@@ -38,40 +38,32 @@ export const voiceCallCollectWorker = function* (
    * Only when partial_results: true
    */
   if (payload.final === false) {
-    callInstance.baseEmitter.emit(`${eventPrefix}.updated`, actionInstance)
+    callInstance.emit(`${eventPrefix}.updated`, actionInstance)
   } else {
     if (payload.result) {
       switch (payload.result.type) {
         case 'start_of_input': {
-          callInstance.baseEmitter.emit(
-            `${eventPrefix}.startOfInput`,
-            actionInstance
-          )
+          // @ts-expect-error
+          callInstance.emit(`${eventPrefix}.startOfInput`, actionInstance)
           break
         }
         case 'no_input':
         case 'no_match':
         case 'error': {
-          callInstance.baseEmitter.emit(`${eventPrefix}.failed`, actionInstance)
+          callInstance.emit(`${eventPrefix}.failed`, actionInstance)
 
           // To resolve the ended() promise in CallPrompt or CallCollect
-          actionInstance.baseEmitter.emit(
-            `${eventPrefix}.failed`,
-            actionInstance
-          )
+          actionInstance.emit(`${eventPrefix}.failed` as never, actionInstance)
 
           remove<CallCollect>(payload.control_id)
           break
         }
         case 'speech':
         case 'digit': {
-          callInstance.baseEmitter.emit(`${eventPrefix}.ended`, actionInstance)
+          callInstance.emit(`${eventPrefix}.ended`, actionInstance)
 
           // To resolve the ended() promise in CallPrompt or CallCollect
-          actionInstance.baseEmitter.emit(
-            `${eventPrefix}.ended`,
-            actionInstance
-          )
+          actionInstance.emit(`${eventPrefix}.ended` as never, actionInstance)
 
           remove<CallCollect>(payload.control_id)
           break

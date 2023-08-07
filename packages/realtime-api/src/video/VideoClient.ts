@@ -44,11 +44,10 @@ export interface VideoClientOptions
  * ```
  */
 const VideoClient = function (options?: VideoClientOptions) {
-  const { client, store, emitter } = setupClient(options)
+  const { client, store } = setupClient(options)
 
   const video = createVideoObject({
     store,
-    emitter,
   })
 
   const videoSubscribe: Video['subscribe'] = async () => {

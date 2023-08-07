@@ -21,10 +21,7 @@ export type RoomSessionRecordingEventsHandlerMapping = Record<
 >
 
 export interface RoomSessionRecordingOptions
-  extends BaseComponentOptionsWithPayload<
-    RoomSessionRecordingEventsHandlerMapping,
-    VideoRecordingEventParams
-  > {}
+  extends BaseComponentOptionsWithPayload<VideoRecordingEventParams> {}
 
 export class RoomSessionRecordingAPI
   extends BaseComponent<RoomSessionRecordingEventsHandlerMapping>

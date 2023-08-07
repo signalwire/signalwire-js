@@ -23,8 +23,6 @@ export const voiceCallReceiveWorker = function* (
   if (!callInstance) {
     callInstance = createCallObject({
       store: client.store,
-      // @ts-expect-error
-      emitter: client.emitter,
       payload: payload,
     })
   } else {
@@ -33,7 +31,7 @@ export const voiceCallReceiveWorker = function* (
 
   set<Call>(payload.call_id, callInstance)
   // @ts-expect-error
-  client.baseEmitter.emit('call.received', callInstance)
+  client.emit('call.received', callInstance)
 
   getLogger().trace('voiceCallReceiveWorker ended')
 }

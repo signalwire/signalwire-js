@@ -182,8 +182,6 @@ export const getRecordings: RoomMethodDescriptor<GetRecordingsOutput> = {
           if (!recordingInstance) {
             recordingInstance = createRoomSessionRecordingObject({
               store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
               payload: {
                 room_id: this.roomId,
                 room_session_id: this.roomSessionId,
@@ -225,8 +223,6 @@ export const startRecording: RoomMethodDescriptor<RoomSessionRecording> = {
 
         const recordingInstance = createRoomSessionRecordingObject({
           store: this.store,
-          // @ts-expect-error
-          emitter: this.emitter,
           payload: {
             room_id: this.roomId,
             room_session_id: this.roomSessionId,
@@ -269,8 +265,6 @@ export const getPlaybacks: RoomMethodDescriptor<GetPlaybacksOutput> = {
           if (!playbackInstance) {
             playbackInstance = createRoomSessionPlaybackObject({
               store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
               payload: {
                 room_id: this.roomId,
                 room_session_id: this.roomSessionId,
@@ -326,8 +320,6 @@ export const play: RoomMethodDescriptor<any, PlayParams> = {
         })
         const playbackInstance = createRoomSessionPlaybackObject({
           store: this.store,
-          // @ts-expect-error
-          emitter: this.emitter,
           payload: {
             room_id: this.roomId,
             room_session_id: this.roomSessionId,
@@ -409,8 +401,6 @@ export const getStreams: RoomMethodDescriptor<GetStreamsOutput> = {
           if (!streamInstance) {
             streamInstance = createRoomSessionStreamObject({
               store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
               payload: {
                 room_id: this.roomId,
                 room_session_id: this.roomSessionId,
@@ -456,8 +446,6 @@ export const startStream: RoomMethodDescriptor<any, StartStreamParams> = {
 
         const streamInstance = createRoomSessionStreamObject({
           store: this.store,
-          // @ts-expect-error
-          emitter: this.emitter,
           payload: {
             room_id: this.roomId,
             room_session_id: this.roomSessionId,

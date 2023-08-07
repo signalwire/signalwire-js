@@ -2,23 +2,35 @@ import {
   VideoRoomEvent,
   InternalVideoRoomSessionEventNames,
   InternalVideoRoomEvent,
+  VideoRoomSessionEventNames,
 } from './videoRoomSession'
 import {
   VideoMemberEvent,
   InternalVideoMemberEventNames,
   InternalVideoMemberEvent,
+  VideoMemberEventNames,
 } from './videoMember'
-import { InternalVideoLayoutEventNames, VideoLayoutEvent } from './videoLayout'
+import {
+  InternalVideoLayoutEventNames,
+  VideoLayoutEvent,
+  VideoLayoutEventNames,
+} from './videoLayout'
 import {
   VideoRecordingEvent,
   InternalVideoRecordingEventNames,
+  VideoRecordingEventNames,
 } from './videoRecording'
 import {
   VideoPlaybackEvent,
   InternalVideoPlaybackEventNames,
+  VideoPlaybackEventNames,
 } from './videoPlayback'
-import { VideoStreamEvent, InternalVideoStreamEventNames } from './videoStream'
-import { VideoRoomAudienceCountEvent } from '.'
+import {
+  VideoStreamEvent,
+  InternalVideoStreamEventNames,
+  VideoStreamEventNames,
+} from './videoStream'
+import { VideoRoomAudienceCountEvent, VideoRoomDeviceEventNames } from '.'
 import { MapToPubSubShape } from '..'
 
 export * from './videoRoomSession'
@@ -98,6 +110,15 @@ export type VideoAPIEventParams =
   | VideoPlaybackEvent
   | VideoStreamEvent
   | VideoRoomAudienceCountEvent
+
+export type VideoAPIEventNames =
+  | VideoRoomSessionEventNames
+  | VideoMemberEventNames
+  | VideoLayoutEventNames
+  | VideoPlaybackEventNames
+  | VideoRecordingEventNames
+  | VideoRoomDeviceEventNames
+  | VideoStreamEventNames
 
 export type VideoAction = MapToPubSubShape<
   InternalVideoAPIEvent | VideoAPIEventParams | VideoRoomAudienceCountEvent

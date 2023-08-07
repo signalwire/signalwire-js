@@ -24,8 +24,6 @@ export const videoStreamWorker = function* (
   if (!streamInstance) {
     streamInstance = Rooms.createRoomSessionStreamObject({
       store: roomSession.store,
-      // @ts-expect-error
-      emitter: roomSession.emitter,
       payload,
     })
   } else {
@@ -35,10 +33,10 @@ export const videoStreamWorker = function* (
 
   switch (type) {
     case 'video.stream.started':
-      roomSession.baseEmitter.emit('stream.started', streamInstance)
+      roomSession.emit('stream.started', streamInstance)
       break
     case 'video.stream.ended':
-      roomSession.baseEmitter.emit('stream.ended', streamInstance)
+      roomSession.emit('stream.ended', streamInstance)
       remove<RoomSessionStream>(payload.stream.id)
       break
     default:

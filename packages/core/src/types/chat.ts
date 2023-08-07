@@ -329,5 +329,3 @@ export type ChatJSONRPCMethod =
   | 'chat.member.get_state'
   | 'chat.members.get'
   | 'chat.messages.get'
-
-export type ChatTransformType = 'chatMessage' | 'chatMember'

@@ -57,13 +57,6 @@ export const childMemberJoinedWorker: SDKWorker<
       return 'memberId' in row && row.memberId === member.parent_id
     })
     if (parent) {
-      /**
-       * For screenShare/additionalDevice we're using the `memberId` to
-       * namespace the object.
-       **/
-      // @ts-expect-error
-      instance._attachListeners(member.id)
-
       yield sagaEffects.put(
         componentActions.upsert({
           id: instance.callId,

@@ -81,7 +81,8 @@ describe('MessagingClient', () => {
           done()
         })
 
-        messaging._session.once('session.connected', () => {
+        // @ts-expect-error
+        messaging.session.once('session.connected', () => {
           server.send(
             JSON.stringify({
               jsonrpc: '2.0',
@@ -134,7 +135,8 @@ describe('MessagingClient', () => {
           done()
         })
 
-        messaging._session.once('session.connected', () => {
+        // @ts-expect-error
+        messaging.session.once('session.connected', () => {
           server.send(
             JSON.stringify({
               jsonrpc: '2.0',
@@ -169,7 +171,8 @@ describe('MessagingClient', () => {
 
         messaging.on('message.received', (_message) => {})
 
-        messaging._session.on('session.auth_error', () => {
+        // @ts-expect-error
+        messaging.session.on('session.auth_error', () => {
           expect(logger.error).toHaveBeenNthCalledWith(1, 'Auth Error', {
             code: -32002,
             message:

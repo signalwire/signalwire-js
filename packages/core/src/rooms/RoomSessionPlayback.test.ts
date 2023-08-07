@@ -1,9 +1,7 @@
 import { configureJestStore } from '../testUtils'
-import { EventEmitter } from '../utils/EventEmitter'
 import {
   createRoomSessionPlaybackObject,
   RoomSessionPlayback,
-  RoomSessionPlaybackEventsHandlerMapping,
 } from './RoomSessionPlayback'
 
 describe('RoomSessionPlayback', () => {
@@ -12,7 +10,6 @@ describe('RoomSessionPlayback', () => {
     beforeEach(() => {
       instance = createRoomSessionPlaybackObject({
         store: configureJestStore(),
-        emitter: new EventEmitter<RoomSessionPlaybackEventsHandlerMapping>(),
         payload: {
           //@ts-expect-error
           playback: {

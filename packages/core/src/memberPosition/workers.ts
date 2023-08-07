@@ -9,7 +9,6 @@ import {
   VideoPosition,
   VideoRoomSubscribedEventParams,
 } from '..'
-import { findNamespaceInPayload } from '../redux/features/shared/namespace'
 
 /**
  * These workers are shared between the realtime-api and the browser SDK
@@ -22,7 +21,7 @@ const defaultDispatcher = function* (
   payload: any,
   instance?: any
 ) {
-  instance.baseEmitter.emit(type, payload)
+  instance.emit(type, payload)
 }
 
 function* memberPositionLayoutChangedWorker(options: any) {
@@ -177,13 +176,7 @@ export const memberPositionWorker: SDKWorker<any> =
           action.type === 'video.member.joined' ||
           action.type === 'video.member.left'
 
-        return (
-          istargetEvent &&
-          (findNamespaceInPayload(action) === instance._eventsNamespace ||
-            // @TODO: New event emitter does not need `_eventsNamespace`.
-            // This whole `findNamespaceInPayload` logic should be removed once we implement new event emitter for Browser SDK
-            findNamespaceInPayload(action) === instance.roomSessionId)
-        )
+        return istargetEvent
       })
 
       switch (action.type) {

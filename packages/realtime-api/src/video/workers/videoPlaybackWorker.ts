@@ -29,8 +29,6 @@ export const videoPlaybackWorker = function* (
     playbackInstance = Rooms.createRoomSessionPlaybackObject({
       // @ts-expect-error
       store: client.store,
-      // @ts-expect-error
-      emitter: client.emitter,
       payload,
     })
   } else {
@@ -41,10 +39,12 @@ export const videoPlaybackWorker = function* (
   switch (type) {
     case 'video.playback.started':
     case 'video.playback.updated':
-      roomSessionInstance.baseEmitter.emit(type, playbackInstance)
+      // @ts-expect-error
+      roomSessionInstance.emit(type, playbackInstance)
       break
     case 'video.playback.ended':
-      roomSessionInstance.baseEmitter.emit(type, playbackInstance)
+      // @ts-expect-error
+      roomSessionInstance.emit(type, playbackInstance)
       remove<RoomSessionPlayback>(payload.playback.id)
       break
     default:

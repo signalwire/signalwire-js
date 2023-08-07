@@ -178,15 +178,15 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
 
   // WebRTC connection left the room.
   room.once('destroy', () => {
-    // @ts-expect-error
-    room.baseEmitter.emit('room.left', { reason: room.leaveReason })
+    room.emit('room.left', { reason: room.leaveReason })
 
     // Remove callId to reattach
     reattachManager.destroy()
     client.disconnect()
   })
 
-  client.once('session.disconnected', () => {
+  // @ts-expect-error
+  client.session.once('session.disconnected', () => {
     room.destroy()
   })
 

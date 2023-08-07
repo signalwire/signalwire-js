@@ -9,12 +9,6 @@ export class BaseClient<
 > extends BaseComponent<EventTypes> {
   constructor(public options: BaseClientOptions<EventTypes>) {
     super(options)
-    /**
-     * Since we don't need a namespace for these events
-     * we'll attach them as soon as the Client has been
-     * registered in the Redux store.
-     */
-    this._attachListeners('')
   }
 
   /**

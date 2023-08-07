@@ -9,11 +9,7 @@ import type {
   WebRTCMessageParams,
   SwAuthorizationStateParams,
 } from '../../../types'
-import type {
-  PubSubChannel,
-  SessionChannel,
-  SwEventChannel,
-} from '../../interfaces'
+import type { SessionChannel, SwEventChannel } from '../../interfaces'
 import { createCatchableSaga } from '../../utils/sagaHelpers'
 import { socketMessageAction } from '../../actions'
 import { getLogger, isWebrtcEventType, toInternalAction } from '../../../utils'
@@ -21,7 +17,6 @@ import { getLogger, isWebrtcEventType, toInternalAction } from '../../../utils'
 type SessionSagaParams = {
   session: BaseSession
   sessionChannel: SessionChannel
-  pubSubChannel: PubSubChannel
   swEventChannel: SwEventChannel
 }
 
