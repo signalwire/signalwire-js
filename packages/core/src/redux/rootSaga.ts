@@ -29,7 +29,7 @@ import { EventEmitter } from '../utils/EventEmitter'
 
 interface StartSagaOptions {
   session: BaseSession
-  sessionEmitter: EventEmitter<SessionEventsMap>
+  sessionEmitter: EventEmitter<ClientEvents>
   sessionChannel: SessionChannel
   userOptions: InternalUserOptions
 }
@@ -117,7 +117,7 @@ export function* reauthenticateWorker({
 }: {
   session: BaseSession
   token: string
-  sessionEmitter: EventEmitter<SessionEventsMap>
+  sessionEmitter: EventEmitter<ClientEvents>
 }) {
   try {
     if (session.reauthenticate) {
