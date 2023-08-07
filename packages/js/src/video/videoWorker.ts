@@ -9,8 +9,8 @@ import {
   SDKWorkerParams,
   MemberPosition,
   VideoAPIEventNames,
+  stripNamespacePrefix,
 } from '@signalwire/core'
-import { stripNamespacePrefix } from '../utils/eventUtils'
 import { RoomSessionConnection } from '../BaseRoomSession'
 import { videoStreamWorker } from './videoStreamWorker'
 import { videoRecordWorker } from './videoRecordWorker'

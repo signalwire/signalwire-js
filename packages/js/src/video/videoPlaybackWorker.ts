@@ -6,8 +6,8 @@ import {
   Rooms,
   VideoPlaybackEvent,
   VideoPlaybackEventNames,
+  stripNamespacePrefix,
 } from '@signalwire/core'
-import { stripNamespacePrefix } from '../utils/eventUtils'
 import { VideoWorkerParams } from './videoWorker'
 
 export const videoPlaybackWorker = function* (

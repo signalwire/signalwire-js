@@ -3,6 +3,7 @@ import {
   BaseConsumer,
   EventEmitter,
   debounce,
+  validateEventsToSubscribe,
 } from '@signalwire/core'
 
 export class AutoSubscribeConsumer<
@@ -17,12 +18,19 @@ export class AutoSubscribeConsumer<
     this.debouncedSubscribe = debounce(this.subscribe, 100)
   }
 
+  /** @internal */
+  protected override getSubscriptions() {
+    const eventNamesWithPrefix = this.eventNames().map(
+      (event) => `video.${String(event)}`
+    ) as EventEmitter.EventNames<EventTypes>[]
+    return validateEventsToSubscribe(eventNamesWithPrefix)
+  }
+
   override on<T extends EventEmitter.EventNames<EventTypes>>(
     event: T,
     fn: EventEmitter.EventListener<EventTypes, T>
   ) {
-    // @ts-expect-error
-    const instance = super.on(`video.${event}`, fn)
+    const instance = super.on(event, fn)
     this.debouncedSubscribe()
     return instance
   }
@@ -31,8 +39,7 @@ export class AutoSubscribeConsumer<
     event: T,
     fn: EventEmitter.EventListener<EventTypes, T>
   ) {
-    // @ts-expect-error
-    const instance = super.once(`video.${event}`, fn)
+    const instance = super.once(event, fn)
     this.debouncedSubscribe()
     return instance
   }
@@ -41,8 +48,7 @@ export class AutoSubscribeConsumer<
     event: T,
     fn: EventEmitter.EventListener<EventTypes, T>
   ) {
-    // @ts-expect-error
-    const instance = super.off(`video.${event}`, fn)
+    const instance = super.off(event, fn)
     return instance
   }
 }

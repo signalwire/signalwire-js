@@ -6,7 +6,7 @@ import {
   CallCollectEndedEvent,
   CallingCallCollectEventParams,
   EventEmitter,
-  ApplyEventListeners,
+  BaseConsumer,
 } from '@signalwire/core'
 
 /**
@@ -35,7 +35,7 @@ const ENDED_STATES: CallingCallCollectEndState[] = [
 ]
 
 export class CallCollectAPI
-  extends ApplyEventListeners<CallCollectEventsHandlerMapping>
+  extends BaseConsumer<CallCollectEventsHandlerMapping>
   implements VoiceCallCollectContract
 {
   private _payload: CallingCallCollectEventParams

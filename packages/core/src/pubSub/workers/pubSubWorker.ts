@@ -42,11 +42,7 @@ export const pubSubWorker: SDKWorker<BasePubSubConsumer> = function* (
         })
         const pubSubMessage = new PubSubMessage(externalJSON)
 
-        client.emit(
-          // @ts-expect-error
-          `${PRODUCT_PREFIX_PUBSUB}.message`,
-          pubSubMessage
-        )
+        client.emit('message', pubSubMessage)
         break
       }
       default:

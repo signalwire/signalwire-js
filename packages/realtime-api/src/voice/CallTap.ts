@@ -5,7 +5,7 @@ import {
   CallingCallTapEndState,
   CallingCallTapEventParams,
   EventEmitter,
-  ApplyEventListeners,
+  BaseConsumer,
 } from '@signalwire/core'
 
 /**
@@ -29,7 +29,7 @@ export interface CallTapOptions
 const ENDED_STATES: CallingCallTapEndState[] = ['finished']
 
 export class CallTapAPI
-  extends ApplyEventListeners<CallTapEventsHandlerMapping>
+  extends BaseConsumer<CallTapEventsHandlerMapping>
   implements VoiceCallTapContract
 {
   private _payload: CallingCallTapEventParams

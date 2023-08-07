@@ -5,6 +5,8 @@ import {
   VideoPlaybackEvent,
   RoomSessionPlayback,
   Rooms,
+  stripNamespacePrefix,
+  VideoPlaybackEventNames,
 } from '@signalwire/core'
 import { RoomSession } from '../RoomSession'
 import { VideoCallWorkerParams } from './videoCallingWorker'
@@ -36,15 +38,15 @@ export const videoPlaybackWorker = function* (
   }
   set<RoomSessionPlayback>(payload.playback.id, playbackInstance)
 
+  const event = stripNamespacePrefix(type) as VideoPlaybackEventNames
+
   switch (type) {
     case 'video.playback.started':
     case 'video.playback.updated':
-      // @ts-expect-error
-      roomSessionInstance.emit(type, playbackInstance)
+      roomSessionInstance.emit(event, playbackInstance)
       break
     case 'video.playback.ended':
-      // @ts-expect-error
-      roomSessionInstance.emit(type, playbackInstance)
+      roomSessionInstance.emit(event, playbackInstance)
       remove<RoomSessionPlayback>(payload.playback.id)
       break
     default:
