@@ -51,7 +51,7 @@ export interface ServerDefineRouteParams<T extends JSONSchema> {
 }
 export interface CustomRouteHandlerResponse {
   response: string
-  action: Record<string, unknown>[]
+  action?: Record<string, unknown>[]
 }
 export type CustomRouteHandler<T> = (
   params: T,
