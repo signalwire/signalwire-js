@@ -153,5 +153,3 @@ export type PubSubJSONRPCMethod =
   | `${typeof PRODUCT_PREFIX_PUBSUB}.subscribe`
   | `${typeof PRODUCT_PREFIX_PUBSUB}.publish`
   | `${typeof PRODUCT_PREFIX_PUBSUB}.unsubscribe`
-
-export type PubSubTransformType = 'pubSubMessage'

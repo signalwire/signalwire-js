@@ -20,7 +20,6 @@ describe('Room Custom Methods', () => {
       emitter: new EventEmitter(),
     })
     instance.execute = jest.fn()
-    instance._attachListeners(instance.__uuid)
   })
 
   it('should have all the custom methods defined', () => {

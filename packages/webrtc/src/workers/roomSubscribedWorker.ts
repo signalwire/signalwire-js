@@ -48,10 +48,6 @@ export const roomSubscribedWorker: SDKWorker<
   // New emitter should not change the payload by reference
   const clonedPayload = JSON.parse(JSON.stringify(action.payload))
 
-  // FIXME: Move to a better place when rework _attachListeners too.
-  // @ts-expect-error
-  instance._attachListeners(action.payload.room_session.id)
-
   /**
    * In here we joined a room_session so we can swap between RTCPeers
    */
@@ -70,10 +66,7 @@ export const roomSubscribedWorker: SDKWorker<
     })
   )
 
-  instance.baseEmitter.emit(
-    'room.joined',
-    transformPayload.call(instance, clonedPayload)
-  )
+  instance.emit('room.joined', transformPayload.call(instance, clonedPayload))
 
   getLogger().debug('roomSubscribedWorker ended', rtcPeerId)
 }
@@ -93,7 +86,6 @@ function transformPayload(
           if (!recordingInstance) {
             recordingInstance = Rooms.createRoomSessionRecordingObject({
               store: this.store,
-              emitter: this.emitter,
               payload: {
                 room_id: payload.room.room_id,
                 room_session_id: payload.room_session.id,
@@ -125,7 +117,6 @@ function transformPayload(
           if (!playbackInstance) {
             playbackInstance = Rooms.createRoomSessionPlaybackObject({
               store: this.store,
-              emitter: this.emitter,
               payload: {
                 room_id: payload.room.room_id,
                 room_session_id: payload.room_session.id,
@@ -154,7 +145,6 @@ function transformPayload(
         if (!streamInstance) {
           streamInstance = Rooms.createRoomSessionStreamObject({
             store: this.store,
-            emitter: this.emitter,
             payload: {
               room_id: payload.room.room_id,
               room_session_id: payload.room_session.id,

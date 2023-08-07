@@ -1,10 +1,5 @@
-import { EventEmitter } from '@signalwire/core'
 import { configureJestStore } from '../testUtils'
-import {
-  createCallPlaybackObject,
-  CallPlayback,
-  CallPlaybackEventsHandlerMapping,
-} from './CallPlayback'
+import { createCallPlaybackObject, CallPlayback } from './CallPlayback'
 
 describe('CallPlayback', () => {
   describe('createCallPlaybackObject', () => {
@@ -12,7 +7,6 @@ describe('CallPlayback', () => {
     beforeEach(() => {
       instance = createCallPlaybackObject({
         store: configureJestStore(),
-        emitter: new EventEmitter<CallPlaybackEventsHandlerMapping>(),
         // @ts-expect-error
         payload: {
           call_id: 'call_id',

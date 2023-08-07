@@ -4,14 +4,12 @@ import {
   JSONRPCSubscribeMethod,
   ExecuteParams,
   actions,
-  SessionEvents,
   EventEmitter,
 } from '..'
 import { getAuthState } from '../redux/features/session/sessionSelectors'
 import type {
   PubSubChannel,
   InternalPubSubChannel,
-  PubSubEventNames,
   PubSubPublishParams,
   PubSubMessageEventName,
 } from '../types/pubSub'
@@ -23,8 +21,7 @@ import { ApplyEventListeners } from '../ApplyEventListeners'
 export type BasePubSubApiEventsHandlerMapping = Record<
   PubSubMessageEventName,
   (message: PubSubMessage) => void
-> &
-  Record<Extract<SessionEvents, 'session.expiring'>, () => void>
+>
 
 /**
  * @privateRemarks
@@ -51,15 +48,8 @@ export class BasePubSubConsumer<
 > extends ApplyEventListeners<EventTypes> {
   protected override subscribeMethod: JSONRPCSubscribeMethod = `${PRODUCT_PREFIX_PUBSUB}.subscribe`
 
-  constructor(options: BaseComponentOptions<EventTypes>) {
+  constructor(options: BaseComponentOptions) {
     super(options)
-
-    /**
-     * Since we don't need a namespace for these events
-     * we'll attach them as soon as the Client has been
-     * registered in the Redux store.
-     */
-    this._attachListeners('')
 
     // Initialize worker through a function so that it can be override by the BaseChatConsumer
     this.initWorker()
@@ -174,12 +164,10 @@ export class BasePubSubConsumer<
   // `realtime-api`
   updateToken(token: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      // @ts-expect-error
-      this.once('session.auth_error', (error) => {
+      this.session.once('session.auth_error', (error) => {
         reject(error)
       })
-      // @ts-expect-error
-      this.once('session.connected', () => {
+      this.session.once('session.connected', () => {
         resolve()
       })
 
@@ -216,7 +204,7 @@ export class BasePubSubConsumer<
 }
 
 export const createBasePubSubObject = <PubSubType>(
-  params: BaseComponentOptions<PubSubEventNames>
+  params: BaseComponentOptions
 ) => {
   const pubSub = connect<BasePubSubApiEvents, BasePubSubConsumer, PubSubType>({
     store: params.store,

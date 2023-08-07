@@ -1,10 +1,5 @@
-import { EventEmitter } from '@signalwire/core'
 import { configureJestStore } from '../testUtils'
-import {
-  createCallPromptObject,
-  CallPrompt,
-  CallPromptEventsHandlerMapping,
-} from './CallPrompt'
+import { createCallPromptObject, CallPrompt } from './CallPrompt'
 
 describe('CallPrompt', () => {
   describe('createCallPromptObject', () => {
@@ -12,7 +7,6 @@ describe('CallPrompt', () => {
     beforeEach(() => {
       instance = createCallPromptObject({
         store: configureJestStore(),
-        emitter: new EventEmitter<CallPromptEventsHandlerMapping>(),
         // @ts-expect-error
         payload: {
           call_id: 'call_id',

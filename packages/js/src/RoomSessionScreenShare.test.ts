@@ -8,7 +8,6 @@ describe('RoomScreenShare Object', () => {
   beforeEach(() => {
     roomScreenShare = new RoomSessionScreenShareAPI({
       store: configureJestStore(),
-      emitter: jest.fn() as any,
     }) as any as RoomSessionScreenShare
     // @ts-expect-error
     roomScreenShare.execute = jest.fn()

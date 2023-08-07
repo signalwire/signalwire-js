@@ -8,7 +8,6 @@ describe('RoomDevice Object', () => {
   beforeEach(() => {
     roomDevice = new RoomSessionDeviceAPI({
       store: configureJestStore(),
-      emitter: jest.fn() as any,
     }) as any as RoomSessionDevice
     // @ts-expect-error
     roomDevice.execute = jest.fn()

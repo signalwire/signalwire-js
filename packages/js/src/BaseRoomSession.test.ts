@@ -26,7 +26,6 @@ describe('Room Object', () => {
     store = stack.store
     room = createBaseRoomSessionObject<RoomSession>({
       store,
-      emitter: new EventEmitter(),
     })
     store.dispatch(
       componentActions.upsert({

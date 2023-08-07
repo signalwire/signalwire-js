@@ -9,7 +9,6 @@ import {
   EntityUpdated,
   BaseConsumer,
   EventEmitter,
-  MemberPosition,
   debounce,
   VideoRoomEventParams,
   Optional,
@@ -24,7 +23,6 @@ import {
 export interface RoomSession
   extends VideoRoomSessionContract,
     ConsumerContract<RealTimeRoomApiEvents, RoomSessionFullState> {
-  baseEmitter: EventEmitter
   setPayload(payload: Optional<VideoRoomEventParams, 'room'>): void
   /**
    * Returns a list of members currently in the room.
@@ -45,10 +43,7 @@ export interface RoomSessionFullState extends Omit<RoomSession, 'members'> {
 
 type RoomSessionPayload = Optional<VideoRoomEventParams, 'room'>
 export interface RoomSessionConsumerOptions
-  extends BaseComponentOptionsWithPayload<
-    RealTimeRoomApiEvents,
-    RoomSessionPayload
-  > {}
+  extends BaseComponentOptionsWithPayload<RoomSessionPayload> {}
 
 export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   private _payload: RoomSessionPayload
@@ -126,7 +121,7 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     fn: EventEmitter.EventListener<RealTimeRoomApiEvents, T>
   ) {
     // @ts-expect-error
-    const instance = super._on(`video.${event}`, fn)
+    const instance = super.on(`video.${event}`, fn)
     this.debouncedSubscribe()
     return instance
   }
@@ -136,7 +131,7 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     fn: EventEmitter.EventListener<RealTimeRoomApiEvents, T>
   ) {
     // @ts-expect-error
-    const instance = super._once(`video.${event}`, fn)
+    const instance = super.once(`video.${event}`, fn)
     this.debouncedSubscribe()
     return instance
   }
@@ -146,7 +141,7 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     fn: EventEmitter.EventListener<RealTimeRoomApiEvents, T>
   ) {
     // @ts-expect-error
-    const instance = super._off(`video.${event}`, fn)
+    const instance = super.off(`video.${event}`, fn)
     return instance
   }
 
@@ -173,21 +168,14 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
 
       try {
         // @ts-expect-error
-        super._once('video.room.subscribed', handler)
+        super.once('video.room.subscribed', handler)
         await super.subscribe()
       } catch (error) {
         // @ts-expect-error
-        super._off('video.room.subscribed', handler)
+        super.off('video.room.subscribed', handler)
         return reject(error)
       }
     })
-  }
-
-  /** @internal */
-  protected override getCompoundEvents() {
-    return new Map<any, any>([
-      ...MemberPosition.MEMBER_POSITION_COMPOUND_EVENTS,
-    ])
   }
 
   /** @internal */
@@ -216,8 +204,6 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
           if (!memberInstance) {
             memberInstance = createRoomSessionMemberObject({
               store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
               payload: {
                 room_id: this.roomId,
                 room_session_id: this.roomSessionId,

@@ -201,7 +201,7 @@ export interface Voice
 class VoiceAPI extends ApplyEventListeners<VoiceClientApiEvents> {
   private _tag: string
 
-  constructor(options: BaseComponentOptions<VoiceClientApiEvents>) {
+  constructor(options: BaseComponentOptions) {
     super(options)
 
     this._tag = uuid()
@@ -212,8 +212,6 @@ class VoiceAPI extends ApplyEventListeners<VoiceClientApiEvents> {
         tag: this._tag,
       },
     })
-
-    this._attachListeners('')
   }
 
   dial(params: VoiceDialerParams) {
@@ -294,9 +292,7 @@ class VoiceAPI extends ApplyEventListeners<VoiceClientApiEvents> {
 }
 
 /** @internal */
-export const createVoiceObject = (
-  params: BaseComponentOptions<VoiceClientApiEvents>
-): Voice => {
+export const createVoiceObject = (params: BaseComponentOptions): Voice => {
   const voice = connect<VoiceClientApiEvents, VoiceAPI, Voice>({
     store: params.store,
     Component: VoiceAPI,

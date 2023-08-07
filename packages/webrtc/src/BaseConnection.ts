@@ -87,10 +87,7 @@ export type BaseConnectionStateEventTypes = {
   [k in keyof EventsHandlerMapping]: EventsHandlerMapping[k]
 }
 
-export type BaseConnectionOptions<
-  EventTypes extends EventEmitter.ValidEventTypes
-> = ConnectionOptions &
-  BaseComponentOptions<EventTypes & BaseConnectionStateEventTypes>
+export type BaseConnectionOptions = ConnectionOptions & BaseComponentOptions
 
 export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   extends BaseComponent<EventTypes & BaseConnectionStateEventTypes>
@@ -99,9 +96,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     BaseConnectionContract<EventTypes & BaseConnectionStateEventTypes>
 {
   public direction: 'inbound' | 'outbound'
-  public options: BaseConnectionOptions<
-    EventTypes & BaseConnectionStateEventTypes
-  >
+  public options: BaseConnectionOptions
   /** @internal */
   public leaveReason: BaseConnectionContract<EventTypes>['leaveReason'] =
     undefined
@@ -122,9 +117,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   private sessionAuthTask: Task
   private resuming = false
 
-  constructor(
-    options: BaseConnectionOptions<EventTypes & BaseConnectionStateEventTypes>
-  ) {
+  constructor(options: BaseConnectionOptions) {
     super(options)
 
     this.options = {
@@ -608,7 +601,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       this.logger.debug('updateStream simply update mic/cam')
       if (newTrack.kind === 'audio') {
         // @ts-expect-error
-        this.baseEmitter.emit('microphone.updated', {
+        this.emit('microphone.updated', {
           previous: {
             deviceId: prevAudioTrack?.id,
             label: prevAudioTrack?.label,
@@ -621,7 +614,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         this.options.micId = newTrack.getSettings().deviceId
       } else if (newTrack.kind === 'video') {
         // @ts-expect-error
-        this.baseEmitter.emit('camera.updated', {
+        this.emit('camera.updated', {
           previous: {
             deviceId: prevVideoTrack?.id,
             label: prevVideoTrack?.label,
@@ -835,9 +828,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
       this.resuming = false
 
-      // TODO: Review
-      this._attachListeners('')
-
       /** Call is active so set the RTCPeer */
       this.setActiveRTCPeer(rtcPeerId)
     } catch (error) {
@@ -980,7 +970,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     )
 
     // @ts-expect-error
-    this.baseEmitter.emit(this.state, this)
+    this.emitter.emit(this.state, this)
 
     switch (state) {
       case 'purge': {

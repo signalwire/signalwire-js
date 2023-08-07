@@ -27,7 +27,8 @@ export const videoLayoutWorker = function* (
 
   switch (type) {
     case 'video.layout.changed':
-      roomSessionInstance.baseEmitter.emit(type, toExternalJSON(payload))
+      // @ts-expect-error
+      roomSessionInstance.emit(type, toExternalJSON(payload))
       break
     default:
       break

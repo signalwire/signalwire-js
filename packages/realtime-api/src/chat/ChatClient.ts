@@ -67,10 +67,9 @@ const UNSUPPORTED_METHODS = ['getAllowedChannels', 'updateToken']
  * ```
  */
 const ChatClient = function (options?: ChatClientOptions) {
-  const { client, store, emitter } = setupClient(options)
+  const { client, store } = setupClient(options)
   const chat = ChatNamespace.createBaseChatObject<ChatClient>({
     store,
-    emitter,
   })
 
   const createInterceptor = <K extends ClientMethods>(prop: K) => {

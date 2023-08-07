@@ -38,7 +38,7 @@ export type RoomSessionMemberEventParams =
       VideoMemberTalkingEventParams
 
 export interface RoomSessionMemberOptions
-  extends BaseComponentOptionsWithPayload<{}, RoomSessionMemberEventParams> {}
+  extends BaseComponentOptionsWithPayload<RoomSessionMemberEventParams> {}
 
 // TODO: Extend from a variant of `BaseComponent` that
 // doesn't expose EventEmitter methods

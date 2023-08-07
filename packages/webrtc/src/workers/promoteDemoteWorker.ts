@@ -29,7 +29,7 @@ export const promoteDemoteWorker: SDKWorker<
 > = function* (options): SagaIterator {
   getLogger().debug('promoteDemoteWorker started')
   const { channels, instance, initialState } = options
-  const { swEventChannel } = channels // pubSubChannel
+  const { swEventChannel } = channels
   const { rtcPeerId } = initialState
   if (!rtcPeerId) {
     throw new Error('Missing rtcPeerId for promoteDemoteWorker')

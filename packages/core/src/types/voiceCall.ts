@@ -1516,14 +1516,3 @@ export type VoiceCallJSONRPCMethod =
   | 'calling.collect'
   | 'calling.collect.stop'
   | 'calling.collect.start_input_timers'
-
-export type CallingTransformType =
-  | 'voiceCallReceived'
-  | 'voiceCallPlayback'
-  | 'voiceCallRecord'
-  | 'voiceCallPrompt'
-  | 'voiceCallTap'
-  | 'voiceCallConnect'
-  | 'voiceCallState'
-  | 'voiceCallDetect'
-  | 'voiceCallCollect'

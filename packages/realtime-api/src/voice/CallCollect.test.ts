@@ -1,10 +1,5 @@
-import { EventEmitter } from '@signalwire/core'
 import { configureJestStore } from '../testUtils'
-import {
-  createCallCollectObject,
-  CallCollect,
-  CallCollectEventsHandlerMapping,
-} from './CallCollect'
+import { createCallCollectObject, CallCollect } from './CallCollect'
 
 describe('CallCollect', () => {
   describe('createCallCollectObject', () => {
@@ -12,7 +7,6 @@ describe('CallCollect', () => {
     beforeEach(() => {
       instance = createCallCollectObject({
         store: configureJestStore(),
-        emitter: new EventEmitter<CallCollectEventsHandlerMapping>(),
         // @ts-expect-error
         payload: {
           call_id: 'call_id',

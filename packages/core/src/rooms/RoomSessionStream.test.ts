@@ -1,9 +1,7 @@
 import { configureJestStore } from '../testUtils'
-import { EventEmitter } from '../utils/EventEmitter'
 import {
   createRoomSessionStreamObject,
   RoomSessionStream,
-  RoomSessionStreamEventsHandlerMapping,
 } from './RoomSessionStream'
 
 describe('RoomSessionStream', () => {
@@ -12,7 +10,6 @@ describe('RoomSessionStream', () => {
     beforeEach(() => {
       instance = createRoomSessionStreamObject({
         store: configureJestStore(),
-        emitter: new EventEmitter<RoomSessionStreamEventsHandlerMapping>(),
         payload: {
           // @ts-expect-error
           stream: {

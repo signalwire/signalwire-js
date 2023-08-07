@@ -20,7 +20,7 @@ export class BaseConsumer<
   protected subscribeParams?: Record<string, any> = {}
   private _latestExecuteParams?: ExecuteParams
 
-  constructor(public options: BaseComponentOptions<EventTypes>) {
+  constructor(public options: BaseComponentOptions) {
     super(options)
     /**
      * TODO: To Review
@@ -30,12 +30,9 @@ export class BaseConsumer<
     const resetLatestExecuteParams = () => {
       this._latestExecuteParams = undefined
     }
-    // @ts-expect-error
-    super.on('session.connected', resetLatestExecuteParams)
-    // @ts-expect-error
-    super.on('session.disconnected', resetLatestExecuteParams)
-    // @ts-expect-error
-    super.on('session.reconnecting', resetLatestExecuteParams)
+    super.session.on('session.connected', resetLatestExecuteParams)
+    super.session.on('session.disconnected', resetLatestExecuteParams)
+    super.session.on('session.reconnecting', resetLatestExecuteParams)
   }
 
   private shouldExecuteSubscribe(execParams: ExecuteParams) {

@@ -87,14 +87,12 @@ export interface Messaging
 class MessagingAPI extends ApplyEventListeners<MessagingClientApiEvents> {
   /** @internal */
 
-  constructor(options: BaseComponentOptions<MessagingClientApiEvents>) {
+  constructor(options: BaseComponentOptions) {
     super(options)
 
     this.runWorker('messagingWorker', {
       worker: messagingWorker,
     })
-
-    this._attachListeners('')
   }
 
   async send(params: MessagingSendParams): Promise<any> {
@@ -121,7 +119,7 @@ class MessagingAPI extends ApplyEventListeners<MessagingClientApiEvents> {
 
 /** @internal */
 export const createMessagingObject = (
-  params: BaseComponentOptions<MessagingClientApiEvents>
+  params: BaseComponentOptions
 ): Messaging => {
   const messaging = connect<MessagingClientApiEvents, MessagingAPI, Messaging>({
     store: params.store,

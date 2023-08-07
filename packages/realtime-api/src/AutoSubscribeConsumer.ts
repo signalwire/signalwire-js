@@ -11,7 +11,7 @@ export class AutoSubscribeConsumer<
   /** @internal */
   private debouncedSubscribe: ReturnType<typeof debounce>
 
-  constructor(options: BaseComponentOptions<EventTypes>) {
+  constructor(options: BaseComponentOptions) {
     super(options)
 
     this.debouncedSubscribe = debounce(this.subscribe, 100)
@@ -22,7 +22,7 @@ export class AutoSubscribeConsumer<
     fn: EventEmitter.EventListener<EventTypes, T>
   ) {
     // @ts-expect-error
-    const instance = super._on(`video.${event}`, fn)
+    const instance = super.on(`video.${event}`, fn)
     this.debouncedSubscribe()
     return instance
   }
@@ -32,7 +32,7 @@ export class AutoSubscribeConsumer<
     fn: EventEmitter.EventListener<EventTypes, T>
   ) {
     // @ts-expect-error
-    const instance = super._once(`video.${event}`, fn)
+    const instance = super.once(`video.${event}`, fn)
     this.debouncedSubscribe()
     return instance
   }
@@ -42,7 +42,7 @@ export class AutoSubscribeConsumer<
     fn: EventEmitter.EventListener<EventTypes, T>
   ) {
     // @ts-expect-error
-    const instance = super._off(`video.${event}`, fn)
+    const instance = super.off(`video.${event}`, fn)
     return instance
   }
 }

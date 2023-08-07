@@ -49,10 +49,9 @@ const UNSUPPORTED_METHODS = ['getAllowedChannels', 'updateToken']
  * ```
  */
 const PubSubClient = function (options?: PubSubClientOptions) {
-  const { client, store, emitter } = setupClient(options)
+  const { client, store } = setupClient(options)
   const pubSub = PubSubNamespace.createBasePubSubObject<PubSubClient>({
     store,
-    emitter,
   })
 
   const createInterceptor = <K extends ClientMethods>(prop: K) => {

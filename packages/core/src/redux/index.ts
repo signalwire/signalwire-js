@@ -8,20 +8,15 @@ import createSagaMiddleware, {
 import { configureStore as rtConfigureStore } from './toolkit'
 import { rootReducer } from './rootReducer'
 import rootSaga from './rootSaga'
-import {
-  PubSubChannel,
-  SDKState,
-  SessionChannel,
-  SwEventChannel,
-} from './interfaces'
+import { SDKState, SessionChannel, SwEventChannel } from './interfaces'
 import { connect } from './connect'
 import {
   InternalUserOptions,
   SessionConstructor,
   InternalChannels,
 } from '../utils/interfaces'
-import { BaseSession } from '../BaseSession'
-import { getLogger } from '../utils'
+import { useSession } from './utils/useSession'
+import { useInstanceMap } from './utils/useInstanceMap'
 
 export interface ConfigureStoreOptions {
   userOptions: InternalUserOptions
@@ -44,7 +39,6 @@ const configureStore = (options: ConfigureStoreOptions) => {
     runSagaMiddleware = true,
   } = options
   const sagaMiddleware = createSagaMiddleware()
-  const pubSubChannel: PubSubChannel = multicastChannel()
   const swEventChannel: SwEventChannel = multicastChannel()
   const sessionChannel: SessionChannel = channel()
   /**
@@ -52,7 +46,6 @@ const configureStore = (options: ConfigureStoreOptions) => {
    * sagas.
    */
   const channels: InternalChannels = {
-    pubSubChannel,
     swEventChannel,
     sessionChannel,
   }
@@ -69,47 +62,13 @@ const configureStore = (options: ConfigureStoreOptions) => {
       getDefaultMiddleware().concat(sagaMiddleware),
   }) as Store
 
-  let session: BaseSession
-  const initSession = () => {
-    session = new SessionConstructor({
-      ...userOptions,
-      sessionChannel,
-    })
-    return session
-  }
+  const { initSession, getSession, sessionEmitter } = useSession({
+    userOptions,
+    sessionChannel,
+    SessionConstructor,
+  })
 
-  const getSession = () => {
-    if (!session) {
-      getLogger().warn('Custom worker started without the session')
-    }
-    return session
-  }
-
-  // Generic map stores multiple instance
-  // For eg;
-  // callId => CallInstance
-  // controlId => PlaybackInstance | RecordingInstance
-  const instanceMap = new Map<string, unknown>()
-
-  const getInstance = <T extends unknown>(key: string): T => {
-    return instanceMap.get(key) as T
-  }
-
-  const setInstance = <T extends unknown>(key: string, value: T) => {
-    instanceMap.set(key, value)
-    return instanceMap
-  }
-
-  const deleteInstance = (key: string) => {
-    instanceMap.delete(key)
-    return instanceMap
-  }
-
-  const map = {
-    get: getInstance,
-    set: setInstance,
-    remove: deleteInstance,
-  }
+  const map = useInstanceMap()
 
   const runSaga = <T>(
     saga: Saga,
@@ -129,6 +88,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
   if (runSagaMiddleware) {
     const saga = rootSaga({
       initSession,
+      sessionEmitter,
     })
     sagaMiddleware.run(saga, { userOptions, channels })
   }
@@ -138,6 +98,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
     runSaga,
     channels,
     instanceMap: map,
+    sessionEmitter,
   }
 }
 

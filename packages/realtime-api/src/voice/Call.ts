@@ -33,7 +33,6 @@ import {
   VoiceCallDetectDigitParams,
   CallingCallWaitForState,
   CallingCall,
-  EventEmitter,
   configureStore,
   ApplyEventListeners,
 } from '@signalwire/core'
@@ -76,8 +75,8 @@ export type EmitterTransformsEvents =
   | 'calling.connect.connected'
 
 export interface CallOptions
-  extends BaseComponentOptionsWithPayload<RealTimeCallApiEvents, CallingCall> {
-  connectPayload: CallingCallConnectEventParams
+  extends BaseComponentOptionsWithPayload<CallingCall> {
+  connectPayload?: CallingCallConnectEventParams
 }
 
 /**
@@ -90,7 +89,6 @@ export interface Call
   store: ReturnType<typeof configureStore>
   setPayload: (payload: CallingCall) => void
   setConnectPayload: (payload: CallingCallConnectEventParams) => void
-  baseEmitter: EventEmitter
 }
 
 export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
@@ -102,8 +100,6 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
     super(options)
 
     this._payload = options.payload
-
-    this._attachListeners(this.__uuid)
 
     this.on('call.state', () => {
       /**
@@ -206,7 +202,7 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
   }
 
   get connectState() {
-    return this._connectPayload.connect_state
+    return this._connectPayload?.connect_state
   }
 
   get peer() {
@@ -562,8 +558,6 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
           const promptInstance = createCallPromptObject({
             store: this.store,
             // @ts-expect-error
-            emitter: this.emitter,
-            // @ts-expect-error
             payload: {
               control_id: controlId,
               call_id: this.id,
@@ -571,11 +565,11 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
             },
           })
           this.instanceMap.set<CallPrompt>(controlId, promptInstance)
-          this.baseEmitter.emit('prompt.started', promptInstance)
+          this.emit('prompt.started', promptInstance)
           resolve(promptInstance)
         })
         .catch((e) => {
-          this.baseEmitter.emit('prompt.failed', e)
+          this.emit('prompt.failed', e)
           reject(e)
         })
     })
@@ -1053,8 +1047,6 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
         .then(() => {
           const detectInstance = createCallDetectObject({
             store: this.store,
-            // @ts-expect-error
-            emitter: this.emitter,
             payload: {
               control_id: controlId,
               call_id: this.id,
@@ -1064,12 +1056,12 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
           })
           this.instanceMap.set<CallDetect>(controlId, detectInstance)
           // @ts-expect-error
-          this.baseEmitter.emit('detect.started', detectInstance)
+          this.emit('detect.started', detectInstance)
           resolve(detectInstance)
         })
         .catch((e) => {
           // @ts-expect-error
-          this.baseEmitter.emit('detect.ended', e)
+          this.emit('detect.ended', e)
           reject(e)
         })
     })
@@ -1237,8 +1229,6 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
           const collectInstance = createCallCollectObject({
             store: this.store,
             // @ts-expect-error
-            emitter: this.emitter,
-            // @ts-expect-error
             payload: {
               control_id: controlId,
               call_id: this.id,
@@ -1246,11 +1236,11 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
             },
           })
           this.instanceMap.set<CallCollect>(controlId, collectInstance)
-          this.baseEmitter.emit('collect.started', collectInstance)
+          this.emit('collect.started', collectInstance)
           resolve(collectInstance)
         })
         .catch((e) => {
-          this.baseEmitter.emit('collect.failed', e)
+          this.emit('collect.failed', e)
           reject(e)
         })
     })
