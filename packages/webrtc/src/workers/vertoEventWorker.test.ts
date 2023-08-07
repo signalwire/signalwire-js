@@ -17,8 +17,7 @@ jest.mock('uuid', () => {
 WEBRTC_EVENT_TYPES.forEach((eventType) => {
   const _getRPCMethod = () => 'video.message'
 
-  const { createPubSubChannel, createSwEventChannel, createSessionChannel } =
-    testUtils
+  const { createSwEventChannel, createSessionChannel } = testUtils
 
   describe(`vertoEventWorker with '${eventType}'`, () => {
     const rtcPeerId = 'rtc-peer-id'
@@ -27,7 +26,7 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
     it('should handle verto.ping method', () => {
       let runSaga = true
       const session = {} as any
-      const pubSubChannel = createPubSubChannel()
+      const getSession = jest.fn().mockImplementation(() => session)
       const swEventChannel = createSwEventChannel()
       const sessionChannel = createSessionChannel()
       const mockPeer = {
@@ -46,15 +45,15 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
       } as any
 
       return expectSaga(vertoEventWorker, {
-        // @ts-expect-error
-        session,
+        getSession,
         channels: {
-          pubSubChannel,
           swEventChannel,
           sessionChannel,
         },
         instance,
         initialState,
+        instanceMap: {} as any,
+        runSaga: jest.fn(),
       })
         .provide([
           {
@@ -81,7 +80,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
                 })
               } else if (runSaga === false) {
                 sessionChannel.close()
-                pubSubChannel.close()
               }
               return next()
             },
@@ -105,7 +103,8 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
       it('should handle verto.media for the active peer', () => {
         let runSaga = true
         const session = {} as any
-        const pubSubChannel = createPubSubChannel()
+        const getSession = jest.fn().mockImplementation(() => session)
+
         const swEventChannel = createSwEventChannel()
         const sessionChannel = createSessionChannel()
         const mockPeer = {
@@ -123,15 +122,15 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         } as any
 
         return expectSaga(vertoEventWorker, {
-          // @ts-expect-error
-          session,
+          getSession,
           channels: {
-            pubSubChannel,
             swEventChannel,
             sessionChannel,
           },
           instance,
           initialState,
+          instanceMap: {} as any,
+          runSaga: jest.fn(),
         })
           .provide([
             {
@@ -157,7 +156,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
                   })
                 } else if (runSaga === false) {
                   sessionChannel.close()
-                  pubSubChannel.close()
                 }
                 return next()
               },
@@ -184,7 +182,8 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
       it('should handle verto.media for a queued peer', () => {
         let runSaga = true
         const session = {} as any
-        const pubSubChannel = createPubSubChannel()
+        const getSession = jest.fn().mockImplementation(() => session)
+
         const swEventChannel = createSwEventChannel()
         const sessionChannel = createSessionChannel()
         const mockPeer = {
@@ -202,15 +201,15 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         } as any
 
         return expectSaga(vertoEventWorker, {
-          // @ts-expect-error
-          session,
+          getSession,
           channels: {
-            pubSubChannel,
             swEventChannel,
             sessionChannel,
           },
           instance,
           initialState,
+          instanceMap: {} as any,
+          runSaga: jest.fn(),
         })
           .provide([
             {
@@ -236,7 +235,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
                   })
                 } else if (runSaga === false) {
                   sessionChannel.close()
-                  pubSubChannel.close()
                 }
                 return next()
               },
@@ -264,7 +262,8 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
       it('should handle verto.answer (without SDP) for the active peer', () => {
         let runSaga = true
         const session = {} as any
-        const pubSubChannel = createPubSubChannel()
+        const getSession = jest.fn().mockImplementation(() => session)
+
         const swEventChannel = createSwEventChannel()
         const sessionChannel = createSessionChannel()
         const mockPeer = {
@@ -282,15 +281,15 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         } as any
 
         return expectSaga(vertoEventWorker, {
-          // @ts-expect-error
-          session,
+          getSession,
           channels: {
-            pubSubChannel,
             swEventChannel,
             sessionChannel,
           },
           instance,
           initialState,
+          instanceMap: {} as any,
+          runSaga: jest.fn(),
         })
           .provide([
             {
@@ -315,7 +314,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
                   })
                 } else if (runSaga === false) {
                   sessionChannel.close()
-                  pubSubChannel.close()
                 }
                 return next()
               },
@@ -341,7 +339,8 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
       it('should handle verto.answer (with valid SDP) for the active peer', () => {
         let runSaga = true
         const session = {} as any
-        const pubSubChannel = createPubSubChannel()
+        const getSession = jest.fn().mockImplementation(() => session)
+
         const swEventChannel = createSwEventChannel()
         const sessionChannel = createSessionChannel()
         const mockPeer = {
@@ -359,15 +358,15 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         } as any
 
         return expectSaga(vertoEventWorker, {
-          // @ts-expect-error
-          session,
+          getSession,
           channels: {
-            pubSubChannel,
             swEventChannel,
             sessionChannel,
           },
           instance,
           initialState,
+          instanceMap: {} as any,
+          runSaga: jest.fn(),
         })
           .provide([
             {
@@ -393,7 +392,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
                   })
                 } else if (runSaga === false) {
                   sessionChannel.close()
-                  pubSubChannel.close()
                 }
                 return next()
               },
@@ -420,7 +418,8 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
       it('should handle verto.answer (without SDP) for a queued peer', () => {
         let runSaga = true
         const session = {} as any
-        const pubSubChannel = createPubSubChannel()
+        const getSession = jest.fn().mockImplementation(() => session)
+
         const swEventChannel = createSwEventChannel()
         const sessionChannel = createSessionChannel()
         const mockPeer = {
@@ -438,15 +437,15 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         } as any
 
         return expectSaga(vertoEventWorker, {
-          // @ts-expect-error
-          session,
+          getSession,
           channels: {
-            pubSubChannel,
             swEventChannel,
             sessionChannel,
           },
           instance,
           initialState,
+          instanceMap: {} as any,
+          runSaga: jest.fn(),
         })
           .provide([
             {
@@ -471,7 +470,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
                   })
                 } else if (runSaga === false) {
                   sessionChannel.close()
-                  pubSubChannel.close()
                 }
                 return next()
               },
@@ -498,7 +496,8 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
       it('should handle verto.bye for the active peer', () => {
         let runSaga = true
         const session = {} as any
-        const pubSubChannel = createPubSubChannel()
+        const getSession = jest.fn().mockImplementation(() => session)
+
         const swEventChannel = createSwEventChannel()
         const sessionChannel = createSessionChannel()
         const mockPeer = {
@@ -517,15 +516,15 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         } as any
 
         return expectSaga(vertoEventWorker, {
-          // @ts-expect-error
-          session,
+          getSession,
           channels: {
-            pubSubChannel,
             swEventChannel,
             sessionChannel,
           },
           instance,
           initialState,
+          instanceMap: {} as any,
+          runSaga: jest.fn(),
         })
           .provide([
             {
@@ -552,7 +551,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
                   })
                 } else if (runSaga === false) {
                   sessionChannel.close()
-                  pubSubChannel.close()
                 }
                 return next()
               },
@@ -582,7 +580,8 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
       it('should handle verto.mediaParams with audio constraints', () => {
         let runSaga = true
         const session = {} as any
-        const pubSubChannel = createPubSubChannel()
+        const getSession = jest.fn().mockImplementation(() => session)
+
         const swEventChannel = createSwEventChannel()
         const sessionChannel = createSessionChannel()
         const mockPeer = {
@@ -600,15 +599,15 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         } as any
 
         return expectSaga(vertoEventWorker, {
-          // @ts-expect-error
-          session,
+          getSession,
           channels: {
-            pubSubChannel,
             swEventChannel,
             sessionChannel,
           },
           instance,
           initialState,
+          instanceMap: {} as any,
+          runSaga: jest.fn(),
         })
           .provide([
             {
@@ -640,7 +639,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
                   })
                 } else if (runSaga === false) {
                   sessionChannel.close()
-                  pubSubChannel.close()
                 }
                 return next()
               },
@@ -665,7 +663,8 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
       it('should handle verto.mediaParams with video constraints', () => {
         let runSaga = true
         const session = {} as any
-        const pubSubChannel = createPubSubChannel()
+        const getSession = jest.fn().mockImplementation(() => session)
+
         const swEventChannel = createSwEventChannel()
         const sessionChannel = createSessionChannel()
         const mockPeer = {
@@ -683,15 +682,15 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         } as any
 
         return expectSaga(vertoEventWorker, {
-          // @ts-expect-error
-          session,
+          getSession,
           channels: {
-            pubSubChannel,
             swEventChannel,
             sessionChannel,
           },
           instance,
           initialState,
+          instanceMap: {} as any,
+          runSaga: jest.fn(),
         })
           .provide([
             {
@@ -724,7 +723,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
                   })
                 } else if (runSaga === false) {
                   sessionChannel.close()
-                  pubSubChannel.close()
                 }
                 return next()
               },

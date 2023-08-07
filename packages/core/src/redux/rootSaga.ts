@@ -4,15 +4,11 @@ import { InternalUserOptions, InternalChannels } from '../utils/interfaces'
 import { getLogger, setDebugOptions, setLogger } from '../utils'
 import { BaseSession } from '../BaseSession'
 import { sessionChannelWatcher } from './features/session/sessionSaga'
-import { pubSubSaga } from './features/pubSub/pubSubSaga'
 import {
   initAction,
   destroyAction,
   sessionReconnectingAction,
   sessionDisconnectedAction,
-  sessionConnectedAction,
-  sessionAuthErrorAction,
-  sessionExpiringAction,
   reauthAction,
   sessionForceCloseAction,
 } from './actions'
@@ -23,15 +19,15 @@ import {
   authExpiringAction,
 } from './actions'
 import { AuthError } from '../CustomErrors'
-import { PubSubChannel, SessionChannel } from './interfaces'
+import { SessionChannel } from './interfaces'
 import { createRestartableSaga } from './utils/sagaHelpers'
 import { EventEmitter } from '../utils/EventEmitter'
 import { SessionEventsMap } from './utils/useSession'
 
 interface StartSagaOptions {
   session: BaseSession
+  sessionEmitter: EventEmitter<SessionEventsMap>
   sessionChannel: SessionChannel
-  pubSubChannel: PubSubChannel
   userOptions: InternalUserOptions
 }
 
@@ -47,12 +43,6 @@ export function* initSessionSaga({
   channels: InternalChannels
 }): SagaIterator {
   const session = initSession()
-
-  /**
-   * Channel to communicate between sagas and emit events to
-   * the public
-   */
-  const pubSubChannel = channels.pubSubChannel
   /**
    * Channel to broadcast all the events sent by the server
    */
@@ -84,24 +74,14 @@ export function* initSessionSaga({
   })
 
   /**
-   * Fork the watcher for the pubSubChannel
-   */
-  const pubSubTask: Task = yield fork(pubSubSaga, {
-    pubSubChannel,
-    sessionEmitter,
-  })
-
-  /**
    * Fork the watcher for the session status
    */
   const sessionStatusTask: Task = yield fork(sessionStatusWatcher, {
     session,
+    sessionEmitter,
     sessionChannel,
-    pubSubChannel,
     userOptions,
   })
-
-  // const compCleanupTask = yield fork(componentCleanupSaga)
 
   session.connect()
 
@@ -110,34 +90,31 @@ export function* initSessionSaga({
   session.disconnect()
 
   yield take(sessionDisconnectedAction.type)
-  yield put(pubSubChannel, sessionDisconnectedAction())
+  sessionEmitter.emit('session.disconnected')
 
   /**
    * We have to manually cancel the fork because it is not
    * being automatically cleaned up when the session is
    * destroyed, most likely because it's using a timer.
    */
-  // compCleanupTask?.cancel()
-  pubSubTask.cancel()
   sessionStatusTask.cancel()
   customTasks.forEach((task) => task.cancel())
   /**
-   * Do not close pubSubChannel, swEventChannel, and sessionChannel
+   * Do not close swEventChannel, and sessionChannel
    * since we may need them again in case of reauth/reconnect
-   * // pubSubChannel.close()
-   * // swEventChannel.close()
-   * // sessionChannel.close()
+   * swEventChannel.close()
+   * sessionChannel.close()
    */
 }
 
 export function* reauthenticateWorker({
   session,
   token,
-  pubSubChannel,
+  sessionEmitter,
 }: {
   session: BaseSession
   token: string
-  pubSubChannel: PubSubChannel
+  sessionEmitter: EventEmitter<SessionEventsMap>
 }) {
   try {
     if (session.reauthenticate) {
@@ -145,7 +122,7 @@ export function* reauthenticateWorker({
       yield call(session.reauthenticate)
       // Update the store with the new "connect result"
       yield put(sessionActions.connected(session.rpcConnectResult))
-      yield put(pubSubChannel, sessionConnectedAction())
+      sessionEmitter.emit('session.connected')
     }
   } catch (error) {
     getLogger().error('Reauthenticate Error', error)
@@ -155,6 +132,7 @@ export function* reauthenticateWorker({
 
 export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
   getLogger().debug('sessionStatusWatcher [started]')
+  const { session, sessionEmitter } = options
 
   try {
     while (true) {
@@ -170,9 +148,8 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
       getLogger().trace('sessionStatusWatcher', action.type, action.payload)
       switch (action.type) {
         case authSuccessAction.type: {
-          const { session, pubSubChannel } = options
           yield put(sessionActions.connected(session.rpcConnectResult))
-          yield put(pubSubChannel, sessionConnectedAction())
+          sessionEmitter.emit('session.connected')
           break
         }
         case authErrorAction.type: {
@@ -183,23 +160,23 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
           break
         }
         case authExpiringAction.type: {
-          yield put(options.pubSubChannel, sessionExpiringAction())
+          sessionEmitter.emit('session.expiring')
           break
         }
         case reauthAction.type: {
           yield fork(reauthenticateWorker, {
-            session: options.session,
+            session: session,
             token: action.payload.token,
-            pubSubChannel: options.pubSubChannel,
+            sessionEmitter,
           })
           break
         }
         case sessionReconnectingAction.type: {
-          yield put(options.pubSubChannel, sessionReconnectingAction())
+          sessionEmitter.emit('session.reconnecting')
           break
         }
         case sessionForceCloseAction.type: {
-          options.session.forceClose()
+          session.forceClose()
           break
         }
       }
@@ -220,13 +197,13 @@ export function* sessionAuthErrorSaga(
   getLogger().debug('sessionAuthErrorSaga [started]')
 
   try {
-    const { pubSubChannel, action } = options
+    const { action, sessionEmitter } = options
     const { error: authError } = action.payload
     const error = authError
       ? new AuthError(authError.code, authError.message)
       : new Error('Unauthorized')
 
-    yield put(pubSubChannel, sessionAuthErrorAction(error))
+    sessionEmitter.emit('session.auth_error', error)
   } finally {
     if (yield cancelled()) {
       getLogger().debug('sessionAuthErrorSaga [cancelled]')

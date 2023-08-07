@@ -8,12 +8,7 @@ import createSagaMiddleware, {
 import { configureStore as rtConfigureStore } from './toolkit'
 import { rootReducer } from './rootReducer'
 import rootSaga from './rootSaga'
-import {
-  PubSubChannel,
-  SDKState,
-  SessionChannel,
-  SwEventChannel,
-} from './interfaces'
+import { SDKState, SessionChannel, SwEventChannel } from './interfaces'
 import { connect } from './connect'
 import {
   InternalUserOptions,
@@ -44,7 +39,6 @@ const configureStore = (options: ConfigureStoreOptions) => {
     runSagaMiddleware = true,
   } = options
   const sagaMiddleware = createSagaMiddleware()
-  const pubSubChannel: PubSubChannel = multicastChannel()
   const swEventChannel: SwEventChannel = multicastChannel()
   const sessionChannel: SessionChannel = channel()
   /**
@@ -52,7 +46,6 @@ const configureStore = (options: ConfigureStoreOptions) => {
    * sagas.
    */
   const channels: InternalChannels = {
-    pubSubChannel,
     swEventChannel,
     sessionChannel,
   }

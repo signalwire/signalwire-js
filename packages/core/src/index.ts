@@ -83,7 +83,6 @@ export type {
   SessionState,
   CustomSagaParams,
   CustomSaga,
-  PubSubChannel,
   SwEventChannel,
   PubSubAction,
   MapToPubSubShape,
