@@ -12,6 +12,7 @@ import {
   debounce,
   VideoRoomEventParams,
   Optional,
+  validateEventsToSubscribe,
 } from '@signalwire/core'
 import { RealTimeRoomApiEvents } from '../types'
 import {
@@ -109,6 +110,14 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   }
 
   /** @internal */
+  protected override getSubscriptions() {
+    const eventNamesWithPrefix = this.eventNames().map(
+      (event) => `video.${String(event)}`
+    ) as EventEmitter.EventNames<RealTimeRoomApiEvents>[]
+    return validateEventsToSubscribe(eventNamesWithPrefix)
+  }
+
+  /** @internal */
   protected _internal_on(
     event: keyof RealTimeRoomApiEvents,
     fn: EventEmitter.EventListener<RealTimeRoomApiEvents, any>
@@ -120,8 +129,7 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     event: T,
     fn: EventEmitter.EventListener<RealTimeRoomApiEvents, T>
   ) {
-    // @ts-expect-error
-    const instance = super.on(`video.${event}`, fn)
+    const instance = super.on(event, fn)
     this.debouncedSubscribe()
     return instance
   }
@@ -130,8 +138,7 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     event: T,
     fn: EventEmitter.EventListener<RealTimeRoomApiEvents, T>
   ) {
-    // @ts-expect-error
-    const instance = super.once(`video.${event}`, fn)
+    const instance = super.once(event, fn)
     this.debouncedSubscribe()
     return instance
   }
@@ -140,8 +147,7 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     event: T,
     fn: EventEmitter.EventListener<RealTimeRoomApiEvents, T>
   ) {
-    // @ts-expect-error
-    const instance = super.off(`video.${event}`, fn)
+    const instance = super.off(event, fn)
     return instance
   }
 
@@ -167,12 +173,10 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
       }
 
       try {
-        // @ts-expect-error
-        super.once('video.room.subscribed', handler)
+        super.once('room.subscribed', handler)
         await super.subscribe()
       } catch (error) {
-        // @ts-expect-error
-        super.off('video.room.subscribed', handler)
+        super.off('room.subscribed', handler)
         return reject(error)
       }
     })

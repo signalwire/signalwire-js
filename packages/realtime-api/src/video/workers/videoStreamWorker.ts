@@ -5,6 +5,8 @@ import {
   Rooms,
   RoomSessionStream,
   VideoStreamEvent,
+  stripNamespacePrefix,
+  VideoStreamEventNames,
 } from '@signalwire/core'
 import { RoomSession } from '../RoomSession'
 import { VideoCallWorkerParams } from './videoCallingWorker'
@@ -36,14 +38,14 @@ export const videoStreamWorker = function* (
   }
   set<RoomSessionStream>(payload.stream.id, streamInstance)
 
+  const event = stripNamespacePrefix(type) as VideoStreamEventNames
+
   switch (type) {
     case 'video.stream.started':
-      // @ts-expect-error
-      roomSessionInstance.emit(type, streamInstance)
+      roomSessionInstance.emit(event, streamInstance)
       break
     case 'video.stream.ended':
-      // @ts-expect-error
-      roomSessionInstance.emit(type, streamInstance)
+      roomSessionInstance.emit(event, streamInstance)
       remove<RoomSessionStream>(payload.stream.id)
       break
     default:

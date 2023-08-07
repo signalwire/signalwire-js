@@ -6,8 +6,8 @@ import {
   Rooms,
   VideoRecordingEvent,
   VideoRecordingEventNames,
+  stripNamespacePrefix,
 } from '@signalwire/core'
-import { stripNamespacePrefix } from '../utils/eventUtils'
 import { VideoWorkerParams } from './videoWorker'
 
 export const videoRecordWorker = function* (

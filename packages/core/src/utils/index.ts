@@ -24,6 +24,7 @@ export * from './toSnakeCaseKeys'
 export * from './extendComponent'
 export * from './debounce'
 export * from './CloseEvent'
+export * from './eventUtils'
 export { LOCAL_EVENT_PREFIX }
 
 export const mutateStorageKey = (key: string) => `${STORAGE_PREFIX}${key}`

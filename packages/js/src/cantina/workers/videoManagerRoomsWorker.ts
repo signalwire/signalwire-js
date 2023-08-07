@@ -5,8 +5,8 @@ import {
   VideoManagerRoomsSubscribedEvent,
   toExternalJSON,
   VideoManagerRoomEventNames,
+  stripNamespacePrefix,
 } from '@signalwire/core'
-import { stripNamespacePrefix } from '../../utils/eventUtils'
 import { VideoManagerWorkerParams } from './videoManagerWorker'
 
 export const videoManagerRoomsWorker = function* (

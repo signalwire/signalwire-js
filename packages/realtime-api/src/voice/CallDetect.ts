@@ -4,7 +4,7 @@ import {
   VoiceCallDetectContract,
   CallingCallDetectEndState,
   CallingCallDetectEventParams,
-  ApplyEventListeners,
+  BaseConsumer,
   EventEmitter,
 } from '@signalwire/core'
 
@@ -30,7 +30,7 @@ export interface CallDetectOptions
 const ENDED_STATES: CallingCallDetectEndState[] = ['finished', 'error']
 
 export class CallDetectAPI
-  extends ApplyEventListeners<CallDetectEventsHandlerMapping>
+  extends BaseConsumer<CallDetectEventsHandlerMapping>
   implements VoiceCallDetectContract
 {
   private _payload: CallingCallDetectEventParams

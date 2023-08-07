@@ -6,6 +6,11 @@ import {
   MapToPubSubShape,
   InternalMemberUpdatedEventNames,
   VideoRoomEvent,
+  stripNamespacePrefix,
+  RoomStarted,
+  RoomUpdated,
+  RoomEnded,
+  RoomSubscribed,
 } from '@signalwire/core'
 import { spawn, fork } from '@redux-saga/core/effects'
 import { createRoomSessionObject, RoomSession } from '../RoomSession'
@@ -62,20 +67,24 @@ export const videoRoomWorker = function* (
     })
   }
 
+  const event = stripNamespacePrefix(type) as
+    | RoomStarted
+    | RoomUpdated
+    | RoomEnded
+    | RoomSubscribed
+
   switch (type) {
     case 'video.room.started':
     case 'video.room.updated': {
+      // The `room.updated` event is not documented in @RealTimeVideoApiEvents. For now, ignoring TS issue.
       // @ts-expect-error
-      client.emit(type, roomSessionInstance)
-      // @ts-expect-error
-      roomSessionInstance.emit(type, roomSessionInstance)
+      client.emit(event, roomSessionInstance)
+      roomSessionInstance.emit(event, roomSessionInstance)
       break
     }
     case 'video.room.ended': {
-      // @ts-expect-error
-      client.emit(type, roomSessionInstance)
-      // @ts-expect-error
-      roomSessionInstance.emit(type, roomSessionInstance)
+      client.emit(event as RoomEnded, roomSessionInstance)
+      roomSessionInstance.emit(event, roomSessionInstance)
       remove<RoomSession>(payload.room_session.id)
       break
     }
@@ -94,8 +103,7 @@ export const videoRoomWorker = function* (
           })
         },
       })
-      // @ts-expect-error
-      roomSessionInstance.emit(type, roomSessionInstance)
+      roomSessionInstance.emit(event, roomSessionInstance)
       break
     }
     default:

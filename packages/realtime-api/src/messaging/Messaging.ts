@@ -3,7 +3,7 @@ import {
   BaseComponentOptions,
   toExternalJSON,
   ClientContextContract,
-  ApplyEventListeners,
+  BaseConsumer,
 } from '@signalwire/core'
 import { connect } from '@signalwire/core'
 import type { MessagingClientApiEvents } from '../types'
@@ -84,7 +84,7 @@ export interface Messaging
 }
 
 /** @internal */
-class MessagingAPI extends ApplyEventListeners<MessagingClientApiEvents> {
+class MessagingAPI extends BaseConsumer<MessagingClientApiEvents> {
   /** @internal */
 
   constructor(options: BaseComponentOptions) {

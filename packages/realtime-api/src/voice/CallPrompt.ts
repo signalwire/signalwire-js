@@ -6,7 +6,7 @@ import {
   CallPromptEndedEvent,
   CallingCallCollectEventParams,
   EventEmitter,
-  ApplyEventListeners,
+  BaseConsumer,
 } from '@signalwire/core'
 
 /**
@@ -35,7 +35,7 @@ const ENDED_STATES: CallingCallCollectEndState[] = [
 ]
 
 export class CallPromptAPI
-  extends ApplyEventListeners<CallPromptEventsHandlerMapping>
+  extends BaseConsumer<CallPromptEventsHandlerMapping>
   implements VoiceCallPromptContract
 {
   private _payload: CallingCallCollectEventParams

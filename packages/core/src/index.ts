@@ -17,6 +17,7 @@ import {
   CloseEvent,
   isSATAuth,
   LOCAL_EVENT_PREFIX,
+  stripNamespacePrefix,
 } from './utils'
 import { WEBRTC_EVENT_TYPES, isWebrtcEventType } from './utils/common'
 import { BaseSession } from './BaseSession'
@@ -68,6 +69,7 @@ export {
   isWebrtcEventType,
   isSATAuth,
   LOCAL_EVENT_PREFIX,
+  stripNamespacePrefix,
 }
 
 export * from './redux/features/component/componentSlice'
@@ -107,4 +109,3 @@ export const selectors = {
 export { ChatMember, ChatMessage } from './chat'
 export { PubSubMessage } from './pubSub'
 export * as testUtils from './testUtils'
-export * from './ApplyEventListeners'
