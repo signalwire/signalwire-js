@@ -2,7 +2,6 @@ import util from 'util'
 import { expectSaga } from 'redux-saga-test-plan'
 import { memberUpdatedWorker } from '.'
 import {
-  createPubSubChannel,
   createSwEventChannel,
   createSessionChannel,
   configureJestStore,
@@ -27,7 +26,7 @@ describe('memberPositionWorker', () => {
   })
 
   afterEach(() => {
-    instance.baseEmitter.removeAllListeners()
+    instance.removeAllListeners()
   })
 
   const memberId = 'ab42641c-e784-42f1-9815-d264105bc24f'
@@ -47,7 +46,6 @@ describe('memberPositionWorker', () => {
       } as any,
     },
   }
-  const pubSubChannel = createPubSubChannel()
   const swEventChannel = createSwEventChannel()
   const sessionChannel = createSessionChannel()
   const memberList = new Map([
@@ -73,13 +71,12 @@ describe('memberPositionWorker', () => {
   const getSession = jest.fn().mockImplementation(() => session)
 
   it('should handle video.member.updated dispatching the sub-events for what is changed for the user and updating the internal cache', () => {
-    // A spy for the baseEmitter.emit method
-    const emitSpy = jest.spyOn(instance.baseEmitter, 'emit')
+    // A spy for the emitter.emit method
+    const emitSpy = jest.spyOn(instance, 'emit')
 
     return expectSaga(memberUpdatedWorker, {
       action,
       channels: {
-        pubSubChannel,
         swEventChannel,
         sessionChannel,
       },
@@ -112,8 +109,8 @@ describe('memberPositionWorker', () => {
   })
 
   it('should handle video.member.updated dispatching using the dispatcher function if passed', () => {
-    // A spy for the baseEmitter.emit method
-    const emitSpy = jest.spyOn(instance.baseEmitter, 'emit')
+    // A spy for the emitter.emit method
+    const emitSpy = jest.spyOn(instance, 'emit')
 
     // A mock dispatcher function
     const mockDispatcher = jest.fn()
@@ -121,7 +118,6 @@ describe('memberPositionWorker', () => {
     return expectSaga(memberUpdatedWorker, {
       action,
       channels: {
-        pubSubChannel,
         swEventChannel,
         sessionChannel,
       },

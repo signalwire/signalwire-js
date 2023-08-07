@@ -9,7 +9,6 @@ import {
 } from './constants'
 import type {
   CustomSaga,
-  PubSubChannel,
   SessionChannel,
   SwEventChannel,
 } from '../redux/interfaces'
@@ -409,7 +408,6 @@ export type InternalGlobalVideoEvents =
 export type BaseEventHandler = (...args: any[]) => void
 
 export type InternalChannels = {
-  pubSubChannel: PubSubChannel
   swEventChannel: SwEventChannel
   sessionChannel: SessionChannel
 }
@@ -444,7 +442,7 @@ type SDKWorkerBaseParams<T> = {
   dispatcher?: (
     type: any,
     payload: any,
-    channel?: PubSubChannel | SwEventChannel | SessionChannel
+    channel?: SwEventChannel | SessionChannel
   ) => SagaIterator
 }
 

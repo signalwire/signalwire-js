@@ -54,33 +54,33 @@ export const videoMemberWorker = function* (
 
   if (type.startsWith('video.member.updated.')) {
     const clientType = fromSnakeToCamelCase(type)
-    roomSessionInstance.baseEmitter.emit(clientType, memberInstance)
+    // @ts-expect-error
+    roomSessionInstance.emit(clientType, memberInstance)
   }
 
   switch (type) {
     case 'video.member.joined':
     case 'video.member.updated':
-      roomSessionInstance.baseEmitter.emit(type, memberInstance)
+      // @ts-expect-error
+      roomSessionInstance.emit(type, memberInstance)
       break
     case 'video.member.left':
-      roomSessionInstance.baseEmitter.emit(type, memberInstance)
+      // @ts-expect-error
+      roomSessionInstance.emit(type, memberInstance)
       remove<RoomSessionMember>(payload.member.id)
       break
     case 'video.member.talking':
-      roomSessionInstance.baseEmitter.emit(type, memberInstance)
+      // @ts-expect-error
+      roomSessionInstance.emit(type, memberInstance)
       if ('talking' in payload.member) {
         const suffix = payload.member.talking ? 'started' : 'ended'
-        roomSessionInstance.baseEmitter.emit(
-          `${type}.${suffix}`,
-          memberInstance
-        )
+        // @ts-expect-error
+        roomSessionInstance.emit(`${type}.${suffix}`, memberInstance)
 
         // Keep for backwards compatibility
         const deprecatedSuffix = payload.member.talking ? 'start' : 'stop'
-        roomSessionInstance.baseEmitter.emit(
-          `${type}.${deprecatedSuffix}`,
-          memberInstance
-        )
+        // @ts-expect-error
+        roomSessionInstance.emit(`${type}.${deprecatedSuffix}`, memberInstance)
       }
       break
     default:

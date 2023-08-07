@@ -4,7 +4,6 @@ import {
   connect,
   ConsumerContract,
   VideoManagerRoomEntity,
-  EventEmitter,
   ApplyEventListeners,
   validateEventsToSubscribe,
 } from '@signalwire/core'
@@ -17,9 +16,7 @@ export type VideoManagerEvents = Record<
 >
 
 /** @internal */
-export interface VideoManager extends ConsumerContract<VideoManagerEvents> {
-  baseEmitter: EventEmitter
-}
+export interface VideoManager extends ConsumerContract<VideoManagerEvents> {}
 
 /** @internal */
 export class VideoManagerAPI extends ApplyEventListeners<VideoManagerEvents> {
@@ -32,7 +29,7 @@ export class VideoManagerAPI extends ApplyEventListeners<VideoManagerEvents> {
   }
 
   protected override getSubscriptions(): any {
-    const eventNamesWithPrefix = this.baseEventNames().map(
+    const eventNamesWithPrefix = this.eventNames().map(
       (event) => `video-manager.${event}`
     )
     return validateEventsToSubscribe(eventNamesWithPrefix)

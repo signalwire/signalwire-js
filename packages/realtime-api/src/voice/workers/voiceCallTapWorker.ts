@@ -34,13 +34,13 @@ export const voiceCallTapWorker = function* (
 
   switch (payload.state) {
     case 'tapping':
-      callInstance.baseEmitter.emit('tap.started', tapInstance)
+      callInstance.emit('tap.started', tapInstance)
       break
     case 'finished':
-      callInstance.baseEmitter.emit('tap.ended', tapInstance)
+      callInstance.emit('tap.ended', tapInstance)
 
       // To resolve the ended() promise in CallTap
-      tapInstance.baseEmitter.emit('tap.ended', tapInstance)
+      tapInstance.emit('tap.ended', tapInstance)
 
       remove<CallTap>(payload.control_id)
       break

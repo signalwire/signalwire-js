@@ -4,7 +4,6 @@ import {
   ConsumerContract,
   RoomSessionRecording,
   RoomSessionPlayback,
-  EventEmitter,
 } from '@signalwire/core'
 import { AutoSubscribeConsumer } from '../AutoSubscribeConsumer'
 import type { RealtimeClient } from '../client/Client'
@@ -31,8 +30,6 @@ export interface Video extends ConsumerContract<RealTimeVideoApiEvents> {
   subscribe(): Promise<void>
   /** @internal */
   _session: RealtimeClient
-  /** @internal */
-  baseEmitter: EventEmitter
   /**
    * Disconnects this client. The client will stop receiving events and you will
    * need to create a new instance if you want to use it again.

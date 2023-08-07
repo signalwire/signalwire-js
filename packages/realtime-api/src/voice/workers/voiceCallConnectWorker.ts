@@ -23,9 +23,12 @@ export const voiceCallConnectWorker = function* (
   callInstance.setConnectPayload(payload)
   set<Call>(payload.call_id, callInstance)
 
+  // TODO: The below events seems to be not documented in @RealTimeCallApiEvents. For now, ingoring TS issues
+
   switch (payload.connect_state) {
     case 'connecting': {
-      callInstance.baseEmitter.emit('connect.connecting', callInstance)
+      // @ts-expect-error
+      callInstance.emit('connect.connecting', callInstance)
       break
     }
     case 'connected': {
@@ -42,24 +45,28 @@ export const voiceCallConnectWorker = function* (
       set<Call>(payload.peer.call_id, peerCallInstance)
       callInstance.peer = peerCallInstance
       peerCallInstance.peer = callInstance
-      callInstance.baseEmitter.emit('connect.connected', peerCallInstance)
+      // @ts-expect-error
+      callInstance.emit('connect.connected', peerCallInstance)
       break
     }
     case 'disconnected': {
       const peerCallInstance = get<Call>(payload.peer.call_id)
-      callInstance.baseEmitter.emit('connect.disconnected')
+      // @ts-expect-error
+      callInstance.emit('connect.disconnected')
       callInstance.peer = undefined
 
       // Add a check because peer call can be removed from the instance map throgh voiceCallStateWorker
       if (peerCallInstance) {
-        peerCallInstance.baseEmitter.emit('connect.disconnected')
+        // @ts-expect-error
+        peerCallInstance.emit('connect.disconnected')
         peerCallInstance.peer = undefined
       }
       break
     }
     case 'failed': {
       callInstance.peer = undefined
-      callInstance.baseEmitter.emit('connect.failed')
+      // @ts-expect-error
+      callInstance.emit('connect.failed')
       break
     }
     default:
@@ -68,7 +75,7 @@ export const voiceCallConnectWorker = function* (
       break
   }
 
-  callInstance.baseEmitter.emit('call.state', callInstance)
+  callInstance.emit('call.state', callInstance)
 
   getLogger().trace('voiceCallConnectWorker ended')
 }

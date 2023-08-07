@@ -23,7 +23,6 @@ import {
 export interface RoomSession
   extends VideoRoomSessionContract,
     ConsumerContract<RealTimeRoomApiEvents, RoomSessionFullState> {
-  baseEmitter: EventEmitter
   setPayload(payload: Optional<VideoRoomEventParams, 'room'>): void
   /**
    * Returns a list of members currently in the room.

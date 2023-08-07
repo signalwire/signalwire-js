@@ -17,7 +17,8 @@ import {
  */
 export interface CallPrompt extends VoiceCallPromptContract {
   setPayload: (payload: CallingCallCollectEventParams) => void
-  baseEmitter: EventEmitter
+  /** @internal */
+  emit(event: EventEmitter.EventNames<any>, ...args: any[]): void
 }
 
 export type CallPromptEventsHandlerMapping = {}

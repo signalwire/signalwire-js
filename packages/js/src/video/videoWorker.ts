@@ -8,6 +8,7 @@ import {
   sagaEffects,
   SDKWorkerParams,
   MemberPosition,
+  VideoAPIEventNames,
 } from '@signalwire/core'
 import { stripNamespacePrefix } from '../utils/eventUtils'
 import { RoomSessionConnection } from '../BaseRoomSession'
@@ -60,21 +61,18 @@ export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
         })
         return
       case 'video.room.audience_count': {
-        roomSession.baseEmitter.emit('room.audienceCount', payload)
+        roomSession.emit('room.audienceCount', payload)
         return
       }
       case 'video.member.talking': {
         const { member } = payload
         if ('talking' in member) {
           const suffix = member.talking ? 'started' : 'ended'
-          roomSession.baseEmitter.emit(`member.talking.${suffix}`, payload)
+          roomSession.emit(`member.talking.${suffix}`, payload)
 
           // Keep for backwards compat.
           const deprecatedSuffix = member.talking ? 'start' : 'stop'
-          roomSession.baseEmitter.emit(
-            `member.talking.${deprecatedSuffix}`,
-            payload
-          )
+          roomSession.emit(`member.talking.${deprecatedSuffix}`, payload)
         }
         break // Break here since we do need the raw event sent to the client
       }
@@ -82,8 +80,7 @@ export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
         break
     }
 
-    // @ts-expect-error
-    roomSession.baseEmitter.emit(stripNamespacePrefix(type), payload)
+    roomSession.emit(stripNamespacePrefix(type) as VideoAPIEventNames, payload)
   }
 
   const isVideoEvent = (action: SDKActions) => action.type.startsWith('video.')

@@ -141,7 +141,7 @@ export const vertoEventWorker: SDKWorker<
         /** Call is active so set the RTCPeer */
         instance.setActiveRTCPeer(rtcPeerId)
 
-        instance.baseEmitter.emit('verto.display', action.payload.params)
+        instance.emit('verto.display', action.payload.params)
         break
       }
       default:

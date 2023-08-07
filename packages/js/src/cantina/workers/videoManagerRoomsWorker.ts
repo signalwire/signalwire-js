@@ -4,6 +4,7 @@ import {
   MapToPubSubShape,
   VideoManagerRoomsSubscribedEvent,
   toExternalJSON,
+  VideoManagerRoomEventNames,
 } from '@signalwire/core'
 import { stripNamespacePrefix } from '../../utils/eventUtils'
 import { VideoManagerWorkerParams } from './videoManagerWorker'
@@ -23,7 +24,10 @@ export const videoManagerRoomsWorker = function* (
   const modPayload = {
     rooms: payload.rooms.map((row) => toExternalJSON(row)),
   }
-  client.baseEmitter.emit(stripNamespacePrefix(type), modPayload)
+  client.emit(
+    stripNamespacePrefix(type) as VideoManagerRoomEventNames,
+    modPayload
+  )
 
   getLogger().trace('videoManagerRoomsWorker ended')
 }

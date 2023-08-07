@@ -289,7 +289,7 @@ function* audioElementActionsWatcher({
             action.payload
           )
 
-          room.baseEmitter.emit(
+          room.emit(
             // @ts-expect-error
             `${LOCAL_EVENT_PREFIX}.speaker.updated`,
             action.payload

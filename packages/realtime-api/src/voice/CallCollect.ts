@@ -17,7 +17,8 @@ import {
  */
 export interface CallCollect extends VoiceCallCollectContract {
   setPayload: (payload: CallingCallCollectEventParams) => void
-  baseEmitter: EventEmitter
+  /** @internal */
+  emit(event: EventEmitter.EventNames<any>, ...args: any[]): void
 }
 
 export type CallCollectEventsHandlerMapping = {}

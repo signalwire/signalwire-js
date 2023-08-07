@@ -2,15 +2,13 @@ import { testUtils, componentActions } from '@signalwire/core'
 import { expectSaga } from 'redux-saga-test-plan'
 import { childMemberJoinedWorker } from './childMemberJoinedWorker'
 
-const { createPubSubChannel, createSwEventChannel, createSessionChannel } =
-  testUtils
+const { createSwEventChannel, createSessionChannel } = testUtils
 
 describe('childMemberJoinedWorker', () => {
   it('should handle video.member.joined with parent_id', () => {
     const parentId = 'd815d293-f8d0-49e8-aec2-3a4cc3729af8'
     const memberId = 'b8912cc5-4248-4345-b53c-d53b2761748d'
     let runSaga = true
-    const pubSubChannel = createPubSubChannel()
     const swEventChannel = createSwEventChannel()
     const sessionChannel = createSessionChannel()
     const session = {
@@ -37,7 +35,6 @@ describe('childMemberJoinedWorker', () => {
 
     return expectSaga(childMemberJoinedWorker, {
       channels: {
-        pubSubChannel,
         swEventChannel,
         sessionChannel,
       },
@@ -71,7 +68,6 @@ describe('childMemberJoinedWorker', () => {
               }
             } else if (runSaga === false) {
               sessionChannel.close()
-              pubSubChannel.close()
             }
             return next()
           },

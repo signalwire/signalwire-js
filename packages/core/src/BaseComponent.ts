@@ -50,8 +50,7 @@ export class BaseComponent<
 
   private _customSagaTriggers = new Map()
   private _destroyer?: () => void
-  // TODO: change variable name
-  private baseEventEmitter: EventEmitter<EventTypes>
+  private eventEmitter: EventEmitter<EventTypes>
 
   /**
    * List of running Tasks to be cancelled on `destroy`.
@@ -72,7 +71,7 @@ export class BaseComponent<
   protected _workers: Map<string, { worker: SDKWorker<any> }> = new Map()
 
   constructor(public options: BaseComponentOptions) {
-    this.baseEventEmitter = new EventEmitter<EventTypes>()
+    this.eventEmitter = new EventEmitter<EventTypes>()
   }
 
   /** @internal */
@@ -91,8 +90,8 @@ export class BaseComponent<
   }
 
   /** @internal */
-  get baseEmitter() {
-    return this.baseEventEmitter
+  get emitter() {
+    return this.eventEmitter
   }
 
   /** @internal */
@@ -109,21 +108,21 @@ export class BaseComponent<
     event: T,
     fn: EventEmitter.EventListener<EventTypes, T>
   ) {
-    return this.baseEmitter.on(event, fn)
+    return this.emitter.on(event, fn)
   }
 
   once<T extends EventEmitter.EventNames<EventTypes>>(
     event: T,
     fn: EventEmitter.EventListener<EventTypes, T>
   ) {
-    return this.baseEmitter.once(event, fn)
+    return this.emitter.once(event, fn)
   }
 
   off<T extends EventEmitter.EventNames<EventTypes>>(
     event: T,
     fn?: EventEmitter.EventListener<EventTypes, T>
   ) {
-    return this.baseEmitter.off(event, fn)
+    return this.emitter.off(event, fn)
   }
 
   removeAllListeners<T extends EventEmitter.EventNames<EventTypes>>(event?: T) {
@@ -131,7 +130,7 @@ export class BaseComponent<
       return this.off(event)
     }
 
-    this.baseEventNames().forEach((eventName) => {
+    this.eventNames().forEach((eventName) => {
       this.off(eventName)
     })
 
@@ -139,12 +138,12 @@ export class BaseComponent<
       this.sessionEmitter.off(eventName)
     })
 
-    return this.baseEmitter as EventEmitter<EventTypes>
+    return this.emitter as EventEmitter<EventTypes>
   }
 
   /** @internal */
-  baseEventNames() {
-    return this.baseEmitter.eventNames()
+  eventNames() {
+    return this.emitter.eventNames()
   }
 
   /** @internal */
@@ -153,18 +152,18 @@ export class BaseComponent<
   }
 
   protected getSubscriptions() {
-    return validateEventsToSubscribe(this.baseEventNames())
+    return validateEventsToSubscribe(this.eventNames())
   }
 
   /** @internal */
   emit(event: EventEmitter.EventNames<EventTypes>, ...args: any[]) {
     // @ts-ignore
-    return this.baseEmitter.emit(event, ...args)
+    return this.emitter.emit(event, ...args)
   }
 
   /** @internal */
   listenerCount<T extends EventEmitter.EventNames<EventTypes>>(event: T) {
-    return this.baseEmitter.listenerCount(event)
+    return this.emitter.listenerCount(event)
   }
 
   destroy() {
