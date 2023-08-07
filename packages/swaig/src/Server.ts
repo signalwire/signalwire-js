@@ -49,10 +49,14 @@ export interface ServerDefineRouteParams<T extends JSONSchema> {
   password?: string
   token?: string
 }
+export interface CustomRouteHandlerResponse {
+  response: string
+  action: Record<string, unknown>[]
+}
 export type CustomRouteHandler<T> = (
   params: T,
   extra: any
-) => void | { response: string; action: Record<string, unknown>[] } // TODO: double check
+) => Promise<CustomRouteHandlerResponse>
 
 export interface ServerOptions {
   baseUrl: string
@@ -166,11 +170,18 @@ export class Server {
           body: schema,
         } as const,
       },
-      (request, _reply) => {
+      async (request, _reply) => {
+        this.instance.log.info({ body: request.body }, `${params.name} body`)
         const { argument } = request.body
         const { parsed } = argument
         const value = Array.isArray(parsed) ? parsed[0] : undefined
-        return handler(value as Body, request.body)
+        this.instance.log.info(
+          { value },
+          `${params.name} invoking handler with value`
+        )
+        const result = await handler(value as Body, request.body)
+        this.instance.log.info({ result }, `${params.name} result`)
+        return result
       }
     )
   }

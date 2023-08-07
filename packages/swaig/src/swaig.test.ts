@@ -64,7 +64,7 @@ describe('SWAIG', () => {
         password: 'password',
         token: 'foo',
       },
-      (params) => {
+      async (params) => {
         return {
           response: '',
           action: [{ location: params.location }],
@@ -123,10 +123,10 @@ describe('SWAIG', () => {
           token: 'foo',
         },
         (params) => {
-          return {
+          return Promise.resolve({
             response: '',
             action: [{ location: params.location }],
-          }
+          })
         }
       )
     }
@@ -200,7 +200,7 @@ describe('SWAIG', () => {
         password,
         token: 'foo',
       },
-      (params, extra) => {
+      async (params, extra) => {
         return {
           response: 'Done with success',
           action: [
@@ -299,7 +299,7 @@ describe('SWAIG', () => {
         password,
         token: 'foo',
       },
-      (params, extra) => {
+      async (params, extra) => {
         return {
           response: 'Done with success',
           action: [
@@ -403,7 +403,7 @@ describe('SWAIG', () => {
           token: 'foo',
         },
         (params, extra) => {
-          return {
+          return Promise.resolve({
             response: 'Done with success',
             action: [
               {
@@ -411,7 +411,7 @@ describe('SWAIG', () => {
                 extra,
               },
             ],
-          }
+          })
         }
       )
     }
