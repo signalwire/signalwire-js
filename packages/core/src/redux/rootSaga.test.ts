@@ -90,7 +90,7 @@ describe('sessionStatusWatcher', () => {
       })
   })
 
-  it('should emit sessionExpiringAction on session emitter', () => {
+  it('should emit session.expiring on session emitter', () => {
     const saga = testSaga(sessionStatusWatcher, options)
 
     saga.next().take(actions)

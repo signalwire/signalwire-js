@@ -23,21 +23,11 @@ export const socketMessageAction = createAction<JSONRPCRequest, string>(
   'socket/message'
 )
 
-// TODO: define if we need/want to send a payload with these events.
-export const sessionConnectedAction = createAction<void, SessionEvents>(
-  'session.connected'
-)
 export const sessionDisconnectedAction = createAction<void, SessionEvents>(
   'session.disconnected'
 )
 export const sessionReconnectingAction = createAction<void, SessionEvents>(
   'session.reconnecting'
-)
-export const sessionAuthErrorAction = createAction<Error, SessionEvents>(
-  'session.auth_error'
-)
-export const sessionExpiringAction = createAction<void, SessionEvents>(
-  'session.expiring'
 )
 export const sessionForceCloseAction = createAction<void, SessionActions>(
   'session.forceClose'
