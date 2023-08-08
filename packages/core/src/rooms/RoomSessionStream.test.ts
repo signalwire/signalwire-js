@@ -1,9 +1,7 @@
 import { configureJestStore } from '../testUtils'
-import { EventEmitter } from '../utils/EventEmitter'
 import {
   createRoomSessionStreamObject,
   RoomSessionStream,
-  RoomSessionStreamEventsHandlerMapping,
 } from './RoomSessionStream'
 
 describe('RoomSessionStream', () => {
@@ -12,17 +10,19 @@ describe('RoomSessionStream', () => {
     beforeEach(() => {
       instance = createRoomSessionStreamObject({
         store: configureJestStore(),
-        emitter: new EventEmitter<RoomSessionStreamEventsHandlerMapping>(),
+        payload: {
+          // @ts-expect-error
+          stream: {
+            id: 'c22d7223-5a01-49fe-8da0-46bec8e75e32',
+          },
+          room_session_id: 'room-session-id',
+        },
       })
       // @ts-expect-error
       instance.execute = jest.fn()
     })
 
     it('should control an active stream', async () => {
-      // Mock properties
-      instance.id = 'c22d7223-5a01-49fe-8da0-46bec8e75e32'
-      instance.roomSessionId = 'room-session-id'
-
       const baseExecuteParams = {
         method: '',
         params: {

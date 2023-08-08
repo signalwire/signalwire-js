@@ -4,7 +4,8 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main, dev]
+    branches:
+      [main, dev, aa/video-emitter-transform, aa/channels, aa/cleanup-emitter]
   workflow_dispatch:
 
 concurrency:

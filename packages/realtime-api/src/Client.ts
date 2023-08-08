@@ -93,10 +93,6 @@ export class Client extends BaseClient<ClientEvents> {
     }
     const video = createVideoObject({
       store: this.store,
-      // Emitter is now typed but we share it across objects
-      // so types won't match
-      // @ts-expect-error
-      emitter: this.options.emitter,
     })
     this._consumers.set('video', video)
     return video

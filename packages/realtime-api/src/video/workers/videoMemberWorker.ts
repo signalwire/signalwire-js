@@ -8,6 +8,9 @@ import {
   VideoMemberTalkingEvent,
   InternalVideoMemberUpdatedEvent,
   fromSnakeToCamelCase,
+  stripNamespacePrefix,
+  VideoMemberEventNames,
+  MemberTalkingEventNames,
 } from '@signalwire/core'
 import { RoomSession } from '../RoomSession'
 import {
@@ -45,8 +48,6 @@ export const videoMemberWorker = function* (
     memberInstance = createRoomSessionMemberObject({
       // @ts-expect-error
       store: instance.store,
-      // @ts-expect-error
-      emitter: instance.emitter,
       payload: payload as RoomSessionMemberEventParams,
     })
   } else {
@@ -54,25 +55,36 @@ export const videoMemberWorker = function* (
   }
   set<RoomSessionMember>(payload.member.id, memberInstance)
 
+  const event = stripNamespacePrefix(type) as VideoMemberEventNames
+
   if (type.startsWith('video.member.updated.')) {
-    const clientType = fromSnakeToCamelCase(type)
-    roomSessionInstance.baseEmitter.emit(clientType, memberInstance)
+    const clientType = fromSnakeToCamelCase(event)
+    // @ts-expect-error
+    roomSessionInstance.emit(clientType, memberInstance)
   }
 
   switch (type) {
     case 'video.member.joined':
     case 'video.member.updated':
-      roomSessionInstance.baseEmitter.emit(type, memberInstance)
+      roomSessionInstance.emit(event, memberInstance)
       break
     case 'video.member.left':
-      roomSessionInstance.baseEmitter.emit(type, memberInstance)
+      roomSessionInstance.emit(event, memberInstance)
       remove<RoomSessionMember>(payload.member.id)
       break
     case 'video.member.talking':
+      roomSessionInstance.emit(event, memberInstance)
       if ('talking' in payload.member) {
         const suffix = payload.member.talking ? 'started' : 'ended'
-        roomSessionInstance.baseEmitter.emit(
-          `${type}.${suffix}`,
+        roomSessionInstance.emit(
+          `${event}.${suffix}` as MemberTalkingEventNames,
+          memberInstance
+        )
+
+        // Keep for backwards compatibility
+        const deprecatedSuffix = payload.member.talking ? 'start' : 'stop'
+        roomSessionInstance.emit(
+          `${event}.${deprecatedSuffix}` as MemberTalkingEventNames,
           memberInstance
         )
       }

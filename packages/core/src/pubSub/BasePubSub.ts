@@ -4,27 +4,25 @@ import {
   JSONRPCSubscribeMethod,
   ExecuteParams,
   actions,
-  SessionEvents,
   EventEmitter,
+  validateEventsToSubscribe,
+  BaseConsumer,
 } from '..'
 import { getAuthState } from '../redux/features/session/sessionSelectors'
 import type {
   PubSubChannel,
   InternalPubSubChannel,
-  PubSubEventNames,
   PubSubPublishParams,
   PubSubMessageEventName,
 } from '../types/pubSub'
 import { PRODUCT_PREFIX_PUBSUB } from '../utils/constants'
 import { PubSubMessage } from './PubSubMessage'
 import { pubSubWorker } from './workers/pubSubWorker'
-import { ApplyEventListeners } from '../ApplyEventListeners'
 
 export type BasePubSubApiEventsHandlerMapping = Record<
   PubSubMessageEventName,
   (message: PubSubMessage) => void
-> &
-  Record<Extract<SessionEvents, 'session.expiring'>, () => void>
+>
 
 /**
  * @privateRemarks
@@ -48,19 +46,11 @@ const toInternalPubSubChannels = (
 
 export class BasePubSubConsumer<
   EventTypes extends EventEmitter.ValidEventTypes = BasePubSubApiEvents
-> extends ApplyEventListeners<EventTypes> {
-  protected override _eventsPrefix = PRODUCT_PREFIX_PUBSUB
+> extends BaseConsumer<EventTypes> {
   protected override subscribeMethod: JSONRPCSubscribeMethod = `${PRODUCT_PREFIX_PUBSUB}.subscribe`
 
-  constructor(options: BaseComponentOptions<EventTypes>) {
+  constructor(options: BaseComponentOptions) {
     super(options)
-
-    /**
-     * Since we don't need a namespace for these events
-     * we'll attach them as soon as the Client has been
-     * registered in the Redux store.
-     */
-    this._attachListeners('')
 
     // Initialize worker through a function so that it can be override by the BaseChatConsumer
     this.initWorker()
@@ -123,6 +113,14 @@ export class BasePubSubConsumer<
     }
   }
 
+  /** @internal */
+  protected override getSubscriptions() {
+    const eventNamesWithPrefix = this.eventNames().map(
+      (event) => `${PRODUCT_PREFIX_PUBSUB}.${String(event)}`
+    ) as EventEmitter.EventNames<EventTypes>[]
+    return validateEventsToSubscribe(eventNamesWithPrefix)
+  }
+
   async subscribe(channels?: PubSubChannel) {
     this._checkMissingSubscriptions()
 
@@ -175,12 +173,10 @@ export class BasePubSubConsumer<
   // `realtime-api`
   updateToken(token: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      // @ts-expect-error
-      this.once('session.auth_error', (error) => {
+      this.session.once('session.auth_error', (error) => {
         reject(error)
       })
-      // @ts-expect-error
-      this.once('session.connected', () => {
+      this.session.once('session.connected', () => {
         resolve()
       })
 
@@ -206,18 +202,10 @@ export class BasePubSubConsumer<
     }
     return {}
   }
-
-  protected override extendEventName(
-    event: EventEmitter.EventNames<EventTypes>
-  ) {
-    return `${PRODUCT_PREFIX_PUBSUB}.${
-      event as string
-    }` as EventEmitter.EventNames<EventTypes>
-  }
 }
 
 export const createBasePubSubObject = <PubSubType>(
-  params: BaseComponentOptions<PubSubEventNames>
+  params: BaseComponentOptions
 ) => {
   const pubSub = connect<BasePubSubApiEvents, BasePubSubConsumer, PubSubType>({
     store: params.store,

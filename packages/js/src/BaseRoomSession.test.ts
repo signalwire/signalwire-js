@@ -26,7 +26,6 @@ describe('Room Object', () => {
     store = stack.store
     room = createBaseRoomSessionObject<RoomSession>({
       store,
-      emitter: new EventEmitter(),
     })
     store.dispatch(
       componentActions.upsert({
@@ -474,7 +473,6 @@ describe('Room Object', () => {
 
       setupRoomForTests()
 
-      // const startedHandler = jest.fn()
       room.on('room.joined', (params) => {
         /** Test same keys between room_session and room for backwards compat. */
         const keys = ['room_session', 'room'] as const
@@ -483,9 +481,7 @@ describe('Room Object', () => {
           expect(params[key].room_id).toEqual(roomId)
           expect(params[key].recording).toBe(true)
           expect(params[key].hide_video_muted).toBe(false)
-          // @ts-expect-error
           expect(params[key].meta).toStrictEqual({})
-          // @ts-expect-error
           const { members, recordings } = params[key]
 
           // Test members and member object
@@ -508,7 +504,7 @@ describe('Room Object', () => {
           expect(recordingObj.state).toEqual('recording')
           expect(recordingObj.duration).toBeNull()
           expect(recordingObj.startedAt).toBeInstanceOf(Date)
-          expect(recordingObj.endedAt).toBeInstanceOf(Date)
+          expect(recordingObj.endedAt).toBeUndefined() // When state is recording
 
           const execMock = jest.fn()
           const _clearMock = () => {

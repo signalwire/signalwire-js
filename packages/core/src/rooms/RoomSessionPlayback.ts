@@ -1,10 +1,11 @@
 import { connect } from '../redux'
 import { BaseComponent } from '../BaseComponent'
-import { BaseComponentOptions } from '../utils/interfaces'
+import { BaseComponentOptionsWithPayload } from '../utils/interfaces'
 import type {
   VideoPlaybackContract,
   VideoPlaybackMethods,
   VideoPlaybackEventNames,
+  VideoPlaybackEventParams,
 } from '../types/videoPlayback'
 
 /**
@@ -13,17 +14,81 @@ import type {
  * starting a playback from the desired {@link RoomSession} (see
  * {@link RoomSession.play})
  */
-export interface RoomSessionPlayback extends VideoPlaybackContract {}
+export interface RoomSessionPlayback extends VideoPlaybackContract {
+  setPayload(payload: VideoPlaybackEventParams): void
+}
 
 export type RoomSessionPlaybackEventsHandlerMapping = Record<
   VideoPlaybackEventNames,
   (playback: RoomSessionPlayback) => void
 >
 
+export interface RoomSessionPlaybackOptions
+  extends BaseComponentOptionsWithPayload<VideoPlaybackEventParams> {}
+
 export class RoomSessionPlaybackAPI
   extends BaseComponent<RoomSessionPlaybackEventsHandlerMapping>
   implements VideoPlaybackMethods
 {
+  private _payload: VideoPlaybackEventParams
+
+  constructor(options: RoomSessionPlaybackOptions) {
+    super(options)
+
+    this._payload = options.payload
+  }
+
+  get id() {
+    return this._payload.playback.id
+  }
+
+  get roomId() {
+    return this._payload.room_id
+  }
+
+  get roomSessionId() {
+    return this._payload.room_session_id
+  }
+
+  get url() {
+    return this._payload.playback.url
+  }
+
+  get state() {
+    return this._payload.playback.state
+  }
+
+  get volume() {
+    return this._payload.playback.volume
+  }
+
+  get startedAt() {
+    if (!this._payload.playback.started_at) return undefined
+    return new Date(
+      (this._payload.playback.started_at as unknown as number) * 1000
+    )
+  }
+
+  get endedAt() {
+    if (!this._payload.playback.ended_at) return undefined
+    return new Date(
+      (this._payload.playback.ended_at as unknown as number) * 1000
+    )
+  }
+
+  get position() {
+    return this._payload.playback.position
+  }
+
+  get seekable() {
+    return this._payload.playback.seekable
+  }
+
+  /** @internal */
+  protected setPayload(payload: VideoPlaybackEventParams) {
+    this._payload = payload
+  }
+
   async pause() {
     await this.execute({
       method: 'video.playback.pause',
@@ -100,7 +165,7 @@ export class RoomSessionPlaybackAPI
 }
 
 export const createRoomSessionPlaybackObject = (
-  params: BaseComponentOptions<RoomSessionPlaybackEventsHandlerMapping>
+  params: RoomSessionPlaybackOptions
 ): RoomSessionPlayback => {
   const playback = connect<
     RoomSessionPlaybackEventsHandlerMapping,

@@ -26,15 +26,17 @@ export type VideoRoomDeviceDisconnectedEventNames =
   | MicrophoneDisconnected
   | SpeakerDisconnected
 
-export interface MediaDeviceInfo
-  extends Pick<MediaDeviceInfo, 'deviceId' | 'kind'> {}
-
-export interface DeviceUpdatedEventParams {
-  previous: MediaDeviceInfo
-  current: MediaDeviceInfo
+export interface VideoRoomMediaDeviceInfo {
+  deviceId: MediaDeviceInfo['deviceId'] | undefined
+  label: MediaDeviceInfo['label'] | undefined
 }
 
-export type DeviceDisconnectedEventParams = MediaDeviceInfo
+export interface DeviceUpdatedEventParams {
+  previous: VideoRoomMediaDeviceInfo
+  current: VideoRoomMediaDeviceInfo
+}
+
+export type DeviceDisconnectedEventParams = VideoRoomMediaDeviceInfo
 
 export type VideoRoomDeviceEventParams =
   | DeviceUpdatedEventParams

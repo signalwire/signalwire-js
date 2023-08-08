@@ -33,9 +33,8 @@ import {
   VoiceCallDetectDigitParams,
   CallingCallWaitForState,
   CallingCall,
-  EventEmitter,
   configureStore,
-  ApplyEventListeners,
+  BaseConsumer,
 } from '@signalwire/core'
 import { RealTimeCallApiEvents } from '../types'
 import { toInternalDevices, toInternalPlayParams } from './utils'
@@ -76,8 +75,8 @@ export type EmitterTransformsEvents =
   | 'calling.connect.connected'
 
 export interface CallOptions
-  extends BaseComponentOptionsWithPayload<RealTimeCallApiEvents, CallingCall> {
-  connectPayload: CallingCallConnectEventParams
+  extends BaseComponentOptionsWithPayload<CallingCall> {
+  connectPayload?: CallingCallConnectEventParams
 }
 
 /**
@@ -90,12 +89,9 @@ export interface Call
   store: ReturnType<typeof configureStore>
   setPayload: (payload: CallingCall) => void
   setConnectPayload: (payload: CallingCallConnectEventParams) => void
-  baseEmitter: EventEmitter
 }
 
-export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
-  protected _eventsPrefix = 'calling' as const
-
+export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
   private _peer: Call | undefined
   private _payload: CallingCall
   private _connectPayload: CallingCallConnectEventParams
@@ -104,9 +100,6 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
     super(options)
 
     this._payload = options.payload
-
-    this._attachListeners(this.__uuid)
-    this.applyEmitterTransforms({ local: true })
 
     this.on('call.state', () => {
       /**
@@ -209,7 +202,7 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
   }
 
   get connectState() {
-    return this._connectPayload.connect_state
+    return this._connectPayload?.connect_state
   }
 
   get peer() {
@@ -251,7 +244,7 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
       }
 
       this.on('call.state', (params) => {
-        if (params.callState === 'ended') {
+        if (params.state === 'ended') {
           resolve(new Error('Failed to hangup the call.'))
         }
       })
@@ -565,8 +558,6 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
           const promptInstance = createCallPromptObject({
             store: this.store,
             // @ts-expect-error
-            emitter: this.emitter,
-            // @ts-expect-error
             payload: {
               control_id: controlId,
               call_id: this.id,
@@ -574,11 +565,11 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
             },
           })
           this.instanceMap.set<CallPrompt>(controlId, promptInstance)
-          this.baseEmitter.emit('prompt.started', promptInstance)
+          this.emit('prompt.started', promptInstance)
           resolve(promptInstance)
         })
         .catch((e) => {
-          this.baseEmitter.emit('prompt.failed', e)
+          this.emit('prompt.failed', e)
           reject(e)
         })
     })
@@ -1056,8 +1047,6 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
         .then(() => {
           const detectInstance = createCallDetectObject({
             store: this.store,
-            // @ts-expect-error
-            emitter: this.emitter,
             payload: {
               control_id: controlId,
               call_id: this.id,
@@ -1067,12 +1056,12 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
           })
           this.instanceMap.set<CallDetect>(controlId, detectInstance)
           // @ts-expect-error
-          this.baseEmitter.emit('detect.started', detectInstance)
+          this.emit('detect.started', detectInstance)
           resolve(detectInstance)
         })
         .catch((e) => {
           // @ts-expect-error
-          this.baseEmitter.emit('detect.ended', e)
+          this.emit('detect.ended', e)
           reject(e)
         })
     })
@@ -1171,9 +1160,9 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
       }
 
       this.on('call.state', (params) => {
-        if (events.includes(params.callState)) {
-          emittedCallStates.add(params.callState)
-        } else if (shouldResolveUnsuccessful(params.callState)) {
+        if (events.includes(params.state as CallingCallWaitForState)) {
+          emittedCallStates.add(params.state)
+        } else if (shouldResolveUnsuccessful(params.state)) {
           return resolve(false)
         }
 
@@ -1240,8 +1229,6 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
           const collectInstance = createCallCollectObject({
             store: this.store,
             // @ts-expect-error
-            emitter: this.emitter,
-            // @ts-expect-error
             payload: {
               control_id: controlId,
               call_id: this.id,
@@ -1249,11 +1236,11 @@ export class CallConsumer extends ApplyEventListeners<RealTimeCallApiEvents> {
             },
           })
           this.instanceMap.set<CallCollect>(controlId, collectInstance)
-          this.baseEmitter.emit('collect.started', collectInstance)
+          this.emit('collect.started', collectInstance)
           resolve(collectInstance)
         })
         .catch((e) => {
-          this.baseEmitter.emit('collect.failed', e)
+          this.emit('collect.failed', e)
           reject(e)
         })
     })

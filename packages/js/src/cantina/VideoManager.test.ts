@@ -11,8 +11,6 @@ describe('VideoManager namespace', () => {
     fullStack.emitter.removeAllListeners()
     manager = createVideoManagerObject({
       store: fullStack.store,
-      // @ts-expect-error
-      emitter: fullStack.emitter,
     })
     // @ts-expect-error
     manager.execute = jest.fn()

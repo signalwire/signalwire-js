@@ -20,7 +20,8 @@ export const setupClient = (userOptions?: SetupClientOptions): ClientConfig => {
     ...credentials,
   })
 
-  client.on('session.auth_error', () => {
+  // @ts-expect-error
+  client.session.on('session.auth_error', () => {
     getLogger().error("Wrong credentials: couldn't connect the client.")
 
     // TODO: we can execute the future `onConnectError` from here.

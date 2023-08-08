@@ -6,6 +6,11 @@ import {
   MapToPubSubShape,
   InternalMemberUpdatedEventNames,
   VideoRoomEvent,
+  stripNamespacePrefix,
+  RoomStarted,
+  RoomUpdated,
+  RoomEnded,
+  RoomSubscribed,
 } from '@signalwire/core'
 import { spawn, fork } from '@redux-saga/core/effects'
 import { createRoomSessionObject, RoomSession } from '../RoomSession'
@@ -29,8 +34,6 @@ export const videoRoomWorker = function* (
     roomSessionInstance = createRoomSessionObject({
       // @ts-expect-error
       store: client.store,
-      // @ts-expect-error
-      emitter: client.emitter,
       payload,
     })
   } else {
@@ -46,8 +49,6 @@ export const videoRoomWorker = function* (
         memberInstance = createRoomSessionMemberObject({
           // @ts-expect-error
           store: client.store,
-          // @ts-expect-error
-          emitter: client.emitter,
           payload: {
             room_id: payload.room_session.room_id,
             room_session_id: payload.room_session.id,
@@ -66,16 +67,24 @@ export const videoRoomWorker = function* (
     })
   }
 
+  const event = stripNamespacePrefix(type) as
+    | RoomStarted
+    | RoomUpdated
+    | RoomEnded
+    | RoomSubscribed
+
   switch (type) {
     case 'video.room.started':
     case 'video.room.updated': {
-      client.baseEmitter.emit(type, roomSessionInstance)
-      roomSessionInstance.baseEmitter.emit(type, roomSessionInstance)
+      // The `room.updated` event is not documented in @RealTimeVideoApiEvents. For now, ignoring TS issue.
+      // @ts-expect-error
+      client.emit(event, roomSessionInstance)
+      roomSessionInstance.emit(event, roomSessionInstance)
       break
     }
     case 'video.room.ended': {
-      client.baseEmitter.emit(type, roomSessionInstance)
-      roomSessionInstance.baseEmitter.emit(type, roomSessionInstance)
+      client.emit(event as RoomEnded, roomSessionInstance)
+      roomSessionInstance.emit(event, roomSessionInstance)
       remove<RoomSession>(payload.room_session.id)
       break
     }
@@ -94,7 +103,7 @@ export const videoRoomWorker = function* (
           })
         },
       })
-      roomSessionInstance.baseEmitter.emit(type, roomSessionInstance)
+      roomSessionInstance.emit(event, roomSessionInstance)
       break
     }
     default:

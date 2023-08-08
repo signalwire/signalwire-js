@@ -5,7 +5,7 @@ import {
   CallingCallRecordEndState,
   CallingCallRecordEventParams,
   EventEmitter,
-  ApplyEventListeners,
+  BaseConsumer,
 } from '@signalwire/core'
 
 /**
@@ -17,24 +17,21 @@ import {
 export interface CallRecording extends VoiceCallRecordingContract {
   setPayload: (payload: CallingCallRecordEventParams) => void
   _paused: boolean
-  baseEmitter: EventEmitter
+  /** @internal */
+  emit(event: EventEmitter.EventNames<any>, ...args: any[]): void
 }
 
 export type CallRecordingEventsHandlerMapping = {}
 
 export interface CallRecordingOptions
-  extends BaseComponentOptionsWithPayload<
-    CallRecordingEventsHandlerMapping,
-    CallingCallRecordEventParams
-  > {}
+  extends BaseComponentOptionsWithPayload<CallingCallRecordEventParams> {}
 
 const ENDED_STATES: CallingCallRecordEndState[] = ['finished', 'no_input']
 
 export class CallRecordingAPI
-  extends ApplyEventListeners<CallRecordingEventsHandlerMapping>
+  extends BaseConsumer<CallRecordingEventsHandlerMapping>
   implements VoiceCallRecordingContract
 {
-  protected _eventsPrefix = 'calling' as const
   private _payload: CallingCallRecordEventParams
 
   constructor(options: CallRecordingOptions) {
@@ -104,8 +101,6 @@ export class CallRecordingAPI
 
   ended() {
     return new Promise<this>((resolve) => {
-      this._attachListeners(this.controlId)
-
       const handler = () => {
         // @ts-expect-error
         this.off('recording.ended', handler)

@@ -4,8 +4,8 @@ import {
   VoiceCallDetectContract,
   CallingCallDetectEndState,
   CallingCallDetectEventParams,
+  BaseConsumer,
   EventEmitter,
-  ApplyEventListeners,
 } from '@signalwire/core'
 
 /**
@@ -16,26 +16,23 @@ import {
  */
 export interface CallDetect extends VoiceCallDetectContract {
   setPayload: (payload: CallingCallDetectEventParams) => void
-  baseEmitter: EventEmitter
   waitingForReady: boolean
   waitForBeep: boolean
+  /** @internal */
+  emit(event: EventEmitter.EventNames<any>, ...args: any[]): void
 }
 
 export type CallDetectEventsHandlerMapping = {}
 
 export interface CallDetectOptions
-  extends BaseComponentOptionsWithPayload<
-    CallDetectEventsHandlerMapping,
-    CallingCallDetectEventParams
-  > {}
+  extends BaseComponentOptionsWithPayload<CallingCallDetectEventParams> {}
 
 const ENDED_STATES: CallingCallDetectEndState[] = ['finished', 'error']
 
 export class CallDetectAPI
-  extends ApplyEventListeners<CallDetectEventsHandlerMapping>
+  extends BaseConsumer<CallDetectEventsHandlerMapping>
   implements VoiceCallDetectContract
 {
-  protected _eventsPrefix = 'calling' as const
   private _payload: CallingCallDetectEventParams
   private _waitForBeep: boolean
   private _waitingForReady: boolean
@@ -120,8 +117,6 @@ export class CallDetectAPI
     }
 
     return new Promise<this>((resolve) => {
-      this._attachListeners(this.controlId)
-
       const handler = () => {
         // @ts-expect-error
         this.off('detect.ended', handler)

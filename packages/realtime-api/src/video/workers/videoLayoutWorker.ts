@@ -4,6 +4,8 @@ import {
   MapToPubSubShape,
   VideoLayoutChangedEvent,
   toExternalJSON,
+  stripNamespacePrefix,
+  VideoLayoutEventNames,
 } from '@signalwire/core'
 import { RoomSession } from '../RoomSession'
 import { VideoCallWorkerParams } from './videoCallingWorker'
@@ -25,9 +27,11 @@ export const videoLayoutWorker = function* (
   // TODO: Implement a Layout object when we have a proper payload from the backend
   // Create a layout instance and emit that instance
 
+  const event = stripNamespacePrefix(type) as VideoLayoutEventNames
+
   switch (type) {
     case 'video.layout.changed':
-      roomSessionInstance.baseEmitter.emit(type, toExternalJSON(payload))
+      roomSessionInstance.emit(event, toExternalJSON(payload))
       break
     default:
       break

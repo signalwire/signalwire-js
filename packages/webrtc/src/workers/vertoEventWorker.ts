@@ -36,7 +36,7 @@ export const vertoEventWorker: SDKWorker<
 > = function* (options): SagaIterator {
   getLogger().debug('vertoEventWorker started')
   const { channels, instance, initialState } = options
-  const { swEventChannel, pubSubChannel } = channels
+  const { swEventChannel } = channels
   const { rtcPeerId } = initialState
   if (!rtcPeerId) {
     throw new Error('Missing rtcPeerId for roomSubscribedWorker')
@@ -138,19 +138,10 @@ export const vertoEventWorker: SDKWorker<
         break
       }
       case 'verto.display': {
-        // @ts-expect-error
-        instance._attachListeners('')
-        // @ts-expect-error
-        instance.applyEmitterTransforms()
         /** Call is active so set the RTCPeer */
         instance.setActiveRTCPeer(rtcPeerId)
 
-        yield sagaEffects.put(pubSubChannel, {
-          // @ts-expect-error
-          type: 'verto.display',
-          // @ts-expect-error
-          payload: action.payload.params,
-        })
+        instance.emit('verto.display', action.payload.params)
         break
       }
       default:

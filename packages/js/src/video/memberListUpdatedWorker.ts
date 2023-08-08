@@ -5,7 +5,7 @@ import {
   toSyntheticEvent,
   validateEventsToSubscribe,
   toInternalEventName,
-  PubSubChannel,
+  SwEventChannel,
   InternalVideoMemberEntity,
   InternalVideoMemberUpdatedEvent,
   VideoMemberJoinedEvent,
@@ -19,7 +19,7 @@ import type { VideoMemberListUpdatedParams } from '../utils/interfaces'
 
 const noop = () => {}
 
-const EXTERNAL_MEMBER_LIST_UPDATED_EVENT = 'video.memberList.updated'
+const EXTERNAL_MEMBER_LIST_UPDATED_EVENT = 'memberList.updated'
 
 const INTERNAL_MEMBER_LIST_UPDATED_EVENT = toInternalEventName({
   event: EXTERNAL_MEMBER_LIST_UPDATED_EVENT,
@@ -57,7 +57,9 @@ const isMemberListEvent = (
   return MEMBER_LIST_EVENTS.includes(event)
 }
 
-const getMemberListEventsToSubscribe = (subscriptions: MemberListUpdatedTargetActions['type'][]) => {
+const getMemberListEventsToSubscribe = (
+  subscriptions: MemberListUpdatedTargetActions['type'][]
+) => {
   return validateEventsToSubscribe(MEMBER_LIST_EVENTS).filter((event) => {
     return !subscriptions.includes(event)
   })
@@ -65,7 +67,7 @@ const getMemberListEventsToSubscribe = (subscriptions: MemberListUpdatedTargetAc
 
 const shouldHandleMemberList = (subscriptions: string[]) => {
   return subscriptions.some((event) =>
-    event.includes(INTERNAL_MEMBER_LIST_UPDATED_EVENT)
+    event.includes(EXTERNAL_MEMBER_LIST_UPDATED_EVENT)
   )
 }
 
@@ -128,7 +130,6 @@ const initMemberListSubscriptions = (
    * synthetic events and external events.
    */
   const eventBridgeHandler = ({ members }: VideoMemberListUpdatedParams) => {
-    // @ts-expect-error
     room.emit(EXTERNAL_MEMBER_LIST_UPDATED_EVENT, { members })
   }
 
@@ -150,9 +151,11 @@ const initMemberListSubscriptions = (
 }
 
 function* membersListUpdatedWatcher({
-  pubSubChannel,
+  swEventChannel,
+  instance,
 }: {
-  pubSubChannel: PubSubChannel
+  swEventChannel: SwEventChannel
+  instance: any
 }): SagaIterator {
   const memberList: MemberList = new Map()
 
@@ -174,16 +177,12 @@ function* membersListUpdatedWatcher({
       members,
     }
 
-    // TODO: add typings
-    yield sagaEffects.put(pubSubChannel, {
-      type: SYNTHETIC_MEMBER_LIST_UPDATED_EVENT as any,
-      payload: memberListPayload as any,
-    })
+    instance.emit(SYNTHETIC_MEMBER_LIST_UPDATED_EVENT, memberListPayload)
   }
 
   while (true) {
     const pubSubAction: MemberListUpdatedTargetActions = yield sagaEffects.take(
-      pubSubChannel,
+      swEventChannel,
       ({ type }: any) => {
         return isMemberListEvent(type)
       }
@@ -195,7 +194,7 @@ function* membersListUpdatedWatcher({
 
 export const memberListUpdatedWorker: SDKWorker<RoomSession> =
   function* membersChangedWorker({
-    channels: { pubSubChannel },
+    channels: { swEventChannel },
     instance,
   }): SagaIterator {
     // @ts-expect-error
@@ -208,7 +207,8 @@ export const memberListUpdatedWorker: SDKWorker<RoomSession> =
     const { cleanup } = initMemberListSubscriptions(instance, subscriptions)
 
     yield sagaEffects.fork(membersListUpdatedWatcher, {
-      pubSubChannel,
+      swEventChannel,
+      instance,
     })
 
     instance.once('destroy', () => {

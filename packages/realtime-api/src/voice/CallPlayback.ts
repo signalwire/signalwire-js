@@ -1,11 +1,11 @@
 import {
   connect,
-  BaseComponentOptions,
   VoiceCallPlaybackContract,
   CallingCallPlayEndState,
   CallingCallPlayEventParams,
+  BaseConsumer,
+  BaseComponentOptionsWithPayload,
   EventEmitter,
-  ApplyEventListeners,
 } from '@signalwire/core'
 
 /**
@@ -17,7 +17,8 @@ import {
 export interface CallPlayback extends VoiceCallPlaybackContract {
   setPayload: (payload: CallingCallPlayEventParams) => void
   _paused: boolean
-  baseEmitter: EventEmitter
+  /** @internal */
+  emit(event: EventEmitter.EventNames<any>, ...args: any[]): void
 }
 
 // export type CallPlaybackEventsHandlerMapping = Record<
@@ -27,18 +28,14 @@ export interface CallPlayback extends VoiceCallPlaybackContract {
 export type CallPlaybackEventsHandlerMapping = {}
 
 export interface CallPlaybackOptions
-  extends BaseComponentOptions<CallPlaybackEventsHandlerMapping> {
-  payload: CallingCallPlayEventParams
-}
+  extends BaseComponentOptionsWithPayload<CallingCallPlayEventParams> {}
 
 const ENDED_STATES: CallingCallPlayEndState[] = ['finished', 'error']
 
 export class CallPlaybackAPI
-  extends ApplyEventListeners<CallPlaybackEventsHandlerMapping>
+  extends BaseConsumer<CallPlaybackEventsHandlerMapping>
   implements VoiceCallPlaybackContract
 {
-  protected _eventsPrefix = 'calling' as const
-
   public _paused: boolean
   private _volume: number
   private _payload: CallingCallPlayEventParams
@@ -141,8 +138,6 @@ export class CallPlaybackAPI
 
   ended() {
     return new Promise<this>((resolve) => {
-      this._attachListeners(this.controlId)
-
       const handler = () => {
         // @ts-expect-error
         this.off('playback.ended', handler)

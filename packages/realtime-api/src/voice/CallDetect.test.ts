@@ -1,10 +1,5 @@
-import { EventEmitter } from '@signalwire/core'
 import { configureJestStore } from '../testUtils'
-import {
-  createCallDetectObject,
-  CallDetect,
-  CallDetectEventsHandlerMapping,
-} from './CallDetect'
+import { createCallDetectObject, CallDetect } from './CallDetect'
 
 describe('CallDetect', () => {
   describe('createCallDetectObject', () => {
@@ -12,7 +7,6 @@ describe('CallDetect', () => {
     beforeEach(() => {
       instance = createCallDetectObject({
         store: configureJestStore(),
-        emitter: new EventEmitter<CallDetectEventsHandlerMapping>(),
         payload: {
           call_id: 'call_id',
           node_id: 'node_id',

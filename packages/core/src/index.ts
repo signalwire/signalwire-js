@@ -12,11 +12,12 @@ import {
   validateEventsToSubscribe,
   toInternalEventName,
   toInternalAction,
-  serializeableProxy,
   timeoutPromise,
   debounce,
   SWCloseEvent,
   isSATAuth,
+  LOCAL_EVENT_PREFIX,
+  stripNamespacePrefix,
 } from './utils'
 import { WEBRTC_EVENT_TYPES, isWebrtcEventType } from './utils/common'
 import { BaseSession } from './BaseSession'
@@ -56,7 +57,6 @@ export {
   toLocalEvent,
   toInternalEventName,
   toInternalAction,
-  serializeableProxy,
   toSyntheticEvent,
   GLOBAL_VIDEO_EVENTS,
   MEMBER_UPDATED_EVENTS,
@@ -68,6 +68,8 @@ export {
   WEBRTC_EVENT_TYPES,
   isWebrtcEventType,
   isSATAuth,
+  LOCAL_EVENT_PREFIX,
+  stripNamespacePrefix,
 }
 
 export * from './redux/features/component/componentSlice'
@@ -81,7 +83,7 @@ export type {
   SessionState,
   CustomSagaParams,
   CustomSaga,
-  PubSubChannel,
+  SwEventChannel,
   PubSubAction,
   MapToPubSubShape,
   SDKActions,
@@ -98,11 +100,8 @@ export * as PubSub from './pubSub'
 export * as MemberPosition from './memberPosition'
 export type {
   RoomSessionRecording,
-  RoomSessionRTRecording,
   RoomSessionPlayback,
-  RoomSessionRTPlayback,
   RoomSessionStream,
-  RoomSessionRTStream,
 } from './rooms'
 export const selectors = {
   ...sessionSelectors,
@@ -110,4 +109,3 @@ export const selectors = {
 export { ChatMember, ChatMessage } from './chat'
 export { PubSubMessage } from './pubSub'
 export * as testUtils from './testUtils'
-export * from './ApplyEventListeners'

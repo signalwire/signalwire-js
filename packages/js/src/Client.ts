@@ -61,6 +61,7 @@ export class ClientAPI<
           ...options
         } = makeRoomOptions
 
+        // TODO: This might not be needed here. We can initiate these sagas in the BaseRoomSession constructor.
         const customSagas: Array<CustomSaga<RoomSessionConnection>> = []
 
         /**
@@ -89,8 +90,6 @@ export class ClientAPI<
         const room = createBaseRoomSessionObject<RoomSessionType>({
           ...options,
           store: this.store,
-          // @ts-expect-error
-          emitter: this.emitter,
           customSagas,
         })
 
@@ -137,10 +136,6 @@ export class ClientAPI<
     if (!this._chat) {
       this._chat = ChatNamespace.createBaseChatObject<ChatClient>({
         store: this.store,
-        // Emitter is now typed but we share it across objects
-        // so types won't match
-        // @ts-expect-error
-        emitter: this.options.emitter,
       })
     }
     return this._chat
@@ -150,10 +145,6 @@ export class ClientAPI<
     if (!this._pubSub) {
       this._pubSub = PubSubNamespace.createBasePubSubObject<PubSubClient>({
         store: this.store,
-        // Emitter is now typed but we share it across objects
-        // so types won't match
-        // @ts-expect-error
-        emitter: this.options.emitter,
       })
     }
     return this._pubSub
@@ -162,7 +153,6 @@ export class ClientAPI<
   /** @internal */
   get videoManager() {
     if (!this._videoManager) {
-      // @ts-expect-error
       this._videoManager = createVideoManagerObject(this.options)
     }
     return this._videoManager

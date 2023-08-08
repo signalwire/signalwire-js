@@ -178,7 +178,6 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
 
   // WebRTC connection left the room.
   room.once('destroy', () => {
-    // @ts-expect-error
     room.emit('room.left', { reason: room.leaveReason })
 
     // Remove callId to reattach
@@ -186,7 +185,8 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     client.disconnect()
   })
 
-  client.once('session.disconnected', () => {
+  // @ts-expect-error
+  client.session.once('session.disconnected', () => {
     room.destroy()
   })
 
@@ -242,9 +242,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
           })
         }
 
-        room.once('room.subscribed', (payload) => {
-          // @ts-expect-error
-          room.attachOnSubscribedWorkers(payload)
+        room.once('room.subscribed', () => {
           resolve(room)
         })
 

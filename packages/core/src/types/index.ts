@@ -33,6 +33,9 @@ export interface EmitterContract<
   removeAllListeners<T extends EventEmitter.EventNames<EventTypes>>(
     event?: T
   ): EmitterContract<EventTypes>
+
+  /** @internal */
+  emit(event: EventEmitter.EventNames<EventTypes>, ...args: any[]): void
 }
 
 export interface BaseComponentContract {
