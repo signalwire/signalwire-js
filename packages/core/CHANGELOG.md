@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.18.2] - 2023-08-08
+
+### Changed
+
+- [#844](https://github.com/signalwire/signalwire-js/pull/844) [`af7072b7`](https://github.com/signalwire/signalwire-js/commit/af7072b7415940b9ef00bb2d35b3ed6b6ba979a5) - Set peerDependencies for TS build
+
 ## [3.18.1] - 2023-07-26
 
 ### Changed
