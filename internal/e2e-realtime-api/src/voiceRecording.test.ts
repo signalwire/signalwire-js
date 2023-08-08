@@ -2,15 +2,29 @@ import tap from 'tap'
 import { Voice } from '@signalwire/realtime-api'
 import { createTestRunner } from './utils'
 
+const CALL_RECORDING_GETTERS = [
+  'id',
+  'callId',
+  'nodeId',
+  'controlId',
+  'state',
+  'url',
+  'size',
+  'duration',
+  'record',
+]
 const handler = () => {
   return new Promise<number>(async (resolve, reject) => {
+    // Expect 5 tests
+    tap.plan(CALL_RECORDING_GETTERS.length + 9)
+
     const client = new Voice.Client({
       host: process.env.RELAY_HOST || 'relay.swire.io',
       project: process.env.RELAY_PROJECT as string,
       token: process.env.RELAY_TOKEN as string,
       contexts: [process.env.VOICE_CONTEXT as string],
       debug: {
-        logWsTraffic: true,
+        logWsTraffic: false,
       },
     })
 
@@ -18,10 +32,10 @@ const handler = () => {
     const waitForTheAnswer = new Promise((resolve) => {
       waitForTheAnswerResolve = resolve
     })
-    let waitForRecordStartResolve: (value: void) => void
-    const waitForRecordStart = new Promise((resolve) => {
-      waitForRecordStartResolve = resolve
-    })
+    // let waitForRecordStartResolve: (value: void) => void
+    // const waitForRecordStart = new Promise((resolve) => {
+    //   waitForRecordStartResolve = resolve
+    // })
     let waitForRecordEndResolve: (value: void) => void
     const waitForRecordEnd = new Promise((resolve) => {
       waitForRecordEndResolve = resolve
@@ -48,23 +62,43 @@ const handler = () => {
         // Resolve the answer promise to inform the caller
         waitForTheAnswerResolve()
 
-        try {
-          // Start an inbound recording
-          const recording = await call.recordAudio({ direction: 'both' })
-          tap.equal(
-            call.id,
-            recording.callId,
-            'Inbound - Recording returns the same instance'
-          )
-
-          // Play an invalid audio to fail the recording
-          await call.playAudio({
-            url: 'https://cdn.fake.com/default-music/fake.mp3',
+        call.on('recording.failed', (recording) => {
+          // console.log('HERE', recording)
+          CALL_RECORDING_GETTERS.forEach((property) => {
+            tap.hasProp(recording, property)
           })
-        } catch (error) {
-          console.log('Inbound - invalid playback error')
-          tap.equal(error.state, 'error', 'Inbound - Recording has failed')
-        }
+          tap.equal(
+            recording.state,
+            'no_input',
+            'Outbound - Recording has ended'
+          )
+          tap.equal(
+            recording.callId,
+            call.id,
+            'Outbound - Recording has the same callId'
+          )
+          waitForRecordEndResolve()
+        })
+
+        // Start the recording
+        const recording = await call.recordAudio({
+          direction: 'both',
+          terminators: '#',
+        })
+        tap.equal(
+          call.id,
+          recording.callId,
+          'Inbound - Recording returns the same instance'
+        )
+
+        const playback = await call.playTTS({
+          text: 'Hello, this is the callee side. How can i help you?',
+        })
+
+        await playback.ended()
+
+        // Stop the recording using terminator
+        await call.sendDigits('#')
 
         // Wait for the outbound recording to end
         await waitForRecordEnd
@@ -89,50 +123,21 @@ const handler = () => {
       // Wait until callee answers the call
       await waitForTheAnswer
 
-      call.on('recording.started', (recording) => {
-        tap.equal(
-          recording.state,
-          'recording',
-          'Outbound - Recording has started'
-        )
-        waitForRecordStartResolve()
-      })
-
-      // Start an outbound recording
-      const recording = await call.recordAudio({ direction: 'both' })
-      tap.equal(
-        call.id,
-        recording.callId,
-        'Outbound - Recording returns the same instance'
-      )
-
-      // Wait for the outbound recording to start
-      await waitForRecordStart
-
       // Play a valid audio
       const playlist = new Voice.Playlist({ volume: 2 })
         .add(
-          Voice.Playlist.Audio({
-            url: 'https://freetestdata.com/wp-content/uploads/2021/09/Free_Test_Data_100KB_MP3.mp3',
+          Voice.Playlist.TTS({
+            text: 'Hello, this is an automated welcome message. Enjoy!',
           })
         )
         .add(
           Voice.Playlist.TTS({
-            text: 'Thank you, you are now disconnected from the peer',
+            text: 'Thank you for listening the welcome message.',
           })
         )
-      await call.play(playlist)
+      const playback = await call.play(playlist)
 
-      call.on('recording.ended', (recording) => {
-        tap.equal(recording.state, 'finished', 'Outbound - Recording has ended')
-        waitForRecordEndResolve()
-      })
-
-      // Start ending the recording
-      await recording.ended()
-
-      // Wait for the outbound recording to end
-      await waitForRecordEnd
+      await playback.ended()
 
       // Resolve if the call has ended or ending
       const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
