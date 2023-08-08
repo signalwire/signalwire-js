@@ -15,7 +15,7 @@ const CALL_RECORDING_GETTERS = [
 ]
 const handler = () => {
   return new Promise<number>(async (resolve, reject) => {
-    // Expect 5 tests
+    // Expect exact num of tests
     tap.plan(CALL_RECORDING_GETTERS.length + 9)
 
     const client = new Voice.Client({
@@ -24,7 +24,7 @@ const handler = () => {
       token: process.env.RELAY_TOKEN as string,
       contexts: [process.env.VOICE_CONTEXT as string],
       debug: {
-        logWsTraffic: false,
+        logWsTraffic: true,
       },
     })
 
@@ -62,7 +62,7 @@ const handler = () => {
         // Resolve the answer promise to inform the caller
         waitForTheAnswerResolve()
 
-        call.on('recording.failed', (recording) => {
+        call.on('recording.ended', (recording) => {
           // console.log('HERE', recording)
           CALL_RECORDING_GETTERS.forEach((property) => {
             tap.hasProp(recording, property)
@@ -82,6 +82,8 @@ const handler = () => {
 
         // Start the recording
         const recording = await call.recordAudio({
+          initialTimeout: 0,
+          endSilenceTimeout: 0,
           direction: 'both',
           terminators: '#',
         })
