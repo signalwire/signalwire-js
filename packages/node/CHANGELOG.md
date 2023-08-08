@@ -13,7 +13,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Patch Changes
 
 - Updated dependencies [[`48b9341d`](https://github.com/signalwire/signalwire-js/commit/48b9341d11238f9842b854205a28d0f4dc3aee8d), [`48b9341d`](https://github.com/signalwire/signalwire-js/commit/48b9341d11238f9842b854205a28d0f4dc3aee8d)]:
-  - @signalwire/web-api@1.0.0
+  - @signalwire/web-api@3.0.0
   - @signalwire/realtime-api@3.10.2
 
 ## 0.0.1-beta.4

@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "@signalwire/realtime-api": "^3.10.2",
-    "@signalwire/web-api": "^1.0.0"
+    "@signalwire/web-api": "^3.0.0"
   },
   "types": "dist/node/src/index.d.ts"
 }
