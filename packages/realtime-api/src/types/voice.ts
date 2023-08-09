@@ -374,3 +374,70 @@ export interface CallDetectDigitParams
   extends Omit<VoiceCallDetectDigitParams, 'type'> {
   listen?: CallDetectListeners
 }
+
+// TODO: Remove the above old types
+
+export type VoiceEvents = Record<CallReceived, (call: Call) => void>
+
+export interface RealTimeCallListeners {
+  onStateChanged?: (call: Call) => unknown
+  onRecordingStarted?: (recording: CallRecording) => unknown
+  onRecordingUpdated?: (recording: CallRecording) => unknown
+  onRecordingFailed?: (recording: CallRecording) => unknown
+  onRecordingEnded?: (recording: CallRecording) => unknown
+  onPlaybackStarted?: (playback: CallPlayback) => unknown
+  onPlaybackUpdated?: (playback: CallPlayback) => unknown
+  onPlaybackFailed?: (playback: CallPlayback) => unknown
+  onPlaybackEnded?: (playback: CallPlayback) => unknown
+}
+
+export type RealTimeCallListenersKeys = keyof RealTimeCallListeners
+
+export type RealTimeCallEventsHandlerMapping = Record<
+  CallState,
+  (call: Call) => void
+> &
+  Record<
+    | CallPlaybackStarted
+    | CallPlaybackUpdated
+    | CallPlaybackEnded
+    | CallPlaybackFailed,
+    (playback: CallPlayback) => void
+  > &
+  Record<
+    | CallRecordingStarted
+    | CallRecordingUpdated
+    | CallRecordingEnded
+    | CallRecordingFailed,
+    (recording: CallRecording) => void
+  > &
+  Record<
+    CallPromptStarted | CallPromptUpdated | CallPromptEnded | CallPromptFailed,
+    (prompt: CallPrompt) => void
+  > &
+  Record<CallTapStarted | CallTapEnded, (tap: CallTap) => void> &
+  Record<
+    | CallCollectStarted
+    | CallCollectStartOfInput
+    | CallCollectUpdated
+    | CallCollectEnded
+    | CallCollectFailed,
+    (callCollect: CallCollect) => void
+  >
+
+export type RealTimeCallEvents = {
+  [k in keyof RealTimeCallEventsHandlerMapping]: RealTimeCallEventsHandlerMapping[k]
+}
+
+export type RealtimeCallListenersEventsMapping = Record<
+  'onStateChanged',
+  CallState
+> &
+  Record<'onPlaybackStarted', CallPlaybackStarted> &
+  Record<'onPlaybackUpdated', CallPlaybackUpdated> &
+  Record<'onPlaybackFailed', CallPlaybackFailed> &
+  Record<'onPlaybackEnded', CallPlaybackEnded> &
+  Record<'onRecordingStarted', CallRecordingStarted> &
+  Record<'onRecordingUpdated', CallRecordingUpdated> &
+  Record<'onRecordingFailed', CallRecordingFailed> &
+  Record<'onRecordingEnded', CallRecordingEnded>
