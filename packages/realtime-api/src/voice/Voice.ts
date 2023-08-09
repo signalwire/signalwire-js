@@ -17,7 +17,7 @@ import type {
 } from '@signalwire/core'
 import { RealtimeClient } from '../client/index'
 import { Call } from './Call'
-import { voiceCallingWroker } from './workers'
+import { voiceCallingWorker } from './workers'
 import { DeviceBuilder } from './DeviceBuilder'
 import type { RealTimeCallApiEvents } from '../types'
 import { toInternalDevices } from './utils'
@@ -207,7 +207,7 @@ class VoiceAPI extends BaseConsumer<VoiceClientApiEvents> {
     this._tag = uuid()
 
     this.runWorker('voiceCallingWorker', {
-      worker: voiceCallingWroker,
+      worker: voiceCallingWorker,
       initialState: {
         tag: this._tag,
       },

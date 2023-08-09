@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import {
   SagaIterator,
   SDKWorker,
@@ -19,16 +21,17 @@ import { voiceCallSendDigitsWorker } from './VoiceCallSendDigitWorker'
 import { voiceCallDetectWorker } from './voiceCallDetectWorker'
 import { voiceCallTapWorker } from './voiceCallTapWorker'
 import { voiceCallConnectWorker } from './voiceCallConnectWorker'
+import { Voice } from '../Voice2'
 
 export type VoiceCallWorkerParams<T> = Omit<
   SDKWorkerParams<Client>,
-  'runSaga' | 'getSession' | 'payload'
-> & { payload: T }
+  'runSaga' | 'getSession' | 'payload' | 'initialState'
+> & { payload: T; initialState: { voice: Voice; tag: string } }
 
-export const voiceCallingWroker: SDKWorker<Client> = function* (
+export const voiceCallingWorker: SDKWorker<Client> = function* (
   options
 ): SagaIterator {
-  getLogger().trace('voiceCallingWroker started')
+  getLogger().trace('voiceCallingWorker started')
   const {
     channels: { swEventChannel },
   } = options
@@ -115,5 +118,5 @@ export const voiceCallingWroker: SDKWorker<Client> = function* (
     yield sagaEffects.fork(worker, action)
   }
 
-  getLogger().trace('voiceCallingWroker ended')
+  getLogger().trace('voiceCallingWorker ended')
 }

@@ -11,26 +11,25 @@ export const voiceCallDialWorker = function* (
 ): SagaIterator {
   getLogger().trace('voiceCallDialWorker started')
   const {
-    instance: client,
     payload,
     instanceMap: { get },
-    initialState,
+    initialState: { tag, voice },
   } = options
 
   // Inbound calls do not have the tag
-  if (payload.tag && payload.tag !== initialState.tag) return
+  if (payload.tag && payload.tag !== tag) return
 
   switch (payload.dial_state) {
     case 'failed': {
       // @ts-expect-error
-      client.emit('dial.failed', payload)
+      voice.emit('dial.failed', payload)
       break
     }
     case 'answered': {
       const callInstance = get<Call>(payload.call.call_id)
       callInstance.setPayload(payload.call)
       // @ts-expect-error
-      client.emit('dial.answered', callInstance)
+      voice.emit('dial.answered', callInstance)
       break
     }
     default:

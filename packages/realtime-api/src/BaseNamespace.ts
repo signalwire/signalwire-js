@@ -18,12 +18,17 @@ type ListenerMap = Map<
   }
 >
 
-export class BaseNamespace<T extends ListenOptions> {
+export class BaseNamespace<
+  T extends ListenOptions,
+  EventTypes extends EventEmitter.ValidEventTypes = {}
+> {
+  /** @internal */
+  _sw: SWClient
+
   protected _client: Client
-  protected _sw: SWClient
   protected _eventMap: Record<ListenersKeys, string> = {}
-  private _namespaceEmitter = new EventEmitter()
   protected _listenerMap: ListenerMap = new Map()
+  private _namespaceEmitter = new EventEmitter<EventTypes>()
 
   constructor(options: { swClient: SWClient }) {
     this._sw = options.swClient
@@ -32,6 +37,36 @@ export class BaseNamespace<T extends ListenOptions> {
 
   protected get emitter() {
     return this._namespaceEmitter
+  }
+
+  /** @internal */
+  emit(event: EventEmitter.EventNames<EventTypes>, ...args: any[]) {
+    // @ts-expect-error
+    return this.emitter.emit(event, ...args)
+  }
+
+  /** @internal */
+  on<E extends EventEmitter.EventNames<EventTypes>>(
+    event: E,
+    fn: EventEmitter.EventListener<EventTypes, E>
+  ) {
+    return this.emitter.on(event, fn)
+  }
+
+  /** @internal */
+  once<T extends EventEmitter.EventNames<EventTypes>>(
+    event: T,
+    fn: EventEmitter.EventListener<EventTypes, T>
+  ) {
+    return this.emitter.once(event, fn)
+  }
+
+  /** @internal */
+  off<T extends EventEmitter.EventNames<EventTypes>>(
+    event: T,
+    fn?: EventEmitter.EventListener<EventTypes, T>
+  ) {
+    return this.emitter.off(event, fn)
   }
 
   protected addTopics(topics: string[]) {
@@ -118,7 +153,8 @@ export class BaseNamespace<T extends ListenOptions> {
       listenerKeys.forEach((key) => {
         if (typeof listeners[key] === 'function' && this._eventMap[key]) {
           const event = prefixEvent(topic, this._eventMap[key])
-          this.emitter.on(event, listeners[key])
+          // @ts-expect-error
+          this.on(event, listeners[key])
         }
       })
     })
@@ -130,7 +166,8 @@ export class BaseNamespace<T extends ListenOptions> {
       listenerKeys.forEach((key) => {
         if (typeof listeners[key] === 'function' && this._eventMap[key]) {
           const event = prefixEvent(topic, this._eventMap[key])
-          this.emitter.off(event, listeners[key])
+          // @ts-expect-error
+          this.off(event, listeners[key])
         }
       })
     })

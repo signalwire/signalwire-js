@@ -1,29 +1,28 @@
 import { CallingCall, getLogger, SagaIterator } from '@signalwire/core'
-import { createCallObject } from '../Call'
-import type { Call } from '../Call'
 import type { VoiceCallWorkerParams } from './voiceCallingWorker'
+import { Call } from '../Call2'
+import { prefixEvent } from '../../utils/internals'
 
 export const voiceCallReceiveWorker = function* (
   options: VoiceCallWorkerParams<CallingCall>
 ): SagaIterator {
   getLogger().trace('voiceCallReceiveWorker started')
   const {
-    instance: client,
     payload,
     instanceMap: { get, set },
+    initialState: { voice },
   } = options
 
   // Contexts is required
-  const { contexts = [] } = client?.options ?? {}
-  if (!contexts.length) {
-    throw new Error('Invalid contexts to receive inbound calls')
+  if (!payload.context || !payload.context.length) {
+    throw new Error('Invalid context to receive inbound call')
   }
 
   let callInstance = get<Call>(payload.call_id)
   if (!callInstance) {
-    callInstance = createCallObject({
-      store: client.store,
-      payload: payload,
+    callInstance = new Call({
+      voice,
+      payload,
     })
   } else {
     callInstance.setPayload(payload)
@@ -31,7 +30,7 @@ export const voiceCallReceiveWorker = function* (
 
   set<Call>(payload.call_id, callInstance)
   // @ts-expect-error
-  client.emit('call.received', callInstance)
+  voice.emit(prefixEvent(payload.context, 'call.received'), callInstance)
 
   getLogger().trace('voiceCallReceiveWorker ended')
 }

@@ -4,6 +4,7 @@ import { clientConnect } from './client/clientConnect'
 import { Task } from './task/Task'
 import { PubSub } from './pubSub/PubSub'
 import { Chat } from './chat/Chat'
+import { Voice } from './voice/Voice2'
 
 export interface SWClientOptions {
   host?: string
@@ -19,6 +20,7 @@ export class SWClient {
   private _task: Task
   private _pubSub: PubSub
   private _chat: Chat
+  private _voice: Voice
 
   public userOptions: SWClientOptions
   public client: Client
@@ -55,5 +57,12 @@ export class SWClient {
       this._chat = new Chat(this)
     }
     return this._chat
+  }
+
+  get voice() {
+    if (!this._voice) {
+      this._voice = new Voice(this)
+    }
+    return this._voice
   }
 }
