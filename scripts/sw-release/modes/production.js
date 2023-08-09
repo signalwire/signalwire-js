@@ -19,7 +19,7 @@ const getProductionTasks = ({ flags, executer, dryRun }) => {
     ...getBuildTask({ dryRun, executer }),
     ...getTestTask({ dryRun, executer }),
     ...publishTaskFactory({
-      npmOptions: [],
+      npmOptions: ['--access', 'public'],
       publishGitTag: true,
       executer,
       dryRun,
