@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.10.2] - 2023-08-08
+
+### Dependencies
+
+- Updated dependencies [[`af7072b7`](https://github.com/signalwire/signalwire-js/commit/af7072b7415940b9ef00bb2d35b3ed6b6ba979a5)]:
+  - @signalwire/core@3.18.2
+
 ## [3.10.1] - 2023-07-26
 
 ### Fixed
