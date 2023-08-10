@@ -7,22 +7,19 @@ import {
   TaskAction,
 } from '@signalwire/core'
 import { prefixEvent } from '../../utils/internals'
-import { Task } from '../Task'
+import type { Client } from '../../client/Client'
 
-export const taskWorker: SDKWorker<Task> = function* (options): SagaIterator {
+export const taskWorker: SDKWorker<Client> = function* (options): SagaIterator {
   getLogger().trace('taskWorker started')
   const {
     channels: { swEventChannel },
-    initialState: { taskEmitter },
+    initialState: { task },
   } = options
 
   function* worker(action: TaskAction) {
     const { context } = action.payload
 
-    taskEmitter.emit(
-      prefixEvent(context, 'task.received'),
-      action.payload.message
-    )
+    task.emit(prefixEvent(context, 'task.received'), action.payload.message)
   }
 
   const isTaskEvent = (action: SDKActions) =>

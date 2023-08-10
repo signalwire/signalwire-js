@@ -1,4 +1,4 @@
-import { EventEmitter, toExternalJSON, uuid } from '@signalwire/core'
+import { toExternalJSON, uuid } from '@signalwire/core'
 import type {
   VoiceCallDialPhoneMethodParams,
   VoiceCallDialSipMethodParams,
@@ -27,7 +27,6 @@ type VoiceListenersKeys = keyof Omit<VoiceListenOptions, 'topics'>
 
 export class Voice extends BaseNamespace<VoiceListenOptions, VoiceEvents> {
   private _tag: string
-  private _voiceEmitter = new EventEmitter<VoiceEvents>()
   protected _eventMap: Record<VoiceListenersKeys, CallReceived> = {
     onCallReceived: 'call.received',
   }
@@ -45,10 +44,6 @@ export class Voice extends BaseNamespace<VoiceListenOptions, VoiceEvents> {
         tag: this._tag,
       },
     })
-  }
-
-  get emitter() {
-    return this._voiceEmitter
   }
 
   set callListeners(listeners) {

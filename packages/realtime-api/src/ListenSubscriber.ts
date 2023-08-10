@@ -16,8 +16,9 @@ export class ListenSubscriber<
   T extends {},
   EventTypes extends EventEmitter.ValidEventTypes
 > {
+  /** @internal */
+  _sw: SWClient
   protected _client: Client
-  protected _sw: SWClient
   protected _listenerMap: ListenerMap<T> = new Map()
   protected _eventMap: Record<keyof T, keyof EventTypes>
   private _emitter = new EventEmitter<EventTypes>()

@@ -1,9 +1,5 @@
 import { request } from 'node:https'
-import {
-  EventEmitter,
-  TaskInboundEvent,
-  TaskReceivedEventName,
-} from '@signalwire/core'
+import { TaskInboundEvent, TaskReceivedEventName } from '@signalwire/core'
 import { SWClient } from '../SWClient'
 import { taskWorker } from './workers'
 import { ListenOptions, BaseNamespace } from '../BaseNamespace'
@@ -18,7 +14,6 @@ interface TaskListenOptions extends ListenOptions {
 type TaskListenersKeys = keyof Omit<TaskListenOptions, 'topics'>
 
 export class Task extends BaseNamespace<TaskListenOptions> {
-  private _taskEmitter = new EventEmitter()
   protected _eventMap: Record<TaskListenersKeys, TaskReceivedEventName> = {
     onTaskReceived: 'task.received',
   }
@@ -29,13 +24,9 @@ export class Task extends BaseNamespace<TaskListenOptions> {
     this._client.runWorker('taskWorker', {
       worker: taskWorker,
       initialState: {
-        taskEmitter: this._taskEmitter,
+        task: this,
       },
     })
-  }
-
-  protected get emitter() {
-    return this._taskEmitter
   }
 
   send({

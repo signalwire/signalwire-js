@@ -3,9 +3,9 @@ import {
   SagaIterator,
   CallingCallPlayEventParams,
 } from '@signalwire/core'
-import { CallPlayback, createCallPlaybackObject } from '../CallPlayback'
-import { Call } from '../Voice'
 import type { VoiceCallWorkerParams } from './voiceCallingWorker'
+import { CallPlayback } from '../CallPlayback2'
+import { Call } from '../Call2'
 
 export const voiceCallPlayWorker = function* (
   options: VoiceCallWorkerParams<CallingCallPlayEventParams>
@@ -28,15 +28,18 @@ export const voiceCallPlayWorker = function* (
   let playbackInstance = get<CallPlayback>(controlId)
   if (!playbackInstance) {
     getLogger().trace('voiceCallPlayWorker create instance')
-    playbackInstance = createCallPlaybackObject({
-      store: callInstance.store,
-      payload,
-    })
+    playbackInstance = new CallPlayback({ call: callInstance, payload })
   } else {
     getLogger().trace('voiceCallPlayWorker GOT instance')
     playbackInstance.setPayload(payload)
   }
   set<CallPlayback>(controlId, playbackInstance)
+
+  /**
+   * Playback listeners can be attached to both Call and CallPlayback objects
+   * Emit the events for both objects
+   * Some events are also being used to resolve the promise such as playback.started and playback.failed
+   */
 
   switch (payload.state) {
     case 'playing': {
@@ -46,17 +49,18 @@ export const voiceCallPlayWorker = function* (
       playbackInstance._paused = false
 
       callInstance.emit(type, playbackInstance)
+      playbackInstance.emit(type, playbackInstance)
       break
     }
     case 'paused': {
       playbackInstance._paused = true
+
       callInstance.emit('playback.updated', playbackInstance)
+      playbackInstance.emit('playback.updated', playbackInstance)
       break
     }
     case 'error': {
       callInstance.emit('playback.failed', playbackInstance)
-
-      // To resolve the ended() promise in CallPlayback
       playbackInstance.emit('playback.failed', playbackInstance)
 
       remove<CallPlayback>(controlId)
@@ -64,8 +68,6 @@ export const voiceCallPlayWorker = function* (
     }
     case 'finished': {
       callInstance.emit('playback.ended', playbackInstance)
-
-      // To resolve the ended() promise in CallPlayback
       playbackInstance.emit('playback.ended', playbackInstance)
 
       remove<CallPlayback>(controlId)

@@ -2,14 +2,24 @@ import {
   CallingCallConnectEventParams,
   CallingCall,
   uuid,
+  VoiceCallDisconnectReason,
+  VoicePlaylist,
+  VoiceCallPlayAudioMethodParams,
+  VoiceCallPlaySilenceMethodParams,
+  VoiceCallPlayRingtoneMethodParams,
+  VoiceCallPlayTTSMethodParams,
 } from '@signalwire/core'
+import { CallPlayback } from './CallPlayback2'
+import { Playlist } from './Playlist'
 import { Voice } from './Voice2'
 import { ListenSubscriber } from '../ListenSubscriber'
 import {
+  CallPlaybackListeners,
   RealTimeCallEvents,
   RealTimeCallListeners,
   RealtimeCallListenersEventsMapping,
 } from '../types'
+import { toInternalPlayParams } from './utils'
 
 export interface CallOptions {
   voice: Voice
@@ -25,6 +35,7 @@ export class Call extends ListenSubscriber<
   private _peer: Call | undefined
   private _payload: CallingCall
   private _connectPayload: CallingCallConnectEventParams | undefined
+  protected _playbackListeners: CallPlaybackListeners | undefined
   protected _eventMap: RealtimeCallListenersEventsMapping = {
     onStateChanged: 'call.state',
     onPlaybackStarted: 'playback.started',
@@ -44,7 +55,8 @@ export class Call extends ListenSubscriber<
     this._payload = options.payload
     this._connectPayload = options.connectPayload
 
-    if (options.voice.callListeners) {
+    // Initial listeners can only be attached to the outbound call using voice.dial
+    if (options.voice.callListeners && this.direction === 'outbound') {
       this.listen(options.voice.callListeners)
     }
   }
@@ -154,6 +166,87 @@ export class Call extends ListenSubscriber<
     this._connectPayload = payload
   }
 
+  set playbackListeners(listeners) {
+    this._playbackListeners = listeners
+  }
+
+  get playbackListeners() {
+    return this._playbackListeners
+  }
+
+  /**
+   * Hangs up the call.
+   * @param reason Optional reason for hanging up
+   *
+   * @example
+   *
+   * ```js
+   * call.hangup();
+   * ```
+   */
+  hangup(reason: VoiceCallDisconnectReason = 'hangup') {
+    return new Promise((resolve, reject) => {
+      if (!this.callId || !this.nodeId) {
+        reject(
+          new Error(
+            `Can't call hangup() on a call that hasn't been established.`
+          )
+        )
+      }
+
+      this.on('call.state', (params) => {
+        if (params.state === 'ended') {
+          resolve(new Error('Failed to hangup the call.'))
+        }
+      })
+
+      this._client
+        .execute({
+          method: 'calling.end',
+          params: {
+            node_id: this.nodeId,
+            call_id: this.callId,
+            reason: reason,
+          },
+        })
+        .catch((e) => {
+          reject(e)
+        })
+    })
+  }
+
+  /**
+   * Pass the incoming call to another consumer.
+   *
+   * @example
+   *
+   * ```js
+   * call.pass();
+   * ```
+   */
+  pass() {
+    return new Promise<void>((resolve, reject) => {
+      if (!this.callId || !this.nodeId) {
+        reject(new Error(`Can't call pass() on a call without callId.`))
+      }
+
+      this._client
+        .execute({
+          method: 'calling.pass',
+          params: {
+            node_id: this.nodeId,
+            call_id: this.callId,
+          },
+        })
+        .then(() => {
+          resolve()
+        })
+        .catch((e) => {
+          reject(e)
+        })
+    })
+  }
+
   /**
    * Answers the incoming call.
    *
@@ -199,5 +292,147 @@ export class Call extends ListenSubscriber<
           reject(e)
         })
     })
+  }
+
+  /**
+   * Play one or multiple media in a Call and waits until the playing has ended.
+   *
+   * The play method is a generic method for all types of media, see
+   * {@link playAudio}, {@link playSilence}, {@link playTTS} or
+   * {@link playRingtone} for more specific usages.
+   *
+   * @param params a media playlist. See {@link Voice.Playlist}.
+   *
+   * @example
+   *
+   * ```js
+   * await call.play(new Voice.Playlist({ volume: 1.0 }).add(
+   *   Voice.Playlist.TTS({
+   *     text: 'Welcome to SignalWire! Please enter your 4 digits PIN',
+   *   })
+   * ))
+   * ```
+   */
+  play(params: VoicePlaylist, listen?: CallPlaybackListeners) {
+    return new Promise<CallPlayback>((resolve, reject) => {
+      if (!this.callId || !this.nodeId) {
+        reject(new Error(`Can't call play() on a call not established yet.`))
+      }
+
+      this.playbackListeners = listen
+
+      const resolveHandler = (callPlayback: CallPlayback) => {
+        this.off('playback.failed', rejectHandler)
+        resolve(callPlayback)
+      }
+
+      const rejectHandler = (callPlayback: CallPlayback) => {
+        this.off('playback.started', resolveHandler)
+        reject(callPlayback)
+      }
+
+      this.once('playback.started', (playback) => {
+        resolve(playback)
+      })
+      this.once('playback.failed', rejectHandler)
+
+      const controlId = uuid()
+
+      this._client
+        .execute({
+          method: 'calling.play',
+          params: {
+            node_id: this.nodeId,
+            call_id: this.callId,
+            control_id: controlId,
+            volume: params.volume,
+            play: toInternalPlayParams(params.media),
+          },
+        })
+        .then(() => {
+          // TODO: handle then?
+        })
+        .catch((e) => {
+          this.off('playback.started', resolveHandler)
+          this.off('playback.failed', rejectHandler)
+          reject(e)
+        })
+    })
+  }
+
+  /**
+   * Plays an audio file.
+   *
+   * @example
+   *
+   * ```js
+   * const playback = await call.playAudio({ url: 'https://cdn.signalwire.com/default-music/welcome.mp3' });
+   * await playback.ended();
+   * ```
+   */
+  playAudio(
+    params: VoiceCallPlayAudioMethodParams & { listen?: CallPlaybackListeners }
+  ) {
+    const { volume, listen, ...rest } = params
+    const playlist = new Playlist({ volume }).add(Playlist.Audio(rest))
+    return this.play(playlist, listen)
+  }
+
+  /**
+   * Plays some silence.
+   *
+   * @example
+   *
+   * ```js
+   * const playback = await call.playSilence({ duration: 3 });
+   * await playback.ended();
+   * ```
+   */
+  playSilence(
+    params: VoiceCallPlaySilenceMethodParams & {
+      listen?: CallPlaybackListeners
+    }
+  ) {
+    const { listen, ...rest } = params
+    const playlist = new Playlist().add(Playlist.Silence(rest))
+    return this.play(playlist, listen)
+  }
+
+  /**
+   * Plays a ringtone.
+   *
+   * @example
+   *
+   * ```js
+   * const playback = await call.playRingtone({ name: 'it' });
+   * await playback.ended();
+   * ```
+   */
+  playRingtone(
+    params: VoiceCallPlayRingtoneMethodParams & {
+      listen?: CallPlaybackListeners
+    }
+  ) {
+    const { volume, listen, ...rest } = params
+    const playlist = new Playlist({ volume }).add(Playlist.Ringtone(rest))
+    return this.play(playlist, listen)
+  }
+
+  /**
+   * Plays text-to-speech.
+   *
+   * @example
+   *
+   * ```js
+   * const playback = await call.playTTS({ text: 'Welcome to SignalWire!' });
+   * await playback.ended();
+   * ```
+   */
+  playTTS(
+    params: VoiceCallPlayTTSMethodParams & { listen?: CallPlaybackListeners }
+  ) {
+    const { volume, listen, ...rest } = params
+    const playlist = new Playlist({ volume }).add(Playlist.TTS(rest))
+    return this.play(playlist, listen)
   }
 }

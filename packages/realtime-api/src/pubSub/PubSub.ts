@@ -1,5 +1,4 @@
 import {
-  EventEmitter,
   PubSubMessageEventName,
   PubSubNamespace,
   PubSubMessage,
@@ -15,7 +14,6 @@ interface PubSubListenOptions extends BaseChatListenOptions {
 type PubSubListenersKeys = keyof Omit<PubSubListenOptions, 'channels'>
 
 export class PubSub extends BaseChat<PubSubListenOptions> {
-  private _pubSubEmitter = new EventEmitter()
   protected _eventMap: Record<
     PubSubListenersKeys,
     `${PubSubNamespace}.${PubSubMessageEventName}`
@@ -29,13 +27,9 @@ export class PubSub extends BaseChat<PubSubListenOptions> {
     this._client.runWorker('pubSubWorker', {
       worker: pubSubWorker,
       initialState: {
-        pubSubEmitter: this._pubSubEmitter,
+        pubSubEmitter: this,
       },
     })
-  }
-
-  protected get emitter() {
-    return this._pubSubEmitter
   }
 }
 

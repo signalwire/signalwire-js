@@ -1,7 +1,6 @@
 import {
   ChatMember,
   ChatMessage,
-  EventEmitter,
   ChatEvents,
   Chat as ChatCore,
 } from '@signalwire/core'
@@ -21,7 +20,6 @@ type ChatListenersKeys = keyof Omit<ChatListenOptions, 'channels'>
 export class Chat extends ChatCore.applyCommonMethods(
   BaseChat<ChatListenOptions>
 ) {
-  private _chatEmitter = new EventEmitter()
   protected _eventMap: Record<ChatListenersKeys, ChatEvents> = {
     onMessageReceived: 'chat.message',
     onMemberJoined: 'chat.member.joined',
@@ -35,13 +33,9 @@ export class Chat extends ChatCore.applyCommonMethods(
     this._client.runWorker('chatWorker', {
       worker: chatWorker,
       initialState: {
-        chatEmitter: this._chatEmitter,
+        chatEmitter: this,
       },
     })
-  }
-
-  protected get emitter() {
-    return this._chatEmitter
   }
 }
 

@@ -1,5 +1,4 @@
 import { SagaIterator } from '@redux-saga/core'
-import { PubSub } from '../PubSub'
 import {
   sagaEffects,
   PubSubEventAction,
@@ -9,14 +8,15 @@ import {
   toExternalJSON,
 } from '@signalwire/core'
 import { prefixEvent } from '../../utils/internals'
+import type { Client } from '../../client/Client'
 
-export const pubSubWorker: SDKWorker<PubSub> = function* (
+export const pubSubWorker: SDKWorker<Client> = function* (
   options
 ): SagaIterator {
   getLogger().trace('pubSubWorker started')
   const {
     channels: { swEventChannel },
-    initialState: { pubSubEmitter },
+    initialState: { pubSub },
   } = options
 
   function* worker(action: PubSubEventAction) {
@@ -42,7 +42,7 @@ export const pubSubWorker: SDKWorker<PubSub> = function* (
         })
         const pubSubMessage = new PubSubMessage(externalJSON)
 
-        pubSubEmitter.emit(prefixEvent(channel, 'chat.message'), pubSubMessage)
+        pubSub.emit(prefixEvent(channel, 'chat.message'), pubSubMessage)
         break
       }
       default:

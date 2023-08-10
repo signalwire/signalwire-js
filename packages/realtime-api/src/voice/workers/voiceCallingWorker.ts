@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import {
   SagaIterator,
   SDKWorker,
@@ -34,6 +32,7 @@ export const voiceCallingWorker: SDKWorker<Client> = function* (
   getLogger().trace('voiceCallingWorker started')
   const {
     channels: { swEventChannel },
+    initialState,
   } = options
 
   function* worker(action: VoiceCallAction) {
@@ -43,60 +42,70 @@ export const voiceCallingWorker: SDKWorker<Client> = function* (
       case 'calling.call.state':
         yield fork(voiceCallStateWorker, {
           ...options,
+          initialState,
           payload,
         })
         break
       case 'calling.call.dial':
         yield fork(voiceCallDialWorker, {
           ...options,
+          initialState,
           payload,
         })
         break
       case 'calling.call.receive':
         yield fork(voiceCallReceiveWorker, {
           ...options,
+          initialState,
           payload,
         })
         break
       case 'calling.call.play':
         yield fork(voiceCallPlayWorker, {
           ...options,
+          initialState,
           payload,
         })
         break
       case 'calling.call.record':
         yield fork(voiceCallRecordWorker, {
           ...options,
+          initialState,
           payload,
         })
         break
       case 'calling.call.collect':
         yield fork(voiceCallCollectWorker, {
           ...options,
+          initialState,
           payload,
         })
         break
       case 'calling.call.send_digits':
         yield fork(voiceCallSendDigitsWorker, {
           ...options,
+          initialState,
           payload,
         })
         break
       case 'calling.call.detect':
         yield fork(voiceCallDetectWorker, {
           ...options,
+          initialState,
           payload,
         })
         break
       case 'calling.call.tap':
         yield fork(voiceCallTapWorker, {
           ...options,
+          initialState,
           payload,
         })
         break
       case 'calling.call.connect':
         yield fork(voiceCallConnectWorker, {
           ...options,
+          initialState,
           payload,
         })
         break

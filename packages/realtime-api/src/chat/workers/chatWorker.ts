@@ -1,5 +1,4 @@
 import { SagaIterator } from '@redux-saga/core'
-import { Chat } from '../Chat'
 import {
   sagaEffects,
   SDKWorker,
@@ -11,12 +10,13 @@ import {
   SDKActions,
 } from '@signalwire/core'
 import { prefixEvent } from '../../utils/internals'
+import type { Client } from '../../client/Client'
 
-export const chatWorker: SDKWorker<Chat> = function* (options): SagaIterator {
+export const chatWorker: SDKWorker<Client> = function* (options): SagaIterator {
   getLogger().trace('chatWorker started')
   const {
     channels: { swEventChannel },
-    initialState: { chatEmitter },
+    initialState: { chat },
   } = options
 
   function* worker(action: ChatAction) {
@@ -31,7 +31,7 @@ export const chatWorker: SDKWorker<Chat> = function* (options): SagaIterator {
         })
         const chatMessage = new ChatMessage(externalJSON)
 
-        chatEmitter.emit(prefixEvent(channel, 'chat.message'), chatMessage)
+        chat.emit(prefixEvent(channel, 'chat.message'), chatMessage)
         break
       }
       case 'chat.member.joined':
@@ -41,7 +41,7 @@ export const chatWorker: SDKWorker<Chat> = function* (options): SagaIterator {
         const externalJSON = toExternalJSON(member)
         const chatMember = new ChatMember(externalJSON)
 
-        chatEmitter.emit(prefixEvent(channel, type), chatMember)
+        chat.emit(prefixEvent(channel, type), chatMember)
         break
       }
       default:

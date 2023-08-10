@@ -22,7 +22,7 @@ import type {
   CallCollectFailed,
 } from '@signalwire/core'
 import type { Call } from '../voice/Call'
-import type { CallPlayback } from '../voice/CallPlayback'
+import type { CallPlayback } from '../voice/CallPlayback2'
 import type { CallRecording } from '../voice/CallRecording'
 import type { CallPrompt } from '../voice/CallPrompt'
 import type { CallTap } from '../voice/CallTap'
@@ -131,3 +131,41 @@ export type RealtimeCallListenersEventsMapping = Record<
   Record<'onRecordingUpdated', CallRecordingUpdated> &
   Record<'onRecordingFailed', CallRecordingFailed> &
   Record<'onRecordingEnded', CallRecordingEnded>
+
+export type CallPlaybackEvents = Record<
+  | CallPlaybackStarted
+  | CallPlaybackUpdated
+  | CallPlaybackEnded
+  | CallPlaybackFailed,
+  (playback: CallPlayback) => void
+>
+
+export interface CallPlaybackListeners {
+  onStarted?: (playback: CallPlayback) => unknown
+  onUpdated?: (playback: CallPlayback) => unknown
+  onFailed?: (playback: CallPlayback) => unknown
+  onEnded?: (playback: CallPlayback) => unknown
+}
+
+export type CallPlaybackListenersEventsMapping = Record<
+  'onStarted',
+  CallPlaybackStarted
+> &
+  Record<'onUpdated', CallPlaybackUpdated> &
+  Record<'onFailed', CallPlaybackFailed> &
+  Record<'onEnded', CallPlaybackEnded>
+
+export interface CallRecordingListeners {
+  onStarted?: (playback: CallPlayback) => unknown
+  onUpdated?: (playback: CallPlayback) => unknown
+  onFailed?: (playback: CallPlayback) => unknown
+  onEnded?: (playback: CallPlayback) => unknown
+}
+
+export type CallRecordingListenersEventsMapping = Record<
+  'onStarted',
+  CallRecordingStarted
+> &
+  Record<'onUpdated', CallRecordingUpdated> &
+  Record<'onFailed', CallRecordingFailed> &
+  Record<'onEnded', CallRecordingEnded>
