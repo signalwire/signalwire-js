@@ -82,8 +82,8 @@ const handler = () => {
 
         // Start the recording
         const recording = await call.recordAudio({
-          initialTimeout: 0,
-          endSilenceTimeout: 0,
+          // initialTimeout: 0,
+          // endSilenceTimeout: 0,
           direction: 'both',
           terminators: '#',
         })
