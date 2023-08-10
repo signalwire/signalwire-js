@@ -1,0 +1,47 @@
+{
+  "name": "@signalwire/swaig",
+  "description": "SignalWire SWAIG SDK",
+  "author": "SignalWire Team <open.source@signalwire.com>",
+  "license": "MIT",
+  "version": "0.0.0-alpha.3",
+  "main": "dist/index.node.js",
+  "exports": {
+    "require": "./dist/index.node.js",
+    "default": "./dist/index.node.mjs"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "engines": {
+    "node": ">=14"
+  },
+  "keywords": [
+    "signalwire",
+    "video",
+    "relay",
+    "swaig"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/signalwire/signalwire-js"
+  },
+  "bugs": {
+    "url": "https://github.com/signalwire/signalwire-js/issues"
+  },
+  "homepage": "https://github.com/signalwire/signalwire-js/tree/master/packages/swaig",
+  "scripts": {
+    "start": "sw-build --dev --node --watchFormat=cjs",
+    "build": "tsc --project tsconfig.build.json && sw-build --node",
+    "test": "NODE_ENV=test jest --detectOpenHandles --forceExit",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@fastify/basic-auth": "^5.0.0",
+    "fastify": "^4.21.0"
+  },
+  "types": "dist/swaig/src/index.d.ts",
+  "devDependencies": {
+    "json-schema-to-ts": "^2.9.1"
+  }
+}
