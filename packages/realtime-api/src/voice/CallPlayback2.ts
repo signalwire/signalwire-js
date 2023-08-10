@@ -1,0 +1,158 @@
+import {
+  CallingCallPlayEndState,
+  CallingCallPlayEventParams,
+} from '@signalwire/core'
+import { ListenSubscriber } from '../ListenSubscriber'
+import {
+  CallPlaybackEvents,
+  CallPlaybackListeners,
+  CallPlaybackListenersEventsMapping,
+} from '../types'
+import { Call } from './Call2'
+
+export interface CallPlaybackOptions {
+  call: Call
+  payload: CallingCallPlayEventParams
+}
+
+const ENDED_STATES: CallingCallPlayEndState[] = ['finished', 'error']
+
+export class CallPlayback extends ListenSubscriber<
+  CallPlaybackListeners,
+  CallPlaybackEvents
+> {
+  public _paused: boolean
+  private _volume: number
+  private _payload: CallingCallPlayEventParams
+  protected _eventMap: CallPlaybackListenersEventsMapping = {
+    onStarted: 'playback.started',
+    onUpdated: 'playback.updated',
+    onFailed: 'playback.failed',
+    onEnded: 'playback.ended',
+  }
+
+  constructor(options: CallPlaybackOptions) {
+    super({ swClient: options.call._sw })
+
+    this._payload = options.payload
+    this._paused = false
+
+    if (options.call.playbackListeners) {
+      this.listen(options.call.playbackListeners)
+    }
+  }
+
+  get id() {
+    return this._payload?.control_id.split('.')[0]
+  }
+
+  get volume() {
+    return this._volume
+  }
+
+  get callId() {
+    return this._payload?.call_id
+  }
+
+  get nodeId() {
+    return this._payload?.node_id
+  }
+
+  get controlId() {
+    return this._payload?.control_id
+  }
+
+  get state() {
+    return this._payload?.state
+  }
+
+  /** @internal */
+  setPayload(payload: CallingCallPlayEventParams) {
+    this._payload = payload
+  }
+
+  async pause() {
+    await this._client.execute({
+      method: 'calling.play.pause',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.callId,
+        control_id: this.controlId,
+      },
+    })
+
+    return this
+  }
+
+  async resume() {
+    await this._client.execute({
+      method: 'calling.play.resume',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.callId,
+        control_id: this.controlId,
+      },
+    })
+
+    return this
+  }
+
+  async stop() {
+    await this._client.execute({
+      method: 'calling.play.stop',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.callId,
+        control_id: this.controlId,
+      },
+    })
+
+    return this
+  }
+
+  async setVolume(volume: number) {
+    this._volume = volume
+
+    await this._client.execute({
+      method: 'calling.play.volume',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.callId,
+        control_id: this.controlId,
+        volume,
+      },
+    })
+
+    return this
+  }
+
+  /** @deprecated */
+  waitForEnded() {
+    return this.ended()
+  }
+
+  ended() {
+    return new Promise<this>((resolve) => {
+      const handler = () => {
+        this.off('playback.ended', handler)
+        this.off('playback.failed', handler)
+        // It's important to notice that we're returning
+        // `this` instead of creating a brand new instance
+        // using the payload + EventEmitter Transform
+        // pipeline. `this` is the instance created by the
+        // `Call` Emitter Transform pipeline (singleton per
+        // `Call.play()`) that gets auto updated (using
+        // the latest payload per event) by the
+        // `voiceCallPlayWorker`
+        resolve(this)
+      }
+      this.once('playback.ended', handler)
+      this.once('playback.failed', handler)
+
+      // Resolve the promise if the recording has already ended
+      if (ENDED_STATES.includes(this.state as CallingCallPlayEndState)) {
+        handler()
+      }
+    })
+  }
+}
