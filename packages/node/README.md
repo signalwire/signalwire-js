@@ -8,7 +8,7 @@ The `@signalwire/node` SDK enables Node.js developers to connect and use SignalW
 
 ## Getting Started
 
-Read the implementation documentation, guides and API Reference at the official [Node.js SDK Documentation](#1) site.
+Read the implementation documentation, guides and API Reference at the official [Node.js SDK Documentation](https://developer.signalwire.com/sdks/reference/node-sdk) site.
 
 ---
 

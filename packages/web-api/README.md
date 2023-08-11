@@ -8,7 +8,7 @@ The `@signalwire/web-api` SDK enables Node.js developers to connect and use Sign
 
 ## Getting Started
 
-Read the implementation documentation, guides and API Reference at the official [WebAPI SDK Documentation](#1) site.
+Read the implementation documentation, guides and API Reference at the official [WebAPI SDK Documentation](https://developer.signalwire.com/sdks/reference/web-api-sdk) site.
 
 ---
 
