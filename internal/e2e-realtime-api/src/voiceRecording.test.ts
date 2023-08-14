@@ -32,14 +32,6 @@ const handler = () => {
     const waitForTheAnswer = new Promise((resolve) => {
       waitForTheAnswerResolve = resolve
     })
-    // let waitForRecordStartResolve: (value: void) => void
-    // const waitForRecordStart = new Promise((resolve) => {
-    //   waitForRecordStartResolve = resolve
-    // })
-    let waitForRecordEndResolve: (value: void) => void
-    const waitForRecordEnd = new Promise((resolve) => {
-      waitForRecordEndResolve = resolve
-    })
 
     client.on('call.received', async (call) => {
       console.log(
@@ -65,11 +57,11 @@ const handler = () => {
         call.on('recording.ended', (recording) => {
           // console.log('HERE', recording)
           CALL_RECORDING_GETTERS.forEach((property) => {
-            tap.hasProp(recording, property)
+            tap.hasProp(recording, property, `Recording has ${property}`)
           })
           tap.equal(
             recording.state,
-            'no_input',
+            'finished',
             'Outbound - Recording has ended'
           )
           tap.equal(
@@ -77,13 +69,11 @@ const handler = () => {
             call.id,
             'Outbound - Recording has the same callId'
           )
-          waitForRecordEndResolve()
         })
 
         // Start the recording
         const recording = await call.recordAudio({
-          // initialTimeout: 0,
-          // endSilenceTimeout: 0,
+          initialTimeout: 0,
           direction: 'both',
           terminators: '#',
         })
@@ -103,7 +93,7 @@ const handler = () => {
         await call.sendDigits('#')
 
         // Wait for the outbound recording to end
-        await waitForRecordEnd
+        await recording.ended()
 
         // Callee hangs up a call
         await call.hangup()
@@ -169,7 +159,7 @@ async function main() {
   const runner = createTestRunner({
     name: 'Voice Recording E2E',
     testHandler: handler,
-    executionTime: 60_000,
+    executionTime: 30_000,
   })
 
   await runner.run()
