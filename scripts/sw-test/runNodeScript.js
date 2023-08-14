@@ -17,7 +17,7 @@ const getScriptOptions = (pathname, config) => {
     const itemPath = pathname + '/' + item
     if (
       fs.lstatSync(itemPath).isFile() &&
-      item.includes('voiceRecording.test.') &&
+      item.includes('.test.') &&
       !ignoreFiles.includes(item)
     ) {
       acc.push({
