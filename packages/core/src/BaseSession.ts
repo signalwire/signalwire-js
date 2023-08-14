@@ -7,6 +7,7 @@ import {
   safeParseJson,
   isJSONRPCResponse,
   isSATAuth,
+  SWCloseEvent,
 } from './utils'
 import { DEFAULT_HOST, WebSocketState } from './utils/constants'
 import {
@@ -54,7 +55,7 @@ export class BaseSession {
 
   public uuid = uuid()
   public WebSocketConstructor: NodeSocketAdapter | WebSocketAdapter
-  public CloseEventConstructor: typeof CloseEvent
+  public CloseEventConstructor: typeof SWCloseEvent
   public agent: string
   public connectVersion = DEFAULT_CONNECT_VERSION
   public reauthenticate?(): Promise<void>
@@ -77,7 +78,7 @@ export class BaseSession {
   private _status: SessionStatus = 'unknown'
   private _sessionChannel: SessionChannel
   private wsOpenHandler: (event: Event) => void
-  private wsCloseHandler: (event: CloseEvent) => void
+  private wsCloseHandler: (event: SWCloseEvent) => void
   private wsErrorHandler: (event: Event) => void
 
   constructor(public options: SessionOptions) {
@@ -396,7 +397,7 @@ export class BaseSession {
     this.logger.debug('_onSocketError', event)
   }
 
-  protected _onSocketClose(event: CloseEvent) {
+  protected _onSocketClose(event: SWCloseEvent) {
     this.logger.debug('_onSocketClose', event.type, event.code, event.reason)
     if (this._status !== 'disconnected') {
       this._status = 'reconnecting'

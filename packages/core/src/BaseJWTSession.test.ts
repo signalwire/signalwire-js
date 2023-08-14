@@ -1,11 +1,11 @@
 import WS from 'jest-websocket-mock'
 import { BaseJWTSession } from './BaseJWTSession'
 import { RPCConnect } from './RPCMessages'
-import { CloseEvent } from './utils'
+import { SWCloseEvent } from './utils'
 
 class JWTSession extends BaseJWTSession {
   public WebSocketConstructor = WebSocket
-  public CloseEventConstructor = CloseEvent
+  public CloseEventConstructor = SWCloseEvent
 }
 
 jest.mock('uuid', () => {

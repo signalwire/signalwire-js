@@ -7,7 +7,7 @@ import {
 import { SessionOptions } from './utils/interfaces'
 import { BaseSession } from './BaseSession'
 import { authExpiringAction } from './redux/actions'
-import { isSATAuth } from './utils'
+import { type SWCloseEvent, isSATAuth } from './utils'
 
 export class BaseJWTSession extends BaseSession {
   /**
@@ -138,7 +138,7 @@ export class BaseJWTSession extends BaseSession {
     }
   }
 
-  protected override _onSocketClose(event: CloseEvent) {
+  protected override _onSocketClose(event: SWCloseEvent) {
     clearTimeout(this._checkTokenExpirationTimer)
     super._onSocketClose(event)
   }

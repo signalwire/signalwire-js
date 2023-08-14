@@ -15,7 +15,7 @@ import {
   serializeableProxy,
   timeoutPromise,
   debounce,
-  CloseEvent,
+  SWCloseEvent,
   isSATAuth,
 } from './utils'
 import { WEBRTC_EVENT_TYPES, isWebrtcEventType } from './utils/common'
@@ -64,7 +64,7 @@ export {
   findNamespaceInPayload,
   timeoutPromise,
   debounce,
-  CloseEvent,
+  SWCloseEvent,
   WEBRTC_EVENT_TYPES,
   isWebrtcEventType,
   isSATAuth,
