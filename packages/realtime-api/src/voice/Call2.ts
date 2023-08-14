@@ -9,9 +9,6 @@ import {
   VoiceCallPlayRingtoneMethodParams,
   VoiceCallPlayTTSMethodParams,
 } from '@signalwire/core'
-import { CallPlayback } from './CallPlayback2'
-import { Playlist } from './Playlist'
-import { Voice } from './Voice2'
 import { ListenSubscriber } from '../ListenSubscriber'
 import {
   CallPlaybackListeners,
@@ -19,12 +16,17 @@ import {
   RealTimeCallListeners,
   RealtimeCallListenersEventsMapping,
 } from '../types'
+import { Voice } from './Voice2'
+import { Playlist } from './Playlist'
+import { CallPlayback } from './CallPlayback2'
 import { toInternalPlayParams } from './utils'
+import { voiceCallPlayWorker } from './workers'
 
 export interface CallOptions {
   voice: Voice
   payload: CallingCall
   connectPayload?: CallingCallConnectEventParams
+  listeners?: RealTimeCallListeners
 }
 
 export class Call extends ListenSubscriber<
@@ -35,7 +37,6 @@ export class Call extends ListenSubscriber<
   private _peer: Call | undefined
   private _payload: CallingCall
   private _connectPayload: CallingCallConnectEventParams | undefined
-  protected _playbackListeners: CallPlaybackListeners | undefined
   protected _eventMap: RealtimeCallListenersEventsMapping = {
     onStateChanged: 'call.state',
     onPlaybackStarted: 'playback.started',
@@ -55,9 +56,8 @@ export class Call extends ListenSubscriber<
     this._payload = options.payload
     this._connectPayload = options.connectPayload
 
-    // Initial listeners can only be attached to the outbound call using voice.dial
-    if (options.voice.callListeners && this.direction === 'outbound') {
-      this.listen(options.voice.callListeners)
+    if (options.listeners) {
+      this.listen(options.listeners)
     }
   }
 
@@ -164,14 +164,6 @@ export class Call extends ListenSubscriber<
   /** @internal */
   setConnectPayload(payload: CallingCallConnectEventParams) {
     this._connectPayload = payload
-  }
-
-  set playbackListeners(listeners) {
-    this._playbackListeners = listeners
-  }
-
-  get playbackListeners() {
-    return this._playbackListeners
   }
 
   /**
@@ -319,8 +311,6 @@ export class Call extends ListenSubscriber<
         reject(new Error(`Can't call play() on a call not established yet.`))
       }
 
-      this.playbackListeners = listen
-
       const resolveHandler = (callPlayback: CallPlayback) => {
         this.off('playback.failed', rejectHandler)
         resolve(callPlayback)
@@ -337,6 +327,14 @@ export class Call extends ListenSubscriber<
       this.once('playback.failed', rejectHandler)
 
       const controlId = uuid()
+
+      this._client.runWorker('voiceCallPlayWorker', {
+        worker: voiceCallPlayWorker,
+        initialState: {
+          controlId,
+          listeners: listen,
+        },
+      })
 
       this._client
         .execute({

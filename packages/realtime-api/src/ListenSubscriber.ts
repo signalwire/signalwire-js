@@ -1,4 +1,4 @@
-import { EventEmitter, uuid } from '@signalwire/core'
+import { EventEmitter, getLogger, uuid } from '@signalwire/core'
 import type { Client } from './client/Client'
 import { SWClient } from './SWClient'
 
@@ -109,6 +109,8 @@ export class ListenSubscriber<
       if (typeof listeners[key] === 'function' && this._eventMap[key]) {
         // @ts-expect-error
         this.on(this._eventMap[key], listeners[key])
+      } else {
+        getLogger().warn(`Unsupported listener: ${listeners[key]}`)
       }
     })
   }

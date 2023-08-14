@@ -1,36 +1,60 @@
-import { CallingCall, getLogger, SagaIterator } from '@signalwire/core'
-import type { VoiceCallWorkerParams } from './voiceCallingWorker'
+import {
+  getLogger,
+  sagaEffects,
+  SagaIterator,
+  SDKActions,
+  SDKWorker,
+  VoiceCallReceiveAction,
+} from '@signalwire/core'
+import type { Client } from '../../client/index'
 import { Call } from '../Call2'
 import { prefixEvent } from '../../utils/internals'
+import { Voice } from '../Voice2'
 
-export const voiceCallReceiveWorker = function* (
-  options: VoiceCallWorkerParams<CallingCall>
+export const voiceCallReceiveWorker: SDKWorker<Client> = function* (
+  options
 ): SagaIterator {
   getLogger().trace('voiceCallReceiveWorker started')
   const {
-    payload,
+    channels: { swEventChannel },
     instanceMap: { get, set },
-    initialState: { voice },
+    initialState,
   } = options
 
-  // Contexts is required
-  if (!payload.context || !payload.context.length) {
-    throw new Error('Invalid context to receive inbound call')
+  const voice: Voice = initialState.voice
+
+  function* worker(action: VoiceCallReceiveAction) {
+    const { payload } = action
+
+    // Contexts is required
+    if (!payload.context || !payload.context.length) {
+      throw new Error('Invalid context to receive inbound call')
+    }
+
+    let callInstance = get<Call>(payload.call_id)
+    if (!callInstance) {
+      callInstance = new Call({
+        voice,
+        payload,
+      })
+    } else {
+      callInstance.setPayload(payload)
+    }
+
+    set<Call>(payload.call_id, callInstance)
+
+    // @ts-expect-error
+    voice.emit(prefixEvent(payload.context, 'call.received'), callInstance)
   }
 
-  let callInstance = get<Call>(payload.call_id)
-  if (!callInstance) {
-    callInstance = new Call({
-      voice,
-      payload,
-    })
-  } else {
-    callInstance.setPayload(payload)
-  }
+  while (true) {
+    const action = yield sagaEffects.take(
+      swEventChannel,
+      (action: SDKActions) => action.type === 'calling.call.receive'
+    )
 
-  set<Call>(payload.call_id, callInstance)
-  // @ts-expect-error
-  voice.emit(prefixEvent(payload.context, 'call.received'), callInstance)
+    yield sagaEffects.fork(worker, action)
+  }
 
   getLogger().trace('voiceCallReceiveWorker ended')
 }
