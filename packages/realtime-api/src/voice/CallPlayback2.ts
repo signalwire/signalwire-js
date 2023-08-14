@@ -13,6 +13,7 @@ import { Call } from './Call2'
 export interface CallPlaybackOptions {
   call: Call
   payload: CallingCallPlayEventParams
+  listeners?: CallPlaybackListeners
 }
 
 const ENDED_STATES: CallingCallPlayEndState[] = ['finished', 'error']
@@ -37,8 +38,8 @@ export class CallPlayback extends ListenSubscriber<
     this._payload = options.payload
     this._paused = false
 
-    if (options.call.playbackListeners) {
-      this.listen(options.call.playbackListeners)
+    if (options.listeners) {
+      this.listen(options.listeners)
     }
   }
 
@@ -138,10 +139,9 @@ export class CallPlayback extends ListenSubscriber<
         this.off('playback.failed', handler)
         // It's important to notice that we're returning
         // `this` instead of creating a brand new instance
-        // using the payload + EventEmitter Transform
-        // pipeline. `this` is the instance created by the
-        // `Call` Emitter Transform pipeline (singleton per
-        // `Call.play()`) that gets auto updated (using
+        // using the payload. `this` is the instance created by the
+        // `voiceCallPlayWorker` (singleton per
+        // `call.play()`) that gets auto updated (using
         // the latest payload per event) by the
         // `voiceCallPlayWorker`
         resolve(this)
@@ -149,7 +149,7 @@ export class CallPlayback extends ListenSubscriber<
       this.once('playback.ended', handler)
       this.once('playback.failed', handler)
 
-      // Resolve the promise if the recording has already ended
+      // Resolve the promise if the play has already ended
       if (ENDED_STATES.includes(this.state as CallingCallPlayEndState)) {
         handler()
       }

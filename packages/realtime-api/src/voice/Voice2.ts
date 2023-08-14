@@ -8,7 +8,11 @@ import type {
   CallReceived,
 } from '@signalwire/core'
 import { Call } from './Call2'
-import { voiceCallingWorker } from './workers'
+import {
+  voiceCallStateWorker,
+  voiceCallReceiveWorker,
+  voiceCallDialWorker,
+} from './workers'
 import { DeviceBuilder } from './DeviceBuilder'
 import type {
   RealTimeCallApiEvents,
@@ -26,37 +30,50 @@ interface VoiceListenOptions extends ListenOptions {
 type VoiceListenersKeys = keyof Omit<VoiceListenOptions, 'topics'>
 
 export class Voice extends BaseNamespace<VoiceListenOptions, VoiceEvents> {
-  private _tag: string
   protected _eventMap: Record<VoiceListenersKeys, CallReceived> = {
     onCallReceived: 'call.received',
   }
-  protected _callListeners: RealTimeCallListeners | undefined
 
   constructor(options: SWClient) {
     super({ swClient: options })
 
-    this._tag = uuid()
-
-    this._client.runWorker('voiceCallingWorker', {
-      worker: voiceCallingWorker,
+    this._client.runWorker('voiceCallReceiveWorker', {
+      worker: voiceCallReceiveWorker,
       initialState: {
         voice: this,
-        tag: this._tag,
+      },
+    })
+
+    this._client.runWorker('voiceCallStateWorker', {
+      worker: voiceCallStateWorker,
+      initialState: {
+        voice: this,
+        direction: 'inbound',
       },
     })
   }
 
-  set callListeners(listeners) {
-    this._callListeners = listeners
-  }
-
-  get callListeners() {
-    return this._callListeners
-  }
-
   dial(params: VoiceDialerParams & { listen?: RealTimeCallListeners }) {
     return new Promise<Call>((resolve, reject) => {
-      this.callListeners = params.listen
+      const _tag = uuid()
+
+      this._client.runWorker('voiceCallDialWorker', {
+        worker: voiceCallDialWorker,
+        initialState: {
+          voice: this,
+          tag: _tag,
+        },
+      })
+
+      this._client.runWorker('voiceCallStateWorker', {
+        worker: voiceCallStateWorker,
+        initialState: {
+          voice: this,
+          tag: _tag,
+          listeners: params.listen,
+          direction: 'outbound',
+        },
+      })
 
       const resolveHandler = (call: Call) => {
         // @ts-expect-error
@@ -81,13 +98,13 @@ export class Voice extends BaseNamespace<VoiceListenOptions, VoiceEvents> {
       if (params instanceof DeviceBuilder) {
         const { devices } = params
         executeParams = {
-          tag: this._tag,
+          tag: _tag,
           devices: toInternalDevices(devices),
         }
       } else if ('region' in params) {
         const { region, devices: deviceBuilder } = params
         executeParams = {
-          tag: this._tag,
+          tag: _tag,
           region,
           devices: toInternalDevices(deviceBuilder.devices),
         }
