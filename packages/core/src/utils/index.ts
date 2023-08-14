@@ -25,7 +25,7 @@ export * from './extendComponent'
 export * from './eventTransformUtils'
 export * from './proxyUtils'
 export * from './debounce'
-export * from './CloseEvent'
+export * from './SWCloseEvent'
 
 export const mutateStorageKey = (key: string) => `${STORAGE_PREFIX}${key}`
 
