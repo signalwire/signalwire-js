@@ -15,8 +15,8 @@ const CALL_RECORDING_GETTERS = [
 ]
 const handler = () => {
   return new Promise<number>(async (resolve, reject) => {
-    // Expect exact num of tests
-    tap.plan(CALL_RECORDING_GETTERS.length + 9)
+    // Expect exact 10 tests
+    tap.plan(10)
 
     const client = new Voice.Client({
       host: process.env.RELAY_HOST || 'relay.swire.io',
@@ -55,10 +55,11 @@ const handler = () => {
         waitForTheAnswerResolve()
 
         call.on('recording.ended', (recording) => {
-          // console.log('HERE', recording)
-          CALL_RECORDING_GETTERS.forEach((property) => {
-            tap.hasProp(recording, property, `Recording has ${property}`)
-          })
+          tap.hasProps(
+            recording,
+            CALL_RECORDING_GETTERS,
+            'Recording has valid properties'
+          )
           tap.equal(
             recording.state,
             'finished',
