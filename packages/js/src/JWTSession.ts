@@ -4,6 +4,7 @@ import {
   getLogger,
   SessionOptions,
   SwAuthorizationState,
+  type SWCloseEvent,
 } from '@signalwire/core'
 import { getStorage, sessionStorageManager } from './utils/storage'
 import { SwCloseEvent } from './utils/CloseEvent'
@@ -88,7 +89,7 @@ export class JWTSession extends BaseJWTSession {
     }
   }
 
-  protected override _onSocketClose(event: CloseEvent) {
+  protected override _onSocketClose(event: SWCloseEvent) {
     if (this.status === 'unknown') {
       const { protocolKey, authStateKey, callIdKey } = sessionStorageManager(
         this.options.token

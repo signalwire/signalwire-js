@@ -1,4 +1,4 @@
-import { CloseEvent as CoreCloseEvent } from '@signalwire/core'
+import { SWCloseEvent as CoreCloseEvent } from '@signalwire/core'
 
 const SwCloseEvent =
   typeof CloseEvent === 'function' ? CloseEvent : CoreCloseEvent

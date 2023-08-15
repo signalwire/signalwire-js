@@ -7,7 +7,7 @@ import {
   RPCPingResponse,
   RPCDisconnectResponse,
 } from './RPCMessages'
-import { CloseEvent } from './utils'
+import { SWCloseEvent } from './utils'
 import { wait } from './testUtils'
 
 jest.mock('uuid', () => {
@@ -51,7 +51,7 @@ describe('BaseSession', () => {
       token,
     })
     session.WebSocketConstructor = WebSocket
-    session.CloseEventConstructor = CloseEvent
+    session.CloseEventConstructor = SWCloseEvent
     session.dispatch = jest.fn()
   })
   afterEach(() => {
