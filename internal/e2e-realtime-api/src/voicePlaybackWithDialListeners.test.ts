@@ -1,6 +1,6 @@
 import tap from 'tap'
 import { SignalWire } from '@signalwire/realtime-api'
-import { createTestRunner, CALL_PLAYBACK_PROPS } from './utils'
+import { createTestRunner, CALL_PLAYBACK_PROPS, CALL_PROPS } from './utils'
 
 const handler = async () => {
   return new Promise<number>(async (resolve, reject) => {
@@ -21,7 +21,7 @@ const handler = async () => {
         onCallReceived: async (call) => {
           try {
             const resultAnswer = await call.answer()
-            tap.ok(resultAnswer.id, 'Inbound - Call answered')
+            tap.hasProps(call, CALL_PROPS, 'Inbound - Call answered')
             tap.equal(
               call.id,
               resultAnswer.id,
