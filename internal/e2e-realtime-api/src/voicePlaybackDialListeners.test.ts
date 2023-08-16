@@ -14,7 +14,7 @@ const handler = async () => {
         },
       })
 
-      tap.plan(11)
+      tap.plan(7)
 
       const unsubVoice = await client.voice.listen({
         topics: ['office', 'home'],
@@ -37,52 +37,32 @@ const handler = async () => {
         to: process.env.VOICE_DIAL_TO_NUMBER as string,
         from: process.env.VOICE_DIAL_FROM_NUMBER as string,
         timeout: 30,
-      })
-      tap.ok(call.id, 'Outbound - Call resolved')
-
-      const play = await call.playTTS({
-        text: 'This is a custom text to speech for test.',
         listen: {
-          onStarted: (playback) => {
+          onPlaybackStarted: (playback) => {
             tap.hasProps(playback, CALL_PLAYBACK_PROPS, 'Playback started')
             tap.equal(playback.state, 'playing', 'Playback correct state')
           },
-          onUpdated: (playback) => {
+          onPlaybackUpdated: (playback) => {
             tap.notOk(playback.id, 'Playback updated')
           },
-          onFailed: (playback) => {
+          onPlaybackFailed: (playback) => {
             tap.notOk(playback.id, 'Playback failed')
           },
-          onEnded: (playback) => {
+          onPlaybackEnded: (playback) => {
             tap.hasProps(playback, CALL_PLAYBACK_PROPS, 'Playback ended')
-            tap.equal(playback.id, play.id, 'Playback correct id')
             tap.equal(playback.state, 'finished', 'Playback correct state')
           },
         },
       })
+      tap.ok(call.id, 'Outbound - Call resolved')
 
-      const unsubPlay = await play.listen({
-        onStarted: (playback) => {
-          tap.notOk(playback.id, 'Playback stared')
-        },
-        onUpdated: (playback) => {
-          tap.notOk(playback.id, 'Playback updated')
-        },
-        onFailed: (playback) => {
-          tap.notOk(playback.id, 'Playback failed')
-        },
-        onEnded: (playback) => {
-          tap.hasProps(playback, CALL_PLAYBACK_PROPS, 'Playback ended')
-          tap.equal(playback.id, play.id, 'Playback correct id')
-          tap.equal(playback.state, 'finished', 'Playback correct state')
-        },
+      const play = await call.playAudio({
+        url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
       })
 
       await play.stop()
 
       await unsubVoice()
-
-      await unsubPlay()
 
       await call.hangup()
 
@@ -90,7 +70,7 @@ const handler = async () => {
 
       resolve(0)
     } catch (error) {
-      console.error('Outbound - voicePlayback error', error)
+      console.error('VoicePlaybackDialListeners error', error)
       reject(4)
     }
   })
@@ -98,7 +78,7 @@ const handler = async () => {
 
 async function main() {
   const runner = createTestRunner({
-    name: 'Voice Playback with Play Listeners E2E',
+    name: 'Voice Playback with Dial Listeners E2E',
     testHandler: handler,
     executionTime: 30_000,
   })

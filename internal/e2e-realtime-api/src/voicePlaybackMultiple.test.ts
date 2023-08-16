@@ -1,6 +1,6 @@
 import tap from 'tap'
 import { SignalWire } from '@signalwire/realtime-api'
-import { createTestRunner, CALL_PLAYBACK_PROPS, sleep } from './utils'
+import { createTestRunner, CALL_PLAYBACK_PROPS } from './utils'
 
 const handler = async () => {
   return new Promise<number>(async (resolve, reject) => {
@@ -188,7 +188,7 @@ const handler = async () => {
 
       resolve(0)
     } catch (error) {
-      console.error('Outbound - voicePlayback error', error)
+      console.error('VoicePlaybackMultiple error', error)
       reject(4)
     }
   })

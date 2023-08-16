@@ -1,11 +1,6 @@
 import tap from 'tap'
 import { SignalWire } from '@signalwire/realtime-api'
-import {
-  createTestRunner,
-  CALL_PLAYBACK_PROPS,
-  sleep,
-  CALL_PROPS,
-} from './utils'
+import { createTestRunner, CALL_PLAYBACK_PROPS, CALL_PROPS } from './utils'
 
 const handler = async () => {
   return new Promise<number>(async (resolve, reject) => {
@@ -19,7 +14,7 @@ const handler = async () => {
         },
       })
 
-      tap.plan(7)
+      tap.plan(11)
 
       const unsubVoice = await client.voice.listen({
         topics: ['office', 'home'],
@@ -45,32 +40,49 @@ const handler = async () => {
       })
       tap.ok(call.id, 'Outbound - Call resolved')
 
-      const unsubCall = await call.listen({
-        onPlaybackStarted: (playback) => {
-          tap.hasProps(playback, CALL_PLAYBACK_PROPS, 'Playback started')
-          tap.equal(playback.state, 'playing', 'Playback correct state')
-        },
-        onPlaybackUpdated: (playback) => {
-          tap.notOk(playback.id, 'Playback updated')
-        },
-        onPlaybackFailed: (playback) => {
-          tap.notOk(playback.id, 'Playback failed')
-        },
-        onPlaybackEnded: (playback) => {
-          tap.hasProps(playback, CALL_PLAYBACK_PROPS, 'Playback ended')
-          tap.equal(playback.state, 'finished', 'Playback correct state')
+      const play = await call.playTTS({
+        text: 'This is a custom text to speech for test.',
+        listen: {
+          onStarted: (playback) => {
+            tap.hasProps(playback, CALL_PLAYBACK_PROPS, 'Playback started')
+            tap.equal(playback.state, 'playing', 'Playback correct state')
+          },
+          onUpdated: (playback) => {
+            tap.notOk(playback.id, 'Playback updated')
+          },
+          onFailed: (playback) => {
+            tap.notOk(playback.id, 'Playback failed')
+          },
+          onEnded: (playback) => {
+            tap.hasProps(playback, CALL_PLAYBACK_PROPS, 'Playback ended')
+            tap.equal(playback.id, play.id, 'Playback correct id')
+            tap.equal(playback.state, 'finished', 'Playback correct state')
+          },
         },
       })
 
-      const play = await call.playAudio({
-        url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
+      const unsubPlay = await play.listen({
+        onStarted: (playback) => {
+          tap.notOk(playback.id, 'Playback stared')
+        },
+        onUpdated: (playback) => {
+          tap.notOk(playback.id, 'Playback updated')
+        },
+        onFailed: (playback) => {
+          tap.notOk(playback.id, 'Playback failed')
+        },
+        onEnded: (playback) => {
+          tap.hasProps(playback, CALL_PLAYBACK_PROPS, 'Playback ended')
+          tap.equal(playback.id, play.id, 'Playback correct id')
+          tap.equal(playback.state, 'finished', 'Playback correct state')
+        },
       })
 
       await play.stop()
 
       await unsubVoice()
 
-      await unsubCall()
+      await unsubPlay()
 
       await call.hangup()
 
@@ -78,7 +90,7 @@ const handler = async () => {
 
       resolve(0)
     } catch (error) {
-      console.error('Outbound - voicePlayback error', error)
+      console.error('VoicePlaybackPlayListeners error', error)
       reject(4)
     }
   })
@@ -86,7 +98,7 @@ const handler = async () => {
 
 async function main() {
   const runner = createTestRunner({
-    name: 'Voice Playback with Call Listeners E2E',
+    name: 'Voice Playback with Play Listeners E2E',
     testHandler: handler,
     executionTime: 30_000,
   })
