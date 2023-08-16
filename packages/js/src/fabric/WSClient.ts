@@ -37,6 +37,7 @@ export class WSClient {
   }
 
   connect() {
+    this.logger.info('>>> Connect??')
     // @ts-ignore
     this.wsClient.runWorker('WSClientWorker', {
       worker: WSClientWorker,
@@ -107,6 +108,13 @@ export class WSClient {
               call.emitter.once('verto.display', () => resolve(call))
               call.once('room.subscribed', () => resolve(call))
 
+              // // @ts-expect-error
+              // call.updateMediaOptions({
+              //   audio: true,
+              //   video: false,
+              //   negotiateAudio: true,
+              //   negotiateVideo: false,
+              // })
               await call.join()
             } catch (error) {
               getLogger().error('WSClient call start', error)
