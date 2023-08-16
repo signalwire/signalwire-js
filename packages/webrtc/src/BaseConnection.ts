@@ -387,10 +387,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     this.logger.debug('_triggerNewRTCPeer Start')
     try {
       this.logger.debug('Build a new RTCPeer')
-      const rtcPeer = new RTCPeer(this, 'offer')
-      this.appendRTCPeer(rtcPeer)
-      this.logger.debug('Run workers for the new RTCPeer', rtcPeer.uuid)
-      this.runRTCPeerWorkers(rtcPeer.uuid)
+      const rtcPeer = this._buildPeer('offer')
       this.logger.debug('Trigger start for the new RTCPeer!')
       await rtcPeer.start()
     } catch (error) {
@@ -655,7 +652,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   invite<T>(): Promise<T> {
     return new Promise(async (resolve, reject) => {
       this.direction = 'outbound'
-      this.peer = new RTCPeer(this, 'offer')
+      this.peer = this._buildPeer('offer')
       try {
         this.runRTCPeerWorkers(this.peer.uuid)
 
@@ -673,7 +670,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     return new Promise(async (resolve, reject) => {
       this.direction = 'inbound'
       if (!this.peer) {
-        this.peer = new RTCPeer(this, 'answer')
+        this.peer = this._buildPeer('answer')
       }
       try {
         this.runRTCPeerWorkers(this.peer.uuid)
@@ -965,7 +962,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   setState(state: BaseConnectionState) {
     this.prevState = this.state
     this.state = state
-    this.logger.trace(
+    this.logger.debug(
       `Call ${this.id} state change from ${this.prevState} to ${this.state}`
     )
 
@@ -1004,6 +1001,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   /** @internal */
   public onVertoBye = (params: OnVertoByeParams) => {
+    this.logger.info('onVertoBye', params)
     const {
       rtcPeerId,
       byeCause = 'NORMAL_CLEARING',
@@ -1033,6 +1031,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
     // Set state to hangup only if the rtcPeer is the current one
     if (this.activeRTCPeerId === rtcPeer?.uuid) {
+      this.logger.info('onVertoBye go hangup')
       this.setState('hangup')
     }
   }
@@ -1064,8 +1063,18 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   private _initPeer() {
-    const rtcType: RTCSdpType = this.options.remoteSdp ? 'answer' : 'offer'
-    this.peer = new RTCPeer(this, rtcType)
+    // Build only for answer to be able to reject
+    if (this.options.remoteSdp) {
+      this.peer = this._buildPeer('answer')
+    }
+  }
+
+  private _buildPeer(type: RTCSdpType) {
+    const rtcPeer = new RTCPeer(this, type)
+    this.appendRTCPeer(rtcPeer)
+    this.runRTCPeerWorkers(rtcPeer.uuid)
+
+    return rtcPeer
   }
 
   /** @internal */
