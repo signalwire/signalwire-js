@@ -36,16 +36,15 @@ export const voiceCallPlayWorker: SDKWorker<Client> = function* (
   function* worker(action: VoiceCallPlayAction) {
     const { payload } = action
 
-    const callInstance = get<Call>(payload.call_id)
-    if (!callInstance) {
-      throw new Error('Missing call instance for playback')
-      // TBD: Shall we return true to stop the while loop?
-    }
-
     // Playback events' control id for prompt contains `.prompt` keyword at the end of the string
     const [payloadControlId] = payload.control_id.split('.')
 
     if (payloadControlId !== controlId) return
+
+    const callInstance = get<Call>(payload.call_id)
+    if (!callInstance) {
+      throw new Error('Missing call instance for playback')
+    }
 
     let playbackInstance = get<CallPlayback>(controlId)
     if (!playbackInstance) {
@@ -65,10 +64,8 @@ export const voiceCallPlayWorker: SDKWorker<Client> = function* (
           ? 'playback.updated'
           : 'playback.started'
         playbackInstance._paused = false
-
         callInstance.emit(type, playbackInstance)
         playbackInstance.emit(type, playbackInstance)
-
         return false
       }
       case 'paused': {
@@ -76,23 +73,18 @@ export const voiceCallPlayWorker: SDKWorker<Client> = function* (
 
         callInstance.emit('playback.updated', playbackInstance)
         playbackInstance.emit('playback.updated', playbackInstance)
-
         return false
       }
       case 'error': {
         callInstance.emit('playback.failed', playbackInstance)
         playbackInstance.emit('playback.failed', playbackInstance)
-
         remove<CallPlayback>(controlId)
-
         return true
       }
       case 'finished': {
         callInstance.emit('playback.ended', playbackInstance)
         playbackInstance.emit('playback.ended', playbackInstance)
-
         remove<CallPlayback>(controlId)
-
         return true
       }
       default:

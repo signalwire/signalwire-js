@@ -127,3 +127,49 @@ export const sleep = (ms = 3000) => {
     setTimeout(r, ms)
   })
 }
+
+export const CALL_PROPS = [
+  'id',
+  'callId',
+  'nodeId',
+  'state',
+  'callState',
+  'tag',
+  'device',
+  'type',
+  'from',
+  'to',
+  'headers',
+  'active',
+  'connected',
+  'direction',
+  'context',
+  // 'connectState', // Undefined unless peer call
+  // 'peer', // Undefined unless peer call
+  'hangup',
+  'pass',
+  'answer',
+  'play',
+  'playAudio',
+  'playSilence',
+  'playRingtone',
+  'playTTS',
+  'record',
+  'recordAudio',
+  'waitFor',
+  // TODO: Add more as we add more APIs in the newer interface
+]
+
+export const CALL_PLAYBACK_PROPS = [
+  'id',
+  'callId',
+  'nodeId',
+  'controlId',
+  // 'volume', // Undefined unless set
+  'state',
+  'pause',
+  'resume',
+  'stop',
+  'setVolume',
+  'ended',
+]

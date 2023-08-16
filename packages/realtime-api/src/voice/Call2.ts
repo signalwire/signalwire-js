@@ -8,19 +8,25 @@ import {
   VoiceCallPlaySilenceMethodParams,
   VoiceCallPlayRingtoneMethodParams,
   VoiceCallPlayTTSMethodParams,
+  VoiceCallRecordMethodParams,
+  toSnakeCaseKeys,
+  CallingCallWaitForState,
+  CallingCallState,
 } from '@signalwire/core'
 import { ListenSubscriber } from '../ListenSubscriber'
 import {
   CallPlaybackListeners,
+  CallRecordingListeners,
   RealTimeCallEvents,
   RealTimeCallListeners,
   RealtimeCallListenersEventsMapping,
 } from '../types'
-import { Voice } from './Voice2'
-import { Playlist } from './Playlist'
-import { CallPlayback } from './CallPlayback2'
 import { toInternalPlayParams } from './utils'
-import { voiceCallPlayWorker } from './workers'
+import { voiceCallPlayWorker, voiceCallRecordWorker } from './workers'
+import { Playlist } from './Playlist'
+import { Voice } from './Voice2'
+import { CallPlayback } from './CallPlayback2'
+import { CallRecording } from './CallRecording2'
 
 export interface CallOptions {
   voice: Voice
@@ -158,7 +164,7 @@ export class Call extends ListenSubscriber<
 
   /** @internal */
   setPayload(payload: CallingCall) {
-    this._payload = payload
+    this._payload = { ...this._payload, ...payload }
   }
 
   /** @internal */
@@ -321,9 +327,7 @@ export class Call extends ListenSubscriber<
         reject(callPlayback)
       }
 
-      this.once('playback.started', (playback) => {
-        resolve(playback)
-      })
+      this.once('playback.started', resolveHandler)
       this.once('playback.failed', rejectHandler)
 
       const controlId = uuid()
@@ -432,5 +436,127 @@ export class Call extends ListenSubscriber<
     const { volume, listen, ...rest } = params
     const playlist = new Playlist({ volume }).add(Playlist.TTS(rest))
     return this.play(playlist, listen)
+  }
+
+  /**
+   * Generic method to record a call. Please see {@link recordAudio}.
+   */
+  record(params: VoiceCallRecordMethodParams, listen?: CallRecordingListeners) {
+    return new Promise<CallRecording>((resolve, reject) => {
+      if (!this.callId || !this.nodeId) {
+        reject(new Error(`Can't call record() on a call not established yet.`))
+      }
+
+      const resolveHandler = (callRecording: CallRecording) => {
+        this.off('recording.failed', rejectHandler)
+        resolve(callRecording)
+      }
+
+      const rejectHandler = (callRecording: CallRecording) => {
+        this.off('recording.started', resolveHandler)
+        reject(callRecording)
+      }
+
+      this.once('recording.started', resolveHandler)
+      this.once('recording.failed', rejectHandler)
+
+      const controlId = uuid()
+      const record = toSnakeCaseKeys(params)
+
+      this._client.runWorker('voiceCallRecordWorker', {
+        worker: voiceCallRecordWorker,
+        initialState: {
+          controlId,
+          listeners: listen,
+        },
+      })
+
+      this._client
+        .execute({
+          method: 'calling.record',
+          params: {
+            node_id: this.nodeId,
+            call_id: this.callId,
+            control_id: controlId,
+            record,
+          },
+        })
+        .then(() => {
+          // TODO: handle then?
+        })
+        .catch((e) => {
+          this.off('recording.started', resolveHandler)
+          this.off('recording.failed', rejectHandler)
+          reject(e)
+        })
+    })
+  }
+
+  /**
+   * Records the audio from the call.
+   *
+   * @example
+   *
+   * ```js
+   * const recording = await call.recordAudio({ direction: 'both' })
+   * await recording.stop()
+   * ```
+   */
+  recordAudio(
+    params: VoiceCallRecordMethodParams['audio'] & {
+      listen?: CallRecordingListeners
+    } = {}
+  ) {
+    const { listen, ...rest } = params
+    return this.record(
+      {
+        audio: rest,
+      },
+      listen
+    )
+  }
+
+  /**
+   * Returns a promise that is resolved only after the current call is in one of
+   * the specified states.
+   *
+   * @returns true if the requested states have been reached, false if they
+   * won't be reached because the call ended.
+   *
+   * @example
+   *
+   * ```js
+   * await call.waitFor('ended')
+   * ```
+   */
+  waitFor(params: CallingCallWaitForState | CallingCallWaitForState[]) {
+    return new Promise((resolve) => {
+      if (!params) {
+        resolve(true)
+      }
+
+      const events = Array.isArray(params) ? params : [params]
+      const emittedCallStates = new Set<CallingCallState>()
+      const shouldResolve = () => emittedCallStates.size === events.length
+      const shouldWaitForEnded = events.includes('ended')
+      // If the user is not awaiting for the `ended` state
+      // and we've got that from the server then we won't
+      // get the event/s the user was awaiting for
+      const shouldResolveUnsuccessful = (state: CallingCallState) => {
+        return !shouldWaitForEnded && state === 'ended'
+      }
+
+      this.on('call.state', (params) => {
+        if (events.includes(params.state as CallingCallWaitForState)) {
+          emittedCallStates.add(params.state)
+        } else if (shouldResolveUnsuccessful(params.state)) {
+          return resolve(false)
+        }
+
+        if (shouldResolve()) {
+          resolve(true)
+        }
+      })
+    })
   }
 }
