@@ -245,12 +245,12 @@ window.connect = async () => {
     nodeId: steeringId,
   })
 
+  window.__call = call
+  roomObj = call
+
   await call.start()
 
   console.debug('Call Obj', call)
-
-  window.__call = call
-  roomObj = call
 
   const joinHandler = (params) => {
     console.debug('>> room.joined', params)
