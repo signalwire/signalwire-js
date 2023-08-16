@@ -1,6 +1,7 @@
 import {
   CallingCallPlayEndState,
   CallingCallPlayEventParams,
+  VoiceCallPlaybackContract,
 } from '@signalwire/core'
 import { ListenSubscriber } from '../ListenSubscriber'
 import {
@@ -18,10 +19,10 @@ export interface CallPlaybackOptions {
 
 const ENDED_STATES: CallingCallPlayEndState[] = ['finished', 'error']
 
-export class CallPlayback extends ListenSubscriber<
-  CallPlaybackListeners,
-  CallPlaybackEvents
-> {
+export class CallPlayback
+  extends ListenSubscriber<CallPlaybackListeners, CallPlaybackEvents>
+  implements VoiceCallPlaybackContract
+{
   public _paused: boolean
   private _volume: number
   private _payload: CallingCallPlayEventParams

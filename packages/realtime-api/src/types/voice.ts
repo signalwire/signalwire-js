@@ -442,6 +442,9 @@ export type RealtimeCallListenersEventsMapping = Record<
   Record<'onRecordingFailed', CallRecordingFailed> &
   Record<'onRecordingEnded', CallRecordingEnded>
 
+/**
+ * Call Playback
+ */
 export type CallPlaybackEvents = Record<
   | CallPlaybackStarted
   | CallPlaybackUpdated
@@ -464,6 +467,17 @@ export type CallPlaybackListenersEventsMapping = Record<
   Record<'onUpdated', CallPlaybackUpdated> &
   Record<'onFailed', CallPlaybackFailed> &
   Record<'onEnded', CallPlaybackEnded>
+
+/**
+ * Call Recording
+ */
+export type CallRecordingEvents = Record<
+  | CallRecordingStarted
+  | CallRecordingUpdated
+  | CallRecordingEnded
+  | CallRecordingFailed,
+  (recording: CallRecording) => void
+>
 
 export interface CallRecordingListeners {
   onStarted?: (playback: CallPlayback) => unknown
