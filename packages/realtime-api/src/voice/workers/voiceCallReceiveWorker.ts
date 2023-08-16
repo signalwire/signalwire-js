@@ -11,6 +11,10 @@ import { Call } from '../Call2'
 import { prefixEvent } from '../../utils/internals'
 import { Voice } from '../Voice2'
 
+interface VoiceCallReceiveWorkerInitialState {
+  voice: Voice
+}
+
 export const voiceCallReceiveWorker: SDKWorker<Client> = function* (
   options
 ): SagaIterator {
@@ -21,7 +25,7 @@ export const voiceCallReceiveWorker: SDKWorker<Client> = function* (
     initialState,
   } = options
 
-  const voice: Voice = initialState.voice
+  const { voice } = initialState as VoiceCallReceiveWorkerInitialState
 
   function* worker(action: VoiceCallReceiveAction) {
     const { payload } = action

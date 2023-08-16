@@ -1,114 +1,101 @@
 import tap from 'tap'
-import { Voice } from '@signalwire/realtime-api'
-import { createTestRunner } from './utils'
+import { SignalWire } from '@signalwire/realtime-api'
+import { CALL_RECORD_PROPS, CALL_PROPS, createTestRunner } from './utils'
 
 const handler = () => {
   return new Promise<number>(async (resolve, reject) => {
-    const client = new Voice.Client({
-      host: process.env.RELAY_HOST || 'relay.swire.io',
-      project: process.env.RELAY_PROJECT as string,
-      token: process.env.RELAY_TOKEN as string,
-      contexts: [process.env.VOICE_CONTEXT as string],
-      debug: {
-        logWsTraffic: true,
-      },
-    })
-
-    let waitForTheAnswerResolve: (value: void) => void
-    const waitForTheAnswer = new Promise((resolve) => {
-      waitForTheAnswerResolve = resolve
-    })
-    let waitForOutboundRecordFinishResolve
-    const waitForOutboundRecordFinish = new Promise((resolve) => {
-      waitForOutboundRecordFinishResolve = resolve
-    })
-
-    client.on('call.received', async (call) => {
-      console.log(
-        'Inbound - Got call',
-        call.id,
-        call.from,
-        call.to,
-        call.direction
-      )
-
-      try {
-        const resultAnswer = await call.answer()
-        tap.ok(resultAnswer.id, 'Inbound - Call answered')
-        tap.equal(
-          call.id,
-          resultAnswer.id,
-          'Inbound - Call answered gets the same instance'
-        )
-
-        // Resolve the answer promise to inform the caller
-        waitForTheAnswerResolve()
-
-        const firstRecording = await call.recordAudio({ terminators: '#' })
-        tap.equal(
-          call.id,
-          firstRecording.callId,
-          'Inbound - firstRecording returns the same instance'
-        )
-        tap.equal(
-          firstRecording.state,
-          'recording',
-          'Inbound - firstRecording state is "recording"'
-        )
-
-        await call.sendDigits('#')
-
-        await firstRecording.ended()
-        tap.match(
-          firstRecording.state,
-          /finished|no_input/,
-          'Inbound - firstRecording state is "finished"'
-        )
-
-        // Wait till the second recording ends
-        await waitForOutboundRecordFinish
-
-        // Callee hangs up a call
-        await call.hangup()
-      } catch (error) {
-        reject(4)
-      }
-    })
-
     try {
-      const call = await client.dialPhone({
+      const client = await SignalWire({
+        host: process.env.RELAY_HOST || 'relay.swire.io',
+        project: process.env.RELAY_PROJECT as string,
+        token: process.env.RELAY_TOKEN as string,
+        debug: {
+          // logWsTraffic: true,
+        },
+      })
+
+      tap.plan(13)
+
+      const unsubVoice = await client.voice.listen({
+        topics: ['office'],
+        onCallReceived: async (call) => {
+          try {
+            const resultAnswer = await call.answer()
+            tap.hasProps(call, CALL_PROPS, 'Inbound - Call answered')
+            tap.equal(
+              call.id,
+              resultAnswer.id,
+              'Inbound - Call answered gets the same instance'
+            )
+
+            const record = await call.recordAudio({
+              terminators: '#',
+              listen: {
+                async onFailed(recording) {
+                  tap.hasProps(
+                    recording,
+                    CALL_RECORD_PROPS,
+                    'Inbound - Recording failed'
+                  )
+                  tap.equal(
+                    recording.state,
+                    'no_input',
+                    'Recording correct state'
+                  )
+                },
+              },
+            })
+            tap.equal(
+              call.id,
+              record.callId,
+              'Inbound - Record returns the same call instance'
+            )
+
+            await call.sendDigits('#')
+
+            await record.ended()
+
+            await call.hangup()
+          } catch (error) {
+            console.error('Error answering inbound call', error)
+          }
+        },
+      })
+
+      const call = await client.voice.dialPhone({
         to: process.env.VOICE_DIAL_TO_NUMBER as string,
         from: process.env.VOICE_DIAL_FROM_NUMBER as string,
         timeout: 30,
+        listen: {
+          onRecordingStarted: (playback) => {
+            tap.hasProps(
+              playback,
+              CALL_RECORD_PROPS,
+              'Outbound - Recording started'
+            )
+            tap.equal(playback.state, 'recording', 'Recording correct state')
+          },
+        },
       })
       tap.ok(call.id, 'Outbound - Call resolved')
 
-      // Wait until callee answers the call
-      await waitForTheAnswer
-
-      const secondRecording = await call.recordAudio({ terminators: '*' })
+      const record = await call.recordAudio({
+        terminators: '*',
+      })
       tap.equal(
         call.id,
-        secondRecording.callId,
-        'Outbound - secondRecording returns the same instance'
-      )
-      tap.equal(
-        secondRecording.state,
-        'recording',
-        'Outbound - secondRecording state is "recording"'
+        record.callId,
+        'Outbound - Recording returns the same call instance'
       )
 
       await call.sendDigits('*')
 
-      await secondRecording.ended()
+      await record.ended()
       tap.match(
-        secondRecording.state,
+        record.state,
         /finished|no_input/,
-        'Outbound - secondRecording state is "finished"'
+        'Outbound - Recording state is "finished"'
       )
-
-      // Resolve the record finish promise to inform the callee
-      waitForOutboundRecordFinishResolve()
 
       const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
       const results = await Promise.all(
@@ -127,7 +114,7 @@ const handler = () => {
 
       resolve(0)
     } catch (error) {
-      console.error('Outbound - voiceRecordMultiple error', error)
+      console.error('VoiceRecordMultiple error', error)
       reject(4)
     }
   })

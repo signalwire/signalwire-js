@@ -11,6 +11,11 @@ import type { Client } from '../../client/index'
 import { SDKActions } from 'packages/core/dist/core/src'
 import { CallPlaybackListeners } from '../../types'
 
+interface VoiceCallPlayWorkerInitialState {
+  controlId: string
+  listeners?: CallPlaybackListeners
+}
+
 export const voiceCallPlayWorker: SDKWorker<Client> = function* (
   options
 ): SagaIterator {
@@ -21,10 +26,8 @@ export const voiceCallPlayWorker: SDKWorker<Client> = function* (
     initialState,
   } = options
 
-  const { controlId, listeners } = initialState as {
-    controlId: string
-    listeners?: CallPlaybackListeners
-  }
+  const { controlId, listeners } =
+    initialState as VoiceCallPlayWorkerInitialState
 
   /**
    * Playback listeners can be attached to both Call and CallPlayback objects

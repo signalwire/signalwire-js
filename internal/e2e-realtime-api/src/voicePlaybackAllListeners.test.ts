@@ -100,7 +100,7 @@ const handler = async () => {
           tap.notOk(playback.id, 'call.listen: Playback failed')
         },
         onPlaybackEnded: (playback) => {
-          // NotOk since we unsub this listener before the playback stops
+          // NotOk since we unsubscribe this listener before the playback stops
           tap.notOk(playback.id, 'call.listen: Playback ended')
         },
       })
@@ -195,7 +195,7 @@ const handler = async () => {
 
 async function main() {
   const runner = createTestRunner({
-    name: 'Voice Playback E2E',
+    name: 'Voice Playback with all Listeners E2E',
     testHandler: handler,
     executionTime: 30_000,
   })

@@ -63,6 +63,7 @@ const handler = async () => {
 
       const unsubPlay = await play.listen({
         onStarted: (playback) => {
+          // NotOk since this listener is being attached after the call.play promise has resolved
           tap.notOk(playback.id, 'Playback stared')
         },
         onUpdated: (playback) => {
@@ -90,7 +91,7 @@ const handler = async () => {
 
       resolve(0)
     } catch (error) {
-      console.error('VoicePlaybackPlayListeners error', error)
+      console.error('VoicePlaybackListeners error', error)
       reject(4)
     }
   })
@@ -98,7 +99,7 @@ const handler = async () => {
 
 async function main() {
   const runner = createTestRunner({
-    name: 'Voice Playback with Play Listeners E2E',
+    name: 'Voice Playback Listeners E2E',
     testHandler: handler,
     executionTime: 30_000,
   })

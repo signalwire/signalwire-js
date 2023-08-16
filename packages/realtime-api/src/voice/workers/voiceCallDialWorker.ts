@@ -10,6 +10,11 @@ import type { Client } from '../../client/index'
 import { SDKActions } from 'packages/core/dist/core/src'
 import { Voice } from '../Voice2'
 
+interface VoiceCallDialWorkerInitialState {
+  tag: string
+  voice: Voice
+}
+
 export const voiceCallDialWorker: SDKWorker<Client> = function* (
   options
 ): SagaIterator {
@@ -20,7 +25,7 @@ export const voiceCallDialWorker: SDKWorker<Client> = function* (
     initialState,
   } = options
 
-  const { tag, voice } = initialState as { tag: string; voice: Voice }
+  const { tag, voice } = initialState as VoiceCallDialWorkerInitialState
 
   function* worker(action: VoiceCallDialAction) {
     const { payload } = action

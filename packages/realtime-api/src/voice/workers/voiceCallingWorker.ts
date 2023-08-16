@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   SagaIterator,
   SDKWorker,
@@ -35,38 +36,22 @@ export const voiceCallingWorker: SDKWorker<Client> = function* (
     initialState,
   } = options
 
+  /**
+   * call.state, call.receive -> voice (top level)
+   *
+   * call.dial -> voice (internal usage)
+   *
+   * All the others -> call
+   *
+   *
+   * create voicePlaybackWatcher -> run it on call.play methods -> pass control id, listeners
+   * voicePlaybackWatcher invoke voiceCallPlayWorker
+   */
+
   function* worker(action: VoiceCallAction) {
     const { type, payload } = action
 
     switch (type) {
-      case 'calling.call.state':
-        yield fork(voiceCallStateWorker, {
-          ...options,
-          initialState,
-          payload,
-        })
-        break
-      case 'calling.call.dial':
-        yield fork(voiceCallDialWorker, {
-          ...options,
-          initialState,
-          payload,
-        })
-        break
-      case 'calling.call.receive':
-        yield fork(voiceCallReceiveWorker, {
-          ...options,
-          initialState,
-          payload,
-        })
-        break
-      case 'calling.call.play':
-        yield fork(voiceCallPlayWorker, {
-          ...options,
-          initialState,
-          payload,
-        })
-        break
       case 'calling.call.record':
         yield fork(voiceCallRecordWorker, {
           ...options,
@@ -117,6 +102,9 @@ export const voiceCallingWorker: SDKWorker<Client> = function* (
 
   const isCallingEvent = (action: SDKActions) =>
     action.type.startsWith('calling.')
+
+  // Cancel the loop for call.dial, when answered/failed
+  // Cancel the loop for call.state, when ended
 
   while (true) {
     const action: VoiceCallAction = yield sagaEffects.take(

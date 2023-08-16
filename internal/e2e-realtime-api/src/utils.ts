@@ -157,6 +157,7 @@ export const CALL_PROPS = [
   'record',
   'recordAudio',
   'waitFor',
+  'sendDigits',
   // TODO: Add more as we add more APIs in the newer interface
 ]
 
@@ -171,5 +172,19 @@ export const CALL_PLAYBACK_PROPS = [
   'resume',
   'stop',
   'setVolume',
+  'ended',
+]
+
+export const CALL_RECORD_PROPS = [
+  'id',
+  'callId',
+  'nodeId',
+  'controlId',
+  'state',
+  'url',
+  // 'duration', // Server is not returning it
+  // 'size', // Server is not returning it
+  'record',
+  'stop',
   'ended',
 ]

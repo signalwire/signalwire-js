@@ -1,57 +1,87 @@
 import {
   getLogger,
   SagaIterator,
-  CallingCallRecordEventParams,
+  SDKWorker,
+  sagaEffects,
+  SDKActions,
+  VoiceCallRecordAction,
 } from '@signalwire/core'
-import { CallRecording, createCallRecordingObject } from '../CallRecording'
-import { Call } from '../Voice'
-import type { VoiceCallWorkerParams } from './voiceCallingWorker'
+import type { Client } from '../../client/index'
+import { CallRecordingListeners } from '../../types'
+import { Call } from '../Call2'
+import { CallRecording } from '../CallRecording'
 
-export const voiceCallRecordWorker = function* (
-  options: VoiceCallWorkerParams<CallingCallRecordEventParams>
+interface VoiceCallRecordWorkerInitialState {
+  controlId: string
+  listeners?: CallRecordingListeners
+}
+
+export const voiceCallRecordWorker: SDKWorker<Client> = function* (
+  options
 ): SagaIterator {
   getLogger().trace('voiceCallRecordWorker started')
   const {
-    payload,
+    channels: { swEventChannel },
     instanceMap: { get, set, remove },
+    initialState,
   } = options
 
-  const callInstance = get<Call>(payload.call_id)
-  if (!callInstance) {
-    throw new Error('Missing call instance for recording')
+  const { controlId, listeners } =
+    initialState as VoiceCallRecordWorkerInitialState
+
+  function* worker(action: VoiceCallRecordAction) {
+    const { payload } = action
+
+    if (payload.control_id !== controlId) return
+
+    const callInstance = get<Call>(payload.call_id)
+    if (!callInstance) {
+      throw new Error('Missing call instance for recording')
+    }
+
+    let recordingInstance = get<CallRecording>(payload.control_id)
+    if (!recordingInstance) {
+      recordingInstance = new CallRecording({
+        call: callInstance,
+        payload,
+        listeners,
+      })
+    } else {
+      recordingInstance.setPayload(payload)
+    }
+    set<CallRecording>(payload.control_id, recordingInstance)
+
+    switch (payload.state) {
+      case 'recording': {
+        callInstance.emit('recording.started', recordingInstance)
+        recordingInstance.emit('recording.started', recordingInstance)
+        return false
+      }
+      case 'no_input':
+      case 'finished': {
+        const type =
+          payload.state === 'finished' ? 'recording.ended' : 'recording.failed'
+        callInstance.emit(type, recordingInstance)
+        recordingInstance.emit(type, recordingInstance)
+
+        remove<CallRecording>(payload.control_id)
+        return true
+      }
+      default:
+        getLogger().warn(`Unknown recording state: "${payload.state}"`)
+        return false
+    }
   }
 
-  let recordingInstance = get<CallRecording>(payload.control_id)
-  if (!recordingInstance) {
-    recordingInstance = createCallRecordingObject({
-      store: callInstance.store,
-      payload,
-    })
-  } else {
-    recordingInstance.setPayload(payload)
-  }
-  set<CallRecording>(payload.control_id, recordingInstance)
+  while (true) {
+    const action = yield sagaEffects.take(
+      swEventChannel,
+      (action: SDKActions) => action.type === 'calling.call.record'
+    )
 
-  switch (payload.state) {
-    case 'recording': {
-      callInstance.emit('recording.started', recordingInstance)
-      break
-    }
-    case 'no_input':
-    case 'finished': {
-      const type =
-        payload.state === 'finished' ? 'recording.ended' : 'recording.failed'
-      callInstance.emit(type, recordingInstance)
+    const shouldStop = yield sagaEffects.fork(worker, action)
 
-      // To resolve the ended() promise in CallRecording
-      recordingInstance.emit(type, recordingInstance)
-
-      remove<CallRecording>(payload.control_id)
-      break
-    }
-    default:
-      getLogger().warn(`Unknown recording state: "${payload.state}"`)
-      break
+    if (shouldStop.result()) break
   }
 
   getLogger().trace('voiceCallRecordWorker ended')

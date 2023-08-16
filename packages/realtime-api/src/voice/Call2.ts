@@ -8,21 +8,29 @@ import {
   VoiceCallPlaySilenceMethodParams,
   VoiceCallPlayRingtoneMethodParams,
   VoiceCallPlayTTSMethodParams,
+  VoiceCallRecordMethodParams,
+  toSnakeCaseKeys,
   CallingCallWaitForState,
   CallingCallState,
 } from '@signalwire/core'
 import { ListenSubscriber } from '../ListenSubscriber'
 import {
   CallPlaybackListeners,
+  CallRecordingListeners,
   RealTimeCallEvents,
   RealTimeCallListeners,
   RealtimeCallListenersEventsMapping,
 } from '../types'
 import { toInternalPlayParams } from './utils'
-import { voiceCallPlayWorker } from './workers'
+import {
+  voiceCallPlayWorker,
+  voiceCallRecordWorker,
+  voiceCallSendDigitsWorker,
+} from './workers'
 import { Playlist } from './Playlist'
 import { Voice } from './Voice2'
 import { CallPlayback } from './CallPlayback'
+import { CallRecording } from './CallRecording'
 
 export interface CallOptions {
   voice: Voice
@@ -46,7 +54,6 @@ export class Call extends ListenSubscriber<
     onPlaybackFailed: 'playback.failed',
     onPlaybackEnded: 'playback.ended',
     onRecordingStarted: 'recording.started',
-    onRecordingUpdated: 'recording.updated',
     onRecordingFailed: 'recording.failed',
     onRecordingEnded: 'recording.ended',
   }
@@ -435,6 +442,84 @@ export class Call extends ListenSubscriber<
   }
 
   /**
+   * Generic method to record a call. Please see {@link recordAudio}.
+   */
+  record(params: VoiceCallRecordMethodParams, listen?: CallRecordingListeners) {
+    return new Promise<CallRecording>((resolve, reject) => {
+      if (!this.callId || !this.nodeId) {
+        reject(new Error(`Can't call record() on a call not established yet.`))
+      }
+
+      const resolveHandler = (callRecording: CallRecording) => {
+        this.off('recording.failed', rejectHandler)
+        resolve(callRecording)
+      }
+
+      const rejectHandler = (callRecording: CallRecording) => {
+        this.off('recording.started', resolveHandler)
+        reject(callRecording)
+      }
+
+      this.once('recording.started', resolveHandler)
+      this.once('recording.failed', rejectHandler)
+
+      const controlId = uuid()
+      const record = toSnakeCaseKeys(params)
+
+      this._client.runWorker('voiceCallRecordWorker', {
+        worker: voiceCallRecordWorker,
+        initialState: {
+          controlId,
+          listeners: listen,
+        },
+      })
+
+      this._client
+        .execute({
+          method: 'calling.record',
+          params: {
+            node_id: this.nodeId,
+            call_id: this.callId,
+            control_id: controlId,
+            record,
+          },
+        })
+        .then(() => {
+          // TODO: handle then?
+        })
+        .catch((e) => {
+          this.off('recording.started', resolveHandler)
+          this.off('recording.failed', rejectHandler)
+          reject(e)
+        })
+    })
+  }
+
+  /**
+   * Records the audio from the call.
+   *
+   * @example
+   *
+   * ```js
+   * const recording = await call.recordAudio({ direction: 'both' })
+   * await recording.stop()
+   * ```
+   */
+  recordAudio(
+    params: VoiceCallRecordMethodParams['audio'] & {
+      listen?: CallRecordingListeners
+    } = {}
+  ) {
+    const { listen, ...rest } = params
+    return this.record(
+      {
+        audio: rest,
+      },
+      listen
+    )
+  }
+
+  /**
    * Returns a promise that is resolved only after the current call is in one of
    * the specified states.
    *
@@ -475,6 +560,83 @@ export class Call extends ListenSubscriber<
           resolve(true)
         }
       })
+    })
+  }
+
+  /**
+   * Play DTMF digits to the other party on the call.
+   *
+   * @example
+   *
+   * ```js
+   * await call.sendDigits('123')
+   * ```
+   */
+  sendDigits(digits: string) {
+    return new Promise((resolve, reject) => {
+      if (!this.callId || !this.nodeId) {
+        reject(
+          new Error(`Can't call sendDigits() on a call not established yet.`)
+        )
+      }
+
+      const callStateHandler = (params: any) => {
+        if (params.callState === 'ended' || params.callState === 'ending') {
+          reject(
+            new Error(
+              "Call is ended or about to end, couldn't send digits in time."
+            )
+          )
+        }
+      }
+
+      this.once('call.state', callStateHandler)
+
+      const cleanup = () => {
+        this.off('call.state', callStateHandler)
+      }
+
+      const resolveHandler = (call: Call) => {
+        cleanup()
+        // @ts-expect-error
+        this.off('send_digits.failed', rejectHandler)
+        resolve(call)
+      }
+
+      const rejectHandler = (error: Error) => {
+        cleanup()
+        // @ts-expect-error
+        this.off('send_digits.finished', resolveHandler)
+        reject(error)
+      }
+
+      // @ts-expect-error
+      this.once('send_digits.finished', resolveHandler)
+      // @ts-expect-error
+      this.once('send_digits.failed', rejectHandler)
+
+      const controlId = uuid()
+
+      this._client.runWorker('voiceCallSendDigitsWorker', {
+        worker: voiceCallSendDigitsWorker,
+        initialState: {
+          controlId,
+        },
+      })
+
+      this._client
+        .execute({
+          method: 'calling.send_digits',
+          params: {
+            node_id: this.nodeId,
+            call_id: this.callId,
+            control_id: controlId,
+            digits,
+          },
+        })
+        .catch((e) => {
+          reject(e)
+        })
     })
   }
 }

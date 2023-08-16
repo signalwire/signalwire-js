@@ -1,38 +1,65 @@
 import {
   getLogger,
+  sagaEffects,
   SagaIterator,
-  CallingCallSendDigitsEventParams,
+  SDKWorker,
+  VoiceCallSendDigitsAction,
 } from '@signalwire/core'
 import type { Call } from '../Call'
-import type { VoiceCallWorkerParams } from './voiceCallingWorker'
+import type { Client } from '../../client/index'
+import { SDKActions } from 'packages/core/dist/core/src'
 
-export const voiceCallSendDigitsWorker = function* (
-  options: VoiceCallWorkerParams<CallingCallSendDigitsEventParams>
+interface VoiceCallSendDigitsWorkerInitialState {
+  controlId: string
+}
+
+export const voiceCallSendDigitsWorker: SDKWorker<Client> = function* (
+  options
 ): SagaIterator {
   getLogger().trace('voiceCallSendDigitsWorker started')
   const {
-    payload,
+    channels: { swEventChannel },
     instanceMap: { get },
+    initialState,
   } = options
 
-  const callInstance = get<Call>(payload.call_id)
-  if (!callInstance) {
-    throw new Error('Missing call instance for send digits')
+  const { controlId } = initialState as VoiceCallSendDigitsWorkerInitialState
+
+  function* worker(action: VoiceCallSendDigitsAction) {
+    const { payload } = action
+
+    if (payload.control_id !== controlId) return
+
+    const callInstance = get<Call>(payload.call_id)
+    if (!callInstance) {
+      throw new Error('Missing call instance for send digits')
+    }
+
+    switch (payload.state) {
+      case 'finished':
+        // @ts-expect-error
+        callInstance.emit('send_digits.finished', callInstance)
+        break
+      default: {
+        const error = new Error(
+          `[voiceCallSendDigitsWorker] unhandled state: '${payload.state}'`
+        )
+        // @ts-expect-error
+        callInstance.emit('send_digits.failed', error)
+        break
+      }
+    }
   }
 
-  switch (payload.state) {
-    case 'finished':
-      // @ts-expect-error
-      callInstance.emit('send_digits.finished', callInstance)
-      break
-    default: {
-      const error = new Error(
-        `[voiceCallSendDigitsWorker] unhandled state: '${payload.state}'`
-      )
-      // @ts-expect-error
-      callInstance.emit('send_digits.failed', error)
-      break
-    }
+  while (true) {
+    const action = yield sagaEffects.take(
+      swEventChannel,
+      (action: SDKActions) => action.type === 'calling.call.send_digits'
+    )
+
+    const shouldStop = yield sagaEffects.fork(worker, action)
+
+    if (shouldStop.result()) break
   }
 
   getLogger().trace('voiceCallSendDigitsWorker ended')

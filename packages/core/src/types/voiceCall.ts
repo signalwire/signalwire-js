@@ -1499,6 +1499,11 @@ export type VoiceCallDialAction = MapToPubSubShape<CallingCallDialEvent>
 
 export type VoiceCallPlayAction = MapToPubSubShape<CallingCallPlayEvent>
 
+export type VoiceCallRecordAction = MapToPubSubShape<CallingCallRecordEvent>
+
+export type VoiceCallSendDigitsAction =
+  MapToPubSubShape<CallingCallSendDigitsEvent>
+
 export type VoiceCallJSONRPCMethod =
   | 'calling.dial'
   | 'calling.end'
