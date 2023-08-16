@@ -5,7 +5,7 @@ import {
   sagaEffects,
   VoiceCallPlayAction,
 } from '@signalwire/core'
-import { CallPlayback } from '../CallPlayback2'
+import { CallPlayback } from '../CallPlayback'
 import { Call } from '../Call2'
 import type { Client } from '../../client/index'
 import { SDKActions } from 'packages/core/dist/core/src'

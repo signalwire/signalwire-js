@@ -8,25 +8,21 @@ import {
   VoiceCallPlaySilenceMethodParams,
   VoiceCallPlayRingtoneMethodParams,
   VoiceCallPlayTTSMethodParams,
-  VoiceCallRecordMethodParams,
-  toSnakeCaseKeys,
   CallingCallWaitForState,
   CallingCallState,
 } from '@signalwire/core'
 import { ListenSubscriber } from '../ListenSubscriber'
 import {
   CallPlaybackListeners,
-  CallRecordingListeners,
   RealTimeCallEvents,
   RealTimeCallListeners,
   RealtimeCallListenersEventsMapping,
 } from '../types'
 import { toInternalPlayParams } from './utils'
-import { voiceCallPlayWorker, voiceCallRecordWorker } from './workers'
+import { voiceCallPlayWorker } from './workers'
 import { Playlist } from './Playlist'
 import { Voice } from './Voice2'
-import { CallPlayback } from './CallPlayback2'
-import { CallRecording } from './CallRecording2'
+import { CallPlayback } from './CallPlayback'
 
 export interface CallOptions {
   voice: Voice
@@ -436,84 +432,6 @@ export class Call extends ListenSubscriber<
     const { volume, listen, ...rest } = params
     const playlist = new Playlist({ volume }).add(Playlist.TTS(rest))
     return this.play(playlist, listen)
-  }
-
-  /**
-   * Generic method to record a call. Please see {@link recordAudio}.
-   */
-  record(params: VoiceCallRecordMethodParams, listen?: CallRecordingListeners) {
-    return new Promise<CallRecording>((resolve, reject) => {
-      if (!this.callId || !this.nodeId) {
-        reject(new Error(`Can't call record() on a call not established yet.`))
-      }
-
-      const resolveHandler = (callRecording: CallRecording) => {
-        this.off('recording.failed', rejectHandler)
-        resolve(callRecording)
-      }
-
-      const rejectHandler = (callRecording: CallRecording) => {
-        this.off('recording.started', resolveHandler)
-        reject(callRecording)
-      }
-
-      this.once('recording.started', resolveHandler)
-      this.once('recording.failed', rejectHandler)
-
-      const controlId = uuid()
-      const record = toSnakeCaseKeys(params)
-
-      this._client.runWorker('voiceCallRecordWorker', {
-        worker: voiceCallRecordWorker,
-        initialState: {
-          controlId,
-          listeners: listen,
-        },
-      })
-
-      this._client
-        .execute({
-          method: 'calling.record',
-          params: {
-            node_id: this.nodeId,
-            call_id: this.callId,
-            control_id: controlId,
-            record,
-          },
-        })
-        .then(() => {
-          // TODO: handle then?
-        })
-        .catch((e) => {
-          this.off('recording.started', resolveHandler)
-          this.off('recording.failed', rejectHandler)
-          reject(e)
-        })
-    })
-  }
-
-  /**
-   * Records the audio from the call.
-   *
-   * @example
-   *
-   * ```js
-   * const recording = await call.recordAudio({ direction: 'both' })
-   * await recording.stop()
-   * ```
-   */
-  recordAudio(
-    params: VoiceCallRecordMethodParams['audio'] & {
-      listen?: CallRecordingListeners
-    } = {}
-  ) {
-    const { listen, ...rest } = params
-    return this.record(
-      {
-        audio: rest,
-      },
-      listen
-    )
   }
 
   /**
