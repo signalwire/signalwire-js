@@ -90,7 +90,7 @@ const handler = async () => {
 
       resolve(0)
     } catch (error) {
-      console.error('Outbound - voicePlayback error', error)
+      console.error('VoicePlaybackPlayListeners error', error)
       reject(4)
     }
   })
