@@ -44,7 +44,7 @@ import type {
   VoiceCallDialSipMethodParams,
 } from '@signalwire/core'
 import type { Call } from '../voice/Call'
-import type { CallPlayback } from '../voice/CallPlayback2'
+import type { CallPlayback } from '../voice/CallPlayback'
 import type { CallRecording } from '../voice/CallRecording'
 import type { CallPrompt } from '../voice/CallPrompt'
 import type { CallTap } from '../voice/CallTap'
