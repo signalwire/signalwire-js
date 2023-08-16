@@ -381,14 +381,13 @@ export type VoiceEvents = Record<CallReceived, (call: Call) => void>
 
 export interface RealTimeCallListeners {
   onStateChanged?: (call: Call) => unknown
-  onRecordingStarted?: (recording: CallRecording) => unknown
-  onRecordingUpdated?: (recording: CallRecording) => unknown
-  onRecordingFailed?: (recording: CallRecording) => unknown
-  onRecordingEnded?: (recording: CallRecording) => unknown
   onPlaybackStarted?: (playback: CallPlayback) => unknown
   onPlaybackUpdated?: (playback: CallPlayback) => unknown
   onPlaybackFailed?: (playback: CallPlayback) => unknown
   onPlaybackEnded?: (playback: CallPlayback) => unknown
+  onRecordingStarted?: (recording: CallRecording) => unknown
+  onRecordingFailed?: (recording: CallRecording) => unknown
+  onRecordingEnded?: (recording: CallRecording) => unknown
 }
 
 export type RealTimeCallListenersKeys = keyof RealTimeCallListeners
@@ -405,10 +404,7 @@ export type RealTimeCallEventsHandlerMapping = Record<
     (playback: CallPlayback) => void
   > &
   Record<
-    | CallRecordingStarted
-    | CallRecordingUpdated
-    | CallRecordingEnded
-    | CallRecordingFailed,
+    CallRecordingStarted | CallRecordingEnded | CallRecordingFailed,
     (recording: CallRecording) => void
   > &
   Record<
@@ -438,7 +434,6 @@ export type RealtimeCallListenersEventsMapping = Record<
   Record<'onPlaybackFailed', CallPlaybackFailed> &
   Record<'onPlaybackEnded', CallPlaybackEnded> &
   Record<'onRecordingStarted', CallRecordingStarted> &
-  Record<'onRecordingUpdated', CallRecordingUpdated> &
   Record<'onRecordingFailed', CallRecordingFailed> &
   Record<'onRecordingEnded', CallRecordingEnded>
 
@@ -472,16 +467,12 @@ export type CallPlaybackListenersEventsMapping = Record<
  * Call Recording
  */
 export type CallRecordingEvents = Record<
-  | CallRecordingStarted
-  | CallRecordingUpdated
-  | CallRecordingEnded
-  | CallRecordingFailed,
+  CallRecordingStarted | CallRecordingEnded | CallRecordingFailed,
   (recording: CallRecording) => void
 >
 
 export interface CallRecordingListeners {
   onStarted?: (playback: CallPlayback) => unknown
-  onUpdated?: (playback: CallPlayback) => unknown
   onFailed?: (playback: CallPlayback) => unknown
   onEnded?: (playback: CallPlayback) => unknown
 }
@@ -490,6 +481,5 @@ export type CallRecordingListenersEventsMapping = Record<
   'onStarted',
   CallRecordingStarted
 > &
-  Record<'onUpdated', CallRecordingUpdated> &
   Record<'onFailed', CallRecordingFailed> &
   Record<'onEnded', CallRecordingEnded>

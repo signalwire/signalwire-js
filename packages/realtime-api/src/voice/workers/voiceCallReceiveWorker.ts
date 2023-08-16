@@ -17,6 +17,10 @@ interface VoiceCallReceiveWorkerInitialState {
   voice: Voice
 }
 
+interface VoiceCallReceiveWorkerInitialState {
+  voice: Voice
+}
+
 export const voiceCallReceiveWorker: SDKWorker<Client> = function* (
   options
 ): SagaIterator {

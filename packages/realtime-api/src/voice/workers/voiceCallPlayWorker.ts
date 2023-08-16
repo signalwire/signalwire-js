@@ -16,6 +16,11 @@ interface VoiceCallPlayWorkerInitialState {
   listeners?: CallPlaybackListeners
 }
 
+interface VoiceCallPlayWorkerInitialState {
+  controlId: string
+  listeners?: CallPlaybackListeners
+}
+
 export const voiceCallPlayWorker: SDKWorker<Client> = function* (
   options
 ): SagaIterator {

@@ -16,6 +16,11 @@ interface VoiceCallDialWorkerInitialState {
   listeners?: RealTimeCallListeners
 }
 
+interface VoiceCallDialWorkerInitialState {
+  tag: string
+  voice: Voice
+}
+
 export const voiceCallDialWorker: SDKWorker<Client> = function* (
   options
 ): SagaIterator {
