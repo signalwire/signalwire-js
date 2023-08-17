@@ -23,6 +23,20 @@ const handler = () => {
 
     let callPassed = false
 
+    const handleCall = async (call: Voice.Call) => {
+      if (callPassed) {
+        console.log('Answering..')
+        const resultAnswer = await call.answer()
+        tap.ok(resultAnswer.id, 'Inbound - Call answered')
+        await call.hangup()
+      } else {
+        console.log('Passing..')
+        const passed = await call.pass()
+        tap.equal(passed, undefined, 'Call passed!')
+        callPassed = true
+      }
+    }
+
     client2.on('call.received', async (call) => {
       console.log(
         'Got call on client 2',
@@ -32,14 +46,10 @@ const handler = () => {
         call.direction
       )
 
-      if (callPassed) return
-
       try {
-        const passed = await call.pass()
-        tap.equal(passed, undefined, 'Call passed!')
-        callPassed = true
+        await handleCall(call)
       } catch (error) {
-        console.error('Inbound - voicePass client 2 error', error)
+        console.error('Inbound - voicePass client2 error', error)
         reject(4)
       }
     })
@@ -53,15 +63,10 @@ const handler = () => {
         call.direction
       )
 
-      if (!callPassed) return
-
       try {
-        const resultAnswer = await call.answer()
-        tap.ok(resultAnswer.id, 'Inbound - Call answered')
-
-        await call.hangup()
+        await handleCall(call)
       } catch (error) {
-        console.error('error', error)
+        console.error('Inbound - voicePass client3 error', error)
         reject(4)
       }
     })
