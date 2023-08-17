@@ -20,8 +20,14 @@ import type {
   CallCollectUpdated,
   CallCollectEnded,
   CallCollectFailed,
+  VoiceCallPlayAudioMethodParams,
+  VoiceCallPlaySilenceMethodParams,
+  VoiceCallPlayRingtoneMethodParams,
+  VoiceCallPlayTTSMethodParams,
+  VoicePlaylist,
+  VoiceCallRecordMethodParams,
 } from '@signalwire/core'
-import type { Call } from '../voice/Call'
+import type { Call } from '../voice/Call2'
 import type { CallPlayback } from '../voice/CallPlayback'
 import type { CallRecording } from '../voice/CallRecording'
 import type { CallPrompt } from '../voice/CallPrompt'
@@ -153,6 +159,30 @@ export type CallPlaybackListenersEventsMapping = Record<
   Record<'onFailed', CallPlaybackFailed> &
   Record<'onEnded', CallPlaybackEnded>
 
+export interface CallPlayAudioMethodarams
+  extends VoiceCallPlayAudioMethodParams {
+  listen?: CallPlaybackListeners
+}
+
+export interface CallPlaySilenceMethodParams
+  extends VoiceCallPlaySilenceMethodParams {
+  listen?: CallPlaybackListeners
+}
+
+export interface CallPlayRingtoneMethodParams
+  extends VoiceCallPlayRingtoneMethodParams {
+  listen?: CallPlaybackListeners
+}
+
+export interface CallPlayTTSMethodParams extends VoiceCallPlayTTSMethodParams {
+  listen?: CallPlaybackListeners
+}
+
+export interface CallPlayMethodParams {
+  playlist: VoicePlaylist
+  listen?: CallPlaybackListeners
+}
+
 /**
  * Call Recording
  */
@@ -173,3 +203,12 @@ export type CallRecordingListenersEventsMapping = Record<
 > &
   Record<'onFailed', CallRecordingFailed> &
   Record<'onEnded', CallRecordingEnded>
+
+export interface CallRecordMethodParams extends VoiceCallRecordMethodParams {
+  listen?: CallRecordingListeners
+}
+
+export type CallRecordAudioMethodParams =
+  VoiceCallRecordMethodParams['audio'] & {
+    listen: CallRecordingListeners
+  }
