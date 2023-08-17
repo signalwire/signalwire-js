@@ -3,20 +3,19 @@ import {
   CallingCall,
   uuid,
   VoiceCallDisconnectReason,
-  VoicePlaylist,
-  VoiceCallPlayAudioMethodParams,
-  VoiceCallPlaySilenceMethodParams,
-  VoiceCallPlayRingtoneMethodParams,
-  VoiceCallPlayTTSMethodParams,
-  VoiceCallRecordMethodParams,
   toSnakeCaseKeys,
   CallingCallWaitForState,
   CallingCallState,
 } from '@signalwire/core'
 import { ListenSubscriber } from '../ListenSubscriber'
 import {
-  CallPlaybackListeners,
-  CallRecordingListeners,
+  CallPlayAudioMethodarams,
+  CallPlayMethodParams,
+  CallPlayRingtoneMethodParams,
+  CallPlaySilenceMethodParams,
+  CallPlayTTSMethodParams,
+  CallRecordAudioMethodParams,
+  CallRecordMethodParams,
   RealTimeCallEvents,
   RealTimeCallListeners,
   RealtimeCallListenersEventsMapping,
@@ -314,8 +313,10 @@ export class Call extends ListenSubscriber<
    * ))
    * ```
    */
-  play(params: VoicePlaylist, listen?: CallPlaybackListeners) {
+  play(params: CallPlayMethodParams) {
     return new Promise<CallPlayback>((resolve, reject) => {
+      const { playlist, listen } = params
+
       if (!this.callId || !this.nodeId) {
         reject(new Error(`Can't call play() on a call not established yet.`))
       }
@@ -350,8 +351,8 @@ export class Call extends ListenSubscriber<
             node_id: this.nodeId,
             call_id: this.callId,
             control_id: controlId,
-            volume: params.volume,
-            play: toInternalPlayParams(params.media),
+            volume: playlist.volume,
+            play: toInternalPlayParams(playlist.media),
           },
         })
         .then(() => {
@@ -375,12 +376,10 @@ export class Call extends ListenSubscriber<
    * await playback.ended();
    * ```
    */
-  playAudio(
-    params: VoiceCallPlayAudioMethodParams & { listen?: CallPlaybackListeners }
-  ) {
+  playAudio(params: CallPlayAudioMethodarams) {
     const { volume, listen, ...rest } = params
     const playlist = new Playlist({ volume }).add(Playlist.Audio(rest))
-    return this.play(playlist, listen)
+    return this.play({ playlist, listen })
   }
 
   /**
@@ -393,14 +392,10 @@ export class Call extends ListenSubscriber<
    * await playback.ended();
    * ```
    */
-  playSilence(
-    params: VoiceCallPlaySilenceMethodParams & {
-      listen?: CallPlaybackListeners
-    }
-  ) {
+  playSilence(params: CallPlaySilenceMethodParams) {
     const { listen, ...rest } = params
     const playlist = new Playlist().add(Playlist.Silence(rest))
-    return this.play(playlist, listen)
+    return this.play({ playlist, listen })
   }
 
   /**
@@ -413,14 +408,10 @@ export class Call extends ListenSubscriber<
    * await playback.ended();
    * ```
    */
-  playRingtone(
-    params: VoiceCallPlayRingtoneMethodParams & {
-      listen?: CallPlaybackListeners
-    }
-  ) {
+  playRingtone(params: CallPlayRingtoneMethodParams) {
     const { volume, listen, ...rest } = params
     const playlist = new Playlist({ volume }).add(Playlist.Ringtone(rest))
-    return this.play(playlist, listen)
+    return this.play({ playlist, listen })
   }
 
   /**
@@ -433,19 +424,19 @@ export class Call extends ListenSubscriber<
    * await playback.ended();
    * ```
    */
-  playTTS(
-    params: VoiceCallPlayTTSMethodParams & { listen?: CallPlaybackListeners }
-  ) {
+  playTTS(params: CallPlayTTSMethodParams) {
     const { volume, listen, ...rest } = params
     const playlist = new Playlist({ volume }).add(Playlist.TTS(rest))
-    return this.play(playlist, listen)
+    return this.play({ playlist, listen })
   }
 
   /**
    * Generic method to record a call. Please see {@link recordAudio}.
    */
-  record(params: VoiceCallRecordMethodParams, listen?: CallRecordingListeners) {
+  record(params: CallRecordMethodParams) {
     return new Promise<CallRecording>((resolve, reject) => {
+      const { audio, listen } = params
+
       if (!this.callId || !this.nodeId) {
         reject(new Error(`Can't call record() on a call not established yet.`))
       }
@@ -464,7 +455,7 @@ export class Call extends ListenSubscriber<
       this.once('recording.failed', rejectHandler)
 
       const controlId = uuid()
-      const record = toSnakeCaseKeys(params)
+      const record = toSnakeCaseKeys(audio)
 
       this._client.runWorker('voiceCallRecordWorker', {
         worker: voiceCallRecordWorker,
@@ -505,18 +496,12 @@ export class Call extends ListenSubscriber<
    * await recording.stop()
    * ```
    */
-  recordAudio(
-    params: VoiceCallRecordMethodParams['audio'] & {
-      listen?: CallRecordingListeners
-    } = {}
-  ) {
+  recordAudio(params: CallRecordAudioMethodParams) {
     const { listen, ...rest } = params
-    return this.record(
-      {
-        audio: rest,
-      },
-      listen
-    )
+    return this.record({
+      audio: rest,
+      listen,
+    })
   }
 
   /**
