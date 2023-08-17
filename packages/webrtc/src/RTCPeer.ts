@@ -764,47 +764,107 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   private _setLocalDescription(localDescription: RTCSessionDescriptionInit) {
     const {
-      useStereo,
-      googleMaxBitrate,
-      googleMinBitrate,
-      googleStartBitrate,
+      // useStereo,
+      // googleMaxBitrate,
+      // googleMinBitrate,
+      // googleStartBitrate,
+      remoteSdp,
     } = this.options
-    if (localDescription.sdp && useStereo) {
-      localDescription.sdp = sdpStereoHack(localDescription.sdp)
+    // if (localDescription.sdp && useStereo) {
+    //   localDescription.sdp = sdpStereoHack(localDescription.sdp)
+    // }
+    // if (
+    //   localDescription.sdp &&
+    //   googleMaxBitrate &&
+    //   googleMinBitrate &&
+    //   googleStartBitrate
+    // ) {
+    //   localDescription.sdp = sdpBitrateHack(
+    //     localDescription.sdp,
+    //     googleMaxBitrate,
+    //     googleMinBitrate,
+    //     googleStartBitrate
+    //   )
+    // }
+
+    this.logger.debug(
+      'LOCAL SDP FIRST \n',
+      `Type: ${localDescription.type}`,
+      '\n\n',
+      localDescription.sdp
+    )
+    if (remoteSdp) {
+      // const line = remoteSdp
+      //   .split('\r\n')
+      //   .find((l: string) => l.startsWith('a=fmtp:111 '))
+      // this.logger.info('Line? \n', line)
+      localDescription.sdp = localDescription.sdp
+        ?.split('\r\n')
+        .map((l: string) => {
+          // if (l.startsWith('m=audio ')) {
+          //   // return l.split('SAVPF')[0] + 'SAVPF 111'
+          //   l = l.replace(' 110 ', ' ')
+          //   l = l.replace(' 110', ' ')
+          //   l = l.replace(' 103 ', ' ')
+          //   l = l.replace(' 103', ' ')
+          //   return l.trim()
+          // }
+
+          // if (l.startsWith('a=fmtp:111 ')) {
+          //   return 'a=fmtp:111 useinbandfec=1; minptime=10'
+          // }
+
+          if (l.startsWith('a=rtpmap:110 ')) {
+            return 'a=rtpmap:110 telephone-event/48000'
+          }
+          if (l.startsWith('a=rtpmap:103 ')) {
+            return 'a=rtpmap:103 telephone-event/8000'
+          }
+          return l
+        })
+        .join('\r\n')
     }
-    if (
-      localDescription.sdp &&
-      googleMaxBitrate &&
-      googleMinBitrate &&
-      googleStartBitrate
-    ) {
-      localDescription.sdp = sdpBitrateHack(
-        localDescription.sdp,
-        googleMaxBitrate,
-        googleMinBitrate,
-        googleStartBitrate
-      )
-    }
-    // this.logger.debug(
-    //   'LOCAL SDP \n',
-    //   `Type: ${localDescription.type}`,
-    //   '\n\n',
-    //   localDescription.sdp
-    // )
+
+    this.logger.debug(
+      'LOCAL SDP SECOND \n',
+      `Type: ${localDescription.type}`,
+      '\n\n',
+      localDescription.sdp
+    )
     return this.instance.setLocalDescription(localDescription)
   }
 
   private _setRemoteDescription(remoteDescription: RTCSessionDescriptionInit) {
-    if (remoteDescription.sdp && this.options.useStereo) {
-      remoteDescription.sdp = sdpStereoHack(remoteDescription.sdp)
-    }
-    if (remoteDescription.sdp && this.instance.localDescription) {
-      remoteDescription.sdp = sdpMediaOrderHack(
-        remoteDescription.sdp,
-        this.instance.localDescription.sdp
-      )
-    }
+    // if (remoteDescription.sdp && this.options.useStereo) {
+    //   remoteDescription.sdp = sdpStereoHack(remoteDescription.sdp)
+    // }
+    // if (remoteDescription.sdp && this.instance.localDescription) {
+    //   remoteDescription.sdp = sdpMediaOrderHack(
+    //     remoteDescription.sdp,
+    //     this.instance.localDescription.sdp
+    //   )
+    // }
     const sessionDescr: RTCSessionDescription = sdpToJsonHack(remoteDescription)
+
+    // if (remoteDescription.sdp) {
+    //   remoteDescription.sdp =
+    //     remoteDescription.sdp
+    //       .split('\r\n')
+    //       .map((l: string) => {
+    //         // if (l.startsWith('m=audio ')) {
+    //         //   return l.split('SAVPF')[0] + 'SAVPF 111'
+    //         // }
+
+    //         if (l.startsWith('a=fmtp:111 ')) {
+    //           return undefined
+    //         }
+
+    //         return l
+    //       })
+    //       .filter(Boolean)
+    //       .join('\r\n') + '\r\n'
+    // }
+
     this.logger.debug(
       'REMOTE SDP \n',
       `Type: ${remoteDescription.type}`,

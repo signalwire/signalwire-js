@@ -144,6 +144,25 @@ export const vertoEventWorker: SDKWorker<
         instance.emit('verto.display', action.payload.params)
         break
       }
+      case 'verto.attach': {
+        getLogger().info('Verto attach', params)
+
+        try {
+          if (instance.peer) {
+            // @ts-expect-error
+            instance._vertoAttachId = jsonrpcId
+            instance.options.remoteSdp = params.sdp
+            instance.peer.type = 'answer'
+            instance.peer
+              .startNegotiation()
+              .then(console.warn)
+              .catch(console.error)
+          }
+        } catch (error) {
+          return getLogger().error(`attach error`, error)
+        }
+        break
+      }
       default:
         return getLogger().warn(`Unknown Verto method: ${method}`, params)
     }

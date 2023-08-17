@@ -16,7 +16,7 @@ import {
   Task,
   isSATAuth,
   WebRTCMethod,
-  // VertoAttach,
+  VertoAttach,
   VertoAnswer,
 } from '@signalwire/core'
 import type { ReduxComponent } from '@signalwire/core'
@@ -116,6 +116,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   private rtcPeerMap = new Map<string, RTCPeer<EventTypes>>()
   private sessionAuthTask: Task
   private resuming = false
+  private _vertoAttachId: string | undefined = undefined
 
   constructor(options: BaseConnectionOptions) {
     super(options)
@@ -699,7 +700,12 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
           return this.executeInvite(mungedSDP, rtcPeer.uuid)
         }
       case 'answer':
-        return this.executeAnswer(mungedSDP, rtcPeer.uuid)
+        if (this._vertoAttachId) {
+          return this.executeAttach(mungedSDP, rtcPeer.uuid)
+        } else {
+          return this.executeAnswer(mungedSDP, rtcPeer.uuid)
+        }
+
       default:
         return this.logger.error(
           `Unknown SDP type: '${type}' on call ${this.id}`
@@ -823,6 +829,41 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
       /** Call is active so set the RTCPeer */
       this.setActiveRTCPeer(rtcPeerId)
+    } catch (error) {
+      this.setState('hangup')
+      throw error
+    }
+  }
+
+  /**
+   * Send the `verto.attach` to inform FS on our new SDP answer
+   * @internal
+   */
+  async executeAttach(sdp: string, rtcPeerId: string, nodeId?: string) {
+    try {
+      const message = VertoAttach({
+        ...this.dialogParams(rtcPeerId),
+        sdp,
+      })
+      // @ts-expect-error
+      message.id = this._vertoAttachId
+
+      const response: any = await this.vertoExecute({
+        message,
+        callID: rtcPeerId,
+        node_id: nodeId ?? this.options.nodeId,
+        // subscribe: this.getSubscriptions(),
+      })
+      this.logger.debug('Attach response', response)
+
+      this.resuming = false
+
+      // TODO: Review
+      // this._attachListeners('')
+      // this.applyEmitterTransforms()
+
+      /** Call is active so set the RTCPeer */
+      // this.setActiveRTCPeer(rtcPeerId)
     } catch (error) {
       this.setState('hangup')
       throw error

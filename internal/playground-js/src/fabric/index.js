@@ -241,7 +241,7 @@ window.connect = async () => {
   const call = await client.dial({
     to: document.getElementById('destination').value,
     logLevel: 'debug',
-    debug: { logWsTraffic: true },
+    // debug: { logWsTraffic: true },
     nodeId: steeringId,
   })
 
