@@ -1,5 +1,11 @@
 # @sw-internal/stack-tests
 
+## 1.0.3
+
+### Patch Changes
+
+- [#858](https://github.com/signalwire/signalwire-js/pull/858) [`bb50b2fb`](https://github.com/signalwire/signalwire-js/commit/bb50b2fb31c6bb016e355b6884d2c2cb11260170) - Fix custom CloseEvent implementation to avoid crash on WS close.
+
 ## 1.0.2
 
 ### Patch Changes

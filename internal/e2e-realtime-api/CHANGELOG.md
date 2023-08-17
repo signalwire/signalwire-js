@@ -1,5 +1,13 @@
 # @sw-internal/e2e-realtime-api
 
+## 0.1.10
+
+### Patch Changes
+
+- [#858](https://github.com/signalwire/signalwire-js/pull/858) [`bb50b2fb`](https://github.com/signalwire/signalwire-js/commit/bb50b2fb31c6bb016e355b6884d2c2cb11260170) - Fix custom CloseEvent implementation to avoid crash on WS close.
+
+- [#856](https://github.com/signalwire/signalwire-js/pull/856) [`9244d88f`](https://github.com/signalwire/signalwire-js/commit/9244d88fb0f243f66e21834bb66c0c5d769936ce) - Fix recording e2e tests
+
 ## 0.1.9
 
 ### Patch Changes

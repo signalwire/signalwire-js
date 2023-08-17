@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.1] - 2023-08-17
+
+### Changed
+
+- [#857](https://github.com/signalwire/signalwire-js/pull/857) [`11269a5b`](https://github.com/signalwire/signalwire-js/commit/11269a5b3c3e0b79b556fa9e64dcb532624a56b4) - Update README
+
+### Dependencies
+
+- Updated dependencies [[`11269a5b`](https://github.com/signalwire/signalwire-js/commit/11269a5b3c3e0b79b556fa9e64dcb532624a56b4), [`bb50b2fb`](https://github.com/signalwire/signalwire-js/commit/bb50b2fb31c6bb016e355b6884d2c2cb11260170)]:
+  - @signalwire/web-api@3.0.1
+  - @signalwire/realtime-api@3.10.3
+
 ## [3.0.0] - 2023-08-08
 
 ### Major Changes
