@@ -156,9 +156,25 @@ export const CALL_PROPS = [
   'playTTS',
   'record',
   'recordAudio',
-  'waitFor',
+  'prompt',
+  'promptAudio',
+  'promptRingtone',
+  'promptTTS',
   'sendDigits',
-  // TODO: Add more as we add more APIs in the newer interface
+  'tap',
+  'tapAudio',
+  'connect',
+  'connectPhone',
+  'connectSip',
+  'disconnect',
+  'waitForDisconnected',
+  'disconnected',
+  'detect',
+  'amd',
+  'detectFax',
+  'detectDigit',
+  'collect',
+  'waitFor',
 ]
 
 export const CALL_PLAYBACK_PROPS = [
@@ -166,7 +182,6 @@ export const CALL_PLAYBACK_PROPS = [
   'callId',
   'nodeId',
   'controlId',
-  // 'volume', // Undefined unless set
   'state',
   'pause',
   'resume',
@@ -182,9 +197,17 @@ export const CALL_RECORD_PROPS = [
   'controlId',
   'state',
   'url',
-  // 'duration', // Server is not returning it
-  // 'size', // Server is not returning it
   'record',
   'stop',
+  'ended',
+]
+
+export const CALL_PROMPT_PROPS = [
+  'id',
+  'callId',
+  'nodeId',
+  'controlId',
+  'stop',
+  'setVolume',
   'ended',
 ]
