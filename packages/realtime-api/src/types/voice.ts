@@ -26,8 +26,13 @@ import type {
   VoiceCallPlayTTSMethodParams,
   VoicePlaylist,
   VoiceCallRecordMethodParams,
+  VoiceCallPromptTTSMethodParams,
+  VoiceCallPromptRingtoneMethodParams,
+  VoiceCallPromptAudioMethodParams,
+  VoiceCallPromptMethodParams,
+  VoiceCallCollectMethodParams,
 } from '@signalwire/core'
-import type { Call } from '../voice/Call2'
+import type { Call } from '../voice/Call'
 import type { CallPlayback } from '../voice/CallPlayback'
 import type { CallRecording } from '../voice/CallRecording'
 import type { CallPrompt } from '../voice/CallPrompt'
@@ -84,6 +89,15 @@ export interface RealTimeCallListeners {
   onRecordingStarted?: (recording: CallRecording) => unknown
   onRecordingFailed?: (recording: CallRecording) => unknown
   onRecordingEnded?: (recording: CallRecording) => unknown
+  onPromptStarted?: (prompt: CallPrompt) => unknown
+  onPromptUpdated?: (prompt: CallPrompt) => unknown
+  onPromptFailed?: (prompt: CallPrompt) => unknown
+  onPromptEnded?: (prompt: CallPrompt) => unknown
+  onCollectStarted?: (collect: CallCollect) => unknown
+  onCollectInputStarted?: (collect: CallCollect) => unknown
+  onCollectUpdated?: (collect: CallCollect) => unknown
+  onCollectFailed?: (collect: CallCollect) => unknown
+  onCollectEnded?: (collect: CallCollect) => unknown
 }
 
 export type RealTimeCallListenersKeys = keyof RealTimeCallListeners
@@ -131,7 +145,16 @@ export type RealtimeCallListenersEventsMapping = Record<
   Record<'onPlaybackEnded', CallPlaybackEnded> &
   Record<'onRecordingStarted', CallRecordingStarted> &
   Record<'onRecordingFailed', CallRecordingFailed> &
-  Record<'onRecordingEnded', CallRecordingEnded>
+  Record<'onRecordingEnded', CallRecordingEnded> &
+  Record<'onPromptStarted', CallPromptStarted> &
+  Record<'onPromptUpdated', CallPromptUpdated> &
+  Record<'onPromptFailed', CallPromptFailed> &
+  Record<'onPromptEnded', CallPromptEnded> &
+  Record<'onCollectStarted', CallCollectStarted> &
+  Record<'onCollectInputStarted', CallCollectStartOfInput> &
+  Record<'onCollectUpdated', CallCollectUpdated> &
+  Record<'onCollectFailed', CallCollectFailed> &
+  Record<'onCollectEnded', CallCollectEnded>
 
 /**
  * Call Playback
@@ -159,6 +182,11 @@ export type CallPlaybackListenersEventsMapping = Record<
   Record<'onFailed', CallPlaybackFailed> &
   Record<'onEnded', CallPlaybackEnded>
 
+export interface CallPlayMethodParams {
+  playlist: VoicePlaylist
+  listen?: CallPlaybackListeners
+}
+
 export interface CallPlayAudioMethodarams
   extends VoiceCallPlayAudioMethodParams {
   listen?: CallPlaybackListeners
@@ -175,11 +203,6 @@ export interface CallPlayRingtoneMethodParams
 }
 
 export interface CallPlayTTSMethodParams extends VoiceCallPlayTTSMethodParams {
-  listen?: CallPlaybackListeners
-}
-
-export interface CallPlayMethodParams {
-  playlist: VoicePlaylist
   listen?: CallPlaybackListeners
 }
 
@@ -212,3 +235,76 @@ export type CallRecordAudioMethodParams =
   VoiceCallRecordMethodParams['audio'] & {
     listen: CallRecordingListeners
   }
+
+/**
+ * Call Prompt
+ */
+export type CallPromptEvents = Record<
+  CallPromptStarted | CallPromptUpdated | CallPromptEnded | CallPromptFailed,
+  (prompt: CallPrompt) => void
+>
+
+export interface CallPromptListeners {
+  onStarted?: (prompt: CallPrompt) => unknown
+  onUpdated?: (prompt: CallPrompt) => unknown
+  onFailed?: (prompt: CallPrompt) => unknown
+  onEnded?: (prompt: CallPrompt) => unknown
+}
+
+export type CallPromptListenersEventsMapping = Record<
+  'onStarted',
+  CallPromptStarted
+> &
+  Record<'onUpdated', CallPromptUpdated> &
+  Record<'onFailed', CallPromptFailed> &
+  Record<'onEnded', CallPromptEnded>
+
+export type CallPromptMethodParams = VoiceCallPromptMethodParams & {
+  listen?: CallPromptListeners
+}
+
+export type CallPromptAudioMethodParams = VoiceCallPromptAudioMethodParams & {
+  listen?: CallPromptListeners
+}
+
+export type CallPromptRingtoneMethodParams =
+  VoiceCallPromptRingtoneMethodParams & {
+    listen?: CallPromptListeners
+  }
+
+export type CallPromptTTSMethodParams = VoiceCallPromptTTSMethodParams & {
+  listen?: CallPromptListeners
+}
+
+/**
+ * Call Collect
+ */
+export type CallCollectEvents = Record<
+  | CallCollectStarted
+  | CallCollectStartOfInput
+  | CallCollectUpdated
+  | CallCollectEnded
+  | CallCollectFailed,
+  (collect: CallCollect) => void
+>
+
+export interface CallCollectListeners {
+  onStarted?: (collect: CallCollect) => unknown
+  onInputStarted?: (collect: CallCollect) => unknown
+  onUpdated?: (collect: CallCollect) => unknown
+  onFailed?: (collect: CallCollect) => unknown
+  onEnded?: (collect: CallCollect) => unknown
+}
+
+export type CallCollectListenersEventsMapping = Record<
+  'onStarted',
+  CallCollectStarted
+> &
+  Record<'onInputStarted', CallCollectStartOfInput> &
+  Record<'onUpdated', CallCollectUpdated> &
+  Record<'onFailed', CallCollectFailed> &
+  Record<'onEnded', CallCollectEnded>
+
+export type CallCollectMethodParams = VoiceCallCollectMethodParams & {
+  listen?: CallCollectListeners
+}

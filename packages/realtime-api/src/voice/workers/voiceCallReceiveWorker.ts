@@ -6,10 +6,10 @@ import {
   SDKWorker,
   VoiceCallReceiveAction,
 } from '@signalwire/core'
-import type { Client } from '../../client/index'
-import { Call } from '../Call2'
 import { prefixEvent } from '../../utils/internals'
-import { Voice } from '../Voice2'
+import type { Client } from '../../client/index'
+import { Call } from '../Call'
+import { Voice } from '../Voice'
 
 interface VoiceCallReceiveWorkerInitialState {
   voice: Voice

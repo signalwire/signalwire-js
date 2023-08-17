@@ -1501,6 +1501,8 @@ export type VoiceCallPlayAction = MapToPubSubShape<CallingCallPlayEvent>
 
 export type VoiceCallRecordAction = MapToPubSubShape<CallingCallRecordEvent>
 
+export type VoiceCallCollectAction = MapToPubSubShape<CallingCallCollectEvent>
+
 export type VoiceCallSendDigitsAction =
   MapToPubSubShape<CallingCallSendDigitsEvent>
 

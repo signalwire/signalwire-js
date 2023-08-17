@@ -9,7 +9,7 @@ import {
   CallPlaybackListeners,
   CallPlaybackListenersEventsMapping,
 } from '../types'
-import { Call } from './Call2'
+import { Call } from './Call'
 
 export interface CallPlaybackOptions {
   call: Call

@@ -1,81 +1,109 @@
 import {
   getLogger,
   SagaIterator,
-  CallingCallCollectEventParams,
+  sagaEffects,
+  SDKActions,
+  VoiceCallCollectAction,
+  SDKWorker,
 } from '@signalwire/core'
+import type { Client } from '../../client/index'
+import { CallCollectListeners } from '../../types'
 import type { Call } from '../Call'
-import { CallPrompt, CallPromptAPI } from '../CallPrompt'
+import { CallPrompt } from '../CallPrompt'
 import { CallCollect } from '../CallCollect'
-import type { VoiceCallWorkerParams } from './voiceCallingWorker'
 
-export const voiceCallCollectWorker = function* (
-  options: VoiceCallWorkerParams<CallingCallCollectEventParams>
+interface VoiceCallCollectWorkerInitialState {
+  controlId: string
+  listeners?: CallCollectListeners
+}
+
+export const voiceCallCollectWorker: SDKWorker<Client> = function* (
+  options
 ): SagaIterator {
   getLogger().trace('voiceCallCollectWorker started')
   const {
-    payload,
+    channels: { swEventChannel },
     instanceMap: { get, set, remove },
+    initialState,
   } = options
 
-  const callInstance = get<Call>(payload.call_id)
-  if (!callInstance) {
-    throw new Error('Missing call instance for collect')
-  }
+  const { controlId } = initialState as VoiceCallCollectWorkerInitialState
 
-  const actionInstance = get<CallPrompt | CallCollect>(payload.control_id)
-  if (!actionInstance) {
-    throw new Error('Missing the instance')
-  }
-  actionInstance.setPayload(payload)
-  set<CallPrompt | CallCollect>(payload.control_id, actionInstance)
+  function* worker(action: VoiceCallCollectAction) {
+    const { payload } = action
 
-  let eventPrefix = 'collect' as 'collect' | 'prompt'
-  if (actionInstance instanceof CallPromptAPI) {
-    eventPrefix = 'prompt'
-  }
+    if (payload.control_id !== controlId) return
 
-  /**
-   * Only when partial_results: true
-   */
-  if (payload.final === false) {
-    callInstance.emit(`${eventPrefix}.updated`, actionInstance)
-  } else {
-    if (payload.result) {
-      switch (payload.result.type) {
-        case 'start_of_input': {
-          // @ts-expect-error
-          callInstance.emit(`${eventPrefix}.startOfInput`, actionInstance)
-          break
-        }
-        case 'no_input':
-        case 'no_match':
-        case 'error': {
-          callInstance.emit(`${eventPrefix}.failed`, actionInstance)
+    const callInstance = get<Call>(payload.call_id)
+    if (!callInstance) {
+      throw new Error('Missing call instance for collect')
+    }
 
-          // To resolve the ended() promise in CallPrompt or CallCollect
-          actionInstance.emit(`${eventPrefix}.failed` as never, actionInstance)
+    const actionInstance = get<CallPrompt | CallCollect>(payload.control_id)
+    if (!actionInstance) {
+      throw new Error('Missing the instance')
+    }
+    actionInstance.setPayload(payload)
+    set<CallPrompt | CallCollect>(payload.control_id, actionInstance)
 
-          remove<CallCollect>(payload.control_id)
-          break
-        }
-        case 'speech':
-        case 'digit': {
-          callInstance.emit(`${eventPrefix}.ended`, actionInstance)
+    let eventPrefix = 'collect' as 'collect' | 'prompt'
+    if (actionInstance instanceof CallPrompt) {
+      eventPrefix = 'prompt'
+    }
 
-          // To resolve the ended() promise in CallPrompt or CallCollect
-          actionInstance.emit(`${eventPrefix}.ended` as never, actionInstance)
-
-          remove<CallCollect>(payload.control_id)
-          break
-        }
-        default:
-          getLogger().warn(
+    /**
+     * Only when partial_results: true
+     */
+    if (payload.final === false) {
+      callInstance.emit(`${eventPrefix}.updated`, actionInstance)
+    } else {
+      if (payload.result) {
+        switch (payload.result.type) {
+          case 'start_of_input': {
             // @ts-expect-error
-            `Unknown prompt result type: "${payload.result.type}"`
-          )
-          break
+            callInstance.emit(`${eventPrefix}.startOfInput`, actionInstance)
+            return false
+          }
+          case 'no_input':
+          case 'no_match':
+          case 'error': {
+            callInstance.emit(`${eventPrefix}.failed`, actionInstance)
+            actionInstance.emit(
+              `${eventPrefix}.failed` as never,
+              actionInstance
+            )
+            remove<CallPrompt | CallCollect>(payload.control_id)
+            return true
+          }
+          case 'speech':
+          case 'digit': {
+            callInstance.emit(`${eventPrefix}.ended`, actionInstance)
+            actionInstance.emit(`${eventPrefix}.ended` as never, actionInstance)
+            remove<CallPrompt | CallCollect>(payload.control_id)
+            return false
+          }
+          default:
+            getLogger().warn(
+              // @ts-expect-error
+              `Unknown prompt result type: "${payload.result.type}"`
+            )
+            return false
+        }
       }
     }
+
+    return false
+  }
+
+  while (true) {
+    const action = yield sagaEffects.take(
+      swEventChannel,
+      (action: SDKActions) => action.type === 'calling.call.collect'
+    )
+
+    const shouldStop = yield sagaEffects.fork(worker, action)
+
+    if (shouldStop.result()) break
   }
 
   getLogger().trace('voiceCallCollectWorker ended')

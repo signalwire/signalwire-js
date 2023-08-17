@@ -8,7 +8,7 @@ import {
 import type { Call } from '../Call'
 import type { Client } from '../../client/index'
 import { SDKActions } from 'packages/core/dist/core/src'
-import { Voice } from '../Voice2'
+import { Voice } from '../Voice'
 
 interface VoiceCallDialWorkerInitialState {
   tag: string

@@ -4,12 +4,12 @@ import {
   sagaEffects,
   VoiceCallStateAction,
   SDKWorker,
+  SDKActions,
 } from '@signalwire/core'
-import { Call } from '../Call2'
 import type { Client } from '../../client/index'
-import { SDKActions } from 'packages/core/dist/core/src'
-import { Voice } from '../Voice2'
 import { RealTimeCallListeners } from '../../types'
+import { Call } from '../Call'
+import { Voice } from '../Voice'
 
 /**
  * This worker runs for both Inbound and Outbound calls.

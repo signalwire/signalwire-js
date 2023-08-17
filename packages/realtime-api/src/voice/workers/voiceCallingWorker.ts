@@ -20,7 +20,7 @@ import { voiceCallSendDigitsWorker } from './VoiceCallSendDigitWorker'
 import { voiceCallDetectWorker } from './voiceCallDetectWorker'
 import { voiceCallTapWorker } from './voiceCallTapWorker'
 import { voiceCallConnectWorker } from './voiceCallConnectWorker'
-import { Voice } from '../Voice2'
+import { Voice } from '../Voice'
 
 export type VoiceCallWorkerParams<T> = Omit<
   SDKWorkerParams<Client>,

@@ -9,7 +9,7 @@ import {
   CallRecordingListeners,
   CallRecordingListenersEventsMapping,
 } from '../types'
-import { Call } from './Call2'
+import { Call } from './Call'
 
 export interface CallRecordingOptions {
   call: Call

@@ -5,11 +5,11 @@ import {
   sagaEffects,
   VoiceCallPlayAction,
 } from '@signalwire/core'
-import { CallPlayback } from '../CallPlayback'
-import { Call } from '../Call2'
 import type { Client } from '../../client/index'
-import { SDKActions } from 'packages/core/dist/core/src'
 import { CallPlaybackListeners } from '../../types'
+import { CallPlayback } from '../CallPlayback'
+import { Call } from '../Call'
+import { SDKActions } from 'packages/core/dist/core/src'
 
 interface VoiceCallPlayWorkerInitialState {
   controlId: string
@@ -33,23 +33,29 @@ export const voiceCallPlayWorker: SDKWorker<Client> = function* (
    * Playback listeners can be attached to both Call and CallPlayback objects
    * So, we emit the events for both objects
    * Some events are also being used to resolve the promise such as playback.started and playback.failed
-   * This worker is also responsible to handle call.prompt events
+   * This worker is also responsible to handle CallPrompt events
    */
+
+  const removeFromInstanceMap = () => {
+    // Do not remove the CallPrompt instance. It will be removed by the voiceCallCollectWorker
+    if (controlId.includes('.prompt')) return
+    remove<CallPlayback>(controlId)
+  }
 
   function* worker(action: VoiceCallPlayAction) {
     const { payload } = action
 
-    // Playback events' control id for prompt contains `.prompt` keyword at the end of the string
-    const [payloadControlId] = payload.control_id.split('.')
+    if (payload.control_id !== controlId) return
 
-    if (payloadControlId !== controlId) return
+    // CallPrompt events contains .prompt at the end of the control id
+    const [playbackControlId] = payload.control_id.split('.')
 
     const callInstance = get<Call>(payload.call_id)
     if (!callInstance) {
       throw new Error('Missing call instance for playback')
     }
 
-    let playbackInstance = get<CallPlayback>(controlId)
+    let playbackInstance = get<CallPlayback>(playbackControlId)
     if (!playbackInstance) {
       playbackInstance = new CallPlayback({
         call: callInstance,
@@ -59,7 +65,7 @@ export const voiceCallPlayWorker: SDKWorker<Client> = function* (
     } else {
       playbackInstance.setPayload(payload)
     }
-    set<CallPlayback>(controlId, playbackInstance)
+    set<CallPlayback>(playbackControlId, playbackInstance)
 
     switch (payload.state) {
       case 'playing': {
@@ -73,7 +79,6 @@ export const voiceCallPlayWorker: SDKWorker<Client> = function* (
       }
       case 'paused': {
         playbackInstance._paused = true
-
         callInstance.emit('playback.updated', playbackInstance)
         playbackInstance.emit('playback.updated', playbackInstance)
         return false
@@ -81,13 +86,13 @@ export const voiceCallPlayWorker: SDKWorker<Client> = function* (
       case 'error': {
         callInstance.emit('playback.failed', playbackInstance)
         playbackInstance.emit('playback.failed', playbackInstance)
-        remove<CallPlayback>(controlId)
+        removeFromInstanceMap()
         return true
       }
       case 'finished': {
         callInstance.emit('playback.ended', playbackInstance)
         playbackInstance.emit('playback.ended', playbackInstance)
-        remove<CallPlayback>(controlId)
+        removeFromInstanceMap()
         return true
       }
       default:

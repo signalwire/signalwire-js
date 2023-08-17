@@ -24,6 +24,7 @@ export const voiceCallTapWorker = function* (
   let tapInstance = get(payload.control_id) as CallTap
   if (!tapInstance) {
     tapInstance = createCallTapObject({
+      // @ts-expect-error
       store: callInstance.store,
       payload,
     })

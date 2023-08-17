@@ -4,7 +4,7 @@ import { clientConnect } from './client/clientConnect'
 import { Task } from './task/Task'
 import { PubSub } from './pubSub/PubSub'
 import { Chat } from './chat/Chat'
-import { Voice } from './voice/Voice2'
+import { Voice } from './voice/Voice'
 
 export interface SWClientOptions {
   host?: string

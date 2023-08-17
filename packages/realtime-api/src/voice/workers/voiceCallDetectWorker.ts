@@ -24,6 +24,7 @@ export const voiceCallDetectWorker = function* (
   let detectInstance = get<CallDetect>(payload.control_id)
   if (!detectInstance) {
     detectInstance = createCallDetectObject({
+      // @ts-expect-error
       store: callInstance.store,
       payload,
     })

@@ -8,7 +8,7 @@ import {
 } from '@signalwire/core'
 import type { Client } from '../../client/index'
 import { CallRecordingListeners } from '../../types'
-import { Call } from '../Call2'
+import { Call } from '../Call'
 import { CallRecording } from '../CallRecording'
 
 interface VoiceCallRecordWorkerInitialState {
