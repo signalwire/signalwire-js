@@ -211,3 +211,13 @@ export const CALL_PROMPT_PROPS = [
   'setVolume',
   'ended',
 ]
+
+export const CALL_COLLECT_PROPS = [
+  'id',
+  'callId',
+  'nodeId',
+  'controlId',
+  'stop',
+  'startInputTimers',
+  'ended',
+]

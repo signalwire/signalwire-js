@@ -56,43 +56,42 @@ export const voiceCallCollectWorker: SDKWorker<Client> = function* (
      */
     if (payload.final === false) {
       callInstance.emit(`${eventPrefix}.updated`, actionInstance)
-    } else {
-      if (payload.result) {
-        switch (payload.result.type) {
-          case 'start_of_input': {
-            // @ts-expect-error
-            callInstance.emit(`${eventPrefix}.startOfInput`, actionInstance)
-            return false
-          }
-          case 'no_input':
-          case 'no_match':
-          case 'error': {
-            callInstance.emit(`${eventPrefix}.failed`, actionInstance)
-            actionInstance.emit(
-              `${eventPrefix}.failed` as never,
-              actionInstance
-            )
-            remove<CallPrompt | CallCollect>(payload.control_id)
-            return true
-          }
-          case 'speech':
-          case 'digit': {
-            callInstance.emit(`${eventPrefix}.ended`, actionInstance)
-            actionInstance.emit(`${eventPrefix}.ended` as never, actionInstance)
-            remove<CallPrompt | CallCollect>(payload.control_id)
-            return false
-          }
-          default:
-            getLogger().warn(
-              // @ts-expect-error
-              `Unknown prompt result type: "${payload.result.type}"`
-            )
-            return false
-        }
-      }
+      actionInstance.emit(`${eventPrefix}.updated` as never, actionInstance)
+      return false
     }
 
-    return false
+    switch (payload.result.type) {
+      case 'start_of_input': {
+        if (eventPrefix === 'prompt') return false
+        callInstance.emit(`${eventPrefix}.startOfInput`, actionInstance)
+        actionInstance.emit(
+          `${eventPrefix}.startOfInput` as never,
+          actionInstance
+        )
+        return false
+      }
+      case 'no_input':
+      case 'no_match':
+      case 'error': {
+        callInstance.emit(`${eventPrefix}.failed`, actionInstance)
+        actionInstance.emit(`${eventPrefix}.failed` as never, actionInstance)
+        remove<CallPrompt | CallCollect>(payload.control_id)
+        return true
+      }
+      case 'speech':
+      case 'digit': {
+        callInstance.emit(`${eventPrefix}.ended`, actionInstance)
+        actionInstance.emit(`${eventPrefix}.ended` as never, actionInstance)
+        remove<CallPrompt | CallCollect>(payload.control_id)
+        return false
+      }
+      default:
+        getLogger().warn(
+          // @ts-expect-error
+          `Unknown prompt result type: "${payload.result.type}"`
+        )
+        return false
+    }
   }
 
   while (true) {

@@ -1220,7 +1220,6 @@ export class Call extends ListenSubscriber<
         worker: voiceCallCollectWorker,
         initialState: {
           controlId,
-          listeners: listen,
         },
       })
 
@@ -1253,6 +1252,7 @@ export class Call extends ListenSubscriber<
           })
           this._client.instanceMap.set<CallCollect>(controlId, collectInstance)
           this.emit('collect.started', collectInstance)
+          collectInstance.emit('collect.started', collectInstance)
           resolve(collectInstance)
         })
         .catch((e) => {
