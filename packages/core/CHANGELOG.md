@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.18.3] - 2023-08-17
+
+### Fixed
+
+- [#858](https://github.com/signalwire/signalwire-js/pull/858) [`bb50b2fb`](https://github.com/signalwire/signalwire-js/commit/bb50b2fb31c6bb016e355b6884d2c2cb11260170) - Fix custom CloseEvent implementation to avoid crash on WS close.
+
 ## [3.18.2] - 2023-08-08
 
 ### Changed
