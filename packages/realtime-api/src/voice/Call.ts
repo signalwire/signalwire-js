@@ -563,7 +563,6 @@ export class Call extends ListenSubscriber<
         worker: voiceCallPlayWorker,
         initialState: {
           controlId,
-          listeners: listen,
         },
       })
 
@@ -571,7 +570,6 @@ export class Call extends ListenSubscriber<
         worker: voiceCallCollectWorker,
         initialState: {
           controlId,
-          listeners: listen,
         },
       })
 
@@ -600,6 +598,7 @@ export class Call extends ListenSubscriber<
           })
           this._client.instanceMap.set<CallPrompt>(controlId, promptInstance)
           this.emit('prompt.started', promptInstance)
+          promptInstance.emit('prompt.started', promptInstance)
           resolve(promptInstance)
         })
         .catch((e) => {

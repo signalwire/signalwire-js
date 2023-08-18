@@ -36,12 +36,6 @@ export const voiceCallPlayWorker: SDKWorker<Client> = function* (
    * This worker is also responsible to handle CallPrompt events
    */
 
-  const removeFromInstanceMap = () => {
-    // Do not remove the CallPrompt instance. It will be removed by the voiceCallCollectWorker
-    if (controlId.includes('.prompt')) return
-    remove<CallPlayback>(controlId)
-  }
-
   function* worker(action: VoiceCallPlayAction) {
     const { payload } = action
 
@@ -49,6 +43,12 @@ export const voiceCallPlayWorker: SDKWorker<Client> = function* (
 
     // CallPrompt events contains .prompt at the end of the control id
     const [playbackControlId] = payload.control_id.split('.')
+
+    const removeFromInstanceMap = () => {
+      // Do not remove the CallPrompt instance. It will be removed by the @voiceCallCollectWorker
+      if (payload.control_id.includes('.prompt')) return
+      remove<CallPlayback>(playbackControlId)
+    }
 
     const callInstance = get<Call>(payload.call_id)
     if (!callInstance) {
