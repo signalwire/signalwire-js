@@ -399,6 +399,9 @@ export interface RealTimeCallListeners {
   onCollectEnded?: (collect: CallCollect) => unknown
   onTapStarted?: (collect: CallTap) => unknown
   onTapEnded?: (collect: CallTap) => unknown
+  onDetectStarted?: (collect: CallDetect) => unknown
+  onDetectUpdated?: (collect: CallDetect) => unknown
+  onDetectEnded?: (collect: CallDetect) => unknown
 }
 
 export type RealTimeCallListenersKeys = keyof RealTimeCallListeners
@@ -422,7 +425,6 @@ export type RealTimeCallEventsHandlerMapping = Record<
     CallPromptStarted | CallPromptUpdated | CallPromptEnded | CallPromptFailed,
     (prompt: CallPrompt) => void
   > &
-  Record<CallTapStarted | CallTapEnded, (tap: CallTap) => void> &
   Record<
     | CallCollectStarted
     | CallCollectStartOfInput
@@ -430,6 +432,11 @@ export type RealTimeCallEventsHandlerMapping = Record<
     | CallCollectEnded
     | CallCollectFailed,
     (callCollect: CallCollect) => void
+  > &
+  Record<CallTapStarted | CallTapEnded, (tap: CallTap) => void> &
+  Record<
+    CallDetectStarted | CallDetectUpdated | CallDetectEnded,
+    (detect: CallDetect) => void
   >
 
 export type RealTimeCallEvents = {
@@ -457,7 +464,10 @@ export type RealtimeCallListenersEventsMapping = Record<
   Record<'onCollectFailed', CallCollectFailed> &
   Record<'onCollectEnded', CallCollectEnded> &
   Record<'onTapStarted', CallTapStarted> &
-  Record<'onTapEnded', CallTapEnded>
+  Record<'onTapEnded', CallTapEnded> &
+  Record<'onDetectStarted', CallDetectStarted> &
+  Record<'onDetectUpdated', CallDetectUpdated> &
+  Record<'onDetectEnded', CallDetectEnded>
 
 /**
  * Call Playback
@@ -637,4 +647,44 @@ export type CallTapMethodParams = VoiceCallTapMethodParams & {
 
 export type CallTapAudioMethodParams = VoiceCallTapAudioMethodParams & {
   listen?: CallTapListeners
+}
+
+/**
+ * Call Detect
+ */
+export type CallDetectEvents = Record<
+  CallDetectStarted | CallDetectUpdated | CallDetectEnded,
+  (tap: CallDetect) => void
+>
+
+export interface CallDetectListeners {
+  onStarted?: (detect: CallDetect) => unknown
+  onUpdated?: (detect: CallDetect) => unknown
+  onEnded?: (detect: CallDetect) => unknown
+}
+
+export type CallDetectListenersEventsMapping = Record<
+  'onStarted',
+  CallDetectStarted
+> &
+  Record<'onUpdated', CallDetectUpdated> &
+  Record<'onEnded', CallDetectEnded>
+
+export type CallDetectMethodParams = VoiceCallDetectMethodParams & {
+  listen?: CallDetectListeners
+}
+
+export interface CallDetectMachineParams
+  extends Omit<VoiceCallDetectMachineParams, 'type'> {
+  listen?: CallDetectListeners
+}
+
+export interface CallDetectFaxParams
+  extends Omit<VoiceCallDetectFaxParams, 'type'> {
+  listen?: CallDetectListeners
+}
+
+export interface CallDetectDigitParams
+  extends Omit<VoiceCallDetectDigitParams, 'type'> {
+  listen?: CallDetectListeners
 }
