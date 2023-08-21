@@ -27,6 +27,9 @@ const TARGET_ROOT_PATH: Record<
 }
 
 export const SERVER_URL = 'http://localhost:1337'
+export const BASIC_TOKEN = Buffer.from(
+  `${process.env.RELAY_PROJECT}:${process.env.RELAY_TOKEN}`
+).toString('base64')
 
 export const createTestServer = async (
   options: CreateTestServerOptions = { target: 'blank' }
@@ -75,11 +78,11 @@ export const createTestRoomSession = async (
         host: options.RELAY_HOST,
         token: options.API_TOKEN,
         rootElement: document.getElementById('rootElement'),
-        // logLevel: options.CI ? 'warn' : 'debug',
-        logLevel: 'debug',
+        // logLevel: options.CI ? 'info' : 'debug',
+        // logLevel: 'debug',
         debug: {
           // logWsTraffic: !options.CI,
-          logWsTraffic: true,
+          logWsTraffic: false,
         },
         ...options.roomSessionOptions,
       })
@@ -193,18 +196,17 @@ interface CreateTestVRTOptions {
   media_allowed?: 'audio-only' | 'video-only' | 'all'
   join_audio_muted?: boolean
   join_video_muted?: boolean
-  end_room_session_on_leave?: boolean,
+  end_room_session_on_leave?: boolean
 }
 
 export const createTestVRTToken = async (body: CreateTestVRTOptions) => {
-  const authCreds = `${process.env.RELAY_PROJECT}:${process.env.RELAY_TOKEN}`
   const response = await fetch(
     `https://${process.env.API_HOST}/api/video/room_tokens`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Basic ${Buffer.from(authCreds).toString('base64')}`,
+        Authorization: `Basic ${BASIC_TOKEN}`,
       },
       body: JSON.stringify(body),
     }
@@ -221,14 +223,13 @@ interface CreateTestCRTOptions {
 }
 
 export const createTestCRTToken = async (body: CreateTestCRTOptions) => {
-  const authCreds = `${process.env.RELAY_PROJECT}:${process.env.RELAY_TOKEN}`
   const response = await fetch(
     `https://${process.env.API_HOST}/api/chat/tokens`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Basic ${Buffer.from(authCreds).toString('base64')}`,
+        Authorization: `Basic ${BASIC_TOKEN}`,
       },
       body: JSON.stringify(body),
     }
@@ -306,7 +307,7 @@ export const expectRoomJoined = (
     return new Promise<any>(async (resolve) => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
-      
+
       roomObj.once('room.joined', resolve)
 
       if (invokeJoin) {
@@ -417,14 +418,13 @@ export const expectTotalAudioEnergyToBeGreaterThan = async (
 }
 
 const getRoomByName = async (roomName: string) => {
-  const authCreds = `${process.env.RELAY_PROJECT}:${process.env.RELAY_TOKEN}`
   const response = await fetch(
     `https://${process.env.API_HOST}/api/video/rooms/${roomName}`,
     {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Basic ${Buffer.from(authCreds).toString('base64')}`,
+        Authorization: `Basic ${BASIC_TOKEN}`,
       },
     }
   )
@@ -450,22 +450,37 @@ export interface CreateOrUpdateRoomOptions {
 
 export const createOrUpdateRoom = async (body: CreateOrUpdateRoomOptions) => {
   const room = await getRoomByName(body.name)
-  const authCreds = `${process.env.RELAY_PROJECT}:${process.env.RELAY_TOKEN}`
+  if (!room) {
+    return createRoom(body)
+  }
+
   const response = await fetch(
-    `https://${process.env.API_HOST}/api/video/rooms${
-      room ? `/${room.id}` : ''
-    }`,
+    `https://${process.env.API_HOST}/api/video/rooms/${room.id}`,
     {
-      method: room ? 'PUT' : 'POST',
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Basic ${Buffer.from(authCreds).toString('base64')}`,
+        Authorization: `Basic ${BASIC_TOKEN}`,
       },
       body: JSON.stringify(body),
     }
   )
-  const data = await response.json()
-  return data
+  return response.json()
+}
+
+export const createRoom = async (body: CreateOrUpdateRoomOptions) => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/video/rooms`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify(body),
+    }
+  )
+  return response.json()
 }
 
 export const createStreamForRoom = async (name: string, url: string) => {
@@ -473,7 +488,6 @@ export const createStreamForRoom = async (name: string, url: string) => {
   if (!room) {
     throw new Error('Room not found')
   }
-  const authCreds = `${process.env.RELAY_PROJECT}:${process.env.RELAY_TOKEN}`
 
   const response = await fetch(
     `https://${process.env.API_HOST}/api/video/rooms/${room.id}/streams`,
@@ -481,7 +495,7 @@ export const createStreamForRoom = async (name: string, url: string) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Basic ${Buffer.from(authCreds).toString('base64')}`,
+        Authorization: `Basic ${BASIC_TOKEN}`,
       },
       body: JSON.stringify({ url }),
     }
@@ -496,12 +510,11 @@ export const createStreamForRoom = async (name: string, url: string) => {
 }
 
 export const deleteRoom = async (id: string) => {
-  const authCreds = `${process.env.RELAY_PROJECT}:${process.env.RELAY_TOKEN}`
   return await fetch(`https://${process.env.API_HOST}/api/video/rooms/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Basic ${Buffer.from(authCreds).toString('base64')}`,
+      Authorization: `Basic ${BASIC_TOKEN}`,
     },
   })
 }
