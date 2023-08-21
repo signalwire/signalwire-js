@@ -1506,6 +1506,8 @@ export type VoiceCallCollectAction = MapToPubSubShape<CallingCallCollectEvent>
 export type VoiceCallSendDigitsAction =
   MapToPubSubShape<CallingCallSendDigitsEvent>
 
+export type VoiceCallTapAction = MapToPubSubShape<CallingCallTapEvent>
+
 export type VoiceCallJSONRPCMethod =
   | 'calling.dial'
   | 'calling.end'

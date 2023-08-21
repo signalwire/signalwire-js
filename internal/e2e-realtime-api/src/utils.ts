@@ -221,3 +221,12 @@ export const CALL_COLLECT_PROPS = [
   'startInputTimers',
   'ended',
 ]
+
+export const CALL_TAP_PROPS = [
+  'id',
+  'callId',
+  'nodeId',
+  'controlId',
+  'stop',
+  'ended',
+]

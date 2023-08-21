@@ -1,41 +1,28 @@
 import {
-  connect,
-  BaseComponentOptionsWithPayload,
   VoiceCallTapContract,
   CallingCallTapEndState,
   CallingCallTapEventParams,
-  EventEmitter,
-  BaseConsumer,
 } from '@signalwire/core'
+import { ListenSubscriber } from '../ListenSubscriber'
+import { CallTapEvents, CallTapListeners } from '../types'
+import { Call } from './Call'
 
-/**
- * Instances of this class allow you to control (e.g., resume) the
- * tap inside a Voice Call. You can obtain instances of this class by
- * starting a Tap from the desired {@link Call} (see
- * {@link Call.tap})
- */
-export interface CallTap extends VoiceCallTapContract {
-  setPayload: (payload: CallingCallTapEventParams) => void
-  _paused: boolean
-  /** @internal */
-  emit(event: EventEmitter.EventNames<any>, ...args: any[]): void
+export interface CallTapOptions {
+  call: Call
+  payload: CallingCallTapEventParams
+  listeners?: CallTapListeners
 }
-
-export type CallTapEventsHandlerMapping = {}
-
-export interface CallTapOptions
-  extends BaseComponentOptionsWithPayload<CallingCallTapEventParams> {}
 
 const ENDED_STATES: CallingCallTapEndState[] = ['finished']
 
-export class CallTapAPI
-  extends BaseConsumer<CallTapEventsHandlerMapping>
+export class CallTap
+  extends ListenSubscriber<CallTapListeners, CallTapEvents>
   implements VoiceCallTapContract
 {
   private _payload: CallingCallTapEventParams
 
   constructor(options: CallTapOptions) {
-    super(options)
+    super({ swClient: options.call._sw })
 
     this._payload = options.payload
   }
@@ -61,13 +48,13 @@ export class CallTapAPI
   }
 
   /** @internal */
-  protected setPayload(payload: CallingCallTapEventParams) {
-    this._payload = payload
+  setPayload(payload: CallingCallTapEventParams) {
+    this._payload = { ...this._payload, ...payload }
   }
 
   async stop() {
     if (this.state !== 'finished') {
-      await this.execute({
+      await this._client.execute({
         method: 'calling.tap.stop',
         params: {
           node_id: this.nodeId,
@@ -81,36 +68,24 @@ export class CallTapAPI
   }
 
   ended() {
-    // Resolve the promise if the tap has already ended
-    if (ENDED_STATES.includes(this.state as CallingCallTapEndState)) {
-      return Promise.resolve(this)
-    }
-
     return new Promise<this>((resolve) => {
       const handler = () => {
-        // @ts-expect-error
         this.off('tap.ended', handler)
         // It's important to notice that we're returning
         // `this` instead of creating a brand new instance
-        // using the payload + EventEmitter Transform
-        // pipeline. `this` is the instance created by the
-        // `Call` Emitter Transform pipeline (singleton per
-        // `Call.tap()`) that gets auto updated (using
+        // using the payload. `this` is the instance created by the
+        // `voiceCallTapWorker` (singleton per
+        // `call.play()`) that gets auto updated (using
         // the latest payload per event) by the
         // `voiceCallTapWorker`
         resolve(this)
       }
-      // @ts-expect-error
       this.once('tap.ended', handler)
+
+      // Resolve the promise if the tap has already ended
+      if (ENDED_STATES.includes(this.state as CallingCallTapEndState)) {
+        handler()
+      }
     })
   }
-}
-
-export const createCallTapObject = (params: CallTapOptions): CallTap => {
-  const tap = connect<CallTapEventsHandlerMapping, CallTapAPI, CallTap>({
-    store: params.store,
-    Component: CallTapAPI,
-  })(params)
-
-  return tap
 }

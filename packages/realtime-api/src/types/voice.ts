@@ -31,6 +31,8 @@ import type {
   VoiceCallPromptAudioMethodParams,
   VoiceCallPromptMethodParams,
   VoiceCallCollectMethodParams,
+  VoiceCallTapMethodParams,
+  VoiceCallTapAudioMethodParams,
 } from '@signalwire/core'
 import type { Call } from '../voice/Call'
 import type { CallPlayback } from '../voice/CallPlayback'
@@ -98,6 +100,8 @@ export interface RealTimeCallListeners {
   onCollectUpdated?: (collect: CallCollect) => unknown
   onCollectFailed?: (collect: CallCollect) => unknown
   onCollectEnded?: (collect: CallCollect) => unknown
+  onTapStarted?: (collect: CallTap) => unknown
+  onTapEnded?: (collect: CallTap) => unknown
 }
 
 export type RealTimeCallListenersKeys = keyof RealTimeCallListeners
@@ -154,7 +158,9 @@ export type RealtimeCallListenersEventsMapping = Record<
   Record<'onCollectInputStarted', CallCollectStartOfInput> &
   Record<'onCollectUpdated', CallCollectUpdated> &
   Record<'onCollectFailed', CallCollectFailed> &
-  Record<'onCollectEnded', CallCollectEnded>
+  Record<'onCollectEnded', CallCollectEnded> &
+  Record<'onTapStarted', CallTapStarted> &
+  Record<'onTapEnded', CallTapEnded>
 
 /**
  * Call Playback
@@ -233,7 +239,7 @@ export interface CallRecordMethodParams extends VoiceCallRecordMethodParams {
 
 export type CallRecordAudioMethodParams =
   VoiceCallRecordMethodParams['audio'] & {
-    listen: CallRecordingListeners
+    listen?: CallRecordingListeners
   }
 
 /**
@@ -307,4 +313,31 @@ export type CallCollectListenersEventsMapping = Record<
 
 export type CallCollectMethodParams = VoiceCallCollectMethodParams & {
   listen?: CallCollectListeners
+}
+
+/**
+ * Call Tap
+ */
+export type CallTapEvents = Record<
+  CallTapStarted | CallTapEnded,
+  (tap: CallTap) => void
+>
+
+export interface CallTapListeners {
+  onStarted?: (tap: CallTap) => unknown
+  onEnded?: (tap: CallTap) => unknown
+}
+
+export type CallTapListenersEventsMapping = Record<
+  'onStarted',
+  CallTapStarted
+> &
+  Record<'onEnded', CallTapEnded>
+
+export type CallTapMethodParams = VoiceCallTapMethodParams & {
+  listen?: CallTapListeners
+}
+
+export type CallTapAudioMethodParams = VoiceCallTapAudioMethodParams & {
+  listen?: CallTapListeners
 }

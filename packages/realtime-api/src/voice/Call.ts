@@ -6,8 +6,6 @@ import {
   toSnakeCaseKeys,
   CallingCallWaitForState,
   CallingCallState,
-  VoiceCallTapMethodParams,
-  VoiceCallTapAudioMethodParams,
   VoiceCallConnectMethodParams,
   toExternalJSON,
   VoiceCallConnectPhoneMethodParams,
@@ -31,6 +29,8 @@ import {
   CallPromptTTSMethodParams,
   CallRecordAudioMethodParams,
   CallRecordMethodParams,
+  CallTapAudioMethodParams,
+  CallTapMethodParams,
   RealTimeCallEvents,
   RealTimeCallListeners,
   RealtimeCallListenersEventsMapping,
@@ -41,6 +41,7 @@ import {
   voiceCallPlayWorker,
   voiceCallRecordWorker,
   voiceCallSendDigitsWorker,
+  voiceCallTapWorker,
 } from './workers'
 import { Playlist } from './Playlist'
 import { Voice } from './Voice'
@@ -85,6 +86,8 @@ export class Call extends ListenSubscriber<
     onCollectUpdated: 'collect.updated',
     onCollectFailed: 'collect.failed',
     onCollectEnded: 'collect.ended',
+    onTapStarted: 'tap.started',
+    onTapEnded: 'tap.ended',
   }
 
   constructor(options: CallOptions) {
@@ -797,7 +800,7 @@ export class Call extends ListenSubscriber<
    * await tap.stop()
    * ```
    */
-  tap(params: VoiceCallTapMethodParams) {
+  tap(params: CallTapMethodParams) {
     return new Promise<CallTap>((resolve, reject) => {
       if (!this.callId || !this.nodeId) {
         reject(new Error(`Can't call tap() on a call not established yet.`))
@@ -822,7 +825,16 @@ export class Call extends ListenSubscriber<
       const {
         audio = {},
         device: { type, ...rest },
+        listen,
       } = params
+
+      this._client.runWorker('voiceCallTapWorker', {
+        worker: voiceCallTapWorker,
+        initialState: {
+          controlId,
+          listen,
+        },
+      })
 
       this._client
         .execute({
@@ -869,9 +881,9 @@ export class Call extends ListenSubscriber<
    * await tap.stop()
    * ```
    */
-  tapAudio(params: VoiceCallTapAudioMethodParams) {
-    const { direction, device } = params
-    return this.tap({ audio: { direction }, device })
+  tapAudio(params: CallTapAudioMethodParams) {
+    const { direction, ...rest } = params
+    return this.tap({ audio: { direction }, ...rest })
   }
 
   /**
