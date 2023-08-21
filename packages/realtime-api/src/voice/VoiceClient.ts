@@ -64,11 +64,10 @@ export interface VoiceClientOptions
  * ```
  */
 const VoiceClient = function (options?: VoiceClientOptions) {
-  const { client, store, emitter } = setupClient(options)
+  const { client, store } = setupClient(options)
 
   const voice = createVoiceObject({
     store,
-    emitter,
     ...options,
   })
 

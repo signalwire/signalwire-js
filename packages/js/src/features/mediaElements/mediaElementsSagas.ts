@@ -3,6 +3,7 @@ import {
   CustomSagaParams,
   actions,
   sagaEffects,
+  LOCAL_EVENT_PREFIX,
 } from '@signalwire/core'
 import type { SagaIterator, Task } from '@signalwire/core'
 import { setMediaElementSinkId } from '@signalwire/webrtc'
@@ -124,7 +125,7 @@ export const makeVideoElementSaga = ({
       }
 
       // @ts-expect-error
-      room.on('_internal.mirror.video', (value: boolean) => {
+      room.on(`${LOCAL_EVENT_PREFIX}.mirror.video`, (value: boolean) => {
         localOverlay.setLocalOverlayMirror(value)
       })
 
@@ -288,8 +289,11 @@ function* audioElementActionsWatcher({
             action.payload
           )
 
-          // @ts-expect-error
-          room.emit('_internal.speaker.updated', action.payload)
+          room.emit(
+            // @ts-expect-error
+            `${LOCAL_EVENT_PREFIX}.speaker.updated`,
+            action.payload
+          )
 
           room.settleCustomSagaTrigger({
             dispatchId: action.dispatchId,

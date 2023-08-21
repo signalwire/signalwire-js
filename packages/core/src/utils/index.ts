@@ -22,10 +22,10 @@ export * from './toInternalEventName'
 export * from './toInternalAction'
 export * from './toSnakeCaseKeys'
 export * from './extendComponent'
-export * from './eventTransformUtils'
-export * from './proxyUtils'
 export * from './debounce'
 export * from './SWCloseEvent'
+export * from './eventUtils'
+export { LOCAL_EVENT_PREFIX }
 
 export const mutateStorageKey = (key: string) => `${STORAGE_PREFIX}${key}`
 
@@ -129,6 +129,12 @@ const CLIENT_SIDE_EVENT_NAMES = [
   'video.media.connected',
   'video.media.reconnecting',
   'video.media.disconnected',
+  'video.microphone.updated',
+  'video.camera.updated',
+  'video.speaker.updated',
+  'video.microphone.disconnected',
+  'video.camera.disconnected',
+  'video.speaker.disconnected',
 ]
 /**
  * Check and filter the events the user attached returning only the valid ones

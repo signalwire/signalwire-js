@@ -6,7 +6,7 @@ import {
   CallPromptEndedEvent,
   CallingCallCollectEventParams,
   EventEmitter,
-  ApplyEventListeners,
+  BaseConsumer,
 } from '@signalwire/core'
 
 /**
@@ -17,16 +17,14 @@ import {
  */
 export interface CallPrompt extends VoiceCallPromptContract {
   setPayload: (payload: CallingCallCollectEventParams) => void
-  baseEmitter: EventEmitter
+  /** @internal */
+  emit(event: EventEmitter.EventNames<any>, ...args: any[]): void
 }
 
 export type CallPromptEventsHandlerMapping = {}
 
 export interface CallPromptOptions
-  extends BaseComponentOptionsWithPayload<
-    CallPromptEventsHandlerMapping,
-    CallingCallCollectEventParams
-  > {}
+  extends BaseComponentOptionsWithPayload<CallingCallCollectEventParams> {}
 
 const ENDED_STATES: CallingCallCollectEndState[] = [
   'no_input',
@@ -37,10 +35,9 @@ const ENDED_STATES: CallingCallCollectEndState[] = [
 ]
 
 export class CallPromptAPI
-  extends ApplyEventListeners<CallPromptEventsHandlerMapping>
+  extends BaseConsumer<CallPromptEventsHandlerMapping>
   implements VoiceCallPromptContract
 {
-  protected _eventsPrefix = 'calling' as const
   private _payload: CallingCallCollectEventParams
 
   constructor(options: CallPromptOptions) {
@@ -170,7 +167,6 @@ export class CallPromptAPI
     }
 
     return new Promise<this>((resolve) => {
-      this._attachListeners(this.controlId)
       const handler = (_callPrompt: CallPromptEndedEvent['params']) => {
         // @ts-expect-error
         this.off('prompt.ended', handler)

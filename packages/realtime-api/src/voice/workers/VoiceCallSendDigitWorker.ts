@@ -22,13 +22,15 @@ export const voiceCallSendDigitsWorker = function* (
 
   switch (payload.state) {
     case 'finished':
-      callInstance.baseEmitter.emit('send_digits.finished', callInstance)
+      // @ts-expect-error
+      callInstance.emit('send_digits.finished', callInstance)
       break
     default: {
       const error = new Error(
         `[voiceCallSendDigitsWorker] unhandled state: '${payload.state}'`
       )
-      callInstance.baseEmitter.emit('send_digits.failed', error)
+      // @ts-expect-error
+      callInstance.emit('send_digits.failed', error)
       break
     }
   }

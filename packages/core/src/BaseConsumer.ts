@@ -20,18 +20,8 @@ export class BaseConsumer<
   protected subscribeParams?: Record<string, any> = {}
   private _latestExecuteParams?: ExecuteParams
 
-  constructor(public options: BaseComponentOptions<EventTypes>) {
+  constructor(public options: BaseComponentOptions) {
     super(options)
-
-    /**
-     * Local events can be attached right away because we
-     * have enough information during build time on how to
-     * namespace them. Other events depend on info coming
-     * from the server and for those we have to wait until
-     * the `subscribe()` happen.
-     */
-    this.applyEmitterTransforms({ local: true })
-
     /**
      * TODO: To Review
      * Reset _latestExecuteParams when on session connect/disconnet
@@ -40,12 +30,9 @@ export class BaseConsumer<
     const resetLatestExecuteParams = () => {
       this._latestExecuteParams = undefined
     }
-    // @ts-expect-error
-    super.on('session.connected', resetLatestExecuteParams)
-    // @ts-expect-error
-    super.on('session.disconnected', resetLatestExecuteParams)
-    // @ts-expect-error
-    super.on('session.reconnecting', resetLatestExecuteParams)
+    super.session.on('session.connected', resetLatestExecuteParams)
+    super.session.on('session.disconnected', resetLatestExecuteParams)
+    super.session.on('session.reconnecting', resetLatestExecuteParams)
   }
 
   private shouldExecuteSubscribe(execParams: ExecuteParams) {
@@ -86,7 +73,6 @@ export class BaseConsumer<
     this._latestExecuteParams = execParams
     return new Promise(async (resolve, reject) => {
       try {
-        this.applyEmitterTransforms()
         await this.execute(execParams)
         return resolve(undefined)
       } catch (error) {

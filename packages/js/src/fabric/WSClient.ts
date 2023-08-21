@@ -241,7 +241,6 @@ export class WSClient {
 
   updateToken(token: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      // @ts-expect-error
       this.wsClient.once('session.auth_error', (error) => {
         reject(error)
       })

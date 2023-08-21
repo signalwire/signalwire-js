@@ -9,10 +9,10 @@ import {
   EntityUpdated,
   BaseConsumer,
   EventEmitter,
-  MemberPosition,
   debounce,
   VideoRoomEventParams,
   Optional,
+  validateEventsToSubscribe,
 } from '@signalwire/core'
 import { RealTimeRoomApiEvents } from '../types'
 import {
@@ -24,7 +24,6 @@ import {
 export interface RoomSession
   extends VideoRoomSessionContract,
     ConsumerContract<RealTimeRoomApiEvents, RoomSessionFullState> {
-  baseEmitter: EventEmitter
   setPayload(payload: Optional<VideoRoomEventParams, 'room'>): void
   /**
    * Returns a list of members currently in the room.
@@ -45,13 +44,9 @@ export interface RoomSessionFullState extends Omit<RoomSession, 'members'> {
 
 type RoomSessionPayload = Optional<VideoRoomEventParams, 'room'>
 export interface RoomSessionConsumerOptions
-  extends BaseComponentOptionsWithPayload<
-    RealTimeRoomApiEvents,
-    RoomSessionPayload
-  > {}
+  extends BaseComponentOptionsWithPayload<RoomSessionPayload> {}
 
 export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
-  protected _eventsPrefix = 'video' as const
   private _payload: RoomSessionPayload
 
   /** @internal */
@@ -115,6 +110,14 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
   }
 
   /** @internal */
+  protected override getSubscriptions() {
+    const eventNamesWithPrefix = this.eventNames().map(
+      (event) => `video.${String(event)}`
+    ) as EventEmitter.EventNames<RealTimeRoomApiEvents>[]
+    return validateEventsToSubscribe(eventNamesWithPrefix)
+  }
+
+  /** @internal */
   protected _internal_on(
     event: keyof RealTimeRoomApiEvents,
     fn: EventEmitter.EventListener<RealTimeRoomApiEvents, any>
@@ -122,32 +125,29 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     return super.on(event, fn)
   }
 
-  on(
-    event: keyof RealTimeRoomApiEvents,
-    fn: EventEmitter.EventListener<RealTimeRoomApiEvents, any>
+  on<T extends keyof RealTimeRoomApiEvents>(
+    event: T,
+    fn: EventEmitter.EventListener<RealTimeRoomApiEvents, T>
   ) {
-    // @ts-expect-error
-    const instance = super._on(`video.${event}`, fn)
+    const instance = super.on(event, fn)
     this.debouncedSubscribe()
     return instance
   }
 
-  once(
-    event: keyof RealTimeRoomApiEvents,
-    fn: EventEmitter.EventListener<RealTimeRoomApiEvents, any>
+  once<T extends keyof RealTimeRoomApiEvents>(
+    event: T,
+    fn: EventEmitter.EventListener<RealTimeRoomApiEvents, T>
   ) {
-    // @ts-expect-error
-    const instance = super._on(`video.${event}`, fn)
+    const instance = super.once(event, fn)
     this.debouncedSubscribe()
     return instance
   }
 
-  off(
-    event: keyof RealTimeRoomApiEvents,
-    fn: EventEmitter.EventListener<RealTimeRoomApiEvents, any>
+  off<T extends keyof RealTimeRoomApiEvents>(
+    event: T,
+    fn: EventEmitter.EventListener<RealTimeRoomApiEvents, T>
   ) {
-    // @ts-expect-error
-    const instance = super.off(`video.${event}`, fn)
+    const instance = super.off(event, fn)
     return instance
   }
 
@@ -173,11 +173,6 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
       }
 
       try {
-        /**
-         * Note that we're using `super.once` (instead of
-         * `this.once`) here, because we don't want to
-         * re-trigger our added custom behavior.
-         */
         super.once('room.subscribed', handler)
         await super.subscribe()
       } catch (error) {
@@ -185,13 +180,6 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
         return reject(error)
       }
     })
-  }
-
-  /** @internal */
-  protected override getCompoundEvents() {
-    return new Map<any, any>([
-      ...MemberPosition.MEMBER_POSITION_COMPOUND_EVENTS,
-    ])
   }
 
   /** @internal */
@@ -220,8 +208,6 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
           if (!memberInstance) {
             memberInstance = createRoomSessionMemberObject({
               store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
               payload: {
                 room_id: this.roomId,
                 room_session_id: this.roomSessionId,
@@ -270,10 +256,10 @@ export const RoomSessionAPI = extendComponent<
   setLayout: Rooms.setLayout,
   setPositions: Rooms.setPositions,
   setMemberPosition: Rooms.setMemberPosition,
-  getRecordings: Rooms.getRTRecordings,
-  startRecording: Rooms.startRTRecording,
-  getPlaybacks: Rooms.getRTPlaybacks,
-  play: Rooms.playRT,
+  getRecordings: Rooms.getRecordings,
+  startRecording: Rooms.startRecording,
+  getPlaybacks: Rooms.getPlaybacks,
+  play: Rooms.play,
   getMeta: Rooms.getMeta,
   setMeta: Rooms.setMeta,
   updateMeta: Rooms.updateMeta,
@@ -284,8 +270,8 @@ export const RoomSessionAPI = extendComponent<
   deleteMemberMeta: Rooms.deleteMemberMeta,
   promote: Rooms.promote,
   demote: Rooms.demote,
-  getStreams: Rooms.getRTStreams,
-  startStream: Rooms.startRTStream,
+  getStreams: Rooms.getStreams,
+  startStream: Rooms.startStream,
 })
 
 export const createRoomSessionObject = (

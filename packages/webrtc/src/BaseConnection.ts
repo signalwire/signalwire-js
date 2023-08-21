@@ -87,10 +87,7 @@ export type BaseConnectionStateEventTypes = {
   [k in keyof EventsHandlerMapping]: EventsHandlerMapping[k]
 }
 
-export type BaseConnectionOptions<
-  EventTypes extends EventEmitter.ValidEventTypes
-> = ConnectionOptions &
-  BaseComponentOptions<EventTypes & BaseConnectionStateEventTypes>
+export type BaseConnectionOptions = ConnectionOptions & BaseComponentOptions
 
 export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   extends BaseComponent<EventTypes & BaseConnectionStateEventTypes>
@@ -99,9 +96,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     BaseConnectionContract<EventTypes & BaseConnectionStateEventTypes>
 {
   public direction: 'inbound' | 'outbound'
-  public options: BaseConnectionOptions<
-    EventTypes & BaseConnectionStateEventTypes
-  >
+  public options: BaseConnectionOptions
   /** @internal */
   public leaveReason: BaseConnectionContract<EventTypes>['leaveReason'] =
     undefined
@@ -115,9 +110,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   /** @internal */
   public doReinvite = false
 
-  /** @internal */
-  protected _eventsPrefix = 'video' as const
-
   private state: BaseConnectionState = 'new'
   private prevState: BaseConnectionState = 'new'
   private activeRTCPeerId: string
@@ -125,9 +117,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   private sessionAuthTask: Task
   private resuming = false
 
-  constructor(
-    options: BaseConnectionOptions<EventTypes & BaseConnectionStateEventTypes>
-  ) {
+  constructor(options: BaseConnectionOptions) {
     super(options)
 
     this.options = {
@@ -138,8 +128,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
     this.setState('new')
     this.logger.trace('New Call with Options:', this.options)
-
-    this.applyEmitterTransforms({ local: true })
 
     this._initPeer()
   }
@@ -840,10 +828,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
       this.resuming = false
 
-      // TODO: Review
-      this._attachListeners('')
-      this.applyEmitterTransforms()
-
       /** Call is active so set the RTCPeer */
       this.setActiveRTCPeer(rtcPeerId)
     } catch (error) {
@@ -986,7 +970,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     )
 
     // @ts-expect-error
-    this.emit(this.state, this)
+    this.emitter.emit(this.state, this)
 
     switch (state) {
       case 'purge': {

@@ -63,7 +63,8 @@ describe('ChatClient', () => {
 
         chat.once('member.joined', () => {})
 
-        chat._session.on('session.connected', () => {
+        // @ts-expect-error
+        chat.session.on('session.connected', () => {
           expect(server).toHaveReceivedMessages([
             {
               jsonrpc: '2.0',

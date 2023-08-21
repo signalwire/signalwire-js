@@ -112,10 +112,21 @@ test.describe('RoomSession', () => {
               })
             )
 
+            const streamSerializer = (stream: any) => {
+              return {
+                id: stream.id,
+                roomSessionId: stream.roomSessionId,
+                state: stream.state,
+                url: stream.url,
+                stop: stream.stop,
+              }
+            }
+
             resolve({
-              streamsOnJoined: params.room_session.streams,
-              streamsOnGet: result.streams,
-              streamOnEnd,
+              streamsOnJoined:
+                params.room_session.streams?.map(streamSerializer),
+              streamsOnGet: result.streams.map(streamSerializer),
+              streamOnEnd: streamOnEnd.map(streamSerializer),
             })
           })
 
@@ -125,7 +136,7 @@ test.describe('RoomSession', () => {
 
     expect(streamsOnJoined.length).toEqual(streamsOnGet.length)
     expect(streamsOnGet.length).toEqual(streamOnEnd.length)
-    ;[streamsOnJoined, streamsOnGet, streamsOnGet].forEach((streams: any[]) => {
+    ;[streamsOnJoined, streamsOnGet, streamOnEnd].forEach((streams: any[]) => {
       streams.forEach((stream) => {
         // Since functions can't be serialized back to this
         // thread (from the previous step) we just check that

@@ -48,16 +48,10 @@ export interface MessagingClientOptions
  * ```
  */
 const MessagingClient = function (options?: MessagingClientOptions) {
-  const { client, store, emitter } = setupClient(options)
+  const { client, store } = setupClient(options)
 
   const messaging = createMessagingObject({
     store,
-    emitter,
-  })
-
-  client.once('session.connected', () => {
-    // @ts-expect-error
-    messaging.applyEmitterTransforms()
   })
 
   const send: Messaging['send'] = async (...args) => {

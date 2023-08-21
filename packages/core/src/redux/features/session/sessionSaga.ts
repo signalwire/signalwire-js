@@ -8,13 +8,8 @@ import type {
   SwEventParams,
   WebRTCMessageParams,
   SwAuthorizationStateParams,
-  MemberTalkingEventNames,
 } from '../../../types'
-import type {
-  PubSubChannel,
-  SessionChannel,
-  SwEventChannel,
-} from '../../interfaces'
+import type { SessionChannel, SwEventChannel } from '../../interfaces'
 import { createCatchableSaga } from '../../utils/sagaHelpers'
 import { socketMessageAction } from '../../actions'
 import { getLogger, isWebrtcEventType, toInternalAction } from '../../../utils'
@@ -22,7 +17,6 @@ import { getLogger, isWebrtcEventType, toInternalAction } from '../../../utils'
 type SessionSagaParams = {
   session: BaseSession
   sessionChannel: SessionChannel
-  pubSubChannel: PubSubChannel
   swEventChannel: SwEventChannel
 }
 
@@ -41,73 +35,21 @@ const isSwAuthorizationState = (
 
 export function* sessionChannelWatcher({
   sessionChannel,
-  pubSubChannel,
   swEventChannel,
   session,
 }: SessionSagaParams): SagaIterator {
-  function* videoAPIWorker(params: VideoAPIEventParams): SagaIterator {
-    switch (params.event_type) {
-      case 'video.room.audience_count': {
-        /** Rename event to be camelCase */
-        yield put(pubSubChannel, {
-          type: 'video.room.audienceCount',
-          payload: params.params,
-        })
-        return
-      }
-      case 'video.member.updated': {
-        /**
-         * @see memberUpdatedWorker in packages/core/src/memberPosition/workers.ts
-         * `video.member.updated` is handled by the
-         * layoutWorker so to avoid dispatching the event
-         * twice (or with incomplete data) we'll early
-         * return.
-         */
-        return
-      }
-      case 'video.member.talking': {
-        const { member } = params.params
-        if ('talking' in member) {
-          const suffix = member.talking ? 'started' : 'ended'
-          yield put(pubSubChannel, {
-            type: `video.member.talking.${suffix}` as MemberTalkingEventNames,
-            payload: params.params,
-          })
-          // Keep for backwards compat.
-          const deprecatedSuffix = member.talking ? 'start' : 'stop'
-          yield put(pubSubChannel, {
-            type: `video.member.talking.${deprecatedSuffix}` as MemberTalkingEventNames,
-            payload: params.params,
-          })
-        }
-        break
-      }
-    }
-
-    // Emit on the pubSubChannel this "event_type"
-    yield put(pubSubChannel, {
-      type: params.event_type,
-      // @ts-expect-error
-      payload: params.params,
-    })
-  }
-
   function* swEventWorker(broadcastParams: SwEventParams) {
     yield put(swEventChannel, toInternalAction(broadcastParams))
 
-    if (isWebrtcEvent(broadcastParams)) {
+    if (isWebrtcEvent(broadcastParams) || isVideoEvent(broadcastParams)) {
       /**
-       * Skip `webrtc.*` events.
+       * Skip `webrtc.*` & `video.*` events.
        * There are custom workers handling them through `swEventChannel`
        */
       return
     }
     if (isSwAuthorizationState(broadcastParams)) {
       session.onSwAuthorizationState(broadcastParams.params.authorization_state)
-      return
-    }
-    if (isVideoEvent(broadcastParams)) {
-      yield fork(videoAPIWorker, broadcastParams)
       return
     }
 

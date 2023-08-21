@@ -3,8 +3,10 @@ import {
   SagaIterator,
   MapToPubSubShape,
   VideoRecordingEvent,
-  RoomSessionRTRecording,
+  RoomSessionRecording,
   Rooms,
+  VideoRecordingEventNames,
+  stripNamespacePrefix,
 } from '@signalwire/core'
 import { RoomSession } from '../RoomSession'
 import { VideoCallWorkerParams } from './videoCallingWorker'
@@ -24,28 +26,28 @@ export const videoRecordingWorker = function* (
     throw new Error('Missing room session instance for playback')
   }
 
-  let recordingInstance = get<RoomSessionRTRecording>(payload.recording.id)
+  let recordingInstance = get<RoomSessionRecording>(payload.recording.id)
   if (!recordingInstance) {
-    recordingInstance = Rooms.createRoomSessionRTRecordingObject({
+    recordingInstance = Rooms.createRoomSessionRecordingObject({
       // @ts-expect-error
       store: client.store,
-      // @ts-expect-error
-      emitter: client.emitter,
       payload,
     })
   } else {
     recordingInstance.setPayload(payload)
   }
-  set<RoomSessionRTRecording>(payload.recording.id, recordingInstance)
+  set<RoomSessionRecording>(payload.recording.id, recordingInstance)
+
+  const event = stripNamespacePrefix(type) as VideoRecordingEventNames
 
   switch (type) {
     case 'video.recording.started':
     case 'video.recording.updated':
-      roomSessionInstance.baseEmitter.emit(type, recordingInstance)
+      roomSessionInstance.emit(event, recordingInstance)
       break
     case 'video.recording.ended':
-      roomSessionInstance.baseEmitter.emit(type, recordingInstance)
-      remove<RoomSessionRTRecording>(payload.recording.id)
+      roomSessionInstance.emit(event, recordingInstance)
+      remove<RoomSessionRecording>(payload.recording.id)
       break
     default:
       break

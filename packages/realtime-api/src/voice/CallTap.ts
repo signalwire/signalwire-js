@@ -5,7 +5,7 @@ import {
   CallingCallTapEndState,
   CallingCallTapEventParams,
   EventEmitter,
-  ApplyEventListeners,
+  BaseConsumer,
 } from '@signalwire/core'
 
 /**
@@ -17,21 +17,19 @@ import {
 export interface CallTap extends VoiceCallTapContract {
   setPayload: (payload: CallingCallTapEventParams) => void
   _paused: boolean
-  baseEmitter: EventEmitter
+  /** @internal */
+  emit(event: EventEmitter.EventNames<any>, ...args: any[]): void
 }
 
 export type CallTapEventsHandlerMapping = {}
 
 export interface CallTapOptions
-  extends BaseComponentOptionsWithPayload<
-    CallTapEventsHandlerMapping,
-    CallingCallTapEventParams
-  > {}
+  extends BaseComponentOptionsWithPayload<CallingCallTapEventParams> {}
 
 const ENDED_STATES: CallingCallTapEndState[] = ['finished']
 
 export class CallTapAPI
-  extends ApplyEventListeners<CallTapEventsHandlerMapping>
+  extends BaseConsumer<CallTapEventsHandlerMapping>
   implements VoiceCallTapContract
 {
   private _payload: CallingCallTapEventParams
@@ -89,8 +87,6 @@ export class CallTapAPI
     }
 
     return new Promise<this>((resolve) => {
-      this._attachListeners(this.controlId)
-
       const handler = () => {
         // @ts-expect-error
         this.off('tap.ended', handler)

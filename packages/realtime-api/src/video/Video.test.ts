@@ -149,7 +149,7 @@ describe('Video Object', () => {
         method: 'signalwire.subscribe',
         params: {
           event_channel: eventChannelOne,
-          events: ['video.room.subscribed', 'video.member.joined'],
+          events: ['video.member.joined', 'video.room.subscribed'],
           get_initial_state: true,
         },
       })
@@ -157,7 +157,7 @@ describe('Video Object', () => {
         method: 'signalwire.subscribe',
         params: {
           event_channel: eventChannelTwo,
-          events: ['video.room.subscribed', 'video.member.joined'],
+          events: ['video.member.joined', 'video.room.subscribed'],
           get_initial_state: true,
         },
       })

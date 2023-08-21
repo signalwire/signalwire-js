@@ -4,7 +4,6 @@ import {
   ConsumerContract,
   RoomSessionRecording,
   RoomSessionPlayback,
-  EventEmitter,
 } from '@signalwire/core'
 import { AutoSubscribeConsumer } from '../AutoSubscribeConsumer'
 import type { RealtimeClient } from '../client/Client'
@@ -31,8 +30,6 @@ export interface Video extends ConsumerContract<RealTimeVideoApiEvents> {
   subscribe(): Promise<void>
   /** @internal */
   _session: RealtimeClient
-  /** @internal */
-  baseEmitter: EventEmitter
   /**
    * Disconnects this client. The client will stop receiving events and you will
    * need to create a new instance if you want to use it again.
@@ -106,14 +103,11 @@ export type {
 } from '@signalwire/core'
 
 class VideoAPI extends AutoSubscribeConsumer<RealTimeVideoApiEvents> {
-  constructor(options: BaseComponentOptions<RealTimeVideoApiEvents>) {
+  constructor(options: BaseComponentOptions) {
     super(options)
 
     this.runWorker('videoCallWorker', { worker: videoCallingWorker })
   }
-
-  /** @internal */
-  protected _eventsPrefix = 'video' as const
 
   /** @internal */
   protected subscribeParams = {
@@ -135,8 +129,6 @@ class VideoAPI extends AutoSubscribeConsumer<RealTimeVideoApiEvents> {
             if (!roomInstance) {
               roomInstance = createRoomSessionObject({
                 store: this.store,
-                // @ts-expect-error
-                emitter: this.emitter,
                 payload: { room_session: room },
               })
             } else {
@@ -172,8 +164,6 @@ class VideoAPI extends AutoSubscribeConsumer<RealTimeVideoApiEvents> {
           if (!roomInstance) {
             roomInstance = createRoomSessionObject({
               store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
               payload: { room_session: room },
             })
           } else {
@@ -194,9 +184,7 @@ class VideoAPI extends AutoSubscribeConsumer<RealTimeVideoApiEvents> {
 }
 
 /** @internal */
-export const createVideoObject = (
-  params: BaseComponentOptions<RealTimeVideoApiEvents>
-): Video => {
+export const createVideoObject = (params: BaseComponentOptions): Video => {
   const video = connect<RealTimeVideoApiEvents, VideoAPI, Video>({
     store: params.store,
     Component: VideoAPI,

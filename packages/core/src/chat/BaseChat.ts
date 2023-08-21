@@ -3,11 +3,9 @@ import {
   connect,
   extendComponent,
   JSONRPCSubscribeMethod,
-  SessionEvents,
 } from '..'
 import { BasePubSubConsumer } from '../pubSub'
 import type {
-  ChatEventNames,
   ChatMemberEventNames,
   ChatMessageEventName,
   ChatMethods,
@@ -22,8 +20,7 @@ export type BaseChatApiEventsHandlerMapping = Record<
   ChatMessageEventName,
   (message: ChatMessage) => void
 > &
-  Record<ChatMemberEventNames, (member: ChatMember) => void> &
-  Record<Extract<SessionEvents, 'session.expiring'>, () => void>
+  Record<ChatMemberEventNames, (member: ChatMember) => void>
 
 /**
  * @privateRemarks
@@ -36,10 +33,9 @@ export type BaseChatApiEvents<T = BaseChatApiEventsHandlerMapping> = {
 }
 
 export class BaseChatConsumer extends BasePubSubConsumer<BaseChatApiEvents> {
-  protected override _eventsPrefix = PRODUCT_PREFIX_CHAT
   protected override subscribeMethod: JSONRPCSubscribeMethod = `${PRODUCT_PREFIX_CHAT}.subscribe`
 
-  constructor(options: BaseComponentOptions<BaseChatApiEvents>) {
+  constructor(options: BaseComponentOptions) {
     super(options)
   }
 
@@ -60,7 +56,7 @@ export const BaseChatAPI = extendComponent<BaseChatConsumer, ChatMethods>(
 )
 
 export const createBaseChatObject = <ChatType>(
-  params: BaseComponentOptions<ChatEventNames>
+  params: BaseComponentOptions
 ) => {
   const chat = connect<BaseChatApiEvents, BaseChatConsumer, ChatType>({
     store: params.store,

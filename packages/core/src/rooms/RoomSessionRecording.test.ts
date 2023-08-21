@@ -1,9 +1,7 @@
 import { configureJestStore } from '../testUtils'
-import { EventEmitter } from '../utils/EventEmitter'
 import {
   createRoomSessionRecordingObject,
   RoomSessionRecording,
-  RoomSessionRecordingEventsHandlerMapping,
 } from './RoomSessionRecording'
 
 describe('RoomSessionRecording', () => {
@@ -12,17 +10,19 @@ describe('RoomSessionRecording', () => {
     beforeEach(() => {
       instance = createRoomSessionRecordingObject({
         store: configureJestStore(),
-        emitter: new EventEmitter<RoomSessionRecordingEventsHandlerMapping>(),
+        payload: {
+          // @ts-expect-error
+          recording: {
+            id: 'c22d7223-5a01-49fe-8da0-46bec8e75e32',
+          },
+          room_session_id: 'room-session-id',
+        },
       })
       // @ts-expect-error
       instance.execute = jest.fn()
     })
 
     it('should control an active recording', async () => {
-      // Mock properties
-      instance.id = 'c22d7223-5a01-49fe-8da0-46bec8e75e32'
-      instance.roomSessionId = 'room-session-id'
-
       const baseExecuteParams = {
         method: '',
         params: {

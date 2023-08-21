@@ -31,11 +31,10 @@ export interface TaskClientOptions
  * ```
  */
 const TaskClient = function (options?: TaskClientOptions) {
-  const { client, store, emitter } = setupClient(options)
+  const { client, store } = setupClient(options)
 
   const task = createTaskObject({
     store,
-    emitter,
   })
 
   const disconnect = () => client.disconnect()

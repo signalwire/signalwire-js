@@ -6,7 +6,7 @@ import {
   CallCollectEndedEvent,
   CallingCallCollectEventParams,
   EventEmitter,
-  ApplyEventListeners,
+  BaseConsumer,
 } from '@signalwire/core'
 
 /**
@@ -17,16 +17,14 @@ import {
  */
 export interface CallCollect extends VoiceCallCollectContract {
   setPayload: (payload: CallingCallCollectEventParams) => void
-  baseEmitter: EventEmitter
+  /** @internal */
+  emit(event: EventEmitter.EventNames<any>, ...args: any[]): void
 }
 
 export type CallCollectEventsHandlerMapping = {}
 
 export interface CallCollectOptions
-  extends BaseComponentOptionsWithPayload<
-    CallCollectEventsHandlerMapping,
-    CallingCallCollectEventParams
-  > {}
+  extends BaseComponentOptionsWithPayload<CallingCallCollectEventParams> {}
 
 const ENDED_STATES: CallingCallCollectEndState[] = [
   'error',
@@ -37,10 +35,9 @@ const ENDED_STATES: CallingCallCollectEndState[] = [
 ]
 
 export class CallCollectAPI
-  extends ApplyEventListeners<CallCollectEventsHandlerMapping>
+  extends BaseConsumer<CallCollectEventsHandlerMapping>
   implements VoiceCallCollectContract
 {
-  protected _eventsPrefix = 'calling' as const
   private _payload: CallingCallCollectEventParams
 
   constructor(options: CallCollectOptions) {
@@ -164,7 +161,6 @@ export class CallCollectAPI
     }
 
     return new Promise<this>((resolve) => {
-      this._attachListeners(this.controlId)
       const handler = (_callCollect: CallCollectEndedEvent['params']) => {
         // @ts-expect-error
         this.off('collect.ended', handler)

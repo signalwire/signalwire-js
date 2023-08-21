@@ -3,6 +3,7 @@ import { BaseComponent } from '../BaseComponent'
 import { EventEmitter } from '../utils/EventEmitter'
 import { connect, SDKStore } from '../redux'
 import * as CustomMethods from './methods'
+import { RoomSessionRecordingAPI } from './RoomSessionRecording'
 
 describe('Room Custom Methods', () => {
   let store: SDKStore
@@ -19,7 +20,6 @@ describe('Room Custom Methods', () => {
       emitter: new EventEmitter(),
     })
     instance.execute = jest.fn()
-    instance._attachListeners(instance.__uuid)
   })
 
   it('should have all the custom methods defined', () => {
@@ -34,6 +34,9 @@ describe('Room Custom Methods', () => {
         code: '200',
         message: 'Recording started',
         recording_id: 'c22d7223-5a01-49fe-8da0-46bec8e75e32',
+        recording: {
+          state: 'recording',
+        },
       })
       instance.roomSessionId = 'mocked'
 
@@ -45,12 +48,9 @@ describe('Room Custom Methods', () => {
           room_session_id: 'mocked',
         },
       })
-      expect(response).toStrictEqual({
-        code: '200',
-        message: 'Recording started',
-        recording_id: 'c22d7223-5a01-49fe-8da0-46bec8e75e32',
-        room_session_id: 'mocked',
-      })
+      expect(response).toBeInstanceOf(RoomSessionRecordingAPI)
+      expect(response.roomSessionId).toBe('mocked')
+      expect(response.state).toBe('recording')
     })
   })
 
@@ -139,48 +139,35 @@ describe('Room Custom Methods', () => {
   })
 
   describe('play', () => {
-    it('should execute with proper params', async () => {
-      ;(instance.execute as jest.Mock).mockResolvedValueOnce({})
-      instance.roomSessionId = 'mocked'
-      const url = 'https://example.com/foo.mp4'
-
-      await instance.play({
-        url,
-        positions: {
-          'c22d7124-5a01-49fe-8da0-46bec8e75f12': 'reserved',
-        },
+    beforeEach(() => {
+      ;(instance.execute as jest.Mock).mockResolvedValueOnce({
+        playback: {},
       })
+    })
+
+    it.each([
+      {
+        input: {
+          positions: { 'c22d7124-5a01-49fe-8da0-46bec8e75f12': 'reserved' },
+        },
+        output: {
+          positions: { 'c22d7124-5a01-49fe-8da0-46bec8e75f12': 'reserved' },
+        },
+      },
+      { input: { seekPosition: 20000 }, output: { seek_position: 20000 } },
+      { input: { currentTimecode: 10000 }, output: { seek_position: 10000 } },
+    ])('should execute with proper params', async ({ input, output }) => {
+      const url = 'https://example.com/foo.mp4'
+      instance.roomSessionId = 'mocked'
+
+      await instance.play({ url, ...input })
       expect(instance.execute).toHaveBeenCalledTimes(1)
       expect(instance.execute).toHaveBeenCalledWith({
         method: 'video.playback.start',
         params: {
           room_session_id: 'mocked',
           url,
-          positions: {
-            'c22d7124-5a01-49fe-8da0-46bec8e75f12': 'reserved',
-          },
-        },
-      })
-
-      await instance.play({ url, currentTimecode: 10000 })
-      expect(instance.execute).toHaveBeenCalledTimes(2)
-      expect(instance.execute).toHaveBeenCalledWith({
-        method: 'video.playback.start',
-        params: {
-          room_session_id: 'mocked',
-          url,
-          seek_position: 10000,
-        },
-      })
-
-      await instance.play({ url, seekPosition: 10000 })
-      expect(instance.execute).toHaveBeenCalledTimes(3)
-      expect(instance.execute).toHaveBeenCalledWith({
-        method: 'video.playback.start',
-        params: {
-          room_session_id: 'mocked',
-          url,
-          seek_position: 10000,
+          ...output,
         },
       })
     })

@@ -3,8 +3,10 @@ import {
   SagaIterator,
   MapToPubSubShape,
   VideoPlaybackEvent,
-  RoomSessionRTPlayback,
+  RoomSessionPlayback,
   Rooms,
+  stripNamespacePrefix,
+  VideoPlaybackEventNames,
 } from '@signalwire/core'
 import { RoomSession } from '../RoomSession'
 import { VideoCallWorkerParams } from './videoCallingWorker'
@@ -24,28 +26,28 @@ export const videoPlaybackWorker = function* (
     throw new Error('Missing room session instance for playback')
   }
 
-  let playbackInstance = get<RoomSessionRTPlayback>(payload.playback.id)
+  let playbackInstance = get<RoomSessionPlayback>(payload.playback.id)
   if (!playbackInstance) {
-    playbackInstance = Rooms.createRoomSessionRTPlaybackObject({
+    playbackInstance = Rooms.createRoomSessionPlaybackObject({
       // @ts-expect-error
       store: client.store,
-      // @ts-expect-error
-      emitter: client.emitter,
       payload,
     })
   } else {
     playbackInstance.setPayload(payload)
   }
-  set<RoomSessionRTPlayback>(payload.playback.id, playbackInstance)
+  set<RoomSessionPlayback>(payload.playback.id, playbackInstance)
+
+  const event = stripNamespacePrefix(type) as VideoPlaybackEventNames
 
   switch (type) {
     case 'video.playback.started':
     case 'video.playback.updated':
-      roomSessionInstance.baseEmitter.emit(type, playbackInstance)
+      roomSessionInstance.emit(event, playbackInstance)
       break
     case 'video.playback.ended':
-      roomSessionInstance.baseEmitter.emit(type, playbackInstance)
-      remove<RoomSessionRTPlayback>(payload.playback.id)
+      roomSessionInstance.emit(event, playbackInstance)
+      remove<RoomSessionPlayback>(payload.playback.id)
       break
     default:
       break

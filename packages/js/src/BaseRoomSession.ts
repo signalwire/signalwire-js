@@ -1,17 +1,14 @@
 import {
   connect,
   Rooms,
-  EventTransform,
   extendComponent,
   BaseComponentContract,
   BaseComponentOptions,
   BaseConnectionContract,
-  toLocalEvent,
-  toExternalJSON,
-  VideoRoomEventParams,
-  MemberPosition,
-  VideoRoomSubscribedEventParams,
   VideoAuthorization,
+  LOCAL_EVENT_PREFIX,
+  validateEventsToSubscribe,
+  EventEmitter,
 } from '@signalwire/core'
 import {
   getDisplayMedia,
@@ -88,6 +85,10 @@ export class RoomSessionConnection
   ) {
     super(options)
     this._mirrored = options.mirrorLocalVideoOverlay
+
+    this.runWorker('videoWorker', {
+      worker: workers.videoWorker,
+    })
   }
 
   get screenShareList() {
@@ -112,172 +113,6 @@ export class RoomSessionConnection
     })
   }
 
-  /** @internal */
-  protected getEmitterTransforms() {
-    return new Map<string | string[], EventTransform>([
-      [
-        ['video.room.joined'],
-        {
-          type: 'roomSession',
-          instanceFactory: () => {
-            return {}
-          },
-          payloadTransform: (payload: VideoRoomSubscribedEventParams) => {
-            return payload
-          },
-          nestedFieldsToProcess: {
-            recordings: {
-              eventTransformType: 'roomSessionRecording',
-              processInstancePayload: (payload) => ({ recording: payload }),
-            },
-            playbacks: {
-              eventTransformType: 'roomSessionPlayback',
-              processInstancePayload: (payload) => ({ playback: payload }),
-            },
-            streams: {
-              eventTransformType: 'roomSessionStream',
-              processInstancePayload: (payload) => ({ stream: payload }),
-            },
-          },
-        },
-      ],
-      [
-        [toLocalEvent('video.recording.list')],
-        {
-          type: 'roomSessionRecordingList',
-          instanceFactory: (_payload: any) => {
-            return {}
-          },
-          payloadTransform: (payload: any) => {
-            return payload
-          },
-          nestedFieldsToProcess: {
-            recordings: {
-              eventTransformType: 'roomSessionRecording',
-              processInstancePayload: (payload) => ({ recording: payload }),
-            },
-          },
-        },
-      ],
-      [
-        [toLocalEvent('video.playback.list')],
-        {
-          type: 'roomSessionPlaybackList',
-          instanceFactory: (_payload: any) => {
-            return {}
-          },
-          payloadTransform: (payload: any) => {
-            return payload
-          },
-          nestedFieldsToProcess: {
-            playbacks: {
-              eventTransformType: 'roomSessionPlayback',
-              processInstancePayload: (payload) => ({ playback: payload }),
-            },
-          },
-        },
-      ],
-      [
-        [
-          toLocalEvent('video.recording.start'),
-          'video.recording.started',
-          'video.recording.updated',
-          'video.recording.ended',
-        ],
-        {
-          type: 'roomSessionRecording',
-          instanceFactory: (_payload: any) => {
-            return Rooms.createRoomSessionRecordingObject({
-              store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
-            })
-          },
-          payloadTransform: (payload: any) => {
-            return toExternalJSON({
-              ...payload.recording,
-              room_session_id: this.roomSessionId,
-            })
-          },
-        },
-      ],
-      [
-        [
-          toLocalEvent('video.playback.start'),
-          'video.playback.started',
-          'video.playback.updated',
-          'video.playback.ended',
-        ],
-        {
-          type: 'roomSessionPlayback',
-          instanceFactory: (_payload: any) => {
-            return Rooms.createRoomSessionPlaybackObject({
-              store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
-            })
-          },
-          payloadTransform: (payload: any) => {
-            return toExternalJSON({
-              ...payload.playback,
-              room_session_id: this.roomSessionId,
-            })
-          },
-        },
-      ],
-      [
-        [toLocalEvent('video.stream.list')],
-        {
-          type: 'roomSessionStreamList',
-          instanceFactory: (_payload: any) => {
-            return {}
-          },
-          payloadTransform: (payload: any) => {
-            return payload
-          },
-          nestedFieldsToProcess: {
-            streams: {
-              eventTransformType: 'roomSessionStream',
-              processInstancePayload: (payload) => {
-                return { stream: payload }
-              },
-            },
-          },
-        },
-      ],
-      [
-        [
-          toLocalEvent('video.stream.start'),
-          'video.stream.started',
-          'video.stream.ended',
-        ],
-        {
-          type: 'roomSessionStream',
-          instanceFactory: (_payload: any) => {
-            return Rooms.createRoomSessionStreamObject({
-              store: this.store,
-              // @ts-expect-error
-              emitter: this.emitter,
-            })
-          },
-          payloadTransform: (payload: any) => {
-            return toExternalJSON({
-              ...payload.stream,
-              room_session_id: this.roomSessionId,
-            })
-          },
-        },
-      ],
-    ])
-  }
-
-  /** @internal */
-  protected override getCompoundEvents() {
-    return new Map<any, any>([
-      ...MemberPosition.MEMBER_POSITION_COMPOUND_EVENTS,
-    ])
-  }
-
   /**
    * This method will be called by `join()` right before the
    * `connect()` happens and it's a way for us to control
@@ -287,18 +122,6 @@ export class RoomSessionConnection
   protected attachPreConnectWorkers() {
     this.runWorker('memberListUpdated', {
       worker: workers.memberListUpdatedWorker,
-    })
-  }
-
-  /**
-   * This method will be called right after
-   * `room.subscribed` happened
-   * @internal
-   */
-  protected attachOnSubscribedWorkers(payload: VideoRoomEventParams) {
-    this.runWorker('memberPositionWorker', {
-      worker: workers.memberPositionWorker,
-      initialState: payload,
     })
   }
 
@@ -323,7 +146,7 @@ export class RoomSessionConnection
         audio: audio === true ? SCREENSHARE_AUDIO_CONSTRAINTS : audio,
         video,
       })
-      const options: BaseConnectionOptions<RoomSessionObjectEvents> = {
+      const options: BaseConnectionOptions = {
         ...this.options,
         screenShare: true,
         recoverCall: false,
@@ -360,7 +183,6 @@ export class RoomSessionConnection
       })
 
       screenShare.once('destroy', () => {
-        // @ts-expect-error
         screenShare.emit('room.left')
         this._screenShareList.delete(screenShare)
       })
@@ -421,7 +243,7 @@ export class RoomSessionConnection
         )
       }
 
-      const options: BaseConnectionOptions<RoomSessionObjectEvents> = {
+      const options: BaseConnectionOptions = {
         ...this.options,
         localStream: undefined,
         remoteStream: undefined,
@@ -446,7 +268,6 @@ export class RoomSessionConnection
       })(options)
 
       roomDevice.once('destroy', () => {
-        // @ts-expect-error
         roomDevice.emit('room.left')
         this._deviceList.delete(roomDevice)
       })
@@ -483,25 +304,28 @@ export class RoomSessionConnection
 
   updateSpeaker({ deviceId }: { deviceId: string }) {
     const prevId = this._audioEl.sinkId as string
-    // @ts-expect-error
-    this.once('_internal.speaker.updated', async (newId) => {
-      const prevSpeaker = await getSpeakerById(prevId)
-      const newSpeaker = await getSpeakerById(newId)
+    this.once(
+      // @ts-expect-error
+      `${LOCAL_EVENT_PREFIX}.speaker.updated`,
+      async (newId: string) => {
+        const prevSpeaker = await getSpeakerById(prevId)
+        const newSpeaker = await getSpeakerById(newId)
 
-      const isSame = newSpeaker?.deviceId === prevSpeaker?.deviceId
-      if (!newSpeaker?.deviceId || isSame) return
+        const isSame = newSpeaker?.deviceId === prevSpeaker?.deviceId
+        if (!newSpeaker?.deviceId || isSame) return
 
-      this.emit('speaker.updated', {
-        previous: {
-          deviceId: prevSpeaker?.deviceId,
-          label: prevSpeaker?.label,
-        },
-        current: {
-          deviceId: newSpeaker.deviceId,
-          label: newSpeaker.label,
-        },
-      })
-    })
+        this.emit('speaker.updated', {
+          previous: {
+            deviceId: prevSpeaker?.deviceId,
+            label: prevSpeaker?.label,
+          },
+          current: {
+            deviceId: newSpeaker.deviceId,
+            label: newSpeaker.label,
+          },
+        })
+      }
+    )
 
     return this.triggerCustomSaga<undefined>(audioSetSpeakerAction(deviceId))
   }
@@ -557,7 +381,6 @@ export class RoomSessionConnection
   getAudioEl() {
     if (this._audioEl) return this._audioEl
     this._audioEl = new Audio()
-    console.log('listener attached!')
     this._attachSpeakerTrackListener()
     return this._audioEl
   }
@@ -608,10 +431,21 @@ export class RoomSessionConnection
       mirrored: this._mirrored,
       setMirrored: (value: boolean) => {
         this._mirrored = value
-        // @ts-expect-error
-        this.emit('_internal.mirror.video', this._mirrored)
+        this.emit(
+          // @ts-expect-error
+          `${LOCAL_EVENT_PREFIX}.mirror.video`,
+          this._mirrored
+        )
       },
     }
+  }
+
+  /** @internal */
+  protected override getSubscriptions() {
+    const eventNamesWithPrefix = this.eventNames().map(
+      (event) => `video.${event}`
+    ) as EventEmitter.EventNames<RoomSessionObjectEvents>[]
+    return validateEventsToSubscribe(eventNamesWithPrefix)
   }
 }
 
@@ -663,7 +497,7 @@ type RoomSessionObjectEventsHandlerMapping = RoomSessionObjectEvents &
 
 /** @internal */
 export const createBaseRoomSessionObject = <RoomSessionType>(
-  params: BaseComponentOptions<RoomSessionObjectEventsHandlerMapping>
+  params: BaseComponentOptions
 ): BaseRoomSession<RoomSessionType> => {
   const room = connect<
     RoomSessionObjectEventsHandlerMapping,

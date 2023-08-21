@@ -8,6 +8,11 @@ import {
   SDKWorkerHooks,
   VideoRoomSubscribedEvent,
   componentActions,
+  VideoRoomSubscribedEventParams,
+  Rooms,
+  RoomSessionStream,
+  RoomSessionPlayback,
+  RoomSessionRecording,
 } from '@signalwire/core'
 
 import { BaseConnection } from '../BaseConnection'
@@ -26,7 +31,7 @@ export const roomSubscribedWorker: SDKWorker<
 > = function* (options): SagaIterator {
   getLogger().debug('roomSubscribedWorker started')
   const { channels, instance, initialState } = options
-  const { swEventChannel, pubSubChannel } = channels
+  const { swEventChannel } = channels
   const { rtcPeerId } = initialState
   if (!rtcPeerId) {
     throw new Error('Missing rtcPeerId for roomSubscribedWorker')
@@ -40,11 +45,8 @@ export const roomSubscribedWorker: SDKWorker<
       return false
     })
 
-  // FIXME: Move to a better place when rework _attachListeners too.
-  // @ts-expect-error
-  instance._attachListeners(action.payload.room_session.id)
-  // @ts-expect-error
-  instance.applyEmitterTransforms()
+  // New emitter should not change the payload by reference
+  const clonedPayload = JSON.parse(JSON.stringify(action.payload))
 
   /**
    * In here we joined a room_session so we can swap between RTCPeers
@@ -64,11 +66,103 @@ export const roomSubscribedWorker: SDKWorker<
     })
   )
 
-  // Rename "room.subscribed" with "room.joined" for the end-user
-  yield sagaEffects.put(pubSubChannel, {
-    type: 'video.room.joined',
-    payload: action.payload,
-  })
+  instance.emit('room.joined', transformPayload.call(instance, clonedPayload))
 
   getLogger().debug('roomSubscribedWorker ended', rtcPeerId)
+}
+
+function transformPayload(
+  this: BaseConnection<any>,
+  payload: VideoRoomSubscribedEventParams
+) {
+  const keys = ['room_session', 'room'] as const
+  keys.forEach((key) => {
+    if (payload[key].recordings) {
+      payload[key].recordings = (payload[key].recordings || []).map(
+        (recording: any) => {
+          let recordingInstance = this.instanceMap.get<RoomSessionRecording>(
+            recording.id
+          )
+          if (!recordingInstance) {
+            recordingInstance = Rooms.createRoomSessionRecordingObject({
+              store: this.store,
+              payload: {
+                room_id: payload.room.room_id,
+                room_session_id: payload.room_session.id,
+                recording,
+              },
+            })
+          } else {
+            recordingInstance.setPayload({
+              room_id: payload.room.room_id,
+              room_session_id: payload.room_session.id,
+              recording,
+            })
+          }
+          this.instanceMap.set<RoomSessionRecording>(
+            recording.id,
+            recordingInstance
+          )
+          return recordingInstance
+        }
+      )
+    }
+
+    if (payload[key].playbacks) {
+      payload[key].playbacks = (payload[key].playbacks || []).map(
+        (playback) => {
+          let playbackInstance = this.instanceMap.get<RoomSessionPlayback>(
+            playback.id
+          )
+          if (!playbackInstance) {
+            playbackInstance = Rooms.createRoomSessionPlaybackObject({
+              store: this.store,
+              payload: {
+                room_id: payload.room.room_id,
+                room_session_id: payload.room_session.id,
+                playback,
+              },
+            })
+          } else {
+            playbackInstance.setPayload({
+              room_id: payload.room.room_id,
+              room_session_id: payload.room_session.id,
+              playback,
+            })
+          }
+          this.instanceMap.set<RoomSessionPlayback>(
+            playback.id,
+            playbackInstance
+          )
+          return playbackInstance
+        }
+      )
+    }
+
+    if (payload[key].streams) {
+      payload[key].streams = (payload[key].streams || []).map((stream: any) => {
+        let streamInstance = this.instanceMap.get<RoomSessionStream>(stream.id)
+        if (!streamInstance) {
+          streamInstance = Rooms.createRoomSessionStreamObject({
+            store: this.store,
+            payload: {
+              room_id: payload.room.room_id,
+              room_session_id: payload.room_session.id,
+              stream,
+            },
+          })
+        } else {
+          streamInstance.setPayload({
+            room_id: payload.room.room_id,
+            room_session_id: payload.room_session.id,
+            stream,
+          })
+        }
+        this.instanceMap.set<RoomSessionStream>(stream.id, streamInstance)
+        return streamInstance
+      })
+    }
+  })
+
+  return payload
 }
