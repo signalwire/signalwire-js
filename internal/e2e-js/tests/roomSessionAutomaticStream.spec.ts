@@ -5,9 +5,10 @@ import {
   createTestRoomSession,
   expectRoomJoined,
   expectMCUVisible,
-  createOrUpdateRoom,
+  createRoom,
   createStreamForRoom,
   randomizeRoomName,
+  deleteRoom,
 } from '../utils'
 
 test.describe('Room Session Auto Stream', () => {
@@ -31,7 +32,7 @@ test.describe('Room Session Auto Stream', () => {
     const pageOne = await createCustomPage({ name: '[pageOne]' })
     pageOne.goto(SERVER_URL)
 
-    await createOrUpdateRoom({ name: roomName })
+    const roomData = await createRoom({ name: roomName })
     await createStreamForRoom(roomName, streamingURL)
 
     await createTestRoomSession(pageOne, connectionSettings)
@@ -47,5 +48,7 @@ test.describe('Room Session Auto Stream', () => {
     })
 
     expect(streamsResult.streams).toHaveLength(1)
+
+    await deleteRoom(roomData.id)
   })
 })

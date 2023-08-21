@@ -2,7 +2,7 @@ import { test } from '../fixtures'
 import {
   SERVER_URL,
   createTestRoomSession,
-  createOrUpdateRoom,
+  createRoom,
   randomizeRoomName,
   createStreamForRoom,
   deleteRoom,
@@ -30,7 +30,7 @@ test.describe('Room Streaming from REST API', () => {
       initialEvents: ['stream.started', 'stream.ended'],
     }
 
-    const roomData = await createOrUpdateRoom({
+    const roomData = await createRoom({
       name: room_name,
     })
 
