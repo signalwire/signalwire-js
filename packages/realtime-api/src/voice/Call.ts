@@ -10,14 +10,14 @@ import {
   toExternalJSON,
   VoiceCallConnectPhoneMethodParams,
   VoiceCallConnectSipMethodParams,
-  VoiceCallDetectMethodParams,
-  VoiceCallDetectMachineParams,
-  VoiceCallDetectFaxParams,
-  VoiceCallDetectDigitParams,
 } from '@signalwire/core'
 import { ListenSubscriber } from '../ListenSubscriber'
 import {
   CallCollectMethodParams,
+  CallDetectDigitParams,
+  CallDetectFaxParams,
+  CallDetectMachineParams,
+  CallDetectMethodParams,
   CallPlayAudioMethodarams,
   CallPlayMethodParams,
   CallPlayRingtoneMethodParams,
@@ -38,6 +38,7 @@ import {
 import { toInternalDevices, toInternalPlayParams } from './utils'
 import {
   voiceCallCollectWorker,
+  voiceCallDetectWorker,
   voiceCallPlayWorker,
   voiceCallRecordWorker,
   voiceCallSendDigitsWorker,
@@ -51,7 +52,7 @@ import { CallPrompt } from './CallPrompt'
 import { CallCollect } from './CallCollect'
 import { CallTap } from './CallTap'
 import { DeviceBuilder } from './DeviceBuilder'
-import { CallDetect, createCallDetectObject } from './CallDetect'
+import { CallDetect } from './CallDetect'
 
 export interface CallOptions {
   voice: Voice
@@ -88,6 +89,9 @@ export class Call extends ListenSubscriber<
     onCollectEnded: 'collect.ended',
     onTapStarted: 'tap.started',
     onTapEnded: 'tap.ended',
+    onDetectStarted: 'detect.started',
+    onDetectUpdated: 'detect.updated',
+    onDetectEnded: 'detect.ended',
   }
 
   constructor(options: CallOptions) {
@@ -832,7 +836,7 @@ export class Call extends ListenSubscriber<
         worker: voiceCallTapWorker,
         initialState: {
           controlId,
-          listen,
+          listeners: listen,
         },
       })
 
@@ -1079,7 +1083,7 @@ export class Call extends ListenSubscriber<
   /**
    * Generic method. Please see {@link amd}, {@link detectFax}, {@link detectDigit}.
    */
-  detect(params: VoiceCallDetectMethodParams) {
+  detect(params: CallDetectMethodParams) {
     return new Promise<CallDetect>((resolve, reject) => {
       if (!this.callId || !this.nodeId) {
         reject(new Error(`Can't call detect() on a call not established yet.`))
@@ -1088,7 +1092,15 @@ export class Call extends ListenSubscriber<
       const controlId = uuid()
 
       // TODO: build params in a method
-      const { timeout, type, ...rest } = params
+      const { listen, timeout, type, ...rest } = params
+
+      this._client.runWorker('voiceCallDetectWorker', {
+        worker: voiceCallDetectWorker,
+        initialState: {
+          controlId,
+          listeners: listen,
+        },
+      })
 
       this._client
         .execute({
@@ -1105,22 +1117,22 @@ export class Call extends ListenSubscriber<
           },
         })
         .then(() => {
-          const detectInstance = createCallDetectObject({
-            store: this._client.store,
+          const detectInstance = new CallDetect({
+            call: this,
             payload: {
               control_id: controlId,
               call_id: this.id,
               node_id: this.nodeId,
               waitForBeep: params.waitForBeep ?? false,
             },
+            listeners: listen,
           })
           this._client.instanceMap.set<CallDetect>(controlId, detectInstance)
-          // @ts-expect-error
           this.emit('detect.started', detectInstance)
+          detectInstance.emit('detect.started', detectInstance)
           resolve(detectInstance)
         })
         .catch((e) => {
-          // @ts-expect-error
           this.emit('detect.ended', e)
           reject(e)
         })
@@ -1139,7 +1151,7 @@ export class Call extends ListenSubscriber<
    * console.log('Detect result:', result.type)
    * ```
    */
-  amd(params: Omit<VoiceCallDetectMachineParams, 'type'> = {}) {
+  amd(params: CallDetectMachineParams = {}) {
     return this.detect({
       ...params,
       type: 'machine',
@@ -1163,7 +1175,7 @@ export class Call extends ListenSubscriber<
    * console.log('Detect result:', result.type)
    * ```
    */
-  detectFax(params: Omit<VoiceCallDetectFaxParams, 'type'> = {}) {
+  detectFax(params: CallDetectFaxParams = {}) {
     return this.detect({
       ...params,
       type: 'fax',
@@ -1182,7 +1194,7 @@ export class Call extends ListenSubscriber<
    * console.log('Detect result:', result.type)
    * ```
    */
-  detectDigit(params: Omit<VoiceCallDetectDigitParams, 'type'> = {}) {
+  detectDigit(params: CallDetectDigitParams = {}) {
     return this.detect({
       ...params,
       type: 'digit',

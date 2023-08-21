@@ -1508,6 +1508,8 @@ export type VoiceCallSendDigitsAction =
 
 export type VoiceCallTapAction = MapToPubSubShape<CallingCallTapEvent>
 
+export type VoiceCallDetectAction = MapToPubSubShape<CallingCallDetectEvent>
+
 export type VoiceCallJSONRPCMethod =
   | 'calling.dial'
   | 'calling.end'

@@ -4,7 +4,11 @@ import {
   CallingCallTapEventParams,
 } from '@signalwire/core'
 import { ListenSubscriber } from '../ListenSubscriber'
-import { CallTapEvents, CallTapListeners } from '../types'
+import {
+  CallTapEvents,
+  CallTapListeners,
+  CallTapListenersEventsMapping,
+} from '../types'
 import { Call } from './Call'
 
 export interface CallTapOptions {
@@ -20,11 +24,19 @@ export class CallTap
   implements VoiceCallTapContract
 {
   private _payload: CallingCallTapEventParams
+  protected _eventMap: CallTapListenersEventsMapping = {
+    onStarted: 'tap.started',
+    onEnded: 'tap.ended',
+  }
 
   constructor(options: CallTapOptions) {
     super({ swClient: options.call._sw })
 
     this._payload = options.payload
+
+    if (options.listeners) {
+      this.listen(options.listeners)
+    }
   }
 
   get id() {

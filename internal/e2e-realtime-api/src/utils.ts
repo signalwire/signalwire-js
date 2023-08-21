@@ -230,3 +230,12 @@ export const CALL_TAP_PROPS = [
   'stop',
   'ended',
 ]
+
+export const CALL_DETECT_PROPS = [
+  'id',
+  'callId',
+  'nodeId',
+  'controlId',
+  'stop',
+  'ended',
+]

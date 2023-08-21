@@ -46,7 +46,7 @@ const handler = () => {
               'voice.dialPhone: Tap started'
             )
             tap.equal(
-              callTap.id,
+              callTap.callId,
               call.id,
               'voice.dialPhone: Tap with correct call id'
             )
@@ -56,10 +56,10 @@ const handler = () => {
       tap.ok(call.id, 'Outbound - Call resolved')
 
       const unsubCall = await call.listen({
-        onTapEnded: async (callTap) => {
+        onTapEnded: (callTap) => {
           tap.hasProps(callTap, CALL_TAP_PROPS, 'call.listen: Tap ended')
           tap.equal(
-            callTap.id,
+            callTap.callId,
             call.id,
             'call.listen: Tap with correct call id'
           )
@@ -117,7 +117,7 @@ async function main() {
   const runner = createTestRunner({
     name: 'Voice Tap with All Listeners E2E',
     testHandler: handler,
-    executionTime: 60_000,
+    executionTime: 30_000,
   })
 
   await runner.run()
