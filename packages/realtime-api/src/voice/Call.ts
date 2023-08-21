@@ -38,6 +38,7 @@ import {
 import { toInternalDevices, toInternalPlayParams } from './utils'
 import {
   voiceCallCollectWorker,
+  voiceCallConnectWorker,
   voiceCallDetectWorker,
   voiceCallPlayWorker,
   voiceCallRecordWorker,
@@ -56,7 +57,7 @@ import { CallDetect } from './CallDetect'
 
 export interface CallOptions {
   voice: Voice
-  payload: CallingCall
+  payload?: CallingCall
   connectPayload?: CallingCallConnectEventParams
   listeners?: RealTimeCallListeners
 }
@@ -66,8 +67,9 @@ export class Call extends ListenSubscriber<
   RealTimeCallEvents
 > {
   private __uuid: string
+  private _voice: Voice
   private _peer: Call | undefined
-  private _payload: CallingCall
+  private _payload: CallingCall | undefined
   private _connectPayload: CallingCallConnectEventParams | undefined
   protected _eventMap: RealtimeCallListenersEventsMapping = {
     onStateChanged: 'call.state',
@@ -98,6 +100,7 @@ export class Call extends ListenSubscriber<
     super({ swClient: options.voice._sw })
 
     this.__uuid = uuid()
+    this._voice = options.voice
     this._payload = options.payload
     this._connectPayload = options.connectPayload
 
@@ -128,11 +131,11 @@ export class Call extends ListenSubscriber<
   }
 
   get nodeId() {
-    return this._payload.node_id
+    return this._payload?.node_id
   }
 
   get device() {
-    return this._payload.device
+    return this._payload?.device
   }
 
   /** The type of call. Only phone and sip are currently supported. */
@@ -185,7 +188,7 @@ export class Call extends ListenSubscriber<
   }
 
   get context() {
-    return this._payload.context
+    return this._payload?.context
   }
 
   get connectState() {
@@ -208,7 +211,7 @@ export class Call extends ListenSubscriber<
 
   /** @internal */
   setConnectPayload(payload: CallingCallConnectEventParams) {
-    this._connectPayload = payload
+    this._connectPayload = { ...this._connectPayload, ...payload }
   }
 
   /**
@@ -533,7 +536,7 @@ export class Call extends ListenSubscriber<
    * await recording.stop()
    * ```
    */
-  recordAudio(params: CallRecordAudioMethodParams) {
+  recordAudio(params: CallRecordAudioMethodParams = {}) {
     const { listen, ...rest } = params
     return this.record({
       audio: rest,
@@ -599,8 +602,8 @@ export class Call extends ListenSubscriber<
             // @ts-expect-error
             payload: {
               control_id: controlId,
-              call_id: this.id,
-              node_id: this.nodeId,
+              call_id: this.id!,
+              node_id: this.nodeId!,
             },
           })
           this._client.instanceMap.set<CallPrompt>(controlId, promptInstance)
@@ -959,6 +962,13 @@ export class Call extends ListenSubscriber<
       // @ts-expect-error
       this.once('connect.failed', rejectHandler)
 
+      this._client.runWorker('voiceCallConnectWorker', {
+        worker: voiceCallConnectWorker,
+        initialState: {
+          voice: this._voice,
+        },
+      })
+
       this._client
         .execute({
           method: 'calling.connect',
@@ -1121,8 +1131,8 @@ export class Call extends ListenSubscriber<
             call: this,
             payload: {
               control_id: controlId,
-              call_id: this.id,
-              node_id: this.nodeId,
+              call_id: this.id!,
+              node_id: this.nodeId!,
               waitForBeep: params.waitForBeep ?? false,
             },
             listeners: listen,
@@ -1270,8 +1280,8 @@ export class Call extends ListenSubscriber<
             // @ts-expect-error
             payload: {
               control_id: controlId,
-              call_id: this.id,
-              node_id: this.nodeId,
+              call_id: this.id!,
+              node_id: this.nodeId!,
             },
           })
           this._client.instanceMap.set<CallCollect>(controlId, collectInstance)
@@ -1318,8 +1328,8 @@ export class Call extends ListenSubscriber<
 
       this.on('call.state', (params) => {
         if (events.includes(params.state as CallingCallWaitForState)) {
-          emittedCallStates.add(params.state)
-        } else if (shouldResolveUnsuccessful(params.state)) {
+          emittedCallStates.add(params.state!)
+        } else if (shouldResolveUnsuccessful(params.state!)) {
           return resolve(false)
         }
 

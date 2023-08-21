@@ -1,80 +1,106 @@
 import {
   getLogger,
+  sagaEffects,
   SagaIterator,
-  CallingCallConnectEventParams,
+  SDKActions,
+  SDKWorker,
+  VoiceCallConnectAction,
 } from '@signalwire/core'
+import type { Client } from '../../client/index'
 import { Call } from '../Call'
-import type { VoiceCallWorkerParams } from './voiceCallingWorker'
+import { Voice } from '../Voice'
 
-export const voiceCallConnectWorker = function* (
-  options: VoiceCallWorkerParams<CallingCallConnectEventParams>
+interface VoiceCallConnectWorkerInitialState {
+  controlId: string
+  voice: Voice
+}
+
+export const voiceCallConnectWorker: SDKWorker<Client> = function* (
+  options
 ): SagaIterator {
   getLogger().trace('voiceCallConnectWorker started')
   const {
-    // instance: client,
-    payload,
+    channels: { swEventChannel },
     instanceMap: { get, set },
+    initialState,
   } = options
 
-  const callInstance = get<Call>(payload.call_id)
-  if (!callInstance) {
-    throw new Error('Missing call instance for connect')
-  }
-  callInstance.setConnectPayload(payload)
-  set<Call>(payload.call_id, callInstance)
+  const { voice } = initialState as VoiceCallConnectWorkerInitialState
 
-  // TODO: The below events seems to be not documented in @RealTimeCallApiEvents. For now, ingoring TS issues
+  function* worker(action: VoiceCallConnectAction) {
+    const { payload } = action
 
-  switch (payload.connect_state) {
-    case 'connecting': {
-      // @ts-expect-error
-      callInstance.emit('connect.connecting', callInstance)
-      break
+    const callInstance = get<Call>(payload.call_id)
+    if (!callInstance) {
+      throw new Error('Missing call instance for connect')
     }
-    case 'connected': {
-      let peerCallInstance = get<Call>(payload.peer.call_id)
-      if (!peerCallInstance) {
-        // peerCallInstance = createCallObject({
-        //   store: client.store,
-        //   connectPayload: payload,
-        // })
-      } else {
-        peerCallInstance.setConnectPayload(payload)
-      }
-      set<Call>(payload.peer.call_id, peerCallInstance)
-      callInstance.peer = peerCallInstance
-      peerCallInstance.peer = callInstance
-      // @ts-expect-error
-      callInstance.emit('connect.connected', peerCallInstance)
-      break
-    }
-    case 'disconnected': {
-      const peerCallInstance = get<Call>(payload.peer.call_id)
-      // @ts-expect-error
-      callInstance.emit('connect.disconnected')
-      callInstance.peer = undefined
+    callInstance.setConnectPayload(payload)
+    set<Call>(payload.call_id, callInstance)
 
-      // Add a check because peer call can be removed from the instance map throgh voiceCallStateWorker
-      if (peerCallInstance) {
+    // TODO: The below events seems to be not documented in @RealTimeCallApiEvents. For now, ingoring TS issues
+
+    callInstance.emit('call.state', callInstance)
+
+    switch (payload.connect_state) {
+      case 'connecting': {
         // @ts-expect-error
-        peerCallInstance.emit('connect.disconnected')
-        peerCallInstance.peer = undefined
+        callInstance.emit('connect.connecting', callInstance)
+        return false
       }
-      break
+      case 'connected': {
+        let peerCallInstance = get<Call>(payload.peer.call_id)
+        if (!peerCallInstance) {
+          peerCallInstance = new Call({
+            voice,
+            connectPayload: payload,
+          })
+        } else {
+          peerCallInstance.setConnectPayload(payload)
+        }
+        set<Call>(payload.peer.call_id, peerCallInstance)
+        callInstance.peer = peerCallInstance
+        peerCallInstance.peer = callInstance
+        // @ts-expect-error
+        callInstance.emit('connect.connected', peerCallInstance)
+        return false
+      }
+      case 'disconnected': {
+        const peerCallInstance = get<Call>(payload.peer.call_id)
+        // @ts-expect-error
+        callInstance.emit('connect.disconnected')
+        callInstance.peer = undefined
+
+        // Add a check because peer call can be removed from the instance map throgh voiceCallStateWorker
+        if (peerCallInstance) {
+          // @ts-expect-error
+          peerCallInstance.emit('connect.disconnected')
+          peerCallInstance.peer = undefined
+        }
+        return true
+      }
+      case 'failed': {
+        callInstance.peer = undefined
+        // @ts-expect-error
+        callInstance.emit('connect.failed')
+        return true
+      }
+      default:
+        // @ts-expect-error
+        getLogger().warn(`Unknown connect state: "${payload.connect_state}"`)
+        return false
     }
-    case 'failed': {
-      callInstance.peer = undefined
-      // @ts-expect-error
-      callInstance.emit('connect.failed')
-      break
-    }
-    default:
-      // @ts-expect-error
-      getLogger().warn(`Unknown connect state: "${payload.connect_state}"`)
-      break
   }
 
-  callInstance.emit('call.state', callInstance)
+  while (true) {
+    const action = yield sagaEffects.take(
+      swEventChannel,
+      (action: SDKActions) => action.type === 'calling.call.connect'
+    )
+
+    const shouldStop = yield sagaEffects.fork(worker, action)
+
+    if (shouldStop.result()) break
+  }
 
   getLogger().trace('voiceCallConnectWorker ended')
 }

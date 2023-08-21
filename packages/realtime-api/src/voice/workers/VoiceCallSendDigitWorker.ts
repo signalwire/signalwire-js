@@ -39,14 +39,14 @@ export const voiceCallSendDigitsWorker: SDKWorker<Client> = function* (
       case 'finished':
         // @ts-expect-error
         callInstance.emit('send_digits.finished', callInstance)
-        break
+        return true
       default: {
         const error = new Error(
           `[voiceCallSendDigitsWorker] unhandled state: '${payload.state}'`
         )
         // @ts-expect-error
         callInstance.emit('send_digits.failed', error)
-        break
+        return false
       }
     }
   }

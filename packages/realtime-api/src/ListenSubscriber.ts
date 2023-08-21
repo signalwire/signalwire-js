@@ -39,7 +39,7 @@ export class ListenSubscriber<
   }
 
   /** @internal */
-  on<E extends EventEmitter.EventNames<EventTypes>>(
+  protected on<E extends EventEmitter.EventNames<EventTypes>>(
     event: E,
     fn: EventEmitter.EventListener<EventTypes, E>
   ) {
@@ -47,7 +47,7 @@ export class ListenSubscriber<
   }
 
   /** @internal */
-  once<T extends EventEmitter.EventNames<EventTypes>>(
+  protected once<T extends EventEmitter.EventNames<EventTypes>>(
     event: T,
     fn: EventEmitter.EventListener<EventTypes, T>
   ) {
@@ -55,7 +55,7 @@ export class ListenSubscriber<
   }
 
   /** @internal */
-  off<T extends EventEmitter.EventNames<EventTypes>>(
+  protected off<T extends EventEmitter.EventNames<EventTypes>>(
     event: T,
     fn?: EventEmitter.EventListener<EventTypes, T>
   ) {
