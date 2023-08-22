@@ -6,14 +6,21 @@ import {
 import { SWClient } from '../SWClient'
 import { pubSubWorker } from './workers'
 import { BaseChat, BaseChatListenOptions } from '../chat/BaseChat'
+import { RealTimePubSubEvents } from '../types/pubSub'
 
 interface PubSubListenOptions extends BaseChatListenOptions {
   onMessageReceived?: (message: PubSubMessage) => unknown
 }
 
-type PubSubListenersKeys = keyof Omit<PubSubListenOptions, 'channels'>
+type PubSubListenersKeys = keyof Omit<
+  PubSubListenOptions,
+  'channels' | 'topics'
+>
 
-export class PubSub extends BaseChat<PubSubListenOptions> {
+export class PubSub extends BaseChat<
+  PubSubListenOptions,
+  RealTimePubSubEvents
+> {
   protected _eventMap: Record<
     PubSubListenersKeys,
     `${PubSubNamespace}.${PubSubMessageEventName}`
@@ -27,7 +34,7 @@ export class PubSub extends BaseChat<PubSubListenOptions> {
     this._client.runWorker('pubSubWorker', {
       worker: pubSubWorker,
       initialState: {
-        pubSubEmitter: this,
+        pubSub: this,
       },
     })
   }

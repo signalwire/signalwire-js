@@ -7,6 +7,7 @@ export type ListenersKeys<T> = keyof T
 export type ListenerMap<T> = Map<
   string,
   {
+    topics?: Set<string>
     listeners: T
     unsub: () => Promise<void>
   }
@@ -18,6 +19,7 @@ export class ListenSubscriber<
 > {
   /** @internal */
   _sw: SWClient
+
   protected _client: Client
   protected _listenerMap: ListenerMap<T> = new Map()
   protected _eventMap: Record<keyof T, keyof EventTypes>

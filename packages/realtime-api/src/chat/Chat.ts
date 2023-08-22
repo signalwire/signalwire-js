@@ -7,6 +7,7 @@ import {
 import { BaseChat, BaseChatListenOptions } from './BaseChat'
 import { chatWorker } from './workers'
 import { SWClient } from '../SWClient'
+import { RealTimeChatEvents } from '../types/chat'
 
 interface ChatListenOptions extends BaseChatListenOptions {
   onMessageReceived?: (message: ChatMessage) => unknown
@@ -15,10 +16,10 @@ interface ChatListenOptions extends BaseChatListenOptions {
   onMemberLeft?: (member: ChatMember) => unknown
 }
 
-type ChatListenersKeys = keyof Omit<ChatListenOptions, 'channels'>
+type ChatListenersKeys = keyof Omit<ChatListenOptions, 'channels' | 'topics'>
 
 export class Chat extends ChatCore.applyCommonMethods(
-  BaseChat<ChatListenOptions>
+  BaseChat<ChatListenOptions, RealTimeChatEvents>
 ) {
   protected _eventMap: Record<ChatListenersKeys, ChatEvents> = {
     onMessageReceived: 'chat.message',
@@ -33,7 +34,7 @@ export class Chat extends ChatCore.applyCommonMethods(
     this._client.runWorker('chatWorker', {
       worker: chatWorker,
       initialState: {
-        chatEmitter: this,
+        chat: this,
       },
     })
   }

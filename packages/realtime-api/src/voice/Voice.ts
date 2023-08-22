@@ -35,7 +35,7 @@ export class Voice extends BaseNamespace<VoiceListenOptions, VoiceEvents> {
   }
 
   constructor(options: SWClient) {
-    super({ swClient: options })
+    super(options)
 
     this._client.runWorker('voiceCallReceiveWorker', {
       worker: voiceCallReceiveWorker,

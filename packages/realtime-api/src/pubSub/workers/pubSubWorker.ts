@@ -9,6 +9,11 @@ import {
 } from '@signalwire/core'
 import { prefixEvent } from '../../utils/internals'
 import type { Client } from '../../client/Client'
+import { PubSub } from '../PubSub'
+
+interface PubSubWorkerInitialState {
+  pubSub: PubSub
+}
 
 export const pubSubWorker: SDKWorker<Client> = function* (
   options
@@ -16,8 +21,10 @@ export const pubSubWorker: SDKWorker<Client> = function* (
   getLogger().trace('pubSubWorker started')
   const {
     channels: { swEventChannel },
-    initialState: { pubSub },
+    initialState,
   } = options
+
+  const { pubSub } = initialState as PubSubWorkerInitialState
 
   function* worker(action: PubSubEventAction) {
     const { type, payload } = action
@@ -42,6 +49,7 @@ export const pubSubWorker: SDKWorker<Client> = function* (
         })
         const pubSubMessage = new PubSubMessage(externalJSON)
 
+        // @ts-expect-error
         pubSub.emit(prefixEvent(channel, 'chat.message'), pubSubMessage)
         break
       }

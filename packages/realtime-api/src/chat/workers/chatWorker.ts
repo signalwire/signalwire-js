@@ -11,13 +11,20 @@ import {
 } from '@signalwire/core'
 import { prefixEvent } from '../../utils/internals'
 import type { Client } from '../../client/Client'
+import { Chat } from '../Chat'
+
+interface ChatWorkerInitialState {
+  chat: Chat
+}
 
 export const chatWorker: SDKWorker<Client> = function* (options): SagaIterator {
   getLogger().trace('chatWorker started')
   const {
     channels: { swEventChannel },
-    initialState: { chat },
+    initialState,
   } = options
+
+  const { chat } = initialState as ChatWorkerInitialState
 
   function* worker(action: ChatAction) {
     const { type, payload } = action
@@ -31,6 +38,7 @@ export const chatWorker: SDKWorker<Client> = function* (options): SagaIterator {
         })
         const chatMessage = new ChatMessage(externalJSON)
 
+        // @ts-expect-error
         chat.emit(prefixEvent(channel, 'chat.message'), chatMessage)
         break
       }
@@ -41,6 +49,7 @@ export const chatWorker: SDKWorker<Client> = function* (options): SagaIterator {
         const externalJSON = toExternalJSON(member)
         const chatMember = new ChatMember(externalJSON)
 
+        // @ts-expect-error
         chat.emit(prefixEvent(channel, type), chatMember)
         break
       }

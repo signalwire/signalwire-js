@@ -1,5 +1,9 @@
 import { request } from 'node:https'
-import { TaskInboundEvent, TaskReceivedEventName } from '@signalwire/core'
+import {
+  TaskInboundEvent,
+  TaskReceivedEventName,
+  getLogger,
+} from '@signalwire/core'
 import { SWClient } from '../SWClient'
 import { taskWorker } from './workers'
 import { ListenOptions, BaseNamespace } from '../BaseNamespace'
@@ -13,13 +17,18 @@ interface TaskListenOptions extends ListenOptions {
 
 type TaskListenersKeys = keyof Omit<TaskListenOptions, 'topics'>
 
-export class Task extends BaseNamespace<TaskListenOptions> {
+type TaskEvents = Record<
+  TaskReceivedEventName,
+  (task: TaskInboundEvent['message']) => void
+>
+
+export class Task extends BaseNamespace<TaskListenOptions, TaskEvents> {
   protected _eventMap: Record<TaskListenersKeys, TaskReceivedEventName> = {
     onTaskReceived: 'task.received',
   }
 
   constructor(options: SWClient) {
-    super({ swClient: options })
+    super(options)
 
     this._client.runWorker('taskWorker', {
       worker: taskWorker,
@@ -58,6 +67,8 @@ export class Task extends BaseNamespace<TaskListenOptions> {
             'Content-Length': data.length,
           },
         }
+
+        getLogger().debug('SEND:', data)
         const req = request(options, ({ statusCode }) => {
           statusCode === 204 ? resolve() : reject()
         })

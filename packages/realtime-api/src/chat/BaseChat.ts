@@ -1,20 +1,26 @@
-import { ExecuteParams, PubSubPublishParams, uuid } from '@signalwire/core'
-import { BaseNamespace } from '../BaseNamespace'
-import { SWClient } from '../SWClient'
+import {
+  EventEmitter,
+  ExecuteParams,
+  PubSubPublishParams,
+  uuid,
+} from '@signalwire/core'
+import { BaseNamespace, ListenOptions } from '../BaseNamespace'
 
-export interface BaseChatListenOptions {
+export interface BaseChatListenOptions extends ListenOptions {
   channels: string[]
 }
 
-export type BaseChatListenerKeys = keyof Omit<BaseChatListenOptions, 'channels'>
+export type BaseChatListeners = Omit<
+  BaseChatListenOptions,
+  'channels' | 'topics'
+>
+
+export type BaseChatListenerKeys = keyof BaseChatListeners
 
 export class BaseChat<
-  T extends BaseChatListenOptions
-> extends BaseNamespace<any> {
-  constructor(options: SWClient) {
-    super({ swClient: options })
-  }
-
+  T extends BaseChatListenOptions,
+  EventTypes extends EventEmitter.ValidEventTypes
+> extends BaseNamespace<T, EventTypes> {
   public listen(listenOptions: T) {
     return new Promise<() => Promise<void>>(async (resolve, reject) => {
       try {
@@ -38,7 +44,7 @@ export class BaseChat<
     const _uuid = uuid()
 
     // Attach listeners
-    this._attachListeners(channels, listeners)
+    this._attachListenersWithTopics(channels, listeners)
 
     const listenerKeys = Object.keys(listeners) as Array<BaseChatListenerKeys>
     const events: string[] = []
@@ -59,7 +65,7 @@ export class BaseChat<
           }
 
           // Detach listeners
-          this._detachListeners(channels, listeners)
+          this._detachListenersWithTopics(channels, listeners)
 
           // Remove channels from the listener map
           this.removeFromListenerMap(_uuid)
