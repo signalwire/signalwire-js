@@ -5,8 +5,9 @@ import {
   createTestRoomSession,
   expectRoomJoined,
   expectMCUVisible,
-  createOrUpdateRoom,
+  createRoom,
   randomizeRoomName,
+  deleteRoom,
 } from '../utils'
 
 test.describe('Room Session Max Members', () => {
@@ -25,7 +26,7 @@ test.describe('Room Session Max Members', () => {
 
     const roomName = randomizeRoomName('max_member_e2e')
 
-    await createOrUpdateRoom({
+    const roomData = await createRoom({
       name: roomName,
       max_members: 2,
     })
@@ -41,8 +42,8 @@ test.describe('Room Session Max Members', () => {
           },
           initialEvents: ['stream.started', 'stream.ended'],
           expectToJoin: false,
-        })}
-      )
+        })
+      })
     )
 
     await Promise.all([expectRoomJoined(pageOne), expectRoomJoined(pageTwo)])
@@ -67,5 +68,7 @@ test.describe('Room Session Max Members', () => {
     })
 
     await expect(joinRoom).rejects.toBeTruthy()
+
+    await deleteRoom(roomData.id)
   })
 })

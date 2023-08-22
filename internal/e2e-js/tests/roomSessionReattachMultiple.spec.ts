@@ -7,6 +7,7 @@ import {
   expectRoomJoined,
   expectMCUVisible,
   expectMCUVisibleForAudience,
+  deleteRoom,
 } from '../utils'
 
 type Test = {
@@ -47,6 +48,7 @@ test.describe('RoomSessionReattach', () => {
       await createTestRoomSession(page, connectionSettings)
 
       const joinParams: any = await expectRoomJoined(page)
+      const roomId = joinParams.room_session.room_id
 
       expect(joinParams.room).toBeDefined()
       expect(joinParams.room_session).toBeDefined()
@@ -116,6 +118,9 @@ test.describe('RoomSessionReattach', () => {
           )
         ).toBeTruthy()
       }
+      // Make sure the room_id is stable
+      expect(reattachParams2.room_session.room_id).toBe(roomId)
+
       expect(reattachParams2.room_session.name).toBe(roomName)
       expect(reattachParams2.room.name).toBe(roomName)
       // Make sure the member_id is stable
@@ -125,6 +130,8 @@ test.describe('RoomSessionReattach', () => {
       expect(reattachParams2.call_id).toBeDefined()
       expect(reattachParams2.call_id).toBe(joinParams.call_id)
       await row.expectMCU(page)
+
+      await deleteRoom(roomId)
     })
   })
 })

@@ -2,7 +2,7 @@ import { test, expect } from '../fixtures'
 import {
   SERVER_URL,
   createTestRoomSession,
-  createOrUpdateRoom,
+  createRoom,
   deleteRoom,
   CreateOrUpdateRoomOptions,
   randomizeRoomName,
@@ -46,7 +46,7 @@ test.describe('Room Settings', () => {
       const page = await createCustomPage({ name: '[page]' })
       await page.goto(SERVER_URL)
 
-      const roomData = await createOrUpdateRoom({
+      const roomData = await createRoom({
         name: row.roomName,
         ...row.roomSettings,
       })
