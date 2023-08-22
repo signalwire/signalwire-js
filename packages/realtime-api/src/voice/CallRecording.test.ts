@@ -1,39 +1,92 @@
-import { configureJestStore } from '../testUtils'
-import { createCallRecordingObject, CallRecording } from './CallRecording'
+import { EventEmitter } from '@signalwire/core'
+import { createClient } from '../client/createClient'
+import { CallRecording } from './CallRecording'
+import { Call } from './Call'
+import { Voice } from './Voice'
 
 describe('CallRecording', () => {
-  describe('createCallRecordingObject', () => {
-    let instance: CallRecording
-    beforeEach(() => {
-      instance = createCallRecordingObject({
-        store: configureJestStore(),
-        // @ts-expect-error
-        payload: {
-          call_id: 'call_id',
-          node_id: 'node_id',
-          control_id: 'control_id',
-        },
-      })
+  let voice: Voice
+  let call: Call
+  let callRecording: CallRecording
+
+  const userOptions = {
+    host: 'example.com',
+    project: 'example.project',
+    token: 'example.token',
+  }
+  const swClientMock = {
+    userOptions,
+    client: createClient(userOptions),
+  }
+
+  beforeEach(() => {
+    // @ts-expect-error
+    voice = new Voice(swClientMock)
+
+    call = new Call({ voice })
+
+    callRecording = new CallRecording({
+      call,
       // @ts-expect-error
-      instance.execute = jest.fn()
+      payload: {
+        control_id: 'test_control_id',
+        call_id: 'test_call_id',
+        node_id: 'test_node_id',
+      },
     })
 
-    it('should control an active playback', async () => {
-      const baseExecuteParams = {
-        method: '',
-        params: {
-          call_id: 'call_id',
-          node_id: 'node_id',
-          control_id: 'control_id',
-        },
-      }
+    // @ts-expect-error
+    callRecording._client.execute = jest.fn()
+  })
 
-      await instance.stop()
+  it('should have an event emitter', () => {
+    expect(callRecording['emitter']).toBeInstanceOf(EventEmitter)
+  })
+
+  it('should declare the correct event map', () => {
+    const expectedEventMap = {
+      onStarted: 'recording.started',
+      onFailed: 'recording.failed',
+      onEnded: 'recording.ended',
+    }
+    expect(callRecording['_eventMap']).toEqual(expectedEventMap)
+  })
+
+  it('should attach all listeners', () => {
+    callRecording = new CallRecording({
+      call,
       // @ts-expect-error
-      expect(instance.execute).toHaveBeenLastCalledWith({
-        ...baseExecuteParams,
-        method: 'calling.record.stop',
-      })
+      payload: {},
+      listeners: {
+        onStarted: () => {},
+        onFailed: () => {},
+        onEnded: () => {},
+      },
+    })
+
+    // @ts-expect-error
+    expect(callRecording.emitter.eventNames()).toStrictEqual([
+      'recording.started',
+      'recording.failed',
+      'recording.ended',
+    ])
+  })
+
+  it('should control an active playback', async () => {
+    const baseExecuteParams = {
+      method: '',
+      params: {
+        control_id: 'test_control_id',
+        call_id: 'test_call_id',
+        node_id: 'test_node_id',
+      },
+    }
+
+    await callRecording.stop()
+    // @ts-expect-error
+    expect(callRecording._client.execute).toHaveBeenLastCalledWith({
+      ...baseExecuteParams,
+      method: 'calling.record.stop',
     })
   })
 })

@@ -40,7 +40,6 @@ export class ListenSubscriber<
     return this.emitter.emit(event, ...args)
   }
 
-  /** @internal */
   protected on<E extends EventEmitter.EventNames<EventTypes>>(
     event: E,
     fn: EventEmitter.EventListener<EventTypes, E>
@@ -48,7 +47,6 @@ export class ListenSubscriber<
     return this.emitter.on(event, fn)
   }
 
-  /** @internal */
   protected once<T extends EventEmitter.EventNames<EventTypes>>(
     event: T,
     fn: EventEmitter.EventListener<EventTypes, T>
@@ -56,7 +54,6 @@ export class ListenSubscriber<
     return this.emitter.once(event, fn)
   }
 
-  /** @internal */
   protected off<T extends EventEmitter.EventNames<EventTypes>>(
     event: T,
     fn?: EventEmitter.EventListener<EventTypes, T>
@@ -105,7 +102,7 @@ export class ListenSubscriber<
     return unsub
   }
 
-  protected _attachListeners(listeners: T) {
+  private _attachListeners(listeners: T) {
     const listenerKeys = Object.keys(listeners) as Array<ListenersKeys<T>>
     listenerKeys.forEach((key) => {
       if (typeof listeners[key] === 'function' && this._eventMap[key]) {
@@ -117,7 +114,7 @@ export class ListenSubscriber<
     })
   }
 
-  protected _detachListeners(listeners: T) {
+  private _detachListeners(listeners: T) {
     const listenerKeys = Object.keys(listeners) as Array<ListenersKeys<T>>
     listenerKeys.forEach((key) => {
       if (typeof listeners[key] === 'function' && this._eventMap[key]) {

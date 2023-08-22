@@ -6,7 +6,6 @@ import type {
   CallPlaybackEnded,
   CallPlaybackFailed,
   CallRecordingStarted,
-  CallRecordingUpdated,
   CallRecordingEnded,
   CallRecordingFailed,
   CallPromptStarted,
@@ -48,45 +47,6 @@ import type { CallPrompt } from '../voice/CallPrompt'
 import type { CallTap } from '../voice/CallTap'
 import type { CallCollect } from '../voice/CallCollect'
 import type { CallDetect } from '../voice/CallDetect'
-
-export type RealTimeCallApiEventsHandlerMapping = Record<
-  CallReceived,
-  (call: Call) => void
-> &
-  Record<CallState, (call: Call) => void> &
-  Record<
-    | CallPlaybackStarted
-    | CallPlaybackUpdated
-    | CallPlaybackEnded
-    | CallPlaybackFailed,
-    (playback: CallPlayback) => void
-  > &
-  Record<
-    | CallRecordingStarted
-    | CallRecordingUpdated
-    | CallRecordingEnded
-    | CallRecordingFailed,
-    (recording: CallRecording) => void
-  > &
-  Record<
-    CallPromptStarted | CallPromptUpdated | CallPromptEnded | CallPromptFailed,
-    (prompt: CallPrompt) => void
-  > &
-  Record<CallTapStarted | CallTapEnded, (tap: CallTap) => void> &
-  Record<
-    | CallCollectStarted
-    | CallCollectStartOfInput
-    | CallCollectUpdated
-    | CallCollectEnded
-    | CallCollectFailed,
-    (callCollect: CallCollect) => void
-  >
-
-export type RealTimeCallApiEvents = {
-  [k in keyof RealTimeCallApiEventsHandlerMapping]: RealTimeCallApiEventsHandlerMapping[k]
-}
-
-// TODO: Remove the above old types
 
 export type VoiceEvents = Record<CallReceived, (call: Call) => void>
 

@@ -55,7 +55,7 @@ import { CallTap } from './CallTap'
 import { DeviceBuilder } from './DeviceBuilder'
 import { CallDetect } from './CallDetect'
 
-export interface CallOptions {
+interface CallOptions {
   voice: Voice
   payload?: CallingCall
   connectPayload?: CallingCallConnectEventParams

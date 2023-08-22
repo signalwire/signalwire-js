@@ -14,11 +14,7 @@ import {
   voiceCallDialWorker,
 } from './workers'
 import { DeviceBuilder } from './DeviceBuilder'
-import type {
-  RealTimeCallApiEvents,
-  RealTimeCallListeners,
-  VoiceEvents,
-} from '../types'
+import type { RealTimeCallListeners, VoiceEvents } from '../types'
 import { toInternalDevices } from './utils'
 import { BaseNamespace, ListenOptions } from '../BaseNamespace'
 import { SWClient } from '../SWClient'
@@ -155,7 +151,6 @@ export class Voice extends BaseNamespace<VoiceListenOptions, VoiceEvents> {
 }
 
 export { Call } from './Call'
-export type { RealTimeCallApiEvents }
 export { DeviceBuilder }
 export { Playlist } from './Playlist'
 export type { CallPlayback } from './CallPlayback'
@@ -221,3 +216,23 @@ export type {
   VoiceDialerParams,
   VoicePlaylist,
 } from '@signalwire/core'
+export type {
+  CallPlayMethodParams,
+  CallPlayAudioMethodarams,
+  CallPlaySilenceMethodParams,
+  CallPlayRingtoneMethodParams,
+  CallPlayTTSMethodParams,
+  CallRecordMethodParams,
+  CallRecordAudioMethodParams,
+  CallPromptMethodParams,
+  CallPromptAudioMethodParams,
+  CallPromptRingtoneMethodParams,
+  CallPromptTTSMethodParams,
+  CallCollectMethodParams,
+  CallTapMethodParams,
+  CallTapAudioMethodParams,
+  CallDetectMethodParams,
+  CallDetectMachineParams,
+  CallDetectFaxParams,
+  CallDetectDigitParams,
+} from '../types/voice'
