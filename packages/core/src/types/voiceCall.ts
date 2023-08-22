@@ -519,8 +519,10 @@ export interface VoiceCallDetectContract {
   readonly callId: string
   /** @ignore */
   readonly controlId: string
-  /** @ignore The result of the detection. */
+  /** @ignore The type of this detecting session. */
   readonly type?: CallingCallDetectType
+  /** @ignore The result value of the detection. */
+  readonly result: DetectorResult
 
   stop(): Promise<this>
   /**
@@ -1109,6 +1111,7 @@ export interface CallingCallSendDigitsEvent extends SwEvent {
  * 'calling.call.detect'
  */
 type CallingCallDetectState = 'finished' | 'error'
+/** @deprecated */
 export type CallingCallDetectEndState = CallingCallDetectState
 interface CallingCallDetectFax {
   type: 'fax'
@@ -1151,6 +1154,9 @@ export type Detector =
   | CallingCallDetectFax
   | CallingCallDetectMachine
   | CallingCallDetectDigit
+
+export type DetectorResult = Detector['params']['event']
+
 type CallingCallDetectType = Detector['type']
 export interface CallingCallDetectEventParams {
   node_id: string

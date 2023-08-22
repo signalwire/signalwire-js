@@ -2,10 +2,10 @@ import {
   connect,
   BaseComponentOptionsWithPayload,
   VoiceCallDetectContract,
-  CallingCallDetectEndState,
   CallingCallDetectEventParams,
   BaseConsumer,
   EventEmitter,
+  type DetectorResult,
 } from '@signalwire/core'
 
 /**
@@ -27,7 +27,7 @@ export type CallDetectEventsHandlerMapping = {}
 export interface CallDetectOptions
   extends BaseComponentOptionsWithPayload<CallingCallDetectEventParams> {}
 
-const ENDED_STATES: CallingCallDetectEndState[] = ['finished', 'error']
+const ENDED_STATES: DetectorResult[] = ['finished', 'error']
 
 export class CallDetectAPI
   extends BaseConsumer<CallDetectEventsHandlerMapping>
@@ -36,6 +36,7 @@ export class CallDetectAPI
   private _payload: CallingCallDetectEventParams
   private _waitForBeep: boolean
   private _waitingForReady: boolean
+  private _result: DetectorResult = 'UNKNOWN'
 
   constructor(options: CallDetectOptions) {
     super(options)
@@ -69,6 +70,10 @@ export class CallDetectAPI
     return this?.detect?.type
   }
 
+  get result() {
+    return this._result
+  }
+
   get waitForBeep() {
     return this._waitForBeep
   }
@@ -84,6 +89,11 @@ export class CallDetectAPI
   /** @internal */
   protected setPayload(payload: CallingCallDetectEventParams) {
     this._payload = payload
+
+    const lastEvent = this._lastEvent()
+    if (lastEvent && lastEvent !== 'finished') {
+      this._result = lastEvent
+    }
   }
 
   async stop() {
@@ -108,11 +118,8 @@ export class CallDetectAPI
 
   ended() {
     // Resolve the promise if the detect has already ended
-    if (
-      ENDED_STATES.includes(
-        this.detect?.params?.event as CallingCallDetectEndState
-      )
-    ) {
+    const lastEvent = this._lastEvent()
+    if (lastEvent && ENDED_STATES.includes(lastEvent)) {
       return Promise.resolve(this)
     }
 
@@ -134,6 +141,10 @@ export class CallDetectAPI
       // @ts-expect-error
       this.once('detect.ended', handler)
     })
+  }
+
+  private _lastEvent() {
+    return this.detect?.params.event
   }
 }
 
