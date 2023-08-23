@@ -122,6 +122,7 @@ const makeLayoutChangedHandler =
         localVideo.style.width = '100%'
         localVideo.style.height = '100%'
         localVideo.style.pointerEvents = 'none'
+        localVideo.style.objectFit = 'cover'
 
         myLayer.appendChild(localVideo)
 
