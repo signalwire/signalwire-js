@@ -37,6 +37,19 @@ const handler = async () => {
         to: process.env.VOICE_DIAL_TO_NUMBER as string,
         from: process.env.VOICE_DIAL_FROM_NUMBER as string,
         timeout: 30,
+        listen: {
+          onStateChanged: async (call) => {
+            if (call.state === 'ended') {
+              await unsubVoice()
+
+              await unsubPlay()
+
+              client.disconnect()
+
+              resolve(0)
+            }
+          },
+        },
       })
       tap.ok(call.id, 'Outbound - Call resolved')
 
@@ -72,24 +85,16 @@ const handler = async () => {
         onFailed: (playback) => {
           tap.notOk(playback.id, 'Playback failed')
         },
-        onEnded: (playback) => {
+        onEnded: async (playback) => {
           tap.hasProps(playback, CALL_PLAYBACK_PROPS, 'Playback ended')
           tap.equal(playback.id, play.id, 'Playback correct id')
           tap.equal(playback.state, 'finished', 'Playback correct state')
+
+          await call.hangup()
         },
       })
 
       await play.stop()
-
-      await unsubVoice()
-
-      await unsubPlay()
-
-      await call.hangup()
-
-      client.disconnect()
-
-      resolve(0)
     } catch (error) {
       console.error('VoicePlaybackListeners error', error)
       reject(4)

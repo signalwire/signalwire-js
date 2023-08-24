@@ -41,6 +41,17 @@ const handler = async () => {
       tap.ok(call.id, 'Outbound - Call resolved')
 
       const unsubCall = await call.listen({
+        onStateChanged: async (call) => {
+          if (call.state === 'ended') {
+            await unsubVoice()
+
+            await unsubCall()
+
+            client.disconnect()
+
+            resolve(0)
+          }
+        },
         onPlaybackStarted: (playback) => {
           tap.hasProps(playback, CALL_PLAYBACK_PROPS, 'Playback started')
           tap.equal(playback.state, 'playing', 'Playback correct state')
@@ -51,9 +62,11 @@ const handler = async () => {
         onPlaybackFailed: (playback) => {
           tap.notOk(playback.id, 'Playback failed')
         },
-        onPlaybackEnded: (playback) => {
+        onPlaybackEnded: async (playback) => {
           tap.hasProps(playback, CALL_PLAYBACK_PROPS, 'Playback ended')
           tap.equal(playback.state, 'finished', 'Playback correct state')
+
+          await call.hangup()
         },
       })
 
@@ -62,16 +75,6 @@ const handler = async () => {
       })
 
       await play.stop()
-
-      await unsubVoice()
-
-      await unsubCall()
-
-      await call.hangup()
-
-      client.disconnect()
-
-      resolve(0)
     } catch (error) {
       console.error('VoicePlaybackCallListeners error', error)
       reject(4)

@@ -37,6 +37,19 @@ const handler = async () => {
         to: process.env.VOICE_DIAL_TO_NUMBER as string,
         from: process.env.VOICE_DIAL_FROM_NUMBER as string,
         timeout: 30,
+        listen: {
+          onStateChanged: async (call) => {
+            if (call.state === 'ended') {
+              await unsubVoice()
+
+              await unsubRecord()
+
+              client.disconnect()
+
+              resolve(0)
+            }
+          },
+        },
       })
       tap.ok(call.id, 'Outbound - Call resolved')
 
@@ -70,15 +83,7 @@ const handler = async () => {
           tap.equal(recording.id, record.id, 'Recording correct id')
           tap.equal(recording.state, 'finished', 'Recording correct state')
 
-          await unsubVoice()
-
-          await unsubRecord()
-
           await call.hangup()
-
-          client.disconnect()
-
-          resolve(0)
         },
       })
 

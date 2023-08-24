@@ -41,6 +41,17 @@ const handler = async () => {
       tap.ok(call.id, 'Outbound - Call resolved')
 
       const unsubCall = await call.listen({
+        onStateChanged: async (call) => {
+          if (call.state === 'ended') {
+            await unsubVoice()
+
+            await unsubCall()
+
+            client.disconnect()
+
+            resolve(0)
+          }
+        },
         onRecordingStarted: (recording) => {
           tap.hasProps(recording, CALL_RECORD_PROPS, 'Recording started')
           tap.equal(recording.state, 'recording', 'Recording correct state')
@@ -52,15 +63,7 @@ const handler = async () => {
           tap.hasProps(recording, CALL_RECORD_PROPS, 'Recording ended')
           tap.equal(recording.state, 'finished', 'Recording correct state')
 
-          await unsubVoice()
-
-          await unsubCall()
-
           await call.hangup()
-
-          client.disconnect()
-
-          resolve(0)
         },
       })
 

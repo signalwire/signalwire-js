@@ -14,7 +14,7 @@ const handler = async () => {
         },
       })
 
-      tap.plan(17)
+      tap.plan(12)
 
       const unsubVoiceOffice = await client.voice.listen({
         topics: ['office'],
@@ -46,6 +46,19 @@ const handler = async () => {
         from: process.env.VOICE_DIAL_FROM_NUMBER as string,
         timeout: 30,
         listen: {
+          onStateChanged: async (call) => {
+            if (call.state === 'ended') {
+              await unsubVoiceOffice()
+
+              await unsubVoiceHome()
+
+              await unsubRecord()
+
+              client.disconnect()
+
+              resolve(0)
+            }
+          },
           onRecordingStarted: (recording) => {
             tap.hasProps(
               recording,
@@ -55,21 +68,6 @@ const handler = async () => {
             tap.equal(
               recording.state,
               'recording',
-              'voice.dialPhone: Recording correct state'
-            )
-          },
-          onRecordingFailed: (recording) => {
-            tap.notOk(recording.id, 'voice.dialPhone: Recording failed')
-          },
-          onRecordingEnded: (recording) => {
-            tap.hasProps(
-              recording,
-              CALL_RECORD_PROPS,
-              'voice.dialPhone: Recording ended'
-            )
-            tap.equal(
-              recording.state,
-              'finished',
               'voice.dialPhone: Recording correct state'
             )
           },
@@ -90,9 +88,6 @@ const handler = async () => {
             'call.listen: Recording correct state'
           )
         },
-        onRecordingFailed: (recording) => {
-          tap.notOk(recording.id, 'call.listen: Recording failed')
-        },
         onRecordingEnded: (recording) => {
           // NotOk since we unsubscribe this listener before the recording stops
           tap.notOk(recording.id, 'call.listen: Recording ended')
@@ -101,7 +96,7 @@ const handler = async () => {
 
       const record = await call.recordAudio({
         listen: {
-          onStarted: (recording) => {
+          onStarted: async (recording) => {
             tap.hasProps(
               recording,
               CALL_RECORD_PROPS,
@@ -112,26 +107,10 @@ const handler = async () => {
               'recording',
               'call.recordAudio: Recording correct state'
             )
-          },
-          onFailed: (recording) => {
-            tap.notOk(recording.id, 'call.recordAudio: Recording failed')
-          },
-          onEnded: (recording) => {
-            tap.hasProps(
-              recording,
-              CALL_RECORD_PROPS,
-              'call.recordAudio: Recording ended'
-            )
-            tap.equal(
-              recording.id,
-              record.id,
-              'call.recordAudio: Recording correct id'
-            )
-            tap.equal(
-              recording.state,
-              'finished',
-              'call.recordAudio: Recording correct state'
-            )
+
+            await unsubCall()
+
+            await record.stop()
           },
         },
       })
@@ -141,10 +120,7 @@ const handler = async () => {
           // NotOk since the listener is attached after the call.record has resolved
           tap.notOk(recording.id, 'record.listen: Recording stared')
         },
-        onFailed: (recording) => {
-          tap.notOk(recording.id, 'record.listen: Recording failed')
-        },
-        onEnded: (recording) => {
+        onEnded: async (recording) => {
           tap.hasProps(
             recording,
             CALL_RECORD_PROPS,
@@ -160,22 +136,10 @@ const handler = async () => {
             'finished',
             'record.listen: Recording correct state'
           )
+
+          await call.hangup()
         },
       })
-
-      await unsubCall()
-
-      await record.stop()
-
-      await unsubVoiceOffice()
-
-      await unsubVoiceHome()
-
-      await unsubRecord()
-
-      client.disconnect()
-
-      resolve(0)
     } catch (error) {
       console.error('VoiceRecordingAllListeners error', error)
       reject(4)

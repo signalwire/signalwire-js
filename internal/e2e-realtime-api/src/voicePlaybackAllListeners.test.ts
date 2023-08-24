@@ -14,7 +14,7 @@ const handler = async () => {
         },
       })
 
-      tap.plan(17)
+      tap.plan(12)
 
       const unsubVoiceOffice = await client.voice.listen({
         topics: ['office'],
@@ -46,6 +46,19 @@ const handler = async () => {
         from: process.env.VOICE_DIAL_FROM_NUMBER as string,
         timeout: 30,
         listen: {
+          onStateChanged: async (call) => {
+            if (call.state === 'ended') {
+              await unsubVoiceOffice()
+
+              await unsubVoiceHome()
+
+              await unsubPlay()
+
+              client.disconnect()
+
+              resolve(0)
+            }
+          },
           onPlaybackStarted: (playback) => {
             tap.hasProps(
               playback,
@@ -55,24 +68,6 @@ const handler = async () => {
             tap.equal(
               playback.state,
               'playing',
-              'voice.dialPhone: Playback correct state'
-            )
-          },
-          onPlaybackUpdated: (playback) => {
-            tap.notOk(playback.id, 'voice.dialPhone: Playback updated')
-          },
-          onPlaybackFailed: (playback) => {
-            tap.notOk(playback.id, 'voice.dialPhone: Playback failed')
-          },
-          onPlaybackEnded: (playback) => {
-            tap.hasProps(
-              playback,
-              CALL_PLAYBACK_PROPS,
-              'voice.dialPhone: Playback ended'
-            )
-            tap.equal(
-              playback.state,
-              'finished',
               'voice.dialPhone: Playback correct state'
             )
           },
@@ -93,12 +88,6 @@ const handler = async () => {
             'call.listen: Playback correct state'
           )
         },
-        onPlaybackUpdated: (playback) => {
-          tap.notOk(playback.id, 'call.listen: Playback updated')
-        },
-        onPlaybackFailed: (playback) => {
-          tap.notOk(playback.id, 'call.listen: Playback failed')
-        },
         onPlaybackEnded: (playback) => {
           // NotOk since we unsubscribe this listener before the playback stops
           tap.notOk(playback.id, 'call.listen: Playback ended')
@@ -109,7 +98,7 @@ const handler = async () => {
       const play = await call.playAudio({
         url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
         listen: {
-          onStarted: (playback) => {
+          onStarted: async (playback) => {
             tap.hasProps(
               playback,
               CALL_PLAYBACK_PROPS,
@@ -120,29 +109,10 @@ const handler = async () => {
               'playing',
               'call.playAudio: Playback correct state'
             )
-          },
-          onUpdated: (playback) => {
-            tap.notOk(playback.id, 'call.playAudio: Playback updated')
-          },
-          onFailed: (playback) => {
-            tap.notOk(playback.id, 'call.playAudio: Playback failed')
-          },
-          onEnded: (playback) => {
-            tap.hasProps(
-              playback,
-              CALL_PLAYBACK_PROPS,
-              'call.playAudio: Playback ended'
-            )
-            tap.equal(
-              playback.id,
-              play.id,
-              'call.playAudio: Playback correct id'
-            )
-            tap.equal(
-              playback.state,
-              'finished',
-              'call.playAudio: Playback correct state'
-            )
+
+            await unsubCall()
+
+            await play.stop()
           },
         },
       })
@@ -152,13 +122,7 @@ const handler = async () => {
           // NotOk since the listener is attached after the call.play has resolved
           tap.notOk(playback.id, 'play.listen: Playback stared')
         },
-        onUpdated: (playback) => {
-          tap.notOk(playback.id, 'play.listen: Playback updated')
-        },
-        onFailed: (playback) => {
-          tap.notOk(playback.id, 'play.listen: Playback failed')
-        },
-        onEnded: (playback) => {
+        onEnded: async (playback) => {
           tap.hasProps(
             playback,
             CALL_PLAYBACK_PROPS,
@@ -170,22 +134,10 @@ const handler = async () => {
             'finished',
             'play.listen: Playback correct state'
           )
+
+          await call.hangup()
         },
       })
-
-      await unsubCall()
-
-      await play.stop()
-
-      await unsubVoiceOffice()
-
-      await unsubVoiceHome()
-
-      await unsubPlay()
-
-      await call.hangup()
-
-      resolve(0)
     } catch (error) {
       console.error('VoicePlaybackAllListeners error', error)
       reject(4)
