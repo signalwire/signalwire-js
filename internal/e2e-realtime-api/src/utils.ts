@@ -134,7 +134,7 @@ export const CALL_PROPS = [
   'nodeId',
   'state',
   'callState',
-  'tag',
+  // 'tag', // Inbound calls does not have tags
   'device',
   'type',
   'from',

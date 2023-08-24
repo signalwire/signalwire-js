@@ -11,6 +11,13 @@ import { RealTimeCallListeners } from '../../types'
 import { Call } from '../Call'
 import { Voice } from '../Voice'
 
+interface VoiceCallWorkerInitialState {
+  voice: Voice
+  direction: 'inbound' | 'outbound'
+  tag?: string
+  listeners?: RealTimeCallListeners
+}
+
 /**
  * This worker runs for both Inbound and Outbound calls.
  * Only an Outbound call has a "tag".
@@ -27,15 +34,13 @@ export const voiceCallStateWorker: SDKWorker<Client> = function* (
     initialState,
   } = options
 
-  const { voice, tag, listeners, direction } = initialState as {
-    voice: Voice
-    direction: 'inbound' | 'outbound'
-    tag?: string
-    listeners?: RealTimeCallListeners
-  }
+  const { voice, tag, listeners, direction } =
+    initialState as VoiceCallWorkerInitialState
 
   function* worker(action: VoiceCallStateAction) {
     const { payload } = action
+
+    if (payload.tag && payload.tag !== tag) return
 
     let callInstance = get<Call>(payload.call_id)
     if (!callInstance) {
@@ -69,7 +74,7 @@ export const voiceCallStateWorker: SDKWorker<Client> = function* (
   while (true) {
     /**
      * The outbound call should be created by the outbound worker and pass the listeners
-     * To avoid call being created by the inbound worker; add direction condition here
+     * To avoid call instance being created by the inbound worker; add direction condition here
      */
     const action = yield sagaEffects.take(
       swEventChannel,
@@ -80,7 +85,14 @@ export const voiceCallStateWorker: SDKWorker<Client> = function* (
 
     const shouldStop = yield sagaEffects.fork(worker, action)
 
-    if (shouldStop.result()) break
+    /**
+     * We create one watcher for each outbound calls
+     * But we create only one watcher for all the inbound calls
+     * Hence, inbound calls watcher should run forever similar to call receive watcher
+     */
+    if (shouldStop.result() && direction === 'outbound') {
+      break
+    }
   }
 
   getLogger().debug('voiceCallStateWorker ended', direction)

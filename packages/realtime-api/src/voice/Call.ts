@@ -10,6 +10,7 @@ import {
   toExternalJSON,
   VoiceCallConnectPhoneMethodParams,
   VoiceCallConnectSipMethodParams,
+  CallingCallConnectFailedEventParams,
 } from '@signalwire/core'
 import { ListenSubscriber } from '../ListenSubscriber'
 import {
@@ -43,6 +44,7 @@ import {
   voiceCallPlayWorker,
   voiceCallRecordWorker,
   voiceCallSendDigitsWorker,
+  voiceCallStateWorker,
   voiceCallTapWorker,
 } from './workers'
 import { Playlist } from './Playlist'
@@ -66,7 +68,6 @@ export class Call extends ListenSubscriber<
   RealTimeCallListeners,
   RealTimeCallEvents
 > {
-  private __uuid: string
   private _voice: Voice
   private _peer: Call | undefined
   private _payload: CallingCall | undefined
@@ -99,7 +100,6 @@ export class Call extends ListenSubscriber<
   constructor(options: CallOptions) {
     super({ swClient: options.voice._sw })
 
-    this.__uuid = uuid()
     this._voice = options.voice
     this._payload = options.payload
     this._connectPayload = options.connectPayload
@@ -127,7 +127,7 @@ export class Call extends ListenSubscriber<
   }
 
   get tag() {
-    return this.__uuid
+    return this._payload?.tag
   }
 
   get nodeId() {
@@ -225,7 +225,7 @@ export class Call extends ListenSubscriber<
    * ```
    */
   hangup(reason: VoiceCallDisconnectReason = 'hangup') {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       if (!this.callId || !this.nodeId) {
         reject(
           new Error(
@@ -235,8 +235,8 @@ export class Call extends ListenSubscriber<
       }
 
       this.on('call.state', (params) => {
-        if (params.state === 'ended') {
-          resolve(new Error('Failed to hangup the call.'))
+        if (params.callState === 'ended') {
+          resolve()
         }
       })
 
@@ -495,7 +495,7 @@ export class Call extends ListenSubscriber<
       this.once('recording.failed', rejectHandler)
 
       const controlId = uuid()
-      const record = toSnakeCaseKeys(audio)
+      const record = toSnakeCaseKeys({ audio })
 
       this._client.runWorker('voiceCallRecordWorker', {
         worker: voiceCallRecordWorker,
@@ -924,11 +924,13 @@ export class Call extends ListenSubscriber<
         reject(new Error(`Can't call connect() on a call not established yet.`))
       }
 
+      const _tag = uuid()
+
       // We can ignore the "ringback" error since we just want to cleanup "...rest"
       // @ts-expect-error
       const { devices, ringback, ...rest } = params
       const executeParams: Record<string, any> = {
-        tag: this.__uuid,
+        tag: _tag,
         ...toSnakeCaseKeys(rest),
       }
       if ('ringback' in params) {
@@ -951,7 +953,7 @@ export class Call extends ListenSubscriber<
         resolve(payload)
       }
 
-      const rejectHandler = (payload: Call) => {
+      const rejectHandler = (payload: CallingCallConnectFailedEventParams) => {
         // @ts-expect-error
         this.off('connect.connected', resolveHandler)
         reject(toExternalJSON(payload))
@@ -969,13 +971,22 @@ export class Call extends ListenSubscriber<
         },
       })
 
+      this._client.runWorker('voiceCallStateWorker', {
+        worker: voiceCallStateWorker,
+        initialState: {
+          voice: this._voice,
+          tag: _tag,
+          direction: 'outbound',
+        },
+      })
+
       this._client
         .execute({
           method: 'calling.connect',
           params: {
             node_id: this.nodeId,
             call_id: this.callId,
-            tag: this.__uuid,
+            tag: _tag,
             ...executeParams,
           },
         })

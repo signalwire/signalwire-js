@@ -11,7 +11,6 @@ import { Call } from '../Call'
 import { Voice } from '../Voice'
 
 interface VoiceCallConnectWorkerInitialState {
-  controlId: string
   voice: Voice
 }
 
@@ -81,7 +80,7 @@ export const voiceCallConnectWorker: SDKWorker<Client> = function* (
       case 'failed': {
         callInstance.peer = undefined
         // @ts-expect-error
-        callInstance.emit('connect.failed')
+        callInstance.emit('connect.failed', payload)
         return true
       }
       default:
