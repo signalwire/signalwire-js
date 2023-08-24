@@ -44,6 +44,7 @@ import {
   voiceCallPlayWorker,
   voiceCallRecordWorker,
   voiceCallSendDigitsWorker,
+  voiceCallStateWorker,
   voiceCallTapWorker,
 } from './workers'
 import { Playlist } from './Playlist'
@@ -970,6 +971,15 @@ export class Call extends ListenSubscriber<
         initialState: {
           voice: this._voice,
           tag: _tag,
+        },
+      })
+
+      this._client.runWorker('voiceCallStateWorker', {
+        worker: voiceCallStateWorker,
+        initialState: {
+          voice: this._voice,
+          tag: _tag,
+          direction: 'outbound',
         },
       })
 

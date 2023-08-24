@@ -528,9 +528,9 @@ export type CallRecordingEvents = Record<
 >
 
 export interface CallRecordingListeners {
-  onStarted?: (playback: CallPlayback) => unknown
-  onFailed?: (playback: CallPlayback) => unknown
-  onEnded?: (playback: CallPlayback) => unknown
+  onStarted?: (recording: CallRecording) => unknown
+  onFailed?: (recording: CallRecording) => unknown
+  onEnded?: (recording: CallRecording) => unknown
 }
 
 export type CallRecordingListenersEventsMapping = Record<
