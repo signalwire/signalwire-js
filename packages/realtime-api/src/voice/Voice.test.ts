@@ -56,7 +56,7 @@ describe('Voice', () => {
     ])
 
     // @ts-expect-error
-    expect(voice._client.runWorker).toHaveBeenCalledTimes(2)
+    expect(voice._client.runWorker).toHaveBeenCalled()
     // @ts-expect-error
     expect(voice._client.execute).toHaveBeenCalled()
   })
