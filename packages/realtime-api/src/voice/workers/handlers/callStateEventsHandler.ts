@@ -3,14 +3,14 @@ import { RealTimeCallListeners } from '../../../types'
 import { Call } from '../../Call'
 import { Voice } from '../../Voice'
 
-interface CallStateEventOptions {
+interface CallStateEventsHandlerOptions {
   payload: CallingCallStateEventParams
   voice: Voice
   instanceMap: InstanceMap
   listeners?: RealTimeCallListeners
 }
 
-export function handleCallStateEvents(options: CallStateEventOptions) {
+export function handleCallStateEvents(options: CallStateEventsHandlerOptions) {
   const {
     payload,
     voice,

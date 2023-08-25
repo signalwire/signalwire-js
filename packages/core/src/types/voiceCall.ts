@@ -413,11 +413,9 @@ export type VoiceCallDialSipMethodParams = OmitType<VoiceCallSipParams> &
 
 type VoiceRegion = string
 
-export type VoiceDialerParams =
-  | VoiceDeviceBuilder
-  | ({
-      devices: VoiceDeviceBuilder
-    } & VoiceCallDialRegionParams)
+export type VoiceDialerParams = {
+  devices: VoiceDeviceBuilder
+} & VoiceCallDialRegionParams
 
 export interface VoiceDeviceBuilder {
   devices: VoiceCallDialMethodParams['devices']

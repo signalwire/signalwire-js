@@ -3,15 +3,12 @@ import {
   SagaIterator,
   SDKWorker,
   sagaEffects,
-  VoiceCallDialAction,
-  VoiceCallStateAction,
+  SDKActions,
 } from '@signalwire/core'
-import type { Call } from '../Call'
 import type { Client } from '../../client/index'
 import { RealTimeCallListeners } from '../../types'
-import { SDKActions } from 'packages/core/dist/core/src'
 import { Voice } from '../Voice'
-import { handleCallStateEvents } from './handlers'
+import { handleCallDialEvents, handleCallStateEvents } from './handlers'
 
 interface VoiceCallDialWorkerInitialState {
   tag: string
@@ -32,59 +29,49 @@ export const voiceCallDialWorker: SDKWorker<Client> = function* (
   const { tag, voice, listeners } =
     initialState as VoiceCallDialWorkerInitialState
 
-  function* callDialWorker(action: VoiceCallDialAction) {
-    const { get } = instanceMap
-    const { payload } = action
+  const isCallDialEvent = (action: SDKActions) => {
+    return action.type === 'calling.call.dial' && action.payload.tag === tag
+  }
 
-    switch (payload.dial_state) {
-      case 'failed': {
-        // @ts-expect-error
-        voice.emit('dial.failed', payload)
-        return true
-      }
-      case 'answered': {
-        const callInstance = get<Call>(payload.call.call_id)
-        callInstance.setPayload(payload.call)
-        // @ts-expect-error
-        voice.emit('dial.answered', callInstance)
-        return true
-      }
-      default:
-        return false
+  const isCallStateEvent = (action: SDKActions) => {
+    return (
+      action.type === 'calling.call.state' &&
+      action.payload.direction === 'outbound' &&
+      action.payload.tag === tag
+    )
+  }
+
+  function* callDialWatcher(): SagaIterator {
+    while (true) {
+      const action = yield sagaEffects.take(swEventChannel, isCallDialEvent)
+
+      const shouldStop = handleCallDialEvents({
+        payload: action.payload,
+        instanceMap,
+        voice,
+      })
+
+      if (shouldStop) break
     }
   }
 
-  function* worker(action: VoiceCallDialAction | VoiceCallStateAction) {
-    if (action.type === 'calling.call.dial') {
-      yield sagaEffects.fork(callDialWorker, action)
-      return false
-    } else {
-      return handleCallStateEvents({
+  function* callStateWatcher(): SagaIterator {
+    while (true) {
+      const action = yield sagaEffects.take(swEventChannel, isCallStateEvent)
+
+      const shouldStop = handleCallStateEvents({
         payload: action.payload,
         voice,
         instanceMap,
         listeners,
       })
+
+      if (shouldStop) break
     }
   }
 
-  while (true) {
-    const action = yield sagaEffects.take(
-      swEventChannel,
-      (action: SDKActions) => {
-        return (
-          (action.type === 'calling.call.dial' && action.payload.tag === tag) ||
-          (action.type === 'calling.call.state' &&
-            action.payload.direction === 'outbound' &&
-            action.payload.tag === tag)
-        )
-      }
-    )
-
-    const shouldStop = yield sagaEffects.fork(worker, action)
-
-    if (shouldStop.result()) break
-  }
+  yield sagaEffects.fork(callDialWatcher)
+  yield sagaEffects.fork(callStateWatcher)
 
   getLogger().trace('voiceCallDialWorker ended')
 }
