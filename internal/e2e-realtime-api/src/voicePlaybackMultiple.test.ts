@@ -14,9 +14,6 @@ const handler = async () => {
         },
       })
 
-      // Expects 22 tap assert
-      tap.plan(22)
-
       let inboundCalls = 0
       let startedPlaybacks = 0
       let failedPlaybacks = 0

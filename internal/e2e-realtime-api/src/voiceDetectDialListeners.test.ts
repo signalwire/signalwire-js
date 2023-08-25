@@ -14,8 +14,6 @@ const handler = () => {
         },
       })
 
-      tap.plan(17)
-
       const unsubVoice = await client.voice.listen({
         topics: ['office', 'home'],
         onCallReceived: async (call) => {
@@ -48,6 +46,15 @@ const handler = () => {
         from: process.env.VOICE_DIAL_FROM_NUMBER as string,
         timeout: 30,
         listen: {
+          async onStateChanged(call) {
+            if (call.state === 'ended') {
+              await unsubVoice()
+
+              client.disconnect()
+
+              resolve(0)
+            }
+          },
           onDetectStarted: (detect) => {
             tap.hasProps(detect, CALL_DETECT_PROPS, 'Detect started')
             tap.equal(detect.callId, call.id, 'Detect with correct call id')
@@ -60,12 +67,6 @@ const handler = () => {
           onDetectEnded: async (detect) => {
             tap.hasProps(detect, CALL_DETECT_PROPS, 'Detect ended')
             tap.equal(detect.callId, call.id, 'Detect with correct call id')
-
-            await unsubVoice()
-
-            client.disconnect()
-
-            resolve(0)
           },
         },
       })

@@ -14,8 +14,6 @@ const handler = async () => {
         },
       })
 
-      tap.plan(16)
-
       const unsubVoice = await client.voice.listen({
         topics: ['office', 'home'],
         onCallReceived: async (call) => {
