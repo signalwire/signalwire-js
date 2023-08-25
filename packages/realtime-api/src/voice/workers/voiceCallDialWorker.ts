@@ -19,6 +19,7 @@ interface VoiceCallDialWorkerInitialState {
 interface VoiceCallDialWorkerInitialState {
   tag: string
   voice: Voice
+  listeners?: RealTimeCallListeners
 }
 
 export const voiceCallDialWorker: SDKWorker<Client> = function* (
