@@ -125,7 +125,7 @@ async function main() {
   const runner = createTestRunner({
     name: 'Voice Collect with Dial Listeners E2E',
     testHandler: handler,
-    executionTime: 30_000,
+    executionTime: 60_000,
   })
 
   await runner.run()

@@ -1,20 +1,18 @@
 import { toExternalJSON, uuid } from '@signalwire/core'
 import type {
-  VoiceCallDialPhoneMethodParams,
-  VoiceCallDialSipMethodParams,
   ToExternalJSONResult,
   CallingCallDialFailedEventParams,
-  VoiceDialerParams,
   CallReceived,
 } from '@signalwire/core'
 import { Call } from './Call'
-import {
-  voiceCallStateWorker,
-  voiceCallReceiveWorker,
-  voiceCallDialWorker,
-} from './workers'
+import { voiceCallReceiveWorker, voiceCallDialWorker } from './workers'
 import { DeviceBuilder } from './DeviceBuilder'
-import type { RealTimeCallListeners, VoiceEvents } from '../types'
+import type {
+  VoiceDialMethodParams,
+  VoiceDialPhonelMethodParams,
+  VoiceDialSipMethodParams,
+  VoiceEvents,
+} from '../types'
 import { toInternalDevices } from './utils'
 import { BaseNamespace, ListenOptions } from '../BaseNamespace'
 import { SWClient } from '../SWClient'
@@ -39,17 +37,9 @@ export class Voice extends BaseNamespace<VoiceListenOptions, VoiceEvents> {
         voice: this,
       },
     })
-
-    this._client.runWorker('voiceCallStateWorker', {
-      worker: voiceCallStateWorker,
-      initialState: {
-        voice: this,
-        direction: 'inbound',
-      },
-    })
   }
 
-  dial(params: VoiceDialerParams & { listen?: RealTimeCallListeners }) {
+  dial(params: VoiceDialMethodParams) {
     return new Promise<Call>((resolve, reject) => {
       const _tag = uuid()
 
@@ -58,16 +48,7 @@ export class Voice extends BaseNamespace<VoiceListenOptions, VoiceEvents> {
         initialState: {
           voice: this,
           tag: _tag,
-        },
-      })
-
-      this._client.runWorker('voiceCallStateWorker', {
-        worker: voiceCallStateWorker,
-        initialState: {
-          voice: this,
-          tag: _tag,
           listeners: params.listen,
-          direction: 'outbound',
         },
       })
 
@@ -124,7 +105,7 @@ export class Voice extends BaseNamespace<VoiceListenOptions, VoiceEvents> {
     maxPricePerMinute,
     listen,
     ...params
-  }: VoiceCallDialPhoneMethodParams & { listen?: RealTimeCallListeners }) {
+  }: VoiceDialPhonelMethodParams) {
     const devices = new DeviceBuilder().add(DeviceBuilder.Phone(params))
     return this.dial({
       maxPricePerMinute,
@@ -139,7 +120,7 @@ export class Voice extends BaseNamespace<VoiceListenOptions, VoiceEvents> {
     maxPricePerMinute,
     listen,
     ...params
-  }: VoiceCallDialSipMethodParams & { listen?: RealTimeCallListeners }) {
+  }: VoiceDialSipMethodParams) {
     const devices = new DeviceBuilder().add(DeviceBuilder.Sip(params))
     return this.dial({
       maxPricePerMinute,

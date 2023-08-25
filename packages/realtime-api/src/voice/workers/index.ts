@@ -1,4 +1,3 @@
-export * from './voiceCallStateWorker'
 export * from './voiceCallReceiveWorker'
 export * from './voiceCallPlayWorker'
 export * from './voiceCallRecordWorker'

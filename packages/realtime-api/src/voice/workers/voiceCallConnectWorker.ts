@@ -5,13 +5,16 @@ import {
   SDKActions,
   SDKWorker,
   VoiceCallConnectAction,
+  VoiceCallStateAction,
 } from '@signalwire/core'
 import type { Client } from '../../client/index'
 import { Call } from '../Call'
 import { Voice } from '../Voice'
+import { handleCallStateEvents } from './handlers'
 
 interface VoiceCallConnectWorkerInitialState {
   voice: Voice
+  tag: string
 }
 
 export const voiceCallConnectWorker: SDKWorker<Client> = function* (
@@ -20,13 +23,14 @@ export const voiceCallConnectWorker: SDKWorker<Client> = function* (
   getLogger().trace('voiceCallConnectWorker started')
   const {
     channels: { swEventChannel },
-    instanceMap: { get, set },
+    instanceMap,
     initialState,
   } = options
 
-  const { voice } = initialState as VoiceCallConnectWorkerInitialState
+  const { voice, tag } = initialState as VoiceCallConnectWorkerInitialState
 
-  function* worker(action: VoiceCallConnectAction) {
+  function* callConnectWorker(action: VoiceCallConnectAction) {
+    const { get, set } = instanceMap
     const { payload } = action
 
     const callInstance = get<Call>(payload.call_id)
@@ -90,10 +94,30 @@ export const voiceCallConnectWorker: SDKWorker<Client> = function* (
     }
   }
 
+  function* worker(action: VoiceCallConnectAction | VoiceCallStateAction) {
+    if (action.type === 'calling.call.connect') {
+      yield sagaEffects.fork(callConnectWorker, action)
+      return false
+    } else {
+      return handleCallStateEvents({
+        payload: action.payload,
+        voice,
+        instanceMap,
+      })
+    }
+  }
+
   while (true) {
     const action = yield sagaEffects.take(
       swEventChannel,
-      (action: SDKActions) => action.type === 'calling.call.connect'
+      (action: SDKActions) => {
+        return (
+          action.type === 'calling.call.connect' ||
+          (action.type === 'calling.call.state' &&
+            action.payload.direction === 'outbound' &&
+            action.payload.tag === tag)
+        )
+      }
     )
 
     const shouldStop = yield sagaEffects.fork(worker, action)

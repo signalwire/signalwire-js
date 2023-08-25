@@ -39,6 +39,9 @@ import type {
   VoiceCallDetectMachineParams,
   VoiceCallDetectFaxParams,
   VoiceCallDetectDigitParams,
+  VoiceDialerParams,
+  VoiceCallDialPhoneMethodParams,
+  VoiceCallDialSipMethodParams,
 } from '@signalwire/core'
 import type { Call } from '../voice/Call'
 import type { CallPlayback } from '../voice/CallPlayback'
@@ -49,6 +52,18 @@ import type { CallCollect } from '../voice/CallCollect'
 import type { CallDetect } from '../voice/CallDetect'
 
 export type VoiceEvents = Record<CallReceived, (call: Call) => void>
+
+export interface VoiceMethodsListeners {
+  listen?: RealTimeCallListeners
+}
+
+export type VoiceDialMethodParams = VoiceDialerParams & VoiceMethodsListeners
+
+export type VoiceDialPhonelMethodParams = VoiceCallDialPhoneMethodParams &
+  VoiceMethodsListeners
+
+export type VoiceDialSipMethodParams = VoiceCallDialSipMethodParams &
+  VoiceMethodsListeners
 
 export interface RealTimeCallListeners {
   onStateChanged?: (call: Call) => unknown

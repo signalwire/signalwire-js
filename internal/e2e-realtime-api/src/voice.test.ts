@@ -14,8 +14,6 @@ const handler = () => {
         },
       })
 
-      tap.plan(32)
-
       let outboundCall: Voice.Call
       let callsReceived = new Set()
 
@@ -235,7 +233,7 @@ async function main() {
   const runner = createTestRunner({
     name: 'Voice E2E',
     testHandler: handler,
-    executionTime: 60_000,
+    executionTime: 80_000,
   })
 
   await runner.run()

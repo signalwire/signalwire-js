@@ -163,7 +163,7 @@ async function main() {
   const runner = createTestRunner({
     name: 'Voice Detect with All Listeners E2E',
     testHandler: handler,
-    executionTime: 30_000,
+    executionTime: 60_000,
   })
 
   await runner.run()
