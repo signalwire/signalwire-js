@@ -97,6 +97,8 @@ export interface SessionOptions {
   token: string
   /** SignalWire contexts, e.g. 'home', 'office'.. */
   contexts?: string[]
+  /** An alias for contexts - Topics has more priority over contexts */
+  topics?: string[]
   // From `LogLevelDesc` of loglevel to simplify our docs
   /** logging level */
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
