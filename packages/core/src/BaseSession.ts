@@ -348,7 +348,9 @@ export class BaseSession {
     if (this._relayProtocolIsValid()) {
       params.protocol = this.relayProtocol
     }
-    if (this.options.contexts?.length) {
+    if (this.options.topics?.length) {
+      params.contexts = this.options.topics
+    } else if (this.options.contexts?.length) {
       params.contexts = this.options.contexts
     }
     this._rpcConnectResult = await this.execute(RPCConnect(params))

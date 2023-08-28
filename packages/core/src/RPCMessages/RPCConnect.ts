@@ -10,6 +10,7 @@ export type RPCConnectParams = {
   protocol?: string
   authorization_state?: string
   contexts?: string[]
+  topics?: string[]
 }
 
 export const DEFAULT_CONNECT_VERSION = {

@@ -7,10 +7,15 @@ interface VoiceClient extends Voice {
   new (opts: VoiceClientOptions): this
 }
 
-export interface VoiceClientOptions
-  extends Omit<UserOptions, '_onRefreshToken'> {
-  contexts: string[]
-}
+export type VoiceClientOptions = Omit<UserOptions, '_onRefreshToken'> &
+  (
+    | {
+        contexts: string[]
+      }
+    | {
+        topics: string[]
+      }
+  )
 
 /**
  * You can use instances of this class to initiate or receive calls. Please see
