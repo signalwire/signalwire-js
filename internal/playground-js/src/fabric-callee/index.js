@@ -206,7 +206,7 @@ window.tapPushNotification = async () => {
       case 'inboundCall':
         window.__call = resultObject
         window.__call.on('destroy', () => {
-          console.warn('Call got cancelled!!')
+          console.warn('Inbound Call got cancelled!!')
         })
         enableCallButtons()
         connectStatus.innerHTML = 'Ringing...'
