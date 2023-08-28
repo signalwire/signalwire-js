@@ -12,3 +12,8 @@ export const SignalWire = (options: SWClientOptions): Promise<SWClient> => {
     }
   })
 }
+
+export type { SWClient } from './SWClient'
+export type { Chat } from './chat/Chat'
+export type { PubSub } from './pubSub/PubSub'
+export type { Task } from './task/Task'

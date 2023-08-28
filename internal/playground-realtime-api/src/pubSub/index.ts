@@ -1,41 +1,63 @@
-import { PubSub } from '@signalwire/realtime-api'
+import { SignalWire } from '@signalwire/realtime-api'
 
 async function run() {
   try {
-    const pubSub = new PubSub.Client({
-      // @ts-expect-error
+    const client = await SignalWire({
       host: process.env.HOST || 'relay.swire.io',
       project: process.env.PROJECT as string,
       token: process.env.TOKEN as string,
-      logLevel: 'trace',
-      debug: {
-        logWsTraffic: true,
+    })
+
+    const unsubHomeOffice = await client.pubSub.listen({
+      channels: ['office', 'home'],
+      onMessageReceived: (payload) => {
+        console.log(
+          'Message received under the "office" or "home" channels',
+          payload
+        )
       },
     })
 
-    const channel = 'channel-name-here'
-
-    pubSub.on('message', (message) => {
-      console.log('message', message)
+    const unsubWorkplace = await client.pubSub.listen({
+      channels: ['workplace'],
+      onMessageReceived: (payload) => {
+        console.log('Message received under the "workplace" channels', payload)
+      },
     })
 
-    await pubSub.subscribe([channel])
-
-    const pubRes = await pubSub.publish({
+    const pubResOffice = await client.pubSub.publish({
       content: 'Hello There',
-      channel: channel,
+      channel: 'office',
       meta: {
         fooId: 'randomValue',
       },
     })
+    console.log('Publish Result --->', pubResOffice)
 
-    console.log('Publish Result --->', pubRes)
+    const pubResWorkplace = await client.pubSub.publish({
+      content: 'Hello There',
+      channel: 'workplace',
+      meta: {
+        fooId: 'randomValue',
+      },
+    })
+    console.log('Publish Result --->', pubResWorkplace)
 
-    const unsubscribeRes = await pubSub.unsubscribe(channel)
+    await unsubHomeOffice()
 
-    console.log('Unsubscribe Result --->', unsubscribeRes)
+    const pubResHome = await client.pubSub.publish({
+      content: 'Hello There',
+      channel: 'home',
+      meta: {
+        fooId: 'randomValue',
+      },
+    })
+    console.log('Publish Result --->', pubResHome)
 
-    console.log('Client Running..')
+    await unsubWorkplace()
+
+    console.log('Disconnect the client..')
+    client.disconnect()
   } catch (error) {
     console.log('<Error>', error)
   }
