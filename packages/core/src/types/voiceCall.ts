@@ -374,8 +374,10 @@ export interface VoiceCallDetectMachineParams
   type: 'machine'
   initialTimeout?: number
   endSilenceTimeout?: number
+  machineReadyTimeout?: number
   machineVoiceThreshold?: number
   machineWordsThreshold?: number
+  detectInterruptions?: boolean
 }
 
 export interface VoiceCallDetectFaxParams extends VoiceCallDetectBaseParams {
@@ -1122,6 +1124,7 @@ interface CallingCallDetectFax {
 interface CallingCallDetectMachine {
   type: 'machine'
   params: {
+    beep: boolean
     event:
       | 'MACHINE'
       | 'HUMAN'

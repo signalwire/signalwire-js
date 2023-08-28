@@ -35,7 +35,6 @@ export class CallDetectAPI
 {
   private _payload: CallingCallDetectEventParams
   private _waitForBeep: boolean
-  private _waitingForReady: boolean
   private _result: DetectorResult = 'UNKNOWN'
 
   constructor(options: CallDetectOptions) {
@@ -43,7 +42,6 @@ export class CallDetectAPI
 
     this._payload = options.payload
     this._waitForBeep = options.payload.waitForBeep
-    this._waitingForReady = false
   }
 
   get id() {
@@ -78,12 +76,11 @@ export class CallDetectAPI
     return this._waitForBeep
   }
 
-  get waitingForReady() {
-    return this._waitingForReady
-  }
-
-  set waitingForReady(ready: boolean) {
-    this._waitingForReady = ready
+  get beep() {
+    if (this.detect?.params.event === 'MACHINE') {
+      return this.detect.params.beep
+    }
+    return undefined
   }
 
   /** @internal */

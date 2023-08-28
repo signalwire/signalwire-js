@@ -35,10 +35,8 @@ export const voiceCallDetectWorker = function* (
   const { detect } = payload
   if (!detect) return
 
-  const {
-    type,
-    params: { event },
-  } = detect
+  const { type, params } = detect
+  const { event } = params
 
   switch (event) {
     case 'finished':
@@ -60,15 +58,12 @@ export const voiceCallDetectWorker = function* (
 
   switch (type) {
     case 'machine':
-      if (detectInstance.waitingForReady && event === 'READY') {
+      if (params.beep && detectInstance.waitForBeep) {
         // @ts-expect-error
         callInstance.emit('detect.ended', detectInstance)
 
         // To resolve the ended() promise in CallDetect
         detectInstance.emit('detect.ended', detectInstance)
-      }
-      if (detectInstance.waitForBeep) {
-        detectInstance.waitingForReady = true
       }
       break
     case 'digit':
