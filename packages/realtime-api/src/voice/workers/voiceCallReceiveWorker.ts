@@ -14,8 +14,8 @@ export const voiceCallReceiveWorker = function* (
   } = options
 
   // Contexts is required
-  const { contexts = [] } = client?.options ?? {}
-  if (!contexts.length) {
+  const { contexts = [], topics = [] } = client?.options ?? {}
+  if (!contexts.length && !topics.length) {
     throw new Error('Invalid contexts to receive inbound calls')
   }
 
