@@ -962,7 +962,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   setState(state: BaseConnectionState) {
     this.prevState = this.state
     this.state = state
-    this.logger.debug(
+    this.logger.trace(
       `Call ${this.id} state change from ${this.prevState} to ${this.state}`
     )
 
@@ -1001,7 +1001,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   /** @internal */
   public onVertoBye = (params: OnVertoByeParams) => {
-    this.logger.info('onVertoBye', params)
+    this.logger.debug('onVertoBye', params)
     const {
       rtcPeerId,
       byeCause = 'NORMAL_CLEARING',
@@ -1031,7 +1031,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
     // Set state to hangup only if the rtcPeer is the current one
     if (this.activeRTCPeerId === rtcPeer?.uuid) {
-      this.logger.info('onVertoBye go hangup')
+      this.logger.debug('onVertoBye go hangup')
       this.setState('hangup')
     }
   }
