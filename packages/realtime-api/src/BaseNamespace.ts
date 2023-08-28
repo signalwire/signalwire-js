@@ -7,7 +7,7 @@ export interface ListenOptions {
   topics: string[]
 }
 
-type ListenersKeys = keyof Omit<ListenOptions, 'topics'>
+export type ListenersKeys = keyof Omit<ListenOptions, 'topics'>
 
 type ListenerMap = Map<
   string,
@@ -21,20 +21,20 @@ type ListenerMap = Map<
 export class BaseNamespace<T extends ListenOptions> {
   protected _client: Client
   protected _sw: SWClient
-  protected _eventMap: Record<ListenersKeys, string>
+  protected _eventMap: Record<ListenersKeys, string> = {}
   private _namespaceEmitter = new EventEmitter()
-  private _listenerMap: ListenerMap = new Map()
+  protected _listenerMap: ListenerMap = new Map()
 
   constructor(options: { swClient: SWClient }) {
     this._sw = options.swClient
     this._client = options.swClient.client
   }
 
-  get emitter() {
+  protected get emitter() {
     return this._namespaceEmitter
   }
 
-  private addTopics(topics: string[]) {
+  protected addTopics(topics: string[]) {
     const executeParams: ExecuteParams = {
       method: 'signalwire.receive',
       params: {
@@ -44,7 +44,7 @@ export class BaseNamespace<T extends ListenOptions> {
     return this._client.execute<unknown, void>(executeParams)
   }
 
-  private removeTopics(topics: string[]) {
+  protected removeTopics(topics: string[]) {
     const executeParams: ExecuteParams = {
       method: 'signalwire.unreceive',
       params: {
@@ -58,7 +58,7 @@ export class BaseNamespace<T extends ListenOptions> {
     return new Promise<() => Promise<void>>(async (resolve, reject) => {
       try {
         const { topics } = listenOptions
-        if (topics?.length < 1) {
+        if (!Array.isArray(topics) || topics?.length < 1) {
           throw new Error(
             'Invalid options: topics should be an array with at least one topic!'
           )
@@ -90,10 +90,10 @@ export class BaseNamespace<T extends ListenOptions> {
             await this.removeTopics(topicsToRemove)
           }
 
-          // Remove listeners
+          // Detach listeners
           this._detachListeners(topics, listeners)
 
-          // Remove task from the task listener array
+          // Remove topics from the listener map
           this.removeFromListenerMap(_uuid)
 
           resolve()
@@ -112,7 +112,7 @@ export class BaseNamespace<T extends ListenOptions> {
     return unsub
   }
 
-  private _attachListeners(topics: string[], listeners: Omit<T, 'topics'>) {
+  protected _attachListeners(topics: string[], listeners: Omit<T, 'topics'>) {
     const listenerKeys = Object.keys(listeners) as Array<ListenersKeys>
     topics.forEach((topic) => {
       listenerKeys.forEach((key) => {
@@ -124,7 +124,7 @@ export class BaseNamespace<T extends ListenOptions> {
     })
   }
 
-  private _detachListeners(topics: string[], listeners: Omit<T, 'topics'>) {
+  protected _detachListeners(topics: string[], listeners: Omit<T, 'topics'>) {
     const listenerKeys = Object.keys(listeners) as Array<ListenersKeys>
     topics.forEach((topic) => {
       listenerKeys.forEach((key) => {
@@ -136,10 +136,9 @@ export class BaseNamespace<T extends ListenOptions> {
     })
   }
 
-  private hasOtherListeners(uuid: string, topic: string) {
+  protected hasOtherListeners(uuid: string, topic: string) {
     for (const [key, listener] of this._listenerMap) {
-      if (key === uuid) continue
-      if (listener.topics.has(topic)) return true
+      if (key !== uuid && listener.topics.has(topic)) return true
     }
     return false
   }
@@ -151,7 +150,7 @@ export class BaseNamespace<T extends ListenOptions> {
     this._listenerMap.clear()
   }
 
-  private removeFromListenerMap(id: string) {
+  protected removeFromListenerMap(id: string) {
     return this._listenerMap.delete(id)
   }
 }
