@@ -87,6 +87,14 @@ export default defineConfig({
         videoManager: path.resolve(__dirname, 'src/videoManager/index.html'),
         fabricHttp: path.resolve(__dirname, 'src/fabric-http/index.html'),
         fabricCallee: path.resolve(__dirname, 'src/fabric-callee/index.html'),
+        sw: path.resolve(__dirname, 'src/fabric-callee/sw.js'),
+      },
+      output: {
+        entryFileNames: (assetInfo) => {
+          return ['sw'].includes(assetInfo.name)
+            ? 'src/fabric-callee/[name].js' // put service worker in the correct folder
+            : 'assets/[name]-[hash].js' // others in `assets/` as default
+        },
       },
     },
   },
