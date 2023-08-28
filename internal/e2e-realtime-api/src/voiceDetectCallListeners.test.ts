@@ -10,8 +10,13 @@ const handler = () => {
         project: process.env.RELAY_PROJECT as string,
         token: process.env.RELAY_TOKEN as string,
         debug: {
-          // logWsTraffic: true,
+          logWsTraffic: true,
         },
+      })
+
+      let waitForDetectStartResolve: () => void
+      const waitForDetectStart = new Promise<void>((resolve) => {
+        waitForDetectStartResolve = resolve
       })
 
       const unsubVoice = await client.voice.listen({
@@ -25,6 +30,9 @@ const handler = () => {
               resultAnswer.id,
               'Inbound - Call answered gets the same instance'
             )
+
+            // Wait until the caller starts the detect
+            await waitForDetectStart
 
             // Send digits 1234 to the caller
             const sendDigits = await call.sendDigits('1w2w3w4w#')
@@ -86,6 +94,9 @@ const handler = () => {
         detectDigit.callId,
         'Outbound - Detect returns the same instance'
       )
+
+      // Resolve the detect start promise
+      waitForDetectStartResolve!()
     } catch (error) {
       console.error('VoiceDetectDialListeners error', error)
       reject(4)

@@ -14,6 +14,11 @@ const handler = async () => {
         },
       })
 
+      let waitForCollectStartResolve: () => void
+      const waitForCollectStart = new Promise<void>((resolve) => {
+        waitForCollectStartResolve = resolve
+      })
+
       const unsubVoice = await client.voice.listen({
         topics: ['office', 'home'],
         onCallReceived: async (call) => {
@@ -25,6 +30,9 @@ const handler = async () => {
               resultAnswer.id,
               'Inbound - Call answered gets the same instance'
             )
+
+            // Wait until the caller starts the collect
+            await waitForCollectStart
 
             // Send wrong digits 123 to the caller (callee expects 1234)
             const sendDigits = await call.sendDigits('1w2w3#')
@@ -87,6 +95,9 @@ const handler = async () => {
         collect.callId,
         'Outbound - Collect returns the same call instance'
       )
+
+      // Resolve the collect start promise
+      waitForCollectStartResolve!()
 
       console.log('Waiting for the digits from the inbound call')
 
