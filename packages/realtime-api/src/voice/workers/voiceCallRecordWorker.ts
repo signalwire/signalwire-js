@@ -34,7 +34,18 @@ export const voiceCallRecordWorker = function* (
 
   switch (payload.state) {
     case 'recording': {
-      callInstance.emit('recording.started', recordingInstance)
+      const type = recordingInstance._paused
+        ? 'recording.updated'
+        : 'recording.started'
+      recordingInstance._paused = false
+
+      callInstance.emit(type, recordingInstance)
+      break
+    }
+    // @ts-expect-error
+    case 'paused': {
+      recordingInstance._paused = true
+      callInstance.emit('playback.updated', recordingInstance)
       break
     }
     case 'no_input':

@@ -493,6 +493,8 @@ export interface VoiceCallRecordingContract {
   /** @ignore */
   readonly record: CallingCallRecordEventParams['record'] | undefined
 
+  pause(params?: CallingCallRecordPauseMethodParams): Promise<this>
+  resume(): Promise<this>
   stop(): Promise<this>
   ended(): Promise<this>
 }
@@ -948,6 +950,10 @@ export interface CallingCallRecordEventParams {
 export interface CallingCallRecordEvent extends SwEvent {
   event_type: ToInternalVoiceEvent<CallRecord>
   params: CallingCallRecordEventParams
+}
+
+export interface CallingCallRecordPauseMethodParams {
+  behavior?: 'silence' | 'skip'
 }
 
 /**
@@ -1502,6 +1508,8 @@ export type VoiceCallJSONRPCMethod =
   | 'calling.play.volume'
   | 'calling.play.stop'
   | 'calling.record'
+  | 'calling.record.pause'
+  | 'calling.record.resume'
   | 'calling.record.stop'
   | 'calling.play_and_collect'
   | 'calling.play_and_collect.stop'
