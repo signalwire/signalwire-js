@@ -1029,7 +1029,7 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
       const controlId = uuid()
 
       // TODO: build params in a method
-      const { timeout, type, ...rest } = params
+      const { timeout, type, waitForBeep = false, ...rest } = params
 
       this.execute({
         method: 'calling.detect',
@@ -1051,7 +1051,7 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
               control_id: controlId,
               call_id: this.id,
               node_id: this.nodeId,
-              waitForBeep: params.waitForBeep ?? false,
+              waitForBeep,
             },
           })
           this.instanceMap.set<CallDetect>(controlId, detectInstance)

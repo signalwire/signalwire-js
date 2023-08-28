@@ -5,7 +5,7 @@ import { createTestRunner } from './utils'
 const handler = () => {
   return new Promise<number>(async (resolve, reject) => {
     const client = new Voice.Client({
-      host: process.env.RELAY_HOST || 'relay.swire.io',
+      host: process.env.RELAY_HOST,
       project: process.env.RELAY_PROJECT as string,
       token: process.env.RELAY_TOKEN as string,
       contexts: [process.env.VOICE_CONTEXT as string],
@@ -14,10 +14,6 @@ const handler = () => {
     let waitForDetectStartResolve
     const waitForDetectStart = new Promise((resolve) => {
       waitForDetectStartResolve = resolve
-    })
-    let waitForDetectEndResolve: (value: void) => void
-    const waitForDetectEnd = new Promise((resolve) => {
-      waitForDetectEndResolve = resolve
     })
 
     client.on('call.received', async (call) => {
@@ -41,19 +37,26 @@ const handler = () => {
         // Wait until caller starts detecting digit
         await waitForDetectStart
 
-        // Send digits 1234 to the caller
-        const sendDigits = await call.sendDigits('1w2w3w4w#')
+        // Simulate human with TTS to then expect the detector to detect an `HUMAN`
+        const playlist = new Voice.Playlist()
+          .add(
+            Voice.Playlist.TTS({
+              text: 'Hello?',
+            })
+          )
+          .add(Voice.Playlist.Silence({ duration: 1 }))
+          .add(
+            Voice.Playlist.TTS({
+              text: 'Joe here, how can i help you?',
+            })
+          )
+        const playback = await call.play(playlist)
         tap.equal(
           call.id,
-          sendDigits.id,
-          'Inbound - sendDigit returns the same instance'
+          playback.callId,
+          'Inbound - playTTS returns the same instance'
         )
-
-        // Resolve the detect end promise to inform the caller
-        waitForDetectEndResolve()
-
-        // Callee hangs up a call
-        await call.hangup()
+        await playback.ended()
       } catch (error) {
         console.error('Inbound - Error', error)
         reject(4)
@@ -68,22 +71,24 @@ const handler = () => {
       })
       tap.ok(call.id, 'Outbound - Call resolved')
 
-      // Start a detect
-      const detectDigit = await call.detectDigit({ digits: '1234' })
+      // Start the detector
+      const detector = await call.amd()
       tap.equal(
         call.id,
-        detectDigit.callId,
+        detector.callId,
         'Outbound - Detect returns the same instance'
       )
 
       // Resolve the detect start promise to inform the callee
       waitForDetectStartResolve()
 
-      // Wait until the callee sends the digits
-      await waitForDetectEnd
+      // Wait the callee to start saying something..
+      await detector.ended()
+      tap.equal(detector.type, 'machine', 'Outbound - Received the digit')
+      tap.equal(detector.result, 'HUMAN', 'Outbound - detected human')
 
-      const recDigits = await detectDigit.ended()
-      tap.equal(recDigits.type, 'digit', 'Outbound - Received the digit')
+      // Caller hangs up a call
+      await call.hangup()
 
       resolve(0)
     } catch (error) {
@@ -97,7 +102,7 @@ async function main() {
   const runner = createTestRunner({
     name: 'Voice Detect E2E',
     testHandler: handler,
-    executionTime: 60_000,
+    executionTime: 30_000,
   })
 
   await runner.run()
