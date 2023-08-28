@@ -285,6 +285,12 @@ export class BaseSession {
         message: 'The SDK session is disconnecting',
       })
     }
+    if (this._status === 'disconnected') {
+      return Promise.reject({
+        code: '400',
+        message: 'The SDK is disconnected',
+      })
+    }
     // In case of a response don't wait for a result
     let promise: Promise<unknown> = Promise.resolve()
     if ('params' in msg) {
