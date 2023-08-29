@@ -1,10 +1,11 @@
 import { MessagingEventNames, toExternalJSON } from '@signalwire/core'
-import { BaseNamespace, ListenOptions } from '../BaseNamespace'
+import { BaseNamespace } from '../BaseNamespace'
 import { SWClient } from '../SWClient'
 import { Message } from './Message'
 import { messagingWorker } from './workers'
 
-interface MessageListenOptions extends ListenOptions {
+interface MessageListenOptions {
+  topics: string[]
   onMessageReceived?: (message: Message) => unknown
   onMessageUpdated?: (message: Message) => unknown
 }

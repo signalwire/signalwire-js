@@ -5,15 +5,14 @@
  * and the consume all the methods asserting both SDKs receive the proper events.
  */
 import { timeoutPromise, SWCloseEvent } from '@signalwire/core'
-import { Chat as RealtimeAPIChat } from '@signalwire/realtime-api'
 import { SignalWire as RealtimeSignalWire } from '@signalwire/realtime-api'
 import type {
-  Chat as RealtimeChat,
+  Chat as RTChat,
   SWClient as RealtimeSWClient,
 } from '@signalwire/realtime-api'
 import { Chat as JSChat } from '@signalwire/js'
 import { WebSocket } from 'ws'
-import { createTestRunner, createCRT, sessionStorageMock, sleep } from './utils'
+import { createTestRunner, createCRT, sessionStorageMock } from './utils'
 
 // @ts-ignore
 global.WebSocket = WebSocket
@@ -43,11 +42,11 @@ const params = {
   },
 }
 
-type ChatClient = RealtimeChat | JSChat.Client
+type ChatClient = RTChat.Chat | JSChat.Client
 
 interface TestChatOptions {
   jsChat: JSChat.Client
-  rtChat: RealtimeChat
+  rtChat: RTChat.Chat
   publisher?: 'JS' | 'RT'
 }
 

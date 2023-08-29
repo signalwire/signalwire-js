@@ -4,17 +4,18 @@ import { ListenSubscriber } from './ListenSubscriber'
 import { SWClient } from './SWClient'
 
 export interface ListenOptions {
-  topics: string[]
+  topics?: string[]
+  channels?: string[]
 }
 
-export type Listeners = Omit<ListenOptions, 'topics'>
+export type Listeners<T> = Omit<T, 'topics' | 'channels'>
 
-export type ListenersKeys = keyof Listeners
+export type ListenersKeys<T> = keyof T
 
 export class BaseNamespace<
   T extends ListenOptions,
   EventTypes extends EventEmitter.ValidEventTypes
-> extends ListenSubscriber<Listeners, EventTypes> {
+> extends ListenSubscriber<Listeners<T>, EventTypes> {
   constructor(options: SWClient) {
     super({ swClient: options })
   }
@@ -91,20 +92,20 @@ export class BaseNamespace<
     const _uuid = uuid()
 
     // Attach listeners
-    this._attachListenersWithTopics(topics, listeners)
-    await this.addTopics(topics)
+    this._attachListenersWithTopics(topics!, listeners as Listeners<T>)
+    await this.addTopics(topics!)
 
     const unsub = () => {
       return new Promise<void>(async (resolve, reject) => {
         try {
           // Detach listeners
-          this._detachListenersWithTopics(topics, listeners)
+          this._detachListenersWithTopics(topics!, listeners as Listeners<T>)
 
           // Remove topics from the listener map
           this.removeFromListenerMap(_uuid)
 
           // Remove the topics
-          const topicsToRemove = topics.filter(
+          const topicsToRemove = topics!.filter(
             (topic) => !this.hasOtherListeners(_uuid, topic)
           )
           if (topicsToRemove.length > 0) {
@@ -118,37 +119,44 @@ export class BaseNamespace<
       })
     }
 
-    // Add topics to the listener map
-    this.addToListenerMap(_uuid, {
-      topics: new Set([...topics]),
-      listeners,
+    this._listenerMap.set(_uuid, {
+      topics: new Set([...topics!]),
+      listeners: listeners as Listeners<T>,
       unsub,
     })
 
     return unsub
   }
 
-  protected _attachListenersWithTopics(topics: string[], listeners: Listeners) {
-    const listenerKeys = Object.keys(listeners) as Array<ListenersKeys>
+  protected _attachListenersWithTopics(
+    topics: string[],
+    listeners: Listeners<T>
+  ) {
+    const listenerKeys = Object.keys(listeners)
     topics.forEach((topic) => {
       listenerKeys.forEach((key) => {
-        if (typeof listeners[key] === 'function' && this._eventMap[key]) {
-          const event = prefixEvent(topic, this._eventMap[key])
+        const _key = key as keyof Listeners<T>
+        if (typeof listeners[_key] === 'function' && this._eventMap[_key]) {
+          const event = prefixEvent(topic, this._eventMap[_key] as string)
           // @ts-expect-error
-          this.on(event, listeners[key])
+          this.on(event, listeners[_key])
         }
       })
     })
   }
 
-  protected _detachListenersWithTopics(topics: string[], listeners: Listeners) {
-    const listenerKeys = Object.keys(listeners) as Array<ListenersKeys>
+  protected _detachListenersWithTopics(
+    topics: string[],
+    listeners: Listeners<T>
+  ) {
+    const listenerKeys = Object.keys(listeners)
     topics.forEach((topic) => {
       listenerKeys.forEach((key) => {
-        if (typeof listeners[key] === 'function' && this._eventMap[key]) {
-          const event = prefixEvent(topic, this._eventMap[key])
+        const _key = key as keyof Listeners<T>
+        if (typeof listeners[_key] === 'function' && this._eventMap[_key]) {
+          const event = prefixEvent(topic, this._eventMap[_key] as string)
           // @ts-expect-error
-          this.off(event, listeners[key])
+          this.off(event, listeners[_key])
         }
       })
     })

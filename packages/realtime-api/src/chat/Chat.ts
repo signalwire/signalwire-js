@@ -4,12 +4,13 @@ import {
   ChatEvents,
   Chat as ChatCore,
 } from '@signalwire/core'
-import { BaseChat, BaseChatListenOptions } from './BaseChat'
+import { BaseChat } from './BaseChat'
 import { chatWorker } from './workers'
 import { SWClient } from '../SWClient'
 import { RealTimeChatEvents } from '../types/chat'
 
-interface ChatListenOptions extends BaseChatListenOptions {
+interface ChatListenOptions {
+  channels: string[]
   onMessageReceived?: (message: ChatMessage) => unknown
   onMemberJoined?: (member: ChatMember) => unknown
   onMemberUpdated?: (member: ChatMember) => unknown
