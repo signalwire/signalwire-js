@@ -6,16 +6,25 @@ import {
   getLogger,
   sagaEffects,
 } from '@signalwire/core'
-import { Message, Messaging } from '../Messaging'
+import type { Client } from '../../client/Client'
+import { prefixEvent } from '../../utils/internals'
+import { Message } from '../Messaging'
+import { Messaging } from '../Messaging'
 
-export const messagingWorker: SDKWorker<Messaging> = function* (
+interface MessagingWorkerInitialState {
+  messaging: Messaging
+}
+
+export const messagingWorker: SDKWorker<Client> = function* (
   options
 ): SagaIterator {
   getLogger().trace('messagingWorker started')
   const {
     channels: { swEventChannel },
-    initialState: { messagingEmitter },
+    initialState,
   } = options
+
+  const { messaging } = initialState as MessagingWorkerInitialState
 
   function* worker(action: MessagingAction) {
     const { payload, type } = action
@@ -25,10 +34,15 @@ export const messagingWorker: SDKWorker<Messaging> = function* (
 
     switch (type) {
       case 'messaging.receive':
-        messagingEmitter.emit('message.received', message)
+        messaging.emit(
+          // @ts-expect-error
+          prefixEvent(payload.context, 'message.received'),
+          message
+        )
         break
       case 'messaging.state':
-        messagingEmitter.emit('message.updated', message)
+        // @ts-expect-error
+        messaging.emit(prefixEvent(payload.context, 'message.updated'), message)
         break
       default:
         getLogger().warn(`Unknown message event: "${action.type}"`)

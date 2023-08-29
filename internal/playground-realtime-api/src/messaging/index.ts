@@ -7,7 +7,7 @@ async function run() {
       project: process.env.PROJECT as string,
       token: process.env.TOKEN as string,
       debug: {
-        logWsTraffic: true,
+        // logWsTraffic: true,
       },
     })
 
@@ -21,6 +21,16 @@ async function run() {
       },
     })
 
+    const unsubOfficeListener = await client.messaging.listen({
+      topics: ['office'],
+      onMessageReceived: (payload) => {
+        console.log('Message received under "office" context', payload)
+      },
+      onMessageUpdated: (payload) => {
+        console.log('Message updated under "office" context', payload)
+      },
+    })
+
     try {
       const response = await client.messaging.send({
         from: process.env.FROM_NUMBER_MSG as string,
@@ -28,6 +38,12 @@ async function run() {
         body: 'Hello World!',
       })
       console.log('>> send response', response)
+
+      await client.messaging.send({
+        from: process.env.FROM_NUMBER_MSG as string,
+        to: process.env.TO_NUMBER_MSG as string,
+        body: 'Hello John Doe!',
+      })
     } catch (error) {
       console.log('>> send error', error)
     }
@@ -36,6 +52,7 @@ async function run() {
 
     setTimeout(async () => {
       await unsubHomeListener()
+      await unsubOfficeListener()
       console.log('Disconnect the client..')
       client.disconnect()
     }, 10_000)
