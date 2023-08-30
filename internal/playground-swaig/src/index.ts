@@ -1,7 +1,9 @@
-import { SWAIG } from '@signalwire/swaig'
+import { SWAIG, ServerOptions } from '@signalwire/swaig'
 
-const swaigOptions = {
+const swaigOptions: ServerOptions = {
   baseUrl: 'http://localhost:3000',
+  username: 'John Doe',
+  password: 'signalwire',
   documentation: {},
 }
 
@@ -24,10 +26,10 @@ const swaigOptions = {
         additionalProperties: false,
       } as const,
     },
-    async (params) => {
+    async (params, req) => {
       return {
         response: '200',
-        action: [{ location: params.location }],
+        action: [{ location: { body: req } }],
       }
     }
   )
@@ -51,7 +53,7 @@ const swaigOptions = {
     async (params) => {
       return {
         response: '200',
-        action: [{ location: params.location }],
+        action: [{ foo: 'bar' }],
       }
     }
   )

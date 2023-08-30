@@ -67,7 +67,7 @@ export class Server {
           return done()
         },
         schema: {
-          tags: ['signature'],
+          tags: ['custom'],
           body: schema,
         } as const,
       },
@@ -138,7 +138,7 @@ export class Server {
       '/',
       {
         schema: {
-          tags: ['signature'],
+          tags: ['default'],
           body: rootBodySchema,
         },
       },
@@ -171,9 +171,22 @@ export class Server {
           ...this.options.documentation?.openapi?.externalDocs,
         },
         tags: [
-          { name: 'signature', description: 'All function signatures' },
+          { name: 'default', description: 'All function signatures' },
+          { name: 'custom', description: 'Custom function signatures' },
           ...(this.options.documentation?.openapi?.tags || []),
         ],
+        servers: [
+          { url: this.options.baseUrl },
+          ...(this.options.documentation?.openapi?.servers || []),
+        ],
+        // components: {
+        //   securitySchemes: {
+        //     basicAuth: {
+        //       type: 'http',
+        //       scheme: 'basic',
+        //     },
+        //   },
+        // },
         ...this.options.documentation?.openapi,
       },
     })
