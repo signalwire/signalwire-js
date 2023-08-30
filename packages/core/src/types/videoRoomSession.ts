@@ -83,6 +83,8 @@ export interface VideoRoomSessionContract {
   previewUrl?: string
   /** Current layout name used in the room. */
   layoutName: string
+  /** Whether the room is locked */
+  locked: boolean
   /** Metadata associated to this room session. */
   meta?: Record<string, unknown>
   /**
@@ -728,6 +730,8 @@ export interface VideoRoomSessionContract {
    * ```
    */
   startStream(params: Rooms.StartStreamParams): Promise<Rooms.RoomSessionStream>
+  lock(): Rooms.Lock
+  unlock(): Rooms.Unlock
 }
 
 /**
