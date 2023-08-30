@@ -1,0 +1,21 @@
+{
+  "name": "@sw-internal/playground-swaig",
+  "description": "Playground for SWAIG",
+  "author": "SignalWire Team <open.source@signalwire.com>",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "dev": "node -r dotenv/config index.js",
+    "test": ""
+  },
+  "keywords": [
+    "signalwire",
+    "swaig",
+    "ai",
+    "gateway"
+  ],
+  "devDependencies": {
+    "node-watch": "^0.7.4"
+  }
+}

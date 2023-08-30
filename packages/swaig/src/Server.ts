@@ -1,5 +1,7 @@
 import Fastify, { type FastifyInstance } from 'fastify'
 import FastifyBasicAuth from '@fastify/basic-auth'
+import FastifySwagger from '@fastify/swagger'
+import FastifySwaggerUI from '@fastify/swagger-ui'
 import type { FromSchema, JSONSchema } from 'json-schema-to-ts'
 import type {
   Signature,
@@ -33,7 +35,6 @@ export class Server {
     this.instance.register(FastifyBasicAuth, { validate, authenticate: true })
 
     this.customRoutes = new Map()
-    this.defineDefaultRoutes()
   }
 
   get server() {
@@ -127,7 +128,8 @@ export class Server {
     })
   }
 
-  private defineDefaultRoutes() {
+  /** @internal */
+  defineDefaultRoutes() {
     /**
      * POST / to retrieve the list of function signatures
      */
@@ -149,5 +151,42 @@ export class Server {
         return result
       }
     )
+  }
+
+  /** @internal */
+  async registerSwagger() {
+    await this.instance.register(FastifySwagger, {
+      openapi: {
+        info: {
+          title: 'SWAIG',
+          description: 'SignalWire AI Getway Documentation',
+          version: '0.1.0',
+        },
+        externalDocs: {
+          url: 'https://developer.signalwire.com/compatibility-api/xml/voice/ai-noun/#swaig-signalwire-ai-gateway',
+          description: 'Find more information about SWAIG',
+        },
+        servers: [{ url: this.options.baseUrl }],
+        components: {
+          securitySchemes: {
+            apiKey: {
+              type: 'apiKey',
+              name: 'apiKey',
+              in: 'header',
+            },
+          },
+        },
+        ...this.options.documentation?.openapi,
+      },
+    })
+
+    await this.instance.register(FastifySwaggerUI, {
+      routePrefix: this.options.documentation?.route ?? '/',
+      uiConfig: {
+        docExpansion: 'list',
+        deepLinking: false,
+      },
+      staticCSP: true,
+    })
   }
 }

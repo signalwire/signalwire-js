@@ -36,4 +36,8 @@ export interface ServerOptions {
   username?: string
   password?: string
   token?: string
+  documentation?: {
+    openapi?: Record<string, any>
+    route?: string
+  }
 }

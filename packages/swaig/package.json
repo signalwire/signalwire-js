@@ -38,6 +38,8 @@
   },
   "dependencies": {
     "@fastify/basic-auth": "^5.0.0",
+    "@fastify/swagger": "^8.9.0",
+    "@fastify/swagger-ui": "^1.9.3",
     "fastify": "^4.21.0"
   },
   "types": "dist/swaig/src/index.d.ts",
