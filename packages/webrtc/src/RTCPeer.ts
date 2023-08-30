@@ -453,7 +453,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   onRemoteBye({ code, message }: { code: string; message: string }) {
     // It could be a negotiation/signaling error so reject the "startMethod"
-    this._rejectStartMethod({
+    this._rejectStartMethod?.({
       code,
       message,
     })
