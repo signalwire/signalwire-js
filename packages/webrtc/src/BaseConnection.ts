@@ -654,8 +654,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       this.direction = 'outbound'
       this.peer = this._buildPeer('offer')
       try {
-        this.runRTCPeerWorkers(this.peer.uuid)
-
         await this.peer.start()
         resolve(this as any as T)
       } catch (error) {
@@ -673,8 +671,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         this.peer = this._buildPeer('answer')
       }
       try {
-        this.runRTCPeerWorkers(this.peer.uuid)
-
         await this.peer.start()
         resolve(this as any as T)
       } catch (error) {
