@@ -55,6 +55,8 @@ export const UNSAFE_PROP_ACCESS = [
   'deleteMemberMeta',
   'promote',
   'demote',
+  'lock',
+  'unlock',
 ]
 
 /**

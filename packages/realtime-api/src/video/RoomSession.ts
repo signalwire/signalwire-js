@@ -105,6 +105,10 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     return this._payload.room_session.recording
   }
 
+  get locked() {
+    return this._payload.room_session.locked
+  }
+
   get eventChannel() {
     return this._payload.room_session.event_channel
   }
@@ -272,6 +276,8 @@ export const RoomSessionAPI = extendComponent<
   demote: Rooms.demote,
   getStreams: Rooms.getStreams,
   startStream: Rooms.startStream,
+  lock: Rooms.lock,
+  unlock: Rooms.unlock,
 })
 
 export const createRoomSessionObject = (
