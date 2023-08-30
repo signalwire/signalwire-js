@@ -1,4 +1,5 @@
 import type { JSONSchema } from 'json-schema-to-ts'
+import { OpenAPIV3 } from 'openapi-types'
 
 export interface Signature {
   function: string
@@ -37,7 +38,7 @@ export interface ServerOptions {
   password?: string
   token?: string
   documentation?: {
-    openapi?: Record<string, any>
+    openapi?: OpenAPIV3.Document
     route?: string
   }
 }

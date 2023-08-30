@@ -67,6 +67,7 @@ export class Server {
           return done()
         },
         schema: {
+          tags: ['signature'],
           body: schema,
         } as const,
       },
@@ -137,6 +138,7 @@ export class Server {
       '/',
       {
         schema: {
+          tags: ['signature'],
           body: rootBodySchema,
         },
       },
@@ -159,23 +161,19 @@ export class Server {
       openapi: {
         info: {
           title: 'SWAIG',
-          description: 'SignalWire AI Getway Documentation',
+          description: 'SignalWire AI Gateway routes documentation',
           version: '0.1.0',
+          ...this.options.documentation?.openapi?.info,
         },
         externalDocs: {
           url: 'https://developer.signalwire.com/compatibility-api/xml/voice/ai-noun/#swaig-signalwire-ai-gateway',
           description: 'Find more information about SWAIG',
+          ...this.options.documentation?.openapi?.externalDocs,
         },
-        servers: [{ url: this.options.baseUrl }],
-        components: {
-          securitySchemes: {
-            apiKey: {
-              type: 'apiKey',
-              name: 'apiKey',
-              in: 'header',
-            },
-          },
-        },
+        tags: [
+          { name: 'signature', description: 'All function signatures' },
+          ...(this.options.documentation?.openapi?.tags || []),
+        ],
         ...this.options.documentation?.openapi,
       },
     })
