@@ -77,7 +77,8 @@ export class BaseChat<
       })
     }
 
-    this._listenerMap.set(_uuid, {
+    // Add channels to the listener map
+    this.addToListenerMap(_uuid, {
       topics: new Set([...channels]),
       listeners,
       unsub,

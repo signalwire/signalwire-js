@@ -88,7 +88,8 @@ export class BaseNamespace<
       })
     }
 
-    this._listenerMap.set(_uuid, {
+    // Add topics to the listener map
+    this.addToListenerMap(_uuid, {
       topics: new Set([...topics]),
       listeners,
       unsub,

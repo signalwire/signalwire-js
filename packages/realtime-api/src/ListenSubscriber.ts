@@ -4,14 +4,13 @@ import { SWClient } from './SWClient'
 
 export type ListenersKeys<T> = keyof T
 
-export type ListenerMap<T> = Map<
-  string,
-  {
-    topics?: Set<string>
-    listeners: T
-    unsub: () => Promise<void>
-  }
->
+export type ListenerMapValue<T> = {
+  topics?: Set<string>
+  listeners: T
+  unsub: () => Promise<void>
+}
+
+export type ListenerMap<T> = Map<string, ListenerMapValue<T>>
 
 export class ListenSubscriber<
   T extends {},
@@ -86,7 +85,7 @@ export class ListenSubscriber<
           // Detach listeners
           this._detachListeners(listeners)
 
-          // Remove topics from the listener map
+          // Remove listeners from the listener map
           this.removeFromListenerMap(_uuid)
 
           resolve()
@@ -96,7 +95,8 @@ export class ListenSubscriber<
       })
     }
 
-    this._listenerMap.set(_uuid, {
+    // Add listeners to the listener map
+    this.addToListenerMap(_uuid, {
       listeners,
       unsub,
     })
@@ -124,6 +124,10 @@ export class ListenSubscriber<
         this.off(this._eventMap[key], listeners[key])
       }
     })
+  }
+
+  protected addToListenerMap(id: string, value: ListenerMapValue<T>) {
+    return this._listenerMap.set(id, value)
   }
 
   protected removeFromListenerMap(id: string) {
