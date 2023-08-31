@@ -9,7 +9,7 @@ import {
 } from '../utils'
 
 test.describe('RoomSession Lock/Unlock', () => {
-  test.skip('should join a room and be able to lock/unlock it', async ({
+  test('should join a room and be able to lock/unlock it', async ({
     createCustomPage,
   }) => {
     const page = await createCustomPage({ name: 'lock-unlock' })
