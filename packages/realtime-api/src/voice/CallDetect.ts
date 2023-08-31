@@ -78,7 +78,7 @@ export class CallDetectAPI
 
   get beep() {
     if (this.detect?.params.event === 'MACHINE') {
-      return this.detect.params.beep
+      return Boolean(this.detect.params.beep)
     }
     return undefined
   }
