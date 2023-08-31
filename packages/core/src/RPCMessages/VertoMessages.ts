@@ -39,9 +39,11 @@ const filterVertoParams = (params: VertoParams) => {
 
 const buildVertoRPCMessage = (method: VertoMethod) => {
   return (params: VertoParams = {}) => {
+    const { id, ...rest } = params
     return makeRPCRequest({
+      id,
       method,
-      params: filterVertoParams(params),
+      params: filterVertoParams(rest),
     })
   }
 }

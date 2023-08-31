@@ -232,5 +232,22 @@ describe('RPC Messages', () => {
         })
       })
     })
+
+    it.only('should generate the message with a custom id', function () {
+      allVertoMethods.forEach((vertoFn) => {
+        const message = vertoFn({
+          id: 'custom-id',
+          dialogParams,
+        })
+        expect(message).toStrictEqual({
+          jsonrpc: '2.0',
+          id: 'custom-id',
+          method: message.method,
+          params: {
+            dialogParams: vertoDialogParams,
+          },
+        })
+      })
+    })
   })
 })
