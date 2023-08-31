@@ -35,8 +35,10 @@ export class ListenSubscriber<
   }
 
   /** @internal */
-  emit(event: EventEmitter.EventNames<EventTypes>, ...args: any[]) {
-    // @ts-expect-error
+  emit<T extends EventEmitter.EventNames<EventTypes>>(
+    event: T,
+    ...args: EventEmitter.EventArgs<EventTypes, T>
+  ) {
     return this.emitter.emit(event, ...args)
   }
 
