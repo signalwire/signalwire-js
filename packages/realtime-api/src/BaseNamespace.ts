@@ -125,7 +125,9 @@ export class BaseNamespace<
 
   protected hasOtherListeners(uuid: string, topic: string) {
     for (const [key, listener] of this._listenerMap) {
-      if (key !== uuid && listener.topics?.has(topic)) return true
+      if (key !== uuid && listener.topics?.has(topic)) {
+        return true
+      }
     }
     return false
   }
