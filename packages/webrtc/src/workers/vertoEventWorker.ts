@@ -147,20 +147,10 @@ export const vertoEventWorker: SDKWorker<
       case 'verto.attach': {
         getLogger().info('Verto attach', params)
 
-        try {
-          if (instance.peer) {
-            // @ts-expect-error
-            instance._vertoAttachId = jsonrpcId
-            instance.options.remoteSdp = params.sdp
-            instance.peer.type = 'answer'
-            instance.peer
-              .startNegotiation()
-              .then(console.warn)
-              .catch(console.error)
-          }
-        } catch (error) {
-          return getLogger().error(`attach error`, error)
-        }
+        yield sagaEffects.call([instance, instance.onVertoAttach], {
+          jsonrpcId,
+          sdp: params.sdp,
+        })
         break
       }
       default:

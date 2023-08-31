@@ -33,6 +33,11 @@ interface OnVertoByeParams {
   redirectDestination?: string
 }
 
+interface OnVertoAttachParams {
+  jsonrpcId: string
+  sdp: string
+}
+
 const INVITE_VERSION = 1000
 const AUDIO_CONSTRAINTS: MediaTrackConstraints = {
   echoCancellation: true,
@@ -1065,6 +1070,20 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     if (this.activeRTCPeerId === rtcPeer?.uuid) {
       this.logger.debug('onVertoBye go hangup')
       this.setState('hangup')
+    }
+  }
+
+  /** @internal */
+  public async onVertoAttach(params: OnVertoAttachParams) {
+    if (this.peer) {
+      try {
+        this._vertoAttachId = params.jsonrpcId
+        this.options.remoteSdp = params.sdp
+        this.peer.type = 'answer'
+        await this.peer.startNegotiation()
+      } catch (error) {
+        return this.logger.error('onVertoAttach error', error)
+      }
     }
   }
 
