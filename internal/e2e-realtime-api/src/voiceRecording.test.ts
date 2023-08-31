@@ -88,7 +88,11 @@ const handler = () => {
           text: 'Hello, this is the callee side. How can i help you?',
         })
 
+        await recording.pause()
+
         await playback.ended()
+
+        await recording.resume()
 
         // Stop the recording using terminator
         await call.sendDigits('#')
