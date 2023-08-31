@@ -16,6 +16,7 @@ import {
   buildCustomRouteBodySchema,
 } from './schemas'
 import { validate } from './utils'
+import { version } from '../package.json'
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -162,7 +163,7 @@ export class Server {
         info: {
           title: 'SWAIG',
           description: 'SignalWire AI Gateway routes documentation',
-          version: '0.1.0',
+          version,
           ...this.options.documentation?.openapi?.info,
         },
         externalDocs: {
