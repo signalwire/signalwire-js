@@ -841,29 +841,24 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
    */
   async executeAttach(sdp: string, rtcPeerId: string, nodeId?: string) {
     try {
+      if (!this._vertoAttachId) {
+        throw new Error('Invalid verto.attach id')
+      }
       const message = VertoAttach({
         ...this.dialogParams(rtcPeerId),
+        id: this._vertoAttachId,
         sdp,
       })
-      // @ts-expect-error
-      message.id = this._vertoAttachId
 
       const response: any = await this.vertoExecute({
         message,
         callID: rtcPeerId,
         node_id: nodeId ?? this.options.nodeId,
-        // subscribe: this.getSubscriptions(),
       })
       this.logger.debug('Attach response', response)
 
       this.resuming = false
-
-      // TODO: Review
-      // this._attachListeners('')
-      // this.applyEmitterTransforms()
-
-      /** Call is active so set the RTCPeer */
-      // this.setActiveRTCPeer(rtcPeerId)
+      this._vertoAttachId = undefined
     } catch (error) {
       this.setState('hangup')
       throw error
