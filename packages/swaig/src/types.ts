@@ -22,6 +22,7 @@ export interface ServerDefineRouteParams<T extends JSONSchema> {
   username?: string
   password?: string
   token?: string
+  tags?: string[]
 }
 export interface CustomRouteHandlerResponse {
   response: string

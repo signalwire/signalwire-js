@@ -15,7 +15,7 @@ import {
   type RootBody,
   buildCustomRouteBodySchema,
 } from './schemas'
-import { validate } from './utils'
+import { swLogoBuffer, validate } from './utils'
 import { version } from '../package.json'
 
 declare module 'fastify' {
@@ -68,7 +68,7 @@ export class Server {
           return done()
         },
         schema: {
-          tags: ['custom'],
+          tags: params.tags ?? ['custom'],
           body: schema,
         } as const,
       },
@@ -199,6 +199,32 @@ export class Server {
         deepLinking: false,
       },
       staticCSP: true,
+      theme: {
+        title: 'SWAIG Documentation',
+        css: [
+          {
+            filename: 'theme.css',
+            content: `
+              .swagger-ui .topbar-wrapper .link::after { content: "SignalWire"; font-weight: 500; }
+              .swagger-ui .topbar .download-url-wrapper input[type=text] { border: 1px solid #044ef4 }
+              .swagger-ui .topbar .download-url-wrapper .download-url-button { background: #044ef4; }
+            `,
+          },
+        ],
+        favicon: [
+          {
+            filename: 'favicon.png',
+            rel: 'icon',
+            sizes: '16x16',
+            type: 'image/png',
+            content: swLogoBuffer,
+          },
+        ],
+      },
+      logo: {
+        type: 'image/png',
+        content: swLogoBuffer,
+      },
     })
   }
 }
