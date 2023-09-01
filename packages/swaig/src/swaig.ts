@@ -13,10 +13,7 @@ export interface SWAIG {
 export async function SWAIG(options: SWAIGOptions): Promise<SWAIG> {
   const server = new Server(options)
 
-  if (options.documentation) {
-    await server.registerSwagger()
-  }
-  server.defineDefaultRoutes()
+  await server.init()
 
   const service = {
     server: server.instance,

@@ -69,6 +69,8 @@ export class Server {
         },
         schema: {
           tags: params.tags ?? ['custom'],
+          summary: params.summary,
+          description: params.description,
           body: schema,
         } as const,
       },
@@ -130,8 +132,7 @@ export class Server {
     })
   }
 
-  /** @internal */
-  defineDefaultRoutes() {
+  private defineDefaultRoutes() {
     /**
      * POST / to retrieve the list of function signatures
      */
@@ -156,8 +157,7 @@ export class Server {
     )
   }
 
-  /** @internal */
-  async registerSwagger() {
+  private async registerSwagger() {
     await this.instance.register(FastifySwagger, {
       openapi: {
         info: {
@@ -192,11 +192,13 @@ export class Server {
       },
     })
 
+    // @TODO: Make it configurable
     await this.instance.register(FastifySwaggerUI, {
       routePrefix: this.options.documentation?.route ?? '/',
       uiConfig: {
         docExpansion: 'list',
         deepLinking: false,
+        ...this.options.documentation?.ui?.uiConfig,
       },
       staticCSP: true,
       theme: {
@@ -210,6 +212,7 @@ export class Server {
               .swagger-ui .topbar .download-url-wrapper .download-url-button { background: #044ef4; }
             `,
           },
+          ...(this.options.documentation?.ui?.theme?.css || []),
         ],
         favicon: [
           {
@@ -219,12 +222,24 @@ export class Server {
             type: 'image/png',
             content: swLogoBuffer,
           },
+          ...(this.options.documentation?.ui?.theme?.favicon || []),
         ],
+        ...this.options.documentation?.ui?.theme,
       },
       logo: {
         type: 'image/png',
         content: swLogoBuffer,
+        ...this.options.documentation?.ui?.logo,
       },
+      ...this.options.documentation?.ui,
     })
+  }
+
+  /** @internal */
+  async init() {
+    if (this.options.documentation) {
+      await this.registerSwagger()
+    }
+    this.defineDefaultRoutes()
   }
 }

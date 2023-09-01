@@ -1,5 +1,6 @@
+import { FastifySwaggerUiOptions } from '@fastify/swagger-ui'
+import { OpenAPIV3, OpenAPIV2 } from 'openapi-types'
 import type { JSONSchema } from 'json-schema-to-ts'
-import { OpenAPIV3 } from 'openapi-types'
 
 export interface Signature {
   function: string
@@ -22,6 +23,8 @@ export interface ServerDefineRouteParams<T extends JSONSchema> {
   username?: string
   password?: string
   token?: string
+  description?: string
+  summary?: string
   tags?: string[]
 }
 export interface CustomRouteHandlerResponse {
@@ -40,6 +43,8 @@ export interface ServerOptions {
   token?: string
   documentation?: {
     openapi?: OpenAPIV3.Document
+    swagger?: OpenAPIV2.Document
     route?: string
+    ui?: FastifySwaggerUiOptions
   }
 }
