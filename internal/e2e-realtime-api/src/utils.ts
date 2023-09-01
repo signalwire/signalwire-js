@@ -143,7 +143,7 @@ export const CALL_PROPS = [
   'active',
   'connected',
   'direction',
-  'context',
+  // 'context', // Outbound calls do not have context
   // 'connectState', // Undefined unless peer call
   // 'peer', // Undefined unless peer call
   'hangup',

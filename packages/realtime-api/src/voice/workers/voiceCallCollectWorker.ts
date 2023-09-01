@@ -51,37 +51,53 @@ export const voiceCallCollectWorker: SDKWorker<Client> = function* (
       eventPrefix = 'prompt'
     }
 
+    // These two variables are here to solve the TypeScript problems
+    const promptInstance: CallPrompt = actionInstance as CallPrompt
+    const collectInstance: CallCollect = actionInstance as CallCollect
+
     /**
      * Only when partial_results: true
      */
     if (payload.final === false) {
-      callInstance.emit(`${eventPrefix}.updated`, actionInstance)
-      actionInstance.emit(`${eventPrefix}.updated` as never, actionInstance)
+      if (eventPrefix === 'prompt') {
+        callInstance.emit('prompt.updated', promptInstance)
+        promptInstance.emit('prompt.updated', promptInstance)
+      } else {
+        callInstance.emit('collect.updated', collectInstance)
+        collectInstance.emit('collect.updated', collectInstance)
+      }
       return false
     }
 
     switch (payload.result.type) {
       case 'start_of_input': {
         if (eventPrefix === 'prompt') return false
-        callInstance.emit(`${eventPrefix}.startOfInput`, actionInstance)
-        actionInstance.emit(
-          `${eventPrefix}.startOfInput` as never,
-          actionInstance
-        )
+        callInstance.emit('collect.startOfInput', collectInstance)
+        collectInstance.emit('collect.startOfInput', collectInstance)
         return false
       }
       case 'no_input':
       case 'no_match':
       case 'error': {
-        callInstance.emit(`${eventPrefix}.failed`, actionInstance)
-        actionInstance.emit(`${eventPrefix}.failed` as never, actionInstance)
+        if (eventPrefix === 'prompt') {
+          callInstance.emit('prompt.failed', promptInstance)
+          promptInstance.emit('prompt.failed', promptInstance)
+        } else {
+          callInstance.emit('collect.failed', collectInstance)
+          collectInstance.emit('collect.failed', collectInstance)
+        }
         remove<CallPrompt | CallCollect>(payload.control_id)
         return true
       }
       case 'speech':
       case 'digit': {
-        callInstance.emit(`${eventPrefix}.ended`, actionInstance)
-        actionInstance.emit(`${eventPrefix}.ended` as never, actionInstance)
+        if (eventPrefix === 'prompt') {
+          callInstance.emit('prompt.ended', promptInstance)
+          promptInstance.emit('prompt.ended', promptInstance)
+        } else {
+          callInstance.emit('collect.ended', collectInstance)
+          collectInstance.emit('collect.ended', collectInstance)
+        }
         remove<CallPrompt | CallCollect>(payload.control_id)
         return false
       }

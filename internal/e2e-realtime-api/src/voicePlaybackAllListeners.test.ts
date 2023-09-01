@@ -50,7 +50,7 @@ const handler = async () => {
 
               await unsubVoiceHome()
 
-              await unsubPlay()
+              await unsubPlay?.()
 
               client.disconnect()
 

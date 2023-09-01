@@ -58,7 +58,7 @@ const handler = () => {
             if (call.state === 'ended') {
               await unsubVoice()
 
-              await unsubCall()
+              await unsubCall?.()
 
               client.disconnect()
 
@@ -106,7 +106,7 @@ const handler = () => {
 
 async function main() {
   const runner = createTestRunner({
-    name: 'Voice Detect with Dial Listeners E2E',
+    name: 'Voice Detect with Call Listeners E2E',
     testHandler: handler,
     executionTime: 60_000,
   })

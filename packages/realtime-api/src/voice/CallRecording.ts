@@ -78,7 +78,7 @@ export class CallRecording
 
   /** @internal */
   setPayload(payload: CallingCallRecordEventParams) {
-    this._payload = { ...this._payload, ...payload }
+    this._payload = payload
   }
 
   async stop() {

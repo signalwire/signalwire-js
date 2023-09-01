@@ -68,6 +68,7 @@ export class Call extends ListenSubscriber<
   RealTimeCallEvents
 > {
   private _voice: Voice
+  private _context: string | undefined
   private _peer: Call | undefined
   private _payload: CallingCall | undefined
   private _connectPayload: CallingCallConnectEventParams | undefined
@@ -101,6 +102,7 @@ export class Call extends ListenSubscriber<
 
     this._voice = options.voice
     this._payload = options.payload
+    this._context = options.payload?.context
     this._connectPayload = options.connectPayload
 
     if (options.listeners) {
@@ -187,7 +189,7 @@ export class Call extends ListenSubscriber<
   }
 
   get context() {
-    return this._payload?.context
+    return this._context
   }
 
   get connectState() {
@@ -205,7 +207,7 @@ export class Call extends ListenSubscriber<
 
   /** @internal */
   setPayload(payload: CallingCall) {
-    this._payload = { ...this._payload, ...payload }
+    this._payload = payload
   }
 
   /** @internal */

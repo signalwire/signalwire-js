@@ -43,7 +43,7 @@ const handler = async () => {
           if (call.state === 'ended') {
             await unsubVoice()
 
-            await unsubCall()
+            await unsubCall?.()
 
             client.disconnect()
 

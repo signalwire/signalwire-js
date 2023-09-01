@@ -117,7 +117,7 @@ export class CallCollect
 
   /** @internal */
   setPayload(payload: CallingCallCollectEventParams) {
-    this._payload = { ...this._payload, ...payload }
+    this._payload = payload
   }
 
   async stop() {

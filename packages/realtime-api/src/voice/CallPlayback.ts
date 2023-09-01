@@ -70,7 +70,7 @@ export class CallPlayback
 
   /** @internal */
   setPayload(payload: CallingCallPlayEventParams) {
-    this._payload = { ...this._payload, ...payload }
+    this._payload = payload
   }
 
   async pause() {

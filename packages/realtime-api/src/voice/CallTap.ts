@@ -61,7 +61,7 @@ export class CallTap
 
   /** @internal */
   setPayload(payload: CallingCallTapEventParams) {
-    this._payload = { ...this._payload, ...payload }
+    this._payload = payload
   }
 
   async stop() {

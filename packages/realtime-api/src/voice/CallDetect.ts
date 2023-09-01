@@ -85,7 +85,7 @@ export class CallDetect
 
   /** @internal */
   setPayload(payload: CallingCallDetectEventParams) {
-    this._payload = { ...this._payload, ...payload }
+    this._payload = payload
   }
 
   async stop() {
