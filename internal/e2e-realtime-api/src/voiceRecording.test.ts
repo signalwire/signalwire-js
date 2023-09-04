@@ -73,11 +73,7 @@ const handler = () => {
         })
 
         // Start the recording
-        const recording = await call.recordAudio({
-          initialTimeout: 0,
-          direction: 'both',
-          terminators: '#',
-        })
+        const recording = await call.recordAudio({ direction: 'both' })
         tap.equal(
           call.id,
           recording.callId,
