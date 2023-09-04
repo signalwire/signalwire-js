@@ -196,7 +196,7 @@ export const CALL_RECORD_PROPS = [
   'nodeId',
   'controlId',
   'state',
-  'url',
+  // 'url', // Sometimes server does not return it
   'record',
   'stop',
   'ended',
