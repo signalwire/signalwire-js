@@ -15,18 +15,50 @@ export type ListenerMap<T> = Map<string, ListenerMapValue<T>>
 export class ListenSubscriber<
   T extends {},
   EventTypes extends EventEmitter.ValidEventTypes
-> extends EventEmitter<EventTypes> {
+> {
   /** @internal */
   _sw: SWClient
 
   protected _client: Client
   protected _listenerMap: ListenerMap<T> = new Map()
   protected _eventMap: Record<keyof T, keyof EventTypes>
+  private _emitter = new EventEmitter<EventTypes>()
 
   constructor(options: { swClient: SWClient }) {
-    super()
     this._sw = options.swClient
     this._client = options.swClient.client
+  }
+
+  protected get emitter() {
+    return this._emitter
+  }
+
+  emit<T extends EventEmitter.EventNames<EventTypes>>(
+    event: T,
+    ...args: EventEmitter.EventArgs<EventTypes, T>
+  ) {
+    return this.emitter.emit(event, ...args)
+  }
+
+  protected on<E extends EventEmitter.EventNames<EventTypes>>(
+    event: E,
+    fn: EventEmitter.EventListener<EventTypes, E>
+  ) {
+    return this.emitter.on(event, fn)
+  }
+
+  protected once<T extends EventEmitter.EventNames<EventTypes>>(
+    event: T,
+    fn: EventEmitter.EventListener<EventTypes, T>
+  ) {
+    return this.emitter.once(event, fn)
+  }
+
+  protected off<T extends EventEmitter.EventNames<EventTypes>>(
+    event: T,
+    fn?: EventEmitter.EventListener<EventTypes, T>
+  ) {
+    return this.emitter.off(event, fn)
   }
 
   public listen(listeners: T) {
