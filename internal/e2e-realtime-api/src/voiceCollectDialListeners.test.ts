@@ -18,6 +18,10 @@ const handler = async () => {
       const waitForCollectStart = new Promise<void>((resolve) => {
         waitForCollectStartResolve = resolve
       })
+      let waitForCollectEndResolve: () => void
+      const waitForCollectEnd = new Promise<void>((resolve) => {
+        waitForCollectEndResolve = resolve
+      })
 
       const unsubVoice = await client.voice.listen({
         topics: ['office', 'home'],
@@ -41,6 +45,9 @@ const handler = async () => {
               sendDigits.id,
               'Inbound - sendDigit returns the same instance'
             )
+
+            // Wait until the caller ends the collect
+            await waitForCollectEnd
 
             await call.hangup()
           } catch (error) {
@@ -103,6 +110,9 @@ const handler = async () => {
       // Compare what caller has received
       const recDigits = await collect.ended()
       tap.equal(recDigits.digits, '1234', 'Outbound - Received the same digit')
+
+      // Resolve the collect end promise
+      waitForCollectEndResolve!()
 
       // Resolve if the call has ended or ending
       const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
