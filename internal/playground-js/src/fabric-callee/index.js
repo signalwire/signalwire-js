@@ -1,6 +1,13 @@
 import Pako from 'pako'
 import { SignalWire } from '@signalwire/js'
-import { createMicrophoneAnalyzer } from '@signalwire/webrtc'
+import {
+  createMicrophoneAnalyzer,
+  enumerateDevices,
+  getMicrophoneDevices,
+  getCameraDevices,
+  getSpeakerDevices,
+  supportsMediaOutput,
+} from '@signalwire/webrtc'
 import { initializeApp } from 'firebase/app'
 import { getMessaging, getToken, onMessage } from 'firebase/messaging'
 
@@ -62,6 +69,68 @@ window.playbackEnded = () => {
   })
 }
 
+function setDeviceOptions({ deviceInfos, el, kind }) {
+  if (!deviceInfos || deviceInfos.length === 0) {
+    return
+  }
+
+  // Store the previously selected value so we could restore it after
+  // re-populating the list
+  const selectedValue = el.value
+
+  // Empty the Select
+  el.innerHTML = ''
+
+  deviceInfos.forEach((deviceInfo) => {
+    const option = document.createElement('option')
+
+    option.value = deviceInfo.deviceId
+    option.text = deviceInfo.label || `${kind} ${el.length + 1}`
+
+    el.appendChild(option)
+  })
+
+  el.value = selectedValue || deviceInfos[0].deviceId
+}
+
+async function setAudioInDevicesOptions() {
+  const micOptions = await getMicrophoneDevices()
+
+  setDeviceOptions({
+    deviceInfos: micOptions,
+    el: microphoneSelect,
+    kind: 'microphone',
+  })
+}
+
+async function setAudioOutDevicesOptions() {
+  if (supportsMediaOutput()) {
+    const options = await getSpeakerDevices()
+
+    setDeviceOptions({
+      deviceInfos: options,
+      el: speakerSelect,
+      kind: 'speaker',
+    })
+  }
+}
+
+async function setVideoDevicesOptions() {
+  const options = await getCameraDevices()
+
+  setDeviceOptions({
+    deviceInfos: options,
+    el: cameraSelect,
+    kind: 'camera',
+  })
+}
+
+function initDeviceOptions() {
+  setAudioInDevicesOptions()
+  setAudioOutDevicesOptions()
+  setVideoDevicesOptions()
+}
+
 function meter(el, val) {
   const canvasWidth = el.width
   const canvasHeight = el.height
@@ -117,6 +186,12 @@ function uiReady() {
     button.classList.remove('d-none')
     button.disabled = false
   })
+
+  enumerateDevices()
+    .then(initDeviceOptions)
+    .catch((error) => {
+      console.error('EnumerateDevices error', error)
+    })
 }
 
 function enableCallButtons() {
@@ -207,6 +282,7 @@ window.tapPushNotification = async () => {
         window.__call = resultObject
         window.__call.on('destroy', () => {
           console.warn('Inbound Call got cancelled!!')
+          restoreUI()
         })
         enableCallButtons()
         connectStatus.innerHTML = 'Ringing...'
