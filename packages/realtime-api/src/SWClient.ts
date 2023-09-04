@@ -37,7 +37,11 @@ export class SWClient {
   }
 
   disconnect() {
-    this.client.disconnect()
+    return new Promise((resolve) => {
+      this.client.on('session.disconnected', resolve)
+
+      this.client.disconnect()
+    })
   }
 
   get task() {

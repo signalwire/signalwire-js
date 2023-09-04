@@ -141,7 +141,7 @@ const handler = async () => {
 
       await unsubPrompt()
 
-      client.disconnect()
+      await client.disconnect()
 
       resolve(0)
     } catch (error) {

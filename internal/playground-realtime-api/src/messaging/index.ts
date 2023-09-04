@@ -54,7 +54,7 @@ async function run() {
       await unsubHomeListener()
       await unsubOfficeListener()
       console.log('Disconnect the client..')
-      client.disconnect()
+      await client.disconnect()
     }, 10_000)
   } catch (error) {
     console.log('<Error>', error)

@@ -18,7 +18,7 @@ const handler = () => {
         if (message.body === 'Hello e2e!') {
           await unsub()
 
-          client.disconnect()
+          await client.disconnect()
 
           return resolve(0)
         }

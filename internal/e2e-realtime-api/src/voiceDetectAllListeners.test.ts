@@ -60,7 +60,7 @@ const handler = () => {
 
               await unsubDetect?.()
 
-              client.disconnect()
+              await client.disconnect()
 
               resolve(0)
             }
