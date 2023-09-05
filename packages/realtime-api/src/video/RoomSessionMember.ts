@@ -158,6 +158,7 @@ const RoomSessionMemberAPI = extendComponent<
   setSpeakerVolume: Rooms.setOutputVolumeMember,
   setOutputVolume: Rooms.setOutputVolumeMember,
   setInputSensitivity: Rooms.setInputSensitivityMember,
+  setRaisedHand: Rooms.setRaisedHand,
 })
 
 export const createRoomSessionMemberObject = (

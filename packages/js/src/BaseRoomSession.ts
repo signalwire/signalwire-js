@@ -492,6 +492,8 @@ export const RoomSessionAPI = extendComponent<
   startStream: Rooms.startStream,
   lock: Rooms.lock,
   unlock: Rooms.unlock,
+  setRaisedHand: Rooms.setRaisedHand,
+  setPrioritizeHandraise: Rooms.setPrioritizeHandraise,
 })
 
 type RoomSessionObjectEventsHandlerMapping = RoomSessionObjectEvents &

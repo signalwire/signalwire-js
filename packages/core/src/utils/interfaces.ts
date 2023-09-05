@@ -338,6 +338,9 @@ export type RoomMethod =
   | 'video.stream.stop'
   | 'video.lock'
   | 'video.unlock'
+  | 'video.member.raisehand'
+  | 'video.member.lowerhand'
+  | 'video.prioritize_handraise'
 
 export interface WebSocketClient {
   addEventListener: WebSocket['addEventListener']

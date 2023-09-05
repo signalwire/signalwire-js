@@ -76,7 +76,7 @@ export type MemberListUpdated = 'memberList.updated'
 /**
  * See {@link MEMBER_UPDATED_EVENTS} for the full list of events.
  */
-export type MemberUpdatedEventNames = typeof MEMBER_UPDATED_EVENTS[number]
+export type MemberUpdatedEventNames = (typeof MEMBER_UPDATED_EVENTS)[number]
 export type MemberTalkingStarted = 'member.talking.started'
 export type MemberTalkingEnded = 'member.talking.ended'
 /**
@@ -109,7 +109,7 @@ export type VideoMemberEventNames =
   | MemberListUpdated
 
 export type InternalMemberUpdatedEventNames =
-  typeof INTERNAL_MEMBER_UPDATED_EVENTS[number]
+  (typeof INTERNAL_MEMBER_UPDATED_EVENTS)[number]
 
 /**
  * List of internal events
@@ -277,6 +277,16 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
    * ```
    */
   remove(): Rooms.RemoveMember
+
+  /**
+   * Removes this member from the room.
+   *
+   * @example
+   * ```typescript
+   * await member.remove()
+   * ```
+   */
+  setRaisedHand(params?: Rooms.SetRaisedHandMemberParams): Rooms.SetRaisedHand
 }
 
 /**
