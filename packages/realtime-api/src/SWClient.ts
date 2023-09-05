@@ -37,8 +37,11 @@ export class SWClient {
   }
 
   disconnect() {
-    return new Promise((resolve) => {
-      this.client.on('session.disconnected', resolve)
+    return new Promise<void>((resolve) => {
+      const { sessionEmitter } = this.client
+      sessionEmitter.on('session.disconnected', () => {
+        resolve()
+      })
 
       this.client.disconnect()
     })
