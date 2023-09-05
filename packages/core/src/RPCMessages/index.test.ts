@@ -233,7 +233,7 @@ describe('RPC Messages', () => {
       })
     })
 
-    it.only('should generate the message with a custom id', function () {
+    it('should generate the message with a custom id', function () {
       allVertoMethods.forEach((vertoFn) => {
         const message = vertoFn({
           id: 'custom-id',
