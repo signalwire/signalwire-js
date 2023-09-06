@@ -252,6 +252,12 @@ window.connect = async () => {
 
   console.debug('Call Obj', call)
 
+  enumerateDevices()
+    .then(initDeviceOptions)
+    .catch((error) => {
+      console.error('EnumerateDevices error', error)
+    })
+
   const joinHandler = (params) => {
     console.debug('>> room.joined', params)
 
