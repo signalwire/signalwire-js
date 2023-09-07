@@ -15,7 +15,7 @@ import {
   type RootBody,
   buildCustomRouteBodySchema,
 } from './schemas'
-import { swLogoBuffer, validate } from './utils'
+import { fetchSWLogo, validate } from './utils'
 import { version } from '../package.json'
 
 declare module 'fastify' {
@@ -184,6 +184,8 @@ export class Server {
       },
     })
 
+    const logo = await fetchSWLogo()
+
     await this.instance.register(FastifySwaggerUI, {
       routePrefix: this.options.documentation?.route ?? '/',
       uiConfig: {
@@ -198,7 +200,6 @@ export class Server {
           {
             filename: 'theme.css',
             content: `
-              .swagger-ui .topbar-wrapper .link::after { content: "SignalWire"; font-weight: 500; }
               .swagger-ui .topbar .download-url-wrapper input[type=text] { border: 1px solid #044ef4 }
               .swagger-ui .topbar .download-url-wrapper .download-url-button { background: #044ef4; }
             `,
@@ -211,15 +212,15 @@ export class Server {
             rel: 'icon',
             sizes: '16x16',
             type: 'image/png',
-            content: swLogoBuffer,
+            content: logo as Buffer,
           },
           ...(this.options.documentation?.ui?.theme?.favicon || []),
         ],
         ...this.options.documentation?.ui?.theme,
       },
       logo: {
-        type: 'image/png',
-        content: swLogoBuffer,
+        type: 'image/svg+xml',
+        content: logo as Buffer,
         ...this.options.documentation?.ui?.logo,
       },
       ...this.options.documentation?.ui,
