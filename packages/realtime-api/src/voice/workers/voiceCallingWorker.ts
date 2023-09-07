@@ -6,6 +6,7 @@ import {
   SDKActions,
   VoiceCallAction,
   SDKWorkerParams,
+  sagaHelpers,
 } from '@signalwire/core'
 import { fork } from '@redux-saga/core/effects'
 import type { Client } from '../../client/index'
@@ -103,6 +104,13 @@ export const voiceCallingWroker: SDKWorker<Client> = function* (
     }
   }
 
+  const workerCatchable = sagaHelpers.createCatchableSaga<VoiceCallAction>(
+    worker,
+    (error) => {
+      getLogger().error('Voice calling event error', error)
+    }
+  )
+
   const isCallingEvent = (action: SDKActions) =>
     action.type.startsWith('calling.')
 
@@ -112,7 +120,7 @@ export const voiceCallingWroker: SDKWorker<Client> = function* (
       isCallingEvent
     )
 
-    yield sagaEffects.fork(worker, action)
+    yield sagaEffects.fork(workerCatchable, action)
   }
 
   getLogger().trace('voiceCallingWroker ended')
