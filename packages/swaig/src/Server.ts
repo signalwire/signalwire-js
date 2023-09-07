@@ -180,19 +180,10 @@ export class Server {
           { url: this.options.baseUrl },
           ...(this.options.documentation?.openapi?.servers || []),
         ],
-        // components: {
-        //   securitySchemes: {
-        //     basicAuth: {
-        //       type: 'http',
-        //       scheme: 'basic',
-        //     },
-        //   },
-        // },
         ...this.options.documentation?.openapi,
       },
     })
 
-    // @TODO: Make it configurable
     await this.instance.register(FastifySwaggerUI, {
       routePrefix: this.options.documentation?.route ?? '/',
       uiConfig: {
