@@ -44,8 +44,8 @@ jobs:
           NODE_VERSION: ${{ matrix.node-version }}
       - run: ls -la packages
       - run: ls -la packages/*/dist
-      # - name: Test
-      #   run: npm test
+      - name: Test
+        run: npm test
 
   stack-tests:
     name: Stack tests
@@ -62,9 +62,9 @@ jobs:
           NODE_VERSION: ${{ matrix.node-version }}
       - run: ls -la packages
       - run: ls -la packages/*/dist
-      # - name: Test
-      #   run: npm run -w=@sw-internal/stack-tests dev
-      #   env:
-      #     RELAY_HOST: ${{ secrets.RELAY_HOST }}
-      #     RELAY_PROJECT: ${{ secrets.RELAY_PROJECT }}
-      #     RELAY_TOKEN: ${{ secrets.RELAY_TOKEN }}
+      - name: Test
+        run: npm run -w=@sw-internal/stack-tests dev
+        env:
+          RELAY_HOST: ${{ secrets.RELAY_HOST }}
+          RELAY_PROJECT: ${{ secrets.RELAY_PROJECT }}
+          RELAY_TOKEN: ${{ secrets.RELAY_TOKEN }}
