@@ -38,6 +38,10 @@ jobs:
         node-version: [18.x]
     steps:
       - uses: actions/checkout@v3
+      - name: Restore node_modules build cache
+        uses: ./.github/actions/install
+        with:
+          NODE_VERSION: ${{ matrix.node-version }}
       - name: Restore SDKs build cache
         uses: ./.github/actions/build
         with:
@@ -54,6 +58,10 @@ jobs:
         node-version: [18.x]
     steps:
       - uses: actions/checkout@v3
+      - name: Restore node_modules build cache
+        uses: ./.github/actions/install
+        with:
+          NODE_VERSION: ${{ matrix.node-version }}
       - name: Restore SDKs build cache
         uses: ./.github/actions/build
         with:
