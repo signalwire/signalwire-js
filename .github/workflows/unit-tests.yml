@@ -12,27 +12,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  prepare:
-    name: Prepare SDKs
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.x]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install deps
-        uses: ./.github/actions/install
-        with:
-          NODE_VERSION: ${{ matrix.node-version }}
-      - name: Build SDKs
-        uses: ./.github/actions/build
-        with:
-          NODE_VERSION: ${{ matrix.node-version }}
+  # prepare:
+  #   name: Prepare SDKs
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       node-version: [18.x]
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: Install deps
+  #       uses: ./.github/actions/install
+  #       with:
+  #         NODE_VERSION: ${{ matrix.node-version }}
+  #     - name: Build SDKs
+  #       uses: ./.github/actions/build
+  #       with:
+  #         NODE_VERSION: ${{ matrix.node-version }}
 
   unit-test:
     name: Unit tests
     runs-on: ubuntu-latest
-    needs: prepare
+    # needs: prepare
     strategy:
       matrix:
         node-version: [18.x]
@@ -52,7 +52,7 @@ jobs:
   stack-tests:
     name: Stack tests
     runs-on: ubuntu-latest
-    needs: prepare
+    # needs: prepare
     strategy:
       matrix:
         node-version: [18.x]
