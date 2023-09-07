@@ -66,6 +66,8 @@ jobs:
         uses: ./.github/actions/build
         with:
           NODE_VERSION: ${{ matrix.node-version }}
+      - run: node -v
+      - run: npm -v
       - run: npm ls execa
       - name: Test
         run: npm run -w=@sw-internal/stack-tests dev

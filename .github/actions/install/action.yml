@@ -20,7 +20,11 @@ runs:
       uses: actions/cache@v3
       with:
         key: ${{ runner.os }}-node-modules-${{ inputs.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
-        path: node_modules
+        path: |
+          node_modules
+          packages/*/node_modules
+          scripts/*/node_modules
+          internal/*/node_modules
     - if: steps.cache_node_modules.outputs.cache-hit != 'true'
       name: Install Dependencies
       shell: bash
