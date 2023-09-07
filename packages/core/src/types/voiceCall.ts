@@ -929,11 +929,15 @@ export interface CallingCallPlayEvent extends SwEvent {
 /**
  * 'calling.call.record'
  */
-export type CallingCallRecordState = 'recording' | 'no_input' | 'finished'
+export type CallingCallRecordState =
+  | 'recording'
+  | 'paused'
+  | 'no_input'
+  | 'finished'
 
 export type CallingCallRecordEndState = Exclude<
   CallingCallRecordState,
-  'recording'
+  'recording' | 'paused'
 >
 
 export interface CallingCallRecordEventParams {

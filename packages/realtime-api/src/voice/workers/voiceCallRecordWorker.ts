@@ -42,10 +42,9 @@ export const voiceCallRecordWorker = function* (
       callInstance.emit(type, recordingInstance)
       break
     }
-    // @ts-expect-error
     case 'paused': {
       recordingInstance._paused = true
-      callInstance.emit('playback.updated', recordingInstance)
+      callInstance.emit('recording.updated', recordingInstance)
       break
     }
     case 'no_input':
