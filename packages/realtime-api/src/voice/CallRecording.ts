@@ -6,6 +6,7 @@ import {
   CallingCallRecordEventParams,
   EventEmitter,
   BaseConsumer,
+  CallingCallRecordPauseMethodParams,
 } from '@signalwire/core'
 
 /**
@@ -32,12 +33,14 @@ export class CallRecordingAPI
   extends BaseConsumer<CallRecordingEventsHandlerMapping>
   implements VoiceCallRecordingContract
 {
+  public _paused: boolean
   private _payload: CallingCallRecordEventParams
 
   constructor(options: CallRecordingOptions) {
     super(options)
 
     this._payload = options.payload
+    this._paused = false
   }
 
   get id() {
@@ -79,6 +82,35 @@ export class CallRecordingAPI
   /** @internal */
   protected setPayload(payload: CallingCallRecordEventParams) {
     this._payload = payload
+  }
+
+  async pause(params?: CallingCallRecordPauseMethodParams) {
+    const { behavior = 'silence' } = params || {}
+
+    await this.execute({
+      method: 'calling.record.pause',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.callId,
+        control_id: this.controlId,
+        behavior,
+      },
+    })
+
+    return this
+  }
+
+  async resume() {
+    await this.execute({
+      method: 'calling.record.resume',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.callId,
+        control_id: this.controlId,
+      },
+    })
+
+    return this
   }
 
   async stop() {
