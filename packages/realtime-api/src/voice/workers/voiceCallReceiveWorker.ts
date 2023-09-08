@@ -1,37 +1,85 @@
-import { CallingCall, getLogger, SagaIterator } from '@signalwire/core'
-import { createCallObject } from '../Call'
-import type { Call } from '../Call'
-import type { VoiceCallWorkerParams } from './voiceCallingWorker'
+import {
+  getLogger,
+  sagaEffects,
+  SagaIterator,
+  SDKActions,
+  SDKWorker,
+  VoiceCallReceiveAction,
+  VoiceCallStateAction,
+} from '@signalwire/core'
+import { prefixEvent } from '../../utils/internals'
+import type { Client } from '../../client/index'
+import { Call } from '../Call'
+import { Voice } from '../Voice'
+import { handleCallStateEvents } from './handlers'
 
-export const voiceCallReceiveWorker = function* (
-  options: VoiceCallWorkerParams<CallingCall>
+interface VoiceCallReceiveWorkerInitialState {
+  voice: Voice
+}
+
+export const voiceCallReceiveWorker: SDKWorker<Client> = function* (
+  options
 ): SagaIterator {
   getLogger().trace('voiceCallReceiveWorker started')
   const {
-    instance: client,
-    payload,
-    instanceMap: { get, set },
+    channels: { swEventChannel },
+    instanceMap,
+    initialState,
   } = options
 
-  // Contexts is required
-  const { contexts = [], topics = [] } = client?.options ?? {}
-  if (!contexts.length && !topics.length) {
-    throw new Error('Invalid contexts to receive inbound calls')
+  const { voice } = initialState as VoiceCallReceiveWorkerInitialState
+
+  function* callReceiveWorker(action: VoiceCallReceiveAction) {
+    const { get, set } = instanceMap
+    const { payload } = action
+
+    // Contexts is required
+    if (!payload.context || !payload.context.length) {
+      throw new Error('Invalid context to receive inbound call')
+    }
+
+    let callInstance = get<Call>(payload.call_id)
+    if (!callInstance) {
+      callInstance = new Call({
+        voice,
+        payload,
+      })
+    } else {
+      callInstance.setPayload(payload)
+    }
+
+    set<Call>(payload.call_id, callInstance)
+
+    // @ts-expect-error
+    voice.emit(prefixEvent(payload.context, 'call.received'), callInstance)
   }
 
-  let callInstance = get<Call>(payload.call_id)
-  if (!callInstance) {
-    callInstance = createCallObject({
-      store: client.store,
-      payload: payload,
-    })
-  } else {
-    callInstance.setPayload(payload)
+  function* worker(action: VoiceCallReceiveAction | VoiceCallStateAction) {
+    if (action.type === 'calling.call.receive') {
+      yield sagaEffects.fork(callReceiveWorker, action)
+    } else {
+      handleCallStateEvents({
+        payload: action.payload,
+        voice,
+        instanceMap,
+      })
+    }
   }
 
-  set<Call>(payload.call_id, callInstance)
-  // @ts-expect-error
-  client.emit('call.received', callInstance)
+  while (true) {
+    const action = yield sagaEffects.take(
+      swEventChannel,
+      (action: SDKActions) => {
+        return (
+          action.type === 'calling.call.receive' ||
+          (action.type === 'calling.call.state' &&
+            action.payload.direction === 'inbound')
+        )
+      }
+    )
+
+    yield sagaEffects.fork(worker, action)
+  }
 
   getLogger().trace('voiceCallReceiveWorker ended')
 }

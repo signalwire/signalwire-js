@@ -1,37 +1,22 @@
 import { EventEmitter, ExecuteParams, uuid } from '@signalwire/core'
-import type { Client } from './client/Client'
-import { SWClient } from './SWClient'
 import { prefixEvent } from './utils/internals'
+import { ListenSubscriber } from './ListenSubscriber'
+import { SWClient } from './SWClient'
 
 export interface ListenOptions {
   topics: string[]
 }
 
-export type ListenersKeys = keyof Omit<ListenOptions, 'topics'>
+export type Listeners = Omit<ListenOptions, 'topics'>
 
-type ListenerMap = Map<
-  string,
-  {
-    topics: Set<string>
-    listeners: Omit<ListenOptions, 'topics'>
-    unsub: () => Promise<void>
-  }
->
+export type ListenersKeys = keyof Listeners
 
-export class BaseNamespace<T extends ListenOptions> {
-  protected _client: Client
-  protected _sw: SWClient
-  protected _eventMap: Record<ListenersKeys, string> = {}
-  private _namespaceEmitter = new EventEmitter()
-  protected _listenerMap: ListenerMap = new Map()
-
-  constructor(options: { swClient: SWClient }) {
-    this._sw = options.swClient
-    this._client = options.swClient.client
-  }
-
-  protected get emitter() {
-    return this._namespaceEmitter
+export class BaseNamespace<
+  T extends ListenOptions,
+  EventTypes extends EventEmitter.ValidEventTypes
+> extends ListenSubscriber<Listeners, EventTypes> {
+  constructor(options: SWClient) {
+    super({ swClient: options })
   }
 
   protected addTopics(topics: string[]) {
@@ -76,12 +61,18 @@ export class BaseNamespace<T extends ListenOptions> {
     const _uuid = uuid()
 
     // Attach listeners
-    this._attachListeners(topics, listeners)
+    this._attachListenersWithTopics(topics, listeners)
     await this.addTopics(topics)
 
     const unsub = () => {
       return new Promise<void>(async (resolve, reject) => {
         try {
+          // Detach listeners
+          this._detachListenersWithTopics(topics, listeners)
+
+          // Remove topics from the listener map
+          this.removeFromListenerMap(_uuid)
+
           // Remove the topics
           const topicsToRemove = topics.filter(
             (topic) => !this.hasOtherListeners(_uuid, topic)
@@ -90,12 +81,6 @@ export class BaseNamespace<T extends ListenOptions> {
             await this.removeTopics(topicsToRemove)
           }
 
-          // Detach listeners
-          this._detachListeners(topics, listeners)
-
-          // Remove topics from the listener map
-          this.removeFromListenerMap(_uuid)
-
           resolve()
         } catch (error) {
           reject(error)
@@ -103,7 +88,8 @@ export class BaseNamespace<T extends ListenOptions> {
       })
     }
 
-    this._listenerMap.set(_uuid, {
+    // Add topics to the listener map
+    this.addToListenerMap(_uuid, {
       topics: new Set([...topics]),
       listeners,
       unsub,
@@ -112,25 +98,27 @@ export class BaseNamespace<T extends ListenOptions> {
     return unsub
   }
 
-  protected _attachListeners(topics: string[], listeners: Omit<T, 'topics'>) {
+  protected _attachListenersWithTopics(topics: string[], listeners: Listeners) {
     const listenerKeys = Object.keys(listeners) as Array<ListenersKeys>
     topics.forEach((topic) => {
       listenerKeys.forEach((key) => {
         if (typeof listeners[key] === 'function' && this._eventMap[key]) {
           const event = prefixEvent(topic, this._eventMap[key])
-          this.emitter.on(event, listeners[key])
+          // @ts-expect-error
+          this.on(event, listeners[key])
         }
       })
     })
   }
 
-  protected _detachListeners(topics: string[], listeners: Omit<T, 'topics'>) {
+  protected _detachListenersWithTopics(topics: string[], listeners: Listeners) {
     const listenerKeys = Object.keys(listeners) as Array<ListenersKeys>
     topics.forEach((topic) => {
       listenerKeys.forEach((key) => {
         if (typeof listeners[key] === 'function' && this._eventMap[key]) {
           const event = prefixEvent(topic, this._eventMap[key])
-          this.emitter.off(event, listeners[key])
+          // @ts-expect-error
+          this.off(event, listeners[key])
         }
       })
     })
@@ -138,7 +126,9 @@ export class BaseNamespace<T extends ListenOptions> {
 
   protected hasOtherListeners(uuid: string, topic: string) {
     for (const [key, listener] of this._listenerMap) {
-      if (key !== uuid && listener.topics.has(topic)) return true
+      if (key !== uuid && listener.topics?.has(topic)) {
+        return true
+      }
     }
     return false
   }
@@ -148,9 +138,5 @@ export class BaseNamespace<T extends ListenOptions> {
       [...this._listenerMap.values()].map(({ unsub }) => unsub())
     )
     this._listenerMap.clear()
-  }
-
-  protected removeFromListenerMap(id: string) {
-    return this._listenerMap.delete(id)
   }
 }
