@@ -1,6 +1,10 @@
 name: Browser SDK [staging]
 
 on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main, dev]
   workflow_run:
     workflows: [Unit and stack tests]
     types:
