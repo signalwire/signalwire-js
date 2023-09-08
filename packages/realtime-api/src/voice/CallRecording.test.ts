@@ -1,66 +1,120 @@
-import { configureJestStore } from '../testUtils'
-import { createCallRecordingObject, CallRecording } from './CallRecording'
+import { EventEmitter } from '@signalwire/core'
+import { createClient } from '../client/createClient'
+import { CallRecording } from './CallRecording'
+import { Call } from './Call'
+import { Voice } from './Voice'
 
 describe('CallRecording', () => {
-  describe('createCallRecordingObject', () => {
-    let instance: CallRecording
-    beforeEach(() => {
-      instance = createCallRecordingObject({
-        store: configureJestStore(),
-        // @ts-expect-error
-        payload: {
-          call_id: 'call_id',
-          node_id: 'node_id',
-          control_id: 'control_id',
-        },
-      })
+  let voice: Voice
+  let call: Call
+  let callRecording: CallRecording
+
+  const userOptions = {
+    host: 'example.com',
+    project: 'example.project',
+    token: 'example.token',
+  }
+  const swClientMock = {
+    userOptions,
+    client: createClient(userOptions),
+  }
+
+  beforeEach(() => {
+    // @ts-expect-error
+    voice = new Voice(swClientMock)
+
+    call = new Call({ voice })
+
+    callRecording = new CallRecording({
+      call,
       // @ts-expect-error
-      instance.execute = jest.fn()
+      payload: {
+        control_id: 'test_control_id',
+        call_id: 'test_call_id',
+        node_id: 'test_node_id',
+      },
     })
 
-    it('should control an active recording', async () => {
-      const baseExecuteParams = {
-        method: '',
-        params: {
-          call_id: 'call_id',
-          node_id: 'node_id',
-          control_id: 'control_id',
-        },
-      }
+    // @ts-expect-error
+    callRecording._client.execute = jest.fn()
+  })
 
-      await instance.pause()
-      // @ts-expect-error
-      expect(instance.execute).toHaveBeenLastCalledWith({
-        method: 'calling.record.pause',
-        params: {
-          ...baseExecuteParams.params,
-          behavior: 'silence',
-        },
-      })
+  it('should have an event emitter', () => {
+    expect(callRecording['emitter']).toBeInstanceOf(EventEmitter)
+  })
 
-      await instance.pause({ behavior: 'skip' })
-      // @ts-expect-error
-      expect(instance.execute).toHaveBeenLastCalledWith({
-        method: 'calling.record.pause',
-        params: {
-          ...baseExecuteParams.params,
-          behavior: 'skip',
-        },
-      })
+  it('should declare the correct event map', () => {
+    const expectedEventMap = {
+      onStarted: 'recording.started',
+      onFailed: 'recording.failed',
+      onEnded: 'recording.ended',
+    }
+    expect(callRecording['_eventMap']).toEqual(expectedEventMap)
+  })
 
-      await instance.resume()
+  it('should attach all listeners', () => {
+    callRecording = new CallRecording({
+      call,
       // @ts-expect-error
-      expect(instance.execute).toHaveBeenLastCalledWith({
-        ...baseExecuteParams,
-        method: 'calling.record.resume',
-      })
+      payload: {},
+      listeners: {
+        onStarted: () => {},
+        onFailed: () => {},
+        onEnded: () => {},
+      },
+    })
 
-      await instance.stop()
-      // @ts-expect-error
-      expect(instance.execute).toHaveBeenLastCalledWith({
-        ...baseExecuteParams,
-        method: 'calling.record.stop',
-      })
+    // @ts-expect-error
+    expect(callRecording.emitter.eventNames()).toStrictEqual([
+      'recording.started',
+      'recording.updated',
+      'recording.failed',
+      'recording.ended',
+    ])
+  })
+
+  it('should control an active playback', async () => {
+    const baseExecuteParams = {
+      method: '',
+      params: {
+        control_id: 'test_control_id',
+        call_id: 'test_call_id',
+        node_id: 'test_node_id',
+      },
+    }
+
+    await callRecording.pause()
+    // @ts-expect-error
+    expect(callRecording._client.execute).toHaveBeenLastCalledWith({
+      method: 'calling.record.pause',
+      params: {
+        ...baseExecuteParams.params,
+        behavior: 'silence',
+      },
+    })
+
+    await callRecording.pause({ behavior: 'skip' })
+    // @ts-expect-error
+    expect(callRecording._client.execute).toHaveBeenLastCalledWith({
+      method: 'calling.record.pause',
+      params: {
+        ...baseExecuteParams.params,
+        behavior: 'skip',
+      },
+    })
+
+    await callRecording.resume()
+    // @ts-expect-error
+    expect(callRecording._client.execute).toHaveBeenLastCalledWith({
+      ...baseExecuteParams,
+      method: 'calling.record.resume',
+    })
+
+    await callRecording.stop()
+    // @ts-expect-error
+    expect(callRecording._client.execute).toHaveBeenLastCalledWith({
+      ...baseExecuteParams,
+      method: 'calling.record.stop',
     })
   })
 })

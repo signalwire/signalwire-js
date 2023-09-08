@@ -1,50 +1,47 @@
 import {
-  connect,
-  VoiceCallPlaybackContract,
   CallingCallPlayEndState,
   CallingCallPlayEventParams,
-  BaseConsumer,
-  BaseComponentOptionsWithPayload,
-  EventEmitter,
+  VoiceCallPlaybackContract,
 } from '@signalwire/core'
+import { ListenSubscriber } from '../ListenSubscriber'
+import {
+  CallPlaybackEvents,
+  CallPlaybackListeners,
+  CallPlaybackListenersEventsMapping,
+} from '../types'
+import { Call } from './Call'
 
-/**
- * Instances of this class allow you to control (e.g., pause, resume, stop) the
- * playback inside a Voice Call. You can obtain instances of this class by
- * starting a playback from the desired {@link Call} (see
- * {@link Call.play})
- */
-export interface CallPlayback extends VoiceCallPlaybackContract {
-  setPayload: (payload: CallingCallPlayEventParams) => void
-  _paused: boolean
-  /** @internal */
-  emit(event: EventEmitter.EventNames<any>, ...args: any[]): void
+export interface CallPlaybackOptions {
+  call: Call
+  payload: CallingCallPlayEventParams
+  listeners?: CallPlaybackListeners
 }
-
-// export type CallPlaybackEventsHandlerMapping = Record<
-//   VideoPlaybackEventNames,
-//   (playback: CallPlayback) => void
-// >
-export type CallPlaybackEventsHandlerMapping = {}
-
-export interface CallPlaybackOptions
-  extends BaseComponentOptionsWithPayload<CallingCallPlayEventParams> {}
 
 const ENDED_STATES: CallingCallPlayEndState[] = ['finished', 'error']
 
-export class CallPlaybackAPI
-  extends BaseConsumer<CallPlaybackEventsHandlerMapping>
+export class CallPlayback
+  extends ListenSubscriber<CallPlaybackListeners, CallPlaybackEvents>
   implements VoiceCallPlaybackContract
 {
   public _paused: boolean
   private _volume: number
   private _payload: CallingCallPlayEventParams
+  protected _eventMap: CallPlaybackListenersEventsMapping = {
+    onStarted: 'playback.started',
+    onUpdated: 'playback.updated',
+    onFailed: 'playback.failed',
+    onEnded: 'playback.ended',
+  }
 
   constructor(options: CallPlaybackOptions) {
-    super(options)
+    super({ swClient: options.call._sw })
 
     this._payload = options.payload
     this._paused = false
+
+    if (options.listeners) {
+      this.listen(options.listeners)
+    }
   }
 
   get id() {
@@ -72,12 +69,12 @@ export class CallPlaybackAPI
   }
 
   /** @internal */
-  protected setPayload(payload: CallingCallPlayEventParams) {
+  setPayload(payload: CallingCallPlayEventParams) {
     this._payload = payload
   }
 
   async pause() {
-    await this.execute({
+    await this._client.execute({
       method: 'calling.play.pause',
       params: {
         node_id: this.nodeId,
@@ -90,7 +87,7 @@ export class CallPlaybackAPI
   }
 
   async resume() {
-    await this.execute({
+    await this._client.execute({
       method: 'calling.play.resume',
       params: {
         node_id: this.nodeId,
@@ -103,7 +100,7 @@ export class CallPlaybackAPI
   }
 
   async stop() {
-    await this.execute({
+    await this._client.execute({
       method: 'calling.play.stop',
       params: {
         node_id: this.nodeId,
@@ -118,7 +115,7 @@ export class CallPlaybackAPI
   async setVolume(volume: number) {
     this._volume = volume
 
-    await this.execute({
+    await this._client.execute({
       method: 'calling.play.volume',
       params: {
         node_id: this.nodeId,
@@ -139,44 +136,24 @@ export class CallPlaybackAPI
   ended() {
     return new Promise<this>((resolve) => {
       const handler = () => {
-        // @ts-expect-error
         this.off('playback.ended', handler)
-        // @ts-expect-error
         this.off('playback.failed', handler)
         // It's important to notice that we're returning
         // `this` instead of creating a brand new instance
-        // using the payload + EventEmitter Transform
-        // pipeline. `this` is the instance created by the
-        // `Call` Emitter Transform pipeline (singleton per
-        // `Call.play()`) that gets auto updated (using
+        // using the payload. `this` is the instance created by the
+        // `voiceCallPlayWorker` (singleton per
+        // `call.play()`) that gets auto updated (using
         // the latest payload per event) by the
         // `voiceCallPlayWorker`
         resolve(this)
       }
-      // @ts-expect-error
       this.once('playback.ended', handler)
-      // @ts-expect-error
       this.once('playback.failed', handler)
 
-      // Resolve the promise if the recording has already ended
+      // Resolve the promise if the play has already ended
       if (ENDED_STATES.includes(this.state as CallingCallPlayEndState)) {
         handler()
       }
     })
   }
-}
-
-export const createCallPlaybackObject = (
-  params: CallPlaybackOptions
-): CallPlayback => {
-  const playback = connect<
-    CallPlaybackEventsHandlerMapping,
-    CallPlaybackAPI,
-    CallPlayback
-  >({
-    store: params.store,
-    Component: CallPlaybackAPI,
-  })(params)
-
-  return playback
 }

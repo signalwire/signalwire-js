@@ -1,14 +1,13 @@
-import { Voice } from '@signalwire/realtime-api'
+import { SignalWire, Voice } from '@signalwire/realtime-api'
 
 async function run() {
   let maxDTMFErrors = 1
   let errorCount = 0
   const invalidDTMFs = ['0', '1', '2', '3']
 
-  const client = new Voice.Client({
+  const client = await SignalWire({
     project: process.env.PROJECT as string,
     token: process.env.TOKEN as string,
-    contexts: [process.env.RELAY_CONTEXT as string],
     // logLevel: 'debug',
     // debug: {
     //   logWsTraffic: true,
@@ -57,12 +56,14 @@ async function run() {
   }
 
   try {
-    const call = await client.dialPhone({
+    const call = await client.voice.dialPhone({
       to: '+1..',
       from: process.env.FROM_NUMBER as string,
-    })
-    call.on('call.state', (call) => {
-      console.log(`call.state ${call.state}`)
+      listen: {
+        onStateChanged: (call) => {
+          console.log(`call.state ${call.state}`)
+        },
+      },
     })
 
     const result = await prompt(call)

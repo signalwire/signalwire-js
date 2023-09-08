@@ -65,7 +65,10 @@ describe('BaseChat', () => {
       const addChannelsMock = jest
         .spyOn(baseChat, 'addChannels')
         .mockResolvedValueOnce(null)
-      const attachListenersMock = jest.spyOn(baseChat, '_attachListeners')
+      const attachListenersMock = jest.spyOn(
+        baseChat,
+        '_attachListenersWithTopics'
+      )
 
       await expect(baseChat.subscribe(listenOptions)).resolves.toBeInstanceOf(
         Function
@@ -81,7 +84,10 @@ describe('BaseChat', () => {
       const removeChannelsMock = jest
         .spyOn(baseChat, 'removeChannels')
         .mockResolvedValueOnce(null)
-      const detachListenersMock = jest.spyOn(baseChat, '_detachListeners')
+      const detachListenersMock = jest.spyOn(
+        baseChat,
+        '_detachListenersWithTopics'
+      )
 
       const unsub = await baseChat.subscribe({ channels, ...listeners })
       expect(unsub).toBeInstanceOf(Function)

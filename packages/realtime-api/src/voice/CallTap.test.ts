@@ -1,57 +1,106 @@
-import { configureJestStore } from '../testUtils'
-import { createCallTapObject, CallTap } from './CallTap'
+import { EventEmitter } from '@signalwire/core'
+import { createClient } from '../client/createClient'
+import { CallTap } from './CallTap'
+import { Call } from './Call'
+import { Voice } from './Voice'
 
 describe('CallTap', () => {
-  describe('createCallTapObject', () => {
-    let instance: CallTap
-    beforeEach(() => {
-      instance = createCallTapObject({
-        store: configureJestStore(),
-        // @ts-expect-error
-        payload: {
-          call_id: 'call_id',
-          node_id: 'node_id',
-          control_id: 'control_id',
-        },
-      })
+  let voice: Voice
+  let call: Call
+  let callTap: CallTap
+
+  const userOptions = {
+    host: 'example.com',
+    project: 'example.project',
+    token: 'example.token',
+  }
+  const swClientMock = {
+    userOptions,
+    client: createClient(userOptions),
+  }
+
+  beforeEach(() => {
+    // @ts-expect-error
+    voice = new Voice(swClientMock)
+
+    call = new Call({ voice })
+
+    callTap = new CallTap({
+      call,
       // @ts-expect-error
-      instance.execute = jest.fn()
+      payload: {
+        control_id: 'test_control_id',
+        call_id: 'test_call_id',
+        node_id: 'test_node_id',
+      },
     })
 
-    it('should control an active playback', async () => {
-      const baseExecuteParams = {
-        method: '',
-        params: {
-          call_id: 'call_id',
-          node_id: 'node_id',
-          control_id: 'control_id',
-        },
-      }
+    // @ts-expect-error
+    callTap._client.execute = jest.fn()
+  })
 
-      await instance.stop()
+  it('should have an event emitter', () => {
+    expect(callTap['emitter']).toBeInstanceOf(EventEmitter)
+  })
+
+  it('should declare the correct event map', () => {
+    const expectedEventMap = {
+      onStarted: 'tap.started',
+      onEnded: 'tap.ended',
+    }
+    expect(callTap['_eventMap']).toEqual(expectedEventMap)
+  })
+
+  it('should attach all listeners', () => {
+    callTap = new CallTap({
+      call,
       // @ts-expect-error
-      expect(instance.execute).toHaveBeenLastCalledWith({
-        ...baseExecuteParams,
-        method: 'calling.tap.stop',
-      })
+      payload: {},
+      listeners: {
+        onStarted: () => {},
+        onEnded: () => {},
+      },
     })
 
-    it('should update the attributes on setPayload call', () => {
-      const newCallId = 'new_call_id'
-      const newNodeId = 'new_node_id'
-      const newControlId = 'new_control_id'
+    // @ts-expect-error
+    expect(callTap.emitter.eventNames()).toStrictEqual([
+      'tap.started',
+      'tap.ended',
+    ])
+  })
 
-      // @ts-expect-error
-      instance.setPayload({
-        call_id: newCallId,
-        node_id: newNodeId,
-        control_id: newControlId,
-      })
+  it('should control an active playback', async () => {
+    const baseExecuteParams = {
+      method: '',
+      params: {
+        control_id: 'test_control_id',
+        call_id: 'test_call_id',
+        node_id: 'test_node_id',
+      },
+    }
 
-      expect(instance.callId).toBe(newCallId)
-      // @ts-expect-error
-      expect(instance.nodeId).toBe(newNodeId)
-      expect(instance.controlId).toBe(newControlId)
+    await callTap.stop()
+    // @ts-expect-error
+    expect(callTap._client.execute).toHaveBeenLastCalledWith({
+      ...baseExecuteParams,
+      method: 'calling.tap.stop',
     })
+  })
+
+  it('should update the attributes on setPayload call', () => {
+    const newCallId = 'new_call_id'
+    const newNodeId = 'new_node_id'
+    const newControlId = 'new_control_id'
+
+    // @ts-expect-error
+    callTap.setPayload({
+      call_id: newCallId,
+      node_id: newNodeId,
+      control_id: newControlId,
+    })
+
+    expect(callTap.callId).toBe(newCallId)
+    expect(callTap.nodeId).toBe(newNodeId)
+    expect(callTap.controlId).toBe(newControlId)
   })
 })

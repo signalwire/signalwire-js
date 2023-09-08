@@ -1,38 +1,91 @@
-import { configureJestStore } from '../testUtils'
-import { createCallDetectObject, CallDetect } from './CallDetect'
+import { EventEmitter } from '@signalwire/core'
+import { createClient } from '../client/createClient'
+import { CallDetect } from './CallDetect'
+import { Call } from './Call'
+import { Voice } from './Voice'
 
 describe('CallDetect', () => {
-  describe('createCallDetectObject', () => {
-    let instance: CallDetect
-    beforeEach(() => {
-      instance = createCallDetectObject({
-        store: configureJestStore(),
-        payload: {
-          call_id: 'call_id',
-          node_id: 'node_id',
-          control_id: 'control_id',
-        },
-      })
-      // @ts-expect-error
-      instance.execute = jest.fn()
+  let voice: Voice
+  let call: Call
+  let callDetect: CallDetect
+
+  const userOptions = {
+    host: 'example.com',
+    project: 'example.project',
+    token: 'example.token',
+  }
+  const swClientMock = {
+    userOptions,
+    client: createClient(userOptions),
+  }
+
+  beforeEach(() => {
+    // @ts-expect-error
+    voice = new Voice(swClientMock)
+
+    call = new Call({ voice })
+
+    callDetect = new CallDetect({
+      call,
+      payload: {
+        control_id: 'test_control_id',
+        call_id: 'test_call_id',
+        node_id: 'test_node_id',
+      },
     })
 
-    it('should control an active playback', async () => {
-      const baseExecuteParams = {
-        method: '',
-        params: {
-          call_id: 'call_id',
-          node_id: 'node_id',
-          control_id: 'control_id',
-        },
-      }
+    // @ts-expect-error
+    callDetect._client.execute = jest.fn()
+  })
 
-      await instance.stop()
+  it('should have an event emitter', () => {
+    expect(callDetect['emitter']).toBeInstanceOf(EventEmitter)
+  })
+
+  it('should declare the correct event map', () => {
+    const expectedEventMap = {
+      onStarted: 'detect.started',
+      onUpdated: 'detect.updated',
+      onEnded: 'detect.ended',
+    }
+    expect(callDetect['_eventMap']).toEqual(expectedEventMap)
+  })
+
+  it('should attach all listeners', () => {
+    callDetect = new CallDetect({
+      call,
       // @ts-expect-error
-      expect(instance.execute).toHaveBeenLastCalledWith({
-        ...baseExecuteParams,
-        method: 'calling.detect.stop',
-      })
+      payload: {},
+      listeners: {
+        onStarted: () => {},
+        onUpdated: () => {},
+        onEnded: () => {},
+      },
+    })
+
+    // @ts-expect-error
+    expect(callDetect.emitter.eventNames()).toStrictEqual([
+      'detect.started',
+      'detect.updated',
+      'detect.ended',
+    ])
+  })
+
+  it('should stop the detection', async () => {
+    const baseExecuteParams = {
+      method: '',
+      params: {
+        control_id: 'test_control_id',
+        call_id: 'test_call_id',
+        node_id: 'test_node_id',
+      },
+    }
+
+    await callDetect.stop()
+    // @ts-expect-error
+    expect(callDetect._client.execute).toHaveBeenLastCalledWith({
+      ...baseExecuteParams,
+      method: 'calling.detect.stop',
     })
   })
 })

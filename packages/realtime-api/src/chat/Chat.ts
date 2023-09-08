@@ -1,13 +1,13 @@
 import {
   ChatMember,
   ChatMessage,
-  EventEmitter,
   ChatEvents,
   Chat as ChatCore,
 } from '@signalwire/core'
 import { BaseChat, BaseChatListenOptions } from './BaseChat'
 import { chatWorker } from './workers'
 import { SWClient } from '../SWClient'
+import { RealTimeChatEvents } from '../types/chat'
 
 interface ChatListenOptions extends BaseChatListenOptions {
   onMessageReceived?: (message: ChatMessage) => unknown
@@ -16,12 +16,11 @@ interface ChatListenOptions extends BaseChatListenOptions {
   onMemberLeft?: (member: ChatMember) => unknown
 }
 
-type ChatListenersKeys = keyof Omit<ChatListenOptions, 'channels'>
+type ChatListenersKeys = keyof Omit<ChatListenOptions, 'channels' | 'topics'>
 
 export class Chat extends ChatCore.applyCommonMethods(
-  BaseChat<ChatListenOptions>
+  BaseChat<ChatListenOptions, RealTimeChatEvents>
 ) {
-  private _chatEmitter = new EventEmitter()
   protected _eventMap: Record<ChatListenersKeys, ChatEvents> = {
     onMessageReceived: 'chat.message',
     onMemberJoined: 'chat.member.joined',
@@ -35,13 +34,9 @@ export class Chat extends ChatCore.applyCommonMethods(
     this._client.runWorker('chatWorker', {
       worker: chatWorker,
       initialState: {
-        chatEmitter: this._chatEmitter,
+        chat: this,
       },
     })
-  }
-
-  protected get emitter() {
-    return this._chatEmitter
   }
 }
 

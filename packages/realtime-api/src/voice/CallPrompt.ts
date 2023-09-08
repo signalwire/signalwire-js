@@ -1,30 +1,21 @@
 import {
-  connect,
-  BaseComponentOptionsWithPayload,
   VoiceCallPromptContract,
   CallingCallCollectEndState,
-  CallPromptEndedEvent,
   CallingCallCollectEventParams,
-  EventEmitter,
-  BaseConsumer,
 } from '@signalwire/core'
+import { Call } from './Call'
+import {
+  CallPromptEvents,
+  CallPromptListeners,
+  CallPromptListenersEventsMapping,
+} from '../types'
+import { ListenSubscriber } from '../ListenSubscriber'
 
-/**
- * Instances of this class allow you to control (e.g., resume) the
- * prompt inside a Voice Call. You can obtain instances of this class by
- * starting a Prompt from the desired {@link Call} (see
- * {@link Call.prompt})
- */
-export interface CallPrompt extends VoiceCallPromptContract {
-  setPayload: (payload: CallingCallCollectEventParams) => void
-  /** @internal */
-  emit(event: EventEmitter.EventNames<any>, ...args: any[]): void
+export interface CallPromptOptions {
+  call: Call
+  payload: CallingCallCollectEventParams
+  listeners?: CallPromptListeners
 }
-
-export type CallPromptEventsHandlerMapping = {}
-
-export interface CallPromptOptions
-  extends BaseComponentOptionsWithPayload<CallingCallCollectEventParams> {}
 
 const ENDED_STATES: CallingCallCollectEndState[] = [
   'no_input',
@@ -34,16 +25,26 @@ const ENDED_STATES: CallingCallCollectEndState[] = [
   'speech',
 ]
 
-export class CallPromptAPI
-  extends BaseConsumer<CallPromptEventsHandlerMapping>
+export class CallPrompt
+  extends ListenSubscriber<CallPromptListeners, CallPromptEvents>
   implements VoiceCallPromptContract
 {
   private _payload: CallingCallCollectEventParams
+  protected _eventMap: CallPromptListenersEventsMapping = {
+    onStarted: 'prompt.started',
+    onUpdated: 'prompt.updated',
+    onFailed: 'prompt.failed',
+    onEnded: 'prompt.ended',
+  }
 
   constructor(options: CallPromptOptions) {
-    super(options)
+    super({ swClient: options.call._sw })
 
     this._payload = options.payload
+
+    if (options.listeners) {
+      this.listen(options.listeners)
+    }
   }
 
   get id() {
@@ -114,14 +115,14 @@ export class CallPromptAPI
   }
 
   /** @internal */
-  protected setPayload(payload: CallingCallCollectEventParams) {
+  setPayload(payload: CallingCallCollectEventParams) {
     this._payload = payload
   }
 
   async stop() {
     // Execute stop only if we don't have result yet
     if (!this.result) {
-      await this.execute({
+      await this._client.execute({
         method: 'calling.play_and_collect.stop',
         params: {
           node_id: this.nodeId,
@@ -140,7 +141,7 @@ export class CallPromptAPI
   }
 
   async setVolume(volume: number): Promise<this> {
-    await this.execute({
+    await this._client.execute({
       method: 'calling.play_and_collect.volume',
       params: {
         node_id: this.nodeId,
@@ -159,48 +160,28 @@ export class CallPromptAPI
   }
 
   ended() {
-    // Resolve the promise if the prompt has already ended
-    if (
-      ENDED_STATES.includes(this.result?.type as CallingCallCollectEndState)
-    ) {
-      return Promise.resolve(this)
-    }
-
     return new Promise<this>((resolve) => {
-      const handler = (_callPrompt: CallPromptEndedEvent['params']) => {
-        // @ts-expect-error
+      const handler = () => {
         this.off('prompt.ended', handler)
-        // @ts-expect-error
         this.off('prompt.failed', handler)
         // It's important to notice that we're returning
         // `this` instead of creating a brand new instance
-        // using the payload + EventEmitter Transform
-        // pipeline. `this` is the instance created by the
-        // `Call` Emitter Transform pipeline (singleton per
-        // `Call.prompt()`) that gets auto updated (using
+        // using the payload. `this` is the instance created by the
+        // `voiceCallPlayWorker` (singleton per
+        // `call.play()`) that gets auto updated (using
         // the latest payload per event) by the
-        // `voiceCallPromptWorker`
+        // `voiceCallPlayWorker`
         resolve(this)
       }
-      // @ts-expect-error
       this.once('prompt.ended', handler)
-      // @ts-expect-error
       this.once('prompt.failed', handler)
+
+      // Resolve the promise if the prompt has already ended
+      if (
+        ENDED_STATES.includes(this.result?.type as CallingCallCollectEndState)
+      ) {
+        handler()
+      }
     })
   }
-}
-
-export const createCallPromptObject = (
-  params: CallPromptOptions
-): CallPrompt => {
-  const record = connect<
-    CallPromptEventsHandlerMapping,
-    CallPromptAPI,
-    CallPrompt
-  >({
-    store: params.store,
-    Component: CallPromptAPI,
-  })(params)
-
-  return record
 }
