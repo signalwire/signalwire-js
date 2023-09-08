@@ -288,7 +288,7 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
    * await member.remove()
    * ```
    */
-  setRaisedHand(params?: Rooms.SetRaisedHandParams): Rooms.SetRaisedHand
+  setRaisedHand(params?: Rooms.SetRaisedHandMemberParams): Rooms.SetRaisedHand
 }
 
 /**

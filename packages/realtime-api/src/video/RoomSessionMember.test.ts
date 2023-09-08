@@ -26,7 +26,6 @@ describe('Member Object', () => {
     return new Promise(async (resolve) => {
       const roomSession = createRoomSessionObject({
         store,
-        // @ts-expect-error
         emitter,
         payload: {
           // @ts-expect-error
@@ -83,82 +82,109 @@ describe('Member Object', () => {
         member_id: memberId,
       },
     })
-    // await member.audioUnmute()
-    // expectExecute({
-    //   method: 'video.member.audio_unmute',
-    //   params: {
-    //     room_session_id: roomSessionId,
-    //     member_id: memberId,
-    //   },
-    // })
-    // await member.videoMute()
-    // expectExecute({
-    //   method: 'video.member.video_mute',
-    //   params: {
-    //     room_session_id: roomSessionId,
-    //     member_id: memberId,
-    //   },
-    // })
-    // await member.videoUnmute()
-    // expectExecute({
-    //   method: 'video.member.video_unmute',
-    //   params: {
-    //     room_session_id: roomSessionId,
-    //     member_id: memberId,
-    //   },
-    // })
-    // await member.setDeaf(true)
-    // expectExecute({
-    //   method: 'video.member.deaf',
-    //   params: {
-    //     room_session_id: roomSessionId,
-    //     member_id: memberId,
-    //   },
-    // })
-    // await member.setDeaf(false)
-    // expectExecute({
-    //   method: 'video.member.undeaf',
-    //   params: {
-    //     room_session_id: roomSessionId,
-    //     member_id: memberId,
-    //   },
-    // })
-    // await member.setInputVolume({ volume: 10 })
-    // expectExecute({
-    //   method: 'video.member.set_input_volume',
-    //   params: {
-    //     room_session_id: roomSessionId,
-    //     member_id: memberId,
-    //     volume: 10,
-    //   },
-    // })
-    // await member.setOutputVolume({ volume: 10 })
-    // expectExecute({
-    //   method: 'video.member.set_output_volume',
-    //   params: {
-    //     room_session_id: roomSessionId,
-    //     member_id: memberId,
-    //     volume: 10,
-    //   },
-    // })
-    // await member.setInputSensitivity({ value: 10 })
-    // expectExecute({
-    //   method: 'video.member.set_input_sensitivity',
-    //   params: {
-    //     room_session_id: roomSessionId,
-    //     member_id: memberId,
-    //     value: 10,
-    //   },
-    // })
-
-    // await member.remove()
-    // // @ts-expect-error
-    // expect(member.execute).toHaveBeenLastCalledWith({
-    //   method: 'video.member.remove',
-    //   params: {
-    //     room_session_id: member.roomSessionId,
-    //     member_id: member.id,
-    //   },
-    // })
+    await member.audioUnmute()
+    expectExecute({
+      method: 'video.member.audio_unmute',
+      params: {
+        room_session_id: roomSessionId,
+        member_id: memberId,
+      },
+    })
+    await member.videoMute()
+    expectExecute({
+      method: 'video.member.video_mute',
+      params: {
+        room_session_id: roomSessionId,
+        member_id: memberId,
+      },
+    })
+    await member.videoUnmute()
+    expectExecute({
+      method: 'video.member.video_unmute',
+      params: {
+        room_session_id: roomSessionId,
+        member_id: memberId,
+      },
+    })
+    await member.setDeaf(true)
+    expectExecute({
+      method: 'video.member.deaf',
+      params: {
+        room_session_id: roomSessionId,
+        member_id: memberId,
+      },
+    })
+    await member.setDeaf(false)
+    expectExecute({
+      method: 'video.member.undeaf',
+      params: {
+        room_session_id: roomSessionId,
+        member_id: memberId,
+      },
+    })
+    await member.setInputVolume({ volume: 10 })
+    expectExecute({
+      method: 'video.member.set_input_volume',
+      params: {
+        room_session_id: roomSessionId,
+        member_id: memberId,
+        volume: 10,
+      },
+    })
+    await member.setOutputVolume({ volume: 10 })
+    expectExecute({
+      method: 'video.member.set_output_volume',
+      params: {
+        room_session_id: roomSessionId,
+        member_id: memberId,
+        volume: 10,
+      },
+    })
+    await member.setInputSensitivity({ value: 10 })
+    expectExecute({
+      method: 'video.member.set_input_sensitivity',
+      params: {
+        room_session_id: roomSessionId,
+        member_id: memberId,
+        value: 10,
+      },
+    })
+    await member.remove()
+    // @ts-expect-error
+    expect(member.execute).toHaveBeenLastCalledWith({
+      method: 'video.member.remove',
+      params: {
+        room_session_id: member.roomSessionId,
+        member_id: member.id,
+      },
+    })
+    await member.setRaisedHand()
+    // @ts-expect-error
+    expect(member.execute).toHaveBeenLastCalledWith(
+      {
+        method: 'video.member.raisehand',
+        params: {
+          room_session_id: member.roomSessionId,
+          member_id: member.id,
+        },
+      },
+      {
+        transformResolve: expect.anything(),
+      }
+    )
+    await member.setRaisedHand({ raised: false })
+    // @ts-expect-error
+    expect(member.execute).toHaveBeenLastCalledWith(
+      {
+        method: 'video.member.lowerhand',
+        params: {
+          room_session_id: member.roomSessionId,
+          member_id: member.id,
+        },
+      },
+      {
+        transformResolve: expect.anything(),
+      }
+    )
   })
 })
