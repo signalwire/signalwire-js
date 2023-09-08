@@ -1,11 +1,11 @@
-name: Browser SDK [staging]
+name: RealtimeAPI SDK [staging]
 
 on:
   workflow_call:
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-e2e-js-staging-${{ github.ref }}
+  group: ${{ github.workflow }}-realtime-api-staging-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -15,7 +15,6 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x]
-        project: [default, streaming, slow]
     steps:
       - uses: actions/checkout@v3
       - name: Install deps
@@ -31,6 +30,6 @@ jobs:
         with:
           PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
       - name: Test
-        run: npm run -w=@sw-internal/e2e-js dev -- --project ${{ matrix.project }}
+        run: npm run -w=@sw-internal/e2e-realtime-api dev
         env:
-          SW_TEST_CONFIG: ${{ secrets.STAGING_E2E_JS_SW_TEST_CONFIG }}
+          SW_TEST_CONFIG: ${{ secrets.STAGING_E2E_REALTIME_SW_TEST_CONFIG }}
