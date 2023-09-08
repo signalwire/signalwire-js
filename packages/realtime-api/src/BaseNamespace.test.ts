@@ -1,4 +1,3 @@
-import { EventEmitter } from '@signalwire/core'
 import { BaseNamespace } from './BaseNamespace'
 
 describe('BaseNamespace', () => {
@@ -21,22 +20,12 @@ describe('BaseNamespace', () => {
         execute: jest.fn(),
       },
     }
-    baseNamespace = new BaseNamespace({ swClient: swClientMock })
+    baseNamespace = new BaseNamespace(swClientMock)
+    baseNamespace._eventMap = eventMap
   })
 
   afterEach(() => {
-    jest.restoreAllMocks()
-  })
-
-  describe('constructor', () => {
-    it('should initialize the necessary properties', () => {
-      expect(baseNamespace._sw).toBe(swClientMock)
-      expect(baseNamespace._client).toBe(swClientMock.client)
-      expect(baseNamespace._eventMap).toEqual({})
-      expect(baseNamespace._namespaceEmitter).toBeInstanceOf(EventEmitter)
-      expect(baseNamespace._listenerMap).toBeInstanceOf(Map)
-      expect(baseNamespace._listenerMap.size).toBe(0)
-    })
+    jest.resetAllMocks()
   })
 
   describe('addTopics', () => {
@@ -231,19 +220,6 @@ describe('BaseNamespace', () => {
       expect(listener1.unsub).toHaveBeenCalledTimes(1)
       expect(listener2.unsub).toHaveBeenCalledTimes(1)
       expect(baseNamespace._listenerMap.size).toBe(0)
-    })
-  })
-
-  describe('removeFromListenerMap', () => {
-    it('should remove the listener with the given UUID from the listener map', () => {
-      const idToRemove = 'uuid1'
-      baseNamespace._listenerMap.set('uuid1', {})
-      baseNamespace._listenerMap.set('uuid2', {})
-
-      baseNamespace.removeFromListenerMap(idToRemove)
-
-      expect(baseNamespace._listenerMap.size).toBe(1)
-      expect(baseNamespace._listenerMap.has(idToRemove)).toBe(false)
     })
   })
 })

@@ -1,51 +1,107 @@
-import { configureJestStore } from '../testUtils'
-import { createCallPromptObject, CallPrompt } from './CallPrompt'
+import { EventEmitter } from '@signalwire/core'
+import { createClient } from '../client/createClient'
+import { CallPrompt } from './CallPrompt'
+import { Call } from './Call'
+import { Voice } from './Voice'
 
 describe('CallPrompt', () => {
-  describe('createCallPromptObject', () => {
-    let instance: CallPrompt
-    beforeEach(() => {
-      instance = createCallPromptObject({
-        store: configureJestStore(),
-        // @ts-expect-error
-        payload: {
-          call_id: 'call_id',
-          node_id: 'node_id',
-          control_id: 'control_id',
-        },
-      })
+  let voice: Voice
+  let call: Call
+  let callPrompt: CallPrompt
+
+  const userOptions = {
+    host: 'example.com',
+    project: 'example.project',
+    token: 'example.token',
+  }
+  const swClientMock = {
+    userOptions,
+    client: createClient(userOptions),
+  }
+
+  beforeEach(() => {
+    // @ts-expect-error
+    voice = new Voice(swClientMock)
+
+    call = new Call({ voice })
+
+    callPrompt = new CallPrompt({
+      call,
       // @ts-expect-error
-      instance.execute = jest.fn()
+      payload: {
+        control_id: 'test_control_id',
+        call_id: 'test_call_id',
+        node_id: 'test_node_id',
+      },
     })
 
-    it('should control an active playback', async () => {
-      const baseExecuteParams = {
-        method: '',
-        params: {
-          call_id: 'call_id',
-          node_id: 'node_id',
-          control_id: 'control_id',
-        },
-      }
+    // @ts-expect-error
+    callPrompt._client.execute = jest.fn()
+  })
 
-      await instance.stop()
-      // @ts-expect-error
-      expect(instance.execute).toHaveBeenLastCalledWith({
-        ...baseExecuteParams,
-        method: 'calling.play_and_collect.stop',
-      })
+  it('should have an event emitter', () => {
+    expect(callPrompt['emitter']).toBeInstanceOf(EventEmitter)
+  })
 
-      await instance.setVolume(5)
+  it('should declare the correct event map', () => {
+    const expectedEventMap = {
+      onStarted: 'prompt.started',
+      onUpdated: 'prompt.updated',
+      onFailed: 'prompt.failed',
+      onEnded: 'prompt.ended',
+    }
+    expect(callPrompt['_eventMap']).toEqual(expectedEventMap)
+  })
+
+  it('should attach all listeners', () => {
+    callPrompt = new CallPrompt({
+      call,
       // @ts-expect-error
-      expect(instance.execute).toHaveBeenLastCalledWith({
-        method: 'calling.play_and_collect.volume',
-        params: {
-          call_id: 'call_id',
-          node_id: 'node_id',
-          control_id: 'control_id',
-          volume: 5,
-        },
-      })
+      payload: {},
+      listeners: {
+        onStarted: () => {},
+        onUpdated: () => {},
+        onFailed: () => {},
+        onEnded: () => {},
+      },
+    })
+
+    // @ts-expect-error
+    expect(callPrompt.emitter.eventNames()).toStrictEqual([
+      'prompt.started',
+      'prompt.updated',
+      'prompt.failed',
+      'prompt.ended',
+    ])
+  })
+
+  it('should control an active prompt', async () => {
+    const baseExecuteParams = {
+      method: '',
+      params: {
+        control_id: 'test_control_id',
+        call_id: 'test_call_id',
+        node_id: 'test_node_id',
+      },
+    }
+
+    await callPrompt.stop()
+    // @ts-expect-error
+    expect(callPrompt._client.execute).toHaveBeenLastCalledWith({
+      ...baseExecuteParams,
+      method: 'calling.play_and_collect.stop',
+    })
+
+    await callPrompt.setVolume(5)
+    // @ts-expect-error
+    expect(callPrompt._client.execute).toHaveBeenLastCalledWith({
+      method: 'calling.play_and_collect.volume',
+      params: {
+        control_id: 'test_control_id',
+        call_id: 'test_call_id',
+        node_id: 'test_node_id',
+        volume: 5,
+      },
     })
   })
 })

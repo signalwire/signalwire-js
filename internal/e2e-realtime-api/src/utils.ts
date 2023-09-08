@@ -216,3 +216,115 @@ const createDomainApp = (params: CreateDomainAppParams): Promise<DomainApp> => {
     req.end()
   })
 }
+
+export const CALL_PROPS = [
+  'id',
+  'callId',
+  'nodeId',
+  'state',
+  'callState',
+  // 'tag', // Inbound calls does not have tags
+  'device',
+  'type',
+  'from',
+  'to',
+  'headers',
+  'active',
+  'connected',
+  'direction',
+  // 'context', // Outbound calls do not have context
+  // 'connectState', // Undefined unless peer call
+  // 'peer', // Undefined unless peer call
+  'hangup',
+  'pass',
+  'answer',
+  'play',
+  'playAudio',
+  'playSilence',
+  'playRingtone',
+  'playTTS',
+  'record',
+  'recordAudio',
+  'prompt',
+  'promptAudio',
+  'promptRingtone',
+  'promptTTS',
+  'sendDigits',
+  'tap',
+  'tapAudio',
+  'connect',
+  'connectPhone',
+  'connectSip',
+  'disconnect',
+  'waitForDisconnected',
+  'disconnected',
+  'detect',
+  'amd',
+  'detectFax',
+  'detectDigit',
+  'collect',
+  'waitFor',
+]
+
+export const CALL_PLAYBACK_PROPS = [
+  'id',
+  'callId',
+  'nodeId',
+  'controlId',
+  'state',
+  'pause',
+  'resume',
+  'stop',
+  'setVolume',
+  'ended',
+]
+
+export const CALL_RECORD_PROPS = [
+  'id',
+  'callId',
+  'nodeId',
+  'controlId',
+  'state',
+  // 'url', // Sometimes server does not return it
+  'record',
+  'stop',
+  'ended',
+]
+
+export const CALL_PROMPT_PROPS = [
+  'id',
+  'callId',
+  'nodeId',
+  'controlId',
+  'stop',
+  'setVolume',
+  'ended',
+]
+
+export const CALL_COLLECT_PROPS = [
+  'id',
+  'callId',
+  'nodeId',
+  'controlId',
+  'stop',
+  'startInputTimers',
+  'ended',
+]
+
+export const CALL_TAP_PROPS = [
+  'id',
+  'callId',
+  'nodeId',
+  'controlId',
+  'stop',
+  'ended',
+]
+
+export const CALL_DETECT_PROPS = [
+  'id',
+  'callId',
+  'nodeId',
+  'controlId',
+  'stop',
+  'ended',
+]
