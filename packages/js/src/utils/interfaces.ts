@@ -77,6 +77,8 @@ export type DeprecatedVideoMemberHandlerParams = {
 export type VideoMemberHandlerParams = { member: VideoMemberEntity }
 export type VideoMemberUpdatedHandlerParams = {
   member: VideoMemberEntityUpdated
+  room_id?: string
+  room_session_id?: string
 }
 export type VideoMemberListUpdatedParams = { members: VideoMemberEntity[] }
 
