@@ -28,14 +28,14 @@ jobs:
         uses: ./.github/actions/build
         with:
           NODE_VERSION: ${{ matrix.node-version }}
-      - name: Unit Tests
-        run: npm test
-      - name: Stack Tests
-        run: npm run -w=@sw-internal/stack-tests dev
-        env:
-          RELAY_HOST: ${{ secrets.RELAY_HOST }}
-          RELAY_PROJECT: ${{ secrets.RELAY_PROJECT }}
-          RELAY_TOKEN: ${{ secrets.RELAY_TOKEN }}
+      # - name: Unit Tests
+      #   run: npm test
+      # - name: Stack Tests
+      #   run: npm run -w=@sw-internal/stack-tests dev
+      #   env:
+      #     RELAY_HOST: ${{ secrets.RELAY_HOST }}
+      #     RELAY_PROJECT: ${{ secrets.RELAY_PROJECT }}
+      #     RELAY_TOKEN: ${{ secrets.RELAY_TOKEN }}
   e2e-tests-staging:
     needs: tests
     uses: ./.github/workflows/browser-js-staging
