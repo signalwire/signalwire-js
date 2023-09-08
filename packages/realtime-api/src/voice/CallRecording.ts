@@ -1,88 +1,88 @@
 import {
-  connect,
-  BaseComponentOptionsWithPayload,
   VoiceCallRecordingContract,
   CallingCallRecordEndState,
   CallingCallRecordEventParams,
-  EventEmitter,
-  BaseConsumer,
 } from '@signalwire/core'
+import { ListenSubscriber } from '../ListenSubscriber'
+import {
+  CallRecordingEvents,
+  CallRecordingListeners,
+  CallRecordingListenersEventsMapping,
+} from '../types'
+import { Call } from './Call'
 
-/**
- * Instances of this class allow you to control (e.g., resume) the
- * recording inside a Voice Call. You can obtain instances of this class by
- * starting a recording from the desired {@link Call} (see
- * {@link Call.record})
- */
-export interface CallRecording extends VoiceCallRecordingContract {
-  setPayload: (payload: CallingCallRecordEventParams) => void
-  _paused: boolean
-  /** @internal */
-  emit(event: EventEmitter.EventNames<any>, ...args: any[]): void
+export interface CallRecordingOptions {
+  call: Call
+  payload: CallingCallRecordEventParams
+  listeners?: CallRecordingListeners
 }
-
-export type CallRecordingEventsHandlerMapping = {}
-
-export interface CallRecordingOptions
-  extends BaseComponentOptionsWithPayload<CallingCallRecordEventParams> {}
 
 const ENDED_STATES: CallingCallRecordEndState[] = ['finished', 'no_input']
 
-export class CallRecordingAPI
-  extends BaseConsumer<CallRecordingEventsHandlerMapping>
+export class CallRecording
+  extends ListenSubscriber<CallRecordingListeners, CallRecordingEvents>
   implements VoiceCallRecordingContract
 {
   private _payload: CallingCallRecordEventParams
+  protected _eventMap: CallRecordingListenersEventsMapping = {
+    onStarted: 'recording.started',
+    onFailed: 'recording.failed',
+    onEnded: 'recording.ended',
+  }
 
   constructor(options: CallRecordingOptions) {
-    super(options)
+    super({ swClient: options.call._sw })
 
     this._payload = options.payload
+
+    if (options.listeners) {
+      this.listen(options.listeners)
+    }
   }
 
   get id() {
-    return this._payload?.control_id
+    return this._payload.control_id
   }
 
   get callId() {
-    return this._payload?.call_id
+    return this._payload.call_id
   }
 
   get nodeId() {
-    return this._payload?.node_id
+    return this._payload.node_id
   }
 
   get controlId() {
-    return this._payload?.control_id
+    return this._payload.control_id
   }
 
   get state() {
-    return this._payload?.state
+    return this._payload.state
   }
 
   get url() {
-    return this._payload?.url
+    return this._payload.url
   }
 
   get size() {
-    return this._payload?.size
+    return this._payload.size
   }
 
   get duration() {
-    return this._payload?.duration
+    return this._payload.duration
   }
 
   get record() {
-    return this._payload?.record
+    return this._payload.record
   }
 
   /** @internal */
-  protected setPayload(payload: CallingCallRecordEventParams) {
+  setPayload(payload: CallingCallRecordEventParams) {
     this._payload = payload
   }
 
   async stop() {
-    await this.execute({
+    await this._client.execute({
       method: 'calling.record.stop',
       params: {
         node_id: this.nodeId,
@@ -91,35 +91,24 @@ export class CallRecordingAPI
       },
     })
 
-    /**
-     * TODO: we should wait for the recording `finished` event to allow
-     * the CallRecording/Proxy object to update the payload properly
-     */
-
     return this
   }
 
   ended() {
     return new Promise<this>((resolve) => {
       const handler = () => {
-        // @ts-expect-error
         this.off('recording.ended', handler)
-        // @ts-expect-error
         this.off('recording.failed', handler)
         // It's important to notice that we're returning
         // `this` instead of creating a brand new instance
-        // using the payload + EventEmitter Transform
-        // pipeline. `this` is the instance created by the
-        // `Call` Emitter Transform pipeline (singleton per
-        // `Call.record()`) that gets auto updated (using
+        // using the payload. `this` is the instance created by the
+        // `voiceCallRecordWorker` (singleton per
+        // `call.play()`) that gets auto updated (using
         // the latest payload per event) by the
         // `voiceCallRecordWorker`
         resolve(this)
       }
-      // @ts-expect-error
       this.once('recording.ended', handler)
-      // TODO: review what else to return when `recording.failed` happens.
-      // @ts-expect-error
       this.once('recording.failed', handler)
 
       // Resolve the promise if the recording has already ended
@@ -128,19 +117,4 @@ export class CallRecordingAPI
       }
     })
   }
-}
-
-export const createCallRecordingObject = (
-  params: CallRecordingOptions
-): CallRecording => {
-  const record = connect<
-    CallRecordingEventsHandlerMapping,
-    CallRecordingAPI,
-    CallRecording
-  >({
-    store: params.store,
-    Component: CallRecordingAPI,
-  })(params)
-
-  return record
 }

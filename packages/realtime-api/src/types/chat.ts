@@ -10,3 +10,7 @@ export type RealTimeChatApiEventsHandlerMapping = Record<
   (message: ChatMessage) => void
 > &
   Record<ChatMemberEventNames, (member: ChatMember) => void>
+
+export type RealTimeChatEvents = {
+  [k in keyof RealTimeChatApiEventsHandlerMapping]: RealTimeChatApiEventsHandlerMapping[k]
+}

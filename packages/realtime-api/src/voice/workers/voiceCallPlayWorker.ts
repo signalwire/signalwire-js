@@ -1,79 +1,115 @@
 import {
   getLogger,
   SagaIterator,
-  CallingCallPlayEventParams,
+  SDKWorker,
+  sagaEffects,
+  VoiceCallPlayAction,
 } from '@signalwire/core'
-import { CallPlayback, createCallPlaybackObject } from '../CallPlayback'
-import { Call } from '../Voice'
-import type { VoiceCallWorkerParams } from './voiceCallingWorker'
+import type { Client } from '../../client/index'
+import { CallPlaybackListeners } from '../../types'
+import { CallPlayback } from '../CallPlayback'
+import { Call } from '../Call'
+import { SDKActions } from 'packages/core/dist/core/src'
 
-export const voiceCallPlayWorker = function* (
-  options: VoiceCallWorkerParams<CallingCallPlayEventParams>
+interface VoiceCallPlayWorkerInitialState {
+  controlId: string
+  listeners?: CallPlaybackListeners
+}
+
+export const voiceCallPlayWorker: SDKWorker<Client> = function* (
+  options
 ): SagaIterator {
   getLogger().trace('voiceCallPlayWorker started')
   const {
-    payload,
+    channels: { swEventChannel },
     instanceMap: { get, set, remove },
+    initialState,
   } = options
 
-  const callInstance = get<Call>(payload.call_id)
-  if (!callInstance) {
-    throw new Error('Missing call instance for playback')
+  const { controlId, listeners } =
+    initialState as VoiceCallPlayWorkerInitialState
+
+  /**
+   * Playback listeners can be attached to both Call and CallPlayback objects
+   * So, we emit the events for both objects
+   * Some events are also being used to resolve the promise such as playback.started and playback.failed
+   * This worker is also responsible to handle CallPrompt events
+   */
+
+  function* worker(action: VoiceCallPlayAction) {
+    const { payload } = action
+
+    if (payload.control_id !== controlId) return
+
+    // CallPrompt events contains .prompt at the end of the control id
+    const [playbackControlId] = payload.control_id.split('.')
+
+    const removeFromInstanceMap = () => {
+      // Do not remove the CallPrompt instance. It will be removed by the @voiceCallCollectWorker
+      if (payload.control_id.includes('.prompt')) return
+      remove<CallPlayback>(playbackControlId)
+    }
+
+    const callInstance = get<Call>(payload.call_id)
+    if (!callInstance) {
+      throw new Error('Missing call instance for playback')
+    }
+
+    let playbackInstance = get<CallPlayback>(playbackControlId)
+    if (!playbackInstance) {
+      playbackInstance = new CallPlayback({
+        call: callInstance,
+        payload,
+        listeners,
+      })
+    } else {
+      playbackInstance.setPayload(payload)
+    }
+    set<CallPlayback>(playbackControlId, playbackInstance)
+
+    switch (payload.state) {
+      case 'playing': {
+        const type = playbackInstance._paused
+          ? 'playback.updated'
+          : 'playback.started'
+        playbackInstance._paused = false
+        callInstance.emit(type, playbackInstance)
+        playbackInstance.emit(type, playbackInstance)
+        return false
+      }
+      case 'paused': {
+        playbackInstance._paused = true
+        callInstance.emit('playback.updated', playbackInstance)
+        playbackInstance.emit('playback.updated', playbackInstance)
+        return false
+      }
+      case 'error': {
+        callInstance.emit('playback.failed', playbackInstance)
+        playbackInstance.emit('playback.failed', playbackInstance)
+        removeFromInstanceMap()
+        return true
+      }
+      case 'finished': {
+        callInstance.emit('playback.ended', playbackInstance)
+        playbackInstance.emit('playback.ended', playbackInstance)
+        removeFromInstanceMap()
+        return true
+      }
+      default:
+        getLogger().warn(`Unknown playback state: "${payload.state}"`)
+        return false
+    }
   }
 
-  // Playback events control id for prompt contains `.prompt` keyword at the end of the string
-  const [controlId] = payload.control_id.split('.')
-  getLogger().trace('voiceCallPlayWorker controlId', controlId)
+  while (true) {
+    const action = yield sagaEffects.take(
+      swEventChannel,
+      (action: SDKActions) => action.type === 'calling.call.play'
+    )
 
-  let playbackInstance = get<CallPlayback>(controlId)
-  if (!playbackInstance) {
-    getLogger().trace('voiceCallPlayWorker create instance')
-    playbackInstance = createCallPlaybackObject({
-      store: callInstance.store,
-      payload,
-    })
-  } else {
-    getLogger().trace('voiceCallPlayWorker GOT instance')
-    playbackInstance.setPayload(payload)
-  }
-  set<CallPlayback>(controlId, playbackInstance)
+    const shouldStop = yield sagaEffects.fork(worker, action)
 
-  switch (payload.state) {
-    case 'playing': {
-      const type = playbackInstance._paused
-        ? 'playback.updated'
-        : 'playback.started'
-      playbackInstance._paused = false
-
-      callInstance.emit(type, playbackInstance)
-      break
-    }
-    case 'paused': {
-      playbackInstance._paused = true
-      callInstance.emit('playback.updated', playbackInstance)
-      break
-    }
-    case 'error': {
-      callInstance.emit('playback.failed', playbackInstance)
-
-      // To resolve the ended() promise in CallPlayback
-      playbackInstance.emit('playback.failed', playbackInstance)
-
-      remove<CallPlayback>(controlId)
-      break
-    }
-    case 'finished': {
-      callInstance.emit('playback.ended', playbackInstance)
-
-      // To resolve the ended() promise in CallPlayback
-      playbackInstance.emit('playback.ended', playbackInstance)
-
-      remove<CallPlayback>(controlId)
-      break
-    }
-    default:
-      getLogger().warn(`Unknown playback state: "${payload.state}"`)
-      break
+    if (shouldStop.result()) break
   }
 
   getLogger().trace('voiceCallPlayWorker ended')

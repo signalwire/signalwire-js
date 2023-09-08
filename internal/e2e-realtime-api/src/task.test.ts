@@ -1,3 +1,4 @@
+import tap from 'tap'
 import { SignalWire } from '@signalwire/realtime-api'
 import { createTestRunner } from './utils'
 
@@ -8,54 +9,73 @@ const handler = () => {
         host: process.env.RELAY_HOST || 'relay.swire.io',
         project: process.env.RELAY_PROJECT as string,
         token: process.env.RELAY_TOKEN as string,
+        debug: {
+          logWsTraffic: true,
+        },
       })
 
       const firstPayload = {
-        id: Date.now(),
+        id: 1,
         topic: 'home',
       }
       const secondPayload = {
-        id: Date.now(),
+        id: 2,
         topic: 'home',
       }
       const thirdPayload = {
-        id: Date.now(),
+        id: 3,
         topic: 'office',
       }
 
-      let counter = 0
+      let unsubHomeOfficeCount = 0
+
       const unsubHomeOffice = await client.task.listen({
         topics: ['home', 'office'],
-        onTaskReceived: (payload) => {
+        onTaskReceived: async (payload) => {
           if (
             payload.topic !== 'home' ||
-            payload.id !== firstPayload.id ||
-            payload.id !== secondPayload.id ||
-            counter > 3
+            (payload.id !== firstPayload.id && payload.id !== secondPayload.id)
           ) {
-            console.error('Invalid payload on `home` context', payload)
-            return reject(4)
+            tap.notOk(
+              payload,
+              "Message received on wrong ['home', 'office'] listener"
+            )
           }
-          counter++
+
+          tap.ok(payload, 'Message received on ["home", "office"] topics')
+          unsubHomeOfficeCount++
+
+          if (unsubHomeOfficeCount === 2) {
+            await unsubHomeOffice()
+
+            // This message should not reach the listener since we have unsubscribed
+            await client.task.send({
+              topic: 'home',
+              message: secondPayload,
+            })
+
+            await client.task.send({
+              topic: 'office',
+              message: thirdPayload,
+            })
+          }
         },
       })
 
       const unsubOffice = await client.task.listen({
         topics: ['office'],
-        onTaskReceived: (payload) => {
-          if (
-            payload.topic !== 'office' ||
-            payload.id !== thirdPayload.id ||
-            counter > 3
-          ) {
-            console.error('Invalid payload on `home` context', payload)
-            return reject(4)
+        onTaskReceived: async (payload) => {
+          if (payload.topic !== 'office' || payload.id !== thirdPayload.id) {
+            tap.notOk(payload, "Message received on wrong ['office'] listener")
           }
-          counter++
 
-          if (counter === 3) {
-            return resolve(0)
-          }
+          tap.ok(payload, 'Message received on ["office"] topics')
+
+          await unsubOffice()
+
+          client.disconnect()
+
+          return resolve(0)
         },
       })
 
@@ -68,21 +88,6 @@ const handler = () => {
         topic: 'home',
         message: secondPayload,
       })
-
-      await unsubHomeOffice()
-
-      // This message should not reach the listener
-      await client.task.send({
-        topic: 'home',
-        message: secondPayload,
-      })
-
-      await client.task.send({
-        topic: 'office',
-        message: thirdPayload,
-      })
-
-      await unsubOffice()
     } catch (error) {
       console.log('Task test error', error)
       reject(error)
@@ -94,6 +99,7 @@ async function main() {
   const runner = createTestRunner({
     name: 'Task E2E',
     testHandler: handler,
+    executionTime: 30_000,
   })
 
   await runner.run()

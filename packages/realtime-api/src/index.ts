@@ -84,38 +84,49 @@ export * from './configure'
  */
 export * as Messaging from './messaging/Messaging'
 
+export * as Chat from './chat/Chat'
+
+export * as PubSub from './pubSub/PubSub'
+
+export * as Task from './task/Task'
+
+export * as Voice from './voice/Voice'
+
 /**
- * Access the Voice API. You can instantiate a {@link Voice.Client} to
- * make or receive calls. Please check
- * {@link Voice.VoiceClientApiEvents} for the full list of events that
- * a {@link Voice.Client} can subscribe to.
+ * Access all the SignalWire APIs with a single instance. You can initiate a {@link SignalWire} to
+ * use Messaging, Chat, PubSub, Task, Voice, and Video APIs.
  *
  * @example
  *
- * The following example answers any call in the "office" context,
- * and immediately plays some speech.
+ * The following example creates a single client and uses Task and Voice APIs.
  *
  * ```javascript
- * const client = new Voice.Client({
+ * const client = await SignalWire({
  *   project: "<project-id>",
  *   token: "<api-token>",
- *   contexts: ['office']
  * })
  *
- * client.on('call.received', async (call) => {
- *   console.log('Got call', call.from, call.to)
+ * await client.task.listen({
+ *  topics: ['office'],
+ *  onTaskReceived: (payload) => {
+ *    console.log('message.received', payload)}
+ * })
  *
- *   try {
- *     await call.answer()
- *     console.log('Inbound call answered')
+ * await client.task.send({
+ *   topic: 'office',
+ *   message: '+1yyy',
+ * })
  *
- *     await call.playTTS({ text: "Hello! This is a test call."})
- *   } catch (error) {
- *     console.error('Error answering inbound call', error)
- *   }
+ * await client.voice.listen({
+ *  topics: ['office'],
+ *  onCallReceived: (call) => {
+ *    console.log('call.received', call)}
+ * })
+ *
+ * await client.voice.dialPhone({
+ *   from: '+1xxx',
+ *   to: '+1yyy',
  * })
  * ```
  */
-export * as Voice from './voice/Voice'
-
 export * from './SignalWire'

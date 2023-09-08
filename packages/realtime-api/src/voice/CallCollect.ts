@@ -1,30 +1,21 @@
 import {
-  connect,
-  BaseComponentOptionsWithPayload,
   VoiceCallCollectContract,
   CallingCallCollectEndState,
-  CallCollectEndedEvent,
   CallingCallCollectEventParams,
-  EventEmitter,
-  BaseConsumer,
 } from '@signalwire/core'
+import { ListenSubscriber } from '../ListenSubscriber'
+import { Call } from './Call'
+import {
+  CallCollectEvents,
+  CallCollectListeners,
+  CallCollectListenersEventsMapping,
+} from '../types'
 
-/**
- * Instances of this class allow you to control (e.g., resume) the
- * prompt inside a Voice Call. You can obtain instances of this class by
- * starting a Prompt from the desired {@link Call} (see
- * {@link Call.prompt})
- */
-export interface CallCollect extends VoiceCallCollectContract {
-  setPayload: (payload: CallingCallCollectEventParams) => void
-  /** @internal */
-  emit(event: EventEmitter.EventNames<any>, ...args: any[]): void
+export interface CallCollectOptions {
+  call: Call
+  payload: CallingCallCollectEventParams
+  listeners?: CallCollectListeners
 }
-
-export type CallCollectEventsHandlerMapping = {}
-
-export interface CallCollectOptions
-  extends BaseComponentOptionsWithPayload<CallingCallCollectEventParams> {}
 
 const ENDED_STATES: CallingCallCollectEndState[] = [
   'error',
@@ -34,16 +25,27 @@ const ENDED_STATES: CallingCallCollectEndState[] = [
   'speech',
 ]
 
-export class CallCollectAPI
-  extends BaseConsumer<CallCollectEventsHandlerMapping>
+export class CallCollect
+  extends ListenSubscriber<CallCollectListeners, CallCollectEvents>
   implements VoiceCallCollectContract
 {
   private _payload: CallingCallCollectEventParams
+  protected _eventMap: CallCollectListenersEventsMapping = {
+    onStarted: 'collect.started',
+    onInputStarted: 'collect.startOfInput',
+    onUpdated: 'collect.updated',
+    onFailed: 'collect.failed',
+    onEnded: 'collect.ended',
+  }
 
   constructor(options: CallCollectOptions) {
-    super(options)
+    super({ swClient: options.call._sw })
 
     this._payload = options.payload
+
+    if (options.listeners) {
+      this.listen(options.listeners)
+    }
   }
 
   get id() {
@@ -114,14 +116,14 @@ export class CallCollectAPI
   }
 
   /** @internal */
-  protected setPayload(payload: CallingCallCollectEventParams) {
+  setPayload(payload: CallingCallCollectEventParams) {
     this._payload = payload
   }
 
   async stop() {
     // Execute stop only if we don't have result yet
     if (!this.result) {
-      await this.execute({
+      await this._client.execute({
         method: 'calling.collect.stop',
         params: {
           node_id: this.nodeId,
@@ -140,7 +142,7 @@ export class CallCollectAPI
   }
 
   async startInputTimers() {
-    await this.execute({
+    await this._client.execute({
       method: 'calling.collect.start_input_timers',
       params: {
         node_id: this.nodeId,
@@ -153,48 +155,28 @@ export class CallCollectAPI
   }
 
   ended() {
-    // Resolve the promise if the collect has already ended
-    if (
-      ENDED_STATES.includes(this.result?.type as CallingCallCollectEndState)
-    ) {
-      return Promise.resolve(this)
-    }
-
     return new Promise<this>((resolve) => {
-      const handler = (_callCollect: CallCollectEndedEvent['params']) => {
-        // @ts-expect-error
+      const handler = () => {
         this.off('collect.ended', handler)
-        // @ts-expect-error
         this.off('collect.failed', handler)
         // It's important to notice that we're returning
         // `this` instead of creating a brand new instance
-        // using the payload + EventEmitter Transform
-        // pipeline. `this` is the instance created by the
-        // `Call` Emitter Transform pipeline (singleton per
-        // `Call.prompt()`) that gets auto updated (using
+        // using the payload. `this` is the instance created by the
+        // `voiceCallCollectWorker` (singleton per
+        // `call.play()`) that gets auto updated (using
         // the latest payload per event) by the
         // `voiceCallCollectWorker`
         resolve(this)
       }
-      // @ts-expect-error
       this.once('collect.ended', handler)
-      // @ts-expect-error
       this.once('collect.failed', handler)
+
+      // Resolve the promise if the collect has already ended
+      if (
+        ENDED_STATES.includes(this.result?.type as CallingCallCollectEndState)
+      ) {
+        handler()
+      }
     })
   }
-}
-
-export const createCallCollectObject = (
-  params: CallCollectOptions
-): CallCollect => {
-  const collect = connect<
-    CallCollectEventsHandlerMapping,
-    CallCollectAPI,
-    CallCollect
-  >({
-    store: params.store,
-    Component: CallCollectAPI,
-  })(params)
-
-  return collect
 }

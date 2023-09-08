@@ -1,5 +1,4 @@
 import { SagaIterator } from '@redux-saga/core'
-import { Chat } from '../Chat'
 import {
   sagaEffects,
   SDKWorker,
@@ -11,13 +10,21 @@ import {
   SDKActions,
 } from '@signalwire/core'
 import { prefixEvent } from '../../utils/internals'
+import type { Client } from '../../client/Client'
+import { Chat } from '../Chat'
 
-export const chatWorker: SDKWorker<Chat> = function* (options): SagaIterator {
+interface ChatWorkerInitialState {
+  chat: Chat
+}
+
+export const chatWorker: SDKWorker<Client> = function* (options): SagaIterator {
   getLogger().trace('chatWorker started')
   const {
     channels: { swEventChannel },
-    initialState: { chatEmitter },
+    initialState,
   } = options
+
+  const { chat } = initialState as ChatWorkerInitialState
 
   function* worker(action: ChatAction) {
     const { type, payload } = action
@@ -31,7 +38,8 @@ export const chatWorker: SDKWorker<Chat> = function* (options): SagaIterator {
         })
         const chatMessage = new ChatMessage(externalJSON)
 
-        chatEmitter.emit(prefixEvent(channel, 'chat.message'), chatMessage)
+        // @ts-expect-error
+        chat.emit(prefixEvent(channel, 'chat.message'), chatMessage)
         break
       }
       case 'chat.member.joined':
@@ -41,7 +49,8 @@ export const chatWorker: SDKWorker<Chat> = function* (options): SagaIterator {
         const externalJSON = toExternalJSON(member)
         const chatMember = new ChatMember(externalJSON)
 
-        chatEmitter.emit(prefixEvent(channel, type), chatMember)
+        // @ts-expect-error
+        chat.emit(prefixEvent(channel, type), chatMember)
         break
       }
       default:
