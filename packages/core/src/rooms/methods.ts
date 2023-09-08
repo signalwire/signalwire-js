@@ -730,22 +730,14 @@ export const deleteMemberMeta = createRoomMemberMethod<BaseRPCResult, void>(
   }
 )
 
-export interface SetRaisedHandRoomParams {
-  memberId: string
+export interface SetRaisedHandParams {
+  memberId?: string
   raised?: boolean
 }
 
-export interface SetRaisedHandMemberParams {
-  raised?: boolean
-}
-
-export const setRaisedHand: RoomMethodDescriptor<
-  void,
-  SetRaisedHandRoomParams | SetRaisedHandMemberParams
-> = {
+export const setRaisedHand: RoomMethodDescriptor<void, SetRaisedHandParams> = {
   value: function (value) {
-    const { raised = true, memberId = this.memberId } =
-      (value as SetRaisedHandRoomParams) || {}
+    const { raised = true, memberId = this.memberId } = value || {}
 
     if (!memberId) {
       throw new TypeError('Invalid or missing "memberId" argument')

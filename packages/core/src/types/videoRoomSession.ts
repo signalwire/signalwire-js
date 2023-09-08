@@ -98,6 +98,8 @@ export interface VideoRoomSessionContract {
   streaming: boolean
   /** List of active streams in the room session. */
   streams?: Rooms.RoomSessionStream[]
+  /** Prioritize the hand raise for the layout */
+  prioritizeHandraise: Boolean
 
   /**
    * Puts the microphone on mute. The other participants will not hear audio
@@ -769,7 +771,7 @@ export interface VideoRoomSessionContract {
    * await room.setHandRaised({ memberId: id, raised: false })
    * ```
    */
-  setRaisedHand(params: Rooms.SetRaisedHandRoomParams): Rooms.SetRaisedHand
+  setRaisedHand(params?: Rooms.SetRaisedHandParams): Rooms.SetRaisedHand
 }
 
 /**
@@ -815,6 +817,7 @@ type InternalVideoRoomEntity = {
   recordings?: any[]
   playbacks?: any[]
   streams?: any[]
+  prioritize_handraise: boolean
 }
 
 /**
