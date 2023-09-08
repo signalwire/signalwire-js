@@ -6,7 +6,7 @@ import {
 } from '@signalwire/core'
 import { BaseNamespace, Listeners } from '../BaseNamespace'
 
-export interface BaseChatListenOptions {
+export interface BaseChatListenOptions extends ListenOptions {
   channels: string[]
 }
 
