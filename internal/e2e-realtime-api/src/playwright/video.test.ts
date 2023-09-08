@@ -24,7 +24,9 @@ test.describe('Video', () => {
 
     videoClient.on('room.started', async (roomSession) => {
       console.log('Room started', roomSession.id)
-      roomSessionCreated.set(roomSession.id, roomSession)
+      if (roomSession.name.startsWith(prefix)) {
+        roomSessionCreated.set(roomSession.id, roomSession)
+      }
     })
 
     videoClient.on('room.ended', async (roomSession) => {
