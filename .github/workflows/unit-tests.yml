@@ -36,3 +36,5 @@ jobs:
           RELAY_HOST: ${{ secrets.RELAY_HOST }}
           RELAY_PROJECT: ${{ secrets.RELAY_PROJECT }}
           RELAY_TOKEN: ${{ secrets.RELAY_TOKEN }}
+      - name: E2E Tests [staging]
+        uses: ./.github/workflows/browser-js-staging
