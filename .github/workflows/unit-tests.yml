@@ -39,3 +39,4 @@ jobs:
   e2e-tests-staging:
     needs: tests
     uses: ./.github/workflows/browser-js-staging.yml
+    secrets: inherit
