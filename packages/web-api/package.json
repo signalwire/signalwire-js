@@ -14,7 +14,7 @@
     "src"
   ],
   "engines": {
-    "node": ">=16"
+    "node": ">=14"
   },
   "keywords": [
     "signalwire",
