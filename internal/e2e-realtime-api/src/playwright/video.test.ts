@@ -94,7 +94,9 @@ test.describe('Video', () => {
           }
         })
         await rs.lock()
+      })
 
+      await new Promise<void>(async (resolve, reject) => {
         rs.once('room.updated', (roomSession) => {
           if (roomSession.locked === false) {
             resolve()
