@@ -1,7 +1,7 @@
 import type { FastifyRequest, FastifyReply } from 'fastify'
-import fetch from 'node-fetch'
 
-export const swLogoUrl = process.env.SWAIG_SDK_LOGO ??
+export const swLogoUrl =
+  process.env.SWAIG_SDK_LOGO ??
   'https://developer.signalwire.com/landing-assets/images/logo.svg'
 
 export async function validate(
@@ -22,7 +22,7 @@ export const fetchSWLogo = async () => {
   try {
     const response = await fetch(swLogoUrl)
 
-    const buffer = await response.buffer()
+    const buffer = await response.arrayBuffer()
 
     return buffer
   } catch (error) {
