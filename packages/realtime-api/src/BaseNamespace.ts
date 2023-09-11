@@ -20,36 +20,6 @@ export class BaseNamespace<
     super({ swClient: options })
   }
 
-  /** @internal */
-  emit(event: EventEmitter.EventNames<EventTypes>, ...args: any[]) {
-    // @ts-expect-error
-    return this.emitter.emit(event, ...args)
-  }
-
-  /** @internal */
-  on<E extends EventEmitter.EventNames<EventTypes>>(
-    event: E,
-    fn: EventEmitter.EventListener<EventTypes, E>
-  ) {
-    return this.emitter.on(event, fn)
-  }
-
-  /** @internal */
-  once<T extends EventEmitter.EventNames<EventTypes>>(
-    event: T,
-    fn: EventEmitter.EventListener<EventTypes, T>
-  ) {
-    return this.emitter.once(event, fn)
-  }
-
-  /** @internal */
-  off<T extends EventEmitter.EventNames<EventTypes>>(
-    event: T,
-    fn?: EventEmitter.EventListener<EventTypes, T>
-  ) {
-    return this.emitter.off(event, fn)
-  }
-
   protected addTopics(topics: string[]) {
     const executeParams: ExecuteParams = {
       method: 'signalwire.receive',
@@ -119,7 +89,8 @@ export class BaseNamespace<
       })
     }
 
-    this._listenerMap.set(_uuid, {
+    // Add topics to the listener map
+    this.addToListenerMap(_uuid, {
       topics: new Set([...topics!]),
       listeners: listeners as Listeners<T>,
       unsub,

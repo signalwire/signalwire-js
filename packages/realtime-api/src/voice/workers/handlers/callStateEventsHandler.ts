@@ -33,6 +33,7 @@ export function handleCallStateEvents(options: CallStateEventsHandlerOptions) {
   switch (payload.call_state) {
     case 'ended': {
       callInstance.emit('call.state', callInstance)
+
       // Resolves the promise when user disconnects using a peer call instance
       // @ts-expect-error
       callInstance.emit('connect.disconnected', callInstance)
