@@ -1,8 +1,8 @@
-name: Publish to NPM
+name: Release dev tag to NPM
 
 on:
   workflow_run:
-    workflows: [Run Tests]
+    workflows: [Unit and stack tests]
     branches: [main]
     types:
       - completed
@@ -27,7 +27,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: 'https://registry.npmjs.org'
-      - run: npm i
-      - run: npm run release:dev
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: echo "GO"
+      # - run: npm ci
+      # - run: npm run release:dev
+      # env:
+      #   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

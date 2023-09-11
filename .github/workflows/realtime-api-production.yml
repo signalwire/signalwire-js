@@ -1,0 +1,35 @@
+name: RealtimeAPI SDK [production]
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-realtime-api-production-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e-tests:
+    name: Run E2E tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install deps
+        uses: ./.github/actions/install
+        with:
+          NODE_VERSION: ${{ matrix.node-version }}
+      - name: Build SDKs
+        uses: ./.github/actions/build
+        with:
+          NODE_VERSION: ${{ matrix.node-version }}
+      - name: Install Playwright
+        uses: ./.github/actions/playwright
+        with:
+          PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
+      - name: Test
+        run: npm run -w=@sw-internal/e2e-realtime-api dev
+        env:
+          SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_REALTIME_SW_TEST_CONFIG }}

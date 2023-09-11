@@ -1,4 +1,4 @@
-name: Publish to Pages
+name: Update playgrounds on GH Pages
 
 on:
   push:

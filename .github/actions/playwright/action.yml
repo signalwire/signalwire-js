@@ -1,0 +1,22 @@
+name: Playwright
+description: Install playwright and required browsers
+
+inputs:
+  PLAYWRIGHT_VERSION:
+    required: true
+    description: Playwright version to use
+
+runs:
+  using: composite
+  steps:
+    - name: Cache playwright binaries
+      uses: actions/cache@v3
+      id: playwright-cache
+      with:
+        path: |
+          ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-${{ inputs.PLAYWRIGHT_VERSION }}
+    - if: steps.playwright-cache.outputs.cache-hit != 'true'
+      name: Install Playwright
+      shell: bash
+      run: npx playwright install --with-deps chromium
