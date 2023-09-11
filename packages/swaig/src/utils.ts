@@ -1,7 +1,7 @@
 import type { FastifyRequest, FastifyReply } from 'fastify'
 import fetch from 'node-fetch'
 
-export const swLogoUrl =
+export const swLogoUrl = process.env.SWAIG_SDK_LOGO ??
   'https://developer.signalwire.com/landing-assets/images/logo.svg'
 
 export async function validate(
