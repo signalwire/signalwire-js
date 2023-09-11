@@ -54,35 +54,54 @@ test.describe('Video', () => {
     expect(roomSessionsRunning.filter((r) => r.recording)).toHaveLength(
       roomCount
     )
-    expect(roomSessionsRunning.filter((r) => r.play)).toHaveLength(roomCount)
-
-    let waitForRecordEndResolve: (value: void) => void
-    const waitForRecordEnd = new Promise((resolve) => {
-      waitForRecordEndResolve = resolve
-    })
-    let waitForPlaybackEndResolve: (value: void) => void
-    const waitForPlaybackEnd = new Promise((resolve) => {
-      waitForPlaybackEndResolve = resolve
-    })
+    expect(
+      roomSessionsRunning.filter((r) => {
+        return (
+          typeof r.play === 'function' &&
+          typeof r.lock === 'function' &&
+          typeof r.unlock === 'function'
+        )
+      })
+    ).toHaveLength(roomCount)
 
     for (let index = 0; index < roomSessionsRunning.length; index++) {
       const rs = roomSessionsRunning[index]
-      const { recordings } = await rs.getRecordings()
 
-      rs.on('recording.ended', () => {
-        console.log('Recording has ended')
-        waitForRecordEndResolve()
+      await new Promise<void>(async (resolve) => {
+        rs.on('recording.ended', () => {
+          resolve()
+        })
+        const { recordings } = await rs.getRecordings()
+        await Promise.all(recordings.map((r) => r.stop()))
       })
-      await Promise.all(recordings.map((r) => r.stop()))
-      await waitForRecordEnd
 
-      rs.on('playback.ended', () => {
-        console.log('Playback has ended')
-        waitForPlaybackEndResolve()
+      await new Promise<void>(async (resolve) => {
+        rs.on('playback.ended', () => {
+          resolve()
+        })
+        const { playbacks } = await rs.getPlaybacks()
+        await Promise.all(playbacks.map((p) => p.stop()))
       })
-      const { playbacks } = await rs.getPlaybacks()
-      await Promise.all(playbacks.map((p) => p.stop()))
-      await waitForPlaybackEnd
+
+      await new Promise<void>(async (resolve, reject) => {
+        rs.once('room.updated', (roomSession) => {
+          if (roomSession.locked === true) {
+            resolve()
+          } else {
+            reject(new Error('Not locked'))
+          }
+        })
+        await rs.lock()
+
+        rs.once('room.updated', (roomSession) => {
+          if (roomSession.locked === false) {
+            resolve()
+          } else {
+            reject(new Error('Still locked'))
+          }
+        })
+        await rs.unlock()
+      })
     }
 
     const roomSessionsAtEnd = await findRoomSessionsByPrefix()

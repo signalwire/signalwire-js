@@ -73,6 +73,8 @@ describe('Room Object', () => {
     expect(room.setLayout).toBeDefined()
     expect(room.hideVideoMuted).toBeDefined()
     expect(room.showVideoMuted).toBeDefined()
+    expect(room.lock).toBeDefined()
+    expect(room.unlock).toBeDefined()
     expect(room.getRecordings).toBeDefined()
     expect(room.startRecording).toBeDefined()
     expect(room.getPlaybacks).toBeDefined()

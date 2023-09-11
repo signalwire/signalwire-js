@@ -142,6 +142,12 @@ export const showVideoMuted = createRoomMethod<BaseRPCResult, void>(
     transformResolve: baseCodeTransform,
   }
 )
+export const lock = createRoomMethod<BaseRPCResult, void>('video.lock', {
+  transformResolve: baseCodeTransform,
+})
+export const unlock = createRoomMethod<BaseRPCResult, void>('video.unlock', {
+  transformResolve: baseCodeTransform,
+})
 
 export const setHideVideoMuted: RoomMethodDescriptor<void, boolean> = {
   value: function (value) {
@@ -483,6 +489,9 @@ export type DeleteMeta = ReturnType<typeof deleteMeta.value>
 
 export type GetStreams = ReturnType<typeof getStreams.value>
 export type StartStream = ReturnType<typeof startStream.value>
+
+export type Lock = ReturnType<typeof lock.value>
+export type Unlock = ReturnType<typeof unlock.value>
 // End Room Methods
 
 /**
