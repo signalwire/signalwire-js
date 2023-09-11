@@ -2,8 +2,14 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "emitDeclarationOnly": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "resolveJsonModule": true
   },
-  "include": ["./src/**/*.ts"],
-  "exclude": ["**/*.test.ts"]
+  "include": [
+    "./src/**/*.ts",
+    "./package.json"
+  ],
+  "exclude": [
+    "**/*.test.ts"
+  ]
 }

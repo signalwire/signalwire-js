@@ -1,5 +1,7 @@
 import Fastify, { type FastifyInstance } from 'fastify'
 import FastifyBasicAuth from '@fastify/basic-auth'
+import FastifySwagger from '@fastify/swagger'
+import FastifySwaggerUI from '@fastify/swagger-ui'
 import type { FromSchema, JSONSchema } from 'json-schema-to-ts'
 import type {
   Signature,
@@ -13,7 +15,8 @@ import {
   type RootBody,
   buildCustomRouteBodySchema,
 } from './schemas'
-import { validate } from './utils'
+import { fetchSWLogo, validate } from './utils'
+import { version } from '../package.json'
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -33,7 +36,6 @@ export class Server {
     this.instance.register(FastifyBasicAuth, { validate, authenticate: true })
 
     this.customRoutes = new Map()
-    this.defineDefaultRoutes()
   }
 
   get server() {
@@ -66,6 +68,9 @@ export class Server {
           return done()
         },
         schema: {
+          tags: params.tags ?? ['custom'],
+          summary: params.summary,
+          description: params.description,
           body: schema,
         } as const,
       },
@@ -135,6 +140,7 @@ export class Server {
       '/',
       {
         schema: {
+          tags: ['default'],
           body: rootBodySchema,
         },
       },
@@ -149,5 +155,83 @@ export class Server {
         return result
       }
     )
+  }
+
+  private async registerSwagger() {
+    await this.instance.register(FastifySwagger, {
+      openapi: {
+        info: {
+          title: 'SWAIG',
+          description: 'SignalWire AI Gateway routes documentation',
+          version,
+          ...this.options.documentation?.openapi?.info,
+        },
+        externalDocs: {
+          url: 'https://developer.signalwire.com/compatibility-api/xml/voice/ai-noun/#swaig-signalwire-ai-gateway',
+          description: 'Find more information about SWAIG',
+          ...this.options.documentation?.openapi?.externalDocs,
+        },
+        tags: [
+          { name: 'default', description: 'All function signatures' },
+          { name: 'custom', description: 'Custom function signatures' },
+          ...(this.options.documentation?.openapi?.tags || []),
+        ],
+        servers: [
+          { url: this.options.baseUrl },
+          ...(this.options.documentation?.openapi?.servers || []),
+        ],
+        ...this.options.documentation?.openapi,
+      },
+    })
+
+    const logo = await fetchSWLogo()
+
+    await this.instance.register(FastifySwaggerUI, {
+      routePrefix: this.options.documentation?.route ?? '/',
+      uiConfig: {
+        docExpansion: 'list',
+        deepLinking: false,
+        ...this.options.documentation?.ui?.uiConfig,
+      },
+      staticCSP: true,
+      theme: {
+        title: 'SWAIG Documentation',
+        css: [
+          {
+            filename: 'theme.css',
+            content: `
+              .swagger-ui .topbar .download-url-wrapper input[type=text] { border: 1px solid #044ef4 }
+              .swagger-ui .topbar .download-url-wrapper .download-url-button { background: #044ef4; }
+            `,
+          },
+          ...(this.options.documentation?.ui?.theme?.css || []),
+        ],
+        favicon: [
+          {
+            filename: 'favicon.png',
+            rel: 'icon',
+            sizes: '16x16',
+            type: 'image/png',
+            content: logo as Buffer,
+          },
+          ...(this.options.documentation?.ui?.theme?.favicon || []),
+        ],
+        ...this.options.documentation?.ui?.theme,
+      },
+      logo: {
+        type: 'image/svg+xml',
+        content: logo as Buffer,
+        ...this.options.documentation?.ui?.logo,
+      },
+      ...this.options.documentation?.ui,
+    })
+  }
+
+  /** @internal */
+  async init() {
+    if (this.options.documentation) {
+      await this.registerSwagger()
+    }
+    this.defineDefaultRoutes()
   }
 }

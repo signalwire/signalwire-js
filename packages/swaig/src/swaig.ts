@@ -2,6 +2,7 @@ import { Server } from './Server'
 import type { ServerOptions } from './types'
 
 export interface SWAIGOptions extends ServerOptions {}
+
 export interface SWAIG {
   server: Server['instance']
   addFunction: Server['defineRoute']
@@ -11,6 +12,8 @@ export interface SWAIG {
 
 export async function SWAIG(options: SWAIGOptions): Promise<SWAIG> {
   const server = new Server(options)
+
+  await server.init()
 
   const service = {
     server: server.instance,
