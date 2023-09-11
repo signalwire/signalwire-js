@@ -45,7 +45,7 @@ test.describe('RoomSession Raise/Lower hand', () => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
 
-        const memberUpdated = new Promise((resolve) => {
+        const roomUpdated = new Promise((resolve) => {
           roomObj.on('room.updated', (params) => {
             if (
               params.room_session.id === roomSessionId &&
@@ -58,7 +58,7 @@ test.describe('RoomSession Raise/Lower hand', () => {
 
         await roomObj.setPrioritizeHandraise(true)
 
-        return memberUpdated
+        return roomUpdated
       },
       { roomSessionId: joinParams.room_session.id }
     )

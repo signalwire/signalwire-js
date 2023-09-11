@@ -281,11 +281,11 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
   remove(): Rooms.RemoveMember
 
   /**
-   * Removes this member from the room.
+   * Raise or lower this member's hand.
    *
    * @example
    * ```typescript
-   * await member.remove()
+   * await member.setRaisedHand()
    * ```
    */
   setRaisedHand(params?: Rooms.SetRaisedHandMemberParams): Rooms.SetRaisedHand
