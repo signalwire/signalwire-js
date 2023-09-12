@@ -42,6 +42,7 @@ test.describe('Video', () => {
       roomSessionPromises.push(
         createNewTabRoomSession({
           browser,
+          pageName: `[page-${index}]`,
           room_name: `${prefix}-${index}`,
           user_name: `${prefix}-member-${index}`,
         })
@@ -66,8 +67,17 @@ test.describe('Video', () => {
       })
     ).toHaveLength(roomCount)
 
+    const noop = () => {}
+
     for (let index = 0; index < roomSessionsRunning.length; index++) {
       const rs = roomSessionsRunning[index]
+
+      await new Promise((resolve) => {
+        rs.on('recording.ended', noop)
+        rs.on('playback.ended', noop)
+        rs.on('room.updated', noop)
+        rs.on('room.subscribed', resolve)
+      })
 
       await new Promise<void>(async (resolve) => {
         rs.on('recording.ended', () => {
@@ -86,7 +96,7 @@ test.describe('Video', () => {
       })
 
       await new Promise<void>(async (resolve, reject) => {
-        rs.once('room.updated', (roomSession) => {
+        rs.on('room.updated', (roomSession) => {
           if (roomSession.locked === true) {
             resolve()
           } else {
@@ -97,7 +107,7 @@ test.describe('Video', () => {
       })
 
       await new Promise<void>(async (resolve, reject) => {
-        rs.once('room.updated', (roomSession) => {
+        rs.on('room.updated', (roomSession) => {
           if (roomSession.locked === false) {
             resolve()
           } else {
