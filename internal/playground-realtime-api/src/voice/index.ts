@@ -293,7 +293,7 @@ async function run() {
 
     await call.hangup()
 
-    await await client.disconnect()
+    await client.disconnect()
   } catch (error) {
     console.log('<Error>', error)
   }
