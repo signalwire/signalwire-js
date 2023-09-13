@@ -1,6 +1,10 @@
 import tap from 'tap'
 import { Voice } from '@signalwire/realtime-api'
-import { TestHandler, createTestRunner, makeSipDomainAppAddress } from './utils'
+import {
+  type TestHandler,
+  createTestRunner,
+  makeSipDomainAppAddress,
+} from './utils'
 
 const handler: TestHandler = ({ domainApp }) => {
   if (!domainApp) {
@@ -14,7 +18,7 @@ const handler: TestHandler = ({ domainApp }) => {
       contexts: [domainApp.call_relay_context],
       // logLevel: "trace",
       debug: {
-        logWsTraffic: false,
+        logWsTraffic: true,
       },
     })
 

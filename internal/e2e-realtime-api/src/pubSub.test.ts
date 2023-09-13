@@ -80,14 +80,14 @@ const testPubSubClientPublish = (
 
     const now = Date.now()
     firstClient.once('message', (message) => {
-      console.log('jsPubSub message', message)
+      console.log('jsPubSub message')
       if (message.meta.now === now) {
         events += 1
         resolveIfDone()
       }
     })
     secondClient.once('message', (message) => {
-      console.log('rtPubSub message', message)
+      console.log('rtPubSub message')
       if (message.meta.now === now) {
         events += 1
         resolveIfDone()

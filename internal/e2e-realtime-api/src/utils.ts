@@ -1,5 +1,5 @@
 import { request } from 'node:https'
-import { randomUUID } from 'node:crypto'
+import { randomUUID, randomBytes } from 'node:crypto'
 
 /**
  * 10 seconds to execute the script by default
@@ -174,7 +174,9 @@ export const sleep = (ms = 3000) => {
 }
 
 export const makeSipDomainAppAddress = ({ name, domain }) => {
-  return `sip:${name}@${domain}.dapp.signalwire.com`
+  return `sip:${name}-${randomBytes(16).toString('hex')}@${domain}.${
+    process.env.DAPP_DOMAIN
+  }`
 }
 
 type CreateDomainAppParams = {

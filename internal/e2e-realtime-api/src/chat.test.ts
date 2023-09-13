@@ -58,13 +58,13 @@ const testChatClientSubscribe = (
 
     firstClient.on('member.joined', (member) => {
       // TODO: Check the member payload
-      console.log('jsChat member.joined', member)
+      console.log('jsChat member.joined')
       events += 1
       resolveIfDone()
     })
     secondClient.on('member.joined', (member) => {
       // TODO: Check the member payload
-      console.log('rtChat member.joined', member)
+      console.log('rtChat member.joined')
       events += 1
       resolveIfDone()
     })
@@ -93,14 +93,14 @@ const testChatClientPublish = (
 
     const now = Date.now()
     firstClient.once('message', (message) => {
-      console.log('jsChat message', message)
+      console.log('jsChat message')
       if (message.meta.now === now) {
         events += 1
         resolveIfDone()
       }
     })
     secondClient.once('message', (message) => {
-      console.log('rtChat message', message)
+      console.log('rtChat message')
       if (message.meta.now === now) {
         events += 1
         resolveIfDone()
@@ -147,13 +147,13 @@ const testChatClientUnsubscribe = (
 
     firstClient.on('member.left', (member) => {
       // TODO: Check the member payload
-      console.log('jsChat member.left', member)
+      console.log('jsChat member.left')
       events += 1
       resolveIfDone()
     })
     secondClient.on('member.left', (member) => {
       // TODO: Check the member payload
-      console.log('rtChat member.left', member)
+      console.log('rtChat member.left')
       events += 1
       resolveIfDone()
     })
@@ -199,14 +199,14 @@ const testChatClientSetAndGetMemberState = (
 
     firstClient.once('member.updated', (member) => {
       // TODO: Check the member payload
-      console.log('jsChat member.updated', member)
+      console.log('jsChat member.updated')
       if (member.state.email === 'e2e@example.com') {
         events += 1
         resolveIfDone()
       }
     })
     secondClient.once('member.updated', (member) => {
-      console.log('rtChat member.updated', member)
+      console.log('rtChat member.updated')
       if (member.state.email === 'e2e@example.com') {
         events += 1
         resolveIfDone()
@@ -219,7 +219,7 @@ const testChatClientSetAndGetMemberState = (
       memberId: params.memberId,
     })
     // TODO: Better compare getStateResult
-    if (!getStateResult.channels.rw.state) {
+    if (!getStateResult.channels[channel].state) {
       console.error('Invalid state', JSON.stringify(getStateResult))
       reject(4)
     }
@@ -315,6 +315,7 @@ async function main() {
   const runner = createTestRunner({
     name: 'Chat E2E',
     testHandler: handler,
+    executionTime: 15_000,
   })
 
   await runner.run()
