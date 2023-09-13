@@ -3,13 +3,13 @@ import {
   CallingCallPlayEventParams,
   VoiceCallPlaybackContract,
 } from '@signalwire/core'
-import { ListenSubscriber } from '../ListenSubscriber'
+import { ListenSubscriber } from '../../ListenSubscriber'
 import {
   CallPlaybackEvents,
   CallPlaybackListeners,
   CallPlaybackListenersEventsMapping,
-} from '../types'
-import { Call } from './Call'
+} from '../../types'
+import { Call } from '../Call'
 
 export interface CallPlaybackOptions {
   call: Call
@@ -17,7 +17,10 @@ export interface CallPlaybackOptions {
   listeners?: CallPlaybackListeners
 }
 
-const ENDED_STATES: CallingCallPlayEndState[] = ['finished', 'error']
+export const PLAYBACK_ENDED_STATES: CallingCallPlayEndState[] = [
+  'finished',
+  'error',
+]
 
 export class CallPlayback
   extends ListenSubscriber<CallPlaybackListeners, CallPlaybackEvents>
@@ -151,7 +154,9 @@ export class CallPlayback
       this.once('playback.failed', handler)
 
       // Resolve the promise if the play has already ended
-      if (ENDED_STATES.includes(this.state as CallingCallPlayEndState)) {
+      if (
+        PLAYBACK_ENDED_STATES.includes(this.state as CallingCallPlayEndState)
+      ) {
         handler()
       }
     })

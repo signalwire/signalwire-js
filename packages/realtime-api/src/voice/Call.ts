@@ -48,7 +48,7 @@ import {
 } from './workers'
 import { Playlist } from './Playlist'
 import { Voice } from './Voice'
-import { CallPlayback } from './CallPlayback'
+import { CallPlayback, decoratePlaybackPromise } from './CallPlayback'
 import { CallRecording } from './CallRecording'
 import { CallPrompt } from './CallPrompt'
 import { CallCollect } from './CallCollect'
@@ -356,7 +356,7 @@ export class Call extends ListenSubscriber<
    * ```
    */
   play(params: CallPlayMethodParams) {
-    return new Promise<CallPlayback>((resolve, reject) => {
+    const promise = new Promise<CallPlayback>((resolve, reject) => {
       const { playlist, listen } = params
 
       if (!this.callId || !this.nodeId) {
@@ -406,6 +406,8 @@ export class Call extends ListenSubscriber<
           reject(e)
         })
     })
+
+    return decoratePlaybackPromise.call(this, promise)
   }
 
   /**

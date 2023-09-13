@@ -1,8 +1,8 @@
 import { EventEmitter } from '@signalwire/core'
-import { createClient } from '../client/createClient'
+import { createClient } from '../../client/createClient'
 import { CallPlayback } from './CallPlayback'
-import { Call } from './Call'
-import { Voice } from './Voice'
+import { Call } from '../Call'
+import { Voice } from '../Voice'
 
 describe('CallPlayback', () => {
   let voice: Voice
@@ -97,12 +97,14 @@ describe('CallPlayback', () => {
       ...baseExecuteParams,
       method: 'calling.play.resume',
     })
+
     await callPlayback.stop()
     // @ts-expect-error
     expect(callPlayback._client.execute).toHaveBeenLastCalledWith({
       ...baseExecuteParams,
       method: 'calling.play.stop',
     })
+
     await callPlayback.setVolume(2)
     // @ts-expect-error
     expect(callPlayback._client.execute).toHaveBeenLastCalledWith({
