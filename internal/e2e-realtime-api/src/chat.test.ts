@@ -8,6 +8,7 @@ import { timeoutPromise, SWCloseEvent } from '@signalwire/core'
 import { Chat as RealtimeAPIChat } from '@signalwire/realtime-api'
 import { Chat as JSChat } from '@signalwire/js'
 import { WebSocket } from 'ws'
+import { randomUUID } from 'node:crypto'
 import { createTestRunner, createCRT, sessionStorageMock } from './utils'
 
 // @ts-ignore
@@ -20,12 +21,12 @@ global.window = { sessionStorage: sessionStorageMock() }
 const promiseTimeout = 4_000
 const promiseException = 4 // error code to identify the Promise timeout
 // TODO: pass as argument
-const channel = 'rw'
+const channel = randomUUID()
 
 const params = {
   memberId: 'e2e-uuid-here',
   channels: {
-    rw: {
+    [channel]: {
       read: true,
       write: true,
     },
