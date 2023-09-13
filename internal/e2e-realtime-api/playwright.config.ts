@@ -17,7 +17,7 @@ const config = defineConfig({
   globalSetup: require.resolve('./global-setup'),
   testMatch: undefined,
   testIgnore: undefined,
-  timeout: 120_000,
+  timeout: 60_000,
   expect: {
     timeout: 10_000,
   },

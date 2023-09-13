@@ -47,16 +47,19 @@ export const createTestVRTToken = async (body: CreateVRTParams) => {
   return data.token
 }
 
-type CreateRoomSessionParams = CreateVRTParams & { browser: Browser }
+type CreateRoomSessionParams = CreateVRTParams & {
+  browser: Browser
+  pageName: string
+}
 export const createNewTabRoomSession = async (
   params: CreateRoomSessionParams
 ): Promise<void> => {
   try {
-    const { browser, ...auth } = params
+    const { browser, pageName, ...auth } = params
 
     const tab = await browser.newPage()
     await tab.goto(SERVER_URL)
-    enablePageLogs(tab)
+    enablePageLogs(tab, pageName)
 
     const vrt = await createTestVRTToken(auth)
 
@@ -104,7 +107,10 @@ export const createNewTabRoomSession = async (
             resolve()
           })
 
-          await roomSession.join()
+          await roomSession.join().catch((error) => {
+            console.log('Error joining room', error)
+            reject(error)
+          })
         })
       },
       {
