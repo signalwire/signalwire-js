@@ -4,13 +4,13 @@ import {
   CallingCallRecordEventParams,
   CallingCallRecordPauseMethodParams,
 } from '@signalwire/core'
-import { ListenSubscriber } from '../ListenSubscriber'
+import { ListenSubscriber } from '../../ListenSubscriber'
 import {
   CallRecordingEvents,
   CallRecordingListeners,
   CallRecordingListenersEventsMapping,
-} from '../types'
-import { Call } from './Call'
+} from '../../types'
+import { Call } from '../Call'
 
 export interface CallRecordingOptions {
   call: Call
@@ -18,7 +18,10 @@ export interface CallRecordingOptions {
   listeners?: CallRecordingListeners
 }
 
-const ENDED_STATES: CallingCallRecordEndState[] = ['finished', 'no_input']
+export const RECORDING_ENDED_STATES: CallingCallRecordEndState[] = [
+  'finished',
+  'no_input',
+]
 
 export class CallRecording
   extends ListenSubscriber<CallRecordingListeners, CallRecordingEvents>
@@ -145,7 +148,9 @@ export class CallRecording
       this.once('recording.failed', handler)
 
       // Resolve the promise if the recording has already ended
-      if (ENDED_STATES.includes(this.state as CallingCallRecordEndState)) {
+      if (
+        RECORDING_ENDED_STATES.includes(this.state as CallingCallRecordEndState)
+      ) {
         handler()
       }
     })

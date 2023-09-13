@@ -49,7 +49,7 @@ import {
 import { Playlist } from './Playlist'
 import { Voice } from './Voice'
 import { CallPlayback, decoratePlaybackPromise } from './CallPlayback'
-import { CallRecording } from './CallRecording'
+import { CallRecording, decorateRecordingPromise } from './CallRecording'
 import { CallPrompt } from './CallPrompt'
 import { CallCollect } from './CallCollect'
 import { CallTap } from './CallTap'
@@ -478,7 +478,7 @@ export class Call extends ListenSubscriber<
    * Generic method to record a call. Please see {@link recordAudio}.
    */
   record(params: CallRecordMethodParams) {
-    return new Promise<CallRecording>((resolve, reject) => {
+    const promise = new Promise<CallRecording>((resolve, reject) => {
       const { audio, listen } = params
 
       if (!this.callId || !this.nodeId) {
@@ -486,7 +486,6 @@ export class Call extends ListenSubscriber<
       }
 
       const resolveHandler = (callRecording: CallRecording) => {
-        this.off('recording.failed', rejectHandler)
         resolve(callRecording)
       }
 
@@ -528,6 +527,8 @@ export class Call extends ListenSubscriber<
           reject(e)
         })
     })
+
+    return decorateRecordingPromise.call(this, promise)
   }
 
   /**

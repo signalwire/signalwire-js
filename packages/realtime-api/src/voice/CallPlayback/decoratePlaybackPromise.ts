@@ -74,11 +74,11 @@ export function decoratePlaybackPromise(
       }
       return acc
     }, {}),
-    ...getters.reduce((acc: any, get) => {
-      acc[get] = {
+    ...getters.reduce((acc: any, gettter) => {
+      acc[gettter] = {
         get: async function () {
           const playback = await this.onStarted()
-          return playback[get]
+          return playback[gettter]
         },
         enumerable: true,
       }

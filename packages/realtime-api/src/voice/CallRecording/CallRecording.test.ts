@@ -1,8 +1,8 @@
 import { EventEmitter } from '@signalwire/core'
-import { createClient } from '../client/createClient'
+import { createClient } from '../../../client/createClient'
 import { CallRecording } from './CallRecording'
-import { Call } from './Call'
-import { Voice } from './Voice'
+import { Call } from '../../Call'
+import { Voice } from '../../Voice'
 
 describe('CallRecording', () => {
   let voice: Voice
