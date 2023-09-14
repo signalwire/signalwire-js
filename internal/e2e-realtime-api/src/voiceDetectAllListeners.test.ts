@@ -1,8 +1,18 @@
 import tap from 'tap'
 import { SignalWire } from '@signalwire/realtime-api'
-import { CALL_PROPS, CALL_DETECT_PROPS, createTestRunner } from './utils'
+import {
+  CALL_PROPS,
+  CALL_DETECT_PROPS,
+  createTestRunner,
+  TestHandler,
+  makeSipDomainAppAddress,
+} from './utils'
 
-const handler = () => {
+const handler: TestHandler = ({ domainApp }) => {
+  if (!domainApp) {
+    throw new Error('Missing domainApp')
+  }
+
   return new Promise<number>(async (resolve, reject) => {
     try {
       const client = await SignalWire({
@@ -20,7 +30,7 @@ const handler = () => {
       })
 
       const unsubVoice = await client.voice.listen({
-        topics: ['office', 'home'],
+        topics: [domainApp.call_relay_context, 'home'],
         onCallReceived: async (call) => {
           try {
             const resultAnswer = await call.answer()
@@ -49,9 +59,15 @@ const handler = () => {
         },
       })
 
-      const call = await client.voice.dialPhone({
-        to: process.env.VOICE_DIAL_TO_NUMBER as string,
-        from: process.env.VOICE_DIAL_FROM_NUMBER as string,
+      const call = await client.voice.dialSip({
+        to: makeSipDomainAppAddress({
+          name: 'to',
+          domain: domainApp.domain,
+        }),
+        from: makeSipDomainAppAddress({
+          name: 'from',
+          domain: domainApp.domain,
+        }),
         timeout: 30,
         listen: {
           async onStateChanged(call) {
@@ -69,12 +85,12 @@ const handler = () => {
             tap.hasProps(
               detect,
               CALL_DETECT_PROPS,
-              'voice.dialPhone: Detect started'
+              'voice.dialSip: Detect started'
             )
             tap.equal(
               detect.callId,
               call.id,
-              'voice.dialPhone: Detect with correct call id'
+              'voice.dialSip: Detect with correct call id'
             )
           },
         },
@@ -86,12 +102,12 @@ const handler = () => {
           tap.hasProps(
             detect,
             CALL_DETECT_PROPS,
-            'voice.dialPhone: Detect started'
+            'voice.dialSip: Detect started'
           )
           tap.equal(
             detect.callId,
             call.id,
-            'voice.dialPhone: Detect with correct call id'
+            'voice.dialSip: Detect with correct call id'
           )
         },
         onDetectEnded: (detect) => {
@@ -174,7 +190,8 @@ async function main() {
   const runner = createTestRunner({
     name: 'Voice Detect with All Listeners E2E',
     testHandler: handler,
-    executionTime: 60_000,
+    executionTime: 30_000,
+    useDomainApp: true,
   })
 
   await runner.run()
