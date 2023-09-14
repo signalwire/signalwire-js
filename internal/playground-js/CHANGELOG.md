@@ -1,5 +1,13 @@
 # @sw-internal/playground-js
 
+## 0.0.15
+
+### Patch Changes
+
+- [#872](https://github.com/signalwire/signalwire-js/pull/872) [`114bc825`](https://github.com/signalwire/signalwire-js/commit/114bc8255c7929a6bb3ac99fa3f69fbd469bd4c8) - Device picker on Call Fabric demo
+
+- [#865](https://github.com/signalwire/signalwire-js/pull/865) [`6c435be2`](https://github.com/signalwire/signalwire-js/commit/6c435be2738ec4a70c8acfada282b829b551ec82) - Expose `destroy` event for inbound calls in Call Fabric to handle cases where the caller cancel the dial before the callee answers.
+
 ## 0.0.14
 
 ### Patch Changes

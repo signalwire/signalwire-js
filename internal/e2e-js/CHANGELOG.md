@@ -1,5 +1,20 @@
 # @sw-internal/e2e-js
 
+## 0.0.15
+
+### Patch Changes
+
+- [#868](https://github.com/signalwire/signalwire-js/pull/868) [`c2830bb6`](https://github.com/signalwire/signalwire-js/commit/c2830bb6a2fb734e223658451535f7d5ae290c1f) - Update E2E tests for lock unlock rooms
+
+- [#860](https://github.com/signalwire/signalwire-js/pull/860) [`19f8673f`](https://github.com/signalwire/signalwire-js/commit/19f8673fd6cdd736b1013fb247afe4cd757aa596) - Improve e2e-tests for the browser sDK
+
+- [#874](https://github.com/signalwire/signalwire-js/pull/874) [`774bed8b`](https://github.com/signalwire/signalwire-js/commit/774bed8b650478d070668c8b533c196cf9bec6ad) - Review CI setup
+
+- [#853](https://github.com/signalwire/signalwire-js/pull/853) [`5e1ff117`](https://github.com/signalwire/signalwire-js/commit/5e1ff117cf84c6058b08863b578be885b7fb37ea) - Remove event emitter transform pipeline from browser SDK
+
+- Updated dependencies [[`114bc825`](https://github.com/signalwire/signalwire-js/commit/114bc8255c7929a6bb3ac99fa3f69fbd469bd4c8), [`6c435be2`](https://github.com/signalwire/signalwire-js/commit/6c435be2738ec4a70c8acfada282b829b551ec82)]:
+  - @sw-internal/playground-js@0.0.15
+
 ## 0.0.14
 
 ### Patch Changes

@@ -1,5 +1,21 @@
 # @sw-internal/e2e-realtime-api
 
+## 0.1.11
+
+### Patch Changes
+
+- [#868](https://github.com/signalwire/signalwire-js/pull/868) [`c2830bb6`](https://github.com/signalwire/signalwire-js/commit/c2830bb6a2fb734e223658451535f7d5ae290c1f) - Update E2E tests for lock unlock rooms
+
+- [#871](https://github.com/signalwire/signalwire-js/pull/871) [`ac23f882`](https://github.com/signalwire/signalwire-js/commit/ac23f8827b617542826ef872ed377b002c51944c) - Update recording e2e tests
+
+- [#878](https://github.com/signalwire/signalwire-js/pull/878) [`9e0781e0`](https://github.com/signalwire/signalwire-js/commit/9e0781e00b609513b62f11304fa1b01cab496783) - Review realtime-api tests using domain apps
+
+- [#877](https://github.com/signalwire/signalwire-js/pull/877) [`bf43d40f`](https://github.com/signalwire/signalwire-js/commit/bf43d40f648082027a5071f8c551ae14a9943b5e) - Split lock/unlock tests
+
+- [#874](https://github.com/signalwire/signalwire-js/pull/874) [`774bed8b`](https://github.com/signalwire/signalwire-js/commit/774bed8b650478d070668c8b533c196cf9bec6ad) - Review CI setup
+
+- [#853](https://github.com/signalwire/signalwire-js/pull/853) [`5e1ff117`](https://github.com/signalwire/signalwire-js/commit/5e1ff117cf84c6058b08863b578be885b7fb37ea) - Remove event emitter transform pipeline from browser SDK
+
 ## 0.1.10
 
 ### Patch Changes
