@@ -223,6 +223,7 @@ export type CallRecordingEvents = Record<
 
 export interface CallRecordingListeners {
   onStarted?: (recording: CallRecording) => unknown
+  onUpdated?: (recording: CallRecording) => unknown
   onFailed?: (recording: CallRecording) => unknown
   onEnded?: (recording: CallRecording) => unknown
 }

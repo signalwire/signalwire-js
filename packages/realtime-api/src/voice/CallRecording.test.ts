@@ -46,6 +46,7 @@ describe('CallRecording', () => {
   it('should declare the correct event map', () => {
     const expectedEventMap = {
       onStarted: 'recording.started',
+      onUpdated: 'recording.updated',
       onFailed: 'recording.failed',
       onEnded: 'recording.ended',
     }
@@ -59,6 +60,7 @@ describe('CallRecording', () => {
       payload: {},
       listeners: {
         onStarted: () => {},
+        onUpdated: () => {},
         onFailed: () => {},
         onEnded: () => {},
       },
