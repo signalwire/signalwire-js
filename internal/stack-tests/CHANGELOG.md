@@ -1,5 +1,11 @@
 # @sw-internal/stack-tests
 
+## 1.0.4
+
+### Patch Changes
+
+- [#853](https://github.com/signalwire/signalwire-js/pull/853) [`5e1ff117`](https://github.com/signalwire/signalwire-js/commit/5e1ff117cf84c6058b08863b578be885b7fb37ea) - Remove event emitter transform pipeline from browser SDK
+
 ## 1.0.3
 
 ### Patch Changes

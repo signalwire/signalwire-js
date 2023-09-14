@@ -1,5 +1,17 @@
 # @sw-internal/e2e-realtime-api
 
+## 0.1.11
+
+### Patch Changes
+
+- [#871](https://github.com/signalwire/signalwire-js/pull/871) [`ac23f882`](https://github.com/signalwire/signalwire-js/commit/ac23f8827b617542826ef872ed377b002c51944c) - Update recording e2e tests
+
+- [#878](https://github.com/signalwire/signalwire-js/pull/878) [`9e0781e0`](https://github.com/signalwire/signalwire-js/commit/9e0781e00b609513b62f11304fa1b01cab496783) - Review realtime-api tests using domain apps
+
+- [#874](https://github.com/signalwire/signalwire-js/pull/874) [`774bed8b`](https://github.com/signalwire/signalwire-js/commit/774bed8b650478d070668c8b533c196cf9bec6ad) - Review CI setup
+
+- [#853](https://github.com/signalwire/signalwire-js/pull/853) [`5e1ff117`](https://github.com/signalwire/signalwire-js/commit/5e1ff117cf84c6058b08863b578be885b7fb37ea) - Remove event emitter transform pipeline from browser SDK
+
 ## 0.1.10
 
 ### Patch Changes
