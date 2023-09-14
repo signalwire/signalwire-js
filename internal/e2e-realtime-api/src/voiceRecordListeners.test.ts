@@ -42,7 +42,7 @@ const handler = async () => {
 
               await unsubRecord?.()
 
-              client.disconnect()
+              await client.disconnect()
 
               resolve(0)
             }

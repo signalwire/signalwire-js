@@ -2,6 +2,7 @@ import { createClient } from './client/createClient'
 import type { Client } from './client/Client'
 import { clientConnect } from './client/clientConnect'
 import { Task } from './task/Task'
+import { Messaging } from './messaging/Messaging'
 import { PubSub } from './pubSub/PubSub'
 import { Chat } from './chat/Chat'
 import { Voice } from './voice/Voice'
@@ -21,6 +22,7 @@ export class SWClient {
   private _pubSub: PubSub
   private _chat: Chat
   private _voice: Voice
+  private _messaging: Messaging
 
   public userOptions: SWClientOptions
   public client: Client
@@ -35,7 +37,14 @@ export class SWClient {
   }
 
   disconnect() {
-    this.client.disconnect()
+    return new Promise<void>((resolve) => {
+      const { sessionEmitter } = this.client
+      sessionEmitter.on('session.disconnected', () => {
+        resolve()
+      })
+
+      this.client.disconnect()
+    })
   }
 
   get task() {
@@ -43,6 +52,13 @@ export class SWClient {
       this._task = new Task(this)
     }
     return this._task
+  }
+
+  get messaging() {
+    if (!this._messaging) {
+      this._messaging = new Messaging(this)
+    }
+    return this._messaging
   }
 
   get pubSub() {

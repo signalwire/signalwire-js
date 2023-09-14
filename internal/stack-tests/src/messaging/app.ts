@@ -1,22 +1,18 @@
-import { Messaging } from '@signalwire/realtime-api'
+import { SignalWire } from '@signalwire/realtime-api'
 import tap from 'tap'
 
 async function run() {
   try {
-    const message = new Messaging.Client({
+    const client = await SignalWire({
       host: process.env.RELAY_HOST || 'relay.swire.io',
       project: process.env.RELAY_PROJECT as string,
       token: process.env.RELAY_TOKEN as string,
-      contexts: [process.env.RELAY_CONTEXT as string],
     })
 
-    tap.ok(message.on, 'message.on is defined')
-    tap.ok(message.once, 'message.once is defined')
-    tap.ok(message.off, 'message.off is defined')
-    tap.ok(message.removeAllListeners, 'message.removeAllListeners is defined')
-    tap.ok(message.addContexts, 'message.addContexts is defined')
-    tap.ok(message.send, 'message.send is defined')
-    tap.ok(message.disconnect, 'message.disconnect is defined')
+    tap.ok(client.messaging, 'client.messaging is defined')
+    tap.ok(client.messaging.listen, 'client.messaging.listen is defined')
+    tap.ok(client.messaging.send, 'message.send is defined')
+    tap.ok(client.disconnect, 'client.disconnect is defined')
 
     process.exit(0)
   } catch (error) {

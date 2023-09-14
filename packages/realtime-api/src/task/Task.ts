@@ -6,12 +6,13 @@ import {
 } from '@signalwire/core'
 import { SWClient } from '../SWClient'
 import { taskWorker } from './workers'
-import { ListenOptions, BaseNamespace } from '../BaseNamespace'
+import { BaseNamespace } from '../BaseNamespace'
 
 export const PATH = '/api/relay/rest/tasks'
 const HOST = 'relay.signalwire.com'
 
-interface TaskListenOptions extends ListenOptions {
+interface TaskListenOptions {
+  topics: string[]
   onTaskReceived?: (payload: TaskInboundEvent['message']) => unknown
 }
 

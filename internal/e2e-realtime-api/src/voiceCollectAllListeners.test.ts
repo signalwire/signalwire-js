@@ -168,7 +168,7 @@ const handler = async () => {
 
       await unsubCollect()
 
-      client.disconnect()
+      await client.disconnect()
 
       resolve(0)
     } catch (error) {
