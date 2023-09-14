@@ -1,8 +1,17 @@
 import tap from 'tap'
 import { SignalWire } from '@signalwire/realtime-api'
-import { createTestRunner, CALL_PROPS, CALL_RECORD_PROPS } from './utils'
+import {
+  createTestRunner,
+  CALL_PROPS,
+  CALL_RECORD_PROPS,
+  TestHandler,
+  makeSipDomainAppAddress,
+} from './utils'
 
-const handler = async () => {
+const handler: TestHandler = ({ domainApp }) => {
+  if (!domainApp) {
+    throw new Error('Missing domainApp')
+  }
   return new Promise<number>(async (resolve, reject) => {
     try {
       const client = await SignalWire({
@@ -15,7 +24,7 @@ const handler = async () => {
       })
 
       const unsubVoiceOffice = await client.voice.listen({
-        topics: ['office'],
+        topics: [domainApp.call_relay_context],
         onCallReceived: async (call) => {
           try {
             const resultAnswer = await call.answer()
@@ -39,9 +48,15 @@ const handler = async () => {
         },
       })
 
-      const call = await client.voice.dialPhone({
-        to: process.env.VOICE_DIAL_TO_NUMBER as string,
-        from: process.env.VOICE_DIAL_FROM_NUMBER as string,
+      const call = await client.voice.dialSip({
+        to: makeSipDomainAppAddress({
+          name: 'to',
+          domain: domainApp.domain,
+        }),
+        from: makeSipDomainAppAddress({
+          name: 'from',
+          domain: domainApp.domain,
+        }),
         timeout: 30,
         listen: {
           onStateChanged: async (call) => {
@@ -150,6 +165,7 @@ async function main() {
     name: 'Voice Record with all Listeners E2E',
     testHandler: handler,
     executionTime: 30_000,
+    useDomainApp: true,
   })
 
   await runner.run()
