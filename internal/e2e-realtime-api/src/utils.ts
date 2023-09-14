@@ -1,20 +1,56 @@
 import { request } from 'node:https'
+import { randomUUID, randomBytes } from 'node:crypto'
 
 /**
  * 10 seconds to execute the script by default
  */
 const MAX_EXECUTION_TIME = 10_000
 
-interface CreateTestRunnerParams {
+interface DomainApp {
+  type: 'domain_application'
+  id: string
   name: string
-  testHandler(): Promise<number>
+  domain: string
+  identifier: string
+  ip_auth_enabled: boolean
+  ip_auth: string[]
+  call_handler: 'relay_context'
+  call_request_url: string | null
+  call_request_method: string
+  call_fallback_url: string | null
+  call_fallback_method: string
+  call_status_callback_url: string | null
+  call_status_callback_method: string
+  call_relay_context: string
+  call_laml_application_id: string | null
+  call_video_room_id: string | null
+  call_relay_script_url: string | null
+  encryption: 'optional'
+  codecs: ('PCMU' | 'PCMA')[]
+  ciphers: string[]
+}
+interface TestHandlerParams {
+  domainApp?: DomainApp
+}
+
+export type TestHandler =
+  | (() => Promise<number>)
+  | ((params: TestHandlerParams) => Promise<number>)
+
+interface CreateTestRunnerParams {
+  uuid?: string
+  name: string
+  testHandler: TestHandler
   executionTime?: number
+  useDomainApp?: boolean
 }
 
 export const createTestRunner = ({
+  uuid = randomUUID(),
   name,
   testHandler,
   executionTime = MAX_EXECUTION_TIME,
+  useDomainApp = false,
 }: CreateTestRunnerParams) => {
   let timer: ReturnType<typeof setTimeout>
 
@@ -40,7 +76,16 @@ export const createTestRunner = ({
       start()
 
       try {
-        const exitCode = await testHandler()
+        const params: TestHandlerParams = {}
+        if (useDomainApp) {
+          params.domainApp = await createDomainApp({
+            name: `d-app-${uuid}`,
+            identifier: uuid,
+            call_handler: 'relay_context',
+            call_relay_context: `d-app-ctx-${uuid}`,
+          })
+        }
+        const exitCode = await testHandler(params)
         done(exitCode)
       } catch (error) {
         clearTimeout(timer)
@@ -125,5 +170,49 @@ export const sessionStorageMock = () => {
 export const sleep = (ms = 3000) => {
   return new Promise((r) => {
     setTimeout(r, ms)
+  })
+}
+
+export const makeSipDomainAppAddress = ({ name, domain }) => {
+  return `sip:${name}-${randomBytes(16).toString('hex')}@${domain}.${
+    process.env.DAPP_DOMAIN
+  }`
+}
+
+type CreateDomainAppParams = {
+  name: string
+  identifier: string
+  call_handler: 'relay_context'
+  call_relay_context: string
+}
+const createDomainApp = (params: CreateDomainAppParams): Promise<DomainApp> => {
+  return new Promise((resolve, reject) => {
+    const data = JSON.stringify(params)
+    const options = {
+      host: process.env.API_HOST,
+      port: 443,
+      method: 'POST',
+      path: '/api/relay/rest/domain_applications',
+      headers: {
+        Authorization: getAuthorization(),
+        'Content-Type': 'application/json',
+        'Content-Length': data.length,
+      },
+    }
+    const req = request(options, (response) => {
+      let body = ''
+      response.on('data', (chunk) => {
+        body += chunk
+      })
+
+      response.on('end', () => {
+        resolve(JSON.parse(body))
+      })
+    })
+
+    req.on('error', reject)
+
+    req.write(data)
+    req.end()
   })
 }

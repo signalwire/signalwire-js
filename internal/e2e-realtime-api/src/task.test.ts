@@ -1,9 +1,10 @@
+import { randomUUID } from 'node:crypto'
 import { Task } from '@signalwire/realtime-api'
 import { createTestRunner } from './utils'
 
 const handler = () => {
   return new Promise<number>(async (resolve, reject) => {
-    const context = 'task-e2e'
+    const context = randomUUID()
     const firstPayload = {
       id: Date.now(),
       item: 'first',

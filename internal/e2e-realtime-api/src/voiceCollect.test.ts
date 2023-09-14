@@ -1,14 +1,21 @@
 import tap from 'tap'
 import { Voice } from '@signalwire/realtime-api'
-import { createTestRunner } from './utils'
+import {
+  type TestHandler,
+  createTestRunner,
+  makeSipDomainAppAddress,
+} from './utils'
 
-const handler = () => {
+const handler: TestHandler = ({ domainApp }) => {
+  if (!domainApp) {
+    throw new Error('Missing domainApp')
+  }
   return new Promise<number>(async (resolve, reject) => {
     const client = new Voice.Client({
-      host: process.env.RELAY_HOST || 'relay.swire.io',
+      host: process.env.RELAY_HOST,
       project: process.env.RELAY_PROJECT as string,
       token: process.env.RELAY_TOKEN as string,
-      contexts: [process.env.VOICE_CONTEXT as string],
+      contexts: [domainApp.call_relay_context],
       // logLevel: "trace",
       debug: {
         logWsTraffic: true,
@@ -37,7 +44,7 @@ const handler = () => {
         )
 
         call.on('collect.started', (collect) => {
-          console.log('>>> collect.started', collect)
+          console.log('>>> collect.started')
         })
         call.on('collect.updated', (collect) => {
           console.log('>>> collect.updated', collect.digits)
@@ -83,10 +90,15 @@ const handler = () => {
     })
 
     try {
-      const call = await client.dialPhone({
-        // make an outbound call to an `office` context to trigger the `call.received` event above
-        to: process.env.VOICE_DIAL_TO_NUMBER as string,
-        from: process.env.VOICE_DIAL_FROM_NUMBER as string,
+      const call = await client.dialSip({
+        to: makeSipDomainAppAddress({
+          name: 'to',
+          domain: domainApp.domain,
+        }),
+        from: makeSipDomainAppAddress({
+          name: 'from',
+          domain: domainApp.domain,
+        }),
         timeout: 30,
       })
       tap.ok(call.id, 'Call resolved')
@@ -132,6 +144,7 @@ async function main() {
     name: 'Voice Collect E2E',
     testHandler: handler,
     executionTime: 60_000,
+    useDomainApp: true,
   })
 
   await runner.run()

@@ -10,6 +10,7 @@ import { timeoutPromise, SWCloseEvent } from '@signalwire/core'
 import { PubSub as RealtimeAPIPubSub } from '@signalwire/realtime-api'
 import { PubSub as JSPubSub } from '@signalwire/js'
 import { WebSocket } from 'ws'
+import { randomUUID } from 'node:crypto'
 import { createTestRunner, createCRT, sessionStorageMock } from './utils'
 
 // @ts-ignore
@@ -22,12 +23,12 @@ global.window = { sessionStorage: sessionStorageMock() }
 const promiseTimeout = 4_000
 const promiseException = 4 // error code to identify the Promise timeout
 // TODO: pass as argument
-const channel = 'rw'
+const channel = randomUUID()
 
 const params = {
   memberId: 'e2e-uuid-here',
   channels: {
-    rw: {
+    [channel]: {
       read: true,
       write: true,
     },
@@ -79,14 +80,14 @@ const testPubSubClientPublish = (
 
     const now = Date.now()
     firstClient.once('message', (message) => {
-      console.log('jsPubSub message', message)
+      console.log('jsPubSub message')
       if (message.meta.now === now) {
         events += 1
         resolveIfDone()
       }
     })
     secondClient.once('message', (message) => {
-      console.log('rtPubSub message', message)
+      console.log('rtPubSub message')
       if (message.meta.now === now) {
         events += 1
         resolveIfDone()
