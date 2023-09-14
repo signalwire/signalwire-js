@@ -78,11 +78,9 @@ export const createTestRoomSession = async (
         host: options.RELAY_HOST,
         token: options.API_TOKEN,
         rootElement: document.getElementById('rootElement'),
-        // logLevel: options.CI ? 'info' : 'debug',
-        // logLevel: 'debug',
+        logLevel: options.CI ? 'info' : 'debug',
         debug: {
-          // logWsTraffic: !options.CI,
-          logWsTraffic: false,
+          logWsTraffic: Boolean(options.CI),
         },
         ...options.roomSessionOptions,
       })
