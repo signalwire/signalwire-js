@@ -38,6 +38,7 @@ describe('Call', () => {
       onPlaybackFailed: 'playback.failed',
       onPlaybackEnded: 'playback.ended',
       onRecordingStarted: 'recording.started',
+      onRecordingUpdated: 'recording.updated',
       onRecordingFailed: 'recording.failed',
       onRecordingEnded: 'recording.ended',
       onPromptStarted: 'prompt.started',
