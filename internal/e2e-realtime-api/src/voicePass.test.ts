@@ -18,7 +18,7 @@ const handler: TestHandler = ({ domainApp }) => {
       contexts: [domainApp.call_relay_context],
       // logLevel: "trace",
       debug: {
-        // logWsTraffic: true,
+        logWsTraffic: true,
       },
     }
 

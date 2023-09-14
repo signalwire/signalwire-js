@@ -17,7 +17,7 @@ const handler: TestHandler = ({ domainApp }) => {
       token: process.env.RELAY_TOKEN as string,
       contexts: [domainApp.call_relay_context],
       debug: {
-        logWsTraffic: false,
+        logWsTraffic: true,
       },
     })
 
