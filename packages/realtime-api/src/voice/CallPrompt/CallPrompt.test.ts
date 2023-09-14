@@ -1,8 +1,13 @@
 import { EventEmitter } from '@signalwire/core'
-import { createClient } from '../client/createClient'
+import { createClient } from '../../client/createClient'
 import { CallPrompt } from './CallPrompt'
-import { Call } from './Call'
-import { Voice } from './Voice'
+import { Call } from '../Call'
+import { Voice } from '../Voice'
+import {
+  decoratePromptPromise,
+  getters,
+  methods,
+} from './decoratePromptPromise'
 
 describe('CallPrompt', () => {
   let voice: Voice
@@ -102,6 +107,62 @@ describe('CallPrompt', () => {
         node_id: 'test_node_id',
         volume: 5,
       },
+    })
+  })
+
+  describe('decoratePromptPromise', () => {
+    it('expose correct properties before resolve', () => {
+      const innerPromise = Promise.resolve(callPrompt)
+
+      const decoratedPromise = decoratePromptPromise.call(call, innerPromise)
+
+      expect(decoratedPromise).toHaveProperty('onStarted', expect.any(Function))
+      expect(decoratedPromise).toHaveProperty('onEnded', expect.any(Function))
+      methods.forEach((method) => {
+        expect(decoratedPromise).toHaveProperty(method, expect.any(Function))
+      })
+      getters.forEach((getter) => {
+        expect(decoratedPromise).toHaveProperty(getter)
+      })
+    })
+
+    it('expose correct properties after resolve', async () => {
+      const innerPromise = Promise.resolve(callPrompt)
+
+      const decoratedPromise = decoratePromptPromise.call(call, innerPromise)
+
+      // Simulate the prompt ended event
+      call.emit('prompt.ended', callPrompt)
+
+      const ended = await decoratedPromise
+
+      expect(ended).not.toHaveProperty('onStarted', expect.any(Function))
+      expect(ended).not.toHaveProperty('onEnded', expect.any(Function))
+      methods.forEach((method) => {
+        expect(ended).toHaveProperty(method, expect.any(Function))
+      })
+      getters.forEach((getter) => {
+        expect(ended).toHaveProperty(getter)
+      })
+    })
+
+    it('resolves when prompt ends', async () => {
+      const innerPromise = Promise.resolve(callPrompt)
+
+      const decoratedPromise = decoratePromptPromise.call(call, innerPromise)
+
+      // Simulate the prompt ended event
+      call.emit('prompt.ended', callPrompt)
+
+      await expect(decoratedPromise).resolves.toEqual(expect.any(CallPrompt))
+    })
+
+    it('rejects on inner promise rejection', async () => {
+      const innerPromise = Promise.reject(new Error('Recording failed'))
+
+      const decoratedPromise = decoratePromptPromise.call(call, innerPromise)
+
+      await expect(decoratedPromise).rejects.toThrow('Recording failed')
     })
   })
 })

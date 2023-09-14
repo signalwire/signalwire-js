@@ -50,7 +50,7 @@ import { Playlist } from './Playlist'
 import { Voice } from './Voice'
 import { CallPlayback, decoratePlaybackPromise } from './CallPlayback'
 import { CallRecording, decorateRecordingPromise } from './CallRecording'
-import { CallPrompt } from './CallPrompt'
+import { CallPrompt, decoratePromptPromise } from './CallPrompt'
 import { CallCollect } from './CallCollect'
 import { CallTap } from './CallTap'
 import { DeviceBuilder } from './DeviceBuilder'
@@ -553,7 +553,7 @@ export class Call extends ListenSubscriber<
    * Generic method to prompt the user for input. Please see {@link promptAudio}, {@link promptRingtone}, {@link promptTTS}.
    */
   prompt(params: CallPromptMethodParams) {
-    return new Promise<CallPrompt>((resolve, reject) => {
+    const promise = new Promise<CallPrompt>((resolve, reject) => {
       const { listen, ...rest } = params
 
       if (!this.callId || !this.nodeId) {
@@ -621,6 +621,8 @@ export class Call extends ListenSubscriber<
           reject(e)
         })
     })
+
+    return decoratePromptPromise.call(this, promise)
   }
 
   /**

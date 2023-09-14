@@ -3,13 +3,13 @@ import {
   CallingCallCollectEndState,
   CallingCallCollectEventParams,
 } from '@signalwire/core'
-import { Call } from './Call'
+import { Call } from '../Call'
 import {
   CallPromptEvents,
   CallPromptListeners,
   CallPromptListenersEventsMapping,
-} from '../types'
-import { ListenSubscriber } from '../ListenSubscriber'
+} from '../../types'
+import { ListenSubscriber } from '../../ListenSubscriber'
 
 export interface CallPromptOptions {
   call: Call
@@ -17,7 +17,7 @@ export interface CallPromptOptions {
   listeners?: CallPromptListeners
 }
 
-const ENDED_STATES: CallingCallCollectEndState[] = [
+export const PROMPT_ENDED_STATES: CallingCallCollectEndState[] = [
   'no_input',
   'error',
   'no_match',
@@ -178,7 +178,9 @@ export class CallPrompt
 
       // Resolve the promise if the prompt has already ended
       if (
-        ENDED_STATES.includes(this.result?.type as CallingCallCollectEndState)
+        PROMPT_ENDED_STATES.includes(
+          this.result?.type as CallingCallCollectEndState
+        )
       ) {
         handler()
       }
