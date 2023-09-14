@@ -1,8 +1,13 @@
 import { EventEmitter } from '@signalwire/core'
-import { createClient } from '../../../client/createClient'
+import { createClient } from '../../client/createClient'
 import { CallRecording } from './CallRecording'
-import { Call } from '../../Call'
-import { Voice } from '../../Voice'
+import { Call } from '../Call'
+import { Voice } from '../Voice'
+import {
+  decorateRecordingPromise,
+  methods,
+  getters,
+} from './decorateRecordingPromise'
 
 describe('CallRecording', () => {
   let voice: Voice
@@ -117,6 +122,62 @@ describe('CallRecording', () => {
     expect(callRecording._client.execute).toHaveBeenLastCalledWith({
       ...baseExecuteParams,
       method: 'calling.record.stop',
+    })
+  })
+
+  describe('decorateRecordingPromise', () => {
+    it('expose correct properties before resolve', () => {
+      const innerPromise = Promise.resolve(callRecording)
+
+      const decoratedPromise = decorateRecordingPromise.call(call, innerPromise)
+
+      expect(decoratedPromise).toHaveProperty('onStarted', expect.any(Function))
+      expect(decoratedPromise).toHaveProperty('onEnded', expect.any(Function))
+      methods.forEach((method) => {
+        expect(decoratedPromise).toHaveProperty(method, expect.any(Function))
+      })
+      getters.forEach((getter) => {
+        expect(decoratedPromise).toHaveProperty(getter)
+      })
+    })
+
+    it('expose correct properties after resolve', async () => {
+      const innerPromise = Promise.resolve(callRecording)
+
+      const decoratedPromise = decorateRecordingPromise.call(call, innerPromise)
+
+      // Simulate the recording ended event
+      call.emit('recording.ended', callRecording)
+
+      const ended = await decoratedPromise
+
+      expect(ended).not.toHaveProperty('onStarted', expect.any(Function))
+      expect(ended).not.toHaveProperty('onEnded', expect.any(Function))
+      methods.forEach((method) => {
+        expect(ended).toHaveProperty(method, expect.any(Function))
+      })
+      getters.forEach((getter) => {
+        expect(ended).toHaveProperty(getter)
+      })
+    })
+
+    it('resolves when recording ends', async () => {
+      const innerPromise = Promise.resolve(callRecording)
+
+      const decoratedPromise = decorateRecordingPromise.call(call, innerPromise)
+
+      // Simulate the recording ended event
+      call.emit('recording.ended', callRecording)
+
+      await expect(decoratedPromise).resolves.toEqual(expect.any(CallRecording))
+    })
+
+    it('rejects on inner promise rejection', async () => {
+      const innerPromise = Promise.reject(new Error('Recording failed'))
+
+      const decoratedPromise = decorateRecordingPromise.call(call, innerPromise)
+
+      await expect(decoratedPromise).rejects.toThrow('Recording failed')
     })
   })
 })

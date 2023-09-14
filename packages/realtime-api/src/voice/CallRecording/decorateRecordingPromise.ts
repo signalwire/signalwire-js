@@ -7,11 +7,13 @@ import { CallRecording, RECORDING_ENDED_STATES } from './CallRecording'
 
 export interface CallRecordingEnded {
   id: string
-  volume: number
   callId: string
   nodeId: string
   controlId: string
   state: CallingCallRecordEndState
+  url: string | undefined
+  duration: number | undefined
+  record: any
 }
 
 export interface CallRecordingPromise extends Promise<CallRecordingEnded> {
@@ -31,7 +33,7 @@ export interface CallRecordingPromise extends Promise<CallRecordingEnded> {
   record: Promise<any>
 }
 
-const getters = [
+export const getters = [
   'id',
   'callId',
   'nodeId',
@@ -43,7 +45,7 @@ const getters = [
   'record',
 ]
 
-const methods = ['stop']
+export const methods = ['pause', 'resume', 'stop']
 
 export function decorateRecordingPromise(
   this: Call,

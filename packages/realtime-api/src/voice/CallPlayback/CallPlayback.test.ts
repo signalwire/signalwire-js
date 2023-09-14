@@ -3,6 +3,11 @@ import { createClient } from '../../client/createClient'
 import { CallPlayback } from './CallPlayback'
 import { Call } from '../Call'
 import { Voice } from '../Voice'
+import {
+  decoratePlaybackPromise,
+  methods,
+  getters,
+} from './decoratePlaybackPromise'
 
 describe('CallPlayback', () => {
   let voice: Voice
@@ -115,6 +120,62 @@ describe('CallPlayback', () => {
         node_id: 'test_node_id',
         volume: 2,
       },
+    })
+  })
+
+  describe('decoratePlaybackPromise', () => {
+    it('expose correct properties before resolve', () => {
+      const innerPromise = Promise.resolve(callPlayback)
+
+      const decoratedPromise = decoratePlaybackPromise.call(call, innerPromise)
+
+      expect(decoratedPromise).toHaveProperty('onStarted', expect.any(Function))
+      expect(decoratedPromise).toHaveProperty('onEnded', expect.any(Function))
+      methods.forEach((method) => {
+        expect(decoratedPromise).toHaveProperty(method, expect.any(Function))
+      })
+      getters.forEach((getter) => {
+        expect(decoratedPromise).toHaveProperty(getter)
+      })
+    })
+
+    it('expose correct properties after resolve', async () => {
+      const innerPromise = Promise.resolve(callPlayback)
+
+      const decoratedPromise = decoratePlaybackPromise.call(call, innerPromise)
+
+      // Simulate the playback ended event
+      call.emit('playback.ended', callPlayback)
+
+      const ended = await decoratedPromise
+
+      expect(ended).not.toHaveProperty('onStarted', expect.any(Function))
+      expect(ended).not.toHaveProperty('onEnded', expect.any(Function))
+      methods.forEach((method) => {
+        expect(ended).toHaveProperty(method, expect.any(Function))
+      })
+      getters.forEach((getter) => {
+        expect(ended).toHaveProperty(getter)
+      })
+    })
+
+    it('resolves when playback ends', async () => {
+      const innerPromise = Promise.resolve(callPlayback)
+
+      const decoratedPromise = decoratePlaybackPromise.call(call, innerPromise)
+
+      // Simulate the playback ended event
+      call.emit('playback.ended', callPlayback)
+
+      await expect(decoratedPromise).resolves.toEqual(expect.any(CallPlayback))
+    })
+
+    it('rejects on inner promise rejection', async () => {
+      const innerPromise = Promise.reject(new Error('Recording failed'))
+
+      const decoratedPromise = decoratePlaybackPromise.call(call, innerPromise)
+
+      await expect(decoratedPromise).rejects.toThrow('Recording failed')
     })
   })
 })

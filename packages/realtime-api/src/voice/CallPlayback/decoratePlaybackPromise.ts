@@ -26,9 +26,16 @@ export interface CallPlaybackPromise extends Promise<CallPlaybackEnded> {
   state: Promise<CallingCallPlayState>
 }
 
-const getters = ['id', 'volume', 'callId', 'nodeId', 'controlId', 'state']
+export const getters = [
+  'id',
+  'volume',
+  'callId',
+  'nodeId',
+  'controlId',
+  'state',
+]
 
-const methods = ['pause', 'resume', 'stop', 'setVolume']
+export const methods = ['pause', 'resume', 'stop', 'setVolume']
 
 export function decoratePlaybackPromise(
   this: Call,
