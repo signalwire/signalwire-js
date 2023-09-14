@@ -60,7 +60,7 @@ const handler = () => {
 
               await unsubCall?.()
 
-              client.disconnect()
+              await client.disconnect()
 
               resolve(0)
             }

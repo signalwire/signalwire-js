@@ -52,7 +52,7 @@ const handler = async () => {
 
               await unsubPlay?.()
 
-              client.disconnect()
+              await client.disconnect()
 
               resolve(0)
             }
