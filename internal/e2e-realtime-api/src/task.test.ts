@@ -77,7 +77,7 @@ const handler = () => {
 
           await unsubOffice()
 
-          client.disconnect()
+          await client.disconnect()
 
           return resolve(0)
         },

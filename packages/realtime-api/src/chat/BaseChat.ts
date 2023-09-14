@@ -4,18 +4,11 @@ import {
   PubSubPublishParams,
   uuid,
 } from '@signalwire/core'
-import { BaseNamespace, ListenOptions } from '../BaseNamespace'
+import { BaseNamespace, Listeners } from '../BaseNamespace'
 
-export interface BaseChatListenOptions extends ListenOptions {
+export interface BaseChatListenOptions {
   channels: string[]
 }
-
-export type BaseChatListeners = Omit<
-  BaseChatListenOptions,
-  'channels' | 'topics'
->
-
-export type BaseChatListenerKeys = keyof BaseChatListeners
 
 export class BaseChat<
   T extends BaseChatListenOptions,
@@ -44,12 +37,13 @@ export class BaseChat<
     const _uuid = uuid()
 
     // Attach listeners
-    this._attachListenersWithTopics(channels, listeners)
+    this._attachListenersWithTopics(channels, listeners as Listeners<T>)
 
-    const listenerKeys = Object.keys(listeners) as Array<BaseChatListenerKeys>
+    const listenerKeys = Object.keys(listeners)
     const events: string[] = []
     listenerKeys.forEach((key) => {
-      if (this._eventMap[key]) events.push(this._eventMap[key])
+      const _key = key as keyof Listeners<T>
+      if (this._eventMap[_key]) events.push(this._eventMap[_key] as string)
     })
     await this.addChannels(channels, events)
 
@@ -65,7 +59,7 @@ export class BaseChat<
           }
 
           // Detach listeners
-          this._detachListenersWithTopics(channels, listeners)
+          this._detachListenersWithTopics(channels, listeners as Listeners<T>)
 
           // Remove channels from the listener map
           this.removeFromListenerMap(_uuid)
@@ -80,7 +74,7 @@ export class BaseChat<
     // Add channels to the listener map
     this.addToListenerMap(_uuid, {
       topics: new Set([...channels]),
-      listeners,
+      listeners: listeners as Listeners<T>,
       unsub,
     })
 

@@ -28,7 +28,9 @@ export type MessageUpdatedEventName = 'message.updated'
 export type MessagingState = 'messaging.state'
 export type MessagingReceive = 'messaging.receive'
 
-export type MessagingEventNames = MessagingState | MessagingReceive
+export type MessagingEventNames =
+  | MessageReceivedEventName
+  | MessageUpdatedEventName
 
 export interface MessagingContract {}
 

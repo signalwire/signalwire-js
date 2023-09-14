@@ -213,7 +213,7 @@ export class Call extends ListenSubscriber<
 
   /** @internal */
   setConnectPayload(payload: CallingCallConnectEventParams) {
-    this._connectPayload = { ...this._connectPayload, ...payload }
+    this._connectPayload = payload
   }
 
   /**
