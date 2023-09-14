@@ -1,8 +1,18 @@
 import tap from 'tap'
 import { SignalWire } from '@signalwire/realtime-api'
-import { CALL_PROPS, CALL_TAP_PROPS, createTestRunner } from './utils'
+import {
+  CALL_PROPS,
+  CALL_TAP_PROPS,
+  TestHandler,
+  createTestRunner,
+  makeSipDomainAppAddress,
+} from './utils'
 
-const handler = () => {
+const handler: TestHandler = ({ domainApp }) => {
+  if (!domainApp) {
+    throw new Error('Missing domainApp')
+  }
+
   return new Promise<number>(async (resolve, reject) => {
     try {
       const client = await SignalWire({
@@ -18,7 +28,7 @@ const handler = () => {
       tap.plan(4)
 
       const unsubVoice = await client.voice.listen({
-        topics: ['office', 'home'],
+        topics: [domainApp.call_relay_context, 'home'],
         onCallReceived: async (call) => {
           try {
             const resultAnswer = await call.answer()
@@ -34,21 +44,23 @@ const handler = () => {
         },
       })
 
-      const call = await client.voice.dialPhone({
-        to: process.env.VOICE_DIAL_TO_NUMBER as string,
-        from: process.env.VOICE_DIAL_FROM_NUMBER as string,
+      const call = await client.voice.dialSip({
+        to: makeSipDomainAppAddress({
+          name: 'to',
+          domain: domainApp.domain,
+        }),
+        from: makeSipDomainAppAddress({
+          name: 'from',
+          domain: domainApp.domain,
+        }),
         timeout: 30,
         listen: {
           onTapStarted: (callTap) => {
-            tap.hasProps(
-              callTap,
-              CALL_TAP_PROPS,
-              'voice.dialPhone: Tap started'
-            )
+            tap.hasProps(callTap, CALL_TAP_PROPS, 'voice.dialSip: Tap started')
             tap.equal(
               callTap.callId,
               call.id,
-              'voice.dialPhone: Tap with correct call id'
+              'voice.dialSip: Tap with correct call id'
             )
           },
         },
@@ -118,6 +130,7 @@ async function main() {
     name: 'Voice Tap with All Listeners E2E',
     testHandler: handler,
     executionTime: 30_000,
+    useDomainApp: true,
   })
 
   await runner.run()
