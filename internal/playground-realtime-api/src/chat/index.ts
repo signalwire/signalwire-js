@@ -60,7 +60,7 @@ async function run() {
     await unsubHome()
 
     console.log('Client disconnecting..')
-    client.disconnect()
+    await client.disconnect()
   } catch (error) {
     console.log('<Error>', error)
   }

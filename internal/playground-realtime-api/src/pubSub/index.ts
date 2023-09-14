@@ -57,7 +57,7 @@ async function run() {
     await unsubWorkplace()
 
     console.log('Disconnect the client..')
-    client.disconnect()
+    await client.disconnect()
   } catch (error) {
     console.log('<Error>', error)
   }

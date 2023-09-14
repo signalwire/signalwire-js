@@ -14,10 +14,11 @@ import type {
   VoiceEvents,
 } from '../types'
 import { toInternalDevices } from './utils'
-import { BaseNamespace, ListenOptions } from '../BaseNamespace'
+import { BaseNamespace } from '../BaseNamespace'
 import { SWClient } from '../SWClient'
 
-interface VoiceListenOptions extends ListenOptions {
+interface VoiceListenOptions {
+  topics: string[]
   onCallReceived?: (call: Call) => unknown
 }
 

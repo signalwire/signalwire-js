@@ -102,7 +102,7 @@ const handler = () => {
 
         await call.hangup()
 
-        client.disconnect()
+        await client.disconnect()
 
         resolve(0)
       }

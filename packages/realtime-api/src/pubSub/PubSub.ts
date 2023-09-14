@@ -5,10 +5,11 @@ import {
 } from '@signalwire/core'
 import { SWClient } from '../SWClient'
 import { pubSubWorker } from './workers'
-import { BaseChat, BaseChatListenOptions } from '../chat/BaseChat'
+import { BaseChat } from '../chat/BaseChat'
 import { RealTimePubSubEvents } from '../types/pubSub'
 
-interface PubSubListenOptions extends BaseChatListenOptions {
+interface PubSubListenOptions {
+  channels: string[]
   onMessageReceived?: (message: PubSubMessage) => unknown
 }
 

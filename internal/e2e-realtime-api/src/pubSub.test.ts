@@ -9,7 +9,7 @@
 import { timeoutPromise, SWCloseEvent } from '@signalwire/core'
 import { SignalWire as RealtimeSignalWire } from '@signalwire/realtime-api'
 import type {
-  PubSub as RealtimePubSub,
+  PubSub as RTPubSub,
   SWClient as RealtimeSWClient,
 } from '@signalwire/realtime-api'
 import { PubSub as JSPubSub } from '@signalwire/js'
@@ -47,7 +47,7 @@ const params = {
 
 interface TestPubSubOptions {
   jsPubSub: JSPubSub.Client
-  rtPubSub: RealtimePubSub
+  rtPubSub: RTPubSub.PubSub
   publisher?: 'JS' | 'RT'
 }
 

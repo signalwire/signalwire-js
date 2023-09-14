@@ -57,7 +57,7 @@ export class BaseComponent<
    */
   private _runningWorkers: Task[] = []
 
-  protected get logger() {
+  public get logger() {
     return getLogger()
   }
 

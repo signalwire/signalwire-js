@@ -47,6 +47,6 @@ import { SignalWire } from '@signalwire/realtime-api'
 
   setTimeout(async () => {
     console.log('Disconnect the client..')
-    client.disconnect()
+    await client.disconnect()
   }, 2000)
 })()

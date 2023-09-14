@@ -1,7 +1,11 @@
-import type { PubSubMessage, PubSubMessageEventName } from '@signalwire/core'
+import type {
+  PubSubMessage,
+  PubSubMessageEventName,
+  PubSubNamespace,
+} from '@signalwire/core'
 
 export type RealTimePubSubApiEventsHandlerMapping = Record<
-  PubSubMessageEventName,
+  `${PubSubNamespace}.${PubSubMessageEventName}`,
   (message: PubSubMessage) => void
 >
 

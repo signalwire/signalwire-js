@@ -132,7 +132,7 @@ const handler = async () => {
 
       await unsubVoice()
 
-      client.disconnect()
+      await client.disconnect()
 
       resolve(0)
     } catch (error) {
