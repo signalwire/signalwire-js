@@ -16,6 +16,9 @@ const handler: TestHandler = ({ domainApp }) => {
       project: process.env.RELAY_PROJECT as string,
       token: process.env.RELAY_TOKEN as string,
       topics: [domainApp.call_relay_context],
+      debug: {
+        logWsTraffic: true,
+      },
     })
 
     let waitForOutboundPlaybackStartResolve

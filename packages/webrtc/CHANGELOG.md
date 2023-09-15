@@ -4,6 +4,33 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.10.3] - 2023-09-14
+
+### Changed
+
+- [#853](https://github.com/signalwire/signalwire-js/pull/853) [`5e1ff117`](https://github.com/signalwire/signalwire-js/commit/5e1ff117cf84c6058b08863b578be885b7fb37ea) - Enhance shared function between realtime and browser SDK
+
+- [#853](https://github.com/signalwire/signalwire-js/pull/853) [`5e1ff117`](https://github.com/signalwire/signalwire-js/commit/5e1ff117cf84c6058b08863b578be885b7fb37ea) - Introduce the session emitter and eliminate the global emitter
+
+- [#853](https://github.com/signalwire/signalwire-js/pull/853) [`5e1ff117`](https://github.com/signalwire/signalwire-js/commit/5e1ff117cf84c6058b08863b578be885b7fb37ea) - Eliminate the multicast pubsub channel
+
+- [#853](https://github.com/signalwire/signalwire-js/pull/853) [`5e1ff117`](https://github.com/signalwire/signalwire-js/commit/5e1ff117cf84c6058b08863b578be885b7fb37ea) - Cleanup the SDK by removing eventsPrefix from the namespaces
+
+- [#853](https://github.com/signalwire/signalwire-js/pull/853) [`5e1ff117`](https://github.com/signalwire/signalwire-js/commit/5e1ff117cf84c6058b08863b578be885b7fb37ea) - Cleanup the SDK by removing applyEmitterTransform
+
+- [#853](https://github.com/signalwire/signalwire-js/pull/853) [`5e1ff117`](https://github.com/signalwire/signalwire-js/commit/5e1ff117cf84c6058b08863b578be885b7fb37ea) - Cleanup the global emitter
+
+- [#853](https://github.com/signalwire/signalwire-js/pull/853) [`5e1ff117`](https://github.com/signalwire/signalwire-js/commit/5e1ff117cf84c6058b08863b578be885b7fb37ea) - Remove event emitter transform pipeline from browser SDK
+
+- [#865](https://github.com/signalwire/signalwire-js/pull/865) [`6c435be2`](https://github.com/signalwire/signalwire-js/commit/6c435be2738ec4a70c8acfada282b829b551ec82) - Expose `destroy` event for inbound calls in Call Fabric to handle cases where the caller cancel the dial before the callee answers.
+
+- [#876](https://github.com/signalwire/signalwire-js/pull/876) [`e5db0ef9`](https://github.com/signalwire/signalwire-js/commit/e5db0ef95325d3578b8729c15e8bfca5b7a4cb3a) - Bump supported node version to at least 16
+
+### Dependencies
+
+- Updated dependencies [[`5e1ff117`](https://github.com/signalwire/signalwire-js/commit/5e1ff117cf84c6058b08863b578be885b7fb37ea), [`5e1ff117`](https://github.com/signalwire/signalwire-js/commit/5e1ff117cf84c6058b08863b578be885b7fb37ea), [`1086a1b0`](https://github.com/signalwire/signalwire-js/commit/1086a1b0dae256bb44858f16c24494aba8cdfc3e), [`be17e614`](https://github.com/signalwire/signalwire-js/commit/be17e614edd560a8578daf380dff1205e0032db3), [`5e1ff117`](https://github.com/signalwire/signalwire-js/commit/5e1ff117cf84c6058b08863b578be885b7fb37ea), [`5e1ff117`](https://github.com/signalwire/signalwire-js/commit/5e1ff117cf84c6058b08863b578be885b7fb37ea), [`5e1ff117`](https://github.com/signalwire/signalwire-js/commit/5e1ff117cf84c6058b08863b578be885b7fb37ea), [`5e1ff117`](https://github.com/signalwire/signalwire-js/commit/5e1ff117cf84c6058b08863b578be885b7fb37ea), [`fb45dce7`](https://github.com/signalwire/signalwire-js/commit/fb45dce7f57a99533df445b4e1cda9587a1f3eb4), [`2a9b88d9`](https://github.com/signalwire/signalwire-js/commit/2a9b88d92c61fbf9e317234e860c34081c49c235), [`5e1ff117`](https://github.com/signalwire/signalwire-js/commit/5e1ff117cf84c6058b08863b578be885b7fb37ea), [`5e1ff117`](https://github.com/signalwire/signalwire-js/commit/5e1ff117cf84c6058b08863b578be885b7fb37ea), [`e5db0ef9`](https://github.com/signalwire/signalwire-js/commit/e5db0ef95325d3578b8729c15e8bfca5b7a4cb3a)]:
+  - @signalwire/core@3.19.0
+
 ## [3.10.2] - 2023-08-17
 
 ### Dependencies
