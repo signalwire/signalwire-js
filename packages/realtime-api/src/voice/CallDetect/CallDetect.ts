@@ -3,13 +3,13 @@ import {
   CallingCallDetectEventParams,
   type DetectorResult,
 } from '@signalwire/core'
-import { ListenSubscriber } from '../ListenSubscriber'
-import { Call } from './Call'
+import { ListenSubscriber } from '../../ListenSubscriber'
 import {
   CallDetectEvents,
   CallDetectListeners,
   CallDetectListenersEventsMapping,
-} from '../types'
+} from '../../types'
+import { Call } from '../Call'
 
 export interface CallDetectOptions {
   call: Call
@@ -17,7 +17,7 @@ export interface CallDetectOptions {
   listeners?: CallDetectListeners
 }
 
-const ENDED_STATES: DetectorResult[] = ['finished', 'error']
+export const DETECT_ENDED_STATES: DetectorResult[] = ['finished', 'error']
 
 export class CallDetect
   extends ListenSubscriber<CallDetectListeners, CallDetectEvents>
@@ -115,7 +115,7 @@ export class CallDetect
   ended() {
     // Resolve the promise if the detect has already ended
     const lastEvent = this._lastEvent()
-    if (lastEvent && ENDED_STATES.includes(lastEvent)) {
+    if (lastEvent && DETECT_ENDED_STATES.includes(lastEvent)) {
       return Promise.resolve(this)
     }
 

@@ -52,9 +52,9 @@ import { CallPlayback, decoratePlaybackPromise } from './CallPlayback'
 import { CallRecording, decorateRecordingPromise } from './CallRecording'
 import { CallPrompt, decoratePromptPromise } from './CallPrompt'
 import { CallCollect } from './CallCollect'
-import { CallTap } from './CallTap'
+import { CallTap, decorateTapPromise } from './CallTap'
 import { DeviceBuilder } from './DeviceBuilder'
-import { CallDetect } from './CallDetect'
+import { CallDetect, decorateDetectPromise } from './CallDetect'
 
 interface CallOptions {
   voice: Voice
@@ -815,7 +815,7 @@ export class Call extends ListenSubscriber<
    * ```
    */
   tap(params: CallTapMethodParams) {
-    return new Promise<CallTap>((resolve, reject) => {
+    const promise = new Promise<CallTap>((resolve, reject) => {
       if (!this.callId || !this.nodeId) {
         reject(new Error(`Can't call tap() on a call not established yet.`))
       }
@@ -876,6 +876,8 @@ export class Call extends ListenSubscriber<
           reject(e)
         })
     })
+
+    return decorateTapPromise.call(this, promise)
   }
 
   /**
@@ -1104,7 +1106,7 @@ export class Call extends ListenSubscriber<
    * Generic method. Please see {@link amd}, {@link detectFax}, {@link detectDigit}.
    */
   detect(params: CallDetectMethodParams) {
-    return new Promise<CallDetect>((resolve, reject) => {
+    const promise = new Promise<CallDetect>((resolve, reject) => {
       if (!this.callId || !this.nodeId) {
         reject(new Error(`Can't call detect() on a call not established yet.`))
       }
@@ -1157,6 +1159,8 @@ export class Call extends ListenSubscriber<
           reject(e)
         })
     })
+
+    return decorateDetectPromise.call(this, promise)
   }
 
   /**

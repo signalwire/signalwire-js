@@ -1,8 +1,9 @@
 import { EventEmitter } from '@signalwire/core'
-import { createClient } from '../client/createClient'
+import { createClient } from '../../client/createClient'
 import { CallTap } from './CallTap'
-import { Call } from './Call'
-import { Voice } from './Voice'
+import { Call } from '../Call'
+import { Voice } from '../Voice'
+import { decorateTapPromise, methods, getters } from './decorateTapPromise'
 
 describe('CallTap', () => {
   let voice: Voice
@@ -102,5 +103,61 @@ describe('CallTap', () => {
     expect(callTap.callId).toBe(newCallId)
     expect(callTap.nodeId).toBe(newNodeId)
     expect(callTap.controlId).toBe(newControlId)
+  })
+
+  describe('decorateTapPromise', () => {
+    it('expose correct properties before resolve', () => {
+      const innerPromise = Promise.resolve(callTap)
+
+      const decoratedPromise = decorateTapPromise.call(call, innerPromise)
+
+      expect(decoratedPromise).toHaveProperty('onStarted', expect.any(Function))
+      expect(decoratedPromise).toHaveProperty('onEnded', expect.any(Function))
+      methods.forEach((method) => {
+        expect(decoratedPromise).toHaveProperty(method, expect.any(Function))
+      })
+      getters.forEach((getter) => {
+        expect(decoratedPromise).toHaveProperty(getter)
+      })
+    })
+
+    it('expose correct properties after resolve', async () => {
+      const innerPromise = Promise.resolve(callTap)
+
+      const decoratedPromise = decorateTapPromise.call(call, innerPromise)
+
+      // Simulate the tap ended event
+      call.emit('tap.ended', callTap)
+
+      const ended = await decoratedPromise
+
+      expect(ended).not.toHaveProperty('onStarted', expect.any(Function))
+      expect(ended).not.toHaveProperty('onEnded', expect.any(Function))
+      methods.forEach((method) => {
+        expect(ended).toHaveProperty(method, expect.any(Function))
+      })
+      getters.forEach((getter) => {
+        expect(ended).toHaveProperty(getter)
+      })
+    })
+
+    it('resolves when tap ends', async () => {
+      const innerPromise = Promise.resolve(callTap)
+
+      const decoratedPromise = decorateTapPromise.call(call, innerPromise)
+
+      // Simulate the tap ended event
+      call.emit('tap.ended', callTap)
+
+      await expect(decoratedPromise).resolves.toEqual(expect.any(CallTap))
+    })
+
+    it('rejects on inner promise rejection', async () => {
+      const innerPromise = Promise.reject(new Error('Tap failed'))
+
+      const decoratedPromise = decorateTapPromise.call(call, innerPromise)
+
+      await expect(decoratedPromise).rejects.toThrow('Tap failed')
+    })
   })
 })
