@@ -51,7 +51,7 @@ import { Voice } from './Voice'
 import { CallPlayback, decoratePlaybackPromise } from './CallPlayback'
 import { CallRecording, decorateRecordingPromise } from './CallRecording'
 import { CallPrompt, decoratePromptPromise } from './CallPrompt'
-import { CallCollect } from './CallCollect'
+import { CallCollect, decorateCollectPromise } from './CallCollect'
 import { CallTap, decorateTapPromise } from './CallTap'
 import { DeviceBuilder } from './DeviceBuilder'
 import { CallDetect, decorateDetectPromise } from './CallDetect'
@@ -1244,7 +1244,7 @@ export class Call extends ListenSubscriber<
    * ```
    */
   collect(params: CallCollectMethodParams) {
-    return new Promise<CallCollect>((resolve, reject) => {
+    const promise = new Promise<CallCollect>((resolve, reject) => {
       const { listen, ...rest } = params
 
       if (!this.callId || !this.nodeId) {
@@ -1308,6 +1308,8 @@ export class Call extends ListenSubscriber<
           reject(e)
         })
     })
+
+    return decorateCollectPromise.call(this, promise)
   }
 
   /**

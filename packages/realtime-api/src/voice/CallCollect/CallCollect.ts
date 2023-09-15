@@ -3,13 +3,13 @@ import {
   CallingCallCollectEndState,
   CallingCallCollectEventParams,
 } from '@signalwire/core'
-import { ListenSubscriber } from '../ListenSubscriber'
-import { Call } from './Call'
+import { ListenSubscriber } from '../../ListenSubscriber'
 import {
   CallCollectEvents,
   CallCollectListeners,
   CallCollectListenersEventsMapping,
-} from '../types'
+} from '../../types'
+import { Call } from '../Call'
 
 export interface CallCollectOptions {
   call: Call
@@ -17,7 +17,7 @@ export interface CallCollectOptions {
   listeners?: CallCollectListeners
 }
 
-const ENDED_STATES: CallingCallCollectEndState[] = [
+export const COLLECT_ENDED_STATES: CallingCallCollectEndState[] = [
   'error',
   'no_input',
   'no_match',
@@ -173,7 +173,9 @@ export class CallCollect
 
       // Resolve the promise if the collect has already ended
       if (
-        ENDED_STATES.includes(this.result?.type as CallingCallCollectEndState)
+        COLLECT_ENDED_STATES.includes(
+          this.result?.type as CallingCallCollectEndState
+        )
       ) {
         handler()
       }
