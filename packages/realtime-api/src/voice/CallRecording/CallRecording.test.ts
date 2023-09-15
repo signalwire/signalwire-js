@@ -132,12 +132,18 @@ describe('CallRecording', () => {
       const decoratedPromise = decorateRecordingPromise.call(call, innerPromise)
 
       expect(decoratedPromise).toHaveProperty('onStarted', expect.any(Function))
+      expect(decoratedPromise.onStarted()).toBeInstanceOf(Promise)
       expect(decoratedPromise).toHaveProperty('onEnded', expect.any(Function))
+      expect(decoratedPromise.onEnded()).toBeInstanceOf(Promise)
       methods.forEach((method) => {
         expect(decoratedPromise).toHaveProperty(method, expect.any(Function))
+        // @ts-expect-error
+        expect(decoratedPromise[method]()).toBeInstanceOf(Promise)
       })
       getters.forEach((getter) => {
         expect(decoratedPromise).toHaveProperty(getter)
+        // @ts-expect-error
+        expect(decoratedPromise[getter]).toBeInstanceOf(Promise)
       })
     })
 
@@ -158,6 +164,8 @@ describe('CallRecording', () => {
       })
       getters.forEach((getter) => {
         expect(ended).toHaveProperty(getter)
+        // @ts-expect-error
+        expect(ended[getter]).not.toBeInstanceOf(Promise)
       })
     })
 
