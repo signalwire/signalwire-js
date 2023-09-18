@@ -1,4 +1,4 @@
-import { actions, componentActions } from '@signalwire/core'
+import { EventEmitter, actions, componentActions } from '@signalwire/core'
 import { BaseRoomSession, createBaseRoomSessionObject } from './BaseRoomSession'
 import type { RoomSession } from './RoomSession'
 import { configureFullStack, dispatchMockedRoomSubscribed } from './testUtils'
@@ -73,8 +73,8 @@ describe('Room Object', () => {
     expect(room.setLayout).toBeDefined()
     expect(room.hideVideoMuted).toBeDefined()
     expect(room.showVideoMuted).toBeDefined()
-    // expect(room.lock).toBeDefined()
-    // expect(room.unlock).toBeDefined()
+    expect(room.lock).toBeDefined()
+    expect(room.unlock).toBeDefined()
     expect(room.getRecordings).toBeDefined()
     expect(room.startRecording).toBeDefined()
     expect(room.getPlaybacks).toBeDefined()

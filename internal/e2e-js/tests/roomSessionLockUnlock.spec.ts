@@ -8,7 +8,7 @@ import {
   expectMCUVisible,
 } from '../utils'
 
-test.describe.skip('RoomSession Lock/Unlock', () => {
+test.describe('RoomSession Lock/Unlock', () => {
   test('should join a room and be able to lock/unlock it', async ({
     createCustomPage,
   }) => {
