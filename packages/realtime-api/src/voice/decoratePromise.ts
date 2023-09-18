@@ -1,35 +1,20 @@
-import {
-  CallingCallCollectEndState,
-  CallingCallPlayEndState,
-  CallingCallRecordEndState,
-} from '@signalwire/core'
 import { Call } from './Call'
 
 export interface DecoratePromiseOptions<T> {
   promise: Promise<T>
-  namespace: 'playback' | 'recording' | 'prompt'
-  endedStates:
-    | CallingCallPlayEndState[]
-    | CallingCallRecordEndState[]
-    | CallingCallCollectEndState[]
+  namespace: 'playback' | 'recording' | 'prompt' | 'tap' | 'detect' | 'collect'
   methods: string[]
   getters: string[]
 }
 
-export function decoratePromise<T>(
+export function decoratePromise<T, U>(
   this: Call,
   options: DecoratePromiseOptions<T>
-) {
-  const {
-    promise: innerPromise,
-    namespace,
-    endedStates,
-    methods,
-    getters,
-  } = options
+): Promise<U> {
+  const { promise: innerPromise, namespace, methods, getters } = options
 
-  const promise = new Promise<T>((resolve, reject) => {
-    const endedHandler = (instance: T) => {
+  const promise = new Promise<U>((resolve, reject) => {
+    const endedHandler = (instance: U) => {
       // @ts-expect-error
       this.off(`${namespace}.ended`, endedHandler)
       resolve(instance)
@@ -54,29 +39,29 @@ export function decoratePromise<T>(
     },
     onEnded: {
       value: async function () {
-        // @ts-expect-error
-        if (endedStates.includes(this.state)) {
+        const instance = await this.onStarted()
+        if (instance.hasEnded) {
           return this
         }
         return await promise
       },
       enumerable: true,
     },
-    ...methods.reduce((acc: any, method) => {
+    ...methods.reduce((acc: Record<string, any>, method) => {
       acc[method] = {
         value: async function () {
-          const playback = await this.onStarted()
-          return playback[method]()
+          const instance = await this.onStarted()
+          return instance[method]()
         },
         enumerable: true,
       }
       return acc
     }, {}),
-    ...getters.reduce((acc: any, gettter) => {
+    ...getters.reduce((acc: Record<string, any>, gettter) => {
       acc[gettter] = {
         get: async function () {
-          const playback = await this.onStarted()
-          return playback[gettter]
+          const instance = await this.onStarted()
+          return instance[gettter]
         },
         enumerable: true,
       }

@@ -1,6 +1,7 @@
 import { CallingCallCollectResult } from '@signalwire/core'
 import { Call } from '../Call'
-import { CallPrompt, PROMPT_ENDED_STATES } from './CallPrompt'
+import { CallPrompt } from './CallPrompt'
+import { decoratePromise } from '../decoratePromise'
 
 export interface CallPromptEnded {
   id: string
@@ -57,57 +58,11 @@ export function decoratePromptPromise(
   this: Call,
   innerPromise: Promise<CallPrompt>
 ) {
-  const promise = new Promise<CallPrompt>((resolve, reject) => {
-    const endedHandler = (callPrompt: CallPrompt) => {
-      this.off('prompt.ended', endedHandler)
-      resolve(callPrompt)
-    }
-
-    this.once('prompt.ended', endedHandler)
-
-    innerPromise.catch((error) => {
-      this.off('prompt.ended', endedHandler)
-      reject(error)
-    })
-  })
-
-  Object.defineProperties(promise, {
-    onStarted: {
-      value: async function () {
-        return await innerPromise
-      },
-      enumerable: true,
-    },
-    onEnded: {
-      value: async function () {
-        if (PROMPT_ENDED_STATES.includes(this.state)) {
-          return this
-        }
-        return await promise
-      },
-      enumerable: true,
-    },
-    ...methods.reduce((acc: any, method) => {
-      acc[method] = {
-        value: async function () {
-          const playback = await this.onStarted()
-          return playback[method]()
-        },
-        enumerable: true,
-      }
-      return acc
-    }, {}),
-    ...getters.reduce((acc: any, gettter) => {
-      acc[gettter] = {
-        get: async function () {
-          const playback = await this.onStarted()
-          return playback[gettter]
-        },
-        enumerable: true,
-      }
-      return acc
-    }, {}),
-  })
-
-  return promise as unknown as CallPromptPromise
+  // prettier-ignore
+  return (decoratePromise<CallPrompt, CallPromptEnded>).call(this, { 
+    promise: innerPromise,
+    namespace: 'prompt',
+    methods,
+    getters,
+  }) as CallPromptPromise
 }

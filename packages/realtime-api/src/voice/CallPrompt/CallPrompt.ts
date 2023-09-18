@@ -17,7 +17,7 @@ export interface CallPromptOptions {
   listeners?: CallPromptListeners
 }
 
-export const PROMPT_ENDED_STATES: CallingCallCollectEndState[] = [
+const ENDED_STATES: CallingCallCollectEndState[] = [
   'no_input',
   'error',
   'no_match',
@@ -114,6 +114,15 @@ export class CallPrompt
     return undefined
   }
 
+  get hasEnded() {
+    if (
+      ENDED_STATES.includes(this.result?.type as CallingCallCollectEndState)
+    ) {
+      return true
+    }
+    return false
+  }
+
   /** @internal */
   setPayload(payload: CallingCallCollectEventParams) {
     this._payload = payload
@@ -177,11 +186,7 @@ export class CallPrompt
       this.once('prompt.failed', handler)
 
       // Resolve the promise if the prompt has already ended
-      if (
-        PROMPT_ENDED_STATES.includes(
-          this.result?.type as CallingCallCollectEndState
-        )
-      ) {
+      if (this.hasEnded) {
         handler()
       }
     })

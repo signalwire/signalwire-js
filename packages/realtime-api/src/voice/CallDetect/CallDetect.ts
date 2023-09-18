@@ -17,7 +17,7 @@ export interface CallDetectOptions {
   listeners?: CallDetectListeners
 }
 
-export const DETECT_ENDED_STATES: DetectorResult[] = ['finished', 'error']
+const ENDED_STATES: DetectorResult[] = ['finished', 'error']
 
 export class CallDetect
   extends ListenSubscriber<CallDetectListeners, CallDetectEvents>
@@ -82,6 +82,14 @@ export class CallDetect
     return undefined
   }
 
+  get hasEnded() {
+    const lastEvent = this._lastEvent()
+    if (lastEvent && ENDED_STATES.includes(lastEvent)) {
+      return true
+    }
+    return false
+  }
+
   /** @internal */
   setPayload(payload: CallingCallDetectEventParams) {
     this._payload = payload
@@ -115,7 +123,7 @@ export class CallDetect
   ended() {
     // Resolve the promise if the detect has already ended
     const lastEvent = this._lastEvent()
-    if (lastEvent && DETECT_ENDED_STATES.includes(lastEvent)) {
+    if (lastEvent && ENDED_STATES.includes(lastEvent)) {
       return Promise.resolve(this)
     }
 

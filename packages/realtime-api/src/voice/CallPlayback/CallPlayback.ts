@@ -17,10 +17,7 @@ export interface CallPlaybackOptions {
   listeners?: CallPlaybackListeners
 }
 
-export const PLAYBACK_ENDED_STATES: CallingCallPlayEndState[] = [
-  'finished',
-  'error',
-]
+const ENDED_STATES: CallingCallPlayEndState[] = ['finished', 'error']
 
 export class CallPlayback
   extends ListenSubscriber<CallPlaybackListeners, CallPlaybackEvents>
@@ -69,6 +66,13 @@ export class CallPlayback
 
   get state() {
     return this._payload?.state
+  }
+
+  get hasEnded() {
+    if (ENDED_STATES.includes(this.state as CallingCallPlayEndState)) {
+      return true
+    }
+    return false
   }
 
   /** @internal */
@@ -154,9 +158,7 @@ export class CallPlayback
       this.once('playback.failed', handler)
 
       // Resolve the promise if the play has already ended
-      if (
-        PLAYBACK_ENDED_STATES.includes(this.state as CallingCallPlayEndState)
-      ) {
+      if (this.hasEnded) {
         handler()
       }
     })

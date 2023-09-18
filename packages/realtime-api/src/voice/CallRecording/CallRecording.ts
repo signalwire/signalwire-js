@@ -18,10 +18,7 @@ export interface CallRecordingOptions {
   listeners?: CallRecordingListeners
 }
 
-export const RECORDING_ENDED_STATES: CallingCallRecordEndState[] = [
-  'finished',
-  'no_input',
-]
+const ENDED_STATES: CallingCallRecordEndState[] = ['finished', 'no_input']
 
 export class CallRecording
   extends ListenSubscriber<CallRecordingListeners, CallRecordingEvents>
@@ -81,6 +78,13 @@ export class CallRecording
 
   get record() {
     return this._payload.record
+  }
+
+  get hasEnded() {
+    if (ENDED_STATES.includes(this.state as CallingCallRecordEndState)) {
+      return true
+    }
+    return false
   }
 
   /** @internal */
@@ -148,9 +152,7 @@ export class CallRecording
       this.once('recording.failed', handler)
 
       // Resolve the promise if the recording has already ended
-      if (
-        RECORDING_ENDED_STATES.includes(this.state as CallingCallRecordEndState)
-      ) {
+      if (this.hasEnded) {
         handler()
       }
     })

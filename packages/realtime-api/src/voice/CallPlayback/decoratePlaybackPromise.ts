@@ -1,7 +1,11 @@
 import { CallingCallPlayEndState, CallingCallPlayState } from '@signalwire/core'
 import { Call } from '../Call'
-import { CallPlayback, PLAYBACK_ENDED_STATES } from './CallPlayback'
+import { CallPlayback } from './CallPlayback'
+import { decoratePromise } from '../decoratePromise'
 
+// In future, we can have a playback instance without methods (for eg: StaticCallPlayback)
+// When playback ends, we would return StaticCallPlayback to the user
+// For now; force TS to have only getters properties when playback ends
 export interface CallPlaybackEnded {
   id: string
   volume: number
@@ -41,57 +45,11 @@ export function decoratePlaybackPromise(
   this: Call,
   innerPromise: Promise<CallPlayback>
 ) {
-  const promise = new Promise<CallPlayback>((resolve, reject) => {
-    const endedHandler = (callPlayback: CallPlayback) => {
-      this.off('playback.ended', endedHandler)
-      resolve(callPlayback)
-    }
-
-    this.once('playback.ended', endedHandler)
-
-    innerPromise.catch((error) => {
-      this.off('playback.ended', endedHandler)
-      reject(error)
-    })
-  })
-
-  Object.defineProperties(promise, {
-    onStarted: {
-      value: async function () {
-        return await innerPromise
-      },
-      enumerable: true,
-    },
-    onEnded: {
-      value: async function () {
-        if (PLAYBACK_ENDED_STATES.includes(this.state)) {
-          return this
-        }
-        return await promise
-      },
-      enumerable: true,
-    },
-    ...methods.reduce((acc: any, method) => {
-      acc[method] = {
-        value: async function () {
-          const playback = await this.onStarted()
-          return playback[method]()
-        },
-        enumerable: true,
-      }
-      return acc
-    }, {}),
-    ...getters.reduce((acc: any, gettter) => {
-      acc[gettter] = {
-        get: async function () {
-          const playback = await this.onStarted()
-          return playback[gettter]
-        },
-        enumerable: true,
-      }
-      return acc
-    }, {}),
-  })
-
-  return promise as unknown as CallPlaybackPromise
+  // prettier-ignore
+  return (decoratePromise<CallPlayback, CallPlaybackEnded>).call(this, { 
+    promise: innerPromise,
+    namespace: 'playback',
+    methods,
+    getters,
+  }) as CallPlaybackPromise
 }

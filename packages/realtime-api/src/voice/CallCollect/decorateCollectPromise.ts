@@ -1,6 +1,7 @@
 import { CallingCallCollectResult } from '@signalwire/core'
 import { Call } from '../Call'
-import { CallCollect, COLLECT_ENDED_STATES } from './CallCollect'
+import { CallCollect } from './CallCollect'
+import { decoratePromise } from '../decoratePromise'
 
 export interface CallCollectEnded {
   id: string
@@ -57,57 +58,11 @@ export function decorateCollectPromise(
   this: Call,
   innerPromise: Promise<CallCollect>
 ) {
-  const promise = new Promise<CallCollect>((resolve, reject) => {
-    const endedHandler = (callCollect: CallCollect) => {
-      this.off('collect.ended', endedHandler)
-      resolve(callCollect)
-    }
-
-    this.once('collect.ended', endedHandler)
-
-    innerPromise.catch((error) => {
-      this.off('collect.ended', endedHandler)
-      reject(error)
-    })
-  })
-
-  Object.defineProperties(promise, {
-    onStarted: {
-      value: async function () {
-        return await innerPromise
-      },
-      enumerable: true,
-    },
-    onEnded: {
-      value: async function () {
-        if (COLLECT_ENDED_STATES.includes(this.state)) {
-          return this
-        }
-        return await promise
-      },
-      enumerable: true,
-    },
-    ...methods.reduce((acc: any, method) => {
-      acc[method] = {
-        value: async function () {
-          const playback = await this.onStarted()
-          return playback[method]()
-        },
-        enumerable: true,
-      }
-      return acc
-    }, {}),
-    ...getters.reduce((acc: any, gettter) => {
-      acc[gettter] = {
-        get: async function () {
-          const playback = await this.onStarted()
-          return playback[gettter]
-        },
-        enumerable: true,
-      }
-      return acc
-    }, {}),
-  })
-
-  return promise as unknown as CallCollectPromise
+  // prettier-ignore
+  return (decoratePromise<CallCollect, CallCollectEnded>).call(this, { 
+    promise: innerPromise,
+    namespace: 'collect',
+    methods,
+    getters,
+  }) as CallCollectPromise
 }

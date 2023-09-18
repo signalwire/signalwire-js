@@ -17,7 +17,7 @@ export interface CallCollectOptions {
   listeners?: CallCollectListeners
 }
 
-export const COLLECT_ENDED_STATES: CallingCallCollectEndState[] = [
+const ENDED_STATES: CallingCallCollectEndState[] = [
   'error',
   'no_input',
   'no_match',
@@ -115,6 +115,15 @@ export class CallCollect
     return undefined
   }
 
+  get hasEnded() {
+    if (
+      ENDED_STATES.includes(this.result?.type as CallingCallCollectEndState)
+    ) {
+      return true
+    }
+    return false
+  }
+
   /** @internal */
   setPayload(payload: CallingCallCollectEventParams) {
     this._payload = payload
@@ -172,11 +181,7 @@ export class CallCollect
       this.once('collect.failed', handler)
 
       // Resolve the promise if the collect has already ended
-      if (
-        COLLECT_ENDED_STATES.includes(
-          this.result?.type as CallingCallCollectEndState
-        )
-      ) {
+      if (this.hasEnded) {
         handler()
       }
     })
