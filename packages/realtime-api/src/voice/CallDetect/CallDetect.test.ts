@@ -94,6 +94,15 @@ describe('CallDetect', () => {
     })
   })
 
+  it('should throw an error on methods if detect has ended', async () => {
+    const hasEndedGetter = jest.spyOn(callDetect, 'hasEnded', 'get')
+
+    // Define the behavior you want for the getter
+    hasEndedGetter.mockReturnValue(true)
+
+    await expect(callDetect.stop()).rejects.toThrowError('Action has ended')
+  })
+
   describe('decorateDetectPromise', () => {
     it('expose correct properties before resolve', () => {
       const innerPromise = Promise.resolve(callDetect)

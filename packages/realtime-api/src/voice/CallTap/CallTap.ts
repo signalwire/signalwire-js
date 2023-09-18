@@ -72,16 +72,18 @@ export class CallTap
   }
 
   async stop() {
-    if (this.state !== 'finished') {
-      await this._client.execute({
-        method: 'calling.tap.stop',
-        params: {
-          node_id: this.nodeId,
-          call_id: this.callId,
-          control_id: this.controlId,
-        },
-      })
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
     }
+
+    await this._client.execute({
+      method: 'calling.tap.stop',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.callId,
+        control_id: this.controlId,
+      },
+    })
 
     return this
   }

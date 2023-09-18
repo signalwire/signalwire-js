@@ -81,6 +81,10 @@ export class CallPlayback
   }
 
   async pause() {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'calling.play.pause',
       params: {
@@ -94,6 +98,10 @@ export class CallPlayback
   }
 
   async resume() {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'calling.play.resume',
       params: {
@@ -107,6 +115,10 @@ export class CallPlayback
   }
 
   async stop() {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'calling.play.stop',
       params: {
@@ -120,6 +132,10 @@ export class CallPlayback
   }
 
   async setVolume(volume: number) {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     this._volume = volume
 
     await this._client.execute({

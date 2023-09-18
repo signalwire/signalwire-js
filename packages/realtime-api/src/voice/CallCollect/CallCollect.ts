@@ -130,27 +130,27 @@ export class CallCollect
   }
 
   async stop() {
-    // Execute stop only if we don't have result yet
-    if (!this.result) {
-      await this._client.execute({
-        method: 'calling.collect.stop',
-        params: {
-          node_id: this.nodeId,
-          call_id: this.callId,
-          control_id: this.controlId,
-        },
-      })
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
     }
 
-    /**
-     * TODO: we should wait for the prompt to be finished to allow
-     * the CallCollect/Proxy object to update the payload properly
-     */
+    await this._client.execute({
+      method: 'calling.collect.stop',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.callId,
+        control_id: this.controlId,
+      },
+    })
 
     return this
   }
 
   async startInputTimers() {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'calling.collect.start_input_timers',
       params: {

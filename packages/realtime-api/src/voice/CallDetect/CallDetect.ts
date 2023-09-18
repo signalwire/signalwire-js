@@ -101,7 +101,10 @@ export class CallDetect
   }
 
   async stop() {
-    // if (this.state !== 'finished') {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'calling.detect.stop',
       params: {
@@ -110,7 +113,6 @@ export class CallDetect
         control_id: this.controlId,
       },
     })
-    // }
 
     return this
   }

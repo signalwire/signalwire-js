@@ -97,6 +97,7 @@ describe('CallPlayback', () => {
     })
 
     await callPlayback.resume()
+
     // @ts-expect-error
     expect(callPlayback._client.execute).toHaveBeenLastCalledWith({
       ...baseExecuteParams,
@@ -121,6 +122,22 @@ describe('CallPlayback', () => {
         volume: 2,
       },
     })
+  })
+
+  it('should throw an error on methods if playback has ended', async () => {
+    callPlayback.setPayload({
+      control_id: 'test_control_id',
+      call_id: 'test_call_id',
+      node_id: 'test_node_id',
+      state: 'finished',
+    })
+
+    await expect(callPlayback.pause()).rejects.toThrowError('Action has ended')
+    await expect(callPlayback.resume()).rejects.toThrowError('Action has ended')
+    await expect(callPlayback.stop()).rejects.toThrowError('Action has ended')
+    await expect(callPlayback.setVolume(1)).rejects.toThrowError(
+      'Action has ended'
+    )
   })
 
   describe('decoratePlaybackPromise', () => {

@@ -110,6 +110,21 @@ describe('CallPrompt', () => {
     })
   })
 
+  it('should throw an error on methods if prompt has ended', async () => {
+    callPrompt.setPayload({
+      control_id: 'test_control_id',
+      call_id: 'test_call_id',
+      node_id: 'test_node_id',
+      // @ts-expect-error
+      result: { type: 'speech' },
+    })
+
+    await expect(callPrompt.stop()).rejects.toThrowError('Action has ended')
+    await expect(callPrompt.setVolume(1)).rejects.toThrowError(
+      'Action has ended'
+    )
+  })
+
   describe('decoratePromptPromise', () => {
     it('expose correct properties before resolve', () => {
       const innerPromise = Promise.resolve(callPrompt)

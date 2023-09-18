@@ -111,6 +111,22 @@ describe('CallCollect', () => {
     })
   })
 
+  it('should throw an error on methods if collect has ended', async () => {
+    callCollect.setPayload({
+      control_id: 'test_control_id',
+      call_id: 'test_call_id',
+      node_id: 'test_node_id',
+      result: {
+        type: 'error',
+      },
+    })
+
+    await expect(callCollect.stop()).rejects.toThrowError('Action has ended')
+    await expect(callCollect.startInputTimers()).rejects.toThrowError(
+      'Action has ended'
+    )
+  })
+
   describe('decorateCollectPromise', () => {
     it('expose correct properties before resolve', () => {
       const innerPromise = Promise.resolve(callCollect)

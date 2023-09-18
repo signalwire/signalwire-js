@@ -93,6 +93,10 @@ export class CallRecording
   }
 
   async pause(params?: CallingCallRecordPauseMethodParams) {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     const { behavior = 'silence' } = params || {}
 
     await this._client.execute({
@@ -109,6 +113,10 @@ export class CallRecording
   }
 
   async resume() {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'calling.record.resume',
       params: {
@@ -122,6 +130,10 @@ export class CallRecording
   }
 
   async stop() {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'calling.record.stop',
       params: {

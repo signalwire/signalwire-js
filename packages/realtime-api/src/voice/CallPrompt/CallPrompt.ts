@@ -129,27 +129,27 @@ export class CallPrompt
   }
 
   async stop() {
-    // Execute stop only if we don't have result yet
-    if (!this.result) {
-      await this._client.execute({
-        method: 'calling.play_and_collect.stop',
-        params: {
-          node_id: this.nodeId,
-          call_id: this.callId,
-          control_id: this.controlId,
-        },
-      })
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
     }
 
-    /**
-     * TODO: we should wait for the prompt to be finished to allow
-     * the CallPrompt/Proxy object to update the payload properly
-     */
+    await this._client.execute({
+      method: 'calling.play_and_collect.stop',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.callId,
+        control_id: this.controlId,
+      },
+    })
 
     return this
   }
 
   async setVolume(volume: number): Promise<this> {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'calling.play_and_collect.volume',
       params: {
