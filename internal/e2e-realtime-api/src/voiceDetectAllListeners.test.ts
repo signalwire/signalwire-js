@@ -117,36 +117,38 @@ const handler: TestHandler = ({ domainApp }) => {
       })
 
       // Start a detect
-      const detectDigit = await call.detectDigit({
-        digits: '1234',
-        listen: {
-          onStarted: (detect) => {
-            tap.hasProps(
-              detect,
-              CALL_DETECT_PROPS,
-              'call.detectDigit: Detect started'
-            )
-            tap.equal(
-              detect.callId,
-              call.id,
-              'call.detectDigit: Detect with correct call id'
-            )
+      const detectDigit = await call
+        .detectDigit({
+          digits: '1234',
+          listen: {
+            onStarted: (detect) => {
+              tap.hasProps(
+                detect,
+                CALL_DETECT_PROPS,
+                'call.detectDigit: Detect started'
+              )
+              tap.equal(
+                detect.callId,
+                call.id,
+                'call.detectDigit: Detect with correct call id'
+              )
+            },
+            // Update runs 4 times since callee send 4 digits
+            onUpdated: (detect) => {
+              tap.hasProps(
+                detect,
+                CALL_DETECT_PROPS,
+                'call.detectDigit: Detect updated'
+              )
+              tap.equal(
+                detect.callId,
+                call.id,
+                'call.detectDigit: Detect with correct call id'
+              )
+            },
           },
-          // Update runs 4 times since callee send 4 digits
-          onUpdated: (detect) => {
-            tap.hasProps(
-              detect,
-              CALL_DETECT_PROPS,
-              'call.detectDigit: Detect updated'
-            )
-            tap.equal(
-              detect.callId,
-              call.id,
-              'call.detectDigit: Detect with correct call id'
-            )
-          },
-        },
-      })
+        })
+        .onStarted()
       tap.equal(
         call.id,
         detectDigit.callId,

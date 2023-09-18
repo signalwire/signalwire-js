@@ -100,7 +100,7 @@ const handler: TestHandler = ({ domainApp }) => {
       tap.ok(call.id, 'Outbound - Call resolved')
 
       // Caller starts a collect
-      const collect = await call.collect({
+      const collect = call.collect({
         initialTimeout: 4.0,
         digits: {
           max: 4,
@@ -114,7 +114,7 @@ const handler: TestHandler = ({ domainApp }) => {
       })
       tap.equal(
         call.id,
-        collect.callId,
+        await collect.callId,
         'Outbound - Collect returns the same call instance'
       )
 

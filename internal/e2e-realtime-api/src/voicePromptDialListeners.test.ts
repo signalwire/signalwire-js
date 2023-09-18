@@ -82,18 +82,21 @@ const handler: TestHandler = ({ domainApp }) => {
       tap.ok(call.id, 'Outbound - Call resolved')
 
       // Caller starts a prompt
-      const prompt = await call.prompt({
-        playlist: new Voice.Playlist({ volume: 1.0 }).add(
-          Voice.Playlist.TTS({
-            text: 'Welcome to SignalWire! Please enter your 4 digits PIN',
-          })
-        ),
-        digits: {
-          max: 4,
-          digitTimeout: 10,
-          terminators: '#',
-        },
-      })
+      const prompt = await call
+        .prompt({
+          playlist: new Voice.Playlist({ volume: 1.0 }).add(
+            Voice.Playlist.TTS({
+              text: 'Welcome to SignalWire! Please enter your 4 digits PIN',
+            })
+          ),
+          digits: {
+            max: 4,
+            digitTimeout: 10,
+            terminators: '#',
+          },
+        })
+        .onStarted()
+
       tap.equal(
         call.id,
         prompt.callId,

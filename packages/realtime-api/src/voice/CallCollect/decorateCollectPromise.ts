@@ -2,6 +2,7 @@ import { CallingCallCollectResult } from '@signalwire/core'
 import { Call } from '../Call'
 import { CallCollect } from './CallCollect'
 import { decoratePromise } from '../decoratePromise'
+import { CallCollectListeners } from '../../types'
 
 export interface CallCollectEnded {
   id: string
@@ -21,8 +22,10 @@ export interface CallCollectEnded {
 export interface CallCollectPromise extends Promise<CallCollectEnded> {
   onStarted: () => Promise<CallCollect>
   onEnded: () => Promise<CallCollectEnded>
+  listen: (listeners: CallCollectListeners) => Promise<() => Promise<void>>
   stop: () => Promise<CallCollect>
   startInputTimers: () => Promise<CallCollect>
+  ended: () => Promise<CallCollect>
   id: Promise<string>
   callId: Promise<string>
   nodeId: Promise<string>
@@ -52,7 +55,7 @@ export const getters = [
   'confidence',
 ]
 
-export const methods = ['stop', 'startInputTimers']
+export const methods = ['stop', 'startInputTimers', 'ended']
 
 export function decorateCollectPromise(
   this: Call,

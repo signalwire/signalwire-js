@@ -67,7 +67,7 @@ const handler: TestHandler = ({ domainApp }) => {
       })
       tap.ok(call.id, 'Outbound - Call resolved')
 
-      const record = await call.recordAudio({
+      const record = call.recordAudio({
         listen: {
           onStarted: (recording) => {
             tap.hasProps(recording, CALL_RECORD_PROPS, 'Recording started')
@@ -78,7 +78,9 @@ const handler: TestHandler = ({ domainApp }) => {
           },
           onEnded: async (recording) => {
             tap.hasProps(recording, CALL_RECORD_PROPS, 'Recording ended')
-            tap.equal(recording.id, record.id, 'Recording correct id')
+
+            const recordId = await record.id
+            tap.equal(recording.id, recordId, 'Recording correct id')
             tap.equal(recording.state, 'finished', 'Recording correct state')
           },
         },
@@ -94,7 +96,9 @@ const handler: TestHandler = ({ domainApp }) => {
         },
         onEnded: async (recording) => {
           tap.hasProps(recording, CALL_RECORD_PROPS, 'Recording ended')
-          tap.equal(recording.id, record.id, 'Recording correct id')
+
+          const recordId = await record.id
+          tap.equal(recording.id, recordId, 'Recording correct id')
           tap.equal(recording.state, 'finished', 'Recording correct state')
 
           await call.hangup()

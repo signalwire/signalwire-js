@@ -109,7 +109,7 @@ const handler: TestHandler = ({ domainApp }) => {
       })
 
       // Play an audio
-      const play = await call.playAudio({
+      const play = call.playAudio({
         url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
         listen: {
           onStarted: async (playback) => {
@@ -142,7 +142,9 @@ const handler: TestHandler = ({ domainApp }) => {
             CALL_PLAYBACK_PROPS,
             'play.listen: Playback ended'
           )
-          tap.equal(playback.id, play.id, 'play.listen: Playback correct id')
+
+          const playId = await play.id
+          tap.equal(playback.id, playId, 'play.listen: Playback correct id')
           tap.equal(
             playback.state,
             'finished',

@@ -86,7 +86,7 @@ const handler: TestHandler = ({ domainApp }) => {
       tap.ok(call.id, 'Outbound - Call resolved')
 
       // Start a detect
-      const detectDigit = await call.detectDigit({
+      const detectDigit = call.detectDigit({
         digits: '1234',
         listen: {
           onStarted: (detect) => {
@@ -97,7 +97,7 @@ const handler: TestHandler = ({ domainApp }) => {
       })
       tap.equal(
         call.id,
-        detectDigit.callId,
+        await detectDigit.callId,
         'Outbound - Detect returns the same instance'
       )
 

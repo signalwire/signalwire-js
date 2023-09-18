@@ -417,7 +417,6 @@ export class Call extends ListenSubscriber<
    *
    * ```js
    * const playback = await call.playAudio({ url: 'https://cdn.signalwire.com/default-music/welcome.mp3' });
-   * await playback.ended();
    * ```
    */
   playAudio(params: CallPlayAudioMethodarams) {
@@ -433,7 +432,6 @@ export class Call extends ListenSubscriber<
    *
    * ```js
    * const playback = await call.playSilence({ duration: 3 });
-   * await playback.ended();
    * ```
    */
   playSilence(params: CallPlaySilenceMethodParams) {
@@ -449,7 +447,6 @@ export class Call extends ListenSubscriber<
    *
    * ```js
    * const playback = await call.playRingtone({ name: 'it' });
-   * await playback.ended();
    * ```
    */
   playRingtone(params: CallPlayRingtoneMethodParams) {
@@ -465,7 +462,6 @@ export class Call extends ListenSubscriber<
    *
    * ```js
    * const playback = await call.playTTS({ text: 'Welcome to SignalWire!' });
-   * await playback.ended();
    * ```
    */
   playTTS(params: CallPlayTTSMethodParams) {
@@ -538,7 +534,6 @@ export class Call extends ListenSubscriber<
    *
    * ```js
    * const recording = await call.recordAudio({ direction: 'both' })
-   * await recording.stop()
    * ```
    */
   recordAudio(params: CallRecordAudioMethodParams = {}) {
@@ -810,8 +805,6 @@ export class Call extends ListenSubscriber<
    *     uri: 'wss://example.domain.com/endpoint',
    *   },
    * })
-   *
-   * await tap.stop()
    * ```
    */
   tap(params: CallTapMethodParams) {

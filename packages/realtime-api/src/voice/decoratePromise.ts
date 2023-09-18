@@ -47,11 +47,18 @@ export function decoratePromise<T, U>(
       },
       enumerable: true,
     },
+    listen: {
+      value: async function (...args: any) {
+        const instance = await this.onStarted()
+        return instance.listen(...args)
+      },
+      enumerable: true,
+    },
     ...methods.reduce((acc: Record<string, any>, method) => {
       acc[method] = {
-        value: async function () {
+        value: async function (...args: any) {
           const instance = await this.onStarted()
-          return instance[method]()
+          return instance[method](...args)
         },
         enumerable: true,
       }

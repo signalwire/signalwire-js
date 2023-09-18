@@ -52,19 +52,25 @@ const handler: TestHandler = ({ domainApp }) => {
               },
             })
 
-            const earlyMedia = await call.playTTS({
-              text: 'This is early media. I repeat: This is early media.',
-              listen: {
-                onStarted: (playback) => {
-                  tap.hasProps(
-                    playback,
-                    CALL_PLAYBACK_PROPS,
-                    'Inbound - Playback started'
-                  )
-                  tap.equal(playback.state, 'playing', 'Playback correct state')
+            const earlyMedia = await call
+              .playTTS({
+                text: 'This is early media. I repeat: This is early media.',
+                listen: {
+                  onStarted: (playback) => {
+                    tap.hasProps(
+                      playback,
+                      CALL_PLAYBACK_PROPS,
+                      'Inbound - Playback started'
+                    )
+                    tap.equal(
+                      playback.state,
+                      'playing',
+                      'Playback correct state'
+                    )
+                  },
                 },
-              },
-            })
+              })
+              .onStarted()
             tap.equal(
               call.id,
               earlyMedia.callId,
@@ -87,39 +93,43 @@ const handler: TestHandler = ({ domainApp }) => {
             )
 
             // Play an invalid audio
-            const fakeAudio = await call.playAudio({
-              url: 'https://cdn.fake.com/default-music/fake.mp3',
-              listen: {
-                onFailed: (playback) => {
-                  tap.hasProps(
-                    playback,
-                    CALL_PLAYBACK_PROPS,
-                    'Inbound - fakeAudio playback failed'
-                  )
-                  tap.equal(playback.state, 'error', 'Playback correct state')
+            const fakeAudio = await call
+              .playAudio({
+                url: 'https://cdn.fake.com/default-music/fake.mp3',
+                listen: {
+                  onFailed: (playback) => {
+                    tap.hasProps(
+                      playback,
+                      CALL_PLAYBACK_PROPS,
+                      'Inbound - fakeAudio playback failed'
+                    )
+                    tap.equal(playback.state, 'error', 'Playback correct state')
+                  },
                 },
-              },
-            })
+              })
+              .onStarted()
 
             await fakeAudio.ended()
 
-            const playback = await call.playTTS({
-              text: 'Random TTS message while the call is up. Thanks and good bye!',
-              listen: {
-                onEnded: (playback) => {
-                  tap.hasProps(
-                    playback,
-                    CALL_PLAYBACK_PROPS,
-                    'Inbound - Playback ended'
-                  )
-                  tap.equal(
-                    playback.state,
-                    'finished',
-                    'Playback correct state'
-                  )
+            const playback = await call
+              .playTTS({
+                text: 'Random TTS message while the call is up. Thanks and good bye!',
+                listen: {
+                  onEnded: (playback) => {
+                    tap.hasProps(
+                      playback,
+                      CALL_PLAYBACK_PROPS,
+                      'Inbound - Playback ended'
+                    )
+                    tap.equal(
+                      playback.state,
+                      'finished',
+                      'Playback correct state'
+                    )
+                  },
                 },
-              },
-            })
+              })
+              .onStarted()
             await playback.ended()
 
             tap.equal(startedPlaybacks, 3, 'Inbound - Started playback count')
@@ -160,19 +170,21 @@ const handler: TestHandler = ({ domainApp }) => {
       })
       tap.ok(call.id, 'Outbound - Call resolved')
 
-      const playAudio = await call.playAudio({
-        url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
-        listen: {
-          onEnded: (playback) => {
-            tap.hasProps(
-              playback,
-              CALL_PLAYBACK_PROPS,
-              'Outbound - Playback ended'
-            )
-            tap.equal(playback.state, 'finished', 'Playback correct state')
+      const playAudio = await call
+        .playAudio({
+          url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
+          listen: {
+            onEnded: (playback) => {
+              tap.hasProps(
+                playback,
+                CALL_PLAYBACK_PROPS,
+                'Outbound - Playback ended'
+              )
+              tap.equal(playback.state, 'finished', 'Playback correct state')
+            },
           },
-        },
-      })
+        })
+        .onStarted()
       tap.equal(
         call.id,
         playAudio.callId,

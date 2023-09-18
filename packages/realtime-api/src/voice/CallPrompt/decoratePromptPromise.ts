@@ -2,6 +2,7 @@ import { CallingCallCollectResult } from '@signalwire/core'
 import { Call } from '../Call'
 import { CallPrompt } from './CallPrompt'
 import { decoratePromise } from '../decoratePromise'
+import { CallPromptListeners } from '../../types'
 
 export interface CallPromptEnded {
   id: string
@@ -21,8 +22,10 @@ export interface CallPromptEnded {
 export interface CallPromptPromise extends Promise<CallPromptEnded> {
   onStarted: () => Promise<CallPrompt>
   onEnded: () => Promise<CallPromptEnded>
+  listen: (listeners: CallPromptListeners) => Promise<() => Promise<void>>
   stop: () => Promise<CallPrompt>
   setVolume: () => Promise<CallPrompt>
+  ended: () => Promise<CallPrompt>
   id: Promise<string>
   controlId: Promise<string>
   callId: Promise<string>
@@ -52,7 +55,7 @@ export const getters = [
   'confidence',
 ]
 
-export const methods = ['stop', 'setVolume']
+export const methods = ['stop', 'setVolume', 'ended']
 
 export function decoratePromptPromise(
   this: Call,

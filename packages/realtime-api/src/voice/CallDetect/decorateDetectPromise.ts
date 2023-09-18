@@ -6,6 +6,7 @@ import {
 import { Call } from '../Call'
 import { CallDetect } from './CallDetect'
 import { decoratePromise } from '../decoratePromise'
+import { CallDetectListeners } from '../../types'
 
 export interface CallDetectEnded {
   id: string
@@ -22,7 +23,9 @@ export interface CallDetectEnded {
 export interface CallDetectPromise extends Promise<CallDetectEnded> {
   onStarted: () => Promise<CallDetect>
   onEnded: () => Promise<CallDetectEnded>
+  listen: (listeners: CallDetectListeners) => Promise<() => Promise<void>>
   stop: () => Promise<CallDetect>
+  ended: () => Promise<CallDetect>
   id: Promise<string>
   callId: Promise<string>
   nodeId: Promise<string>
@@ -46,7 +49,7 @@ export const getters = [
   'beep',
 ]
 
-export const methods = ['stop']
+export const methods = ['stop', 'ended']
 
 export function decorateDetectPromise(
   this: Call,

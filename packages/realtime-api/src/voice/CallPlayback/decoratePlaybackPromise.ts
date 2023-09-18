@@ -2,6 +2,7 @@ import { CallingCallPlayEndState, CallingCallPlayState } from '@signalwire/core'
 import { Call } from '../Call'
 import { CallPlayback } from './CallPlayback'
 import { decoratePromise } from '../decoratePromise'
+import { CallPlaybackListeners } from '../../types'
 
 // In future, we can have a playback instance without methods (for eg: StaticCallPlayback)
 // When playback ends, we would return StaticCallPlayback to the user
@@ -18,10 +19,12 @@ export interface CallPlaybackEnded {
 export interface CallPlaybackPromise extends Promise<CallPlaybackEnded> {
   onStarted: () => Promise<CallPlayback>
   onEnded: () => Promise<CallPlaybackEnded>
+  listen: (listeners: CallPlaybackListeners) => Promise<() => Promise<void>>
   pause: () => Promise<CallPlayback>
   resume: () => Promise<CallPlayback>
   stop: () => Promise<CallPlayback>
   setVolume: () => Promise<CallPlayback>
+  ended: () => Promise<CallPlayback>
   id: Promise<string>
   volume: Promise<number>
   callId: Promise<string>
@@ -39,7 +42,7 @@ export const getters = [
   'state',
 ]
 
-export const methods = ['pause', 'resume', 'stop', 'setVolume']
+export const methods = ['pause', 'resume', 'stop', 'setVolume', 'ended']
 
 export function decoratePlaybackPromise(
   this: Call,
