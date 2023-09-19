@@ -5,6 +5,7 @@ import {
   SagaIterator,
   SDKWorker,
   SDKWorkerParams,
+  stripNamespacePrefix,
   VideoMemberUpdatedEventParams,
   VideoPosition,
   VideoRoomSubscribedEventParams,
@@ -21,6 +22,7 @@ const defaultDispatcher = function* (
   payload: any,
   instance?: any
 ) {
+  console.warn('xxxx', type, instance, instance.eventNames())
   instance.emit(type, payload)
 }
 
@@ -60,7 +62,7 @@ function* memberPositionLayoutChangedWorker(options: any) {
 
   for (const [memberId, payload] of memberList) {
     if (processedMembers[memberId]) {
-      yield dispatcher?.('video.member.updated', payload, instance)
+      yield dispatcher?.('member.updated', payload, instance)
 
       /**
        * `undefined` means that we couldn't find the
@@ -78,11 +80,7 @@ function* memberPositionLayoutChangedWorker(options: any) {
         return
       }
 
-      yield dispatcher?.(
-        'video.member.updated',
-        updatedMemberEventParams,
-        instance
-      )
+      yield dispatcher?.('member.updated', updatedMemberEventParams, instance)
     }
   }
 }
@@ -121,12 +119,13 @@ export function* memberUpdatedWorker({
   /** member.updated event is the only one updating the memberList payload */
   memberList.set(memberId, memberUpdatedPayload)
 
+  const event = stripNamespacePrefix(action.type)
   for (const key of updated) {
-    const type = `${action.type}.${key}` as InternalMemberUpdatedEventNames
+    const type = `${event}.${key}` as InternalMemberUpdatedEventNames
     yield dispatcher?.(type, memberUpdatedPayload, instance)
   }
 
-  yield dispatcher?.(action.type, memberUpdatedPayload, instance)
+  yield dispatcher?.(event, memberUpdatedPayload, instance)
 }
 
 export const MEMBER_POSITION_COMPOUND_EVENTS = new Map<any, any>([
