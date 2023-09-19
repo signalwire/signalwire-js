@@ -730,8 +730,8 @@ export interface VideoRoomSessionContract {
    * ```
    */
   startStream(params: Rooms.StartStreamParams): Promise<Rooms.RoomSessionStream>
-  // lock(): Rooms.Lock
-  // unlock(): Rooms.Unlock
+  lock(): Rooms.Lock
+  unlock(): Rooms.Unlock
 }
 
 /**

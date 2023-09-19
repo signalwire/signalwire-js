@@ -60,9 +60,9 @@ test.describe('Video', () => {
     expect(
       roomSessionsRunning.filter((r) => {
         return (
-          typeof r.play === 'function' // &&
-          // typeof r.lock === 'function' &&
-          // typeof r.unlock === 'function'
+          typeof r.play === 'function' &&
+          typeof r.lock === 'function' &&
+          typeof r.unlock === 'function'
         )
       })
     ).toHaveLength(roomCount)
@@ -95,27 +95,27 @@ test.describe('Video', () => {
         await Promise.all(playbacks.map((p) => p.stop()))
       })
 
-      // await new Promise<void>(async (resolve, reject) => {
-      //   rs.on('room.updated', (roomSession) => {
-      //     if (roomSession.locked === true) {
-      //       resolve()
-      //     } else {
-      //       reject(new Error('Not locked'))
-      //     }
-      //   })
-      //   await rs.lock()
-      // })
+      await new Promise<void>(async (resolve, reject) => {
+        rs.on('room.updated', (roomSession) => {
+          if (roomSession.locked === true) {
+            resolve()
+          } else {
+            reject(new Error('Not locked'))
+          }
+        })
+        await rs.lock()
+      })
 
-      // await new Promise<void>(async (resolve, reject) => {
-      //   rs.on('room.updated', (roomSession) => {
-      //     if (roomSession.locked === false) {
-      //       resolve()
-      //     } else {
-      //       reject(new Error('Still locked'))
-      //     }
-      //   })
-      //   await rs.unlock()
-      // })
+      await new Promise<void>(async (resolve, reject) => {
+        rs.on('room.updated', (roomSession) => {
+          if (roomSession.locked === false) {
+            resolve()
+          } else {
+            reject(new Error('Still locked'))
+          }
+        })
+        await rs.unlock()
+      })
     }
 
     const roomSessionsAtEnd = await findRoomSessionsByPrefix()
