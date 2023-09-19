@@ -1,4 +1,8 @@
-import { CallingCallTapEndState, CallingCallTapState } from '@signalwire/core'
+import {
+  CallingCallTapEndState,
+  CallingCallTapState,
+  Promisify,
+} from '@signalwire/core'
 import { Call } from '../Call'
 import { CallTap } from './CallTap'
 import { decoratePromise } from '../decoratePromise'
@@ -12,16 +16,14 @@ export interface CallTapEnded {
   state: CallingCallTapEndState
 }
 
-export interface CallTapPromise extends Promise<CallTapEnded> {
+export interface CallTapPromise
+  extends Promise<CallTapEnded>,
+    Omit<Promisify<CallTapEnded>, 'state'> {
   onStarted: () => Promise<CallTap>
   onEnded: () => Promise<CallTapEnded>
   listen: (listeners: CallTapListeners) => Promise<() => Promise<void>>
   stop: () => Promise<CallTap>
   ended: () => Promise<CallTap>
-  id: Promise<string>
-  callId: Promise<string>
-  nodeId: Promise<string>
-  controlId: Promise<string>
   state: Promise<CallingCallTapState>
 }
 

@@ -1,4 +1,4 @@
-import { CallingCallCollectResult } from '@signalwire/core'
+import { CallingCallCollectResult, Promisify } from '@signalwire/core'
 import { Call } from '../Call'
 import { CallCollect } from './CallCollect'
 import { decoratePromise } from '../decoratePromise'
@@ -18,26 +18,15 @@ export interface CallCollectEnded {
   text?: string
   confidence?: number
 }
-
-export interface CallCollectPromise extends Promise<CallCollectEnded> {
+export interface CallCollectPromise
+  extends Promise<CallCollectEnded>,
+    Promisify<CallCollectEnded> {
   onStarted: () => Promise<CallCollect>
   onEnded: () => Promise<CallCollectEnded>
   listen: (listeners: CallCollectListeners) => Promise<() => Promise<void>>
   stop: () => Promise<CallCollect>
   startInputTimers: () => Promise<CallCollect>
   ended: () => Promise<CallCollect>
-  id: Promise<string>
-  callId: Promise<string>
-  nodeId: Promise<string>
-  controlId: Promise<string>
-  result?: Promise<CallingCallCollectResult>
-  type?: Promise<CallingCallCollectResult['type']>
-  reason?: Promise<CallingCallCollectResult['type']>
-  digits?: Promise<string>
-  speech?: Promise<string>
-  terminator?: Promise<string>
-  text?: Promise<string>
-  confidence?: Promise<number>
 }
 
 export const getters = [

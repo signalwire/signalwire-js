@@ -133,3 +133,10 @@ export type AllOrNone<T extends Record<any, any>> =
  * Make one or more properties optional
  */
 export type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>
+
+/**
+ * Promisify all the properties
+ */
+export type Promisify<T> = {
+  [K in keyof T]: Promise<T[K]>
+}

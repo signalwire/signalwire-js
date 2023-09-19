@@ -1,6 +1,7 @@
 import {
   CallingCallRecordEndState,
   CallingCallRecordState,
+  Promisify,
 } from '@signalwire/core'
 import { Call } from '../Call'
 import { CallRecording } from './CallRecording'
@@ -18,7 +19,9 @@ export interface CallRecordingEnded {
   record: any
 }
 
-export interface CallRecordingPromise extends Promise<CallRecordingEnded> {
+export interface CallRecordingPromise
+  extends Promise<CallRecordingEnded>,
+    Omit<Promisify<CallRecordingEnded>, 'state'> {
   onStarted: () => Promise<CallRecording>
   onEnded: () => Promise<CallRecordingEnded>
   listen: (listeners: CallRecordingListeners) => Promise<() => Promise<void>>
@@ -27,14 +30,7 @@ export interface CallRecordingPromise extends Promise<CallRecordingEnded> {
   stop: () => Promise<CallRecording>
   setVolume: () => Promise<CallRecording>
   ended: () => Promise<CallRecording>
-  id: Promise<string>
-  callId: Promise<string>
-  nodeId: Promise<string>
-  controlId: Promise<string>
   state: Promise<CallingCallRecordState>
-  url: Promise<string | undefined>
-  duration: Promise<number | undefined>
-  record: Promise<any>
 }
 
 export const getters = [

@@ -1,12 +1,13 @@
-import { CallingCallPlayEndState, CallingCallPlayState } from '@signalwire/core'
+import {
+  CallingCallPlayEndState,
+  CallingCallPlayState,
+  Promisify,
+} from '@signalwire/core'
 import { Call } from '../Call'
 import { CallPlayback } from './CallPlayback'
 import { decoratePromise } from '../decoratePromise'
 import { CallPlaybackListeners } from '../../types'
 
-// In future, we can have a playback instance without methods (for eg: StaticCallPlayback)
-// When playback ends, we would return StaticCallPlayback to the user
-// For now; force TS to have only getters properties when playback ends
 export interface CallPlaybackEnded {
   id: string
   volume: number
@@ -16,7 +17,9 @@ export interface CallPlaybackEnded {
   state: CallingCallPlayEndState
 }
 
-export interface CallPlaybackPromise extends Promise<CallPlaybackEnded> {
+export interface CallPlaybackPromise
+  extends Promise<CallPlaybackEnded>,
+    Omit<Promisify<CallPlaybackEnded>, 'state'> {
   onStarted: () => Promise<CallPlayback>
   onEnded: () => Promise<CallPlaybackEnded>
   listen: (listeners: CallPlaybackListeners) => Promise<() => Promise<void>>
@@ -25,11 +28,6 @@ export interface CallPlaybackPromise extends Promise<CallPlaybackEnded> {
   stop: () => Promise<CallPlayback>
   setVolume: () => Promise<CallPlayback>
   ended: () => Promise<CallPlayback>
-  id: Promise<string>
-  volume: Promise<number>
-  callId: Promise<string>
-  nodeId: Promise<string>
-  controlId: Promise<string>
   state: Promise<CallingCallPlayState>
 }
 

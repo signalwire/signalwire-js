@@ -2,6 +2,7 @@ import {
   CallingCallDetectType,
   Detector,
   DetectorResult,
+  Promisify,
 } from '@signalwire/core'
 import { Call } from '../Call'
 import { CallDetect } from './CallDetect'
@@ -20,21 +21,14 @@ export interface CallDetectEnded {
   beep?: boolean
 }
 
-export interface CallDetectPromise extends Promise<CallDetectEnded> {
+export interface CallDetectPromise
+  extends Promise<CallDetectEnded>,
+    Promisify<CallDetectEnded> {
   onStarted: () => Promise<CallDetect>
   onEnded: () => Promise<CallDetectEnded>
   listen: (listeners: CallDetectListeners) => Promise<() => Promise<void>>
   stop: () => Promise<CallDetect>
   ended: () => Promise<CallDetect>
-  id: Promise<string>
-  callId: Promise<string>
-  nodeId: Promise<string>
-  controlId: Promise<string>
-  detect?: Promise<Detector>
-  type?: Promise<CallingCallDetectType>
-  result: Promise<DetectorResult>
-  waitForBeep: Promise<boolean>
-  beep?: Promise<boolean>
 }
 
 export const getters = [
