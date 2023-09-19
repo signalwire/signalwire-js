@@ -22,7 +22,6 @@ const defaultDispatcher = function* (
   payload: any,
   instance?: any
 ) {
-  console.warn('xxxx', type, instance, instance.eventNames())
   instance.emit(type, payload)
 }
 
