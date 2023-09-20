@@ -11,6 +11,7 @@ import type {
 } from './utils'
 import type { InternalVideoMemberEntity } from './videoMember'
 import * as Rooms from '../rooms'
+import { MapToPubSubShape } from '../redux/interfaces'
 
 /**
  * Public event types
@@ -905,3 +906,12 @@ export type VideoRoomEventParams =
   | VideoRoomSubscribedEventParams
   | VideoRoomUpdatedEventParams
   | VideoRoomEndedEventParams
+
+export type VideoRoomStartedAction = MapToPubSubShape<VideoRoomStartedEvent>
+
+export type VideoRoomEndedAction = MapToPubSubShape<VideoRoomEndedEvent>
+
+export type VideoRoomUpdatedAction = MapToPubSubShape<VideoRoomUpdatedEvent>
+
+export type VideoRoomSubscribedAction =
+  MapToPubSubShape<VideoRoomSubscribedEvent>

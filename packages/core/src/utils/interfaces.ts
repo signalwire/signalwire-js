@@ -56,6 +56,7 @@ export type JSONRPCMethod =
   | 'signalwire.event'
   | 'signalwire.reauthenticate'
   | 'signalwire.subscribe'
+  | 'signalwire.unsubscribe'
   | WebRTCMethod
   | RoomMethod
   | VertoMethod

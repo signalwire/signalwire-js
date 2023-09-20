@@ -40,6 +40,15 @@ describe('ListenSubscriber', () => {
   })
 
   describe('listen', () => {
+    it.each([undefined, {}, false, 'blah'])(
+      'should throw an error on wrong listen params',
+      async (param) => {
+        await expect(listentSubscriber.listen(param)).rejects.toThrow(
+          'Invalid params!'
+        )
+      }
+    )
+
     it('should call the subscribe method with listen options', async () => {
       const subscribeMock = jest.spyOn(listentSubscriber, 'subscribe')
 

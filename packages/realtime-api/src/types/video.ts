@@ -60,3 +60,14 @@ export type RealTimeRoomApiEventsHandlerMapping = Record<
 export type RealTimeRoomApiEvents = {
   [k in keyof RealTimeRoomApiEventsHandlerMapping]: RealTimeRoomApiEventsHandlerMapping[k]
 }
+
+export type RealtimeVideoEvents = Record<
+  RoomStarted | RoomEnded,
+  (room: RoomSession) => void
+>
+
+export type RealtimeVideoListenersEventsMapping = Record<
+  'onRoomStarted',
+  RoomStarted
+> &
+  Record<'onRoomEnded', RoomEnded>

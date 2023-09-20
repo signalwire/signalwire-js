@@ -33,6 +33,11 @@ export class ListenSubscriber<
     return this._emitter
   }
 
+  protected eventNames() {
+    return this.emitter.eventNames()
+  }
+
+  /** @internal */
   emit<T extends EventEmitter.EventNames<EventTypes>>(
     event: T,
     ...args: EventEmitter.EventArgs<EventTypes, T>
@@ -64,6 +69,14 @@ export class ListenSubscriber<
   public listen(listeners: T) {
     return new Promise<() => Promise<void>>(async (resolve, reject) => {
       try {
+        if (
+          !listeners ||
+          listeners?.constructor !== Object ||
+          Object.keys(listeners).length < 1
+        ) {
+          throw new Error('Invalid params!')
+        }
+
         const unsub = await this.subscribe(listeners)
         resolve(unsub)
       } catch (error) {
@@ -103,7 +116,7 @@ export class ListenSubscriber<
     return unsub
   }
 
-  private _attachListeners(listeners: T) {
+  protected _attachListeners(listeners: T) {
     const listenerKeys = Object.keys(listeners) as Array<ListenersKeys<T>>
     listenerKeys.forEach((key) => {
       if (typeof listeners[key] === 'function' && this._eventMap[key]) {
@@ -115,7 +128,7 @@ export class ListenSubscriber<
     })
   }
 
-  private _detachListeners(listeners: T) {
+  protected _detachListeners(listeners: T) {
     const listenerKeys = Object.keys(listeners) as Array<ListenersKeys<T>>
     listenerKeys.forEach((key) => {
       if (typeof listeners[key] === 'function' && this._eventMap[key]) {
