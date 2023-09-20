@@ -79,7 +79,7 @@ const handler: TestHandler = ({ domainApp }) => {
       })
       tap.ok(call.id, 'Outbound - Call resolved')
 
-      const record = await call.recordAudio()
+      const record = await call.recordAudio().onStarted()
 
       await record.stop()
     } catch (error) {

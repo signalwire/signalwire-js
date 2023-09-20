@@ -84,11 +84,13 @@ const handler: TestHandler = ({ domainApp }) => {
         },
       })
 
-      const play = await call.playAudio({
+      const play = call.playAudio({
         url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
       })
 
-      await play.stop()
+      if ((await play.state) === 'playing') {
+        await play.stop()
+      }
     } catch (error) {
       console.error('VoicePlaybackCallListeners error', error)
       reject(4)

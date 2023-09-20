@@ -110,42 +110,44 @@ const handler: TestHandler = ({ domainApp }) => {
         },
       })
 
-      const prompt = await call.promptRingtone({
-        name: 'it',
-        duration: 10,
-        digits: {
-          max: 5,
-          digitTimeout: 2,
-          terminators: '#*',
-        },
-        listen: {
-          onStarted: (prompt) => {
-            tap.hasProps(
-              prompt,
-              CALL_PROMPT_PROPS,
-              'call.promptRingtone: Prompt started'
-            )
+      const prompt = await call
+        .promptRingtone({
+          name: 'it',
+          duration: 10,
+          digits: {
+            max: 5,
+            digitTimeout: 2,
+            terminators: '#*',
           },
-          onUpdated: (prompt) => {
-            tap.notOk(prompt.id, 'call.promptRingtone: Prompt updated')
+          listen: {
+            onStarted: (prompt) => {
+              tap.hasProps(
+                prompt,
+                CALL_PROMPT_PROPS,
+                'call.promptRingtone: Prompt started'
+              )
+            },
+            onUpdated: (prompt) => {
+              tap.notOk(prompt.id, 'call.promptRingtone: Prompt updated')
+            },
+            onFailed: (prompt) => {
+              tap.notOk(prompt.id, 'call.promptRingtone: Prompt failed')
+            },
+            onEnded: (_prompt) => {
+              tap.hasProps(
+                _prompt,
+                CALL_PROMPT_PROPS,
+                'call.promptRingtone: Prompt ended'
+              )
+              tap.equal(
+                _prompt.id,
+                prompt.id,
+                'call.promptRingtone: Prompt correct id'
+              )
+            },
           },
-          onFailed: (prompt) => {
-            tap.notOk(prompt.id, 'call.promptRingtone: Prompt failed')
-          },
-          onEnded: (_prompt) => {
-            tap.hasProps(
-              _prompt,
-              CALL_PROMPT_PROPS,
-              'call.promptRingtone: Prompt ended'
-            )
-            tap.equal(
-              _prompt.id,
-              prompt.id,
-              'call.promptRingtone: Prompt correct id'
-            )
-          },
-        },
-      })
+        })
+        .onStarted()
 
       const unsubPrompt = await prompt.listen({
         onStarted: (prompt) => {

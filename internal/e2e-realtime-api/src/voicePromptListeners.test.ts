@@ -64,7 +64,7 @@ const handler: TestHandler = ({ domainApp }) => {
       })
       tap.ok(call.id, 'Outbound - Call resolved')
 
-      const prompt = await call.promptTTS({
+      const prompt = call.promptTTS({
         text: 'Welcome to SignalWire! Please enter your 4 digits PIN',
         digits: {
           max: 4,
@@ -79,13 +79,13 @@ const handler: TestHandler = ({ domainApp }) => {
               'call.promptTTS: Prompt started'
             )
           },
-          onUpdated: (prompt) => {
-            tap.notOk(prompt.id, 'call.promptTTS: Prompt updated')
+          onUpdated: (_prompt) => {
+            tap.notOk(_prompt.id, 'call.promptTTS: Prompt updated')
           },
-          onFailed: (prompt) => {
-            tap.notOk(prompt.id, 'call.promptTTS: Prompt failed')
+          onFailed: (_prompt) => {
+            tap.notOk(_prompt.id, 'call.promptTTS: Prompt failed')
           },
-          onEnded: (_prompt) => {
+          onEnded: async (_prompt) => {
             tap.hasProps(
               _prompt,
               CALL_PROMPT_PROPS,
@@ -93,7 +93,7 @@ const handler: TestHandler = ({ domainApp }) => {
             )
             tap.equal(
               _prompt.id,
-              prompt.id,
+              await prompt.id,
               'call.promptTTS: Prompt correct id'
             )
           },
@@ -101,7 +101,7 @@ const handler: TestHandler = ({ domainApp }) => {
       })
       tap.equal(
         call.id,
-        prompt.callId,
+        await prompt.callId,
         'Outbound - Prompt returns the same call instance'
       )
 
@@ -116,13 +116,17 @@ const handler: TestHandler = ({ domainApp }) => {
         onFailed: (prompt) => {
           tap.notOk(prompt.id, 'prompt.listen: Prompt failed')
         },
-        onEnded: (_prompt) => {
+        onEnded: async (_prompt) => {
           tap.hasProps(
             _prompt,
             CALL_PROMPT_PROPS,
             'prompt.listen: Prompt ended'
           )
-          tap.equal(_prompt.id, prompt.id, 'prompt.listen: Prompt correct id')
+          tap.equal(
+            _prompt.id,
+            await prompt.id,
+            'prompt.listen: Prompt correct id'
+          )
         },
       })
 
