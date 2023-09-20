@@ -14,9 +14,20 @@ export type StreamStarted = 'stream.started'
 export type StreamEnded = 'stream.ended'
 
 /**
+ * Public listener types
+ */
+export type OnStreamStarted = 'onStreamStarted'
+export type OnStreamEnded = 'onStreamEnded'
+
+/**
  * List of public event names
  */
 export type VideoStreamEventNames = StreamStarted | StreamEnded
+
+/**
+ * List of public listener names
+ */
+export type VideoStreamListenerNames = OnStreamStarted | OnStreamEnded
 
 /**
  * List of internal events

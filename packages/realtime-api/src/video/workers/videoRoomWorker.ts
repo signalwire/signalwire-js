@@ -2,38 +2,37 @@ import {
   getLogger,
   InternalVideoMemberEntity,
   SagaIterator,
-  MemberPosition,
+  // MemberPosition,
   MapToPubSubShape,
-  InternalMemberUpdatedEventNames,
+  // InternalMemberUpdatedEventNames,
   VideoRoomEvent,
-  stripNamespacePrefix,
-  RoomStarted,
-  RoomUpdated,
-  RoomEnded,
-  RoomSubscribed,
+  // sagaEffects,
 } from '@signalwire/core'
-import { spawn, fork } from '@redux-saga/core/effects'
-import { createRoomSessionObject, RoomSession } from '../RoomSession'
-import { videoMemberWorker } from './videoMemberWorker'
+// import { videoMemberWorker } from './videoMemberWorker'
 import {
   createRoomSessionMemberObject,
   RoomSessionMember,
 } from '../RoomSessionMember'
 import { VideoCallWorkerParams } from './videoCallingWorker'
+import { RoomSession } from '../RoomSession'
 
 export const videoRoomWorker = function* (
   options: VideoCallWorkerParams<MapToPubSubShape<VideoRoomEvent>>
 ): SagaIterator {
   getLogger().trace('videoRoomWorker started')
-  const { instance: client, action, ...memberPositionWorkerParams } = options
+  const {
+    instance: client,
+    video,
+    action,
+    // ...memberPositionWorkerParams
+  } = options
   const { type, payload } = action
   const { get, set, remove } = options.instanceMap
 
   let roomSessionInstance = get<RoomSession>(payload.room_session.id)
   if (!roomSessionInstance) {
-    roomSessionInstance = createRoomSessionObject({
-      // @ts-expect-error
-      store: client.store,
+    roomSessionInstance = new RoomSession({
+      video,
       payload,
     })
   } else {
@@ -47,7 +46,6 @@ export const videoRoomWorker = function* (
       let memberInstance = get<RoomSessionMember>(member.id)
       if (!memberInstance) {
         memberInstance = createRoomSessionMemberObject({
-          // @ts-expect-error
           store: client.store,
           payload: {
             room_id: payload.room_session.room_id,
@@ -67,45 +65,40 @@ export const videoRoomWorker = function* (
     })
   }
 
-  const event = stripNamespacePrefix(type) as
-    | RoomStarted
-    | RoomUpdated
-    | RoomEnded
-    | RoomSubscribed
-
   switch (type) {
-    case 'video.room.started':
+    case 'video.room.started': {
+      video.emit('room.started', roomSessionInstance)
+      roomSessionInstance.emit('room.started', roomSessionInstance)
+      break
+    }
     case 'video.room.updated': {
-      // The `room.updated` event is not documented in @RealTimeVideoApiEvents. For now, ignoring TS issue.
-      // @ts-expect-error
-      client.emit(event, roomSessionInstance)
-      roomSessionInstance.emit(event, roomSessionInstance)
+      roomSessionInstance.emit('room.updated', roomSessionInstance)
       break
     }
     case 'video.room.ended': {
-      client.emit(event as RoomEnded, roomSessionInstance)
-      roomSessionInstance.emit(event, roomSessionInstance)
+      video.emit('room.ended', roomSessionInstance)
+      roomSessionInstance.emit('room.ended', roomSessionInstance)
       remove<RoomSession>(payload.room_session.id)
       break
     }
-    case 'video.room.subscribed': {
-      yield spawn(MemberPosition.memberPositionWorker, {
-        ...memberPositionWorkerParams,
-        instance: roomSessionInstance,
-        initialState: payload,
-        dispatcher: function* (
-          subType: InternalMemberUpdatedEventNames,
-          subPayload
-        ) {
-          yield fork(videoMemberWorker, {
-            ...options,
-            action: { type: subType, payload: subPayload },
-          })
-        },
-      })
-      roomSessionInstance.emit(event, roomSessionInstance)
-      break
-    }
+    // case 'video.room.subscribed': {
+    //   yield sagaEffects.spawn(MemberPosition.memberPositionWorker, {
+    //     ...memberPositionWorkerParams,
+    //     instance: roomSessionInstance,
+    //     initialState: payload,
+    //     dispatcher: function* (
+    //       subType: InternalMemberUpdatedEventNames,
+    //       subPayload
+    //     ) {
+    //       yield sagaEffects.fork(videoMemberWorker, {
+    //         ...options,
+    //         action: { type: subType, payload: subPayload },
+    //       })
+    //     },
+    //   })
+    //   roomSessionInstance.emit('room.subscribed', roomSessionInstance)
+    //   break
+    // }
     default:
       break
   }

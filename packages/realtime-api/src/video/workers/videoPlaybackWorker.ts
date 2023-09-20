@@ -29,7 +29,6 @@ export const videoPlaybackWorker = function* (
   let playbackInstance = get<RoomSessionPlayback>(payload.playback.id)
   if (!playbackInstance) {
     playbackInstance = Rooms.createRoomSessionPlaybackObject({
-      // @ts-expect-error
       store: client.store,
       payload,
     })

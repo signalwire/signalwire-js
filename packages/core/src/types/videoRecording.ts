@@ -15,12 +15,27 @@ export type RecordingUpdated = 'recording.updated'
 export type RecordingEnded = 'recording.ended'
 
 /**
+ * Public listener types
+ */
+export type OnRecordingStarted = 'onRecordingStarted'
+export type OnRecordingUpdated = 'onRecordingUpdated'
+export type OnRecordingEnded = 'onRecordingEnded'
+
+/**
  * List of public event names
  */
 export type VideoRecordingEventNames =
   | RecordingStarted
   | RecordingUpdated
   | RecordingEnded
+
+/**
+ * List of public listener names
+ */
+export type VideoRecordingListenerNames =
+  | OnRecordingStarted
+  | OnRecordingUpdated
+  | OnRecordingEnded
 
 /**
  * List of internal events

@@ -46,7 +46,6 @@ export const videoMemberWorker = function* (
   let memberInstance = get<RoomSessionMember>(payload.member.id)
   if (!memberInstance) {
     memberInstance = createRoomSessionMemberObject({
-      // @ts-expect-error
       store: instance.store,
       payload: payload as RoomSessionMemberEventParams,
     })

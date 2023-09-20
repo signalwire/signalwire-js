@@ -6,7 +6,7 @@ import { Messaging } from './messaging/Messaging'
 import { PubSub } from './pubSub/PubSub'
 import { Chat } from './chat/Chat'
 import { Voice } from './voice/Voice'
-import { Video } from './video/Video2'
+import { Video } from './video/Video'
 
 export interface SWClientOptions {
   host?: string

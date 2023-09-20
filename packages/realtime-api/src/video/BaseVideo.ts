@@ -13,11 +13,15 @@ export class BaseVideo<
   EventTypes extends EventEmitter.ValidEventTypes
 > extends ListenSubscriber<T, EventTypes> {
   protected subscribeMethod: JSONRPCSubscribeMethod = 'signalwire.subscribe'
-  protected subscribeParams?: Record<string, any> = {}
-  protected eventChannel?: string = ''
+  protected _subscribeParams?: Record<string, any> = {}
+  protected _eventChannel?: string = ''
 
   constructor(options: SWClient) {
     super({ swClient: options })
+  }
+
+  get eventChannel() {
+    return this._eventChannel
   }
 
   protected getSubscriptions() {
@@ -67,7 +71,7 @@ export class BaseVideo<
     const executeParams: ExecuteParams = {
       method: this.subscribeMethod,
       params: {
-        ...this.subscribeParams,
+        ...this._subscribeParams,
         event_channel: this.eventChannel,
         events: subscriptions,
       },

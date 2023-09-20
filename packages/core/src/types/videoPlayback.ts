@@ -14,12 +14,27 @@ export type PlaybackUpdated = 'playback.updated'
 export type PlaybackEnded = 'playback.ended'
 
 /**
+ * Public listener types
+ */
+export type OnPlaybackStarted = 'onPlaybackStarted'
+export type OnPlaybackUpdated = 'onPlaybackUpdated'
+export type OnPlaybackEnded = 'onPlaybackEnded'
+
+/**
  * List of public event names
  */
 export type VideoPlaybackEventNames =
   | PlaybackStarted
   | PlaybackUpdated
   | PlaybackEnded
+
+/**
+ * List of public listener names
+ */
+export type VideoPlaybackListenerNames =
+  | OnPlaybackStarted
+  | OnPlaybackUpdated
+  | OnPlaybackEnded
 
 /**
  * List of internal events
@@ -42,7 +57,7 @@ export interface VideoPlaybackContract {
   state: 'playing' | 'paused' | 'completed'
 
   /** The current playback position, in milliseconds. */
-  position: number;
+  position: number
 
   /** Whether the seek function can be used for this playback. */
   seekable: boolean

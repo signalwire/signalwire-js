@@ -27,6 +27,17 @@ export type RoomJoined = 'room.joined'
 export type RoomLeft = 'room.left'
 export type RoomAudienceCount = 'room.audienceCount'
 
+/**
+ * Public listener types
+ */
+export type OnRoomStarted = 'onRoomStarted'
+export type OnRoomSubscribed = 'onRoomSubscribed'
+export type OnRoomUpdated = 'onRoomUpdated'
+export type OnRoomEnded = 'onRoomEnded'
+export type OnRoomAudienceCount = 'onRoomAudienceCount'
+export type OnRoomJoined = 'onRoomJoined'
+export type OnRoomLeft = 'onRoomLeft'
+
 export type RoomLeftEventParams = {
   reason?: BaseConnectionContract<any>['leaveReason']
 }
@@ -45,6 +56,17 @@ export type VideoRoomSessionEventNames =
   | RoomEnded
   | RoomJoined // only used in `js` (emitted by `webrtc`)
   | RoomLeft // only used in `js`
+
+/**
+ * List of public listener names
+ */
+export type VideoRoomSessionListenerNames =
+  | OnRoomStarted
+  | OnRoomSubscribed
+  | OnRoomUpdated
+  | OnRoomEnded
+  | OnRoomJoined // only used in `js` (emitted by `webrtc`)
+  | OnRoomLeft // only used in `js`
 
 /**
  * List of internal events

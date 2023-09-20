@@ -9,7 +9,7 @@ import {
   SDKWorkerParams,
 } from '@signalwire/core'
 import { fork } from '@redux-saga/core/effects'
-import { Client } from '../VideoClient'
+import type { Client } from '../../client/index'
 import { videoRoomWorker } from './videoRoomWorker'
 import { videoMemberWorker } from './videoMemberWorker'
 import { videoPlaybackWorker } from './videoPlaybackWorker'
@@ -17,17 +17,27 @@ import { videoRecordingWorker } from './videoRecordingWorker'
 import { videoStreamWorker } from './videoStreamWorker'
 import { videoLayoutWorker } from './videoLayoutWorker'
 import { videoRoomAudienceWorker } from './videoRoomAudienceWorker'
+import { Video } from '../Video'
 
 export type VideoCallWorkerParams<T> = SDKWorkerParams<Client> & {
   action: T
+  video: Video
+}
+
+interface VideoCallingWorkerInitialState {
+  video: Video
 }
 
 export const videoCallingWorker: SDKWorker<Client> = function* (
   options
 ): SagaIterator {
   getLogger().trace('videoCallingWorker started')
-  const { channels } = options
-  const { swEventChannel } = channels
+  const {
+    channels: { swEventChannel },
+    initialState,
+  } = options
+
+  const { video } = initialState as VideoCallingWorkerInitialState
 
   function* worker(action: MapToPubSubShape<VideoAPIEventParams>) {
     const { type } = action
@@ -39,6 +49,7 @@ export const videoCallingWorker: SDKWorker<Client> = function* (
       case 'video.room.subscribed':
         yield fork(videoRoomWorker, {
           action,
+          video,
           ...options,
         })
         break
@@ -48,6 +59,21 @@ export const videoCallingWorker: SDKWorker<Client> = function* (
       case 'video.member.talking':
         yield fork(videoMemberWorker, {
           action,
+          video,
+          ...options,
+        })
+        break
+      case 'video.layout.changed':
+        yield fork(videoLayoutWorker, {
+          action,
+          video,
+          ...options,
+        })
+        break
+      case 'video.room.audience_count':
+        yield fork(videoRoomAudienceWorker, {
+          action,
+          video,
           ...options,
         })
         break
@@ -56,6 +82,7 @@ export const videoCallingWorker: SDKWorker<Client> = function* (
       case 'video.playback.ended':
         yield fork(videoPlaybackWorker, {
           action,
+          video,
           ...options,
         })
         break
@@ -64,6 +91,7 @@ export const videoCallingWorker: SDKWorker<Client> = function* (
       case 'video.recording.ended':
         yield fork(videoRecordingWorker, {
           action,
+          video,
           ...options,
         })
         break
@@ -71,18 +99,7 @@ export const videoCallingWorker: SDKWorker<Client> = function* (
       case 'video.stream.ended':
         yield fork(videoStreamWorker, {
           action,
-          ...options,
-        })
-        break
-      case 'video.layout.changed':
-        yield fork(videoLayoutWorker, {
-          action,
-          ...options,
-        })
-        break
-      case 'video.room.audience_count':
-        yield fork(videoRoomAudienceWorker, {
-          action,
+          video,
           ...options,
         })
         break

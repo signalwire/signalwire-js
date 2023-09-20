@@ -52,7 +52,16 @@ import type { CallTap } from '../voice/CallTap'
 import type { CallCollect } from '../voice/CallCollect'
 import type { CallDetect } from '../voice/CallDetect'
 
+/**
+ * Voice API
+ */
+export interface VoiceListeners {
+  onCallReceived?: (call: Call) => unknown
+}
+
 export type VoiceEvents = Record<CallReceived, (call: Call) => void>
+
+export type VoiceListenersEventsMapping = Record<'onCallReceived', CallReceived>
 
 export interface VoiceMethodsListeners {
   listen?: RealTimeCallListeners
@@ -66,6 +75,9 @@ export type VoiceDialPhonelMethodParams = VoiceCallDialPhoneMethodParams &
 export type VoiceDialSipMethodParams = VoiceCallDialSipMethodParams &
   VoiceMethodsListeners
 
+/**
+ * Call API
+ */
 export interface RealTimeCallListeners {
   onStateChanged?: (call: Call) => unknown
   onPlaybackStarted?: (playback: CallPlayback) => unknown
