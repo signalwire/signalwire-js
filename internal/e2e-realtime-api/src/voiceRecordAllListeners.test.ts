@@ -19,7 +19,7 @@ const handler: TestHandler = ({ domainApp }) => {
         project: process.env.RELAY_PROJECT as string,
         token: process.env.RELAY_TOKEN as string,
         debug: {
-          logWsTraffic: true,
+          // logWsTraffic: true,
         },
       })
 
@@ -107,7 +107,7 @@ const handler: TestHandler = ({ domainApp }) => {
         },
       })
 
-      const record = await call.recordAudio({
+      const record = call.recordAudio({
         listen: {
           onStarted: async (recording) => {
             tap.hasProps(
@@ -139,9 +139,11 @@ const handler: TestHandler = ({ domainApp }) => {
             CALL_RECORD_PROPS,
             'record.listen: Recording ended'
           )
+
+          const recordId = await record.id
           tap.equal(
             recording.id,
-            record.id,
+            recordId,
             'record.listen: Recording correct id'
           )
           tap.equal(

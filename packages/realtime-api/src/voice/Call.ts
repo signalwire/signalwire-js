@@ -48,13 +48,13 @@ import {
 } from './workers'
 import { Playlist } from './Playlist'
 import { Voice } from './Voice'
-import { CallPlayback } from './CallPlayback'
-import { CallRecording } from './CallRecording'
-import { CallPrompt } from './CallPrompt'
-import { CallCollect } from './CallCollect'
-import { CallTap } from './CallTap'
+import { CallPlayback, decoratePlaybackPromise } from './CallPlayback'
+import { CallRecording, decorateRecordingPromise } from './CallRecording'
+import { CallPrompt, decoratePromptPromise } from './CallPrompt'
+import { CallCollect, decorateCollectPromise } from './CallCollect'
+import { CallTap, decorateTapPromise } from './CallTap'
 import { DeviceBuilder } from './DeviceBuilder'
-import { CallDetect } from './CallDetect'
+import { CallDetect, decorateDetectPromise } from './CallDetect'
 
 interface CallOptions {
   voice: Voice
@@ -356,7 +356,7 @@ export class Call extends ListenSubscriber<
    * ```
    */
   play(params: CallPlayMethodParams) {
-    return new Promise<CallPlayback>((resolve, reject) => {
+    const promise = new Promise<CallPlayback>((resolve, reject) => {
       const { playlist, listen } = params
 
       if (!this.callId || !this.nodeId) {
@@ -406,6 +406,8 @@ export class Call extends ListenSubscriber<
           reject(e)
         })
     })
+
+    return decoratePlaybackPromise.call(this, promise)
   }
 
   /**
@@ -415,7 +417,6 @@ export class Call extends ListenSubscriber<
    *
    * ```js
    * const playback = await call.playAudio({ url: 'https://cdn.signalwire.com/default-music/welcome.mp3' });
-   * await playback.ended();
    * ```
    */
   playAudio(params: CallPlayAudioMethodarams) {
@@ -431,7 +432,6 @@ export class Call extends ListenSubscriber<
    *
    * ```js
    * const playback = await call.playSilence({ duration: 3 });
-   * await playback.ended();
    * ```
    */
   playSilence(params: CallPlaySilenceMethodParams) {
@@ -447,7 +447,6 @@ export class Call extends ListenSubscriber<
    *
    * ```js
    * const playback = await call.playRingtone({ name: 'it' });
-   * await playback.ended();
    * ```
    */
   playRingtone(params: CallPlayRingtoneMethodParams) {
@@ -463,7 +462,6 @@ export class Call extends ListenSubscriber<
    *
    * ```js
    * const playback = await call.playTTS({ text: 'Welcome to SignalWire!' });
-   * await playback.ended();
    * ```
    */
   playTTS(params: CallPlayTTSMethodParams) {
@@ -476,7 +474,7 @@ export class Call extends ListenSubscriber<
    * Generic method to record a call. Please see {@link recordAudio}.
    */
   record(params: CallRecordMethodParams) {
-    return new Promise<CallRecording>((resolve, reject) => {
+    const promise = new Promise<CallRecording>((resolve, reject) => {
       const { audio, listen } = params
 
       if (!this.callId || !this.nodeId) {
@@ -484,7 +482,6 @@ export class Call extends ListenSubscriber<
       }
 
       const resolveHandler = (callRecording: CallRecording) => {
-        this.off('recording.failed', rejectHandler)
         resolve(callRecording)
       }
 
@@ -526,6 +523,8 @@ export class Call extends ListenSubscriber<
           reject(e)
         })
     })
+
+    return decorateRecordingPromise.call(this, promise)
   }
 
   /**
@@ -535,7 +534,6 @@ export class Call extends ListenSubscriber<
    *
    * ```js
    * const recording = await call.recordAudio({ direction: 'both' })
-   * await recording.stop()
    * ```
    */
   recordAudio(params: CallRecordAudioMethodParams = {}) {
@@ -550,7 +548,7 @@ export class Call extends ListenSubscriber<
    * Generic method to prompt the user for input. Please see {@link promptAudio}, {@link promptRingtone}, {@link promptTTS}.
    */
   prompt(params: CallPromptMethodParams) {
-    return new Promise<CallPrompt>((resolve, reject) => {
+    const promise = new Promise<CallPrompt>((resolve, reject) => {
       const { listen, ...rest } = params
 
       if (!this.callId || !this.nodeId) {
@@ -618,6 +616,8 @@ export class Call extends ListenSubscriber<
           reject(e)
         })
     })
+
+    return decoratePromptPromise.call(this, promise)
   }
 
   /**
@@ -805,12 +805,10 @@ export class Call extends ListenSubscriber<
    *     uri: 'wss://example.domain.com/endpoint',
    *   },
    * })
-   *
-   * await tap.stop()
    * ```
    */
   tap(params: CallTapMethodParams) {
-    return new Promise<CallTap>((resolve, reject) => {
+    const promise = new Promise<CallTap>((resolve, reject) => {
       if (!this.callId || !this.nodeId) {
         reject(new Error(`Can't call tap() on a call not established yet.`))
       }
@@ -871,6 +869,8 @@ export class Call extends ListenSubscriber<
           reject(e)
         })
     })
+
+    return decorateTapPromise.call(this, promise)
   }
 
   /**
@@ -1099,7 +1099,7 @@ export class Call extends ListenSubscriber<
    * Generic method. Please see {@link amd}, {@link detectFax}, {@link detectDigit}.
    */
   detect(params: CallDetectMethodParams) {
-    return new Promise<CallDetect>((resolve, reject) => {
+    const promise = new Promise<CallDetect>((resolve, reject) => {
       if (!this.callId || !this.nodeId) {
         reject(new Error(`Can't call detect() on a call not established yet.`))
       }
@@ -1152,6 +1152,8 @@ export class Call extends ListenSubscriber<
           reject(e)
         })
     })
+
+    return decorateDetectPromise.call(this, promise)
   }
 
   /**
@@ -1235,7 +1237,7 @@ export class Call extends ListenSubscriber<
    * ```
    */
   collect(params: CallCollectMethodParams) {
-    return new Promise<CallCollect>((resolve, reject) => {
+    const promise = new Promise<CallCollect>((resolve, reject) => {
       const { listen, ...rest } = params
 
       if (!this.callId || !this.nodeId) {
@@ -1299,6 +1301,8 @@ export class Call extends ListenSubscriber<
           reject(e)
         })
     })
+
+    return decorateCollectPromise.call(this, promise)
   }
 
   /**

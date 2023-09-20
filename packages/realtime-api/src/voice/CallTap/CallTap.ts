@@ -3,13 +3,13 @@ import {
   CallingCallTapEndState,
   CallingCallTapEventParams,
 } from '@signalwire/core'
-import { ListenSubscriber } from '../ListenSubscriber'
+import { ListenSubscriber } from '../../ListenSubscriber'
 import {
   CallTapEvents,
   CallTapListeners,
   CallTapListenersEventsMapping,
-} from '../types'
-import { Call } from './Call'
+} from '../../types'
+import { Call } from '../Call'
 
 export interface CallTapOptions {
   call: Call
@@ -59,22 +59,31 @@ export class CallTap
     return this._payload.state
   }
 
+  get hasEnded() {
+    if (ENDED_STATES.includes(this.state as CallingCallTapEndState)) {
+      return true
+    }
+    return false
+  }
+
   /** @internal */
   setPayload(payload: CallingCallTapEventParams) {
     this._payload = payload
   }
 
   async stop() {
-    if (this.state !== 'finished') {
-      await this._client.execute({
-        method: 'calling.tap.stop',
-        params: {
-          node_id: this.nodeId,
-          call_id: this.callId,
-          control_id: this.controlId,
-        },
-      })
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
     }
+
+    await this._client.execute({
+      method: 'calling.tap.stop',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.callId,
+        control_id: this.controlId,
+      },
+    })
 
     return this
   }
@@ -95,7 +104,7 @@ export class CallTap
       this.once('tap.ended', handler)
 
       // Resolve the promise if the tap has already ended
-      if (ENDED_STATES.includes(this.state as CallingCallTapEndState)) {
+      if (this.hasEnded) {
         handler()
       }
     })

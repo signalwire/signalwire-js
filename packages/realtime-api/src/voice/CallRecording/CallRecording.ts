@@ -4,13 +4,13 @@ import {
   CallingCallRecordEventParams,
   CallingCallRecordPauseMethodParams,
 } from '@signalwire/core'
-import { ListenSubscriber } from '../ListenSubscriber'
+import { ListenSubscriber } from '../../ListenSubscriber'
 import {
   CallRecordingEvents,
   CallRecordingListeners,
   CallRecordingListenersEventsMapping,
-} from '../types'
-import { Call } from './Call'
+} from '../../types'
+import { Call } from '../Call'
 
 export interface CallRecordingOptions {
   call: Call
@@ -80,12 +80,23 @@ export class CallRecording
     return this._payload.record
   }
 
+  get hasEnded() {
+    if (ENDED_STATES.includes(this.state as CallingCallRecordEndState)) {
+      return true
+    }
+    return false
+  }
+
   /** @internal */
   setPayload(payload: CallingCallRecordEventParams) {
     this._payload = payload
   }
 
   async pause(params?: CallingCallRecordPauseMethodParams) {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     const { behavior = 'silence' } = params || {}
 
     await this._client.execute({
@@ -102,6 +113,10 @@ export class CallRecording
   }
 
   async resume() {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'calling.record.resume',
       params: {
@@ -115,6 +130,10 @@ export class CallRecording
   }
 
   async stop() {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'calling.record.stop',
       params: {
@@ -145,7 +164,7 @@ export class CallRecording
       this.once('recording.failed', handler)
 
       // Resolve the promise if the recording has already ended
-      if (ENDED_STATES.includes(this.state as CallingCallRecordEndState)) {
+      if (this.hasEnded) {
         handler()
       }
     })

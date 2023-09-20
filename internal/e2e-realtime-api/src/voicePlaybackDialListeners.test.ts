@@ -81,9 +81,11 @@ const handler: TestHandler = ({ domainApp }) => {
       })
       tap.ok(call.id, 'Outbound - Call resolved')
 
-      const play = await call.playAudio({
-        url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
-      })
+      const play = await call
+        .playAudio({
+          url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
+        })
+        .onStarted()
 
       await play.stop()
     } catch (error) {

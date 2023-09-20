@@ -67,26 +67,28 @@ const handler: TestHandler = ({ domainApp }) => {
       })
       tap.ok(call.id, 'Outbound - Call resolved')
 
-      const play = await call.playTTS({
-        text: 'This is a custom text to speech for test.',
-        listen: {
-          onStarted: (playback) => {
-            tap.hasProps(playback, CALL_PLAYBACK_PROPS, 'Playback started')
-            tap.equal(playback.state, 'playing', 'Playback correct state')
+      const play = await call
+        .playTTS({
+          text: 'This is a custom text to speech for test.',
+          listen: {
+            onStarted: (playback) => {
+              tap.hasProps(playback, CALL_PLAYBACK_PROPS, 'Playback started')
+              tap.equal(playback.state, 'playing', 'Playback correct state')
+            },
+            onUpdated: (playback) => {
+              tap.notOk(playback.id, 'Playback updated')
+            },
+            onFailed: (playback) => {
+              tap.notOk(playback.id, 'Playback failed')
+            },
+            onEnded: (playback) => {
+              tap.hasProps(playback, CALL_PLAYBACK_PROPS, 'Playback ended')
+              tap.equal(playback.id, play.id, 'Playback correct id')
+              tap.equal(playback.state, 'finished', 'Playback correct state')
+            },
           },
-          onUpdated: (playback) => {
-            tap.notOk(playback.id, 'Playback updated')
-          },
-          onFailed: (playback) => {
-            tap.notOk(playback.id, 'Playback failed')
-          },
-          onEnded: (playback) => {
-            tap.hasProps(playback, CALL_PLAYBACK_PROPS, 'Playback ended')
-            tap.equal(playback.id, play.id, 'Playback correct id')
-            tap.equal(playback.state, 'finished', 'Playback correct state')
-          },
-        },
-      })
+        })
+        .onStarted()
 
       const unsubPlay = await play.listen({
         onStarted: (playback) => {
