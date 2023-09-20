@@ -103,32 +103,34 @@ const handler: TestHandler = ({ domainApp }) => {
       })
 
       // Caller starts a collect
-      const collect = await call.collect({
-        initialTimeout: 4.0,
-        digits: {
-          max: 4,
-          digitTimeout: 10,
-          terminators: '#',
-        },
-        partialResults: true,
-        continuous: false,
-        sendStartOfInput: true,
-        startInputTimers: false,
-        listen: {
-          // onUpdated runs three times since callee sends 4 digits (1234)
-          // 4th (final) digit emits onEnded
-          onUpdated: (collect) => {
-            tap.hasProps(
-              collect,
-              CALL_COLLECT_PROPS,
-              'call.collect: Collect updated'
-            )
+      const collect = await call
+        .collect({
+          initialTimeout: 4.0,
+          digits: {
+            max: 4,
+            digitTimeout: 10,
+            terminators: '#',
           },
-          onFailed: (collect) => {
-            tap.notOk(collect.id, 'call.collect: Collect failed')
+          partialResults: true,
+          continuous: false,
+          sendStartOfInput: true,
+          startInputTimers: false,
+          listen: {
+            // onUpdated runs three times since callee sends 4 digits (1234)
+            // 4th (final) digit emits onEnded
+            onUpdated: (collect) => {
+              tap.hasProps(
+                collect,
+                CALL_COLLECT_PROPS,
+                'call.collect: Collect updated'
+              )
+            },
+            onFailed: (collect) => {
+              tap.notOk(collect.id, 'call.collect: Collect failed')
+            },
           },
-        },
-      })
+        })
+        .onStarted()
       tap.equal(
         call.id,
         collect.callId,

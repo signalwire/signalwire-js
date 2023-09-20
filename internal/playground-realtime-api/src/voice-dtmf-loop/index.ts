@@ -22,7 +22,7 @@ async function run() {
         digitTimeout: 5,
       },
     })
-    const { type, digits } = await prompt.ended()
+    const { type, digits } = prompt
     return [type, digits]
   }
 
@@ -43,14 +43,12 @@ async function run() {
         const playback = await call.playTTS({
           text: 'You have run out of attempts. Goodbye',
         })
-        await playback.ended()
         await call.hangup()
       }
     } else {
       const playback = await call.playTTS({
         text: 'Good choice! Goodbye and thanks',
       })
-      await playback.ended()
       await call.hangup()
     }
   }

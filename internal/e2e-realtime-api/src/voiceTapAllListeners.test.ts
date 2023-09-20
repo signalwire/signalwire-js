@@ -20,7 +20,7 @@ const handler: TestHandler = ({ domainApp }) => {
         project: process.env.RELAY_PROJECT as string,
         token: process.env.RELAY_TOKEN as string,
         debug: {
-          // logWsTraffic: true,
+          logWsTraffic: true,
         },
       })
 
@@ -80,22 +80,24 @@ const handler: TestHandler = ({ domainApp }) => {
 
       try {
         // Start an audio tap
-        const tapAudio = await call.tapAudio({
-          direction: 'both',
-          device: {
-            type: 'ws',
-            uri: 'wss://example.domain.com/endpoint',
-          },
-          listen: {
-            onStarted(callTap) {
-              tap.hasProps(
-                callTap,
-                CALL_TAP_PROPS,
-                'call.tapAudio: Tap started'
-              )
+        const tapAudio = await call
+          .tapAudio({
+            direction: 'both',
+            device: {
+              type: 'ws',
+              uri: 'wss://example.domain.com/endpoint',
             },
-          },
-        })
+            listen: {
+              onStarted(callTap) {
+                tap.hasProps(
+                  callTap,
+                  CALL_TAP_PROPS,
+                  'call.tapAudio: Tap started'
+                )
+              },
+            },
+          })
+          .onStarted()
 
         const unsubTapAudio = await tapAudio.listen({
           onEnded(callTap) {
@@ -104,15 +106,9 @@ const handler: TestHandler = ({ domainApp }) => {
         })
 
         // Tap should fail due to wrong WSS
-        reject()
+        reject(4)
       } catch (error) {
         tap.ok(error, 'Outbound - Tap error')
-
-        await unsubVoice()
-
-        await unsubCall()
-
-        await call.hangup()
 
         await client.disconnect()
 

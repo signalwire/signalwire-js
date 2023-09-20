@@ -1168,7 +1168,7 @@ export type Detector =
 
 export type DetectorResult = Detector['params']['event']
 
-type CallingCallDetectType = Detector['type']
+export type CallingCallDetectType = Detector['type']
 export interface CallingCallDetectEventParams {
   node_id: string
   call_id: string

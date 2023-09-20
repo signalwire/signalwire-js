@@ -86,9 +86,8 @@ async function run() {
 
     if (RUN_DETECTOR) {
       // See the `call.received` handler
-      const detect = await call.detectDigit()
-      const result = await detect.ended()
-      console.log('Detect Result', result.type)
+      const detectResult = await call.detectDigit()
+      console.log('Detect Result', detectResult.type)
 
       await sleep()
     }
@@ -132,11 +131,7 @@ async function run() {
           text: 'Thank you, you are now disconnected from the peer',
         })
       )
-      const pb = await call.play({ playlist })
-
-      console.log('call.play')
-
-      await pb.ended()
+      const pb = await call.play({ playlist }).onEnded()
 
       console.log('pb.ended')
     } catch (error) {
@@ -144,21 +139,23 @@ async function run() {
     }
 
     try {
-      const tap = await call.tapAudio({
-        direction: 'both',
-        device: {
-          type: 'ws',
-          uri: 'wss://example.domain.com/endpoint',
-        },
-        listen: {
-          onStarted(p) {
-            console.log('>> tap.started', p.id, p.state)
+      const tap = await call
+        .tapAudio({
+          direction: 'both',
+          device: {
+            type: 'ws',
+            uri: 'wss://example.domain.com/endpoint',
           },
-          onEnded(p) {
-            console.log('>> tap.ended', p.id, p.state)
+          listen: {
+            onStarted(p) {
+              console.log('>> tap.started', p.id, p.state)
+            },
+            onEnded(p) {
+              console.log('>> tap.ended', p.id, p.state)
+            },
           },
-        },
-      })
+        })
+        .onStarted()
 
       await sleep(1000)
       console.log('>> Trying to stop', tap.id, tap.state)
@@ -167,40 +164,42 @@ async function run() {
       console.log('Tap failed', error)
     }
 
-    const prompt = await call.prompt({
-      playlist: new Voice.Playlist({ volume: 1.0 }).add(
-        Voice.Playlist.TTS({
-          text: 'Welcome to SignalWire! Please enter your 4 digits PIN',
-        })
-      ),
-      digits: {
-        max: 4,
-        digitTimeout: 10,
-        terminators: '#',
-      },
-      listen: {
-        onStarted(p) {
-          console.log('>> prompt.started', p.id)
+    const prompt = await call
+      .prompt({
+        playlist: new Voice.Playlist({ volume: 1.0 }).add(
+          Voice.Playlist.TTS({
+            text: 'Welcome to SignalWire! Please enter your 4 digits PIN',
+          })
+        ),
+        digits: {
+          max: 4,
+          digitTimeout: 10,
+          terminators: '#',
         },
-        onUpdated(p) {
-          console.log('>> prompt.updated', p.id)
+        listen: {
+          onStarted(p) {
+            console.log('>> prompt.started', p.id)
+          },
+          onUpdated(p) {
+            console.log('>> prompt.updated', p.id)
+          },
+          onFailed(p) {
+            console.log('>> prompt.failed', p.id, p.reason)
+          },
+          onEnded(p) {
+            console.log(
+              '>> prompt.ended',
+              p.id,
+              p.type,
+              'Digits: ',
+              p.digits,
+              'Terminator',
+              p.terminator
+            )
+          },
         },
-        onFailed(p) {
-          console.log('>> prompt.failed', p.id, p.reason)
-        },
-        onEnded(p) {
-          console.log(
-            '>> prompt.ended',
-            p.id,
-            p.type,
-            'Digits: ',
-            p.digits,
-            'Terminator',
-            p.terminator
-          )
-        },
-      },
-    })
+      })
+      .onStarted()
 
     /** Wait for the result - sync way */
     // const { type, digits, terminator } = await prompt.ended()
@@ -212,26 +211,28 @@ async function run() {
     await prompt.stop()
     console.log('Prompt STOPPED!', prompt.id)
 
-    const recording = await call.recordAudio({
-      listen: {
-        onStarted(r) {
-          console.log('>> recording.started', r.id)
+    const recording = await call
+      .recordAudio({
+        listen: {
+          onStarted(r) {
+            console.log('>> recording.started', r.id)
+          },
+          onFailed(r) {
+            console.log('>> recording.failed', r.id, r.state)
+          },
+          onEnded(r) {
+            console.log(
+              '>> recording.ended',
+              r.id,
+              r.state,
+              r.size,
+              r.duration,
+              r.url
+            )
+          },
         },
-        onFailed(r) {
-          console.log('>> recording.failed', r.id, r.state)
-        },
-        onEnded(r) {
-          console.log(
-            '>> recording.ended',
-            r.id,
-            r.state,
-            r.size,
-            r.duration,
-            r.url
-          )
-        },
-      },
-    })
+      })
+      .onStarted()
     console.log('Recording STARTED!', recording.id)
 
     const playlist = new Voice.Playlist({ volume: 2 })
@@ -250,20 +251,22 @@ async function run() {
           text: 'Thank you, you are now disconnected from the peer',
         })
       )
-    const playback = await call.play({
-      playlist,
-      listen: {
-        onStarted(p) {
-          console.log('>> playback.started', p.id, p.state)
+    const playback = await call
+      .play({
+        playlist,
+        listen: {
+          onStarted(p) {
+            console.log('>> playback.started', p.id, p.state)
+          },
+          onUpdated(p) {
+            console.log('>> playback.updated', p.id, p.state)
+          },
+          onEnded(p) {
+            console.log('>> playback.ended', p.id, p.state)
+          },
         },
-        onUpdated(p) {
-          console.log('>> playback.updated', p.id, p.state)
-        },
-        onEnded(p) {
-          console.log('>> playback.ended', p.id, p.state)
-        },
-      },
-    })
+      })
+      .onStarted()
 
     // To wait for the playback to end (without pause/resume/stop it)
     // await playback.ended()

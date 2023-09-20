@@ -89,6 +89,9 @@ const handler: TestHandler = ({ domainApp }) => {
         onDetectStarted: (detect) => {
           tap.hasProps(detect, CALL_DETECT_PROPS, 'Detect started')
           tap.equal(detect.callId, call.id, 'Detect with correct call id')
+
+          // Resolve the detect start promise
+          waitForDetectStartResolve!()
         },
         // Update runs 4 times since callee send 4 digits
         onDetectUpdated: (detect) => {
@@ -110,9 +113,6 @@ const handler: TestHandler = ({ domainApp }) => {
         detectDigit.callId,
         'Outbound - Detect returns the same instance'
       )
-
-      // Resolve the detect start promise
-      waitForDetectStartResolve!()
     } catch (error) {
       console.error('VoiceDetectDialListeners error', error)
       reject(4)

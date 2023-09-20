@@ -3,13 +3,13 @@ import {
   CallingCallCollectEndState,
   CallingCallCollectEventParams,
 } from '@signalwire/core'
-import { ListenSubscriber } from '../ListenSubscriber'
-import { Call } from './Call'
+import { ListenSubscriber } from '../../ListenSubscriber'
 import {
   CallCollectEvents,
   CallCollectListeners,
   CallCollectListenersEventsMapping,
-} from '../types'
+} from '../../types'
+import { Call } from '../Call'
 
 export interface CallCollectOptions {
   call: Call
@@ -115,33 +115,42 @@ export class CallCollect
     return undefined
   }
 
+  get hasEnded() {
+    if (
+      ENDED_STATES.includes(this.result?.type as CallingCallCollectEndState)
+    ) {
+      return true
+    }
+    return false
+  }
+
   /** @internal */
   setPayload(payload: CallingCallCollectEventParams) {
     this._payload = payload
   }
 
   async stop() {
-    // Execute stop only if we don't have result yet
-    if (!this.result) {
-      await this._client.execute({
-        method: 'calling.collect.stop',
-        params: {
-          node_id: this.nodeId,
-          call_id: this.callId,
-          control_id: this.controlId,
-        },
-      })
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
     }
 
-    /**
-     * TODO: we should wait for the prompt to be finished to allow
-     * the CallCollect/Proxy object to update the payload properly
-     */
+    await this._client.execute({
+      method: 'calling.collect.stop',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.callId,
+        control_id: this.controlId,
+      },
+    })
 
     return this
   }
 
   async startInputTimers() {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'calling.collect.start_input_timers',
       params: {
@@ -172,9 +181,7 @@ export class CallCollect
       this.once('collect.failed', handler)
 
       // Resolve the promise if the collect has already ended
-      if (
-        ENDED_STATES.includes(this.result?.type as CallingCallCollectEndState)
-      ) {
+      if (this.hasEnded) {
         handler()
       }
     })

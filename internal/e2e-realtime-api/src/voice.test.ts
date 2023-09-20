@@ -63,10 +63,12 @@ const handler: TestHandler = ({ domainApp }) => {
               return
             }
 
-            const recording = await call.recordAudio({
-              direction: 'speak',
-              inputSensitivity: 60,
-            })
+            const recording = await call
+              .recordAudio({
+                direction: 'speak',
+                inputSensitivity: 60,
+              })
+              .onStarted()
             tap.ok(recording.id, 'Recording started')
             tap.equal(
               recording.state,
@@ -79,7 +81,7 @@ const handler: TestHandler = ({ domainApp }) => {
                 text: 'Message is getting recorded',
               })
             )
-            const playback = await call.play({ playlist })
+            const playback = await call.play({ playlist }).onStarted()
             tap.equal(playback.state, 'playing', 'Playback state is "playing"')
 
             const playbackEndedResult = await playback.ended()
@@ -104,45 +106,41 @@ const handler: TestHandler = ({ domainApp }) => {
               'Recording state is "finished"'
             )
 
-            const prompt = await call.prompt({
-              playlist: new Voice.Playlist({ volume: 1.0 }).add(
-                Voice.Playlist.TTS({
-                  text: 'Welcome to SignalWire! Please enter your 4 digits PIN',
-                })
-              ),
-              digits: {
-                max: 4,
-                digitTimeout: 100,
-                terminators: '#',
-              },
-              listen: {
-                onStarted: async (p) => {
-                  tap.ok(p.id, 'Prompt has started')
-
-                  // Send digits from the outbound call
-                  const sendDigitResult = await outboundCall.sendDigits(
-                    '1w2w3w#'
-                  )
-                  tap.equal(
-                    outboundCall.id,
-                    sendDigitResult.id,
-                    'OutboundCall - SendDigit returns the same instance'
-                  )
+            const prompt = await call
+              .prompt({
+                playlist: new Voice.Playlist({ volume: 1.0 }).add(
+                  Voice.Playlist.TTS({
+                    text: 'Welcome to SignalWire! Please enter your 4 digits PIN',
+                  })
+                ),
+                digits: {
+                  max: 4,
+                  digitTimeout: 100,
+                  terminators: '#',
                 },
-                onEnded: (p) => {
-                  tap.ok(p.id, 'Prompt has ended')
-                },
-              },
-            })
+                listen: {
+                  onStarted: async (p) => {
+                    tap.ok(p.id, 'Prompt has started')
 
-            const promptEndedResult = await prompt.ended()
+                    // Send digits from the outbound call
+                    const sendDigitResult = await outboundCall.sendDigits(
+                      '1w2w3w#'
+                    )
+                    tap.equal(
+                      outboundCall.id,
+                      sendDigitResult.id,
+                      'OutboundCall - SendDigit returns the same instance'
+                    )
+                  },
+                  onEnded: (p) => {
+                    tap.ok(p.id, 'Prompt has ended')
+                  },
+                },
+              })
+              .onEnded()
+
             tap.equal(
-              prompt.id,
-              promptEndedResult.id,
-              'Prompt instances are the same'
-            )
-            tap.equal(
-              promptEndedResult.digits,
+              prompt.digits,
               '123',
               'Prompt - correct digits were entered'
             )
@@ -183,11 +181,10 @@ const handler: TestHandler = ({ domainApp }) => {
               digits: '1',
             })
 
-            const resultDetector = await detector.ended()
             // TODO: update this once the backend can send us the actual result
             tap.equal(
               // @ts-expect-error
-              resultDetector.detect.params.event,
+              detector.detect.params.event,
               'finished',
               'Peer - Detect digit is finished'
             )

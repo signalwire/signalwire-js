@@ -25,7 +25,6 @@ async function run() {
             text: "Hello! Welcome to Knee Rub's Weather Helpline. What place would you like to know the weather of?",
             gender: 'male',
           })
-          await pb.ended()
           console.log('Welcome text ok')
 
           const prompt = await call.promptTTS({
@@ -35,7 +34,7 @@ async function run() {
               digitTimeout: 15,
             },
           })
-          const { type, digits, terminator } = await prompt.ended()
+          const { type, digits, terminator } = prompt
           console.log('Received digits', type, digits, terminator)
         } catch (error) {
           console.error('Error answering inbound call', error)
