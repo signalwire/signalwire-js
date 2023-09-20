@@ -3,13 +3,13 @@ import {
   CallingCallDetectEventParams,
   type DetectorResult,
 } from '@signalwire/core'
-import { ListenSubscriber } from '../ListenSubscriber'
-import { Call } from './Call'
+import { ListenSubscriber } from '../../ListenSubscriber'
 import {
   CallDetectEvents,
   CallDetectListeners,
   CallDetectListenersEventsMapping,
-} from '../types'
+} from '../../types'
+import { Call } from '../Call'
 
 export interface CallDetectOptions {
   call: Call
@@ -82,6 +82,14 @@ export class CallDetect
     return undefined
   }
 
+  get hasEnded() {
+    const lastEvent = this._lastEvent()
+    if (lastEvent && ENDED_STATES.includes(lastEvent)) {
+      return true
+    }
+    return false
+  }
+
   /** @internal */
   setPayload(payload: CallingCallDetectEventParams) {
     this._payload = payload
@@ -93,7 +101,10 @@ export class CallDetect
   }
 
   async stop() {
-    // if (this.state !== 'finished') {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'calling.detect.stop',
       params: {
@@ -102,7 +113,6 @@ export class CallDetect
         control_id: this.controlId,
       },
     })
-    // }
 
     return this
   }

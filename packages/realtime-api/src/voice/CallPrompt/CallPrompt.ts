@@ -3,13 +3,13 @@ import {
   CallingCallCollectEndState,
   CallingCallCollectEventParams,
 } from '@signalwire/core'
-import { Call } from './Call'
+import { Call } from '../Call'
 import {
   CallPromptEvents,
   CallPromptListeners,
   CallPromptListenersEventsMapping,
-} from '../types'
-import { ListenSubscriber } from '../ListenSubscriber'
+} from '../../types'
+import { ListenSubscriber } from '../../ListenSubscriber'
 
 export interface CallPromptOptions {
   call: Call
@@ -114,33 +114,42 @@ export class CallPrompt
     return undefined
   }
 
+  get hasEnded() {
+    if (
+      ENDED_STATES.includes(this.result?.type as CallingCallCollectEndState)
+    ) {
+      return true
+    }
+    return false
+  }
+
   /** @internal */
   setPayload(payload: CallingCallCollectEventParams) {
     this._payload = payload
   }
 
   async stop() {
-    // Execute stop only if we don't have result yet
-    if (!this.result) {
-      await this._client.execute({
-        method: 'calling.play_and_collect.stop',
-        params: {
-          node_id: this.nodeId,
-          call_id: this.callId,
-          control_id: this.controlId,
-        },
-      })
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
     }
 
-    /**
-     * TODO: we should wait for the prompt to be finished to allow
-     * the CallPrompt/Proxy object to update the payload properly
-     */
+    await this._client.execute({
+      method: 'calling.play_and_collect.stop',
+      params: {
+        node_id: this.nodeId,
+        call_id: this.callId,
+        control_id: this.controlId,
+      },
+    })
 
     return this
   }
 
   async setVolume(volume: number): Promise<this> {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'calling.play_and_collect.volume',
       params: {
@@ -177,9 +186,7 @@ export class CallPrompt
       this.once('prompt.failed', handler)
 
       // Resolve the promise if the prompt has already ended
-      if (
-        ENDED_STATES.includes(this.result?.type as CallingCallCollectEndState)
-      ) {
+      if (this.hasEnded) {
         handler()
       }
     })

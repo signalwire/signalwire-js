@@ -101,18 +101,20 @@ const handler: TestHandler = ({ domainApp }) => {
       })
 
       // Caller starts a collect
-      const collect = await call.collect({
-        initialTimeout: 4.0,
-        digits: {
-          max: 4,
-          digitTimeout: 10,
-          terminators: '#',
-        },
-        partialResults: true,
-        continuous: false,
-        sendStartOfInput: true,
-        startInputTimers: false,
-      })
+      const collect = await call
+        .collect({
+          initialTimeout: 4.0,
+          digits: {
+            max: 4,
+            digitTimeout: 10,
+            terminators: '#',
+          },
+          partialResults: true,
+          continuous: false,
+          sendStartOfInput: true,
+          startInputTimers: false,
+        })
+        .onStarted()
       tap.equal(
         call.id,
         collect.callId,

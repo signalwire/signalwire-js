@@ -36,23 +36,25 @@ const handler: TestHandler = ({ domainApp }) => {
               'Inbound - Call answered gets the same instance'
             )
 
-            const record = await call.recordAudio({
-              terminators: '#',
-              listen: {
-                async onFailed(recording) {
-                  tap.hasProps(
-                    recording,
-                    CALL_RECORD_PROPS,
-                    'Inbound - Recording failed'
-                  )
-                  tap.equal(
-                    recording.state,
-                    'no_input',
-                    'Recording correct state'
-                  )
+            const record = await call
+              .recordAudio({
+                terminators: '#',
+                listen: {
+                  async onFailed(recording) {
+                    tap.hasProps(
+                      recording,
+                      CALL_RECORD_PROPS,
+                      'Inbound - Recording failed'
+                    )
+                    tap.equal(
+                      recording.state,
+                      'no_input',
+                      'Recording correct state'
+                    )
+                  },
                 },
-              },
-            })
+              })
+              .onStarted()
             tap.equal(
               call.id,
               record.callId,
@@ -93,9 +95,12 @@ const handler: TestHandler = ({ domainApp }) => {
       })
       tap.ok(call.id, 'Outbound - Call resolved')
 
-      const record = await call.recordAudio({
-        terminators: '*',
-      })
+      const record = await call
+        .recordAudio({
+          terminators: '*',
+        })
+        .onStarted()
+
       tap.equal(
         call.id,
         record.callId,

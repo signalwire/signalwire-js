@@ -3,13 +3,13 @@ import {
   CallingCallPlayEventParams,
   VoiceCallPlaybackContract,
 } from '@signalwire/core'
-import { ListenSubscriber } from '../ListenSubscriber'
+import { ListenSubscriber } from '../../ListenSubscriber'
 import {
   CallPlaybackEvents,
   CallPlaybackListeners,
   CallPlaybackListenersEventsMapping,
-} from '../types'
-import { Call } from './Call'
+} from '../../types'
+import { Call } from '../Call'
 
 export interface CallPlaybackOptions {
   call: Call
@@ -68,12 +68,23 @@ export class CallPlayback
     return this._payload?.state
   }
 
+  get hasEnded() {
+    if (ENDED_STATES.includes(this.state as CallingCallPlayEndState)) {
+      return true
+    }
+    return false
+  }
+
   /** @internal */
   setPayload(payload: CallingCallPlayEventParams) {
     this._payload = payload
   }
 
   async pause() {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'calling.play.pause',
       params: {
@@ -87,6 +98,10 @@ export class CallPlayback
   }
 
   async resume() {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'calling.play.resume',
       params: {
@@ -100,6 +115,10 @@ export class CallPlayback
   }
 
   async stop() {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'calling.play.stop',
       params: {
@@ -113,6 +132,10 @@ export class CallPlayback
   }
 
   async setVolume(volume: number) {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     this._volume = volume
 
     await this._client.execute({
@@ -151,7 +174,7 @@ export class CallPlayback
       this.once('playback.failed', handler)
 
       // Resolve the promise if the play has already ended
-      if (ENDED_STATES.includes(this.state as CallingCallPlayEndState)) {
+      if (this.hasEnded) {
         handler()
       }
     })

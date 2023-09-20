@@ -83,14 +83,16 @@ const handler: TestHandler = ({ domainApp }) => {
         },
       })
 
-      const prompt = await call.promptAudio({
-        url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
-        digits: {
-          max: 4,
-          digitTimeout: 10,
-          terminators: '#',
-        },
-      })
+      const prompt = await call
+        .promptAudio({
+          url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
+          digits: {
+            max: 4,
+            digitTimeout: 10,
+            terminators: '#',
+          },
+        })
+        .onStarted()
       tap.equal(
         call.id,
         prompt.callId,

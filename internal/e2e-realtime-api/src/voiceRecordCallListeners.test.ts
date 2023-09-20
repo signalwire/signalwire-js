@@ -81,9 +81,11 @@ const handler: TestHandler = ({ domainApp }) => {
         },
       })
 
-      const record = await call.recordAudio()
+      const record = call.recordAudio()
 
-      await record.stop()
+      if ((await record.state) === 'recording') {
+        await record.stop()
+      }
     } catch (error) {
       console.error('VoiceRecordCallListeners error', error)
       reject(4)
