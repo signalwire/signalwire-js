@@ -70,6 +70,11 @@ export type JSONRPCSubscribeMethod = Extract<
   'signalwire.subscribe' | 'chat.subscribe'
 >
 
+export type JSONRPCUnSubscribeMethod = Extract<
+  JSONRPCMethod,
+  'signalwire.unsubscribe'
+>
+
 export interface JSONRPCRequest {
   jsonrpc: '2.0'
   id: string

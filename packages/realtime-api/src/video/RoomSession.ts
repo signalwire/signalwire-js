@@ -6,6 +6,8 @@ import {
   VideoRoomEventParams,
   Optional,
   validateEventsToSubscribe,
+  VideoMemberEntity,
+  VideoRoomSessionContract,
 } from '@signalwire/core'
 import {
   RealTimeRoomApiEvents,
@@ -19,6 +21,27 @@ import {
 } from './RoomSessionMember'
 import { BaseVideo } from './BaseVideo'
 import { Video } from './Video'
+
+export interface RoomSessionFullState extends Omit<RoomSession, 'members'> {
+  /** List of members that are part of this room session */
+  members?: RoomSessionMember[]
+}
+
+export interface RoomSession
+  extends VideoRoomSessionContract,
+    BaseVideo<RealTimeRoomListeners, RealTimeRoomApiEvents> {
+  /**
+   * Returns a list of members currently in the room.
+   *
+   * @example
+   * ```typescript
+   * await room.getMembers()
+   * ```
+   */
+  getMembers(): Promise<{ members: RoomSessionMember[] }>
+  /** @internal */
+  setPayload(payload: Optional<VideoRoomEventParams, 'room'>): void
+}
 
 type RoomSessionPayload = Optional<VideoRoomEventParams, 'room'>
 
@@ -132,7 +155,9 @@ export class RoomSession extends BaseVideo<
   }
 
   getMembers() {
-    return new Promise(async (resolve, reject) => {
+    return new Promise<{
+      members: VideoMemberEntity[]
+    }>(async (resolve, reject) => {
       try {
         const { members } = await this._client.execute<
           void,

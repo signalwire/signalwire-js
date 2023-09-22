@@ -1,43 +1,56 @@
 import { actions } from '@signalwire/core'
 import { configureFullStack } from '../testUtils'
-import { createVideoObject } from './Video'
-import { createRoomSessionObject } from './RoomSession'
+import { Video } from './Video'
+import { RoomSession } from './RoomSession'
+import { createClient } from '../client/createClient'
 
 describe('RoomSession Object', () => {
-  let roomSession: ReturnType<typeof createRoomSessionObject>
+  let video: Video
+  let roomSession: RoomSession
   const roomSessionId = 'roomSessionId'
 
-  const { store, session, emitter, destroy } = configureFullStack()
+  const { store, destroy } = configureFullStack()
+
+  const userOptions = {
+    host: 'example.com',
+    project: 'example.project',
+    token: 'example.token',
+    store,
+  }
 
   beforeEach(() => {
-    // remove all listeners before each run
-    emitter.removeAllListeners()
+    const swClientMock = {
+      userOptions,
+      client: createClient(userOptions),
+    }
+    // @ts-expect-error
+    video = new Video(swClientMock)
+    // @ts-expect-error
+    video._client.execute = jest.fn()
+    // @ts-expect-error
+    video._client.runWorker = jest.fn()
 
     return new Promise(async (resolve) => {
-      const video = createVideoObject({
-        store,
-        // @ts-expect-error
-        emitter,
+      await video.listen({
+        onRoomStarted: (room) => {
+          // @ts-expect-error
+          room._client.execute = jest.fn()
+
+          roomSession = room
+
+          resolve(roomSession)
+        },
       })
-      // @ts-expect-error
-      video.execute = jest.fn()
-
-      video.on('room.started', async (newRoom) => {
-        // @ts-expect-error
-        newRoom.execute = jest.fn()
-
-        roomSession = newRoom
-
-        resolve(roomSession)
-      })
-
-      await video.subscribe()
 
       const eventChannelOne = 'room.<uuid-one>'
       const firstRoom = JSON.parse(
         `{"jsonrpc":"2.0","id":"uuid1","method":"signalwire.event","params":{"params":{"room":{"recording":false,"room_session_id":"${roomSessionId}","name":"First Room","hide_video_muted":false,"music_on_hold":false,"room_id":"room_id","event_channel":"${eventChannelOne}"},"room_session_id":"${roomSessionId}","room_id":"room_id","room_session":{"recording":false,"name":"First Room","hide_video_muted":false,"id":"${roomSessionId}","music_on_hold":false,"room_id":"room_id","event_channel":"${eventChannelOne}"}},"timestamp":1631692502.1308,"event_type":"video.room.started","event_channel":"video.rooms.4b7ae78a-d02e-4889-a63b-08b156d5916e"}}`
       )
-      session.dispatch(actions.socketMessageAction(firstRoom))
+
+      // @ts-expect-error
+      video._client.store.channels.sessionChannel.put(
+        actions.socketMessageAction(firstRoom)
+      )
     })
   })
 
@@ -86,7 +99,7 @@ describe('RoomSession Object', () => {
       ]
 
       // @ts-expect-error
-      ;(roomSession.execute as jest.Mock).mockResolvedValueOnce({
+      ;(roomSession._client.execute as jest.Mock).mockResolvedValueOnce({
         recordings: recordingList,
       })
 
@@ -112,7 +125,7 @@ describe('RoomSession Object', () => {
 
   it('startRecording should return a recording object', async () => {
     // @ts-expect-error
-    roomSession.execute = jest.fn().mockResolvedValue({
+    roomSession._client.execute = jest.fn().mockResolvedValue({
       room_session_id: roomSessionId,
       room_id: 'roomId',
       recording: {
@@ -158,7 +171,7 @@ describe('RoomSession Object', () => {
   describe('playback apis', () => {
     it('play() should return a playback object', async () => {
       // @ts-expect-error
-      roomSession.execute = jest.fn().mockResolvedValue({
+      roomSession._client.execute = jest.fn().mockResolvedValue({
         room_session_id: roomSessionId,
         room_id: 'roomId',
         playback: {
@@ -215,28 +228,6 @@ describe('RoomSession Object', () => {
           playback_id: 'playbackId',
         },
       })
-    })
-  })
-
-  describe('automatic subscribe', () => {
-    it('should automatically call subscribe when attaching events', async () => {
-      const { store, emitter, destroy } = configureFullStack()
-      const room = createRoomSessionObject({
-        store,
-        // @ts-expect-error
-        emitter,
-      })
-
-      // @ts-expect-error
-      room.debouncedSubscribe = jest.fn()
-
-      room.on('member.joined', () => {})
-      room.on('member.left', () => {})
-
-      // @ts-expect-error
-      expect(room.debouncedSubscribe).toHaveBeenCalledTimes(2)
-
-      destroy()
     })
   })
 })

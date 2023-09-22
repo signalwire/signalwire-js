@@ -14,7 +14,7 @@ import {
   RoomSessionMember,
 } from '../RoomSessionMember'
 import { VideoCallWorkerParams } from './videoCallingWorker'
-import { RoomSession } from '../RoomSession'
+import { RoomSession, RoomSessionAPI } from '../RoomSession'
 
 export const videoRoomWorker = function* (
   options: VideoCallWorkerParams<MapToPubSubShape<VideoRoomEvent>>
@@ -31,7 +31,7 @@ export const videoRoomWorker = function* (
 
   let roomSessionInstance = get<RoomSession>(payload.room_session.id)
   if (!roomSessionInstance) {
-    roomSessionInstance = new RoomSession({
+    roomSessionInstance = new RoomSessionAPI({
       video,
       payload,
     })

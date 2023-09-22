@@ -12,7 +12,7 @@ import {
   RealTimeVideoListenersEventsMapping,
   RealTimeVideoListeners,
 } from '../types/video'
-import { RoomSession } from './RoomSession'
+import { RoomSession, RoomSessionAPI } from './RoomSession'
 import type {
   RoomSessionMember,
   RoomSessionMemberUpdated,
@@ -65,7 +65,7 @@ export class Video extends BaseVideo<
               room.id
             )
             if (!roomInstance) {
-              roomInstance = new RoomSession({
+              roomInstance = new RoomSessionAPI({
                 video: this,
                 payload: { room_session: room },
               })
@@ -103,7 +103,7 @@ export class Video extends BaseVideo<
 
           let roomInstance = this._client.instanceMap.get<RoomSession>(room.id)
           if (!roomInstance) {
-            roomInstance = new RoomSession({
+            roomInstance = new RoomSessionAPI({
               video: this,
               payload: { room_session: room },
             })
