@@ -16,8 +16,8 @@ import {
 } from '../types'
 import {
   RoomSessionMember,
+  RoomSessionMemberAPI,
   RoomSessionMemberEventParams,
-  createRoomSessionMemberObject,
 } from './RoomSessionMember'
 import { BaseVideo } from './BaseVideo'
 import { Video } from './Video'
@@ -45,7 +45,7 @@ export interface RoomSession
 
 type RoomSessionPayload = Optional<VideoRoomEventParams, 'room'>
 
-interface RoomSessionOptions {
+export interface RoomSessionOptions {
   video: Video
   payload: RoomSessionPayload
 }
@@ -175,8 +175,8 @@ export class RoomSession extends BaseVideo<
             member.id
           )
           if (!memberInstance) {
-            memberInstance = createRoomSessionMemberObject({
-              store: this._client.store,
+            memberInstance = new RoomSessionMemberAPI({
+              roomSession: this,
               payload: {
                 room_id: this.roomId,
                 room_session_id: this.roomSessionId,

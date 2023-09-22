@@ -1,7 +1,4 @@
 import {
-  connect,
-  BaseComponent,
-  BaseComponentOptionsWithPayload,
   extendComponent,
   Rooms,
   VideoMemberContract,
@@ -12,6 +9,8 @@ import {
   VideoMemberUpdatedEventParams,
   VideoMemberTalkingEventParams,
 } from '@signalwire/core'
+import { RoomSession } from './RoomSession'
+import type { Client } from '../client/Client'
 
 /**
  * Represents a member of a room session. You receive instances of this type by
@@ -37,17 +36,17 @@ export type RoomSessionMemberEventParams =
     ) &
       VideoMemberTalkingEventParams
 
-export interface RoomSessionMemberOptions
-  extends BaseComponentOptionsWithPayload<RoomSessionMemberEventParams> {}
+export interface RoomSessionOptions {
+  roomSession: RoomSession
+  payload: RoomSessionMemberEventParams
+}
 
-// TODO: Extend from a variant of `BaseComponent` that
-// doesn't expose EventEmitter methods
-class RoomSessionMemberComponent extends BaseComponent<{}> {
+export class RoomSessionMember {
+  private _client: Client
   private _payload: RoomSessionMemberEventParams
 
-  constructor(options: RoomSessionMemberOptions) {
-    super(options)
-
+  constructor(options: RoomSessionOptions) {
+    this._client = options.roomSession._sw.client
     this._payload = options.payload
   }
 
@@ -120,7 +119,7 @@ class RoomSessionMemberComponent extends BaseComponent<{}> {
   }
 
   /** @internal */
-  protected setPayload(payload: RoomSessionMemberEventParams) {
+  setPayload(payload: RoomSessionMemberEventParams) {
     // Reshape the payload since the `video.member.talking` event does not return all the parameters of a member
     const newPayload = {
       ...payload,
@@ -133,40 +132,29 @@ class RoomSessionMemberComponent extends BaseComponent<{}> {
   }
 
   async remove() {
-    await this.execute({
+    await this._client.execute({
       method: 'video.member.remove',
       params: {
-        room_session_id: this.getStateProperty('roomSessionId'),
-        member_id: this.getStateProperty('memberId'),
+        room_session_id: this.roomSessionId,
+        member_id: this.memberId,
       },
     })
   }
 }
 
-const RoomSessionMemberAPI = extendComponent<
-  RoomSessionMemberComponent,
-  // `remove` is defined by `RoomSessionMemberComponent`
+export const RoomSessionMemberAPI = extendComponent<
+  RoomSessionMember,
+  // `remove` is defined by `RoomSessionMember`
   Omit<VideoMemberMethods, 'remove'>
->(RoomSessionMemberComponent, {
-  audioMute: Rooms.audioMuteMember,
-  audioUnmute: Rooms.audioUnmuteMember,
-  videoMute: Rooms.videoMuteMember,
-  videoUnmute: Rooms.videoUnmuteMember,
-  setDeaf: Rooms.setDeaf,
-  setMicrophoneVolume: Rooms.setInputVolumeMember,
-  setInputVolume: Rooms.setInputVolumeMember,
-  setSpeakerVolume: Rooms.setOutputVolumeMember,
-  setOutputVolume: Rooms.setOutputVolumeMember,
-  setInputSensitivity: Rooms.setInputSensitivityMember,
+>(RoomSessionMember, {
+  audioMute: Rooms.RTMethods.audioMuteMember,
+  audioUnmute: Rooms.RTMethods.audioUnmuteMember,
+  videoMute: Rooms.RTMethods.videoMuteMember,
+  videoUnmute: Rooms.RTMethods.videoUnmuteMember,
+  setDeaf: Rooms.RTMethods.setDeaf,
+  setMicrophoneVolume: Rooms.RTMethods.setInputVolumeMember,
+  setInputVolume: Rooms.RTMethods.setInputVolumeMember,
+  setSpeakerVolume: Rooms.RTMethods.setOutputVolumeMember,
+  setOutputVolume: Rooms.RTMethods.setOutputVolumeMember,
+  setInputSensitivity: Rooms.RTMethods.setInputSensitivityMember,
 })
-
-export const createRoomSessionMemberObject = (
-  params: RoomSessionMemberOptions
-): RoomSessionMember => {
-  const member = connect<{}, RoomSessionMemberComponent, RoomSessionMember>({
-    store: params.store,
-    Component: RoomSessionMemberAPI,
-  })(params)
-
-  return member
-}

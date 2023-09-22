@@ -14,8 +14,8 @@ import {
 } from '@signalwire/core'
 import { RoomSession } from '../RoomSession'
 import {
-  createRoomSessionMemberObject,
   RoomSessionMember,
+  RoomSessionMemberAPI,
   RoomSessionMemberEventParams,
 } from '../RoomSessionMember'
 import { VideoCallWorkerParams } from './videoCallingWorker'
@@ -33,7 +33,6 @@ export const videoMemberWorker = function* (
 ): SagaIterator {
   getLogger().trace('videoMemberWorker started')
   const {
-    instance,
     action: { type, payload },
     instanceMap: { get, set, remove },
   } = options
@@ -45,8 +44,8 @@ export const videoMemberWorker = function* (
 
   let memberInstance = get<RoomSessionMember>(payload.member.id)
   if (!memberInstance) {
-    memberInstance = createRoomSessionMemberObject({
-      store: instance.store,
+    memberInstance = new RoomSessionMemberAPI({
+      roomSession: roomSessionInstance,
       payload: payload as RoomSessionMemberEventParams,
     })
   } else {
