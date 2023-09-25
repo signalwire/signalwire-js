@@ -1,7 +1,7 @@
 /**
  * Once we have new interface for Browser SDK;
- * RoomSessionPlayback in core should be removed
- * RoomSessionPlayback in realtime-api should be moved to core
+ * RoomSessionRecording in core should be removed
+ * RoomSessionRecording in realtime-api should be moved to core
  */
 
 import type {

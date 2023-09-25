@@ -59,6 +59,7 @@ import type {
   OnMemberInputSensitivity,
   VideoPlaybackEventNames,
   VideoRecordingEventNames,
+  VideoStreamEventNames,
 } from '@signalwire/core'
 import type { RoomSession } from '../video/RoomSession'
 import type {
@@ -246,6 +247,11 @@ export type RealtimeRoomRecordingListenersEventsMapping = Record<
 /**
  * RealTime Room CallStream API
  */
+export type RealTimeRoomStreamEvents = Record<
+  VideoStreamEventNames,
+  (stream: RoomSessionStream) => void
+>
+
 export interface RealTimeRoomStreamListeners {
   onStarted?: (stream: RoomSessionStream) => unknown
   onEnded?: (stream: RoomSessionStream) => unknown
