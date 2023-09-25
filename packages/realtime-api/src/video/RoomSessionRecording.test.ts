@@ -1,14 +1,14 @@
 import { EventEmitter } from '@signalwire/core'
 import { Video } from './Video'
 import { RoomSessionAPI, RoomSession } from './RoomSession'
-import { RoomSessionPlayback } from './RoomSessionPlayback'
 import { configureFullStack } from '../testUtils'
 import { createClient } from '../client/createClient'
+import { RoomSessionRecording } from './RoomSessionRecording'
 
-describe('RoomSessionPlayback', () => {
+describe('RoomSessionRecording', () => {
   let video: Video
   let roomSession: RoomSession
-  let playback: RoomSessionPlayback
+  let recording: RoomSessionRecording
 
   const roomSessionId = 'room-session-id'
   const { store, destroy } = configureFullStack()
@@ -42,10 +42,10 @@ describe('RoomSessionPlayback', () => {
       },
     })
 
-    playback = new RoomSessionPlayback({
+    recording = new RoomSessionRecording({
       payload: {
         //@ts-expect-error
-        playback: {
+        recording: {
           id: 'c22d7223-5a01-49fe-8da0-46bec8e75e32',
         },
         room_session_id: roomSessionId,
@@ -53,7 +53,7 @@ describe('RoomSessionPlayback', () => {
       room: roomSession,
     })
     // @ts-expect-error
-    playback._client.execute = jest.fn()
+    recording._client.execute = jest.fn()
   })
 
   afterAll(() => {
@@ -61,53 +61,43 @@ describe('RoomSessionPlayback', () => {
   })
 
   it('should have an event emitter', () => {
-    expect(playback['emitter']).toBeInstanceOf(EventEmitter)
+    expect(recording['emitter']).toBeInstanceOf(EventEmitter)
   })
 
   it('should declare the correct event map', () => {
     const expectedEventMap = {
-      onStarted: 'playback.started',
-      onUpdated: 'playback.updated',
-      onEnded: 'playback.ended',
+      onStarted: 'recording.started',
+      onUpdated: 'recording.updated',
+      onEnded: 'recording.ended',
     }
-    expect(playback['_eventMap']).toEqual(expectedEventMap)
+    expect(recording['_eventMap']).toEqual(expectedEventMap)
   })
 
-  it('should control an active playback', async () => {
+  it('should control an active recording', async () => {
     const baseExecuteParams = {
       method: '',
       params: {
-        room_session_id: roomSessionId,
-        playback_id: 'c22d7223-5a01-49fe-8da0-46bec8e75e32',
+        room_session_id: 'room-session-id',
+        recording_id: 'c22d7223-5a01-49fe-8da0-46bec8e75e32',
       },
     }
-    await playback.pause()
+    await recording.pause()
     // @ts-expect-error
-    expect(playback._client.execute).toHaveBeenLastCalledWith({
+    expect(recording._client.execute).toHaveBeenLastCalledWith({
       ...baseExecuteParams,
-      method: 'video.playback.pause',
+      method: 'video.recording.pause',
     })
-    await playback.resume()
+    await recording.resume()
     // @ts-expect-error
-    expect(playback._client.execute).toHaveBeenLastCalledWith({
+    expect(recording._client.execute).toHaveBeenLastCalledWith({
       ...baseExecuteParams,
-      method: 'video.playback.resume',
+      method: 'video.recording.resume',
     })
-    await playback.stop()
+    await recording.stop()
     // @ts-expect-error
-    expect(playback._client.execute).toHaveBeenLastCalledWith({
+    expect(recording._client.execute).toHaveBeenLastCalledWith({
       ...baseExecuteParams,
-      method: 'video.playback.stop',
-    })
-    await playback.setVolume(30)
-    // @ts-expect-error
-    expect(playback._client.execute).toHaveBeenLastCalledWith({
-      method: 'video.playback.set_volume',
-      params: {
-        room_session_id: roomSessionId,
-        playback_id: 'c22d7223-5a01-49fe-8da0-46bec8e75e32',
-        volume: 30,
-      },
+      method: 'video.recording.stop',
     })
   })
 })
