@@ -1,6 +1,5 @@
 import {
   extendComponent,
-  Rooms,
   VideoMemberContract,
   VideoMemberMethods,
   EntityUpdated,
@@ -10,6 +9,7 @@ import {
   VideoMemberTalkingEventParams,
 } from '@signalwire/core'
 import { RoomSession } from './RoomSession'
+import { RoomMethods } from './rooms'
 import type { Client } from '../client/Client'
 
 /**
@@ -147,14 +147,14 @@ export const RoomSessionMemberAPI = extendComponent<
   // `remove` is defined by `RoomSessionMember`
   Omit<VideoMemberMethods, 'remove'>
 >(RoomSessionMember, {
-  audioMute: Rooms.RTMethods.audioMuteMember,
-  audioUnmute: Rooms.RTMethods.audioUnmuteMember,
-  videoMute: Rooms.RTMethods.videoMuteMember,
-  videoUnmute: Rooms.RTMethods.videoUnmuteMember,
-  setDeaf: Rooms.RTMethods.setDeaf,
-  setMicrophoneVolume: Rooms.RTMethods.setInputVolumeMember,
-  setInputVolume: Rooms.RTMethods.setInputVolumeMember,
-  setSpeakerVolume: Rooms.RTMethods.setOutputVolumeMember,
-  setOutputVolume: Rooms.RTMethods.setOutputVolumeMember,
-  setInputSensitivity: Rooms.RTMethods.setInputSensitivityMember,
+  audioMute: RoomMethods.audioMuteMember,
+  audioUnmute: RoomMethods.audioUnmuteMember,
+  videoMute: RoomMethods.videoMuteMember,
+  videoUnmute: RoomMethods.videoUnmuteMember,
+  setDeaf: RoomMethods.setDeaf,
+  setMicrophoneVolume: RoomMethods.setInputVolumeMember,
+  setInputVolume: RoomMethods.setInputVolumeMember,
+  setSpeakerVolume: RoomMethods.setOutputVolumeMember,
+  setOutputVolume: RoomMethods.setOutputVolumeMember,
+  setInputSensitivity: RoomMethods.setInputSensitivityMember,
 })
