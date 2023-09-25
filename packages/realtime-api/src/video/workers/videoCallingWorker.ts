@@ -6,15 +6,12 @@ import {
   VideoAPIEventParams,
   getLogger,
   sagaEffects,
+  sagaHelpers,
   SDKWorkerParams,
 } from '@signalwire/core'
-import { fork } from '@redux-saga/core/effects'
 import type { Client } from '../../client/index'
 import { videoRoomWorker } from './videoRoomWorker'
 import { videoMemberWorker } from './videoMemberWorker'
-import { videoPlaybackWorker } from './videoPlaybackWorker'
-import { videoRecordingWorker } from './videoRecordingWorker'
-import { videoStreamWorker } from './videoStreamWorker'
 import { videoLayoutWorker } from './videoLayoutWorker'
 import { videoRoomAudienceWorker } from './videoRoomAudienceWorker'
 import { Video } from '../Video'
@@ -47,7 +44,7 @@ export const videoCallingWorker: SDKWorker<Client> = function* (
       case 'video.room.updated':
       case 'video.room.ended':
       case 'video.room.subscribed':
-        yield fork(videoRoomWorker, {
+        yield sagaEffects.fork(videoRoomWorker, {
           action,
           video,
           ...options,
@@ -57,21 +54,21 @@ export const videoCallingWorker: SDKWorker<Client> = function* (
       case 'video.member.left':
       case 'video.member.updated':
       case 'video.member.talking':
-        yield fork(videoMemberWorker, {
+        yield sagaEffects.fork(videoMemberWorker, {
           action,
           video,
           ...options,
         })
         break
       case 'video.layout.changed':
-        yield fork(videoLayoutWorker, {
+        yield sagaEffects.fork(videoLayoutWorker, {
           action,
           video,
           ...options,
         })
         break
       case 'video.room.audience_count':
-        yield fork(videoRoomAudienceWorker, {
+        yield sagaEffects.fork(videoRoomAudienceWorker, {
           action,
           video,
           ...options,
@@ -80,28 +77,16 @@ export const videoCallingWorker: SDKWorker<Client> = function* (
       case 'video.playback.started':
       case 'video.playback.updated':
       case 'video.playback.ended':
-        yield fork(videoPlaybackWorker, {
-          action,
-          video,
-          ...options,
-        })
+        // Handle by a separate watcher
         break
       case 'video.recording.started':
       case 'video.recording.updated':
       case 'video.recording.ended':
-        yield fork(videoRecordingWorker, {
-          action,
-          video,
-          ...options,
-        })
+        // Handle by a separate watcher
         break
       case 'video.stream.started':
       case 'video.stream.ended':
-        yield fork(videoStreamWorker, {
-          action,
-          video,
-          ...options,
-        })
+        // Handle by a separate watcher
         break
       default:
         getLogger().warn(`Unknown video event: "${type}"`)
@@ -109,13 +94,19 @@ export const videoCallingWorker: SDKWorker<Client> = function* (
     }
   }
 
+  const workerCatchable = sagaHelpers.createCatchableSaga<
+    MapToPubSubShape<VideoAPIEventParams>
+  >(worker, (error) => {
+    getLogger().error('Voice calling event error', error)
+  })
+
   const isVideoEvent = (action: SDKActions) => action.type.startsWith('video.')
 
   while (true) {
     const action: MapToPubSubShape<VideoAPIEventParams> =
       yield sagaEffects.take(swEventChannel, isVideoEvent)
 
-    yield fork(worker, action)
+    yield sagaEffects.fork(workerCatchable, action)
   }
 
   getLogger().trace('videoCallingWorker ended')

@@ -6,12 +6,12 @@ import {
   Optional,
   validateEventsToSubscribe,
   VideoMemberEntity,
-  VideoRoomSessionContract,
 } from '@signalwire/core'
 import {
   RealTimeRoomApiEvents,
   RealTimeRoomListeners,
   RealtimeRoomListenersEventsMapping,
+  VideoRoomSessionContract,
 } from '../types'
 import {
   RoomSessionMember,

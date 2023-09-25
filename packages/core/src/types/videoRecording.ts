@@ -1,4 +1,5 @@
 import type { SwEvent } from '.'
+import { MapToPubSubShape } from '..'
 import type {
   CamelToSnakeCase,
   ConvertToInternalTypes,
@@ -165,3 +166,5 @@ export type VideoRecordingEventParams =
   | VideoRecordingStartedEventParams
   | VideoRecordingUpdatedEventParams
   | VideoRecordingEndedEventParams
+
+export type VideoRecordingAction = MapToPubSubShape<VideoRecordingEvent>

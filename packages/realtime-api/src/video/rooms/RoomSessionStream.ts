@@ -19,6 +19,7 @@ import { ListenSubscriber } from '../../ListenSubscriber'
 export interface RoomSessionStreamOptions {
   roomSession: RoomSession
   payload: VideoStreamEventParams
+  listeners?: RealTimeRoomStreamListeners
 }
 
 export class RoomSessionStream
@@ -35,10 +36,13 @@ export class RoomSessionStream
   }
 
   constructor(options: RoomSessionStreamOptions) {
-    console.log('stream', options)
     super({ swClient: options.roomSession._sw })
 
     this._payload = options.payload
+
+    if (options.listeners) {
+      this.listen(options.listeners)
+    }
   }
 
   get id() {

@@ -18,6 +18,16 @@ import { RoomSessionPlayback } from './RoomSessionPlayback'
 import { RoomSessionRecording } from './RoomSessionRecording'
 import { RoomSessionStream } from './RoomSessionStream'
 import { BaseRoomInterface } from '.'
+import {
+  videoPlaybackWorker,
+  videoRecordingWorker,
+  videoStreamWorker,
+} from '../workers'
+import {
+  RealTimeRoomPlaybackListeners,
+  RealTimeRoomRecordingListeners,
+  RealTimeRoomStreamListeners,
+} from '../../types'
 
 type RoomMethodParams = Record<string, unknown>
 
@@ -214,34 +224,47 @@ export const getRecordings: RoomMethodDescriptor<GetRecordingsOutput> = {
   },
 }
 
+export type StartRecordingParams = {
+  listen?: RealTimeRoomRecordingListeners
+}
 export const startRecording: RoomMethodDescriptor<RoomSessionRecording> = {
-  value: function () {
+  value: function ({ listen }: StartRecordingParams) {
     return new Promise(async (resolve, reject) => {
-      try {
-        const { recording } = await this._client.execute<void, any>({
+      const resolveHandler = (recording: RoomSessionRecording) => {
+        this.off('recording.ended', rejectHandler)
+        resolve(recording)
+      }
+
+      const rejectHandler = (recording: RoomSessionRecording) => {
+        this.off('recording.started', resolveHandler)
+        reject(recording)
+      }
+
+      this.once('recording.started', resolveHandler)
+      this.once('recording.ended', rejectHandler)
+
+      this._client.runWorker('videoRecordingWorker', {
+        worker: videoRecordingWorker,
+        initialState: {
+          listeners: listen,
+        },
+      })
+
+      this._client
+        .execute<void, any>({
           method: 'video.recording.start',
           params: {
             room_session_id: this.roomSessionId,
           },
         })
-
-        const recordingInstance = new RoomSessionRecording({
-          payload: {
-            room_id: this.roomId,
-            room_session_id: this.roomSessionId,
-            recording,
-          },
-          roomSession: this as any,
+        .then(() => {
+          // TODO: handle then?
         })
-        this._client.instanceMap.set<RoomSessionRecording>(
-          recordingInstance.id,
-          recordingInstance
-        )
-
-        resolve(recordingInstance)
-      } catch (error) {
-        reject(error)
-      }
+        .catch((e) => {
+          this.off('recording.started', resolveHandler)
+          this.off('recording.ended', rejectHandler)
+          reject(e)
+        })
     })
   },
 }
@@ -307,13 +330,35 @@ export type PlayParams = {
    * `currentTimecode` will be removed in v4.0.0
    */
   currentTimecode?: number
+  listen?: RealTimeRoomPlaybackListeners
 }
 export const play: RoomMethodDescriptor<any, PlayParams> = {
-  value: function ({ seekPosition, currentTimecode, ...params }) {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const seek_position = seekPosition || currentTimecode
-        const { playback } = await this._client.execute<void, any>({
+  value: function ({ seekPosition, currentTimecode, listen, ...params }) {
+    return new Promise<RoomSessionPlayback>(async (resolve, reject) => {
+      const seek_position = seekPosition || currentTimecode
+
+      const resolveHandler = (playback: RoomSessionPlayback) => {
+        this.off('playback.ended', rejectHandler)
+        resolve(playback)
+      }
+
+      const rejectHandler = (playback: RoomSessionPlayback) => {
+        this.off('playback.started', resolveHandler)
+        reject(playback)
+      }
+
+      this.once('playback.started', resolveHandler)
+      this.once('playback.ended', rejectHandler)
+
+      this._client.runWorker('videoPlaybackWorker', {
+        worker: videoPlaybackWorker,
+        initialState: {
+          listeners: listen,
+        },
+      })
+
+      this._client
+        .execute<void, any>({
           method: 'video.playback.start',
           params: {
             room_session_id: this.roomSessionId,
@@ -321,22 +366,14 @@ export const play: RoomMethodDescriptor<any, PlayParams> = {
             ...params,
           },
         })
-        const playbackInstance = new RoomSessionPlayback({
-          payload: {
-            room_id: this.roomId,
-            room_session_id: this.roomSessionId,
-            playback,
-          },
-          roomSession: this as any,
+        .then(() => {
+          // TODO: handle then?
         })
-        this._client.instanceMap.set<RoomSessionPlayback>(
-          playbackInstance.id,
-          playbackInstance
-        )
-        resolve(playbackInstance)
-      } catch (error) {
-        reject(error)
-      }
+        .catch((e) => {
+          this.off('playback.started', resolveHandler)
+          this.off('playback.ended', rejectHandler)
+          reject(e)
+        })
     })
   },
 }
@@ -434,36 +471,47 @@ export const getStreams: RoomMethodDescriptor<GetStreamsOutput> = {
 
 export interface StartStreamParams {
   url: string
+  listen?: RealTimeRoomStreamListeners
 }
 export const startStream: RoomMethodDescriptor<any, StartStreamParams> = {
-  value: function (params) {
+  value: function ({ listen, ...params }) {
     return new Promise(async (resolve, reject) => {
-      try {
-        const { stream } = await this._client.execute<StartStreamParams, any>({
+      const resolveHandler = (stream: RoomSessionStream) => {
+        this.off('stream.ended', rejectHandler)
+        resolve(stream)
+      }
+
+      const rejectHandler = (stream: RoomSessionStream) => {
+        this.off('stream.started', resolveHandler)
+        reject(stream)
+      }
+
+      this.once('stream.started', resolveHandler)
+      this.once('stream.ended', rejectHandler)
+
+      this._client.runWorker('videoStreamWorker', {
+        worker: videoStreamWorker,
+        initialState: {
+          listeners: listen,
+        },
+      })
+
+      this._client
+        .execute<StartStreamParams, any>({
           method: 'video.stream.start',
           params: {
             room_session_id: this.roomSessionId,
             ...params,
           },
         })
-
-        const streamInstance = new RoomSessionStream({
-          payload: {
-            room_id: this.roomId,
-            room_session_id: this.roomSessionId,
-            stream,
-          },
-          roomSession: this as any,
+        .then(() => {
+          // TODO: handle then?
         })
-        this._client.instanceMap.set<RoomSessionStream>(
-          streamInstance.id,
-          streamInstance
-        )
-
-        resolve({ stream: streamInstance })
-      } catch (error) {
-        reject(error)
-      }
+        .catch((e) => {
+          this.off('stream.started', resolveHandler)
+          this.off('stream.ended', rejectHandler)
+          reject(e)
+        })
     })
   },
 }

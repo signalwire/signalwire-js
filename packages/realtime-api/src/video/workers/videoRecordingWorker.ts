@@ -1,55 +1,84 @@
 import {
   getLogger,
   SagaIterator,
-  MapToPubSubShape,
-  VideoRecordingEvent,
-  RoomSessionRecording,
-  Rooms,
-  VideoRecordingEventNames,
   stripNamespacePrefix,
+  SDKActions,
+  VideoRecordingAction,
+  SDKWorker,
+  sagaEffects,
+  VideoRecordingEventNames,
 } from '@signalwire/core'
+import type { Client } from '../../client/index'
 import { RoomSession } from '../RoomSession'
-import { VideoCallWorkerParams } from './videoCallingWorker'
+import { RealTimeRoomRecordingListeners } from '../../types'
+import { RoomSessionRecording } from '../rooms'
 
-export const videoRecordingWorker = function* (
-  options: VideoCallWorkerParams<MapToPubSubShape<VideoRecordingEvent>>
+interface VideoRecordingWorkerInitialState {
+  listeners?: RealTimeRoomRecordingListeners
+}
+
+export const videoRecordingWorker: SDKWorker<Client> = function* (
+  options
 ): SagaIterator {
   getLogger().trace('videoRecordingWorker started')
   const {
-    instance: client,
-    action: { type, payload },
+    channels: { swEventChannel },
     instanceMap: { get, set, remove },
+    initialState,
   } = options
 
-  const roomSessionInstance = get<RoomSession>(payload.room_session_id)
-  if (!roomSessionInstance) {
-    throw new Error('Missing room session instance for playback')
+  const { listeners } = initialState as VideoRecordingWorkerInitialState
+
+  function* worker(action: VideoRecordingAction) {
+    const { type, payload } = action
+
+    const roomSessionInstance = get<RoomSession>(payload.room_session_id)
+    if (!roomSessionInstance) {
+      throw new Error('Missing room session instance for recording')
+    }
+
+    let recordingInstance = get<RoomSessionRecording>(payload.recording.id)
+    if (!recordingInstance) {
+      recordingInstance = new RoomSessionRecording({
+        payload,
+        roomSession: roomSessionInstance,
+        listeners,
+      })
+    } else {
+      recordingInstance.setPayload(payload)
+    }
+    set<RoomSessionRecording>(payload.recording.id, recordingInstance)
+
+    const event = stripNamespacePrefix(type) as VideoRecordingEventNames
+
+    switch (type) {
+      case 'video.recording.started':
+      case 'video.recording.updated':
+        recordingInstance.emit(event, recordingInstance)
+        roomSessionInstance.emit(event, recordingInstance)
+        return false
+      case 'video.recording.ended':
+        recordingInstance.emit(event, recordingInstance)
+        roomSessionInstance.emit(event, recordingInstance)
+        remove<RoomSessionRecording>(payload.recording.id)
+        return true
+      default:
+        return false
+    }
   }
 
-  let recordingInstance = get<RoomSessionRecording>(payload.recording.id)
-  if (!recordingInstance) {
-    recordingInstance = Rooms.createRoomSessionRecordingObject({
-      store: client.store,
-      payload,
-    })
-  } else {
-    recordingInstance.setPayload(payload)
-  }
-  set<RoomSessionRecording>(payload.recording.id, recordingInstance)
+  const isRecordingEvent = (action: SDKActions) =>
+    action.type.startsWith('video.recording.')
 
-  const event = stripNamespacePrefix(type) as VideoRecordingEventNames
+  while (true) {
+    const action: VideoRecordingAction = yield sagaEffects.take(
+      swEventChannel,
+      isRecordingEvent
+    )
 
-  switch (type) {
-    case 'video.recording.started':
-    case 'video.recording.updated':
-      roomSessionInstance.emit(event, recordingInstance)
-      break
-    case 'video.recording.ended':
-      roomSessionInstance.emit(event, recordingInstance)
-      remove<RoomSessionRecording>(payload.recording.id)
-      break
-    default:
-      break
+    const shouldStop = yield sagaEffects.fork(worker, action)
+
+    if (shouldStop.result()) break
   }
 
   getLogger().trace('videoRecordingWorker ended')

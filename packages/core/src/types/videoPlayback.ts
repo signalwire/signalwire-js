@@ -1,4 +1,5 @@
 import type { SwEvent } from '.'
+import { MapToPubSubShape } from '..'
 import type {
   CamelToSnakeCase,
   ToInternalVideoEvent,
@@ -177,3 +178,5 @@ export type VideoPlaybackEventParams =
   | VideoPlaybackStartedEventParams
   | VideoPlaybackUpdatedEventParams
   | VideoPlaybackEndedEventParams
+
+export type VideoPlaybackAction = MapToPubSubShape<VideoPlaybackEvent>

@@ -1,55 +1,83 @@
 import {
   getLogger,
   SagaIterator,
-  MapToPubSubShape,
-  VideoPlaybackEvent,
-  RoomSessionPlayback,
-  Rooms,
   stripNamespacePrefix,
   VideoPlaybackEventNames,
+  SDKActions,
+  VideoPlaybackAction,
+  SDKWorker,
+  sagaEffects,
 } from '@signalwire/core'
+import type { Client } from '../../client/index'
 import { RoomSession } from '../RoomSession'
-import { VideoCallWorkerParams } from './videoCallingWorker'
+import { RealTimeRoomPlaybackListeners } from '../../types'
+import { RoomSessionPlayback } from '../rooms'
 
-export const videoPlaybackWorker = function* (
-  options: VideoCallWorkerParams<MapToPubSubShape<VideoPlaybackEvent>>
+interface VideoPlayWorkerInitialState {
+  listeners?: RealTimeRoomPlaybackListeners
+}
+
+export const videoPlaybackWorker: SDKWorker<Client> = function* (
+  options
 ): SagaIterator {
   getLogger().trace('videoPlaybackWorker started')
   const {
-    instance: client,
-    action: { type, payload },
+    channels: { swEventChannel },
     instanceMap: { get, set, remove },
+    initialState,
   } = options
 
-  const roomSessionInstance = get<RoomSession>(payload.room_session_id)
-  if (!roomSessionInstance) {
-    throw new Error('Missing room session instance for playback')
+  const { listeners } = initialState as VideoPlayWorkerInitialState
+
+  function* worker(action: VideoPlaybackAction) {
+    const { type, payload } = action
+
+    const roomSessionInstance = get<RoomSession>(payload.room_session_id)
+    if (!roomSessionInstance) {
+      throw new Error('Missing room session instance for playback')
+    }
+
+    let playbackInstance = get<RoomSessionPlayback>(payload.playback.id)
+    if (!playbackInstance) {
+      playbackInstance = new RoomSessionPlayback({
+        payload,
+        roomSession: roomSessionInstance,
+        listeners,
+      })
+    } else {
+      playbackInstance.setPayload(payload)
+    }
+    set<RoomSessionPlayback>(payload.playback.id, playbackInstance)
+
+    const event = stripNamespacePrefix(type) as VideoPlaybackEventNames
+    switch (type) {
+      case 'video.playback.started':
+      case 'video.playback.updated':
+        playbackInstance.emit(event, playbackInstance)
+        roomSessionInstance.emit(event, playbackInstance)
+        return false
+      case 'video.playback.ended':
+        playbackInstance.emit(event, playbackInstance)
+        roomSessionInstance.emit(event, playbackInstance)
+        remove<RoomSessionPlayback>(payload.playback.id)
+        return true
+      default:
+        return false
+    }
   }
 
-  let playbackInstance = get<RoomSessionPlayback>(payload.playback.id)
-  if (!playbackInstance) {
-    playbackInstance = Rooms.createRoomSessionPlaybackObject({
-      store: client.store,
-      payload,
-    })
-  } else {
-    playbackInstance.setPayload(payload)
-  }
-  set<RoomSessionPlayback>(payload.playback.id, playbackInstance)
+  const isPlaybackEvent = (action: SDKActions) =>
+    action.type.startsWith('video.playback.')
 
-  const event = stripNamespacePrefix(type) as VideoPlaybackEventNames
+  while (true) {
+    const action: VideoPlaybackAction = yield sagaEffects.take(
+      swEventChannel,
+      isPlaybackEvent
+    )
 
-  switch (type) {
-    case 'video.playback.started':
-    case 'video.playback.updated':
-      roomSessionInstance.emit(event, playbackInstance)
-      break
-    case 'video.playback.ended':
-      roomSessionInstance.emit(event, playbackInstance)
-      remove<RoomSessionPlayback>(payload.playback.id)
-      break
-    default:
-      break
+    const shouldStop = yield sagaEffects.fork(worker, action)
+
+    if (shouldStop.result()) break
   }
 
   getLogger().trace('videoPlaybackWorker ended')

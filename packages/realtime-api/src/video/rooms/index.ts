@@ -1,3 +1,4 @@
+import { EventEmitter } from '@signalwire/core'
 import { ListenSubscriber } from '../../ListenSubscriber'
 import type { Client } from '../../client/Client'
 import {
@@ -24,6 +25,14 @@ export interface BaseRoomInterface extends ListenSubscriber<Listeners, Events> {
   roomId: string
   roomSessionId: string
   memberId: string
+  once<T extends EventEmitter.EventNames<Events>>(
+    event: T,
+    fn: EventEmitter.EventListener<Events, T>
+  ): void
+  off<T extends EventEmitter.EventNames<Events>>(
+    event: T,
+    fn: EventEmitter.EventListener<Events, T>
+  ): void
 }
 
 export * as RoomMethods from './methods'

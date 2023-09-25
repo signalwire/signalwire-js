@@ -19,6 +19,7 @@ import { RoomSession } from '../RoomSession'
 export interface RoomSessionRecordingOptions {
   roomSession: RoomSession
   payload: VideoRecordingEventParams
+  listeners?: RealTimeRoomRecordingListeners
 }
 
 export class RoomSessionRecording
@@ -39,6 +40,10 @@ export class RoomSessionRecording
     super({ swClient: options.roomSession._sw })
 
     this._payload = options.payload
+
+    if (options.listeners) {
+      this.listen(options.listeners)
+    }
   }
 
   get id() {
