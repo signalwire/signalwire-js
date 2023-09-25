@@ -57,6 +57,7 @@ import type {
   OnMemberInputVolume,
   OnMemberOutputVolume,
   OnMemberInputSensitivity,
+  VideoPlaybackEventNames,
 } from '@signalwire/core'
 import type { RoomSession } from '../video/RoomSession'
 import type {
@@ -203,11 +204,23 @@ export type RealtimeRoomListenersEventsMapping = Record<
 /**
  * RealTime Room CallPlayback API
  */
+export type RealTimeRoomPlaybackEvents = Record<
+  VideoPlaybackEventNames,
+  (playback: RoomSessionPlayback) => void
+>
+
 export interface RealTimeRoomPlaybackListeners {
   onStarted?: (playback: RoomSessionPlayback) => unknown
   onUpdated?: (playback: RoomSessionPlayback) => unknown
   onEnded?: (playback: RoomSessionPlayback) => unknown
 }
+
+export type RealtimeRoomPlaybackListenersEventsMapping = Record<
+  'onStarted',
+  PlaybackStarted
+> &
+  Record<'onUpdated', PlaybackUpdated> &
+  Record<'onEnded', PlaybackEnded>
 
 /**
  * RealTime Room CallRecording API
@@ -218,6 +231,13 @@ export interface RealTimeRoomRecordingListeners {
   onEnded?: (recording: RoomSessionRecording) => unknown
 }
 
+export type RealtimeRoomRecordingListenersEventsMapping = Record<
+  'onStarted',
+  RecordingStarted
+> &
+  Record<'onUpdated', RecordingUpdated> &
+  Record<'onEnded', RecordingEnded>
+
 /**
  * RealTime Room CallStream API
  */
@@ -225,3 +245,9 @@ export interface RealTimeRoomStreamListeners {
   onStarted?: (stream: RoomSessionStream) => unknown
   onEnded?: (stream: RoomSessionStream) => unknown
 }
+
+export type RealtimeRoomStreamListenersEventsMapping = Record<
+  'onStarted',
+  StreamStarted
+> &
+  Record<'onEnded', StreamEnded>

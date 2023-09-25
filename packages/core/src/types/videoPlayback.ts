@@ -69,7 +69,7 @@ export interface VideoPlaybackContract {
   volume: number
 
   /** Start time, if available */
-  startedAt: Date
+  startedAt?: Date
 
   /** End time, if available */
   endedAt?: Date
