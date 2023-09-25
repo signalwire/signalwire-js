@@ -12,12 +12,12 @@ import {
   RealTimeRoomRecordingEvents,
   RealTimeRoomRecordingListeners,
   RealtimeRoomRecordingListenersEventsMapping,
-} from '../types'
-import { ListenSubscriber } from '../ListenSubscriber'
-import { RoomSession } from './RoomSession'
+} from '../../types'
+import { ListenSubscriber } from '../../ListenSubscriber'
+import { RoomSession } from '../RoomSession'
 
 export interface RoomSessionRecordingOptions {
-  room: RoomSession
+  roomSession: RoomSession
   payload: VideoRecordingEventParams
 }
 
@@ -36,7 +36,7 @@ export class RoomSessionRecording
   }
 
   constructor(options: RoomSessionRecordingOptions) {
-    super({ swClient: options.room._sw })
+    super({ swClient: options.roomSession._sw })
 
     this._payload = options.payload
   }
@@ -76,7 +76,7 @@ export class RoomSessionRecording
   }
 
   /** @internal */
-  protected setPayload(payload: VideoRecordingEventParams) {
+  setPayload(payload: VideoRecordingEventParams) {
     this._payload = payload
   }
 

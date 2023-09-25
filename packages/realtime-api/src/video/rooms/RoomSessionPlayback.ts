@@ -8,13 +8,13 @@ import type {
   VideoPlaybackContract,
   VideoPlaybackEventParams,
 } from '@signalwire/core'
-import { ListenSubscriber } from '../ListenSubscriber'
+import { ListenSubscriber } from '../../ListenSubscriber'
 import {
   RealTimeRoomPlaybackEvents,
   RealTimeRoomPlaybackListeners,
   RealtimeRoomPlaybackListenersEventsMapping,
-} from '../types'
-import { RoomSession } from './RoomSession'
+} from '../../types'
+import { RoomSession } from '../RoomSession'
 
 /**
  * Instances of this class allow you to control (e.g., pause, resume, stop) the
@@ -24,7 +24,7 @@ import { RoomSession } from './RoomSession'
  */
 
 export interface RoomSessionPlaybackOptions {
-  room: RoomSession
+  roomSession: RoomSession
   payload: VideoPlaybackEventParams
 }
 
@@ -43,7 +43,7 @@ export class RoomSessionPlayback
   }
 
   constructor(options: RoomSessionPlaybackOptions) {
-    super({ swClient: options.room._sw })
+    super({ swClient: options.roomSession._sw })
 
     this._payload = options.payload
   }

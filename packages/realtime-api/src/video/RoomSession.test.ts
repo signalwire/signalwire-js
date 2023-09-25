@@ -137,11 +137,11 @@ describe('RoomSession Object', () => {
     const recording = await roomSession.startRecording()
 
     // @ts-expect-error
-    recording.execute = jest.fn()
+    recording._client.execute = jest.fn()
 
     await recording.pause()
     // @ts-ignore
-    expect(recording.execute).toHaveBeenLastCalledWith({
+    expect(recording._client.execute).toHaveBeenLastCalledWith({
       method: 'video.recording.pause',
       params: {
         room_session_id: roomSessionId,
@@ -150,7 +150,7 @@ describe('RoomSession Object', () => {
     })
     await recording.resume()
     // @ts-ignore
-    expect(recording.execute).toHaveBeenLastCalledWith({
+    expect(recording._client.execute).toHaveBeenLastCalledWith({
       method: 'video.recording.resume',
       params: {
         room_session_id: roomSessionId,
@@ -159,7 +159,7 @@ describe('RoomSession Object', () => {
     })
     await recording.stop()
     // @ts-ignore
-    expect(recording.execute).toHaveBeenLastCalledWith({
+    expect(recording._client.execute).toHaveBeenLastCalledWith({
       method: 'video.recording.stop',
       params: {
         room_session_id: roomSessionId,
@@ -189,11 +189,11 @@ describe('RoomSession Object', () => {
       })
 
       // @ts-expect-error
-      playback.execute = jest.fn()
+      playback._client.execute = jest.fn()
 
       await playback.pause()
       // @ts-ignore
-      expect(playback.execute).toHaveBeenLastCalledWith({
+      expect(playback._client.execute).toHaveBeenLastCalledWith({
         method: 'video.playback.pause',
         params: {
           room_session_id: roomSessionId,
@@ -202,7 +202,7 @@ describe('RoomSession Object', () => {
       })
       await playback.resume()
       // @ts-ignore
-      expect(playback.execute).toHaveBeenLastCalledWith({
+      expect(playback._client.execute).toHaveBeenLastCalledWith({
         method: 'video.playback.resume',
         params: {
           room_session_id: roomSessionId,
@@ -211,7 +211,7 @@ describe('RoomSession Object', () => {
       })
       await playback.setVolume(20)
       // @ts-ignore
-      expect(playback.execute).toHaveBeenLastCalledWith({
+      expect(playback._client.execute).toHaveBeenLastCalledWith({
         method: 'video.playback.set_volume',
         params: {
           room_session_id: roomSessionId,
@@ -221,7 +221,7 @@ describe('RoomSession Object', () => {
       })
       await playback.stop()
       // @ts-ignore
-      expect(playback.execute).toHaveBeenLastCalledWith({
+      expect(playback._client.execute).toHaveBeenLastCalledWith({
         method: 'video.playback.stop',
         params: {
           room_session_id: roomSessionId,

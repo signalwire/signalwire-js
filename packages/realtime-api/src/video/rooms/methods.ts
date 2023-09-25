@@ -1,24 +1,23 @@
-import {
-  type RoomSessionRecording,
-  type RoomSessionPlayback,
-  type RoomSessionStream,
-  createRoomSessionPlaybackObject,
-  createRoomSessionRecordingObject,
-  createRoomSessionStreamObject,
-  BaseRoomRTInterface,
-} from '.'
+/**
+ * Once we have new interface for Browser SDK;
+ * methods.ts in core should be removed
+ * methods.ts in realtime-api should be moved to core
+ */
+
 import type {
   VideoMemberEntity,
   MemberCommandParams,
   VideoPosition,
-} from '../types'
-import type {
   ExecuteExtendedOptions,
   RoomMethod,
   BaseRPCResult,
   MediaAllowed,
   VideoMeta,
-} from '../utils/interfaces'
+} from '@signalwire/core'
+import { RoomSessionPlayback } from './RoomSessionPlayback'
+import { RoomSessionRecording } from './RoomSessionRecording'
+import { RoomSessionStream } from './RoomSessionStream'
+import { BaseRoomInterface } from '.'
 
 type RoomMethodParams = Record<string, unknown>
 
@@ -32,7 +31,7 @@ type RoomMethodDescriptor<
   ParamsType = RoomMethodParams
 > = RoomMethodPropertyDescriptor<OutputType, ParamsType> &
   // TODO: Replace string with a tighter type
-  ThisType<BaseRoomRTInterface<string>>
+  ThisType<BaseRoomInterface>
 
 /**
  * Transform for returning `undefined` for `execute`s that were
@@ -185,13 +184,13 @@ export const getRecordings: RoomMethodDescriptor<GetRecordingsOutput> = {
           let recordingInstance =
             this._client.instanceMap.get<RoomSessionRecording>(recording.id)
           if (!recordingInstance) {
-            recordingInstance = createRoomSessionRecordingObject({
-              store: this._client.store,
+            recordingInstance = new RoomSessionRecording({
               payload: {
                 room_id: this.roomId,
                 room_session_id: this.roomSessionId,
                 recording,
               },
+              roomSession: this as any,
             })
           } else {
             recordingInstance.setPayload({
@@ -226,13 +225,13 @@ export const startRecording: RoomMethodDescriptor<RoomSessionRecording> = {
           },
         })
 
-        const recordingInstance = createRoomSessionRecordingObject({
-          store: this._client.store,
+        const recordingInstance = new RoomSessionRecording({
           payload: {
             room_id: this.roomId,
             room_session_id: this.roomSessionId,
             recording,
           },
+          roomSession: this as any,
         })
         this._client.instanceMap.set<RoomSessionRecording>(
           recordingInstance.id,
@@ -267,13 +266,13 @@ export const getPlaybacks: RoomMethodDescriptor<GetPlaybacksOutput> = {
           let playbackInstance =
             this._client.instanceMap.get<RoomSessionPlayback>(playback.id)
           if (!playbackInstance) {
-            playbackInstance = createRoomSessionPlaybackObject({
-              store: this._client.store,
+            playbackInstance = new RoomSessionPlayback({
               payload: {
                 room_id: this.roomId,
                 room_session_id: this.roomSessionId,
                 playback,
               },
+              roomSession: this as any,
             })
           } else {
             playbackInstance.setPayload({
@@ -322,13 +321,13 @@ export const play: RoomMethodDescriptor<any, PlayParams> = {
             ...params,
           },
         })
-        const playbackInstance = createRoomSessionPlaybackObject({
-          store: this._client.store,
+        const playbackInstance = new RoomSessionPlayback({
           payload: {
             room_id: this.roomId,
             room_session_id: this.roomSessionId,
             playback,
           },
+          roomSession: this as any,
         })
         this._client.instanceMap.set<RoomSessionPlayback>(
           playbackInstance.id,
@@ -403,13 +402,13 @@ export const getStreams: RoomMethodDescriptor<GetStreamsOutput> = {
             stream.id
           )
           if (!streamInstance) {
-            streamInstance = createRoomSessionStreamObject({
-              store: this._client.store,
+            streamInstance = new RoomSessionStream({
               payload: {
                 room_id: this.roomId,
                 room_session_id: this.roomSessionId,
                 stream,
               },
+              roomSession: this as any,
             })
           } else {
             streamInstance.setPayload({
@@ -448,13 +447,13 @@ export const startStream: RoomMethodDescriptor<any, StartStreamParams> = {
           },
         })
 
-        const streamInstance = createRoomSessionStreamObject({
-          store: this._client.store,
+        const streamInstance = new RoomSessionStream({
           payload: {
             room_id: this.roomId,
             room_session_id: this.roomSessionId,
             stream,
           },
+          roomSession: this as any,
         })
         this._client.instanceMap.set<RoomSessionStream>(
           streamInstance.id,

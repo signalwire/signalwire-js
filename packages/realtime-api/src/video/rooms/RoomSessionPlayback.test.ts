@@ -1,9 +1,9 @@
 import { EventEmitter } from '@signalwire/core'
-import { Video } from './Video'
-import { RoomSessionAPI, RoomSession } from './RoomSession'
+import { configureFullStack } from '../../testUtils'
+import { createClient } from '../../client/createClient'
+import { Video } from '../Video'
+import { RoomSessionAPI, RoomSession } from '../RoomSession'
 import { RoomSessionPlayback } from './RoomSessionPlayback'
-import { configureFullStack } from '../testUtils'
-import { createClient } from '../client/createClient'
 
 describe('RoomSessionPlayback', () => {
   let video: Video
@@ -50,7 +50,7 @@ describe('RoomSessionPlayback', () => {
         },
         room_session_id: roomSessionId,
       },
-      room: roomSession,
+      roomSession,
     })
     // @ts-expect-error
     playback._client.execute = jest.fn()

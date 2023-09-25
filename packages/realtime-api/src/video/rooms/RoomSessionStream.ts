@@ -8,16 +8,16 @@ import type {
   VideoStreamEventParams,
   VideoStreamMethods,
 } from '@signalwire/core'
-import { RoomSession } from './RoomSession'
+import { RoomSession } from '../RoomSession'
 import {
   RealTimeRoomStreamEvents,
   RealTimeRoomStreamListeners,
   RealtimeRoomStreamListenersEventsMapping,
-} from '../types'
-import { ListenSubscriber } from '../ListenSubscriber'
+} from '../../types'
+import { ListenSubscriber } from '../../ListenSubscriber'
 
 export interface RoomSessionStreamOptions {
-  room: RoomSession
+  roomSession: RoomSession
   payload: VideoStreamEventParams
 }
 
@@ -35,7 +35,8 @@ export class RoomSessionStream
   }
 
   constructor(options: RoomSessionStreamOptions) {
-    super({ swClient: options.room._sw })
+    console.log('stream', options)
+    super({ swClient: options.roomSession._sw })
 
     this._payload = options.payload
   }
