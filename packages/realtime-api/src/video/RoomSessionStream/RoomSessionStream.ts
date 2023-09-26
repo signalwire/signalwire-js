@@ -81,12 +81,23 @@ export class RoomSessionStream
     return new Date((this._payload.stream.ended_at as unknown as number) * 1000)
   }
 
+  get hasEnded() {
+    if (this.state === 'completed') {
+      return true
+    }
+    return false
+  }
+
   /** @internal */
   setPayload(payload: VideoStreamEventParams) {
     this._payload = payload
   }
 
   async stop() {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'video.stream.stop',
       params: {

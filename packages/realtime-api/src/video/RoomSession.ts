@@ -18,7 +18,7 @@ import {
   RoomSessionMemberAPI,
   RoomSessionMemberEventParams,
 } from './RoomSessionMember'
-import { RoomMethods } from './rooms'
+import { RoomMethods } from './methods'
 import { BaseVideo } from './BaseVideo'
 import { Video } from './Video'
 

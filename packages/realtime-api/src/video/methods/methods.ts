@@ -15,16 +15,6 @@ import type {
   VideoMeta,
 } from '@signalwire/core'
 import {
-  RoomSessionPlayback,
-  decoratePlaybackPromise,
-} from '../RoomSessionPlayback'
-import {
-  RoomSessionRecording,
-  decorateRecordingPromise,
-} from '../RoomSessionRecording'
-import { RoomSessionStream } from './RoomSessionStream'
-import { BaseRoomInterface } from '.'
-import {
   videoPlaybackWorker,
   videoRecordingWorker,
   videoStreamWorker,
@@ -34,6 +24,16 @@ import {
   RealTimeRoomRecordingListeners,
   RealTimeRoomStreamListeners,
 } from '../../types'
+import {
+  RoomSessionPlayback,
+  decoratePlaybackPromise,
+} from '../RoomSessionPlayback'
+import {
+  RoomSessionRecording,
+  decorateRecordingPromise,
+} from '../RoomSessionRecording'
+import { RoomSessionStream, decorateStreamPromise } from '../RoomSessionStream'
+import { BaseRoomInterface } from '.'
 
 type RoomMethodParams = Record<string, unknown>
 
@@ -489,7 +489,7 @@ export interface StartStreamParams {
 }
 export const startStream: RoomMethodDescriptor<any, StartStreamParams> = {
   value: function ({ listen, ...params }) {
-    return new Promise(async (resolve, reject) => {
+    const promise = new Promise<RoomSessionStream>(async (resolve, reject) => {
       const resolveHandler = (stream: RoomSessionStream) => {
         this.off('stream.ended', rejectHandler)
         resolve(stream)
@@ -527,6 +527,8 @@ export const startStream: RoomMethodDescriptor<any, StartStreamParams> = {
           reject(e)
         })
     })
+
+    return decorateStreamPromise.call(this as any, promise)
   },
 }
 

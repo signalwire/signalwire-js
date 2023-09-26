@@ -11,7 +11,7 @@ import {
 import type { Client } from '../../client/index'
 import { RoomSession } from '../RoomSession'
 import { RealTimeRoomStreamListeners } from '../../types'
-import { RoomSessionStream } from '../rooms'
+import { RoomSessionStream } from '../RoomSessionStream'
 
 interface VideoStreamWorkerInitialState {
   listeners?: RealTimeRoomStreamListeners

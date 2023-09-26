@@ -8,9 +8,9 @@ import {
   VideoMemberUpdatedEventParams,
   VideoMemberTalkingEventParams,
 } from '@signalwire/core'
-import { RoomSession } from './RoomSession'
-import { RoomMethods } from './rooms'
-import type { Client } from '../client/Client'
+import { RoomSession } from '../RoomSession'
+import { RoomMethods } from '../methods'
+import type { Client } from '../../client/Client'
 
 /**
  * Represents a member of a room session. You receive instances of this type by

@@ -1,9 +1,9 @@
 import { actions } from '@signalwire/core'
-import { configureFullStack } from '../testUtils'
-import { RoomSession, RoomSessionAPI } from './RoomSession'
+import { configureFullStack } from '../../testUtils'
+import { RoomSession, RoomSessionAPI } from '../RoomSession'
 import { RoomSessionMember } from './RoomSessionMember'
-import { Video } from './Video'
-import { createClient } from '../client/createClient'
+import { Video } from '../Video'
+import { createClient } from '../../client/createClient'
 
 describe('Member Object', () => {
   let video: Video

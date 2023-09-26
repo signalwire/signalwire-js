@@ -74,8 +74,11 @@ import {
   RoomSessionRecording,
   RoomSessionRecordingPromise,
 } from '../video/RoomSessionRecording'
-import { RoomSessionStream } from '../video/rooms'
-import { RoomMethods } from '../video/rooms'
+import {
+  RoomSessionStream,
+  RoomSessionStreamPromise,
+} from '../video/RoomSessionStream'
+import { RoomMethods } from '../video/methods'
 
 /**
  * Public Contract for a realtime VideoRoomSession
@@ -593,7 +596,7 @@ export interface VideoRoomSessionContract {
    *
    * @example
    * ```typescript
-   * const rec = await room.startRecording()
+   * const rec = await room.startRecording().onStarted()
    * await rec.stop()
    * ```
    */
@@ -628,7 +631,7 @@ export interface VideoRoomSessionContract {
    *
    * @example
    * ```typescript
-   * const playback = await roomSession.play({ url: 'rtmp://example.com/foo' })
+   * const playback = await roomSession.play({ url: 'rtmp://example.com/foo' }).onStarted()
    * await playback.stop()
    * ```
    */
@@ -758,11 +761,11 @@ export interface VideoRoomSessionContract {
    *
    * @example
    * ```typescript
-   * const stream = await room.startStream({ url: 'rtmp://example.com' })
+   * const stream = await room.startStream({ url: 'rtmp://example.com' }).onStarted()
    * await stream.stop()
    * ```
    */
-  startStream(params: RoomMethods.StartStreamParams): Promise<RoomSessionStream>
+  startStream(params: RoomMethods.StartStreamParams): RoomSessionStreamPromise
   // lock(): Rooms.Lock
   // unlock(): Rooms.Unlock
 }
