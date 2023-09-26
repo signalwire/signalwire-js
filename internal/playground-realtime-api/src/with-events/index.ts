@@ -38,20 +38,22 @@ async function run() {
         onMemberJoined: async (member) => {
           console.log('onMemberJoined --->', member.id, member.name)
 
-          const play = await room.play({
-            url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
-            listen: {
-              onStarted: (playback) => {
-                console.log('onStarted', playback.id, playback.url)
+          const play = await room
+            .play({
+              url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
+              listen: {
+                onStarted: (playback) => {
+                  console.log('onStarted', playback.id, playback.url)
+                },
+                onUpdated: (playback) => {
+                  console.log('onUpdated', playback.id, playback.url)
+                },
+                onEnded: (playback) => {
+                  console.log('onEnded', playback.id, playback.url)
+                },
               },
-              onUpdated: (playback) => {
-                console.log('onUpdated', playback.id, playback.url)
-              },
-              onEnded: (playback) => {
-                console.log('onEnded', playback.id, playback.url)
-              },
-            },
-          })
+            })
+            .onStarted()
           console.log('play', play.id)
 
           setTimeout(async () => {
