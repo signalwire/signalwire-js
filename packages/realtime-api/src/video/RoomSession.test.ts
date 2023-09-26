@@ -3,6 +3,8 @@ import { configureFullStack } from '../testUtils'
 import { Video } from './Video'
 import { RoomSession } from './RoomSession'
 import { createClient } from '../client/createClient'
+import { RoomSessionRecording } from './RoomSessionRecording'
+import { RoomSessionPlayback } from './RoomSessionPlayback'
 
 describe('RoomSession Object', () => {
   let video: Video
@@ -124,17 +126,29 @@ describe('RoomSession Object', () => {
   })
 
   it('startRecording should return a recording object', async () => {
+    const recordingPayload = {
+      id: 'recordingId',
+      state: 'recording',
+    }
+
     // @ts-expect-error
-    roomSession._client.execute = jest.fn().mockResolvedValue({
-      room_session_id: roomSessionId,
-      room_id: 'roomId',
-      recording: {
-        id: 'recordingId',
-        state: 'recording',
+    roomSession._client.execute = jest.fn().mockResolvedValue({})
+
+    const mockRecording = new RoomSessionRecording({
+      roomSession,
+      payload: {
+        room_session_id: roomSessionId,
+        // @ts-expect-error
+        recording: recordingPayload,
       },
     })
 
-    const recording = await roomSession.startRecording()
+    const recordingPromise = roomSession.startRecording()
+
+    // @TODO: Mock server event
+    roomSession.emit('recording.started', mockRecording)
+
+    const recording = await recordingPromise.onStarted()
 
     // @ts-expect-error
     recording._client.execute = jest.fn()
@@ -169,24 +183,33 @@ describe('RoomSession Object', () => {
   })
 
   describe('playback apis', () => {
+    const playbackPayload = {
+      id: 'playbackId',
+      state: 'playing',
+      url: 'rtmp://example.com/foo',
+      volume: 10,
+      started_at: 1629460916,
+    }
+
     it('play() should return a playback object', async () => {
       // @ts-expect-error
-      roomSession._client.execute = jest.fn().mockResolvedValue({
-        room_session_id: roomSessionId,
-        room_id: 'roomId',
-        playback: {
-          id: 'playbackId',
-          state: 'playing',
-          url: 'rtmp://example.com/foo',
-          volume: 10,
-          started_at: 1629460916,
-        },
+      roomSession._client.execute = jest.fn().mockResolvedValue()
+
+      const mockPlayback = new RoomSessionPlayback({
+        roomSession,
+        // @ts-expect-error
+        payload: { room_session_id: roomSessionId, playback: playbackPayload },
       })
 
-      const playback = await roomSession.play({
+      const playbackPromise = roomSession.play({
         url: 'rtmp://example.com/foo',
         volume: 10,
       })
+
+      // @TODO: Mock server event
+      roomSession.emit('playback.started', mockPlayback)
+
+      const playback = await playbackPromise.onStarted()
 
       // @ts-expect-error
       playback._client.execute = jest.fn()

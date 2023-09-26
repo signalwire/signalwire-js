@@ -234,7 +234,7 @@ export type StartRecordingParams = {
   listen?: RealTimeRoomRecordingListeners
 }
 export const startRecording: RoomMethodDescriptor<any> = {
-  value: function ({ listen }: StartRecordingParams) {
+  value: function ({ listen }: StartRecordingParams = {}) {
     const promise = new Promise<RoomSessionRecording>(
       async (resolve, reject) => {
         const resolveHandler = (recording: RoomSessionRecording) => {

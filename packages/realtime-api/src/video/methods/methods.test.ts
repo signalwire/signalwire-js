@@ -1,10 +1,10 @@
-import { configureJestStore } from '../../testUtils'
 import { SDKStore } from '@signalwire/core'
-import * as CustomMethods from './methods'
-import { RoomSessionRecording } from './RoomSessionRecording'
+import { configureJestStore } from '../../testUtils'
 import { createClient } from '../../client/createClient'
 import { Video } from '../Video'
 import { RoomSession, RoomSessionAPI } from '../RoomSession'
+import * as CustomMethods from './methods'
+import { RoomSessionRecording } from '../RoomSessionRecording'
 
 describe('Room Custom Methods', () => {
   let video: Video
@@ -53,16 +53,29 @@ describe('Room Custom Methods', () => {
 
   describe('startRecording', () => {
     it('should return the raw payload w/o emitterTransforms', async () => {
-      ;(instance._client.execute as jest.Mock).mockResolvedValueOnce({
-        code: '200',
-        message: 'Recording started',
-        recording_id: 'c22d7223-5a01-49fe-8da0-46bec8e75e32',
-        recording: {
-          state: 'recording',
+      const recordingPayload = {
+        id: 'recordingId',
+        state: 'recording',
+      }
+
+      ;(instance._client.execute as jest.Mock).mockResolvedValueOnce({})
+
+      const mockRecording = new RoomSessionRecording({
+        roomSession: instance,
+        payload: {
+          room_session_id: roomSessionId,
+          // @ts-expect-error
+          recording: recordingPayload,
         },
       })
 
-      const response = await instance.startRecording()
+      const response = instance.startRecording()
+
+      // @TODO: Mock server event
+      instance.emit('recording.started', mockRecording)
+
+      const recording = await response.onStarted()
+
       expect(instance._client.execute).toHaveBeenCalledTimes(1)
       expect(instance._client.execute).toHaveBeenCalledWith({
         method: 'video.recording.start',
@@ -70,9 +83,9 @@ describe('Room Custom Methods', () => {
           room_session_id: roomSessionId,
         },
       })
-      expect(response).toBeInstanceOf(RoomSessionRecording)
-      expect(response.roomSessionId).toBe(roomSessionId)
-      expect(response.state).toBe('recording')
+      expect(recording).toBeInstanceOf(RoomSessionRecording)
+      expect(recording.roomSessionId).toBe(roomSessionId)
+      expect(recording.state).toBe('recording')
     })
   })
 
@@ -177,7 +190,10 @@ describe('Room Custom Methods', () => {
     ])('should execute with proper params', async ({ input, output }) => {
       const url = 'https://example.com/foo.mp4'
 
-      await instance.play({ url, ...input })
+      const response = instance.play({ url, ...input })
+      instance.emit('playback.started')
+      await response.onStarted()
+
       expect(instance._client.execute).toHaveBeenCalledTimes(1)
       expect(instance._client.execute).toHaveBeenCalledWith({
         method: 'video.playback.start',
