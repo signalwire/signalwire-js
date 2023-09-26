@@ -14,7 +14,10 @@ import type {
   MediaAllowed,
   VideoMeta,
 } from '@signalwire/core'
-import { RoomSessionPlayback } from './RoomSessionPlayback'
+import {
+  RoomSessionPlayback,
+  decoratePlaybackPromise,
+} from '../RoomSessionPlayback'
 import { RoomSessionRecording } from './RoomSessionRecording'
 import { RoomSessionStream } from './RoomSessionStream'
 import { BaseRoomInterface } from '.'
@@ -334,47 +337,51 @@ export type PlayParams = {
 }
 export const play: RoomMethodDescriptor<any, PlayParams> = {
   value: function ({ seekPosition, currentTimecode, listen, ...params }) {
-    return new Promise<RoomSessionPlayback>(async (resolve, reject) => {
-      const seek_position = seekPosition || currentTimecode
+    const promise = new Promise<RoomSessionPlayback>(
+      async (resolve, reject) => {
+        const seek_position = seekPosition || currentTimecode
 
-      const resolveHandler = (playback: RoomSessionPlayback) => {
-        this.off('playback.ended', rejectHandler)
-        resolve(playback)
-      }
+        const resolveHandler = (playback: RoomSessionPlayback) => {
+          this.off('playback.ended', rejectHandler)
+          resolve(playback)
+        }
 
-      const rejectHandler = (playback: RoomSessionPlayback) => {
-        this.off('playback.started', resolveHandler)
-        reject(playback)
-      }
+        const rejectHandler = (playback: RoomSessionPlayback) => {
+          this.off('playback.started', resolveHandler)
+          reject(playback)
+        }
 
-      this.once('playback.started', resolveHandler)
-      this.once('playback.ended', rejectHandler)
+        this.once('playback.started', resolveHandler)
+        this.once('playback.ended', rejectHandler)
 
-      this._client.runWorker('videoPlaybackWorker', {
-        worker: videoPlaybackWorker,
-        initialState: {
-          listeners: listen,
-        },
-      })
-
-      this._client
-        .execute<void, any>({
-          method: 'video.playback.start',
-          params: {
-            room_session_id: this.roomSessionId,
-            seek_position,
-            ...params,
+        this._client.runWorker('videoPlaybackWorker', {
+          worker: videoPlaybackWorker,
+          initialState: {
+            listeners: listen,
           },
         })
-        .then(() => {
-          // TODO: handle then?
-        })
-        .catch((e) => {
-          this.off('playback.started', resolveHandler)
-          this.off('playback.ended', rejectHandler)
-          reject(e)
-        })
-    })
+
+        this._client
+          .execute<void, any>({
+            method: 'video.playback.start',
+            params: {
+              room_session_id: this.roomSessionId,
+              seek_position,
+              ...params,
+            },
+          })
+          .then(() => {
+            // TODO: handle then?
+          })
+          .catch((e) => {
+            this.off('playback.started', resolveHandler)
+            this.off('playback.ended', rejectHandler)
+            reject(e)
+          })
+      }
+    )
+
+    return decoratePlaybackPromise.call(this as any, promise)
   },
 }
 

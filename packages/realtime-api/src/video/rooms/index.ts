@@ -37,5 +37,4 @@ export interface BaseRoomInterface extends ListenSubscriber<Listeners, Events> {
 
 export * as RoomMethods from './methods'
 export * from './RoomSessionRecording'
-export * from './RoomSessionPlayback'
 export * from './RoomSessionStream'

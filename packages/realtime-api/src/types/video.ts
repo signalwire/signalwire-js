@@ -67,7 +67,10 @@ import type {
   RoomSessionMemberUpdated,
 } from '../video/RoomSessionMember'
 import { RoomMethods } from '../video/rooms'
-import { RoomSessionPlayback } from '../video/rooms'
+import {
+  RoomSessionPlayback,
+  RoomSessionPlaybackPromise,
+} from '../video/RoomSessionPlayback'
 import { RoomSessionRecording } from '../video/rooms'
 import { RoomSessionStream } from '../video/rooms'
 
@@ -626,7 +629,7 @@ export interface VideoRoomSessionContract {
    * await playback.stop()
    * ```
    */
-  play(params: RoomMethods.PlayParams): Promise<RoomSessionPlayback>
+  play(params: RoomMethods.PlayParams): RoomSessionPlaybackPromise
   /**
    * Assigns custom metadata to the RoomSession. You can use this to store
    * metadata whose meaning is entirely defined by your application.

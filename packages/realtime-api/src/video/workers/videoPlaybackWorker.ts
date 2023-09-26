@@ -11,7 +11,7 @@ import {
 import type { Client } from '../../client/index'
 import { RoomSession } from '../RoomSession'
 import { RealTimeRoomPlaybackListeners } from '../../types'
-import { RoomSessionPlayback } from '../rooms'
+import { RoomSessionPlayback } from '../RoomSessionPlayback'
 
 interface VideoPlayWorkerInitialState {
   listeners?: RealTimeRoomPlaybackListeners

@@ -99,12 +99,23 @@ export class RoomSessionPlayback
     return this._payload.playback.seekable
   }
 
+  get hasEnded() {
+    if (this.state === 'completed') {
+      return true
+    }
+    return false
+  }
+
   /** @internal */
   setPayload(payload: VideoPlaybackEventParams) {
     this._payload = payload
   }
 
   async pause() {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'video.playback.pause',
       params: {
@@ -115,6 +126,10 @@ export class RoomSessionPlayback
   }
 
   async resume() {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'video.playback.resume',
       params: {
@@ -125,6 +140,10 @@ export class RoomSessionPlayback
   }
 
   async stop() {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'video.playback.stop',
       params: {
@@ -135,6 +154,10 @@ export class RoomSessionPlayback
   }
 
   async setVolume(volume: number) {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'video.playback.set_volume',
       params: {
@@ -146,6 +169,10 @@ export class RoomSessionPlayback
   }
 
   async seek(timecode: number) {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'video.playback.seek_absolute',
       params: {
@@ -157,6 +184,10 @@ export class RoomSessionPlayback
   }
 
   async forward(offset: number = 5000) {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'video.playback.seek_relative',
       params: {
@@ -168,6 +199,10 @@ export class RoomSessionPlayback
   }
 
   async rewind(offset: number = 5000) {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'video.playback.seek_relative',
       params: {
