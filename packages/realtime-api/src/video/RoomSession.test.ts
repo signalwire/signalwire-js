@@ -126,11 +126,6 @@ describe('RoomSession Object', () => {
   })
 
   it('startRecording should return a recording object', async () => {
-    const recordingPayload = {
-      id: 'recordingId',
-      state: 'recording',
-    }
-
     // @ts-expect-error
     roomSession._client.execute = jest.fn().mockResolvedValue({})
 
@@ -139,7 +134,10 @@ describe('RoomSession Object', () => {
       payload: {
         room_session_id: roomSessionId,
         // @ts-expect-error
-        recording: recordingPayload,
+        recording: {
+          id: 'recordingId',
+          state: 'recording',
+        },
       },
     })
 
@@ -183,22 +181,23 @@ describe('RoomSession Object', () => {
   })
 
   describe('playback apis', () => {
-    const playbackPayload = {
-      id: 'playbackId',
-      state: 'playing',
-      url: 'rtmp://example.com/foo',
-      volume: 10,
-      started_at: 1629460916,
-    }
-
     it('play() should return a playback object', async () => {
       // @ts-expect-error
       roomSession._client.execute = jest.fn().mockResolvedValue()
 
       const mockPlayback = new RoomSessionPlayback({
         roomSession,
-        // @ts-expect-error
-        payload: { room_session_id: roomSessionId, playback: playbackPayload },
+        payload: {
+          room_session_id: roomSessionId,
+          playback: {
+            id: 'playbackId',
+            state: 'playing',
+            url: 'rtmp://example.com/foo',
+            volume: 10,
+            // @ts-expect-error
+            started_at: 1629460916,
+          },
+        },
       })
 
       const playbackPromise = roomSession.play({

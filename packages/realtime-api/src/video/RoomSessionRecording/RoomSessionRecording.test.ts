@@ -4,6 +4,11 @@ import { createClient } from '../../client/createClient'
 import { Video } from '../Video'
 import { RoomSessionAPI, RoomSession } from '../RoomSession'
 import { RoomSessionRecording } from './RoomSessionRecording'
+import {
+  decorateRecordingPromise,
+  methods,
+  getters,
+} from './decorateRecordingPromise'
 
 describe('RoomSessionRecording', () => {
   let video: Video
@@ -98,6 +103,97 @@ describe('RoomSessionRecording', () => {
     expect(recording._client.execute).toHaveBeenLastCalledWith({
       ...baseExecuteParams,
       method: 'video.recording.stop',
+    })
+  })
+
+  it('should throw an error on methods if recording has ended', async () => {
+    recording.setPayload({
+      // @ts-expect-error
+      recording: {
+        state: 'completed',
+      },
+    })
+
+    await expect(recording.pause()).rejects.toThrowError('Action has ended')
+    await expect(recording.resume()).rejects.toThrowError('Action has ended')
+    await expect(recording.stop()).rejects.toThrowError('Action has ended')
+  })
+
+  describe('decorateRecordingPromise', () => {
+    it('expose correct properties before resolve', () => {
+      const innerPromise = Promise.resolve(recording)
+
+      const decoratedPromise = decorateRecordingPromise.call(
+        roomSession,
+        innerPromise
+      )
+
+      expect(decoratedPromise).toHaveProperty('onStarted', expect.any(Function))
+      expect(decoratedPromise.onStarted()).toBeInstanceOf(Promise)
+      expect(decoratedPromise).toHaveProperty('onEnded', expect.any(Function))
+      expect(decoratedPromise.onEnded()).toBeInstanceOf(Promise)
+      methods.forEach((method) => {
+        expect(decoratedPromise).toHaveProperty(method, expect.any(Function))
+        // @ts-expect-error
+        expect(decoratedPromise[method]()).toBeInstanceOf(Promise)
+      })
+      getters.forEach((getter) => {
+        expect(decoratedPromise).toHaveProperty(getter)
+        // @ts-expect-error
+        expect(decoratedPromise[getter]).toBeInstanceOf(Promise)
+      })
+    })
+
+    it('expose correct properties after resolve', async () => {
+      const innerPromise = Promise.resolve(recording)
+
+      const decoratedPromise = decorateRecordingPromise.call(
+        roomSession,
+        innerPromise
+      )
+
+      // Simulate the recording ended event
+      roomSession.emit('recording.ended', recording)
+
+      const ended = await decoratedPromise
+
+      expect(ended).not.toHaveProperty('onStarted', expect.any(Function))
+      expect(ended).not.toHaveProperty('onEnded', expect.any(Function))
+      methods.forEach((method) => {
+        expect(ended).toHaveProperty(method, expect.any(Function))
+      })
+      getters.forEach((getter) => {
+        expect(ended).toHaveProperty(getter)
+        // @ts-expect-error
+        expect(ended[getter]).not.toBeInstanceOf(Promise)
+      })
+    })
+
+    it('resolves when recording ends', async () => {
+      const innerPromise = Promise.resolve(recording)
+
+      const decoratedPromise = decorateRecordingPromise.call(
+        roomSession,
+        innerPromise
+      )
+
+      // Simulate the recording ended event
+      roomSession.emit('recording.ended', recording)
+
+      await expect(decoratedPromise).resolves.toEqual(
+        expect.any(RoomSessionRecording)
+      )
+    })
+
+    it('rejects on inner promise rejection', async () => {
+      const innerPromise = Promise.reject(new Error('Recording failed'))
+
+      const decoratedPromise = decorateRecordingPromise.call(
+        roomSession,
+        innerPromise
+      )
+
+      await expect(decoratedPromise).rejects.toThrow('Recording failed')
     })
   })
 })

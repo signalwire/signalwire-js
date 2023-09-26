@@ -8,7 +8,6 @@ export interface RoomSessionRecordingEnded {
   id: string
   roomId: string
   roomSessionId: string
-  url: string
   state: RoomSessionRecording['state']
   duration?: number
   startedAt?: Date
@@ -32,7 +31,6 @@ export const getters = [
   'id',
   'roomId',
   'roomSessionId',
-  'url',
   'state',
   'duration',
   'startedAt',

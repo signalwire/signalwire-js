@@ -4,6 +4,11 @@ import { createClient } from '../../client/createClient'
 import { Video } from '../Video'
 import { RoomSessionAPI, RoomSession } from '../RoomSession'
 import { RoomSessionPlayback } from './RoomSessionPlayback'
+import {
+  decoratePlaybackPromise,
+  methods,
+  getters,
+} from './decoratePlaybackPromise'
 
 describe('RoomSessionPlayback', () => {
   let video: Video
@@ -108,6 +113,101 @@ describe('RoomSessionPlayback', () => {
         playback_id: 'c22d7223-5a01-49fe-8da0-46bec8e75e32',
         volume: 30,
       },
+    })
+  })
+
+  it('should throw an error on methods if playback has ended', async () => {
+    playback.setPayload({
+      // @ts-expect-error
+      playback: {
+        state: 'completed',
+      },
+    })
+
+    await expect(playback.pause()).rejects.toThrowError('Action has ended')
+    await expect(playback.resume()).rejects.toThrowError('Action has ended')
+    await expect(playback.stop()).rejects.toThrowError('Action has ended')
+    await expect(playback.setVolume(1)).rejects.toThrowError('Action has ended')
+    await expect(playback.seek(1)).rejects.toThrowError('Action has ended')
+    await expect(playback.forward(1)).rejects.toThrowError('Action has ended')
+    await expect(playback.rewind(1)).rejects.toThrowError('Action has ended')
+  })
+
+  describe('decoratePlaybackPromise', () => {
+    it('expose correct properties before resolve', () => {
+      const innerPromise = Promise.resolve(playback)
+
+      const decoratedPromise = decoratePlaybackPromise.call(
+        roomSession,
+        innerPromise
+      )
+
+      expect(decoratedPromise).toHaveProperty('onStarted', expect.any(Function))
+      expect(decoratedPromise.onStarted()).toBeInstanceOf(Promise)
+      expect(decoratedPromise).toHaveProperty('onEnded', expect.any(Function))
+      expect(decoratedPromise.onEnded()).toBeInstanceOf(Promise)
+      methods.forEach((method) => {
+        expect(decoratedPromise).toHaveProperty(method, expect.any(Function))
+        // @ts-expect-error
+        expect(decoratedPromise[method]()).toBeInstanceOf(Promise)
+      })
+      getters.forEach((getter) => {
+        expect(decoratedPromise).toHaveProperty(getter)
+        // @ts-expect-error
+        expect(decoratedPromise[getter]).toBeInstanceOf(Promise)
+      })
+    })
+
+    it('expose correct properties after resolve', async () => {
+      const innerPromise = Promise.resolve(playback)
+
+      const decoratedPromise = decoratePlaybackPromise.call(
+        roomSession,
+        innerPromise
+      )
+
+      // Simulate the playback ended event
+      roomSession.emit('playback.ended', playback)
+
+      const ended = await decoratedPromise
+
+      expect(ended).not.toHaveProperty('onStarted', expect.any(Function))
+      expect(ended).not.toHaveProperty('onEnded', expect.any(Function))
+      methods.forEach((method) => {
+        expect(ended).toHaveProperty(method, expect.any(Function))
+      })
+      getters.forEach((getter) => {
+        expect(ended).toHaveProperty(getter)
+        // @ts-expect-error
+        expect(ended[getter]).not.toBeInstanceOf(Promise)
+      })
+    })
+
+    it('resolves when playback ends', async () => {
+      const innerPromise = Promise.resolve(playback)
+
+      const decoratedPromise = decoratePlaybackPromise.call(
+        roomSession,
+        innerPromise
+      )
+
+      // Simulate the playback ended event
+      roomSession.emit('playback.ended', playback)
+
+      await expect(decoratedPromise).resolves.toEqual(
+        expect.any(RoomSessionPlayback)
+      )
+    })
+
+    it('rejects on inner promise rejection', async () => {
+      const innerPromise = Promise.reject(new Error('Recording failed'))
+
+      const decoratedPromise = decoratePlaybackPromise.call(
+        roomSession,
+        innerPromise
+      )
+
+      await expect(decoratedPromise).rejects.toThrow('Recording failed')
     })
   })
 })

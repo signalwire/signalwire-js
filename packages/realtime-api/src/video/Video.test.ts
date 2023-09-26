@@ -111,7 +111,6 @@ describe('Video Object', () => {
       const promise = new Promise<void>(async (resolve) => {
         await video.listen({
           onRoomStarted: (room) => {
-            console.log('room')
             expect(room.videoMute).toBeDefined()
             expect(room.videoUnmute).toBeDefined()
             expect(room.getMembers).toBeDefined()
