@@ -66,13 +66,16 @@ import type {
   RoomSessionMember,
   RoomSessionMemberUpdated,
 } from '../video/RoomSessionMember'
-import { RoomMethods } from '../video/rooms'
 import {
   RoomSessionPlayback,
   RoomSessionPlaybackPromise,
 } from '../video/RoomSessionPlayback'
-import { RoomSessionRecording } from '../video/rooms'
+import {
+  RoomSessionRecording,
+  RoomSessionRecordingPromise,
+} from '../video/RoomSessionRecording'
 import { RoomSessionStream } from '../video/rooms'
+import { RoomMethods } from '../video/rooms'
 
 /**
  * Public Contract for a realtime VideoRoomSession
@@ -596,7 +599,7 @@ export interface VideoRoomSessionContract {
    */
   startRecording(
     params?: RoomMethods.StartRecordingParams
-  ): Promise<RoomSessionRecording>
+  ): RoomSessionRecordingPromise
   /**
    * Obtains a list of recordings for the current room session.
    *

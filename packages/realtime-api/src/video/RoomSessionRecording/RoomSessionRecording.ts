@@ -80,12 +80,23 @@ export class RoomSessionRecording
     )
   }
 
+  get hasEnded() {
+    if (this.state === 'completed') {
+      return true
+    }
+    return false
+  }
+
   /** @internal */
   setPayload(payload: VideoRecordingEventParams) {
     this._payload = payload
   }
 
   async pause() {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'video.recording.pause',
       params: {
@@ -96,6 +107,10 @@ export class RoomSessionRecording
   }
 
   async resume() {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'video.recording.resume',
       params: {
@@ -106,6 +121,10 @@ export class RoomSessionRecording
   }
 
   async stop() {
+    if (this.hasEnded) {
+      throw new Error('Action has ended')
+    }
+
     await this._client.execute({
       method: 'video.recording.stop',
       params: {

@@ -11,7 +11,7 @@ import {
 import type { Client } from '../../client/index'
 import { RoomSession } from '../RoomSession'
 import { RealTimeRoomRecordingListeners } from '../../types'
-import { RoomSessionRecording } from '../rooms'
+import { RoomSessionRecording } from '../RoomSessionRecording'
 
 interface VideoRecordingWorkerInitialState {
   listeners?: RealTimeRoomRecordingListeners

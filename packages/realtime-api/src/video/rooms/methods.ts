@@ -18,7 +18,10 @@ import {
   RoomSessionPlayback,
   decoratePlaybackPromise,
 } from '../RoomSessionPlayback'
-import { RoomSessionRecording } from './RoomSessionRecording'
+import {
+  RoomSessionRecording,
+  decorateRecordingPromise,
+} from '../RoomSessionRecording'
 import { RoomSessionStream } from './RoomSessionStream'
 import { BaseRoomInterface } from '.'
 import {
@@ -230,45 +233,49 @@ export const getRecordings: RoomMethodDescriptor<GetRecordingsOutput> = {
 export type StartRecordingParams = {
   listen?: RealTimeRoomRecordingListeners
 }
-export const startRecording: RoomMethodDescriptor<RoomSessionRecording> = {
+export const startRecording: RoomMethodDescriptor<any> = {
   value: function ({ listen }: StartRecordingParams) {
-    return new Promise(async (resolve, reject) => {
-      const resolveHandler = (recording: RoomSessionRecording) => {
-        this.off('recording.ended', rejectHandler)
-        resolve(recording)
-      }
+    const promise = new Promise<RoomSessionRecording>(
+      async (resolve, reject) => {
+        const resolveHandler = (recording: RoomSessionRecording) => {
+          this.off('recording.ended', rejectHandler)
+          resolve(recording)
+        }
 
-      const rejectHandler = (recording: RoomSessionRecording) => {
-        this.off('recording.started', resolveHandler)
-        reject(recording)
-      }
+        const rejectHandler = (recording: RoomSessionRecording) => {
+          this.off('recording.started', resolveHandler)
+          reject(recording)
+        }
 
-      this.once('recording.started', resolveHandler)
-      this.once('recording.ended', rejectHandler)
+        this.once('recording.started', resolveHandler)
+        this.once('recording.ended', rejectHandler)
 
-      this._client.runWorker('videoRecordingWorker', {
-        worker: videoRecordingWorker,
-        initialState: {
-          listeners: listen,
-        },
-      })
-
-      this._client
-        .execute<void, any>({
-          method: 'video.recording.start',
-          params: {
-            room_session_id: this.roomSessionId,
+        this._client.runWorker('videoRecordingWorker', {
+          worker: videoRecordingWorker,
+          initialState: {
+            listeners: listen,
           },
         })
-        .then(() => {
-          // TODO: handle then?
-        })
-        .catch((e) => {
-          this.off('recording.started', resolveHandler)
-          this.off('recording.ended', rejectHandler)
-          reject(e)
-        })
-    })
+
+        this._client
+          .execute<void, any>({
+            method: 'video.recording.start',
+            params: {
+              room_session_id: this.roomSessionId,
+            },
+          })
+          .then(() => {
+            // TODO: handle then?
+          })
+          .catch((e) => {
+            this.off('recording.started', resolveHandler)
+            this.off('recording.ended', rejectHandler)
+            reject(e)
+          })
+      }
+    )
+
+    return decorateRecordingPromise.call(this as any, promise)
   },
 }
 
