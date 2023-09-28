@@ -5,6 +5,7 @@ import { Video } from '../Video'
 import { RoomSession, RoomSessionAPI } from '../RoomSession'
 import * as CustomMethods from './methods'
 import { RoomSessionRecording } from '../RoomSessionRecording'
+import { RoomSessionPlayback } from '../RoomSessionPlayback'
 
 describe('Room Custom Methods', () => {
   let video: Video
@@ -191,7 +192,19 @@ describe('Room Custom Methods', () => {
       const url = 'https://example.com/foo.mp4'
 
       const response = instance.play({ url, ...input })
-      instance.emit('playback.started')
+      const mockPlayback = new RoomSessionPlayback({
+        roomSession: instance,
+        payload: {
+          room_session_id: roomSessionId,
+          // @ts-expect-error
+          playback: {
+            id: 'playbackId',
+            state: 'playing',
+            url: 'rtmp://example.com/foo',
+          },
+        },
+      })
+      instance.emit('playback.started', mockPlayback)
       await response.onStarted()
 
       expect(instance._client.execute).toHaveBeenCalledTimes(1)
