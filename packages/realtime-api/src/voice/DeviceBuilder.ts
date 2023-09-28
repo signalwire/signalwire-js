@@ -5,6 +5,8 @@ import type {
   VoiceCallDialPhoneMethodParams,
   VoiceCallSipParams,
   VoiceCallDialSipMethodParams,
+  VoiceCallDialResourceMethodParams,
+  VoiceCallResourceParams,
 } from '@signalwire/core'
 
 /**
@@ -55,5 +57,11 @@ export class DeviceBuilder implements VoiceDeviceBuilder {
 
   static Sip(params: VoiceCallDialSipMethodParams): VoiceCallSipParams {
     return { type: 'sip', ...params }
+  }
+
+  static Resource(
+    params: VoiceCallDialResourceMethodParams
+  ): VoiceCallResourceParams {
+    return { type: 'resource', ...params }
   }
 }
