@@ -26,7 +26,6 @@ import { RoomSession } from '../RoomSession'
 export interface RoomSessionPlaybackOptions {
   roomSession: RoomSession
   payload: VideoPlaybackEventParams
-  listeners?: RealTimeRoomPlaybackListeners
 }
 
 export class RoomSessionPlayback
@@ -47,10 +46,6 @@ export class RoomSessionPlayback
     super({ swClient: options.roomSession._sw })
 
     this._payload = options.payload
-
-    if (options.listeners) {
-      this.listen(options.listeners)
-    }
   }
 
   get id() {
@@ -109,6 +104,13 @@ export class RoomSessionPlayback
   /** @internal */
   setPayload(payload: VideoPlaybackEventParams) {
     this._payload = payload
+  }
+
+  /** @internal */
+  attachListeners(listeners?: RealTimeRoomPlaybackListeners) {
+    if (listeners) {
+      this.listen(listeners)
+    }
   }
 
   async pause() {

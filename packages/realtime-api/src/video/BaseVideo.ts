@@ -71,6 +71,8 @@ export class BaseVideo<
   protected async addEvents() {
     const subscriptions = this.getSubscriptions()
 
+    // TODO: Do not send already sent events
+
     const executeParams: ExecuteParams = {
       method: this.subscribeMethod,
       params: {
@@ -83,6 +85,8 @@ export class BaseVideo<
   }
 
   protected async removeEvents() {
+    // TODO: Remove only if no other listener is listening for these events
+    // Or do not unsubsribe from the server, just switch off the listener
     const executeParams: ExecuteParams = {
       method: this.unsubscribeMethod,
       params: {

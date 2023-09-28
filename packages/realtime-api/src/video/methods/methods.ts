@@ -15,11 +15,6 @@ import type {
   VideoMeta,
 } from '@signalwire/core'
 import {
-  videoPlaybackWorker,
-  videoRecordingWorker,
-  videoStreamWorker,
-} from '../workers'
-import {
   RealTimeRoomPlaybackListeners,
   RealTimeRoomRecordingListeners,
   RealTimeRoomStreamListeners,
@@ -238,24 +233,25 @@ export const startRecording: RoomMethodDescriptor<any> = {
     const promise = new Promise<RoomSessionRecording>(
       async (resolve, reject) => {
         const resolveHandler = (recording: RoomSessionRecording) => {
+          recording.attachListeners(listen)
+          if (listen?.onStarted) {
+            recording.emit('recording.started', recording)
+          }
           this.off('recording.ended', rejectHandler)
           resolve(recording)
         }
 
         const rejectHandler = (recording: RoomSessionRecording) => {
+          recording.attachListeners(listen)
+          if (listen?.onEnded) {
+            recording.emit('recording.ended', recording)
+          }
           this.off('recording.started', resolveHandler)
           reject(recording)
         }
 
         this.once('recording.started', resolveHandler)
         this.once('recording.ended', rejectHandler)
-
-        this._client.runWorker('videoRecordingWorker', {
-          worker: videoRecordingWorker,
-          initialState: {
-            listeners: listen,
-          },
-        })
 
         this._client
           .execute<void, any>({
@@ -349,24 +345,25 @@ export const play: RoomMethodDescriptor<any, PlayParams> = {
         const seek_position = seekPosition || currentTimecode
 
         const resolveHandler = (playback: RoomSessionPlayback) => {
+          playback.attachListeners(listen)
+          if (listen?.onStarted) {
+            playback.emit('playback.started', playback)
+          }
           this.off('playback.ended', rejectHandler)
           resolve(playback)
         }
 
         const rejectHandler = (playback: RoomSessionPlayback) => {
+          playback.attachListeners(listen)
+          if (listen?.onEnded) {
+            playback.emit('playback.ended', playback)
+          }
           this.off('playback.started', resolveHandler)
           reject(playback)
         }
 
         this.once('playback.started', resolveHandler)
         this.once('playback.ended', rejectHandler)
-
-        this._client.runWorker('videoPlaybackWorker', {
-          worker: videoPlaybackWorker,
-          initialState: {
-            listeners: listen,
-          },
-        })
 
         this._client
           .execute<void, any>({
@@ -491,24 +488,25 @@ export const startStream: RoomMethodDescriptor<any, StartStreamParams> = {
   value: function ({ listen, ...params }) {
     const promise = new Promise<RoomSessionStream>(async (resolve, reject) => {
       const resolveHandler = (stream: RoomSessionStream) => {
+        stream.attachListeners(listen)
+        if (listen?.onStarted) {
+          stream.emit('stream.started', stream)
+        }
         this.off('stream.ended', rejectHandler)
         resolve(stream)
       }
 
       const rejectHandler = (stream: RoomSessionStream) => {
+        stream.attachListeners(listen)
+        if (listen?.onEnded) {
+          stream.emit('stream.ended', stream)
+        }
         this.off('stream.started', resolveHandler)
         reject(stream)
       }
 
       this.once('stream.started', resolveHandler)
       this.once('stream.ended', rejectHandler)
-
-      this._client.runWorker('videoStreamWorker', {
-        worker: videoStreamWorker,
-        initialState: {
-          listeners: listen,
-        },
-      })
 
       this._client
         .execute<StartStreamParams, any>({

@@ -2,82 +2,52 @@ import {
   getLogger,
   SagaIterator,
   stripNamespacePrefix,
-  SDKActions,
-  VideoStreamAction,
-  SDKWorker,
-  sagaEffects,
   VideoStreamEventNames,
+  VideoStreamAction,
 } from '@signalwire/core'
-import type { Client } from '../../client/index'
 import { RoomSession } from '../RoomSession'
-import { RealTimeRoomStreamListeners } from '../../types'
+import { VideoCallWorkerParams } from './videoCallingWorker'
 import { RoomSessionStream } from '../RoomSessionStream'
 
-interface VideoStreamWorkerInitialState {
-  listeners?: RealTimeRoomStreamListeners
-}
-
-export const videoStreamWorker: SDKWorker<Client> = function* (
-  options
+export const videoStreamWorker = function* (
+  options: VideoCallWorkerParams<VideoStreamAction>
 ): SagaIterator {
   getLogger().trace('videoStreamWorker started')
   const {
-    channels: { swEventChannel },
+    action: { type, payload },
     instanceMap: { get, set, remove },
-    initialState,
   } = options
 
-  const { listeners } = initialState as VideoStreamWorkerInitialState
-
-  function* worker(action: VideoStreamAction) {
-    const { type, payload } = action
-
-    const roomSessionInstance = get<RoomSession>(payload.room_session_id)
-    if (!roomSessionInstance) {
-      throw new Error('Missing room session instance for stream')
-    }
-
-    let streamInstance = get<RoomSessionStream>(payload.stream.id)
-    if (!streamInstance) {
-      streamInstance = new RoomSessionStream({
-        payload,
-        roomSession: roomSessionInstance,
-        listeners,
-      })
-    } else {
-      streamInstance.setPayload(payload)
-    }
-    set<RoomSessionStream>(payload.stream.id, streamInstance)
-
-    const event = stripNamespacePrefix(type) as VideoStreamEventNames
-
-    switch (type) {
-      case 'video.stream.started':
-        streamInstance.emit(event, streamInstance)
-        roomSessionInstance.emit(event, streamInstance)
-        break
-      case 'video.stream.ended':
-        streamInstance.emit(event, streamInstance)
-        roomSessionInstance.emit(event, streamInstance)
-        remove<RoomSessionStream>(payload.stream.id)
-        break
-      default:
-        break
-    }
+  const roomSessionInstance = get<RoomSession>(payload.room_session_id)
+  if (!roomSessionInstance) {
+    throw new Error('Missing room session instance for stream')
   }
 
-  const isStreamEvent = (action: SDKActions) =>
-    action.type.startsWith('video.stream.')
+  let streamInstance = get<RoomSessionStream>(payload.stream.id)
+  if (!streamInstance) {
+    streamInstance = new RoomSessionStream({
+      roomSession: roomSessionInstance,
+      payload,
+    })
+  } else {
+    streamInstance.setPayload(payload)
+  }
+  set<RoomSessionStream>(payload.stream.id, streamInstance)
 
-  while (true) {
-    const action: VideoStreamAction = yield sagaEffects.take(
-      swEventChannel,
-      isStreamEvent
-    )
+  const event = stripNamespacePrefix(type) as VideoStreamEventNames
 
-    const shouldStop = yield sagaEffects.fork(worker, action)
-
-    if (shouldStop.result()) break
+  switch (type) {
+    case 'video.stream.started':
+      roomSessionInstance.emit(event, streamInstance)
+      streamInstance.emit(event, streamInstance)
+      break
+    case 'video.stream.ended':
+      roomSessionInstance.emit(event, streamInstance)
+      streamInstance.emit(event, streamInstance)
+      remove<RoomSessionStream>(payload.stream.id)
+      break
+    default:
+      break
   }
 
   getLogger().trace('videoStreamWorker ended')

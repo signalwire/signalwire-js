@@ -1,12 +1,11 @@
 import { test, expect } from '@playwright/test'
 import { uuid } from '@signalwire/core'
-import { Video } from '@signalwire/realtime-api'
+import { SignalWire } from '@signalwire/realtime-api'
 import { createNewTabRoomSession } from './videoUtils'
 
 test.describe('Video', () => {
   test('should join the room and listen for events', async ({ browser }) => {
-    const videoClient = new Video.Client({
-      // @ts-expect-error
+    const client = await SignalWire({
       host: process.env.RELAY_HOST,
       project: process.env.RELAY_PROJECT as string,
       token: process.env.RELAY_TOKEN as string,
@@ -18,19 +17,20 @@ test.describe('Video', () => {
 
     const roomSessionCreated = new Map<string, any>()
     const findRoomSessionsByPrefix = async () => {
-      const { roomSessions } = await videoClient.getRoomSessions()
+      const { roomSessions } = await client.video.getRoomSessions()
       return roomSessions.filter((r) => r.name.startsWith(prefix))
     }
 
-    videoClient.on('room.started', async (roomSession) => {
-      console.log('Room started', roomSession.id)
-      if (roomSession.name.startsWith(prefix)) {
-        roomSessionCreated.set(roomSession.id, roomSession)
-      }
-    })
-
-    videoClient.on('room.ended', async (roomSession) => {
-      console.log('Room ended', roomSession.id)
+    await client.video.listen({
+      onRoomStarted: (roomSession) => {
+        console.log('Room started', roomSession.id)
+        if (roomSession.name.startsWith(prefix)) {
+          roomSessionCreated.set(roomSession.id, roomSession)
+        }
+      },
+      onRoomEnded: (roomSession) => {
+        console.log('Room ended', roomSession.id)
+      },
     })
 
     const roomSessionsAtStart = await findRoomSessionsByPrefix()
@@ -72,24 +72,26 @@ test.describe('Video', () => {
     for (let index = 0; index < roomSessionsRunning.length; index++) {
       const rs = roomSessionsRunning[index]
 
-      await new Promise((resolve) => {
-        rs.on('recording.ended', noop)
-        rs.on('playback.ended', noop)
-        rs.on('room.updated', noop)
-        rs.on('room.subscribed', resolve)
+      await new Promise(async (resolve) => {
+        await rs.listen({
+          onRecordingEnded: noop,
+          onPlaybackEnded: noop,
+          onRoomUpdated: noop,
+          onRoomSubscribed: resolve,
+        })
       })
 
       await new Promise<void>(async (resolve) => {
-        rs.on('recording.ended', () => {
-          resolve()
+        await rs.listen({
+          onRecordingEnded: () => resolve(),
         })
         const { recordings } = await rs.getRecordings()
         await Promise.all(recordings.map((r) => r.stop()))
       })
 
       await new Promise<void>(async (resolve) => {
-        rs.on('playback.ended', () => {
-          resolve()
+        await rs.listen({
+          onPlaybackEnded: () => resolve(),
         })
         const { playbacks } = await rs.getPlaybacks()
         await Promise.all(playbacks.map((p) => p.stop()))

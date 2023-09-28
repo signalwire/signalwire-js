@@ -19,7 +19,6 @@ import { ListenSubscriber } from '../../ListenSubscriber'
 export interface RoomSessionStreamOptions {
   roomSession: RoomSession
   payload: VideoStreamEventParams
-  listeners?: RealTimeRoomStreamListeners
 }
 
 export class RoomSessionStream
@@ -39,10 +38,6 @@ export class RoomSessionStream
     super({ swClient: options.roomSession._sw })
 
     this._payload = options.payload
-
-    if (options.listeners) {
-      this.listen(options.listeners)
-    }
   }
 
   get id() {
@@ -91,6 +86,13 @@ export class RoomSessionStream
   /** @internal */
   setPayload(payload: VideoStreamEventParams) {
     this._payload = payload
+  }
+
+  /** @internal */
+  attachListeners(listeners?: RealTimeRoomStreamListeners) {
+    if (listeners) {
+      this.listen(listeners)
+    }
   }
 
   async stop() {

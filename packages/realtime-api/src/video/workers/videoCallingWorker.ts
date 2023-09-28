@@ -14,7 +14,10 @@ import { videoRoomWorker } from './videoRoomWorker'
 import { videoMemberWorker } from './videoMemberWorker'
 import { videoLayoutWorker } from './videoLayoutWorker'
 import { videoRoomAudienceWorker } from './videoRoomAudienceWorker'
+import { videoRecordingWorker } from './videoRecordingWorker'
+import { videoPlaybackWorker } from './videoPlaybackWorker'
 import { Video } from '../Video'
+import { videoStreamWorker } from './videoStreamWorker'
 
 export type VideoCallWorkerParams<T> = SDKWorkerParams<Client> & {
   action: T
@@ -77,16 +80,28 @@ export const videoCallingWorker: SDKWorker<Client> = function* (
       case 'video.playback.started':
       case 'video.playback.updated':
       case 'video.playback.ended':
-        // Handle by a separate watcher
+        yield sagaEffects.fork(videoPlaybackWorker, {
+          action,
+          video,
+          ...options,
+        })
         break
       case 'video.recording.started':
       case 'video.recording.updated':
       case 'video.recording.ended':
-        // Handle by a separate watcher
+        yield sagaEffects.fork(videoRecordingWorker, {
+          action,
+          video,
+          ...options,
+        })
         break
       case 'video.stream.started':
       case 'video.stream.ended':
-        // Handle by a separate watcher
+        yield sagaEffects.fork(videoStreamWorker, {
+          action,
+          video,
+          ...options,
+        })
         break
       default:
         getLogger().warn(`Unknown video event: "${type}"`)
