@@ -55,7 +55,6 @@ export class RoomSession extends BaseVideo<
   RealTimeRoomApiEvents
 > {
   private _payload: RoomSessionPayload
-  protected _subscribeParams = { get_initial_state: true }
   protected _eventMap: RealtimeRoomListenersEventsMapping = {
     onRoomSubscribed: 'room.subscribed',
     onRoomStarted: 'room.started',

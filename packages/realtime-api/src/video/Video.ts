@@ -26,7 +26,6 @@ export class Video extends BaseVideo<
   RealTimeVideoApiEvents
 > {
   protected _eventChannel = 'video.rooms'
-  protected _subscribeParams = { get_initial_state: true }
   protected _eventMap: RealTimeVideoListenersEventsMapping = {
     onRoomStarted: 'room.started',
     onRoomEnded: 'room.ended',

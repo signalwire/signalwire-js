@@ -4,7 +4,6 @@ import {
   JSONRPCSubscribeMethod,
   validateEventsToSubscribe,
   uuid,
-  JSONRPCUnSubscribeMethod,
 } from '@signalwire/core'
 import { ListenSubscriber } from '../ListenSubscriber'
 import { SWClient } from '../SWClient'
@@ -14,8 +13,6 @@ export class BaseVideo<
   EventTypes extends EventEmitter.ValidEventTypes
 > extends ListenSubscriber<T, EventTypes> {
   protected subscribeMethod: JSONRPCSubscribeMethod = 'signalwire.subscribe'
-  protected unsubscribeMethod: JSONRPCUnSubscribeMethod =
-    'signalwire.unsubscribe'
   protected _subscribeParams?: Record<string, any> = {}
   protected _eventChannel?: string = ''
 
@@ -49,9 +46,6 @@ export class BaseVideo<
           // Remove listeners from the listener map
           this.removeFromListenerMap(_uuid)
 
-          // Unsubscribe from video events
-          await this.removeEvents()
-
           resolve()
         } catch (error) {
           reject(error)
@@ -76,21 +70,9 @@ export class BaseVideo<
     const executeParams: ExecuteParams = {
       method: this.subscribeMethod,
       params: {
-        ...this._subscribeParams,
+        get_initial_state: true,
         event_channel: this.eventChannel,
         events: subscriptions,
-      },
-    }
-    return this._client.execute<unknown, void>(executeParams)
-  }
-
-  protected async removeEvents() {
-    // TODO: Remove only if no other listener is listening for these events
-    // Or do not unsubsribe from the server, just switch off the listener
-    const executeParams: ExecuteParams = {
-      method: this.unsubscribeMethod,
-      params: {
-        event_channel: this.eventChannel,
       },
     }
     return this._client.execute<unknown, void>(executeParams)
