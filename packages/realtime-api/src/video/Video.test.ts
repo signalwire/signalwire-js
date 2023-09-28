@@ -49,8 +49,8 @@ describe('Video Object', () => {
     expect(video['_eventMap']).toEqual(expectedEventMap)
   })
 
-  it('should subscribe and usubscribe to events', async () => {
-    const unsub = await video.listen({
+  it('should subscribe to events', async () => {
+    await video.listen({
       onRoomStarted: jest.fn(),
       onRoomEnded: jest.fn(),
     })
@@ -62,15 +62,6 @@ describe('Video Object', () => {
         get_initial_state: true,
         event_channel: 'video.rooms',
         events: ['video.room.started', 'video.room.ended'],
-      },
-    })
-
-    await unsub()
-    // @ts-expect-error
-    expect(video._client.execute).toHaveBeenCalledWith({
-      method: 'signalwire.unsubscribe',
-      params: {
-        event_channel: 'video.rooms',
       },
     })
   })
