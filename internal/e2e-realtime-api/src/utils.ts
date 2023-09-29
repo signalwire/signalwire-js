@@ -86,6 +86,10 @@ export const createTestRunner = ({
           })
         }
         const exitCode = await testHandler(params)
+        if (params.domainApp) {
+          console.log('Delete domain app..')
+          await deleteDomainApp({ id: params.domainApp.id })
+        }
         done(exitCode)
       } catch (error) {
         clearTimeout(timer)
@@ -213,6 +217,36 @@ const createDomainApp = (params: CreateDomainAppParams): Promise<DomainApp> => {
     req.on('error', reject)
 
     req.write(data)
+    req.end()
+  })
+}
+
+type DeleteDomainAppParams = {
+  id: string
+}
+const deleteDomainApp = ({ id }: DeleteDomainAppParams): Promise<void> => {
+  return new Promise<void>((resolve, reject) => {
+    const options = {
+      host: process.env.API_HOST,
+      port: 443,
+      method: 'DELETE',
+      path: `/api/relay/rest/domain_applications/${id}`,
+      headers: {
+        Authorization: getAuthorization(),
+        'Content-Type': 'application/json',
+      },
+    }
+    const req = request(options, (response) => {
+      let body = ''
+      response.on('data', (chunk) => {
+        body += chunk
+      })
+
+      response.on('end', () => {
+        resolve()
+      })
+    })
+    req.on('error', reject)
     req.end()
   })
 }
