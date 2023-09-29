@@ -1,0 +1,20 @@
+services:
+  e2e-js:
+    build:
+      context: .
+    ipc: host # Using --ipc=host is recommended when using Chrome. Chrome can run out of memory without this flag.
+    working_dir: /usr/src/app/internal/e2e-js
+    command: npm run -w=@sw-internal/e2e-js dev -- roomSession.spec.ts
+    volumes:
+      - ./:/usr/src/app
+
+  e2e-realtime-api:
+    build:
+      context: .
+    ipc: host # Using --ipc=host is recommended when using Chrome. Chrome can run out of memory without this flag.
+    working_dir: /usr/src/app/internal/e2e-realtime-api
+    command: npm run -w=@sw-internal/e2e-realtime-api dev
+    env_file:
+      - internal/e2e-realtime-api/.env
+    volumes:
+      - ./:/usr/src/app
