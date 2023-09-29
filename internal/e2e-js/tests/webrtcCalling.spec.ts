@@ -22,11 +22,14 @@ test.describe('V2Calling', () => {
     expect(btnConnect).not.toBe(null)
 
     expect(process.env.RELAY_PROJECT).not.toBe(null)
-    console.log(inpProject)
 
-    inpProject.fill('4b7ae78a-d02e-4889-a63b-08b156d5916e')
-    inpToken.fill(jwt)
+    await inpProject.fill(process.env.RELAY_PROJECT)
+    await inpToken.fill(jwt)
 
-    await page.screenshot({ path: `screenshot_1.png` })    
+    //await page.screenshot({ path: `screenshot_1.png` })
+    await page.evaluate(() => {
+      client = window.__client
+      
+    })
   })
 })

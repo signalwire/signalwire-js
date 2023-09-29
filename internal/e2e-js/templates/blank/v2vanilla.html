@@ -176,6 +176,7 @@
           project: document.getElementById('project').value,
           token: document.getElementById('token').value
         });
+        window.__client = client;
 
         // client.autoRecoverCalls = false;
         client.remoteElement = 'remoteVideo';
