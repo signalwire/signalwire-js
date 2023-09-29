@@ -5,10 +5,10 @@ import {
   EventEmitter,
 } from '@signalwire/core'
 import {
-  RealTimeRoomApiEvents,
-  RealTimeVideoApiEvents,
-  RealTimeVideoApiEventsHandlerMapping,
-  RealTimeRoomApiEventsHandlerMapping,
+  RealTimeRoomEvents,
+  RealTimeVideoEvents,
+  RealTimeVideoEventsHandlerMapping,
+  RealTimeRoomEventsHandlerMapping,
   RealTimeVideoListenersEventsMapping,
   RealTimeVideoListeners,
 } from '../types/video'
@@ -23,7 +23,7 @@ import { BaseVideo } from './BaseVideo'
 
 export class Video extends BaseVideo<
   RealTimeVideoListeners,
-  RealTimeVideoApiEvents
+  RealTimeVideoEvents
 > {
   protected _eventChannel = 'video.rooms'
   protected _eventMap: RealTimeVideoListenersEventsMapping = {
@@ -45,7 +45,7 @@ export class Video extends BaseVideo<
   protected override getSubscriptions() {
     const eventNamesWithPrefix = this.eventNames().map(
       (event) => `video.${String(event)}`
-    ) as EventEmitter.EventNames<RealTimeVideoApiEvents>[]
+    ) as EventEmitter.EventNames<RealTimeVideoEvents>[]
     return validateEventsToSubscribe(eventNamesWithPrefix)
   }
 
@@ -127,10 +127,10 @@ export class Video extends BaseVideo<
 }
 
 export type {
-  RealTimeRoomApiEvents,
-  RealTimeRoomApiEventsHandlerMapping,
-  RealTimeVideoApiEvents,
-  RealTimeVideoApiEventsHandlerMapping,
+  RealTimeRoomEvents,
+  RealTimeRoomEventsHandlerMapping,
+  RealTimeVideoEvents,
+  RealTimeVideoEventsHandlerMapping,
   RoomSession,
   RoomSessionMember,
   RoomSessionMemberUpdated,

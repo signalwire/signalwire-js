@@ -56,7 +56,6 @@ import type {
   VideoPlaybackEventNames,
   VideoRecordingEventNames,
   VideoStreamEventNames,
-  InternalVideoMemberEntity,
   MemberCommandParams,
   MemberCommandWithVolumeParams,
   MemberCommandWithValueParams,
@@ -96,15 +95,6 @@ export interface VideoRoomSessionContract {
   name: string
   /** Whether recording is active */
   recording: boolean
-  /**
-   * List of active recordings in the room
-   * @deprecated Use {@link getRecordings}
-   **/
-  recordings?: any[]
-  /**
-   * List of active playbacks in the room
-   **/
-  playbacks?: any[]
   /** Whether muted videos are shown in the room layout. See {@link setHideVideoMuted} */
   hideVideoMuted: boolean
   /** URL to the room preview. */
@@ -115,17 +105,10 @@ export interface VideoRoomSessionContract {
   locked: boolean
   /** Metadata associated to this room session. */
   meta?: Record<string, unknown>
-  /**
-   * List of members that are part of this room session
-   * @deprecated Use {@link getMembers}
-   **/
-  members?: InternalVideoMemberEntity[]
   /** Fields that have changed in this room session */
   updated?: Array<Exclude<keyof VideoRoomSessionContract, 'updated'>>
   /** Whether the room is streaming */
   streaming: boolean
-  /** List of active streams in the room session. */
-  streams?: RoomSessionStream[]
 
   /**
    * Puts the microphone on mute. The other participants will not hear audio
@@ -773,13 +756,13 @@ export interface VideoRoomSessionContract {
 /**
  * RealTime Video API
  */
-export type RealTimeVideoApiEventsHandlerMapping = Record<
+export type RealTimeVideoEventsHandlerMapping = Record<
   GlobalVideoEvents,
   (room: RoomSession) => void
 >
 
-export type RealTimeVideoApiEvents = {
-  [k in keyof RealTimeVideoApiEventsHandlerMapping]: RealTimeVideoApiEventsHandlerMapping[k]
+export type RealTimeVideoEvents = {
+  [k in keyof RealTimeVideoEventsHandlerMapping]: RealTimeVideoEventsHandlerMapping[k]
 }
 
 export interface RealTimeVideoListeners {
@@ -796,7 +779,7 @@ export type RealTimeVideoListenersEventsMapping = {
  * RealTime Video Room API
  */
 // TODO: replace `any` with proper types.
-export type RealTimeRoomApiEventsHandlerMapping = Record<
+export type RealTimeRoomEventsHandlerMapping = Record<
   VideoLayoutEventNames,
   (layout: any) => void
 > &
@@ -825,8 +808,8 @@ export type RealTimeRoomApiEventsHandlerMapping = Record<
   Record<StreamStarted, (stream: RoomSessionStream) => void> &
   Record<StreamEnded, (stream: RoomSessionStream) => void>
 
-export type RealTimeRoomApiEvents = {
-  [k in keyof RealTimeRoomApiEventsHandlerMapping]: RealTimeRoomApiEventsHandlerMapping[k]
+export type RealTimeRoomEvents = {
+  [k in keyof RealTimeRoomEventsHandlerMapping]: RealTimeRoomEventsHandlerMapping[k]
 }
 
 export interface RealTimeRoomListeners {

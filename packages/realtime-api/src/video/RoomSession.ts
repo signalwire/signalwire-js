@@ -8,7 +8,7 @@ import {
   VideoMemberEntity,
 } from '@signalwire/core'
 import {
-  RealTimeRoomApiEvents,
+  RealTimeRoomEvents,
   RealTimeRoomListeners,
   RealtimeRoomListenersEventsMapping,
   VideoRoomSessionContract,
@@ -29,7 +29,7 @@ export interface RoomSessionFullState extends Omit<RoomSession, 'members'> {
 
 export interface RoomSession
   extends VideoRoomSessionContract,
-    BaseVideo<RealTimeRoomListeners, RealTimeRoomApiEvents> {
+    BaseVideo<RealTimeRoomListeners, RealTimeRoomEvents> {
   /**
    * Returns a list of members currently in the room.
    *
@@ -52,7 +52,7 @@ export interface RoomSessionOptions {
 
 export class RoomSession extends BaseVideo<
   RealTimeRoomListeners,
-  RealTimeRoomApiEvents
+  RealTimeRoomEvents
 > {
   private _payload: RoomSessionPayload
   protected _eventMap: RealtimeRoomListenersEventsMapping = {
@@ -144,11 +144,17 @@ export class RoomSession extends BaseVideo<
     return this._payload.room_session.event_channel
   }
 
+  get updated() {
+    // TODO: Fix type issue
+    return this._payload.room_session
+      .updated as VideoRoomSessionContract['updated']
+  }
+
   /** @internal */
   protected override getSubscriptions() {
     const eventNamesWithPrefix = this.eventNames().map(
       (event) => `video.${String(event)}`
-    ) as EventEmitter.EventNames<RealTimeRoomApiEvents>[]
+    ) as EventEmitter.EventNames<RealTimeRoomEvents>[]
     return validateEventsToSubscribe(eventNamesWithPrefix)
   }
 
