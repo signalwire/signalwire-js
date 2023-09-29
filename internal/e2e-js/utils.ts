@@ -80,7 +80,7 @@ export const createTestRoomSession = async (
         rootElement: document.getElementById('rootElement'),
         logLevel: options.CI ? 'info' : 'debug',
         debug: {
-          logWsTraffic: Boolean(options.CI),
+          logWsTraffic: true, //Boolean(options.CI),
         },
         ...options.roomSessionOptions,
       })
@@ -211,6 +211,27 @@ export const createTestVRTToken = async (body: CreateTestVRTOptions) => {
   )
   const data = await response.json()
   return data.token
+}
+
+interface CreateTestJWTOptions {
+  resource?: string,
+  refresh_token?: string
+}
+
+export const createTestJWTToken = async (body: CreateTestJWTOptions) => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/relay/rest/jwt`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify(body),
+    }
+  )
+  const data = await response.json()
+  return data.jwt_token
 }
 
 interface CreateTestCRTOptions {

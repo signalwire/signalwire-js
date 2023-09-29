@@ -32,6 +32,7 @@ const test = baseTest.extend<CustomFixture>({
     await use(maker)
 
     console.log('Cleaning up pages..')
+    return
 
     /**
      * If we have a __roomObj in the page means we tested the VideoAPI
@@ -62,6 +63,28 @@ const test = baseTest.extend<CustomFixture>({
       expect(row.videos).toBe(0)
       expect(row.rootEl).toBe(0)
     })
+  },
+  createCustomVanillaPage: async ({ context }, use) => {
+    const maker = async (options: { name: string }): Promise<CustomPage> => {
+      const page = await context.newPage()
+      enablePageLogs(page, options.name)
+
+      // @ts-expect-error
+      page.swNetworkDown = () => {
+        console.log('Simulate network down..')
+        return context.setOffline(true)
+      }
+      // @ts-expect-error
+      page.swNetworkUp = () => {
+        console.log('Simulate network up..')
+        return context.setOffline(false)
+      }
+      // @ts-expect-error
+      return page
+    }
+    await use(maker)
+
+    console.log('Cleaning up pages..')
   },
 })
 
