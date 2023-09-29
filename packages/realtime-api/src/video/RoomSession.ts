@@ -132,6 +132,10 @@ export class RoomSession extends BaseVideo<
     return this._payload.room_session.recording
   }
 
+  get streaming() {
+    return this._payload.room_session.streaming
+  }
+
   get locked() {
     return this._payload.room_session.locked
   }
