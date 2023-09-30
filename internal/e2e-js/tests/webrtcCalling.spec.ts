@@ -69,10 +69,10 @@ test.describe('V2Calling', () => {
 
     // Click the connect button, which calls the connect function in the browser
     await page.click('#btnConnect')
-    expect(await connectStatus.innerText()).toBe('Connecting...')
+    await expect(connectStatus).toHaveText('Connecting...')
 
     // How do I wait for connectStatus to contain "Connected" here?
-    //expect(await connectStatus.innerText()).toBe('Connected')
+    await expect(connectStatus).toHaveText('Connected')
 
     // Evaluate in the browser to gain access to the client, this can only happen after connect is called on the browser so the client exists
     await page.evaluate(async () => {
