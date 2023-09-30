@@ -4,7 +4,7 @@ services:
       context: .
     ipc: host # Using --ipc=host is recommended when using Chrome. Chrome can run out of memory without this flag.
     working_dir: /usr/src/app/internal/e2e-js
-    command: npm run -w=@sw-internal/e2e-js dev # -- roomSession.spec.ts
+    command: npm run -w=@sw-internal/e2e-js dev -- webrtcCalling.spec.ts
     volumes:
       - ./:/usr/src/app
 
