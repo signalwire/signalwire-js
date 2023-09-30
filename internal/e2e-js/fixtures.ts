@@ -7,7 +7,8 @@ type CustomPage = Page & {
   swNetworkUp: () => Promise<void>
 }
 type CustomFixture = {
-  createCustomPage(options: { name: string }): Promise<CustomPage>
+  createCustomPage(options: { name: string }): Promise<CustomPage>,
+  createCustomVanillaPage(options: { name: string }): Promise<CustomPage>
 }
 
 const test = baseTest.extend<CustomFixture>({
@@ -32,7 +33,6 @@ const test = baseTest.extend<CustomFixture>({
     await use(maker)
 
     console.log('Cleaning up pages..')
-    return
 
     /**
      * If we have a __roomObj in the page means we tested the VideoAPI
