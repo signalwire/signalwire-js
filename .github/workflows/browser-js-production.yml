@@ -34,3 +34,9 @@ jobs:
         run: npm run -w=@sw-internal/e2e-js dev -- --project ${{ matrix.project }}
         env:
           SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_JS_SW_TEST_CONFIG }}
+      - uses: dorny/test-reporter@v1
+        with:
+          artifact: test-results
+          name: e2e Tests
+          path: '*.xml'
+          reporter: junit
