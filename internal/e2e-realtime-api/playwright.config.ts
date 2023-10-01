@@ -14,6 +14,7 @@ const useDesktopChrome = {
 
 const config = defineConfig({
   testDir: './src/playwright',
+  reporter: [['junit', { outputFile: 'results.xml' }]],
   globalSetup: require.resolve('./global-setup'),
   testMatch: undefined,
   testIgnore: undefined,
