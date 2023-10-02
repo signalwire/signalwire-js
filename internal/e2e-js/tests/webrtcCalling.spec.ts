@@ -15,6 +15,20 @@ test.describe('V2Calling', () => {
     const pageCallee = await createCustomVanillaPage({ name: '[callee]' })
     await pageCallee.goto(SERVER_URL + '/v2vanilla.html')
 
+    const relayHost = process.env.RELAY_HOST ?? ''
+    const expectInjectRelayHost = async (page: Page, host: string) => {
+      await page.evaluate(async (params) => {
+        // @ts-expect-error
+        window.__host = params.host
+      },
+      {
+        host: host
+      })
+    }
+
+    await expectInjectRelayHost(pageCaller, relayHost)
+    await expectInjectRelayHost(pageCallee, relayHost)
+
     const envRelayProject = process.env.RELAY_PROJECT ?? ''
     expect(envRelayProject).not.toBe(null)
 
