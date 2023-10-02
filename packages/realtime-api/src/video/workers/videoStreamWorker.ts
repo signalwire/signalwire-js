@@ -1,22 +1,19 @@
 import {
   getLogger,
   SagaIterator,
-  MapToPubSubShape,
-  Rooms,
-  RoomSessionStream,
-  VideoStreamEvent,
   stripNamespacePrefix,
   VideoStreamEventNames,
+  VideoStreamAction,
 } from '@signalwire/core'
 import { RoomSession } from '../RoomSession'
 import { VideoCallWorkerParams } from './videoCallingWorker'
+import { RoomSessionStream } from '../RoomSessionStream'
 
 export const videoStreamWorker = function* (
-  options: VideoCallWorkerParams<MapToPubSubShape<VideoStreamEvent>>
+  options: VideoCallWorkerParams<VideoStreamAction>
 ): SagaIterator {
   getLogger().trace('videoStreamWorker started')
   const {
-    instance: client,
     action: { type, payload },
     instanceMap: { get, set, remove },
   } = options
@@ -28,9 +25,8 @@ export const videoStreamWorker = function* (
 
   let streamInstance = get<RoomSessionStream>(payload.stream.id)
   if (!streamInstance) {
-    streamInstance = Rooms.createRoomSessionStreamObject({
-      // @ts-expect-error
-      store: client.store,
+    streamInstance = new RoomSessionStream({
+      roomSession: roomSessionInstance,
       payload,
     })
   } else {
@@ -43,9 +39,11 @@ export const videoStreamWorker = function* (
   switch (type) {
     case 'video.stream.started':
       roomSessionInstance.emit(event, streamInstance)
+      streamInstance.emit(event, streamInstance)
       break
     case 'video.stream.ended':
       roomSessionInstance.emit(event, streamInstance)
+      streamInstance.emit(event, streamInstance)
       remove<RoomSessionStream>(payload.stream.id)
       break
     default:

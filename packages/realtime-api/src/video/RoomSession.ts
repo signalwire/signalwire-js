@@ -1,30 +1,35 @@
 import {
-  BaseComponentOptionsWithPayload,
-  connect,
   extendComponent,
-  Rooms,
-  VideoRoomSessionContract,
   VideoRoomSessionMethods,
-  ConsumerContract,
-  EntityUpdated,
-  BaseConsumer,
   EventEmitter,
-  debounce,
   VideoRoomEventParams,
   Optional,
   validateEventsToSubscribe,
+  VideoMemberEntity,
 } from '@signalwire/core'
-import { RealTimeRoomApiEvents } from '../types'
+import {
+  RealTimeRoomEvents,
+  RealTimeRoomListeners,
+  RealtimeRoomListenersEventsMapping,
+  VideoRoomSessionContract,
+} from '../types'
 import {
   RoomSessionMember,
+  RoomSessionMemberAPI,
   RoomSessionMemberEventParams,
-  createRoomSessionMemberObject,
 } from './RoomSessionMember'
+import { RoomMethods } from './methods'
+import { BaseVideo } from './BaseVideo'
+import { Video } from './Video'
+
+export interface RoomSessionFullState extends Omit<RoomSession, 'members'> {
+  /** List of members that are part of this room session */
+  members?: RoomSessionMember[]
+}
 
 export interface RoomSession
   extends VideoRoomSessionContract,
-    ConsumerContract<RealTimeRoomApiEvents, RoomSessionFullState> {
-  setPayload(payload: Optional<VideoRoomEventParams, 'room'>): void
+    BaseVideo<RealTimeRoomListeners, RealTimeRoomEvents> {
   /**
    * Returns a list of members currently in the room.
    *
@@ -34,35 +39,57 @@ export interface RoomSession
    * ```
    */
   getMembers(): Promise<{ members: RoomSessionMember[] }>
-}
-
-export type RoomSessionUpdated = EntityUpdated<RoomSession>
-export interface RoomSessionFullState extends Omit<RoomSession, 'members'> {
-  /** List of members that are part of this room session */
-  members?: RoomSessionMember[]
+  /** @internal */
+  setPayload(payload: Optional<VideoRoomEventParams, 'room'>): void
 }
 
 type RoomSessionPayload = Optional<VideoRoomEventParams, 'room'>
-export interface RoomSessionConsumerOptions
-  extends BaseComponentOptionsWithPayload<RoomSessionPayload> {}
 
-export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
+export interface RoomSessionOptions {
+  video: Video
+  payload: RoomSessionPayload
+}
+
+export class RoomSession extends BaseVideo<
+  RealTimeRoomListeners,
+  RealTimeRoomEvents
+> {
   private _payload: RoomSessionPayload
-
-  /** @internal */
-  protected subscribeParams = {
-    get_initial_state: true,
+  protected _eventMap: RealtimeRoomListenersEventsMapping = {
+    onRoomSubscribed: 'room.subscribed',
+    onRoomStarted: 'room.started',
+    onRoomUpdated: 'room.updated',
+    onRoomEnded: 'room.ended',
+    onRoomAudienceCount: 'room.audienceCount',
+    onLayoutChanged: 'layout.changed',
+    onMemberJoined: 'member.joined',
+    onMemberUpdated: 'member.updated',
+    onMemberLeft: 'member.left',
+    onMemberListUpdated: 'memberList.updated',
+    onMemberTalking: 'member.talking',
+    onMemberTalkingStarted: 'member.talking.started',
+    onMemberTalkingEnded: 'member.talking.ended',
+    onMemberDeaf: 'member.updated.deaf',
+    onMemberVisible: 'member.updated.visible',
+    onMemberAudioMuted: 'member.updated.audioMuted',
+    onMemberVideoMuted: 'member.updated.videoMuted',
+    onMemberInputVolume: 'member.updated.inputVolume',
+    onMemberOutputVolume: 'member.updated.outputVolume',
+    onMemberInputSensitivity: 'member.updated.inputSensitivity',
+    onPlaybackStarted: 'playback.started',
+    onPlaybackUpdated: 'playback.updated',
+    onPlaybackEnded: 'playback.ended',
+    onRecordingStarted: 'recording.started',
+    onRecordingUpdated: 'recording.updated',
+    onRecordingEnded: 'recording.ended',
+    onStreamStarted: 'stream.started',
+    onStreamEnded: 'stream.ended',
   }
 
-  /** @internal */
-  private debouncedSubscribe: ReturnType<typeof debounce>
-
-  constructor(options: RoomSessionConsumerOptions) {
-    super(options)
+  constructor(options: RoomSessionOptions) {
+    super(options.video._sw)
 
     this._payload = options.payload
-
-    this.debouncedSubscribe = debounce(this.subscribe, 100)
   }
 
   get id() {
@@ -105,6 +132,10 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     return this._payload.room_session.recording
   }
 
+  get streaming() {
+    return this._payload.room_session.streaming
+  }
+
   get locked() {
     return this._payload.room_session.locked
   }
@@ -113,88 +144,31 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     return this._payload.room_session.event_channel
   }
 
+  get updated() {
+    // TODO: Fix type issue
+    return this._payload.room_session
+      .updated as VideoRoomSessionContract['updated']
+  }
+
   /** @internal */
   protected override getSubscriptions() {
     const eventNamesWithPrefix = this.eventNames().map(
       (event) => `video.${String(event)}`
-    ) as EventEmitter.EventNames<RealTimeRoomApiEvents>[]
+    ) as EventEmitter.EventNames<RealTimeRoomEvents>[]
     return validateEventsToSubscribe(eventNamesWithPrefix)
   }
 
   /** @internal */
-  protected _internal_on(
-    event: keyof RealTimeRoomApiEvents,
-    fn: EventEmitter.EventListener<RealTimeRoomApiEvents, any>
-  ) {
-    return super.on(event, fn)
-  }
-
-  on<T extends keyof RealTimeRoomApiEvents>(
-    event: T,
-    fn: EventEmitter.EventListener<RealTimeRoomApiEvents, T>
-  ) {
-    const instance = super.on(event, fn)
-    this.debouncedSubscribe()
-    return instance
-  }
-
-  once<T extends keyof RealTimeRoomApiEvents>(
-    event: T,
-    fn: EventEmitter.EventListener<RealTimeRoomApiEvents, T>
-  ) {
-    const instance = super.once(event, fn)
-    this.debouncedSubscribe()
-    return instance
-  }
-
-  off<T extends keyof RealTimeRoomApiEvents>(
-    event: T,
-    fn: EventEmitter.EventListener<RealTimeRoomApiEvents, T>
-  ) {
-    const instance = super.off(event, fn)
-    return instance
-  }
-
-  /**
-   * @privateRemarks
-   *
-   * Override BaseConsumer `subscribe` to resolve the promise when the 'room.subscribed'
-   * event comes. This way we can return to the user the room full state.
-   * Note: the payload will go through an EventTrasform - see the `type: roomSessionSubscribed`
-   * below.
-   */
-  subscribe() {
-    return new Promise(async (resolve, reject) => {
-      const handler = (payload: RoomSessionFullState) => {
-        resolve(payload)
-      }
-      const subscriptions = this.getSubscriptions()
-      if (subscriptions.length === 0) {
-        this.logger.debug(
-          '`subscribe()` was called without any listeners attached.'
-        )
-        return
-      }
-
-      try {
-        super.once('room.subscribed', handler)
-        await super.subscribe()
-      } catch (error) {
-        super.off('room.subscribed', handler)
-        return reject(error)
-      }
-    })
-  }
-
-  /** @internal */
-  protected setPayload(payload: Optional<VideoRoomEventParams, 'room'>) {
+  setPayload(payload: Optional<VideoRoomEventParams, 'room'>) {
     this._payload = payload
   }
 
   getMembers() {
-    return new Promise(async (resolve, reject) => {
+    return new Promise<{
+      members: VideoMemberEntity[]
+    }>(async (resolve, reject) => {
       try {
-        const { members } = await this.execute<
+        const { members } = await this._client.execute<
           void,
           { members: RoomSessionMemberEventParams['member'][] }
         >({
@@ -206,12 +180,12 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
 
         const memberInstances: RoomSessionMember[] = []
         members.forEach((member) => {
-          let memberInstance = this.instanceMap.get<RoomSessionMember>(
+          let memberInstance = this._client.instanceMap.get<RoomSessionMember>(
             member.id
           )
           if (!memberInstance) {
-            memberInstance = createRoomSessionMemberObject({
-              store: this.store,
+            memberInstance = new RoomSessionMemberAPI({
+              roomSession: this,
               payload: {
                 room_id: this.roomId,
                 room_session_id: this.roomSessionId,
@@ -224,7 +198,7 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
             } as RoomSessionMemberEventParams)
           }
           memberInstances.push(memberInstance)
-          this.instanceMap.set<RoomSessionMember>(
+          this._client.instanceMap.set<RoomSessionMember>(
             memberInstance.id,
             memberInstance
           )
@@ -239,58 +213,43 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
 }
 
 export const RoomSessionAPI = extendComponent<
-  RoomSessionConsumer,
+  RoomSession,
   Omit<VideoRoomSessionMethods, 'getMembers'>
->(RoomSessionConsumer, {
-  videoMute: Rooms.videoMuteMember,
-  videoUnmute: Rooms.videoUnmuteMember,
-  audioMute: Rooms.audioMuteMember,
-  audioUnmute: Rooms.audioUnmuteMember,
-  deaf: Rooms.deafMember,
-  undeaf: Rooms.undeafMember,
-  setInputVolume: Rooms.setInputVolumeMember,
-  setOutputVolume: Rooms.setOutputVolumeMember,
-  setMicrophoneVolume: Rooms.setInputVolumeMember,
-  setSpeakerVolume: Rooms.setOutputVolumeMember,
-  setInputSensitivity: Rooms.setInputSensitivityMember,
-  removeMember: Rooms.removeMember,
-  removeAllMembers: Rooms.removeAllMembers,
-  setHideVideoMuted: Rooms.setHideVideoMuted,
-  getLayouts: Rooms.getLayouts,
-  setLayout: Rooms.setLayout,
-  setPositions: Rooms.setPositions,
-  setMemberPosition: Rooms.setMemberPosition,
-  getRecordings: Rooms.getRecordings,
-  startRecording: Rooms.startRecording,
-  getPlaybacks: Rooms.getPlaybacks,
-  play: Rooms.play,
-  getMeta: Rooms.getMeta,
-  setMeta: Rooms.setMeta,
-  updateMeta: Rooms.updateMeta,
-  deleteMeta: Rooms.deleteMeta,
-  getMemberMeta: Rooms.getMemberMeta,
-  setMemberMeta: Rooms.setMemberMeta,
-  updateMemberMeta: Rooms.updateMemberMeta,
-  deleteMemberMeta: Rooms.deleteMemberMeta,
-  promote: Rooms.promote,
-  demote: Rooms.demote,
-  getStreams: Rooms.getStreams,
-  startStream: Rooms.startStream,
-  // lock: Rooms.lock,
-  // unlock: Rooms.unlock,
+>(RoomSession, {
+  videoMute: RoomMethods.videoMuteMember,
+  videoUnmute: RoomMethods.videoUnmuteMember,
+  audioMute: RoomMethods.audioMuteMember,
+  audioUnmute: RoomMethods.audioUnmuteMember,
+  deaf: RoomMethods.deafMember,
+  undeaf: RoomMethods.undeafMember,
+  setInputVolume: RoomMethods.setInputVolumeMember,
+  setOutputVolume: RoomMethods.setOutputVolumeMember,
+  setMicrophoneVolume: RoomMethods.setInputVolumeMember,
+  setSpeakerVolume: RoomMethods.setOutputVolumeMember,
+  setInputSensitivity: RoomMethods.setInputSensitivityMember,
+  removeMember: RoomMethods.removeMember,
+  removeAllMembers: RoomMethods.removeAllMembers,
+  setHideVideoMuted: RoomMethods.setHideVideoMuted,
+  getLayouts: RoomMethods.getLayouts,
+  setLayout: RoomMethods.setLayout,
+  setPositions: RoomMethods.setPositions,
+  setMemberPosition: RoomMethods.setMemberPosition,
+  getRecordings: RoomMethods.getRecordings,
+  startRecording: RoomMethods.startRecording,
+  getPlaybacks: RoomMethods.getPlaybacks,
+  play: RoomMethods.play,
+  getMeta: RoomMethods.getMeta,
+  setMeta: RoomMethods.setMeta,
+  updateMeta: RoomMethods.updateMeta,
+  deleteMeta: RoomMethods.deleteMeta,
+  getMemberMeta: RoomMethods.getMemberMeta,
+  setMemberMeta: RoomMethods.setMemberMeta,
+  updateMemberMeta: RoomMethods.updateMemberMeta,
+  deleteMemberMeta: RoomMethods.deleteMemberMeta,
+  promote: RoomMethods.promote,
+  demote: RoomMethods.demote,
+  getStreams: RoomMethods.getStreams,
+  startStream: RoomMethods.startStream,
+  // lock: RoomMethods.lock,
+  // unlock: RoomMethods.unlock,
 })
-
-export const createRoomSessionObject = (
-  params: RoomSessionConsumerOptions
-): RoomSession => {
-  const roomSession = connect<
-    RealTimeRoomApiEvents,
-    RoomSessionConsumer,
-    RoomSession
-  >({
-    store: params.store,
-    Component: RoomSessionAPI,
-  })(params)
-
-  return roomSession
-}

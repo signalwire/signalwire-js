@@ -6,28 +6,38 @@ import {
   VideoAPIEventParams,
   getLogger,
   sagaEffects,
+  sagaHelpers,
   SDKWorkerParams,
 } from '@signalwire/core'
-import { fork } from '@redux-saga/core/effects'
-import { Client } from '../VideoClient'
+import type { Client } from '../../client/index'
 import { videoRoomWorker } from './videoRoomWorker'
 import { videoMemberWorker } from './videoMemberWorker'
-import { videoPlaybackWorker } from './videoPlaybackWorker'
-import { videoRecordingWorker } from './videoRecordingWorker'
-import { videoStreamWorker } from './videoStreamWorker'
 import { videoLayoutWorker } from './videoLayoutWorker'
 import { videoRoomAudienceWorker } from './videoRoomAudienceWorker'
+import { videoRecordingWorker } from './videoRecordingWorker'
+import { videoPlaybackWorker } from './videoPlaybackWorker'
+import { Video } from '../Video'
+import { videoStreamWorker } from './videoStreamWorker'
 
 export type VideoCallWorkerParams<T> = SDKWorkerParams<Client> & {
   action: T
+  video: Video
+}
+
+interface VideoCallingWorkerInitialState {
+  video: Video
 }
 
 export const videoCallingWorker: SDKWorker<Client> = function* (
   options
 ): SagaIterator {
   getLogger().trace('videoCallingWorker started')
-  const { channels } = options
-  const { swEventChannel } = channels
+  const {
+    channels: { swEventChannel },
+    initialState,
+  } = options
+
+  const { video } = initialState as VideoCallingWorkerInitialState
 
   function* worker(action: MapToPubSubShape<VideoAPIEventParams>) {
     const { type } = action
@@ -37,8 +47,9 @@ export const videoCallingWorker: SDKWorker<Client> = function* (
       case 'video.room.updated':
       case 'video.room.ended':
       case 'video.room.subscribed':
-        yield fork(videoRoomWorker, {
+        yield sagaEffects.fork(videoRoomWorker, {
           action,
+          video,
           ...options,
         })
         break
@@ -46,43 +57,49 @@ export const videoCallingWorker: SDKWorker<Client> = function* (
       case 'video.member.left':
       case 'video.member.updated':
       case 'video.member.talking':
-        yield fork(videoMemberWorker, {
+        yield sagaEffects.fork(videoMemberWorker, {
           action,
+          video,
+          ...options,
+        })
+        break
+      case 'video.layout.changed':
+        yield sagaEffects.fork(videoLayoutWorker, {
+          action,
+          video,
+          ...options,
+        })
+        break
+      case 'video.room.audience_count':
+        yield sagaEffects.fork(videoRoomAudienceWorker, {
+          action,
+          video,
           ...options,
         })
         break
       case 'video.playback.started':
       case 'video.playback.updated':
       case 'video.playback.ended':
-        yield fork(videoPlaybackWorker, {
+        yield sagaEffects.fork(videoPlaybackWorker, {
           action,
+          video,
           ...options,
         })
         break
       case 'video.recording.started':
       case 'video.recording.updated':
       case 'video.recording.ended':
-        yield fork(videoRecordingWorker, {
+        yield sagaEffects.fork(videoRecordingWorker, {
           action,
+          video,
           ...options,
         })
         break
       case 'video.stream.started':
       case 'video.stream.ended':
-        yield fork(videoStreamWorker, {
+        yield sagaEffects.fork(videoStreamWorker, {
           action,
-          ...options,
-        })
-        break
-      case 'video.layout.changed':
-        yield fork(videoLayoutWorker, {
-          action,
-          ...options,
-        })
-        break
-      case 'video.room.audience_count':
-        yield fork(videoRoomAudienceWorker, {
-          action,
+          video,
           ...options,
         })
         break
@@ -92,13 +109,19 @@ export const videoCallingWorker: SDKWorker<Client> = function* (
     }
   }
 
+  const workerCatchable = sagaHelpers.createCatchableSaga<
+    MapToPubSubShape<VideoAPIEventParams>
+  >(worker, (error) => {
+    getLogger().error('Voice calling event error', error)
+  })
+
   const isVideoEvent = (action: SDKActions) => action.type.startsWith('video.')
 
   while (true) {
     const action: MapToPubSubShape<VideoAPIEventParams> =
       yield sagaEffects.take(swEventChannel, isVideoEvent)
 
-    yield fork(worker, action)
+    yield sagaEffects.fork(workerCatchable, action)
   }
 
   getLogger().trace('videoCallingWorker ended')

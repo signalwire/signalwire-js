@@ -1,4 +1,5 @@
 import type { SwEvent } from '.'
+import { MapToPubSubShape } from '..'
 import type {
   CamelToSnakeCase,
   ToInternalVideoEvent,
@@ -14,12 +15,27 @@ export type PlaybackUpdated = 'playback.updated'
 export type PlaybackEnded = 'playback.ended'
 
 /**
+ * Public listener types
+ */
+export type OnPlaybackStarted = 'onPlaybackStarted'
+export type OnPlaybackUpdated = 'onPlaybackUpdated'
+export type OnPlaybackEnded = 'onPlaybackEnded'
+
+/**
  * List of public event names
  */
 export type VideoPlaybackEventNames =
   | PlaybackStarted
   | PlaybackUpdated
   | PlaybackEnded
+
+/**
+ * List of public listener names
+ */
+export type VideoPlaybackListenerNames =
+  | OnPlaybackStarted
+  | OnPlaybackUpdated
+  | OnPlaybackEnded
 
 /**
  * List of internal events
@@ -42,7 +58,7 @@ export interface VideoPlaybackContract {
   state: 'playing' | 'paused' | 'completed'
 
   /** The current playback position, in milliseconds. */
-  position: number;
+  position: number
 
   /** Whether the seek function can be used for this playback. */
   seekable: boolean
@@ -54,7 +70,7 @@ export interface VideoPlaybackContract {
   volume: number
 
   /** Start time, if available */
-  startedAt: Date
+  startedAt?: Date
 
   /** End time, if available */
   endedAt?: Date
@@ -162,3 +178,5 @@ export type VideoPlaybackEventParams =
   | VideoPlaybackStartedEventParams
   | VideoPlaybackUpdatedEventParams
   | VideoPlaybackEndedEventParams
+
+export type VideoPlaybackAction = MapToPubSubShape<VideoPlaybackEvent>

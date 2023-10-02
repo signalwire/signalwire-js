@@ -1,14 +1,22 @@
-import { Call } from './Call'
+import { Call } from './voice/Call'
+import { RoomSession } from './video/RoomSession'
 
 export interface DecoratePromiseOptions<T> {
   promise: Promise<T>
-  namespace: 'playback' | 'recording' | 'prompt' | 'tap' | 'detect' | 'collect'
+  namespace:
+    | 'playback'
+    | 'recording'
+    | 'prompt'
+    | 'tap'
+    | 'detect'
+    | 'collect'
+    | 'stream'
   methods: string[]
   getters: string[]
 }
 
 export function decoratePromise<T, U>(
-  this: Call,
+  this: Call | RoomSession,
   options: DecoratePromiseOptions<T>
 ): Promise<U> {
   const { promise: innerPromise, namespace, methods, getters } = options

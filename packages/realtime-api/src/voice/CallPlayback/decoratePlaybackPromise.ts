@@ -5,7 +5,7 @@ import {
 } from '@signalwire/core'
 import { Call } from '../Call'
 import { CallPlayback } from './CallPlayback'
-import { decoratePromise } from '../decoratePromise'
+import { decoratePromise } from '../../decoratePromise'
 import { CallPlaybackListeners } from '../../types'
 
 export interface CallPlaybackEnded {
