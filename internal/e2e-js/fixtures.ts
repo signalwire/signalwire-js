@@ -64,6 +64,7 @@ const test = baseTest.extend<CustomFixture>({
       expect(row.rootEl).toBe(0)
     })
   },
+
   createCustomVanillaPage: async ({ context }, use) => {
     const maker = async (options: { name: string }): Promise<CustomPage> => {
       const page = await context.newPage()
@@ -88,4 +89,4 @@ const test = baseTest.extend<CustomFixture>({
   },
 })
 
-export { test, expect }
+export { test, expect, Page }

@@ -267,11 +267,12 @@
           }
           break;
         case 'ringing': // Someone is calling you
-          if (confirm('Pick up the call?')) {
+          //if (confirm('Pick up the call?')) {
+            console.log("Answering: ", ccallState)
             currentCall.answer();
-          } else {
-            currentCall.hangup();
-          }
+          //} else {
+          //  currentCall.hangup();
+          //}
           break;
         case 'active': // Call has become active
           startCall.classList.add('d-none');
