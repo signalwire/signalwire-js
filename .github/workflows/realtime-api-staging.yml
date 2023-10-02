@@ -33,9 +33,3 @@ jobs:
         run: npm run -w=@sw-internal/e2e-realtime-api dev
         env:
           SW_TEST_CONFIG: ${{ secrets.STAGING_E2E_REALTIME_SW_TEST_CONFIG }}
-      - uses: dorny/test-reporter@v1
-        with:
-          artifact: test-results
-          name: e2e Tests
-          path: '*.xml'
-          reporter: junit
