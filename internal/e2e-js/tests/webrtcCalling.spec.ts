@@ -15,17 +15,6 @@ test.describe('V2Calling', () => {
     const pageCallee = await createCustomVanillaPage({ name: '[callee]' })
     await pageCallee.goto(SERVER_URL + '/v2vanilla.html')
 
-    //let counter = 1
-    //const takeScreenshot = async (name: string) => {
-    //  await pageCaller.screenshot({ path: `${name}_${counter}.png` })
-    //  console.log('\n\n', await pageCaller.content(), '\n\n')
-    //  setTimeout(() => {
-    //    counter++
-    //    takeScreenshot(name)
-    //  }, 500)
-    //}
-    //await takeScreenshot('screenshot')
-
     const envRelayProject = process.env.RELAY_PROJECT ?? ''
     expect(envRelayProject).not.toBe(null)
 
@@ -87,9 +76,6 @@ test.describe('V2Calling', () => {
       await expect(hangupCall).toBeEnabled()
     }
 
-    //const numberValue = process.env.VOICE_DIAL_TO_NUMBER ?? ''
-    //const numberFromValue = process.env.VOICE_DIAL_FROM_NUMBER ?? ''
-
     // Wait for caller to start the call
     await expectCallStarted(pageCaller, 'vanilla-callee', 'vanilla-caller')
 
@@ -105,23 +91,7 @@ test.describe('V2Calling', () => {
     await expect(callStatusCallee).toContainText('-> active')
 
 
-    // Additional activity while call is up goes here
-
-    // TODO: expect remote video on both pages to confirm streams are working
-
-    // Only need to use page.evaluate when copying JS variables into or out of the browser
-    //   Mostly used to get variables out of the browser or to wait on a resolve from inside browser side event handlers (IE, waiting for a layout.changed on RoomSession)
-    //   Browser elements get their own methods to work with like fill instead of using page.evaluate
-    // How do we get the Relay type defined for the return type if the module was loaded by the browser? or do we just treat it as 'any' type in typescript?
-    // Is it possible to use expect for browser console output? any other pattern for testing browser console output?
-    // Why such liberal use of @ts-expect-error comments that disable type checking?
-    //   Is it mostly for variables that are created at runtime in the browser that typescript won't see during static analysis like this page.evaluate for client?
-
-    //const relayClient: Relay = await pageCaller.evaluate(async () => {
-    //  // @ts-expect-error
-    //  const client = window.__client  
-    //  return Promise.resolve(client)
-    //})
+    // Additional activity while call is up can go here
 
 
     // Click the caller hangup button, which calls the hangup function in the browser
