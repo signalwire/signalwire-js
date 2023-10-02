@@ -1,7 +1,7 @@
 import { CallingCallCollectResult, Promisify } from '@signalwire/core'
 import { Call } from '../Call'
 import { CallCollect } from './CallCollect'
-import { decoratePromise } from '../decoratePromise'
+import { decoratePromise } from '../../decoratePromise'
 import { CallCollectListeners } from '../../types'
 
 export interface CallCollectEnded {

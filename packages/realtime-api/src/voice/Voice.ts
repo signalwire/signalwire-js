@@ -2,7 +2,6 @@ import { toExternalJSON, uuid } from '@signalwire/core'
 import type {
   ToExternalJSONResult,
   CallingCallDialFailedEventParams,
-  CallReceived,
 } from '@signalwire/core'
 import { Call } from './Call'
 import { voiceCallReceiveWorker, voiceCallDialWorker } from './workers'
@@ -12,20 +11,19 @@ import type {
   VoiceDialPhonelMethodParams,
   VoiceDialSipMethodParams,
   VoiceEvents,
+  VoiceListeners,
+  VoiceListenersEventsMapping,
 } from '../types'
 import { toInternalDevices } from './utils'
 import { BaseNamespace } from '../BaseNamespace'
 import { SWClient } from '../SWClient'
 
-interface VoiceListenOptions {
+interface VoiceListenOptions extends VoiceListeners {
   topics: string[]
-  onCallReceived?: (call: Call) => unknown
 }
 
-type VoiceListenersKeys = keyof Omit<VoiceListenOptions, 'topics'>
-
 export class Voice extends BaseNamespace<VoiceListenOptions, VoiceEvents> {
-  protected _eventMap: Record<VoiceListenersKeys, CallReceived> = {
+  protected _eventMap: VoiceListenersEventsMapping = {
     onCallReceived: 'call.received',
   }
 
