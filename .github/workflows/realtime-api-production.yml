@@ -36,6 +36,6 @@ jobs:
       - uses: dorny/test-reporter@v1
         with:
           artifact: test-results
-          name: e2e Tests
+          name: RealtimeAPI SDK [production] e2e Tests
           path: '*.xml'
           reporter: junit
