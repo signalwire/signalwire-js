@@ -6,6 +6,7 @@ import { Messaging } from './messaging/Messaging'
 import { PubSub } from './pubSub/PubSub'
 import { Chat } from './chat/Chat'
 import { Voice } from './voice/Voice'
+import { Video } from './video/Video'
 
 export interface SWClientOptions {
   host?: string
@@ -19,10 +20,11 @@ export interface SWClientOptions {
 
 export class SWClient {
   private _task: Task
+  private _messaging: Messaging
   private _pubSub: PubSub
   private _chat: Chat
   private _voice: Voice
-  private _messaging: Messaging
+  private _video: Video
 
   public userOptions: SWClientOptions
   public client: Client
@@ -80,5 +82,12 @@ export class SWClient {
       this._voice = new Voice(this)
     }
     return this._voice
+  }
+
+  get video() {
+    if (!this._video) {
+      this._video = new Video(this)
+    }
+    return this._video
   }
 }

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { uuid } from '@signalwire/core'
-import { Video } from '@signalwire/realtime-api'
+import { SignalWire, Video } from '@signalwire/realtime-api'
 import {
   createRoomAndRecordPlay,
   createRoomSession,
@@ -10,8 +10,7 @@ import { SERVER_URL } from '../../utils'
 
 test.describe('Video', () => {
   test('should join the room and listen for events', async ({ browser }) => {
-    const videoClient = new Video.Client({
-      // @ts-expect-error
+    const client = await SignalWire({
       host: process.env.RELAY_HOST,
       project: process.env.RELAY_PROJECT as string,
       token: process.env.RELAY_TOKEN as string,
@@ -23,19 +22,20 @@ test.describe('Video', () => {
 
     const roomSessionCreated = new Map<string, any>()
     const findRoomSessionsByPrefix = async () => {
-      const { roomSessions } = await videoClient.getRoomSessions()
+      const { roomSessions } = await client.video.getRoomSessions()
       return roomSessions.filter((r) => r.name.startsWith(prefix))
     }
 
-    videoClient.on('room.started', async (roomSession) => {
-      console.log('Room started', roomSession.id)
-      if (roomSession.name.startsWith(prefix)) {
-        roomSessionCreated.set(roomSession.id, roomSession)
-      }
-    })
-
-    videoClient.on('room.ended', async (roomSession) => {
-      console.log('Room ended', roomSession.id)
+    await client.video.listen({
+      onRoomStarted: (roomSession) => {
+        console.log('Room started', roomSession.id)
+        if (roomSession.name.startsWith(prefix)) {
+          roomSessionCreated.set(roomSession.id, roomSession)
+        }
+      },
+      onRoomEnded: (roomSession) => {
+        console.log('Room ended', roomSession.id)
+      },
     })
 
     const roomSessionsAtStart = await findRoomSessionsByPrefix()
@@ -77,47 +77,55 @@ test.describe('Video', () => {
     for (let index = 0; index < roomSessionsRunning.length; index++) {
       const rs = roomSessionsRunning[index]
 
-      await new Promise((resolve) => {
-        rs.on('recording.ended', noop)
-        rs.on('playback.ended', noop)
-        rs.on('room.updated', noop)
-        rs.on('room.subscribed', resolve)
+      await new Promise(async (resolve) => {
+        await rs.listen({
+          onRecordingEnded: noop,
+          onPlaybackEnded: noop,
+          onRoomUpdated: noop,
+          onRoomSubscribed: resolve,
+        })
       })
 
       await new Promise<void>(async (resolve) => {
-        rs.on('recording.ended', () => {
-          resolve()
+        await rs.listen({
+          onRecordingEnded: () => resolve(),
         })
         const { recordings } = await rs.getRecordings()
         await Promise.all(recordings.map((r) => r.stop()))
       })
 
       await new Promise<void>(async (resolve) => {
-        rs.on('playback.ended', () => {
-          resolve()
+        await rs.listen({
+          onPlaybackEnded: () => resolve(),
         })
         const { playbacks } = await rs.getPlaybacks()
         await Promise.all(playbacks.map((p) => p.stop()))
       })
 
       await new Promise<void>(async (resolve, reject) => {
-        rs.on('room.updated', (roomSession) => {
-          if (roomSession.locked === true) {
-            resolve()
-          } else {
-            reject(new Error('Not locked'))
-          }
+        const unsub = await rs.listen({
+          onRoomUpdated: async (roomSession) => {
+            if (roomSession.locked === true) {
+              resolve()
+              await unsub()
+            } else {
+              reject(new Error('Not locked'))
+            }
+          },
         })
         await rs.lock()
       })
 
       await new Promise<void>(async (resolve, reject) => {
-        rs.on('room.updated', (roomSession) => {
-          if (roomSession.locked === false) {
-            resolve()
-          } else {
-            reject(new Error('Still locked'))
-          }
+        const unsub = await rs.listen({
+          onRoomUpdated: async (roomSession) => {
+            if (roomSession.locked === false) {
+              resolve()
+              await unsub()
+            } else {
+              reject(new Error('Not locked'))
+            }
+          },
         })
         await rs.unlock()
       })
@@ -132,32 +140,35 @@ test.describe('Video', () => {
   test('should join the room and set hand raise priority', async ({
     browser,
   }) => {
-    const page = await browser.newPage()
-    await page.goto(SERVER_URL)
-    enablePageLogs(page, '[pageOne]')
-
-    // Create a realtime-api Video client
-    const videoClient = new Video.Client({
-      // @ts-expect-error
+    const client = await SignalWire({
       host: process.env.RELAY_HOST,
       project: process.env.RELAY_PROJECT as string,
       token: process.env.RELAY_TOKEN as string,
       debug: { logWsTraffic: true },
     })
 
+    const page = await browser.newPage()
+    await page.goto(SERVER_URL)
+    enablePageLogs(page, '[pageOne]')
+
     const prefix = uuid()
     const roomName = `${prefix}-hand-raise-priority-e2e`
 
     const findRoomSession = async () => {
-      const { roomSessions } = await videoClient.getRoomSessions()
+      const { roomSessions } = await client.video.getRoomSessions()
       return roomSessions.filter((r) => r.name.startsWith(prefix))
     }
 
     // Listen for realtime-api event
-    videoClient.on('room.started', (room) => {
-      room.on('room.updated', (room) => {
-        console.log('>> room.updated', room.name)
-      })
+    await client.video.listen({
+      onRoomStarted: async (roomSession) => {
+        console.log('>> room.started', roomSession.name)
+        await roomSession.listen({
+          onRoomUpdated: (room) => {
+            console.log('>> room.updated', room.name)
+          },
+        })
+      },
     })
 
     // Room length should be 0 before start
@@ -203,8 +214,10 @@ test.describe('Video', () => {
     // Set the hand raise prioritization via Node SDK
     const roomSessionNodeUpdated = await new Promise<Video.RoomSession>(
       async (resolve, _reject) => {
-        roomSessionNode.on('room.updated', (room) => {
-          resolve(room)
+        await roomSessionNode.listen({
+          onRoomUpdated: (room) => {
+            resolve(room)
+          },
         })
         await roomSessionNode.setPrioritizeHandraise(true)
       }
