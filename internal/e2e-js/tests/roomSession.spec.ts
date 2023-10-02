@@ -14,8 +14,11 @@ test.describe('RoomSession', () => {
   test('should handle joining a room, perform actions and then leave the room', async ({
     createCustomPage,
   }) => {
+    // Node context (server-side)
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
+
+    await page.waitForTimeout(100_000)
 
     const roomName = randomizeRoomName('join-leave-e2e')
     const permissions = [
@@ -62,6 +65,17 @@ test.describe('RoomSession', () => {
     })
 
     // --------------- Joining the room ---------------
+    let counter = 1
+    const takeScreenshot = async (name: string) => {
+      await page.screenshot({ path: `${name}_${counter}.png` })
+      setTimeout(() => {
+        counter++
+        takeScreenshot(name)
+      }, 500)
+    }
+
+    await takeScreenshot('screenshot')
+
     const joinParams = await expectRoomJoined(page)
 
     expect(joinParams.room).toBeDefined()

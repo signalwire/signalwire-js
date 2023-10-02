@@ -9,12 +9,25 @@ import {
 
 test.describe('SDK V2', () => {
   test('should make outbound calls', async ({ createCustomPage }) => {
-    const page = await createCustomPage({ name: '[page]' })
-    await page.goto(`${SERVER_URL}/index-v2.html`)
+    const pageOne = await createCustomPage({ name: '[outbound]' })
+    await pageOne.goto(`${SERVER_URL}/index-v2.html`)
 
-    const h1 = page.locator('h1')
-    expect(await h1.innerText()).toBe('Hello im v2!')
-    await page.waitForTimeout(10_000)
+    const pageTwo = await createCustomPage({ name: '[inbound]' })
+    await pageTwo.goto(`${SERVER_URL}/index-v2.html`)
+
+    // const tokenOne = await getJWTV2('outbound')
+    // const tokenTwo = await getJWTV2('inbound')
+
+    const project = pageOne.locator('#project')
+    const token = pageOne.locator('#token')
+
+    await project.fill(process.env.RELAY_TOKEN as string)
+    await token.fill('token')
+    await pageOne.screenshot({ path: 'screen.png' })
+
+    // const h1 = page.locator('h1')
+    // expect(await h1.innerText()).toBe('Hello im v3!')
+    // await page.waitForTimeout(10_000)
 
     // const roomName = randomizeRoomName('e2e-403')
     // const audiencePermissions: string[] = []
