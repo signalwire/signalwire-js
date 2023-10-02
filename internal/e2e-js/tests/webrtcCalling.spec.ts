@@ -1,4 +1,3 @@
-//import type { Relay } from '@signalwire/js@^1'
 import { test, expect, Page } from '../fixtures'
 import {
   SERVER_URL,
@@ -106,6 +105,25 @@ test.describe('V2Calling', () => {
 
 
     // Additional activity while call is up can go here
+    const expectVideoMediaStreams = async (page: Page) => {
+      await page.waitForTimeout(2000)
+      const result = await page.evaluate(() => {
+        return {
+          // @ts-expect-error
+          localVideo: document.getElementById('localVideo').srcObject instanceof MediaStream,
+          // @ts-expect-error
+          remoteVideo: document.getElementById('remoteVideo').srcObject instanceof MediaStream
+        }
+      })
+
+      console.log(result)
+
+      expect(result.localVideo).toBe(true)
+      expect(result.remoteVideo).toBe(true)
+    }
+
+    await expectVideoMediaStreams(pageCaller)
+    await expectVideoMediaStreams(pageCallee)
 
 
     // Click the caller hangup button, which calls the hangup function in the browser
