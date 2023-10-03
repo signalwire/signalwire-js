@@ -23,9 +23,6 @@ runs:
     - name: Dump env context
       run: echo '${{ toJSON(env) }}'
       shell: bash
-    - name: Dump jobs context
-      run: echo '${{ toJSON(jobs) }}'
-      shell: bash
     - name: Dump job context
       run: echo '${{ toJSON(job) }}'
       shell: bash
