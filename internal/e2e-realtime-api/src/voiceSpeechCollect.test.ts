@@ -36,7 +36,7 @@ const handler: TestHandler = ({ domainApp }) => {
 
       try {
         const resultAnswer = await call.answer()
-        tap.ok(resultAnswer.id, 'Inboud call answered')
+        tap.ok(resultAnswer.id, 'Inbound call answered')
         tap.equal(
           call.id,
           resultAnswer.id,
