@@ -42,7 +42,7 @@ jobs:
         uses: ./.github/actions/report-test-result
         with:
           result: steps.run-tests.conclusion
-          test-suite: Browser SDK [staging]
+          test-suite: ${{ github.action }}
 
     # if: success() || failure()
     # runs-on: ubuntu-latest
