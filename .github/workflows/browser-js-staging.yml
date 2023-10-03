@@ -41,10 +41,11 @@ jobs:
         if: success() || failure()
         uses: ./.github/actions/report-test-result
         with:
-          statsd-host: ${{ secrets.STATSD_HOST }}
-          statsd-port: ${{ secrets.STATSD_PORT }}
           result: ${{ steps.run-tests.conclusion }}
           test-suite: ${{ github.workflow }}
+          environment: staging
+          statsd-host: ${{ secrets.STATSD_HOST }}
+          statsd-port: ${{ secrets.STATSD_PORT }}
 
     # if: success() || failure()
     # runs-on: ubuntu-latest

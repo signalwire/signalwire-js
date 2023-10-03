@@ -10,6 +10,9 @@ inputs:
     required: true
     type: string
     description: Name of the test suite reporting results for
+  environment:
+    required: true
+    type: string
   statsd-host:
     required: true
     type: string
@@ -25,12 +28,18 @@ runs:
       shell: bash
     - run: echo Status for workflow ${{ inputs.test-suite }} input result ${{ inputs.result }}
       shell: bash
+    - id: check_result
+      shell: bash
+      run: |
+        if [[ "${{ inputs.result }}" == "success" ]]; then
+          echo "RESULT=1" >> "$GITHUB_OUTPUT"
+        else
+          echo "RESULT=0" >> "$GITHUB_OUTPUT"
+        fi
+    - run: echo "monitoring.checks.e2e.result:${{steps.check_result.outputs.RESULT}}|g|#repo:signalwire-js,workflow:${{ inputs.test-suite }},environment:${{ inputs.environment }}" | nc -w 1 -u ${{ inputs.statsd-host }} ${{ inputs.statsd-port }}
+      shell: bash
 
 # github.job "e2e-tests"
 # github.workflow "Unit and stack tests"
 # {{ job.status }} success|failure
 # conclusion
-
-# statsd guage
-# tag status:${status}`
-# tag test-suite
