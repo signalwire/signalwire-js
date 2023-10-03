@@ -17,14 +17,8 @@ runs:
     - name: Dump GitHub context
       run: echo '${{ toJSON(github) }}'
       shell: bash
-    - name: Dump runner context
-      run: echo '${{ toJSON(runner) }}'
+    - run: echo Status for workflow ${{ inputs.test-suite }} input result ${{ inputs.result }}
       shell: bash
-    - name: Dump env context
-      run: echo '${{ toJSON(env) }}'
-      shell: bash
-    - name: Dump job context
-      run: echo '${{ toJSON(job) }}'
-      shell: bash
-    - run: echo Status for ${{ inputs.test-suite }} ${{ inputs.result }}
-      shell: bash
+
+# github.job "e2e-tests"
+# github.workflow "Unit and stack tests"
