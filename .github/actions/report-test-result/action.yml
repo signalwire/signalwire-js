@@ -31,6 +31,6 @@ runs:
 # {{ job.status }} success|failure
 # conclusion
 
-statsd guage
-tag status:${status}`
-tag test-suite
+# statsd guage
+# tag status:${status}`
+# tag test-suite
