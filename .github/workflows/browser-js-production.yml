@@ -36,3 +36,9 @@ jobs:
         run: npm run -w=@sw-internal/e2e-js dev -- --project ${{ matrix.project }}
         env:
           SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_JS_SW_TEST_CONFIG }}
+      - name: Report Result
+        if: success() || failure()
+        uses: ./.github/actions/report-test-result
+        with:
+          result: ${{ steps.run-tests.conclusion }}
+          test-suite: ${{ github.workflow }}
