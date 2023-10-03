@@ -23,10 +23,12 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Dump GitHub context
-      run: echo '${{ toJSON(github) }}'
-      shell: bash
+    # - name: Dump GitHub context
+    #   run: echo '${{ toJSON(github) }}'
+    #   shell: bash
     - run: echo Status for workflow ${{ inputs.test-suite }} input result ${{ inputs.result }}
+      shell: bash
+    - run: echo Job Status ${{ job.status }}
       shell: bash
     - id: check_result
       shell: bash
