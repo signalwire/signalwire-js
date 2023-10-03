@@ -22,3 +22,4 @@ runs:
 
 # github.job "e2e-tests"
 # github.workflow "Unit and stack tests"
+# {{ job.status }} success|failure
