@@ -34,7 +34,7 @@ runs:
       shell: bash
     - run: echo github job ${{ github.job }}
       shell: bash
-    - run: echo job Status ${{ job.status }}
+    - run: echo job status ${{ job.status }}
       shell: bash
     - id: check_result
       shell: bash
