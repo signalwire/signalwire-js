@@ -39,7 +39,7 @@ jobs:
           SW_TEST_CONFIG: ${{ secrets.STAGING_E2E_JS_SW_TEST_CONFIG }}
       - name: Report Result
         if: success() || failure()
-        uses: actions/report-test-result@v1
+        uses: actions/report-test-result
         with:
           result: steps.run-tests.conclusion
           test-suite: Browser SDK [staging]
