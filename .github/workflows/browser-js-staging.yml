@@ -3,6 +3,8 @@ name: Browser SDK [staging]
 on:
   workflow_call:
   workflow_dispatch:
+  schedule:
+    - cron: '10 * * * *'
 
 concurrency:
   group: ${{ github.workflow }}-e2e-js-staging-${{ github.ref }}
