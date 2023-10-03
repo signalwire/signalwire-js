@@ -26,5 +26,5 @@ runs:
     - name: Dump job context
       run: echo '${{ toJSON(job) }}'
       shell: bash
-    - run: echo Status for ${{ inputss.test-suite }} ${{ inputs.result }}
+    - run: echo Status for ${{ inputs.test-suite }} ${{ inputs.result }}
       shell: bash
