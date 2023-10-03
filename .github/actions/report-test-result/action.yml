@@ -1,0 +1,14 @@
+name: Report Test Results
+description: Report the status of test runs
+
+inputs:
+  result:
+    required: true
+    type: string
+    description: Result of the test job
+
+runs:
+  using: "composite"
+  steps:
+    - run: echo Status ${{ inputs.result }}.
+      shell: bash
