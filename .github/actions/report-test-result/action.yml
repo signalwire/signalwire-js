@@ -16,13 +16,18 @@ runs:
   steps:
     - name: Dump GitHub context
       run: echo '${{ toJSON(github) }}'
+      shell: bash
     - name: Dump runner context
       run: echo '${{ toJSON(runner) }}'
+      shell: bash
     - name: Dump env context
       run: echo '${{ toJSON(env) }}'
+      shell: bash
     - name: Dump jobs context
       run: echo '${{ toJSON(jobs) }}'
+      shell: bash
     - name: Dump job context
       run: echo '${{ toJSON(job) }}'
+      shell: bash
     - run: echo Status for ${{ inputss.test-suite }} ${{ inputs.result }}
       shell: bash
