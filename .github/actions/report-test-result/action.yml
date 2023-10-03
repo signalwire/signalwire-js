@@ -44,5 +44,5 @@ runs:
         else
           echo "RESULT=0" >> "$GITHUB_OUTPUT"
         fi
-    - run: echo "monitoring.checks.e2e.result:${{steps.check_result.outputs.RESULT}}|g|#repo:signalwire-js,workflow:${{ inputs.test-suite }},environment:${{ inputs.environment }}" | nc -w 1 -u ${{ inputs.statsd-host }} ${{ inputs.statsd-port }}
+    - run: echo "monitoring.checks.e2e.result,|#repo=signalwire-js,workflow=${{ inputs.test-suite }},environment=${{ inputs.environment }}:${{steps.check_result.outputs.RESULT}}|g" | nc -w 1 -u ${{ inputs.statsd-host }} ${{ inputs.statsd-port }}
       shell: bash
