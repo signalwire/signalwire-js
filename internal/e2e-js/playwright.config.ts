@@ -25,6 +25,7 @@ const useDesktopChrome = {
 
 const config: PlaywrightTestConfig = {
   testDir: 'tests',
+  reporter: process.env.CI ? 'github' : 'list',
   globalSetup: require.resolve('./global-setup'),
   testMatch: undefined,
   testIgnore: undefined,
