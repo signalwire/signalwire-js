@@ -10,6 +10,12 @@ inputs:
     required: true
     type: string
     description: Name of the test suite reporting results for
+  statsd-host:
+    required: true
+    type: string
+  statsd-port:
+    required: true
+    type: string
 
 runs:
   using: "composite"
@@ -23,3 +29,8 @@ runs:
 # github.job "e2e-tests"
 # github.workflow "Unit and stack tests"
 # {{ job.status }} success|failure
+# conclusion
+
+statsd guage
+tag status:${status}`
+tag test-suite
