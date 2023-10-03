@@ -32,7 +32,7 @@ runs:
       shell: bash
     - run: echo github workflow ${{ github.workflow }}
       shell: bash
-    - run: echo github workflow ${{ github.job }}
+    - run: echo github job ${{ github.job }}
       shell: bash
     - run: echo job Status ${{ job.status }}
       shell: bash
