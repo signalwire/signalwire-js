@@ -6,9 +6,13 @@ inputs:
     required: true
     type: string
     description: Result of the test job
+  test-suite:
+    required: true
+    type: string
+    description: Name of the test suite reporting results for
 
 runs:
   using: "composite"
   steps:
-    - run: echo Status ${{ inputs.result }}.
+    - run: echo Status for ${{ inputss.test-suite }} ${{ inputs.result }}
       shell: bash
