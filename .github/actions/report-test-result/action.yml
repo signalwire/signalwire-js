@@ -42,6 +42,12 @@ runs:
       shell: bash
     - run: echo job status ${{ job.status }}
       shell: bash
+    - id: escape_test_suite
+      shell: bash
+      run: |
+        TEST_SUITE="${{ inputs.test-suite }}"
+        ESCAPED_TEST_SUITE="${TEST_SUITE// /\\ }"
+        echo "TEST_SUITE=$ESCAPED_TEST_SUITE" >> $GITHUB_ENV
     - name: send result
       shell: bash
       run: |
@@ -51,5 +57,5 @@ runs:
           --header "Content-Type: text/plain; charset=utf-8" \
           --header "Accept: application/json" \
           --data-binary '
-            monitoring.checks,checkType=e2e,repo=signalwire-js,workflow="${{ inputs.test-suite }}",environment=${{ inputs.environment }},result=${{ inputs.result }} value=1
+            monitoring.checks,checkType=e2e,repo=signalwire-js,workflow=${{ steps.escape_test_suite.outputs.TEST_SUITE }},environment=${{ inputs.environment }},result=${{ inputs.result }} value=1
             '
