@@ -44,6 +44,20 @@ runs:
         else
           echo "RESULT=0" >> "$GITHUB_OUTPUT"
         fi
+    - name: Check if Telegraf is installed
+      run: |
+        if ! dpkg -l | grep telegraf; then
+          echo "Telegraf is not installed!"
+        else
+          echo "Telegraf is installed!"
+        fi
+    - name: Check if Telegraf is installed
+      run: |
+        if ! which telegraf; then
+          echo "Telegraf is not installed!"
+        else
+          echo "Telegraf is installed!"
+        fi
     - name: Install Telegraf
       shell: bash
       run: |
