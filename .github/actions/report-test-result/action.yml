@@ -42,14 +42,6 @@ runs:
       shell: bash
     - run: echo job status ${{ job.status }}
       shell: bash
-    - id: check_result
-      shell: bash
-      run: |
-        if [[ "${{ inputs.result }}" == "success" ]]; then
-          echo "RESULT=1" >> "$GITHUB_OUTPUT"
-        else
-          echo "RESULT=0" >> "$GITHUB_OUTPUT"
-        fi
     - name: send result
       shell: bash
       run: |
@@ -59,6 +51,5 @@ runs:
           --header "Content-Type: text/plain; charset=utf-8" \
           --header "Accept: application/json" \
           --data-binary '
-            airSensors,sensor_id=TLM0201 temperature=73.97038159354763,humidity=35.23103248356096,co=0.48445310567793615 1630424257000000000
-            airSensors,sensor_id=TLM0202 temperature=75.30007505999716,humidity=35.651929918691714,co=0.5141876544505826 1630424257000000000
+            monitoring.checks,checkType=e2e,repo=signalwire-js,workflow=${{ inputs.test-suite }},environment=${{ inputs.environment }},result=${{ inputs.result }} value=1
             '
