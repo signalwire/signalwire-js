@@ -50,43 +50,15 @@ runs:
         else
           echo "RESULT=0" >> "$GITHUB_OUTPUT"
         fi
-    - name: Check if Telegraf is installed
+    - name: send result
       shell: bash
-      run: |
-        if ! dpkg -l | grep telegraf; then
-          echo "Telegraf is not installed!"
-        else
-          echo "Telegraf is installed!"
-        fi
-    - name: Check if Telegraf is installed
-      shell: bash
-      run: |
-        if ! which telegraf; then
-          echo "Telegraf is not installed!"
-        else
-          echo "Telegraf is installed!"
-        fi
-    - name: Install Telegraf
-      shell: bash
-      run: |
-        # influxdata-archive_compat.key GPG Fingerprint: 9D539D90D3328DC7D6C8D3B9D8FF8E1F7DF8B07E
-        wget -q https://repos.influxdata.com/influxdata-archive_compat.key
-        echo '393e8779c89ac8d958f81f942f9ad7fb82a25e133faddaf92e15b16e6ac9ce4c influxdata-archive_compat.key' | sha256sum -c && cat influxdata-archive_compat.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg > /dev/null
-        echo 'deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg] https://repos.influxdata.com/debian stable main' | sudo tee /etc/apt/sources.list.d/influxdata.list
-        sudo apt-get update && sudo apt-get install telegraf
-    - name: Setup Telegraf configuration
-      shell: bash
-      run: |
-        telegraf config > telegraf.conf
-    - name: Start Telegraf
-      shell: bash
-      run: |
-        systemctl start telegraf
-    - name: Check Telegraf status
-      shell: bash
-      run: |
-        systemctl status telegraf.service
-    - name: Test Telegraf
-      shell: bash
-      run: |
-        telegraf --config telegraf.conf --test
+      run:
+        curl --request POST \
+        "${{ inputs.influxdb-url }}/api/v2/write?org=${{ inputs.influxdb-org }}&bucket=${{ inputs.influxdb-bucket }}&precision=ns" \
+          --header "Authorization: Token ${{ inputs.influxdb-token }}" \
+          --header "Content-Type: text/plain; charset=utf-8" \
+          --header "Accept: application/json" \
+          --data-binary '
+            airSensors,sensor_id=TLM0201 temperature=73.97038159354763,humidity=35.23103248356096,co=0.48445310567793615 1630424257000000000
+            airSensors,sensor_id=TLM0202 temperature=75.30007505999716,humidity=35.651929918691714,co=0.5141876544505826 1630424257000000000
+            '
