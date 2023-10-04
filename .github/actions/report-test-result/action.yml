@@ -50,16 +50,15 @@ runs:
         else
           echo "RESULT=0" >> "$GITHUB_OUTPUT"
         fi
-    - name: curl
-      shell: bash
-      run: |
-        curl -V
     - name: send result
       shell: bash
       run: |
-        curl -X POST \
-        "${{ inputs.influxdb-url }}/api/v2/write?org=${{ inputs.influxdb-org }}&bucket=${{ inputs.influxdb-bucket }}&precision=ns" \
+        curl --request POST \
+          --location "${{ inputs.influxdb-url }}/api/v2/write?org=${{ inputs.influxdb-org }}&bucket=${{ inputs.influxdb-bucket }}&precision=ns" \
           --header "Authorization: Token ${{ inputs.influxdb-token }}" \
           --header "Content-Type: text/plain; charset=utf-8" \
           --header "Accept: application/json" \
-          -d 'airSensors,sensor_id=TLM0202 temperature=75.30007505999716,humidity=35.651929918691714,co=0.5141876544505826 1630424257000000000'
+          --data-binary '
+            airSensors,sensor_id=TLM0201 temperature=73.97038159354763,humidity=35.23103248356096,co=0.48445310567793615 1630424257000000000
+            airSensors,sensor_id=TLM0202 temperature=75.30007505999716,humidity=35.651929918691714,co=0.5141876544505826 1630424257000000000
+            '
