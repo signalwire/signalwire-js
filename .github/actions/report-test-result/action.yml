@@ -13,16 +13,18 @@ inputs:
   environment:
     required: true
     type: string
-  INFLUXDB_BUCKET:
+  influxdb-bucket:
     required: true
     type: string
-  INFLUXDB_ORG:
+  influxdb-org:
     required: true
     type: string
-  INFLUXDB_TOKEN:
+  influxdb-token:
     required: true
     type: string
-
+  influxdb-url:
+    required: true
+    type: string
 
 runs:
   using: "composite"

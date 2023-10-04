@@ -44,5 +44,7 @@ jobs:
           result: ${{ steps.run-tests.conclusion }}
           test-suite: ${{ github.workflow }}
           environment: production
-          statsd-host: ${{ secrets.STATSD_HOST }}
-          statsd-port: ${{ secrets.STATSD_PORT }}
+          influxdb-bucket: ${{ secrets.INFLUXDB_BUCKET }}
+          influxdb-org: ${{ secrets.INFLUXDB_ORG }}
+          influxdb-token: ${{ secrets.INFLUXDB_TOKEN }}
+          influxdb-url: ${{ secrets.INFLUXDB_URL }}
