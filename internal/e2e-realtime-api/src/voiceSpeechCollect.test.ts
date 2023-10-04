@@ -11,11 +11,12 @@ const handler: TestHandler = ({ domainApp }) => {
     throw new Error('Missing domainApp')
   }
   return new Promise<number>(async (resolve, reject) => {
+    console.log(domainApp.call_relay_context)
     const client = new Voice.Client({
       host: process.env.RELAY_HOST,
       project: process.env.RELAY_PROJECT as string,
       token: process.env.RELAY_TOKEN as string,
-      contexts: [domainApp.call_relay_context],
+      contexts: [domainApp.call_relay_context, "relaye2e"],
       // logLevel: "trace",
       debug: {
         logWsTraffic: true,
@@ -90,14 +91,16 @@ const handler: TestHandler = ({ domainApp }) => {
 
     try {
       const call = await client.dialSip({
-        to: makeSipDomainAppAddress({
-          name: 'to',
-          domain: domainApp.domain,
-        }),
-        from: makeSipDomainAppAddress({
-          name: 'from',
-          domain: domainApp.domain,
-        }),
+        // to: makeSipDomainAppAddress({
+        //   name: 'to',
+        //   domain: domainApp.domain,
+        // }),
+        // from: makeSipDomainAppAddress({
+        //   name: 'from',
+        //   domain: domainApp.domain,
+        // }),
+        to: 'sip:to@dev-min.dapp.swire.io',
+        from: 'sip:from@dev-min.dapp.swire.io',
         timeout: 30,
       })
       tap.ok(call.id, 'Call resolved')
