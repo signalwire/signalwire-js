@@ -57,7 +57,7 @@ runs:
     - name: send result
       shell: bash
       run: |
-        curl -v --request POST \
+        curl -X POST \
         "${{ inputs.influxdb-url }}/api/v2/write?org=${{ inputs.influxdb-org }}&bucket=${{ inputs.influxdb-bucket }}&precision=ns" \
           --header "Authorization: Token ${{ inputs.influxdb-token }}" \
           --header "Content-Type: text/plain; charset=utf-8" \
