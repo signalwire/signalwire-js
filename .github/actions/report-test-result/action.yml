@@ -61,4 +61,5 @@ runs:
         "${{ inputs.influxdb-url }}/api/v2/write?org=${{ inputs.influxdb-org }}&bucket=${{ inputs.influxdb-bucket }}&precision=ns" \
           --header "Authorization: Token ${{ inputs.influxdb-token }}" \
           --header "Content-Type: text/plain; charset=utf-8" \
-          --header "Accept: application/json"
+          --header "Accept: application/json" \
+          -d 'airSensors,sensor_id=TLM0202 temperature=75.30007505999716,humidity=35.651929918691714,co=0.5141876544505826 1630424257000000000'
