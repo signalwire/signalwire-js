@@ -60,3 +60,7 @@ runs:
       shell: bash
       run: |
         systemctl start telegraf
+    - name: Test Telegraf
+      shell: bash
+      run: |
+        telegraf --config telegraf.conf --test
