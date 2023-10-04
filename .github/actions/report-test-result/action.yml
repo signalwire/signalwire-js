@@ -50,6 +50,10 @@ runs:
         else
           echo "RESULT=0" >> "$GITHUB_OUTPUT"
         fi
+    - name: curl
+      shell: bash
+      run: |
+        curl -V
     - name: send result
       shell: bash
       run: |
