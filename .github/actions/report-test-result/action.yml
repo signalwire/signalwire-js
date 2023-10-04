@@ -51,5 +51,5 @@ runs:
           --header "Content-Type: text/plain; charset=utf-8" \
           --header "Accept: application/json" \
           --data-binary '
-            monitoring.checks,checkType=e2e,repo=signalwire-js,workflow=${{ inputs.test-suite }},environment=${{ inputs.environment }},result=${{ inputs.result }} value=1
+            monitoring.checks,checkType=e2e,repo=signalwire-js,workflow="${{ inputs.test-suite }}",environment=${{ inputs.environment }},result=${{ inputs.result }} value=1
             '
