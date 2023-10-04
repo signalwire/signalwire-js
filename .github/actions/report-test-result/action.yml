@@ -72,11 +72,16 @@ runs:
       shell: bash
       run: |
         telegraf config > telegraf.conf
-    - name: Start Telegraf
+    - name: Check Telegraf status
       shell: bash
       run: |
-        systemctl start telegraf
-    - name: Test Telegraf
-      shell: bash
-      run: |
-        telegraf --config telegraf.conf --test
+        systemctl status telegraf.service
+
+    # - name: Start Telegraf
+    #   shell: bash
+    #   run: |
+    #     systemctl start telegraf
+    # - name: Test Telegraf
+    #   shell: bash
+    #   run: |
+    #     telegraf --config telegraf.conf --test
