@@ -13,12 +13,16 @@ inputs:
   environment:
     required: true
     type: string
-  statsd-host:
+  INFLUXDB_BUCKET:
     required: true
     type: string
-  statsd-port:
+  INFLUXDB_ORG:
     required: true
     type: string
+  INFLUXDB_TOKEN:
+    required: true
+    type: string
+
 
 runs:
   using: "composite"
@@ -72,10 +76,6 @@ runs:
       shell: bash
       run: |
         telegraf config > telegraf.conf
-    - name: Check Telegraf status
-      shell: bash
-      run: |
-        systemctl status telegraf.service
     - name: Start Telegraf
       shell: bash
       run: |
