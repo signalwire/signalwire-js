@@ -57,12 +57,8 @@ runs:
     - name: send result
       shell: bash
       run: |
-        curl --request POST \
+        curl -v --request POST \
         "${{ inputs.influxdb-url }}/api/v2/write?org=${{ inputs.influxdb-org }}&bucket=${{ inputs.influxdb-bucket }}&precision=ns" \
           --header "Authorization: Token ${{ inputs.influxdb-token }}" \
           --header "Content-Type: text/plain; charset=utf-8" \
-          --header "Accept: application/json" \
-          --data-binary '
-            airSensors,sensor_id=TLM0201 temperature=73.97038159354763,humidity=35.23103248356096,co=0.48445310567793615 1630424257000000000
-            airSensors,sensor_id=TLM0202 temperature=75.30007505999716,humidity=35.651929918691714,co=0.5141876544505826 1630424257000000000
-          '
+          --header "Accept: application/json"
