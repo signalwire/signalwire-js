@@ -44,7 +44,8 @@ runs:
         else
           echo "RESULT=0" >> "$GITHUB_OUTPUT"
         fi
-    - run: |
+    - shell: bash
+      run: |
         which telegraf
     - name: Install Telegraf
       shell: bash
