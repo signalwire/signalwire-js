@@ -41,7 +41,7 @@ jobs:
         uses: ./.github/actions/report-test-result
         with:
           result: ${{ steps.run-tests.conclusion }}
-          test-suite: ${{ github.workflow }}
+          test-suite: realtime-api
           environment: staging
           influxdb-bucket: ${{ secrets.INFLUXDB_BUCKET }}
           influxdb-org: ${{ secrets.INFLUXDB_ORG }}
