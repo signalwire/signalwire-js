@@ -3,6 +3,8 @@ name: RealtimeAPI SDK [production]
 on:
   workflow_call:
   workflow_dispatch:
+  schedule:
+    - cron: '20 * * * *'
 
 concurrency:
   group: ${{ github.workflow }}-realtime-api-production-${{ github.ref }}
@@ -30,6 +32,18 @@ jobs:
         with:
           PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
       - name: Test
+        id: run-tests
         run: npm run -w=@sw-internal/e2e-realtime-api dev
         env:
           SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_REALTIME_SW_TEST_CONFIG }}
+      - name: Report Result
+        if: success() || failure()
+        uses: ./.github/actions/report-test-result
+        with:
+          result: ${{ steps.run-tests.conclusion }}
+          test-suite: realtime-api
+          environment: production
+          influxdb-bucket: ${{ secrets.INFLUXDB_BUCKET }}
+          influxdb-org: ${{ secrets.INFLUXDB_ORG }}
+          influxdb-token: ${{ secrets.INFLUXDB_TOKEN }}
+          influxdb-url: ${{ secrets.INFLUXDB_URL }}
