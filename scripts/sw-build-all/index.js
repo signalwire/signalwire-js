@@ -11,8 +11,9 @@ const __dirname = path.dirname(__filename)
  */
 const TARGET_DEPTH_LEVEL = 1
 
-const parsePackageName = (pathname) => {
-  const parts = pathname.split(path.sep)
+const parsePackageName = (pathname, separator) => {
+  const sep = separator ?? path.sep
+  const parts = pathname.split(sep)
   const swIndex = parts.findIndex(
     (p) => p === '@signalwire' || p === 'packages'
   )
@@ -82,7 +83,7 @@ export async function cli(args) {
           acc.set(
             pkgName,
             deps.map((s) => {
-              return parsePackageName(s)
+              return parsePackageName(s, '/')
             })
           )
         }
