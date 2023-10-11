@@ -4,6 +4,7 @@ import {
   getLogger,
   sagaEffects,
   actions,
+  LOCAL_EVENT_PREFIX,
 } from '@signalwire/core'
 import type { Task } from '@signalwire/core'
 import { RoomSessionConnection } from '../BaseRoomSession'
