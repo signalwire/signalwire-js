@@ -13,14 +13,10 @@ const TARGET_DEPTH_LEVEL = 1
 
 const parsePackageName = (pathname, separator) => {
   const sep = separator ?? path.sep
-  console.log('parsePackageName pathname:', pathname)
   const parts = pathname.split(sep)
-  console.log('parsePackageName parts:', parts)
   const swIndex = parts.findIndex(
     (p) => p === '@signalwire' || p === 'packages'
   )
-  console.log('parsePackageName swIndex:', swIndex)
-  console.log('parsePackageName resul:', parts[swIndex + 1])
 
   return parts[swIndex + 1]
 }
@@ -66,7 +62,6 @@ export async function cli(args) {
         if (item !== 'package.json') {
           return
         }
-        console.log('pathname is:', pathname)
 
         const pkgJson = JSON.parse(
           fs.readFileSync(path.resolve(pathname, 'package.json'), 'utf-8')
@@ -79,10 +74,8 @@ export async function cli(args) {
             key !== '@signalwire/compatibility-api'
           )
         })
-        console.log('Deps are:', deps, deps.length)
 
         const pkgName = parsePackageName(pathname)
-        console.log('pkgName is:', pkgName)
 
         if (deps.length === 0) {
           packagesWithNoDeps.add(pkgName)
@@ -104,9 +97,6 @@ export async function cli(args) {
 
   console.log('🌲 Constructing the build tree...')
   const pkgDeps = scan(path.join(__dirname, '../../packages'))
-  console.log('Dir is:', path.join(__dirname, '../../packages'))
-  console.log('pkgDeps', pkgDeps)
-  process.exit(1)
   const tree = buildTree(
     pkgDeps,
     new Map([[0, Array.from(packagesWithNoDeps)]])
