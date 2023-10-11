@@ -23,7 +23,7 @@ export const videoElementSaga: SDKWorker<RoomSessionConnection> = function* (
 ): SagaIterator {
   try {
     const { instance: room, runSaga, initialState } = options
-    const { rootElement, applyLocalVideoOverlay } = initialState
+    const { rootElement, applyLocalVideoOverlay = true } = initialState
     const layerMap = new Map<string, HTMLDivElement>()
     const videoEl = buildVideo()
 
