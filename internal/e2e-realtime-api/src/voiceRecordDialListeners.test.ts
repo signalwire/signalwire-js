@@ -4,7 +4,6 @@ import {
   createTestRunner,
   CALL_RECORD_PROPS,
   CALL_PROPS,
-  sleep,
   TestHandler,
   makeSipDomainAppAddress,
 } from './utils'
