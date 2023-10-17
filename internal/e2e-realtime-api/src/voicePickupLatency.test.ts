@@ -38,6 +38,7 @@ const handler: TestHandler = ({ domainApp }) => {
       })
 
       let miliSeconds = 0
+      // Start a timer in miliseconds
       const timer = setInterval(() => miliSeconds++, 100)
 
       const call = await client.voice.dialSip({
@@ -51,21 +52,25 @@ const handler: TestHandler = ({ domainApp }) => {
         }),
         timeout: 30,
         listen: {
-          onStateChanged(call) {
+          async onStateChanged(call) {
+            // If the call has answered; stop the timer and print the time.
             if (call.state === 'answered') {
               clearInterval(timer)
 
               tap.ok(miliSeconds, 'MiliSeconds')
               console.log(miliSeconds)
             }
+
+            // If the call has ended (hangup by the callee) disconnect the client
             if (call.state === 'ended') {
+              await client.disconnect()
               resolve(0)
             }
           },
         },
       })
     } catch (error) {
-      console.error('VoiceGreetAndRecord error', error)
+      console.error('VoicePickupLatency error', error)
       reject(4)
     }
   })
@@ -73,7 +78,7 @@ const handler: TestHandler = ({ domainApp }) => {
 
 async function main() {
   const runner = createTestRunner({
-    name: 'Voice VoiceGreetAndRecord E2E',
+    name: 'Voice VoicePickupLatency E2E',
     testHandler: handler,
     executionTime: 60_000,
     useDomainApp: true,
