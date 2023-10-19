@@ -214,7 +214,7 @@ export const createTestVRTToken = async (body: CreateTestVRTOptions) => {
 }
 
 interface CreateTestJWTOptions {
-  resource?: string,
+  resource?: string
   refresh_token?: string
 }
 
@@ -232,6 +232,29 @@ export const createTestJWTToken = async (body: CreateTestJWTOptions) => {
   )
   const data = await response.json()
   return data.jwt_token
+}
+
+export const createTestSATToken = async () => {
+  const BASIC_TOKEN = Buffer.from(
+    `${process.env.RELAY_PROJECT}:${process.env.RELAY_TOKEN}`
+  ).toString('base64')
+
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/fabric/subscribers/tokens`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify({
+        reference: process.env.CALL_FABRIC_REFERENCE,
+        password: process.env.CALL_FABRIC_PASSWORD,
+      }),
+    }
+  )
+  const data = await response.json()
+  return data.token
 }
 
 interface CreateTestCRTOptions {
