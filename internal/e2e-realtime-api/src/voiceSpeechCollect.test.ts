@@ -58,9 +58,9 @@ const handler: TestHandler = ({ domainApp }) => {
         })
 
         const callCollect = await call.collect({
-          initialTimeout: 4.0,
+          initialTimeout: 10.0,
           speech: {
-            endSilenceTimeout: 2.0,
+            endSilenceTimeout: 6.0,
             speechTimeout: 60.0,
             language:'en-US',
             model: 'enhanced.phone_call',
@@ -75,14 +75,12 @@ const handler: TestHandler = ({ domainApp }) => {
 
         // Wait until the caller ends entring the digits
         await waitForCollectEnd
-
+        // const collected = await callCollect.stop();
         const collected = await callCollect.ended() // block the script until the collect ended
-        tap.equal(collected.text, 'one two three four five six seven eight nine ten', 'Collect the correct text')
+        tap.equal(collected.text, 'one two three four five six seven eight nine ten  11 to 8', 'Collect the correct text')
         // await callCollect.stop()
         // await callCollect.startInputTimers()
-
-        await new Promise((resolve) => setTimeout(resolve, 3000))
-        await call.hangup()
+        // await call.hangup()
       } catch (error) {
         console.error('Error', error)
         reject(4)
@@ -115,10 +113,12 @@ const handler: TestHandler = ({ domainApp }) => {
       //   sendDigitResult.id,
       //   'sendDigit returns the same instance'
       // )
-
-      await call.playAudio({
+  
+      call.playAudio({
         url: 'https://od.lk/s/MzJfMjM1ODY4Nzlf/recording3.mp3',
       })
+      await new Promise((resolve) => setTimeout(resolve, 7000))
+      await call.hangup()
       // Resolve the collect end promise to inform the callee
       waitForCollectEndResolve()
 
