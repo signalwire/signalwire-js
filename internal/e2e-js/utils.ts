@@ -248,8 +248,8 @@ export const createTestSATToken = async () => {
         Authorization: `Basic ${BASIC_TOKEN}`,
       },
       body: JSON.stringify({
-        reference: process.env.CALL_FABRIC_REFERENCE,
-        password: process.env.CALL_FABRIC_PASSWORD,
+        reference: process.env.CF_REFERENCE,
+        password: process.env.CF_PASSWORD,
       }),
     }
   )

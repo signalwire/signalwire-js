@@ -37,24 +37,27 @@ test.describe('CallFabric', () => {
     )
 
     // Dial an address and join a video room
-    const roomSession = await page.evaluate(async () => {
-      // @ts-expect-error
-      const client = window._client
+    const roomSession = await page.evaluate(
+      async ({ address }) => {
+        // @ts-expect-error
+        const client = window._client
 
-      const call = await client.dial({
-        to: '/public/cf-e2e-test-room',
-        logLevel: 'debug',
-        debug: { logWsTraffic: true },
-        nodeId: undefined,
-      })
+        const call = await client.dial({
+          to: address,
+          logLevel: 'debug',
+          debug: { logWsTraffic: true },
+          nodeId: undefined,
+        })
 
-      // @ts-expect-error
-      window._roomObj = call
+        // @ts-expect-error
+        window._roomObj = call
 
-      await call.start()
+        await call.start()
 
-      return call
-    })
+        return call
+      },
+      { address: process.env.CF_VIDEO_ROOM_ADDRESS }
+    )
 
     expect(roomSession).toBeDefined()
     expect(roomSession).toBeDefined()
