@@ -1,6 +1,6 @@
 import { Video } from '@signalwire/js'
 import { test, expect } from '../../fixtures'
-import { SERVER_URL, createTestSATToken } from '../../utils'
+import { SERVER_URL, createTestSATToken, expectMCUVisible } from '../../utils'
 
 test.describe('CallFabric VideoRoom', () => {
   test('should join a video room', async ({ createCustomPage }) => {
@@ -63,8 +63,7 @@ test.describe('CallFabric VideoRoom', () => {
     expect(roomSession).toBeDefined()
     expect(roomSession.state).toBe('active')
 
-    // Checks that the video is visible
-    await page.waitForSelector('div[id="rootElement"] video')
+    await expectMCUVisible(page)
 
     // Hangup the call
     const hangupRoom = await page.evaluate(() => {
