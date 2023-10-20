@@ -1,8 +1,8 @@
 import { Video } from '@signalwire/js'
-import { test, expect } from '../fixtures'
-import { SERVER_URL, createTestSATToken } from '../utils'
+import { test, expect } from '../../fixtures'
+import { SERVER_URL, createTestSATToken } from '../../utils'
 
-test.describe('CallFabric', () => {
+test.describe('CallFabric VideoRoom', () => {
   test('should join a video room', async ({ createCustomPage }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
