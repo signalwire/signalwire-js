@@ -406,6 +406,7 @@ export type VoiceCallDisconnectReason =
 export interface VoiceCallDialRegionParams {
   region?: VoiceRegion
   maxPricePerMinute?: number
+  nodeId?: string
 }
 
 export type VoiceCallDialPhoneMethodParams = OmitType<VoiceCallPhoneParams> &
