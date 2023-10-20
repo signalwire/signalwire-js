@@ -31,7 +31,7 @@ test.describe('CallFabric', () => {
         return client
       },
       {
-        RELAY_HOST: process.env.RELAY_HOST,
+        RELAY_HOST: process.env.CF_RELAY_HOST,
         API_TOKEN: sat,
       }
     )
