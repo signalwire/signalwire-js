@@ -180,6 +180,38 @@ export const createTestRoomSessionWithJWT = async (
   )
 }
 
+export const createSWClient = async (page: Page) => {
+  const sat = await createTestSATToken()
+  if (!sat) {
+    console.error('Invalid SAT. Exiting..')
+    process.exit(4)
+  }
+
+  const swClient = await page.evaluate(
+    async (options) => {
+      // @ts-expect-error
+      const SignalWire = window._SWJS.SignalWire
+      const client = await SignalWire({
+        host: options.RELAY_HOST,
+        token: options.API_TOKEN,
+        rootElement: document.getElementById('rootElement'),
+        debug: { logWsTraffic: true },
+      })
+
+      // @ts-expect-error
+      window._client = client
+
+      return client
+    },
+    {
+      RELAY_HOST: process.env.CF_RELAY_HOST,
+      API_TOKEN: sat,
+    }
+  )
+
+  return swClient
+}
+
 interface CreateTestVRTOptions {
   room_name: string
   user_name: string

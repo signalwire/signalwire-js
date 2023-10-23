@@ -2,7 +2,7 @@ import { Video } from '@signalwire/js'
 import { test, expect } from '../../fixtures'
 import {
   SERVER_URL,
-  createTestSATToken,
+  createSWClient,
   expectLayoutChanged,
   expectMCUVisible,
   setLayoutOnPage,
@@ -17,34 +17,7 @@ test.describe('CallFabric VideoRoom', () => {
 
     const roomName = 'cf-e2e-test-room'
 
-    const sat = await createTestSATToken()
-    if (!sat) {
-      console.error('Invalid SAT. Exiting..')
-      process.exit(4)
-    }
-
-    // Create client
-    await page.evaluate(
-      async (options) => {
-        // @ts-expect-error
-        const SignalWire = window._SWJS.SignalWire
-        const client = await SignalWire({
-          host: options.RELAY_HOST,
-          token: options.API_TOKEN,
-          rootElement: document.getElementById('rootElement'),
-          debug: { logWsTraffic: true },
-        })
-
-        // @ts-expect-error
-        window._client = client
-
-        return client
-      },
-      {
-        RELAY_HOST: process.env.CF_RELAY_HOST,
-        API_TOKEN: sat,
-      }
-    )
+    await createSWClient(page)
 
     // Dial an address and join a video room
     const roomSession = await page.evaluate(
