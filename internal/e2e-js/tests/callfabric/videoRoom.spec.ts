@@ -1,11 +1,21 @@
 import { Video } from '@signalwire/js'
 import { test, expect } from '../../fixtures'
-import { SERVER_URL, createTestSATToken, expectMCUVisible } from '../../utils'
+import {
+  SERVER_URL,
+  createTestSATToken,
+  expectLayoutChanged,
+  expectMCUVisible,
+  setLayoutOnPage,
+} from '../../utils'
 
 test.describe('CallFabric VideoRoom', () => {
-  test('should join a video room', async ({ createCustomPage }) => {
+  test('should handle joining a room, perform actions and then leave the room', async ({
+    createCustomPage,
+  }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
+
+    const roomName = 'cf-e2e-test-room'
 
     const sat = await createTestSATToken()
     if (!sat) {
@@ -38,47 +48,182 @@ test.describe('CallFabric VideoRoom', () => {
 
     // Dial an address and join a video room
     const roomSession = await page.evaluate(
-      async ({ address }) => {
-        // @ts-expect-error
-        const client = window._client
+      async ({ roomName }) => {
+        return new Promise<any>(async (resolve, _reject) => {
+          // @ts-expect-error
+          const client = window._client
 
-        const call = await client.dial({
-          to: address,
-          logLevel: 'debug',
-          debug: { logWsTraffic: true },
-          nodeId: undefined,
+          const call = await client.dial({
+            to: `/public/${roomName}`,
+            logLevel: 'debug',
+            debug: { logWsTraffic: true },
+            nodeId: undefined,
+          })
+
+          call.on('room.joined', resolve)
+
+          // @ts-expect-error
+          window._roomObj = call
+
+          await call.start()
         })
-
-        // @ts-expect-error
-        window._roomObj = call
-
-        await call.start()
-
-        return call
       },
-      { address: process.env.CF_VIDEO_ROOM_ADDRESS }
+      { roomName }
     )
 
-    expect(roomSession).toBeDefined()
-    expect(roomSession).toBeDefined()
-    expect(roomSession.state).toBe('active')
+    expect(roomSession.room).toBeDefined()
+    expect(roomSession.room_session).toBeDefined()
+    expect(
+      roomSession.room.members.some(
+        (member: any) => member.id === roomSession.member_id
+      )
+    ).toBeTruthy()
+    expect(roomSession.room_session.name).toBe(roomName)
+    expect(roomSession.room.name).toBe(roomName)
 
     await expectMCUVisible(page)
 
-    // Hangup the call
-    const hangupRoom = await page.evaluate(() => {
-      return new Promise((resolve, _reject) => {
+    // --------------- Muting Audio (self) ---------------
+    await page.evaluate(
+      async ({ roomSession }) => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
 
-        roomObj.on('destroy', resolve)
+        const memberUpdatedMuted = new Promise((resolve) => {
+          roomObj.on('member.updated', (params) => {
+            if (
+              params.member.id === roomSession.member_id &&
+              params.member.updated.includes('audio_muted') &&
+              params.member.audio_muted === true
+            ) {
+              resolve(true)
+            }
+          })
+        })
 
+        const memberUpdatedUnmuted = new Promise((resolve) => {
+          roomObj.on('member.updated', (params) => {
+            if (
+              params.member.id === roomSession.member_id &&
+              params.member.updated.includes('audio_muted') &&
+              params.member.audio_muted === false
+            ) {
+              resolve(true)
+            }
+          })
+        })
+
+        await roomObj.audioMute()
+        await roomObj.audioUnmute()
+
+        return Promise.all([memberUpdatedMuted, memberUpdatedUnmuted])
+      },
+      { roomSession }
+    )
+
+    // --------------- Muting Video (self) ---------------
+    await page.evaluate(
+      async ({ roomSession }) => {
         // @ts-expect-error
-        roomObj.hangup()
-      })
-    })
+        const roomObj: Video.RoomSession = window._roomObj
 
-    // @ts-expect-error
-    expect(hangupRoom.state).toBe('destroy')
+        const memberUpdatedMuted = new Promise((resolve) => {
+          roomObj.on('member.updated', (params) => {
+            if (
+              params.member.id === roomSession.member_id &&
+              params.member.updated.includes('video_muted') &&
+              params.member.updated.includes('visible') &&
+              params.member.video_muted === true &&
+              params.member.visible === false
+            ) {
+              resolve(true)
+            }
+          })
+        })
+
+        const memberUpdatedUnnuted = new Promise((resolve) => {
+          roomObj.on('member.updated', (params) => {
+            if (
+              params.member.id === roomSession.member_id &&
+              params.member.updated.includes('video_muted') &&
+              params.member.updated.includes('visible') &&
+              params.member.video_muted === true &&
+              params.member.visible === false
+            ) {
+              resolve(true)
+            }
+          })
+        })
+
+        await roomObj.videoMute()
+        await roomObj.videoUnmute()
+
+        return Promise.all([memberUpdatedMuted, memberUpdatedUnnuted])
+      },
+      { roomSession }
+    )
+
+    // --------------- Get Room Meta ---------------
+    const expectRoomMeta = async (expected: any) => {
+      const currentMeta: any = await page.evaluate(() => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+        return roomObj.getMeta()
+      })
+      expect(currentMeta.meta).toStrictEqual(expected)
+    }
+    await expectRoomMeta({})
+
+    // --------------- Set Room Meta ---------------
+    const meta = { something: 'xx-yy-zzz' }
+    await page.evaluate(
+      async ({ meta }) => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+
+        await roomObj.setMeta(meta)
+      },
+      {
+        meta,
+      }
+    )
+    await expectRoomMeta(meta)
+
+    // --------------- Update Room Meta ---------------
+    const metaUpdate = { updatedKey: 'ii-oo' }
+    await page.evaluate(
+      async ({ meta }) => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+
+        await roomObj.updateMeta(meta)
+      },
+      {
+        meta: metaUpdate,
+      }
+    )
+    await expectRoomMeta({ ...meta, ...metaUpdate })
+
+    // --------------- Delete Room Meta ---------------
+    const metaDelete = ['updatedKey']
+    await page.evaluate(
+      async ({ keys }) => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+
+        await roomObj.deleteMeta(keys)
+      },
+      {
+        keys: metaDelete,
+      }
+    )
+    await expectRoomMeta(meta)
+
+    const layoutName = '3x3'
+    // --------------- Expect layout to change ---------------
+    const layoutChangedPromise = expectLayoutChanged(page, layoutName)
+    // --------------- Set layout ---------------
+    await setLayoutOnPage(page, layoutName)
+    expect(await layoutChangedPromise).toBe(true)
   })
 })
