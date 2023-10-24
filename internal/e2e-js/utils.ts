@@ -180,6 +180,38 @@ export const createTestRoomSessionWithJWT = async (
   )
 }
 
+export const createSWClient = async (page: Page) => {
+  const sat = await createTestSATToken()
+  if (!sat) {
+    console.error('Invalid SAT. Exiting..')
+    process.exit(4)
+  }
+
+  const swClient = await page.evaluate(
+    async (options) => {
+      // @ts-expect-error
+      const SignalWire = window._SWJS.SignalWire
+      const client = await SignalWire({
+        host: options.RELAY_HOST,
+        token: options.API_TOKEN,
+        rootElement: document.getElementById('rootElement'),
+        debug: { logWsTraffic: true },
+      })
+
+      // @ts-expect-error
+      window._client = client
+
+      return client
+    },
+    {
+      RELAY_HOST: process.env.CF_RELAY_HOST,
+      API_TOKEN: sat,
+    }
+  )
+
+  return swClient
+}
+
 interface CreateTestVRTOptions {
   room_name: string
   user_name: string
@@ -214,7 +246,7 @@ export const createTestVRTToken = async (body: CreateTestVRTOptions) => {
 }
 
 interface CreateTestJWTOptions {
-  resource?: string,
+  resource?: string
   refresh_token?: string
 }
 
@@ -232,6 +264,29 @@ export const createTestJWTToken = async (body: CreateTestJWTOptions) => {
   )
   const data = await response.json()
   return data.jwt_token
+}
+
+export const createTestSATToken = async () => {
+  const CF_BASIC_TOKEN = Buffer.from(
+    `${process.env.CF_RELAY_PROJECT}:${process.env.CF_RELAY_TOKEN}`
+  ).toString('base64')
+
+  const response = await fetch(
+    `https://${process.env.CF_API_HOST}/api/fabric/subscribers/tokens`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${CF_BASIC_TOKEN}`,
+      },
+      body: JSON.stringify({
+        reference: process.env.CF_REFERENCE,
+        password: process.env.CF_PASSWORD,
+      }),
+    }
+  )
+  const data = await response.json()
+  return data.token
 }
 
 interface CreateTestCRTOptions {
