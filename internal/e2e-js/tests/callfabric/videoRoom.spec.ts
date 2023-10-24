@@ -114,14 +114,14 @@ test.describe('CallFabric VideoRoom', () => {
           })
         })
 
-        const memberUpdatedUnnuted = new Promise((resolve) => {
+        const memberUpdatedUnmuted = new Promise((resolve) => {
           roomObj.on('member.updated', (params) => {
             if (
               params.member.id === roomSession.member_id &&
               params.member.updated.includes('video_muted') &&
               params.member.updated.includes('visible') &&
-              params.member.video_muted === true &&
-              params.member.visible === false
+              params.member.video_muted === false &&
+              params.member.visible === true
             ) {
               resolve(true)
             }
@@ -131,7 +131,7 @@ test.describe('CallFabric VideoRoom', () => {
         await roomObj.videoMute()
         await roomObj.videoUnmute()
 
-        return Promise.all([memberUpdatedMuted, memberUpdatedUnnuted])
+        return Promise.all([memberUpdatedMuted, memberUpdatedUnmuted])
       },
       { roomSession }
     )
