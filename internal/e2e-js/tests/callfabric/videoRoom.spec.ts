@@ -199,4 +199,37 @@ test.describe('CallFabric VideoRoom', () => {
     await setLayoutOnPage(page, layoutName)
     expect(await layoutChangedPromise).toBe(true)
   })
+
+  test('should fail on invalid address', async ({ createCustomPage }) => {
+    const page = await createCustomPage({ name: '[page]' })
+    await page.goto(SERVER_URL)
+
+    await createSWClient(page)
+
+    // Dial an address and join a video room
+    const roomSession = await page.evaluate(async () => {
+      try {
+        // @ts-expect-error
+        const client = window._client
+
+        const call = await client.dial({
+          to: `/public/invalid-address`,
+          logLevel: 'debug',
+          debug: { logWsTraffic: true },
+          nodeId: undefined,
+        })
+
+        // @ts-expect-error
+        window._roomObj = call
+
+        await call.start()
+
+        return { success: true }
+      } catch (error) {
+        return { success: false, error }
+      }
+    })
+
+    expect(roomSession.success).toBe(false)
+  })
 })
