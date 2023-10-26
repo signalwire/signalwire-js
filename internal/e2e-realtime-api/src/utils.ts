@@ -75,8 +75,8 @@ export const createTestRunner = ({
     run: async () => {
       start()
 
+      const params: TestHandlerParams = {}
       try {
-        const params: TestHandlerParams = {}
         if (useDomainApp) {
           params.domainApp = await createDomainApp({
             name: `d-app-${uuid}`,
@@ -89,11 +89,17 @@ export const createTestRunner = ({
         if (params.domainApp) {
           console.log('Delete domain app..')
           await deleteDomainApp({ id: params.domainApp.id })
+          delete params.domainApp
         }
         done(exitCode)
       } catch (error) {
         clearTimeout(timer)
         console.error(`Test Runner ${name} Failed!`, error)
+        if (params.domainApp) {
+          console.log('Delete domain app..')
+          await deleteDomainApp({ id: params.domainApp.id })
+          delete params.domainApp
+        }
         done(1)
       }
     },
