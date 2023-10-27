@@ -204,7 +204,7 @@ export const createCFClient = async (page: Page) => {
       return client
     },
     {
-      RELAY_HOST: process.env.CF_RELAY_HOST,
+      RELAY_HOST: process.env.RELAY_HOST,
       API_TOKEN: sat,
     }
   )

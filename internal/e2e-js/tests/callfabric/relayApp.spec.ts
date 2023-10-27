@@ -1,7 +1,6 @@
 import { Voice } from '@signalwire/realtime-api'
-import { createCFClient, expectPageReceiveAudio } from '../../utils'
-import { test } from '../../fixtures'
-import { SERVER_URL } from '../../utils'
+import { createCFClient, expectPageReceiveAudio, SERVER_URL } from '../../utils'
+import { test, expect } from '../../fixtures'
 
 test.describe('CallFabric Relay Application', () => {
   test('should connect to the relay app and expect an audio playback', async ({
@@ -75,5 +74,68 @@ test.describe('CallFabric Relay Application', () => {
     } catch (error) {
       console.error('CreateRoomSession Error', error)
     }
+  })
+
+  test('should connect to the relay app and expect a hangup', async ({
+    createCustomPage,
+  }) => {
+    const client = new Voice.Client({
+      host: process.env.RELAY_HOST,
+      project: process.env.RELAY_PROJECT as string,
+      token: process.env.RELAY_TOKEN as string,
+      topics: ['office'],
+      debug: {
+        logWsTraffic: true,
+      },
+    })
+
+    client.on('call.received', async (call) => {
+      try {
+        console.log('Call received', call.id)
+
+        await call.answer()
+        console.log('Inbound call answered')
+
+        await call.hangup()
+      } catch (error) {
+        console.error('Inbound call error', error)
+      }
+    })
+
+    const page = await createCustomPage({ name: '[page]' })
+    await page.goto(SERVER_URL)
+
+    const resourceName = 'cf-e2e-test-connect-phone'
+
+    await createCFClient(page)
+
+    // Dial an address and listen a TTS
+    await page.evaluate(
+      async ({ resourceName }) => {
+        // @ts-expect-error
+        const client = window._client
+
+        const call = await client.dial({
+          to: `/public/${resourceName}`,
+          nodeId: undefined,
+        })
+
+        // @ts-expect-error
+        window._roomObj = call
+
+        await call.start()
+      },
+      { resourceName }
+    )
+
+    await page.waitForTimeout(5000)
+
+    const roomSession = await page.evaluate(() => {
+      // @ts-expect-error
+      const roomObj = window._roomObj
+      return roomObj
+    })
+
+    expect(roomSession.state).toBe('destroy')
   })
 })
