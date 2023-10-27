@@ -180,7 +180,7 @@ export const createTestRoomSessionWithJWT = async (
   )
 }
 
-export const createSWClient = async (page: Page) => {
+export const createCFClient = async (page: Page) => {
   const sat = await createTestSATToken()
   if (!sat) {
     console.error('Invalid SAT. Exiting..')

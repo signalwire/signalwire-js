@@ -1,5 +1,5 @@
 import { test, expect } from '../../fixtures'
-import { SERVER_URL, createSWClient, expectPageReceiveAudio } from '../../utils'
+import { SERVER_URL, createCFClient, expectPageReceiveAudio } from '../../utils'
 
 test.describe('CallFabric SWML', () => {
   test('should dial an address and expect a TTS audio', async ({
@@ -10,7 +10,7 @@ test.describe('CallFabric SWML', () => {
 
     const resourceName = 'cf-e2e-test-tts'
 
-    await createSWClient(page)
+    await createCFClient(page)
 
     // Dial an address and listen a TTS
     await page.evaluate(
@@ -56,7 +56,7 @@ test.describe('CallFabric SWML', () => {
 
     const resourceName = 'cf-e2e-test-hangup'
 
-    await createSWClient(page)
+    await createCFClient(page)
 
     // Dial an address and listen a TTS
     await page.evaluate(
@@ -67,8 +67,6 @@ test.describe('CallFabric SWML', () => {
 
           const call = await client.dial({
             to: `/public/${resourceName}`,
-            logLevel: 'debug',
-            debug: { logWsTraffic: true },
             nodeId: undefined,
           })
 
