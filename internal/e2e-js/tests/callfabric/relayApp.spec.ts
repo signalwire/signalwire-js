@@ -8,9 +8,9 @@ test.describe('CallFabric Relay Application', () => {
   }) => {
     const client = new Voice.Client({
       host: process.env.RELAY_HOST,
-      project: process.env.RELAY_PROJECT as string,
-      token: process.env.RELAY_TOKEN as string,
-      topics: ['office'],
+      project: process.env.CF_RELAY_PROJECT as string,
+      token: process.env.CF_RELAY_TOKEN as string,
+      topics: ['cf-e2e-test-relay'],
       debug: {
         logWsTraffic: true,
       },
@@ -38,7 +38,7 @@ test.describe('CallFabric Relay Application', () => {
 
       await createCFClient(page)
 
-      const resourceName = 'cf-e2e-test-connect-phone'
+      const resourceName = 'cf-e2e-test-relay'
 
       await page.evaluate(
         async (options) => {
@@ -81,9 +81,9 @@ test.describe('CallFabric Relay Application', () => {
   }) => {
     const client = new Voice.Client({
       host: process.env.RELAY_HOST,
-      project: process.env.RELAY_PROJECT as string,
-      token: process.env.RELAY_TOKEN as string,
-      topics: ['office'],
+      project: process.env.CF_RELAY_PROJECT as string,
+      token: process.env.CF_RELAY_TOKEN as string,
+      topics: ['cf-e2e-test-relay'],
       debug: {
         logWsTraffic: true,
       },
@@ -105,7 +105,7 @@ test.describe('CallFabric Relay Application', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const resourceName = 'cf-e2e-test-connect-phone'
+    const resourceName = 'cf-e2e-test-relay'
 
     await createCFClient(page)
 
