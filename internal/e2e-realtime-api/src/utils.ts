@@ -43,6 +43,7 @@ interface CreateTestRunnerParams {
   testHandler: TestHandler
   executionTime?: number
   useDomainApp?: boolean
+  exitOnSuccess?: boolean
 }
 
 export const createTestRunner = ({
@@ -51,6 +52,7 @@ export const createTestRunner = ({
   testHandler,
   executionTime = MAX_EXECUTION_TIME,
   useDomainApp = false,
+  exitOnSuccess = true,
 }: CreateTestRunnerParams) => {
   let timer: ReturnType<typeof setTimeout>
 
@@ -65,6 +67,9 @@ export const createTestRunner = ({
     clearTimeout(timer)
     if (exitCode === 0) {
       console.log(`Test Runner ${name} Passed!`)
+      if (!exitOnSuccess) {
+        return;
+      }
     } else {
       console.log(`Test Runner ${name} finished with exitCode: ${exitCode}`)
     }

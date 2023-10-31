@@ -6,7 +6,7 @@ import {
   makeSipDomainAppAddress,
 } from './utils'
 
-const handlers= (): TestHandler[] => {
+const getHandlers= (): TestHandler[] => {
   const cases = {
     'continuous: true and partialResults: true': {
       continuous: true,
@@ -112,12 +112,9 @@ const handlers= (): TestHandler[] => {
 
             // Wait until the caller ends entring the digits
             await waitForCollectEnd
-            // const collected = await callCollect.stop();
             const collected = await callCollect.ended() // block the script until the collect ended
             tap.equal(collected.text, options.expectedText, 'Received Correct Text')
-            // await callCollect.stop()
-            // await callCollect.startInputTimers()
-            // await call.hangup()
+    
             const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
             const results = await Promise.all(
               waitForParams.map((params) => call.waitFor(params as any))
@@ -141,6 +138,7 @@ const handlers= (): TestHandler[] => {
 
         try {
           const call = await client.dialSip({
+            // NOTE: change back to makeSipDomainAppAddress after backend changes are deployed
             // to: makeSipDomainAppAddress({
             //   name: 'to',
             //   domain: domainApp.domain,
@@ -157,14 +155,6 @@ const handlers= (): TestHandler[] => {
 
           // Wait until the callee answers the call and start collecting digits
           await waitForCollectStart
-
-          // const sendDigitResult = await call.sendDigits('1w2w3w#')
-          
-          // tap.equal(
-          //   call.id,
-          //   sendDigitResult.id,
-          //   'sendDigit returns the same instance'
-          // )
       
           call.playAudio({
             url: 'https://od.lk/s/MzJfMjM1ODY4Nzlf/recording3.mp3',
@@ -184,15 +174,21 @@ const handlers= (): TestHandler[] => {
 }
 
 async function main() {
-  for (let handler of handlers()) {
+  const handlers = getHandlers()
+  for (let i = 0; i < handlers.length; i++) {
+
     const runner = createTestRunner({
       name: 'Voice Speech Collect E2E',
-      testHandler: handler,
+      testHandler: handlers[i],
       executionTime: 60_000,
       useDomainApp: true,
+      // only exit process on success for last test case
+      exitOnSuccess: (i == handlers.length - 1)
     })
 
     await runner.run()
+    // delay 1 sec between each test case
+    await new Promise(resolve => setTimeout(resolve, 1_000))
   }
 }
 
