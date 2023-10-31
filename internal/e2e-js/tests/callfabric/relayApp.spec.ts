@@ -1,5 +1,10 @@
 import { Voice } from '@signalwire/realtime-api'
-import { createCFClient, expectPageReceiveAudio, SERVER_URL } from '../../utils'
+import {
+  createCFClient,
+  expectPageReceiveAudio,
+  getAudioStats,
+  SERVER_URL,
+} from '../../utils'
 import { test, expect } from '../../fixtures'
 
 test.describe('CallFabric Relay Application', () => {
@@ -61,6 +66,79 @@ test.describe('CallFabric Relay Application', () => {
       )
 
       await expectPageReceiveAudio(page)
+
+      // Hangup the call
+      await page.evaluate(async () => {
+        // @ts-expect-error
+        const call = window._roomObj
+
+        await call.hangup()
+      })
+
+      client.disconnect()
+    } catch (error) {
+      console.error('CreateRoomSession Error', error)
+    }
+  })
+
+  test('should connect to the relay app and expect a silence', async ({
+    createCustomPage,
+  }) => {
+    const client = new Voice.Client({
+      host: process.env.RELAY_HOST,
+      project: process.env.CF_RELAY_PROJECT as string,
+      token: process.env.CF_RELAY_TOKEN as string,
+      topics: ['cf-e2e-test-relay'],
+      debug: {
+        logWsTraffic: true,
+      },
+    })
+
+    client.on('call.received', async (call) => {
+      try {
+        console.log('Call received', call.id)
+
+        await call.answer()
+        console.log('Inbound call answered')
+
+        const playback = await call.playSilence({ duration: 60 })
+        await playback.setVolume(10)
+      } catch (error) {
+        console.error('Inbound call error', error)
+      }
+    })
+
+    try {
+      const page = await createCustomPage({ name: '[page]' })
+      await page.goto(SERVER_URL)
+
+      await createCFClient(page)
+
+      const resourceName = 'cf-e2e-test-relay'
+
+      await page.evaluate(
+        async (options) => {
+          // @ts-expect-error
+          const client = window._client
+
+          const call = await client.dial({
+            to: `/public/${options.resourceName}`,
+            nodeId: undefined,
+          })
+
+          // @ts-expect-error
+          window._roomObj = call
+
+          await call.start()
+        },
+        {
+          resourceName,
+        }
+      )
+
+      const audioStats = await getAudioStats(page)
+
+      expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeCloseTo(0.1, 0)
 
       // Hangup the call
       await page.evaluate(async () => {

@@ -436,10 +436,7 @@ export const expectMediaEvent = (page: Page, event: MediaEvent) => {
   )
 }
 
-export const expectTotalAudioEnergyToBeGreaterThan = async (
-  page: Page,
-  value: number
-) => {
+export const getAudioStats = async (page: Page) => {
   const audioStats = await page.evaluate(async () => {
     // @ts-expect-error
     const roomObj: Video.RoomSession = window._roomObj
@@ -487,6 +484,15 @@ export const expectTotalAudioEnergyToBeGreaterThan = async (
     return result
   })
   console.log('audioStats', audioStats)
+
+  return audioStats
+}
+
+export const expectTotalAudioEnergyToBeGreaterThan = async (
+  page: Page,
+  value: number
+) => {
+  const audioStats = await getAudioStats(page)
 
   expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(value)
 }
