@@ -50,22 +50,27 @@ export const voiceCallCollectWorker = function* (
         case 'no_input':
         case 'no_match':
         case 'error': {
-          callInstance.emit(`${eventPrefix}.failed`, actionInstance)
+          if (payload.state !== 'collecting') {
+            callInstance.emit(`${eventPrefix}.failed`, actionInstance)
 
-          // To resolve the ended() promise in CallPrompt or CallCollect
-          actionInstance.emit(`${eventPrefix}.failed` as never, actionInstance)
+            // To resolve the ended() promise in CallPrompt or CallCollect
+            actionInstance.emit(
+              `${eventPrefix}.failed` as never,
+              actionInstance
+            )
 
-          remove<CallCollect>(payload.control_id)
+            remove<CallCollect>(payload.control_id)
+          }
           break
         }
         case 'speech':
         case 'digit': {
-          callInstance.emit(`${eventPrefix}.ended`, actionInstance)
-
-          // To resolve the ended() promise in CallPrompt or CallCollect
-          actionInstance.emit(`${eventPrefix}.ended` as never, actionInstance)
-
-          remove<CallCollect>(payload.control_id)
+          if (payload.state !== 'collecting') {
+            callInstance.emit(`${eventPrefix}.ended`, actionInstance)
+            // To resolve the ended() promise in CallPrompt or CallCollect
+            actionInstance.emit(`${eventPrefix}.ended` as never, actionInstance)
+            remove<CallCollect>(payload.control_id)
+          }
           break
         }
         default:

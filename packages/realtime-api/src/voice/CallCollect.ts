@@ -113,6 +113,14 @@ export class CallCollectAPI
     return undefined
   }
 
+  get state() {
+    return this._payload.state
+  }
+
+  get final() {
+    return this._payload.final
+  }
+
   /** @internal */
   protected setPayload(payload: CallingCallCollectEventParams) {
     this._payload = payload
@@ -155,12 +163,8 @@ export class CallCollectAPI
   ended() {
     // Resolve the promise if the collect has already ended
     if (
-      ENDED_STATES.includes(this.result?.type as CallingCallCollectEndState) ||
-      // @ts-ignore
-      (this._payload.state == undefined && this._payload.final == true) ||
-      // @ts-ignore
-      (this._payload.state == 'finished')
-    ) {
+      this.state != 'collecting' && (this.final === undefined || this.final === true)  &&
+      ENDED_STATES.includes(this.result?.type as CallingCallCollectEndState)) {
       return Promise.resolve(this)
     }
 
