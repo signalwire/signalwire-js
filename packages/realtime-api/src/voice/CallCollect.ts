@@ -128,7 +128,7 @@ export class CallCollectAPI
 
   async stop() {
     // Execute stop only if we don't have result yet
-    //if (!this.result) {
+    if (!this.result) {
       await this.execute({
         method: 'calling.collect.stop',
         params: {
@@ -137,7 +137,7 @@ export class CallCollectAPI
           control_id: this.controlId,
         },
       })
-    //}
+    }
 
     /**
      * TODO: we should wait for the prompt to be finished to allow
