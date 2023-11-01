@@ -1,4 +1,5 @@
 import tap from 'tap'
+import { uuid } from '@signalwire/core'
 import { Voice } from '@signalwire/realtime-api'
 import {
   type TestHandler,
@@ -10,33 +11,34 @@ const getHandlers= (): TestHandler[] => {
   const cases = {
     'continuous: true and partialResults: true': {
       continuous: true,
-      partialResult: true,
+      partialResults: true,
       hangupAfter: 15_000,
       expectedText: 'one two three four five six seven eight nine ten  11 to 8',
     },
     'continuous: true and partialResults: false': {
       continuous: true,
-      partialResult: false,
+      partialResults: false,
       hangupAfter: 15_000,
       expectedText: 'one two three four five six seven eight nine ten  11 to 8',
     },
     'continuous: false and partialResults: true': {
       continuous: false,
-      partialResult: true,
+      partialResults: true,
       hangupAfter: 15_000,
       expectedText: 'one two three four five six seven eight nine ten  11 to 8',
     },
     'continuous: false and partialResults: false': {
       continuous: false,
-      partialResult: false,
+      partialResults: false,
       hangupAfter: 15_000,
       expectedText: 'one two three four five six seven eight nine ten  11 to 8',
     },
-    'continuous: false and partialResults: true (hangup before palying the audio file finish)': {
-      continuous: true,
-      partialResult: true,
-      hangupAfter: 9_000,
-      expectedText: '123456789  10',
+    'continuous: false and partialResults: true (hangup before palying the audio file finish)':
+      {
+        continuous: false,
+        partialResults: true,
+        hangupAfter: 9_000,
+        expectedText: 'one two three four five six seven eight nine ten',
     },
   }
 
@@ -102,7 +104,7 @@ const getHandlers= (): TestHandler[] => {
                 language:'en-US',
                 model: 'enhanced.phone_call',
               },
-              partialResults: options.partialResult,
+              partialResults: options.partialResults,
               continuous: options.continuous,
               sendStartOfInput: true
             })
@@ -112,24 +114,9 @@ const getHandlers= (): TestHandler[] => {
 
             // Wait until the caller ends entring the digits
             await waitForCollectEnd
+            setTimeout(() => call.hangup(), 100);
             const collected = await callCollect.ended() // block the script until the collect ended
             tap.equal(collected.text, options.expectedText, 'Received Correct Text')
-    
-            const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
-            const results = await Promise.all(
-              waitForParams.map((params) => call.waitFor(params as any))
-            )
-            waitForParams.forEach((value, i) => {
-              if (typeof value === 'string') {
-                tap.ok(results[i], `"${value}": completed successfully.`)
-              } else {
-                tap.ok(
-                  results[i],
-                  `${JSON.stringify(value)}: completed successfully.`
-                )
-              }
-            })
-            resolve(0)
           } catch (error) {
             console.error('Error', error)
             reject(4)
@@ -147,8 +134,8 @@ const getHandlers= (): TestHandler[] => {
             //   name: 'from',
             //   domain: domainApp.domain,
             // }),
-            to: 'sip:to@dev-min.dapp.swire.io',
-            from: 'sip:from@dev-min.dapp.swire.io',
+            to: `sip:to-${uuid()}@dev-min.dapp.swire.io`,
+            from: `sip:from-${uuid()}@dev-min.dapp.swire.io`,
             timeout: 30,
           })
           tap.ok(call.id, 'Call resolved')
@@ -157,12 +144,31 @@ const getHandlers= (): TestHandler[] => {
           await waitForCollectStart
       
           call.playAudio({
-            url: 'https://od.lk/s/MzJfMjM1ODY4Nzlf/recording3.mp3',
+            url: 'https://amaswtest.s3.us-west-1.amazonaws.com/recording3.mp3',
           })
           await new Promise((resolve) => setTimeout(resolve, options.hangupAfter))
           // Resolve the collect end promise to inform the callee
           waitForCollectEndResolve()
-          await call.hangup()
+          const waitForParams = [
+            'ended',
+            'ending',
+            ['ending', 'ended'],
+          ] as const
+          const results = await Promise.all(
+            waitForParams.map((params) => call.waitFor(params as any))
+          )
+          waitForParams.forEach((value, i) => {
+            if (typeof value === 'string') {
+              tap.ok(results[i], `"${value}": completed successfully.`)
+            } else {
+              tap.ok(
+                results[i],
+                `${JSON.stringify(value)}: completed successfully.`
+              )
+            }
+          })
+          client.disconnect()
+          resolve(0)
         } catch (error) {
           console.error('Outbound - voiceDetect error', error)
           reject(4)
@@ -183,12 +189,12 @@ async function main() {
       executionTime: 60_000,
       useDomainApp: true,
       // only exit process on success for last test case
-      exitOnSuccess: (i == handlers.length - 1)
+      exitOnSuccess: (i + 1 == handlers.length)
     })
 
     await runner.run()
-    // delay 1 sec between each test case
-    await new Promise(resolve => setTimeout(resolve, 1_000))
+    // delay 3 sec between each test case so file server hosting the mp3 file won't trigger rate limit
+    await new Promise(resolve => setTimeout(resolve, 3_000))
   }
 }
 
