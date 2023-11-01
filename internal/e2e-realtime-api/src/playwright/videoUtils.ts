@@ -48,22 +48,69 @@ export const createTestVRTToken = async (body: CreateVRTParams) => {
 }
 
 type CreateRoomSessionParams = CreateVRTParams & {
+  page: Page
+}
+
+export const createRoomSession = async (params: CreateRoomSessionParams) => {
+  try {
+    const { page, ...auth } = params
+
+    const vrt = await createTestVRTToken(auth)
+
+    return page.evaluate(
+      (options) => {
+        return new Promise<void>(async (resolve, reject) => {
+          // @ts-expect-error
+          const VideoSWJS = window._SWJS.Video
+          const roomSession = new VideoSWJS.RoomSession({
+            host: options.RELAY_HOST,
+            token: options.API_TOKEN,
+            audio: true,
+            video: true,
+            debug: { logWsTraffic: true },
+          })
+
+          roomSession.on('room.joined', async (room) => {
+            // @ts-expect-error
+            window._roomSession = room
+
+            resolve(room)
+          })
+
+          await roomSession.join().catch((error) => {
+            console.log('Error joining room', error)
+            reject(error)
+          })
+        })
+      },
+      {
+        RELAY_HOST: process.env.RELAY_HOST || 'relay.signalwire.com',
+        API_TOKEN: vrt,
+      }
+    )
+  } catch (error) {
+    console.error('CreateRoomSession Error', error)
+  }
+}
+
+type CreateNewTabRoomSessionParams = CreateVRTParams & {
   browser: Browser
   pageName: string
 }
-export const createNewTabRoomSession = async (
-  params: CreateRoomSessionParams
+
+export const createRoomAndRecordPlay = async (
+  params: CreateNewTabRoomSessionParams
 ): Promise<void> => {
   try {
     const { browser, pageName, ...auth } = params
 
-    const tab = await browser.newPage()
-    await tab.goto(SERVER_URL)
-    enablePageLogs(tab, pageName)
+    const page = await browser.newPage()
+    await page.goto(SERVER_URL)
+    enablePageLogs(page, pageName)
 
     const vrt = await createTestVRTToken(auth)
 
-    return tab.evaluate(
+    return page.evaluate(
       (options) => {
         return new Promise<void>(async (resolve, reject) => {
           // @ts-expect-error

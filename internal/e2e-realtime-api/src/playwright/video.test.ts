@@ -1,7 +1,12 @@
 import { test, expect } from '@playwright/test'
 import { uuid } from '@signalwire/core'
 import { Video } from '@signalwire/realtime-api'
-import { createNewTabRoomSession } from './videoUtils'
+import {
+  createRoomAndRecordPlay,
+  createRoomSession,
+  enablePageLogs,
+} from './videoUtils'
+import { SERVER_URL } from '../../utils'
 
 test.describe('Video', () => {
   test('should join the room and listen for events', async ({ browser }) => {
@@ -40,7 +45,7 @@ test.describe('Video', () => {
     let roomSessionPromises: Promise<void>[] = []
     for (let index = 0; index < roomCount; index++) {
       roomSessionPromises.push(
-        createNewTabRoomSession({
+        createRoomAndRecordPlay({
           browser,
           pageName: `[page-${index}]`,
           room_name: `${prefix}-${index}`,
@@ -122,5 +127,75 @@ test.describe('Video', () => {
     expect(roomSessionsAtEnd.filter((r) => r.recording)).toHaveLength(0)
     expect(roomSessionCreated.size).toBe(roomCount)
     expect(roomSessionsAtEnd).toHaveLength(roomCount)
+  })
+
+  test('should join the room and set hand raise priority', async ({
+    browser,
+  }) => {
+    const page = await browser.newPage()
+    await page.goto(SERVER_URL)
+    enablePageLogs(page, '[pageOne]')
+
+    const videoClient = new Video.Client({
+      // @ts-expect-error
+      host: process.env.RELAY_HOST,
+      project: process.env.RELAY_PROJECT as string,
+      token: process.env.RELAY_TOKEN as string,
+      debug: { logWsTraffic: true },
+    })
+
+    const prefix = uuid()
+    const roomName = `${prefix}-hand-raise-priority-e2e`
+
+    const roomSessionCreated = new Map<string, any>()
+
+    const fetchRoomSession = async () => {
+      const { roomSessions } = await videoClient.getRoomSessions()
+      return roomSessions.filter((r) => r.name.startsWith(prefix))
+    }
+
+    videoClient.on('room.started', async (roomSession) => {
+      console.log('Room started', roomSession.id)
+      if (roomSession.name.startsWith(prefix)) {
+        roomSessionCreated.set(roomSession.id, roomSession)
+      }
+    })
+
+    videoClient.on('room.ended', async (roomSession) => {
+      console.log('Room ended', roomSession.id)
+    })
+
+    const roomSessionsBeforeStart = await fetchRoomSession()
+    expect(roomSessionsBeforeStart).toHaveLength(0)
+
+    await createRoomSession({
+      page,
+      room_name: roomName,
+      user_name: `${prefix}-member`,
+    })
+
+    const roomSessionsAfterStart = await fetchRoomSession()
+    expect(roomSessionsAfterStart).toHaveLength(1)
+
+    const roomSessionNode1 = roomSessionsAfterStart[0]
+
+    const roomSessionWeb = await page.evaluate(() => {
+      // @ts-expect-error
+      const roomSession = window._roomSession
+
+      return roomSession.room_session
+    })
+
+    expect(roomSessionNode1.prioritizeHandraise).toBe(false)
+    expect(roomSessionWeb.prioritize_handraise).toBe(false)
+
+    await roomSessionNode1.setPrioritizeHandraise(true)
+
+    // TODO: Find a way to test;
+    // when Node SDK update the prioritization,
+    // the Web SDK receive the room.updated event with updated `prioritize_handraise` field
+
+    const roomSessionNode2 = (await fetchRoomSession())[0]
+    expect(roomSessionNode2.prioritizeHandraise).toBe(true)
   })
 })
