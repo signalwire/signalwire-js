@@ -160,6 +160,7 @@ test.describe('Video', () => {
       })
     })
 
+    // Room length should be 0 before start
     const roomSessionsBeforeStart = await findRoomSession()
     expect(roomSessionsBeforeStart).toHaveLength(0)
 
@@ -171,6 +172,7 @@ test.describe('Video', () => {
       initialEvents: ['room.updated'],
     })
 
+    // Room length should be 1 after start
     const roomSessionsAfterStart = await findRoomSession()
     expect(roomSessionsAfterStart).toHaveLength(1)
 
@@ -183,6 +185,7 @@ test.describe('Video', () => {
       return roomSession.room_session
     })
 
+    // Hand raise is not prioritize on both Node & Web room session object
     expect(roomSessionNode.prioritizeHandraise).toBe(false)
     expect(roomSessionWeb.prioritize_handraise).toBe(false)
 
@@ -192,12 +195,12 @@ test.describe('Video', () => {
         const roomSessionWeb = window._roomObj
 
         roomSessionWeb.on('room.updated', (room) => {
-          console.log('>> room.updated web', room)
           resolve(room.room_session)
         })
       })
     })
 
+    // Set the hand raise prioritization via Node SDK
     const roomSessionNodeUpdated = await new Promise<Video.RoomSession>(
       async (resolve, _reject) => {
         roomSessionNode.on('room.updated', (room) => {
@@ -207,6 +210,7 @@ test.describe('Video', () => {
       }
     )
 
+    // Expect hand raise prioritization to be true on both Node & Web SDK objects
     expect(roomSessionNodeUpdated.prioritizeHandraise).toBe(true)
     expect((await roomSessionWebUpdated).prioritize_handraise).toBe(true)
   })
