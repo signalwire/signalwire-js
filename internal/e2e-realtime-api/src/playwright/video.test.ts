@@ -136,6 +136,7 @@ test.describe('Video', () => {
     await page.goto(SERVER_URL)
     enablePageLogs(page, '[pageOne]')
 
+    // Create a realtime-api Video client
     const videoClient = new Video.Client({
       // @ts-expect-error
       host: process.env.RELAY_HOST,
@@ -147,55 +148,66 @@ test.describe('Video', () => {
     const prefix = uuid()
     const roomName = `${prefix}-hand-raise-priority-e2e`
 
-    const roomSessionCreated = new Map<string, any>()
-
-    const fetchRoomSession = async () => {
+    const findRoomSession = async () => {
       const { roomSessions } = await videoClient.getRoomSessions()
       return roomSessions.filter((r) => r.name.startsWith(prefix))
     }
 
-    videoClient.on('room.started', async (roomSession) => {
-      console.log('Room started', roomSession.id)
-      if (roomSession.name.startsWith(prefix)) {
-        roomSessionCreated.set(roomSession.id, roomSession)
-      }
+    // Listen for realtime-api event
+    videoClient.on('room.started', (room) => {
+      room.on('room.updated', (room) => {
+        console.log('>> room.updated', room.name)
+      })
     })
 
-    videoClient.on('room.ended', async (roomSession) => {
-      console.log('Room ended', roomSession.id)
-    })
-
-    const roomSessionsBeforeStart = await fetchRoomSession()
+    const roomSessionsBeforeStart = await findRoomSession()
     expect(roomSessionsBeforeStart).toHaveLength(0)
 
+    // Create and join room on the web using JS SDK
     await createRoomSession({
       page,
       room_name: roomName,
       user_name: `${prefix}-member`,
+      initialEvents: ['room.updated'],
     })
 
-    const roomSessionsAfterStart = await fetchRoomSession()
+    const roomSessionsAfterStart = await findRoomSession()
     expect(roomSessionsAfterStart).toHaveLength(1)
 
-    const roomSessionNode1 = roomSessionsAfterStart[0]
+    const roomSessionNode = roomSessionsAfterStart[0]
 
     const roomSessionWeb = await page.evaluate(() => {
       // @ts-expect-error
-      const roomSession = window._roomSession
+      const roomSession = window._roomOnJoined
 
       return roomSession.room_session
     })
 
-    expect(roomSessionNode1.prioritizeHandraise).toBe(false)
+    expect(roomSessionNode.prioritizeHandraise).toBe(false)
     expect(roomSessionWeb.prioritize_handraise).toBe(false)
 
-    await roomSessionNode1.setPrioritizeHandraise(true)
+    const roomSessionWebUpdated = page.evaluate(() => {
+      return new Promise<any>((resolve, _reject) => {
+        // @ts-expect-error
+        const roomSessionWeb = window._roomObj
 
-    // TODO: Find a way to test;
-    // when Node SDK update the prioritization,
-    // the Web SDK receive the room.updated event with updated `prioritize_handraise` field
+        roomSessionWeb.on('room.updated', (room) => {
+          console.log('>> room.updated web', room)
+          resolve(room.room_session)
+        })
+      })
+    })
 
-    const roomSessionNode2 = (await fetchRoomSession())[0]
-    expect(roomSessionNode2.prioritizeHandraise).toBe(true)
+    const roomSessionNodeUpdated = await new Promise<Video.RoomSession>(
+      async (resolve, _reject) => {
+        roomSessionNode.on('room.updated', (room) => {
+          resolve(room)
+        })
+        await roomSessionNode.setPrioritizeHandraise(true)
+      }
+    )
+
+    expect(roomSessionNodeUpdated.prioritizeHandraise).toBe(true)
+    expect((await roomSessionWebUpdated).prioritize_handraise).toBe(true)
   })
 })

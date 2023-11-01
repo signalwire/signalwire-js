@@ -49,11 +49,12 @@ export const createTestVRTToken = async (body: CreateVRTParams) => {
 
 type CreateRoomSessionParams = CreateVRTParams & {
   page: Page
+  initialEvents?: string[]
 }
 
 export const createRoomSession = async (params: CreateRoomSessionParams) => {
   try {
-    const { page, ...auth } = params
+    const { page, initialEvents, ...auth } = params
 
     const vrt = await createTestVRTToken(auth)
 
@@ -70,11 +71,18 @@ export const createRoomSession = async (params: CreateRoomSessionParams) => {
             debug: { logWsTraffic: true },
           })
 
+          // @ts-expect-error
+          window._roomObj = roomSession
+
           roomSession.on('room.joined', async (room) => {
             // @ts-expect-error
-            window._roomSession = room
+            window._roomOnJoined = room
 
             resolve(room)
+          })
+
+          options.initialEvents?.forEach((event) => {
+            roomSession.once(event, () => {})
           })
 
           await roomSession.join().catch((error) => {
@@ -86,6 +94,7 @@ export const createRoomSession = async (params: CreateRoomSessionParams) => {
       {
         RELAY_HOST: process.env.RELAY_HOST || 'relay.signalwire.com',
         API_TOKEN: vrt,
+        initialEvents,
       }
     )
   } catch (error) {
