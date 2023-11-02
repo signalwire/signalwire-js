@@ -3,7 +3,6 @@ import { Video } from '@signalwire/realtime-api'
 import { createRoomAndJoinTwoMembers, expectMemberUpdated } from './videoUtils'
 
 test.describe('Video room hand raise/lower', () => {
-  let context: BrowserContext
   let pageOne: Page
   let pageTwo: Page
   let memberOne: Video.RoomSessionMember
@@ -11,18 +10,12 @@ test.describe('Video room hand raise/lower', () => {
   let roomSession: Video.RoomSession
 
   test.beforeAll(async ({ browser }) => {
-    context = await browser.newContext()
-
     const data = await createRoomAndJoinTwoMembers(browser)
     pageOne = data.pageOne
     pageTwo = data.pageTwo
     memberOne = data.memberOne
     memberTwo = data.memberTwo
     roomSession = data.roomSession
-  })
-
-  test.afterAll(async () => {
-    await context.close()
   })
 
   test('should raise memberOne hand using room session instance via Node SDK', async () => {
