@@ -21,6 +21,10 @@ const PERMISSIONS = [
   'room.recording',
   'room.playback',
   'room.playback_seek',
+  'room.member.raisehand',
+  'room.member.lowerhand',
+  'room.self.raisehand',
+  'room.self.lowerhand',
 ]
 
 type CreateVRTParams = {
