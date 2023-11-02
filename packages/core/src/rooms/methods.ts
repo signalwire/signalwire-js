@@ -731,7 +731,7 @@ export const deleteMemberMeta = createRoomMemberMethod<BaseRPCResult, void>(
 )
 
 export interface SetRaisedHandRoomParams {
-  memberId?: string
+  memberId: string
   raised?: boolean
 }
 
