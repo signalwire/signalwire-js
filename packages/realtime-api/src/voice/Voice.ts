@@ -243,10 +243,11 @@ class VoiceAPI extends BaseConsumer<VoiceClientApiEvents> {
           devices: toInternalDevices(devices),
         }
       } else if ('region' in params) {
-        const { region, devices: deviceBuilder } = params
+        const { region, nodeId, devices: deviceBuilder } = params
         executeParams = {
           tag: this._tag,
           region,
+          node_id: nodeId,
           devices: toInternalDevices(deviceBuilder.devices),
         }
       } else {
@@ -265,6 +266,7 @@ class VoiceAPI extends BaseConsumer<VoiceClientApiEvents> {
   dialPhone({
     region,
     maxPricePerMinute,
+    nodeId,
     ...params
   }: VoiceCallDialPhoneMethodParams) {
     const devices = new DeviceBuilder().add(DeviceBuilder.Phone(params))
@@ -272,6 +274,7 @@ class VoiceAPI extends BaseConsumer<VoiceClientApiEvents> {
     return this.dial({
       maxPricePerMinute,
       region,
+      nodeId,
       devices,
     })
   }
@@ -279,6 +282,7 @@ class VoiceAPI extends BaseConsumer<VoiceClientApiEvents> {
   dialSip({
     region,
     maxPricePerMinute,
+    nodeId,
     ...params
   }: VoiceCallDialSipMethodParams) {
     const devices = new DeviceBuilder().add(DeviceBuilder.Sip(params))
@@ -286,6 +290,7 @@ class VoiceAPI extends BaseConsumer<VoiceClientApiEvents> {
     return this.dial({
       maxPricePerMinute,
       region,
+      nodeId,
       devices,
     })
   }
