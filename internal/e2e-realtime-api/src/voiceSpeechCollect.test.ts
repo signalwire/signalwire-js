@@ -1,5 +1,4 @@
 import tap from 'tap'
-import { uuid } from '@signalwire/core'
 import { Voice } from '@signalwire/realtime-api'
 import {
   type TestHandler,
@@ -55,7 +54,7 @@ const getHandlers= (): TestHandler[] => {
           host: process.env.RELAY_HOST,
           project: process.env.RELAY_PROJECT as string,
           token: process.env.RELAY_TOKEN as string,
-          contexts: [domainApp.call_relay_context, "relaye2e"],
+          contexts: [domainApp.call_relay_context],
           // logLevel: "trace",
           debug: {
             logWsTraffic: true,
@@ -125,17 +124,14 @@ const getHandlers= (): TestHandler[] => {
 
         try {
           const call = await client.dialSip({
-            // NOTE: change back to makeSipDomainAppAddress after backend changes are deployed
-            // to: makeSipDomainAppAddress({
-            //   name: 'to',
-            //   domain: domainApp.domain,
-            // }),
-            // from: makeSipDomainAppAddress({
-            //   name: 'from',
-            //   domain: domainApp.domain,
-            // }),
-            to: `sip:to-${uuid()}@dev-min.dapp.swire.io`,
-            from: `sip:from-${uuid()}@dev-min.dapp.swire.io`,
+            to: makeSipDomainAppAddress({
+              name: 'to',
+              domain: domainApp.domain,
+            }),
+            from: makeSipDomainAppAddress({
+              name: 'from',
+              domain: domainApp.domain,
+            }),
             timeout: 30,
           })
           tap.ok(call.id, 'Call resolved')

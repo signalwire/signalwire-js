@@ -87,7 +87,7 @@ export const createTestRunner = ({
             name: `d-app-${uuid}`,
             identifier: uuid,
             call_handler: 'relay_context',
-            call_relay_context: `d-app-ctx-${uuid}`,
+            call_relay_context:`d-app-ctx-${uuid}`,
           })
         }
         const exitCode = await testHandler(params)
