@@ -1,5 +1,17 @@
 # @sw-internal/e2e-realtime-api
 
+## 0.1.12
+
+### Patch Changes
+
+- [#884](https://github.com/signalwire/signalwire-js/pull/884) [`e5db7cab`](https://github.com/signalwire/signalwire-js/commit/e5db7cabc2e532a19fad45753e47f7d612d6e248) Thanks [@edolix](https://github.com/edolix)! - Update E2E tests for lock unlock rooms
+
+- [#893](https://github.com/signalwire/signalwire-js/pull/893) [`a66d5a2c`](https://github.com/signalwire/signalwire-js/commit/a66d5a2c521c92a47621b23e48bba7cd7272b0db) Thanks [@edolix](https://github.com/edolix)! - Bump to tap latest to solve semver vulnerability
+
+- [#884](https://github.com/signalwire/signalwire-js/pull/884) [`e5db7cab`](https://github.com/signalwire/signalwire-js/commit/e5db7cabc2e532a19fad45753e47f7d612d6e248) Thanks [@edolix](https://github.com/edolix)! - Split lock/unlock tests
+
+- [#888](https://github.com/signalwire/signalwire-js/pull/888) [`fc2b5b1c`](https://github.com/signalwire/signalwire-js/commit/fc2b5b1c1a944386c297638edb4c6d4af20ad9f8) Thanks [@edolix](https://github.com/edolix)! - Delete the domain app when the test ends
+
 ## 0.1.11
 
 ### Patch Changes
