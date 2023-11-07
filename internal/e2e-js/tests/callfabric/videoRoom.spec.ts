@@ -2,7 +2,7 @@ import { Video } from '@signalwire/js'
 import { test, expect } from '../../fixtures'
 import {
   SERVER_URL,
-  createSWClient,
+  createCFClient,
   expectLayoutChanged,
   expectMCUVisible,
   setLayoutOnPage,
@@ -17,7 +17,7 @@ test.describe('CallFabric VideoRoom', () => {
 
     const roomName = 'cf-e2e-test-room'
 
-    await createSWClient(page)
+    await createCFClient(page)
 
     // Dial an address and join a video room
     const roomSession = await page.evaluate(
@@ -28,8 +28,6 @@ test.describe('CallFabric VideoRoom', () => {
 
           const call = await client.dial({
             to: `/public/${roomName}`,
-            logLevel: 'debug',
-            debug: { logWsTraffic: true },
             nodeId: undefined,
           })
 
@@ -198,5 +196,36 @@ test.describe('CallFabric VideoRoom', () => {
     // --------------- Set layout ---------------
     await setLayoutOnPage(page, layoutName)
     expect(await layoutChangedPromise).toBe(true)
+  })
+
+  test('should fail on invalid address', async ({ createCustomPage }) => {
+    const page = await createCustomPage({ name: '[page]' })
+    await page.goto(SERVER_URL)
+
+    await createCFClient(page)
+
+    // Dial an address and join a video room
+    const roomSession = await page.evaluate(async () => {
+      try {
+        // @ts-expect-error
+        const client = window._client
+
+        const call = await client.dial({
+          to: `/public/invalid-address`,
+          nodeId: undefined,
+        })
+
+        // @ts-expect-error
+        window._roomObj = call
+
+        await call.start()
+
+        return { success: true }
+      } catch (error) {
+        return { success: false, error }
+      }
+    })
+
+    expect(roomSession.success).toBe(false)
   })
 })

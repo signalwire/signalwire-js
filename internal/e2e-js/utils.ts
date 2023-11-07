@@ -180,7 +180,7 @@ export const createTestRoomSessionWithJWT = async (
   )
 }
 
-export const createSWClient = async (page: Page) => {
+export const createCFClient = async (page: Page) => {
   const sat = await createTestSATToken()
   if (!sat) {
     console.error('Invalid SAT. Exiting..')
@@ -204,7 +204,7 @@ export const createSWClient = async (page: Page) => {
       return client
     },
     {
-      RELAY_HOST: process.env.CF_RELAY_HOST,
+      RELAY_HOST: process.env.RELAY_HOST,
       API_TOKEN: sat,
     }
   )
@@ -436,10 +436,7 @@ export const expectMediaEvent = (page: Page, event: MediaEvent) => {
   )
 }
 
-export const expectTotalAudioEnergyToBeGreaterThan = async (
-  page: Page,
-  value: number
-) => {
+export const getAudioStats = async (page: Page) => {
   const audioStats = await page.evaluate(async () => {
     // @ts-expect-error
     const roomObj: Video.RoomSession = window._roomObj
@@ -487,6 +484,15 @@ export const expectTotalAudioEnergyToBeGreaterThan = async (
     return result
   })
   console.log('audioStats', audioStats)
+
+  return audioStats
+}
+
+export const expectTotalAudioEnergyToBeGreaterThan = async (
+  page: Page,
+  value: number
+) => {
+  const audioStats = await getAudioStats(page)
 
   expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(value)
 }
