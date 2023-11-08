@@ -37,7 +37,7 @@ jobs:
         id: run-tests
         run: npm run -w=@sw-internal/e2e-realtime-api dev
         env:
-          SW_TEST_CONFIG: ${{ secrets.PRODUCTION_EU_E2E_REALTIME_SW_TEST_CONFIG }}
+          SW_TEST_CONFIG: ${{ secrets.PRODUCTION_EUSWCOM_E2E_REALTIME_SW_TEST_CONFIG }}
       - name: Report Result
         if: success() || failure()
         uses: ./.github/actions/report-test-result
