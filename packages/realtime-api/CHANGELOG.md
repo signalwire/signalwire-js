@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.12.0] - 2023-11-07
+
+### Added
+
+- [#884](https://github.com/signalwire/signalwire-js/pull/884) [`e5db7cab`](https://github.com/signalwire/signalwire-js/commit/e5db7cabc2e532a19fad45753e47f7d612d6e248) Thanks [@edolix](https://github.com/edolix)! - Add support for `lock` and `unlock` RoomSessions.
+
+### Added
+
+- [#901](https://github.com/signalwire/signalwire-js/pull/901) [`2131bb41`](https://github.com/signalwire/signalwire-js/commit/2131bb418afeb75081fb2bfaee3b00a24df4614f) Thanks [@giavac](https://github.com/giavac)! - Add an optional nodeId to call.dial
+
+### Dependencies
+
+- Updated dependencies [[`e5db7cab`](https://github.com/signalwire/signalwire-js/commit/e5db7cabc2e532a19fad45753e47f7d612d6e248), [`bcced8ae`](https://github.com/signalwire/signalwire-js/commit/bcced8ae774de5483331c4d3146299d5ffffd7e7), [`2131bb41`](https://github.com/signalwire/signalwire-js/commit/2131bb418afeb75081fb2bfaee3b00a24df4614f)]:
+  - @signalwire/core@3.20.0
+
 ## [3.11.0] - 2023-09-14
 
 ### Added

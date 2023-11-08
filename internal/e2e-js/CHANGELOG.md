@@ -1,5 +1,13 @@
 # @sw-internal/e2e-js
 
+## 0.0.16
+
+### Patch Changes
+
+- [#884](https://github.com/signalwire/signalwire-js/pull/884) [`e5db7cab`](https://github.com/signalwire/signalwire-js/commit/e5db7cabc2e532a19fad45753e47f7d612d6e248) Thanks [@edolix](https://github.com/edolix)! - Update E2E tests for lock unlock rooms
+
+- [#900](https://github.com/signalwire/signalwire-js/pull/900) [`80cd3252`](https://github.com/signalwire/signalwire-js/commit/80cd32526f97a2db71c786f5bc700f300fce820d) Thanks [@iAmmar7](https://github.com/iAmmar7)! - End to end test cases for call fabric with video room and swml script
+
 ## 0.0.15
 
 ### Patch Changes
