@@ -739,7 +739,7 @@ export interface VideoRoomSessionContract {
    * @param param a boolean flag to enable/disable the hand raise prioritization
    *
    * @permissions
-   *  - `video.prioritize_handraise`: to set the teh hand raise priority
+   *  - `video.prioritize_handraise`: to set the hand raise priority
    *
    * You need to specify the permissions when [creating the Video Room
    * Token](https://developer.signalwire.com/apis/reference/create_room_token)
