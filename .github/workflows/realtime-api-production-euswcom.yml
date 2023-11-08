@@ -1,4 +1,4 @@
-name: RealtimeAPI SDK [production eu]
+name: RealtimeAPI SDK [production euswcom]
 
 on:
   pull_request:
