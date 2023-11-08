@@ -105,7 +105,7 @@ export class RoomSessionConnection
     })
 
     /**
-     * If the user provides a `roomElement` we'll
+     * If the user provides a `rootElement` we'll
      * automatically handle the Video element for them
      */
     if (options.rootElement) {
