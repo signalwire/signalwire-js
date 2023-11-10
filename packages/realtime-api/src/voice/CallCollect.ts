@@ -163,8 +163,9 @@ export class CallCollectAPI
   ended() {
     // Resolve the promise if the collect has already ended
     if (
-      this.state != 'collecting' && (this.final === undefined || this.final === true)  &&
-      ENDED_STATES.includes(this.result?.type as CallingCallCollectEndState)) {
+      this.state != 'collecting' && this.final !== false &&
+      ENDED_STATES.includes(this.result?.type as CallingCallCollectEndState)
+    ) {
       return Promise.resolve(this)
     }
 

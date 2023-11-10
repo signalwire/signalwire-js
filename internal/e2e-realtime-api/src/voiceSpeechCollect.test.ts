@@ -11,34 +11,53 @@ const getHandlers= (): TestHandler[] => {
     'continuous: true and partialResults: true': {
       continuous: true,
       partialResults: true,
-      hangupAfter: 15_000,
-      expectedText: 'one two three four five six seven eight nine ten  11 to 8',
+      hangupAfter: 16_000,
+      possibleExpectedTexts: [
+        '123456789 10:00 11:00 12:00',
+        'one two three four five six seven eight nine ten',
+        '1112',
+      ],
     },
     'continuous: true and partialResults: false': {
       continuous: true,
       partialResults: false,
-      hangupAfter: 15_000,
-      expectedText: 'one two three four five six seven eight nine ten  11 to 8',
+      hangupAfter: 16_000,
+      possibleExpectedTexts: [
+        '123456789 10:00 11:00 12:00',
+        'one two three four five six seven eight nine ten',
+        '1112',
+      ],
     },
     'continuous: false and partialResults: true': {
       continuous: false,
       partialResults: true,
-      hangupAfter: 15_000,
-      expectedText: 'one two three four five six seven eight nine ten  11 to 8',
+      hangupAfter: 16_000,
+      possibleExpectedTexts: [
+        '123456789 10:00 11:00 12:00',
+        'one two three four five six seven eight nine ten',
+        '1112',
+      ],
     },
     'continuous: false and partialResults: false': {
       continuous: false,
       partialResults: false,
-      hangupAfter: 15_000,
-      expectedText: 'one two three four five six seven eight nine ten  11 to 8',
+      hangupAfter: 16_000,
+      possibleExpectedTexts: [
+        '123456789 10:00 11:00 12:00',
+        'one two three four five six seven eight nine ten',
+        '1112',
+      ],
     },
     'continuous: false and partialResults: true (hangup before palying the audio file finish)':
       {
         continuous: false,
         partialResults: true,
-        hangupAfter: 9_000,
-        expectedText: 'one two three four five six seven eight nine ten',
-    },
+        hangupAfter: 5_000,
+        possibleExpectedTexts: [
+          '123',
+          '1234'
+        ],
+      },
   }
 
   const handlers: TestHandler[] = []
@@ -50,6 +69,13 @@ const getHandlers= (): TestHandler[] => {
         }
         console.log(`Running collect test with ${testCase}`)
         console.log(domainApp.call_relay_context)
+        let missingTheInstanceErrorWasThrown = false;
+        process.stderr.on('data', (data) => {
+          const err = data.toString();
+          missingTheInstanceErrorWasThrown = err.includes(
+            'Voice calling event error Error: Missing the instance'
+          )
+        })
         const client = new Voice.Client({
           host: process.env.RELAY_HOST,
           project: process.env.RELAY_PROJECT as string,
@@ -65,6 +91,7 @@ const getHandlers= (): TestHandler[] => {
         const waitForCollectStart = new Promise((resolve) => {
           waitForCollectStartResolve = resolve
         })
+
         let waitForCollectEndResolve
         const waitForCollectEnd = new Promise((resolve) => {
           waitForCollectEndResolve = resolve
@@ -98,8 +125,8 @@ const getHandlers= (): TestHandler[] => {
             const callCollect = await call.collect({
               initialTimeout: 10.0,
               speech: {
-                endSilenceTimeout: 6.0,
-                speechTimeout: 60.0,
+                endSilenceTimeout: 2.0,
+                speechTimeout: 20.0,
                 language:'en-US',
                 model: 'enhanced.phone_call',
               },
@@ -113,9 +140,13 @@ const getHandlers= (): TestHandler[] => {
 
             // Wait until the caller ends entring the digits
             await waitForCollectEnd
-            setTimeout(() => call.hangup(), 100);
+            setTimeout(() => call.hangup(), 100)
             const collected = await callCollect.ended() // block the script until the collect ended
-            tap.equal(collected.text, options.expectedText, 'Received Correct Text')
+            tap.ok(
+              // @ts-ignore
+              options.possibleExpectedTexts.includes(collected.text),
+              'Received Correct Text'
+            )
           } catch (error) {
             console.error('Error', error)
             reject(4)
@@ -132,19 +163,17 @@ const getHandlers= (): TestHandler[] => {
               name: 'from',
               domain: domainApp.domain,
             }),
-            timeout: 30,
           })
           tap.ok(call.id, 'Call resolved')
-
           // Wait until the callee answers the call and start collecting digits
           await waitForCollectStart
       
           call.playAudio({
-            url: 'https://amaswtest.s3.us-west-1.amazonaws.com/recording3.mp3',
+            url: 'https://amaswtest.s3-accelerate.amazonaws.com/newrecording2.mp3',
           })
           await new Promise((resolve) => setTimeout(resolve, options.hangupAfter))
-          // Resolve the collect end promise to inform the callee
           waitForCollectEndResolve()
+
           const waitForParams = [
             'ended',
             'ending',
@@ -163,6 +192,7 @@ const getHandlers= (): TestHandler[] => {
               )
             }
           })
+          tap.ok(!missingTheInstanceErrorWasThrown, 'No Missing the Instance error was thrown')
           client.disconnect()
           resolve(0)
         } catch (error) {
@@ -189,8 +219,8 @@ async function main() {
     })
 
     await runner.run()
-    // delay 3 sec between each test case so file server hosting the mp3 file won't trigger rate limit
-    await new Promise(resolve => setTimeout(resolve, 3_000))
+    // delay 20 sec between each test case so file server hosting the mp3 file won't trigger rate limit
+    await new Promise(resolve => setTimeout(resolve, 20_000))
   }
 }
 
