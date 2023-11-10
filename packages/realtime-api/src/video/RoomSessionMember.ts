@@ -119,6 +119,10 @@ class RoomSessionMemberComponent extends BaseComponent<{}> {
     return this._payload.member.talking
   }
 
+  get handraised() {
+    return this._payload.member.handraised
+  }
+
   /** @internal */
   protected setPayload(payload: RoomSessionMemberEventParams) {
     // Reshape the payload since the `video.member.talking` event does not return all the parameters of a member
@@ -158,6 +162,7 @@ const RoomSessionMemberAPI = extendComponent<
   setSpeakerVolume: Rooms.setOutputVolumeMember,
   setOutputVolume: Rooms.setOutputVolumeMember,
   setInputSensitivity: Rooms.setInputSensitivityMember,
+  setRaisedHand: Rooms.setRaisedHand,
 })
 
 export const createRoomSessionMemberObject = (

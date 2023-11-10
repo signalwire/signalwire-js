@@ -76,7 +76,7 @@ export type MemberListUpdated = 'memberList.updated'
 /**
  * See {@link MEMBER_UPDATED_EVENTS} for the full list of events.
  */
-export type MemberUpdatedEventNames = typeof MEMBER_UPDATED_EVENTS[number]
+export type MemberUpdatedEventNames = (typeof MEMBER_UPDATED_EVENTS)[number]
 export type MemberTalkingStarted = 'member.talking.started'
 export type MemberTalkingEnded = 'member.talking.ended'
 /**
@@ -109,7 +109,7 @@ export type VideoMemberEventNames =
   | MemberListUpdated
 
 export type InternalMemberUpdatedEventNames =
-  typeof INTERNAL_MEMBER_UPDATED_EVENTS[number]
+  (typeof INTERNAL_MEMBER_UPDATED_EVENTS)[number]
 
 /**
  * List of internal events
@@ -148,6 +148,8 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
   currentPosition?: VideoPosition
   /** Metadata associated to this member. */
   meta?: Record<string, unknown>
+  /** Indicate if the member hand is raised or not */
+  handraised: Boolean
 
   /**
    * Mutes the outbound audio for this member (e.g., the one coming from a
@@ -277,6 +279,16 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
    * ```
    */
   remove(): Rooms.RemoveMember
+
+  /**
+   * Raise or lower this member's hand.
+   *
+   * @example
+   * ```typescript
+   * await member.setRaisedHand()
+   * ```
+   */
+  setRaisedHand(params?: Rooms.SetRaisedHandMemberParams): Rooms.SetRaisedHand
 }
 
 /**

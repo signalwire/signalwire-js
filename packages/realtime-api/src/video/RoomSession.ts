@@ -113,6 +113,10 @@ export class RoomSessionConsumer extends BaseConsumer<RealTimeRoomApiEvents> {
     return this._payload.room_session.event_channel
   }
 
+  get prioritizeHandraise() {
+    return this._payload.room_session.prioritize_handraise
+  }
+
   /** @internal */
   protected override getSubscriptions() {
     const eventNamesWithPrefix = this.eventNames().map(
@@ -278,6 +282,8 @@ export const RoomSessionAPI = extendComponent<
   startStream: Rooms.startStream,
   lock: Rooms.lock,
   unlock: Rooms.unlock,
+  setRaisedHand: Rooms.setRaisedHand,
+  setPrioritizeHandraise: Rooms.setPrioritizeHandraise,
 })
 
 export const createRoomSessionObject = (

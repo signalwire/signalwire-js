@@ -1,4 +1,6 @@
-import { Page, Browser } from '@playwright/test'
+import { Page, Browser, expect } from '@playwright/test'
+import { uuid } from '@signalwire/core'
+import { Video } from '@signalwire/realtime-api'
 import { SERVER_URL } from '../../utils'
 
 const PERMISSIONS = [
@@ -19,6 +21,10 @@ const PERMISSIONS = [
   'room.recording',
   'room.playback',
   'room.playback_seek',
+  'room.member.raisehand',
+  'room.member.lowerhand',
+  'room.self.raisehand',
+  'room.self.lowerhand',
 ]
 
 type CreateVRTParams = {
@@ -48,22 +54,78 @@ export const createTestVRTToken = async (body: CreateVRTParams) => {
 }
 
 type CreateRoomSessionParams = CreateVRTParams & {
+  page: Page
+  initialEvents?: string[]
+}
+
+export const createRoomSession = async (params: CreateRoomSessionParams) => {
+  try {
+    const { page, initialEvents, ...auth } = params
+
+    const vrt = await createTestVRTToken(auth)
+
+    return page.evaluate(
+      (options) => {
+        return new Promise<void>(async (resolve, reject) => {
+          // @ts-expect-error
+          const VideoSWJS = window._SWJS.Video
+          const roomSession = new VideoSWJS.RoomSession({
+            host: options.RELAY_HOST,
+            token: options.API_TOKEN,
+            audio: true,
+            video: true,
+            debug: { logWsTraffic: true },
+          })
+
+          // @ts-expect-error
+          window._roomObj = roomSession
+
+          roomSession.on('room.joined', async (room) => {
+            // @ts-expect-error
+            window._roomOnJoined = room
+
+            resolve(room)
+          })
+
+          options.initialEvents?.forEach((event) => {
+            roomSession.once(event, () => {})
+          })
+
+          await roomSession.join().catch((error) => {
+            console.log('Error joining room', error)
+            reject(error)
+          })
+        })
+      },
+      {
+        RELAY_HOST: process.env.RELAY_HOST || 'relay.signalwire.com',
+        API_TOKEN: vrt,
+        initialEvents,
+      }
+    )
+  } catch (error) {
+    console.error('CreateRoomSession Error', error)
+  }
+}
+
+type CreateNewTabRoomSessionParams = CreateVRTParams & {
   browser: Browser
   pageName: string
 }
-export const createNewTabRoomSession = async (
-  params: CreateRoomSessionParams
+
+export const createRoomAndRecordPlay = async (
+  params: CreateNewTabRoomSessionParams
 ): Promise<void> => {
   try {
     const { browser, pageName, ...auth } = params
 
-    const tab = await browser.newPage()
-    await tab.goto(SERVER_URL)
-    enablePageLogs(tab, pageName)
+    const page = await browser.newPage()
+    await page.goto(SERVER_URL)
+    enablePageLogs(page, pageName)
 
     const vrt = await createTestVRTToken(auth)
 
-    return tab.evaluate(
+    return page.evaluate(
       (options) => {
         return new Promise<void>(async (resolve, reject) => {
           // @ts-expect-error
@@ -121,5 +183,118 @@ export const createNewTabRoomSession = async (
     )
   } catch (error) {
     console.error('CreateRoomSession Error', error)
+  }
+}
+
+export const expectMemberUpdated = async ({ page, memberName }) => {
+  return page.evaluate(
+    ({ memberName }) => {
+      return new Promise((resolve, _reject) => {
+        // @ts-expect-error
+        const roomSession = window._roomObj
+
+        roomSession.on('member.updated', (room) => {
+          if (room.member.name === memberName) {
+            resolve(room.member)
+          }
+        })
+      })
+    },
+    {
+      memberName,
+    }
+  )
+}
+
+interface FindRoomSessionByPrefixParams {
+  client: Video.Client
+  prefix: string
+}
+
+export const findRoomSessionByPrefix = async ({
+  client,
+  prefix,
+}: FindRoomSessionByPrefixParams) => {
+  const { roomSessions } = await client.getRoomSessions()
+  return roomSessions.filter((r) => r.name.startsWith(prefix))
+}
+
+export const createRoomAndJoinTwoMembers = async (browser: Browser) => {
+  const pageOne = await browser.newPage()
+  const pageTwo = await browser.newPage()
+
+  await Promise.all([pageOne.goto(SERVER_URL), pageTwo.goto(SERVER_URL)])
+
+  enablePageLogs(pageOne, '[pageOne]')
+  enablePageLogs(pageTwo, '[pageTwo]')
+
+  // Create a realtime-api Video client
+  const videoClient = new Video.Client({
+    // @ts-expect-error
+    host: process.env.RELAY_HOST,
+    project: process.env.RELAY_PROJECT as string,
+    token: process.env.RELAY_TOKEN as string,
+    debug: { logWsTraffic: true },
+  })
+
+  const prefix = uuid()
+  const roomName = `${prefix}-hand-raise-lower-e2e`
+  const memberOneName = `${prefix}-member-one`
+  const memberTwoName = `${prefix}-member-two`
+
+  // TODO: This is not needed with new interface due to listen method
+  videoClient.on('room.started', (room) => {
+    room.on('member.updated', () => {})
+  })
+
+  // Room length should be 0 before start
+  const roomSessionsBeforeStart = await findRoomSessionByPrefix({
+    client: videoClient,
+    prefix,
+  })
+  expect(roomSessionsBeforeStart).toHaveLength(0)
+
+  // Create a room and join two members
+  await Promise.all([
+    createRoomSession({
+      page: pageOne,
+      room_name: roomName,
+      user_name: memberOneName,
+      initialEvents: ['member.updated'],
+    }),
+    createRoomSession({
+      page: pageTwo,
+      room_name: roomName,
+      user_name: memberTwoName,
+      initialEvents: ['member.updated'],
+    }),
+  ])
+
+  // Room length should be 1 after start
+  const roomSessionsAfterStart = await findRoomSessionByPrefix({
+    client: videoClient,
+    prefix,
+  })
+  expect(roomSessionsAfterStart).toHaveLength(1)
+
+  const roomSession = roomSessionsAfterStart[0]
+
+  // There should be 2 members in the room
+  const { members } = await roomSession.getMembers()
+  expect(members).toHaveLength(2)
+
+  const memberOne = members.find((member) => member.name === memberOneName)!
+  const memberTwo = members.find((member) => member.name === memberTwoName)!
+
+  // Expect both members instances to be defined
+  expect(memberOne).toBeDefined()
+  expect(memberTwo).toBeDefined()
+
+  return {
+    pageOne,
+    pageTwo,
+    memberOne,
+    memberTwo,
+    roomSession,
   }
 }
