@@ -1007,12 +1007,14 @@ export type CallingCallCollectEndState = Exclude<
   'start_of_input'
 >
 
+export type CallingCallCollectState = 'error' | 'collecting' | 'finished';
 export interface CallingCallCollectEventParams {
   node_id: string
   call_id: string
   control_id: string
   result: CallingCallCollectResult
   final?: boolean
+  state?: CallingCallCollectState
 }
 
 export interface CallingCallCollectEvent extends SwEvent {
