@@ -1,9 +1,11 @@
 import { type UserOptions } from '@signalwire/core'
 import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
+import { BaseRoomSession } from '../BaseRoomSession'
 
 interface SignalWireOptions extends UserOptions {
   rootElement?: HTMLElement
+  onCallReceived?: (room: BaseRoomSession<unknown>) => unknown
 }
 
 interface SignalWireContract {

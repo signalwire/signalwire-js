@@ -1,6 +1,7 @@
 import { type UserOptions, getLogger, VertoSubscribe } from '@signalwire/core'
 import { createClient } from '../createClient'
 import { WSClientWorker } from './WSClientWorker'
+import { BaseRoomSession } from '../BaseRoomSession'
 
 interface PushNotification {
   encryption_type: 'aes_256_gcm'
@@ -19,6 +20,18 @@ interface PushNotification {
 
 interface WSClientOptions extends UserOptions {
   rootElement?: HTMLElement
+  onCallReceived?: (room: BaseRoomSession<unknown>) => unknown
+}
+
+interface BuildInboundCallParams {
+  callID: string
+  sdp: string
+  caller_id_name: string
+  caller_id_number: string
+  callee_id_name: string
+  callee_id_number: string
+  display_direction: string
+  nodeId: string
 }
 
 export class WSClient {
@@ -40,6 +53,9 @@ export class WSClient {
     // @ts-ignore
     this.wsClient.runWorker('WSClientWorker', {
       worker: WSClientWorker,
+      initialState: {
+        buildInboundCall: this.buildInboundCall,
+      },
     })
     return this.wsClient.connect()
   }
@@ -251,5 +267,45 @@ export class WSClient {
       // @ts-expect-error
       this.wsClient.reauthenticate(token)
     })
+  }
+
+  private buildInboundCall(payload: BuildInboundCallParams) {
+    getLogger().debug('Build new call to answer')
+
+    const { callID, nodeId, sdp } = payload
+
+    console.log('this.wsClient', this.wsClient)
+    console.log('this.wsClient.rooms', this.wsClient.rooms)
+    console.log(
+      'this.wsClient.rooms.makeRoomObject',
+      this.wsClient.rooms.makeRoomObject
+    )
+
+    const call = this.wsClient.rooms.makeRoomObject({
+      negotiateAudio: true,
+      negotiateVideo: true,
+      rootElement: this.options.rootElement,
+      applyLocalVideoOverlay: true,
+      stopCameraWhileMuted: true,
+      stopMicrophoneWhileMuted: true,
+      watchMediaPackets: false,
+      remoteSdp: sdp,
+      prevCallId: callID,
+      nodeId,
+    })
+
+    // WebRTC connection left the room.
+    call.once('destroy', () => {
+      getLogger().debug('RTC Connection Destroyed')
+    })
+
+    // @ts-expect-error
+    call.attachPreConnectWorkers()
+
+    getLogger().debug('Resolving Call', call)
+
+    if (this.options.onCallReceived) {
+      this.options.onCallReceived(call)
+    }
   }
 }
