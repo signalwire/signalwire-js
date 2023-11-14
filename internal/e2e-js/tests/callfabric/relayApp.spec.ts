@@ -1,4 +1,4 @@
-import { Voice } from '@signalwire/realtime-api'
+import { SignalWire, Voice } from '@signalwire/realtime-api'
 import {
   createCFClient,
   expectPageReceiveAudio,
@@ -11,30 +11,34 @@ test.describe('CallFabric Relay Application', () => {
   test('should connect to the relay app and expect an audio playback', async ({
     createCustomPage,
   }) => {
-    const client = new Voice.Client({
+    const client = await SignalWire({
       host: process.env.RELAY_HOST,
       project: process.env.CF_RELAY_PROJECT as string,
       token: process.env.CF_RELAY_TOKEN as string,
-      topics: ['cf-e2e-test-relay'],
       debug: {
         logWsTraffic: true,
       },
     })
 
-    client.on('call.received', async (call) => {
-      try {
-        console.log('Call received', call.id)
+    await client.voice.listen({
+      topics: ['cf-e2e-test-relay'],
+      onCallReceived: async (call) => {
+        try {
+          console.log('Call received', call.id)
 
-        await call.answer()
-        console.log('Inbound call answered')
+          await call.answer()
+          console.log('Inbound call answered')
 
-        const playback = await call.playAudio({
-          url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
-        })
-        await playback.setVolume(10)
-      } catch (error) {
-        console.error('Inbound call error', error)
-      }
+          const playback = await call
+            .playAudio({
+              url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
+            })
+            .onStarted()
+          await playback.setVolume(10)
+        } catch (error) {
+          console.error('Inbound call error', error)
+        }
+      },
     })
 
     try {
@@ -84,28 +88,30 @@ test.describe('CallFabric Relay Application', () => {
   test('should connect to the relay app and expect a silence', async ({
     createCustomPage,
   }) => {
-    const client = new Voice.Client({
+    const client = await SignalWire({
       host: process.env.RELAY_HOST,
       project: process.env.CF_RELAY_PROJECT as string,
       token: process.env.CF_RELAY_TOKEN as string,
-      topics: ['cf-e2e-test-relay'],
       debug: {
         logWsTraffic: true,
       },
     })
 
-    client.on('call.received', async (call) => {
-      try {
-        console.log('Call received', call.id)
+    await client.voice.listen({
+      topics: ['cf-e2e-test-relay'],
+      onCallReceived: async (call) => {
+        try {
+          console.log('Call received', call.id)
 
-        await call.answer()
-        console.log('Inbound call answered')
+          await call.answer()
+          console.log('Inbound call answered')
 
-        const playback = await call.playSilence({ duration: 60 })
-        await playback.setVolume(10)
-      } catch (error) {
-        console.error('Inbound call error', error)
-      }
+          const playback = await call.playSilence({ duration: 60 }).onStarted()
+          await playback.setVolume(10)
+        } catch (error) {
+          console.error('Inbound call error', error)
+        }
+      },
     })
 
     try {
@@ -157,27 +163,29 @@ test.describe('CallFabric Relay Application', () => {
   test('should connect to the relay app and expect a hangup', async ({
     createCustomPage,
   }) => {
-    const client = new Voice.Client({
+    const client = await SignalWire({
       host: process.env.RELAY_HOST,
       project: process.env.CF_RELAY_PROJECT as string,
       token: process.env.CF_RELAY_TOKEN as string,
-      topics: ['cf-e2e-test-relay'],
       debug: {
         logWsTraffic: true,
       },
     })
 
-    client.on('call.received', async (call) => {
-      try {
-        console.log('Call received', call.id)
+    await client.voice.listen({
+      topics: ['cf-e2e-test-relay'],
+      onCallReceived: async (call) => {
+        try {
+          console.log('Call received', call.id)
 
-        await call.answer()
-        console.log('Inbound call answered')
+          await call.answer()
+          console.log('Inbound call answered')
 
-        await call.hangup()
-      } catch (error) {
-        console.error('Inbound call error', error)
-      }
+          await call.hangup()
+        } catch (error) {
+          console.error('Inbound call error', error)
+        }
+      },
     })
 
     const page = await createCustomPage({ name: '[page]' })
