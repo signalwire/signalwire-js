@@ -38,10 +38,12 @@ test.describe('Video room hand raise/lower', () => {
     // Raise a hand of memberOne using Node SDK
     const memberOneUpdatedNode = await new Promise<Video.RoomSessionMember>(
       async (resolve, _reject) => {
-        roomSession.on('member.updated', (member) => {
-          if (member.name === memberOne.name) {
-            resolve(member)
-          }
+        await roomSession.listen({
+          onMemberUpdated: (member) => {
+            if (member.name === memberOne.name) {
+              resolve(member)
+            }
+          },
         })
         await roomSession.setRaisedHand({ memberId: memberOne.id })
       }
@@ -75,10 +77,12 @@ test.describe('Video room hand raise/lower', () => {
     // Raise memberTwo hand using a member object via Node SDK
     const memberTwoUpdatedNode = await new Promise<Video.RoomSessionMember>(
       async (resolve, _reject) => {
-        roomSession.on('member.updated', (member) => {
-          if (member.name === memberTwo.name) {
-            resolve(member)
-          }
+        await roomSession.listen({
+          onMemberUpdated: (member) => {
+            if (member.name === memberTwo.name) {
+              resolve(member)
+            }
+          },
         })
         await memberTwo.setRaisedHand()
       }
@@ -110,10 +114,12 @@ test.describe('Video room hand raise/lower', () => {
     // Expect member.updated event via Node SDK for memberOne
     const memberOneNode = new Promise<Video.RoomSessionMember>(
       async (resolve, _reject) => {
-        roomSession.on('member.updated', (member) => {
-          if (member.name === memberOne.name) {
-            resolve(member)
-          }
+        await roomSession.listen({
+          onMemberUpdated: (member) => {
+            if (member.name === memberOne.name) {
+              resolve(member)
+            }
+          },
         })
       }
     )
