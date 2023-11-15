@@ -25,6 +25,11 @@ const handler: TestHandler = ({ domainApp }) => {
         },
       })
 
+      let waitForPromptStartResolve: () => void
+      const waitForPromptStart = new Promise<void>((resolve) => {
+        waitForPromptStartResolve = resolve
+      })
+
       const unsubVoice = await client.voice.listen({
         topics: [domainApp.call_relay_context, 'home'],
         onCallReceived: async (call) => {
@@ -36,6 +41,9 @@ const handler: TestHandler = ({ domainApp }) => {
               resultAnswer.id,
               'Inbound - Call answered gets the same instance'
             )
+
+            // Wait till the caller start the prompt
+            await waitForPromptStart
 
             // Send digits 1234 to the caller
             const sendDigits = await call.sendDigits('1w2w3w4w#')
@@ -98,6 +106,9 @@ const handler: TestHandler = ({ domainApp }) => {
         prompt.callId,
         'Outbound - Prompt returns the same call instance'
       )
+
+      // Resolve the promise to inform callee
+      waitForPromptStartResolve!()
 
       console.log('Waiting for the digits from the inbound call')
 
