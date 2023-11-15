@@ -10,6 +10,7 @@ const handler = () => {
         host: process.env.RELAY_HOST || 'relay.swire.io',
         project: process.env.RELAY_PROJECT as string,
         token: process.env.RELAY_TOKEN as string,
+        logLevel: 'debug',
         debug: {
           logWsTraffic: true,
         },

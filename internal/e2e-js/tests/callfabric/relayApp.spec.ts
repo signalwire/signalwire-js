@@ -1,4 +1,4 @@
-import { SignalWire, Voice } from '@signalwire/realtime-api'
+import { SignalWire } from '@signalwire/realtime-api'
 import {
   createCFClient,
   expectPageReceiveAudio,
