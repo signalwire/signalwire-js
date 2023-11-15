@@ -49,7 +49,6 @@ export function handleCallConnectEvents(
       return false
     }
     case 'disconnected': {
-      console.log('emit disconnected', callInstance.callId)
       // @ts-expect-error
       callInstance.emit('connect.disconnected')
       callInstance.peer = undefined
