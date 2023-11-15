@@ -234,6 +234,7 @@ async function main() {
   const runner = createTestRunner({
     name: 'PubSub E2E',
     testHandler: handler,
+    executionTime: 20_000,
   })
 
   await runner.run()
