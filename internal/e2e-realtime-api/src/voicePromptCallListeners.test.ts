@@ -21,7 +21,7 @@ const handler: TestHandler = ({ domainApp }) => {
         project: process.env.RELAY_PROJECT as string,
         token: process.env.RELAY_TOKEN as string,
         debug: {
-          // logWsTraffic: true,
+          logWsTraffic: true,
         },
       })
 
