@@ -4,7 +4,7 @@ description: Setup app, install JS dependencies and build
 inputs:
   NODE_VERSION:
     required: false
-    default: "18.x"
+    default: "20.x"
     description: "Default node version"
 
 runs:
