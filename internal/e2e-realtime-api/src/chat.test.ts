@@ -56,10 +56,15 @@ const testSubscribe = ({ jsChat, rtChat }: TestChatOptions) => {
     console.log('Running subscribe..')
     let events = 0
 
-    const resolveIfDone = () => {
+    let unsubRTChannel: Promise<() => Promise<void>>
+
+    const resolveIfDone = async () => {
       // wait 4 events (rt and js receive their own events + the other member)
       if (events === 4) {
         jsChat.off('member.joined')
+        await (
+          await unsubRTChannel
+        )()
         resolve(0)
       }
     }
@@ -71,18 +76,17 @@ const testSubscribe = ({ jsChat, rtChat }: TestChatOptions) => {
       resolveIfDone()
     })
 
-    const [unsubRTClient] = await Promise.all([
-      rtChat.listen({
-        channels: [channel],
-        onMemberJoined(member) {
-          // TODO: Check the member payload
-          console.log('rtChat member.joined')
-          events += 1
-          resolveIfDone()
-        },
-      }),
-      jsChat.subscribe(channel),
-    ])
+    unsubRTChannel = rtChat.listen({
+      channels: [channel],
+      onMemberJoined(member) {
+        // TODO: Check the member payload
+        console.log('rtChat member.joined')
+        events += 1
+        resolveIfDone()
+      },
+    })
+
+    await Promise.all([unsubRTChannel, jsChat.subscribe(channel)])
   })
 
   return timeoutPromise(promise, promiseTimeout, promiseException)
@@ -372,7 +376,7 @@ async function main() {
   const runner = createTestRunner({
     name: 'Chat E2E',
     testHandler: handler,
-    executionTime: 15_000,
+    executionTime: 30_000,
   })
 
   await runner.run()
