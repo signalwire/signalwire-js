@@ -29,6 +29,11 @@ const handler: TestHandler = ({ domainApp }) => {
         waitForPromptStartResolve = resolve
       })
 
+      let waitForPromptEndResolve: () => void
+      const waitForPromptEnd = new Promise<void>((resolve) => {
+        waitForPromptEndResolve = resolve
+      })
+
       const unsubVoice = await client.voice.listen({
         topics: [domainApp.call_relay_context, 'home'],
         onCallReceived: async (call) => {
@@ -41,7 +46,7 @@ const handler: TestHandler = ({ domainApp }) => {
               'Inbound - Call answered gets the same instance'
             )
 
-            // Wait till the caller start the prompt
+            // Wait until the caller starts the prompt
             await waitForPromptStart
 
             // Send digits 1234 to the caller
@@ -51,6 +56,9 @@ const handler: TestHandler = ({ domainApp }) => {
               sendDigits.id,
               'Inbound - sendDigit returns the same instance'
             )
+
+            // Wait until the caller ends the prompt
+            await waitForPromptEnd
 
             await call.hangup()
           } catch (error) {
@@ -138,7 +146,7 @@ const handler: TestHandler = ({ domainApp }) => {
         },
       })
 
-      // Resolve the promise to inform callee
+      // Resolve the prompt start to inform callee
       waitForPromptStartResolve!()
 
       console.log('Waiting for the digits from the inbound call')
@@ -146,6 +154,9 @@ const handler: TestHandler = ({ domainApp }) => {
       // Compare what caller has received
       const recDigits = await prompt.ended()
       tap.equal(recDigits.digits, '1234', 'Outbound - Received the same digit')
+
+      // Resolve the prompt end to inform callee
+      waitForPromptEndResolve!()
 
       // Resolve if the call has ended or ending
       const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
