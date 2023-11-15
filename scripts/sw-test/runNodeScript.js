@@ -74,7 +74,7 @@ async function runNodeScript(config) {
           // since we are using `spawn` and intercepting stderr here we need to write it back onto
           // child.stderr
           // NOTE: emit is not available here
-          child.stderr.write(data);
+          child.stderr.write(data)
         })
 
         child.on('close', (exitCode) => {
@@ -87,7 +87,7 @@ async function runNodeScript(config) {
     }
   } catch (error) {
     console.error('Process Exit with errorCode', error)
-    process.exit(error)
+    process.exit(error ?? 1)
   }
 }
 
