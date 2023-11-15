@@ -909,7 +909,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     }
   }
 
-  async dtmf(dtmf: string) {
+  async sendDigits(dtmf: string) {
     const rtcPeerId = this.callId
     if (!rtcPeerId) {
       throw new Error('Invalid RTCPeer ID to send DTMF')

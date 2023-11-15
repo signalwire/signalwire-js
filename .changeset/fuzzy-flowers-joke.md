@@ -3,4 +3,4 @@
 '@signalwire/core': minor
 ---
 
-Expose the `dtmf` function for Video RoomSession object
+Expose the `sendDigits` function for Video RoomSession object

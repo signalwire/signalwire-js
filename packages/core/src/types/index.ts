@@ -139,10 +139,10 @@ export interface BaseConnectionContract<
    *
    * @example
    * ```typescript
-   * room.dtmf('1')
+   * room.sendDigits('1')
    * ```
    */
-  dtmf(dtmf: string): Promise<void>
+  sendDigits(dtmf: string): Promise<void>
 
   /** @internal */
   stopOutboundAudio(): void
