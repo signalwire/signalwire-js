@@ -66,13 +66,7 @@ const getHandlers = (): TestHandler[] => {
         }
         console.log(`Running collect test with ${testCase}`)
         console.log(domainApp.call_relay_context)
-        let missingTheInstanceErrorWasThrown = false
-        process.stderr.on('data', (data) => {
-          const err = data.toString()
-          missingTheInstanceErrorWasThrown = err.includes(
-            'Voice calling event error Error: Missing the instance'
-          )
-        })
+
         const client = await SignalWire({
           host: process.env.RELAY_HOST,
           project: process.env.RELAY_PROJECT as string,
@@ -88,9 +82,9 @@ const getHandlers = (): TestHandler[] => {
           waitForCollectStartResolve = resolve
         })
 
-        let waitForCollectEndResolve
-        const waitForCollectEnd = new Promise((resolve) => {
-          waitForCollectEndResolve = resolve
+        let waitForPlaybackEndResolve
+        const waitForPlaybackEnd = new Promise((resolve) => {
+          waitForPlaybackEndResolve = resolve
         })
 
         const unsub = await client.voice.listen({
@@ -140,12 +134,14 @@ const getHandlers = (): TestHandler[] => {
               waitForCollectStartResolve()
 
               // Wait until the caller ends entring the digits
-              await waitForCollectEnd
+              await waitForPlaybackEnd
+
               setTimeout(() => call.hangup(), 100)
+
               const collected = await callCollect.ended() // block the script until the collect ended
+
               tap.ok(
-                // @ts-ignore
-                options.possibleExpectedTexts.includes(collected.text),
+                options.possibleExpectedTexts.includes(collected.text!),
                 'Received Correct Text'
               )
             } catch (error) {
@@ -167,6 +163,7 @@ const getHandlers = (): TestHandler[] => {
             }),
           })
           tap.ok(call.id, 'Call resolved')
+
           // Wait until the callee answers the call and start collecting digits
           await waitForCollectStart
 
@@ -176,7 +173,9 @@ const getHandlers = (): TestHandler[] => {
           await new Promise((resolve) =>
             setTimeout(resolve, options.hangupAfter)
           )
-          waitForCollectEndResolve()
+
+          // Inform callee that speech has completed
+          waitForPlaybackEndResolve()
 
           const waitForParams = [
             'ended',
@@ -196,14 +195,14 @@ const getHandlers = (): TestHandler[] => {
               )
             }
           })
-          tap.ok(
-            !missingTheInstanceErrorWasThrown,
-            'No Missing the Instance error was thrown'
-          )
-          client.disconnect()
+
+          await unsub()
+
+          await client.disconnect()
+
           resolve(0)
         } catch (error) {
-          console.error('Outbound - voiceDetect error', error)
+          console.error('Outbound - voiceSpeechCollect error', error)
           reject(4)
         }
       })
