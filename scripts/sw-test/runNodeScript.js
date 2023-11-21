@@ -69,12 +69,6 @@ async function runNodeScript(config) {
 
         child.stderr.on('data', (data) => {
           console.error(`stderr: ${data}`)
-          // also pass stderr data to child (test file)
-          // some new test cases want to check data on stderr
-          // since we are using `spawn` and intercepting stderr here we need to write it back onto
-          // child.stderr
-          // NOTE: emit is not available here
-          child.stderr.write(data)
         })
 
         child.on('close', (exitCode) => {
