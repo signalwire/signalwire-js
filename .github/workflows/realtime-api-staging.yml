@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [18.x]
     steps:
       - uses: actions/checkout@v3
       - name: Install deps
@@ -31,9 +31,14 @@ jobs:
         uses: ./.github/actions/playwright
         with:
           PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
+      - name: Debugging
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Contents of the current directory: $(ls -l)"
+          echo "Contents of e2e-realtime-api: $(cd internal/e2e-realtime-api && ls -l)"
       - name: Test
         id: run-tests
-        run: killall node && npm run -w=@sw-internal/e2e-realtime-api dev
+        run: npm run -w=@sw-internal/e2e-realtime-api dev
         env:
           SW_TEST_CONFIG: ${{ secrets.STAGING_E2E_REALTIME_SW_TEST_CONFIG }}
       - name: Report Result
