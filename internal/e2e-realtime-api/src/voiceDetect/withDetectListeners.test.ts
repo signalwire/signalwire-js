@@ -6,7 +6,7 @@ import {
   createTestRunner,
   TestHandler,
   makeSipDomainAppAddress,
-} from './utils'
+} from '../utils'
 
 const handler: TestHandler = ({ domainApp }) => {
   if (!domainApp) {
@@ -74,7 +74,7 @@ const handler: TestHandler = ({ domainApp }) => {
             if (call.state === 'ended') {
               await unsubVoice()
 
-              await unsubCall?.()
+              await unsubDetect?.()
 
               await client.disconnect()
 
@@ -85,34 +85,40 @@ const handler: TestHandler = ({ domainApp }) => {
       })
       tap.ok(call.id, 'Outbound - Call resolved')
 
-      const unsubCall = await call.listen({
-        onDetectStarted: (detect) => {
-          tap.hasProps(detect, CALL_DETECT_PROPS, 'Detect started')
-          tap.equal(detect.callId, call.id, 'Detect with correct call id')
+      // Start a detect
+      const detectDigit = call.detectDigit({
+        digits: '1234',
+        listen: {
+          onStarted: (detect) => {
+            tap.hasProps(detect, CALL_DETECT_PROPS, 'Detect started')
+            tap.equal(detect.callId, call.id, 'Detect with correct call id')
+          },
+        },
+      })
+      tap.equal(
+        call.id,
+        await detectDigit.callId,
+        'Outbound - Detect returns the same instance'
+      )
 
-          // Resolve the detect start promise
-          waitForDetectStartResolve!()
+      // Resolve the detect start promise
+      waitForDetectStartResolve!()
+
+      const unsubDetect = await detectDigit.listen({
+        onStarted: (detect) => {
+          // NotOk since the listener is attached after the call.detectDigit has resolved
+          tap.notOk(detect, 'Detect started')
         },
         // Update runs 4 times since callee send 4 digits
-        onDetectUpdated: (detect) => {
+        onUpdated: (detect) => {
           tap.hasProps(detect, CALL_DETECT_PROPS, 'Detect updated')
           tap.equal(detect.callId, call.id, 'Detect with correct call id')
         },
-        onDetectEnded: async (detect) => {
+        onEnded: async (detect) => {
           tap.hasProps(detect, CALL_DETECT_PROPS, 'Detect ended')
           tap.equal(detect.callId, call.id, 'Detect with correct call id')
         },
       })
-
-      // Start a detect
-      const detectDigit = await call.detectDigit({
-        digits: '1234',
-      })
-      tap.equal(
-        call.id,
-        detectDigit.callId,
-        'Outbound - Detect returns the same instance'
-      )
     } catch (error) {
       console.error('VoiceDetectDialListeners error', error)
       reject(4)
@@ -122,7 +128,7 @@ const handler: TestHandler = ({ domainApp }) => {
 
 async function main() {
   const runner = createTestRunner({
-    name: 'Voice Detect with Call Listeners E2E',
+    name: 'Voice Detect Listeners E2E',
     testHandler: handler,
     executionTime: 30_000,
     useDomainApp: true,

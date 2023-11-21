@@ -1,12 +1,12 @@
 import tap from 'tap'
 import { SignalWire } from '@signalwire/realtime-api'
 import {
-  CALL_PROPS,
-  CALL_DETECT_PROPS,
   createTestRunner,
+  CALL_RECORD_PROPS,
+  CALL_PROPS,
   TestHandler,
   makeSipDomainAppAddress,
-} from './utils'
+} from '../utils'
 
 const handler: TestHandler = ({ domainApp }) => {
   if (!domainApp) {
@@ -24,11 +24,6 @@ const handler: TestHandler = ({ domainApp }) => {
         },
       })
 
-      let waitForDetectStartResolve: () => void
-      const waitForDetectStart = new Promise<void>((resolve) => {
-        waitForDetectStartResolve = resolve
-      })
-
       const unsubVoice = await client.voice.listen({
         topics: [domainApp.call_relay_context, 'home'],
         onCallReceived: async (call) => {
@@ -40,19 +35,6 @@ const handler: TestHandler = ({ domainApp }) => {
               resultAnswer.id,
               'Inbound - Call answered gets the same instance'
             )
-
-            // Wait until the caller starts the detect
-            await waitForDetectStart
-
-            // Send digits 1234 to the caller
-            const sendDigits = await call.sendDigits('1w2w3w4w#')
-            tap.equal(
-              call.id,
-              sendDigits.id,
-              'Inbound - sendDigit returns the same instance'
-            )
-
-            await call.hangup()
           } catch (error) {
             console.error('Error answering inbound call', error)
           }
@@ -70,11 +52,11 @@ const handler: TestHandler = ({ domainApp }) => {
         }),
         timeout: 30,
         listen: {
-          async onStateChanged(call) {
+          onStateChanged: async (call) => {
             if (call.state === 'ended') {
               await unsubVoice()
 
-              await unsubDetect?.()
+              await unsubRecord?.()
 
               await client.disconnect()
 
@@ -85,42 +67,47 @@ const handler: TestHandler = ({ domainApp }) => {
       })
       tap.ok(call.id, 'Outbound - Call resolved')
 
-      // Start a detect
-      const detectDigit = call.detectDigit({
-        digits: '1234',
+      const record = call.recordAudio({
         listen: {
-          onStarted: (detect) => {
-            tap.hasProps(detect, CALL_DETECT_PROPS, 'Detect started')
-            tap.equal(detect.callId, call.id, 'Detect with correct call id')
+          onStarted: (recording) => {
+            tap.hasProps(recording, CALL_RECORD_PROPS, 'Recording started')
+            tap.equal(recording.state, 'recording', 'Recording correct state')
+          },
+          onFailed: (recording) => {
+            tap.notOk(recording.id, 'Recording failed')
+          },
+          onEnded: async (recording) => {
+            tap.hasProps(recording, CALL_RECORD_PROPS, 'Recording ended')
+
+            const recordId = await record.id
+            tap.equal(recording.id, recordId, 'Recording correct id')
+            tap.equal(recording.state, 'finished', 'Recording correct state')
           },
         },
       })
-      tap.equal(
-        call.id,
-        await detectDigit.callId,
-        'Outbound - Detect returns the same instance'
-      )
 
-      // Resolve the detect start promise
-      waitForDetectStartResolve!()
+      const unsubRecord = await record.listen({
+        onStarted: (recording) => {
+          // NotOk since this listener is being attached after the call.record promise has resolved
+          tap.notOk(recording.id, 'Recording started')
+        },
+        onFailed: (recording) => {
+          tap.notOk(recording.id, 'Recording failed')
+        },
+        onEnded: async (recording) => {
+          tap.hasProps(recording, CALL_RECORD_PROPS, 'Recording ended')
 
-      const unsubDetect = await detectDigit.listen({
-        onStarted: (detect) => {
-          // NotOk since the listener is attached after the call.detectDigit has resolved
-          tap.notOk(detect, 'Detect started')
-        },
-        // Update runs 4 times since callee send 4 digits
-        onUpdated: (detect) => {
-          tap.hasProps(detect, CALL_DETECT_PROPS, 'Detect updated')
-          tap.equal(detect.callId, call.id, 'Detect with correct call id')
-        },
-        onEnded: async (detect) => {
-          tap.hasProps(detect, CALL_DETECT_PROPS, 'Detect ended')
-          tap.equal(detect.callId, call.id, 'Detect with correct call id')
+          const recordId = await record.id
+          tap.equal(recording.id, recordId, 'Recording correct id')
+          tap.equal(recording.state, 'finished', 'Recording correct state')
+
+          await call.hangup()
         },
       })
+
+      await record.stop()
     } catch (error) {
-      console.error('VoiceDetectDialListeners error', error)
+      console.error('VoiceRecordListeners error', error)
       reject(4)
     }
   })
@@ -128,7 +115,7 @@ const handler: TestHandler = ({ domainApp }) => {
 
 async function main() {
   const runner = createTestRunner({
-    name: 'Voice Detect Listeners E2E',
+    name: 'Voice Record Listeners E2E',
     testHandler: handler,
     executionTime: 30_000,
     useDomainApp: true,

@@ -4,9 +4,9 @@ import {
   createTestRunner,
   CALL_COLLECT_PROPS,
   CALL_PROPS,
-  makeSipDomainAppAddress,
   TestHandler,
-} from './utils'
+  makeSipDomainAppAddress,
+} from '../utils'
 
 const handler: TestHandler = ({ domainApp }) => {
   if (!domainApp) {
@@ -48,7 +48,7 @@ const handler: TestHandler = ({ domainApp }) => {
             // Wait until the caller starts the collect
             await waitForCollectStart
 
-            // Send digits 1234 to the caller
+            // Send wrong digits 123 to the caller (callee expects 1234)
             const sendDigits = await call.sendDigits('1w2w3w4w#')
             tap.equal(
               call.id,
@@ -76,50 +76,108 @@ const handler: TestHandler = ({ domainApp }) => {
           domain: domainApp.domain,
         }),
         timeout: 30,
-        listen: {
-          onCollectStarted: (collect) => {
-            tap.hasProps(collect, CALL_COLLECT_PROPS, 'Collect started')
-            tap.equal(collect.callId, call.id, 'Collect correct call id')
-          },
-          onCollectInputStarted: (collect) => {
-            tap.hasProps(collect, CALL_COLLECT_PROPS, 'Collect input started')
-          },
-          // onCollectUpdated runs three times since callee sends 4 digits (1234)
-          // 4th (final) digit emits onCollectEnded
-          onCollectUpdated: (collect) => {
-            tap.hasProps(collect, CALL_COLLECT_PROPS, 'Collect updated')
-          },
-          onCollectFailed: (collect) => {
-            tap.notOk(collect.id, 'Collect failed')
-          },
-          onCollectEnded: (collect) => {
-            tap.hasProps(collect, CALL_COLLECT_PROPS, 'Collect ended')
-          },
-        },
       })
       tap.ok(call.id, 'Outbound - Call resolved')
 
       // Caller starts a collect
-      const collect = call.collect({
-        initialTimeout: 4.0,
-        digits: {
-          max: 4,
-          digitTimeout: 10,
-          terminators: '#',
-        },
-        partialResults: true,
-        continuous: false,
-        sendStartOfInput: true,
-        startInputTimers: false,
-      })
+      const collect = await call
+        .collect({
+          initialTimeout: 4.0,
+          digits: {
+            max: 4,
+            digitTimeout: 10,
+            terminators: '#',
+          },
+          partialResults: true,
+          continuous: false,
+          sendStartOfInput: true,
+          startInputTimers: false,
+          listen: {
+            onStarted: (collect) => {
+              tap.hasProps(
+                collect,
+                CALL_COLLECT_PROPS,
+                'call.collect: Collect started'
+              )
+              tap.equal(
+                collect.callId,
+                call.id,
+                'call.collect: Correct call id'
+              )
+            },
+            onInputStarted: (collect) => {
+              tap.hasProps(
+                collect,
+                CALL_COLLECT_PROPS,
+                'call.collect: Collect input started'
+              )
+            },
+            // onUpdated runs three times since callee sends 4 digits (1234)
+            // 4th (final) digit emits onEnded
+            onUpdated: (collect) => {
+              tap.hasProps(
+                collect,
+                CALL_COLLECT_PROPS,
+                'call.collect: Collect updated'
+              )
+            },
+            onFailed: (collect) => {
+              tap.notOk(collect.id, 'call.collect: Collect failed')
+            },
+            onEnded: (collect) => {
+              tap.hasProps(
+                collect,
+                CALL_COLLECT_PROPS,
+                'call.collect: Collect ended'
+              )
+            },
+          },
+        })
+        .onStarted()
       tap.equal(
         call.id,
-        await collect.callId,
+        collect.callId,
         'Outbound - Collect returns the same call instance'
       )
 
       // Resolve the collect start promise
       waitForCollectStartResolve!()
+
+      const unsubCollect = await collect.listen({
+        onStarted: (collect) => {
+          // NotOk since this listener is being attached after the call.collect promise has resolved
+          tap.notOk(collect.id, 'collect.listen: Collect stared')
+        },
+        onInputStarted: (collect) => {
+          tap.hasProps(
+            collect,
+            CALL_COLLECT_PROPS,
+            'collect.listen: Collect input started'
+          )
+        },
+        onUpdated: (collect) => {
+          tap.hasProps(
+            collect,
+            CALL_COLLECT_PROPS,
+            'collect.listen: Collect updated'
+          )
+        },
+        onFailed: (collect) => {
+          tap.notOk(collect.id, 'collect.listen: Collect failed')
+        },
+        onEnded: (_collect) => {
+          tap.hasProps(
+            _collect,
+            CALL_COLLECT_PROPS,
+            'collect.listen: Collect ended'
+          )
+          tap.equal(
+            _collect.id,
+            collect.id,
+            'collect.listen: Collect correct id'
+          )
+        },
+      })
 
       console.log('Waiting for the digits from the inbound call')
 
@@ -148,11 +206,13 @@ const handler: TestHandler = ({ domainApp }) => {
 
       await unsubVoice()
 
+      await unsubCollect()
+
       await client.disconnect()
 
       resolve(0)
     } catch (error) {
-      console.error('VoiceCollectDialListeners error', error)
+      console.error('VoiceCollectListeners error', error)
       reject(4)
     }
   })
@@ -160,7 +220,7 @@ const handler: TestHandler = ({ domainApp }) => {
 
 async function main() {
   const runner = createTestRunner({
-    name: 'Voice Collect with Dial Listeners E2E',
+    name: 'Voice Collect Listeners E2E',
     testHandler: handler,
     executionTime: 60_000,
     useDomainApp: true,

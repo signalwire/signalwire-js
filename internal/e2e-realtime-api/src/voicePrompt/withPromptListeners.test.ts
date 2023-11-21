@@ -2,17 +2,17 @@ import tap from 'tap'
 import { SignalWire } from '@signalwire/realtime-api'
 import {
   createTestRunner,
-  CALL_COLLECT_PROPS,
+  CALL_PLAYBACK_PROPS,
   CALL_PROPS,
+  CALL_PROMPT_PROPS,
   TestHandler,
   makeSipDomainAppAddress,
-} from './utils'
+} from '../utils'
 
 const handler: TestHandler = ({ domainApp }) => {
   if (!domainApp) {
     throw new Error('Missing domainApp')
   }
-
   return new Promise<number>(async (resolve, reject) => {
     try {
       const client = await SignalWire({
@@ -24,13 +24,14 @@ const handler: TestHandler = ({ domainApp }) => {
         },
       })
 
-      let waitForCollectStartResolve: () => void
-      const waitForCollectStart = new Promise<void>((resolve) => {
-        waitForCollectStartResolve = resolve
+      let waitForPromptStartResolve: () => void
+      const waitForPromptStart = new Promise<void>((resolve) => {
+        waitForPromptStartResolve = resolve
       })
-      let waitForCollectEndResolve: () => void
-      const waitForCollectEnd = new Promise<void>((resolve) => {
-        waitForCollectEndResolve = resolve
+
+      let waitForPromptEndResolve: () => void
+      const waitForPromptEnd = new Promise<void>((resolve) => {
+        waitForPromptEndResolve = resolve
       })
 
       const unsubVoice = await client.voice.listen({
@@ -45,10 +46,10 @@ const handler: TestHandler = ({ domainApp }) => {
               'Inbound - Call answered gets the same instance'
             )
 
-            // Wait until the caller starts the collect
-            await waitForCollectStart
+            // Wait until the caller starts the prompt
+            await waitForPromptStart
 
-            // Send wrong digits 123 to the caller (callee expects 1234)
+            // Send digits 1234 to the caller
             const sendDigits = await call.sendDigits('1w2w3w4w#')
             tap.equal(
               call.id,
@@ -56,8 +57,8 @@ const handler: TestHandler = ({ domainApp }) => {
               'Inbound - sendDigit returns the same instance'
             )
 
-            // Wait until the caller ends the collect
-            await waitForCollectEnd
+            // Wait until the caller ends the prompt
+            await waitForPromptEnd
 
             await call.hangup()
           } catch (error) {
@@ -76,95 +77,86 @@ const handler: TestHandler = ({ domainApp }) => {
           domain: domainApp.domain,
         }),
         timeout: 30,
+      })
+      tap.ok(call.id, 'Outbound - Call resolved')
+
+      const prompt = call.promptTTS({
+        text: 'Welcome to SignalWire! Please enter your 4 digits PIN',
+        digits: {
+          max: 4,
+          digitTimeout: 10,
+          terminators: '#',
+        },
         listen: {
-          onCollectInputStarted(collect) {
+          onStarted: (prompt) => {
             tap.hasProps(
-              collect,
-              CALL_COLLECT_PROPS,
-              'voice.dialSip: Collect input started'
+              prompt,
+              CALL_PROMPT_PROPS,
+              'call.promptTTS: Prompt started'
+            )
+          },
+          onUpdated: (_prompt) => {
+            tap.notOk(_prompt.id, 'call.promptTTS: Prompt updated')
+          },
+          onFailed: (_prompt) => {
+            tap.notOk(_prompt.id, 'call.promptTTS: Prompt failed')
+          },
+          onEnded: async (_prompt) => {
+            tap.hasProps(
+              _prompt,
+              CALL_PROMPT_PROPS,
+              'call.promptTTS: Prompt ended'
+            )
+            tap.equal(
+              _prompt.id,
+              await prompt.id,
+              'call.promptTTS: Prompt correct id'
             )
           },
         },
       })
-      tap.ok(call.id, 'Outbound - Call resolved')
-
-      const unsubCall = await call.listen({
-        onCollectStarted(collect) {
-          tap.hasProps(
-            collect,
-            CALL_COLLECT_PROPS,
-            'call.listen: Collect started'
-          )
-        },
-        onCollectEnded(collect) {
-          // NotOk since we unsubscribe this listener before the collect ends
-          tap.notOk(collect, 'call.listen: Collect ended')
-        },
-      })
-
-      // Caller starts a collect
-      const collect = await call
-        .collect({
-          initialTimeout: 4.0,
-          digits: {
-            max: 4,
-            digitTimeout: 10,
-            terminators: '#',
-          },
-          partialResults: true,
-          continuous: false,
-          sendStartOfInput: true,
-          startInputTimers: false,
-          listen: {
-            // onUpdated runs three times since callee sends 4 digits (1234)
-            // 4th (final) digit emits onEnded
-            onUpdated: (collect) => {
-              tap.hasProps(
-                collect,
-                CALL_COLLECT_PROPS,
-                'call.collect: Collect updated'
-              )
-            },
-            onFailed: (collect) => {
-              tap.notOk(collect.id, 'call.collect: Collect failed')
-            },
-          },
-        })
-        .onStarted()
       tap.equal(
         call.id,
-        collect.callId,
-        'Outbound - Collect returns the same call instance'
+        await prompt.callId,
+        'Outbound - Prompt returns the same call instance'
       )
 
-      // Resolve the collect start promise
-      waitForCollectStartResolve!()
-
-      const unsubCollect = await collect.listen({
-        onEnded: (_collect) => {
+      const unsubPrompt = await prompt.listen({
+        onStarted: (prompt) => {
+          // NotOk since this listener is being attached after the call.prompt promise has resolved
+          tap.notOk(prompt.id, 'prompt.listen: Prompt stared')
+        },
+        onUpdated: (prompt) => {
+          tap.notOk(prompt.id, 'prompt.listen: Prompt updated')
+        },
+        onFailed: (prompt) => {
+          tap.notOk(prompt.id, 'prompt.listen: Prompt failed')
+        },
+        onEnded: async (_prompt) => {
           tap.hasProps(
-            _collect,
-            CALL_COLLECT_PROPS,
-            'collect.listen: Collect ended'
+            _prompt,
+            CALL_PROMPT_PROPS,
+            'prompt.listen: Prompt ended'
           )
           tap.equal(
-            _collect.id,
-            collect.id,
-            'collect.listen: Collect correct id'
+            _prompt.id,
+            await prompt.id,
+            'prompt.listen: Prompt correct id'
           )
         },
       })
 
-      await unsubCall()
+      // Resolve the prompt start to inform callee
+      waitForPromptStartResolve!()
 
       console.log('Waiting for the digits from the inbound call')
 
       // Compare what caller has received
-      const recDigits = await collect.ended()
+      const recDigits = await prompt.ended()
       tap.equal(recDigits.digits, '1234', 'Outbound - Received the same digit')
 
-      // Resolve the collect end promise
-      waitForCollectEndResolve!()
+      // Resolve the prompt end to inform callee
+      waitForPromptEndResolve!()
 
       // Resolve if the call has ended or ending
       const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
@@ -184,13 +176,13 @@ const handler: TestHandler = ({ domainApp }) => {
 
       await unsubVoice()
 
-      await unsubCollect()
+      await unsubPrompt()
 
       await client.disconnect()
 
       resolve(0)
     } catch (error) {
-      console.error('VoiceCollectAllListeners error', error)
+      console.error('VoicePromptListeners error', error)
       reject(4)
     }
   })
@@ -198,9 +190,9 @@ const handler: TestHandler = ({ domainApp }) => {
 
 async function main() {
   const runner = createTestRunner({
-    name: 'Voice Collect with all Listeners E2E',
+    name: 'Voice Prompt Listeners E2E',
     testHandler: handler,
-    executionTime: 60_000,
+    executionTime: 30_000,
     useDomainApp: true,
   })
 

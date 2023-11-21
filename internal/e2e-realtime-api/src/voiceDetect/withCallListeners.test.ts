@@ -1,12 +1,12 @@
 import tap from 'tap'
 import { SignalWire } from '@signalwire/realtime-api'
 import {
-  createTestRunner,
-  CALL_PLAYBACK_PROPS,
   CALL_PROPS,
+  CALL_DETECT_PROPS,
+  createTestRunner,
   TestHandler,
   makeSipDomainAppAddress,
-} from './utils'
+} from '../utils'
 
 const handler: TestHandler = ({ domainApp }) => {
   if (!domainApp) {
@@ -20,8 +20,13 @@ const handler: TestHandler = ({ domainApp }) => {
         project: process.env.RELAY_PROJECT as string,
         token: process.env.RELAY_TOKEN as string,
         debug: {
-          // logWsTraffic: true,
+          logWsTraffic: true,
         },
+      })
+
+      let waitForDetectStartResolve: () => void
+      const waitForDetectStart = new Promise<void>((resolve) => {
+        waitForDetectStartResolve = resolve
       })
 
       const unsubVoice = await client.voice.listen({
@@ -35,6 +40,19 @@ const handler: TestHandler = ({ domainApp }) => {
               resultAnswer.id,
               'Inbound - Call answered gets the same instance'
             )
+
+            // Wait until the caller starts the detect
+            await waitForDetectStart
+
+            // Send digits 1234 to the caller
+            const sendDigits = await call.sendDigits('1w2w3w4w#')
+            tap.equal(
+              call.id,
+              sendDigits.id,
+              'Inbound - sendDigit returns the same instance'
+            )
+
+            await call.hangup()
           } catch (error) {
             console.error('Error answering inbound call', error)
           }
@@ -52,11 +70,11 @@ const handler: TestHandler = ({ domainApp }) => {
         }),
         timeout: 30,
         listen: {
-          onStateChanged: async (call) => {
+          async onStateChanged(call) {
             if (call.state === 'ended') {
               await unsubVoice()
 
-              await unsubPlay?.()
+              await unsubCall?.()
 
               await client.disconnect()
 
@@ -67,52 +85,36 @@ const handler: TestHandler = ({ domainApp }) => {
       })
       tap.ok(call.id, 'Outbound - Call resolved')
 
-      const play = await call
-        .playTTS({
-          text: 'This is a custom text to speech for test.',
-          listen: {
-            onStarted: (playback) => {
-              tap.hasProps(playback, CALL_PLAYBACK_PROPS, 'Playback started')
-              tap.equal(playback.state, 'playing', 'Playback correct state')
-            },
-            onUpdated: (playback) => {
-              tap.notOk(playback.id, 'Playback updated')
-            },
-            onFailed: (playback) => {
-              tap.notOk(playback.id, 'Playback failed')
-            },
-            onEnded: (playback) => {
-              tap.hasProps(playback, CALL_PLAYBACK_PROPS, 'Playback ended')
-              tap.equal(playback.id, play.id, 'Playback correct id')
-              tap.equal(playback.state, 'finished', 'Playback correct state')
-            },
-          },
-        })
-        .onStarted()
+      const unsubCall = await call.listen({
+        onDetectStarted: (detect) => {
+          tap.hasProps(detect, CALL_DETECT_PROPS, 'Detect started')
+          tap.equal(detect.callId, call.id, 'Detect with correct call id')
 
-      const unsubPlay = await play.listen({
-        onStarted: (playback) => {
-          // NotOk since this listener is being attached after the call.play promise has resolved
-          tap.notOk(playback.id, 'Playback stared')
+          // Resolve the detect start promise
+          waitForDetectStartResolve!()
         },
-        onUpdated: (playback) => {
-          tap.notOk(playback.id, 'Playback updated')
+        // Update runs 4 times since callee send 4 digits
+        onDetectUpdated: (detect) => {
+          tap.hasProps(detect, CALL_DETECT_PROPS, 'Detect updated')
+          tap.equal(detect.callId, call.id, 'Detect with correct call id')
         },
-        onFailed: (playback) => {
-          tap.notOk(playback.id, 'Playback failed')
-        },
-        onEnded: async (playback) => {
-          tap.hasProps(playback, CALL_PLAYBACK_PROPS, 'Playback ended')
-          tap.equal(playback.id, play.id, 'Playback correct id')
-          tap.equal(playback.state, 'finished', 'Playback correct state')
-
-          await call.hangup()
+        onDetectEnded: async (detect) => {
+          tap.hasProps(detect, CALL_DETECT_PROPS, 'Detect ended')
+          tap.equal(detect.callId, call.id, 'Detect with correct call id')
         },
       })
 
-      await play.stop()
+      // Start a detect
+      const detectDigit = await call.detectDigit({
+        digits: '1234',
+      })
+      tap.equal(
+        call.id,
+        detectDigit.callId,
+        'Outbound - Detect returns the same instance'
+      )
     } catch (error) {
-      console.error('VoicePlaybackListeners error', error)
+      console.error('VoiceDetectDialListeners error', error)
       reject(4)
     }
   })
@@ -120,9 +122,9 @@ const handler: TestHandler = ({ domainApp }) => {
 
 async function main() {
   const runner = createTestRunner({
-    name: 'Voice Playback Listeners E2E',
+    name: 'Voice Detect with Call Listeners E2E',
     testHandler: handler,
-    executionTime: 60_000,
+    executionTime: 30_000,
     useDomainApp: true,
   })
 

@@ -5,7 +5,7 @@ import {
   createTestRunner,
   makeSipDomainAppAddress,
   CALL_PLAYBACK_PROPS,
-} from './utils'
+} from '../utils'
 
 const handler: TestHandler = ({ domainApp }) => {
   if (!domainApp) {
