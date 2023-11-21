@@ -31,11 +31,6 @@ jobs:
         uses: ./.github/actions/playwright
         with:
           PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
-      - name: Debugging
-        run: |
-          echo "Current directory: $(pwd)"
-          echo "Contents of the current directory: $(ls -l)"
-          echo "Contents of e2e-realtime-api: $(cd internal/e2e-realtime-api && ls -l)"
       - name: Test
         id: run-tests
         run: npm run -w=@sw-internal/e2e-realtime-api dev
