@@ -4,10 +4,9 @@ import {
   createTestRunner,
   CALL_RECORD_PROPS,
   CALL_PROPS,
-  sleep,
   TestHandler,
   makeSipDomainAppAddress,
-} from './utils'
+} from '../utils'
 
 const handler: TestHandler = ({ domainApp }) => {
   if (!domainApp) {
@@ -52,38 +51,43 @@ const handler: TestHandler = ({ domainApp }) => {
           domain: domainApp.domain,
         }),
         timeout: 30,
-        listen: {
-          onStateChanged: async (call) => {
-            if (call.state === 'ended') {
-              await unsubVoice()
-
-              await client.disconnect()
-
-              resolve(0)
-            }
-          },
-          onRecordingStarted: (recording) => {
-            tap.hasProps(recording, CALL_RECORD_PROPS, 'Recording started')
-            tap.equal(recording.state, 'recording', 'Recording correct state')
-          },
-          onRecordingFailed: (recording) => {
-            tap.notOk(recording.id, 'Recording failed')
-          },
-          onRecordingEnded: async (recording) => {
-            tap.hasProps(recording, CALL_RECORD_PROPS, 'Recording ended')
-            tap.equal(recording.state, 'finished', 'Recording correct state')
-
-            await call.hangup()
-          },
-        },
       })
       tap.ok(call.id, 'Outbound - Call resolved')
 
-      const record = await call.recordAudio().onStarted()
+      const unsubCall = await call.listen({
+        onStateChanged: async (call) => {
+          if (call.state === 'ended') {
+            await unsubVoice()
 
-      await record.stop()
+            await unsubCall?.()
+
+            await client.disconnect()
+
+            resolve(0)
+          }
+        },
+        onRecordingStarted: (recording) => {
+          tap.hasProps(recording, CALL_RECORD_PROPS, 'Recording started')
+          tap.equal(recording.state, 'recording', 'Recording correct state')
+        },
+        onRecordingFailed: (recording) => {
+          tap.notOk(recording.id, 'Recording failed')
+        },
+        onRecordingEnded: async (recording) => {
+          tap.hasProps(recording, CALL_RECORD_PROPS, 'Recording ended')
+          tap.equal(recording.state, 'finished', 'Recording correct state')
+
+          await call.hangup()
+        },
+      })
+
+      const record = call.recordAudio()
+
+      if ((await record.state) === 'recording') {
+        await record.stop()
+      }
     } catch (error) {
-      console.error('VoiceRecordDialListeners error', error)
+      console.error('VoiceRecordCallListeners error', error)
       reject(4)
     }
   })
@@ -91,7 +95,7 @@ const handler: TestHandler = ({ domainApp }) => {
 
 async function main() {
   const runner = createTestRunner({
-    name: 'Voice Record with Dial Listeners E2E',
+    name: 'Voice Record with Call Listeners E2E',
     testHandler: handler,
     executionTime: 30_000,
     useDomainApp: true,
