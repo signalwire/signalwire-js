@@ -279,6 +279,7 @@ const testDisconnectedRTClient = (rtClient: RealtimeSWClient) => {
 
       reject(4)
     } catch (e) {
+      console.log('Client disconnected okay!')
       resolve(0)
     }
   })
@@ -293,6 +294,9 @@ const handler = async () => {
     host: process.env.RELAY_HOST,
     // @ts-expect-error
     token: CRT.token,
+    debug: {
+      logWsTraffic: true,
+    },
   })
 
   const jsChatResultCode = await testChatMethod(jsChat)
@@ -306,6 +310,9 @@ const handler = async () => {
     host: process.env.RELAY_HOST,
     project: process.env.RELAY_PROJECT as string,
     token: process.env.RELAY_TOKEN as string,
+    // debug: {
+    //   logWsTraffic: true,
+    // },
   })
   const rtChat = rtClient.chat
 
