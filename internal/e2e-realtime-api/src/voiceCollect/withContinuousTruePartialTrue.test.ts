@@ -11,6 +11,7 @@ const possibleExpectedTexts = [
   '123456789 10:00 11:00 12:00',
   'one two three four five six seven eight nine ten',
   '1112',
+  'yes',
 ]
 
 const handler: TestHandler = ({ domainApp }) => {

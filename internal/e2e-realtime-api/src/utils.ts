@@ -91,7 +91,6 @@ export const createTestRunner = ({
         if (params.domainApp) {
           console.log('Delete domain app..')
           await deleteDomainApp({ id: params.domainApp.id })
-          delete params.domainApp
         }
         done(exitCode)
       } catch (error) {
@@ -100,7 +99,6 @@ export const createTestRunner = ({
         if (params.domainApp) {
           console.log('Delete domain app..')
           await deleteDomainApp({ id: params.domainApp.id })
-          delete params.domainApp
         }
         done(1)
       }
