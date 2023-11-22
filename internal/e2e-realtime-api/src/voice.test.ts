@@ -6,6 +6,8 @@ import {
   makeSipDomainAppAddress,
 } from './utils'
 
+tap.setTimeout(60_000)
+
 const handler: TestHandler = ({ domainApp }) => {
   if (!domainApp) {
     throw new Error('Missing domainApp')
@@ -24,6 +26,11 @@ const handler: TestHandler = ({ domainApp }) => {
 
       let outboundCall: Voice.Call
       let callsReceived = new Set()
+
+      let waitForDetectStartResolve: () => void
+      const waitForDetectStart = new Promise<void>((resolve) => {
+        waitForDetectStartResolve = resolve
+      })
 
       const unsubVoice = await client.voice.listen({
         topics: [domainApp.call_relay_context],
@@ -53,11 +60,14 @@ const handler: TestHandler = ({ domainApp }) => {
             )
 
             if (callsReceived.size === 2) {
+              // Wait until the outbound peer starts digit detection
+              await waitForDetectStart
+
               const sendDigitResult = await call.sendDigits('1#')
               tap.equal(
                 call.id,
                 sendDigitResult.id,
-                'Peer - SendDigit returns the same instance'
+                'PeerInboundCall - SendDigit returns the same instance'
               )
 
               return
@@ -177,16 +187,22 @@ const handler: TestHandler = ({ domainApp }) => {
             console.log('Peer:', peer.id, peer.type, peer.from, peer.to)
             console.log('Main:', call.id, call.type, call.from, call.to)
 
-            const detector = await call.detectDigit({
-              digits: '1',
-            })
+            const detector = await call
+              .detectDigit({
+                digits: '1',
+              })
+              .onStarted()
+
+            // Inform inbound peer that the detector has started
+            waitForDetectStartResolve()
+
+            const detected = await detector.ended()
 
             // TODO: update this once the backend can send us the actual result
             tap.equal(
-              // @ts-expect-error
-              detector.detect.params.event,
+              detected.detect?.params.event,
               'finished',
-              'Peer - Detect digit is finished'
+              'PeerOutboundCall - Detect digit is finished'
             )
 
             console.log('Finishing the calls.')
