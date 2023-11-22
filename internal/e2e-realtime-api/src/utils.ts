@@ -60,6 +60,7 @@ export const createTestRunner = ({
       console.error(`Test Runner ${name} ran out of time (${executionTime})`)
       process.exit(2)
     }, executionTime)
+    tap.setTimeout(executionTime)
   }
 
   const done = (exitCode: number) => {
@@ -86,7 +87,6 @@ export const createTestRunner = ({
             call_relay_context: `d-app-ctx-${uuid}`,
           })
         }
-        tap.setTimeout(executionTime)
         const exitCode = await testHandler(params)
         if (params.domainApp) {
           console.log('Delete domain app..')
