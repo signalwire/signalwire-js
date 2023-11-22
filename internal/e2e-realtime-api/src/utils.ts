@@ -1,3 +1,4 @@
+import tap from 'tap'
 import { request } from 'node:https'
 import { randomUUID, randomBytes } from 'node:crypto'
 
@@ -85,6 +86,7 @@ export const createTestRunner = ({
             call_relay_context: `d-app-ctx-${uuid}`,
           })
         }
+        tap.setTimeout(executionTime)
         const exitCode = await testHandler(params)
         if (params.domainApp) {
           console.log('Delete domain app..')

@@ -35,7 +35,7 @@ const getScriptOptions = (pathname, config) => {
 
     if (
       fs.lstatSync(itemPath).isFile() &&
-      item.includes('.test.') &&
+      normalizedPath.includes('.test.') &&
       !ignoreFiles.includes(normalizedPath)
     ) {
       acc.push({

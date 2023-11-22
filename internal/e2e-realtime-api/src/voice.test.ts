@@ -6,8 +6,6 @@ import {
   makeSipDomainAppAddress,
 } from './utils'
 
-tap.setTimeout(60_000)
-
 const handler: TestHandler = ({ domainApp }) => {
   if (!domainApp) {
     throw new Error('Missing domainApp')
