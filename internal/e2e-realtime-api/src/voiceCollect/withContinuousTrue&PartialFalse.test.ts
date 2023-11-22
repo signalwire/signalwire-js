@@ -60,7 +60,7 @@ const handler: TestHandler = ({ domainApp }) => {
                   language: 'en-US',
                   model: 'enhanced.phone_call',
                 },
-                partialResults: true,
+                partialResults: false,
                 continuous: true,
                 sendStartOfInput: true,
                 listen: {
@@ -148,7 +148,7 @@ const handler: TestHandler = ({ domainApp }) => {
 
       resolve(0)
     } catch (error) {
-      console.error('voiceCollect/withContinuousTrue&PartialTrue error', error)
+      console.error('voiceCollect/withContinuousTrue&PartialFalse error', error)
       reject(4)
     }
   })
@@ -156,7 +156,7 @@ const handler: TestHandler = ({ domainApp }) => {
 
 async function main() {
   const runner = createTestRunner({
-    name: 'Voice Collect with Continuous true & Partial true',
+    name: 'Voice Collect with Continuous true & Partial false',
     testHandler: handler,
     executionTime: 60_000,
     useDomainApp: true,
