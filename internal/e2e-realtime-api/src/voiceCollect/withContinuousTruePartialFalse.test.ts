@@ -69,6 +69,7 @@ const handler: TestHandler = ({ domainApp }) => {
                   },
                   onUpdated: (_collect) => {
                     console.log('>>> collect.updated', _collect.text)
+                    tap.notOk(_collect, 'Should not receive partial results')
                   },
                   onEnded: (_collect) => {
                     console.log('>>> collect.ended', _collect.text)
@@ -80,13 +81,14 @@ const handler: TestHandler = ({ domainApp }) => {
               })
               .onStarted()
 
-            // Resolve the answer promise to inform the caller
+            // Inform caller that collect has started
             waitForCollectStartResolve()
 
-            // Wait until the caller ends entring the digits
+            // Wait until the caller ends sending the speech
             await waitForPlaybackEnd
 
             // FIXME: Failing due to server side issue
+            // With continuous true, the collect will never stop, user needs to stop it using this function
             // await callCollect.stop()
 
             setTimeout(() => call.hangup(), 100)
@@ -116,7 +118,7 @@ const handler: TestHandler = ({ domainApp }) => {
       })
       tap.ok(call.id, 'Outbound - Call resolved')
 
-      // Wait until the callee answers the call and start collecting digits
+      // Wait until the callee starts collecting speech
       await waitForCollectStart
 
       await call.playAudio({
@@ -148,7 +150,7 @@ const handler: TestHandler = ({ domainApp }) => {
 
       resolve(0)
     } catch (error) {
-      console.error('voiceCollect/withContinuousTrue&PartialFalse error', error)
+      console.error('voiceCollect/withContinuousTruePartialFalse error', error)
       reject(4)
     }
   })
