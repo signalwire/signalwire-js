@@ -61,7 +61,7 @@ const handler: TestHandler = ({ domainApp }) => {
                   model: 'enhanced.phone_call',
                 },
                 partialResults: true,
-                continuous: true,
+                continuous: false,
                 sendStartOfInput: true,
                 listen: {
                   onStarted: () => {
@@ -80,16 +80,11 @@ const handler: TestHandler = ({ domainApp }) => {
               })
               .onStarted()
 
-            // Resolve the answer promise to inform the caller
+            // Inform caller that collect has started
             waitForCollectStartResolve()
 
-            // Wait until the caller ends entring the digits
+            // Wait until the caller ends sending the speech
             await waitForPlaybackEnd
-
-            // FIXME: Failing due to server side issue
-            // await callCollect.stop()
-
-            setTimeout(() => call.hangup(), 100)
 
             const collected = await callCollect.ended()
             tap.ok(
@@ -97,7 +92,7 @@ const handler: TestHandler = ({ domainApp }) => {
               'Received Correct Text'
             )
 
-            // await call.hangup()
+            await call.hangup()
           } catch (error) {
             console.error('Error answering inbound call', error)
           }
@@ -116,12 +111,14 @@ const handler: TestHandler = ({ domainApp }) => {
       })
       tap.ok(call.id, 'Outbound - Call resolved')
 
-      // Wait until the callee answers the call and start collecting digits
+      // Wait until the callee starts collecting speech
       await waitForCollectStart
 
-      await call.playAudio({
+      // Play an speech but do not let it complete
+      call.playAudio({
         url: 'https://amaswtest.s3-accelerate.amazonaws.com/newrecording2.mp3',
       })
+      await new Promise((resolve) => setTimeout(resolve, 5_000))
 
       // Inform callee that speech has completed
       waitForPlaybackEndResolve()
@@ -148,7 +145,10 @@ const handler: TestHandler = ({ domainApp }) => {
 
       resolve(0)
     } catch (error) {
-      console.error('voiceCollect/withContinuousTrue&PartialTrue error', error)
+      console.error(
+        'voiceCollect/withContinuousFalsePartialTrue&EarlyHangup error',
+        error
+      )
       reject(4)
     }
   })
@@ -156,7 +156,7 @@ const handler: TestHandler = ({ domainApp }) => {
 
 async function main() {
   const runner = createTestRunner({
-    name: 'Voice Collect with Continuous true & Partial true',
+    name: 'Voice Collect with Continuous false, Partial true & early hangup',
     testHandler: handler,
     executionTime: 60_000,
     useDomainApp: true,
