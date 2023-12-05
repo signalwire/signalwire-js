@@ -715,3 +715,32 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
     first.inboundRTP.audio.packetsReceived + minAudioPacketsExpected
   )
 }
+
+export const createRestApiCall = async (resource: string) => {
+  const data = new URLSearchParams();
+  data.append('Url', `${process.env.LAMLURL}`);
+  data.append('From', `${process.env.FROMNUMBER}`);
+  data.append('To', `verto:${resource}@${process.env.TODOMAIN}`);
+
+  console.log("_________data: ", data)
+
+  const response = await fetch(
+    `https://${process.env.SPACE}/api/laml/2010-04-01/Accounts/${process.env.RELAY_PROJECT}/Calls`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: data,
+    }
+  )
+
+  console.log("______response: ", response)
+  // const result = await response.json()
+  // return result
+  if (response.status === 200) {
+    return await response.json()
+  }
+  return undefined
+}
