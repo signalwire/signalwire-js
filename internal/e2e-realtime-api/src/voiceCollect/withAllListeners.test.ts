@@ -6,7 +6,7 @@ import {
   CALL_PROPS,
   TestHandler,
   makeSipDomainAppAddress,
-} from './utils'
+} from '../utils'
 
 const handler: TestHandler = ({ domainApp }) => {
   if (!domainApp) {

@@ -2,11 +2,12 @@ import tap from 'tap'
 import { SignalWire } from '@signalwire/realtime-api'
 import {
   createTestRunner,
-  CALL_PLAYBACK_PROPS,
+  CALL_RECORD_PROPS,
   CALL_PROPS,
+  sleep,
   TestHandler,
   makeSipDomainAppAddress,
-} from './utils'
+} from '../utils'
 
 const handler: TestHandler = ({ domainApp }) => {
   if (!domainApp) {
@@ -20,7 +21,7 @@ const handler: TestHandler = ({ domainApp }) => {
         project: process.env.RELAY_PROJECT as string,
         token: process.env.RELAY_TOKEN as string,
         debug: {
-          // logWsTraffic: true,
+          logWsTraffic: true,
         },
       })
 
@@ -61,19 +62,16 @@ const handler: TestHandler = ({ domainApp }) => {
               resolve(0)
             }
           },
-          onPlaybackStarted: (playback) => {
-            tap.hasProps(playback, CALL_PLAYBACK_PROPS, 'Playback started')
-            tap.equal(playback.state, 'playing', 'Playback correct state')
+          onRecordingStarted: (recording) => {
+            tap.hasProps(recording, CALL_RECORD_PROPS, 'Recording started')
+            tap.equal(recording.state, 'recording', 'Recording correct state')
           },
-          onPlaybackUpdated: (playback) => {
-            tap.notOk(playback.id, 'Playback updated')
+          onRecordingFailed: (recording) => {
+            tap.notOk(recording.id, 'Recording failed')
           },
-          onPlaybackFailed: (playback) => {
-            tap.notOk(playback.id, 'Playback failed')
-          },
-          onPlaybackEnded: async (playback) => {
-            tap.hasProps(playback, CALL_PLAYBACK_PROPS, 'Playback ended')
-            tap.equal(playback.state, 'finished', 'Playback correct state')
+          onRecordingEnded: async (recording) => {
+            tap.hasProps(recording, CALL_RECORD_PROPS, 'Recording ended')
+            tap.equal(recording.state, 'finished', 'Recording correct state')
 
             await call.hangup()
           },
@@ -81,15 +79,11 @@ const handler: TestHandler = ({ domainApp }) => {
       })
       tap.ok(call.id, 'Outbound - Call resolved')
 
-      const play = await call
-        .playAudio({
-          url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
-        })
-        .onStarted()
+      const record = await call.recordAudio().onStarted()
 
-      await play.stop()
+      await record.stop()
     } catch (error) {
-      console.error('VoicePlaybackDialListeners error', error)
+      console.error('VoiceRecordDialListeners error', error)
       reject(4)
     }
   })
@@ -97,9 +91,9 @@ const handler: TestHandler = ({ domainApp }) => {
 
 async function main() {
   const runner = createTestRunner({
-    name: 'Voice Playback with Dial Listeners E2E',
+    name: 'Voice Record with Dial Listeners E2E',
     testHandler: handler,
-    executionTime: 60_000,
+    executionTime: 30_000,
     useDomainApp: true,
   })
 

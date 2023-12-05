@@ -7,12 +7,13 @@ import {
   CALL_PROMPT_PROPS,
   TestHandler,
   makeSipDomainAppAddress,
-} from './utils'
+} from '../utils'
 
 const handler: TestHandler = ({ domainApp }) => {
   if (!domainApp) {
     throw new Error('Missing domainApp')
   }
+
   return new Promise<number>(async (resolve, reject) => {
     try {
       const client = await SignalWire({
@@ -20,8 +21,18 @@ const handler: TestHandler = ({ domainApp }) => {
         project: process.env.RELAY_PROJECT as string,
         token: process.env.RELAY_TOKEN as string,
         debug: {
-          // logWsTraffic: true,
+          logWsTraffic: true,
         },
+      })
+
+      let waitForPromptStartResolve: () => void
+      const waitForPromptStart = new Promise<void>((resolve) => {
+        waitForPromptStartResolve = resolve
+      })
+
+      let waitForPromptEndResolve: () => void
+      const waitForPromptEnd = new Promise<void>((resolve) => {
+        waitForPromptEndResolve = resolve
       })
 
       const unsubVoice = await client.voice.listen({
@@ -36,6 +47,9 @@ const handler: TestHandler = ({ domainApp }) => {
               'Inbound - Call answered gets the same instance'
             )
 
+            // Wait until the caller starts the prompt
+            await waitForPromptStart
+
             // Send digits 1234 to the caller
             const sendDigits = await call.sendDigits('1w2w3w4w#')
             tap.equal(
@@ -43,6 +57,9 @@ const handler: TestHandler = ({ domainApp }) => {
               sendDigits.id,
               'Inbound - sendDigit returns the same instance'
             )
+
+            // Wait until the caller ends the prompt
+            await waitForPromptEnd
 
             await call.hangup()
           } catch (error) {
@@ -64,77 +81,51 @@ const handler: TestHandler = ({ domainApp }) => {
       })
       tap.ok(call.id, 'Outbound - Call resolved')
 
-      const prompt = call.promptTTS({
-        text: 'Welcome to SignalWire! Please enter your 4 digits PIN',
-        digits: {
-          max: 4,
-          digitTimeout: 10,
-          terminators: '#',
+      const unsubCall = await call.listen({
+        onPromptStarted: (prompt) => {
+          tap.hasProps(prompt, CALL_PROMPT_PROPS, 'Prompt started')
         },
-        listen: {
-          onStarted: (prompt) => {
-            tap.hasProps(
-              prompt,
-              CALL_PROMPT_PROPS,
-              'call.promptTTS: Prompt started'
-            )
-          },
-          onUpdated: (_prompt) => {
-            tap.notOk(_prompt.id, 'call.promptTTS: Prompt updated')
-          },
-          onFailed: (_prompt) => {
-            tap.notOk(_prompt.id, 'call.promptTTS: Prompt failed')
-          },
-          onEnded: async (_prompt) => {
-            tap.hasProps(
-              _prompt,
-              CALL_PROMPT_PROPS,
-              'call.promptTTS: Prompt ended'
-            )
-            tap.equal(
-              _prompt.id,
-              await prompt.id,
-              'call.promptTTS: Prompt correct id'
-            )
-          },
+        onPromptUpdated: (prompt) => {
+          tap.notOk(prompt.id, 'Prompt updated')
+        },
+        onPromptFailed: (prompt) => {
+          tap.notOk(prompt.id, 'Prompt failed')
+        },
+        onPromptEnded: (prompt) => {
+          tap.hasProps(prompt, CALL_PROMPT_PROPS, 'Prompt ended')
+        },
+        onPlaybackEnded: (playback) => {
+          tap.hasProps(playback, CALL_PLAYBACK_PROPS, 'Playback started')
         },
       })
+
+      const prompt = await call
+        .promptAudio({
+          url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
+          digits: {
+            max: 4,
+            digitTimeout: 10,
+            terminators: '#',
+          },
+        })
+        .onStarted()
       tap.equal(
         call.id,
-        await prompt.callId,
+        prompt.callId,
         'Outbound - Prompt returns the same call instance'
       )
 
-      const unsubPrompt = await prompt.listen({
-        onStarted: (prompt) => {
-          // NotOk since this listener is being attached after the call.prompt promise has resolved
-          tap.notOk(prompt.id, 'prompt.listen: Prompt stared')
-        },
-        onUpdated: (prompt) => {
-          tap.notOk(prompt.id, 'prompt.listen: Prompt updated')
-        },
-        onFailed: (prompt) => {
-          tap.notOk(prompt.id, 'prompt.listen: Prompt failed')
-        },
-        onEnded: async (_prompt) => {
-          tap.hasProps(
-            _prompt,
-            CALL_PROMPT_PROPS,
-            'prompt.listen: Prompt ended'
-          )
-          tap.equal(
-            _prompt.id,
-            await prompt.id,
-            'prompt.listen: Prompt correct id'
-          )
-        },
-      })
+      // Resolve the prompt start to inform callee
+      waitForPromptStartResolve!()
 
       console.log('Waiting for the digits from the inbound call')
 
       // Compare what caller has received
       const recDigits = await prompt.ended()
       tap.equal(recDigits.digits, '1234', 'Outbound - Received the same digit')
+
+      // Resolve the prompt end to inform callee
+      waitForPromptEndResolve!()
 
       // Resolve if the call has ended or ending
       const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
@@ -154,13 +145,13 @@ const handler: TestHandler = ({ domainApp }) => {
 
       await unsubVoice()
 
-      await unsubPrompt()
+      await unsubCall()
 
       await client.disconnect()
 
       resolve(0)
     } catch (error) {
-      console.error('VoicePromptListeners error', error)
+      console.error('VoicePromptCallListeners error', error)
       reject(4)
     }
   })
@@ -168,7 +159,7 @@ const handler: TestHandler = ({ domainApp }) => {
 
 async function main() {
   const runner = createTestRunner({
-    name: 'Voice Prompt Listeners E2E',
+    name: 'Voice Prompt with Call Listeners E2E',
     testHandler: handler,
     executionTime: 30_000,
     useDomainApp: true,

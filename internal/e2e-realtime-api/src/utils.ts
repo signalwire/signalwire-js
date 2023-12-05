@@ -1,3 +1,4 @@
+import tap from 'tap'
 import { request } from 'node:https'
 import { randomUUID, randomBytes } from 'node:crypto'
 
@@ -43,7 +44,6 @@ interface CreateTestRunnerParams {
   testHandler: TestHandler
   executionTime?: number
   useDomainApp?: boolean
-  exitOnSuccess?: boolean
 }
 
 export const createTestRunner = ({
@@ -52,7 +52,6 @@ export const createTestRunner = ({
   testHandler,
   executionTime = MAX_EXECUTION_TIME,
   useDomainApp = false,
-  exitOnSuccess = true,
 }: CreateTestRunnerParams) => {
   let timer: ReturnType<typeof setTimeout>
 
@@ -61,15 +60,13 @@ export const createTestRunner = ({
       console.error(`Test Runner ${name} ran out of time (${executionTime})`)
       process.exit(2)
     }, executionTime)
+    tap.setTimeout(executionTime)
   }
 
   const done = (exitCode: number) => {
     clearTimeout(timer)
     if (exitCode === 0) {
       console.log(`Test Runner ${name} Passed!`)
-      if (!exitOnSuccess) {
-        return
-      }
     } else {
       console.log(`Test Runner ${name} finished with exitCode: ${exitCode}`)
     }
@@ -94,7 +91,6 @@ export const createTestRunner = ({
         if (params.domainApp) {
           console.log('Delete domain app..')
           await deleteDomainApp({ id: params.domainApp.id })
-          delete params.domainApp
         }
         done(exitCode)
       } catch (error) {
@@ -103,7 +99,6 @@ export const createTestRunner = ({
         if (params.domainApp) {
           console.log('Delete domain app..')
           await deleteDomainApp({ id: params.domainApp.id })
-          delete params.domainApp
         }
         done(1)
       }

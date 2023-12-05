@@ -2,11 +2,11 @@ import tap from 'tap'
 import { SignalWire } from '@signalwire/realtime-api'
 import {
   createTestRunner,
-  CALL_RECORD_PROPS,
+  CALL_PLAYBACK_PROPS,
   CALL_PROPS,
   TestHandler,
   makeSipDomainAppAddress,
-} from './utils'
+} from '../utils'
 
 const handler: TestHandler = ({ domainApp }) => {
   if (!domainApp) {
@@ -20,7 +20,7 @@ const handler: TestHandler = ({ domainApp }) => {
         project: process.env.RELAY_PROJECT as string,
         token: process.env.RELAY_TOKEN as string,
         debug: {
-          logWsTraffic: true,
+          // logWsTraffic: true,
         },
       })
 
@@ -56,7 +56,7 @@ const handler: TestHandler = ({ domainApp }) => {
             if (call.state === 'ended') {
               await unsubVoice()
 
-              await unsubRecord?.()
+              await unsubPlay?.()
 
               await client.disconnect()
 
@@ -67,47 +67,52 @@ const handler: TestHandler = ({ domainApp }) => {
       })
       tap.ok(call.id, 'Outbound - Call resolved')
 
-      const record = call.recordAudio({
-        listen: {
-          onStarted: (recording) => {
-            tap.hasProps(recording, CALL_RECORD_PROPS, 'Recording started')
-            tap.equal(recording.state, 'recording', 'Recording correct state')
+      const play = await call
+        .playTTS({
+          text: 'This is a custom text to speech for test.',
+          listen: {
+            onStarted: (playback) => {
+              tap.hasProps(playback, CALL_PLAYBACK_PROPS, 'Playback started')
+              tap.equal(playback.state, 'playing', 'Playback correct state')
+            },
+            onUpdated: (playback) => {
+              tap.notOk(playback.id, 'Playback updated')
+            },
+            onFailed: (playback) => {
+              tap.notOk(playback.id, 'Playback failed')
+            },
+            onEnded: (playback) => {
+              tap.hasProps(playback, CALL_PLAYBACK_PROPS, 'Playback ended')
+              tap.equal(playback.id, play.id, 'Playback correct id')
+              tap.equal(playback.state, 'finished', 'Playback correct state')
+            },
           },
-          onFailed: (recording) => {
-            tap.notOk(recording.id, 'Recording failed')
-          },
-          onEnded: async (recording) => {
-            tap.hasProps(recording, CALL_RECORD_PROPS, 'Recording ended')
+        })
+        .onStarted()
 
-            const recordId = await record.id
-            tap.equal(recording.id, recordId, 'Recording correct id')
-            tap.equal(recording.state, 'finished', 'Recording correct state')
-          },
+      const unsubPlay = await play.listen({
+        onStarted: (playback) => {
+          // NotOk since this listener is being attached after the call.play promise has resolved
+          tap.notOk(playback.id, 'Playback stared')
         },
-      })
-
-      const unsubRecord = await record.listen({
-        onStarted: (recording) => {
-          // NotOk since this listener is being attached after the call.record promise has resolved
-          tap.notOk(recording.id, 'Recording started')
+        onUpdated: (playback) => {
+          tap.notOk(playback.id, 'Playback updated')
         },
-        onFailed: (recording) => {
-          tap.notOk(recording.id, 'Recording failed')
+        onFailed: (playback) => {
+          tap.notOk(playback.id, 'Playback failed')
         },
-        onEnded: async (recording) => {
-          tap.hasProps(recording, CALL_RECORD_PROPS, 'Recording ended')
-
-          const recordId = await record.id
-          tap.equal(recording.id, recordId, 'Recording correct id')
-          tap.equal(recording.state, 'finished', 'Recording correct state')
+        onEnded: async (playback) => {
+          tap.hasProps(playback, CALL_PLAYBACK_PROPS, 'Playback ended')
+          tap.equal(playback.id, play.id, 'Playback correct id')
+          tap.equal(playback.state, 'finished', 'Playback correct state')
 
           await call.hangup()
         },
       })
 
-      await record.stop()
+      await play.stop()
     } catch (error) {
-      console.error('VoiceRecordListeners error', error)
+      console.error('VoicePlaybackListeners error', error)
       reject(4)
     }
   })
@@ -115,9 +120,9 @@ const handler: TestHandler = ({ domainApp }) => {
 
 async function main() {
   const runner = createTestRunner({
-    name: 'Voice Record Listeners E2E',
+    name: 'Voice Playback Listeners E2E',
     testHandler: handler,
-    executionTime: 30_000,
+    executionTime: 60_000,
     useDomainApp: true,
   })
 

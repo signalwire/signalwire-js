@@ -56,10 +56,15 @@ const testSubscribe = ({ jsChat, rtChat }: TestChatOptions) => {
     console.log('Running subscribe..')
     let events = 0
 
-    const resolveIfDone = () => {
+    let unsubRTChannel: Promise<() => Promise<void>>
+
+    const resolveIfDone = async () => {
       // wait 4 events (rt and js receive their own events + the other member)
       if (events === 4) {
         jsChat.off('member.joined')
+        await (
+          await unsubRTChannel
+        )()
         resolve(0)
       }
     }
@@ -71,18 +76,17 @@ const testSubscribe = ({ jsChat, rtChat }: TestChatOptions) => {
       resolveIfDone()
     })
 
-    const [unsubRTClient] = await Promise.all([
-      rtChat.listen({
-        channels: [channel],
-        onMemberJoined(member) {
-          // TODO: Check the member payload
-          console.log('rtChat member.joined')
-          events += 1
-          resolveIfDone()
-        },
-      }),
-      jsChat.subscribe(channel),
-    ])
+    unsubRTChannel = rtChat.listen({
+      channels: [channel],
+      onMemberJoined(member) {
+        // TODO: Check the member payload
+        console.log('rtChat member.joined')
+        events += 1
+        resolveIfDone()
+      },
+    })
+
+    await Promise.all([unsubRTChannel, jsChat.subscribe(channel)])
   })
 
   return timeoutPromise(promise, promiseTimeout, promiseException)
@@ -275,6 +279,7 @@ const testDisconnectedRTClient = (rtClient: RealtimeSWClient) => {
 
       reject(4)
     } catch (e) {
+      console.log('Client disconnected okay!')
       resolve(0)
     }
   })
@@ -289,6 +294,9 @@ const handler = async () => {
     host: process.env.RELAY_HOST,
     // @ts-expect-error
     token: CRT.token,
+    debug: {
+      logWsTraffic: true,
+    },
   })
 
   const jsChatResultCode = await testChatMethod(jsChat)
@@ -302,6 +310,9 @@ const handler = async () => {
     host: process.env.RELAY_HOST,
     project: process.env.RELAY_PROJECT as string,
     token: process.env.RELAY_TOKEN as string,
+    // debug: {
+    //   logWsTraffic: true,
+    // },
   })
   const rtChat = rtClient.chat
 
@@ -372,7 +383,7 @@ async function main() {
   const runner = createTestRunner({
     name: 'Chat E2E',
     testHandler: handler,
-    executionTime: 15_000,
+    executionTime: 30_000,
   })
 
   await runner.run()

@@ -3,16 +3,15 @@ import { SignalWire } from '@signalwire/realtime-api'
 import {
   createTestRunner,
   CALL_PROPS,
-  CALL_PLAYBACK_PROPS,
+  CALL_RECORD_PROPS,
   TestHandler,
   makeSipDomainAppAddress,
-} from './utils'
+} from '../utils'
 
 const handler: TestHandler = ({ domainApp }) => {
   if (!domainApp) {
     throw new Error('Missing domainApp')
   }
-
   return new Promise<number>(async (resolve, reject) => {
     try {
       const client = await SignalWire({
@@ -66,23 +65,23 @@ const handler: TestHandler = ({ domainApp }) => {
 
               await unsubVoiceHome()
 
-              await unsubPlay?.()
+              await unsubRecord?.()
 
               await client.disconnect()
 
               resolve(0)
             }
           },
-          onPlaybackStarted: (playback) => {
+          onRecordingStarted: (recording) => {
             tap.hasProps(
-              playback,
-              CALL_PLAYBACK_PROPS,
-              'voice.dialSip: Playback started'
+              recording,
+              CALL_RECORD_PROPS,
+              'voice.dialPhone: Recording started'
             )
             tap.equal(
-              playback.state,
-              'playing',
-              'voice.dialSip: Playback correct state'
+              recording.state,
+              'recording',
+              'voice.dialPhone: Recording correct state'
             )
           },
         },
@@ -90,72 +89,74 @@ const handler: TestHandler = ({ domainApp }) => {
       tap.ok(call.id, 'Outbound - Call resolved')
 
       const unsubCall = await call.listen({
-        onPlaybackStarted: (playback) => {
+        onRecordingStarted: (recording) => {
           tap.hasProps(
-            playback,
-            CALL_PLAYBACK_PROPS,
-            'call.listen: Playback started'
+            recording,
+            CALL_RECORD_PROPS,
+            'call.listen: Recording started'
           )
           tap.equal(
-            playback.state,
-            'playing',
-            'call.listen: Playback correct state'
+            recording.state,
+            'recording',
+            'call.listen: Recording correct state'
           )
         },
-        onPlaybackEnded: (playback) => {
-          // NotOk since we unsubscribe this listener before the playback stops
-          tap.notOk(playback.id, 'call.listen: Playback ended')
+        onRecordingEnded: (recording) => {
+          // NotOk since we unsubscribe this listener before the recording stops
+          tap.notOk(recording.id, 'call.listen: Recording ended')
         },
       })
 
-      // Play an audio
-      const play = call.playAudio({
-        url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
+      const record = call.recordAudio({
         listen: {
-          onStarted: async (playback) => {
+          onStarted: async (recording) => {
             tap.hasProps(
-              playback,
-              CALL_PLAYBACK_PROPS,
-              'call.playAudio: Playback started'
+              recording,
+              CALL_RECORD_PROPS,
+              'call.recordAudio: Recording started'
             )
             tap.equal(
-              playback.state,
-              'playing',
-              'call.playAudio: Playback correct state'
+              recording.state,
+              'recording',
+              'call.recordAudio: Recording correct state'
             )
 
             await unsubCall()
 
-            await play.stop()
+            await record.stop()
           },
         },
       })
 
-      const unsubPlay = await play.listen({
-        onStarted: (playback) => {
-          // NotOk since the listener is attached after the call.play has resolved
-          tap.notOk(playback.id, 'play.listen: Playback stared')
+      const unsubRecord = await record.listen({
+        onStarted: (recording) => {
+          // NotOk since the listener is attached after the call.record has resolved
+          tap.notOk(recording.id, 'record.listen: Recording stared')
         },
-        onEnded: async (playback) => {
+        onEnded: async (recording) => {
           tap.hasProps(
-            playback,
-            CALL_PLAYBACK_PROPS,
-            'play.listen: Playback ended'
+            recording,
+            CALL_RECORD_PROPS,
+            'record.listen: Recording ended'
           )
 
-          const playId = await play.id
-          tap.equal(playback.id, playId, 'play.listen: Playback correct id')
+          const recordId = await record.id
           tap.equal(
-            playback.state,
+            recording.id,
+            recordId,
+            'record.listen: Recording correct id'
+          )
+          tap.equal(
+            recording.state,
             'finished',
-            'play.listen: Playback correct state'
+            'record.listen: Recording correct state'
           )
 
           await call.hangup()
         },
       })
     } catch (error) {
-      console.error('VoicePlaybackAllListeners error', error)
+      console.error('VoiceRecordingAllListeners error', error)
       reject(4)
     }
   })
@@ -163,9 +164,9 @@ const handler: TestHandler = ({ domainApp }) => {
 
 async function main() {
   const runner = createTestRunner({
-    name: 'Voice Playback with all Listeners E2E',
+    name: 'Voice Record with all Listeners E2E',
     testHandler: handler,
-    executionTime: 60_000,
+    executionTime: 30_000,
     useDomainApp: true,
   })
 

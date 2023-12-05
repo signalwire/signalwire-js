@@ -6,7 +6,7 @@ import {
   CALL_PROMPT_PROPS,
   TestHandler,
   makeSipDomainAppAddress,
-} from './utils'
+} from '../utils'
 
 const handler: TestHandler = ({ domainApp }) => {
   if (!domainApp) {
@@ -20,8 +20,18 @@ const handler: TestHandler = ({ domainApp }) => {
         project: process.env.RELAY_PROJECT as string,
         token: process.env.RELAY_TOKEN as string,
         debug: {
-          // logWsTraffic: true,
+          logWsTraffic: true,
         },
+      })
+
+      let waitForPromptStartResolve: () => void
+      const waitForPromptStart = new Promise<void>((resolve) => {
+        waitForPromptStartResolve = resolve
+      })
+
+      let waitForPromptEndResolve: () => void
+      const waitForPromptEnd = new Promise<void>((resolve) => {
+        waitForPromptEndResolve = resolve
       })
 
       const unsubVoiceOffice = await client.voice.listen({
@@ -36,6 +46,9 @@ const handler: TestHandler = ({ domainApp }) => {
               'Inbound - Call answered gets the same instance'
             )
 
+            // Wait until the caller starts the prompt
+            await waitForPromptStart
+
             // Send digits 1234 to the caller
             const sendDigits = await call.sendDigits('1w2w3w4w#')
             tap.equal(
@@ -43,6 +56,9 @@ const handler: TestHandler = ({ domainApp }) => {
               sendDigits.id,
               'Inbound - sendDigit returns the same instance'
             )
+
+            // Wait until the caller ends the prompt
+            await waitForPromptEnd
 
             await call.hangup()
           } catch (error) {
@@ -172,11 +188,17 @@ const handler: TestHandler = ({ domainApp }) => {
 
       await unsubCall()
 
+      // Resolve the prompt start to inform callee
+      waitForPromptStartResolve!()
+
       console.log('Waiting for the digits from the inbound call')
 
       // Compare what caller has received
       const recDigits = await prompt.ended()
       tap.equal(recDigits.digits, '1234', 'Outbound - Received the same digit')
+
+      // Resolve the prompt end to inform callee
+      waitForPromptEndResolve!()
 
       // Resolve if the call has ended or ending
       const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
