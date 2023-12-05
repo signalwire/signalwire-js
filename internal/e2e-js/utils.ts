@@ -721,8 +721,6 @@ export const createRestApiCall = async (resource: string) => {
   data.append('From', `${process.env.FROMNUMBER}`);
   data.append('To', `verto:${resource}@${process.env.TODOMAIN}`);
 
-  console.log("_________data: ", data)
-
   const response = await fetch(
     `https://${process.env.SPACE}/api/laml/2010-04-01/Accounts/${process.env.RELAY_PROJECT}/Calls`,
     {
@@ -735,11 +733,8 @@ export const createRestApiCall = async (resource: string) => {
     }
   )
 
-  console.log("______response: ", response)
-  // const result = await response.json()
-  // return result
-  if (response.status === 200) {
-    return await response.json()
+  if (response.status === 201) {
+    return response.status
   }
   return undefined
 }
@@ -794,7 +789,11 @@ export const expectv2TotalAudioEnergyToBeGreaterThan = async (
 
     return result
   })
-  console.log('audioStats ----------->', audioStats, " ---- ", new Date())
+  console.log('audioStats: ', audioStats)
 
   expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(value)
+}
+
+export const randomizeResourceName = (prefix: string = 'e2e') => {
+  return `res-${prefix}${uuid()}`
 }

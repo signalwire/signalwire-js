@@ -4,6 +4,7 @@ import {
   createRestApiCall,
   createTestJWTToken,
   expectv2TotalAudioEnergyToBeGreaterThan,
+  randomizeResourceName,
 } from '../utils'
 	      
 test.describe('V2Calling', () => {
@@ -29,8 +30,8 @@ test.describe('V2Calling', () => {
     const envRelayProject = process.env.RELAY_PROJECT ?? ''
     expect(envRelayProject).not.toBe(null)
 
-    // TODO: Consider randomizing the resource
-    const jwtCallee = await createTestJWTToken({ 'resource': 'gino' })
+    const resource = randomizeResourceName()
+    const jwtCallee = await createTestJWTToken({ 'resource': resource })
     expect(jwtCallee).not.toBe(null)
 
     const expectRelayConnected = async (page: Page, jwt: string) => {
@@ -59,20 +60,18 @@ test.describe('V2Calling', () => {
 
     await expectRelayConnected(pageCallee, jwtCallee)
 
-    const createResult = await createRestApiCall('gino')
-    console.log("_________createResult: ", createResult)
+    const createResult = await createRestApiCall(resource)
+    expect(createResult).toBe(201)
 
     const callStatusCallee = pageCallee.locator('#callStatus')
     expect(callStatusCallee).not.toBe(null)
 
-    // TODO: Maybe set a reasonable timeout for this expectation (default is 10 secs)
     await expect(callStatusCallee).toContainText('-> active')
 
     // Give some time to collect audio
     await pageCallee.waitForTimeout(10000)
 
     // Check the audio energy level is above threshold
-    // TODO: Change name of this function to differentiate it from the RoomSession one...
      await expectv2TotalAudioEnergyToBeGreaterThan(pageCallee, 0.2)
 
     // Click the callee hangup button, which calls the hangup function in the browser
