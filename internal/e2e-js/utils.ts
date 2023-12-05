@@ -743,3 +743,58 @@ export const createRestApiCall = async (resource: string) => {
   }
   return undefined
 }
+
+export const expectv2TotalAudioEnergyToBeGreaterThan = async (
+  page: Page,
+  value: number
+) => {
+  const audioStats = await page.evaluate(async () => {
+    // @ts-expect-error
+    const currentCall = window.__currentCall
+    // @ts-expect-error
+    const audioReceiver = currentCall.peer.instance.getReceivers().find(r => r.track.kind === 'audio')
+
+    const audioTrackId = audioReceiver.track.id
+
+    const stats = await currentCall.peer.instance.getStats(null)
+    const filter = {
+      'inbound-rtp': [
+        'audioLevel',
+        'totalAudioEnergy',
+        'totalSamplesDuration',
+        'totalSamplesReceived',
+        'packetsDiscarded',
+        'lastPacketReceivedTimestamp',
+        'bytesReceived',
+        'packetsReceived',
+        'packetsLost',
+        'packetsRetransmitted',
+      ],
+    }
+    const result: any = {}
+    Object.keys(filter).forEach((entry) => {
+      result[entry] = {}
+    })
+
+    stats.forEach((report: any) => {
+      for (const [key, value] of Object.entries(filter)) {
+        if (
+          report.type == key &&
+          report['mediaType'] === 'audio' &&
+          report['trackIdentifier'] === audioTrackId
+        ) {
+          value.forEach((entry) => {
+            if (report[entry]) {
+              result[key][entry] = report[entry]
+            }
+          })
+        }
+      }
+    }, {})
+
+    return result
+  })
+  console.log('audioStats ----------->', audioStats, " ---- ", new Date())
+
+  expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(value)
+}
