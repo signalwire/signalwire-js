@@ -797,3 +797,37 @@ export const expectv2TotalAudioEnergyToBeGreaterThan = async (
 export const randomizeResourceName = (prefix: string = 'e2e') => {
   return `res-${prefix}${uuid()}`
 }
+
+export const expectInjectRelayHost = async (page: Page, host: string) => {
+  await page.evaluate(async (params) => {
+    // @ts-expect-error
+    window.__host = params.host
+  },
+  {
+    host: host
+  })
+}
+
+export const expectRelayConnected = async (page: Page, jwt: string) => {
+  // Project locator
+  const project = page.locator('#project')
+  expect(project).not.toBe(null)
+
+  // Token locator
+  const token = page.locator('#token')
+  expect(token).not.toBe(null)
+
+  // Populate project and token using locators
+  await project.fill(envRelayProject)
+  await token.fill(jwt)
+
+  // Click the connect button, which calls the connect function in the browser
+  await page.click('#btnConnect')
+
+  // Start call button locator
+  const startCall = page.locator('#startCall')
+  expect(startCall).not.toBe(null)
+
+  // Wait for call button to be enabled when signalwire.ready occurs
+  await expect(startCall).toBeEnabled()
+}
