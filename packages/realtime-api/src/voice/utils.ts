@@ -8,6 +8,7 @@ import { toSnakeCaseKeys } from '@signalwire/core'
 
 const toInternalDevice = (device: VoiceCallDeviceParams) => {
   switch (device.type) {
+    case 'resource':
     case 'sip': {
       const { type, ...params } = device
       return {

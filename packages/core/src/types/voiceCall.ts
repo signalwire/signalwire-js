@@ -175,9 +175,20 @@ export interface VoiceCallSipParams extends VoiceCallParams {
   sessionTimeout?: number
 }
 
+export interface VoiceCallResourceParams extends VoiceCallParams {
+  type: 'resource'
+  from: string
+  fromName?: string
+  to: string
+  maxDuration?: number
+}
+
 export interface NestedArray<T> extends Array<T | NestedArray<T>> {}
 
-export type VoiceCallDeviceParams = VoiceCallPhoneParams | VoiceCallSipParams
+export type VoiceCallDeviceParams =
+  | VoiceCallPhoneParams
+  | VoiceCallSipParams
+  | VoiceCallResourceParams
 
 export interface VoiceCallDialMethodParams {
   region?: string
@@ -413,6 +424,8 @@ export type VoiceCallDialPhoneMethodParams = OmitType<VoiceCallPhoneParams> &
   VoiceCallDialRegionParams
 export type VoiceCallDialSipMethodParams = OmitType<VoiceCallSipParams> &
   VoiceCallDialRegionParams
+export type VoiceCallDialResourceMethodParams =
+  OmitType<VoiceCallResourceParams> & VoiceCallDialRegionParams
 
 type VoiceRegion = string
 
@@ -675,7 +688,7 @@ export interface VoiceCallContract<T = any> {
   context?: string
 
   connectState: CallingCallConnectState
-  type: 'phone' | 'sip'
+  type: 'phone' | 'sip' | 'resource'
   device: any // FIXME:
   from: string
   to: string
@@ -808,6 +821,7 @@ type CallDeviceParamsShared = {
   max_duration?: number
   call_state_url?: string
   call_state_events?: string[]
+  confirm?: string
 }
 export interface CallingCallPhoneDevice {
   type: 'phone'
@@ -829,7 +843,20 @@ export interface CallingCallSIPDevice {
   } & CallDeviceParamsShared
 }
 
-type CallingCallDevice = CallingCallPhoneDevice | CallingCallSIPDevice
+export interface CallingCallResourceDevice {
+  type: 'resource'
+  params: {
+    from: string
+    from_name?: string
+    to: string
+  } & CallDeviceParamsShared
+}
+
+type CallingCallDevice =
+  | CallingCallPhoneDevice
+  | CallingCallSIPDevice
+  | CallingCallResourceDevice
+
 export type CallingCallDirection = 'inbound' | 'outbound'
 export type CallingCallState =
   | 'created'

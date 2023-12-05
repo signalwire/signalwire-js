@@ -14,6 +14,7 @@ import type {
   ToExternalJSONResult,
   CallingCallDialFailedEventParams,
   VoiceDialerParams,
+  VoiceCallDialResourceMethodParams,
 } from '@signalwire/core'
 import { RealtimeClient } from '../client/index'
 import { Call } from './Call'
@@ -195,6 +196,28 @@ export interface Voice
    * @returns A call object.
    */
   dialSip(params: VoiceCallDialSipMethodParams): Promise<Call>
+  /**
+   * Makes an outbound call to a Resource endpoint.
+   *
+   * @param params - {@link VoiceCallDialResourceMethodParams}
+   *
+   * @example
+   *
+   * ```js
+   * try {
+   *   const call = await client.dialResource({
+   *     from: '+12345',
+   *     to: '/public/foobar',
+   *     timeout: 30,
+   *   })
+   * } catch (e) {
+   *   console.log("Call not answered.")
+   * }
+   * ```
+   *
+   * @returns A call object.
+   */
+  dialResource(params: VoiceCallDialResourceMethodParams): Promise<Call>
 }
 
 /** @internal */
@@ -291,6 +314,20 @@ class VoiceAPI extends BaseConsumer<VoiceClientApiEvents> {
       maxPricePerMinute,
       region,
       nodeId,
+      devices,
+    })
+  }
+
+  dialResource({
+    region,
+    maxPricePerMinute,
+    ...params
+  }: VoiceCallDialResourceMethodParams) {
+    const devices = new DeviceBuilder().add(DeviceBuilder.Resource(params))
+    // dial is available through the VoiceClient Proxy
+    return this.dial({
+      maxPricePerMinute,
+      region,
       devices,
     })
   }
