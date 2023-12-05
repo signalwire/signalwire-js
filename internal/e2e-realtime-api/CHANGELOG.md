@@ -1,5 +1,14 @@
 # @sw-internal/e2e-realtime-api
 
+## 0.1.13
+
+### Patch Changes
+
+- [#892](https://github.com/signalwire/signalwire-js/pull/892) [`d564c379`](https://github.com/signalwire/signalwire-js/commit/d564c379e10d23c21abb56b3e740aff70fc451b9) Thanks [@ayeminag](https://github.com/ayeminag)! - - Added `state` param to `CallingCallCollectEventParams`
+  - Made sure `voiceCallCollectWorker` doesn't clean up `CallCollect` instance and emit `ended`/`failed` event if the `state` is `"collecting"`
+  - Resolve `CallCollect.ended()` promise only when `state` is NOT `"collecting"` AND `final` is either `undefined`/`true` AND `result.type` is one of `ENDED_STATES`
+  - Added more test cases for `Call.collect()` in `@sw-internal/e2e-realtime-api`
+
 ## 0.1.12
 
 ### Patch Changes
