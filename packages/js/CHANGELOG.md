@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.25.1] - 2023-12-05
+
+### Added
+
+- [#919](https://github.com/signalwire/signalwire-js/pull/919) [`b7af58bd`](https://github.com/signalwire/signalwire-js/commit/b7af58bd1f21313ec290b2489851d6776b8b5fc8) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Expose Chat types from the JS SDK
+
 ## [3.25.0] - 2023-11-23
 
 ### Added
