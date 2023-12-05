@@ -416,11 +416,9 @@ export type VoiceCallDialSipMethodParams = OmitType<VoiceCallSipParams> &
 
 type VoiceRegion = string
 
-export type VoiceDialerParams =
-  | VoiceDeviceBuilder
-  | ({
-      devices: VoiceDeviceBuilder
-    } & VoiceCallDialRegionParams)
+export type VoiceDialerParams = {
+  devices: VoiceDeviceBuilder
+} & VoiceCallDialRegionParams
 
 export interface VoiceDeviceBuilder {
   devices: VoiceCallDialMethodParams['devices']
@@ -1173,7 +1171,7 @@ export type Detector =
 
 export type DetectorResult = Detector['params']['event']
 
-type CallingCallDetectType = Detector['type']
+export type CallingCallDetectType = Detector['type']
 export interface CallingCallDetectEventParams {
   node_id: string
   call_id: string
@@ -1512,6 +1510,27 @@ export type VoiceCallEventParams =
   | CallCollectFailedEvent['params']
 
 export type VoiceCallAction = MapToPubSubShape<VoiceCallEvent>
+
+export type VoiceCallReceiveAction = MapToPubSubShape<CallingCallReceiveEvent>
+
+export type VoiceCallStateAction = MapToPubSubShape<CallingCallStateEvent>
+
+export type VoiceCallDialAction = MapToPubSubShape<CallingCallDialEvent>
+
+export type VoiceCallPlayAction = MapToPubSubShape<CallingCallPlayEvent>
+
+export type VoiceCallRecordAction = MapToPubSubShape<CallingCallRecordEvent>
+
+export type VoiceCallCollectAction = MapToPubSubShape<CallingCallCollectEvent>
+
+export type VoiceCallSendDigitsAction =
+  MapToPubSubShape<CallingCallSendDigitsEvent>
+
+export type VoiceCallTapAction = MapToPubSubShape<CallingCallTapEvent>
+
+export type VoiceCallDetectAction = MapToPubSubShape<CallingCallDetectEvent>
+
+export type VoiceCallConnectAction = MapToPubSubShape<CallingCallConnectEvent>
 
 export type VoiceCallJSONRPCMethod =
   | 'calling.dial'

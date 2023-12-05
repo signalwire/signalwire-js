@@ -31,6 +31,8 @@ export type ChatMemberEventNames =
 
 export type ChatEventNames = ChatMessageEventName | ChatMemberEventNames
 
+export type ChatEvents = ToInternalChatEvent<ChatEventNames>
+
 export type ChatChannel = string | string[]
 
 export interface ChatSetMemberStateParams {

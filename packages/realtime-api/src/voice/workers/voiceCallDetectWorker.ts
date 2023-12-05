@@ -1,77 +1,104 @@
 import {
   getLogger,
+  sagaEffects,
   SagaIterator,
-  CallingCallDetectEventParams,
+  SDKActions,
+  SDKWorker,
+  VoiceCallDetectAction,
 } from '@signalwire/core'
+import type { Client } from '../../client/index'
+import { CallDetectListeners } from '../../types'
 import type { Call } from '../Call'
-import { CallDetect, createCallDetectObject } from '../CallDetect'
-import type { VoiceCallWorkerParams } from './voiceCallingWorker'
+import { CallDetect } from '../CallDetect'
 
-export const voiceCallDetectWorker = function* (
-  options: VoiceCallWorkerParams<CallingCallDetectEventParams>
+interface VoiceCallDetectWorkerInitialState {
+  controlId: string
+  listeners?: CallDetectListeners
+}
+
+export const voiceCallDetectWorker: SDKWorker<Client> = function* (
+  options
 ): SagaIterator {
   getLogger().trace('voiceCallDetectWorker started')
   const {
-    payload,
+    channels: { swEventChannel },
     instanceMap: { get, set, remove },
+    initialState,
   } = options
 
-  const callInstance = get<Call>(payload.call_id)
-  if (!callInstance) {
-    throw new Error('Missing call instance for collect')
-  }
+  const { controlId, listeners } =
+    initialState as VoiceCallDetectWorkerInitialState
 
-  let detectInstance = get<CallDetect>(payload.control_id)
-  if (!detectInstance) {
-    detectInstance = createCallDetectObject({
-      store: callInstance.store,
-      payload,
-    })
-  } else {
-    detectInstance.setPayload(payload)
-  }
-  set<CallDetect>(payload.control_id, detectInstance)
+  function* worker(action: VoiceCallDetectAction) {
+    const { payload } = action
 
-  const { detect } = payload
-  if (!detect) return
+    if (payload.control_id !== controlId) return
 
-  const { type, params } = detect
-  const { event } = params
-
-  switch (event) {
-    case 'finished':
-    case 'error': {
-      // @ts-expect-error
-      callInstance.emit('detect.ended', detectInstance)
-
-      // To resolve the ended() promise in CallDetect
-      detectInstance.emit('detect.ended', detectInstance)
-
-      remove<CallDetect>(payload.control_id)
-      return
+    const callInstance = get<Call>(payload.call_id)
+    if (!callInstance) {
+      throw new Error('Missing call instance for collect')
     }
-    default:
-      // @ts-expect-error
-      callInstance.emit('detect.updated', detectInstance)
-      break
+
+    let detectInstance = get<CallDetect>(payload.control_id)
+    if (!detectInstance) {
+      detectInstance = new CallDetect({
+        call: callInstance,
+        payload,
+        listeners,
+      })
+    } else {
+      detectInstance.setPayload(payload)
+    }
+    set<CallDetect>(payload.control_id, detectInstance)
+
+    const { detect } = payload
+    if (!detect) return
+
+    const { type, params } = detect
+    const { event } = params
+
+    switch (event) {
+      case 'finished':
+      case 'error': {
+        callInstance.emit('detect.ended', detectInstance)
+        detectInstance.emit('detect.ended', detectInstance)
+
+        remove<CallDetect>(payload.control_id)
+        return true
+      }
+      default:
+        callInstance.emit('detect.updated', detectInstance)
+        detectInstance.emit('detect.updated', detectInstance)
+        break
+    }
+
+    switch (type) {
+      case 'machine':
+        if (params.beep && detectInstance.waitForBeep) {
+          callInstance.emit('detect.ended', detectInstance)
+          detectInstance.emit('detect.ended', detectInstance)
+        }
+        break
+      case 'digit':
+      case 'fax':
+        break
+      default:
+        getLogger().warn(`Unknown detect type: "${type}"`)
+        break
+    }
+
+    return false
   }
 
-  switch (type) {
-    case 'machine':
-      if (params.beep && detectInstance.waitForBeep) {
-        // @ts-expect-error
-        callInstance.emit('detect.ended', detectInstance)
+  while (true) {
+    const action = yield sagaEffects.take(
+      swEventChannel,
+      (action: SDKActions) => action.type === 'calling.call.detect'
+    )
 
-        // To resolve the ended() promise in CallDetect
-        detectInstance.emit('detect.ended', detectInstance)
-      }
-      break
-    case 'digit':
-    case 'fax':
-      break
-    default:
-      getLogger().warn(`Unknown detect type: "${type}"`)
-      break
+    const shouldStop = yield sagaEffects.fork(worker, action)
+
+    if (shouldStop.result()) break
   }
 
   getLogger().trace('voiceCallDetectWorker ended')

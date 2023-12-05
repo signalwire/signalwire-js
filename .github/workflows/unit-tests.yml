@@ -1,4 +1,4 @@
-name: Unit and stack tests
+name: Tests
 
 on:
   push:

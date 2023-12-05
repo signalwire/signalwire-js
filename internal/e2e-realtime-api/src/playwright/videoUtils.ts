@@ -1,6 +1,6 @@
 import { Page, Browser, expect } from '@playwright/test'
 import { uuid } from '@signalwire/core'
-import { Video } from '@signalwire/realtime-api'
+import { SWClient, SignalWire } from '@signalwire/realtime-api'
 import { SERVER_URL } from '../../utils'
 
 const PERMISSIONS = [
@@ -207,7 +207,7 @@ export const expectMemberUpdated = async ({ page, memberName }) => {
 }
 
 interface FindRoomSessionByPrefixParams {
-  client: Video.Client
+  client: SWClient
   prefix: string
 }
 
@@ -215,7 +215,7 @@ export const findRoomSessionByPrefix = async ({
   client,
   prefix,
 }: FindRoomSessionByPrefixParams) => {
-  const { roomSessions } = await client.getRoomSessions()
+  const { roomSessions } = await client.video.getRoomSessions()
   return roomSessions.filter((r) => r.name.startsWith(prefix))
 }
 
@@ -229,8 +229,7 @@ export const createRoomAndJoinTwoMembers = async (browser: Browser) => {
   enablePageLogs(pageTwo, '[pageTwo]')
 
   // Create a realtime-api Video client
-  const videoClient = new Video.Client({
-    // @ts-expect-error
+  const client = await SignalWire({
     host: process.env.RELAY_HOST,
     project: process.env.RELAY_PROJECT as string,
     token: process.env.RELAY_TOKEN as string,
@@ -242,14 +241,9 @@ export const createRoomAndJoinTwoMembers = async (browser: Browser) => {
   const memberOneName = `${prefix}-member-one`
   const memberTwoName = `${prefix}-member-two`
 
-  // TODO: This is not needed with new interface due to listen method
-  videoClient.on('room.started', (room) => {
-    room.on('member.updated', () => {})
-  })
-
   // Room length should be 0 before start
   const roomSessionsBeforeStart = await findRoomSessionByPrefix({
-    client: videoClient,
+    client,
     prefix,
   })
   expect(roomSessionsBeforeStart).toHaveLength(0)
@@ -272,7 +266,7 @@ export const createRoomAndJoinTwoMembers = async (browser: Browser) => {
 
   // Room length should be 1 after start
   const roomSessionsAfterStart = await findRoomSessionByPrefix({
-    client: videoClient,
+    client,
     prefix,
   })
   expect(roomSessionsAfterStart).toHaveLength(1)
