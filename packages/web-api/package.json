@@ -3,7 +3,7 @@
   "description": "SignalWire Web-API SDK for Node.js",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
-  "version": "3.0.3",
+  "version": "3.1.0",
   "main": "dist/index.node.js",
   "exports": {
     "require": "./dist/index.node.js",
@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "@signalwire/compatibility-api": "^3.1.3",
-    "@signalwire/core": "3.20.0",
+    "@signalwire/core": "3.21.0",
     "node-abort-controller": "^2.0.0",
     "node-fetch": "^2.6.1"
   },
