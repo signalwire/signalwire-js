@@ -1,12 +1,31 @@
-import { Chat } from '@signalwire/core'
-import { PagingCursor } from '../utils/interfaces'
-import ChatMember = Chat.ChatMember
-import ChatMessage = Chat.ChatMessage
+export { Client, ClientOptions, ClientApiEvents } from './Client'
 
-export * from './Client'
+export { ChatMember, ChatMessage } from '@signalwire/core'
 
-export {
-  ChatMember,
-  ChatMessage,
-  PagingCursor
-}
+export type { PagingCursor } from '../utils/interfaces'
+
+export type {
+  ChatAction,
+  ChatChannel,
+  ChatChannelMessageEvent,
+  ChatChannelMessageEventParams,
+  ChatChannelState,
+  ChatEvent,
+  ChatGetMembersParams,
+  ChatGetMemberStateParams,
+  ChatGetMessagesParams,
+  ChatMemberContract,
+  ChatMemberEntity,
+  ChatMemberJoinedEvent,
+  ChatMemberJoinedEventParams,
+  ChatMemberLeftEvent,
+  ChatMemberLeftEventParams,
+  ChatMemberUpdatedEvent,
+  ChatMemberUpdatedEventParams,
+  ChatMessageContract,
+  ChatMessageEntity,
+  ChatSetMemberStateParams,
+  InternalChatMemberEntity,
+  InternalChatMessageEntity,
+  PaginationCursor,
+} from '@signalwire/core'
