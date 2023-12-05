@@ -24,6 +24,17 @@ Additional ENV variables for `v2WebrtcFromRest` test:
        "LAMLURL": "",
        "FROMNUMBER": "",
 ```
+These env vars are used to "Create a Call" with the Compatibility REST API as documented in:
+
+https://docs.signalwire.com/reference/compatibility-sdks/v3/?shell#api-reference-calls-create-a-call
+
+`SPACE` is the customer's SW domain.
+
+`TODOMAIN` is the domain of the called device (`To` field).
+
+`LAMLURL` is the `Url` of the Laml bin to be executed at answer.
+
+`FROMNUMBER` is the `From` number used as caller identity.
 
 ### API_HOST
 
