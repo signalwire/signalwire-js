@@ -26,7 +26,7 @@ test.describe('V2Calling incoming from REST API', () => {
     const jwtCallee = await createTestJWTToken({ 'resource': resource })
     expect(jwtCallee).not.toBe(null)
 
-    await expectRelayConnected(pageCallee, jwtCallee)
+    await expectRelayConnected(pageCallee, envRelayProject, jwtCallee)
 
     const createResult = await createCallWithCompatibilityApi(resource)
     expect(createResult).toBe(201)

@@ -808,7 +808,7 @@ export const expectInjectRelayHost = async (page: Page, host: string) => {
   })
 }
 
-export const expectRelayConnected = async (page: Page, jwt: string) => {
+export const expectRelayConnected = async (page: Page, envRelayProject: string, jwt: string) => {
   // Project locator
   const project = page.locator('#project')
   expect(project).not.toBe(null)
