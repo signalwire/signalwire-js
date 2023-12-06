@@ -717,7 +717,14 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
 
 export const createCallWithCompatibilityApi = async (resource: string) => {
   const data = new URLSearchParams();
-  data.append('Url', `${process.env.LAML_URL}`);
+
+  const lamlUrl = `${process.env.LAML_URL}`
+  if (lamlUrl !== null && lamlUrl !== "") {
+    data.append('Url', lamlUrl);
+  } else {
+    data.append('Laml', `${process.env.LAML_INLINE}`);
+  }
+
   data.append('From', `${process.env.FROM_NUMBER}`);
   data.append('To', `verto:${resource}@${process.env.TO_DOMAIN}`);
 
