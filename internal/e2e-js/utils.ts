@@ -715,11 +715,11 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
   )
 }
 
-export const createRestApiCall = async (resource: string) => {
+export const createCallWithCompatibilityApi = async (resource: string) => {
   const data = new URLSearchParams();
-  data.append('Url', `${process.env.LAMLURL}`);
-  data.append('From', `${process.env.FROMNUMBER}`);
-  data.append('To', `verto:${resource}@${process.env.TODOMAIN}`);
+  data.append('Url', `${process.env.LAML_URL}`);
+  data.append('From', `${process.env.FROM_NUMBER}`);
+  data.append('To', `verto:${resource}@${process.env.TO_DOMAIN}`);
 
   const response = await fetch(
     `https://${process.env.SPACE}/api/laml/2010-04-01/Accounts/${process.env.RELAY_PROJECT}/Calls`,

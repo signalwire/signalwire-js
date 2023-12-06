@@ -20,9 +20,9 @@ SW_TEST_CONFIG='{"ignoreFiles":[],"env":{"API_HOST":"xyz.signalwire.com","RELAY_
 Additional ENV variables for `v2WebrtcFromRest` test:
 ```
        "SPACE": "",
-       "TODOMAIN": "",
-       "LAMLURL": "",
-       "FROMNUMBER": "",
+       "TO_DOMAIN": "",
+       "LAML_URL": "",
+       "FROM_NUMBER": "",
 ```
 These env vars are used to "Create a Call" with the Compatibility REST API as documented in:
 
@@ -30,11 +30,11 @@ https://docs.signalwire.com/reference/compatibility-sdks/v3/?shell#api-reference
 
 `SPACE` is the customer's SW domain.
 
-`TODOMAIN` is the domain of the called device (`To` field).
+`TO_DOMAIN` is the domain of the called device (`To` field).
 
-`LAMLURL` is the `Url` of the Laml bin to be executed at answer.
+`LAML_URL` is the `Url` of the Laml bin to be executed at answer.
 
-`FROMNUMBER` is the `From` number used as caller identity.
+`FROM_NUMBER` is the `From` number used as caller identity.
 
 ### API_HOST
 

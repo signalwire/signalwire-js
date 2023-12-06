@@ -1,7 +1,7 @@
 import { test, expect, Page } from '../fixtures'
 import {
   SERVER_URL,
-  createRestApiCall,
+  createCallWithCompatibilityApi,
   createTestJWTToken,
   expectInjectRelayHost,
   expectRelayConnected,
@@ -28,7 +28,7 @@ test.describe('V2Calling incoming from REST API', () => {
 
     await expectRelayConnected(pageCallee, jwtCallee)
 
-    const createResult = await createRestApiCall(resource)
+    const createResult = await createCallWithCompatibilityApi(resource)
     expect(createResult).toBe(201)
 
     const callStatusCallee = pageCallee.locator('#callStatus')
