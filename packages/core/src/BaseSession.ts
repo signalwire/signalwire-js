@@ -471,10 +471,10 @@ export class BaseSession {
         break
       }
       default:
-        // If it's not a response, trigger the dispatch.
         this._eventAcknowledgingHandler(payload).catch((error) =>
           this.logger.error('Event Acknowledging Error', error)
         )
+        // If it's not a response, trigger the dispatch.
         this.dispatch(socketMessageAction(payload))
     }
   }
