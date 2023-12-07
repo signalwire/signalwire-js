@@ -566,7 +566,6 @@ export class BaseSession {
     console.log('_eventAcknowledgingHandler')
     const { method, id } = payload
     if (method === 'signalwire.event') {
-      console.log('method === signalwire.event')
       return this.execute(RPCEventAckResponse(id))
     }
     return Promise.resolve()
