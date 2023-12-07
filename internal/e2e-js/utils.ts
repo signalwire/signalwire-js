@@ -715,21 +715,17 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
   )
 }
 
-export const createCallWithCompatibilityApi = async (resource: string) => {
+export const createCallWithCompatibilityApi = async (resource: string, inlineLaml: string) => {
   const data = new URLSearchParams();
 
-  const lamlUrl = `${process.env.LAML_URL}`
-  if (lamlUrl !== null && lamlUrl !== "") {
-    data.append('Url', lamlUrl);
-  } else {
-    data.append('Laml', `${process.env.LAML_INLINE}`);
+  if (inlineLaml !== null && inlineLaml !== "") {
+    data.append('Laml', inlineLaml)
   }
-
-  data.append('From', `${process.env.FROM_NUMBER}`);
-  data.append('To', `verto:${resource}@${process.env.TO_DOMAIN}`);
+  data.append('From', `${process.env.VOICE_DIAL_FROM_NUMBER}`);
+  data.append('To', `verto:${resource}@${process.env.VERTO_DOMAIN}`);
 
   const response = await fetch(
-    `https://${process.env.SPACE}/api/laml/2010-04-01/Accounts/${process.env.RELAY_PROJECT}/Calls`,
+    `https://${process.env.API_HOST}/api/laml/2010-04-01/Accounts/${process.env.RELAY_PROJECT}/Calls`,
     {
       method: 'POST',
       headers: {
@@ -742,6 +738,9 @@ export const createCallWithCompatibilityApi = async (resource: string) => {
 
   if (response.status === 201) {
     return response.status
+  }
+  else {
+    console.log("Unexpected response from REST API: ", response.status, " = ", response.statusText)
   }
   return undefined
 }

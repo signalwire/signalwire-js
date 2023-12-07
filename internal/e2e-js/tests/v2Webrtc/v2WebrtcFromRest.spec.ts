@@ -12,6 +12,7 @@ import {
   expectRelayConnected,
   expectv2TotalAudioEnergyToBeGreaterThan,
   randomizeResourceName,
+  randomizeRoomName,
 } from '../../utils'
 	      
 test.describe('V2Calling incoming from REST API', () => {
@@ -51,7 +52,22 @@ test.describe('V2Calling incoming from REST API', () => {
 
     await expectRelayConnected(pageCallee, envRelayProject, jwtCallee)
 
-    const createResult = await createCallWithCompatibilityApi(resource)
+    const conferenceName = randomizeRoomName("v2rest")
+    const inlineLaml = `<?xml version="1.0" encoding="UTF-8"?>
+      <Response>
+        <Dial>
+          <Conference
+            endConferenceOnExit="false"
+            startConferenceOnEnter="true"
+            waitUrl="https://cdn.signalwire.com/default-music/welcome.mp3"
+            waitMethod="GET">
+            ${conferenceName}
+          </Conference>
+        </Dial>
+      </Response>`
+
+    console.log("inline Laml: ", inlineLaml)
+    const createResult = await createCallWithCompatibilityApi(resource, inlineLaml)
     expect(createResult).toBe(201)
     console.log("REST API returned 201 at ", new Date())
 
