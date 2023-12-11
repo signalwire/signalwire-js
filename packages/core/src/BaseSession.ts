@@ -65,6 +65,7 @@ export class BaseSession {
   private _requests = new Map<string, SessionRequestObject>()
   private _socket: WebSocketClient | null = null
   private _host: string = DEFAULT_HOST
+  private _unifiedEventing = false;
 
   private _executeTimeoutMs = 10 * 1000
   private _executeTimeoutError = Symbol.for('sw-execute-timeout')
@@ -82,7 +83,10 @@ export class BaseSession {
   private wsErrorHandler: (event: Event) => void
 
   constructor(public options: SessionOptions) {
-    const { host, logLevel = 'info', sessionChannel } = options
+    const { host, logLevel = 'info', sessionChannel, unifiedEventing = false } = options
+
+    this._unifiedEventing = unifiedEventing
+
     if (host) {
       this._host = checkWebSocketHost(host)
     }
@@ -338,19 +342,25 @@ export class BaseSession {
     })
   }
 
-  /**
-   * Authenticate with the SignalWire Network
-   * @return Promise<void>
-   */
-  async authenticate() {
-    const params: RPCConnectParams = {
+  protected get _connectParams():RPCConnectParams {
+    return {
       agent: this.agent,
       version: this.connectVersion,
       authentication: {
         project: this.options.project,
         token: this.options.token,
       },
+      eventing: this._unifiedEventing ? ['unified'] : undefined
     }
+  } 
+
+  /**
+   * Authenticate with the SignalWire Network
+   * @return Promise<void>
+   */
+  async authenticate() {
+    const params: RPCConnectParams = this._connectParams
+
     if (this._relayProtocolIsValid()) {
       params.protocol = this.relayProtocol
     }

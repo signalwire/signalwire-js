@@ -33,6 +33,7 @@ export class WSClient {
         logWsTraffic: true,
       },
       logLevel: 'debug',
+      unifiedEventing: true
     })
   }
 

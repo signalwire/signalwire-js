@@ -109,6 +109,9 @@ export interface SessionOptions {
   /** logging level */
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
   /** To refresh the auth token */
+
+  unifiedEventing?: boolean,
+
   onRefreshToken?(): Promise<void>
   /**
    * The SDK invokes this method and uses the new token to re-auth.
