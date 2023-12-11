@@ -59,13 +59,14 @@ export class BaseSession {
   public agent: string
   public connectVersion = DEFAULT_CONNECT_VERSION
   public reauthenticate?(): Promise<void>
+  public unifiedEventing = false;
 
   protected _rpcConnectResult: RPCConnectResult
 
   private _requests = new Map<string, SessionRequestObject>()
   private _socket: WebSocketClient | null = null
   private _host: string = DEFAULT_HOST
-  private _unifiedEventing = false;
+  
 
   private _executeTimeoutMs = 10 * 1000
   private _executeTimeoutError = Symbol.for('sw-execute-timeout')
@@ -85,7 +86,7 @@ export class BaseSession {
   constructor(public options: SessionOptions) {
     const { host, logLevel = 'info', sessionChannel, unifiedEventing = false } = options
 
-    this._unifiedEventing = unifiedEventing
+    this.unifiedEventing = unifiedEventing
 
     if (host) {
       this._host = checkWebSocketHost(host)
@@ -350,7 +351,7 @@ export class BaseSession {
         project: this.options.project,
         token: this.options.token,
       },
-      eventing: this._unifiedEventing ? ['unified'] : undefined
+      eventing: this.unifiedEventing ? ['unified'] : undefined
     }
   } 
 

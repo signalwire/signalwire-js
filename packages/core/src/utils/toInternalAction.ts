@@ -2,12 +2,21 @@ import { JSONRPCRequest } from '..'
 import { MapToPubSubShape } from '../redux/interfaces'
 import { isWebrtcEventType } from './common'
 
+const mapUnifiedEvents = (unifiedEventType: string): string => {
+  if(!unifiedEventType.startsWith('video.') || !unifiedEventType.startsWith('calling.')) {
+    return `video.${unifiedEventType}`
+  }
+  return unifiedEventType
+}
+
 export const toInternalAction = <
   T extends { event_type: string; params?: unknown; node_id?: string }
 >(
-  event: T
+  event: T,
+  unifiedEventing = false
 ) => {
-  const { event_type, params, node_id } = event
+  const { event_type: payload_event_type, params, node_id } = event
+  const event_type = unifiedEventing ? mapUnifiedEvents(payload_event_type) : payload_event_type
 
   /**
    * queuing.relay.tasks has a slightly different shape:

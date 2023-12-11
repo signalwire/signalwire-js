@@ -39,7 +39,7 @@ export function* sessionChannelWatcher({
   session,
 }: SessionSagaParams): SagaIterator {
   function* swEventWorker(broadcastParams: SwEventParams) {
-    yield put(swEventChannel, toInternalAction(broadcastParams))
+    yield put(swEventChannel, toInternalAction(broadcastParams, session.unifiedEventing))
 
     if (isWebrtcEvent(broadcastParams) || isVideoEvent(broadcastParams)) {
       /**

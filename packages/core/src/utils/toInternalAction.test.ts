@@ -94,4 +94,30 @@ describe('toInternalAction', () => {
       })
     })
   })
+
+  it('should handle unified events', () => {
+    const internalAction = toInternalAction({
+      event_type: 'member.joined',
+      params: {
+        key: 'value',
+      },
+    }, true)
+
+    expect(internalAction).toStrictEqual({
+      type: 'video.member.joined',
+      payload: {
+        key: 'value',
+      },
+    })
+
+    const internalAction2 = toInternalAction({
+      event_type: 'member.left',
+      params: 'just string',
+    })
+
+    expect(internalAction2).toStrictEqual({
+      type: 'video.member.left',
+      payload: 'just string',
+    })
+  })
 })
