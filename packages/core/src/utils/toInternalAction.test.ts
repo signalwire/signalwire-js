@@ -129,5 +129,15 @@ describe('toInternalAction', () => {
       type: 'video.room.subscribed,',
       payload: 'just string',
     })
+
+    const internalAction4 = toInternalAction({
+      event_type: 'webrtc.message,',
+      params: 'just string',
+    }, true)
+
+    expect(internalAction4).toStrictEqual({
+      type: 'webrtc.message,',
+      payload: 'just string',
+    })
   })
 })

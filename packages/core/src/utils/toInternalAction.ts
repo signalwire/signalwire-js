@@ -2,8 +2,12 @@ import { JSONRPCRequest } from '..'
 import { MapToPubSubShape } from '../redux/interfaces'
 import { isWebrtcEventType } from './common'
 
+
+
 const mapUnifiedEvents = (unifiedEventType: string): string => {
-  if(!unifiedEventType.startsWith('video.') || !unifiedEventType.startsWith('calling.')) {
+  const nonMappingPrefix = ['video', 'calling', 'webrtc']
+  const prefix = unifiedEventType.split('.')[0]
+  if(!nonMappingPrefix.includes(prefix)) {
     return unifiedEventType.startsWith('call.') ?  `video.${unifiedEventType.replace('call.', 'room.')}` : `video.${unifiedEventType}`
   }
   return unifiedEventType
