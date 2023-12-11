@@ -113,10 +113,20 @@ describe('toInternalAction', () => {
     const internalAction2 = toInternalAction({
       event_type: 'member.left',
       params: 'just string',
-    })
+    }, true)
 
     expect(internalAction2).toStrictEqual({
       type: 'video.member.left',
+      payload: 'just string',
+    })
+
+    const internalAction3 = toInternalAction({
+      event_type: 'call.subscribed,',
+      params: 'just string',
+    }, true)
+
+    expect(internalAction3).toStrictEqual({
+      type: 'video.room.subscribed,',
       payload: 'just string',
     })
   })

@@ -4,7 +4,7 @@ import { isWebrtcEventType } from './common'
 
 const mapUnifiedEvents = (unifiedEventType: string): string => {
   if(!unifiedEventType.startsWith('video.') || !unifiedEventType.startsWith('calling.')) {
-    return `video.${unifiedEventType}`
+    return unifiedEventType.startsWith('call.') ?  `video.${unifiedEventType.replace('call.', 'room.')}` : `video.${unifiedEventType}`
   }
   return unifiedEventType
 }
