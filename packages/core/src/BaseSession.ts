@@ -563,7 +563,6 @@ export class BaseSession {
   private async _eventAcknowledgingHandler(
     payload: JSONRPCRequest
   ): Promise<void> {
-    console.log('_eventAcknowledgingHandler')
     const { method, id } = payload
     if (method === 'signalwire.event') {
       return this.execute(RPCEventAckResponse(id))
