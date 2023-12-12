@@ -7,7 +7,7 @@ import {
   type TestHandler,
   createTestRunner,
   makeSipDomainAppAddress,
-} from './utils'
+} from '../utils'
 
 const handler: TestHandler = ({ domainApp }) => {
   if (!domainApp) {
