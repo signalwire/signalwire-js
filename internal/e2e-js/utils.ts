@@ -280,7 +280,7 @@ export const createTestSATToken = async () => {
         Authorization: `Basic ${CF_BASIC_TOKEN}`,
       },
       body: JSON.stringify({
-        reference: 'whatever',
+        reference: process.env.SAT_REFERENCE,
       }),
     }
   )
