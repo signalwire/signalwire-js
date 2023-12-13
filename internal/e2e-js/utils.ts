@@ -268,11 +268,11 @@ export const createTestJWTToken = async (body: CreateTestJWTOptions) => {
 
 export const createTestSATToken = async () => {
   const CF_BASIC_TOKEN = Buffer.from(
-    `${process.env.CF_RELAY_PROJECT}:${process.env.CF_RELAY_TOKEN}`
+    `${process.env.RELAY_PROJECT}:${process.env.RELAY_TOKEN}`
   ).toString('base64')
 
   const response = await fetch(
-    `https://${process.env.CF_API_HOST}/api/fabric/subscribers/tokens`,
+    `https://${process.env.API_HOST}/api/fabric/subscribers/tokens`,
     {
       method: 'POST',
       headers: {
@@ -280,8 +280,7 @@ export const createTestSATToken = async () => {
         Authorization: `Basic ${CF_BASIC_TOKEN}`,
       },
       body: JSON.stringify({
-        reference: process.env.CF_REFERENCE,
-        password: process.env.CF_PASSWORD,
+        reference: 'whatever',
       }),
     }
   )
