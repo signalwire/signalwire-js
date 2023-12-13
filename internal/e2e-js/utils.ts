@@ -722,7 +722,14 @@ export const createCallWithCompatibilityApi = async (resource: string, inlineLam
     data.append('Laml', inlineLaml)
   }
   data.append('From', `${process.env.VOICE_DIAL_FROM_NUMBER}`);
-  data.append('To', `verto:${resource}@${process.env.VERTO_DOMAIN}`);
+
+  const vertoDomain = `${process.env.VERTO_DOMAIN}`
+  expect(vertoDomain).toBeDefined()
+
+  data.append('To', `verto:${resource}@${vertoDomain}`);
+
+  console.log("REST API URL: ", `https://${process.env.API_HOST}/api/laml/2010-04-01/Accounts/${process.env.RELAY_PROJECT}/Calls`)
+  console.log("REST API payload: ", data)
 
   const response = await fetch(
     `https://${process.env.API_HOST}/api/laml/2010-04-01/Accounts/${process.env.RELAY_PROJECT}/Calls`,
