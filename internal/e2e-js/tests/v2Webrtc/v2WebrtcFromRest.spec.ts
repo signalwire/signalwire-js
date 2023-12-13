@@ -14,7 +14,7 @@ import {
   randomizeResourceName,
   randomizeRoomName,
 } from '../../utils'
-	      
+
 test.describe('V2Calling incoming from REST API', () => {
   test('should handle one v2 webrtc endpoint connecting, receiving a call from a REST API Create Call request, answering and being connected to a Laml bin', async ({
     createCustomVanillaPage,
