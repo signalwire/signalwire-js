@@ -723,7 +723,7 @@ export const createCallWithCompatibilityApi = async (resource: string, inlineLam
   }
   data.append('From', `${process.env.VOICE_DIAL_FROM_NUMBER}`);
 
-  const vertoDomain = `${process.env.VERTO_DOMAIN}`
+  const vertoDomain = process.env.VERTO_DOMAIN
   expect(vertoDomain).toBeDefined()
 
   data.append('To', `verto:${resource}@${vertoDomain}`);
