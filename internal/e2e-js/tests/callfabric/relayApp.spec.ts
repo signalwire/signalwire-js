@@ -13,8 +13,8 @@ test.describe('CallFabric Relay Application', () => {
   }) => {
     const client = await SignalWire({
       host: process.env.RELAY_HOST,
-      project: process.env.CF_RELAY_PROJECT as string,
-      token: process.env.CF_RELAY_TOKEN as string,
+      project: process.env.RELAY_PROJECT as string,
+      token: process.env.RELAY_TOKEN as string,
       debug: {
         logWsTraffic: true,
       },
@@ -90,8 +90,8 @@ test.describe('CallFabric Relay Application', () => {
   }) => {
     const client = await SignalWire({
       host: process.env.RELAY_HOST,
-      project: process.env.CF_RELAY_PROJECT as string,
-      token: process.env.CF_RELAY_TOKEN as string,
+      project: process.env.RELAY_PROJECT as string,
+      token: process.env.RELAY_TOKEN as string,
       debug: {
         logWsTraffic: true,
       },
@@ -165,8 +165,8 @@ test.describe('CallFabric Relay Application', () => {
   }) => {
     const client = await SignalWire({
       host: process.env.RELAY_HOST,
-      project: process.env.CF_RELAY_PROJECT as string,
-      token: process.env.CF_RELAY_TOKEN as string,
+      project: process.env.RELAY_PROJECT as string,
+      token: process.env.RELAY_TOKEN as string,
       debug: {
         logWsTraffic: true,
       },

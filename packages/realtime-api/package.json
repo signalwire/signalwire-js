@@ -3,8 +3,9 @@
   "description": "SignalWire RealTime SDK for Node.js",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
-  "version": "3.13.0",
+  "version": "4.0.0-beta.0",
   "main": "dist/index.node.js",
+  "beta": true,
   "exports": {
     "require": "./dist/index.node.js",
     "default": "./dist/index.node.mjs"
@@ -37,7 +38,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@signalwire/core": "3.21.0",
+    "@signalwire/core": "4.0.0-beta.0",
     "ws": "^8.13.0"
   },
   "devDependencies": {
