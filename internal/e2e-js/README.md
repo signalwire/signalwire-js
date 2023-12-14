@@ -57,11 +57,15 @@ Your SignalWire Personal Token for the related project.
 
 ### SAT_REFERENCE
 
-OAuth reference for SAT. This could be an oauth user email or a process/program.
+OAuth reference for SAT. This could be an oauth user email or a process/program identifier.
 
 ### VERTO_DOMAIN
 
 A SIP domain of your project replacing `sip` with `verto`. Required for v2 client testing.
+
+For eg:
+
+If your SIP domain is dev-1234.sip.signalwire.com, use dev-1234.verto.signalwire.com
 
 ## Call Fabric resources
 
@@ -72,7 +76,7 @@ The call fabric tests are using the following resources:
 - /public/cf-e2e-test-hangup (SWML Script)
 - /public/cf-e2e-test-room (Video Room)
 
-You need to have these resources in your SignalWire space to pass these test successfully.
+You need to have these resources in your SignalWire space to pass these Call Fabric tests successfully.
 
 ## Launch all tests
 
