@@ -18,7 +18,21 @@ npm run build
 Create a new file in `internal/e2e-realtime-api/.env.test` with a content like:
 
 ```bash
-SW_TEST_CONFIG='{"ignoreFiles":[],"ignoreDirectories":[],"env":{"API_HOST":"xyz.signalwire.com","RELAY_HOST":"relay.signalwire.com","RELAY_PROJECT":"xyz","RELAY_TOKEN":"PTxyz","MESSAGING_FROM_NUMBER":"+1111","MESSAGING_TO_NUMBER":"+1111","MESSAGING_CONTEXT":"someContext","DAPP_DOMAIN":"abc.signalwire.com","PLAYBACK_URL":"http://xyz.test.mp4"}}'
+SW_TEST_CONFIG='{
+   "ignoreFiles": [],
+   "ignoreDirectories": [],
+   "env": {
+      "API_HOST": "xyz.signalwire.com",
+      "RELAY_HOST": "relay.signalwire.com",
+      "RELAY_PROJECT": "xyz",
+      "RELAY_TOKEN": "PTxyz",
+      "MESSAGING_FROM_NUMBER": "+1111",
+      "MESSAGING_TO_NUMBER": "+1111",
+      "MESSAGING_CONTEXT": "someContext",
+      "DAPP_DOMAIN": "abc.signalwire.com",
+      "PLAYBACK_URL": "http://xyz.test.mp4"
+   }
+}'
 ```
 
 ### API_HOST

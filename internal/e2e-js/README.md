@@ -18,7 +18,22 @@ npm run build
 Create a new file in `internal/e2e-js/.env.test` with a content like:
 
 ```bash
-SW_TEST_CONFIG='{"ignoreFiles":[],"env":{"API_HOST":"xyz.signalwire.com","RELAY_HOST":"relay.signalwire.com","RELAY_PROJECT":"xyz","RELAY_TOKEN":"PTxyz","PLAYBACK_URL":"http://xyz.test.mp4","STREAMING_URL":"rtmp://a.rtmp.youtube.com/live2/111","STREAM_CHECK_URL":"https://rtmp.example.com/stats","RTMP_SERVER":"rtmp://a.rtmp.youtube.com/live2/","RTMP_STREAM_NAME":"someName","SAT_REFERENCE":"oauthReference","VERTO_DOMAIN":"dev-1111.verto.example.com"}}'
+SW_TEST_CONFIG='{
+   "ignoreFiles": [],
+   "env": {
+      "API_HOST": "xyz.signalwire.com",
+      "RELAY_HOST": "relay.signalwire.com",
+      "RELAY_PROJECT": "xyz",
+      "RELAY_TOKEN": "PTxyz",
+      "PLAYBACK_URL": "http://xyz.test.mp4",
+      "STREAMING_URL": "rtmp://a.rtmp.youtube.com/live2/111",
+      "STREAM_CHECK_URL": "https://rtmp.example.com/stats",
+      "RTMP_SERVER": "rtmp://a.rtmp.youtube.com/live2/",
+      "RTMP_STREAM_NAME": "someName",
+      "SAT_REFERENCE": "oauthReference",
+      "VERTO_DOMAIN": "dev-1111.verto.example.com"
+   }
+}'
 ```
 
 Additional ENV variables for `v2WebrtcFromRest` test: `"VERTO_DOMAIN"`
