@@ -22,14 +22,14 @@ SW_TEST_CONFIG='{
    "ignoreFiles": [],
    "ignoreDirectories": [],
    "env": {
-      "API_HOST": "xyz.signalwire.com",
-      "RELAY_HOST": "relay.signalwire.com",
+      "API_HOST": "xxx.signalwire.com",
+      "RELAY_HOST": "yyy.signalwire.com",
       "RELAY_PROJECT": "xyz",
       "RELAY_TOKEN": "PTxyz",
       "MESSAGING_FROM_NUMBER": "+1111",
       "MESSAGING_TO_NUMBER": "+1111",
       "MESSAGING_CONTEXT": "someContext",
-      "DAPP_DOMAIN": "abc.signalwire.com",
+      "DAPP_DOMAIN": "zzz.signalwire.com",
       "PLAYBACK_URL": "http://xyz.test.mp4"
    }
 }'
@@ -46,6 +46,18 @@ Your SignalWire Project ID.
 ### RELAY_TOKEN
 
 Your SignalWire Personal Token for the related project.
+
+### MESSAGING_FROM_NUMBER
+
+A valid number purchased from the SignalWire space responsible for sending messages.
+
+### MESSAGING_TO_NUMBER
+
+A valid number purchased from the SignalWire space intended to receive messages.
+
+### MESSAGING_CONTEXT
+
+Messaging context or topic. It should be configured under the *MESSAGING_TO_NUMBER* settings.
 
 ### DAPP_DOMAIN
 
