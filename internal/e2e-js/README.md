@@ -1,8 +1,12 @@
-# e2e-js end to end tests
+# e2e-js - End-to-End tests
+
+This repo contains end-to-end tests for our browser SDKs including Chat, PubSub, Video, and Call Fabric.
+
+Additionaly, this repo also includes a few V2 client SDK tests.
 
 ## Initial setup
 
-```
+```bash
 git clone git@github.com:signalwire/signalwire-js.git
 cd signalwire-js
 npm i
@@ -13,8 +17,8 @@ npm run build
 
 Create a new file in `internal/e2e-js/.env.test` with a content like:
 
-```
-SW_TEST_CONFIG='{"ignoreFiles":[],"env":{"API_HOST":"xyz.signalwire.com","RELAY_HOST":"relay.signalwire.com","RELAY_PROJECT":"xyz","RELAY_TOKEN":"PTxyz","VOICE_CONTEXT":"office","VOICE_DIAL_FROM_NUMBER":"+1111111111","VOICE_DIAL_TO_NUMBER":"+111111111","VOICE_CONNECT_TO_NUMBER":"+111111111111","VOICE_CONNECT_CONTEXT":"office","MESSAGING_FROM_NUMBER":"+10000000000","MESSAGING_TO_NUMBER":"+10000000001","MESSAGING_CONTEXT":"messaging-e2e","PLAYBACK_URL":"http://xyz.test.mp4","RTMP_SERVER":"rtmp://a.rtmp.youtube.com/live2/","RTMP_STREAM_NAME":"someName","STREAM_CHECK_URL":"https://rtmp.example.com/stats","PVC_RTMP_SERVER":"rtmp://rtmp.example.com/live/", "PVC_STREAM_NAME": "pvc-e2e-stream"}}'
+```bash
+SW_TEST_CONFIG='{"ignoreFiles":[],"env":{"API_HOST":"xyz.signalwire.com","RELAY_HOST":"relay.signalwire.com","RELAY_PROJECT":"xyz","RELAY_TOKEN":"PTxyz","PLAYBACK_URL":"http://xyz.test.mp4","STREAMING_URL":"rtmp://a.rtmp.youtube.com/live2/111","STREAM_CHECK_URL":"https://rtmp.example.com/stats","RTMP_SERVER":"rtmp://a.rtmp.youtube.com/live2/","RTMP_STREAM_NAME":"someName","SAT_REFERENCE":"oauthReference","VERTO_DOMAIN":"dev-1111.verto.example.com"}}'
 ```
 
 Additional ENV variables for `v2WebrtcFromRest` test: `"VERTO_DOMAIN"`
@@ -36,21 +40,40 @@ Your SignalWire Project ID.
 
 Your SignalWire Personal Token for the related project.
 
+### SAT_REFERENCE
+
+OAuth reference for SAT. This could be an oauth user email or a process/program.
+
+### VERTO_DOMAIN
+
+A SIP domain of your project replacing `sip` with `verto`. Required for v2 client testing.
+
+## Call Fabric resources
+
+The call fabric tests are using the following resources:
+
+- /public/cf-e2e-test-relay (Relay Application with topic/context/reference **cf-e2e-test-relay**)
+- /public/cf-e2e-test-tts (SWML Script)
+- /public/cf-e2e-test-hangup (SWML Script)
+- /public/cf-e2e-test-room (Video Room)
+
+You need to have these resources in your SignalWire space to pass these test successfully.
+
 ## Launch all tests
 
-```
+```bash
 npm run -w=@sw-internal/e2e-js dev
 ```
 
 ## Launch a specific test
 
-```
+```bash
 npm run -w=@sw-internal/e2e-js dev -- <file1> <file2> <file3>
 ```
 
 > Example
 
-```
+```bash
 npm run -w=@sw-internal/e2e-js dev -- roomSession.spec.ts
 ```
 
