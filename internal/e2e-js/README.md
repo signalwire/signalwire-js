@@ -1,4 +1,4 @@
-# e2e-js - End-to-End tests
+# e2e-js
 
 This repo contains end-to-end tests for our browser SDKs including Chat, PubSub, Video, and Call Fabric.
 

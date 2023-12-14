@@ -1,4 +1,4 @@
-# e2e-realtime-api - End-to-End tests
+# e2e-realtime-api
 
 This repo contains end-to-end tests for our Node SDKs including Chat, PubSub, Messaging, Task, Video, and Voice.
 
