@@ -72,8 +72,8 @@ If your SIP domain is dev-1234.sip.signalwire.com, use dev-1234.verto.signalwire
 The call fabric tests are using the following resources:
 
 - /public/cf-e2e-test-relay (Relay Application with topic/context/reference **cf-e2e-test-relay**)
-- /public/cf-e2e-test-tts (SWML Script)
-- /public/cf-e2e-test-hangup (SWML Script)
+- /public/cf-e2e-test-tts (SWML Script - see below)
+- /public/cf-e2e-test-hangup (SWML Script - see below)
 - /public/cf-e2e-test-room (Video Room)
 
 You need to have these resources in your SignalWire space to pass these Call Fabric tests successfully.
@@ -101,3 +101,46 @@ Only `roomSession.spec.ts` will run.
 ## Ignore a specific test
 
 Add the test you want to ignore within the `playwright.config.ts` > `testIgnore` array.
+
+## SWML Scripts
+
+/public/cf-e2e-test-tts
+
+```json
+{
+   "sections": {
+      "main": [
+         "answer",
+         {
+            "play": {
+               "volume": 10,
+               "urls": [
+                  "say:Hi",
+                  "say:Welcome to SignalWire",
+                  "say:Thank you for calling us. All our lines are currently busy, but your call is important to us. Please hang up, and we'll return your call as soon as our representative is available."
+               ]
+            }
+         }
+      ]
+   }
+}
+```
+
+/public/cf-e2e-test-hangup
+
+```json
+{
+  "version": "1.0.0",
+  "sections": {
+    "main": [
+      "answer",
+      {
+        "hangup": {
+          "reason": "busy"
+        }
+      }
+    ]
+  }
+}
+
+```
