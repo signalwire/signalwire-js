@@ -17,7 +17,13 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x]
+    env:
+      GITHUB_CONTEXT: ${{ toJson(github) }}
     steps:
+      - name: Dump All Environment Variables
+        run: printenv
+      - name: Dump GitHub context
+        run: echo '$GITHUB_CONTEXT'
       - uses: actions/checkout@v3
       - name: Install deps
         uses: ./.github/actions/install
