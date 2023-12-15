@@ -11,7 +11,7 @@ const ALLOWED_SCRIPT_EXTENSIONS = ['js', 'ts']
 
 const getScriptOptions = (pathname, config) => {
   const ignoreFiles = config.ignoreFiles || []
-  const includeFiles = config.includeFiles || undefined
+  const includeFiles = config.includeFiles || []
   const ignoreDirectories = config.ignoreDirectories
     ? [...config.ignoreDirectories, 'playwright']
     : ['playwright']
@@ -34,12 +34,11 @@ const getScriptOptions = (pathname, config) => {
       .replace(/\.\.(\/|\\)/g, '')
       .replace(/\\/g, '/')
 
-    if (
-      fs.lstatSync(itemPath).isFile() &&
-      (((includeFiles === undefined) && normalizedPath.includes('.test.')) ||
-       ((includeFiles !== undefined) && includeFiles.includes(normalizedPath))) &&
-      !ignoreFiles.includes(normalizedPath)
-    ) {
+    const isValidFile = fs.lstatSync(itemPath).isFile() && normalizedPath.includes('.test.')
+    const isIncludedFile = (includeFiles.length == 0) || includeFiles.includes(normalizedPath)
+    const isIgnoredFile = ignoreFiles.includes(normalizedPath)
+
+    if (isValidFile && isIncludedFile && !isIgnoredFile) {
       acc.push({
         name: normalizedPath,
         type: getScriptType(itemPath),

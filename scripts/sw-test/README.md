@@ -72,4 +72,4 @@ Example:
 SW_TEST_CONFIG='{ "includeFiles": ["voiceCollect/withAllListeners.test.ts", "voicePlayback/withPlaybackListeners.test.ts"] }'
 ```
 
-This is optional.
+This is optional. If missing or empty it will be considered as "include all" (unless listed in `ignoredFiles`).
