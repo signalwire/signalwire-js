@@ -85,6 +85,7 @@ async function runNodeScript(config) {
   try {
     for await (const test of tests) {
       await new Promise((resolve, reject) => {
+        console.log('Running Test', test.name)
         const child = spawn(...getRunParams(test))
 
         child.stdout.on('data', (data) => {
