@@ -11,6 +11,7 @@ const ALLOWED_SCRIPT_EXTENSIONS = ['js', 'ts']
 
 const getScriptOptions = (pathname, config) => {
   const ignoreFiles = config.ignoreFiles || []
+  const includeFiles = config.includeFiles || undefined
   const ignoreDirectories = config.ignoreDirectories
     ? [...config.ignoreDirectories, 'playwright']
     : ['playwright']
@@ -35,7 +36,8 @@ const getScriptOptions = (pathname, config) => {
 
     if (
       fs.lstatSync(itemPath).isFile() &&
-      normalizedPath.includes('.test.') &&
+      (((includeFiles === undefined) && normalizedPath.includes('.test.')) ||
+       ((includeFiles !== undefined) && includeFiles.includes(normalizedPath))) &&
       !ignoreFiles.includes(normalizedPath)
     ) {
       acc.push({
@@ -78,10 +80,11 @@ const getRunParams = (script) => {
 
 async function runNodeScript(config) {
   const tests = getScriptOptions(path.join(process.cwd(), './src'), config)
+  let testResults = []
+  let runFailed = false
   try {
     for await (const test of tests) {
       await new Promise((resolve, reject) => {
-        console.log('Running Test', test.name)
         const child = spawn(...getRunParams(test))
 
         child.stdout.on('data', (data) => {
@@ -94,15 +97,27 @@ async function runNodeScript(config) {
 
         child.on('close', (exitCode) => {
           if (exitCode !== 0) {
-            reject(exitCode)
+            console.log("Adding to FAILED tests: ", test.name)
+            testResults.push({ "test": test.name, "result": "FAIL", "exitCode": exitCode, "time": Date.now()})
+            runFailed = true
+            resolve()
+          } else {
+            console.log("Adding to passed tests: ", test.name)
+            testResults.push({ "test": test.name, "result": "OK", "time": Date.now()})
+            resolve()
           }
-          resolve()
         })
       })
     }
   } catch (error) {
     console.error('Process Exit with errorCode', error)
     process.exit(error ?? 1)
+  }
+  console.log("--------- test results: ", testResults)
+  console.log("-------------------------------------------")
+
+  if (runFailed === true) {
+    process.exit(1)
   }
 }
 
