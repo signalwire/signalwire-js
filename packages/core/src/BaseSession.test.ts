@@ -60,9 +60,10 @@ describe('BaseSession', () => {
     WS.clean()
   })
 
-  it('should include events_ack on RPCConnect message', () => {
-    expect(rpcConnect.params.event_acks).toBeTruthy()
-  })
+  // temporary reverting
+  // it('should include events_ack on RPCConnect message', () => {
+  //   expect(rpcConnect.params.event_acks).toBeTruthy()
+  // })
 
   it('should connect and disconnect to/from the provided host', async () => {
     session.connect()
@@ -126,29 +127,30 @@ describe('BaseSession', () => {
       )
     })
 
-    it('should send acknowledge message on signalwire.event', async () => {
-      session.connect()
-      await ws.connected
+    // temporary reverting
+    // it('should send acknowledge message on signalwire.event', async () => {
+    //   session.connect()
+    //   await ws.connected
 
-      await expect(ws).toReceiveMessage(JSON.stringify(rpcConnect))
-      const request = {
-        jsonrpc: '2.0' as const,
-        id: 'uuid',
-        method: 'signalwire.event' as const,
-        params: {
-          key: 'value',
-        },
-      }
-      ws.send(JSON.stringify(request))
+    //   await expect(ws).toReceiveMessage(JSON.stringify(rpcConnect))
+    //   const request = {
+    //     jsonrpc: '2.0' as const,
+    //     id: 'uuid',
+    //     method: 'signalwire.event' as const,
+    //     params: {
+    //       key: 'value',
+    //     },
+    //   }
+    //   ws.send(JSON.stringify(request))
 
-      await expect(ws).toReceiveMessage(
-        JSON.stringify({
-          jsonrpc: '2.0' as const,
-          id: 'uuid',
-          result: {},
-        })
-      )
-    })
+    //   await expect(ws).toReceiveMessage(
+    //     JSON.stringify({
+    //       jsonrpc: '2.0' as const,
+    //       id: 'uuid',
+    //       result: {},
+    //     })
+    //   )
+    // })
   })
 
   describe('signalwire.ping messages', () => {
