@@ -714,3 +714,133 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
     first.inboundRTP.audio.packetsReceived + minAudioPacketsExpected
   )
 }
+
+export const createCallWithCompatibilityApi = async (resource: string, inlineLaml: string) => {
+  const data = new URLSearchParams();
+
+  if (inlineLaml !== null && inlineLaml !== "") {
+    data.append('Laml', inlineLaml)
+  }
+  data.append('From', `${process.env.VOICE_DIAL_FROM_NUMBER}`);
+
+  const vertoDomain = process.env.VERTO_DOMAIN
+  expect(vertoDomain).toBeDefined()
+
+  data.append('To', `verto:${resource}@${vertoDomain}`);
+
+  console.log("REST API URL: ", `https://${process.env.API_HOST}/api/laml/2010-04-01/Accounts/${process.env.RELAY_PROJECT}/Calls`)
+  console.log("REST API payload: ", data)
+
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/laml/2010-04-01/Accounts/${process.env.RELAY_PROJECT}/Calls`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: data,
+    }
+  )
+
+  if (response.status === 201) {
+    return response.status
+  }
+  else {
+    console.log("Unexpected response from REST API: ", response.status, " = ", response.statusText)
+  }
+  return undefined
+}
+
+export const expectv2TotalAudioEnergyToBeGreaterThan = async (
+  page: Page,
+  value: number
+) => {
+  const audioStats = await page.evaluate(async () => {
+    // @ts-expect-error
+    const currentCall = window.__currentCall
+    // @ts-expect-error
+    const audioReceiver = currentCall.peer.instance.getReceivers().find(r => r.track.kind === 'audio')
+
+    const audioTrackId = audioReceiver.track.id
+
+    const stats = await currentCall.peer.instance.getStats(null)
+    const filter = {
+      'inbound-rtp': [
+        'audioLevel',
+        'totalAudioEnergy',
+        'totalSamplesDuration',
+        'totalSamplesReceived',
+        'packetsDiscarded',
+        'lastPacketReceivedTimestamp',
+        'bytesReceived',
+        'packetsReceived',
+        'packetsLost',
+        'packetsRetransmitted',
+      ],
+    }
+    const result: any = {}
+    Object.keys(filter).forEach((entry) => {
+      result[entry] = {}
+    })
+
+    stats.forEach((report: any) => {
+      for (const [key, value] of Object.entries(filter)) {
+        if (
+          report.type == key &&
+          report['mediaType'] === 'audio' &&
+          report['trackIdentifier'] === audioTrackId
+        ) {
+          value.forEach((entry) => {
+            if (report[entry]) {
+              result[key][entry] = report[entry]
+            }
+          })
+        }
+      }
+    }, {})
+
+    return result
+  })
+  console.log('audioStats: ', audioStats)
+
+  expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(value)
+}
+
+export const randomizeResourceName = (prefix: string = 'e2e') => {
+  return `res-${prefix}${uuid()}`
+}
+
+export const expectInjectRelayHost = async (page: Page, host: string) => {
+  await page.evaluate(async (params) => {
+    // @ts-expect-error
+    window.__host = params.host
+  },
+  {
+    host: host
+  })
+}
+
+export const expectRelayConnected = async (page: Page, envRelayProject: string, jwt: string) => {
+  // Project locator
+  const project = page.locator('#project')
+  expect(project).not.toBe(null)
+
+  // Token locator
+  const token = page.locator('#token')
+  expect(token).not.toBe(null)
+
+  // Populate project and token using locators
+  await project.fill(envRelayProject)
+  await token.fill(jwt)
+
+  // Click the connect button, which calls the connect function in the browser
+  await page.click('#btnConnect')
+
+  // Start call button locator
+  const startCall = page.locator('#startCall')
+  expect(startCall).not.toBe(null)
+
+  // Wait for call button to be enabled when signalwire.ready occurs
+  await expect(startCall).toBeEnabled()
+}
