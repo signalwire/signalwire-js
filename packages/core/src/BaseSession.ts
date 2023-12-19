@@ -471,9 +471,10 @@ export class BaseSession {
         break
       }
       default:
-        this._eventAcknowledgingHandler(payload).catch((error) =>
-          this.logger.error('Event Acknowledging Error', error)
-        )
+        // temporary reverting
+        // this._eventAcknowledgingHandler(payload).catch((error) =>
+        //   this.logger.error('Event Acknowledging Error', error)
+        // )
         // If it's not a response, trigger the dispatch.
         this.dispatch(socketMessageAction(payload))
     }

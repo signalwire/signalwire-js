@@ -25,7 +25,8 @@ export const RPCConnect = (params: RPCConnectParams) => {
     method: 'signalwire.connect',
     params: {
       version: DEFAULT_CONNECT_VERSION,
-      event_acks: true,
+      // temporary reverting
+      // event_acks: true,
       ...params,
     },
   })
