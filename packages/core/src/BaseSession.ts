@@ -16,7 +16,6 @@ import {
   DEFAULT_CONNECT_VERSION,
   RPCDisconnectResponse,
   RPCPingResponse,
-  RPCEventAckResponse,
 } from './RPCMessages'
 import {
   SessionOptions,
@@ -561,15 +560,16 @@ export class BaseSession {
     await this.execute(RPCPingResponse(payload.id, payload?.params?.timestamp))
   }
 
-  private async _eventAcknowledgingHandler(
-    payload: JSONRPCRequest
-  ): Promise<void> {
-    const { method, id } = payload
-    if (method === 'signalwire.event') {
-      return this.execute(RPCEventAckResponse(id))
-    }
-    return Promise.resolve()
-  }
+  // temporary reverting
+  // private async _eventAcknowledgingHandler(
+  //   payload: JSONRPCRequest
+  // ): Promise<void> {
+  //   const { method, id } = payload
+  //   if (method === 'signalwire.event') {
+  //     return this.execute(RPCEventAckResponse(id))
+  //   }
+  //   return Promise.resolve()
+  // }
 
   /**
    * Do something based on the current `this._status`
