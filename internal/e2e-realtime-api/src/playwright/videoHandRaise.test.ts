@@ -1,4 +1,4 @@
-import { test, expect, BrowserContext, Page } from '@playwright/test'
+import { test, expect, Page } from '@playwright/test'
 import { Video } from '@signalwire/realtime-api'
 import { createRoomAndJoinTwoMembers, expectMemberUpdated } from './videoUtils'
 
@@ -18,7 +18,12 @@ test.describe('Video room hand raise/lower', () => {
     roomSession = data.roomSession
   })
 
-  test.skip('should raise memberOne hand using room session instance via Node SDK', async () => {
+  test('should raise memberOne hand using room session instance via Node SDK', async () => {
+    console.log(
+      '===Test===',
+      'should raise memberOne hand using room session instance via Node SDK'
+    )
+
     // Expect no hand raise from both members
     expect(memberOne.handraised).toBe(false)
     expect(memberTwo.handraised).toBe(false)
@@ -58,10 +63,16 @@ test.describe('Video room hand raise/lower', () => {
     expect(memberOnePageOneUpdatedWeb.handraised).toBe(true)
     expect(memberOnePageTwoUpdatedWeb.handraised).toBe(true)
 
+    // memberTwo hand should not be raised
     expect(memberTwo.handraised).toBe(false)
   })
 
-  test.skip('should raise memberTwo hand using member instance via Node SDK', async () => {
+  test('should raise memberTwo hand using member instance via Node SDK', async () => {
+    console.log(
+      '===Test===',
+      'should raise memberTwo hand using member instance via Node SDK'
+    )
+
     // Expect member.updated event on pageOne via Web SDK for memberTwo
     const memberTwoPageOne = expectMemberUpdated({
       page: pageOne,
@@ -96,9 +107,21 @@ test.describe('Video room hand raise/lower', () => {
     expect(memberTwoUpdatedNode.handraised).toBe(true)
     expect(memberTwoPageOneUpdatedWeb.handraised).toBe(true)
     expect(memberTwoPageTwoUpdatedWeb.handraised).toBe(true)
+
+    // memberOne hand should be raised due to the previous test
+    expect(memberOne.handraised).toBe(true)
   })
 
-  test.skip('should lower memberOne hand using room session instance via Web SDK', async () => {
+  test('should lower memberOne hand using room session instance via Web SDK', async () => {
+    console.log(
+      '===Test===',
+      'should lower memberOne hand using room session instance via Web SDK'
+    )
+
+    // Expect hand raise from both members
+    expect(memberOne.handraised).toBe(true)
+    expect(memberTwo.handraised).toBe(true)
+
     // Expect member.updated event on pageOne via Web SDK for memberOne
     const memberOnePageOne = expectMemberUpdated({
       page: pageOne,
@@ -143,5 +166,8 @@ test.describe('Video room hand raise/lower', () => {
     expect(memberOneUpdatedNode.handraised).toBe(false)
     expect(memberOnePageOneUpdatedWeb.handraised).toBe(false)
     expect(memberOnePageTwoUpdatedWeb.handraised).toBe(false)
+
+    // memberTwo hand should be raised due to the previous test
+    expect(memberTwo.handraised).toBe(true)
   })
 })
