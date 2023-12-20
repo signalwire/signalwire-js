@@ -1,6 +1,6 @@
 # e2e-realtime-api
 
-This repo contains end-to-end tests for our Node SDKs including Chat, PubSub, Messaging, Task, Video, and Voice.
+This project contains end-to-end tests for our Node SDKs including Chat, PubSub, Messaging, Task, Video, and Voice.
 
 For the Video SDK test, this project uses the `playwright` library and for all the other SDKs, this project relies on the `tap` library.
 

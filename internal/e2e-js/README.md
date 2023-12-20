@@ -1,8 +1,8 @@
 # e2e-js
 
-This repo contains end-to-end tests for our browser SDKs including Chat, PubSub, Video, and Call Fabric.
+This project contains end-to-end tests for our browser SDKs including Chat, PubSub, Video, and Call Fabric.
 
-Additionaly, this repo also includes a few V2 client SDK tests.
+Additionaly, this project also includes a few V2 client SDK tests.
 
 ## Initial setup
 
@@ -35,13 +35,6 @@ SW_TEST_CONFIG='{
    }
 }'
 ```
-
-Additional ENV variables for `v2WebrtcFromRest` test: `"VERTO_DOMAIN"`
-These env vars are used to "Create a Call" with the Compatibility REST API as documented in:
-
-https://docs.signalwire.com/reference/compatibility-sdks/v3/?shell#api-reference-calls-create-a-call
-
-`VERTO_DOMAIN` is the domain of the called device (`To` field).
 
 ### API_HOST
 
