@@ -14,10 +14,6 @@ jobs:
   e2e-tests:
     name: Run E2E tests
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.x]
-        project: [default]
     steps:
       - uses: actions/checkout@v3
       - name: Install deps
