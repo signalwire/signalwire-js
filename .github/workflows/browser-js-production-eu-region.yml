@@ -1,4 +1,4 @@
-name: Browser SDK [production eu region]
+name: v2 SDK Tests [production eu region]
 
 on:
   workflow_call:
