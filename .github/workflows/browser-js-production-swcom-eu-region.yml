@@ -1,13 +1,13 @@
-name: RealtimeAPI SDK [production eu region]
+name: Browser SDK [production eu region]
 
 on:
   workflow_call:
   workflow_dispatch:
   schedule:
-    - cron: '20 */4 * * *' # "At minute 20 past every 4th hour"
+    - cron: '0 */4 * * *'
 
 concurrency:
-  group: ${{ github.workflow }}-realtime-api-production-swcom-euregion-${{ github.ref }}
+  group: ${{ github.workflow }}-e2e-js-production-swcom-eu-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -17,6 +17,7 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x]
+        project: [default, streaming, slow]
     steps:
       - uses: actions/checkout@v3
       - name: Install deps
@@ -33,15 +34,15 @@ jobs:
           PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
       - name: Test
         id: run-tests
-        run: npm run -w=@sw-internal/e2e-realtime-api dev
+        run: npm run -w=@sw-internal/e2e-js dev -- --project ${{ matrix.project }}
         env:
-          SW_TEST_CONFIG: ${{ secrets.PRODUCTION_SWCOM_EUREGION_E2E_REALTIME_SW_TEST_CONFIG }}
+          SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_JS_SWCOM_EUREGION_SW_TEST_CONFIG }}
       - name: Report Result
         if: success() || failure()
         uses: ./.github/actions/report-test-result
         with:
           result: ${{ steps.run-tests.conclusion }}
-          test-suite: realtime-api
+          test-suite: browser-js
           environment: production
           influxdb-bucket: ${{ secrets.INFLUXDB_BUCKET }}
           influxdb-org: ${{ secrets.INFLUXDB_ORG }}
