@@ -19,7 +19,7 @@ Create a new file in `internal/e2e-js/.env.test` with a content like:
 
 ```bash
 SW_TEST_CONFIG='{
-   "ignoreFiles": [],
+   "ignoreTests": [],
    "env": {
       "API_HOST": "xyz.signalwire.com",
       "RELAY_HOST": "relay.signalwire.com",
