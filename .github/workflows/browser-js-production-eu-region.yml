@@ -43,7 +43,7 @@ jobs:
         with:
           result: ${{ steps.run-tests.conclusion }}
           test-suite: browser-js
-          environment: production
+          environment: production-eu
           influxdb-bucket: ${{ secrets.INFLUXDB_BUCKET }}
           influxdb-org: ${{ secrets.INFLUXDB_ORG }}
           influxdb-token: ${{ secrets.INFLUXDB_TOKEN }}
