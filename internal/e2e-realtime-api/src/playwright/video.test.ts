@@ -137,6 +137,9 @@ test.describe('Video', () => {
     expect(roomSessionsAtEnd.filter((r) => r.recording)).toHaveLength(0)
     expect(roomSessionCreated.size).toBe(roomCount)
     expect(roomSessionsAtEnd).toHaveLength(roomCount)
+
+    // Disconnect the client
+    await client.disconnect()
   })
 
   test('should join the room and set hand raise priority', async ({
@@ -233,5 +236,8 @@ test.describe('Video', () => {
     // Expect hand raise prioritization to be true on both Node & Web SDK objects
     expect(roomSessionNodeUpdated.prioritizeHandraise).toBe(true)
     expect((await roomSessionWebUpdated).prioritize_handraise).toBe(true)
+
+    // Disconnect the client
+    await client.disconnect()
   })
 })
