@@ -114,12 +114,12 @@ test.describe('Video room hand raise/lower', () => {
     await client.disconnect()
   })
 
-  test('should raise memberOne hand using room session instance via Web SDK', async ({
+  test('should lower memberOne hand using room session instance via Web SDK', async ({
     browser,
   }) => {
     console.log(
       '===Test===',
-      'should raise memberOne hand using room session instance via Web SDK'
+      'should lower memberOne hand using room session instance via Web SDK'
     )
 
     const { client, pageOne, pageTwo, memberOne, memberTwo, roomSession } =
@@ -128,6 +128,21 @@ test.describe('Video room hand raise/lower', () => {
     // Expect no hand raise from both members
     expect(memberOne.handraised).toBe(false)
     expect(memberTwo.handraised).toBe(false)
+
+    // First raise the hand using Node SDK
+    await new Promise<Video.RoomSessionMember>(async (resolve, _reject) => {
+      await roomSession.listen({
+        onMemberUpdated: (member) => {
+          if (member.name === memberOne.name) {
+            resolve(member)
+          }
+        },
+      })
+      await roomSession.setRaisedHand({ memberId: memberOne.id })
+    })
+
+    // Expect hand raise from memberOne
+    expect(memberOne.handraised).toBe(true)
 
     // Expect member.updated event on pageOne via Web SDK for memberOne
     const memberOnePageOne = expectMemberUpdated({
@@ -154,12 +169,13 @@ test.describe('Video room hand raise/lower', () => {
       }
     )
 
+    // Now lower the memberOne hand using the Web SDK
     await pageOne.evaluate(async () => {
       // @ts-expect-error
       const roomSession = window._roomObj
 
       // MemberId is not needed here since roomSession on pageOne refers to memberOne's roomSession
-      await roomSession.setRaisedHand({ raised: true })
+      await roomSession.setRaisedHand({ raised: false })
     })
 
     // Wait for member.updated events to be received on the Web SDK for both pages
@@ -169,10 +185,10 @@ test.describe('Video room hand raise/lower', () => {
     // Wait for member.updated events to be received on the Node SDK
     const memberOneUpdatedNode = await memberOneNode
 
-    // Expect a hand raise to be true on both Node & Web SDKs for memberOne only
-    expect(memberOneUpdatedNode.handraised).toBe(true)
-    expect(memberOnePageOneUpdatedWeb.handraised).toBe(true)
-    expect(memberOnePageTwoUpdatedWeb.handraised).toBe(true)
+    // Expect a hand raise to be false on both Node & Web SDKs for memberOne only
+    expect(memberOneUpdatedNode.handraised).toBe(false)
+    expect(memberOnePageOneUpdatedWeb.handraised).toBe(false)
+    expect(memberOnePageTwoUpdatedWeb.handraised).toBe(false)
 
     // Disconnect the client
     await client.disconnect()
