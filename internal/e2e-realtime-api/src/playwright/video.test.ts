@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { uuid } from '@signalwire/core'
 import { SignalWire, Video } from '@signalwire/realtime-api'
+import { Video as JSVideo } from '@signalwire/js'
 import {
   createRoomAndRecordPlay,
   createRoomSession,
@@ -103,40 +104,12 @@ test.describe('Video', () => {
         const { playbacks } = await rs.getPlaybacks()
         await Promise.all(playbacks.map((p) => p.stop()))
       })
-
-      await new Promise<void>(async (resolve, reject) => {
-        const unsub = await rs.listen({
-          onRoomUpdated: async (roomSession) => {
-            if (roomSession.locked === true) {
-              resolve()
-              await unsub()
-            } else {
-              reject(new Error('Not locked'))
-            }
-          },
-        })
-        await rs.lock()
-      })
-
-      await new Promise<void>(async (resolve, reject) => {
-        const unsub = await rs.listen({
-          onRoomUpdated: async (roomSession) => {
-            if (roomSession.locked === false) {
-              resolve()
-              await unsub()
-            } else {
-              reject(new Error('Not locked'))
-            }
-          },
-        })
-        await rs.unlock()
-      })
     }
 
     const roomSessionsAtEnd = await findRoomSessionsByPrefix()
     expect(roomSessionsAtEnd.filter((r) => r.recording)).toHaveLength(0)
-    expect(roomSessionCreated.size).toBe(roomCount)
     expect(roomSessionsAtEnd).toHaveLength(roomCount)
+    expect(roomSessionCreated.size).toBe(roomCount)
 
     // Disconnect the client
     await client.disconnect()
@@ -236,6 +209,89 @@ test.describe('Video', () => {
     // Expect hand raise prioritization to be true on both Node & Web SDK objects
     expect(roomSessionNodeUpdated.prioritizeHandraise).toBe(true)
     expect((await roomSessionWebUpdated).prioritize_handraise).toBe(true)
+
+    // Disconnect the client
+    await client.disconnect()
+  })
+
+  test('should lock/unlock video room', async ({ browser }) => {
+    console.log('===Test===', 'should lock/unlock video room')
+
+    const client = await SignalWire({
+      host: process.env.RELAY_HOST,
+      project: process.env.RELAY_PROJECT as string,
+      token: process.env.RELAY_TOKEN as string,
+      debug: { logWsTraffic: true },
+    })
+
+    const page = await browser.newPage()
+    await page.goto(SERVER_URL)
+    enablePageLogs(page, '[pageOne]')
+
+    const prefix = uuid()
+    const roomName = `${prefix}-lock-unlock-e2e`
+
+    const findRoomSession = async () => {
+      const { roomSessions } = await client.video.getRoomSessions()
+      return roomSessions.filter((r) => r.name.startsWith(prefix))
+    }
+
+    // Room length should be 0 before start
+    const roomSessionsBeforeStart = await findRoomSession()
+    expect(roomSessionsBeforeStart).toHaveLength(0)
+
+    // Create and join room on the web using JS SDK
+    await createRoomSession({
+      page,
+      room_name: roomName,
+      user_name: `${prefix}-member`,
+      initialEvents: ['room.updated'],
+    })
+
+    // Room length should be 1 after start
+    const roomSessionsAfterStart = await findRoomSession()
+    expect(roomSessionsAfterStart).toHaveLength(1)
+
+    const roomSessionNode = roomSessionsAfterStart[0]
+
+    const roomSessionWeb = await page.evaluate(() => {
+      // @ts-expect-error
+      const roomSession = window._roomOnJoined
+
+      return roomSession.room_session
+    })
+
+    // Expect room to be NOT locked
+    expect(roomSessionNode.locked).toBe(false)
+    expect(roomSessionWeb.locked).toBe(false)
+
+    // Lock the room using the Node SDK
+    await new Promise<void>(async (res, _rej) => {
+      const unsub = await roomSessionNode.listen({
+        onRoomUpdated: async (rs) => {
+          if (rs.locked === true) {
+            res()
+            await unsub()
+          }
+        },
+      })
+      await roomSessionNode.lock()
+    })
+
+    // Unlock the room using the Web SDK
+    await page.evaluate(async () => {
+      // @ts-expect-error
+      const roomSession = window._roomObj as JSVideo.RoomSession
+
+      await new Promise<void>(async (res, _rej) => {
+        roomSession.on('room.updated', (rs) => {
+          if (rs.room_session.locked === false) {
+            res()
+          }
+        })
+        await roomSession.unlock()
+      })
+    })
 
     // Disconnect the client
     await client.disconnect()

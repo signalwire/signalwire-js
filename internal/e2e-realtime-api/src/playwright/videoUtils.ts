@@ -25,6 +25,8 @@ const PERMISSIONS = [
   'room.member.lowerhand',
   'room.self.raisehand',
   'room.self.lowerhand',
+  'room.lock',
+  'room.unlock',
 ]
 
 type CreateVRTParams = {
@@ -146,22 +148,21 @@ export const createRoomAndRecordPlay = async (
             roomSession.once('playback.started', () => {})
 
             roomSession.on('room.joined', async () => {
-              const recordingStarted = new Promise<void>((res, _rej) => {
+              const recordingStarted = new Promise<void>(async (res, _rej) => {
                 roomSession.on('recording.started', () => {
                   console.log('Recording has started')
                   res()
                 })
+                await roomSession.startRecording()
               })
 
-              const playbackStarted = new Promise<void>((res, _rej) => {
+              const playbackStarted = new Promise<void>(async (res, _rej) => {
                 roomSession.on('playback.started', () => {
                   console.log('Playback has started')
                   res()
                 })
+                await roomSession.play({ url: options.PLAYBACK_URL })
               })
-
-              await roomSession.startRecording()
-              await roomSession.play({ url: options.PLAYBACK_URL })
 
               await Promise.all([recordingStarted, playbackStarted])
 
