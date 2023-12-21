@@ -285,6 +285,7 @@ export const createRoomAndJoinTwoMembers = async (browser: Browser) => {
   expect(memberTwo).toBeDefined()
 
   return {
+    client,
     pageOne,
     pageTwo,
     memberOne,
