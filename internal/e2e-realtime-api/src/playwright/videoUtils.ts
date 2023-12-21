@@ -128,51 +128,53 @@ export const createRoomAndRecordPlay = async (
     return page.evaluate(
       (options) => {
         return new Promise<void>(async (resolve, reject) => {
-          // @ts-expect-error
-          const VideoSWJS = window._SWJS.Video
-          const roomSession = new VideoSWJS.RoomSession({
-            host: options.RELAY_HOST,
-            token: options.API_TOKEN,
-            audio: true,
-            video: true,
-            debug: { logWsTraffic: true },
-          })
+          try {
+            // @ts-expect-error
+            const VideoSWJS = window._SWJS.Video
+            const roomSession = new VideoSWJS.RoomSession({
+              host: options.RELAY_HOST,
+              token: options.API_TOKEN,
+              audio: true,
+              video: true,
+              debug: { logWsTraffic: true },
+            })
 
-          console.log('Room created', roomSession.id)
+            console.log('Room created', roomSession.id)
 
-          let waitForRecordStartResolve: (value: void) => void
-          const waitForRecordStart = new Promise((resolve) => {
-            waitForRecordStartResolve = resolve
-          })
-          let waitForPlaybackStartResolve: (value: void) => void
-          const waitForPlaybackStart = new Promise((resolve) => {
-            waitForPlaybackStartResolve = resolve
-          })
+            // Need to attach these events before room.join
+            roomSession.once('recording.started', () => {})
+            roomSession.once('playback.started', () => {})
 
-          roomSession.on('recording.started', () => {
-            console.log('Recording has started')
-            waitForRecordStartResolve()
-          })
+            roomSession.on('room.joined', async () => {
+              const recordingStarted = new Promise<void>((res, _rej) => {
+                roomSession.on('recording.started', () => {
+                  console.log('Recording has started')
+                  res()
+                })
+              })
 
-          roomSession.on('playback.started', () => {
-            console.log('Playback has started')
-            waitForPlaybackStartResolve()
-          })
+              const playbackStarted = new Promise<void>((res, _rej) => {
+                roomSession.on('playback.started', () => {
+                  console.log('Playback has started')
+                  res()
+                })
+              })
 
-          roomSession.on('room.joined', async () => {
-            await roomSession.startRecording()
-            await waitForRecordStart
+              await roomSession.startRecording()
+              await roomSession.play({ url: options.PLAYBACK_URL })
 
-            await roomSession.play({ url: options.PLAYBACK_URL })
-            await waitForPlaybackStart
+              await Promise.all([recordingStarted, playbackStarted])
 
-            resolve()
-          })
+              resolve()
+            })
 
-          await roomSession.join().catch((error) => {
-            console.log('Error joining room', error)
-            reject(error)
-          })
+            await roomSession.join().catch((error) => {
+              console.log('Error joining room', error)
+              reject(error)
+            })
+          } catch (error) {
+            console.log('createRoomAndRecordPlay error', error)
+          }
         })
       },
       {
