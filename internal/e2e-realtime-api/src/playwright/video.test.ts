@@ -10,6 +10,8 @@ import { SERVER_URL } from '../../utils'
 
 test.describe('Video', () => {
   test('should join the room and listen for events', async ({ browser }) => {
+    console.log('===Test===', 'should join the room and listen for events')
+
     const client = await SignalWire({
       host: process.env.RELAY_HOST,
       project: process.env.RELAY_PROJECT as string,
@@ -140,6 +142,11 @@ test.describe('Video', () => {
   test('should join the room and set hand raise priority', async ({
     browser,
   }) => {
+    console.log(
+      '===Test===',
+      'should join the room and set hand raise priority'
+    )
+
     const client = await SignalWire({
       host: process.env.RELAY_HOST,
       project: process.env.RELAY_PROJECT as string,
