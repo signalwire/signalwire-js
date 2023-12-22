@@ -7,6 +7,11 @@ import {
 } from './videoUtils'
 import { InternalVideoMemberEntityUpdated } from '@signalwire/core'
 
+const expectHandRaise = ({ member, value }) => {
+  console.log('ExpectHandRaise', member, value)
+  expect(member.handraised).toBe(value)
+}
+
 test.describe('Video room hand raise/lower', () => {
   test('should raise memberOne hand using room session instance via Node SDK', async ({
     browser,
@@ -69,7 +74,7 @@ test.describe('Video room hand raise/lower', () => {
     })
 
     // memberTwo hand should not be raised
-    expect(memberTwo.handraised).toBe(false)
+    expectHandRaise({ member: memberTwo, value: false })
 
     // Leave rooms on both pages
     await leaveRoom({ page: pageOne })
