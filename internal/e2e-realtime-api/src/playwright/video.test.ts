@@ -33,7 +33,11 @@ test.describe('Video', () => {
 
     await client.video.listen({
       onRoomStarted: (roomSession) => {
-        console.log('Room started', roomSession.id)
+        console.log(
+          'Room started',
+          roomSession.id,
+          roomSession.name.startsWith(prefix)
+        )
         if (roomSession.name.startsWith(prefix)) {
           roomSessionCreated.set(roomSession.id, roomSession)
         }
@@ -45,6 +49,7 @@ test.describe('Video', () => {
 
     const roomSessionsAtStart = await findRoomSessionsByPrefix()
 
+    console.log('roomSessionsAtStart', roomSessionsAtStart)
     expect(roomSessionsAtStart).toHaveLength(0)
 
     let roomSessionPromises: Promise<
@@ -64,6 +69,7 @@ test.describe('Video', () => {
     const roomSessions = await Promise.all(roomSessionPromises)
 
     const roomSessionsRunning = await findRoomSessionsByPrefix()
+    console.log('roomSessionsRunning', roomSessionsRunning)
     expect(roomSessionsRunning).toHaveLength(roomCount)
 
     expect(roomSessionsRunning.filter((r) => r.recording)).toHaveLength(
@@ -100,6 +106,7 @@ test.describe('Video', () => {
     }
 
     const roomSessionsAtEnd = await findRoomSessionsByPrefix()
+    console.log('roomSessionsAtEnd', roomSessionsAtEnd)
     expect(roomSessionsAtEnd.filter((r) => r.recording)).toHaveLength(0)
     expect(roomSessionsAtEnd).toHaveLength(roomCount)
     expect(roomSessionCreated.size).toBe(roomCount)
