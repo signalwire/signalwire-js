@@ -205,7 +205,7 @@ export const createRoomAndRecordPlay = async (
 }
 
 export const expectMemberUpdated = async ({ page, memberId }) => {
-  return page.evaluate(
+  const updatedMember = await page.evaluate(
     ({ memberId }) => {
       return new Promise((resolve, _reject) => {
         // @ts-expect-error
@@ -222,6 +222,7 @@ export const expectMemberUpdated = async ({ page, memberId }) => {
       memberId,
     }
   )
+  return updatedMember
 }
 
 interface FindRoomSessionByPrefixParams {
