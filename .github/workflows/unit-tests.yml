@@ -48,7 +48,7 @@ jobs:
   #   secrets: inherit
   run-realtime-api-staging:
     name: Run RealtimeAPI SDK staging e2e tests
-    needs: tests
+    # needs: tests
     uses: ./.github/workflows/realtime-api-staging.yml
     secrets: inherit
   run-realtime-api-production:
