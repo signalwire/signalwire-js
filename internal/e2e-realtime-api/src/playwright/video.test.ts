@@ -31,24 +31,27 @@ test.describe('Video', () => {
       return roomSessions.filter((r) => r.name.startsWith(prefix))
     }
 
-    await client.video.listen({
-      onRoomStarted: (roomSession) => {
-        console.log(
-          'Room started',
-          roomSession.id,
-          roomSession.name.startsWith(prefix)
-        )
-        if (roomSession.name.startsWith(prefix)) {
-          roomSessionCreated.set(roomSession.id, roomSession)
-        }
-      },
-      onRoomEnded: (roomSession) => {
-        console.log('Room ended', roomSession.id)
-      },
-    })
+    // Expect {roomCount} room.started event on the Node SDK
+    const roomSessionStartedNode = new Promise<void>(
+      async (resolve, _reject) => {
+        let count = 1
+        await client.video.listen({
+          onRoomStarted: (roomSession) => {
+            console.log('onRoomStarted')
+            if (roomSession.name.startsWith(prefix)) {
+              console.log('roomSessionCreated', roomSession.name, prefix)
+              count++
+              roomSessionCreated.set(roomSession.id, roomSession)
+              if (count === roomCount) {
+                resolve()
+              }
+            }
+          },
+        })
+      }
+    )
 
     const roomSessionsAtStart = await findRoomSessionsByPrefix()
-
     console.log('roomSessionsAtStart', roomSessionsAtStart)
     expect(roomSessionsAtStart).toHaveLength(0)
 
@@ -60,13 +63,17 @@ test.describe('Video', () => {
         createRoomAndRecordPlay({
           browser,
           pageName: `[page-${index}]`,
-          room_name: `${prefix}-${index}`,
+          room_name: `${prefix}-room-${index}`,
           user_name: `${prefix}-member-${index}`,
         })
       )
     }
 
     const roomSessions = await Promise.all(roomSessionPromises)
+
+    // Wait till Node SDK receive {roomCount} room.started events
+    await roomSessionStartedNode
+    expect(roomSessionCreated.size).toBe(roomCount)
 
     const roomSessionsRunning = await findRoomSessionsByPrefix()
     console.log('roomSessionsRunning', roomSessionsRunning)
