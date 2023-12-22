@@ -3,9 +3,11 @@ import { uuid } from '@signalwire/core'
 import { SignalWire, Video } from '@signalwire/realtime-api'
 import { Video as JSVideo } from '@signalwire/js'
 import {
+  type CreateRoomAndRecordPlayReturn,
   createRoomAndRecordPlay,
   createRoomSession,
   enablePageLogs,
+  leaveRoom,
 } from './videoUtils'
 import { SERVER_URL } from '../../utils'
 
@@ -45,7 +47,9 @@ test.describe('Video', () => {
 
     expect(roomSessionsAtStart).toHaveLength(0)
 
-    let roomSessionPromises: Promise<void>[] = []
+    let roomSessionPromises: Promise<
+      CreateRoomAndRecordPlayReturn | undefined
+    >[] = []
     for (let index = 0; index < roomCount; index++) {
       roomSessionPromises.push(
         createRoomAndRecordPlay({
@@ -57,7 +61,7 @@ test.describe('Video', () => {
       )
     }
 
-    await Promise.all(roomSessionPromises)
+    const roomSessions = await Promise.all(roomSessionPromises)
 
     const roomSessionsRunning = await findRoomSessionsByPrefix()
     expect(roomSessionsRunning).toHaveLength(roomCount)
@@ -75,19 +79,8 @@ test.describe('Video', () => {
       })
     ).toHaveLength(roomCount)
 
-    const noop = () => {}
-
     for (let index = 0; index < roomSessionsRunning.length; index++) {
       const rs = roomSessionsRunning[index]
-
-      await new Promise(async (resolve) => {
-        await rs.listen({
-          onRecordingEnded: noop,
-          onPlaybackEnded: noop,
-          onRoomUpdated: noop,
-          onRoomSubscribed: resolve,
-        })
-      })
 
       await new Promise<void>(async (resolve) => {
         await rs.listen({
@@ -110,6 +103,12 @@ test.describe('Video', () => {
     expect(roomSessionsAtEnd.filter((r) => r.recording)).toHaveLength(0)
     expect(roomSessionsAtEnd).toHaveLength(roomCount)
     expect(roomSessionCreated.size).toBe(roomCount)
+
+    // Leave room on all pages
+    for (let index = 0; index < roomSessions.length; index++) {
+      const rs = roomSessions[index]
+      await rs?.leaveRoom()
+    }
 
     // Disconnect the client
     await client.disconnect()
@@ -163,7 +162,7 @@ test.describe('Video', () => {
       page,
       room_name: roomName,
       user_name: `${prefix}-member`,
-      initialEvents: ['room.updated'],
+      initialEvents: ['room.updated', 'room.left'],
     })
 
     // Room length should be 1 after start
@@ -209,6 +208,9 @@ test.describe('Video', () => {
     // Expect hand raise prioritization to be true on both Node & Web SDK objects
     expect(roomSessionNodeUpdated.prioritizeHandraise).toBe(true)
     expect((await roomSessionWebUpdated).prioritize_handraise).toBe(true)
+
+    // Leave the room
+    await leaveRoom({ page })
 
     // Disconnect the client
     await client.disconnect()
@@ -292,6 +294,9 @@ test.describe('Video', () => {
         await roomSession.unlock()
       })
     })
+
+    // Leave the room
+    await leaveRoom({ page })
 
     // Disconnect the client
     await client.disconnect()

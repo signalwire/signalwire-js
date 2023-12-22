@@ -1,6 +1,10 @@
 import { test, expect, Page } from '@playwright/test'
 import { Video } from '@signalwire/realtime-api'
-import { createRoomAndJoinTwoMembers, expectMemberUpdated } from './videoUtils'
+import {
+  createRoomAndJoinTwoMembers,
+  expectMemberUpdated,
+  leaveRoom,
+} from './videoUtils'
 
 test.describe('Video room hand raise/lower', () => {
   test('should raise memberOne hand using room session instance via Node SDK', async ({
@@ -56,6 +60,10 @@ test.describe('Video room hand raise/lower', () => {
     // memberTwo hand should not be raised
     expect(memberTwo.handraised).toBe(false)
 
+    // Leave rooms on both pages
+    await leaveRoom({ page: pageOne })
+    await leaveRoom({ page: pageTwo })
+
     // Disconnect the client
     await client.disconnect()
   })
@@ -109,6 +117,10 @@ test.describe('Video room hand raise/lower', () => {
     expect(memberTwoUpdatedNode.handraised).toBe(true)
     expect(memberTwoPageOneUpdatedWeb.handraised).toBe(true)
     expect(memberTwoPageTwoUpdatedWeb.handraised).toBe(true)
+
+    // Leave rooms on both pages
+    await leaveRoom({ page: pageOne })
+    await leaveRoom({ page: pageTwo })
 
     // Disconnect the client
     await client.disconnect()
@@ -189,6 +201,10 @@ test.describe('Video room hand raise/lower', () => {
     expect(memberOneUpdatedNode.handraised).toBe(false)
     expect(memberOnePageOneUpdatedWeb.handraised).toBe(false)
     expect(memberOnePageTwoUpdatedWeb.handraised).toBe(false)
+
+    // Leave rooms on both pages
+    await leaveRoom({ page: pageOne })
+    await leaveRoom({ page: pageTwo })
 
     // Disconnect the client
     await client.disconnect()
