@@ -6,6 +6,11 @@ import {
   leaveRoom,
 } from './videoUtils'
 
+const expectHandRaise = ({ member, value }) => {
+  console.log('ExpectHandRaise', member, value)
+  expect(member.handraised).toBe(value)
+}
+
 test.describe('Video room hand raise/lower', () => {
   test('should raise memberOne hand using room session instance via Node SDK', async ({
     browser,
@@ -53,12 +58,12 @@ test.describe('Video room hand raise/lower', () => {
     const memberOnePageTwoUpdatedWeb = await memberOnePageTwo
 
     // Expect a hand raise to be true on both Node & Web SDKs for memberOne only
-    expect(memberOneUpdatedNode.handraised).toBe(true)
-    expect(memberOnePageOneUpdatedWeb.handraised).toBe(true)
-    expect(memberOnePageTwoUpdatedWeb.handraised).toBe(true)
+    expectHandRaise({ member: memberOneUpdatedNode, value: true })
+    expectHandRaise({ member: memberOnePageOneUpdatedWeb, value: true })
+    expectHandRaise({ member: memberOnePageTwoUpdatedWeb, value: true })
 
     // memberTwo hand should not be raised
-    expect(memberTwo.handraised).toBe(false)
+    expectHandRaise({ member: memberTwo, value: false })
 
     // Leave rooms on both pages
     await leaveRoom({ page: pageOne })
