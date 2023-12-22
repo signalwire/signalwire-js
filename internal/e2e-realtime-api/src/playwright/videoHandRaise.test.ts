@@ -25,13 +25,13 @@ test.describe('Video room hand raise/lower', () => {
     // Expect member.updated event on pageOne via Web SDK for memberOne
     const memberOnePageOne = expectMemberUpdated({
       page: pageOne,
-      memberName: memberOne.name,
+      memberId: memberOne.id,
     })
 
     // Expect member.updated event on pageTwo via Web SDK for memberOne
     const memberOnePageTwo = expectMemberUpdated({
       page: pageTwo,
-      memberName: memberOne.name,
+      memberId: memberOne.id,
     })
 
     // Raise a hand of memberOne using Node SDK
@@ -86,13 +86,13 @@ test.describe('Video room hand raise/lower', () => {
     // Expect member.updated event on pageOne via Web SDK for memberTwo
     const memberTwoPageOne = expectMemberUpdated({
       page: pageOne,
-      memberName: memberTwo.name,
+      memberId: memberTwo.id,
     })
 
     // Expect member.updated event on pageTwo via Web SDK for memberTwo
     const memberTwoPageTwo = expectMemberUpdated({
       page: pageTwo,
-      memberName: memberTwo.name,
+      memberId: memberTwo.id,
     })
 
     // Raise memberTwo hand using a member object via Node SDK
@@ -159,13 +159,13 @@ test.describe('Video room hand raise/lower', () => {
     // Expect member.updated event on pageOne via Web SDK for memberOne
     const memberOnePageOne = expectMemberUpdated({
       page: pageOne,
-      memberName: memberOne.name,
+      memberId: memberOne.id,
     })
 
     // Expect member.updated event on pageTwo via Web SDK for memberOne
     const memberOnePageTwo = expectMemberUpdated({
       page: pageTwo,
-      memberName: memberOne.name,
+      memberId: memberOne.id,
     })
 
     // Expect member.updated event via Node SDK for memberOne

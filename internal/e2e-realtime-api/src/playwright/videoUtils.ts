@@ -204,22 +204,22 @@ export const createRoomAndRecordPlay = async (
   }
 }
 
-export const expectMemberUpdated = async ({ page, memberName }) => {
+export const expectMemberUpdated = async ({ page, memberId }) => {
   return page.evaluate(
-    ({ memberName }) => {
+    ({ memberId }) => {
       return new Promise((resolve, _reject) => {
         // @ts-expect-error
         const roomSession = window._roomObj
 
         roomSession.on('member.updated', (room) => {
-          if (room.member.name === memberName) {
+          if (room.member.id === memberId) {
             resolve(room.member)
           }
         })
       })
     },
     {
-      memberName,
+      memberId,
     }
   )
 }
