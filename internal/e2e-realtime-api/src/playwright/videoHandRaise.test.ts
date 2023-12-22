@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test'
+import { test, expect } from '@playwright/test'
 import { Video } from '@signalwire/realtime-api'
 import {
   createRoomAndJoinTwoMembers,
@@ -24,8 +24,8 @@ test.describe('Video room hand raise/lower', () => {
       await createRoomAndJoinTwoMembers(browser)
 
     // Expect no hand raise from both members
-    expect(memberOne.handraised).toBe(false)
-    expect(memberTwo.handraised).toBe(false)
+    expectHandRaise({ member: memberOne, value: false })
+    expectHandRaise({ member: memberTwo, value: false })
 
     // Expect member.updated event on pageOne via Web SDK for memberOne
     const memberOnePageOne = expectMemberUpdated({
@@ -85,8 +85,8 @@ test.describe('Video room hand raise/lower', () => {
       await createRoomAndJoinTwoMembers(browser)
 
     // Expect no hand raise from both members
-    expect(memberOne.handraised).toBe(false)
-    expect(memberTwo.handraised).toBe(false)
+    expectHandRaise({ member: memberOne, value: false })
+    expectHandRaise({ member: memberTwo, value: false })
 
     // Expect member.updated event on pageOne via Web SDK for memberTwo
     const memberTwoPageOne = expectMemberUpdated({
@@ -119,9 +119,9 @@ test.describe('Video room hand raise/lower', () => {
     const memberTwoPageTwoUpdatedWeb = await memberTwoPageTwo
 
     // Expect a hand raise to be true on both Node & Web SDKs for memberTwo only
-    expect(memberTwoUpdatedNode.handraised).toBe(true)
-    expect(memberTwoPageOneUpdatedWeb.handraised).toBe(true)
-    expect(memberTwoPageTwoUpdatedWeb.handraised).toBe(true)
+    expectHandRaise({ member: memberTwoUpdatedNode, value: true })
+    expectHandRaise({ member: memberTwoPageOneUpdatedWeb, value: true })
+    expectHandRaise({ member: memberTwoPageTwoUpdatedWeb, value: true })
 
     // Leave rooms on both pages
     await leaveRoom({ page: pageOne })
@@ -143,8 +143,8 @@ test.describe('Video room hand raise/lower', () => {
       await createRoomAndJoinTwoMembers(browser)
 
     // Expect no hand raise from both members
-    expect(memberOne.handraised).toBe(false)
-    expect(memberTwo.handraised).toBe(false)
+    expectHandRaise({ member: memberOne, value: false })
+    expectHandRaise({ member: memberTwo, value: false })
 
     // First raise the hand using Node SDK
     await new Promise<Video.RoomSessionMember>(async (resolve, _reject) => {
@@ -159,7 +159,7 @@ test.describe('Video room hand raise/lower', () => {
     })
 
     // Expect hand raise from memberOne
-    expect(memberOne.handraised).toBe(true)
+    expectHandRaise({ member: memberOne, value: true })
 
     // Expect member.updated event on pageOne via Web SDK for memberOne
     const memberOnePageOne = expectMemberUpdated({
@@ -203,9 +203,9 @@ test.describe('Video room hand raise/lower', () => {
     const memberOneUpdatedNode = await memberOneNode
 
     // Expect a hand raise to be false on both Node & Web SDKs for memberOne only
-    expect(memberOneUpdatedNode.handraised).toBe(false)
-    expect(memberOnePageOneUpdatedWeb.handraised).toBe(false)
-    expect(memberOnePageTwoUpdatedWeb.handraised).toBe(false)
+    expectHandRaise({ member: memberOneUpdatedNode, value: false })
+    expectHandRaise({ member: memberOnePageOneUpdatedWeb, value: false })
+    expectHandRaise({ member: memberOnePageTwoUpdatedWeb, value: false })
 
     // Leave rooms on both pages
     await leaveRoom({ page: pageOne })
