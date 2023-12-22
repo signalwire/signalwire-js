@@ -1,5 +1,5 @@
 import { Page, Browser, expect } from '@playwright/test'
-import { uuid } from '@signalwire/core'
+import { InternalVideoMemberEntityUpdated, uuid } from '@signalwire/core'
 import { SWClient, SignalWire } from '@signalwire/realtime-api'
 import { Video as JSVideo } from '@signalwire/js'
 import { SERVER_URL } from '../../utils'
@@ -204,22 +204,37 @@ export const createRoomAndRecordPlay = async (
   }
 }
 
-export const expectMemberUpdated = async ({ page, memberId }) => {
-  const updatedMember = await page.evaluate(
-    ({ memberId }) => {
-      return new Promise((resolve, _reject) => {
-        // @ts-expect-error
-        const roomSession = window._roomObj
+interface ExpectHandRaiseEventParams {
+  page: Page
+  memberId: string
+  raised?: boolean
+}
 
-        roomSession.on('member.updated', (room) => {
-          if (room.member.id === memberId) {
-            resolve(room.member)
-          }
-        })
-      })
+export const expectHandRaiseEvent = async (
+  params: ExpectHandRaiseEventParams
+) => {
+  const { page, memberId, raised = true } = params
+  const updatedMember = await page.evaluate(
+    ({ memberId, raised }) => {
+      return new Promise<InternalVideoMemberEntityUpdated>(
+        (resolve, _reject) => {
+          // @ts-expect-error
+          const roomSession = window._roomObj
+
+          roomSession.on('member.updated', (room) => {
+            if (
+              room.member.id === memberId &&
+              room.member.handraised === raised
+            ) {
+              resolve(room.member)
+            }
+          })
+        }
+      )
     },
     {
       memberId,
+      raised,
     }
   )
   return updatedMember

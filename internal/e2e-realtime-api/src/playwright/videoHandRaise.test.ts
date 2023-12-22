@@ -1,11 +1,11 @@
-import util from 'util'
 import { test, expect } from '@playwright/test'
 import { Video } from '@signalwire/realtime-api'
 import {
   createRoomAndJoinTwoMembers,
-  expectMemberUpdated,
+  expectHandRaiseEvent,
   leaveRoom,
 } from './videoUtils'
+import { InternalVideoMemberEntityUpdated } from '@signalwire/core'
 
 test.describe('Video room hand raise/lower', () => {
   test('should raise memberOne hand using room session instance via Node SDK', async ({
@@ -24,13 +24,13 @@ test.describe('Video room hand raise/lower', () => {
     expect(memberTwo.handraised).toBe(false)
 
     // Expect member.updated event on pageOne via Web SDK for memberOne
-    const memberOnePageOne = expectMemberUpdated({
+    const memberOnePageOne = expectHandRaiseEvent({
       page: pageOne,
       memberId: memberOne.id,
     })
 
     // Expect member.updated event on pageTwo via Web SDK for memberOne
-    const memberOnePageTwo = expectMemberUpdated({
+    const memberOnePageTwo = expectHandRaiseEvent({
       page: pageTwo,
       memberId: memberOne.id,
     })
@@ -55,21 +55,13 @@ test.describe('Video room hand raise/lower', () => {
       memberOnePageTwo,
     ])
 
-    console.log(
-      'Resolved promise',
-      util.inspect(promise, { showHidden: false, depth: null, colors: true })
-    )
-
-    const [
-      memberOneUpdatedNode,
-      memberOnePageOneUpdatedWeb,
-      memberOnePageTwoUpdatedWeb,
-    ] = promise
-
     // Expect a hand raise to be true on both Node & Web SDKs for memberOne only
-    expect(memberOneUpdatedNode.handraised).toBe(true)
-    expect(memberOnePageOneUpdatedWeb.handraised).toBe(true)
-    expect(memberOnePageTwoUpdatedWeb.handraised).toBe(true)
+    console.log('Resolved promise')
+    promise.forEach((obj) => {
+      // @ts-expect-error
+      console.log(obj.member ?? obj)
+      expect(obj.handraised).toBe(true)
+    })
 
     // memberTwo hand should not be raised
     expect(memberTwo.handraised).toBe(false)
@@ -82,145 +74,170 @@ test.describe('Video room hand raise/lower', () => {
     await client.disconnect()
   })
 
-  // test('should raise memberTwo hand using member instance via Node SDK', async ({
-  //   browser,
-  // }) => {
-  //   console.log(
-  //     '===Test===',
-  //     'should raise memberTwo hand using member instance via Node SDK'
-  //   )
+  test('should raise memberTwo hand using member instance via Node SDK', async ({
+    browser,
+  }) => {
+    console.log(
+      '===Test===',
+      'should raise memberTwo hand using member instance via Node SDK'
+    )
 
-  //   const { client, pageOne, pageTwo, memberOne, memberTwo, roomSession } =
-  //     await createRoomAndJoinTwoMembers(browser)
+    const { client, pageOne, pageTwo, memberOne, memberTwo, roomSession } =
+      await createRoomAndJoinTwoMembers(browser)
 
-  //   // Expect no hand raise from both members
-  //   expect(memberOne.handraised).toBe(false)
-  //   expect(memberTwo.handraised).toBe(false)
+    // Expect no hand raise from both members
+    expect(memberOne.handraised).toBe(false)
+    expect(memberTwo.handraised).toBe(false)
 
-  //   // Expect member.updated event on pageOne via Web SDK for memberTwo
-  //   const memberTwoPageOne = expectMemberUpdated({
-  //     page: pageOne,
-  //     memberId: memberTwo.id,
-  //   })
+    // Expect member.updated event on pageOne via Web SDK for memberTwo
+    const memberTwoPageOne = expectHandRaiseEvent({
+      page: pageOne,
+      memberId: memberTwo.id,
+    })
 
-  //   // Expect member.updated event on pageTwo via Web SDK for memberTwo
-  //   const memberTwoPageTwo = expectMemberUpdated({
-  //     page: pageTwo,
-  //     memberId: memberTwo.id,
-  //   })
+    // Expect member.updated event on pageTwo via Web SDK for memberTwo
+    const memberTwoPageTwo = expectHandRaiseEvent({
+      page: pageTwo,
+      memberId: memberTwo.id,
+    })
 
-  //   // Raise memberTwo hand using a member object via Node SDK
-  //   const memberTwoUpdatedNode = await new Promise<Video.RoomSessionMember>(
-  //     async (resolve, _reject) => {
-  //       await roomSession.listen({
-  //         onMemberUpdated: (member) => {
-  //           if (member.name === memberTwo.name) {
-  //             resolve(member)
-  //           }
-  //         },
-  //       })
-  //       await memberTwo.setRaisedHand()
-  //     }
-  //   )
+    // Raise memberTwo hand using a member object via Node SDK
+    const memberTwoNode = await new Promise<Video.RoomSessionMember>(
+      async (resolve, _reject) => {
+        await roomSession.listen({
+          onMemberUpdated: (member) => {
+            if (member.name === memberTwo.name) {
+              resolve(member)
+            }
+          },
+        })
+        await memberTwo.setRaisedHand()
+      }
+    )
 
-  //   // Wait for member.updated events to be received on the Web SDK for both pages
-  //   const memberTwoPageOneUpdatedWeb = await memberTwoPageOne
-  //   const memberTwoPageTwoUpdatedWeb = await memberTwoPageTwo
+    const promise = await Promise.all([
+      memberTwoNode,
+      memberTwoPageOne,
+      memberTwoPageTwo,
+    ])
 
-  //   // Expect a hand raise to be true on both Node & Web SDKs for memberTwo only
-  //   expect(memberTwoUpdatedNode.handraised).toBe(true)
-  //   expect(memberTwoPageOneUpdatedWeb.handraised).toBe(true)
-  //   expect(memberTwoPageTwoUpdatedWeb.handraised).toBe(true)
+    // Expect a hand raise to be true on both Node & Web SDKs for memberTwo only
+    console.log('Resolved promise')
+    promise.forEach((obj) => {
+      // @ts-expect-error
+      console.log(obj.member ?? obj)
+      expect(obj.handraised).toBe(true)
+    })
 
-  //   // Leave rooms on both pages
-  //   await leaveRoom({ page: pageOne })
-  //   await leaveRoom({ page: pageTwo })
+    // Leave rooms on both pages
+    await leaveRoom({ page: pageOne })
+    await leaveRoom({ page: pageTwo })
 
-  //   // Disconnect the client
-  //   await client.disconnect()
-  // })
+    // Disconnect the client
+    await client.disconnect()
+  })
 
-  // test('should lower memberOne hand using room session instance via Web SDK', async ({
-  //   browser,
-  // }) => {
-  //   console.log(
-  //     '===Test===',
-  //     'should lower memberOne hand using room session instance via Web SDK'
-  //   )
+  test('should lower memberOne hand using room session instance via Web SDK', async ({
+    browser,
+  }) => {
+    console.log(
+      '===Test===',
+      'should lower memberOne hand using room session instance via Web SDK'
+    )
 
-  //   const { client, pageOne, pageTwo, memberOne, memberTwo, roomSession } =
-  //     await createRoomAndJoinTwoMembers(browser)
+    const { client, pageOne, pageTwo, memberOne, memberTwo, roomSession } =
+      await createRoomAndJoinTwoMembers(browser)
 
-  //   // Expect no hand raise from both members
-  //   expect(memberOne.handraised).toBe(false)
-  //   expect(memberTwo.handraised).toBe(false)
+    // Expect no hand raise from both members
+    expect(memberOne.handraised).toBe(false)
+    expect(memberTwo.handraised).toBe(false)
 
-  //   // First raise the hand using Node SDK
-  //   await new Promise<Video.RoomSessionMember>(async (resolve, _reject) => {
-  //     await roomSession.listen({
-  //       onMemberUpdated: (member) => {
-  //         if (member.name === memberOne.name) {
-  //           resolve(member)
-  //         }
-  //       },
-  //     })
-  //     await roomSession.setRaisedHand({ memberId: memberOne.id })
-  //   })
+    const promiseHandRaised = await Promise.all([
+      // Raise memberOne hand using Node SDK and expect onMemberUpdated event
+      new Promise<Video.RoomSessionMember>(async (resolve, _reject) => {
+        await roomSession.listen({
+          onMemberUpdated: (member) => {
+            if (member.id === memberOne.id && member.handraised === true) {
+              resolve(member)
+            }
+          },
+        })
+        await roomSession.setRaisedHand({ memberId: memberOne.id })
+      }),
+      // Expect member.updated event on pageOne via Web SDK for memberOne
+      expectHandRaiseEvent({
+        page: pageOne,
+        memberId: memberOne.id,
+      }),
+      // Expect member.updated event on pageTwo via Web SDK for memberOne
+      expectHandRaiseEvent({
+        page: pageTwo,
+        memberId: memberOne.id,
+      }),
+    ])
 
-  //   // Expect hand raise from memberOne
-  //   expect(memberOne.handraised).toBe(true)
+    console.log('Resolved promiseHandRaised')
+    promiseHandRaised.forEach((obj) => {
+      // @ts-expect-error
+      console.log(obj.member ?? obj)
+      expect(obj.handraised).toBe(true)
+    })
 
-  //   // Expect member.updated event on pageOne via Web SDK for memberOne
-  //   const memberOnePageOne = expectMemberUpdated({
-  //     page: pageOne,
-  //     memberId: memberOne.id,
-  //   })
+    const promiseHandLowered = await Promise.all([
+      // Lower memberOne hand using Web SDK and expect member.updated event on pageOne
+      pageOne.evaluate(
+        ({ memberId }) => {
+          return new Promise<InternalVideoMemberEntityUpdated>(
+            async (resolve, _reject) => {
+              // @ts-expect-error
+              const roomSession = window._roomObj
 
-  //   // Expect member.updated event on pageTwo via Web SDK for memberOne
-  //   const memberOnePageTwo = expectMemberUpdated({
-  //     page: pageTwo,
-  //     memberId: memberOne.id,
-  //   })
+              roomSession.on('member.updated', (room) => {
+                if (
+                  room.member.id === memberId &&
+                  room.member.handraised === false
+                ) {
+                  resolve(room.member)
+                }
+              })
 
-  //   // Expect member.updated event via Node SDK for memberOne
-  //   const memberOneNode = new Promise<Video.RoomSessionMember>(
-  //     async (resolve, _reject) => {
-  //       await roomSession.listen({
-  //         onMemberUpdated: (member) => {
-  //           if (member.name === memberOne.name) {
-  //             resolve(member)
-  //           }
-  //         },
-  //       })
-  //     }
-  //   )
+              // MemberId is not needed here since roomSession on pageOne refers to memberOne's roomSession
+              await roomSession.setRaisedHand({ raised: false })
+            }
+          )
+        },
+        { memberId: memberOne.id }
+      ),
+      // Expect member.updated event on pageTwo via Web SDK for memberOne
+      expectHandRaiseEvent({
+        page: pageTwo,
+        memberId: memberOne.id,
+        raised: false,
+      }),
+      // Expect onMemberUpdated event via Node SDK for memberOne
+      new Promise<Video.RoomSessionMember>(async (resolve, _reject) => {
+        await roomSession.listen({
+          onMemberUpdated: (member) => {
+            if (member.id === memberOne.id && member.handraised === false) {
+              resolve(member)
+            }
+          },
+        })
+      }),
+    ])
 
-  //   // Now lower the memberOne hand using the Web SDK
-  //   await pageOne.evaluate(async () => {
-  //     // @ts-expect-error
-  //     const roomSession = window._roomObj
+    console.log('Resolved promiseHandLowered')
+    promiseHandLowered.forEach((obj) => {
+      // @ts-expect-error
+      console.log(obj.member ?? obj)
+      expect(obj.handraised).toBe(false)
+    })
 
-  //     // MemberId is not needed here since roomSession on pageOne refers to memberOne's roomSession
-  //     await roomSession.setRaisedHand({ raised: false })
-  //   })
+    // Leave rooms on both pages
+    await leaveRoom({ page: pageOne })
+    await leaveRoom({ page: pageTwo })
 
-  //   // Wait for member.updated events to be received on the Web SDK for both pages
-  //   const memberOnePageOneUpdatedWeb = await memberOnePageOne
-  //   const memberOnePageTwoUpdatedWeb = await memberOnePageTwo
-
-  //   // Wait for member.updated events to be received on the Node SDK
-  //   const memberOneUpdatedNode = await memberOneNode
-
-  //   // Expect a hand raise to be false on both Node & Web SDKs for memberOne only
-  //   expect(memberOneUpdatedNode.handraised).toBe(false)
-  //   expect(memberOnePageOneUpdatedWeb.handraised).toBe(false)
-  //   expect(memberOnePageTwoUpdatedWeb.handraised).toBe(false)
-
-  //   // Leave rooms on both pages
-  //   await leaveRoom({ page: pageOne })
-  //   await leaveRoom({ page: pageTwo })
-
-  //   // Disconnect the client
-  //   await client.disconnect()
-  // })
+    // Disconnect the client
+    await client.disconnect()
+  })
 })
