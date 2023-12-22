@@ -40,7 +40,7 @@ test.describe('Video room hand raise/lower', () => {
       async (resolve, _reject) => {
         await roomSession.listen({
           onMemberUpdated: (member) => {
-            if (member.name === memberOne.name) {
+            if (member.id === memberOne.id && member.handraised === true) {
               resolve(member)
             }
           },
@@ -106,7 +106,7 @@ test.describe('Video room hand raise/lower', () => {
       async (resolve, _reject) => {
         await roomSession.listen({
           onMemberUpdated: (member) => {
-            if (member.name === memberTwo.name) {
+            if (member.id === memberTwo.id && member.handraised === true) {
               resolve(member)
             }
           },
