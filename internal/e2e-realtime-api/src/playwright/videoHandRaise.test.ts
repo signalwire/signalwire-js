@@ -7,11 +7,6 @@ import {
 } from './videoUtils'
 import { InternalVideoMemberEntityUpdated } from '@signalwire/core'
 
-const expectHandRaise = ({ member, value }) => {
-  console.log('ExpectHandRaise', member, value)
-  expect(member.handraised).toBe(value)
-}
-
 test.describe('Video room hand raise/lower', () => {
   test('should raise memberOne hand using room session instance via Node SDK', async ({
     browser,
@@ -25,8 +20,8 @@ test.describe('Video room hand raise/lower', () => {
       await createRoomAndJoinTwoMembers(browser)
 
     // Expect no hand raise from both members
-    expectHandRaise({ member: memberOne, value: false })
-    expectHandRaise({ member: memberTwo, value: false })
+    expect(memberOne.handraised).toBe(false)
+    expect(memberTwo.handraised).toBe(false)
 
     // Expect member.updated event on pageOne via Web SDK for memberOne
     const memberOnePageOneHandRaised = expectHandRaiseEvent({
@@ -74,7 +69,7 @@ test.describe('Video room hand raise/lower', () => {
     })
 
     // memberTwo hand should not be raised
-    expectHandRaise({ member: memberTwo, value: false })
+    expect(memberTwo.handraised).toBe(false)
 
     // Leave rooms on both pages
     await leaveRoom({ page: pageOne })
@@ -96,8 +91,8 @@ test.describe('Video room hand raise/lower', () => {
       await createRoomAndJoinTwoMembers(browser)
 
     // Expect no hand raise from both members
-    expectHandRaise({ member: memberOne, value: false })
-    expectHandRaise({ member: memberTwo, value: false })
+    expect(memberOne.handraised).toBe(false)
+    expect(memberTwo.handraised).toBe(false)
 
     // Expect member.updated event on pageOne via Web SDK for memberTwo
     const memberTwoPageOneHandRaised = expectHandRaiseEvent({
@@ -164,8 +159,8 @@ test.describe('Video room hand raise/lower', () => {
       await createRoomAndJoinTwoMembers(browser)
 
     // Expect no hand raise from both members
-    expectHandRaise({ member: memberOne, value: false })
-    expectHandRaise({ member: memberTwo, value: false })
+    expect(memberOne.handraised).toBe(false)
+    expect(memberTwo.handraised).toBe(false)
 
     const memberHandRaisedPromise = await Promise.all([
       // Raise memberOne hand using Node SDK and expect onMemberUpdated event
