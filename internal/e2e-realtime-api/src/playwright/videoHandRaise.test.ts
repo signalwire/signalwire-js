@@ -25,8 +25,8 @@ test.describe('Video room hand raise/lower', () => {
       await createRoomAndJoinTwoMembers(browser)
 
     // Expect no hand raise from both members
-    expect(memberOne.handraised).toBe(false)
-    expect(memberTwo.handraised).toBe(false)
+    expectHandRaise({ member: memberOne, value: false })
+    expectHandRaise({ member: memberTwo, value: false })
 
     // Expect member.updated event on pageOne via Web SDK for memberOne
     const memberOnePageOneHandRaised = expectHandRaiseEvent({
@@ -96,8 +96,8 @@ test.describe('Video room hand raise/lower', () => {
       await createRoomAndJoinTwoMembers(browser)
 
     // Expect no hand raise from both members
-    expect(memberOne.handraised).toBe(false)
-    expect(memberTwo.handraised).toBe(false)
+    expectHandRaise({ member: memberOne, value: false })
+    expectHandRaise({ member: memberTwo, value: false })
 
     // Expect member.updated event on pageOne via Web SDK for memberTwo
     const memberTwoPageOneHandRaised = expectHandRaiseEvent({
@@ -164,8 +164,8 @@ test.describe('Video room hand raise/lower', () => {
       await createRoomAndJoinTwoMembers(browser)
 
     // Expect no hand raise from both members
-    expect(memberOne.handraised).toBe(false)
-    expect(memberTwo.handraised).toBe(false)
+    expectHandRaise({ member: memberOne, value: false })
+    expectHandRaise({ member: memberTwo, value: false })
 
     const memberHandRaisedPromise = await Promise.all([
       // Raise memberOne hand using Node SDK and expect onMemberUpdated event
