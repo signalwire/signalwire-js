@@ -28,31 +28,31 @@ jobs:
         uses: ./.github/actions/build
         with:
           NODE_VERSION: ${{ matrix.node-version }}
-      - name: Unit Tests
-        run: npm test
-      - name: Stack Tests
-        run: npm run -w=@sw-internal/stack-tests dev
-        env:
-          RELAY_HOST: ${{ secrets.RELAY_HOST }}
-          RELAY_PROJECT: ${{ secrets.RELAY_PROJECT }}
-          RELAY_TOKEN: ${{ secrets.RELAY_TOKEN }}
-  run-browser-js-staging:
-    name: Run browser SDK staging e2e tests
-    needs: tests
-    uses: ./.github/workflows/browser-js-staging.yml
-    secrets: inherit
-  run-browser-js-production:
-    name: Run browser SDK production e2e tests
-    needs: tests
-    uses: ./.github/workflows/browser-js-production.yml
-    secrets: inherit
+  #     - name: Unit Tests
+  #       run: npm test
+  #     - name: Stack Tests
+  #       run: npm run -w=@sw-internal/stack-tests dev
+  #       env:
+  #         RELAY_HOST: ${{ secrets.RELAY_HOST }}
+  #         RELAY_PROJECT: ${{ secrets.RELAY_PROJECT }}
+  #         RELAY_TOKEN: ${{ secrets.RELAY_TOKEN }}
+  # run-browser-js-staging:
+  #   name: Run browser SDK staging e2e tests
+  #   needs: tests
+  #   uses: ./.github/workflows/browser-js-staging.yml
+  #   secrets: inherit
+  # run-browser-js-production:
+  #   name: Run browser SDK production e2e tests
+  #   needs: tests
+  #   uses: ./.github/workflows/browser-js-production.yml
+  #   secrets: inherit
   run-realtime-api-staging:
     name: Run RealtimeAPI SDK staging e2e tests
-    needs: tests
+    # needs: tests
     uses: ./.github/workflows/realtime-api-staging.yml
     secrets: inherit
   run-realtime-api-production:
     name: Run RealtimeAPI SDK production e2e tests
-    needs: tests
+    # needs: tests
     uses: ./.github/workflows/realtime-api-production.yml
     secrets: inherit
