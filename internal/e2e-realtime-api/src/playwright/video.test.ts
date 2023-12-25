@@ -37,11 +37,11 @@ test.describe('Video', () => {
         let count = 1
         await client.video.listen({
           onRoomStarted: (roomSession) => {
-            console.log('onRoomStarted')
+            console.log('>> onRoomStarted', roomSession.name)
             if (roomSession.name.startsWith(prefix)) {
-              console.log('roomSessionCreated', roomSession.name, prefix)
               count++
               roomSessionCreated.set(roomSession.id, roomSession)
+              console.log('roomSessionCreated count', count)
               if (count === roomCount) {
                 resolve()
               }
@@ -154,18 +154,6 @@ test.describe('Video', () => {
       const { roomSessions } = await client.video.getRoomSessions()
       return roomSessions.filter((r) => r.name.startsWith(prefix))
     }
-
-    // Listen for realtime-api event
-    await client.video.listen({
-      onRoomStarted: async (roomSession) => {
-        console.log('>> room.started', roomSession.name)
-        await roomSession.listen({
-          onRoomUpdated: (room) => {
-            console.log('>> room.updated', room.name)
-          },
-        })
-      },
-    })
 
     // Room length should be 0 before start
     const roomSessionsBeforeStart = await findRoomSession()
