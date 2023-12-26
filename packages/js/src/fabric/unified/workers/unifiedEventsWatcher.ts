@@ -58,12 +58,10 @@ export function* unifiedStateEventsMapper({
   const isStateEvent = (type: string, suffix: string) =>
     type.endsWith(`.${suffix}`)
 
-  getLogger().debug('### unifiedStateEventsMapper')
+
   const stateKey = Object.keys(payload).find((k) => k.includes('_state'))
-  getLogger().debug('### unifiedStateEventsMapper stateKey:', stateKey)
   if (stateKey && !isStateEvent(type, payload[stateKey])) {
     getLogger().debug(
-      '### unifiedStateEventsMapper putting:',
       `${type}.${payload[stateKey]}`
     )
 
