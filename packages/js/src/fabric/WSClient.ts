@@ -1,6 +1,7 @@
 import { type UserOptions, getLogger, VertoSubscribe } from '@signalwire/core'
 import { createClient } from '../createClient'
 import { WSClientWorker } from './WSClientWorker'
+import { unifiedEventsWatcher } from './unified/workers/unifiedEventsWatcher'
 
 interface PushNotification {
   encryption_type: 'aes_256_gcm'
@@ -86,6 +87,7 @@ export class WSClient {
           watchMediaPackets: false,
           // watchMediaPacketsTimeout:,
           nodeId: params.nodeId,
+          eventsWatcher: unifiedEventsWatcher
         })
 
         // WebRTC connection left the room.

@@ -6,7 +6,7 @@ import {
   Chat as ChatNamespace,
   PubSub as PubSubNamespace,
 } from '@signalwire/core'
-import type { CustomSaga } from '@signalwire/core'
+import type { CustomSaga, SDKWorker } from '@signalwire/core'
 import { ConnectionOptions } from '@signalwire/webrtc'
 import {
   makeVideoElementSaga,
@@ -41,6 +41,7 @@ export interface MakeRoomOptions extends ConnectionOptions {
   stopMicrophoneWhileMuted?: boolean
   /** Local media stream to override the local video and audio stream tracks */
   localStream?: MediaStream
+  eventsWatcher?: SDKWorker<RoomSessionConnection>
 }
 
 export class ClientAPI<
