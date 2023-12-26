@@ -9,7 +9,7 @@ import {
 } from '../../utils'
 
 test.describe('CallFabric VideoRoom', () => {
-  test('should handle joining a room, perform actions and then leave the room', async ({
+  test.only('should handle joining a room, perform actions and then leave the room', async ({
     createCustomPage,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
