@@ -1,1 +1,1 @@
-export * from './BaseUnifiedEventHandler'
+export * from './PublisherUnifiedEventsWorker'
