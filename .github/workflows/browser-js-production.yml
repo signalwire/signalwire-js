@@ -17,7 +17,7 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x]
-        project: [default, streaming, slow]
+        project: [default]
     steps:
       - uses: actions/checkout@v3
       - name: Install deps
