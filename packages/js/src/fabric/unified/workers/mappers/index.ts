@@ -1,1 +1,1 @@
-export * from './stateEventsMapper'
+export * from './UnifiedStateEventsMapper'

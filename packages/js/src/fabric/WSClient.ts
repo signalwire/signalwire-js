@@ -34,7 +34,7 @@ export class WSClient {
         logWsTraffic: true,
       },
       logLevel: 'debug',
-      unifiedEventing: true
+      unifiedEventing: true,
     })
   }
 
@@ -87,8 +87,17 @@ export class WSClient {
           watchMediaPackets: false,
           // watchMediaPacketsTimeout:,
           nodeId: params.nodeId,
-          eventsWatcher: unifiedEventsWatcher
+          eventsWatcher: unifiedEventsWatcher,
         })
+
+        //@ts-ignore
+        // this.wsClient.runWorker('WSClientWorker', {
+        //   worker: unifiedEventsWatcher,
+        //   initialState: {
+        //     // @ts-ignore
+        //     emitter: call.emitter,
+        //   },
+        // })
 
         // WebRTC connection left the room.
         call.once('destroy', () => {

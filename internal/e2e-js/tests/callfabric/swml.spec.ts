@@ -1,5 +1,5 @@
 import { test, expect } from '../../fixtures'
-import { SERVER_URL, createCFClient, expectPageReceiveAudio } from '../../utils'
+import { SERVER_URL, createCFClient, expectPageReceiveAudio, listenCallEvent } from '../../utils'
 
 test.describe('CallFabric SWML', () => {
   test('should dial an address and expect a TTS audio', async ({
@@ -59,7 +59,7 @@ test.describe('CallFabric SWML', () => {
     await createCFClient(page)
 
     // Dial an address and listen a TTS
-    await page.evaluate(
+    const call = await page.evaluate(
       async ({ resourceName }) => {
         return new Promise<any>(async (resolve, _reject) => {
           // @ts-expect-error
@@ -80,6 +80,8 @@ test.describe('CallFabric SWML', () => {
       },
       { resourceName }
     )
+
+    expect(await listenCallEvent(page, 'call.state')).toBeDefined()
 
     await page.waitForTimeout(1000)
 

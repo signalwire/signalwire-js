@@ -47,7 +47,9 @@ export function* rootUnifiedEventHandler({
   handlersInstances,
 }: DefaultUnifiedEventHandlerParams) {
   const toExecuteHandlers = handlersInstances.filter((h) => h.worksWith(action))
-  toExecuteHandlers.forEach((h) => h.handle(action))
+  for (const h of toExecuteHandlers) {
+    yield h.handle(action)
+  }
 }
 
 export function* rootEventsMapper({
@@ -86,6 +88,7 @@ export const unifiedEventsWatcher: SDKWorker<RoomSessionConnection> =
         ...options,
         action,
         sessionEmitter: clientInstance,
+        swEventChannel,
         mapperInstances,
       })
 
@@ -95,6 +98,7 @@ export const unifiedEventsWatcher: SDKWorker<RoomSessionConnection> =
         ...options,
         action,
         sessionEmitter: clientInstance,
+        swEventChannel,
         handlersInstances,
       })
     }

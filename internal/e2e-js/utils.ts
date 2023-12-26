@@ -715,3 +715,14 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
     first.inboundRTP.audio.packetsReceived + minAudioPacketsExpected
   )
 }
+
+export const listenCallEvent = async (page:Page, event: string) => {
+  return page.evaluate(async () => {
+    // @ts-expect-error
+    const call = window._roomObj
+
+    return new Promise((res) => {
+      call.on(event, (payload: any) => res(payload))
+    })
+  })
+}
