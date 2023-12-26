@@ -1,12 +1,10 @@
 import { type UserOptions } from '@signalwire/core'
 import { HTTPClient } from './HTTPClient'
-import { WSClient } from './WSClient'
+import { WSClient, WSClientOptions } from './WSClient'
 
-interface SignalWireOptions extends UserOptions {
-  rootElement?: HTMLElement
-}
+export interface SignalWireOptions extends UserOptions, WSClientOptions {}
 
-interface SignalWireContract {
+export interface SignalWireContract {
   httpHost: HTTPClient['httpHost']
   getAddresses: HTTPClient['getAddresses']
   registerDevice: HTTPClient['registerDevice']
