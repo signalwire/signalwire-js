@@ -21,6 +21,8 @@ export interface ConnectionOptions {
   remoteStream?: MediaStream
   /** List of ICE servers. */
   iceServers?: RTCIceServer[]
+  /** Disable ICE UDP transport policy */
+  disableUdpIceServers?: boolean
   /** Audio constraints to use when joining the room. Default: `true`. */
   audio?: MediaStreamConstraints['audio']
   /** Video constraints to use when joining the room. Default: `true`. */

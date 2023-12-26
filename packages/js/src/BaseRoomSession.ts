@@ -31,6 +31,7 @@ import type {
   RoomSessionConnectionContract,
   BaseRoomSessionJoinParams,
   LocalOverlay,
+  AudioElement,
 } from './utils/interfaces'
 import { SCREENSHARE_AUDIO_CONSTRAINTS } from './utils/constants'
 import { audioSetSpeakerAction } from './features/actions'
@@ -65,6 +66,11 @@ export interface BaseRoomSession<T>
   leave(): Promise<void>
 }
 
+interface BaseRoomSessionOptions
+  extends BaseConnection<RoomSessionObjectEvents> {
+  mirrorLocalVideoOverlay: boolean
+}
+
 export class RoomSessionConnection
   extends BaseConnection<RoomSessionObjectEvents>
   implements BaseRoomInterface, RoomSessionConnectionContract
@@ -72,17 +78,9 @@ export class RoomSessionConnection
   private _screenShareList = new Set<RoomSessionScreenShare>()
   private _deviceList = new Set<RoomSessionDevice>()
   private _mirrored: LocalOverlay['mirrored']
-  private _audioEl:
-    | HTMLAudioElement & {
-        sinkId?: string
-        setSinkId?: (id: string) => Promise<void>
-      }
+  private _audioEl: AudioElement
 
-  constructor(
-    options: BaseConnection<RoomSessionObjectEvents> & {
-      mirrorLocalVideoOverlay: boolean
-    }
-  ) {
+  constructor(options: BaseRoomSessionOptions) {
     super(options)
     this._mirrored = options.mirrorLocalVideoOverlay
 
