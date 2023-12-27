@@ -144,6 +144,7 @@ test.describe('CallFabric Relay Application', () => {
 
       const audioStats = await getAudioStats(page)
 
+      expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeDefined()
       expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeCloseTo(0.1, 0)
 
       // Hangup the call
