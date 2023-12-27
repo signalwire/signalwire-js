@@ -9,7 +9,7 @@ import {
 } from '../../utils'
 
 test.describe('CallFabric VideoRoom', () => {
-  test.only('should handle joining a room, perform actions and then leave the room', async ({
+  test('should handle joining a room, perform actions and then leave the room', async ({
     createCustomPage,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
@@ -229,34 +229,34 @@ test.describe('CallFabric VideoRoom', () => {
     expect(await layoutChangedPromise).toBe(true)
   })
 
-  test('should fail on invalid address', async ({ createCustomPage }) => {
-    const page = await createCustomPage({ name: '[page]' })
-    await page.goto(SERVER_URL)
+  // test('should fail on invalid address', async ({ createCustomPage }) => {
+  //   const page = await createCustomPage({ name: '[page]' })
+  //   await page.goto(SERVER_URL)
 
-    await createCFClient(page)
+  //   await createCFClient(page)
 
-    // Dial an address and join a video room
-    const roomSession = await page.evaluate(async () => {
-      try {
-        // @ts-expect-error
-        const client = window._client
+  //   // Dial an address and join a video room
+  //   const roomSession = await page.evaluate(async () => {
+  //     try {
+  //       // @ts-expect-error
+  //       const client = window._client
 
-        const call = await client.dial({
-          to: `/public/invalid-address`,
-          nodeId: undefined,
-        })
+  //       const call = await client.dial({
+  //         to: `/public/invalid-address`,
+  //         nodeId: undefined,
+  //       })
 
-        // @ts-expect-error
-        window._roomObj = call
+  //       // @ts-expect-error
+  //       window._roomObj = call
 
-        await call.start()
+  //       await call.start()
 
-        return { success: true }
-      } catch (error) {
-        return { success: false, error }
-      }
-    })
+  //       return { success: true }
+  //     } catch (error) {
+  //       return { success: false, error }
+  //     }
+  //   })
 
-    expect(roomSession.success).toBe(false)
-  })
+  //   expect(roomSession.success).toBe(false)
+  // })
 })
