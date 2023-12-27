@@ -6,7 +6,7 @@ import {
 } from '@signalwire/core'
 import { BaseUnifiedEventMapper } from '../../BaseUnifiedEventWorker'
 
-export class UnifiedVideoEventsMapper extends BaseUnifiedEventMapper {
+export class UnifiedRoomSessionEventsMapper extends BaseUnifiedEventMapper {
   static ROOM_EVENTS = [
     'room.started',
     'room.subscribed',
@@ -20,14 +20,6 @@ export class UnifiedVideoEventsMapper extends BaseUnifiedEventMapper {
     'member.promoted',
     'member.demoted',
     'layout.changed',
-    'recording.started',
-    'recording.updated',
-    'recording.ended',
-    'playback.started',
-    'playback.updated',
-    'playback.ended',
-    'stream.started',
-    'stream.ended',
   ]
 
   static mapType(oldType: string): InternalVideoEventNames {
@@ -40,7 +32,7 @@ export class UnifiedVideoEventsMapper extends BaseUnifiedEventMapper {
   worksWith(action: PubSubAction): boolean {
     const { type = '' } = action
 
-    return UnifiedVideoEventsMapper.ROOM_EVENTS.includes(
+    return UnifiedRoomSessionEventsMapper.ROOM_EVENTS.includes(
       type.replace('call.', 'room.')
     )
   }
@@ -52,7 +44,7 @@ export class UnifiedVideoEventsMapper extends BaseUnifiedEventMapper {
 
     return {
       //@ts-ignore
-      type: UnifiedVideoEventsMapper.mapType(type),
+      type: UnifiedRoomSessionEventsMapper.mapType(type),
       payload,
     }
   }

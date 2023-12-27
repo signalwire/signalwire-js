@@ -1,7 +1,7 @@
-import { UnifiedVideoEventsMapper } from './UnifiedVideoEventsMapper'
+import { UnifiedRoomSessionEventsMapper } from './UnifiedRoomSessionEventsMapper'
 
-describe('UnifiedRoomEventsMapper', () => {
-  const mapper = new UnifiedVideoEventsMapper({})
+describe('UnifiedRoomSessionEventsMapper', () => {
+  const mapper = new UnifiedRoomSessionEventsMapper({})
 
   it('should maps call.started to video.room.started', () => {
     const action = {
@@ -180,126 +180,6 @@ describe('UnifiedRoomEventsMapper', () => {
     //@ts-ignore
     expect(mapper.map(action)).toEqual({
       type: 'video.layout.changed',
-      payload: {},
-    })
-  })
-  it('should maps recording.started to video.recording.started', () => {
-    const action = {
-      type: 'recording.started',
-      payload: {},
-    }
-
-    //@ts-ignore
-    expect(mapper.worksWith(action)).toBeTruthy()
-
-    //@ts-ignore
-    expect(mapper.map(action)).toEqual({
-      type: 'video.recording.started',
-      payload: {},
-    })
-  })
-  it('should maps recording.updated to video.recording.updated', () => {
-    const action = {
-      type: 'recording.updated',
-      payload: {},
-    }
-
-    //@ts-ignore
-    expect(mapper.worksWith(action)).toBeTruthy()
-
-    //@ts-ignore
-    expect(mapper.map(action)).toEqual({
-      type: 'video.recording.updated',
-      payload: {},
-    })
-  })
-  it('should maps recording.ended to video.recording.ended', () => {
-    const action = {
-      type: 'recording.ended',
-      payload: {},
-    }
-
-    //@ts-ignore
-    expect(mapper.worksWith(action)).toBeTruthy()
-
-    //@ts-ignore
-    expect(mapper.map(action)).toEqual({
-      type: 'video.recording.ended',
-      payload: {},
-    })
-  })
-  it('should maps playback.started to video.playback.started', () => {
-    const action = {
-      type: 'playback.started',
-      payload: {},
-    }
-
-    //@ts-ignore
-    expect(mapper.worksWith(action)).toBeTruthy()
-
-    //@ts-ignore
-    expect(mapper.map(action)).toEqual({
-      type: 'video.playback.started',
-      payload: {},
-    })
-  })
-  it('should maps playback.updated to video.playback.updated', () => {
-    const action = {
-      type: 'playback.updated',
-      payload: {},
-    }
-
-    //@ts-ignore
-    expect(mapper.worksWith(action)).toBeTruthy()
-
-    //@ts-ignore
-    expect(mapper.map(action)).toEqual({
-      type: 'video.playback.updated',
-      payload: {},
-    })
-  })
-  it('should maps playback.ended to video.playback.ended', () => {
-    const action = {
-      type: 'playback.ended',
-      payload: {},
-    }
-
-    //@ts-ignore
-    expect(mapper.worksWith(action)).toBeTruthy()
-
-    //@ts-ignore
-    expect(mapper.map(action)).toEqual({
-      type: 'video.playback.ended',
-      payload: {},
-    })
-  })
-  it('should maps stream.started to video.stream.started', () => {
-    const action = {
-      type: 'stream.started',
-      payload: {},
-    }
-
-    //@ts-ignore
-    expect(mapper.worksWith(action)).toBeTruthy()
-
-    //@ts-ignore
-    expect(mapper.map(action)).toEqual({
-      type: 'video.stream.started',
-      payload: {},
-    })
-  })
-  it('should maps stream.ended to video.stream.ended', () => {
-    const action = {
-      type: 'stream.ended',
-      payload: {},
-    }
-
-    //@ts-ignore
-    expect(mapper.worksWith(action)).toBeTruthy()
-
-    //@ts-ignore
-    expect(mapper.map(action)).toEqual({
-      type: 'video.stream.ended',
       payload: {},
     })
   })

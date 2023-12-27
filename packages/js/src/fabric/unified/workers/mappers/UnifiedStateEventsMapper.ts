@@ -9,7 +9,7 @@ export class UnifiedStateEventsMapper extends BaseUnifiedEventMapper {
     const isStateEvent = (type: string, suffix: string) =>
       type.endsWith(`.${suffix}`)
 
-    const stateKey = Object.keys(payload).find((k) => k.includes('_state'))
+    const stateKey = Object.keys(payload).find((k) => k.endsWith('state'))
 
     //@ts-ignore FIXME
     return !!stateKey && !isStateEvent(type, payload[stateKey])
@@ -21,7 +21,7 @@ export class UnifiedStateEventsMapper extends BaseUnifiedEventMapper {
     const { type = '', payload } = action
 
     const stateKey = Object.keys(payload).find((k) => k.includes('_state'))
-    
+
     return {
       //@ts-ignore
       type: `${type}.${payload[stateKey]}`,

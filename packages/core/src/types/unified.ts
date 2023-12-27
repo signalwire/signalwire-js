@@ -1,4 +1,3 @@
-
 /**
  * Public event types
  */
@@ -16,7 +15,8 @@ export type UnifiedCallReceived = 'call.received'
 export type UnifiedCallRecording = 'call.recording'
 export type UnifiedCallRefer = 'call.refer'
 export type UnifiedCallState = 'call.state'
-export type UnifiedCallOutboundStream = 'call.outbound_stream'
+export type UnifiedCallOutboundStreamStarted = 'call.outbound_stream.started'
+export type UnifiedCallOutboundStreamEnded = 'call.outbound_stream.ended'
 export type UnifiedCallStarted = 'call.started'
 export type UnifiedCallEnded = 'call.ended'
 export type UnifiedCallJoined = 'call.joined'
@@ -33,48 +33,51 @@ export type UnifiedMemberDemoted = 'member.demoted'
 export type UnifiedMemberUpdated = 'member.updated'
 export type UnifiedLayoutChanged = 'layout.changed'
 
+export type UnifiedStreamEventNames =
+  | UnifiedCallOutboundStreamStarted
+  | UnifiedCallOutboundStreamEnded
+
 export type UnifiedEventNames =
+  | UnifiedCallConnect
+  | UnifiedCallCollect
+  | UnifiedCallDenoise
+  | UnifiedCallDetect
+  | UnifiedCallDial
+  | UnifiedCallSendDigits
+  | UnifiedCallFax
+  | UnifiedCallHold
+  | UnifiedCallPlayBack
+  | UnifiedCallReceived
+  | UnifiedCallRecording
+  | UnifiedCallRefer
+  | UnifiedCallState
+  | UnifiedStreamEventNames
+  | UnifiedCallStarted
+  | UnifiedCallEnded
+  | UnifiedCallJoined
+  | UnifiedCallLeft
+  | UnifiedCallUpdated
+  | UnifiedCallAudienceCount
+  | UnifiedCallPrompt
+  | UnifiedMemberJoined
+  | UnifiedMemberLeft
+  | UnifiedMemberTalking
+  | UnifiedMemberPromoted
+  | UnifiedMemberDemoted
+  | UnifiedMemberUpdated
+  | UnifiedLayoutChanged
 
- | UnifiedCallConnect
- | UnifiedCallCollect
- | UnifiedCallDenoise
- | UnifiedCallDetect
- | UnifiedCallDial
- | UnifiedCallSendDigits
- | UnifiedCallFax
- | UnifiedCallHold
- | UnifiedCallPlayBack
- | UnifiedCallReceived
- | UnifiedCallRecording
- | UnifiedCallRefer
- | UnifiedCallState
- | UnifiedCallOutboundStream
- | UnifiedCallStarted
- | UnifiedCallEnded
- | UnifiedCallJoined
- | UnifiedCallLeft
- | UnifiedCallUpdated
- | UnifiedCallAudienceCount
- | UnifiedCallPrompt
- | UnifiedMemberJoined  
- | UnifiedMemberLeft 
- | UnifiedMemberTalking
- | UnifiedMemberPromoted
- | UnifiedMemberDemoted
- | UnifiedMemberUpdated
- | UnifiedLayoutChanged
-
- export type UnifiedVideoEventNames =
-   | UnifiedCallPlayBack
-   | UnifiedCallRecording
-   | UnifiedCallOutboundStream
-   | UnifiedCallLeft
-   | UnifiedCallUpdated
-   | UnifiedCallAudienceCount
-   | UnifiedMemberJoined
-   | UnifiedMemberLeft
-   | UnifiedMemberTalking
-   | UnifiedMemberPromoted
-   | UnifiedMemberDemoted
-   | UnifiedMemberUpdated
-   | UnifiedLayoutChanged
+export type UnifiedVideoEventNames =
+  | UnifiedStreamEventNames
+  | UnifiedCallPlayBack
+  | UnifiedCallRecording
+  | UnifiedCallLeft
+  | UnifiedCallUpdated
+  | UnifiedCallAudienceCount
+  | UnifiedMemberJoined
+  | UnifiedMemberLeft
+  | UnifiedMemberTalking
+  | UnifiedMemberPromoted
+  | UnifiedMemberDemoted
+  | UnifiedMemberUpdated
+  | UnifiedLayoutChanged

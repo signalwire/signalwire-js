@@ -716,13 +716,26 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
   )
 }
 
-export const listenCallEvent = async (page:Page, event: string) => {
+export const pageEmittedEvents = async (page: Page, events: string[]) => {
   return page.evaluate(async () => {
     // @ts-expect-error
     const call = window._roomObj
 
-    return new Promise((res) => {
-      call.on(event, (payload: any) => res(payload))
+    const eventsPromises = events.map((event) => {
+      return new Promise((res) => {
+        const callback = (payload: any) => {
+          call.off(event, callback)
+          return res(payload)
+        }
+        call.on(event, callback)
+      })
     })
+
+    try {
+      await Promise.all(eventsPromises)
+      return true
+    } catch {}
+
+    return false
   })
 }
