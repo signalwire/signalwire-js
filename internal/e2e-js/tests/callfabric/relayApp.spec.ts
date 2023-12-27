@@ -79,7 +79,7 @@ test.describe('CallFabric Relay Application', () => {
         await call.hangup()
       })
 
-      client.disconnect()
+      await client.disconnect()
     } catch (error) {
       console.error('CreateRoomSession Error', error)
     }
@@ -154,7 +154,7 @@ test.describe('CallFabric Relay Application', () => {
         await call.hangup()
       })
 
-      client.disconnect()
+      await client.disconnect()
     } catch (error) {
       console.error('CreateRoomSession Error', error)
     }
@@ -223,5 +223,7 @@ test.describe('CallFabric Relay Application', () => {
     })
 
     expect(roomSession.state).toBe('destroy')
+
+    await client.disconnect()
   })
 })
