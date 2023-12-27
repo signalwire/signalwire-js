@@ -7,7 +7,7 @@ type CustomPage = Page & {
   swNetworkUp: () => Promise<void>
 }
 type CustomFixture = {
-  createCustomPage(options: { name: string }): Promise<CustomPage>,
+  createCustomPage(options: { name: string }): Promise<CustomPage>
   createCustomVanillaPage(options: { name: string }): Promise<CustomPage>
 }
 
@@ -45,6 +45,7 @@ const test = baseTest.extend<CustomFixture>({
         return page.evaluate(async () => {
           // @ts-expect-error
           const roomObj: Video.RoomSession = window._roomObj
+          console.log('Fixture roomObj', roomObj)
           if (roomObj && roomObj.roomSessionId) {
             console.log('Fixture has room', roomObj.roomSessionId)
             await roomObj.leave()
