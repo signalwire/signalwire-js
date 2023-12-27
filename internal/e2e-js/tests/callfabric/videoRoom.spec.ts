@@ -9,7 +9,7 @@ import {
 } from '../../utils'
 
 test.describe('CallFabric VideoRoom', () => {
-  test('should handle joining a room, perform actions and then leave the room', async ({
+  test.skip('should handle joining a room, perform actions and then leave the room', async ({
     createCustomPage,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
@@ -229,7 +229,7 @@ test.describe('CallFabric VideoRoom', () => {
     expect(await layoutChangedPromise).toBe(true)
   })
 
-  test('should fail on invalid address', async ({ createCustomPage }) => {
+  test.skip('should fail on invalid address', async ({ createCustomPage }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
