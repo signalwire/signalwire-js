@@ -151,6 +151,8 @@ test.describe('CallFabric Relay Application', () => {
         // @ts-expect-error
         const call = window._roomObj
 
+        console.log('hanging up', call)
+
         await call.hangup()
       })
 
