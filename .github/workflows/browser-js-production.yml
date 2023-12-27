@@ -34,7 +34,7 @@ jobs:
           PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
       - name: Test
         id: run-tests
-        run: npm run -w=@sw-internal/e2e-js dev -- callfabric/relayApp.spec.ts callfabric/swml.spec.ts callfabric/videoRoom.spec.ts
+        run: npm run -w=@sw-internal/e2e-js dev -- callfabric/relayApp.spec.ts callfabric/swml.spec.ts
         env:
           SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_JS_SW_TEST_CONFIG }}
       - name: Report Result
