@@ -248,21 +248,6 @@ window.connect = async () => {
   window.__call = call
   roomObj = call
 
-  // FIXME debug
-
-  roomObj.on('room.state.created', (params) => {
-    console.debug('#### NEW UNIFIED EVENT - room.state.created', params)
-  })
-  roomObj.on('call.state.created', (params) => {
-    console.debug('#### NEW UNIFIED EVENT - call.state.created', params)
-  })
-  roomObj.on('call.state', (params) => {
-    console.debug('#### NEW UNIFIED EVENT - call.state', params)
-  })
-
-
-  // end debug
-
   await call.start()
 
   console.debug('Call Obj', call)

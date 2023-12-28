@@ -1,5 +1,2 @@
-export * from './UnifiedStateEventsMapper'
-export * from './UnifiedRoomSessionEventsMapper'
-export * from './UnifiedStreamEventsMapper'
-export * from './UnifiedPlaybackRecordingEventsMapper'
-export * from './UnifiedCallStateEventsMapper'
+export * from './UnifiedEventsMapperInterface'
+export * from './UnifiedEventsMapper'
