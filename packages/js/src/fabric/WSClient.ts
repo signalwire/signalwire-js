@@ -17,8 +17,11 @@ interface PushNotification {
   decrypted: Record<string, any>
 }
 
-interface WSClientOptions extends UserOptions {
+export interface WSClientOptions extends UserOptions {
+  /** HTML element in which to display the video stream */
   rootElement?: HTMLElement
+  /** Disable ICE UDP transport policy */
+  disableUdpIceServers?: boolean
 }
 
 export class WSClient {
@@ -85,6 +88,7 @@ export class WSClient {
           watchMediaPackets: false,
           // watchMediaPacketsTimeout:,
           nodeId: params.nodeId,
+          disableUdpIceServers: this.options.disableUdpIceServers || false,
         })
 
         // WebRTC connection left the room.
