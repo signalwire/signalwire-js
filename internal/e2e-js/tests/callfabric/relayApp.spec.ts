@@ -97,6 +97,11 @@ test.describe('CallFabric Relay Application', () => {
       },
     })
 
+    let waitForPlaybackStartResolve: () => void
+    const waitForPlaybackStart = new Promise<void>((resolve) => {
+      waitForPlaybackStartResolve = resolve
+    })
+
     await client.voice.listen({
       topics: ['cf-e2e-test-relay'],
       onCallReceived: async (call) => {
@@ -108,6 +113,11 @@ test.describe('CallFabric Relay Application', () => {
 
           const playback = await call.playSilence({ duration: 60 }).onStarted()
           await playback.setVolume(10)
+
+          console.log('Playback silence has started!')
+
+          // Inform the caller playback has started
+          waitForPlaybackStartResolve()
         } catch (error) {
           console.error('Inbound call error', error)
         }
@@ -142,6 +152,12 @@ test.describe('CallFabric Relay Application', () => {
         }
       )
 
+      console.log('Waiting for the playback start!')
+
+      // Wait until the callee starts the playback
+      await waitForPlaybackStart
+
+      console.log('Calculating audio stats')
       const audioStats = await getAudioStats(page)
 
       expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeDefined()
