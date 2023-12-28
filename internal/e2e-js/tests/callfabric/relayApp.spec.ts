@@ -189,7 +189,10 @@ test.describe('CallFabric Relay Application', () => {
     await client.disconnect()
   })
 
-  test('should connect to the relay app and expect a hangup', async ({
+  // FIXME: Currently, when the callee hangs up, the Call Fabric SDK lacks an event to notify the caller.
+  // Previously, we utilized page.waitForTimeout(), but this approach proved to be flaky and caused issues in CI.
+  // This should be fixed when we have unified events in the Call Fabric SDK.
+  test.skip('should connect to the relay app and expect a hangup', async ({
     createCustomPage,
   }) => {
     const client = await SignalWire({
@@ -258,8 +261,6 @@ test.describe('CallFabric Relay Application', () => {
 
     // Wait until the callee hangup the call
     await waitForHangup
-
-    await page.waitForTimeout(3000)
 
     const roomSession = await page.evaluate(() => {
       // @ts-expect-error
