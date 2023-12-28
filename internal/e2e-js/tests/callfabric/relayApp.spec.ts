@@ -1,89 +1,101 @@
 import { SignalWire } from '@signalwire/realtime-api'
 import {
   createCFClient,
-  // expectPageReceiveAudio,
+  expectPageReceiveAudio,
   getAudioStats,
   SERVER_URL,
 } from '../../utils'
 import { test, expect } from '../../fixtures'
 
 test.describe('CallFabric Relay Application', () => {
-  // test('should connect to the relay app and expect an audio playback', async ({
-  //   createCustomPage,
-  // }) => {
-  //   const client = await SignalWire({
-  //     host: process.env.RELAY_HOST,
-  //     project: process.env.RELAY_PROJECT as string,
-  //     token: process.env.RELAY_TOKEN as string,
-  //     debug: {
-  //       logWsTraffic: true,
-  //     },
-  //   })
+  test('should connect to the relay app and expect an audio playback', async ({
+    createCustomPage,
+  }) => {
+    const client = await SignalWire({
+      host: process.env.RELAY_HOST,
+      project: process.env.RELAY_PROJECT as string,
+      token: process.env.RELAY_TOKEN as string,
+      debug: {
+        logWsTraffic: true,
+      },
+    })
 
-  //   await client.voice.listen({
-  //     topics: ['cf-e2e-test-relay'],
-  //     onCallReceived: async (call) => {
-  //       try {
-  //         console.log('Call received', call.id)
+    let waitForPlaybackStartResolve: () => void
+    const waitForPlaybackStart = new Promise<void>((resolve) => {
+      waitForPlaybackStartResolve = resolve
+    })
 
-  //         await call.answer()
-  //         console.log('Inbound call answered')
+    await client.voice.listen({
+      topics: ['cf-e2e-test-relay'],
+      onCallReceived: async (call) => {
+        try {
+          console.log('Call received', call.id)
 
-  //         const playback = await call
-  //           .playAudio({
-  //             url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
-  //           })
-  //           .onStarted()
-  //         await playback.setVolume(10)
-  //       } catch (error) {
-  //         console.error('Inbound call error', error)
-  //       }
-  //     },
-  //   })
+          await call.answer()
+          console.log('Inbound call answered')
 
-  //   try {
-  //     const page = await createCustomPage({ name: '[page]' })
-  //     await page.goto(SERVER_URL)
+          const playback = await call
+            .playAudio({
+              url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
+            })
+            .onStarted()
+          await playback.setVolume(10)
 
-  //     await createCFClient(page)
+          console.log('Playback has started!')
 
-  //     const resourceName = 'cf-e2e-test-relay'
+          // Inform the caller playback has started
+          waitForPlaybackStartResolve()
+        } catch (error) {
+          console.error('Inbound call error', error)
+        }
+      },
+    })
 
-  //     await page.evaluate(
-  //       async (options) => {
-  //         // @ts-expect-error
-  //         const client = window._client
+    const page = await createCustomPage({ name: '[page]' })
+    await page.goto(SERVER_URL)
 
-  //         const call = await client.dial({
-  //           to: `/public/${options.resourceName}`,
-  //           nodeId: undefined,
-  //         })
+    await createCFClient(page)
 
-  //         // @ts-expect-error
-  //         window._roomObj = call
+    const resourceName = 'cf-e2e-test-relay'
 
-  //         await call.start()
-  //       },
-  //       {
-  //         resourceName,
-  //       }
-  //     )
+    await page.evaluate(
+      async (options) => {
+        // @ts-expect-error
+        const client = window._client
 
-  //     await expectPageReceiveAudio(page)
+        const call = await client.dial({
+          to: `/public/${options.resourceName}`,
+          nodeId: undefined,
+        })
 
-  //     // Hangup the call
-  //     await page.evaluate(async () => {
-  //       // @ts-expect-error
-  //       const call = window._roomObj
+        // @ts-expect-error
+        window._roomObj = call
 
-  //       await call.hangup()
-  //     })
+        await call.start()
+      },
+      {
+        resourceName,
+      }
+    )
 
-  //     await client.disconnect()
-  //   } catch (error) {
-  //     console.error('CreateRoomSession Error', error)
-  //   }
-  // })
+    console.log('Waiting for playback start!')
+
+    // Wait until the callee starts the playback
+    await waitForPlaybackStart
+
+    console.log('Calculating audio stats')
+    await expectPageReceiveAudio(page)
+
+    // Hangup the call
+    await page.evaluate(async () => {
+      // @ts-expect-error
+      const call = window._roomObj
+
+      await call.hangup()
+    })
+
+    await client.disconnect()
+  })
 
   test('should connect to the relay app and expect a silence', async ({
     createCustomPage,
@@ -124,125 +136,134 @@ test.describe('CallFabric Relay Application', () => {
       },
     })
 
-    try {
-      const page = await createCustomPage({ name: '[page]' })
-      await page.goto(SERVER_URL)
+    const page = await createCustomPage({ name: '[page]' })
+    await page.goto(SERVER_URL)
 
-      await createCFClient(page)
+    await createCFClient(page)
 
-      const resourceName = 'cf-e2e-test-relay'
+    const resourceName = 'cf-e2e-test-relay'
 
-      await page.evaluate(
-        async (options) => {
-          // @ts-expect-error
-          const client = window._client
-
-          const call = await client.dial({
-            to: `/public/${options.resourceName}`,
-            nodeId: undefined,
-          })
-
-          // @ts-expect-error
-          window._roomObj = call
-
-          await call.start()
-        },
-        {
-          resourceName,
-        }
-      )
-
-      console.log('Waiting for the playback start!')
-
-      // Wait until the callee starts the playback
-      await waitForPlaybackStart
-
-      console.log('Calculating audio stats')
-      const audioStats = await getAudioStats(page)
-
-      expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeDefined()
-      expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeCloseTo(0.1, 0)
-
-      // Hangup the call
-      await page.evaluate(async () => {
+    await page.evaluate(
+      async (options) => {
         // @ts-expect-error
-        const call = window._roomObj
+        const client = window._client
 
-        console.log('hanging up', call)
+        const call = await client.dial({
+          to: `/public/${options.resourceName}`,
+          nodeId: undefined,
+        })
 
-        await call.hangup()
-      })
+        // @ts-expect-error
+        window._roomObj = call
 
-      await client.disconnect()
-    } catch (error) {
-      console.error('CreateRoomSession Error', error)
-    }
+        await call.start()
+      },
+      {
+        resourceName,
+      }
+    )
+
+    console.log('Waiting for the playback silence start!')
+
+    // Wait until the callee starts the playback
+    await waitForPlaybackStart
+
+    console.log('Calculating audio stats')
+    const audioStats = await getAudioStats(page)
+
+    expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeDefined()
+    expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeCloseTo(0.1, 0)
+
+    // Hangup the call
+    await page.evaluate(async () => {
+      // @ts-expect-error
+      const call = window._roomObj
+
+      console.log('hanging up', call)
+
+      await call.hangup()
+    })
+
+    await client.disconnect()
   })
 
-  // test('should connect to the relay app and expect a hangup', async ({
-  //   createCustomPage,
-  // }) => {
-  //   const client = await SignalWire({
-  //     host: process.env.RELAY_HOST,
-  //     project: process.env.RELAY_PROJECT as string,
-  //     token: process.env.RELAY_TOKEN as string,
-  //     debug: {
-  //       logWsTraffic: true,
-  //     },
-  //   })
+  test('should connect to the relay app and expect a hangup', async ({
+    createCustomPage,
+  }) => {
+    const client = await SignalWire({
+      host: process.env.RELAY_HOST,
+      project: process.env.RELAY_PROJECT as string,
+      token: process.env.RELAY_TOKEN as string,
+      debug: {
+        logWsTraffic: true,
+      },
+    })
 
-  //   await client.voice.listen({
-  //     topics: ['cf-e2e-test-relay'],
-  //     onCallReceived: async (call) => {
-  //       try {
-  //         console.log('Call received', call.id)
+    let waitForHangupResolve: () => void
+    const waitForHangup = new Promise<void>((resolve) => {
+      waitForHangupResolve = resolve
+    })
 
-  //         await call.answer()
-  //         console.log('Inbound call answered')
+    await client.voice.listen({
+      topics: ['cf-e2e-test-relay'],
+      onCallReceived: async (call) => {
+        try {
+          console.log('Call received', call.id)
 
-  //         await call.hangup()
-  //       } catch (error) {
-  //         console.error('Inbound call error', error)
-  //       }
-  //     },
-  //   })
+          await call.answer()
+          console.log('Inbound call answered')
 
-  //   const page = await createCustomPage({ name: '[page]' })
-  //   await page.goto(SERVER_URL)
+          await call.hangup()
 
-  //   const resourceName = 'cf-e2e-test-relay'
+          console.log('Callee hung up the call!')
 
-  //   await createCFClient(page)
+          // Inform the caller
+          waitForHangupResolve()
+        } catch (error) {
+          console.error('Inbound call error', error)
+        }
+      },
+    })
 
-  //   // Dial an address and listen a TTS
-  //   await page.evaluate(
-  //     async ({ resourceName }) => {
-  //       // @ts-expect-error
-  //       const client = window._client
+    const page = await createCustomPage({ name: '[page]' })
+    await page.goto(SERVER_URL)
 
-  //       const call = await client.dial({
-  //         to: `/public/${resourceName}`,
-  //         nodeId: undefined,
-  //       })
+    const resourceName = 'cf-e2e-test-relay'
 
-  //       // @ts-expect-error
-  //       window._roomObj = call
+    await createCFClient(page)
 
-  //       await call.start()
-  //     },
-  //     { resourceName }
-  //   )
+    // Dial an address and listen a TTS
+    await page.evaluate(
+      async ({ resourceName }) => {
+        // @ts-expect-error
+        const client = window._client
 
-  //   await page.waitForTimeout(5000)
+        const call = await client.dial({
+          to: `/public/${resourceName}`,
+          nodeId: undefined,
+        })
 
-  //   const roomSession = await page.evaluate(() => {
-  //     // @ts-expect-error
-  //     const roomObj = window._roomObj
-  //     return roomObj
-  //   })
+        // @ts-expect-error
+        window._roomObj = call
 
-  //   expect(roomSession.state).toBe('destroy')
+        await call.start()
+      },
+      { resourceName }
+    )
 
-  //   await client.disconnect()
-  // })
+    console.log('Waiting for the hangup from the callee!')
+
+    // Wait until the callee hangup the call
+    await waitForHangup
+
+    const roomSession = await page.evaluate(() => {
+      // @ts-expect-error
+      const roomObj = window._roomObj
+      return roomObj
+    })
+
+    expect(roomSession.state).toBe('destroy')
+
+    await client.disconnect()
+  })
 })
