@@ -20,6 +20,7 @@ test.describe('CallFabric Relay Application', () => {
       },
     })
 
+    // TODO: This might not be needed after unified events in CF
     let waitForPlaybackStartResolve: () => void
     const waitForPlaybackStart = new Promise<void>((resolve) => {
       waitForPlaybackStartResolve = resolve
@@ -109,6 +110,7 @@ test.describe('CallFabric Relay Application', () => {
       },
     })
 
+    // TODO: This might not be needed after unified events in CF
     let waitForPlaybackStartResolve: () => void
     const waitForPlaybackStart = new Promise<void>((resolve) => {
       waitForPlaybackStartResolve = resolve
@@ -199,6 +201,7 @@ test.describe('CallFabric Relay Application', () => {
       },
     })
 
+    // TODO: This might not be needed after unified events in CF
     let waitForHangupResolve: () => void
     const waitForHangup = new Promise<void>((resolve) => {
       waitForHangupResolve = resolve
@@ -255,6 +258,8 @@ test.describe('CallFabric Relay Application', () => {
 
     // Wait until the callee hangup the call
     await waitForHangup
+
+    await page.waitForTimeout(3000)
 
     const roomSession = await page.evaluate(() => {
       // @ts-expect-error
