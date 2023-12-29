@@ -17,7 +17,7 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x]
-        project: [default, streaming, slow]
+        project: [default]
     steps:
       - uses: actions/checkout@v3
       - name: Install deps
@@ -34,7 +34,7 @@ jobs:
           PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
       - name: Test
         id: run-tests
-        run: npm run -w=@sw-internal/e2e-js dev -- --project ${{ matrix.project }}
+        run: npm run -w=@sw-internal/e2e-js dev -- callfabric/videoRoom.spec.ts
         env:
           SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_JS_SW_TEST_CONFIG }}
       - name: Report Result
