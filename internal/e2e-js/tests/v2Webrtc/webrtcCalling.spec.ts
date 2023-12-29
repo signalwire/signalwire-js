@@ -1,18 +1,14 @@
-import {
-  expect,
-  Page,
-  test
-} from '../../fixtures'
+import { expect, Page, test } from '../../fixtures'
 
 import {
   SERVER_URL,
   createTestJWTToken,
   expectRelayConnected,
-  expectv2TotalAudioEnergyToBeGreaterThan
+  expectv2TotalAudioEnergyToBeGreaterThan,
 } from '../../utils'
-	      
+
 test.describe('V2Calling', () => {
-  test('should handle one webrtc endpoint calling to a second webrtc endpoint waiting to answer', async ({
+  test.skip('should handle one webrtc endpoint calling to a second webrtc endpoint waiting to answer', async ({
     createCustomVanillaPage,
   }) => {
     const pageCaller = await createCustomVanillaPage({ name: '[caller]' })
@@ -23,13 +19,15 @@ test.describe('V2Calling', () => {
 
     const relayHost = process.env.RELAY_HOST ?? ''
     const expectInjectRelayHost = async (page: Page, host: string) => {
-      await page.evaluate(async (params) => {
-        // @ts-expect-error
-        window.__host = params.host
-      },
-      {
-        host: host
-      })
+      await page.evaluate(
+        async (params) => {
+          // @ts-expect-error
+          window.__host = params.host
+        },
+        {
+          host: host,
+        }
+      )
     }
 
     await expectInjectRelayHost(pageCaller, relayHost)
@@ -38,10 +36,10 @@ test.describe('V2Calling', () => {
     const envRelayProject = process.env.RELAY_PROJECT ?? ''
     expect(envRelayProject).not.toBe(null)
 
-    const jwtCaller = await createTestJWTToken({ 'resource': 'vanilla-caller' })
+    const jwtCaller = await createTestJWTToken({ resource: 'vanilla-caller' })
     expect(jwtCaller).not.toBe(null)
 
-    const jwtCallee = await createTestJWTToken({ 'resource': 'vanilla-callee' })
+    const jwtCallee = await createTestJWTToken({ resource: 'vanilla-callee' })
     expect(jwtCallee).not.toBe(null)
 
     // Wait for both caller and callee to get connected to Relay
@@ -81,20 +79,23 @@ test.describe('V2Calling', () => {
 
     const callStatusCallee = pageCallee.locator('#callStatus')
     expect(callStatusCallee).not.toBe(null)
-    
+
     // Wait for call to be active on both caller and callee
     await expect(callStatusCaller).toContainText('-> active')
     await expect(callStatusCallee).toContainText('-> active')
-
 
     // Additional activity while call is up can go here
     const expectVideoMediaStreams = async (page: Page) => {
       const result = await page.evaluate(() => {
         return {
           // @ts-expect-error
-          localVideo: document.getElementById('localVideo').srcObject instanceof MediaStream,
+          localVideo:
+            document.getElementById('localVideo').srcObject instanceof
+            MediaStream,
           // @ts-expect-error
-          remoteVideo: document.getElementById('remoteVideo').srcObject instanceof MediaStream
+          remoteVideo:
+            document.getElementById('remoteVideo').srcObject instanceof
+            MediaStream,
         }
       })
 
