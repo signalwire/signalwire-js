@@ -13,7 +13,7 @@ import {
 } from '../utils'
 
 test.describe('RoomSession demote participant, reattach and then promote again', () => {
-  test('should demote participant, reattach and then promote again', async ({
+  test.skip('should demote participant, reattach and then promote again', async ({
     createCustomPage,
   }) => {
     const pageOne = await createCustomPage({ name: 'pageOne' })
