@@ -126,7 +126,7 @@ test.describe('RoomSession demote participant, reattach and then promote again',
     await expectSDPDirection(pageTwo, 'recvonly', true)
 
     // --------------- Reattach after demotion ---------------
-    console.time('Reattach')
+    console.log('Page reload!')
     await pageTwo.reload()
 
     // It's now an audience user
@@ -144,6 +144,7 @@ test.describe('RoomSession demote participant, reattach and then promote again',
     await createTestRoomSession(pageTwo, participant2DemotedSettings)
 
     // Join again
+    console.time('Reattach')
     const reattachParams: any = await expectRoomJoined(pageTwo)
     console.timeEnd('Reattach')
 
