@@ -57,11 +57,10 @@ test.describe('RoomSession demote participant, reattach and then promote again',
     await expectMCUVisible(pageTwo)
 
     // --------------- Sessions established ---------------
-
-    await pageTwo.waitForTimeout(1000)
+    console.log('Session established!')
 
     // --------------- Demote participant on pageTwo to audience from pageOne
-    // and resolve on `member.left` amd `layout.changed` with position off-canvas ---------------
+    // and resolve on `member.left` and `layout.changed` with position off-canvas ---------------
     await pageOne.evaluate(
       async ({ demoteMemberId }) => {
         // @ts-expect-error
@@ -126,10 +125,8 @@ test.describe('RoomSession demote participant, reattach and then promote again',
     await expectInteractivityMode(pageTwo, 'audience')
     await expectSDPDirection(pageTwo, 'recvonly', true)
 
-    // --------------- Let's wait a bit before reattaching ---------------
-    await pageTwo.waitForTimeout(2000)
-
     // --------------- Reattach after demotion ---------------
+    console.time('Reattach')
     await pageTwo.reload()
 
     // It's now an audience user
@@ -146,10 +143,9 @@ test.describe('RoomSession demote participant, reattach and then promote again',
 
     await createTestRoomSession(pageTwo, participant2DemotedSettings)
 
-    console.time('reattach')
     // Join again
     const reattachParams: any = await expectRoomJoined(pageTwo)
-    console.timeEnd('reattach')
+    console.timeEnd('Reattach')
 
     expect(reattachParams.room).toBeDefined()
     expect(reattachParams.room_session).toBeDefined()
@@ -165,8 +161,6 @@ test.describe('RoomSession demote participant, reattach and then promote again',
     await expectMCUVisibleForAudience(pageTwo)
     await expectInteractivityMode(pageTwo, 'audience')
     await expectSDPDirection(pageTwo, 'recvonly', true)
-
-    await pageTwo.waitForTimeout(1000)
 
     // --------------- Time to promote again at PageTwo ---------------
 
