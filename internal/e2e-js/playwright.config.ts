@@ -5,6 +5,7 @@ import { PlaywrightTestConfig, devices } from '@playwright/test'
 const streamingTests = [
   'roomSessionStreamingAPI.spec.ts',
   'roomSessionStreaming.spec.ts',
+  'roomSessionMultipleStreams.spec.ts',
 ]
 const slowTests = [
   'roomSessionAudienceCount.spec.ts',
@@ -27,6 +28,12 @@ const reattachTests = [
   'roomSessionReattachMultiple.spec.ts',
   'roomSessionReattachScreenshare.spec.ts',
   'roomSessionReattachWrongCallId.spec.ts',
+  'roomSessionReattachWrongProtocol.spec.ts',
+]
+const callfabricTests = [
+  'relayApp.spec.ts',
+  'swml.spec.ts',
+  'videoRoom.spec.ts',
 ]
 const v2WebRTC = ['v2WebrtcFromRest.spec.ts', 'webrtcCalling.spec.ts']
 
@@ -66,6 +73,7 @@ const config: PlaywrightTestConfig = {
         ...promoteTests,
         ...demoteTests,
         ...reattachTests,
+        ...callfabricTests,
         ...v2WebRTC,
       ],
     },
@@ -93,6 +101,11 @@ const config: PlaywrightTestConfig = {
       name: 'reattach',
       use: useDesktopChrome,
       testMatch: reattachTests,
+    },
+    {
+      name: 'callfabric',
+      use: useDesktopChrome,
+      testMatch: callfabricTests,
     },
     {
       name: 'v2WebRTC',

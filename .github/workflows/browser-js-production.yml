@@ -17,7 +17,17 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x]
-        project: [default, streaming, slow, promote, demote, reattach, v2WebRTC]
+        project:
+          [
+            default,
+            streaming,
+            slow,
+            promote,
+            demote,
+            reattach,
+            callfabric,
+            v2WebRTC,
+          ]
     steps:
       - uses: actions/checkout@v3
       - name: Install deps
