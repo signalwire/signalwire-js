@@ -55,8 +55,13 @@ test.describe('Video room hand raise/lower', () => {
       memberOnePageTwo,
     ])
 
+    console.log(
+      'Hand raised by the Node SDK using room session instance',
+      'Event received by all SDKs!',
+      promise
+    )
+
     // Expect a hand raise to be true on both Node & Web SDKs for memberOne only
-    console.log('Resolved promise')
     promise.forEach((obj) => {
       // @ts-expect-error
       console.log(obj.member ?? obj)
@@ -121,8 +126,13 @@ test.describe('Video room hand raise/lower', () => {
       memberTwoPageTwo,
     ])
 
+    console.log(
+      'Hand raised by the Node SDK using member instance',
+      'Event received by all SDKs!',
+      promise
+    )
+
     // Expect a hand raise to be true on both Node & Web SDKs for memberTwo only
-    console.log('Resolved promise')
     promise.forEach((obj) => {
       // @ts-expect-error
       console.log(obj.member ?? obj)
