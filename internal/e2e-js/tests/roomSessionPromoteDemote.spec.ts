@@ -16,7 +16,7 @@ import {
 } from '../utils'
 
 test.describe('RoomSession promote/demote methods', () => {
-  test.skip('should promote/demote audience', async ({ createCustomPage }) => {
+  test('should promote/demote audience', async ({ createCustomPage }) => {
     const pageOne = await createCustomPage({ name: '[pageOne]' })
     const pageTwo = await createCustomPage({ name: '[pageTwo]' })
 
