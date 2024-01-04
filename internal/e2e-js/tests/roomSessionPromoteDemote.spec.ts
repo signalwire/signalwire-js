@@ -104,12 +104,10 @@ test.describe('RoomSession promote/demote methods', () => {
           permissions: ['room.list_available_layouts'],
         })
 
-        await waitForMemberJoined
+        return waitForMemberJoined
       },
       { promoteMemberId: audienceId }
     )
-
-    console.log('Member promoted!')
 
     await pageTwo.waitForTimeout(2000)
 
@@ -117,8 +115,9 @@ test.describe('RoomSession promote/demote methods', () => {
     await expectInteractivityMode(pageTwo, 'member')
     await expectSDPDirection(pageTwo, 'sendrecv', true)
 
-    console.log('Promotion done!')
     // Promotion done.
+
+    await pageTwo.waitForTimeout(2000)
 
     // Demote to audience again from pageOne
     // and resolve on `member.left`
@@ -137,6 +136,7 @@ test.describe('RoomSession promote/demote methods', () => {
           (resolve, reject) => {
             roomObj.on('layout.changed', ({ layout }) => {
               for (const layer of layout.layers) {
+                // console.log("Layer member ID:", layer.member_id, "Demoted member ID:", demoteMemberId, " Position:", layer.position)
                 if (
                   layer.member_id === demoteMemberId &&
                   layer.visible === true
@@ -175,10 +175,12 @@ test.describe('RoomSession promote/demote methods', () => {
       { demoteMemberId: audienceId }
     )
 
-    const [audienceRoomJoined] = await Promise.all([
+    const [audienceRoomJoined, _] = await Promise.all([
       promiseAudienceRoomJoined,
       promiseMemberWaitingForMemberLeft,
     ])
+
+    await pageTwo.waitForTimeout(2000)
 
     await expectMemberId(pageTwo, audienceId) // before promote
     await expectMemberId(pageTwo, audienceRoomJoined.member_id) // after promote and demote process
