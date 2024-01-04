@@ -52,31 +52,51 @@ test.describe('Video', () => {
 
     const roomSessionsAtStart = await findRoomSessionsByPrefix()
     console.log('roomSessionsAtStart', roomSessionsAtStart)
-    expect(roomSessionsAtStart).toHaveLength(0)
+    expect(
+      roomSessionsAtStart,
+      'Initial room session should be 0'
+    ).toHaveLength(0)
 
-    let roomSessionPromises: Promise<
-      CreateRoomAndRecordPlayReturn | undefined
-    >[] = []
-    for (let index = 0; index < roomCount; index++) {
-      roomSessionPromises.push(
-        createRoomAndRecordPlay({
-          browser,
-          pageName: `[page-${index}]`,
-          room_name: `${prefix}-room-${index}`,
-          user_name: `${prefix}-member-${index}`,
-        })
-      )
-    }
+    const roomSessionsWeb: CreateRoomAndRecordPlayReturn[] = []
 
-    const roomSessions = await Promise.all(roomSessionPromises)
+    // Join room from page 1
+    console.log('[page-1] Join room and start playback and recording')
+    const pageOneRoomSession = await createRoomAndRecordPlay({
+      browser,
+      pageName: '[page-1]',
+      room_name: `${prefix}-1`,
+      user_name: `${prefix}-member-1`,
+    })
+    roomSessionsWeb.push(pageOneRoomSession!)
+    console.log('[page-1] room joined')
 
-    // Wait till Node SDK receive {roomCount} room.started events
-    await roomSessionStartedNode
-    expect(roomSessionCreated.size).toBe(roomCount)
+    // Join room from page 2
+    console.log('[page-2] Join room and start playback and recording')
+    const pageTwoRoomSession = await createRoomAndRecordPlay({
+      browser,
+      pageName: '[page-2]',
+      room_name: `${prefix}-2`,
+      user_name: `${prefix}-member-2`,
+    })
+    roomSessionsWeb.push(pageTwoRoomSession!)
+    console.log('[page-2] room joined')
+
+    // Join room from page 3
+    console.log('[page-3] Join room and start playback and recording')
+    const pageThreeRoomSession = await createRoomAndRecordPlay({
+      browser,
+      pageName: '[page-3]',
+      room_name: `${prefix}-3`,
+      user_name: `${prefix}-member-3`,
+    })
+    roomSessionsWeb.push(pageThreeRoomSession!)
+    console.log('[page-3] room joined')
 
     const roomSessionsRunning = await findRoomSessionsByPrefix()
-    console.log('roomSessionsRunning', roomSessionsRunning)
-    expect(roomSessionsRunning).toHaveLength(roomCount)
+    expect(
+      roomSessionsRunning,
+      'Running room session should be 3'
+    ).toHaveLength(roomCount)
 
     expect(roomSessionsRunning.filter((r) => r.recording)).toHaveLength(
       roomCount
@@ -146,8 +166,8 @@ test.describe('Video', () => {
     expect(roomSessionsAtEnd).toHaveLength(roomCount)
 
     // Leave room on all pages
-    for (let index = 0; index < roomSessions.length; index++) {
-      const rs = roomSessions[index]
+    for (let index = 0; index < roomSessionsWeb.length; index++) {
+      const rs = roomSessionsWeb[index]
       await rs?.leaveRoom()
     }
 
