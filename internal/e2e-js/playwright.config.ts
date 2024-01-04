@@ -23,6 +23,16 @@ const useDesktopChrome = {
   },
 }
 
+const useDesktopFirefox = {
+  ...devices['firefox'],
+  launchOptions: {
+    args: [
+      '--use-fake-ui-for-media-stream',
+      '--use-fake-device-for-media-stream',
+    ],
+  },
+}
+
 const config: PlaywrightTestConfig = {
   testDir: 'tests',
   reporter: process.env.CI ? 'github' : 'list',
@@ -53,6 +63,11 @@ const config: PlaywrightTestConfig = {
       use: useDesktopChrome,
       testMatch: slowTests,
     },
+    {
+      name: 'firefox',
+      use: useDesktopFirefox,
+      testMatch: "v2WebrtcFromRest.spec.ts",
+    },    
   ],
 }
 export default config
