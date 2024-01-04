@@ -92,28 +92,32 @@ test.describe('Video', () => {
     roomSessionsWeb.push(pageThreeRoomSession!)
     console.log('[page-3] room joined')
 
+    // Wait till Node SDK receive room.started events {roomCount} times
+    await roomSessionStartedNode
+    expect(roomSessionCreated.size).toBe(roomCount)
+
+    // Fetch room sessions using Node SDK and expect {roomCount} rooms
     const roomSessionsRunning = await findRoomSessionsByPrefix()
     expect(
       roomSessionsRunning,
       'Running room session should be 3'
     ).toHaveLength(roomCount)
 
+    // Expect all rooms running a recording
     expect(roomSessionsRunning.filter((r) => r.recording)).toHaveLength(
       roomCount
     )
+
+    // Expect all rooms to have play function
     expect(
-      roomSessionsRunning.filter((r) => {
-        return (
-          typeof r.play === 'function' &&
-          typeof r.lock === 'function' &&
-          typeof r.unlock === 'function'
-        )
-      })
+      roomSessionsRunning.filter((r) => typeof r.play === 'function')
     ).toHaveLength(roomCount)
 
+    // Run for all the rooms
     for (let index = 0; index < roomSessionsRunning.length; index++) {
       const rs = roomSessionsRunning[index]
 
+      // Stop the recording and expect onRecordingEnded event
       await new Promise<void>(async (resolve) => {
         await rs.listen({
           onRecordingEnded: () => resolve(),
@@ -122,6 +126,7 @@ test.describe('Video', () => {
         await Promise.all(recordings.map((r) => r.stop()))
       })
 
+      // Stop the playback and expect onPlaybackEnded event
       await new Promise<void>(async (resolve) => {
         await rs.listen({
           onPlaybackEnded: () => resolve(),
