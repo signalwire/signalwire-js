@@ -37,7 +37,6 @@ test.describe('RoomSession Audience Count', () => {
         join_as: 'member',
       },
       initialEvents: memberInitialEvents,
-      expectToJoin: false,
     })
 
     await Promise.all(
@@ -50,7 +49,6 @@ test.describe('RoomSession Audience Count', () => {
             permissions: [],
           },
           initialEvents: [],
-          expectToJoin: false,
         })
       })
     )
@@ -117,6 +115,9 @@ test.describe('RoomSession Audience Count', () => {
       audienceCountPageOnePromise,
       audienceCountPageTwoPromise,
     ])
+
+    // audience_count events come "every" 20s so wait for 25s to avoid race
+    await pageOne.waitForTimeout(25_000)
 
     const totalsPageOne = await expectorPageOne.getTotals()
     expect(totalsPageOne.totalFromAudienceCount).toBe(expectedAudienceCount)
