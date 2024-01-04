@@ -33,7 +33,7 @@ jobs:
           PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
       - name: Test
         id: run-tests
-        run: npm run -w=@sw-internal/e2e-realtime-api dev
+        run: npm run -w=@sw-internal/e2e-realtime-api dev:playwright
         env:
           SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_REALTIME_SW_TEST_CONFIG }}
       - name: Report Result
