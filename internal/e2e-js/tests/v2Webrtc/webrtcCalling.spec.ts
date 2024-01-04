@@ -4,6 +4,7 @@ import {
   SERVER_URL,
   createTestJWTToken,
   expectRelayConnected,
+  expectv2TotalAudioEnergyToBeGreaterThan,
 } from '../../utils'
 
 test.describe('V2Calling', () => {
@@ -104,12 +105,12 @@ test.describe('V2Calling', () => {
     await expectVideoMediaStreams(pageCallee)
 
     // FIXME: Expect audio energy level is flaky
-    // // Give some time to collect audio from both pages
-    // await pageCaller.waitForTimeout(10000)
+    // Give some time to collect audio from both pages
+    await pageCaller.waitForTimeout(10000)
 
-    // // Check the audio energy level is above threshold
-    // await expectv2TotalAudioEnergyToBeGreaterThan(pageCaller, 0.4)
-    // await expectv2TotalAudioEnergyToBeGreaterThan(pageCallee, 0.4)
+    // Check the audio energy level is above threshold
+    await expectv2TotalAudioEnergyToBeGreaterThan(pageCaller, 0.4)
+    await expectv2TotalAudioEnergyToBeGreaterThan(pageCallee, 0.4)
 
     // Click the caller hangup button, which calls the hangup function in the browser
     await pageCaller.click('#hangupCall')
