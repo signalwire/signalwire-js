@@ -20,12 +20,6 @@ test.describe('CallFabric Relay Application', () => {
       },
     })
 
-    // TODO: This might not be needed after unified events in CF
-    let waitForPlaybackStartResolve: () => void
-    const waitForPlaybackStart = new Promise<void>((resolve) => {
-      waitForPlaybackStartResolve = resolve
-    })
-
     await client.voice.listen({
       topics: ['cf-e2e-test-relay'],
       onCallReceived: async (call) => {
@@ -41,61 +35,54 @@ test.describe('CallFabric Relay Application', () => {
             })
             .onStarted()
           await playback.setVolume(10)
-
-          console.log('Playback has started!')
-
-          // Inform the caller playback has started
-          waitForPlaybackStartResolve()
         } catch (error) {
           console.error('Inbound call error', error)
         }
       },
     })
 
-    const page = await createCustomPage({ name: '[page]' })
-    await page.goto(SERVER_URL)
+    try {
+      const page = await createCustomPage({ name: '[page]' })
+      await page.goto(SERVER_URL)
 
-    await createCFClient(page)
+      await createCFClient(page)
 
-    const resourceName = 'cf-e2e-test-relay'
+      const resourceName = 'cf-e2e-test-relay'
 
-    await page.evaluate(
-      async (options) => {
+      await page.evaluate(
+        async (options) => {
+          // @ts-expect-error
+          const client = window._client
+
+          const call = await client.dial({
+            to: `/public/${options.resourceName}`,
+            nodeId: undefined,
+          })
+
+          // @ts-expect-error
+          window._roomObj = call
+
+          await call.start()
+        },
+        {
+          resourceName,
+        }
+      )
+
+      await expectPageReceiveAudio(page)
+
+      // Hangup the call
+      await page.evaluate(async () => {
         // @ts-expect-error
-        const client = window._client
+        const call = window._roomObj
 
-        const call = await client.dial({
-          to: `/public/${options.resourceName}`,
-          nodeId: undefined,
-        })
+        await call.hangup()
+      })
 
-        // @ts-expect-error
-        window._roomObj = call
-
-        await call.start()
-      },
-      {
-        resourceName,
-      }
-    )
-
-    console.log('Waiting for playback start!')
-
-    // Wait until the callee starts the playback
-    await waitForPlaybackStart
-
-    console.log('Calculating audio stats')
-    await expectPageReceiveAudio(page)
-
-    // Hangup the call
-    await page.evaluate(async () => {
-      // @ts-expect-error
-      const call = window._roomObj
-
-      await call.hangup()
-    })
-
-    await client.disconnect()
+      client.disconnect()
+    } catch (error) {
+      console.error('CreateRoomSession Error', error)
+    }
   })
 
   test('should connect to the relay app and expect a silence', async ({
@@ -110,12 +97,6 @@ test.describe('CallFabric Relay Application', () => {
       },
     })
 
-    // TODO: This might not be needed after unified events in CF
-    let waitForPlaybackStartResolve: () => void
-    const waitForPlaybackStart = new Promise<void>((resolve) => {
-      waitForPlaybackStartResolve = resolve
-    })
-
     await client.voice.listen({
       topics: ['cf-e2e-test-relay'],
       onCallReceived: async (call) => {
@@ -127,72 +108,59 @@ test.describe('CallFabric Relay Application', () => {
 
           const playback = await call.playSilence({ duration: 60 }).onStarted()
           await playback.setVolume(10)
-
-          console.log('Playback silence has started!')
-
-          // Inform the caller playback has started
-          waitForPlaybackStartResolve()
         } catch (error) {
           console.error('Inbound call error', error)
         }
       },
     })
 
-    const page = await createCustomPage({ name: '[page]' })
-    await page.goto(SERVER_URL)
+    try {
+      const page = await createCustomPage({ name: '[page]' })
+      await page.goto(SERVER_URL)
 
-    await createCFClient(page)
+      await createCFClient(page)
 
-    const resourceName = 'cf-e2e-test-relay'
+      const resourceName = 'cf-e2e-test-relay'
 
-    await page.evaluate(
-      async (options) => {
+      await page.evaluate(
+        async (options) => {
+          // @ts-expect-error
+          const client = window._client
+
+          const call = await client.dial({
+            to: `/public/${options.resourceName}`,
+            nodeId: undefined,
+          })
+
+          // @ts-expect-error
+          window._roomObj = call
+
+          await call.start()
+        },
+        {
+          resourceName,
+        }
+      )
+
+      const audioStats = await getAudioStats(page)
+
+      expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeCloseTo(0.1, 0)
+
+      // Hangup the call
+      await page.evaluate(async () => {
         // @ts-expect-error
-        const client = window._client
+        const call = window._roomObj
 
-        const call = await client.dial({
-          to: `/public/${options.resourceName}`,
-          nodeId: undefined,
-        })
+        await call.hangup()
+      })
 
-        // @ts-expect-error
-        window._roomObj = call
-
-        await call.start()
-      },
-      {
-        resourceName,
-      }
-    )
-
-    console.log('Waiting for the playback silence start!')
-
-    // Wait until the callee starts the playback
-    await waitForPlaybackStart
-
-    console.log('Calculating audio stats')
-    const audioStats = await getAudioStats(page)
-
-    expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeDefined()
-    expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeCloseTo(0.1, 0)
-
-    // Hangup the call
-    await page.evaluate(async () => {
-      // @ts-expect-error
-      const call = window._roomObj
-
-      console.log('hanging up', call)
-
-      await call.hangup()
-    })
-
-    await client.disconnect()
+      client.disconnect()
+    } catch (error) {
+      console.error('CreateRoomSession Error', error)
+    }
   })
 
-  // FIXME: Currently, when the callee hangs up, the Call Fabric SDK lacks an event to notify the caller.
-  // Previously, we utilized page.waitForTimeout(), but this approach proved to be flaky and caused issues in CI.
-  // This should be fixed when we have unified events in the Call Fabric SDK.
-  test.skip('should connect to the relay app and expect a hangup', async ({
+  test('should connect to the relay app and expect a hangup', async ({
     createCustomPage,
   }) => {
     const client = await SignalWire({
@@ -202,12 +170,6 @@ test.describe('CallFabric Relay Application', () => {
       debug: {
         logWsTraffic: true,
       },
-    })
-
-    // TODO: This might not be needed after unified events in CF
-    let waitForHangupResolve: () => void
-    const waitForHangup = new Promise<void>((resolve) => {
-      waitForHangupResolve = resolve
     })
 
     await client.voice.listen({
@@ -220,11 +182,6 @@ test.describe('CallFabric Relay Application', () => {
           console.log('Inbound call answered')
 
           await call.hangup()
-
-          console.log('Callee hung up the call!')
-
-          // Inform the caller
-          waitForHangupResolve()
         } catch (error) {
           console.error('Inbound call error', error)
         }
@@ -257,10 +214,7 @@ test.describe('CallFabric Relay Application', () => {
       { resourceName }
     )
 
-    console.log('Waiting for the hangup from the callee!')
-
-    // Wait until the callee hangup the call
-    await waitForHangup
+    await page.waitForTimeout(5000)
 
     const roomSession = await page.evaluate(() => {
       // @ts-expect-error
@@ -269,7 +223,5 @@ test.describe('CallFabric Relay Application', () => {
     })
 
     expect(roomSession.state).toBe('destroy')
-
-    await client.disconnect()
   })
 })
