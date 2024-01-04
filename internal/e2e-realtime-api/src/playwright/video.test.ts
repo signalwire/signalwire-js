@@ -33,7 +33,7 @@ test.describe('Video', () => {
     // Expect {roomCount} room.started event on the Node SDK
     const roomSessionStartedNode = new Promise<void>(
       async (resolve, _reject) => {
-        let count = 1
+        let count = 0
         await client.video.listen({
           onRoomStarted: (roomSession) => {
             console.log('>> onRoomStarted', roomSession.name)
