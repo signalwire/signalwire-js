@@ -24,19 +24,19 @@ test.describe('Video room hand raise/lower', () => {
     expect(memberTwo.handraised).toBe(false)
 
     // Expect member.updated event on pageOne via Web SDK for memberOne
-    const memberOnePageOne = expectHandRaiseEvent({
+    const memberOnePageOneHandRaised = expectHandRaiseEvent({
       page: pageOne,
       memberId: memberOne.id,
     })
 
     // Expect member.updated event on pageTwo via Web SDK for memberOne
-    const memberOnePageTwo = expectHandRaiseEvent({
+    const memberOnePageTwoHandRaised = expectHandRaiseEvent({
       page: pageTwo,
       memberId: memberOne.id,
     })
 
     // Raise a hand of memberOne using Node SDK
-    const memberOneNode = new Promise<Video.RoomSessionMember>(
+    const memberOneNodeHandRaised = new Promise<Video.RoomSessionMember>(
       async (resolve, _reject) => {
         await roomSession.listen({
           onMemberUpdated: (member) => {
@@ -49,20 +49,20 @@ test.describe('Video room hand raise/lower', () => {
       }
     )
 
-    const promise = await Promise.all([
-      memberOneNode,
-      memberOnePageOne,
-      memberOnePageTwo,
+    const memberHandRaisedPromise = await Promise.all([
+      memberOneNodeHandRaised,
+      memberOnePageOneHandRaised,
+      memberOnePageTwoHandRaised,
     ])
 
     console.log(
       'Hand raised by the Node SDK using room session instance',
       'Event received by all SDKs!',
-      promise
+      memberHandRaisedPromise
     )
 
     // Expect a hand raise to be true on both Node & Web SDKs for memberOne only
-    promise.forEach((obj) => {
+    memberHandRaisedPromise.forEach((obj) => {
       // @ts-expect-error
       console.log(obj.member ?? obj)
       expect(obj.handraised).toBe(true)
@@ -95,19 +95,19 @@ test.describe('Video room hand raise/lower', () => {
     expect(memberTwo.handraised).toBe(false)
 
     // Expect member.updated event on pageOne via Web SDK for memberTwo
-    const memberTwoPageOne = expectHandRaiseEvent({
+    const memberTwoPageOneHandRaised = expectHandRaiseEvent({
       page: pageOne,
       memberId: memberTwo.id,
     })
 
     // Expect member.updated event on pageTwo via Web SDK for memberTwo
-    const memberTwoPageTwo = expectHandRaiseEvent({
+    const memberTwoPageTwoHandRaised = expectHandRaiseEvent({
       page: pageTwo,
       memberId: memberTwo.id,
     })
 
     // Raise memberTwo hand using a member object via Node SDK
-    const memberTwoNode = await new Promise<Video.RoomSessionMember>(
+    const memberTwoNodeHandRaised = await new Promise<Video.RoomSessionMember>(
       async (resolve, _reject) => {
         await roomSession.listen({
           onMemberUpdated: (member) => {
@@ -120,20 +120,20 @@ test.describe('Video room hand raise/lower', () => {
       }
     )
 
-    const promise = await Promise.all([
-      memberTwoNode,
-      memberTwoPageOne,
-      memberTwoPageTwo,
+    const memberHandRaisedPromise = await Promise.all([
+      memberTwoNodeHandRaised,
+      memberTwoPageOneHandRaised,
+      memberTwoPageTwoHandRaised,
     ])
 
     console.log(
       'Hand raised by the Node SDK using member instance',
       'Event received by all SDKs!',
-      promise
+      memberHandRaisedPromise
     )
 
     // Expect a hand raise to be true on both Node & Web SDKs for memberTwo only
-    promise.forEach((obj) => {
+    memberHandRaisedPromise.forEach((obj) => {
       // @ts-expect-error
       console.log(obj.member ?? obj)
       expect(obj.handraised).toBe(true)
@@ -162,7 +162,7 @@ test.describe('Video room hand raise/lower', () => {
     expect(memberOne.handraised).toBe(false)
     expect(memberTwo.handraised).toBe(false)
 
-    const promiseHandRaised = await Promise.all([
+    const memberHandRaisedPromise = await Promise.all([
       // Raise memberOne hand using Node SDK and expect onMemberUpdated event
       new Promise<Video.RoomSessionMember>(async (resolve, _reject) => {
         await roomSession.listen({
@@ -186,14 +186,18 @@ test.describe('Video room hand raise/lower', () => {
       }),
     ])
 
-    console.log('Resolved promiseHandRaised')
-    promiseHandRaised.forEach((obj) => {
+    console.log(
+      'Hand raised by the Node SDK using room session instance',
+      'Event received by all SDKs!',
+      memberHandRaisedPromise
+    )
+    memberHandRaisedPromise.forEach((obj) => {
       // @ts-expect-error
       console.log(obj.member ?? obj)
       expect(obj.handraised).toBe(true)
     })
 
-    const promiseHandLowered = await Promise.all([
+    const memberHandLoweredPromise = await Promise.all([
       // Lower memberOne hand using Web SDK and expect member.updated event on pageOne
       pageOne.evaluate(
         ({ memberId }) => {
@@ -236,8 +240,12 @@ test.describe('Video room hand raise/lower', () => {
       }),
     ])
 
-    console.log('Resolved promiseHandLowered')
-    promiseHandLowered.forEach((obj) => {
+    console.log(
+      'Hand lowered by the Web SDK using room session instance',
+      'Event received by all SDKs!',
+      memberHandLoweredPromise
+    )
+    memberHandLoweredPromise.forEach((obj) => {
       // @ts-expect-error
       console.log(obj.member ?? obj)
       expect(obj.handraised).toBe(false)
