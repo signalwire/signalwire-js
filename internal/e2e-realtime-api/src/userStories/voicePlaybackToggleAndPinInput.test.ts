@@ -29,10 +29,6 @@ const handler: TestHandler = ({ domainApp }) => {
         },
       })
 
-      let waitForCallAnswerResolve: () => void
-      const waitForCallAnswer = new Promise<void>((resolve) => {
-        waitForCallAnswerResolve = resolve
-      })
       let waitForCallectStartResolve: () => void
       const waitForCallectStart = new Promise<void>((resolve) => {
         waitForCallectStartResolve = resolve
@@ -45,9 +41,6 @@ const handler: TestHandler = ({ domainApp }) => {
             // Answer the incoming call
             await call.answer()
 
-            // Inform caller about the call answer
-            waitForCallAnswerResolve()
-
             // Wait until the caller starts the collect
             await waitForCallectStart
 
@@ -55,9 +48,9 @@ const handler: TestHandler = ({ domainApp }) => {
             await sleep(3000)
             await call.sendDigits('#')
 
-            // // Send digits after 5 seconds (Expect playback resume)
-            // await sleep(5000)
-            // await call.sendDigits('#')
+            // Send digits after 5 seconds (Expect playback resume)
+            await sleep(5000)
+            await call.sendDigits('#')
 
             // // Send digits after 5 seconds (Expect playback stop)
             // await sleep(5000)
@@ -80,9 +73,6 @@ const handler: TestHandler = ({ domainApp }) => {
         timeout: 30,
       })
 
-      // Wait until the callee answer the call
-      await waitForCallAnswer
-
       // Start playing music
       const playback = await call
         .playAudio({
@@ -90,7 +80,7 @@ const handler: TestHandler = ({ domainApp }) => {
           listen: {
             onUpdated: (_playback) => {
               tap.ok('Playback updated', _playback)
-              console.log('Playback updated', playback)
+              console.log('Playback updated', playback.state)
             },
           },
         })
@@ -104,7 +94,6 @@ const handler: TestHandler = ({ domainApp }) => {
         },
         partialResults: true,
         continuous: true,
-        sendStartOfInput: true,
         listen: {
           onStarted: () => {
             // Inform callee about the collect start
