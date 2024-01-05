@@ -191,7 +191,7 @@ test.describe('CallFabric Relay Application', () => {
 
   // FIXME: Currently, when the callee hangs up, the Call Fabric SDK lacks an event to notify the caller.
   // Previously, we utilized page.waitForTimeout(), but this approach proved to be flaky and caused issues in CI.
-  // This should be fixed when we have unified events in the Call Fabric SDK.
+  // This should be fixed when we have the CALL STATE event in Call Fabric SDK.
   test.skip('should connect to the relay app and expect a hangup', async ({
     createCustomPage,
   }) => {
