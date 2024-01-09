@@ -384,4 +384,26 @@ describe('UnifiedStreamEventsMapper', () => {
       },
     ])
   })
+
+  it('should maps call.join to video.room.subscribed with new payload', () => {
+    const action = {
+      type: 'call.join',
+      payload: {
+        callID: 'abcd-efgh-ijkl'
+      },
+    }
+
+    //@ts-ignore
+    expect(mapper.filter(action)).toBeTruthy()
+
+    //@ts-ignore
+    expect(mapper.mapAction(action)).toEqual([
+      {
+        type: 'video.room.subscribed',
+        payload: {
+          room_id: 'abcd-efgh-ijkl',
+        },
+      },
+    ])
+  })
 })

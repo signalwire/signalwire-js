@@ -90,14 +90,6 @@ export class WSClient {
           eventsWatcher: unifiedEventsWatcher,
         })
 
-        //@ts-ignore
-        // this.wsClient.runWorker('WSClientWorker', {
-        //   worker: unifiedEventsWatcher,
-        //   initialState: {
-        //     // @ts-ignore
-        //     emitter: call.emitter,
-        //   },
-        // })
 
         // WebRTC connection left the room.
         call.once('destroy', () => {

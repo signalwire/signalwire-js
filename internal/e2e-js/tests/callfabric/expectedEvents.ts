@@ -1,32 +1,40 @@
-export const roomStartedEvents: Record<string, Record<string, string>>[] = [
-  { 'call.state': { call_state: 'created' } }, //From Server Event
+type eventExpectation = Record<string, Record<string, string>>
+
+export const roomStartedEvents: eventExpectation[] = [
   { 'call.state.created': {} },
   { 'room.started': {} }, // SDK Public Event
 ]
+if (!!process.env.DEBUG_EVENTS)
+  roomStartedEvents.push({ 'call.state': { call_state: 'created' } })
 
-export const callAnsweredEvents: Record<string, Record<string, string>>[] = [
-  { 'call.state': { call_state: 'answered' } }, //From Server Event
+export const callAnsweredEvents: eventExpectation[] = [
   { 'call.state.answered': {} },
 ]
+if (!!process.env.DEBUG_EVENTS)
+  callAnsweredEvents.push({ 'call.state': { call_state: 'answered' } })
 
-export const ttsPlayingEvents: Record<string, Record<string, string>>[] = [
-  { 'call.play': { state: 'playing' } }, //From Server Event
+export const ttsPlayingEvents: eventExpectation[] = [
   { 'call.play.playing': {} },
 ]
+if (!!process.env.DEBUG_EVENTS)
+  ttsPlayingEvents.push({ 'call.play': { state: 'playing' } })
 
-export const ttsFinishedEvents: Record<string, Record<string, string>>[] = [
-  { 'call.play': { state: 'finished' } }, //From Server Event
+export const ttsFinishedEvents: eventExpectation[] = [
   { 'call.play.finished': {} },
 ]
+if (!!process.env.DEBUG_EVENTS)
+  ttsFinishedEvents.push({ 'call.play': { state: 'finished' } })
 
-export const callEndingEvents: Record<string, Record<string, string>>[] = [
-  { 'call.state': { call_state: 'ending' } }, //From Server Event
+export const callEndingEvents: eventExpectation[] = [
   { 'call.state.ending': {} },
   // { 'room.ending': {} },
 ]
+if (!!process.env.DEBUG_EVENTS)
+  callEndingEvents.push({ 'call.state': { call_state: 'ending' } })
 
-export const roomEndedEvents: Record<string, Record<string, string>>[] = [
-  { 'call.state': { call_state: 'ended' } }, //From Server Event
+export const roomEndedEvents: eventExpectation[] = [
   { 'call.state.ended': {} },
   { 'room.ended': {} }, // SDK Public Event
 ]
+if (!!process.env.DEBUG_EVENTS)
+  roomEndedEvents.push({ 'call.state': { call_state: 'ended' } })

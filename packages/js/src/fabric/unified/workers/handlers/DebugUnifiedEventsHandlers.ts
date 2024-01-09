@@ -16,6 +16,6 @@ export class DebugUnifiedEventsHandler
 
   handle(action: PubSubAction): void {
     const { type, payload } = action
-    this._emitter.emit(type, payload)
+    if(!!process.env.DEBUG_EVENTS) this._emitter.emit(type, payload)
   }
 }

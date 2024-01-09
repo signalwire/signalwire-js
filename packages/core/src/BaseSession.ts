@@ -16,6 +16,7 @@ import {
   DEFAULT_CONNECT_VERSION,
   RPCDisconnectResponse,
   RPCPingResponse,
+  UNIFIED_CONNECT_VERSION,
 } from './RPCMessages'
 import {
   SessionOptions,
@@ -59,14 +60,13 @@ export class BaseSession {
   public agent: string
   public connectVersion = DEFAULT_CONNECT_VERSION
   public reauthenticate?(): Promise<void>
-  public unifiedEventing = false;
+  public unifiedEventing = false
 
   protected _rpcConnectResult: RPCConnectResult
 
   private _requests = new Map<string, SessionRequestObject>()
   private _socket: WebSocketClient | null = null
   private _host: string = DEFAULT_HOST
-  
 
   private _executeTimeoutMs = 10 * 1000
   private _executeTimeoutError = Symbol.for('sw-execute-timeout')
@@ -84,9 +84,17 @@ export class BaseSession {
   private wsErrorHandler: (event: Event) => void
 
   constructor(public options: SessionOptions) {
-    const { host, logLevel = 'info', sessionChannel, unifiedEventing = false } = options
+    const {
+      host,
+      logLevel = 'info',
+      sessionChannel,
+      unifiedEventing = false,
+    } = options
 
     this.unifiedEventing = unifiedEventing
+    this.connectVersion = unifiedEventing
+      ? DEFAULT_CONNECT_VERSION
+      : UNIFIED_CONNECT_VERSION
 
     if (host) {
       this._host = checkWebSocketHost(host)
@@ -343,7 +351,7 @@ export class BaseSession {
     })
   }
 
-  protected get _connectParams():RPCConnectParams {
+  protected get _connectParams(): RPCConnectParams {
     return {
       agent: this.agent,
       version: this.connectVersion,
@@ -351,9 +359,10 @@ export class BaseSession {
         project: this.options.project,
         token: this.options.token,
       },
-      eventing: this.unifiedEventing ? ['unified'] : undefined
+      // FIXME: remove this
+      eventing: this.unifiedEventing ? ['unified'] : undefined,
     }
-  } 
+  }
 
   /**
    * Authenticate with the SignalWire Network
