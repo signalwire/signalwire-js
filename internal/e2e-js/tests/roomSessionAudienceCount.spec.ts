@@ -37,7 +37,6 @@ test.describe('RoomSession Audience Count', () => {
         join_as: 'member',
       },
       initialEvents: memberInitialEvents,
-      expectToJoin: false,
     })
 
     await Promise.all(
@@ -50,7 +49,6 @@ test.describe('RoomSession Audience Count', () => {
             permissions: [],
           },
           initialEvents: [],
-          expectToJoin: false,
         })
       })
     )
