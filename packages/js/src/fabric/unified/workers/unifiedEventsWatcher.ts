@@ -8,63 +8,43 @@ import {
   sagaEffects,
   SDKWorkerParams,
   SwEventChannel,
+  PubSubAction,
+  EventEmitter,
 } from '@signalwire/core'
 import { RoomSessionConnection } from '../../../BaseRoomSession'
+import { fromUnifiedEvent } from './mappers/UnifiedEventsMapper'
+import { isMappableObject } from 'packages/core/src/utils/mapObject'
 
 export type VideoWorkerParams<T> = SDKWorkerParams<RoomSessionConnection> & {
   action: T
 }
 
-import * as handlers from './handlers'
-import * as mappers from './mappers'
-
-// import {
-//   BaseUnifiedEventHandler,
-//   BaseUnifiedEventMapper,
-// } from '../BaseUnifiedEventWorker'
-
-//TODO move to own file
-// interface DefaultUnifiedEventHandlerOptions {
-//   action: any //FIXME
-//   sessionEmitter: EventEmitter
-// }
-
-export type DefaultUnifiedEventHandlerParams =
-  SDKWorkerParams<RoomSessionConnection> & {
-    action: MapToPubSubShape<VideoAPIEventParams>
-    handlersInstances: handlers.UnifiedEventsHandlerInterface[]
-  }
-
-export type DefaultUnifiedEventMapperParams =
-  SDKWorkerParams<RoomSessionConnection> & {
-    action: MapToPubSubShape<VideoAPIEventParams>
-    mapperInstances: mappers.UnifiedEventsMapperInterface[]
-    swEventChannel: SwEventChannel
-  }
-
-export function* rootUnifiedEventHandler({
+function* eventMapperWorker({
   action,
-  handlersInstances,
-}: DefaultUnifiedEventHandlerParams) {
-  const toExecuteHandlers = handlersInstances.filter((h) => h.filter(action))
-  for (const h of toExecuteHandlers) {
-    yield h.handle(action)
-  }
-}
-
-export function* rootEventsMapper({
-  action,
-  mapperInstances,
   swEventChannel,
-}: DefaultUnifiedEventMapperParams) {
-  const toExecuteHandlers = mapperInstances.filter((h) => h.filter(action))
-  for (const mapper of toExecuteHandlers) {
-    const mappedActions = mapper.mapAction(action)
-    for(const mappedAction of mappedActions) {
-      //@ts-expect-error invalid mappedAction will be ignored 
+}: {
+  action: PubSubAction
+  swEventChannel: SwEventChannel
+}) {
+  if (isMappableObject(action)) {
+    const mappedActions = fromUnifiedEvent(action)
+
+    for (const mappedAction of mappedActions) {
+      //@ts-ignore
       yield sagaEffects.put(swEventChannel, mappedAction)
     }
   }
+}
+
+function* debugEmitter({
+  action,
+  instance,
+}: {
+  action: PubSubAction
+  instance: EventEmitter
+}) {
+  const { type, payload } = action
+  yield instance.emit(type, payload)
 }
 
 export const unifiedEventsWatcher: SDKWorker<RoomSessionConnection> =
@@ -75,46 +55,21 @@ export const unifiedEventsWatcher: SDKWorker<RoomSessionConnection> =
 
     getLogger().debug('unifiedEventsWatcher started')
 
-    //instantiate handlers once
-    const handlersInstances = Object.values(handlers)
-      .map((klass) => {
-        try {
-          return new klass(options)
-        } catch (e) {
-          return
-        }
-      })
-      .filter((instance) => !!instance)
-
-    //instantiate mappers once
-    const mapperInstances = Object.values(mappers)
-      .map((klass) => {
-        try {
-          return new klass()
-        } catch (e) {
-          return
-        }
-      })
-      .filter((instance) => !!instance)
-
     function* worker(action: any) {
       getLogger().debug('### unified event worker', action)
 
       //@ts-ignore
-      yield sagaEffects.fork(rootEventsMapper, {
+      yield sagaEffects.fork(eventMapperWorker, {
         ...options,
         action,
         swEventChannel,
-        mapperInstances,
       })
 
-      //FIXME
       //@ts-ignore
-      yield sagaEffects.fork(rootUnifiedEventHandler, {
+      yield sagaEffects.fork(debugEmitter, {
         ...options,
         action,
         swEventChannel,
-        handlersInstances,
       })
     }
 
