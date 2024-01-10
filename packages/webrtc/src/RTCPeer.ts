@@ -1,5 +1,9 @@
 import { EventEmitter, getLogger, uuid } from '@signalwire/core'
-import { getUserMedia, getMediaConstraints } from './utils/helpers'
+import {
+  getUserMedia,
+  getMediaConstraints,
+  filterIceServers,
+} from './utils/helpers'
 import {
   sdpStereoHack,
   sdpBitrateHack,
@@ -148,7 +152,9 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     const { rtcPeerConfig = {} } = this.options
     const config: RTCConfiguration = {
       bundlePolicy: 'max-compat',
-      iceServers: this.call.iceServers,
+      iceServers: filterIceServers(this.call.iceServers, {
+        disableUdpIceServers: this.options.disableUdpIceServers,
+      }),
       // @ts-ignore
       sdpSemantics: 'unified-plan',
       ...rtcPeerConfig,

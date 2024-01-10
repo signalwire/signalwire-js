@@ -12,6 +12,7 @@ export type RPCConnectParams = {
   contexts?: string[]
   topics?: string[]
   eventing?: string[]
+  event_acks?: boolean
 }
 
 export const DEFAULT_CONNECT_VERSION = {
@@ -31,6 +32,7 @@ export const RPCConnect = (params: RPCConnectParams) => {
     method: 'signalwire.connect',
     params: {
       version: DEFAULT_CONNECT_VERSION,
+      event_acks: true,
       ...params,
     },
   })

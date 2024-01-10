@@ -1,4 +1,4 @@
-import { Video } from '@signalwire/js'
+import { Video, VideoRoomEventParams } from '@signalwire/js'
 import { test, expect } from '../../fixtures'
 import {
   SERVER_URL,
@@ -32,6 +32,7 @@ test.describe('CallFabric VideoRoom', () => {
           })
 
           call.on('room.joined', resolve)
+          call.on('room.updated', () => {})
 
           // @ts-expect-error
           window._roomObj = call
@@ -135,60 +136,90 @@ test.describe('CallFabric VideoRoom', () => {
     )
 
     // --------------- Get Room Meta ---------------
-    const expectRoomMeta = async (expected: any) => {
-      const currentMeta: any = await page.evaluate(() => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        return roomObj.getMeta()
-      })
-      expect(currentMeta.meta).toStrictEqual(expected)
-    }
-    await expectRoomMeta({})
+    const currentMeta: any = await page.evaluate(() => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      return roomObj.getMeta()
+    })
+    expect(currentMeta.meta).toStrictEqual({})
 
     // --------------- Set Room Meta ---------------
     const meta = { something: 'xx-yy-zzz' }
-    await page.evaluate(
-      async ({ meta }) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+    const setMeta = await page.evaluate(
+      ({ meta }) => {
+        return new Promise(async (resolve, _reject) => {
+          // @ts-expect-error
+          const roomObj: Video.RoomSession = window._roomObj
 
-        await roomObj.setMeta(meta)
+          roomObj.on('room.updated', (room: VideoRoomEventParams) => {
+            if (room.room_session.updated?.includes('meta')) {
+              resolve(room.room_session.meta)
+            }
+          })
+
+          await roomObj.setMeta(meta)
+        })
       },
       {
         meta,
       }
     )
-    await expectRoomMeta(meta)
+    expect(
+      setMeta,
+      "Set meta should be: { something: 'xx-yy-zzz' }"
+    ).toStrictEqual(meta)
 
     // --------------- Update Room Meta ---------------
     const metaUpdate = { updatedKey: 'ii-oo' }
-    await page.evaluate(
-      async ({ meta }) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+    const updatedMeta = await page.evaluate(
+      ({ meta }) => {
+        return new Promise(async (resolve, _reject) => {
+          // @ts-expect-error
+          const roomObj: Video.RoomSession = window._roomObj
 
-        await roomObj.updateMeta(meta)
+          roomObj.on('room.updated', (room: VideoRoomEventParams) => {
+            if (room.room_session.updated?.includes('meta')) {
+              resolve(room.room_session.meta)
+            }
+          })
+
+          await roomObj.updateMeta(meta)
+        })
       },
       {
         meta: metaUpdate,
       }
     )
-    await expectRoomMeta({ ...meta, ...metaUpdate })
+    expect(
+      updatedMeta,
+      "Updated meta should be: { something: 'xx-yy-zzz', updatedKey: 'ii-oo' }"
+    ).toStrictEqual({ ...meta, ...metaUpdate })
 
     // --------------- Delete Room Meta ---------------
     const metaDelete = ['updatedKey']
-    await page.evaluate(
-      async ({ keys }) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+    const deletedMeta = await page.evaluate(
+      ({ keys }) => {
+        return new Promise(async (resolve, _reject) => {
+          // @ts-expect-error
+          const roomObj: Video.RoomSession = window._roomObj
 
-        await roomObj.deleteMeta(keys)
+          roomObj.on('room.updated', (room: VideoRoomEventParams) => {
+            if (room.room_session.updated?.includes('meta')) {
+              resolve(room.room_session.meta)
+            }
+          })
+
+          await roomObj.deleteMeta(keys)
+        })
       },
       {
         keys: metaDelete,
       }
     )
-    await expectRoomMeta(meta)
+    expect(
+      deletedMeta,
+      "Deleted meta should be: { something: 'xx-yy-zzz' }"
+    ).toStrictEqual(meta)
 
     const layoutName = '3x3'
     // --------------- Expect layout to change ---------------

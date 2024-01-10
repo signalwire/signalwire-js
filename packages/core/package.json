@@ -3,9 +3,10 @@
   "description": "Shared code for the SignalWire JS SDK",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
-  "version": "3.21.0",
+  "version": "4.0.0-beta.0",
   "main": "dist/index.node.js",
   "module": "dist/index.esm.js",
+  "beta": true,
   "files": [
     "dist",
     "src"

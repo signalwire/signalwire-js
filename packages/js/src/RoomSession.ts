@@ -111,6 +111,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     localStream,
     watchMediaPackets,
     watchMediaPacketsTimeout,
+    disableUdpIceServers = false,
     ...userOptions
   } = roomOptions
 
@@ -176,6 +177,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     watchMediaPackets,
     watchMediaPacketsTimeout,
     prevCallId: reattachManager.getPrevCallId(),
+    disableUdpIceServers,
   })
 
   // WebRTC connection left the room.
