@@ -94,8 +94,8 @@ export class BaseSession {
 
     this.unifiedEventing = unifiedEventing
     this.connectVersion = unifiedEventing
-      ? DEFAULT_CONNECT_VERSION
-      : UNIFIED_CONNECT_VERSION
+      ? UNIFIED_CONNECT_VERSION
+      : DEFAULT_CONNECT_VERSION
 
     if (host) {
       this._host = checkWebSocketHost(host)
@@ -360,7 +360,7 @@ export class BaseSession {
         project: this.options.project,
         token: this.options.token,
       },
-      // FIXME: remove this
+      // FIXME: Remove this once server is ready
       eventing: this.unifiedEventing ? ['unified'] : undefined,
     }
   }

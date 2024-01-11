@@ -6,6 +6,7 @@ import {
   RPCPing,
   RPCPingResponse,
   RPCDisconnectResponse,
+  RPCConnectUnified,
 } from './RPCMessages'
 import { SWCloseEvent } from './utils'
 import { wait } from './testUtils'
@@ -69,18 +70,16 @@ describe('BaseSession', () => {
       host,
       project,
       token,
-      unifiedEventing: true
+      unifiedEventing: true,
     })
 
-    const rpcConnectUnified = RPCConnect({
+    const rpcConnectUnified = RPCConnectUnified({
       authentication: {
         project,
         token,
       },
-      eventing: ['unified']
+      eventing: ['unified'],
     })
-
-    expect(rpcConnectUnified.params.eventing).toEqual(['unified'])
 
     unifiedEventingSession.WebSocketConstructor = WebSocket
     unifiedEventingSession.CloseEventConstructor = SWCloseEvent
@@ -92,6 +91,10 @@ describe('BaseSession', () => {
 
     await expect(ws).toReceiveMessage(JSON.stringify(rpcConnectUnified))
 
+    unifiedEventingSession.disconnect()
+
+    expect(unifiedEventingSession.connected).toBe(false)
+    expect(unifiedEventingSession.closed).toBe(true)
   })
 
   it('should connect and disconnect to/from the provided host', async () => {
