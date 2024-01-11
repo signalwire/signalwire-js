@@ -70,6 +70,7 @@ export interface BaseRoomSession<T>
 interface BaseRoomSessionOptions
   extends BaseConnection<RoomSessionObjectEvents> {
   mirrorLocalVideoOverlay: boolean
+  eventsWatcher?: SDKWorker<RoomSessionConnection>
 }
 
 export class RoomSessionConnection
@@ -81,11 +82,7 @@ export class RoomSessionConnection
   private _mirrored: LocalOverlay['mirrored']
   private _audioEl: AudioElement
 
-  constructor(
-    options: BaseConnection<RoomSessionObjectEvents> & {
-      eventsWatcher?: SDKWorker<RoomSessionConnection>
-    }
-  ) {
+  constructor(options: BaseRoomSessionOptions) {
     super(options)
     this._mirrored = options.mirrorLocalVideoOverlay
 
