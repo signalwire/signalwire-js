@@ -6,7 +6,7 @@ import {
   RPCPing,
   RPCPingResponse,
   RPCDisconnectResponse,
-  RPCConnectUnified,
+  // RPCConnectUnified,
 } from './RPCMessages'
 import { SWCloseEvent } from './utils'
 import { wait } from './testUtils'
@@ -73,7 +73,8 @@ describe('BaseSession', () => {
       unifiedEventing: true,
     })
 
-    const rpcConnectUnified = RPCConnectUnified({
+    // FIXME: Use RPCUnified when server version is ready
+    const rpcConnectUnified = RPCConnect({
       authentication: {
         project,
         token,
