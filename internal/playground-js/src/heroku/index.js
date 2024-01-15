@@ -229,6 +229,9 @@ window.connect = () => {
     video: true,
     logLevel: 'debug',
     mirrorLocalVideoOverlay: false,
+    debug: {
+        logWsTraffic: true,
+      }
   })
 
   roomObj = roomSession

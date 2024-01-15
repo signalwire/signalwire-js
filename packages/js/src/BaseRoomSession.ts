@@ -9,6 +9,7 @@ import {
   LOCAL_EVENT_PREFIX,
   validateEventsToSubscribe,
   EventEmitter,
+  SDKWorker,
 } from '@signalwire/core'
 import {
   getDisplayMedia,
@@ -69,6 +70,7 @@ export interface BaseRoomSession<T>
 interface BaseRoomSessionOptions
   extends BaseConnection<RoomSessionObjectEvents> {
   mirrorLocalVideoOverlay: boolean
+  eventsWatcher?: SDKWorker<RoomSessionConnection>
 }
 
 export class RoomSessionConnection
@@ -87,6 +89,10 @@ export class RoomSessionConnection
     this.runWorker('videoWorker', {
       worker: workers.videoWorker,
     })
+
+    if (options.eventsWatcher) {
+      this.runWorker('eventsWatcher', { worker: options.eventsWatcher })
+    }
   }
 
   get screenShareList() {
