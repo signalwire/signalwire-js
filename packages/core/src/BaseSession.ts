@@ -17,6 +17,7 @@ import {
   RPCDisconnectResponse,
   RPCPingResponse,
   RPCEventAckResponse,
+  // UNIFIED_CONNECT_VERSION,
 } from './RPCMessages'
 import {
   SessionOptions,
@@ -60,6 +61,7 @@ export class BaseSession {
   public agent: string
   public connectVersion = DEFAULT_CONNECT_VERSION
   public reauthenticate?(): Promise<void>
+  public unifiedEventing = false
 
   protected _rpcConnectResult: RPCConnectResult
 
@@ -83,7 +85,20 @@ export class BaseSession {
   private wsErrorHandler: (event: Event) => void
 
   constructor(public options: SessionOptions) {
-    const { host, logLevel = 'info', sessionChannel } = options
+    const {
+      host,
+      logLevel = 'info',
+      sessionChannel,
+      unifiedEventing = false,
+    } = options
+
+    this.unifiedEventing = unifiedEventing
+
+    // FIXME: Enable this when server version is fixed
+    // this.connectVersion = unifiedEventing
+    //   ? UNIFIED_CONNECT_VERSION
+    //   : DEFAULT_CONNECT_VERSION
+
     if (host) {
       this._host = checkWebSocketHost(host)
     }
@@ -339,19 +354,26 @@ export class BaseSession {
     })
   }
 
-  /**
-   * Authenticate with the SignalWire Network
-   * @return Promise<void>
-   */
-  async authenticate() {
-    const params: RPCConnectParams = {
+  protected get _connectParams(): RPCConnectParams {
+    return {
       agent: this.agent,
       version: this.connectVersion,
       authentication: {
         project: this.options.project,
         token: this.options.token,
       },
+      // FIXME: Remove this once server is ready
+      eventing: this.unifiedEventing ? ['unified'] : undefined,
     }
+  }
+
+  /**
+   * Authenticate with the SignalWire Network
+   * @return Promise<void>
+   */
+  async authenticate() {
+    const params: RPCConnectParams = this._connectParams
+
     if (this._relayProtocolIsValid()) {
       params.protocol = this.relayProtocol
     }

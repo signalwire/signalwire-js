@@ -64,8 +64,7 @@ export class BaseJWTSession extends BaseSession {
    */
   async authenticate() {
     const params: RPCConnectParams = {
-      agent: this.agent,
-      version: this.connectVersion,
+      ...this._connectParams,
       authentication: {
         jwt_token: this.options.token,
       },

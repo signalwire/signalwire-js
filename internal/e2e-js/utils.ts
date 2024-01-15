@@ -714,10 +714,63 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
   )
 }
 
+export const pageEmittedEvents = async (
+  page: Page,
+  events: Record<string, Record<string, string>>[]
+) => {
+  return page.evaluate(
+    async ({ events }) => {
+      // @ts-expect-error
+      const call = window._roomObj
+
+      const expectationEvent = (
+        expectation: Record<string, Record<string, string>>
+      ) => Object.keys(expectation)[0]
+
+      const verifyExpectation = (
+        rules: Record<string, string>,
+        payload: any
+      ) => {
+        for (const [key, value] of Object.entries(rules)) {
+          if (payload[key] !== value) return false
+        }
+
+        return true
+      }
+
+      const eventsPromises = events.map((exp) => {
+        const event = expectationEvent(exp)
+
+        console.log(`#### here is a promise for ${event}`)
+        return new Promise((res) => {
+          const callback = (payload: any) => {
+            console.log(`#### Event ${event} received`)
+            if (verifyExpectation(exp[event], payload)) {
+              call.off(event, callback)
+              console.log(`#### resolving ${event}`)
+              return res(payload)
+            }
+          }
+          console.log(`#### setting call.on ${event}`)
+          call.on(event, callback)
+        })
+      })
+
+      try {
+        await Promise.all(eventsPromises)
+        return true
+      } catch {}
+
+      return false
+    },
+    { events }
+  )
+}
+
 export const createCallWithCompatibilityApi = async (
   resource: string,
   inlineLaml: string,
-  codecs?: string|undefined
+  codecs?: string | undefined
 ) => {
   const data = new URLSearchParams()
 
@@ -822,9 +875,7 @@ export const expectv2TotalAudioEnergyToBeGreaterThan = async (
   expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(value)
 }
 
-export const getDialConferenceLaml = (
-  conferenceNameBase: string
-) => {
+export const getDialConferenceLaml = (conferenceNameBase: string) => {
   const conferenceName = randomizeRoomName(conferenceNameBase)
   const conferenceRegion = process.env.LAML_CONFERENCE_REGION ?? ''
   const inlineLaml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -841,7 +892,7 @@ export const getDialConferenceLaml = (
       </Dial>
     </Response>`
 
-    return inlineLaml
+  return inlineLaml
 }
 
 export const expectv2HasReceivedAudio = async (
@@ -905,18 +956,20 @@ export const expectv2HasReceivedAudio = async (
    * If there is genuine silence, then totalAudioEnergy must be present,
    * albeit being a small number.
    */
-  console.log(`Evaluating audio energy (min energy: ${minTotalAudioEnergy}, min packets: ${minPacketsReceived})`)
+  console.log(
+    `Evaluating audio energy (min energy: ${minTotalAudioEnergy}, min packets: ${minPacketsReceived})`
+  )
   const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
   const packetsReceived = audioStats['inbound-rtp']['packetsReceived']
   if (totalAudioEnergy) {
     expect(totalAudioEnergy).toBeGreaterThan(minTotalAudioEnergy)
   } else {
-    console.log("Warning: totalAudioEnergy was missing from the report!")
+    console.log('Warning: totalAudioEnergy was missing from the report!')
     if (packetsReceived) {
       // We still want the right amount of packets
       expect(packetsReceived).toBeGreaterThan(minPacketsReceived)
     } else {
-      console.log("Warning: packetsReceived was missing from the report!")
+      console.log('Warning: packetsReceived was missing from the report!')
       /* We don't make this test fail, because the absence of packetsReceived
        * is a symptom of an issue with RTCStats, rather than an indication
        * of lack of RTP flow.
@@ -986,18 +1039,20 @@ export const expectv2HasReceivedSilence = async (
    * If there is genuine silence, then totalAudioEnergy must be present,
    * albeit being a small number.
    */
-  console.log(`Evaluating audio energy (max energy: ${maxTotalAudioEnergy}, min packets: ${minPacketsReceived})`)
+  console.log(
+    `Evaluating audio energy (max energy: ${maxTotalAudioEnergy}, min packets: ${minPacketsReceived})`
+  )
   const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
   const packetsReceived = audioStats['inbound-rtp']['packetsReceived']
   if (totalAudioEnergy) {
     expect(totalAudioEnergy).toBeLessThan(maxTotalAudioEnergy)
   } else {
-    console.log("Warning: totalAudioEnergy was missing from the report!")
+    console.log('Warning: totalAudioEnergy was missing from the report!')
     if (packetsReceived) {
       // We still want the right amount of packets
       expect(packetsReceived).toBeGreaterThan(minPacketsReceived)
     } else {
-      console.log("Warning: packetsReceived was missing from the report!")
+      console.log('Warning: packetsReceived was missing from the report!')
       /* We don't make this test fail, because the absence of packetsReceived
        * is a symptom of an issue with RTCStats, rather than an indication
        * of lack of RTP flow.
