@@ -1,5 +1,7 @@
 import { type UserOptions, getLogger, VertoSubscribe } from '@signalwire/core'
 import { createClient } from '../createClient'
+import { Client } from '../Client'
+import { RoomSession } from '../RoomSession'
 import { WSClientWorker } from './WSClientWorker'
 import { unifiedEventsWatcher } from './unified/workers/unifiedEventsWatcher'
 
@@ -26,11 +28,11 @@ export interface WSClientOptions extends UserOptions {
 }
 
 export class WSClient {
-  private wsClient: ReturnType<typeof createClient>
+  private wsClient: Client<RoomSession>
   private logger = getLogger()
 
   constructor(public options: WSClientOptions) {
-    this.wsClient = createClient({
+    this.wsClient = createClient<RoomSession>({
       host: this.options.host,
       token: this.options.token,
       debug: {
@@ -93,7 +95,6 @@ export class WSClient {
           eventsWatcher: unifiedEventsWatcher,
           disableUdpIceServers: this.options.disableUdpIceServers || false,
         })
-
 
         // WebRTC connection left the room.
         call.once('destroy', () => {

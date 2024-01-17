@@ -9,7 +9,6 @@ import {
   SDKWorkerParams,
   SwEventChannel,
   PubSubAction,
-  EventEmitter,
 } from '@signalwire/core'
 import { RoomSessionConnection } from '../../../BaseRoomSession'
 import { fromUnifiedEvent } from './mappers/UnifiedEventsMapper'
@@ -28,9 +27,8 @@ function* eventMapperWorker({
 }) {
   if (isMappableObject(action)) {
     const mappedActions = fromUnifiedEvent(action)
-
     for (const mappedAction of mappedActions) {
-      //@ts-ignore
+      // @ts-expect-error
       yield sagaEffects.put(swEventChannel, mappedAction)
     }
   }
@@ -41,9 +39,10 @@ function* debugEmitter({
   instance,
 }: {
   action: PubSubAction
-  instance: EventEmitter
+  instance: RoomSessionConnection
 }) {
   const { type, payload } = action
+  // @ts-expect-error
   yield instance.emit(type, payload)
 }
 
@@ -51,32 +50,28 @@ export const unifiedEventsWatcher: SDKWorker<RoomSessionConnection> =
   function* (options): SagaIterator {
     const {
       channels: { swEventChannel },
+      instance,
     } = options
 
     getLogger().debug('unifiedEventsWatcher started')
 
     function* worker(action: any) {
-      getLogger().debug('### unified event worker', action)
-
-      //@ts-ignore
       yield sagaEffects.fork(eventMapperWorker, {
         ...options,
         action,
         swEventChannel,
       })
 
-      //@ts-ignore
+      // TBD: Do we even need it?
       yield sagaEffects.fork(debugEmitter, {
         ...options,
         action,
-        swEventChannel,
+        instance,
       })
     }
 
     const isUnifiedEvent = (action: SDKActions) =>
-      action.type.startsWith('call.') ||
-      action.type.startsWith('member') ||
-      action.type.startsWith('layout')
+      action.type.startsWith('member') || action.type.startsWith('layout')
 
     while (true) {
       const action: MapToPubSubShape<VideoAPIEventParams> =
