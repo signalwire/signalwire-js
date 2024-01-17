@@ -781,6 +781,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       } else {
         subscribe = this.getSubscriptions()
       }
+      this.logger.debug('Subscribing to', subscribe)
+
       const response: any = await this.vertoExecute({
         message,
         callID: rtcPeerId,
