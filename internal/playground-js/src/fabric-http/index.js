@@ -117,13 +117,10 @@ async function fetchAddresses() {
     const searchText = document.getElementById('searchInput').value
     const selectedType = document.getElementById('searchType').value
 
-    console.log('searchText', searchText, selectedType)
-
     const addressData = await client.getAddresses({
       type: selectedType === 'all' ? undefined : selectedType,
       displayName: !searchText.length ? undefined : searchText,
     })
-    console.log('addressData', addressData)
     window.__addressData = addressData
     updateAddressUI()
   } catch (error) {
