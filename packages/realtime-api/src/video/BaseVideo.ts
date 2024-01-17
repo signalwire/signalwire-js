@@ -15,6 +15,10 @@ export class BaseVideo<
   protected subscribeMethod: JSONRPCSubscribeMethod = 'signalwire.subscribe'
   protected _subscribeParams?: Record<string, any> = {}
   protected _eventChannel?: string = ''
+  private _subscribedEvents = new Map<
+    string,
+    EventEmitter.EventNames<EventTypes>[]
+  >()
 
   constructor(options: SWClient) {
     super({ swClient: options })
@@ -64,17 +68,50 @@ export class BaseVideo<
 
   protected async addEvents() {
     const subscriptions = this.getSubscriptions()
+    const channelSubscribedEvents = this.getSubscribedEvents()
 
-    // TODO: Do not send already sent events
+    // Filter out events that are already subscribed
+    const newSubscriptions = subscriptions.filter(
+      (event) => !channelSubscribedEvents?.includes(event)
+    )
+
+    if (!newSubscriptions.length) {
+      // All events are already subscribed for this channel
+      this._client.logger.debug('No new events to subscribe', subscriptions)
+      return
+    }
 
     const executeParams: ExecuteParams = {
       method: this.subscribeMethod,
       params: {
         get_initial_state: true,
         event_channel: this.eventChannel,
-        events: subscriptions,
+        events: newSubscriptions,
       },
     }
-    return this._client.execute<unknown, void>(executeParams)
+    const result = await this._client.execute<unknown, void>(executeParams)
+
+    // Update subscribed events map
+    this.updateSubscribedEvents(newSubscriptions)
+
+    return result
+  }
+
+  private getSubscribedEvents() {
+    if (!this.eventChannel) return []
+    return this._subscribedEvents.get(this.eventChannel)
+  }
+
+  private updateSubscribedEvents(
+    newSubscriptions: EventEmitter.EventNames<EventTypes>[]
+  ) {
+    if (!this.eventChannel) return
+    if (this._subscribedEvents.has(this.eventChannel)) {
+      const prevEvents = this._subscribedEvents.get(this.eventChannel) || []
+      const newEvents = [...prevEvents, ...newSubscriptions]
+      this._subscribedEvents.set(this.eventChannel, newEvents)
+    } else {
+      this._subscribedEvents.set(this.eventChannel, newSubscriptions)
+    }
   }
 }
