@@ -1,44 +1,29 @@
-import { SWClient } from '@signalwire/js'
+import { SWClient, SignalWire } from '@signalwire/js'
 
-let __client = null
+const searchInput = document.getElementById('searchInput')
+const searchType = document.getElementById('searchType')
+
+let client = null
+
+async function getClient() {
+  if (!client) {
+    client = await SignalWire({
+      host: document.getElementById('host').value,
+      token: document.getElementById('token').value,
+    })
+  }
+
+  return client
+}
+
 /**
  * Connect with Relay creating a client and attaching all the event handler.
  */
 window.connect = async () => {
-  __client = new SWClient({
-    httpHost: document.getElementById('host').value,
-    accessToken: document.getElementById('token').value,
-  })
+  const client = await getClient()
+  window.__client = client
 
-  const addressesDiv = document.getElementById('addresses')
-  addressesDiv.innerHTML = ''
-  try {
-    const { addresses, nextPage, prevPage } = await __client.getAddresses()
-    const list = addresses.map((address) => {
-      return `<li class="list-group-item">
-        <b>${address.display_name}</b> / <span>${
-        address.name
-      } </span> <span class="badge bg-primary float-end">${address.type}</span>
-      <ul class="list-group list-group-flush">
-        ${Object.keys(address.channels)
-          .map((c) => {
-            return `<li class="list-group-item">${address.channels[c]}</li>`
-          })
-          .join('')}
-      </ul>
-      </li>`
-    })
-    console.log('addresses', addresses, list)
-
-    addressesDiv.insertAdjacentHTML('beforeend', list.join(''))
-  } catch (error) {
-    console.error('Client Error', error)
-    alert('Error - Double check host and token')
-  }
-
-  // Navigate throught pages
-  // const next = await nextPage()
-  // const prev = await prevPage()
+  await fetchAddresses()
 }
 
 window.saveInLocalStorage = (e) => {
@@ -83,3 +68,96 @@ window.ready(async function () {
   document.getElementById('token').value =
     localStorage.getItem('fabric.http.token') || ''
 })
+
+const escapeHTML = (str) => {
+  const div = document.createElement('div')
+  div.textContent = str
+  return div.innerHTML
+}
+
+function updateAddressUI() {
+  const addressesDiv = document.getElementById('addresses')
+  addressesDiv.innerHTML = ''
+  const { addresses } = window.__addressData
+
+  const createListItem = (address) => {
+    const displayName = escapeHTML(address.display_name)
+    const name = escapeHTML(address.name)
+    const type = escapeHTML(address.type)
+
+    const dialList = document.createElement('ul')
+    dialList.className = 'list-group list-group-flush'
+
+    const listItem = document.createElement('li')
+    listItem.className = 'list-group-item'
+    listItem.innerHTML = `<b>${displayName}</b> / <span>${name}</span> 
+                          <span class="badge bg-primary float-end">${type}</span>`
+
+    listItem.appendChild(dialList)
+
+    Object.entries(address.channels).forEach(([channelName, channelValue]) => {
+      const sanitizedValue = escapeHTML(channelValue)
+      const li = document.createElement('li')
+      li.className = 'list-group-item d-flex align-items-center gap-2'
+      li.innerHTML = `<span>${sanitizedValue}</span>`
+      dialList.appendChild(li)
+    })
+
+    return listItem
+  }
+
+  addresses
+    .map(createListItem)
+    .forEach((item) => addressesDiv.appendChild(item))
+}
+
+async function fetchAddresses() {
+  if (!client) return
+  try {
+    const searchText = document.getElementById('searchInput').value
+    const selectedType = document.getElementById('searchType').value
+
+    console.log('searchText', searchText, selectedType)
+
+    const addressData = await client.getAddresses({
+      type: selectedType === 'all' ? undefined : selectedType,
+      displayName: !searchText.length ? undefined : searchText,
+    })
+    console.log('addressData', addressData)
+    window.__addressData = addressData
+    updateAddressUI()
+  } catch (error) {
+    console.error('Unable to fetch addresses', error)
+  }
+}
+
+window.fetchNextAddresses = async () => {
+  const { nextPage } = window.__addressData
+  try {
+    const nextAddresses = await nextPage()
+    window.__addressData = nextAddresses
+    updateAddressUI()
+  } catch (error) {
+    console.error('Unable to fetch next addresses', error)
+  }
+}
+
+window.fetchPrevAddresses = async () => {
+  const { prevPage } = window.__addressData
+  try {
+    const prevAddresses = await prevPage()
+    window.__addressData = prevAddresses
+    updateAddressUI()
+  } catch (error) {
+    console.error('Unable to fetch prev addresses', error)
+  }
+}
+
+let debounceTimeout
+searchInput.addEventListener('input', () => {
+  clearTimeout(debounceTimeout)
+  // Search after 1 seconds when user stops typing
+  debounceTimeout = setTimeout(fetchAddresses, 1000)
+})
+
+searchType.addEventListener('change', fetchAddresses)
