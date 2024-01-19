@@ -1,4 +1,8 @@
-import { type UserOptions } from '@signalwire/core'
+import {
+  FetchAddressResponse,
+  GetAddressesOptions,
+  type UserOptions,
+} from '@signalwire/core'
 import { createHttpClient } from './createHttpClient'
 
 interface RegisterDeviceParams {
@@ -27,16 +31,33 @@ export class HTTPClient {
     return `fabric.${host.split('.').splice(1).join('.')}`
   }
 
-  public async getAddresses() {
-    const path = '/addresses' as const
-    const { body } = await this.httpClient<any>(path)
+  public async getAddresses(options?: GetAddressesOptions) {
+    const { type, displayName } = options || {}
+
+    let path = '/addresses' as const
+
+    if (type || displayName) {
+      const queryParams = new URLSearchParams()
+
+      if (type) {
+        queryParams.append('type', type)
+      }
+
+      if (displayName) {
+        queryParams.append('display_name', displayName)
+      }
+
+      path += `?${queryParams.toString()}`
+    }
+
+    const { body } = await this.httpClient<FetchAddressResponse>(path)
+
     const anotherPage = async (url: string) => {
-      const { search } = new URL(url)
-      const { body } = await this.httpClient<any>(`${path}${search}`)
+      const { body } = await this.httpClient<FetchAddressResponse>(url)
       return buildResult(body)
     }
 
-    const buildResult = (body: any) => {
+    const buildResult = (body: FetchAddressResponse) => {
       return {
         addresses: body.data,
         nextPage: async () => {
@@ -47,6 +68,12 @@ export class HTTPClient {
           const { prev } = body.links
           return prev ? anotherPage(prev) : undefined
         },
+        firstPage: async () => {
+          const { first } = body.links
+          return first ? anotherPage(first) : undefined
+        },
+        hasNext: Boolean(body.links.next),
+        hasPrev: Boolean(body.links.prev),
       }
     }
 

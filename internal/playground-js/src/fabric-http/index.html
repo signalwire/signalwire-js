@@ -78,7 +78,47 @@
 
         <div class="col-12 col-md-8 mt-4 mt-md-1">
           <div class="card">
+            <!-- Filters -->
+            <div class="input-group mt-1 px-2">
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Search..."
+                aria-label="Search"
+                aria-describedby="searchButton"
+                id="searchInput"
+              />
+              <select class="form-select" id="searchType">
+                <option value="all" selected>All</option>
+                <option value="app">App</option>
+                <option value="room">Room</option>
+                <option value="subscriber">Subscriber</option>
+              </select>
+            </div>
+            <!-- Filters end -->
+
             <div class="card-body" id="addresses"></div>
+
+            <!-- Pagination -->
+            <div class="d-flex justify-content-center pb-2 gap-2">
+              <button
+                name="fetch-next-address"
+                type="button"
+                class="btn btn-light btn-sm"
+                onclick="fetchPrevAddresses()"
+              >
+                Prev
+              </button>
+              <button
+                name="fetch-prev-address"
+                type="button"
+                class="btn btn-light btn-sm"
+                onclick="fetchNextAddresses()"
+              >
+                Next
+              </button>
+            </div>
+            <!-- Pagination end -->
           </div>
         </div>
       </div>
