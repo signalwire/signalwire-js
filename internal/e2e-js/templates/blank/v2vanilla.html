@@ -172,7 +172,7 @@
     */
       function connect() {
         client = new Relay({
-          host: "relay.signalwire.com",
+          host: window.__host,
           project: document.getElementById('project').value,
           token: document.getElementById('token').value
         });
