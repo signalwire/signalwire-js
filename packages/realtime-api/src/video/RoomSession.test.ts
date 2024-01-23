@@ -5,6 +5,7 @@ import { RoomSession } from './RoomSession'
 import { createClient } from '../client/createClient'
 import { RoomSessionRecording } from './RoomSessionRecording'
 import { RoomSessionPlayback } from './RoomSessionPlayback'
+import { RoomSessionStream } from './RoomSessionStream'
 
 describe('RoomSession Object', () => {
   let video: Video
@@ -56,6 +57,10 @@ describe('RoomSession Object', () => {
     })
   })
 
+  afterEach(() => {
+    jest.clearAllMocks()
+  })
+
   afterAll(() => {
     destroy()
   })
@@ -83,8 +88,31 @@ describe('RoomSession Object', () => {
     expect(roomSession.play).toBeDefined()
   })
 
-  describe('getRecordings', () => {
-    it('should return an array of recordings', async () => {
+  describe('Recording APIs', () => {
+    let mockRecording: RoomSessionRecording
+
+    beforeEach(() => {
+      // @ts-expect-error
+      roomSession._client.execute = jest.fn().mockResolvedValue()
+
+      mockRecording = new RoomSessionRecording({
+        roomSession,
+        payload: {
+          room_session_id: roomSessionId,
+          // @ts-expect-error
+          recording: {
+            id: 'recordingId',
+            state: 'recording',
+          },
+        },
+      })
+    })
+
+    afterEach(() => {
+      jest.clearAllMocks()
+    })
+
+    it('getRecordings should return an array of recordings', async () => {
       const recordingList = [
         {
           id: '6dfd0d76-b68f-4eef-bdee-08100fe03f4e',
@@ -123,69 +151,95 @@ describe('RoomSession Object', () => {
         expect(typeof recording.stop).toBe('function')
       })
     })
-  })
 
-  it('startRecording should return a recording object', async () => {
-    // @ts-expect-error
-    roomSession._client.execute = jest.fn().mockResolvedValue({})
+    it('startRecording should return a recording object', async () => {
+      // @ts-expect-error
+      roomSession._client.execute = jest.fn().mockResolvedValue({})
 
-    const mockRecording = new RoomSessionRecording({
-      roomSession,
-      payload: {
-        room_session_id: roomSessionId,
-        // @ts-expect-error
-        recording: {
-          id: 'recordingId',
-          state: 'recording',
+      const recordingPromise = roomSession.startRecording()
+
+      // @TODO: Mock server event
+      roomSession.emit('recording.started', mockRecording)
+
+      const recording = await recordingPromise.onStarted()
+
+      // @ts-expect-error
+      recording._client.execute = jest.fn()
+
+      await recording.pause()
+      // @ts-ignore
+      expect(recording._client.execute).toHaveBeenLastCalledWith({
+        method: 'video.recording.pause',
+        params: {
+          room_session_id: roomSessionId,
+          recording_id: 'recordingId',
         },
-      },
+      })
+      await recording.resume()
+      // @ts-ignore
+      expect(recording._client.execute).toHaveBeenLastCalledWith({
+        method: 'video.recording.resume',
+        params: {
+          room_session_id: roomSessionId,
+          recording_id: 'recordingId',
+        },
+      })
+      await recording.stop()
+      // @ts-ignore
+      expect(recording._client.execute).toHaveBeenLastCalledWith({
+        method: 'video.recording.stop',
+        params: {
+          room_session_id: roomSessionId,
+          recording_id: 'recordingId',
+        },
+      })
     })
 
-    const recordingPromise = roomSession.startRecording()
-
-    // @TODO: Mock server event
-    roomSession.emit('recording.started', mockRecording)
-
-    const recording = await recordingPromise.onStarted()
-
-    // @ts-expect-error
-    recording._client.execute = jest.fn()
-
-    await recording.pause()
-    // @ts-ignore
-    expect(recording._client.execute).toHaveBeenLastCalledWith({
-      method: 'video.recording.pause',
-      params: {
-        room_session_id: roomSessionId,
-        recording_id: 'recordingId',
-      },
-    })
-    await recording.resume()
-    // @ts-ignore
-    expect(recording._client.execute).toHaveBeenLastCalledWith({
-      method: 'video.recording.resume',
-      params: {
-        room_session_id: roomSessionId,
-        recording_id: 'recordingId',
-      },
-    })
-    await recording.stop()
-    // @ts-ignore
-    expect(recording._client.execute).toHaveBeenLastCalledWith({
-      method: 'video.recording.stop',
-      params: {
-        room_session_id: roomSessionId,
-        recording_id: 'recordingId',
-      },
-    })
-  })
-
-  describe('playback apis', () => {
-    it('play() should return a playback object', async () => {
+    it('should trigger recording and roomSession listeners', async () => {
       // @ts-expect-error
       roomSession._client.execute = jest.fn().mockResolvedValue()
 
-      const mockPlayback = new RoomSessionPlayback({
+      // Mock the listener
+      const onStartedMock = jest.fn()
+      const onUpdatedMock = jest.fn()
+      const onEndedMock = jest.fn()
+
+      const recordingPromise = roomSession.startRecording({
+        listen: {
+          onStarted: onStartedMock,
+          onUpdated: onUpdatedMock,
+          onEnded: onEndedMock,
+        },
+      })
+
+      await roomSession.listen({
+        onRecordingStarted: onStartedMock,
+        onRecordingUpdated: onUpdatedMock,
+        onRecordingEnded: onEndedMock,
+      })
+
+      // @TODO: Mock server event
+      roomSession.emit('recording.started', mockRecording)
+      roomSession.emit('recording.updated', mockRecording)
+      roomSession.emit('recording.ended', mockRecording)
+
+      await recordingPromise.onStarted()
+
+      // Assertions
+      expect(onStartedMock).toHaveBeenCalledTimes(2)
+      expect(onUpdatedMock).toHaveBeenCalledTimes(2)
+      expect(onEndedMock).toHaveBeenCalledTimes(2)
+    })
+  })
+
+  describe('Playback APIs', () => {
+    let mockPlayback: RoomSessionPlayback
+
+    beforeEach(() => {
+      // @ts-expect-error
+      roomSession._client.execute = jest.fn().mockResolvedValue()
+
+      mockPlayback = new RoomSessionPlayback({
         roomSession,
         payload: {
           room_session_id: roomSessionId,
@@ -199,7 +253,56 @@ describe('RoomSession Object', () => {
           },
         },
       })
+    })
 
+    afterEach(() => {
+      jest.clearAllMocks()
+    })
+
+    it('getPlaybacks should return an array of playbacks', async () => {
+      const playbackList = [
+        {
+          id: 'playbackId1',
+          state: 'completed',
+          started_at: 1663858327.847,
+          ended_at: 1663858334.343,
+        },
+        {
+          id: 'playbackId2',
+          state: 'playing',
+          started_at: 1663858425.548,
+        },
+      ]
+
+      // @ts-expect-error
+      ;(roomSession._client.execute as jest.Mock).mockResolvedValueOnce({
+        playbacks: playbackList,
+      })
+
+      const { playbacks } = await roomSession.getPlaybacks()
+      playbacks.forEach((playback, index) => {
+        expect(playback.id).toEqual(playbackList[index].id)
+        expect(playback.roomSessionId).toEqual(roomSessionId)
+        expect(playback.state).toEqual(playbackList[index].state)
+        expect(playback.startedAt).toEqual(
+          new Date(playbackList[index].started_at! * 1000)
+        )
+        if (playbackList[index].ended_at) {
+          expect(playback.endedAt).toEqual(
+            new Date(playbackList[index].ended_at! * 1000)
+          )
+        }
+        expect(typeof playback.pause).toBe('function')
+        expect(typeof playback.resume).toBe('function')
+        expect(typeof playback.stop).toBe('function')
+        expect(typeof playback.setVolume).toBe('function')
+        expect(typeof playback.seek).toBe('function')
+        expect(typeof playback.forward).toBe('function')
+        expect(typeof playback.rewind).toBe('function')
+      })
+    })
+
+    it('play should return a playback object', async () => {
       const playbackPromise = roomSession.play({
         url: 'rtmp://example.com/foo',
         volume: 10,
@@ -250,6 +353,164 @@ describe('RoomSession Object', () => {
           playback_id: 'playbackId',
         },
       })
+    })
+
+    it('should trigger playback and roomSession listeners', async () => {
+      // @ts-expect-error
+      roomSession._client.execute = jest.fn().mockResolvedValue()
+
+      // Mock the listener
+      const onStartedMock = jest.fn()
+      const onUpdatedMock = jest.fn()
+      const onEndedMock = jest.fn()
+
+      await roomSession.listen({
+        onPlaybackStarted: onStartedMock,
+        onPlaybackUpdated: onUpdatedMock,
+        onPlaybackEnded: onEndedMock,
+      })
+
+      const playbackPromise = roomSession.play({
+        url: 'rtmp://example.com/foo',
+        volume: 10,
+        listen: {
+          onStarted: onStartedMock,
+          onUpdated: onUpdatedMock,
+          onEnded: onEndedMock,
+        },
+      })
+
+      // @TODO: Mock server event
+      roomSession.emit('playback.started', mockPlayback)
+      roomSession.emit('playback.updated', mockPlayback)
+      roomSession.emit('playback.ended', mockPlayback)
+
+      await playbackPromise.onStarted()
+
+      // Assertions
+      expect(onStartedMock).toHaveBeenCalledTimes(2)
+      expect(onUpdatedMock).toHaveBeenCalledTimes(2)
+      expect(onEndedMock).toHaveBeenCalledTimes(2)
+    })
+  })
+
+  describe('Stream APIs', () => {
+    let mockStream: RoomSessionStream
+
+    beforeEach(() => {
+      // @ts-expect-error
+      roomSession._client.execute = jest.fn().mockResolvedValue()
+
+      mockStream = new RoomSessionStream({
+        roomSession,
+        payload: {
+          room_session_id: roomSessionId,
+          // @ts-expect-error
+          stream: {
+            id: 'streamId',
+            url: 'rtmp://example.com/foo',
+            room_session_id: roomSessionId,
+            state: 'streaming',
+          },
+        },
+      })
+    })
+
+    afterEach(() => {
+      jest.clearAllMocks()
+    })
+
+    it('getStreams should return an array of playbacks', async () => {
+      const streamList = [
+        {
+          id: 'streamId1',
+          state: 'completed',
+          started_at: 1663858327.847,
+          ended_at: 1663858334.343,
+        },
+        {
+          id: 'streamId2',
+          state: 'streaming',
+          started_at: 1663858425.548,
+        },
+      ]
+
+      // @ts-expect-error
+      ;(roomSession._client.execute as jest.Mock).mockResolvedValueOnce({
+        streams: streamList,
+      })
+
+      const { streams } = await roomSession.getStreams()
+      streams.forEach((stream, index) => {
+        expect(stream.id).toEqual(streamList[index].id)
+        expect(stream.roomSessionId).toEqual(roomSessionId)
+        expect(stream.state).toEqual(streamList[index].state)
+        expect(stream.startedAt).toEqual(
+          new Date(streamList[index].started_at! * 1000)
+        )
+        if (streamList[index].ended_at) {
+          expect(stream.endedAt).toEqual(
+            new Date(streamList[index].ended_at! * 1000)
+          )
+        }
+        expect(typeof stream.stop).toBe('function')
+      })
+    })
+
+    it('startStream should return a stream object', async () => {
+      const streamPromise = roomSession.startStream({
+        url: 'rtmp://example.com/foo',
+      })
+
+      // @TODO: Mock server event
+      roomSession.emit('stream.started', mockStream)
+
+      const stream = await streamPromise.onStarted()
+
+      // @ts-expect-error
+      stream._client.execute = jest.fn()
+
+      await stream.stop()
+      // @ts-ignore
+      expect(stream._client.execute).toHaveBeenLastCalledWith({
+        method: 'video.stream.stop',
+        params: {
+          room_session_id: roomSessionId,
+          stream_id: 'streamId',
+        },
+      })
+    })
+
+    it('should trigger stream and roomSession listeners', async () => {
+      // @ts-expect-error
+      roomSession._client.execute = jest.fn().mockResolvedValue()
+
+      // Mock the listener
+      const onStartedMock = jest.fn()
+      const onEndedMock = jest.fn()
+
+      await roomSession.listen({
+        onStreamStarted: onStartedMock,
+        onStreamEnded: onEndedMock,
+      })
+
+      const streamPromise = roomSession.startStream({
+        url: 'rtmp://example.com/foo',
+        listen: {
+          onStarted: onStartedMock,
+          onEnded: onEndedMock,
+        },
+      })
+
+      // @TODO: Mock server event
+      roomSession.emit('stream.started', mockStream)
+      roomSession.emit('stream.ended', mockStream)
+
+      await streamPromise.onStarted()
+
+      // Assertions
+      expect(onStartedMock).toHaveBeenCalledTimes(2)
+      expect(onEndedMock).toHaveBeenCalledTimes(2)
     })
   })
 })

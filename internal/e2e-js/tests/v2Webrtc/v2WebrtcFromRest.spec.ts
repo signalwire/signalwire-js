@@ -53,6 +53,7 @@ test.describe('V2Calling incoming from REST API', () => {
     await expectRelayConnected(pageCallee, envRelayProject, jwtCallee)
 
     const conferenceName = randomizeRoomName("v2rest")
+    const conferenceRegion = process.env.LAML_CONFERENCE_REGION ?? ''
     const inlineLaml = `<?xml version="1.0" encoding="UTF-8"?>
       <Response>
         <Dial>
@@ -60,7 +61,8 @@ test.describe('V2Calling incoming from REST API', () => {
             endConferenceOnExit="false"
             startConferenceOnEnter="true"
             waitUrl="https://cdn.signalwire.com/default-music/welcome.mp3"
-            waitMethod="GET">
+            waitMethod="GET"
+            ${conferenceRegion}>
             ${conferenceName}
           </Conference>
         </Dial>
