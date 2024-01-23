@@ -17,7 +17,7 @@ import {
   RPCDisconnectResponse,
   RPCPingResponse,
   RPCEventAckResponse,
-  // UNIFIED_CONNECT_VERSION,
+  UNIFIED_CONNECT_VERSION,
 } from './RPCMessages'
 import {
   SessionOptions,
@@ -94,10 +94,9 @@ export class BaseSession {
 
     this.unifiedEventing = unifiedEventing
 
-    // FIXME: Enable this when server version is fixed
-    // this.connectVersion = unifiedEventing
-    //   ? UNIFIED_CONNECT_VERSION
-    //   : DEFAULT_CONNECT_VERSION
+    this.connectVersion = unifiedEventing
+      ? UNIFIED_CONNECT_VERSION
+      : DEFAULT_CONNECT_VERSION
 
     if (host) {
       this._host = checkWebSocketHost(host)
@@ -363,7 +362,7 @@ export class BaseSession {
         token: this.options.token,
       },
       // FIXME: Remove this once server is ready
-      eventing: this.unifiedEventing ? ['unified'] : undefined,
+      // eventing: this.unifiedEventing ? ['unified'] : undefined,
     }
   }
 
