@@ -6,7 +6,7 @@ import {
   RPCPing,
   RPCPingResponse,
   RPCDisconnectResponse,
-  // RPCConnectUnified,
+  RPCConnectUnified,
 } from './RPCMessages'
 import { SWCloseEvent } from './utils'
 import { wait } from './testUtils'
@@ -73,13 +73,11 @@ describe('BaseSession', () => {
       unifiedEventing: true,
     })
 
-    // FIXME: Use RPCUnified when server version is ready
-    const rpcConnectUnified = RPCConnect({
+    const rpcConnectUnified = RPCConnectUnified({
       authentication: {
         project,
         token,
-      },
-      eventing: ['unified'],
+      }
     })
 
     unifiedEventingSession.WebSocketConstructor = WebSocket

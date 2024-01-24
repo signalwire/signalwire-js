@@ -88,13 +88,6 @@ export class RoomSessionStream
     this._payload = payload
   }
 
-  /** @internal */
-  attachListeners(listeners?: RealTimeRoomStreamListeners) {
-    if (listeners) {
-      this.listen(listeners)
-    }
-  }
-
   async stop() {
     if (this.hasEnded) {
       throw new Error('Action has ended')
