@@ -77,8 +77,7 @@ describe('BaseSession', () => {
       authentication: {
         project,
         token,
-      },
-      eventing: ['unified'],
+      }
     })
 
     unifiedEventingSession.WebSocketConstructor = WebSocket
