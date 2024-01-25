@@ -164,6 +164,11 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     return this.component.roomSessionId
   }
 
+  get self() {
+    // @ts-expect-error
+    return this.component.self
+  }
+
   get nodeId() {
     // @ts-expect-error
     return this.component.nodeId || this.options.nodeId

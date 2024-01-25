@@ -58,6 +58,13 @@ export const roomSubscribedWorker: SDKWorker<
    */
   yield sagaEffects.put(
     componentActions.upsert({
+      //@ts-ignore
+      self: {
+        id: action.payload.room_session.members[0].id,
+        //@ts-ignore 
+        callId:action.payload.room_session.members[0].call_id,
+        nodeId: action.payload.node_id ?? 'undefined'
+      },
       id: action.payload.call_id,
       roomId: action.payload.room_session.room_id,
       roomSessionId: action.payload.room_session.id,

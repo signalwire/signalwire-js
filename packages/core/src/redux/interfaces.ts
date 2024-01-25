@@ -20,6 +20,7 @@ import type {
   VoiceCallAction,
   VideoManagerAction,
   PubSubEventAction,
+  InternalUnifiedActionTarget,
 } from '../types'
 import { SDKRunSaga } from '.'
 
@@ -33,6 +34,7 @@ interface SWComponent {
 }
 
 export interface WebRTCCall extends SWComponent {
+  self?: InternalUnifiedActionTarget,
   state?: BaseConnectionState
   remoteSDP?: string
   nodeId?: string

@@ -90,6 +90,7 @@ const createRoomMemberMethod = <
           member_id: memberId || this.memberId,
           ...rest,
         },
+        self: this.self
       },
       options
     )
@@ -516,6 +517,12 @@ export const audioMuteMember = createRoomMemberMethod<BaseRPCResult, void>(
   'video.member.audio_mute',
   {
     transformResolve: baseCodeTransform,
+    transformParams: (payload) => {
+      console.log('&&&&&&&&&&')
+      console.log(payload)
+      console.log('&&&&&&&&&&')
+      return payload
+    }
   }
 )
 export const audioUnmuteMember = createRoomMemberMethod<BaseRPCResult, void>(

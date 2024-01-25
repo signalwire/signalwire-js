@@ -71,7 +71,7 @@ export const unifiedEventsWatcher: SDKWorker<RoomSessionConnection> =
     }
 
     const isUnifiedEvent = (action: SDKActions) =>
-      action.type.startsWith('member') || action.type.startsWith('layout')
+      action.type.startsWith('member') || action.type.startsWith('layout') || action.type.startsWith('call')
 
     while (true) {
       const action: MapToPubSubShape<VideoAPIEventParams> =
