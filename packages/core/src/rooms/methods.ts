@@ -518,9 +518,6 @@ export const audioMuteMember = createRoomMemberMethod<BaseRPCResult, void>(
   {
     transformResolve: baseCodeTransform,
     transformParams: (payload) => {
-      console.log('&&&&&&&&&&')
-      console.log(payload)
-      console.log('&&&&&&&&&&')
       return payload
     }
   }
