@@ -178,7 +178,7 @@ export class BaseComponent<
     OutputType = unknown,
     ParamsType = Record<string, any>
   >(
-    { method, params, self, target }: ExecuteParams,
+    { method, params }: ExecuteParams,
     {
       transformParams = identity,
       transformResolve = identity,
@@ -197,8 +197,6 @@ export class BaseComponent<
         onDone: (data) => resolve(transformResolve(data)),
         onFail: (error) => reject(transformReject(error)),
         initialState: {
-          self,
-          target,
           requestId,
           componentId: this.__uuid,
           method,

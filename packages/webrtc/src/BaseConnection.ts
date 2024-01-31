@@ -164,14 +164,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     return this.component.roomSessionId
   }
 
-  get self() {
-    return this.select(selectors.getSelf)
-  }
-
-  get target() {
-    return this.select(selectors.getTarget)
-  }
-
   get nodeId() {
     // @ts-expect-error
     return this.component.nodeId || this.options.nodeId

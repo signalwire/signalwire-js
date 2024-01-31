@@ -19,7 +19,6 @@ import {
   MessagingJSONRPCMethod,
   VoiceJSONRPCMethod,
   ClientContextMethod,
-  InternalUnifiedActionTarget,
 } from '..'
 
 type JSONRPCParams = Record<string, any>
@@ -393,8 +392,6 @@ export interface WebSocketAdapter {
 export type ExecuteParams = {
   method: JSONRPCMethod
   params: Record<string, any>
-  self?: InternalUnifiedActionTarget
-  target?: InternalUnifiedActionTarget
 }
 
 export interface ExecuteExtendedOptions<InputType, OutputType, ParamsType> {

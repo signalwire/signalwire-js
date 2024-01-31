@@ -89,9 +89,7 @@ const createRoomMemberMethod = <
           room_session_id: this.roomSessionId,
           member_id: memberId || this.memberId,
           ...rest,
-        },
-        self: this.self,
-        target: this.target
+        }
       },
       options
     )

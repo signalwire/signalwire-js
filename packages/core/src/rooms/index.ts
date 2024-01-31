@@ -1,4 +1,4 @@
-import { BaseComponent, EventEmitter, InternalUnifiedActionTarget } from '..'
+import { BaseComponent, EventEmitter } from '..'
 
 export interface BaseRoomInterface<
   EventTypes extends EventEmitter.ValidEventTypes
@@ -6,8 +6,6 @@ export interface BaseRoomInterface<
   roomId: string
   roomSessionId: string
   memberId: string
-  self: InternalUnifiedActionTarget | undefined
-  target: InternalUnifiedActionTarget | undefined
 }
 
 export * from './methods'
