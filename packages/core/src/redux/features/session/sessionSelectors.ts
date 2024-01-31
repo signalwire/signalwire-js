@@ -20,5 +20,5 @@ export const getAuthState = ({ session }: SDKState) => {
   return session.authState
 }
 
-export const getSelf = ({ session }: SDKState) => session.self
+export const getSelf = ({ session }: SDKState) => session.targetStack[0]
 export const getTarget = ({ session }: SDKState) => session.targetStack.length ? session.targetStack[session.targetStack.length-1] : undefined

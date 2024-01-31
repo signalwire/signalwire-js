@@ -70,7 +70,6 @@ export interface SessionState {
   authError?: SessionAuthError
   authCount: number
   isUnified: boolean,
-  self?: InternalUnifiedActionTarget,
   targetStack: InternalUnifiedActionTarget[]
 }
 
