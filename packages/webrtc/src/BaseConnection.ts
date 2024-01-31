@@ -165,8 +165,11 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   get self() {
-    // @ts-expect-error
-    return this.component.self
+    return this.select(selectors.getSelf)
+  }
+
+  get target() {
+    return this.select(selectors.getTarget)
   }
 
   get nodeId() {

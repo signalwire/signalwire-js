@@ -6,7 +6,8 @@ export interface BaseRoomInterface<
   roomId: string
   roomSessionId: string
   memberId: string
-  self: InternalUnifiedActionTarget
+  self: InternalUnifiedActionTarget | undefined
+  target: InternalUnifiedActionTarget | undefined
 }
 
 export * from './methods'

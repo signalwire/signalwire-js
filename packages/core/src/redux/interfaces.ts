@@ -35,6 +35,7 @@ interface SWComponent {
 
 export interface WebRTCCall extends SWComponent {
   self?: InternalUnifiedActionTarget,
+  targetStack?: InternalUnifiedActionTarget[],
   state?: BaseConnectionState
   remoteSDP?: string
   nodeId?: string
@@ -58,7 +59,7 @@ export type ReduxComponent = WebRTCCall | Message
 export interface ComponentState {
   byId: {
     [key: string]: ReduxComponent
-  }
+  },
 }
 
 export interface SessionState {
@@ -68,6 +69,9 @@ export interface SessionState {
   authState?: Authorization
   authError?: SessionAuthError
   authCount: number
+  isUnified: boolean,
+  self?: InternalUnifiedActionTarget,
+  targetStack: InternalUnifiedActionTarget[]
 }
 
 export interface SDKState {

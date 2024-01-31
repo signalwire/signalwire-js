@@ -12,9 +12,9 @@ import { UnifiedRequestMapper } from '../utils/UnifiedRequestMapper'
 export const executeActionWorker: SDKWorker<ExecuteActionParams> = function* (
   options
 ): SagaIterator {
-  const { initialState, onDone, onFail, getSession, instanceMap } = options
+  const { initialState, onDone, onFail, getSession } = options
   
-  const { requestId, method, params, self, componentId } = initialState
+  const { requestId, method, params, self, target } = initialState
 
   const session = getSession()
 
@@ -33,15 +33,7 @@ export const executeActionWorker: SDKWorker<ExecuteActionParams> = function* (
     })
 
     if(session.unifiedEventing && message.method in UnifiedRequestMapper) {
-      const component = instanceMap.get(componentId)
-      console.log('@#$')
-      console.log(component)
-      // FIXME we need to lookup the target from the memberList
-      const target = {
-        ...self,
-        member_id: params.member_id
-      }
-      //@ts-expect-error
+      //@ts-ignore
       message = UnifiedRequestMapper[message.method](message, self, target)
     }
 

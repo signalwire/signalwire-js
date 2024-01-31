@@ -20,18 +20,6 @@ export const toInternalAction = <
     } as MapToPubSubShape<T>
   }
 
-  // FIXME This is a hack until we can get the nodeId from the members for the unified methods
-  if(event_type === 'call.joined') {
-    return {
-      type: event_type,
-      payload: {
-        //@ts-ignore
-        ...params,
-        node_id: node_id
-      }
-    }
-  }
-
   /**
    * `webrtc.*` events need to carry the node_id with them
    */

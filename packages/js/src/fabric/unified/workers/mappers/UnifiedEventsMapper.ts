@@ -14,7 +14,6 @@ const EVENT_MAPPINGS: Record<string, string[]> = {
   'call.collect': ['call.collect.[collect_state]'],
   'call.connect': [
     'call.connect.[connect_state]',
-    'video.room.[connect_state(connected:subscribed)]',
   ],
   'call.joined': ['video.room.subscribed'],
   'call.audience_count': ['video.room.audience_count'],

@@ -46,6 +46,8 @@ describe('componentCleanupSaga', () => {
           authState: undefined,
           authError: undefined,
           authCount: 0,
+          isUnified: false,
+          targetStack: []
         },
       })
       .run()

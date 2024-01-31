@@ -75,6 +75,8 @@ describe('Connect', () => {
       authStatus: 'authorized',
       authError: undefined,
       authCount: 0,
+      isUnified: false,
+      targetStack: []
     })
   })
 })

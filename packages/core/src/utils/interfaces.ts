@@ -394,6 +394,7 @@ export type ExecuteParams = {
   method: JSONRPCMethod
   params: Record<string, any>
   self?: InternalUnifiedActionTarget
+  target?: InternalUnifiedActionTarget
 }
 
 export interface ExecuteExtendedOptions<InputType, OutputType, ParamsType> {

@@ -355,11 +355,12 @@ export type InternalVideoMemberEntity = {
 }
 
 export interface InternalUnifiedVideoMemberEntity extends InternalVideoMemberEntity {
+  memberId: string
   callId: string,
   nodeId: string
 }
 
-export type InternalUnifiedActionTarget = Pick<InternalUnifiedVideoMemberEntity, 'id' | 'callId' |'nodeId'>
+export type InternalUnifiedActionTarget = Pick<InternalUnifiedVideoMemberEntity, 'memberId' | 'callId' |'nodeId'>
 /**
  * VideoMember entity plus `updated` field
  * for internal usage (converted to snake_case)

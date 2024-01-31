@@ -11,12 +11,12 @@ export const UnifiedRequestMapper = {
     const params = {
       channels: ['audio'],
       self: {
-        member_id: self.id,
+        member_id: self.memberId,
         call_id: self.callId,
         node_id: self.nodeId
       },
       target: {
-        member_id: target.id,
+        member_id: target.memberId,
         call_id: target.callId,
         node_id: target.nodeId
       },
