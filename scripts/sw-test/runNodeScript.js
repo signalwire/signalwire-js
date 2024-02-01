@@ -10,22 +10,43 @@ const { spawn } = require('node:child_process')
 const ALLOWED_SCRIPT_EXTENSIONS = ['js', 'ts']
 
 const getScriptOptions = (pathname, config) => {
-  const list = fs.readdirSync(pathname)
   const ignoreFiles = config.ignoreFiles || []
+  const ignoreDirectories = config.ignoreDirectories
+    ? [...config.ignoreDirectories, 'playwright']
+    : ['playwright']
+
   let acc = []
-  list.forEach(function (item) {
-    const itemPath = pathname + '/' + item
+
+  const processItem = (item, basePath = '') => {
+    const itemPath = basePath + '/' + item
+
+    if (
+      fs.lstatSync(itemPath).isDirectory() &&
+      !ignoreDirectories.includes(item)
+    ) {
+      const childList = fs.readdirSync(itemPath)
+      childList.forEach((childItem) => processItem(childItem, itemPath))
+    }
+
+    const relativePath = path.relative(path.join(pathname, 'src'), itemPath)
+    const normalizedPath = relativePath
+      .replace(/\.\.(\/|\\)/g, '')
+      .replace(/\\/g, '/')
+
     if (
       fs.lstatSync(itemPath).isFile() &&
-      item.includes('.test.') &&
-      !ignoreFiles.includes(item)
+      normalizedPath.includes('.test.') &&
+      !ignoreFiles.includes(normalizedPath)
     ) {
       acc.push({
-        name: item,
+        name: normalizedPath,
         type: getScriptType(itemPath),
       })
     }
-  })
+  }
+
+  const list = fs.readdirSync(pathname)
+  list.forEach((item) => processItem(item, pathname))
 
   return acc
 }
@@ -81,7 +102,7 @@ async function runNodeScript(config) {
     }
   } catch (error) {
     console.error('Process Exit with errorCode', error)
-    process.exit(error)
+    process.exit(error ?? 1)
   }
 }
 

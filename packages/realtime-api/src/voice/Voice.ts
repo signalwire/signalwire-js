@@ -78,10 +78,11 @@ export class Voice extends BaseNamespace<VoiceListenOptions, VoiceEvents> {
           devices: toInternalDevices(devices),
         }
       } else if ('region' in params) {
-        const { region, devices: deviceBuilder } = params
+        const { region, nodeId, devices: deviceBuilder } = params
         executeParams = {
           tag: _tag,
           region,
+          node_id: nodeId,
           devices: toInternalDevices(deviceBuilder.devices),
         }
       } else {
@@ -102,6 +103,7 @@ export class Voice extends BaseNamespace<VoiceListenOptions, VoiceEvents> {
   dialPhone({
     region,
     maxPricePerMinute,
+    nodeId,
     listen,
     ...params
   }: VoiceDialPhonelMethodParams) {
@@ -109,6 +111,7 @@ export class Voice extends BaseNamespace<VoiceListenOptions, VoiceEvents> {
     return this.dial({
       maxPricePerMinute,
       region,
+      nodeId,
       devices,
       listen,
     })
@@ -117,6 +120,7 @@ export class Voice extends BaseNamespace<VoiceListenOptions, VoiceEvents> {
   dialSip({
     region,
     maxPricePerMinute,
+    nodeId,
     listen,
     ...params
   }: VoiceDialSipMethodParams) {
@@ -124,6 +128,7 @@ export class Voice extends BaseNamespace<VoiceListenOptions, VoiceEvents> {
     return this.dial({
       maxPricePerMinute,
       region,
+      nodeId,
       devices,
       listen,
     })

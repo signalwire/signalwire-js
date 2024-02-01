@@ -240,4 +240,74 @@ describe('Room Custom Methods', () => {
       )
     })
   })
+
+  describe('setRaisedHand', () => {
+    it.each([
+      {
+        input: {
+          memberId: 'c22d7124-5a01-49fe-8da0-46bec8e75f12',
+        },
+        method: 'video.member.raisehand',
+      },
+      {
+        input: {
+          memberId: 'c22d7124-5a01-49fe-8da0-46bec8e75f12',
+          raised: true,
+        },
+        method: 'video.member.raisehand',
+      },
+      {
+        input: {
+          memberId: 'c22d7124-5a01-49fe-8da0-46bec8e75f12',
+          raised: false,
+        },
+        method: 'video.member.lowerhand',
+      },
+      {
+        input: {},
+        method: 'video.member.raisehand',
+      },
+    ])('should execute with proper params', async ({ input, method }) => {
+      ;(instance.execute as jest.Mock).mockResolvedValueOnce({})
+      instance.roomSessionId = 'mocked'
+      instance.memberId = 'c22d7124-5a01-49fe-8da0-46bec8e75f12'
+
+      await instance.setRaisedHand(input)
+
+      expect(instance.execute).toHaveBeenCalledTimes(1)
+      expect(instance.execute).toHaveBeenCalledWith(
+        {
+          method,
+          params: {
+            room_session_id: 'mocked',
+            member_id: 'c22d7124-5a01-49fe-8da0-46bec8e75f12',
+          },
+        },
+        {
+          transformResolve: expect.anything(),
+        }
+      )
+    })
+  })
+
+  describe('setPrioritizeHandraise', () => {
+    it.each([true, false])(
+      'should execute with proper params',
+      async (enable) => {
+        ;(instance.execute as jest.Mock).mockResolvedValueOnce({})
+        instance.roomSessionId = 'mocked'
+
+        await instance.setPrioritizeHandraise(enable)
+
+        expect(instance.execute).toHaveBeenCalledTimes(1)
+        expect(instance.execute).toHaveBeenCalledWith({
+          method: 'video.prioritize_handraise',
+          params: {
+            room_session_id: 'mocked',
+            enable,
+          },
+        })
+      }
+    )
+  })
 })

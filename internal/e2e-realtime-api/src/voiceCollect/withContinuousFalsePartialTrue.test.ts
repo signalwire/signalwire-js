@@ -1,12 +1,17 @@
 import tap from 'tap'
 import { SignalWire } from '@signalwire/realtime-api'
 import {
-  type TestHandler,
   createTestRunner,
-  makeSipDomainAppAddress,
-  CALL_RECORD_PROPS,
   CALL_PROPS,
-} from './utils'
+  TestHandler,
+  makeSipDomainAppAddress,
+} from '../utils'
+
+const possibleExpectedTexts = [
+  '123456789 10:00 11:00 12:00',
+  'one two three four five six seven eight nine ten',
+  '1112',
+]
 
 const handler: TestHandler = ({ domainApp }) => {
   if (!domainApp) {
@@ -24,6 +29,16 @@ const handler: TestHandler = ({ domainApp }) => {
         },
       })
 
+      let waitForCollectStartResolve
+      const waitForCollectStart = new Promise((resolve) => {
+        waitForCollectStartResolve = resolve
+      })
+
+      let waitForPlaybackEndResolve
+      const waitForPlaybackEnd = new Promise((resolve) => {
+        waitForPlaybackEndResolve = resolve
+      })
+
       const unsubVoice = await client.voice.listen({
         topics: [domainApp.call_relay_context],
         onCallReceived: async (call) => {
@@ -36,34 +51,46 @@ const handler: TestHandler = ({ domainApp }) => {
               'Inbound - Call answered gets the same instance'
             )
 
-            const record = await call
-              .recordAudio({
-                terminators: '#',
+            const callCollect = await call
+              .collect({
+                initialTimeout: 10.0,
+                speech: {
+                  endSilenceTimeout: 2.0,
+                  speechTimeout: 20.0,
+                  language: 'en-US',
+                  model: 'enhanced.phone_call',
+                },
+                partialResults: true,
+                continuous: false,
+                sendStartOfInput: true,
                 listen: {
-                  async onFailed(recording) {
-                    tap.hasProps(
-                      recording,
-                      CALL_RECORD_PROPS,
-                      'Inbound - Recording failed'
-                    )
-                    tap.equal(
-                      recording.state,
-                      'no_input',
-                      'Recording correct state'
-                    )
+                  onStarted: () => {
+                    console.log('>>> collect.started')
+                  },
+                  onUpdated: (_collect) => {
+                    console.log('>>> collect.updated', _collect.text)
+                  },
+                  onEnded: (_collect) => {
+                    console.log('>>> collect.ended', _collect.text)
+                  },
+                  onFailed: (_collect) => {
+                    console.log('>>> collect.failed', _collect.reason)
                   },
                 },
               })
               .onStarted()
-            tap.equal(
-              call.id,
-              record.callId,
-              'Inbound - Record returns the same call instance'
+
+            // Inform caller that collect has started
+            waitForCollectStartResolve()
+
+            // Wait until the caller ends sending the speech
+            await waitForPlaybackEnd
+
+            const collected = await callCollect.ended()
+            tap.ok(
+              possibleExpectedTexts.includes(collected.text!),
+              'Received Correct Text'
             )
-
-            await call.sendDigits('#')
-
-            await record.ended()
 
             await call.hangup()
           } catch (error) {
@@ -81,41 +108,20 @@ const handler: TestHandler = ({ domainApp }) => {
           name: 'from',
           domain: domainApp.domain,
         }),
-        timeout: 30,
-        listen: {
-          onRecordingStarted: (playback) => {
-            tap.hasProps(
-              playback,
-              CALL_RECORD_PROPS,
-              'Outbound - Recording started'
-            )
-            tap.equal(playback.state, 'recording', 'Recording correct state')
-          },
-        },
       })
       tap.ok(call.id, 'Outbound - Call resolved')
 
-      const record = await call
-        .recordAudio({
-          terminators: '*',
-        })
-        .onStarted()
+      // Wait until the callee starts collecting speech
+      await waitForCollectStart
 
-      tap.equal(
-        call.id,
-        record.callId,
-        'Outbound - Recording returns the same call instance'
-      )
+      await call.playAudio({
+        url: 'https://amaswtest.s3-accelerate.amazonaws.com/newrecording2.mp3',
+      })
 
-      await call.sendDigits('*')
+      // Inform callee that speech has completed
+      waitForPlaybackEndResolve()
 
-      await record.ended()
-      tap.match(
-        record.state,
-        /finished|no_input/,
-        'Outbound - Recording state is "finished"'
-      )
-
+      // Resolve if the call has ended or ending
       const waitForParams = ['ended', 'ending', ['ending', 'ended']] as const
       const results = await Promise.all(
         waitForParams.map((params) => call.waitFor(params as any))
@@ -131,9 +137,13 @@ const handler: TestHandler = ({ domainApp }) => {
         }
       })
 
+      await unsubVoice()
+
+      await client.disconnect()
+
       resolve(0)
     } catch (error) {
-      console.error('VoiceRecordMultiple error', error)
+      console.error('voiceCollect/withContinuousFalsePartialTrue error', error)
       reject(4)
     }
   })
@@ -141,7 +151,7 @@ const handler: TestHandler = ({ domainApp }) => {
 
 async function main() {
   const runner = createTestRunner({
-    name: 'Voice Recording multiple E2E',
+    name: 'Voice Collect with Continuous false & Partial true',
     testHandler: handler,
     executionTime: 60_000,
     useDomainApp: true,

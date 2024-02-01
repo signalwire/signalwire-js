@@ -40,8 +40,16 @@ export function decoratePromise<T, U>(
 
   Object.defineProperties(promise, {
     onStarted: {
-      value: async function () {
-        return await innerPromise
+      value: function () {
+        /**
+         * Since onStarted is a property of the outer promise.
+         * In case the inner promise rejects, the outer promise goes unhandled.
+         * Due to this, we need to catch both of the promises.
+         */
+        return new Promise((resolve, reject) => {
+          promise.catch(reject)
+          innerPromise.then(resolve).catch(reject)
+        })
       },
       enumerable: true,
     },

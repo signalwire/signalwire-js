@@ -115,8 +115,18 @@ export class CallCollect
     return undefined
   }
 
+  get state() {
+    return this._payload.state
+  }
+
+  get final() {
+    return this._payload.final
+  }
+
   get hasEnded() {
     if (
+      this.state !== 'collecting' &&
+      this.final !== false &&
       ENDED_STATES.includes(this.result?.type as CallingCallCollectEndState)
     ) {
       return true

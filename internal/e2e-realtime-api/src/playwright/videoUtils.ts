@@ -1,4 +1,7 @@
-import { Page, Browser } from '@playwright/test'
+import { Page, Browser, expect } from '@playwright/test'
+import { InternalVideoMemberEntityUpdated, uuid } from '@signalwire/core'
+import { SWClient, SignalWire } from '@signalwire/realtime-api'
+import { Video as JSVideo } from '@signalwire/js'
 import { SERVER_URL } from '../../utils'
 
 const PERMISSIONS = [
@@ -19,6 +22,12 @@ const PERMISSIONS = [
   'room.recording',
   'room.playback',
   'room.playback_seek',
+  'room.member.raisehand',
+  'room.member.lowerhand',
+  'room.self.raisehand',
+  'room.self.lowerhand',
+  'room.lock',
+  'room.unlock',
 ]
 
 type CreateVRTParams = {
@@ -48,22 +57,17 @@ export const createTestVRTToken = async (body: CreateVRTParams) => {
 }
 
 type CreateRoomSessionParams = CreateVRTParams & {
-  browser: Browser
-  pageName: string
+  page: Page
+  initialEvents?: string[]
 }
-export const createNewTabRoomSession = async (
-  params: CreateRoomSessionParams
-): Promise<void> => {
-  try {
-    const { browser, pageName, ...auth } = params
 
-    const tab = await browser.newPage()
-    await tab.goto(SERVER_URL)
-    enablePageLogs(tab, pageName)
+export const createRoomSession = async (params: CreateRoomSessionParams) => {
+  try {
+    const { page, initialEvents, ...auth } = params
 
     const vrt = await createTestVRTToken(auth)
 
-    return tab.evaluate(
+    return page.evaluate(
       (options) => {
         return new Promise<void>(async (resolve, reject) => {
           // @ts-expect-error
@@ -76,35 +80,18 @@ export const createNewTabRoomSession = async (
             debug: { logWsTraffic: true },
           })
 
-          console.log('Room created', roomSession.id)
+          // @ts-expect-error
+          window._roomObj = roomSession
 
-          let waitForRecordStartResolve: (value: void) => void
-          const waitForRecordStart = new Promise((resolve) => {
-            waitForRecordStartResolve = resolve
-          })
-          let waitForPlaybackStartResolve: (value: void) => void
-          const waitForPlaybackStart = new Promise((resolve) => {
-            waitForPlaybackStartResolve = resolve
-          })
+          roomSession.on('room.joined', async (room) => {
+            // @ts-expect-error
+            window._roomOnJoined = room
 
-          roomSession.on('recording.started', () => {
-            console.log('Recording has started')
-            waitForRecordStartResolve()
+            resolve(room)
           })
 
-          roomSession.on('playback.started', () => {
-            console.log('Playback has started')
-            waitForPlaybackStartResolve()
-          })
-
-          roomSession.on('room.joined', async () => {
-            await roomSession.startRecording()
-            await waitForRecordStart
-
-            await roomSession.play({ url: options.PLAYBACK_URL })
-            await waitForPlaybackStart
-
-            resolve()
+          options.initialEvents?.forEach((event) => {
+            roomSession.once(event, () => {})
           })
 
           await roomSession.join().catch((error) => {
@@ -116,10 +103,256 @@ export const createNewTabRoomSession = async (
       {
         RELAY_HOST: process.env.RELAY_HOST || 'relay.signalwire.com',
         API_TOKEN: vrt,
-        PLAYBACK_URL: process.env.PLAYBACK_URL,
+        initialEvents,
       }
     )
   } catch (error) {
     console.error('CreateRoomSession Error', error)
   }
+}
+
+type CreateNewTabRoomSessionParams = CreateVRTParams & {
+  browser: Browser
+  pageName: string
+}
+
+export interface CreateRoomAndRecordPlayReturn {
+  roomSession: JSVideo.RoomSession
+  leaveRoom: () => Promise<void>
+}
+
+export const createRoomAndRecordPlay = async (
+  params: CreateNewTabRoomSessionParams
+): Promise<CreateRoomAndRecordPlayReturn | undefined> => {
+  try {
+    const { browser, pageName, ...auth } = params
+
+    const page = await browser.newPage()
+    await page.goto(SERVER_URL)
+    enablePageLogs(page, pageName)
+
+    const vrt = await createTestVRTToken(auth)
+
+    const roomSession = await page.evaluate(
+      (options) => {
+        return new Promise<JSVideo.RoomSession>(async (resolve, reject) => {
+          try {
+            // @ts-expect-error
+            const VideoSWJS = window._SWJS.Video
+            const roomSession = new VideoSWJS.RoomSession({
+              host: options.RELAY_HOST,
+              token: options.API_TOKEN,
+              audio: true,
+              video: true,
+              debug: { logWsTraffic: true },
+            })
+
+            // @ts-expect-error
+            window._roomObj = roomSession
+
+            console.log('Room created', roomSession.id)
+
+            // Need to attach these events before room.join
+            roomSession.once('recording.started', () => {})
+            roomSession.once('playback.started', () => {})
+            roomSession.once('room.left', () => {})
+
+            roomSession.on('room.joined', async (room) => {
+              const recordingStarted = new Promise<void>(async (res, _rej) => {
+                roomSession.on('recording.started', () => {
+                  console.log('Recording has started')
+                  res()
+                })
+                await roomSession.startRecording()
+              })
+
+              const playbackStarted = new Promise<void>(async (res, _rej) => {
+                roomSession.on('playback.started', () => {
+                  console.log('Playback has started')
+                  res()
+                })
+                await roomSession.play({ url: options.PLAYBACK_URL })
+              })
+
+              await Promise.all([recordingStarted, playbackStarted])
+
+              resolve(room)
+            })
+
+            await roomSession.join().catch((error) => {
+              console.log('Error joining room', error)
+              reject(error)
+            })
+          } catch (error) {
+            console.log('createRoomAndRecordPlay error', error)
+            reject(error)
+          }
+        })
+      },
+      {
+        RELAY_HOST: process.env.RELAY_HOST || 'relay.signalwire.com',
+        API_TOKEN: vrt,
+        PLAYBACK_URL: process.env.PLAYBACK_URL,
+      }
+    )
+
+    const leaveCurrentPageRoom = () => leaveRoom({ page })
+
+    return { roomSession, leaveRoom: leaveCurrentPageRoom }
+  } catch (error) {
+    console.error('CreateRoomSession Error', error)
+  }
+}
+
+interface ExpectHandRaiseEventParams {
+  page: Page
+  memberId: string
+  raised?: boolean
+}
+
+export const expectHandRaiseEvent = async (
+  params: ExpectHandRaiseEventParams
+) => {
+  const { page, memberId, raised = true } = params
+  const updatedMember = await page.evaluate(
+    ({ memberId, raised }) => {
+      return new Promise<InternalVideoMemberEntityUpdated>(
+        (resolve, _reject) => {
+          // @ts-expect-error
+          const roomSession = window._roomObj
+
+          roomSession.on('member.updated', (room) => {
+            if (
+              room.member.id === memberId &&
+              room.member.handraised === raised
+            ) {
+              resolve(room.member)
+            }
+          })
+        }
+      )
+    },
+    {
+      memberId,
+      raised,
+    }
+  )
+  return updatedMember
+}
+
+interface FindRoomSessionByPrefixParams {
+  client: SWClient
+  prefix: string
+}
+
+export const findRoomSessionByPrefix = async ({
+  client,
+  prefix,
+}: FindRoomSessionByPrefixParams) => {
+  const { roomSessions } = await client.video.getRoomSessions()
+  return roomSessions.filter((r) => r.name.startsWith(prefix))
+}
+
+export const createRoomAndJoinTwoMembers = async (browser: Browser) => {
+  const pageOne = await browser.newPage()
+  const pageTwo = await browser.newPage()
+
+  await Promise.all([pageOne.goto(SERVER_URL), pageTwo.goto(SERVER_URL)])
+
+  enablePageLogs(pageOne, '[pageOne]')
+  enablePageLogs(pageTwo, '[pageTwo]')
+
+  // Create a realtime-api Video client
+  const client = await SignalWire({
+    host: process.env.RELAY_HOST,
+    project: process.env.RELAY_PROJECT as string,
+    token: process.env.RELAY_TOKEN as string,
+    debug: { logWsTraffic: true },
+  })
+
+  const prefix = uuid()
+  const roomName = `${prefix}-hand-raise-lower-e2e`
+  const memberOneName = `${prefix}-member-one`
+  const memberTwoName = `${prefix}-member-two`
+
+  // Room length should be 0 before start
+  const roomSessionsBeforeStart = await findRoomSessionByPrefix({
+    client,
+    prefix,
+  })
+  expect(roomSessionsBeforeStart).toHaveLength(0)
+
+  // Create a room and join two members
+  await Promise.all([
+    createRoomSession({
+      page: pageOne,
+      room_name: roomName,
+      user_name: memberOneName,
+      initialEvents: ['member.updated'],
+    }),
+    createRoomSession({
+      page: pageTwo,
+      room_name: roomName,
+      user_name: memberTwoName,
+      initialEvents: ['member.updated'],
+    }),
+  ])
+
+  // Room length should be 1 after start
+  const roomSessionsAfterStart = await findRoomSessionByPrefix({
+    client,
+    prefix,
+  })
+  expect(roomSessionsAfterStart).toHaveLength(1)
+
+  const roomSession = roomSessionsAfterStart[0]
+
+  // There should be 2 members in the room
+  const { members } = await roomSession.getMembers()
+  expect(members).toHaveLength(2)
+
+  const memberOne = members.find((member) => member.name === memberOneName)!
+  const memberTwo = members.find((member) => member.name === memberTwoName)!
+
+  // Expect both members instances to be defined
+  expect(memberOne).toBeDefined()
+  expect(memberTwo).toBeDefined()
+
+  return {
+    client,
+    pageOne,
+    pageTwo,
+    memberOne,
+    memberTwo,
+    roomSession,
+  }
+}
+
+interface LeaveRoomOptions {
+  page: Page
+  room?: JSVideo.RoomSession
+}
+
+export const leaveRoom = (options: LeaveRoomOptions) => {
+  const { page, room } = options
+  return page.evaluate(
+    ({ room }) => {
+      return new Promise<void>(async (resolve, reject) => {
+        try {
+          // @ts-expect-error
+          let roomObj = window._roomObj
+          if (room) roomObj = room
+
+          roomObj.on('room.left', () => resolve())
+
+          console.log('Leaving room')
+          await roomObj.leave()
+        } catch (error) {
+          console.log('Leave room error', error)
+          reject(error)
+        }
+      })
+    },
+    { room }
+  )
 }

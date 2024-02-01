@@ -3,6 +3,8 @@ name: Browser SDK [staging]
 on:
   workflow_call:
   workflow_dispatch:
+  schedule:
+    - cron: '10 */4 * * *'
 
 concurrency:
   group: ${{ github.workflow }}-e2e-js-staging-${{ github.ref }}
@@ -17,7 +19,7 @@ jobs:
         node-version: [18.x]
         project: [default, streaming, slow]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install deps
         uses: ./.github/actions/install
         with:
@@ -31,6 +33,27 @@ jobs:
         with:
           PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
       - name: Test
+        id: run-tests
         run: npm run -w=@sw-internal/e2e-js dev -- --project ${{ matrix.project }}
         env:
           SW_TEST_CONFIG: ${{ secrets.STAGING_E2E_JS_SW_TEST_CONFIG }}
+      - name: Report Result
+        if: success() || failure()
+        uses: ./.github/actions/report-test-result
+        with:
+          result: ${{ steps.run-tests.conclusion }}
+          test-suite: browser-js
+          environment: staging
+          influxdb-bucket: ${{ secrets.INFLUXDB_BUCKET }}
+          influxdb-org: ${{ secrets.INFLUXDB_ORG }}
+          influxdb-token: ${{ secrets.INFLUXDB_TOKEN }}
+          influxdb-url: ${{ secrets.INFLUXDB_URL }}
+
+    # if: success() || failure()
+    # runs-on: ubuntu-latest
+    # needs: e2e-tests
+    # steps:
+    #   - name: Report Results
+    #     uses: actions/report-test-result@v1
+    #     with:
+    #       result: needs.e2e-tests.result

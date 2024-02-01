@@ -1,0 +1,55 @@
+name: Report Test Results
+description: Report the status of test runs
+
+inputs:
+  result:
+    required: true
+    type: string
+    description: Result of the test job
+  test-suite:
+    required: true
+    type: string
+    description: Name of the test suite reporting results for
+  environment:
+    required: true
+    type: string
+  influxdb-bucket:
+    required: true
+    type: string
+  influxdb-org:
+    required: true
+    type: string
+  influxdb-token:
+    required: true
+    type: string
+  influxdb-url:
+    required: true
+    type: string
+
+runs:
+  using: "composite"
+  steps:
+    # - name: Dump GitHub context
+    #   run: echo '${{ toJSON(github) }}'
+    #   shell: bash
+    - run: echo input workflow ${{ inputs.test-suite }}
+      shell: bash
+    - run: echo input result ${{ inputs.result }}
+      shell: bash
+    - run: echo github workflow ${{ github.workflow }}
+      shell: bash
+    - run: echo github job ${{ github.job }}
+      shell: bash
+    - run: echo job status ${{ job.status }}
+      shell: bash
+    - name: send result
+      shell: bash
+      run: |
+        curl --request POST \
+          --location "${{ inputs.influxdb-url }}/api/v2/write?org=${{ inputs.influxdb-org }}&bucket=${{ inputs.influxdb-bucket }}&precision=ns" \
+          --header "Authorization: Token ${{ inputs.influxdb-token }}" \
+          --header "Content-Type: text/plain; charset=utf-8" \
+          --header "Accept: application/json" \
+          --data-binary '
+            monitoring.checks,checkType=e2e,repo=signalwire-js,workflow=${{ inputs.test-suite }},environment=${{ inputs.environment }},result=${{ inputs.result }} value=1
+            '

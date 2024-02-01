@@ -4,6 +4,35 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.21.0] - 2023-11-23
+
+### Added
+
+- [#909](https://github.com/signalwire/signalwire-js/pull/909) [`4ee7b6f8`](https://github.com/signalwire/signalwire-js/commit/4ee7b6f852e650c1828decda2429ebec79576085) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Expose the `sendDigits` function for Video RoomSession object
+
+- [#873](https://github.com/signalwire/signalwire-js/pull/873) [`6c9d2aa5`](https://github.com/signalwire/signalwire-js/commit/6c9d2aa5f5c8d7b07d955a2c6e2ab647a62bd702) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Introduce the hand raise API for the Video SDKs (browser and realtime-api)
+
+### Fixed
+
+- [#892](https://github.com/signalwire/signalwire-js/pull/892) [`d564c379`](https://github.com/signalwire/signalwire-js/commit/d564c379e10d23c21abb56b3e740aff70fc451b9) Thanks [@ayeminag](https://github.com/ayeminag)! - - Added `state` param to `CallingCallCollectEventParams`
+  - Made sure `voiceCallCollectWorker` doesn't clean up `CallCollect` instance and emit `ended`/`failed` event if the `state` is `"collecting"`
+  - Resolve `CallCollect.ended()` promise only when `state` is NOT `"collecting"` AND `final` is either `undefined`/`true` AND `result.type` is one of `ENDED_STATES`
+  - Added more test cases for `Call.collect()` in `@sw-internal/e2e-realtime-api`
+
+## [3.20.0] - 2023-11-07
+
+### Added
+
+- [#884](https://github.com/signalwire/signalwire-js/pull/884) [`e5db7cab`](https://github.com/signalwire/signalwire-js/commit/e5db7cabc2e532a19fad45753e47f7d612d6e248) Thanks [@edolix](https://github.com/edolix)! - Add support for `lock` and `unlock` RoomSessions.
+
+### Fixed
+
+- [#885](https://github.com/signalwire/signalwire-js/pull/885) [`bcced8ae`](https://github.com/signalwire/signalwire-js/commit/bcced8ae774de5483331c4d3146299d5ffffd7e7) Thanks [@edolix](https://github.com/edolix)! - Bugfix: remove video prefix from member.updated events to emit them properly
+
+### Added
+
+- [#901](https://github.com/signalwire/signalwire-js/pull/901) [`2131bb41`](https://github.com/signalwire/signalwire-js/commit/2131bb418afeb75081fb2bfaee3b00a24df4614f) Thanks [@giavac](https://github.com/giavac)! - Add an optional nodeId to call.dial
+
 ## [3.19.0] - 2023-09-14
 
 ### Added

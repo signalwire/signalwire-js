@@ -749,8 +749,74 @@ export interface VideoRoomSessionContract {
    * ```
    */
   startStream(params: RoomMethods.StartStreamParams): RoomSessionStreamPromise
-  // lock(): Rooms.Lock
-  // unlock(): Rooms.Unlock
+  /**
+   * Lock the room
+   *
+   * @permissions
+   *  - `room.lock`
+   *
+   * You need to specify the permissions when [creating the Video Room
+   * Token](https://developer.signalwire.com/apis/reference/create_room_token)
+   * on the server side.
+   *
+   * @example
+   * ```typescript
+   * await room.lock()
+   * ```
+   */
+  lock(): RoomMethods.Lock
+  /**
+   * Unlock the room
+   *
+   * @permissions
+   *  - `room.unlock`
+   *
+   * You need to specify the permissions when [creating the Video Room
+   * Token](https://developer.signalwire.com/apis/reference/create_room_token)
+   * on the server side.
+   *
+   * @example
+   * ```typescript
+   * await room.unlock()
+   * ```
+   */
+  unlock(): RoomMethods.Unlock
+  /**
+   * Raise or lower hand of a member
+   *
+   * @permissions
+   *  - `room.member.raisehand` and `room.member.lowerhand`
+   *
+   * You need to specify the permissions when [creating the Video Room
+   * Token](https://developer.signalwire.com/apis/reference/create_room_token)
+   * on the server side.
+   *
+   * @example
+   * ```typescript
+   * await room.setRaisedHand({ raised: true, memberId: '123...' })
+   * ```
+   */
+  setRaisedHand(
+    params: RoomMethods.SetRaisedHandRoomParams
+  ): RoomMethods.SetRaisedHand
+  /**
+   * Set hand raise prioritization
+   *
+   * @permissions
+   *  - `room.self.prioritize_handraise`
+   *
+   * You need to specify the permissions when [creating the Video Room
+   * Token](https://developer.signalwire.com/apis/reference/create_room_token)
+   * on the server side.
+   *
+   * @example
+   * ```typescript
+   * await room.setPrioritizeHandraise(true)
+   * ```
+   */
+  setPrioritizeHandraise(
+    prioritize: boolean
+  ): RoomMethods.SetPrioritizeHandraise
 }
 
 /**

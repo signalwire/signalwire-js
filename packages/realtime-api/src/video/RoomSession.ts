@@ -144,6 +144,10 @@ export class RoomSession extends BaseVideo<
     return this._payload.room_session.event_channel
   }
 
+  get prioritizeHandraise() {
+    return this._payload.room_session.prioritize_handraise
+  }
+
   get updated() {
     // TODO: Fix type issue
     return this._payload.room_session
@@ -250,6 +254,8 @@ export const RoomSessionAPI = extendComponent<
   demote: RoomMethods.demote,
   getStreams: RoomMethods.getStreams,
   startStream: RoomMethods.startStream,
-  // lock: RoomMethods.lock,
-  // unlock: RoomMethods.unlock,
+  lock: RoomMethods.lock,
+  unlock: RoomMethods.unlock,
+  setRaisedHand: RoomMethods.setRaisedHand,
+  setPrioritizeHandraise: RoomMethods.setPrioritizeHandraise,
 })

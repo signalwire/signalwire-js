@@ -471,6 +471,18 @@ export const startStream: RoomMethodDescriptor<any, StartStreamParams> = {
   },
 }
 
+export const setPrioritizeHandraise: RoomMethodDescriptor<any, boolean> = {
+  value: function (params) {
+    return this.execute({
+      method: 'video.prioritize_handraise',
+      params: {
+        room_session_id: this.roomSessionId,
+        enable: params,
+      },
+    })
+  },
+}
+
 export type GetLayouts = ReturnType<typeof getLayouts.value>
 export type GetMembers = ReturnType<typeof getMembers.value>
 export type HideVideoMuted = ReturnType<typeof hideVideoMuted.value>
@@ -492,6 +504,9 @@ export type StartStream = ReturnType<typeof startStream.value>
 
 export type Lock = ReturnType<typeof lock.value>
 export type Unlock = ReturnType<typeof unlock.value>
+export type SetPrioritizeHandraise = ReturnType<
+  typeof setPrioritizeHandraise.value
+>
 // End Room Methods
 
 /**
@@ -715,6 +730,42 @@ export const deleteMemberMeta = createRoomMemberMethod<BaseRPCResult, void>(
   }
 )
 
+export interface SetRaisedHandRoomParams {
+  memberId: string
+  raised?: boolean
+}
+
+export interface SetRaisedHandMemberParams {
+  raised?: boolean
+}
+
+export const setRaisedHand: RoomMethodDescriptor<
+  void,
+  SetRaisedHandRoomParams | SetRaisedHandMemberParams
+> = {
+  value: function (value) {
+    const { raised = true, memberId = this.memberId } =
+      (value as SetRaisedHandRoomParams) || {}
+
+    if (!memberId) {
+      throw new TypeError('Invalid or missing "memberId" argument')
+    }
+
+    return this.execute(
+      {
+        method: raised ? 'video.member.raisehand' : 'video.member.lowerhand',
+        params: {
+          room_session_id: this.roomSessionId,
+          member_id: memberId,
+        },
+      },
+      {
+        transformResolve: baseCodeTransform,
+      }
+    )
+  },
+}
+
 export type AudioMuteMember = ReturnType<typeof audioMuteMember.value>
 export type AudioUnmuteMember = ReturnType<typeof audioUnmuteMember.value>
 export type VideoMuteMember = ReturnType<typeof videoMuteMember.value>
@@ -740,4 +791,5 @@ export type UpdateMemberMeta = ReturnType<typeof updateMemberMeta.value>
 export type DeleteMemberMeta = ReturnType<typeof deleteMemberMeta.value>
 export type PromoteMember = ReturnType<typeof promote.value>
 export type DemoteMember = ReturnType<typeof demote.value>
+export type SetRaisedHand = ReturnType<typeof setRaisedHand.value>
 // End Room Member Methods

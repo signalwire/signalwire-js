@@ -121,6 +121,8 @@ export interface VideoRoomSessionContract {
   streaming: boolean
   /** List of active streams in the room session. */
   streams?: Rooms.RoomSessionStream[]
+  /** Prioritize the hand raise for the layout */
+  prioritizeHandraise: Boolean
 
   /**
    * Puts the microphone on mute. The other participants will not hear audio
@@ -753,8 +755,46 @@ export interface VideoRoomSessionContract {
    * ```
    */
   startStream(params: Rooms.StartStreamParams): Promise<Rooms.RoomSessionStream>
-  // lock(): Rooms.Lock
-  // unlock(): Rooms.Unlock
+  lock(): Rooms.Lock
+  unlock(): Rooms.Unlock
+  /**
+   * Set the priority of members hand raise
+   * @param param a boolean flag to enable/disable the hand raise prioritization
+   *
+   * @permissions
+   *  - `video.prioritize_handraise`: to set the hand raise priority
+   *
+   * You need to specify the permissions when [creating the Video Room
+   * Token](https://developer.signalwire.com/apis/reference/create_room_token)
+   * on the server side.
+   *
+   * @example
+   * ```typescript
+   * await room.setPrioritizeHandraise(true)
+   * ```
+   */
+  setPrioritizeHandraise(params: boolean): Rooms.SetPrioritizeHandraise
+  /**
+   * Raise or lower the hand of a specific participant in the room.
+   * @param params
+   * @param params.memberId id of the member to remove
+   * @param params.raised boolean flag to raise or lower the hand
+   *
+   * @permissions
+   *  - `video.member.raisehand`: to raise a hand
+   *  - `video.member.lowerhand`: to lower a hand
+   *
+   * You need to specify the permissions when [creating the Video Room
+   * Token](https://developer.signalwire.com/apis/reference/create_room_token)
+   * on the server side.
+   *
+   * @example
+   * ```typescript
+   * const id = 'de550c0c-3fac-4efd-b06f-b5b8614b8966'  // you can get this from getMembers()
+   * await room.setHandRaised({ memberId: id, raised: false })
+   * ```
+   */
+  setRaisedHand(params: Rooms.SetRaisedHandRoomParams): Rooms.SetRaisedHand
 }
 
 /**
@@ -800,6 +840,7 @@ type InternalVideoRoomEntity = {
   recordings?: any[]
   playbacks?: any[]
   streams?: any[]
+  prioritize_handraise: boolean
 }
 
 /**

@@ -187,6 +187,8 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
   currentPosition?: VideoPosition
   /** Metadata associated to this member. */
   meta?: Record<string, unknown>
+  /** Indicate if the member hand is raised or not */
+  handraised: Boolean
 
   /**
    * Mutes the outbound audio for this member (e.g., the one coming from a
@@ -316,6 +318,16 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
    * ```
    */
   remove(): Rooms.RemoveMember
+
+  /**
+   * Raise or lower this member's hand.
+   *
+   * @example
+   * ```typescript
+   * await member.setRaisedHand()
+   * ```
+   */
+  setRaisedHand(params?: Rooms.SetRaisedHandMemberParams): Rooms.SetRaisedHand
 }
 
 /**

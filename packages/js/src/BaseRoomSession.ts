@@ -31,6 +31,7 @@ import type {
   RoomSessionConnectionContract,
   BaseRoomSessionJoinParams,
   LocalOverlay,
+  AudioElement,
 } from './utils/interfaces'
 import { SCREENSHARE_AUDIO_CONSTRAINTS } from './utils/constants'
 import { audioSetSpeakerAction } from './features/actions'
@@ -65,17 +66,9 @@ export interface BaseRoomSession<T>
   leave(): Promise<void>
 }
 
-interface RoomSessionConnectionOptions
+interface BaseRoomSessionOptions
   extends BaseConnection<RoomSessionObjectEvents> {
   mirrorLocalVideoOverlay: boolean
-  speakerId?: string
-  rootElement?: HTMLElement
-  applyLocalVideoOverlay?: boolean
-}
-
-type AudioElement = HTMLAudioElement & {
-  sinkId?: string
-  setSinkId?: (id: string) => Promise<void>
 }
 
 export class RoomSessionConnection
@@ -87,7 +80,7 @@ export class RoomSessionConnection
   private _mirrored: LocalOverlay['mirrored']
   private _audioEl: AudioElement
 
-  constructor(options: RoomSessionConnectionOptions) {
+  constructor(options: BaseRoomSessionOptions) {
     super(options)
     this._mirrored = options.mirrorLocalVideoOverlay
 
@@ -518,8 +511,10 @@ export const RoomSessionAPI = extendComponent<
   demote: Rooms.demote,
   getStreams: Rooms.getStreams,
   startStream: Rooms.startStream,
-  // lock: Rooms.lock,
-  // unlock: Rooms.unlock,
+  lock: Rooms.lock,
+  unlock: Rooms.unlock,
+  setRaisedHand: Rooms.setRaisedHand,
+  setPrioritizeHandraise: Rooms.setPrioritizeHandraise,
 })
 
 type RoomSessionObjectEventsHandlerMapping = RoomSessionObjectEvents &

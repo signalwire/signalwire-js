@@ -133,6 +133,17 @@ export interface BaseConnectionContract<
    */
   setLocalStream(stream: MediaStream): Promise<MediaStream>
 
+  /**
+   * Send DTMF
+   * @param {string} dtmf
+   *
+   * @example
+   * ```typescript
+   * room.sendDigits('1')
+   * ```
+   */
+  sendDigits(dtmf: string): Promise<void>
+
   /** @internal */
   stopOutboundAudio(): void
   /** @internal */
@@ -226,3 +237,4 @@ export * from './pubSub'
 export * from './task'
 export * from './messaging'
 export * from './voice'
+export * from './callfabric'

@@ -11,6 +11,7 @@ export type RPCConnectParams = {
   authorization_state?: string
   contexts?: string[]
   topics?: string[]
+  event_acks?: boolean
 }
 
 export const DEFAULT_CONNECT_VERSION = {
@@ -24,6 +25,7 @@ export const RPCConnect = (params: RPCConnectParams) => {
     method: 'signalwire.connect',
     params: {
       version: DEFAULT_CONNECT_VERSION,
+      event_acks: true,
       ...params,
     },
   })

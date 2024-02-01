@@ -79,6 +79,8 @@ export const voiceCallCollectWorker: SDKWorker<Client> = function* (
       case 'no_input':
       case 'no_match':
       case 'error': {
+        if (payload.state === 'collecting') return false
+
         if (eventPrefix === 'prompt') {
           callInstance.emit('prompt.failed', promptInstance)
           promptInstance.emit('prompt.failed', promptInstance)
@@ -91,6 +93,8 @@ export const voiceCallCollectWorker: SDKWorker<Client> = function* (
       }
       case 'speech':
       case 'digit': {
+        if (payload.state === 'collecting') return false
+
         if (eventPrefix === 'prompt') {
           callInstance.emit('prompt.ended', promptInstance)
           promptInstance.emit('prompt.ended', promptInstance)

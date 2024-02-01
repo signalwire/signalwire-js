@@ -86,6 +86,10 @@ export class RoomSessionMember {
     return this._payload.member.requested_position
   }
 
+  get currentPosition() {
+    return this._payload.member.current_position
+  }
+
   get visible() {
     return this._payload.member.visible
   }
@@ -116,6 +120,10 @@ export class RoomSessionMember {
 
   get talking() {
     return this._payload.member.talking
+  }
+
+  get handraised() {
+    return this._payload.member.handraised
   }
 
   /** @internal */
@@ -157,4 +165,5 @@ export const RoomSessionMemberAPI = extendComponent<
   setSpeakerVolume: RoomMethods.setOutputVolumeMember,
   setOutputVolume: RoomMethods.setOutputVolumeMember,
   setInputSensitivity: RoomMethods.setInputSensitivityMember,
+  setRaisedHand: RoomMethods.setRaisedHand,
 })

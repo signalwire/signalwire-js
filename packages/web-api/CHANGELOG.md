@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2023-11-23
+
+### Added
+
+- [#912](https://github.com/signalwire/signalwire-js/pull/912) [`72b8c80e`](https://github.com/signalwire/signalwire-js/commit/72b8c80ed3b4b12d7663eb484f8ef3d08b6ed96f) Thanks [@ryanwi](https://github.com/ryanwi)! - Update axios version
+
+### Fixed
+
+- Updated dependencies [[`d564c379`](https://github.com/signalwire/signalwire-js/commit/d564c379e10d23c21abb56b3e740aff70fc451b9), [`4ee7b6f8`](https://github.com/signalwire/signalwire-js/commit/4ee7b6f852e650c1828decda2429ebec79576085), [`6c9d2aa5`](https://github.com/signalwire/signalwire-js/commit/6c9d2aa5f5c8d7b07d955a2c6e2ab647a62bd702)]:
+  - @signalwire/core@3.21.0
+
+## [3.0.3] - 2023-11-07
+
+### Dependencies
+
+- Updated dependencies [[`e5db7cab`](https://github.com/signalwire/signalwire-js/commit/e5db7cabc2e532a19fad45753e47f7d612d6e248), [`bcced8ae`](https://github.com/signalwire/signalwire-js/commit/bcced8ae774de5483331c4d3146299d5ffffd7e7), [`2131bb41`](https://github.com/signalwire/signalwire-js/commit/2131bb418afeb75081fb2bfaee3b00a24df4614f)]:
+  - @signalwire/core@3.20.0
+
 ## [3.0.2] - 2023-09-14
 
 ### Changed
