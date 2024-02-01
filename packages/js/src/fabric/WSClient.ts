@@ -2,7 +2,7 @@ import { type UserOptions, getLogger, VertoSubscribe } from '@signalwire/core'
 import { Client } from '../Client'
 import { RoomSession } from '../RoomSession'
 import { createClient } from '../createClient'
-import { WSClientWorker } from './WSClientWorker'
+import { wsClientWorker } from './workers'
 
 interface PushNotification {
   encryption_type: 'aes_256_gcm'
@@ -47,8 +47,8 @@ export class WSClient {
 
   connect() {
     // @ts-ignore
-    this.wsClient.runWorker('WSClientWorker', {
-      worker: WSClientWorker,
+    this.wsClient.runWorker('wsClientWorker', {
+      worker: wsClientWorker,
     })
     return this.wsClient.connect()
   }

@@ -29,8 +29,6 @@ export class Conversation {
     this.wsClient = options.wsClient.client
 
     // TODO: Initiate the worker here and emit the event every time SDK receives it from the server
-
-    // TODO: Listen for the event and invoke the event handler
   }
 
   // @ts-expect-error
