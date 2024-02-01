@@ -1,6 +1,7 @@
 import { Page, Browser, expect } from '@playwright/test'
-import { uuid } from '@signalwire/core'
-import { Video } from '@signalwire/realtime-api'
+import { InternalVideoMemberEntityUpdated, uuid } from '@signalwire/core'
+import { SWClient, SignalWire } from '@signalwire/realtime-api'
+import { Video as JSVideo } from '@signalwire/js'
 import { SERVER_URL } from '../../utils'
 
 const PERMISSIONS = [
@@ -25,6 +26,8 @@ const PERMISSIONS = [
   'room.member.lowerhand',
   'room.self.raisehand',
   'room.self.lowerhand',
+  'room.lock',
+  'room.unlock',
 ]
 
 type CreateVRTParams = {
@@ -113,9 +116,14 @@ type CreateNewTabRoomSessionParams = CreateVRTParams & {
   pageName: string
 }
 
+export interface CreateRoomAndRecordPlayReturn {
+  roomSession: JSVideo.RoomSession
+  leaveRoom: () => Promise<void>
+}
+
 export const createRoomAndRecordPlay = async (
   params: CreateNewTabRoomSessionParams
-): Promise<void> => {
+): Promise<CreateRoomAndRecordPlayReturn | undefined> => {
   try {
     const { browser, pageName, ...auth } = params
 
@@ -125,54 +133,60 @@ export const createRoomAndRecordPlay = async (
 
     const vrt = await createTestVRTToken(auth)
 
-    return page.evaluate(
+    const roomSession = await page.evaluate(
       (options) => {
-        return new Promise<void>(async (resolve, reject) => {
-          // @ts-expect-error
-          const VideoSWJS = window._SWJS.Video
-          const roomSession = new VideoSWJS.RoomSession({
-            host: options.RELAY_HOST,
-            token: options.API_TOKEN,
-            audio: true,
-            video: true,
-            debug: { logWsTraffic: true },
-          })
+        return new Promise<JSVideo.RoomSession>(async (resolve, reject) => {
+          try {
+            // @ts-expect-error
+            const VideoSWJS = window._SWJS.Video
+            const roomSession = new VideoSWJS.RoomSession({
+              host: options.RELAY_HOST,
+              token: options.API_TOKEN,
+              audio: true,
+              video: true,
+              debug: { logWsTraffic: true },
+            })
 
-          console.log('Room created', roomSession.id)
+            // @ts-expect-error
+            window._roomObj = roomSession
 
-          let waitForRecordStartResolve: (value: void) => void
-          const waitForRecordStart = new Promise((resolve) => {
-            waitForRecordStartResolve = resolve
-          })
-          let waitForPlaybackStartResolve: (value: void) => void
-          const waitForPlaybackStart = new Promise((resolve) => {
-            waitForPlaybackStartResolve = resolve
-          })
+            console.log('Room created', roomSession.id)
 
-          roomSession.on('recording.started', () => {
-            console.log('Recording has started')
-            waitForRecordStartResolve()
-          })
+            // Need to attach these events before room.join
+            roomSession.once('recording.started', () => {})
+            roomSession.once('playback.started', () => {})
+            roomSession.once('room.left', () => {})
 
-          roomSession.on('playback.started', () => {
-            console.log('Playback has started')
-            waitForPlaybackStartResolve()
-          })
+            roomSession.on('room.joined', async (room) => {
+              const recordingStarted = new Promise<void>(async (res, _rej) => {
+                roomSession.on('recording.started', () => {
+                  console.log('Recording has started')
+                  res()
+                })
+                await roomSession.startRecording()
+              })
 
-          roomSession.on('room.joined', async () => {
-            await roomSession.startRecording()
-            await waitForRecordStart
+              const playbackStarted = new Promise<void>(async (res, _rej) => {
+                roomSession.on('playback.started', () => {
+                  console.log('Playback has started')
+                  res()
+                })
+                await roomSession.play({ url: options.PLAYBACK_URL })
+              })
 
-            await roomSession.play({ url: options.PLAYBACK_URL })
-            await waitForPlaybackStart
+              await Promise.all([recordingStarted, playbackStarted])
 
-            resolve()
-          })
+              resolve(room)
+            })
 
-          await roomSession.join().catch((error) => {
-            console.log('Error joining room', error)
+            await roomSession.join().catch((error) => {
+              console.log('Error joining room', error)
+              reject(error)
+            })
+          } catch (error) {
+            console.log('createRoomAndRecordPlay error', error)
             reject(error)
-          })
+          }
         })
       },
       {
@@ -181,33 +195,53 @@ export const createRoomAndRecordPlay = async (
         PLAYBACK_URL: process.env.PLAYBACK_URL,
       }
     )
+
+    const leaveCurrentPageRoom = () => leaveRoom({ page })
+
+    return { roomSession, leaveRoom: leaveCurrentPageRoom }
   } catch (error) {
     console.error('CreateRoomSession Error', error)
   }
 }
 
-export const expectMemberUpdated = async ({ page, memberName }) => {
-  return page.evaluate(
-    ({ memberName }) => {
-      return new Promise((resolve, _reject) => {
-        // @ts-expect-error
-        const roomSession = window._roomObj
+interface ExpectHandRaiseEventParams {
+  page: Page
+  memberId: string
+  raised?: boolean
+}
 
-        roomSession.on('member.updated', (room) => {
-          if (room.member.name === memberName) {
-            resolve(room.member)
-          }
-        })
-      })
+export const expectHandRaiseEvent = async (
+  params: ExpectHandRaiseEventParams
+) => {
+  const { page, memberId, raised = true } = params
+  const updatedMember = await page.evaluate(
+    ({ memberId, raised }) => {
+      return new Promise<InternalVideoMemberEntityUpdated>(
+        (resolve, _reject) => {
+          // @ts-expect-error
+          const roomSession = window._roomObj
+
+          roomSession.on('member.updated', (room) => {
+            if (
+              room.member.id === memberId &&
+              room.member.handraised === raised
+            ) {
+              resolve(room.member)
+            }
+          })
+        }
+      )
     },
     {
-      memberName,
+      memberId,
+      raised,
     }
   )
+  return updatedMember
 }
 
 interface FindRoomSessionByPrefixParams {
-  client: Video.Client
+  client: SWClient
   prefix: string
 }
 
@@ -215,7 +249,7 @@ export const findRoomSessionByPrefix = async ({
   client,
   prefix,
 }: FindRoomSessionByPrefixParams) => {
-  const { roomSessions } = await client.getRoomSessions()
+  const { roomSessions } = await client.video.getRoomSessions()
   return roomSessions.filter((r) => r.name.startsWith(prefix))
 }
 
@@ -229,8 +263,7 @@ export const createRoomAndJoinTwoMembers = async (browser: Browser) => {
   enablePageLogs(pageTwo, '[pageTwo]')
 
   // Create a realtime-api Video client
-  const videoClient = new Video.Client({
-    // @ts-expect-error
+  const client = await SignalWire({
     host: process.env.RELAY_HOST,
     project: process.env.RELAY_PROJECT as string,
     token: process.env.RELAY_TOKEN as string,
@@ -242,14 +275,9 @@ export const createRoomAndJoinTwoMembers = async (browser: Browser) => {
   const memberOneName = `${prefix}-member-one`
   const memberTwoName = `${prefix}-member-two`
 
-  // TODO: This is not needed with new interface due to listen method
-  videoClient.on('room.started', (room) => {
-    room.on('member.updated', () => {})
-  })
-
   // Room length should be 0 before start
   const roomSessionsBeforeStart = await findRoomSessionByPrefix({
-    client: videoClient,
+    client,
     prefix,
   })
   expect(roomSessionsBeforeStart).toHaveLength(0)
@@ -272,7 +300,7 @@ export const createRoomAndJoinTwoMembers = async (browser: Browser) => {
 
   // Room length should be 1 after start
   const roomSessionsAfterStart = await findRoomSessionByPrefix({
-    client: videoClient,
+    client,
     prefix,
   })
   expect(roomSessionsAfterStart).toHaveLength(1)
@@ -291,10 +319,40 @@ export const createRoomAndJoinTwoMembers = async (browser: Browser) => {
   expect(memberTwo).toBeDefined()
 
   return {
+    client,
     pageOne,
     pageTwo,
     memberOne,
     memberTwo,
     roomSession,
   }
+}
+
+interface LeaveRoomOptions {
+  page: Page
+  room?: JSVideo.RoomSession
+}
+
+export const leaveRoom = (options: LeaveRoomOptions) => {
+  const { page, room } = options
+  return page.evaluate(
+    ({ room }) => {
+      return new Promise<void>(async (resolve, reject) => {
+        try {
+          // @ts-expect-error
+          let roomObj = window._roomObj
+          if (room) roomObj = room
+
+          roomObj.on('room.left', () => resolve())
+
+          console.log('Leaving room')
+          await roomObj.leave()
+        } catch (error) {
+          console.log('Leave room error', error)
+          reject(error)
+        }
+      })
+    },
+    { room }
+  )
 }

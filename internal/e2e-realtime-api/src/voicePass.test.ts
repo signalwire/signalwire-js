@@ -1,5 +1,5 @@
 import tap from 'tap'
-import { Voice } from '@signalwire/realtime-api'
+import { SignalWire, Voice } from '@signalwire/realtime-api'
 import {
   type TestHandler,
   createTestRunner,
@@ -11,75 +11,67 @@ const handler: TestHandler = ({ domainApp }) => {
     throw new Error('Missing domainApp')
   }
   return new Promise<number>(async (resolve, reject) => {
-    const options = {
-      host: process.env.RELAY_HOST,
-      project: process.env.RELAY_PROJECT as string,
-      token: process.env.RELAY_TOKEN as string,
-      contexts: [domainApp.call_relay_context],
-      // logLevel: "trace",
-      debug: {
-        logWsTraffic: true,
-      },
-    }
-
-    const [client1, client2, client3] = [
-      new Voice.Client(options),
-      new Voice.Client(options),
-      new Voice.Client(options),
-    ]
-
-    let callPassed = false
-
-    const handleCall = async (call: Voice.Call) => {
-      if (callPassed) {
-        console.log('Answering..')
-        const resultAnswer = await call.answer()
-        tap.ok(resultAnswer.id, 'Inbound - Call answered')
-        await call.hangup()
-      } else {
-        console.log('Passing..')
-        const passed = await call.pass()
-        tap.equal(passed, undefined, 'Call passed!')
-        callPassed = true
-      }
-    }
-
-    client2.on('call.received', async (call) => {
-      console.log(
-        'Got call on client 2',
-        call.id,
-        call.from,
-        call.to,
-        call.direction
-      )
-
-      try {
-        await handleCall(call)
-      } catch (error) {
-        console.error('Inbound - voicePass client2 error', error)
-        reject(4)
-      }
-    })
-
-    client3.on('call.received', async (call) => {
-      console.log(
-        'Got call on client 3',
-        call.id,
-        call.from,
-        call.to,
-        call.direction
-      )
-
-      try {
-        await handleCall(call)
-      } catch (error) {
-        console.error('Inbound - voicePass client3 error', error)
-        reject(4)
-      }
-    })
-
     try {
-      const call = await client1.dialSip({
+      const options = {
+        host: process.env.RELAY_HOST || 'relay.swire.io',
+        project: process.env.RELAY_PROJECT as string,
+        token: process.env.RELAY_TOKEN as string,
+        debug: {
+          // logWsTraffic: true,
+        },
+      }
+
+      const [client1, client2, client3] = [
+        await SignalWire(options),
+        await SignalWire(options),
+        await SignalWire(options),
+      ]
+
+      let callPassed = false
+
+      const handleCall = async (call: Voice.Call) => {
+        if (callPassed) {
+          console.log('Answering..')
+          const resultAnswer = await call.answer()
+          tap.ok(resultAnswer.id, 'Inbound - Call answered')
+          await call.hangup()
+        } else {
+          console.log('Passing..')
+          const passed = await call.pass()
+          tap.equal(passed, undefined, 'Call passed!')
+          callPassed = true
+        }
+      }
+
+      const unsubClient2 = await client2.voice.listen({
+        topics: [domainApp.call_relay_context],
+        onCallReceived: async (call) => {
+          console.log('Got call on client 2', call.id)
+
+          try {
+            await handleCall(call)
+          } catch (error) {
+            console.error('Inbound - voicePass client2 error', error)
+            reject(4)
+          }
+        },
+      })
+
+      const unsubClient3 = await client3.voice.listen({
+        topics: [domainApp.call_relay_context],
+        onCallReceived: async (call) => {
+          console.log('Got call on client 3', call.id)
+
+          try {
+            await handleCall(call)
+          } catch (error) {
+            console.error('Inbound - voicePass client3 error', error)
+            reject(4)
+          }
+        },
+      })
+
+      const call = await client1.voice.dialSip({
         to: makeSipDomainAppAddress({
           name: 'to',
           domain: domainApp.domain,
@@ -110,7 +102,7 @@ const handler: TestHandler = ({ domainApp }) => {
 
       resolve(0)
     } catch (error) {
-      console.error('Outbound - voicePass error', error)
+      console.error('VoicePass error', error)
       reject(4)
     }
   })

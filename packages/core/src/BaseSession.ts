@@ -16,6 +16,7 @@ import {
   DEFAULT_CONNECT_VERSION,
   RPCDisconnectResponse,
   RPCPingResponse,
+  RPCEventAckResponse,
 } from './RPCMessages'
 import {
   SessionOptions,
@@ -285,6 +286,12 @@ export class BaseSession {
         message: 'The SDK session is disconnecting',
       })
     }
+    if (this._status === 'disconnected') {
+      return Promise.reject({
+        code: '400',
+        message: 'The SDK is disconnected',
+      })
+    }
     // In case of a response don't wait for a result
     let promise: Promise<unknown> = Promise.resolve()
     if ('params' in msg) {
@@ -464,6 +471,9 @@ export class BaseSession {
         break
       }
       default:
+        this._eventAcknowledgingHandler(payload).catch((error) =>
+          this.logger.error('Event Acknowledging Error', error)
+        )
         // If it's not a response, trigger the dispatch.
         this.dispatch(socketMessageAction(payload))
     }
@@ -548,6 +558,16 @@ export class BaseSession {
     }, this._checkPingDelay)
 
     await this.execute(RPCPingResponse(payload.id, payload?.params?.timestamp))
+  }
+
+  private async _eventAcknowledgingHandler(
+    payload: JSONRPCRequest
+  ): Promise<void> {
+    const { method, id } = payload
+    if (method === 'signalwire.event') {
+      return this.execute(RPCEventAckResponse(id))
+    }
+    return Promise.resolve()
   }
 
   /**

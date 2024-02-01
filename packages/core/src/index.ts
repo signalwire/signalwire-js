@@ -89,6 +89,7 @@ export type {
   SDKActions,
   ReduxComponent,
 } from './redux/interfaces'
+export type { SDKStore } from './redux'
 export type { ToExternalJSONResult } from './utils'
 export * as actions from './redux/actions'
 export * as sagaHelpers from './redux/utils/sagaHelpers'

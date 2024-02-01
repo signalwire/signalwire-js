@@ -5,7 +5,11 @@
  * and the consume all the methods asserting both SDKs receive the proper events.
  */
 import { timeoutPromise, SWCloseEvent } from '@signalwire/core'
-import { Chat as RealtimeAPIChat } from '@signalwire/realtime-api'
+import { SignalWire as RealtimeSignalWire } from '@signalwire/realtime-api'
+import type {
+  Chat as RTChat,
+  SWClient as RealtimeSWClient,
+} from '@signalwire/realtime-api'
 import { Chat as JSChat } from '@signalwire/js'
 import { WebSocket } from 'ws'
 import { randomUUID } from 'node:crypto'
@@ -39,49 +43,56 @@ const params = {
   },
 }
 
-type ChatClient = RealtimeAPIChat.ChatClient | JSChat.Client
-const testChatClientSubscribe = (
-  firstClient: ChatClient,
-  secondClient: ChatClient
-) => {
+type ChatClient = RTChat.Chat | JSChat.Client
+
+interface TestChatOptions {
+  jsChat: JSChat.Client
+  rtChat: RTChat.Chat
+  publisher?: 'JS' | 'RT'
+}
+
+const testSubscribe = ({ jsChat, rtChat }: TestChatOptions) => {
   const promise = new Promise<number>(async (resolve) => {
     console.log('Running subscribe..')
     let events = 0
-    const resolveIfDone = () => {
+
+    let unsubRTChannel: Promise<() => Promise<void>>
+
+    const resolveIfDone = async () => {
       // wait 4 events (rt and js receive their own events + the other member)
       if (events === 4) {
-        firstClient.off('member.joined')
-        secondClient.off('member.joined')
+        jsChat.off('member.joined')
+        await (
+          await unsubRTChannel
+        )()
         resolve(0)
       }
     }
 
-    firstClient.on('member.joined', (member) => {
+    jsChat.on('member.joined', (member) => {
       // TODO: Check the member payload
       console.log('jsChat member.joined')
       events += 1
       resolveIfDone()
     })
-    secondClient.on('member.joined', (member) => {
-      // TODO: Check the member payload
-      console.log('rtChat member.joined')
-      events += 1
-      resolveIfDone()
+
+    unsubRTChannel = rtChat.listen({
+      channels: [channel],
+      onMemberJoined(member) {
+        // TODO: Check the member payload
+        console.log('rtChat member.joined')
+        events += 1
+        resolveIfDone()
+      },
     })
 
-    await Promise.all([
-      firstClient.subscribe(channel),
-      secondClient.subscribe(channel),
-    ])
+    await Promise.all([unsubRTChannel, jsChat.subscribe(channel)])
   })
 
   return timeoutPromise(promise, promiseTimeout, promiseException)
 }
 
-const testChatClientPublish = (
-  firstClient: ChatClient,
-  secondClient: ChatClient
-) => {
+const testPublish = ({ jsChat, rtChat, publisher }: TestChatOptions) => {
   const promise = new Promise<number>(async (resolve) => {
     console.log('Running publish..')
     let events = 0
@@ -92,15 +103,8 @@ const testChatClientPublish = (
     }
 
     const now = Date.now()
-    firstClient.once('message', (message) => {
+    jsChat.once('message', (message) => {
       console.log('jsChat message')
-      if (message.meta.now === now) {
-        events += 1
-        resolveIfDone()
-      }
-    })
-    secondClient.once('message', (message) => {
-      console.log('rtChat message')
       if (message.meta.now === now) {
         events += 1
         resolveIfDone()
@@ -108,12 +112,23 @@ const testChatClientPublish = (
     })
 
     await Promise.all([
-      firstClient.subscribe(channel),
-      secondClient.subscribe(channel),
+      jsChat.subscribe(channel),
+      rtChat.listen({
+        channels: [channel],
+        onMessageReceived: (message) => {
+          console.log('rtChat message')
+          if (message.meta.now === now) {
+            events += 1
+            resolveIfDone()
+          }
+        },
+      }),
     ])
 
-    await firstClient.publish({
-      content: 'Hello There',
+    const publishClient = publisher === 'JS' ? jsChat : rtChat
+
+    await publishClient.publish({
+      content: 'Hello there!',
       channel,
       meta: {
         now,
@@ -125,53 +140,48 @@ const testChatClientPublish = (
   return timeoutPromise(promise, promiseTimeout, promiseException)
 }
 
-const testChatClientUnsubscribe = (
-  firstClient: ChatClient,
-  secondClient: ChatClient
-) => {
+const testUnsubscribe = ({ jsChat, rtChat }: TestChatOptions) => {
   const promise = new Promise<number>(async (resolve) => {
     console.log('Running unsubscribe..')
     let events = 0
+
     const resolveIfDone = () => {
-      /**
-       * waits for 3 events:
-       * - first one generates 2 events on leave
-       * - second one generates only 1 event
-       */
-      if (events === 3) {
-        firstClient.off('member.left')
-        secondClient.off('member.left')
+      // Both of these events will occur due to the JS chat
+      // RT chat will not trigger the `onMemberLeft` when we unsubscribe RT client
+      if (events === 2) {
+        jsChat.off('member.left')
         resolve(0)
       }
     }
 
-    firstClient.on('member.left', (member) => {
+    jsChat.on('member.left', (member) => {
       // TODO: Check the member payload
       console.log('jsChat member.left')
       events += 1
       resolveIfDone()
     })
-    secondClient.on('member.left', (member) => {
-      // TODO: Check the member payload
-      console.log('rtChat member.left')
-      events += 1
-      resolveIfDone()
-    })
 
-    await Promise.all([
-      firstClient.subscribe(channel),
-      secondClient.subscribe(channel),
+    const [unsubRTClient] = await Promise.all([
+      rtChat.listen({
+        channels: [channel],
+        onMemberLeft(member) {
+          // TODO: Check the member payload
+          console.log('rtChat member.left')
+          events += 1
+          resolveIfDone()
+        },
+      }),
+      jsChat.subscribe(channel),
     ])
 
-    await firstClient.unsubscribe(channel)
-
-    await secondClient.unsubscribe(channel)
+    await jsChat.unsubscribe(channel)
+    await unsubRTClient()
   })
 
   return timeoutPromise(promise, promiseTimeout, promiseException)
 }
 
-const testChatClientMethods = async (client: ChatClient) => {
+const testChatMethod = async (client: ChatClient) => {
   console.log('Get Messages..')
   const jsMessagesResult = await client.getMessages({
     channel,
@@ -184,10 +194,11 @@ const testChatClientMethods = async (client: ChatClient) => {
   return 0
 }
 
-const testChatClientSetAndGetMemberState = (
-  firstClient: ChatClient,
-  secondClient: ChatClient
-) => {
+const testSetAndGetMemberState = ({
+  jsChat,
+  rtChat,
+  publisher,
+}: TestChatOptions) => {
   const promise = new Promise<number>(async (resolve, reject) => {
     console.log('Set member state..')
     let events = 0
@@ -197,7 +208,7 @@ const testChatClientSetAndGetMemberState = (
       }
     }
 
-    firstClient.once('member.updated', (member) => {
+    jsChat.once('member.updated', (member) => {
       // TODO: Check the member payload
       console.log('jsChat member.updated')
       if (member.state.email === 'e2e@example.com') {
@@ -205,16 +216,9 @@ const testChatClientSetAndGetMemberState = (
         resolveIfDone()
       }
     })
-    secondClient.once('member.updated', (member) => {
-      console.log('rtChat member.updated')
-      if (member.state.email === 'e2e@example.com') {
-        events += 1
-        resolveIfDone()
-      }
-    })
 
     console.log('Get Member State..')
-    const getStateResult = await firstClient.getMemberState({
+    const getStateResult = await jsChat.getMemberState({
       channels: [channel],
       memberId: params.memberId,
     })
@@ -225,17 +229,59 @@ const testChatClientSetAndGetMemberState = (
     }
 
     await Promise.all([
-      firstClient.subscribe(channel),
-      secondClient.subscribe(channel),
+      jsChat.subscribe(channel),
+      rtChat.listen({
+        channels: [channel],
+        onMemberUpdated(member) {
+          console.log('rtChat member.updated')
+          if (member.state.email === 'e2e@example.com') {
+            events += 1
+            resolveIfDone()
+          }
+        },
+      }),
     ])
 
-    await firstClient.setMemberState({
+    const publishClient = publisher === 'JS' ? jsChat : rtChat
+
+    await publishClient.setMemberState({
       channels: [channel],
       memberId: params.memberId,
       state: {
         email: 'e2e@example.com',
       },
     })
+  })
+
+  return timeoutPromise(promise, promiseTimeout, promiseException)
+}
+
+const testDisconnectedRTClient = (rtClient: RealtimeSWClient) => {
+  const promise = new Promise<number>(async (resolve, reject) => {
+    try {
+      await rtClient.chat.listen({
+        channels: ['random'],
+        onMessageReceived: (message) => {
+          // Message should not be reached
+          throw undefined
+        },
+      })
+
+      rtClient.disconnect()
+
+      await rtClient.chat.publish({
+        content: 'Unreached message!',
+        channel: 'random',
+        meta: {
+          foo: 'bar',
+        },
+      })
+
+      reject(4)
+    } catch (e) {
+      console.log('Client disconnected okay!')
+      resolve(0)
+    }
   })
 
   return timeoutPromise(promise, promiseTimeout, promiseException)
@@ -248,64 +294,86 @@ const handler = async () => {
     host: process.env.RELAY_HOST,
     // @ts-expect-error
     token: CRT.token,
+    debug: {
+      logWsTraffic: true,
+    },
   })
 
-  const jsChatResultCode = await testChatClientMethods(jsChat)
+  const jsChatResultCode = await testChatMethod(jsChat)
   if (jsChatResultCode !== 0) {
     return jsChatResultCode
   }
   console.log('Created jsChat')
 
-  // Create RT-API Chat Client
-  const rtChat = new RealtimeAPIChat.Client({
-    // @ts-expect-error
+  // Create RT-API Client
+  const rtClient = await RealtimeSignalWire({
     host: process.env.RELAY_HOST,
     project: process.env.RELAY_PROJECT as string,
     token: process.env.RELAY_TOKEN as string,
+    // debug: {
+    //   logWsTraffic: true,
+    // },
   })
+  const rtChat = rtClient.chat
 
-  const rtChatResultCode = await testChatClientMethods(rtChat)
+  const rtChatResultCode = await testChatMethod(rtChat)
   if (rtChatResultCode !== 0) {
     return rtChatResultCode
   }
   console.log('Created rtChat')
 
   // Test Subscribe
-  const subscribeResultCode = await testChatClientSubscribe(jsChat, rtChat)
+  const subscribeResultCode = await testSubscribe({ jsChat, rtChat })
   if (subscribeResultCode !== 0) {
     return subscribeResultCode
   }
 
   // Test Publish
-  const jsChatPublishCode = await testChatClientPublish(jsChat, rtChat)
-  if (jsChatPublishCode !== 0) {
-    return jsChatPublishCode
+  const jsPublishCode = await testPublish({
+    jsChat,
+    rtChat,
+    publisher: 'JS',
+  })
+  if (jsPublishCode !== 0) {
+    return jsPublishCode
   }
-  const rtChatPublishCode = await testChatClientPublish(rtChat, jsChat)
-  if (rtChatPublishCode !== 0) {
-    return rtChatPublishCode
+  const rtPublishCode = await testPublish({
+    jsChat,
+    rtChat,
+    publisher: 'RT',
+  })
+  if (rtPublishCode !== 0) {
+    return rtPublishCode
   }
 
   // Test Set/Get Member State
-  const jsChatGetSetStateCode = await testChatClientSetAndGetMemberState(
+  const jsChatGetSetStateCode = await testSetAndGetMemberState({
     jsChat,
-    rtChat
-  )
+    rtChat,
+    publisher: 'JS',
+  })
   if (jsChatGetSetStateCode !== 0) {
     return jsChatGetSetStateCode
   }
-  const rtChatGetSetStateCode = await testChatClientSetAndGetMemberState(
+  const rtChatGetSetStateCode = await testSetAndGetMemberState({
+    jsChat,
     rtChat,
-    jsChat
-  )
+    publisher: 'RT',
+  })
   if (rtChatGetSetStateCode !== 0) {
     return rtChatGetSetStateCode
   }
 
   // Test Unsubscribe
-  const unsubscribeResultCode = await testChatClientUnsubscribe(jsChat, rtChat)
+  const unsubscribeResultCode = await testUnsubscribe({ jsChat, rtChat })
   if (unsubscribeResultCode !== 0) {
     return unsubscribeResultCode
+  }
+
+  // Test diconnected client
+  const disconnectedRTClient = await testDisconnectedRTClient(rtClient)
+  if (disconnectedRTClient !== 0) {
+    return disconnectedRTClient
   }
 
   return 0
@@ -315,7 +383,7 @@ async function main() {
   const runner = createTestRunner({
     name: 'Chat E2E',
     testHandler: handler,
-    executionTime: 15_000,
+    executionTime: 30_000,
   })
 
   await runner.run()
