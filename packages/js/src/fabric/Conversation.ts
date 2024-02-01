@@ -20,6 +20,7 @@ interface SubscriberInfo {
 
 export class Conversation {
   private httpClient: ReturnType<typeof createHttpClient>
+  // @ts-expect-error
   private wsClient: Client<RoomSession>
   private subscribers: Map<string, SubscriberInfo> = new Map()
 
@@ -32,6 +33,7 @@ export class Conversation {
     // TODO: Listen for the event and invoke the event handler
   }
 
+  // @ts-expect-error
   private handleEvent(event: any) {
     const { subscriberId } = event
     const subscriberInfo = this.subscribers.get(subscriberId)
