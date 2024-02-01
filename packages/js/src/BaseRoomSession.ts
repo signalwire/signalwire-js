@@ -66,9 +66,12 @@ export interface BaseRoomSession<T>
   leave(): Promise<void>
 }
 
-interface BaseRoomSessionOptions
+interface RoomSessionConnectionOptions
   extends BaseConnection<RoomSessionObjectEvents> {
   mirrorLocalVideoOverlay: boolean
+  speakerId?: string
+  rootElement?: HTMLElement
+  applyLocalVideoOverlay?: boolean
 }
 
 export class RoomSessionConnection
@@ -80,7 +83,7 @@ export class RoomSessionConnection
   private _mirrored: LocalOverlay['mirrored']
   private _audioEl: AudioElement
 
-  constructor(options: BaseRoomSessionOptions) {
+  constructor(options: RoomSessionConnectionOptions) {
     super(options)
     this._mirrored = options.mirrorLocalVideoOverlay
 
