@@ -31,6 +31,54 @@ export class HTTPClient {
     return `fabric.${host.split('.').splice(1).join('.')}`
   }
 
+<<<<<<< Updated upstream
+=======
+  get client(): ReturnType<typeof createHttpClient> {
+    return this.httpClient
+  }
+
+  private async _anotherPage<T>(url: string) {
+    const { body } = await this.httpClient<PaginatedResponse<T>>(url)
+    return this._buildPaginatedResult(body)
+  }
+
+  private async _buildPaginatedResult<T>(body: PaginatedResponse<T>) {
+    return {
+      addresses: body.data,
+      nextPage: async () => {
+        const { next } = body.links
+        return next ? this._anotherPage(next) : undefined
+      },
+      prevPage: async () => {
+        const { prev } = body.links
+        return prev ? this._anotherPage(prev) : undefined
+      },
+      firstPage: async () => {
+        const { first } = body.links
+        return first ? this._anotherPage(first) : undefined
+      },
+      hasNext: Boolean(body.links.next),
+      hasPrev: Boolean(body.links.prev),
+    }
+  }
+
+  public async getConversationHistory(options: GetConversationHistoriOption) {
+    const { subscriberId, addressId, limit = 15 } = options
+    const path = '/conversations'
+
+    const queryParams = new URLSearchParams()
+    queryParams.append('subscriber_id', subscriberId)
+    queryParams.append('address_id', addressId)
+    queryParams.append('limit', `${limit}`)
+
+    const { body } = await this.httpClient<FetchConversationHistoryResponse>(
+      `${path}?${queryParams.toString()}`
+    )
+
+    return this._buildPaginatedResult<ConversationHistory>(body)
+  }
+
+>>>>>>> Stashed changes
   public async getAddresses(options?: GetAddressesOptions) {
     const { type, displayName } = options || {}
 

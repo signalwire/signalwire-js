@@ -1,6 +1,7 @@
 import { type UserOptions } from '@signalwire/core'
 import { HTTPClient } from './HTTPClient'
 import { WSClient, WSClientOptions } from './WSClient'
+import { Conversation } from './Conversation'
 
 export interface SignalWireOptions extends UserOptions, WSClientOptions {}
 
@@ -14,6 +15,10 @@ export interface SignalWireContract {
   dial: WSClient['dial']
   handlePushNotification: WSClient['handlePushNotification']
   updateToken: WSClient['updateToken']
+  conversation: {
+    getConversationHistory: Conversation['getConversationHistory']
+    subscribeToUpdates: Conversation['subscribeToUpdates']
+  }
 }
 
 export const SignalWire = (
@@ -23,6 +28,8 @@ export const SignalWire = (
     try {
       const httpClient = new HTTPClient(options)
       const wsClient = new WSClient(options)
+
+      const conversation = new Conversation({ httpClient, wsClient })
 
       resolve({
         httpHost: httpClient.httpHost,
@@ -34,6 +41,10 @@ export const SignalWire = (
         dial: wsClient.dial.bind(wsClient),
         handlePushNotification: wsClient.handlePushNotification.bind(wsClient),
         updateToken: wsClient.updateToken.bind(wsClient),
+        conversation: {
+          getConversationHistory: conversation.getConversationHistory,
+          subscribeToUpdates: conversation.subscribeToUpdates,
+        },
         // @ts-expect-error
         __httpClient: httpClient,
         __wsClient: wsClient,

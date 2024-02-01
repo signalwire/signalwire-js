@@ -39,6 +39,10 @@ export class WSClient {
     })
   }
 
+  get client() {
+    return this.wsClient
+  }
+
   connect() {
     // @ts-ignore
     this.wsClient.runWorker('WSClientWorker', {
