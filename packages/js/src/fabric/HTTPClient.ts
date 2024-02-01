@@ -1,6 +1,10 @@
 import {
+  ConversationHistory,
   FetchAddressResponse,
+  FetchConversationHistoryResponse,
   GetAddressesOptions,
+  GetConversationHistoriOption,
+  PaginatedResponse,
   type UserOptions,
 } from '@signalwire/core'
 import { createHttpClient } from './createHttpClient'
@@ -31,8 +35,6 @@ export class HTTPClient {
     return `fabric.${host.split('.').splice(1).join('.')}`
   }
 
-<<<<<<< Updated upstream
-=======
   get client(): ReturnType<typeof createHttpClient> {
     return this.httpClient
   }
@@ -78,7 +80,6 @@ export class HTTPClient {
     return this._buildPaginatedResult<ConversationHistory>(body)
   }
 
->>>>>>> Stashed changes
   public async getAddresses(options?: GetAddressesOptions) {
     const { type, displayName } = options || {}
 

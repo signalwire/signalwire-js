@@ -1,4 +1,6 @@
 import { type UserOptions, getLogger, VertoSubscribe } from '@signalwire/core'
+import { Client } from '../Client'
+import { RoomSession } from '../RoomSession'
 import { createClient } from '../createClient'
 import { WSClientWorker } from './WSClientWorker'
 
@@ -25,11 +27,11 @@ export interface WSClientOptions extends UserOptions {
 }
 
 export class WSClient {
-  private wsClient: ReturnType<typeof createClient>
+  private wsClient: Client<RoomSession>
   private logger = getLogger()
 
   constructor(public options: WSClientOptions) {
-    this.wsClient = createClient({
+    this.wsClient = createClient<RoomSession>({
       host: this.options.host,
       token: this.options.token,
       debug: {

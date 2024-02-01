@@ -1,24 +1,5 @@
-<<<<<<< Updated upstream
-export interface FetchAddressResponse {
-  data:
-    | Array<{
-        display_name: string
-        name: string
-        preview_url?: string
-        cover_url?: string
-        resource_id: string
-        type: string
-        channels: {
-          audio?: string
-          messaging?: string
-          video?: string
-        }
-      }>
-    | []
-=======
 export interface PaginatedResponse<T> {
   data: Array<T> | []
->>>>>>> Stashed changes
   links: {
     first: string
     self: string
@@ -27,8 +8,6 @@ export interface PaginatedResponse<T> {
   }
 }
 
-<<<<<<< Updated upstream
-=======
 export interface Address {
   display_name: string
   name: string
@@ -44,13 +23,10 @@ export interface Address {
 }
 export interface FetchAddressResponse extends PaginatedResponse<Address> {}
 
->>>>>>> Stashed changes
 export interface GetAddressesOptions {
   type?: string
   displayName?: string
 }
-<<<<<<< Updated upstream
-=======
 
 export interface ConversationHistory {
   type: string
@@ -65,4 +41,3 @@ export interface GetConversationHistoriOption {
   addressId: string
   limit?: number
 }
->>>>>>> Stashed changes
