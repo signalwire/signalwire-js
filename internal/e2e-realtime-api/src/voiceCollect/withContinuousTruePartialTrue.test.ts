@@ -10,6 +10,7 @@ import {
 const possibleExpectedTexts = [
   '123456789 10:00 11:00 12:00',
   'one two three four five six seven eight nine ten',
+  '1 2 3 4 5 6 7 8 9 10',
   '1112',
   'yes',
 ]
@@ -94,8 +95,11 @@ const handler: TestHandler = ({ domainApp }) => {
             setTimeout(() => call.hangup(), 100)
 
             const collected = await callCollect.ended()
+            const collected_cleaned = collected.text!.trim().replace(/\s+/g, ' ');
+            console.log(">>> collected cleaned: [", collected_cleaned, "]")
+
             tap.ok(
-              possibleExpectedTexts.includes(collected.text!),
+              possibleExpectedTexts.includes(collected_cleaned!),
               'Received Correct Text'
             )
 

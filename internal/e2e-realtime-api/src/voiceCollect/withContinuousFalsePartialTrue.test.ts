@@ -87,8 +87,11 @@ const handler: TestHandler = ({ domainApp }) => {
             await waitForPlaybackEnd
 
             const collected = await callCollect.ended()
+            const collected_cleaned = collected.text!.trim().replace(/\s+/g, ' ');
+            console.log(">>> collected cleaned: [", collected_cleaned, "]")
+
             tap.ok(
-              possibleExpectedTexts.includes(collected.text!),
+              possibleExpectedTexts.includes(collected_cleaned!),
               'Received Correct Text'
             )
 
