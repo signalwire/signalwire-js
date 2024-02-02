@@ -60,7 +60,6 @@ const sessionSlice = createDestroyableSlice({
         ...state,
         targetStack: [...state.targetStack, payload]
       }
-
       return newState
     },
     popTarget: (state) => {

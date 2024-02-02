@@ -18,6 +18,17 @@ export const executeActionWorker: SDKWorker<ExecuteActionParams> = function* (
 
   const session = getSession()
 
+  const getTarget = () => {
+    
+    //TODO
+    // find if params has a member_id
+    //     than we need to look member data fir that member_id
+    //     and return {call_id, node_id, member_id}
+
+    //@ts-ignore
+    return [instance.target]
+  }
+
   if (!session) {
     const error = new Error('Session does not exist!')
     getLogger().error(error)
@@ -33,8 +44,9 @@ export const executeActionWorker: SDKWorker<ExecuteActionParams> = function* (
     })
 
     if(session.unifiedEventing && message.method in UnifiedRequestMapper) {
+      const target = getTarget()
       //@ts-ignore
-      message = UnifiedRequestMapper[message.method](message, instance.self, instance.target)
+      message = UnifiedRequestMapper[message.method](message, instance.self, target)
     }
 
     

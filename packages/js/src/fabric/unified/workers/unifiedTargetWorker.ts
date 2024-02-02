@@ -40,5 +40,6 @@ export const unifiedTargetWorker = function* (
     )
   } else {
     getLogger().warn('No target found in a call.joined event, call stack compromised')
-  }  
+  }
+  getLogger().debug('unifiedTargetWorker stoped')  
 }
