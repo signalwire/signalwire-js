@@ -11,7 +11,6 @@ import {
   type TestHandler,
   createTestRunner,
   makeSipDomainAppAddress,
-  sleep,
 } from '../utils'
 
 const handler: TestHandler = ({ domainApp }) => {
@@ -33,6 +32,14 @@ const handler: TestHandler = ({ domainApp }) => {
       const waitForCallectStart = new Promise<void>((resolve) => {
         waitForCallectStartResolve = resolve
       })
+      let waitForPlaybackPauseResolve: () => void
+      const waitForPlaybackPause = new Promise<void>((resolve) => {
+        waitForPlaybackPauseResolve = resolve
+      })
+      let waitForPlaybackResumeResolve: () => void
+      const waitForPlaybackResume = new Promise<void>((resolve) => {
+        waitForPlaybackResumeResolve = resolve
+      })
 
       const unsubVoice = await client.voice.listen({
         topics: [domainApp.call_relay_context, 'home'],
@@ -44,17 +51,15 @@ const handler: TestHandler = ({ domainApp }) => {
             // Wait until the caller starts the collect
             await waitForCallectStart
 
-            // Send digits after 3 seconds (Expect playback pause)
-            await sleep(3000)
-            await call.sendDigits('#')
+            await call.sendDigits('#') // Expect playback pause
 
-            // Send digits after 5 seconds (Expect playback resume)
-            await sleep(5000)
-            await call.sendDigits('#')
+            // Wait until the caller pause the playback
+            await waitForPlaybackPause
+            await call.sendDigits('#') // Expect playback resume
 
-            // // Send digits after 5 seconds (Expect playback stop)
-            // await sleep(5000)
-            // await call.sendDigits('*')
+            // Wait until the caller resume the playback
+            await waitForPlaybackResume
+            await call.sendDigits('*') // Expect playback stop
           } catch (error) {
             console.error('Error answering inbound call', error)
           }
@@ -73,24 +78,56 @@ const handler: TestHandler = ({ domainApp }) => {
         timeout: 30,
       })
 
+      let expectedPlaybackState = 'playing'
+
       // Start playing music
       const playback = await call
         .playAudio({
           url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
           listen: {
             onUpdated: (_playback) => {
+              console.log('Playback updated', _playback.state)
               tap.ok('Playback updated', _playback)
-              console.log('Playback updated', playback.state)
+              tap.equal(
+                _playback.state,
+                expectedPlaybackState,
+                'Correct playback state!'
+              )
+
+              if (_playback.state === 'paused') {
+                // Inform callee about the playback pause
+                waitForPlaybackPauseResolve()
+              }
+
+              if (_playback.state === 'playing') {
+                // Inform callee about the playback resume
+                waitForPlaybackResumeResolve()
+              }
+            },
+            onEnded: async () => {
+              console.log('Playback ended!')
+
+              // Hangup the call
+              await call.hangup()
+
+              // Unsubscribe voice listeners
+              await unsubVoice()
+
+              // Disconnect the client
+              await client.disconnect()
+
+              resolve(0)
             },
           },
         })
         .onStarted()
 
+      console.log('==============COLLECT STARTING==============')
+
       await call.collect({
         initialTimeout: 4.0,
         digits: {
           max: 4,
-          terminators: '*',
         },
         partialResults: true,
         continuous: true,
@@ -101,36 +138,32 @@ const handler: TestHandler = ({ domainApp }) => {
           },
           onUpdated: async (_collect) => {
             const { result } = _collect
-            if (result.type === 'digit' && result.params.digits === '#') {
+            if (result.type === 'digit' && result.params.digits.endsWith('#')) {
               // Toggle playback
               if (playback.state === 'playing') {
                 console.log('Pausing playback')
+                expectedPlaybackState = 'paused'
                 await playback.pause()
               }
               if (playback.state === 'paused') {
                 console.log('Resuming playback')
+                expectedPlaybackState = 'playing'
                 await playback.resume()
               }
             }
 
-            if (result.type === 'digit' && result.params.digits === '*') {
+            if (result.type === 'digit' && result.params.digits.endsWith('*')) {
               console.log('Stopping playback')
+              expectedPlaybackState = 'stop'
               await playback.stop()
             }
           },
+          onEnded: (_collect) => {
+            console.log('Collect ended', _collect.state)
+            tap.equal(_collect.state, 'finished', 'Correct collect state!')
+          },
         },
       })
-
-      // // Hangup the call
-      // await call.hangup()
-
-      // // Unsubscribe voice listeners
-      // await unsubVoice()
-
-      // // Disconnect the client
-      // await client.disconnect()
-
-      // resolve(0)
     } catch (error) {
       console.error('VoicePlaybackToggleAndPinInput error', error)
       reject(4)
