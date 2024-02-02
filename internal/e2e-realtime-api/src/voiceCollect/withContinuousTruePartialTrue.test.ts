@@ -11,8 +11,8 @@ const possibleExpectedTexts = [
   '123456789 10:00 11:00 12:00',
   'one two three four five six seven eight nine ten',
   '1 2 3 4 5 6 7 8 9 10',
-  '1112',
-  'yes',
+  '1 1 1 2',
+  '11 12',
 ]
 
 const handler: TestHandler = ({ domainApp }) => {
@@ -70,7 +70,22 @@ const handler: TestHandler = ({ domainApp }) => {
                     console.log('>>> collect.started')
                   },
                   onUpdated: (_collect) => {
-                    console.log('>>> collect.updated', _collect.text)
+                    console.log('>>> collect.updated: [', _collect.text, ']')
+
+                    /* With 'continuous' true, we may have 'final' true to indicate
+                     * a portion of speech has been correctly collected and this
+                     * part of collection has completed. We want to check even if the
+                     * overall collect has not ended yet.
+                     */
+                    if (_collect.final === true) {
+                      const collected_cleaned = _collect.text!.trim().replace(/\s+/g, ' ');
+                      console.log(">>> collected update cleaned: [", collected_cleaned, "]")
+
+                      tap.ok(
+                        possibleExpectedTexts.includes(collected_cleaned!),
+                        'Received Correct Updated Text'
+                      )
+                    }
                   },
                   onEnded: (_collect) => {
                     console.log('>>> collect.ended', _collect.text)
@@ -126,7 +141,7 @@ const handler: TestHandler = ({ domainApp }) => {
       await waitForCollectStart
 
       await call.playAudio({
-        url: 'https://amaswtest.s3-accelerate.amazonaws.com/newrecording2.mp3',
+        url: 'https://files.swire.io/e2e/1-12-counting.mp3',
       })
 
       // Inform callee that speech has completed
