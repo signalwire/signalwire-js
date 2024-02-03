@@ -20,7 +20,7 @@ import type {
   VoiceCallAction,
   VideoManagerAction,
   PubSubEventAction,
-  InternalUnifiedActionTarget,
+  InternalUnifiedMethodTarget,
 } from '../types'
 import { SDKRunSaga } from '.'
 
@@ -34,8 +34,8 @@ interface SWComponent {
 }
 
 export interface WebRTCCall extends SWComponent {
-  self?: InternalUnifiedActionTarget,
-  targetStack?: InternalUnifiedActionTarget[],
+  self?: InternalUnifiedMethodTarget,
+  targetStack?: InternalUnifiedMethodTarget[],
   state?: BaseConnectionState
   remoteSDP?: string
   nodeId?: string
@@ -70,7 +70,7 @@ export interface SessionState {
   authError?: SessionAuthError
   authCount: number
   isUnified: boolean,
-  targetStack: InternalUnifiedActionTarget[]
+  targetStack: InternalUnifiedMethodTarget[]
 }
 
 export interface SDKState {

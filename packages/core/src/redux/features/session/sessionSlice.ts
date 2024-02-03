@@ -6,7 +6,7 @@ import type {
   SessionAuthError,
   SessionAuthStatus,
 } from '../../../utils/interfaces'
-import type { DeepReadonly, InternalUnifiedActionTarget } from '../../../types'
+import type { DeepReadonly, InternalUnifiedMethodTarget } from '../../../types'
 import { createDestroyableSlice } from '../../utils/createDestroyableSlice'
 import { authErrorAction, initAction, reauthAction } from '../../actions'
 
@@ -54,7 +54,7 @@ const sessionSlice = createDestroyableSlice({
     },
     pushTarget: (
       state,
-      { payload }: PayloadAction<InternalUnifiedActionTarget>
+      { payload }: PayloadAction<InternalUnifiedMethodTarget>
     ) => {
       const newState = {
         ...state,

@@ -82,6 +82,10 @@ export interface JSONRPCRequest {
   params?: JSONRPCParams
 }
 
+export function isJSONRPCRequest(obj: any): obj is JSONRPCRequest {
+  return !!obj && obj.jsonrpc === '2.0' && !!obj.id && !!obj.method
+}
+
 export interface JSONRPCResponse {
   jsonrpc: '2.0'
   id: string

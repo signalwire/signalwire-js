@@ -70,7 +70,11 @@ export const unifiedEventsWatcher: SDKWorker<RoomSessionConnection> =
         instance,
       })
 
-      yield sagaEffects.fork(unifiedTargetWorker, {action})
+      //@ts-expect-error FIX ME
+      yield sagaEffects.fork(unifiedTargetWorker, {
+        ...options,
+        action
+      })
     }
 
     const isUnifiedEvent = (action: SDKActions) =>

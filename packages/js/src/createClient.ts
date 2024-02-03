@@ -7,6 +7,7 @@ import {
 } from '@signalwire/core'
 import { ClientAPI, Client } from './Client'
 import { JWTSession } from './JWTSession'
+import { UnifiedJWTSession } from './UnifiedJWTSession'
 
 /**
  * With Video.createClient() you can establish a WebSocket connection
@@ -37,7 +38,7 @@ export const createClient = <RoomSessionType>(userOptions: UserOptions) => {
   }
   const store = configureStore({
     userOptions: baseUserOptions,
-    SessionConstructor: JWTSession,
+    SessionConstructor: userOptions.unifiedEventing ? UnifiedJWTSession : JWTSession,
   })
   const client = connect<
     ClientEvents,

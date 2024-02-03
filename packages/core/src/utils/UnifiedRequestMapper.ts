@@ -1,20 +1,20 @@
-import { InternalUnifiedActionTarget } from '..'
+import { InternalUnifiedMethodTarget } from '..'
 
 export type UnifiedResquestMapFunction = (
   requestMessage: any,
-  self: InternalUnifiedActionTarget,
-  targets?: InternalUnifiedActionTarget[]
+  self: InternalUnifiedMethodTarget,
+  targets?: InternalUnifiedMethodTarget[]
 ) => void
 
 const toServerUnifiedTarget = ({
   memberId: member_id,
   callId: call_id,
   nodeId: node_id,
-}: InternalUnifiedActionTarget) => ({ member_id, call_id, node_id })
+}: InternalUnifiedMethodTarget) => ({ member_id, call_id, node_id })
 
 const toServerUnifedParams = (
-  self: InternalUnifiedActionTarget,
-  targets: InternalUnifiedActionTarget[] = []
+  self: InternalUnifiedMethodTarget,
+  targets: InternalUnifiedMethodTarget[] = []
 ) => {
   return {
     self: toServerUnifiedTarget(self),
@@ -27,10 +27,11 @@ const toServerUnifedParams = (
 const unifiedPayload = (
   method: string,
   id: string,
-  self: InternalUnifiedActionTarget,
-  targets: InternalUnifiedActionTarget[] = [],
+  self: InternalUnifiedMethodTarget,
+  targets: InternalUnifiedMethodTarget[] = [],
   extra = {}
 ) => ({
+  "jsonrpc": "2.0",
   id,
   method,
   params: {
@@ -43,9 +44,9 @@ const withChannelsPayload = (
   method: string,
   channels: string[],
   id: string,
-  self: InternalUnifiedActionTarget,
-  targets: InternalUnifiedActionTarget[]
-) => unifiedPayload(method, id, self, targets, channels)
+  self: InternalUnifiedMethodTarget,
+  targets: InternalUnifiedMethodTarget[]
+) => unifiedPayload(method, id, self, targets, {channels})
 
 export const UnifiedRequestMapper: Record<string, UnifiedResquestMapFunction> =
   {
