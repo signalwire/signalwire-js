@@ -4,6 +4,7 @@ import {
   SagaIterator,
   InternalUnifiedMethodTarget,
   SDKWorker,
+  PubSubAction,
 } from '@signalwire/core'
 import { BaseConnection } from '@signalwire/webrtc';
 import { isUnifedJWTSession } from 'packages/js/src/UnifiedJWTSession';
@@ -27,7 +28,7 @@ const segmentWatcher: SDKWorker<
   ReturnType<typeof createClient<BaseConnection<any>>>,
   WSClientWorkerHooks & {callId: string }>   = function* (options) {
 
-  const { channels:{ swEventChannel }, callId } = options
+  const { channels:{ swEventChannel }, callId, getSession } = options
   getLogger().debug('call watcher started from call: ${callId}')
 
   function isSegmentEvent(action: any) {
@@ -35,8 +36,15 @@ const segmentWatcher: SDKWorker<
     return action.payload.callId == callId;
   }
 
+
   function* handleCallEvent (action:any) {
+    const session = getSession();
     getLogger().debug('segment event handler', action);
+    if(action.type === 'call.left') {
+      if(isUnifedJWTSession(session)) {
+        session.popCallInstanceRef();
+      }
+    }
   }
 
   while(true) {
