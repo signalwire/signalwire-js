@@ -8,11 +8,7 @@ import {
 } from '../utils'
 
 const possibleExpectedTexts = [
-  '123456789 10:00 11:00 12:00',
-  'one two three four five six seven eight nine ten',
-  '1 2 3 4 5 6 7 8 9 10',
-  '1 1 1 2',
-  '11 12',
+  '1112',
 ]
 
 const handler: TestHandler = ({ domainApp }) => {
@@ -78,7 +74,7 @@ const handler: TestHandler = ({ domainApp }) => {
                      * overall collect has not ended yet.
                      */
                     if (_collect.final === true) {
-                      const collected_cleaned = _collect.text!.trim().replace(/\s+/g, ' ');
+                      const collected_cleaned = _collect.text!.trim().replace(/\s+/g, '');
                       console.log(">>> collected update cleaned: [", collected_cleaned, "]")
 
                       tap.ok(
@@ -110,7 +106,7 @@ const handler: TestHandler = ({ domainApp }) => {
             setTimeout(() => call.hangup(), 100)
 
             const collected = await callCollect.ended()
-            const collected_cleaned = collected.text!.trim().replace(/\s+/g, ' ');
+            const collected_cleaned = collected.text!.trim().replace(/\s+/g, '');
             console.log(">>> collected cleaned: [", collected_cleaned, "]")
 
             tap.ok(
