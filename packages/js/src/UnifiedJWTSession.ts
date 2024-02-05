@@ -1,6 +1,6 @@
 import { InternalUnifiedMethodTarget, JSONRPCRequest, JSONRPCResponse, SessionOptions, isJSONRPCRequest } from "@signalwire/core";
 import { JWTSession } from "./JWTSession";
-import { UnifiedRequestMapper } from "packages/core/src/utils/UnifiedRequestMapper";
+import { UnifiedRequestMapper } from "./utils/UnifiedRequestMapper";
 
  
 export function isUnifedJWTSession(obj: any): obj is UnifiedJWTSession {

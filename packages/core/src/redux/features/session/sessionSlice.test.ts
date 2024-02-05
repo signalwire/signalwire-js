@@ -42,8 +42,6 @@ describe('SessionState Tests', () => {
       },
       authError: undefined,
       authCount: 1,
-      isUnified: false,
-      targetStack: []
     })
   })
 

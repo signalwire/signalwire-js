@@ -1,4 +1,4 @@
-import { InternalUnifiedMethodTarget } from '..'
+import { InternalUnifiedMethodTarget } from '../../../core/src'
 
 export type UnifiedResquestMapFunction = (
   requestMessage: any,

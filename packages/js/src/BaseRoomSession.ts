@@ -10,7 +10,6 @@ import {
   validateEventsToSubscribe,
   EventEmitter,
   SDKWorker,
-  selectors,
 } from '@signalwire/core'
 import {
   getDisplayMedia,
@@ -94,14 +93,6 @@ export class RoomSessionConnection
     if (options.eventsWatcher) {
       this.runWorker('eventsWatcher', { worker: options.eventsWatcher })
     }
-  }
-
-  get self() {
-    return this.select(selectors.getSelf)
-  }
-
-  get target() {
-    return this.select(selectors.getTarget)
   }
 
   get screenShareList() {

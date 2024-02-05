@@ -6,7 +6,7 @@ import type {
   SessionAuthError,
   SessionAuthStatus,
 } from '../../../utils/interfaces'
-import type { DeepReadonly, InternalUnifiedMethodTarget } from '../../../types'
+import type { DeepReadonly } from '../../../types'
 import { createDestroyableSlice } from '../../utils/createDestroyableSlice'
 import { authErrorAction, initAction, reauthAction } from '../../actions'
 
@@ -17,8 +17,6 @@ export const initialSessionState: DeepReadonly<SessionState> = {
   authState: undefined,
   authError: undefined,
   authCount: 0,
-  isUnified: false,
-  targetStack: [],
 }
 
 type AuthorizingAction = typeof initAction | typeof reauthAction
@@ -50,24 +48,6 @@ const sessionSlice = createDestroyableSlice({
       return {
         ...state,
         authState: payload,
-      }
-    },
-    pushTarget: (
-      state,
-      { payload }: PayloadAction<InternalUnifiedMethodTarget>
-    ) => {
-      const newState = {
-        ...state,
-        targetStack: [...state.targetStack, payload]
-      }
-      return newState
-    },
-    popTarget: (state) => {
-      const targetStack = [... state.targetStack];
-      targetStack.pop
-      return {
-        ...state,
-        targetStack: [...targetStack]
       }
     },
   },
