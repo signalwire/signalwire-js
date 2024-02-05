@@ -52,7 +52,8 @@ export const sdpMediaOrderHack = (
   const offerLines = localOffer.split(endOfLine)
   const offerAudioIndex = offerLines.findIndex(_isAudioLine)
   const offerVideoIndex = offerLines.findIndex(_isVideoLine)
-  if (offerAudioIndex < offerVideoIndex) {
+  
+  if (offerVideoIndex == -1 || offerAudioIndex == -1 || offerAudioIndex < offerVideoIndex) {
     return answer
   }
 
