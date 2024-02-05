@@ -8,6 +8,7 @@ import {
 } from '../utils'
 
 const possibleExpectedTexts = [
+  '12345678910',
   '1112',
 ]
 
