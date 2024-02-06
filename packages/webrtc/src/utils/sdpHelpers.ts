@@ -10,6 +10,13 @@ const _getCodecPayloadType = (line: string) => {
 }
 
 /**
+ * test if sdp has a video section
+ */
+export const hasMediaSection = (sdp: string, media: 'audio' | 'video') => {
+  return sdp.includes(`\r\nm=${media}`)
+}
+
+/**
  * Add stereo support hacking the SDP
  * @return the SDP modified
  */
@@ -52,7 +59,11 @@ export const sdpMediaOrderHack = (
   const offerLines = localOffer.split(endOfLine)
   const offerAudioIndex = offerLines.findIndex(_isAudioLine)
   const offerVideoIndex = offerLines.findIndex(_isVideoLine)
-  if (offerAudioIndex < offerVideoIndex) {
+  if (
+    offerVideoIndex == -1 ||
+    offerAudioIndex == -1 ||
+    offerAudioIndex < offerVideoIndex
+  ) {
     return answer
   }
 
