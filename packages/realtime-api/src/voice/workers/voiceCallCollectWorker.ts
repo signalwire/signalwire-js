@@ -68,9 +68,14 @@ export const voiceCallCollectWorker: SDKWorker<Client> = function* (
       }
       return false
     } else if (payload.final === true && payload.state == "collecting") {
-      /* final true with state collecting means we want partial results */
-      callInstance.emit('collect.updated', collectInstance)
-      collectInstance.emit('collect.updated', collectInstance)
+      // Even if final is true but we are still collecting, we want an update
+      if (eventPrefix === 'prompt') {
+        callInstance.emit('prompt.updated', promptInstance)
+        promptInstance.emit('prompt.updated', promptInstance)
+      } else {
+        callInstance.emit('collect.updated', collectInstance)
+        collectInstance.emit('collect.updated', collectInstance)
+      }
     }
 
     switch (payload.result.type) {
