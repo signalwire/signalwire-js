@@ -198,7 +198,7 @@ export interface MemberCommandWithValueParams extends MemberCommandParams {
 export interface BaseRoomInterface {
   join(): Promise<unknown>
   leave(): Promise<unknown>
-  self?: InternalUnifiedMethodTarget,
+  self?: InternalUnifiedMethodTarget
   target?: InternalUnifiedMethodTarget
 }
 

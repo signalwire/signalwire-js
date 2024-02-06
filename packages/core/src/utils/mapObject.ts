@@ -31,7 +31,9 @@ export function mapObject(
     if (!!replace) {
       newType = action.payload[stateKey] === from ? `${prefix}${to}` : undefined
     } else if (!!stateKey) {
-      newType = !!action.payload[stateKey] ? `${prefix}${action.payload[stateKey]}` : undefined
+      newType = !!action.payload[stateKey]
+        ? `${prefix}${action.payload[stateKey]}`
+        : undefined
     } else {
       newType = `${prefix}`
     }

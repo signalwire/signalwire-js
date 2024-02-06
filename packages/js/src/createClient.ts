@@ -38,7 +38,9 @@ export const createClient = <RoomSessionType>(userOptions: UserOptions) => {
   }
   const store = configureStore({
     userOptions: baseUserOptions,
-    SessionConstructor: userOptions.unifiedEventing ? UnifiedJWTSession : JWTSession,
+    SessionConstructor: userOptions.unifiedEventing
+      ? UnifiedJWTSession
+      : JWTSession,
   })
   const client = connect<
     ClientEvents,

@@ -31,7 +31,7 @@ const unifiedPayload = (
   targets: InternalUnifiedMethodTarget[] = [],
   extra = {}
 ) => ({
-  "jsonrpc": "2.0",
+  jsonrpc: '2.0',
   id,
   method,
   params: {
@@ -46,7 +46,7 @@ const withChannelsPayload = (
   id: string,
   self: InternalUnifiedMethodTarget,
   targets: InternalUnifiedMethodTarget[]
-) => unifiedPayload(method, id, self, targets, {channels})
+) => unifiedPayload(method, id, self, targets, { channels })
 
 export const UnifiedRequestMapper: Record<string, UnifiedResquestMapFunction> =
   {

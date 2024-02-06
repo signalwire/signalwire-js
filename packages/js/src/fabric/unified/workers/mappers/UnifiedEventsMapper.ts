@@ -1,8 +1,5 @@
 import { PubSubAction } from '@signalwire/core'
-import {
-  MappableObject,
-  mapObject,
-} from 'packages/core/src/utils/mapObject'
+import { MappableObject, mapObject } from 'packages/core/src/utils/mapObject'
 
 const EVENT_MAPPINGS: Record<string, string[]> = {
   'call.state': [
@@ -12,9 +9,7 @@ const EVENT_MAPPINGS: Record<string, string[]> = {
   ],
   'call.play': ['call.play.[state]'],
   'call.collect': ['call.collect.[collect_state]'],
-  'call.connect': [
-    'call.connect.[connect_state]',
-  ],
+  'call.connect': ['call.connect.[connect_state]'],
   'call.joined': ['video.room.subscribed'],
   'call.audience_count': ['video.room.audience_count'],
   'call.denoise': ['call.denoise'],
