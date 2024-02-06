@@ -1,10 +1,11 @@
-import { mapObject } from "./mapObject"
+import { mapObject } from './mapObject'
 
 describe('mapObject', () => {
   // simple type map to 'some.new.identifier'
   it('It should map some.old.id to some.new.id', () => {
-    expect(mapObject('some.new.id', { type: 'some.old.id' }))
-    .toEqual({ type: 'some.new.id'})
+    expect(mapObject('some.new.id', { type: 'some.old.id' })).toEqual({
+      type: 'some.new.id',
+    })
   })
 
   it('It should map some.old.id to some.new.id, not changing the payload', () => {
@@ -29,19 +30,20 @@ describe('mapObject', () => {
     })
   })
   // dynamic type using payload data 'some.new.[value_from_this]'
-  
+
   it('It should map some.old.id to some.new.created', () => {
-    expect(mapObject('some.new.[state]', 
-    { 
+    expect(
+      mapObject('some.new.[state]', {
         type: 'some.old.id',
         payload: {
-            state: 'created'
-        } 
-    })).toEqual({
+          state: 'created',
+        },
+      })
+    ).toEqual({
       type: 'some.new.created',
-        payload: {
-            state: 'created'
-        } 
+      payload: {
+        state: 'created',
+      },
     })
   })
 
@@ -67,24 +69,27 @@ describe('mapObject', () => {
 
   it('It should map some.old.id to some.new.id, not changing the payload', () => {
     expect(
-      mapObject('some.new.id{"a":"a_number","b":"a_string","c":"a_boolean", "d.x": "a_object"}', {
-        type: 'some.old.id',
-        payload: {
-          a: 1,
-          b: '2',
-          c: true,
-          d: { x: {} },
-        },
-      })
+      mapObject(
+        'some.new.id{"a":"a_number","b":"a_string","c":"a_boolean", "d.x": "a_object"}',
+        {
+          type: 'some.old.id',
+          payload: {
+            a: 1,
+            b: '2',
+            c: true,
+            d: { x: {} },
+          },
+        }
+      )
     ).toEqual({
       type: 'some.new.id',
       payload: {
         a_number: 1,
         a_string: '2',
         a_boolean: true,
-        a_object:  {},
+        a_object: {},
         // This is a side effect we could improve later
-        d: {}
+        d: {},
       },
     })
   })

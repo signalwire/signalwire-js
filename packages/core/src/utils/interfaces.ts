@@ -114,7 +114,7 @@ export interface SessionOptions {
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
   /** To refresh the auth token */
 
-  unifiedEventing?: boolean,
+  unifiedEventing?: boolean
 
   onRefreshToken?(): Promise<void>
   /**
