@@ -1,9 +1,13 @@
 import {
   FetchAddressResponse,
   GetAddressesOptions,
+  getLogger,
   type UserOptions,
 } from '@signalwire/core'
 import { createHttpClient } from './createHttpClient'
+import jwtDecode from 'jwt-decode'
+
+type JWTHeader = { ch?: string; typ?: string }
 
 interface RegisterDeviceParams {
   deviceType: 'iOS' | 'Android' | 'Desktop'
@@ -24,7 +28,18 @@ export class HTTPClient {
   }
 
   get httpHost() {
-    const { host } = this.options
+   
+    let decodedJwt: JWTHeader = {}
+    try {
+        decodedJwt = jwtDecode<JWTHeader>(this.options.token, {
+        header: true,
+      })
+    } catch (e) {
+      if (process.env.NODE_ENV !== 'production') {
+        getLogger().debug('[JWTSession] error decoding the JWT')
+      }
+    }
+    const host = this.options.host || decodedJwt?.ch
     if (!host) {
       return 'fabric.signalwire.com'
     }
