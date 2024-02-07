@@ -230,8 +230,8 @@ window.connect = () => {
     logLevel: 'debug',
     mirrorLocalVideoOverlay: false,
     debug: {
-        logWsTraffic: true,
-      }
+      logWsTraffic: true,
+    },
   })
 
   roomObj = roomSession
@@ -249,9 +249,6 @@ window.connect = () => {
     console.debug('>> media.disconnected')
   })
 
-  roomObj.on('room.started', (params) =>
-    console.debug('>> room.started', params)
-  )
   const handler = (params) => {
     console.warn('Debug', params)
   }
@@ -281,16 +278,27 @@ window.connect = () => {
     })
     loadLayouts()
   })
-  roomObj.on('destroy', () => {
-    console.debug('>> destroy')
-    restoreUI()
-  })
+  roomObj.on('room.started', (params) =>
+    console.debug('>> room.started', params)
+  )
   roomObj.on('room.left', (payload) => {
     console.debug('>> room.left', payload)
   })
   roomObj.on('room.updated', (params) =>
     console.debug('>> room.updated', params)
   )
+  roomObj.on('room.ended', (params) => {
+    console.debug('>> room.ended', params)
+    hangup()
+  })
+  roomObj.on('room.subscribed', (room) => {
+    console.debug('>> room.subscribed', room)
+  })
+
+  roomObj.on('destroy', () => {
+    console.debug('>> destroy')
+    restoreUI()
+  })
 
   roomObj.on('recording.started', (params) => {
     console.debug('>> recording.started', params)
@@ -303,10 +311,6 @@ window.connect = () => {
   roomObj.on('recording.updated', (params) => {
     console.debug('>> recording.updated', params)
     document.getElementById('recordingState').innerText = params.state
-  })
-  roomObj.on('room.ended', (params) => {
-    console.debug('>> room.ended', params)
-    hangup()
   })
   roomObj.on('member.joined', (params) =>
     console.debug('>> member.joined', params)

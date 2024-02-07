@@ -15,6 +15,7 @@ import { RoomSessionConnection } from '../BaseRoomSession'
 import { videoStreamWorker } from './videoStreamWorker'
 import { videoRecordWorker } from './videoRecordWorker'
 import { videoPlaybackWorker } from './videoPlaybackWorker'
+import { videoRoomWorker } from './videoRoomWorker'
 
 export type VideoWorkerParams<T> = SDKWorkerParams<RoomSessionConnection> & {
   action: T
@@ -29,14 +30,18 @@ export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
   function* worker(action: MapToPubSubShape<VideoAPIEventParams>) {
     const { type, payload } = action
 
+    console.log('<< type', type)
+
     switch (type) {
+      case 'video.room.started':
+      case 'video.room.updated':
+      case 'video.room.ended':
       case 'video.room.subscribed':
-        yield sagaEffects.spawn(MemberPosition.memberPositionWorker, {
+        yield sagaEffects.fork(videoRoomWorker, {
+          action,
           ...options,
-          instance: roomSession,
-          initialState: payload,
         })
-        break
+        return // Return when we don't need to handle the raw event for this
       case 'video.playback.started':
       case 'video.playback.updated':
       case 'video.playback.ended':
@@ -44,7 +49,7 @@ export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
           action,
           ...options,
         })
-        return // Return since we don't need to handle the raw event for this
+        return
       case 'video.recording.started':
       case 'video.recording.updated':
       case 'video.recording.ended':
@@ -81,6 +86,7 @@ export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
     }
 
     const event = stripNamespacePrefix(type, 'video') as VideoAPIEventNames
+    console.log('<< raw emit', event)
     roomSession.emit(event, payload)
   }
 
