@@ -1,4 +1,4 @@
-import { EventEmitter, actions, componentActions } from '@signalwire/core'
+import { Rooms, actions, componentActions } from '@signalwire/core'
 import { BaseRoomSession, createBaseRoomSessionObject } from './BaseRoomSession'
 import type { RoomSession } from './RoomSession'
 import { configureFullStack, dispatchMockedRoomSubscribed } from './testUtils'
@@ -449,11 +449,11 @@ describe('Room Object', () => {
 
       expect(globalHandler).toHaveBeenNthCalledWith(
         1,
-        talkingTrue.params.params
+        expect.any(Rooms.RoomSessionMemberAPI)
       )
       expect(globalHandler).toHaveBeenNthCalledWith(
         2,
-        talkingFalse.params.params
+        expect.any(Rooms.RoomSessionMemberAPI)
       )
       destroy()
     })
@@ -483,6 +483,7 @@ describe('Room Object', () => {
           expect(params[key].room_id).toEqual(roomId)
           expect(params[key].recording).toBe(true)
           expect(params[key].hide_video_muted).toBe(false)
+          // @ts-expect-error
           expect(params[key].meta).toStrictEqual({})
           const { members, recordings } = params[key]
 
@@ -501,7 +502,7 @@ describe('Room Object', () => {
 
           // Test recordings and recording object
           expect(recordings).toHaveLength(1)
-          const recordingObj = recordings[0]
+          const recordingObj = recordings?.[0]
           expect(recordingObj.id).toEqual(recordingId)
           expect(recordingObj.state).toEqual('recording')
           expect(recordingObj.duration).toBeNull()

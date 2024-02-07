@@ -88,14 +88,17 @@ describe('memberPositionWorker', () => {
       .run()
       .finally(() => {
         expect(emitSpy).toHaveBeenCalledWith(
-          'member.updated.visible',
+          'video.member.updated.visible',
           action.payload
         )
         expect(emitSpy).toHaveBeenCalledWith(
-          'member.updated.video_muted',
+          'video.member.updated.video_muted',
           action.payload
         )
-        expect(emitSpy).toHaveBeenCalledWith('member.updated', action.payload)
+        expect(emitSpy).toHaveBeenCalledWith(
+          'video.member.updated',
+          action.payload
+        )
         expect(memberList.get(memberId)?.member.visible).toBe(true)
         expect(memberList.get(memberId)?.member.video_muted).toBe(false)
         expect(memberList.get(memberId)?.member.updated).toStrictEqual([
