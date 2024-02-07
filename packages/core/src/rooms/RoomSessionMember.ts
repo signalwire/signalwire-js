@@ -1,7 +1,6 @@
 import {
   VideoMemberContract,
   VideoMemberEventNames,
-  VideoMemberEventParams,
   VideoMemberJoinedEventParams,
   VideoMemberLeftEventParams,
   VideoMemberTalkingEventParams,
@@ -12,7 +11,7 @@ import { BaseComponentOptionsWithPayload } from '../utils/interfaces'
 import { connect } from '../redux'
 
 export interface RoomSessionMember extends VideoMemberContract {
-  setPayload(payload: VideoMemberEventParams): void
+  setPayload(payload: RoomSessionMemberEventParams): void
 }
 
 export type RoomSessionMemberEventsHandlerMapping = Record<
@@ -21,7 +20,7 @@ export type RoomSessionMemberEventsHandlerMapping = Record<
 >
 
 export interface RoomSessionMemberOptions
-  extends BaseComponentOptionsWithPayload<VideoMemberEventParams> {}
+  extends BaseComponentOptionsWithPayload<RoomSessionMemberEventParams> {}
 
 export type RoomSessionMemberEventParams =
   | (
@@ -33,7 +32,7 @@ export type RoomSessionMemberEventParams =
 
 // @TODO: Implement class using a contract
 export class RoomSessionMemberAPI extends BaseComponent<RoomSessionMemberEventsHandlerMapping> {
-  private _payload: VideoMemberEventParams
+  private _payload: RoomSessionMemberEventParams
 
   constructor(options: RoomSessionMemberOptions) {
     super(options)
@@ -49,11 +48,11 @@ export class RoomSessionMemberAPI extends BaseComponent<RoomSessionMemberEventsH
   }
 
   get roomSessionId() {
-    return this._payload.member.room_session_id
+    return this._payload.room_session_id
   }
 
   get roomId() {
-    return this._payload.member.room_id
+    return this._payload.room_id
   }
 
   get parentId() {
@@ -127,16 +126,6 @@ export class RoomSessionMemberAPI extends BaseComponent<RoomSessionMemberEventsH
       },
     }
     this._payload = newPayload
-  }
-
-  async remove() {
-    await this.execute({
-      method: 'video.member.remove',
-      params: {
-        room_session_id: this.roomSessionId,
-        member_id: this.memberId,
-      },
-    })
   }
 }
 

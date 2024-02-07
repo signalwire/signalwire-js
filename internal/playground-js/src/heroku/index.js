@@ -312,24 +312,27 @@ window.connect = () => {
     console.debug('>> recording.updated', params)
     document.getElementById('recordingState').innerText = params.state
   })
+
+  roomObj.on('memberList.updated', (payload) => {
+    console.log('>> members.changed', payload)
+  })
   roomObj.on('member.joined', (params) =>
     console.debug('>> member.joined', params)
   )
   roomObj.on('member.updated', (params) =>
     console.debug('>> member.updated', params)
   )
-
-  roomObj.on('member.updated.audio_muted', (params) =>
-    console.debug('>> member.updated.audio_muted', params)
+  roomObj.on('member.updated.audioMuted', (params) =>
+    console.debug('>> member.updated.audioMuted', params)
   )
-  roomObj.on('member.updated.video_muted', (params) =>
-    console.debug('>> member.updated.video_muted', params)
+  roomObj.on('member.updated.videoMuted', (params) =>
+    console.debug('>> member.updated.videoMuted', params)
   )
-
   roomObj.on('member.left', (params) => console.debug('>> member.left', params))
   roomObj.on('member.talking', (params) =>
     console.debug('>> member.talking', params)
   )
+
   roomObj.on('layout.changed', (params) =>
     console.debug('>> layout.changed', params)
   )
@@ -337,34 +340,25 @@ window.connect = () => {
 
   roomObj.on('playback.started', (params) => {
     console.debug('>> playback.started', params)
-
     playbackStarted()
   })
   roomObj.on('playback.ended', (params) => {
     console.debug('>> playback.ended', params)
-
     playbackEnded()
   })
   roomObj.on('playback.updated', (params) => {
     console.debug('>> playback.updated', params)
-
     if (params.volume) {
       document.getElementById('playbackVolume').value = params.volume
     }
   })
 
-  roomObj.on('memberList.updated', (payload) => {
-    console.log('>> members.changed', payload)
-  })
-
   roomObj.on('microphone.updated', (payload) => {
     console.debug('>> microphone.updated', payload)
   })
-
   roomObj.on('camera.updated', (payload) => {
     console.debug('>> camera.updated', payload)
   })
-
   roomObj.on('speaker.updated', (payload) => {
     console.debug('>> speaker.updated', payload)
   })
@@ -372,11 +366,9 @@ window.connect = () => {
   roomObj.on('microphone.disconnected', (payload) => {
     console.debug('>> microphone.disconnected', payload)
   })
-
   roomObj.on('camera.disconnected', (payload) => {
     console.debug('>> camera.disconnected', payload)
   })
-
   roomObj.on('speaker.disconnected', (payload) => {
     console.debug('>> speaker.disconnected', payload)
   })

@@ -8,6 +8,7 @@ import {
   sagaEffects,
   MemberPosition,
   InternalMemberUpdatedEventNames,
+  InternalVideoMemberEntity,
 } from '@signalwire/core'
 import { VideoWorkerParams } from './videoWorker'
 import { videoMemberWorker } from './videoMemberWorker'
@@ -19,11 +20,11 @@ export const videoRoomWorker = function* (
   const { action, ...memberPositionWorkerParams } = options
   const { type, payload } = action
   const {
-    instance: roomSessionInstance,
+    instance: roomSession,
     instanceMap: { get, set },
   } = options
 
-  console.log('action', type, payload)
+  console.log('action', type, payload, payload.room_session.members)
 
   // For now, we are not storing the RoomSession object in the instance map
 
@@ -33,11 +34,19 @@ export const videoRoomWorker = function* (
       let memberInstance = get<RoomSessionMember>(member.id)
       if (!memberInstance) {
         memberInstance = Rooms.createRoomSessionMemberObject({
-          store: roomSessionInstance.store,
-          payload: member,
+          store: roomSession.store,
+          payload: {
+            room_id: payload.room_session.room_id,
+            room_session_id: payload.room_session.id,
+            member: member as InternalVideoMemberEntity & { talking: boolean },
+          },
         })
       } else {
-        memberInstance.setPayload(member)
+        memberInstance.setPayload({
+          room_id: payload.room_session.room_id,
+          room_session_id: payload.room_session.id,
+          member: member as InternalVideoMemberEntity & { talking: boolean },
+        })
       }
       set<RoomSessionMember>(member.id, memberInstance)
     })
@@ -45,33 +54,37 @@ export const videoRoomWorker = function* (
 
   switch (type) {
     case 'video.room.started': {
-      roomSessionInstance.emit('room.started', payload)
+      roomSession.emit('room.started', payload)
       break
     }
     case 'video.room.updated': {
-      roomSessionInstance.emit('room.updated', payload)
+      roomSession.emit('room.updated', payload)
       break
     }
     case 'video.room.ended': {
-      roomSessionInstance.emit('room.ended', payload)
+      roomSession.emit('room.ended', payload)
       break
     }
     case 'video.room.subscribed': {
       yield sagaEffects.spawn(MemberPosition.memberPositionWorker, {
         ...memberPositionWorkerParams,
-        instance: roomSessionInstance,
+        instance: roomSession,
         initialState: payload,
         dispatcher: function* (
           subType: InternalMemberUpdatedEventNames,
           subPayload
         ) {
+          console.log('dispatched by member memberPositionWorker', {
+            type: subType,
+            payload: subPayload,
+          })
           yield sagaEffects.fork(videoMemberWorker, {
             ...options,
             action: { type: subType, payload: subPayload },
           })
         },
       })
-      roomSessionInstance.emit('room.subscribed', roomSessionInstance)
+      roomSession.emit('room.subscribed', payload)
       break
     }
     default:

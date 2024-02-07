@@ -7,7 +7,6 @@ import {
   getLogger,
   sagaEffects,
   SDKWorkerParams,
-  MemberPosition,
   VideoAPIEventNames,
   stripNamespacePrefix,
 } from '@signalwire/core'
@@ -16,6 +15,7 @@ import { videoStreamWorker } from './videoStreamWorker'
 import { videoRecordWorker } from './videoRecordWorker'
 import { videoPlaybackWorker } from './videoPlaybackWorker'
 import { videoRoomWorker } from './videoRoomWorker'
+import { videoMemberWorker } from './videoMemberWorker'
 
 export type VideoWorkerParams<T> = SDKWorkerParams<RoomSessionConnection> & {
   action: T
@@ -30,8 +30,6 @@ export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
   function* worker(action: MapToPubSubShape<VideoAPIEventParams>) {
     const { type, payload } = action
 
-    console.log('<< type', type)
-
     switch (type) {
       case 'video.room.started':
       case 'video.room.updated':
@@ -42,6 +40,15 @@ export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
           ...options,
         })
         return // Return when we don't need to handle the raw event for this
+      case 'video.member.joined':
+      case 'video.member.left':
+      case 'video.member.updated':
+      case 'video.member.talking':
+        yield sagaEffects.fork(videoMemberWorker, {
+          action,
+          ...options,
+        })
+        return
       case 'video.playback.started':
       case 'video.playback.updated':
       case 'video.playback.ended':
@@ -69,24 +76,11 @@ export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
         roomSession.emit('room.audienceCount', payload)
         return
       }
-      case 'video.member.talking': {
-        const { member } = payload
-        if ('talking' in member) {
-          const suffix = member.talking ? 'started' : 'ended'
-          roomSession.emit(`member.talking.${suffix}`, payload)
-
-          // Keep for backwards compat.
-          const deprecatedSuffix = member.talking ? 'start' : 'stop'
-          roomSession.emit(`member.talking.${deprecatedSuffix}`, payload)
-        }
-        break // Break here since we do need the raw event sent to the client
-      }
       default:
         break
     }
 
     const event = stripNamespacePrefix(type, 'video') as VideoAPIEventNames
-    console.log('<< raw emit', event)
     roomSession.emit(event, payload)
   }
 

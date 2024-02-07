@@ -1,23 +1,35 @@
 import {
+  InternalVideoMemberUpdatedEvent,
   MapToPubSubShape,
   MemberTalkingEventNames,
   RoomSessionMember,
   Rooms,
   SagaIterator,
-  VideoMemberEvent,
   VideoMemberEventNames,
+  VideoMemberJoinedEvent,
+  VideoMemberLeftEvent,
+  VideoMemberTalkingEvent,
+  VideoMemberUpdatedEvent,
   fromSnakeToCamelCase,
   getLogger,
   stripNamespacePrefix,
 } from '@signalwire/core'
 import { VideoWorkerParams } from './videoWorker'
 
+type VideoMemberEvents = MapToPubSubShape<
+  | VideoMemberJoinedEvent
+  | VideoMemberLeftEvent
+  | VideoMemberUpdatedEvent
+  | VideoMemberTalkingEvent
+  | InternalVideoMemberUpdatedEvent
+>
+
 export const videoMemberWorker = function* (
-  options: VideoWorkerParams<MapToPubSubShape<VideoMemberEvent>>
+  options: VideoWorkerParams<VideoMemberEvents>
 ): SagaIterator {
   getLogger().trace('videoMemberWorker started')
   const {
-    instance: roomSessionInstance,
+    instance: roomSession,
     action: { type, payload },
     instanceMap: { get, set, remove },
   } = options
@@ -27,43 +39,43 @@ export const videoMemberWorker = function* (
   let memberInstance = get<RoomSessionMember>(payload.member.id)
   if (!memberInstance) {
     memberInstance = Rooms.createRoomSessionMemberObject({
-      store: roomSessionInstance.store,
-      payload,
+      store: roomSession.store,
+      payload: payload as Rooms.RoomSessionMemberEventParams,
     })
   } else {
-    memberInstance.setPayload(payload)
+    memberInstance.setPayload(payload as Rooms.RoomSessionMemberEventParams)
   }
-  set<RoomSessionMember>(payload.playback.id, memberInstance)
+  set<RoomSessionMember>(payload.member.id, memberInstance)
 
   const event = stripNamespacePrefix(type) as VideoMemberEventNames
 
   if (type.startsWith('video.member.updated.')) {
     const clientType = fromSnakeToCamelCase(event)
     // @ts-expect-error
-    roomSessionInstance.emit(clientType, memberInstance)
+    roomSession.emit(clientType, memberInstance)
   }
 
   switch (type) {
     case 'video.member.joined':
     case 'video.member.updated':
-      roomSessionInstance.emit(event, memberInstance)
+      roomSession.emit(event, memberInstance)
       break
     case 'video.member.left':
-      roomSessionInstance.emit(event, memberInstance)
+      roomSession.emit(event, memberInstance)
       remove<RoomSessionMember>(payload.member.id)
       break
     case 'video.member.talking':
-      roomSessionInstance.emit(event, memberInstance)
+      roomSession.emit(event, memberInstance)
       if ('talking' in payload.member) {
         const suffix = payload.member.talking ? 'started' : 'ended'
-        roomSessionInstance.emit(
+        roomSession.emit(
           `${event}.${suffix}` as MemberTalkingEventNames,
           memberInstance
         )
 
         // Keep for backwards compatibility
         const deprecatedSuffix = payload.member.talking ? 'start' : 'stop'
-        roomSessionInstance.emit(
+        roomSession.emit(
           `${event}.${deprecatedSuffix}` as MemberTalkingEventNames,
           memberInstance
         )
