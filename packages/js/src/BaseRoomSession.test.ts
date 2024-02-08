@@ -1,4 +1,4 @@
-import { Rooms, actions, componentActions } from '@signalwire/core'
+import { actions, componentActions } from '@signalwire/core'
 import { BaseRoomSession, createBaseRoomSessionObject } from './BaseRoomSession'
 import type { RoomSession } from './RoomSession'
 import { configureFullStack, dispatchMockedRoomSubscribed } from './testUtils'
@@ -449,11 +449,11 @@ describe('Room Object', () => {
 
       expect(globalHandler).toHaveBeenNthCalledWith(
         1,
-        expect.any(Rooms.RoomSessionMemberAPI)
+        talkingTrue.params.params
       )
       expect(globalHandler).toHaveBeenNthCalledWith(
         2,
-        expect.any(Rooms.RoomSessionMemberAPI)
+        talkingFalse.params.params
       )
       destroy()
     })
