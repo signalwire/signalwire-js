@@ -109,9 +109,6 @@ export interface SessionOptions {
   /** logging level */
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
   /** To refresh the auth token */
-
-  unifiedEventing?: boolean,
-
   onRefreshToken?(): Promise<void>
   /**
    * The SDK invokes this method and uses the new token to re-auth.
@@ -121,6 +118,8 @@ export interface SessionOptions {
    * */
   _onRefreshToken?(): Promise<void>
   sessionChannel?: SessionChannel
+  /** Unified eventing is required only with Call Fabric SDK */
+  unifiedEventing?: boolean
 }
 export interface UserOptions extends SessionOptions {
   /** @internal */

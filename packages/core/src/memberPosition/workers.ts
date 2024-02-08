@@ -5,6 +5,7 @@ import {
   SagaIterator,
   SDKWorker,
   SDKWorkerParams,
+  stripNamespacePrefix,
   VideoMemberUpdatedEventParams,
   VideoPosition,
   VideoRoomSubscribedEventParams,
@@ -21,7 +22,8 @@ const defaultDispatcher = function* (
   payload: any,
   instance?: any
 ) {
-  instance.emit(type, payload)
+  const event = stripNamespacePrefix(type)
+  instance.emit(event, payload)
 }
 
 function* memberPositionLayoutChangedWorker(options: any) {
