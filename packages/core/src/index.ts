@@ -18,6 +18,8 @@ import {
   isSATAuth,
   LOCAL_EVENT_PREFIX,
   stripNamespacePrefix,
+  isJSONRPCRequest,
+  isJSONRPCResponse
 } from './utils'
 import { WEBRTC_EVENT_TYPES, isWebrtcEventType } from './utils/common'
 import { BaseSession } from './BaseSession'
@@ -68,6 +70,8 @@ export {
   WEBRTC_EVENT_TYPES,
   isWebrtcEventType,
   isSATAuth,
+  isJSONRPCRequest,
+  isJSONRPCResponse,
   LOCAL_EVENT_PREFIX,
   stripNamespacePrefix,
 }

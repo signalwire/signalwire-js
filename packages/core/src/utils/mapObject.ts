@@ -1,4 +1,3 @@
-import objectPath from 'object-path'
 export interface MappableObject {
   type: string
   payload?: Record<string, object | string | boolean | number>
@@ -31,7 +30,9 @@ export function mapObject(
     if (!!replace) {
       newType = action.payload[stateKey] === from ? `${prefix}${to}` : undefined
     } else if (!!stateKey) {
-      newType = !!action.payload[stateKey] ? `${prefix}${action.payload[stateKey]}` : undefined
+      newType = !!action.payload[stateKey]
+        ? `${prefix}${action.payload[stateKey]}`
+        : undefined
     } else {
       newType = `${prefix}`
     }
@@ -46,24 +47,24 @@ export function mapObject(
   }
 
   if (matches?.groups?.payloadMap) {
-    const { payloadMap: mapString } = matches.groups
+    // const { payloadMap: mapString } = matches.groups
     const { payload } = action
-    const payloadMap: Record<string, string> = JSON.parse(mapString)
-    const newContent = {}
+    // const payloadMap: Record<string, string> = JSON.parse(mapString)
+    // const newContent = {}
 
-    Object.entries(payloadMap).forEach(([old_path, new_path]) => {
-      const value = objectPath.get(payload as object, old_path)
-      objectPath.del(payload as object, old_path)
-      objectPath.set(newContent, new_path, value)
-    })
-    const newPayload = {
-      ...payload,
-      ...newContent,
-    }
+    // Object.entries(payloadMap).forEach(([old_path, new_path]) => {
+    //   const value = objectPath.get(payload as object, old_path)
+    //   objectPath.del(payload as object, old_path)
+    //   objectPath.set(newContent, new_path, value)
+    // })
+    // const newPayload = {
+    //   ...payload,
+    //   ...newContent,
+    // }
     result = {
       ...result,
       //@ts-ignore
-      payload: newPayload,
+      payload,
     }
   }
 

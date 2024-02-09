@@ -1,32 +1,26 @@
 import { PubSubAction } from '@signalwire/core'
-import {
-  MappableObject,
-  mapObject,
-} from 'packages/core/src/utils/mapObject'
+import { MappableObject, mapObject } from 'packages/core/src/utils/mapObject'
 
 const EVENT_MAPPINGS: Record<string, string[]> = {
   'call.state': [
-    'call.state.[call_state]',
-    'video.room.[call_state]',
+    // 'call.state.[call_state]',
+    // 'video.room.[call_state]',
     'video.room.[call_state(created:started)]',
   ],
-  'call.play': ['call.play.[state]'],
-  'call.collect': ['call.collect.[collect_state]'],
-  'call.connect': [
-    'call.connect.[connect_state]',
-    'video.room.[connect_state(connected:subscribed)]',
-  ],
-  'call.join': ['video.room.subscribed{"callID":"room_id"}'],
+  // 'call.play': ['call.play.[state]'],
+  // 'call.collect': ['call.collect.[collect_state]'],
+  // 'call.connect': ['call.connect.[connect_state]'],
+  'call.joined': ['video.room.subscribed'],
   'call.audience_count': ['video.room.audience_count'],
   'call.denoise': ['call.denoise'],
-  'call.detect': ['call.detect.[detect_state]'],
+  // 'call.detect': ['call.detect.[detect_state]'],
   'call.dial': ['call.dial.[dial_state]'],
   'call.send_digits': ['call.send_digits', 'video.room.send_digits'], //TODO double check
   'call.refer': ['calling.call.refer'],
   'call.received': ['call.received'],
-  'call.fax': ['call.fax.[fax_state]'],
-  'call.hold': ['call.hold.[fax_state]'],
-  'call.prompt': ['call.prompt.[prompt_state]'],
+  // 'call.fax': ['call.fax.[fax_state]'],
+  // 'call.hold': ['call.hold.[fax_state]'],
+  // 'call.prompt': ['call.prompt.[prompt_state]'],
   'call.started': ['video.room.started'],
   'call.subscribed': ['video.room.subscribed'],
   'call.updated': ['video.room.updated'],
