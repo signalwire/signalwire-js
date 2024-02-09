@@ -40,7 +40,18 @@ export class RoomSessionMemberAPI extends BaseComponent<RoomSessionMemberEventsH
   }
 
   get id() {
-    return this._payload.member.id
+    //@ts-ignore
+    return this._payload.member.id ?? this._payload.member.member_id
+  }
+
+  get callId() {
+    //@ts-ignore
+    return this._payload.member.call_id
+  }
+
+  get nodeId() {
+    //@ts-ignore
+    return this._payload.member.node_id
   }
 
   get memberId() {

@@ -77,7 +77,7 @@ function transformPayload(
 ) {
   const keys = ['room_session', 'room'] as const
   keys.forEach((key) => {
-    if (payload[key].recordings) {
+    if (payload[key] && payload[key].recordings) {
       payload[key].recordings = (payload[key].recordings || []).map(
         (recording: any) => {
           let recordingInstance = this.instanceMap.get<RoomSessionRecording>(
@@ -108,7 +108,7 @@ function transformPayload(
       )
     }
 
-    if (payload[key].playbacks) {
+    if(payload[key] && payload[key].playbacks) {
       payload[key].playbacks = (payload[key].playbacks || []).map(
         (playback) => {
           let playbackInstance = this.instanceMap.get<RoomSessionPlayback>(
@@ -139,7 +139,7 @@ function transformPayload(
       )
     }
 
-    if (payload[key].streams) {
+    if (payload[key] && payload[key].streams) {
       payload[key].streams = (payload[key].streams || []).map((stream: any) => {
         let streamInstance = this.instanceMap.get<RoomSessionStream>(stream.id)
         if (!streamInstance) {

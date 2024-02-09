@@ -13,6 +13,7 @@ import {
 import { RoomSessionConnection } from '../../../BaseRoomSession'
 import { fromUnifiedEvent } from './mappers/UnifiedEventsMapper'
 import { isMappableObject } from 'packages/core/src/utils/mapObject'
+import { unifiedTargetWorker } from './unifiedTargetWorker'
 
 export type VideoWorkerParams<T> = SDKWorkerParams<RoomSessionConnection> & {
   action: T
@@ -68,10 +69,18 @@ export const unifiedEventsWatcher: SDKWorker<RoomSessionConnection> =
         action,
         instance,
       })
+
+      //@ts-expect-error FIX ME
+      yield sagaEffects.fork(unifiedTargetWorker, {
+        ...options,
+        action,
+      })
     }
 
     const isUnifiedEvent = (action: SDKActions) =>
-      action.type.startsWith('member') || action.type.startsWith('layout')
+      action.type.startsWith('member') ||
+      action.type.startsWith('layout') ||
+      action.type.startsWith('call')
 
     while (true) {
       const action: MapToPubSubShape<VideoAPIEventParams> =

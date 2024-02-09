@@ -56,7 +56,7 @@ export type ReduxComponent = WebRTCCall | Message
 export interface ComponentState {
   byId: {
     [key: string]: ReduxComponent
-  }
+  },
 }
 
 export interface SessionState {
