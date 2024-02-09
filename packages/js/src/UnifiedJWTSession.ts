@@ -34,6 +34,9 @@ export class UnifiedJWTSession extends JWTSession {
   //@ts-ignore
   getExecuteTargets(msg: JSONRPCRequest): InternalUnifiedMethodTarget[] {
     // TODO inspect if msg.params contains member
+    const targetMemberId = ''
+
+    const memberInstance = this.instanceMap.get(targetMemberId);
 
     //@ts-ignore
     const defaultTarget = this.callInstancesStack.findLast(() => true)

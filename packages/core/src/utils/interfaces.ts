@@ -125,6 +125,7 @@ export interface SessionOptions {
    * */
   _onRefreshToken?(): Promise<void>
   sessionChannel?: SessionChannel
+  instanceMap: InstanceMap
 }
 export interface UserOptions extends SessionOptions {
   /** @internal */

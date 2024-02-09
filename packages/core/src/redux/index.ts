@@ -61,14 +61,16 @@ const configureStore = (options: ConfigureStoreOptions) => {
       // @see https://redux-toolkit.js.org/api/getDefaultMiddleware#intended-usage
       getDefaultMiddleware().concat(sagaMiddleware),
   }) as Store
+  
+  const instanceMap = useInstanceMap()
 
   const { initSession, getSession, sessionEmitter } = useSession({
     userOptions,
     sessionChannel,
     SessionConstructor,
+    instanceMap,
   })
 
-  const map = useInstanceMap()
 
   const runSaga = <T>(
     saga: Saga,
@@ -81,7 +83,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
       ...args,
       channels,
       getSession,
-      instanceMap: map,
+      instanceMap,
     })
   }
 
@@ -97,7 +99,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
     ...store,
     runSaga,
     channels,
-    instanceMap: map,
+    instanceMap: instanceMap,
     sessionEmitter,
   }
 }
