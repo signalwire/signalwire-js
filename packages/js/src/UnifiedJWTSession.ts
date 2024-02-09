@@ -8,6 +8,7 @@ import {
 import { JWTSession } from './JWTSession'
 import { UnifiedRequestMapper } from './utils/UnifiedRequestMapper'
 
+
 export function isUnifedJWTSession(obj: any): obj is UnifiedJWTSession {
   return !!obj && obj instanceof UnifiedJWTSession
 }
@@ -33,13 +34,14 @@ export class UnifiedJWTSession extends JWTSession {
 
   //@ts-ignore
   getExecuteTargets(msg: JSONRPCRequest): InternalUnifiedMethodTarget[] {
-    // TODO inspect if msg.params contains member
-    const targetMemberId = ''
+    const {member_id:targetMemberId} = msg.params ?? {}
 
-    const memberInstance = this.instanceMap.get(targetMemberId);
+    const memberInstance = targetMemberId ? this.instanceMap?.get<{id: string, callId: string, nodeId:string}>(targetMemberId) : undefined;
+    const {id:memberId, callId, nodeId} = memberInstance ?? {};
+    const targetMember = memberId && callId && nodeId ? {memberId, callId, nodeId} : undefined
 
     //@ts-ignore
-    const defaultTarget = this.callInstancesStack.findLast(() => true)
+    const defaultTarget = targetMember ?? this.callInstancesStack.findLast(() => true)
     return !!defaultTarget ? [defaultTarget] : []
   }
 

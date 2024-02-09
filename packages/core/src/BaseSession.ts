@@ -76,7 +76,7 @@ export class BaseSession {
   private _executeQueue: Set<JSONRPCRequest | JSONRPCResponse> = new Set()
   private _swConnectError = Symbol.for('sw-connect-error')
   private _executeConnectionClosed = Symbol.for('sw-execute-connection-closed')
-  private _instanceMap:InstanceMap;
+  private _instanceMap:InstanceMap | undefined;
 
   private _checkPingDelay = 15 * 1000
   private _checkPingTimer: any = null
