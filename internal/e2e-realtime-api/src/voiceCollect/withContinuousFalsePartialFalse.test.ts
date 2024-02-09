@@ -8,9 +8,7 @@ import {
 } from '../utils'
 
 const possibleExpectedTexts = [
-  '123456789 10:00 11:00 12:00',
-  'one two three four five six seven eight nine ten',
-  '1112',
+  '12345678910',
 ]
 
 const handler: TestHandler = ({ domainApp }) => {
@@ -88,8 +86,11 @@ const handler: TestHandler = ({ domainApp }) => {
             await waitForPlaybackEnd
 
             const collected = await callCollect.ended()
+            const collected_cleaned = collected.text!.trim().replace(/\s+/g, '');
+            console.log(">>> collected cleaned: [", collected_cleaned, "]")
+
             tap.ok(
-              possibleExpectedTexts.includes(collected.text!),
+              possibleExpectedTexts.includes(collected_cleaned!),
               'Received Correct Text'
             )
 
@@ -116,7 +117,7 @@ const handler: TestHandler = ({ domainApp }) => {
       await waitForCollectStart
 
       await call.playAudio({
-        url: 'https://amaswtest.s3-accelerate.amazonaws.com/newrecording2.mp3',
+        url: 'https://files.swire.io/e2e/1-12-counting.mp3',
       })
 
       // Inform callee that speech has completed
