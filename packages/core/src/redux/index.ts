@@ -99,6 +99,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
     channels,
     instanceMap: map,
     sessionEmitter,
+    unifiedEventing: userOptions.unifiedEventing,
   }
 }
 

@@ -23,6 +23,8 @@ export type VideoWorkerParams<T> = SDKWorkerParams<RoomSessionConnection> & {
 export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
   options
 ): SagaIterator {
+  getLogger().trace('videoWorker started')
+
   const { channels, instance: roomSession } = options
   const { swEventChannel } = channels
 
