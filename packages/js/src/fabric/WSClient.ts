@@ -2,8 +2,7 @@ import { type UserOptions, getLogger, VertoSubscribe } from '@signalwire/core'
 import { Client } from '../Client'
 import { RoomSession } from '../RoomSession'
 import { createClient } from '../createClient'
-import { wsClientWorker } from './workers'
-import { unifiedEventsWatcher } from './unified/workers/unifiedEventsWatcher'
+import { wsClientWorker, unifiedEventsWatcher } from './workers'
 
 interface PushNotification {
   encryption_type: 'aes_256_gcm'
