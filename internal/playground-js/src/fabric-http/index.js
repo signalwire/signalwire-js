@@ -163,19 +163,16 @@ searchType.addEventListener('change', fetchAddresses)
 
 async function fetchConverstations() {
   // Use conversation methods
-  const conversationHistoryOptions = {
-    subscriberId: 'someSubscriberId',
-    addressId: 'someAddressId',
-    limit: 15,
-  }
-  const conversations = await client.conversation.getConversationHistory(
-    conversationHistoryOptions
-  )
+
+  const conversations = await client.conversation.getConversations()
   // Handle conversation history
 
+  const conversationMessages =
+    await client.conversation.getConversationMessages()
+
   // Subscribe to updates
-  const subscriberId = 'someSubscriberId'
-  client.conversation.subscribeToUpdates(subscriberId, (update) => {
-    // Handle real-time updates
-  })
+  // const subscriberId = 'someSubscriberId'
+  // client.conversation.subscribeToUpdates(subscriberId, (update) => {
+  //   // Handle real-time updates
+  // })
 }

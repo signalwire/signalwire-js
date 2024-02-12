@@ -2,6 +2,7 @@ import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
 import {
   FetchConversationHistoryResponse,
+  GetConversationMessagesOptions,
   GetConversationsOptions,
 } from '@signalwire/core'
 import { conversationWorker } from './workers'
@@ -59,6 +60,67 @@ export class Conversation {
     }
   }
 
+  public async getConversationMessages(
+    options?: GetConversationMessagesOptions
+  ) {
+    try {
+      const { fabricAddressId, limit, since, until, cursor } = options || {}
+
+      const subscriber = await this.httpClient.fetchSubscriberInfo()
+
+      const path = '/conversations/messages'
+      const queryParams = new URLSearchParams()
+      queryParams.append('fabric_subscriber_id', subscriber.id)
+      if (fabricAddressId) {
+        queryParams.append('fabric_address_id', fabricAddressId)
+      }
+      if (limit) {
+        queryParams.append('limit', limit.toString())
+      }
+      if (since) {
+        queryParams.append('since', since.toString())
+      }
+      if (until) {
+        queryParams.append('until', until.toString())
+      }
+      if (cursor) {
+        queryParams.append('cursor', cursor)
+      }
+
+      const { body } =
+        await this.httpClient.fetch<FetchConversationHistoryResponse>(
+          `${path}?${queryParams.toString()}`
+        )
+
+      return body
+    } catch (error) {
+      return new Error('Error fetching the conversation messages!')
+    }
+  }
+
+  public async createConversationMessage() {
+    try {
+      const subscriber = await this.httpClient.fetchSubscriberInfo()
+
+      const path = '/conversations/messages'
+
+      // TODO: Complete the payload
+      const payload = {
+        fabric_subscriber_id: subscriber.id,
+      }
+
+      const { body } =
+        await this.httpClient.fetch<FetchConversationHistoryResponse>(path, {
+          method: 'POST',
+          body: payload,
+        })
+
+      return body
+    } catch (error) {
+      return new Error('Error creating a conversation messages!')
+    }
+  }
+
   public async subscribeToUpdates(
     subscriberId: string,
     callback: (update: any[]) => void
@@ -80,8 +142,7 @@ export class Conversation {
     const { subscriberId } = event
     const subscriberCallbacks = this.subscribers.get(subscriberId)
     subscriberCallbacks?.forEach((callback) => {
-      // Send a copy to avoid unintentional modifications
-      callback([...event])
+      callback(event)
     })
   }
 }

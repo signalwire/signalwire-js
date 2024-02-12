@@ -50,6 +50,14 @@ export interface GetConversationsOptions {
   cursor?: string
 }
 
+export interface GetConversationMessagesOptions {
+  fabricAddressId?: string
+  limit?: number
+  since?: number
+  until?: number
+  cursor?: string
+}
+
 export interface SubscriberInfoResponse {
   app_settings?: string
   company_name?: string

@@ -17,6 +17,8 @@ export interface SignalWireContract {
   updateToken: WSClient['updateToken']
   conversation: {
     getConversations: Conversation['getConversations']
+    getConversationMessages: Conversation['getConversationMessages']
+    createConversationMessage: Conversation['createConversationMessage']
     subscribeToUpdates: Conversation['subscribeToUpdates']
   }
 }
@@ -45,6 +47,10 @@ export const SignalWire = (
         updateToken: wsClient.updateToken.bind(wsClient),
         conversation: {
           getConversations: conversation.getConversations.bind(conversation),
+          getConversationMessages:
+            conversation.getConversationMessages.bind(conversation),
+          createConversationMessage:
+            conversation.createConversationMessage.bind(conversation),
           subscribeToUpdates:
             conversation.subscribeToUpdates.bind(conversation),
         },
