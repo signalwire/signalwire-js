@@ -6,8 +6,8 @@ import {
   SDKWorker,
 } from '@signalwire/core'
 import { BaseConnection } from '@signalwire/webrtc'
-import { isUnifedJWTSession } from 'packages/js/src/UnifiedJWTSession'
-import { createClient } from 'packages/js/src/createClient'
+import { isUnifedJWTSession } from '../../UnifiedJWTSession'
+import { createClient } from '../../createClient'
 import { WSClientWorkerHooks } from './wsClientWorker'
 
 function getTarget(event: any): InternalUnifiedMethodTarget | undefined {

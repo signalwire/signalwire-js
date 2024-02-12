@@ -7,8 +7,8 @@ import {
   MapToPubSubShape,
   SDKWorkerHooks,
 } from '@signalwire/core'
-import { createClient } from '../../createClient'
 import type { BaseConnection } from '@signalwire/webrtc'
+import { createClient } from '../../createClient'
 
 type WSClientWorkerOnDone = () => void
 type WSClientWorkerOnFail = (args: { error: Error }) => void
