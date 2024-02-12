@@ -21,11 +21,14 @@ export class UnifiedJWTSession extends JWTSession {
   }
 
   pushCallInstanceRef(target: InternalUnifiedMethodTarget) {
+    this.logger.debug('Pushing new target to stack', target)
     this.callInstancesStack.push(target)
   }
 
   popCallInstanceRef(): InternalUnifiedMethodTarget | undefined {
-    return this.callInstancesStack.pop()
+    this.logger.debug('Poping target from stack', this.callInstancesStack[this.callInstancesStack.length-1]?.callId)
+    const target = this.callInstancesStack.pop()
+    return target
   }
 
   getExcuteSelf() {
