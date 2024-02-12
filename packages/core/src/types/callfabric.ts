@@ -21,6 +21,7 @@ export interface Address {
     video?: string
   }
 }
+
 export interface FetchAddressResponse extends PaginatedResponse<Address> {}
 
 export interface GetAddressesOptions {

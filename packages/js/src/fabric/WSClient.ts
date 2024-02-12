@@ -3,6 +3,7 @@ import { Client } from '../Client'
 import { RoomSession } from '../RoomSession'
 import { createClient } from '../createClient'
 import { wsClientWorker } from './workers'
+import { unifiedEventsWatcher } from './unified/workers/unifiedEventsWatcher'
 
 interface PushNotification {
   encryption_type: 'aes_256_gcm'
@@ -38,6 +39,7 @@ export class WSClient {
         logWsTraffic: true,
       },
       logLevel: 'debug',
+      unifiedEventing: true,
     })
   }
 
@@ -94,6 +96,7 @@ export class WSClient {
           watchMediaPackets: false,
           // watchMediaPacketsTimeout:,
           nodeId: params.nodeId,
+          eventsWatcher: unifiedEventsWatcher,
           disableUdpIceServers: this.options.disableUdpIceServers || false,
         })
 

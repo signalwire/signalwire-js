@@ -715,6 +715,59 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
   )
 }
 
+export const pageEmittedEvents = async (
+  page: Page,
+  events: Record<string, Record<string, string>>[]
+) => {
+  return page.evaluate(
+    async ({ events }) => {
+      // @ts-expect-error
+      const call = window._roomObj
+
+      const expectationEvent = (
+        expectation: Record<string, Record<string, string>>
+      ) => Object.keys(expectation)[0]
+
+      const verifyExpectation = (
+        rules: Record<string, string>,
+        payload: any
+      ) => {
+        for (const [key, value] of Object.entries(rules)) {
+          if (payload[key] !== value) return false
+        }
+
+        return true
+      }
+
+      const eventsPromises = events.map((exp) => {
+        const event = expectationEvent(exp)
+
+        console.log(`#### here is a promise for ${event}`)
+        return new Promise((res) => {
+          const callback = (payload: any) => {
+            console.log(`#### Event ${event} received`)
+            if (verifyExpectation(exp[event], payload)) {
+              call.off(event, callback)
+              console.log(`#### resolving ${event}`)
+              return res(payload)
+            }
+          }
+          console.log(`#### setting call.on ${event}`)
+          call.on(event, callback)
+        })
+      })
+
+      try {
+        await Promise.all(eventsPromises)
+        return true
+      } catch {}
+
+      return false
+    },
+    { events }
+  )
+}
+
 export const createCallWithCompatibilityApi = async (resource: string, inlineLaml: string) => {
   const data = new URLSearchParams();
 

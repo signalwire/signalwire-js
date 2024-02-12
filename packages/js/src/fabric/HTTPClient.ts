@@ -1,5 +1,7 @@
 import {
   getLogger,
+  type Address,
+  type PaginatedResponse,
   type FetchAddressResponse,
   type GetAddressesOptions,
   type UserOptions,
@@ -30,6 +32,31 @@ export class HTTPClient {
 
   get fetch(): ReturnType<typeof createHttpClient> {
     return this.httpClient
+  }
+
+  private async _anotherPage<T>(url: string) {
+    const { body } = await this.httpClient<PaginatedResponse<T>>(url)
+    return this._buildPaginatedResult(body)
+  }
+
+  private async _buildPaginatedResult<T>(body: PaginatedResponse<T>) {
+    return {
+      addresses: body.data,
+      nextPage: async () => {
+        const { next } = body.links
+        return next ? this._anotherPage(next) : undefined
+      },
+      prevPage: async () => {
+        const { prev } = body.links
+        return prev ? this._anotherPage(prev) : undefined
+      },
+      firstPage: async () => {
+        const { first } = body.links
+        return first ? this._anotherPage(first) : undefined
+      },
+      hasNext: Boolean(body.links.next),
+      hasPrev: Boolean(body.links.prev),
+    }
   }
 
   get httpHost() {
@@ -78,32 +105,7 @@ export class HTTPClient {
 
     const { body } = await this.httpClient<FetchAddressResponse>(path)
 
-    const anotherPage = async (url: string) => {
-      const { body } = await this.httpClient<FetchAddressResponse>(url)
-      return buildResult(body)
-    }
-
-    const buildResult = (body: FetchAddressResponse) => {
-      return {
-        addresses: body.data,
-        nextPage: async () => {
-          const { next } = body.links
-          return next ? anotherPage(next) : undefined
-        },
-        prevPage: async () => {
-          const { prev } = body.links
-          return prev ? anotherPage(prev) : undefined
-        },
-        firstPage: async () => {
-          const { first } = body.links
-          return first ? anotherPage(first) : undefined
-        },
-        hasNext: Boolean(body.links.next),
-        hasPrev: Boolean(body.links.prev),
-      }
-    }
-
-    return buildResult(body)
+    return this._buildPaginatedResult<Address>(body)
   }
 
   public async registerDevice({
