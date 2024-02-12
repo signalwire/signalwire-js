@@ -16,7 +16,7 @@ export interface SignalWireContract {
   handlePushNotification: WSClient['handlePushNotification']
   updateToken: WSClient['updateToken']
   conversation: {
-    getConversationHistory: Conversation['getConversationHistory']
+    getConversations: Conversation['getConversations']
     subscribeToUpdates: Conversation['subscribeToUpdates']
   }
 }
@@ -29,7 +29,9 @@ export const SignalWire = (
       const httpClient = new HTTPClient(options)
       const wsClient = new WSClient(options)
 
+      console.log('httpClient', httpClient)
       const conversation = new Conversation({ httpClient, wsClient })
+      // await conversation.getConversationHistory({})
 
       resolve({
         httpHost: httpClient.httpHost,
@@ -42,8 +44,9 @@ export const SignalWire = (
         handlePushNotification: wsClient.handlePushNotification.bind(wsClient),
         updateToken: wsClient.updateToken.bind(wsClient),
         conversation: {
-          getConversationHistory: conversation.getConversationHistory,
-          subscribeToUpdates: conversation.subscribeToUpdates,
+          getConversations: conversation.getConversations.bind(conversation),
+          subscribeToUpdates:
+            conversation.subscribeToUpdates.bind(conversation),
         },
         // @ts-expect-error
         __httpClient: httpClient,

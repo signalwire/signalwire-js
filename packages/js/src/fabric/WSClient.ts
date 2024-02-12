@@ -41,7 +41,7 @@ export class WSClient {
     })
   }
 
-  get client() {
+  get clientApi() {
     return this.wsClient
   }
 

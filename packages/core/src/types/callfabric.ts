@@ -36,8 +36,30 @@ export interface ConversationHistory {
 export interface FetchConversationHistoryResponse
   extends PaginatedResponse<ConversationHistory> {}
 
-export interface GetConversationHistoriOption {
+export interface GetConversationHistoryOption {
   subscriberId: string
   addressId: string
   limit?: number
+}
+
+export interface GetConversationsOptions {
+  limit?: number
+  since?: number
+  until?: number
+  cursor?: string
+}
+
+export interface SubscriberInfoResponse {
+  app_settings?: string
+  company_name?: string
+  country?: string
+  display_name?: string
+  email: string
+  first_name?: string
+  id: string
+  job_title?: string
+  last_name?: string
+  push_notification_key: string
+  region?: string
+  time_zone?: number
 }

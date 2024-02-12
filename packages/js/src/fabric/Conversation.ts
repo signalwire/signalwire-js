@@ -1,114 +1,87 @@
 import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
-import { createHttpClient } from './createHttpClient'
-import { Client } from '../Client'
-import { RoomSession } from '../RoomSession'
 import {
   FetchConversationHistoryResponse,
-  GetConversationHistoriOption,
+  GetConversationsOptions,
 } from '@signalwire/core'
+import { conversationWorker } from './workers'
 
 interface ConversationOptions {
   httpClient: HTTPClient
   wsClient: WSClient
 }
 
-interface SubscriberInfo {
-  callbacks: ((update: any) => void)[]
-  history: any[]
-}
-
 export class Conversation {
-  private httpClient: ReturnType<typeof createHttpClient>
-  // @ts-expect-error
-  private wsClient: Client<RoomSession>
-  private subscribers: Map<string, SubscriberInfo> = new Map()
+  private httpClient: HTTPClient
+  private wsClient: WSClient
+  private subscribers: Map<string, ((update: any) => void)[]> = new Map()
 
   constructor(options: ConversationOptions) {
-    this.httpClient = options.httpClient.client
-    this.wsClient = options.wsClient.client
+    this.httpClient = options.httpClient
+    this.wsClient = options.wsClient
 
-    // TODO: Initiate the worker here and emit the event every time SDK receives it from the server
+    // @ts-ignore
+    this.wsClient.clientApi.runWorker('conversationWorker', {
+      worker: conversationWorker,
+    })
+  }
+
+  public async getConversations(options?: GetConversationsOptions) {
+    try {
+      const { limit, since, until, cursor } = options || {}
+
+      const subscriber = await this.httpClient.fetchSubscriberInfo()
+
+      const path = '/conversations'
+      const queryParams = new URLSearchParams()
+      queryParams.append('fabric_subscriber_id', subscriber.id)
+      if (limit) {
+        queryParams.append('limit', limit.toString())
+      }
+      if (since) {
+        queryParams.append('since', since.toString())
+      }
+      if (until) {
+        queryParams.append('until', until.toString())
+      }
+      if (cursor) {
+        queryParams.append('cursor', cursor)
+      }
+
+      const { body } =
+        await this.httpClient.fetch<FetchConversationHistoryResponse>(
+          `${path}?${queryParams.toString()}`
+        )
+
+      return body
+    } catch (error) {
+      return new Error('Error fetching the conversation history!')
+    }
+  }
+
+  public async subscribeToUpdates(
+    subscriberId: string,
+    callback: (update: any[]) => void
+  ) {
+    // Connect the websocket client first
+    this.wsClient.connect()
+
+    if (this.subscribers.has(subscriberId)) {
+      const subscriberCallbacks = this.subscribers.get(subscriberId)!
+      this.subscribers.set(subscriberId, [...subscriberCallbacks, callback])
+      return
+    }
+
+    this.subscribers.set(subscriberId, [callback])
   }
 
   // @ts-expect-error
   private handleEvent(event: any) {
     const { subscriberId } = event
-    const subscriberInfo = this.subscribers.get(subscriberId)
-    if (subscriberInfo) {
-      subscriberInfo.history.push(event)
-      this.notifySubscribers(subscriberInfo)
-    }
-  }
-
-  private notifySubscribers(subscriberInfo: SubscriberInfo) {
-    const { callbacks, history } = subscriberInfo
-    callbacks.forEach((callback) => {
+    const subscriberCallbacks = this.subscribers.get(subscriberId)
+    subscriberCallbacks?.forEach((callback) => {
       // Send a copy to avoid unintentional modifications
-      callback([...history])
+      callback([...event])
     })
-  }
-
-  public async getConversationHistory(options: GetConversationHistoriOption) {
-    const { subscriberId, addressId, limit = 15 } = options
-
-    const path = '/conversations'
-
-    const queryParams = new URLSearchParams()
-    queryParams.append('subscriber_id', subscriberId)
-    queryParams.append('address_id', addressId)
-    queryParams.append('limit', limit.toString())
-
-    const { body } = await this.httpClient<FetchConversationHistoryResponse>(
-      `${path}?${queryParams.toString()}`
-    )
-
-    const subscriberInfo: SubscriberInfo = {
-      callbacks: [],
-      history: body.data,
-    }
-
-    this.subscribers.set(subscriberId, subscriberInfo)
-
-    return this.buildPaginatedResult(subscriberInfo, body)
-  }
-
-  public subscribeToUpdates(
-    subscriberId: string,
-    callback: (update: any[]) => void
-  ) {
-    const subscriberInfo = this.subscribers.get(subscriberId)
-
-    if (subscriberInfo) {
-      subscriberInfo.callbacks.push(callback)
-    }
-  }
-
-  private buildPaginatedResult(
-    subscriberInfo: SubscriberInfo,
-    body: FetchConversationHistoryResponse
-  ) {
-    const anotherPage = async (url: string) => {
-      const { body } = await this.httpClient<any>(url)
-      return this.buildPaginatedResult(subscriberInfo, body)
-    }
-
-    return {
-      addresses: body.data,
-      nextPage: async () => {
-        const { next } = body.links
-        return next ? anotherPage(next) : undefined
-      },
-      prevPage: async () => {
-        const { prev } = body.links
-        return prev ? anotherPage(prev) : undefined
-      },
-      firstPage: async () => {
-        const { first } = body.links
-        return first ? anotherPage(first) : undefined
-      },
-      hasNext: Boolean(body.links.next),
-      hasPrev: Boolean(body.links.prev),
-    }
   }
 }
