@@ -171,8 +171,9 @@ async function fetchConverstations() {
     await client.conversation.getConversationMessages()
 
   // Subscribe to updates
-  // const subscriberId = 'someSubscriberId'
-  // client.conversation.subscribeToUpdates(subscriberId, (update) => {
-  //   // Handle real-time updates
-  // })
+  const subscriberId = 'someSubscriberId'
+  client.conversation.subscribeToUpdates((update) => {
+    // Handle real-time updates
+    console.log('update', update)
+  })
 }

@@ -5,29 +5,37 @@ import {
   SDKWorker,
   SDKActions,
   MapToPubSubShape,
+  ConversationEvent,
 } from '@signalwire/core'
 import { Conversation } from '../Conversation'
+import { Client } from '../Client'
 
-export const conversationWorker: SDKWorker<Conversation> = function* (
+interface ConversationWorkerInitialState {
+  conversation: Conversation
+}
+
+export const conversationWorker: SDKWorker<Client> = function* (
   options
 ): SagaIterator {
   getLogger().debug('conversationWorker started')
+  const {
+    channels: { swEventChannel },
+    initialState,
+  } = options
 
-  const { channels } = options
-  const { swEventChannel } = channels
+  const { conversation } = initialState as ConversationWorkerInitialState
 
-  const isConversationEvent = (action: SDKActions) =>
-    action.type.startsWith('conversation.')
+  const isConversationEvent = (action: SDKActions) => {
+    return action.type === 'conversation.message'
+  }
 
   while (true) {
-    // @ts-expect-error
-    const action: MapToPubSubShape<any> = yield sagaEffects.take(
+    const action: MapToPubSubShape<ConversationEvent> = yield sagaEffects.take(
       swEventChannel,
       isConversationEvent
     )
 
-    // TODO: Invoke event handler
-    // instance.handleEvent(action)
+    conversation.handleEvent(action.payload)
   }
 
   getLogger().trace('conversationWorker ended')

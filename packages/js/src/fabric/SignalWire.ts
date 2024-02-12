@@ -31,9 +31,7 @@ export const SignalWire = (
       const httpClient = new HTTPClient(options)
       const wsClient = new WSClient(options)
 
-      console.log('httpClient', httpClient)
       const conversation = new Conversation({ httpClient, wsClient })
-      // await conversation.getConversationHistory({})
 
       resolve({
         httpHost: httpClient.httpHost,

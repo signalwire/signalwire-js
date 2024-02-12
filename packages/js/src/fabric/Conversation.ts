@@ -1,11 +1,14 @@
 import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
 import {
+  ConversationEventParams,
   FetchConversationHistoryResponse,
   GetConversationMessagesOptions,
   GetConversationsOptions,
 } from '@signalwire/core'
 import { conversationWorker } from './workers'
+
+type Callback = (event: ConversationEventParams) => unknown
 
 interface ConversationOptions {
   httpClient: HTTPClient
@@ -15,7 +18,8 @@ interface ConversationOptions {
 export class Conversation {
   private httpClient: HTTPClient
   private wsClient: WSClient
-  private subscribers: Map<string, ((update: any) => void)[]> = new Map()
+  private convoSubscribers: Map<string, Callback[]> = new Map()
+  private callbacks: Callback[] = []
 
   constructor(options: ConversationOptions) {
     this.httpClient = options.httpClient
@@ -24,6 +28,9 @@ export class Conversation {
     // @ts-ignore
     this.wsClient.clientApi.runWorker('conversationWorker', {
       worker: conversationWorker,
+      initialState: {
+        conversation: this,
+      },
     })
   }
 
@@ -32,6 +39,7 @@ export class Conversation {
       const { limit, since, until, cursor } = options || {}
 
       const subscriber = await this.httpClient.fetchSubscriberInfo()
+      console.log('subscriber', subscriber)
 
       const path = '/conversations'
       const queryParams = new URLSearchParams()
@@ -121,28 +129,37 @@ export class Conversation {
     }
   }
 
-  public async subscribeToUpdates(
-    subscriberId: string,
-    callback: (update: any[]) => void
-  ) {
+  public async subscribeToUpdates(callback: Callback, conversationId?: string) {
     // Connect the websocket client first
     this.wsClient.connect()
 
-    if (this.subscribers.has(subscriberId)) {
-      const subscriberCallbacks = this.subscribers.get(subscriberId)!
-      this.subscribers.set(subscriberId, [...subscriberCallbacks, callback])
-      return
-    }
+    this.callbacks.push(callback)
 
-    this.subscribers.set(subscriberId, [callback])
+    if (conversationId) {
+      if (this.convoSubscribers.has(conversationId)) {
+        const convoCallbacks = this.convoSubscribers.get(conversationId)!
+        this.convoSubscribers.set(conversationId, [...convoCallbacks, callback])
+        return
+      }
+      this.convoSubscribers.set(conversationId, [callback])
+    }
   }
 
-  // @ts-expect-error
-  private handleEvent(event: any) {
-    const { subscriberId } = event
-    const subscriberCallbacks = this.subscribers.get(subscriberId)
-    subscriberCallbacks?.forEach((callback) => {
-      callback(event)
-    })
+  /** @internal */
+  public handleEvent(event: ConversationEventParams) {
+    const { conversation_id } = event
+    const convoCallbacks = this.convoSubscribers.get(conversation_id) || []
+
+    if (convoCallbacks.length) {
+      convoCallbacks.forEach((callback) => {
+        callback(event)
+      })
+    }
+
+    if (this.callbacks.length) {
+      this.callbacks?.forEach((callback) => {
+        callback(event)
+      })
+    }
   }
 }
