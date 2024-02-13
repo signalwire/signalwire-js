@@ -30,7 +30,7 @@ export const videoRoomWorker = function* (
 
   // Upsert member in the instance map
   if ((payload.room_session?.members?.length || 0) > 0) {
-    ;(payload.room_session.members || []).forEach((member) => {
+    (payload.room_session.members || []).forEach((member) => {
       let memberInstance = get<RoomSessionMember>(member.id)
       if (!memberInstance) {
         memberInstance = Rooms.createRoomSessionMemberObject({

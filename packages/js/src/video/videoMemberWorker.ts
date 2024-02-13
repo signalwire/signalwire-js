@@ -36,7 +36,8 @@ export const videoMemberWorker = function* (
 
   // For now, we are not storing the RoomSession object in the instance map
 
-  let memberInstance = get<RoomSessionMember>(payload.member.id)
+  //@ts-ignore in unified context id => member_id
+  let memberInstance = get<RoomSessionMember>(payload.member.member_id)
   if (!memberInstance) {
     memberInstance = Rooms.createRoomSessionMemberObject({
       store: roomSession.store,
@@ -45,13 +46,14 @@ export const videoMemberWorker = function* (
   } else {
     memberInstance.setPayload(payload as Rooms.RoomSessionMemberEventParams)
   }
-  set<RoomSessionMember>(payload.member.id, memberInstance)
+  //@ts-ignore in unified context id => member_id
+  set<RoomSessionMember>(payload.member.member_id, memberInstance)
 
   const event = stripNamespacePrefix(type) as VideoMemberEventNames
 
   if (type.startsWith('video.member.updated.')) {
     const clientType = fromSnakeToCamelCase(event)
-    // @ts-expect-error
+    //@ts-expect-error
     roomSession.emit(clientType, memberInstance)
   }
 
