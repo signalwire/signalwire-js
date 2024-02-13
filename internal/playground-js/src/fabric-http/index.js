@@ -162,18 +162,15 @@ searchInput.addEventListener('input', () => {
 searchType.addEventListener('change', fetchAddresses)
 
 async function fetchConverstations() {
-  // Use conversation methods
-
   const conversations = await client.conversation.getConversations()
-  // Handle conversation history
+  console.log('>> conversations', conversations)
 
   const conversationMessages =
     await client.conversation.getConversationMessages()
+  console.log('>> conversationMessages', conversationMessages)
 
   // Subscribe to updates
-  const subscriberId = 'someSubscriberId'
-  client.conversation.subscribeToUpdates((update) => {
-    // Handle real-time updates
-    console.log('update', update)
+  client.conversation.subscribeToUpdates((newConversation) => {
+    console.log('>> newConversation', newConversation)
   })
 }

@@ -51,7 +51,7 @@ export interface GetConversationsOptions {
 }
 
 export interface GetConversationMessagesOptions {
-  fabricAddressId?: string
+  addressId: string
   limit?: number
   since?: number
   until?: number
