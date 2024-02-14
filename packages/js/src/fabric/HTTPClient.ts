@@ -92,11 +92,11 @@ export class HTTPClient {
   }
 
   public async getAddresses(options?: GetAddressesOptions) {
-    const { type, displayName } = options || {}
+    const { type, displayName, pageSize } = options || {}
 
     let path = '/addresses' as const
 
-    if (type || displayName) {
+    if (type || displayName || pageSize) {
       const queryParams = new URLSearchParams()
 
       if (type) {
@@ -105,6 +105,10 @@ export class HTTPClient {
 
       if (displayName) {
         queryParams.append('display_name', displayName)
+      }
+
+      if (pageSize) {
+        queryParams.append('page_size', pageSize.toString())
       }
 
       path += `?${queryParams.toString()}`
