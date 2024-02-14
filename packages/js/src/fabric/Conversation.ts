@@ -2,11 +2,13 @@ import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
 import {
   ConversationEventParams,
-  FetchConversationHistoryResponse,
+  Conversations,
+  FetchConversationsResponse,
   GetConversationMessagesOptions,
   GetConversationsOptions,
 } from '@signalwire/core'
 import { conversationWorker } from './workers'
+import { buildPaginatedResult } from '../utils/paginatedResult'
 
 type Callback = (event: ConversationEventParams) => unknown
 
@@ -37,11 +39,8 @@ export class Conversation {
     try {
       const { limit, since, until, cursor } = options || {}
 
-      const subscriber = await this.httpClient.fetchSubscriberInfo()
-
-      const path = '/conversations'
+      const path = '/api/fabric/conversations'
       const queryParams = new URLSearchParams()
-      queryParams.append('fabric_subscriber_id', subscriber.id)
       if (limit) {
         queryParams.append('limit', limit.toString())
       }
@@ -55,12 +54,11 @@ export class Conversation {
         queryParams.append('cursor', cursor)
       }
 
-      const { body } =
-        await this.httpClient.fetch<FetchConversationHistoryResponse>(
-          `${path}?${queryParams.toString()}`
-        )
+      const { body } = await this.httpClient.fetch<FetchConversationsResponse>(
+        `${path}?${queryParams.toString()}`
+      )
 
-      return body
+      return buildPaginatedResult<Conversations>(body, this.httpClient.fetch)
     } catch (error) {
       return new Error('Error fetching the conversation history!')
     }
@@ -72,11 +70,8 @@ export class Conversation {
     try {
       const { addressId, limit, since, until, cursor } = options || {}
 
-      const subscriber = await this.httpClient.fetchSubscriberInfo()
-
-      const path = '/conversations/messages'
+      const path = '/api/fabric/conversations/messages'
       const queryParams = new URLSearchParams()
-      queryParams.append('fabric_subscriber_id', subscriber.id)
       if (addressId) {
         queryParams.append('fabric_address_id', addressId)
       }
@@ -93,12 +88,11 @@ export class Conversation {
         queryParams.append('cursor', cursor)
       }
 
-      const { body } =
-        await this.httpClient.fetch<FetchConversationHistoryResponse>(
-          `${path}?${queryParams.toString()}`
-        )
+      const { body } = await this.httpClient.fetch<FetchConversationsResponse>(
+        `${path}?${queryParams.toString()}`
+      )
 
-      return body
+      return buildPaginatedResult<Conversations>(body, this.httpClient.fetch)
     } catch (error) {
       return new Error('Error fetching the conversation messages!')
     }
@@ -106,22 +100,19 @@ export class Conversation {
 
   public async createConversationMessage() {
     try {
-      const subscriber = await this.httpClient.fetchSubscriberInfo()
-
-      const path = '/conversations/messages'
+      const path = '/api/fabric/conversations/messages'
 
       // TODO: Complete the payload
-      const payload = {
-        fabric_subscriber_id: subscriber.id,
-      }
+      const payload = {}
 
-      const { body } =
-        await this.httpClient.fetch<FetchConversationHistoryResponse>(path, {
+      const { body } = await this.httpClient.fetch<FetchConversationsResponse>(
+        path,
+        {
           method: 'POST',
           body: payload,
-        })
-
-      return body
+        }
+      )
+      return buildPaginatedResult<Conversations>(body, this.httpClient.fetch)
     } catch (error) {
       return new Error('Error creating a conversation messages!')
     }

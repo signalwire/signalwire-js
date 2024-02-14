@@ -1,14 +1,13 @@
+import jwtDecode from 'jwt-decode'
 import {
   getLogger,
   type Address,
-  type PaginatedResponse,
   type FetchAddressResponse,
   type GetAddressesOptions,
   type UserOptions,
-  type SubscriberInfoResponse,
 } from '@signalwire/core'
-import { createHttpClient } from './createHttpClient'
-import jwtDecode from 'jwt-decode'
+import { CreateHttpClient, createHttpClient } from './createHttpClient'
+import { buildPaginatedResult } from '../utils/paginatedResult'
 
 type JWTHeader = { ch?: string; typ?: string }
 
@@ -19,7 +18,7 @@ interface RegisterDeviceParams {
 
 // TODO: extends from a Base class to share from core
 export class HTTPClient {
-  private httpClient: ReturnType<typeof createHttpClient>
+  private httpClient: CreateHttpClient
 
   constructor(public options: UserOptions) {
     this.httpClient = createHttpClient({
@@ -30,33 +29,8 @@ export class HTTPClient {
     })
   }
 
-  get fetch(): ReturnType<typeof createHttpClient> {
+  get fetch(): CreateHttpClient {
     return this.httpClient
-  }
-
-  private async _anotherPage<T>(url: string) {
-    const { body } = await this.httpClient<PaginatedResponse<T>>(url)
-    return this._buildPaginatedResult(body)
-  }
-
-  private async _buildPaginatedResult<T>(body: PaginatedResponse<T>) {
-    return {
-      addresses: body.data,
-      nextPage: async () => {
-        const { next } = body.links
-        return next ? this._anotherPage(next) : undefined
-      },
-      prevPage: async () => {
-        const { prev } = body.links
-        return prev ? this._anotherPage(prev) : undefined
-      },
-      firstPage: async () => {
-        const { first } = body.links
-        return first ? this._anotherPage(first) : undefined
-      },
-      hasNext: Boolean(body.links.next),
-      hasPrev: Boolean(body.links.prev),
-    }
   }
 
   get httpHost() {
@@ -75,13 +49,6 @@ export class HTTPClient {
       return 'fabric.signalwire.com'
     }
     return `fabric.${host.split('.').splice(1).join('.')}`
-  }
-
-  public async fetchSubscriberInfo() {
-    const { body } = await this.httpClient<SubscriberInfoResponse>(
-      'https://dev.swire.io/api/fabric/subscriber/info'
-    )
-    return body
   }
 
   public async getAddresses(options?: GetAddressesOptions) {
@@ -105,7 +72,7 @@ export class HTTPClient {
 
     const { body } = await this.httpClient<FetchAddressResponse>(path)
 
-    return this._buildPaginatedResult<Address>(body)
+    return buildPaginatedResult<Address>(body, this.httpClient)
   }
 
   public async registerDevice({

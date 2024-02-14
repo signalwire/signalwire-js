@@ -29,19 +29,13 @@ export interface GetAddressesOptions {
   displayName?: string
 }
 
-export interface ConversationHistory {
+export interface Conversations {
   type: string
   // FIXME needs to be completed
 }
 
-export interface FetchConversationHistoryResponse
-  extends PaginatedResponse<ConversationHistory> {}
-
-export interface GetConversationHistoryOption {
-  subscriberId: string
-  addressId: string
-  limit?: number
-}
+export interface FetchConversationsResponse
+  extends PaginatedResponse<Conversations> {}
 
 export interface GetConversationsOptions {
   limit?: number
