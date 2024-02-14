@@ -119,7 +119,7 @@ async function fetchAddresses() {
     const searchText = document.getElementById('searchInput').value
     const selectedType = document.getElementById('searchType').value
 
-    const addressData = await client.getAddresses({
+    const addressData = await client.address.getAddresses({
       type: selectedType === 'all' ? undefined : selectedType,
       displayName: !searchText.length ? undefined : searchText,
     })
@@ -170,7 +170,7 @@ async function fetchConverstations() {
   console.log('>> conversationMessages', conversationMessages)
 
   // Subscribe to updates
-  client.conversation.subscribeToUpdates((newConversation) => {
+  client.conversation.subscribe((newConversation) => {
     console.log('>> newConversation', newConversation)
   })
 }

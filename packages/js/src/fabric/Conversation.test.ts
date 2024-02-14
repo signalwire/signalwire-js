@@ -150,12 +150,12 @@ describe('Conversation', () => {
     })
   })
 
-  describe('subscribeToUpdates', () => {
+  describe('subscribe', () => {
     let callback
 
     it('connects the WS client and registers the callback', async () => {
       callback = jest.fn()
-      conversation.subscribeToUpdates(callback)
+      conversation.subscribe(callback)
 
       expect(wsClient.connect).toHaveBeenCalledTimes(1)
       expect(conversation['callbacks']).toContain(callback)
@@ -167,8 +167,8 @@ describe('Conversation', () => {
       const mockCallback1 = jest.fn()
       const mockCallback2 = jest.fn()
 
-      conversation.subscribeToUpdates(mockCallback1)
-      conversation.subscribeToUpdates(mockCallback2)
+      conversation.subscribe(mockCallback1)
+      conversation.subscribe(mockCallback2)
 
       const event = {
         type: 'conversation.message',

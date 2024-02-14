@@ -7,7 +7,6 @@ export interface SignalWireOptions extends UserOptions, WSClientOptions {}
 
 export interface SignalWireContract {
   httpHost: HTTPClient['httpHost']
-  getAddresses: HTTPClient['getAddresses']
   registerDevice: HTTPClient['registerDevice']
   unregisterDevice: HTTPClient['unregisterDevice']
   connect: WSClient['connect']
@@ -15,11 +14,14 @@ export interface SignalWireContract {
   dial: WSClient['dial']
   handlePushNotification: WSClient['handlePushNotification']
   updateToken: WSClient['updateToken']
+  address: {
+    getAddresses: HTTPClient['getAddresses']
+  }
   conversation: {
     getConversations: Conversation['getConversations']
     getConversationMessages: Conversation['getConversationMessages']
     createConversationMessage: Conversation['createConversationMessage']
-    subscribeToUpdates: Conversation['subscribeToUpdates']
+    subscribe: Conversation['subscribe']
   }
 }
 
@@ -35,7 +37,6 @@ export const SignalWire = (
 
       resolve({
         httpHost: httpClient.httpHost,
-        getAddresses: httpClient.getAddresses.bind(httpClient),
         registerDevice: httpClient.registerDevice.bind(httpClient),
         unregisterDevice: httpClient.unregisterDevice.bind(httpClient),
         connect: wsClient.connect.bind(wsClient),
@@ -43,14 +44,16 @@ export const SignalWire = (
         dial: wsClient.dial.bind(wsClient),
         handlePushNotification: wsClient.handlePushNotification.bind(wsClient),
         updateToken: wsClient.updateToken.bind(wsClient),
+        address: {
+          getAddresses: httpClient.getAddresses.bind(httpClient),
+        },
         conversation: {
           getConversations: conversation.getConversations.bind(conversation),
           getConversationMessages:
             conversation.getConversationMessages.bind(conversation),
           createConversationMessage:
             conversation.createConversationMessage.bind(conversation),
-          subscribeToUpdates:
-            conversation.subscribeToUpdates.bind(conversation),
+          subscribe: conversation.subscribe.bind(conversation),
         },
         // @ts-expect-error
         __httpClient: httpClient,

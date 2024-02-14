@@ -119,7 +119,7 @@ export class Conversation {
     }
   }
 
-  public async subscribeToUpdates(callback: Callback) {
+  public async subscribe(callback: Callback) {
     // Connect the websocket client first
     this.wsClient.connect()
 
