@@ -11,7 +11,7 @@ export function buildPaginatedResult<T>(
   }
 
   return {
-    addresses: body.data,
+    data: body.data,
     nextPage: async () => {
       const { next } = body.links
       return next ? anotherPage(next) : undefined

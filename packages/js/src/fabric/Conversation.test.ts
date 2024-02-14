@@ -48,13 +48,13 @@ describe('Conversation', () => {
   describe('getConversations', () => {
     it('should fetch conversations', async () => {
       ;(httpClient.fetch as jest.Mock).mockResolvedValue({
-        body: { conversations: ['conversation1', 'conversation2'] },
+        body: { data: ['conversation1', 'conversation2'], links: {} },
       })
 
       const result = await conversation.getConversations()
-      expect(result).toEqual({
-        conversations: ['conversation1', 'conversation2'],
-      })
+      expect(result.data).toEqual(['conversation1', 'conversation2'])
+      expect(result.hasNext).toBe(false)
+      expect(result.hasPrev).toBe(false)
       expect(httpClient.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/conversations')
       )
@@ -65,26 +65,34 @@ describe('Conversation', () => {
         new Error('Network error')
       )
 
-      const result = await conversation.getConversations()
-      expect(result).toBeInstanceOf(Error)
-      expect((result as Error).message).toBe(
-        'Error fetching the conversation history!'
-      )
+      try {
+        await conversation.getConversations()
+        fail('Expected getConversations to throw an error.')
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error)
+        expect(error.message).toBe('Error fetching the conversation history!')
+      }
     })
   })
 
   describe('getConversationMessages', () => {
     it('should fetch conversation  messages', async () => {
       ;(httpClient.fetch as jest.Mock).mockResolvedValue({
-        body: { messages: ['message1', 'message2'] },
+        body: {
+          data: ['message1', 'message2'],
+          links: {
+            next: 'http://next.url',
+            prev: 'http://prev.url',
+          },
+        },
       })
 
       const result = await conversation.getConversationMessages({
         addressId: '123',
       })
-      expect(result).toEqual({
-        messages: ['message1', 'message2'],
-      })
+      expect(result.data).toEqual(['message1', 'message2'])
+      expect(result.hasNext).toBe(true)
+      expect(result.hasPrev).toBe(true)
       expect(httpClient.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/conversations/message')
       )
@@ -95,13 +103,15 @@ describe('Conversation', () => {
         new Error('Network error')
       )
 
-      const result = await conversation.getConversationMessages({
-        addressId: '123',
-      })
-      expect(result).toBeInstanceOf(Error)
-      expect((result as Error).message).toBe(
-        'Error fetching the conversation messages!'
-      )
+      try {
+        await conversation.getConversationMessages({
+          addressId: '123',
+        })
+        fail('Expected getConversationMessages to throw an error.')
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error)
+        expect(error.message).toBe('Error fetching the conversation messages!')
+      }
     })
   })
 
@@ -116,11 +126,13 @@ describe('Conversation', () => {
       const result = await conversation.createConversationMessage()
 
       expect(result).toEqual(expectedResponse)
-      expect(httpClient.fetchSubscriberInfo).toHaveBeenCalled()
-      expect(httpClient.fetch).toHaveBeenCalledWith('/conversations/messages', {
-        method: 'POST',
-        body: { fabric_subscriber_id: 'subscriber-id' },
-      })
+      expect(httpClient.fetch).toHaveBeenCalledWith(
+        '/api/fabric/conversations/messages',
+        {
+          method: 'POST',
+          body: {},
+        }
+      )
     })
 
     it('should handles errors with createConversationMessage', async () => {
@@ -128,13 +140,13 @@ describe('Conversation', () => {
         new Error('Network error')
       )
 
-      const result = await conversation.createConversationMessage()
-
-      expect(result).toBeInstanceOf(Error)
-      expect((result as Error).message).toBe(
-        'Error creating a conversation messages!'
-      )
-      expect(httpClient.fetchSubscriberInfo).toHaveBeenCalled()
+      try {
+        await conversation.createConversationMessage()
+        fail('Expected getConversationMessages to throw an error.')
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error)
+        expect(error.message).toBe('Error creating a conversation messages!')
+      }
     })
   })
 

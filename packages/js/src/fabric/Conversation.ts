@@ -60,7 +60,7 @@ export class Conversation {
 
       return buildPaginatedResult<Conversations>(body, this.httpClient.fetch)
     } catch (error) {
-      return new Error('Error fetching the conversation history!')
+      throw new Error('Error fetching the conversation history!', error)
     }
   }
 
@@ -94,7 +94,7 @@ export class Conversation {
 
       return buildPaginatedResult<Conversations>(body, this.httpClient.fetch)
     } catch (error) {
-      return new Error('Error fetching the conversation messages!')
+      throw new Error('Error fetching the conversation messages!', error)
     }
   }
 
@@ -112,9 +112,10 @@ export class Conversation {
           body: payload,
         }
       )
-      return buildPaginatedResult<Conversations>(body, this.httpClient.fetch)
+
+      return body
     } catch (error) {
-      return new Error('Error creating a conversation messages!')
+      throw new Error('Error creating a conversation messages!', error)
     }
   }
 
