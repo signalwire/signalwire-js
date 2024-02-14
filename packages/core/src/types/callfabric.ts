@@ -27,6 +27,7 @@ export interface FetchAddressResponse extends PaginatedResponse<Address> {}
 export interface GetAddressesOptions {
   type?: string
   displayName?: string
+  pageSize?: number
 }
 
 export interface Conversations {
