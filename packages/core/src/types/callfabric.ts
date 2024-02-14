@@ -1,7 +1,5 @@
 export interface PaginatedResponse<T> {
-  data:
-    | Array<T>
-    | []
+  data: Array<T> | []
   links: {
     first: string
     self: string
@@ -23,22 +21,24 @@ export interface Address {
     video?: string
   }
 }
-export interface FetchAddressResponse extends PaginatedResponse<Address>{}
+export interface FetchAddressResponse extends PaginatedResponse<Address> {}
 
 export interface GetAddressesOptions {
   type?: string
   displayName?: string
+  pageSize?: number
 }
 
-export interface ConversationHistory {       
+export interface ConversationHistory {
   type: string
   // FIXME needs to be completed
 }
 
-export interface FetchConversationHistoryResponse extends PaginatedResponse<ConversationHistory>{}
+export interface FetchConversationHistoryResponse
+  extends PaginatedResponse<ConversationHistory> {}
 
 export interface GetConversationHistoriOption {
-  subscriberId: string,
-  addressId: string,
+  subscriberId: string
+  addressId: string
   limit?: number
-} 
+}
