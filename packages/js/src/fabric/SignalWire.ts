@@ -20,7 +20,6 @@ export interface SignalWireContract {
   conversation: {
     getConversations: Conversation['getConversations']
     getConversationMessages: Conversation['getConversationMessages']
-    createConversationMessage: Conversation['createConversationMessage']
     subscribe: Conversation['subscribe']
   }
 }
@@ -51,8 +50,6 @@ export const SignalWire = (
           getConversations: conversation.getConversations.bind(conversation),
           getConversationMessages:
             conversation.getConversationMessages.bind(conversation),
-          createConversationMessage:
-            conversation.createConversationMessage.bind(conversation),
           subscribe: conversation.subscribe.bind(conversation),
         },
         // @ts-expect-error
