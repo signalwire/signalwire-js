@@ -80,7 +80,7 @@ const escapeHTML = (str) => {
 function updateAddressUI() {
   const addressesDiv = document.getElementById('addresses')
   addressesDiv.innerHTML = ''
-  const { addresses } = window.__addressData
+  const { data: addresses } = window.__addressData
 
   const createListItem = (address) => {
     const displayName = escapeHTML(address.display_name)

@@ -54,7 +54,7 @@ export class HTTPClient {
   public async getAddresses(options?: GetAddressesOptions) {
     const { type, displayName, pageSize } = options || {}
 
-    let path = '/addresses' as const
+    let path = '/api/fabric/addresses'
 
     if (type || displayName || pageSize) {
       const queryParams = new URLSearchParams()
