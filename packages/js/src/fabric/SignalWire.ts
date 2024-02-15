@@ -19,6 +19,7 @@ export interface SignalWireContract {
   }
   conversation: {
     getConversations: Conversation['getConversations']
+    getMessages: Conversation['getMessages']
     getConversationMessages: Conversation['getConversationMessages']
     subscribe: Conversation['subscribe']
   }
@@ -48,6 +49,7 @@ export const SignalWire = (
         },
         conversation: {
           getConversations: conversation.getConversations.bind(conversation),
+          getMessages: conversation.getMessages.bind(conversation),
           getConversationMessages:
             conversation.getConversationMessages.bind(conversation),
           subscribe: conversation.subscribe.bind(conversation),

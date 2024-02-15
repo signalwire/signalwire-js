@@ -165,9 +165,14 @@ async function fetchConverstations() {
   const conversations = await client.conversation.getConversations()
   console.log('>> conversations', conversations)
 
-  const conversationMessages =
-    await client.conversation.getConversationMessages()
+  const conversationMessages = await client.conversation.getMessages()
   console.log('>> conversationMessages', conversationMessages)
+
+  const conversationMessagesById =
+    await client.conversation.getConversationMessages({
+      addressId: conversations.data[0]?.id,
+    })
+  console.log('>> conversationMessagesById', conversationMessagesById)
 
   // Subscribe to updates
   client.conversation.subscribe((newConversation) => {

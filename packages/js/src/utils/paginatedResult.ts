@@ -12,6 +12,10 @@ export function buildPaginatedResult<T>(
 
   return {
     data: body.data,
+    self: async () => {
+      const { self } = body.links
+      return self ? anotherPage(self) : undefined
+    },
     nextPage: async () => {
       const { next } = body.links
       return next ? anotherPage(next) : undefined
