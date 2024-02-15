@@ -52,7 +52,7 @@ export class UnifiedJWTSession extends JWTSession {
       // when we make the target the current self
       
       //@ts-ignore
-      const defaultTarget = getCurrentSelf()
+      const defaultTarget = this.getCurrentSelf()
       return !!defaultTarget ? [defaultTarget] : []
     }
 
@@ -61,7 +61,7 @@ export class UnifiedJWTSession extends JWTSession {
     const targetMember = memberId && callId && nodeId ? {memberId, callId, nodeId} : undefined
 
     //@ts-ignore
-    const defaultTarget = targetMember ?? getCurrentSelf()
+    const defaultTarget = targetMember ?? this.getCurrentSelf()
     return !!defaultTarget ? [defaultTarget] : []
   }
 
