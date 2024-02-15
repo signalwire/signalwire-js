@@ -24,13 +24,11 @@ export const videoRoomWorker = function* (
     instanceMap: { get, set },
   } = options
 
-  console.log('action', type, payload, payload.room_session.members)
-
   // For now, we are not storing the RoomSession object in the instance map
 
   // Upsert member in the instance map
-  if ((payload.room_session.members?.length || 0) > 0) {
-    ;(payload.room_session.members || []).forEach((member) => {
+  if ((payload.room_session?.members?.length || 0) > 0) {
+    (payload.room_session.members || []).forEach((member) => {
       let memberInstance = get<RoomSessionMember>(member.id)
       if (!memberInstance) {
         memberInstance = Rooms.createRoomSessionMemberObject({

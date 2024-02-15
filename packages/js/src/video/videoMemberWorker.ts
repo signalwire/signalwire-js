@@ -15,6 +15,7 @@ import {
   stripNamespacePrefix,
 } from '@signalwire/core'
 import { VideoWorkerParams } from './videoWorker'
+import { isUnifedJWTSession } from '../UnifiedJWTSession'
 
 type VideoMemberEvents = MapToPubSubShape<
   | VideoMemberJoinedEvent
@@ -32,11 +33,13 @@ export const videoMemberWorker = function* (
     instance: roomSession,
     action: { type, payload },
     instanceMap: { get, set, remove },
+    getSession
   } = options
 
   // For now, we are not storing the RoomSession object in the instance map
 
-  let memberInstance = get<RoomSessionMember>(payload.member.id)
+  //@ts-ignore in unified context id => member_id
+  let memberInstance = get<RoomSessionMember>(payload.member.member_id)
   if (!memberInstance) {
     memberInstance = Rooms.createRoomSessionMemberObject({
       store: roomSession.store,
@@ -45,20 +48,40 @@ export const videoMemberWorker = function* (
   } else {
     memberInstance.setPayload(payload as Rooms.RoomSessionMemberEventParams)
   }
-  set<RoomSessionMember>(payload.member.id, memberInstance)
+  //@ts-ignore in unified context id => member_id
+  set<RoomSessionMember>(payload.member.member_id, memberInstance)
 
   const event = stripNamespacePrefix(type) as VideoMemberEventNames
 
   if (type.startsWith('video.member.updated.')) {
     const clientType = fromSnakeToCamelCase(event)
-    // @ts-expect-error
+    //@ts-expect-error
     roomSession.emit(clientType, memberInstance)
   }
 
   switch (type) {
     case 'video.member.joined':
     case 'video.member.updated':
-      roomSession.emit(event, memberInstance)
+      const session = getSession();
+      let toEmitMember;
+      if(isUnifedJWTSession(session)) {
+        if(session.isASelfInstance(memberInstance.id)) {
+          const executeSelf = session.getExcuteSelf()
+          toEmitMember = {
+            //@ts-ignore
+            ...memberInstance._payload.member,
+            id: executeSelf.memberId,
+            member_id: executeSelf.memberId 
+          }
+        } else {
+          toEmitMember = {
+            //@ts-ignore
+            ...memberInstance._payload.member,
+            id: memberInstance.id
+          }
+        }
+      } 
+      roomSession.emit(event, toEmitMember)
       break
     case 'video.member.left':
       roomSession.emit(event, memberInstance)
