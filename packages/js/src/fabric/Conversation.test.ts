@@ -75,8 +75,44 @@ describe('Conversation', () => {
     })
   })
 
+  describe('getMessages', () => {
+    it('should fetch conversation messages', async () => {
+      ;(httpClient.fetch as jest.Mock).mockResolvedValue({
+        body: {
+          data: ['message1', 'message2'],
+          links: {
+            next: 'http://next.url',
+            prev: 'http://prev.url',
+          },
+        },
+      })
+
+      const result = await conversation.getMessages()
+      expect(result.data).toEqual(['message1', 'message2'])
+      expect(result.hasNext).toBe(true)
+      expect(result.hasPrev).toBe(true)
+      expect(httpClient.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/message')
+      )
+    })
+
+    it('should handle errors with getMessages', async () => {
+      ;(httpClient.fetch as jest.Mock).mockRejectedValue(
+        new Error('Network error')
+      )
+
+      try {
+        await conversation.getMessages()
+        fail('Expected getMessages to throw an error.')
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error)
+        expect(error.message).toBe('Error fetching the conversation messages!')
+      }
+    })
+  })
+
   describe('getConversationMessages', () => {
-    it('should fetch conversation  messages', async () => {
+    it('should fetch conversation messages', async () => {
       ;(httpClient.fetch as jest.Mock).mockResolvedValue({
         body: {
           data: ['message1', 'message2'],
@@ -88,13 +124,13 @@ describe('Conversation', () => {
       })
 
       const result = await conversation.getConversationMessages({
-        addressId: '123',
+        addressId: '1234',
       })
       expect(result.data).toEqual(['message1', 'message2'])
       expect(result.hasNext).toBe(true)
       expect(result.hasPrev).toBe(true)
       expect(httpClient.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/conversations/message')
+        expect.stringContaining('/conversations/1234/messages')
       )
     })
 
@@ -105,7 +141,7 @@ describe('Conversation', () => {
 
       try {
         await conversation.getConversationMessages({
-          addressId: '123',
+          addressId: '1234',
         })
         fail('Expected getConversationMessages to throw an error.')
       } catch (error) {
