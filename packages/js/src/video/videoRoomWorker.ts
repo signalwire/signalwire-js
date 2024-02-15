@@ -24,8 +24,6 @@ export const videoRoomWorker = function* (
     instanceMap: { get, set },
   } = options
 
-  console.log('action', type, payload, payload.room_session.members)
-
   // For now, we are not storing the RoomSession object in the instance map
 
   // Upsert member in the instance map

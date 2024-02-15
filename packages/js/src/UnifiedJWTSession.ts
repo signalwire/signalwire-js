@@ -35,16 +35,33 @@ export class UnifiedJWTSession extends JWTSession {
     return this.callInstancesStack[0]
   }
 
+  getCurrentSelf() {
+    return this.callInstancesStack[this.callInstancesStack.length-1]
+  }
+
+  isASelfInstance(id: string) {
+    return !!this.callInstancesStack.find((item)=>item.memberId === id)
+  }
+
   //@ts-ignore
   getExecuteTargets(msg: JSONRPCRequest): InternalUnifiedMethodTarget[] {
     const {member_id:targetMemberId} = msg.params ?? {}
+
+    if(targetMemberId && this.isASelfInstance(targetMemberId)) {
+      // SDK emits all selves events as the original self...
+      // when we make the target the current self
+      
+      //@ts-ignore
+      const defaultTarget = getCurrentSelf()
+      return !!defaultTarget ? [defaultTarget] : []
+    }
 
     const memberInstance = targetMemberId ? this.instanceMap?.get<{id: string, callId: string, nodeId:string}>(targetMemberId) : undefined;
     const {id:memberId, callId, nodeId} = memberInstance ?? {};
     const targetMember = memberId && callId && nodeId ? {memberId, callId, nodeId} : undefined
 
     //@ts-ignore
-    const defaultTarget = targetMember ?? this.callInstancesStack.findLast(() => true)
+    const defaultTarget = targetMember ?? getCurrentSelf()
     return !!defaultTarget ? [defaultTarget] : []
   }
 

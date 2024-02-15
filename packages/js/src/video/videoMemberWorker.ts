@@ -15,6 +15,7 @@ import {
   stripNamespacePrefix,
 } from '@signalwire/core'
 import { VideoWorkerParams } from './videoWorker'
+import { isUnifedJWTSession } from '../UnifiedJWTSession'
 
 type VideoMemberEvents = MapToPubSubShape<
   | VideoMemberJoinedEvent
@@ -32,6 +33,7 @@ export const videoMemberWorker = function* (
     instance: roomSession,
     action: { type, payload },
     instanceMap: { get, set, remove },
+    getSession
   } = options
 
   // For now, we are not storing the RoomSession object in the instance map
@@ -60,7 +62,26 @@ export const videoMemberWorker = function* (
   switch (type) {
     case 'video.member.joined':
     case 'video.member.updated':
-      roomSession.emit(event, memberInstance)
+      const session = getSession();
+      let toEmitMember;
+      if(isUnifedJWTSession(session)) {
+        if(session.isASelfInstance(memberInstance.id)) {
+          const executeSelf = session.getExcuteSelf()
+          toEmitMember = {
+            //@ts-ignore
+            ...memberInstance._payload.member,
+            id: executeSelf.memberId,
+            member_id: executeSelf.memberId 
+          }
+        } else {
+          toEmitMember = {
+            //@ts-ignore
+            ...memberInstance._payload.member,
+            id: memberInstance.id
+          }
+        }
+      } 
+      roomSession.emit(event, toEmitMember)
       break
     case 'video.member.left':
       roomSession.emit(event, memberInstance)
