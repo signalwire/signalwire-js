@@ -40,7 +40,7 @@ export class UnifiedJWTSession extends JWTSession {
   }
 
   isASelfInstance(id: string) {
-    return !!this.callInstancesStack.find((item)=>item.memberId === id)
+    return this.callInstancesStack.some((item)=>item.memberId === id)
   }
 
   //@ts-ignore
