@@ -19,7 +19,7 @@ import {
   LOCAL_EVENT_PREFIX,
   stripNamespacePrefix,
   isJSONRPCRequest,
-  isJSONRPCResponse
+  isJSONRPCResponse,
 } from './utils'
 import { WEBRTC_EVENT_TYPES, isWebrtcEventType } from './utils/common'
 import { BaseSession } from './BaseSession'
@@ -115,3 +115,4 @@ export const selectors = {
 export { ChatMember, ChatMessage } from './chat'
 export { PubSubMessage } from './pubSub'
 export * as testUtils from './testUtils'
+export * from './utils/mapObject'

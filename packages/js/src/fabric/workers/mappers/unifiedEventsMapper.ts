@@ -1,5 +1,4 @@
-import { PubSubAction } from '@signalwire/core'
-import { MappableObject, mapObject } from 'packages/core/src/utils/mapObject'
+import { PubSubAction, MappableObject, mapObject } from '@signalwire/core'
 
 const EVENT_MAPPINGS: Record<string, string[]> = {
   'call.state': [

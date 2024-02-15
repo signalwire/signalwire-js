@@ -1,9 +1,8 @@
 import { type UserOptions, getLogger, VertoSubscribe } from '@signalwire/core'
-import { createClient } from '../createClient'
 import { Client } from '../Client'
 import { RoomSession } from '../RoomSession'
-import { WSClientWorker } from './WSClientWorker'
-import { unifiedEventsWatcher } from './unified/workers/unifiedEventsWatcher'
+import { createClient } from '../createClient'
+import { wsClientWorker, unifiedEventsWatcher } from './workers'
 
 interface PushNotification {
   encryption_type: 'aes_256_gcm'
@@ -43,10 +42,14 @@ export class WSClient {
     })
   }
 
+  get clientApi() {
+    return this.wsClient
+  }
+
   connect() {
     // @ts-ignore
-    this.wsClient.runWorker('WSClientWorker', {
-      worker: WSClientWorker,
+    this.wsClient.runWorker('wsClientWorker', {
+      worker: wsClientWorker,
     })
     return this.wsClient.connect()
   }

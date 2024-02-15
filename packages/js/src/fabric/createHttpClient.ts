@@ -48,6 +48,8 @@ interface HttpClientRequestInit extends Omit<RequestInit, 'body'> {
   searchParams?: Record<string, any>
 }
 
+export type CreateHttpClient = ReturnType<typeof createHttpClient>
+
 export const createHttpClient = (
   { baseUrl, timeout = 30000, ...globalOptions }: CreateHttpClientOptions,
   fetcher = http

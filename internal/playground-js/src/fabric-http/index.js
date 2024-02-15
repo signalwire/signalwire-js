@@ -24,6 +24,8 @@ window.connect = async () => {
   window.__client = client
 
   await fetchAddresses()
+
+  await fetchConverstations()
 }
 
 window.saveInLocalStorage = (e) => {
@@ -78,7 +80,7 @@ const escapeHTML = (str) => {
 function updateAddressUI() {
   const addressesDiv = document.getElementById('addresses')
   addressesDiv.innerHTML = ''
-  const { addresses } = window.__addressData
+  const { data: addresses } = window.__addressData
 
   const createListItem = (address) => {
     const displayName = escapeHTML(address.display_name)
@@ -117,7 +119,7 @@ async function fetchAddresses() {
     const searchText = document.getElementById('searchInput').value
     const selectedType = document.getElementById('searchType').value
 
-    const addressData = await client.getAddresses({
+    const addressData = await client.address.getAddresses({
       type: selectedType === 'all' ? undefined : selectedType,
       displayName: !searchText.length ? undefined : searchText,
     })
@@ -158,3 +160,22 @@ searchInput.addEventListener('input', () => {
 })
 
 searchType.addEventListener('change', fetchAddresses)
+
+async function fetchConverstations() {
+  const conversations = await client.conversation.getConversations()
+  console.log('>> conversations', conversations)
+
+  const conversationMessages = await client.conversation.getMessages()
+  console.log('>> conversationMessages', conversationMessages)
+
+  const conversationMessagesById =
+    await client.conversation.getConversationMessages({
+      addressId: conversations.data[0]?.id,
+    })
+  console.log('>> conversationMessagesById', conversationMessagesById)
+
+  // Subscribe to updates
+  client.conversation.subscribe((newConversation) => {
+    console.log('>> newConversation', newConversation)
+  })
+}
