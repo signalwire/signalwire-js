@@ -1,16 +1,13 @@
+import jwtDecode from 'jwt-decode'
 import {
-  Address,
-  ConversationHistory,
-  FetchConversationHistoryResponse,
-  FetchAddressResponse,
-  GetAddressesOptions,
-  GetConversationHistoriOption,
-  PaginatedResponse,
   getLogger,
+  type Address,
+  type FetchAddressResponse,
+  type GetAddressesOptions,
   type UserOptions,
 } from '@signalwire/core'
-import { createHttpClient } from './createHttpClient'
-import jwtDecode from 'jwt-decode'
+import { CreateHttpClient, createHttpClient } from './createHttpClient'
+import { buildPaginatedResult } from '../utils/paginatedResult'
 
 type JWTHeader = { ch?: string; typ?: string }
 
@@ -21,7 +18,7 @@ interface RegisterDeviceParams {
 
 // TODO: extends from a Base class to share from core
 export class HTTPClient {
-  private httpClient: ReturnType<typeof createHttpClient>
+  private httpClient: CreateHttpClient
 
   constructor(public options: UserOptions) {
     this.httpClient = createHttpClient({
@@ -32,29 +29,8 @@ export class HTTPClient {
     })
   }
 
-  private async _anotherPage<T>(url: string) {
-    const { body } = await this.httpClient<PaginatedResponse<T>>(url)
-    return this._buildPaginatedResult(body)
-  }
-
-  private async _buildPaginatedResult<T>(body: PaginatedResponse<T>) {
-    return {
-      addresses: body.data,
-      nextPage: async () => {
-        const { next } = body.links
-        return next ? this._anotherPage(next) : undefined
-      },
-      prevPage: async () => {
-        const { prev } = body.links
-        return prev ? this._anotherPage(prev) : undefined
-      },
-      firstPage: async () => {
-        const { first } = body.links
-        return first ? this._anotherPage(first) : undefined
-      },
-      hasNext: Boolean(body.links.next),
-      hasPrev: Boolean(body.links.prev),
-    }
+  get fetch(): CreateHttpClient {
+    return this.httpClient
   }
 
   get httpHost() {
@@ -75,26 +51,10 @@ export class HTTPClient {
     return `fabric.${host.split('.').splice(1).join('.')}`
   }
 
-  public async getConversationHistory(options: GetConversationHistoriOption) {
-    const { subscriberId, addressId, limit = 15 } = options
-    const path = '/conversations'
-
-    const queryParams = new URLSearchParams()
-    queryParams.append('subscriber_id', subscriberId)
-    queryParams.append('address_id', addressId)
-    queryParams.append('limit', `${limit}`)
-
-    const { body } = await this.httpClient<FetchConversationHistoryResponse>(
-      `${path}?${queryParams.toString()}`
-    )
-
-    return this._buildPaginatedResult<ConversationHistory>(body)
-  }
-
   public async getAddresses(options?: GetAddressesOptions) {
     const { type, displayName, pageSize } = options || {}
 
-    let path = '/addresses' as const
+    let path = '/api/fabric/addresses'
 
     if (type || displayName || pageSize) {
       const queryParams = new URLSearchParams()
@@ -116,7 +76,7 @@ export class HTTPClient {
 
     const { body } = await this.httpClient<FetchAddressResponse>(path)
 
-    return this._buildPaginatedResult<Address>(body)
+    return buildPaginatedResult<Address>(body, this.httpClient)
   }
 
   public async registerDevice({

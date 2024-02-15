@@ -9,10 +9,10 @@ import {
   SDKWorkerParams,
   SwEventChannel,
   PubSubAction,
+  isMappableObject,
 } from '@signalwire/core'
-import { RoomSessionConnection } from '../../../BaseRoomSession'
-import { fromUnifiedEvent } from './mappers/UnifiedEventsMapper'
-import { isMappableObject } from 'packages/core/src/utils/mapObject'
+import { RoomSessionConnection } from '../../BaseRoomSession'
+import { fromUnifiedEvent } from './mappers/unifiedEventsMapper'
 import { unifiedTargetWorker } from './unifiedTargetWorker'
 
 export type VideoWorkerParams<T> = SDKWorkerParams<RoomSessionConnection> & {
