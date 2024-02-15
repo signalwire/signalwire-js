@@ -40,7 +40,7 @@ const segmentWatcher: SDKWorker<
 
   function isSegmentEvent(action: any) {
     //we track segments by callId not segmentId
-    return action.payload.callId == callId
+    return action.payload.call_id == callId
   }
 
   function* handleCallEvent(action: any) {
@@ -49,17 +49,19 @@ const segmentWatcher: SDKWorker<
     if (action.type === 'call.left') {
       if (isUnifedJWTSession(session)) {
         session.popCallInstanceRef()
+        return true; // stop this segements watcher
       }
     }
+    return false
   }
 
   while (true) {
     const action: any = yield sagaEffects.take(swEventChannel, isSegmentEvent)
-    yield sagaEffects.call(handleCallEvent, { action })
-    // TODO handle cancel
+    const shouldStop =  yield sagaEffects.call(handleCallEvent, action)
+    if(shouldStop) break;
   }
 
-  getLogger().debug(`call watcher ended from call: ${callId}`)
+  getLogger().debug(`call watcher ended for call: ${callId}`)
 }
 
 export const unifiedTargetWorker: SDKWorker<any> = function* (
@@ -70,7 +72,7 @@ export const unifiedTargetWorker: SDKWorker<any> = function* (
   logger.debug('unifiedTargetWorker started', action)
 
   if (action.type !== 'call.joined') return
-  const callId = action.payload.callId
+  const callId = action.payload.call_id
   const session = getSession()
 
   if (isUnifedJWTSession(session)) {
