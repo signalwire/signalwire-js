@@ -27,7 +27,7 @@ export class UnifiedJWTSession extends JWTSession {
 
   popCallInstanceRef(): InternalUnifiedMethodTarget | undefined {
     const target = this.callInstancesStack.pop()
-    this.logger.debug('Poping target from stack', target.callId)
+    this.logger.debug('Poping target from stack', target?.callId)
     return target
   }
 
