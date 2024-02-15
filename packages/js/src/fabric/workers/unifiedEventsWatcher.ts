@@ -44,7 +44,7 @@ function* debugEmitter({
 }) {
   const { type, payload } = action
   // @ts-expect-error
-  yield instance.emit(type, payload)
+  yield instance.emit(`__debug.${type}`, payload)
 }
 
 export const unifiedEventsWatcher: SDKWorker<RoomSessionConnection> =
