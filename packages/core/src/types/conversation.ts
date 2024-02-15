@@ -1,6 +1,6 @@
 import { SwEvent } from '..'
 
-export type ConversationMessage = 'conversation.message'
+export type ConversationMessageEventName = 'conversation.message'
 
 export interface ConversationMessageEventParams {
   conversation_id: string
@@ -19,7 +19,7 @@ export interface ConversationMessageEventParams {
 }
 
 export interface ConversationMessageEvent extends SwEvent {
-  event_type: ConversationMessage
+  event_type: ConversationMessageEventName
   params: ConversationMessageEventParams
 }
 
