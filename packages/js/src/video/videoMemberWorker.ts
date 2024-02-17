@@ -33,7 +33,7 @@ export const videoMemberWorker = function* (
     instance: roomSession,
     action: { type, payload },
     instanceMap: { get, set, remove },
-    getSession
+    getSession,
   } = options
 
   // For now, we are not storing the RoomSession object in the instance map
@@ -50,7 +50,6 @@ export const videoMemberWorker = function* (
   }
   //@ts-ignore in unified context id => member_id
   set<RoomSessionMember>(payload.member.member_id, memberInstance)
-
   const event = stripNamespacePrefix(type) as VideoMemberEventNames
 
   if (type.startsWith('video.member.updated.')) {
@@ -59,48 +58,50 @@ export const videoMemberWorker = function* (
     roomSession.emit(clientType, memberInstance)
   }
 
+
+  const toConsistentSelf = (memberInstance: RoomSessionMember) => {
+    const session = getSession()
+    if (isUnifedJWTSession(session)) {
+      if (session.isASelfInstance(memberInstance.id)) {
+        const executeSelf = session.getExcuteSelf()
+        return {
+          //@ts-ignore
+          ...memberInstance._payload.member,
+          id: executeSelf.memberId,
+          member_id: executeSelf.memberId,
+        }
+      }
+    }
+    return {
+      //@ts-ignore
+      ...memberInstance._payload.member,
+      id: memberInstance.id,
+    }
+  }
+
   switch (type) {
     case 'video.member.joined':
     case 'video.member.updated':
-      const session = getSession();
-      let toEmitMember;
-      if(isUnifedJWTSession(session)) {
-        if(session.isASelfInstance(memberInstance.id)) {
-          const executeSelf = session.getExcuteSelf()
-          toEmitMember = {
-            //@ts-ignore
-            ...memberInstance._payload.member,
-            id: executeSelf.memberId,
-            member_id: executeSelf.memberId 
-          }
-        } else {
-          toEmitMember = {
-            //@ts-ignore
-            ...memberInstance._payload.member,
-            id: memberInstance.id
-          }
-        }
-      } 
-      roomSession.emit(event, toEmitMember)
+      roomSession.emit(event, toConsistentSelf(memberInstance))
       break
     case 'video.member.left':
-      roomSession.emit(event, memberInstance)
+      roomSession.emit(event, toConsistentSelf(memberInstance))
       remove<RoomSessionMember>(payload.member.id)
       break
     case 'video.member.talking':
-      roomSession.emit(event, memberInstance)
+      roomSession.emit(event, toConsistentSelf(memberInstance))
       if ('talking' in payload.member) {
         const suffix = payload.member.talking ? 'started' : 'ended'
         roomSession.emit(
           `${event}.${suffix}` as MemberTalkingEventNames,
-          memberInstance
+          toConsistentSelf(memberInstance)
         )
 
         // Keep for backwards compatibility
         const deprecatedSuffix = payload.member.talking ? 'start' : 'stop'
         roomSession.emit(
           `${event}.${deprecatedSuffix}` as MemberTalkingEventNames,
-          memberInstance
+          toConsistentSelf(memberInstance)
         )
       }
       break
