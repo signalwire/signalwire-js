@@ -1,11 +1,13 @@
+import jwtDecode from 'jwt-decode'
 import {
-  FetchAddressResponse,
-  GetAddressesOptions,
   getLogger,
+  type Address,
+  type FetchAddressResponse,
+  type GetAddressesOptions,
   type UserOptions,
 } from '@signalwire/core'
-import { createHttpClient } from './createHttpClient'
-import jwtDecode from 'jwt-decode'
+import { CreateHttpClient, createHttpClient } from './createHttpClient'
+import { buildPaginatedResult } from '../utils/paginatedResult'
 
 type JWTHeader = { ch?: string; typ?: string }
 
@@ -16,7 +18,7 @@ interface RegisterDeviceParams {
 
 // TODO: extends from a Base class to share from core
 export class HTTPClient {
-  private httpClient: ReturnType<typeof createHttpClient>
+  private httpClient: CreateHttpClient
 
   constructor(public options: UserOptions) {
     this.httpClient = createHttpClient({
@@ -27,11 +29,14 @@ export class HTTPClient {
     })
   }
 
+  get fetch(): CreateHttpClient {
+    return this.httpClient
+  }
+
   get httpHost() {
-   
     let decodedJwt: JWTHeader = {}
     try {
-        decodedJwt = jwtDecode<JWTHeader>(this.options.token, {
+      decodedJwt = jwtDecode<JWTHeader>(this.options.token, {
         header: true,
       })
     } catch (e) {
@@ -47,11 +52,11 @@ export class HTTPClient {
   }
 
   public async getAddresses(options?: GetAddressesOptions) {
-    const { type, displayName } = options || {}
+    const { type, displayName, pageSize } = options || {}
 
-    let path = '/addresses' as const
+    let path = '/api/fabric/addresses'
 
-    if (type || displayName) {
+    if (type || displayName || pageSize) {
       const queryParams = new URLSearchParams()
 
       if (type) {
@@ -62,37 +67,16 @@ export class HTTPClient {
         queryParams.append('display_name', displayName)
       }
 
+      if (pageSize) {
+        queryParams.append('page_size', pageSize.toString())
+      }
+
       path += `?${queryParams.toString()}`
     }
 
     const { body } = await this.httpClient<FetchAddressResponse>(path)
 
-    const anotherPage = async (url: string) => {
-      const { body } = await this.httpClient<FetchAddressResponse>(url)
-      return buildResult(body)
-    }
-
-    const buildResult = (body: FetchAddressResponse) => {
-      return {
-        addresses: body.data,
-        nextPage: async () => {
-          const { next } = body.links
-          return next ? anotherPage(next) : undefined
-        },
-        prevPage: async () => {
-          const { prev } = body.links
-          return prev ? anotherPage(prev) : undefined
-        },
-        firstPage: async () => {
-          const { first } = body.links
-          return first ? anotherPage(first) : undefined
-        },
-        hasNext: Boolean(body.links.next),
-        hasPrev: Boolean(body.links.prev),
-      }
-    }
-
-    return buildResult(body)
+    return buildPaginatedResult<Address>(body, this.httpClient)
   }
 
   public async registerDevice({

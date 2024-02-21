@@ -905,6 +905,7 @@ export interface VideoRoomSubscribedEventParams {
   // FIXME: only for webrtc
   call_id: string
   member_id: string
+  node_id?: string 
 }
 
 export interface VideoRoomSubscribedEvent extends SwEvent {

@@ -1,6 +1,8 @@
 import { type UserOptions, getLogger, VertoSubscribe } from '@signalwire/core'
+import { Client } from '../Client'
+import { RoomSession } from '../RoomSession'
 import { createClient } from '../createClient'
-import { WSClientWorker } from './WSClientWorker'
+import { wsClientWorker, unifiedEventsWatcher } from './workers'
 
 interface PushNotification {
   encryption_type: 'aes_256_gcm'
@@ -25,24 +27,29 @@ export interface WSClientOptions extends UserOptions {
 }
 
 export class WSClient {
-  private wsClient: ReturnType<typeof createClient>
+  private wsClient: Client<RoomSession>
   private logger = getLogger()
 
   constructor(public options: WSClientOptions) {
-    this.wsClient = createClient({
+    this.wsClient = createClient<RoomSession>({
       host: this.options.host,
       token: this.options.token,
       debug: {
         logWsTraffic: true,
       },
       logLevel: 'debug',
+      unifiedEventing: true,
     })
+  }
+
+  get clientApi() {
+    return this.wsClient
   }
 
   connect() {
     // @ts-ignore
-    this.wsClient.runWorker('WSClientWorker', {
-      worker: WSClientWorker,
+    this.wsClient.runWorker('wsClientWorker', {
+      worker: wsClientWorker,
     })
     return this.wsClient.connect()
   }
@@ -88,6 +95,7 @@ export class WSClient {
           watchMediaPackets: false,
           // watchMediaPacketsTimeout:,
           nodeId: params.nodeId,
+          eventsWatcher: unifiedEventsWatcher,
           disableUdpIceServers: this.options.disableUdpIceServers || false,
         })
 

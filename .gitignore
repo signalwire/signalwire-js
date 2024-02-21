@@ -13,12 +13,14 @@ log.txt
 .vscode/
 .sass-cache/
 .versions/
+.devcontainer/
 node_modules/
 $RECYCLE.BIN/
 
 .DS_Store
 Thumbs.db
 UserInterfaceState.xcuserstate
+.env
 .env.local
 .env.development.local
 .env.test.local
@@ -31,3 +33,5 @@ yarn-error.log*
 
 coverage/
 public/
+.devcontainer
+
