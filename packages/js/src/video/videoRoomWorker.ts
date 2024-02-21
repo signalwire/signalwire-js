@@ -82,6 +82,13 @@ export const videoRoomWorker = function* (
           })
         },
       })
+      for(const memberPayload of payload.room_session.members) {
+        //@ts-expect-error
+        yield sagaEffects.fork(videoMemberWorker, {
+          ...options,
+          action: {type: 'video.member.joined', payload: {member: memberPayload}},
+        })
+      }
       roomSession.emit('room.subscribed', payload)
       break
     }
