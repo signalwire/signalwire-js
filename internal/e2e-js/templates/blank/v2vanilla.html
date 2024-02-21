@@ -250,6 +250,7 @@
         console.log("Call State: " ,ccallState);
         let msg =  currentCall.causeCode ? `Code:${currentCall.causeCode} Reason: ${currentCall.cause}` : `Early Media:${currentCall.gotEarly} Answered: ${currentCall.gotAnswer}`;
         callStatus.innerHTML = `${currentCall.prevState} -> ${currentCall.state} </br> ${msg}`;
+        console.log('State: ', call.state)
 
         switch (call.state) {
         case 'new': // Setup the UI
