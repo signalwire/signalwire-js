@@ -34,7 +34,7 @@ jobs:
           PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
       - name: Test
         id: run-tests
-        run: npm run -w=@sw-internal/e2e-js dev -- webrtcCalling.spec.ts v2WebrtcFromRest.spec.ts --project ${{ matrix.project }}
+        run: npm run -w=@sw-internal/e2e-js dev -- webrtcCalling.spec.ts v2WebrtcFromRest.spec.ts
         env:
           SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_JS_SW_TEST_CONFIG }}
       - name: Report Result
