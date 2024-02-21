@@ -19,9 +19,11 @@ test.describe('V2Calling', () => {
     await expect(hangupCall).toBeDisabled()
   }
 
-  test('should handle one webrtc endpoint calling to a second webrtc endpoint waiting to answer', async ({
+  test('should handle one to one calling', async ({
     createCustomVanillaPage,
   }) => {
+    console.info('START: should handle one to one calling')
+
     const pageCaller = await createCustomVanillaPage({ name: '[caller]' })
     await pageCaller.goto(SERVER_URL + '/v2vanilla.html')
 
@@ -110,11 +112,15 @@ test.describe('V2Calling', () => {
     // Wait for both caller and callee to hangup
     await expectCallHangup(pageCaller)
     await expectCallHangup(pageCallee)
+
+    console.info('END: should handle one to one calling')
   })
 
   test('should receive a call from LaML and expect an audio', async ({
     createCustomVanillaPage,
   }) => {
+    console.info('START: should receive a call from LaML and expect an audio')
+
     const RESOURCE = 'vanilla-laml-callee'
     const pageCallee = await createCustomVanillaPage({ name: '[callee]' })
     await pageCallee.goto(SERVER_URL + '/v2vanilla.html')
@@ -159,5 +165,7 @@ test.describe('V2Calling', () => {
 
     // Wait for callee to hangup
     await expectCallHangup(pageCallee)
+
+    console.info('END: should receive a call from LaML and expect an audio')
   })
 })
