@@ -9,7 +9,7 @@ import {
   expectv2TotalAudioEnergyToBeGreaterThan,
 } from '../../utils'
 
-test.describe('V2Calling', () => {
+test.describe('v2WebrtcCalling', () => {
   const expectCallHangup = async (page: Page) => {
     // Hangup call button locator
     const hangupCall = page.locator('#hangupCall')

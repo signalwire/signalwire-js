@@ -1,8 +1,4 @@
-import {
-  expect,
-  Page,
-  test
-} from '../../fixtures'
+import { expect, Page, test } from '../../fixtures'
 
 import {
   SERVER_URL,
@@ -15,10 +11,12 @@ import {
   randomizeRoomName,
 } from '../../utils'
 
-test.describe('V2Calling incoming from REST API', () => {
-  test('should handle one v2 webrtc endpoint connecting, receiving a call from a REST API Create Call request, answering and being connected to a Laml bin', async ({
+test.describe('v2WebrtcFromRest', () => {
+  test('should handle a call from LaML bin', async ({
     createCustomVanillaPage,
   }) => {
+    console.info('START: should handle a call from LaML bin')
+
     const expectCallActive = async (page: Page) => {
       // Hangup call button locator
       const hangupCall = page.locator('#hangupCall')
@@ -47,12 +45,12 @@ test.describe('V2Calling incoming from REST API', () => {
     expect(envRelayProject).not.toBe(null)
 
     const resource = randomizeResourceName()
-    const jwtCallee = await createTestJWTToken({ 'resource': resource })
+    const jwtCallee = await createTestJWTToken({ resource: resource })
     expect(jwtCallee).not.toBe(null)
 
     await expectRelayConnected(pageCallee, envRelayProject, jwtCallee)
 
-    const conferenceName = randomizeRoomName("v2rest")
+    const conferenceName = randomizeRoomName('v2rest')
     const conferenceRegion = process.env.LAML_CONFERENCE_REGION ?? ''
     const inlineLaml = `<?xml version="1.0" encoding="UTF-8"?>
       <Response>
@@ -68,33 +66,38 @@ test.describe('V2Calling incoming from REST API', () => {
         </Dial>
       </Response>`
 
-    console.log("inline Laml: ", inlineLaml)
-    const createResult = await createCallWithCompatibilityApi(resource, inlineLaml)
+    console.log('inline Laml: ', inlineLaml)
+    const createResult = await createCallWithCompatibilityApi(
+      resource,
+      inlineLaml
+    )
     expect(createResult).toBe(201)
-    console.log("REST API returned 201 at ", new Date())
+    console.log('REST API returned 201 at ', new Date())
 
     const callStatusCallee = pageCallee.locator('#callStatus')
     expect(callStatusCallee).not.toBe(null)
     await expect(callStatusCallee).toContainText('-> active')
 
-    console.log("The call is active at ", new Date())
+    console.log('The call is active at ', new Date())
 
     const callDurationMs = 20000
     // Call duration
     await pageCallee.waitForTimeout(callDurationMs)
 
-    console.log("Time to check the audio energy at ", new Date())
+    console.log('Time to check the audio energy at ', new Date())
 
     // Empirical value; it depends on the call scenario
     const minAudioEnergy = callDurationMs / 50000
 
     // Check the audio energy level is above threshold
-    console.log("Expected min audio energy: ", minAudioEnergy)
+    console.log('Expected min audio energy: ', minAudioEnergy)
     await expectv2TotalAudioEnergyToBeGreaterThan(pageCallee, minAudioEnergy)
 
     await expectCallActive(pageCallee)
-    console.log("Hanging up the call at ", new Date())
+    console.log('Hanging up the call at ', new Date())
     await pageCallee.click('#hangupCall')
     await expectCallHangup(pageCallee)
+
+    console.info('END: should handle a call from LaML bin')
   })
 })
