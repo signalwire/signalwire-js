@@ -19,7 +19,7 @@ test.describe('V2Calling', () => {
     await expect(hangupCall).toBeDisabled()
   }
 
-  test.skip('should handle one webrtc endpoint calling to a second webrtc endpoint waiting to answer', async ({
+  test('should handle one webrtc endpoint calling to a second webrtc endpoint waiting to answer', async ({
     createCustomVanillaPage,
   }) => {
     const pageCaller = await createCustomVanillaPage({ name: '[caller]' })
