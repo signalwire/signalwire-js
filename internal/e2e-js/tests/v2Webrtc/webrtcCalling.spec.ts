@@ -154,7 +154,7 @@ test.describe('v2WebrtcCalling', () => {
     expect(callStatusCallee).not.toBe(null)
     await expect(callStatusCallee).toContainText('-> active')
 
-    // Give some time to collect audio from both pages
+    // Give some time to collect audio from the callee
     await pageCallee.waitForTimeout(20000)
 
     console.log('Checking for audio energy')
