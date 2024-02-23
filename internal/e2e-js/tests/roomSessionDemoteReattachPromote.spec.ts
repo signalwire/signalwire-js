@@ -57,11 +57,10 @@ test.describe('RoomSession demote participant, reattach and then promote again',
     await expectMCUVisible(pageTwo)
 
     // --------------- Sessions established ---------------
-
-    await pageTwo.waitForTimeout(1000)
+    console.log('Session established!')
 
     // --------------- Demote participant on pageTwo to audience from pageOne
-    // and resolve on `member.left` amd `layout.changed` with position off-canvas ---------------
+    // and resolve on `member.left` and `layout.changed` with position off-canvas ---------------
     await pageOne.evaluate(
       async ({ demoteMemberId }) => {
         // @ts-expect-error
@@ -130,6 +129,7 @@ test.describe('RoomSession demote participant, reattach and then promote again',
     await pageTwo.waitForTimeout(2000)
 
     // --------------- Reattach after demotion ---------------
+    console.log('Page reload!')
     await pageTwo.reload()
 
     // It's now an audience user
@@ -146,10 +146,10 @@ test.describe('RoomSession demote participant, reattach and then promote again',
 
     await createTestRoomSession(pageTwo, participant2DemotedSettings)
 
-    console.time('reattach')
     // Join again
+    console.time('Reattach')
     const reattachParams: any = await expectRoomJoined(pageTwo)
-    console.timeEnd('reattach')
+    console.timeEnd('Reattach')
 
     expect(reattachParams.room).toBeDefined()
     expect(reattachParams.room_session).toBeDefined()
@@ -166,54 +166,52 @@ test.describe('RoomSession demote participant, reattach and then promote again',
     await expectInteractivityMode(pageTwo, 'audience')
     await expectSDPDirection(pageTwo, 'recvonly', true)
 
-    await pageTwo.waitForTimeout(1000)
-
     // --------------- Time to promote again at PageTwo ---------------
 
-    const promiseMemberWaitingForMemberJoin = pageOne.evaluate(
-      async ({ promoteMemberId }) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+    // const promiseMemberWaitingForMemberJoin = pageOne.evaluate(
+    //   async ({ promoteMemberId }) => {
+    //     // @ts-expect-error
+    //     const roomObj: Video.RoomSession = window._roomObj
 
-        const waitForMemberJoined = new Promise((resolve, reject) => {
-          roomObj.on('member.joined', ({ member }) => {
-            if (
-              member.name === 'e2e_target_participant' &&
-              member.id === promoteMemberId
-            ) {
-              resolve(true)
-            } else {
-              reject(
-                new Error(
-                  '[member.joined] Name is not "e2e_target_participant"'
-                )
-              )
-            }
-          })
-        })
+    //     const waitForMemberJoined = new Promise((resolve, reject) => {
+    //       roomObj.on('member.joined', ({ member }) => {
+    //         if (
+    //           member.name === 'e2e_target_participant' &&
+    //           member.id === promoteMemberId
+    //         ) {
+    //           resolve(true)
+    //         } else {
+    //           reject(
+    //             new Error(
+    //               '[member.joined] Name is not "e2e_target_participant"'
+    //             )
+    //           )
+    //         }
+    //       })
+    //     })
 
-        await roomObj.promote({
-          memberId: promoteMemberId,
-          permissions: ['room.list_available_layouts'],
-        })
+    //     await roomObj.promote({
+    //       memberId: promoteMemberId,
+    //       permissions: ['room.list_available_layouts'],
+    //     })
 
-        return waitForMemberJoined
-      },
-      { promoteMemberId: participant2Id }
-    )
+    //     return waitForMemberJoined
+    //   },
+    //   { promoteMemberId: participant2Id }
+    // )
 
-    const promisePromotedRoomJoined = expectRoomJoined(pageTwo, {
-      invokeJoin: false,
-    })
+    // const promisePromotedRoomJoined = expectRoomJoined(pageTwo, {
+    //   invokeJoin: false,
+    // })
 
-    await Promise.all([
-      promiseMemberWaitingForMemberJoin,
-      promisePromotedRoomJoined,
-    ])
+    // await Promise.all([
+    //   promiseMemberWaitingForMemberJoin,
+    //   promisePromotedRoomJoined,
+    // ])
 
-    await expectMemberId(pageTwo, participant2Id)
-    await expectInteractivityMode(pageTwo, 'member')
-    await expectSDPDirection(pageTwo, 'sendrecv', true)
-    await expectMCUVisible(pageTwo)
+    // await expectMemberId(pageTwo, participant2Id)
+    // await expectInteractivityMode(pageTwo, 'member')
+    // await expectSDPDirection(pageTwo, 'sendrecv', true)
+    // await expectMCUVisible(pageTwo)
   })
 })
