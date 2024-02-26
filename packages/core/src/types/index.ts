@@ -1,6 +1,10 @@
 import type { EventEmitter } from '../utils/EventEmitter'
 import type { VideoAPIEventParams, InternalVideoEventNames } from './video'
-import type { SessionEvents, JSONRPCRequest } from '../utils/interfaces'
+import type {
+  SessionEvents,
+  JSONRPCRequest,
+  JSONRPCResponse,
+} from '../utils/interfaces'
 import type { VideoManagerEvent } from './cantina'
 import type { ChatEvent } from './chat'
 import type { TaskEvent } from './task'
@@ -177,8 +181,18 @@ export interface ClientContract<
   ClientInstance,
   EventTypes extends EventEmitter.ValidEventTypes
 > extends EmitterContract<EventTypes> {
+  /**
+   * Connect the underlay WebSocket connection to the SignalWire network.
+   *
+   * @returns Promise that will resolve with the Client object.
+   *
+   * @example
+   *
+   * ```js
+   * client.connect()
+   * ```
+   */
   connect(): Promise<ClientInstance>
-
   /**
    * Disconnects this client. The client will stop receiving events and you will
    * need to create a new instance if you want to use it again.
@@ -190,6 +204,28 @@ export interface ClientContract<
    * ```
    */
   disconnect(): void
+  /**
+   * Mark the client as 'online' to receive calls over WebSocket
+   *
+   * @example
+   *
+   * ```js
+   * await client.online()
+   * ```
+   */
+  // TODO: Review return type
+  online(): Promise<JSONRPCResponse>
+  /**
+   * Mark the client as 'offline' to stop receiving calls over WebSocket
+   *
+   * @example
+   *
+   * ```js
+   * await client.offline()
+   * ```
+   */
+  // TODO: Review return type
+  offline(): Promise<JSONRPCResponse>
 }
 
 export interface DisconnectableClientContract<

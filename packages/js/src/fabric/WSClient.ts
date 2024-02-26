@@ -264,4 +264,14 @@ export class WSClient {
       this.wsClient.reauthenticate(token)
     })
   }
+
+  async online() {
+    await this.connect()
+    return this.wsClient.online()
+  }
+
+  async offline() {
+    await this.connect()
+    return this.wsClient.offline()
+  }
 }
