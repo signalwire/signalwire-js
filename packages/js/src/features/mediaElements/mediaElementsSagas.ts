@@ -419,6 +419,21 @@ function* videoElementSetupWorker({
     })
 
     layersWrapper.style.display = 'block'
+
+    const debugElement = document.getElementById('videoDebug');
+    if(debugElement) {
+      let statsElement = debugElement.querySelector('.video-stats')
+              if(!statsElement) {
+                statsElement = document.createElement('div');
+                statsElement.className = 'video-stats'
+                debugElement.appendChild(statsElement);
+              }
+      setInterval(() => {
+        const width = element.videoWidth;
+        const height = element.videoHeight;
+        statsElement!.innerHTML = `<strong>Video dimensions:</strong> ${width}x${height}px`
+      });
+    }
   } catch (error) {
     getLogger().error('Handle video track error', error)
   }
