@@ -4,15 +4,15 @@
  * methods.ts in realtime-api should be moved to core
  */
 
-import type {
-  VideoMemberEntity,
-  MemberCommandParams,
-  VideoPosition,
-  ExecuteExtendedOptions,
-  RoomMethod,
-  BaseRPCResult,
-  MediaAllowed,
-  VideoMeta,
+import {
+  type VideoMemberEntity,
+  type MemberCommandParams,
+  type VideoPosition,
+  type ExecuteExtendedOptions,
+  type RoomMethod,
+  type BaseRPCResult,
+  type MediaAllowed,
+  type VideoMeta,
 } from '@signalwire/core'
 import {
   RealTimeRoomPlaybackListeners,
@@ -233,23 +233,22 @@ export const startRecording: RoomMethodDescriptor<any> = {
     const promise = new Promise<RoomSessionRecording>(
       async (resolve, reject) => {
         const resolveHandler = (recording: RoomSessionRecording) => {
-          recording.attachListeners(listen)
-          if (listen?.onStarted) {
-            recording.emit('recording.started', recording)
-          }
           this.off('recording.ended', rejectHandler)
           resolve(recording)
         }
 
         const rejectHandler = (recording: RoomSessionRecording) => {
-          recording.attachListeners(listen)
-          if (listen?.onEnded) {
-            recording.emit('recording.ended', recording)
-          }
           this.off('recording.started', resolveHandler)
           reject(recording)
         }
 
+        // Subsribe to listeners
+        if (listen) {
+          mapActionListenersToRoomListeners.call(this, {
+            listeners: listen,
+            action: 'recording',
+          })
+        }
         this.once('recording.started', resolveHandler)
         this.once('recording.ended', rejectHandler)
 
@@ -345,21 +344,21 @@ export const play: RoomMethodDescriptor<any, PlayParams> = {
         const seek_position = seekPosition || currentTimecode
 
         const resolveHandler = (playback: RoomSessionPlayback) => {
-          playback.attachListeners(listen)
-          if (listen?.onStarted) {
-            playback.emit('playback.started', playback)
-          }
           this.off('playback.ended', rejectHandler)
           resolve(playback)
         }
 
         const rejectHandler = (playback: RoomSessionPlayback) => {
-          playback.attachListeners(listen)
-          if (listen?.onEnded) {
-            playback.emit('playback.ended', playback)
-          }
           this.off('playback.started', resolveHandler)
           reject(playback)
+        }
+
+        // Subsribe to listeners
+        if (listen) {
+          mapActionListenersToRoomListeners.call(this, {
+            listeners: listen,
+            action: 'playback',
+          })
         }
 
         this.once('playback.started', resolveHandler)
@@ -488,21 +487,21 @@ export const startStream: RoomMethodDescriptor<any, StartStreamParams> = {
   value: function ({ listen, ...params }) {
     const promise = new Promise<RoomSessionStream>(async (resolve, reject) => {
       const resolveHandler = (stream: RoomSessionStream) => {
-        stream.attachListeners(listen)
-        if (listen?.onStarted) {
-          stream.emit('stream.started', stream)
-        }
         this.off('stream.ended', rejectHandler)
         resolve(stream)
       }
 
       const rejectHandler = (stream: RoomSessionStream) => {
-        stream.attachListeners(listen)
-        if (listen?.onEnded) {
-          stream.emit('stream.ended', stream)
-        }
         this.off('stream.started', resolveHandler)
         reject(stream)
+      }
+
+      // Subsribe to listeners
+      if (listen) {
+        mapActionListenersToRoomListeners.call(this, {
+          listeners: listen,
+          action: 'stream',
+        })
       }
 
       this.once('stream.started', resolveHandler)
@@ -852,3 +851,62 @@ export type PromoteMember = ReturnType<typeof promote.value>
 export type DemoteMember = ReturnType<typeof demote.value>
 export type SetRaisedHand = ReturnType<typeof setRaisedHand.value>
 // End Room Member Methods
+
+/**
+ * This function converts action listeners into room listeners and attach those to room
+ * For eg: Playback's onStarted changes into onPlaybackStarted
+ */
+interface MapActionListenersToRoomListenerParams {
+  listeners:
+    | RealTimeRoomPlaybackListeners
+    | RealTimeRoomRecordingListeners
+    | RealTimeRoomStreamListeners
+  action: 'playback' | 'recording' | 'stream'
+}
+function mapActionListenersToRoomListeners(
+  this: BaseRoomInterface,
+  options: MapActionListenersToRoomListenerParams
+) {
+  const { listeners, action } = options
+
+  if (!['playback', 'recording', 'stream'].includes(action)) return
+
+  const playListenMapper = {
+    onStarted: 'onPlaybackStarted',
+    onUpdated: 'onPlaybackUpdated',
+    onEnded: 'onPlaybackEnded',
+  }
+
+  const recordListenMapper = {
+    onStarted: 'onRecordingStarted',
+    onUpdated: 'onRecordingUpdated',
+    onEnded: 'onRecordingEnded',
+  }
+
+  const streamListenMapper = {
+    onStarted: 'onStreamStarted',
+    onEnded: 'onStreamEnded',
+  }
+
+  let mapper: Record<string, string> = {}
+
+  if (action === 'playback') {
+    mapper = playListenMapper
+  }
+  if (action === 'recording') {
+    mapper = recordListenMapper
+  }
+  if (action === 'stream') {
+    mapper = streamListenMapper
+  }
+
+  const roomListeners = Object.keys(listeners).reduce((acc: any, key) => {
+    const mappedKey = mapper[key]
+    if (mappedKey) {
+      // @ts-expect-error
+      acc[mappedKey] = listeners[key]
+    }
+    return acc
+  }, {})
+  this.listen(roomListeners)
+}

@@ -19,7 +19,7 @@ jobs:
         node-version: [18.x]
         project: [default, streaming, slow]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install deps
         uses: ./.github/actions/install
         with:

@@ -106,13 +106,6 @@ export class RoomSessionPlayback
     this._payload = payload
   }
 
-  /** @internal */
-  attachListeners(listeners?: RealTimeRoomPlaybackListeners) {
-    if (listeners) {
-      this.listen(listeners)
-    }
-  }
-
   async pause() {
     if (this.hasEnded) {
       throw new Error('Action has ended')
