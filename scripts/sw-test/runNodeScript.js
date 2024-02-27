@@ -35,7 +35,7 @@ const getScriptOptions = (pathname, config) => {
 
     if (
       fs.lstatSync(itemPath).isFile() &&
-      normalizedPath.includes('.test.') &&
+      normalizedPath.includes('voicePlaybackToggle') &&
       !ignoreFiles.includes(normalizedPath)
     ) {
       acc.push({
