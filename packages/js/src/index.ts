@@ -30,8 +30,6 @@ import type {
   VideoMemberEntity,
 } from '@signalwire/core'
 
-import { SWClient, SignalWire } from './fabric'
-
 /** @ignore @deprecated */
 export type RoomStartedEventName = RoomStarted
 /** @ignore @deprecated */
@@ -59,10 +57,10 @@ export * as PubSub from './pubSub'
 
 /**
  * CallFabric namespace
- * @internal
  */
 export * as Fabric from './fabric'
-export { SWClient, SignalWire }
+export { SWClient, SignalWire } from './fabric'
+export type { SignalWireContract, SignalWireOptions } from './fabric'
 
 /**
  * The Video namespace contains the classes and functions that you need to
@@ -78,9 +76,6 @@ export * as Video from './video'
  */
 export * as WebRTC from './webrtc'
 
-export type { VideoPosition, VideoPositions } from '@signalwire/core'
-
-/** @ignore */
 export type {
   BaseComponentOptions,
   BaseConnectionState,
@@ -100,15 +95,22 @@ export type {
   MemberTalkingEventNames,
   VideoMemberTalkingEventParams,
   InternalVideoMemberEntity,
+  VideoPosition,
+  VideoPositions,
+  GetAddressesOptions,
+  Address,
+  GetConversationsOptions,
+  Conversation,
+  GetMessagesOptions,
+  ConversationMessage,
+  GetConversationMessagesOptions,
 } from '@signalwire/core'
 
-/** @ignore */
 export type {
   BaseConnectionOptions,
   ConnectionOptions,
 } from '@signalwire/webrtc'
 
-/** @ignore */
 export type {
   RoomSessionObjectEventsHandlerMap,
   RoomSessionObjectEvents,
