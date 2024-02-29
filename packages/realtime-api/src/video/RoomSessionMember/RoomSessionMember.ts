@@ -86,6 +86,10 @@ export class RoomSessionMember {
     return this._payload.member.requested_position
   }
 
+  get currentPosition() {
+    return this._payload.member.current_position
+  }
+
   get visible() {
     return this._payload.member.visible
   }

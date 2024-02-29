@@ -2,15 +2,28 @@ import { expect, Page, test } from '../../fixtures'
 
 import {
   SERVER_URL,
+  createCallWithCompatibilityApi,
   createTestJWTToken,
+  expectInjectRelayHost,
   expectRelayConnected,
   expectv2TotalAudioEnergyToBeGreaterThan,
 } from '../../utils'
 
-test.describe('V2Calling', () => {
-  test('should handle one webrtc endpoint calling to a second webrtc endpoint waiting to answer', async ({
+test.describe('v2WebrtcCalling', () => {
+  const expectCallHangup = async (page: Page) => {
+    // Hangup call button locator
+    const hangupCall = page.locator('#hangupCall')
+    expect(hangupCall).not.toBe(null)
+
+    // Wait for call to be hung up
+    await expect(hangupCall).toBeDisabled()
+  }
+
+  test('should handle one to one calling', async ({
     createCustomVanillaPage,
   }) => {
+    console.info('START: should handle one to one calling')
+
     const pageCaller = await createCustomVanillaPage({ name: '[caller]' })
     await pageCaller.goto(SERVER_URL + '/v2vanilla.html')
 
@@ -18,17 +31,6 @@ test.describe('V2Calling', () => {
     await pageCallee.goto(SERVER_URL + '/v2vanilla.html')
 
     const relayHost = process.env.RELAY_HOST ?? ''
-    const expectInjectRelayHost = async (page: Page, host: string) => {
-      await page.evaluate(
-        async (params) => {
-          // @ts-expect-error
-          window.__host = params.host
-        },
-        {
-          host: host,
-        }
-      )
-    }
 
     await expectInjectRelayHost(pageCaller, relayHost)
     await expectInjectRelayHost(pageCallee, relayHost)
@@ -90,10 +92,10 @@ test.describe('V2Calling', () => {
         return {
           localVideo:
             (document.getElementById('localVideo') as HTMLVideoElement)
-              ?.srcObject instanceof MediaStream,
+              .srcObject instanceof MediaStream,
           remoteVideo:
             (document.getElementById('remoteVideo') as HTMLVideoElement)
-              ?.srcObject instanceof MediaStream,
+              .srcObject instanceof MediaStream,
         }
       })
 
@@ -104,28 +106,66 @@ test.describe('V2Calling', () => {
     await expectVideoMediaStreams(pageCaller)
     await expectVideoMediaStreams(pageCallee)
 
-    // FIXME: Expect audio energy level is flaky
-    // Give some time to collect audio from both pages
-    await pageCaller.waitForTimeout(10000)
-
-    // Check the audio energy level is above threshold
-    await expectv2TotalAudioEnergyToBeGreaterThan(pageCaller, 0.4)
-    await expectv2TotalAudioEnergyToBeGreaterThan(pageCallee, 0.4)
-
     // Click the caller hangup button, which calls the hangup function in the browser
     await pageCaller.click('#hangupCall')
-
-    const expectCallHangup = async (page: Page) => {
-      // Hangup call button locator
-      const hangupCall = page.locator('#hangupCall')
-      expect(hangupCall).not.toBe(null)
-
-      // Wait for call to be hung up
-      await expect(hangupCall).toBeDisabled()
-    }
 
     // Wait for both caller and callee to hangup
     await expectCallHangup(pageCaller)
     await expectCallHangup(pageCallee)
+
+    console.info('END: should handle one to one calling')
+  })
+
+  test('should receive a call from LaML and expect an audio', async ({
+    createCustomVanillaPage,
+  }) => {
+    console.info('START: should receive a call from LaML and expect an audio')
+
+    const RESOURCE = 'vanilla-laml-callee'
+    const pageCallee = await createCustomVanillaPage({ name: '[callee]' })
+    await pageCallee.goto(SERVER_URL + '/v2vanilla.html')
+
+    const relayHost = process.env.RELAY_HOST ?? ''
+    await expectInjectRelayHost(pageCallee, relayHost)
+
+    const envRelayProject = process.env.RELAY_PROJECT ?? ''
+    expect(envRelayProject).not.toBe(null)
+
+    const jwtCallee = await createTestJWTToken({
+      resource: RESOURCE,
+    })
+    expect(jwtCallee).not.toBe(null)
+
+    // Wait for the callee to get connected to Relay
+    await expectRelayConnected(pageCallee, envRelayProject, jwtCallee)
+
+    // Dial to this callee from LaML
+    const inlineLaml = `<?xml version="1.0" encoding="UTF-8"?>
+      <Response>
+        <Play loop="0">https://cdn.signalwire.com/default-music/welcome.mp3</Play>
+      </Response>`
+    const createResult = await createCallWithCompatibilityApi(
+      RESOURCE,
+      inlineLaml
+    )
+    expect(createResult).toBe(201)
+
+    const callStatusCallee = pageCallee.locator('#callStatus')
+    expect(callStatusCallee).not.toBe(null)
+    await expect(callStatusCallee).toContainText('-> active')
+
+    // Give some time to collect audio from the callee
+    await pageCallee.waitForTimeout(20000)
+
+    console.log('Checking for audio energy')
+    await expectv2TotalAudioEnergyToBeGreaterThan(pageCallee, 0.1)
+
+    // Click the caller hangup button, which calls the hangup function in the browser
+    await pageCallee.click('#hangupCall')
+
+    // Wait for callee to hangup
+    await expectCallHangup(pageCallee)
+
+    console.info('END: should receive a call from LaML and expect an audio')
   })
 })

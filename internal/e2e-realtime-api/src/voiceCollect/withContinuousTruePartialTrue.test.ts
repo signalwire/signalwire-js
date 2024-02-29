@@ -7,13 +7,6 @@ import {
   makeSipDomainAppAddress,
 } from '../utils'
 
-const possibleExpectedTexts = [
-  '123456789 10:00 11:00 12:00',
-  'one two three four five six seven eight nine ten',
-  '1112',
-  'yes',
-]
-
 const handler: TestHandler = ({ domainApp }) => {
   if (!domainApp) {
     throw new Error('Missing domainApp')
@@ -69,7 +62,23 @@ const handler: TestHandler = ({ domainApp }) => {
                     console.log('>>> collect.started')
                   },
                   onUpdated: (_collect) => {
-                    console.log('>>> collect.updated', _collect.text)
+                    console.log('>>> collect.updated: [', _collect.text, '] - confidence: [', _collect.confidence, ']')
+
+                    /* With 'continuous' true, we may have 'final' true to indicate
+                     * a portion of speech has been correctly collected and this
+                     * part of collection has completed. We want to check even if the
+                     * overall collect has not ended yet.
+                     */
+                    if (_collect.final === true) {
+                      const collected_cleaned = _collect.text!.trim().replace(/\s+/g, '');
+                      console.log(">>> collected update cleaned: [", collected_cleaned, "]")
+                      const intermediate_result = '12345678910'
+
+                      tap.ok(
+                        collected_cleaned == intermediate_result,
+                        'Received Correct Updated Text'
+                      )
+                    }
                   },
                   onEnded: (_collect) => {
                     console.log('>>> collect.ended', _collect.text)
@@ -94,9 +103,16 @@ const handler: TestHandler = ({ domainApp }) => {
             setTimeout(() => call.hangup(), 100)
 
             const collected = await callCollect.ended()
+            console.log('>>> collect.ended: [', collected.text, '] - confidence: [', collected.confidence, ']')
+
+            const collected_cleaned = collected.text!.trim().replace(/\s+/g, '')
+            console.log(">>> collected cleaned: [", collected_cleaned, "]")
+            // Seen values: '11 12', '1112', '11121112'. '11 12th'
+            const final_expected: string = '1112'
+
             tap.ok(
-              possibleExpectedTexts.includes(collected.text!),
-              'Received Correct Text'
+              collected_cleaned.includes(final_expected),
+              'Received Correct Final Text'
             )
 
             // await call.hangup()
@@ -122,7 +138,7 @@ const handler: TestHandler = ({ domainApp }) => {
       await waitForCollectStart
 
       await call.playAudio({
-        url: 'https://amaswtest.s3-accelerate.amazonaws.com/newrecording2.mp3',
+        url: 'https://files.swire.io/e2e/1-12-counting.mp3',
       })
 
       // Inform callee that speech has completed
