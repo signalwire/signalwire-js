@@ -44,7 +44,6 @@ jobs:
           PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
       - name: Test
         id: run-tests
-        continue-on-error: true
         run: npm run -w=@sw-internal/e2e-js dev -- --project ${{ matrix.project }}
         env:
           SW_TEST_CONFIG: ${{ secrets.STAGING_E2E_JS_SW_TEST_CONFIG }}
