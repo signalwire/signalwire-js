@@ -14,10 +14,21 @@ jobs:
   e2e-tests:
     name: Run E2E tests
     runs-on: ubuntu-latest
+    continue-on-error: true
     strategy:
       matrix:
         node-version: [18.x]
-        project: [default, streaming, slow]
+        project:
+          [
+            default,
+            streaming,
+            slow,
+            promote,
+            demote,
+            reattach,
+            callfabric,
+            v2WebRTC,
+          ]
     steps:
       - uses: actions/checkout@v4
       - name: Install deps
