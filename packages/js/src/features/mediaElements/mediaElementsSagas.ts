@@ -15,11 +15,11 @@ import {
   waitForVideoReady,
   LocalOverlay,
   addSDKPrefix,
-  createRootElementResizeObserver,
 } from '../../utils/videoElement'
 import { setAudioMediaTrack } from '../../utils/audioElement'
 import { audioSetSpeakerAction } from '../actions'
 import type { RoomSessionConnection } from '../../BaseRoomSession'
+import { aspectRatioListener } from '../../utils/aspectRatioListener'
 
 export const makeVideoElementSaga = ({
   rootElement,
@@ -354,7 +354,7 @@ function* videoElementSetupWorker({
 
     element.style.width = '100%'
     element.style.maxHeight = '100%'
-
+    
     if (!applyLocalVideoOverlay) {
       rootElement.appendChild(element)
       return
@@ -374,10 +374,15 @@ function* videoElementSetupWorker({
 
     const paddingWrapper = document.createElement('div')
     paddingWrapper.classList.add('paddingWrapper')
-    paddingWrapper.style.paddingBottom = '56.25%'
     paddingWrapper.style.position = 'relative'
     paddingWrapper.style.width = '100%'
     paddingWrapper.appendChild(mcuWrapper)
+
+    //for less then 3 participants video call, the video aspect ratio can change
+    aspectRatioListener({
+      videoElement: element, 
+      paddingWrapper, 
+      fixInLandscapeOrientation: rootElement.classList.contains('landscape-ony') });
 
     const layersWrapper = document.createElement('div')
     layersWrapper.classList.add('mcuLayers')
@@ -406,34 +411,8 @@ function* videoElementSetupWorker({
     }
     getLogger().debug('MCU is ready..')
 
-    const rootElementResizeObserver = createRootElementResizeObserver({
-      rootElement,
-      video: element,
-      paddingWrapper,
-    })
-    rootElementResizeObserver.start()
-    track.addEventListener('ended', () => {
-      if (rootElementResizeObserver) {
-        rootElementResizeObserver.stop()
-      }
-    })
-
     layersWrapper.style.display = 'block'
 
-    const debugElement = document.getElementById('videoDebug');
-    if(debugElement) {
-      let statsElement = debugElement.querySelector('.video-stats')
-              if(!statsElement) {
-                statsElement = document.createElement('div');
-                statsElement.className = 'video-stats'
-                debugElement.appendChild(statsElement);
-              }
-      setInterval(() => {
-        const width = element.videoWidth;
-        const height = element.videoHeight;
-        statsElement!.innerHTML = `<strong>Video dimensions:</strong> ${width}x${height}px`
-      });
-    }
   } catch (error) {
     getLogger().error('Handle video track error', error)
   }
