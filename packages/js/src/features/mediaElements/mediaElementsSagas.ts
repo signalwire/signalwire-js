@@ -382,7 +382,7 @@ function* videoElementSetupWorker({
     aspectRatioListener({
       videoElement: element, 
       paddingWrapper, 
-      fixInLandscapeOrientation: rootElement.classList.contains('landscape-ony') });
+      fixInLandscapeOrientation: rootElement.classList.contains('landscape-only') });
 
     const layersWrapper = document.createElement('div')
     layersWrapper.classList.add('mcuLayers')
