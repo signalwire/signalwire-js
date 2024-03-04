@@ -37,6 +37,11 @@ interface IncomingCallHandlerParams {
   }
 }
 
+interface IncomingCallSubscrition {
+  handler: (invite:IncomingCallHandlerParams) => Promise<void> 
+  filter: 'all' | 'pushNotification' | 'websocket '
+}
+
 export interface WSClientOptions extends UserOptions {
   /** HTML element in which to display the video stream */
   rootElement?: HTMLElement
@@ -47,6 +52,7 @@ export interface WSClientOptions extends UserOptions {
 export class WSClient {
   private wsClient: Client<RoomSession>
   private logger = getLogger()
+  private _inviteSubscription: IncomingCallSubscrition | undefined
 
   constructor(public options: WSClientOptions) {
     this.wsClient = createClient<RoomSession>({
@@ -61,7 +67,9 @@ export class WSClient {
   }
 
   private _incomingCallHandler(invite: IncomingCallHandlerParams) {
-    // TODO apply source filter and fire callback
+    if(this._inviteSubscription && (this._inviteSubscription.filter === 'all' || this._inviteSubscription.filter === invite.source)) {
+      this._inviteSubscription.handler(invite);
+    }
   }
 
   /** @internal */
@@ -81,7 +89,7 @@ export class WSClient {
     return this.wsClient.disconnect()
   }
 
-  async dial(params: { to: string; nodeId?: string }) {
+  async dial(params: { to: string; nodeId?: string; rootElement: HTMLElement | undefined }) {
     return new Promise(async (resolve, reject) => {
       try {
         console.log('WSClient dial with:', params)
@@ -109,7 +117,7 @@ export class WSClient {
           negotiateAudio: true,
           negotiateVideo: true,
           // iceServers,
-          rootElement: this.options.rootElement,
+          rootElement: params.rootElement ?? this.options.rootElement,
           applyLocalVideoOverlay: true,
           stopCameraWhileMuted: true,
           stopMicrophoneWhileMuted: true,
@@ -200,13 +208,12 @@ export class WSClient {
         } catch (error) {
           this.logger.warn('Verto Subscribe', error)
         }
-
         const roomBuilder = async (rootElement: HTMLElement | undefined) => {
           const call = this.wsClient.rooms.makeRoomObject({
             //   ^?
             negotiateAudio: true,
             negotiateVideo: true,
-            rootElement: rootElement,
+            rootElement: rootElement ?? this.options.rootElement,
             applyLocalVideoOverlay: true,
             stopCameraWhileMuted: true,
             stopMicrophoneWhileMuted: true,
@@ -320,7 +327,8 @@ export class WSClient {
   /**
    * Mark the client as 'online' to receive calls over WebSocket
    */
-  online() {
+  online(options: IncomingCallSubscrition) {
+    this._inviteSubscription = options
     // @ts-expect-error
     return this.wsClient.execute({
       method: 'subscriber.online',
@@ -332,6 +340,7 @@ export class WSClient {
    * Mark the client as 'offline' to receive calls over WebSocket
    */
   offline() {
+    this._inviteSubscription = undefined
     // @ts-expect-error
     return this.wsClient.execute({
       method: 'subscriber.offline',
