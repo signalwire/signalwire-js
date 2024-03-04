@@ -42,16 +42,17 @@ export class WSClient {
     })
   }
 
+  /** @internal */
   get clientApi() {
     return this.wsClient
   }
 
-  connect() {
+  async connect() {
     // @ts-ignore
     this.wsClient.runWorker('wsClientWorker', {
       worker: wsClientWorker,
     })
-    return this.wsClient.connect()
+    await this.wsClient.connect()
   }
 
   disconnect() {
@@ -265,13 +266,25 @@ export class WSClient {
     })
   }
 
-  async online() {
-    await this.connect()
-    return this.wsClient.online()
+  /**
+   * Mark the client as 'online' to receive calls over WebSocket
+   */
+  online() {
+    // @ts-expect-error
+    return this.wsClient.execute({
+      method: 'subscriber.online',
+      params: {},
+    })
   }
 
-  async offline() {
-    await this.connect()
-    return this.wsClient.offline()
+  /**
+   * Mark the client as 'offline' to receive calls over WebSocket
+   */
+  offline() {
+    // @ts-expect-error
+    return this.wsClient.execute({
+      method: 'subscriber.offline',
+      params: {},
+    })
   }
 }

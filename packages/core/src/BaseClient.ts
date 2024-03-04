@@ -32,24 +32,4 @@ export class BaseClient<
   disconnect() {
     this.store.dispatch(destroyAction())
   }
-
-  /**
-   * Mark the client as 'online' to receive calls over WebSocket
-   */
-  online() {
-    return this.execute({
-      method: 'signalwire.online',
-      params: {},
-    })
-  }
-
-  /**
-   * Mark the client as 'offline' to receive calls over WebSocket
-   */
-  offline() {
-    return this.execute({
-      method: 'signalwire.offline',
-      params: {},
-    })
-  }
 }
