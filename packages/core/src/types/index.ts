@@ -177,8 +177,18 @@ export interface ClientContract<
   ClientInstance,
   EventTypes extends EventEmitter.ValidEventTypes
 > extends EmitterContract<EventTypes> {
+  /**
+   * Connect the underlay WebSocket connection to the SignalWire network.
+   *
+   * @returns Promise that will resolve with the Client object.
+   *
+   * @example
+   *
+   * ```js
+   * client.connect()
+   * ```
+   */
   connect(): Promise<ClientInstance>
-
   /**
    * Disconnects this client. The client will stop receiving events and you will
    * need to create a new instance if you want to use it again.

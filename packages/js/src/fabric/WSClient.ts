@@ -64,16 +64,17 @@ export class WSClient {
     // TODO apply source filter and fire callback
   }
 
+  /** @internal */
   get clientApi() {
     return this.wsClient
   }
 
-  connect() {
+  async connect() {
     // @ts-ignore
     this.wsClient.runWorker('wsClientWorker', {
       worker: wsClientWorker,
     })
-    return this.wsClient.connect()
+    await this.wsClient.connect()
   }
 
   disconnect() {
@@ -313,6 +314,28 @@ export class WSClient {
 
       // @ts-expect-error
       this.wsClient.reauthenticate(token)
+    })
+  }
+
+  /**
+   * Mark the client as 'online' to receive calls over WebSocket
+   */
+  online() {
+    // @ts-expect-error
+    return this.wsClient.execute({
+      method: 'subscriber.online',
+      params: {},
+    })
+  }
+
+  /**
+   * Mark the client as 'offline' to receive calls over WebSocket
+   */
+  offline() {
+    // @ts-expect-error
+    return this.wsClient.execute({
+      method: 'subscriber.offline',
+      params: {},
     })
   }
 }
