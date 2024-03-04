@@ -197,6 +197,7 @@ async function fetchAddresses() {
     const addressData = await client.address.getAddresses({
       type: selectedType === 'all' ? undefined : selectedType,
       displayName: !searchText.length ? undefined : searchText,
+      pageSize: 10,
     })
     window.__addressData = addressData
     updateAddressUI()
@@ -301,7 +302,9 @@ function updateHistoryUI() {
 async function fetchHistories() {
   if (!client) return
   try {
-    const historyData = await client.conversation.getConversations()
+    const historyData = await client.conversation.getConversations({
+      pageSize: 10,
+    })
     window.__historyData = historyData
     updateHistoryUI()
     subscribeToNewMessages()

@@ -37,10 +37,7 @@ export interface FetchAddressResponse extends PaginatedResponse<Address> {}
  * Conversations
  */
 export interface GetConversationsOptions {
-  limit?: number
-  since?: number
-  until?: number
-  cursor?: string
+  pageSize?: number
 }
 
 export interface Conversation {
@@ -59,10 +56,7 @@ export interface FetchConversationsResponse
  */
 
 export interface GetMessagesOptions {
-  limit?: number
-  since?: number
-  until?: number
-  cursor?: string
+  pageSize?: number
 }
 
 export interface ConversationMessage {
@@ -81,10 +75,7 @@ export interface FetchConversationMessagesResponse
 
 export interface GetConversationMessagesOptions {
   addressId: string
-  limit?: number
-  since?: number
-  until?: number
-  cursor?: string
+  pageSize?: number
 }
 
 export interface SubscriberInfoResponse {
