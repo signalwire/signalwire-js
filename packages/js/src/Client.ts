@@ -6,7 +6,7 @@ import {
   Chat as ChatNamespace,
   PubSub as PubSubNamespace,
 } from '@signalwire/core'
-import type { CustomSaga, JSONRPCResponse, SDKWorker } from '@signalwire/core'
+import type { CustomSaga, SDKWorker } from '@signalwire/core'
 import { ConnectionOptions } from '@signalwire/webrtc'
 import {
   makeVideoElementSaga,
@@ -26,28 +26,6 @@ export interface Client<RoomSessionType = RoomSession>
   rooms: ClientAPI<RoomSessionType>['rooms']
   chat: ClientAPI<RoomSessionType>['chat']
   pubSub: ClientAPI<RoomSessionType>['pubSub']
-  /**
-   * Mark the client as 'online' to receive calls over WebSocket
-   *
-   * @example
-   *
-   * ```js
-   * await client.online()
-   * ```
-   */
-  // TODO: Review return type
-  online(): Promise<JSONRPCResponse>
-  /**
-   * Mark the client as 'offline' to stop receiving calls over WebSocket
-   *
-   * @example
-   *
-   * ```js
-   * await client.offline()
-   * ```
-   */
-  // TODO: Review return type
-  offline(): Promise<JSONRPCResponse>
 }
 
 export interface MakeRoomOptions extends ConnectionOptions {
