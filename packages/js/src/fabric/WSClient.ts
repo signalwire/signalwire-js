@@ -1,8 +1,9 @@
-import { type UserOptions, getLogger, VertoSubscribe } from '@signalwire/core'
+import { type UserOptions, getLogger, VertoSubscribe, VertoBye } from '@signalwire/core'
 import { Client } from '../Client'
 import { RoomSession } from '../RoomSession'
 import { createClient } from '../createClient'
 import { wsClientWorker, unifiedEventsWatcher } from './workers'
+import { BaseRoomSession } from '../BaseRoomSession'
 
 interface PushNotification {
   encryption_type: 'aes_256_gcm'
@@ -17,6 +18,23 @@ interface PushNotification {
   iv: string
   version: string
   decrypted: Record<string, any>
+}
+
+interface IncomingCallHandlerParams {
+  source: 'websocket' | 'pushNotification'
+  invite: {
+    details: {
+      callID: string,
+      sdp: string,
+      caller_id_name: string,
+      caller_id_number: string,
+      callee_id_name: string,
+      callee_id_number: string,
+      display_direction: string,
+    }
+    accept: ({rootElement}: {rootElement: HTMLElement| undefined}) => Promise<BaseRoomSession<RoomSession>>,
+    reject: () => Promise<void>
+  }
 }
 
 export interface WSClientOptions extends UserOptions {
@@ -40,6 +58,10 @@ export class WSClient {
       logLevel: 'debug',
       unifiedEventing: true,
     })
+  }
+
+  private _incomingCallHandler(invite: IncomingCallHandlerParams) {
+    // TODO apply source filter and fire callback
   }
 
   get clientApi() {
@@ -178,56 +200,85 @@ export class WSClient {
           this.logger.warn('Verto Subscribe', error)
         }
 
-        // Build the Call object and return to the user
+        const roomBuilder = async (rootElement: HTMLElement | undefined) => {
+          const call = this.wsClient.rooms.makeRoomObject({
+            //   ^?
+            negotiateAudio: true,
+            negotiateVideo: true,
+            rootElement: rootElement,
+            applyLocalVideoOverlay: true,
+            stopCameraWhileMuted: true,
+            stopMicrophoneWhileMuted: true,
+            // speakerId,
+            watchMediaPackets: false,
+            // watchMediaPacketsTimeout:,
 
-        // const {
-        //   audio: audioFromConstructor = true,
-        //   video: videoFromConstructor = true,
-        //   iceServers,
-        //   rootElement,
-        //   applyLocalVideoOverlay = true,
-        //   stopCameraWhileMuted = true,
-        //   stopMicrophoneWhileMuted = true,
-        //   speakerId,
-        //   destinationNumber,
-        //   watchMediaPackets,
-        //   watchMediaPacketsTimeout,
-        //   ...userOptions
-        // } = params
+            remoteSdp: sdp,
+            prevCallId: callID,
+            nodeId,
+          })
 
-        const call = this.wsClient.rooms.makeRoomObject({
-          negotiateAudio: true,
-          negotiateVideo: true,
-          rootElement: this.options.rootElement,
-          applyLocalVideoOverlay: true,
-          stopCameraWhileMuted: true,
-          stopMicrophoneWhileMuted: true,
-          // speakerId,
-          watchMediaPackets: false,
-          // watchMediaPacketsTimeout:,
+          // WebRTC connection left the room.
+          call.once('destroy', () => {
+            getLogger().debug('RTC Connection Destroyed')
+          })
 
-          remoteSdp: sdp,
-          prevCallId: callID,
-          nodeId,
+          // @ts-expect-error
+          call.attachPreConnectWorkers()
+
+          // // @ts-expect-error
+          // call.attachOnSubscribedWorkers(payload)
+
+          // @ts-expect-error
+          await call.answer();
+
+          return call
+        }
+
+        const reject = () => {
+          return this._executeVertoBye(callID, nodeId)
+        }
+
+        this._incomingCallHandler({source: 'pushNotification', invite: {
+          details: {
+            callID,
+            sdp,
+            caller_id_name,
+            caller_id_number,
+            callee_id_name,
+            callee_id_number,
+            display_direction
+          },
+          accept: ({rootElement}: {rootElement: HTMLElement| undefined}) => roomBuilder(rootElement),
+          reject: () => reject()
+          }
         })
-
-        // WebRTC connection left the room.
-        call.once('destroy', () => {
-          getLogger().debug('RTC Connection Destroyed')
-        })
-
-        // @ts-expect-error
-        call.attachPreConnectWorkers()
-
-        // // @ts-expect-error
-        // call.attachOnSubscribedWorkers(payload)
-
-        getLogger().debug('Resolving Call', call)
-        resolve({ resultType: 'inboundCall', resultObject: call })
+        resolve({ resultType: 'inboundCall'})
       } catch (error) {
         reject(error)
       }
     })
+  }
+
+  private async _executeVertoBye(callId: string, nodeId: string) {
+    try {
+      // @ts-expect-error
+      return await this.wsClient.execute({
+        method: 'webrtc.verto',
+        params: {
+          callID: callId,
+          node_id: nodeId,
+          message: VertoBye({
+            cause: 'USER_BUSY',
+            causeCode: '17',
+            dialogParams: { callID: callId }
+          })
+        }
+      })
+    } catch(error) {
+      this.logger.warn('The call is not available anymore', callId)
+      throw error
+    }
   }
 
   private async executeVertoSubscribe(callId: string, nodeId: string) {
