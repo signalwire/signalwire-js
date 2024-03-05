@@ -1,9 +1,8 @@
-import { type UserOptions } from '@signalwire/core'
 import { HTTPClient } from './HTTPClient'
 import { WSClient, WSClientOptions } from './WSClient'
 import { Conversation } from './Conversation'
 
-export interface SignalWireOptions extends UserOptions, WSClientOptions {}
+export interface SignalWireOptions extends WSClientOptions {}
 
 export interface SignalWireContract {
   httpHost: HTTPClient['httpHost']
