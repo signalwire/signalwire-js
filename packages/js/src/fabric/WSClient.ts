@@ -2,6 +2,7 @@ import { type UserOptions, getLogger, VertoSubscribe, VertoBye } from '@signalwi
 import { Client } from '../Client'
 import { RoomSession } from '../RoomSession'
 import { createClient } from '../createClient'
+import { BaseRoomSession } from '../BaseRoomSession'
 import { wsClientWorker, unifiedEventsWatcher } from './workers'
 import { BaseRoomSession } from '../BaseRoomSession'
 
@@ -47,6 +48,19 @@ export interface WSClientOptions extends UserOptions {
   rootElement?: HTMLElement
   /** Disable ICE UDP transport policy */
   disableUdpIceServers?: boolean
+  /** Call back function to receive the incoming call */
+  onCallReceived?: (room: BaseRoomSession<unknown>) => unknown
+}
+
+interface BuildInboundCallParams {
+  callID: string
+  sdp: string
+  caller_id_name: string
+  caller_id_number: string
+  callee_id_name: string
+  callee_id_number: string
+  display_direction: string
+  nodeId: string
 }
 
 export class WSClient {
@@ -81,6 +95,9 @@ export class WSClient {
     // @ts-ignore
     this.wsClient.runWorker('wsClientWorker', {
       worker: wsClientWorker,
+      initialState: {
+        buildInboundCall: this.buildInboundCall,
+      },
     })
     await this.wsClient.connect()
   }
@@ -310,6 +327,49 @@ export class WSClient {
     }
   }
 
+  private buildInboundCall(payload: BuildInboundCallParams) {
+    getLogger().debug('Build new call to answer')
+
+    const { callID, nodeId, sdp } = payload
+
+    console.log('this.wsClient', this.wsClient)
+    console.log('this.wsClient.rooms', this.wsClient.rooms)
+    console.log(
+      'this.wsClient.rooms.makeRoomObject',
+      this.wsClient.rooms.makeRoomObject
+    )
+
+    const call = this.wsClient.rooms.makeRoomObject({
+      negotiateAudio: true,
+      negotiateVideo: true,
+      rootElement: this.options.rootElement,
+      applyLocalVideoOverlay: true,
+      stopCameraWhileMuted: true,
+      stopMicrophoneWhileMuted: true,
+      watchMediaPackets: false,
+      remoteSdp: sdp,
+      prevCallId: callID,
+      nodeId,
+    })
+
+    // WebRTC connection left the room.
+    call.once('destroy', () => {
+      getLogger().debug('RTC Connection Destroyed')
+    })
+
+    // @ts-expect-error
+    call.attachPreConnectWorkers()
+
+    getLogger().debug('Resolving Call', call)
+
+    if (this.options.onCallReceived) {
+      this.options.onCallReceived(call)
+    }
+  }
+
+  /**
+   * Allow user to update the auth token
+   */
   updateToken(token: string): Promise<void> {
     return new Promise((resolve, reject) => {
       this.wsClient.once('session.auth_error', (error) => {
